@@ -31,25 +31,32 @@
       const x = col * 900 + s[0], y = row * 600 + s[1];
       const wordData = d.words[w++];
       const [jp, zh, icon, romaji] = wordData;
+
+      let bType = "house_shop";
+      if (d.theme === "tavern" || d.theme === "market") bType = "house_tavern";
+      else if (d.theme === "mystic" || d.theme === "lotus") bType = "house_shrine";
+      else if (d.theme === "water" || d.theme === "sakura") bType = (si % 2 === 0 ? "house_shop" : "house_tavern");
+
       houses.push({
         id: houses.length,
         x, y,
         dx: x,
-        dy: y + 77,
+        dy: y + 90,
         color: d.color,
+        bType,
         district: d.name,
         word: { jp, zh, icon, romaji: romaji || "" }
       });
     });
   });
 
-  houses.forEach(h => solids.push({ x0: h.x - 56, x1: h.x + 56, y0: h.y - 42, y1: h.y + 60 }));
+  houses.forEach(h => solids.push({ x0: h.x - 75, x1: h.x + 75, y0: h.y - 45, y1: h.y + 70 }));
   const ALL = houses.map(h => h.word);
   const blocked = (x, y, r = 18) => solids.some(s => Math.hypot(x - clamp(x, s.x0, s.x1), y - clamp(y, s.y0, s.y1)) < r);
 
   const LAMPS = [];
   [450, 1350, 2250].forEach(x => [300, 900, 1500].forEach(y => LAMPS.push({ x: x + 62, y: y - 62 })));
-  const ansPos = h => [{ x: h.x - 110, y: h.y + 96 }, { x: h.x + 110, y: h.y + 96 }, { x: h.x, y: h.y + 160 }];
+  const ansPos = h => [{ x: h.x - 120, y: h.y + 120 }, { x: h.x + 120, y: h.y + 120 }, { x: h.x, y: h.y + 185 }];
 
   // ---------- 遊戲狀態 ----------
   const P = { x: 1350, y: 900, hp: 6, maxHp: 6, inv: 0 };
@@ -681,56 +688,78 @@
       ctx.fillText("🏮", l.x, l.y + 10);
     });
 
-    // 4. 委託氣泡 (町屋上方)
+    // 4. 委託氣泡 (町屋上方和風繪卷木札)
     for (const o of orders) {
       const h = o.from;
-      const floatY = h.y - 165 + Math.sin(elapsed * 3.5 + h.id) * 4;
+      const floatY = h.y - 175 + Math.sin(elapsed * 3.5 + h.id) * 4;
       const isTarget = (inter === o);
 
       ctx.save();
-      // 氣泡背景 (日式和紙底色)
-      ctx.fillStyle = "#fffbf0";
+      // 繪卷底框（黑漆金箔底）
+      ctx.fillStyle = isTarget ? "#fffbf0" : "#f7f0df";
       ctx.beginPath();
-      ctx.roundRect(h.x - 84, floatY, 168, 76, 12);
+      ctx.roundRect(h.x - 90, floatY, 180, 78, 10);
       ctx.fill();
-      ctx.strokeStyle = isTarget ? "#ff8833" : "#4a3c31";
+      ctx.strokeStyle = isTarget ? "#ff8833" : "#8c724b";
       ctx.lineWidth = isTarget ? 3.5 : 2;
       ctx.stroke();
 
+      // 金箔頂飾
+      ctx.fillStyle = isTarget ? "#ff8833" : "#c29d5b";
+      ctx.fillRect(h.x - 90, floatY, 180, 4);
+
       ctx.textAlign = "center";
-      ctx.fillStyle = "#261e19";
-      ctx.font = "bold 17px 'Zen Maru Gothic', sans-serif";
+      ctx.fillStyle = "#1e1824";
+      ctx.font = "900 17px 'Zen Maru Gothic', sans-serif";
       ctx.fillText(o.rev ? `📝 ${o.word.jp}をください` : `${o.word.icon} ${o.word.jp}`, h.x, floatY + 30);
 
       ctx.font = "bold 14px 'Noto Sans JP', sans-serif";
-      ctx.fillStyle = "#63503c";
+      ctx.fillStyle = "#5c4834";
       ctx.fillText(`送往：${o.to.word.jp}`, h.x, floatY + 56);
 
-      // 剩餘時間條
-      ctx.fillStyle = "#ffaa33";
-      ctx.fillRect(h.x - 70, floatY + 68, (140 * o.life) / 95, 3);
+      // 剩餘時間條 (金黃至火紅)
+      ctx.fillStyle = "#ffa726";
+      ctx.fillRect(h.x - 75, floatY + 68, (150 * o.life) / 95, 3.5);
       ctx.restore();
+
+      // 站在門口時顯示專屬取貨標籤
+      if (inter === o) {
+        ctx.save();
+        ctx.fillStyle = "#ffeed4";
+        ctx.beginPath();
+        ctx.roundRect(h.dx - 48, h.dy - 18, 96, 28, 8);
+        ctx.fill();
+        ctx.strokeStyle = "#ff8833";
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#1a1622";
+        ctx.font = "900 14px 'Zen Maru Gothic', sans-serif";
+        ctx.fillText("按 E 取貨", h.dx, h.dy + 1);
+        ctx.restore();
+      }
     }
 
-    // 5. 送達判定圈
+    // 5. 送達判定圈 (和風結界魔法陣)
     if (job && dist(P, job.to) < 330) {
       ansPos(job.to).forEach((p, i) => {
         const cur = (job.idx === i);
         ctx.save();
-        ctx.fillStyle = cur ? "rgba(255, 235, 150, 0.95)" : "rgba(255, 255, 255, 0.75)";
+        // 陣底柔光
+        ctx.fillStyle = cur ? "rgba(255, 235, 140, 0.95)" : "rgba(255, 255, 255, 0.85)";
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 32, 0, 6.28);
+        ctx.arc(p.x, p.y, 35, 0, 6.28);
         ctx.fill();
-        ctx.strokeStyle = cur ? "#ff8833" : "#3b4766";
-        ctx.lineWidth = cur ? 4 : 2;
+        ctx.strokeStyle = cur ? "#ff7700" : "#c29d5b";
+        ctx.lineWidth = cur ? 4.5 : 2.5;
         ctx.stroke();
 
-        // 蓄力環 (站立 0.5 秒)
+        // 結界蓄力外環 (站立 0.5 秒)
         if (cur) {
-          ctx.strokeStyle = "#ff7700";
+          ctx.strokeStyle = "#ff5500";
           ctx.lineWidth = 6;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, 38, -1.57, -1.57 + 6.283 * Math.min(1, job.hold / 0.5));
+          ctx.arc(p.x, p.y, 42, -1.57, -1.57 + 6.283 * Math.min(1, job.hold / 0.5));
           ctx.stroke();
         }
 

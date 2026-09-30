@@ -2,7 +2,10 @@
 window.ART = {};
 window.ART_READY = false;
 
-const ASSET_NAMES = ["player", "ghost", "mis", "boss", "runner", "tank", "shooter", "cover"];
+const ASSET_NAMES = [
+  "player", "ghost", "mis", "boss", "runner", "tank", "shooter", "cover",
+  "house_shop", "house_shrine", "house_tavern", "prop_torii"
+];
 let loadedCount = 0;
 
 ASSET_NAMES.forEach(n => {
@@ -15,7 +18,7 @@ ASSET_NAMES.forEach(n => {
     }
   };
   img.onerror = () => {
-    console.warn(`[Assets] 圖片 assets/img/${n}.png (或 .jpg) 載入失敗，將使用高品質程式程序化繪製備援。`);
+    console.warn(`[Assets] 圖片 assets/img/${n}.png (或 .jpg) 載入失敗，將使用程式繪製備援。`);
   };
   img.src = (n === "cover") ? "assets/img/cover.jpg" : "assets/img/" + n + ".png";
 });
