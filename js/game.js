@@ -41,7 +41,7 @@
         id: houses.length,
         x, y,
         dx: x,
-        dy: y + 90,
+        dy: y + 60,
         color: d.color,
         bType,
         district: d.name,
@@ -50,13 +50,13 @@
     });
   });
 
-  houses.forEach(h => solids.push({ x0: h.x - 75, x1: h.x + 75, y0: h.y - 45, y1: h.y + 70 }));
+  houses.forEach(h => solids.push({ x0: h.x - 48, x1: h.x + 48, y0: h.y - 25, y1: h.y + 45 }));
   const ALL = houses.map(h => h.word);
   const blocked = (x, y, r = 18) => solids.some(s => Math.hypot(x - clamp(x, s.x0, s.x1), y - clamp(y, s.y0, s.y1)) < r);
 
   const LAMPS = [];
   [450, 1350, 2250].forEach(x => [300, 900, 1500].forEach(y => LAMPS.push({ x: x + 62, y: y - 62 })));
-  const ansPos = h => [{ x: h.x - 120, y: h.y + 120 }, { x: h.x + 120, y: h.y + 120 }, { x: h.x, y: h.y + 185 }];
+  const ansPos = h => [{ x: h.x - 85, y: h.y + 75 }, { x: h.x + 85, y: h.y + 75 }, { x: h.x, y: h.y + 122 }];
 
   // ---------- 遊戲狀態 ----------
   const P = { x: 1350, y: 900, hp: 6, maxHp: 6, inv: 0 };
@@ -77,7 +77,7 @@
     fire: { jp: "ファイアボール", zh: "狐火炎" },
     thunder: { jp: "サンダー", zh: "天狐雷" }
   };
-  let proj = [], eb = [], surgeT = 40, fAng = 0;
+  let proj = [], surgeT = 40, fAng = 0;
   const wT = { boom: 0, thunder: 0 };
 
   const UP = [
@@ -530,22 +530,18 @@
       }
     }
 
-    // 敵人邏輯與傷害碰撞
+    // 敵人邏輯與傷害碰撞（純近戰衝撞，完全移除彈幕射擊）
     for (const e of enemies) {
       if (e.hp <= 0) continue;
       e.flash = Math.max(0, e.flash - dt);
       const dx = P.x - e.x, dy = P.y - e.y;
       const d = Math.hypot(dx, dy) || 1;
-      const dir = e.type === "shooter" ? (d > 300 ? 1 : d < 220 ? -1 : 0) : 1;
-      e.x += (dx / d) * e.speed * dt * dir;
-      e.y += (dy / d) * e.speed * dt * dir;
 
-      if (e.type === "shooter" && (e.cd -= dt) <= 0) {
-        e.cd = 2.4;
-        eb.push({ x: e.x, y: e.y, vx: (dx / d) * 220, vy: (dy / d) * 220, life: 4 });
-      }
+      // 所有怪物皆朝玩家逼近衝撞
+      e.x += (dx / d) * e.speed * dt;
+      e.y += (dy / d) * e.speed * dt;
 
-      const hitRadius = (e.type === "boss" ? 54 : e.type === "tank" ? 34 : e.type === "mis" ? 34 : 26);
+      const hitRadius = (e.type === "boss" ? 52 : e.type === "tank" ? 34 : e.type === "mis" ? 32 : 25);
       if (P.inv <= 0 && d < hitRadius) {
         P.hp -= e.type === "tank" ? 2 : 1;
         P.inv = 1.1;
@@ -556,23 +552,6 @@
         if (P.hp <= 0) { state = "lost"; return; }
       }
     }
-
-    // 敵人彈幕碰撞
-    for (const q of eb) {
-      q.x += q.vx * dt;
-      q.y += q.vy * dt;
-      q.life -= dt;
-      if (P.inv <= 0 && Math.hypot(q.x - P.x, q.y - P.y) < 16) {
-        q.life = 0;
-        P.hp--;
-        P.inv = 1.1;
-        RENDERER.triggerShake(8);
-        burst(P.x, P.y, "#ff8f8f", 12);
-        AUDIO.hurt();
-        if (P.hp <= 0) { state = "lost"; return; }
-      }
-    }
-    eb = eb.filter(q => q.life > 0);
     enemies = enemies.filter(e => e.hp > 0 && (e.type === "boss" || dist(e, P) < 1150));
 
     // Boss 生成
@@ -674,8 +653,53 @@
     // 1. 地面與道路
     RENDERER.drawGround(elapsed, DAWN);
 
-    // 2. 町屋建築
-    houses.forEach(h => RENDERER.drawHouse(h, hintT));
+    // 2. 町屋建築（帶遠程導引光柱與標記）
+    houses.forEach(h => {
+      const hasOrder = orders.some(o => o.from === h);
+      const isDestination = job && job.to === h;
+      RENDERER.drawHouse(h, hintT);
+
+      // 若有待接委託：升起顯眼的金色導引光柱與包裹圖標
+      if (hasOrder) {
+        const floatY = h.y - 75 + Math.sin(elapsed * 4 + h.id) * 4;
+        ctx.save();
+        const beam = ctx.createLinearGradient(0, floatY - 24, 0, h.y - 8);
+        beam.addColorStop(0, "rgba(255, 215, 80, 0.45)");
+        beam.addColorStop(1, "rgba(255, 215, 80, 0)");
+        ctx.fillStyle = beam;
+        ctx.fillRect(h.x - 10, floatY - 24, 20, h.y - floatY + 16);
+
+        ctx.fillStyle = "#ffd54f";
+        ctx.beginPath();
+        ctx.arc(h.x, floatY, 13, 0, 6.28);
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.textAlign = "center";
+        ctx.font = "14px sans-serif";
+        ctx.fillText("📦", h.x, floatY + 5);
+        ctx.restore();
+      }
+
+      // 若為送貨目的地：升起靈光鳥居標記
+      if (isDestination) {
+        const floatY = h.y - 80 + Math.sin(elapsed * 4) * 4;
+        ctx.save();
+        ctx.fillStyle = "#40c4ff";
+        ctx.beginPath();
+        ctx.arc(h.x, floatY, 14, 0, 6.28);
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.textAlign = "center";
+        ctx.font = "15px sans-serif";
+        ctx.fillText("⛩", h.x, floatY + 5);
+        ctx.restore();
+      }
+    });
 
     // 3. 街角提燈 (🏮)
     LAMPS.forEach(l => {
@@ -691,14 +715,14 @@
     // 4. 委託氣泡 (町屋上方和風繪卷木札)
     for (const o of orders) {
       const h = o.from;
-      const floatY = h.y - 175 + Math.sin(elapsed * 3.5 + h.id) * 4;
+      const floatY = h.y - 120 + Math.sin(elapsed * 3.5 + h.id) * 4;
       const isTarget = (inter === o);
 
       ctx.save();
       // 繪卷底框（黑漆金箔底）
       ctx.fillStyle = isTarget ? "#fffbf0" : "#f7f0df";
       ctx.beginPath();
-      ctx.roundRect(h.x - 90, floatY, 180, 78, 10);
+      ctx.roundRect(h.x - 84, floatY, 168, 70, 10);
       ctx.fill();
       ctx.strokeStyle = isTarget ? "#ff8833" : "#8c724b";
       ctx.lineWidth = isTarget ? 3.5 : 2;
@@ -706,20 +730,20 @@
 
       // 金箔頂飾
       ctx.fillStyle = isTarget ? "#ff8833" : "#c29d5b";
-      ctx.fillRect(h.x - 90, floatY, 180, 4);
+      ctx.fillRect(h.x - 84, floatY, 168, 4);
 
       ctx.textAlign = "center";
       ctx.fillStyle = "#1e1824";
-      ctx.font = "900 17px 'Zen Maru Gothic', sans-serif";
-      ctx.fillText(o.rev ? `📝 ${o.word.jp}をください` : `${o.word.icon} ${o.word.jp}`, h.x, floatY + 30);
+      ctx.font = "900 16px 'Zen Maru Gothic', sans-serif";
+      ctx.fillText(o.rev ? `📝 ${o.word.jp}をください` : `${o.word.icon} ${o.word.jp}`, h.x, floatY + 28);
 
-      ctx.font = "bold 14px 'Noto Sans JP', sans-serif";
+      ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
       ctx.fillStyle = "#5c4834";
-      ctx.fillText(`送往：${o.to.word.jp}`, h.x, floatY + 56);
+      ctx.fillText(`送往：${o.to.word.jp}`, h.x, floatY + 50);
 
       // 剩餘時間條 (金黃至火紅)
       ctx.fillStyle = "#ffa726";
-      ctx.fillRect(h.x - 75, floatY + 68, (150 * o.life) / 95, 3.5);
+      ctx.fillRect(h.x - 70, floatY + 62, (140 * o.life) / 95, 3.5);
       ctx.restore();
 
       // 站在門口時顯示專屬取貨標籤
@@ -727,14 +751,14 @@
         ctx.save();
         ctx.fillStyle = "#ffeed4";
         ctx.beginPath();
-        ctx.roundRect(h.dx - 48, h.dy - 18, 96, 28, 8);
+        ctx.roundRect(h.dx - 45, h.dy - 16, 90, 26, 7);
         ctx.fill();
         ctx.strokeStyle = "#ff8833";
         ctx.lineWidth = 2.5;
         ctx.stroke();
         ctx.textAlign = "center";
         ctx.fillStyle = "#1a1622";
-        ctx.font = "900 14px 'Zen Maru Gothic', sans-serif";
+        ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
         ctx.fillText("按 E 取貨", h.dx, h.dy + 1);
         ctx.restore();
       }
@@ -827,13 +851,6 @@
       }
     }
 
-    // 10. 敵方子彈
-    for (const q of eb) {
-      ctx.fillStyle = "#ff4d64";
-      ctx.beginPath();
-      ctx.arc(q.x, q.y, 7, 0, 6.28);
-      ctx.fill();
-    }
 
     // 11. 貨物包裹跟隨
     if (job) {
@@ -1064,7 +1081,7 @@
       drawWorld();
       UI.drawHud(
         ctx, P, oil, elapsed, DAWN, delivered, failed, score, level, xp, xpNeed(),
-        job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, WL, WI
+        job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, WL, WI, b
       );
       if (bossQ) UI.drawBossQuiz(ctx, bossQ);
       if (state === "levelup") UI.drawLevelUp(ctx, level, choices);

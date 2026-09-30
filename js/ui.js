@@ -1,9 +1,9 @@
-// 使用者介面（UI）：商業級和風黑漆金箔繪卷 HUD、HoloCure 風格 3D 浮雕卡牌、黎明天球儀與高級圖鑑
+// 使用者介面（UI）：商業級全螢幕懸浮式 HUD、HoloCure 風格武器圖標槽、純視覺化無文字冗餘
 window.UI = (() => {
   const W = 900, H = 600;
 
-  // 輔助繪圖：日式黑漆金箔圓角框
-  function lacquerBox(ctx, x, y, w, h, r = 8, fill = "#141824", stroke = "#d4af37", strokeW = 2) {
+  // 繪製日式黑漆金箔懸浮圓角框
+  function glassBox(ctx, x, y, w, h, r = 10, fill = "rgba(14, 18, 30, 0.82)", stroke = "rgba(212, 175, 55, 0.55)", strokeW = 1.5) {
     ctx.save();
     ctx.beginPath();
     ctx.roundRect(x, y, w, h, r);
@@ -20,7 +20,6 @@ window.UI = (() => {
   // 1. 主選單 (Title / Cover Screen)
   function drawMainMenu(ctx, STORE, elapsed) {
     ctx.save();
-    // 繪製商業級封面圖（帶微幅縮放呼吸感）
     if (window.ART.cover) {
       const zoom = 1.0 + Math.sin(elapsed * 0.8) * 0.02;
       ctx.save();
@@ -33,15 +32,13 @@ window.UI = (() => {
       ctx.fillRect(0, 0, W, H);
     }
 
-    // 豪華黑漆暗角與日式繪卷底紋
     const vig = ctx.createLinearGradient(0, 0, 0, H);
     vig.addColorStop(0, "rgba(6, 9, 20, 0.45)");
-    vig.addColorStop(0.6, "rgba(6, 9, 20, 0.65)");
+    vig.addColorStop(0.65, "rgba(6, 9, 20, 0.65)");
     vig.addColorStop(1, "rgba(6, 9, 20, 0.96)");
     ctx.fillStyle = vig;
     ctx.fillRect(0, 0, W, H);
 
-    // 遊戲副標題與和風特色
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffeed4";
     ctx.font = "900 22px 'Zen Maru Gothic', sans-serif";
@@ -49,29 +46,26 @@ window.UI = (() => {
     ctx.shadowBlur = 10;
     ctx.fillText("百鬼橫行之夜・單字配達物語", W / 2, 385);
 
-    // 核心玩法導引卡 (黑漆金邊)
-    lacquerBox(ctx, W / 2 - 330, 412, 660, 94, 12, "rgba(18, 22, 36, 0.9)", "#d4af37", 2);
+    // 核心操作導引
+    glassBox(ctx, W / 2 - 320, 412, 640, 92, 12, "rgba(18, 22, 36, 0.9)", "#d4af37", 2);
     ctx.font = "bold 15px 'Noto Sans JP', sans-serif";
     ctx.fillStyle = "#dfe8ff";
     ctx.fillText("【取貨】到各家町屋門口按 E，記住日文單字　【送貨】在正確名字圈內站 0.5 秒", W / 2, 440);
-    ctx.fillText("【戰鬥】妖刀自動連斬周圍妖怪　【衝刺】Shift 或 觸控鍵　【燈油】送貨補充", W / 2, 464);
+    ctx.fillText("【戰鬥】妖刀自動連斬四周妖怪　【衝刺】Shift 或 觸控鍵　【燈油】送貨補充", W / 2, 464);
     ctx.fillStyle = "#ffd27a";
     ctx.font = "bold 14px 'Noto Sans JP', sans-serif";
     ctx.fillText("WASD 移動　H 提示(-3油)　M 靜音　C 妖怪單字圖鑑", W / 2, 488);
 
-    // 開始提示（呼吸金色光芒）
     const blink = 0.65 + 0.35 * Math.sin(elapsed * 5);
     ctx.fillStyle = `rgba(255, 230, 150, ${blink})`;
     ctx.font = "900 25px 'Kaisei Decol', 'Noto Sans JP', serif";
     ctx.fillText("— 按 ENTER 或 點擊任意處開始夜行 —", W / 2, 545);
 
-    // 最佳紀錄金牌
     ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
     ctx.font = "14px 'Noto Sans JP', sans-serif";
     ctx.fillText(`最高得分：${STORE.data.best || 0}　最高送達：${STORE.data.bestDel || 0} 件`, W / 2, 580);
 
-    // 圖鑑按鈕
-    lacquerBox(ctx, W - 145, 22, 125, 38, 8, "rgba(24, 30, 52, 0.9)", "#e3b35d", 2);
+    glassBox(ctx, W - 145, 22, 125, 38, 8, "rgba(24, 30, 52, 0.9)", "#e3b35d", 2);
     ctx.fillStyle = "#ffeed4";
     ctx.font = "bold 15px 'Zen Maru Gothic', sans-serif";
     ctx.fillText("📖 單字圖鑑 [C]", W - 82, 47);
@@ -79,35 +73,53 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 2. 遊戲主畫面 HUD（商業級和風黑漆金箔儀表板）
-  function drawHud(ctx, P, oil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, WL, WI) {
+  // 2. 全螢幕專業無分割 HUD（懸浮微型儀表 + 底部 HoloCure 風格武器格）
+  function drawHud(ctx, P, oil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, WL, WI, b) {
     ctx.save();
 
-    // 頂部主面板 (黑漆底 + 金色雲紋頂線)
-    const hudGrad = ctx.createLinearGradient(0, 0, 0, 80);
-    hudGrad.addColorStop(0, "rgba(10, 13, 24, 0.98)");
-    hudGrad.addColorStop(1, "rgba(10, 13, 24, 0.85)");
-    ctx.fillStyle = hudGrad;
-    ctx.fillRect(0, 0, W, 76);
+    // 注意：完全移除頂部深色橫條！遊戲世界 100% 全螢幕通透顯示！
 
-    // 金箔金屬線條
-    ctx.fillStyle = "#d4af37";
-    ctx.fillRect(0, 75, W, 2);
-    ctx.fillStyle = "rgba(212, 175, 55, 0.35)";
-    ctx.fillRect(0, 77, W, 1);
+    // --- 左上角：玩家生存狀態懸浮艙 (Health & Oil) ---
+    const pBoxX = 18, pBoxY = 14, pBoxW = 205, pBoxH = 50;
+    glassBox(ctx, pBoxX, pBoxY, pBoxW, pBoxH, 10);
 
-    // --- 左側：提燈油量槽 (立體液態槽 + 燃燒火光) ---
+    // 生命值條
     ctx.textAlign = "left";
-    ctx.font = "26px sans-serif";
-    ctx.fillText("🏮", 16, 38);
+    ctx.font = "15px sans-serif";
+    ctx.fillText("❤️", pBoxX + 8, pBoxY + 20);
 
-    const oilW = 160, oilH = 16;
-    // 槽底
-    lacquerBox(ctx, 50, 22, oilW, oilH, 8, "#1a1622", "#3a3648", 1.5);
+    const hpBarW = 100, hpBarH = 10;
+    ctx.fillStyle = "#1e141a";
+    ctx.beginPath();
+    ctx.roundRect(pBoxX + 32, pBoxY + 11, hpBarW, hpBarH, 4);
+    ctx.fill();
+
+    const hpRatio = Math.max(0, Math.min(1, P.hp / P.maxHp));
+    const hpGrad = ctx.createLinearGradient(pBoxX + 32, 0, pBoxX + 32 + hpBarW, 0);
+    hpGrad.addColorStop(0, "#e83a54");
+    hpGrad.addColorStop(1, "#ff6b8b");
+    if (hpRatio > 0) {
+      ctx.fillStyle = hpGrad;
+      ctx.beginPath();
+      ctx.roundRect(pBoxX + 32, pBoxY + 11, hpBarW * hpRatio, hpBarH, 4);
+      ctx.fill();
+    }
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
+    ctx.fillText(`${P.hp}/${P.maxHp}`, pBoxX + 140, pBoxY + 20);
+
+    // 提燈油量條
+    ctx.font = "16px sans-serif";
+    ctx.fillText("🏮", pBoxX + 7, pBoxY + 41);
+
+    const oilBarW = 100, oilBarH = 10;
+    ctx.fillStyle = "#1c1814";
+    ctx.beginPath();
+    ctx.roundRect(pBoxX + 32, pBoxY + 31, oilBarW, oilBarH, 4);
+    ctx.fill();
+
     const oilRatio = Math.max(0, Math.min(1, oil / 100));
-
-    // 液態漸層
-    const oilGrad = ctx.createLinearGradient(50, 0, 50 + oilW, 0);
+    const oilGrad = ctx.createLinearGradient(pBoxX + 32, 0, pBoxX + 32 + oilBarW, 0);
     if (oil < 25) {
       oilGrad.addColorStop(0, "#ff4343");
       oilGrad.addColorStop(1, "#ff8843");
@@ -116,118 +128,148 @@ window.UI = (() => {
       oilGrad.addColorStop(1, "#ffd554");
     }
     if (oilRatio > 0) {
-      ctx.save();
       ctx.fillStyle = oilGrad;
       ctx.beginPath();
-      ctx.roundRect(50, 22, oilW * oilRatio, oilH, 8);
+      ctx.roundRect(pBoxX + 32, pBoxY + 31, oilBarW * oilRatio, oilBarH, 4);
       ctx.fill();
-      ctx.restore();
     }
-    // 燈油百分比
-    ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
     ctx.fillStyle = "#ffeed4";
-    ctx.fillText(`燈油 ${Math.ceil(oil)}%`, 58, 52);
-
-    // 低燈油警示邊緣呼吸燈
-    if (oil < 25) {
-      const pulse = 0.3 + 0.3 * Math.sin(elapsed * 8);
-      ctx.fillStyle = `rgba(255, 50, 50, ${pulse * 0.4})`;
-      ctx.fillRect(0, 0, W, 4);
-    }
-
-    // --- 生命值：日式勾玉心之容器 (Magatama) ---
-    ctx.font = "20px sans-serif";
-    ctx.fillText("❤️", 230, 36);
-
-    const hpW = 95, hpH = 16;
-    lacquerBox(ctx, 258, 22, hpW, hpH, 8, "#1a1622", "#3a3648", 1.5);
-    const hpRatio = Math.max(0, Math.min(1, P.hp / P.maxHp));
-    const hpGrad = ctx.createLinearGradient(258, 0, 258 + hpW, 0);
-    hpGrad.addColorStop(0, "#e83a54");
-    hpGrad.addColorStop(1, "#ff6b8b");
-    if (hpRatio > 0) {
-      ctx.fillStyle = hpGrad;
-      ctx.beginPath();
-      ctx.roundRect(258, 22, hpW * hpRatio, hpH, 8);
-      ctx.fill();
-    }
-    ctx.fillStyle = "#ffffff";
     ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
-    ctx.fillText(`${P.hp}/${P.maxHp}`, 286, 35);
+    ctx.fillText(`${Math.ceil(oil)}%`, pBoxX + 140, pBoxY + 41);
 
-    // --- 中間：配達統計 ---
-    ctx.fillStyle = "#dfe8ff";
-    ctx.font = "900 15px 'Zen Maru Gothic', sans-serif";
-    ctx.fillText(`已送達：${delivered} 件`, 375, 29);
-    ctx.fillStyle = "#b8c9f0";
-    ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
-    ctx.fillText(`失誤：${failed} 次  |  得分：${score}`, 375, 50);
+    // --- 右上角：進度與等級懸浮艙 (Level, Dawn & Score) ---
+    const sBoxW = 210, sBoxH = 50;
+    const sBoxX = W - sBoxW - 18, sBoxY = 14;
+    glassBox(ctx, sBoxX, sBoxY, sBoxW, sBoxH, 10);
 
-    // --- 右側：黎明天球儀 (日夜進度) 與靈玉經驗條 ---
-    const dawnProgress = Math.min(1, elapsed / dawnTime);
-    ctx.font = "18px sans-serif";
-    ctx.fillText("🌙", 535, 36);
-
-    const dawnW = 135, dawnH = 10;
-    lacquerBox(ctx, 560, 24, dawnW, dawnH, 5, "#1a1e2b", "#364157", 1);
-    const dawnGrad = ctx.createLinearGradient(560, 0, 560 + dawnW, 0);
-    dawnGrad.addColorStop(0, "#7488b0");
-    dawnGrad.addColorStop(1, "#ffa726");
-    lacquerBox(ctx, 560, 24, dawnW * dawnProgress, dawnH, 5, dawnGrad);
-    ctx.fillText("🌅", 702, 36);
-
-    // 靈氣經驗條
-    const xpRatio = Math.min(1, xp / xpNeed);
-    lacquerBox(ctx, 560, 42, dawnW, 8, 4, "#151b27", "#27344a", 1);
-    lacquerBox(ctx, 560, 42, dawnW * xpRatio, 8, 4, "#40c4ff");
-
-    ctx.fillStyle = "#40c4ff";
+    // 等級與經驗
     ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
-    ctx.fillText(`Lv.${level}`, 702, 50);
+    ctx.fillStyle = "#40c4ff";
+    ctx.fillText(`Lv.${level}`, sBoxX + 10, sBoxY + 20);
 
-    // 快捷鍵提示窗
-    lacquerBox(ctx, 755, 14, 130, 48, 8, "rgba(22, 28, 46, 0.8)", "#3a4b73", 1);
+    const xpBarW = 100, xpBarH = 8;
+    ctx.fillStyle = "#151b27";
+    ctx.beginPath();
+    ctx.roundRect(sBoxX + 46, sBoxY + 12, xpBarW, xpBarH, 4);
+    ctx.fill();
+    const xpRatio = Math.min(1, xp / xpNeed);
+    if (xpRatio > 0) {
+      ctx.fillStyle = "#40c4ff";
+      ctx.beginPath();
+      ctx.roundRect(sBoxX + 46, sBoxY + 12, xpBarW * xpRatio, xpBarH, 4);
+      ctx.fill();
+    }
+
+    // 黎明天盤進度
+    const dawnProgress = Math.min(1, elapsed / dawnTime);
+    ctx.font = "14px sans-serif";
+    ctx.fillText("🌙", sBoxX + 154, sBoxY + 20);
+    const miniDawnW = 32, miniDawnH = 6;
+    ctx.fillStyle = "#222a3d";
+    ctx.beginPath();
+    ctx.roundRect(sBoxX + 172, sBoxY + 13, miniDawnW, miniDawnH, 3);
+    ctx.fill();
+    ctx.fillStyle = "#ffa726";
+    ctx.beginPath();
+    ctx.roundRect(sBoxX + 172, sBoxY + 13, miniDawnW * dawnProgress, miniDawnH, 3);
+    ctx.fill();
+
+    // 配達與得分（精簡無文字贅述）
     ctx.fillStyle = "#ffeed4";
-    ctx.font = "bold 12px 'Noto Sans JP', sans-serif";
-    ctx.fillText("H：看中文(-3油)", 764, 32);
-    ctx.fillText("M：靜音  C：圖鑑", 764, 50);
+    ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
+    ctx.fillText(`📦 ${delivered}  |  ★ ${score}`, sBoxX + 12, sBoxY + 41);
 
-    // --- 中央懸掛式任務木札 (絵馬 / 配送卷軸) ---
-    const bannerY = 88;
+    // 快捷鍵極簡小標籤
+    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+    ctx.font = "11px sans-serif";
+    ctx.fillText("H提示 M靜音 C圖鑑", sBoxX + 115, sBoxY + 41);
+
+    // --- 中央：進行中任務簡約金標（無任務時完全不擋視野） ---
     if (job) {
-      lacquerBox(ctx, W / 2 - 250, bannerY, 500, 38, 10, "rgba(22, 16, 36, 0.95)", "#d4af37", 2);
+      const jBoxW = 320, jBoxH = 34;
+      const jBoxX = W / 2 - jBoxW / 2, jBoxY = 16;
+      glassBox(ctx, jBoxX, jBoxY, jBoxW, jBoxH, 8, "rgba(24, 16, 36, 0.9)", "#d4af37", 1.5);
       ctx.textAlign = "center";
       ctx.font = "900 15px 'Zen Maru Gothic', sans-serif";
       ctx.fillStyle = "#ffe699";
       if (job.rev) {
-        ctx.fillText(`📜【句子委託】：「${job.word.jp}をください」 ➔ 送往「${job.to.word.jp}」站圈選圖案`, W / 2, bannerY + 24);
+        ctx.fillText(`📜「${job.word.jp}」➔ 送往「${job.to.word.jp}」`, W / 2, jBoxY + 22);
       } else {
-        const hintStr = hintT > 0 ? `（${job.word.zh}）` : "";
-        ctx.fillText(`📦【已打包】➔ 送往「${job.to.word.jp}」站圈 0.5 秒選出日文名 ${hintStr}`, W / 2, bannerY + 24);
+        const hintStr = hintT > 0 ? ` (${job.word.zh})` : "";
+        ctx.fillText(`📦 ${job.word.icon} ${job.word.jp} ➔ 送往「${job.to.word.jp}」${hintStr}`, W / 2, jBoxY + 22);
       }
-    } else {
-      lacquerBox(ctx, W / 2 - 220, bannerY, 440, 34, 8, "rgba(16, 22, 38, 0.9)", "#4d6294", 1.5);
-      ctx.textAlign = "center";
-      ctx.font = "bold 14px 'Noto Sans JP', sans-serif";
-      ctx.fillStyle = "#dfe8ff";
-      ctx.fillText("⛩ 尋找屋頂有委託氣泡的町屋，門口按 E 取貨", W / 2, bannerY + 22);
     }
 
-    // 左下角：裝備武器欄（金箔木盒）
-    lacquerBox(ctx, 16, H - 44, 330, 30, 8, "rgba(16, 20, 34, 0.92)", "#d4af37", 1.5);
-    ctx.textAlign = "left";
-    ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
-    ctx.fillStyle = "#ffe28b";
-    const wepText = Object.keys(WI)
-      .filter(k => WL[k] > 0)
-      .map(k => `${WI[k].zh} Lv.${WL[k]}`)
-      .join("   |   ");
-    ctx.fillText(wepText || "妖刀斬 Lv.1", 28, H - 24);
+    // --- 左下角：HoloCure 風格【武器與被動技能圖標欄】（完全無文字，純圖標+等級） ---
+    const slotStartX = 18, slotY = H - 52;
+    const wepList = [
+      { key: "katana", icon: "🗡️", color: "#ffd54f" },
+      { key: "boom", icon: "📜", color: "#80d8ff" },
+      { key: "fire", icon: "🔥", color: "#ff8a80" },
+      { key: "thunder", icon: "⚡", color: "#ea80fc" }
+    ];
 
-    // 觸控虛擬搖桿與按鈕
+    wepList.forEach((wep, idx) => {
+      const sx = slotStartX + idx * 44;
+      const lvl = WL[wep.key];
+      const isUnlocked = lvl > 0;
+
+      // 裝備卡槽底座
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(sx, slotY, 38, 38, 8);
+      ctx.fillStyle = isUnlocked ? "rgba(22, 28, 48, 0.88)" : "rgba(14, 16, 24, 0.55)";
+      ctx.fill();
+      ctx.strokeStyle = isUnlocked ? wep.color : "rgba(80, 95, 130, 0.4)";
+      ctx.lineWidth = isUnlocked ? 2 : 1;
+      ctx.stroke();
+
+      // 圖標
+      ctx.textAlign = "center";
+      ctx.font = "20px sans-serif";
+      ctx.globalAlpha = isUnlocked ? 1.0 : 0.3;
+      ctx.fillText(wep.icon, sx + 19, slotY + 26);
+
+      // 角落等級數字標記 (Lv.X)
+      if (isUnlocked) {
+        ctx.fillStyle = "#d4af37";
+        ctx.beginPath();
+        ctx.roundRect(sx + 18, slotY + 23, 19, 14, 4);
+        ctx.fill();
+        ctx.fillStyle = "#161022";
+        ctx.font = "900 10px sans-serif";
+        ctx.fillText(lvl >= 5 ? "MAX" : `L${lvl}`, sx + 27, slotY + 34);
+      }
+      ctx.restore();
+    });
+
+    // 被動能力小型圖標欄 (磁鐵, 衝刺, 攻擊)
+    const passives = [
+      { icon: "🧲", lvl: b.mag, max: 3 },
+      { icon: "👟", lvl: b.dash, max: 3 },
+      { icon: "⚔️", lvl: Math.round(b.dmg), max: 9 }
+    ];
+    passives.forEach((pas, pIdx) => {
+      const px = slotStartX + 184 + pIdx * 34;
+      const isUp = pas.lvl > (pas.icon === "⚔️" ? 1 : 0);
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(px, slotY + 6, 28, 28, 6);
+      ctx.fillStyle = isUp ? "rgba(30, 36, 56, 0.85)" : "rgba(16, 18, 26, 0.45)";
+      ctx.fill();
+      ctx.strokeStyle = isUp ? "#c29d5b" : "rgba(70, 80, 105, 0.35)";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.textAlign = "center";
+      ctx.font = "15px sans-serif";
+      ctx.globalAlpha = isUp ? 1.0 : 0.35;
+      ctx.fillText(pas.icon, px + 14, slotY + 25);
+      ctx.restore();
+    });
+
+    // 觸控虛擬按鈕
     if (touch) {
       ctx.save();
-      // 衝刺鈕
       ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
       ctx.beginPath();
       ctx.arc(btnD.x, btnD.y, btnD.r, 0, 6.28);
@@ -237,7 +279,6 @@ window.UI = (() => {
       ctx.font = "900 16px 'Zen Maru Gothic', sans-serif";
       ctx.fillText("衝刺", btnD.x, btnD.y + 6);
 
-      // 取貨鈕
       if (inter) {
         ctx.fillStyle = "rgba(255, 210, 80, 0.85)";
         ctx.beginPath();
@@ -247,7 +288,6 @@ window.UI = (() => {
         ctx.fillText("取貨", btnE.x, btnE.y + 6);
       }
 
-      // 虛擬方向搖桿
       if (joy) {
         ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
         ctx.beginPath();
@@ -267,7 +307,6 @@ window.UI = (() => {
   // 3. 升級選卡視窗（HoloCure 風格 3D 浮雕金箔卡牌）
   function drawLevelUp(ctx, level, choices) {
     ctx.save();
-    // 半透明黑漆屏風底
     ctx.fillStyle = "rgba(8, 12, 22, 0.92)";
     ctx.fillRect(0, 0, W, H);
 
@@ -283,7 +322,6 @@ window.UI = (() => {
     ctx.fillStyle = "#cad7f5";
     ctx.fillText("選擇一項秘術以增強夜行妖力（點擊卡牌 或 按數字鍵 1 / 2 / 3）", W / 2, 150);
 
-    // 三張立體浮雕卡牌
     const cardW = 240, cardH = 350;
     const startX = 65, gap = 40;
 
@@ -291,38 +329,32 @@ window.UI = (() => {
       const cx = startX + i * (cardW + gap);
       const cy = 180;
 
-      // 卡牌底層陰影
       ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
       ctx.beginPath();
       ctx.roundRect(cx + 6, cy + 8, cardW, cardH, 16);
       ctx.fill();
 
-      // 卡牌漸層底框
       const cardGrad = ctx.createLinearGradient(cx, cy, cx + cardW, cy + cardH);
       cardGrad.addColorStop(0, "#232b42");
       cardGrad.addColorStop(0.5, "#161c2d");
       cardGrad.addColorStop(1, "#101422");
 
-      lacquerBox(ctx, cx, cy, cardW, cardH, 16, cardGrad, "#d4af37", 3);
+      glassBox(ctx, cx, cy, cardW, cardH, 16, cardGrad, "#d4af37", 3);
 
-      // 卡牌頂部稀有度籤條
-      lacquerBox(ctx, cx + 16, cy + 18, cardW - 32, 32, 8, "#2e3957", null);
+      glassBox(ctx, cx + 16, cy + 18, cardW - 32, 32, 8, "#2e3957", null);
       ctx.fillStyle = "#ffe28b";
       ctx.font = "900 15px 'Zen Maru Gothic', sans-serif";
       ctx.fillText(c.s ? `[ ${c.s} ]` : "[ 強化秘術 ]", cx + cardW / 2, cy + 40);
 
-      // 卡牌名稱（書法大字）
       ctx.font = "900 24px 'Kaisei Decol', 'Noto Sans JP', serif";
       ctx.fillStyle = "#ffffff";
       ctx.fillText(c.n, cx + cardW / 2, cy + 115);
 
-      // 說明描述
       ctx.font = "bold 16px 'Noto Sans JP', sans-serif";
       ctx.fillStyle = "#b8cbfa";
       ctx.fillText(c.d, cx + cardW / 2, cy + 195);
 
-      // 底部快捷按鍵鈕
-      lacquerBox(ctx, cx + cardW / 2 - 28, cy + cardH - 58, 56, 36, 10, "#d4af37", "#ffffff", 1.5);
+      glassBox(ctx, cx + cardW / 2 - 28, cy + cardH - 58, 56, 36, 10, "#d4af37", "#ffffff", 1.5);
       ctx.fillStyle = "#1a162b";
       ctx.font = "900 20px sans-serif";
       ctx.fillText(String(i + 1), cx + cardW / 2, cy + cardH - 33);
@@ -338,7 +370,7 @@ window.UI = (() => {
     const boxW = 690, boxH = 105;
     const bx = (W - boxW) / 2, by = H - 128;
 
-    lacquerBox(ctx, bx, by, boxW, boxH, 16, "rgba(20, 14, 34, 0.98)", "#ff5470", 2.5);
+    glassBox(ctx, bx, by, boxW, boxH, 16, "rgba(20, 14, 34, 0.98)", "#ff5470", 2.5);
 
     ctx.textAlign = "center";
     ctx.font = "900 19px 'Kaisei Decol', 'Noto Sans JP', serif";
@@ -349,7 +381,7 @@ window.UI = (() => {
     bossQ.ans.forEach((w, i) => {
       const ox = bx + 22 + i * (optW + 24);
       const oy = by + 46;
-      lacquerBox(ctx, ox, oy, optW, optH, 10, bossQ.lock > 0 ? "#333c57" : "#ffeed4", "#d4af37", 2);
+      glassBox(ctx, ox, oy, optW, optH, 10, bossQ.lock > 0 ? "#333c57" : "#ffeed4", "#d4af37", 2);
       ctx.fillStyle = "#1e1829";
       ctx.font = "900 18px 'Zen Maru Gothic', sans-serif";
       ctx.fillText(`${i + 1}. ${w.jp}`, ox + optW / 2, oy + 29);
@@ -358,7 +390,7 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 5. 單字圖鑑 (Codex / Japanese Dictionary)
+  // 5. 單字圖鑑 (Codex)
   function drawCodex(ctx, STORE, ALL) {
     ctx.save();
     ctx.fillStyle = "rgba(10, 14, 26, 0.96)";
@@ -387,7 +419,7 @@ window.UI = (() => {
       const seen = (m.ok + m.ng) > 0;
       if (m.box >= 4) mastered++;
 
-      lacquerBox(ctx, cx, cy, cardW, cardH, 10, seen ? "#fcf4e3" : "#20273a", seen ? "#d4af37" : "#36415a", 1.5);
+      glassBox(ctx, cx, cy, cardW, cardH, 10, seen ? "#fcf4e3" : "#20273a", seen ? "#d4af37" : "#36415a", 1.5);
 
       ctx.fillStyle = "#1e1829";
       ctx.font = "26px sans-serif";
@@ -411,7 +443,7 @@ window.UI = (() => {
     ctx.fillStyle = "#ffe28b";
     ctx.fillText(`已精通詞彙：${mastered} / ${ALL.length} 語`, W / 2, 545);
 
-    lacquerBox(ctx, W / 2 - 80, 560, 160, 32, 8, "#d4af37", "#ffffff", 1.5);
+    glassBox(ctx, W / 2 - 80, 560, 160, 32, 8, "#d4af37", "#ffffff", 1.5);
     ctx.fillStyle = "#1a162b";
     ctx.font = "900 15px 'Noto Sans JP', sans-serif";
     ctx.fillText("返回主選單", W / 2, 582);
@@ -419,7 +451,7 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 6. 結算畫面 (勝利 / 失敗)
+  // 6. 結算畫面
   function drawEndScreen(ctx, state, score, delivered, failed, misses) {
     ctx.save();
     ctx.fillStyle = "rgba(8, 12, 22, 0.94)";
@@ -439,7 +471,7 @@ window.UI = (() => {
 
     const reviewList = [...new Map(misses.map(w => [w.jp, w])).values()].slice(0, 6);
     if (reviewList.length > 0) {
-      lacquerBox(ctx, W / 2 - 280, 310, 560, 84, 12, "#201c30", "#d4af37", 1.5);
+      glassBox(ctx, W / 2 - 280, 310, 560, 84, 12, "#201c30", "#d4af37", 1.5);
       ctx.fillStyle = "#ffeed4";
       ctx.font = "900 15px 'Noto Sans JP', sans-serif";
       ctx.fillText("【本次需要複習的單字】", W / 2, 338);

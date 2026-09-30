@@ -301,10 +301,10 @@ window.RENDERER = (() => {
     // 1. 建築深邃接觸陰影
     ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
     ctx.beginPath();
-    ctx.ellipse(h.x, h.y + 70, 95, 28, 0, 0, 6.28);
+    ctx.ellipse(h.x, h.y + 46, 62, 18, 0, 0, 6.28);
     ctx.fill();
 
-    // 2. 選擇高品質手繪建築 Sprite
+    // 2. 選擇高品質手繪建築 Sprite（縮小至 115px，保持視野開闊）
     let houseSprite = window.ART.house_shop;
     if (h.bType === "house_tavern" && window.ART.house_tavern) {
       houseSprite = window.ART.house_tavern;
@@ -314,40 +314,36 @@ window.RENDERER = (() => {
       houseSprite = window.ART.house_shop;
     }
 
-    const bw = 175;
+    const bw = 115;
     const aspect = (houseSprite && houseSprite.naturalWidth && houseSprite.naturalHeight)
       ? (houseSprite.naturalHeight / houseSprite.naturalWidth)
       : 1.05;
     const bh = bw * aspect;
 
     if (houseSprite) {
-      // 繪製手繪店鋪建築
-      ctx.drawImage(houseSprite, h.x - bw / 2, h.y - bh + 75, bw, bh);
+      ctx.drawImage(houseSprite, h.x - bw / 2, h.y - bh + 48, bw, bh);
     } else {
-      // 備援
       ctx.fillStyle = "#3e3128";
-      ctx.fillRect(h.x - 70, h.y - 40, 140, 110);
+      ctx.fillRect(h.x - 48, h.y - 30, 96, 75);
     }
 
     // 3. 店門前和風黑漆金箔懸掛匾額（單字看板）
     ctx.save();
-    const signW = 96, signH = 30;
-    const signY = h.y + 55;
+    const signW = 76, signH = 22;
+    const signY = h.y + 36;
 
-    // 匾額底色（黑漆配深紅邊框）
     ctx.fillStyle = "#19141e";
     ctx.beginPath();
-    ctx.roundRect(h.x - signW / 2, signY, signW, signH, 6);
+    ctx.roundRect(h.x - signW / 2, signY, signW, signH, 5);
     ctx.fill();
     ctx.strokeStyle = "#d4af37";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // 單字日文假名
     ctx.textAlign = "center";
-    ctx.font = "900 16px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+    ctx.font = "900 13px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
     ctx.fillStyle = "#ffeed4";
-    ctx.fillText(h.word.jp, h.x, signY + 20);
+    ctx.fillText(h.word.jp, h.x, signY + 15);
     ctx.restore();
 
     // 4. 提示覆蓋
@@ -355,15 +351,15 @@ window.RENDERER = (() => {
       ctx.save();
       ctx.fillStyle = "rgba(255, 250, 235, 0.95)";
       ctx.beginPath();
-      ctx.roundRect(h.x - 42, h.y + 92, 84, 24, 6);
+      ctx.roundRect(h.x - 36, h.y + 64, 72, 20, 5);
       ctx.fill();
       ctx.strokeStyle = "#382d24";
       ctx.lineWidth = 1.5;
       ctx.stroke();
       ctx.textAlign = "center";
       ctx.fillStyle = "#2a1e17";
-      ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
-      ctx.fillText(h.word.zh, h.x, h.y + 108);
+      ctx.font = "bold 12px 'Noto Sans JP', sans-serif";
+      ctx.fillText(h.word.zh, h.x, h.y + 78);
       ctx.restore();
     }
 

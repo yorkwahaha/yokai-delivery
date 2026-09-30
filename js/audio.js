@@ -311,9 +311,10 @@ window.AUDIO = (() => {
       setTimeout(() => playSuzu(1980, 0.15), 320);
     },
 
-    // 背景音樂步進循環（日式五音循環，黎明漸強）
+    // 背景音樂步進循環（日式五音循環，黎明漸強，選卡片期間持續播放不中斷）
     updateBgm(dt, state, elapsed, dawnTime) {
-      if (muted || state !== "play") {
+      const isMusicActive = (state === "play" || state === "levelup");
+      if (muted || !isMusicActive) {
         if (window.BGM && !window.BGM.paused) window.BGM.pause();
         return;
       }
