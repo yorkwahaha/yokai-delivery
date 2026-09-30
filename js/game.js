@@ -179,7 +179,7 @@
     };
     nameT = 4.5;
     cargo = { x: P.x, y: P.y };
-    say(o.rev ? `句子委託：「${o.word.jp}をください」` : `取貨：${o.word.icon} ${o.word.jp}＝${o.word.zh}`, P.x, P.y - 45, "#ffe9a0");
+    say(o.rev ? `委託：「${o.word.jp}をください」` : `取件：「${o.word.jp}」➔「${o.to.word.jp}」`, P.x, P.y - 45, "#ffe9a0");
     AUDIO.deliverSuccess();
   }
 
@@ -708,12 +708,15 @@
     }
     gems = gems.filter(g => !g.done);
 
-    // 配送取貨與送貨
+    // 配送取貨（只要碰撞或貼著町屋任何一側，即可按 E 接案）
     inter = null;
     if (!job) {
-      let nd = 62;
+      let nd = 46;
       for (const o of orders) {
-        const d = Math.hypot(P.x - o.from.dx, P.y - o.from.dy);
+        const h = o.from;
+        const cx = clamp(P.x, h.x - 48, h.x + 48);
+        const cy = clamp(P.y, h.y - 25, h.y + 45);
+        const d = Math.hypot(P.x - cx, P.y - cy);
         if (d < nd) { nd = d; inter = o; }
       }
     }
@@ -854,12 +857,13 @@
       ctx.fillRect(h.x - 70, floatY + 62, (140 * o.life) / 95, 3.5);
       ctx.restore();
 
-      // 站在門口時顯示專屬取貨標籤
+      // 靠近或碰觸房屋時顯示專屬接案標籤 (浮動於主角上方)
       if (inter === o) {
         ctx.save();
+        const tagX = P.x, tagY = P.y - 52;
         ctx.fillStyle = "#ffeed4";
         ctx.beginPath();
-        ctx.roundRect(h.dx - 45, h.dy - 16, 90, 26, 7);
+        ctx.roundRect(tagX - 48, tagY - 14, 96, 28, 8);
         ctx.fill();
         ctx.strokeStyle = "#ff8833";
         ctx.lineWidth = 2.5;
@@ -867,7 +871,7 @@
         ctx.textAlign = "center";
         ctx.fillStyle = "#1a1622";
         ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
-        ctx.fillText("按 E 取貨", h.dx, h.dy + 1);
+        ctx.fillText("按 E 接案", tagX, tagY + 5);
         ctx.restore();
       }
     }

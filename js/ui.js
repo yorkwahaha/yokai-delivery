@@ -188,19 +188,19 @@ window.UI = (() => {
     ctx.font = "19px sans-serif";
     ctx.fillText("⏸️", btnPause.x + btnPause.w / 2, btnPause.y + 32);
 
-    // --- 中央：進行中任務簡約金標（無任務時完全不擋視野） ---
+    // --- 中央：進行中任務簡約金標（無任務時完全不擋視野，絕不洩漏圖標） ---
     if (job) {
-      const jBoxW = 320, jBoxH = 34;
+      const jBoxW = 280, jBoxH = 34;
       const jBoxX = W / 2 - jBoxW / 2, jBoxY = 16;
       glassBox(ctx, jBoxX, jBoxY, jBoxW, jBoxH, 8, "rgba(24, 16, 36, 0.9)", "#d4af37", 1.5);
       ctx.textAlign = "center";
       ctx.font = "900 15px 'Zen Maru Gothic', sans-serif";
       ctx.fillStyle = "#ffe699";
       if (job.rev) {
-        ctx.fillText(`📜「${job.word.jp}」➔ 送往「${job.to.word.jp}」`, W / 2, jBoxY + 22);
+        ctx.fillText(`📜「${job.word.jp}」➔「${job.to.word.jp}」`, W / 2, jBoxY + 22);
       } else {
-        const hintStr = hintT > 0 ? ` (${job.word.zh})` : "";
-        ctx.fillText(`📦 ${job.word.icon} ${job.word.jp} ➔ 送往「${job.to.word.jp}」${hintStr}`, W / 2, jBoxY + 22);
+        const hintStr = hintT > 0 ? ` (${job.word.icon} ${job.word.zh})` : "";
+        ctx.fillText(`📦「${job.word.jp}」➔「${job.to.word.jp}」${hintStr}`, W / 2, jBoxY + 22);
       }
     }
 
@@ -457,52 +457,78 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 6. 結算畫面
+  // 6. 結算畫面 (極簡視覺化、圖標代替贅字)
   function drawEndScreen(ctx, state, score, delivered, failed, misses) {
     ctx.save();
-    ctx.fillStyle = "rgba(8, 12, 22, 0.94)";
+    ctx.fillStyle = "rgba(6, 9, 18, 0.94)";
     ctx.fillRect(0, 0, W, H);
 
     ctx.textAlign = "center";
     const isWon = state === "won";
 
-    ctx.font = "900 36px 'Kaisei Decol', 'Noto Sans JP', serif";
-    ctx.fillStyle = isWon ? "#ffe28b" : "#ff6b81";
-    ctx.fillText(isWon ? "🌅 平安迎向黎明！百鬼皆散！" : "🏮 燈油燃盡…黑夜吞沒了街區", W / 2, 175);
+    // 頂部大號和風書法字章 (破曉 / 燈盡)
+    ctx.font = "900 44px 'Kaisei Decol', 'Noto Sans JP', serif";
+    ctx.fillStyle = isWon ? "#ffe28b" : "#ff5470";
+    ctx.shadowColor = isWon ? "rgba(255, 215, 100, 0.65)" : "rgba(255, 80, 100, 0.65)";
+    ctx.shadowBlur = 16;
+    ctx.fillText(isWon ? "🌅 黎明破曉" : "🏮 燈盡夜沉", W / 2, 135);
+    ctx.shadowBlur = 0;
 
-    ctx.font = "900 21px 'Zen Maru Gothic', sans-serif";
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(`本次夜行得分：${score} 分`, W / 2, 235);
-    ctx.fillText(`成功送達：${delivered} 件　失誤：${failed} 次`, W / 2, 270);
+    // 中央核心數據展示卡 (Glass Panel)
+    const cardW = 460, cardH = 170;
+    const cx = W / 2 - cardW / 2, cy = 175;
+    glassBox(ctx, cx, cy, cardW, cardH, 16, "rgba(18, 24, 40, 0.88)", isWon ? "#d4af37" : "#5a3a46", 2);
 
-    const reviewList = [...new Map(misses.map(w => [w.jp, w])).values()].slice(0, 6);
+    // 大號分數展示
+    ctx.font = "900 44px 'Kaisei Decol', sans-serif";
+    ctx.fillStyle = "#ffd54f";
+    ctx.fillText(`★ ${score}`, W / 2, cy + 62);
+
+    // 兩個數據膠囊 [ 📦 5 ]  [ ❌ 0 ]
+    const pillW = 140, pillH = 46;
+    const p1x = W / 2 - pillW - 16, p2x = W / 2 + 16, py = cy + 96;
+
+    // 成功送達膠囊
+    glassBox(ctx, p1x, py, pillW, pillH, 10, "rgba(26, 42, 34, 0.85)", "#4caf50", 1.8);
+    ctx.fillStyle = "#a5d6a7";
+    ctx.font = "900 22px 'Zen Maru Gothic', sans-serif";
+    ctx.fillText(`📦 ${delivered}`, p1x + pillW / 2, py + 31);
+
+    // 失誤膠囊
+    glassBox(ctx, p2x, py, pillW, pillH, 10, "rgba(42, 24, 28, 0.85)", "#ef5350", 1.8);
+    ctx.fillStyle = "#ef9a9a";
+    ctx.font = "900 22px 'Zen Maru Gothic', sans-serif";
+    ctx.fillText(`❌ ${failed}`, p2x + pillW / 2, py + 31);
+
+    // 單字複習橫列 (若有失誤)
+    const reviewList = [...new Map(misses.map(w => [w.jp, w])).values()].slice(0, 5);
     if (reviewList.length > 0) {
-      glassBox(ctx, W / 2 - 280, 310, 560, 84, 12, "#201c30", "#d4af37", 1.5);
-      ctx.fillStyle = "#ffeed4";
-      ctx.font = "900 15px 'Noto Sans JP', sans-serif";
-      ctx.fillText("【本次需要複習的單字】", W / 2, 338);
+      const rwW = 540, rwH = 50;
+      const rwx = W / 2 - rwW / 2, rwy = 365;
+      glassBox(ctx, rwx, rwy, rwW, rwH, 10, "rgba(26, 20, 36, 0.9)", "#ba68c8", 1.5);
       ctx.fillStyle = "#ffd152";
+      ctx.font = "900 16px 'Zen Maru Gothic', sans-serif";
       const wStr = reviewList.map(w => `${w.icon}${w.jp}＝${w.zh}`).join("　");
-      ctx.fillText(wStr, W / 2, 368);
-    } else {
-      ctx.fillStyle = "#ffe28b";
-      ctx.font = "900 18px 'Noto Sans JP', sans-serif";
-      ctx.fillText("✨ 全數正確送達！妖怪快遞傳奇！", W / 2, 345);
+      ctx.fillText(wStr, W / 2, rwy + 31);
     }
 
-    ctx.fillStyle = "#ffe28b";
+    // 底部再戰大按鈕 (一目了然)
+    const btnW = 220, btnH = 52;
+    const bx = W / 2 - btnW / 2, by = reviewList.length > 0 ? 435 : 385;
+    glassBox(ctx, bx, by, btnW, btnH, 14, "#d4af37", "#ffffff", 2);
+    ctx.fillStyle = "#1a162b";
     ctx.font = "900 22px 'Zen Maru Gothic', sans-serif";
-    ctx.fillText("— 按 ENTER 或 點擊任意處再跑一趟 —", W / 2, 450);
+    ctx.fillText("🔄 再戰", W / 2, by + 34);
 
     ctx.restore();
   }
 
-  // 7. 暫停與設定選單
+  // 7. 暫停與設定選單 (極簡圖形化、直覺無贅字)
   const PAUSE_BTNS = [
-    { id: "resume", text: "▶ 繼續夜行 (Resume)", y: 220, color: "#d4af37" },
-    { id: "mute", text: "🔊 聲音開關", y: 285, color: "#64b5f6" },
-    { id: "codex", text: "📖 妖怪單字圖鑑 (Codex)", y: 350, color: "#ba68c8" },
-    { id: "menu", text: "⛩ 返回主選單 (Quit to Menu)", y: 415, color: "#e57373" }
+    { id: "resume", text: "▶ 繼續", y: 200, color: "#d4af37" },
+    { id: "mute", text: "🔊 聲音", y: 265, color: "#64b5f6" },
+    { id: "codex", text: "📖 圖鑑", y: 330, color: "#ba68c8" },
+    { id: "menu", text: "🏠 首頁", y: 395, color: "#e57373" }
   ];
 
   function drawPauseMenu(ctx, muted) {
@@ -511,35 +537,31 @@ window.UI = (() => {
     ctx.fillRect(0, 0, W, H);
 
     ctx.textAlign = "center";
-    ctx.font = "900 34px 'Kaisei Decol', 'Noto Sans JP', serif";
+    ctx.font = "900 36px 'Kaisei Decol', 'Noto Sans JP', serif";
     ctx.fillStyle = "#ffe28b";
     ctx.shadowColor = "rgba(255, 215, 100, 0.6)";
-    ctx.shadowBlur = 12;
-    ctx.fillText("— 遊戲暫停 (PAUSED) —", W / 2, 145);
-
+    ctx.shadowBlur = 14;
+    ctx.fillText("⏸️ 暫停", W / 2, 148);
     ctx.shadowBlur = 0;
-    ctx.font = "bold 15px 'Zen Maru Gothic', sans-serif";
-    ctx.fillStyle = "#dfe8ff";
-    ctx.fillText("平安京之夜暫時駐足・隨時可繼續配達", W / 2, 180);
 
-    const btnW = 320, btnH = 48;
+    const btnW = 240, btnH = 48;
     const bx = W / 2 - btnW / 2;
 
     PAUSE_BTNS.forEach(b => {
       let label = b.text;
       if (b.id === "mute") {
-        label = muted ? "🔇 聲音：已靜音 (Muted)" : "🔊 聲音：已開啟 (Sound ON)";
+        label = muted ? "🔇 聲音：關" : "🔊 聲音：開";
       }
       glassBox(ctx, bx, b.y, btnW, btnH, 12, "rgba(20, 26, 44, 0.95)", b.color, 2);
       ctx.textAlign = "center";
       ctx.fillStyle = "#ffffff";
-      ctx.font = "900 16px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
-      ctx.fillText(label, W / 2, b.y + 30);
+      ctx.font = "900 18px 'Zen Maru Gothic', sans-serif";
+      ctx.fillText(label, W / 2, b.y + 31);
     });
 
-    ctx.fillStyle = "rgba(255, 235, 180, 0.65)";
-    ctx.font = "14px 'Noto Sans JP', sans-serif";
-    ctx.fillText("快捷按鍵：ESC / P / 空白鍵 繼續　M 靜音　C 圖鑑　手把：START 暫停 / A 鍵確認", W / 2, 510);
+    ctx.fillStyle = "rgba(255, 235, 180, 0.5)";
+    ctx.font = "13px 'Noto Sans JP', sans-serif";
+    ctx.fillText("[ESC 繼續]", W / 2, 480);
 
     ctx.restore();
   }
@@ -553,7 +575,7 @@ window.UI = (() => {
     drawEndScreen,
     drawPauseMenu,
     PAUSE_BTNS,
-    PAUSE_BTN_W: 320,
+    PAUSE_BTN_W: 240,
     PAUSE_BTN_H: 48
   };
 })();
