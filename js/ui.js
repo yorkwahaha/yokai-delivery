@@ -47,14 +47,14 @@ window.UI = (() => {
     ctx.fillText("百鬼橫行之夜・單字配達物語", W / 2, 385);
 
     // 核心操作導引
-    glassBox(ctx, W / 2 - 320, 412, 640, 92, 12, "rgba(18, 22, 36, 0.9)", "#d4af37", 2);
+    glassBox(ctx, W / 2 - 340, 412, 680, 92, 12, "rgba(18, 22, 36, 0.9)", "#d4af37", 2);
     ctx.font = "bold 15px 'Noto Sans JP', sans-serif";
     ctx.fillStyle = "#dfe8ff";
-    ctx.fillText("【取貨】到各家町屋門口按 E，記住日文單字　【送貨】在正確名字圈內站 0.5 秒", W / 2, 440);
-    ctx.fillText("【戰鬥】妖刀自動連斬四周妖怪　【衝刺】Shift 或 觸控鍵　【燈油】送貨補充", W / 2, 464);
+    ctx.fillText("【取貨】到各家町屋門口按 E (手把A/觸控)，記單字　【送貨】在正確名字圈內站 0.5 秒", W / 2, 438);
+    ctx.fillText("【戰鬥】妖刀自動連斬四周妖怪　【衝刺】Shift/空白鍵 (手把B)　【生命】燈油即生命！", W / 2, 462);
     ctx.fillStyle = "#ffd27a";
     ctx.font = "bold 14px 'Noto Sans JP', sans-serif";
-    ctx.fillText("WASD 移動　H 提示(-3油)　M 靜音　C 妖怪單字圖鑑", W / 2, 488);
+    ctx.fillText("WASD/手把搖桿/觸控搖桿移動　H提示(-3油)　ESC/P/手把START暫停　C圖鑑", W / 2, 486);
 
     const blink = 0.65 + 0.35 * Math.sin(elapsed * 5);
     ctx.fillStyle = `rgba(255, 230, 150, ${blink})`;
@@ -74,115 +74,119 @@ window.UI = (() => {
   }
 
   // 2. 全螢幕專業無分割 HUD（懸浮微型儀表 + 底部 HoloCure 風格武器格）
-  function drawHud(ctx, P, oil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, WL, WI, b) {
+  function drawHud(ctx, P, oil, maxOil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b) {
     ctx.save();
 
     // 注意：完全移除頂部深色橫條！遊戲世界 100% 全螢幕通透顯示！
 
-    // --- 左上角：玩家生存狀態懸浮艙 (Health & Oil) ---
-    const pBoxX = 18, pBoxY = 14, pBoxW = 205, pBoxH = 50;
+    // --- 左上角：玩家生存與成長懸浮艙 (燈油即生命 + 經驗值條) ---
+    const pBoxX = 18, pBoxY = 14, pBoxW = 215, pBoxH = 52;
     glassBox(ctx, pBoxX, pBoxY, pBoxW, pBoxH, 10);
 
-    // 生命值條
+    // 1. 提燈油量條（生命條：油盡燈枯即陣亡）
     ctx.textAlign = "left";
-    ctx.font = "15px sans-serif";
-    ctx.fillText("❤️", pBoxX + 8, pBoxY + 20);
-
-    const hpBarW = 100, hpBarH = 10;
-    ctx.fillStyle = "#1e141a";
-    ctx.beginPath();
-    ctx.roundRect(pBoxX + 32, pBoxY + 11, hpBarW, hpBarH, 4);
-    ctx.fill();
-
-    const hpRatio = Math.max(0, Math.min(1, P.hp / P.maxHp));
-    const hpGrad = ctx.createLinearGradient(pBoxX + 32, 0, pBoxX + 32 + hpBarW, 0);
-    hpGrad.addColorStop(0, "#e83a54");
-    hpGrad.addColorStop(1, "#ff6b8b");
-    if (hpRatio > 0) {
-      ctx.fillStyle = hpGrad;
-      ctx.beginPath();
-      ctx.roundRect(pBoxX + 32, pBoxY + 11, hpBarW * hpRatio, hpBarH, 4);
-      ctx.fill();
-    }
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
-    ctx.fillText(`${P.hp}/${P.maxHp}`, pBoxX + 140, pBoxY + 20);
-
-    // 提燈油量條
     ctx.font = "16px sans-serif";
-    ctx.fillText("🏮", pBoxX + 7, pBoxY + 41);
+    ctx.fillText("🏮", pBoxX + 8, pBoxY + 20);
 
-    const oilBarW = 100, oilBarH = 10;
+    const oilBarW = 104, oilBarH = 10;
     ctx.fillStyle = "#1c1814";
     ctx.beginPath();
-    ctx.roundRect(pBoxX + 32, pBoxY + 31, oilBarW, oilBarH, 4);
+    ctx.roundRect(pBoxX + 32, pBoxY + 11, oilBarW, oilBarH, 4);
     ctx.fill();
 
-    const oilRatio = Math.max(0, Math.min(1, oil / 100));
+    const curMaxOil = maxOil || 100;
+    const oilRatio = Math.max(0, Math.min(1, oil / curMaxOil));
     const oilGrad = ctx.createLinearGradient(pBoxX + 32, 0, pBoxX + 32 + oilBarW, 0);
     if (oil < 25) {
-      oilGrad.addColorStop(0, "#ff4343");
-      oilGrad.addColorStop(1, "#ff8843");
+      oilGrad.addColorStop(0, "#ff3838");
+      oilGrad.addColorStop(1, "#ff7943");
     } else {
-      oilGrad.addColorStop(0, "#ffaa33");
+      oilGrad.addColorStop(0, "#ff9d26");
       oilGrad.addColorStop(1, "#ffd554");
     }
     if (oilRatio > 0) {
       ctx.fillStyle = oilGrad;
       ctx.beginPath();
-      ctx.roundRect(pBoxX + 32, pBoxY + 31, oilBarW * oilRatio, oilBarH, 4);
+      ctx.roundRect(pBoxX + 32, pBoxY + 11, oilBarW * oilRatio, oilBarH, 4);
       ctx.fill();
     }
     ctx.fillStyle = "#ffeed4";
     ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
-    ctx.fillText(`${Math.ceil(oil)}%`, pBoxX + 140, pBoxY + 41);
+    ctx.fillText(`${Math.ceil(oil)}/${curMaxOil}`, pBoxX + 142, pBoxY + 20);
 
-    // --- 右上角：進度與等級懸浮艙 (Level, Dawn & Score) ---
-    const sBoxW = 210, sBoxH = 50;
-    const sBoxX = W - sBoxW - 18, sBoxY = 14;
-    glassBox(ctx, sBoxX, sBoxY, sBoxW, sBoxH, 10);
-
-    // 等級與經驗
-    ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
+    // 2. 經驗值條 (滿了即升級)
+    ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
     ctx.fillStyle = "#40c4ff";
-    ctx.fillText(`Lv.${level}`, sBoxX + 10, sBoxY + 20);
+    ctx.fillText(`Lv.${level}`, pBoxX + 8, pBoxY + 42);
 
-    const xpBarW = 100, xpBarH = 8;
+    const xpBarW = 96, xpBarH = 9;
     ctx.fillStyle = "#151b27";
     ctx.beginPath();
-    ctx.roundRect(sBoxX + 46, sBoxY + 12, xpBarW, xpBarH, 4);
+    ctx.roundRect(pBoxX + 46, pBoxY + 33, xpBarW, xpBarH, 4);
     ctx.fill();
     const xpRatio = Math.min(1, xp / xpNeed);
     if (xpRatio > 0) {
       ctx.fillStyle = "#40c4ff";
       ctx.beginPath();
-      ctx.roundRect(sBoxX + 46, sBoxY + 12, xpBarW * xpRatio, xpBarH, 4);
+      ctx.roundRect(pBoxX + 46, pBoxY + 33, xpBarW * xpRatio, xpBarH, 4);
       ctx.fill();
     }
+    ctx.fillStyle = "#c5eeff";
+    ctx.font = "bold 11px sans-serif";
+    ctx.fillText(`${xp}/${xpNeed}`, pBoxX + 147, pBoxY + 42);
+
+    // 3. 金剛結界護盾膠囊（若擁有護盾）
+    if (b.shield && b.shield > 0) {
+      const shX = pBoxX + pBoxW + 8, shY = pBoxY + 7;
+      glassBox(ctx, shX, shY, 78, 38, 8, "rgba(36, 30, 14, 0.94)", "#ffd54f", 2);
+      ctx.textAlign = "center";
+      ctx.font = "900 15px 'Zen Maru Gothic', sans-serif";
+      ctx.fillStyle = "#ffe28b";
+      ctx.fillText(`🛡️ x${b.shield}`, shX + 39, shY + 24);
+    }
+
+    // --- 右上角：進度與統計懸浮艙 (Dawn, Deliveries & Score) ---
+    const sBoxW = 200, sBoxH = 52;
+    const sBoxX = W - sBoxW - 62, sBoxY = 14;
+    glassBox(ctx, sBoxX, sBoxY, sBoxW, sBoxH, 10);
 
     // 黎明天盤進度
     const dawnProgress = Math.min(1, elapsed / dawnTime);
+    ctx.textAlign = "left";
     ctx.font = "14px sans-serif";
-    ctx.fillText("🌙", sBoxX + 154, sBoxY + 20);
-    const miniDawnW = 32, miniDawnH = 6;
+    ctx.fillText("🌙", sBoxX + 10, sBoxY + 20);
+    const miniDawnW = 120, miniDawnH = 7;
     ctx.fillStyle = "#222a3d";
     ctx.beginPath();
-    ctx.roundRect(sBoxX + 172, sBoxY + 13, miniDawnW, miniDawnH, 3);
+    ctx.roundRect(sBoxX + 32, sBoxY + 12, miniDawnW, miniDawnH, 3.5);
     ctx.fill();
     ctx.fillStyle = "#ffa726";
     ctx.beginPath();
-    ctx.roundRect(sBoxX + 172, sBoxY + 13, miniDawnW * dawnProgress, miniDawnH, 3);
+    ctx.roundRect(sBoxX + 32, sBoxY + 12, miniDawnW * dawnProgress, miniDawnH, 3.5);
     ctx.fill();
 
-    // 配達與得分（精簡無文字贅述）
+    const dawnSecLeft = Math.max(0, Math.ceil(dawnTime - elapsed));
+    const dawnMin = Math.floor(dawnSecLeft / 60);
+    const dawnSec = dawnSecLeft % 60;
+    ctx.fillStyle = "#ffeed4";
+    ctx.font = "bold 11px sans-serif";
+    ctx.fillText(`${dawnMin}:${dawnSec < 10 ? '0' : ''}${dawnSec}`, sBoxX + 160, sBoxY + 20);
+
+    // 配達與得分
     ctx.fillStyle = "#ffeed4";
     ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
-    ctx.fillText(`📦 ${delivered}  |  ★ ${score}`, sBoxX + 12, sBoxY + 41);
+    ctx.fillText(`📦 ${delivered}  |  ★ ${score}`, sBoxX + 12, sBoxY + 42);
 
-    // 快捷鍵極簡小標籤
+    // 快捷小標
     ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
     ctx.font = "11px sans-serif";
-    ctx.fillText("H提示 M靜音 C圖鑑", sBoxX + 115, sBoxY + 41);
+    ctx.fillText("H提示 M靜音", sBoxX + 118, sBoxY + 42);
+
+    // --- 右上角暫停按鈕 (btnPause) ---
+    glassBox(ctx, btnPause.x, btnPause.y, btnPause.w, btnPause.h, 10, "rgba(20, 26, 44, 0.92)", "#d4af37", 1.8);
+    ctx.textAlign = "center";
+    ctx.font = "19px sans-serif";
+    ctx.fillText("⏸️", btnPause.x + btnPause.w / 2, btnPause.y + 32);
 
     // --- 中央：進行中任務簡約金標（無任務時完全不擋視野） ---
     if (job) {
@@ -243,26 +247,28 @@ window.UI = (() => {
       ctx.restore();
     });
 
-    // 被動能力小型圖標欄 (磁鐵, 衝刺, 攻擊)
+    // 被動能力小型圖標欄 (磁鐵, 衝刺, 移速, 護盾, 增傷, 油箱)
     const passives = [
-      { icon: "🧲", lvl: b.mag, max: 3 },
-      { icon: "👟", lvl: b.dash, max: 3 },
-      { icon: "⚔️", lvl: Math.round(b.dmg), max: 9 }
+      { icon: "🧲", lvl: b.mag, active: b.mag > 0 },
+      { icon: "👟", lvl: b.dash, active: b.dash > 0 },
+      { icon: "💨", lvl: b.spd || 0, active: (b.spd || 0) > 0 },
+      { icon: "🛡️", lvl: b.shield || 0, active: (b.shield || 0) > 0 },
+      { icon: "⚔️", lvl: Math.round(b.dmg), active: b.dmg > 1.2 },
+      { icon: "🏮", lvl: Math.max(0, Math.round(((maxOil || 100) - 100) / 25)), active: (maxOil || 100) > 100 }
     ];
     passives.forEach((pas, pIdx) => {
       const px = slotStartX + 184 + pIdx * 34;
-      const isUp = pas.lvl > (pas.icon === "⚔️" ? 1 : 0);
       ctx.save();
       ctx.beginPath();
       ctx.roundRect(px, slotY + 6, 28, 28, 6);
-      ctx.fillStyle = isUp ? "rgba(30, 36, 56, 0.85)" : "rgba(16, 18, 26, 0.45)";
+      ctx.fillStyle = pas.active ? "rgba(30, 36, 56, 0.85)" : "rgba(16, 18, 26, 0.45)";
       ctx.fill();
-      ctx.strokeStyle = isUp ? "#c29d5b" : "rgba(70, 80, 105, 0.35)";
+      ctx.strokeStyle = pas.active ? "#c29d5b" : "rgba(70, 80, 105, 0.35)";
       ctx.lineWidth = 1.2;
       ctx.stroke();
       ctx.textAlign = "center";
       ctx.font = "15px sans-serif";
-      ctx.globalAlpha = isUp ? 1.0 : 0.35;
+      ctx.globalAlpha = pas.active ? 1.0 : 0.35;
       ctx.fillText(pas.icon, px + 14, slotY + 25);
       ctx.restore();
     });
@@ -491,12 +497,63 @@ window.UI = (() => {
     ctx.restore();
   }
 
+  // 7. 暫停與設定選單
+  const PAUSE_BTNS = [
+    { id: "resume", text: "▶ 繼續夜行 (Resume)", y: 220, color: "#d4af37" },
+    { id: "mute", text: "🔊 聲音開關", y: 285, color: "#64b5f6" },
+    { id: "codex", text: "📖 妖怪單字圖鑑 (Codex)", y: 350, color: "#ba68c8" },
+    { id: "menu", text: "⛩ 返回主選單 (Quit to Menu)", y: 415, color: "#e57373" }
+  ];
+
+  function drawPauseMenu(ctx, muted) {
+    ctx.save();
+    ctx.fillStyle = "rgba(6, 9, 18, 0.88)";
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = "center";
+    ctx.font = "900 34px 'Kaisei Decol', 'Noto Sans JP', serif";
+    ctx.fillStyle = "#ffe28b";
+    ctx.shadowColor = "rgba(255, 215, 100, 0.6)";
+    ctx.shadowBlur = 12;
+    ctx.fillText("— 遊戲暫停 (PAUSED) —", W / 2, 145);
+
+    ctx.shadowBlur = 0;
+    ctx.font = "bold 15px 'Zen Maru Gothic', sans-serif";
+    ctx.fillStyle = "#dfe8ff";
+    ctx.fillText("平安京之夜暫時駐足・隨時可繼續配達", W / 2, 180);
+
+    const btnW = 320, btnH = 48;
+    const bx = W / 2 - btnW / 2;
+
+    PAUSE_BTNS.forEach(b => {
+      let label = b.text;
+      if (b.id === "mute") {
+        label = muted ? "🔇 聲音：已靜音 (Muted)" : "🔊 聲音：已開啟 (Sound ON)";
+      }
+      glassBox(ctx, bx, b.y, btnW, btnH, 12, "rgba(20, 26, 44, 0.95)", b.color, 2);
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "900 16px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+      ctx.fillText(label, W / 2, b.y + 30);
+    });
+
+    ctx.fillStyle = "rgba(255, 235, 180, 0.65)";
+    ctx.font = "14px 'Noto Sans JP', sans-serif";
+    ctx.fillText("快捷按鍵：ESC / P / 空白鍵 繼續　M 靜音　C 圖鑑　手把：START 暫停 / A 鍵確認", W / 2, 510);
+
+    ctx.restore();
+  }
+
   return {
     drawMainMenu,
     drawHud,
     drawLevelUp,
     drawBossQuiz,
     drawCodex,
-    drawEndScreen
+    drawEndScreen,
+    drawPauseMenu,
+    PAUSE_BTNS,
+    PAUSE_BTN_W: 320,
+    PAUSE_BTN_H: 48
   };
 })();

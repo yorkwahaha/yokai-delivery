@@ -59,15 +59,17 @@
   const ansPos = h => [{ x: h.x - 85, y: h.y + 75 }, { x: h.x + 85, y: h.y + 75 }, { x: h.x, y: h.y + 122 }];
 
   // ---------- 遊戲狀態 ----------
-  const P = { x: 1350, y: 900, hp: 6, maxHp: 6, inv: 0 };
-  const b = { dmg: 1.2, rate: 0, mag: 0, dash: 0 };
+  const P = { x: 1350, y: 900, inv: 0 };
+  const b = { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0 };
   const keys = new Set();
   let state = "menu";
-  let elapsed = 0, oil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;
+  let elapsed = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;
   let orders = [], job = null, enemies = [], gems = [], parts = [], texts = [], rings = [], misses = [];
   let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0;
   let choices = [], joy = null, touch = false, inter = null, cargo = { x: 0, y: 0 }, last = performance.now();
   const btnE = { x: 810, y: 420, r: 38 }, btnD = { x: 810, y: 530, r: 46 };
+  const btnPause = { x: W - 52, y: 14, w: 38, h: 52 };
+  let gpPrevButtons = [], gpMove = { x: 0, y: 0 };
 
   let bossT = 75, ended = false, bossQ = null, codexBack = "menu";
   const WL = { katana: 1, boom: 0, fire: 0, thunder: 0 };
@@ -84,8 +86,10 @@
     { n: "刀光精進", s: "攻擊強化", d: "妖刀傷害 +1.5", f: () => { b.dmg += 1.5; } },
     { n: "疾風連斬", s: "攻速加快", d: "攻擊頻率大幅提升", f: () => { b.rate++; }, ok: () => b.rate < 4 },
     { n: "招財勾玉", s: "吸取靈氣", d: "靈玉經驗吸取範圍 +50%", f: () => { b.mag++; }, ok: () => b.mag < 3 },
-    { n: "仙藥葫蘆", s: "生命上限", d: "最大生命 +2 並完全恢復", f: () => { P.maxHp += 2; P.hp = P.maxHp; }, ok: () => P.maxHp < 12 },
-    { n: "八咫燈油", s: "燈油補給", d: "燈油即刻恢復 +35%", f: () => { oil = Math.min(100, oil + 35); } },
+    { n: "神足草履", s: "行步如飛", d: "基礎移動速度 +15%", f: () => { b.spd = (b.spd || 0) + 1; }, ok: () => (b.spd || 0) < 3 },
+    { n: "金剛結界", s: "神靈護盾", d: "召喚金剛護盾，抵擋 2 次受擊傷害", f: () => { b.shield = Math.min(4, (b.shield || 0) + 2); }, ok: () => (b.shield || 0) < 4 },
+    { n: "長明燈油", s: "燈油擴充", d: "燈油上限 +25% 並全數補滿", f: () => { maxOil += 25; oil = maxOil; }, ok: () => maxOil < 200 },
+    { n: "添燈香油", s: "緊急補給", d: "燈油即刻恢復 +45%", f: () => { oil = Math.min(maxOil, oil + 45); } },
     { n: "縮地瞬步", s: "衝刺加速", d: "衝刺冷卻時間大幅縮短", f: () => { b.dash++; }, ok: () => b.dash < 3 }
   ];
 
@@ -107,17 +111,28 @@
     }
   }
 
+  function togglePause() {
+    if (state === "play") {
+      state = "pause";
+      keys.clear();
+      joy = null;
+    } else if (state === "pause") {
+      state = "play";
+      last = performance.now();
+    }
+  }
+
   function start() {
     AUDIO.init();
     state = "play";
-    Object.assign(P, { x: 1350, y: 900, hp: 6, maxHp: 6, inv: 1.2 });
-    Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0 });
+    Object.assign(P, { x: 1350, y: 900, inv: 1.2 });
+    Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0 });
     Object.assign(WL, { katana: 1, boom: 0, fire: 0, thunder: 0 });
-    proj = []; eb = []; surgeT = 45; wT.boom = 0; wT.thunder = 1;
-    elapsed = 0; oil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
+    proj = []; surgeT = 45; wT.boom = 0; wT.thunder = 1;
+    elapsed = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
     orders = []; job = null; enemies = []; gems = []; parts = []; texts = []; rings = []; misses = [];
     bossT = 75; ended = false; bossQ = null; orderT = 3; spawnT = 1; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0;
-    keys.clear(); joy = null;
+    keys.clear(); joy = null; gpMove = { x: 0, y: 0 };
     for (let i = 0; i < 4; i++) makeOrder();
     RENDERER.setCam(clamp(P.x - W / 2, 0, WW - W), clamp(P.y - H / 2, 0, WH - H));
   }
@@ -176,13 +191,12 @@
 
     if (w === j.word) {
       delivered++;
-      const gain = 8;
-      oil = Math.min(100, oil + 16 + gain);
-      P.hp = Math.min(P.maxHp, P.hp + 1);
-      xp += j.rev ? 12 : 8;
+      const gain = 10;
+      oil = Math.min(maxOil, oil + 18 + gain);
+      xp += j.rev ? 14 : 10;
       score += 50;
       say(`${w.icon} ${w.jp}＝${w.zh} 送達！`, pos.x, pos.y - 35, "#fff0a6");
-      say(`燈油 +${16 + gain}%`, pos.x, pos.y - 12, "#ffd27a");
+      say(`燈油 +${18 + gain}%`, pos.x, pos.y - 12, "#ffd27a");
       burst(pos.x, pos.y, "#ffe28b", 32);
       RENDERER.triggerShake(7);
       AUDIO.deliverSuccess();
@@ -190,13 +204,14 @@
       failed++;
       misses.push(j.word);
       say(`送錯了！${j.word.icon} 是「${j.word.jp}」`, pos.x, pos.y - 36, "#ff8f8f");
+      const speedRamp = (elapsed / DAWN) * 75;
       enemies.push({
         x: pos.x, y: pos.y + 20,
         type: "mis",
         w: j.word,
         hp: 6 + Math.floor(elapsed / 90),
         max: 6 + Math.floor(elapsed / 90),
-        speed: 82,
+        speed: 55 + speedRamp * 0.7,
         flash: 0,
         wob: 0
       });
@@ -231,8 +246,8 @@
     score += isMis ? 80 : e.type === "boss" ? 400 : 15;
 
     if (e.type === "boss") {
-      oil = Math.min(100, oil + 25);
-      say("大妖鬼擊破！燈油 +25%", e.x, e.y - 65, "#ffe9a0");
+      oil = Math.min(maxOil, oil + 35);
+      say("大妖鬼擊破！燈油 +35%", e.x, e.y - 65, "#ffe9a0");
       RENDERER.triggerShake(14);
       for (let k = 0; k < 8; k++) {
         gems.push({ x: e.x + (Math.random() - 0.5) * 70, y: e.y + (Math.random() - 0.5) * 70, v: 6 });
@@ -266,10 +281,81 @@
     AUDIO.dash();
   }
 
+  function pollGamepad() {
+    if (!navigator.getGamepads) return;
+    const gamepads = navigator.getGamepads();
+    if (!gamepads) return;
+    const gp = Array.from(gamepads).find(g => g && g.connected);
+    if (!gp) return;
+
+    // 1. 蘑菇頭類比搖桿 (左搖桿 axes 0, 1) + 十字鍵 (buttons 12, 13, 14, 15)
+    let ax = gp.axes[0] || 0;
+    let ay = gp.axes[1] || 0;
+    if (Math.hypot(ax, ay) < 0.18) { ax = 0; ay = 0; }
+    if (gp.buttons[14]?.pressed) ax = -1;
+    if (gp.buttons[15]?.pressed) ax = 1;
+    if (gp.buttons[12]?.pressed) ay = -1;
+    if (gp.buttons[13]?.pressed) ay = 1;
+
+    const norm = Math.hypot(ax, ay);
+    gpMove = norm > 1 ? { x: ax / norm, y: ay / norm } : { x: ax, y: ay };
+
+    // 2. 按鈕邊緣觸發判定 (Edge Trigger)
+    const justPressed = i => gp.buttons[i]?.pressed && !gpPrevButtons[i];
+
+    // A 鍵 (Button 0): 互動 / 選卡1 / 確認
+    if (justPressed(0)) {
+      AUDIO.init();
+      if (state === "menu") start();
+      else if (state === "levelup") pickUp(0);
+      else if (state === "pause") togglePause();
+      else if (bossQ) answerBoss(0);
+      else if (state === "won" || state === "lost") start();
+      else if (state === "play" && inter) interact();
+    }
+
+    // B 鍵 (Button 1): 衝刺 / 選卡2
+    if (justPressed(1)) {
+      if (state === "levelup") pickUp(1);
+      else if (bossQ) answerBoss(1);
+      else if (state === "play") dash();
+    }
+
+    // X 鍵 (Button 2): 提示 / 選卡3
+    if (justPressed(2)) {
+      if (state === "levelup") pickUp(2);
+      else if (bossQ) answerBoss(2);
+      else if (state === "play" && job && oil > 3 && hintT <= 0) {
+        oil -= 3;
+        hintT = 3.5;
+      }
+    }
+
+    // Start 鍵 (Button 9): 暫停開關
+    if (justPressed(9)) {
+      if (state === "play" || state === "pause") togglePause();
+    }
+
+    // Select 鍵 (Button 8): 圖鑑開關
+    if (justPressed(8)) {
+      if (state === "codex") {
+        state = codexBack;
+      } else if (state === "play" || state === "pause" || state === "menu") {
+        codexBack = state;
+        state = "codex";
+      }
+    }
+
+    gpPrevButtons = gp.buttons.map(b => b.pressed);
+  }
+
   function move() {
     if (joy) {
       const n = Math.hypot(joy.dx, joy.dy);
       return n < 0.12 ? { x: 0, y: 0 } : { x: joy.dx, y: joy.dy };
+    }
+    if (Math.hypot(gpMove.x, gpMove.y) > 0.15) {
+      return gpMove;
     }
     const x = +keys.has("r") - +keys.has("l");
     const y = +keys.has("d") - +keys.has("u");
@@ -297,9 +383,14 @@
       RENDERER.triggerShake(9);
       AUDIO.breakShield();
     } else {
-      oil = Math.max(1, oil - 6);
-      say(`答錯！燈油 -6%（${bs.word.icon}＝${bs.word.jp}）`, P.x, P.y - 50, "#ff8f8f");
+      oil -= 8;
+      say(`答錯！燈油 -8%（${bs.word.icon}＝${bs.word.jp}）`, P.x, P.y - 50, "#ff8f8f");
       AUDIO.deliverWrong();
+      if (oil <= 0) {
+        oil = 0;
+        state = "lost";
+        return;
+      }
       bs.word = STORE.pick(ALL);
       bossQ = mkQ(bs);
       bossQ.lock = 1.0;
@@ -426,13 +517,15 @@
     const y = clamp(P.y + Math.sin(a) * rad, 30, WH - 30);
     const r = Math.random();
 
-    let t = { type: "ghost", hp: 2.2 * tier, speed: 95 + Math.min(75, elapsed / 4) };
+    // 怪物速度曲線：初期平緩，隨著黑夜邁向黎明逐漸加快 (52 -> 125+)
+    const speedRamp = (elapsed / DAWN) * 75;
+    let t = { type: "ghost", hp: 2.0 * tier, speed: 52 + speedRamp * 0.9 };
     if (elapsed > 45 && r < 0.22) {
-      t = { type: "runner", hp: 1.5 * tier, speed: 195 + Math.min(65, elapsed / 5) };
+      t = { type: "runner", hp: 1.5 * tier, speed: 110 + speedRamp * 1.1 };
     } else if (elapsed > 100 && r < 0.36) {
-      t = { type: "tank", hp: 8 * tier, speed: 60 };
+      t = { type: "tank", hp: 7 * tier, speed: 32 + speedRamp * 0.4 };
     } else if (elapsed > 80 && r < 0.5 && !ring) {
-      t = { type: "shooter", hp: 3 * tier, speed: 88, cd: 1 + Math.random() * 2 };
+      t = { type: "shooter", hp: 2.8 * tier, speed: 48 + speedRamp * 0.8 };
     }
 
     enemies.push({ x, y, flash: 0, wob: Math.random() * 6, ...t, hp: Math.ceil(t.hp), max: Math.ceil(t.hp) });
@@ -445,7 +538,7 @@
     if (RENDERER.updateEffects(dt)) return;
 
     elapsed += dt;
-    oil -= dt;
+    oil -= dt * 0.85; // 燈油緩慢消耗
     if (oil <= 0) {
       oil = 0;
       state = "lost";
@@ -490,9 +583,10 @@
       orderT = 5 + Math.random() * 2;
     }
 
-    // 玩家位移
+    // 玩家位移（基礎速度微調較慢，可藉由卡片提升）
     const m = move();
-    const sp = dashT > 0 ? 820 : 295;
+    const baseSpd = 230 + (b.spd || 0) * 35;
+    const sp = dashT > 0 ? 780 : baseSpd;
     const nx = clamp(P.x + m.x * sp * dt, 24, WW - 24);
     const ny = clamp(P.y + m.y * sp * dt, 24, WH - 24);
     if (!blocked(nx, P.y)) P.x = nx;
@@ -530,7 +624,7 @@
       }
     }
 
-    // 敵人邏輯與傷害碰撞（純近戰衝撞，完全移除彈幕射擊）
+    // 敵人邏輯與傷害碰撞（衝撞扣燈油；若有護盾則扣護盾）
     for (const e of enemies) {
       if (e.hp <= 0) continue;
       e.flash = Math.max(0, e.flash - dt);
@@ -543,13 +637,27 @@
 
       const hitRadius = (e.type === "boss" ? 52 : e.type === "tank" ? 34 : e.type === "mis" ? 32 : 25);
       if (P.inv <= 0 && d < hitRadius) {
-        P.hp -= e.type === "tank" ? 2 : 1;
-        P.inv = 1.1;
-        RENDERER.triggerShake(10);
-        burst(P.x, P.y, "#ff8f8f", 16);
-        say("受傷！", P.x, P.y - 36, "#ff8f8f");
-        AUDIO.hurt();
-        if (P.hp <= 0) { state = "lost"; return; }
+        if (b.shield && b.shield > 0) {
+          b.shield--;
+          P.inv = 0.85;
+          RENDERER.triggerShake(6);
+          burst(P.x, P.y, "#ffe28b", 22);
+          say(`護盾抵擋！剩餘 ${b.shield}`, P.x, P.y - 45, "#ffe28b");
+          AUDIO.breakShield();
+        } else {
+          const dmg = (e.type === "boss" ? 24 : e.type === "tank" ? 18 : 10);
+          oil -= dmg;
+          P.inv = 1.0;
+          RENDERER.triggerShake(10);
+          burst(P.x, P.y, "#ff6b81", 18);
+          say(`受傷！燈油 -${dmg}%`, P.x, P.y - 36, "#ff6b81");
+          AUDIO.hurt();
+          if (oil <= 0) {
+            oil = 0;
+            state = "lost";
+            return;
+          }
+        }
       }
     }
     enemies = enemies.filter(e => e.hp > 0 && (e.type === "boss" || dist(e, P) < 1150));
@@ -566,7 +674,7 @@
         word: STORE.pick(ALL),
         shield: true,
         hp, max: hp,
-        speed: 64,
+        speed: 40 + (elapsed / DAWN) * 45,
         flash: 0,
         wob: 0
       });
@@ -869,9 +977,9 @@
       ctx.restore();
     }
 
-    // 12. 主角 (狐耳快遞員)
+    // 12. 主角 (狐耳快遞員 - 雙幀走動與金剛結界護盾)
     const moveDir = move();
-    RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, moveDir);
+    RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, moveDir, b.shield || 0);
 
     // 13. 斬擊弧與擊中打擊環
     RENDERER.drawSlashArcs();
@@ -944,10 +1052,16 @@
   };
 
   addEventListener("keydown", e => {
+    if (e.key === "Escape" || e.key === "p" || e.key === "P") {
+      if (state === "play" || state === "pause") {
+        togglePause();
+        return;
+      }
+    }
     if (e.key === "c" || e.key === "C") {
       if (state === "codex") {
         state = codexBack;
-      } else if (state === "menu" || state === "won" || state === "lost") {
+      } else if (state === "menu" || state === "won" || state === "lost" || state === "pause") {
         codexBack = state;
         state = "codex";
       }
@@ -962,7 +1076,7 @@
       return;
     }
     if (state !== "play") {
-      if (e.key === "Enter" && state !== "levelup" && state !== "codex") start();
+      if (e.key === "Enter" && state !== "levelup" && state !== "codex" && state !== "pause") start();
       return;
     }
     if (e.key === "e" || e.key === "E") interact();
@@ -994,6 +1108,29 @@
     AUDIO.init();
     if (e.pointerType !== "mouse") touch = true;
     const p = pp(e);
+
+    // 檢查右上角暫停鈕點擊
+    if (p.x >= btnPause.x && p.x <= btnPause.x + btnPause.w && p.y >= btnPause.y && p.y <= btnPause.y + btnPause.h) {
+      if (state === "play" || state === "pause") {
+        togglePause();
+        return;
+      }
+    }
+
+    if (state === "pause") {
+      const btnW = UI.PAUSE_BTN_W || 320, btnH = UI.PAUSE_BTN_H || 48;
+      const bx = W / 2 - btnW / 2;
+      for (const btn of UI.PAUSE_BTNS) {
+        if (p.x >= bx && p.x <= bx + btnW && p.y >= btn.y && p.y <= btn.y + btnH) {
+          if (btn.id === "resume") togglePause();
+          else if (btn.id === "mute") AUDIO.toggleMute();
+          else if (btn.id === "codex") { codexBack = "pause"; state = "codex"; }
+          else if (btn.id === "menu") { state = "menu"; }
+          return;
+        }
+      }
+      return;
+    }
 
     if (state === "codex") {
       state = codexBack;
@@ -1038,7 +1175,7 @@
       dash();
     } else if (p.x < W / 2 && p.y > 80 && !joy) {
       joy = { id: e.pointerId, x: p.x, y: p.y, dx: 0, dy: 0 };
-    } else if (p.y < 80 && p.x > 700 && job && oil > 3 && hintT <= 0) {
+    } else if (p.y < 80 && p.x > 320 && p.x < 580 && job && oil > 3 && hintT <= 0) {
       oil -= 3;
       hintT = 3.5;
     }
@@ -1065,7 +1202,12 @@
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
 
-    update(dt);
+    // 手把輪詢（包含搖桿蘑菇頭與按鈕）
+    pollGamepad();
+
+    if (state === "play") {
+      update(dt);
+    }
     AUDIO.updateBgm(dt, state, elapsed, DAWN);
 
     if ((state === "won" || state === "lost") && !ended) {
@@ -1080,11 +1222,12 @@
     } else {
       drawWorld();
       UI.drawHud(
-        ctx, P, oil, elapsed, DAWN, delivered, failed, score, level, xp, xpNeed(),
-        job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, WL, WI, b
+        ctx, P, oil, maxOil, elapsed, DAWN, delivered, failed, score, level, xp, xpNeed(),
+        job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b
       );
       if (bossQ) UI.drawBossQuiz(ctx, bossQ);
       if (state === "levelup") UI.drawLevelUp(ctx, level, choices);
+      if (state === "pause") UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false);
       if (state === "won" || state === "lost") UI.drawEndScreen(ctx, state, score, delivered, failed, misses);
     }
 

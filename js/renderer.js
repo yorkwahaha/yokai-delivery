@@ -367,7 +367,7 @@ window.RENDERER = (() => {
   }
 
   // 繪製主角（高解析度 Chibi + 步伐彈跳 + 衝刺殘影）
-  function drawPlayer(P, isDashing, inv, elapsed, moveDir) {
+  function drawPlayer(P, isDashing, inv, elapsed, moveDir, shield = 0) {
     ctx.save();
     const isMoving = Math.hypot(moveDir.x, moveDir.y) > 0.1;
     const walkBob = isMoving ? Math.sin(elapsed * 16) * 4 : Math.sin(elapsed * 4) * 1.5;
@@ -377,6 +377,17 @@ window.RENDERER = (() => {
     // 主角天然朝向為 RIGHT (1)
     const flipX = moveDir.x < -0.05 ? -1 : 1;
 
+    // 兩幀步伐切換：移動時左右腳邁步 (walk1 <-> walk2)，靜止時站立 (player)
+    let pImg = window.ART.player;
+    if (isMoving) {
+      const stepIdx = Math.floor(elapsed * 8) % 2;
+      if (stepIdx === 0 && window.ART.player_walk1) {
+        pImg = window.ART.player_walk1;
+      } else if (stepIdx === 1 && window.ART.player_walk2) {
+        pImg = window.ART.player_walk2;
+      }
+    }
+
     // 投影陰影
     ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
     ctx.beginPath();
@@ -384,8 +395,8 @@ window.RENDERER = (() => {
     ctx.fill();
 
     // 衝刺時加入殘影
-    if (isDashing && Math.random() < 0.45 && window.ART.player) {
-      addGhostTrail(window.ART.player, P.x, P.y + walkBob, flipX, 1.0, 0.45);
+    if (isDashing && Math.random() < 0.45 && pImg) {
+      addGhostTrail(pImg, P.x, P.y + walkBob, flipX, 1.0, 0.45);
     }
 
     // 繪製殘影
@@ -405,13 +416,39 @@ window.RENDERER = (() => {
     ctx.translate(P.x, P.y + walkBob);
     ctx.scale(flipX * squash, stretch);
 
+    // 金剛結界護盾環繞（若 shield > 0）
+    if (shield > 0) {
+      ctx.save();
+      const rot = elapsed * 2.8;
+      const sr = 42;
+      ctx.strokeStyle = "rgba(255, 220, 80, 0.85)";
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([9, 6]);
+      ctx.beginPath();
+      ctx.arc(0, -22, sr, rot, rot + 6.283);
+      ctx.stroke();
+
+      // 金黃金剛勾玉護盾珠
+      for (let s = 0; s < shield; s++) {
+        const sa = rot + s * (6.283 / shield);
+        const sx = Math.cos(sa) * sr;
+        const sy = -22 + Math.sin(sa) * (sr * 0.7);
+        ctx.fillStyle = "#ffe28b";
+        ctx.shadowColor = "#ffb700";
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 6, 0, 6.28);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
     // 受擊閃爍
     if (inv > 0 && Math.floor(elapsed * 24) % 2 === 0) {
       ctx.globalAlpha = 0.4;
     }
 
-    if (window.ART.player) {
-      const pImg = window.ART.player;
+    if (pImg) {
       const pw = 84;
       const ph = (pImg.naturalWidth && pImg.naturalHeight) ? (pw * pImg.naturalHeight / pImg.naturalWidth) : 96;
       ctx.drawImage(pImg, -pw / 2, -ph + 20, pw, ph);
