@@ -479,9 +479,9 @@ window.RENDERER = (() => {
     // shooter.png: 原生吐火面向 RIGHT (1) -> dirTowardsPlayer === 1 ? 1 : -1
     // boss, tank: 對稱/正面朝向 -> 跟隨玩家方位微側
     let scaleX = 1;
-    if (e.type === "ghost" || e.type === "runner" || e.type === "mis") {
+    if (e.type === "ghost" || e.type === "mis") {
       scaleX = (dirTowardsPlayer === -1) ? 1 : -1;
-    } else if (e.type === "shooter") {
+    } else if (e.type === "runner" || e.type === "shooter") {
       scaleX = (dirTowardsPlayer === 1) ? 1 : -1;
     } else {
       scaleX = (dirTowardsPlayer === -1) ? 1 : -1;
@@ -674,7 +674,6 @@ window.RENDERER = (() => {
   function drawDamageNumbers() {
     ctx.save();
     for (const d of dmgNumbers) {
-      const sx = d.x - camX, sy = d.y - camY;
       const alpha = clamp(d.life / 0.3, 0, 1);
       ctx.globalAlpha = alpha;
       ctx.textAlign = "center";
@@ -682,10 +681,10 @@ window.RENDERER = (() => {
 
       ctx.strokeStyle = "#1a162b";
       ctx.lineWidth = 4;
-      ctx.strokeText(d.val, sx, sy);
+      ctx.strokeText(d.val, d.x, d.y);
 
       ctx.fillStyle = d.color;
-      ctx.fillText(d.val, sx, sy);
+      ctx.fillText(d.val, d.x, d.y);
     }
     ctx.restore();
   }
@@ -694,9 +693,8 @@ window.RENDERER = (() => {
     ctx.save();
     for (const s of slashArcs) {
       const alpha = s.life / s.maxLife;
-      const sx = s.x - camX, sy = s.y - camY;
       ctx.save();
-      ctx.translate(sx, sy);
+      ctx.translate(s.x, s.y);
       ctx.rotate(s.angle);
 
       // 金黃金箔斬擊流光
