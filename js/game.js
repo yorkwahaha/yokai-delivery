@@ -110,7 +110,7 @@
     const from = pick(houses.filter(h => !busy.has(h.id)));
     const to = pick(houses.filter(h => h !== from && dist(h, from) > 420 && dist(h, from) < 2000));
     if (from && to) {
-      orders.push({ from, to, word: STORE.pick(ALL), rev: elapsed > 45 && Math.random() < 0.35, life: 95 });
+      orders.push({ from, to, word: STORE.pick(ALL), rev: Math.random() < 0.5, life: 95 });
     }
   }
 
@@ -224,7 +224,8 @@
     };
     nameT = 4.5;
     cargo = { x: P.x, y: P.y };
-    say(o.rev ? `委託：「${o.word.jp}をください」` : `取件：「${o.word.jp}」➔「${o.to.word.jp}」`, P.x, P.y - 45, "#ffe9a0");
+    const promptItem = o.rev ? o.word.zh : o.word.jp;
+    say(`取件：【${promptItem}】➔「${o.to.word.jp}」`, P.x, P.y - 45, "#ffe9a0");
     AUDIO.deliverSuccess();
   }
 
@@ -240,7 +241,7 @@
       oil = Math.min(maxOil, oil + 18 + gain);
       xp += j.rev ? 14 : 10;
       score += 50;
-      say(`${w.icon} ${w.jp}＝${w.zh} 送達！`, pos.x, pos.y - 35, "#fff0a6");
+      say(`${w.jp}＝${w.zh} 配達完遂！`, pos.x, pos.y - 35, "#fff0a6");
       say(`燈油 +${18 + gain}%`, pos.x, pos.y - 12, "#ffd27a");
       burst(pos.x, pos.y, "#ffe28b", 32);
       RENDERER.triggerShake(7);
@@ -248,7 +249,7 @@
     } else {
       failed++;
       misses.push(j.word);
-      say(`送錯了！${j.word.icon} 是「${j.word.jp}」`, pos.x, pos.y - 36, "#ff8f8f");
+      say(`誤配！「${j.word.jp}」是「${j.word.zh}」`, pos.x, pos.y - 36, "#ff8f8f");
       const speedRamp = (elapsed / DAWN) * 75;
       enemies.push({
         x: pos.x, y: pos.y + 20,
@@ -308,7 +309,7 @@
 
     if (isMis) {
       STORE.rec(e.w.jp, true);
-      say(`複習完成：${e.w.icon} ${e.w.jp}＝${e.w.zh}`, e.x, e.y - 45, "#f3d9ff");
+      say(`複習完成：${e.w.jp}＝${e.w.zh}`, e.x, e.y - 45, "#f3d9ff");
       RENDERER.triggerShake(7);
       AUDIO.deliverSuccess();
     }
@@ -956,14 +957,14 @@
     // 4. 委託氣泡 (町屋上方和風繪卷木札)
     for (const o of orders) {
       const h = o.from;
-      const floatY = h.y - 120 + Math.sin(elapsed * 3.5 + h.id) * 4;
+      const floatY = h.y - 126 + Math.sin(elapsed * 3.5 + h.id) * 4;
       const isTarget = (inter === o);
 
       ctx.save();
       // 繪卷底框（黑漆金箔底）
-      ctx.fillStyle = isTarget ? "#fffbf0" : "#f7f0df";
+      ctx.fillStyle = isTarget ? "#fffdf5" : "#f7f0df";
       ctx.beginPath();
-      ctx.roundRect(h.x - 84, floatY, 168, 70, 10);
+      ctx.roundRect(h.x - 90, floatY, 180, 68, 10);
       ctx.fill();
       ctx.strokeStyle = isTarget ? "#ff8833" : "#8c724b";
       ctx.lineWidth = isTarget ? 3.5 : 2;
@@ -971,37 +972,51 @@
 
       // 金箔頂飾
       ctx.fillStyle = isTarget ? "#ff8833" : "#c29d5b";
-      ctx.fillRect(h.x - 84, floatY, 168, 4);
+      ctx.fillRect(h.x - 90, floatY, 180, 4);
 
       ctx.textAlign = "center";
       ctx.fillStyle = "#1e1824";
-      ctx.font = "900 16px 'Zen Maru Gothic', sans-serif";
-      ctx.fillText(o.rev ? `📝 ${o.word.jp}をください` : `${o.word.icon} ${o.word.jp}`, h.x, floatY + 28);
+      ctx.font = "900 15px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+      // 依照模式顯示委託內容，絕不洩漏地面選項
+      const orderContent = o.rev ? `委託：送「${o.word.zh}」` : `委託：送「${o.word.jp}」`;
+      ctx.fillText(orderContent, h.x, floatY + 25);
 
       ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
       ctx.fillStyle = "#5c4834";
-      ctx.fillText(`送往：${o.to.word.jp}`, h.x, floatY + 50);
+      ctx.fillText(`➔ 送往町屋「${o.to.word.jp}」`, h.x, floatY + 46);
 
       // 剩餘時間條 (金黃至火紅)
-      ctx.fillStyle = "#ffa726";
-      ctx.fillRect(h.x - 70, floatY + 62, (140 * o.life) / 95, 3.5);
+      ctx.fillStyle = isTarget ? "#ff8833" : "#ffa726";
+      ctx.fillRect(h.x - 75, floatY + 57, (150 * o.life) / 95, 3.5);
       ctx.restore();
 
-      // 靠近或碰觸房屋時顯示專屬接案標籤 (浮動於主角上方)
-      if (inter === o) {
+      // 靠近町屋時，在木札正下方懸掛「按 E 接案」小金標（完全離開主角身體，絕不遮擋視野與主角）
+      if (isTarget) {
         ctx.save();
-        const tagX = P.x, tagY = P.y - 52;
+        const tagY = floatY + 74;
+        // 連接木札與按鍵標籤的雙金繩
+        ctx.strokeStyle = "#d4af37";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(h.x - 28, floatY + 68);
+        ctx.lineTo(h.x - 28, tagY);
+        ctx.moveTo(h.x + 28, floatY + 68);
+        ctx.lineTo(h.x + 28, tagY);
+        ctx.stroke();
+
+        // 金標本體
         ctx.fillStyle = "#ffeed4";
         ctx.beginPath();
-        ctx.roundRect(tagX - 48, tagY - 14, 96, 28, 8);
+        ctx.roundRect(h.x - 52, tagY, 104, 26, 6);
         ctx.fill();
         ctx.strokeStyle = "#ff8833";
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 2;
         ctx.stroke();
+
         ctx.textAlign = "center";
         ctx.fillStyle = "#1a1622";
         ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
-        ctx.fillText("按 E 接案", tagX, tagY + 5);
+        ctx.fillText("按 E 接案", h.x, tagY + 18);
         ctx.restore();
       }
     }
@@ -1012,7 +1027,7 @@
         const cur = (job.idx === i);
         ctx.save();
         // 陣底柔光
-        ctx.fillStyle = cur ? "rgba(255, 235, 140, 0.95)" : "rgba(255, 255, 255, 0.85)";
+        ctx.fillStyle = cur ? "rgba(255, 235, 140, 0.95)" : "rgba(255, 255, 255, 0.88)";
         ctx.beginPath();
         ctx.arc(p.x, p.y, 35, 0, 6.28);
         ctx.fill();
@@ -1030,13 +1045,16 @@
         }
 
         ctx.textAlign = "center";
+        ctx.fillStyle = "#1e1829";
+        // 跨語言核心測驗：無同字複製、無圖標洩題！
         if (job.rev) {
-          ctx.font = "28px sans-serif";
-          ctx.fillText(job.ans[i].icon, p.x, p.y + 10);
-        } else {
-          ctx.font = "900 16px 'Zen Maru Gothic', sans-serif";
-          ctx.fillStyle = "#1e1829";
+          // 中翻日：地面顯示日文假名選項目標
+          ctx.font = "900 15px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
           ctx.fillText(job.ans[i].jp, p.x, p.y + 6);
+        } else {
+          // 日翻中：地面顯示中文義選項目標
+          ctx.font = "900 15px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+          ctx.fillText(job.ans[i].zh, p.x, p.y + 6);
         }
         ctx.restore();
       });
@@ -1094,20 +1112,41 @@
     }
 
 
-    // 11. 貨物包裹跟隨
+    // 11. 貨物包裹跟隨（精緻和風飛腳包裹，封印綁繩，絕不洩漏答案圖標）
     if (job) {
       ctx.save();
-      ctx.fillStyle = "#2c2236";
+      const bx = cargo.x - 16, by = cargo.y - 16, bw = 32, bh = 32;
+
+      // 1. 包裹本體（深紫黑漆木盒）
+      ctx.fillStyle = "#241c2c";
       ctx.beginPath();
-      ctx.roundRect(cargo.x - 16, cargo.y - 16, 32, 32, 8);
+      ctx.roundRect(bx, by, bw, bh, 6);
       ctx.fill();
       ctx.strokeStyle = "#d4af37";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.8;
       ctx.stroke();
-      ctx.textAlign = "center";
-      ctx.font = "bold 18px sans-serif";
+
+      // 2. 十字封印金繩
+      ctx.strokeStyle = "rgba(255, 215, 80, 0.75)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cargo.x, by);
+      ctx.lineTo(cargo.x, by + bh);
+      ctx.moveTo(bx, cargo.y);
+      ctx.lineTo(bx + bw, cargo.y);
+      ctx.stroke();
+
+      // 3. 中央硃砂紅印泥「荷」字印鑑
+      ctx.fillStyle = "#c62828";
+      ctx.beginPath();
+      ctx.arc(cargo.x, cargo.y, 7.5, 0, 6.28);
+      ctx.fill();
+
       ctx.fillStyle = "#ffeed4";
-      ctx.fillText(nameT > 0 && !job.rev ? job.word.icon : "？", cargo.x, cargo.y + 6);
+      ctx.textAlign = "center";
+      ctx.font = "900 9px 'Kaisei Decol', sans-serif";
+      ctx.fillText("荷", cargo.x, cargo.y + 3);
+
       ctx.restore();
     }
 
