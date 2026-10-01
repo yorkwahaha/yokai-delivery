@@ -72,25 +72,28 @@
   let gpPrevButtons = [], gpMove = { x: 0, y: 0 };
 
   let bossT = 75, ended = false, bossQ = null, codexBack = "menu";
-  const WL = { katana: 1, boom: 0, fire: 0, thunder: 0 };
+  const WL = { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 };
   const WI = {
-    katana: { jp: "かたな", zh: "妖刀斬" },
-    boom: { jp: "ブーメラン", zh: "陰陽符" },
-    fire: { jp: "ファイアボール", zh: "狐火炎" },
-    thunder: { jp: "サンダー", zh: "天狐雷" }
+    katana: { id: "katana", jp: "かたな", zh: "妖刀斬", type: "active", category: "方向斬擊", desc: "揮出凌厲新月刀光，斬裂前方扇形妖怪" },
+    barrier: { id: "barrier", jp: "けっかい", zh: "淨化靈陣", type: "active", category: "全方結界", desc: "展開 360 度除魔陣，週期性震退並重創周身妖怪" },
+    fire: { id: "fire", jp: "ファイアボール", zh: "狐火炎", type: "active", category: "周身護體", desc: "召喚狐火靈球環繞高速旋轉，灼燒貼身妖怪" },
+    boom: { id: "boom", jp: "ブーメラン", zh: "陰陽符", type: "active", category: "穿透咒符", desc: "擲出迴旋陰陽符咒，來回穿透路徑上的敵人" },
+    thunder: { id: "thunder", jp: "サンダー", zh: "天狐雷", type: "active", category: "天罰落雷", desc: "引導九天金雷轟擊最強妖怪，造成毀滅性打擊" },
+    needle: { id: "needle", jp: "せんぼん", zh: "天狐靈針", type: "active", category: "高速散射", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪" }
   };
-  let proj = [], surgeT = 40, fAng = 0;
-  const wT = { boom: 0, thunder: 0 };
+  let proj = [], needles = [], surgeT = 40, fAng = 0;
+  const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0 };
 
   const UP = [
-    { n: "刀光精進", s: "攻擊強化", d: "妖刀傷害 +1.5", f: () => { b.dmg += 1.5; } },
-    { n: "疾風連斬", s: "攻速加快", d: "攻擊頻率大幅提升", f: () => { b.rate++; }, ok: () => b.rate < 4 },
-    { n: "招財勾玉", s: "吸取靈氣", d: "靈玉經驗吸取範圍 +50%", f: () => { b.mag++; }, ok: () => b.mag < 3 },
-    { n: "神足草履", s: "行步如飛", d: "基礎移動速度 +15%", f: () => { b.spd = (b.spd || 0) + 1; }, ok: () => (b.spd || 0) < 3 },
-    { n: "金剛結界", s: "神靈護盾", d: "召喚金剛護盾，抵擋 2 次受擊傷害", f: () => { b.shield = Math.min(4, (b.shield || 0) + 2); }, ok: () => (b.shield || 0) < 4 },
-    { n: "長明燈油", s: "燈油擴充", d: "燈油上限 +25% 並全數補滿", f: () => { maxOil += 25; oil = maxOil; }, ok: () => maxOil < 200 },
-    { n: "添燈香油", s: "緊急補給", d: "燈油即刻恢復 +45%", f: () => { oil = Math.min(maxOil, oil + 45); } },
-    { n: "縮地瞬步", s: "衝刺加速", d: "衝刺冷卻時間大幅縮短", f: () => { b.dash++; }, ok: () => b.dash < 3 }
+    { id: "shield", n: "金剛結界", s: "神靈護盾", cat: "防禦生存", d: "召喚金剛勾玉護盾，抵擋 2 次受傷（可疊加）", f: () => { b.shield = Math.min(6, (b.shield || 0) + 2); }, ok: () => (b.shield || 0) < 6 },
+    { id: "oil_max", n: "長明燈油", s: "生命擴充", cat: "血厚續航", d: "燈油上限 +30 並立即補滿，且常駐每秒回油", f: () => { maxOil += 30; oil = maxOil; b.oilRegen = (b.oilRegen || 0) + 0.6; }, ok: () => maxOil < 260 },
+    { id: "oil_heal", n: "添燈香油", s: "緊急注入", cat: "緊急急救", d: "燈油即刻恢復 +50% 並引發除魔波", f: () => { oil = Math.min(maxOil, oil + maxOil * 0.5); burst(P.x, P.y, "#ffd27a", 30); } },
+    { id: "dmg", n: "修羅破軍", s: "攻擊強化", cat: "攻擊爆發", d: "所有武器與法術傷害全面提升 +25%", f: () => { b.dmg += 0.35; } },
+    { id: "rate", n: "神樂疾奏", s: "攻速加快", cat: "攻擊爆發", d: "攻擊與秘術冷卻時間縮短 20%", f: () => { b.rate++; }, ok: () => b.rate < 4 },
+    { id: "crit", n: "心眼一閃", s: "致命暴擊", cat: "攻擊爆發", d: "暴擊率 +20%，暴擊傷害大幅躍升", f: () => { b.crit = (b.crit || 0) + 1; }, ok: () => (b.crit || 0) < 3 },
+    { id: "spd", n: "神足草履", s: "行步如飛", cat: "神速機動", d: "移動速度 +15%（最多可疊加 3 次）", f: () => { b.spd = (b.spd || 0) + 1; }, ok: () => (b.spd || 0) < 3 },
+    { id: "dash", n: "縮地瞬步", s: "極速閃避", cat: "神速機動", d: "衝刺冷卻大幅縮短，衝刺附加無敵突進", f: () => { b.dash++; }, ok: () => b.dash < 3 },
+    { id: "mag", n: "招財勾玉", s: "靈氣吸取", cat: "輔助資源", d: "靈玉經驗與物資吸取範圍 +60%", f: () => { b.mag++; }, ok: () => b.mag < 3 }
   ];
 
   const say = (v, x, y, c = "#fff") => texts.push({ v, x, y, c, life: 1.8 });
@@ -126,9 +129,9 @@
     AUDIO.init();
     state = "play";
     Object.assign(P, { x: 1350, y: 900, inv: 1.2 });
-    Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0 });
-    Object.assign(WL, { katana: 1, boom: 0, fire: 0, thunder: 0 });
-    proj = []; surgeT = 45; wT.boom = 0; wT.thunder = 1;
+    Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0 });
+    Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 });
+    proj = []; needles = []; surgeT = 45; wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5;
     elapsed = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
     orders = []; job = null; enemies = []; gems = []; parts = []; texts = []; rings = []; misses = [];
     bossT = 75; ended = false; bossQ = null; orderT = 3; spawnT = 1; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0;
@@ -138,15 +141,57 @@
   }
 
   const xpNeed = () => 10 + level * 9;
+  const MAX_ACTIVE_WEAPONS = 4;
+
   function offerUp() {
-    const wc = shuffle(Object.keys(WI).filter(k => WL[k] < 5).map(k => ({
-      n: WI[k].zh,
-      s: WI[k].jp,
-      d: WL[k] ? `武器提升至 Lv.${WL[k] + 1}` : "解鎖全新秘術武器！",
-      f: () => { WL[k]++; if (k === "boom") wT.boom = 0; }
-    })));
-    const pc = shuffle(UP.filter(u => !u.ok || u.ok()));
-    choices = shuffle([...wc.slice(0, 2), ...pc].slice(0, 3));
+    const owned = Object.keys(WI).filter(k => (WL[k] || 0) > 0);
+    const canLearnNew = owned.length < MAX_ACTIVE_WEAPONS;
+
+    // 武器選項：未滿 4 槽位可學新武器，已滿 4 槽位僅允許升級持有武器
+    const eligibleWeaponKeys = Object.keys(WI).filter(k => {
+      if (WL[k] >= 5) return false;
+      if (WL[k] === 0 && !canLearnNew) return false;
+      return true;
+    });
+
+    const wc = shuffle(eligibleWeaponKeys).map(k => {
+      const isNew = WL[k] === 0;
+      return {
+        id: k,
+        type: "weapon",
+        n: WI[k].zh,
+        s: WI[k].jp,
+        cat: isNew ? `【主動・${WI[k].category}】` : `【主動升級・${WI[k].category}】`,
+        levelText: isNew ? "★ NEW 秘術解鎖" : `◆ Lv.${WL[k]} ➔ Lv.${WL[k] + 1}`,
+        d: isNew ? WI[k].desc : `威力與範圍大幅強化（提升至 Lv.${WL[k] + 1}）`,
+        f: () => {
+          WL[k]++;
+          if (k === "boom") wT.boom = 0;
+          if (k === "barrier") wT.barrier = 0;
+          if (k === "needle") wT.needle = 0;
+        }
+      };
+    });
+
+    const pc = shuffle(UP.filter(u => !u.ok || u.ok())).map(u => ({
+      id: u.id,
+      type: "passive",
+      n: u.n,
+      s: u.s,
+      cat: `【被動・${u.cat}】`,
+      levelText: "◆ 體質修行強化",
+      d: u.d,
+      f: u.f
+    }));
+
+    if (wc.length > 0 && pc.length > 0) {
+      choices = shuffle([...wc.slice(0, 2), ...pc.slice(0, 2)]).slice(0, 3);
+    } else if (wc.length > 0) {
+      choices = wc.slice(0, 3);
+    } else {
+      choices = pc.slice(0, 3);
+    }
+
     state = "levelup";
     keys.clear();
     joy = null;
@@ -398,7 +443,7 @@
   }
 
   function weapons(dt) {
-    // 1. 妖刀斬擊 (Katana) - 自動斬擊
+    // 1. 妖刀斬擊 (Katana) - 方向性扇形斬擊 (修復：僅限前方 120 度扇形，移除全圓判定)
     atkT -= dt;
     if (atkT <= 0) {
       const reach = 145 + (WL.katana - 1) * 16;
@@ -413,19 +458,104 @@
         atkT = Math.max(0.24, 0.72 - b.rate * 0.13);
         const ang = Math.atan2(near.y - P.y, near.x - P.x);
         RENDERER.addSlashArc(P.x, P.y, reach * 0.85, ang);
-        rings.push({ x: P.x, y: P.y, r: reach, life: 0.18 });
 
+        // 僅判定前方扇形範圍 (角度差 <= 1.05 弧度，約 120 度角)
         for (const e of enemies) {
-          if (e.hp > 0 && dist(P, e) <= reach) {
-            const isCrit = Math.random() < 0.25;
-            hurt(e, (b.dmg + (WL.katana - 1) * 0.8) * (isCrit ? 1.6 : 1.0), isCrit);
+          if (e.hp > 0) {
+            const ed = dist(P, e);
+            if (ed <= reach) {
+              const eang = Math.atan2(e.y - P.y, e.x - P.x);
+              let diff = Math.abs(eang - ang);
+              while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
+              if (diff <= 1.05) {
+                const isCrit = Math.random() < (0.2 + (b.crit || 0) * 0.15);
+                const mult = isCrit ? (1.8 + (b.crit || 0) * 0.4) : 1.0;
+                hurt(e, (b.dmg + (WL.katana - 1) * 0.8) * mult, isCrit);
+              }
+            }
           }
         }
         AUDIO.slash();
       }
     }
 
-    // 2. 陰陽符咒迴力鏢 (Boomerang)
+    // 2. 淨化靈陣 (Barrier AoE) - 360 度全方位退魔衝擊環（全新卡牌秘術技能）
+    if (WL.barrier > 0) {
+      wT.barrier -= dt;
+      if (wT.barrier <= 0) {
+        wT.barrier = Math.max(1.2, 3.2 - WL.barrier * 0.42 - b.rate * 0.2);
+        const r = 140 + WL.barrier * 28;
+        // 激發 360 度擴散金色退魔衝擊環
+        rings.push({ x: P.x, y: P.y, r: r, maxR: r, life: 0.35, maxL: 0.35, color: "#ffe082" });
+        let hitAny = false;
+        for (const e of enemies) {
+          if (e.hp > 0) {
+            const ed = dist(P, e);
+            if (ed <= r) {
+              hitAny = true;
+              const isCrit = Math.random() < (0.15 + (b.crit || 0) * 0.1);
+              hurt(e, (2.0 + WL.barrier * 1.1) * b.dmg * (isCrit ? 1.6 : 1.0), isCrit);
+              // 強力 360 度外向擊退
+              const kx = (e.x - P.x) / (ed || 1);
+              const ky = (e.y - P.y) / (ed || 1);
+              e.x += kx * (50 + WL.barrier * 10);
+              e.y += ky * (50 + WL.barrier * 10);
+              burst(e.x, e.y, "#ffe082", 6);
+            }
+          }
+        }
+        if (hitAny) RENDERER.triggerShake(5);
+        AUDIO.barrier();
+      }
+    }
+
+    // 3. 天狐靈針 (Needles) - 面朝方向多發穿甲破魔靈針
+    if (WL.needle > 0) {
+      wT.needle -= dt;
+      if (wT.needle <= 0) {
+        wT.needle = Math.max(0.45, 1.25 - WL.needle * 0.16 - b.rate * 0.1);
+        const count = 3 + (WL.needle >= 3 ? 2 : 0) + (WL.needle >= 5 ? 2 : 0);
+        const moveDir = move();
+        let shootAng = 0;
+        if (Math.hypot(moveDir.x, moveDir.y) > 0.1) {
+          shootAng = Math.atan2(moveDir.y, moveDir.x);
+        } else {
+          let near = null, nd = 450;
+          for (const e of enemies) {
+            const d = dist(P, e);
+            if (e.hp > 0 && d < nd) { near = e; nd = d; }
+          }
+          shootAng = near ? Math.atan2(near.y - P.y, near.x - P.x) : 0;
+        }
+        const spread = 0.45;
+        for (let i = 0; i < count; i++) {
+          const a = shootAng + (i - (count - 1) / 2) * (spread / Math.max(1, count - 1));
+          needles.push({
+            x: P.x, y: P.y,
+            vx: Math.cos(a) * 640, vy: Math.sin(a) * 640,
+            life: 0.65,
+            dmg: 1.4 + WL.needle * 0.7
+          });
+        }
+        AUDIO.needle();
+      }
+    }
+
+    for (const nd of needles) {
+      nd.x += nd.vx * dt;
+      nd.y += nd.vy * dt;
+      nd.life -= dt;
+      for (const e of enemies) {
+        if (e.hp > 0 && !(e.inb > elapsed) && dist(e, nd) < (e.type === "boss" ? 54 : 30)) {
+          e.inb = elapsed + 0.2;
+          hurt(e, nd.dmg * b.dmg);
+          burst(nd.x, nd.y, "#80deea", 4);
+        }
+      }
+    }
+    needles = needles.filter(nd => nd.life > 0);
+
+    // 4. 陰陽符咒迴力鏢 (Boomerang)
     if (WL.boom > 0) {
       wT.boom -= dt;
       if (wT.boom <= 0) {
@@ -470,7 +600,7 @@
     }
     proj = proj.filter(q => !q.done);
 
-    // 3. 狐火環繞 (Fireball)
+    // 5. 狐火環繞 (Fireball)
     if (WL.fire > 0) {
       fAng += dt * 2.8;
       const count = WL.fire + 1;
@@ -487,7 +617,7 @@
       }
     }
 
-    // 4. 天狐落雷 (Thunder)
+    // 6. 天狐落雷 (Thunder)
     if (WL.thunder > 0) {
       wT.thunder -= dt;
       if (wT.thunder <= 0) {
@@ -538,7 +668,7 @@
     if (RENDERER.updateEffects(dt)) return;
 
     elapsed += dt;
-    oil -= dt * 0.85; // 燈油緩慢消耗
+    oil = Math.min(maxOil, oil - dt * 0.85 + (b.oilRegen || 0) * dt); // 燈油自然消耗（長明燈油提供常駐回油）
     if (oil <= 0) {
       oil = 0;
       state = "lost";
@@ -985,15 +1115,42 @@
     const moveDir = move();
     RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, moveDir, b.shield || 0);
 
-    // 13. 斬擊弧與擊中打擊環
+    // 12.5 破魔靈針彈幕
+    for (const nd of needles) {
+      ctx.save();
+      const ang = Math.atan2(nd.vy, nd.vx);
+      ctx.translate(nd.x, nd.y);
+      ctx.rotate(ang);
+      ctx.fillStyle = "#e0f7fa";
+      ctx.shadowColor = "#00e5ff";
+      ctx.shadowBlur = 8;
+      ctx.fillRect(-12, -2, 24, 4);
+      ctx.restore();
+    }
+
+    // 13. 斬擊弧與結界擊中環
     RENDERER.drawSlashArcs();
     for (const r of rings) {
-      const a = r.life / 0.18;
-      ctx.strokeStyle = `rgba(255, 235, 140, ${a})`;
-      ctx.lineWidth = 4;
+      const maxL = r.maxL || 0.32;
+      const progress = 1 - (r.life / maxL);
+      const curR = r.maxR ? (r.maxR * (0.35 + 0.65 * progress)) : r.r;
+      const a = Math.max(0, r.life / maxL);
+      ctx.save();
+      ctx.strokeStyle = r.color || `rgba(255, 235, 140, ${a})`;
+      ctx.lineWidth = 3 + (1 - progress) * 2;
+      ctx.shadowColor = r.color || "#ffe28b";
+      ctx.shadowBlur = 10;
       ctx.beginPath();
-      ctx.arc(r.x, r.y, r.r, 0, 6.28);
+      ctx.arc(r.x, r.y, curR, 0, 6.28);
       ctx.stroke();
+      if (r.maxR) {
+        ctx.strokeStyle = `rgba(255, 255, 255, ${a * 0.7})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, curR * 0.75, 0, 6.28);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
 
     // 14. 粒子與飄字
@@ -1153,10 +1310,10 @@
       return start();
     }
     if (state === "levelup") {
-      const cardW = 240, cardH = 340, startX = 65, gap = 40;
+      const cardW = 248, cardH = 385, startX = 60, gap = 44, cy = 170;
       for (let i = 0; i < 3; i++) {
         const cx = startX + i * (cardW + gap);
-        if (p.x >= cx && p.x <= cx + cardW && p.y >= 190 && p.y <= 190 + cardH) {
+        if (p.x >= cx && p.x <= cx + cardW && p.y >= cy && p.y <= cy + cardH) {
           pickUp(i);
           return;
         }
@@ -1230,7 +1387,7 @@
         job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b
       );
       if (bossQ) UI.drawBossQuiz(ctx, bossQ);
-      if (state === "levelup") UI.drawLevelUp(ctx, level, choices);
+      if (state === "levelup") UI.drawLevelUp(ctx, level, choices, WL, WI);
       if (state === "pause") UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false);
       if (state === "won" || state === "lost") UI.drawEndScreen(ctx, state, score, delivered, failed, misses);
     }

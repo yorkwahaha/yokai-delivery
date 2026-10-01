@@ -248,6 +248,43 @@ window.AUDIO = (() => {
       osc.stop(now + 0.18);
     },
 
+    // 淨化靈陣（神道神樂鈴 + 深層除魔震波）
+    barrier() {
+      const ac = getCtx();
+      if (!ac || muted) return;
+      playSuzu(1480, 0.15);
+      const now = ac.currentTime;
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(55, now + 0.32);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now);
+      osc.stop(now + 0.36);
+    },
+
+    // 破魔靈針（清脆高速穿雲嘯音）
+    needle() {
+      const ac = getCtx();
+      if (!ac || muted) return;
+      const now = ac.currentTime;
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(1420, now + 0.08);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now);
+      osc.stop(now + 0.1);
+    },
+
     // 擊中受傷
     hurt() {
       const ac = getCtx();

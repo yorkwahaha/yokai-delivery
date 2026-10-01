@@ -204,73 +204,74 @@ window.UI = (() => {
       }
     }
 
-    // --- 左下角：HoloCure 風格【武器與被動技能圖標欄】（完全無文字，純圖標+等級） ---
-    const slotStartX = 18, slotY = H - 52;
-    const wepList = [
-      { key: "katana", icon: "🗡️", color: "#ffd54f" },
-      { key: "boom", icon: "📜", color: "#80d8ff" },
-      { key: "fire", icon: "🔥", color: "#ff8a80" },
-      { key: "thunder", icon: "⚡", color: "#ea80fc" }
-    ];
+    // --- 左下角：HoloCure 風格【主動秘術 4 槽位 + 被動體質欄】 ---
+    const ownedKeys = WI ? Object.keys(WI).filter(k => (WL[k] || 0) > 0) : [];
+    const maxActiveSlots = 4;
+    const slotStartX = 18, slotY = H - 54;
+    const slotSize = 40, slotGap = 8;
 
-    wepList.forEach((wep, idx) => {
-      const sx = slotStartX + idx * 44;
-      const lvl = WL[wep.key];
-      const isUnlocked = lvl > 0;
-
-      // 裝備卡槽底座
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(sx, slotY, 38, 38, 8);
-      ctx.fillStyle = isUnlocked ? "rgba(22, 28, 48, 0.88)" : "rgba(14, 16, 24, 0.55)";
-      ctx.fill();
-      ctx.strokeStyle = isUnlocked ? wep.color : "rgba(80, 95, 130, 0.4)";
-      ctx.lineWidth = isUnlocked ? 2 : 1;
-      ctx.stroke();
-
-      // 圖標
-      ctx.textAlign = "center";
-      ctx.font = "20px sans-serif";
-      ctx.globalAlpha = isUnlocked ? 1.0 : 0.3;
-      ctx.fillText(wep.icon, sx + 19, slotY + 26);
-
-      // 角落等級數字標記 (Lv.X)
-      if (isUnlocked) {
+    for (let i = 0; i < maxActiveSlots; i++) {
+      const sx = slotStartX + i * (slotSize + slotGap);
+      const k = ownedKeys[i];
+      if (k) {
+        // 主動技能格：繪製精緻微型和風家紋勳章 (r = 17)
+        drawEmblem(ctx, k, sx + slotSize / 2, slotY + slotSize / 2, 17);
+        // 右下角等級徽章
+        const lvl = WL[k];
         ctx.fillStyle = "#d4af37";
         ctx.beginPath();
-        ctx.roundRect(sx + 18, slotY + 23, 19, 14, 4);
+        ctx.roundRect(sx + slotSize - 20, slotY + slotSize - 13, 20, 13, 3);
         ctx.fill();
         ctx.fillStyle = "#161022";
-        ctx.font = "900 10px sans-serif";
-        ctx.fillText(lvl >= 5 ? "MAX" : `L${lvl}`, sx + 27, slotY + 34);
+        ctx.textAlign = "center";
+        ctx.font = "900 9px sans-serif";
+        ctx.fillText(lvl >= 5 ? "MAX" : `L${lvl}`, sx + slotSize - 10, slotY + slotSize - 3);
+      } else {
+        // 未解鎖空槽位：虛線框
+        ctx.save();
+        ctx.setLineDash([3, 3]);
+        ctx.strokeStyle = "rgba(180, 195, 220, 0.35)";
+        ctx.lineWidth = 1.5;
+        ctx.fillStyle = "rgba(12, 15, 24, 0.45)";
+        ctx.beginPath();
+        ctx.roundRect(sx, slotY, slotSize, slotSize, 8);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "rgba(180, 195, 220, 0.35)";
+        ctx.textAlign = "center";
+        ctx.font = "bold 13px sans-serif";
+        ctx.fillText("＋", sx + slotSize / 2, slotY + slotSize / 2 + 5);
+        ctx.restore();
       }
-      ctx.restore();
-    });
+    }
 
-    // 被動能力小型圖標欄 (磁鐵, 衝刺, 移速, 護盾, 增傷, 油箱)
+    // 被動體質欄 (護盾, 增傷, 攻速, 暴擊, 移速, 衝刺, 燈油, 磁鐵)
     const passives = [
-      { icon: "🧲", lvl: b.mag, active: b.mag > 0 },
-      { icon: "👟", lvl: b.dash, active: b.dash > 0 },
-      { icon: "💨", lvl: b.spd || 0, active: (b.spd || 0) > 0 },
-      { icon: "🛡️", lvl: b.shield || 0, active: (b.shield || 0) > 0 },
-      { icon: "⚔️", lvl: Math.round(b.dmg), active: b.dmg > 1.2 },
-      { icon: "🏮", lvl: Math.max(0, Math.round(((maxOil || 100) - 100) / 25)), active: (maxOil || 100) > 100 }
-    ];
+      { id: "shield", lvl: b.shield || 0, active: (b.shield || 0) > 0 },
+      { id: "dmg", lvl: Math.round(((b.dmg || 1.2) - 1.2) / 0.35), active: (b.dmg || 1.2) > 1.25 },
+      { id: "rate", lvl: b.rate || 0, active: (b.rate || 0) > 0 },
+      { id: "crit", lvl: b.crit || 0, active: (b.crit || 0) > 0 },
+      { id: "spd", lvl: b.spd || 0, active: (b.spd || 0) > 0 },
+      { id: "dash", lvl: b.dash || 0, active: (b.dash || 0) > 0 },
+      { id: "oil_max", lvl: Math.max(0, Math.round(((maxOil || 100) - 100) / 30)), active: (maxOil || 100) > 100 },
+      { id: "mag", lvl: b.mag || 0, active: (b.mag || 0) > 0 }
+    ].filter(p => p.active);
+
     passives.forEach((pas, pIdx) => {
-      const px = slotStartX + 184 + pIdx * 34;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(px, slotY + 6, 28, 28, 6);
-      ctx.fillStyle = pas.active ? "rgba(30, 36, 56, 0.85)" : "rgba(16, 18, 26, 0.45)";
-      ctx.fill();
-      ctx.strokeStyle = pas.active ? "#c29d5b" : "rgba(70, 80, 105, 0.35)";
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
-      ctx.textAlign = "center";
-      ctx.font = "15px sans-serif";
-      ctx.globalAlpha = pas.active ? 1.0 : 0.35;
-      ctx.fillText(pas.icon, px + 14, slotY + 25);
-      ctx.restore();
+      const px = slotStartX + 200 + pIdx * 34;
+      if (px < W - 180) {
+        drawEmblem(ctx, pas.id, px + 14, slotY + 20, 14);
+        if (pas.lvl > 1) {
+          ctx.fillStyle = "#ffd54f";
+          ctx.beginPath();
+          ctx.roundRect(px + 14, slotY + 20, 14, 11, 3);
+          ctx.fill();
+          ctx.fillStyle = "#161022";
+          ctx.textAlign = "center";
+          ctx.font = "900 8px sans-serif";
+          ctx.fillText(`+${pas.lvl}`, px + 21, slotY + 28);
+        }
+      }
     });
 
     // 觸控虛擬按鈕
@@ -310,60 +311,669 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 3. 升級選卡視窗（HoloCure 風格 3D 浮雕金箔卡牌）
-  function drawLevelUp(ctx, level, choices) {
+  // 繪製日式和風紋章勳章（Kamon Emblems - 商業級金屬鍍金家紋）
+  function drawEmblem(ctx, id, cx, cy, r) {
     ctx.save();
-    ctx.fillStyle = "rgba(8, 12, 22, 0.92)";
+    ctx.translate(cx, cy);
+
+    // 1. 雙層金箔金屬框與外圈陰影
+    ctx.save();
+    ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
+    ctx.shadowBlur = r * 0.28;
+    ctx.shadowOffsetY = r * 0.1;
+
+    const goldGrad = ctx.createLinearGradient(-r, -r, r, r);
+    goldGrad.addColorStop(0, "#fff1a8");
+    goldGrad.addColorStop(0.28, "#d4af37");
+    goldGrad.addColorStop(0.72, "#856417");
+    goldGrad.addColorStop(1, "#f5dc7a");
+
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, 6.283);
+    ctx.fillStyle = goldGrad;
+    ctx.fill();
+    ctx.restore();
+
+    // 四方菊花金釘 (Cardinal studs)
+    const studR = Math.max(1.5, r * 0.08);
+    const studDist = r * 0.91;
+    ctx.fillStyle = "#fff8d1";
+    for (let i = 0; i < 4; i++) {
+      const sa = (i * Math.PI) / 2;
+      ctx.beginPath();
+      ctx.arc(Math.cos(sa) * studDist, Math.sin(sa) * studDist, studR, 0, 6.283);
+      ctx.fill();
+    }
+
+    // 2. 內凹深色金屬襯圈
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 0.86, 0, 6.283);
+    ctx.fillStyle = "#0c0e18";
+    ctx.fill();
+
+    // 3. 元素專屬底色微光 (Elemental Core Gradient)
+    const innerR = r * 0.82;
+    const coreGrad = ctx.createRadialGradient(0, 0, innerR * 0.15, 0, 0, innerR);
+
+    const PALETTE = {
+      katana:   ["#d32f2f", "#4a0b12"], // 赤紅妖刀
+      barrier:  ["#1976d2", "#072042"], // 蔚藍結界
+      fire:     ["#f57c00", "#451602"], // 烈火狐炎
+      boom:     ["#8e24aa", "#290638"], // 幽紫咒符
+      thunder:  ["#fbc02d", "#3b2c02"], // 曜金雷光
+      needle:   ["#00acc1", "#022e33"], // 蒼青靈針
+      shield:   ["#ffa000", "#422500"], // 金剛護盾
+      oil_max:  ["#e64a19", "#401305"], // 常夜燈火
+      oil_heal: ["#388e3c", "#0a290f"], // 翡翠仙露
+      dmg:      ["#b71c1c", "#3b0000"], // 修羅狂怒
+      rate:     ["#c2185b", "#3d031c"], // 神樂舞踏
+      crit:     ["#d81b60", "#3d0218"], // 心眼致命
+      spd:      ["#00897b", "#022924"], // 風天神足
+      dash:     ["#673ab7", "#1c0b3d"], // 縮地幻步
+      mag:      ["#43a047", "#0d2b10"]  // 招財引靈
+    };
+
+    const [c1, c2] = PALETTE[id] || ["#37474f", "#12191d"];
+    coreGrad.addColorStop(0, c1);
+    coreGrad.addColorStop(1, c2);
+
+    ctx.beginPath();
+    ctx.arc(0, 0, innerR, 0, 6.283);
+    ctx.fillStyle = coreGrad;
+    ctx.fill();
+
+    // 細金內線圈
+    ctx.strokeStyle = "rgba(255, 235, 140, 0.45)";
+    ctx.lineWidth = Math.max(1, r * 0.035);
+    ctx.stroke();
+
+    // 4. 精緻和風紋章幾何圖形繪製 (Specific Kamon Vector Geometry)
+    const s = innerR * 0.85;
+    ctx.save();
+
+    switch (id) {
+      case "katana": {
+        // 太刀交錯新月斬紋
+        ctx.strokeStyle = "#e0f7fa";
+        ctx.lineWidth = Math.max(2, s * 0.12);
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.6, s * 0.6);
+        ctx.quadraticCurveTo(-s * 0.1, -s * 0.1, s * 0.65, -s * 0.55);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(s * 0.6, s * 0.6);
+        ctx.quadraticCurveTo(s * 0.1, -s * 0.1, -s * 0.65, -s * 0.55);
+        ctx.stroke();
+        ctx.fillStyle = "#ffd54f";
+        ctx.beginPath();
+        ctx.ellipse(-s * 0.35, s * 0.35, s * 0.12, s * 0.06, Math.PI / 4, 0, 6.28);
+        ctx.ellipse(s * 0.35, s * 0.35, s * 0.12, s * 0.06, -Math.PI / 4, 0, 6.28);
+        ctx.fill();
+        ctx.strokeStyle = "#ffe28b";
+        ctx.lineWidth = Math.max(1.5, s * 0.08);
+        ctx.beginPath();
+        ctx.arc(0, 0, s * 0.72, -0.6, 2.2);
+        ctx.stroke();
+        ctx.fillStyle = "#ffb2c9";
+        ctx.beginPath();
+        ctx.ellipse(0, -s * 0.45, s * 0.1, s * 0.16, 0.4, 0, 6.28);
+        ctx.fill();
+        break;
+      }
+
+      case "barrier": {
+        // 神道三つ巴八咫八角陣
+        ctx.strokeStyle = "rgba(255, 235, 140, 0.5)";
+        ctx.lineWidth = Math.max(1, s * 0.05);
+        for (let i = 0; i < 8; i++) {
+          const a = (i * Math.PI) / 4;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * (s * 0.3), Math.sin(a) * (s * 0.3));
+          ctx.lineTo(Math.cos(a) * (s * 0.88), Math.sin(a) * (s * 0.88));
+          ctx.stroke();
+        }
+        ctx.strokeStyle = "#80d8ff";
+        ctx.lineWidth = Math.max(1.5, s * 0.07);
+        ctx.beginPath();
+        ctx.arc(0, 0, s * 0.75, 0, 6.28);
+        ctx.stroke();
+        for (let i = 0; i < 3; i++) {
+          ctx.save();
+          ctx.rotate((i * 2 * Math.PI) / 3);
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(0, -s * 0.28, s * 0.22, 0, 6.28);
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = s * 0.22;
+          ctx.beginPath();
+          ctx.arc(0, 0, s * 0.28, -Math.PI / 2, 0.2);
+          ctx.stroke();
+          ctx.fillStyle = "#0d2347";
+          ctx.beginPath();
+          ctx.arc(0, -s * 0.28, s * 0.08, 0, 6.28);
+          ctx.fill();
+          ctx.restore();
+        }
+        break;
+      }
+
+      case "fire": {
+        // 靈火三尾旋輪紋
+        for (let i = 0; i < 3; i++) {
+          ctx.save();
+          ctx.rotate((i * 2 * Math.PI) / 3);
+          const fg = ctx.createLinearGradient(0, -s * 0.7, 0, 0);
+          fg.addColorStop(0, "#ffe082");
+          fg.addColorStop(0.5, "#ff7043");
+          fg.addColorStop(1, "#d84315");
+          ctx.fillStyle = fg;
+          ctx.beginPath();
+          ctx.moveTo(0, -s * 0.75);
+          ctx.bezierCurveTo(s * 0.35, -s * 0.45, s * 0.3, 0, 0, s * 0.15);
+          ctx.bezierCurveTo(-s * 0.15, 0, -s * 0.15, -s * 0.4, 0, -s * 0.75);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.fillStyle = "#fffde7";
+        ctx.beginPath();
+        ctx.arc(0, 0, s * 0.2, 0, 6.28);
+        ctx.fill();
+        break;
+      }
+
+      case "boom": {
+        // 陰陽太極封魔符印
+        ctx.save();
+        ctx.rotate(-0.35);
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(0, 0, s * 0.6, -Math.PI / 2, Math.PI / 2);
+        ctx.arc(0, s * 0.3, s * 0.3, Math.PI / 2, -Math.PI / 2, true);
+        ctx.arc(0, -s * 0.3, s * 0.3, Math.PI / 2, -Math.PI / 2);
+        ctx.fill();
+        ctx.fillStyle = "#21102e";
+        ctx.beginPath();
+        ctx.arc(0, 0, s * 0.6, Math.PI / 2, -Math.PI / 2);
+        ctx.arc(0, -s * 0.3, s * 0.3, -Math.PI / 2, Math.PI / 2, true);
+        ctx.arc(0, s * 0.3, s * 0.3, -Math.PI / 2, Math.PI / 2);
+        ctx.fill();
+        ctx.fillStyle = "#21102e";
+        ctx.beginPath();
+        ctx.arc(0, -s * 0.3, s * 0.1, 0, 6.28);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(0, s * 0.3, s * 0.1, 0, 6.28);
+        ctx.fill();
+        ctx.restore();
+        ctx.save();
+        ctx.rotate(0.35);
+        ctx.fillStyle = "#fff8e1";
+        ctx.strokeStyle = "#ffd54f";
+        ctx.lineWidth = Math.max(1, s * 0.05);
+        ctx.beginPath();
+        ctx.roundRect(-s * 0.22, -s * 0.5, s * 0.44, s * 0.95, 3);
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = "#d32f2f";
+        ctx.lineWidth = Math.max(1, s * 0.06);
+        ctx.beginPath();
+        ctx.moveTo(0, -s * 0.35);
+        ctx.lineTo(0, -s * 0.1);
+        ctx.moveTo(-s * 0.12, -s * 0.25);
+        ctx.lineTo(s * 0.12, -s * 0.25);
+        ctx.moveTo(-s * 0.08, 0.05);
+        ctx.lineTo(s * 0.08, 0.05);
+        ctx.lineTo(0, s * 0.3);
+        ctx.stroke();
+        ctx.restore();
+        break;
+      }
+
+      case "thunder": {
+        // 雷神三鼓天雷紋
+        ctx.strokeStyle = "#ffd54f";
+        ctx.lineWidth = Math.max(1.5, s * 0.06);
+        for (let i = 0; i < 3; i++) {
+          const a = (i * 2 * Math.PI) / 3 - Math.PI / 2;
+          ctx.beginPath();
+          ctx.arc(Math.cos(a) * (s * 0.55), Math.sin(a) * (s * 0.55), s * 0.22, 0, 6.28);
+          ctx.stroke();
+        }
+        ctx.fillStyle = "#ffffff";
+        ctx.strokeStyle = "#ffeb3b";
+        ctx.lineWidth = Math.max(2, s * 0.08);
+        ctx.beginPath();
+        ctx.moveTo(s * 0.2, -s * 0.7);
+        ctx.lineTo(-s * 0.35, -s * 0.05);
+        ctx.lineTo(0, -s * 0.05);
+        ctx.lineTo(-s * 0.2, s * 0.7);
+        ctx.lineTo(s * 0.35, 0.05);
+        ctx.lineTo(0, 0.05);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        break;
+      }
+
+      case "needle": {
+        // 五芒穿雲千本紋 (5 發破魔靈針)
+        for (let i = -2; i <= 2; i++) {
+          ctx.save();
+          ctx.rotate(i * 0.26);
+          ctx.strokeStyle = "rgba(128, 222, 234, 0.6)";
+          ctx.lineWidth = Math.max(1, s * 0.04);
+          ctx.beginPath();
+          ctx.moveTo(0, s * 0.4);
+          ctx.lineTo(0, -s * 0.3);
+          ctx.stroke();
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "#4dd0e1";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(0, -s * 0.75);
+          ctx.lineTo(s * 0.06, -s * 0.1);
+          ctx.lineTo(-s * 0.06, -s * 0.1);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        }
+        break;
+      }
+
+      case "shield": {
+        // 八咫鏡四ツ勾玉金剛紋
+        for (let i = 0; i < 4; i++) {
+          ctx.save();
+          ctx.rotate((i * Math.PI) / 2);
+          ctx.fillStyle = "#ffd54f";
+          ctx.beginPath();
+          ctx.arc(0, -s * 0.42, s * 0.18, 0, 6.28);
+          ctx.fill();
+          ctx.strokeStyle = "#ffd54f";
+          ctx.lineWidth = s * 0.16;
+          ctx.beginPath();
+          ctx.arc(0, 0, s * 0.42, -Math.PI / 2, 0.1);
+          ctx.stroke();
+          ctx.restore();
+        }
+        ctx.fillStyle = "#fff8e1";
+        ctx.beginPath();
+        ctx.moveTo(0, -s * 0.28);
+        ctx.lineTo(s * 0.28, 0);
+        ctx.lineTo(0, s * 0.28);
+        ctx.lineTo(-s * 0.28, 0);
+        ctx.closePath();
+        ctx.fill();
+        break;
+      }
+
+      case "oil_max": {
+        // 常夜石燈籠紋
+        ctx.fillStyle = "#ffd54f";
+        ctx.beginPath();
+        ctx.moveTo(0, -s * 0.68);
+        ctx.lineTo(s * 0.55, -s * 0.4);
+        ctx.lineTo(-s * 0.55, -s * 0.4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = "#ffd54f";
+        ctx.lineWidth = Math.max(1.5, s * 0.06);
+        ctx.strokeRect(-s * 0.32, -s * 0.38, s * 0.64, s * 0.5);
+        ctx.fillStyle = "#ffb300";
+        ctx.beginPath();
+        ctx.arc(0, -s * 0.13, s * 0.16, 0, 6.28);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(0, -s * 0.13, s * 0.08, 0, 6.28);
+        ctx.fill();
+        ctx.fillStyle = "#ffd54f";
+        ctx.fillRect(-s * 0.4, s * 0.14, s * 0.8, s * 0.12);
+        ctx.fillRect(-s * 0.2, s * 0.26, s * 0.4, s * 0.3);
+        ctx.fillRect(-s * 0.48, s * 0.56, s * 0.96, s * 0.12);
+        break;
+      }
+
+      case "oil_heal": {
+        // 仙露御神瓢簞印
+        ctx.fillStyle = "#a5d6a7";
+        ctx.strokeStyle = "#ffd54f";
+        ctx.lineWidth = Math.max(1.5, s * 0.06);
+        ctx.beginPath();
+        ctx.arc(0, -s * 0.22, s * 0.22, 0, 6.28);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, s * 0.22, s * 0.34, 0, 6.28);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#e53935";
+        ctx.fillRect(-s * 0.18, -s * 0.04, s * 0.36, s * 0.08);
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(s * 0.1, -s * 0.25, s * 0.06, 0, 6.28);
+        ctx.fill();
+        break;
+      }
+
+      case "dmg": {
+        // 鬼神修羅兜雙戟紋
+        ctx.fillStyle = "#ffd54f";
+        ctx.beginPath();
+        ctx.moveTo(0, s * 0.1);
+        ctx.quadraticCurveTo(-s * 0.35, -s * 0.3, -s * 0.65, -s * 0.68);
+        ctx.quadraticCurveTo(-s * 0.2, -s * 0.5, 0, -s * 0.3);
+        ctx.quadraticCurveTo(s * 0.2, -s * 0.5, s * 0.65, -s * 0.68);
+        ctx.quadraticCurveTo(s * 0.35, -s * 0.3, 0, s * 0.1);
+        ctx.fill();
+        ctx.fillStyle = "#ff1744";
+        ctx.fillRect(-s * 0.3, s * 0.15, s * 0.6, s * 0.15);
+        ctx.fillStyle = "#ffd54f";
+        ctx.beginPath();
+        ctx.arc(-s * 0.14, s * 0.22, s * 0.05, 0, 6.28);
+        ctx.arc(s * 0.14, s * 0.22, s * 0.05, 0, 6.28);
+        ctx.fill();
+        ctx.strokeStyle = "#e0e0e0";
+        ctx.lineWidth = Math.max(1.5, s * 0.07);
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.55, s * 0.65);
+        ctx.lineTo(s * 0.55, -s * 0.45);
+        ctx.moveTo(s * 0.55, s * 0.65);
+        ctx.lineTo(-s * 0.55, -s * 0.45);
+        ctx.stroke();
+        break;
+      }
+
+      case "rate": {
+        // 神樂三鈴飛絹紋
+        const bPos = [
+          { x: 0, y: -s * 0.35 },
+          { x: -s * 0.32, y: s * 0.18 },
+          { x: s * 0.32, y: s * 0.18 }
+        ];
+        bPos.forEach(p => {
+          ctx.fillStyle = "#ffd54f";
+          ctx.strokeStyle = "#fff9c4";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, s * 0.2, 0, 6.28);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = "#261502";
+          ctx.beginPath();
+          ctx.arc(p.x, p.y + s * 0.08, s * 0.07, 0, 6.28);
+          ctx.fill();
+        });
+        ctx.strokeStyle = "rgba(255, 235, 140, 0.5)";
+        ctx.lineWidth = Math.max(1, s * 0.05);
+        ctx.beginPath();
+        ctx.arc(0, 0, s * 0.72, 0, 6.28);
+        ctx.stroke();
+        break;
+      }
+
+      case "crit": {
+        // 天狐心眼破空十字閃
+        ctx.fillStyle = "#fff8e1";
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.65, 0);
+        ctx.quadraticCurveTo(0, -s * 0.45, s * 0.65, 0);
+        ctx.quadraticCurveTo(0, s * 0.45, -s * 0.65, 0);
+        ctx.fill();
+        ctx.fillStyle = "#d50000";
+        ctx.beginPath();
+        ctx.arc(0, 0, s * 0.26, 0, 6.28);
+        ctx.fill();
+        ctx.fillStyle = "#ffd54f";
+        ctx.beginPath();
+        ctx.ellipse(0, 0, s * 0.06, s * 0.24, 0, 0, 6.28);
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = Math.max(1.5, s * 0.06);
+        ctx.beginPath();
+        ctx.moveTo(0, -s * 0.7);
+        ctx.lineTo(0, s * 0.7);
+        ctx.moveTo(-s * 0.7, 0);
+        ctx.lineTo(s * 0.7, 0);
+        ctx.stroke();
+        break;
+      }
+
+      case "spd": {
+        // 風天飛雲草履輪紋
+        ctx.strokeStyle = "#80cbc4";
+        ctx.lineWidth = Math.max(1.5, s * 0.08);
+        ctx.beginPath();
+        ctx.arc(-s * 0.25, 0, s * 0.35, -Math.PI / 2, Math.PI / 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(s * 0.25, 0, s * 0.35, Math.PI / 2, -Math.PI / 2);
+        ctx.stroke();
+        ctx.fillStyle = "#fff9c4";
+        ctx.strokeStyle = "#004d40";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, s * 0.18, s * 0.48, -0.4, 0, 6.28);
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = "#e53935";
+        ctx.lineWidth = Math.max(1, s * 0.06);
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.1, -s * 0.1);
+        ctx.lineTo(0, -s * 0.25);
+        ctx.lineTo(s * 0.1, -s * 0.1);
+        ctx.stroke();
+        break;
+      }
+
+      case "dash": {
+        // 斷空紫電瞬閃印
+        ctx.strokeStyle = "#e1bee7";
+        ctx.lineWidth = Math.max(2, s * 0.1);
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.65, s * 0.45);
+        ctx.lineTo(s * 0.55, -s * 0.55);
+        ctx.moveTo(-s * 0.45, s * 0.65);
+        ctx.lineTo(s * 0.65, -s * 0.35);
+        ctx.stroke();
+        ctx.fillStyle = "#ffffff";
+        for (let i = 0; i < 3; i++) {
+          const px = (i - 1) * s * 0.35;
+          const py = (1 - i) * s * 0.35;
+          ctx.beginPath();
+          ctx.arc(px, py, s * 0.09, 0, 6.28);
+          ctx.fill();
+        }
+        break;
+      }
+
+      case "mag": {
+        // 雙生翡翠引靈陣
+        for (let i = 0; i < 2; i++) {
+          ctx.save();
+          ctx.rotate(i * Math.PI);
+          ctx.fillStyle = "#a5d6a7";
+          ctx.beginPath();
+          ctx.arc(0, -s * 0.32, s * 0.26, 0, 6.28);
+          ctx.fill();
+          ctx.strokeStyle = "#a5d6a7";
+          ctx.lineWidth = s * 0.24;
+          ctx.beginPath();
+          ctx.arc(0, 0, s * 0.32, -Math.PI / 2, 0.4);
+          ctx.stroke();
+          ctx.fillStyle = "#1b5e20";
+          ctx.beginPath();
+          ctx.arc(0, -s * 0.32, s * 0.08, 0, 6.28);
+          ctx.fill();
+          ctx.restore();
+        }
+        break;
+      }
+
+      default: {
+        ctx.strokeStyle = "#ffd54f";
+        ctx.lineWidth = Math.max(1, s * 0.06);
+        for (let i = 0; i < 8; i++) {
+          ctx.save();
+          ctx.rotate((i * Math.PI) / 4);
+          ctx.beginPath();
+          ctx.ellipse(0, -s * 0.45, s * 0.12, s * 0.28, 0, 0, 6.28);
+          ctx.stroke();
+          ctx.restore();
+        }
+        ctx.fillStyle = "#ffd54f";
+        ctx.beginPath();
+        ctx.arc(0, 0, s * 0.18, 0, 6.28);
+        ctx.fill();
+        break;
+      }
+    }
+
+    ctx.restore();
+    ctx.restore();
+  }
+
+  // 3. 升級選卡視窗（HoloCure 風格 3D 浮雕金箔卡牌 + 家紋徽章 + 4 槽位限制視覺化）
+  function drawLevelUp(ctx, level, choices, WL, WI) {
+    ctx.save();
+    ctx.fillStyle = "rgba(6, 9, 18, 0.94)";
     ctx.fillRect(0, 0, W, H);
 
     ctx.textAlign = "center";
-    ctx.font = "900 34px 'Kaisei Decol', 'Noto Sans JP', serif";
+    ctx.font = "900 32px 'Kaisei Decol', 'Noto Sans JP', serif";
     ctx.fillStyle = "#ffe28b";
     ctx.shadowColor = "rgba(255, 215, 100, 0.7)";
     ctx.shadowBlur = 14;
-    ctx.fillText(`— 秘術覺醒・等級提升 Lv.${level} —`, W / 2, 115);
-
+    ctx.fillText(`— 秘術覺醒・等級提升 Lv.${level} —`, W / 2, 64);
     ctx.shadowBlur = 0;
-    ctx.font = "900 16px 'Zen Maru Gothic', sans-serif";
-    ctx.fillStyle = "#cad7f5";
-    ctx.fillText("選擇一項秘術以增強夜行妖力（點擊卡牌 或 按數字鍵 1 / 2 / 3）", W / 2, 150);
 
-    const cardW = 240, cardH = 350;
-    const startX = 65, gap = 40;
+    // --- 頂部：主動秘術槽位進度欄 (4 槽位限制) ---
+    const ownedKeys = WI ? Object.keys(WI).filter(k => (WL[k] || 0) > 0) : [];
+    const maxSlots = 4;
+    const barW = 560, barH = 46;
+    const barX = W / 2 - barW / 2, barY = 82;
+
+    glassBox(ctx, barX, barY, barW, barH, 10, "rgba(18, 24, 40, 0.9)", "#d4af37", 1.5);
+
+    ctx.textAlign = "left";
+    ctx.font = "900 14px 'Zen Maru Gothic', sans-serif";
+    ctx.fillStyle = "#ffe89e";
+    ctx.fillText(`主動秘術 (${ownedKeys.length}/${maxSlots})：`, barX + 16, barY + 28);
+
+    // 4 個槽位小方格
+    const slotStartX = barX + 165;
+    for (let s = 0; s < maxSlots; s++) {
+      const sx = slotStartX + s * 95;
+      const k = ownedKeys[s];
+      if (k) {
+        glassBox(ctx, sx, barY + 6, 88, 34, 6, "rgba(26, 36, 62, 0.9)", "#d4af37", 1.2);
+        drawEmblem(ctx, k, sx + 18, barY + 23, 14);
+        ctx.fillStyle = "#ffeed4";
+        ctx.font = "900 12px 'Noto Sans JP', sans-serif";
+        ctx.fillText(`Lv.${WL[k]}`, sx + 38, barY + 27);
+      } else {
+        ctx.save();
+        ctx.setLineDash([3, 3]);
+        glassBox(ctx, sx, barY + 6, 88, 34, 6, "rgba(10, 14, 24, 0.5)", "rgba(180, 195, 220, 0.35)", 1);
+        ctx.fillStyle = "rgba(180, 195, 220, 0.4)";
+        ctx.font = "bold 11px sans-serif";
+        ctx.fillText("＋ 空槽", sx + 22, barY + 27);
+        ctx.restore();
+      }
+    }
+
+    ctx.textAlign = "center";
+    ctx.font = "bold 13px 'Zen Maru Gothic', sans-serif";
+    ctx.fillStyle = "#a8bedd";
+    if (ownedKeys.length >= maxSlots) {
+      ctx.fillText("※ 秘術槽位已滿（4/4）！僅能精進既有秘術等級 或 修煉被動流派體質", W / 2, 150);
+    } else {
+      ctx.fillText("※ 尚可修煉全新秘術！請依攻擊爆發、防禦生存或神速等流派策略搭配", W / 2, 150);
+    }
+
+    // --- 3 張浮雕卡牌 ---
+    const cardW = 248, cardH = 385;
+    const startX = 60, gap = 44;
+    const cy = 170;
 
     choices.forEach((c, i) => {
       const cx = startX + i * (cardW + gap);
-      const cy = 180;
 
-      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+      // 卡牌底層立體黑影
+      ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
       ctx.beginPath();
       ctx.roundRect(cx + 6, cy + 8, cardW, cardH, 16);
       ctx.fill();
 
+      // 卡牌主體漸層底板
       const cardGrad = ctx.createLinearGradient(cx, cy, cx + cardW, cy + cardH);
-      cardGrad.addColorStop(0, "#232b42");
-      cardGrad.addColorStop(0.5, "#161c2d");
-      cardGrad.addColorStop(1, "#101422");
+      cardGrad.addColorStop(0, "#222a42");
+      cardGrad.addColorStop(0.45, "#141a2b");
+      cardGrad.addColorStop(1, "#0d101d");
 
-      glassBox(ctx, cx, cy, cardW, cardH, 16, cardGrad, "#d4af37", 3);
+      glassBox(ctx, cx, cy, cardW, cardH, 16, cardGrad, "#d4af37", 2.5);
 
-      glassBox(ctx, cx + 16, cy + 18, cardW - 32, 32, 8, "#2e3957", null);
-      ctx.fillStyle = "#ffe28b";
-      ctx.font = "900 15px 'Zen Maru Gothic', sans-serif";
-      ctx.fillText(c.s ? `[ ${c.s} ]` : "[ 強化秘術 ]", cx + cardW / 2, cy + 40);
+      // 1. 頂部流派類別標籤膠囊
+      const isWeapon = c.type === "weapon";
+      const catColor = isWeapon ? (c.id === "barrier" ? "#1976d2" : (c.id === "katana" ? "#c62828" : "#8e24aa")) : "#00897b";
+      glassBox(ctx, cx + 18, cy + 14, cardW - 36, 26, 6, "rgba(10, 14, 24, 0.85)", catColor, 1.5);
+      ctx.fillStyle = "#ffeed4";
+      ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
+      ctx.fillText(c.cat || (isWeapon ? "【主動秘術】" : "【被動體質】"), cx + cardW / 2, cy + 31);
 
-      ctx.font = "900 24px 'Kaisei Decol', 'Noto Sans JP', serif";
+      // 2. 日文副標與秘術主名
+      ctx.font = "bold 13px 'Noto Sans JP', serif";
+      ctx.fillStyle = "#ffd54f";
+      ctx.fillText(c.s ? `— ${c.s} —` : "— 秘術 —", cx + cardW / 2, cy + 56);
+
+      ctx.font = "900 23px 'Kaisei Decol', 'Noto Sans JP', serif";
       ctx.fillStyle = "#ffffff";
-      ctx.fillText(c.n, cx + cardW / 2, cy + 115);
+      ctx.shadowColor = "rgba(0,0,0,0.8)";
+      ctx.shadowBlur = 6;
+      ctx.fillText(c.n, cx + cardW / 2, cy + 84);
+      ctx.shadowBlur = 0;
 
-      ctx.font = "bold 16px 'Noto Sans JP', sans-serif";
-      ctx.fillStyle = "#b8cbfa";
-      ctx.fillText(c.d, cx + cardW / 2, cy + 195);
+      // 3. 中央大型帥氣紋章勳章 (r = 44px, 直徑 88px)
+      drawEmblem(ctx, c.id, cx + cardW / 2, cy + 155, 44);
 
-      glassBox(ctx, cx + cardW / 2 - 28, cy + cardH - 58, 56, 36, 10, "#d4af37", "#ffffff", 1.5);
+      // 4. 等級進階標籤膠囊
+      const isNew = c.levelText && c.levelText.includes("NEW");
+      glassBox(ctx, cx + 32, cy + 214, cardW - 64, 24, 6, isNew ? "rgba(212, 175, 55, 0.25)" : "rgba(33, 150, 243, 0.2)", isNew ? "#ffd54f" : "#64b5f6", 1.2);
+      ctx.fillStyle = isNew ? "#ffe082" : "#90caf9";
+      ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
+      ctx.fillText(c.levelText || "◆ 妖力精進", cx + cardW / 2, cy + 230);
+
+      // 5. 效果詳解說明框
+      glassBox(ctx, cx + 14, cy + 246, cardW - 28, 74, 8, "rgba(10, 14, 24, 0.65)", null);
+      ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
+      const words = c.d || "";
+      let line1 = words, line2 = "";
+      if (words.length > 13) {
+        const puncIdx = words.search(/[，、\s]/);
+        if (puncIdx >= 6 && puncIdx <= 16) {
+          line1 = words.slice(0, puncIdx);
+          line2 = words.slice(puncIdx + 1);
+        } else {
+          line1 = words.slice(0, 13);
+          line2 = words.slice(13);
+        }
+      }
+      if (line2) {
+        ctx.fillText(line1, cx + cardW / 2, cy + 273);
+        ctx.fillText(line2, cx + cardW / 2, cy + 297);
+      } else {
+        ctx.fillText(line1, cx + cardW / 2, cy + 285);
+      }
+
+      // 6. 底部熱鍵選擇按鈕
+      glassBox(ctx, cx + cardW / 2 - 42, cy + cardH - 52, 84, 38, 10, "#d4af37", "#ffffff", 1.8);
       ctx.fillStyle = "#1a162b";
-      ctx.font = "900 20px sans-serif";
-      ctx.fillText(String(i + 1), cx + cardW / 2, cy + cardH - 33);
+      ctx.font = "900 17px 'Zen Maru Gothic', sans-serif";
+      ctx.fillText(`[ ${i + 1} 選擇 ]`, cx + cardW / 2, cy + cardH - 27);
     });
 
     ctx.restore();
@@ -570,6 +1180,7 @@ window.UI = (() => {
     drawMainMenu,
     drawHud,
     drawLevelUp,
+    drawEmblem,
     drawBossQuiz,
     drawCodex,
     drawEndScreen,
