@@ -987,7 +987,7 @@ window.UI = (() => {
     ctx.textAlign = "center";
     ctx.font = "900 19px 'Kaisei Decol', 'Noto Sans JP', serif";
     ctx.fillStyle = "#ffeed4";
-    ctx.fillText(`🛡【大妖鬼結界】：${bossQ.word.icon} 的日文名是？（按 1 / 2 / 3 或點選破防）`, W / 2, by + 30);
+    ctx.fillText(`🛡 選擇 ${bossQ.word.icon} 的正確日文以破防（按 1 / 2 / 3 或點選）`, W / 2, by + 30);
 
     const optW = 200, optH = 46;
     bossQ.ans.forEach((w, i) => {

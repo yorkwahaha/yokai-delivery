@@ -66,7 +66,7 @@
   let elapsed = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;
   let orders = [], job = null, enemies = [], gems = [], parts = [], texts = [], rings = [], misses = [];
   let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0;
-  let choices = [], joy = null, touch = false, inter = null, cargo = { x: 0, y: 0 }, last = performance.now();
+  let choices = [], joy = null, touch = false, inter = null, cargo = { x: 0, y: 0 }, pTrail = [], last = performance.now();
   const btnE = { x: 810, y: 420, r: 38 }, btnD = { x: 810, y: 530, r: 46 };
   const btnPause = { x: W - 52, y: 14, w: 38, h: 52 };
   let gpPrevButtons = [], gpMove = { x: 0, y: 0 };
@@ -76,9 +76,9 @@
   const WI = {
     katana: { id: "katana", jp: "かたな", zh: "妖刀斬", type: "active", category: "方向斬擊", desc: "揮出凌厲新月刀芒，斬裂前方扇形妖怪" },
     barrier: { id: "barrier", jp: "けっかい", zh: "淨化靈陣", type: "active", category: "全方結界", desc: "展開 360 度除魔陣，週期性震退並重創周身妖怪" },
-    fire: { id: "fire", jp: "ファイアボール", zh: "狐火炎", type: "active", category: "烈焰火把", desc: "周身飛旋烈焰火把，高速甩擊灼燒貼身妖怪" },
-    boom: { id: "boom", jp: "ブーメラン", zh: "陰陽符", type: "active", category: "穿透咒符", desc: "擲出迴旋陰陽符咒，來回穿透路徑上的敵人" },
-    thunder: { id: "thunder", jp: "サンダー", zh: "天狐雷", type: "active", category: "天罰落雷", desc: "引導九天金雷轟擊最強妖怪，造成毀滅性打擊" },
+    fire: { id: "fire", jp: "きつねび", zh: "狐火炎", type: "active", category: "烈焰火把", desc: "周身飛旋烈焰火把，高速甩擊灼燒貼身妖怪" },
+    boom: { id: "boom", jp: "おふだ", zh: "陰陽符", type: "active", category: "穿透咒符", desc: "擲出迴旋陰陽符咒，來回穿透路徑上的敵人" },
+    thunder: { id: "thunder", jp: "いかずち", zh: "天狐雷", type: "active", category: "天罰落雷", desc: "引導九天金雷轟擊最強妖怪，造成毀滅性打擊" },
     needle: { id: "needle", jp: "せんぼん", zh: "天狐靈針", type: "active", category: "高速靈針", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪" }
   };
 
@@ -131,15 +131,15 @@
   const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0 };
 
   const UP = [
-    { id: "shield", n: "金剛結界", s: "神靈護盾", cat: "防禦生存", d: "召喚金剛勾玉護盾，抵擋 2 次受傷（可疊加）", f: () => { b.shield = Math.min(6, (b.shield || 0) + 2); }, ok: () => (b.shield || 0) < 6 },
-    { id: "oil_max", n: "長明燈油", s: "生命擴充", cat: "血厚續航", d: "燈油上限 +30 並立即補滿，且常駐每秒回油", f: () => { maxOil += 30; oil = maxOil; b.oilRegen = (b.oilRegen || 0) + 0.6; }, ok: () => maxOil < 260 },
-    { id: "oil_heal", n: "添燈香油", s: "緊急注入", cat: "緊急急救", d: "燈油即刻恢復 +50% 並引發除魔波", f: () => { oil = Math.min(maxOil, oil + maxOil * 0.5); burst(P.x, P.y, "#ffd27a", 30); } },
-    { id: "dmg", n: "修羅破軍", s: "攻擊強化", cat: "攻擊爆發", d: "所有武器與法術傷害全面提升 +25%", f: () => { b.dmg += 0.35; } },
-    { id: "rate", n: "神樂疾奏", s: "攻速加快", cat: "攻擊爆發", d: "攻擊與秘術冷卻時間縮短 20%", f: () => { b.rate++; }, ok: () => b.rate < 4 },
-    { id: "crit", n: "心眼一閃", s: "致命暴擊", cat: "攻擊爆發", d: "暴擊率 +20%，暴擊傷害大幅躍升", f: () => { b.crit = (b.crit || 0) + 1; }, ok: () => (b.crit || 0) < 3 },
-    { id: "spd", n: "神足草履", s: "行步如飛", cat: "神速機動", d: "移動速度 +15%（最多可疊加 3 次）", f: () => { b.spd = (b.spd || 0) + 1; }, ok: () => (b.spd || 0) < 3 },
-    { id: "dash", n: "縮地瞬步", s: "極速閃避", cat: "神速機動", d: "衝刺冷卻大幅縮短，衝刺附加無敵突進", f: () => { b.dash++; }, ok: () => b.dash < 3 },
-    { id: "mag", n: "招財勾玉", s: "靈氣吸取", cat: "輔助資源", d: "靈玉經驗與物資吸取範圍 +60%", f: () => { b.mag++; }, ok: () => b.mag < 3 }
+    { id: "shield", n: "金剛結界", s: "けっかい", cat: "防禦生存", d: "召喚金剛勾玉護盾，抵擋 2 次受傷（可疊加）", f: () => { b.shield = Math.min(6, (b.shield || 0) + 2); }, ok: () => (b.shield || 0) < 6 },
+    { id: "oil_max", n: "長明燈油", s: "あぶら", cat: "血厚續航", d: "燈油上限 +30 並立即補滿，且常駐每秒回油", f: () => { maxOil += 30; oil = maxOil; b.oilRegen = (b.oilRegen || 0) + 0.6; }, ok: () => maxOil < 260 },
+    { id: "oil_heal", n: "添燈香油", s: "かいふく", cat: "緊急急救", d: "燈油即刻恢復 +50% 並引發除魔波", f: () => { oil = Math.min(maxOil, oil + maxOil * 0.5); burst(P.x, P.y, "#ffd27a", 30); } },
+    { id: "dmg", n: "修羅破軍", s: "こうげき", cat: "攻擊爆發", d: "所有武器與法術傷害全面提升 +25%", f: () => { b.dmg += 0.35; } },
+    { id: "rate", n: "神樂疾奏", s: "れんぞく", cat: "攻擊爆發", d: "攻擊與秘術冷卻時間縮短 20%", f: () => { b.rate++; }, ok: () => b.rate < 4 },
+    { id: "crit", n: "心眼一閃", s: "かいしん", cat: "攻擊爆發", d: "暴擊率 +20%，暴擊傷害大幅躍升", f: () => { b.crit = (b.crit || 0) + 1; }, ok: () => (b.crit || 0) < 3 },
+    { id: "spd", n: "神足草履", s: "いどう", cat: "神速機動", d: "移動速度 +15%（最多可疊加 3 次）", f: () => { b.spd = (b.spd || 0) + 1; }, ok: () => (b.spd || 0) < 3 },
+    { id: "dash", n: "縮地瞬步", s: "ダッシュ", cat: "神速機動", d: "衝刺冷卻大幅縮短，衝刺附加無敵突進", f: () => { b.dash++; }, ok: () => b.dash < 3 },
+    { id: "mag", n: "招財勾玉", s: "じしゃく", cat: "輔助資源", d: "靈玉經驗與物資吸取範圍 +60%", f: () => { b.mag++; }, ok: () => b.mag < 3 }
   ];
 
   const say = (v, x, y, c = "#fff") => texts.push({ v, x, y, c, life: 1.8 });
@@ -183,6 +183,11 @@
     orders = []; job = null; enemies = []; gems = []; parts = []; texts = []; rings = []; misses = [];
     bossT = 75; ended = false; bossQ = null; orderT = 3; spawnT = 1; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0;
     keys.clear(); joy = null; gpMove = { x: 0, y: 0 };
+    pTrail = [];
+    for (let i = 0; i <= 24; i++) {
+      pTrail.push({ x: P.x - i * 2, y: P.y + 10 });
+    }
+    cargo = { x: P.x - 44, y: P.y + 10 };
     for (let i = 0; i < 4; i++) makeOrder();
     RENDERER.setCam(clamp(P.x - W / 2, 0, WW - W), clamp(P.y - H / 2, 0, WH - H));
   }
@@ -273,7 +278,7 @@
       rev: o.rev
     };
     nameT = 4.5;
-    cargo = { x: P.x, y: P.y };
+    cargo = { x: pTrail.length > 0 ? pTrail[pTrail.length - 1].x : P.x - 44, y: pTrail.length > 0 ? pTrail[pTrail.length - 1].y : P.y + 10 };
     say(`領取包裹：【 ${o.word.icon} ${o.word.jp} 】`, P.x, P.y - 45, "#ffe9a0");
     AUDIO.deliverSuccess();
   }
@@ -774,9 +779,45 @@
 
     if (keys.has("dash")) dash();
 
-    const trailX = P.x - 32 * (P.face || 1);
-    cargo.x += (trailX - cargo.x) * Math.min(1, dt * 8);
-    cargo.y += (P.y + 14 - cargo.y) * Math.min(1, dt * 8);
+    // 歷史運動軌跡記錄（伴行式神式軌跡跟隨，完全跟隨玩家歷史走位，絕不與角色重疊）
+    if (!pTrail || pTrail.length === 0) {
+      pTrail = [{ x: P.x, y: P.y }];
+    }
+    const lastTrail = pTrail[0];
+    const distFromLast = Math.hypot(P.x - lastTrail.x, P.y - lastTrail.y);
+    if (distFromLast >= 4) {
+      pTrail.unshift({ x: P.x, y: P.y });
+      if (pTrail.length > 70) pTrail.pop();
+    }
+
+    // 沿著歷史軌跡尋找相距 44px 的座標點作為跟隨夥伴目標
+    const FOLLOW_DIST = 44;
+    let targetPos = { x: P.x - 44 * (P.face || 1), y: P.y + 10 };
+    if (pTrail.length > 0) {
+      let accum = 0;
+      let prevPt = { x: P.x, y: P.y };
+      let found = false;
+      for (let i = 0; i < pTrail.length; i++) {
+        const pt = pTrail[i];
+        const seg = Math.hypot(pt.x - prevPt.x, pt.y - prevPt.y);
+        if (accum + seg >= FOLLOW_DIST) {
+          const ratio = seg > 0.001 ? (FOLLOW_DIST - accum) / seg : 0;
+          targetPos = {
+            x: prevPt.x + (pt.x - prevPt.x) * ratio,
+            y: prevPt.y + (pt.y - prevPt.y) * ratio
+          };
+          found = true;
+          break;
+        }
+        accum += seg;
+        prevPt = pt;
+      }
+      if (!found && pTrail.length > 0) {
+        targetPos = { ...pTrail[pTrail.length - 1] };
+      }
+    }
+    cargo.x += (targetPos.x - cargo.x) * Math.min(1, dt * 10);
+    cargo.y += (targetPos.y - cargo.y) * Math.min(1, dt * 10);
 
     // 武器運算
     weapons(dt);
@@ -1031,69 +1072,7 @@
       ctx.fillText("🏮", l.x, l.y + 10);
     });
 
-    // 4. 委託氣泡 (町屋上方和風繪卷木札 — 單句精簡，不顯示送往何處)
-    for (const o of orders) {
-      const h = o.from;
-      const floatY = h.y - 120 + Math.sin(elapsed * 3.5 + h.id) * 4;
-      const isTarget = (inter === o);
-
-      ctx.save();
-      // 繪卷底框（單句精簡規格，高度減半，絕不遮蔽街景與角色）
-      const bw = 172, bh = 42;
-      const bx = h.x - bw / 2;
-      ctx.fillStyle = isTarget ? "#fffdf5" : "#f7f0df";
-      ctx.beginPath();
-      ctx.roundRect(bx, floatY, bw, bh, 8);
-      ctx.fill();
-      ctx.strokeStyle = isTarget ? "#ff8833" : "#8c724b";
-      ctx.lineWidth = isTarget ? 3.5 : 2;
-      ctx.stroke();
-
-      // 金箔頂飾
-      ctx.fillStyle = isTarget ? "#ff8833" : "#c29d5b";
-      ctx.fillRect(bx, floatY, bw, 3.5);
-
-      ctx.textAlign = "center";
-      ctx.fillStyle = "#1e1824";
-      ctx.font = "900 14px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
-      // 委託送什麼東西一句話就好，送往哪裡不需要顯示
-      ctx.fillText(`${o.word.icon} 委託：送「${o.word.jp}」`, h.x, floatY + 22);
-
-      // 剩餘時間條 (金黃至火紅)
-      ctx.fillStyle = isTarget ? "#ff8833" : "#ffa726";
-      ctx.fillRect(h.x - 70, floatY + 34, (140 * o.life) / 95, 3);
-      ctx.restore();
-
-      // 靠近町屋時，在木札正下方懸掛「按 E 接案」小金標（完全離開主角身體，絕不遮擋視野與主角）
-      if (isTarget) {
-        ctx.save();
-        const tagY = floatY + 48;
-        // 連接木札與按鍵標籤的雙金繩
-        ctx.strokeStyle = "#d4af37";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(h.x - 26, floatY + 42);
-        ctx.lineTo(h.x - 26, tagY);
-        ctx.moveTo(h.x + 26, floatY + 42);
-        ctx.lineTo(h.x + 26, tagY);
-        ctx.stroke();
-
-        // 金標本體
-        ctx.fillStyle = "#ffeed4";
-        ctx.beginPath();
-        ctx.roundRect(h.x - 48, tagY, 96, 24, 6);
-        ctx.fill();
-        ctx.strokeStyle = "#ff8833";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        ctx.textAlign = "center";
-        ctx.fillStyle = "#1a1622";
-        ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
-        ctx.fillText("按 E 接案", h.x, tagY + 16);
-        ctx.restore();
-      }
-    }
+    // 4. 委託氣泡移至頂層 (15.5) 繪製，確保永不被建築、角色或陰影遮擋
 
     // 5. 送達判定圈 (和風結界魔法陣)
     if (job && dist(P, job.to) < 330) {
@@ -1260,55 +1239,43 @@
     }
 
 
-    // 11. 貨物包裹跟隨（直接顯示清晰圖標 Icon，與地面日文選項直接配對，無須抬頭找答案）
+    // 11. 貨物包裹伴行（單一圓形式神法玉，無多重形狀嵌套，完全跟隨玩家歷史軌跡）
     if (job) {
       ctx.save();
-      const floatBob = Math.sin(elapsed * 5) * 2.5;
+      const floatBob = Math.sin(elapsed * 5) * 3;
       const cyPos = cargo.y + floatBob;
-      const bw = 38, bh = 38;
-      const bx = cargo.x - bw / 2, by = cyPos - bh / 2;
+      const r = 18;
 
-      // 1. 投影陰影
+      // 1. 地面柔和陰影
       ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
       ctx.beginPath();
-      ctx.ellipse(cargo.x, cargo.y + 20, 17, 7, 0, 0, 6.28);
+      ctx.ellipse(cargo.x, cargo.y + 20, 16, 6, 0, 0, 6.28);
       ctx.fill();
 
-      // 2. 包裹外層金色微光
-      ctx.shadowColor = "rgba(255, 215, 80, 0.65)";
-      ctx.shadowBlur = 10;
+      // 2. 式神金光光暈
+      ctx.shadowColor = "rgba(255, 215, 80, 0.75)";
+      ctx.shadowBlur = 12;
 
-      // 3. 包裹本體（黑漆金金具木盒）
-      ctx.fillStyle = "#1e1628";
+      // 3. 單一圓形御神玉本體（白玉暖底 + 金色精緻描邊，無任何四邊形外框）
+      ctx.fillStyle = "#fffdf2";
       ctx.beginPath();
-      ctx.roundRect(bx, by, bw, bh, 8);
+      ctx.arc(cargo.x, cyPos, r, 0, 6.28);
       ctx.fill();
+
       ctx.strokeStyle = "#d4af37";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.4;
       ctx.stroke();
 
       ctx.shadowBlur = 0;
 
-      // 4. 十字封印金繩
-      ctx.strokeStyle = "rgba(255, 215, 80, 0.55)";
-      ctx.lineWidth = 1.8;
+      // 4. 內圈細緻金環飾邊
+      ctx.strokeStyle = "rgba(212, 175, 55, 0.45)";
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.moveTo(cargo.x, by);
-      ctx.lineTo(cargo.x, by + bh);
-      ctx.moveTo(bx, cyPos);
-      ctx.lineTo(bx + bw, cyPos);
+      ctx.arc(cargo.x, cyPos, r - 3.5, 0, 6.28);
       ctx.stroke();
 
-      // 5. 中央白玉御神圓盤（直徑 28px，底色微亮凸顯圖案）
-      ctx.fillStyle = "#fffdf2";
-      ctx.beginPath();
-      ctx.arc(cargo.x, cyPos, 14, 0, 6.28);
-      ctx.fill();
-      ctx.strokeStyle = "#d4af37";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // 6. 清晰大圖標 Icon（花、月亮、魚、狗、貓等）直接呈現於行李上
+      // 5. 清晰貨物圖標直接置中呈現（花、彩虹、書、魚等，直接與地面日文配對）
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.font = "20px 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif";
@@ -1379,6 +1346,70 @@
 
     // 15. 浮動傷害數字
     RENDERER.drawDamageNumbers();
+
+    // 15.5 委託氣泡與接案標籤（最上層繪製，確保永不被建築、角色、怪物或陰影遮擋）
+    for (const o of orders) {
+      const h = o.from;
+      const floatY = h.y - 128 + Math.sin(elapsed * 3.5 + h.id) * 4;
+      const isTarget = (inter === o);
+
+      ctx.save();
+      // 繪卷底框（寬度足 196px，確保圖標與文字完整展示不被遮擋截斷）
+      const bw = 196, bh = 42;
+      const bx = h.x - bw / 2;
+      ctx.fillStyle = isTarget ? "#fffdf5" : "#f7f0df";
+      ctx.beginPath();
+      ctx.roundRect(bx, floatY, bw, bh, 8);
+      ctx.fill();
+      ctx.strokeStyle = isTarget ? "#ff8833" : "#8c724b";
+      ctx.lineWidth = isTarget ? 3.5 : 2;
+      ctx.stroke();
+
+      // 金箔頂飾
+      ctx.fillStyle = isTarget ? "#ff8833" : "#c29d5b";
+      ctx.fillRect(bx, floatY, bw, 3.5);
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#1e1824";
+      ctx.font = "900 14px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+      // 委託送什麼東西一句話就好，送往哪裡不需要顯示
+      ctx.fillText(`${o.word.icon} 委託：送「${o.word.jp}」`, h.x, floatY + 23);
+
+      // 剩餘時間條 (金黃至火紅)
+      ctx.fillStyle = isTarget ? "#ff8833" : "#ffa726";
+      ctx.fillRect(h.x - 76, floatY + 34, (152 * o.life) / 95, 3);
+      ctx.restore();
+
+      // 靠近町屋時，在木札正下方懸掛「按 E 接案」小金標（懸掛於屋前，最頂層繪製）
+      if (isTarget) {
+        ctx.save();
+        const tagY = floatY + 48;
+        // 連接木札與按鍵標籤的雙金繩
+        ctx.strokeStyle = "#d4af37";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(h.x - 26, floatY + 42);
+        ctx.lineTo(h.x - 26, tagY);
+        ctx.moveTo(h.x + 26, floatY + 42);
+        ctx.lineTo(h.x + 26, tagY);
+        ctx.stroke();
+
+        // 金標本體
+        ctx.fillStyle = "#ffeed4";
+        ctx.beginPath();
+        ctx.roundRect(h.x - 48, tagY, 96, 24, 6);
+        ctx.fill();
+        ctx.strokeStyle = "#ff8833";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#1a1622";
+        ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
+        ctx.fillText("按 E 接案", h.x, tagY + 16);
+        ctx.restore();
+      }
+    }
 
     ctx.restore();
 
