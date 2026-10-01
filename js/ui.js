@@ -56,10 +56,15 @@ window.UI = (() => {
     ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
     ctx.fillText(`夜 行 紀 錄 ： 最 高 得 分 ${STORE.data.best || 0} 點　｜　最 高 配 達 ${STORE.data.bestDel || 0} 件`, W / 2, 565);
 
-    glassBox(ctx, W - 165, 22, 145, 38, 8, "rgba(24, 30, 52, 0.9)", "#e3b35d", 2);
+    glassBox(ctx, W - 285, 22, 125, 38, 8, "rgba(24, 30, 52, 0.9)", "#e3b35d", 1.8);
     ctx.fillStyle = "#ffeed4";
-    ctx.font = "900 14px 'Zen Maru Gothic', sans-serif";
-    ctx.fillText("百鬼單字卷 [C]", W - 92, 46);
+    ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
+    ctx.fillText("🎴 卡片一覽", W - 222, 46);
+
+    glassBox(ctx, W - 145, 22, 125, 38, 8, "rgba(24, 30, 52, 0.9)", "#e3b35d", 1.8);
+    ctx.fillStyle = "#ffeed4";
+    ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
+    ctx.fillText("📜 百鬼單字 [C]", W - 82, 46);
 
     ctx.restore();
   }
@@ -1002,63 +1007,208 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 5. 單字圖鑑 (Codex)
-  function drawCodex(ctx, STORE, ALL) {
+  // 5. 系統圖鑑（秘術卡片一覽 ＆ 百鬼單字卷）
+  const CARD_LIST = [
+    // 主動秘術 (Active Weapons)
+    { name: "妖刀斬", jp: "かたな", type: "主動", desc: "揮出凌厲新月刀芒，斬裂前方扇形妖怪", emblem: "katana" },
+    { name: "淨化靈陣", jp: "じょうか", type: "主動", desc: "展開 360 度除魔陣，週期性震退並重創周身妖怪", emblem: "barrier" },
+    { name: "狐火炎", jp: "きつねび", type: "主動", desc: "周身飛旋烈焰火把，高速甩擊灼燒貼身妖怪", emblem: "fire" },
+    { name: "陰陽符", jp: "おふだ", type: "主動", desc: "擲出迴旋陰陽符咒，來回穿透路徑上的敵人", emblem: "boom" },
+    { name: "天狐雷", jp: "いかずち", type: "主動", desc: "引導九天金雷轟擊最強妖怪，造成毀滅性打擊", emblem: "thunder" },
+    { name: "天狐靈針", jp: "せんぼん", type: "主動", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪", emblem: "needle" },
+
+    // 被動修行 (Passive Enhancements)
+    { name: "金剛結界", jp: "けっかい", type: "被動", desc: "召喚金剛勾玉護盾，抵擋 2 次受傷（可疊加）", emblem: "shield" },
+    { name: "長明燈油", jp: "あぶら", type: "被動", desc: "燈油上限 +30 並立即補滿，且常駐每秒回油", emblem: "oil_max" },
+    { name: "添燈香油", jp: "かいふく", type: "被動", desc: "燈油即刻恢復 +50% 並引發除魔波", emblem: "oil_heal" },
+    { name: "修羅破軍", jp: "こうげき", type: "被動", desc: "所有武器與法術傷害全面提升 +25%", emblem: "dmg" },
+    { name: "神樂疾奏", jp: "れんぞく", type: "被動", desc: "攻擊與秘術冷卻時間縮短 20%", emblem: "rate" },
+    { name: "心眼一閃", jp: "かいしん", type: "被動", desc: "暴擊率 +20%，暴擊傷害大幅躍升", emblem: "crit" },
+    { name: "神足草履", jp: "いどう", type: "被動", desc: "移動速度 +15%（最多可疊加 3 次）", emblem: "spd" },
+    { name: "縮地瞬步", jp: "ダッシュ", type: "被動", desc: "衝刺冷卻大幅縮短，衝刺附加無敵突進", emblem: "dash" },
+    { name: "招財勾玉", jp: "じしゃく", type: "被動", desc: "靈玉經驗與物資吸取範圍 +60%", emblem: "mag" }
+  ];
+
+  function drawCodex(ctx, STORE, ALL, tab = "cards") {
     ctx.save();
     ctx.fillStyle = "rgba(10, 14, 26, 0.96)";
     ctx.fillRect(0, 0, W, H);
 
+    const isCards = tab === "cards";
+
+    // 1. 頂部大標題
     ctx.textAlign = "center";
-    ctx.font = "900 32px 'Kaisei Decol', 'Noto Sans JP', serif";
+    ctx.font = "900 28px 'Kaisei Decol', 'Noto Sans JP', serif";
     ctx.fillStyle = "#ffe28b";
-    ctx.fillText("— 妖怪單字繪卷 (Codex) —", W / 2, 58);
+    ctx.shadowColor = "rgba(255, 215, 100, 0.5)";
+    ctx.shadowBlur = 10;
+    ctx.fillText(isCards ? "— 秘 術 卡 片 一 覽 (Card Compendium) —" : "— 百 鬼 單 字 繪 卷 (Codex) —", W / 2, 40);
+    ctx.shadowBlur = 0;
 
-    ctx.font = "bold 14px 'Noto Sans JP', sans-serif";
-    ctx.fillStyle = "#cad7f5";
-    ctx.fillText("★ = 熟練度：答對升星、答錯歸零。越不熟的單字，夜行委託越常出現。（按 C 或 點擊返回）", W / 2, 86);
+    // 2. 雙標籤頁切換按鈕
+    const tabW = 160, tabH = 32, tabY = 56;
+    const tabCardsX = W / 2 - tabW - 8, tabWordsX = W / 2 + 8;
 
-    let mastered = 0;
-    const cardW = 86, cardH = 112;
-    const startX = 46, startY = 115;
+    // 🎴 秘術卡片一覽 標籤
+    glassBox(ctx, tabCardsX, tabY, tabW, tabH, 8, isCards ? "rgba(38, 52, 84, 0.95)" : "rgba(18, 22, 38, 0.75)", isCards ? "#ffd54f" : "rgba(212, 175, 55, 0.4)", isCards ? 2 : 1.2);
+    ctx.textAlign = "center";
+    ctx.fillStyle = isCards ? "#ffe28b" : "rgba(255, 235, 180, 0.65)";
+    ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
+    ctx.fillText("🎴 秘術卡片一覽", tabCardsX + tabW / 2, tabY + 20);
 
-    ALL.forEach((w, i) => {
-      const col = i % 9;
-      const row = (i / 9) | 0;
-      const cx = startX + col * 95;
-      const cy = startY + row * 124;
+    // 📜 百鬼單字卷 標籤
+    const isWords = !isCards;
+    glassBox(ctx, tabWordsX, tabY, tabW, tabH, 8, isWords ? "rgba(38, 52, 84, 0.95)" : "rgba(18, 22, 38, 0.75)", isWords ? "#ffd54f" : "rgba(212, 175, 55, 0.4)", isWords ? 2 : 1.2);
+    ctx.fillStyle = isWords ? "#ffe28b" : "rgba(255, 235, 180, 0.65)";
+    ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
+    ctx.fillText("📜 百鬼單字卷", tabWordsX + tabW / 2, tabY + 20);
 
-      const m = STORE.get(w.jp);
-      const seen = (m.ok + m.ng) > 0;
-      if (m.box >= 4) mastered++;
+    if (isCards) {
+      // 3. 卡片一覽表格頁面
+      ctx.font = "bold 13px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+      ctx.fillStyle = "#cad7f5";
+      ctx.fillText("夜行修煉秘術與體質修行總覽・按照 中文名稱、日文名稱、主動／被動、招式說明 排序", W / 2, 102);
 
-      glassBox(ctx, cx, cy, cardW, cardH, 10, seen ? "#fcf4e3" : "#20273a", seen ? "#d4af37" : "#36415a", 1.5);
+      // 表格框架 (寬 828, 高 426)
+      const tX = 36, tY = 114, tW = 828, tH = 426;
+      glassBox(ctx, tX, tY, tW, tH, 10, "rgba(14, 18, 32, 0.95)", "#d4af37", 1.8);
 
-      ctx.fillStyle = "#1e1829";
-      ctx.font = "26px sans-serif";
-      ctx.fillText(seen ? w.icon : "？", cx + cardW / 2, cy + 36);
+      // 表頭 (Header)
+      const hH = 30;
+      ctx.fillStyle = "rgba(28, 38, 62, 0.95)";
+      ctx.beginPath();
+      ctx.roundRect(tX, tY, tW, hH, [10, 10, 0, 0]);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(212, 175, 55, 0.6)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(tX, tY + hH);
+      ctx.lineTo(tX + tW, tY + hH);
+      ctx.stroke();
+
+      // 表頭欄位標題 (精準符合用戶要求順序)
+      ctx.fillStyle = "#ffd54f";
+      ctx.font = "900 13px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("中文名稱", 125, tY + 20);
+      ctx.fillText("日文名稱", 240, tY + 20);
+      ctx.fillText("主動／被動", 340, tY + 20);
+      ctx.textAlign = "left";
+      ctx.fillText("招式說明", 410, tY + 20);
+
+      // 15 行表格數據 (高度 26.2px)
+      const rowH = 26.2;
+      CARD_LIST.forEach((c, i) => {
+        const ry = tY + hH + i * rowH;
+
+        // 隔行底色
+        ctx.fillStyle = i % 2 === 0 ? "rgba(255, 255, 255, 0.02)" : "rgba(255, 255, 255, 0.055)";
+        ctx.fillRect(tX + 1, ry, tW - 2, rowH);
+
+        // 分隔橫線
+        if (i < CARD_LIST.length - 1) {
+          ctx.strokeStyle = "rgba(212, 175, 55, 0.12)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(tX + 10, ry + rowH);
+          ctx.lineTo(tX + tW - 10, ry + rowH);
+          ctx.stroke();
+        }
+
+        const midY = ry + rowH / 2;
+
+        // 1. 中文名稱 (微型神紋圖章 + 名字)
+        drawEmblem(ctx, c.emblem, 68, midY, 9);
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "900 13px 'Kaisei Decol', 'Noto Sans JP', serif";
+        ctx.fillText(c.name, 86, midY);
+
+        // 2. 日文名稱
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#ffe082";
+        ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
+        ctx.fillText(c.jp, 240, midY);
+
+        // 3. 主動／被動 膠囊標籤
+        const isAct = c.type === "主動";
+        const pillW = 54, pillH = 18;
+        const pillX = 340 - pillW / 2, pillY = midY - pillH / 2;
+        ctx.fillStyle = isAct ? "rgba(211, 47, 47, 0.25)" : "rgba(0, 137, 123, 0.25)";
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+        ctx.fill();
+        ctx.strokeStyle = isAct ? "#ef5350" : "#26a69a";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.textAlign = "center";
+        ctx.fillStyle = isAct ? "#ffcdd2" : "#b2dfdb";
+        ctx.font = "900 11px 'Zen Maru Gothic', sans-serif";
+        ctx.fillText(c.type, 340, midY + 0.5);
+
+        // 4. 招式說明
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#e0e6ed";
+        ctx.font = "bold 12px 'Zen Maru Gothic', sans-serif";
+        ctx.fillText(c.desc, 410, midY);
+      });
+      ctx.textBaseline = "alphabetic";
+
+    } else {
+      // 3. 百鬼單字卷頁面 (36 個妖怪單字)
+      ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
+      ctx.fillStyle = "#cad7f5";
+      ctx.fillText("★ = 熟練度：答對升星、答錯歸零。越不熟的單字，夜行委託越常出現。（按 C 或 點擊返回）", W / 2, 102);
+
+      let mastered = 0;
+      const cardW = 86, cardH = 104;
+      const startX = 46, startY = 118;
+
+      ALL.forEach((w, i) => {
+        const col = i % 9;
+        const row = (i / 9) | 0;
+        const cx = startX + col * 95;
+        const cy = startY + row * 108;
+
+        const m = STORE.get(w.jp);
+        const seen = (m.ok + m.ng) > 0;
+        if (m.box >= 4) mastered++;
+
+        glassBox(ctx, cx, cy, cardW, cardH, 8, seen ? "#fcf4e3" : "#20273a", seen ? "#d4af37" : "#36415a", 1.5);
+
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#1e1829";
+        ctx.font = "24px sans-serif";
+        ctx.fillText(seen ? w.icon : "？", cx + cardW / 2, cy + 32);
+
+        ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
+        ctx.fillText(seen ? w.jp : "？？", cx + cardW / 2, cy + 56);
+
+        if (seen) {
+          ctx.font = "bold 11px 'Noto Sans JP', sans-serif";
+          ctx.fillStyle = "#63503c";
+          ctx.fillText(w.zh, cx + cardW / 2, cy + 74);
+
+          ctx.fillStyle = "#d48819";
+          ctx.font = "11px sans-serif";
+          ctx.fillText("★".repeat(m.box) + "☆".repeat(4 - m.box), cx + cardW / 2, cy + 92);
+        }
+      });
 
       ctx.font = "900 14px 'Zen Maru Gothic', sans-serif";
-      ctx.fillText(seen ? w.jp : "？？", cx + cardW / 2, cy + 62);
+      ctx.fillStyle = "#ffe28b";
+      ctx.fillText(`已精通詞彙：${mastered} / ${ALL.length} 語`, W / 2, 545);
+    }
 
-      if (seen) {
-        ctx.font = "bold 12px 'Noto Sans JP', sans-serif";
-        ctx.fillStyle = "#63503c";
-        ctx.fillText(w.zh, cx + cardW / 2, cy + 82);
-
-        ctx.fillStyle = "#d48819";
-        ctx.font = "12px sans-serif";
-        ctx.fillText("★".repeat(m.box) + "☆".repeat(4 - m.box), cx + cardW / 2, cy + 101);
-      }
-    });
-
-    ctx.font = "900 18px 'Zen Maru Gothic', sans-serif";
-    ctx.fillStyle = "#ffe28b";
-    ctx.fillText(`已精通詞彙：${mastered} / ${ALL.length} 語`, W / 2, 545);
-
-    glassBox(ctx, W / 2 - 80, 560, 160, 32, 8, "#d4af37", "#ffffff", 1.5);
+    // 4. 底部返回按鈕
+    glassBox(ctx, W / 2 - 85, 554, 170, 32, 8, "#d4af37", "#ffffff", 1.5);
+    ctx.textAlign = "center";
     ctx.fillStyle = "#1a162b";
-    ctx.font = "900 15px 'Noto Sans JP', sans-serif";
-    ctx.fillText("返回主選單", W / 2, 582);
+    ctx.font = "900 14px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+    ctx.fillText("返回 [ESC / C]", W / 2, 574);
 
     ctx.restore();
   }
@@ -1294,12 +1444,13 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 7. 暫停與設定選單 (日式黑漆金箔和風御札，無任何彩虹膠囊與 Emoji)
+  // 7. 暫停與系統設定選單 (日式黑漆金箔和風御札)
   const PAUSE_BTNS = [
-    { id: "resume", label: "◆ 繼 續 夜 行 ◆", y: 215 },
-    { id: "mute", label: "◆ 聲 音 音 效 ： 開 ◆", labelMuted: "◆ 聲 音 音 效 ： 關 ◆", y: 280 },
-    { id: "codex", label: "◆ 百 鬼 單 字 卷 ◆", y: 345 },
-    { id: "menu", label: "◆ 返 回 主 選 單 ◆", y: 410 }
+    { id: "resume", label: "◆ 繼 續 夜 行 ◆", y: 195 },
+    { id: "cards", label: "◆ 秘 術 卡 片 一 覽 ◆", y: 255 },
+    { id: "codex", label: "◆ 百 鬼 單 字 卷 ◆", y: 315 },
+    { id: "mute", label: "◆ 聲 音 音 效 ： 開 ◆", labelMuted: "◆ 聲 音 音 效 ： 關 ◆", y: 375 },
+    { id: "menu", label: "◆ 返 回 主 選 單 ◆", y: 435 }
   ];
 
   function drawPauseMenu(ctx, muted) {
@@ -1312,14 +1463,14 @@ window.UI = (() => {
     ctx.fillStyle = "#ffe28b";
     ctx.shadowColor = "rgba(255, 215, 100, 0.6)";
     ctx.shadowBlur = 14;
-    ctx.fillText("— 暫 歇 —", W / 2, 145);
+    ctx.fillText("— 暫 歇 —", W / 2, 138);
     ctx.shadowBlur = 0;
 
     ctx.font = "bold 12px 'Noto Sans JP', sans-serif";
     ctx.fillStyle = "rgba(255, 235, 180, 0.55)";
-    ctx.fillText("PAUSE", W / 2, 172);
+    ctx.fillText("SYSTEM PAUSE", W / 2, 164);
 
-    const btnW = 280, btnH = 46;
+    const btnW = 280, btnH = 44;
     const bx = W / 2 - btnW / 2;
 
     PAUSE_BTNS.forEach(b => {
@@ -1330,13 +1481,13 @@ window.UI = (() => {
       glassBox(ctx, bx, b.y, btnW, btnH, 10, "rgba(18, 22, 36, 0.95)", "rgba(212, 175, 55, 0.8)", 1.6);
       ctx.textAlign = "center";
       ctx.fillStyle = "#ffeed4";
-      ctx.font = "900 16px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
-      ctx.fillText(label, W / 2, b.y + 29);
+      ctx.font = "900 15px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+      ctx.fillText(label, W / 2, b.y + 28);
     });
 
     ctx.fillStyle = "rgba(255, 235, 180, 0.45)";
     ctx.font = "12px 'Noto Sans JP', sans-serif";
-    ctx.fillText("[ 按 ESC 或 P 鍵返回夜行 ]", W / 2, 495);
+    ctx.fillText("[ 按 ESC 或 P 鍵返回夜行 ]", W / 2, 515);
 
     ctx.restore();
   }
@@ -1416,6 +1567,7 @@ window.UI = (() => {
     drawSurgeWarning,
     PAUSE_BTNS,
     PAUSE_BTN_W: 280,
-    PAUSE_BTN_H: 46
+    PAUSE_BTN_H: 44,
+    CARD_LIST
   };
 })();

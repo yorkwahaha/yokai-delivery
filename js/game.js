@@ -71,7 +71,7 @@
   const btnPause = { x: W - 52, y: 14, w: 38, h: 52 };
   let gpPrevButtons = [], gpMove = { x: 0, y: 0 };
 
-  let bossT = 75, ended = false, bossQ = null, codexBack = "menu";
+  let bossT = 75, ended = false, bossQ = null, codexBack = "menu", codexTab = "cards";
   const WL = { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 };
   const WI = {
     katana: { id: "katana", jp: "かたな", zh: "妖刀斬", type: "active", category: "方向斬擊", desc: "揮出凌厲新月刀芒，斬裂前方扇形妖怪" },
@@ -443,6 +443,18 @@
       } else if (state === "play" || state === "pause" || state === "menu") {
         codexBack = state;
         state = "codex";
+      }
+    }
+
+    // 在圖鑑內時，LB / RB (Buttons 4, 5) 或左右方向鍵 (14, 15) 切換分頁，B 鍵 (1) 返回
+    if (state === "codex") {
+      if (justPressed(4) || justPressed(14)) {
+        codexTab = "cards";
+      } else if (justPressed(5) || justPressed(15)) {
+        codexTab = "words";
+      }
+      if (justPressed(1)) {
+        state = codexBack;
       }
     }
 
@@ -1452,6 +1464,10 @@
 
   addEventListener("keydown", e => {
     if (e.key === "Escape" || e.key === "p" || e.key === "P") {
+      if (state === "codex") {
+        state = codexBack;
+        return;
+      }
       if (state === "play" || state === "pause") {
         togglePause();
         return;
@@ -1517,13 +1533,14 @@
     }
 
     if (state === "pause") {
-      const btnW = UI.PAUSE_BTN_W || 320, btnH = UI.PAUSE_BTN_H || 48;
+      const btnW = UI.PAUSE_BTN_W || 280, btnH = UI.PAUSE_BTN_H || 44;
       const bx = W / 2 - btnW / 2;
       for (const btn of UI.PAUSE_BTNS) {
         if (p.x >= bx && p.x <= bx + btnW && p.y >= btn.y && p.y <= btn.y + btnH) {
           if (btn.id === "resume") togglePause();
           else if (btn.id === "mute") AUDIO.toggleMute();
-          else if (btn.id === "codex") { codexBack = "pause"; state = "codex"; }
+          else if (btn.id === "cards") { codexBack = "pause"; codexTab = "cards"; state = "codex"; }
+          else if (btn.id === "codex") { codexBack = "pause"; codexTab = "words"; state = "codex"; }
           else if (btn.id === "menu") { state = "menu"; }
           return;
         }
@@ -1532,15 +1549,46 @@
     }
 
     if (state === "codex") {
-      state = codexBack;
+      // 點擊頂部標籤頁切換
+      const tabW = 160, tabH = 32, tabY = 56;
+      const tabCardsX = W / 2 - tabW - 8, tabWordsX = W / 2 + 8;
+      if (p.y >= tabY && p.y <= tabY + tabH) {
+        if (p.x >= tabCardsX && p.x <= tabCardsX + tabW) {
+          codexTab = "cards";
+          return;
+        }
+        if (p.x >= tabWordsX && p.x <= tabWordsX + tabW) {
+          codexTab = "words";
+          return;
+        }
+      }
+
+      // 點擊底部返回按鈕或外圍區域
+      if (p.y >= 548 && p.y <= 590 && p.x >= W / 2 - 95 && p.x <= W / 2 + 95) {
+        state = codexBack;
+        return;
+      }
+      if (p.x < 30 || p.x > W - 30 || p.y < 20 || p.y > 590) {
+        state = codexBack;
+        return;
+      }
       return;
     }
     if (state === "menu") {
-      // 點擊圖鑑鈕
-      if (p.x > W - 140 && p.y < 70) {
-        codexBack = state;
-        state = "codex";
-        return;
+      // 點擊右上角卡片一覽與單字圖鑑鈕
+      if (p.y >= 20 && p.y <= 62) {
+        if (p.x >= W - 290 && p.x <= W - 155) {
+          codexBack = state;
+          codexTab = "cards";
+          state = "codex";
+          return;
+        }
+        if (p.x >= W - 150 && p.x <= W - 15) {
+          codexBack = state;
+          codexTab = "words";
+          state = "codex";
+          return;
+        }
       }
       return start();
     }
@@ -1632,7 +1680,7 @@
     }
 
     if (state === "codex") {
-      UI.drawCodex(ctx, STORE, ALL);
+      UI.drawCodex(ctx, STORE, ALL, codexTab);
     }
 
     requestAnimationFrame(frame);
