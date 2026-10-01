@@ -127,14 +127,14 @@ window.UI = (() => {
     ctx.font = "bold 11px sans-serif";
     ctx.fillText(`${xp}/${xpNeed}`, pBoxX + 147, pBoxY + 42);
 
-    // 3. 金剛結界護盾膠囊（若擁有護盾）
+    // 3. 金剛結界護盾膠囊（位於生命欄正下方，整潔且絕不遮擋中央委託提示）
     if (b.shield && b.shield > 0) {
-      const shX = pBoxX + pBoxW + 8, shY = pBoxY + 7;
-      glassBox(ctx, shX, shY, 78, 38, 8, "rgba(36, 30, 14, 0.94)", "#ffd54f", 2);
+      const shX = pBoxX, shY = pBoxY + pBoxH + 6;
+      glassBox(ctx, shX, shY, 96, 26, 6, "rgba(36, 30, 14, 0.94)", "#ffd54f", 1.5);
       ctx.textAlign = "center";
-      ctx.font = "900 14px 'Zen Maru Gothic', sans-serif";
+      ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
       ctx.fillStyle = "#ffe28b";
-      ctx.fillText(`結界 x${b.shield}`, shX + 39, shY + 24);
+      ctx.fillText(`✦ 結界護盾 x${b.shield}`, shX + 48, shY + 18);
     }
 
     // --- 右上角：進度與統計懸浮艙 (Dawn, Deliveries & Score) ---
@@ -915,13 +915,13 @@ window.UI = (() => {
 
       glassBox(ctx, cx, cy, cardW, cardH, 16, cardGrad, "#d4af37", 2.5);
 
-      // 1. 頂部流派類別標籤膠囊
+      // 1. 頂部流派類別標籤膠囊 (精簡無冗餘)
       const isWeapon = c.type === "weapon";
       const catColor = isWeapon ? (c.id === "barrier" ? "#1976d2" : (c.id === "katana" ? "#c62828" : "#8e24aa")) : "#00897b";
-      glassBox(ctx, cx + 18, cy + 14, cardW - 36, 26, 6, "rgba(10, 14, 24, 0.85)", catColor, 1.5);
+      glassBox(ctx, cx + 24, cy + 14, cardW - 48, 26, 6, "rgba(10, 14, 24, 0.85)", catColor, 1.5);
       ctx.fillStyle = "#ffeed4";
       ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
-      ctx.fillText(c.cat || (isWeapon ? "【主動秘術】" : "【被動體質】"), cx + cardW / 2, cy + 31);
+      ctx.fillText(c.cat || "【 秘術 】", cx + cardW / 2, cy + 31);
 
       // 2. 日文副標與秘術主名
       ctx.font = "bold 13px 'Noto Sans JP', serif";
@@ -938,9 +938,9 @@ window.UI = (() => {
       // 3. 中央大型帥氣紋章勳章 (r = 44px, 直徑 88px)
       drawEmblem(ctx, c.id, cx + cardW / 2, cy + 155, 44);
 
-      // 4. 等級進階標籤膠囊
-      const isNew = c.levelText && c.levelText.includes("NEW");
-      glassBox(ctx, cx + 32, cy + 214, cardW - 64, 24, 6, isNew ? "rgba(212, 175, 55, 0.25)" : "rgba(33, 150, 243, 0.2)", isNew ? "#ffd54f" : "#64b5f6", 1.2);
+      // 4. 等級進階標籤膠囊 (精簡標註)
+      const isNew = c.levelText && (c.levelText.includes("新") || c.levelText.includes("NEW"));
+      glassBox(ctx, cx + 36, cy + 214, cardW - 72, 24, 6, isNew ? "rgba(212, 175, 55, 0.25)" : "rgba(33, 150, 243, 0.2)", isNew ? "#ffd54f" : "#64b5f6", 1.2);
       ctx.fillStyle = isNew ? "#ffe082" : "#90caf9";
       ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
       ctx.fillText(c.levelText || "◆ 妖力精進", cx + cardW / 2, cy + 230);
@@ -1065,79 +1065,233 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 6. 結算畫面 (日式神壇黑漆金箔功績額匾，無任何廉價 Emoji)
+  // 6. 結算畫面 (日式神壇金箔額匾・和風繪馬・大作質感)
   function drawEndScreen(ctx, state, score, delivered, failed, misses) {
     ctx.save();
-    ctx.fillStyle = "rgba(6, 8, 16, 0.95)";
-    ctx.fillRect(0, 0, W, H);
-
-    ctx.textAlign = "center";
     const isWon = state === "won";
 
-    // 頂部大號和風書法字章 (破曉迎曦 / 燈盡夜沉)
-    ctx.font = "900 42px 'Kaisei Decol', 'Noto Sans JP', serif";
-    ctx.fillStyle = isWon ? "#ffe28b" : "#ff5470";
-    ctx.shadowColor = isWon ? "rgba(255, 215, 100, 0.65)" : "rgba(255, 80, 100, 0.65)";
-    ctx.shadowBlur = 16;
-    ctx.fillText(isWon ? "— 破 曉 迎 曦 —" : "— 燈 盡 夜 沉 —", W / 2, 125);
-    ctx.shadowBlur = 0;
+    // 1. 全螢幕電影感氛圍幕
+    ctx.fillStyle = "rgba(6, 8, 16, 0.94)";
+    ctx.fillRect(0, 0, W, H);
 
-    ctx.font = "bold 12px 'Noto Sans JP', sans-serif";
-    ctx.fillStyle = isWon ? "rgba(255, 226, 139, 0.6)" : "rgba(255, 110, 130, 0.6)";
-    ctx.fillText(isWon ? "DAWN HAS BROKEN・VICTORY" : "THE FLAME HAS FADED・DEFEAT", W / 2, 150);
+    // 2. 獲勝時的黎明破曉天光輻射 / 失敗時的深淵幽冥暗火
+    if (isWon) {
+      // 黎明暖金曙光自背後放射
+      const dawnGrad = ctx.createRadialGradient(W / 2, 280, 40, W / 2, 280, 520);
+      dawnGrad.addColorStop(0, "rgba(255, 220, 110, 0.32)");
+      dawnGrad.addColorStop(0.4, "rgba(255, 140, 60, 0.15)");
+      dawnGrad.addColorStop(0.8, "rgba(80, 60, 140, 0.08)");
+      dawnGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = dawnGrad;
+      ctx.fillRect(0, 0, W, H);
 
-    // 中央黑漆金箔功績展示匾 (Lacquer Scroll Panel)
-    const cardW = 500, cardH = 175;
-    const cx = W / 2 - cardW / 2, cy = 172;
-    glassBox(ctx, cx, cy, cardW, cardH, 14, "rgba(16, 20, 32, 0.92)", isWon ? "#d4af37" : "rgba(212, 175, 55, 0.5)", 2);
-
-    // 得分標題與分數
-    ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
-    ctx.fillStyle = "#cad7f5";
-    ctx.fillText("— 今 夜 功 績 得 分 —", W / 2, cy + 32);
-
-    ctx.font = "900 44px 'Kaisei Decol', sans-serif";
-    ctx.fillStyle = "#ffd54f";
-    ctx.fillText(`${score}`, W / 2, cy + 80);
-
-    // 兩側印章功績徽章 [ 配達完遂 5 件 ]  [ 妖怪誤配 0 件 ]
-    const sealW = 160, sealH = 44;
-    const s1x = W / 2 - sealW - 14, s2x = W / 2 + 14, sy = cy + 108;
-
-    // 完遂徽章 (深黑翡翠漆底)
-    glassBox(ctx, s1x, sy, sealW, sealH, 8, "rgba(20, 38, 28, 0.9)", "#4caf50", 1.5);
-    ctx.fillStyle = "#c8e6c9";
-    ctx.font = "900 14px 'Zen Maru Gothic', sans-serif";
-    ctx.fillText(`配達完遂：${delivered} 件`, s1x + sealW / 2, sy + 27);
-
-    // 誤配徽章 (深黑赤漆底)
-    glassBox(ctx, s2x, sy, sealW, sealH, 8, "rgba(38, 20, 24, 0.9)", "#e57373", 1.5);
-    ctx.fillStyle = "#ffcdd2";
-    ctx.font = "900 14px 'Zen Maru Gothic', sans-serif";
-    ctx.fillText(`妖怪誤配：${failed} 件`, s2x + sealW / 2, sy + 27);
-
-    // 單字複習橫列 (若有失誤)
-    const reviewList = [...new Map(misses.map(w => [w.jp, w])).values()].slice(0, 5);
-    if (reviewList.length > 0) {
-      const rwW = 540, rwH = 52;
-      const rwx = W / 2 - rwW / 2, rwy = 368;
-      glassBox(ctx, rwx, rwy, rwW, rwH, 10, "rgba(22, 18, 32, 0.92)", "#ba68c8", 1.4);
-      ctx.fillStyle = "#ffe28b";
-      ctx.font = "bold 12px 'Noto Sans JP', sans-serif";
-      ctx.fillText("今夜失誤單字複習：", W / 2, rwy + 20);
-      ctx.fillStyle = "#ffeed4";
-      ctx.font = "900 14px 'Zen Maru Gothic', sans-serif";
-      const wStr = reviewList.map(w => `${w.jp}（${w.zh}）`).join("　");
-      ctx.fillText(wStr, W / 2, rwy + 40);
+      // 曙光放射光束 (Dawn Sun Rays)
+      ctx.save();
+      ctx.translate(W / 2, 280);
+      for (let r = 0; r < 12; r++) {
+        const rayA = (r * Math.PI) / 6;
+        ctx.fillStyle = "rgba(255, 230, 130, 0.05)";
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(rayA - 0.1) * 600, Math.sin(rayA - 0.1) * 600);
+        ctx.lineTo(Math.cos(rayA + 0.1) * 600, Math.sin(rayA + 0.1) * 600);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    } else {
+      // 燈盡夜沉幽冥鬼火暗流
+      const defeatGrad = ctx.createRadialGradient(W / 2, 280, 40, W / 2, 280, 480);
+      defeatGrad.addColorStop(0, "rgba(180, 20, 50, 0.28)");
+      defeatGrad.addColorStop(0.5, "rgba(80, 10, 40, 0.14)");
+      defeatGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = defeatGrad;
+      ctx.fillRect(0, 0, W, H);
     }
 
-    // 底部再戰按鈕 (金箔黑漆神社御札風格)
-    const btnW = 240, btnH = 50;
-    const bx = W / 2 - btnW / 2, by = reviewList.length > 0 ? 440 : 380;
-    glassBox(ctx, bx, by, btnW, btnH, 12, "#d4af37", "#ffffff", 2);
-    ctx.fillStyle = "#1a1424";
-    ctx.font = "900 19px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
-    ctx.fillText("◆ 再 次 啟 程 ◆", W / 2, by + 32);
+    // 3. 頂部大氣和風書法標題
+    ctx.textAlign = "center";
+    ctx.font = "900 44px 'Kaisei Decol', 'Noto Sans JP', serif";
+    ctx.fillStyle = isWon ? "#ffe28b" : "#ff5470";
+    ctx.shadowColor = isWon ? "rgba(255, 215, 100, 0.75)" : "rgba(255, 60, 80, 0.75)";
+    ctx.shadowBlur = 18;
+    ctx.fillText(isWon ? "— 破 曉 迎 曦 —" : "— 燈 盡 夜 沉 —", W / 2, 92);
+    ctx.shadowBlur = 0;
+
+    ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
+    ctx.fillStyle = isWon ? "rgba(255, 226, 139, 0.65)" : "rgba(255, 120, 140, 0.65)";
+    ctx.fillText(isWon ? "DAWN HAS BROKEN ・ 夜 行 配 達 完 遂" : "THE FLAME HAS FADED ・ 燈 枯 命 盡", W / 2, 116);
+
+    // 4. 中央主體：神社奉納繪馬・黑漆額匾 (Shrine Votive Ema & Lacquer Tablet)
+    const cardW = 540, cardH = 310;
+    const cx = W / 2 - cardW / 2, cy = 136;
+
+    // 繪馬多層黑漆底板
+    const plaqueGrad = ctx.createLinearGradient(cx, cy, cx + cardW, cy + cardH);
+    plaqueGrad.addColorStop(0, "#161c2c");
+    plaqueGrad.addColorStop(0.5, "#0f1320");
+    plaqueGrad.addColorStop(1, "#0a0c16");
+
+    ctx.save();
+    ctx.fillStyle = plaqueGrad;
+    ctx.beginPath();
+    ctx.roundRect(cx, cy, cardW, cardH, 16);
+    ctx.fill();
+
+    // 雙重金箔框線
+    ctx.strokeStyle = isWon ? "#d4af37" : "rgba(212, 175, 55, 0.65)";
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(255, 235, 160, 0.35)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(cx + 6, cy + 6, cardW - 12, cardH - 12, 12);
+    ctx.stroke();
+
+    // 繪馬四角和風雲紋金金屬件 (Cloud Corner Metal Brackets)
+    const bracketSize = 22;
+    const drawCornerBracket = (bx, by, rot) => {
+      ctx.save();
+      ctx.translate(bx, by);
+      ctx.rotate(rot);
+      ctx.fillStyle = "#d4af37";
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(bracketSize, 0);
+      ctx.lineTo(bracketSize, 5);
+      ctx.lineTo(5, 5);
+      ctx.lineTo(5, bracketSize);
+      ctx.lineTo(0, bracketSize);
+      ctx.closePath();
+      ctx.fill();
+      // 小金釘
+      ctx.fillStyle = "#fff8d1";
+      ctx.beginPath();
+      ctx.arc(8, 8, 2, 0, 6.28);
+      ctx.fill();
+      ctx.restore();
+    };
+
+    drawCornerBracket(cx + 4, cy + 4, 0);
+    drawCornerBracket(cx + cardW - 4, cy + 4, Math.PI / 2);
+    drawCornerBracket(cx + cardW - 4, cy + cardH - 4, Math.PI);
+    drawCornerBracket(cx + 4, cy + cardH - 4, -Math.PI / 2);
+
+    // 5. 硃砂赤紅篆刻落款印 (Vermilion Seal Stamp)
+    ctx.save();
+    ctx.translate(cx + cardW - 68, cy + 32);
+    ctx.rotate(-0.06);
+    ctx.fillStyle = isWon ? "#c62828" : "#8e0000";
+    ctx.beginPath();
+    ctx.roundRect(-24, -24, 48, 48, 6);
+    ctx.fill();
+    ctx.strokeStyle = "#ffcdd2";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 19px 'Kaisei Decol', serif";
+    ctx.textAlign = "center";
+    ctx.fillText(isWon ? "完遂" : "無念", 0, 7);
+    ctx.restore();
+
+    // 6. 功績得分與大氣排版
+    ctx.textAlign = "center";
+    ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
+    ctx.fillStyle = "#ffd54f";
+    ctx.fillText("❖ 今 夜 功 績 得 分 ❖", W / 2, cy + 36);
+
+    ctx.font = "900 50px 'Kaisei Decol', sans-serif";
+    const scoreGrad = ctx.createLinearGradient(0, cy + 42, 0, cy + 96);
+    scoreGrad.addColorStop(0, "#ffffff");
+    scoreGrad.addColorStop(0.3, "#fff3b0");
+    scoreGrad.addColorStop(1, "#f5c53d");
+    ctx.fillStyle = scoreGrad;
+    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+    ctx.shadowBlur = 8;
+    ctx.fillText(score.toLocaleString(), W / 2, cy + 92);
+    ctx.shadowBlur = 0;
+
+    // 裝飾花紋分割線
+    ctx.strokeStyle = "rgba(212, 175, 55, 0.35)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx + 40, cy + 114);
+    ctx.lineTo(cx + cardW - 40, cy + 114);
+    ctx.stroke();
+
+    ctx.fillStyle = "#d4af37";
+    ctx.font = "9px sans-serif";
+    ctx.fillText("◆ ────────── 夜 行 配 達 結 果 ────────── ◆", W / 2, cy + 117);
+
+    // 7. 左右對稱黑漆木札數據欄
+    const plateW = 195, plateH = 58;
+    const p1x = W / 2 - plateW - 14, p2x = W / 2 + 14, py = cy + 134;
+
+    // 配達完遂木札
+    glassBox(ctx, p1x, py, plateW, plateH, 8, "rgba(14, 34, 22, 0.95)", "#4caf50", 1.8);
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#c8e6c9";
+    ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
+    ctx.fillText("【 配達完遂 】", p1x + 16, py + 24);
+    ctx.font = "900 24px 'Kaisei Decol', sans-serif";
+    ctx.fillStyle = "#a5d6a7";
+    ctx.fillText(`${delivered} 件`, p1x + 18, py + 50);
+
+    // 妖怪誤配木札
+    glassBox(ctx, p2x, py, plateW, plateH, 8, "rgba(36, 16, 22, 0.95)", "#ef5350", 1.8);
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#ffcdd2";
+    ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
+    ctx.fillText("【 妖怪誤配 】", p2x + 16, py + 24);
+    ctx.font = "900 24px 'Kaisei Decol', sans-serif";
+    ctx.fillStyle = "#ef9a9a";
+    ctx.fillText(`${failed} 件`, p2x + 18, py + 50);
+
+    // 8. 失誤單字卷軸
+    const reviewList = [...new Map(misses.map(w => [w.jp, w])).values()].slice(0, 5);
+    if (reviewList.length > 0) {
+      const rwW = cardW - 56, rwH = 48;
+      const rwx = W / 2 - rwW / 2, rwy = cy + 206;
+      glassBox(ctx, rwx, rwy, rwW, rwH, 8, "rgba(24, 18, 36, 0.95)", "#ba68c8", 1.5);
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#ffe28b";
+      ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
+      ctx.fillText("今夜失誤單字複習：", W / 2, rwy + 18);
+      ctx.fillStyle = "#ffeed4";
+      ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
+      const wStr = reviewList.map(w => `${w.jp}（${w.zh}）`).join("　");
+      ctx.fillText(wStr, W / 2, rwy + 37);
+    } else {
+      // 零失誤特典印記
+      ctx.textAlign = "center";
+      ctx.font = "900 14px 'Kaisei Decol', sans-serif";
+      ctx.fillStyle = "#a5d6a7";
+      ctx.fillText("★ 今 夜 配 達 零 失 誤 ・ 大 顯 神 威 ★", W / 2, cy + 235);
+    }
+
+    ctx.restore();
+
+    // 9. 底部再戰按鈕 (神社御神籤御札風格)
+    const btnW = 260, btnH = 52;
+    const bx = W / 2 - btnW / 2, by = cy + cardH + 20;
+
+    const btnGrad = ctx.createLinearGradient(bx, by, bx + btnW, by + btnH);
+    btnGrad.addColorStop(0, "#ffe57f");
+    btnGrad.addColorStop(0.5, "#d4af37");
+    btnGrad.addColorStop(1, "#b8860b");
+
+    ctx.save();
+    ctx.shadowColor = "rgba(255, 215, 100, 0.5)";
+    ctx.shadowBlur = 14;
+    glassBox(ctx, bx, by, btnW, btnH, 12, btnGrad, "#ffffff", 2);
+    ctx.shadowBlur = 0;
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#161022";
+    ctx.font = "900 20px 'Kaisei Decol', 'Noto Sans JP', serif";
+    ctx.fillText("◆ 再 踏 夜 行 ◆", W / 2, by + 34);
+    ctx.restore();
 
     ctx.restore();
   }

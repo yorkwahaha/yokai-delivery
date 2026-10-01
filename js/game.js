@@ -74,12 +74,57 @@
   let bossT = 75, ended = false, bossQ = null, codexBack = "menu";
   const WL = { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 };
   const WI = {
-    katana: { id: "katana", jp: "かたな", zh: "妖刀斬", type: "active", category: "方向斬擊", desc: "揮出凌厲新月刀光，斬裂前方扇形妖怪" },
+    katana: { id: "katana", jp: "かたな", zh: "妖刀斬", type: "active", category: "方向斬擊", desc: "揮出凌厲新月刀芒，斬裂前方扇形妖怪" },
     barrier: { id: "barrier", jp: "けっかい", zh: "淨化靈陣", type: "active", category: "全方結界", desc: "展開 360 度除魔陣，週期性震退並重創周身妖怪" },
-    fire: { id: "fire", jp: "ファイアボール", zh: "狐火炎", type: "active", category: "周身護體", desc: "召喚狐火靈球環繞高速旋轉，灼燒貼身妖怪" },
+    fire: { id: "fire", jp: "ファイアボール", zh: "狐火炎", type: "active", category: "烈焰火把", desc: "周身飛旋烈焰火把，高速甩擊灼燒貼身妖怪" },
     boom: { id: "boom", jp: "ブーメラン", zh: "陰陽符", type: "active", category: "穿透咒符", desc: "擲出迴旋陰陽符咒，來回穿透路徑上的敵人" },
     thunder: { id: "thunder", jp: "サンダー", zh: "天狐雷", type: "active", category: "天罰落雷", desc: "引導九天金雷轟擊最強妖怪，造成毀滅性打擊" },
-    needle: { id: "needle", jp: "せんぼん", zh: "天狐靈針", type: "active", category: "高速散射", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪" }
+    needle: { id: "needle", jp: "せんぼん", zh: "天狐靈針", type: "active", category: "高速靈針", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪" }
+  };
+
+  const WEAPON_UPGRADES = {
+    katana: [
+      "揮出凌厲新月刀芒，斬擊前方扇形妖怪",
+      "斬擊半徑大幅擴大，刀芒威力提升 +35%",
+      "鋒刃疾馳銳不可當，暴擊機率提升 +20%",
+      "雙刃狂瀾！前方連續揮出雙重刀芒",
+      "極意・瞬獄無想斬！大範圍毀滅重創"
+    ],
+    barrier: [
+      "展開 360 度除魔陣，週期性震退重創四周敵人",
+      "除魔結界範圍大幅擴展，震退衝擊強化",
+      "結界激發頻率加快，冷卻時間縮短 25%",
+      "除魔波傷害大增，妖怪受擊硬直延長",
+      "八咫神鏡結界！全方位金光連續轟殺"
+    ],
+    fire: [
+      "周身飛旋烈焰火把，高速甩擊灼燒貼身敵人",
+      "火勢猛烈咆哮，火把旋轉速度大幅加快",
+      "烈焰覆蓋半徑擴大，灼燒傷害大幅強化",
+      "追加召喚第 3 顆烈焰火把，形成不破火環",
+      "三昧真火神輪！火星四濺，形成爆裂烈焰風暴"
+    ],
+    boom: [
+      "擲出穿透陰陽符咒，來回重創路徑上敵人",
+      "符咒飛行速度與穿透威力顯著提升",
+      "一次擲出 2 枚符咒，覆蓋雙倍扇形路徑",
+      "迴旋飛行距離增長，穿透傷害大幅強化",
+      "八方敕令封魔符！多枚符咒全屏連續來回穿梭"
+    ],
+    thunder: [
+      "引導九天金雷，精準轟擊全場最強大妖怪",
+      "金雷轟擊半徑擴展，雷震擴散傷害強化",
+      "落雷數量增加至 2 道，同時轟擊兩名強敵",
+      "召雷冷卻時間大幅縮短 30%",
+      "九天玄雷狂暴天罰！狂雷連環無情轟殺"
+    ],
+    needle: [
+      "向面朝方向高速散射破魔靈針，貫穿前方妖怪",
+      "靈針連射波數增加，穿透力顯著強化",
+      "靈針飛行速度大幅提升，命中傷害強化",
+      "散射扇面更廣，同時貫穿更多路徑敵人",
+      "萬針齊發！化作狂暴破魔針雨席捲全場"
+    ]
   };
   let proj = [], needles = [], surgeT = 40, fAng = 0;
   const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0 };
@@ -156,14 +201,17 @@
 
     const wc = shuffle(eligibleWeaponKeys).map(k => {
       const isNew = WL[k] === 0;
+      const nextLvl = WL[k] + 1;
+      const descList = WEAPON_UPGRADES[k] || [];
+      const descText = descList[nextLvl - 1] || WI[k].desc;
       return {
         id: k,
         type: "weapon",
         n: WI[k].zh,
         s: WI[k].jp,
-        cat: isNew ? `【主動・${WI[k].category}】` : `【主動升級・${WI[k].category}】`,
-        levelText: isNew ? "★ NEW 秘術解鎖" : `◆ Lv.${WL[k]} ➔ Lv.${WL[k] + 1}`,
-        d: isNew ? WI[k].desc : `威力與範圍大幅強化（提升至 Lv.${WL[k] + 1}）`,
+        cat: `【 ${WI[k].category} 】`,
+        levelText: isNew ? "★ 新解鎖" : `◆ 等級 ${WL[k]} ➔ ${nextLvl}`,
+        d: descText,
         f: () => {
           WL[k]++;
           if (k === "boom") wT.boom = 0;
@@ -178,8 +226,8 @@
       type: "passive",
       n: u.n,
       s: u.s,
-      cat: `【被動・${u.cat}】`,
-      levelText: "◆ 體質修行強化",
+      cat: `【 ${u.cat} 】`,
+      levelText: "◆ 體質修行",
       d: u.d,
       f: u.f
     }));
@@ -1092,21 +1140,97 @@
       ctx.restore();
     }
 
-    // 9. 狐火 (Fireball)
+    // 9. 烈焰神火飛旋 (Swinging Torch / Foxfire - 甩火把熱血流光與跳動火舌)
     if (WL.fire > 0) {
-      const count = WL.fire + 1;
+      const count = Math.min(5, WL.fire + 1);
+      const orbitR = 98;
       for (let i = 0; i < count; i++) {
         const a = fAng + (i * 6.283) / count;
-        const fx = P.x + Math.cos(a) * 96, fy = P.y + Math.sin(a) * 96;
+        const fx = P.x + Math.cos(a) * orbitR;
+        const fy = P.y + Math.sin(a) * orbitR;
+
         ctx.save();
-        ctx.fillStyle = "rgba(100, 230, 255, 0.85)";
+
+        // 1. 火把旋轉弧形拖尾流光 (Curved Flame Trail Ribbon - 甩火把甩出的烈火光弧)
+        const trailSteps = 16;
+        const trailSpan = 0.85; // 弧度約 50 度
+        for (let s = 0; s < trailSteps; s++) {
+          const t1 = s / trailSteps;
+          const t2 = (s + 1) / trailSteps;
+          const a1 = a - t1 * trailSpan;
+          const a2 = a - t2 * trailSpan;
+          const w = 15 * (1 - t1 * 0.85); // 靠近頭部 15px，末端縮小至 2px
+          const alpha = (1 - t1) * 0.85;
+
+          ctx.strokeStyle = t1 < 0.25 ? `rgba(255, 235, 120, ${alpha})` : (t1 < 0.6 ? `rgba(255, 110, 20, ${alpha})` : `rgba(215, 35, 0, ${alpha * 0.7})`);
+          ctx.lineWidth = w;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.arc(P.x, P.y, orbitR, a2, a1);
+          ctx.stroke();
+        }
+
+        // 2. 火把頭部大範圍溫暖火光 (Torch Head Blazing Aura)
+        const flameAura = ctx.createRadialGradient(fx, fy, 2, fx, fy, 32);
+        flameAura.addColorStop(0, "rgba(255, 245, 180, 0.95)");
+        flameAura.addColorStop(0.3, "rgba(255, 140, 20, 0.8)");
+        flameAura.addColorStop(0.65, "rgba(230, 45, 0, 0.45)");
+        flameAura.addColorStop(1, "rgba(180, 20, 0, 0)");
+        ctx.fillStyle = flameAura;
         ctx.beginPath();
-        ctx.arc(fx, fy, 13, 0, 6.28);
+        ctx.arc(fx, fy, 32, 0, 6.28);
         ctx.fill();
+
+        // 3. 甩火把有機舞動火舌 (Dynamic Flickering Flame Teardrop & Tongues)
+        // 火焰隨速度切線向後甩動 (Tangent vector)
+        const moveAng = a + Math.PI / 2; // 前進切線方向
+        ctx.save();
+        ctx.translate(fx, fy);
+        ctx.rotate(moveAng);
+
+        const flick = Math.sin(elapsed * 24 + i * 3) * 3;
+        const flick2 = Math.cos(elapsed * 32 + i * 2) * 2;
+
+        // 外層赤烈火焰本體
+        ctx.fillStyle = "#ff4500";
+        ctx.beginPath();
+        ctx.moveTo(0, 16); // 火尖朝前
+        ctx.bezierCurveTo(12, 6, 14 + flick2, -10, 6, -22 + flick); // 甩向後方的火舌
+        ctx.bezierCurveTo(0, -14, -6, -24 - flick, -14 - flick2, -8);
+        ctx.bezierCurveTo(-12, 6, -8, 12, 0, 16);
+        ctx.closePath();
+        ctx.fill();
+
+        // 內層金黃熾熱火芯
+        ctx.fillStyle = "#ffb300";
+        ctx.beginPath();
+        ctx.moveTo(0, 12);
+        ctx.bezierCurveTo(8, 4, 9, -6, 4, -14 + flick * 0.7);
+        ctx.bezierCurveTo(0, -9, -4, -15 - flick * 0.7, -9, -5);
+        ctx.bezierCurveTo(-8, 4, -5, 9, 0, 12);
+        ctx.closePath();
+        ctx.fill();
+
+        // 核心白熱極高溫火球核心
         ctx.fillStyle = "#ffffff";
         ctx.beginPath();
-        ctx.arc(fx, fy, 6, 0, 6.28);
+        ctx.arc(0, 2, 5, 0, 6.28);
         ctx.fill();
+
+        ctx.restore();
+
+        // 4. 甩火把脫離飛濺火星 (Flying Torch Sparks / Embers)
+        for (let sp = 0; sp < 4; sp++) {
+          const spPhase = (elapsed * 5 + sp * 0.25 + i * 0.3) % 1;
+          const spAng = a - spPhase * 0.65 + (Math.sin(sp * 4) * 0.08);
+          const spR = orbitR + Math.sin(sp * 8 + elapsed * 10) * 12;
+          const spx = P.x + Math.cos(spAng) * spR;
+          const spy = P.y + Math.sin(spAng) * spR;
+          const spSize = (1 - spPhase) * 3 + 1;
+          ctx.fillStyle = sp % 2 === 0 ? "#fff176" : "#ff7043";
+          ctx.fillRect(spx - spSize / 2, spy - spSize / 2, spSize, spSize);
+        }
+
         ctx.restore();
       }
     }

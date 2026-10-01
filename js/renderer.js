@@ -692,21 +692,81 @@ window.RENDERER = (() => {
   function drawSlashArcs() {
     ctx.save();
     for (const s of slashArcs) {
+      const progress = 1 - (s.life / s.maxLife);
       const alpha = s.life / s.maxLife;
       ctx.save();
       ctx.translate(s.x, s.y);
       ctx.rotate(s.angle);
 
-      // 金黃金箔斬擊流光
-      ctx.strokeStyle = `rgba(255, 235, 140, ${alpha * 0.95})`;
-      ctx.lineWidth = 10;
+      // 1. 三日月流光刀芒多邊形 (Crescent Blade Polygon - 刀背厚、刀尖刀尾銳利如針)
+      const steps = 28;
+      const startAng = -s.spread / 2;
+      const endAng = s.spread / 2;
+      const maxThick = 26 * (0.35 + 0.65 * alpha);
+
       ctx.beginPath();
-      ctx.arc(0, 0, s.radius, -s.spread / 2, s.spread / 2);
+      // 外弧線 (Outer cutting edge)
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const ang = startAng + t * (endAng - startAng);
+        const th = Math.sin(t * Math.PI) * maxThick;
+        const r = s.radius + th * 0.55;
+        const px = Math.cos(ang) * r;
+        const py = Math.sin(ang) * r;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      // 內弧線 (Inner cutting edge 回推)
+      for (let i = steps; i >= 0; i--) {
+        const t = i / steps;
+        const ang = startAng + t * (endAng - startAng);
+        const th = Math.sin(t * Math.PI) * maxThick;
+        const r = s.radius - th * 0.45;
+        const px = Math.cos(ang) * r;
+        const py = Math.sin(ang) * r;
+        ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+
+      // 刀芒漸層 (金白赤焰流光)
+      const bladeGrad = ctx.createRadialGradient(0, 0, s.radius * 0.7, 0, 0, s.radius * 1.18);
+      bladeGrad.addColorStop(0, `rgba(255, 60, 0, ${alpha * 0.35})`);
+      bladeGrad.addColorStop(0.45, `rgba(255, 170, 20, ${alpha * 0.85})`);
+      bladeGrad.addColorStop(0.82, `rgba(255, 245, 180, ${alpha * 0.95})`);
+      bladeGrad.addColorStop(1, `rgba(255, 255, 255, ${alpha})`);
+
+      ctx.fillStyle = bladeGrad;
+      ctx.shadowColor = "#ff9800";
+      ctx.shadowBlur = 18;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // 2. 刀尖極限鋒刃白熱光芒 (Razor Sharp Core Line)
+      ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.95})`;
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, s.radius, startAng + 0.08, endAng - 0.04);
       ctx.stroke();
 
-      ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-      ctx.lineWidth = 4;
+      // 3. 破空刀痕流風殘影 (Trailing wind speed lines)
+      ctx.strokeStyle = `rgba(255, 220, 100, ${alpha * 0.45})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, s.radius * 0.86, startAng + 0.22, endAng - 0.18);
       ctx.stroke();
+
+      // 4. 刀刃破裂火星 (Flying Sparks along the cutting arc)
+      const sparkCount = 9;
+      for (let k = 0; k < sparkCount; k++) {
+        const st = (k + (s.life * 13) % 1) / sparkCount;
+        const sang = startAng + st * (endAng - startAng);
+        const sr = s.radius + (Math.sin(k * 7.3) * 16) + progress * 24;
+        const sx = Math.cos(sang) * sr;
+        const sy = Math.sin(sang) * sr;
+        ctx.fillStyle = k % 2 === 0 ? "#ffffff" : "#ffe082";
+        ctx.fillRect(sx - 1.5, sy - 1.5, 3, 3);
+      }
+
       ctx.restore();
     }
     ctx.restore();
