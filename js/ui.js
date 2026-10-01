@@ -186,9 +186,9 @@ window.UI = (() => {
     ctx.fillRect(pcx - 6, pcy - 8, 4, 16);
     ctx.fillRect(pcx + 2, pcy - 8, 4, 16);
 
-    // --- 中央：進行中任務精緻金標（無任務時不擋視野，絕不洩漏地面答案） ---
+    // --- 中央：進行中任務精緻金標（純目的地導引，無中文洩題，答案直接與行李上的圖標對照） ---
     if (job) {
-      const jBoxW = 320, jBoxH = 36;
+      const jBoxW = 260, jBoxH = 34;
       const jBoxX = W / 2 - jBoxW / 2, jBoxY = 14;
       glassBox(ctx, jBoxX, jBoxY, jBoxW, jBoxH, 8, "rgba(20, 16, 30, 0.92)", "#d4af37", 1.6);
       ctx.textAlign = "center";
@@ -196,10 +196,8 @@ window.UI = (() => {
       ctx.fillStyle = "#ffe699";
 
       const targetText = job.to.word.jp;
-      const itemText = job.rev ? job.word.zh : job.word.jp;
-      const hintStr = hintT > 0 ? ` (${job.rev ? job.word.jp : job.word.zh})` : "";
-
-      ctx.fillText(`送往町屋「${targetText}」：【 ${itemText} 】${hintStr}`, W / 2, jBoxY + 23);
+      const hintStr = hintT > 0 ? ` (${job.to.word.zh})` : "";
+      ctx.fillText(`送往町屋「${targetText}」${hintStr}`, W / 2, jBoxY + 22);
     }
 
     // --- 左下角：HoloCure 風格【主動秘術 4 槽位 + 被動體質欄】 ---
@@ -1343,6 +1341,69 @@ window.UI = (() => {
     ctx.restore();
   }
 
+  // 6. 百鬼夜行 3 次閃爍警報匾額與全螢幕紅光警戒 (Surge Warning Banner)
+  function drawSurgeWarning(ctx, surgeWarningT) {
+    if (surgeWarningT <= 0) return;
+    ctx.save();
+    const totalDuration = 2.4;
+    const cycleDuration = 0.8;
+    const progress = Math.max(0, totalDuration - surgeWarningT);
+    const cycle = Math.min(3, Math.floor(progress / cycleDuration) + 1);
+    const phase = (progress % cycleDuration) / cycleDuration;
+    // 0~1 的平滑閃爍光波
+    const flashBrightness = Math.sin(phase * Math.PI);
+    const alpha = Math.max(0.18, flashBrightness);
+
+    // 1. 全螢幕四邊暗紅警戒警報光暈
+    ctx.strokeStyle = `rgba(255, 30, 30, ${alpha * 0.85})`;
+    ctx.lineWidth = 14;
+    ctx.strokeRect(0, 0, W, H);
+
+    ctx.fillStyle = `rgba(255, 20, 20, ${alpha * 0.14})`;
+    ctx.fillRect(0, 0, W, H);
+
+    // 2. 中央神社朱漆警報木匾
+    const bw = 460, bh = 72;
+    const bx = W / 2 - bw / 2, by = 110;
+
+    ctx.shadowColor = `rgba(255, 40, 40, ${alpha * 0.95})`;
+    ctx.shadowBlur = 22;
+
+    const bgGrad = ctx.createLinearGradient(bx, by, bx + bw, by + bh);
+    bgGrad.addColorStop(0, "rgba(42, 8, 12, 0.96)");
+    bgGrad.addColorStop(0.5, "rgba(68, 14, 20, 0.96)");
+    bgGrad.addColorStop(1, "rgba(35, 6, 10, 0.96)");
+    glassBox(ctx, bx, by, bw, bh, 10, bgGrad, `rgba(255, 70, 70, ${alpha})`, 2.5);
+
+    ctx.shadowBlur = 0;
+
+    // 警報角標 [ 預警 1/3 ]
+    ctx.fillStyle = "#ffd54f";
+    ctx.beginPath();
+    ctx.roundRect(bx + bw - 100, by + 10, 88, 22, 5);
+    ctx.fill();
+    ctx.fillStyle = "#160608";
+    ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`警報 ${cycle} / 3`, bx + bw - 56, by + 25);
+
+    // 主標題
+    ctx.textAlign = "center";
+    ctx.font = "900 24px 'Kaisei Decol', serif";
+    ctx.fillStyle = "#fff2a8";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+    ctx.shadowBlur = 6;
+    ctx.fillText("⚠ 警 報 ・ 百 鬼 夜 行 ⚠", bx + bw / 2 - 25, by + 33);
+    ctx.shadowBlur = 0;
+
+    // 副標題
+    ctx.font = "900 13px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+    ctx.fillStyle = "#ffcdd2";
+    ctx.fillText("— 妖 氣 逼 近 ！ 請 準 備 迎 戰 —", W / 2, by + 57);
+
+    ctx.restore();
+  }
+
   return {
     drawMainMenu,
     drawHud,
@@ -1352,6 +1413,7 @@ window.UI = (() => {
     drawCodex,
     drawEndScreen,
     drawPauseMenu,
+    drawSurgeWarning,
     PAUSE_BTNS,
     PAUSE_BTN_W: 280,
     PAUSE_BTN_H: 46

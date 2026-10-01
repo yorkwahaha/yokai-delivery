@@ -126,7 +126,8 @@
       "萬針齊發！化作狂暴破魔針雨席捲全場"
     ]
   };
-  let proj = [], needles = [], surgeT = 40, fAng = 0;
+  let proj = [], needles = [], surgeT = 45, fAng = 0;
+  let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1, lastWarningCycle = 0;
   const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0 };
 
   const UP = [
@@ -176,7 +177,8 @@
     Object.assign(P, { x: 1350, y: 900, inv: 1.2 });
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0 });
     Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 });
-    proj = []; needles = []; surgeT = 45; wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5;
+    proj = []; needles = []; surgeT = 45; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1; lastWarningCycle = 0;
+    wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5;
     elapsed = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
     orders = []; job = null; enemies = []; gems = []; parts = []; texts = []; rings = []; misses = [];
     bossT = 75; ended = false; bossQ = null; orderT = 3; spawnT = 1; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0;
@@ -272,8 +274,7 @@
     };
     nameT = 4.5;
     cargo = { x: P.x, y: P.y };
-    const promptItem = o.rev ? o.word.zh : o.word.jp;
-    say(`取件：【${promptItem}】➔「${o.to.word.jp}」`, P.x, P.y - 45, "#ffe9a0");
+    say(`領取包裹：【 ${o.word.icon} ${o.word.jp} 】`, P.x, P.y - 45, "#ffe9a0");
     AUDIO.deliverSuccess();
   }
 
@@ -773,8 +774,9 @@
 
     if (keys.has("dash")) dash();
 
-    cargo.x += (P.x - 30 - cargo.x) * Math.min(1, dt * 8);
-    cargo.y += (P.y + 18 - cargo.y) * Math.min(1, dt * 8);
+    const trailX = P.x - 32 * (P.face || 1);
+    cargo.x += (trailX - cargo.x) * Math.min(1, dt * 8);
+    cargo.y += (P.y + 14 - cargo.y) * Math.min(1, dt * 8);
 
     // 武器運算
     weapons(dt);
@@ -792,14 +794,41 @@
       }
     }
 
-    surgeT -= dt;
-    if (surgeT <= 0) {
-      surgeT = 45;
-      const count = 12 + Math.floor(elapsed / 25);
-      say("百鬼夜行！妖怪包圍！", P.x, P.y - 75, "#ff8f8f");
-      AUDIO.thunder();
-      for (let k = 0; k < count; k++) {
-        spawnEnemy(tier, 440, (k / count) * 6.283, true);
+    // 百鬼夜行階段邏輯（先跳出 3 次閃爍警報，給予玩家 2.4 秒心理準備，之後才湧現百鬼衝擊）
+    if (surgeWarningT > 0) {
+      surgeWarningT -= dt;
+      const progress = 2.4 - surgeWarningT;
+      const curCycle = Math.min(3, Math.floor(progress / 0.8) + 1);
+
+      // 每進入一個新的閃爍週期（1, 2, 3），敲響太鼓警報並給予微震動
+      if (curCycle !== lastWarningCycle) {
+        lastWarningCycle = curCycle;
+        AUDIO.warningPulse(curCycle);
+        RENDERER.triggerShake(4);
+      }
+
+      if (surgeWarningT <= 0) {
+        // 3 次閃爍預警結束！百鬼正式大群衝出！
+        surgeWarningT = 0;
+        lastWarningCycle = 0;
+        surgeT = 48; // 下一次百鬼夜行間隔
+        AUDIO.thunder();
+        RENDERER.triggerShake(14);
+        say("百鬼夜行！突破重圍！", P.x, P.y - 75, "#ff3333");
+        for (let k = 0; k < surgePendingCount; k++) {
+          spawnEnemy(surgePendingTier, 450, (k / surgePendingCount) * 6.283, true);
+        }
+      }
+    } else {
+      surgeT -= dt;
+      if (surgeT <= 0) {
+        // 啟動 2.4 秒預警（閃爍 3 次，每 0.8 秒一次）
+        surgeWarningT = 2.4;
+        lastWarningCycle = 1;
+        AUDIO.warningPulse(1);
+        RENDERER.triggerShake(5);
+        surgePendingTier = tier;
+        surgePendingCount = 12 + Math.floor(elapsed / 25);
       }
     }
 
@@ -1002,17 +1031,19 @@
       ctx.fillText("🏮", l.x, l.y + 10);
     });
 
-    // 4. 委託氣泡 (町屋上方和風繪卷木札)
+    // 4. 委託氣泡 (町屋上方和風繪卷木札 — 單句精簡，不顯示送往何處)
     for (const o of orders) {
       const h = o.from;
-      const floatY = h.y - 126 + Math.sin(elapsed * 3.5 + h.id) * 4;
+      const floatY = h.y - 120 + Math.sin(elapsed * 3.5 + h.id) * 4;
       const isTarget = (inter === o);
 
       ctx.save();
-      // 繪卷底框（黑漆金箔底）
+      // 繪卷底框（單句精簡規格，高度減半，絕不遮蔽街景與角色）
+      const bw = 172, bh = 42;
+      const bx = h.x - bw / 2;
       ctx.fillStyle = isTarget ? "#fffdf5" : "#f7f0df";
       ctx.beginPath();
-      ctx.roundRect(h.x - 90, floatY, 180, 68, 10);
+      ctx.roundRect(bx, floatY, bw, bh, 8);
       ctx.fill();
       ctx.strokeStyle = isTarget ? "#ff8833" : "#8c724b";
       ctx.lineWidth = isTarget ? 3.5 : 2;
@@ -1020,42 +1051,37 @@
 
       // 金箔頂飾
       ctx.fillStyle = isTarget ? "#ff8833" : "#c29d5b";
-      ctx.fillRect(h.x - 90, floatY, 180, 4);
+      ctx.fillRect(bx, floatY, bw, 3.5);
 
       ctx.textAlign = "center";
       ctx.fillStyle = "#1e1824";
-      ctx.font = "900 15px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
-      // 依照模式顯示委託內容，絕不洩漏地面選項
-      const orderContent = o.rev ? `委託：送「${o.word.zh}」` : `委託：送「${o.word.jp}」`;
-      ctx.fillText(orderContent, h.x, floatY + 25);
-
-      ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
-      ctx.fillStyle = "#5c4834";
-      ctx.fillText(`➔ 送往町屋「${o.to.word.jp}」`, h.x, floatY + 46);
+      ctx.font = "900 14px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+      // 委託送什麼東西一句話就好，送往哪裡不需要顯示
+      ctx.fillText(`${o.word.icon} 委託：送「${o.word.jp}」`, h.x, floatY + 22);
 
       // 剩餘時間條 (金黃至火紅)
       ctx.fillStyle = isTarget ? "#ff8833" : "#ffa726";
-      ctx.fillRect(h.x - 75, floatY + 57, (150 * o.life) / 95, 3.5);
+      ctx.fillRect(h.x - 70, floatY + 34, (140 * o.life) / 95, 3);
       ctx.restore();
 
       // 靠近町屋時，在木札正下方懸掛「按 E 接案」小金標（完全離開主角身體，絕不遮擋視野與主角）
       if (isTarget) {
         ctx.save();
-        const tagY = floatY + 74;
+        const tagY = floatY + 48;
         // 連接木札與按鍵標籤的雙金繩
         ctx.strokeStyle = "#d4af37";
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(h.x - 28, floatY + 68);
-        ctx.lineTo(h.x - 28, tagY);
-        ctx.moveTo(h.x + 28, floatY + 68);
-        ctx.lineTo(h.x + 28, tagY);
+        ctx.moveTo(h.x - 26, floatY + 42);
+        ctx.lineTo(h.x - 26, tagY);
+        ctx.moveTo(h.x + 26, floatY + 42);
+        ctx.lineTo(h.x + 26, tagY);
         ctx.stroke();
 
         // 金標本體
         ctx.fillStyle = "#ffeed4";
         ctx.beginPath();
-        ctx.roundRect(h.x - 52, tagY, 104, 26, 6);
+        ctx.roundRect(h.x - 48, tagY, 96, 24, 6);
         ctx.fill();
         ctx.strokeStyle = "#ff8833";
         ctx.lineWidth = 2;
@@ -1063,8 +1089,8 @@
 
         ctx.textAlign = "center";
         ctx.fillStyle = "#1a1622";
-        ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
-        ctx.fillText("按 E 接案", h.x, tagY + 18);
+        ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
+        ctx.fillText("按 E 接案", h.x, tagY + 16);
         ctx.restore();
       }
     }
@@ -1094,15 +1120,13 @@
 
         ctx.textAlign = "center";
         ctx.fillStyle = "#1e1829";
-        // 跨語言核心測驗：無同字複製、無圖標洩題！
-        if (job.rev) {
-          // 中翻日：地面顯示日文假名選項目標
-          ctx.font = "900 15px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
-          ctx.fillText(job.ans[i].jp, p.x, p.y + 6);
-        } else {
-          // 日翻中：地面顯示中文義選項目標
-          ctx.font = "900 15px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
-          ctx.fillText(job.ans[i].zh, p.x, p.y + 6);
+        // 地面顯示日文假名選項目標（直接與行李上的圖標配對，無須抬頭找中文答案）
+        ctx.font = "900 16px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+        ctx.fillText(job.ans[i].jp, p.x, p.y + (hintT > 0 ? 1 : 6));
+        if (hintT > 0) {
+          ctx.font = "bold 11px sans-serif";
+          ctx.fillStyle = "#6d4c41";
+          ctx.fillText(job.ans[i].zh, p.x, p.y + 16);
         }
         ctx.restore();
       });
@@ -1236,40 +1260,60 @@
     }
 
 
-    // 11. 貨物包裹跟隨（精緻和風飛腳包裹，封印綁繩，絕不洩漏答案圖標）
+    // 11. 貨物包裹跟隨（直接顯示清晰圖標 Icon，與地面日文選項直接配對，無須抬頭找答案）
     if (job) {
       ctx.save();
-      const bx = cargo.x - 16, by = cargo.y - 16, bw = 32, bh = 32;
+      const floatBob = Math.sin(elapsed * 5) * 2.5;
+      const cyPos = cargo.y + floatBob;
+      const bw = 38, bh = 38;
+      const bx = cargo.x - bw / 2, by = cyPos - bh / 2;
 
-      // 1. 包裹本體（深紫黑漆木盒）
-      ctx.fillStyle = "#241c2c";
+      // 1. 投影陰影
+      ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
       ctx.beginPath();
-      ctx.roundRect(bx, by, bw, bh, 6);
+      ctx.ellipse(cargo.x, cargo.y + 20, 17, 7, 0, 0, 6.28);
+      ctx.fill();
+
+      // 2. 包裹外層金色微光
+      ctx.shadowColor = "rgba(255, 215, 80, 0.65)";
+      ctx.shadowBlur = 10;
+
+      // 3. 包裹本體（黑漆金金具木盒）
+      ctx.fillStyle = "#1e1628";
+      ctx.beginPath();
+      ctx.roundRect(bx, by, bw, bh, 8);
       ctx.fill();
       ctx.strokeStyle = "#d4af37";
-      ctx.lineWidth = 1.8;
+      ctx.lineWidth = 2;
       ctx.stroke();
 
-      // 2. 十字封印金繩
-      ctx.strokeStyle = "rgba(255, 215, 80, 0.75)";
-      ctx.lineWidth = 2;
+      ctx.shadowBlur = 0;
+
+      // 4. 十字封印金繩
+      ctx.strokeStyle = "rgba(255, 215, 80, 0.55)";
+      ctx.lineWidth = 1.8;
       ctx.beginPath();
       ctx.moveTo(cargo.x, by);
       ctx.lineTo(cargo.x, by + bh);
-      ctx.moveTo(bx, cargo.y);
-      ctx.lineTo(bx + bw, cargo.y);
+      ctx.moveTo(bx, cyPos);
+      ctx.lineTo(bx + bw, cyPos);
       ctx.stroke();
 
-      // 3. 中央硃砂紅印泥「荷」字印鑑
-      ctx.fillStyle = "#c62828";
+      // 5. 中央白玉御神圓盤（直徑 28px，底色微亮凸顯圖案）
+      ctx.fillStyle = "#fffdf2";
       ctx.beginPath();
-      ctx.arc(cargo.x, cargo.y, 7.5, 0, 6.28);
+      ctx.arc(cargo.x, cyPos, 14, 0, 6.28);
       ctx.fill();
+      ctx.strokeStyle = "#d4af37";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
 
-      ctx.fillStyle = "#ffeed4";
+      // 6. 清晰大圖標 Icon（花、月亮、魚、狗、貓等）直接呈現於行李上
       ctx.textAlign = "center";
-      ctx.font = "900 9px 'Kaisei Decol', sans-serif";
-      ctx.fillText("荷", cargo.x, cargo.y + 3);
+      ctx.textBaseline = "middle";
+      ctx.font = "20px 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif";
+      ctx.fillText(job.word.icon || "📦", cargo.x, cyPos + 1);
+      ctx.textBaseline = "alphabetic";
 
       ctx.restore();
     }
@@ -1549,6 +1593,7 @@
         ctx, P, oil, maxOil, elapsed, DAWN, delivered, failed, score, level, xp, xpNeed(),
         job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b
       );
+      if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
       if (bossQ) UI.drawBossQuiz(ctx, bossQ);
       if (state === "levelup") UI.drawLevelUp(ctx, level, choices, WL, WI);
       if (state === "pause") UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false);
