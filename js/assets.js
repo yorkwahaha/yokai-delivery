@@ -4,7 +4,7 @@ window.ART_READY = false;
 
 const ASSET_NAMES = [
   "player", "player_walk1", "player_walk2", "ghost", "mis", "boss", "runner", "tank", "shooter", "cover",
-  "house_shop", "house_shrine", "house_tavern", "prop_torii"
+  "house_shop", "house_shrine", "house_tavern", "prop_torii", "prop_lantern", "prop_sakura", "ground"
 ];
 let loadedCount = 0;
 

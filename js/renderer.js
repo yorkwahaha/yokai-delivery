@@ -4,6 +4,9 @@ window.RENDERER = (() => {
   let cv, ctx, dpr;
   let lightCv, lightCtx;
   let stonePattern = null;
+  let groundPattern = null;
+  let groundLayer = null;
+  let groundBakeKey = "";
 
   // 鏡頭與打擊震動
   let camX = 0, camY = 0;
@@ -176,10 +179,15 @@ window.RENDERER = (() => {
     return false;
   }
 
-  // 繪製高質感石疊地坪與自然街區過渡
-  function drawGround(elapsed, dawnTime) {
+  // 繪製高質感石疊地坪與自然街區過渡。整張地圖只烘焙一次，之後每幀貼可見範圍。
+  function paintGroundMap(elapsed) {
     // 1. 全地圖統一鋪設高精細石磚無縫貼圖（告別廉價大色塊）
-    if (stonePattern) {
+    const groundImg = window.ART && window.ART.ground;
+    if (groundImg && groundImg.complete && groundImg.naturalWidth) {
+      if (!groundPattern) groundPattern = ctx.createPattern(groundImg, "repeat");
+      ctx.fillStyle = groundPattern || "#181d28";
+      ctx.fillRect(0, 0, WW, WH);
+    } else if (stonePattern) {
       ctx.fillStyle = stonePattern;
       ctx.fillRect(0, 0, WW, WH);
     } else {
@@ -232,7 +240,7 @@ window.RENDERER = (() => {
     ctx.save();
     [450, 1350, 2250].forEach(rx => {
       // 道路深色基底
-      ctx.fillStyle = "rgba(12, 15, 24, 0.55)";
+      ctx.fillStyle = "rgba(8, 10, 18, 0.28)";
       ctx.fillRect(rx - ROAD_W / 2, 0, ROAD_W, WH);
 
       // 兩側路緣石與陰影
@@ -245,7 +253,7 @@ window.RENDERER = (() => {
     });
 
     [300, 900, 1500].forEach(ry => {
-      ctx.fillStyle = "rgba(12, 15, 24, 0.55)";
+      ctx.fillStyle = "rgba(8, 10, 18, 0.28)";
       ctx.fillRect(0, ry - ROAD_W / 2, WW, ROAD_W);
 
       ctx.fillStyle = "#333d52";
@@ -287,11 +295,66 @@ window.RENDERER = (() => {
         ctx.ellipse(pt.x, pt.y + 45, 90, 24, 0, 0, 6.28);
         ctx.fill();
 
-        const tw = 160, th = 150;
-        ctx.drawImage(toriiImg, pt.x - tw / 2, pt.y - th + 45, tw, th);
+        const tw = 150;
+        const th = toriiImg.naturalWidth ? tw * toriiImg.naturalHeight / toriiImg.naturalWidth : 160;
+        ctx.drawImage(toriiImg, pt.x - tw / 2, pt.y - th + 36, tw, th);
         ctx.restore();
       });
     }
+
+    // 6. 街區北側櫻樹。畫在地面層，房屋與角色會蓋過樹冠，不另做碰撞。
+    const sakuraImg = window.ART && window.ART.prop_sakura;
+    if (sakuraImg && sakuraImg.complete && sakuraImg.naturalWidth) {
+      const trees = [
+        { x: 780, y: 80 },
+        { x: 160, y: 1260 },
+        { x: 760, y: 1260 },
+        { x: 1960, y: 1260 },
+        { x: 2500, y: 1260 }
+      ];
+      const sw = 108;
+      const sh = sw * sakuraImg.naturalHeight / sakuraImg.naturalWidth;
+      trees.forEach(t => {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+        ctx.beginPath();
+        ctx.ellipse(t.x, t.y - 4, 28, 10, 0, 0, 6.28);
+        ctx.fill();
+        ctx.drawImage(sakuraImg, t.x - sw / 2, t.y - sh, sw, sh);
+      });
+    }
+  }
+
+  function ensureGroundLayer() {
+    const art = window.ART || {};
+    const ready = img => !!(img && img.complete && img.naturalWidth);
+    const fonts = document.fonts && document.fonts.status === "loaded" ? 1 : 0;
+    const key = [
+      ready(art.ground) ? art.ground.naturalWidth : 0,
+      ready(art.prop_torii) ? 1 : 0,
+      ready(art.prop_sakura) ? 1 : 0,
+      fonts
+    ].join("|");
+    if (groundLayer && groundBakeKey === key) return;
+    const g = document.createElement("canvas");
+    g.width = WW;
+    g.height = WH;
+    const gctx = g.getContext("2d", { alpha: false });
+    const prev = ctx;
+    ctx = gctx;
+    try {
+      paintGroundMap(0);
+    } finally {
+      ctx = prev;
+    }
+    groundLayer = g;
+    groundBakeKey = key;
+  }
+
+  function drawGround(elapsed, dawnTime) {
+    ensureGroundLayer();
+    const sx = Math.max(0, Math.min(camX, WW - W));
+    const sy = Math.max(0, Math.min(camY, WH - H));
+    ctx.drawImage(groundLayer, sx, sy, W, H, sx, sy, W, H);
   }
 
   // 繪製高精緻度日式町屋店鋪（真實店鋪 Sprite + 障子金光 + 和風招牌）
@@ -304,7 +367,7 @@ window.RENDERER = (() => {
     ctx.ellipse(h.x, h.y + 46, 62, 18, 0, 0, 6.28);
     ctx.fill();
 
-    // 2. 選擇高品質手繪建築 Sprite（縮小至 115px，保持視野開闊）
+    // 2. 選擇高品質手繪建築 Sprite（寬 132px，腳底貼近門口）
     let houseSprite = window.ART.house_shop;
     if (h.bType === "house_tavern" && window.ART.house_tavern) {
       houseSprite = window.ART.house_tavern;
@@ -314,7 +377,7 @@ window.RENDERER = (() => {
       houseSprite = window.ART.house_shop;
     }
 
-    const bw = 115;
+    const bw = 132;
     const aspect = (houseSprite && houseSprite.naturalWidth && houseSprite.naturalHeight)
       ? (houseSprite.naturalHeight / houseSprite.naturalWidth)
       : 1.05;
@@ -374,8 +437,10 @@ window.RENDERER = (() => {
     const squash = isMoving ? (1 + Math.sin(elapsed * 16) * 0.06) : 1;
     const stretch = isMoving ? (1 - Math.sin(elapsed * 16) * 0.06) : 1;
 
-    // 主角天然朝向為 RIGHT (1)
-    const flipX = moveDir.x < -0.05 ? -1 : 1;
+    // 素材朝右。左右移動才改面向，停下或只上下走時維持最後朝向。
+    if (moveDir.x < -0.05) P.faceX = -1;
+    else if (moveDir.x > 0.05) P.faceX = 1;
+    const flipX = P.faceX < 0 ? -1 : 1;
 
     // 兩幀步伐切換：移動時左右腳邁步 (walk1 <-> walk2)，靜止時站立 (player)
     let pImg = window.ART.player;
@@ -406,7 +471,7 @@ window.RENDERER = (() => {
       ctx.globalAlpha = a;
       ctx.translate(g.x, g.y);
       ctx.scale(g.flipX, 1);
-      const pw = 84;
+      const pw = 70;
       const ph = (g.img.naturalWidth && g.img.naturalHeight) ? (pw * g.img.naturalHeight / g.img.naturalWidth) : 96;
       ctx.drawImage(g.img, -pw / 2, -ph + 20, pw, ph);
       ctx.restore();
@@ -449,7 +514,7 @@ window.RENDERER = (() => {
     }
 
     if (pImg) {
-      const pw = 84;
+      const pw = 70;
       const ph = (pImg.naturalWidth && pImg.naturalHeight) ? (pw * pImg.naturalHeight / pImg.naturalWidth) : 96;
       ctx.drawImage(pImg, -pw / 2, -ph + 20, pw, ph);
     } else {
@@ -472,20 +537,8 @@ window.RENDERER = (() => {
     // 目標朝向：玩家在怪物左邊時為 -1，在右邊時為 1
     const dirTowardsPlayer = (P.x < e.x) ? -1 : 1;
 
-    // 依照各怪物的原生手繪面向修正 flipX：
-    // ghost.png: 原生面向 LEFT (-1) -> 當 dirTowardsPlayer 為 -1 時不翻轉 (scaleX = 1)；為 1 時翻轉 (scaleX = -1)
-    // runner.png: 原生面向 LEFT (-1) -> dirTowardsPlayer === -1 ? 1 : -1
-    // mis.png: 原生面向 LEFT (-1) -> dirTowardsPlayer === -1 ? 1 : -1
-    // shooter.png: 原生吐火面向 RIGHT (1) -> dirTowardsPlayer === 1 ? 1 : -1
-    // boss, tank: 對稱/正面朝向 -> 跟隨玩家方位微側
-    let scaleX = 1;
-    if (e.type === "ghost" || e.type === "mis") {
-      scaleX = (dirTowardsPlayer === -1) ? 1 : -1;
-    } else if (e.type === "runner" || e.type === "shooter") {
-      scaleX = (dirTowardsPlayer === 1) ? 1 : -1;
-    } else {
-      scaleX = (dirTowardsPlayer === -1) ? 1 : -1;
-    }
+    // 新素材一律朝畫面右側，玩家在左側時才水平翻轉。
+    const scaleX = dirTowardsPlayer === 1 ? 1 : -1;
 
     // 陰影
     ctx.fillStyle = "rgba(0, 0, 0, 0.4)";

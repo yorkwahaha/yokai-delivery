@@ -67,7 +67,7 @@
   };
 
   // ---------- 遊戲狀態 ----------
-  const P = { x: 1350, y: 900, inv: 0, faceAng: 0 };
+  const P = { x: 1350, y: 900, inv: 0, faceAng: 0, faceX: 1 };
   const b = { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0 };
   const keys = new Set();
   let state = "menu";
@@ -206,7 +206,7 @@
   function start() {
     AUDIO.init();
     state = "play";
-    Object.assign(P, { x: 1350, y: 900, inv: 1.2, faceAng: 0 });
+    Object.assign(P, { x: 1350, y: 900, inv: 1.2, faceAng: 0, faceX: 1 });
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0 });
     Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 });
     proj = []; needles = []; enemyBullets = []; surgeT = 45; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1; lastWarningCycle = 0;
@@ -329,7 +329,7 @@
     };
     nameT = 4.5;
     cargo = { x: pTrail.length > 0 ? pTrail[pTrail.length - 1].x : P.x - 44, y: pTrail.length > 0 ? pTrail[pTrail.length - 1].y : P.y + 10 };
-    say(`領取包裹：【 ${o.word.icon} ${o.word.jp} 】➔ 送往 ${o.to.district}`, P.x, P.y - 45, "#ffe9a0");
+    say(`${o.word.icon} 裝好了`, P.x, P.y - 45, "#ffe9a0");
     AUDIO.pickup();
     AUDIO.speak(o.word.jp);
   }
@@ -1339,15 +1339,22 @@
       }
     });
 
-    // 3. 街角提燈 (🏮)
+    // 3. 街角石燈。畫在角色之前，腳底對齊燈位；圖還沒載入時退回提燈符號。
     LAMPS.forEach(l => {
       ctx.fillStyle = "rgba(255, 207, 106, 0.25)";
       ctx.beginPath();
       ctx.arc(l.x, l.y, 48, 0, 6.28);
       ctx.fill();
-      ctx.font = "26px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("🏮", l.x, l.y + 10);
+      const lamp = window.ART && window.ART.prop_lantern;
+      if (lamp && lamp.complete && lamp.naturalWidth) {
+        const lw = 34;
+        const lh = lw * lamp.naturalHeight / lamp.naturalWidth;
+        ctx.drawImage(lamp, l.x - lw / 2, l.y - lh + 8, lw, lh);
+      } else {
+        ctx.font = "26px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("🏮", l.x, l.y + 10);
+      }
     });
 
     // 4. 委託氣泡移至頂層 (15.5) 繪製，確保永不被建築、角色或陰影遮擋

@@ -4,6 +4,50 @@ window.AUDIO = (() => {
   let muted = false;
   let bgmStep = 0;
   let bgmTimer = 0;
+  let wordClip = null;
+
+  // 接單、提示、送達與誤配都念同一個單字。聲線是 Fish Audio「優しい解説者」。
+  const WORD_FILES = {
+    "ねこ": "neko",
+    "いぬ": "inu",
+    "うさぎ": "usagi",
+    "さかな": "sakana",
+    "うみ": "umi",
+    "かめ": "kame",
+    "つき": "tsuki",
+    "ほし": "hoshi",
+    "にじ": "niji",
+    "りんご": "ringo",
+    "おにぎり": "onigiri",
+    "ケーキ": "keeki",
+    "えき": "eki",
+    "ほん": "hon",
+    "かさ": "kasa",
+    "くるま": "kuruma",
+    "ふね": "fune",
+    "ひこうき": "hikouki",
+    "さくら": "sakura",
+    "やま": "yama",
+    "はな": "hana",
+    "おちゃ": "ocha",
+    "ラーメン": "ramen",
+    "パン": "pan",
+    "とり": "tori",
+    "たこ": "tako",
+    "かえる": "kaeru"
+  };
+  const wordClips = {};
+  Object.values(WORD_FILES).forEach(file => {
+    const audio = new Audio(`assets/audio/words/${file}.mp3`);
+    audio.preload = "auto";
+    wordClips[file] = audio;
+  });
+
+  function stopWord() {
+    if (!wordClip) return;
+    wordClip.pause();
+    try { wordClip.currentTime = 0; } catch (e) {}
+  }
 
   // 日本傳統五音音階 (平調子 / 陰旋律)
   // Hirajoshi: Root, +2, +1, +4, +1 -> C, D, Eb, G, Ab
@@ -154,6 +198,7 @@ window.AUDIO = (() => {
         if (muted) window.BGM.pause();
         else window.BGM.play().catch(() => {});
       }
+      if (muted) stopWord();
       return muted;
     },
 
@@ -320,16 +365,17 @@ window.AUDIO = (() => {
       playHyoshigi(0.18);
     },
 
-    // 日語語音朗讀（Web Speech API）
+    // 日語單字：播放預錄聲線，不再呼叫瀏覽器語音。
     speak(text) {
-      if (muted || !window.speechSynthesis) return;
-      try {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = "ja-JP";
-        u.rate = 0.88;
-        window.speechSynthesis.speak(u);
-      } catch (e) {}
+      if (muted) return;
+      const file = WORD_FILES[text];
+      const audio = file && wordClips[file];
+      if (!audio) return;
+      if (wordClip && wordClip !== audio) stopWord();
+      wordClip = audio;
+      audio.volume = 0.95;
+      try { audio.currentTime = 0; } catch (e) {}
+      audio.play().catch(() => {});
     },
 
     // 送達正確（拍子木 + 神樂鈴大吉）
