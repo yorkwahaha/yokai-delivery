@@ -1,6 +1,7 @@
 // 使用者介面（UI）：商業級全螢幕懸浮式 HUD、HoloCure 風格武器圖標槽、純視覺化無文字冗餘
 window.UI = (() => {
   const W = 900, H = 600;
+  const RESTART_BTN = { x: (W - 260) / 2, y: 136 + 310 + 20, w: 260, h: 52 };
 
   // 繪製日式黑漆金箔懸浮圓角框
   function glassBox(ctx, x, y, w, h, r = 10, fill = "rgba(14, 18, 30, 0.82)", stroke = "rgba(212, 175, 55, 0.55)", strokeW = 1.5) {
@@ -70,7 +71,7 @@ window.UI = (() => {
   }
 
   // 2. 全螢幕專業無分割 HUD（懸浮微型儀表 + 底部 HoloCure 風格武器格）
-  function drawHud(ctx, P, oil, maxOil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b) {
+  function drawHud(ctx, P, oil, maxOil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT) {
     ctx.save();
 
     // 注意：完全移除頂部深色橫條！遊戲世界 100% 全螢幕通透顯示！
@@ -191,18 +192,22 @@ window.UI = (() => {
     ctx.fillRect(pcx - 6, pcy - 8, 4, 16);
     ctx.fillRect(pcx + 2, pcy - 8, 4, 16);
 
-    // --- 中央：進行中任務精緻金標（純目的地導引，無中文洩題，答案直接與行李上的圖標對照） ---
+    // --- 中央：進行中任務精緻金標（分離包裹與門牌地址，避免答案認知混淆） ---
     if (job) {
-      const jBoxW = 260, jBoxH = 34;
+      const isTeaching = (nameT && nameT > 0);
+      const jBoxW = isTeaching ? 390 : 330, jBoxH = 36;
       const jBoxX = W / 2 - jBoxW / 2, jBoxY = 14;
-      glassBox(ctx, jBoxX, jBoxY, jBoxW, jBoxH, 8, "rgba(20, 16, 30, 0.92)", "#d4af37", 1.6);
+      glassBox(ctx, jBoxX, jBoxY, jBoxW, jBoxH, 8, "rgba(20, 16, 30, 0.94)", "#d4af37", 1.6);
       ctx.textAlign = "center";
-      ctx.font = "900 14px 'Zen Maru Gothic', sans-serif";
+      ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
       ctx.fillStyle = "#ffe699";
 
-      const targetText = job.to.word.jp;
-      const hintStr = hintT > 0 ? ` (${job.to.word.zh})` : "";
-      ctx.fillText(`送往町屋「${targetText}」${hintStr}`, W / 2, jBoxY + 22);
+      if (isTeaching) {
+        ctx.fillText(`【運送委託】${job.word.icon} ${job.word.jp} ➔ 送往：${job.to.district}（${job.to.word.jp}）`, W / 2, jBoxY + 23);
+      } else {
+        const hintStr = hintT > 0 ? ` (${job.word.zh})` : "";
+        ctx.fillText(`貨物【${job.word.icon}${hintStr}】➔ 目標町屋：${job.to.district}（${job.to.word.jp}）`, W / 2, jBoxY + 23);
+      }
     }
 
     // --- 左下角：HoloCure 風格【主動秘術 4 槽位 + 被動體質欄】 ---
@@ -951,24 +956,24 @@ window.UI = (() => {
       // 5. 效果詳解說明框
       glassBox(ctx, cx + 14, cy + 246, cardW - 28, 74, 8, "rgba(10, 14, 24, 0.65)", null);
       ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
+      ctx.fillStyle = "#ffffff";
       const words = c.d || "";
-      let line1 = words, line2 = "";
-      if (words.length > 13) {
-        const puncIdx = words.search(/[，、\s]/);
-        if (puncIdx >= 6 && puncIdx <= 16) {
-          line1 = words.slice(0, puncIdx);
-          line2 = words.slice(puncIdx + 1);
+      const maxTextW = cardW - 44;
+      const lines = [];
+      let curLine = "";
+      for (const ch of words) {
+        if (ctx.measureText(curLine + ch).width > maxTextW) {
+          lines.push(curLine);
+          curLine = ch;
         } else {
-          line1 = words.slice(0, 13);
-          line2 = words.slice(13);
+          curLine += ch;
         }
       }
-      if (line2) {
-        ctx.fillText(line1, cx + cardW / 2, cy + 273);
-        ctx.fillText(line2, cx + cardW / 2, cy + 297);
-      } else {
-        ctx.fillText(line1, cx + cardW / 2, cy + 285);
-      }
+      if (curLine) lines.push(curLine);
+      const startY = cy + 284 - ((lines.length - 1) * 10);
+      lines.slice(0, 3).forEach((l, lIdx) => {
+        ctx.fillText(l, cx + cardW / 2, startY + lIdx * 20);
+      });
 
       // 6. 底部熱鍵選擇按鈕
       glassBox(ctx, cx + cardW / 2 - 42, cy + cardH - 52, 84, 38, 10, "#d4af37", "#ffffff", 1.8);
@@ -989,14 +994,20 @@ window.UI = (() => {
 
     glassBox(ctx, bx, by, boxW, boxH, 16, "rgba(20, 14, 34, 0.98)", "#ff5470", 2.5);
 
+    const n = bossQ.ans.length;
+    const promptKeys = n === 2 ? "按 1 / 2 或點選" : "按 1 / 2 / 3 或點選";
     ctx.textAlign = "center";
     ctx.font = "900 19px 'Kaisei Decol', 'Noto Sans JP', serif";
     ctx.fillStyle = "#ffeed4";
-    ctx.fillText(`🛡 選擇 ${bossQ.word.icon} 的正確日文以破防（按 1 / 2 / 3 或點選）`, W / 2, by + 30);
+    ctx.fillText(`🛡 選擇 ${bossQ.word.icon} 的正確日文以破防（${promptKeys}）`, W / 2, by + 30);
 
-    const optW = 200, optH = 46;
+    const optW = n === 2 ? 260 : 200, optH = 46;
+    const gap = n === 2 ? 36 : 24;
+    const totalW = n * optW + (n - 1) * gap;
+    const startX = bx + (boxW - totalW) / 2;
+
     bossQ.ans.forEach((w, i) => {
-      const ox = bx + 22 + i * (optW + 24);
+      const ox = startX + i * (optW + gap);
       const oy = by + 46;
       glassBox(ctx, ox, oy, optW, optH, 10, bossQ.lock > 0 ? "#333c57" : "#ffeed4", "#d4af37", 2);
       ctx.fillStyle = "#1e1829";
@@ -1161,7 +1172,7 @@ window.UI = (() => {
       // 3. 百鬼單字卷頁面 (36 個妖怪單字)
       ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
       ctx.fillStyle = "#cad7f5";
-      ctx.fillText("★ = 熟練度：答對升星、答錯歸零。越不熟的單字，夜行委託越常出現。（按 C 或 點擊返回）", W / 2, 102);
+      ctx.fillText("★ = 熟練度：答對升星、答錯降一星。越不熟或間隔久未複習的單字越常出現。（按 C 或 點擊返回）", W / 2, 102);
 
       let mastered = 0;
       const cardW = 86, cardH = 104;
@@ -1410,19 +1421,29 @@ window.UI = (() => {
       ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
       const wStr = reviewList.map(w => `${w.jp}（${w.zh}）`).join("　");
       ctx.fillText(wStr, W / 2, rwy + 37);
-    } else {
-      // 零失誤特典印記
+    } else if (delivered >= 3) {
+      // 零失誤特典印記（需至少送達 3 單方能獲得）
       ctx.textAlign = "center";
       ctx.font = "900 14px 'Kaisei Decol', sans-serif";
       ctx.fillStyle = "#a5d6a7";
       ctx.fillText("★ 今 夜 配 達 零 失 誤 ・ 大 顯 神 威 ★", W / 2, cy + 235);
+    } else if (delivered > 0) {
+      ctx.textAlign = "center";
+      ctx.font = "900 14px 'Kaisei Decol', sans-serif";
+      ctx.fillStyle = "#ffe28b";
+      ctx.fillText("◆ 今 夜 初 試 啼 聲 ・ 零 失 誤 配 達 ◆", W / 2, cy + 235);
+    } else {
+      ctx.textAlign = "center";
+      ctx.font = "900 14px 'Kaisei Decol', sans-serif";
+      ctx.fillStyle = "#ffb3ba";
+      ctx.fillText("◆ 空 手 而 歸 ・ 未 曾 歷 練 配 達 ◆", W / 2, cy + 235);
     }
 
     ctx.restore();
 
     // 9. 底部再戰按鈕 (神社御神籤御札風格)
-    const btnW = 260, btnH = 52;
-    const bx = W / 2 - btnW / 2, by = cy + cardH + 20;
+    const btnW = RESTART_BTN.w, btnH = RESTART_BTN.h;
+    const bx = RESTART_BTN.x, by = RESTART_BTN.y;
 
     const btnGrad = ctx.createLinearGradient(bx, by, bx + btnW, by + btnH);
     btnGrad.addColorStop(0, "#ffe57f");
@@ -1568,6 +1589,7 @@ window.UI = (() => {
     PAUSE_BTNS,
     PAUSE_BTN_W: 280,
     PAUSE_BTN_H: 44,
+    RESTART_BTN,
     CARD_LIST
   };
 })();

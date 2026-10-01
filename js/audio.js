@@ -308,6 +308,30 @@ window.AUDIO = (() => {
       playSuzu(1320 + Math.random() * 200, 0.04);
     },
 
+    // 接取委託音效（輕快和紙與鈴鐺音，區別於送達大吉）
+    pickup() {
+      playSuzu(1560, 0.08);
+      setTimeout(() => playShamisen(noteFreq(2, 260), 0.22, 0.08), 40);
+    },
+
+    // 結界啟動音效（神道清聖結界）
+    sanctuary() {
+      playSuzu(2100, 0.2);
+      playHyoshigi(0.18);
+    },
+
+    // 日語語音朗讀（Web Speech API）
+    speak(text) {
+      if (muted || !window.speechSynthesis) return;
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = "ja-JP";
+        u.rate = 0.88;
+        window.speechSynthesis.speak(u);
+      } catch (e) {}
+    },
+
     // 送達正確（拍子木 + 神樂鈴大吉）
     deliverSuccess() {
       playHyoshigi(0.2);

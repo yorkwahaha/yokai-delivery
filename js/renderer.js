@@ -579,15 +579,25 @@ window.RENDERER = (() => {
       ctx.restore();
     }
 
-    // 誤配妖怪頭頂名牌
+    // 誤配妖怪頭頂名牌（持久顯示假名與中文：例如 🐱 ねこ＝貓）
     if (isMis && e.w) {
       ctx.save();
       ctx.textAlign = "center";
-      ctx.font = "bold 15px 'Zen Maru Gothic', sans-serif";
+      const badgeText = `${e.w.icon} ${e.w.jp}＝${e.w.zh}`;
+      ctx.font = "bold 15px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+      const bw = ctx.measureText(badgeText).width + 18;
+      ctx.fillStyle = "rgba(35, 14, 52, 0.88)";
+      ctx.beginPath();
+      ctx.roundRect(e.x - bw / 2, e.y - 66, bw, 24, 6);
+      ctx.fill();
+      ctx.strokeStyle = "#e1bee7";
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+
       ctx.fillStyle = "#f5d4ff";
       ctx.shadowColor = "#491566";
       ctx.shadowBlur = 6;
-      ctx.fillText(`${e.w.icon} ${e.w.jp}`, e.x, e.y - 50);
+      ctx.fillText(badgeText, e.x, e.y - 49);
       ctx.restore();
     }
   }
