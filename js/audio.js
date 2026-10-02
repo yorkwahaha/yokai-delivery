@@ -6,7 +6,77 @@ window.AUDIO = (() => {
   let bgmTimer = 0;
   let wordClip = null;
 
-  // 接單、提示、送達與誤配都念同一個單字。聲線是 Fish Audio「優しい解説者」。
+  // 可替換的實體 MP3 音效。檔案不存在／解碼或播放失敗時，會自動退回下方既有 Web Audio 合成音效。
+  // 命名採固定英文 kebab-case，之後只要把同名 MP3 丟進 assets/audio/sfx/ 即可，不必再改程式。
+  const SFX_FILES = {
+    slash: "assets/audio/sfx/slash.mp3",
+    boomerang: "assets/audio/sfx/boomerang.mp3",
+    fireball: "assets/audio/sfx/fireball.mp3",
+    thunder: "assets/audio/sfx/thunder.mp3",
+    dash: "assets/audio/sfx/dash.mp3",
+    barrier: "assets/audio/sfx/barrier.mp3",
+    needle: "assets/audio/sfx/needle.mp3",
+    hurt: "assets/audio/sfx/hurt.mp3",
+    gem: "assets/audio/sfx/gem.mp3",
+    pickup: "assets/audio/sfx/pickup.mp3",
+    sanctuary: "assets/audio/sfx/sanctuary.mp3",
+    deliverSuccess: "assets/audio/sfx/delivery-success.mp3",
+    deliverWrong: "assets/audio/sfx/delivery-wrong.mp3",
+    breakShield: "assets/audio/sfx/break-shield.mp3",
+    levelUp: "assets/audio/sfx/level-up.mp3",
+    warningPulse: "assets/audio/sfx/warning-pulse.mp3"
+  };
+  const SFX_VOLUME = {
+    slash: 0.72, boomerang: 0.62, fireball: 0.66, thunder: 0.82,
+    dash: 0.68, barrier: 0.72, needle: 0.62, hurt: 0.72,
+    gem: 0.42, pickup: 0.62, sanctuary: 0.74, deliverSuccess: 0.78,
+    deliverWrong: 0.72, breakShield: 0.82, levelUp: 0.76, warningPulse: 0.78
+  };
+  const unavailableSfx = new Set();
+  const activeSfx = new Set();
+
+  function playExternalSfx(name, fallback, args) {
+    if (muted) return;
+    const src = SFX_FILES[name];
+    if (!src || unavailableSfx.has(name)) {
+      fallback(...args);
+      return;
+    }
+
+    let audio;
+    try {
+      audio = new Audio(src);
+    } catch (e) {
+      unavailableSfx.add(name);
+      fallback(...args);
+      return;
+    }
+
+    audio.preload = "auto";
+    audio.volume = SFX_VOLUME[name] ?? 0.7;
+    activeSfx.add(audio);
+    let fellBack = false;
+    const cleanup = () => activeSfx.delete(audio);
+    const useFallback = () => {
+      cleanup();
+      unavailableSfx.add(name);
+      if (fellBack || muted) return;
+      fellBack = true;
+      fallback(...args);
+    };
+    audio.addEventListener("ended", cleanup, { once: true });
+    audio.addEventListener("error", useFallback, { once: true });
+
+    try {
+      const playResult = audio.play();
+      if (playResult && typeof playResult.catch === "function") playResult.catch(useFallback);
+    } catch (e) {
+      useFallback();
+    }
+  }
+
+  // 接單、提示、送達與誤配都念同一個單字。全專案統一使用 Fish Audio「AZKi」聲線。
+  // Public model: 5f8f82504223455f906c53e6d3e6b8cd
   const WORD_FILES = {
     "ねこ": "neko",
     "いぬ": "inu",
@@ -34,7 +104,19 @@ window.AUDIO = (() => {
     "パン": "pan",
     "とり": "tori",
     "たこ": "tako",
-    "かえる": "kaeru"
+    "かえる": "kaeru",
+    "あめ": "ame",
+    "かぜ": "kaze",
+    "くも": "kumo",
+    "きり": "kiri",
+    "かみなり": "kaminari",
+    "ゆき": "yuki",
+    "みぎ": "migi",
+    "ひだり": "hidari",
+    "まえ": "mae",
+    "うしろ": "ushiro",
+    "きた": "kita",
+    "みなみ": "minami"
   };
   const wordClips = {};
   Object.values(WORD_FILES).forEach(file => {
@@ -189,7 +271,7 @@ window.AUDIO = (() => {
   }
 
   // 5. 戰鬥打擊音效
-  return {
+  const api = {
     init: getCtx,
     isMuted: () => muted,
     toggleMute() {
@@ -198,7 +280,14 @@ window.AUDIO = (() => {
         if (muted) window.BGM.pause();
         else window.BGM.play().catch(() => {});
       }
-      if (muted) stopWord();
+      if (muted) {
+        stopWord();
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        activeSfx.forEach(audio => {
+          try { audio.pause(); } catch (e) {}
+        });
+        activeSfx.clear();
+      }
       return muted;
     },
 
@@ -365,17 +454,29 @@ window.AUDIO = (() => {
       playHyoshigi(0.18);
     },
 
-    // 日語單字：播放預錄聲線，不再呼叫瀏覽器語音。
+    // 日語單字：既有詞優先播放預錄聲線；新關卡尚未補錄的詞才單獨退回 ja-JP 系統語音。
+    // 兩者互斥，避免曾經出現的預錄音與 fallback 同時發聲。
     speak(text) {
       if (muted) return;
       const file = WORD_FILES[text];
       const audio = file && wordClips[file];
-      if (!audio) return;
-      if (wordClip && wordClip !== audio) stopWord();
-      wordClip = audio;
-      audio.volume = 0.95;
-      try { audio.currentTime = 0; } catch (e) {}
-      audio.play().catch(() => {});
+      if (audio) {
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        if (wordClip && wordClip !== audio) stopWord();
+        wordClip = audio;
+        audio.volume = 0.95;
+        try { audio.currentTime = 0; } catch (e) {}
+        audio.play().catch(() => {});
+        return;
+      }
+      if (window.speechSynthesis && window.SpeechSynthesisUtterance) {
+        stopWord();
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = "ja-JP";
+        u.rate = 0.92;
+        window.speechSynthesis.speak(u);
+      }
     },
 
     // 送達正確（拍子木 + 神樂鈴大吉）
@@ -426,7 +527,7 @@ window.AUDIO = (() => {
 
     // 背景音樂步進循環（日式五音循環，黎明漸強，選卡片期間持續播放不中斷）
     updateBgm(dt, state, elapsed, dawnTime) {
-      const isMusicActive = (state === "play" || state === "levelup" || state === "pause");
+      const isMusicActive = (state === "play" || state === "levelup" || state === "pause" || state === "overworld");
       if (muted || !isMusicActive) {
         if (window.BGM && !window.BGM.paused) window.BGM.pause();
         return;
@@ -466,4 +567,13 @@ window.AUDIO = (() => {
       bgmStep++;
     }
   };
+
+  // 對外 API 保持不變；只替 SFX 方法加上一層「MP3 優先、合成音 fallback」。
+  Object.keys(SFX_FILES).forEach(name => {
+    const fallback = api[name];
+    if (typeof fallback !== "function") return;
+    api[name] = (...args) => playExternalSfx(name, fallback, args);
+  });
+
+  return api;
 })();

@@ -1,7 +1,9 @@
 // 使用者介面（UI）：商業級全螢幕懸浮式 HUD、HoloCure 風格武器圖標槽、純視覺化無文字冗餘
 window.UI = (() => {
   const W = 900, H = 600;
-  const RESTART_BTN = { x: (W - 232) / 2, y: 492, w: 232, h: 48 };
+  const RESTART_BTN = { x: 150, y: 492, w: 180, h: 48 };
+  const WORLD_BTN = { x: 360, y: 492, w: 180, h: 48 };
+  const HOME_BTN = { x: 570, y: 492, w: 180, h: 48 };
   const MENU_START_BTN = { x: W / 2 - 132, y: 478, w: 264, h: 54 };
   const HINT_BTN = { x: 532, y: 20, w: 78, h: 40 };
 
@@ -54,7 +56,7 @@ window.UI = (() => {
     glassBox(ctx, MENU_START_BTN.x, MENU_START_BTN.y, MENU_START_BTN.w, MENU_START_BTN.h, 12, `rgba(30, 24, 18, ${0.86 + blink * 0.08})`, "#ffe082", 2.4);
     ctx.fillStyle = "#ffe9ad";
     ctx.font = "900 22px 'Kaisei Decol', 'Noto Sans JP', serif";
-    ctx.fillText("夜 行 開 始　▶", W / 2, MENU_START_BTN.y + 35);
+    ctx.fillText("旅 路 地 圖　▶", W / 2, MENU_START_BTN.y + 35);
 
     ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
     ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
@@ -1193,14 +1195,20 @@ window.UI = (() => {
       ctx.fillText("★ = 熟練度：答對升星、答錯降一星。越不熟或間隔久未複習的單字越常出現。（按 C 或 點擊返回）", W / 2, 102);
 
       let mastered = 0;
-      const cardW = 86, cardH = 112;
-      const startX = 46, startY = 118;
+      const compact = ALL.length > 36;
+      const columns = compact ? 10 : 9;
+      const cardW = compact ? 76 : 86;
+      const cardH = compact ? 98 : 112;
+      const stepX = compact ? 82 : 95;
+      const stepY = compact ? 102 : 116;
+      const startX = compact ? 40 : 46;
+      const startY = compact ? 112 : 118;
 
       ALL.forEach((w, i) => {
-        const col = i % 9;
-        const row = (i / 9) | 0;
-        const cx = startX + col * 95;
-        const cy = startY + row * 116;
+        const col = i % columns;
+        const row = (i / columns) | 0;
+        const cx = startX + col * stepX;
+        const cy = startY + row * stepY;
 
         const m = STORE.get(w.jp);
         const seen = (m.ok + m.ng) > 0;
@@ -1210,25 +1218,25 @@ window.UI = (() => {
 
         ctx.textAlign = "center";
         ctx.fillStyle = "#1e1829";
-        ctx.font = "24px sans-serif";
-        ctx.fillText(seen ? w.icon : "？", cx + cardW / 2, cy + 32);
+        ctx.font = compact ? "20px sans-serif" : "24px sans-serif";
+        ctx.fillText(seen ? w.icon : "？", cx + cardW / 2, cy + (compact ? 27 : 32));
 
-        ctx.font = "900 13px 'Zen Maru Gothic', sans-serif";
-        ctx.fillText(seen ? w.jp : "？？", cx + cardW / 2, cy + 56);
+        ctx.font = `900 ${compact ? 12 : 13}px 'Zen Maru Gothic', sans-serif`;
+        ctx.fillText(seen ? w.jp : "？？", cx + cardW / 2, cy + (compact ? 48 : 56));
 
         if (seen) {
-          ctx.font = "bold 11px 'Noto Sans JP', sans-serif";
+          ctx.font = `bold ${compact ? 10 : 11}px 'Noto Sans JP', sans-serif`;
           ctx.fillStyle = "#63503c";
-          ctx.fillText(w.zh, cx + cardW / 2, cy + 74);
+          ctx.fillText(w.zh, cx + cardW / 2, cy + (compact ? 64 : 74));
 
-          ctx.font = "9px 'Noto Sans JP', sans-serif";
+          ctx.font = `${compact ? 8 : 9}px 'Noto Sans JP', sans-serif`;
           ctx.fillStyle = "#786957";
           const ex = (w.example || "").replaceAll(" ", "");
-          ctx.fillText(ex.length > 10 ? ex.slice(0, 9) + "…" : ex, cx + cardW / 2, cy + 91);
+          ctx.fillText(ex.length > 10 ? ex.slice(0, 9) + "…" : ex, cx + cardW / 2, cy + (compact ? 79 : 91));
 
           ctx.fillStyle = "#d48819";
-          ctx.font = "11px sans-serif";
-          ctx.fillText("★".repeat(m.box) + "☆".repeat(4 - m.box), cx + cardW / 2, cy + 107);
+          ctx.font = `${compact ? 9 : 11}px sans-serif`;
+          ctx.fillText("★".repeat(m.box) + "☆".repeat(4 - m.box), cx + cardW / 2, cy + (compact ? 94 : 107));
         }
       });
 
@@ -1354,17 +1362,21 @@ window.UI = (() => {
       ctx.fillText(note, mid, cardY + 292);
     }
 
-    const bx = RESTART_BTN.x, by = RESTART_BTN.y, btnW = RESTART_BTN.w, btnH = RESTART_BTN.h;
-    ctx.fillStyle = "#1a140e";
-    ctx.beginPath();
-    ctx.roundRect(bx, by, btnW, btnH, 8);
-    ctx.fill();
-    ctx.strokeStyle = "#e6c27a";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.fillStyle = "#ffe3ad";
-    ctx.font = "900 18px 'Kaisei Decol', 'Noto Sans JP', serif";
-    ctx.fillText("再踏夜行", bx + btnW / 2, by + 31);
+    const drawEndButton = (btn, label, primary = false) => {
+      ctx.fillStyle = primary ? "#1a140e" : "rgba(16, 20, 32, 0.94)";
+      ctx.beginPath();
+      ctx.roundRect(btn.x, btn.y, btn.w, btn.h, 8);
+      ctx.fill();
+      ctx.strokeStyle = primary ? "#e6c27a" : "rgba(220, 226, 238, 0.55)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = primary ? "#ffe3ad" : "#edf2ff";
+      ctx.font = "900 18px 'Kaisei Decol', 'Noto Sans JP', serif";
+      ctx.fillText(label, btn.x + btn.w / 2, btn.y + 31);
+    };
+    drawEndButton(RESTART_BTN, "再踏夜行", true);
+    drawEndButton(WORLD_BTN, "回旅路地圖");
+    drawEndButton(HOME_BTN, "回到首頁");
 
     ctx.restore();
   }
@@ -1494,6 +1506,8 @@ window.UI = (() => {
     PAUSE_BTN_W: 280,
     PAUSE_BTN_H: 44,
     RESTART_BTN,
+    WORLD_BTN,
+    HOME_BTN,
     MENU_START_BTN,
     HINT_BTN,
     CARD_LIST

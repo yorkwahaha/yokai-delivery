@@ -1,12 +1,10 @@
 // 渲染引擎：商業級和風手繪管線、石疊地坪紋理、町屋店鋪建築、動態 2D 多光源與 Game Juice
 window.RENDERER = (() => {
-  const W = 900, H = 600, WW = 2700, WH = 1800;
+  const W = 900, H = 600;
   let cv, ctx, dpr;
   let lightCv, lightCtx;
   let stonePattern = null;
   let groundPattern = null;
-  let groundLayer = null;
-  let groundBakeKey = "";
 
   // 鏡頭與打擊震動
   let camX = 0, camY = 0;
@@ -35,11 +33,11 @@ window.RENDERER = (() => {
     // 預先生成高品質石疊（和風石磚路）無縫貼圖
     createStonePattern();
 
-    // 初始化飄落櫻花雨 (50 片)
+    // 初始化飄落櫻花雨 (50 片)；無邊界世界改採螢幕空間粒子。
     for (let i = 0; i < 50; i++) {
       SAKURA.push({
-        x: Math.random() * WW,
-        y: Math.random() * WH,
+        x: Math.random() * W,
+        y: Math.random() * H,
         vx: 35 + Math.random() * 45,
         vy: 25 + Math.random() * 35,
         size: 5 + Math.random() * 6,
@@ -52,8 +50,8 @@ window.RENDERER = (() => {
     // 初始化夜行螢火蟲 / 靈氣游光 (30 隻)
     for (let i = 0; i < 30; i++) {
       FIREFLIES.push({
-        x: Math.random() * WW,
-        y: Math.random() * WH,
+        x: Math.random() * W,
+        y: Math.random() * H,
         phase: Math.random() * 6.28,
         speed: 10 + Math.random() * 15
       });
@@ -158,8 +156,8 @@ window.RENDERER = (() => {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.rot += p.vRot * dt;
-      if (p.x > WW) p.x = 0;
-      if (p.y > WH) p.y = 0;
+      if (p.x > W + 30) p.x = -30;
+      if (p.y > H + 30) p.y = -30;
     }
 
     for (const d of dmgNumbers) {
@@ -179,182 +177,114 @@ window.RENDERER = (() => {
     return false;
   }
 
-  // 繪製高質感石疊地坪與自然街區過渡。整張地圖只烘焙一次，之後每幀貼可見範圍。
-  function paintGroundMap(elapsed) {
-    // 1. 全地圖統一鋪設高精細石磚無縫貼圖（告別廉價大色塊）
+  // 無邊界地圖不再建立大型離屏 Canvas；每幀只畫鏡頭附近已啟用的 chunks。
+  function drawGround(elapsed, dawnTime, chunks = []) {
+    const margin = 120;
+    const left = camX - margin;
+    const top = camY - margin;
+    const width = W + margin * 2;
+    const height = H + margin * 2;
     const groundImg = window.ART && window.ART.ground;
+
     if (groundImg && groundImg.complete && groundImg.naturalWidth) {
       if (!groundPattern) groundPattern = ctx.createPattern(groundImg, "repeat");
       ctx.fillStyle = groundPattern || "#181d28";
-      ctx.fillRect(0, 0, WW, WH);
-    } else if (stonePattern) {
-      ctx.fillStyle = stonePattern;
-      ctx.fillRect(0, 0, WW, WH);
     } else {
-      ctx.fillStyle = "#181d28";
-      ctx.fillRect(0, 0, WW, WH);
+      ctx.fillStyle = stonePattern || "#181d28";
     }
+    ctx.fillRect(left, top, width, height);
 
-    // 2. 街區專屬環境微地坪（自然柔和光彩，無尖銳分割線）
-    window.DISTRICTS.forEach((d, i) => {
-      const col = i % 3, row = (i / 3) | 0;
-      const cx = col * 900 + 450, cy = row * 600 + 300;
+    const ROAD_W = 110;
+    for (const chunk of chunks) {
+      if (
+        chunk.x > camX + W + 180 ||
+        chunk.x + chunk.w < camX - 180 ||
+        chunk.y > camY + H + 180 ||
+        chunk.y + chunk.h < camY - 180
+      ) continue;
+
+      const cx = chunk.x + chunk.w / 2;
+      const cy = chunk.y + chunk.h / 2;
 
       ctx.save();
-      // 使用柔和徑向漸層，讓街區自然融合
-      const bgGrad = ctx.createRadialGradient(cx, cy, 100, cx, cy, 480);
-      if (d.theme === "sakura") {
+      const bgGrad = ctx.createRadialGradient(cx, cy, 100, cx, cy, Math.max(chunk.w, chunk.h) * 0.54);
+      if (chunk.theme === "sakura") {
         bgGrad.addColorStop(0, "rgba(255, 160, 200, 0.14)");
-        bgGrad.addColorStop(1, "rgba(255, 160, 200, 0.0)");
-      } else if (d.theme === "water" || d.theme === "lotus") {
+        bgGrad.addColorStop(1, "rgba(255, 160, 200, 0)");
+      } else if (chunk.theme === "water" || chunk.theme === "lotus") {
         bgGrad.addColorStop(0, "rgba(70, 180, 220, 0.16)");
-        bgGrad.addColorStop(1, "rgba(70, 180, 220, 0.0)");
-      } else if (d.theme === "tavern" || d.theme === "market") {
+        bgGrad.addColorStop(1, "rgba(70, 180, 220, 0)");
+      } else if (chunk.theme === "tavern" || chunk.theme === "market") {
         bgGrad.addColorStop(0, "rgba(255, 180, 100, 0.14)");
-        bgGrad.addColorStop(1, "rgba(255, 180, 100, 0.0)");
-      } else if (d.theme === "mystic") {
+        bgGrad.addColorStop(1, "rgba(255, 180, 100, 0)");
+      } else if (chunk.theme === "mystic") {
         bgGrad.addColorStop(0, "rgba(180, 140, 255, 0.15)");
-        bgGrad.addColorStop(1, "rgba(180, 140, 255, 0.0)");
+        bgGrad.addColorStop(1, "rgba(180, 140, 255, 0)");
       } else {
         bgGrad.addColorStop(0, "rgba(120, 190, 140, 0.12)");
-        bgGrad.addColorStop(1, "rgba(120, 190, 140, 0.0)");
+        bgGrad.addColorStop(1, "rgba(120, 190, 140, 0)");
       }
       ctx.fillStyle = bgGrad;
-      ctx.fillRect(col * 900, row * 600, 900, 600);
+      ctx.fillRect(chunk.x, chunk.y, chunk.w, chunk.h);
 
-      // 主題水域波光
-      if (d.theme === "water" || d.theme === "lotus") {
+      if (chunk.theme === "water" || chunk.theme === "lotus") {
         ctx.fillStyle = "rgba(100, 210, 255, 0.06)";
-        for (let w = 0; w < 5; w++) {
-          const wy = row * 600 + 100 + w * 100 + Math.sin(elapsed * 2 + w) * 10;
+        for (let i = 0; i < 5; i++) {
+          const wy = chunk.y + 100 + i * 100 + Math.sin(elapsed * 2 + i + chunk.cx) * 10;
           ctx.beginPath();
-          ctx.roundRect(col * 900 + 40, wy, 820, 28, 14);
+          ctx.roundRect(chunk.x + 40, wy, chunk.w - 80, 28, 14);
           ctx.fill();
         }
       }
-      ctx.restore();
-    });
 
-    // 3. 主幹道（寬闊御影石大道）
-    const ROAD_W = 110;
-    ctx.save();
-    [450, 1350, 2250].forEach(rx => {
-      // 道路深色基底
+      // 每一個 chunk 的中央道路與相鄰 chunk 無縫接續，形成可無限延伸的町路網。
       ctx.fillStyle = "rgba(8, 10, 18, 0.28)";
-      ctx.fillRect(rx - ROAD_W / 2, 0, ROAD_W, WH);
-
-      // 兩側路緣石與陰影
+      ctx.fillRect(cx - ROAD_W / 2, chunk.y, ROAD_W, chunk.h);
+      ctx.fillRect(chunk.x, cy - ROAD_W / 2, chunk.w, ROAD_W);
       ctx.fillStyle = "#333d52";
-      ctx.fillRect(rx - ROAD_W / 2, 0, 10, WH);
-      ctx.fillRect(rx + ROAD_W / 2 - 10, 0, 10, WH);
+      ctx.fillRect(cx - ROAD_W / 2, chunk.y, 10, chunk.h);
+      ctx.fillRect(cx + ROAD_W / 2 - 10, chunk.y, 10, chunk.h);
+      ctx.fillRect(chunk.x, cy - ROAD_W / 2, chunk.w, 10);
+      ctx.fillRect(chunk.x, cy + ROAD_W / 2 - 10, chunk.w, 10);
       ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
-      ctx.fillRect(rx - ROAD_W / 2 + 10, 0, 4, WH);
-      ctx.fillRect(rx + ROAD_W / 2 - 14, 0, 4, WH);
-    });
+      ctx.fillRect(cx - ROAD_W / 2 + 10, chunk.y, 4, chunk.h);
+      ctx.fillRect(cx + ROAD_W / 2 - 14, chunk.y, 4, chunk.h);
+      ctx.fillRect(chunk.x, cy - ROAD_W / 2 + 10, chunk.w, 4);
+      ctx.fillRect(chunk.x, cy + ROAD_W / 2 - 14, chunk.w, 4);
 
-    [300, 900, 1500].forEach(ry => {
-      ctx.fillStyle = "rgba(8, 10, 18, 0.28)";
-      ctx.fillRect(0, ry - ROAD_W / 2, WW, ROAD_W);
-
-      ctx.fillStyle = "#333d52";
-      ctx.fillRect(0, ry - ROAD_W / 2, WW, 10);
-      ctx.fillRect(0, ry + ROAD_W / 2 - 10, WW, 10);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
-      ctx.fillRect(0, ry - ROAD_W / 2 + 10, WW, 4);
-      ctx.fillRect(0, ry + ROAD_W / 2 - 14, WW, 4);
-    });
-    ctx.restore();
-
-    // 4. 街區金箔書法浮水印名標
-    window.DISTRICTS.forEach((d, i) => {
-      const col = i % 3, row = (i / 3) | 0;
-      const cx = col * 900 + 450, cy = row * 600 + 105;
-      ctx.save();
       ctx.textAlign = "center";
       ctx.font = "900 38px 'Kaisei Decol', 'Noto Sans JP', serif";
       ctx.fillStyle = "rgba(255, 230, 180, 0.18)";
-      ctx.fillText(d.name, cx, cy);
+      ctx.fillText(chunk.name, cx, chunk.y + 105);
       ctx.font = "bold 15px 'Zen Maru Gothic', sans-serif";
       ctx.fillStyle = "rgba(255, 230, 180, 0.14)";
-      ctx.fillText(`— ${d.sub || ""} —`, cx, cy + 24);
-      ctx.restore();
-    });
+      ctx.fillText(`— ${chunk.sub || ""} —`, cx, chunk.y + 129);
 
-    // 5. 主幹道十字路口的鳥居與石燈籠裝飾
-    const toriiImg = window.ART.prop_torii;
-    if (toriiImg) {
-      const intersections = [
-        { x: 1350, y: 300 },
-        { x: 1350, y: 1500 }
-      ];
-      intersections.forEach(pt => {
-        ctx.save();
-        // 鳥居陰影
+      const toriiImg = window.ART && window.ART.prop_torii;
+      if (chunk.decor?.torii && toriiImg && toriiImg.complete && toriiImg.naturalWidth) {
         ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
         ctx.beginPath();
-        ctx.ellipse(pt.x, pt.y + 45, 90, 24, 0, 0, 6.28);
+        ctx.ellipse(cx, cy + 45, 90, 24, 0, 0, 6.28);
         ctx.fill();
-
         const tw = 150;
-        const th = toriiImg.naturalWidth ? tw * toriiImg.naturalHeight / toriiImg.naturalWidth : 160;
-        ctx.drawImage(toriiImg, pt.x - tw / 2, pt.y - th + 36, tw, th);
-        ctx.restore();
-      });
-    }
+        const th = tw * toriiImg.naturalHeight / toriiImg.naturalWidth;
+        ctx.drawImage(toriiImg, cx - tw / 2, cy - th + 36, tw, th);
+      }
 
-    // 6. 街區北側櫻樹。畫在地面層，房屋與角色會蓋過樹冠，不另做碰撞。
-    const sakuraImg = window.ART && window.ART.prop_sakura;
-    if (sakuraImg && sakuraImg.complete && sakuraImg.naturalWidth) {
-      const trees = [
-        { x: 780, y: 80 },
-        { x: 160, y: 1260 },
-        { x: 760, y: 1260 },
-        { x: 1960, y: 1260 },
-        { x: 2500, y: 1260 }
-      ];
-      const sw = 108;
-      const sh = sw * sakuraImg.naturalHeight / sakuraImg.naturalWidth;
-      trees.forEach(t => {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
-        ctx.beginPath();
-        ctx.ellipse(t.x, t.y - 4, 28, 10, 0, 0, 6.28);
-        ctx.fill();
-        ctx.drawImage(sakuraImg, t.x - sw / 2, t.y - sh, sw, sh);
-      });
+      const sakuraImg = window.ART && window.ART.prop_sakura;
+      if (sakuraImg && sakuraImg.complete && sakuraImg.naturalWidth) {
+        const sw = 108;
+        const sh = sw * sakuraImg.naturalHeight / sakuraImg.naturalWidth;
+        for (const tree of chunk.decor?.sakuraTrees || []) {
+          ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+          ctx.beginPath();
+          ctx.ellipse(tree.x, tree.y - 4, 28, 10, 0, 0, 6.28);
+          ctx.fill();
+          ctx.drawImage(sakuraImg, tree.x - sw / 2, tree.y - sh, sw, sh);
+        }
+      }
+      ctx.restore();
     }
-  }
-
-  function ensureGroundLayer() {
-    const art = window.ART || {};
-    const ready = img => !!(img && img.complete && img.naturalWidth);
-    const fonts = document.fonts && document.fonts.status === "loaded" ? 1 : 0;
-    const key = [
-      ready(art.ground) ? art.ground.naturalWidth : 0,
-      ready(art.prop_torii) ? 1 : 0,
-      ready(art.prop_sakura) ? 1 : 0,
-      fonts
-    ].join("|");
-    if (groundLayer && groundBakeKey === key) return;
-    const g = document.createElement("canvas");
-    g.width = WW;
-    g.height = WH;
-    const gctx = g.getContext("2d", { alpha: false });
-    const prev = ctx;
-    ctx = gctx;
-    try {
-      paintGroundMap(0);
-    } finally {
-      ctx = prev;
-    }
-    groundLayer = g;
-    groundBakeKey = key;
-  }
-
-  function drawGround(elapsed, dawnTime) {
-    ensureGroundLayer();
-    const sx = Math.max(0, Math.min(camX, WW - W));
-    const sy = Math.max(0, Math.min(camY, WH - H));
-    ctx.drawImage(groundLayer, sx, sy, W, H, sx, sy, W, H);
   }
 
   // 繪製高精緻度日式町屋店鋪（真實店鋪 Sprite + 障子金光 + 和風招牌）
@@ -839,7 +769,7 @@ window.RENDERER = (() => {
     ctx.save();
     // 飄動櫻花雨
     for (const p of SAKURA) {
-      const sx = p.x - camX, sy = p.y - camY;
+      const sx = p.x, sy = p.y;
       if (sx < -30 || sx > W + 30 || sy < -30 || sy > H + 30) continue;
       ctx.save();
       ctx.translate(sx, sy);
@@ -853,8 +783,8 @@ window.RENDERER = (() => {
 
     // 螢火蟲 (夜行幽火)
     for (const f of FIREFLIES) {
-      const fx = (f.x + Math.sin(elapsed * 2 + f.phase) * 30) - camX;
-      const fy = (f.y + Math.cos(elapsed * 1.5 + f.phase) * 20) - camY;
+      const fx = f.x + Math.sin(elapsed * 2 + f.phase) * 30;
+      const fy = f.y + Math.cos(elapsed * 1.5 + f.phase) * 20;
       if (fx < -20 || fx > W + 20 || fy < -20 || fy > H + 20) continue;
       const pulse = 0.4 + 0.6 * Math.sin(elapsed * 4 + f.phase);
       ctx.fillStyle = `rgba(180, 255, 220, ${pulse * 0.75})`;
@@ -867,7 +797,8 @@ window.RENDERER = (() => {
 
   return {
     init,
-    W, H, WW, WH,
+    W, H,
+    WORLD_UNBOUNDED: true,
     getCam: () => ({ x: camX, y: camY }),
     setCam(x, y) { camX = x; camY = y; },
     getDpr: () => dpr,

@@ -1,10 +1,21 @@
 (() => {
   "use strict";
 
-  const W = 900, H = 600, WW = 2700, WH = 1800;
+  const W = 900, H = 600;
   const CFG = window.GAME_CONFIG;
-  const DAWN = CFG.RUN_SECONDS;
-  const GOAL_DELIVERIES = CFG.GOAL_DELIVERIES;
+  let STAGE = window.CONTENT.getStage("night-town");
+  let STAGE_PACING = STAGE.pacing || {};
+  let STAGE_VISUAL = STAGE.visual || {};
+  let STAGE_ENEMY = STAGE.enemy || {};
+  let START = STAGE.start || { x: 1350, y: 900 };
+  let DAWN = STAGE_PACING.runSeconds || CFG.RUN_SECONDS;
+  let GOAL_DELIVERIES = STAGE_PACING.goalDeliveries || CFG.GOAL_DELIVERIES;
+  let BOSS_TIMES = STAGE_PACING.bossTimes || CFG.BOSS_TIMES;
+  let SURGE_FIRST = STAGE_PACING.surgeFirst || CFG.SURGE_FIRST;
+  let SURGE_INTERVAL = STAGE_PACING.surgeInterval || CFG.SURGE_INTERVAL;
+  let XP_NEED_SCALE = STAGE_PACING.xpNeedScale || 1;
+  let SPAWN_INTERVAL_SCALE = STAGE_PACING.spawnIntervalScale || 1;
+  let SPAWN_COUNT_BONUS = STAGE_PACING.spawnCountBonus || 0;
   const cv = document.getElementById("game");
 
   // 初始化高畫質渲染引擎
@@ -24,56 +35,23 @@
     return a;
   };
 
-  // ---------- 世界建築與地圖 ----------
-  const houses = [], solids = [], spots = [[210, 175], [690, 175], [210, 440], [690, 440]];
-  window.DISTRICTS.forEach((d, di) => {
-    const col = di % 3, row = (di / 3) | 0, empty = (col + row * 2 + 1) % 4;
-    let w = 0;
-    spots.forEach((s, si) => {
-      if (si === empty) return;
-      const x = col * 900 + s[0], y = row * 600 + s[1];
-      const wordData = d.words[w++];
-      const [jp, zh, icon, romaji, example] = wordData;
-
-      let bType = "house_shop";
-      if (d.theme === "tavern" || d.theme === "market") bType = "house_tavern";
-      else if (d.theme === "mystic" || d.theme === "lotus") bType = "house_shrine";
-      else if (d.theme === "water" || d.theme === "sakura") bType = (si % 2 === 0 ? "house_shop" : "house_tavern");
-
-      houses.push({
-        id: houses.length,
-        x, y,
-        dx: x,
-        dy: y + 60,
-        color: d.color,
-        bType,
-        district: d.name,
-        word: { jp, zh, icon, romaji: romaji || "", example: example || "" }
-      });
-    });
-  });
-
-  houses.forEach(h => solids.push({ x0: h.x - 48, x1: h.x + 48, y0: h.y - 25, y1: h.y + 45 }));
-  const ALL = houses.map(h => h.word);
+  // ---------- Stage / Word Pack / Chunk 世界 ----------
+  let WORLD_STATE = window.WORLD.createStageWorld(STAGE, window.CONTENT);
+  const houses = [], solids = [], LAMPS = [], activeChunks = [];
+  const ALL = window.CONTENT.getStageWords(STAGE);
+  const CODEX_ALL = window.CONTENT.getAllWords ? window.CONTENT.getAllWords() : ALL;
   const blocked = (x, y, r = 18) => solids.some(s => Math.hypot(x - clamp(x, s.x0, s.x1), y - clamp(y, s.y0, s.y1)) < r);
-
-  const LAMPS = [];
-  [450, 1350, 2250].forEach(x => [300, 900, 1500].forEach(y => LAMPS.push({ x: x + 62, y: y - 62 })));
   const ansPos = h => [{ x: h.x - 85, y: h.y + 75 }, { x: h.x + 85, y: h.y + 75 }, { x: h.x, y: h.y + 122 }];
-  const getWordDistrictWords = word => {
-    if (!word) return [];
-    const d = window.DISTRICTS.find(dist => dist.words.some(w => w[0] === word.jp));
-    if (!d) return [];
-    return d.words
-      .filter(w => w[0] !== word.jp)
-      .map(w => ({ jp: w[0], zh: w[1], icon: w[2], romaji: w[3] || "", example: w[4] || "" }));
-  };
+  const getWordDistrictWords = word => window.CONTENT.getSiblingWords(word);
 
   // ---------- 遊戲狀態 ----------
-  const P = { x: 1350, y: 900, inv: 0, faceAng: 0, faceX: 1 };
+  const P = { x: START.x, y: START.y, inv: 0, faceAng: 0, faceX: 1 };
   const b = { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0 };
   const keys = new Set();
   let state = "menu";
+  let overworld = window.OVERWORLD.createState("gate");
+  let overworldNoticeT = 0;
+  let gpOverworldDir = "";
   let elapsed = 0, warnDawnT = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;
   let orders = [], job = null, enemies = [], enemyBullets = [], gems = [], parts = [], texts = [], rings = [], misses = [];
   let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0, endCooldown = 0;
@@ -82,9 +60,52 @@
   const btnPause = { x: W - 52, y: 14, w: 38, h: 52 };
   let gpPrevButtons = [], gpMove = { x: 0, y: 0 };
 
-  let bossT = CFG.BOSS_TIMES[0], bossStage = 0, finalBossDefeated = false;
+  let bossT = BOSS_TIMES[0], bossStage = 0, finalBossDefeated = false;
   let finalBossPos = null, victorySeq = null;
   let ended = false, bossQ = null, codexBack = "menu", codexTab = "cards";
+  let worldSyncSignature = "";
+
+  function replaceList(target, source) {
+    target.splice(0, target.length, ...source);
+  }
+
+  function configureStage(stageId = "night-town") {
+    STAGE = window.CONTENT.getStage(stageId);
+    STAGE_PACING = STAGE.pacing || {};
+    STAGE_VISUAL = STAGE.visual || {};
+    STAGE_ENEMY = STAGE.enemy || {};
+    START = STAGE.start || { x: 1350, y: 900 };
+    DAWN = STAGE_PACING.runSeconds || CFG.RUN_SECONDS;
+    GOAL_DELIVERIES = STAGE_PACING.goalDeliveries || CFG.GOAL_DELIVERIES;
+    BOSS_TIMES = STAGE_PACING.bossTimes || CFG.BOSS_TIMES;
+    SURGE_FIRST = STAGE_PACING.surgeFirst || CFG.SURGE_FIRST;
+    SURGE_INTERVAL = STAGE_PACING.surgeInterval || CFG.SURGE_INTERVAL;
+    XP_NEED_SCALE = STAGE_PACING.xpNeedScale || 1;
+    SPAWN_INTERVAL_SCALE = STAGE_PACING.spawnIntervalScale || 1;
+    SPAWN_COUNT_BONUS = STAGE_PACING.spawnCountBonus || 0;
+    WORLD_STATE = window.WORLD.createStageWorld(STAGE, window.CONTENT);
+    replaceList(ALL, window.CONTENT.getStageWords(STAGE));
+  }
+
+  function syncWorld(force = false) {
+    const pinned = new Set();
+    for (const o of orders) {
+      if (o.from?.chunkKey) pinned.add(o.from.chunkKey);
+      if (o.to?.chunkKey) pinned.add(o.to.chunkKey);
+    }
+    if (job?.to?.chunkKey) pinned.add(job.to.chunkKey);
+
+    const pinList = [...pinned].sort();
+    const signature = `${WORLD_STATE.keyAt(P.x, P.y)}|${pinList.join(";")}`;
+    if (!force && signature === worldSyncSignature) return;
+
+    const snapshot = WORLD_STATE.update(P.x, P.y, pinList);
+    replaceList(activeChunks, snapshot.chunks);
+    replaceList(houses, snapshot.houses);
+    replaceList(solids, snapshot.solids);
+    replaceList(LAMPS, snapshot.lamps);
+    worldSyncSignature = signature;
+  }
   const WL = { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 };
   const WI = {
     katana: { id: "katana", jp: "かたな", zh: "妖刀斬", type: "active", category: "方向斬擊", desc: "揮出凌厲新月刀芒，斬裂前方扇形妖怪" },
@@ -139,7 +160,7 @@
       "靈針增加至 7 發"
     ]
   };
-  let proj = [], needles = [], surgeT = CFG.SURGE_FIRST, fAng = 0;
+  let proj = [], needles = [], surgeT = SURGE_FIRST, fAng = 0;
   let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1, lastWarningCycle = 0;
   const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0 };
 
@@ -180,8 +201,9 @@
     const orderCap = CFG.orderSlots(elapsed, delivered);
     if (orders.length >= orderCap) return;
     const busy = new Set(orders.map(o => o.from.id));
-    const from = pick(houses.filter(h => !busy.has(h.id)));
-    const to = pick(houses.filter(h => h !== from && dist(h, from) > 420 && dist(h, from) < 2000));
+    const localHouses = houses.filter(h => dist(P, h) < 2200);
+    const from = pick(localHouses.filter(h => !busy.has(h.id)));
+    const to = pick(localHouses.filter(h => h !== from && dist(h, from) > 420 && dist(h, from) < 2000));
     if (!from || !to) return;
 
     // 1. 場上活著的誤配妖所代表的詞（妖還在時以戰鬥擊殺複習為主，不發重複委託避免照名牌選答案）
@@ -224,17 +246,45 @@
     }
   }
 
-  function start() {
+  function enterOverworld(reset = true) {
+    if (reset) overworld = window.OVERWORLD.createState("gate");
+    overworldNoticeT = 0;
+    keys.clear();
+    joy = null;
+    gpOverworldDir = "";
+    state = "overworld";
+  }
+
+  function moveOverworld(dx, dy) {
+    if (state !== "overworld") return false;
+    return window.OVERWORLD.move(overworld, dx, dy);
+  }
+
+  function confirmOverworld() {
+    if (state !== "overworld") return;
+    const result = window.OVERWORLD.confirm(overworld);
+    if (result.ok && result.stageId) {
+      start(result.stageId);
+      return;
+    }
+    if (result.locked) {
+      overworldNoticeT = 1.5;
+      AUDIO.warningPulse(1);
+    }
+  }
+
+  function start(stageId = STAGE.id) {
+    configureStage(stageId);
     AUDIO.init();
     state = "play";
-    Object.assign(P, { x: 1350, y: 900, inv: 1.2, faceAng: 0, faceX: 1 });
+    Object.assign(P, { x: START.x, y: START.y, inv: 1.2, faceAng: 0, faceX: 1 });
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0 });
     Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 });
-    proj = []; needles = []; enemyBullets = []; surgeT = CFG.SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1; lastWarningCycle = 0;
+    proj = []; needles = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1; lastWarningCycle = 0;
     wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5;
     elapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
     orders = []; job = null; enemies = []; gems = []; parts = []; texts = []; rings = []; misses = [];
-    bossStage = 0; bossT = CFG.BOSS_TIMES[0]; finalBossDefeated = false; finalBossPos = null; victorySeq = null;
+    bossStage = 0; bossT = BOSS_TIMES[0]; finalBossDefeated = false; finalBossPos = null; victorySeq = null;
     ended = false; bossQ = null; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0;
     keys.clear(); joy = null; gpMove = { x: 0, y: 0 };
     pTrail = [];
@@ -242,12 +292,15 @@
       pTrail.push({ x: P.x - i * 2, y: P.y + 10 });
     }
     cargo = { x: P.x - 44, y: P.y + 10 };
-    if (STORE.startRun) STORE.startRun();
+    if (STORE.startRun) STORE.startRun(STAGE.id);
+    WORLD_STATE.reset();
+    worldSyncSignature = "";
+    syncWorld(true);
     makeOrder();
-    RENDERER.setCam(clamp(P.x - W / 2, 0, WW - W), clamp(P.y - H / 2, 0, WH - H));
+    RENDERER.setCam(P.x - W / 2, P.y - H / 2);
   }
 
-  const xpNeed = () => CFG.xpNeed(level);
+  const xpNeed = () => Math.round(CFG.xpNeed(level) * XP_NEED_SCALE);
   const MAX_ACTIVE_WEAPONS = 4;
 
   function offerUp() {
@@ -577,18 +630,21 @@
     if (!navigator.getGamepads) {
       gpMove = { x: 0, y: 0 };
       gpPrevButtons = [];
+      gpOverworldDir = "";
       return;
     }
     const gamepads = navigator.getGamepads();
     if (!gamepads) {
       gpMove = { x: 0, y: 0 };
       gpPrevButtons = [];
+      gpOverworldDir = "";
       return;
     }
     const gp = Array.from(gamepads).find(g => g && g.connected);
     if (!gp) {
       gpMove = { x: 0, y: 0 };
       gpPrevButtons = [];
+      gpOverworldDir = "";
       return;
     }
 
@@ -607,10 +663,26 @@
     // 2. 按鈕邊緣觸發判定 (Edge Trigger)
     const justPressed = i => gp.buttons[i]?.pressed && !gpPrevButtons[i];
 
+    if (state === "overworld") {
+      let dir = "";
+      if (Math.abs(ax) > Math.abs(ay) && Math.abs(ax) > 0.55) dir = ax > 0 ? "right" : "left";
+      else if (Math.abs(ay) > 0.55) dir = ay > 0 ? "down" : "up";
+      if (dir && dir !== gpOverworldDir) {
+        if (dir === "left") moveOverworld(-1, 0);
+        else if (dir === "right") moveOverworld(1, 0);
+        else if (dir === "up") moveOverworld(0, -1);
+        else if (dir === "down") moveOverworld(0, 1);
+      }
+      gpOverworldDir = dir;
+    } else {
+      gpOverworldDir = "";
+    }
+
     // A 鍵 (Button 0): 互動 / 選卡1 / 確認
     if (justPressed(0)) {
       AUDIO.init();
-      if (state === "menu") start();
+      if (state === "menu") enterOverworld();
+      else if (state === "overworld") confirmOverworld();
       else if (state === "levelup") pickUp(0);
       else if (state === "pause") togglePause();
       else if (state === "play" && bossQ) {
@@ -624,7 +696,8 @@
 
     // B 鍵 (Button 1): 衝刺 / 選卡2
     if (justPressed(1)) {
-      if (state === "levelup") pickUp(1);
+      if (state === "overworld") state = "menu";
+      else if (state === "levelup") pickUp(1);
       else if (state === "play" && bossQ) {
         if (bossQ.ans.length > 1) answerBoss(1);
       }
@@ -649,7 +722,7 @@
     if (justPressed(8)) {
       if (state === "codex") {
         state = codexBack;
-      } else if (state === "play" || state === "pause" || state === "menu") {
+      } else if (state === "play" || state === "pause" || state === "menu" || state === "overworld") {
         codexBack = state;
         state = "codex";
       }
@@ -983,13 +1056,13 @@
 
   function spawnEnemy(tier, rad, ang, ring) {
     let a = ang ?? Math.random() * 6.283;
-    let x = clamp(P.x + Math.cos(a) * rad, 30, WW - 30);
-    let y = clamp(P.y + Math.sin(a) * rad, 30, WH - 30);
+    let x = P.x + Math.cos(a) * rad;
+    let y = P.y + Math.sin(a) * rad;
     let tries = 0;
     while (blocked(x, y, 26) && tries < 10) {
       a += 0.63;
-      x = clamp(P.x + Math.cos(a) * rad, 30, WW - 30);
-      y = clamp(P.y + Math.sin(a) * rad, 30, WH - 30);
+      x = P.x + Math.cos(a) * rad;
+      y = P.y + Math.sin(a) * rad;
       tries++;
     }
     if (blocked(x, y, 26)) return;
@@ -998,13 +1071,15 @@
     // 怪物速度曲線：封頂於 10 分鐘，破曉後加班不再增加怪物難度。
     const cappedElapsed = Math.min(elapsed, DAWN);
     const speedRamp = (cappedElapsed / DAWN) * 75;
-    let t = { type: "ghost", hp: 2.0 * tier, speed: 52 + speedRamp * 0.9 };
+    const stageSpeed = STAGE_ENEMY.speedScale || 1;
+    const shooterBonus = STAGE_ENEMY.shooterChanceBonus || 0;
+    let t = { type: "ghost", hp: 2.0 * tier, speed: (52 + speedRamp * 0.9) * stageSpeed };
     if (cappedElapsed > 90 && r < 0.22) {
-      t = { type: "runner", hp: 1.5 * tier, speed: 110 + speedRamp * 1.1 };
+      t = { type: "runner", hp: 1.5 * tier, speed: (110 + speedRamp * 1.1) * stageSpeed };
     } else if (cappedElapsed > 200 && r < 0.36) {
-      t = { type: "tank", hp: 7 * tier, speed: 32 + speedRamp * 0.4 };
-    } else if (cappedElapsed > 160 && r < 0.5 && !ring) {
-      t = { type: "shooter", hp: 2.8 * tier, speed: 48 + speedRamp * 0.8 };
+      t = { type: "tank", hp: 7 * tier, speed: (32 + speedRamp * 0.4) * stageSpeed };
+    } else if (cappedElapsed > 160 && r < 0.5 + shooterBonus && !ring) {
+      t = { type: "shooter", hp: 2.8 * tier, speed: (48 + speedRamp * 0.8) * stageSpeed };
     }
 
     enemies.push({ x, y, flash: 0, wob: Math.random() * 6, slowT: 0, ...t, hp: Math.ceil(t.hp), max: Math.ceil(t.hp) });
@@ -1080,10 +1155,11 @@
     }
     const baseSpd = 230 + (b.spd || 0) * 35;
     const sp = dashT > 0 ? 780 : baseSpd;
-    const nx = clamp(P.x + m.x * sp * dt, 24, WW - 24);
-    const ny = clamp(P.y + m.y * sp * dt, 24, WH - 24);
+    const nx = P.x + m.x * sp * dt;
+    const ny = P.y + m.y * sp * dt;
     if (!blocked(nx, P.y)) P.x = nx;
     if (!blocked(P.x, ny)) P.y = ny;
+    syncWorld();
 
     if (keys.has("dash")) dash();
 
@@ -1137,8 +1213,8 @@
 
     spawnT -= dt;
     if (spawnT <= 0) {
-      spawnT = CFG.spawnInterval(cappedElapsed);
-      const count = CFG.spawnCount(cappedElapsed);
+      spawnT = CFG.spawnInterval(cappedElapsed) * SPAWN_INTERVAL_SCALE;
+      const count = Math.max(1, CFG.spawnCount(cappedElapsed) + SPAWN_COUNT_BONUS);
       for (let k = 0; k < count && enemies.length < 95; k++) {
         spawnEnemy(tier, 560);
       }
@@ -1161,7 +1237,7 @@
         // 3 次閃爍預警結束！百鬼正式大群衝出！
         surgeWarningT = 0;
         lastWarningCycle = 0;
-        surgeT = CFG.SURGE_INTERVAL;
+        surgeT = SURGE_INTERVAL;
         AUDIO.thunder();
         RENDERER.triggerShake(14);
         say("百鬼夜行！突破重圍！", P.x, P.y - 75, "#ff3333");
@@ -1277,20 +1353,25 @@
     enemyBullets = enemyBullets.filter(eb => eb.life > 0);
     enemies = enemies.filter(e => e.hp > 0 && (e.type === "boss" || e.type === "mis" || dist(e, P) < 1150));
 
+    if (finalBossDefeated && delivered >= GOAL_DELIVERIES && state === "play") {
+      startVictorySequence();
+      return;
+    }
+
     // 3 / 6 / 9 分鐘中型 Boss，9:50 最終 Boss；上一隻尚未擊破時不重疊。
     bossT -= dt;
-    if (bossT <= 0 && bossStage < CFG.BOSS_TIMES.length && !enemies.some(e => e.type === "boss")) {
+    if (bossT <= 0 && bossStage < BOSS_TIMES.length && !enemies.some(e => e.type === "boss")) {
       const a = Math.random() * 6.283;
       const cappedElapsed = Math.min(elapsed, DAWN);
-      const isFinal = bossStage === CFG.BOSS_TIMES.length - 1;
+      const isFinal = bossStage === BOSS_TIMES.length - 1;
       const stageScale = 1 + bossStage * 0.15 + (isFinal ? 0.55 : 0);
-      const hp = Math.round((18 + level * 2.2) * (1 + pw * 0.04 + cappedElapsed / 380) * stageScale);
+      const hp = Math.round((18 + level * 2.2) * (1 + pw * 0.04 + cappedElapsed / 380) * stageScale * (STAGE_ENEMY.bossHpScale || 1));
       const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
       let bossPool = ALL.filter(w => !livingMisWords.has(w.jp));
       if (bossPool.length === 0) bossPool = ALL;
       enemies.push({
-        x: clamp(P.x + Math.cos(a) * 520, 50, WW - 50),
-        y: clamp(P.y + Math.sin(a) * 520, 50, WH - 50),
+        x: P.x + Math.cos(a) * 520,
+        y: P.y + Math.sin(a) * 520,
         type: "boss",
         word: STORE.pick(bossPool),
         shield: true,
@@ -1301,9 +1382,10 @@
         wob: 0
       });
       bossStage++;
-      const nextBossAt = CFG.BOSS_TIMES[bossStage];
+      const nextBossAt = BOSS_TIMES[bossStage];
       bossT = nextBossAt == null ? Number.POSITIVE_INFINITY : Math.max(0, nextBossAt - elapsed);
-      say(isFinal ? "⚠ 大妖鬼" : "👹 大妖鬼", P.x, P.y - 75, "#ff8f8f");
+      const harborBoss = STAGE_ENEMY.bossTheme === "harbor";
+      say(isFinal ? (harborBoss ? "⚠ 港霧大妖" : "⚠ 大妖鬼") : (harborBoss ? "⚓ 港霧妖將" : "👹 大妖鬼"), P.x, P.y - 75, "#ff8f8f");
       AUDIO.thunder();
     }
 
@@ -1404,8 +1486,8 @@
     }
 
     // 鏡頭平滑追蹤
-    const targetCamX = clamp(P.x - W / 2, 0, WW - W);
-    const targetCamY = clamp(P.y - H / 2, 0, WH - H);
+    const targetCamX = P.x - W / 2;
+    const targetCamY = P.y - H / 2;
     const curCam = RENDERER.getCam();
     RENDERER.setCam(
       curCam.x + (targetCamX - curCam.x) * Math.min(1, dt * 9),
@@ -1413,6 +1495,34 @@
     );
 
     if (xp >= xpNeed()) offerUp();
+  }
+
+  function drawStageWeather(t) {
+    if (STAGE_VISUAL.weather !== "rain") return;
+    const intensity = Math.max(0.4, STAGE_VISUAL.rainIntensity || 1);
+    const drops = Math.round(72 * intensity);
+    ctx.save();
+    ctx.strokeStyle = "rgba(174, 218, 238, 0.48)";
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = "round";
+    for (let i = 0; i < drops; i++) {
+      const x = ((i * 97 + t * 430) % (W + 120)) - 60;
+      const y = ((i * 61 + t * 760) % (H + 120)) - 60;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - 12, y + 28);
+      ctx.stroke();
+    }
+    const fog = Math.max(0, Math.min(0.35, STAGE_VISUAL.fog || 0));
+    if (fog > 0) {
+      const haze = ctx.createLinearGradient(0, 0, W, H);
+      haze.addColorStop(0, `rgba(120, 150, 170, ${fog * 0.55})`);
+      haze.addColorStop(0.5, `rgba(180, 198, 205, ${fog})`);
+      haze.addColorStop(1, `rgba(98, 125, 148, ${fog * 0.7})`);
+      ctx.fillStyle = haze;
+      ctx.fillRect(0, 0, W, H);
+    }
+    ctx.restore();
   }
 
   // ---------- 繪圖主循環 ----------
@@ -1433,7 +1543,7 @@
     ctx.translate(-cam.x + shakeOffset.x, -cam.y + shakeOffset.y);
 
     // 1. 地面與道路
-    RENDERER.drawGround(visualElapsed, DAWN);
+    RENDERER.drawGround(visualElapsed, DAWN, activeChunks);
 
     // 2. 町屋建築（帶遠程導引光柱與標記）
     houses.forEach(h => {
@@ -1920,6 +2030,7 @@
 
     // 17. 櫻花雨與夜行幽火
     RENDERER.drawAtmosphere(visualElapsed);
+    drawStageWeather(visualElapsed);
 
     // 18. 送貨目的地導引羅盤 (人魂靈火導引)
     const targetHouse = job ? job.to : orders.reduce((n, o) => (!n || dist(P, o.from) < dist(P, n) ? o.from : n), null);
@@ -1998,6 +2109,10 @@
         state = codexBack;
         return;
       }
+      if (state === "overworld" && e.key === "Escape") {
+        state = "menu";
+        return;
+      }
       if (state === "play" || state === "pause") {
         togglePause();
         return;
@@ -2006,7 +2121,7 @@
     if (e.key === "c" || e.key === "C") {
       if (state === "codex") {
         state = codexBack;
-      } else if (state === "menu" || state === "won" || state === "lost" || state === "pause") {
+      } else if (state === "menu" || state === "overworld" || state === "won" || state === "lost" || state === "pause") {
         codexBack = state;
         state = "codex";
       }
@@ -2020,10 +2135,21 @@
       pickUp(+e.key - 1);
       return;
     }
+    if (state === "overworld") {
+      if (["ArrowLeft", "a", "A"].includes(e.key)) { e.preventDefault(); moveOverworld(-1, 0); }
+      else if (["ArrowRight", "d", "D"].includes(e.key)) { e.preventDefault(); moveOverworld(1, 0); }
+      else if (["ArrowUp", "w", "W"].includes(e.key)) { e.preventDefault(); moveOverworld(0, -1); }
+      else if (["ArrowDown", "s", "S"].includes(e.key)) { e.preventDefault(); moveOverworld(0, 1); }
+      else if (e.key === "Enter" || e.key === " " || e.key === "e" || e.key === "E") { e.preventDefault(); confirmOverworld(); }
+      return;
+    }
     if (state !== "play") {
-      if (e.key === "Enter" && state !== "levelup" && state !== "codex" && state !== "pause") {
-        if ((state === "won" || state === "lost") && endCooldown > 0) return;
-        start();
+      if (e.key === "Enter") {
+        if (state === "menu") enterOverworld();
+        else if (state === "won" || state === "lost") {
+          if (endCooldown > 0) return;
+          start();
+        }
       }
       return;
     }
@@ -2109,6 +2235,27 @@
       }
       return;
     }
+    if (state === "overworld") {
+      const back = window.OVERWORLD.BACK_BTN;
+      if (p.x >= back.x && p.x <= back.x + back.w && p.y >= back.y && p.y <= back.y + back.h) {
+        state = "menu";
+        return;
+      }
+
+      const enter = window.OVERWORLD.ENTER_BTN;
+      const here = window.OVERWORLD.currentNode(overworld);
+      if (window.OVERWORLD.isEnterable(here) && p.x >= enter.x && p.x <= enter.x + enter.w && p.y >= enter.y && p.y <= enter.y + enter.h) {
+        confirmOverworld();
+        return;
+      }
+
+      const node = window.OVERWORLD.hitTest(overworld, p.x, p.y);
+      if (node) {
+        if (node.id === overworld.currentId) confirmOverworld();
+        else window.OVERWORLD.moveTo(overworld, node.id);
+      }
+      return;
+    }
     if (state === "menu") {
       // 點擊右上角卡片一覽與單字圖鑑鈕
       if (p.y >= 20 && p.y <= 62) {
@@ -2126,15 +2273,24 @@
         }
       }
       const s = UI.MENU_START_BTN;
-      if (s && p.x >= s.x && p.x <= s.x + s.w && p.y >= s.y && p.y <= s.y + s.h) return start();
+      if (s && p.x >= s.x && p.x <= s.x + s.w && p.y >= s.y && p.y <= s.y + s.h) return enterOverworld();
       return;
     }
     if (state === "won" || state === "lost") {
       if (endCooldown > 0) return;
-      // 檢查是否點擊了結算畫面的「再戰御札」按鈕區域（使用 UI.RESTART_BTN 同步座標）
+      // 結算畫面可直接再戰、回旅路地圖，或回首頁。
       const r = UI.RESTART_BTN;
       if (r && p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h) {
         return start();
+      }
+      const w = UI.WORLD_BTN;
+      if (w && p.x >= w.x && p.x <= w.x + w.w && p.y >= w.y && p.y <= w.y + w.h) {
+        return enterOverworld(false);
+      }
+      const h = UI.HOME_BTN;
+      if (h && p.x >= h.x && p.x <= h.x + h.w && p.y >= h.y && p.y <= h.y + h.h) {
+        state = "menu";
+        return;
       }
       return;
     }
@@ -2210,18 +2366,23 @@
       update(dt);
     } else if (state === "victory") {
       updateVictorySequence(dt);
+    } else if (state === "overworld") {
+      window.OVERWORLD.update(overworld, dt);
+      if (overworldNoticeT > 0) overworldNoticeT = Math.max(0, overworldNoticeT - dt);
     }
-    AUDIO.updateBgm(dt, state, elapsed, DAWN);
+    AUDIO.updateBgm(dt, state, state === "overworld" ? 0 : elapsed, DAWN);
 
     if ((state === "won" || state === "lost") && !ended) {
       ended = true;
-      STORE.finish(score, delivered);
+      STORE.finish(STAGE.id, score, delivered, state === "won");
     }
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     if (state === "menu") {
       UI.drawMainMenu(ctx, STORE, now / 1000);
+    } else if (state === "overworld") {
+      window.OVERWORLD.draw(ctx, overworld, now / 1000, overworldNoticeT);
     } else {
       drawWorld();
       if (state === "victory") {
@@ -2251,7 +2412,7 @@
     }
 
     if (state === "codex") {
-      UI.drawCodex(ctx, STORE, ALL, codexTab);
+      UI.drawCodex(ctx, STORE, CODEX_ALL, codexTab);
     }
 
     requestAnimationFrame(frame);
