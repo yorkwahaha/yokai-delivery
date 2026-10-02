@@ -44,15 +44,33 @@
       display: block;
       box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
     }
+    #rotate-hint {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      place-items: center;
+      background: #080c1a;
+      color: #ffe28b;
+      font-size: clamp(20px, 7vw, 34px);
+      font-weight: 900;
+      letter-spacing: .12em;
+      pointer-events: none;
+    }
+    @media (orientation: portrait) and (max-width: 900px) {
+      #rotate-hint { display: grid; }
+    }
   </style>
 </head>
 <body>
   <div id="game-container">
     <canvas id="game" aria-label="妖怪快遞社：夜行配達"></canvas>
   </div>
+  <div id="rotate-hint" aria-hidden="true">↻　橫向遊玩</div>
 
   <script src="js/words.js"></script>
   <script src="js/store.js"></script>
+  <script src="js/config.js"></script>
   <script src="js/assets.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/renderer.js"></script>

@@ -1,7 +1,10 @@
 (() => {
   "use strict";
 
-  const W = 900, H = 600, WW = 2700, WH = 1800, DAWN = 300;
+  const W = 900, H = 600, WW = 2700, WH = 1800;
+  const CFG = window.GAME_CONFIG;
+  const DAWN = CFG.RUN_SECONDS;
+  const GOAL_DELIVERIES = CFG.GOAL_DELIVERIES;
   const cv = document.getElementById("game");
 
   // 初始化高畫質渲染引擎
@@ -30,7 +33,7 @@
       if (si === empty) return;
       const x = col * 900 + s[0], y = row * 600 + s[1];
       const wordData = d.words[w++];
-      const [jp, zh, icon, romaji] = wordData;
+      const [jp, zh, icon, romaji, example] = wordData;
 
       let bType = "house_shop";
       if (d.theme === "tavern" || d.theme === "market") bType = "house_tavern";
@@ -45,7 +48,7 @@
         color: d.color,
         bType,
         district: d.name,
-        word: { jp, zh, icon, romaji: romaji || "" }
+        word: { jp, zh, icon, romaji: romaji || "", example: example || "" }
       });
     });
   });
@@ -63,7 +66,7 @@
     if (!d) return [];
     return d.words
       .filter(w => w[0] !== word.jp)
-      .map(w => ({ jp: w[0], zh: w[1], icon: w[2], romaji: w[3] || "" }));
+      .map(w => ({ jp: w[0], zh: w[1], icon: w[2], romaji: w[3] || "", example: w[4] || "" }));
   };
 
   // ---------- 遊戲狀態 ----------
@@ -71,7 +74,7 @@
   const b = { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0 };
   const keys = new Set();
   let state = "menu";
-  let elapsed = 0, dawnTimeBonus = 0, warnDawnT = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;
+  let elapsed = 0, warnDawnT = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;
   let orders = [], job = null, enemies = [], enemyBullets = [], gems = [], parts = [], texts = [], rings = [], misses = [];
   let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0, endCooldown = 0;
   let choices = [], joy = null, touch = false, inter = null, cargo = { x: 0, y: 0 }, pTrail = [], last = performance.now();
@@ -79,7 +82,8 @@
   const btnPause = { x: W - 52, y: 14, w: 38, h: 52 };
   let gpPrevButtons = [], gpMove = { x: 0, y: 0 };
 
-  let bossT = 75, ended = false, bossQ = null, codexBack = "menu", codexTab = "cards";
+  let bossT = CFG.BOSS_TIMES[0], bossStage = 0, finalBossDefeated = false;
+  let ended = false, bossQ = null, codexBack = "menu", codexTab = "cards";
   const WL = { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 };
   const WI = {
     katana: { id: "katana", jp: "かたな", zh: "妖刀斬", type: "active", category: "方向斬擊", desc: "揮出凌厲新月刀芒，斬裂前方扇形妖怪" },
@@ -93,61 +97,74 @@
   const WEAPON_UPGRADES = {
     katana: [
       "揮出凌厲新月刀芒，斬擊前方扇形妖怪",
-      "斬擊半徑大幅擴大，刀芒威力提升 +35%",
-      "鋒刃疾馳銳不可當，暴擊機率提升 +20%",
-      "雙刃狂瀾！前方連續揮出雙重刀芒",
-      "極意・瞬獄無想斬！大範圍毀滅重創"
+      "斬擊距離 +16，基礎傷害 +0.8",
+      "斬擊距離 +16，基礎傷害再 +0.8",
+      "斬擊距離 +16，基礎傷害再 +0.8",
+      "斬擊距離 +16，基礎傷害再 +0.8"
     ],
     barrier: [
       "展開 360 度除魔陣，週期性震退重創四周敵人",
-      "除魔結界範圍大幅擴展，震退衝擊強化",
-      "結界激發頻率加快，冷卻時間縮短 25%",
-      "除魔波傷害大增，妖怪受擊硬直延長",
-      "八咫神鏡結界！全方位金光連續轟殺"
+      "範圍、傷害提升，冷卻縮短",
+      "範圍、傷害提升，冷卻再縮短",
+      "範圍、傷害提升，冷卻再縮短",
+      "範圍、傷害提升至最高階"
     ],
     fire: [
-      "周身飛旋烈焰火把，高速甩擊灼燒貼身敵人",
-      "火勢猛烈咆哮，火把旋轉速度大幅加快",
-      "烈焰覆蓋半徑擴大，灼燒傷害大幅強化",
-      "追加召喚第 3 顆烈焰火把，形成不破火環",
-      "三昧真火神輪！火星四濺，形成爆裂烈焰風暴"
+      "召喚 2 顆狐火環繞護身",
+      "狐火增加至 3 顆，傷害提升",
+      "狐火增加至 4 顆，傷害提升",
+      "狐火增加至 5 顆，傷害提升",
+      "維持 5 顆狐火，傷害提升至最高階"
     ],
     boom: [
       "擲出穿透陰陽符咒，來回重創路徑上敵人",
-      "符咒飛行速度與穿透威力顯著提升",
-      "一次擲出 2 枚符咒，覆蓋雙倍扇形路徑",
-      "迴旋飛行距離增長，穿透傷害大幅強化",
-      "八方敕令封魔符！多枚符咒全屏連續來回穿梭"
+      "符咒傷害提升，冷卻縮短",
+      "一次擲出 2 枚符咒",
+      "符咒傷害提升，冷卻再縮短",
+      "一次擲出 3 枚符咒"
     ],
     thunder: [
       "引導九天金雷，精準轟擊全場最強大妖怪",
-      "金雷轟擊半徑擴展，雷震擴散傷害強化",
-      "落雷數量增加至 2 道，同時轟擊兩名強敵",
-      "召雷冷卻時間大幅縮短 30%",
-      "九天玄雷狂暴天罰！狂雷連環無情轟殺"
+      "同時鎖定 2 名強敵，傷害提升",
+      "落雷傷害提升，冷卻縮短",
+      "同時鎖定 3 名強敵",
+      "落雷傷害提升至最高階"
     ],
     needle: [
       "向面朝方向高速散射破魔靈針，貫穿前方妖怪",
-      "靈針連射波數增加，穿透力顯著強化",
-      "靈針飛行速度大幅提升，命中傷害強化",
-      "散射扇面更廣，同時貫穿更多路徑敵人",
-      "萬針齊發！化作狂暴破魔針雨席捲全場"
+      "靈針傷害提升，冷卻縮短",
+      "靈針增加至 5 發，傷害提升",
+      "靈針傷害提升，冷卻再縮短",
+      "靈針增加至 7 發"
     ]
   };
-  let proj = [], needles = [], surgeT = 45, fAng = 0;
+  let proj = [], needles = [], surgeT = CFG.SURGE_FIRST, fAng = 0;
   let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1, lastWarningCycle = 0;
   const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0 };
 
   const UP = [
     { id: "shield", n: "金剛結界", s: "けっかい", cat: "防禦生存", d: "召喚金剛勾玉護盾，抵擋 2 次受傷（可疊加）", f: () => { b.shield = Math.min(6, (b.shield || 0) + 2); }, ok: () => (b.shield || 0) < 6 },
     { id: "oil_max", n: "長明燈油", s: "あぶら", cat: "血厚續航", d: "燈油上限 +30 並立即補滿，常駐每秒回油 +0.22（上限 2 層）", f: () => { maxOil += 30; oil = maxOil; b.oilRegen = Math.min(0.44, (b.oilRegen || 0) + 0.22); }, ok: () => (b.oilRegen || 0) < 0.44 },
-    { id: "oil_heal", n: "添燈香油", s: "かいふく", cat: "緊急急救", d: "燈油即刻恢復 +50% 並引發除魔波", f: () => { oil = Math.min(maxOil, oil + maxOil * 0.5); b.oilHealCount = (b.oilHealCount || 0) + 1; burst(P.x, P.y, "#ffd27a", 30); } },
-    { id: "dmg", n: "修羅破軍", s: "こうげき", cat: "攻擊爆發", d: "所有武器與法術傷害全面提升 +25%", f: () => { b.dmg += 0.35; } },
-    { id: "rate", n: "神樂疾奏", s: "れんぞく", cat: "攻擊爆發", d: "攻擊與秘術冷卻時間縮短 20%", f: () => { b.rate++; }, ok: () => b.rate < 4 },
-    { id: "crit", n: "心眼一閃", s: "かいしん", cat: "攻擊爆發", d: "暴擊率 +20%，暴擊傷害大幅躍升", f: () => { b.crit = (b.crit || 0) + 1; }, ok: () => (b.crit || 0) < 3 },
-    { id: "spd", n: "神足草履", s: "いどう", cat: "神速機動", d: "移動速度 +15%（最多可疊加 3 次）", f: () => { b.spd = (b.spd || 0) + 1; }, ok: () => (b.spd || 0) < 3 },
+    { id: "oil_heal", n: "添燈香油", s: "かいふく", cat: "緊急急救", d: "恢復 50% 燈油，並震退周圍妖怪", f: () => {
+      oil = Math.min(maxOil, oil + maxOil * 0.5);
+      rings.push({ x: P.x, y: P.y, r: 210, maxR: 210, life: 0.38, maxL: 0.38, color: "#a5d6a7" });
+      for (const e of enemies) {
+        if (e.hp <= 0) continue;
+        const ed = dist(P, e);
+        if (ed > 210) continue;
+        hurt(e, 3.2 * b.dmg);
+        const kx = (e.x - P.x) / (ed || 1), ky = (e.y - P.y) / (ed || 1);
+        e.x += kx * 90; e.y += ky * 90;
+      }
+      burst(P.x, P.y, "#a5d6a7", 30);
+      AUDIO.barrier();
+    } },
+    { id: "dmg", n: "修羅破軍", s: "こうげき", cat: "攻擊爆發", d: "整體傷害係數 +0.35", f: () => { b.dmg += 0.35; } },
+    { id: "rate", n: "神樂疾奏", s: "れんぞく", cat: "攻擊爆發", d: "妖刀、結界、靈針冷卻縮短", f: () => { b.rate++; }, ok: () => b.rate < 4 },
+    { id: "crit", n: "心眼一閃", s: "かいしん", cat: "攻擊爆發", d: "妖刀/天雷暴擊率 +15%，結界 +10%", f: () => { b.crit = (b.crit || 0) + 1; }, ok: () => (b.crit || 0) < 3 },
+    { id: "spd", n: "神足草履", s: "いどう", cat: "神速機動", d: "移動速度約 +15%（最多 3 層）", f: () => { b.spd = (b.spd || 0) + 1; }, ok: () => (b.spd || 0) < 3 },
     { id: "dash", n: "縮地瞬步", s: "ダッシュ", cat: "神速機動", d: "衝刺冷卻大幅縮短，衝刺附加無敵突進", f: () => { b.dash++; }, ok: () => b.dash < 3 },
-    { id: "mag", n: "招財勾玉", s: "じしゃく", cat: "輔助資源", d: "靈玉經驗與物資吸取範圍 +60%", f: () => { b.mag++; }, ok: () => b.mag < 3 }
+    { id: "mag", n: "招財勾玉", s: "じしゃく", cat: "輔助資源", d: "靈玉吸取範圍 +80", f: () => { b.mag++; }, ok: () => b.mag < 3 }
   ];
 
   const say = (v, x, y, c = "#fff") => texts.push({ v, x, y, c, life: 1.8 });
@@ -159,7 +176,8 @@
   }
 
   function makeOrder() {
-    if (orders.length >= 5) return;
+    const orderCap = CFG.orderSlots(elapsed, delivered);
+    if (orders.length >= orderCap) return;
     const busy = new Set(orders.map(o => o.from.id));
     const from = pick(houses.filter(h => !busy.has(h.id)));
     const to = pick(houses.filter(h => h !== from && dist(h, from) > 420 && dist(h, from) < 2000));
@@ -189,7 +207,8 @@
       chosenWord = STORE.pick(pool);
     }
 
-    orders.push({ from, to, word: chosenWord, rev: Math.random() < 0.5, life: 95 });
+    const reverse = delivered >= 2 && Math.random() < 0.35;
+    orders.push({ from, to, word: chosenWord, rev: reverse, life: 110 });
   }
 
   function togglePause() {
@@ -209,11 +228,12 @@
     Object.assign(P, { x: 1350, y: 900, inv: 1.2, faceAng: 0, faceX: 1 });
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0 });
     Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 });
-    proj = []; needles = []; enemyBullets = []; surgeT = 45; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1; lastWarningCycle = 0;
+    proj = []; needles = []; enemyBullets = []; surgeT = CFG.SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1; lastWarningCycle = 0;
     wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5;
-    elapsed = 0; dawnTimeBonus = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
+    elapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
     orders = []; job = null; enemies = []; gems = []; parts = []; texts = []; rings = []; misses = [];
-    bossT = 75; ended = false; bossQ = null; orderT = 3; spawnT = 1; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0;
+    bossStage = 0; bossT = CFG.BOSS_TIMES[0]; finalBossDefeated = false;
+    ended = false; bossQ = null; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0;
     keys.clear(); joy = null; gpMove = { x: 0, y: 0 };
     pTrail = [];
     for (let i = 0; i <= 24; i++) {
@@ -221,11 +241,11 @@
     }
     cargo = { x: P.x - 44, y: P.y + 10 };
     if (STORE.startRun) STORE.startRun();
-    for (let i = 0; i < 4; i++) makeOrder();
+    makeOrder();
     RENDERER.setCam(clamp(P.x - W / 2, 0, WW - W), clamp(P.y - H / 2, 0, WH - H));
   }
 
-  const xpNeed = () => 10 + level * 9;
+  const xpNeed = () => CFG.xpNeed(level);
   const MAX_ACTIVE_WEAPONS = 4;
 
   function offerUp() {
@@ -343,21 +363,19 @@
       delivered++;
       if (j.assisted) {
         STORE.recAssisted(j.word.jp);
-        dawnTimeBonus += 2; // 輔助送達僅加 2 秒黎明推進
         oil = Math.min(maxOil, oil + 10);
         score += 25;
         say(`${w.jp}＝${w.zh} 輔助送達！`, pos.x, pos.y - 35, "#fff0a6");
         say("燈油 +10 點（神助）", pos.x, pos.y - 12, "#ffd27a");
       } else {
         STORE.rec(j.word.jp, true);
-        dawnTimeBonus += 10; // 自力送達加速黎明推進 10 秒（不影響怪物難度曲線）
         const gain = 10;
         oil = Math.min(maxOil, oil + 18 + gain);
         score += 50;
         say(`${w.jp}＝${w.zh} 配達完遂！`, pos.x, pos.y - 35, "#fff0a6");
         say(`燈油 +${18 + gain} 點`, pos.x, pos.y - 12, "#ffd27a");
       }
-      xp += j.rev ? 14 : 10;
+      xp += j.rev ? 18 : 12;
       burst(pos.x, pos.y, "#ffe28b", 32);
       RENDERER.triggerShake(7);
       AUDIO.deliverSuccess();
@@ -371,8 +389,8 @@
         x: pos.x, y: pos.y + 20,
         type: "mis",
         w: j.word,
-        hp: 5 + Math.floor(cappedElapsed / 90),
-        max: 5 + Math.floor(cappedElapsed / 90),
+        hp: 5 + Math.floor(cappedElapsed / 180),
+        max: 5 + Math.floor(cappedElapsed / 180),
         speed: 210 + (b.spd || 0) * 35,
         flash: 0,
         wob: 0
@@ -420,8 +438,9 @@
     score += isMis ? 30 : e.type === "boss" ? 400 : 15;
 
     if (e.type === "boss") {
+      if (e.final) finalBossDefeated = true;
       oil = Math.min(maxOil, oil + 35);
-      say("大妖鬼擊破！燈油 +35 點", e.x, e.y - 65, "#ffe9a0");
+      say(e.final ? "夜明けの大妖鬼 撃破！" : "大妖鬼擊破！燈油 +35", e.x, e.y - 65, "#ffe9a0");
       RENDERER.triggerShake(14);
       for (let k = 0; k < 8; k++) {
         gems.push({ x: e.x + (Math.random() - 0.5) * 70, y: e.y + (Math.random() - 0.5) * 70, v: 6 });
@@ -458,11 +477,23 @@
   }
 
   function pollGamepad() {
-    if (!navigator.getGamepads) return;
+    if (!navigator.getGamepads) {
+      gpMove = { x: 0, y: 0 };
+      gpPrevButtons = [];
+      return;
+    }
     const gamepads = navigator.getGamepads();
-    if (!gamepads) return;
+    if (!gamepads) {
+      gpMove = { x: 0, y: 0 };
+      gpPrevButtons = [];
+      return;
+    }
     const gp = Array.from(gamepads).find(g => g && g.connected);
-    if (!gp) return;
+    if (!gp) {
+      gpMove = { x: 0, y: 0 };
+      gpPrevButtons = [];
+      return;
+    }
 
     // 1. 蘑菇頭類比搖桿 (左搖桿 axes 0, 1) + 十字鍵 (buttons 12, 13, 14, 15)
     let ax = gp.axes[0] || 0;
@@ -811,7 +842,7 @@
     // 5. 狐火環繞 (Fireball)
     if (WL.fire > 0) {
       fAng += dt * 2.8;
-      const count = WL.fire + 1;
+      const count = Math.min(5, WL.fire + 1);
       for (let i = 0; i < count; i++) {
         const a = fAng + (i * 6.283) / count;
         const fx = P.x + Math.cos(a) * 96, fy = P.y + Math.sin(a) * 96;
@@ -867,15 +898,15 @@
     if (blocked(x, y, 26)) return;
     const r = Math.random();
 
-    // 怪物速度曲線：封頂於 300 秒，破曉後加班不增加怪物難度
+    // 怪物速度曲線：封頂於 10 分鐘，破曉後加班不再增加怪物難度。
     const cappedElapsed = Math.min(elapsed, DAWN);
     const speedRamp = (cappedElapsed / DAWN) * 75;
     let t = { type: "ghost", hp: 2.0 * tier, speed: 52 + speedRamp * 0.9 };
-    if (cappedElapsed > 45 && r < 0.22) {
+    if (cappedElapsed > 90 && r < 0.22) {
       t = { type: "runner", hp: 1.5 * tier, speed: 110 + speedRamp * 1.1 };
-    } else if (cappedElapsed > 100 && r < 0.36) {
+    } else if (cappedElapsed > 200 && r < 0.36) {
       t = { type: "tank", hp: 7 * tier, speed: 32 + speedRamp * 0.4 };
-    } else if (cappedElapsed > 80 && r < 0.5 && !ring) {
+    } else if (cappedElapsed > 160 && r < 0.5 && !ring) {
       t = { type: "shooter", hp: 2.8 * tier, speed: 48 + speedRamp * 0.8 };
     }
 
@@ -889,15 +920,15 @@
     if (RENDERER.updateEffects(dt)) return;
 
     elapsed += dt;
-    oil = Math.min(maxOil, oil - dt * 0.85 + (b.oilRegen || 0) * dt); // 燈油自然消耗（長明燈油提供常駐回油）
+    oil = Math.min(maxOil, oil - dt * 0.43 + (b.oilRegen || 0) * dt); // 10 分鐘制：總自然耗油維持接近舊 5 分鐘制
     if (oil <= 0) {
       oil = 0;
       state = "lost";
       endCooldown = 1.0;
       return;
     }
-    if (elapsed + dawnTimeBonus >= DAWN) {
-      if (delivered >= 3) {
+    if (elapsed >= DAWN) {
+      if (delivered >= GOAL_DELIVERIES && finalBossDefeated) {
         state = "won";
         endCooldown = 1.0;
         AUDIO.deliverSuccess();
@@ -905,7 +936,8 @@
       } else {
         if (!warnDawnT || warnDawnT <= 0) {
           warnDawnT = 4.0;
-          say("孤燈難明！需完成 3 單配達方能迎來破曉！", P.x, P.y - 75, "#ffb3ba");
+          const need = Math.max(0, GOAL_DELIVERIES - delivered);
+          say(need > 0 ? `あと配達 ${need}` : "大妖鬼を倒せ！", P.x, P.y - 75, "#ffb3ba");
         }
       }
     }
@@ -940,9 +972,10 @@
     orders = orders.filter(o => o.life > 0);
 
     orderT -= dt;
-    if (orderT <= 0 || orders.length < 3) {
+    const desiredOrders = CFG.orderSlots(elapsed, delivered);
+    if (orderT <= 0 || orders.length < desiredOrders) {
       makeOrder();
-      orderT = 5 + Math.random() * 2;
+      orderT = 7 + Math.random() * 3;
     }
 
     // 玩家位移（基礎速度微調較慢，可藉由卡片提升）
@@ -972,7 +1005,7 @@
 
     // 沿著歷史軌跡尋找相距 44px 的座標點作為跟隨夥伴目標
     const FOLLOW_DIST = 44;
-    let targetPos = { x: P.x - 44 * (P.face || 1), y: P.y + 10 };
+    let targetPos = { x: P.x - 44 * (P.faceX || 1), y: P.y + 10 };
     if (pTrail.length > 0) {
       let accum = 0;
       let prevPt = { x: P.x, y: P.y };
@@ -1002,15 +1035,15 @@
     // 武器運算
     weapons(dt);
 
-    // 敵人生成強度計算：封頂於 300 秒，破曉後加班不增加怪物難度
+    // 敵人生成強度計算：整段 10 分鐘平滑拉升，破曉後加班不再增加難度。
     const cappedElapsed = Math.min(elapsed, DAWN);
     const pw = Object.values(WL).reduce((x, y) => x + y, 0) + b.dmg + b.rate;
-    const tier = 1 + cappedElapsed / 65 + pw * 0.05;
+    const tier = CFG.enemyTier(cappedElapsed, pw);
 
     spawnT -= dt;
     if (spawnT <= 0) {
-      spawnT = Math.max(0.3, 1.6 - cappedElapsed * 0.0048);
-      const count = Math.min(6, 1 + Math.floor(cappedElapsed / 50));
+      spawnT = CFG.spawnInterval(cappedElapsed);
+      const count = CFG.spawnCount(cappedElapsed);
       for (let k = 0; k < count && enemies.length < 95; k++) {
         spawnEnemy(tier, 560);
       }
@@ -1033,7 +1066,7 @@
         // 3 次閃爍預警結束！百鬼正式大群衝出！
         surgeWarningT = 0;
         lastWarningCycle = 0;
-        surgeT = 48; // 下一次百鬼夜行間隔
+        surgeT = CFG.SURGE_INTERVAL;
         AUDIO.thunder();
         RENDERER.triggerShake(14);
         say("百鬼夜行！突破重圍！", P.x, P.y - 75, "#ff3333");
@@ -1050,7 +1083,7 @@
         AUDIO.warningPulse(1);
         RENDERER.triggerShake(5);
         surgePendingTier = tier;
-        surgePendingCount = 12 + Math.floor(cappedElapsed / 25);
+        surgePendingCount = 10 + Math.floor(cappedElapsed / 60);
       }
     }
 
@@ -1147,12 +1180,14 @@
     enemyBullets = enemyBullets.filter(eb => eb.life > 0);
     enemies = enemies.filter(e => e.hp > 0 && (e.type === "boss" || e.type === "mis" || dist(e, P) < 1150));
 
-    // Boss 生成（數值與速度封頂於 300 秒）
+    // 3 / 6 / 9 分鐘中型 Boss，9:50 最終 Boss；上一隻尚未擊破時不重疊。
     bossT -= dt;
-    if (bossT <= 0 && !enemies.some(e => e.type === "boss")) {
+    if (bossT <= 0 && bossStage < CFG.BOSS_TIMES.length && !enemies.some(e => e.type === "boss")) {
       const a = Math.random() * 6.283;
       const cappedElapsed = Math.min(elapsed, DAWN);
-      const hp = Math.round((16 + level * 2.5) * (1 + pw * 0.05 + cappedElapsed / 190));
+      const isFinal = bossStage === CFG.BOSS_TIMES.length - 1;
+      const stageScale = 1 + bossStage * 0.15 + (isFinal ? 0.55 : 0);
+      const hp = Math.round((18 + level * 2.2) * (1 + pw * 0.04 + cappedElapsed / 380) * stageScale);
       const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
       let bossPool = ALL.filter(w => !livingMisWords.has(w.jp));
       if (bossPool.length === 0) bossPool = ALL;
@@ -1162,13 +1197,16 @@
         type: "boss",
         word: STORE.pick(bossPool),
         shield: true,
+        final: isFinal,
         hp, max: hp,
         speed: 40 + (cappedElapsed / DAWN) * 45,
         flash: 0,
         wob: 0
       });
-      bossT = 90;
-      say("大妖鬼出現！答對單字即可破除結界", P.x, P.y - 75, "#ff8f8f");
+      bossStage++;
+      const nextBossAt = CFG.BOSS_TIMES[bossStage];
+      bossT = nextBossAt == null ? Number.POSITIVE_INFINITY : Math.max(0, nextBossAt - elapsed);
+      say(isFinal ? "⚠ 大妖鬼" : "👹 大妖鬼", P.x, P.y - 75, "#ff8f8f");
       AUDIO.thunder();
     }
 
@@ -1197,7 +1235,7 @@
     }
     gems = gems.filter(g => !g.done);
 
-    // 配送取貨（只要碰撞或貼著町屋任何一側，即可按 E 接案）
+    // 配送取貨：靠近町屋即可出現裝置對應的取貨操作。
     inter = null;
     if (!job) {
       let nd = 46;
@@ -1289,7 +1327,7 @@
     ctx.translate(-cam.x + shakeOffset.x, -cam.y + shakeOffset.y);
 
     // 1. 地面與道路
-    RENDERER.drawGround(elapsed + dawnTimeBonus, DAWN);
+    RENDERER.drawGround(elapsed, DAWN);
 
     // 2. 町屋建築（帶遠程導引光柱與標記）
     houses.forEach(h => {
@@ -1399,7 +1437,7 @@
           ctx.textAlign = "center";
           ctx.fillStyle = "#888899";
           ctx.font = "900 18px 'Zen Maru Gothic', sans-serif";
-          ctx.fillText(job.ans[i].jp, p.x, p.y + 6);
+          ctx.fillText(job.rev ? job.ans[i].zh : job.ans[i].jp, p.x, p.y + 6);
           // 畫排除叉號
           ctx.strokeStyle = "#e57373";
           ctx.lineWidth = 3;
@@ -1434,14 +1472,15 @@
         ctx.font = "900 22px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 4;
-        ctx.strokeText(job.ans[i].jp, p.x, p.y + (showMeaning ? 0 : 8));
+        const answerText = job.rev ? job.ans[i].zh : job.ans[i].jp;
+        ctx.strokeText(answerText, p.x, p.y + (showMeaning ? 0 : 8));
         ctx.fillStyle = "#161224";
-        ctx.fillText(job.ans[i].jp, p.x, p.y + (showMeaning ? 0 : 8));
+        ctx.fillText(answerText, p.x, p.y + (showMeaning ? 0 : 8));
 
         if (showMeaning) {
           ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
           ctx.fillStyle = "#d84315";
-          ctx.fillText(`【${job.ans[i].zh}】`, p.x, p.y + 19);
+          ctx.fillText(`【${job.rev ? job.ans[i].jp : job.ans[i].zh}】`, p.x, p.y + 19);
         }
         ctx.restore();
       });
@@ -1725,14 +1764,14 @@
       ctx.fillStyle = "#1e1824";
       ctx.font = "900 14px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
       // 委託送什麼東西一句話就好，送往哪裡不需要顯示
-      ctx.fillText(`${o.word.icon} 委託：送「${o.word.jp}」`, h.x, floatY + 23);
+      ctx.fillText(`${o.word.icon}  ${o.word.jp}${o.rev ? "  ↔" : ""}`, h.x, floatY + 23);
 
       // 剩餘時間條 (金黃至火紅)
       ctx.fillStyle = isTarget ? "#ff8833" : "#ffa726";
-      ctx.fillRect(h.x - 76, floatY + 34, (152 * o.life) / 95, 3);
+      ctx.fillRect(h.x - 76, floatY + 34, (152 * o.life) / 110, 3);
       ctx.restore();
 
-      // 靠近町屋時，在木札正下方懸掛「按 E 接案」小金標（懸掛於屋前，最頂層繪製）
+      // 靠近町屋時顯示最短操作標籤；觸控版不出現鍵盤字樣。
       if (isTarget) {
         ctx.save();
         const tagY = floatY + 48;
@@ -1758,7 +1797,7 @@
         ctx.textAlign = "center";
         ctx.fillStyle = "#1a1622";
         ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
-        ctx.fillText("按 E 接案", h.x, tagY + 16);
+        ctx.fillText(touch ? "取貨" : "E　取貨", h.x, tagY + 16);
         ctx.restore();
       }
     }
@@ -1766,7 +1805,7 @@
     ctx.restore();
 
     // 16. 動態 2D 光影遮罩（深夜至黎明）
-    RENDERER.renderLighting(P, LAMPS, oil, elapsed + dawnTimeBonus, DAWN);
+    RENDERER.renderLighting(P, LAMPS, oil, elapsed, DAWN);
 
     // 17. 櫻花雨與夜行幽火
     RENDERER.drawAtmosphere(elapsed);
@@ -1935,7 +1974,9 @@
           return;
         }
       }
-      return start();
+      const s = UI.MENU_START_BTN;
+      if (s && p.x >= s.x && p.x <= s.x + s.w && p.y >= s.y && p.y <= s.y + s.h) return start();
+      return;
     }
     if (state === "won" || state === "lost") {
       if (endCooldown > 0) return;
@@ -1947,10 +1988,11 @@
       return;
     }
     if (state === "levelup") {
-      const cardW = 248, cardH = 385, startX = 60, gap = 44, cy = 170;
+      const cardW = 720, cardH = 108, startX = 90, gap = 14, cy = 176;
       for (let i = 0; i < 3; i++) {
-        const cx = startX + i * (cardW + gap);
-        if (p.x >= cx && p.x <= cx + cardW && p.y >= cy && p.y <= cy + cardH) {
+        const cx = startX;
+        const rowY = cy + i * (cardH + gap);
+        if (p.x >= cx && p.x <= cx + cardW && p.y >= rowY && p.y <= rowY + cardH) {
           pickUp(i);
           return;
         }
@@ -1979,7 +2021,7 @@
       dash();
     } else if (p.x < W / 2 && p.y > 80 && !joy) {
       joy = { id: e.pointerId, x: p.x, y: p.y, dx: 0, dy: 0 };
-    } else if (p.y < 80 && p.x > 300 && p.x < 600 && job) {
+    } else if (job && UI.HINT_BTN && p.x >= UI.HINT_BTN.x && p.x <= UI.HINT_BTN.x + UI.HINT_BTN.w && p.y >= UI.HINT_BTN.y && p.y <= UI.HINT_BTN.y + UI.HINT_BTN.h) {
       triggerHint();
     }
   });
@@ -2026,12 +2068,12 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     if (state === "menu") {
-      UI.drawMainMenu(ctx, STORE, elapsed);
+      UI.drawMainMenu(ctx, STORE, now / 1000);
     } else {
       drawWorld();
       UI.drawHud(
-        ctx, P, oil, maxOil, elapsed + dawnTimeBonus, DAWN, delivered, failed, score, level, xp, xpNeed(),
-        job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT
+        ctx, P, oil, maxOil, elapsed, DAWN, delivered, failed, score, level, xp, xpNeed(),
+        job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, GOAL_DELIVERIES
       );
       if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
       if (bossQ) UI.drawBossQuiz(ctx, bossQ);

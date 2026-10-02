@@ -7,18 +7,20 @@ const ASSET_NAMES = [
   "house_shop", "house_shrine", "house_tavern", "prop_torii", "prop_lantern", "prop_sakura", "ground"
 ];
 let loadedCount = 0;
+const markSettled = () => {
+  loadedCount++;
+  if (loadedCount >= ASSET_NAMES.length) window.ART_READY = true;
+};
 
 ASSET_NAMES.forEach(n => {
   const img = new Image();
   img.onload = () => {
     ART[n] = img;
-    loadedCount++;
-    if (loadedCount >= ASSET_NAMES.length) {
-      window.ART_READY = true;
-    }
+    markSettled();
   };
   img.onerror = () => {
     console.warn(`[Assets] 圖片 assets/img/${n}.png (或 .jpg) 載入失敗，將使用程式繪製備援。`);
+    markSettled();
   };
   img.src = (n === "cover") ? "assets/img/cover.jpg" : "assets/img/" + n + ".png";
 });
@@ -35,6 +37,9 @@ try {
     const fallback = new Audio("assets/audio/bgm.mp3");
     fallback.loop = true;
     fallback.volume = 0.45;
+    fallback.addEventListener("error", () => {
+      window.BGM = null;
+    }, { once: true });
     window.BGM = fallback;
   }, { once: true });
 
