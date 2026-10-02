@@ -27,7 +27,7 @@ ASSET_NAMES.forEach(n => {
 
 // BGM 背景音樂：遊戲與旅路地圖各自使用獨立循環曲。
 // audio.js 會依畫面狀態切換，並在單字發音時暫時降低 BGM 音量。
-const MUSIC_VOLUME = 0.45;
+const MUSIC_VOLUME = 0.27;
 const configureMusic = audio => {
   audio.loop = true;
   audio.preload = "auto";

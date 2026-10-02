@@ -9,8 +9,8 @@ window.AUDIO = (() => {
   let wordDucking = false;
   let activeBgm = null;
   let musicShouldPlay = false;
-  const BGM_NORMAL_VOLUME = 0.45;
-  const BGM_DUCK_VOLUME = 0.16;
+  const BGM_NORMAL_VOLUME = 0.27;
+  const BGM_DUCK_VOLUME = 0.10;
   const bgmRamps = new Map();
 
   function musicTracks() {
