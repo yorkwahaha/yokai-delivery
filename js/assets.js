@@ -25,25 +25,34 @@ ASSET_NAMES.forEach(n => {
   img.src = (n === "cover") ? "assets/img/cover.jpg" : "assets/img/" + n + ".png";
 });
 
-// BGM 背景音樂載入（相容 bgm.mp3 或 BGM.mp3）
+// BGM 背景音樂：遊戲與旅路地圖各自使用獨立循環曲。
+// audio.js 會依畫面狀態切換，並在單字發音時暫時降低 BGM 音量。
+const MUSIC_VOLUME = 0.45;
+const configureMusic = audio => {
+  audio.loop = true;
+  audio.preload = "auto";
+  audio.volume = MUSIC_VOLUME;
+  return audio;
+};
+
 window.BGM = null;
+window.MAP_BGM = null;
 try {
-  const bgmAudio = new Audio("assets/audio/BGM.mp3");
-  bgmAudio.loop = true;
-  bgmAudio.volume = 0.45;
-  
+  const bgmAudio = configureMusic(new Audio("assets/audio/BGM.mp3"));
   bgmAudio.addEventListener("error", () => {
-    // 若大寫找不到，自動嘗試小寫 bgm.mp3
-    const fallback = new Audio("assets/audio/bgm.mp3");
-    fallback.loop = true;
-    fallback.volume = 0.45;
+    const fallback = configureMusic(new Audio("assets/audio/bgm.mp3"));
     fallback.addEventListener("error", () => {
       window.BGM = null;
     }, { once: true });
     window.BGM = fallback;
   }, { once: true });
-
   window.BGM = bgmAudio;
+
+  const mapAudio = configureMusic(new Audio("assets/audio/MAP.mp3"));
+  mapAudio.addEventListener("error", () => {
+    window.MAP_BGM = null;
+  }, { once: true });
+  window.MAP_BGM = mapAudio;
 } catch (e) {
   console.log("[Audio] 未檢測到外部 BGM 音訊檔，將使用內建 Web Audio 和風程序化樂器合成。");
 }

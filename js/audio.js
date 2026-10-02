@@ -5,6 +5,62 @@ window.AUDIO = (() => {
   let bgmStep = 0;
   let bgmTimer = 0;
   let wordClip = null;
+  let wordSpeechNonce = 0;
+  let wordDucking = false;
+  let activeBgm = null;
+  let musicShouldPlay = false;
+  const BGM_NORMAL_VOLUME = 0.45;
+  const BGM_DUCK_VOLUME = 0.16;
+  const bgmRamps = new Map();
+
+  function musicTracks() {
+    return [...new Set([window.BGM, window.MAP_BGM].filter(Boolean))];
+  }
+
+  function rampMusicVolume(audio, target, duration = 180) {
+    if (!audio) return;
+    const old = bgmRamps.get(audio);
+    if (old && typeof cancelAnimationFrame === "function") cancelAnimationFrame(old);
+    bgmRamps.delete(audio);
+
+    const safeTarget = Math.max(0, Math.min(1, target));
+    if (audio.paused || typeof requestAnimationFrame !== "function" || typeof performance === "undefined") {
+      audio.volume = safeTarget;
+      return;
+    }
+
+    const start = audio.volume;
+    const startedAt = performance.now();
+    const step = now => {
+      const t = Math.min(1, (now - startedAt) / duration);
+      audio.volume = start + (safeTarget - start) * t;
+      if (t < 1) {
+        bgmRamps.set(audio, requestAnimationFrame(step));
+      } else {
+        bgmRamps.delete(audio);
+      }
+    };
+    bgmRamps.set(audio, requestAnimationFrame(step));
+  }
+
+  function setWordDucking(enabled) {
+    wordDucking = enabled;
+    const target = enabled ? BGM_DUCK_VOLUME : BGM_NORMAL_VOLUME;
+    const duration = enabled ? 140 : 220;
+    musicTracks().forEach(audio => rampMusicVolume(audio, target, duration));
+  }
+
+  function beginWordSpeech() {
+    const nonce = ++wordSpeechNonce;
+    setWordDucking(true);
+    return nonce;
+  }
+
+  function endWordSpeech(nonce) {
+    if (nonce !== wordSpeechNonce) return;
+    wordClip = null;
+    setWordDucking(false);
+  }
 
   // 可替換的實體 MP3 音效。檔案不存在／解碼或播放失敗時，會自動退回下方既有 Web Audio 合成音效。
   // 命名採固定英文 kebab-case，之後只要把同名 MP3 丟進 assets/audio/sfx/ 即可，不必再改程式。
@@ -75,8 +131,8 @@ window.AUDIO = (() => {
     }
   }
 
-  // 接單、提示、送達與誤配都念同一個單字。全專案統一使用 Fish Audio「AZKi」聲線。
-  // Public model: 5f8f82504223455f906c53e6d3e6b8cd
+  // 接單、提示、送達與誤配都念同一個單字。
+  // 目前 39 個詞統一使用 Gemini 3.8 Flash TTS / Leda（ja-JP）預錄。
   const WORD_FILES = {
     "ねこ": "neko",
     "いぬ": "inu",
@@ -125,10 +181,14 @@ window.AUDIO = (() => {
     wordClips[file] = audio;
   });
 
-  function stopWord() {
-    if (!wordClip) return;
-    wordClip.pause();
-    try { wordClip.currentTime = 0; } catch (e) {}
+  function stopWord(restoreMusic = true) {
+    ++wordSpeechNonce;
+    if (wordClip) {
+      wordClip.pause();
+      try { wordClip.currentTime = 0; } catch (e) {}
+      wordClip = null;
+    }
+    if (restoreMusic && wordDucking) setWordDucking(false);
   }
 
   // 日本傳統五音音階 (平調子 / 陰旋律)
@@ -276,10 +336,8 @@ window.AUDIO = (() => {
     isMuted: () => muted,
     toggleMute() {
       muted = !muted;
-      if (window.BGM) {
-        if (muted) window.BGM.pause();
-        else window.BGM.play().catch(() => {});
-      }
+      if (muted) musicTracks().forEach(audio => audio.pause());
+      else if (musicShouldPlay && activeBgm) activeBgm.play().catch(() => {});
       if (muted) {
         stopWord();
         if (window.speechSynthesis) window.speechSynthesis.cancel();
@@ -462,19 +520,25 @@ window.AUDIO = (() => {
       const audio = file && wordClips[file];
       if (audio) {
         if (window.speechSynthesis) window.speechSynthesis.cancel();
-        if (wordClip && wordClip !== audio) stopWord();
+        if (wordClip) stopWord(false);
+        const nonce = beginWordSpeech();
         wordClip = audio;
-        audio.volume = 0.95;
+        audio.volume = 1;
         try { audio.currentTime = 0; } catch (e) {}
-        audio.play().catch(() => {});
+        audio.onended = () => endWordSpeech(nonce);
+        audio.onerror = () => endWordSpeech(nonce);
+        audio.play().catch(() => endWordSpeech(nonce));
         return;
       }
       if (window.speechSynthesis && window.SpeechSynthesisUtterance) {
-        stopWord();
+        stopWord(false);
         window.speechSynthesis.cancel();
+        const nonce = beginWordSpeech();
         const u = new SpeechSynthesisUtterance(text);
         u.lang = "ja-JP";
         u.rate = 0.92;
+        u.onend = () => endWordSpeech(nonce);
+        u.onerror = () => endWordSpeech(nonce);
         window.speechSynthesis.speak(u);
       }
     },
@@ -525,15 +589,31 @@ window.AUDIO = (() => {
       playHyoshigi(0.22);
     },
 
-    // 背景音樂步進循環（日式五音循環，黎明漸強，選卡片期間持續播放不中斷）
+    // 背景音樂：旅路地圖用 MAP.mp3、遊戲用 BGM.mp3。
+    // 外部檔不存在時才退回日式五音程序化循環。
     updateBgm(dt, state, elapsed, dawnTime) {
       const isMusicActive = (state === "play" || state === "levelup" || state === "pause" || state === "overworld");
+      musicShouldPlay = isMusicActive && !muted;
       if (muted || !isMusicActive) {
-        if (window.BGM && !window.BGM.paused) window.BGM.pause();
+        musicTracks().forEach(audio => {
+          if (!audio.paused) audio.pause();
+        });
+        activeBgm = null;
         return;
       }
-      if (window.BGM) {
-        if (window.BGM.paused) window.BGM.play().catch(() => {});
+
+      const desiredBgm = state === "overworld"
+        ? (window.MAP_BGM || window.BGM)
+        : window.BGM;
+      if (desiredBgm) {
+        if (activeBgm !== desiredBgm) {
+          musicTracks().forEach(audio => {
+            if (audio !== desiredBgm && !audio.paused) audio.pause();
+          });
+          activeBgm = desiredBgm;
+          activeBgm.volume = wordDucking ? BGM_DUCK_VOLUME : BGM_NORMAL_VOLUME;
+        }
+        if (activeBgm.paused) activeBgm.play().catch(() => {});
         return;
       }
 
