@@ -83,6 +83,7 @@
   let gpPrevButtons = [], gpMove = { x: 0, y: 0 };
 
   let bossT = CFG.BOSS_TIMES[0], bossStage = 0, finalBossDefeated = false;
+  let finalBossPos = null, victorySeq = null;
   let ended = false, bossQ = null, codexBack = "menu", codexTab = "cards";
   const WL = { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 };
   const WI = {
@@ -207,8 +208,9 @@
       chosenWord = STORE.pick(pool);
     }
 
-    const reverse = delivered >= 2 && Math.random() < 0.35;
-    orders.push({ from, to, word: chosenWord, rev: reverse, life: 110 });
+    // 配達本體固定採「圖像／中文語意 → 日文假名」辨識。
+    // 台灣日語學習者若改成中文落地答案，只是在做圖片找母語，學習價值很低。
+    orders.push({ from, to, word: chosenWord, rev: false, life: 110 });
   }
 
   function togglePause() {
@@ -232,7 +234,7 @@
     wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5;
     elapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
     orders = []; job = null; enemies = []; gems = []; parts = []; texts = []; rings = []; misses = [];
-    bossStage = 0; bossT = CFG.BOSS_TIMES[0]; finalBossDefeated = false;
+    bossStage = 0; bossT = CFG.BOSS_TIMES[0]; finalBossDefeated = false; finalBossPos = null; victorySeq = null;
     ended = false; bossQ = null; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0;
     keys.clear(); joy = null; gpMove = { x: 0, y: 0 };
     pTrail = [];
@@ -375,7 +377,7 @@
         say(`${w.jp}＝${w.zh} 配達完遂！`, pos.x, pos.y - 35, "#fff0a6");
         say(`燈油 +${18 + gain} 點`, pos.x, pos.y - 12, "#ffd27a");
       }
-      xp += j.rev ? 18 : 12;
+      xp += 12;
       burst(pos.x, pos.y, "#ffe28b", 32);
       RENDERER.triggerShake(7);
       AUDIO.deliverSuccess();
@@ -385,13 +387,23 @@
       STORE.rec(j.word.jp, false);
       say("誤配！單字有誤，瘴氣妖魔現身！", pos.x, pos.y - 36, "#ff8f8f");
       const cappedElapsed = Math.min(elapsed, DAWN);
+      const awayX = pos.x - j.to.x;
+      const awayY = pos.y - j.to.y;
+      const awayLen = Math.hypot(awayX, awayY) || 1;
+      let spawnX = pos.x + (awayX / awayLen) * 118;
+      let spawnY = pos.y + (awayY / awayLen) * 118;
+      if (blocked(spawnX, spawnY, 34)) {
+        spawnX = pos.x - (awayY / awayLen) * 118;
+        spawnY = pos.y + (awayX / awayLen) * 118;
+      }
       enemies.push({
-        x: pos.x, y: pos.y + 20,
+        x: spawnX, y: spawnY,
         type: "mis",
         w: j.word,
         hp: 5 + Math.floor(cappedElapsed / 180),
         max: 5 + Math.floor(cappedElapsed / 180),
         speed: 210 + (b.spd || 0) * 35,
+        revealT: 0.9,
         flash: 0,
         wob: 0
       });
@@ -438,7 +450,10 @@
     score += isMis ? 30 : e.type === "boss" ? 400 : 15;
 
     if (e.type === "boss") {
-      if (e.final) finalBossDefeated = true;
+      if (e.final) {
+        finalBossDefeated = true;
+        finalBossPos = { x: e.x, y: e.y };
+      }
       oil = Math.min(maxOil, oil + 35);
       say(e.final ? "夜明けの大妖鬼 撃破！" : "大妖鬼擊破！燈油 +35", e.x, e.y - 65, "#ffe9a0");
       RENDERER.triggerShake(14);
@@ -474,6 +489,88 @@
     burst(P.x, P.y, "#d5f6ff", 12);
     RENDERER.triggerShake(3);
     AUDIO.dash();
+  }
+
+  function startVictorySequence() {
+    if (victorySeq || state !== "play") return;
+    const p = finalBossPos || { x: P.x, y: P.y - 120 };
+    victorySeq = {
+      t: 0,
+      bossX: p.x,
+      bossY: p.y,
+      burst2: false,
+      burst3: false,
+      purgeStarted: false
+    };
+    state = "victory";
+    keys.clear();
+    joy = null;
+    bossQ = null;
+    job = null;
+    orders = [];
+    inter = null;
+    enemyBullets = [];
+    burst(p.x, p.y, "#ffd180", 70);
+    burst(p.x, p.y, "#ff5252", 48);
+    rings.push({ x: p.x, y: p.y, life: 0.9, maxL: 0.9, maxR: 170, color: "#ffcc80" });
+    RENDERER.triggerShake(18);
+    AUDIO.thunder();
+  }
+
+  function updateVictorySequence(dt) {
+    if (!victorySeq) return;
+    victorySeq.t += dt;
+    const t = victorySeq.t;
+
+    if (t >= 0.28 && !victorySeq.burst2) {
+      victorySeq.burst2 = true;
+      burst(victorySeq.bossX, victorySeq.bossY, "#fff3b0", 58);
+      rings.push({ x: victorySeq.bossX, y: victorySeq.bossY, life: 0.7, maxL: 0.7, maxR: 220, color: "#fff3b0" });
+      RENDERER.triggerShake(11);
+    }
+    if (t >= 0.58 && !victorySeq.burst3) {
+      victorySeq.burst3 = true;
+      burst(victorySeq.bossX, victorySeq.bossY, "#c77dff", 72);
+      AUDIO.breakShield();
+    }
+    if (t >= 0.78 && !victorySeq.purgeStarted) {
+      victorySeq.purgeStarted = true;
+      for (const e of enemies) {
+        if (e.hp <= 0) continue;
+        e.vanish = 1;
+        burst(e.x, e.y, e.type === "mis" ? "#e1bee7" : "#bce9ff", 18);
+      }
+      RENDERER.triggerShake(8);
+    }
+
+    if (victorySeq.purgeStarted) {
+      const vanish = Math.max(0, 1 - (t - 0.78) / 0.82);
+      for (const e of enemies) e.vanish = vanish;
+      if (vanish <= 0) enemies = [];
+    }
+
+    for (const p of parts) {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= (1 - dt * 5);
+      p.vy *= (1 - dt * 5);
+      p.life -= dt;
+    }
+    parts = parts.filter(p => p.life > 0);
+    for (const t of texts) {
+      t.y -= 32 * dt;
+      t.life -= dt;
+    }
+    texts = texts.filter(t => t.life > 0);
+    for (const r of rings) r.life -= dt;
+    rings = rings.filter(r => r.life > 0);
+
+    // Boss 爆散 → 小怪灰飛煙滅 → 曙光完整亮起 → 保留 2 秒餘韻再結算。
+    if (t >= 4.8) {
+      state = "won";
+      endCooldown = 0.8;
+      AUDIO.deliverSuccess();
+    }
   }
 
   function pollGamepad() {
@@ -929,9 +1026,7 @@
     }
     if (elapsed >= DAWN) {
       if (delivered >= GOAL_DELIVERIES && finalBossDefeated) {
-        state = "won";
-        endCooldown = 1.0;
-        AUDIO.deliverSuccess();
+        startVictorySequence();
         return;
       } else {
         if (!warnDawnT || warnDawnT <= 0) {
@@ -1095,7 +1190,9 @@
       if (e.type === "mis") {
         e.speed = 210 + (b.spd || 0) * 35;
       }
-      const curSpd = (e.slowT && e.slowT > 0) ? Math.min(e.speed, 25) : e.speed;
+      const revealing = e.revealT && e.revealT > 0;
+      if (revealing) e.revealT = Math.max(0, e.revealT - dt);
+      const curSpd = revealing ? 0 : ((e.slowT && e.slowT > 0) ? Math.min(e.speed, 25) : e.speed);
       const dx = P.x - e.x, dy = P.y - e.y;
       const d = Math.hypot(dx, dy) || 1;
 
@@ -1121,7 +1218,7 @@
       }
 
       const hitRadius = (e.type === "boss" ? 52 : e.type === "tank" ? 34 : e.type === "mis" ? 32 : 25);
-      if (P.inv <= 0 && d < hitRadius) {
+      if (!revealing && P.inv <= 0 && d < hitRadius) {
         if (b.shield && b.shield > 0) {
           b.shield--;
           P.inv = 0.85;
@@ -1322,12 +1419,21 @@
   function drawWorld() {
     const cam = RENDERER.getCam();
     const shakeOffset = RENDERER.getShakeOffset();
+    const holdDawn = elapsed >= DAWN && state !== "victory" && state !== "won" && state !== "lost";
+    const dawnBlend = state === "victory" && victorySeq
+      ? Math.max(0, Math.min(1, (victorySeq.t - 1.6) / 1.2))
+      : 0;
+    const visualElapsed = holdDawn
+      ? DAWN * 0.92
+      : state === "victory"
+        ? DAWN * (0.92 + 0.08 * dawnBlend)
+        : elapsed;
 
     ctx.save();
     ctx.translate(-cam.x + shakeOffset.x, -cam.y + shakeOffset.y);
 
     // 1. 地面與道路
-    RENDERER.drawGround(elapsed, DAWN);
+    RENDERER.drawGround(visualElapsed, DAWN);
 
     // 2. 町屋建築（帶遠程導引光柱與標記）
     houses.forEach(h => {
@@ -1437,7 +1543,7 @@
           ctx.textAlign = "center";
           ctx.fillStyle = "#888899";
           ctx.font = "900 18px 'Zen Maru Gothic', sans-serif";
-          ctx.fillText(job.rev ? job.ans[i].zh : job.ans[i].jp, p.x, p.y + 6);
+          ctx.fillText(job.ans[i].jp, p.x, p.y + 6);
           // 畫排除叉號
           ctx.strokeStyle = "#e57373";
           ctx.lineWidth = 3;
@@ -1472,7 +1578,7 @@
         ctx.font = "900 22px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 4;
-        const answerText = job.rev ? job.ans[i].zh : job.ans[i].jp;
+        const answerText = job.ans[i].jp;
         ctx.strokeText(answerText, p.x, p.y + (showMeaning ? 0 : 8));
         ctx.fillStyle = "#161224";
         ctx.fillText(answerText, p.x, p.y + (showMeaning ? 0 : 8));
@@ -1480,7 +1586,7 @@
         if (showMeaning) {
           ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
           ctx.fillStyle = "#d84315";
-          ctx.fillText(`【${job.rev ? job.ans[i].jp : job.ans[i].zh}】`, p.x, p.y + 19);
+          ctx.fillText(`【${job.ans[i].zh}】`, p.x, p.y + 19);
         }
         ctx.restore();
       });
@@ -1515,7 +1621,12 @@
     }
 
     // 7. 怪物繪製
-    enemies.forEach(e => RENDERER.drawMonster(e, P, elapsed));
+    enemies.forEach(e => {
+      ctx.save();
+      if (e.vanish != null) ctx.globalAlpha = Math.max(0, Math.min(1, e.vanish));
+      RENDERER.drawMonster(e, P, elapsed);
+      ctx.restore();
+    });
 
     // 8. 武器彈幕 (符咒迴力鏢)
     for (const q of proj) {
@@ -1805,10 +1916,10 @@
     ctx.restore();
 
     // 16. 動態 2D 光影遮罩（深夜至黎明）
-    RENDERER.renderLighting(P, LAMPS, oil, elapsed, DAWN);
+    RENDERER.renderLighting(P, LAMPS, oil, visualElapsed, DAWN);
 
     // 17. 櫻花雨與夜行幽火
-    RENDERER.drawAtmosphere(elapsed);
+    RENDERER.drawAtmosphere(visualElapsed);
 
     // 18. 送貨目的地導引羅盤 (人魂靈火導引)
     const targetHouse = job ? job.to : orders.reduce((n, o) => (!n || dist(P, o.from) < dist(P, n) ? o.from : n), null);
@@ -1830,6 +1941,46 @@
       ctx.fill();
       ctx.restore();
     }
+    // 破曉後若配達已完成，使用與送貨金箭頭不同的赤色雙箭頭追蹤最終大妖鬼。
+    const bossHunt = elapsed >= DAWN && delivered >= GOAL_DELIVERIES && !finalBossDefeated;
+    const bossTarget = bossHunt ? enemies.find(e => e.type === "boss" && e.final && e.hp > 0) : null;
+    if (bossTarget) {
+      const sx = bossTarget.x - cam.x, sy = bossTarget.y - cam.y;
+      const onScreen = sx >= 70 && sx <= W - 70 && sy >= 90 && sy <= H - 70;
+      ctx.save();
+      ctx.strokeStyle = "#ff3b4f";
+      ctx.fillStyle = "#ff3b4f";
+      ctx.shadowColor = "#ff1744";
+      ctx.shadowBlur = 12;
+      ctx.lineWidth = 4;
+      if (onScreen) {
+        const pulseR = 58 + Math.sin(elapsed * 8) * 7;
+        ctx.beginPath();
+        ctx.arc(sx, sy - 30, pulseR, 0, 6.28);
+        ctx.stroke();
+        ctx.textAlign = "center";
+        ctx.font = "900 16px 'Noto Sans JP', sans-serif";
+        ctx.fillText("大妖鬼", sx, sy - 100);
+      } else {
+        const an = Math.atan2(bossTarget.y - P.y, bossTarget.x - P.x);
+        const cx = clamp(P.x - cam.x + Math.cos(an) * 230, 62, W - 62);
+        const cy = clamp(P.y - cam.y + Math.sin(an) * 230, 102, H - 62);
+        ctx.translate(cx, cy);
+        ctx.rotate(an);
+        for (let k = 0; k < 2; k++) {
+          const off = -k * 15;
+          ctx.beginPath();
+          ctx.moveTo(20 + off, 0);
+          ctx.lineTo(-8 + off, -14);
+          ctx.lineTo(-2 + off, 0);
+          ctx.lineTo(-8 + off, 14);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    }
+
   }
 
   // ---------- 輸入監聽 ----------
@@ -2057,6 +2208,8 @@
 
     if (state === "play") {
       update(dt);
+    } else if (state === "victory") {
+      updateVictorySequence(dt);
     }
     AUDIO.updateBgm(dt, state, elapsed, DAWN);
 
@@ -2071,15 +2224,30 @@
       UI.drawMainMenu(ctx, STORE, now / 1000);
     } else {
       drawWorld();
-      UI.drawHud(
-        ctx, P, oil, maxOil, elapsed, DAWN, delivered, failed, score, level, xp, xpNeed(),
-        job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, GOAL_DELIVERIES
-      );
-      if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
-      if (bossQ) UI.drawBossQuiz(ctx, bossQ);
-      if (state === "levelup") UI.drawLevelUp(ctx, level, choices, WL, WI);
-      if (state === "pause") UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false);
-      if (state === "won" || state === "lost") UI.drawEndScreen(ctx, state, score, delivered, failed, misses);
+      if (state === "victory") {
+        const dawnP = victorySeq ? Math.max(0, Math.min(1, (victorySeq.t - 1.6) / 1.2)) : 0;
+        if (dawnP > 0) {
+          const dawnGlow = ctx.createLinearGradient(0, 0, 0, H);
+          dawnGlow.addColorStop(0, `rgba(255, 226, 165, ${0.30 * dawnP})`);
+          dawnGlow.addColorStop(0.55, `rgba(255, 178, 105, ${0.12 * dawnP})`);
+          dawnGlow.addColorStop(1, "rgba(255, 178, 105, 0)");
+          ctx.fillStyle = dawnGlow;
+          ctx.fillRect(0, 0, W, H);
+        }
+      } else {
+        const dashMax = Math.max(0.6, 1.8 - b.dash * 0.38);
+        const bossHunt = elapsed >= DAWN && delivered >= GOAL_DELIVERIES && !finalBossDefeated;
+        UI.drawHud(
+          ctx, P, oil, maxOil, elapsed, DAWN, delivered, failed, score, level, xp, xpNeed(),
+          job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, GOAL_DELIVERIES,
+          dashCd, dashMax, bossHunt
+        );
+        if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
+        if (bossQ) UI.drawBossQuiz(ctx, bossQ);
+        if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI);
+        if (state === "pause") UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false);
+        if (state === "won" || state === "lost") UI.drawEndScreen(ctx, state, score, delivered, failed, misses);
+      }
     }
 
     if (state === "codex") {

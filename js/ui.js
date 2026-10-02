@@ -74,7 +74,7 @@ window.UI = (() => {
   }
 
   // 2. 全螢幕專業無分割 HUD（懸浮微型儀表 + 底部 HoloCure 風格武器格）
-  function drawHud(ctx, P, oil, maxOil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, goalDeliveries = 6) {
+  function drawHud(ctx, P, oil, maxOil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, goalDeliveries = 6, dashCd = 0, dashMax = 1.8, bossHunt = false) {
     ctx.save();
 
     // 注意：完全移除頂部深色橫條！遊戲世界 100% 全螢幕通透顯示！
@@ -192,18 +192,29 @@ window.UI = (() => {
 
     // --- 中上：HoloCure 式單一任務條。只保留「現在要做什麼」與方向資訊。 ---
     const taskX = 248, taskY = 14, taskW = 370, taskH = 52;
-    const taskStroke = nameT > 0 ? "#ffe082" : "rgba(212, 175, 55, 0.62)";
-    glassBox(ctx, taskX, taskY, taskW, taskH, 10, "rgba(12, 16, 28, 0.9)", taskStroke, nameT > 0 ? 2.4 : 1.4);
+    const bossPulse = 0.5 + 0.5 * Math.sin(elapsed * 7);
+    const taskStroke = bossHunt
+      ? `rgba(255, 68, 86, ${0.72 + bossPulse * 0.28})`
+      : nameT > 0 ? "#ffe082" : "rgba(212, 175, 55, 0.62)";
+    glassBox(ctx, taskX, taskY, taskW, taskH, 10, bossHunt ? "rgba(48, 8, 20, 0.94)" : "rgba(12, 16, 28, 0.9)", taskStroke, bossHunt ? 3 : (nameT > 0 ? 2.4 : 1.4));
     ctx.textAlign = "left";
-    if (job) {
+    if (bossHunt) {
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#fff1f3";
+      ctx.font = "900 20px 'Noto Sans JP', sans-serif";
+      ctx.fillText("⚠ 大妖鬼を倒せ！", taskX + taskW / 2, taskY + 23);
+      ctx.fillStyle = "#ff8a9a";
+      ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
+      ctx.fillText("赤い双矢印を追え", taskX + taskW / 2, taskY + 43);
+    } else if (job) {
       const remaining = Math.round(Math.hypot(P.x - job.to.x, P.y - job.to.y) / 10) * 10;
-      const prompt = job.rev ? job.word.jp : `${job.word.icon} ${job.word.zh}`;
+      const prompt = `${job.word.icon} ${job.word.zh}`;
       ctx.fillStyle = "#fff3ca";
       ctx.font = "900 18px 'Noto Sans JP', sans-serif";
       ctx.fillText(prompt, taskX + 14, taskY + 23);
       ctx.fillStyle = "#82d8ff";
       ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
-      ctx.fillText(job.rev ? `↔ 逆向 +50%XP　➜ ${remaining}` : `➜ ${remaining}`, taskX + 14, taskY + 43);
+      ctx.fillText(`➜ ${remaining}`, taskX + 14, taskY + 43);
 
       const hintStage = job.hintStage || 0;
       const hintLabel = hintStage === 0 ? "💡 -3" : hintStage === 1 ? "👁 -4" : "✓";
@@ -218,7 +229,7 @@ window.UI = (() => {
         ctx.textAlign = "left";
         ctx.fillStyle = "#ffd54f";
         ctx.font = "bold 11px 'Noto Sans JP', sans-serif";
-        const helper = job.rev ? `${job.word.zh}　${job.word.example || ""}` : `${job.word.jp}　${job.word.example || ""}`;
+        const helper = `${job.word.jp}　${job.word.example || ""}`;
         ctx.fillText(helper.slice(0, 13), taskX + 122, taskY + 23);
       }
     } else {
@@ -314,12 +325,27 @@ window.UI = (() => {
         ctx.arc(105, H - 105, 20, 0, 6.28);
         ctx.stroke();
       }
-      ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+      const cdRatio = Math.max(0, Math.min(1, dashCd / Math.max(0.01, dashMax)));
+      const readyRatio = 1 - cdRatio;
+      ctx.fillStyle = cdRatio <= 0.001 ? "rgba(255, 255, 255, 0.72)" : "rgba(30, 38, 58, 0.72)";
       ctx.beginPath();
       ctx.arc(btnD.x, btnD.y, btnD.r, 0, 6.28);
       ctx.fill();
+      if (cdRatio > 0.001) {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.42)";
+        ctx.beginPath();
+        ctx.moveTo(btnD.x, btnD.y);
+        ctx.arc(btnD.x, btnD.y, btnD.r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * readyRatio);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.78)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(btnD.x, btnD.y, btnD.r, 0, 6.28);
+        ctx.stroke();
+      }
       ctx.textAlign = "center";
-      ctx.fillStyle = "#1e2436";
+      ctx.fillStyle = cdRatio <= 0.001 ? "#1e2436" : "#ffffff";
       ctx.font = "900 16px 'Zen Maru Gothic', sans-serif";
       ctx.fillText("衝刺", btnD.x, btnD.y + 6);
 
