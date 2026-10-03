@@ -2,6 +2,7 @@
 window.AUDIO = (() => {
   let ctx = null;
   let muted = false;
+  let suspended = false;
   let bgmStep = 0;
   let bgmTimer = 0;
   let wordClip = null;
@@ -69,18 +70,12 @@ window.AUDIO = (() => {
   }
 
   // 可替換的實體 MP3 音效。檔案不存在／解碼或播放失敗時，會自動退回下方既有 Web Audio 合成音效。
-  // 命名採固定英文 kebab-case，之後只要把同名 MP3 丟進 assets/audio/sfx/ 即可，不必再改程式。
+  // 只列出實際提供的檔案；其餘音效直接使用既有合成器，避免首次播放請求缺檔。
   const SFX_FILES = {
     slash: "assets/audio/sfx/slash.mp3",
     boomerang: "assets/audio/sfx/boomerang.mp3",
-    fireball: "assets/audio/sfx/fireball.mp3",
-    thunder: "assets/audio/sfx/thunder.mp3",
     dash: "assets/audio/sfx/dash.mp3",
-    barrier: "assets/audio/sfx/barrier.mp3",
     needle: "assets/audio/sfx/needle.mp3",
-    hurt: "assets/audio/sfx/hurt.mp3",
-    gem: "assets/audio/sfx/gem.mp3",
-    pickup: "assets/audio/sfx/pickup.mp3",
     sanctuary: "assets/audio/sfx/sanctuary.mp3",
     deliverSuccess: "assets/audio/sfx/delivery-success.mp3",
     deliverWrong: "assets/audio/sfx/delivery-wrong.mp3",
@@ -102,7 +97,7 @@ window.AUDIO = (() => {
   const activeSfx = new Set();
 
   function playExternalSfx(name, fallback, args) {
-    if (muted) return;
+    if (muted || suspended) return;
     const src = SFX_FILES[name];
     if (!src || unavailableSfx.has(name)) {
       fallback(...args);
@@ -126,7 +121,7 @@ window.AUDIO = (() => {
     const useFallback = () => {
       cleanup();
       unavailableSfx.add(name);
-      if (fellBack || muted) return;
+      if (fellBack || muted || suspended) return;
       fellBack = true;
       fallback(...args);
     };
@@ -186,7 +181,8 @@ window.AUDIO = (() => {
   };
   const wordClips = {};
   Object.values(WORD_FILES).forEach(file => {
-    const audio = new Audio(`assets/audio/words/${file}.mp3`);
+    const path = `assets/audio/words/${file}.mp3`;
+    const audio = new Audio(window.audioAsset?.(path) || path);
     audio.preload = "none";
     wordClips[file] = audio;
   });
@@ -207,6 +203,7 @@ window.AUDIO = (() => {
   const BASS_SCALE = [-12, -8, -5, 0, 2];
 
   function getCtx() {
+    if (muted || suspended) return null;
     if (!ctx) {
       try {
         ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -355,6 +352,22 @@ window.AUDIO = (() => {
       [392, 329.63, 261.63, 196].forEach((freq, i) => setTimeout(() => playShamisen(freq, 0.6, 0.1), i * 240));
     },
     init: getCtx,
+    setSuspended(value) {
+      suspended = value;
+      if (!suspended) return;
+      musicShouldPlay = false;
+      for (const id of bgmRamps.values()) {
+        if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(id);
+      }
+      bgmRamps.clear();
+      musicTracks().forEach(audio => audio.pause());
+      stopWord(false);
+      wordDucking = false;
+      window.speechSynthesis?.cancel();
+      activeSfx.forEach(audio => audio.pause());
+      activeSfx.clear();
+      if (ctx && ctx.state === "running") ctx.suspend().catch(() => {});
+    },
     isMuted: () => muted,
     toggleMute() {
       muted = !muted;
@@ -537,7 +550,7 @@ window.AUDIO = (() => {
     // 日語單字：既有詞優先播放預錄聲線；新關卡尚未補錄的詞才單獨退回 ja-JP 系統語音。
     // 兩者互斥，避免曾經出現的預錄音與 fallback 同時發聲。
     speak(text) {
-      if (muted) return;
+      if (muted || suspended) return;
       const file = WORD_FILES[text];
       const audio = file && wordClips[file];
       if (audio) {
@@ -614,6 +627,7 @@ window.AUDIO = (() => {
     // 背景音樂：旅路地圖用 MAP.mp3、遊戲用 BGM.mp3。
     // 外部檔不存在時才退回日式五音程序化循環。
     updateBgm(dt, state, elapsed, dawnTime) {
+      if (suspended) return;
       const paused = state === "pause";
       if (pauseDucking !== paused) {
         pauseDucking = paused;

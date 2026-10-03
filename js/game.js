@@ -24,7 +24,12 @@
   CONTROLS.mount();
   const controlsButton = document.getElementById("controls-open");
   const viewBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:W,bottom:H,width:W,height:H};
-  addEventListener("resize", () => { RENDERER.resize?.(); joy = null; });
+  const isPortrait = () => window.innerWidth <= 900 && window.innerHeight >= window.innerWidth;
+  addEventListener("resize", () => {
+    RENDERER.resize?.(); joy = null;
+    if (isPortrait()) suspend();
+    else wakeAudio();
+  });
 
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -44,6 +49,17 @@
   const ALL = window.CONTENT.getStageWords(STAGE);
   const CODEX_ALL = window.CONTENT.getAllWords ? window.CONTENT.getAllWords() : ALL;
   const blocked = (x, y, r = 18) => solids.some(s => Math.hypot(x - clamp(x, s.x0, s.x1), y - clamp(y, s.y0, s.y1)) < r);
+  function knockback(e, distance) {
+    const length = dist(P, e) || 1;
+    const steps = Math.ceil(distance / 8);
+    const dx = (e.x - P.x) / length * distance / steps;
+    const dy = (e.y - P.y) / length * distance / steps;
+    // 小步分軸檢查沿途碰撞，避免落點安全但中途穿越建築。
+    for (let i = 0; i < steps; i++) {
+      if (!blocked(e.x + dx, e.y, 16)) e.x += dx;
+      if (!blocked(e.x, e.y + dy, 16)) e.y += dy;
+    }
+  }
   const ansPos = h => [{ x: h.x - 85, y: h.y + 75 }, { x: h.x + 85, y: h.y + 75 }, { x: h.x, y: h.y + 122 }];
   const getWordDistrictWords = word => window.CONTENT.getSiblingWords(word);
 
@@ -166,7 +182,7 @@
   };
   let proj = [], needles = [], surgeT = SURGE_FIRST, fAng = 0;
   let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1, lastWarningCycle = 0;
-  const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0 };
+  const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0, fire: 0 };
 
   const UP = [
     { id: "shield", n: "金剛結界", s: "けっかい", cat: "防禦生存", d: "召喚金剛勾玉護盾，抵擋 2 次受傷（可疊加）", f: () => { b.shield = Math.min(6, (b.shield || 0) + 2); }, ok: () => (b.shield || 0) < 6 },
@@ -179,8 +195,7 @@
         const ed = dist(P, e);
         if (ed > 210) continue;
         hurt(e, 3.2 * b.dmg);
-        const kx = (e.x - P.x) / (ed || 1), ky = (e.y - P.y) / (ed || 1);
-        e.x += kx * 90; e.y += ky * 90;
+        knockback(e, 90);
       }
       burst(P.x, P.y, "#a5d6a7", 30);
       AUDIO.barrier();
@@ -245,8 +260,9 @@
       state = "pause";
       keys.clear(); heldCodes.clear();
       joy = null;
-    } else if (state === "pause") {
+    } else if (state === "pause" && !isPortrait() && !document.hidden) {
       state = "play";
+      AUDIO.setSuspended(false);
       last = performance.now();
     }
   }
@@ -288,7 +304,7 @@
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0 });
     Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 });
     proj = []; needles = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1; lastWarningCycle = 0;
-    wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5;
+    wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0;
     elapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
     orders = []; job = null; enemies = []; gems = []; parts = []; texts = []; rings = []; misses = [];
     bossStage = 0; bossT = BOSS_TIMES[0]; finalBossDefeated = false; finalBossPos = null; victorySeq = null;
@@ -639,6 +655,13 @@
   }
 
   function pollGamepad() {
+    if (isPortrait() || document.hidden) {
+      gpMove = { x: 0, y: 0 };
+      // 消耗遮罩期間的按鈕狀態，回橫向後需重新按下。
+      const gp = navigator.getGamepads?.()?.find(g => g && g.connected);
+      gpPrevButtons = gp ? gp.buttons.map(b => b.pressed) : [];
+      return;
+    }
     if (!navigator.getGamepads) {
       gpMove = { x: 0, y: 0 };
       gpPrevButtons = [];
@@ -920,10 +943,7 @@
               const isCrit = Math.random() < (0.15 + (b.crit || 0) * 0.1);
               hurt(e, (2.0 + WL.barrier * 1.1) * b.dmg * (isCrit ? 1.6 : 1.0), isCrit);
               // 強力 360 度外向擊退
-              const kx = (e.x - P.x) / (ed || 1);
-              const ky = (e.y - P.y) / (ed || 1);
-              e.x += kx * (50 + WL.barrier * 10);
-              e.y += ky * (50 + WL.barrier * 10);
+              knockback(e, 50 + WL.barrier * 10);
               burst(e.x, e.y, "#ffe082", 6);
             }
           }
@@ -1026,6 +1046,8 @@
 
     // 5. 狐火環繞 (Fireball)
     if (WL.fire > 0) {
+      wT.fire = Math.max(0, wT.fire - dt);
+      let fireHit = false;
       fAng += dt * 2.8;
       const count = Math.min(5, WL.fire + 1);
       for (let i = 0; i < count; i++) {
@@ -1034,18 +1056,21 @@
         for (const e of enemies) {
           if (e.hp > 0 && !(e.ifr > elapsed) && Math.hypot(e.x - fx, e.y - fy) < (e.type === "boss" ? 54 : 30)) {
             e.ifr = elapsed + 0.42;
+            const hpBefore = e.hp;
             hurt(e, (1.2 + WL.fire * 0.6) * b.dmg);
+            if (e.hp < hpBefore) fireHit = true;
             burst(fx, fy, "#ff8833", 4);
           }
         }
       }
+      if (fireHit && wT.fire <= 0) { AUDIO.fireball(); wT.fire = 0.15; }
     }
 
     // 6. 天狐落雷 (Thunder)
     if (WL.thunder > 0) {
       wT.thunder -= dt;
       if (wT.thunder <= 0) {
-        const c = enemies.filter(e => e.hp > 0 && dist(P, e) < 450);
+        const c = enemies.filter(e => e.hp > 0 && !e.shield && dist(P, e) < 450);
         if (!c.length) {
           wT.thunder = 0.2;
         } else {
@@ -1075,19 +1100,18 @@
     return Math.max(minimum, Math.hypot(area.width / 2, area.height / 2) + lag + 64);
   }
 
-  function spawnEnemy(tier, rad, ang, ring) {
-    rad = spawnRadius(rad);
-    let a = ang ?? Math.random() * 6.283;
-    let x = P.x + Math.cos(a) * rad;
-    let y = P.y + Math.sin(a) * rad;
-    let tries = 0;
-    while (blocked(x, y, 26) && tries < 10) {
-      a += 0.63;
-      x = P.x + Math.cos(a) * rad;
-      y = P.y + Math.sin(a) * rad;
-      tries++;
+  function spawnPosition(rad, angle, collisionRadius) {
+    for (let tries = 0; tries <= 10; tries++) {
+      const a = angle + tries * 0.63;
+      const x = P.x + Math.cos(a) * rad, y = P.y + Math.sin(a) * rad;
+      if (!blocked(x, y, collisionRadius)) return { x, y };
     }
-    if (blocked(x, y, 26)) return;
+    return null;
+  }
+
+  function spawnEnemy(tier, rad, ang, ring) {
+    const position = spawnPosition(spawnRadius(rad), ang ?? Math.random() * 6.283, 26);
+    if (!position) return;
     const r = Math.random();
 
     // 怪物速度曲線：封頂於 10 分鐘，破曉後加班不再增加怪物難度。
@@ -1104,11 +1128,12 @@
       t = { type: "shooter", hp: 2.8 * tier, speed: (48 + speedRamp * 0.8) * stageSpeed };
     }
 
-    enemies.push({ x, y, flash: 0, wob: Math.random() * 6, slowT: 0, ...t, hp: Math.ceil(t.hp), max: Math.ceil(t.hp) });
+    enemies.push({ ...position, flash: 0, wob: Math.random() * 6, slowT: 0, ...t, hp: Math.ceil(t.hp), max: Math.ceil(t.hp) });
   }
 
   function update(dt) {
     if (state !== "play") return;
+    if (isPortrait()) { suspend(); return; }
 
     // 頓挫時間處理
     if (RENDERER.updateEffects(dt)) return;
@@ -1395,24 +1420,26 @@
       let bossPool = ALL.filter(w => !livingMisWords.has(w.jp));
       if (bossPool.length === 0) bossPool = ALL;
       const radius = spawnRadius(520);
-      enemies.push({
-        x: P.x + Math.cos(a) * radius,
-        y: P.y + Math.sin(a) * radius,
-        type: "boss",
-        word: STORE.pick(bossPool),
-        shield: true,
-        final: isFinal,
-        hp, max: hp,
-        speed: 40 + (cappedElapsed / DAWN) * 45,
-        flash: 0,
-        wob: 0
-      });
-      bossStage++;
-      const nextBossAt = BOSS_TIMES[bossStage];
-      bossT = nextBossAt == null ? Number.POSITIVE_INFINITY : Math.max(0, nextBossAt - elapsed);
-      const harborBoss = STAGE_ENEMY.bossTheme === "harbor";
-      say(isFinal ? (harborBoss ? "⚠ 港霧大妖" : "⚠ 大妖鬼") : (harborBoss ? "⚓ 港霧妖將" : "👹 大妖鬼"), P.x, P.y - 75, "#ff8f8f");
-      AUDIO.thunder();
+      const position = spawnPosition(radius, a, 52);
+      if (position) {
+        enemies.push({
+          ...position,
+          type: "boss",
+          word: STORE.pick(bossPool),
+          shield: true,
+          final: isFinal,
+          hp, max: hp,
+          speed: 40 + (cappedElapsed / DAWN) * 45,
+          flash: 0,
+          wob: 0
+        });
+        bossStage++;
+        const nextBossAt = BOSS_TIMES[bossStage];
+        bossT = nextBossAt == null ? Number.POSITIVE_INFINITY : Math.max(0, nextBossAt - elapsed);
+        const harborBoss = STAGE_ENEMY.bossTheme === "harbor";
+        say(isFinal ? (harborBoss ? "⚠ 港霧大妖" : "⚠ 大妖鬼") : (harborBoss ? "⚓ 港霧妖將" : "👹 大妖鬼"), P.x, P.y - 75, "#ff8f8f");
+        AUDIO.thunder();
+      }
     }
 
     const bs = enemies.find(e => e.type === "boss" && e.shield);
@@ -2108,6 +2135,7 @@
 
   // ---------- 輸入監聽 ----------
   addEventListener("keydown", e => {
+    if (isPortrait() || document.hidden) return;
     if (CONTROLS.isOpen()) return;
     if (e.target?.closest?.('button, input, select, textarea, dialog')) return;
     const action = CONTROLS.action(e.code);
@@ -2191,9 +2219,17 @@
     heldCodes.delete(e.code);
     if (action && ![...heldCodes].some(code => CONTROLS.action(code) === action)) keys.delete(action);
   });
-  const suspend = () => { keys.clear(); heldCodes.clear(); joy = null; if (state === "play") togglePause(); };
+  const suspend = () => {
+    keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
+    if (state === "play") togglePause();
+    AUDIO.setSuspended(true);
+  };
+  const wakeAudio = () => {
+    if (!document.hidden && !isPortrait() && document.hasFocus?.() !== false) AUDIO.setSuspended(false);
+  };
   addEventListener("blur", suspend);
-  document.addEventListener("visibilitychange", () => { if (document.hidden) suspend(); });
+  addEventListener("focus", wakeAudio);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) suspend(); else wakeAudio(); });
 
   const pp = e => {
     const r = cv.getBoundingClientRect();
@@ -2207,6 +2243,7 @@
 
   document.getElementById("game-container").addEventListener("pointerdown", e => {
     e.preventDefault();
+    if (isPortrait() || document.hidden) return;
     cv.setPointerCapture(e.pointerId);
     AUDIO.init();
     touch = e.pointerType !== "mouse";

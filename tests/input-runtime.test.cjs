@@ -21,7 +21,12 @@ function loadGame() {
   c.UI = new Proxy({ HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
   const source = fs.readFileSync('js/game.js', 'utf8');
   const end = source.lastIndexOf('})();');
-  const hook = `window.fixture = { start, update, frame, drawWorld, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy,
+  const hook = `window.fixture = { start, update, frame, drawWorld, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons,
+    combatScene: (weapon, foes, walls=[]) => { Object.keys(WL).forEach(k=>WL[k]=0); WL[weapon]=1; wT[weapon]=0; enemies=foes.map(e=>({x:P.x+e.dx,y:P.y+(e.dy||0),hp:999,max:999,type:'ghost',...e})); solids.splice(0,solids.length,...walls.map(s=>({x0:P.x+s.x0,x1:P.x+s.x1,y0:P.y+s.y0,y1:P.y+s.y1}))); },
+    heal: () => UP.find(u=>u.id==='oil_heal').f(),
+    blockBossRing: all => { syncWorld(); const radius=spawnRadius(520); solids.splice(0,solids.length,all?{x0:P.x-10000,x1:P.x+10000,y0:P.y-10000,y1:P.y+10000}:{x0:P.x+radius-60,x1:P.x+radius+60,y0:P.y-60,y1:P.y+60}); },
+    clearSolids: () => solids.splice(0),
+    enemyBlocked: e => blocked(e.x,e.y,16),
     occlusionScene: (playerY) => { houses.splice(0,houses.length,{id:1,x:1350,y:900}); orders=[]; job=null; enemies=[{id:1,x:1350,y:820,type:'ghost'},{id:2,x:1350,y:1000,type:'ghost',vanish:0.5}]; P.y=playerY; state='pause'; },
     preparePickup: () => { makeOrder(); inter=orders[0]; },
     prepareOrder: () => { makeOrder(); inter=orders[0]; interact(); job.lock=0; },
@@ -226,4 +231,63 @@ test('frame maps logical coordinates to CSS scale and refreshes renderer DPR', (
   const v=g.env.VIEWPORT.get(), transform=g.transforms.at(-1);
   assert.equal(transform[0],1.3);
   assert.equal(transform[4],v.offsetX*1.3);
+});
+
+test('lightning ignores shield immunity and spends its target on a damageable enemy', () => {
+  const g=loadGame(); g.start();
+  g.combatScene('thunder',[{dx:200,type:'boss',shield:true,hp:9999},{dx:-200,hp:999}]);
+  g.weapons(0.01);
+  assert.equal(g.snapshot().enemies[0].hp,9999);
+  assert.ok(g.snapshot().enemies[1].hp<999);
+});
+
+test('barrier and healing knockback cannot tunnel through a thin building', () => {
+  for (const mode of ['barrier','heal']) {
+    const g=loadGame(); g.start();
+    g.combatScene(mode==='barrier'?'barrier':'katana',[{dx:70}], [{x0:90,x1:130,y0:-40,y1:40}]);
+    const e=g.snapshot().enemies[0];
+    if (mode==='barrier') g.weapons(0.01); else g.heal();
+    assert.ok(e.x<=g.snapshot().x+74);
+    assert.equal(g.enemyBlocked(e),false);
+    assert.ok(e.hp<999);
+  }
+});
+
+test('Boss chooses an unblocked offscreen spawn and retries without advancing when ring is obstructed', () => {
+  const g=loadGame(); g.start(); g.env.Math=Object.create(Math); g.env.Math.random=()=>0;
+  g.blockBossRing(true); g.scheduleBoss(); g.update(0.01);
+  assert.ok(!g.snapshot().enemies.some(e=>e.type==='boss'));
+  g.blockBossRing(false); g.update(0.01);
+  const boss=g.snapshot().enemies.find(e=>e.type==='boss');
+  assert.ok(boss); assert.equal(g.enemyBlocked(boss),false);
+});
+
+test('foxfire impact plays one sound for a simultaneous group of hits', () => {
+  const g=loadGame(); g.start(); g.combatScene('fire',[{dx:96},{dx:96,dy:10}]);
+  g.weapons(0.01);
+  assert.equal(g.audioCalls.filter(n=>n==='fireball').length,1);
+  g.weapons(0.01);
+  assert.equal(g.audioCalls.filter(n=>n==='fireball').length,1);
+});
+
+test('portrait stops time, blocks all resume input paths, and landscape requires manual resume', () => {
+  const g=loadGame(); g.start(); const before=g.snapshot();
+  g.env.innerWidth=390; g.env.innerHeight=844; g.events.resize();
+  assert.equal(g.snapshot().state,'pause');
+  g.update(0.05); assert.equal(g.snapshot().oil,before.oil); assert.equal(g.snapshot().elapsed,before.elapsed);
+  g.events.keydown(key('Escape','Escape'));
+  g.canvasEvents.pointerdown(pointer(195,305,'touch'));
+  const buttons=Array.from({length:16},()=>({pressed:false})); buttons[9].pressed=true;
+  g.env.navigator.getGamepads=()=>[{connected:true,axes:[0,0],buttons}]; g.pollGamepad();
+  assert.equal(g.snapshot().state,'pause');
+  g.env.innerWidth=844; g.env.innerHeight=390; g.events.resize();
+  assert.equal(g.snapshot().state,'pause');
+  g.events.keydown(key('Escape','Escape')); assert.equal(g.snapshot().state,'play');
+});
+
+test('visibility change suspends audio immediately without requiring a frame', () => {
+  const g=loadGame(); g.start();
+  g.env.document.hidden=true; g.documentEvents.visibilitychange();
+  assert.equal(g.snapshot().state,'pause');
+  assert.ok(g.audioCalls.includes('setSuspended'));
 });

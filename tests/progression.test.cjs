@@ -50,3 +50,35 @@ test("a failed run records stage bests but does not unlock the next stage", () =
   assert.equal(STORE.isStageUnlocked("rain-port"), false);
   assert.equal(STORE.getStageStats("night-town").bestScore, 1200);
 });
+
+test('malformed save containers recover without losing valid vocabulary and best scores', () => {
+  for (const progress of [1, [], 'bad', null, {unlocked:[],completed:1,stages:'bad'}]) {
+    const {STORE,mem}=loadStore({m:{'ねこ':{ok:3,ng:1,box:2}},best:123,progress});
+    assert.equal(STORE.get('ねこ').box,2);
+    assert.equal(STORE.data.best,123);
+    STORE.completeStage('night-town');
+    const saved=JSON.parse(mem.get('yokai-delivery-v1'));
+    assert.equal(saved.progress.unlocked['rain-port'],true);
+    assert.equal(saved.progress.completed['night-town'],true);
+  }
+  for (const seed of [[], 'bad', {m:[]}, {m:42}]) {
+    const {STORE}=loadStore(seed);
+    assert.doesNotThrow(() => STORE.startRun());
+    assert.equal(STORE.get('ねこ').box,0);
+  }
+});
+
+test('invalid mastery, flags and stage counters normalize to finite valid values', () => {
+  const {STORE}=loadStore({m:{'ねこ':{ok:-2,ng:'3',box:99,lastSeen:1e30,missBoost:99},'いぬ':null},best:'bad',bestDel:-4,
+    progress:{unlocked:{'rain-port':'yes'},completed:{'night-town':false},stages:{'night-town':{attempts:'99',clears:-3,bestScore:7.9},'rain-port':[]}}});
+  const m=STORE.get('ねこ');
+  assert.equal(m.ok,0); assert.equal(m.ng,0); assert.equal(m.box,4);
+  assert.ok(m.lastSeen<=Date.now()); assert.equal(m.missBoost,2.5);
+  assert.equal(STORE.get('いぬ').box,0);
+  assert.equal(STORE.data.best,0); assert.equal(STORE.data.bestDel,0);
+  assert.equal(STORE.isStageUnlocked('rain-port'),false);
+  assert.equal(STORE.getStageStats('night-town').bestScore,7);
+  STORE.startRun(); assert.equal(STORE.getStageStats('night-town').attempts,1);
+  assert.equal(STORE.getStageStats('rain-port').clears,0);
+  assert.ok(['ねこ','いぬ'].includes(STORE.pick([{jp:'ねこ'},{jp:'いぬ'}]).jp));
+});
