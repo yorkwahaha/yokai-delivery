@@ -154,6 +154,23 @@ test('second hint transfers assistance to a Boss that appeared after the first h
   assert.equal(g.env.STORE.get(j.word.jp).box,0);
 });
 
+test('assisted submission marks a same-word Boss created after the last hint',()=>{
+  const g=loadGame();g.start();g.prepareOrder();g.triggerHint();
+  g.prepareBoss();g.matchBossToJob();
+  const j=g.snapshot().job;g.resolve(j.ans.indexOf(j.word));
+  const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
+  assert.equal(g.env.STORE.get(j.word.jp).box,0);
+});
+
+test('ordinary delivery correction remains visible during an independent same-word Boss answer',()=>{
+  const g=loadGame();g.start();g.prepareOrder();g.prepareBoss();g.matchBossToJob();
+  const j=g.snapshot().job;g.resolve(j.ans.indexOf(j.word));
+  assert.ok(g.snapshot().floats.some(t=>t.life===1.8 && t.v.includes(j.word.jp+'＝')));
+  const q=g.snapshot().bossQ;assert.equal(q.word.jp,j.word.jp);
+  g.answerBoss(q.ans.indexOf(q.word));
+  assert.equal(g.env.STORE.get(j.word.jp).box,2); // Observation of current rule; policy decision deferred.
+});
+
 test('new pickup inherits only the current same-word Boss assistance',()=>{
   const g=loadGame();g.start();g.prepareBoss();
   const q=g.snapshot().bossQ;g.answerBoss(q.ans.findIndex(w=>w!==q.word));
