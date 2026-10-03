@@ -1,0 +1,95 @@
+✔ Boss mistakes reach settlement, count once per submission and reset only run review (8.1867ms)
+✔ lethal Boss mistake still reaches settlement review before run ends (2.2818ms)
+✔ delivery hint cannot promote mastery through a simultaneous same-word Boss quiz (2.0536ms)
+✔ Boss eliminated answer assistance also applies to an active same-word delivery (2.5171ms)
+✔ unrelated delivery assistance does not penalize independent Boss mastery (2.0168ms)
+✖ same-word Boss retains delivery assistance after the parcel is submitted first (2.5874ms)
+✖ Boss assistance survives leaving and reentering quiz range (4.3455ms)
+✔ Boss assistance clears for a changed word and for a replay (2.0656ms)
+✔ delivery mistake persists, avoids its living answer badge and returns after purification (2.7412ms)
+✔ first-run tutorial freezes time, oil and gameplay input, and skip persists (3.9704ms)
+✔ malformed tutorial progress recovers and touch confirmation does not start dragging (1.7986ms)
+✔ context lessons cover listening, delivery, dash and Boss without changing assistance (1.9647ms)
+✔ replay is available from pause, gamepad consumes confirmation and returns to pause (2.2441ms)
+✔ mobile pause replay uses the same enlarged geometry for drawing and pointer input (3.6429ms)
+✔ mouse drag begins on the right half and moves the courier; touch stays on left (2.01ms)
+✔ custom movement, dash and blur route through real event listeners (1.9169ms)
+✔ misdelivery enemy settles away from player and retains a ranged penalty (8.0432ms)
+✔ empty pickup pool cannot crash order creation (2.6684ms)
+✔ releasing one equivalent movement key keeps the other held key active (1.6843ms)
+✔ cargo stays visible beside an idle courier with no movement history (3.5623ms)
+✔ Boss death and settlement audio fire once per event, not once per frame (2.4236ms)
+✔ expanded fullscreen edges and corner HUD buttons share the same pointer mapping (2.3701ms)
+✔ first hint hides written answer and assisted delivery cannot promote mastery (2.8628ms)
+✔ pickup bubble shows meaning instead of written answer (2.3172ms)
+✔ Boss question preserves gamepad pickup, dash and hint; shoulders and Y answer (2.1647ms)
+✔ codex words pages are reachable by keyboard and gamepad without changing tabs (1.7414ms)
+✔ all upgrade input paths reject accidental selection for the first 0.4 seconds (8.2178ms)
+✔ regular and ring enemies spawn beyond wide view and camera lag (6.2752ms)
+✔ scheduled Boss spawns outside the widescreen view through real update logic (2.3811ms)
+✔ each dedicated gamepad Boss answer button selects its documented option (5.7878ms)
+✔ actors are painted by ground contact so roofs cover the north side and yield at the doorway (2.4627ms)
+✔ frame maps logical coordinates to CSS scale and refreshes renderer DPR (1.7972ms)
+✔ lightning ignores shield immunity and spends its target on a damageable enemy (3.8035ms)
+✔ barrier and healing knockback cannot tunnel through a thin building (3.4986ms)
+✔ Boss chooses an unblocked offscreen spawn and retries without advancing when ring is obstructed (1.9144ms)
+✔ foxfire impact plays one sound for a simultaneous group of hits (1.7658ms)
+✔ portrait stops time, blocks all resume input paths, and landscape requires manual resume (1.7305ms)
+✔ visibility change suspends audio immediately without requiring a frame (1.6992ms)
+✔ idle needles retain last facing and still aim at a nearby enemy (1.8812ms)
+✔ keyboard menus reach settings, both codex tabs, mute and home; restart resets session (2.2164ms)
+✔ gamepad directional menus confirm once without leaking actions into the new screen (1.9178ms)
+✔ controls dialog gamepad events do not activate the covered menu (1.5505ms)
+✔ widescreen map back button accepts pointer at the screen edge and home clears held movement (2.0934ms)
+ℹ tests 43
+ℹ suites 0
+ℹ pass 41
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 189.6968
+
+✖ failing tests:
+
+test at tests\input-runtime.test.cjs:116:1
+✖ same-word Boss retains delivery assistance after the parcel is submitted first (2.5874ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:122:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:126:1
+✖ Boss assistance survives leaving and reentering quiz range (4.3455ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:133:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -31,6 +31,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     setOil: value => { oil=value; },
     unlockBoss: () => { bossQ.lock=0; },
     matchBossToJob: () => { const bs=enemies.find(e=>e.type==='boss'); bs.word=job.word;bossQ=mkQ(bs);bossQ.lock=0; },
+    moveBoss: distance => { const bs=enemies.find(e=>e.type==='boss'); Object.assign(bs,{x:P.x+distance,y:P.y,speed:0,wob:0,flash:0}); },
     clearOrders: () => { orders=[];job=null; },
     replayTutorial: () => activateMenu('tutorial'),
     atDestination: () => { P.x=job.to.x; P.y=job.to.y+110; },
@@ -110,6 +111,38 @@ test('unrelated delivery assistance does not penalize independent Boss mastery',
   g.triggerHint();g.answerBoss(q.ans.indexOf(q.word));
   assert.equal(g.env.STORE.get(q.word.jp).box,1);
   assert.equal(g.reviewWords().length,0);
+});
+
+test('same-word Boss retains delivery assistance after the parcel is submitted first',()=>{
+  const g=loadGame();g.start();g.prepareOrder();g.prepareBoss();g.matchBossToJob();
+  const j=g.snapshot().job;
+  g.triggerHint();g.resolve(j.ans.indexOf(j.word));
+  const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
+  assert.equal(g.env.STORE.get(j.word.jp).ok,2);
+  assert.equal(g.env.STORE.get(j.word.jp).box,0);
+  assert.equal(g.snapshot().score,25);
+});
+
+test('Boss assistance survives leaving and reentering quiz range',()=>{
+  const g=loadGame();g.start();g.prepareBoss();
+  let q=g.snapshot().bossQ;
+  g.answerBoss(q.ans.findIndex(w=>w!==q.word));
+  g.moveBoss(1000);g.update(0.01);assert.equal(g.snapshot().bossQ,null);
+  g.moveBoss(200);g.update(0.01);g.unlockBoss();
+  q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
+  assert.equal(g.env.STORE.get(q.word.jp).box,0);
+});
+
+test('Boss assistance clears for a changed word and for a replay',()=>{
+  const g=loadGame();g.start();g.prepareBoss();
+  const old=g.snapshot().bossQ.word.jp;
+  g.answerBoss(g.snapshot().bossQ.ans.findIndex(w=>w.jp!==old));g.unlockBoss();
+  g.answerBoss(g.snapshot().bossQ.ans.findIndex(w=>w.jp!==old));g.unlockBoss();
+  const next=g.snapshot().bossQ;assert.notEqual(next.word.jp,old);
+  g.answerBoss(next.ans.indexOf(next.word));assert.equal(g.env.STORE.get(next.word.jp).box,1);
+  g.start();g.prepareBoss(g.env.CONTENT.getStageWords('night-town').find(w=>w.jp===old));
+  const replay=g.snapshot().bossQ;g.answerBoss(replay.ans.indexOf(replay.word));
+  assert.equal(g.env.STORE.get(old).box,1);
 });
 
 test('delivery mistake persists, avoids its living answer badge and returns after purification', () => {
