@@ -915,6 +915,7 @@
       RENDERER.triggerShake(9);
       AUDIO.breakShield();
     } else {
+      misses.push(bs.word);
       STORE.rec(bs.word.jp, false);
       oil -= 8;
       AUDIO.deliverWrong();

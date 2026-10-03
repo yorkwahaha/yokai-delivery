@@ -20,6 +20,16 @@ test('every second-stage Boss question has Chinese meaning even without Emoji su
   }
 });
 
+test('settlement shows unique delivery and Boss corrections without changing misdelivery count',()=>{
+  const {UI,context,texts}=loadUI(844);
+  const words=[{jp:'ねこ',zh:'貓'},{jp:'あめ',zh:'雨'}];
+  UI.drawEndScreen(context,'lost',0,0,1,[words[0],words[1],words[1]]);
+  assert.ok(texts.some(t=>t.value==='今夜記錯的字'));
+  const rendered=texts.map(t=>t.value).join('|');
+  for(const w of words) assert.equal(rendered.split(`${w.jp}（${w.zh}）`).length-1,1);
+  assert.ok(texts.some(t=>t.value==='誤配  1 件'));
+});
+
 test('north and south have distinct text cues and unknown images retain meaning', () => {
   const content = require('../js/words.js');
   const { UI, context, texts } = loadUI();

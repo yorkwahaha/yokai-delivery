@@ -91,7 +91,7 @@ window.STORE = (() => {
     isStageCompleted,
     completeStage,
     startRun(stageId = "night-town") {
-      Object.values(d.m).forEach(m => { m.missBoost = 1; });
+      // 未答回的錯題保留複習優先度；只有實際答對才解除。
       const stats = getStageStats(stageId);
       stats.attempts = (stats.attempts || 0) + 1;
       save();

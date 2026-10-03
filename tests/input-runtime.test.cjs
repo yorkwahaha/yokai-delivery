@@ -30,6 +30,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     answerBoss,
     setOil: value => { oil=value; },
     unlockBoss: () => { bossQ.lock=0; },
+    clearOrders: () => { orders=[];job=null; },
     replayTutorial: () => activateMenu('tutorial'),
     atDestination: () => { P.x=job.to.x; P.y=job.to.y+110; },
     dashLesson: () => { elapsed=12; },
@@ -79,6 +80,23 @@ test('lethal Boss mistake still reaches settlement review before run ends', () =
   assert.equal(g.snapshot().state,'lost');
   assert.equal(g.reviewWords().length,1);
   assert.equal(g.env.STORE.get(q.word.jp).ng,1);
+});
+
+test('delivery mistake persists, avoids its living answer badge and returns after purification', () => {
+  const g=loadGame();g.start();g.prepareOrder();
+  const j=g.snapshot().job,jp=j.word.jp;
+  g.resolve(j.ans.findIndex(w=>w!==j.word));
+  const saved=JSON.parse(g.env.localStorage.getItem('yokai-delivery-v1'));
+  assert.equal(saved.m[jp].ng,1);assert.equal(saved.m[jp].missBoost,2.5);
+  assert.equal(g.reviewWords()[0].jp,jp);
+  g.clearOrders();g.makeOrder();
+  assert.ok(g.snapshot().orders.every(o=>o.word.jp!==jp));
+  const mis=g.snapshot().enemies.find(e=>e.type==='mis'&&e.w.jp===jp);
+  g.hurt(mis,999);
+  assert.equal(g.env.STORE.get(jp).ok,0);assert.equal(g.env.STORE.get(jp).box,0);
+  g.clearOrders();g.makeOrder();assert.equal(g.snapshot().orders[0].word.jp,jp);
+  g.start();assert.equal(g.snapshot().orders[0].word.jp,jp);
+  assert.equal(g.reviewWords().length,0);
 });
 
 test('first-run tutorial freezes time, oil and gameplay input, and skip persists', () => {
