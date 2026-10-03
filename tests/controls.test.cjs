@@ -48,3 +48,8 @@ test('gamepad can navigate presets and leave the native controls dialog',()=>{
  const gp={buttons:Array.from({length:16},()=>({pressed:false}))};const press=i=>{gp.buttons[i].pressed=true;c.gamepad(gp,[]);gp.buttons[i].pressed=false;};
  press(13);assert.equal(env.document.activeElement,buttons[1]);press(0);assert.equal(clicked,1);press(1);assert.equal(dialog.open,false);opener.onclick();events.keydown({code:'Escape',preventDefault(){},stopPropagation(){}});assert.equal(dialog.open,false);
 });
+test('display labels track presets, custom bindings and saved controls',()=>{
+ const c=controls(); assert.equal(c.label('dash'),'空白鍵');
+ c.preset('left');assert.equal(c.label('interact'),'U');assert.equal(c.label('hint'),'O');
+ c.bind('interact','KeyT');assert.equal(c.label('interact'),'T');
+});

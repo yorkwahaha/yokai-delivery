@@ -3,14 +3,14 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 
-function loadGame(firstRun = false) {
+function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') {
   const events = {}, canvasEvents = {}, documentEvents = {};
   const gradient = { addColorStop() {} };
   const drawnText = [], actorCalls = [], transforms = [];
   const ctx = new Proxy({ setTransform: (...args) => transforms.push(args), fillText: text => drawnText.push(text), measureText: () => ({ width: 40 }), createLinearGradient: () => gradient, createRadialGradient: () => gradient }, { get: (o, k) => o[k] || (() => {}) });
   const canvas = { addEventListener: (k, f) => { canvasEvents[k] = f; }, setPointerCapture() {}, getBoundingClientRect: () => ({ left: 0, top: 0, width: env.innerWidth || 900, height: env.innerHeight || 600 }) };
   const controlsButton = { click() { this.clicked = true; } };
-  const storage = new Map(firstRun ? [] : [['yokai-tutorial-v1', '"skip"']]);
+  const storage = new Map(tutorialSaved === null ? [] : [['yokai-tutorial-v1', tutorialSaved]]);
   const env = { console, Set, Map, Math, Date, performance: { now: () => 0 }, navigator: {}, requestAnimationFrame() {}, localStorage: { getItem: k => storage.get(k) || null, setItem: (k,v) => storage.set(k,v) }, document: { hidden: false, getElementById: id => id === 'controls-open' ? controlsButton : canvas, addEventListener: (k, f) => { documentEvents[k] = f; } }, addEventListener: (k, f) => { events[k] = f; } };
   env.window = env;
   const c = vm.createContext(env);
@@ -21,13 +21,14 @@ function loadGame(firstRun = false) {
   c.RENDERER = new Proxy({ drawHouse: h => actorCalls.push(`house:${h.id}`), drawPlayer: () => actorCalls.push('player'), drawMonster: e => actorCalls.push(`enemy:${e.id}`), getCtx: () => ctx, getDpr: () => c.devicePixelRatio || 1, getCam: () => ({ x: 900, y: 600 }), getShakeOffset: () => ({x:0,y:0}), updateEffects: () => false }, { get: (o, k) => o[k] || (() => {}) });
   vm.runInContext(fs.readFileSync('js/ui.js','utf8'),c);
   const uiButtons=Object.fromEntries(Object.entries(c.UI).filter(([,v])=>typeof v!=='function'));
-  c.UI = new Proxy({ ...uiButtons, HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
+  c.UI = new Proxy({ ...uiButtons, pauseButtons:c.UI.pauseButtons, HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
   const source = fs.readFileSync('js/game.js', 'utf8');
   const end = source.lastIndexOf('})();');
   const hook = `window.fixture = { start, update, frame, drawWorld, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons,
     tutorialState: () => tutorial,
     replayTutorial: () => activateMenu('tutorial'),
     atDestination: () => { P.x=job.to.x; P.y=job.to.y+110; },
+    dashLesson: () => { elapsed=12; },
     face: angle => { P.faceAng=angle; },
     combatScene: (weapon, foes, walls=[]) => { Object.keys(WL).forEach(k=>WL[k]=0); WL[weapon]=1; wT[weapon]=0; enemies=foes.map(e=>({x:P.x+e.dx,y:P.y+(e.dy||0),hp:999,max:999,type:'ghost',...e})); solids.splice(0,solids.length,...walls.map(s=>({x0:P.x+s.x0,x1:P.x+s.x1,y0:P.y+s.y0,y1:P.y+s.y1}))); },
     heal: () => UP.find(u=>u.id==='oil_heal').f(),
@@ -56,6 +57,15 @@ test('first-run tutorial freezes time, oil and gameplay input, and skip persists
   assert.equal(g.snapshot().dashCd,0); assert.equal(g.snapshot().joy,null);
   g.events.keydown(key('Escape','Escape')); assert.equal(g.tutorialState(),null);
   g.start(); g.update(0.05); assert.equal(g.tutorialState(),null);
+  const restored=loadGame(true,g.env.localStorage.getItem('yokai-tutorial-v1'));restored.start();
+  assert.equal(restored.tutorialState(),null);
+});
+test('malformed tutorial progress recovers and touch confirmation does not start dragging',()=>{
+  const g=loadGame(true,'{}');g.start();assert.equal(g.tutorialState().id,'pickup');
+  g.canvasEvents.pointerdown(pointer(250,425,'touch'));
+  assert.equal(g.tutorialState(),null);assert.equal(g.snapshot().joy,null);
+  g.events.blur();g.replayTutorial();g.events.keydown(key('Escape','Escape'));
+  assert.equal(g.snapshot().state,'pause');
 });
 test('context lessons cover listening, delivery, dash and Boss without changing assistance', () => {
   const g=loadGame(true); g.start(); g.update(0.05);
@@ -64,9 +74,8 @@ test('context lessons cover listening, delivery, dash and Boss without changing 
   assert.equal(g.snapshot().job.assisted,false); const oil=g.snapshot().oil;
   next(); g.atDestination(); g.update(0.05); assert.equal(g.tutorialState().id,'delivery');
   assert.equal(g.snapshot().oil,oil);
+  next(); g.dashLesson(); g.update(0.05); assert.equal(g.tutorialState().id,'dash');
   next(); g.prepareBoss(); g.update(0.05); assert.equal(g.tutorialState().id,'boss');
-  next(); for(let i=0;i<260 && !g.tutorialState();i++) g.update(0.05);
-  assert.equal(g.tutorialState().id,'dash');
 });
 test('replay is available from pause, gamepad consumes confirmation and returns to pause', () => {
   const g=loadGame(); g.start(); g.setState('pause'); g.replayTutorial();
@@ -76,6 +85,13 @@ test('replay is available from pause, gamepad consumes confirmation and returns 
   for(let i=0;i<5;i++){buttons[0].pressed=true;g.pollGamepad();buttons[0].pressed=false;g.pollGamepad();}
   assert.equal(g.tutorialState(),null); assert.equal(g.snapshot().state,'pause');
   assert.equal(g.snapshot().job,null);
+});
+test('mobile pause replay uses the same enlarged geometry for drawing and pointer input',()=>{
+ const g=loadGame();g.env.innerWidth=844;g.env.innerHeight=390;g.start();g.frame(20);g.setState('pause');
+ const v=g.env.VIEWPORT.get(),btn=g.env.UI.pauseButtons().find(b=>b.id==='tutorial');
+ assert.ok(btn.h*v.scale>=44);
+ g.canvasEvents.pointerdown(pointer((btn.x+btn.w/2+v.offsetX)*v.scale,(btn.y+btn.h/2+v.offsetY)*v.scale,'touch'));
+ assert.equal(g.tutorialState().id,'pickup');assert.equal(g.snapshot().state,'pause');
 });
 test('mouse drag begins on the right half and moves the courier; touch stays on left', () => {
   const g = loadGame(); g.start(); const before = g.snapshot();
@@ -340,7 +356,7 @@ test('keyboard menus reach settings, both codex tabs, mute and home; restart res
  g.events.keydown(key('Escape','Escape'));g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().codexTab,'words');
  g.start();g.prepareOrder();g.events.keydown(key('Escape','Escape'));
  for(let i=0;i<3;i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.ok(g.audioCalls.includes('toggleMute'));
- for(let i=0;i<2;i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'menu');
+ for(let i=0;i<3;i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'menu');
  g.start();assert.equal(g.snapshot().job,null);assert.equal(g.snapshot().elapsed,0);assert.equal(g.snapshot().oil,100);assert.equal(g.snapshot().enemies.length,0);
 });
 test('gamepad directional menus confirm once without leaking actions into the new screen',()=>{
@@ -361,7 +377,7 @@ test('widescreen map back button accepts pointer at the screen edge and home cle
  g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'overworld');
  g.canvasEvents.pointerdown(pointer(30,30));assert.equal(g.snapshot().state,'menu');
  g.start();g.events.keydown(key('KeyD','d'));g.events.keydown(key('Escape','Escape'));
- for(let i=0;i<5;i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));
+ for(let i=0;i<g.env.UI.PAUSE_BTNS.findIndex(b=>b.id==='menu');i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));
  assert.equal(g.snapshot().state,'menu');assert.equal(g.snapshot().keys.length,0);
  g.start();assert.equal(g.snapshot().joy,null);
 });

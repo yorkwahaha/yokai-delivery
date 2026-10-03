@@ -21,6 +21,7 @@ window.CONTROLS = (() => {
     });
   }
   const api = {
+    label: action => display(bindings[action] || ''),
     action: code => fixed[code] || Object.keys(bindings).find(a => bindings[a] === code),
     bind(action, code) {
       if (!(action in defaults) || !valid(code) || Object.keys(bindings).some(a => a !== action && bindings[a] === code)) return false;

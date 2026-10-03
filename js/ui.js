@@ -9,6 +9,70 @@ window.UI = (() => {
   const MENU_START_BTN = { x: W / 2 - 132, y: 478, w: 264, h: 54 };
   const MENU_CONTROLS_BTN = { x: 20, y: 22, w: 180, h: 38 };
   const HINT_BTN = { x: 532, y: 20, w: 78, h: 40 };
+  const TUTORIAL_BTNS = [{x:100,y:390,w:330,h:70},{x:470,y:390,w:330,h:70}];
+  const controlLabel = (action, mode = 'keyboard') => mode === 'gamepad'
+    ? ({interact:'A',dash:'B',hint:'X',pause:'Start',move:'左搖桿／十字鍵',boss:'LB／RB／Y'}[action] || '')
+    : mode === 'touch' ? ({interact:'右側取貨鈕',dash:'右側衝刺鈕',hint:'上方提示鈕',pause:'右上暫停鈕',move:'左側拖曳',boss:'點選答案'}[action] || '')
+    : action === 'move' ? ['u','l','d','r'].map(a=>window.CONTROLS?.label(a) || '').join('／') + ' 或方向鍵'
+    : action === 'boss' ? '1／2／3' : window.CONTROLS?.label(action) || ({interact:'E',dash:'空白鍵',hint:'H',pause:'P'}[action] || '');
+  function tutorialCopy(id, mode) {
+    const key = action => controlLabel(action, mode);
+    return {
+      pickup: ['取貨', 'pickup', `移動：${key('move')}。沿包裹標記靠近委託房屋，再用${key('interact')}取貨。攻擊會自動發動。`],
+      listen: ['聽音與答題輔助', 'listen', `取貨時會播放發音；看包裹圖像與中文辨認詞義。${key('hint')}是答題輔助：第一階耗 3 油、重播並排除一項；第二階再耗 4 油、顯示詞句。使用任一階，這單不升星、得 25 分、回油 10。`],
+      delivery: ['配送答題墊', 'pickup', '沿箭頭前往收件房屋，走上你選的假名答題墊。停留 0.45 秒會自動提交；移開可中斷。配送不能用 1／2／3 作答。'],
+      dash: ['衝刺避險', 'dash', `移動中用${key('dash')}快速穿過危險；衝刺期間短暫無敵。右側衝刺鈕顯示冷卻秒數，恢復後才能再次使用。`],
+      boss: ['Boss 作答', 'listen', `Boss 結界出題時，依圖像與中文選假名。作答：${key('boss')}；答對才能破除結界。取貨、衝刺仍可使用。`]
+    }[id];
+  }
+  // Shared monochrome operation symbols, independent of OS Emoji fonts.
+  function drawActionIcon(ctx, id, x, y, r = 10) {
+    ctx.save(); ctx.translate(x,y); ctx.scale(r/10,r/10);
+    ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    if (id === 'pickup') {
+      ctx.rect(-8,-6,16,14); ctx.moveTo(-8,-6);ctx.lineTo(0,-10);ctx.lineTo(8,-6);ctx.moveTo(0,-10);ctx.lineTo(0,8);ctx.moveTo(-8,-2);ctx.lineTo(8,-2);
+    } else if (id === 'listen') {
+      ctx.moveTo(-8,-3);ctx.lineTo(-4,-3);ctx.lineTo(1,-8);ctx.lineTo(1,8);ctx.lineTo(-4,3);ctx.lineTo(-8,3);ctx.closePath();
+      ctx.moveTo(5,-5);ctx.quadraticCurveTo(10,0,5,5);
+    } else if (id === 'hint') {
+      ctx.arc(0,-2,6,0,Math.PI*2);ctx.moveTo(-3,5);ctx.lineTo(3,5);ctx.moveTo(-3,8);ctx.lineTo(3,8);
+    } else if (id === 'dash') {
+      ctx.moveTo(-3,-7);ctx.lineTo(4,0);ctx.lineTo(-3,7);ctx.moveTo(3,-7);ctx.lineTo(10,0);ctx.lineTo(3,7);ctx.moveTo(-10,-3);ctx.lineTo(-6,-3);ctx.moveTo(-10,3);ctx.lineTo(-6,3);
+    } else if (id === 'pause') {
+      ctx.rect(-6,-8,3,16);ctx.rect(3,-8,3,16);
+    } else if (id === 'cards') {
+      ctx.rect(-5,-7,12,16);ctx.moveTo(-8,5);ctx.lineTo(-8,-10);ctx.lineTo(4,-10);
+    } else {
+      ctx.rect(-8,-9,16,18);ctx.moveTo(-4,-4);ctx.lineTo(4,-4);ctx.moveTo(-4,1);ctx.lineTo(4,1);ctx.moveTo(-4,6);ctx.lineTo(4,6);
+    }
+    ctx.stroke(); ctx.restore();
+  }
+  function drawTutorial(ctx, tutorial, mode) {
+    const [title, icon, body] = tutorialCopy(tutorial.id, mode);
+    ctx.save(); ctx.fillStyle='rgba(6,8,16,0.84)'; fillScreen(ctx);
+    glassBox(ctx,60,115,780,375,14,'#121827','#d4af37',2);
+    ctx.fillStyle='#ffe28b'; drawActionIcon(ctx,icon,100,155,16);
+    ctx.textAlign='left';ctx.font=readableFont(24,'900');ctx.fillText(title,130,165);
+    ctx.fillStyle='#e9e4d6';ctx.font=readableFont(18,'bold');
+    let line='', y=211;
+    for (const char of body) {
+      if (ctx.measureText(line+char).width > 690 && !'，。；：、！？'.includes(char)) {ctx.fillText(line,100,y);y+=29;line='';}
+      line+=char;
+    }
+    ctx.fillText(line,100,y);
+    ctx.fillStyle='#80deea';ctx.font=readableFont(15,'bold');
+    ctx.fillText('操作教學不扣油、不算答題輔助；閱讀期間遊戲暫停。',100,360);
+    const labels = [tutorial.replay && tutorial.id !== 'boss' ? '下一張' : '知道了', tutorial.replay ? '結束重看' : '跳過全部教學'];
+    TUTORIAL_BTNS.forEach((bt,i)=>{
+      glassBox(ctx,bt.x,bt.y,bt.w,bt.h,10,'#252d40','#d4af37');
+      ctx.fillStyle='#fff1d0';ctx.textAlign='center';ctx.font=readableFont(18,'900');ctx.fillText(labels[i],bt.x+bt.w/2,bt.y+43);
+      if(tutorial.focus===i) drawMenuFocus(ctx,bt);
+    });
+    ctx.font=readableFont(12,'bold');ctx.fillStyle='#b7bdc8';
+    ctx.fillText(mode==='gamepad'?'十字鍵選擇 · A 確認 · B 結束':mode==='touch'?'點選按鈕 · 暫停選單可重看':'Tab／方向鍵選擇 · Enter 確認 · Esc 結束',450,482);
+    ctx.restore();
+  }
 
   const MENU_BTNS = [{id:'start',...MENU_START_BTN},{id:'controls',...MENU_CONTROLS_BTN},{id:'cards',x:615,y:22,w:125,h:38},{id:'codex',x:755,y:22,w:125,h:38}];
   const END_BTNS = [{id:'restart',...RESTART_BTN},{id:'world',...WORLD_BTN},{id:'menu',...HOME_BTN}];
@@ -207,8 +271,7 @@ window.UI = (() => {
     glassBox(ctx, btnPause.x, btnPause.y, btnPause.w, btnPause.h, 10, "rgba(20, 26, 44, 0.92)", "#d4af37", 1.8);
     const pcx = btnPause.x + btnPause.w / 2, pcy = btnPause.y + btnPause.h / 2;
     ctx.fillStyle = "#ffd54f";
-    ctx.fillRect(pcx - 6, pcy - 8, 4, 16);
-    ctx.fillRect(pcx + 2, pcy - 8, 4, 16);
+    drawActionIcon(ctx,'pause',pcx,pcy,10);
 
     // --- 中上：HoloCure 式單一任務條。只保留「現在要做什麼」與方向資訊。 ---
     const taskX = Math.max(248, pBoxX + pBoxW + 5), taskY = bounds.top + 14;
@@ -240,13 +303,14 @@ window.UI = (() => {
       ctx.fillText(`➜ ${remaining}`, taskX + 14, taskY + 43);
 
       const hintStage = job.hintStage || 0;
-      const hintLabel = hintStage === 0 ? "💡 -3" : hintStage === 1 ? "👁 -4" : "✓";
+      const hintLabel = hintStage === 0 ? "聽 -3" : hintStage === 1 ? "詞 -4" : "✓";
       const hintEnabled = hintStage < 2;
       glassBox(ctx, HINT_BTN.x, HINT_BTN.y, HINT_BTN.w, HINT_BTN.h, 9, hintEnabled ? "rgba(31, 61, 77, 0.94)" : "rgba(44, 48, 58, 0.82)", hintEnabled ? "#80deea" : "#6b7280", 1.6);
       ctx.textAlign = "center";
       ctx.fillStyle = hintEnabled ? "#e0fbff" : "#b7bdc8";
       ctx.font = readableFont(14, "900");
-      ctx.fillText(hintLabel, HINT_BTN.x + HINT_BTN.w / 2, HINT_BTN.y + 25);
+      drawActionIcon(ctx, hintStage === 0 ? 'listen' : 'hint', HINT_BTN.x+17,HINT_BTN.y+20,9);
+      ctx.fillText(hintLabel, HINT_BTN.x + 49, HINT_BTN.y + 25);
 
       if (job.showMeaningT > 0) {
         ctx.textAlign = "left";
@@ -258,7 +322,8 @@ window.UI = (() => {
     } else {
       ctx.fillStyle = inter ? "#ffe082" : "#f4e7cf";
       ctx.font = readableFont(17, "900");
-      ctx.fillText(inter ? "📦　取貨" : "📦　取貨", taskX + 16, taskY + 31);
+      drawActionIcon(ctx,'pickup',taskX+25,taskY+24,10);
+      ctx.fillText("取貨", taskX + 46, taskY + 31);
       ctx.fillStyle = "rgba(255,255,255,0.5)";
       ctx.font = readableFont(12, "");
       ctx.fillText("➜", taskX + 128, taskY + 31);
@@ -374,7 +439,8 @@ window.UI = (() => {
       ctx.textAlign = "center";
       ctx.fillStyle = cdRatio <= 0.001 ? "#1e2436" : "#ffffff";
       ctx.font = readableFont(16, "900");
-      ctx.fillText(dashCd > 0 ? `${dashCd.toFixed(1)}s` : "ダッシュ", btnD.x, btnD.y + 6);
+      drawActionIcon(ctx,'dash',btnD.x,btnD.y-12,12);
+      ctx.fillText(dashCd > 0 ? `${dashCd.toFixed(1)}s` : "衝刺", btnD.x, btnD.y + 20);
 
       if (inter) {
         ctx.fillStyle = "rgba(255, 210, 80, 0.85)";
@@ -382,7 +448,8 @@ window.UI = (() => {
         ctx.arc(btnE.x, btnE.y, btnE.r, 0, 6.28);
         ctx.fill();
         ctx.fillStyle = "#1e2436";
-        ctx.fillText("取貨", btnE.x, btnE.y + 6);
+        drawActionIcon(ctx,'pickup',btnE.x,btnE.y-10,10);
+        ctx.fillText("取貨", btnE.x, btnE.y + 20);
       }
 
       if (joy) {
@@ -1043,7 +1110,7 @@ window.UI = (() => {
   }
 
   // 4. Boss 破防答題介面
-  function drawBossQuiz(ctx, bossQ) {
+  function drawBossQuiz(ctx, bossQ, mode = 'keyboard') {
     if (!bossQ) return;
     ctx.save();
     const boxW = 690, boxH = 105;
@@ -1075,7 +1142,8 @@ window.UI = (() => {
       glassBox(ctx, ox, oy, optW, optH, 10, bossQ.lock > 0 ? "#333c57" : "#ffeed4", "#d4af37", 2);
       ctx.fillStyle = "#1e1829";
       ctx.font = readableFont(18, "900");
-      ctx.fillText(`${i + 1} [${["LB", "RB", "Y"][i]}] ${w.jp}`, ox + optW / 2, oy + 29, optW - 12);
+      const badge = mode === 'gamepad' ? ["LB", "RB", "Y"][i] : mode === 'touch' ? '' : i + 1;
+      ctx.fillText(`${badge ? badge + ' ' : ''}${w.jp}`, ox + optW / 2, oy + 29, optW - 12);
     });
 
     ctx.restore();
@@ -1128,14 +1196,16 @@ window.UI = (() => {
     ctx.textAlign = "center";
     ctx.fillStyle = isCards ? "#ffe28b" : "rgba(255, 235, 180, 0.65)";
     ctx.font = readableFont(13, "900");
-    ctx.fillText("🎴 秘術卡片一覽", tabCardsX + tabW / 2, tabY + 20);
+    drawActionIcon(ctx,'cards',tabCardsX+22,tabY+15,9);
+    ctx.fillText("秘術卡片", tabCardsX + tabW / 2 + 12, tabY + 20);
 
     // 📜 百鬼單字卷 標籤
     const isWords = !isCards;
     glassBox(ctx, tabWordsX, tabY, tabW, tabH, 8, isWords ? "rgba(38, 52, 84, 0.95)" : "rgba(18, 22, 38, 0.75)", isWords ? "#ffd54f" : "rgba(212, 175, 55, 0.4)", isWords ? 2 : 1.2);
     ctx.fillStyle = isWords ? "#ffe28b" : "rgba(255, 235, 180, 0.65)";
     ctx.font = readableFont(13, "900");
-    ctx.fillText("📜 百鬼單字卷", tabWordsX + tabW / 2, tabY + 20);
+    drawActionIcon(ctx,'codex',tabWordsX+22,tabY+15,9);
+    ctx.fillText("單字圖鑑", tabWordsX + tabW / 2 + 12, tabY + 20);
 
     if (isCards) {
       // 3. 卡片一覽表格頁面
@@ -1422,13 +1492,20 @@ window.UI = (() => {
 
   // 7. 暫停與系統設定選單 (日式黑漆金箔和風御札)
   const PAUSE_BTNS = [
-    { id: "resume", label: "◆ 繼 續 夜 行 ◆", y: 195 },
-    { id: "cards", label: "◆ 秘 術 卡 片 一 覽 ◆", y: 255 },
-    { id: "codex", label: "◆ 百 鬼 單 字 卷 ◆", y: 315 },
-    { id: "mute", label: "◆ 聲 音 音 效 ： 開 ◆", labelMuted: "◆ 聲 音 音 效 ： 關 ◆", y: 375 },
-    { id: "controls", label: "◆ 操作與自定義 ◆", y: 435 },
-    { id: "menu", label: "◆ 返 回 主 選 單 ◆", y: 495 }
+    { id: "resume", label: "◆ 繼 續 夜 行 ◆", y: 180 },
+    { id: "cards", label: "◆ 秘 術 卡 片 一 覽 ◆", y: 232 },
+    { id: "codex", label: "◆ 百 鬼 單 字 卷 ◆", y: 284 },
+    { id: "mute", label: "◆ 聲 音 音 效 ： 開 ◆", labelMuted: "◆ 聲 音 音 效 ： 關 ◆", y: 336 },
+    { id: "controls", label: "◆ 操作與自定義 ◆", y: 388 },
+    { id: "tutorial", label: "◆ 重看操作教學 ◆", y: 440 },
+    { id: "menu", label: "◆ 返 回 主 選 單 ◆", y: 492 }
   ];
+  function pauseButtons() {
+    const compact = (window.VIEWPORT?.get().scale || 1) < 0.8;
+    return PAUSE_BTNS.map((b,i)=>compact
+      ? {...b,x:i%2?470:70,y:190+Math.floor(i/2)*85,w:360,h:70}
+      : {...b,x:310,w:280,h:44});
+  }
 
   function drawPauseMenu(ctx, muted, focus = 0) {
     ctx.save();
@@ -1447,20 +1524,17 @@ window.UI = (() => {
     ctx.fillStyle = "rgba(255, 235, 180, 0.55)";
     ctx.fillText("SYSTEM PAUSE", W / 2, 164);
 
-    const btnW = 280, btnH = 44;
-    const bx = W / 2 - btnW / 2;
-
-    PAUSE_BTNS.forEach((b, i) => {
+    pauseButtons().forEach((b, i) => {
       let label = b.label;
       if (b.id === "mute") {
         label = muted ? b.labelMuted : b.label;
       }
-      glassBox(ctx, bx, b.y, btnW, btnH, 10, "rgba(18, 22, 36, 0.95)", "rgba(212, 175, 55, 0.8)", 1.6);
+      glassBox(ctx, b.x, b.y, b.w, b.h, 10, "rgba(18, 22, 36, 0.95)", "rgba(212, 175, 55, 0.8)", 1.6);
       ctx.textAlign = "center";
       ctx.fillStyle = "#ffeed4";
       ctx.font = readableFont(15, "900");
-      ctx.fillText(label, W / 2, b.y + 28);
-      if(i === focus) drawMenuFocus(ctx,{x:bx,y:b.y,w:btnW,h:btnH});
+      ctx.fillText(label, b.x+b.w/2, b.y+b.h/2+6);
+      if(i === focus) drawMenuFocus(ctx,b);
     });
 
     ctx.fillStyle = "rgba(255, 235, 180, 0.45)";
@@ -1621,6 +1695,7 @@ window.UI = (() => {
 
   return {
     readableFont,
+    controlLabel, tutorialCopy, drawTutorial, drawActionIcon, TUTORIAL_BTNS,
     drawWordCue,
     drawMainMenu,
     drawHud,
@@ -1631,7 +1706,7 @@ window.UI = (() => {
     drawEndScreen,
     drawPauseMenu,
     drawSurgeWarning,
-    PAUSE_BTNS, MENU_BTNS, END_BTNS,
+    PAUSE_BTNS, pauseButtons, MENU_BTNS, END_BTNS,
     PAUSE_BTN_W: 280,
     PAUSE_BTN_H: 44,
     RESTART_BTN,

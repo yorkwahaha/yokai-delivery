@@ -89,6 +89,7 @@
     else if (id === "resume") togglePause();
     else if (id === "mute") AUDIO.toggleMute();
     else if (id === "controls") controlsButton.click();
+    else if (id === "tutorial") showTutorial('pickup', true);
     else if (id === "menu") returnHome();
     else if (id === "cards" || id === "codex") { codexBack = state; codexTab = id === "cards" ? "cards" : "words"; state = "codex"; }
   }
@@ -108,6 +109,40 @@
   let finalBossPos = null, victorySeq = null;
   let ended = false, bossQ = null, codexBack = "menu", codexTab = "cards", codexPage = 0;
   let worldSyncSignature = "";
+
+  // Only operation guidance: never reads the current word or mutates answer assistance.
+  const tutorialIds = ['pickup', 'listen', 'delivery', 'dash', 'boss'];
+  let tutorial = null, tutorialSeen = new Set(), tutorialSkipped = false;
+  let inputMode = touch ? 'touch' : 'keyboard';
+  try {
+    const saved = JSON.parse(localStorage.getItem('yokai-tutorial-v1'));
+    tutorialSkipped = saved === 'skip';
+    if (Array.isArray(saved)) tutorialSeen = new Set(saved.filter(id => tutorialIds.includes(id)));
+  } catch {}
+  function showTutorial(id, replay = false) {
+    tutorial = { id, replay, focus: 0 };
+    keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
+  }
+  function closeTutorial(skip = false) {
+    if (!tutorial) return;
+    if (tutorial.replay) {
+      const next = tutorialIds[tutorialIds.indexOf(tutorial.id) + 1];
+      if (!skip && next) { showTutorial(next, true); return; }
+    } else {
+      tutorialSeen.add(tutorial.id);
+      if (skip) tutorialSkipped = true;
+      try { localStorage.setItem('yokai-tutorial-v1', JSON.stringify(tutorialSkipped ? 'skip' : [...tutorialSeen])); } catch {}
+    }
+    tutorial = null;
+    keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
+  }
+  function checkTutorial() {
+    if (tutorialSkipped || tutorial) return;
+    const id = bossQ && !tutorialSeen.has('boss') ? 'boss' : job && dist(P, job.to) < 230 && tutorialSeen.has('listen') && !tutorialSeen.has('delivery') ? 'delivery'
+      : job && !tutorialSeen.has('listen') ? 'listen' : elapsed >= 12 && !tutorialSeen.has('dash') ? 'dash'
+      : !job && !tutorialSeen.has('pickup') ? 'pickup' : null;
+    if (id && !tutorialSeen.has(id)) showTutorial(id);
+  }
 
   function replaceList(target, source) {
     target.splice(0, target.length, ...source);
@@ -324,6 +359,7 @@
     configureStage(stageId);
     AUDIO.init();
     state = "play";
+    tutorial = null;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     Object.assign(P, { x: START.x, y: START.y, inv: 1.2, faceAng: 0, faceX: 1 });
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0 });
@@ -346,6 +382,7 @@
     syncWorld(true);
     makeOrder();
     RENDERER.setCam(P.x - W / 2, P.y - H / 2);
+    checkTutorial();
   }
 
   const xpNeed = () => Math.round(CFG.xpNeed(level) * XP_NEED_SCALE);
@@ -714,9 +751,19 @@
       gpMove = { x: 0, y: 0 };
       return;
     }
+    if (tutorial) {
+      if (gp.buttons.some((b, i) => b.pressed && !gpPrevButtons[i]) || gp.axes.some(a => Math.abs(a) > 0.55)) inputMode = 'gamepad';
+      const pressed = i => gp.buttons[i]?.pressed && !gpPrevButtons[i];
+      if (pressed(12) || pressed(13) || pressed(14) || pressed(15)) tutorial.focus = 1 - tutorial.focus;
+      if (pressed(1) || pressed(9)) closeTutorial(true);
+      else if (pressed(0)) closeTutorial(tutorial.focus === 1);
+      gpPrevButtons = gp.buttons.map(b => b.pressed); gpMove = { x: 0, y: 0 };
+      return;
+    }
     // 1. 蘑菇頭類比搖桿 (左搖桿 axes 0, 1) + 十字鍵 (buttons 12, 13, 14, 15)
     let ax = gp.axes[0] || 0;
     let ay = gp.axes[1] || 0;
+    if (gp.buttons.some((b,i) => b.pressed && !gpPrevButtons[i]) || Math.abs(ax) > 0.55 || Math.abs(ay) > 0.55) inputMode = 'gamepad';
     if (Math.hypot(ax, ay) < 0.18) { ax = 0; ay = 0; }
     if (gp.buttons[14]?.pressed) ax = -1;
     if (gp.buttons[15]?.pressed) ax = 1;
@@ -1173,6 +1220,8 @@
   function update(dt) {
     if (state !== "play") return;
     if (isPortrait()) { suspend(); return; }
+    checkTutorial();
+    if (tutorial) return;
 
     // 頓挫時間處理
     if (RENDERER.updateEffects(dt)) return;
@@ -1991,7 +2040,7 @@
 
         ctx.textAlign = "center";
         ctx.font = UI.readableFont(14, "");
-        ctx.fillText("📦", h.x, floatY + 5);
+        UI.drawActionIcon(ctx,'pickup',h.x,floatY-3,13);
         ctx.restore();
       }
 
@@ -2178,6 +2227,15 @@
     if (CONTROLS.isOpen()) return;
     if (e.target?.closest?.('button, input, select, textarea, dialog')) return;
     const action = CONTROLS.action(e.code);
+    inputMode = 'keyboard';
+    if (tutorial) {
+      e.preventDefault();
+      if (e.repeat) return;
+      if (e.code === 'Tab' || e.code.startsWith('Arrow')) tutorial.focus = 1 - tutorial.focus;
+      else if (e.code === 'Escape' || action === 'pause') closeTutorial(true);
+      else if (e.code === 'Enter' || action === 'interact') closeTutorial(tutorial.focus === 1);
+      return;
+    }
     if (action) e.preventDefault();
     if (e.repeat && ["pause", "codex", "mute", "interact", "hint"].includes(action)) return;
     if (action === "pause") {
@@ -2286,6 +2344,12 @@
     cv.setPointerCapture(e.pointerId);
     AUDIO.init();
     touch = e.pointerType !== "mouse";
+    inputMode = touch ? 'touch' : 'keyboard';
+    if (tutorial) {
+      const p = pp(e);
+      UI.TUTORIAL_BTNS.forEach((bt,i) => { if(p.x>=bt.x && p.x<=bt.x+bt.w && p.y>=bt.y && p.y<=bt.y+bt.h) closeTutorial(i===1); });
+      return;
+    }
     if (e.pointerType === "mouse" && e.button === 2) { dash(); return; }
     if (e.pointerType === "mouse" && e.button !== 0) return;
     const p = pp(e);
@@ -2301,8 +2365,9 @@
     if (state === "pause") {
       const btnW = UI.PAUSE_BTN_W || 280, btnH = UI.PAUSE_BTN_H || 44;
       const bx = W / 2 - btnW / 2;
-      for (const btn of UI.PAUSE_BTNS) {
-        if (p.x >= bx && p.x <= bx + btnW && p.y >= btn.y && p.y <= btn.y + btnH) {
+      for (const btn of UI.pauseButtons?.() || UI.PAUSE_BTNS) {
+        const x=btn.x ?? bx, w=btn.w ?? btnW, h=btn.h ?? btnH;
+        if (p.x >= x && p.x <= x + w && p.y >= btn.y && p.y <= btn.y + h) {
           activateMenu(btn.id);
           return;
         }
@@ -2446,7 +2511,7 @@
       window.OVERWORLD.update(overworld, dt);
       if (overworldNoticeT > 0) overworldNoticeT = Math.max(0, overworldNoticeT - dt);
     }
-    AUDIO.updateBgm(dt, state, state === "overworld" ? 0 : elapsed, DAWN);
+    AUDIO.updateBgm(dt, tutorial ? 'pause' : state, state === "overworld" ? 0 : elapsed, DAWN);
 
     if ((state === "won" || state === "lost") && !ended) {
       ended = true;
@@ -2492,7 +2557,7 @@
           dashCd, dashMax, bossHunt
         );
         if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
-        if (bossQ) UI.drawBossQuiz(ctx, bossQ);
+        if (bossQ) UI.drawBossQuiz(ctx, bossQ, inputMode);
         if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI);
         if (state === "pause") UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false, menuFocus);
         if (state === "won" || state === "lost") UI.drawEndScreen(ctx, state, score, delivered, failed, misses, menuFocus);
@@ -2502,6 +2567,7 @@
     if (state === "codex") {
       UI.drawCodex(ctx, STORE, CODEX_ALL, codexTab, codexPage);
     }
+    if (tutorial) UI.drawTutorial(ctx, tutorial, inputMode);
 
     requestAnimationFrame(frame);
   }
