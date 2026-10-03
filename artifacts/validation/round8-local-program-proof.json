@@ -1,0 +1,125 @@
+{
+  "baseline": "d63a98947a0968c776ce34bc36d573d3db2a0a69",
+  "head": "cfa6bba2f3884a311e8b9d57131db62a5b1d9001",
+  "origin": "http://127.0.0.1:8788",
+  "files": [
+    {
+      "file": "index.html",
+      "http": 200,
+      "deployedBlob": "673ad987ede4ca48862ab0b6065bba34d06444b003add95dc378816693955018",
+      "served": "3c674c306c63e1cdf61d578d5177ac7ecf82a81720d8d0bb16e98e4870908524",
+      "match": false,
+      "lfNormalizedMatch": true,
+      "lfNormalizedSHA256": "673ad987ede4ca48862ab0b6065bba34d06444b003add95dc378816693955018"
+    },
+    {
+      "file": "js/assets.js",
+      "http": 200,
+      "deployedBlob": "7cc1f6acf45ebd05d1087715aff5315b660503b12c475a34fa3f52bbbb9ae65b",
+      "served": "7cc1f6acf45ebd05d1087715aff5315b660503b12c475a34fa3f52bbbb9ae65b",
+      "match": true,
+      "lfNormalizedMatch": true,
+      "lfNormalizedSHA256": "7cc1f6acf45ebd05d1087715aff5315b660503b12c475a34fa3f52bbbb9ae65b"
+    },
+    {
+      "file": "js/audio.js",
+      "http": 200,
+      "deployedBlob": "cd9a154aaafe24c2ae40f41a3fd72d4608847d5b9e0d412577a61415067ffe3b",
+      "served": "f9b1924974d645fc66eabf088aa90f42f1610206526dbba145d8d39fe322672b",
+      "match": false,
+      "lfNormalizedMatch": true,
+      "lfNormalizedSHA256": "cd9a154aaafe24c2ae40f41a3fd72d4608847d5b9e0d412577a61415067ffe3b"
+    },
+    {
+      "file": "js/config.js",
+      "http": 200,
+      "deployedBlob": "5d3c933170f0ac2b2c0b70341b7c62c14ae92b2eb91cef48ba88d57c7bafa9f5",
+      "served": "5d3c933170f0ac2b2c0b70341b7c62c14ae92b2eb91cef48ba88d57c7bafa9f5",
+      "match": true,
+      "lfNormalizedMatch": true,
+      "lfNormalizedSHA256": "5d3c933170f0ac2b2c0b70341b7c62c14ae92b2eb91cef48ba88d57c7bafa9f5"
+    },
+    {
+      "file": "js/controls.js",
+      "http": 200,
+      "deployedBlob": "5e6d8e15ce73e557da0ce4cec63528b01ab2006fee7777046db766e5b51b42a7",
+      "served": "748e7b80ae774f8c2cda8db5e9b27a03da60bd53660770cc0db175a7cac8494d",
+      "match": false,
+      "lfNormalizedMatch": true,
+      "lfNormalizedSHA256": "5e6d8e15ce73e557da0ce4cec63528b01ab2006fee7777046db766e5b51b42a7"
+    },
+    {
+      "file": "js/game.js",
+      "http": 200,
+      "deployedBlob": "a9b254dbbf12bdb179299ba440e8cd79928c2f24f3140907f84b1bce5d6ab6a4",
+      "served": "eb44cd3b8aa2a60e3158c6b137b3c67d8cad705abceaa8b94654ab99d1d3369e",
+      "match": false,
+      "lfNormalizedMatch": true,
+      "lfNormalizedSHA256": "a9b254dbbf12bdb179299ba440e8cd79928c2f24f3140907f84b1bce5d6ab6a4"
+    },
+    {
+      "file": "js/overworld.js",
+      "http": 200,
+      "deployedBlob": "a1351f83913b877de6debcff70b02f235db10408756e4d228c96f5937ecd666c",
+      "served": "85feb176c0e8fc579dd145d82d71a144e5422e18946d1efa60be6d5e2e92fdee",
+      "match": false,
+      "lfNormalizedMatch": true,
+      "lfNormalizedSHA256": "a1351f83913b877de6debcff70b02f235db10408756e4d228c96f5937ecd666c"
+    },
+    {
+      "file": "js/renderer.js",
+      "http": 200,
+      "deployedBlob": "925dcc1a2eba04e33aa19362f662de4067192a591894fe15fc9c90af0cf0a991",
+      "served": "5294e9d46bf71f34e1215eaceedeebd9f77bdd8b8aa26e66c4aba4ada121d303",
+      "match": false,
+      "lfNormalizedMatch": true,
+      "lfNormalizedSHA256": "925dcc1a2eba04e33aa19362f662de4067192a591894fe15fc9c90af0cf0a991"
+    },
+    {
+      "file": "js/store.js",
+      "http": 200,
+      "deployedBlob": "3a61a295929d36887ae0f9f6e4ff1d8f1670a7dc474ae4c2455baa7f0a428372",
+      "served": "3a61a295929d36887ae0f9f6e4ff1d8f1670a7dc474ae4c2455baa7f0a428372",
+      "match": true,
+      "lfNormalizedMatch": true,
+      "lfNormalizedSHA256": "3a61a295929d36887ae0f9f6e4ff1d8f1670a7dc474ae4c2455baa7f0a428372"
+    },
+    {
+      "file": "js/ui.js",
+      "http": 200,
+      "deployedBlob": "8008f6d288619250b9617d1439da526ac926801c2653d8f5d7fa46774aacf685",
+      "served": "484cf4f240bcc3b6b579ea6da60928ed33b822ba2a5bdd0c6e25599f50b47a43",
+      "match": false,
+      "lfNormalizedMatch": true,
+      "lfNormalizedSHA256": "8008f6d288619250b9617d1439da526ac926801c2653d8f5d7fa46774aacf685"
+    },
+    {
+      "file": "js/viewport.js",
+      "http": 200,
+      "deployedBlob": "f8eccdc63b0b78826ba645de32a58438f3ba19aba46a53e668085f1e37092bc0",
+      "served": "f8eccdc63b0b78826ba645de32a58438f3ba19aba46a53e668085f1e37092bc0",
+      "match": true,
+      "lfNormalizedMatch": true,
+      "lfNormalizedSHA256": "f8eccdc63b0b78826ba645de32a58438f3ba19aba46a53e668085f1e37092bc0"
+    },
+    {
+      "file": "js/words.js",
+      "http": 200,
+      "deployedBlob": "1c4eb6fe8621480a6e761cda8a2343dbf16e1fb4a3ae030316569c3128014dd5",
+      "served": "1c4eb6fe8621480a6e761cda8a2343dbf16e1fb4a3ae030316569c3128014dd5",
+      "match": true,
+      "lfNormalizedMatch": true,
+      "lfNormalizedSHA256": "1c4eb6fe8621480a6e761cda8a2343dbf16e1fb4a3ae030316569c3128014dd5"
+    },
+    {
+      "file": "js/world.js",
+      "http": 200,
+      "deployedBlob": "01edbe6b60560b7cf35400a190c78c0248d3ad97f0576536524ec12351dd4864",
+      "served": "01edbe6b60560b7cf35400a190c78c0248d3ad97f0576536524ec12351dd4864",
+      "match": true,
+      "lfNormalizedMatch": true,
+      "lfNormalizedSHA256": "01edbe6b60560b7cf35400a190c78c0248d3ad97f0576536524ec12351dd4864"
+    }
+  ],
+  "note": "Local working files have mixed CRLF/LF; raw served hashes differ for seven files, all LF-normalized contents match deployed Git blobs. No production file edits."
+}
