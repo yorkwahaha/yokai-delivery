@@ -30,6 +30,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     answerBoss,
     setOil: value => { oil=value; },
     unlockBoss: () => { bossQ.lock=0; },
+    matchBossToJob: () => { const bs=enemies.find(e=>e.type==='boss'); bs.word=job.word;bossQ=mkQ(bs);bossQ.lock=0; },
     clearOrders: () => { orders=[];job=null; },
     replayTutorial: () => activateMenu('tutorial'),
     atDestination: () => { P.x=job.to.x; P.y=job.to.y+110; },
@@ -80,6 +81,25 @@ test('lethal Boss mistake still reaches settlement review before run ends', () =
   assert.equal(g.snapshot().state,'lost');
   assert.equal(g.reviewWords().length,1);
   assert.equal(g.env.STORE.get(q.word.jp).ng,1);
+});
+
+test('delivery hint cannot promote mastery through a simultaneous same-word Boss quiz',()=>{
+  const g=loadGame();g.start();g.prepareOrder();g.prepareBoss();g.matchBossToJob();
+  const jp=g.snapshot().job.word.jp;
+  g.triggerHint();
+  const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
+  assert.equal(g.env.STORE.get(jp).ok,1);
+  assert.equal(g.env.STORE.get(jp).box,0);
+});
+
+test('Boss eliminated answer assistance also applies to an active same-word delivery',()=>{
+  const g=loadGame();g.start();g.prepareOrder();g.prepareBoss();g.matchBossToJob();
+  const q=g.snapshot().bossQ;g.answerBoss(q.ans.findIndex(w=>w!==q.word));
+  const j=g.snapshot().job;
+  assert.equal(j.assisted,true);
+  g.resolve(j.ans.indexOf(j.word));
+  assert.equal(g.env.STORE.get(j.word.jp).box,0);
+  assert.equal(g.snapshot().score,25);
 });
 
 test('delivery mistake persists, avoids its living answer badge and returns after purification', () => {
