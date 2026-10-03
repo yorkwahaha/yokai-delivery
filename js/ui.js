@@ -1,12 +1,13 @@
 // 使用者介面（UI）：商業級全螢幕懸浮式 HUD、HoloCure 風格武器圖標槽、純視覺化無文字冗餘
 window.UI = (() => {
-  const screenBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,width:900,height:600};
+  const screenBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:900,bottom:600,width:900,height:600};
   function fillScreen(ctx) { const b = screenBounds(); ctx.fillRect(b.left,b.top,b.width,b.height); }
   const W = 900, H = 600;
   const RESTART_BTN = { x: 150, y: 492, w: 180, h: 48 };
   const WORLD_BTN = { x: 360, y: 492, w: 180, h: 48 };
   const HOME_BTN = { x: 570, y: 492, w: 180, h: 48 };
   const MENU_START_BTN = { x: W / 2 - 132, y: 478, w: 264, h: 54 };
+  const MENU_CONTROLS_BTN = { x: 20, y: 22, w: 180, h: 38 };
   const HINT_BTN = { x: 532, y: 20, w: 78, h: 40 };
 
   // 繪製日式黑漆金箔懸浮圓角框
@@ -76,6 +77,9 @@ window.UI = (() => {
     ctx.font = readableFont(13, "900");
     ctx.fillText("單字圖鑑", W - 82, 46);
 
+    glassBox(ctx, MENU_CONTROLS_BTN.x, MENU_CONTROLS_BTN.y, MENU_CONTROLS_BTN.w, MENU_CONTROLS_BTN.h, 8);
+    ctx.fillText("操作與自定義", MENU_CONTROLS_BTN.x + MENU_CONTROLS_BTN.w / 2, 46);
+
     ctx.restore();
   }
 
@@ -86,7 +90,8 @@ window.UI = (() => {
     // 注意：完全移除頂部深色橫條！遊戲世界 100% 全螢幕通透顯示！
 
     // --- 左上角：玩家生存與成長懸浮艙 (燈油即生命 + 經驗值條) ---
-    const pBoxX = 18, pBoxY = 14, pBoxW = 225, pBoxH = 52;
+    const bounds = screenBounds();
+    const pBoxX = bounds.left + 18, pBoxY = bounds.top + 14, pBoxW = 225, pBoxH = 52;
     glassBox(ctx, pBoxX, pBoxY, pBoxW, pBoxH, 10);
 
     // 1. 提燈油量條（生命條：油盡燈枯即陣亡）
@@ -154,7 +159,7 @@ window.UI = (() => {
 
     // --- 右上角：進度與統計懸浮艙 (Dawn, Deliveries & Score) ---
     const sBoxW = 205, sBoxH = 52;
-    const sBoxX = W - sBoxW - 62, sBoxY = 14;
+    const sBoxX = bounds.right - sBoxW - 62, sBoxY = bounds.top + 14;
     glassBox(ctx, sBoxX, sBoxY, sBoxW, sBoxH, 10);
 
     // 黎明天盤進度
@@ -197,7 +202,8 @@ window.UI = (() => {
     ctx.fillRect(pcx + 2, pcy - 8, 4, 16);
 
     // --- 中上：HoloCure 式單一任務條。只保留「現在要做什麼」與方向資訊。 ---
-    const taskX = 248, taskY = 14, taskW = 370, taskH = 52;
+    const taskX = 248, taskY = bounds.top + 14, taskW = 370, taskH = 52;
+    HINT_BTN.y = bounds.top + 20;
     const bossPulse = 0.5 + 0.5 * Math.sin(elapsed * 7);
     const taskStroke = bossHunt
       ? `rgba(255, 68, 86, ${0.72 + bossPulse * 0.28})`
@@ -250,7 +256,10 @@ window.UI = (() => {
     // --- 左下角：HoloCure 風格【主動秘術 4 槽位 + 被動體質欄】 ---
     const ownedKeys = WI ? Object.keys(WI).filter(k => (WL[k] || 0) > 0) : [];
     const maxActiveSlots = 4;
-    const slotStartX = 18, slotY = H - 54;
+    ctx.save();
+    ctx.translate(bounds.left + 18, bounds.bottom - 62);
+    ctx.scale(1.2, 1.2);
+    const slotStartX = 0, slotY = 0;
     const slotSize = 40, slotGap = 8;
 
     for (let i = 0; i < maxActiveSlots; i++) {
@@ -316,6 +325,7 @@ window.UI = (() => {
         }
       }
     });
+    ctx.restore();
 
     // 觸控虛擬按鈕
     {
@@ -325,10 +335,10 @@ window.UI = (() => {
         ctx.strokeStyle = "rgba(255,255,255,0.28)";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(105, H - 105, 52, 0, 6.28);
+        ctx.arc(bounds.left + 105, bounds.bottom - 125, 52, 0, 6.28);
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(105, H - 105, 20, 0, 6.28);
+        ctx.arc(bounds.left + 105, bounds.bottom - 125, 20, 0, 6.28);
         ctx.stroke();
       }
       const cdRatio = Math.max(0, Math.min(1, dashCd / Math.max(0.01, dashMax)));
@@ -353,7 +363,7 @@ window.UI = (() => {
       ctx.textAlign = "center";
       ctx.fillStyle = cdRatio <= 0.001 ? "#1e2436" : "#ffffff";
       ctx.font = readableFont(16, "900");
-      ctx.fillText(dashCd > 0 ? `${dashCd.toFixed(1)}s` : "衝刺", btnD.x, btnD.y + 6);
+      ctx.fillText(dashCd > 0 ? `${dashCd.toFixed(1)}s` : "ダッシュ", btnD.x, btnD.y + 6);
 
       if (inter) {
         ctx.fillStyle = "rgba(255, 210, 80, 0.85)";
@@ -944,7 +954,9 @@ window.UI = (() => {
         ctx.fillStyle = "#ffeed4";
         ctx.font = readableFont(12, "900");
         ctx.textAlign = "left";
-        ctx.fillText(`${WI[k].zh} L${WL[k]}`, sx + 38, barY + 27);
+        fitText(ctx, WI[k].zh, sx + 38, barY + 22, 62);
+        ctx.font = "900 11px sans-serif";
+        ctx.fillText(`L${WL[k]}`, sx + 38, barY + 38);
       } else {
         ctx.save();
         ctx.setLineDash([3, 3]);
@@ -997,7 +1009,7 @@ window.UI = (() => {
       ctx.textAlign = "center";
       ctx.fillStyle = isNew ? "#ffe082" : "#90caf9";
       ctx.font = readableFont(12, "900");
-      ctx.fillText(c.levelText || "◆ 妖力精進", cx + 599, rowY + 33);
+      fitText(ctx, c.levelText || "◆ 妖力精進", cx + 599, rowY + 33, 180);
 
       ctx.textAlign = "left";
       ctx.font = readableFont(14, "bold");
@@ -1009,10 +1021,11 @@ window.UI = (() => {
         line += char;
       }
       lines.push(line);
-      lines.slice(0, 2).forEach((text, index) => ctx.fillText(text, cx + 78, rowY + 78 + index * 24));
+      lines.slice(0, 2).forEach((text, index) => fitText(ctx, text, cx + 78, rowY + 76 + index * 23, 620));
       ctx.fillStyle = "#98a9c5";
       ctx.font = readableFont(11, "900");
-      ctx.fillText(c.cat || "", cx + 500, rowY + 55);
+      ctx.textAlign = "center";
+      fitText(ctx, isWeapon ? "【主動】" : "【被動】", cx + 350, rowY + 51, 180);
     });
 
     ctx.restore();
@@ -1240,11 +1253,6 @@ window.UI = (() => {
           ctx.fillStyle = "#63503c";
           ctx.fillText(w.zh, cx + cardW / 2, cy + (compact ? 64 : 74));
 
-          ctx.font = readableFont(14, "700");
-          ctx.fillStyle = "#786957";
-          const ex = (w.example || "").replaceAll(" ", "");
-          ctx.fillText(ex.length > 6 ? ex.slice(0, 5) + "…" : ex, cx + cardW / 2, cy + (compact ? 79 : 91));
-
           ctx.fillStyle = "#d48819";
           ctx.font = readableFont(16, "700");
           ctx.fillText("★".repeat(m.box) + "☆".repeat(4 - m.box), cx + cardW / 2, cy + (compact ? 94 : 107));
@@ -1398,7 +1406,8 @@ window.UI = (() => {
     { id: "cards", label: "◆ 秘 術 卡 片 一 覽 ◆", y: 255 },
     { id: "codex", label: "◆ 百 鬼 單 字 卷 ◆", y: 315 },
     { id: "mute", label: "◆ 聲 音 音 效 ： 開 ◆", labelMuted: "◆ 聲 音 音 效 ： 關 ◆", y: 375 },
-    { id: "menu", label: "◆ 返 回 主 選 單 ◆", y: 435 }
+    { id: "controls", label: "◆ 操作與自定義 ◆", y: 435 },
+    { id: "menu", label: "◆ 返 回 主 選 單 ◆", y: 495 }
   ];
 
   function drawPauseMenu(ctx, muted) {
@@ -1435,7 +1444,7 @@ window.UI = (() => {
 
     ctx.fillStyle = "rgba(255, 235, 180, 0.45)";
     ctx.font = readableFont(12, "");
-    ctx.fillText("[ 按 Esc 鍵返回夜行 ]", W / 2, 515);
+    ctx.fillText("[ 按 Esc 鍵返回夜行 ]", W / 2, 570);
 
     ctx.restore();
   }
@@ -1456,7 +1465,8 @@ window.UI = (() => {
     // 1. 全螢幕四邊暗紅警戒警報光暈
     ctx.strokeStyle = `rgba(255, 30, 30, ${alpha * 0.85})`;
     ctx.lineWidth = 14;
-    ctx.strokeRect(0, 0, W, H);
+    const bounds = screenBounds();
+    ctx.strokeRect(bounds.left + 7, bounds.top + 7, bounds.width - 14, bounds.height - 14);
 
     ctx.fillStyle = `rgba(255, 20, 20, ${alpha * 0.14})`;
     fillScreen(ctx);
@@ -1503,6 +1513,16 @@ window.UI = (() => {
     ctx.restore();
   }
 
+  function fitText(ctx, text, x, y, maxWidth) {
+    ctx.save();
+    const width = ctx.measureText(text).width;
+    if (width > maxWidth) {
+      ctx.font = ctx.font.replace(/([\d.]+)px/, (_, size) => `${Number(size) * maxWidth / width}px`);
+    }
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
   function readableFont(size, weight = "700") {
     const width = document.getElementById("game")?.getBoundingClientRect().width || 900;
     const scale = window.VIEWPORT?.get().scale || width / 900;
@@ -1528,6 +1548,7 @@ window.UI = (() => {
     WORLD_BTN,
     HOME_BTN,
     MENU_START_BTN,
+    MENU_CONTROLS_BTN,
     HINT_BTN,
     CARD_LIST
   };

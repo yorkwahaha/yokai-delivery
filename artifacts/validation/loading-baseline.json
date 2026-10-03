@@ -1,0 +1,436 @@
+{
+  "coverReadyMs": 6709.9000000059605,
+  "cover": "http://127.0.0.1:8765/assets/img/cover.jpg",
+  "resources": [
+    {
+      "name": "css2?family=Kaisei+Decol:wght@700&family=Noto+Sans+JP:wght@400;700;900&family=Zen+Maru+Gothic:wght@700;900&display=swap",
+      "durationMs": 8.099999994039536,
+      "bytes": 0
+    },
+    {
+      "name": "config.js?v=20261003-4",
+      "durationMs": 123.30000001192093,
+      "bytes": 1368
+    },
+    {
+      "name": "store.js?v=20261003-4",
+      "durationMs": 123.70000000298023,
+      "bytes": 3809
+    },
+    {
+      "name": "world.js?v=20261003-4",
+      "durationMs": 139.40000000596046,
+      "bytes": 5884
+    },
+    {
+      "name": "words.js?v=20261003-4",
+      "durationMs": 155.5,
+      "bytes": 11001
+    },
+    {
+      "name": "viewport.js?v=20261003-4",
+      "durationMs": 107.59999999403954,
+      "bytes": 699
+    },
+    {
+      "name": "controls.js?v=20261003-4",
+      "durationMs": 123.70000000298023,
+      "bytes": 3305
+    },
+    {
+      "name": "assets.js?v=20261003-4",
+      "durationMs": 218.6000000089407,
+      "bytes": 2092
+    },
+    {
+      "name": "audio.js?v=20261003-4",
+      "durationMs": 374,
+      "bytes": 21831
+    },
+    {
+      "name": "renderer.js?v=20261003-4",
+      "durationMs": 405.20000000298023,
+      "bytes": 29062
+    },
+    {
+      "name": "ui.js?v=20261003-4",
+      "durationMs": 608,
+      "bytes": 59901
+    },
+    {
+      "name": "overworld.js?v=20261003-4",
+      "durationMs": 358.8999999910593,
+      "bytes": 19810
+    },
+    {
+      "name": "game.js?v=20261003-4",
+      "durationMs": 876.8999999910593,
+      "bytes": 91296
+    },
+    {
+      "name": "player.png",
+      "durationMs": 719.6000000089407,
+      "bytes": 92225
+    },
+    {
+      "name": "ghost.png",
+      "durationMs": 656.7999999970198,
+      "bytes": 48404
+    },
+    {
+      "name": "player_walk1.png",
+      "durationMs": 922.8999999910593,
+      "bytes": 97881
+    },
+    {
+      "name": "player_walk2.png",
+      "durationMs": 955.3999999910593,
+      "bytes": 100949
+    },
+    {
+      "name": "mis.png",
+      "durationMs": 1253.7000000029802,
+      "bytes": 111846
+    },
+    {
+      "name": "runner.png",
+      "durationMs": 1174.9000000059605,
+      "bytes": 59293
+    },
+    {
+      "name": "shooter.png",
+      "durationMs": 1536.9000000059605,
+      "bytes": 68957
+    },
+    {
+      "name": "boss.png",
+      "durationMs": 1883.2999999970198,
+      "bytes": 153909
+    },
+    {
+      "name": "tank.png",
+      "durationMs": 1961.4000000059605,
+      "bytes": 156507
+    },
+    {
+      "name": "house_shop.png",
+      "durationMs": 3379.1000000089407,
+      "bytes": 275358
+    },
+    {
+      "name": "house_shrine.png",
+      "durationMs": 3554.1000000089407,
+      "bytes": 287201
+    },
+    {
+      "name": "cover.jpg",
+      "durationMs": 6376,
+      "bytes": 1118670
+    },
+    {
+      "name": "house_tavern.png",
+      "durationMs": 3632.5999999940395,
+      "bytes": 261645
+    },
+    {
+      "name": "prop_lantern.png",
+      "durationMs": 2588.2999999970198,
+      "bytes": 65783
+    },
+    {
+      "name": "prop_torii.png",
+      "durationMs": 3330.7999999970198,
+      "bytes": 170135
+    },
+    {
+      "name": "prop_sakura.png",
+      "durationMs": 4791.0999999940395,
+      "bytes": 309917
+    },
+    {
+      "name": "ground.png",
+      "durationMs": 5938.9000000059605,
+      "bytes": 487676
+    },
+    {
+      "name": "BGM.mp3?v=20261003-3",
+      "durationMs": 4197.600000008941,
+      "bytes": 0
+    },
+    {
+      "name": "MAP.mp3?v=20261003-3",
+      "durationMs": 4370.20000000298,
+      "bytes": 0
+    },
+    {
+      "name": "neko.mp3",
+      "durationMs": 3649.5999999940395,
+      "bytes": 9956
+    },
+    {
+      "name": "inu.mp3",
+      "durationMs": 3807.2999999970198,
+      "bytes": 8540
+    },
+    {
+      "name": "usagi.mp3",
+      "durationMs": 3995.7999999970198,
+      "bytes": 11372
+    },
+    {
+      "name": "sakana.mp3",
+      "durationMs": 4183.79999999702,
+      "bytes": 12500
+    },
+    {
+      "name": "umi.mp3",
+      "durationMs": 4214.70000000298,
+      "bytes": 8852
+    },
+    {
+      "name": "kame.mp3",
+      "durationMs": 4355.0999999940395,
+      "bytes": 8828
+    },
+    {
+      "name": "tsuki.mp3",
+      "durationMs": 4380.4000000059605,
+      "bytes": 9380
+    },
+    {
+      "name": "hoshi.mp3",
+      "durationMs": 4380.29999999702,
+      "bytes": 9236
+    },
+    {
+      "name": "niji.mp3",
+      "durationMs": 4525.5999999940395,
+      "bytes": 9572
+    },
+    {
+      "name": "ringo.mp3",
+      "durationMs": 4556.4000000059605,
+      "bytes": 9620
+    },
+    {
+      "name": "onigiri.mp3",
+      "durationMs": 4571.70000000298,
+      "bytes": 12332
+    },
+    {
+      "name": "keeki.mp3",
+      "durationMs": 4681.79999999702,
+      "bytes": 12788
+    },
+    {
+      "name": "eki.mp3",
+      "durationMs": 4712.899999991059,
+      "bytes": 9164
+    },
+    {
+      "name": "hon.mp3",
+      "durationMs": 4713.9000000059605,
+      "bytes": 7964
+    },
+    {
+      "name": "kasa.mp3",
+      "durationMs": 4760.20000000298,
+      "bytes": 9764
+    },
+    {
+      "name": "kuruma.mp3",
+      "durationMs": 4838.4000000059605,
+      "bytes": 11132
+    },
+    {
+      "name": "fune.mp3",
+      "durationMs": 4854.0999999940395,
+      "bytes": 8492
+    },
+    {
+      "name": "hikouki.mp3",
+      "durationMs": 4885.29999999702,
+      "bytes": 12404
+    },
+    {
+      "name": "sakura.mp3",
+      "durationMs": 4900.70000000298,
+      "bytes": 9596
+    },
+    {
+      "name": "yama.mp3",
+      "durationMs": 4979.79999999702,
+      "bytes": 8324
+    },
+    {
+      "name": "hana.mp3",
+      "durationMs": 5011.199999988079,
+      "bytes": 9668
+    },
+    {
+      "name": "ocha.mp3",
+      "durationMs": 5042.5,
+      "bytes": 9308
+    },
+    {
+      "name": "ramen.mp3",
+      "durationMs": 5073.70000000298,
+      "bytes": 11852
+    },
+    {
+      "name": "pan.mp3",
+      "durationMs": 5121.199999988079,
+      "bytes": 8852
+    },
+    {
+      "name": "tori.mp3",
+      "durationMs": 5167.70000000298,
+      "bytes": 9284
+    },
+    {
+      "name": "tako.mp3",
+      "durationMs": 5198.399999991059,
+      "bytes": 8540
+    },
+    {
+      "name": "kaeru.mp3",
+      "durationMs": 5214.4000000059605,
+      "bytes": 10004
+    },
+    {
+      "name": "ame.mp3",
+      "durationMs": 5261.20000000298,
+      "bytes": 11804
+    },
+    {
+      "name": "kaze.mp3",
+      "durationMs": 5292.399999991059,
+      "bytes": 8420
+    },
+    {
+      "name": "kumo.mp3",
+      "durationMs": 5339.100000008941,
+      "bytes": 7868
+    },
+    {
+      "name": "kiri.mp3",
+      "durationMs": 5354.9000000059605,
+      "bytes": 8300
+    },
+    {
+      "name": "kaminari.mp3",
+      "durationMs": 5401.20000000298,
+      "bytes": 10916
+    },
+    {
+      "name": "yuki.mp3",
+      "durationMs": 5432.600000008941,
+      "bytes": 10076
+    },
+    {
+      "name": "migi.mp3",
+      "durationMs": 5480.5,
+      "bytes": 9812
+    },
+    {
+      "name": "hidari.mp3",
+      "durationMs": 5511.9000000059605,
+      "bytes": 9140
+    },
+    {
+      "name": "mae.mp3",
+      "durationMs": 5542.70000000298,
+      "bytes": 8468
+    },
+    {
+      "name": "ushiro.mp3",
+      "durationMs": 5574,
+      "bytes": 10004
+    },
+    {
+      "name": "kita.mp3",
+      "durationMs": 5636.79999999702,
+      "bytes": 11036
+    },
+    {
+      "name": "minami.mp3",
+      "durationMs": 5668.29999999702,
+      "bytes": 10244
+    }
+  ],
+  "requests": [
+    "http://127.0.0.1:8765/",
+    "https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@700&family=Noto+Sans+JP:wght@400;700;900&family=Zen+Maru+Gothic:wght@700;900&display=swap",
+    "http://127.0.0.1:8765/js/words.js?v=20261003-4",
+    "http://127.0.0.1:8765/js/world.js?v=20261003-4",
+    "http://127.0.0.1:8765/js/store.js?v=20261003-4",
+    "http://127.0.0.1:8765/js/config.js?v=20261003-4",
+    "http://127.0.0.1:8765/js/viewport.js?v=20261003-4",
+    "http://127.0.0.1:8765/js/controls.js?v=20261003-4",
+    "http://127.0.0.1:8765/js/assets.js?v=20261003-4",
+    "http://127.0.0.1:8765/js/audio.js?v=20261003-4",
+    "http://127.0.0.1:8765/js/renderer.js?v=20261003-4",
+    "http://127.0.0.1:8765/js/ui.js?v=20261003-4",
+    "http://127.0.0.1:8765/js/overworld.js?v=20261003-4",
+    "http://127.0.0.1:8765/js/game.js?v=20261003-4",
+    "http://127.0.0.1:8765/assets/img/player.png",
+    "http://127.0.0.1:8765/assets/img/player_walk1.png",
+    "http://127.0.0.1:8765/assets/img/player_walk2.png",
+    "http://127.0.0.1:8765/assets/img/ghost.png",
+    "http://127.0.0.1:8765/assets/img/mis.png",
+    "http://127.0.0.1:8765/assets/img/boss.png",
+    "http://127.0.0.1:8765/assets/img/runner.png",
+    "http://127.0.0.1:8765/assets/img/tank.png",
+    "http://127.0.0.1:8765/assets/img/shooter.png",
+    "http://127.0.0.1:8765/assets/img/cover.jpg",
+    "http://127.0.0.1:8765/assets/img/house_shop.png",
+    "http://127.0.0.1:8765/assets/img/house_shrine.png",
+    "http://127.0.0.1:8765/assets/img/house_tavern.png",
+    "http://127.0.0.1:8765/assets/img/prop_torii.png",
+    "http://127.0.0.1:8765/assets/img/prop_lantern.png",
+    "http://127.0.0.1:8765/assets/img/prop_sakura.png",
+    "http://127.0.0.1:8765/assets/img/ground.png",
+    "http://127.0.0.1:8765/assets/audio/BGM.mp3?v=20261003-3",
+    "http://127.0.0.1:8765/assets/audio/MAP.mp3?v=20261003-3",
+    "http://127.0.0.1:8765/assets/audio/words/neko.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/inu.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/usagi.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/sakana.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/umi.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/kame.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/tsuki.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/hoshi.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/niji.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/ringo.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/onigiri.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/keeki.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/eki.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/hon.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/kasa.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/kuruma.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/fune.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/hikouki.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/sakura.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/yama.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/hana.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/ocha.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/ramen.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/pan.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/tori.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/tako.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/kaeru.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/ame.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/kaze.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/kumo.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/kiri.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/kaminari.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/yuki.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/migi.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/hidari.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/mae.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/ushiro.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/kita.mp3",
+    "http://127.0.0.1:8765/assets/audio/words/minami.mp3"
+  ],
+  "errors": []
+}

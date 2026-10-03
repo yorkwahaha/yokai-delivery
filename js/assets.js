@@ -4,35 +4,49 @@ window.ART_READY = false;
 // Bump when replacing audio assets so deployed browser caches fetch the new clips.
 window.audioAsset = path => `${path}?v=20261003-3`;
 
-const ASSET_NAMES = [
-  "player", "player_walk1", "player_walk2", "ghost", "mis", "boss", "runner", "tank", "shooter", "cover",
-  "house_shop", "house_shrine", "house_tavern", "prop_torii", "prop_lantern", "prop_sakura", "ground"
+const GAME_ASSET_NAMES = [
+  "player", "player_walk1", "player_walk2", "ghost", "mis", "boss", "runner", "tank", "shooter",
+  "house_shop", "house_shrine", "house_tavern", "prop_torii", "prop_lantern", "prop_sakura", "ground", "ground_dirt"
 ];
 let loadedCount = 0;
 const markSettled = () => {
   loadedCount++;
-  if (loadedCount >= ASSET_NAMES.length) window.ART_READY = true;
+  if (loadedCount >= GAME_ASSET_NAMES.length + 1) window.ART_READY = true;
 };
 
-ASSET_NAMES.forEach(n => {
+function loadArt(n) {
   const img = new Image();
+  img.fetchPriority = n === "cover" ? "high" : "low";
+  img.decoding = "async";
   img.onload = () => {
     ART[n] = img;
     markSettled();
   };
   img.onerror = () => {
-    console.warn(`[Assets] 圖片 assets/img/${n}.png (或 .jpg) 載入失敗，將使用程式繪製備援。`);
-    markSettled();
+    img.onerror = () => {
+      console.warn(`[Assets] 圖片 ${n} 載入失敗，將使用程式繪製備援。`);
+      markSettled();
+    };
+    img.src = `assets/img/${n}.${n === "cover" ? "jpg" : "png"}`;
   };
-  img.src = (n === "cover") ? "assets/img/cover.jpg" : "assets/img/" + n + ".png";
-});
+  img.src = `assets/img/${n}.webp`;
+}
+
+// 首頁只載入封面；進入旅路或遊戲才下載角色、敵人與場景。
+loadArt("cover");
+let gameArtStarted = false;
+window.loadGameArt = () => {
+  if (gameArtStarted) return;
+  gameArtStarted = true;
+  GAME_ASSET_NAMES.forEach(loadArt);
+};
 
 // BGM 背景音樂：遊戲與旅路地圖各自使用獨立循環曲。
 // audio.js 會依畫面狀態切換，並在單字發音時暫時降低 BGM 音量。
 const MUSIC_VOLUME = 0.27;
 const configureMusic = audio => {
   audio.loop = true;
-  audio.preload = "auto";
+  audio.preload = "none";
   audio.volume = MUSIC_VOLUME;
   return audio;
 };

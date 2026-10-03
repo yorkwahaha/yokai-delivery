@@ -4,10 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>妖怪快遞社：夜行配達 — Yokai Delivery Service</title>
+  <link rel="preload" as="image" href="assets/img/cover.webp" fetchpriority="high">
   <!-- Google Web Fonts: 和風書法字體與圓體 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@700&family=Noto+Sans+JP:wght@400;700;900&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@700&family=Noto+Sans+JP:wght@400;700;900&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <style>
     * {
       box-sizing: border-box;
@@ -78,7 +79,7 @@
     <canvas id="game" tabindex="0" aria-label="妖怪快遞社：夜行配達"></canvas>
   </div>
   <div id="rotate-hint" aria-hidden="true">↻　橫向遊玩</div>
-  <button id="controls-open" type="button">操作與自定義</button>
+  <button id="controls-open" type="button" hidden>操作與自定義</button>
   <dialog id="controls-dialog" aria-labelledby="controls-title">
     <h2 id="controls-title">操作與自定義</h2>
     <p>右手預設：左手 WASD 移動。左手預設：右手 IJKL 移動。點選下方功能，再按新按鍵即可自訂；設定會自動保存在此瀏覽器。</p>
@@ -97,17 +98,17 @@
     <form method="dialog"><button>完成／返回</button></form>
   </dialog>
 
-  <script src="js/words.js?v=20261003-3"></script>
-  <script src="js/world.js?v=20261003-3"></script>
-  <script src="js/store.js?v=20261003-3"></script>
-  <script src="js/config.js?v=20261003-3"></script>
-  <script src="js/viewport.js?v=20261003-3"></script>
-  <script src="js/controls.js?v=20261003-3"></script>
-  <script src="js/assets.js?v=20261003-3"></script>
-  <script src="js/audio.js?v=20261003-3"></script>
-  <script src="js/renderer.js?v=20261003-3"></script>
-  <script src="js/ui.js?v=20261003-3"></script>
-  <script src="js/overworld.js?v=20261003-3"></script>
-  <script src="js/game.js?v=20261003-3"></script>
+  <script src="js/words.js?v=20261003-5"></script>
+  <script src="js/world.js?v=20261003-5"></script>
+  <script src="js/store.js?v=20261003-5"></script>
+  <script src="js/config.js?v=20261003-5"></script>
+  <script src="js/viewport.js?v=20261003-5"></script>
+  <script src="js/controls.js?v=20261003-5"></script>
+  <script src="js/assets.js?v=20261003-5"></script>
+  <script src="js/audio.js?v=20261003-5"></script>
+  <script src="js/renderer.js?v=20261003-5"></script>
+  <script src="js/ui.js?v=20261003-5"></script>
+  <script src="js/overworld.js?v=20261003-5"></script>
+  <script src="js/game.js?v=20261003-5"></script>
 </body>
 </html>

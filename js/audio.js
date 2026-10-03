@@ -7,10 +7,12 @@ window.AUDIO = (() => {
   let wordClip = null;
   let wordSpeechNonce = 0;
   let wordDucking = false;
+  let pauseDucking = false;
   let activeBgm = null;
   let musicShouldPlay = false;
   const BGM_NORMAL_VOLUME = 0.27;
   const BGM_DUCK_VOLUME = 0.10;
+  const BGM_PAUSE_VOLUME = 0.055;
   const bgmRamps = new Map();
 
   function musicTracks() {
@@ -45,9 +47,13 @@ window.AUDIO = (() => {
 
   function setWordDucking(enabled) {
     wordDucking = enabled;
-    const target = enabled ? BGM_DUCK_VOLUME : BGM_NORMAL_VOLUME;
+    const target = musicVolume();
     const duration = enabled ? 140 : 220;
     musicTracks().forEach(audio => rampMusicVolume(audio, target, duration));
+  }
+
+  function musicVolume() {
+    return pauseDucking ? BGM_PAUSE_VOLUME : wordDucking ? BGM_DUCK_VOLUME : BGM_NORMAL_VOLUME;
   }
 
   function beginWordSpeech() {
@@ -181,7 +187,7 @@ window.AUDIO = (() => {
   const wordClips = {};
   Object.values(WORD_FILES).forEach(file => {
     const audio = new Audio(`assets/audio/words/${file}.mp3`);
-    audio.preload = "auto";
+    audio.preload = "none";
     wordClips[file] = audio;
   });
 
@@ -608,6 +614,11 @@ window.AUDIO = (() => {
     // 背景音樂：旅路地圖用 MAP.mp3、遊戲用 BGM.mp3。
     // 外部檔不存在時才退回日式五音程序化循環。
     updateBgm(dt, state, elapsed, dawnTime) {
+      const paused = state === "pause";
+      if (pauseDucking !== paused) {
+        pauseDucking = paused;
+        musicTracks().forEach(audio => rampMusicVolume(audio, musicVolume(), 220));
+      }
       const isMusicActive = (state === "play" || state === "levelup" || state === "pause" || state === "overworld");
       musicShouldPlay = isMusicActive && !muted;
       if (muted || !isMusicActive) {
@@ -627,7 +638,7 @@ window.AUDIO = (() => {
             if (audio !== desiredBgm && !audio.paused) audio.pause();
           });
           activeBgm = desiredBgm;
-          activeBgm.volume = wordDucking ? BGM_DUCK_VOLUME : BGM_NORMAL_VOLUME;
+          activeBgm.volume = musicVolume();
         }
         if (activeBgm.paused) activeBgm.play().catch(() => {});
         return;
@@ -638,6 +649,7 @@ window.AUDIO = (() => {
       bgmTimer = 0.36;
 
       const progress = Math.min(1, elapsed / dawnTime);
+      const musicGain = musicVolume() / BGM_NORMAL_VOLUME;
       const melIdx = bgmStep % 16;
       const melodyNotes = [0, 2, 4, 7, 9, 7, 4, 2, 0, 4, 7, 11, 9, 7, 4, 2];
       const pitchOffset = progress > 0.6 ? 7 : progress > 0.3 ? 2 : 0;
@@ -645,19 +657,19 @@ window.AUDIO = (() => {
       // 拍點三味線主奏
       if (melIdx % 2 === 0 || progress > 0.7) {
         const note = melodyNotes[melIdx] + pitchOffset;
-        playShamisen(noteFreq(note, 220), 0.32, 0.05 + progress * 0.03);
+        playShamisen(noteFreq(note, 220), 0.32, (0.05 + progress * 0.03) * musicGain);
       }
 
       // 太鼓節奏（每 4 拍一擊，天色將明時加速）
       if (bgmStep % 4 === 0) {
-        playTaiko(80, 0.12 + progress * 0.08);
+        playTaiko(80, (0.12 + progress * 0.08) * musicGain);
       } else if (progress > 0.5 && bgmStep % 4 === 2) {
-        playTaiko(95, 0.08);
+        playTaiko(95, 0.08 * musicGain);
       }
 
       // 神樂鈴點綴
       if (bgmStep % 8 === 0 && Math.random() < 0.6) {
-        playSuzu(1500, 0.04);
+        playSuzu(1500, 0.04 * musicGain);
       }
 
       bgmStep++;

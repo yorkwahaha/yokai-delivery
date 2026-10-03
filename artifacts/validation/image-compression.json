@@ -1,0 +1,172 @@
+[
+  {
+    "name": "player",
+    "originalBytes": 92225,
+    "webpBytes": 65606,
+    "lossless": true,
+    "size": [
+      207,
+      346
+    ]
+  },
+  {
+    "name": "player_walk1",
+    "originalBytes": 97881,
+    "webpBytes": 69830,
+    "lossless": true,
+    "size": [
+      207,
+      346
+    ]
+  },
+  {
+    "name": "player_walk2",
+    "originalBytes": 100949,
+    "webpBytes": 71558,
+    "lossless": true,
+    "size": [
+      207,
+      346
+    ]
+  },
+  {
+    "name": "ghost",
+    "originalBytes": 48404,
+    "webpBytes": 33078,
+    "lossless": true,
+    "size": [
+      149,
+      208
+    ]
+  },
+  {
+    "name": "mis",
+    "originalBytes": 111846,
+    "webpBytes": 75414,
+    "lossless": true,
+    "size": [
+      191,
+      331
+    ]
+  },
+  {
+    "name": "boss",
+    "originalBytes": 153909,
+    "webpBytes": 101202,
+    "lossless": true,
+    "size": [
+      253,
+      331
+    ]
+  },
+  {
+    "name": "runner",
+    "originalBytes": 59293,
+    "webpBytes": 40344,
+    "lossless": true,
+    "size": [
+      227,
+      157
+    ]
+  },
+  {
+    "name": "tank",
+    "originalBytes": 156507,
+    "webpBytes": 100592,
+    "lossless": true,
+    "size": [
+      280,
+      328
+    ]
+  },
+  {
+    "name": "shooter",
+    "originalBytes": 68957,
+    "webpBytes": 47980,
+    "lossless": true,
+    "size": [
+      199,
+      199
+    ]
+  },
+  {
+    "name": "house_shop",
+    "originalBytes": 275358,
+    "webpBytes": 172854,
+    "lossless": true,
+    "size": [
+      471,
+      425
+    ]
+  },
+  {
+    "name": "house_shrine",
+    "originalBytes": 287201,
+    "webpBytes": 184344,
+    "lossless": true,
+    "size": [
+      408,
+      490
+    ]
+  },
+  {
+    "name": "house_tavern",
+    "originalBytes": 261645,
+    "webpBytes": 163446,
+    "lossless": true,
+    "size": [
+      447,
+      421
+    ]
+  },
+  {
+    "name": "prop_torii",
+    "originalBytes": 170135,
+    "webpBytes": 110194,
+    "lossless": true,
+    "size": [
+      376,
+      430
+    ]
+  },
+  {
+    "name": "prop_lantern",
+    "originalBytes": 65783,
+    "webpBytes": 43192,
+    "lossless": true,
+    "size": [
+      162,
+      274
+    ]
+  },
+  {
+    "name": "prop_sakura",
+    "originalBytes": 309917,
+    "webpBytes": 209160,
+    "lossless": true,
+    "size": [
+      428,
+      424
+    ]
+  },
+  {
+    "name": "ground",
+    "originalBytes": 487676,
+    "webpBytes": 356856,
+    "lossless": true,
+    "size": [
+      512,
+      512
+    ]
+  },
+  {
+    "name": "cover",
+    "originalBytes": 1118670,
+    "webpBytes": 272864,
+    "lossless": false,
+    "size": [
+      1376,
+      768
+    ]
+  }
+]

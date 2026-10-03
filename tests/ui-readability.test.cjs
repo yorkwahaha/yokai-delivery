@@ -29,6 +29,9 @@ test('all 39 words remain reachable across three readable codex pages', () => {
     seen.push(...labels.map(t => t.value));
   }
   assert.equal(new Set(seen).size, 39);
+  const { UI, context, texts } = loadUI();
+  UI.drawCodex(context, store, words, 'words', 0);
+  assert.ok(!texts.some(t => t.value === 'れいぶん'));
 });
 test('desktop HUD exposes the same dash cooldown seconds as mobile', () => {
   const { UI, context, texts } = loadUI(1200);

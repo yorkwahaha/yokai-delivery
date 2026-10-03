@@ -1,0 +1,99 @@
+{
+  "coverReadyMs": 966.5999999940395,
+  "cover": "http://127.0.0.1:8765/assets/img/cover.webp",
+  "resources": [
+    {
+      "name": "cover.webp",
+      "durationMs": 852.3000000119209,
+      "bytes": 272864
+    },
+    {
+      "name": "words.js?v=20261003-5",
+      "durationMs": 165.1000000089407,
+      "bytes": 11057
+    },
+    {
+      "name": "store.js?v=20261003-5",
+      "durationMs": 133.79999999701977,
+      "bytes": 3809
+    },
+    {
+      "name": "config.js?v=20261003-5",
+      "durationMs": 133.5,
+      "bytes": 1368
+    },
+    {
+      "name": "world.js?v=20261003-5",
+      "durationMs": 149.5,
+      "bytes": 5884
+    },
+    {
+      "name": "viewport.js?v=20261003-5",
+      "durationMs": 118.5,
+      "bytes": 699
+    },
+    {
+      "name": "controls.js?v=20261003-5",
+      "durationMs": 227.1000000089407,
+      "bytes": 3305
+    },
+    {
+      "name": "assets.js?v=20261003-5",
+      "durationMs": 242.5,
+      "bytes": 2471
+    },
+    {
+      "name": "audio.js?v=20261003-5",
+      "durationMs": 336.30000001192093,
+      "bytes": 21831
+    },
+    {
+      "name": "renderer.js?v=20261003-5",
+      "durationMs": 414.79999999701977,
+      "bytes": 29290
+    },
+    {
+      "name": "overworld.js?v=20261003-5",
+      "durationMs": 461.59999999403954,
+      "bytes": 19810
+    },
+    {
+      "name": "ui.js?v=20261003-5",
+      "durationMs": 586.0999999940395,
+      "bytes": 59901
+    },
+    {
+      "name": "game.js?v=20261003-5",
+      "durationMs": 710.6000000089407,
+      "bytes": 91382
+    },
+    {
+      "name": "css2?family=Kaisei+Decol:wght@700&family=Noto+Sans+JP:wght@400;700;900&family=Zen+Maru+Gothic:wght@700;900&display=swap",
+      "durationMs": 6.5,
+      "bytes": 0
+    },
+    {
+      "name": "favicon.ico",
+      "durationMs": 1.0999999940395355,
+      "bytes": 0
+    }
+  ],
+  "requests": [
+    "http://127.0.0.1:8765/",
+    "http://127.0.0.1:8765/assets/img/cover.webp",
+    "http://127.0.0.1:8765/js/words.js?v=20261003-5",
+    "http://127.0.0.1:8765/js/world.js?v=20261003-5",
+    "http://127.0.0.1:8765/js/store.js?v=20261003-5",
+    "http://127.0.0.1:8765/js/config.js?v=20261003-5",
+    "http://127.0.0.1:8765/js/viewport.js?v=20261003-5",
+    "http://127.0.0.1:8765/js/controls.js?v=20261003-5",
+    "http://127.0.0.1:8765/js/assets.js?v=20261003-5",
+    "http://127.0.0.1:8765/js/audio.js?v=20261003-5",
+    "http://127.0.0.1:8765/js/renderer.js?v=20261003-5",
+    "http://127.0.0.1:8765/js/ui.js?v=20261003-5",
+    "http://127.0.0.1:8765/js/overworld.js?v=20261003-5",
+    "http://127.0.0.1:8765/js/game.js?v=20261003-5",
+    "https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@700&family=Noto+Sans+JP:wght@400;700;900&family=Zen+Maru+Gothic:wght@700;900&display=swap"
+  ],
+  "errors": []
+}

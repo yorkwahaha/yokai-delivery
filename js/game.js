@@ -253,6 +253,7 @@
   }
 
   function enterOverworld(reset = true) {
+    window.loadGameArt?.();
     if (reset) overworld = window.OVERWORLD.createState("gate");
     overworldNoticeT = 0;
     keys.clear(); heldCodes.clear();
@@ -280,6 +281,7 @@
   }
 
   function start(stageId = STAGE.id) {
+    window.loadGameArt?.();
     configureStage(stageId);
     AUDIO.init();
     state = "play";
@@ -1557,7 +1559,7 @@
     ctx.translate(-cam.x + shakeOffset.x, -cam.y + shakeOffset.y);
 
     // 1. 地面與道路
-    RENDERER.drawGround(visualElapsed, DAWN, activeChunks);
+    RENDERER.drawGround(visualElapsed, DAWN, activeChunks, STAGE_VISUAL.ground || "ground");
 
     // 2. 町屋建築（帶遠程導引光柱與標記）
     houses.forEach(h => {
@@ -2197,6 +2199,7 @@
           else if (btn.id === "mute") AUDIO.toggleMute();
           else if (btn.id === "cards") { codexBack = "pause"; codexTab = "cards"; state = "codex"; }
           else if (btn.id === "codex") { codexBack = "pause"; codexTab = "words"; state = "codex"; }
+          else if (btn.id === "controls") controlsButton.click();
           else if (btn.id === "menu") { state = "menu"; }
           return;
         }
@@ -2258,6 +2261,11 @@
       return;
     }
     if (state === "menu") {
+      const settings = UI.MENU_CONTROLS_BTN;
+      if (p.x >= settings.x && p.x <= settings.x + settings.w && p.y >= settings.y && p.y <= settings.y + settings.h) {
+        controlsButton.click();
+        return;
+      }
       // 點擊右上角卡片一覽與單字圖鑑鈕
       if (p.y >= 20 && p.y <= 62) {
         if (p.x >= W - 290 && p.x <= W - 155) {
@@ -2384,7 +2392,13 @@
     const v = window.VIEWPORT?.get() || {offsetX:0,offsetY:0};
     ctx.setTransform(dpr, 0, 0, dpr, v.offsetX*dpr, v.offsetY*dpr);
 
-    controlsButton.hidden = !["menu", "pause", "won", "lost", "overworld"].includes(state);
+    const bounds = viewBounds();
+    btnPause.x = bounds.right - 52;
+    btnPause.y = bounds.top + 14;
+    btnD.x = bounds.right - btnD.r * 3;
+    btnD.y = bounds.bottom - btnD.r - 24;
+    btnE.x = btnD.x;
+    btnE.y = btnD.y - 110;
     if (state === "menu") {
       UI.drawMainMenu(ctx, STORE, now / 1000);
     } else if (state === "overworld") {

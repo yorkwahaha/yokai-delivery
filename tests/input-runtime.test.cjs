@@ -8,7 +8,7 @@ function loadGame() {
   const gradient = { addColorStop() {} };
   const ctx = new Proxy({ measureText: () => ({ width: 40 }), createLinearGradient: () => gradient, createRadialGradient: () => gradient }, { get: (o, k) => o[k] || (() => {}) });
   const canvas = { addEventListener: (k, f) => { canvasEvents[k] = f; }, setPointerCapture() {}, getBoundingClientRect: () => ({ left: 0, top: 0, width: env.innerWidth || 900, height: env.innerHeight || 600 }) };
-  const controlsButton = {};
+  const controlsButton = { click() { this.clicked = true; } };
   const env = { console, Set, Map, Math, Date, performance: { now: () => 0 }, navigator: {}, requestAnimationFrame() {}, localStorage: { getItem: () => null, setItem() {} }, document: { hidden: false, getElementById: id => id === 'controls-open' ? controlsButton : canvas, addEventListener: (k, f) => { documentEvents[k] = f; } }, addEventListener: (k, f) => { events[k] = f; } };
   env.window = env;
   const c = vm.createContext(env);
@@ -81,12 +81,15 @@ test('Boss death and settlement audio fire once per event, not once per frame', 
   assert.equal(g.audioCalls.filter(n => n === 'lose').length, 1);
 });
 
-test('expanded fullscreen edges and centered HUD buttons share the same pointer mapping', () => {
+test('expanded fullscreen edges and corner HUD buttons share the same pointer mapping', () => {
   const g = loadGame(); g.env.innerWidth = 1800; g.env.innerHeight = 600; g.start();
   const before = g.snapshot().x;
   g.canvasEvents.pointerdown(pointer(100, 350)); g.canvasEvents.pointermove(pointer(160, 350)); g.update(0.05);
   assert.ok(g.snapshot().x > before);
   g.canvasEvents.pointerup(pointer(160, 350));
-  g.canvasEvents.pointerdown(pointer(1260, 530));
+  g.frame(20);
+  g.canvasEvents.pointerdown(pointer(1662, 530));
   assert.ok(g.snapshot().dashCd > 0);
+  g.canvasEvents.pointerdown(pointer(1760, 30));
+  assert.equal(g.snapshot().state, 'pause');
 });

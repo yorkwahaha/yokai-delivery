@@ -1,0 +1,16 @@
+{
+  "patterns": [
+    "ground_dirt.webp",
+    "ground.webp",
+    "ground_dirt.webp"
+  ],
+  "errors": [],
+  "fontDelayCoverMs": 29,
+  "checks": [
+    "title loads only cover",
+    "both stage grounds swap cached pattern",
+    "first-stage desktop/mobile terrain",
+    "word audio downloads on first speak",
+    "slow fonts do not block title"
+  ]
+}

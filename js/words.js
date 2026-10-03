@@ -179,6 +179,7 @@
       name: "夜行町",
       sub: "よるのはいそう",
       description: "目前的十分鐘夜行配達。九種街區以 chunk 形式向四方延伸。",
+      visual: Object.freeze({ ground: "ground_dirt" }),
       implemented: true,
       wordPacks: NIGHT_TOWN_PACKS,
       start: Object.freeze({ x: 1350, y: 900 }),

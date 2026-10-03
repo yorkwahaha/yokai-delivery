@@ -5,6 +5,7 @@ window.RENDERER = (() => {
   let lightCv, lightCtx;
   let stonePattern = null;
   let groundPattern = null;
+  let groundPatternImage = null;
 
   // 鏡頭與打擊震動
   let camX = 0, camY = 0;
@@ -188,20 +189,24 @@ window.RENDERER = (() => {
   }
 
   // 無邊界地圖不再建立大型離屏 Canvas；每幀只畫鏡頭附近已啟用的 chunks。
-  function drawGround(elapsed, dawnTime, chunks = []) {
+  function drawGround(elapsed, dawnTime, chunks = [], groundKey = "ground") {
     const margin = 120;
     const area = bounds();
     const left = camX + area.left - margin;
     const top = camY + area.top - margin;
     const width = area.width + margin * 2;
     const height = area.height + margin * 2;
-    const groundImg = window.ART && window.ART.ground;
+    const groundImg = window.ART && window.ART[groundKey];
+    const dirt = groundKey === "ground_dirt";
 
     if (groundImg && groundImg.complete && groundImg.naturalWidth) {
-      if (!groundPattern) groundPattern = ctx.createPattern(groundImg, "repeat");
+      if (groundPatternImage !== groundImg) {
+        groundPattern = ctx.createPattern(groundImg, "repeat");
+        groundPatternImage = groundImg;
+      }
       ctx.fillStyle = groundPattern || "#181d28";
     } else {
-      ctx.fillStyle = stonePattern || "#181d28";
+      ctx.fillStyle = dirt ? "#6b5135" : stonePattern || "#181d28";
     }
     ctx.fillRect(left, top, width, height);
 
@@ -252,7 +257,7 @@ window.RENDERER = (() => {
       ctx.fillStyle = "rgba(8, 10, 18, 0.28)";
       ctx.fillRect(cx - ROAD_W / 2, chunk.y, ROAD_W, chunk.h);
       ctx.fillRect(chunk.x, cy - ROAD_W / 2, chunk.w, ROAD_W);
-      ctx.fillStyle = "#333d52";
+      ctx.fillStyle = dirt ? "rgba(72, 54, 32, 0.22)" : "#333d52";
       ctx.fillRect(cx - ROAD_W / 2, chunk.y, 10, chunk.h);
       ctx.fillRect(cx + ROAD_W / 2 - 10, chunk.y, 10, chunk.h);
       ctx.fillRect(chunk.x, cy - ROAD_W / 2, chunk.w, 10);
