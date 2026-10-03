@@ -7,6 +7,7 @@
   const VIEW_W = 900;
   const VIEW_H = 600;
   const BACK_BTN = Object.freeze({ x: 18, y: 18, w: 104, h: 40 });
+  const backButton = () => ({...BACK_BTN,x:BACK_BTN.x+(root.VIEWPORT?.bounds().left || 0),y:BACK_BTN.y+(root.VIEWPORT?.bounds().top || 0)});
   const ENTER_BTN = Object.freeze({ x: 768, y: 512, w: 112, h: 62 });
 
   const NODES = Object.freeze([
@@ -426,20 +427,21 @@
 
     // Fixed UI: title + current location only. No stage cards.
     ctx.fillStyle = "rgba(16, 23, 27, 0.78)";
-    ctx.fillRect(0, 0, VIEW_W, 72);
+    ctx.fillRect(area.left, area.top, area.width, 72);
+    const back = backButton();
     ctx.textAlign = "center";
     ctx.fillStyle = "#fff1bd";
     ctx.font = "900 24px 'Kaisei Decol', 'Noto Sans JP', serif";
-    ctx.fillText("妖怪快遞社・旅路圖", VIEW_W / 2, 32);
+    ctx.fillText("妖怪快遞社・旅路圖", VIEW_W / 2, area.top + 32);
     ctx.font = readableFont(12, "700");
     ctx.fillStyle = "rgba(255,255,255,0.68)";
-    ctx.fillText("道をたどって、次の配達先へ", VIEW_W / 2, 53);
+    ctx.fillText("道をたどって、次の配達先へ", VIEW_W / 2, area.top + 53);
 
     ctx.fillStyle = "rgba(19, 24, 30, 0.82)";
-    ctx.beginPath(); ctx.roundRect(BACK_BTN.x, BACK_BTN.y, BACK_BTN.w, BACK_BTN.h, 10); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(back.x, back.y, back.w, back.h, 10); ctx.fill();
     ctx.strokeStyle = "rgba(255,236,190,0.6)"; ctx.lineWidth = 1.5; ctx.stroke();
     ctx.textAlign = "center"; ctx.fillStyle = "#fff0c2"; ctx.font = readableFont(13, "900");
-    ctx.fillText("← 首頁", BACK_BTN.x + BACK_BTN.w / 2, BACK_BTN.y + 25);
+    ctx.fillText("← 首頁", back.x + back.w / 2, back.y + 25);
 
     const here = currentNode(state);
     if (here.type === "stage" && !isMoving(state)) {
@@ -489,7 +491,7 @@
     MAP_H,
     VIEW_W,
     VIEW_H,
-    BACK_BTN,
+    BACK_BTN, backButton,
     ENTER_BTN,
     NODES,
     EDGES,

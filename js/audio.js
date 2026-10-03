@@ -118,11 +118,14 @@ window.AUDIO = (() => {
     activeSfx.add(audio);
     let fellBack = false;
     const cleanup = () => activeSfx.delete(audio);
-    const useFallback = () => {
+    const useFallback = reason => {
       cleanup();
-      unavailableSfx.add(name);
       if (fellBack || muted || suspended) return;
+      // 背景切換取消與自動播放限制不是壞檔，下一次使用者操作仍可重試。
+      if (reason?.name === "AbortError" || reason?.name === "NotAllowedError") return;
+      if (reason?.name === "NotSupportedError" || [3, 4].includes(audio.error?.code)) unavailableSfx.add(name);
       fellBack = true;
+      audio.pause();
       fallback(...args);
     };
     audio.addEventListener("ended", cleanup, { once: true });

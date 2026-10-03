@@ -1,0 +1,80 @@
+[
+  {
+    "name": "boomerang.mp3",
+    "status": 200,
+    "bytes": 5014,
+    "match": true
+  },
+  {
+    "name": "boss-death.mp3",
+    "status": 200,
+    "bytes": 63596,
+    "match": true
+  },
+  {
+    "name": "break-shield.mp3",
+    "status": 200,
+    "bytes": 41377,
+    "match": true
+  },
+  {
+    "name": "dash.mp3",
+    "status": 200,
+    "bytes": 31346,
+    "match": true
+  },
+  {
+    "name": "delivery-success.mp3",
+    "status": 200,
+    "bytes": 25920,
+    "match": true
+  },
+  {
+    "name": "delivery-wrong.mp3",
+    "status": 200,
+    "bytes": 26957,
+    "match": true
+  },
+  {
+    "name": "fanfare.mp3",
+    "status": 200,
+    "bytes": 120960,
+    "match": true
+  },
+  {
+    "name": "level-up.mp3",
+    "status": 200,
+    "bytes": 38592,
+    "match": true
+  },
+  {
+    "name": "lose.mp3",
+    "status": 200,
+    "bytes": 122688,
+    "match": true
+  },
+  {
+    "name": "needle.mp3",
+    "status": 200,
+    "bytes": 16299,
+    "match": true
+  },
+  {
+    "name": "sanctuary.mp3",
+    "status": 200,
+    "bytes": 33853,
+    "match": true
+  },
+  {
+    "name": "slash.mp3",
+    "status": 200,
+    "bytes": 16299,
+    "match": true
+  },
+  {
+    "name": "warning-pulse.mp3",
+    "status": 200,
+    "bytes": 35734,
+    "match": true
+  }
+]

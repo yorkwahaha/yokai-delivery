@@ -116,3 +116,9 @@ test("overworld renderer can draw the map without image assets", () => {
   const state = OVERWORLD.createState("gate");
   assert.doesNotThrow(() => OVERWORLD.draw(ctx, state, 1.25, 0));
 });
+
+test('expanded viewport draws a full-width title and anchors the clickable back button at its corner',()=>{
+ const rects=[];const gradient={addColorStop(){}};const ctx=new Proxy({fillRect:(...a)=>rects.push(a),createLinearGradient:()=>gradient,createRadialGradient:()=>gradient},{get:(o,k)=>o[k]||(()=>{})});
+ global.VIEWPORT={bounds:()=>({left:-450,top:-40,width:1800,height:680})};
+ try {const back=OVERWORLD.backButton();assert.equal(back.x,-432);assert.equal(back.y,-22);OVERWORLD.draw(ctx,OVERWORLD.createState('gate'),0,0);assert.ok(rects.some(r=>r[0]===-450&&r[1]===-40&&r[2]===1800&&r[3]===72));}finally{delete global.VIEWPORT;}
+});

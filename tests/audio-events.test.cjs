@@ -111,3 +111,26 @@ test('six absent SFX synthesize immediately and never create missing-file Audio 
   assert.equal(clips.length,0);
   audio.toggleMute(); const before=starts;audio.fireball(); assert.equal(starts,before);
 });
+
+
+class PlaybackTestContext {
+ static starts=0;
+ constructor(){this.currentTime=0;this.state='running';}
+ createOscillator(){return this.createGain();}
+ createGain(){const param={setValueAtTime(){},exponentialRampToValueAtTime(){}};return {frequency:param,gain:param,connect(){},start(){PlaybackTestContext.starts++;},stop(){}};}
+}
+test('temporary playback cancellation and policy rejection never permanently disable an MP3', async () => {
+ for (const name of ['AbortError','NotAllowedError','NetworkError']) {
+ const clips=[]; let calls=0;
+ class Audio {constructor(src){this.src=src;this.error=null;clips.push(this);}addEventListener(){}pause(){}play(){calls++;return calls===1?Promise.reject(Object.assign(new Error(name),{name})):Promise.resolve();}}
+ const env={window:{AudioContext:PlaybackTestContext},Audio,console,setTimeout,clearTimeout};vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+ clips.length=0;env.window.AUDIO.dash();await Promise.resolve();env.window.AUDIO.dash();await Promise.resolve();
+ assert.equal(clips.length,2,name);assert.equal(calls,2,name);
+ }
+ });
+ test('a genuine unsupported MP3 uses synthesis and suppresses repeat requests',async()=>{
+ const starts=PlaybackTestContext.starts;
+ let calls=0;class Audio{constructor(src){this.src=src;}addEventListener(){}pause(){}play(){calls++;return Promise.reject(Object.assign(new Error('unsupported'),{name:'NotSupportedError'}));}}
+ const env={window:{AudioContext:PlaybackTestContext},Audio,console,setTimeout,clearTimeout};vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+ env.window.AUDIO.dash();await Promise.resolve();env.window.AUDIO.dash();assert.equal(calls,1);assert.equal(PlaybackTestContext.starts-starts,2);
+ });

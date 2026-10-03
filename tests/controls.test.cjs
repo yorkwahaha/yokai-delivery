@@ -38,3 +38,13 @@ test('misdelivery enemies approach a readable distance without overshoot and ret
   assert.equal(cfg.chaseStep(20, 210, 0.05, 'mis'), -10.5);
   assert.equal(cfg.chaseStep(90, 210, 0.05, 'ghost'), 10.5);
 });
+
+test('gamepad can navigate presets and leave the native controls dialog',()=>{
+ const env={window:{},localStorage:{getItem:()=>null,setItem(){}}};const events={};let clicked=0;
+ const buttons=Array.from({length:3},()=>({focus(){env.document.activeElement=this;},click(){clicked++;}}));
+ const dialog={open:false,querySelectorAll:s=>s==='button'?buttons:[],showModal(){this.open=true;env.document.activeElement=buttons[0];},close(){this.open=false;events.close();},addEventListener:(k,f)=>events[k]=f};
+ const opener={};env.document={getElementById:id=>id==='controls-dialog'?dialog:id==='controls-open'?opener:{focus(){}},activeElement:null};
+ vm.runInNewContext(fs.readFileSync('js/controls.js','utf8'),env);const c=env.window.CONTROLS;c.mount();opener.onclick();
+ const gp={buttons:Array.from({length:16},()=>({pressed:false}))};const press=i=>{gp.buttons[i].pressed=true;c.gamepad(gp,[]);gp.buttons[i].pressed=false;};
+ press(13);assert.equal(env.document.activeElement,buttons[1]);press(0);assert.equal(clicked,1);press(1);assert.equal(dialog.open,false);opener.onclick();events.keydown({code:'Escape',preventDefault(){},stopPropagation(){}});assert.equal(dialog.open,false);
+});

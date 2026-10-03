@@ -68,6 +68,30 @@
   const b = { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0 };
   const keys = new Set(), heldCodes = new Set();
   let state = "menu";
+  let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "";
+  function menuButtons() {
+    if (menuFocusState !== state) { menuFocus = 0; menuFocusState = state; }
+    return state === "menu" ? UI.MENU_BTNS : state === "pause" ? UI.PAUSE_BTNS : state === "won" || state === "lost" ? UI.END_BTNS : null;
+  }
+  function moveMenu(delta) {
+    const buttons = menuButtons();
+    menuFocus = (menuFocus + delta + buttons.length) % buttons.length;
+  }
+  function returnHome() {
+    keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
+    state = "menu"; menuFocus = 0; menuFocusState = state;
+  }
+  function activateMenu(id) {
+    if ((state === "won" || state === "lost") && endCooldown > 0) return;
+    if (id === "start") enterOverworld();
+    else if (id === "restart") start();
+    else if (id === "world") enterOverworld(false);
+    else if (id === "resume") togglePause();
+    else if (id === "mute") AUDIO.toggleMute();
+    else if (id === "controls") controlsButton.click();
+    else if (id === "menu") returnHome();
+    else if (id === "cards" || id === "codex") { codexBack = state; codexTab = id === "cards" ? "cards" : "words"; state = "codex"; }
+  }
   let overworld = window.OVERWORLD.createState("gate");
   let overworldNoticeT = 0;
   let gpOverworldDir = "";
@@ -300,6 +324,7 @@
     configureStage(stageId);
     AUDIO.init();
     state = "play";
+    keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     Object.assign(P, { x: START.x, y: START.y, inv: 1.2, faceAng: 0, faceX: 1 });
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0 });
     Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 });
@@ -683,6 +708,12 @@
       return;
     }
 
+    if (CONTROLS.isOpen()) {
+      CONTROLS.gamepad(gp, gpPrevButtons);
+      gpPrevButtons = gp.buttons.map(b => b.pressed);
+      gpMove = { x: 0, y: 0 };
+      return;
+    }
     // 1. 蘑菇頭類比搖桿 (左搖桿 axes 0, 1) + 十字鍵 (buttons 12, 13, 14, 15)
     let ax = gp.axes[0] || 0;
     let ay = gp.axes[1] || 0;
@@ -713,22 +744,30 @@
       gpOverworldDir = "";
     }
 
+    const buttons = menuButtons();
+    if (buttons) {
+      const dir = Math.abs(ax) > Math.abs(ay) ? (ax > 0.55 ? 1 : ax < -0.55 ? -1 : 0) : (ay > 0.55 ? 1 : ay < -0.55 ? -1 : 0);
+      if (dir && dir !== gpMenuDir) moveMenu(dir);
+      gpMenuDir = dir;
+      if (justPressed(0)) { AUDIO.init(); activateMenu(buttons[menuFocus].id); }
+      else if (justPressed(1) || justPressed(9)) { if (state === 'pause') togglePause(); else if (state === 'won' || state === 'lost') returnHome(); }
+      else if (justPressed(8)) activateMenu('codex');
+      gpPrevButtons = gp.buttons.map(b => b.pressed);
+      return;
+    }
+    gpMenuDir = '';
+
     // A 鍵 (Button 0): 互動 / 選卡1 / 確認
     if (justPressed(0)) {
       AUDIO.init();
-      if (state === "menu") enterOverworld();
-      else if (state === "overworld") confirmOverworld();
+      if (state === "overworld") confirmOverworld();
       else if (state === "levelup") pickUp(0);
-      else if (state === "pause") togglePause();
-      else if (state === "won" || state === "lost") {
-        if (endCooldown <= 0) start();
-      }
       else if (state === "play" && inter) interact();
     }
 
     // B 鍵 (Button 1): 衝刺 / 選卡2
     if (justPressed(1)) {
-      if (state === "overworld") state = "menu";
+      if (state === "overworld") returnHome();
       else if (state === "levelup") pickUp(1);
       else if (state === "play") dash();
     }
@@ -969,7 +1008,7 @@
             const d = dist(P, e);
             if (e.hp > 0 && d < nd) { near = e; nd = d; }
           }
-          shootAng = near ? Math.atan2(near.y - P.y, near.x - P.x) : 0;
+          shootAng = near ? Math.atan2(near.y - P.y, near.x - P.x) : P.faceAng;
         }
         const spread = 0.45;
         for (let i = 0; i < count; i++) {
@@ -2147,9 +2186,11 @@
         return;
       }
       if (state === "overworld" && e.key === "Escape") {
-        state = "menu";
+        returnHome();
         return;
       }
+      if (state === "won" || state === "lost") { activateMenu("menu"); return; }
+      if (state === 'won' || state === 'lost') { activateMenu('menu'); return; }
       if (state === "play" || state === "pause") {
         togglePause();
         return;
@@ -2178,6 +2219,13 @@
       }
       return;
     }
+    const buttons = menuButtons();
+    if (buttons) {
+      if (e.code === 'Tab' || ['u','d','l','r'].includes(action)) {
+        e.preventDefault(); moveMenu(e.code === 'Tab' ? (e.shiftKey ? -1 : 1) : ['u','l'].includes(action) ? -1 : 1);
+      } else if (!e.repeat && (e.key === 'Enter' || action === 'interact')) { e.preventDefault(); AUDIO.init(); activateMenu(buttons[menuFocus].id); }
+      return;
+    }
     if (state === "levelup" && !e.repeat && "123".includes(e.key)) {
       pickUp(+e.key - 1);
       return;
@@ -2190,16 +2238,7 @@
       else if (e.key === "Enter" || action === "interact" || action === "dash") { e.preventDefault(); confirmOverworld(); }
       return;
     }
-    if (state !== "play") {
-      if (e.key === "Enter") {
-        if (state === "menu") enterOverworld();
-        else if (state === "won" || state === "lost") {
-          if (endCooldown > 0) return;
-          start();
-        }
-      }
-      return;
-    }
+    if (state !== "play") return;
     if (action === "interact") interact();
     else if (bossQ && "123".includes(e.key)) {
       const idx = +e.key - 1;
@@ -2264,12 +2303,7 @@
       const bx = W / 2 - btnW / 2;
       for (const btn of UI.PAUSE_BTNS) {
         if (p.x >= bx && p.x <= bx + btnW && p.y >= btn.y && p.y <= btn.y + btnH) {
-          if (btn.id === "resume") togglePause();
-          else if (btn.id === "mute") AUDIO.toggleMute();
-          else if (btn.id === "cards") { codexBack = "pause"; codexTab = "cards"; state = "codex"; }
-          else if (btn.id === "codex") { codexBack = "pause"; codexTab = "words"; state = "codex"; }
-          else if (btn.id === "controls") controlsButton.click();
-          else if (btn.id === "menu") { state = "menu"; }
+          activateMenu(btn.id);
           return;
         }
       }
@@ -2308,9 +2342,9 @@
       return;
     }
     if (state === "overworld") {
-      const back = window.OVERWORLD.BACK_BTN;
+      const back = window.OVERWORLD.backButton();
       if (p.x >= back.x && p.x <= back.x + back.w && p.y >= back.y && p.y <= back.y + back.h) {
-        state = "menu";
+        returnHome();
         return;
       }
 
@@ -2328,47 +2362,9 @@
       }
       return;
     }
-    if (state === "menu") {
-      const settings = UI.MENU_CONTROLS_BTN;
-      if (p.x >= settings.x && p.x <= settings.x + settings.w && p.y >= settings.y && p.y <= settings.y + settings.h) {
-        controlsButton.click();
-        return;
-      }
-      // 點擊右上角卡片一覽與單字圖鑑鈕
-      if (p.y >= 20 && p.y <= 62) {
-        if (p.x >= W - 290 && p.x <= W - 155) {
-          codexBack = state;
-          codexTab = "cards";
-          state = "codex";
-          return;
-        }
-        if (p.x >= W - 150 && p.x <= W - 15) {
-          codexBack = state;
-          codexTab = "words";
-          state = "codex";
-          return;
-        }
-      }
-      const s = UI.MENU_START_BTN;
-      if (s && p.x >= s.x && p.x <= s.x + s.w && p.y >= s.y && p.y <= s.y + s.h) return enterOverworld();
-      return;
-    }
-    if (state === "won" || state === "lost") {
-      if (endCooldown > 0) return;
-      // 結算畫面可直接再戰、回旅路地圖，或回首頁。
-      const r = UI.RESTART_BTN;
-      if (r && p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h) {
-        return start();
-      }
-      const w = UI.WORLD_BTN;
-      if (w && p.x >= w.x && p.x <= w.x + w.w && p.y >= w.y && p.y <= w.y + w.h) {
-        return enterOverworld(false);
-      }
-      const h = UI.HOME_BTN;
-      if (h && p.x >= h.x && p.x <= h.x + h.w && p.y >= h.y && p.y <= h.y + h.h) {
-        state = "menu";
-        return;
-      }
+    if (state === 'menu' || state === 'won' || state === 'lost') {
+      const btn = menuButtons().find(b => p.x >= b.x && p.x <= b.x+b.w && p.y >= b.y && p.y <= b.y+b.h);
+      if (btn) activateMenu(btn.id);
       return;
     }
     if (state === "levelup") {
@@ -2429,6 +2425,7 @@
 
   // ---------- 遊戲幀迴圈 ----------
   function frame(now) {
+    menuButtons();
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
     levelupCooldown = Math.max(0, levelupCooldown - dt);
@@ -2439,7 +2436,7 @@
     }
 
     // 手把輪詢（包含搖桿蘑菇頭與按鈕）
-    if (!CONTROLS.isOpen()) pollGamepad();
+    pollGamepad();
 
     if (state === "play") {
       update(dt);
@@ -2470,7 +2467,7 @@
     btnE.x = btnD.x;
     btnE.y = btnD.y - 110;
     if (state === "menu") {
-      UI.drawMainMenu(ctx, STORE, now / 1000);
+      UI.drawMainMenu(ctx, STORE, now / 1000, menuFocus);
     } else if (state === "overworld") {
       window.OVERWORLD.draw(ctx, overworld, now / 1000, overworldNoticeT);
     } else {
@@ -2497,8 +2494,8 @@
         if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
         if (bossQ) UI.drawBossQuiz(ctx, bossQ);
         if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI);
-        if (state === "pause") UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false);
-        if (state === "won" || state === "lost") UI.drawEndScreen(ctx, state, score, delivered, failed, misses);
+        if (state === "pause") UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false, menuFocus);
+        if (state === "won" || state === "lost") UI.drawEndScreen(ctx, state, score, delivered, failed, misses, menuFocus);
       }
     }
 

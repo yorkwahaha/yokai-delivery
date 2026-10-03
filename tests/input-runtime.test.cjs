@@ -18,10 +18,13 @@ function loadGame() {
   const audioCalls = [];
   c.AUDIO = new Proxy({}, { get: (o, name) => () => audioCalls.push(name) });
   c.RENDERER = new Proxy({ drawHouse: h => actorCalls.push(`house:${h.id}`), drawPlayer: () => actorCalls.push('player'), drawMonster: e => actorCalls.push(`enemy:${e.id}`), getCtx: () => ctx, getDpr: () => c.devicePixelRatio || 1, getCam: () => ({ x: 900, y: 600 }), getShakeOffset: () => ({x:0,y:0}), updateEffects: () => false }, { get: (o, k) => o[k] || (() => {}) });
-  c.UI = new Proxy({ HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
+  vm.runInContext(fs.readFileSync('js/ui.js','utf8'),c);
+  const uiButtons=Object.fromEntries(Object.entries(c.UI).filter(([,v])=>typeof v!=='function'));
+  c.UI = new Proxy({ ...uiButtons, HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
   const source = fs.readFileSync('js/game.js', 'utf8');
   const end = source.lastIndexOf('})();');
   const hook = `window.fixture = { start, update, frame, drawWorld, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons,
+    face: angle => { P.faceAng=angle; },
     combatScene: (weapon, foes, walls=[]) => { Object.keys(WL).forEach(k=>WL[k]=0); WL[weapon]=1; wT[weapon]=0; enemies=foes.map(e=>({x:P.x+e.dx,y:P.y+(e.dy||0),hp:999,max:999,type:'ghost',...e})); solids.splice(0,solids.length,...walls.map(s=>({x0:P.x+s.x0,x1:P.x+s.x1,y0:P.y+s.y0,y1:P.y+s.y1}))); },
     heal: () => UP.find(u=>u.id==='oil_heal').f(),
     blockBossRing: all => { syncWorld(); const radius=spawnRadius(520); solids.splice(0,solids.length,all?{x0:P.x-10000,x1:P.x+10000,y0:P.y-10000,y1:P.y+10000}:{x0:P.x+radius-60,x1:P.x+radius+60,y0:P.y-60,y1:P.y+60}); },
@@ -33,7 +36,7 @@ function loadGame() {
     scheduleBoss: () => { bossT=0; },
     prepareBoss: () => { const bs={x:P.x+200,y:P.y,type:'boss',word:ALL[0],hp:999,max:999,shield:true}; enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
     setState: next => { state=next; ended=false; },
-    snapshot: () => ({ state, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
+    snapshot: () => ({ state, needles, menuFocus, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
     addMis: () => enemies.push({x:P.x+100,y:P.y,type:"mis",w:ALL[0],hp:999,max:999,speed:210,flash:0,wob:0}), emptyHouses: () => houses.splice(0) };`;
   vm.runInContext(source.slice(0, end) + hook + source.slice(end), c);
   return { ...c.fixture, events, canvasEvents, documentEvents, env: c, audioCalls, drawnText, actorCalls, transforms };
@@ -290,4 +293,41 @@ test('visibility change suspends audio immediately without requiring a frame', (
   g.env.document.hidden=true; g.documentEvents.visibilitychange();
   assert.equal(g.snapshot().state,'pause');
   assert.ok(g.audioCalls.includes('setSuspended'));
+});
+
+test('idle needles retain last facing and still aim at a nearby enemy',()=>{
+ const g=loadGame();g.start();g.face(Math.PI);g.combatScene('needle',[]);g.weapons(.01);
+ assert.ok(g.snapshot().needles.every(n=>n.vx<0));
+ g.combatScene('needle',[{dx:200}]);g.weapons(.01);assert.ok(g.snapshot().needles.slice(-3).every(n=>n.vx>0));
+});
+test('keyboard menus reach settings, both codex tabs, mute and home; restart resets session',()=>{
+ const g=loadGame();g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.equal(g.env.document.getElementById('controls-open').clicked,true);
+ g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'codex');assert.equal(g.snapshot().codexTab,'cards');
+ g.events.keydown(key('Escape','Escape'));g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().codexTab,'words');
+ g.start();g.prepareOrder();g.events.keydown(key('Escape','Escape'));
+ for(let i=0;i<3;i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.ok(g.audioCalls.includes('toggleMute'));
+ for(let i=0;i<2;i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'menu');
+ g.start();assert.equal(g.snapshot().job,null);assert.equal(g.snapshot().elapsed,0);assert.equal(g.snapshot().oil,100);assert.equal(g.snapshot().enemies.length,0);
+});
+test('gamepad directional menus confirm once without leaking actions into the new screen',()=>{
+ const g=loadGame();g.start();g.events.keydown(key('Escape','Escape'));
+ const buttons=Array.from({length:16},()=>({pressed:false}));g.env.navigator.getGamepads=()=>[{connected:true,axes:[0,0],buttons}];
+ const press=i=>{buttons[i].pressed=true;g.pollGamepad();buttons[i].pressed=false;g.pollGamepad();};
+ press(13);press(0);assert.equal(g.snapshot().state,'codex');assert.equal(g.snapshot().codexTab,'cards');press(1);assert.equal(g.snapshot().state,'pause');
+ g.setState('won');press(15);press(0);assert.equal(g.snapshot().state,'overworld');
+});
+
+test('controls dialog gamepad events do not activate the covered menu',()=>{
+ const g=loadGame();g.env.CONTROLS.isOpen=()=>true;let routed=0;g.env.CONTROLS.gamepad=()=>routed++;
+ const buttons=Array.from({length:16},()=>({pressed:false}));buttons[0].pressed=true;
+ g.env.navigator.getGamepads=()=>[{connected:true,axes:[0,0],buttons}];g.pollGamepad();assert.equal(routed,1);assert.equal(g.snapshot().state,'menu');
+});
+test('widescreen map back button accepts pointer at the screen edge and home clears held movement',()=>{
+ const g=loadGame();g.env.innerWidth=1800;g.env.innerHeight=600;
+ g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'overworld');
+ g.canvasEvents.pointerdown(pointer(30,30));assert.equal(g.snapshot().state,'menu');
+ g.start();g.events.keydown(key('KeyD','d'));g.events.keydown(key('Escape','Escape'));
+ for(let i=0;i<5;i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));
+ assert.equal(g.snapshot().state,'menu');assert.equal(g.snapshot().keys.length,0);
+ g.start();assert.equal(g.snapshot().joy,null);
 });

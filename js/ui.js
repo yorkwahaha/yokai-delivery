@@ -10,6 +10,14 @@ window.UI = (() => {
   const MENU_CONTROLS_BTN = { x: 20, y: 22, w: 180, h: 38 };
   const HINT_BTN = { x: 532, y: 20, w: 78, h: 40 };
 
+  const MENU_BTNS = [{id:'start',...MENU_START_BTN},{id:'controls',...MENU_CONTROLS_BTN},{id:'cards',x:615,y:22,w:125,h:38},{id:'codex',x:755,y:22,w:125,h:38}];
+  const END_BTNS = [{id:'restart',...RESTART_BTN},{id:'world',...WORLD_BTN},{id:'menu',...HOME_BTN}];
+  function drawMenuFocus(ctx, btn) {
+    if (!btn) return;
+    ctx.save(); ctx.strokeStyle='#80deea'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.roundRect(btn.x-4,btn.y-4,btn.w+8,btn.h+8,10); ctx.stroke(); ctx.restore();
+  }
+
   // 繪製日式黑漆金箔懸浮圓角框
   function glassBox(ctx, x, y, w, h, r = 10, fill = "rgba(14, 18, 30, 0.82)", stroke = "rgba(212, 175, 55, 0.55)", strokeW = 1.5) {
     ctx.save();
@@ -26,7 +34,7 @@ window.UI = (() => {
   }
 
   // 1. 主選單 (Title / Cover Screen)
-  function drawMainMenu(ctx, STORE, elapsed) {
+  function drawMainMenu(ctx, STORE, elapsed, focus = 0) {
     ctx.save();
     if (window.ART?.cover) {
       const zoom = 1.0 + Math.sin(elapsed * 0.8) * 0.02;
@@ -79,6 +87,7 @@ window.UI = (() => {
 
     glassBox(ctx, MENU_CONTROLS_BTN.x, MENU_CONTROLS_BTN.y, MENU_CONTROLS_BTN.w, MENU_CONTROLS_BTN.h, 8);
     ctx.fillText("操作與自定義", MENU_CONTROLS_BTN.x + MENU_CONTROLS_BTN.w / 2, 46);
+    drawMenuFocus(ctx, MENU_BTNS[focus]);
 
     ctx.restore();
   }
@@ -1285,7 +1294,7 @@ window.UI = (() => {
   }
 
   // 結算：同一條夜路壓暗，左邊站著快遞員，中間是今夜的帳。
-  function drawEndScreen(ctx, state, score, delivered, failed, misses) {
+  function drawEndScreen(ctx, state, score, delivered, failed, misses, focus = 0) {
     ctx.save();
     const isWon = state === "won";
 
@@ -1406,6 +1415,7 @@ window.UI = (() => {
     drawEndButton(RESTART_BTN, "再踏夜行", true);
     drawEndButton(WORLD_BTN, "回旅路地圖");
     drawEndButton(HOME_BTN, "回到首頁");
+    drawMenuFocus(ctx, END_BTNS[focus]);
 
     ctx.restore();
   }
@@ -1420,7 +1430,7 @@ window.UI = (() => {
     { id: "menu", label: "◆ 返 回 主 選 單 ◆", y: 495 }
   ];
 
-  function drawPauseMenu(ctx, muted) {
+  function drawPauseMenu(ctx, muted, focus = 0) {
     ctx.save();
     ctx.fillStyle = "rgba(6, 8, 16, 0.92)";
     fillScreen(ctx);
@@ -1440,7 +1450,7 @@ window.UI = (() => {
     const btnW = 280, btnH = 44;
     const bx = W / 2 - btnW / 2;
 
-    PAUSE_BTNS.forEach(b => {
+    PAUSE_BTNS.forEach((b, i) => {
       let label = b.label;
       if (b.id === "mute") {
         label = muted ? b.labelMuted : b.label;
@@ -1450,11 +1460,12 @@ window.UI = (() => {
       ctx.fillStyle = "#ffeed4";
       ctx.font = readableFont(15, "900");
       ctx.fillText(label, W / 2, b.y + 28);
+      if(i === focus) drawMenuFocus(ctx,{x:bx,y:b.y,w:btnW,h:btnH});
     });
 
     ctx.fillStyle = "rgba(255, 235, 180, 0.45)";
     ctx.font = readableFont(12, "");
-    ctx.fillText("[ 按 Esc 鍵返回夜行 ]", W / 2, 570);
+    ctx.fillText("[ ↑↓ 選擇 · Enter/A 確認 · Esc/B 繼續 ]", W / 2, 570);
 
     ctx.restore();
   }
@@ -1620,7 +1631,7 @@ window.UI = (() => {
     drawEndScreen,
     drawPauseMenu,
     drawSurgeWarning,
-    PAUSE_BTNS,
+    PAUSE_BTNS, MENU_BTNS, END_BTNS,
     PAUSE_BTN_W: 280,
     PAUSE_BTN_H: 44,
     RESTART_BTN,

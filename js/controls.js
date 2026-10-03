@@ -31,6 +31,20 @@ window.CONTROLS = (() => {
       save(); waiting = null; render();
     },
     isOpen: () => !!dialog?.open,
+    gamepad(gp, previous) {
+      const pressed = i => gp.buttons[i]?.pressed && !previous[i];
+      if (pressed(1) || pressed(9)) {
+        if (waiting) { waiting = null; render(); }
+        else dialog.close();
+        return;
+      }
+      const buttons = [...dialog.querySelectorAll('button')];
+      const delta = pressed(12) || pressed(14) ? -1 : pressed(13) || pressed(15) ? 1 : 0;
+      if (delta) {
+        const index = buttons.indexOf(document.activeElement);
+        buttons[(index + delta + buttons.length) % buttons.length]?.focus();
+      } else if (pressed(0) && buttons.includes(document.activeElement)) document.activeElement.click();
+    },
     mount() {
       dialog = document.getElementById('controls-dialog');
       document.getElementById('controls-open').onclick = () => { waiting = null; render(); dialog.showModal(); };
@@ -38,9 +52,14 @@ window.CONTROLS = (() => {
       dialog.querySelectorAll('[data-preset]').forEach(btn => { btn.onclick = () => { api.preset(btn.dataset.preset); }; });
       dialog.addEventListener('close', () => { waiting = null; document.getElementById('game').focus(); });
       dialog.addEventListener('keydown', e => {
+        if (e.code === 'Escape') {
+          e.preventDefault(); e.stopPropagation();
+          if (waiting) { waiting = null; render(); }
+          else dialog.close();
+          return;
+        }
         if (!waiting) return;
         e.preventDefault(); e.stopPropagation();
-        if (e.code === 'Escape') { waiting = null; render(); return; }
         const status = document.getElementById('controls-status');
         if (api.bind(waiting, e.code)) { waiting = null; status.textContent = '已儲存按鍵。'; }
         else status.textContent = '按鍵已使用或保留；請選英文字母、空白或數字鍵盤。';
