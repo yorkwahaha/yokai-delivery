@@ -26,6 +26,10 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
   const end = source.lastIndexOf('})();');
   const hook = `window.fixture = { start, update, frame, drawWorld, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons,
     tutorialState: () => tutorial,
+    reviewWords: () => misses,
+    answerBoss,
+    setOil: value => { oil=value; },
+    unlockBoss: () => { bossQ.lock=0; },
     replayTutorial: () => activateMenu('tutorial'),
     atDestination: () => { P.x=job.to.x; P.y=job.to.y+110; },
     dashLesson: () => { elapsed=12; },
@@ -48,6 +52,35 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
+test('Boss mistakes reach settlement, count once per submission and reset only run review', () => {
+  const g=loadGame(); g.start(); g.prepareBoss();
+  const q=g.snapshot().bossQ, jp=q.word.jp;
+  g.answerBoss(q.ans.findIndex(w=>w!==q.word));
+  assert.equal(g.env.STORE.get(jp).ng,1);
+  assert.equal(g.reviewWords().length,1);
+  assert.equal(g.reviewWords()[0].jp,jp);
+  g.answerBoss(0); // Retry lock prevents repeated submissions.
+  assert.equal(g.env.STORE.get(jp).ng,1);
+  g.unlockBoss();
+  const retry=g.snapshot().bossQ;
+  g.answerBoss(retry.ans.indexOf(retry.word));
+  assert.equal(g.env.STORE.get(jp).box,0); // Eliminated option makes retry assisted.
+  assert.equal(g.env.STORE.get(jp).ok,1);
+  assert.equal(g.reviewWords().length,1);
+  g.start();
+  assert.equal(g.reviewWords().length,0);
+  assert.equal(g.env.STORE.get(jp).ng,1);
+});
+
+test('lethal Boss mistake still reaches settlement review before run ends', () => {
+  const g=loadGame();g.start();g.prepareBoss();g.setOil(8);
+  const q=g.snapshot().bossQ;
+  g.answerBoss(q.ans.findIndex(w=>w!==q.word));
+  assert.equal(g.snapshot().state,'lost');
+  assert.equal(g.reviewWords().length,1);
+  assert.equal(g.env.STORE.get(q.word.jp).ng,1);
+});
+
 test('first-run tutorial freezes time, oil and gameplay input, and skip persists', () => {
   const g=loadGame(true); g.start(); g.update(0.05);
   assert.equal(g.tutorialState().id,'pickup');

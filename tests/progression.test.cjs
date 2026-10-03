@@ -51,6 +51,40 @@ test("a failed run records stage bests but does not unlock the next stage", () =
   assert.equal(STORE.getStageStats("night-town").bestScore, 1200);
 });
 
+test('unresolved mistakes survive reload, replay and stage switching until answered', () => {
+  let { STORE, mem } = loadStore();
+  STORE.rec('ねこ', false);
+  STORE.rec('ねこ', false);
+  ({ STORE, mem } = loadStore(JSON.parse(mem.get('yokai-delivery-v1'))));
+  for (const stage of ['night-town', 'night-town', 'rain-port']) {
+    STORE.startRun(stage);
+    assert.equal(STORE.get('ねこ').ng, 2);
+    assert.equal(STORE.get('ねこ').missBoost, 2.5);
+  }
+  STORE.recAssisted('ねこ');
+  assert.equal(STORE.get('ねこ').box, 0);
+  assert.equal(STORE.get('ねこ').missBoost, 1);
+  STORE.rec('ねこ', false);
+  STORE.rec('ねこ', true);
+  assert.equal(STORE.get('ねこ').box, 1);
+  assert.equal(STORE.get('ねこ').missBoost, 1);
+});
+
+test('review sampling applies mistake weights within the supplied stage pool', () => {
+  const { STORE } = loadStore();
+  const words = [{jp:'ねこ'}, {jp:'いぬ'}];
+  STORE.rec('ねこ', false);
+  const random = Math.random;
+  try {
+    Math.random = () => 0.6;
+    assert.equal(STORE.pick(words).jp, 'ねこ');
+    STORE.recAssisted('ねこ');
+    assert.equal(STORE.pick(words).jp, 'いぬ');
+    assert.equal(STORE.pick([{jp:'あめ'}]).jp, 'あめ');
+    assert.equal(STORE.pick([]), null);
+  } finally { Math.random = random; }
+});
+
 test('malformed save containers recover without losing valid vocabulary and best scores', () => {
   for (const progress of [1, [], 'bad', null, {unlocked:[],completed:1,stages:'bad'}]) {
     const {STORE,mem}=loadStore({m:{'ねこ':{ok:3,ng:1,box:2}},best:123,progress});
