@@ -204,6 +204,22 @@ test('automatic order refill can repeat a purified word while its correction is 
   assert.equal(g.env.STORE.get(word.jp).box,0);
 });
 
+test('scheduled Boss can draw a purified word and open its quiz before correction expires',()=>{
+  const g=loadGame();g.start();g.prepareOrder();
+  const word=g.snapshot().job.word;
+  g.resolve(g.snapshot().job.ans.findIndex(w=>w!==word));
+  g.hurt(g.snapshot().enemies.find(e=>e.type==='mis'),999);
+  const pickWord=g.env.STORE.pick;
+  let bossPoolIncludesWord=false;
+  g.env.STORE.pick=pool=>{bossPoolIncludesWord=pool.some(w=>w.jp===word.jp);return pool.find(w=>w.jp===word.jp)||pickWord(pool);};
+  g.scheduleBoss();g.update(0.01); // Real spawn path; controlled selection, not a natural probability measurement.
+  assert.equal(bossPoolIncludesWord,true);
+  assert.equal(g.snapshot().enemies.find(e=>e.type==='boss').word.jp,word.jp);
+  g.moveBoss(200);g.update(0.01);
+  assert.equal(g.snapshot().bossQ.word.jp,word.jp);
+  assert.ok(g.snapshot().floats.some(t=>t.life>1.7 && t.v.includes(word.jp+'＝')));
+});
+
 test('delivery mistake persists, avoids its living answer badge and returns after purification', () => {
   const g=loadGame();g.start();g.prepareOrder();
   const j=g.snapshot().job,jp=j.word.jp;
