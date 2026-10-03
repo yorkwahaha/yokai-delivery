@@ -1,0 +1,114 @@
+{
+  "overlap": {
+    "state": "play",
+    "word": "ねこ",
+    "score": 50,
+    "mastery": {
+      "ok": 1,
+      "ng": 0,
+      "box": 1,
+      "lastSeen": 1791048586757,
+      "missBoost": 1
+    },
+    "floats": [
+      {
+        "v": "ねこ＝貓 配達完遂！",
+        "life": 1.8
+      },
+      {
+        "v": "燈油 +28 點",
+        "life": 1.8
+      }
+    ],
+    "orders": []
+  },
+  "assisted": {
+    "state": "play",
+    "bossAssisted": true,
+    "score": 25,
+    "mastery": {
+      "ok": 2,
+      "ng": 0,
+      "box": 0,
+      "lastSeen": 1791048601743,
+      "missBoost": 1
+    },
+    "floats": [
+      {
+        "v": "天狐靈音：聆聽發音，排除一項！（輔助）",
+        "life": 1.8
+      },
+      {
+        "v": "ねこ＝貓 輔助送達！",
+        "life": 1.8
+      },
+      {
+        "v": "燈油 +10 點（神助）",
+        "life": 1.8
+      },
+      {
+        "v": "結界破除！全力進攻！",
+        "life": 1.8
+      }
+    ],
+    "orders": []
+  },
+  "range": {
+    "state": "play",
+    "bossAssisted": true,
+    "score": 0,
+    "mastery": {
+      "ok": 1,
+      "ng": 1,
+      "box": 0,
+      "lastSeen": 1791048602126,
+      "missBoost": 1
+    },
+    "floats": [
+      {
+        "v": "答錯！燈油 -8 點，結界震盪！",
+        "life": 1.78
+      },
+      {
+        "v": "排除錯誤選項，再試一次！",
+        "life": 1.78
+      },
+      {
+        "v": "結界破除！全力進攻！",
+        "life": 1.8
+      }
+    ],
+    "orders": [
+      "ねこ"
+    ]
+  },
+  "purify": {
+    "state": "play",
+    "word": "ねこ",
+    "score": 30,
+    "mastery": {
+      "ok": 0,
+      "ng": 1,
+      "box": 0,
+      "lastSeen": 0,
+      "missBoost": 2.5
+    },
+    "floats": [
+      {
+        "v": "誤配！單字有誤，瘴氣妖魔現身！",
+        "life": 1.8
+      },
+      {
+        "v": "擊敗誤配妖怪以淨化單字",
+        "life": 1.8
+      },
+      {
+        "v": "驅散誤配妖怪：ねこ＝貓",
+        "life": 1.8
+      }
+    ],
+    "orders": [
+      "ねこ"
+    ]
+  }
+}

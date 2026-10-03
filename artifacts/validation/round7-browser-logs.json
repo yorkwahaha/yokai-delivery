@@ -1,0 +1,11 @@
+{
+  "naturalErrors": [],
+  "controlledErrors": [
+    {
+      "level": "error",
+      "message": "TypeError: Cannot set properties of null (setting 'onclick')\n    at http://127.0.0.1:8766/js/round7-controlled.tmp.js:2592:45\n    at http://127.0.0.1:8766/js/round7-controlled.tmp.js:2597:3",
+      "timestamp": "2026-10-03T17:27:41.794Z",
+      "url": "http://127.0.0.1:8766/js/round7-controlled.tmp.js"
+    }
+  ]
+}

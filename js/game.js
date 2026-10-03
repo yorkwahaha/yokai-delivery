@@ -486,7 +486,7 @@
       hintStage: 0,
       eliminatedIdx: -1,
       showMeaningT: 0,
-      assisted: false
+      assisted: enemies.some(e => e.type === "boss" && e.shield && e.word?.jp === o.word.jp && e.wasAssisted)
     };
     nameT = 4.5;
     cargo = { x: pTrail.length > 0 ? pTrail[pTrail.length - 1].x : P.x - 44, y: pTrail.length > 0 ? pTrail[pTrail.length - 1].y : P.y + 10 };
@@ -497,6 +497,7 @@
 
   function resolve(i) {
     const j = job, w = j.ans[i], pos = ansPos(j.to)[i];
+    if (j.assisted) markBossAssisted(j.word);
     job = null;
     nameT = 0;
 
@@ -554,6 +555,7 @@
         let bossPool = ALL.filter(w => !livingMisWords.has(w.jp));
         if (bossPool.length === 0) bossPool = ALL;
         bs.word = STORE.pick(bossPool);
+        bs.wasAssisted = false;
         bossQ = null;
       }
 
@@ -890,7 +892,7 @@
     return {
       word: bs.word,
       lock: 0.4,
-      wasAssisted: false,
+      wasAssisted: !!bs.wasAssisted,
       ans: shuffle([bs.word, distractors[0], distractors[1]])
     };
   };
@@ -903,7 +905,7 @@
     const ok = bossQ.ans[i] === bs.word;
 
     if (ok) {
-      if (bossQ.wasAssisted || (job?.assisted && job.word.jp === bs.word.jp)) {
+      if (bs.wasAssisted || bossQ.wasAssisted || (job?.assisted && job.word.jp === bs.word.jp)) {
         STORE.recAssisted(bs.word.jp);
       } else {
         STORE.rec(bs.word.jp, true);
@@ -929,6 +931,7 @@
       if (bossQ.ans.length > 2) {
         bossQ.ans = bossQ.ans.filter((_, idx) => idx !== i);
         bossQ.wasAssisted = true;
+        bs.wasAssisted = true;
         if (job?.word.jp === bs.word.jp) job.assisted = true;
         bossQ.lock = 0.8;
         say("排除錯誤選項，再試一次！", P.x, P.y - 75, "#ffb3ba");
@@ -939,10 +942,16 @@
         if (pool.length === 0) pool = ALL.filter(w => w.jp !== lastWordJp);
         if (pool.length === 0) pool = ALL;
         bs.word = STORE.pick(pool);
+        bs.wasAssisted = false;
         bossQ = mkQ(bs);
         bossQ.lock = 1.0;
       }
     }
+  }
+
+  function markBossAssisted(word) {
+    const bs = enemies.find(e => e.type === "boss" && e.shield && e.word?.jp === word.jp);
+    if (bs) bs.wasAssisted = true;
   }
 
   function triggerHint() {
@@ -968,6 +977,7 @@
       say(`破幻神符：${job.word.jp} 意為「${job.word.zh}」`, P.x, P.y - 45, "#ffd54f");
       AUDIO.pickup();
     }
+    if (job.assisted) markBossAssisted(job.word);
   }
 
   function weapons(dt) {

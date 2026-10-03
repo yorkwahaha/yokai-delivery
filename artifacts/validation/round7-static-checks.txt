@@ -1,0 +1,17 @@
+Official JS syntax checks
+assets.js: exit 0
+audio.js: exit 0
+config.js: exit 0
+controls.js: exit 0
+game.js: exit 0
+overworld.js: exit 0
+renderer.js: exit 0
+store.js: exit 0
+ui.js: exit 0
+viewport.js: exit 0
+words.js: exit 0
+world.js: exit 0
+warning: in the working copy of 'index.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'js/game.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/input-runtime.test.cjs', LF will be replaced by CRLF the next time Git touches it
+git diff --check: exit 0

@@ -189,6 +189,21 @@ test('purification feedback overlaps the next real priority order without granti
   assert.equal(g.env.STORE.get(j.word.jp).box,0);
 });
 
+test('automatic order refill can repeat a purified word while its correction is still alive',()=>{
+  const g=loadGame();g.start();g.prepareOrder();
+  const word=g.snapshot().job.word;
+  g.resolve(g.snapshot().job.ans.findIndex(w=>w!==word));
+  g.update(0.01); // A living badge excludes the word from this order.
+  assert.notEqual(g.snapshot().orders[0].word.jp,word.jp);
+  g.prepareOrder(); // Picking that other parcel frees the one order slot.
+  const mis=g.snapshot().enemies.find(e=>e.type==='mis');g.hurt(mis,999);
+  g.update(0.01); // Real update refills the slot, not a direct makeOrder call.
+  assert.equal(g.snapshot().orders[0].word.jp,word.jp);
+  assert.notEqual(g.snapshot().job.word.jp,word.jp);
+  assert.ok(g.snapshot().floats.some(t=>t.life>1.7 && t.v.includes(word.jp+'＝')));
+  assert.equal(g.env.STORE.get(word.jp).box,0);
+});
+
 test('delivery mistake persists, avoids its living answer badge and returns after purification', () => {
   const g=loadGame();g.start();g.prepareOrder();
   const j=g.snapshot().job,jp=j.word.jp;
