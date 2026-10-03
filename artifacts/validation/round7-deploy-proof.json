@@ -1,0 +1,44 @@
+{
+  "verifiedAt": "2026-10-03T17:44:20.229Z",
+  "deploymentSha": "d63a98947a0968c776ce34bc36d573d3db2a0a69",
+  "runId": 37141523051,
+  "runUrl": "https://github.com/yorkwahaha/yokai-delivery/actions/runs/37141523051",
+  "checks": [
+    {
+      "file": "index.html",
+      "url": "https://yorkwahaha.github.io/yokai-delivery/index.html",
+      "status": 200,
+      "deployedSha256": "673ad987ede4ca48862ab0b6065bba34d06444b003add95dc378816693955018",
+      "gitBlobSha256": "673ad987ede4ca48862ab0b6065bba34d06444b003add95dc378816693955018",
+      "matches": true,
+      "bytes": 5760
+    },
+    {
+      "file": "js/game.js",
+      "url": "https://yorkwahaha.github.io/yokai-delivery/js/game.js",
+      "status": 200,
+      "deployedSha256": "a9b254dbbf12bdb179299ba440e8cd79928c2f24f3140907f84b1bce5d6ab6a4",
+      "gitBlobSha256": "a9b254dbbf12bdb179299ba440e8cd79928c2f24f3140907f84b1bce5d6ab6a4",
+      "matches": true,
+      "bytes": 96444
+    },
+    {
+      "file": "js/store.js",
+      "url": "https://yorkwahaha.github.io/yokai-delivery/js/store.js",
+      "status": 200,
+      "deployedSha256": "3a61a295929d36887ae0f9f6e4ff1d8f1670a7dc474ae4c2455baa7f0a428372",
+      "gitBlobSha256": "3a61a295929d36887ae0f9f6e4ff1d8f1670a7dc474ae4c2455baa7f0a428372",
+      "matches": true,
+      "bytes": 4992
+    },
+    {
+      "file": "js/ui.js",
+      "url": "https://yorkwahaha.github.io/yokai-delivery/js/ui.js",
+      "status": 200,
+      "deployedSha256": "8008f6d288619250b9617d1439da526ac926801c2653d8f5d7fa46774aacf685",
+      "gitBlobSha256": "8008f6d288619250b9617d1439da526ac926801c2653d8f5d7fa46774aacf685",
+      "matches": true,
+      "bytes": 67953
+    }
+  ]
+}
