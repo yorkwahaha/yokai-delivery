@@ -88,8 +88,8 @@ test('expanded fullscreen edges and corner HUD buttons share the same pointer ma
   assert.ok(g.snapshot().x > before);
   g.canvasEvents.pointerup(pointer(160, 350));
   g.frame(20);
-  g.canvasEvents.pointerdown(pointer(1662, 530));
+  g.canvasEvents.pointerdown(pointer(1642, 510));
   assert.ok(g.snapshot().dashCd > 0);
-  g.canvasEvents.pointerdown(pointer(1760, 30));
+  g.canvasEvents.pointerdown(pointer(1740, 50));
   assert.equal(g.snapshot().state, 'pause');
 });

@@ -11,3 +11,16 @@ test('fullscreen preserves uniform scale and keeps the complete interface visibl
     assert.ok(Math.abs((300 + v.offsetY) * v.scale - h/2) < 0.001);
   }
 });
+
+test('each HUD edge adds exactly 20 CSS pixels across screen scales', () => {
+  const oldW = global.innerWidth, oldH = global.innerHeight;
+  try {
+    for (const [w, h] of [[844,390], [1024,768], [1920,1080]]) {
+      global.innerWidth = w; global.innerHeight = h;
+      const b = viewport.bounds(), hud = viewport.hudBounds(), { scale } = viewport.get();
+      for (const distance of [hud.left-b.left, hud.top-b.top, b.right-hud.right, b.bottom-hud.bottom]) {
+        assert.ok(Math.abs(distance * scale - 20) < 0.001);
+      }
+    }
+  } finally { global.innerWidth = oldW; global.innerHeight = oldH; }
+});

@@ -90,7 +90,7 @@ window.UI = (() => {
     // 注意：完全移除頂部深色橫條！遊戲世界 100% 全螢幕通透顯示！
 
     // --- 左上角：玩家生存與成長懸浮艙 (燈油即生命 + 經驗值條) ---
-    const bounds = screenBounds();
+    const bounds = window.VIEWPORT?.hudBounds() || screenBounds();
     const pBoxX = bounds.left + 18, pBoxY = bounds.top + 14, pBoxW = 225, pBoxH = 52;
     glassBox(ctx, pBoxX, pBoxY, pBoxW, pBoxH, 10);
 
@@ -202,7 +202,9 @@ window.UI = (() => {
     ctx.fillRect(pcx + 2, pcy - 8, 4, 16);
 
     // --- 中上：HoloCure 式單一任務條。只保留「現在要做什麼」與方向資訊。 ---
-    const taskX = 248, taskY = bounds.top + 14, taskW = 370, taskH = 52;
+    const taskX = Math.max(248, pBoxX + pBoxW + 5), taskY = bounds.top + 14;
+    const taskW = Math.min(370, sBoxX - taskX - 15), taskH = 52;
+    HINT_BTN.x = taskX + taskW - HINT_BTN.w - 8;
     HINT_BTN.y = bounds.top + 20;
     const bossPulse = 0.5 + 0.5 * Math.sin(elapsed * 7);
     const taskStroke = bossHunt
@@ -220,10 +222,10 @@ window.UI = (() => {
       ctx.fillText("赤い双矢印を追え", taskX + taskW / 2, taskY + 43);
     } else if (job) {
       const remaining = Math.round(Math.hypot(P.x - job.to.x, P.y - job.to.y) / 10) * 10;
-      const prompt = `${job.word.icon} ${job.word.zh}`;
       ctx.fillStyle = "#fff3ca";
       ctx.font = readableFont(18, "900");
-      ctx.fillText(prompt, taskX + 14, taskY + 23);
+      if (job.word.cue !== "text") drawWordCue(ctx, job.word, taskX + 25, taskY + 16, 24);
+      ctx.fillText(job.word.zh, taskX + (job.word.cue === "text" ? 14 : 46), taskY + 23);
       ctx.fillStyle = "#82d8ff";
       ctx.font = readableFont(12, "900");
       ctx.fillText(`➜ ${remaining}`, taskX + 14, taskY + 43);
@@ -387,11 +389,11 @@ window.UI = (() => {
       ctx.restore();
     }
     if (!touch && elapsed < 12) {
-      glassBox(ctx, 22, H - 112, 72, 30, 7, "rgba(12,16,28,0.62)", "rgba(255,255,255,0.25)", 1);
+      glassBox(ctx, bounds.left + 22, bounds.bottom - 112, 72, 30, 7, "rgba(12,16,28,0.62)", "rgba(255,255,255,0.25)", 1);
       ctx.textAlign = "center";
       ctx.fillStyle = "rgba(255,255,255,0.72)";
       ctx.font = readableFont(12, "900");
-      ctx.fillText("拖曳移動", 58, H - 92);
+      ctx.fillText("拖曳移動", bounds.left + 58, bounds.bottom - 92);
     }
 
     ctx.restore();
@@ -1042,9 +1044,16 @@ window.UI = (() => {
 
     const n = bossQ.ans.length;
     ctx.textAlign = "center";
-    ctx.font = "900 24px 'Kaisei Decol', 'Noto Sans JP', serif";
     ctx.fillStyle = "#ffeed4";
-    ctx.fillText(`🛡　${bossQ.word.icon}　→　？`, W / 2, by + 30);
+    ctx.font = readableFont(20, "900");
+    if (bossQ.word.cue === "text" || !bossQ.word.icon) {
+      ctx.fillText(`${bossQ.word.zh}　→　？`, W / 2, by + 30);
+    } else {
+      drawWordCue(ctx, bossQ.word, W / 2 - 88, by + 22, 30);
+      ctx.textAlign = "left";
+      ctx.fillText(`${bossQ.word.zh}　→　？`, W / 2 - 62, by + 30);
+    }
+    ctx.textAlign = "center";
 
     const optW = n === 2 ? 260 : 200, optH = 46;
     const gap = n === 2 ? 36 : 24;
@@ -1243,7 +1252,8 @@ window.UI = (() => {
         ctx.textAlign = "center";
         ctx.fillStyle = seen ? "#1e1829" : "#e7ecff";
         ctx.font = compact ? "20px sans-serif" : "24px sans-serif";
-        ctx.fillText(seen ? w.icon : "？", cx + cardW / 2, cy + (compact ? 27 : 32));
+        if (seen) drawWordCue(ctx, w, cx + cardW / 2, cy + 23, 26);
+        else ctx.fillText("？", cx + cardW / 2, cy + (compact ? 27 : 32));
 
         ctx.font = readableFont(20, "900");
         ctx.fillText(seen ? w.jp : "？？", cx + cardW / 2, cy + (compact ? 48 : 56));
@@ -1523,6 +1533,74 @@ window.UI = (() => {
     ctx.restore();
   }
 
+  // 天氣圖案不依賴 Emoji 字型；抽象方向與缺圖單字使用中文語意。
+  function drawWordCue(ctx, word, x, y, size = 28) {
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    if (!word || word.cue === "text" || !word.icon) {
+      ctx.font = readableFont(Math.min(size, 18), "900");
+      fitText(ctx, word?.zh || "？", x, y, size * 2);
+    } else if (["ame", "kaze", "kumo", "kiri", "kaminari", "yuki"].includes(word.cue)) {
+      ctx.translate(x, y);
+      ctx.scale(size / 32, size / 32);
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "#409bb7";
+      if (["ame", "kumo", "kiri", "kaminari"].includes(word.cue)) {
+        ctx.fillStyle = "#dce9f3";
+        ctx.beginPath();
+        ctx.moveTo(-12, 3);
+        ctx.bezierCurveTo(-20, 3, -18, -8, -10, -7);
+        ctx.bezierCurveTo(-9, -18, 8, -18, 10, -7);
+        ctx.bezierCurveTo(20, -9, 21, 3, 12, 3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = "#688ca2";
+        ctx.stroke();
+        ctx.strokeStyle = "#409bb7";
+      }
+      if (word.cue === "ame") {
+        ctx.beginPath();
+        for (const dx of [-9, 0, 9]) { ctx.moveTo(dx, 7); ctx.lineTo(dx - 3, 14); }
+        ctx.stroke();
+      } else if (word.cue === "kiri") {
+        ctx.strokeStyle = "#6e8896";
+        ctx.beginPath();
+        for (const dy of [7, 12, 17]) { ctx.moveTo(-15, dy); ctx.lineTo(15, dy); }
+        ctx.stroke();
+      } else if (word.cue === "kaminari") {
+        ctx.fillStyle = "#ffd54f";
+        ctx.beginPath();
+        ctx.moveTo(1, 3); ctx.lineTo(-7, 11); ctx.lineTo(-1, 11);
+        ctx.lineTo(-4, 20); ctx.lineTo(10, 7); ctx.lineTo(4, 7); ctx.lineTo(7, 3);
+        ctx.closePath(); ctx.fill();
+      } else if (word.cue === "kaze") {
+        ctx.beginPath();
+        for (const dy of [-8, 0, 8]) {
+          ctx.moveTo(-16, dy); ctx.lineTo(8, dy);
+          ctx.bezierCurveTo(21, dy, 15, dy - 11, 10, dy - 5);
+        }
+        ctx.stroke();
+      } else if (word.cue === "yuki") {
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const a = i * Math.PI / 3, c = Math.cos(a), s = Math.sin(a);
+          ctx.moveTo(0, 0); ctx.lineTo(c * 15, s * 15);
+          for (const side of [-1, 1]) {
+            ctx.moveTo(c * 9, s * 9);
+            ctx.lineTo(c * 9 + Math.cos(a + side * 2.2) * 5, s * 9 + Math.sin(a + side * 2.2) * 5);
+          }
+        }
+        ctx.stroke();
+      }
+    } else {
+      ctx.font = `${size}px 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif`;
+      ctx.fillText(word.icon, x, y);
+    }
+    ctx.restore();
+  }
+
   function readableFont(size, weight = "700") {
     const width = document.getElementById("game")?.getBoundingClientRect().width || 900;
     const scale = window.VIEWPORT?.get().scale || width / 900;
@@ -1532,6 +1610,7 @@ window.UI = (() => {
 
   return {
     readableFont,
+    drawWordCue,
     drawMainMenu,
     drawHud,
     drawLevelUp,

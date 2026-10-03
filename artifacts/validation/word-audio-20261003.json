@@ -1,0 +1,236 @@
+[
+  {
+    "jp": "ねこ",
+    "file": "assets/audio/words/neko.mp3",
+    "bytes": 9956,
+    "decoded": true
+  },
+  {
+    "jp": "いぬ",
+    "file": "assets/audio/words/inu.mp3",
+    "bytes": 8540,
+    "decoded": true
+  },
+  {
+    "jp": "うさぎ",
+    "file": "assets/audio/words/usagi.mp3",
+    "bytes": 11372,
+    "decoded": true
+  },
+  {
+    "jp": "さかな",
+    "file": "assets/audio/words/sakana.mp3",
+    "bytes": 12500,
+    "decoded": true
+  },
+  {
+    "jp": "うみ",
+    "file": "assets/audio/words/umi.mp3",
+    "bytes": 8852,
+    "decoded": true
+  },
+  {
+    "jp": "かめ",
+    "file": "assets/audio/words/kame.mp3",
+    "bytes": 8828,
+    "decoded": true
+  },
+  {
+    "jp": "つき",
+    "file": "assets/audio/words/tsuki.mp3",
+    "bytes": 9380,
+    "decoded": true
+  },
+  {
+    "jp": "ほし",
+    "file": "assets/audio/words/hoshi.mp3",
+    "bytes": 9236,
+    "decoded": true
+  },
+  {
+    "jp": "にじ",
+    "file": "assets/audio/words/niji.mp3",
+    "bytes": 9572,
+    "decoded": true
+  },
+  {
+    "jp": "りんご",
+    "file": "assets/audio/words/ringo.mp3",
+    "bytes": 9620,
+    "decoded": true
+  },
+  {
+    "jp": "おにぎり",
+    "file": "assets/audio/words/onigiri.mp3",
+    "bytes": 12332,
+    "decoded": true
+  },
+  {
+    "jp": "ケーキ",
+    "file": "assets/audio/words/keeki.mp3",
+    "bytes": 12788,
+    "decoded": true
+  },
+  {
+    "jp": "えき",
+    "file": "assets/audio/words/eki.mp3",
+    "bytes": 9164,
+    "decoded": true
+  },
+  {
+    "jp": "ほん",
+    "file": "assets/audio/words/hon.mp3",
+    "bytes": 7964,
+    "decoded": true
+  },
+  {
+    "jp": "かさ",
+    "file": "assets/audio/words/kasa.mp3",
+    "bytes": 9764,
+    "decoded": true
+  },
+  {
+    "jp": "くるま",
+    "file": "assets/audio/words/kuruma.mp3",
+    "bytes": 11132,
+    "decoded": true
+  },
+  {
+    "jp": "ふね",
+    "file": "assets/audio/words/fune.mp3",
+    "bytes": 8492,
+    "decoded": true
+  },
+  {
+    "jp": "ひこうき",
+    "file": "assets/audio/words/hikouki.mp3",
+    "bytes": 12404,
+    "decoded": true
+  },
+  {
+    "jp": "さくら",
+    "file": "assets/audio/words/sakura.mp3",
+    "bytes": 9596,
+    "decoded": true
+  },
+  {
+    "jp": "やま",
+    "file": "assets/audio/words/yama.mp3",
+    "bytes": 8324,
+    "decoded": true
+  },
+  {
+    "jp": "はな",
+    "file": "assets/audio/words/hana.mp3",
+    "bytes": 9668,
+    "decoded": true
+  },
+  {
+    "jp": "おちゃ",
+    "file": "assets/audio/words/ocha.mp3",
+    "bytes": 9308,
+    "decoded": true
+  },
+  {
+    "jp": "ラーメン",
+    "file": "assets/audio/words/ramen.mp3",
+    "bytes": 11852,
+    "decoded": true
+  },
+  {
+    "jp": "パン",
+    "file": "assets/audio/words/pan.mp3",
+    "bytes": 8852,
+    "decoded": true
+  },
+  {
+    "jp": "とり",
+    "file": "assets/audio/words/tori.mp3",
+    "bytes": 9284,
+    "decoded": true
+  },
+  {
+    "jp": "たこ",
+    "file": "assets/audio/words/tako.mp3",
+    "bytes": 8540,
+    "decoded": true
+  },
+  {
+    "jp": "かえる",
+    "file": "assets/audio/words/kaeru.mp3",
+    "bytes": 10004,
+    "decoded": true
+  },
+  {
+    "jp": "あめ",
+    "file": "assets/audio/words/ame.mp3",
+    "bytes": 11804,
+    "decoded": true
+  },
+  {
+    "jp": "かぜ",
+    "file": "assets/audio/words/kaze.mp3",
+    "bytes": 8420,
+    "decoded": true
+  },
+  {
+    "jp": "くも",
+    "file": "assets/audio/words/kumo.mp3",
+    "bytes": 7868,
+    "decoded": true
+  },
+  {
+    "jp": "きり",
+    "file": "assets/audio/words/kiri.mp3",
+    "bytes": 8300,
+    "decoded": true
+  },
+  {
+    "jp": "かみなり",
+    "file": "assets/audio/words/kaminari.mp3",
+    "bytes": 10916,
+    "decoded": true
+  },
+  {
+    "jp": "ゆき",
+    "file": "assets/audio/words/yuki.mp3",
+    "bytes": 10076,
+    "decoded": true
+  },
+  {
+    "jp": "みぎ",
+    "file": "assets/audio/words/migi.mp3",
+    "bytes": 9812,
+    "decoded": true
+  },
+  {
+    "jp": "ひだり",
+    "file": "assets/audio/words/hidari.mp3",
+    "bytes": 9140,
+    "decoded": true
+  },
+  {
+    "jp": "まえ",
+    "file": "assets/audio/words/mae.mp3",
+    "bytes": 8468,
+    "decoded": true
+  },
+  {
+    "jp": "うしろ",
+    "file": "assets/audio/words/ushiro.mp3",
+    "bytes": 10004,
+    "decoded": true
+  },
+  {
+    "jp": "きた",
+    "file": "assets/audio/words/kita.mp3",
+    "bytes": 11036,
+    "decoded": true
+  },
+  {
+    "jp": "みなみ",
+    "file": "assets/audio/words/minami.mp3",
+    "bytes": 10244,
+    "decoded": true
+  }
+]

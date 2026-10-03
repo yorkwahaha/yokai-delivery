@@ -10,6 +10,10 @@
     const v = get();
     return { left: -v.offsetX, top: -v.offsetY, right: 900 + v.offsetX, bottom: 600 + v.offsetY, width: v.width, height: v.height };
   };
-  root.VIEWPORT = { calculate, get, bounds };
+  const hudBounds = () => {
+    const b = bounds(), inset = 20 / get().scale;
+    return { left: b.left + inset, top: b.top + inset, right: b.right - inset, bottom: b.bottom - inset, width: b.width - inset * 2, height: b.height - inset * 2 };
+  };
+  root.VIEWPORT = { calculate, get, bounds, hudBounds };
   if (typeof module !== 'undefined') module.exports = root.VIEWPORT;
 })();

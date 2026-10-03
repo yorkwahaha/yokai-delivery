@@ -2,6 +2,24 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
+test('all vocabulary maps to an existing prerecorded clip, including every rain-port word', () => {
+  const played = [];
+  class Audio {
+    constructor(src) { this.src = src; }
+    addEventListener() {}
+    pause() {}
+    play() { played.push(this.src); return Promise.resolve(); }
+  }
+  const env = { window: {}, Audio, console, setTimeout, clearTimeout };
+  vm.runInNewContext(fs.readFileSync('js/audio.js', 'utf8'), env);
+  const words = require('../js/words.js').getAllWords();
+  for (const word of words) {
+    const count = played.length;
+    env.window.AUDIO.speak(word.jp);
+    assert.equal(played.length, count + 1, word.jp);
+    assert.ok(fs.existsSync(played.at(-1)), `${word.jp}: ${played.at(-1)}`);
+  }
+});
 test('pause lowers music and speech completion cannot restore full volume until resume', () => {
   const clips = [];
   class Audio {

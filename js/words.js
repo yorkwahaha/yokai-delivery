@@ -162,6 +162,7 @@
       jp,
       zh,
       icon,
+      cue: pack.id === "rain-weather" ? romaji : pack.id === "port-directions" ? "text" : "emoji",
       romaji: romaji || "",
       example: example || ""
     }));

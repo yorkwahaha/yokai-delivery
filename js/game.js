@@ -2009,8 +2009,7 @@
 
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = "40px 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif";
-      ctx.fillText(job.word.icon || "📦", cargo.x, cyPos + 1);
+      UI.drawWordCue(ctx, job.word, cargo.x, cyPos + 1, job.word.cue === "emoji" ? 40 : 28);
       ctx.textBaseline = "alphabetic";
 
       ctx.restore();
@@ -2392,7 +2391,7 @@
     const v = window.VIEWPORT?.get() || {offsetX:0,offsetY:0};
     ctx.setTransform(dpr, 0, 0, dpr, v.offsetX*dpr, v.offsetY*dpr);
 
-    const bounds = viewBounds();
+    const bounds = window.VIEWPORT?.hudBounds() || viewBounds();
     btnPause.x = bounds.right - 52;
     btnPause.y = bounds.top + 14;
     btnD.x = bounds.right - btnD.r * 3;

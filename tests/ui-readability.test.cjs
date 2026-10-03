@@ -9,6 +9,24 @@ function loadUI(width = 585) {
   vm.runInNewContext(fs.readFileSync('js/ui.js', 'utf8'), env);
   return { UI: env.window.UI, context, texts };
 }
+
+test('every second-stage Boss question has Chinese meaning even without Emoji support', () => {
+  const content = require('../js/words.js');
+  for (const word of content.getStageWords('rain-port')) {
+    const { UI, context, texts } = loadUI();
+    UI.drawBossQuiz(context, { word, ans: [word, word, word], lock: 0 });
+    assert.ok(texts.some(t => t.value === `${word.zh}　→　？`), word.jp);
+    if (word.cue !== 'emoji') assert.ok(!texts.some(t => t.value === word.icon), word.jp);
+  }
+});
+
+test('north and south have distinct text cues and unknown images retain meaning', () => {
+  const content = require('../js/words.js');
+  const { UI, context, texts } = loadUI();
+  for (const jp of ['きた', 'みなみ']) UI.drawWordCue(context, content.getStageWords('rain-port').find(w => w.jp === jp), 0, 0);
+  UI.drawWordCue(context, {zh:'新詞'}, 0, 0);
+  assert.deepEqual(texts.map(t => t.value), ['北方', '南方', '新詞']);
+});
 test('mobile body text renders at approximately 14 CSS pixels', () => {
   for (const width of [480, 585, 667, 844]) {
     const { UI } = loadUI(width);
