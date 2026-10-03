@@ -1,0 +1,77 @@
+✔ Boss mistakes reach settlement, count once per submission and reset only run review (7.5091ms)
+✔ lethal Boss mistake still reaches settlement review before run ends (2.0212ms)
+✔ delivery hint cannot promote mastery through a simultaneous same-word Boss quiz (2.2634ms)
+✔ Boss eliminated answer assistance also applies to an active same-word delivery (3.2191ms)
+✔ unrelated delivery assistance does not penalize independent Boss mastery (1.9721ms)
+✔ same-word Boss retains delivery assistance after the parcel is submitted first (1.8828ms)
+✔ Boss assistance survives leaving and reentering quiz range (3.6885ms)
+✔ Boss assistance clears for a changed word and for a replay (2.0989ms)
+✖ second hint transfers assistance to a Boss that appeared after the first hint (2.8591ms)
+✔ new pickup inherits only the current same-word Boss assistance (1.8402ms)
+✔ purification feedback overlaps the next real priority order without granting mastery (2.0688ms)
+✔ delivery mistake persists, avoids its living answer badge and returns after purification (2.3108ms)
+✔ first-run tutorial freezes time, oil and gameplay input, and skip persists (4.4455ms)
+✔ malformed tutorial progress recovers and touch confirmation does not start dragging (2.87ms)
+✔ context lessons cover listening, delivery, dash and Boss without changing assistance (1.8799ms)
+✔ replay is available from pause, gamepad consumes confirmation and returns to pause (1.928ms)
+✔ mobile pause replay uses the same enlarged geometry for drawing and pointer input (2.8657ms)
+✔ mouse drag begins on the right half and moves the courier; touch stays on left (2.1381ms)
+✔ custom movement, dash and blur route through real event listeners (1.9057ms)
+✔ misdelivery enemy settles away from player and retains a ranged penalty (8.2078ms)
+✔ empty pickup pool cannot crash order creation (2.0053ms)
+✔ releasing one equivalent movement key keeps the other held key active (1.7612ms)
+✔ cargo stays visible beside an idle courier with no movement history (4.0001ms)
+✔ Boss death and settlement audio fire once per event, not once per frame (2.5951ms)
+✔ expanded fullscreen edges and corner HUD buttons share the same pointer mapping (2.2273ms)
+✔ first hint hides written answer and assisted delivery cannot promote mastery (2.0803ms)
+✔ pickup bubble shows meaning instead of written answer (2.0642ms)
+✔ Boss question preserves gamepad pickup, dash and hint; shoulders and Y answer (2.053ms)
+✔ codex words pages are reachable by keyboard and gamepad without changing tabs (2.5801ms)
+✔ all upgrade input paths reject accidental selection for the first 0.4 seconds (7.2918ms)
+✔ regular and ring enemies spawn beyond wide view and camera lag (6.5626ms)
+✔ scheduled Boss spawns outside the widescreen view through real update logic (2.8238ms)
+✔ each dedicated gamepad Boss answer button selects its documented option (8.9227ms)
+✔ actors are painted by ground contact so roofs cover the north side and yield at the doorway (2.2963ms)
+✔ frame maps logical coordinates to CSS scale and refreshes renderer DPR (1.4603ms)
+✔ lightning ignores shield immunity and spends its target on a damageable enemy (1.8968ms)
+✔ barrier and healing knockback cannot tunnel through a thin building (3.6036ms)
+✔ Boss chooses an unblocked offscreen spawn and retries without advancing when ring is obstructed (2.087ms)
+✔ foxfire impact plays one sound for a simultaneous group of hits (1.8731ms)
+✔ portrait stops time, blocks all resume input paths, and landscape requires manual resume (1.8631ms)
+✔ visibility change suspends audio immediately without requiring a frame (1.9959ms)
+✔ idle needles retain last facing and still aim at a nearby enemy (1.874ms)
+✔ keyboard menus reach settings, both codex tabs, mute and home; restart resets session (2.123ms)
+✔ gamepad directional menus confirm once without leaking actions into the new screen (2.0216ms)
+✔ controls dialog gamepad events do not activate the covered menu (1.5415ms)
+✔ widescreen map back button accepts pointer at the screen edge and home clears held movement (3.0579ms)
+ℹ tests 46
+ℹ suites 0
+ℹ pass 45
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 199.8788
+
+✖ failing tests:
+
+test at tests\input-runtime.test.cjs:149:1
+✖ second hint transfers assistance to a Boss that appeared after the first hint (2.8591ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:154:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

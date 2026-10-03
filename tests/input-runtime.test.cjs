@@ -45,6 +45,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     occlusionScene: (playerY) => { houses.splice(0,houses.length,{id:1,x:1350,y:900}); orders=[]; job=null; enemies=[{id:1,x:1350,y:820,type:'ghost'},{id:2,x:1350,y:1000,type:'ghost',vanish:0.5}]; P.y=playerY; state='pause'; },
     preparePickup: () => { makeOrder(); inter=orders[0]; },
     prepareOrder: () => { makeOrder(); inter=orders[0]; interact(); job.lock=0; },
+    pickupWord: word => { const route=orders[0] || {from:houses[0],to:houses[1],rev:false}; orders=[{...route,word,life:110}];job=null;inter=orders[0];interact();job.lock=0; },
     scheduleBoss: () => { bossT=0; },
     prepareBoss: (word) => { const bs={x:P.x+200,y:P.y,type:'boss',word:word || ALL[0],hp:999,max:999,shield:true}; enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
     setState: next => { state=next; ended=false; },
@@ -143,6 +144,32 @@ test('Boss assistance clears for a changed word and for a replay',()=>{
   g.start();g.prepareBoss(g.env.CONTENT.getStageWords('night-town').find(w=>w.jp===old));
   const replay=g.snapshot().bossQ;g.answerBoss(replay.ans.indexOf(replay.word));
   assert.equal(g.env.STORE.get(old).box,1);
+});
+
+test('second hint transfers assistance to a Boss that appeared after the first hint',()=>{
+  const g=loadGame();g.start();g.prepareOrder();g.triggerHint();
+  g.prepareBoss();g.matchBossToJob();g.triggerHint();
+  const j=g.snapshot().job;g.resolve(j.ans.indexOf(j.word));
+  const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
+  assert.equal(g.env.STORE.get(j.word.jp).box,0);
+});
+
+test('new pickup inherits only the current same-word Boss assistance',()=>{
+  const g=loadGame();g.start();g.prepareBoss();
+  const q=g.snapshot().bossQ;g.answerBoss(q.ans.findIndex(w=>w!==q.word));
+  g.pickupWord(q.word);assert.equal(g.snapshot().job.assisted,true);
+  const other=g.env.CONTENT.getStageWords('night-town').find(w=>w.jp!==q.word.jp);
+  g.pickupWord(other);assert.equal(g.snapshot().job.assisted,false);
+});
+
+test('purification feedback overlaps the next real priority order without granting mastery',()=>{
+  const g=loadGame();g.start();g.prepareOrder();
+  const j=g.snapshot().job;g.resolve(j.ans.findIndex(w=>w!==j.word));
+  const mis=g.snapshot().enemies.find(e=>e.type==='mis');g.hurt(mis,999);
+  g.clearOrders();g.makeOrder();
+  assert.equal(g.snapshot().orders[0].word.jp,j.word.jp);
+  assert.ok(g.snapshot().floats.some(t=>t.life===1.8 && t.v.includes(j.word.jp+'＝')));
+  assert.equal(g.env.STORE.get(j.word.jp).box,0);
 });
 
 test('delivery mistake persists, avoids its living answer badge and returns after purification', () => {
