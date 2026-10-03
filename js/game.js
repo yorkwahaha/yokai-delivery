@@ -23,7 +23,6 @@
   const ctx = RENDERER.getCtx();
   CONTROLS.mount();
   const controlsButton = document.getElementById("controls-open");
-  const dpr = RENDERER.getDpr();
   const viewBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:W,bottom:H,width:W,height:H};
   addEventListener("resize", () => { RENDERER.resize?.(); joy = null; });
 
@@ -60,7 +59,7 @@
   let orders = [], job = null, enemies = [], enemyBullets = [], gems = [], parts = [], texts = [], rings = [], misses = [];
   let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0, endCooldown = 0;
   let dashDir = { x: 1, y: 0 };
-  let choices = [], joy = null, touch = window.matchMedia?.("(pointer: coarse)")?.matches || false, inter = null, cargo = { x: 0, y: 0 }, pTrail = [], last = performance.now();
+  let choices = [], levelupCooldown = 0, joy = null, touch = window.matchMedia?.("(pointer: coarse)")?.matches || false, inter = null, cargo = { x: 0, y: 0 }, pTrail = [], last = performance.now();
   const btnE = { x: 810, y: 420, r: 38 }, btnD = { x: 810, y: 530, r: 46 };
   const btnPause = { x: W - 52, y: 14, w: 38, h: 52 };
   let gpPrevButtons = [], gpMove = { x: 0, y: 0 };
@@ -364,13 +363,14 @@
     }
 
     state = "levelup";
+    levelupCooldown = 0.4;
     keys.clear(); heldCodes.clear();
     joy = null;
     AUDIO.levelUp();
   }
 
   function pickUp(i) {
-    if (state !== "levelup" || !choices[i]) return;
+    if (state !== "levelup" || levelupCooldown > 0 || !choices[i]) return;
     const req = xpNeed();
     choices[i].f();
     xp = Math.max(0, xp - req);
@@ -697,9 +697,6 @@
       else if (state === "overworld") confirmOverworld();
       else if (state === "levelup") pickUp(0);
       else if (state === "pause") togglePause();
-      else if (state === "play" && bossQ) {
-        if (bossQ.ans.length > 0) answerBoss(0);
-      }
       else if (state === "won" || state === "lost") {
         if (endCooldown <= 0) start();
       }
@@ -710,19 +707,20 @@
     if (justPressed(1)) {
       if (state === "overworld") state = "menu";
       else if (state === "levelup") pickUp(1);
-      else if (state === "play" && bossQ) {
-        if (bossQ.ans.length > 1) answerBoss(1);
-      }
       else if (state === "play") dash();
     }
 
     // X 鍵 (Button 2): 提示 / 選卡3
     if (justPressed(2)) {
       if (state === "levelup") pickUp(2);
-      else if (state === "play" && bossQ) {
-        if (bossQ.ans.length > 2) answerBoss(2);
-      }
       else if (state === "play" && job) triggerHint();
+    }
+
+    // Boss 答題專用：LB / RB / Y；保留 A 取貨、B 衝刺、X 提示。
+    if (state === "play" && bossQ) {
+      if (justPressed(4)) answerBoss(0);
+      else if (justPressed(5)) answerBoss(1);
+      else if (justPressed(3) && bossQ.ans.length > 2) answerBoss(2);
     }
 
     // Start 鍵 (Button 9): 暫停開關
@@ -740,12 +738,16 @@
       }
     }
 
-    // 在圖鑑內時，LB / RB (Buttons 4, 5) 或左右方向鍵 (14, 15) 切換分頁，B 鍵 (1) 返回
+    // 圖鑑：LB / RB 切換頁籤；十字鍵左右翻單字頁；B 返回。
     if (state === "codex") {
-      if (justPressed(4) || justPressed(14)) {
+      if (justPressed(4)) {
         codexTab = "cards";
-      } else if (justPressed(5) || justPressed(15)) {
+      } else if (justPressed(5)) {
         codexTab = "words";
+      }
+      if (codexTab === "words") {
+        if (justPressed(14)) turnCodexPage(-1);
+        else if (justPressed(15)) turnCodexPage(1);
       }
       if (justPressed(1)) {
         state = codexBack;
@@ -838,12 +840,13 @@
     if (job.hintStage === 0) {
       oil -= 3;
       job.hintStage = 1;
+      job.assisted = true;
       AUDIO.speak(job.word.jp);
       const wrongIndices = job.ans.map((w, idx) => w !== job.word ? idx : -1).filter(idx => idx >= 0);
       if (wrongIndices.length > 0) {
         job.eliminatedIdx = pick(wrongIndices);
       }
-      say(`天狐靈音：念誦「${job.word.jp}」，排除一項！`, P.x, P.y - 45, "#80deea");
+      say("天狐靈音：聆聽發音，排除一項！（輔助）", P.x, P.y - 45, "#80deea");
       AUDIO.pickup();
     } else if (job.hintStage === 1 && oil > 4) {
       oil -= 4;
@@ -1066,7 +1069,14 @@
     }
   }
 
+  function spawnRadius(minimum) {
+    const area = viewBounds(), cam = RENDERER.getCam();
+    const lag = Math.hypot(P.x - (cam.x + W / 2), P.y - (cam.y + H / 2));
+    return Math.max(minimum, Math.hypot(area.width / 2, area.height / 2) + lag + 64);
+  }
+
   function spawnEnemy(tier, rad, ang, ring) {
+    rad = spawnRadius(rad);
     let a = ang ?? Math.random() * 6.283;
     let x = P.x + Math.cos(a) * rad;
     let y = P.y + Math.sin(a) * rad;
@@ -1365,7 +1375,8 @@
       }
     }
     enemyBullets = enemyBullets.filter(eb => eb.life > 0);
-    enemies = enemies.filter(e => e.hp > 0 && (e.type === "boss" || e.type === "mis" || dist(e, P) < 1150));
+    const despawnRadius = Math.max(1150, spawnRadius(0) + 300);
+    enemies = enemies.filter(e => e.hp > 0 && (e.type === "boss" || e.type === "mis" || dist(e, P) < despawnRadius));
 
     if (finalBossDefeated && delivered >= GOAL_DELIVERIES && state === "play") {
       startVictorySequence();
@@ -1383,9 +1394,10 @@
       const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
       let bossPool = ALL.filter(w => !livingMisWords.has(w.jp));
       if (bossPool.length === 0) bossPool = ALL;
+      const radius = spawnRadius(520);
       enemies.push({
-        x: P.x + Math.cos(a) * 520,
-        y: P.y + Math.sin(a) * 520,
+        x: P.x + Math.cos(a) * radius,
+        y: P.y + Math.sin(a) * radius,
         type: "boss",
         word: STORE.pick(bossPool),
         shield: true,
@@ -1561,54 +1573,6 @@
     // 1. 地面與道路
     RENDERER.drawGround(visualElapsed, DAWN, activeChunks, STAGE_VISUAL.ground || "ground");
 
-    // 2. 町屋建築（帶遠程導引光柱與標記）
-    houses.forEach(h => {
-      const hasOrder = orders.some(o => o.from === h);
-      const isDestination = job && job.to === h;
-      RENDERER.drawHouse(h, hintT);
-
-      // 若有待接委託：升起顯眼的金色導引光柱與包裹圖標
-      if (hasOrder) {
-        const floatY = h.y - 75 + Math.sin(elapsed * 4 + h.id) * 4;
-        ctx.save();
-        const beam = ctx.createLinearGradient(0, floatY - 24, 0, h.y - 8);
-        beam.addColorStop(0, "rgba(255, 215, 80, 0.45)");
-        beam.addColorStop(1, "rgba(255, 215, 80, 0)");
-        ctx.fillStyle = beam;
-        ctx.fillRect(h.x - 10, floatY - 24, 20, h.y - floatY + 16);
-
-        ctx.fillStyle = "#ffd54f";
-        ctx.beginPath();
-        ctx.arc(h.x, floatY, 13, 0, 6.28);
-        ctx.fill();
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        ctx.textAlign = "center";
-        ctx.font = UI.readableFont(14, "");
-        ctx.fillText("📦", h.x, floatY + 5);
-        ctx.restore();
-      }
-
-      // 若為送貨目的地：升起靈光鳥居標記
-      if (isDestination) {
-        const floatY = h.y - 80 + Math.sin(elapsed * 4) * 4;
-        ctx.save();
-        ctx.fillStyle = "#40c4ff";
-        ctx.beginPath();
-        ctx.arc(h.x, floatY, 14, 0, 6.28);
-        ctx.fill();
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        ctx.textAlign = "center";
-        ctx.font = UI.readableFont(15, "");
-        ctx.fillText("⛩", h.x, floatY + 5);
-        ctx.restore();
-      }
-    });
-
     // 3. 街角石燈。畫在角色之前，腳底對齊燈位；圖還沒載入時退回提燈符號。
     LAMPS.forEach(l => {
       ctx.fillStyle = "rgba(255, 207, 106, 0.25)";
@@ -1746,13 +1710,23 @@
       ctx.fill();
     }
 
-    // 7. 怪物繪製
-    enemies.forEach(e => {
-      ctx.save();
-      if (e.vanish != null) ctx.globalAlpha = Math.max(0, Math.min(1, e.vanish));
-      RENDERER.drawMonster(e, P, elapsed);
-      ctx.restore();
-    });
+    // 7. 依腳底地面接觸點排序；北側角色被屋頂遮住，南側角色在屋前。
+    const actors = [
+      ...houses.map(h => ({ house: h, y: h.y + 48 })),
+      ...enemies.map(e => ({ enemy: e, y: e.y + (e.type === "boss" ? 44 : e.type === "mis" ? 27 : 19) })),
+      { player: P, y: P.y + 20 }
+    ];
+    actors.sort((a, b) => a.y - b.y);
+    for (const actor of actors) {
+      if (actor.house) RENDERER.drawHouse(actor.house);
+      else if (actor.enemy) {
+        const e = actor.enemy;
+        ctx.save();
+        if (e.vanish != null) ctx.globalAlpha = Math.max(0, Math.min(1, e.vanish));
+        RENDERER.drawMonster(e, P, elapsed);
+        ctx.restore();
+      } else RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, move(), b.shield || 0);
+    }
 
     // 8. 武器彈幕 (符咒迴力鏢)
     for (const q of proj) {
@@ -1867,10 +1841,6 @@
     }
 
 
-    // 12. 主角 (狐耳快遞員 - 雙幀走動與金剛結界護盾)
-    const moveDir = move();
-    RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, moveDir, b.shield || 0);
-
     // 12.5 破魔靈針彈幕
     for (const nd of needles) {
       ctx.save();
@@ -1929,6 +1899,54 @@
     // 15. 浮動傷害數字
     RENDERER.drawDamageNumbers();
 
+    // 配送導引標記在建築與角色之上，避免被深度排序遮住。
+    houses.forEach(h => {
+      const hasOrder = orders.some(o => o.from === h);
+      const isDestination = job && job.to === h;
+
+
+      // 若有待接委託：升起顯眼的金色導引光柱與包裹圖標
+      if (hasOrder) {
+        const floatY = h.y - 75 + Math.sin(elapsed * 4 + h.id) * 4;
+        ctx.save();
+        const beam = ctx.createLinearGradient(0, floatY - 24, 0, h.y - 8);
+        beam.addColorStop(0, "rgba(255, 215, 80, 0.45)");
+        beam.addColorStop(1, "rgba(255, 215, 80, 0)");
+        ctx.fillStyle = beam;
+        ctx.fillRect(h.x - 10, floatY - 24, 20, h.y - floatY + 16);
+
+        ctx.fillStyle = "#ffd54f";
+        ctx.beginPath();
+        ctx.arc(h.x, floatY, 13, 0, 6.28);
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.textAlign = "center";
+        ctx.font = UI.readableFont(14, "");
+        ctx.fillText("📦", h.x, floatY + 5);
+        ctx.restore();
+      }
+
+      // 若為送貨目的地：升起靈光鳥居標記
+      if (isDestination) {
+        const floatY = h.y - 80 + Math.sin(elapsed * 4) * 4;
+        ctx.save();
+        ctx.fillStyle = "#40c4ff";
+        ctx.beginPath();
+        ctx.arc(h.x, floatY, 14, 0, 6.28);
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.textAlign = "center";
+        ctx.font = UI.readableFont(15, "");
+        ctx.fillText("⛩", h.x, floatY + 5);
+        ctx.restore();
+      }
+    });
+
     // 15.5 委託氣泡與接案標籤（最上層繪製，確保永不被建築、角色、怪物或陰影遮擋）
     for (const o of orders) {
       const h = o.from;
@@ -1955,7 +1973,7 @@
       ctx.fillStyle = "#1e1824";
       ctx.font = UI.readableFont(14, "900");
       // 委託送什麼東西一句話就好，送往哪裡不需要顯示
-      ctx.fillText(`${o.word.icon}  ${o.word.jp}${o.rev ? "  ↔" : ""}`, h.x, floatY + 23);
+      ctx.fillText(`${o.word.icon}  ${o.word.zh}`, h.x, floatY + 23);
 
       // 剩餘時間條 (金黃至火紅)
       ctx.fillStyle = isTarget ? "#ff8833" : "#ffa726";
@@ -2083,6 +2101,11 @@
 
   }
 
+  function turnCodexPage(delta) {
+    const lastPage = Math.max(0, Math.ceil(CODEX_ALL.length / 15) - 1);
+    codexPage = clamp(codexPage + delta, 0, lastPage);
+  }
+
   // ---------- 輸入監聽 ----------
   addEventListener("keydown", e => {
     if (CONTROLS.isOpen()) return;
@@ -2117,7 +2140,17 @@
       AUDIO.toggleMute();
       return;
     }
-    if (state === "levelup" && "123".includes(e.key)) {
+    if (state === "codex") {
+      if (e.code === "Tab") {
+        e.preventDefault();
+        codexTab = codexTab === "cards" ? "words" : "cards";
+      } else if (codexTab === "words" && (action === "l" || action === "r")) {
+        e.preventDefault();
+        turnCodexPage(action === "l" ? -1 : 1);
+      }
+      return;
+    }
+    if (state === "levelup" && !e.repeat && "123".includes(e.key)) {
       pickUp(+e.key - 1);
       return;
     }
@@ -2208,9 +2241,8 @@
 
     if (state === "codex") {
       if (codexTab === "words" && p.y >= 78 && p.y <= 118) {
-        const lastPage = Math.max(0, Math.ceil(CODEX_ALL.length / 15) - 1);
-        if (p.x >= 40 && p.x <= 104) codexPage = Math.max(0, codexPage - 1);
-        else if (p.x >= 796 && p.x <= 860) codexPage = Math.min(lastPage, codexPage + 1);
+        if (p.x >= 40 && p.x <= 104) turnCodexPage(-1);
+        else if (p.x >= 796 && p.x <= 860) turnCodexPage(1);
         return;
       }
       // 點擊頂部標籤頁切換
@@ -2362,6 +2394,7 @@
   function frame(now) {
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
+    levelupCooldown = Math.max(0, levelupCooldown - dt);
 
     // 不論遊戲處於何種狀態（結算、升級或暫停），每幀精準倒數冷卻時間
     if (endCooldown > 0) {
@@ -2389,7 +2422,8 @@
     }
 
     const v = window.VIEWPORT?.get() || {offsetX:0,offsetY:0};
-    ctx.setTransform(dpr, 0, 0, dpr, v.offsetX*dpr, v.offsetY*dpr);
+    const pixelScale = (v.scale || 1) * RENDERER.getDpr();
+    ctx.setTransform(pixelScale, 0, 0, pixelScale, v.offsetX * pixelScale, v.offsetY * pixelScale);
 
     const bounds = window.VIEWPORT?.hudBounds() || viewBounds();
     btnPause.x = bounds.right - 52;

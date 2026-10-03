@@ -6,7 +6,8 @@ const fs = require('node:fs');
 function loadGame() {
   const events = {}, canvasEvents = {}, documentEvents = {};
   const gradient = { addColorStop() {} };
-  const ctx = new Proxy({ measureText: () => ({ width: 40 }), createLinearGradient: () => gradient, createRadialGradient: () => gradient }, { get: (o, k) => o[k] || (() => {}) });
+  const drawnText = [], actorCalls = [], transforms = [];
+  const ctx = new Proxy({ setTransform: (...args) => transforms.push(args), fillText: text => drawnText.push(text), measureText: () => ({ width: 40 }), createLinearGradient: () => gradient, createRadialGradient: () => gradient }, { get: (o, k) => o[k] || (() => {}) });
   const canvas = { addEventListener: (k, f) => { canvasEvents[k] = f; }, setPointerCapture() {}, getBoundingClientRect: () => ({ left: 0, top: 0, width: env.innerWidth || 900, height: env.innerHeight || 600 }) };
   const controlsButton = { click() { this.clicked = true; } };
   const env = { console, Set, Map, Math, Date, performance: { now: () => 0 }, navigator: {}, requestAnimationFrame() {}, localStorage: { getItem: () => null, setItem() {} }, document: { hidden: false, getElementById: id => id === 'controls-open' ? controlsButton : canvas, addEventListener: (k, f) => { documentEvents[k] = f; } }, addEventListener: (k, f) => { events[k] = f; } };
@@ -16,13 +17,21 @@ function loadGame() {
   c.CONTROLS.mount = () => {};
   const audioCalls = [];
   c.AUDIO = new Proxy({}, { get: (o, name) => () => audioCalls.push(name) });
-  c.RENDERER = new Proxy({ getCtx: () => ctx, getDpr: () => 1, getCam: () => ({ x: 900, y: 600 }), getShakeOffset: () => ({x:0,y:0}), updateEffects: () => false }, { get: (o, k) => o[k] || (() => {}) });
+  c.RENDERER = new Proxy({ drawHouse: h => actorCalls.push(`house:${h.id}`), drawPlayer: () => actorCalls.push('player'), drawMonster: e => actorCalls.push(`enemy:${e.id}`), getCtx: () => ctx, getDpr: () => c.devicePixelRatio || 1, getCam: () => ({ x: 900, y: 600 }), getShakeOffset: () => ({x:0,y:0}), updateEffects: () => false }, { get: (o, k) => o[k] || (() => {}) });
   c.UI = new Proxy({ HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
   const source = fs.readFileSync('js/game.js', 'utf8');
   const end = source.lastIndexOf('})();');
-  const hook = 'window.fixture = { start, update, frame, makeOrder, hurt, setState: next => { state=next; ended=false; }, snapshot: () => ({ state, x:P.x, y:P.y, joy, dashCd, oil, elapsed, cargo, enemies, enemyBullets, keys: [...keys] }), addMis: () => enemies.push({x:P.x+100,y:P.y,type:"mis",w:ALL[0],hp:999,max:999,speed:210,flash:0,wob:0}), emptyHouses: () => houses.splice(0) };';
+  const hook = `window.fixture = { start, update, frame, drawWorld, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy,
+    occlusionScene: (playerY) => { houses.splice(0,houses.length,{id:1,x:1350,y:900}); orders=[]; job=null; enemies=[{id:1,x:1350,y:820,type:'ghost'},{id:2,x:1350,y:1000,type:'ghost',vanish:0.5}]; P.y=playerY; state='pause'; },
+    preparePickup: () => { makeOrder(); inter=orders[0]; },
+    prepareOrder: () => { makeOrder(); inter=orders[0]; interact(); job.lock=0; },
+    scheduleBoss: () => { bossT=0; },
+    prepareBoss: () => { const bs={x:P.x+200,y:P.y,type:'boss',word:ALL[0],hp:999,max:999,shield:true}; enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
+    setState: next => { state=next; ended=false; },
+    snapshot: () => ({ state, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
+    addMis: () => enemies.push({x:P.x+100,y:P.y,type:"mis",w:ALL[0],hp:999,max:999,speed:210,flash:0,wob:0}), emptyHouses: () => houses.splice(0) };`;
   vm.runInContext(source.slice(0, end) + hook + source.slice(end), c);
-  return { ...c.fixture, events, canvasEvents, documentEvents, env: c, audioCalls };
+  return { ...c.fixture, events, canvasEvents, documentEvents, env: c, audioCalls, drawnText, actorCalls, transforms };
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
@@ -92,4 +101,129 @@ test('expanded fullscreen edges and corner HUD buttons share the same pointer ma
   assert.ok(g.snapshot().dashCd > 0);
   g.canvasEvents.pointerdown(pointer(1740, 50));
   assert.equal(g.snapshot().state, 'pause');
+});
+
+test('first hint hides written answer and assisted delivery cannot promote mastery', () => {
+  const g = loadGame(); g.start(); g.prepareOrder();
+  const jp = g.snapshot().job.word.jp, before = g.env.STORE.get(jp).box;
+  g.triggerHint();
+  const s = g.snapshot();
+  assert.equal(s.job.assisted, true);
+  assert.ok(!JSON.stringify(s.floats).includes(jp));
+  assert.ok(g.audioCalls.includes('speak'));
+  g.resolve(s.job.ans.indexOf(s.job.word));
+  assert.equal(g.env.STORE.get(jp).box, before);
+  assert.equal(g.snapshot().score, 25);
+});
+
+test('pickup bubble shows meaning instead of written answer', () => {
+  const g = loadGame(); g.start(); g.makeOrder();
+  const word = g.snapshot().orders[0].word;
+  g.frame(20);
+  assert.ok(g.drawnText.some(t => t.includes(word.zh)));
+  assert.ok(!g.drawnText.some(t => t.includes(word.jp)));
+});
+
+test('Boss question preserves gamepad pickup, dash and hint; shoulders and Y answer', () => {
+  const g = loadGame(); g.start(); g.makeOrder(); g.prepareBoss();
+  const buttons = Array.from({length:16}, () => ({pressed:false}));
+  g.env.navigator.getGamepads = () => [{connected:true, axes:[0,0], buttons}];
+  const press = i => { buttons[i].pressed=true; g.pollGamepad(); buttons[i].pressed=false; g.pollGamepad(); };
+  // Use a real pickup target through the fixture, then test combat controls with the question open.
+  g.preparePickup(); const q = g.snapshot().bossQ;
+  press(0); assert.ok(g.snapshot().job); assert.equal(g.snapshot().bossQ, q);
+  press(1); assert.ok(g.snapshot().dashCd > 0); assert.equal(g.snapshot().bossQ, q);
+  press(2); assert.equal(g.snapshot().job.hintStage, 1); assert.equal(g.snapshot().bossQ, q);
+  press(0); assert.equal(g.snapshot().bossQ, q);
+  q.lock=0;
+  const oilBefore = g.snapshot().oil;
+  press(4);
+  assert.ok(g.snapshot().bossQ !== q || g.snapshot().oil === oilBefore - 8);
+});
+
+test('codex words pages are reachable by keyboard and gamepad without changing tabs', () => {
+  const g = loadGame(); g.start(); g.setState('codex');
+  g.events.keydown(key('Tab', 'Tab'));
+  assert.equal(g.snapshot().codexTab, 'words');
+  for (let i=0; i<4; i++) g.events.keydown(key('ArrowRight', 'ArrowRight'));
+  assert.equal(g.snapshot().codexPage, 2);
+  g.events.keydown(key('ArrowLeft', 'ArrowLeft')); assert.equal(g.snapshot().codexPage, 1);
+  const buttons = Array.from({length:16}, () => ({pressed:false}));
+  g.env.navigator.getGamepads = () => [{connected:true, axes:[0,0], buttons}];
+  buttons[15].pressed=true; g.pollGamepad(); assert.equal(g.snapshot().codexPage, 2);
+  buttons[15].pressed=false; buttons[14].pressed=true; g.pollGamepad(); assert.equal(g.snapshot().codexPage, 1);
+  assert.equal(g.snapshot().codexTab, 'words');
+});
+
+test('all upgrade input paths reject accidental selection for the first 0.4 seconds', () => {
+  for (const input of ['keyboard', 'pointer', 'gamepad']) {
+    const g = loadGame(); g.start(); g.offerUp();
+    const buttons = Array.from({length:16}, () => ({pressed:false}));
+    g.env.navigator.getGamepads = () => [{connected:true, axes:[0,0], buttons}];
+    const select = () => {
+      if (input === 'keyboard') g.events.keydown(key('Digit1', '1'));
+      if (input === 'pointer') g.canvasEvents.pointerdown(pointer(200, 210));
+      if (input === 'gamepad') { buttons[0].pressed=true; g.pollGamepad(); buttons[0].pressed=false; g.pollGamepad(); }
+    };
+    select(); assert.equal(g.snapshot().state, 'levelup', input);
+    for (let i=1; i<=9; i++) g.frame(i*50);
+    select(); assert.equal(g.snapshot().state, 'play', input);
+  }
+});
+
+test('regular and ring enemies spawn beyond wide view and camera lag', () => {
+  for (const [width,height] of [[844,390],[2560,1080],[1800,600]]) {
+    const g = loadGame(); g.env.innerWidth=width; g.env.innerHeight=height; g.start();
+    const v = g.env.VIEWPORT.get();
+    for (let i=0; i<8; i++) g.spawnEnemy(1, 450, i*Math.PI/4, true);
+    assert.ok(g.snapshot().enemies.length > 0);
+    const cam = g.env.RENDERER.getCam();
+    for (const e of g.snapshot().enemies) {
+      assert.ok(Math.abs(e.x-(cam.x+450)) > v.width/2+26 || Math.abs(e.y-(cam.y+300)) > v.height/2+26);
+    }
+  }
+});
+
+test('scheduled Boss spawns outside the widescreen view through real update logic', () => {
+  const g = loadGame(); g.env.innerWidth=1800; g.env.innerHeight=600; g.start(); g.scheduleBoss();
+  g.update(0.01);
+  const boss = g.snapshot().enemies.find(e => e.type === 'boss');
+  assert.ok(boss);
+  const cam = g.env.RENDERER.getCam(), v = g.env.VIEWPORT.get();
+  assert.ok(Math.abs(boss.x-(cam.x+450)) > v.width/2+26 || Math.abs(boss.y-(cam.y+300)) > v.height/2+26);
+  g.update(0.01); assert.ok(g.snapshot().enemies.includes(boss));
+});
+
+test('each dedicated gamepad Boss answer button selects its documented option', () => {
+  for (const [index,button] of [[0,4],[1,5],[2,3]]) {
+    const g = loadGame(); g.start(); g.prepareBoss();
+    const q = g.snapshot().bossQ;
+    const wrong = g.env.CONTENT.getAllWords().filter(w => w !== q.word).slice(0,2);
+    q.ans = [...wrong]; q.ans.splice(index,0,q.word);
+    const buttons = Array.from({length:16}, () => ({pressed:false}));
+    g.env.navigator.getGamepads = () => [{connected:true, axes:[0,0], buttons}];
+    buttons[button].pressed=true; g.pollGamepad();
+    assert.equal(g.snapshot().bossQ, null, button);
+    assert.equal(g.snapshot().enemies.find(e => e.type === 'boss').shield, false);
+  }
+});
+
+test('actors are painted by ground contact so roofs cover the north side and yield at the doorway', () => {
+  const g=loadGame(); g.start();
+  g.occlusionScene(850); g.drawWorld();
+  assert.deepEqual(g.actorCalls,['enemy:1','player','house:1','enemy:2']);
+  g.actorCalls.length=0;
+  g.occlusionScene(975); g.drawWorld();
+  assert.deepEqual(g.actorCalls,['enemy:1','house:1','player','enemy:2']);
+});
+
+test('frame maps logical coordinates to CSS scale and refreshes renderer DPR', () => {
+  const g=loadGame(); g.env.innerWidth=1920; g.env.innerHeight=1080;
+  g.frame(20);
+  assert.equal(g.transforms.at(-1)[0],1.8);
+  g.env.devicePixelRatio=2; g.env.innerWidth=844; g.env.innerHeight=390;
+  g.events.resize(); g.frame(40);
+  const v=g.env.VIEWPORT.get(), transform=g.transforms.at(-1);
+  assert.equal(transform[0],1.3);
+  assert.equal(transform[4],v.offsetX*1.3);
 });

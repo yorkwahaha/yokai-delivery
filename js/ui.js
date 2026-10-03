@@ -1066,7 +1066,7 @@ window.UI = (() => {
       glassBox(ctx, ox, oy, optW, optH, 10, bossQ.lock > 0 ? "#333c57" : "#ffeed4", "#d4af37", 2);
       ctx.fillStyle = "#1e1829";
       ctx.font = readableFont(18, "900");
-      ctx.fillText(`${i + 1}. ${w.jp}`, ox + optW / 2, oy + 29);
+      ctx.fillText(`${i + 1} [${["LB", "RB", "Y"][i]}] ${w.jp}`, ox + optW / 2, oy + 29, optW - 12);
     });
 
     ctx.restore();
@@ -1271,7 +1271,7 @@ window.UI = (() => {
 
       ctx.font = readableFont(14, "900");
       ctx.fillStyle = "#ffe28b";
-      ctx.fillText(`已精通詞彙：${mastered} / ${ALL.length} 語`, W / 2, 545);
+      ctx.fillText(`←/→ 翻頁・Tab 或 LB/RB 頁籤　精通 ${mastered}/${ALL.length}`, W / 2, 545);
     }
 
     // 4. 底部返回按鈕
@@ -1279,7 +1279,7 @@ window.UI = (() => {
     ctx.textAlign = "center";
     ctx.fillStyle = "#1a162b";
     ctx.font = readableFont(14, "900");
-    ctx.fillText("返回 [ESC / C]", W / 2, 574);
+    ctx.fillText("返回 [ESC / C / B]", W / 2, 574);
 
     ctx.restore();
   }

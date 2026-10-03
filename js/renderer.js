@@ -1,6 +1,7 @@
 // 渲染引擎：商業級和風手繪管線、石疊地坪紋理、町屋店鋪建築、動態 2D 多光源與 Game Juice
 window.RENDERER = (() => {
   const W = 900, H = 600;
+  const HOUSE_NAMES = { house_shop: "夜行商店", house_tavern: "宵待酒屋", house_shrine: "稻荷社" };
   let cv, ctx, dpr;
   let lightCv, lightCtx;
   let stonePattern = null;
@@ -22,9 +23,14 @@ window.RENDERER = (() => {
   function bounds() { return window.VIEWPORT?.bounds() || { left:0, top:0, right:W, bottom:H, width:W, height:H }; }
   function resize() {
     const v = window.VIEWPORT?.get() || {width:W,height:H,offsetX:0,offsetY:0};
-    cv.width = Math.ceil(v.width * dpr); cv.height = Math.ceil(v.height * dpr);
-    lightCv.width = Math.ceil(v.width); lightCv.height = Math.ceil(v.height);
-    lightCtx.setTransform(1, 0, 0, 1, v.offsetX, v.offsetY);
+    const scale = v.scale || 1;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(v.width * scale * dpr); cv.height = Math.round(v.height * scale * dpr);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    // 光照是柔和漸層，維持每 CSS pixel 一點，不額外乘 DPR。
+    lightCv.width = Math.round(v.width * scale); lightCv.height = Math.round(v.height * scale);
+    lightCtx.setTransform(scale, 0, 0, scale, v.offsetX * scale, v.offsetY * scale);
   }
 
   function init(canvas) {
@@ -304,7 +310,7 @@ window.RENDERER = (() => {
   }
 
   // 繪製高精緻度日式町屋店鋪（真實店鋪 Sprite + 障子金光 + 和風招牌）
-  function drawHouse(h, hintT) {
+  function drawHouse(h) {
     ctx.save();
 
     // 1. 建築深邃接觸陰影
@@ -336,7 +342,7 @@ window.RENDERER = (() => {
       ctx.fillRect(h.x - 48, h.y - 30, 96, 75);
     }
 
-    // 3. 店門前和風黑漆金箔懸掛匾額（單字看板）
+    // 3. 店門前和風黑漆金箔懸掛匾額；配送內容由委託氣泡顯示。
     ctx.save();
     const signW = 132, signH = 32;
     const signY = h.y + 36;
@@ -352,25 +358,8 @@ window.RENDERER = (() => {
     ctx.textAlign = "center";
     ctx.font = UI.readableFont(20, "900");
     ctx.fillStyle = "#ffeed4";
-    ctx.fillText(h.word.jp, h.x, signY + 23, signW - 8);
+    ctx.fillText(HOUSE_NAMES[h.bType] || HOUSE_NAMES.house_shop, h.x, signY + 23, signW - 8);
     ctx.restore();
-
-    // 4. 提示覆蓋
-    if (hintT > 0) {
-      ctx.save();
-      ctx.fillStyle = "rgba(255, 250, 235, 0.95)";
-      ctx.beginPath();
-      ctx.roundRect(h.x - 54, h.y + 74, 108, 30, 5);
-      ctx.fill();
-      ctx.strokeStyle = "#382d24";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.textAlign = "center";
-      ctx.fillStyle = "#2a1e17";
-      ctx.font = UI.readableFont(18, "700");
-      ctx.fillText(h.word.zh, h.x, h.y + 95, 100);
-      ctx.restore();
-    }
 
     ctx.restore();
   }
