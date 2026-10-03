@@ -903,7 +903,7 @@
     const ok = bossQ.ans[i] === bs.word;
 
     if (ok) {
-      if (bossQ.wasAssisted) {
+      if (bossQ.wasAssisted || (job?.assisted && job.word.jp === bs.word.jp)) {
         STORE.recAssisted(bs.word.jp);
       } else {
         STORE.rec(bs.word.jp, true);
@@ -929,6 +929,7 @@
       if (bossQ.ans.length > 2) {
         bossQ.ans = bossQ.ans.filter((_, idx) => idx !== i);
         bossQ.wasAssisted = true;
+        if (job?.word.jp === bs.word.jp) job.assisted = true;
         bossQ.lock = 0.8;
         say("排除錯誤選項，再試一次！", P.x, P.y - 75, "#ffb3ba");
       } else {

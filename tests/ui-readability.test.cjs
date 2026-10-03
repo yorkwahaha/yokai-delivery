@@ -30,6 +30,18 @@ test('settlement shows unique delivery and Boss corrections without changing mis
   assert.ok(texts.some(t=>t.value==='誤配  1 件'));
 });
 
+test('every live vocabulary HUD uses meaning before hints and written correction only after explicit assistance',()=>{
+  for(const word of require('../js/words.js').getAllWords()) {
+    const {UI,context,texts}=loadUI(844);
+    const job={word,to:{x:100,y:100},hintStage:0,showMeaningT:0};
+    const draw=()=>UI.drawHud(context,{x:0,y:0},100,100,0,600,0,0,0,1,0,30,job,0,[],null,null,false,null,{x:810,y:420,r:38},{x:810,y:530,r:46},{x:848,y:14,w:38,h:52},{},{},{},0);
+    draw();assert.ok(texts.some(t=>t.value===word.zh));
+    assert.ok(!texts.some(t=>String(t.value).includes(word.jp)),word.jp);
+    texts.length=0;job.hintStage=2;job.showMeaningT=3;job.assisted=true;draw();
+    assert.ok(texts.some(t=>String(t.value).includes(word.jp)),word.jp);
+  }
+});
+
 test('north and south have distinct text cues and unknown images retain meaning', () => {
   const content = require('../js/words.js');
   const { UI, context, texts } = loadUI();

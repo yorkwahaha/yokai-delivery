@@ -1,0 +1,289 @@
+{
+  "viewport": {
+    "width": 844,
+    "height": 390
+  },
+  "scenario": "controlled same-word delivery hint, Boss correct, delivery correct",
+  "evidence": {
+    "state": "pause",
+    "stage": "night-town",
+    "orders": [],
+    "review": [],
+    "stats": {
+      "ねこ": {
+        "ok": 0,
+        "ng": 2,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 2.5
+      },
+      "いぬ": {
+        "ok": 0,
+        "ng": 2,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 2.5
+      },
+      "うさぎ": {
+        "ok": 2,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 1791046545694,
+        "missBoost": 1
+      },
+      "さかな": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "うみ": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "かめ": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "つき": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "ほし": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "にじ": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "りんご": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "おにぎり": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "ケーキ": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "えき": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "ほん": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "かさ": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "くるま": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "ふね": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "ひこうき": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "さくら": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "やま": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "はな": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "おちゃ": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "ラーメン": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "パン": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "とり": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "たこ": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "かえる": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "あめ": {
+        "ok": 1,
+        "ng": 1,
+        "box": 0,
+        "lastSeen": 1791046441309,
+        "missBoost": 1
+      },
+      "かぜ": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "くも": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "きり": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "かみなり": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "ゆき": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "みぎ": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "ひだり": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "まえ": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "うしろ": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "きた": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      },
+      "みなみ": {
+        "ok": 0,
+        "ng": 0,
+        "box": 0,
+        "lastSeen": 0,
+        "missBoost": 1
+      }
+    }
+  },
+  "errors": []
+}

@@ -45,7 +45,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     preparePickup: () => { makeOrder(); inter=orders[0]; },
     prepareOrder: () => { makeOrder(); inter=orders[0]; interact(); job.lock=0; },
     scheduleBoss: () => { bossT=0; },
-    prepareBoss: () => { const bs={x:P.x+200,y:P.y,type:'boss',word:ALL[0],hp:999,max:999,shield:true}; enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
+    prepareBoss: (word) => { const bs={x:P.x+200,y:P.y,type:'boss',word:word || ALL[0],hp:999,max:999,shield:true}; enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
     setState: next => { state=next; ended=false; },
     snapshot: () => ({ state, needles, menuFocus, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
     addMis: () => enemies.push({x:P.x+100,y:P.y,type:"mis",w:ALL[0],hp:999,max:999,speed:210,flash:0,wob:0}), emptyHouses: () => houses.splice(0) };`;
@@ -100,6 +100,16 @@ test('Boss eliminated answer assistance also applies to an active same-word deli
   g.resolve(j.ans.indexOf(j.word));
   assert.equal(g.env.STORE.get(j.word.jp).box,0);
   assert.equal(g.snapshot().score,25);
+});
+
+test('unrelated delivery assistance does not penalize independent Boss mastery',()=>{
+  const g=loadGame();g.start();g.prepareOrder();
+  g.prepareBoss(g.env.CONTENT.getStageWords('night-town').find(w=>w.jp!==g.snapshot().job.word.jp));
+  const q=g.snapshot().bossQ;
+  assert.notEqual(g.snapshot().job.word.jp,q.word.jp);
+  g.triggerHint();g.answerBoss(q.ans.indexOf(q.word));
+  assert.equal(g.env.STORE.get(q.word.jp).box,1);
+  assert.equal(g.reviewWords().length,0);
 });
 
 test('delivery mistake persists, avoids its living answer badge and returns after purification', () => {
