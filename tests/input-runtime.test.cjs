@@ -3,14 +3,15 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 
-function loadGame() {
+function loadGame(firstRun = false) {
   const events = {}, canvasEvents = {}, documentEvents = {};
   const gradient = { addColorStop() {} };
   const drawnText = [], actorCalls = [], transforms = [];
   const ctx = new Proxy({ setTransform: (...args) => transforms.push(args), fillText: text => drawnText.push(text), measureText: () => ({ width: 40 }), createLinearGradient: () => gradient, createRadialGradient: () => gradient }, { get: (o, k) => o[k] || (() => {}) });
   const canvas = { addEventListener: (k, f) => { canvasEvents[k] = f; }, setPointerCapture() {}, getBoundingClientRect: () => ({ left: 0, top: 0, width: env.innerWidth || 900, height: env.innerHeight || 600 }) };
   const controlsButton = { click() { this.clicked = true; } };
-  const env = { console, Set, Map, Math, Date, performance: { now: () => 0 }, navigator: {}, requestAnimationFrame() {}, localStorage: { getItem: () => null, setItem() {} }, document: { hidden: false, getElementById: id => id === 'controls-open' ? controlsButton : canvas, addEventListener: (k, f) => { documentEvents[k] = f; } }, addEventListener: (k, f) => { events[k] = f; } };
+  const storage = new Map(firstRun ? [] : [['yokai-tutorial-v1', '"skip"']]);
+  const env = { console, Set, Map, Math, Date, performance: { now: () => 0 }, navigator: {}, requestAnimationFrame() {}, localStorage: { getItem: k => storage.get(k) || null, setItem: (k,v) => storage.set(k,v) }, document: { hidden: false, getElementById: id => id === 'controls-open' ? controlsButton : canvas, addEventListener: (k, f) => { documentEvents[k] = f; } }, addEventListener: (k, f) => { events[k] = f; } };
   env.window = env;
   const c = vm.createContext(env);
   for (const name of ['words', 'world', 'store', 'config', 'viewport', 'controls', 'overworld']) vm.runInContext(fs.readFileSync(`js/${name}.js`, 'utf8'), c);
@@ -24,6 +25,9 @@ function loadGame() {
   const source = fs.readFileSync('js/game.js', 'utf8');
   const end = source.lastIndexOf('})();');
   const hook = `window.fixture = { start, update, frame, drawWorld, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons,
+    tutorialState: () => tutorial,
+    replayTutorial: () => activateMenu('tutorial'),
+    atDestination: () => { P.x=job.to.x; P.y=job.to.y+110; },
     face: angle => { P.faceAng=angle; },
     combatScene: (weapon, foes, walls=[]) => { Object.keys(WL).forEach(k=>WL[k]=0); WL[weapon]=1; wT[weapon]=0; enemies=foes.map(e=>({x:P.x+e.dx,y:P.y+(e.dy||0),hp:999,max:999,type:'ghost',...e})); solids.splice(0,solids.length,...walls.map(s=>({x0:P.x+s.x0,x1:P.x+s.x1,y0:P.y+s.y0,y1:P.y+s.y1}))); },
     heal: () => UP.find(u=>u.id==='oil_heal').f(),
@@ -43,6 +47,36 @@ function loadGame() {
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
+test('first-run tutorial freezes time, oil and gameplay input, and skip persists', () => {
+  const g=loadGame(true); g.start(); g.update(0.05);
+  assert.equal(g.tutorialState().id,'pickup');
+  const before=g.snapshot();
+  g.events.keydown(key('Space',' ')); g.canvasEvents.pointerdown(pointer(810,530)); g.update(0.05);
+  assert.equal(g.snapshot().oil,before.oil); assert.equal(g.snapshot().elapsed,before.elapsed);
+  assert.equal(g.snapshot().dashCd,0); assert.equal(g.snapshot().joy,null);
+  g.events.keydown(key('Escape','Escape')); assert.equal(g.tutorialState(),null);
+  g.start(); g.update(0.05); assert.equal(g.tutorialState(),null);
+});
+test('context lessons cover listening, delivery, dash and Boss without changing assistance', () => {
+  const g=loadGame(true); g.start(); g.update(0.05);
+  const next=()=>g.events.keydown(key('Enter','Enter'));
+  next(); g.prepareOrder(); g.update(0.05); assert.equal(g.tutorialState().id,'listen');
+  assert.equal(g.snapshot().job.assisted,false); const oil=g.snapshot().oil;
+  next(); g.atDestination(); g.update(0.05); assert.equal(g.tutorialState().id,'delivery');
+  assert.equal(g.snapshot().oil,oil);
+  next(); g.prepareBoss(); g.update(0.05); assert.equal(g.tutorialState().id,'boss');
+  next(); for(let i=0;i<260 && !g.tutorialState();i++) g.update(0.05);
+  assert.equal(g.tutorialState().id,'dash');
+});
+test('replay is available from pause, gamepad consumes confirmation and returns to pause', () => {
+  const g=loadGame(); g.start(); g.setState('pause'); g.replayTutorial();
+  assert.equal(g.tutorialState().id,'pickup');
+  const buttons=Array.from({length:16},()=>({pressed:false}));
+  g.env.navigator.getGamepads=()=>[{connected:true,axes:[0,0],buttons}];
+  for(let i=0;i<5;i++){buttons[0].pressed=true;g.pollGamepad();buttons[0].pressed=false;g.pollGamepad();}
+  assert.equal(g.tutorialState(),null); assert.equal(g.snapshot().state,'pause');
+  assert.equal(g.snapshot().job,null);
+});
 test('mouse drag begins on the right half and moves the courier; touch stays on left', () => {
   const g = loadGame(); g.start(); const before = g.snapshot();
   g.canvasEvents.pointerdown(pointer(680, 350));
