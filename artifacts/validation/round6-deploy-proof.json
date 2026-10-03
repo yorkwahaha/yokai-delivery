@@ -1,0 +1,39 @@
+{
+  "commit": "54038b88777aa63ba3c84c682f539e3231f58c6d",
+  "run": 37139120080,
+  "verifiedAt": "2026-10-03T17:05:19.000Z",
+  "files": [
+    {
+      "file": "index.html",
+      "http": 200,
+      "workingTreeSha256": "1867f36f6fa7ec371363ba73e6972d2ec6076548527bf01e24149f70865882a8",
+      "commitSha256": "ddf78c4d3f9c6a3d0b228a2a40d9fa27f615a767b1621064449aeabc5f47722c",
+      "liveSha256": "ddf78c4d3f9c6a3d0b228a2a40d9fa27f615a767b1621064449aeabc5f47722c",
+      "match": true
+    },
+    {
+      "file": "js/game.js",
+      "http": 200,
+      "workingTreeSha256": "1292d7c88bf7552870092c45791048d33ddedf60a0e347927ef8a1556ab453dd",
+      "commitSha256": "b07c4ef10533e7638c54926e76596593bbbad5ac5696cd3aa1ea7b54cd18a6c0",
+      "liveSha256": "b07c4ef10533e7638c54926e76596593bbbad5ac5696cd3aa1ea7b54cd18a6c0",
+      "match": true
+    },
+    {
+      "file": "js/store.js",
+      "http": 200,
+      "workingTreeSha256": "3a61a295929d36887ae0f9f6e4ff1d8f1670a7dc474ae4c2455baa7f0a428372",
+      "commitSha256": "3a61a295929d36887ae0f9f6e4ff1d8f1670a7dc474ae4c2455baa7f0a428372",
+      "liveSha256": "3a61a295929d36887ae0f9f6e4ff1d8f1670a7dc474ae4c2455baa7f0a428372",
+      "match": true
+    },
+    {
+      "file": "js/ui.js",
+      "http": 200,
+      "workingTreeSha256": "484cf4f240bcc3b6b579ea6da60928ed33b822ba2a5bdd0c6e25599f50b47a43",
+      "commitSha256": "8008f6d288619250b9617d1439da526ac926801c2653d8f5d7fa46774aacf685",
+      "liveSha256": "8008f6d288619250b9617d1439da526ac926801c2653d8f5d7fa46774aacf685",
+      "match": true
+    }
+  ]
+}
