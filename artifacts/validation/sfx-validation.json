@@ -1,0 +1,279 @@
+[
+  {
+    "decoded": true,
+    "info": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "sample_rate": "44100",
+          "channels": 2,
+          "side_data_list": [
+            {}
+          ]
+        }
+      ],
+      "format": {
+        "duration": "0.144739",
+        "size": "5014"
+      }
+    },
+    "path": "assets/audio/sfx/boomerang.mp3"
+  },
+  {
+    "decoded": true,
+    "info": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "sample_rate": "44100",
+          "channels": 2
+        }
+      ],
+      "format": {
+        "duration": "2.560000",
+        "size": "63596"
+      }
+    },
+    "path": "assets/audio/sfx/boss-death.mp3"
+  },
+  {
+    "decoded": true,
+    "info": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "sample_rate": "44100",
+          "channels": 2,
+          "side_data_list": [
+            {}
+          ]
+        }
+      ],
+      "format": {
+        "duration": "1.660408",
+        "size": "41377"
+      }
+    },
+    "path": "assets/audio/sfx/break-shield.mp3"
+  },
+  {
+    "decoded": true,
+    "info": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "sample_rate": "44100",
+          "channels": 2,
+          "side_data_list": [
+            {}
+          ]
+        }
+      ],
+      "format": {
+        "duration": "1.237914",
+        "size": "31346"
+      }
+    },
+    "path": "assets/audio/sfx/dash.mp3"
+  },
+  {
+    "decoded": true,
+    "info": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "sample_rate": "48000",
+          "channels": 2,
+          "side_data_list": [
+            {}
+          ]
+        }
+      ],
+      "format": {
+        "duration": "1.021417",
+        "size": "25920"
+      }
+    },
+    "path": "assets/audio/sfx/delivery-success.mp3"
+  },
+  {
+    "decoded": true,
+    "info": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "sample_rate": "44100",
+          "channels": 2,
+          "side_data_list": [
+            {}
+          ]
+        }
+      ],
+      "format": {
+        "duration": "1.059025",
+        "size": "26957"
+      }
+    },
+    "path": "assets/audio/sfx/delivery-wrong.mp3"
+  },
+  {
+    "decoded": true,
+    "info": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "sample_rate": "48000",
+          "channels": 2
+        }
+      ],
+      "format": {
+        "duration": "5.040000",
+        "size": "120960"
+      }
+    },
+    "path": "assets/audio/sfx/fanfare.mp3"
+  },
+  {
+    "decoded": true,
+    "info": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "sample_rate": "48000",
+          "channels": 2,
+          "side_data_list": [
+            {}
+          ]
+        }
+      ],
+      "format": {
+        "duration": "1.541375",
+        "size": "38592"
+      }
+    },
+    "path": "assets/audio/sfx/level-up.mp3"
+  },
+  {
+    "decoded": true,
+    "info": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "sample_rate": "48000",
+          "channels": 2
+        }
+      ],
+      "format": {
+        "duration": "5.112000",
+        "size": "122688"
+      }
+    },
+    "path": "assets/audio/sfx/lose.mp3"
+  },
+  {
+    "decoded": true,
+    "info": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "sample_rate": "44100",
+          "channels": 2,
+          "side_data_list": [
+            {}
+          ]
+        }
+      ],
+      "format": {
+        "duration": "0.612993",
+        "size": "16299"
+      }
+    },
+    "path": "assets/audio/sfx/needle.mp3"
+  },
+  {
+    "decoded": true,
+    "info": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "sample_rate": "44100",
+          "channels": 2,
+          "side_data_list": [
+            {}
+          ]
+        }
+      ],
+      "format": {
+        "duration": "1.346372",
+        "size": "33853"
+      }
+    },
+    "path": "assets/audio/sfx/sanctuary.mp3"
+  },
+  {
+    "decoded": true,
+    "info": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "sample_rate": "44100",
+          "channels": 2,
+          "side_data_list": [
+            {}
+          ]
+        }
+      ],
+      "format": {
+        "duration": "0.612993",
+        "size": "16299"
+      }
+    },
+    "path": "assets/audio/sfx/slash.mp3"
+  },
+  {
+    "decoded": true,
+    "info": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "sample_rate": "44100",
+          "channels": 2,
+          "side_data_list": [
+            {}
+          ]
+        }
+      ],
+      "format": {
+        "duration": "1.419501",
+        "size": "35734"
+      }
+    },
+    "path": "assets/audio/sfx/warning-pulse.mp3"
+  }
+]

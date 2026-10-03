@@ -1,6 +1,8 @@
 // 素材載入：高解析度手繪風格資產與音訊載入
 window.ART = {};
 window.ART_READY = false;
+// Bump when replacing audio assets so deployed browser caches fetch the new clips.
+window.audioAsset = path => `${path}?v=20261003-3`;
 
 const ASSET_NAMES = [
   "player", "player_walk1", "player_walk2", "ghost", "mis", "boss", "runner", "tank", "shooter", "cover",
@@ -38,9 +40,9 @@ const configureMusic = audio => {
 window.BGM = null;
 window.MAP_BGM = null;
 try {
-  const bgmAudio = configureMusic(new Audio("assets/audio/BGM.mp3"));
+  const bgmAudio = configureMusic(new Audio(window.audioAsset("assets/audio/BGM.mp3")));
   bgmAudio.addEventListener("error", () => {
-    const fallback = configureMusic(new Audio("assets/audio/bgm.mp3"));
+    const fallback = configureMusic(new Audio(window.audioAsset("assets/audio/bgm.mp3")));
     fallback.addEventListener("error", () => {
       window.BGM = null;
     }, { once: true });
@@ -48,7 +50,7 @@ try {
   }, { once: true });
   window.BGM = bgmAudio;
 
-  const mapAudio = configureMusic(new Audio("assets/audio/MAP.mp3"));
+  const mapAudio = configureMusic(new Audio(window.audioAsset("assets/audio/MAP.mp3")));
   mapAudio.addEventListener("error", () => {
     window.MAP_BGM = null;
   }, { once: true });

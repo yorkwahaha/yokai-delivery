@@ -1,6 +1,7 @@
 // SMB3-inspired node-path overworld: large scrolling map, miniature courier movement, stage landmarks.
 (() => {
   const root = typeof window !== "undefined" ? window : globalThis;
+  const readableFont = (size, weight = "700") => root.UI?.readableFont ? root.UI.readableFont(size, weight) : `${weight} ${size}px sans-serif`;
   const MAP_W = 1800;
   const MAP_H = 1050;
   const VIEW_W = 900;
@@ -251,7 +252,7 @@
       ctx.stroke();
       if (!accessible) {
         ctx.fillStyle = "#e3c6ef";
-        ctx.font = "900 12px serif";
+        ctx.font = readableFont(12, "900");
         ctx.textAlign = "center";
         ctx.fillText("封", 0, 4);
       }
@@ -327,10 +328,10 @@
 
     ctx.save();
     ctx.textAlign = "center";
-    ctx.font = "900 16px 'Kaisei Decol', 'Noto Sans JP', serif";
+    ctx.font = readableFont(16, "900");
     ctx.fillStyle = canEnter ? "#3d291f" : "#4b4050";
     ctx.fillText(node.label, node.x, node.y + 62);
-    ctx.font = "700 11px 'Noto Sans JP', sans-serif";
+    ctx.font = readableFont(11, "700");
     ctx.fillStyle = "rgba(60, 48, 42, 0.76)";
     ctx.fillText(node.sub || "", node.x, node.y + 79);
     ctx.restore();
@@ -366,7 +367,8 @@
     sky.addColorStop(0.55, "#a7c1a0");
     sky.addColorStop(1, "#73958b");
     ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    const area = root.VIEWPORT?.bounds() || {left:0,top:0,width:VIEW_W,height:VIEW_H};
+    ctx.fillRect(area.left, area.top, area.width, area.height);
 
     ctx.save();
     ctx.translate(-state.camX, -state.camY);
@@ -429,14 +431,14 @@
     ctx.fillStyle = "#fff1bd";
     ctx.font = "900 24px 'Kaisei Decol', 'Noto Sans JP', serif";
     ctx.fillText("妖怪快遞社・旅路圖", VIEW_W / 2, 32);
-    ctx.font = "700 12px 'Noto Sans JP', sans-serif";
+    ctx.font = readableFont(12, "700");
     ctx.fillStyle = "rgba(255,255,255,0.68)";
     ctx.fillText("道をたどって、次の配達先へ", VIEW_W / 2, 53);
 
     ctx.fillStyle = "rgba(19, 24, 30, 0.82)";
     ctx.beginPath(); ctx.roundRect(BACK_BTN.x, BACK_BTN.y, BACK_BTN.w, BACK_BTN.h, 10); ctx.fill();
     ctx.strokeStyle = "rgba(255,236,190,0.6)"; ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.textAlign = "center"; ctx.fillStyle = "#fff0c2"; ctx.font = "900 13px 'Noto Sans JP', sans-serif";
+    ctx.textAlign = "center"; ctx.fillStyle = "#fff0c2"; ctx.font = readableFont(13, "900");
     ctx.fillText("← 首頁", BACK_BTN.x + BACK_BTN.w / 2, BACK_BTN.y + 25);
 
     const here = currentNode(state);
@@ -448,9 +450,9 @@
       ctx.strokeStyle = canEnter ? "#e4c264" : "#80668a"; ctx.lineWidth = 2; ctx.stroke();
       ctx.textAlign = "center";
       ctx.fillStyle = canEnter ? "#ffe6a5" : "#e0c8e7";
-      ctx.font = "900 19px 'Kaisei Decol', serif";
+      ctx.font = readableFont(19, "900");
       ctx.fillText(here.label, VIEW_W / 2, py + 28);
-      ctx.font = "800 12px 'Noto Sans JP', sans-serif";
+      ctx.font = readableFont(12, "800");
       ctx.fillStyle = "rgba(255,255,255,0.72)";
       ctx.fillText(canEnter ? "配達開始　Enter / A" : "封印中・後續開放", VIEW_W / 2, py + 51);
 
@@ -459,14 +461,14 @@
         ctx.fillStyle = `rgba(121, 78, 28, ${glow})`;
         ctx.beginPath(); ctx.roundRect(ENTER_BTN.x, ENTER_BTN.y, ENTER_BTN.w, ENTER_BTN.h, 16); ctx.fill();
         ctx.strokeStyle = "#ffe39a"; ctx.lineWidth = 2; ctx.stroke();
-        ctx.fillStyle = "#fff2c6"; ctx.font = "900 15px 'Noto Sans JP', sans-serif";
+        ctx.fillStyle = "#fff2c6"; ctx.font = readableFont(15, "900");
         ctx.fillText("出發", ENTER_BTN.x + ENTER_BTN.w / 2, ENTER_BTN.y + 37);
       }
     } else {
       ctx.textAlign = "center";
       ctx.fillStyle = "rgba(20, 27, 31, 0.7)";
       ctx.beginPath(); ctx.roundRect(VIEW_W / 2 - 180, VIEW_H - 54, 360, 34, 12); ctx.fill();
-      ctx.fillStyle = "#fff1c9"; ctx.font = "800 12px 'Noto Sans JP', sans-serif";
+      ctx.fillStyle = "#fff1c9"; ctx.font = readableFont(12, "800");
       ctx.fillText("方向鍵 / 搖桿 / 點擊相鄰地標移動", VIEW_W / 2, VIEW_H - 32);
     }
 
@@ -475,7 +477,7 @@
       ctx.fillStyle = `rgba(44, 18, 53, ${0.9 * a})`;
       ctx.beginPath(); ctx.roundRect(VIEW_W / 2 - 150, 92, 300, 48, 12); ctx.fill();
       ctx.strokeStyle = `rgba(220, 180, 235, ${a})`; ctx.lineWidth = 2; ctx.stroke();
-      ctx.fillStyle = `rgba(248, 225, 255, ${a})`; ctx.font = "900 15px 'Noto Sans JP', sans-serif";
+      ctx.fillStyle = `rgba(248, 225, 255, ${a})`; ctx.font = readableFont(15, "900");
       ctx.fillText("此地仍被妖氣封印", VIEW_W / 2, 122);
     }
 

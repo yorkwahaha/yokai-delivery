@@ -9,6 +9,10 @@
     BOSS_TIMES: [180, 360, 540, 590],
     SURGE_FIRST: 75,
     SURGE_INTERVAL: 75,
+    chaseStep(distance, speed, dt, type) {
+      const step = speed * dt;
+      return type === 'mis' ? Math.max(-step, Math.min(step, distance - 86)) : Math.min(step, distance);
+    },
     xpNeed(level) {
       const lv = Math.max(1, Number(level) || 1);
       return 24 + lv * 5 + Math.floor(Math.pow(lv, 1.35) * 1.2);

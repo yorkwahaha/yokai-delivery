@@ -1,0 +1,53 @@
+// Physical key codes keep movement independent of keyboard language / Caps Lock.
+window.CONTROLS = (() => {
+  const defaults = { u: 'KeyW', d: 'KeyS', l: 'KeyA', r: 'KeyD', dash: 'Space', interact: 'KeyE', hint: 'KeyH', pause: 'KeyP', codex: 'KeyC', mute: 'KeyM' };
+  const fixed = { ArrowUp: 'u', ArrowDown: 'd', ArrowLeft: 'l', ArrowRight: 'r', ShiftLeft: 'dash', ShiftRight: 'dash', Escape: 'pause' };
+  const labels = { u: '向上', d: '向下', l: '向左', r: '向右', dash: '衝刺', interact: '取貨／確認', hint: '提示', pause: '暫停', codex: '圖鑑', mute: '靜音' };
+  const valid = code => /^(Key[A-Z]|Space|Numpad[0456789])$/.test(code);
+  const storageKey = 'yokai-controls-v1';
+  let bindings = { ...defaults };
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey));
+    if (saved && Object.keys(defaults).every(a => valid(saved[a])) && new Set(Object.values(saved)).size === Object.keys(defaults).length) bindings = Object.fromEntries(Object.keys(defaults).map(a => [a, saved[a]]));
+  } catch {}
+  const save = () => { try { localStorage.setItem(storageKey, JSON.stringify(bindings)); } catch {} };
+  let dialog, waiting = null;
+  const display = code => code === 'Space' ? '空白鍵' : code.replace('Key', '').replace('Numpad', '數字鍵盤 ');
+  function render() {
+    if (!dialog) return;
+    dialog.querySelectorAll('[data-action]').forEach(btn => {
+      const action = btn.dataset.action;
+      btn.textContent = `${labels[action]}：${waiting === action ? '請按新按鍵…' : display(bindings[action])}`;
+    });
+  }
+  const api = {
+    action: code => fixed[code] || Object.keys(bindings).find(a => bindings[a] === code),
+    bind(action, code) {
+      if (!(action in defaults) || !valid(code) || Object.keys(bindings).some(a => a !== action && bindings[a] === code)) return false;
+      bindings[action] = code; save(); return true;
+    },
+    preset(hand) {
+      bindings = hand === 'left' ? { ...defaults, u: 'KeyI', d: 'KeyK', l: 'KeyJ', r: 'KeyL', interact: 'KeyU', hint: 'KeyO' } : { ...defaults };
+      save(); waiting = null; render();
+    },
+    isOpen: () => !!dialog?.open,
+    mount() {
+      dialog = document.getElementById('controls-dialog');
+      document.getElementById('controls-open').onclick = () => { waiting = null; render(); dialog.showModal(); };
+      dialog.querySelectorAll('[data-action]').forEach(btn => { btn.onclick = () => { waiting = btn.dataset.action; render(); }; });
+      dialog.querySelectorAll('[data-preset]').forEach(btn => { btn.onclick = () => { api.preset(btn.dataset.preset); }; });
+      dialog.addEventListener('close', () => { waiting = null; document.getElementById('game').focus(); });
+      dialog.addEventListener('keydown', e => {
+        if (!waiting) return;
+        e.preventDefault(); e.stopPropagation();
+        if (e.code === 'Escape') { waiting = null; render(); return; }
+        const status = document.getElementById('controls-status');
+        if (api.bind(waiting, e.code)) { waiting = null; status.textContent = '已儲存按鍵。'; }
+        else status.textContent = '按鍵已使用或保留；請選英文字母、空白或數字鍵盤。';
+        render();
+      });
+      render();
+    }
+  };
+  return api;
+})();

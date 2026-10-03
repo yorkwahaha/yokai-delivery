@@ -18,6 +18,14 @@ window.RENDERER = (() => {
   let slashArcs = [];
   let ghostTrails = [];
 
+  function bounds() { return window.VIEWPORT?.bounds() || { left:0, top:0, right:W, bottom:H, width:W, height:H }; }
+  function resize() {
+    const v = window.VIEWPORT?.get() || {width:W,height:H,offsetX:0,offsetY:0};
+    cv.width = Math.ceil(v.width * dpr); cv.height = Math.ceil(v.height * dpr);
+    lightCv.width = Math.ceil(v.width); lightCv.height = Math.ceil(v.height);
+    lightCtx.setTransform(1, 0, 0, 1, v.offsetX, v.offsetY);
+  }
+
   function init(canvas) {
     cv = canvas;
     ctx = cv.getContext("2d");
@@ -29,6 +37,8 @@ window.RENDERER = (() => {
     lightCv.width = W;
     lightCv.height = H;
     lightCtx = lightCv.getContext("2d");
+    resize();
+    const area = bounds();
 
     // 預先生成高品質石疊（和風石磚路）無縫貼圖
     createStonePattern();
@@ -36,8 +46,8 @@ window.RENDERER = (() => {
     // 初始化飄落櫻花雨 (50 片)；無邊界世界改採螢幕空間粒子。
     for (let i = 0; i < 50; i++) {
       SAKURA.push({
-        x: Math.random() * W,
-        y: Math.random() * H,
+        x: area.left + Math.random() * area.width,
+        y: area.top + Math.random() * area.height,
         vx: 35 + Math.random() * 45,
         vy: 25 + Math.random() * 35,
         size: 5 + Math.random() * 6,
@@ -50,8 +60,8 @@ window.RENDERER = (() => {
     // 初始化夜行螢火蟲 / 靈氣游光 (30 隻)
     for (let i = 0; i < 30; i++) {
       FIREFLIES.push({
-        x: Math.random() * W,
-        y: Math.random() * H,
+        x: area.left + Math.random() * area.width,
+        y: area.top + Math.random() * area.height,
         phase: Math.random() * 6.28,
         speed: 10 + Math.random() * 15
       });
@@ -156,8 +166,8 @@ window.RENDERER = (() => {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.rot += p.vRot * dt;
-      if (p.x > W + 30) p.x = -30;
-      if (p.y > H + 30) p.y = -30;
+      if (p.x > bounds().right + 30) p.x = bounds().left - 30;
+      if (p.y > bounds().bottom + 30) p.y = bounds().top - 30;
     }
 
     for (const d of dmgNumbers) {
@@ -180,10 +190,11 @@ window.RENDERER = (() => {
   // 無邊界地圖不再建立大型離屏 Canvas；每幀只畫鏡頭附近已啟用的 chunks。
   function drawGround(elapsed, dawnTime, chunks = []) {
     const margin = 120;
-    const left = camX - margin;
-    const top = camY - margin;
-    const width = W + margin * 2;
-    const height = H + margin * 2;
+    const area = bounds();
+    const left = camX + area.left - margin;
+    const top = camY + area.top - margin;
+    const width = area.width + margin * 2;
+    const height = area.height + margin * 2;
     const groundImg = window.ART && window.ART.ground;
 
     if (groundImg && groundImg.complete && groundImg.naturalWidth) {
@@ -197,10 +208,10 @@ window.RENDERER = (() => {
     const ROAD_W = 110;
     for (const chunk of chunks) {
       if (
-        chunk.x > camX + W + 180 ||
-        chunk.x + chunk.w < camX - 180 ||
-        chunk.y > camY + H + 180 ||
-        chunk.y + chunk.h < camY - 180
+        chunk.x > camX + area.right + 180 ||
+        chunk.x + chunk.w < camX + area.left - 180 ||
+        chunk.y > camY + area.bottom + 180 ||
+        chunk.y + chunk.h < camY + area.top - 180
       ) continue;
 
       const cx = chunk.x + chunk.w / 2;
@@ -322,7 +333,7 @@ window.RENDERER = (() => {
 
     // 3. 店門前和風黑漆金箔懸掛匾額（單字看板）
     ctx.save();
-    const signW = 76, signH = 22;
+    const signW = 132, signH = 32;
     const signY = h.y + 36;
 
     ctx.fillStyle = "#19141e";
@@ -334,9 +345,9 @@ window.RENDERER = (() => {
     ctx.stroke();
 
     ctx.textAlign = "center";
-    ctx.font = "900 13px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+    ctx.font = UI.readableFont(20, "900");
     ctx.fillStyle = "#ffeed4";
-    ctx.fillText(h.word.jp, h.x, signY + 15);
+    ctx.fillText(h.word.jp, h.x, signY + 23, signW - 8);
     ctx.restore();
 
     // 4. 提示覆蓋
@@ -344,15 +355,15 @@ window.RENDERER = (() => {
       ctx.save();
       ctx.fillStyle = "rgba(255, 250, 235, 0.95)";
       ctx.beginPath();
-      ctx.roundRect(h.x - 36, h.y + 64, 72, 20, 5);
+      ctx.roundRect(h.x - 54, h.y + 74, 108, 30, 5);
       ctx.fill();
       ctx.strokeStyle = "#382d24";
       ctx.lineWidth = 1.5;
       ctx.stroke();
       ctx.textAlign = "center";
       ctx.fillStyle = "#2a1e17";
-      ctx.font = "bold 12px 'Noto Sans JP', sans-serif";
-      ctx.fillText(h.word.zh, h.x, h.y + 78);
+      ctx.font = UI.readableFont(18, "700");
+      ctx.fillText(h.word.zh, h.x, h.y + 95, 100);
       ctx.restore();
     }
 
@@ -567,11 +578,11 @@ window.RENDERER = (() => {
       ctx.save();
       ctx.textAlign = "center";
       const badgeText = `${e.w.icon} ${e.w.jp}＝${e.w.zh}`;
-      ctx.font = "bold 15px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+      ctx.font = UI.readableFont(20, "700");
       const bw = ctx.measureText(badgeText).width + 18;
       ctx.fillStyle = "rgba(35, 14, 52, 0.88)";
       ctx.beginPath();
-      ctx.roundRect(e.x - bw / 2, e.y - 66, bw, 24, 6);
+      ctx.roundRect(e.x - bw / 2, e.y - 72, bw, 32, 6);
       ctx.fill();
       ctx.strokeStyle = "#e1bee7";
       ctx.lineWidth = 1.4;
@@ -589,7 +600,8 @@ window.RENDERER = (() => {
   function renderLighting(P, LAMPS, oil, elapsed, dawnTime) {
     const progress = clamp(elapsed / dawnTime, 0, 1);
     lightCtx.globalCompositeOperation = "source-over";
-    lightCtx.clearRect(0, 0, W, H);
+    const area = bounds();
+    lightCtx.clearRect(area.left, area.top, area.width, area.height);
 
     // 夜色背景（深紫青色調，黎明過渡）
     const nightR = Math.round(7 + 75 * progress);
@@ -598,7 +610,7 @@ window.RENDERER = (() => {
     const nightAlpha = 0.94 * Math.pow(1 - progress, 1.3);
 
     lightCtx.fillStyle = `rgba(${nightR}, ${nightG}, ${nightB}, ${nightAlpha})`;
-    lightCtx.fillRect(0, 0, W, H);
+    lightCtx.fillRect(area.left, area.top, area.width, area.height);
 
     // 挖出光源 (destination-out)
     lightCtx.globalCompositeOperation = "destination-out";
@@ -623,7 +635,7 @@ window.RENDERER = (() => {
     // 2. 街角提燈 (LAMPS) 暖光池
     LAMPS.forEach(l => {
       const lx = l.x - camX, ly = l.y - camY;
-      if (lx < -180 || lx > W + 180 || ly < -180 || ly > H + 180) return;
+      if (lx < area.left - 180 || lx > area.right + 180 || ly < area.top - 180 || ly > area.bottom + 180) return;
       const g = lightCtx.createRadialGradient(lx, ly, 12, lx, ly, 160);
       g.addColorStop(0, "rgba(0,0,0,0.95)");
       g.addColorStop(0.5, "rgba(0,0,0,0.5)");
@@ -635,7 +647,7 @@ window.RENDERER = (() => {
     });
 
     // 繪製遮罩回主 Canvas
-    ctx.drawImage(lightCv, 0, 0, W, H);
+    ctx.drawImage(lightCv, area.left, area.top, area.width, area.height);
 
     // 疊加提燈金黃色光暈（Screen Blend 溫暖柔光）
     ctx.save();
@@ -652,7 +664,7 @@ window.RENDERER = (() => {
     // 街角提燈的橘紅色暖光暈
     LAMPS.forEach(l => {
       const lx = l.x - camX, ly = l.y - camY;
-      if (lx < -180 || lx > W + 180 || ly < -180 || ly > H + 180) return;
+      if (lx < area.left - 180 || lx > area.right + 180 || ly < area.top - 180 || ly > area.bottom + 180) return;
       const lg = ctx.createRadialGradient(lx, ly, 0, lx, ly, 130);
       lg.addColorStop(0, "rgba(255, 175, 70, 0.28)");
       lg.addColorStop(1, "rgba(255, 150, 50, 0)");
@@ -765,12 +777,13 @@ window.RENDERER = (() => {
     ctx.restore();
   }
 
-  function drawAtmosphere(elapsed) {
+  function drawAtmosphere(elapsed, petalCount = 50) {
+    const area = bounds();
     ctx.save();
     // 飄動櫻花雨
-    for (const p of SAKURA) {
+    for (const p of SAKURA.slice(0, petalCount)) {
       const sx = p.x, sy = p.y;
-      if (sx < -30 || sx > W + 30 || sy < -30 || sy > H + 30) continue;
+      if (sx < area.left - 30 || sx > area.right + 30 || sy < area.top - 30 || sy > area.bottom + 30) continue;
       ctx.save();
       ctx.translate(sx, sy);
       ctx.rotate(p.rot);
@@ -785,7 +798,7 @@ window.RENDERER = (() => {
     for (const f of FIREFLIES) {
       const fx = f.x + Math.sin(elapsed * 2 + f.phase) * 30;
       const fy = f.y + Math.cos(elapsed * 1.5 + f.phase) * 20;
-      if (fx < -20 || fx > W + 20 || fy < -20 || fy > H + 20) continue;
+      if (fx < area.left - 20 || fx > area.right + 20 || fy < area.top - 20 || fy > area.bottom + 20) continue;
       const pulse = 0.4 + 0.6 * Math.sin(elapsed * 4 + f.phase);
       ctx.fillStyle = `rgba(180, 255, 220, ${pulse * 0.75})`;
       ctx.beginPath();
@@ -796,7 +809,7 @@ window.RENDERER = (() => {
   }
 
   return {
-    init,
+    init, resize,
     W, H,
     WORLD_UNBOUNDED: true,
     getCam: () => ({ x: camX, y: camY }),

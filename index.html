@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>妖怪快遞社：夜行配達 — Yokai Delivery Service</title>
   <!-- Google Web Fonts: 和風書法字體與圓體 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,11 +33,10 @@
       background: #060913;
     }
     canvas {
-      width: min(100vw, 150dvh);
-      height: min(100dvh, 66.67vw);
+      width: 100vw;
+      height: 100dvh;
       max-width: 100vw;
       max-height: 100dvh;
-      aspect-ratio: 3 / 2;
       touch-action: none;
       user-select: none;
       -webkit-user-select: none;
@@ -61,22 +60,54 @@
       #rotate-hint { display: grid; }
     }
   </style>
+  <style>
+    #controls-open, #controls-dialog { font-family: 'Noto Sans JP', 'Microsoft JhengHei', sans-serif; font-size: 16px; color: #fff1d0; }
+    #controls-open { position: fixed; bottom: max(12px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left)); z-index: 10; }
+    #controls-dialog { width: min(680px, 94vw); max-height: 90dvh; overflow: auto; background: #121827; border: 2px solid #d4af37; border-radius: 16px; padding: 22px; }
+    #controls-dialog::backdrop { background: #060913db; }
+    #controls-dialog h2 { margin: 0 0 12px; font-size: 26px; }
+    #controls-dialog p { line-height: 1.6; }
+    #controls-dialog button, #controls-open { min-height: 44px; padding: 10px 16px; background: #252d40; border: 1px solid #d4af37; border-radius: 8px; color: #fff1d0; font: inherit; cursor: pointer; }
+    #controls-dialog button:focus-visible, #controls-open:focus-visible { outline: 3px solid #80deea; outline-offset: 3px; }
+    .control-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 16px 0; }
+    #controls-status { min-height: 26px; color: #80deea; }
+  </style>
 </head>
 <body>
   <div id="game-container">
-    <canvas id="game" aria-label="妖怪快遞社：夜行配達"></canvas>
+    <canvas id="game" tabindex="0" aria-label="妖怪快遞社：夜行配達"></canvas>
   </div>
   <div id="rotate-hint" aria-hidden="true">↻　橫向遊玩</div>
+  <button id="controls-open" type="button">操作與自定義</button>
+  <dialog id="controls-dialog" aria-labelledby="controls-title">
+    <h2 id="controls-title">操作與自定義</h2>
+    <p>右手預設：左手 WASD 移動。左手預設：右手 IJKL 移動。點選下方功能，再按新按鍵即可自訂；設定會自動保存在此瀏覽器。</p>
+    <button type="button" data-preset="right">右手預設／還原</button>
+    <button type="button" data-preset="left">左手預設</button>
+    <div class="control-grid">
+      <button type="button" data-action="u"></button><button type="button" data-action="d"></button>
+      <button type="button" data-action="l"></button><button type="button" data-action="r"></button>
+      <button type="button" data-action="dash"></button><button type="button" data-action="interact"></button>
+      <button type="button" data-action="hint"></button><button type="button" data-action="pause"></button>
+      <button type="button" data-action="codex"></button><button type="button" data-action="mute"></button>
+    </div>
+    <p>滑鼠：在遊戲區任何位置按住左鍵拖曳移動，右鍵衝刺；也可點衝刺鈕。手機：左側拖曳移動，右側取貨與衝刺。手把：左搖桿移動。</p>
+    <p>固定備用鍵：方向鍵移動、Shift 衝刺、Esc 暫停／返回；1–3 選答案或升級，Enter 確認。</p>
+    <p id="controls-status" role="status"></p>
+    <form method="dialog"><button>完成／返回</button></form>
+  </dialog>
 
-  <script src="js/words.js"></script>
-  <script src="js/world.js"></script>
-  <script src="js/store.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/assets.js"></script>
-  <script src="js/audio.js"></script>
-  <script src="js/renderer.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/overworld.js"></script>
-  <script src="js/game.js"></script>
+  <script src="js/words.js?v=20261003-3"></script>
+  <script src="js/world.js?v=20261003-3"></script>
+  <script src="js/store.js?v=20261003-3"></script>
+  <script src="js/config.js?v=20261003-3"></script>
+  <script src="js/viewport.js?v=20261003-3"></script>
+  <script src="js/controls.js?v=20261003-3"></script>
+  <script src="js/assets.js?v=20261003-3"></script>
+  <script src="js/audio.js?v=20261003-3"></script>
+  <script src="js/renderer.js?v=20261003-3"></script>
+  <script src="js/ui.js?v=20261003-3"></script>
+  <script src="js/overworld.js?v=20261003-3"></script>
+  <script src="js/game.js?v=20261003-3"></script>
 </body>
 </html>

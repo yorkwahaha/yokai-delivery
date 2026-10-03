@@ -80,13 +80,17 @@ window.AUDIO = (() => {
     deliverWrong: "assets/audio/sfx/delivery-wrong.mp3",
     breakShield: "assets/audio/sfx/break-shield.mp3",
     levelUp: "assets/audio/sfx/level-up.mp3",
-    warningPulse: "assets/audio/sfx/warning-pulse.mp3"
+    warningPulse: "assets/audio/sfx/warning-pulse.mp3",
+    bossDeath: "assets/audio/sfx/boss-death.mp3",
+    fanfare: "assets/audio/sfx/fanfare.mp3",
+    lose: "assets/audio/sfx/lose.mp3"
   };
   const SFX_VOLUME = {
     slash: 0.72, boomerang: 0.62, fireball: 0.66, thunder: 0.82,
     dash: 0.68, barrier: 0.72, needle: 0.62, hurt: 0.72,
     gem: 0.42, pickup: 0.62, sanctuary: 0.74, deliverSuccess: 0.78,
-    deliverWrong: 0.72, breakShield: 0.82, levelUp: 0.76, warningPulse: 0.78
+    deliverWrong: 0.72, breakShield: 0.82, levelUp: 0.76, warningPulse: 0.78,
+    bossDeath: 0.78, fanfare: 0.75, lose: 0.7
   };
   const unavailableSfx = new Set();
   const activeSfx = new Set();
@@ -101,7 +105,7 @@ window.AUDIO = (() => {
 
     let audio;
     try {
-      audio = new Audio(src);
+      audio = new Audio(window.audioAsset?.(src) || src);
     } catch (e) {
       unavailableSfx.add(name);
       fallback(...args);
@@ -332,6 +336,18 @@ window.AUDIO = (() => {
 
   // 5. 戰鬥打擊音效
   const api = {
+    bossDeath() {
+      playTaiko(48, 0.3);
+      playHyoshigi(0.18);
+      [520, 390, 260].forEach((freq, i) => setTimeout(() => playSuzu(freq, 0.1), i * 140));
+    },
+    fanfare() {
+      [261.63, 329.63, 392, 523.25].forEach((freq, i) => setTimeout(() => playShamisen(freq, 0.5, 0.12), i * 180));
+      setTimeout(() => playSuzu(1046.5, 0.12), 600);
+    },
+    lose() {
+      [392, 329.63, 261.63, 196].forEach((freq, i) => setTimeout(() => playShamisen(freq, 0.6, 0.1), i * 240));
+    },
     init: getCtx,
     isMuted: () => muted,
     toggleMute() {

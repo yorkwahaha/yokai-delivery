@@ -21,7 +21,11 @@
   // 初始化高畫質渲染引擎
   RENDERER.init(cv);
   const ctx = RENDERER.getCtx();
+  CONTROLS.mount();
+  const controlsButton = document.getElementById("controls-open");
   const dpr = RENDERER.getDpr();
+  const viewBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:W,bottom:H,width:W,height:H};
+  addEventListener("resize", () => { RENDERER.resize?.(); joy = null; });
 
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -47,7 +51,7 @@
   // ---------- 遊戲狀態 ----------
   const P = { x: START.x, y: START.y, inv: 0, faceAng: 0, faceX: 1 };
   const b = { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0 };
-  const keys = new Set();
+  const keys = new Set(), heldCodes = new Set();
   let state = "menu";
   let overworld = window.OVERWORLD.createState("gate");
   let overworldNoticeT = 0;
@@ -55,14 +59,15 @@
   let elapsed = 0, warnDawnT = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;
   let orders = [], job = null, enemies = [], enemyBullets = [], gems = [], parts = [], texts = [], rings = [], misses = [];
   let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0, endCooldown = 0;
-  let choices = [], joy = null, touch = false, inter = null, cargo = { x: 0, y: 0 }, pTrail = [], last = performance.now();
+  let dashDir = { x: 1, y: 0 };
+  let choices = [], joy = null, touch = window.matchMedia?.("(pointer: coarse)")?.matches || false, inter = null, cargo = { x: 0, y: 0 }, pTrail = [], last = performance.now();
   const btnE = { x: 810, y: 420, r: 38 }, btnD = { x: 810, y: 530, r: 46 };
   const btnPause = { x: W - 52, y: 14, w: 38, h: 52 };
   let gpPrevButtons = [], gpMove = { x: 0, y: 0 };
 
   let bossT = BOSS_TIMES[0], bossStage = 0, finalBossDefeated = false;
   let finalBossPos = null, victorySeq = null;
-  let ended = false, bossQ = null, codexBack = "menu", codexTab = "cards";
+  let ended = false, bossQ = null, codexBack = "menu", codexTab = "cards", codexPage = 0;
   let worldSyncSignature = "";
 
   function replaceList(target, source) {
@@ -203,6 +208,7 @@
     const busy = new Set(orders.map(o => o.from.id));
     const localHouses = houses.filter(h => dist(P, h) < 2200);
     const from = pick(localHouses.filter(h => !busy.has(h.id)));
+    if (!from) return;
     const to = pick(localHouses.filter(h => h !== from && dist(h, from) > 420 && dist(h, from) < 2000));
     if (!from || !to) return;
 
@@ -238,7 +244,7 @@
   function togglePause() {
     if (state === "play") {
       state = "pause";
-      keys.clear();
+      keys.clear(); heldCodes.clear();
       joy = null;
     } else if (state === "pause") {
       state = "play";
@@ -249,7 +255,7 @@
   function enterOverworld(reset = true) {
     if (reset) overworld = window.OVERWORLD.createState("gate");
     overworldNoticeT = 0;
-    keys.clear();
+    keys.clear(); heldCodes.clear();
     joy = null;
     gpOverworldDir = "";
     state = "overworld";
@@ -286,7 +292,7 @@
     orders = []; job = null; enemies = []; gems = []; parts = []; texts = []; rings = []; misses = [];
     bossStage = 0; bossT = BOSS_TIMES[0]; finalBossDefeated = false; finalBossPos = null; victorySeq = null;
     ended = false; bossQ = null; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0;
-    keys.clear(); joy = null; gpMove = { x: 0, y: 0 };
+    keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     pTrail = [];
     for (let i = 0; i <= 24; i++) {
       pTrail.push({ x: P.x - i * 2, y: P.y + 10 });
@@ -356,7 +362,7 @@
     }
 
     state = "levelup";
-    keys.clear();
+    keys.clear(); heldCodes.clear();
     joy = null;
     AUDIO.levelUp();
   }
@@ -503,6 +509,7 @@
     score += isMis ? 30 : e.type === "boss" ? 400 : 15;
 
     if (e.type === "boss") {
+      AUDIO.bossDeath();
       if (e.final) {
         finalBossDefeated = true;
         finalBossPos = { x: e.x, y: e.y };
@@ -534,7 +541,11 @@
   function dash() {
     if (state !== "play" || dashCd > 0) return;
     const m = move();
-    if (Math.hypot(m.x, m.y) < 0.1) return;
+    if (Math.hypot(m.x, m.y) < 0.1) {
+      m.x = Math.cos(P.faceAng);
+      m.y = Math.sin(P.faceAng);
+    }
+    dashDir = { x: m.x, y: m.y };
     P.faceAng = Math.atan2(m.y, m.x);
     dashT = 0.22;
     dashCd = Math.max(0.6, 1.8 - b.dash * 0.38);
@@ -556,7 +567,7 @@
       purgeStarted: false
     };
     state = "victory";
-    keys.clear();
+    keys.clear(); heldCodes.clear();
     joy = null;
     bossQ = null;
     job = null;
@@ -622,7 +633,6 @@
     if (t >= 4.8) {
       state = "won";
       endCooldown = 0.8;
-      AUDIO.deliverSuccess();
     }
   }
 
@@ -821,7 +831,7 @@
   }
 
   function triggerHint() {
-    if (!job || oil <= 3 || hintT > 0) return;
+    if (state !== "play" || !job || oil <= 3 || hintT > 0) return;
     if (!job.hintStage) job.hintStage = 0;
     if (job.hintStage === 0) {
       oil -= 3;
@@ -1149,7 +1159,7 @@
     }
 
     // 玩家位移（基礎速度微調較慢，可藉由卡片提升）
-    const m = move();
+    const m = dashT > 0 ? dashDir : move();
     if (Math.hypot(m.x, m.y) > 0.05) {
       P.faceAng = Math.atan2(m.y, m.x);
     }
@@ -1174,13 +1184,12 @@
       if (pTrail.length > 70) pTrail.pop();
     }
 
-    // 沿著歷史軌跡尋找相距 44px 的座標點作為跟隨夥伴目標
-    const FOLLOW_DIST = 44;
-    let targetPos = { x: P.x - 44 * (P.faceX || 1), y: P.y + 10 };
+    // 加大圖案後保留 64px 間距，短軌跡與原地停留也不會藏到角色下方。
+    const FOLLOW_DIST = 64;
+    let targetPos = { x: P.x - FOLLOW_DIST * (P.faceX || 1), y: P.y + 10 };
     if (pTrail.length > 0) {
       let accum = 0;
       let prevPt = { x: P.x, y: P.y };
-      let found = false;
       for (let i = 0; i < pTrail.length; i++) {
         const pt = pTrail[i];
         const seg = Math.hypot(pt.x - prevPt.x, pt.y - prevPt.y);
@@ -1190,18 +1199,20 @@
             x: prevPt.x + (pt.x - prevPt.x) * ratio,
             y: prevPt.y + (pt.y - prevPt.y) * ratio
           };
-          found = true;
           break;
         }
         accum += seg;
         prevPt = pt;
       }
-      if (!found && pTrail.length > 0) {
-        targetPos = { ...pTrail[pTrail.length - 1] };
-      }
     }
     cargo.x += (targetPos.x - cargo.x) * Math.min(1, dt * 10);
     cargo.y += (targetPos.y - cargo.y) * Math.min(1, dt * 10);
+    const cargoGap = Math.hypot(cargo.x - P.x, cargo.y - P.y);
+    if (cargoGap < FOLLOW_DIST) {
+      const angle = cargoGap > 0.01 ? Math.atan2(cargo.y - P.y, cargo.x - P.x) : P.faceAng + Math.PI;
+      cargo.x = P.x + Math.cos(angle) * FOLLOW_DIST;
+      cargo.y = P.y + Math.sin(angle) * FOLLOW_DIST;
+    }
 
     // 武器運算
     weapons(dt);
@@ -1273,15 +1284,16 @@
       const d = Math.hypot(dx, dy) || 1;
 
       // 所有怪物逼近玩家（加入建築物碰撞障礙滑移）
-      const stepX = (dx / d) * curSpd * dt;
-      const stepY = (dy / d) * curSpd * dt;
+      const step = CFG.chaseStep(d, curSpd, dt, e.type);
+      const stepX = ((dx || (d === 1 && !dy ? 1 : 0)) / d) * step;
+      const stepY = (dy / d) * step;
       if (!blocked(e.x + stepX, e.y, 16)) e.x += stepX;
       if (!blocked(e.x, e.y + stepY, 16)) e.y += stepY;
 
       // 射手型妖怪（shooter）：於中距離發射幽冥妖火彈
-      if (e.type === "shooter") {
+      if (e.type === "shooter" || (e.type === "mis" && !revealing)) {
         e.shootCd = (e.shootCd || (2.0 + Math.random())) - dt;
-        if (e.shootCd <= 0 && d > 90 && d < 460) {
+        if (e.shootCd <= 0 && d > 50 && d < (e.type === "mis" ? 200 : 460)) {
           e.shootCd = 3.2 + Math.random() * 1.2;
           const bulletSpeed = 230;
           enemyBullets.push({
@@ -1500,14 +1512,15 @@
   function drawStageWeather(t) {
     if (STAGE_VISUAL.weather !== "rain") return;
     const intensity = Math.max(0.4, STAGE_VISUAL.rainIntensity || 1);
-    const drops = Math.round(72 * intensity);
+    const area = viewBounds();
+    const drops = Math.round(72 * intensity * area.width * area.height / (W * H));
     ctx.save();
     ctx.strokeStyle = "rgba(174, 218, 238, 0.48)";
     ctx.lineWidth = 1.5;
     ctx.lineCap = "round";
     for (let i = 0; i < drops; i++) {
-      const x = ((i * 97 + t * 430) % (W + 120)) - 60;
-      const y = ((i * 61 + t * 760) % (H + 120)) - 60;
+      const x = area.left + ((i * 97 + t * 430) % (area.width + 120)) - 60;
+      const y = area.top + ((i * 61 + t * 760) % (area.height + 120)) - 60;
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.lineTo(x - 12, y + 28);
@@ -1520,7 +1533,8 @@
       haze.addColorStop(0.5, `rgba(180, 198, 205, ${fog})`);
       haze.addColorStop(1, `rgba(98, 125, 148, ${fog * 0.7})`);
       ctx.fillStyle = haze;
-      ctx.fillRect(0, 0, W, H);
+      const area = viewBounds();
+      ctx.fillRect(area.left, area.top, area.width, area.height);
     }
     ctx.restore();
   }
@@ -1570,7 +1584,7 @@
         ctx.stroke();
 
         ctx.textAlign = "center";
-        ctx.font = "14px sans-serif";
+        ctx.font = UI.readableFont(14, "");
         ctx.fillText("📦", h.x, floatY + 5);
         ctx.restore();
       }
@@ -1587,7 +1601,7 @@
         ctx.lineWidth = 1.5;
         ctx.stroke();
         ctx.textAlign = "center";
-        ctx.font = "15px sans-serif";
+        ctx.font = UI.readableFont(15, "");
         ctx.fillText("⛩", h.x, floatY + 5);
         ctx.restore();
       }
@@ -1629,7 +1643,7 @@
         ctx.fill();
 
         ctx.fillStyle = `rgba(255, 235, 140, ${alpha})`;
-        ctx.font = "900 13px 'Kaisei Decol', sans-serif";
+        ctx.font = UI.readableFont(13, "900");
         ctx.textAlign = "center";
         ctx.fillText("✦ 式 神 結 界 ✦", job.to.x, job.to.y - 210);
         ctx.restore();
@@ -1652,8 +1666,8 @@
           ctx.stroke();
           ctx.textAlign = "center";
           ctx.fillStyle = "#888899";
-          ctx.font = "900 18px 'Zen Maru Gothic', sans-serif";
-          ctx.fillText(job.ans[i].jp, p.x, p.y + 6);
+          ctx.font = UI.readableFont(18, "900");
+          ctx.fillText(job.rev ? job.ans[i].zh : job.ans[i].jp, p.x, p.y + 6);
           // 畫排除叉號
           ctx.strokeStyle = "#e57373";
           ctx.lineWidth = 3;
@@ -1685,16 +1699,16 @@
 
         ctx.textAlign = "center";
         // 放大字體至 22px，並繪製白色外描邊以保證極高辨識度！
-        ctx.font = "900 22px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+        ctx.font = "900 28px 'Noto Sans JP', 'Microsoft JhengHei', sans-serif";
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 4;
-        const answerText = job.ans[i].jp;
+        const answerText = job.rev ? job.ans[i].zh : job.ans[i].jp;
         ctx.strokeText(answerText, p.x, p.y + (showMeaning ? 0 : 8));
         ctx.fillStyle = "#161224";
         ctx.fillText(answerText, p.x, p.y + (showMeaning ? 0 : 8));
 
         if (showMeaning) {
-          ctx.font = "bold 13px 'Noto Sans JP', sans-serif";
+          ctx.font = UI.readableFont(13, "bold");
           ctx.fillStyle = "#d84315";
           ctx.fillText(`【${job.ans[i].zh}】`, p.x, p.y + 19);
         }
@@ -1851,52 +1865,6 @@
     }
 
 
-    // 11. 貨物包裹伴行（單一圓形式神法玉，無多重形狀嵌套，完全跟隨玩家歷史軌跡）
-    if (job) {
-      ctx.save();
-      const floatBob = Math.sin(elapsed * 5) * 3;
-      const cyPos = cargo.y + floatBob;
-      const r = 18;
-
-      // 1. 地面柔和陰影
-      ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-      ctx.beginPath();
-      ctx.ellipse(cargo.x, cargo.y + 20, 16, 6, 0, 0, 6.28);
-      ctx.fill();
-
-      // 2. 式神金光光暈
-      ctx.shadowColor = "rgba(255, 215, 80, 0.75)";
-      ctx.shadowBlur = 12;
-
-      // 3. 單一圓形御神玉本體（白玉暖底 + 金色精緻描邊，無任何四邊形外框）
-      ctx.fillStyle = "#fffdf2";
-      ctx.beginPath();
-      ctx.arc(cargo.x, cyPos, r, 0, 6.28);
-      ctx.fill();
-
-      ctx.strokeStyle = "#d4af37";
-      ctx.lineWidth = 2.4;
-      ctx.stroke();
-
-      ctx.shadowBlur = 0;
-
-      // 4. 內圈細緻金環飾邊
-      ctx.strokeStyle = "rgba(212, 175, 55, 0.45)";
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.arc(cargo.x, cyPos, r - 3.5, 0, 6.28);
-      ctx.stroke();
-
-      // 5. 清晰貨物圖標直接置中呈現（花、彩虹、書、魚等，直接與地面日文配對）
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.font = "20px 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif";
-      ctx.fillText(job.word.icon || "📦", cargo.x, cyPos + 1);
-      ctx.textBaseline = "alphabetic";
-
-      ctx.restore();
-    }
-
     // 12. 主角 (狐耳快遞員 - 雙幀走動與金剛結界護盾)
     const moveDir = move();
     RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, moveDir, b.shield || 0);
@@ -1950,7 +1918,7 @@
     for (const t of texts) {
       ctx.globalAlpha = clamp(t.life, 0, 1);
       ctx.textAlign = "center";
-      ctx.font = "bold 17px 'Zen Maru Gothic', sans-serif";
+      ctx.font = UI.readableFont(17, "bold");
       ctx.fillStyle = t.c;
       ctx.fillText(t.v, t.x, t.y);
     }
@@ -1983,7 +1951,7 @@
 
       ctx.textAlign = "center";
       ctx.fillStyle = "#1e1824";
-      ctx.font = "900 14px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+      ctx.font = UI.readableFont(14, "900");
       // 委託送什麼東西一句話就好，送往哪裡不需要顯示
       ctx.fillText(`${o.word.icon}  ${o.word.jp}${o.rev ? "  ↔" : ""}`, h.x, floatY + 23);
 
@@ -2017,8 +1985,8 @@
 
         ctx.textAlign = "center";
         ctx.fillStyle = "#1a1622";
-        ctx.font = "900 12px 'Zen Maru Gothic', sans-serif";
-        ctx.fillText(touch ? "取貨" : "E　取貨", h.x, tagY + 16);
+        ctx.font = UI.readableFont(12, "900");
+        ctx.fillText("取貨", h.x, tagY + 18);
         ctx.restore();
       }
     }
@@ -2028,13 +1996,33 @@
     // 16. 動態 2D 光影遮罩（深夜至黎明）
     RENDERER.renderLighting(P, LAMPS, oil, visualElapsed, DAWN);
 
+    // 貨物本體置於夜色遮罩上，保持光暈與圖案清晰。
+    if (job) {
+      ctx.save();
+      ctx.translate(-cam.x, -cam.y);
+      const floatBob = Math.sin(elapsed * 5) * 3;
+      const cyPos = cargo.y + floatBob;
+      ctx.shadowColor = "#ffffff";
+      ctx.shadowBlur = 9;
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "40px 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif";
+      ctx.fillText(job.word.icon || "📦", cargo.x, cyPos + 1);
+      ctx.textBaseline = "alphabetic";
+
+      ctx.restore();
+    }
+
+
+
     // 17. 櫻花雨與夜行幽火
-    RENDERER.drawAtmosphere(visualElapsed);
+    RENDERER.drawAtmosphere(visualElapsed, STAGE.id === "night-town" ? 17 : 50);
     drawStageWeather(visualElapsed);
 
     // 18. 送貨目的地導引羅盤 (人魂靈火導引)
     const targetHouse = job ? job.to : orders.reduce((n, o) => (!n || dist(P, o.from) < dist(P, n) ? o.from : n), null);
-    if (targetHouse && (targetHouse.x < cam.x || targetHouse.x > cam.x + W || targetHouse.y < cam.y || targetHouse.y > cam.y + H)) {
+    if (targetHouse && (targetHouse.x < cam.x + viewBounds().left || targetHouse.x > cam.x + viewBounds().right || targetHouse.y < cam.y + viewBounds().top || targetHouse.y > cam.y + viewBounds().bottom)) {
       const an = Math.atan2(targetHouse.y - P.y, targetHouse.x - P.x);
       const cx = clamp(P.x - cam.x + Math.cos(an) * 210, 50, W - 50);
       const cy = clamp(P.y - cam.y + Math.sin(an) * 210, 95, H - 50);
@@ -2057,7 +2045,7 @@
     const bossTarget = bossHunt ? enemies.find(e => e.type === "boss" && e.final && e.hp > 0) : null;
     if (bossTarget) {
       const sx = bossTarget.x - cam.x, sy = bossTarget.y - cam.y;
-      const onScreen = sx >= 70 && sx <= W - 70 && sy >= 90 && sy <= H - 70;
+      const onScreen = sx >= viewBounds().left + 70 && sx <= viewBounds().right - 70 && sy >= viewBounds().top + 90 && sy <= viewBounds().bottom - 70;
       ctx.save();
       ctx.strokeStyle = "#ff3b4f";
       ctx.fillStyle = "#ff3b4f";
@@ -2070,7 +2058,7 @@
         ctx.arc(sx, sy - 30, pulseR, 0, 6.28);
         ctx.stroke();
         ctx.textAlign = "center";
-        ctx.font = "900 16px 'Noto Sans JP', sans-serif";
+        ctx.font = UI.readableFont(16, "900");
         ctx.fillText("大妖鬼", sx, sy - 100);
       } else {
         const an = Math.atan2(bossTarget.y - P.y, bossTarget.x - P.x);
@@ -2095,16 +2083,13 @@
   }
 
   // ---------- 輸入監聽 ----------
-  const MAP = {
-    ArrowLeft: "l", a: "l", A: "l",
-    ArrowRight: "r", d: "r", D: "r",
-    ArrowUp: "u", w: "u", W: "u",
-    ArrowDown: "d", s: "d", S: "d",
-    Shift: "dash", " ": "dash"
-  };
-
   addEventListener("keydown", e => {
-    if (e.key === "Escape" || e.key === "p" || e.key === "P") {
+    if (CONTROLS.isOpen()) return;
+    if (e.target?.closest?.('button, input, select, textarea, dialog')) return;
+    const action = CONTROLS.action(e.code);
+    if (action) e.preventDefault();
+    if (e.repeat && ["pause", "codex", "mute", "interact", "hint"].includes(action)) return;
+    if (action === "pause") {
       if (state === "codex") {
         state = codexBack;
         return;
@@ -2118,7 +2103,7 @@
         return;
       }
     }
-    if (e.key === "c" || e.key === "C") {
+    if (action === "codex") {
       if (state === "codex") {
         state = codexBack;
       } else if (state === "menu" || state === "overworld" || state === "won" || state === "lost" || state === "pause") {
@@ -2127,7 +2112,7 @@
       }
       return;
     }
-    if (e.key === "m" || e.key === "M") {
+    if (action === "mute") {
       AUDIO.toggleMute();
       return;
     }
@@ -2136,11 +2121,11 @@
       return;
     }
     if (state === "overworld") {
-      if (["ArrowLeft", "a", "A"].includes(e.key)) { e.preventDefault(); moveOverworld(-1, 0); }
-      else if (["ArrowRight", "d", "D"].includes(e.key)) { e.preventDefault(); moveOverworld(1, 0); }
-      else if (["ArrowUp", "w", "W"].includes(e.key)) { e.preventDefault(); moveOverworld(0, -1); }
-      else if (["ArrowDown", "s", "S"].includes(e.key)) { e.preventDefault(); moveOverworld(0, 1); }
-      else if (e.key === "Enter" || e.key === " " || e.key === "e" || e.key === "E") { e.preventDefault(); confirmOverworld(); }
+      if (action === "l") { e.preventDefault(); moveOverworld(-1, 0); }
+      else if (action === "r") { e.preventDefault(); moveOverworld(1, 0); }
+      else if (action === "u") { e.preventDefault(); moveOverworld(0, -1); }
+      else if (action === "d") { e.preventDefault(); moveOverworld(0, 1); }
+      else if (e.key === "Enter" || action === "interact" || action === "dash") { e.preventDefault(); confirmOverworld(); }
       return;
     }
     if (state !== "play") {
@@ -2153,36 +2138,46 @@
       }
       return;
     }
-    if (e.key === "e" || e.key === "E") interact();
+    if (action === "interact") interact();
     else if (bossQ && "123".includes(e.key)) {
       const idx = +e.key - 1;
       if (idx >= 0 && idx < bossQ.ans.length) answerBoss(idx);
     }
-    else if ((e.key === "h" || e.key === "H") && job) {
+    else if ((action === "hint") && job) {
       triggerHint();
-    } else if (MAP[e.key]) {
+    } else if (["u", "d", "l", "r", "dash"].includes(action)) {
       e.preventDefault();
-      keys.add(MAP[e.key]);
+      heldCodes.add(e.code);
+      keys.add(action);
     }
   });
 
-  addEventListener("keyup", e => MAP[e.key] && keys.delete(MAP[e.key]));
-  addEventListener("blur", () => { keys.clear(); joy = null; });
+  addEventListener("keyup", e => {
+    const action = CONTROLS.action(e.code);
+    heldCodes.delete(e.code);
+    if (action && ![...heldCodes].some(code => CONTROLS.action(code) === action)) keys.delete(action);
+  });
+  const suspend = () => { keys.clear(); heldCodes.clear(); joy = null; if (state === "play") togglePause(); };
+  addEventListener("blur", suspend);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) suspend(); });
 
   const pp = e => {
     const r = cv.getBoundingClientRect();
+    const v = window.VIEWPORT?.get() || {width:W,height:H,offsetX:0,offsetY:0};
     return {
-      x: (e.clientX - r.left) * W / r.width,
-      y: (e.clientY - r.top) * H / r.height
+      x: (e.clientX - r.left) * v.width / r.width - v.offsetX,
+      y: (e.clientY - r.top) * v.height / r.height - v.offsetY
     };
   };
   const hit = (p, bt) => Math.hypot(p.x - bt.x, p.y - bt.y) < bt.r + 10;
 
-  cv.addEventListener("pointerdown", e => {
+  document.getElementById("game-container").addEventListener("pointerdown", e => {
     e.preventDefault();
     cv.setPointerCapture(e.pointerId);
     AUDIO.init();
-    if (e.pointerType !== "mouse") touch = true;
+    touch = e.pointerType !== "mouse";
+    if (e.pointerType === "mouse" && e.button === 2) { dash(); return; }
+    if (e.pointerType === "mouse" && e.button !== 0) return;
     const p = pp(e);
 
     // 檢查右上角暫停鈕點擊
@@ -2210,6 +2205,12 @@
     }
 
     if (state === "codex") {
+      if (codexTab === "words" && p.y >= 78 && p.y <= 118) {
+        const lastPage = Math.max(0, Math.ceil(CODEX_ALL.length / 15) - 1);
+        if (p.x >= 40 && p.x <= 104) codexPage = Math.max(0, codexPage - 1);
+        else if (p.x >= 796 && p.x <= 860) codexPage = Math.min(lastPage, codexPage + 1);
+        return;
+      }
       // 點擊頂部標籤頁切換
       const tabW = 160, tabH = 32, tabY = 56;
       const tabCardsX = W / 2 - tabW - 8, tabWordsX = W / 2 + 8;
@@ -2326,13 +2327,14 @@
       interact();
     } else if (hit(p, btnD)) {
       dash();
-    } else if (p.x < W / 2 && p.y > 80 && !joy) {
-      joy = { id: e.pointerId, x: p.x, y: p.y, dx: 0, dy: 0 };
     } else if (job && UI.HINT_BTN && p.x >= UI.HINT_BTN.x && p.x <= UI.HINT_BTN.x + UI.HINT_BTN.w && p.y >= UI.HINT_BTN.y && p.y <= UI.HINT_BTN.y + UI.HINT_BTN.h) {
       triggerHint();
+    } else if ((e.pointerType === "mouse" || (p.x < W / 2 && p.y > 80)) && !joy) {
+      joy = { id: e.pointerId, x: p.x, y: p.y, dx: 0, dy: 0 };
     }
   });
 
+  cv.addEventListener("contextmenu", e => e.preventDefault());
   cv.addEventListener("pointermove", e => {
     if (joy?.id !== e.pointerId) return;
     const p = pp(e);
@@ -2360,7 +2362,7 @@
     }
 
     // 手把輪詢（包含搖桿蘑菇頭與按鈕）
-    pollGamepad();
+    if (!CONTROLS.isOpen()) pollGamepad();
 
     if (state === "play") {
       update(dt);
@@ -2374,11 +2376,15 @@
 
     if ((state === "won" || state === "lost") && !ended) {
       ended = true;
+      if (state === "won") AUDIO.fanfare();
+      else AUDIO.lose();
       STORE.finish(STAGE.id, score, delivered, state === "won");
     }
 
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const v = window.VIEWPORT?.get() || {offsetX:0,offsetY:0};
+    ctx.setTransform(dpr, 0, 0, dpr, v.offsetX*dpr, v.offsetY*dpr);
 
+    controlsButton.hidden = !["menu", "pause", "won", "lost", "overworld"].includes(state);
     if (state === "menu") {
       UI.drawMainMenu(ctx, STORE, now / 1000);
     } else if (state === "overworld") {
@@ -2393,7 +2399,8 @@
           dawnGlow.addColorStop(0.55, `rgba(255, 178, 105, ${0.12 * dawnP})`);
           dawnGlow.addColorStop(1, "rgba(255, 178, 105, 0)");
           ctx.fillStyle = dawnGlow;
-          ctx.fillRect(0, 0, W, H);
+          const area = viewBounds();
+      ctx.fillRect(area.left, area.top, area.width, area.height);
         }
       } else {
         const dashMax = Math.max(0.6, 1.8 - b.dash * 0.38);
@@ -2412,7 +2419,7 @@
     }
 
     if (state === "codex") {
-      UI.drawCodex(ctx, STORE, CODEX_ALL, codexTab);
+      UI.drawCodex(ctx, STORE, CODEX_ALL, codexTab, codexPage);
     }
 
     requestAnimationFrame(frame);

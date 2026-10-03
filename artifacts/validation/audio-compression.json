@@ -1,0 +1,76 @@
+{
+  "backupDirectory": "I:\\WinTemp\\yokai-audio-originals-20261003-y820xb8w",
+  "encoder": "libmp3lame VBR quality 3; no volume/filter/sample-rate changes",
+  "tracks": [
+    {
+      "name": "BGM",
+      "before": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "sample_rate": "44100",
+            "channels": 2
+          }
+        ],
+        "format": {
+          "duration": "243.748571",
+          "size": "5880158",
+          "bit_rate": "192990"
+        }
+      },
+      "after": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "sample_rate": "44100",
+            "channels": 2
+          }
+        ],
+        "format": {
+          "duration": "243.748571",
+          "size": "4521169",
+          "bit_rate": "148387"
+        }
+      },
+      "reductionPercent": 23.1,
+      "decoded": true
+    },
+    {
+      "name": "MAP",
+      "before": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "sample_rate": "48000",
+            "channels": 2
+          }
+        ],
+        "format": {
+          "duration": "117.840000",
+          "size": "2745026",
+          "bit_rate": "186356"
+        }
+      },
+      "after": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "sample_rate": "48000",
+            "channels": 2
+          }
+        ],
+        "format": {
+          "duration": "117.840000",
+          "size": "2035220",
+          "bit_rate": "138168"
+        }
+      },
+      "reductionPercent": 25.9,
+      "decoded": true
+    }
+  ]
+}

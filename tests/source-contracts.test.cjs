@@ -24,5 +24,5 @@ test("mobile hint has a visible exported hit target", () => {
 
 test("reverse deliveries actually change answer text", () => {
   assert.match(game, /job\.rev \? job\.ans\[i\]\.zh : job\.ans\[i\]\.jp/);
-  assert.match(game, /j\.rev \? 18 : 12/);
+  assert.match(game, /const gain = 10/);
 });

@@ -22,5 +22,10 @@
 | `break-shield.mp3` | Boss 破防 |
 | `level-up.mp3` | 升級 |
 | `warning-pulse.mp3` | 百鬼夜行警報 |
+| `boss-death.mp3` | Boss 死亡（含一般與最終 Boss） |
+| `fanfare.mp3` | 過關結算畫面，進入時播放一次 |
+| `lose.mp3` | 失敗結算畫面，進入時播放一次 |
 
 單字語音仍放在 `assets/audio/words/`，BGM 仍使用 `assets/audio/BGM.mp3`（或 `assets/audio/bgm.mp3`）。
+
+新增的三個結算／死亡音效未提供 MP3 時，會使用內建合成音效。替換現有檔案後須更新 `js/assets.js` 的音訊版本字串，避免正式站台瀏覽器沿用舊快取；目前版本為 `20261003-3`。
