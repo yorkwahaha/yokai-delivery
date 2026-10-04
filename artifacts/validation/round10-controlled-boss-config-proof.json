@@ -1,0 +1,21 @@
+{
+  "effectiveNightTownSchedule": [
+    10,
+    360,
+    540,
+    590
+  ],
+  "originalSchedule": [
+    180,
+    360,
+    540,
+    590
+  ],
+  "overriddenFile": "js/words.js",
+  "onlyScheduleChanged": true,
+  "origin": "http://127.0.0.1:8789",
+  "originalSha256": "1c4eb6fe8621480a6e761cda8a2343dbf16e1fb4a3ae030316569c3128014dd5",
+  "servedSha256": "1d86cea3e3bec7ccc4a0f2bf63c6422e029c6c5d1dc315bba1d691e506034d9f",
+  "formalFilesModified": false,
+  "initialConfigOnlyOverrideWasIneffective": true
+}
