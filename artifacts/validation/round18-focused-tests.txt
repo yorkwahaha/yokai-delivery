@@ -1,0 +1,13 @@
+✔ oil numbers and bar remain prominent and low-oil warning uses capacity ratio (13.0325ms)
+✔ HUD skill badges are readable and their labels fit their backing rectangles (5.8179ms)
+✔ passive overflow discloses the exact hidden count and vanishes when everything fits (15.0893ms)
+✔ opening touch joystick guidance stays above the taller skill footer (2.4186ms)
+✔ Boss quiz clears the actual skill footer after its labels grow (4.4396ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 90.9082

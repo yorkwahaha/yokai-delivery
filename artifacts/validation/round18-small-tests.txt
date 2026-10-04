@@ -1,0 +1,11 @@
+✔ oil numbers and bar remain prominent and low-oil warning uses capacity ratio (11.8689ms)
+✔ HUD skill badges are readable and their labels fit their backing rectangles (5.6682ms)
+✔ passive overflow discloses the exact hidden count and vanishes when everything fits (14.2142ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 80.0299

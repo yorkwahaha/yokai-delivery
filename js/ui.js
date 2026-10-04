@@ -182,25 +182,35 @@ window.UI = (() => {
 
     // --- 左上角：玩家生存與成長懸浮艙 (燈油即生命 + 經驗值條) ---
     const bounds = window.VIEWPORT?.hudBounds() || screenBounds();
-    const pBoxX = bounds.left + 18, pBoxY = bounds.top + 14, pBoxW = 225, pBoxH = 52;
-    glassBox(ctx, pBoxX, pBoxY, pBoxW, pBoxH, 10);
+    const scale = window.VIEWPORT?.get().scale || (document.getElementById("game")?.getBoundingClientRect().width || 900) / 900;
+    const oilTextSize = Math.max(20, Math.ceil(18 / scale));
+    const oilBarH = Math.max(14, Math.ceil(12 / scale));
+    const xpTextSize = Number(readableFont(12).match(/([\d.]+)px/)[1]);
+    const pBoxX = bounds.left + 18, pBoxY = bounds.top + 14, pBoxW = Math.max(225, Math.ceil(150 / scale));
+    const pBoxH = oilTextSize + oilBarH + xpTextSize + 28;
+    const curMaxOil = maxOil || 100;
+    const oilRatio = Math.max(0, Math.min(1, oil / curMaxOil)), lowOil = oilRatio <= 0.25;
+    glassBox(ctx, pBoxX, pBoxY, pBoxW, pBoxH, 10, lowOil ? "rgba(48, 13, 20, 0.94)" : "rgba(12, 16, 28, 0.9)", lowOil ? "#ff8a75" : "#d4af37", lowOil ? 2.5 : 1.5);
 
     // 1. 提燈油量條（生命條：油盡燈枯即陣亡）
     ctx.textAlign = "left";
-    ctx.fillStyle = "#ffb03a";
-    ctx.font = readableFont(13, "900");
-    ctx.fillText("燈油", pBoxX + 6, pBoxY + 20);
+    ctx.fillStyle = lowOil ? "#ffb4a5" : "#ffb03a";
+    ctx.font = readableFont(14, "900");
+    ctx.fillText(lowOil ? "低油！" : "燈油", pBoxX + 10, pBoxY + oilTextSize + 6);
+    ctx.fillStyle = "#fff4dd";
+    ctx.font = readableFont(oilTextSize, "900");
+    ctx.textAlign = "right";
+    ctx.fillText(`${Math.ceil(oil)}/${curMaxOil}`, pBoxX + pBoxW - 10, pBoxY + oilTextSize + 6);
+    ctx.textAlign = "left";
 
-    const oilBarW = 90, oilBarH = 10;
+    const oilBarW = pBoxW - 20, oilBarX = pBoxX + 10, oilBarY = pBoxY + oilTextSize + 12;
     ctx.fillStyle = "#1c1814";
     ctx.beginPath();
-    ctx.roundRect(pBoxX + 46, pBoxY + 11, oilBarW, oilBarH, 4);
+    ctx.roundRect(oilBarX, oilBarY, oilBarW, oilBarH, 4);
     ctx.fill();
 
-    const curMaxOil = maxOil || 100;
-    const oilRatio = Math.max(0, Math.min(1, oil / curMaxOil));
-    const oilGrad = ctx.createLinearGradient(pBoxX + 46, 0, pBoxX + 46 + oilBarW, 0);
-    if (oil < 25) {
+    const oilGrad = ctx.createLinearGradient(oilBarX, 0, oilBarX + oilBarW, 0);
+    if (lowOil) {
       oilGrad.addColorStop(0, "#ff3838");
       oilGrad.addColorStop(1, "#ff7943");
     } else {
@@ -210,33 +220,30 @@ window.UI = (() => {
     if (oilRatio > 0) {
       ctx.fillStyle = oilGrad;
       ctx.beginPath();
-      ctx.roundRect(pBoxX + 46, pBoxY + 11, oilBarW * oilRatio, oilBarH, 4);
+      ctx.roundRect(oilBarX, oilBarY, oilBarW * oilRatio, oilBarH, 4);
       ctx.fill();
     }
-    ctx.fillStyle = "#ffeed4";
-    ctx.font = readableFont(12, "900");
-    ctx.fillText(`${Math.ceil(oil)}/${curMaxOil}`, pBoxX + 142, pBoxY + 20);
-
     // 2. 經驗值條 (滿了即升級)
     ctx.font = readableFont(12, "900");
     ctx.fillStyle = "#40c4ff";
-    ctx.fillText(`Lv.${level}`, pBoxX + 6, pBoxY + 42);
+    const xpY = oilBarY + oilBarH + xpTextSize + 8;
+    ctx.fillText(`Lv.${level}`, pBoxX + 10, xpY);
 
     const xpBarW = 80, xpBarH = 9;
     ctx.fillStyle = "#151b27";
     ctx.beginPath();
-    ctx.roundRect(pBoxX + 60, pBoxY + 33, xpBarW, xpBarH, 4);
+    ctx.roundRect(pBoxX + 60, xpY - 9, xpBarW, xpBarH, 4);
     ctx.fill();
     const xpRatio = Math.min(1, xp / xpNeed);
     if (xpRatio > 0) {
       ctx.fillStyle = "#40c4ff";
       ctx.beginPath();
-      ctx.roundRect(pBoxX + 60, pBoxY + 33, xpBarW * xpRatio, xpBarH, 4);
+      ctx.roundRect(pBoxX + 60, xpY - 9, xpBarW * xpRatio, xpBarH, 4);
       ctx.fill();
     }
     ctx.fillStyle = "#c5eeff";
     ctx.font = readableFont(11, "bold");
-    ctx.fillText(`${xp}/${xpNeed}`, pBoxX + 147, pBoxY + 42);
+    ctx.fillText(`${xp}/${xpNeed}`, pBoxX + 147, xpY);
 
     // 3. 金剛結界護盾膠囊（位於生命欄正下方，整潔且絕不遮擋中央委託提示）
     if (b.shield && b.shield > 0) {
@@ -350,11 +357,12 @@ window.UI = (() => {
     // --- 左下角：HoloCure 風格【主動秘術 4 槽位 + 被動體質欄】 ---
     const ownedKeys = WI ? Object.keys(WI).filter(k => (WL[k] || 0) > 0) : [];
     const maxActiveSlots = 4;
+    const {badgeTextSize, badgeH, slotSize, footerHeight} = skillMetrics(scale, ctx);
+    const slotGap = 8;
     ctx.save();
-    ctx.translate(bounds.left + 18, bounds.bottom - 62);
+    ctx.translate(bounds.left + 18, bounds.bottom - footerHeight - 12);
     ctx.scale(1.2, 1.2);
     const slotStartX = 0, slotY = 0;
-    const slotSize = 40, slotGap = 8;
 
     for (let i = 0; i < maxActiveSlots; i++) {
       const sx = slotStartX + i * (slotSize + slotGap);
@@ -362,16 +370,16 @@ window.UI = (() => {
       if (k) {
         // 主動技能格：繪製精緻微型和風家紋勳章 (r = 17)
         drawEmblem(ctx, k, sx + slotSize / 2, slotY + slotSize / 2, 17);
-        // 右下角等級徽章
+        // 等級獨立放在圖示下方，整格寬度容納 L1–L4／MAX。
         const lvl = WL[k];
         ctx.fillStyle = "#d4af37";
         ctx.beginPath();
-        ctx.roundRect(sx + slotSize - 20, slotY + slotSize - 13, 20, 13, 3);
+        ctx.roundRect(sx, slotY + slotSize, slotSize, badgeH, 3);
         ctx.fill();
         ctx.fillStyle = "#161022";
         ctx.textAlign = "center";
-        ctx.font = "900 9px sans-serif";
-        ctx.fillText(lvl >= 5 ? "MAX" : `L${lvl}`, sx + slotSize - 10, slotY + slotSize - 3);
+        ctx.font = `900 ${badgeTextSize}px 'Noto Sans JP', sans-serif`;
+        ctx.fillText(lvl >= 5 ? "MAX" : `L${lvl}`, sx + slotSize / 2, slotY + slotSize + badgeTextSize + 3);
       } else {
         // 未解鎖空槽位：虛線框
         ctx.save();
@@ -403,22 +411,27 @@ window.UI = (() => {
       { id: "mag", lvl: b.mag || 0, active: (b.mag || 0) > 0 }
     ].filter(p => p.active);
 
-    passives.forEach((pas, pIdx) => {
-      const px = slotStartX + 200 + pIdx * 34;
-      if ((px+28)*1.2 < bounds.width-18-180) {
-        drawEmblem(ctx, pas.id, px + 14, slotY + 20, 14);
-        if (pas.lvl > 1) {
-          ctx.fillStyle = "#ffd54f";
-          ctx.beginPath();
-          ctx.roundRect(px + 14, slotY + 20, 14, 11, 3);
-          ctx.fill();
-          ctx.fillStyle = "#161022";
-          ctx.textAlign = "center";
-          ctx.font = "900 8px sans-serif";
-          ctx.fillText(`+${pas.lvl}`, px + 21, slotY + 28);
-        }
-      }
+    const passiveX = maxActiveSlots * (slotSize + slotGap) + 8, available = (bounds.width - 18 - 180) / 1.2;
+    const passiveSlots = Math.max(1, Math.floor((available - passiveX + slotGap) / (slotSize + slotGap)));
+    const visibleCount = passives.length <= passiveSlots ? passives.length : passiveSlots - 1;
+    passives.slice(0, visibleCount).forEach((pas, pIdx) => {
+      const px = passiveX + pIdx * (slotSize + slotGap);
+      drawEmblem(ctx, pas.id, px + slotSize / 2, slotY + slotSize / 2, 14);
+      ctx.fillStyle = "#ffd54f";ctx.beginPath();
+      ctx.roundRect(px, slotY + slotSize, slotSize, badgeH, 3);ctx.fill();
+      ctx.fillStyle = "#161022";ctx.textAlign = "center";
+      ctx.font = `900 ${badgeTextSize}px 'Noto Sans JP', sans-serif`;
+      ctx.fillText(`×${pas.lvl}`, px + slotSize / 2, slotY + slotSize + badgeTextSize + 3);
     });
+    const hiddenPassives = passives.length - visibleCount;
+    if (hiddenPassives > 0) {
+      const px = passiveX + visibleCount * (slotSize + slotGap);
+      glassBox(ctx, px, slotY, slotSize, slotSize + badgeH, 6, "rgba(36, 30, 14, 0.94)", "#ffd54f");
+      ctx.fillStyle = "#ffe28b";ctx.textAlign = "center";
+      ctx.font = `900 ${badgeTextSize}px 'Noto Sans JP', sans-serif`;
+      ctx.fillText(`＋${hiddenPassives}`, px + slotSize / 2, slotY + slotSize / 2 + badgeTextSize * 0.35);
+      ctx.fillText("被動", px + slotSize / 2, slotY + slotSize + badgeTextSize + 3);
+    }
     ctx.restore();
 
     // 觸控虛擬按鈕
@@ -426,13 +439,14 @@ window.UI = (() => {
       ctx.save();
       // 開場只用半透明搖桿輪廓提示「左側可拖曳」，不彈教學文字。
       if (touch && !joy && elapsed < 15) {
+        const hintY = bounds.bottom - footerHeight - 76;
         ctx.strokeStyle = "rgba(255,255,255,0.28)";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(bounds.left + 105, bounds.bottom - 125, 52, 0, 6.28);
+        ctx.arc(bounds.left + 105, hintY, 52, 0, 6.28);
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(bounds.left + 105, bounds.bottom - 125, 20, 0, 6.28);
+        ctx.arc(bounds.left + 105, hintY, 20, 0, 6.28);
         ctx.stroke();
       }
       const cdRatio = Math.max(0, Math.min(1, dashCd / Math.max(0.01, dashMax)));
@@ -483,11 +497,11 @@ window.UI = (() => {
       ctx.restore();
     }
     if (!touch && elapsed < 12) {
-      glassBox(ctx, bounds.left + 22, bounds.bottom - 112, 72, 30, 7, "rgba(12,16,28,0.62)", "rgba(255,255,255,0.25)", 1);
+      glassBox(ctx, bounds.left + 22, bounds.bottom - footerHeight - 50, 72, 30, 7, "rgba(12,16,28,0.62)", "rgba(255,255,255,0.25)", 1);
       ctx.textAlign = "center";
       ctx.fillStyle = "rgba(255,255,255,0.72)";
       ctx.font = readableFont(12, "900");
-      ctx.fillText("拖曳移動", bounds.left + 58, bounds.bottom - 92);
+      ctx.fillText("拖曳移動", bounds.left + 58, bounds.bottom - footerHeight - 30);
     }
 
     ctx.restore();
@@ -1128,6 +1142,18 @@ window.UI = (() => {
   }
 
   // 4. Boss 破防答題介面
+  function skillMetrics(scale, ctx) {
+    const badgeTextSize = Math.max(11, Math.ceil(14 / (scale * 1.2))), badgeH = badgeTextSize + 8;
+    let labelWidth = badgeTextSize * 3;
+    if (ctx) {
+      ctx.save();ctx.font = `900 ${badgeTextSize}px 'Noto Sans JP', sans-serif`;
+      labelWidth = Math.max(ctx.measureText("MAX").width, ctx.measureText("被動").width);
+      ctx.restore();
+    }
+    const slotSize = Math.max(40, Math.ceil(labelWidth) + 12);
+    return {badgeTextSize, badgeH, slotSize, footerHeight:(slotSize + badgeH) * 1.2};
+  }
+
   function bossQuizLayout(n) {
     const bounds = window.VIEWPORT?.hudBounds() || screenBounds();
     const scale = window.VIEWPORT?.get().scale || (document.getElementById('game')?.getBoundingClientRect().width || 900)/900;
@@ -1135,7 +1161,8 @@ window.UI = (() => {
     const w = Math.min(690,right-left), gap = n===2 ? 36 : 24;
     const optW = Math.min(n===2 ? 260 : 200,(w-42-(n-1)*gap)/n);
     const optH = Math.max(46,Math.ceil(44/scale)), h = optH+59;
-    const x = left+(right-left-w)/2, y = bounds.bottom-86-h;
+    const {footerHeight} = skillMetrics(scale, document.getElementById('game')?.getContext?.('2d'));
+    const x = left+(right-left-w)/2, y = bounds.bottom-Math.max(86,footerHeight+24)-h;
     const startX = x+(w-n*optW-(n-1)*gap)/2;
     return {x,y,w,h,options:Array.from({length:n},(_,i)=>({x:startX+i*(optW+gap),y:y+46,w:optW,h:optH}))};
   }

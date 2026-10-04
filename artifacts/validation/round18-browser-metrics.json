@@ -1,0 +1,128 @@
+[
+  {
+    "viewport": [
+      900,
+      600
+    ],
+    "profile": "low",
+    "oilCssSize": 20,
+    "minBadgeCssSize": 14.40000057220459,
+    "uncontainedBadges": [],
+    "visiblePassives": 6,
+    "hiddenPassives": 2
+  },
+  {
+    "viewport": [
+      844,
+      390
+    ],
+    "profile": "low",
+    "oilCssSize": 18.19999933242798,
+    "minBadgeCssSize": 14.040000042915324,
+    "uncontainedBadges": [],
+    "visiblePassives": 8,
+    "hiddenPassives": 0
+  },
+  {
+    "viewport": [
+      568,
+      320
+    ],
+    "profile": "low",
+    "oilCssSize": 18.133334279060364,
+    "minBadgeCssSize": 14.080001293818185,
+    "uncontainedBadges": [],
+    "visiblePassives": 4,
+    "hiddenPassives": 4
+  },
+  {
+    "viewport": [
+      800,
+      600
+    ],
+    "profile": "low",
+    "oilCssSize": 18.66666680574417,
+    "minBadgeCssSize": 14.933334037992694,
+    "uncontainedBadges": [],
+    "visiblePassives": 5,
+    "hiddenPassives": 3
+  },
+  {
+    "viewport": [
+      1920,
+      1080
+    ],
+    "profile": "low",
+    "oilCssSize": 35.999999046325684,
+    "minBadgeCssSize": 23.7600003147125,
+    "uncontainedBadges": [],
+    "visiblePassives": 8,
+    "hiddenPassives": 0,
+    "screenshot": {
+      "width": 1685,
+      "height": 1080,
+      "complete": false,
+      "kept": false
+    }
+  },
+  {
+    "viewport": [
+      844,
+      390
+    ],
+    "profile": "full",
+    "oilCssSize": 18.19999933242798,
+    "minBadgeCssSize": 14.040000042915324,
+    "uncontainedBadges": [],
+    "visiblePassives": 8,
+    "hiddenPassives": 0
+  },
+  {
+    "viewport": [
+      1280,
+      720
+    ],
+    "profile": "full",
+    "oilCssSize": 24.000000953674316,
+    "minBadgeCssSize": 15.840001258850123,
+    "uncontainedBadges": [],
+    "visiblePassives": 8,
+    "hiddenPassives": 0
+  },
+  {
+    "viewport": [
+      844,
+      390
+    ],
+    "profile": "empty",
+    "oilCssSize": 18.19999933242798,
+    "minBadgeCssSize": 14.040000042915324,
+    "uncontainedBadges": [],
+    "visiblePassives": 0,
+    "hiddenPassives": 0
+  },
+  {
+    "viewport": [
+      568,
+      320
+    ],
+    "profile": "touch-low",
+    "oilCssSize": 18.133334279060364,
+    "minBadgeCssSize": 14.080001293818185,
+    "uncontainedBadges": [],
+    "visiblePassives": 4,
+    "hiddenPassives": 4
+  },
+  {
+    "viewport": [
+      844,
+      390
+    ],
+    "profile": "touch-low",
+    "oilCssSize": 18.19999933242798,
+    "minBadgeCssSize": 14.040000042915324,
+    "uncontainedBadges": [],
+    "visiblePassives": 8,
+    "hiddenPassives": 0
+  }
+]
