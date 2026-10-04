@@ -21,11 +21,12 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
   c.RENDERER = new Proxy({ drawHouse: h => actorCalls.push(`house:${h.id}`), drawPlayer: () => actorCalls.push('player'), drawMonster: e => actorCalls.push(`enemy:${e.id}`), getCtx: () => ctx, getDpr: () => c.devicePixelRatio || 1, getCam: () => ({ x: 900, y: 600 }), getShakeOffset: () => ({x:0,y:0}), updateEffects: () => false }, { get: (o, k) => o[k] || (() => {}) });
   vm.runInContext(fs.readFileSync('js/ui.js','utf8'),c);
   const uiButtons=Object.fromEntries(Object.entries(c.UI).filter(([,v])=>typeof v!=='function'));
-  c.UI = new Proxy({ ...uiButtons, pauseButtons:c.UI.pauseButtons, HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
+  c.UI = new Proxy({ ...uiButtons, pauseButtons:c.UI.pauseButtons, bossQuizLayout:c.UI.bossQuizLayout, HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
   const source = fs.readFileSync('js/game.js', 'utf8');
   const end = source.lastIndexOf('})();');
   const hook = `window.fixture = { start, update, frame, drawWorld, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons,
     tutorialState: () => tutorial,
+    guidePoint: (...args) => guidePoint(...args),
     reviewWords: () => misses,
     answerBoss,
     setOil: value => { oil=value; },
@@ -53,13 +54,63 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     meetDeliveryGoal: () => { delivered=GOAL_DELIVERIES; },
     prepareBoss: (word) => { const bs={x:P.x+200,y:P.y,type:'boss',word:word || ALL[0],hp:999,max:999,shield:true}; enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
     setState: next => { state=next; ended=false; },
-    snapshot: () => ({ state, needles, menuFocus, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, delivered, bossStage, bossT, finalBossDefeated, gems, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
+    snapshot: () => ({ state, quitConfirm:typeof quitConfirm==='undefined'?false:quitConfirm, needles, menuFocus, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, delivered, bossStage, bossT, finalBossDefeated, gems, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
     addMis: () => enemies.push({x:P.x+100,y:P.y,type:"mis",w:ALL[0],hp:999,max:999,speed:210,flash:0,wob:0}), emptyHouses: () => houses.splice(0) };`;
   vm.runInContext(source.slice(0, end) + hook + source.slice(end), c);
   return { ...c.fixture, events, canvasEvents, documentEvents, env: c, audioCalls, drawnText, actorCalls, transforms };
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
+
+test('offscreen guides reach actual viewport edges along the target direction',()=>{
+  for(const [width,height] of [[900,600],[844,390],[2560,1080],[800,600]]) {
+    const g=loadGame();g.env.innerWidth=width;g.env.innerHeight=height;g.start();
+    const s=g.snapshot(),bounds=g.env.VIEWPORT.bounds();
+    for(const [dx,dy] of [[10000,0],[-10000,0],[0,10000],[0,-10000],[10000,10000]]) {
+      const p=g.guidePoint({x:s.x+dx,y:s.y+dy});
+      assert.ok(p.x>=bounds.left+50-1e-8 && p.x<=bounds.right-50+1e-8);
+      assert.ok(p.y>=bounds.top+95-1e-8 && p.y<=bounds.bottom-50+1e-8);
+      if(!dy) assert.ok(Math.abs(p.x-(dx>0?bounds.right-50:bounds.left+50))<1e-8);
+      if(!dx) assert.ok(Math.abs(p.y-(dy>0?bounds.bottom-50:bounds.top+95))<1e-8);
+      if(dx && dy) assert.ok(Math.abs((p.x-450)-(p.y-300))<1e-8);
+    }
+  }
+});
+
+test('abandon confirmation defaults to keeping the paused run and blocks covered actions',()=>{
+  const g=loadGame();g.start();g.prepareOrder();g.prepareBoss();
+  const before=g.snapshot();g.events.keydown(key('Escape','Escape'));
+  const request=()=>{for(let i=0;i<g.env.UI.PAUSE_BTNS.findIndex(b=>b.id==='menu');i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));};
+  request();assert.equal(g.snapshot().state,'pause');assert.equal(g.snapshot().quitConfirm,true);
+  assert.equal(g.snapshot().menuFocus,0);
+  g.events.keydown(key('KeyC','c'));g.events.keydown({...key('Enter','Enter'),repeat:true});g.update(1);
+  assert.equal(g.snapshot().quitConfirm,true);assert.equal(g.snapshot().state,'pause');
+  assert.equal(g.snapshot().job,before.job);assert.equal(g.snapshot().bossQ,before.bossQ);
+  assert.equal(g.snapshot().elapsed,before.elapsed);assert.equal(g.snapshot().oil,before.oil);
+  g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().quitConfirm,false);assert.equal(g.snapshot().state,'pause');
+  request();g.events.keydown(key('Escape','Escape'));assert.equal(g.snapshot().state,'pause');assert.equal(g.snapshot().quitConfirm,false);
+  request();g.events.keydown(key('ArrowRight'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'menu');
+});
+
+test('abandon confirmation works for touch and gamepad without leaking confirmation',()=>{
+  for(const mode of ['touch','gamepad']) {
+    const g=loadGame();g.env.innerWidth=844;g.env.innerHeight=390;g.start();g.setState('pause');
+    const v=g.env.VIEWPORT.get();
+    const click=b=>g.canvasEvents.pointerdown(pointer((b.x+b.w/2+v.offsetX)*v.scale,(b.y+b.h/2+v.offsetY)*v.scale,'touch'));
+    const request=()=>click(g.env.UI.pauseButtons().find(b=>b.id==='menu'));
+    request();assert.equal(g.snapshot().state,'pause');assert.equal(g.snapshot().quitConfirm,true);
+    if(mode==='touch') {
+      click(g.env.UI.EXIT_BTNS[0]);assert.equal(g.snapshot().state,'pause');request();click(g.env.UI.EXIT_BTNS[1]);
+    } else {
+      const buttons=Array.from({length:16},()=>({pressed:false}));g.env.navigator.getGamepads=()=>[{connected:true,axes:[0,0],buttons}];
+      const press=i=>{buttons[i].pressed=true;g.pollGamepad();buttons[i].pressed=false;g.pollGamepad();};
+      press(1);assert.equal(g.snapshot().state,'pause');assert.equal(g.snapshot().quitConfirm,false);
+      request();press(15);buttons[0].pressed=true;g.pollGamepad();g.pollGamepad();
+      assert.equal(g.snapshot().state,'menu'); // Holding A must not immediately enter the map.
+    }
+    assert.equal(g.snapshot().state,'menu');assert.equal(g.snapshot().quitConfirm,false);
+  }
+});
 test('Boss mistakes reach settlement, count once per submission and reset only run review', () => {
   const g=loadGame(); g.start(); g.prepareBoss();
   const q=g.snapshot().bossQ, jp=q.word.jp;

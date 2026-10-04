@@ -10,6 +10,23 @@ function loadUI(width = 585) {
   return { UI: env.window.UI, context, texts, env };
 }
 
+test('Boss quiz geometry fits the viewport above the bottom HUD with shared hit targets',()=>{
+  for(const [width,height] of [[1920,1080],[844,390],[900,600],[800,600]]) for(const n of [2,3]) {
+    const {UI,env}=loadUI(width);env.window.innerWidth=width;env.window.innerHeight=height;
+    vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),env);
+    const bounds=env.window.VIEWPORT.hudBounds(),scale=env.window.VIEWPORT.get().scale;
+    const layout=UI.bossQuizLayout(n);
+    assert.ok(layout.x>=bounds.left && layout.x+layout.w<=bounds.right);
+    assert.ok(layout.y>=bounds.top && layout.y+layout.h<bounds.bottom-62);
+    assert.equal(layout.options.length,n);
+    for(const b of layout.options) {
+      assert.ok(b.x>=layout.x && b.x+b.w<=layout.x+layout.w);
+      assert.ok(b.y>=layout.y && b.y+b.h<=layout.y+layout.h);
+      assert.ok(b.h*scale>=44);
+    }
+  }
+});
+
 test('settlement counts distinct mistaken words and discloses only truncated reviews',()=>{
   const words=Array.from({length:7},(_,i)=>({jp:`錯詞${i}`,zh:`意思${i}`}));
   for(const width of [844,1920]) for(const state of ['lost','won']) for(const count of [0,1,5,7]) {
