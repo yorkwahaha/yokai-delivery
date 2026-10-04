@@ -1,0 +1,12 @@
+✔ real needle updates defeat a scheduled Boss after ordinary answering without kill mastery (67.221ms)
+ℹ {"scenario":"needle-boss-integration","assisted":false,"initialHp":32,"combatSeconds":13.940000000007132,"score":400,"masteryAfterAnswer":1,"masteryAfterKill":1,"killEvents":1}
+✔ real needle updates defeat a scheduled Boss after assisted answering without kill mastery (58.289ms)
+ℹ {"scenario":"needle-boss-integration","assisted":true,"initialHp":32,"combatSeconds":13.940000000007132,"score":400,"masteryAfterAnswer":0,"masteryAfterKill":0,"killEvents":1}
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 176.3436

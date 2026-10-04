@@ -49,6 +49,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     pickupWord: word => { const route=orders[0] || {from:houses[0],to:houses[1],rev:false}; orders=[{...route,word,life:110}];job=null;inter=orders[0];interact();job.lock=0; },
     scheduleBoss: () => { bossT=0; },
     advanceBossClock: offset => { elapsed=BOSS_TIMES[bossStage]+offset;bossT=-offset; },
+    isolateNeedleBoss: () => { enemies=enemies.filter(e=>e.type==='boss');Object.keys(WL).forEach(k=>WL[k]=0);WL.needle=1;wT.needle=0;needles=[];spawnT=surgeT=Infinity; },
     meetDeliveryGoal: () => { delivered=GOAL_DELIVERIES; },
     prepareBoss: (word) => { const bs={x:P.x+200,y:P.y,type:'boss',word:word || ALL[0],hp:999,max:999,shield:true}; enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
     setState: next => { state=next; ended=false; },
@@ -447,6 +448,40 @@ test('scheduled Boss shield, kill reward and overdue successor follow one lifecy
   assert.ok(Math.abs(g.snapshot().bossT-(540-g.snapshot().elapsed))<1e-9);
   t.diagnostic(JSON.stringify({scenario:'boss-kill-and-successor',killScore:400,killOil:35,gemDrops:9,masteryBefore:learned.box,masteryAfter:g.env.STORE.get(q.word.jp).box,bossStage:g.snapshot().bossStage,nextSchedule:540}));
 });
+
+for(const assisted of [false,true]) {
+  test(`real needle updates defeat a scheduled Boss after ${assisted?'assisted':'ordinary'} answering without kill mastery`,t=>{
+    const g=loadGame();g.start();g.clearSolids();g.advanceBossClock(0.01);g.update(0.01);
+    g.isolateNeedleBoss();g.moveBoss(200);g.setOil(40);
+    const boss=g.snapshot().enemies.find(e=>e.type==='boss'),initialHp=boss.hp;
+    for(let i=0;i<30;i++) g.update(0.02);
+    assert.ok(g.audioCalls.includes('needle'));
+    assert.equal(boss.hp,initialHp);assert.equal(g.snapshot().score,0);
+    g.unlockBoss();
+    if(assisted) {
+      const q=g.snapshot().bossQ;g.answerBoss(q.ans.findIndex(w=>w!==q.word));g.unlockBoss();
+    }
+    const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
+    assert.equal(boss.shield,false);
+    const learned={...g.env.STORE.get(q.word.jp)},startElapsed=g.snapshot().elapsed;
+    assert.equal(learned.box,assisted?0:1);
+    let previousOil,hitObserved=false;
+    for(let i=0;i<2000 && boss.hp>0;i++) {
+      previousOil=g.snapshot().oil;g.update(0.02);
+      if(boss.hp<initialHp) hitObserved=true;
+    }
+    assert.equal(hitObserved,true);assert.ok(boss.hp<=0);
+    assert.equal(g.snapshot().score,400);
+    assert.ok(Math.abs(g.snapshot().oil-previousOil-(35-0.02*0.43))<1e-8);
+    assert.deepEqual({...g.env.STORE.get(q.word.jp)},learned);
+    assert.equal(g.audioCalls.filter(n=>n==='bossDeath').length,1);
+    const score=g.snapshot().score,combatSeconds=g.snapshot().elapsed-startElapsed;
+    for(let i=0;i<5;i++) g.update(0.02);
+    assert.equal(g.snapshot().score,score);
+    assert.equal(g.audioCalls.filter(n=>n==='bossDeath').length,1);
+    t.diagnostic(JSON.stringify({scenario:'needle-boss-integration',assisted,initialHp,combatSeconds,score,masteryAfterAnswer:learned.box,masteryAfterKill:g.env.STORE.get(q.word.jp).box,killEvents:1}));
+  });
+}
 
 test('final Boss requires the delivery goal and victory settles progression only once',t=>{
   const g=loadGame();g.start();g.clearSolids();
