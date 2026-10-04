@@ -14,6 +14,13 @@ function loadStore(seed = null) {
   return { STORE: global.STORE, mem };
 }
 
+test('failed storage writes expose an error and successful retries clear it',()=>{
+  const {STORE}=loadStore();const write=global.localStorage.setItem;
+  global.localStorage.setItem=()=>{throw new Error('QuotaExceededError');};
+  STORE.rec('ねこ',true);assert.equal(STORE.canSave(),false);
+  global.localStorage.setItem=write;STORE.rec('ねこ',true);assert.equal(STORE.canSave(),true);
+});
+
 test("legacy save data is upgraded without losing vocabulary progress", () => {
   const legacy = {
     m: { "ねこ": { ok: 3, ng: 1, box: 2, lastSeen: 123, missBoost: 1 } },

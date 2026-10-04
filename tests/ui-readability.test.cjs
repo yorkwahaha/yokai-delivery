@@ -34,6 +34,12 @@ test('readableFont uses viewport scale without DOM geometry reads',()=>{
   assert.match(UI.readableFont(12),/22px/);
 });
 
+test('hint sentences wrap without truncation and retain readable font size',()=>{
+  const {UI,context,texts}=loadUI();const sentence='さかな　さかなをたべます。';
+  UI.drawHintText(context,sentence,0,0,140);
+  assert.equal(texts.map(t=>t.value).join(''),sentence);assert.ok(texts.length>1);
+});
+
 test('settlement counts distinct mistaken words and discloses only truncated reviews',()=>{
   const words=Array.from({length:7},(_,i)=>({jp:`錯詞${i}`,zh:`意思${i}`}));
   for(const width of [844,1920]) for(const state of ['lost','won']) for(const count of [0,1,5,7]) {

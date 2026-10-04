@@ -27,6 +27,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
   const hook = `window.fixture = { start, update, frame, drawWorld, drawStageWeather, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons,
     upgradeOil: () => UP.find(u=>u.id==='oil_max').f(),
     addRing: () => rings.push({x:P.x,y:P.y,r:40,life:0.08,maxL:0.32,color:'#ffffff'}),
+    addBullet: () => enemyBullets.push({x:P.x+180,y:P.y,vx:0,vy:0,life:2}),
     blockWrongSpawn: () => { const p=ansPos(job.to)[(job.ans.indexOf(job.word)+1)%3]; solids.splice(0,solids.length,{x0:p.x-230,x1:p.x+230,y0:p.y-230,y1:p.y+230}); },
     tutorialState: () => tutorial,
     guidePoint: (...args) => guidePoint(...args),
@@ -100,6 +101,13 @@ test('shield hit feedback is throttled and colored rings fade',()=>{
   const e={hp:100,shield:true,x:0,y:0};for(let i=0;i<20;i++)g.hurt(e,1);assert.equal(hits,1);
   const ctx=g.env.RENDERER.getCtx(),alphas=[];ctx.stroke=()=>{if(ctx.strokeStyle==='#ffffff')alphas.push(ctx.globalAlpha);};
   g.addRing();g.drawWorld();assert.ok(alphas.includes(0.25));
+});
+
+test('enemy fireballs render above night lighting and weather',()=>{
+  const g=loadGame();g.start('rain-port');g.addBullet();
+  const ctx=g.env.RENDERER.getCtx(),calls=[];g.env.RENDERER.renderLighting=()=>calls.push('night');
+  ctx.arc=(x,y,r)=>{if(r===8)calls.push('bullet');};g.drawWorld();
+  assert.ok(calls.includes('bullet'));assert.ok(calls.indexOf('bullet')>calls.indexOf('night'));
 });
 
 test('rain-port runtime uses reduced shooter pressure and the intended recovery pacing',t=>{

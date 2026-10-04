@@ -10,6 +10,13 @@ test('blocked BGM attempts once until a user gesture retries it', async()=>{
   const a=env.window.AUDIO;for(let i=0;i<60;i++)a.updateBgm(0.016,'play',0,600);
   await Promise.resolve();assert.equal(attempts,1);a.init();assert.equal(attempts,2);
 });
+
+test('mute setting persists across audio reloads',()=>{
+  const storage=new Map();class Audio {addEventListener(){} pause(){} play(){return Promise.resolve();}}
+  const env={window:{},Audio,console,setTimeout,clearTimeout,localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)}};
+  const source=fs.readFileSync('js/audio.js','utf8');vm.runInNewContext(source,env);
+  env.window.AUDIO.toggleMute();vm.runInNewContext(source,env);assert.equal(env.window.AUDIO.isMuted(),true);
+});
 test('all vocabulary maps to an existing prerecorded clip, including every rain-port word', () => {
   const played = [];
   class Audio {
