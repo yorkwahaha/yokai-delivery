@@ -10,6 +10,24 @@ function loadUI(width = 585) {
   return { UI: env.window.UI, context, texts, env };
 }
 
+test('settlement counts distinct mistaken words and discloses only truncated reviews',()=>{
+  const words=Array.from({length:7},(_,i)=>({jp:`錯詞${i}`,zh:`意思${i}`}));
+  for(const width of [844,1920]) for(const state of ['lost','won']) for(const count of [0,1,5,7]) {
+    const {UI,context,texts}=loadUI(width);
+    const misses=words.slice(0,count);
+    if(count) misses.push(words[0]); // Repeated mistakes must not inflate the distinct-word total.
+    UI.drawEndScreen(context,state,400,2,0,misses);
+    const labels=texts.map(t=>t.value);
+    if(count) {
+      const expected=`今夜記錯的字：共 ${count} 字${count>5?'，僅顯示前 5 字':''}`;
+      assert.ok(labels.includes(expected),`${width}/${state}/${count}: ${expected}`);
+      for(let i=0;i<Math.min(count,5);i++) assert.ok(labels.some(v=>v.includes(words[i].jp)));
+      for(let i=5;i<count;i++) assert.ok(!labels.some(v=>v.includes(words[i].jp)));
+    } else assert.ok(!labels.some(v=>v.includes('今夜記錯')));
+    assert.ok(!labels.some(v=>count<=5 && v.includes('僅顯示')));
+  }
+});
+
 test('every second-stage Boss question has Chinese meaning even without Emoji support', () => {
   const content = require('../js/words.js');
   for (const word of content.getStageWords('rain-port')) {
