@@ -14,6 +14,7 @@ function drawHudFixture(width, height, oil = 100, maxOil = 100, passives = {}, e
   const r = loadUI(width);r.env.window.innerWidth = width;r.env.window.innerHeight = height;
   vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
   const v=r.env.window.VIEWPORT,scale=v.get().scale,ctx=r.context,labels=[],rects=[],arcs=[],stack=[];
+  r.env.document.getElementById=()=>({getContext:()=>ctx,getBoundingClientRect:()=>({width})});
   let state={x:0,y:0,s:1,font:'12px sans-serif',align:'left'};
   Object.defineProperty(ctx,'font',{get:()=>state.font,set:value=>state.font=value});
   Object.defineProperty(ctx,'textAlign',{get:()=>state.align,set:value=>state.align=value});
@@ -32,7 +33,7 @@ function drawHudFixture(width, height, oil = 100, maxOil = 100, passives = {}, e
     {x:bounds.right-138,y:bounds.bottom-180,r:38},{x:bounds.right-138,y:bounds.bottom-70,r:46},
     {x:bounds.right-52,y:bounds.top+14,w:38,h:52},
     {katana:1,fire:4,boom:5,needle:2},{katana:{},fire:{},boom:{},needle:{}},passives,0);
-  return {labels,rects,arcs,bounds,scale};
+  return {labels,rects,arcs,bounds,scale,quiz:r.UI.bossQuizLayout(3)};
 }
 
 test('oil numbers and bar remain prominent and low-oil warning uses capacity ratio',()=>{
@@ -77,6 +78,15 @@ test('opening touch joystick guidance stays above the taller skill footer',()=>{
     const max=r.labels.find(t=>t.value==='MAX');
     const backing=r.rects.find(b=>max.left>=b.x && max.right<=b.x+b.w && max.y>=b.y && max.y<=b.y+b.h);
     assert.ok(hint.y+hint.r+8<=backing.y-backing.w,`${width}: hint/footer clearance`);
+  }
+});
+
+test('Boss quiz clears the actual skill footer after its labels grow',()=>{
+  for(const [width,height] of [[900,600],[844,390],[667,375],[568,320],[800,600],[1920,1080]]) {
+    const r=drawHudFixture(width,height),max=r.labels.find(t=>t.value==='MAX');
+    const backing=r.rects.find(b=>max.left>=b.x && max.right<=b.x+b.w && max.y>=b.y && max.y<=b.y+b.h);
+    assert.ok(r.quiz.y+r.quiz.h+10<=backing.y-backing.w,`${width}: Boss/footer clearance`);
+    assert.ok(r.quiz.y>=r.bounds.top);
   }
 });
 
