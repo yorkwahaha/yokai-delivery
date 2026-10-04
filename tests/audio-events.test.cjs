@@ -2,6 +2,14 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
+test('blocked BGM attempts once until a user gesture retries it', async()=>{
+  let attempts=0;const track={paused:true,volume:0,pause(){},play(){attempts++;return Promise.reject(new Error('NotAllowedError'));}};
+  class Audio {addEventListener(){} pause(){} play(){return Promise.resolve();}}
+  const env={window:{BGM:track},Audio,console,setTimeout,clearTimeout};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  const a=env.window.AUDIO;for(let i=0;i<60;i++)a.updateBgm(0.016,'play',0,600);
+  await Promise.resolve();assert.equal(attempts,1);a.init();assert.equal(attempts,2);
+});
 test('all vocabulary maps to an existing prerecorded clip, including every rain-port word', () => {
   const played = [];
   class Audio {

@@ -51,6 +51,14 @@ test('resize refreshes DPR and backing resolution when moving between displays',
   assert.equal(r.env.RENDERER.getDpr(),2);
 });
 
+test('full upgraded oil capacity keeps the same lantern radius as full base capacity',()=>{
+  const r=loadRenderer(900,600),radii=[];
+  r.canvases[1].ctx.createRadialGradient=(...args)=>{radii.push(args[5]);return {addColorStop(){}};};
+  r.env.RENDERER.renderLighting({x:450,y:300},[],100,0,600,100);
+  r.env.RENDERER.renderLighting({x:450,y:300},[],160,0,600,160);
+  assert.equal(radii[0],radii[1]);
+});
+
 test('house signs identify shops and never expose unrelated vocabulary or hint translations', () => {
   const r=loadRenderer(900,600);
   for (const bType of ['house_shop','house_tavern','house_shrine']) {

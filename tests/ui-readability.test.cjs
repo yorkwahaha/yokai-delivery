@@ -28,6 +28,12 @@ test('Boss quiz geometry fits the viewport above the bottom HUD with shared hit 
   }
 });
 
+test('readableFont uses viewport scale without DOM geometry reads',()=>{
+  const {UI,env}=loadUI();env.window.VIEWPORT={get:()=>({scale:0.65})};
+  env.document.getElementById=()=>{throw new Error('unnecessary DOM read');};
+  assert.match(UI.readableFont(12),/22px/);
+});
+
 test('settlement counts distinct mistaken words and discloses only truncated reviews',()=>{
   const words=Array.from({length:7},(_,i)=>({jp:`錯詞${i}`,zh:`意思${i}`}));
   for(const width of [844,1920]) for(const state of ['lost','won']) for(const count of [0,1,5,7]) {

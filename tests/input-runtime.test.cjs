@@ -24,7 +24,10 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
   c.UI = new Proxy({ ...uiButtons, pauseButtons:c.UI.pauseButtons, bossQuizLayout:c.UI.bossQuizLayout, HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
   const source = fs.readFileSync('js/game.js', 'utf8');
   const end = source.lastIndexOf('})();');
-  const hook = `window.fixture = { start, update, frame, drawWorld, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons,
+  const hook = `window.fixture = { start, update, frame, drawWorld, drawStageWeather, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons,
+    upgradeOil: () => UP.find(u=>u.id==='oil_max').f(),
+    addRing: () => rings.push({x:P.x,y:P.y,r:40,life:0.08,maxL:0.32,color:'#ffffff'}),
+    blockWrongSpawn: () => { const p=ansPos(job.to)[(job.ans.indexOf(job.word)+1)%3]; solids.splice(0,solids.length,{x0:p.x-230,x1:p.x+230,y0:p.y-230,y1:p.y+230}); },
     tutorialState: () => tutorial,
     guidePoint: (...args) => guidePoint(...args),
     reviewWords: () => misses,
@@ -63,6 +66,41 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
+
+test('rain motion follows its streak direction and rain-port has no petals or fireflies',()=>{
+  const g=loadGame();g.start('rain-port');
+  const ctx=g.env.RENDERER.getCtx(),points=[];ctx.moveTo=(x,y)=>points.push([x,y]);ctx.lineTo=(x,y)=>points.at(-1).push(x,y);
+  g.drawStageWeather(0);const first=points[0];points.length=0;g.drawStageWeather(0.01);const next=points[0];
+  const dx=next[0]-first[0],dy=next[1]-first[1];
+  assert.ok(dy>0);assert.ok(Math.abs(dx/dy-(first[2]-first[0])/(first[3]-first[1]))<1e-9);
+  const calls=[];g.env.RENDERER.drawAtmosphere=(...args)=>calls.push(args);g.drawWorld();
+  assert.deepEqual(calls[0].slice(1),[0,0]);
+});
+
+test('two oil upgrades still consume oil at rest',()=>{
+  const g=loadGame();g.start();g.upgradeOil();g.upgradeOil();g.setOil(100);g.update(1);
+  assert.ok(g.snapshot().oil<100);
+});
+
+test('misdelivery finds a clear spawn when the answer and adjacent fallback are blocked',()=>{
+  const g=loadGame();g.start();g.prepareOrder();g.blockWrongSpawn();const j=g.snapshot().job;
+  g.resolve((j.ans.indexOf(j.word)+1)%3);
+  const mis=g.snapshot().enemies.find(e=>e.type==='mis');assert.ok(mis);assert.equal(g.enemyBlocked(mis),false);
+});
+
+test('frame errors pause the run, show recovery text and keep the next frame scheduled',()=>{
+  const g=loadGame();g.start();let scheduled=0;g.env.requestAnimationFrame=()=>scheduled++;
+  g.env.console={error(){}};g.env.RENDERER.drawGround=()=>{throw new Error('draw failed');};
+  assert.doesNotThrow(()=>g.frame(16));assert.equal(scheduled,1);assert.equal(g.snapshot().state,'pause');
+  assert.ok(g.drawnText.some(t=>t.includes('重新整理')));
+});
+
+test('shield hit feedback is throttled and colored rings fade',()=>{
+  const g=loadGame();g.start();let hits=0;g.env.RENDERER.spawnDamageNumber=()=>hits++;
+  const e={hp:100,shield:true,x:0,y:0};for(let i=0;i<20;i++)g.hurt(e,1);assert.equal(hits,1);
+  const ctx=g.env.RENDERER.getCtx(),alphas=[];ctx.stroke=()=>{if(ctx.strokeStyle==='#ffffff')alphas.push(ctx.globalAlpha);};
+  g.addRing();g.drawWorld();assert.ok(alphas.includes(0.25));
+});
 
 test('rain-port runtime uses reduced shooter pressure and the intended recovery pacing',t=>{
   const results={};
