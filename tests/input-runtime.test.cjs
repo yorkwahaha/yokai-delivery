@@ -48,9 +48,11 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     prepareOrder: () => { makeOrder(); inter=orders[0]; interact(); job.lock=0; },
     pickupWord: word => { const route=orders[0] || {from:houses[0],to:houses[1],rev:false}; orders=[{...route,word,life:110}];job=null;inter=orders[0];interact();job.lock=0; },
     scheduleBoss: () => { bossT=0; },
+    advanceBossClock: offset => { elapsed=BOSS_TIMES[bossStage]+offset;bossT=-offset; },
+    meetDeliveryGoal: () => { delivered=GOAL_DELIVERIES; },
     prepareBoss: (word) => { const bs={x:P.x+200,y:P.y,type:'boss',word:word || ALL[0],hp:999,max:999,shield:true}; enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
     setState: next => { state=next; ended=false; },
-    snapshot: () => ({ state, needles, menuFocus, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
+    snapshot: () => ({ state, needles, menuFocus, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, delivered, bossStage, bossT, finalBossDefeated, gems, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
     addMis: () => enemies.push({x:P.x+100,y:P.y,type:"mis",w:ALL[0],hp:999,max:999,speed:210,flash:0,wob:0}), emptyHouses: () => houses.splice(0) };`;
   vm.runInContext(source.slice(0, end) + hook + source.slice(end), c);
   return { ...c.fixture, events, canvasEvents, documentEvents, env: c, audioCalls, drawnText, actorCalls, transforms };
@@ -406,6 +408,78 @@ test('expanded fullscreen edges and corner HUD buttons share the same pointer ma
   assert.ok(g.snapshot().dashCd > 0);
   g.canvasEvents.pointerdown(pointer(1740, 50));
   assert.equal(g.snapshot().state, 'pause');
+});
+
+test('scheduled Boss shield, kill reward and overdue successor follow one lifecycle',t=>{
+  const g=loadGame();g.start();g.clearSolids();g.advanceBossClock(-0.02);
+  g.update(0.01);
+  assert.equal(g.snapshot().enemies.some(e=>e.type==='boss'),false);
+  g.update(0.02);
+  const boss=g.snapshot().enemies.find(e=>e.type==='boss');
+  assert.ok(boss);assert.equal(g.snapshot().bossStage,1);
+  assert.equal(boss.final,false);
+  const hp=boss.hp;
+  g.hurt(boss,999);
+  assert.equal(boss.hp,hp);assert.equal(g.snapshot().score,0);
+  g.moveBoss(200);g.update(0.01);g.unlockBoss();
+  const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
+  assert.equal(boss.shield,false);
+  const learned={...g.env.STORE.get(q.word.jp)};
+  g.advanceBossClock(0.01);g.update(0.01); // Second schedule is overdue but the first Boss still lives.
+  assert.equal(g.snapshot().bossStage,1);
+  assert.equal(g.snapshot().enemies.filter(e=>e.type==='boss').length,1);
+  g.setOil(50);
+  const before=g.snapshot(),gemCount=before.gems.length;
+  g.hurt(boss,999);
+  assert.equal(g.snapshot().score-before.score,400);
+  assert.equal(g.snapshot().oil,85);
+  assert.equal(g.snapshot().gems.length-gemCount,9);
+  assert.deepEqual({...g.env.STORE.get(q.word.jp)},learned);
+  g.hurt(boss,999);
+  assert.equal(g.snapshot().score-before.score,400);
+  assert.equal(g.snapshot().oil,85);
+  assert.equal(g.snapshot().gems.length-gemCount,9);
+  assert.equal(g.audioCalls.filter(n=>n==='bossDeath').length,1);
+  g.update(0.01);
+  const successor=g.snapshot().enemies.find(e=>e.type==='boss');
+  assert.ok(successor);assert.notEqual(successor,boss);
+  assert.equal(g.snapshot().bossStage,2);assert.equal(successor.shield,true);
+  assert.ok(Math.abs(g.snapshot().bossT-(540-g.snapshot().elapsed))<1e-9);
+  t.diagnostic(JSON.stringify({scenario:'boss-kill-and-successor',killScore:400,killOil:35,gemDrops:9,masteryBefore:learned.box,masteryAfter:g.env.STORE.get(q.word.jp).box,bossStage:g.snapshot().bossStage,nextSchedule:540}));
+});
+
+test('final Boss requires the delivery goal and victory settles progression only once',t=>{
+  const g=loadGame();g.start();g.clearSolids();
+  for(let stage=0;stage<4;stage++) {
+    g.advanceBossClock(0.01);g.setOil(100);g.update(0.01);
+    const boss=g.snapshot().enemies.find(e=>e.type==='boss');
+    assert.ok(boss);assert.equal(boss.final,stage===3);
+    g.moveBoss(200);g.update(0.01);g.unlockBoss();
+    const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
+    g.hurt(boss,999);g.update(0.01);
+    assert.equal(g.snapshot().state,'play');
+  }
+  assert.equal(g.snapshot().finalBossDefeated,true);
+  assert.equal(g.snapshot().delivered,0);
+  assert.equal(g.env.STORE.isStageCompleted('night-town'),false);
+  assert.equal(g.env.STORE.isStageUnlocked('rain-port'),false);
+  let finishes=0;
+  const finish=g.env.STORE.finish;
+  g.env.STORE.finish=(...args)=>{finishes++;return finish(...args);};
+  g.meetDeliveryGoal();g.update(0.01);
+  assert.equal(g.snapshot().state,'victory');assert.equal(finishes,0);
+  for(let i=1;i<=95;i++) g.frame(i*50);
+  assert.equal(g.snapshot().state,'victory');assert.equal(finishes,0);
+  for(let i=96;i<=102;i++) g.frame(i*50);
+  assert.equal(g.snapshot().state,'won');assert.equal(finishes,1);
+  assert.equal(g.env.STORE.isStageCompleted('night-town'),true);
+  assert.equal(g.env.STORE.isStageUnlocked('rain-port'),true);
+  assert.equal(g.env.STORE.getStageStats('night-town').clears,1);
+  assert.equal(g.audioCalls.filter(n=>n==='fanfare').length,1);
+  const stats=g.env.STORE.getStageStats('night-town');
+  assert.equal(stats.bestScore,g.snapshot().score);
+  assert.equal(stats.bestDeliveries,g.snapshot().delivered);
+  t.diagnostic(JSON.stringify({scenario:'final-boss-victory-settlement',state:g.snapshot().state,finishes,score:g.snapshot().score,delivered:g.snapshot().delivered,stats:{...stats},rainPortUnlocked:true}));
 });
 
 test('first hint hides written answer and assisted delivery cannot promote mastery', () => {
