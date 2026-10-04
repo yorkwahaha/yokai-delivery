@@ -227,19 +227,19 @@
       enemy: Object.freeze({
         roster: Object.freeze(["ghost", "runner", "tank", "shooter"]),
         bosses: Object.freeze(["harbor-warden", "fog-ogre", "storm-lord"]),
-        speedScale: 1.06,
-        shooterChanceBonus: 0.08,
-        bossHpScale: 1.08,
+        speedScale: 1,
+        shooterChanceBonus: 0.02,
+        bossHpScale: 1,
         bossTheme: "harbor"
       }),
       pacing: Object.freeze({
         runSeconds: 600,
-        goalDeliveries: 7,
+        goalDeliveries: 6,
         bossTimes: Object.freeze([210, 420, 590]),
         surgeFirst: 90,
         surgeInterval: 80,
-        xpNeedScale: 1.04,
-        spawnIntervalScale: 0.95,
+        xpNeedScale: 1,
+        spawnIntervalScale: 1.15,
         spawnCountBonus: 0
       })
     }),

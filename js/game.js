@@ -366,6 +366,7 @@
     window.loadGameArt?.();
     configureStage(stageId);
     AUDIO.init();
+    AUDIO.preloadWords?.(ALL);
     state = "play";
     tutorial = null;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };

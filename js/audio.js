@@ -15,6 +15,43 @@ window.AUDIO = (() => {
   const BGM_DUCK_VOLUME = 0.10;
   const BGM_PAUSE_VOLUME = 0.055;
   const bgmRamps = new Map();
+  const clipBuffers = new Map(), bufferSources = new Set();
+  let audioEpoch = 0, wordSource = null;
+
+  function loadBuffer(path, ac) {
+    if (!clipBuffers.has(path)) {
+      const pending = fetch(window.audioAsset?.(path) || path)
+        .then(response => { if (!response.ok) throw new Error(`Audio HTTP ${response.status}`); return response.arrayBuffer(); })
+        .then(bytes => ac.decodeAudioData(bytes));
+      clipBuffers.set(path,pending);
+      pending.catch(()=>{ if (clipBuffers.get(path)===pending) clipBuffers.delete(path); });
+    }
+    return clipBuffers.get(path);
+  }
+
+  function playBuffer(path, volume, options = {}) {
+    if (typeof fetch !== 'function' || (!window.AudioContext && !window.webkitAudioContext)) return false;
+    const ac = getCtx();
+    if (!ac || typeof fetch !== 'function' || !ac.decodeAudioData || !ac.createBufferSource) return false;
+    const epoch = audioEpoch;
+    const current = () => !muted && !suspended && epoch===audioEpoch && (!options.isCurrent || options.isCurrent());
+    loadBuffer(path,ac).then(buffer=>{
+      if (!current()) return;
+      const source = ac.createBufferSource(), gain = ac.createGain();
+      source.buffer = buffer;gain.gain.value = volume;
+      source.connect(gain);gain.connect(ac.destination);
+      bufferSources.add(source);
+      source.onended = () => { bufferSources.delete(source);options.onended?.(); };
+      options.onstart?.(source);source.start();
+    }).catch(()=>{ if (current()) options.onerror?.(); });
+    return true;
+  }
+
+  function stopBuffers() {
+    audioEpoch++;
+    bufferSources.forEach(source=>{try {source.stop();} catch(e) {}});
+    bufferSources.clear();wordSource=null;
+  }
 
   function musicTracks() {
     return [...new Set([window.BGM, window.MAP_BGM].filter(Boolean))];
@@ -96,9 +133,10 @@ window.AUDIO = (() => {
   const unavailableSfx = new Set();
   const activeSfx = new Set();
 
-  function playExternalSfx(name, fallback, args) {
+  function playExternalSfx(name, fallback, args, buffered = true) {
     if (muted || suspended) return;
     const src = SFX_FILES[name];
+    if (src && buffered && playBuffer(src,SFX_VOLUME[name] ?? 0.7,{onerror:()=>playExternalSfx(name,fallback,args,false)})) return;
     if (!src || unavailableSfx.has(name)) {
       fallback(...args);
       return;
@@ -121,8 +159,8 @@ window.AUDIO = (() => {
     const useFallback = reason => {
       cleanup();
       if (fellBack || muted || suspended) return;
-      // 背景切換取消與自動播放限制不是壞檔，下一次使用者操作仍可重試。
-      if (reason?.name === "AbortError" || reason?.name === "NotAllowedError") return;
+      // 背景取消不補播；政策拒絕改走已解鎖合成器，但不把 MP3 標成壞檔。
+      if (reason?.name === "AbortError") return;
       if (reason?.name === "NotSupportedError" || [3, 4].includes(audio.error?.code)) unavailableSfx.add(name);
       fellBack = true;
       audio.pause();
@@ -135,7 +173,7 @@ window.AUDIO = (() => {
       const playResult = audio.play();
       if (playResult && typeof playResult.catch === "function") playResult.catch(useFallback);
     } catch (e) {
-      useFallback();
+      useFallback(e);
     }
   }
 
@@ -192,6 +230,7 @@ window.AUDIO = (() => {
 
   function stopWord(restoreMusic = true) {
     ++wordSpeechNonce;
+    if (wordSource) { try { wordSource.stop(); } catch(e) {} wordSource=null; }
     if (wordClip) {
       wordClip.pause();
       try { wordClip.currentTime = 0; } catch (e) {}
@@ -214,7 +253,7 @@ window.AUDIO = (() => {
         console.warn("Web Audio API not supported", e);
       }
     }
-    if (ctx && ctx.state === "suspended") {
+    if (ctx && (ctx.state === "suspended" || ctx.state === "interrupted")) {
       ctx.resume().catch(() => {});
     }
     return ctx;
@@ -355,9 +394,18 @@ window.AUDIO = (() => {
       [392, 329.63, 261.63, 196].forEach((freq, i) => setTimeout(() => playShamisen(freq, 0.6, 0.1), i * 240));
     },
     init: getCtx,
+    preloadWords(words) {
+      const ac = getCtx();
+      if (!ac || typeof fetch !== 'function' || !ac.decodeAudioData) return;
+      const paths = [...words.map(w=>WORD_FILES[w.jp]).filter(Boolean).map(file=>`assets/audio/words/${file}.mp3`),...Object.values(SFX_FILES)];
+      let next = 0;
+      const worker = async()=>{while(next<paths.length){const path=paths[next++];try {await loadBuffer(path,ac);}catch(e){}}};
+      for(let i=0;i<4;i++) worker();
+    },
     setSuspended(value) {
       suspended = value;
       if (!suspended) return;
+      stopBuffers();
       musicShouldPlay = false;
       for (const id of bgmRamps.values()) {
         if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(id);
@@ -377,6 +425,7 @@ window.AUDIO = (() => {
       if (muted) musicTracks().forEach(audio => audio.pause());
       else if (musicShouldPlay && activeBgm) activeBgm.play().catch(() => {});
       if (muted) {
+        stopBuffers();
         stopWord();
         if (window.speechSynthesis) window.speechSynthesis.cancel();
         activeSfx.forEach(audio => {
@@ -558,14 +607,23 @@ window.AUDIO = (() => {
       const audio = file && wordClips[file];
       if (audio) {
         if (window.speechSynthesis) window.speechSynthesis.cancel();
-        if (wordClip) stopWord(false);
+        stopWord(false);
         const nonce = beginWordSpeech();
-        wordClip = audio;
-        audio.volume = 1;
-        try { audio.currentTime = 0; } catch (e) {}
-        audio.onended = () => endWordSpeech(nonce);
-        audio.onerror = () => endWordSpeech(nonce);
-        audio.play().catch(() => endWordSpeech(nonce));
+        const playMedia = () => {
+          wordClip = audio;
+          audio.volume = 1;
+          try { audio.currentTime = 0; } catch (e) {}
+          audio.onended = () => endWordSpeech(nonce);
+          audio.onerror = () => endWordSpeech(nonce);
+          try {audio.play().catch(()=>endWordSpeech(nonce));}catch(e){endWordSpeech(nonce);}
+        };
+        if (playBuffer(`assets/audio/words/${file}.mp3`,1,{
+          isCurrent:()=>nonce===wordSpeechNonce,
+          onstart:source=>{wordSource=source;},
+          onended:()=>{if(nonce===wordSpeechNonce)wordSource=null;endWordSpeech(nonce);},
+          onerror:playMedia
+        })) return;
+        playMedia();
         return;
       }
       if (window.speechSynthesis && window.SpeechSynthesisUtterance) {

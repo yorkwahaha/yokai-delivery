@@ -1,0 +1,25 @@
+{
+  "baselineSha": "ad46fdd3cf7693a06bee3a61a8a3037ac8ae3182",
+  "before": {
+    "goalDeliveries": 7,
+    "xpNeedScale": 1.04,
+    "spawnIntervalScale": 0.95,
+    "speedScale": 1.06,
+    "shooterChanceBonus": 0.08,
+    "bossHpScale": 1.08,
+    "intervalAt300": 1.083,
+    "theoreticalBaseSpawnDemand": 2602
+  },
+  "after": {
+    "goalDeliveries": 6,
+    "xpNeedScale": 1,
+    "spawnIntervalScale": 1.15,
+    "speedScale": 1,
+    "shooterChanceBonus": 0.02,
+    "bossHpScale": 1,
+    "intervalAt300": 1.311,
+    "theoreticalBaseSpawnDemand": 2145
+  },
+  "baseSpawnRateReduction": 0.17391304347826086,
+  "limits": "Schedule demand only; excludes alive-enemy cap, surges, player kills, travel and real completion rates."
+}

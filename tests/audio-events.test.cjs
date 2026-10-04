@@ -141,6 +141,8 @@ function bufferedAudioFixture() {
   const requested=[],sources=[];let mediaPlays=0,decodes=0,finishLoad;
   class Audio {constructor(src){this.src=src;}addEventListener(){}pause(){}play(){mediaPlays++;return Promise.reject(Object.assign(new Error('policy'),{name:'NotAllowedError'}));}}
   class Context extends PlaybackTestContext {
+    suspend(){this.state='suspended';return Promise.resolve();}
+    resume(){this.state='running';return Promise.resolve();}
     createBufferSource(){const s={connect(){},start(){sources.push(this);},stop(){this.stopped=true;this.onended?.();}};return s;}
     decodeAudioData(){decodes++;return Promise.resolve({duration:0.4});}
   }
@@ -167,6 +169,15 @@ test('late decoded audio never starts after suspension or a replaced word',async
     else if(action==='mute')f.a.toggleMute();
     else f.a.speak('あめ');
     f.load();await drainAudio();assert.equal(f.sources.length,action==='replace'?1:0,action);
+  }
+});
+
+test('buffered audio stops immediately on mute or suspension and does not replay on wake',async()=>{
+  for(const action of ['suspend','mute']) {
+    const f=bufferedAudioFixture();f.a.speak('あめ');f.load();await drainAudio();
+    assert.equal(f.sources.length,1);
+    if(action==='suspend'){f.a.setSuspended(true);f.a.setSuspended(false);}else{f.a.toggleMute();f.a.toggleMute();}
+    assert.equal(f.sources[0].stopped,true);assert.equal(f.sources.length,1);
   }
 });
 test('temporary playback cancellation and policy rejection never permanently disable an MP3', async () => {

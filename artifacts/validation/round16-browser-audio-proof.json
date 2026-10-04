@@ -1,0 +1,16 @@
+{
+  "kind": "desktop-controlled-WebAudio",
+  "cold": {
+    "requests": 15,
+    "decoded": 15,
+    "sourcesStarted": 2,
+    "mediaPlays": 0
+  },
+  "replay": {
+    "requests": 15,
+    "decoded": 15,
+    "sourcesStarted": 4,
+    "mediaPlays": 0
+  },
+  "verified": true
+}

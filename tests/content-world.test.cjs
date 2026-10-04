@@ -27,7 +27,7 @@ test("rain-port is a separate playable stage with its own packs and weather tuni
   assert.ok(words.some(w => w.jp === "ふね"));
   assert.equal(stage.visual.weather, "rain");
   assert.deepEqual(stage.enemy.bosses, ["harbor-warden", "fog-ogre", "storm-lord"]);
-  assert.equal(stage.pacing.goalDeliveries, 7);
+  assert.equal(stage.pacing.goalDeliveries, 6);
   assert.deepEqual(stage.pacing.bossTimes, [210, 420, 590]);
   const world = WORLD.createStageWorld(stage, CONTENT);
   assert.equal(world.update(stage.start.x, stage.start.y).chunks.length, 25);

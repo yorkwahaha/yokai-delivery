@@ -30,6 +30,8 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     reviewWords: () => misses,
     answerBoss,
     setOil: value => { oil=value; },
+    setElapsed: value => {elapsed=value;},
+    stageTuning: () => ({goal:GOAL_DELIVERIES,xp:xpNeed(),spawnInterval:CFG.spawnInterval(elapsed)*SPAWN_INTERVAL_SCALE}),
     unlockBoss: () => { bossQ.lock=0; },
     matchBossToJob: () => { const bs=enemies.find(e=>e.type==='boss'); bs.word=job.word;bossQ=mkQ(bs);bossQ.lock=0; },
     moveBoss: distance => { const bs=enemies.find(e=>e.type==='boss'); Object.assign(bs,{x:P.x+distance,y:P.y,speed:0,wob:0,flash:0}); },
@@ -61,6 +63,26 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
+
+test('rain-port runtime uses reduced shooter pressure and the intended recovery pacing',t=>{
+  const results={};
+  for(const stage of ['night-town','rain-port']) {
+    const g=loadGame();g.start(stage);g.clearSolids();g.setElapsed(300);
+    g.env.Math=Object.create(Math);
+    for(let i=0;i<100;i++){g.env.Math.random=()=>(i+0.5)/100;g.spawnEnemy(3,560);}
+    const enemies=g.snapshot().enemies;
+    results[stage]={...g.stageTuning(),shooters:enemies.filter(e=>e.type==='shooter').length,ghostSpeed:enemies.find(e=>e.type==='ghost').speed};
+    g.combatScene('needle',[]);g.advanceBossClock(0.01);g.update(0.01);
+    results[stage].firstBossHp=g.snapshot().enemies.find(e=>e.type==='boss').hp;
+  }
+  assert.equal(results['rain-port'].shooters,16);
+  assert.equal(results['night-town'].shooters,14);
+  assert.equal(results['rain-port'].ghostSpeed,results['night-town'].ghostSpeed);
+  assert.equal(results['rain-port'].goal,6);assert.equal(results['rain-port'].xp,30);
+  assert.ok(Math.abs(results['rain-port'].spawnInterval/results['night-town'].spawnInterval-1.15)<1e-9);
+  assert.equal(results['rain-port'].firstBossHp,33);
+  t.diagnostic(JSON.stringify({scenario:'runtime-stage-pressure',results}));
+});
 
 test('offscreen guides reach actual viewport edges along the target direction',()=>{
   for(const [width,height] of [[900,600],[844,390],[2560,1080],[800,600]]) {

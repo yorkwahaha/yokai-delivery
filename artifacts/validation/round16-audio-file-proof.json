@@ -1,0 +1,424 @@
+{
+  "verifiedAt": "2026-10-04T06:41:32.474Z",
+  "wordCount": 39,
+  "sfxCount": 13,
+  "allMatch": true,
+  "files": [
+    {
+      "path": "assets/audio/sfx/boomerang.mp3",
+      "status": 200,
+      "bytes": 5014,
+      "localHash": "03179b832f47c570d53950211834f3d59f79c87ae035697b31596e13481116ca",
+      "liveHash": "03179b832f47c570d53950211834f3d59f79c87ae035697b31596e13481116ca",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/sfx/boss-death.mp3",
+      "status": 200,
+      "bytes": 63596,
+      "localHash": "bcdc55ae43c253592ad946a10168164ce0a803c1a3e978a6eb927d05d8fe57c0",
+      "liveHash": "bcdc55ae43c253592ad946a10168164ce0a803c1a3e978a6eb927d05d8fe57c0",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/sfx/break-shield.mp3",
+      "status": 200,
+      "bytes": 41377,
+      "localHash": "6c0510ce660bafb0e8580917405b3eed765644c9013b837ff6127cc9fdef9aec",
+      "liveHash": "6c0510ce660bafb0e8580917405b3eed765644c9013b837ff6127cc9fdef9aec",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/sfx/dash.mp3",
+      "status": 200,
+      "bytes": 31346,
+      "localHash": "23d8c1cf6df82ba9ba73a7d7f751d427c504b74d052408cd8cd9bc55d2a79c02",
+      "liveHash": "23d8c1cf6df82ba9ba73a7d7f751d427c504b74d052408cd8cd9bc55d2a79c02",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/sfx/delivery-success.mp3",
+      "status": 200,
+      "bytes": 25920,
+      "localHash": "7737988372bff1bda19ae91cead1e4ca72efe703b5088a4f48c8c87e2720cc0f",
+      "liveHash": "7737988372bff1bda19ae91cead1e4ca72efe703b5088a4f48c8c87e2720cc0f",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/sfx/delivery-wrong.mp3",
+      "status": 200,
+      "bytes": 26957,
+      "localHash": "f6e2bec5eaf4e522d87c4e1c610ba5da6568399dbc5eb9c1bda62c12997db770",
+      "liveHash": "f6e2bec5eaf4e522d87c4e1c610ba5da6568399dbc5eb9c1bda62c12997db770",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/sfx/fanfare.mp3",
+      "status": 200,
+      "bytes": 120960,
+      "localHash": "c1c74429cf20003026304ac3ea709ccaea30c807275b06285cda1b88c07d8bbd",
+      "liveHash": "c1c74429cf20003026304ac3ea709ccaea30c807275b06285cda1b88c07d8bbd",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/sfx/level-up.mp3",
+      "status": 200,
+      "bytes": 38592,
+      "localHash": "e5f5bca990ea21836bcf2c67745f2cccb81a231292e3ef5557560e990d821cb7",
+      "liveHash": "e5f5bca990ea21836bcf2c67745f2cccb81a231292e3ef5557560e990d821cb7",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/sfx/lose.mp3",
+      "status": 200,
+      "bytes": 122688,
+      "localHash": "474fd0c4e5f3bb2e56ae92bea436fbff6f761654772146a628fa8d39b38d3f09",
+      "liveHash": "474fd0c4e5f3bb2e56ae92bea436fbff6f761654772146a628fa8d39b38d3f09",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/sfx/needle.mp3",
+      "status": 200,
+      "bytes": 16299,
+      "localHash": "e3d10d2208ca466fd7b23ef02d469861122552526b4f49f43862fb910e061e64",
+      "liveHash": "e3d10d2208ca466fd7b23ef02d469861122552526b4f49f43862fb910e061e64",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/sfx/sanctuary.mp3",
+      "status": 200,
+      "bytes": 33853,
+      "localHash": "ad998e6db42e0c6f6eda7c2ee5c7e8ddeb72f1e4baf50f15ddc9846709ef13af",
+      "liveHash": "ad998e6db42e0c6f6eda7c2ee5c7e8ddeb72f1e4baf50f15ddc9846709ef13af",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/sfx/slash.mp3",
+      "status": 200,
+      "bytes": 16299,
+      "localHash": "ecfca73464a7627427268f556cb57d7e00e741fa01b8e704768cb7e37638c56f",
+      "liveHash": "ecfca73464a7627427268f556cb57d7e00e741fa01b8e704768cb7e37638c56f",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/sfx/warning-pulse.mp3",
+      "status": 200,
+      "bytes": 35734,
+      "localHash": "eb9050897ae89bd5d098de9aa010e469665b95e2ed775e8354bca0f4e1572b26",
+      "liveHash": "eb9050897ae89bd5d098de9aa010e469665b95e2ed775e8354bca0f4e1572b26",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/ame.mp3",
+      "status": 200,
+      "bytes": 11804,
+      "localHash": "bea707ffc1ceb511538c73b0bbbb1bd96889ae29babb93f2a3e07e9e22338386",
+      "liveHash": "bea707ffc1ceb511538c73b0bbbb1bd96889ae29babb93f2a3e07e9e22338386",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/eki.mp3",
+      "status": 200,
+      "bytes": 9164,
+      "localHash": "e984c5374082254e5719f14bc656a64843220e71cfd02152bc910ba7df3ce8f6",
+      "liveHash": "e984c5374082254e5719f14bc656a64843220e71cfd02152bc910ba7df3ce8f6",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/fune.mp3",
+      "status": 200,
+      "bytes": 8492,
+      "localHash": "0c9e757fb67cdc070d428296b094f185c4f10f9e460b7e0ddb3af7fb0f7addd5",
+      "liveHash": "0c9e757fb67cdc070d428296b094f185c4f10f9e460b7e0ddb3af7fb0f7addd5",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/hana.mp3",
+      "status": 200,
+      "bytes": 9668,
+      "localHash": "9663af3b03de512e415674c4dda7ed17c002d8fc5cabff149bbc6f99bbf1e566",
+      "liveHash": "9663af3b03de512e415674c4dda7ed17c002d8fc5cabff149bbc6f99bbf1e566",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/hidari.mp3",
+      "status": 200,
+      "bytes": 9140,
+      "localHash": "de77f3f66d7ee9eb8d1a1e364a6d058ad2cc936371c3482fc3877c109b994811",
+      "liveHash": "de77f3f66d7ee9eb8d1a1e364a6d058ad2cc936371c3482fc3877c109b994811",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/hikouki.mp3",
+      "status": 200,
+      "bytes": 12404,
+      "localHash": "b2b4f38e7889ba91b3d3d00c7e1b522a2b1156eb2f6bfeb7bf23812d7aef685b",
+      "liveHash": "b2b4f38e7889ba91b3d3d00c7e1b522a2b1156eb2f6bfeb7bf23812d7aef685b",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/hon.mp3",
+      "status": 200,
+      "bytes": 7964,
+      "localHash": "3d0788ee715ee280a4836e7861af78ef68ed83fd42ac4bb772ceeb4a218fe53c",
+      "liveHash": "3d0788ee715ee280a4836e7861af78ef68ed83fd42ac4bb772ceeb4a218fe53c",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/hoshi.mp3",
+      "status": 200,
+      "bytes": 9236,
+      "localHash": "7614216c7ca769c4e4bfff8e64cf4b667eba0615603b2680fcf04d33196c54d2",
+      "liveHash": "7614216c7ca769c4e4bfff8e64cf4b667eba0615603b2680fcf04d33196c54d2",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/inu.mp3",
+      "status": 200,
+      "bytes": 8540,
+      "localHash": "fe65716cb2f783c7b917227bc4b8eb29137cdc5508ecdaa0f7afd51a3c449894",
+      "liveHash": "fe65716cb2f783c7b917227bc4b8eb29137cdc5508ecdaa0f7afd51a3c449894",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/kaeru.mp3",
+      "status": 200,
+      "bytes": 10004,
+      "localHash": "538156232b8a173a16e86829e95c4c7ebd4af90f1dd37bf5615307d357ed9bc8",
+      "liveHash": "538156232b8a173a16e86829e95c4c7ebd4af90f1dd37bf5615307d357ed9bc8",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/kame.mp3",
+      "status": 200,
+      "bytes": 8828,
+      "localHash": "2b5e62b9d3006309d026de1f0674a097f7cbf13cecd484d92fa8b758963eff24",
+      "liveHash": "2b5e62b9d3006309d026de1f0674a097f7cbf13cecd484d92fa8b758963eff24",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/kaminari.mp3",
+      "status": 200,
+      "bytes": 10916,
+      "localHash": "10728f3bf80185a9847de2fc6a8c6298f5048330c81ca76dd0c03483dc7342a8",
+      "liveHash": "10728f3bf80185a9847de2fc6a8c6298f5048330c81ca76dd0c03483dc7342a8",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/kasa.mp3",
+      "status": 200,
+      "bytes": 9764,
+      "localHash": "f260ae66b91cb837951f82daa8a5b88f6f526c53135e7133173ba5aba3152257",
+      "liveHash": "f260ae66b91cb837951f82daa8a5b88f6f526c53135e7133173ba5aba3152257",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/kaze.mp3",
+      "status": 200,
+      "bytes": 8420,
+      "localHash": "cadb6f49008ec35e4e01e701f68a4aee1352ba096000be6bcaca16881b4ddda4",
+      "liveHash": "cadb6f49008ec35e4e01e701f68a4aee1352ba096000be6bcaca16881b4ddda4",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/keeki.mp3",
+      "status": 200,
+      "bytes": 12788,
+      "localHash": "8c799cfb8d5ffc9386b77f7ca4be7e5f182e742564eb76de484c4b933232006c",
+      "liveHash": "8c799cfb8d5ffc9386b77f7ca4be7e5f182e742564eb76de484c4b933232006c",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/kiri.mp3",
+      "status": 200,
+      "bytes": 8300,
+      "localHash": "1a54bcc1d70f193bf8eb25eec969aaf95fa9e8f8e760514c5249c7019fb84a83",
+      "liveHash": "1a54bcc1d70f193bf8eb25eec969aaf95fa9e8f8e760514c5249c7019fb84a83",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/kita.mp3",
+      "status": 200,
+      "bytes": 11036,
+      "localHash": "99efe79b40d658fc5537686078bbb7f03bfd05d8e9a1145db026c20fcc8937bb",
+      "liveHash": "99efe79b40d658fc5537686078bbb7f03bfd05d8e9a1145db026c20fcc8937bb",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/kumo.mp3",
+      "status": 200,
+      "bytes": 7868,
+      "localHash": "c82ba6729c07e993468b69d7dc40e157ae54fa7bc9f5474fe27398eec65db087",
+      "liveHash": "c82ba6729c07e993468b69d7dc40e157ae54fa7bc9f5474fe27398eec65db087",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/kuruma.mp3",
+      "status": 200,
+      "bytes": 11132,
+      "localHash": "10c37a6756e523a7f0fa319c6cabfc1e05754f38e5bd022607c66e6f06ba378e",
+      "liveHash": "10c37a6756e523a7f0fa319c6cabfc1e05754f38e5bd022607c66e6f06ba378e",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/mae.mp3",
+      "status": 200,
+      "bytes": 8468,
+      "localHash": "fd81f184ec9785f2c3875cdad910fb0273405b01aeb75e55435bbadd2cb081b6",
+      "liveHash": "fd81f184ec9785f2c3875cdad910fb0273405b01aeb75e55435bbadd2cb081b6",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/migi.mp3",
+      "status": 200,
+      "bytes": 9812,
+      "localHash": "3c412df175111fc993e76af69d3e9c3d02e948963fb393c6639886c713214982",
+      "liveHash": "3c412df175111fc993e76af69d3e9c3d02e948963fb393c6639886c713214982",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/minami.mp3",
+      "status": 200,
+      "bytes": 10244,
+      "localHash": "cc1bc8ed7044f056f5e6615134604bdf11fbad9bc7414c8e06d162213ed51555",
+      "liveHash": "cc1bc8ed7044f056f5e6615134604bdf11fbad9bc7414c8e06d162213ed51555",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/neko.mp3",
+      "status": 200,
+      "bytes": 9956,
+      "localHash": "ed0a2bb561593cd42012d5ae0d5fc6bb51c1111916b77f09b04e8d1cc919d404",
+      "liveHash": "ed0a2bb561593cd42012d5ae0d5fc6bb51c1111916b77f09b04e8d1cc919d404",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/niji.mp3",
+      "status": 200,
+      "bytes": 9572,
+      "localHash": "de8c5f1ef1193a8377fac1f016d5bd4f66ee0915d9dfe93b8586734f49b39e4d",
+      "liveHash": "de8c5f1ef1193a8377fac1f016d5bd4f66ee0915d9dfe93b8586734f49b39e4d",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/ocha.mp3",
+      "status": 200,
+      "bytes": 9308,
+      "localHash": "8539696c17b885e7630392790fdea8aec68ef500d33a91789809ee1a6a445e96",
+      "liveHash": "8539696c17b885e7630392790fdea8aec68ef500d33a91789809ee1a6a445e96",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/onigiri.mp3",
+      "status": 200,
+      "bytes": 12332,
+      "localHash": "3ca52803435e8b43759b72b1a21163e16923f0dcd650d58540bbf003fede3dd4",
+      "liveHash": "3ca52803435e8b43759b72b1a21163e16923f0dcd650d58540bbf003fede3dd4",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/pan.mp3",
+      "status": 200,
+      "bytes": 8852,
+      "localHash": "17d27b8c181a60b2b77aa3eefb2671abc1e4087478b0098ffa7650ed6a1e6e4b",
+      "liveHash": "17d27b8c181a60b2b77aa3eefb2671abc1e4087478b0098ffa7650ed6a1e6e4b",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/ramen.mp3",
+      "status": 200,
+      "bytes": 11852,
+      "localHash": "fc7e885119687da59d01bbef80b981d010a410558847d71796d7dcd097cf7baa",
+      "liveHash": "fc7e885119687da59d01bbef80b981d010a410558847d71796d7dcd097cf7baa",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/ringo.mp3",
+      "status": 200,
+      "bytes": 9620,
+      "localHash": "e841a71225cc377ee74143add1685b3ced46801c5bb1f66a6c7e5b939590216c",
+      "liveHash": "e841a71225cc377ee74143add1685b3ced46801c5bb1f66a6c7e5b939590216c",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/sakana.mp3",
+      "status": 200,
+      "bytes": 12500,
+      "localHash": "3e3b057e9477cfaba6793843c42f2d7162e029e296d7659d2f6cb832bbab1f47",
+      "liveHash": "3e3b057e9477cfaba6793843c42f2d7162e029e296d7659d2f6cb832bbab1f47",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/sakura.mp3",
+      "status": 200,
+      "bytes": 9596,
+      "localHash": "1d7171d228f7887f9befd0228d99d5a5d601d49a11a1e0f9dcb06a8d3c0e7cd5",
+      "liveHash": "1d7171d228f7887f9befd0228d99d5a5d601d49a11a1e0f9dcb06a8d3c0e7cd5",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/tako.mp3",
+      "status": 200,
+      "bytes": 8540,
+      "localHash": "f31ed73a70486c68ad2b1d2cdb4e69baf8a4fdabb9d88b6d62e0482bfaeb0793",
+      "liveHash": "f31ed73a70486c68ad2b1d2cdb4e69baf8a4fdabb9d88b6d62e0482bfaeb0793",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/tori.mp3",
+      "status": 200,
+      "bytes": 9284,
+      "localHash": "fcd23676f78d7e1e07f6189b41984c3f451274f3bc4cd51b79b8d40f9acf3316",
+      "liveHash": "fcd23676f78d7e1e07f6189b41984c3f451274f3bc4cd51b79b8d40f9acf3316",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/tsuki.mp3",
+      "status": 200,
+      "bytes": 9380,
+      "localHash": "c724209a765ec9589c964303ba03ff19919ad25faf5c8e7f57f47b8baeafb1ea",
+      "liveHash": "c724209a765ec9589c964303ba03ff19919ad25faf5c8e7f57f47b8baeafb1ea",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/umi.mp3",
+      "status": 200,
+      "bytes": 8852,
+      "localHash": "da09f87cf69baec5cabb1750657f0cda9f2cafd8b8d59c955acd80cc1bf8f89b",
+      "liveHash": "da09f87cf69baec5cabb1750657f0cda9f2cafd8b8d59c955acd80cc1bf8f89b",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/usagi.mp3",
+      "status": 200,
+      "bytes": 11372,
+      "localHash": "bc010163ecffc1759d91a651767132a4242b7eeda17575304612c29a574b004d",
+      "liveHash": "bc010163ecffc1759d91a651767132a4242b7eeda17575304612c29a574b004d",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/ushiro.mp3",
+      "status": 200,
+      "bytes": 10004,
+      "localHash": "00c8b2617cef7dc106274428096c0adc4607dc283c074e270cb3be2ea9f6b0e3",
+      "liveHash": "00c8b2617cef7dc106274428096c0adc4607dc283c074e270cb3be2ea9f6b0e3",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/yama.mp3",
+      "status": 200,
+      "bytes": 8324,
+      "localHash": "5af697c41fe08db43cdb877582f796ea25735315c2dc915fc71d6770962ef363",
+      "liveHash": "5af697c41fe08db43cdb877582f796ea25735315c2dc915fc71d6770962ef363",
+      "matches": true
+    },
+    {
+      "path": "assets/audio/words/yuki.mp3",
+      "status": 200,
+      "bytes": 10076,
+      "localHash": "838b8b2f327a76e06a45fe62e87a4d8f321488693410f1f47f1611e28e8a2d4e",
+      "liveHash": "838b8b2f327a76e06a45fe62e87a4d8f321488693410f1f47f1611e28e8a2d4e",
+      "matches": true
+    }
+  ]
+}
