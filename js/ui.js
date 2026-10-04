@@ -1443,11 +1443,12 @@ window.UI = (() => {
     ctx.fillStyle = failed > 0 ? "#f0b8b4" : "#f4e7cf";
     ctx.fillText(`誤配  ${failed} 件`, mid + 110, cardY + 232);
 
-    const reviewList = [...new Map((misses || []).map(w => [w.jp, w])).values()].slice(0, 5);
+    const reviewWords = [...new Map((misses || []).map(w => [w.jp, w])).values()];
+    const reviewList = reviewWords.slice(0, 5);
     ctx.font = readableFont(15, "700");
     if (reviewList.length > 0) {
       ctx.fillStyle = "rgba(255, 214, 196, 0.86)";
-      ctx.fillText("今夜記錯的字", mid, cardY + 278);
+      ctx.fillText(`今夜記錯的字：共 ${reviewWords.length} 字${reviewWords.length > 5 ? "，僅顯示前 5 字" : ""}`, mid, cardY + 278);
       ctx.font = readableFont(16, "700");
       ctx.fillStyle = "#fff6ea";
       const parts = reviewList.map(w => `${w.jp}（${w.zh}）`);
