@@ -30,7 +30,9 @@ function loadRenderer(width, height, dpr = 1) {
 test('Canvas backings preserve viewport mapping within bounded raster budgets', () => {
   for (const [width,height,dpr] of [[1920,1080,1],[844,390,3],[1280,800,1.25]]) {
     const r=loadRenderer(width,height,dpr), light=r.canvases[1];
-    const density=Math.min(dpr,2), v=r.env.VIEWPORT.get();
+    const density=r.env.RENDERER.getDpr(), v=r.env.VIEWPORT.get();
+    assert.ok(density<=Math.min(dpr,2));assert.ok(density>=1);
+    assert.ok(r.main.width*r.main.height<=Math.max(width*height,1500000)+3000);
     assert.deepEqual([r.main.width,r.main.height],[Math.round(width*density),Math.round(height*density)]);
     assert.ok(light.width*light.height<=502000);
     assert.ok(light.width<=width && light.height<=height);
@@ -46,9 +48,9 @@ test('Canvas backings preserve viewport mapping within bounded raster budgets', 
 
 test('large high-DPR windows do not multiply the scene into over six million pixels',()=>{
   const r=loadRenderer(1680,949,2);
-  assert.ok(r.main.width*r.main.height<=2505000);
+  assert.ok(r.main.width*r.main.height<=Math.max(1680*949,1500000)+3000);
   assert.ok(r.env.RENDERER.getDpr()<2);
-  assert.ok(r.env.RENDERER.getDpr()>1);
+  assert.ok(r.env.RENDERER.getDpr()>=1);
 });
 
 test('soft lighting raster stays bounded while the final layer covers the full viewport',()=>{

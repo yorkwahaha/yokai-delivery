@@ -1,0 +1,52 @@
+✖ Canvas backings preserve viewport mapping within bounded raster budgets (6.9787ms)
+✖ large high-DPR windows do not multiply the scene into over six million pixels (0.8791ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.8879
+
+✖ failing tests:
+
+test at tests\renderer.test.cjs:30:1
+✖ Canvas backings preserve viewport mapping within bounded raster budgets (6.9787ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(r.main.width*r.main.height<=Math.max(width*height,1500000)+3000)
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\renderer.test.cjs:35:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\renderer.test.cjs:49:1
+✖ large high-DPR windows do not multiply the scene into over six million pixels (0.8791ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(r.main.width*r.main.height<=Math.max(1680*949,1500000)+3000)
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\renderer.test.cjs:51:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
