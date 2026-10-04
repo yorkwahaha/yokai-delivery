@@ -28,6 +28,8 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     upgradeOil: () => UP.find(u=>u.id==='oil_max').f(),
     addRing: () => rings.push({x:P.x,y:P.y,r:40,life:0.08,maxL:0.32,color:'#ffffff'}),
     addBullet: () => enemyBullets.push({x:P.x+180,y:P.y,vx:0,vy:0,life:2}),
+    trapMis: () => { const e=enemies.find(e=>e.type==='mis'); solids.splice(0,solids.length,{x0:e.x-40,x1:e.x+40,y0:e.y-40,y1:e.y+40}); },
+    buttonGeometry: () => ({pause:{...btnPause},hint:{...UI.HINT_BTN}}),
     blockWrongSpawn: () => { const p=ansPos(job.to)[(job.ans.indexOf(job.word)+1)%3]; solids.splice(0,solids.length,{x0:p.x-230,x1:p.x+230,y0:p.y-230,y1:p.y+230}); },
     tutorialState: () => tutorial,
     guidePoint: (...args) => guidePoint(...args),
@@ -108,6 +110,18 @@ test('enemy fireballs render above night lighting and weather',()=>{
   const ctx=g.env.RENDERER.getCtx(),calls=[];g.env.RENDERER.renderLighting=()=>calls.push('night');
   ctx.arc=(x,y,r)=>{if(r===8)calls.push('bullet');};g.drawWorld();
   assert.ok(calls.includes('bullet'));assert.ok(calls.indexOf('bullet')>calls.indexOf('night'));
+});
+
+test('a trapped misdelivery enemy recovers to a clear position',()=>{
+  const g=loadGame();g.start();g.addMis();g.trapMis();g.update(1);g.update(1);g.update(1);
+  const e=g.snapshot().enemies.find(e=>e.type==='mis');assert.ok(e);assert.equal(g.enemyBlocked(e),false);
+});
+
+test('small pause targets accept clicks within a 44 CSS pixel hit area',()=>{
+  const g=loadGame();g.env.innerWidth=844;g.env.innerHeight=390;g.start();g.frame(16);
+  const v=g.env.VIEWPORT.get(),bt=g.buttonGeometry().pause;
+  const x=(bt.x-6+v.offsetX)*v.scale,y=(bt.y+bt.h/2+v.offsetY)*v.scale;
+  g.canvasEvents.pointerdown(pointer(x,y));assert.equal(g.snapshot().state,'pause');
 });
 
 test('rain-port runtime uses reduced shooter pressure and the intended recovery pacing',t=>{

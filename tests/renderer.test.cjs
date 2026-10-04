@@ -62,10 +62,10 @@ test('full upgraded oil capacity keeps the same lantern radius as full base capa
 test('monster hit flashes use a cached white silhouette without Canvas filter',()=>{
   const r=loadRenderer(900,600),sprite={naturalWidth:80,naturalHeight:100};r.env.ART.ghost=sprite;
   let filters=0;Object.defineProperty(r.main.ctx,'filter',{set(){filters++;}});
-  const e={type:'ghost',x:100,y:100,hp:1,flash:0.1};
+  const initial=r.canvases.length,e={type:'ghost',x:100,y:100,hp:1,flash:0.1};
   r.env.RENDERER.drawMonster(e,{x:200,y:100},0);const count=r.canvases.length;
   r.env.RENDERER.drawMonster(e,{x:200,y:100},0);
-  assert.equal(filters,0);assert.equal(r.canvases.length,count);assert.equal(count,3);
+  assert.equal(filters,0);assert.equal(r.canvases.length,count);assert.equal(count,initial+1);
 });
 
 test('house signs identify shops and never expose unrelated vocabulary or hint translations', () => {
