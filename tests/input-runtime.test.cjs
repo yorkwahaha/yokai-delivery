@@ -35,6 +35,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     clearOrders: () => { orders=[];job=null; },
     replayTutorial: () => activateMenu('tutorial'),
     atDestination: () => { P.x=job.to.x; P.y=job.to.y+110; },
+    atAnswer: () => { const p=ansPos(job.to)[job.ans.indexOf(job.word)];P.x=p.x;P.y=p.y; },
     dashLesson: () => { elapsed=12; },
     face: angle => { P.faceAng=angle; },
     combatScene: (weapon, foes, walls=[]) => { Object.keys(WL).forEach(k=>WL[k]=0); WL[weapon]=1; wT[weapon]=0; enemies=foes.map(e=>({x:P.x+e.dx,y:P.y+(e.dy||0),hp:999,max:999,type:'ghost',...e})); solids.splice(0,solids.length,...walls.map(s=>({x0:P.x+s.x0,x1:P.x+s.x1,y0:P.y+s.y0,y1:P.y+s.y1}))); },
@@ -118,11 +119,64 @@ test('same-word Boss retains delivery assistance after the parcel is submitted f
   const g=loadGame();g.start();g.prepareOrder();g.prepareBoss();g.matchBossToJob();
   const j=g.snapshot().job;
   g.triggerHint();g.resolve(j.ans.indexOf(j.word));
+  assert.equal(g.snapshot().job,null);
+  assert.ok(g.snapshot().bossQ);
+  assert.equal(g.snapshot().enemies.find(e=>e.type==='boss').shield,true);
+  assert.equal(g.env.STORE.get(j.word.jp).ok,1);
+  assert.equal(g.env.STORE.get(j.word.jp).box,0);
   const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
   assert.equal(g.env.STORE.get(j.word.jp).ok,2);
   assert.equal(g.env.STORE.get(j.word.jp).box,0);
   assert.equal(g.snapshot().score,25);
 });
+
+test('hinted same-word delivery auto-submits after 0.45 seconds while Boss remains unanswered',t=>{
+  const g=loadGame();g.start();g.prepareOrder();g.prepareBoss();g.matchBossToJob();
+  const j=g.snapshot().job,jp=j.word.jp;
+  g.clearSolids();g.atAnswer();g.moveBoss(200);g.setOil(60);g.triggerHint();
+  g.update(0.01); // Entering the correct pad starts the hold; it is not a direct resolve call.
+  for(let i=0;i<44;i++) g.update(0.01);
+  assert.ok(g.snapshot().job);
+  const oilBefore=g.snapshot().oil;
+  g.update(0.01);
+  const submitted=g.snapshot();
+  assert.equal(submitted.job,null);
+  assert.equal(submitted.score,25);
+  assert.ok(Math.abs(submitted.oil-oilBefore-10)<0.01);
+  assert.ok(submitted.bossQ);
+  assert.equal(submitted.enemies.find(e=>e.type==='boss').shield,true);
+  assert.equal(g.env.STORE.get(jp).ok,1);
+  assert.equal(g.env.STORE.get(jp).box,0);
+  t.diagnostic(JSON.stringify({scenario:'hint-auto-delivery-first',elapsed:submitted.elapsed,score:submitted.score,oilGain:submitted.oil-oilBefore,bossPending:true,afterDelivery:{...g.env.STORE.get(jp)}}));
+  g.answerBoss(submitted.bossQ.ans.indexOf(submitted.bossQ.word));
+  assert.equal(g.snapshot().bossQ,null);
+  assert.equal(g.env.STORE.get(jp).ok,2);
+  assert.equal(g.env.STORE.get(jp).box,0);
+  t.diagnostic(JSON.stringify({scenario:'hint-auto-delivery-then-boss',afterBoss:{...g.env.STORE.get(jp)}}));
+});
+
+for(const seconds of [1.79,1.81]) {
+  test(`same-word Boss answer at ${seconds}s follows current feedback rule without extending its lifetime`,t=>{
+    const g=loadGame();g.start();g.prepareOrder();g.prepareBoss();g.matchBossToJob();
+    const j=g.snapshot().job,jp=j.word.jp;
+    g.clearSolids();g.atAnswer();g.moveBoss(200);g.setOil(50);
+    g.resolve(j.ans.indexOf(j.word));
+    assert.equal(g.snapshot().oil,78);
+    assert.equal(g.snapshot().score,50);
+    assert.equal(g.snapshot().job,null);
+    assert.equal(g.env.STORE.get(jp).box,1);
+    for(let i=0;i<Math.round(seconds*100);i++) g.update(0.01);
+    const s=g.snapshot(),feedback=s.floats.find(f=>f.v.includes(jp+'＝'));
+    assert.equal(!!feedback,seconds<1.8);
+    assert.ok(s.bossQ);
+    assert.equal(s.bossQ.word.jp,jp);
+    g.answerBoss(s.bossQ.ans.indexOf(s.bossQ.word));
+    assert.equal(g.snapshot().bossQ,null);
+    assert.equal(g.env.STORE.get(jp).ok,2);
+    assert.equal(g.env.STORE.get(jp).box,2); // Current policy allows both sides of the feedback boundary.
+    t.diagnostic(JSON.stringify({scenario:'ordinary-delivery-feedback-boundary',elapsed:s.elapsed,feedbackAlive:!!feedback,feedbackLife:feedback?.life||0,score:s.score,afterBoss:{...g.env.STORE.get(jp)}}));
+  });
+}
 
 test('Boss assistance survives leaving and reentering quiz range',()=>{
   const g=loadGame();g.start();g.prepareBoss();
@@ -134,16 +188,20 @@ test('Boss assistance survives leaving and reentering quiz range',()=>{
   assert.equal(g.env.STORE.get(q.word.jp).box,0);
 });
 
-test('Boss assistance clears for a changed word and for a replay',()=>{
+test('Boss assistance clears for a changed word and for a replay',t=>{
   const g=loadGame();g.start();g.prepareBoss();
   const old=g.snapshot().bossQ.word.jp;
   g.answerBoss(g.snapshot().bossQ.ans.findIndex(w=>w.jp!==old));g.unlockBoss();
   g.answerBoss(g.snapshot().bossQ.ans.findIndex(w=>w.jp!==old));g.unlockBoss();
   const next=g.snapshot().bossQ;assert.notEqual(next.word.jp,old);
+  assert.equal(next.wasAssisted,false);
   g.answerBoss(next.ans.indexOf(next.word));assert.equal(g.env.STORE.get(next.word.jp).box,1);
+  t.diagnostic(JSON.stringify({scenario:'changed-word-clears-assistance',assisted:next.wasAssisted,afterAnswer:{...g.env.STORE.get(next.word.jp)}}));
   g.start();g.prepareBoss(g.env.CONTENT.getStageWords('night-town').find(w=>w.jp===old));
   const replay=g.snapshot().bossQ;g.answerBoss(replay.ans.indexOf(replay.word));
+  assert.equal(replay.wasAssisted,false);
   assert.equal(g.env.STORE.get(old).box,1);
+  t.diagnostic(JSON.stringify({scenario:'new-run-clears-assistance',assisted:replay.wasAssisted,afterAnswer:{...g.env.STORE.get(old)}}));
 });
 
 test('second hint transfers assistance to a Boss that appeared after the first hint',()=>{

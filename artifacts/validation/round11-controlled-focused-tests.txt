@@ -1,0 +1,28 @@
+✔ delivery hint cannot promote mastery through a simultaneous same-word Boss quiz (7.1348ms)
+✔ Boss eliminated answer assistance also applies to an active same-word delivery (2.0786ms)
+✔ unrelated delivery assistance does not penalize independent Boss mastery (1.9859ms)
+✔ same-word Boss retains delivery assistance after the parcel is submitted first (2.457ms)
+✔ hinted same-word delivery auto-submits after 0.45 seconds while Boss remains unanswered (7.5839ms)
+ℹ {"scenario":"hint-auto-delivery-first","elapsed":0.46000000000000024,"score":25,"oilGain":9.9957,"bossPending":true,"afterDelivery":{"ok":1,"ng":0,"box":0,"lastSeen":1791084214967,"missBoost":1}}
+ℹ {"scenario":"hint-auto-delivery-then-boss","afterBoss":{"ok":2,"ng":0,"box":0,"lastSeen":1791084214967,"missBoost":1}}
+✔ same-word Boss answer at 1.79s follows current feedback rule without extending its lifetime (16.6564ms)
+ℹ {"scenario":"ordinary-delivery-feedback-boundary","elapsed":1.7900000000000014,"feedbackAlive":true,"feedbackLife":0.009999999999998581,"score":50,"afterBoss":{"ok":2,"ng":0,"box":2,"lastSeen":1791084214984,"missBoost":1}}
+✔ same-word Boss answer at 1.81s follows current feedback rule without extending its lifetime (16.5716ms)
+ℹ {"scenario":"ordinary-delivery-feedback-boundary","elapsed":1.8100000000000014,"feedbackAlive":false,"feedbackLife":0,"score":50,"afterBoss":{"ok":2,"ng":0,"box":2,"lastSeen":1791084215001,"missBoost":1}}
+✔ Boss assistance survives leaving and reentering quiz range (2.5212ms)
+✔ Boss assistance clears for a changed word and for a replay (2.4154ms)
+ℹ {"scenario":"changed-word-clears-assistance","assisted":false,"afterAnswer":{"ok":1,"ng":0,"box":1,"lastSeen":1791084215006,"missBoost":1}}
+ℹ {"scenario":"new-run-clears-assistance","assisted":false,"afterAnswer":{"ok":1,"ng":2,"box":1,"lastSeen":1791084215006,"missBoost":1}}
+✔ assisted submission marks a same-word Boss created after the last hint (2.242ms)
+✔ ordinary delivery correction remains visible during an independent same-word Boss answer (1.7977ms)
+✔ new pickup inherits only the current same-word Boss assistance (1.6783ms)
+✔ automatic order refill can repeat a purified word while its correction is still alive (2.3235ms)
+✔ scheduled Boss can draw a purified word and open its quiz before correction expires (2.3573ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 124.4932
