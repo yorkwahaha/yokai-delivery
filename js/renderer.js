@@ -1,12 +1,14 @@
 // 渲染引擎：商業級和風手繪管線、石疊地坪紋理、町屋店鋪建築、動態 2D 多光源與 Game Juice
 window.RENDERER = (() => {
   const W = 900, H = 600;
+  const SCENE_PIXELS = 1500000, LIGHT_PIXELS = 500000;
   const HOUSE_NAMES = { house_shop: "夜行商店", house_tavern: "宵待酒屋", house_shrine: "稻荷社" };
   let cv, ctx, dpr;
   let lightCv, lightCtx;
   let stonePattern = null;
   let groundPattern = null;
   let groundPatternImage = null;
+  let terrainCv = null, terrainState = null;
   const hitSilhouettes = new WeakMap();
 
   // 鏡頭與打擊震動
@@ -25,13 +27,16 @@ window.RENDERER = (() => {
   function resize() {
     const v = window.VIEWPORT?.get() || {width:W,height:H,offsetX:0,offsetY:0};
     const scale = v.scale || 1;
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cssPixels = v.width * v.height * scale * scale;
+    // 大視窗限制額外 DPR 像素；至少保留原生 CSS 解析度，不縮小文字與命中範圍。
+    dpr = Math.min(window.devicePixelRatio || 1, 2, Math.max(1, Math.sqrt(SCENE_PIXELS / cssPixels)));
     cv.width = Math.round(v.width * scale * dpr); cv.height = Math.round(v.height * scale * dpr);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-    // 光照是柔和漸層，維持每 CSS pixel 一點，不額外乘 DPR。
-    lightCv.width = Math.round(v.width * scale); lightCv.height = Math.round(v.height * scale);
-    lightCtx.setTransform(scale, 0, 0, scale, v.offsetX * scale, v.offsetY * scale);
+    // 柔和遮罩以較低解析度繪製；合成時仍覆蓋相同的完整視口。
+    const lightScale = scale * Math.min(1, Math.sqrt(LIGHT_PIXELS / cssPixels));
+    lightCv.width = Math.round(v.width * lightScale); lightCv.height = Math.round(v.height * lightScale);
+    lightCtx.setTransform(lightScale, 0, 0, lightScale, v.offsetX * lightScale, v.offsetY * lightScale);
   }
 
   function init(canvas) {
@@ -195,27 +200,47 @@ window.RENDERER = (() => {
     return false;
   }
 
-  // 無邊界地圖不再建立大型離屏 Canvas；每幀只畫鏡頭附近已啟用的 chunks。
-  function drawGround(elapsed, dawnTime, chunks = [], groundKey = "ground") {
-    const margin = 120;
-    const area = bounds();
-    const left = camX + area.left - margin;
-    const top = camY + area.top - margin;
-    const width = area.width + margin * 2;
-    const height = area.height + margin * 2;
+  // 只快取視口附近的靜態底圖；水波、道路、文字與場景物件仍在原層次繪製。
+  function drawGroundBase(chunks, groundKey) {
+    const area = bounds(), v = window.VIEWPORT?.get() || {scale:1};
+    const pixelScale = (v.scale || 1) * dpr, x = camX + area.left, y = camY + area.top;
     const groundImg = window.ART && window.ART[groundKey];
-    const dirt = groundKey === "ground_dirt";
-
-    if (groundImg && groundImg.complete && groundImg.naturalWidth) {
-      if (groundPatternImage !== groundImg) {
-        groundPattern = ctx.createPattern(groundImg, "repeat");
-        groundPatternImage = groundImg;
+    const cached = terrainState;
+    if (!cached || cached.key !== groundKey || cached.image !== groundImg || cached.pixelScale !== pixelScale ||
+        cached.viewW !== area.width || cached.viewH !== area.height || x < cached.left || y < cached.top ||
+        x + area.width > cached.left + cached.width || y + area.height > cached.top + cached.height ||
+        cached.chunks.length !== chunks.length || chunks.some((chunk,i)=>chunk!==cached.chunks[i])) {
+      const left = x - 120, top = y - 120, width = area.width + 240, height = area.height + 240;
+      terrainCv ||= document.createElement("canvas");
+      terrainCv.width = Math.ceil(width * pixelScale);terrainCv.height = Math.ceil(height * pixelScale);
+      const c = terrainCv.getContext("2d");
+      c.setTransform(pixelScale,0,0,pixelScale,-left*pixelScale,-top*pixelScale);
+      c.imageSmoothingQuality = "high";
+      if (groundImg && groundImg.complete && groundImg.naturalWidth) {
+        if (groundPatternImage !== groundImg) {groundPattern = c.createPattern(groundImg,"repeat");groundPatternImage = groundImg;}
+        c.fillStyle = groundPattern || "#181d28";
+      } else c.fillStyle = groundKey === "ground_dirt" ? "#6b5135" : stonePattern || "#181d28";
+      c.fillRect(left,top,width,height);
+      for (const chunk of chunks) {
+        if (chunk.x > left+width || chunk.x+chunk.w < left || chunk.y > top+height || chunk.y+chunk.h < top) continue;
+        const cx = chunk.x+chunk.w/2, cy = chunk.y+chunk.h/2;
+        const g = c.createRadialGradient(cx,cy,100,cx,cy,Math.max(chunk.w,chunk.h)*0.54);
+        const tint = chunk.theme === "sakura" ? ["255,160,200",0.14] :
+          chunk.theme === "water" || chunk.theme === "lotus" ? ["70,180,220",0.16] :
+          chunk.theme === "tavern" || chunk.theme === "market" ? ["255,180,100",0.14] :
+          chunk.theme === "mystic" ? ["180,140,255",0.15] : ["120,190,140",0.12];
+        g.addColorStop(0,`rgba(${tint[0]},${tint[1]})`);g.addColorStop(1,`rgba(${tint[0]},0)`);
+        c.fillStyle = g;c.fillRect(chunk.x,chunk.y,chunk.w,chunk.h);
       }
-      ctx.fillStyle = groundPattern || "#181d28";
-    } else {
-      ctx.fillStyle = dirt ? "#6b5135" : stonePattern || "#181d28";
+      terrainState = {left,top,width,height,key:groundKey,image:groundImg,pixelScale,viewW:area.width,viewH:area.height,chunks:chunks.slice()};
     }
-    ctx.fillRect(left, top, width, height);
+    const t = terrainState;
+    ctx.drawImage(terrainCv,t.left,t.top,t.width,t.height);
+  }
+
+  function drawGround(elapsed, dawnTime, chunks = [], groundKey = "ground") {
+    drawGroundBase(chunks,groundKey);
+    const area = bounds(), dirt = groundKey === "ground_dirt";
 
     const ROAD_W = 110;
     for (const chunk of chunks) {
@@ -230,26 +255,6 @@ window.RENDERER = (() => {
       const cy = chunk.y + chunk.h / 2;
 
       ctx.save();
-      const bgGrad = ctx.createRadialGradient(cx, cy, 100, cx, cy, Math.max(chunk.w, chunk.h) * 0.54);
-      if (chunk.theme === "sakura") {
-        bgGrad.addColorStop(0, "rgba(255, 160, 200, 0.14)");
-        bgGrad.addColorStop(1, "rgba(255, 160, 200, 0)");
-      } else if (chunk.theme === "water" || chunk.theme === "lotus") {
-        bgGrad.addColorStop(0, "rgba(70, 180, 220, 0.16)");
-        bgGrad.addColorStop(1, "rgba(70, 180, 220, 0)");
-      } else if (chunk.theme === "tavern" || chunk.theme === "market") {
-        bgGrad.addColorStop(0, "rgba(255, 180, 100, 0.14)");
-        bgGrad.addColorStop(1, "rgba(255, 180, 100, 0)");
-      } else if (chunk.theme === "mystic") {
-        bgGrad.addColorStop(0, "rgba(180, 140, 255, 0.15)");
-        bgGrad.addColorStop(1, "rgba(180, 140, 255, 0)");
-      } else {
-        bgGrad.addColorStop(0, "rgba(120, 190, 140, 0.12)");
-        bgGrad.addColorStop(1, "rgba(120, 190, 140, 0)");
-      }
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(chunk.x, chunk.y, chunk.w, chunk.h);
-
       if (chunk.theme === "water" || chunk.theme === "lotus") {
         ctx.fillStyle = "rgba(100, 210, 255, 0.06)";
         for (let i = 0; i < 5; i++) {

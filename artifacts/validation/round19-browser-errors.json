@@ -1,0 +1,24 @@
+{
+  "source": "Chrome tab.dev.logs, levels error, limit 20, captured before closing preview",
+  "attribution": "not determined; no game-loop exception in these returned entries",
+  "entries": [
+    {
+      "level": "error",
+      "message": "Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received",
+      "timestamp": "2026-10-04T10:09:57.487Z",
+      "url": "http://127.0.0.1:8793/__perf19.html"
+    },
+    {
+      "level": "error",
+      "message": "Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received",
+      "timestamp": "2026-10-04T10:09:57.487Z",
+      "url": "http://127.0.0.1:8793/__perf19.html"
+    },
+    {
+      "level": "error",
+      "message": "Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received",
+      "timestamp": "2026-10-04T10:09:57.487Z",
+      "url": "http://127.0.0.1:8793/__perf19.html"
+    }
+  ]
+}

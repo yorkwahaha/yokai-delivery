@@ -1,0 +1,154 @@
+[
+  {
+    "mode": "baseline",
+    "frames": 90,
+    "fps": 4.316546762589927,
+    "cpuMedian": 57.30000000074506,
+    "cpuP95": 65.09999999776483,
+    "gapP95": 1066.7000000000007,
+    "groups": {
+      "drawGround": {
+        "ms": 18.38333333345751,
+        "calls": 1
+      },
+      "drawHouse": {
+        "ms": 0.30111111108627586,
+        "calls": 75
+      },
+      "drawMonster": {
+        "ms": 0.015555555621782938,
+        "calls": 1
+      },
+      "renderLighting": {
+        "ms": 29.54555555557211,
+        "calls": 1
+      },
+      "drawHud": {
+        "ms": 0.21333333361479973,
+        "calls": 1
+      }
+    },
+    "viewport": [
+      1680,
+      949
+    ],
+    "dpr": 2,
+    "canvas": [
+      3360,
+      1898
+    ],
+    "visibility": "visible"
+  },
+  {
+    "mode": "house-cull",
+    "frames": 90,
+    "fps": 1.0856466654362669,
+    "cpuMedian": 0.8999999985098839,
+    "cpuP95": 1.1000000014901161,
+    "gapP95": 1100,
+    "groups": {
+      "drawGround": {
+        "ms": 0.17222222234639856,
+        "calls": 1
+      },
+      "drawMonster": {
+        "ms": 0.01888888892200258,
+        "calls": 1
+      },
+      "drawHouse": {
+        "ms": 0.05555555543137921,
+        "calls": 5
+      },
+      "renderLighting": {
+        "ms": 0.09555555565489662,
+        "calls": 1
+      },
+      "drawHud": {
+        "ms": 0.22666666669150193,
+        "calls": 1
+      }
+    },
+    "viewport": [
+      1680,
+      949
+    ],
+    "dpr": 2,
+    "canvas": [
+      3360,
+      1898
+    ],
+    "visibility": "visible"
+  },
+  {
+    "mode": "no-lighting",
+    "frames": 90,
+    "fps": 11.250140626757842,
+    "cpuMedian": 1.1000000014901161,
+    "cpuP95": 1.3999999985098839,
+    "gapP95": 100,
+    "groups": {
+      "drawGround": {
+        "ms": 0.18444444441960917,
+        "calls": 1
+      },
+      "drawHouse": {
+        "ms": 0.3477777775790956,
+        "calls": 75
+      },
+      "drawMonster": {
+        "ms": 0.01888888883921835,
+        "calls": 1
+      },
+      "drawHud": {
+        "ms": 0.2444444446100129,
+        "calls": 1
+      }
+    },
+    "viewport": [
+      1680,
+      949
+    ],
+    "dpr": 2,
+    "canvas": [
+      3360,
+      1898
+    ],
+    "visibility": "visible"
+  },
+  {
+    "mode": "no-hud",
+    "frames": 90,
+    "fps": 1.0946681148720396,
+    "cpuMedian": 0.8999999985098839,
+    "cpuP95": 1.1000000014901161,
+    "gapP95": 1100,
+    "groups": {
+      "drawGround": {
+        "ms": 0.1666666667494509,
+        "calls": 1
+      },
+      "drawHouse": {
+        "ms": 0.32222222205665374,
+        "calls": 75
+      },
+      "drawMonster": {
+        "ms": 0.021111110970377923,
+        "calls": 1
+      },
+      "renderLighting": {
+        "ms": 0.09000000001655685,
+        "calls": 1
+      }
+    },
+    "viewport": [
+      1680,
+      949
+    ],
+    "dpr": 2,
+    "canvas": [
+      3360,
+      1898
+    ],
+    "visibility": "visible"
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "mode": "before",
+    "frames": 120,
+    "fps": 13.766677756490417,
+    "cpuMedian": 61.5,
+    "cpuP95": 72.5,
+    "gapP95": 100,
+    "maxGap": 116.60000000000218,
+    "viewport": [
+      1680,
+      893
+    ],
+    "canvas": [
+      3360,
+      1786
+    ],
+    "deviceDpr": 2,
+    "rasterDpr": 2,
+    "visible": "visible",
+    "focused": true
+  },
+  {
+    "mode": "fixed",
+    "frames": 120,
+    "fps": 34.28473472186511,
+    "cpuMedian": 0.6999999992549419,
+    "cpuP95": 1.0999999977648258,
+    "gapP95": 33.400000000001455,
+    "maxGap": 50.099999999998545,
+    "viewport": [
+      1680,
+      893
+    ],
+    "canvas": [
+      1680,
+      893
+    ],
+    "deviceDpr": 2,
+    "rasterDpr": 1,
+    "visible": "visible",
+    "focused": true
+  }
+]

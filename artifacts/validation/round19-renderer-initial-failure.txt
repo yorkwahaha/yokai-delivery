@@ -1,0 +1,66 @@
+✖ Canvas backings preserve viewport mapping within bounded raster budgets (3.6093ms)
+✔ large high-DPR windows do not multiply the scene into over six million pixels (0.8045ms)
+✔ soft lighting raster stays bounded while the final layer covers the full viewport (1.1782ms)
+✔ fixed lamp masks and warm glows reuse sprites rather than gradients each frame (0.8999ms)
+✔ resize refreshes DPR and backing resolution when moving between displays (0.676ms)
+✔ full upgraded oil capacity keeps the same lantern radius as full base capacity (0.6858ms)
+✔ monster hit flashes use a cached white silhouette without Canvas filter (0.8002ms)
+✔ house signs identify shops and never expose unrelated vocabulary or hint translations (0.8444ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 61.4963
+
+✖ failing tests:
+
+test at tests\renderer.test.cjs:30:1
+✖ Canvas backings preserve viewport mapping within bounded raster budgets (3.6093ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be reference-equal to "expected":
+  + actual - expected
+  ... Skipped lines
+  
+    {
+      ctx: {
+        createLinearGradient: [Function: createLinearGradient],
+        createRadialGradient: [Function: createRadialGradient],
+        drawImage: [Function: drawImage],
+  ...
+        fillText: [Function: fillText],
+  -     globalCompositeOperation: 'destination-out',
+        measureText: [Function: measureText],
+        setTransform: [Function: setTransform]
+      },
+      getContext: [Function: getContext],
+  +   height: 512,
+  +   transforms: [],
+  +   width: 512
+  -   height: 530,
+  -   transforms: [
+  -     [
+  -       0.8838834764831843,
+  -       0,
+  -       0,
+  -       0.8838834764831843,
+  -       73.65695637359873,
+  -       0
+  -     ]
+  -   ],
+  -   width: 943
+    }
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\renderer.test.cjs:44:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Object],
+    expected: [Object],
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

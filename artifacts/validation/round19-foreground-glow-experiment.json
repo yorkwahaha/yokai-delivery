@@ -1,0 +1,68 @@
+[
+  {
+    "mode": "before",
+    "frames": 120,
+    "fps": 13.483146067415728,
+    "cpuMedian": 62,
+    "cpuP95": 76.09999999776483,
+    "gapP95": 100.10000000000036,
+    "maxGap": 133.39999999999964,
+    "viewport": [
+      1680,
+      893
+    ],
+    "canvas": [
+      3360,
+      1786
+    ],
+    "deviceDpr": 2,
+    "rasterDpr": 2,
+    "visible": "visible",
+    "focused": true,
+    "gameState": "play"
+  },
+  {
+    "mode": "limited",
+    "frames": 120,
+    "fps": 40.223913116347674,
+    "cpuMedian": 0.7999999970197678,
+    "cpuP95": 1.2000000029802322,
+    "gapP95": 33.400000000001455,
+    "maxGap": 33.5,
+    "viewport": [
+      1680,
+      893
+    ],
+    "canvas": [
+      1680,
+      893
+    ],
+    "deviceDpr": 2,
+    "rasterDpr": 1,
+    "visible": "visible",
+    "focused": true,
+    "gameState": "play"
+  },
+  {
+    "mode": "fixed",
+    "frames": 120,
+    "fps": 31.57894736842105,
+    "cpuMedian": 0.8000000007450581,
+    "cpuP95": 1.300000000745058,
+    "gapP95": 50,
+    "maxGap": 50.10000000000218,
+    "viewport": [
+      1680,
+      893
+    ],
+    "canvas": [
+      1680,
+      893
+    ],
+    "deviceDpr": 2,
+    "rasterDpr": 1,
+    "visible": "visible",
+    "focused": true,
+    "gameState": "play"
+  }
+]
