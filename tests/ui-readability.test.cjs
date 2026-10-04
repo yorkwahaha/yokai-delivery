@@ -17,6 +17,7 @@ test('Boss quiz geometry fits the viewport above the bottom HUD with shared hit 
     const bounds=env.window.VIEWPORT.hudBounds(),scale=env.window.VIEWPORT.get().scale;
     const layout=UI.bossQuizLayout(n);
     assert.ok(layout.x>=bounds.left && layout.x+layout.w<=bounds.right);
+    assert.ok(layout.x+layout.w<=bounds.right-208); // Keep clear of pickup/dash circles and their pointer margin.
     assert.ok(layout.y>=bounds.top && layout.y+layout.h<bounds.bottom-62);
     assert.equal(layout.options.length,n);
     for(const b of layout.options) {

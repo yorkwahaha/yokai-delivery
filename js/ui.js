@@ -10,6 +10,24 @@ window.UI = (() => {
   const MENU_CONTROLS_BTN = { x: 20, y: 22, w: 180, h: 38 };
   const HINT_BTN = { x: 532, y: 20, w: 78, h: 40 };
   const TUTORIAL_BTNS = [{x:100,y:390,w:330,h:70},{x:470,y:390,w:330,h:70}];
+  const EXIT_BTNS = [{id:'exit-cancel',x:195,y:330,w:240,h:70},{id:'exit-confirm',x:465,y:330,w:240,h:70}];
+
+  function drawExitConfirm(ctx, focus = 0) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(6,8,18,0.88)';fillScreen(ctx);
+    glassBox(ctx,160,160,580,270,16,'#101624','#e6c27a',2);
+    ctx.textAlign = 'center';ctx.fillStyle = '#ffe3ad';ctx.font = readableFont(24,'900');
+    ctx.fillText('是否放棄本局？',450,215);
+    ctx.fillStyle = '#edf2ff';ctx.font = readableFont(15);
+    ctx.fillText('將返回首頁，本局未結算的成績不會記錄。',450,260);
+    ctx.fillText('已儲存的單字學習紀錄會保留。',450,290);
+    EXIT_BTNS.forEach((b,i)=>{
+      glassBox(ctx,b.x,b.y,b.w,b.h,10,i===0?'#283b42':'#422831','#e6c27a',1.5);
+      ctx.fillStyle = '#fff1d4';ctx.font = readableFont(18,'900');
+      ctx.fillText(i===0?'繼續本局':'放棄並回首頁',b.x+b.w/2,b.y+43);
+    });
+    drawMenuFocus(ctx,EXIT_BTNS[focus]);ctx.restore();
+  }
   const controlLabel = (action, mode = 'keyboard') => mode === 'gamepad'
     ? ({interact:'A',dash:'B',hint:'X',pause:'Start',move:'左搖桿／十字鍵',boss:'LB／RB／Y'}[action] || '')
     : mode === 'touch' ? ({interact:'右側取貨鈕',dash:'右側衝刺鈕',hint:'上方提示鈕',pause:'右上暫停鈕',move:'左側拖曳',boss:'點選答案'}[action] || '')
@@ -387,7 +405,7 @@ window.UI = (() => {
 
     passives.forEach((pas, pIdx) => {
       const px = slotStartX + 200 + pIdx * 34;
-      if (px < W - 180) {
+      if ((px+28)*1.2 < bounds.width-18-180) {
         drawEmblem(ctx, pas.id, px + 14, slotY + 20, 14);
         if (pas.lvl > 1) {
           ctx.fillStyle = "#ffd54f";
@@ -1110,11 +1128,24 @@ window.UI = (() => {
   }
 
   // 4. Boss 破防答題介面
+  function bossQuizLayout(n) {
+    const bounds = window.VIEWPORT?.hudBounds() || screenBounds();
+    const scale = window.VIEWPORT?.get().scale || (document.getElementById('game')?.getBoundingClientRect().width || 900)/900;
+    const left = bounds.left+18, right = bounds.right-208;
+    const w = Math.min(690,right-left), gap = n===2 ? 36 : 24;
+    const optW = Math.min(n===2 ? 260 : 200,(w-42-(n-1)*gap)/n);
+    const optH = Math.max(46,Math.ceil(44/scale)), h = optH+59;
+    const x = left+(right-left-w)/2, y = bounds.bottom-86-h;
+    const startX = x+(w-n*optW-(n-1)*gap)/2;
+    return {x,y,w,h,options:Array.from({length:n},(_,i)=>({x:startX+i*(optW+gap),y:y+46,w:optW,h:optH}))};
+  }
+
   function drawBossQuiz(ctx, bossQ, mode = 'keyboard') {
     if (!bossQ) return;
     ctx.save();
-    const boxW = 690, boxH = 105;
-    const bx = (W - boxW) / 2, by = H - 128;
+    const layout = bossQuizLayout(bossQ.ans.length);
+    const {x:bx,y:by,w:boxW,h:boxH} = layout;
+    const mid = bx+boxW/2;
 
     glassBox(ctx, bx, by, boxW, boxH, 16, "rgba(20, 14, 34, 0.98)", "#ff5470", 2.5);
 
@@ -1123,27 +1154,21 @@ window.UI = (() => {
     ctx.fillStyle = "#ffeed4";
     ctx.font = readableFont(20, "900");
     if (bossQ.word.cue === "text" || !bossQ.word.icon) {
-      ctx.fillText(`${bossQ.word.zh}　→　？`, W / 2, by + 30);
+      ctx.fillText(`${bossQ.word.zh}　→　？`, mid, by + 30);
     } else {
-      drawWordCue(ctx, bossQ.word, W / 2 - 88, by + 22, 30);
+      drawWordCue(ctx, bossQ.word, mid - 88, by + 22, 30);
       ctx.textAlign = "left";
-      ctx.fillText(`${bossQ.word.zh}　→　？`, W / 2 - 62, by + 30);
+      ctx.fillText(`${bossQ.word.zh}　→　？`, mid - 62, by + 30);
     }
     ctx.textAlign = "center";
 
-    const optW = n === 2 ? 260 : 200, optH = 46;
-    const gap = n === 2 ? 36 : 24;
-    const totalW = n * optW + (n - 1) * gap;
-    const startX = bx + (boxW - totalW) / 2;
-
     bossQ.ans.forEach((w, i) => {
-      const ox = startX + i * (optW + gap);
-      const oy = by + 46;
+      const {x:ox,y:oy,w:optW,h:optH} = layout.options[i];
       glassBox(ctx, ox, oy, optW, optH, 10, bossQ.lock > 0 ? "#333c57" : "#ffeed4", "#d4af37", 2);
       ctx.fillStyle = "#1e1829";
       ctx.font = readableFont(18, "900");
       const badge = mode === 'gamepad' ? ["LB", "RB", "Y"][i] : mode === 'touch' ? '' : i + 1;
-      ctx.fillText(`${badge ? badge + ' ' : ''}${w.jp}`, ox + optW / 2, oy + 29, optW - 12);
+      ctx.fillText(`${badge ? badge + ' ' : ''}${w.jp}`, ox + optW / 2, oy + optH/2+7, optW - 12);
     });
 
     ctx.restore();
@@ -1569,7 +1594,7 @@ window.UI = (() => {
 
     // 2. 中央神社朱漆警報木匾
     const bw = 460, bh = 72;
-    const bx = W / 2 - bw / 2, by = 110;
+    const bx = (bounds.left+bounds.right-bw)/2, by = bounds.top+110;
 
     ctx.shadowColor = `rgba(255, 40, 40, ${alpha * 0.95})`;
     ctx.shadowBlur = 22;
@@ -1702,12 +1727,12 @@ window.UI = (() => {
     drawHud,
     drawLevelUp,
     drawEmblem,
-    drawBossQuiz,
+    drawBossQuiz, bossQuizLayout,
     drawCodex,
     drawEndScreen,
     drawPauseMenu,
     drawSurgeWarning,
-    PAUSE_BTNS, pauseButtons, MENU_BTNS, END_BTNS,
+    PAUSE_BTNS, pauseButtons, MENU_BTNS, END_BTNS, EXIT_BTNS, drawExitConfirm,
     PAUSE_BTN_W: 280,
     PAUSE_BTN_H: 44,
     RESTART_BTN,

@@ -68,16 +68,18 @@
   const b = { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0 };
   const keys = new Set(), heldCodes = new Set();
   let state = "menu";
+  let quitConfirm = false;
   let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "";
   function menuButtons() {
     if (menuFocusState !== state) { menuFocus = 0; menuFocusState = state; }
-    return state === "menu" ? UI.MENU_BTNS : state === "pause" ? UI.PAUSE_BTNS : state === "won" || state === "lost" ? UI.END_BTNS : null;
+    return quitConfirm ? UI.EXIT_BTNS : state === "menu" ? UI.MENU_BTNS : state === "pause" ? UI.PAUSE_BTNS : state === "won" || state === "lost" ? UI.END_BTNS : null;
   }
   function moveMenu(delta) {
     const buttons = menuButtons();
     menuFocus = (menuFocus + delta + buttons.length) % buttons.length;
   }
   function returnHome() {
+    quitConfirm = false;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     state = "menu"; menuFocus = 0; menuFocusState = state;
   }
@@ -90,7 +92,12 @@
     else if (id === "mute") AUDIO.toggleMute();
     else if (id === "controls") controlsButton.click();
     else if (id === "tutorial") showTutorial('pickup', true);
-    else if (id === "menu") returnHome();
+    else if (id === "exit-cancel") { quitConfirm = false; menuFocus = 0; }
+    else if (id === "exit-confirm") returnHome();
+    else if (id === "menu") {
+      if (state === "pause") { quitConfirm = true; menuFocus = 0; }
+      else returnHome();
+    }
     else if (id === "cards" || id === "codex") { codexBack = state; codexTab = id === "cards" ? "cards" : "words"; state = "codex"; }
   }
   let overworld = window.OVERWORLD.createState("gate");
@@ -355,6 +362,7 @@
   }
 
   function start(stageId = STAGE.id) {
+    quitConfirm = false;
     window.loadGameArt?.();
     configureStage(stageId);
     AUDIO.init();
@@ -799,8 +807,8 @@
       if (dir && dir !== gpMenuDir) moveMenu(dir);
       gpMenuDir = dir;
       if (justPressed(0)) { AUDIO.init(); activateMenu(buttons[menuFocus].id); }
-      else if (justPressed(1) || justPressed(9)) { if (state === 'pause') togglePause(); else if (state === 'won' || state === 'lost') returnHome(); }
-      else if (justPressed(8)) activateMenu('codex');
+      else if (justPressed(1) || justPressed(9)) { if (quitConfirm) activateMenu('exit-cancel'); else if (state === 'pause') togglePause(); else if (state === 'won' || state === 'lost') returnHome(); }
+      else if (justPressed(8) && !quitConfirm) activateMenu('codex');
       gpPrevButtons = gp.buttons.map(b => b.pressed);
       return;
     }
@@ -1669,18 +1677,29 @@
     }
     const fog = Math.max(0, Math.min(0.35, STAGE_VISUAL.fog || 0));
     if (fog > 0) {
-      const haze = ctx.createLinearGradient(0, 0, W, H);
+      const area = viewBounds();
+      const haze = ctx.createLinearGradient(area.left, area.top, area.right, area.bottom);
       haze.addColorStop(0, `rgba(120, 150, 170, ${fog * 0.55})`);
       haze.addColorStop(0.5, `rgba(180, 198, 205, ${fog})`);
       haze.addColorStop(1, `rgba(98, 125, 148, ${fog * 0.7})`);
       ctx.fillStyle = haze;
-      const area = viewBounds();
       ctx.fillRect(area.left, area.top, area.width, area.height);
     }
     ctx.restore();
   }
 
   // ---------- 繪圖主循環 ----------
+  function guidePoint(target, padding = 50, topPadding = 95) {
+    const area = viewBounds(), cam = RENDERER.getCam();
+    const x = clamp(P.x-cam.x,area.left+padding,area.right-padding);
+    const y = clamp(P.y-cam.y,area.top+topPadding,area.bottom-padding);
+    const angle = Math.atan2(target.y-P.y,target.x-P.x), dx = Math.cos(angle), dy = Math.sin(angle);
+    const tx = Math.abs(dx)<1e-9 ? Infinity : ((dx>0 ? area.right-padding : area.left+padding)-x)/dx;
+    const ty = Math.abs(dy)<1e-9 ? Infinity : ((dy>0 ? area.bottom-padding : area.top+topPadding)-y)/dy;
+    const distance = Math.min(tx,ty);
+    return {x:x+dx*distance,y:y+dy*distance};
+  }
+
   function drawWorld() {
     const cam = RENDERER.getCam();
     const shakeOffset = RENDERER.getShakeOffset();
@@ -2170,8 +2189,7 @@
     const targetHouse = job ? job.to : orders.reduce((n, o) => (!n || dist(P, o.from) < dist(P, n) ? o.from : n), null);
     if (targetHouse && (targetHouse.x < cam.x + viewBounds().left || targetHouse.x > cam.x + viewBounds().right || targetHouse.y < cam.y + viewBounds().top || targetHouse.y > cam.y + viewBounds().bottom)) {
       const an = Math.atan2(targetHouse.y - P.y, targetHouse.x - P.x);
-      const cx = clamp(P.x - cam.x + Math.cos(an) * 210, 50, W - 50);
-      const cy = clamp(P.y - cam.y + Math.sin(an) * 210, 95, H - 50);
+      const {x:cx,y:cy} = guidePoint(targetHouse);
 
       ctx.save();
       ctx.translate(cx, cy);
@@ -2208,8 +2226,7 @@
         ctx.fillText("大妖鬼", sx, sy - 100);
       } else {
         const an = Math.atan2(bossTarget.y - P.y, bossTarget.x - P.x);
-        const cx = clamp(P.x - cam.x + Math.cos(an) * 230, 62, W - 62);
-        const cy = clamp(P.y - cam.y + Math.sin(an) * 230, 102, H - 62);
+        const {x:cx,y:cy} = guidePoint(bossTarget,62,102);
         ctx.translate(cx, cy);
         ctx.rotate(an);
         for (let k = 0; k < 2; k++) {
@@ -2246,6 +2263,14 @@
       if (e.code === 'Tab' || e.code.startsWith('Arrow')) tutorial.focus = 1 - tutorial.focus;
       else if (e.code === 'Escape' || action === 'pause') closeTutorial(true);
       else if (e.code === 'Enter' || action === 'interact') closeTutorial(tutorial.focus === 1);
+      return;
+    }
+    if (quitConfirm) {
+      e.preventDefault();
+      if (e.repeat) return;
+      if (e.code === 'Escape' || action === 'pause') activateMenu('exit-cancel');
+      else if (e.code === 'Tab' || ['u','d','l','r'].includes(action)) moveMenu(e.code === 'Tab' ? (e.shiftKey ? -1 : 1) : ['u','l'].includes(action) ? -1 : 1);
+      else if (e.key === 'Enter' || action === 'interact') activateMenu(menuButtons()[menuFocus].id);
       return;
     }
     if (action) e.preventDefault();
@@ -2366,6 +2391,12 @@
     if (e.pointerType === "mouse" && e.button !== 0) return;
     const p = pp(e);
 
+    if (quitConfirm) {
+      const button = UI.EXIT_BTNS.find(b=>p.x>=b.x && p.x<=b.x+b.w && p.y>=b.y && p.y<=b.y+b.h);
+      if (button) activateMenu(button.id);
+      return;
+    }
+
     // 檢查右上角暫停鈕點擊
     if (p.x >= btnPause.x && p.x <= btnPause.x + btnPause.w && p.y >= btnPause.y && p.y <= btnPause.y + btnPause.h) {
       if (state === "play" || state === "pause") {
@@ -2456,17 +2487,11 @@
       }
       return;
     }
-    if (bossQ && p.y >= H - 128 && p.y <= H - 128 + 105) {
-      const boxW = 690, bx = (W - boxW) / 2, by = H - 128;
-      const n = bossQ.ans.length;
-      const optW = n === 2 ? 260 : 200, optH = 46;
-      const gap = n === 2 ? 36 : 24;
-      const totalW = n * optW + (n - 1) * gap;
-      const startX = bx + (boxW - totalW) / 2;
-      for (let i = 0; i < n; i++) {
-        const ox = startX + i * (optW + gap);
-        const oy = by + 46;
-        if (p.x >= ox && p.x <= ox + optW && p.y >= oy && p.y <= oy + optH) {
+    if (bossQ) {
+      const layout = UI.bossQuizLayout(bossQ.ans.length);
+      for (let i = 0; i < layout.options.length; i++) {
+        const option = layout.options[i];
+        if (p.x >= option.x && p.x <= option.x+option.w && p.y >= option.y && p.y <= option.y+option.h) {
           answerBoss(i);
           return;
         }
@@ -2571,7 +2596,10 @@
         if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
         if (bossQ) UI.drawBossQuiz(ctx, bossQ, inputMode);
         if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI);
-        if (state === "pause") UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false, menuFocus);
+        if (state === "pause") {
+          UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false, quitConfirm ? 0 : menuFocus);
+          if (quitConfirm) UI.drawExitConfirm(ctx, menuFocus);
+        }
         if (state === "won" || state === "lost") UI.drawEndScreen(ctx, state, score, delivered, failed, misses, menuFocus);
       }
     }

@@ -54,7 +54,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     meetDeliveryGoal: () => { delivered=GOAL_DELIVERIES; },
     prepareBoss: (word) => { const bs={x:P.x+200,y:P.y,type:'boss',word:word || ALL[0],hp:999,max:999,shield:true}; enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
     setState: next => { state=next; ended=false; },
-    snapshot: () => ({ state, quitConfirm:typeof quitConfirm==='undefined'?false:quitConfirm, needles, menuFocus, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, delivered, bossStage, bossT, finalBossDefeated, gems, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
+    snapshot: () => ({ state, quitConfirm, needles, menuFocus, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, delivered, bossStage, bossT, finalBossDefeated, gems, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
     addMis: () => enemies.push({x:P.x+100,y:P.y,type:"mis",w:ALL[0],hp:999,max:999,speed:210,flash:0,wob:0}), emptyHouses: () => houses.splice(0) };`;
   vm.runInContext(source.slice(0, end) + hook + source.slice(end), c);
   return { ...c.fixture, events, canvasEvents, documentEvents, env: c, audioCalls, drawnText, actorCalls, transforms };
@@ -79,7 +79,10 @@ test('offscreen guides reach actual viewport edges along the target direction',(
 
 test('abandon confirmation defaults to keeping the paused run and blocks covered actions',()=>{
   const g=loadGame();g.start();g.prepareOrder();g.prepareBoss();
-  const before=g.snapshot();g.events.keydown(key('Escape','Escape'));
+  const before=g.snapshot();g.env.STORE.rec(before.job.word.jp,false);
+  const savedBefore=g.env.localStorage.getItem('yokai-delivery-v1');
+  let finishes=0;const finish=g.env.STORE.finish;g.env.STORE.finish=(...args)=>{finishes++;return finish(...args);};
+  g.events.keydown(key('Escape','Escape'));
   const request=()=>{for(let i=0;i<g.env.UI.PAUSE_BTNS.findIndex(b=>b.id==='menu');i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));};
   request();assert.equal(g.snapshot().state,'pause');assert.equal(g.snapshot().quitConfirm,true);
   assert.equal(g.snapshot().menuFocus,0);
@@ -90,6 +93,8 @@ test('abandon confirmation defaults to keeping the paused run and blocks covered
   g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().quitConfirm,false);assert.equal(g.snapshot().state,'pause');
   request();g.events.keydown(key('Escape','Escape'));assert.equal(g.snapshot().state,'pause');assert.equal(g.snapshot().quitConfirm,false);
   request();g.events.keydown(key('ArrowRight'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'menu');
+  assert.equal(g.env.localStorage.getItem('yokai-delivery-v1'),savedBefore);
+  assert.equal(finishes,0); // Abandonment is not a win/loss settlement; prior word history survives.
 });
 
 test('abandon confirmation works for touch and gamepad without leaking confirmation',()=>{
@@ -109,6 +114,18 @@ test('abandon confirmation works for touch and gamepad without leaking confirmat
       assert.equal(g.snapshot().state,'menu'); // Holding A must not immediately enter the map.
     }
     assert.equal(g.snapshot().state,'menu');assert.equal(g.snapshot().quitConfirm,false);
+  }
+});
+
+test('Boss pointer answers use the rendered layout without covering bottom controls',()=>{
+  for(const [width,height] of [[844,390],[900,600],[2560,1080]]) {
+    const g=loadGame();g.env.innerWidth=width;g.env.innerHeight=height;g.start();g.prepareBoss();
+    const q=g.snapshot().bossQ,layout=g.env.UI.bossQuizLayout(q.ans.length),v=g.env.VIEWPORT.get();
+    const answer=layout.options[q.ans.indexOf(q.word)];
+    g.canvasEvents.pointerdown(pointer((answer.x+answer.w/2+v.offsetX)*v.scale,(answer.y+answer.h/2+v.offsetY)*v.scale,'touch'));
+    assert.equal(g.snapshot().bossQ,null);
+    assert.equal(g.snapshot().enemies.find(e=>e.type==='boss').shield,false);
+    assert.equal(g.snapshot().joy,null);assert.equal(g.snapshot().dashCd,0);
   }
 });
 test('Boss mistakes reach settlement, count once per submission and reset only run review', () => {
@@ -763,7 +780,8 @@ test('keyboard menus reach settings, both codex tabs, mute and home; restart res
  g.events.keydown(key('Escape','Escape'));g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().codexTab,'words');
  g.start();g.prepareOrder();g.events.keydown(key('Escape','Escape'));
  for(let i=0;i<3;i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.ok(g.audioCalls.includes('toggleMute'));
- for(let i=0;i<3;i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'menu');
+ for(let i=0;i<3;i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));
+ assert.equal(g.snapshot().quitConfirm,true);g.events.keydown(key('ArrowRight'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'menu');
  g.start();assert.equal(g.snapshot().job,null);assert.equal(g.snapshot().elapsed,0);assert.equal(g.snapshot().oil,100);assert.equal(g.snapshot().enemies.length,0);
 });
 test('gamepad directional menus confirm once without leaking actions into the new screen',()=>{
@@ -785,6 +803,7 @@ test('widescreen map back button accepts pointer at the screen edge and home cle
  g.canvasEvents.pointerdown(pointer(30,30));assert.equal(g.snapshot().state,'menu');
  g.start();g.events.keydown(key('KeyD','d'));g.events.keydown(key('Escape','Escape'));
  for(let i=0;i<g.env.UI.PAUSE_BTNS.findIndex(b=>b.id==='menu');i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));
+ assert.equal(g.snapshot().quitConfirm,true);g.events.keydown(key('ArrowRight'));g.events.keydown(key('Enter','Enter'));
  assert.equal(g.snapshot().state,'menu');assert.equal(g.snapshot().keys.length,0);
  g.start();assert.equal(g.snapshot().joy,null);
 });
