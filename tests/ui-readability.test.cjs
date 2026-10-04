@@ -10,6 +10,66 @@ function loadUI(width = 585) {
   return { UI: env.window.UI, context, texts, env };
 }
 
+function drawHudFixture(width, height, oil = 100, maxOil = 100, passives = {}) {
+  const r = loadUI(width);r.env.window.innerWidth = width;r.env.window.innerHeight = height;
+  vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
+  const v=r.env.window.VIEWPORT,scale=v.get().scale,ctx=r.context,labels=[],rects=[],stack=[];
+  let state={x:0,y:0,s:1,font:'12px sans-serif',align:'left'};
+  Object.defineProperty(ctx,'font',{get:()=>state.font,set:value=>state.font=value});
+  Object.defineProperty(ctx,'textAlign',{get:()=>state.align,set:value=>state.align=value});
+  ctx.save=()=>stack.push({...state});ctx.restore=()=>{state=stack.pop();};
+  ctx.translate=(x,y)=>{state.x+=x*state.s;state.y+=y*state.s;};ctx.scale=s=>{state.s*=s;};
+  const measure=value=>[...String(value)].reduce((sum,ch)=>sum+Number(state.font.match(/([\d.]+)px/)[1])*(ch.charCodeAt(0)>255?0.95:0.6),0);
+  ctx.measureText=value=>({width:measure(value)});
+  ctx.fillText=(value,x,y)=>{
+    const w=measure(value)*state.s,left=state.x+x*state.s-(state.align==='center'?w/2:state.align==='right'?w:0);
+    labels.push({value:String(value),left,right:left+w,y:state.y+y*state.s,cssSize:Number(state.font.match(/([\d.]+)px/)[1])*state.s*scale});
+  };
+  ctx.roundRect=(x,y,w,h)=>rects.push({x:state.x+x*state.s,y:state.y+y*state.s,w:w*state.s,h:h*state.s,fill:ctx.fillStyle});
+  const bounds=v.hudBounds();
+  r.UI.drawHud(ctx,{x:0,y:0},oil,maxOil,120,600,1,0,50,3,12,45,null,0,[],null,null,true,null,
+    {x:bounds.right-138,y:bounds.bottom-180,r:38},{x:bounds.right-138,y:bounds.bottom-70,r:46},
+    {x:bounds.right-52,y:bounds.top+14,w:38,h:52},
+    {katana:1,fire:4,boom:5,needle:2},{katana:{},fire:{},boom:{},needle:{}},passives,0);
+  return {labels,rects,bounds,scale};
+}
+
+test('oil numbers and bar remain prominent and low-oil warning uses capacity ratio',()=>{
+  for(const [width,height] of [[900,600],[844,390],[667,375],[800,600],[1920,1080]]) {
+    const r=drawHudFixture(width,height,39,160),number=r.labels.find(t=>t.value==='39/160');
+    assert.ok(number.cssSize>=18,`${width}: oil number size`);
+    assert.ok(r.labels.some(t=>t.value==='低油！'));
+    const bar=r.rects.find(b=>b.fill==='#1c1814');assert.ok(bar.h*r.scale>=12);assert.ok(bar.w>=180);
+    const label=r.labels.find(t=>t.value==='低油！');assert.ok(label.right+4<=number.left);
+    const normal=drawHudFixture(width,height,41,160);assert.ok(!normal.labels.some(t=>t.value==='低油！'));
+  }
+});
+
+test('HUD skill badges are readable and their labels fit their backing rectangles',()=>{
+  for(const [width,height] of [[900,600],[844,390],[667,375],[800,600],[1920,1080]]) {
+    const r=drawHudFixture(width,height,160,160,{shield:6,dmg:1.9,rate:2,crit:2,spd:2,dash:2,mag:2});
+    const badges=r.labels.filter(t=>/^L\d+$|^MAX$|^×\d+$/.test(t.value));assert.ok(badges.length>=4);
+    for(const text of badges) {
+      assert.ok(text.cssSize>=14,`${width}: ${text.value} size`);
+      assert.ok(r.rects.some(b=>text.left>=b.x && text.right<=b.x+b.w+1e-8 && text.y>=b.y && text.y<=b.y+b.h),`${width}: ${text.value} backing`);
+      assert.ok(text.right<=r.bounds.right-180,`${width}: control clearance`);
+    }
+  }
+});
+
+test('passive overflow discloses the exact hidden count and vanishes when everything fits',()=>{
+  const all={shield:6,dmg:1.9,rate:2,crit:2,spd:2,dash:2,mag:2};
+  for(const [width,height] of [[900,600],[844,390],[667,375],[800,600],[1920,1080]]) {
+    const r=drawHudFixture(width,height,160,160,all),shown=r.labels.filter(t=>/^×\d+$/.test(t.value)).length;
+    const overflow=r.labels.find(t=>/^＋\d+$/.test(t.value));
+    assert.equal(shown+(overflow?Number(overflow.value.slice(1)):0),8);
+    if(width===1920)assert.equal(overflow,undefined);
+    const empty=drawHudFixture(width,height);assert.ok(!empty.labels.some(t=>/^＋\d+$/.test(t.value)));
+    const single=drawHudFixture(width,height,100,100,{shield:2});assert.equal(single.labels.filter(t=>/^×\d+$/.test(t.value)).length,1);
+    assert.ok(!single.labels.some(t=>/^＋\d+$/.test(t.value)));
+  }
+});
+
 test('Boss quiz geometry fits the viewport above the bottom HUD with shared hit targets',()=>{
   for(const [width,height] of [[1920,1080],[844,390],[900,600],[800,600]]) for(const n of [2,3]) {
     const {UI,env}=loadUI(width);env.window.innerWidth=width;env.window.innerHeight=height;
