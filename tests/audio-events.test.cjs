@@ -119,6 +119,56 @@ class PlaybackTestContext {
  createOscillator(){return this.createGain();}
  createGain(){const param={setValueAtTime(){},exponentialRampToValueAtTime(){}};return {frequency:param,gain:param,connect(){},start(){PlaybackTestContext.starts++;},stop(){}};}
 }
+
+test('interrupted iPad audio contexts are resumed instead of left silent',()=>{
+  let resumes=0;
+  class Context extends PlaybackTestContext {constructor(){super();this.state='interrupted';}resume(){resumes++;this.state='running';return Promise.resolve();}}
+  const env={window:{AudioContext:Context},Audio:class {addEventListener(){}},console,setTimeout,clearTimeout};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  env.window.AUDIO.init();assert.equal(resumes,1);
+});
+
+test('blocked MP3 effects use the unlocked synthesizer and still retry the MP3',async()=>{
+  const before=PlaybackTestContext.starts;let calls=0;
+  class Audio {constructor(){}addEventListener(){}pause(){}play(){calls++;return Promise.reject(Object.assign(new Error('blocked'),{name:'NotAllowedError'}));}}
+  const env={window:{AudioContext:PlaybackTestContext},Audio,console,setTimeout,clearTimeout};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  env.window.AUDIO.dash();await Promise.resolve();env.window.AUDIO.dash();await Promise.resolve();
+  assert.equal(calls,2);assert.equal(PlaybackTestContext.starts-before,2);
+});
+
+function bufferedAudioFixture() {
+  const requested=[],sources=[];let mediaPlays=0,decodes=0,finishLoad;
+  class Audio {constructor(src){this.src=src;}addEventListener(){}pause(){}play(){mediaPlays++;return Promise.reject(Object.assign(new Error('policy'),{name:'NotAllowedError'}));}}
+  class Context extends PlaybackTestContext {
+    createBufferSource(){const s={connect(){},start(){sources.push(this);},stop(){this.stopped=true;this.onended?.();}};return s;}
+    decodeAudioData(){decodes++;return Promise.resolve({duration:0.4});}
+  }
+  const env={window:{AudioContext:Context,audioAsset:p=>p+'?v=test'},Audio,console,setTimeout,clearTimeout,
+    fetch:src=>{requested.push(src);return new Promise(resolve=>{finishLoad=()=>resolve({ok:true,arrayBuffer:()=>Promise.resolve(new ArrayBuffer(8))});});}};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  return {a:env.window.AUDIO,requested,sources,load:()=>finishLoad(),counts:()=>({mediaPlays,decodes})};
+}
+const drainAudio=async()=>{for(let i=0;i<10;i++)await Promise.resolve();};
+
+test('cold word audio fetches once, decodes once and reuses unlocked buffer playback',async()=>{
+  const f=bufferedAudioFixture();f.a.speak('あめ');f.load();await drainAudio();
+  assert.equal(f.sources.length,1);assert.equal(f.counts().mediaPlays,0);
+  f.a.speak('あめ');await drainAudio();
+  assert.equal(f.sources.length,2);assert.equal(f.sources[0].stopped,true);
+  assert.equal(f.requested.length,1);assert.equal(f.counts().decodes,1);
+  assert.equal(f.requested[0],'assets/audio/words/ame.mp3?v=test');
+});
+
+test('late decoded audio never starts after suspension or a replaced word',async()=>{
+  for(const action of ['suspend','mute','replace']) {
+    const f=bufferedAudioFixture();f.a.speak('あめ');
+    if(action==='suspend')f.a.setSuspended(true);
+    else if(action==='mute')f.a.toggleMute();
+    else f.a.speak('あめ');
+    f.load();await drainAudio();assert.equal(f.sources.length,action==='replace'?1:0,action);
+  }
+});
 test('temporary playback cancellation and policy rejection never permanently disable an MP3', async () => {
  for (const name of ['AbortError','NotAllowedError','NetworkError']) {
  const clips=[]; let calls=0;
