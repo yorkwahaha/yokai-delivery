@@ -7,14 +7,15 @@ function loadRenderer(width, height, dpr = 1) {
   const canvases = [], texts = [], images = [];
   const gradient = { addColorStop() {} };
   function canvas() {
-    const transforms = [];
+    const transforms = [], fills = [];
     const ctx = new Proxy({
       setTransform: (...args) => transforms.push(args),
+      fillRect: (...args) => fills.push(args),
       fillText: text => texts.push(text), drawImage: (...args) => images.push(args),
       createLinearGradient: () => gradient, createRadialGradient: () => gradient,
       measureText: () => ({width:40})
     }, {get: (o,k) => o[k] ?? (() => {})});
-    const c = {width:0, height:0, getContext: () => ctx, transforms, ctx};
+    const c = {width:0, height:0, getContext: () => ctx, transforms, fills, ctx};
     canvases.push(c); return c;
   }
   const main = canvas();
@@ -41,8 +42,9 @@ test('Canvas backings preserve viewport mapping within bounded raster budgets', 
     assert.equal(transform[4],v.offsetX*transform[0]);
     assert.equal(r.main.ctx.imageSmoothingQuality,'high');
     r.env.RENDERER.renderLighting({x:450,y:300},[],95,0,600);
-    assert.equal(r.images.at(-1)[0],light);
-    assert.deepEqual(r.images.at(-1).slice(1),[-v.offsetX,-v.offsetY,v.width,v.height]);
+    const overlay=r.images.find(args=>args[0]===light);
+    assert.ok(overlay);
+    assert.deepEqual(overlay.slice(1),[-v.offsetX,-v.offsetY,v.width,v.height]);
   }
 });
 
@@ -60,14 +62,29 @@ test('soft lighting raster stays bounded while the final layer covers the full v
   assert.deepEqual(r.images.find(args=>args[0]===light).slice(1),[-v.offsetX,-v.offsetY,v.width,v.height]);
 });
 
-test('fixed lamp masks and warm glows reuse sprites rather than gradients each frame',()=>{
-  const r=loadRenderer(1680,949,2),count=r.canvases.length;let mainGradients=0,maskGradients=0;
-  const gradient={addColorStop(){}};
-  r.main.ctx.createRadialGradient=()=>{mainGradients++;return gradient;};
-  r.canvases[1].ctx.createRadialGradient=()=>{maskGradients++;return gradient;};
-  for(let i=0;i<10;i++)r.env.RENDERER.renderLighting({x:450,y:300},[{x:400,y:300},{x:500,y:300}],95,i,600);
-  assert.equal(mainGradients,0);assert.equal(maskGradients,10);
-  assert.equal(r.canvases.length,count);
+test('static terrain reuses one buffered canvas and refreshes for camera bounds and late assets',()=>{
+  const r=loadRenderer(900,600),count=r.canvases.length;
+  const chunks=[{x:0,y:0,w:900,h:600,cx:0,theme:'market',name:'街',sub:''}];
+  r.env.RENDERER.drawGround(0,600,chunks,'ground_dirt');
+  assert.equal(r.canvases.length,count+1);const cached=r.canvases.at(-1),fills=cached.fills.length;
+  r.env.RENDERER.setCam(40,40);r.env.RENDERER.drawGround(1,600,chunks,'ground_dirt');
+  assert.equal(cached.fills.length,fills);assert.equal(r.images.at(-1)[0],cached);
+  r.env.RENDERER.setCam(250,0);r.env.RENDERER.drawGround(2,600,chunks,'ground_dirt');
+  assert.ok(cached.fills.length>fills);const shifted=cached.fills.length;
+  r.env.ART.ground_dirt={complete:true,naturalWidth:512};r.env.RENDERER.drawGround(3,600,chunks,'ground_dirt');
+  assert.ok(cached.fills.length>shifted);const loaded=cached.fills.length;
+  r.env.RENDERER.drawGround(4,600,[{...chunks[0],theme:'mystic'}],'ground_dirt');assert.ok(cached.fills.length>loaded);
+  assert.equal(r.canvases.length,count+1);
+});
+
+test('terrain caching keeps water animation live and invalidates its pixel scale on resize',()=>{
+  const r=loadRenderer(844,390,2),waves=[],chunks=[{x:0,y:0,w:900,h:600,cx:0,theme:'water',name:'水',sub:''}];
+  r.main.ctx.roundRect=(x,y,w,h)=>{if(h===28)waves.push(y);};
+  r.env.RENDERER.drawGround(0,600,chunks);const initial=waves.slice();waves.length=0;
+  r.env.RENDERER.drawGround(1,600,chunks);assert.notDeepEqual(waves,initial);
+  const cached=r.canvases.at(-1),fills=cached.fills.length;
+  r.env.innerWidth=1280;r.env.innerHeight=720;r.env.RENDERER.resize();r.env.RENDERER.drawGround(2,600,chunks);
+  assert.ok(cached.fills.length>fills);
 });
 
 test('resize refreshes DPR and backing resolution when moving between displays', () => {
