@@ -57,7 +57,17 @@ test('soft lighting raster stays bounded while the final layer covers the full v
   const r=loadRenderer(1680,949,2),light=r.canvases[1],v=r.env.VIEWPORT.get();
   assert.ok(light.width*light.height<=502000);
   r.env.RENDERER.renderLighting({x:450,y:300},[],100,0,600);
-  assert.deepEqual(r.images.at(-1).slice(1),[-v.offsetX,-v.offsetY,v.width,v.height]);
+  assert.deepEqual(r.images.find(args=>args[0]===light).slice(1),[-v.offsetX,-v.offsetY,v.width,v.height]);
+});
+
+test('fixed lamp masks and warm glows reuse sprites rather than gradients each frame',()=>{
+  const r=loadRenderer(1680,949,2),count=r.canvases.length;let mainGradients=0,maskGradients=0;
+  const gradient={addColorStop(){}};
+  r.main.ctx.createRadialGradient=()=>{mainGradients++;return gradient;};
+  r.canvases[1].ctx.createRadialGradient=()=>{maskGradients++;return gradient;};
+  for(let i=0;i<10;i++)r.env.RENDERER.renderLighting({x:450,y:300},[{x:400,y:300},{x:500,y:300}],95,i,600);
+  assert.equal(mainGradients,0);assert.equal(maskGradients,10);
+  assert.equal(r.canvases.length,count);
 });
 
 test('resize refreshes DPR and backing resolution when moving between displays', () => {
