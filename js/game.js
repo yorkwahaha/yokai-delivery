@@ -252,7 +252,7 @@
 
   const UP = [
     { id: "shield", n: "金剛結界", s: "けっかい", cat: "防禦生存", d: "召喚金剛勾玉護盾，抵擋 2 次受傷（可疊加）", f: () => { b.shield = Math.min(6, (b.shield || 0) + 2); }, ok: () => (b.shield || 0) < 6 },
-    { id: "oil_max", n: "長明燈油", s: "あぶら", cat: "血厚續航", d: "燈油上限 +30 並立即補滿，常駐每秒回油 +0.22（上限 2 層）", f: () => { maxOil += 30; oil = maxOil; b.oilRegen = Math.min(0.44, (b.oilRegen || 0) + 0.22); }, ok: () => (b.oilRegen || 0) < 0.44 },
+    { id: "oil_max", n: "長明燈油", s: "あぶら", cat: "血厚續航", d: "燈油上限 +30 並立即補滿，常駐每秒回油 +0.12（上限 2 層）", f: () => { maxOil += 30; oil = maxOil; b.oilRegen = Math.min(0.24, (b.oilRegen || 0) + 0.12); }, ok: () => (b.oilRegen || 0) < 0.24 },
     { id: "oil_heal", n: "添燈香油", s: "かいふく", cat: "緊急急救", d: "恢復 50% 燈油，並震退周圍妖怪", f: () => {
       oil = Math.min(maxOil, oil + maxOil * 0.5);
       rings.push({ x: P.x, y: P.y, r: 210, maxR: 210, life: 0.38, maxL: 0.38, color: "#a5d6a7" });
@@ -539,14 +539,13 @@
       const awayX = pos.x - j.to.x;
       const awayY = pos.y - j.to.y;
       const awayLen = Math.hypot(awayX, awayY) || 1;
-      let spawnX = pos.x + (awayX / awayLen) * 118;
-      let spawnY = pos.y + (awayY / awayLen) * 118;
-      if (blocked(spawnX, spawnY, 34)) {
-        spawnX = pos.x - (awayY / awayLen) * 118;
-        spawnY = pos.y + (awayX / awayLen) * 118;
+      let spawn = null;
+      for (const radius of [118, 236, 354, 472]) {
+        spawn = spawnPosition(radius, Math.atan2(awayY / awayLen, awayX / awayLen), 34, pos);
+        if (spawn) break;
       }
-      enemies.push({
-        x: spawnX, y: spawnY,
+      if (spawn) enemies.push({
+        ...spawn,
         type: "mis",
         w: j.word,
         hp: 5 + Math.floor(cappedElapsed / 180),
@@ -568,7 +567,7 @@
         bossQ = null;
       }
 
-      say("擊敗誤配妖怪以淨化單字", pos.x, pos.y - 12, "#e5b8ff");
+      say(spawn ? "擊敗誤配妖怪以淨化單字" : "暫無安全出生點，錯詞將優先安排複習", pos.x, pos.y - 12, "#e5b8ff");
       burst(pos.x, pos.y, "#c98cff", 24);
       RENDERER.triggerShake(6);
       AUDIO.deliverWrong();
@@ -580,7 +579,10 @@
     if (e.hp <= 0) return;
     if (e.shield) {
       e.flash = 0.08;
-      RENDERER.spawnDamageNumber(0, e.x, e.y - 20, false, "#9be7ff");
+      if (!e.shieldFeedbackUntil || elapsed >= e.shieldFeedbackUntil) {
+        RENDERER.spawnDamageNumber("結界", e.x, e.y - 20, false, "#9be7ff");
+        e.shieldFeedbackUntil = elapsed + 0.6;
+      }
       return;
     }
     e.hp -= dmg;
@@ -720,7 +722,7 @@
     for (const r of rings) r.life -= dt;
     rings = rings.filter(r => r.life > 0);
 
-    // Boss 爆散 → 小怪灰飛煙滅 → 曙光完整亮起 → 保留 2 秒餘韻再結算。
+    // Boss 爆散 → 小怪灰飛煙滅 → 曙光完整亮起 → 4.8 秒演出後結算。
     if (t >= 4.8) {
       state = "won";
       endCooldown = 0.8;
@@ -1207,10 +1209,10 @@
     return Math.max(minimum, Math.hypot(area.width / 2, area.height / 2) + lag + 64);
   }
 
-  function spawnPosition(rad, angle, collisionRadius) {
+  function spawnPosition(rad, angle, collisionRadius, origin = P) {
     for (let tries = 0; tries <= 10; tries++) {
       const a = angle + tries * 0.63;
-      const x = P.x + Math.cos(a) * rad, y = P.y + Math.sin(a) * rad;
+      const x = origin.x + Math.cos(a) * rad, y = origin.y + Math.sin(a) * rad;
       if (!blocked(x, y, collisionRadius)) return { x, y };
     }
     return null;
@@ -1433,8 +1435,18 @@
       const step = CFG.chaseStep(d, curSpd, dt, e.type);
       const stepX = ((dx || (d === 1 && !dy ? 1 : 0)) / d) * step;
       const stepY = (dy / d) * step;
+      const oldX = e.x, oldY = e.y;
       if (!blocked(e.x + stepX, e.y, 16)) e.x += stepX;
       if (!blocked(e.x, e.y + stepY, 16)) e.y += stepY;
+      if (e.type === "mis") {
+        e.stuckT = step > 0 && e.x === oldX && e.y === oldY ? (e.stuckT || 0) + dt : 0;
+        if (e.stuckT >= 2.5) {
+          const safe = spawnPosition(160, Math.atan2(e.y - P.y, e.x - P.x), 34);
+          if (safe) { Object.assign(e, safe); e.revealT = 0.9; }
+          e.stuckT = 0;
+          continue;
+        }
+      }
 
       // 射手型妖怪（shooter）：於中距離發射幽冥妖火彈
       if (e.type === "shooter" || (e.type === "mis" && !revealing)) {
@@ -1669,11 +1681,13 @@
     ctx.lineWidth = 1.5;
     ctx.lineCap = "round";
     for (let i = 0; i < drops; i++) {
-      const x = area.left + ((i * 97 + t * 430) % (area.width + 120)) - 60;
-      const y = area.top + ((i * 61 + t * 760) % (area.height + 120)) - 60;
+      const speed = 520 + (i % 5) * 55;
+      const x = area.left + ((i * 97 + t * speed * 0.18) % (area.width + 120)) - 60;
+      const y = area.top + ((i * 61 + t * speed) % (area.height + 120)) - 60;
       ctx.beginPath();
       ctx.moveTo(x, y);
-      ctx.lineTo(x - 12, y + 28);
+      const length = 16 + (i % 4) * 4;
+      ctx.lineTo(x + length * 0.18, y + length);
       ctx.stroke();
     }
     const fog = Math.max(0, Math.min(0.35, STAGE_VISUAL.fog || 0));
@@ -1827,22 +1841,6 @@
         }
         ctx.restore();
       });
-    }
-
-    // 敵人幽冥妖火彈
-    for (const eb of enemyBullets) {
-      ctx.save();
-      ctx.fillStyle = "#ba68c8";
-      ctx.shadowColor = "#ea80fc";
-      ctx.shadowBlur = 12;
-      ctx.beginPath();
-      ctx.arc(eb.x, eb.y, 8, 0, 6.28);
-      ctx.fill();
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(eb.x, eb.y, 3.5, 0, 6.28);
-      ctx.fill();
-      ctx.restore();
     }
 
     // 6. 靈玉經驗寶石
@@ -2009,7 +2007,8 @@
       const curR = r.maxR ? (r.maxR * (0.35 + 0.65 * progress)) : r.r;
       const a = Math.max(0, r.life / maxL);
       ctx.save();
-      ctx.strokeStyle = r.color || `rgba(255, 235, 140, ${a})`;
+      ctx.globalAlpha = a;
+      ctx.strokeStyle = r.color || "#ffeb8c";
       ctx.lineWidth = 3 + (1 - progress) * 2;
       ctx.shadowColor = r.color || "#ffe28b";
       ctx.shadowBlur = 10;
@@ -2161,7 +2160,7 @@
     ctx.restore();
 
     // 16. 動態 2D 光影遮罩（深夜至黎明）
-    RENDERER.renderLighting(P, LAMPS, oil, visualElapsed, DAWN);
+    RENDERER.renderLighting(P, LAMPS, oil, visualElapsed, DAWN, maxOil);
 
     // 貨物本體置於夜色遮罩上，保持光暈與圖案清晰。
     if (job) {
@@ -2183,8 +2182,21 @@
 
 
     // 17. 櫻花雨與夜行幽火
-    RENDERER.drawAtmosphere(visualElapsed, STAGE.id === "night-town" ? 17 : 50);
+    RENDERER.drawAtmosphere(visualElapsed, STAGE_VISUAL.petals ?? 0, STAGE_VISUAL.fireflies ?? 0);
     drawStageWeather(visualElapsed);
+
+    // 敵方火彈自發光，放在夜色與雨霧之上，避免遠距離攻擊被壓暗。
+    ctx.save();
+    ctx.translate(-cam.x, -cam.y);
+    for (const eb of enemyBullets) {
+      ctx.fillStyle = "#ba68c8";
+      ctx.shadowColor = "#ea80fc";
+      ctx.shadowBlur = 12;
+      ctx.beginPath();ctx.arc(eb.x, eb.y, 8, 0, 6.28);ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();ctx.arc(eb.x, eb.y, 3.5, 0, 6.28);ctx.fill();
+    }
+    ctx.restore();
 
     // 18. 送貨目的地導引羅盤 (人魂靈火導引)
     const targetHouse = job ? job.to : orders.reduce((n, o) => (!n || dist(P, o.from) < dist(P, n) ? o.from : n), null);
@@ -2253,9 +2265,11 @@
 
   // ---------- 輸入監聽 ----------
   addEventListener("keydown", e => {
+    if (frameError) return;
     if (isPortrait() || document.hidden) return;
     if (CONTROLS.isOpen()) return;
     if (e.target?.closest?.('button, input, select, textarea, dialog')) return;
+    if (!e.repeat && state === "play") AUDIO.init();
     const action = CONTROLS.action(e.code);
     inputMode = 'keyboard';
     if (tutorial) {
@@ -2286,7 +2300,6 @@
         return;
       }
       if (state === "won" || state === "lost") { activateMenu("menu"); return; }
-      if (state === 'won' || state === 'lost') { activateMenu('menu'); return; }
       if (state === "play" || state === "pause") {
         togglePause();
         return;
@@ -2360,6 +2373,7 @@
     AUDIO.setSuspended(true);
   };
   const wakeAudio = () => {
+    if (frameError) return;
     if (!document.hidden && !isPortrait() && document.hasFocus?.() !== false) AUDIO.setSuspended(false);
   };
   addEventListener("blur", suspend);
@@ -2375,9 +2389,15 @@
     };
   };
   const hit = (p, bt) => Math.hypot(p.x - bt.x, p.y - bt.y) < bt.r + 10;
+  const hitButton = (p, bt) => {
+    const minimum = 44 / (window.VIEWPORT?.get().scale || 1);
+    const px = Math.max(0, (minimum - bt.w) / 2), py = Math.max(0, (minimum - bt.h) / 2);
+    return p.x >= bt.x - px && p.x <= bt.x + bt.w + px && p.y >= bt.y - py && p.y <= bt.y + bt.h + py;
+  };
 
   document.getElementById("game-container").addEventListener("pointerdown", e => {
     e.preventDefault();
+    if (frameError) return;
     if (isPortrait() || document.hidden) return;
     cv.setPointerCapture(e.pointerId);
     AUDIO.init();
@@ -2399,7 +2419,7 @@
     }
 
     // 檢查右上角暫停鈕點擊
-    if (p.x >= btnPause.x && p.x <= btnPause.x + btnPause.w && p.y >= btnPause.y && p.y <= btnPause.y + btnPause.h) {
+    if (hitButton(p, btnPause)) {
       if (state === "play" || state === "pause") {
         togglePause();
         return;
@@ -2502,7 +2522,7 @@
       interact();
     } else if (hit(p, btnD)) {
       dash();
-    } else if (job && UI.HINT_BTN && p.x >= UI.HINT_BTN.x && p.x <= UI.HINT_BTN.x + UI.HINT_BTN.w && p.y >= UI.HINT_BTN.y && p.y <= UI.HINT_BTN.y + UI.HINT_BTN.h) {
+    } else if (job && UI.HINT_BTN && hitButton(p, UI.HINT_BTN)) {
       triggerHint();
     } else if ((e.pointerType === "mouse" || (p.x < W / 2 && p.y > 80)) && !joy) {
       joy = { id: e.pointerId, x: p.x, y: p.y, dx: 0, dy: 0 };
@@ -2527,7 +2547,30 @@
   });
 
   // ---------- 遊戲幀迴圈 ----------
+  let frameError = false;
   function frame(now) {
+    requestAnimationFrame(frame);
+    if (!frameError) {
+      try { runFrame(now); return; }
+      catch (error) {
+        frameError = true;
+        state = "pause";
+        keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
+        AUDIO.setSuspended(true);
+        console.error("遊戲迴圈發生錯誤", error);
+      }
+    }
+    const density = RENDERER.getDpr() || 1;
+    ctx.setTransform(density, 0, 0, density, 0, 0);
+    ctx.fillStyle = "#141b2b";
+    ctx.fillRect(0, 0, (cv.width || W) / density, (cv.height || H) / density);
+    ctx.fillStyle = "#fff1d4";
+    ctx.font = "bold 20px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("發生錯誤，請重新整理。", 24, 60);
+  }
+
+  function runFrame(now) {
     menuButtons();
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
@@ -2610,7 +2653,15 @@
     }
     if (tutorial) UI.drawTutorial(ctx, tutorial, inputMode);
 
-    requestAnimationFrame(frame);
+    if (STORE.canSave && !STORE.canSave()) {
+      const area = viewBounds();
+      ctx.save();
+      ctx.fillStyle = "#32151d";ctx.fillRect(area.left, area.bottom - 34, area.width, 34);
+      ctx.fillStyle = "#ffcfb4";ctx.textAlign = "center";ctx.font = UI.readableFont(14, "bold");
+      ctx.fillText("本機無法儲存進度，重新整理會遺失未儲存紀錄。", (area.left + area.right) / 2, area.bottom - 11);
+      ctx.restore();
+    }
+
   }
 
   requestAnimationFrame(frame);

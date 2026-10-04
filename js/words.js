@@ -180,7 +180,7 @@
       name: "夜行町",
       sub: "よるのはいそう",
       description: "目前的十分鐘夜行配達。九種街區以 chunk 形式向四方延伸。",
-      visual: Object.freeze({ ground: "ground_dirt" }),
+      visual: Object.freeze({ ground: "ground_dirt", petals: 17, fireflies: 30 }),
       implemented: true,
       wordPacks: NIGHT_TOWN_PACKS,
       start: Object.freeze({ x: 1350, y: 900 }),
@@ -219,14 +219,14 @@
         layoutOffset: 1
       }),
       visual: Object.freeze({
+        ground: "ground",
+        petals: 0,
+        fireflies: 0,
         weather: "rain",
         fog: 0.18,
-        rainIntensity: 1,
-        tint: "#5c7890"
+        rainIntensity: 1
       }),
       enemy: Object.freeze({
-        roster: Object.freeze(["ghost", "runner", "tank", "shooter"]),
-        bosses: Object.freeze(["harbor-warden", "fog-ogre", "storm-lord"]),
         speedScale: 1,
         shooterChanceBonus: 0.02,
         bossHpScale: 1,

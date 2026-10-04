@@ -28,7 +28,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     upgradeOil: () => UP.find(u=>u.id==='oil_max').f(),
     addRing: () => rings.push({x:P.x,y:P.y,r:40,life:0.08,maxL:0.32,color:'#ffffff'}),
     addBullet: () => enemyBullets.push({x:P.x+180,y:P.y,vx:0,vy:0,life:2}),
-    trapMis: () => { const e=enemies.find(e=>e.type==='mis'); solids.splice(0,solids.length,{x0:e.x-40,x1:e.x+40,y0:e.y-40,y1:e.y+40}); },
+    trapMis: () => { syncWorld(); Object.keys(WL).forEach(k=>WL[k]=0); spawnT=Infinity; const e=enemies.find(e=>e.type==='mis'); solids.splice(0,solids.length,{x0:e.x-40,x1:e.x+40,y0:e.y-40,y1:e.y+40}); },
     buttonGeometry: () => ({pause:{...btnPause},hint:{...UI.HINT_BTN}}),
     blockWrongSpawn: () => { const p=ansPos(job.to)[(job.ans.indexOf(job.word)+1)%3]; solids.splice(0,solids.length,{x0:p.x-230,x1:p.x+230,y0:p.y-230,y1:p.y+230}); },
     tutorialState: () => tutorial,

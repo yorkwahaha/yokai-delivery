@@ -5,7 +5,7 @@ const fs = require('node:fs');
 test('blocked BGM attempts once until a user gesture retries it', async()=>{
   let attempts=0;const track={paused:true,volume:0,pause(){},play(){attempts++;return Promise.reject(new Error('NotAllowedError'));}};
   class Audio {addEventListener(){} pause(){} play(){return Promise.resolve();}}
-  const env={window:{BGM:track},Audio,console,setTimeout,clearTimeout};
+  const env={window:{BGM:track,AudioContext:class {}},Audio,console,setTimeout,clearTimeout};
   vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
   const a=env.window.AUDIO;for(let i=0;i<60;i++)a.updateBgm(0.016,'play',0,600);
   await Promise.resolve();assert.equal(attempts,1);a.init();assert.equal(attempts,2);

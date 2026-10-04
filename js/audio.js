@@ -2,6 +2,7 @@
 window.AUDIO = (() => {
   let ctx = null;
   let muted = false;
+  try { muted = localStorage.getItem("yokai-muted-v1") === "true"; } catch {}
   let suspended = false;
   let bgmStep = 0;
   let bgmTimer = 0;
@@ -11,6 +12,12 @@ window.AUDIO = (() => {
   let pauseDucking = false;
   let activeBgm = null;
   let musicShouldPlay = false;
+  const bgmAttempts = new WeakSet();
+  function playMusic(audio, retry = false) {
+    if (!audio || !audio.paused || (!retry && bgmAttempts.has(audio))) return;
+    bgmAttempts.add(audio);
+    audio.play().catch(() => {});
+  }
   const BGM_NORMAL_VOLUME = 0.27;
   const BGM_DUCK_VOLUME = 0.10;
   const BGM_PAUSE_VOLUME = 0.055;
@@ -393,7 +400,11 @@ window.AUDIO = (() => {
     lose() {
       [392, 329.63, 261.63, 196].forEach((freq, i) => setTimeout(() => playShamisen(freq, 0.6, 0.1), i * 240));
     },
-    init: getCtx,
+    init() {
+      const ac = getCtx();
+      if (musicShouldPlay && !muted && !suspended) playMusic(activeBgm, true);
+      return ac;
+    },
     preloadWords(words) {
       const ac = getCtx();
       if (!ac || typeof fetch !== 'function' || !ac.decodeAudioData) return;
@@ -404,7 +415,7 @@ window.AUDIO = (() => {
     },
     setSuspended(value) {
       suspended = value;
-      if (!suspended) return;
+      if (!suspended) { if (activeBgm) bgmAttempts.delete(activeBgm); return; }
       stopBuffers();
       musicShouldPlay = false;
       for (const id of bgmRamps.values()) {
@@ -422,8 +433,9 @@ window.AUDIO = (() => {
     isMuted: () => muted,
     toggleMute() {
       muted = !muted;
+      try { localStorage.setItem("yokai-muted-v1", String(muted)); } catch {}
       if (muted) musicTracks().forEach(audio => audio.pause());
-      else if (musicShouldPlay && activeBgm) activeBgm.play().catch(() => {});
+      else if (musicShouldPlay && activeBgm) playMusic(activeBgm, true);
       if (muted) {
         stopBuffers();
         stopWord();
@@ -713,9 +725,10 @@ window.AUDIO = (() => {
             if (audio !== desiredBgm && !audio.paused) audio.pause();
           });
           activeBgm = desiredBgm;
+          bgmAttempts.delete(activeBgm);
           activeBgm.volume = musicVolume();
         }
-        if (activeBgm.paused) activeBgm.play().catch(() => {});
+        playMusic(activeBgm);
         return;
       }
 

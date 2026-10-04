@@ -335,7 +335,7 @@ window.UI = (() => {
         ctx.fillStyle = "#ffd54f";
         ctx.font = readableFont(11, "bold");
         const helper = `${job.word.jp}　${job.word.example || ""}`;
-        ctx.fillText(helper.slice(0, 13), taskX + 122, taskY + 23);
+        drawHintText(ctx, helper, taskX, taskY + taskH + 6, taskW);
       }
     } else {
       ctx.fillStyle = inter ? "#ffe082" : "#f4e7cf";
@@ -1712,15 +1712,31 @@ window.UI = (() => {
     ctx.restore();
   }
 
+  function drawHintText(ctx, text, x, y, width) {
+    ctx.save();
+    ctx.font = readableFont(12, "bold");
+    const lines = []; let line = "";
+    for (const char of text) {
+      if (line && ctx.measureText(line + char).width > width - 24) { lines.push(line); line = ""; }
+      line += char;
+    }
+    if (line) lines.push(line);
+    const lineHeight = Number(ctx.font.match(/([\d.]+)px/)[1]) * 1.35;
+    glassBox(ctx, x, y, width, lines.length * lineHeight + 16, 8, "rgba(12,16,28,0.94)", "#ffd54f");
+    ctx.textAlign = "left";ctx.fillStyle = "#ffd54f";
+    lines.forEach((value, i) => ctx.fillText(value, x + 12, y + 8 + lineHeight * (i + 0.8)));
+    ctx.restore();
+  }
+
   function readableFont(size, weight = "700") {
-    const width = document.getElementById("game")?.getBoundingClientRect().width || 900;
-    const scale = window.VIEWPORT?.get().scale || width / 900;
+    const scale = window.VIEWPORT?.get().scale || (document.getElementById("game")?.getBoundingClientRect().width || 900) / 900;
     const readable = scale < 1 ? Math.max(size, Math.min(28, Math.ceil(14 / scale))) : size;
     return `${weight || "700"} ${readable}px 'Noto Sans JP', 'Microsoft JhengHei', sans-serif`;
   }
 
   return {
     readableFont,
+    drawHintText,
     controlLabel, tutorialCopy, drawTutorial, drawActionIcon, TUTORIAL_BTNS,
     drawWordCue,
     drawMainMenu,

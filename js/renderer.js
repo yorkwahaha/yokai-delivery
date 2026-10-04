@@ -7,6 +7,7 @@ window.RENDERER = (() => {
   let stonePattern = null;
   let groundPattern = null;
   let groundPatternImage = null;
+  const hitSilhouettes = new WeakMap();
 
   // 鏡頭與打擊震動
   let camX = 0, camY = 0;
@@ -485,11 +486,6 @@ window.RENDERER = (() => {
     ctx.translate(e.x, e.y + bob);
     ctx.scale(scaleX, 1);
 
-    // 受擊白色高亮
-    if (e.flash > 0) {
-      ctx.filter = "brightness(2.2) contrast(1.5)";
-    }
-
     let sprite = null;
     let sw = 50;
 
@@ -517,14 +513,27 @@ window.RENDERER = (() => {
       const aspect = (sprite.naturalWidth && sprite.naturalHeight) ? (sprite.naturalHeight / sprite.naturalWidth) : 1;
       const actualH = sw * aspect;
       ctx.drawImage(sprite, -sw / 2, -actualH * 0.85, sw, actualH);
+      if (e.flash > 0) {
+        let mask = hitSilhouettes.get(sprite);
+        if (!mask) {
+          mask = document.createElement("canvas");
+          mask.width = 128; mask.height = Math.max(1, Math.round(128 * aspect));
+          const mc = mask.getContext("2d");
+          mc.drawImage(sprite, 0, 0, mask.width, mask.height);
+          mc.globalCompositeOperation = "source-in";
+          mc.fillStyle = "#ffffff"; mc.fillRect(0, 0, mask.width, mask.height);
+          hitSilhouettes.set(sprite, mask);
+        }
+        ctx.globalAlpha *= 0.7;
+        ctx.drawImage(mask, -sw / 2, -actualH * 0.85, sw, actualH);
+      }
     } else {
-      ctx.fillStyle = isBoss ? "#8a2434" : isMis ? "#68399e" : "#80c4ff";
+      ctx.fillStyle = e.flash > 0 ? "#ffffff" : isBoss ? "#8a2434" : isMis ? "#68399e" : "#80c4ff";
       ctx.beginPath();
       ctx.arc(0, -sw * 0.4, sw * 0.4, 0, 6.28);
       ctx.fill();
     }
 
-    ctx.filter = "none";
     ctx.restore();
 
     // Boss 結界與血條
@@ -591,7 +600,7 @@ window.RENDERER = (() => {
   }
 
   // 繪製立體多光源動態光影（柔和三次樣條光暈 + 街燈光暈池）
-  function renderLighting(P, LAMPS, oil, elapsed, dawnTime) {
+  function renderLighting(P, LAMPS, oil, elapsed, dawnTime, maxOil = 100) {
     const progress = clamp(elapsed / dawnTime, 0, 1);
     lightCtx.globalCompositeOperation = "source-over";
     const area = bounds();
@@ -613,7 +622,7 @@ window.RENDERER = (() => {
     const screenPx = P.x - camX;
     const screenPy = P.y - camY;
     const flicker = Math.sin(elapsed * 16) * 3;
-    const baseRadius = 150 + (oil / 100) * 170 + flicker;
+    const baseRadius = 150 + clamp(oil / Math.max(1, maxOil), 0, 1) * 170 + flicker;
 
     const playerGlow = lightCtx.createRadialGradient(screenPx, screenPy, 15, screenPx, screenPy, baseRadius);
     playerGlow.addColorStop(0, "rgba(0,0,0,1)");
@@ -771,7 +780,7 @@ window.RENDERER = (() => {
     ctx.restore();
   }
 
-  function drawAtmosphere(elapsed, petalCount = 50) {
+  function drawAtmosphere(elapsed, petalCount = 50, fireflyCount = FIREFLIES.length) {
     const area = bounds();
     ctx.save();
     // 飄動櫻花雨
@@ -789,7 +798,7 @@ window.RENDERER = (() => {
     }
 
     // 螢火蟲 (夜行幽火)
-    for (const f of FIREFLIES) {
+    for (const f of FIREFLIES.slice(0, fireflyCount)) {
       const fx = f.x + Math.sin(elapsed * 2 + f.phase) * 30;
       const fy = f.y + Math.cos(elapsed * 1.5 + f.phase) * 20;
       if (fx < area.left - 20 || fx > area.right + 20 || fy < area.top - 20 || fy > area.bottom + 20) continue;

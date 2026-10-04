@@ -1,0 +1,176 @@
+✖ blocked BGM attempts once until a user gesture retries it (2.5475ms)
+✖ rain motion follows its streak direction and rain-port has no petals or fireflies (9.4935ms)
+✖ two oil upgrades still consume oil at rest (3.1742ms)
+✖ misdelivery finds a clear spawn when the answer and adjacent fallback are blocked (2.3573ms)
+✖ frame errors pause the run, show recovery text and keep the next frame scheduled (3.1114ms)
+✖ shield hit feedback is throttled and colored rings fade (1.9079ms)
+✖ full upgraded oil capacity keeps the same lantern radius as full base capacity (2.6363ms)
+✖ readableFont uses viewport scale without DOM geometry reads (1.8368ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 0
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 77.3041
+
+✖ failing tests:
+
+test at tests\audio-events.test.cjs:5:1
+✖ blocked BGM attempts once until a user gesture retries it (2.5475ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  60 !== 1
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\audio-events.test.cjs:11:34)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 60,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:70:1
+✖ rain motion follows its streak direction and rain-port has no petals or fireflies (9.4935ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(Math.abs(dx/dy-(first[2]-first[0])/(first[3]-first[1]))<1e-9)
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:75:26)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:80:1
+✖ two oil upgrades still consume oil at rest (3.1742ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(g.snapshot().oil<100)
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:82:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:85:1
+✖ misdelivery finds a clear spawn when the answer and adjacent fallback are blocked (2.3573ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:88:80)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:91:1
+✖ frame errors pause the run, show recovery text and keep the next frame scheduled (3.1114ms)
+  AssertionError [ERR_ASSERTION]: Got unwanted exception.
+  Actual message: "draw failed"
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:94:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: Error: draw failed
+        at g.env.RENDERER.drawGround (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:93:66)
+        at drawWorld (evalmachine.<anonymous>:1721:14)
+        at Object.frame (evalmachine.<anonymous>:2577:7)
+        at I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:94:29
+        at getActual (node:assert:611:5)
+        at strict.doesNotThrow (node:assert:779:32)
+        at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:94:10)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1402:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:974:18),
+    expected: undefined,
+    operator: 'doesNotThrow',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:98:1
+✖ shield hit feedback is throttled and colored rings fade (1.9079ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  20 !== 1
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:100:80)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 20,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\renderer.test.cjs:54:1
+✖ full upgraded oil capacity keeps the same lantern radius as full base capacity (2.6363ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  320 !== 422
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\renderer.test.cjs:59:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 320,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\ui-readability.test.cjs:31:1
+✖ readableFont uses viewport scale without DOM geometry reads (1.8368ms)
+  Error: unnecessary DOM read
+      at env.document.getElementById (I:\Projects\yokai-delivery\tests\ui-readability.test.cjs:33:42)
+      at Object.readableFont (evalmachine.<anonymous>:1716:28)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\ui-readability.test.cjs:34:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)

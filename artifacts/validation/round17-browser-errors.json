@@ -1,0 +1,17 @@
+{
+  "normalRainAfterReload": [],
+  "injectedFailure": [
+    {
+      "level": "error",
+      "message": "遊戲迴圈發生錯誤 Error: controlled renderer failure\n    at RENDERER.drawGround (http://127.0.0.1:8791/__round17-game.js:2648:320)\n    at drawWorld (http://127.0.0.1:8791/__round17-game.js:1725:14)\n    at runFrame (http://127.0.0.1:8791/__round17-game.js:2600:7)\n    at frame (http://127.0.0.1:8791/__round17-game.js:2535:13)",
+      "timestamp": "2026-10-04T07:21:29.835Z",
+      "url": "http://127.0.0.1:8791/__round17-game.js"
+    },
+    {
+      "level": "error",
+      "message": "遊戲迴圈發生錯誤 Error: controlled renderer failure\n    at RENDERER.drawGround (http://127.0.0.1:8791/__round17-game.js:2648:320)\n    at drawWorld (http://127.0.0.1:8791/__round17-game.js:1725:14)\n    at runFrame (http://127.0.0.1:8791/__round17-game.js:2600:7)\n    at frame (http://127.0.0.1:8791/__round17-game.js:2535:13)",
+      "timestamp": "2026-10-04T07:21:41.052Z",
+      "url": "http://127.0.0.1:8791/__round17-game.js"
+    }
+  ]
+}

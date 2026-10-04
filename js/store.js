@@ -55,8 +55,10 @@ window.STORE = (() => {
     };
   }
 
+  let saveFailed = false;
   const save = () => {
-    try { localStorage.setItem(K, JSON.stringify(d)); } catch {}
+    try { localStorage.setItem(K, JSON.stringify(d)); saveFailed = false; }
+    catch { saveFailed = true; }
   };
 
   const get = jp => d.m[jp] || (d.m[jp] = { ok: 0, ng: 0, box: 0, lastSeen: 0, missBoost: 1 });
@@ -84,6 +86,7 @@ window.STORE = (() => {
   }
 
   return {
+    canSave: () => !saveFailed,
     data: d,
     get,
     getStageStats,
