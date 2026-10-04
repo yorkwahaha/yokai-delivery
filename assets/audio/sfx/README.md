@@ -8,14 +8,8 @@
 | --- | --- |
 | `slash.mp3` | 妖刀斬擊 |
 | `boomerang.mp3` | 陰陽符迴力鏢 |
-| `fireball.mp3` | 狐火 |
-| `thunder.mp3` | 落雷 |
 | `dash.mp3` | 衝刺 |
-| `barrier.mp3` | 淨化靈陣 |
 | `needle.mp3` | 破魔靈針 |
-| `hurt.mp3` | 玩家受傷 |
-| `gem.mp3` | 靈玉／經驗拾取 |
-| `pickup.mp3` | 接取配送委託 |
 | `sanctuary.mp3` | 結界啟動 |
 | `delivery-success.mp3` | 配送答對／成功送達 |
 | `delivery-wrong.mp3` | 配送答錯／誤配妖怪出現 |
@@ -27,5 +21,7 @@
 | `lose.mp3` | 失敗結算畫面，進入時播放一次 |
 
 單字語音仍放在 `assets/audio/words/`，BGM 仍使用 `assets/audio/BGM.mp3`（或 `assets/audio/bgm.mp3`）。
+
+狐火、落雷、淨化靈陣、玩家受傷、靈玉拾取及接取委託目前使用合成音效；若要替換成 MP3，須先在 `js/audio.js` 的 `SFX_FILES` 加入對應路徑，單純放入檔案不會生效。
 
 新增的三個結算／死亡音效未提供 MP3 時，會使用內建合成音效。替換現有檔案後須更新 `js/assets.js` 的音訊版本字串，避免正式站台瀏覽器沿用舊快取；目前版本為 `20261003-3`。
