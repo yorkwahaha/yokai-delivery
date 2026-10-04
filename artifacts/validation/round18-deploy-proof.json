@@ -1,0 +1,123 @@
+{
+  "verifiedAt": "2026-10-04T08:05:38.342Z",
+  "deployedSha": "8d46d7a9fc3ca9b2b0378fccdd0f9247f6314161",
+  "run": {
+    "id": 37187726897,
+    "url": "https://github.com/yorkwahaha/yokai-delivery/actions/runs/37187726897",
+    "status": "completed",
+    "conclusion": "success",
+    "headSha": "8d46d7a9fc3ca9b2b0378fccdd0f9247f6314161"
+  },
+  "jobs": [
+    {
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "report-build-status",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "deploy",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "remoteSha": "8d46d7a9fc3ca9b2b0378fccdd0f9247f6314161",
+  "files": [
+    {
+      "path": "index.html",
+      "httpStatus": 200,
+      "gitSha256": "af610b388b859044516eed63b38109951b2d874510e035d624f15f23de11ad2f",
+      "liveSha256": "af610b388b859044516eed63b38109951b2d874510e035d624f15f23de11ad2f",
+      "matches": true
+    },
+    {
+      "path": "js/assets.js",
+      "httpStatus": 200,
+      "gitSha256": "7cc1f6acf45ebd05d1087715aff5315b660503b12c475a34fa3f52bbbb9ae65b",
+      "liveSha256": "7cc1f6acf45ebd05d1087715aff5315b660503b12c475a34fa3f52bbbb9ae65b",
+      "matches": true
+    },
+    {
+      "path": "js/audio.js",
+      "httpStatus": 200,
+      "gitSha256": "3c1cdddf321f352db0aa7ffeeb7ed6ae1151fc757380afbadc10153fc5c5b9dd",
+      "liveSha256": "3c1cdddf321f352db0aa7ffeeb7ed6ae1151fc757380afbadc10153fc5c5b9dd",
+      "matches": true
+    },
+    {
+      "path": "js/config.js",
+      "httpStatus": 200,
+      "gitSha256": "5d3c933170f0ac2b2c0b70341b7c62c14ae92b2eb91cef48ba88d57c7bafa9f5",
+      "liveSha256": "5d3c933170f0ac2b2c0b70341b7c62c14ae92b2eb91cef48ba88d57c7bafa9f5",
+      "matches": true
+    },
+    {
+      "path": "js/controls.js",
+      "httpStatus": 200,
+      "gitSha256": "5e6d8e15ce73e557da0ce4cec63528b01ab2006fee7777046db766e5b51b42a7",
+      "liveSha256": "5e6d8e15ce73e557da0ce4cec63528b01ab2006fee7777046db766e5b51b42a7",
+      "matches": true
+    },
+    {
+      "path": "js/game.js",
+      "httpStatus": 200,
+      "gitSha256": "dcb823a831db82928759da9a8f8c9d9582e3df3fc1c5ae214fbfd76d096ab817",
+      "liveSha256": "dcb823a831db82928759da9a8f8c9d9582e3df3fc1c5ae214fbfd76d096ab817",
+      "matches": true
+    },
+    {
+      "path": "js/overworld.js",
+      "httpStatus": 200,
+      "gitSha256": "a1351f83913b877de6debcff70b02f235db10408756e4d228c96f5937ecd666c",
+      "liveSha256": "a1351f83913b877de6debcff70b02f235db10408756e4d228c96f5937ecd666c",
+      "matches": true
+    },
+    {
+      "path": "js/renderer.js",
+      "httpStatus": 200,
+      "gitSha256": "bf1ee2d395cd437a28b86d5a1037b42b2b09ed552ff8577c4aa37ee9dbbd1434",
+      "liveSha256": "bf1ee2d395cd437a28b86d5a1037b42b2b09ed552ff8577c4aa37ee9dbbd1434",
+      "matches": true
+    },
+    {
+      "path": "js/store.js",
+      "httpStatus": 200,
+      "gitSha256": "095561035c5e902d986072c4a42bafd363dc0a79b71220b4f8dacebc93a7e2af",
+      "liveSha256": "095561035c5e902d986072c4a42bafd363dc0a79b71220b4f8dacebc93a7e2af",
+      "matches": true
+    },
+    {
+      "path": "js/ui.js",
+      "httpStatus": 200,
+      "gitSha256": "debaba245dcc8425b925630b2c723b60e37a75d0c86c3ef8f5987ac366f2cc6d",
+      "liveSha256": "debaba245dcc8425b925630b2c723b60e37a75d0c86c3ef8f5987ac366f2cc6d",
+      "matches": true
+    },
+    {
+      "path": "js/viewport.js",
+      "httpStatus": 200,
+      "gitSha256": "f8eccdc63b0b78826ba645de32a58438f3ba19aba46a53e668085f1e37092bc0",
+      "liveSha256": "f8eccdc63b0b78826ba645de32a58438f3ba19aba46a53e668085f1e37092bc0",
+      "matches": true
+    },
+    {
+      "path": "js/words.js",
+      "httpStatus": 200,
+      "gitSha256": "a9fc28498e3bf57a4ba05c0606fb28ed017584f4ce19438b0183d008cb369d44",
+      "liveSha256": "a9fc28498e3bf57a4ba05c0606fb28ed017584f4ce19438b0183d008cb369d44",
+      "matches": true
+    },
+    {
+      "path": "js/world.js",
+      "httpStatus": 200,
+      "gitSha256": "01edbe6b60560b7cf35400a190c78c0248d3ad97f0576536524ec12351dd4864",
+      "liveSha256": "01edbe6b60560b7cf35400a190c78c0248d3ad97f0576536524ec12351dd4864",
+      "matches": true
+    }
+  ],
+  "verified": true
+}
