@@ -27,20 +27,35 @@ function loadRenderer(width, height, dpr = 1) {
   return {env:context, main, canvases, texts, images};
 }
 
-test('Canvas backing follows CSS pixels with capped DPR; lighting uses one pixel per CSS pixel', () => {
+test('Canvas backings preserve viewport mapping within bounded raster budgets', () => {
   for (const [width,height,dpr] of [[1920,1080,1],[844,390,3],[1280,800,1.25]]) {
     const r=loadRenderer(width,height,dpr), light=r.canvases[1];
     const density=Math.min(dpr,2), v=r.env.VIEWPORT.get();
     assert.deepEqual([r.main.width,r.main.height],[Math.round(width*density),Math.round(height*density)]);
-    assert.deepEqual([light.width,light.height],[width,height]);
+    assert.ok(light.width*light.height<=502000);
+    assert.ok(light.width<=width && light.height<=height);
     const transform=light.transforms.at(-1);
-    assert.equal(transform[0],v.scale);
-    assert.equal(transform[4],v.offsetX*v.scale);
+    assert.ok(Math.abs(transform[0]/v.scale-light.width/width)<1/width);
+    assert.equal(transform[4],v.offsetX*transform[0]);
     assert.equal(r.main.ctx.imageSmoothingQuality,'high');
     r.env.RENDERER.renderLighting({x:450,y:300},[],95,0,600);
     assert.equal(r.images.at(-1)[0],light);
     assert.deepEqual(r.images.at(-1).slice(1),[-v.offsetX,-v.offsetY,v.width,v.height]);
   }
+});
+
+test('large high-DPR windows do not multiply the scene into over six million pixels',()=>{
+  const r=loadRenderer(1680,949,2);
+  assert.ok(r.main.width*r.main.height<=2505000);
+  assert.ok(r.env.RENDERER.getDpr()<2);
+  assert.ok(r.env.RENDERER.getDpr()>1);
+});
+
+test('soft lighting raster stays bounded while the final layer covers the full viewport',()=>{
+  const r=loadRenderer(1680,949,2),light=r.canvases[1],v=r.env.VIEWPORT.get();
+  assert.ok(light.width*light.height<=502000);
+  r.env.RENDERER.renderLighting({x:450,y:300},[],100,0,600);
+  assert.deepEqual(r.images.at(-1).slice(1),[-v.offsetX,-v.offsetY,v.width,v.height]);
 });
 
 test('resize refreshes DPR and backing resolution when moving between displays', () => {
