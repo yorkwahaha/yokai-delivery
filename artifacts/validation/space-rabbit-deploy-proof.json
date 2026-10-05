@@ -1,0 +1,120 @@
+{
+  "verifiedAt": "2026-10-05T10:28:27.312Z",
+  "commit": "ec6a1e7e2448c4b12f4a23e862911d43df08f554",
+  "workflowRun": 37296595354,
+  "files": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "expected": "415bc3819e01fe2904b1def0a0d1a229d3f12b7d020b10b204607596e493fb72",
+      "actual": "415bc3819e01fe2904b1def0a0d1a229d3f12b7d020b10b204607596e493fb72",
+      "match": true
+    },
+    {
+      "path": "js/assets.js",
+      "status": 200,
+      "expected": "1d941dabb8716b850ee7dc6ce80be62c307199bf131b42edb14338c8f3332863",
+      "actual": "1d941dabb8716b850ee7dc6ce80be62c307199bf131b42edb14338c8f3332863",
+      "match": true
+    },
+    {
+      "path": "js/audio.js",
+      "status": 200,
+      "expected": "1ba20d3fe0cbbc6a70cac6d89254a8953b916ca28ff193fdb12e39dcc556a581",
+      "actual": "1ba20d3fe0cbbc6a70cac6d89254a8953b916ca28ff193fdb12e39dcc556a581",
+      "match": true
+    },
+    {
+      "path": "js/config.js",
+      "status": 200,
+      "expected": "d87a93d2d10ddc96b7bc53a3017928ef117951d7f3df45a82597a8d6b3d83fab",
+      "actual": "d87a93d2d10ddc96b7bc53a3017928ef117951d7f3df45a82597a8d6b3d83fab",
+      "match": true
+    },
+    {
+      "path": "js/controls.js",
+      "status": 200,
+      "expected": "a80665d2207795beaf2b38335dc8f59781f49ddf92c62bc8a15c8de3eb22977f",
+      "actual": "a80665d2207795beaf2b38335dc8f59781f49ddf92c62bc8a15c8de3eb22977f",
+      "match": true
+    },
+    {
+      "path": "js/evolutions.js",
+      "status": 200,
+      "expected": "1df5c48c2a6eb343bfa6841bda98f8cdd7c8840777ffc100b27d785b09d6b7a3",
+      "actual": "1df5c48c2a6eb343bfa6841bda98f8cdd7c8840777ffc100b27d785b09d6b7a3",
+      "match": true
+    },
+    {
+      "path": "js/fx.js",
+      "status": 200,
+      "expected": "e36706b1e5ed18584bbeb6638546c98e898a42e76b603b7ab3d4fe65477895e8",
+      "actual": "e36706b1e5ed18584bbeb6638546c98e898a42e76b603b7ab3d4fe65477895e8",
+      "match": true
+    },
+    {
+      "path": "js/game.js",
+      "status": 200,
+      "expected": "0fc88da8376b10086545771c77a722af3f885308d72343394c058bedd348758a",
+      "actual": "0fc88da8376b10086545771c77a722af3f885308d72343394c058bedd348758a",
+      "match": true
+    },
+    {
+      "path": "js/overworld.js",
+      "status": 200,
+      "expected": "670ba7dd4c9e973af986abb19300871ca3e48e4a436bce77bccdb754fdc93964",
+      "actual": "670ba7dd4c9e973af986abb19300871ca3e48e4a436bce77bccdb754fdc93964",
+      "match": true
+    },
+    {
+      "path": "js/renderer.js",
+      "status": 200,
+      "expected": "3e1cccb38b1234446eb03f64771e74666761a961d8d88923048d9f5d6eea2a82",
+      "actual": "3e1cccb38b1234446eb03f64771e74666761a961d8d88923048d9f5d6eea2a82",
+      "match": true
+    },
+    {
+      "path": "js/skillfx.js",
+      "status": 200,
+      "expected": "06f548f989fe99f30a9ac2ccee999ecaf2d095922218f25b08a1ee824d97d063",
+      "actual": "06f548f989fe99f30a9ac2ccee999ecaf2d095922218f25b08a1ee824d97d063",
+      "match": true
+    },
+    {
+      "path": "js/store.js",
+      "status": 200,
+      "expected": "095561035c5e902d986072c4a42bafd363dc0a79b71220b4f8dacebc93a7e2af",
+      "actual": "095561035c5e902d986072c4a42bafd363dc0a79b71220b4f8dacebc93a7e2af",
+      "match": true
+    },
+    {
+      "path": "js/ui.js",
+      "status": 200,
+      "expected": "365b028c1daee6f225c1137ba316d4f03d4c4a196027709f5ed9ae858b461a6f",
+      "actual": "365b028c1daee6f225c1137ba316d4f03d4c4a196027709f5ed9ae858b461a6f",
+      "match": true
+    },
+    {
+      "path": "js/viewport.js",
+      "status": 200,
+      "expected": "80016543ffd68627cde21471cc845a271d3bdef7bbf88f6646821e30892f0ef3",
+      "actual": "80016543ffd68627cde21471cc845a271d3bdef7bbf88f6646821e30892f0ef3",
+      "match": true
+    },
+    {
+      "path": "js/words.js",
+      "status": 200,
+      "expected": "243c70baad20bbad774ffff272816e8469bbfa5fb37fc15b1925bc5ea258a61d",
+      "actual": "243c70baad20bbad774ffff272816e8469bbfa5fb37fc15b1925bc5ea258a61d",
+      "match": true
+    },
+    {
+      "path": "js/world.js",
+      "status": 200,
+      "expected": "ee21bec93c77d3d11cb975793b1ec9a6fcff923deef548254d36cda7d19e2733",
+      "actual": "ee21bec93c77d3d11cb975793b1ec9a6fcff923deef548254d36cda7d19e2733",
+      "match": true
+    }
+  ],
+  "workflowConclusion": "success"
+}
