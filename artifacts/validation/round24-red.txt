@@ -1,0 +1,71 @@
+✖ ice volley chooses eight distinct living targets around the courier and curves into them (0.5734ms)
+✖ ice freeze duration is bounded and cannot be refreshed into a permanent stun (0.0916ms)
+✔ Lv2/Lv3 inherit the old mid/MAX projectile density and Lv5 keeps bounded volleys (0.4878ms)
+✔ swept movement stops a fast projectile at a thin wall between frame endpoints (0.1585ms)
+✔ the final frame cannot push an expiring projectile beyond its intended range (0.0708ms)
+✔ a needle curves only during its first 0.28 seconds and then locks its final heading (0.6487ms)
+✔ a spirit reacquires a living foe after its target dies and has bounded steering (0.1772ms)
+✖ MAX sword wave has a 210px sharp body with no trail particles and thunder is three times wider (2.8132ms)
+✔ all five levels retain local glow and crisp marks without fullscreen flashes (4.3173ms)
+✔ needle and foxfire bodies have five distinct silhouettes with bounded local glow (1.2012ms)
+✔ reduced motion retains tier structure with static short-lived accents (1.3163ms)
+✔ reduced motion keeps the actual thunder domain size instead of a tiny initial circle (0.8962ms)
+✔ each level now has a distinct rank (0.956ms)
+✔ every skill grows across all five levels (112.4586ms)
+✔ katana tier 1 is far subtler than the old always-max look (5.1167ms)
+✔ purification array is a flattened ground ellipse behind actors with an asymmetric rune per tier (1.7482ms)
+✔ rune sprites differ per tier so Lv5 gets a more elaborate array (1.2074ms)
+✔ thunder inherits the old strongest strike at Lv3 and adds a domain at Lv5 (1.3196ms)
+✔ fire talisman ignites targets at Lv1-4 and explodes at Lv5 (1.2234ms)
+✔ burning stops when the target dies and the list stays bounded (1.4441ms)
+✔ new skills can be registered without touching fx.js (0.708ms)
+✔ game wires every weapon through SKILLFX and draws the ground layer before actors (7.647ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 19
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 203.8926
+
+✖ failing tests:
+
+test at tests\evolutions.test.cjs:5:1
+✖ ice volley chooses eight distinct living targets around the courier and curves into them (0.5734ms)
+  TypeError: E.iceVolley is not a function
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\evolutions.test.cjs:7:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+
+test at tests\evolutions.test.cjs:13:1
+✖ ice freeze duration is bounded and cannot be refreshed into a permanent stun (0.0916ms)
+  TypeError: E.freeze is not a function
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\evolutions.test.cjs:15:43)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests\skillfx.test.cjs:24:1
+✖ MAX sword wave has a 210px sharp body with no trail particles and thunder is three times wider (2.8132ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  1 !== 0
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\skillfx.test.cjs:25:83)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,166 @@
+{
+  "errors": [],
+  "evidence": [
+    {
+      "skill": "katana",
+      "frozen": {
+        "paused": true,
+        "elapsed": 0.12,
+        "skill": "katana",
+        "level": 5,
+        "ghosts": 0,
+        "winds": 1,
+        "points": [],
+        "fx": {
+          "particles": 128,
+          "budget": 1,
+          "bolts": 0
+        }
+      },
+      "moving": {
+        "paused": false,
+        "elapsed": 0.3667000000000001,
+        "skill": "katana",
+        "level": 5,
+        "ghosts": 0,
+        "winds": 0,
+        "points": [],
+        "fx": {
+          "particles": 86,
+          "budget": 1,
+          "bolts": 0
+        }
+      }
+    },
+    {
+      "skill": "thunder",
+      "frozen": {
+        "paused": true,
+        "elapsed": 0.18000000000000002,
+        "skill": "thunder",
+        "level": 5,
+        "ghosts": 0,
+        "winds": 0,
+        "points": [],
+        "fx": {
+          "particles": 181,
+          "budget": 1,
+          "bolts": 6
+        }
+      },
+      "moving": {
+        "paused": false,
+        "elapsed": 0.3668000000000001,
+        "skill": "thunder",
+        "level": 5,
+        "ghosts": 0,
+        "winds": 0,
+        "points": [],
+        "fx": {
+          "particles": 26,
+          "budget": 1,
+          "bolts": 6
+        }
+      }
+    },
+    {
+      "skill": "barrier",
+      "frozen": {
+        "paused": true,
+        "elapsed": 0.30000000000000004,
+        "skill": "barrier",
+        "level": 5,
+        "ghosts": 0,
+        "winds": 0,
+        "points": [],
+        "fx": {
+          "particles": 70,
+          "budget": 1,
+          "bolts": 0
+        }
+      },
+      "moving": {
+        "paused": false,
+        "elapsed": 0.3667,
+        "skill": "barrier",
+        "level": 5,
+        "ghosts": 0,
+        "winds": 0,
+        "points": [],
+        "fx": {
+          "particles": 42,
+          "budget": 1,
+          "bolts": 0
+        }
+      }
+    },
+    {
+      "skill": "boom",
+      "frozen": {
+        "paused": true,
+        "elapsed": 0.43000000000000005,
+        "skill": "boom",
+        "level": 5,
+        "ghosts": 0,
+        "winds": 0,
+        "points": [],
+        "fx": {
+          "particles": 160,
+          "budget": 1,
+          "bolts": 0
+        }
+      },
+      "moving": {
+        "paused": false,
+        "elapsed": 0.3499000000000001,
+        "skill": "boom",
+        "level": 5,
+        "ghosts": 0,
+        "winds": 0,
+        "points": [],
+        "fx": {
+          "particles": 154,
+          "budget": 1,
+          "bolts": 0
+        }
+      }
+    },
+    {
+      "skill": "fire",
+      "frozen": {
+        "paused": true,
+        "elapsed": 0.95,
+        "skill": "fire",
+        "level": 5,
+        "ghosts": 1,
+        "winds": 0,
+        "points": [
+          24
+        ],
+        "fx": {
+          "particles": 11,
+          "budget": 1,
+          "bolts": 0
+        }
+      },
+      "moving": {
+        "paused": false,
+        "elapsed": 0.36660000000000004,
+        "skill": "fire",
+        "level": 5,
+        "ghosts": 1,
+        "winds": 0,
+        "points": [
+          22
+        ],
+        "fx": {
+          "particles": 7,
+          "budget": 1,
+          "bolts": 0
+        }
+      }
+    }
+  ],
+  "controlled": true,
+  "productionSkillCode": true
+}

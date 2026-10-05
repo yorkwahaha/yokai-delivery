@@ -196,7 +196,7 @@ function bufferedAudioFixture() {
   class Context extends PlaybackTestContext {
     suspend(){this.state='suspended';return Promise.resolve();}
     resume(){this.state='running';return Promise.resolve();}
-    createBufferSource(){const s={connect(){},start(){sources.push(this);},stop(){this.stopped=true;this.onended?.();}};return s;}
+    createBufferSource(){const s={playbackRate:{value:1},connect(){},start(){sources.push(this);},stop(){this.stopped=true;this.onended?.();}};return s;}
     decodeAudioData(){decodes++;return Promise.resolve({duration:0.4});}
   }
   const env={window:{AudioContext:Context,audioAsset:p=>p+'?v=test'},Audio,console,setTimeout,clearTimeout,
@@ -205,6 +205,32 @@ function bufferedAudioFixture() {
   return {a:env.window.AUDIO,requested,sources,load:()=>finishLoad(),counts:()=>({mediaPlays,decodes})};
 }
 const drainAudio=async()=>{for(let i=0;i<10;i++)await Promise.resolve();};
+
+test('all six skills route levels 1-4 and 5 to distinct filenames and fall back to legacy audio',()=>{
+  const tracks=[];
+  class Audio {constructor(src){this.src=src;this.handlers={};tracks.push(this);}addEventListener(k,fn){this.handlers[k]=fn;}pause(){}play(){return Promise.resolve();}}
+  const env={window:{},Audio,console,setTimeout,clearTimeout};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  for(const [method,id] of [['slash','katana'],['barrier','barrier'],['needle','needle'],['boomerang','boom'],['fireball','fire'],['thunder','thunder']]) {
+    for(const level of [1,4,5]) {
+      env.window.AUDIO[method](level);
+      assert.equal(tracks.at(-1).src,`assets/audio/sfx/${id}-${level===5?'lv5':'lv1-4'}.mp3`);
+    }
+  }
+  env.window.AUDIO.slash(5);const failed=tracks.at(-1);failed.error={code:4};failed.handlers.error();
+  assert.equal(tracks.at(-1).src,'assets/audio/sfx/slash.mp3');
+  env.window.AUDIO.slash(5);assert.equal(tracks.at(-1).src,'assets/audio/sfx/slash.mp3');
+});
+
+test('warning sound uses original playback rate in buffer and media fallback',async()=>{
+  const f=bufferedAudioFixture();f.a.warningPulse(3);f.load();await drainAudio();
+  assert.equal(f.sources[0].playbackRate.value,1);
+  const tracks=[];
+  class Audio {constructor(src){this.src=src;this.playbackRate=1;tracks.push(this);}addEventListener(){}pause(){}play(){return Promise.resolve();}}
+  const env={window:{},Audio,console,setTimeout,clearTimeout};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  env.window.AUDIO.warningPulse(3);assert.equal(tracks.at(-1).playbackRate,1);
+});
 
 test('cold word audio fetches once, decodes once and reuses unlocked buffer playback',async()=>{
   const f=bufferedAudioFixture();f.a.speak('あめ');f.load();await drainAudio();

@@ -254,9 +254,41 @@ window.RENDERER = (() => {
     return stopped;
   }
 
-  function drawStaticChunk(c, chunk, toriiImg, toriiReady, sakuraImg, sakuraReady) {
+  function drawStaticChunk(c, chunk, toriiImg, toriiReady, sakuraImg, sakuraReady, paving) {
     const cx = chunk.x + chunk.w / 2, cy = chunk.y + chunk.h / 2;
     c.save();
+    // 靜態石疊道路與店前廣場一起烘焙，不增加逐幀圖層。
+    if(chunk.houses?.length) {
+      const wet=chunk.theme==='water'||chunk.theme==='lotus'||chunk.theme==='harbor';
+      c.lineJoin='round';
+      const road=()=>{
+        c.beginPath();c.moveTo(chunk.x,cy);c.lineTo(chunk.x+chunk.w,cy);
+        c.moveTo(cx,chunk.y);c.lineTo(cx,chunk.y+chunk.h);
+        for(const h of chunk.houses){c.moveTo(h.x,h.y+140);c.lineTo(cx,h.y+140);c.lineTo(cx,cy);}c.stroke();
+      };
+      c.strokeStyle='rgba(16,20,28,0.3)';c.lineWidth=88;road();
+      c.strokeStyle=paving||'#454746';c.globalAlpha=0.7;c.lineWidth=78;road();c.globalAlpha=1;
+      c.strokeStyle=wet?'rgba(45,62,68,0.24)':'rgba(117,99,70,0.4)';c.lineWidth=78;road();
+      for(const h of chunk.houses) {
+        c.fillStyle='rgba(16,22,25,0.28)';c.beginPath();c.roundRect(h.x-170,h.y+47,340,186,10);c.fill();
+        c.fillStyle=paving||'#454746';c.beginPath();c.roundRect(h.x-165,h.y+52,330,176,9);c.fill();
+        c.fillStyle=wet?'rgba(45,62,68,0.25)':'rgba(117,99,70,0.44)';c.fill();
+        c.strokeStyle='rgba(216,198,151,0.3)';c.lineWidth=2;c.stroke();
+        // 低調邊石與苔蘚留在答案圈外，保留店前可讀的空地。
+        for(let k=0;k<12;k++){
+          c.fillStyle=k%3?'#686b60':'#555d51';c.fillRect(h.x-160+k*27,h.y+230,22,5);
+        }
+        for(const side of [-1,1]){
+          c.fillStyle='rgba(71,89,53,0.6)';c.beginPath();c.ellipse(h.x+side*178,h.y+78,12,6,0,0,6.283);c.fill();
+        }
+        if(wet){
+          const px=h.x+110,py=h.y+83,g=c.createLinearGradient(px,py-9,px,py+9);
+          g.addColorStop(0,'rgba(92,150,174,0.25)');g.addColorStop(1,'rgba(20,44,63,0.25)');
+          c.fillStyle=g;c.beginPath();c.ellipse(px,py,42,9,-0.08,0,6.283);c.fill();
+          c.strokeStyle='rgba(170,204,214,0.22)';c.lineWidth=1;c.beginPath();c.moveTo(px-25,py-3);c.lineTo(px+19,py-3);c.stroke();
+        }
+      }
+    }
     c.textAlign = "center";
     c.font = "900 38px 'Kaisei Decol', 'Noto Sans JP', serif";
     c.fillStyle = "rgba(255, 230, 180, 0.18)";
@@ -290,12 +322,13 @@ window.RENDERER = (() => {
     const area = bounds(), v = window.VIEWPORT?.get() || {scale:1};
     const pixelScale = ctx.getTransform?.()?.a || (v.scale || 1) * dpr, x = camX + area.left, y = camY + area.top;
     const groundImg = window.ART && window.ART[groundKey];
+    const courtImg = window.ART?.ground;
     const toriiImg = window.ART && window.ART.prop_torii;
     const sakuraImg = window.ART && window.ART.prop_sakura;
     const toriiReady = !!(toriiImg && toriiImg.complete && toriiImg.naturalWidth);
     const sakuraReady = !!(sakuraImg && sakuraImg.complete && sakuraImg.naturalWidth);
     const cached = terrainState;
-    if (!cached || cached.key !== groundKey || cached.image !== groundImg || cached.pixelScale !== pixelScale ||
+    if (!cached || cached.key !== groundKey || cached.image !== groundImg || cached.courtImage !== courtImg || cached.pixelScale !== pixelScale ||
         cached.toriiReady !== toriiReady || cached.sakuraReady !== sakuraReady ||
         cached.viewW !== area.width || cached.viewH !== area.height || x < cached.left || y < cached.top ||
         x + area.width > cached.left + cached.width || y + area.height > cached.top + cached.height ||
@@ -317,6 +350,8 @@ window.RENDERER = (() => {
         c.fillStyle = groundPattern || "#181d28";
       } else c.fillStyle = dirt ? "#6b5135" : stonePattern || "#181d28";
       c.fillRect(left,top,width,height);
+      const paving=courtImg?.naturalWidth?c.createPattern(courtImg,'repeat'):stonePattern;
+      paving?.setTransform?.({a:0.42,b:0,c:0,d:0.42,e:0,f:0});
       for (const chunk of chunks) {
         if (chunk.x > left+width || chunk.x+chunk.w < left || chunk.y > top+height || chunk.y+chunk.h < top) continue;
         const cx = chunk.x+chunk.w/2, cy = chunk.y+chunk.h/2;
@@ -327,9 +362,9 @@ window.RENDERER = (() => {
           chunk.theme === "mystic" ? ["180,140,255",0.15] : ["120,190,140",0.12];
         g.addColorStop(0,`rgba(${tint[0]},${tint[1]})`);g.addColorStop(1,`rgba(${tint[0]},0)`);
         c.fillStyle = g;c.fillRect(chunk.x,chunk.y,chunk.w,chunk.h);
-        drawStaticChunk(c, chunk, toriiImg, toriiReady, sakuraImg, sakuraReady);
+        drawStaticChunk(c, chunk, toriiImg, toriiReady, sakuraImg, sakuraReady, paving);
       }
-      terrainState = {left,top,width:pw/pixelScale,height:ph/pixelScale,key:groundKey,image:groundImg,pixelScale,toriiReady,sakuraReady,viewW:area.width,viewH:area.height,chunks:chunks.slice()};
+      terrainState = {left,top,width:pw/pixelScale,height:ph/pixelScale,key:groundKey,image:groundImg,courtImage:courtImg,pixelScale,toriiReady,sakuraReady,viewW:area.width,viewH:area.height,chunks:chunks.slice()};
     }
     const t = terrainState;
     ctx.drawImage(terrainCv,t.left,t.top,t.width,t.height);

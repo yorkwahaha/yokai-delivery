@@ -1,0 +1,10 @@
+{
+  "tool": "built-in imagegen edit",
+  "prompt": "Edit image 1 (overworld background), using image 2 ONLY as art-style reference for the existing fox courier. Preserve the landscape aspect ratio and general shrine/town/port/cherry-pass/Kyoto/underworld geography. Replace the excessively intricate pixel-art realism with a restrained Japanese storybook anime game-map illustration matching the courier's bold dark ink outlines, matte muted navy, warm ochre, burgundy, simple cel-shaded shapes and subtle watercolor paper texture. Use broad readable clusters of rounded trees, few large rocks, simplified roofs, calm sea, sparse lanterns. Substantially reduce tiny terrain details and texture contrast. This is a map seen from above, no characters, no text, no UI, no markers. Important correct overlay geography on conceptual1800x1050 canvas: open shrine clearing(210,820); town centered(470,760); road fork(720,690); small port(800,900); cherry-tree pass(980,535); old road(1215,500); lookout clearing(1260,755); red Kyoto district(1460,555); violet underworld gate(1605,285). Avoid placing water beneath town and road fork. Town is on land; sea only below port and at bottom right. Soft ambient light, flattened scale, simple miniature landscape that belongs to the same anime yokai game as courier reference. It should remain an attractive finished raster painting, not vector primitives, not pixel art, not epic realistic fantasy scenery.",
+  "references": [
+    "assets/img/overworld_night_v1.png",
+    "assets/img/player_win_v1.png"
+  ],
+  "asset": "assets/img/overworld_night_v2.png",
+  "distribution": "assets/img/overworld_night_v2.webp"
+}

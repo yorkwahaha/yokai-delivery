@@ -45,6 +45,7 @@
 
   function createState(startId = "gate") {
     const node = nodeById.get(startId) || NODES[0];
+    const area = root.VIEWPORT?.bounds() || {left:0,top:0,right:VIEW_W,bottom:VIEW_H};
     return {
       currentId: node.id,
       x: node.x,
@@ -53,8 +54,8 @@
       targetId: null,
       moveT: 0,
       moveDuration: 0.42,
-      camX: clamp(node.x - VIEW_W / 2, 0, MAP_W - VIEW_W),
-      camY: clamp(node.y - VIEW_H / 2, 0, MAP_H - VIEW_H)
+      camX: clamp(node.x - VIEW_W / 2, -area.left, MAP_W - area.right),
+      camY: clamp(node.y - VIEW_H / 2, -area.top, MAP_H - area.bottom)
     };
   }
 
@@ -147,8 +148,9 @@
       }
     }
 
-    const targetCamX = clamp(state.x - VIEW_W / 2, 0, MAP_W - VIEW_W);
-    const targetCamY = clamp(state.y - VIEW_H / 2, 0, MAP_H - VIEW_H);
+    const area = root.VIEWPORT?.bounds() || {left:0,top:0,right:VIEW_W,bottom:VIEW_H};
+    const targetCamX = clamp(state.x - VIEW_W / 2, -area.left, MAP_W - area.right);
+    const targetCamY = clamp(state.y - VIEW_H / 2, -area.top, MAP_H - area.bottom);
     const k = Math.min(1, dt * 6.5);
     state.camX += (targetCamX - state.camX) * k;
     state.camY += (targetCamY - state.camY) * k;
@@ -335,11 +337,13 @@
 
     ctx.save();
     ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(12,14,28,0.9)";
+    ctx.beginPath();ctx.roundRect(node.x-104,node.y+43,208,node.sub?46:28,7);ctx.fill();
     ctx.font = readableFont(16, "900");
-    ctx.fillStyle = canEnter ? "#3d291f" : "#4b4050";
+    ctx.fillStyle = canEnter ? "#fff0c2" : "#d4bcdf";
     ctx.fillText(node.label, node.x, node.y + 62);
     ctx.font = readableFont(11, "700");
-    ctx.fillStyle = "rgba(60, 48, 42, 0.76)";
+    ctx.fillStyle = "#c1c9dd";
     ctx.fillText(node.sub || "", node.x, node.y + 79);
     ctx.restore();
   }
@@ -358,7 +362,7 @@
     ctx.save();
     ctx.translate(state.x+fx+(tx-fx)*u, state.y+fy+(ty-fy)*u+bob);
     if (img && img.complete && img.naturalWidth) {
-      const h = 54;
+      const h = 108;
       const w = h * img.naturalWidth / img.naturalHeight;
       ctx.shadowColor = "rgba(0,0,0,0.45)";
       ctx.shadowBlur = 7;
@@ -371,6 +375,19 @@
       ctx.beginPath(); ctx.moveTo(13, -20); ctx.lineTo(7, -38); ctx.lineTo(1, -19); ctx.closePath(); ctx.fill();
     }
     ctx.restore();
+  }
+
+  function drawMist(ctx, elapsed) {
+    const motion = !root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    const t = motion ? elapsed : 0;
+    // 谷地緩慢平移；霧在道路、地標與角色下方，不擋選關。
+    [[410,560,210],[880,360,230],[1330,710,250],[1580,230,180]].forEach(([x,y,r],i)=>{
+      const drift=Math.sin(t*0.09+i*1.7)*65;
+      ctx.save();ctx.translate(x+drift,y);ctx.scale(1,0.23);
+      const g=ctx.createRadialGradient(0,0,0,0,0,r);
+      g.addColorStop(0,'rgba(190,216,235,0.18)');g.addColorStop(0.55,'rgba(190,216,235,0.07)');g.addColorStop(1,'rgba(190,216,235,0)');
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.restore();
+    });
   }
 
   let mapBase = null;
@@ -433,12 +450,18 @@
     ctx.save();
     ctx.translate(-state.camX, -state.camY);
 
+    const background = root.ART?.overworld_night_v2;
+    if (background?.naturalWidth) {
+      ctx.drawImage(background,0,0,MAP_W,MAP_H);
+    } else {
     if (!mapBase && root.document?.createElement) {
       mapBase = root.document.createElement('canvas');mapBase.width=MAP_W;mapBase.height=MAP_H;
       drawMapBase(mapBase.getContext('2d'));
     }
     if(mapBase)ctx.drawImage(mapBase,0,0);else drawMapBase(ctx);
+    }
 
+    drawMist(ctx,elapsed);
     for (const [a, b] of EDGES) drawRoad(ctx, nodeById.get(a), nodeById.get(b));
 
     const selectedId = state.targetId || state.currentId;

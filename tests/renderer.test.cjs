@@ -157,6 +157,14 @@ test('static terrain reuses one buffered canvas and refreshes for camera bounds 
   assert.equal(r.canvases.length,count+1);
 });
 
+test('courtyard paving arriving late refreshes the cached terrain only once',()=>{
+  const r=loadRenderer(900,600),chunks=[{x:0,y:0,w:900,h:600,theme:'water',name:'港',houses:[{x:210,y:175}]}];
+  r.env.RENDERER.drawGround(0,600,chunks,'ground_dirt');const cached=r.canvases.at(-1),before=cached.fills.length;
+  r.env.ART.ground={complete:true,naturalWidth:512};r.env.RENDERER.drawGround(1,600,chunks,'ground_dirt');
+  assert.ok(cached.fills.length>before);const after=cached.fills.length;
+  r.env.RENDERER.drawGround(2,600,chunks,'ground_dirt');assert.equal(cached.fills.length,after);
+});
+
 test('terrain uses the actual float32 transform for a one-to-one buffered blit',()=>{
   const r=loadRenderer(1080,720),scale=1.2000000476837158;
   r.main.ctx.getTransform=()=>({a:scale,d:scale});

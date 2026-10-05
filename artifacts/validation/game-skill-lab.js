@@ -63,6 +63,7 @@
   }
   const blocked = (x, y, r = 18) => solids.some(s => Math.hypot(x - clamp(x, s.x0, s.x1), y - clamp(y, s.y0, s.y1)) < r);
   function knockback(e, distance) {
+    if (e.type === "boss") return;
     const length = dist(P, e) || 1;
     const steps = Math.ceil(distance / 8);
     const dx = (e.x - P.x) / length * distance / steps;
@@ -73,8 +74,17 @@
       if (!blocked(e.x, e.y + dy, 16)) e.y += dy;
     }
   }
-  const ansPos = h => [{ x: h.x - 85, y: h.y + 75 }, { x: h.x + 85, y: h.y + 75 }, { x: h.x, y: h.y + 122 }];
+  const ansPos = h => [{ x: h.x - 125, y: h.y + 125 }, { x: h.x + 125, y: h.y + 125 }, { x: h.x, y: h.y + 190 }];
   const getWordDistrictWords = word => window.CONTENT.getSiblingWords(word);
+  function answerChoices(word) {
+    const seen = new Set([word.jp]), distractors = [];
+    for (const w of [...shuffle(getWordDistrictWords(word)), ...shuffle(ALL)]) {
+      if (!w || seen.has(w.jp)) continue;
+      seen.add(w.jp); distractors.push(w);
+      if (distractors.length === 2) break;
+    }
+    return shuffle([word, ...distractors]);
+  }
 
   // ---------- 遊戲狀態 ----------
   const P = { x: START.x, y: START.y, inv: 0, faceAng: 0, faceX: 1 };
@@ -111,18 +121,43 @@
       if (state === "pause") { quitConfirm = true; menuFocus = 0; }
       else returnHome();
     }
-    else if (id === "cards" || id === "codex") { codexBack = state; codexTab = id === "cards" ? "cards" : "words"; state = "codex"; }
+    else if (id === "cards" || id === "codex") { codexBack = state; selectCodex(id === "cards" ? "cards" : "words"); state = "codex"; }
   }
   let overworld = window.OVERWORLD.createState("gate");
   let overworldNoticeT = 0;
   let gpOverworldDir = "";
   let elapsed = 0, warnDawnT = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;
   let orders = [], job = null, enemies = [], enemyBullets = [], gems = [], texts = [], rings = [], misses = [];
+  const GEM_LIMIT = 512, GEM_DISTANCE = 2400;
+  function dropGem(x, y, v) {
+    if (gems.length < GEM_LIMIT) { gems.push({x,y,v}); return; }
+    // 滿池合併到最近一顆，保留經驗總量；只在擊殺時掃描，非每幀搜尋。
+    let nearest = gems[0], best = Infinity;
+    for (const g of gems) {
+      const d = (g.x-x)**2 + (g.y-y)**2;
+      if (d < best) { best = d; nearest = g; }
+    }
+    if (dist(P,nearest) > GEM_DISTANCE) Object.assign(nearest,{x,y,v,done:false});
+    else nearest.v += v;
+  }
   // rerolls 是每局可重抽升級選項的次數。
   let rerolls = 2, titleCardT = 0;
   // 畫面切換不再硬切：新畫面從黑幕淡入。
   const FADE_TIME = 0.45;
   let lastScreen = "menu", fadeT = 0, runSummary = null;
+  let learningStart = {};
+  function learningSummary() {
+    const result = { practiced: 0, gained: 0, lost: 0, review: 0 };
+    for (const [jp, m] of Object.entries(STORE.data.m)) {
+      const before = learningStart[jp] || {ok:0,ng:0,box:0};
+      if (m.ok === before.ok && m.ng === before.ng) continue;
+      result.practiced++;
+      result.gained += Math.max(0,m.box-before.box);
+      result.lost += Math.max(0,before.box-m.box);
+      if (m.missBoost > 1) result.review++;
+    }
+    return result;
+  }
   const wMax = { katana: 0.72, barrier: 3, needle: 1, boom: 2, thunder: 2.6, fire:1.1 };
   let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0, endCooldown = 0;
   let dashDir = { x: 1, y: 0 };
@@ -134,6 +169,13 @@
   let bossT = BOSS_TIMES[0], bossStage = 0, finalBossDefeated = false;
   let finalBossPos = null, finalBossEnt = null, victorySeq = null;
   let ended = false, bossQ = null, codexBack = "menu", codexTab = "cards", codexPage = 0;
+  let codexFocus = 'cards';
+  function selectCodex(id) {
+    codexFocus = id;
+    if(id==='cards'||id==='words'){codexTab=id;codexPage=0;}
+    else if(id==='prev'||id==='next')turnCodexPage(id==='prev'?-1:1);
+    else if(id==='back')state=codexBack;
+  }
   let worldSyncSignature = "";
 
   // Only operation guidance: never reads the current word or mutates answer assistance.
@@ -224,14 +266,14 @@
   const WEAPON_UPGRADES = {
     katana:["暖光單刃，斬擊前方妖怪","雙刃交叉，距離 +16、傷害 +0.8","三刃收束，距離與傷害再提升","蓄風四刃；下一階射出穿透風刃","覺醒・風刃：斬擊同時射出穿透風刃"],
     barrier:["展開單盤除魔陣，震退四周妖怪","雙盤刻印，範圍與傷害提升","反轉雙盤，範圍、傷害再提升","蓄勢大陣；下一階升起光柱","覺醒・昇靈結界：光柱升起，範圍與震退最強"],
-    fire:["召喚 2 顆暖光狐火環繞護身","狐火增加至 4 顆，傷害提升","五火白芯，傷害再提升","蓄魂五火；下一階化為追蹤鬼火","覺醒・追魂鬼火：五靈追擊遠方妖怪"],
-    boom:["單符回旋，穿透路徑上的妖怪","一次擲出 2 枚符咒","三符碎焰，冷卻縮短","蓄火三符；下一階改為投射爆符","覺醒・爆符：三符命中引爆範圍傷害"],
+    fire:["召喚 2 顆暖光狐火環繞護身","狐火增加至 4 顆，傷害提升","五火白芯，傷害再提升","蓄魂六火；下一階化為追蹤鬼火","覺醒・追魂鬼火：六靈追擊遠方妖怪"],
+    boom:["單符回旋，穿透路徑上的妖怪","一次擲出 2 枚符咒","三符碎焰，冷卻縮短","蓄火四符；下一階改為投射爆符","覺醒・爆符：四符命中引爆範圍傷害"],
     thunder:["落雷轟擊最強妖怪及近處敵人","同時鎖定 2 名強敵","同時鎖定 3 名強敵","三雷餘波擴大；下一階展開雷獄","覺醒・雷獄：轟擊大範圍內所有妖怪"],
-    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","七星噴射；下一階弧線射出","覺醒・弧光七星：七針彎曲一次後直飛"]
+    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階弧線射出","覺醒・弧光八星：八針彎曲一次後直飛"]
   };
 
   let proj = [], needles = [], winds = [], ghosts = [], surgeT = SURGE_FIRST, fAng = 0, fireEmitT = 0;
-  let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1, lastWarningCycle = 0;
+  let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1;
   const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0, fire: 0 };
 
   const UP = [
@@ -359,10 +401,11 @@
     Object.assign(P, { x: START.x, y: START.y, inv: 1.2, faceAng: 0, faceX: 1 });
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0, dmgUp: 0, heals: 0 });
     Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 });
-    proj = []; needles = []; winds = []; ghosts = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1; lastWarningCycle = 0;
+    proj = []; needles = []; winds = []; ghosts = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1;
     wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0;
     elapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
-    orders = []; job = null; enemies = []; gems = []; texts = []; rings = []; misses = [];
+    orders = []; job = null; inter = null; enemies = []; gems = []; texts = []; rings = []; misses = [];
+    learningStart = Object.fromEntries(Object.entries(STORE.data.m).map(([jp,m])=>[jp,{ok:m.ok,ng:m.ng,box:m.box}]));
     FX.reset();
     SKILLFX.reset();
     rerolls = 2; titleCardT = 3; runSummary = null;
@@ -443,6 +486,13 @@
       choices = pc.slice(0, 3);
     }
 
+    if (!choices.length) {
+      xp = Math.max(0, xp - xpNeed());
+      level++;
+      state = "play";
+      say("修行圓滿・繼續夜行", P.x, P.y - 45, "#ffe9a0");
+      return;
+    }
     state = "levelup";
     levelupCooldown = 0.4;
     keys.clear(); heldCodes.clear();
@@ -475,13 +525,7 @@
     orders = orders.filter(x => x !== o);
 
     // 干擾項優先挑選包裹單字自身所屬區的近義詞（如動物區 ねこ 優先配 いぬ、うさぎ）
-    const distractors = shuffle(getWordDistrictWords(o.word));
-    while (distractors.length < 2) {
-      const other = pick(ALL.filter(w => w.jp !== o.word.jp && !distractors.some(d => d.jp === w.jp)));
-      if (other) distractors.push(other);
-      else break;
-    }
-    const finalAns = shuffle([o.word, distractors[0], distractors[1]]);
+    const finalAns = answerChoices(o.word);
 
     job = {
       word: o.word,
@@ -515,10 +559,10 @@
       delivered++;
       if (j.assisted) {
         STORE.recAssisted(j.word.jp);
-        oil = Math.min(maxOil, oil + 4);
+        oil = Math.min(maxOil, oil + 12);
         score += 25;
         say(`${w.jp}＝${w.zh} 輔助送達！`, pos.x, pos.y - 35, "#fff0a6");
-        say("燈油 +4 點（神助）", pos.x, pos.y - 12, "#ffd27a");
+        say("燈油 +12 點（神助）", pos.x, pos.y - 12, "#ffd27a");
       } else {
         STORE.rec(j.word.jp, true);
         const gain = 10;
@@ -533,9 +577,10 @@
       AUDIO.deliverSuccess();
     } else {
       failed++;
+      oil = Math.max(0,oil-8);
       misses.push(j.word);
       STORE.rec(j.word.jp, false);
-      say("誤配！單字有誤，瘴氣妖魔現身！", pos.x, pos.y - 36, "#ff8f8f");
+      say("誤配！燈油 -8，瘴氣妖魔現身！", pos.x, pos.y - 36, "#ff8f8f");
       const cappedElapsed = Math.min(elapsed, DAWN);
       const awayX = pos.x - j.to.x;
       const awayY = pos.y - j.to.y;
@@ -572,6 +617,7 @@
       RENDERER.triggerShake(6);
       AUDIO.deliverWrong();
       AUDIO.speak(j.word.jp); // 出現時即播一次讀音
+      if(oil<=0)loseRun();
     }
   }
 
@@ -599,7 +645,7 @@
 
     // 怪物擊敗
     const isMis = e.type === "mis";
-    score += isMis ? 30 : e.type === "boss" ? 400 : 15;
+    score += isMis ? 0 : e.type === "boss" ? 400 : 15;
 
     if (e.type === "boss") {
       AUDIO.bossDeath();
@@ -613,14 +659,14 @@
       say(e.final ? "夜明けの大妖鬼 撃破！" : "大妖鬼擊破！燈油 +35", e.x, e.y - 65, "#ffe9a0");
       if (!e.final) RENDERER.triggerShake(14); // 最終 Boss 由收尾演出處理，不震動整個畫面
       for (let k = 0; k < 8; k++) {
-        gems.push({ x: e.x + (Math.random() - 0.5) * 70, y: e.y + (Math.random() - 0.5) * 70, v: 6 });
+        dropGem(e.x + (Math.random() - 0.5) * 70, e.y + (Math.random() - 0.5) * 70, 6);
       }
       // 不再誤將擊殺視為單字掌握 STORE.rec
     }
 
     const gemCount = 1;
     for (let i = 0; i < gemCount; i++) {
-      gems.push({ x: e.x + (Math.random() - 0.5) * 28, y: e.y + (Math.random() - 0.5) * 28, v: 2 });
+      dropGem(e.x + (Math.random() - 0.5) * 28, e.y + (Math.random() - 0.5) * 28, 2);
     }
     FX.death(e.x, e.y, isMis ? "#c98cff" : "#bce9ff", e.type === "boss");
 
@@ -906,14 +952,12 @@
     // 圖鑑：LB / RB 切換頁籤；十字鍵左右翻單字頁；B 返回。
     if (state === "codex") {
       if (justPressed(4)) {
-        codexTab = "cards";
+        selectCodex('cards');
       } else if (justPressed(5)) {
-        codexTab = "words";
+        selectCodex('words');
       }
-      if (codexTab === "words") {
-        if (justPressed(14)) turnCodexPage(-1);
-        else if (justPressed(15)) turnCodexPage(1);
-      }
+      if (justPressed(14)) selectCodex('prev');
+      else if (justPressed(15)) selectCodex('next');
       if (justPressed(1)) {
         state = codexBack;
       }
@@ -937,17 +981,12 @@
   }
 
   const mkQ = bs => {
-    const distractors = shuffle(getWordDistrictWords(bs.word));
-    while (distractors.length < 2) {
-      const other = pick(ALL.filter(w => w.jp !== bs.word.jp && !distractors.some(d => d.jp === w.jp)));
-      if (other) distractors.push(other);
-      else break;
-    }
     return {
       word: bs.word,
+      wrong: [],
       lock: 0.4,
       wasAssisted: !!bs.wasAssisted,
-      ans: shuffle([bs.word, distractors[0], distractors[1]])
+      ans: answerChoices(bs.word)
     };
   };
 
@@ -956,6 +995,7 @@
     const bs = enemies.find(e => e.type === "boss" && e.shield);
     if (!bossQ || bossQ.lock > 0 || !bs) return;
     if (i < 0 || i >= bossQ.ans.length) return;
+    if (bossQ.wrong.includes(i)) return;
     const ok = bossQ.ans[i] === bs.word;
 
     if (ok) {
@@ -966,7 +1006,7 @@
       }
       bs.shield = false;
       bossQ = null;
-      say("結界破除！全力進攻！", bs.x, bs.y - 75, "#9be7ff");
+      say(`${bs.word.jp}＝${bs.word.zh}・結界破除！`, bs.x, bs.y - 75, "#9be7ff");
       burst(bs.x, bs.y, "#9be7ff", 35);
       FX.flash("#9be7ff", 0.18, 0.22);
       FX.emit("ring", "#9be7ff", { x: bs.x, y: bs.y, life: 0.3, s0: 20, s1: 110, a: 0.9, ease: true });
@@ -983,8 +1023,8 @@
         loseRun();
         return;
       }
-      if (bossQ.ans.length > 2) {
-        bossQ.ans = bossQ.ans.filter((_, idx) => idx !== i);
+      bossQ.wrong.push(i);
+      if (bossQ.wrong.length < bossQ.ans.length - 1) {
         bossQ.wasAssisted = true;
         bs.wasAssisted = true;
         if (job?.word.jp === bs.word.jp) job.assisted = true;
@@ -992,6 +1032,7 @@
         say("排除錯誤選項，再試一次！", P.x, P.y - 75, "#ffb3ba");
       } else {
         const lastWordJp = bs.word ? bs.word.jp : "";
+        say(`${bs.word.jp}＝${bs.word.zh}・記住正解再挑戰`, P.x, P.y - 100, "#fff0a6");
         const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
         let pool = ALL.filter(w => w.jp !== lastWordJp && !livingMisWords.has(w.jp));
         if (pool.length === 0) pool = ALL.filter(w => w.jp !== lastWordJp);
@@ -1038,7 +1079,7 @@
   function explodeTalisman(q){
     if(q.done)return;q.done=true;
     SKILLFX.play("boom","hit",5,{x:q.x,y:q.y,r:135,evolved:true});
-    AUDIO.breakShield();
+    AUDIO.boomerang(5);
     for(const e of enemies)if(e.hp>0&&!q.volleyHits.has(e)&&dist(e,q)<=135){
       q.volleyHits.add(e);hurt(e,5*b.dmg);e.ib=elapsed+0.38;
     }
@@ -1066,7 +1107,7 @@
         atkT = 0.1;
       } else {
         atkT = wMax.katana = Math.max(0.24, 0.72 - b.rate * 0.13);
-        RENDERER.addSlashArc(P.x, P.y, reach * 0.85, faceAng, 2.2, SKILLFX.tier(WL.katana));
+        if(WL.katana<5) RENDERER.addSlashArc(P.x, P.y, reach * 0.85, faceAng, 2.2, SKILLFX.tier(WL.katana));
         SKILLFX.play("katana", "swing", WL.katana, { x: P.x, y: P.y, ang: faceAng, reach: reach * 0.85 });
 
         // 僅判定面朝方向前方扇形範圍 (角度差 <= 1.22 弧度，約 140 度角)
@@ -1086,15 +1127,15 @@
             }
           }
         }
-        if (WL.katana===5 && winds.length<8) winds.push({x:P.x,y:P.y,vx:Math.cos(faceAng)*560,vy:Math.sin(faceAng)*560,ang:faceAng,life:0.95,hits:new Set(),dmg:(b.dmg+3.2)*1.15});
-        AUDIO.slash();
+        if (WL.katana===5 && winds.length<8) winds.push({x:P.x,y:P.y,vx:Math.cos(faceAng)*560,vy:Math.sin(faceAng)*560,ang:faceAng,size:360,life:0.95,hits:new Set(),dmg:(b.dmg+3.2)*1.15});
+        AUDIO.slash(WL.katana);
       }
     }
 
     for(const wave of winds){
-      if(!EVOLUTIONS.move(wave,dt,blocked,12))continue;
-      if((wave.trail=(wave.trail||0)-dt)<=0){wave.trail=0.04;SKILLFX.play("wind","trail",5,wave);}
-      for(const e of enemies)if(e.hp>0 && !wave.hits.has(e) && dist(e,wave)<(e.type==='boss'?74:48)){
+      const blockBlade=(x,y,r)=>[-0.9,-0.45,0,0.45,0.9].some(t=>blocked(x-Math.sin(wave.ang)*180*t,y+Math.cos(wave.ang)*180*t,r));
+      if(!EVOLUTIONS.move(wave,dt,blockBlade,12))continue;
+      for(const e of enemies)if(e.hp>0 && !wave.hits.has(e) && Math.abs((e.x-wave.x)*Math.cos(wave.ang)+(e.y-wave.y)*Math.sin(wave.ang))<(e.type==='boss'?95:75) && Math.abs(-(e.x-wave.x)*Math.sin(wave.ang)+(e.y-wave.y)*Math.cos(wave.ang))<180+(e.type==='boss'?40:22)){
         wave.hits.add(e);hurt(e,wave.dmg);SKILLFX.play("katana","hit",5,{x:e.x,y:e.y,ang:wave.ang});
         if(wave.hits.size>=3){wave.life=0;break;}
       }
@@ -1124,7 +1165,7 @@
           }
         }
         if (hitAny) RENDERER.triggerShake(5);
-        AUDIO.barrier();
+        AUDIO.barrier(WL.barrier);
       }
     }
 
@@ -1146,8 +1187,9 @@
           }
           shootAng = near ? Math.atan2(near.y - P.y, near.x - P.x) : P.faceAng;
         }
-        const spread = WL.needle===5 ? 1.35 : 0.45;
-        for (let i = 0; i < count; i++) {
+        const spread = WL.needle===5 ? 1.35 : WL.needle===4 ? 0.65 : 0.45;
+        if(WL.needle===5) needles.push(...EVOLUTIONS.iceVolley(P,enemies,shootAng));
+        else for (let i = 0; i < count; i++) {
           const a = shootAng + (i - (count - 1) / 2) * (spread / Math.max(1, count - 1));
           needles.push({
             x: P.x, y: P.y,
@@ -1160,7 +1202,7 @@
           });
         }
         SKILLFX.play("needle", "fire", WL.needle, { x: P.x + Math.cos(shootAng) * 28, y: P.y + Math.sin(shootAng) * 28 });
-        AUDIO.needle();
+        AUDIO.needle(WL.needle);
       }
     }
 
@@ -1169,9 +1211,10 @@
       if(!EVOLUTIONS.move(nd,dt,nd.curve?blocked:null,6))continue;
       if ((nd.trail -= dt) <= 0) { nd.trail = 0.03; SKILLFX.play("needle", "trail", nd.level??WL.needle, { x: nd.x, y: nd.y, ang: Math.atan2(nd.vy, nd.vx) }); }
       for (const e of enemies) {
-        if (e.hp > 0 && !(e.inb > elapsed) && dist(e, nd) < (e.type === "boss" ? 54 : 30)) {
+        if (e.hp > 0 && !(e.inb > elapsed) && !nd.hits?.has(e) && dist(e, nd) < (e.type === "boss" ? 54 : 30)) {
           e.inb = elapsed + 0.2;
           hurt(e, nd.dmg * b.dmg);
+          if(nd.ice){nd.hits.add(e);EVOLUTIONS.freeze(e,elapsed);}
           SKILLFX.play("needle", "hit", nd.level??WL.needle, { x: nd.x, y: nd.y });
         }
       }
@@ -1195,10 +1238,10 @@
           const volleyHits = new Set();
           const baseAng = Math.atan2(t.y - P.y, t.x - P.x);
           for (let i = 0; i < count; i++) {
-            const a = baseAng + (i - (count - 1) / 2) * 0.32;
+            const a = baseAng + (i - (count - 1) / 2) * (WL.boom>=4?0.28:0.32);
             proj.push({ x: P.x, y: P.y, vx: Math.cos(a) * 440, vy: Math.sin(a) * 440, t: 0, back: false, life:WL.boom===5?1.25:2, level:WL.boom, volleyHits });
           }
-          AUDIO.boomerang();
+          if(WL.boom<5) AUDIO.boomerang(WL.boom);
         }
       }
     }
@@ -1251,29 +1294,25 @@
           }
         }
       }
-      if (fireHit && wT.fire <= 0) { AUDIO.fireball(); wT.fire = 0.15; }
+      if (fireHit && wT.fire <= 0) { AUDIO.fireball(WL.fire); wT.fire = 0.15; }
     }
 
     if(WL.fire===5){
       wT.fire=Math.max(0,wT.fire-dt);fAng+=dt*2.8;
-      const targets=enemies.filter(e=>e.hp>0&&dist(P,e)<560).sort((a,b)=>dist(P,a)-dist(P,b));
+      const targets=enemies.filter(e=>e.hp>0&&!e.shield&&dist(P,e)<560).sort((a,b)=>dist(P,a)-dist(P,b));
       if(wT.fire<=0 && targets.length){
-        wT.fire=wMax.fire=1.1;const hitSet=new Set();
-        for(let i=0;i<5&&ghosts.length<20;i++){
-          const target=targets[i%targets.length],a=fAng+i*6.283/5;
-          const x=P.x+Math.cos(a)*98,y=P.y+Math.sin(a)*98;
-          const ang=Math.atan2(target.y-y,target.x-x)+(i-2)*0.16;
-          ghosts.push({x,y,ang,target,age:0,life:2.2,vx:0,vy:0,hitSet,trail:0});
-        }AUDIO.fireball();
+        wT.fire=wMax.fire=1.4;
+        if(ghosts.length<3)ghosts.push(EVOLUTIONS.dragon(P,targets[Math.floor(Math.random()*Math.min(3,targets.length))],Math.random()*6.283));
+        AUDIO.fireball(WL.fire);
       }
     }
     for(const spirit of ghosts){
-      EVOLUTIONS.seek(spirit,dt,enemies);
-      if(!EVOLUTIONS.move(spirit,dt,blocked,10))continue;
+      if(spirit.dragon){if(!EVOLUTIONS.dragonStep(spirit,dt,P,blocked))continue;}
+      else {EVOLUTIONS.seek(spirit,dt,enemies);if(!EVOLUTIONS.move(spirit,dt,blocked,10))continue;}
       if((spirit.trail-=dt)<=0){spirit.trail=0.05;SKILLFX.play("fire","ghostTrail",5,spirit);}
-      for(const e of enemies)if(e.hp>0&&dist(e,spirit)<(e.type==='boss'?64:36)){
-        if(!spirit.hitSet.has(e)){spirit.hitSet.add(e);hurt(e,6.8*b.dmg);SKILLFX.play("fire","hit",5,{x:e.x,y:e.y});}
-        spirit.life=0;break;
+      for(const e of enemies)if(e.hp>0&&(!spirit.dragon||spirit.age>0.6)&&dist(e,spirit)<(e.type==='boss'?64:42)){
+        if(!spirit.hitSet.has(e)){spirit.hitSet.add(e);hurt(e,(spirit.dragon?12:6.8)*b.dmg);SKILLFX.play("fire","hit",5,{x:e.x,y:e.y});}
+        if(!spirit.dragon){spirit.life=0;break;}
       }
     }
     ghosts=ghosts.filter(p=>p.life>0);
@@ -1292,7 +1331,7 @@
             SKILLFX.play("thunder","storm",5,{x:P.x,y:P.y,r:380});
             const isCrit=Math.random()<(0.2+(b.crit||0)*0.15),mult=isCrit?(1.8+(b.crit||0)*0.4):1;
             targets.forEach(e=>hurt(e,11*b.dmg*mult,isCrit));
-            [...targets].sort((a,b)=>b.max-a.max).slice(0,6).forEach(e=>SKILLFX.play("thunder","strike",5,{x:e.x,y:e.y,stormChild:true}));
+            [...targets].sort((a,b)=>b.max-a.max).slice(0,6).forEach((e,i)=>SKILLFX.play("thunder","strike",5,{x:e.x,y:e.y,stormChild:true,delay:0.08+i*0.025}));
           }else{
             const targets=[...c].sort((a,b)=>b.hp-a.hp).slice(0,Math.min(3,WL.thunder));
             const struck=new Set();
@@ -1304,7 +1343,7 @@
               }
             });
           }
-          AUDIO.thunder();
+          AUDIO.thunder(WL.thunder);
         }
       }
     }
@@ -1334,15 +1373,15 @@
     const cappedElapsed = Math.min(elapsed, DAWN);
     const speedRamp = (cappedElapsed / DAWN) * 75;
     const stageSpeed = STAGE_ENEMY.speedScale || 1;
-    const shooterBonus = STAGE_ENEMY.shooterChanceBonus || 0;
+    const shooterChance = STAGE_ENEMY.shooterChance ?? 0.14;
     const canShoot = STAGE_ENEMY.shots !== false;
     let t = { type: "ghost", hp: 2.0 * tier, speed: (52 + speedRamp * 0.9) * stageSpeed };
     if (cappedElapsed > 90 && r < 0.22) {
       t = { type: "runner", hp: 1.5 * tier, speed: (110 + speedRamp * 1.1) * stageSpeed };
     } else if (cappedElapsed > 200 && r < 0.36) {
       t = { type: "tank", hp: 7 * tier, speed: (32 + speedRamp * 0.4) * stageSpeed };
-    } else if (cappedElapsed > 160 && r < 0.5 + shooterBonus && !ring && canShoot) {
-      t = { type: "shooter", hp: 2.8 * tier, speed: (48 + speedRamp * 0.8) * stageSpeed };
+    } else if (cappedElapsed > 160 && r < (cappedElapsed > 200 ? 0.36 : 0.22) + shooterChance && !ring && canShoot) {
+      t = { type: "shooter", hp: tier, speed: (48 + speedRamp * 0.8) * stageSpeed };
     }
 
     enemies.push({ ...position, flash: 0, wob: Math.random() * 6, slowT: 0, ...t, hp: Math.ceil(t.hp), max: Math.ceil(t.hp) });
@@ -1484,27 +1523,14 @@
       }
     }
 
-    // 百鬼夜行階段邏輯（先跳出 3 次閃爍警報，給予玩家 2.4 秒心理準備，之後才湧現百鬼衝擊）
+    // 百鬼夜行：一次音效，保留 2.4 秒準備時間。
     if (surgeWarningT > 0) {
       surgeWarningT -= dt;
-      const progress = 2.4 - surgeWarningT;
-      const curCycle = Math.min(3, Math.floor(progress / 0.8) + 1);
-
-      // 每進入一個新的閃爍週期（1, 2, 3），敲響太鼓警報並給予微震動
-      if (curCycle !== lastWarningCycle) {
-        lastWarningCycle = curCycle;
-        AUDIO.warningPulse(curCycle);
-        RENDERER.triggerShake(4);
-      }
-
       if (surgeWarningT <= 0) {
-        // 3 次閃爍預警結束！百鬼正式大群衝出！
+        // 預警結束後生成包圍波，不再追加第二段音效或文字。
         surgeWarningT = 0;
-        lastWarningCycle = 0;
         surgeT = SURGE_INTERVAL;
-        AUDIO.thunder();
         RENDERER.triggerShake(14);
-        say("百鬼夜行！突破重圍！", P.x, P.y - 75, "#ff3333");
         for (let k = 0; k < surgePendingCount; k++) {
           spawnEnemy(surgePendingTier, 450, (k / surgePendingCount) * 6.283, true);
         }
@@ -1514,8 +1540,7 @@
       if (surgeT <= 0) {
         // 啟動 2.4 秒預警（閃爍 3 次，每 0.8 秒一次）
         surgeWarningT = 2.4;
-        lastWarningCycle = 1;
-        AUDIO.warningPulse(1);
+        AUDIO.warningPulse();
         RENDERER.triggerShake(5);
         surgePendingTier = tier;
         surgePendingCount = 10 + Math.floor(cappedElapsed / 60);
@@ -1526,6 +1551,8 @@
     for (const e of enemies) {
       if (e.hp <= 0) continue;
       e.flash = Math.max(0, e.flash - dt);
+      e.attackT = Math.max(0, (e.attackT || 0) - dt);
+      if(e.freezeT>0){e.freezeT=Math.max(0,e.freezeEnds==null?e.freezeT-dt:e.freezeEnds-elapsed);e.walking=false;if(e.freezeT>0)continue;}
       if (e.slowT > 0) e.slowT -= dt;
       if (e.type === "mis") {
         e.speed = MIS_SPEED;
@@ -1536,13 +1563,34 @@
       const dx = P.x - e.x, dy = P.y - e.y;
       const d = Math.hypot(dx, dy) || 1;
 
+      // 定點預告砸地：蓄勢時鎖定位置，玩家可離開 150px 判定範圍。
+      let slamHit = false;
+      if (e.type === "boss") {
+        e.slamCd = Math.max(0, (e.slamCd || 0) - dt);
+        e.slamRecovery = Math.max(0, (e.slamRecovery || 0) - dt);
+        if (e.slam) {
+          e.slam.t -= dt;
+          if (e.slam.t <= 0) {
+            slamHit = Math.hypot(P.x-e.slam.x,P.y-e.slam.y) < 150;
+            rings.push({x:e.slam.x,y:e.slam.y,life:0.4,maxL:0.4,maxR:150,color:'#ff8050'});
+            burst(e.slam.x,e.slam.y,'#ffbd72',28);
+            e.slam = null; e.slamRecovery = 0.7; e.attackT = 0.4;
+            RENDERER.triggerShake(8); AUDIO.thunder();
+          }
+        } else if (e.slamCd <= 0 && e.slamRecovery <= 0 && d < 230) {
+          e.slam = {x:e.x,y:e.y,t:1.1}; e.slamCd = 5;
+        }
+      }
+      const bossBusy = e.type === "boss" && (e.slam || e.slamRecovery > 0);
+
       // 所有怪物逼近玩家（加入建築物碰撞障礙滑移）
-      const step = CFG.chaseStep(d, curSpd, dt, e.type);
+      const step = bossBusy ? 0 : CFG.chaseStep(d, curSpd, dt, e.type, STAGE_ENEMY.shots !== false);
       const stepX = ((dx || (d === 1 && !dy ? 1 : 0)) / d) * step;
       const stepY = (dy / d) * step;
       const oldX = e.x, oldY = e.y;
       if (!blocked(e.x + stepX, e.y, 16)) e.x += stepX;
       if (!blocked(e.x, e.y + stepY, 16)) e.y += stepY;
+      e.walking = !revealing && (e.x !== oldX || e.y !== oldY);
       if (e.type === "mis") {
         e.stuckT = step > 0 && e.x === oldX && e.y === oldY ? (e.stuckT || 0) + dt : 0;
         if (e.stuckT >= 2.5) {
@@ -1558,6 +1606,7 @@
         e.shootCd = (e.shootCd || (2.0 + Math.random())) - dt;
         if (e.shootCd <= 0 && d > 50 && d < (e.type === "mis" ? 200 : 460)) {
           e.shootCd = 3.2 + Math.random() * 1.2;
+          e.attackT = 0.24;
           const bulletSpeed = 230;
           enemyBullets.push({
             x: e.x, y: e.y,
@@ -1569,7 +1618,8 @@
       }
 
       const hitRadius = (e.type === "boss" ? 52 : e.type === "tank" ? 34 : e.type === "mis" ? 32 : 25);
-      if (!revealing && P.inv <= 0 && d < hitRadius) {
+      if (!revealing && P.inv <= 0 && (slamHit || (!bossBusy && d < hitRadius))) {
+        e.attackT = 0.24;
         if (b.shield && b.shield > 0) {
           b.shield--;
           P.inv = 0.85;
@@ -1578,7 +1628,7 @@
           say(`護盾抵擋！剩餘 ${b.shield}`, P.x, P.y - 45, "#ffe28b");
           AUDIO.breakShield();
         } else {
-          const dmg = (e.type === "boss" ? 24 : e.type === "tank" ? 18 : 10);
+          const dmg = (slamHit ? 20 : e.type === "tank" ? 18 : 10);
           oil -= dmg;
           P.inv = 1.0;
           RENDERER.triggerShake(10);
@@ -1678,6 +1728,7 @@
     const att = 110 + b.mag * 80;
     for (const g of gems) {
       const d = dist(P, g);
+      if (d > GEM_DISTANCE) { g.done = true; continue; }
       if (d < att && d > 0) {
         const s = 240 + (att - d) * 3;
         g.x += ((P.x - g.x) / d) * s * dt;
@@ -1709,8 +1760,8 @@
       job.lock = Math.max(0, job.lock - dt);
       const toDist = dist(P, job.to);
 
-      // 式神退魔結界：當接近目的地町屋（< 140px，踏入答題圓陣範圍）時激發結界
-      if (toDist < 140 && !job.sanctuaryTriggered) {
+      // 進入外移後的答題區時激發結界。
+      if (toDist < 220 && !job.sanctuaryTriggered) {
         job.sanctuaryTriggered = true;
         job.sanctuaryT = 2.8;
         AUDIO.sanctuary();
@@ -1722,7 +1773,7 @@
         // 結界震退衝擊：將 240px 內的怪物強力推開並施加暫時緩速，推動時檢查建築物阻擋
         for (const e of enemies) {
           const ed = dist(job.to, e);
-          if (ed < 240) {
+          if (ed < 240 && e.type !== "boss") {
             const pushAng = Math.atan2(e.y - job.to.y, e.x - job.to.x);
             const px = Math.cos(pushAng) * 200 * dt;
             const py = Math.sin(pushAng) * 200 * dt;
@@ -1748,7 +1799,7 @@
       if (job.lock <= 0 && toDist < 270) {
         const ps = ansPos(job.to);
         let nd = 38;
-        ps.forEach((p, i) => {
+        ps.slice(0,job.ans.length).forEach((p, i) => {
           if (job.eliminatedIdx === i) return;
           const d = dist(P, p);
           if (d < nd) { nd = d; idx = i; }
@@ -1870,32 +1921,32 @@
 
     // 5. 送達判定圈 (和風結界魔法陣 + 退魔結界視覺)
     if (job && dist(P, job.to) < 330) {
-      // 式神退魔結界環
-      if (job.sanctuaryT > 0) {
+      // 連續雙環：白色光芯、青色暈光與寬柔光束，沒有枝狀邊線。
+      {
         ctx.save();
-        const alpha = Math.min(0.85, job.sanctuaryT / 1.5);
-        ctx.strokeStyle = `rgba(255, 215, 64, ${alpha})`;
-        ctx.lineWidth = 4;
-        ctx.setLineDash([10, 8]);
-        ctx.beginPath();
-        ctx.arc(job.to.x, job.to.y, 200, 0, 6.28);
-        ctx.stroke();
-        ctx.fillStyle = `rgba(255, 235, 140, ${alpha * 0.12})`;
-        ctx.fill();
-
-        ctx.fillStyle = `rgba(255, 235, 140, ${alpha})`;
-        ctx.font = UI.readableFont(13, "900");
-        ctx.textAlign = "center";
-        ctx.fillText("✦ 式 神 結 界 ✦", job.to.x, job.to.y - 210);
+        const alpha = job.sanctuaryT > 0 ? 0.85 : 0.55;
+        const cy = job.to.y + 70;
+        ctx.globalCompositeOperation='lighter';
+        for(const [width,a,color] of [[28,0.035,'80,200,255'],[16,0.07,'90,215,255'],[7,0.3,'110,235,255'],[2.3,0.95,'220,255,255']]) {
+          ctx.lineWidth=width;ctx.strokeStyle=`rgba(${color},${alpha*a})`;
+          ctx.beginPath();ctx.ellipse(job.to.x,cy,245,165,0,0,6.283);ctx.stroke();
+        }
+        ctx.lineWidth=1.5;ctx.strokeStyle=`rgba(160,245,255,${alpha*0.7})`;
+        ctx.beginPath();ctx.ellipse(job.to.x,cy,228,153,0,0,6.283);ctx.stroke();
+        for(let k=0;k<8;k++) {
+          const a=k*6.283/8, x=job.to.x+Math.cos(a)*238, y=cy+Math.sin(a)*160;
+          const h=42+(liveMotion()?Math.sin(elapsed*1.5+k)*8:0);
+          const g=ctx.createLinearGradient(x,y-h,x,y);
+          g.addColorStop(0,'rgba(80,210,255,0)');g.addColorStop(1,`rgba(100,235,255,${alpha*0.13})`);
+          ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x-7,y);ctx.lineTo(x-18,y-h);ctx.lineTo(x+18,y-h);ctx.lineTo(x+7,y);ctx.closePath();ctx.fill();
+        }
         ctx.restore();
       }
 
       // 答題圓墊在地面上，店面、玩家和妖怪都畫在它後面。判定仍是墊心 38px。
-      ansPos(job.to).forEach((p, i) => {
+      ansPos(job.to).slice(0,job.ans.length).forEach((p, i) => {
         const cur = (job.idx === i);
         const isEliminated = (job.eliminatedIdx === i);
-        const isTarget = (job.ans[i] === job.word);
-        const showMeaning = (job.showMeaningT > 0 && isTarget);
         const answerText = job.rev ? job.ans[i].zh : job.ans[i].jp;
 
         ctx.save();
@@ -1935,18 +1986,6 @@
           ctx.arc(p.x, p.y, 44, -1.57, -1.57 + 6.283 * Math.min(1, job.hold / 0.45));
           ctx.stroke();
         }
-        ctx.textAlign = "center";
-        ctx.font = "900 28px 'Noto Sans JP', 'Microsoft JhengHei', sans-serif";
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 4;
-        ctx.strokeText(answerText, p.x, p.y + (showMeaning ? 0 : 8));
-        ctx.fillStyle = "#161224";
-        ctx.fillText(answerText, p.x, p.y + (showMeaning ? 0 : 8));
-        if (showMeaning) {
-          ctx.font = UI.readableFont(13, "bold");
-          ctx.fillStyle = "#d84315";
-          ctx.fillText(`【${job.ans[i].zh}】`, p.x, p.y + 19);
-        }
         ctx.restore();
       });
     }
@@ -1968,6 +2007,17 @@
     // 技能的貼地圖案（淨化靈陣等）畫在所有角色之前，才會被角色蓋住。
     FX.drawGround(ctx, cam, view);
 
+    // Boss 預告置於地面，固定圓心與實際傷害半徑一致。
+    for (const e of enemies) if(e.hp>0 && e.slam && nearView(e.x,e.y)) {
+      const s=e.slam, progress=1-s.t/1.1;
+      ctx.save();ctx.fillStyle='rgba(255,65,35,0.16)';ctx.strokeStyle='#ffbd72';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(s.x,s.y,150,0,6.283);ctx.fill();ctx.stroke();
+      ctx.strokeStyle='#ff583a';ctx.lineWidth=6;
+      ctx.beginPath();ctx.arc(s.x,s.y,150,-1.57,-1.57+6.283*progress);ctx.stroke();
+      ctx.font=UI.readableFont(16,'900');ctx.fillStyle='#fff0cb';ctx.textAlign='center';
+      ctx.fillText('砸地！離開紅圈',s.x,s.y+80);ctx.restore();
+    }
+
     // 7. 依腳底地面接觸點排序；北側角色被屋頂遮住，南側角色在屋前。
     const actors = [
       ...houses.filter(h => nearView(h.x, h.y)).map(h => ({ house: h, y: h.y + 48 })),
@@ -1982,6 +2032,7 @@
         ctx.save();
         if (e.vanish != null) ctx.globalAlpha = Math.max(0, Math.min(1, e.vanish));
         RENDERER.drawMonster(e, P, elapsed);
+        if(e.freezeT>0) SKILLFX.paint(ctx,'ice',5,{x:e.x,y:e.y,boss:e.type==='boss'});
 
         ctx.restore();
       } else {
@@ -1993,8 +2044,8 @@
     // 8. 武器彈幕 (符咒迴力鏢)
     for (const q of proj) SKILLFX.paint(ctx, "boom", q.level??WL.boom, { x: q.x, y: q.y, spin: elapsed * 16 });
 
-    // 狐火本體與尾跡跟隨技能三階呈現；軌道與攻擊數量維持原戰鬥規則。
-    if (WL.fire > 0) {
+    // Lv1–4 保留環繞狐火；MAX 只畫實際飛行的火龍。
+    if (WL.fire > 0 && WL.fire < 5) {
       const count = EVOLUTIONS.fireCount(WL.fire);
       const orbitR = EVOLUTIONS.FIRE_ORBIT;
       for (let i = 0; i < count; i++) {
@@ -2098,6 +2149,19 @@
       }
     });
 
+    // 答案文字置頂；圓墊仍在地面，鄰屋屋頂不能遮住選項。
+    if(job && dist(P,job.to)<330) {
+      ctx.save();ctx.textAlign='center';
+      ansPos(job.to).slice(0,job.ans.length).forEach((p,i)=>{
+        const meaning=job.showMeaningT>0 && job.ans[i]===job.word;
+        ctx.font="900 28px 'Noto Sans JP', 'Microsoft JhengHei', sans-serif";
+        ctx.strokeStyle='#ffffff';ctx.lineWidth=5;
+        const text=job.rev?job.ans[i].zh:job.ans[i].jp, y=p.y+(meaning?0:8);
+        ctx.strokeText(text,p.x,y);ctx.fillStyle=job.eliminatedIdx===i?'#888899':'#161224';ctx.fillText(text,p.x,y);
+        if(meaning){ctx.font=UI.readableFont(13,'bold');ctx.fillStyle='#d84315';ctx.strokeText(`【${job.ans[i].zh}】`,p.x,p.y+19);ctx.fillText(`【${job.ans[i].zh}】`,p.x,p.y+19);}
+      });ctx.restore();
+    }
+
     // 15.5 委託氣泡與接案標籤（最上層繪製，確保永不被建築、角色、怪物或陰影遮擋）
     for (const o of orders) {
       const h = o.from;
@@ -2165,7 +2229,7 @@
     ctx.restore();
 
     // 16. 動態 2D 光影遮罩（深夜至黎明）
-    RENDERER.renderLighting(P, LAMPS, oil, visualElapsed, DAWN, maxOil, lampOutAmount());
+    RENDERER.renderLighting(P, LAMPS, oil, visualElapsed, DAWN, maxOil, lampOutAmount(), shakeOffset);
 
     // 技能光效自帶光源：在夜色遮罩之後加法繪製，才會真的「發亮」而不是被壓暗。
     ctx.save();
@@ -2183,7 +2247,7 @@
 
     // 敵方火彈自發光，放在夜色與雨霧之上，避免遠距離攻擊被壓暗。
     ctx.save();
-    ctx.translate(-cam.x, -cam.y);
+    ctx.translate(-cam.x + shakeOffset.x, -cam.y + shakeOffset.y);
     for (const eb of enemyBullets) {
       ctx.fillStyle = "#ba68c8";
       ctx.beginPath();ctx.arc(eb.x, eb.y, 8, 0, 6.28);ctx.fill();
@@ -2217,7 +2281,9 @@
   }
 
   function turnCodexPage(delta) {
-    const lastPage = Math.max(0, Math.ceil(codexWords().length / 15) - 1);
+    const next = UI.codexButtons(codexTab,codexPage,codexWords().length).find(b=>b.id==='next');
+    if(delta>0&&next.disabled)return;
+    const lastPage = codexTab==='cards'?Math.ceil(UI.CARD_LIST.length/UI.codexRows())-1:Math.max(0,Math.ceil(codexWords().length/15)-1);
     codexPage = clamp(codexPage + delta, 0, lastPage);
   }
 
@@ -2282,10 +2348,15 @@
     if (state === "codex") {
       if (e.code === "Tab") {
         e.preventDefault();
-        codexTab = codexTab === "cards" ? "words" : "cards";
-      } else if (codexTab === "words" && (action === "l" || action === "r")) {
+        selectCodex(codexTab === "cards" ? "words" : "cards");
+      } else if (action === "l" || action === "r") {
         e.preventDefault();
-        turnCodexPage(action === "l" ? -1 : 1);
+        selectCodex(action === "l" ? 'prev' : 'next');
+      } else if(action==='u'||action==='d') {
+        e.preventDefault();const buttons=UI.codexButtons(codexTab,codexPage,codexWords().length);
+        const index=buttons.findIndex(b=>b.id===codexFocus);codexFocus=buttons[(index+(action==='u'?-1:1)+buttons.length)%buttons.length].id;
+      } else if(!e.repeat&&(e.code==='Enter'||action==='interact')) {
+        e.preventDefault();selectCodex(codexFocus);
       }
       return;
     }
@@ -2314,7 +2385,7 @@
     }
     if (state !== "play") return;
     if (action === "interact") interact();
-    else if (bossQ && "123".includes(e.key)) {
+    else if (bossQ && !e.repeat && "123".includes(e.key)) {
       const idx = +e.key - 1;
       if (idx >= 0 && idx < bossQ.ans.length) answerBoss(idx);
     }
@@ -2405,15 +2476,8 @@
     }
 
     if (state === "codex") {
-      if (codexTab === "words") {
-        if (hitButton(p, {x:40,y:78,w:64,h:40})) { turnCodexPage(-1); return; }
-        if (hitButton(p, {x:796,y:78,w:64,h:40})) { turnCodexPage(1); return; }
-      }
-      // 點擊頂部標籤頁切換
-      const tabW = 160, tabH = 32, tabY = 56;
-      const tabCardsX = W / 2 - tabW - 8, tabWordsX = W / 2 + 8;
-      if (hitButton(p, {x:tabCardsX,y:tabY,w:tabW,h:tabH})) { codexTab = "cards"; return; }
-      if (hitButton(p, {x:tabWordsX,y:tabY,w:tabW,h:tabH})) { codexTab = "words"; return; }
+      const button=UI.codexButtons(codexTab,codexPage,codexWords().length).find(b=>hitButton(p,b));
+      if(button){if(!button.disabled)selectCodex(button.id);return;}
 
       // 點擊底部返回按鈕或外圍區域
       if (hitButton(p, {x:W/2-95,y:548,w:190,h:42})) {
@@ -2488,6 +2552,10 @@
 
   cv.addEventListener("contextmenu", e => e.preventDefault());
   cv.addEventListener("pointermove", e => {
+    if(state==='codex'){
+      const p=pp(e),button=UI.codexButtons(codexTab,codexPage,codexWords().length).find(b=>hitButton(p,b));
+      if(button)codexFocus=button.id;
+    }
     if (joy?.id !== e.pointerId) return;
     const p = pp(e);
     const dx = p.x - joy.x, dy = p.y - joy.y;
@@ -2512,6 +2580,11 @@
     menuFocusState = "menu";
     quitConfirm = false;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
+    tutorial = null; bossQ = null; job = null; inter = null;
+    orders = []; enemies = []; gems = []; texts = []; rings = [];
+    proj = []; needles = []; winds = []; ghosts = []; enemyBullets = [];
+    victorySeq = null; lampSeq = null; finalBossEnt = null;
+    FX.reset(); SKILLFX.reset(); RENDERER.clearShake();
     AUDIO.setSuspended(false);
   }
   function frame(now) {
@@ -2594,7 +2667,7 @@
       if (state === "won") AUDIO.fanfare();
       else AUDIO.lose();
       const prevBest = STORE.getStageStats(STAGE.id).bestScore || 0;
-      runSummary = { prevBest, newBest: score > prevBest, goal: GOAL_DELIVERIES, stageName: STAGE.name };
+      runSummary = { prevBest, newBest: score > prevBest, goal: GOAL_DELIVERIES, stageName: STAGE.name, learning: learningSummary() };
       STORE.finish(STAGE.id, score, delivered, state === "won");
     }
     if (state === "play") titleCardT = Math.max(0, titleCardT - dt);
@@ -2652,7 +2725,9 @@
     }
 
     if (state === "codex") {
-      UI.drawCodex(ctx, STORE, codexWords(), codexTab, codexPage, codexBack === "play" || codexBack === "pause");
+      const lastPage=codexTab==='cards'?Math.ceil(UI.CARD_LIST.length/UI.codexRows())-1:Math.ceil(codexWords().length/15)-1;
+      codexPage=clamp(codexPage,0,Math.max(0,lastPage));
+      UI.drawCodex(ctx, STORE, codexWords(), codexTab, codexPage, codexBack === "play" || codexBack === "pause", codexFocus);
     }
     if (tutorial) UI.drawTutorial(ctx, tutorial, inputMode);
     if (fadeT > 0) UI.drawFade(ctx, fadeT / FADE_TIME);
@@ -2671,15 +2746,17 @@
 
   let labSkill='katana',labLevel=1,labMixed=false,labPaused=false,labSpeed=1,labMoving=true,labLast=performance.now();
   function labSetup(skill,rank,mixed=false){
+    labPaused=false;
     labSkill=Object.hasOwn(WI,skill)?skill:'katana';labLevel=clamp(Math.floor(rank)||1,1,5);labMixed=!!mixed;
     Object.keys(WL).forEach(k=>WL[k]=0);
-    if(labMixed){for(const k of ['barrier','boom','fire','thunder'])WL[k]=5;}else WL[labSkill]=labLevel;
+    if(labMixed){for(const k of Object.keys(WL))WL[k]=5;}else WL[labSkill]=labLevel;
     Object.keys(wT).forEach(k=>wT[k]=0);atkT=0;fAng=0;fireEmitT=0;
     proj=[];needles=[];winds=[];ghosts=[];gems=[];texts=[];rings=[];orders=[];job=null;bossQ=null;tutorial=null;
     houses.length=0;solids.length=0;LAMPS.length=0;activeChunks.splice(0,activeChunks.length,WORLD_STATE.getChunk(0,0));
     Object.assign(P,{x:450,y:320,faceX:1,faceAng:0,inv:0});RENDERER.setCam(0,20);
     state='play';elapsed=0;oil=maxOil=100;level=1;xp=0;score=0;finalBossDefeated=false;bossStage=0;dashT=0;
-    enemies=[[570,320],[660,270],[760,335],[615,400],[665,220],[820,360]].map(([x,y],i)=>({x,y,baseY:y,hp:999999,max:999999,type:'ghost',flash:0,wob:i,slowT:0}));
+    const targets=labSkill==='needle'||labMixed?Array.from({length:8},(_,i)=>[450+Math.cos(i*Math.PI/4)*220,320+Math.sin(i*Math.PI/4)*180]):[[570,320],[660,270],[760,335],[615,400],[665,220],[820,360]];
+    enemies=targets.map(([x,y],i)=>({x,y,baseY:y,hp:999999,max:999999,type:'ghost',flash:0,wob:i,slowT:0}));
     FX.reset();SKILLFX.reset();RENDERER.updateEffects(2);RENDERER.clearShake();
   }
   addEventListener('message',e=>{
@@ -2693,7 +2770,7 @@
     if(d.cmd==='moving')labMoving=!!d.value;
     if(d.cmd==='keyframe'){
       labSetup(labSkill,labLevel,labMixed);
-      const times={katana:0.14,barrier:0.15,needle:0.18,boom:0.34,fire:0.45,thunder:0.1};
+      const times={katana:0.12,barrier:0.3,needle:0.4,boom:0.43,fire:0.95,thunder:0.18};
       for(let left=labMixed?0.15:times[labSkill];left>0;){const dt=Math.min(1/60,left);labTick(dt);left-=dt;}
       labPaused=true;RENDERER.clearShake();
     }
@@ -2701,7 +2778,7 @@
   function labTick(dt){
     elapsed+=dt;
     if(elapsed>5)labSetup(labSkill,labLevel,labMixed);
-    for(const e of enemies){e.flash=Math.max(0,(e.flash||0)-dt);if(labMoving)e.y=e.baseY+Math.sin(elapsed*1.5+e.wob)*22;}
+    for(const e of enemies){e.flash=Math.max(0,(e.flash||0)-dt);e.freezeT=Math.max(0,(e.freezeEnds||0)-elapsed);if(labMoving&&!e.freezeT)e.y=e.baseY+Math.sin(elapsed*1.5+e.wob)*22;}
     RENDERER.updateEffects(dt);FX.update(dt);SKILLFX.update(dt);weapons(dt);
   }
   let labReport=0;
@@ -2715,12 +2792,13 @@
       drawWorld();
       if(now-labReport>250){
         labReport=now;
-        document.getElementById('lab-status').textContent='Lv'+labLevel+(labMixed?' 四技能同場':' '+WI[labSkill].zh)+' · '+(labPaused?'暫停':'播放')+' · '+Math.round(enemies.reduce((n,e)=>n+999999-e.hp,0))+' 傷害';
+        document.getElementById('lab-status').textContent=(labMixed?'Lv5 六技能同場':'Lv'+labLevel+' '+WI[labSkill].zh)+' · '+(labPaused?'暫停':'播放')+' · '+Math.round(enemies.reduce((n,e)=>n+999999-e.hp,0))+' 傷害';
       }
     }catch(err){document.getElementById('lab-status').textContent='ERROR: '+err.message;console.error(err);return;}
     requestAnimationFrame(labFrame);
   }
   const labQuery=new URLSearchParams(location.search);
+  window.labEvidence=()=>({paused:labPaused,elapsed,skill:labSkill,level:labLevel,ghosts:ghosts.length,winds:winds.length,points:ghosts.map(p=>p.points?.length||0),fx:FX.stats()});
   labSetup(labQuery.get('skill'),Number(labQuery.get('level')),false);
   requestAnimationFrame(labFrame);
 

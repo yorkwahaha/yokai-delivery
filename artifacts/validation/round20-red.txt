@@ -1,0 +1,254 @@
+✔ resizing the skill codex clamps mobile pages back to a visible desktop page (12.1754ms)
+✔ misdelivery costs oil immediately, grants no farming score and hints recover their oil cost (5.9113ms)
+✔ Boss wrong slots keep their position and cannot be selected again or by key repeat (4.4567ms)
+✔ thunder ranks 1 to 4 damage overlapping targets only once per volley (16.4203ms)
+✔ night-town misdelivery can approach contact range without ranged shots (9.1917ms)
+✔ enemy attack drawings are triggered by actual contact or projectile release and expire with gameplay time (7.6574ms)
+✔ exhausted upgrades consume one level without trapping the run or granting invented rewards (4.6517ms)
+✔ uncollected gems stay bounded under repeated kills and merging preserves all nearby XP (22.204ms)
+✔ leaving distant drops reclaims them while nearby and boundary drops remain collectible (4.4882ms)
+✔ a full gem pool cannot merge a new local reward into an abandoned drop due for reclamation (12.3827ms)
+✔ tutorials freeze oil regeneration, time and Boss schedule even after long-lantern upgrades (6.5716ms)
+✔ Boss replacement lock ignores early keyboard or gamepad input but accepts a fresh press after expiry (14.2579ms)
+✔ small word pools keep delivery and Boss choices defined and unique (11.9389ms)
+✔ starting again cannot pick up the previous run pending order before its first update (2.5237ms)
+✔ frame recovery removes a tutorial overlay from the aborted run (2.3407ms)
+✔ settlement learning summary measures this run only and keeps assisted answers separate from star gains (2.721ms)
+✔ Lv5 katana launches a piercing wind blade at a distant forward foe, never behind or through buildings (6.1719ms)
+✔ one wind blade pierces at most three foes (3.5955ms)
+✔ Lv5 paper talismans actually explode over an area; Lv4 still only hits its flight path (10.7258ms)
+✔ Lv5 foxfire launches homing spirits and can damage a foe beyond the old orbit (7.3322ms)
+✔ Lv5 foxfire replaces contact damage instead of silently stacking the old orbit attack (2.7613ms)
+✔ homing spirits stop at a building before a distant target (4.3526ms)
+✔ Lv5 needles bend once after launch while Lv4 stays straight (7.8732ms)
+✔ awakening mid-flight does not turn old straight needles or returning talismans into a different attack (8.9702ms)
+✔ Lv5 thunder domain hits every eligible foe once, excludes distant foes and preserves the Boss shield (4.6852ms)
+✔ overlapping thunder centers never multiply a single cast and raw damage grows at every level (14.5553ms)
+✔ awakening projectiles reset on restart and none bypass a shielded Boss (38.9771ms)
+✔ a long MAX volley run keeps wind, spirits, needles and explosive talismans bounded (193.8396ms)
+✔ redesigned foxfire bodies retain the combat orbit and count at all five levels (2.9344ms)
+✔ hit stop still advances oil and the Boss clock (2.3179ms)
+✔ pause stops speech and ages visual effects (2.2279ms)
+✔ rain is static when reduced motion is requested (2.1253ms)
+✔ mobile menu and codex tabs accept expanded touch targets (2.0125ms)
+✔ pause hit target stays inside the HUD edge and outside score text (2.3591ms)
+✔ enemy bullets expire inside buildings (2.3969ms)
+✔ distant misdelivery enemies despawn without clearing the saved mistake (3.81ms)
+✔ defeating the previous Boss does not postpone an already due final Boss (3.437ms)
+✔ rain motion follows its streak direction and rain-port has no petals or fireflies (2.406ms)
+✔ two oil upgrades still consume oil at rest (2.3166ms)
+✔ misdelivery finds a clear spawn when the answer and adjacent fallback are blocked (2.3858ms)
+✔ frame errors pause the run, show recovery text and keep the next frame scheduled (2.8653ms)
+✔ shield hit feedback is throttled and colored rings fade (2.7036ms)
+✔ enemy fireballs render above night lighting and weather (2.507ms)
+✔ a trapped misdelivery enemy recovers to a clear position (2.9247ms)
+✔ small pause targets accept clicks within a 44 CSS pixel hit area (2.8234ms)
+✖ rain-port runtime uses reduced shooter pressure and the intended recovery pacing (6.9137ms)
+✖ shooters are fragile and bosses resist skill knockback (2.8623ms)
+✖ boss slam warns, locks its center, hits once for 20 oil, and can be dodged (7.0942ms)
+✔ abandon confirmation defaults to keeping the paused run and blocks covered actions (3.2471ms)
+✔ abandon confirmation works for touch and gamepad without leaking confirmation (5.591ms)
+✔ Boss pointer answers use the rendered layout without covering bottom controls (8.3844ms)
+✔ Boss mistakes reach settlement, count once per submission and reset only run review (3.0179ms)
+✔ lethal Boss mistake still reaches settlement review before run ends (4.6572ms)
+✔ delivery hint cannot promote mastery through a simultaneous same-word Boss quiz (6.2976ms)
+✔ Boss eliminated answer assistance also applies to an active same-word delivery (3.1709ms)
+✔ unrelated delivery assistance does not penalize independent Boss mastery (2.6358ms)
+✔ same-word Boss retains delivery assistance after the parcel is submitted first (2.5721ms)
+✔ hinted same-word delivery auto-submits after 0.45 seconds while Boss remains unanswered (6.8155ms)
+ℹ {"scenario":"hint-auto-delivery-first","elapsed":0.46000000000000024,"score":25,"oilGain":11.9957,"bossPending":true,"afterDelivery":{"ok":1,"ng":0,"box":0,"lastSeen":1791198607668,"missBoost":1}}
+ℹ {"scenario":"hint-auto-delivery-then-boss","afterBoss":{"ok":2,"ng":0,"box":0,"lastSeen":1791198607668,"missBoost":1}}
+✔ same-word Boss answer at 1.79s follows current feedback rule without extending its lifetime (18.0514ms)
+ℹ {"scenario":"ordinary-delivery-feedback-boundary","elapsed":1.7900000000000014,"feedbackAlive":true,"feedbackLife":0.009999999999998581,"score":50,"afterBoss":{"ok":2,"ng":0,"box":2,"lastSeen":1791198607686,"missBoost":1}}
+✔ same-word Boss answer at 1.81s follows current feedback rule without extending its lifetime (21.7849ms)
+ℹ {"scenario":"ordinary-delivery-feedback-boundary","elapsed":1.8100000000000014,"feedbackAlive":false,"feedbackLife":0,"score":50,"afterBoss":{"ok":2,"ng":0,"box":2,"lastSeen":1791198607708,"missBoost":1}}
+✔ Boss assistance survives leaving and reentering quiz range (3.4277ms)
+✔ Boss assistance stays on a changed word and clears on a replay (3.0267ms)
+ℹ {"scenario":"changed-word-keeps-assistance","assisted":true,"afterAnswer":{"ok":1,"ng":0,"box":0,"lastSeen":1791198607714,"missBoost":1}}
+ℹ {"scenario":"new-run-clears-assistance","assisted":false,"afterAnswer":{"ok":1,"ng":2,"box":1,"lastSeen":1791198607715,"missBoost":1}}
+✔ second hint transfers assistance to a Boss that appeared after the first hint (3.3622ms)
+✔ assisted submission marks a same-word Boss created after the last hint (3.7371ms)
+✔ ordinary delivery correction remains visible during an independent same-word Boss answer (3.3434ms)
+✔ new pickup inherits only the current same-word Boss assistance (2.7815ms)
+✔ purification feedback overlaps the next real priority order without granting mastery (2.5082ms)
+✔ automatic order refill can repeat a purified word while its correction is still alive (3.0882ms)
+✔ scheduled Boss can draw a purified word and open its quiz before correction expires (2.9786ms)
+✔ delivery mistake persists, avoids its living answer badge and returns after purification (3.3386ms)
+✔ first-run tutorial freezes time, oil and gameplay input, and skip persists (5.4021ms)
+✔ malformed tutorial progress recovers and touch confirmation does not start dragging (2.5621ms)
+✔ context lessons cover listening, delivery, dash and Boss without changing assistance (2.208ms)
+✔ replay is available from pause, gamepad consumes confirmation and returns to pause (2.8453ms)
+✔ mobile pause replay uses the same enlarged geometry for drawing and pointer input (3.3611ms)
+✔ mouse drag begins on the right half and moves the courier; touch stays on left (3.2261ms)
+✔ custom movement, dash and blur route through real event listeners (2.996ms)
+✔ misdelivery enemy settles away from player and retains a ranged penalty after the tutorial stage (9.463ms)
+✔ first stage enemies never fire bullets (8.6661ms)
+✔ empty pickup pool cannot crash order creation (2.5867ms)
+✔ releasing one equivalent movement key keeps the other held key active (2.7305ms)
+✔ cargo stays visible beside an idle courier with no movement history (5.2975ms)
+✔ cargo icon is painted behind the courier, never over the face (3.8532ms)
+✔ Boss death and settlement audio fire once per event, not once per frame (4.4599ms)
+✔ expanded fullscreen edges and corner HUD buttons share the same pointer mapping (3.9642ms)
+✔ scheduled Boss shield, kill reward and overdue successor follow one lifecycle (4.6829ms)
+ℹ {"scenario":"boss-kill-and-breather","killScore":400,"killOil":35,"gemDrops":9,"masteryBefore":1,"masteryAfter":1,"bossStage":2,"bossT":179.97000000000003}
+✔ real needle updates defeat a scheduled Boss after ordinary answering without kill mastery (76.7651ms)
+ℹ {"scenario":"needle-boss-integration","assisted":false,"initialHp":32,"combatSeconds":13.940000000007132,"score":400,"masteryAfterAnswer":1,"masteryAfterKill":1,"killEvents":1}
+✔ real needle updates defeat a scheduled Boss after assisted answering without kill mastery (61.8225ms)
+ℹ {"scenario":"needle-boss-integration","assisted":true,"initialHp":32,"combatSeconds":13.940000000007132,"score":400,"masteryAfterAnswer":0,"masteryAfterKill":0,"killEvents":1}
+✔ final Boss requires the delivery goal and victory settles progression only once (15.1467ms)
+ℹ {"scenario":"final-boss-victory-settlement","state":"won","finishes":1,"score":1600,"delivered":6,"stats":{"bestScore":1600,"bestDeliveries":6,"clears":1,"attempts":1},"rainPortUnlocked":true}
+✔ final victory sequence: boss shakes and explodes, minions burn away, dawn rises, then settlement after 2s (18.5961ms)
+✔ running out of oil snuffs the lamp, fades the BGM, and settles only after two dark seconds (3.9936ms)
+✔ first hint hides written answer and assisted delivery cannot promote mastery (2.504ms)
+✔ pickup bubble shows meaning instead of written answer (2.462ms)
+✔ Boss question preserves gamepad pickup, dash and hint; shoulders and Y answer (2.9464ms)
+✔ codex words pages are reachable by keyboard and gamepad without changing tabs (3.1225ms)
+✔ all upgrade input paths reject accidental selection for the first 0.4 seconds (10.087ms)
+✔ regular and ring enemies spawn beyond wide view and camera lag (8.3407ms)
+✔ scheduled Boss spawns outside the widescreen view through real update logic (2.6602ms)
+✔ each dedicated gamepad Boss answer button selects its documented option (9.4239ms)
+✔ actors are painted by ground contact so roofs cover the north side and yield at the doorway (3.0287ms)
+✔ frame maps logical coordinates to CSS scale and refreshes renderer DPR (2.509ms)
+✔ lightning ignores shield immunity and spends its target on a damageable enemy (3.1764ms)
+✔ barrier and healing knockback cannot tunnel through a thin building (6.4135ms)
+✔ Boss chooses an unblocked offscreen spawn and retries without advancing when ring is obstructed (3.2298ms)
+✔ foxfire impact plays one sound for a simultaneous group of hits (3.3322ms)
+✔ portrait stops time, blocks all resume input paths, and landscape requires manual resume (3.2731ms)
+✔ visibility change suspends audio immediately without requiring a frame (3.3286ms)
+✔ idle needles retain last facing and still aim at a nearby enemy (3.6329ms)
+✔ keyboard menus reach settings, both codex tabs, mute and home; restart resets session (4.9278ms)
+✔ gamepad directional menus confirm once without leaking actions into the new screen (4.3767ms)
+✔ controls dialog gamepad events do not activate the covered menu (3.8123ms)
+✔ widescreen map back button accepts pointer at the screen edge and home clears held movement (2.9309ms)
+✔ pickup speaks the word once and delivery does not repeat it (2.4947ms)
+✔ dawn does not end a run that still needs the delivery goal or the boss (2.5718ms)
+✔ level-up keeps draining oil and waits until a card is chosen (15.6826ms)
+✔ misdelivery speed ignores movement upgrades (2.8701ms)
+✔ priority orders prefer a house that teaches the same word (2.2254ms)
+✔ expired orders cost neither oil nor misdelivery count, and the open slot refills immediately (2.3514ms)
+✔ gamepad select opens the codex from pause and not during play (2.2627ms)
+✔ damage and oil-heal upgrades stop after their stack caps (2.3522ms)
+✖ both settlement portraits occupy two thirds of viewport height (14.7785ms)
+✔ settlement retains all five review words on a small screen (1.6862ms)
+✔ mobile skill codex exposes every skill through pages and marks unavailable arrows (3.1189ms)
+✔ codex readings and translations use font-sized vertical separation (1.2307ms)
+✔ settlement uses distinct victory and kneeling drawings, with original art fallback (1.2788ms)
+✔ menu loading progress and settlement star totals remain readable on compact screens (2.6058ms)
+✔ HUD bars reuse gradients and rebuild for changed transform, geometry, tone or canvas context (3.8083ms)
+✔ small-screen level-up descriptions and settlement review lines keep readable spacing (2.2158ms)
+✔ oil numbers and bar remain prominent and low-oil warning uses capacity ratio (10.1539ms)
+✔ HUD skill badges are readable and their labels fit their backing rectangles (13.0422ms)
+✔ passive overflow discloses the exact hidden count and vanishes when everything fits (23.4672ms)
+✔ opening touch joystick guidance stays above the taller skill footer (4.3434ms)
+✔ Boss quiz clears the actual skill footer after its labels grow (7.8942ms)
+✔ Boss quiz geometry fits the viewport above the bottom HUD with shared hit targets (7.2301ms)
+✔ readableFont uses viewport scale without DOM geometry reads (0.7714ms)
+✔ hint sentences wrap without truncation and retain readable font size (0.767ms)
+✔ settlement counts distinct mistaken words and discloses only truncated reviews (17.2205ms)
+✔ every second-stage Boss question has Chinese meaning even without Emoji support (12.2335ms)
+✔ settlement shows unique delivery and Boss corrections without changing misdelivery count (0.9002ms)
+✔ direction arrows rotate in place inside the task area instead of travelling along the screen edge (1.0822ms)
+✔ parcel icon is the system emoji and no hand-drawn house-like cargo glyph remains (0.597ms)
+✔ HUD shows level as a bottom edge strip and drops combo, shield and caption boxes (3.5843ms)
+✔ every live vocabulary HUD uses meaning before hints and written correction only after explicit assistance (33.6407ms)
+✔ north and south have distinct text cues and unknown images retain meaning (1.2406ms)
+✔ mobile body text renders at approximately 14 CSS pixels (2.6447ms)
+✔ all 39 words remain reachable across three readable codex pages (4.1174ms)
+✔ in-run codex mask hides readings and icons until four stars (2.2874ms)
+✔ emoji cues use the system emoji glyph (19.627ms)
+✔ desktop HUD exposes the same dash cooldown seconds as mobile (0.8215ms)
+✔ tutorial copy follows live bindings and never embeds any current answer (1.3159ms)
+✔ all tutorial text and buttons stay within mobile card without Emoji rendering (4.3091ms)
+✔ Boss option badges follow active keyboard, gamepad or touch input (2.7507ms)
+ℹ tests 152
+ℹ suites 0
+ℹ pass 148
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1084.6485
+
+✖ failing tests:
+
+test at tests\input-runtime.test.cjs:458:1
+✖ rain-port runtime uses reduced shooter pressure and the intended recovery pacing (6.9137ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  16 !== 6
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:469:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 16,
+    expected: 6,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:478:1
+✖ shooters are fragile and bosses resist skill knockback (2.8623ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  9 !== 3
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:482:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 3,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:489:1
+✖ boss slam warns, locks its center, hits once for 20 oil, and can be dodged (7.0942ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(boss.slam)
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:493:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\ui-readability.test.cjs:13:1
+✖ both settlement portraits occupy two thirds of viewport height (14.7785ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  270 !== 400
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\ui-readability.test.cjs:18:35)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 270,
+    expected: 400,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

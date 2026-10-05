@@ -112,6 +112,34 @@ window.FX = (() => {
       g.strokeStyle = color; g.lineWidth = s * 0.018; g.lineCap = 'butt';
       for(let i=0;i<6;i++){g.beginPath();g.arc(s/2,s/2,s*0.46,i*Math.PI/3+0.05,(i+1)*Math.PI/3-0.12);g.stroke();}
     },
+    rock(g,s,color) {
+      g.fillStyle='#635442';g.strokeStyle='#302b2c';g.lineWidth=s*0.025;
+      g.beginPath();g.moveTo(s*.5,s*.04);g.lineTo(s*.78,s*.38);g.lineTo(s*.85,s*.85);g.lineTo(s*.5,s*.96);g.lineTo(s*.14,s*.83);g.lineTo(s*.23,s*.39);g.closePath();g.fill();g.stroke();
+      g.fillStyle=color;g.beginPath();g.moveTo(s*.5,s*.04);g.lineTo(s*.5,s*.96);g.lineTo(s*.14,s*.83);g.lineTo(s*.23,s*.39);g.closePath();g.fill();
+      g.strokeStyle='#d4be8a';g.lineWidth=s*.018;g.beginPath();g.moveTo(s*.5,s*.08);g.lineTo(s*.35,s*.44);g.lineTo(s*.5,s*.84);g.stroke();
+    },
+    yin(g,s) {
+      const r=s*.38,x=s/2,y=s/2;g.fillStyle='#20202c';g.beginPath();g.arc(x,y,r,0,6.283);g.fill();
+      g.fillStyle='#eee8cf';g.beginPath();g.arc(x,y,r,-Math.PI/2,Math.PI/2);g.arc(x,y+r/2,r/2,Math.PI/2,-Math.PI/2,true);g.arc(x,y-r/2,r/2,Math.PI/2,-Math.PI/2);g.fill();
+      for(const [dy,color] of [[-r/2,'#20202c'],[r/2,'#eee8cf']]){g.fillStyle=color;g.beginPath();g.arc(x,y+dy,r*.13,0,6.283);g.fill();}
+      g.strokeStyle='#e7bd73';g.lineWidth=s*.018;g.beginPath();g.arc(x,y,r,0,6.283);g.stroke();
+    },
+    current(g,s,color) {
+      const r=s/2;g.translate(r,r);g.strokeStyle=color;g.lineWidth=s*.018;
+      for(let i=0;i<7;i++){g.save();g.rotate(i*6.283/7);g.beginPath();g.moveTo(0,0);g.lineTo(s*.13,s*.045);g.lineTo(s*.21,-s*.04);g.lineTo(s*.32,s*.015);g.lineTo(s*.43,-s*.03);g.stroke();g.restore();}
+    },
+    drum(g,s,color) {
+      const r=s/2;g.translate(r,r);
+      g.fillStyle='#342b46';g.strokeStyle=color;g.lineWidth=s*0.035;
+      g.beginPath();g.arc(0,0,s*0.4,0,6.283);g.fill();g.stroke();
+      g.fillStyle='#daceac';g.beginPath();g.arc(0,0,s*0.31,0,6.283);g.fill();
+      g.fillStyle='#554766';
+      for(let i=0;i<3;i++){
+        g.save();g.rotate(i*6.283/3);g.beginPath();g.moveTo(0,-s*0.24);
+        g.bezierCurveTo(s*0.15,-s*0.25,s*0.2,-s*0.08,s*0.06,s*0.03);
+        g.bezierCurveTo(s*0.09,-s*0.07,-s*0.1,-s*0.08,0,-s*0.24);g.fill();g.restore();
+      }
+    },
     seal(g, s, color) {
       g.fillStyle = color; g.fillRect(s*0.32,s*0.08,s*0.36,s*0.84);
       g.strokeStyle = '#822c32'; g.lineWidth = s*0.04;
@@ -176,7 +204,7 @@ window.FX = (() => {
     }
   };
 
-  const SIZE = { glow: 64, spark: 64, ring: 128, rune1: 192, rune2: 192, rune3: 224, flame: 64, shard: 48, stroke: 64, edge: 128, seal: 64, storm:256 };
+  const SIZE = { glow: 64, spark: 64, ring: 128, rune1: 192, rune2: 192, rune3: 224, flame: 64, shard: 48, stroke: 64, edge: 128, seal: 64, storm:256, drum:128,rock:128,yin:128,current:128 };
 
   function sprite(kind, color) {
     const key = `${kind}|${color}`;
@@ -323,6 +351,11 @@ window.FX = (() => {
     const a = p.a * Math.min(1, t * 9) * (1 - t * t);
     if (a < 0.02 || size < 1) return;
     ctx.globalAlpha = a;
+    if(p.foot){
+      ctx.save();ctx.translate(p.x,p.y);ctx.fillStyle='rgba(12,17,24,0.25)';
+      ctx.beginPath();ctx.ellipse(0,0,size*.32,size*.09,0,0,6.283);ctx.fill();
+      ctx.drawImage(p.s,-size/2,-size*.96,size,size);ctx.restore();return;
+    }
     if (p.rot === 0 && p.sx === 1 && p.sy === 1 && p.vr === 0) {
       ctx.drawImage(p.s, p.x - size / 2, p.y - size / 2, size, size);
     } else {

@@ -47,6 +47,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     summary: () => runSummary,
     setOil: value => { oil=value; },
     setElapsed: value => {elapsed=value;},
+    scheduleSurge: () => {surgeT=0;},
     stageTuning: () => ({goal:GOAL_DELIVERIES,xp:xpNeed(),spawnInterval:CFG.spawnInterval(elapsed)*SPAWN_INTERVAL_SCALE}),
     unlockBoss: () => { bossQ.lock=0; },
     matchBossToJob: () => { const bs=enemies.find(e=>e.type==='boss'); bs.word=job.word;bossQ=mkQ(bs);bossQ.lock=0; },
@@ -253,6 +254,22 @@ test('one wind blade pierces at most three foes',()=>{
   const foes=g.snapshot().enemies;assert.ok(foes.slice(0,3).every(e=>e.hp<999));assert.equal(foes[3].hp,999);
 });
 
+test('MAX ice needles hit and freeze distinct foes in eight directions',()=>{
+  const g=loadGame();g.start();
+  const foes=Array.from({length:8},(_,i)=>({dx:Math.cos(i*Math.PI/4)*220,dy:Math.sin(i*Math.PI/4)*220,speed:0}));
+  g.combatScene('needle',foes,[],5);g.weapons(0.01);
+  assert.equal(new Set(g.snapshot().needles.map(n=>n.target)).size,8);
+  for(let i=0;i<38;i++)g.weapons(0.01);
+  assert.ok(g.snapshot().enemies.every(e=>e.hp<999&&e.freezeT===0.5));
+});
+
+test('frozen shooter cannot move or fire until the ice expires',()=>{
+  const g=loadGame();g.start('rain-port');g.combatScene('katana',[{dx:180,type:'shooter',speed:100,shootCd:0.01}],[],0);
+  const e=g.snapshot().enemies[0],x=e.x;e.freezeT=0.5;
+  g.update(0.1);assert.equal(e.x,x);assert.equal(g.snapshot().enemyBullets.length,0);
+  g.update(0.41);assert.notEqual(e.x,x);assert.equal(g.snapshot().enemyBullets.length,1);
+});
+
 test('Lv5 paper talismans actually explode over an area; Lv4 still only hits its flight path',()=>{
   for(const level of [4,5]){
     const g=loadGame();g.start();g.combatScene('boom',[{dx:180},{dx:180,dy:-130},{dx:180,dy:240}],[],level);
@@ -270,9 +287,11 @@ test('Lv5 foxfire launches homing spirits and can damage a foe beyond the old or
   assert.ok(g.snapshot().enemies[0].hp<999);assert.ok(g.snapshot().ghosts.length<=20);
 });
 
-test('Lv5 foxfire replaces contact damage instead of silently stacking the old orbit attack',()=>{
+test('MAX fire dragon circles once before dealing flight damage',()=>{
   const g=loadGame();g.start();g.combatScene('fire',[{dx:98}],[],5);g.weapons(0.001);
-  assert.ok(Math.abs(g.snapshot().enemies[0].hp-(999-6.8*1.2))<1e-8);
+  assert.equal(g.snapshot().enemies[0].hp,999);
+  assert.equal(g.snapshot().ghosts.length,1);assert.equal(g.snapshot().ghosts[0].dragon,true);
+  for(let i=0;i<80;i++)g.weapons(0.01);assert.ok(g.snapshot().enemies[0].hp<999);
 });
 
 test('homing spirits stop at a building before a distant target',()=>{
@@ -334,8 +353,8 @@ test('a long MAX volley run keeps wind, spirits, needles and explosive talismans
   }
 });
 
-test('redesigned foxfire bodies retain the combat orbit and count at all five levels',()=>{
-  const g=loadGame();g.start();const counts=[2,4,5,6,6];
+test('foxfire keeps its Lv1-4 orbit and removes the old MAX orbit drawings',()=>{
+  const g=loadGame();g.start();const counts=[2,4,5,6,0];
   for(const level of [1,2,3,4,5]){
     g.combatScene('fire',[],[],level);const flames=[];
     g.env.SKILLFX.paint=(ctx,id,lv,p)=>{if(id==='fire')flames.push({lv,p});};
@@ -466,13 +485,61 @@ test('rain-port runtime uses reduced shooter pressure and the intended recovery 
     g.combatScene('needle',[]);g.advanceBossClock(0.01);g.update(0.01);
     results[stage].firstBossHp=g.snapshot().enemies.find(e=>e.type==='boss').hp;
   }
-  assert.equal(results['rain-port'].shooters,16);
+  assert.equal(results['rain-port'].shooters,6);
   assert.equal(results['night-town'].shooters,0); // 第一關新手關不出現燈籠怪
   assert.equal(results['rain-port'].ghostSpeed,results['night-town'].ghostSpeed);
   assert.equal(results['rain-port'].goal,6);assert.equal(results['rain-port'].xp,30);
   assert.ok(Math.abs(results['rain-port'].spawnInterval/results['night-town'].spawnInterval-1.15)<1e-9);
   assert.equal(results['rain-port'].firstBossHp,33);
   t.diagnostic(JSON.stringify({scenario:'runtime-stage-pressure',results}));
+});
+
+test('shooters are fragile and bosses resist skill knockback', () => {
+  const g=loadGame();g.start('rain-port');g.clearSolids();g.setElapsed(300);
+  g.env.Math=Object.create(Math);g.env.Math.random=()=>0.40;g.spawnEnemy(3,560);
+  assert.equal(g.snapshot().enemies[0].type,'shooter');
+  assert.equal(g.snapshot().enemies[0].hp,3);
+  g.combatScene('barrier',[{dx:100,type:'boss',speed:0}]);
+  const x=g.snapshot().enemies[0].x;g.weapons(0.01);
+  assert.equal(g.snapshot().enemies[0].x,x);
+  assert.ok(g.snapshot().enemies[0].hp<999);
+});
+
+test('rain-port shooter rate remains 6 percent before tanks start spawning',()=>{
+  const g=loadGame();g.start('rain-port');g.clearSolids();g.setElapsed(180);
+  g.env.Math=Object.create(Math);
+  for(let i=0;i<100;i++){g.env.Math.random=()=>(i+0.5)/100;g.spawnEnemy(3,560);}
+  assert.equal(g.snapshot().enemies.filter(e=>e.type==='shooter').length,6);
+});
+
+test('a shield absorbs the boss heavy attack instead of oil',()=>{
+  const g=loadGame();g.start();g.update(1.3);g.tune('shield').f();
+  g.combatScene('katana',[{dx:100,type:'boss',speed:0}],[],0);
+  const before=g.snapshot().oil;for(let i=0;i<13;i++)g.update(0.1);
+  assert.ok(before-g.snapshot().oil<1);assert.ok(g.audioCalls.includes('breakShield'));
+});
+
+test('each surge plays one warning cue throughout its preparation and arrival',()=>{
+  const g=loadGame();g.start();g.scheduleSurge();
+  for(let i=0;i<27;i++)g.update(0.1);
+  assert.equal(g.audioCalls.filter(name=>name==='warningPulse').length,1);
+  assert.equal(g.audioCalls.filter(name=>name==='thunder').length,0);
+  assert.ok(g.snapshot().enemies.length>=10);
+});
+
+test('boss slam warns, locks its center, hits once for 20 oil, and can be dodged', () => {
+  for(const dodge of [false,true]) {
+    const g=loadGame();g.start();g.update(1.3);g.combatScene('katana',[{dx:100,type:'boss',speed:40}],[],0);
+    g.update(0.01);const boss=g.snapshot().enemies[0],x=boss.x;
+    assert.ok(boss.slam);const before=g.snapshot().oil;
+    if(dodge)g.placeAt(g.snapshot().x-250,g.snapshot().y);
+    for(let i=0;i<10;i++)g.update(0.1);
+    assert.equal(boss.x,x);assert.ok(before-g.snapshot().oil<1);
+    g.update(0.11);assert.equal(boss.slam,null);
+    assert.ok(Math.abs(before-g.snapshot().oil-(dodge?0:20)-0.43*1.11)<1e-6);
+    const after=g.snapshot().oil;g.update(0.1);
+    assert.ok(after-g.snapshot().oil<1);
+  }
 });
 
 test('abandon confirmation defaults to keeping the paused run and blocks covered actions',()=>{

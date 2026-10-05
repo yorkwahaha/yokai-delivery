@@ -10,6 +10,30 @@ function loadUI(width = 585) {
   return { UI: env.window.UI, context, texts, env };
 }
 
+test('both settlement portraits occupy two thirds of viewport height',()=>{
+  const r=loadUI(900),frames=[];
+  r.env.window.ART={player_win_v1:{naturalWidth:100},player_kneel_v1:{naturalWidth:100}};
+  r.env.window.RENDERER={drawFrame:(...args)=>frames.push(args)};
+  for(const state of ['won','lost'])r.UI.drawEndScreen(r.context,state,0,0,0,[]);
+  for(const args of frames)assert.equal(args[6],400);
+});
+
+test('settlement paints the character last and separates best record from delivery totals',()=>{
+  const r=loadUI(900),paint=[];
+  r.context.fillText=(value,x,y)=>{r.texts.push({value,x,y});paint.push(value);};
+  r.env.window.ART={player_kneel_v1:{naturalWidth:100}};
+  r.env.window.RENDERER={drawFrame:()=>paint.push('portrait')};
+  r.UI.drawEndScreen(r.context,'lost',6570,4,0,[],0,{prevBest:52745,learning:{practiced:5,review:0,gained:4,lost:0}});
+  assert.equal(paint.at(-1),'portrait');
+  const best=r.texts.find(t=>t.value==='最高 52,745'),stat=r.texts.find(t=>t.value.includes('送達'));
+  assert.ok(stat.y-best.y>=40);
+});
+
+test('surge warning has just one short label',()=>{
+  const r=loadUI(900);r.UI.drawSurgeWarning(r.context,1.2);
+  assert.deepEqual([...new Set(r.texts.map(t=>t.value))],['百鬼夜行']);
+});
+
 test('settlement retains all five review words on a small screen',()=>{
   const r=loadUI(568);r.env.window.innerWidth=568;r.env.window.innerHeight=320;
   vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);

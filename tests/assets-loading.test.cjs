@@ -25,9 +25,9 @@ test('title prioritizes only the cover and leaves music downloads until playback
   images[0].onload();
   assert.equal(env.ART.cover, images[0]);
   env.loadGameArt();
-  assert.equal(images.length, 29);
+  assert.equal(images.length, 30);
   env.loadGameArt();
-  assert.equal(images.length, 29);
+  assert.equal(images.length, 30);
   for (const image of images.slice(1)) image.onload();
   assert.equal(env.ART_READY, true);
   assert.ok(env.ART.ground_dirt);
@@ -59,14 +59,14 @@ test('asset progress counts settled images including failures, without counting 
   assert.deepEqual({...env.ART_PROGRESS},{settled:0,total:1,failed:0});
   images[0].onerror();assert.equal(env.ART_PROGRESS.settled,0);
   images[0].onerror();assert.deepEqual({...env.ART_PROGRESS},{settled:1,total:1,failed:1});
-  env.loadGameArt();assert.equal(env.ART_PROGRESS.total,29);
+  env.loadGameArt();assert.equal(env.ART_PROGRESS.total,30);
   images.slice(1).forEach(image=>image.onload());
-  assert.deepEqual({...env.ART_PROGRESS},{settled:29,total:29,failed:1});assert.equal(env.ART_READY,true);
+  assert.deepEqual({...env.ART_PROGRESS},{settled:30,total:30,failed:1});assert.equal(env.ART_READY,true);
 });
 
 test('new movement, posture and landmark images ship both WebP and PNG fallback files',()=>{
   const {env,images}=loadAssets();env.loadGameArt();
-  const extra=images.filter(i=>i.src.includes('_v1'));assert.equal(extra.length,11);
+  const extra=images.filter(i=>/_v[12]/.test(i.src));assert.equal(extra.length,12);
   for(const i of extra){assert.ok(fs.existsSync(i.src),i.src);i.onerror();assert.ok(fs.existsSync(i.src),i.src);i.onload();}
   assert.ok(env.ART.player_kneel_v1);assert.ok(env.ART.boss_motion_v1);assert.ok(env.ART.map_rain_port_v1);
 });

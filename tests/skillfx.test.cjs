@@ -11,6 +11,17 @@ function load(reduced = false) {
   return { FX: env.FX, SKILLFX: env.SKILLFX };
 }
 
+test('all new MAX effect sprites bake nonempty canvases',()=>{
+  const gradient={addColorStop(){}};
+  const ctx=new Proxy({createRadialGradient:()=>gradient},{get:(o,k)=>o[k]||(()=>{})});
+  const env={Math,Date,document:{createElement:()=>({width:0,height:0,getContext:()=>ctx})},matchMedia:()=>({matches:false})};env.window=env;
+  vm.runInNewContext(fs.readFileSync('js/fx.js','utf8'),env);
+  for(const kind of ['drum','rock','yin','current']){
+    env.FX.emit(kind,'#ffffff',{x:0,y:0,life:1});const p=env.FX.particles().at(-1);
+    assert.ok(p.s.width>0&&p.s.height>0,kind+' needs a drawable sprite');
+  }
+});
+
 const levelFor = {1:1,2:2,3:3,4:4,5:5};
 const params = {
   katana: { swing: { x: 0, y: 0, ang: 0, reach: 120 }, hit: { x: 0, y: 0, ang: 0, crit: false } },
@@ -20,6 +31,14 @@ const params = {
   fire: { ember: { x: 0, y: 0, ang: 0 }, hit: { x: 0, y: 0 } },
   thunder: { strike: { x: 0, y: 0 } }
 };
+
+test('MAX sword wave has a large quarter-circle body with no trail particles and thunder is three times wider',()=>{
+  const {FX,SKILLFX}=load();SKILLFX.play('wind','trail',5,{x:0,y:0,ang:0});assert.equal(FX.particles().length,0);
+  const arcs=[];const ctx=new Proxy({arc:(...p)=>arcs.push(p)}, {get:(o,k)=>o[k]||(()=>{})});
+  SKILLFX.paint(ctx,'wind',5,{x:0,y:0,ang:0});assert.ok(arcs.some(p=>p[2]>250&&Math.abs(p[4]-p[3]-Math.PI/2)<1e-8));
+  const bolts=[];FX.bolt=(x,y,o)=>bolts.push(o);SKILLFX.play('thunder','strike',5,{x:0,y:0,stormChild:true});
+  assert.equal(bolts[0].w,3.3);
+});
 
 test('all five levels retain local glow and crisp marks without fullscreen flashes',()=>{
   const {FX,SKILLFX}=load();let flashes=0;FX.flash=()=>flashes++;
@@ -49,13 +68,15 @@ test('needle and foxfire bodies have five distinct silhouettes with bounded loca
 test('reduced motion retains tier structure with static short-lived accents',()=>{
   const {FX,SKILLFX}=load(true);FX.update(1/60);
   SKILLFX.play('barrier','cast',5,{x:0,y:0,r:170});
-  const runes=FX.particles().filter(p=>p.kind?.startsWith('rune'));
-  assert.ok(runes.length>=2);assert.ok(runes.every(p=>p.vr===0 && p.s0===p.s1));
+  const rocks=FX.particles().filter(p=>p.kind==='rock');
+  assert.equal(rocks.length,8);assert.ok(rocks.every(p=>p.vx===0&&p.vy===0&&p.s0===p.s1));
 });
 
-test('reduced motion keeps the actual thunder domain size instead of a tiny initial circle',()=>{
+test('thunder removes the player floor domain and places local currents on strike points',()=>{
   const {FX,SKILLFX}=load(true);FX.update(1/60);SKILLFX.play('thunder','storm',5,{x:0,y:0,r:380});
-  const floor=FX.particles().find(p=>p.kind==='storm');assert.equal(floor.s0,760);assert.equal(floor.s1,760);
+  assert.ok(!FX.particles().some(p=>p.kind==='storm'));
+  SKILLFX.play('thunder','strike',5,{x:150,y:70,stormChild:true});
+  const current=FX.particles().find(p=>p.kind==='current');assert.equal(current.x,150);assert.equal(current.y,70);assert.ok(current.s1<160);
 });
 
 // 每個技能事件重複觸發多次，取平均以避開隨機數量與 count() 的取整。
@@ -108,13 +129,14 @@ test('purification array is a flattened ground ellipse behind actors with an asy
   assert.match(src, /rnd1/, 'rune strokes use seeded jitter instead of regular symmetry');
 });
 
-test('rune sprites differ per tier so Lv5 gets a more elaborate array', () => {
+test('MAX purification replaces rune layers with eight outward stone pillars', () => {
   const { FX, SKILLFX } = load();
-  const kinds = level => { FX.reset(); SKILLFX.play('barrier', 'cast', level, { x: 0, y: 0, r: 170 }); return FX.particles().filter(p => p.vr).length; };
-  assert.ok(kinds(5) > kinds(1), 'MAX layers a second counter-rotating rune');
+  SKILLFX.play('barrier','cast',5,{x:0,y:0,r:170});
+  const rocks=FX.particles().filter(p=>p.kind==='rock');assert.equal(rocks.length,8);
+  assert.ok(rocks.every(p=>p.foot&&p.x*p.vx+p.y*p.vy>0));
 });
 
-test('thunder inherits the old strongest strike at Lv3 and adds a domain at Lv5', () => {
+test('thunder retains lower-tier strikes and uses an airborne drum at MAX', () => {
   const { FX, SKILLFX } = load();
   const calls = [];
   const emit = FX.emit;
@@ -127,7 +149,7 @@ test('thunder inherits the old strongest strike at Lv3 and adds a domain at Lv5'
   const src = fs.readFileSync('js/skillfx.js', 'utf8');
   const thunder = src.slice(src.indexOf('define("thunder"'), src.indexOf('// 小火焰附著'));
   FX.reset();SKILLFX.play('thunder','storm',5,{x:0,y:0,r:380});
-  assert.ok(FX.particles().some(p=>p.kind==='storm'&&p.ground));
+  assert.ok(FX.particles().some(p=>p.kind==='drum'&&!p.ground));assert.ok(!FX.particles().some(p=>p.kind==='storm'));
   void emit;
 });
 

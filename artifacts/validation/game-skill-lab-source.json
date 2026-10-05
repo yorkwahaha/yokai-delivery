@@ -1,5 +1,5 @@
 {
   "source": "js/game.js",
-  "sha256": "bc128840a3a50d1761f7b699835c117d5c86e2d93d68ecf96ea94711f236a534",
+  "sha256": "44c9fc831263ce13f599360c9a58ad3e41dedf460addf08fc150721f961477d5",
   "isolation": "private in-memory localStorage, muted audio, real weapons and drawWorld, controlled targets and clock"
 }

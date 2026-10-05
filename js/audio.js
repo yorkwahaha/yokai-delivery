@@ -165,6 +165,13 @@ window.AUDIO = (() => {
     deliverWrong: 0.72, breakShield: 0.82, levelUp: 0.76, warningPulse: 0.78,
     bossDeath: 0.78, fanfare: 0.75, lose: 0.7
   };
+  // 預留兩組素材；沒有檔案時退回目前音效，不需放空白 MP3。
+  const RANKED_SFX = {slash:'katana',barrier:'barrier',needle:'needle',boomerang:'boom',fireball:'fire',thunder:'thunder'};
+  for(const [name,id] of Object.entries(RANKED_SFX)) for(const rank of ['Base','Max']) {
+    const key=name+rank;
+    SFX_FILES[key]=`assets/audio/sfx/${id}-${rank==='Max'?'lv5':'lv1-4'}.mp3`;
+    SFX_VOLUME[key]=SFX_VOLUME[name];
+  }
   const unavailableSfx = new Set();
   const activeSfx = new Set();
 
@@ -173,9 +180,9 @@ window.AUDIO = (() => {
     const src = SFX_FILES[name];
     const request = (sfxRequests.get(name) || 0) + 1;
     sfxRequests.set(name, request);
-    if (src && buffered && playBuffer(src,SFX_VOLUME[name] ?? 0.7,{
+    if (src && buffered && !unavailableSfx.has(name) && playBuffer(src,SFX_VOLUME[name] ?? 0.7,{
       isCurrent:()=>sfxRequests.get(name)===request,
-      rate:name==='warningPulse' ? 0.9 + (args[0] || 0) * 0.08 : 1,
+      rate:1,
       onstart:source=>replaceSfx(name,source),
       onended:source=>{ if (sfxVoices.get(name)===source) sfxVoices.delete(name); },
       onerror:()=>playExternalSfx(name,fallback,args,false)
@@ -196,7 +203,7 @@ window.AUDIO = (() => {
 
     audio.preload = "auto";
     audio.sfxVolume = SFX_VOLUME[name] ?? 0.7;
-    if (name==='warningPulse') audio.playbackRate = 0.9 + (args[0] || 0) * 0.08;
+    audio.playbackRate = 1;
     audio.volume = audio.sfxVolume * (wordDucking ? 0.3 : 1);
     replaceSfx(name, audio);
     activeSfx.add(audio);
@@ -757,9 +764,9 @@ window.AUDIO = (() => {
       setTimeout(() => playSuzu(1980, 0.15), 320);
     },
 
-    // 百鬼夜行預警三連擊鼓點 (緊張警報感)
-    warningPulse(idx = 0) {
-      playTaiko(70 + idx * 12, 0.26);
+    // 單次、固定音調的百鬼夜行預警。
+    warningPulse() {
+      playTaiko(70, 0.26);
       playHyoshigi(0.22);
     },
 
@@ -831,10 +838,17 @@ window.AUDIO = (() => {
   };
 
   // 對外 API 保持不變；只替 SFX 方法加上一層「MP3 優先、合成音 fallback」。
-  Object.keys(SFX_FILES).forEach(name => {
+  [...new Set([...Object.keys(SFX_FILES),...Object.keys(RANKED_SFX)])].forEach(name => {
     const fallback = api[name];
     if (typeof fallback !== "function") return;
-    api[name] = (...args) => playExternalSfx(name, fallback, args);
+    api[name] = (...args) => {
+      const level=args[0];
+      if(RANKED_SFX[name] && Number.isInteger(level) && level>=1 && level<=5) {
+        const key=name+(level===5?'Max':'Base');
+        return playExternalSfx(key,()=>playExternalSfx(name,fallback,[]),[]);
+      }
+      return playExternalSfx(name, fallback, args);
+    };
   });
 
   return api;

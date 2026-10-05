@@ -230,7 +230,7 @@
       }),
       enemy: Object.freeze({
         speedScale: 1,
-        shooterChanceBonus: 0.02,
+        shooterChance: 0.06,
         bossHpScale: 1,
         bossTheme: "harbor"
       }),

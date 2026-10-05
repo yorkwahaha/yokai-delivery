@@ -1,0 +1,6 @@
+{
+  "tool": "built-in imagegen",
+  "prompt": "Create a premium detailed pixel-art overworld background for a Japanese yokai night courier game. Landscape 1800:1050 aspect ratio, top-down/isometric atlas, finely hand-crafted bitmap pixel art, midnight indigo forest, warm lanterns, mist, weathered pathways, no lettering, no UI, no markers, no characters. Geography must fit overlay landmarks: start grassy shrine road at (210,820), small lantern town around (470,760), fork clearing at (720,690), rainy coastal port around (800,900) with sea occupying bottom central region, pink cherry mountain pass at (980,535), ancient road at (1215,500), lookout at (1260,755), magnificent red Kyoto district around (1460,555), eerie violet underworld mountain gate at (1605,285). Coordinates refer to 1800x1050 canvas. Keep these exact locations open enough for overlaid node circles and short labels. Curving roads connect these locations. Rich terrain depth and coherent lighting, restrained contrast behind nodes, detailed pixel clusters not vector shapes, no text or logo. Save a usable local image file.",
+  "asset": "assets/img/overworld_night_v1.png",
+  "webp": "assets/img/overworld_night_v1.webp"
+}

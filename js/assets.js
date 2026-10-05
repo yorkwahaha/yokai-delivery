@@ -9,7 +9,7 @@ const GAME_ASSET_NAMES = [
   "player", "player_walk1", "player_walk2", "ghost", "mis", "boss", "runner", "tank", "shooter",
   "house_shop", "house_shrine", "house_tavern", "prop_torii", "prop_lantern", "prop_sakura", "ground", "ground_dirt",
   "ghost_motion_v1", "runner_motion_v1", "boss_motion_v1", "mis_motion_v1", "tank_motion_v1", "shooter_motion_v1",
-  "player_dash_v1", "player_win_v1", "player_kneel_v1", "map_night_town_v1", "map_rain_port_v1"
+  "player_dash_v1", "player_win_v1", "player_kneel_v1", "map_night_town_v1", "map_rain_port_v1", "overworld_night_v2"
 ];
 let loadedCount = 0;
 const markSettled = (failed = false) => {

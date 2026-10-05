@@ -1,5 +1,9 @@
 # 動作與旅路素材
 
+旅路目前使用 `overworld_night_v2.png`／`.webp`：1641×958，WebP 567212 bytes。依角色素材用內建 imagegen 改為較簡化的和風墨線與霧面色塊，降低原版的像素紋理密度。舊版保留供比較，遊戲只載入 v2。完整提示與參考素材見 `artifacts/validation/round21-map-prompt.json`。
+
+2026-10-05 新增 `overworld_night_v1.png`／`.webp`：1641×958 夜色像素點陣旅路背景，WebP 689404 bytes，繪製到既有 1800×1050 世界。由內建 imagegen 生成，關卡節點、道路、標籤和解鎖仍由程式繪製；背景載入失敗保留既有備援。完整提示存於 `artifacts/validation/round20-map-prompt.json`。
+
 本次採「百鬼繪卷」：沿用既有墨線與和風手繪造型，用身體姿態表達狀態，旅路通關用開窗、亮燈與朱印呈現。另曾比較夜行版畫（克制輪廓）、提燈劇場（燈火引導）與影繪百鬼（剪影紙影）；沒有改造整套 UI 或戰鬥場景。
 
 | 素材 | 格式／用途 |

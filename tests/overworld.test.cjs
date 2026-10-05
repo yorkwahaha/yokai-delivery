@@ -4,10 +4,21 @@ const assert = require("node:assert/strict");
 const CONTENT = require("../js/words.js");
 const OVERWORLD = require("../js/overworld.js");
 
+test('wide viewport camera keeps raster map covering every visible edge',()=>{
+  global.VIEWPORT={bounds:()=>({left:-200,top:0,right:1100,bottom:600})};
+  try {
+    for(const id of ['gate','yomi']){
+      const state=OVERWORLD.createState(id);OVERWORLD.update(state,1);
+      assert.ok(state.camX-200>=0);assert.ok(state.camX+1100<=OVERWORLD.MAP_W);
+      assert.ok(state.camY>=0);assert.ok(state.camY+600<=OVERWORLD.MAP_H);
+    }
+  } finally {delete global.VIEWPORT;}
+});
+
 test('map background is baked once while distant landmarks are not submitted',()=>{
   const vm=require('node:vm'),fs=require('node:fs');let canvases=0,fills=0,blits=0;const labels=[];
   const gradient={addColorStop(){}};
-  const ctx=new Proxy({fillText:t=>labels.push(t),measureText:t=>({width:String(t).length*12}),createLinearGradient:()=>gradient,drawImage:()=>blits++},{get:(o,k)=>o[k]||(()=>{})});
+  const ctx=new Proxy({fillText:t=>labels.push(t),measureText:t=>({width:String(t).length*12}),createLinearGradient:()=>gradient,createRadialGradient:()=>gradient,drawImage:()=>blits++},{get:(o,k)=>o[k]||(()=>{})});
   const offscreen=new Proxy({fillRect:()=>fills++},{get:(o,k)=>o[k]||(()=>{})});
   const env={document:{createElement:()=>{canvases++;return {getContext:()=>offscreen};}}};env.window=env;
   vm.runInNewContext(fs.readFileSync('js/overworld.js','utf8'),env);
@@ -15,6 +26,22 @@ test('map background is baked once while distant landmarks are not submitted',()
   env.OVERWORLD.draw(ctx,state,0);const baked=fills;env.OVERWORLD.draw(ctx,state,1);
   assert.equal(canvases,1);assert.equal(fills,baked);assert.equal(blits,2);
   assert.ok(!labels.includes(env.OVERWORLD.NODES.find(n=>n.id==='yomi').label));
+});
+
+test('map courier is twice as tall and mist freezes under reduced motion',()=>{
+  const vm=require('node:vm'),fs=require('node:fs');
+  for(const reduce of [false,true]) {
+    const positions=[],images=[],gradient={addColorStop(){}};
+    const ctx=new Proxy({translate:(...p)=>positions.push(p),drawImage:(...p)=>images.push(p),createLinearGradient:()=>gradient,createRadialGradient:()=>gradient},{get:(o,k)=>o[k]||(()=>{})});
+    const player={complete:true,naturalWidth:216,naturalHeight:352};
+    const env={ART:{player,overworld_night_v2:{naturalWidth:1641}},matchMedia:()=>({matches:reduce})};env.window=env;
+    vm.runInNewContext(fs.readFileSync('js/overworld.js','utf8'),env);
+    const state=env.OVERWORLD.createState('gate');
+    env.OVERWORLD.draw(ctx,state,0);const first=JSON.stringify(positions);positions.length=0;
+    env.OVERWORLD.draw(ctx,state,10);
+    assert.equal(images.find(p=>p[0]===player).at(-1),108);
+    assert.equal(first===JSON.stringify(positions),reduce);
+  }
 });
 
 function finishMove(state) {

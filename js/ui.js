@@ -588,7 +588,7 @@ window.UI = (() => {
     const compact = scale < 0.62;
     const mapW = compact ? 120 : 172, mapH = compact ? 84 : 118, mapY = sBoxY + sBoxH + 8;
     drawMinimap(ctx, sBoxX + sBoxW - mapW, mapY, mapW, mapH, P, orders || [], job, extra.boss, time);
-    if (!compact && orders?.length) drawOrderList(ctx, sBoxX, mapY + mapH + 6, sBoxW, fontPx(readableFont(12)) + 14, orders, P, inter);
+    if (!compact && orders?.length) drawOrderList(ctx, sBoxX + sBoxW - mapW, mapY + mapH + 6, mapW, fontPx(readableFont(12)) + 14, orders, P, inter);
 
     // --- 暫停鈕 ---
     glassBox(ctx, btnPause.x, btnPause.y, btnPause.w, btnPause.h, 10, "rgba(24, 20, 36, 0.94)", C.gold, 1.8);
@@ -1777,17 +1777,7 @@ window.UI = (() => {
       });
     }
 
-    const courierKey = isWon ? "player_win_v1" : "player_kneel_v1";
-    const courier = window.ART && (window.ART[courierKey] || window.ART.player);
-    if (courier && courier.naturalWidth) {
-      const ph = window.ART[courierKey] ? (isWon ? 270 : 210) : 150 * courier.naturalHeight / courier.naturalWidth;
-      ctx.save();
-      if (window.RENDERER?.drawFrame) window.RENDERER.drawFrame(ctx,courier,window.ART[courierKey]?courierKey:'player',0,108,470,ph);
-      else ctx.drawImage(courier,108-ph*courier.naturalWidth/courier.naturalHeight/2,470-ph,ph*courier.naturalWidth/courier.naturalHeight,ph);
-      ctx.restore();
-    }
-
-    const cardX = 210, cardY = 78, cardW = 652, cardH = 406;
+    const cardX = 210, cardY = 54, cardW = 652, cardH = 430;
     const mid = cardX + cardW / 2;
     glassBox(ctx, cardX, cardY, cardW, cardH, 16, "rgba(12, 14, 28, 0.93)", isWon ? "rgba(240, 196, 110, 0.95)" : "rgba(196, 154, 122, 0.6)", isWon ? 2.2 : 1.6, true);
 
@@ -1826,7 +1816,7 @@ window.UI = (() => {
     }
 
     // 送達／誤配：用文字最清楚，只排成一行，不分格。
-    const statY = cardY + 208;
+    const statY = cardY + 230;
     ctx.font = "900 24px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
     const stats = [
       [`送達  ${delivered} 件`, "#f4e7cf"],
@@ -1842,32 +1832,48 @@ window.UI = (() => {
     });
     ctx.textAlign = "center";
 
+    const summaryStep = Math.max(34, fontPx(readableFont(15,"700")) * 1.25);
+    let summaryY = statY;
     if (summary.learning) {
       const l = summary.learning;
       ctx.font = readableFont(15,"700"); ctx.fillStyle = C.text;
-      ctx.fillText(`今夜練習 ${l.practiced} 字・待複習 ${l.review} 字`,mid,cardY+240);
+      summaryY += summaryStep;
+      ctx.fillText(`今夜練習 ${l.practiced} 字・待複習 ${l.review} 字`,mid,summaryY);
       ctx.fillStyle = C.goldHi;
-      ctx.fillText(`熟練星：升星 +${l.gained}・降星 −${l.lost}`,mid,cardY+272);
+      summaryY += summaryStep;
+      ctx.fillText(`熟練星：升星 +${l.gained}・降星 −${l.lost}`,mid,summaryY);
     }
     const reviewWords = [...new Map((misses || []).map(w => [w.jp, w])).values()];
     const reviewList = reviewWords.slice(0, 5);
     ctx.font = readableFont(15, "700");
     if (reviewList.length > 0) {
       ctx.fillStyle = "rgba(255, 214, 196, 0.9)";
-      ctx.fillText(`今夜記錯的字：共 ${reviewWords.length} 字${reviewWords.length > 5 ? "，僅顯示前 5 字" : ""}`, mid, cardY + (summary.learning ? 305 : 272));
+      summaryY += summaryStep;
+      ctx.fillText(`今夜記錯的字：共 ${reviewWords.length} 字${reviewWords.length > 5 ? "，僅顯示前 5 字" : ""}`, mid, summaryY);
       ctx.font = readableFont(16, "700");
       ctx.fillStyle = "#fff6ea";
       const parts = reviewList.map(w => `${w.jp}（${w.zh}）`);
-      const lineY = cardY + (summary.learning ? 336 : 305);
+      const lineY = summaryY + Math.max(28,fontPx(ctx.font)*1.25);
       const lineStep = fontPx(ctx.font) * 1.25;
-      const colW = (cardW-64)/2;
-      parts.forEach((text,i)=>fitText(ctx,text,cardX+32+colW*(i%2+0.5),lineY+Math.floor(i/2)*lineStep,colW-12));
+      const cols = parts.length > 4 ? 3 : 2, colW = (cardW-132)/cols;
+      parts.forEach((text,i)=>fitText(ctx,text,cardX+100+colW*(i%cols+0.5),lineY+Math.floor(i/cols)*lineStep,colW-12));
     }
 
     drawButton(ctx, RESTART_BTN, "再踏夜行", { tone: "primary", size: 18 });
     drawButton(ctx, WORLD_BTN, "回旅路地圖", { size: 18 });
     drawButton(ctx, HOME_BTN, "回到首頁", { size: 18 });
     drawMenuFocus(ctx, END_BTNS[focus]);
+
+    // 最後繪製特寫，提燈與角色輪廓可跨過資訊卡邊框。
+    const courierKey = isWon ? "player_win_v1" : "player_kneel_v1";
+    const courier = window.ART && (window.ART[courierKey] || window.ART.player);
+    if (courier && courier.naturalWidth) {
+      const ph = screenBounds().height * 2 / 3;
+      ctx.save();
+      if (window.RENDERER?.drawFrame) window.RENDERER.drawFrame(ctx,courier,window.ART[courierKey]?courierKey:'player',0,108,470,ph);
+      else ctx.drawImage(courier,108-ph*courier.naturalWidth/courier.naturalHeight/2,470-ph,ph*courier.naturalWidth/courier.naturalHeight,ph);
+      ctx.restore();
+    }
 
     ctx.restore();
   }
@@ -1925,14 +1931,13 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 8. 百鬼夜行 3 次閃爍警報匾額與全螢幕紅光警戒 (Surge Warning Banner)
+  // 8. 百鬼夜行：單行短警告與紅色邊緣。
   function drawSurgeWarning(ctx, surgeWarningT) {
     if (surgeWarningT <= 0) return;
     ctx.save();
     const totalDuration = 2.4;
     const cycleDuration = 0.8;
     const progress = Math.max(0, totalDuration - surgeWarningT);
-    const cycle = Math.min(3, Math.floor(progress / cycleDuration) + 1);
     const phase = (progress % cycleDuration) / cycleDuration;
     const flashBrightness = Math.sin(phase * Math.PI);
     const alpha = Math.max(0.18, flashBrightness);
@@ -1945,31 +1950,18 @@ window.UI = (() => {
     ctx.fillStyle = `rgba(255, 20, 20, ${alpha * 0.14})`;
     fillScreen(ctx);
 
-    const bw = 460, bh = 72;
+    const bw = 240, bh = 52;
     const bx = (bounds.left+bounds.right-bw)/2, by = bounds.top+110;
 
     glow(ctx, bx + bw / 2, by + bh / 2, bw * 1.3, "#ff2a2a", alpha * 0.5);
     glassBox(ctx, bx, by, bw, bh, 10, "rgba(52, 10, 14, 0.97)", `rgba(255, 70, 70, ${alpha})`, 2.6, true);
 
-    ctx.fillStyle = "#ffd54f";
-    ctx.beginPath();
-    ctx.roundRect(bx + bw - 100, by + 10, 88, 22, 5);
-    ctx.fill();
-    ctx.fillStyle = "#160608";
-    ctx.font = readableFont(12, "900");
-    ctx.textAlign = "center";
-    ctx.fillText(`警報 ${cycle} / 3`, bx + bw - 56, by + 25);
-
     ctx.textAlign = "center";
     ctx.font = titleFont(24);
     ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-    ctx.fillText("警報・百鬼夜行", bx + bw / 2, by + 36);
+    ctx.fillText("百鬼夜行", bx + bw / 2, by + 36);
     ctx.fillStyle = "#fff2a8";
-    ctx.fillText("警報・百鬼夜行", bx + bw / 2, by + 33);
-
-    ctx.font = readableFont(13, "900");
-    ctx.fillStyle = "#ffcdd2";
-    ctx.fillText("妖氣逼近，準備迎戰", W / 2, by + 57);
+    ctx.fillText("百鬼夜行", bx + bw / 2, by + 33);
 
     ctx.restore();
   }
