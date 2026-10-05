@@ -1,0 +1,276 @@
+{
+  "verifiedAt": "2026-10-05T07:12:19.329Z",
+  "commit": "3ac7f777549c2a1255158516c709ab7971c18c78",
+  "workflowRun": 37276283597,
+  "workflowConclusion": "success",
+  "files": [
+    {
+      "path": "assets/img/boss_motion_v1.png",
+      "status": 200,
+      "expected": "1835909dfb0b7d408386ce45c48e8c00cbff06ca10565cc462a279f7be74ffd5",
+      "actual": "1835909dfb0b7d408386ce45c48e8c00cbff06ca10565cc462a279f7be74ffd5",
+      "match": true
+    },
+    {
+      "path": "assets/img/boss_motion_v1.webp",
+      "status": 200,
+      "expected": "4fc3763d236ee06281f5ae8e42c2af63352d5f97a36f4741e2c61f71b272546d",
+      "actual": "4fc3763d236ee06281f5ae8e42c2af63352d5f97a36f4741e2c61f71b272546d",
+      "match": true
+    },
+    {
+      "path": "assets/img/ghost_motion_v1.png",
+      "status": 200,
+      "expected": "2776ac942e2b784aecd76eb06c82dfeb03fb4233f64bb1201a6240b273f4633e",
+      "actual": "2776ac942e2b784aecd76eb06c82dfeb03fb4233f64bb1201a6240b273f4633e",
+      "match": true
+    },
+    {
+      "path": "assets/img/ghost_motion_v1.webp",
+      "status": 200,
+      "expected": "99d7ebe1484e4e807a25f6d9989d2fab4df53df19140bc4366c69deb8a25777e",
+      "actual": "99d7ebe1484e4e807a25f6d9989d2fab4df53df19140bc4366c69deb8a25777e",
+      "match": true
+    },
+    {
+      "path": "assets/img/map_night_town_v1.png",
+      "status": 200,
+      "expected": "68238618784cd5f32c1750cf29527accc4481dd793a1589e2457a16ea29c53a7",
+      "actual": "68238618784cd5f32c1750cf29527accc4481dd793a1589e2457a16ea29c53a7",
+      "match": true
+    },
+    {
+      "path": "assets/img/map_night_town_v1.webp",
+      "status": 200,
+      "expected": "8fb11227121b2907ec202e4036c584402959da064182e78c8c0d06fa80108a79",
+      "actual": "8fb11227121b2907ec202e4036c584402959da064182e78c8c0d06fa80108a79",
+      "match": true
+    },
+    {
+      "path": "assets/img/map_rain_port_v1.png",
+      "status": 200,
+      "expected": "11e188bb6305503e4fd9043c7e2687089fbeb379481b9dd1e1750df5615693e0",
+      "actual": "11e188bb6305503e4fd9043c7e2687089fbeb379481b9dd1e1750df5615693e0",
+      "match": true
+    },
+    {
+      "path": "assets/img/map_rain_port_v1.webp",
+      "status": 200,
+      "expected": "59aba0eed2b740365218b462cd5b2762c9257313e7d899ef445a4a2694f5c5e6",
+      "actual": "59aba0eed2b740365218b462cd5b2762c9257313e7d899ef445a4a2694f5c5e6",
+      "match": true
+    },
+    {
+      "path": "assets/img/mis_motion_v1.png",
+      "status": 200,
+      "expected": "f5d7c7cbf60bb3a289c13e35cc60b0fb3f8613c5cacd4113cf296e7434c2039a",
+      "actual": "f5d7c7cbf60bb3a289c13e35cc60b0fb3f8613c5cacd4113cf296e7434c2039a",
+      "match": true
+    },
+    {
+      "path": "assets/img/mis_motion_v1.webp",
+      "status": 200,
+      "expected": "43e0c637d27f7fa228ca375b758dd535450b502728a52fdfc8fcaa6636ca3431",
+      "actual": "43e0c637d27f7fa228ca375b758dd535450b502728a52fdfc8fcaa6636ca3431",
+      "match": true
+    },
+    {
+      "path": "assets/img/player_dash_v1.png",
+      "status": 200,
+      "expected": "29cea003e9ebb4ef45705e9c99de8f4c96304fa97c64fe8d38535395665fd59e",
+      "actual": "29cea003e9ebb4ef45705e9c99de8f4c96304fa97c64fe8d38535395665fd59e",
+      "match": true
+    },
+    {
+      "path": "assets/img/player_dash_v1.webp",
+      "status": 200,
+      "expected": "6b2601a34dd4c6b215cc88f0adfa076c3015b9f17435f59fae289590c3b7130e",
+      "actual": "6b2601a34dd4c6b215cc88f0adfa076c3015b9f17435f59fae289590c3b7130e",
+      "match": true
+    },
+    {
+      "path": "assets/img/player_kneel_v1.png",
+      "status": 200,
+      "expected": "64895afc389f1eabe489fae925499593f3267b4474cd2df63cad8f65f2c4d127",
+      "actual": "64895afc389f1eabe489fae925499593f3267b4474cd2df63cad8f65f2c4d127",
+      "match": true
+    },
+    {
+      "path": "assets/img/player_kneel_v1.webp",
+      "status": 200,
+      "expected": "b06cfbbb640a8c5426a67d9e239e9592cf8e609312299b20f7e4356440ca9e35",
+      "actual": "b06cfbbb640a8c5426a67d9e239e9592cf8e609312299b20f7e4356440ca9e35",
+      "match": true
+    },
+    {
+      "path": "assets/img/player_win_v1.png",
+      "status": 200,
+      "expected": "64327415cdbcc0efcee3a10374ac690cda9bf8b2efecab94a2edc6ec77d6035d",
+      "actual": "64327415cdbcc0efcee3a10374ac690cda9bf8b2efecab94a2edc6ec77d6035d",
+      "match": true
+    },
+    {
+      "path": "assets/img/player_win_v1.webp",
+      "status": 200,
+      "expected": "0edd97e7d14bd77dcf7e93326293cbe9f8c5d3a35477f251efaa39aad350e680",
+      "actual": "0edd97e7d14bd77dcf7e93326293cbe9f8c5d3a35477f251efaa39aad350e680",
+      "match": true
+    },
+    {
+      "path": "assets/img/runner_motion_v1.png",
+      "status": 200,
+      "expected": "3e97f8291320610199812166fc6d99271827b5bb22828d7c24560cf0b34f5733",
+      "actual": "3e97f8291320610199812166fc6d99271827b5bb22828d7c24560cf0b34f5733",
+      "match": true
+    },
+    {
+      "path": "assets/img/runner_motion_v1.webp",
+      "status": 200,
+      "expected": "ef83e70b99321550fbb24c57f69afcec8be6dd76ad625888f558779eb3683a03",
+      "actual": "ef83e70b99321550fbb24c57f69afcec8be6dd76ad625888f558779eb3683a03",
+      "match": true
+    },
+    {
+      "path": "assets/img/shooter_motion_v1.png",
+      "status": 200,
+      "expected": "377ec5e16657cee5cfbedb54006b25cad33c14a6063f51e1056090e07d337525",
+      "actual": "377ec5e16657cee5cfbedb54006b25cad33c14a6063f51e1056090e07d337525",
+      "match": true
+    },
+    {
+      "path": "assets/img/shooter_motion_v1.webp",
+      "status": 200,
+      "expected": "1fb630e40036235b84eb2193a55097480dbd97214959a3d74a195e52f165ef5e",
+      "actual": "1fb630e40036235b84eb2193a55097480dbd97214959a3d74a195e52f165ef5e",
+      "match": true
+    },
+    {
+      "path": "assets/img/tank_motion_v1.png",
+      "status": 200,
+      "expected": "d7aadc6932d1d2f4bf64bacd0a3a3ea9ad50985c2ba6419c402443d051b15c51",
+      "actual": "d7aadc6932d1d2f4bf64bacd0a3a3ea9ad50985c2ba6419c402443d051b15c51",
+      "match": true
+    },
+    {
+      "path": "assets/img/tank_motion_v1.webp",
+      "status": 200,
+      "expected": "c5491157893ccf8286f1abc758a343d4d4a0decf473466cdc37603675e5536ff",
+      "actual": "c5491157893ccf8286f1abc758a343d4d4a0decf473466cdc37603675e5536ff",
+      "match": true
+    },
+    {
+      "path": "index.html",
+      "status": 200,
+      "expected": "931288593ea2a61dcdbc188112d8b5e39c572bf99955c72d3c797b5e70fa4536",
+      "actual": "931288593ea2a61dcdbc188112d8b5e39c572bf99955c72d3c797b5e70fa4536",
+      "match": true
+    },
+    {
+      "path": "js/assets.js",
+      "status": 200,
+      "expected": "1d941dabb8716b850ee7dc6ce80be62c307199bf131b42edb14338c8f3332863",
+      "actual": "1d941dabb8716b850ee7dc6ce80be62c307199bf131b42edb14338c8f3332863",
+      "match": true
+    },
+    {
+      "path": "js/audio.js",
+      "status": 200,
+      "expected": "1ba20d3fe0cbbc6a70cac6d89254a8953b916ca28ff193fdb12e39dcc556a581",
+      "actual": "1ba20d3fe0cbbc6a70cac6d89254a8953b916ca28ff193fdb12e39dcc556a581",
+      "match": true
+    },
+    {
+      "path": "js/config.js",
+      "status": 200,
+      "expected": "c8f6c504ac9d53ff156bf4607812970228327cd4e3f6807a9bbea446500f262f",
+      "actual": "c8f6c504ac9d53ff156bf4607812970228327cd4e3f6807a9bbea446500f262f",
+      "match": true
+    },
+    {
+      "path": "js/controls.js",
+      "status": 200,
+      "expected": "a80665d2207795beaf2b38335dc8f59781f49ddf92c62bc8a15c8de3eb22977f",
+      "actual": "a80665d2207795beaf2b38335dc8f59781f49ddf92c62bc8a15c8de3eb22977f",
+      "match": true
+    },
+    {
+      "path": "js/evolutions.js",
+      "status": 200,
+      "expected": "d84d3d5e8042a23236e1acce14d92dcf72a389463b25619339beb10f1b7685f2",
+      "actual": "d84d3d5e8042a23236e1acce14d92dcf72a389463b25619339beb10f1b7685f2",
+      "match": true
+    },
+    {
+      "path": "js/fx.js",
+      "status": 200,
+      "expected": "09dbeebd8315601eec59ea97b9f401bc13afe63f6f8043021f5f05adbd8e0581",
+      "actual": "09dbeebd8315601eec59ea97b9f401bc13afe63f6f8043021f5f05adbd8e0581",
+      "match": true
+    },
+    {
+      "path": "js/game.js",
+      "status": 200,
+      "expected": "702afb594e5a2d71b8431bab1e880180eaa0467bc18a5f31b158878db5f1198c",
+      "actual": "702afb594e5a2d71b8431bab1e880180eaa0467bc18a5f31b158878db5f1198c",
+      "match": true
+    },
+    {
+      "path": "js/overworld.js",
+      "status": 200,
+      "expected": "ad42777f994d06601c9a8dce0250cf3321e4e801471a84f0984c27a4c96d930a",
+      "actual": "ad42777f994d06601c9a8dce0250cf3321e4e801471a84f0984c27a4c96d930a",
+      "match": true
+    },
+    {
+      "path": "js/renderer.js",
+      "status": 200,
+      "expected": "f674bc37fc7761a5ae25ef2834df6788fda863176475fcdfe0b62b44e5ea56ee",
+      "actual": "f674bc37fc7761a5ae25ef2834df6788fda863176475fcdfe0b62b44e5ea56ee",
+      "match": true
+    },
+    {
+      "path": "js/skillfx.js",
+      "status": 200,
+      "expected": "06f548f989fe99f30a9ac2ccee999ecaf2d095922218f25b08a1ee824d97d063",
+      "actual": "06f548f989fe99f30a9ac2ccee999ecaf2d095922218f25b08a1ee824d97d063",
+      "match": true
+    },
+    {
+      "path": "js/store.js",
+      "status": 200,
+      "expected": "095561035c5e902d986072c4a42bafd363dc0a79b71220b4f8dacebc93a7e2af",
+      "actual": "095561035c5e902d986072c4a42bafd363dc0a79b71220b4f8dacebc93a7e2af",
+      "match": true
+    },
+    {
+      "path": "js/ui.js",
+      "status": 200,
+      "expected": "8a7fabfeda431a0a30e22113764e52330c78989ef5bfb899604acb8358064010",
+      "actual": "8a7fabfeda431a0a30e22113764e52330c78989ef5bfb899604acb8358064010",
+      "match": true
+    },
+    {
+      "path": "js/viewport.js",
+      "status": 200,
+      "expected": "f8eccdc63b0b78826ba645de32a58438f3ba19aba46a53e668085f1e37092bc0",
+      "actual": "f8eccdc63b0b78826ba645de32a58438f3ba19aba46a53e668085f1e37092bc0",
+      "match": true
+    },
+    {
+      "path": "js/words.js",
+      "status": 200,
+      "expected": "a3226ea33b0fca84cec5fae63d4de91cdb249d4be0751692278989dc4b455b4c",
+      "actual": "a3226ea33b0fca84cec5fae63d4de91cdb249d4be0751692278989dc4b455b4c",
+      "match": true
+    },
+    {
+      "path": "js/world.js",
+      "status": 200,
+      "expected": "ee21bec93c77d3d11cb975793b1ec9a6fcff923deef548254d36cda7d19e2733",
+      "actual": "ee21bec93c77d3d11cb975793b1ec9a6fcff923deef548254d36cda7d19e2733",
+      "match": true
+    }
+  ],
+  "matched": 38,
+  "total": 38
+}

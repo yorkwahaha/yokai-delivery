@@ -27,7 +27,7 @@
 - 技能特效集中在 `js/skillfx.js`，每個招式分 Lv1–Lv5 五階：Lv2／Lv3 承接舊中／強階，Lv4 蓄勢、Lv5 覺醒質變。新增招式用 `SKILLFX.define(id, { ... })` 註冊，戰鬥邏輯以 `SKILLFX.play(id, 事件, 等級, 參數)` 觸發，詳見檔案開頭註解。貼地圖案（如淨化靈陣）走 `FX.drawGround`，畫在角色之前並壓扁成橢圓。本機以內建瀏覽器實測：粒子達上限時 FX 的 update＋draw 約 0.7ms／幀；該瀏覽器 rAF 本身限制在約 30 FPS，因此未能取得 60 FPS 對照數據。
 - Windows Chrome 受控效能量測約為靜止 41.62 FPS、移動 39.13 FPS，尚未達到穩定 60 FPS，也尚無手機效能驗證。
 
-正式站台：[開始遊玩](https://yorkwahaha.github.io/yokai-delivery/)。最近已驗證部署的程式提交為 `d561526`，證據在 `artifacts/validation/round19-deploy-proof.json`；本機後續文件提交不代表已部署。
+正式站台：[開始遊玩](https://yorkwahaha.github.io/yokai-delivery/)。最近已驗證部署的程式提交為 `3ac7f77`（2026-10-05），包含 Qwen／Sakana 複核修正、敵人動作、角色姿態與旅路地標；Pages 執行 `37276283597` 成功，線上入口、全部 JS 與 22 份新素材共 38/38 個檔案的 SHA-256 與提交內容一致。證據在 `artifacts/validation/art-deploy-proof.json`。本機回歸 256/256 通過；尚未完成實體手機效能與自然完整通關驗證。
 
 
 ## 2026-10-05 外部盤查複核與接手
