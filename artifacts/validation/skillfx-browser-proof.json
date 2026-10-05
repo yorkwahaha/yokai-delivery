@@ -1,0 +1,25 @@
+{
+  "mode": "controlled shader showcase, not natural gameplay",
+  "viewport": {
+    "dpr": 1,
+    "height": 1510,
+    "width": 1260
+  },
+  "logs": [],
+  "scenarios": [
+    "Lv1/Lv3/Lv5 six-skill comparison",
+    "Lv5 barrier + talisman + foxfire + thunder with four active slots",
+    "reduced-motion tier structure"
+  ],
+  "captures": [
+    "skillfx-three-tiers.png",
+    "skillfx-max-combat.png",
+    "skillfx-reduced-motion.png"
+  ],
+  "servedScripts": {
+    "js/fx.js": "00ba72e82b2c7e451bb25bc97ad690b99c35745d19f3d967f8adef217903db46",
+    "js/skillfx.js": "4d93de7d5b8c94dd186a98fef331213db3ae4b2c2a183545bbac39bc2139841e",
+    "js/renderer.js": "98d6fb5a79c772184c0241ee3580df4b766b8292d727025e76ed3fb297d1de3b",
+    "js/game.js": "ed1fbc69375fbd6afb4eb11dae484c6f624d36586122fa103968cfe975e5daed"
+  }
+}

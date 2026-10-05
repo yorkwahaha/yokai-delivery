@@ -54,8 +54,7 @@
       moveT: 0,
       moveDuration: 0.42,
       camX: clamp(node.x - VIEW_W / 2, 0, MAP_W - VIEW_W),
-      camY: clamp(node.y - VIEW_H / 2, 0, MAP_H - VIEW_H),
-      lockedPulse: 0
+      camY: clamp(node.y - VIEW_H / 2, 0, MAP_H - VIEW_H)
     };
   }
 
@@ -94,7 +93,6 @@
     const to = nodeById.get(targetId);
     if (!to) return false;
     if (!isNodeAccessible(to) || (to.type === "stage" && !isEnterable(to))) {
-      state.lockedPulse = 1.15;
       return false;
     }
     state.fromId = from.id;
@@ -131,7 +129,6 @@
 
   function update(state, dt) {
     if (!state) return;
-    if (state.lockedPulse > 0) state.lockedPulse = Math.max(0, state.lockedPulse - dt);
 
     if (state.targetId) {
       const from = nodeById.get(state.fromId);
@@ -162,7 +159,6 @@
     const node = currentNode(state);
     if (node.type !== "stage") return { ok: false, waypoint: true };
     if (!isEnterable(node)) {
-      state.lockedPulse = 1.15;
       return { ok: false, locked: true, stageId: node.stageId, name: node.label };
     }
     return { ok: true, stageId: node.stageId, name: node.label };
@@ -184,7 +180,7 @@
   }
 
   function drawRoad(ctx, a, b) {
-    const open = isNodeAccessible(a) && isNodeAccessible(b);
+    const open = [a,b].every(node => node.type === 'stage' ? isEnterable(node) : isNodeAccessible(node));
     const ax = a.x, ay = a.y, bx = b.x, by = b.y;
     ctx.lineCap = "round";
     ctx.strokeStyle = open ? "rgba(20, 28, 34, 0.56)" : "rgba(34, 31, 42, 0.38)";
@@ -320,7 +316,7 @@
       ctx.fillStyle = "rgba(16, 13, 24, 0.58)";
       ctx.beginPath(); ctx.arc(0, 0, 37, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = "#e3c6ef";
-      ctx.font = "900 22px 'Kaisei Decol', serif";
+      ctx.font = readableFont(Math.max(22, Math.ceil(18 / (root.VIEWPORT?.get?.().scale || 1))), "700").replace("'Noto Sans JP'", "'Kaisei Decol'");
       ctx.textAlign = "center";
       ctx.fillText("封", 0, 8);
     }
@@ -431,7 +427,7 @@
     const back = backButton();
     ctx.textAlign = "center";
     ctx.fillStyle = "#fff1bd";
-    ctx.font = "900 24px 'Kaisei Decol', 'Noto Sans JP', serif";
+    ctx.font = readableFont(Math.max(24, Math.ceil(18 / (root.VIEWPORT?.get?.().scale || 1))), "700").replace("'Noto Sans JP'", "'Kaisei Decol'");
     ctx.fillText("妖怪快遞社・旅路圖", VIEW_W / 2, area.top + 32);
     ctx.font = readableFont(12, "700");
     ctx.fillStyle = "rgba(255,255,255,0.68)";
@@ -480,7 +476,7 @@
       ctx.beginPath(); ctx.roundRect(VIEW_W / 2 - 150, 92, 300, 48, 12); ctx.fill();
       ctx.strokeStyle = `rgba(220, 180, 235, ${a})`; ctx.lineWidth = 2; ctx.stroke();
       ctx.fillStyle = `rgba(248, 225, 255, ${a})`; ctx.font = readableFont(15, "900");
-      ctx.fillText("此地仍被妖氣封印", VIEW_W / 2, 122);
+      ctx.fillText("未開放或尚未解鎖", VIEW_W / 2, 122);
     }
 
     ctx.restore();

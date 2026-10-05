@@ -1,7 +1,7 @@
 // 渲染引擎：商業級和風手繪管線、石疊地坪紋理、町屋店鋪建築、動態 2D 多光源與 Game Juice
 window.RENDERER = (() => {
   const W = 900, H = 600;
-  const SCENE_PIXELS = 1500000, LIGHT_PIXELS = 500000;
+  const SCENE_PIXELS = 921600, LIGHT_PIXELS = 280000;
   const HOUSE_NAMES = { house_shop: "夜行商店", house_tavern: "宵待酒屋", house_shrine: "稻荷社" };
   let cv, ctx, dpr;
   let lightCv, lightCtx;
@@ -13,7 +13,7 @@ window.RENDERER = (() => {
 
   // 鏡頭與打擊震動
   let camX = 0, camY = 0;
-  let shake = 0, shakeAngle = 0;
+  let shake = 0;
   let hitStop = 0;
 
   // 環境粒子：櫻花瓣、夜行幽火、落葉
@@ -24,15 +24,18 @@ window.RENDERER = (() => {
   let ghostTrails = [];
 
   function bounds() { return window.VIEWPORT?.bounds() || { left:0, top:0, right:W, bottom:H, width:W, height:H }; }
+  function allowsMotion() {
+    return !window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  }
   function resize() {
     const v = window.VIEWPORT?.get() || {width:W,height:H,offsetX:0,offsetY:0};
     const scale = v.scale || 1;
     const cssPixels = v.width * v.height * scale * scale;
-    // 大視窗限制額外 DPR 像素；至少保留原生 CSS 解析度，不縮小文字與命中範圍。
-    dpr = Math.min(window.devicePixelRatio || 1, 2, Math.max(1, Math.sqrt(SCENE_PIXELS / cssPixels)));
+    // 畫面像素預算約 720p。點擊座標仍走 CSS 邏輯座標，縮小的是 backing store。
+    dpr = Math.min(window.devicePixelRatio || 1, 2, Math.max(0.34, Math.sqrt(SCENE_PIXELS / Math.max(1, cssPixels))));
     cv.width = Math.round(v.width * scale * dpr); cv.height = Math.round(v.height * scale * dpr);
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+    ctx.imageSmoothingQuality = "low";
     // 柔和遮罩以較低解析度繪製；合成時仍覆蓋相同的完整視口。
     const lightScale = scale * Math.min(1, Math.sqrt(LIGHT_PIXELS / cssPixels));
     lightCv.width = Math.round(v.width * lightScale); lightCv.height = Math.round(v.height * lightScale);
@@ -41,7 +44,7 @@ window.RENDERER = (() => {
 
   function init(canvas) {
     cv = canvas;
-    ctx = cv.getContext("2d");
+    ctx = cv.getContext("2d", { alpha: false });
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     cv.width = W * dpr;
     cv.height = H * dpr;
@@ -137,16 +140,21 @@ window.RENDERER = (() => {
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
   function triggerHitStop(duration = 0.04) {
-    hitStop = duration;
+    if (allowsMotion()) hitStop = duration;
   }
 
   function triggerShake(intensity = 8) {
-    shake = Math.max(shake, intensity);
+    if (allowsMotion()) shake = Math.max(shake, intensity);
+  }
+
+  function clearShake() {
+    shake = 0;
+    hitStop = 0;
   }
 
   function spawnDamageNumber(val, x, y, isCrit = false, color = null) {
     dmgNumbers.push({
-      val: Math.round(val * 10) / 10,
+      val: typeof val === 'number' ? Math.round(val * 10) / 10 : String(val),
       x: x + (Math.random() - 0.5) * 22,
       y: y - 12,
       vy: -120 - Math.random() * 50,
@@ -163,15 +171,14 @@ window.RENDERER = (() => {
     ghostTrails.push({ img, x, y, flipX, scale, life: 0.22, maxLife: 0.22, alpha });
   }
 
-  function addSlashArc(x, y, radius, angle, spread = 2.2) {
-    slashArcs.push({ x, y, radius, angle, spread, life: 0.2, maxLife: 0.2 });
+  // tier 1–3 對應妖刀斬 Lv1–2／Lv3–4／Lv5：刀芒厚度、亮度與火星數量逐級加強。
+  function addSlashArc(x, y, radius, angle, spread = 2.2, tier = 3) {
+    slashArcs.push({ x, y, radius, angle, spread, tier, life: 0.2, maxLife: 0.2 });
   }
 
   function updateEffects(dt) {
-    if (hitStop > 0) {
-      hitStop -= dt;
-      return true;
-    }
+    const stopped = allowsMotion() && hitStop > 0;
+    hitStop = Math.max(0, hitStop - dt);
 
     shake = Math.max(0, shake - 32 * dt);
 
@@ -197,29 +204,71 @@ window.RENDERER = (() => {
     for (const s of slashArcs) s.life -= dt;
     slashArcs = slashArcs.filter(s => s.life > 0);
 
-    return false;
+    return stopped;
   }
 
-  // 只快取視口附近的靜態底圖；水波、道路、文字與場景物件仍在原層次繪製。
+  function drawStaticChunk(c, chunk, toriiImg, toriiReady, sakuraImg, sakuraReady) {
+    const cx = chunk.x + chunk.w / 2, cy = chunk.y + chunk.h / 2;
+    c.save();
+    c.textAlign = "center";
+    c.font = "900 38px 'Kaisei Decol', 'Noto Sans JP', serif";
+    c.fillStyle = "rgba(255, 230, 180, 0.18)";
+    c.fillText(chunk.name, cx, chunk.y + 105);
+    c.font = "bold 15px 'Zen Maru Gothic', sans-serif";
+    c.fillStyle = "rgba(255, 230, 180, 0.14)";
+    c.fillText(`— ${chunk.sub || ""} —`, cx, chunk.y + 129);
+    if (chunk.decor?.torii && toriiReady) {
+      c.fillStyle = "rgba(0, 0, 0, 0.4)";
+      c.beginPath();
+      c.ellipse(cx, cy + 45, 90, 24, 0, 0, 6.28);
+      c.fill();
+      const tw = 150, th = tw * toriiImg.naturalHeight / toriiImg.naturalWidth;
+      c.drawImage(toriiImg, cx - tw / 2, cy - th + 36, tw, th);
+    }
+    if (sakuraReady) {
+      const sw = 108, sh = sw * sakuraImg.naturalHeight / sakuraImg.naturalWidth;
+      for (const tree of chunk.decor?.sakuraTrees || []) {
+        c.fillStyle = "rgba(0, 0, 0, 0.35)";
+        c.beginPath();
+        c.ellipse(tree.x, tree.y - 4, 28, 10, 0, 0, 6.28);
+        c.fill();
+        c.drawImage(sakuraImg, tree.x - sw / 2, tree.y - sh, sw, sh);
+      }
+    }
+    c.restore();
+  }
+
+  // 地名、鳥居與櫻樹跟底圖一起快取。
   function drawGroundBase(chunks, groundKey) {
     const area = bounds(), v = window.VIEWPORT?.get() || {scale:1};
     const pixelScale = (v.scale || 1) * dpr, x = camX + area.left, y = camY + area.top;
     const groundImg = window.ART && window.ART[groundKey];
+    const toriiImg = window.ART && window.ART.prop_torii;
+    const sakuraImg = window.ART && window.ART.prop_sakura;
+    const toriiReady = !!(toriiImg && toriiImg.complete && toriiImg.naturalWidth);
+    const sakuraReady = !!(sakuraImg && sakuraImg.complete && sakuraImg.naturalWidth);
     const cached = terrainState;
     if (!cached || cached.key !== groundKey || cached.image !== groundImg || cached.pixelScale !== pixelScale ||
+        cached.toriiReady !== toriiReady || cached.sakuraReady !== sakuraReady ||
         cached.viewW !== area.width || cached.viewH !== area.height || x < cached.left || y < cached.top ||
         x + area.width > cached.left + cached.width || y + area.height > cached.top + cached.height ||
         cached.chunks.length !== chunks.length || chunks.some((chunk,i)=>chunk!==cached.chunks[i])) {
       const left = x - 120, top = y - 120, width = area.width + 240, height = area.height + 240;
+      const pw = Math.ceil(width * pixelScale), ph = Math.ceil(height * pixelScale);
       terrainCv ||= document.createElement("canvas");
-      terrainCv.width = Math.ceil(width * pixelScale);terrainCv.height = Math.ceil(height * pixelScale);
+      if (terrainCv.width !== pw) terrainCv.width = pw;
+      if (terrainCv.height !== ph) terrainCv.height = ph;
       const c = terrainCv.getContext("2d");
+      c.setTransform(1,0,0,1,0,0);
+      c.clearRect(0,0,terrainCv.width,terrainCv.height);
       c.setTransform(pixelScale,0,0,pixelScale,-left*pixelScale,-top*pixelScale);
-      c.imageSmoothingQuality = "high";
+      c.imageSmoothingEnabled = true;
+      c.imageSmoothingQuality = "low";
+      const dirt = groundKey === "ground_dirt";
       if (groundImg && groundImg.complete && groundImg.naturalWidth) {
         if (groundPatternImage !== groundImg) {groundPattern = c.createPattern(groundImg,"repeat");groundPatternImage = groundImg;}
         c.fillStyle = groundPattern || "#181d28";
-      } else c.fillStyle = groundKey === "ground_dirt" ? "#6b5135" : stonePattern || "#181d28";
+      } else c.fillStyle = dirt ? "#6b5135" : stonePattern || "#181d28";
       c.fillRect(left,top,width,height);
       for (const chunk of chunks) {
         if (chunk.x > left+width || chunk.x+chunk.w < left || chunk.y > top+height || chunk.y+chunk.h < top) continue;
@@ -231,88 +280,17 @@ window.RENDERER = (() => {
           chunk.theme === "mystic" ? ["180,140,255",0.15] : ["120,190,140",0.12];
         g.addColorStop(0,`rgba(${tint[0]},${tint[1]})`);g.addColorStop(1,`rgba(${tint[0]},0)`);
         c.fillStyle = g;c.fillRect(chunk.x,chunk.y,chunk.w,chunk.h);
+        drawStaticChunk(c, chunk, toriiImg, toriiReady, sakuraImg, sakuraReady);
       }
-      terrainState = {left,top,width,height,key:groundKey,image:groundImg,pixelScale,viewW:area.width,viewH:area.height,chunks:chunks.slice()};
+      terrainState = {left,top,width,height,key:groundKey,image:groundImg,pixelScale,toriiReady,sakuraReady,viewW:area.width,viewH:area.height,chunks:chunks.slice()};
     }
     const t = terrainState;
     ctx.drawImage(terrainCv,t.left,t.top,t.width,t.height);
   }
 
+  // 海邊與池塘不再鋪會上下游動的水帶。那幾條會蓋在鳥居上，看起來像燈光在呼吸。
   function drawGround(elapsed, dawnTime, chunks = [], groundKey = "ground") {
-    drawGroundBase(chunks,groundKey);
-    const area = bounds(), dirt = groundKey === "ground_dirt";
-
-    const ROAD_W = 110;
-    for (const chunk of chunks) {
-      if (
-        chunk.x > camX + area.right + 180 ||
-        chunk.x + chunk.w < camX + area.left - 180 ||
-        chunk.y > camY + area.bottom + 180 ||
-        chunk.y + chunk.h < camY + area.top - 180
-      ) continue;
-
-      const cx = chunk.x + chunk.w / 2;
-      const cy = chunk.y + chunk.h / 2;
-
-      ctx.save();
-      if (chunk.theme === "water" || chunk.theme === "lotus") {
-        ctx.fillStyle = "rgba(100, 210, 255, 0.06)";
-        for (let i = 0; i < 5; i++) {
-          const wy = chunk.y + 100 + i * 100 + Math.sin(elapsed * 2 + i + chunk.cx) * 10;
-          ctx.beginPath();
-          ctx.roundRect(chunk.x + 40, wy, chunk.w - 80, 28, 14);
-          ctx.fill();
-        }
-      }
-
-      // 每一個 chunk 的中央道路與相鄰 chunk 無縫接續，形成可無限延伸的町路網。
-      ctx.fillStyle = "rgba(8, 10, 18, 0.28)";
-      ctx.fillRect(cx - ROAD_W / 2, chunk.y, ROAD_W, chunk.h);
-      ctx.fillRect(chunk.x, cy - ROAD_W / 2, chunk.w, ROAD_W);
-      ctx.fillStyle = dirt ? "rgba(72, 54, 32, 0.22)" : "#333d52";
-      ctx.fillRect(cx - ROAD_W / 2, chunk.y, 10, chunk.h);
-      ctx.fillRect(cx + ROAD_W / 2 - 10, chunk.y, 10, chunk.h);
-      ctx.fillRect(chunk.x, cy - ROAD_W / 2, chunk.w, 10);
-      ctx.fillRect(chunk.x, cy + ROAD_W / 2 - 10, chunk.w, 10);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
-      ctx.fillRect(cx - ROAD_W / 2 + 10, chunk.y, 4, chunk.h);
-      ctx.fillRect(cx + ROAD_W / 2 - 14, chunk.y, 4, chunk.h);
-      ctx.fillRect(chunk.x, cy - ROAD_W / 2 + 10, chunk.w, 4);
-      ctx.fillRect(chunk.x, cy + ROAD_W / 2 - 14, chunk.w, 4);
-
-      ctx.textAlign = "center";
-      ctx.font = "900 38px 'Kaisei Decol', 'Noto Sans JP', serif";
-      ctx.fillStyle = "rgba(255, 230, 180, 0.18)";
-      ctx.fillText(chunk.name, cx, chunk.y + 105);
-      ctx.font = "bold 15px 'Zen Maru Gothic', sans-serif";
-      ctx.fillStyle = "rgba(255, 230, 180, 0.14)";
-      ctx.fillText(`— ${chunk.sub || ""} —`, cx, chunk.y + 129);
-
-      const toriiImg = window.ART && window.ART.prop_torii;
-      if (chunk.decor?.torii && toriiImg && toriiImg.complete && toriiImg.naturalWidth) {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-        ctx.beginPath();
-        ctx.ellipse(cx, cy + 45, 90, 24, 0, 0, 6.28);
-        ctx.fill();
-        const tw = 150;
-        const th = tw * toriiImg.naturalHeight / toriiImg.naturalWidth;
-        ctx.drawImage(toriiImg, cx - tw / 2, cy - th + 36, tw, th);
-      }
-
-      const sakuraImg = window.ART && window.ART.prop_sakura;
-      if (sakuraImg && sakuraImg.complete && sakuraImg.naturalWidth) {
-        const sw = 108;
-        const sh = sw * sakuraImg.naturalHeight / sakuraImg.naturalWidth;
-        for (const tree of chunk.decor?.sakuraTrees || []) {
-          ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
-          ctx.beginPath();
-          ctx.ellipse(tree.x, tree.y - 4, 28, 10, 0, 0, 6.28);
-          ctx.fill();
-          ctx.drawImage(sakuraImg, tree.x - sw / 2, tree.y - sh, sw, sh);
-        }
-      }
-      ctx.restore();
-    }
+    drawGroundBase(chunks, groundKey);
   }
 
   // 繪製高精緻度日式町屋店鋪（真實店鋪 Sprite + 障子金光 + 和風招牌）
@@ -374,9 +352,11 @@ window.RENDERER = (() => {
   function drawPlayer(P, isDashing, inv, elapsed, moveDir, shield = 0) {
     ctx.save();
     const isMoving = Math.hypot(moveDir.x, moveDir.y) > 0.1;
-    const walkBob = isMoving ? Math.sin(elapsed * 16) * 4 : Math.sin(elapsed * 4) * 1.5;
-    const squash = isMoving ? (1 + Math.sin(elapsed * 16) * 0.06) : 1;
-    const stretch = isMoving ? (1 - Math.sin(elapsed * 16) * 0.06) : 1;
+    const motion = allowsMotion();
+    // 步伐畫在走路幀裡。擠壓會把左右腳吃掉，所以主體不再跟著正弦變形。
+    const walkBob = isMoving && motion ? Math.sin(elapsed * 10) * 2 : 0;
+    const squash = 1;
+    const stretch = 1;
 
     // 素材朝右。左右移動才改面向，停下或只上下走時維持最後朝向。
     if (moveDir.x < -0.05) P.faceX = -1;
@@ -386,7 +366,7 @@ window.RENDERER = (() => {
     // 兩幀步伐切換：移動時左右腳邁步 (walk1 <-> walk2)，靜止時站立 (player)
     let pImg = window.ART.player;
     if (isMoving) {
-      const stepIdx = Math.floor(elapsed * 8) % 2;
+      const stepIdx = Math.floor(elapsed * 6) % 2;
       if (stepIdx === 0 && window.ART.player_walk1) {
         pImg = window.ART.player_walk1;
       } else if (stepIdx === 1 && window.ART.player_walk2) {
@@ -401,7 +381,7 @@ window.RENDERER = (() => {
     ctx.fill();
 
     // 衝刺時加入殘影
-    if (isDashing && Math.random() < 0.45 && pImg) {
+    if (isDashing && motion && Math.random() < 0.45 && pImg) {
       addGhostTrail(pImg, P.x, P.y + walkBob, flipX, 1.0, 0.45);
     }
 
@@ -425,7 +405,7 @@ window.RENDERER = (() => {
     // 金剛結界護盾環繞（若 shield > 0）
     if (shield > 0) {
       ctx.save();
-      const rot = elapsed * 2.8;
+      const rot = motion ? elapsed * 1.6 : 0.4;
       const sr = 42;
       ctx.strokeStyle = "rgba(255, 220, 80, 0.85)";
       ctx.lineWidth = 2.5;
@@ -440,8 +420,6 @@ window.RENDERER = (() => {
         const sx = Math.cos(sa) * sr;
         const sy = -22 + Math.sin(sa) * (sr * 0.7);
         ctx.fillStyle = "#ffe28b";
-        ctx.shadowColor = "#ffb700";
-        ctx.shadowBlur = 10;
         ctx.beginPath();
         ctx.arc(sx, sy, 6, 0, 6.28);
         ctx.fill();
@@ -473,7 +451,7 @@ window.RENDERER = (() => {
     ctx.save();
     const isBoss = e.type === "boss";
     const isMis = e.type === "mis";
-    const bob = Math.sin(elapsed * 7 + (e.wob || 0)) * 5;
+    const bob = allowsMotion() ? Math.sin(elapsed * 5 + (e.wob || 0)) * 2 : 0;
 
     // 目標朝向：玩家在怪物左邊時為 -1，在右邊時為 1
     const dirTowardsPlayer = (P.x < e.x) ? -1 : 1;
@@ -542,7 +520,7 @@ window.RENDERER = (() => {
     ctx.restore();
 
     // Boss 結界與血條
-    if (isBoss) {
+    if (isBoss && !e.dying) {
       ctx.save();
       ctx.translate(e.x, e.y);
       if (e.shield) {
@@ -585,9 +563,9 @@ window.RENDERER = (() => {
     if (isMis && e.w) {
       ctx.save();
       ctx.textAlign = "center";
-      const badgeText = `${e.w.icon} ${e.w.jp}＝${e.w.zh}`;
+      const badgeText = `${e.w.jp}＝${e.w.zh}`;
       ctx.font = UI.readableFont(20, "700");
-      const bw = ctx.measureText(badgeText).width + 18;
+      const bw = ctx.measureText(badgeText).width + 46;
       ctx.fillStyle = "rgba(35, 14, 52, 0.88)";
       ctx.beginPath();
       ctx.roundRect(e.x - bw / 2, e.y - 72, bw, 32, 6);
@@ -596,26 +574,27 @@ window.RENDERER = (() => {
       ctx.lineWidth = 1.4;
       ctx.stroke();
 
+      if (typeof UI.drawWordCue === "function") UI.drawWordCue(ctx, e.w, e.x - bw / 2 + 22, e.y - 56, 22);
       ctx.fillStyle = "#f5d4ff";
-      ctx.shadowColor = "#491566";
-      ctx.shadowBlur = 6;
-      ctx.fillText(badgeText, e.x, e.y - 49);
+      ctx.textAlign = "center";
+      ctx.fillText(badgeText, e.x + 12, e.y - 49);
       ctx.restore();
     }
   }
 
   // 繪製立體多光源動態光影（柔和三次樣條光暈 + 街燈光暈池）
-  function renderLighting(P, LAMPS, oil, elapsed, dawnTime, maxOil = 100) {
+  const LAMP_LIGHT_LIFT = 30; // 石燈火袋離腳底的高度；game.js 的石燈光暈用同一數值
+  function renderLighting(P, LAMPS, oil, elapsed, dawnTime, maxOil = 100, lampOut = 0) {
     const progress = clamp(elapsed / dawnTime, 0, 1);
     lightCtx.globalCompositeOperation = "source-over";
     const area = bounds();
     lightCtx.clearRect(area.left, area.top, area.width, area.height);
 
-    // 夜色背景（深紫青色調，黎明過渡）
-    const nightR = Math.round(7 + 75 * progress);
-    const nightG = Math.round(10 + 45 * progress);
-    const nightB = Math.round(26 + 25 * progress);
-    const nightAlpha = 0.94 * Math.pow(1 - progress, 1.3);
+    // 夜色中間調：罩上一層靛色，町屋與路面仍讀得出來，再隨黎明退掉。
+    const nightR = Math.round(28 + 62 * progress);
+    const nightG = Math.round(32 + 40 * progress);
+    const nightB = Math.round(58 + 18 * progress);
+    const nightAlpha = 0.72 * Math.pow(1 - progress, 1.05) * (1 - lampOut) + 0.97 * lampOut; // 燈滅時整個夜色壓到近乎全黑
 
     lightCtx.fillStyle = `rgba(${nightR}, ${nightG}, ${nightB}, ${nightAlpha})`;
     lightCtx.fillRect(area.left, area.top, area.width, area.height);
@@ -626,8 +605,8 @@ window.RENDERER = (() => {
     // 1. 主角提燈核心光照
     const screenPx = P.x - camX;
     const screenPy = P.y - camY;
-    const flicker = Math.sin(elapsed * 16) * 3;
-    const baseRadius = 150 + clamp(oil / Math.max(1, maxOil), 0, 1) * 170 + flicker;
+    const flicker = allowsMotion() ? Math.sin(elapsed * 16) * 3 : 0;
+    const baseRadius = Math.max(16, (150 + clamp(oil / Math.max(1, maxOil), 0, 1) * 170 + flicker) * (1 - lampOut));
 
     const playerGlow = lightCtx.createRadialGradient(screenPx, screenPy, 15, screenPx, screenPy, baseRadius);
     playerGlow.addColorStop(0, "rgba(0,0,0,1)");
@@ -640,9 +619,10 @@ window.RENDERER = (() => {
     lightCtx.arc(screenPx, screenPy, baseRadius, 0, 6.28);
     lightCtx.fill();
 
-    // 2. 街角提燈 (LAMPS) 暖光池
+    // 2. 街角提燈 (LAMPS) 暖光池（燈滅時一併退去）
+    lightCtx.globalAlpha = 1 - lampOut;
     LAMPS.forEach(l => {
-      const lx = l.x - camX, ly = l.y - camY;
+      const lx = l.x - camX, ly = l.y - LAMP_LIGHT_LIFT - camY; // 光心在石燈火袋，不是腳底
       if (lx < area.left - 180 || lx > area.right + 180 || ly < area.top - 180 || ly > area.bottom + 180) return;
       const g = lightCtx.createRadialGradient(lx, ly, 12, lx, ly, 160);
       g.addColorStop(0, "rgba(0,0,0,0.95)");
@@ -654,34 +634,31 @@ window.RENDERER = (() => {
       lightCtx.fill();
     });
 
-    // 繪製遮罩回主 Canvas
+    lightCtx.globalAlpha = 1;
+
+    // 夜色遮罩只合成一次。暖光是燈暈上的少數徑向漸層，不再鋪第二張全螢幕。
     ctx.drawImage(lightCv, area.left, area.top, area.width, area.height);
-
-    // 疊加提燈金黃色光暈（Screen Blend 溫暖柔光）
-    ctx.save();
-    ctx.globalCompositeOperation = "screen";
-    const warmGlow = ctx.createRadialGradient(screenPx, screenPy, 0, screenPx, screenPy, baseRadius * 0.85);
-    warmGlow.addColorStop(0, "rgba(255, 220, 130, 0.38)");
-    warmGlow.addColorStop(0.45, "rgba(255, 160, 60, 0.16)");
-    warmGlow.addColorStop(1, "rgba(255, 140, 40, 0)");
-    ctx.fillStyle = warmGlow;
-    ctx.beginPath();
-    ctx.arc(screenPx, screenPy, baseRadius * 0.85, 0, 6.28);
-    ctx.fill();
-
-    // 街角提燈的橘紅色暖光暈
-    LAMPS.forEach(l => {
-      const lx = l.x - camX, ly = l.y - camY;
+    if (lampOut < 1) paintWarmPool(screenPx, screenPy, baseRadius * 0.62);
+    if (lampOut < 1) LAMPS.forEach(l => {
+      const lx = l.x - camX, ly = l.y - LAMP_LIGHT_LIFT - camY;
       if (lx < area.left - 180 || lx > area.right + 180 || ly < area.top - 180 || ly > area.bottom + 180) return;
-      const lg = ctx.createRadialGradient(lx, ly, 0, lx, ly, 130);
-      lg.addColorStop(0, "rgba(255, 175, 70, 0.28)");
-      lg.addColorStop(1, "rgba(255, 150, 50, 0)");
-      ctx.fillStyle = lg;
-      ctx.beginPath();
-      ctx.arc(lx, ly, 130, 0, 6.28);
-      ctx.fill();
+      paintWarmPool(lx, ly, 108);
     });
-    ctx.restore();
+
+    function paintWarmPool(x, y, radius) {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = 1 - lampOut;
+      const warm = ctx.createRadialGradient(x, y, radius * 0.05, x, y, radius);
+      warm.addColorStop(0, "rgba(255, 186, 96, 0.20)");
+      warm.addColorStop(0.55, "rgba(255, 140, 64, 0.07)");
+      warm.addColorStop(1, "rgba(255, 120, 40, 0)");
+      ctx.fillStyle = warm;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, 6.28);
+      ctx.fill();
+      ctx.restore();
+    }
   }
 
   function drawDamageNumbers() {
@@ -706,7 +683,8 @@ window.RENDERER = (() => {
     ctx.save();
     for (const s of slashArcs) {
       const progress = 1 - (s.life / s.maxLife);
-      const alpha = s.life / s.maxLife;
+      const tierIdx = Math.min(5, Math.max(1, s.tier || 3)) - 1;
+      const alpha = s.life / s.maxLife * [0.8, 0.85, 0.95, 1, 1][tierIdx];
       ctx.save();
       ctx.translate(s.x, s.y);
       ctx.rotate(s.angle);
@@ -715,7 +693,7 @@ window.RENDERER = (() => {
       const steps = 28;
       const startAng = -s.spread / 2;
       const endAng = s.spread / 2;
-      const maxThick = 26 * (0.35 + 0.65 * alpha);
+      const maxThick = [7, 8, 12, 17, 22][tierIdx] * (0.55 + 0.45 * alpha);
 
       ctx.beginPath();
       // 外弧線 (Outer cutting edge)
@@ -741,35 +719,28 @@ window.RENDERER = (() => {
       }
       ctx.closePath();
 
-      // 刀芒漸層 (金白赤焰流光)
-      const bladeGrad = ctx.createRadialGradient(0, 0, s.radius * 0.7, 0, 0, s.radius * 1.18);
-      bladeGrad.addColorStop(0, `rgba(255, 60, 0, ${alpha * 0.35})`);
-      bladeGrad.addColorStop(0.45, `rgba(255, 170, 20, ${alpha * 0.85})`);
-      bladeGrad.addColorStop(0.82, `rgba(255, 245, 180, ${alpha * 0.95})`);
-      bladeGrad.addColorStop(1, `rgba(255, 255, 255, ${alpha})`);
-
-      ctx.fillStyle = bladeGrad;
-      ctx.shadowColor = "#ff9800";
-      ctx.shadowBlur = 18;
+      // 單刃 → 雙刃 → 三刃；細實色輪廓取代厚金焰漸層。
+      ctx.fillStyle = `rgba(226, 192, 128, ${alpha * 0.75})`;
       ctx.fill();
-      ctx.shadowBlur = 0;
 
       // 2. 刀尖極限鋒刃白熱光芒 (Razor Sharp Core Line)
       ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.95})`;
-      ctx.lineWidth = 3.5;
+      ctx.lineWidth = [1.6, 1.7, 2.2, 2.8, 3.4][tierIdx];
       ctx.beginPath();
       ctx.arc(0, 0, s.radius, startAng + 0.08, endAng - 0.04);
       ctx.stroke();
 
-      // 3. 破空刀痕流風殘影 (Trailing wind speed lines)
-      ctx.strokeStyle = `rgba(255, 220, 100, ${alpha * 0.45})`;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(0, 0, s.radius * 0.86, startAng + 0.22, endAng - 0.18);
-      ctx.stroke();
+      // 高階增加獨立刀刃，而不是疊大面積光暈。
+      for (let layer = 0; layer < tierIdx; layer++) {
+        ctx.strokeStyle = `rgba(217, 177, 102, ${alpha * (0.75 - layer * 0.15)})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, s.radius * (0.89 - layer * 0.08), startAng + 0.15 + layer * 0.1, endAng - 0.12);
+        ctx.stroke();
+      }
 
       // 4. 刀刃破裂火星 (Flying Sparks along the cutting arc)
-      const sparkCount = 9;
+      const sparkCount = [3, 6, 9, 12, 16][tierIdx];
       for (let k = 0; k < sparkCount; k++) {
         const st = (k + (s.life * 13) % 1) / sparkCount;
         const sang = startAng + st * (endAng - startAng);
@@ -786,6 +757,7 @@ window.RENDERER = (() => {
   }
 
   function drawAtmosphere(elapsed, petalCount = 50, fireflyCount = FIREFLIES.length) {
+    if (!allowsMotion()) return;
     const area = bounds();
     ctx.save();
     // 飄動櫻花雨
@@ -827,6 +799,7 @@ window.RENDERER = (() => {
     getCanvas: () => cv,
     triggerHitStop,
     triggerShake,
+    clearShake,
     spawnDamageNumber,
     addSlashArc,
     updateEffects,
@@ -839,6 +812,7 @@ window.RENDERER = (() => {
     drawSlashArcs,
     drawAtmosphere,
     getShakeOffset() {
+      if (!allowsMotion() || shake === 0) return { x: 0, y: 0 };
       return {
         x: (Math.random() - 0.5) * shake,
         y: (Math.random() - 0.5) * shake

@@ -1,0 +1,46 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>五階覺醒・技能試演</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b111a;color:#e7decb;font:15px 'Microsoft JhengHei',sans-serif}main{max-width:1580px;margin:auto;padding:20px}h1{font-size:27px;color:#f0ce89;margin:0 0 8px}p{color:#afbec9;margin:6px 0 14px;line-height:1.6}nav{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}button,a{font:inherit;color:#ecd9b2;background:#1b2734;border:1px solid #566674;border-radius:6px;padding:9px 14px;text-decoration:none;cursor:pointer}button.active{background:#473a25;border-color:#ddbb76;color:#ffedbc}section{overflow:auto}.levels{display:grid;grid-template-columns:repeat(5,minmax(224px,1fr));gap:10px;min-width:1160px}.card{background:#15202c;border:1px solid #405162;border-radius:8px;overflow:hidden}.card h2{font-size:18px;margin:12px 12px 4px;color:#cfdbc9}.card:nth-child(5){border:2px solid #bd995b}.card:nth-child(5) h2{color:#ffe4a8}.card p{min-height:24px;font-size:13px;margin:0 12px 10px}iframe{display:block;width:100%;height:216px;border:0;background:#0b101a;pointer-events:none}.arena{margin-top:18px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(250px,1fr);gap:18px}.arena iframe{height:420px;border:1px solid #8a724a;border-radius:8px}aside{padding:18px;background:#141f2b;border:1px solid #415261;border-radius:8px}aside h2{font-size:22px;color:#f3d396;margin:0 0 14px}aside p{font-size:16px;color:#e2dac7;line-height:1.75}.foot{font-size:13px;color:#a2b3c0;margin:14px 0}output{align-self:center;color:#aecdc6}@media(max-width:900px){.arena{grid-template-columns:1fr}.arena iframe{height:360px}main{padding:12px}}
+</style></head><body><main>
+<h1>五階覺醒・技能試演</h1><p>Lv1 有光、Lv2 擴勢、Lv3 成型、Lv4 蓄勢、Lv5 質變。這裡執行真正的戰鬥與繪圖程式，使用高生命靶；預覽靜音、進度獨立，五秒循環重播，不是自然遊玩。</p>
+<nav id="skills"></nav><nav><button id="pause">暫停</button><button id="freeze">定格出招</button><button id="replay">重播</button><button id="slow">半速</button><button id="moving">固定靶</button><button id="mixed">四技覺醒同場</button><a id="motion" href="?motion=reduce">減少動態版本</a><output id="state">實際彈道與命中</output></nav>
+<section aria-label="五個等級並排"><div id="levels" class="levels"></div></section>
+<div class="arena"><iframe id="arena" title="Lv5 覺醒實際戰鬥"></iframe><aside><h2 id="apex-title"></h2><p id="apex-copy"></p><p id="progression"></p><p>五階的新攻擊保留 Boss 結界規則；滿階仍須先答題破除結界。</p></aside></div>
+<p class="foot">「半速」可看彎曲與追蹤；「四技覺醒同場」在大畫面同時展示靈陣、爆符、鬼火、雷獄。高生命靶與固定場景只供受控比較，不會更改正式遊戲存檔。</p>
+</main><script>
+const data={
+ katana:{name:'妖刀斬',ranks:['暖光單刃','雙刃交叉','三刃收束','蓄風四刃','穿透風刃'],title:'Lv5・風刃覺醒',copy:'近身斬擊同時射出風刃，最遠飛行約 530px，可穿透至多三隻妖怪；遇建築消散。金白刃光與青玉風痕讓近身、遠距的攻勢連成一體。'},
+ barrier:{name:'淨化靈陣',ranks:['單盤四印','雙盤八印','反轉雙盤','大陣蓄勢','昇靈光柱'],title:'Lv5・昇靈結界',copy:'最大 280px 的咒盤升起八道短光柱，地面刻印與立體柔光分層展開。圈內仍執行真實傷害與震退，中心留給角色。'},
+ needle:{name:'天狐靈針',ranks:['三針單線','五針雙羽','七針三叉','七星噴射','弧光七星'],title:'Lv5・弧光七星',copy:'七發靈針先向外展開，再於前 0.28 秒內各彎曲一次，完成後直飛。噴射尾跡沿真實彈道生成，不是畫出曲線卻仍直線命中。'},
+ boom:{name:'陰陽符',ranks:['單符回旋','雙符火尾','三符碎焰','蓄火符陣','投射爆符'],title:'Lv5・爆符覺醒',copy:'三枚紙符改為投射爆符：命中或碰牆即引爆 135px 範圍，碎符、火光與衝擊邊一同展開。同一波的爆符不重複傷害同一隻妖怪。'},
+ fire:{name:'狐火炎',ranks:['雙火護身','四火環繞','五火白芯','五火蓄魂','五靈追魂'],title:'Lv5・追魂鬼火',copy:'環繞火焰化為五道追蹤鬼火，每波主動飛向妖怪，目標倒下會重新尋敵。青玉魂焰、金色尖尾与五火齊出讓滿階改成追擊型攻勢。'},
+ thunder:{name:'天狐雷',ranks:['精準單雷','雙雷分叉','三雷齊落','蓄電三雷','雷獄領域'],title:'Lv5・雷獄覺醒',copy:'由選定強敵轉為周身 380px 的雷獄領域，範圍內妖怪同時受擊，至多六道主雷顯示打擊點。電紋地面與分叉雷線形成新檔次的全域攻勢。'}
+};
+const query=new URLSearchParams(location.search),reduce=query.get('motion')==='reduce';let selected=Object.hasOwn(data,query.get('skill'))?query.get('skill'):'katana',paused=false,speed=1,moving=true,mixed=false;
+const levels=document.getElementById('levels'),arena=document.getElementById('arena'),frames=[];
+function send(frame,d){frame.contentWindow?.postMessage({type:'skillLab',...d},location.origin)}
+function broadcast(d){[...frames,arena].forEach(f=>send(f,d))}
+function settings(frame){send(frame,{cmd:'select',skill:selected});if(frame===arena)send(frame,{cmd:'mixed',value:mixed});send(frame,{cmd:'pause',value:paused});send(frame,{cmd:'speed',value:speed});send(frame,{cmd:'moving',value:moving});}
+for(let level=1;level<=5;level++){
+ const card=document.createElement('article');card.className='card';const h=document.createElement('h2');h.textContent='Lv'+level+(level===5?'・覺醒':'');card.append(h);
+ const p=document.createElement('p');p.id='rank'+level;card.append(p);const frame=document.createElement('iframe');frame.title='Lv'+level+' 實際技能';frame.src='skillfx-lab-cell.html?level='+level+'&skill='+selected+(reduce?'&motion=reduce':'');frame.onload=()=>settings(frame);card.append(frame);levels.append(card);frames.push(frame);
+}
+arena.src='skillfx-lab-cell.html?level=5&skill='+selected+(reduce?'&motion=reduce':'');arena.onload=()=>settings(arena);
+for(const[id,skill]of Object.entries(data)){const b=document.createElement('button');b.textContent=skill.name;b.dataset.skill=id;b.onclick=()=>select(id);document.getElementById('skills').append(b);}
+function select(id){
+ selected=id;mixed=false;document.getElementById('mixed').textContent='四技覺醒同場';send(arena,{cmd:'mixed',value:false});
+ broadcast({cmd:'select',skill:id});document.querySelectorAll('[data-skill]').forEach(b=>b.classList.toggle('active',b.dataset.skill===id));
+ data[id].ranks.forEach((label,i)=>document.getElementById('rank'+(i+1)).textContent=label);
+ document.getElementById('apex-title').textContent=data[id].title;document.getElementById('apex-copy').textContent=data[id].copy.replace('与','與');
+ document.getElementById('progression').textContent='Lv1 → Lv5：'+data[id].ranks.join(' → ');
+ document.getElementById('motion').href='?skill='+id+(reduce?'':'&motion=reduce');document.getElementById('motion').textContent=reduce?'正常動態版本':'減少動態版本';
+ if(paused)broadcast({cmd:'keyframe'});
+}
+document.getElementById('pause').onclick=e=>{paused=!paused;broadcast({cmd:'pause',value:paused});e.target.textContent=paused?'播放':'暫停';document.getElementById('state').textContent=paused?'定格・實際戰鬥畫面':'實際彈道與命中';};
+document.getElementById('freeze').onclick=()=>{paused=true;broadcast({cmd:'keyframe'});document.getElementById('pause').textContent='播放';document.getElementById('state').textContent='受控出招時刻・使用真實攻擊判定';};
+document.getElementById('replay').onclick=()=>{broadcast({cmd:'reset'});paused=false;broadcast({cmd:'pause',value:false});document.getElementById('pause').textContent='暫停';document.getElementById('state').textContent='實際彈道與命中';};
+document.getElementById('slow').onclick=e=>{speed=speed===1?0.5:1;broadcast({cmd:'speed',value:speed});e.target.textContent=speed===1?'半速':'正常速度';};
+document.getElementById('moving').onclick=e=>{moving=!moving;broadcast({cmd:'moving',value:moving});e.target.textContent=moving?'固定靶':'移動靶';};
+document.getElementById('mixed').onclick=e=>{mixed=!mixed;send(arena,{cmd:'mixed',value:mixed});e.target.textContent=mixed?'單技覺醒':'四技覺醒同場';};
+select(selected);
+</script></body></html>

@@ -53,6 +53,14 @@ test("a theoretical full clear of base spawns lands in the low-30 level range", 
   assert.ok(level >= 30 && level <= 34, `expected low-30s, got Lv.${level}`);
 });
 
+test("overtime keeps raising enemy tier without raising spawn pressure", () => {
+  assert.ok(cfg.enemyTier(900) > cfg.enemyTier(600));
+  assert.ok(cfg.enemyTier(600) > cfg.enemyTier(0));
+  assert.equal(cfg.spawnInterval(900), cfg.spawnInterval(600));
+  assert.equal(cfg.spawnCount(900), cfg.spawnCount(600));
+  assert.ok(Math.abs(cfg.enemyTier(670) - cfg.enemyTier(600) - 1) < 1e-9);
+});
+
 test("orders teach the loop gradually instead of flooding the opening", () => {
   assert.equal(cfg.orderSlots(0, 0), 1);
   assert.equal(cfg.orderSlots(60, 1), 2);

@@ -24,6 +24,31 @@ window.AUDIO = (() => {
   const bgmRamps = new Map();
   const clipBuffers = new Map(), bufferSources = new Set();
   let audioEpoch = 0, wordSource = null;
+  let masterBus = null, effectsBus = null;
+  const sfxVoices = new Map(), sfxRequests = new Map();
+
+  function output(ac, speech = false) {
+    if (!ac.createDynamicsCompressor) return ac.destination;
+    if (!masterBus) {
+      masterBus = ac.createGain();
+      const compressor = ac.createDynamicsCompressor();
+      compressor.threshold.value = -6;
+      compressor.knee.value = 3;
+      compressor.ratio.value = 12;
+      compressor.attack.value = 0.003;
+      compressor.release.value = 0.18;
+      masterBus.connect(compressor); compressor.connect(ac.destination);
+      effectsBus = ac.createGain(); effectsBus.connect(masterBus);
+    }
+    effectsBus.gain.value = wordDucking ? 0.3 : 1;
+    return speech ? masterBus : effectsBus;
+  }
+
+  function replaceSfx(name, voice) {
+    const old = sfxVoices.get(name);
+    if (old) { try { old.stop ? old.stop() : old.pause(); } catch {} }
+    sfxVoices.set(name, voice);
+  }
 
   function loadBuffer(path, ac) {
     if (!clipBuffers.has(path)) {
@@ -45,10 +70,11 @@ window.AUDIO = (() => {
     loadBuffer(path,ac).then(buffer=>{
       if (!current()) return;
       const source = ac.createBufferSource(), gain = ac.createGain();
+      if (options.rate && source.playbackRate) source.playbackRate.value = options.rate;
       source.buffer = buffer;gain.gain.value = volume;
-      source.connect(gain);gain.connect(ac.destination);
+      source.connect(gain);gain.connect(output(ac, options.speech));
       bufferSources.add(source);
-      source.onended = () => { bufferSources.delete(source);options.onended?.(); };
+      source.onended = () => { bufferSources.delete(source);options.onended?.(source); };
       options.onstart?.(source);source.start();
     }).catch(()=>{ if (current()) options.onerror?.(); });
     return true;
@@ -92,6 +118,8 @@ window.AUDIO = (() => {
 
   function setWordDucking(enabled) {
     wordDucking = enabled;
+    if (effectsBus) effectsBus.gain.value = enabled ? 0.3 : 1;
+    activeSfx.forEach(audio => { audio.volume = audio.sfxVolume * (enabled ? 0.3 : 1); });
     const target = musicVolume();
     const duration = enabled ? 140 : 220;
     musicTracks().forEach(audio => rampMusicVolume(audio, target, duration));
@@ -143,7 +171,15 @@ window.AUDIO = (() => {
   function playExternalSfx(name, fallback, args, buffered = true) {
     if (muted || suspended) return;
     const src = SFX_FILES[name];
-    if (src && buffered && playBuffer(src,SFX_VOLUME[name] ?? 0.7,{onerror:()=>playExternalSfx(name,fallback,args,false)})) return;
+    const request = (sfxRequests.get(name) || 0) + 1;
+    sfxRequests.set(name, request);
+    if (src && buffered && playBuffer(src,SFX_VOLUME[name] ?? 0.7,{
+      isCurrent:()=>sfxRequests.get(name)===request,
+      rate:name==='warningPulse' ? 0.9 + (args[0] || 0) * 0.08 : 1,
+      onstart:source=>replaceSfx(name,source),
+      onended:source=>{ if (sfxVoices.get(name)===source) sfxVoices.delete(name); },
+      onerror:()=>playExternalSfx(name,fallback,args,false)
+    })) return;
     if (!src || unavailableSfx.has(name)) {
       fallback(...args);
       return;
@@ -159,10 +195,13 @@ window.AUDIO = (() => {
     }
 
     audio.preload = "auto";
-    audio.volume = SFX_VOLUME[name] ?? 0.7;
+    audio.sfxVolume = SFX_VOLUME[name] ?? 0.7;
+    if (name==='warningPulse') audio.playbackRate = 0.9 + (args[0] || 0) * 0.08;
+    audio.volume = audio.sfxVolume * (wordDucking ? 0.3 : 1);
+    replaceSfx(name, audio);
     activeSfx.add(audio);
     let fellBack = false;
-    const cleanup = () => activeSfx.delete(audio);
+    const cleanup = () => { activeSfx.delete(audio); if (sfxVoices.get(name)===audio) sfxVoices.delete(name); };
     const useFallback = reason => {
       cleanup();
       if (fellBack || muted || suspended) return;
@@ -301,7 +340,7 @@ window.AUDIO = (() => {
     osc1.connect(filter);
     osc2.connect(filter);
     filter.connect(gain);
-    gain.connect(ac.destination);
+    gain.connect(output(ac));
 
     osc1.start(now);
     osc2.start(now);
@@ -335,11 +374,11 @@ window.AUDIO = (() => {
     noiseGain.gain.setValueAtTime(vol * 0.7, now);
     noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
     noise.connect(noiseGain);
-    noiseGain.connect(ac.destination);
+    noiseGain.connect(output(ac));
     noise.start(now);
 
     osc.connect(gain);
-    gain.connect(ac.destination);
+    gain.connect(output(ac));
     osc.start(now);
     osc.stop(now + 0.4);
   }
@@ -360,7 +399,7 @@ window.AUDIO = (() => {
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
 
     osc.connect(gain);
-    gain.connect(ac.destination);
+    gain.connect(output(ac));
     osc.start(now);
     osc.stop(now + 0.1);
   }
@@ -380,7 +419,7 @@ window.AUDIO = (() => {
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35 + idx * 0.02);
 
       osc.connect(gain);
-      gain.connect(ac.destination);
+      gain.connect(output(ac));
       osc.start(now + idx * 0.015);
       osc.stop(now + 0.4);
     });
@@ -399,6 +438,23 @@ window.AUDIO = (() => {
     },
     lose() {
       [392, 329.63, 261.63, 196].forEach((freq, i) => setTimeout(() => playShamisen(freq, 0.6, 0.1), i * 240));
+    },
+    // 燈油耗盡：BGM 淡出後停止（updateBgm 在 lampout 狀態不再重新啟動音樂）。
+    fadeOutMusic(duration = 700) {
+      musicShouldPlay = false;
+      musicTracks().forEach(audio => { if (!audio.paused) rampMusicVolume(audio, 0, duration); });
+      setTimeout(() => musicTracks().forEach(audio => audio.pause()), duration + 30);
+    },
+    // 重玩或回到地圖時，音樂從頭開始，不接著上一局的進度。
+    restartMusic() {
+      musicTracks().forEach(audio => {
+        audio.pause();
+        try { audio.currentTime = 0; } catch {}
+        bgmAttempts.delete(audio);
+      });
+      activeBgm = null;
+      bgmStep = 0;
+      bgmTimer = 0;
     },
     init() {
       const ac = getCtx();
@@ -431,9 +487,18 @@ window.AUDIO = (() => {
       if (ctx && ctx.state === "running") ctx.suspend().catch(() => {});
     },
     isMuted: () => muted,
+    stopSpeech() {
+      stopWord();
+      window.speechSynthesis?.cancel();
+    },
     toggleMute() {
       muted = !muted;
       try { localStorage.setItem("yokai-muted-v1", String(muted)); } catch {}
+      for (const id of bgmRamps.values()) {
+        if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(id);
+      }
+      bgmRamps.clear();
+      musicTracks().forEach(audio => { audio.volume = musicVolume(); });
       if (muted) musicTracks().forEach(audio => audio.pause());
       else if (musicShouldPlay && activeBgm) playMusic(activeBgm, true);
       if (muted) {
@@ -461,7 +526,7 @@ window.AUDIO = (() => {
       gain.gain.setValueAtTime(0.12, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
       osc.connect(gain);
-      gain.connect(ac.destination);
+      gain.connect(output(ac));
       osc.start(now);
       osc.stop(now + 0.14);
     },
@@ -479,7 +544,7 @@ window.AUDIO = (() => {
       gain.gain.setValueAtTime(0.08, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
       osc.connect(gain);
-      gain.connect(ac.destination);
+      gain.connect(output(ac));
       osc.start(now);
       osc.stop(now + 0.16);
     },
@@ -497,7 +562,7 @@ window.AUDIO = (() => {
       gain.gain.setValueAtTime(0.09, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
       osc.connect(gain);
-      gain.connect(ac.destination);
+      gain.connect(output(ac));
       osc.start(now);
       osc.stop(now + 0.23);
     },
@@ -515,7 +580,7 @@ window.AUDIO = (() => {
       gain.gain.setValueAtTime(0.25, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
       osc.connect(gain);
-      gain.connect(ac.destination);
+      gain.connect(output(ac));
       osc.start(now);
       osc.stop(now + 0.4);
       playTaiko(75, 0.25);
@@ -534,7 +599,7 @@ window.AUDIO = (() => {
       gain.gain.setValueAtTime(0.1, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.17);
       osc.connect(gain);
-      gain.connect(ac.destination);
+      gain.connect(output(ac));
       osc.start(now);
       osc.stop(now + 0.18);
     },
@@ -553,7 +618,7 @@ window.AUDIO = (() => {
       gain.gain.setValueAtTime(0.18, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
       osc.connect(gain);
-      gain.connect(ac.destination);
+      gain.connect(output(ac));
       osc.start(now);
       osc.stop(now + 0.36);
     },
@@ -571,7 +636,7 @@ window.AUDIO = (() => {
       gain.gain.setValueAtTime(0.08, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
       osc.connect(gain);
-      gain.connect(ac.destination);
+      gain.connect(output(ac));
       osc.start(now);
       osc.stop(now + 0.1);
     },
@@ -589,7 +654,7 @@ window.AUDIO = (() => {
       gain.gain.setValueAtTime(0.12, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
       osc.connect(gain);
-      gain.connect(ac.destination);
+      gain.connect(output(ac));
       osc.start(now);
       osc.stop(now + 0.24);
     },
@@ -630,6 +695,7 @@ window.AUDIO = (() => {
           try {audio.play().catch(()=>endWordSpeech(nonce));}catch(e){endWordSpeech(nonce);}
         };
         if (playBuffer(`assets/audio/words/${file}.mp3`,1,{
+          speech:true,
           isCurrent:()=>nonce===wordSpeechNonce,
           onstart:source=>{wordSource=source;},
           onended:()=>{if(nonce===wordSpeechNonce)wordSource=null;endWordSpeech(nonce);},
@@ -671,7 +737,7 @@ window.AUDIO = (() => {
       gain.gain.setValueAtTime(0.15, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
       osc.connect(gain);
-      gain.connect(ac.destination);
+      gain.connect(output(ac));
       osc.start(now);
       osc.stop(now + 0.35);
     },
@@ -700,7 +766,7 @@ window.AUDIO = (() => {
     // 背景音樂：旅路地圖用 MAP.mp3、遊戲用 BGM.mp3。
     // 外部檔不存在時才退回日式五音程序化循環。
     updateBgm(dt, state, elapsed, dawnTime) {
-      if (suspended) return;
+      if (suspended || state === "lampout") return;
       const paused = state === "pause";
       if (pauseDucking !== paused) {
         pauseDucking = paused;

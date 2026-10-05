@@ -65,7 +65,8 @@ test("rain-port is implemented but stays sealed until night-town is cleared", ()
   assert.equal(sealed.ok, false);
   assert.equal(sealed.locked, true);
   assert.equal(CONTENT.getStage(sealed.stageId).implemented, true);
-  assert.ok(rain.lockedPulse > 0);
+  assert.equal(rain.currentId, "rain-port");
+  assert.equal(rain.targetId, null);
 
   global.STORE = {
     isStageCompleted: id => id === "night-town",

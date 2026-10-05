@@ -2,6 +2,34 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
+
+test('muting during a speech ramp cannot leave stale music volume after unmute',()=>{
+  const ramps=new Map();let next=0;
+  class Audio {constructor(){this.paused=true;this.volume=0.27;}addEventListener(){}play(){this.paused=false;return Promise.resolve();}pause(){this.paused=true;}}
+  const track=new Audio(),env={window:{BGM:track},Audio,console,setTimeout,clearTimeout,performance:{now:()=>0},requestAnimationFrame:cb=>{ramps.set(++next,cb);return next;},cancelAnimationFrame:id=>ramps.delete(id)};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  const a=env.window.AUDIO;a.updateBgm(0.01,'play',0,600);a.speak('ねこ');a.toggleMute();a.toggleMute();
+  assert.equal(ramps.size,0);assert.equal(track.volume,0.27);assert.equal(track.paused,false);
+});
+
+test('repeated buffered shield effects replace the previous voice',async()=>{
+  const f=bufferedAudioFixture();f.a.breakShield();f.load();await drainAudio();
+  f.a.breakShield();await drainAudio();
+  assert.equal(f.sources.length,2);assert.equal(f.sources[0].stopped,true);
+});
+
+test('Web Audio output shares compression and ducks effects while speech plays',()=>{
+  const gains=[],compressors=[];
+  class Context extends PlaybackTestContext {
+    createGain(){const n=super.createGain();n.gain.value=1;gains.push(n);return n;}
+    createDynamicsCompressor(){const n={connect(){}};for(const k of ['threshold','knee','ratio','attack','release'])n[k]={value:0};compressors.push(n);return n;}
+  }
+  class Audio {constructor(){}addEventListener(){}pause(){}play(){return Promise.resolve();}}
+  const env={window:{AudioContext:Context},Audio,console,setTimeout:()=>0,clearTimeout};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  const a=env.window.AUDIO;a.pickup();assert.equal(compressors.length,1);assert.equal(compressors[0].ratio.value,12);
+  a.speak('ねこ');const ducked=gains.filter(n=>n.gain.value===0.3);assert.equal(ducked.length,1);a.stopSpeech();assert.equal(ducked[0].gain.value,1);
+});
 test('blocked BGM attempts once until a user gesture retries it', async()=>{
   let attempts=0;const track={paused:true,volume:0,pause(){},play(){attempts++;return Promise.reject(new Error('NotAllowedError'));}};
   class Audio {addEventListener(){} pause(){} play(){return Promise.resolve();}}
@@ -9,6 +37,16 @@ test('blocked BGM attempts once until a user gesture retries it', async()=>{
   vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
   const a=env.window.AUDIO;for(let i=0;i<60;i++)a.updateBgm(0.016,'play',0,600);
   await Promise.resolve();assert.equal(attempts,1);a.init();assert.equal(attempts,2);
+});
+
+test('restartMusic rewinds both tracks so replay and map start from the beginning',()=>{
+  const mk=()=>({paused:false,volume:0,currentTime:42,pause(){this.paused=true;},play(){this.paused=false;return Promise.resolve();}});
+  const bgm=mk(),map=mk();class Audio {addEventListener(){} pause(){} play(){return Promise.resolve();}}
+  const env={window:{BGM:bgm,MAP_BGM:map,AudioContext:class {}},Audio,console,setTimeout,clearTimeout};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  env.window.AUDIO.restartMusic();
+  assert.equal(bgm.currentTime,0);assert.equal(map.currentTime,0);assert.equal(bgm.paused,true);
+  env.window.AUDIO.updateBgm(0.016,'play',0,600);assert.equal(bgm.paused,false);
 });
 
 test('mute setting persists across audio reloads',()=>{

@@ -1,0 +1,208 @@
+{
+  "note": "Seeded emission geometry proxy, not measured screen brightness or FPS.",
+  "events": {
+    "katana": {
+      "swing": [
+        {
+          "level": 1,
+          "particles": 4,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 3,
+          "particles": 8,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 5,
+          "particles": 13,
+          "diffuseAreaProxy": 0
+        }
+      ],
+      "hit": [
+        {
+          "level": 1,
+          "particles": 4,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 3,
+          "particles": 7,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 5,
+          "particles": 12,
+          "diffuseAreaProxy": 0
+        }
+      ]
+    },
+    "barrier": {
+      "cast": [
+        {
+          "level": 1,
+          "particles": 6,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 3,
+          "particles": 11,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 5,
+          "particles": 17,
+          "diffuseAreaProxy": 0
+        }
+      ]
+    },
+    "needle": {
+      "fire": [
+        {
+          "level": 1,
+          "particles": 2,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 3,
+          "particles": 4,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 5,
+          "particles": 6,
+          "diffuseAreaProxy": 0
+        }
+      ],
+      "trail": [
+        {
+          "level": 1,
+          "particles": 1,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 3,
+          "particles": 2,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 5,
+          "particles": 3,
+          "diffuseAreaProxy": 0
+        }
+      ],
+      "hit": [
+        {
+          "level": 1,
+          "particles": 3,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 3,
+          "particles": 6,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 5,
+          "particles": 10,
+          "diffuseAreaProxy": 0
+        }
+      ]
+    },
+    "boom": {
+      "trail": [
+        {
+          "level": 1,
+          "particles": 1,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 3,
+          "particles": 3,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 5,
+          "particles": 4,
+          "diffuseAreaProxy": 0
+        }
+      ],
+      "hit": [
+        {
+          "level": 1,
+          "particles": 6,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 3,
+          "particles": 11,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 5,
+          "particles": 36,
+          "diffuseAreaProxy": 0
+        }
+      ]
+    },
+    "fire": {
+      "ember": [
+        {
+          "level": 1,
+          "particles": 1,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 3,
+          "particles": 3,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 5,
+          "particles": 4,
+          "diffuseAreaProxy": 0
+        }
+      ],
+      "hit": [
+        {
+          "level": 1,
+          "particles": 4,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 3,
+          "particles": 6,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 5,
+          "particles": 10,
+          "diffuseAreaProxy": 0
+        }
+      ]
+    },
+    "thunder": {
+      "strike": [
+        {
+          "level": 1,
+          "particles": 7,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 3,
+          "particles": 11,
+          "diffuseAreaProxy": 0
+        },
+        {
+          "level": 5,
+          "particles": 17,
+          "diffuseAreaProxy": 0
+        }
+      ]
+    }
+  },
+  "diffuseAreaProxy": {
+    "before": 338382.5912678659,
+    "after": 0
+  }
+}

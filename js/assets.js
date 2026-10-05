@@ -56,11 +56,7 @@ window.MAP_BGM = null;
 try {
   const bgmAudio = configureMusic(new Audio(window.audioAsset("assets/audio/BGM.mp3")));
   bgmAudio.addEventListener("error", () => {
-    const fallback = configureMusic(new Audio(window.audioAsset("assets/audio/bgm.mp3")));
-    fallback.addEventListener("error", () => {
-      window.BGM = null;
-    }, { once: true });
-    window.BGM = fallback;
+    window.BGM = null;
   }, { once: true });
   window.BGM = bgmAudio;
 

@@ -14,7 +14,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
   const env = { console, Set, Map, Math, Date, performance: { now: () => 0 }, navigator: {}, requestAnimationFrame() {}, localStorage: { getItem: k => storage.get(k) || null, setItem: (k,v) => storage.set(k,v) }, document: { hidden: false, getElementById: id => id === 'controls-open' ? controlsButton : canvas, addEventListener: (k, f) => { documentEvents[k] = f; } }, addEventListener: (k, f) => { events[k] = f; } };
   env.window = env;
   const c = vm.createContext(env);
-  for (const name of ['words', 'world', 'store', 'config', 'viewport', 'controls', 'overworld']) vm.runInContext(fs.readFileSync(`js/${name}.js`, 'utf8'), c);
+  for (const name of ['words', 'world', 'store', 'config', 'viewport', 'controls', 'overworld', 'fx', 'skillfx', 'evolutions']) vm.runInContext(fs.readFileSync(`js/${name}.js`, 'utf8'), c);
   c.CONTROLS.mount = () => {};
   const audioCalls = [];
   c.AUDIO = new Proxy({}, { get: (o, name) => () => audioCalls.push(name) });
@@ -28,11 +28,11 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     upgradeOil: () => UP.find(u=>u.id==='oil_max').f(),
     addRing: () => rings.push({x:P.x,y:P.y,r:40,life:0.08,maxL:0.32,color:'#ffffff'}),
     addBullet: () => enemyBullets.push({x:P.x+180,y:P.y,vx:0,vy:0,life:2}),
+    wallBullet: () => { syncWorld(); solids.push({x0:P.x+150,x1:P.x+210,y0:P.y-40,y1:P.y+40}); enemyBullets.push({x:P.x+180,y:P.y,vx:0,vy:0,life:2}); },
     trapMis: () => { syncWorld(); Object.keys(WL).forEach(k=>WL[k]=0); spawnT=Infinity; const e=enemies.find(e=>e.type==='mis'); solids.splice(0,solids.length,{x0:e.x-40,x1:e.x+40,y0:e.y-40,y1:e.y+40}); },
     buttonGeometry: () => ({pause:{...btnPause},hint:{...UI.HINT_BTN}}),
     blockWrongSpawn: () => { const p=ansPos(job.to)[(job.ans.indexOf(job.word)+1)%3]; solids.splice(0,solids.length,{x0:p.x-230,x1:p.x+230,y0:p.y-230,y1:p.y+230}); },
     tutorialState: () => tutorial,
-    guidePoint: (...args) => guidePoint(...args),
     reviewWords: () => misses,
     answerBoss,
     setOil: value => { oil=value; },
@@ -47,7 +47,8 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     atAnswer: () => { const p=ansPos(job.to)[job.ans.indexOf(job.word)];P.x=p.x;P.y=p.y; },
     dashLesson: () => { elapsed=12; },
     face: angle => { P.faceAng=angle; },
-    combatScene: (weapon, foes, walls=[]) => { Object.keys(WL).forEach(k=>WL[k]=0); WL[weapon]=1; wT[weapon]=0; enemies=foes.map(e=>({x:P.x+e.dx,y:P.y+(e.dy||0),hp:999,max:999,type:'ghost',...e})); solids.splice(0,solids.length,...walls.map(s=>({x0:P.x+s.x0,x1:P.x+s.x1,y0:P.y+s.y0,y1:P.y+s.y1}))); },
+    setWeaponRank: (id,rank) => { WL[id]=rank;wT[id]=Infinity; },
+    combatScene: (weapon, foes, walls=[], level=1) => { Object.keys(WL).forEach(k=>WL[k]=0); WL[weapon]=level; wT[weapon]=0; enemies=foes.map(e=>({x:P.x+e.dx,y:P.y+(e.dy||0),hp:999,max:999,type:'ghost',...e})); solids.splice(0,solids.length,...walls.map(s=>({x0:P.x+s.x0,x1:P.x+s.x1,y0:P.y+s.y0,y1:P.y+s.y1}))); },
     heal: () => UP.find(u=>u.id==='oil_heal').f(),
     blockBossRing: all => { syncWorld(); const radius=spawnRadius(520); solids.splice(0,solids.length,all?{x0:P.x-10000,x1:P.x+10000,y0:P.y-10000,y1:P.y+10000}:{x0:P.x+radius-60,x1:P.x+radius+60,y0:P.y-60,y1:P.y+60}); },
     clearSolids: () => solids.splice(0),
@@ -62,13 +63,179 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     meetDeliveryGoal: () => { delivered=GOAL_DELIVERIES; },
     prepareBoss: (word) => { const bs={x:P.x+200,y:P.y,type:'boss',word:word || ALL[0],hp:999,max:999,shield:true}; enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
     setState: next => { state=next; ended=false; },
-    snapshot: () => ({ state, quitConfirm, needles, menuFocus, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, delivered, bossStage, bossT, finalBossDefeated, gems, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
-    addMis: () => enemies.push({x:P.x+100,y:P.y,type:"mis",w:ALL[0],hp:999,max:999,speed:210,flash:0,wob:0}), emptyHouses: () => houses.splice(0) };`;
+    snapshot: () => ({ state, quitConfirm, needles, proj, winds:typeof winds==='undefined'?[]:winds, ghosts:typeof ghosts==='undefined'?[]:ghosts, menuFocus, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, delivered, bossStage, bossT, finalBossDefeated, gems, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
+    addMis: () => enemies.push({x:P.x+100,y:P.y,type:"mis",w:ALL[0],hp:999,max:999,speed:210,flash:0,wob:0}), emptyHouses: () => houses.splice(0),
+    tune: id => UP.find(u => u.id === id),
+    housesNow: () => houses.map(h => ({ id: h.id, x: h.x, y: h.y, word: h.word })),
+    placeAt: (x, y) => { P.x = x; P.y = y; },
+    ageOrders: seconds => { for (const o of orders) o.life -= seconds; },
+    failCount: () => failed,
+    codexCount: () => codexWords().length };`;
   vm.runInContext(source.slice(0, end) + hook + source.slice(end), c);
   return { ...c.fixture, events, canvasEvents, documentEvents, env: c, audioCalls, drawnText, actorCalls, transforms };
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
+
+test('Lv5 katana launches a piercing wind blade at a distant forward foe, never behind or through buildings',()=>{
+  for(const walls of [[],[{x0:140,x1:160,y0:-100,y1:100}]]){
+    const g=loadGame();g.start();g.face(0);g.combatScene('katana',[{dx:360},{dx:-150}],walls,5);
+    for(let i=0;i<31;i++)g.weapons(0.01);assert.ok(g.snapshot().winds.length>0);
+    for(let i=0;i<80;i++)g.weapons(0.01);
+    assert.equal(g.snapshot().enemies[1].hp,999);
+    assert.equal(g.snapshot().enemies[0].hp<999,walls.length===0);
+  }
+});
+
+test('one wind blade pierces at most three foes',()=>{
+  const g=loadGame();g.start();g.face(0);g.combatScene('katana',[{dx:360},{dx:400},{dx:440},{dx:500}],[],5);
+  for(let i=0;i<112;i++)g.weapons(0.01);
+  const foes=g.snapshot().enemies;assert.ok(foes.slice(0,3).every(e=>e.hp<999));assert.equal(foes[3].hp,999);
+});
+
+test('Lv5 paper talismans actually explode over an area; Lv4 still only hits its flight path',()=>{
+  for(const level of [4,5]){
+    const g=loadGame();g.start();g.combatScene('boom',[{dx:180},{dx:180,dy:90},{dx:180,dy:240}],[],level);
+    for(let i=0;i<42;i++)g.weapons(0.01);
+    const foes=g.snapshot().enemies;assert.ok(foes[0].hp<999);
+    assert.equal(foes[1].hp<999,level===5);assert.equal(foes[2].hp,999);
+    if(level===5){assert.equal(foes[0].hp,993);assert.equal(foes[1].hp,993);}
+  }
+});
+
+test('Lv5 foxfire launches homing spirits and can damage a foe beyond the old orbit',()=>{
+  const g=loadGame();g.start();g.combatScene('fire',[{dx:330,dy:60}],[],5);g.weapons(0.01);
+  assert.ok(g.snapshot().ghosts.length>0);
+  for(let i=0;i<170;i++)g.weapons(0.01);
+  assert.ok(g.snapshot().enemies[0].hp<999);assert.ok(g.snapshot().ghosts.length<=20);
+});
+
+test('Lv5 foxfire replaces contact damage instead of silently stacking the old orbit attack',()=>{
+  const g=loadGame();g.start();g.combatScene('fire',[{dx:98}],[],5);g.weapons(0.001);
+  assert.ok(Math.abs(g.snapshot().enemies[0].hp-(999-6.8*1.2))<1e-8);
+});
+
+test('homing spirits stop at a building before a distant target',()=>{
+  const g=loadGame();g.start();g.combatScene('fire',[{dx:330}], [{x0:140,x1:160,y0:-500,y1:500}],5);
+  for(let i=0;i<200;i++)g.weapons(0.01);assert.equal(g.snapshot().enemies[0].hp,999);
+});
+
+test('Lv5 needles bend once after launch while Lv4 stays straight',()=>{
+  for(const level of [4,5]){
+    const g=loadGame();g.start();g.face(0);g.combatScene('needle',[{dx:420}],[],level);g.weapons(0.01);
+    const nd=g.snapshot().needles[0],initial=Math.atan2(nd.vy,nd.vx);
+    for(let i=0;i<12;i++)g.weapons(0.01);
+    const turned=Math.abs(Math.atan2(nd.vy,nd.vx)-initial)>0.03;
+    assert.equal(turned,level===5);
+  }
+});
+
+test('awakening mid-flight does not turn old straight needles or returning talismans into a different attack',()=>{
+  for(const skill of ['needle','boom']){
+    const g=loadGame();g.start();g.combatScene(skill,[{dx:420}],[],4);g.weapons(0.01);
+    const old=skill==='needle'?g.snapshot().needles[0]:g.snapshot().proj[0];assert.equal(old.level,4);
+    g.setWeaponRank(skill,5);for(let i=0;i<(skill==='needle'?20:65);i++)g.weapons(0.01);
+    assert.equal(old.level,4);if(skill==='needle')assert.equal(old.curve,false);else assert.equal(old.back,true);
+  }
+});
+
+test('Lv5 thunder domain hits every eligible foe once, excludes distant foes and preserves the Boss shield',()=>{
+  const g=loadGame();g.start();g.combatScene('thunder',Array.from({length:6},(_,i)=>({dx:120+i*30,dy:i%2*80})).concat([{dx:550},{dx:200,shield:true,type:'boss'}]),[],5);
+  g.env.Math=Object.create(Math);g.env.Math.random=()=>1;g.weapons(0.01);
+  const foes=g.snapshot().enemies;for(const e of foes.slice(0,6))assert.equal(e.hp,999-11*1.2);
+  assert.equal(foes[6].hp,999);assert.equal(foes[7].hp,999);
+});
+
+test('overlapping thunder centers never multiply a single cast and raw damage grows at every level',()=>{
+  const damage=[];
+  for(const level of [1,2,3,4,5]){
+    const g=loadGame();g.start();g.combatScene('thunder',[{dx:120},{dx:125},{dx:130}],[],level);
+    g.env.Math=Object.create(Math);g.env.Math.random=()=>1;g.weapons(0.01);
+    const values=g.snapshot().enemies.map(e=>999-e.hp);assert.ok(values.every(d=>Math.abs(d-(3.5+level*1.5)*1.2)<1e-8));damage.push(values[0]);
+  }
+  assert.ok(damage.every((d,i)=>!i||d>damage[i-1]));
+});
+
+test('awakening projectiles reset on restart and none bypass a shielded Boss',()=>{
+  for(const skill of ['katana','fire','boom','needle','thunder']){
+    const g=loadGame();g.start();g.face(0);g.combatScene(skill,[{dx:180,shield:true,type:'boss',hp:999}],[],5);
+    for(let i=0;i<200;i++)g.weapons(0.01);
+    assert.equal(g.snapshot().enemies[0].hp,999,skill);
+    g.start();assert.equal(g.snapshot().winds.length+g.snapshot().ghosts.length,0);
+  }
+});
+
+test('a long MAX volley run keeps wind, spirits, needles and explosive talismans bounded',()=>{
+  const g=loadGame();g.start();g.face(0);
+  for(const skill of ['katana','fire','needle','boom']){
+    g.combatScene(skill,Array.from({length:40},(_,i)=>({dx:280+i*2,dy:(i%7-3)*32,hp:999999})),[],5);
+    for(let i=0;i<1000;i++)g.weapons(0.05);
+    const s=g.snapshot();assert.ok(s.winds.length<=8&&s.ghosts.length<=20&&s.needles.length<=21&&s.proj.length<=9);
+  }
+});
+
+test('redesigned foxfire bodies retain the combat orbit and count at all five levels',()=>{
+  const g=loadGame();g.start();const counts=[2,4,5,5,5];
+  for(const level of [1,2,3,4,5]){
+    g.combatScene('fire',[],[],level);const flames=[];
+    g.env.SKILLFX.paint=(ctx,id,lv,p)=>{if(id==='fire')flames.push({lv,p});};
+    g.drawWorld();assert.equal(flames.length,counts[level-1]);
+    for(const {lv,p} of flames){assert.equal(lv,level);assert.ok(Math.abs(Math.hypot(p.x-g.snapshot().x,p.y-g.snapshot().y)-98)<1e-8);assert.equal(p.origin.x,g.snapshot().x);assert.equal(p.origin.y,g.snapshot().y);}
+  }
+});
+
+test('hit stop still advances oil and the Boss clock',()=>{
+  const g=loadGame();g.start();const before=g.snapshot();
+  g.env.RENDERER.updateEffects=()=>true;g.frame(50);
+  const after=g.snapshot();assert.ok(after.elapsed>before.elapsed);assert.ok(after.oil<before.oil);assert.ok(after.bossT<before.bossT);
+});
+
+test('pause stops speech and ages visual effects',()=>{
+  const g=loadGame();g.start();let updates=0;g.env.RENDERER.updateEffects=()=>{updates++;return false;};
+  g.events.keydown(key('Escape','Escape'));g.frame(16);
+  assert.ok(g.audioCalls.includes('stopSpeech'));assert.equal(updates,1);
+});
+
+test('rain is static when reduced motion is requested',()=>{
+  const g=loadGame();g.start('rain-port');g.env.matchMedia=()=>({matches:true});
+  const points=[];g.env.RENDERER.getCtx().moveTo=(x,y)=>points.push([x,y]);
+  g.drawStageWeather(0);const first=JSON.stringify(points);points.length=0;g.drawStageWeather(1);
+  assert.equal(JSON.stringify(points),first);
+});
+
+test('mobile menu and codex tabs accept expanded touch targets',()=>{
+  const g=loadGame();g.env.innerWidth=844;g.env.innerHeight=390;g.frame(16);
+  const v=g.env.VIEWPORT.get(),bt=g.env.UI.MENU_BTNS.find(b=>b.id==='codex');
+  const tap=(x,y)=>g.canvasEvents.pointerdown(pointer((x+v.offsetX)*v.scale,(y+v.offsetY)*v.scale,'touch'));
+  tap(bt.x+bt.w/2,bt.y+bt.h+8);assert.equal(g.snapshot().state,'codex');
+  tap(360,49);assert.equal(g.snapshot().codexTab,'cards');
+});
+
+test('pause hit target stays inside the HUD edge and outside score text',()=>{
+  const g=loadGame();g.env.innerWidth=568;g.env.innerHeight=320;g.start();g.frame(16);
+  const v=g.env.VIEWPORT.get(),bounds=g.env.VIEWPORT.hudBounds(),bt=g.buttonGeometry().pause,half=Math.max(0,(44/v.scale-bt.w)/2);
+  assert.ok(bt.x+bt.w+half<=bounds.right+1e-8);
+  g.canvasEvents.pointerdown(pointer((bounds.right-90+v.offsetX)*v.scale,(bt.y+bt.h/2+v.offsetY)*v.scale,'touch'));
+  assert.equal(g.snapshot().state,'play');
+});
+
+test('enemy bullets expire inside buildings',()=>{
+  const g=loadGame();g.start();g.wallBullet();g.update(0.01);
+  assert.equal(g.snapshot().enemyBullets.length,0);
+});
+
+test('distant misdelivery enemies despawn without clearing the saved mistake',()=>{
+  const g=loadGame();g.start();g.prepareOrder();const j=g.snapshot().job;
+  g.resolve((j.ans.indexOf(j.word)+1)%3);g.placeAt(20000,20000);g.env.RENDERER.getCam=()=>({x:19550,y:19700});g.update(1);
+  assert.equal(g.snapshot().enemies.some(e=>e.type==='mis'),false);
+  assert.equal(g.env.STORE.get(j.word.jp).missBoost,2.5);
+});
+
+test('defeating the previous Boss does not postpone an already due final Boss',()=>{
+  const g=loadGame();g.start();
+  for(let i=0;i<3;i++){g.advanceBossClock(0);g.update(0.01);const boss=g.snapshot().enemies.find(e=>e.type==='boss');boss.shield=false;if(i===2)g.setElapsed(589);g.hurt(boss,99999);g.update(0.01);}
+  assert.ok(g.snapshot().bossT<2);
+});
 
 test('rain motion follows its streak direction and rain-port has no petals or fireflies',()=>{
   const g=loadGame();g.start('rain-port');
@@ -96,6 +263,10 @@ test('frame errors pause the run, show recovery text and keep the next frame sch
   g.env.console={error(){}};g.env.RENDERER.drawGround=()=>{throw new Error('draw failed');};
   assert.doesNotThrow(()=>g.frame(16));assert.equal(scheduled,1);assert.equal(g.snapshot().state,'pause');
   assert.ok(g.drawnText.some(t=>t.includes('重新整理')));
+  g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'menu');
+  g.env.RENDERER.drawGround=()=>{throw new Error('draw failed');};
+  g.setState('play');assert.doesNotThrow(()=>g.frame(32));assert.equal(g.snapshot().state,'pause');
+  g.canvasEvents.pointerdown(pointer(20,20));assert.equal(g.snapshot().state,'menu');
 });
 
 test('shield hit feedback is throttled and colored rings fade',()=>{
@@ -136,27 +307,12 @@ test('rain-port runtime uses reduced shooter pressure and the intended recovery 
     results[stage].firstBossHp=g.snapshot().enemies.find(e=>e.type==='boss').hp;
   }
   assert.equal(results['rain-port'].shooters,16);
-  assert.equal(results['night-town'].shooters,14);
+  assert.equal(results['night-town'].shooters,0); // 第一關新手關不出現燈籠怪
   assert.equal(results['rain-port'].ghostSpeed,results['night-town'].ghostSpeed);
   assert.equal(results['rain-port'].goal,6);assert.equal(results['rain-port'].xp,30);
   assert.ok(Math.abs(results['rain-port'].spawnInterval/results['night-town'].spawnInterval-1.15)<1e-9);
   assert.equal(results['rain-port'].firstBossHp,33);
   t.diagnostic(JSON.stringify({scenario:'runtime-stage-pressure',results}));
-});
-
-test('offscreen guides reach actual viewport edges along the target direction',()=>{
-  for(const [width,height] of [[900,600],[844,390],[2560,1080],[800,600]]) {
-    const g=loadGame();g.env.innerWidth=width;g.env.innerHeight=height;g.start();
-    const s=g.snapshot(),bounds=g.env.VIEWPORT.bounds();
-    for(const [dx,dy] of [[10000,0],[-10000,0],[0,10000],[0,-10000],[10000,10000]]) {
-      const p=g.guidePoint({x:s.x+dx,y:s.y+dy});
-      assert.ok(p.x>=bounds.left+50-1e-8 && p.x<=bounds.right-50+1e-8);
-      assert.ok(p.y>=bounds.top+95-1e-8 && p.y<=bounds.bottom-50+1e-8);
-      if(!dy) assert.ok(Math.abs(p.x-(dx>0?bounds.right-50:bounds.left+50))<1e-8);
-      if(!dx) assert.ok(Math.abs(p.y-(dy>0?bounds.bottom-50:bounds.top+95))<1e-8);
-      if(dx && dy) assert.ok(Math.abs((p.x-450)-(p.y-300))<1e-8);
-    }
-  }
 });
 
 test('abandon confirmation defaults to keeping the paused run and blocks covered actions',()=>{
@@ -234,8 +390,10 @@ test('lethal Boss mistake still reaches settlement review before run ends', () =
   const g=loadGame();g.start();g.prepareBoss();g.setOil(8);
   const q=g.snapshot().bossQ;
   g.answerBoss(q.ans.findIndex(w=>w!==q.word));
-  assert.equal(g.snapshot().state,'lost');
+  assert.equal(g.snapshot().state,'lampout'); // 先演出燈滅，再結算
   assert.equal(g.reviewWords().length,1);
+  for(let i=1;i<=60;i++) g.frame(i*50);
+  assert.equal(g.snapshot().state,'lost');
   assert.equal(g.env.STORE.get(q.word.jp).ng,1);
 });
 
@@ -295,7 +453,7 @@ test('hinted same-word delivery auto-submits after 0.45 seconds while Boss remai
   const submitted=g.snapshot();
   assert.equal(submitted.job,null);
   assert.equal(submitted.score,25);
-  assert.ok(Math.abs(submitted.oil-oilBefore-10)<0.01);
+  assert.ok(Math.abs(submitted.oil-oilBefore-4)<0.01);
   assert.ok(submitted.bossQ);
   assert.equal(submitted.enemies.find(e=>e.type==='boss').shield,true);
   assert.equal(g.env.STORE.get(jp).ok,1);
@@ -341,15 +499,15 @@ test('Boss assistance survives leaving and reentering quiz range',()=>{
   assert.equal(g.env.STORE.get(q.word.jp).box,0);
 });
 
-test('Boss assistance clears for a changed word and for a replay',t=>{
+test('Boss assistance stays on a changed word and clears on a replay',t=>{
   const g=loadGame();g.start();g.prepareBoss();
   const old=g.snapshot().bossQ.word.jp;
   g.answerBoss(g.snapshot().bossQ.ans.findIndex(w=>w.jp!==old));g.unlockBoss();
   g.answerBoss(g.snapshot().bossQ.ans.findIndex(w=>w.jp!==old));g.unlockBoss();
   const next=g.snapshot().bossQ;assert.notEqual(next.word.jp,old);
-  assert.equal(next.wasAssisted,false);
-  g.answerBoss(next.ans.indexOf(next.word));assert.equal(g.env.STORE.get(next.word.jp).box,1);
-  t.diagnostic(JSON.stringify({scenario:'changed-word-clears-assistance',assisted:next.wasAssisted,afterAnswer:{...g.env.STORE.get(next.word.jp)}}));
+  assert.equal(next.wasAssisted,true);
+  g.answerBoss(next.ans.indexOf(next.word));assert.equal(g.env.STORE.get(next.word.jp).box,0);
+  t.diagnostic(JSON.stringify({scenario:'changed-word-keeps-assistance',assisted:next.wasAssisted,afterAnswer:{...g.env.STORE.get(next.word.jp)}}));
   g.start();g.prepareBoss(g.env.CONTENT.getStageWords('night-town').find(w=>w.jp===old));
   const replay=g.snapshot().bossQ;g.answerBoss(replay.ans.indexOf(replay.word));
   assert.equal(replay.wasAssisted,false);
@@ -511,13 +669,20 @@ test('custom movement, dash and blur route through real event listeners', () => 
   g.events.blur(); assert.equal(g.snapshot().state, 'pause');
   const elapsed = g.snapshot().elapsed; g.update(0.05); assert.equal(g.snapshot().elapsed, elapsed);
 });
-test('misdelivery enemy settles away from player and retains a ranged penalty', () => {
-  const g = loadGame(); g.start(); g.addMis();
+test('misdelivery enemy settles away from player and retains a ranged penalty after the tutorial stage', () => {
+  const g = loadGame(); g.start('rain-port'); g.addMis();
   for (let i = 0; i < 65; i++) g.update(0.05);
   const s = g.snapshot(), enemy = s.enemies.find(e => e.type === 'mis');
   assert.ok(enemy);
   assert.ok(Math.hypot(enemy.x - s.x, enemy.y - s.y) >= 80);
   assert.ok(s.enemyBullets.length > 0 || s.oil < 95);
+});
+test('first stage enemies never fire bullets', () => {
+  const g = loadGame(); g.start(); g.addMis();
+  for (let i = 0; i < 65; i++) g.update(0.05);
+  const s = g.snapshot();
+  assert.ok(s.enemies.some(e => e.type === 'mis'));
+  assert.equal(s.enemyBullets.length, 0);
 });
 test('empty pickup pool cannot crash order creation', () => {
   const g = loadGame(); g.start(); g.emptyHouses(); assert.doesNotThrow(() => g.makeOrder());
@@ -535,6 +700,16 @@ test('cargo stays visible beside an idle courier with no movement history', () =
   for (let i = 0; i < 30; i++) g.update(0.05);
   const s = g.snapshot();
   assert.ok(Math.hypot(s.cargo.x - s.x, s.cargo.y - s.y) >= 63.9);
+});
+
+test('cargo icon is painted behind the courier, never over the face', () => {
+  const g = loadGame(); g.start(); g.prepareOrder();
+  g.env.UI.drawWordCue = () => g.actorCalls.push('cargo');
+  g.drawWorld();
+  const i = g.actorCalls.indexOf('player');
+  assert.ok(i > 0);
+  assert.equal(g.actorCalls[i - 1], 'cargo');
+  assert.equal(g.actorCalls.filter(n => n === 'cargo').length, 1);
 });
 
 test('Boss death and settlement audio fire once per event, not once per frame', () => {
@@ -592,11 +767,10 @@ test('scheduled Boss shield, kill reward and overdue successor follow one lifecy
   assert.equal(g.snapshot().gems.length-gemCount,9);
   assert.equal(g.audioCalls.filter(n=>n==='bossDeath').length,1);
   g.update(0.01);
-  const successor=g.snapshot().enemies.find(e=>e.type==='boss');
-  assert.ok(successor);assert.notEqual(successor,boss);
-  assert.equal(g.snapshot().bossStage,2);assert.equal(successor.shield,true);
-  assert.ok(Math.abs(g.snapshot().bossT-(540-g.snapshot().elapsed))<1e-9);
-  t.diagnostic(JSON.stringify({scenario:'boss-kill-and-successor',killScore:400,killOil:35,gemDrops:9,masteryBefore:learned.box,masteryAfter:g.env.STORE.get(q.word.jp).box,bossStage:g.snapshot().bossStage,nextSchedule:540}));
+  assert.equal(g.snapshot().enemies.filter(e=>e.type==='boss' && e.hp>0).length,1);
+  assert.equal(g.snapshot().bossStage,2);
+  assert.ok(g.snapshot().bossT>170);
+  t.diagnostic(JSON.stringify({scenario:'boss-kill-and-breather',killScore:400,killOil:35,gemDrops:9,masteryBefore:learned.box,masteryAfter:g.env.STORE.get(q.word.jp).box,bossStage:g.snapshot().bossStage,bossT:g.snapshot().bossT}));
 });
 
 for(const assisted of [false,true]) {
@@ -651,7 +825,11 @@ test('final Boss requires the delivery goal and victory settles progression only
   let finishes=0;
   const finish=g.env.STORE.finish;
   g.env.STORE.finish=(...args)=>{finishes++;return finish(...args);};
-  g.meetDeliveryGoal();g.update(0.01);
+  g.setElapsed(700);g.update(0.01);
+  assert.equal(g.snapshot().state,'play');
+  g.setElapsed(590);g.meetDeliveryGoal();g.update(0.01);
+  assert.equal(g.snapshot().state,'play');
+  g.setElapsed(600);g.update(0.01);
   assert.equal(g.snapshot().state,'victory');assert.equal(finishes,0);
   for(let i=1;i<=95;i++) g.frame(i*50);
   assert.equal(g.snapshot().state,'victory');assert.equal(finishes,0);
@@ -665,6 +843,42 @@ test('final Boss requires the delivery goal and victory settles progression only
   assert.equal(stats.bestScore,g.snapshot().score);
   assert.equal(stats.bestDeliveries,g.snapshot().delivered);
   t.diagnostic(JSON.stringify({scenario:'final-boss-victory-settlement',state:g.snapshot().state,finishes,score:g.snapshot().score,delivered:g.snapshot().delivered,stats:{...stats},rainPortUnlocked:true}));
+});
+
+test('final victory sequence: boss shakes and explodes, minions burn away, dawn rises, then settlement after 2s',()=>{
+  const g=loadGame();g.start();g.clearSolids();
+  for(let stage=0;stage<4;stage++) {
+    g.advanceBossClock(0.01);g.setOil(100);g.update(0.01);
+    const boss=g.snapshot().enemies.find(e=>e.type==='boss');
+    g.moveBoss(200);g.update(0.01);g.unlockBoss();
+    const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
+    g.hurt(boss,999);g.update(0.01);
+  }
+  g.env.Math=Object.create(Math);g.env.Math.random=()=>0.3;
+  for(let i=0;i<5;i++) g.spawnEnemy(1,300);
+  g.setElapsed(590);g.meetDeliveryGoal();g.setElapsed(600);g.update(0.01);
+  assert.equal(g.snapshot().state,'victory');
+  const shakes=[];const trigger=g.env.RENDERER.triggerShake;g.env.RENDERER.triggerShake=n=>{shakes.push(n);return trigger(n);};
+  const at=ms=>{const s=g.snapshot();return {state:s.state,boss:s.enemies.filter(e=>e.type==='boss').length,minions:s.enemies.filter(e=>e.type!=='boss').length};};
+  let i=0;const run=sec=>{while(i*50<sec*1000)g.frame(++i*50);};
+  run(0.8);assert.deepEqual(at(),{state:'victory',boss:1,minions:5});          // 小怪定格、Boss 還在抖動爆炸
+  run(1.8);assert.deepEqual(at(),{state:'victory',boss:0,minions:5});          // Boss 大爆後消失，小怪尚在
+  run(2.5);assert.ok(at().minions>0);                                            // 小怪燃燒中
+  run(3.05);assert.deepEqual(at(),{state:'victory',boss:0,minions:0});         // 小怪燒光，曙光才開始
+  run(4.8);assert.equal(at().state,'victory');                                  // 曙光亮起後仍停留約 2 秒
+  run(5.2);assert.equal(at().state,'won');
+  assert.deepEqual(shakes,[]);                                                  // 全程沒有整個畫面的地震式震動
+});
+
+test('running out of oil snuffs the lamp, fades the BGM, and settles only after two dark seconds',()=>{
+  const g=loadGame();g.start();g.setOil(0.01);
+  let i=0;const run=sec=>{while(i*50<sec*1000)g.frame(++i*50);};
+  run(0.3);assert.equal(g.snapshot().state,'lampout');
+  assert.ok(g.audioCalls.includes('fadeOutMusic'));
+  assert.equal(g.audioCalls.includes('lose'),false);
+  run(0.8+2.0-0.3);assert.equal(g.snapshot().state,'lampout'); // 燈滅後的 2 秒黑暗還沒走完
+  run(0.8+2.0+0.4);assert.equal(g.snapshot().state,'lost');
+  assert.equal(g.audioCalls.filter(n=>n==='lose').length,1);
 });
 
 test('first hint hides written answer and assisted delivery cannot promote mastery', () => {
@@ -709,13 +923,14 @@ test('codex words pages are reachable by keyboard and gamepad without changing t
   const g = loadGame(); g.start(); g.setState('codex');
   g.events.keydown(key('Tab', 'Tab'));
   assert.equal(g.snapshot().codexTab, 'words');
+  assert.equal(g.codexCount(), 27);
   for (let i=0; i<4; i++) g.events.keydown(key('ArrowRight', 'ArrowRight'));
-  assert.equal(g.snapshot().codexPage, 2);
-  g.events.keydown(key('ArrowLeft', 'ArrowLeft')); assert.equal(g.snapshot().codexPage, 1);
+  assert.equal(g.snapshot().codexPage, 1);
+  g.events.keydown(key('ArrowLeft', 'ArrowLeft')); assert.equal(g.snapshot().codexPage, 0);
   const buttons = Array.from({length:16}, () => ({pressed:false}));
   g.env.navigator.getGamepads = () => [{connected:true, axes:[0,0], buttons}];
-  buttons[15].pressed=true; g.pollGamepad(); assert.equal(g.snapshot().codexPage, 2);
-  buttons[15].pressed=false; buttons[14].pressed=true; g.pollGamepad(); assert.equal(g.snapshot().codexPage, 1);
+  buttons[15].pressed=true; g.pollGamepad(); assert.equal(g.snapshot().codexPage, 1);
+  buttons[15].pressed=false; buttons[14].pressed=true; g.pollGamepad(); assert.equal(g.snapshot().codexPage, 0);
   assert.equal(g.snapshot().codexTab, 'words');
 });
 
@@ -888,4 +1103,89 @@ test('widescreen map back button accepts pointer at the screen edge and home cle
  assert.equal(g.snapshot().quitConfirm,true);g.events.keydown(key('ArrowRight'));g.events.keydown(key('Enter','Enter'));
  assert.equal(g.snapshot().state,'menu');assert.equal(g.snapshot().keys.length,0);
  g.start();assert.equal(g.snapshot().joy,null);
+});
+
+test('pickup speaks the word once and delivery does not repeat it', () => {
+  const g = loadGame(); g.start(); g.prepareOrder();
+  assert.equal(g.audioCalls.filter(n => n === 'speak').length, 1);
+  const before = g.snapshot().oil;
+  g.triggerHint(); g.triggerHint();
+  const hinted = g.snapshot().oil;
+  assert.ok(before - hinted >= 7);
+  g.resolve(g.snapshot().job.ans.indexOf(g.snapshot().job.word));
+  assert.ok(g.snapshot().oil < before);
+  assert.equal(g.snapshot().score, 25);
+  assert.equal(g.audioCalls.filter(n => n === 'speak').length, 2); // 取貨 1 次 + 提示重播 1 次
+});
+
+test('dawn does not end a run that still needs the delivery goal or the boss', () => {
+  const g = loadGame(); g.start(); g.setOil(80); g.setElapsed(644); g.update(0.5);
+  assert.equal(g.snapshot().state, 'play');
+  g.setElapsed(900); g.update(0.01);
+  assert.equal(g.snapshot().state, 'play');
+  assert.ok(g.snapshot().oil > 70);
+});
+
+test('level-up keeps draining oil and waits until a card is chosen', () => {
+  const drained = loadGame(); drained.start(); drained.offerUp(); drained.setOil(0.02);
+  drained.frame(50); assert.equal(drained.snapshot().state, 'lampout');
+  for (let i = 2; i <= 70; i++) drained.frame(i * 50);
+  assert.equal(drained.snapshot().state, 'lost');
+  const g = loadGame(); g.start(); g.setOil(90); g.offerUp();
+  for (let i = 1; i <= 160; i++) g.frame(i * 50);
+  assert.equal(g.snapshot().state, 'levelup');
+  assert.equal(g.snapshot().level, 1);
+  assert.ok(g.snapshot().oil < 90);
+  g.events.keydown(key('Digit1', '1'));
+  assert.equal(g.snapshot().state, 'play');
+  assert.equal(g.snapshot().level, 2);
+});
+
+test('misdelivery speed ignores movement upgrades', () => {
+  const g = loadGame(); g.start();
+  const spd = g.tune('spd');
+  while (spd.ok()) spd.f();
+  g.addMis(); g.update(0.01);
+  const enemy = g.snapshot().enemies.find(e => e.type === 'mis');
+  assert.ok(enemy.speed <= 200);
+  assert.ok(enemy.speed < 230);
+});
+
+test('priority orders prefer a house that teaches the same word', () => {
+  const g = loadGame(); g.start(); g.clearOrders();
+  const target = g.housesNow().find(h => h.word);
+  g.env.STORE.rec(target.word.jp, false);
+  g.placeAt(target.x, target.y);
+  g.makeOrder();
+  const order = g.snapshot().orders[0];
+  assert.equal(order.word.jp, target.word.jp);
+  assert.equal(order.from.word.jp, target.word.jp);
+});
+
+test('expired orders cost neither oil nor misdelivery count, and the open slot refills immediately', () => {
+  const g = loadGame(); g.start(); g.setOil(40); g.ageOrders(200); g.update(0.01);
+  assert.equal(g.failCount(), 0);
+  assert.ok(g.snapshot().oil > 39.9);
+  assert.equal(g.snapshot().state, 'play');
+  assert.equal(g.snapshot().orders.length, 1);
+});
+
+test('gamepad select opens the codex from pause and not during play', () => {
+  const g = loadGame(); g.start();
+  const buttons = Array.from({length:16}, () => ({pressed:false}));
+  g.env.navigator.getGamepads = () => [{connected:true, axes:[0,0], buttons}];
+  const press = i => { buttons[i].pressed = true; g.pollGamepad(); buttons[i].pressed = false; g.pollGamepad(); };
+  press(8); assert.equal(g.snapshot().state, 'play');
+  g.events.keydown(key('Escape', 'Escape'));
+  press(8); assert.equal(g.snapshot().state, 'codex');
+});
+
+test('damage and oil-heal upgrades stop after their stack caps', () => {
+  const g = loadGame(); g.start();
+  const dmg = g.tune('dmg'); let stacks = 0;
+  while (dmg.ok && dmg.ok()) { dmg.f(); stacks++; }
+  assert.equal(stacks, 6); assert.equal(dmg.ok(), false);
+  const heal = g.tune('oil_heal'); stacks = 0;
+  while (heal.ok && heal.ok()) { heal.f(); stacks++; }
+  assert.equal(stacks, 3); assert.equal(heal.ok(), false);
 });

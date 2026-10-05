@@ -10,6 +10,22 @@ function loadUI(width = 585) {
   return { UI: env.window.UI, context, texts, env };
 }
 
+test('small-screen level-up descriptions and settlement review lines keep readable spacing',()=>{
+  const r=loadUI(568);r.env.window.innerWidth=568;r.env.window.innerHeight=320;
+  vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
+  const labels=[];r.context.measureText=value=>({width:[...String(value)].length*parseFloat(r.context.font.match(/([\d.]+)px/)[1])});
+  r.context.fillText=(value,x,y)=>labels.push({value,x,y,size:parseFloat(r.context.font.match(/([\d.]+)px/)[1])});
+  r.UI.drawLevelUp(r.context,3,[{type:'passive',id:'shield',n:'金剛結界',s:'けっかい',d:'恢復燈油並震退周圍妖怪'.repeat(3)}],{katana:1},{katana:{zh:'妖刀斬'}},2);
+  const description=labels.filter(l=>l.x===170 && l.y>=240),name=labels.find(l=>l.value==='妖刀斬');
+  assert.equal(description.length,2);assert.ok(description[1].y-description[0].y>=description[0].size*1.1);
+  assert.ok(name.size*r.env.window.VIEWPORT.get().scale>=14);
+  assert.ok(labels.find(l=>l.value==='金剛結界').size*r.env.window.VIEWPORT.get().scale>=14);
+  labels.length=0;
+  r.UI.drawEndScreen(r.context,'lost',100,2,2,Array.from({length:5},(_,i)=>({jp:'あいうえお'+i,zh:'複習字詞'})));
+  const reviews=labels.filter(l=>l.value.includes('（複習字詞）'));
+  for(let i=1;i<reviews.length;i++)assert.ok(reviews[i].y-reviews[i-1].y>=reviews[i].size*1.2);
+});
+
 function drawHudFixture(width, height, oil = 100, maxOil = 100, passives = {}, elapsed = 120) {
   const r = loadUI(width);r.env.window.innerWidth = width;r.env.window.innerHeight = height;
   vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
@@ -40,10 +56,8 @@ test('oil numbers and bar remain prominent and low-oil warning uses capacity rat
   for(const [width,height] of [[900,600],[844,390],[667,375],[568,320],[800,600],[1920,1080]]) {
     const r=drawHudFixture(width,height,39,160),number=r.labels.find(t=>t.value==='39/160');
     assert.ok(number.cssSize>=18,`${width}: oil number size`);
-    assert.ok(r.labels.some(t=>t.value==='低油！'));
     const bar=r.rects.find(b=>b.fill==='#1c1814');assert.ok(bar.h*r.scale>=12);assert.ok(bar.w>=180);
-    const label=r.labels.find(t=>t.value==='低油！');assert.ok(label.right+4<=number.left);
-    const normal=drawHudFixture(width,height,41,160);assert.ok(!normal.labels.some(t=>t.value==='低油！'));
+    assert.ok(!r.labels.some(t=>t.value==='低油！'||t.value==='燈油'),'oil is shown by icon and bar, not explanatory text');
   }
 });
 
@@ -155,7 +169,32 @@ test('settlement shows unique delivery and Boss corrections without changing mis
   assert.ok(texts.some(t=>t.value==='今夜記錯的字：共 2 字'));
   const rendered=texts.map(t=>t.value).join('|');
   for(const w of words) assert.equal(rendered.split(`${w.jp}（${w.zh}）`).length-1,1);
-  assert.ok(texts.some(t=>t.value==='誤配  1 件'));
+  assert.ok(!texts.some(t=>/連擊|連答|連續答對/.test(t.value)));
+  assert.ok(texts.some(t=>t.value==='送達  0 件'));assert.ok(texts.some(t=>t.value==='誤配  1 件'));
+});
+
+test('direction arrows rotate in place inside the task area instead of travelling along the screen edge',()=>{
+  const {UI,context}=loadUI(844);const turns=[];context.rotate=a=>turns.push(a);
+  const word=require('../js/words.js').getAllWords()[0];
+  const job={word,to:{x:100,y:100},hintStage:0,showMeaningT:0};
+  const draw=(job,extra,hunt)=>UI.drawHud(context,{x:0,y:0},100,100,0,600,0,0,0,1,0,30,job,0,[],null,null,false,null,{x:810,y:420,r:38},{x:810,y:530,r:46},{x:848,y:14,w:38,h:52},{},{},{},0,6,1.2,1.8,hunt,extra);
+  draw(job,{guideAngle:1.234},false);assert.ok(turns.includes(1.234));
+  turns.length=0;draw(null,{bossAngle:-2.5},true);assert.equal(turns.filter(a=>a===-2.5).length,2);
+  turns.length=0;draw(null,{},false);assert.ok(!turns.includes(undefined)&&!turns.some(Number.isNaN)); // 沒有目標時不畫箭頭
+});
+
+test('parcel icon is the system emoji and no hand-drawn house-like cargo glyph remains',()=>{
+  const {UI,context,texts}=loadUI(844);UI.drawActionIcon(context,'pickup',10,10,10);
+  assert.ok(texts.some(t=>t.value==='📦'));
+});
+
+test('HUD shows level as a bottom edge strip and drops combo, shield and caption boxes',()=>{
+  for(const [width,height] of [[900,600],[844,390],[1920,1080]]) {
+    const r=drawHudFixture(width,height);
+    assert.ok(r.labels.some(t=>t.value==='Lv.3'));
+    assert.ok(!r.labels.some(t=>/連擊|連續答對|結界護盾/.test(t.value)||t.value==='12/45'));
+    assert.ok(!r.labels.some(t=>/pt$|取貨|配達/.test(t.value)),'icons replace caption text');
+  }
 });
 
 test('every live vocabulary HUD uses meaning before hints and written correction only after explicit assistance',()=>{
@@ -201,6 +240,33 @@ test('all 39 words remain reachable across three readable codex pages', () => {
   UI.drawCodex(context, store, words, 'words', 0);
   assert.ok(!texts.some(t => t.value === 'れいぶん'));
 });
+test('in-run codex mask hides readings and icons until four stars', () => {
+  const word = { jp: 'ねこ', zh: '貓', icon: '🐱', cue: 'emoji' };
+  const hidden = { get: () => ({ ok: 1, ng: 1, box: 1 }) };
+  const { UI, context, texts } = loadUI();
+  UI.drawCodex(context, hidden, [word], 'words', 0, true);
+  const masked = texts.map(t => t.value);
+  assert.ok(masked.includes('？？'));
+  assert.ok(!masked.includes('ねこ'));
+  assert.ok(!masked.includes('貓'));
+  assert.ok(!masked.includes('🐱'));
+  const mastered = { get: () => ({ ok: 4, ng: 0, box: 4 }) };
+  const shown = loadUI();
+  shown.UI.drawCodex(shown.context, mastered, [word], 'words', 0, true);
+  const open = shown.texts.map(t => t.value);
+  assert.ok(open.includes('ねこ'));
+  assert.ok(open.includes('貓'));
+  assert.ok(open.includes('🐱'));
+});
+test('emoji cues use the system emoji glyph', () => {
+  const ui = fs.readFileSync('js/ui.js', 'utf8');
+  assert.ok(ui.includes("'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji'"));
+  for (const word of require('../js/words.js').getAllWords().filter(w => w.cue === 'emoji')) {
+    const { UI, context, texts } = loadUI();
+    UI.drawWordCue(context, word, 12, 12, 28);
+    assert.ok(texts.some(t => t.value === word.icon), word.jp);
+  }
+});
 test('desktop HUD exposes the same dash cooldown seconds as mobile', () => {
   const { UI, context, texts } = loadUI(1200);
   UI.drawHud(context, { x: 0, y: 0 }, 100, 100, 2, 600, 0, 0, 0, 1, 0, 30, null, 0, [], null, null, false, null, { x:810,y:420,r:38 }, { x:810,y:530,r:46 }, { x:848,y:14,w:38,h:52 }, {}, {}, {}, 0, 6, 1.2, 1.8);
@@ -233,7 +299,7 @@ test('all tutorial text and buttons stay within mobile card without Emoji render
     assert.ok(texts.every(t=>t.y>=115 && t.y<=490));
     assert.ok(texts.filter(t=>t.y>=211&&t.y<360).every(t=>t.y<345));
     assert.ok(UI.TUTORIAL_BTNS.every(b=>b.h*390/600>=44));
-    assert.ok(!texts.some(t=>/[📦💡👁🎴📜]/u.test(t.value)));
+    assert.ok(!texts.some(t=>/[💡👁🎴📜]/u.test(t.value)));
   }
 });
 test('Boss option badges follow active keyboard, gamepad or touch input',()=>{

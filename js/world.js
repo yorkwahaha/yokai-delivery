@@ -79,10 +79,11 @@
       SPOTS.forEach((spot, slot) => {
         if (slot === emptySlot || wi >= words.length) return;
         const word = words[wi++];
-        const id = hashCoords(cx * 11 + slot, cy * 17 + slot, seed);
+        const phaseHash = hashCoords(cx * 11 + slot, cy * 17 + slot, seed);
+        const id = `${stage.id}:${cx},${cy}:${slot}`;
         houses.push({
           id,
-          phase: (id % 10000) / 997,
+          phase: (phaseHash % 10000) / 997,
           chunkKey: key,
           x: baseX + spot[0],
           y: baseY + spot[1],

@@ -1,0 +1,41 @@
+{
+  "url": "http://127.0.0.1:8788/artifacts/validation/skillfx-showcase.html?skill=thunder&motion=reduce",
+  "validationStart": "2026-10-05T03:51:41.631Z",
+  "mode": "controlled real weapon simulation; isolated progress; muted audio; not natural play or physical device verification",
+  "screenshots": [
+    "skillfx-five-katana.png",
+    "skillfx-five-barrier.png",
+    "skillfx-five-needle.png",
+    "skillfx-five-boom.png",
+    "skillfx-five-fire.png",
+    "skillfx-five-thunder.png",
+    "skillfx-five-mixed.png",
+    "skillfx-five-reduced.png"
+  ],
+  "normalLogsSinceStart": [
+    {
+      "level": "error",
+      "message": "Uncaught TypeError: Failed to execute 'observe' on 'MutationObserver': parameter 1 is not of type 'Node'.",
+      "timestamp": "2026-10-05T03:51:44.932Z"
+    }
+  ],
+  "reducedLogsSinceStart": [
+    {
+      "level": "error",
+      "message": "Uncaught TypeError: Failed to execute 'observe' on 'MutationObserver': parameter 1 is not of type 'Node'.",
+      "timestamp": "2026-10-05T03:51:44.932Z"
+    },
+    {
+      "level": "error",
+      "message": "Uncaught TypeError: Failed to execute 'observe' on 'MutationObserver': parameter 1 is not of type 'Node'.",
+      "timestamp": "2026-10-05T04:06:14.572Z"
+    }
+  ],
+  "historicalAssetWarnings": "Pre-fix warnings at 03:01:59 retained by browser; relative base path corrected before validationStart.",
+  "unattributedError": "MutationObserver observe Node error recorded without source URL. No MutationObserver in project sources; origin unconfirmed; retained rather than treated as clean console.",
+  "sourceMetadata": {
+    "source": "js/game.js",
+    "sha256": "bc128840a3a50d1761f7b699835c117d5c86e2d93d68ecf96ea94711f236a534",
+    "isolation": "private in-memory localStorage, muted audio, real weapons and drawWorld, controlled targets and clock"
+  }
+}

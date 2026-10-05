@@ -4,6 +4,11 @@ const assert = require("node:assert/strict");
 const CONTENT = require("../js/words.js");
 const WORLD = require("../js/world.js");
 
+test('house identities stay unique throughout distant positive and negative chunks',()=>{
+  const world=WORLD.createStageWorld(CONTENT.getStage('night-town'),CONTENT),ids=new Set();
+  for(let x=-30;x<=30;x++)for(let y=-30;y<=30;y++)for(const h of world.getChunk(x,y).houses){assert.ok(!ids.has(h.id),`${x},${y}: ${h.id}`);ids.add(h.id);assert.ok(Number.isFinite(h.phase));}
+});
+
 test("night-town keeps the original 9 word packs and 27 unique words", () => {
   const stage = CONTENT.getStage("night-town");
   assert.equal(stage.wordPacks.length, 9);

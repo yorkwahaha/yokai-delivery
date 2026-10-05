@@ -26,8 +26,9 @@
       return Math.min(6, 1 + Math.floor(t / 100));
     },
     enemyTier(elapsed, power = 0) {
-      const t = Math.min(Math.max(0, elapsed || 0), RUN_SECONDS);
-      return 1 + t / 130 + power * 0.05;
+      const t = Math.max(0, elapsed || 0);
+      const paced = Math.min(t, RUN_SECONDS);
+      return 1 + paced / 130 + Math.max(0, t - RUN_SECONDS) / 70 + power * 0.05;
     },
     orderSlots(elapsed, delivered) {
       if ((delivered || 0) === 0) return 1;

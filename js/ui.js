@@ -1,4 +1,5 @@
-// 使用者介面（UI）：商業級全螢幕懸浮式 HUD、HoloCure 風格武器圖標槽、純視覺化無文字冗餘
+// 使用者介面（UI）：漆器金箔和風介面。面板、按鈕、HUD、升級卡與結算頁共用同一組色票與繪製函式。
+// 光暈優先使用 FX.glow 的預烘焙貼圖；面板仍使用漸層，圖鑑標題保留少量 shadowBlur。
 window.UI = (() => {
   const screenBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:900,bottom:600,width:900,height:600};
   function fillScreen(ctx) { const b = screenBounds(); ctx.fillRect(b.left,b.top,b.width,b.height); }
@@ -9,24 +10,134 @@ window.UI = (() => {
   const MENU_START_BTN = { x: W / 2 - 132, y: 478, w: 264, h: 54 };
   const MENU_CONTROLS_BTN = { x: 20, y: 22, w: 180, h: 38 };
   const HINT_BTN = { x: 532, y: 20, w: 78, h: 40 };
+  const REROLL_BTN = { x: 620, y: 538, w: 190, h: 44 };
   const TUTORIAL_BTNS = [{x:100,y:390,w:330,h:70},{x:470,y:390,w:330,h:70}];
   const EXIT_BTNS = [{id:'exit-cancel',x:195,y:330,w:240,h:70},{id:'exit-confirm',x:465,y:330,w:240,h:70}];
 
+  // ---- 色票與共用繪製工具 ----
+  const C = {
+    gold: "#e8c36a", goldHi: "#fff0b8", ink: "#0a0d18", vermilion: "#e0523f",
+    jade: "#46c99a", azure: "#4aa3ff", violet: "#b36bff", cyan: "#7fe3f0",
+    text: "#fff3da", dim: "rgba(255, 240, 210, 0.68)"
+  };
+  const WEAPON_TONE = { katana: "#e0523f", barrier: "#4aa3ff", fire: "#ff8a1f", boom: "#b36bff", thunder: "#ffd54f", needle: "#7fe3f0" };
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const calm = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const glow = (ctx, x, y, size, color, alpha) => window.FX?.glow(ctx, x, y, size, color, alpha);
+  const pulse = (speed = 3, lo = 0.6) => calm() ? 0.85 : lo + (1 - lo) * (0.5 + 0.5 * Math.sin(Date.now() / 1000 * speed));
+  const fontPx = font => Number(font.match(/([\d.]+)px/)[1]);
+
+  const sheenCache = new Map();
+  function sheen(ctx, h) {
+    const key = Math.round(h);
+    let g = sheenCache.get(key);
+    if (!g) {
+      g = ctx.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, "rgba(255, 244, 214, 0.17)");
+      g.addColorStop(0.45, "rgba(255, 244, 214, 0.02)");
+      g.addColorStop(1, "rgba(0, 0, 0, 0.2)");
+      sheenCache.set(key, g);
+    }
+    return g;
+  }
+
+  // 漆器面板：底影、本體、頂部高光、內側金線、外框；ornate 再加四角金具。
+  function glassBox(ctx, x, y, w, h, r = 10, fill = "rgba(14, 18, 30, 0.84)", stroke = "rgba(232, 195, 106, 0.6)", strokeW = 1.5, ornate = false) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.36)";
+    ctx.beginPath();
+    ctx.roundRect(0, 3, w, h, r);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(0, 0, w, h, r);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.fillStyle = sheen(ctx, h);
+    ctx.fill();
+    if (stroke) {
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = strokeW;
+      ctx.stroke();
+    }
+    if (w > 40 && h > 26) {
+      ctx.beginPath();
+      ctx.roundRect(3.5, 3.5, w - 7, h - 7, Math.max(2, r - 3));
+      ctx.strokeStyle = "rgba(255, 226, 150, 0.16)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    if (ornate) {
+      ctx.strokeStyle = C.gold;
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = "round";
+      const d = Math.min(18, w / 5, h / 5);
+      for (const [cx, cy, sx, sy] of [[5, 5, 1, 1], [w - 5, 5, -1, 1], [5, h - 5, 1, -1], [w - 5, h - 5, -1, -1]]) {
+        ctx.beginPath();
+        ctx.moveTo(cx, cy + d * sy);
+        ctx.lineTo(cx, cy);
+        ctx.lineTo(cx + d * sx, cy);
+        ctx.stroke();
+        ctx.fillStyle = C.goldHi;
+        ctx.beginPath();
+        ctx.arc(cx + 5 * sx, cy + 5 * sy, 1.7, 0, 6.283);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawMenuFocus(ctx, btn) {
+    if (!btn) return;
+    const p = pulse(5, 0.55);
+    ctx.save();
+    ctx.lineJoin = "round";
+    ctx.beginPath(); ctx.roundRect(btn.x - 4, btn.y - 4, btn.w + 8, btn.h + 8, 13);
+    ctx.strokeStyle = `rgba(127, 227, 240, ${0.1 + 0.12 * p})`; ctx.lineWidth = 10; ctx.stroke();
+    ctx.strokeStyle = `rgba(127, 227, 240, ${0.6 + 0.4 * p})`; ctx.lineWidth = 2.6; ctx.stroke();
+    ctx.fillStyle = C.cyan;
+    for (const [cx, cy] of [[btn.x - 4, btn.y - 4], [btn.x + btn.w + 4, btn.y - 4], [btn.x - 4, btn.y + btn.h + 4], [btn.x + btn.w + 4, btn.y + btn.h + 4]]) {
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(Math.PI / 4); ctx.fillRect(-3, -3, 6, 6); ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  const BUTTON_TONES = {
+    normal: { fill: "rgba(24, 20, 36, 0.95)", stroke: "rgba(232, 195, 106, 0.75)", width: 1.6, text: C.text },
+    primary: { fill: "rgba(92, 30, 24, 0.97)", stroke: C.gold, width: 2.4, text: "#fff1cc" },
+    danger: { fill: "rgba(58, 20, 24, 0.96)", stroke: "#e7a090", width: 1.6, text: "#ffd2c8" },
+    cyan: { fill: "rgba(24, 52, 66, 0.95)", stroke: "#80deea", width: 1.6, text: "#e0fbff" }
+  };
+  // 所有按鈕共用：同一組字級、狀態與焦點樣式。
+  function drawButton(ctx, b, label, { tone = "normal", size = 18, focus = false, icon = null, disabled = false } = {}) {
+    const t = BUTTON_TONES[tone] || BUTTON_TONES.normal;
+    glassBox(ctx, b.x, b.y, b.w, b.h, Math.min(12, b.h / 4), disabled ? "rgba(34, 36, 46, 0.9)" : t.fill, disabled ? "#59606f" : t.stroke, t.width);
+    if (tone === "primary" && !disabled) {
+      ctx.fillStyle = "rgba(255, 170, 120, 0.16)";
+      ctx.beginPath(); ctx.roundRect(b.x + 4, b.y + 4, b.w - 8, b.h * 0.4, 8); ctx.fill();
+    }
+    ctx.textAlign = "center";
+    ctx.font = readableFont(size, "900");
+    const y = b.y + b.h / 2 + fontPx(ctx.font) * 0.35, x = b.x + b.w / 2 + (icon ? 10 : 0);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+    ctx.fillText(label, x, y + 1.5, b.w - 24);
+    ctx.fillStyle = disabled ? "#8a91a0" : t.text;
+    ctx.fillText(label, x, y, b.w - 24);
+    if (icon) { ctx.fillStyle = ctx.strokeStyle = disabled ? "#8a91a0" : C.gold; drawActionIcon(ctx, icon, b.x + 24, b.y + b.h / 2, 9); }
+    if (focus) drawMenuFocus(ctx, b);
+  }
+
   function drawExitConfirm(ctx, focus = 0) {
     ctx.save();
-    ctx.fillStyle = 'rgba(6,8,18,0.88)';fillScreen(ctx);
-    glassBox(ctx,160,160,580,270,16,'#101624','#e6c27a',2);
+    ctx.fillStyle = 'rgba(6,8,18,0.84)';fillScreen(ctx);
+    glassBox(ctx,160,160,580,270,16,'rgba(16,14,26,0.97)',C.gold,2,true);
     ctx.textAlign = 'center';ctx.fillStyle = '#ffe3ad';ctx.font = readableFont(24,'900');
     ctx.fillText('是否放棄本局？',450,215);
     ctx.fillStyle = '#edf2ff';ctx.font = readableFont(15);
     ctx.fillText('將返回首頁，本局未結算的成績不會記錄。',450,260);
     ctx.fillText('已儲存的單字學習紀錄會保留。',450,290);
-    EXIT_BTNS.forEach((b,i)=>{
-      glassBox(ctx,b.x,b.y,b.w,b.h,10,i===0?'#283b42':'#422831','#e6c27a',1.5);
-      ctx.fillStyle = '#fff1d4';ctx.font = readableFont(18,'900');
-      ctx.fillText(i===0?'繼續本局':'放棄並回首頁',b.x+b.w/2,b.y+43);
-    });
-    drawMenuFocus(ctx,EXIT_BTNS[focus]);ctx.restore();
+    EXIT_BTNS.forEach((b,i)=>drawButton(ctx,b,i===0?'繼續本局':'放棄並回首頁',{tone:i===0?'cyan':'danger',focus:i===focus}));
+    ctx.restore();
   }
   const controlLabel = (action, mode = 'keyboard') => mode === 'gamepad'
     ? ({interact:'A',dash:'B',hint:'X',pause:'Start',move:'左搖桿／十字鍵',boss:'LB／RB／Y'}[action] || '')
@@ -45,6 +156,15 @@ window.UI = (() => {
   }
   // Shared monochrome operation symbols, independent of OS Emoji fonts.
   function drawActionIcon(ctx, id, x, y, r = 10) {
+    if (id === 'pickup') {
+      // 暫以系統包裹 emoji 代用，之後再換原創圖檔。
+      ctx.save();
+      ctx.font = `${Math.round(r * 2)}px 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('📦', x, y + 1);
+      ctx.restore();
+      return;
+    }
     ctx.save(); ctx.translate(x,y); ctx.scale(r/10,r/10);
     ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.beginPath();
@@ -68,58 +188,36 @@ window.UI = (() => {
   }
   function drawTutorial(ctx, tutorial, mode) {
     const [title, icon, body] = tutorialCopy(tutorial.id, mode);
-    ctx.save(); ctx.fillStyle='rgba(6,8,16,0.84)'; fillScreen(ctx);
-    glassBox(ctx,60,115,780,375,14,'#121827','#d4af37',2);
-    ctx.fillStyle='#ffe28b'; drawActionIcon(ctx,icon,100,155,16);
+    ctx.save(); ctx.fillStyle='rgba(6,8,16,0.8)'; fillScreen(ctx);
+    glassBox(ctx,60,115,780,375,14,'rgba(18,16,30,0.97)',C.gold,2,true);
+    glow(ctx,100,155,84,C.gold,0.35);
+    ctx.fillStyle=C.goldHi; ctx.strokeStyle=C.goldHi; drawActionIcon(ctx,icon,100,155,16);
     ctx.textAlign='left';ctx.font=readableFont(24,'900');ctx.fillText(title,130,165);
     ctx.fillStyle='#e9e4d6';ctx.font=readableFont(18,'bold');
     let line='', y=211;
     for (const char of body) {
-      if (ctx.measureText(line+char).width > 690 && !'，。；：、！？'.includes(char)) {ctx.fillText(line,100,y);y+=29;line='';}
+      if (ctx.measureText(line+char).width > 690 && !'，。；：、！？'.includes(char)) {ctx.fillText(line,100,y);y+=fontPx(ctx.font)*1.25;line='';}
       line+=char;
     }
     ctx.fillText(line,100,y);
     ctx.fillStyle='#80deea';ctx.font=readableFont(15,'bold');
     ctx.fillText('操作教學不扣油、不算答題輔助；閱讀期間遊戲暫停。',100,360);
     const labels = [tutorial.replay && tutorial.id !== 'boss' ? '下一張' : '知道了', tutorial.replay ? '結束重看' : '跳過全部教學'];
-    TUTORIAL_BTNS.forEach((bt,i)=>{
-      glassBox(ctx,bt.x,bt.y,bt.w,bt.h,10,'#252d40','#d4af37');
-      ctx.fillStyle='#fff1d0';ctx.textAlign='center';ctx.font=readableFont(18,'900');ctx.fillText(labels[i],bt.x+bt.w/2,bt.y+43);
-      if(tutorial.focus===i) drawMenuFocus(ctx,bt);
-    });
-    ctx.font=readableFont(12,'bold');ctx.fillStyle='#b7bdc8';
+    TUTORIAL_BTNS.forEach((bt,i)=>drawButton(ctx,bt,labels[i],{tone:i===0?'primary':'normal',focus:tutorial.focus===i}));
+    ctx.textAlign='center';ctx.font=readableFont(12,'bold');ctx.fillStyle='#b7bdc8';
     ctx.fillText(mode==='gamepad'?'十字鍵選擇 · A 確認 · B 結束':mode==='touch'?'點選按鈕 · 暫停選單可重看':'Tab／方向鍵選擇 · Enter 確認 · Esc 結束',450,482);
     ctx.restore();
   }
 
   const MENU_BTNS = [{id:'start',...MENU_START_BTN},{id:'controls',...MENU_CONTROLS_BTN},{id:'cards',x:615,y:22,w:125,h:38},{id:'codex',x:755,y:22,w:125,h:38}];
   const END_BTNS = [{id:'restart',...RESTART_BTN},{id:'world',...WORLD_BTN},{id:'menu',...HOME_BTN}];
-  function drawMenuFocus(ctx, btn) {
-    if (!btn) return;
-    ctx.save(); ctx.strokeStyle='#80deea'; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.roundRect(btn.x-4,btn.y-4,btn.w+8,btn.h+8,10); ctx.stroke(); ctx.restore();
-  }
 
-  // 繪製日式黑漆金箔懸浮圓角框
-  function glassBox(ctx, x, y, w, h, r = 10, fill = "rgba(14, 18, 30, 0.82)", stroke = "rgba(212, 175, 55, 0.55)", strokeW = 1.5) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(x, y, w, h, r);
-    ctx.fillStyle = fill;
-    ctx.fill();
-    if (stroke) {
-      ctx.strokeStyle = stroke;
-      ctx.lineWidth = strokeW;
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  // 1. 主選單 (Title / Cover Screen)
+  // 1. 主選單：封面圖＋暖色光暈與上升的火星，主要行動只有一個大按鈕。
   function drawMainMenu(ctx, STORE, elapsed, focus = 0) {
     ctx.save();
+    const motion = !calm();
     if (window.ART?.cover) {
-      const zoom = 1.0 + Math.sin(elapsed * 0.8) * 0.02;
+      const zoom = motion ? 1 + Math.sin(elapsed * 0.8) * 0.012 : 1;
       ctx.save();
       ctx.translate(W / 2, H / 2);
       ctx.scale(zoom, zoom);
@@ -132,229 +230,388 @@ window.UI = (() => {
       fillScreen(ctx);
     }
 
+    const b = screenBounds();
     const vig = ctx.createLinearGradient(0, 0, 0, H);
-    vig.addColorStop(0, "rgba(6, 9, 20, 0.45)");
-    vig.addColorStop(0.65, "rgba(6, 9, 20, 0.65)");
-    vig.addColorStop(1, "rgba(6, 9, 20, 0.96)");
+    vig.addColorStop(0, "rgba(6, 9, 20, 0.5)");
+    vig.addColorStop(0.55, "rgba(6, 9, 20, 0.5)");
+    vig.addColorStop(1, "rgba(6, 9, 20, 0.97)");
     ctx.fillStyle = vig;
     fillScreen(ctx);
 
+    // 暖光層：緩慢呼吸的燈籠光暈與往上飄的火星。
+    if (motion) {
+      glow(ctx, W * 0.5, H * 0.46, 620, "#ffb04a", 0.1 + 0.05 * Math.sin(elapsed * 1.7));
+      for (let i = 0; i < 16; i++) {
+        const life = (elapsed * 0.09 + i * 0.137) % 1;
+        const x = b.left + (((i * 211 + 30 + Math.sin(elapsed * 0.6 + i) * 24) % b.width) + b.width) % b.width;
+        const y = b.bottom - life * (b.height + 40) + 20;
+        glow(ctx, x, y, 12 + (i % 4) * 5, i % 3 ? "#ffd27a" : "#ff8a4a", Math.sin(life * Math.PI) * 0.8);
+      }
+    }
+
     ctx.textAlign = "center";
+    ctx.font = titleFont(24);
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillText("百鬼橫行之夜・單字配達物語", W / 2 + 1.5, 441.5);
     ctx.fillStyle = "#ffe28b";
-    ctx.font = "900 24px 'Kaisei Decol', 'Noto Sans JP', serif";
-    ctx.shadowColor = "rgba(0,0,0,0.9)";
-    ctx.shadowBlur = 12;
-    ctx.fillText("百 鬼 橫 行 之 夜 ・ 單 字 配 達 物 語", W / 2, 440);
-    ctx.shadowBlur = 0;
+    ctx.fillText("百鬼橫行之夜・單字配達物語", W / 2, 440);
 
-    const blink = 0.78 + 0.22 * Math.sin(elapsed * 5);
-    glassBox(ctx, MENU_START_BTN.x, MENU_START_BTN.y, MENU_START_BTN.w, MENU_START_BTN.h, 12, `rgba(30, 24, 18, ${0.86 + blink * 0.08})`, "#ffe082", 2.4);
-    ctx.fillStyle = "#ffe9ad";
-    ctx.font = "900 22px 'Kaisei Decol', 'Noto Sans JP', serif";
-    ctx.fillText("旅 路 地 圖　▶", W / 2, MENU_START_BTN.y + 35);
+    drawButton(ctx, MENU_START_BTN, "旅路地圖", { tone: "primary", size: 22, icon: "pickup" });
+    if (motion) glow(ctx, W / 2, MENU_START_BTN.y + MENU_START_BTN.h / 2, 380, C.gold, 0.08 + 0.05 * Math.sin(elapsed * 3));
 
-    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+    ctx.fillStyle = C.dim;
     ctx.font = readableFont(13, "bold");
-    ctx.fillText(`夜 行 紀 錄 ： 最 高 得 分 ${STORE.data.best || 0} 點　｜　最 高 配 達 ${STORE.data.bestDel || 0} 件`, W / 2, 565);
+    ctx.fillText(`夜行紀錄：最高得分 ${STORE.data.best || 0} 點｜最高配達 ${STORE.data.bestDel || 0} 件`, W / 2, 565);
 
-    glassBox(ctx, W - 285, 22, 125, 38, 8, "rgba(24, 30, 52, 0.9)", "#e3b35d", 1.8);
-    ctx.fillStyle = "#ffeed4";
-    ctx.font = readableFont(13, "900");
-    ctx.fillText("卡片一覽", W - 222, 46);
-
-    glassBox(ctx, W - 145, 22, 125, 38, 8, "rgba(24, 30, 52, 0.9)", "#e3b35d", 1.8);
-    ctx.fillStyle = "#ffeed4";
-    ctx.font = readableFont(13, "900");
-    ctx.fillText("單字圖鑑", W - 82, 46);
-
-    glassBox(ctx, MENU_CONTROLS_BTN.x, MENU_CONTROLS_BTN.y, MENU_CONTROLS_BTN.w, MENU_CONTROLS_BTN.h, 8);
-    ctx.fillText("操作與自定義", MENU_CONTROLS_BTN.x + MENU_CONTROLS_BTN.w / 2, 46);
+    for (const bt of MENU_BTNS.slice(1)) {
+      const label = bt.id === "controls" ? "操作與自定義" : bt.id === "cards" ? "卡片一覽" : "單字圖鑑";
+      drawButton(ctx, bt, label, { size: 13, icon: bt.id === "cards" ? "cards" : bt.id === "codex" ? "codex" : null });
+    }
     drawMenuFocus(ctx, MENU_BTNS[focus]);
 
     ctx.restore();
   }
 
-  // 2. 全螢幕專業無分割 HUD（懸浮微型儀表 + 底部 HoloCure 風格武器格）
-  function drawHud(ctx, P, oil, maxOil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, goalDeliveries = 6, dashCd = 0, dashMax = 1.8, bossHunt = false) {
+  // ---- HUD 元件 ----
+  function drawLantern(ctx, x, y, s, lit) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(s / 16, s / 16);
+    glow(ctx, 0, 0, 34, lit, 0.55);
+    ctx.fillStyle = lit;
+    ctx.beginPath(); ctx.ellipse(0, 0, 6.2, 8, 0, 0, 6.283); ctx.fill();
+    ctx.strokeStyle = "rgba(90, 30, 8, 0.7)"; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(6, 0); ctx.moveTo(-4.2, -4.8); ctx.lineTo(4.2, -4.8); ctx.moveTo(-4.2, 4.8); ctx.lineTo(4.2, 4.8); ctx.stroke();
+    ctx.fillStyle = "#2c2118"; ctx.fillRect(-4.4, -10.5, 8.8, 3); ctx.fillRect(-4.4, 7.5, 8.8, 3);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.55)"; ctx.beginPath(); ctx.ellipse(-2, -2.5, 1.4, 3, 0, 0, 6.283); ctx.fill();
+    ctx.restore();
+  }
+
+  const lowOilCache = new Map();
+  // 燈油見底：四周泛紅並隨心跳明滅，越接近 0 越快。
+  function drawLowOil(ctx, ratio, time) {
+    const b = screenBounds(), key = `${Math.round(b.width)}x${Math.round(b.height)}`;
+    let g = lowOilCache.get(key);
+    if (!g) {
+      const cx = b.left + b.width / 2, cy = b.top + b.height / 2, far = Math.hypot(b.width, b.height) / 2;
+      g = ctx.createRadialGradient(cx, cy, Math.min(b.width, b.height) * 0.3, cx, cy, far);
+      g.addColorStop(0, "rgba(255, 30, 40, 0)");
+      g.addColorStop(1, "rgba(255, 30, 40, 0.6)");
+      lowOilCache.set(key, g);
+    }
+    const urgency = 1 - ratio / 0.25;
+    const beat = calm() ? 0.7 : 0.55 + 0.45 * Math.max(0, Math.sin(time * (5 + urgency * 5)));
     ctx.save();
+    ctx.globalAlpha = (0.4 + 0.5 * urgency) * beat;
+    ctx.fillStyle = g;
+    fillScreen(ctx);
+    ctx.restore();
+  }
 
-    // 注意：完全移除頂部深色橫條！遊戲世界 100% 全螢幕通透顯示！
+  function drawMinimap(ctx, x, y, w, h, P, orders, job, boss, time) {
+    glassBox(ctx, x, y, w, h, 12, "rgba(8, 12, 24, 0.8)", "rgba(232, 195, 106, 0.75)", 1.6);
+    const cx = x + w / 2, cy = y + h / 2, hx = w / 2 - 9, hy = h / 2 - 9, R = 1300, k = hx / R;
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect(x + 3, y + 3, w - 6, h - 6, 10); ctx.clip();
+    ctx.strokeStyle = "rgba(127, 227, 240, 0.12)"; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx, y); ctx.lineTo(cx, y + h); ctx.moveTo(x, cy); ctx.lineTo(x + w, cy);
+    ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx, cy, hx * 0.5, hx * 0.5, 0, 0, 6.283); ctx.stroke();
+    const place = (wx, wy) => {
+      let dx = (wx - P.x) * k, dy = (wy - P.y) * k;
+      const f = Math.max(Math.abs(dx) / hx, Math.abs(dy) / hy);
+      const edge = f > 1;
+      if (edge) { dx /= f; dy /= f; }
+      return { x: cx + dx, y: cy + dy, edge };
+    };
+    for (const o of orders) {
+      const m = place(o.from.x, o.from.y), urgent = o.life < 25;
+      const color = urgent ? "#ff6b5b" : o.life < 55 ? "#ffb347" : C.gold;
+      glow(ctx, m.x, m.y, m.edge ? 12 : 18, color, urgent ? 0.5 + 0.4 * pulse(8, 0) : 0.7);
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(m.x, m.y, m.edge ? 2.6 : 3.8, 0, 6.283); ctx.fill();
+    }
+    if (job) {
+      const m = place(job.to.x, job.to.y), p = pulse(5, 0.5);
+      glow(ctx, m.x, m.y, 30, C.cyan, 0.6 * p);
+      ctx.fillStyle = C.cyan;
+      ctx.save(); ctx.translate(m.x, m.y); ctx.rotate(Math.PI / 4); ctx.fillRect(-4, -4, 8, 8); ctx.restore();
+    }
+    if (boss) {
+      const m = place(boss.x, boss.y), p = pulse(7, 0.4);
+      glow(ctx, m.x, m.y, 34, "#ff3b4f", 0.7 * p);
+      ctx.fillStyle = "#ff3b4f";
+      ctx.beginPath(); ctx.arc(m.x, m.y, 5, 0, 6.283); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.fillRect(m.x - 0.9, m.y - 2.8, 1.8, 3.4); ctx.fillRect(m.x - 0.9, m.y + 1.4, 1.8, 1.5);
+    }
+    glow(ctx, cx, cy, 24, "#ffffff", 0.7);
+    ctx.fillStyle = "#fff";
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(P.faceAng || 0);
+    ctx.beginPath(); ctx.moveTo(6, 0); ctx.lineTo(-3.4, -3.8); ctx.lineTo(-1.4, 0); ctx.lineTo(-3.4, 3.8); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.restore();
+  }
 
-    // --- 左上角：玩家生存與成長懸浮艙 (燈油即生命 + 經驗值條) ---
+  // 無底框文字：用深色描邊取代方塊，字直接浮在場景上仍清楚。
+  function inkText(ctx, text, x, y, maxWidth) {
+    ctx.save();
+    ctx.lineJoin = "round"; ctx.lineWidth = 4; ctx.strokeStyle = "rgba(6, 8, 18, 0.85)";
+    if (maxWidth) ctx.strokeText(text, x, y, maxWidth); else ctx.strokeText(text, x, y);
+    ctx.restore();
+    if (maxWidth) ctx.fillText(text, x, y, maxWidth); else ctx.fillText(text, x, y);
+  }
+
+  // 固定位置的方向羅盤：箭頭原地轉向目標，不再貼著畫面邊緣跑。count=2 為 Boss 用的雙箭頭。
+  function drawCompass(ctx, x, y, angle, { color = "#ffd152", count = 1, size = 1 } = {}) {
+    if (angle == null) return;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.scale(size, size);
+    ctx.fillStyle = color; ctx.strokeStyle = "rgba(6, 8, 18, 0.85)"; ctx.lineWidth = 3; ctx.lineJoin = "round";
+    for (let k = 0; k < count; k++) {
+      const off = (k - (count - 1) / 2) * -8;
+      ctx.beginPath();
+      ctx.moveTo(11 + off, 0); ctx.lineTo(-7 + off, -9); ctx.lineTo(-3 + off, 0); ctx.lineTo(-7 + off, 9);
+      ctx.closePath(); ctx.stroke(); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // 委託總覽：最急的先列，色條＝剩餘時間，箭頭＝房屋方向。不加底框，正在互動的那筆左側亮金線。
+  function drawOrderList(ctx, x, y, w, rowH, orders, P, inter) {
+    const rows = [...orders].sort((a, b) => a.life - b.life);
+    rows.slice(0, 3).forEach((o, i) => {
+      const ry = y + i * (rowH + 4), urgent = o.life < 25, ratio = clamp(o.life / 110, 0, 1);
+      const tone = urgent ? "#ff6b5b" : ratio < 0.5 ? "#ffb347" : C.gold;
+      ctx.fillStyle = "rgba(6, 8, 18, 0.55)";
+      ctx.fillRect(x + 7, ry + rowH - 5, w - 14, 2.6);
+      ctx.fillStyle = tone;
+      ctx.fillRect(x + 7, ry + rowH - 5, (w - 14) * ratio, 2.6);
+      if (o === inter) { ctx.fillStyle = C.goldHi; ctx.fillRect(x, ry + 2, 3, rowH - 9); }
+      const a = Math.atan2(o.from.y - P.y, o.from.x - P.x), midY = ry + (rowH - 5) / 2;
+      ctx.save(); ctx.translate(x + 14, midY); ctx.rotate(a);
+      ctx.fillStyle = urgent ? "#ff9a8b" : C.cyan;
+      ctx.strokeStyle = "rgba(6, 8, 18, 0.85)"; ctx.lineWidth = 2; ctx.lineJoin = "round";
+      ctx.beginPath(); ctx.moveTo(7, 0); ctx.lineTo(-5, -5); ctx.lineTo(-2, 0); ctx.lineTo(-5, 5); ctx.closePath(); ctx.stroke(); ctx.fill();
+      ctx.restore();
+      const hasCue = o.word.cue !== "text";
+      if (hasCue) drawWordCue(ctx, o.word, x + 38, midY, 18);
+      ctx.font = readableFont(12, "900");
+      ctx.fillStyle = C.text;
+      ctx.textAlign = "left";
+      const ty = midY + fontPx(ctx.font) * 0.35;
+      inkText(ctx, o.word.zh, x + (hasCue ? 54 : 30), ty, w - (hasCue ? 118 : 94));
+      ctx.textAlign = "right";
+      ctx.fillStyle = urgent ? "#ff9a8b" : "#bfe9f0";
+      inkText(ctx, `${Math.ceil(o.life)}s`, x + w - 8, ty);
+    });
+    if (rows.length > 3) {
+      ctx.textAlign = "right"; ctx.font = readableFont(11, "bold"); ctx.fillStyle = C.dim;
+      inkText(ctx, `＋${rows.length - 3}`, x + w - 4, y + 3 * (rowH + 4) + fontPx(ctx.font));
+    }
+  }
+
+  // Boss 大血條：名稱、結界狀態、血量與 1/3 刻度。
+  function drawBossBar(ctx, x, y, w, boss, scale, time) {
+    const hp = clamp(boss.hp / Math.max(1, boss.max), 0, 1), shield = !!boss.shield;
+    const barH = Math.max(16, Math.ceil(13 / scale)), labelPx = fontPx(readableFont(13));
+    const h = labelPx + barH + 20;
+    const tone = shield ? C.cyan : "#ff4d5e";
+    glow(ctx, x + w / 2, y + h / 2, w * 1.1, tone, 0.12 * pulse(4, 0.5));
+    glassBox(ctx, x, y, w, h, 10, "rgba(26, 8, 16, 0.95)", tone, 2.2);
+    ctx.textAlign = "left";
+    ctx.font = readableFont(13, "900");
+    ctx.fillStyle = "#fff1f3";
+    ctx.fillText(boss.final ? "大妖王" : "妖將", x + 12, y + labelPx + 5);
+    ctx.textAlign = "right";
+    ctx.fillStyle = shield ? C.cyan : "#ff9aa6";
+    ctx.fillText(shield ? "結界展開・答對破除" : "結界已破・全力進攻", x + w - 12, y + labelPx + 5);
+    const bx = x + 10, by = y + labelPx + 11, bw = w - 20;
+    ctx.fillStyle = "#1c0f14";
+    ctx.beginPath(); ctx.roundRect(bx, by, bw, barH, barH / 2); ctx.fill();
+    if (hp > 0) {
+      const g = ctx.createLinearGradient(bx, 0, bx + bw, 0);
+      g.addColorStop(0, "#b3122a"); g.addColorStop(0.6, "#ff4d3a"); g.addColorStop(1, "#ffb347");
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.roundRect(bx, by, Math.max(barH, bw * hp), barH, barH / 2); ctx.fill();
+      ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+      ctx.beginPath(); ctx.roundRect(bx + 3, by + 2, Math.max(0, bw * hp - 6), barH * 0.32, barH / 4); ctx.fill();
+    }
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.45)"; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (const t of [1 / 3, 2 / 3]) { ctx.moveTo(bx + bw * t, by); ctx.lineTo(bx + bw * t, by + barH); }
+    ctx.stroke();
+    if (shield) {
+      ctx.strokeStyle = `rgba(127, 227, 240, ${0.55 + 0.35 * pulse(5, 0.2)})`; ctx.lineWidth = 2.4;
+      ctx.beginPath(); ctx.roundRect(bx - 1, by - 1, bw + 2, barH + 2, barH / 2 + 1); ctx.stroke();
+    }
+    return h;
+  }
+
+  // 2. 全螢幕 HUD：左上生命（燈油）與經驗、中上任務／Boss、右上黎明與小地圖、左下武器格。
+  function drawHud(ctx, P, oil, maxOil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, goalDeliveries = 6, dashCd = 0, dashMax = 1.8, bossHunt = false, extra = {}) {
+    ctx.save();
     const bounds = window.VIEWPORT?.hudBounds() || screenBounds();
     const scale = window.VIEWPORT?.get().scale || (document.getElementById("game")?.getBoundingClientRect().width || 900) / 900;
-    const oilTextSize = Math.max(20, Math.ceil(18 / scale));
-    const oilBarH = Math.max(14, Math.ceil(12 / scale));
-    const xpTextSize = Number(readableFont(12).match(/([\d.]+)px/)[1]);
-    const pBoxX = bounds.left + 18, pBoxY = bounds.top + 14, pBoxW = Math.max(225, Math.ceil(150 / scale));
-    const pBoxH = oilTextSize + oilBarH + xpTextSize + 28;
+    const time = extra.time ?? Date.now() / 1000;
+    const motion = !calm();
     const curMaxOil = maxOil || 100;
-    const oilRatio = Math.max(0, Math.min(1, oil / curMaxOil)), lowOil = oilRatio <= 0.25;
-    glassBox(ctx, pBoxX, pBoxY, pBoxW, pBoxH, 10, lowOil ? "rgba(48, 13, 20, 0.94)" : "rgba(12, 16, 28, 0.9)", lowOil ? "#ff8a75" : "#d4af37", lowOil ? 2.5 : 1.5);
+    const oilRatio = clamp(oil / curMaxOil, 0, 1), lowOil = oilRatio <= 0.25;
+    if (lowOil) drawLowOil(ctx, oilRatio, time);
 
-    // 1. 提燈油量條（生命條：油盡燈枯即陣亡）
-    ctx.textAlign = "left";
-    ctx.fillStyle = lowOil ? "#ffb4a5" : "#ffb03a";
-    ctx.font = readableFont(14, "900");
-    ctx.fillText(lowOil ? "低油！" : "燈油", pBoxX + 10, pBoxY + oilTextSize + 6);
+    // --- 左上：燈油＝生命。燈籠圖示＋粗條，不加底框；低油時整條轉紅並脈動。 ---
+    const oilTextSize = Math.max(20, Math.ceil(18 / scale));
+    const oilBarH = Math.max(18, Math.ceil(16 / scale));
+    const pBoxX = bounds.left + 18, pBoxY = bounds.top + 14, pBoxW = Math.max(250, Math.ceil(170 / scale));
+    const pBoxH = oilTextSize + oilBarH + 12;
+    if (lowOil && motion) glow(ctx, pBoxX + pBoxW / 2, pBoxY + pBoxH / 2, pBoxW * 1.6, "#ff3b3b", 0.3 * pulse(8, 0.3));
+
+    drawLantern(ctx, pBoxX + 16, pBoxY + pBoxH / 2, Math.max(28, oilTextSize * 1.5), lowOil ? "#ff6a4a" : "#ffb03a");
     ctx.fillStyle = "#fff4dd";
     ctx.font = readableFont(oilTextSize, "900");
     ctx.textAlign = "right";
-    ctx.fillText(`${Math.ceil(oil)}/${curMaxOil}`, pBoxX + pBoxW - 10, pBoxY + oilTextSize + 6);
+    inkText(ctx, `${Math.ceil(oil)}/${curMaxOil}`, pBoxX + pBoxW - 4, pBoxY + oilTextSize);
     ctx.textAlign = "left";
 
-    const oilBarW = pBoxW - 20, oilBarX = pBoxX + 10, oilBarY = pBoxY + oilTextSize + 12;
+    const barX = pBoxX + 40, barY = pBoxY + oilTextSize + 7, barW = pBoxW - 44;
     ctx.fillStyle = "#1c1814";
     ctx.beginPath();
-    ctx.roundRect(oilBarX, oilBarY, oilBarW, oilBarH, 4);
+    ctx.roundRect(barX, barY, barW, oilBarH, oilBarH / 2);
     ctx.fill();
-
-    const oilGrad = ctx.createLinearGradient(oilBarX, 0, oilBarX + oilBarW, 0);
-    if (lowOil) {
-      oilGrad.addColorStop(0, "#ff3838");
-      oilGrad.addColorStop(1, "#ff7943");
-    } else {
-      oilGrad.addColorStop(0, "#ff9d26");
-      oilGrad.addColorStop(1, "#ffd554");
-    }
     if (oilRatio > 0) {
-      ctx.fillStyle = oilGrad;
-      ctx.beginPath();
-      ctx.roundRect(oilBarX, oilBarY, oilBarW * oilRatio, oilBarH, 4);
-      ctx.fill();
+      const fillW = Math.max(oilBarH, barW * oilRatio);
+      const g = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+      if (lowOil) { g.addColorStop(0, "#d4141f"); g.addColorStop(1, "#ff7a43"); }
+      else { g.addColorStop(0, "#ff6a13"); g.addColorStop(0.6, "#ffb42e"); g.addColorStop(1, "#ffe28a"); }
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.roundRect(barX, barY, fillW, oilBarH, oilBarH / 2); ctx.fill();
+      ctx.fillStyle = "rgba(255, 255, 255, 0.24)";
+      ctx.beginPath(); ctx.roundRect(barX + 3, barY + 2, Math.max(0, fillW - 6), oilBarH * 0.34, oilBarH / 4); ctx.fill();
+      glow(ctx, barX + fillW, barY + oilBarH / 2, oilBarH * 3.2, lowOil ? "#ff4030" : "#ffc766", 0.75 * (motion ? pulse(4, 0.7) : 0.8));
     }
-    // 2. 經驗值條 (滿了即升級)
-    ctx.font = readableFont(12, "900");
-    ctx.fillStyle = "#40c4ff";
-    const xpY = oilBarY + oilBarH + xpTextSize + 8;
-    ctx.fillText(`Lv.${level}`, pBoxX + 10, xpY);
-
-    const xpBarW = 80, xpBarH = 9;
-    ctx.fillStyle = "#151b27";
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.32)"; ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.roundRect(pBoxX + 60, xpY - 9, xpBarW, xpBarH, 4);
-    ctx.fill();
-    const xpRatio = Math.min(1, xp / xpNeed);
-    if (xpRatio > 0) {
-      ctx.fillStyle = "#40c4ff";
-      ctx.beginPath();
-      ctx.roundRect(pBoxX + 60, xpY - 9, xpBarW * xpRatio, xpBarH, 4);
-      ctx.fill();
-    }
-    ctx.fillStyle = "#c5eeff";
-    ctx.font = readableFont(11, "bold");
-    ctx.fillText(`${xp}/${xpNeed}`, pBoxX + 147, xpY);
+    for (let i = 1; i < 10; i++) { ctx.moveTo(barX + barW * i / 10, barY + 2); ctx.lineTo(barX + barW * i / 10, barY + oilBarH - 2); }
+    ctx.stroke();
+    ctx.strokeStyle = lowOil ? "#ff8a75" : "rgba(232, 195, 106, 0.7)"; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.roundRect(barX, barY, barW, oilBarH, oilBarH / 2); ctx.stroke();
 
-    // 3. 金剛結界護盾膠囊（位於生命欄正下方，整潔且絕不遮擋中央委託提示）
-    if (b.shield && b.shield > 0) {
-      const shX = pBoxX, shY = pBoxY + pBoxH + 6;
-      glassBox(ctx, shX, shY, 140, 26, 6, "rgba(36, 30, 14, 0.94)", "#ffd54f", 1.5);
+    // --- 畫面最下緣：經驗薄條（全寬），等級數字浮在條上方正中。 ---
+    {
+      const sb = screenBounds(), xpH = Math.max(5, Math.ceil(6 / scale));
+      const xpRatio = clamp(xp / Math.max(1, xpNeed), 0, 1), xpY = sb.bottom - xpH;
+      ctx.fillStyle = "rgba(6, 10, 22, 0.78)";
+      ctx.fillRect(sb.left, xpY, sb.width, xpH);
+      if (xpRatio > 0) {
+        const xg = ctx.createLinearGradient(sb.left, 0, sb.right, 0);
+        xg.addColorStop(0, "#2b7bff"); xg.addColorStop(1, "#7fe3f0");
+        ctx.fillStyle = xg;
+        ctx.fillRect(sb.left, xpY, sb.width * xpRatio, xpH);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+        ctx.fillRect(sb.left, xpY, sb.width * xpRatio, 1);
+        if (xpRatio > 0.85) glow(ctx, sb.left + sb.width * xpRatio, xpY + xpH / 2, xpH * 6, C.cyan, 0.6 * pulse(6, 0.4));
+      }
       ctx.textAlign = "center";
       ctx.font = readableFont(12, "900");
-      ctx.fillStyle = "#ffe28b";
-      ctx.fillText(`✦ 結界護盾 x${b.shield}`, shX + 70, shY + 18);
+      ctx.fillStyle = C.cyan;
+      inkText(ctx, `Lv.${level}`, (sb.left + sb.right) / 2, xpY - 6);
+      ctx.textAlign = "left";
     }
 
-    // --- 右上角：進度與統計懸浮艙 (Dawn, Deliveries & Score) ---
-    const sBoxW = 205, sBoxH = 52;
-    const sBoxX = bounds.right - sBoxW - 62, sBoxY = bounds.top + 14;
-    glassBox(ctx, sBoxX, sBoxY, sBoxW, sBoxH, 10);
-
-    // 黎明天盤進度
-    const dawnProgress = Math.min(1, elapsed / dawnTime);
+    // --- 右上：黎明進度（月亮＋條）與配達進度（包裹＋件數）＋分數，同樣不加底框。 ---
+    const sBoxW = 215, sBoxH = 56;
+    const sBoxX = bounds.right - sBoxW - Math.max(62, 44 / scale + 18), sBoxY = bounds.top + 14;
+    const dawnProgress = clamp(elapsed / dawnTime, 0, 1);
     ctx.textAlign = "left";
-    // 弦月徽記
     ctx.fillStyle = "#ffd54f";
     ctx.beginPath();
-    ctx.arc(sBoxX + 16, sBoxY + 16, 7, 0.5, 4.2);
-    ctx.arc(sBoxX + 19, sBoxY + 16, 6, 4.0, 0.7, true);
+    ctx.arc(sBoxX + 17, sBoxY + 17, 7, 0.5, 4.2);
+    ctx.arc(sBoxX + 20, sBoxY + 17, 6, 4.0, 0.7, true);
     ctx.fill();
-
-    const miniDawnW = 110, miniDawnH = 7;
-    ctx.fillStyle = "#222a3d";
-    ctx.beginPath();
-    ctx.roundRect(sBoxX + 32, sBoxY + 12, miniDawnW, miniDawnH, 3.5);
-    ctx.fill();
-    ctx.fillStyle = "#ffa726";
-    ctx.beginPath();
-    ctx.roundRect(sBoxX + 32, sBoxY + 12, miniDawnW * dawnProgress, miniDawnH, 3.5);
-    ctx.fill();
-
+    const dawnBarW = sBoxW - 100, dawnBarX = sBoxX + 34, dawnBarY = sBoxY + 12;
+    ctx.fillStyle = "#1b2238";
+    ctx.beginPath(); ctx.roundRect(dawnBarX, dawnBarY, dawnBarW, 9, 4.5); ctx.fill();
+    if (dawnProgress > 0) {
+      const dg = ctx.createLinearGradient(dawnBarX, 0, dawnBarX + dawnBarW, 0);
+      dg.addColorStop(0, "#4a5bd8"); dg.addColorStop(0.7, "#ff8a4a"); dg.addColorStop(1, "#ffe28a");
+      ctx.fillStyle = dg;
+      ctx.beginPath(); ctx.roundRect(dawnBarX, dawnBarY, Math.max(9, dawnBarW * dawnProgress), 9, 4.5); ctx.fill();
+      glow(ctx, dawnBarX + dawnBarW * dawnProgress, dawnBarY + 4.5, 26, "#ffd27a", 0.6);
+    }
+    ctx.strokeStyle = "rgba(232, 195, 106, 0.55)"; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.roundRect(dawnBarX, dawnBarY, dawnBarW, 9, 4.5); ctx.stroke();
     const dawnSecLeft = Math.max(0, Math.ceil(dawnTime - elapsed));
-    const dawnMin = Math.floor(dawnSecLeft / 60);
     const dawnSec = dawnSecLeft % 60;
     ctx.fillStyle = "#ffeed4";
-    ctx.font = readableFont(11, "bold");
-    ctx.fillText(`${dawnMin}:${dawnSec < 10 ? '0' : ''}${dawnSec}`, sBoxX + 148, sBoxY + 20);
+    ctx.font = readableFont(12, "900");
+    ctx.textAlign = "right";
+    inkText(ctx, `${Math.floor(dawnSecLeft / 60)}:${dawnSec < 10 ? '0' : ''}${dawnSec}`, sBoxX + sBoxW - 4, sBoxY + 21);
+    ctx.fillStyle = ctx.strokeStyle = "#ffe0a4";
+    drawActionIcon(ctx, 'pickup', sBoxX + 17, sBoxY + 42, 8);
+    ctx.textAlign = "left";
+    ctx.font = readableFont(14, "900");
+    inkText(ctx, `${delivered}/${goalDeliveries}`, sBoxX + 32, sBoxY + 47);
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#fff1cc";
+    const scoreText = String(score);
+    inkText(ctx, scoreText, sBoxX + sBoxW - 4, sBoxY + 47);
+    ctx.fillStyle = C.gold;
+    ctx.save(); ctx.translate(sBoxX + sBoxW - 4 - ctx.measureText(scoreText).width - 9, sBoxY + 42); ctx.rotate(Math.PI / 4); ctx.fillRect(-3, -3, 6, 6); ctx.restore();
+    ctx.textAlign = "left";
 
-    // 配達目標與得分
-    ctx.fillStyle = "#ffeed4";
-    ctx.font = readableFont(13, "900");
-    ctx.fillText(`配達 ${delivered}/${goalDeliveries}  |  ${score}pt`, sBoxX + 12, sBoxY + 42, 185);
+    const compact = scale < 0.62;
+    const mapW = compact ? 120 : 172, mapH = compact ? 84 : 118, mapY = sBoxY + sBoxH + 8;
+    drawMinimap(ctx, sBoxX + sBoxW - mapW, mapY, mapW, mapH, P, orders || [], job, extra.boss, time);
+    if (!compact && orders?.length) drawOrderList(ctx, sBoxX, mapY + mapH + 6, sBoxW, fontPx(readableFont(12)) + 14, orders, P, inter);
 
-    // --- 右上角暫停按鈕 (btnPause) ---
-    glassBox(ctx, btnPause.x, btnPause.y, btnPause.w, btnPause.h, 10, "rgba(20, 26, 44, 0.92)", "#d4af37", 1.8);
-    const pcx = btnPause.x + btnPause.w / 2, pcy = btnPause.y + btnPause.h / 2;
-    ctx.fillStyle = "#ffd54f";
-    drawActionIcon(ctx,'pause',pcx,pcy,10);
+    // --- 暫停鈕 ---
+    glassBox(ctx, btnPause.x, btnPause.y, btnPause.w, btnPause.h, 10, "rgba(24, 20, 36, 0.94)", C.gold, 1.8);
+    ctx.fillStyle = ctx.strokeStyle = "#ffd54f";
+    drawActionIcon(ctx, 'pause', btnPause.x + btnPause.w / 2, btnPause.y + btnPause.h / 2, 10);
 
-    // --- 中上：HoloCure 式單一任務條。只保留「現在要做什麼」與方向資訊。 ---
+    // --- 中上：任務。只保留「現在要做什麼」，直接浮在場景上，不加底框。 ---
     const taskX = Math.max(248, pBoxX + pBoxW + 5), taskY = bounds.top + 14;
     const taskW = Math.min(370, sBoxX - taskX - 15), taskH = 52;
     HINT_BTN.x = taskX + taskW - HINT_BTN.w - 8;
     HINT_BTN.y = bounds.top + 20;
-    const bossPulse = 0.5 + 0.5 * Math.sin(elapsed * 7);
-    const taskStroke = bossHunt
-      ? `rgba(255, 68, 86, ${0.72 + bossPulse * 0.28})`
-      : nameT > 0 ? "#ffe082" : "rgba(212, 175, 55, 0.62)";
-    glassBox(ctx, taskX, taskY, taskW, taskH, 10, bossHunt ? "rgba(48, 8, 20, 0.94)" : "rgba(12, 16, 28, 0.9)", taskStroke, bossHunt ? 3 : (nameT > 0 ? 2.4 : 1.4));
     ctx.textAlign = "left";
+    let afterTask = taskY + taskH + 6;
     if (bossHunt) {
+      const bossPulse = motion ? 0.65 + 0.35 * Math.sin(time * 4) : 0.85;
       ctx.textAlign = "center";
-      ctx.fillStyle = "#fff1f3";
-      ctx.font = "900 20px 'Noto Sans JP', sans-serif";
-      ctx.fillText("⚠ 大妖鬼を倒せ！", taskX + taskW / 2, taskY + 23);
-      ctx.fillStyle = "#ff8a9a";
-      ctx.font = readableFont(12, "900");
-      ctx.fillText("赤い双矢印を追え", taskX + taskW / 2, taskY + 43);
+      ctx.fillStyle = `rgba(255, 138, 154, ${0.7 + bossPulse * 0.3})`;
+      ctx.font = "900 22px 'Noto Sans JP', sans-serif";
+      inkText(ctx, "擊敗大妖", taskX + taskW / 2, taskY + 32);
+      drawCompass(ctx, taskX + taskW / 2 - 84, taskY + 26, extra.bossAngle, { color: "#ff3b4f", count: 2, size: 1.2 });
+      drawCompass(ctx, taskX + taskW / 2 + 84, taskY + 26, extra.bossAngle, { color: "#ff3b4f", count: 2, size: 1.2 });
     } else if (job) {
       const remaining = Math.round(Math.hypot(P.x - job.to.x, P.y - job.to.y) / 10) * 10;
       ctx.fillStyle = "#fff3ca";
       ctx.font = readableFont(18, "900");
-      if (job.word.cue !== "text") drawWordCue(ctx, job.word, taskX + 25, taskY + 16, 24);
-      ctx.fillText(job.word.zh, taskX + (job.word.cue === "text" ? 14 : 46), taskY + 23);
+      if (job.word.cue !== "text") drawWordCue(ctx, job.word, taskX + 27, taskY + 16, 24);
+      inkText(ctx, job.word.zh, taskX + (job.word.cue === "text" ? 16 : 48), taskY + 23);
+      drawCompass(ctx, taskX + 24, taskY + 40, extra.guideAngle, { color: "#ffd152", size: 1.1 });
       ctx.fillStyle = "#82d8ff";
       ctx.font = readableFont(12, "900");
-      ctx.fillText(`➜ ${remaining}`, taskX + 14, taskY + 43);
+      inkText(ctx, `${remaining}`, taskX + 44, taskY + 44);
 
       const hintStage = job.hintStage || 0;
-      const hintLabel = hintStage === 0 ? "聽 -3" : hintStage === 1 ? "詞 -4" : "✓";
-      const hintEnabled = hintStage < 2;
-      glassBox(ctx, HINT_BTN.x, HINT_BTN.y, HINT_BTN.w, HINT_BTN.h, 9, hintEnabled ? "rgba(31, 61, 77, 0.94)" : "rgba(44, 48, 58, 0.82)", hintEnabled ? "#80deea" : "#6b7280", 1.6);
-      ctx.textAlign = "center";
-      ctx.fillStyle = hintEnabled ? "#e0fbff" : "#b7bdc8";
-      ctx.font = readableFont(14, "900");
-      drawActionIcon(ctx, hintStage === 0 ? 'listen' : 'hint', HINT_BTN.x+17,HINT_BTN.y+20,9);
-      ctx.fillText(hintLabel, HINT_BTN.x + 49, HINT_BTN.y + 25);
+      drawButton(ctx, HINT_BTN, hintStage === 0 ? "聽 -3" : hintStage === 1 ? "詞 -4" : "✓", {
+        tone: "cyan", size: 14, icon: hintStage === 0 ? "listen" : "hint", disabled: hintStage >= 2
+      });
 
       if (job.showMeaningT > 0) {
         ctx.textAlign = "left";
         ctx.fillStyle = "#ffd54f";
         ctx.font = readableFont(11, "bold");
-        const helper = `${job.word.jp}　${job.word.example || ""}`;
-        drawHintText(ctx, helper, taskX, taskY + taskH + 6, taskW);
+        afterTask += drawHintText(ctx, `${job.word.jp}　${job.word.example || ""}`, taskX, taskY + taskH + 6, taskW) + 6;
       }
     } else {
-      ctx.fillStyle = inter ? "#ffe082" : "#f4e7cf";
-      ctx.font = readableFont(17, "900");
-      drawActionIcon(ctx,'pickup',taskX+25,taskY+24,10);
-      ctx.fillText("取貨", taskX + 46, taskY + 31);
-      ctx.fillStyle = "rgba(255,255,255,0.5)";
-      ctx.font = readableFont(12, "");
-      ctx.fillText("➜", taskX + 128, taskY + 31);
+      // 沒有進行中的委託：包裹圖示＋箭頭，朝委託方向前進（靠近時圖示轉金色）。
+      ctx.fillStyle = ctx.strokeStyle = inter ? "#ffe082" : "#f4e7cf";
+      drawActionIcon(ctx, 'pickup', taskX + 27, taskY + 26, 13);
+      drawCompass(ctx, taskX + 68, taskY + 26, extra.guideAngle, { color: inter ? "#ffe082" : "#ffd152", size: 1.3 });
     }
+    if (extra.boss) drawBossBar(ctx, taskX, afterTask, taskW, extra.boss, scale, time);
 
-    // --- 左下角：HoloCure 風格【主動秘術 4 槽位 + 被動體質欄】 ---
+    // --- 左下：武器格（含冷卻）＋被動體質欄 ---
     const ownedKeys = WI ? Object.keys(WI).filter(k => (WL[k] || 0) > 0) : [];
     const maxActiveSlots = 4;
     const {badgeTextSize, badgeH, slotSize, footerHeight} = skillMetrics(scale, ctx);
@@ -368,11 +625,22 @@ window.UI = (() => {
       const sx = slotStartX + i * (slotSize + slotGap);
       const k = ownedKeys[i];
       if (k) {
-        // 主動技能格：繪製精緻微型和風家紋勳章 (r = 17)
-        drawEmblem(ctx, k, sx + slotSize / 2, slotY + slotSize / 2, 17);
-        // 等級獨立放在圖示下方，整格寬度容納 L1–L4／MAX。
+        const tone = WEAPON_TONE[k] || C.gold, scx = sx + slotSize / 2, scy = slotY + slotSize / 2;
+        glassBox(ctx, sx, slotY, slotSize, slotSize, 9, "rgba(14, 12, 24, 0.9)", tone, 1.8);
+        drawEmblem(ctx, k, scx, scy, 17);
+        const cd = extra.cd?.[k] || 0;
+        if (cd > 0.02) {
+          ctx.fillStyle = "rgba(4, 6, 14, 0.66)";
+          ctx.beginPath();
+          ctx.moveTo(scx, scy);
+          ctx.arc(scx, scy, slotSize / 2 - 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * cd);
+          ctx.closePath();
+          ctx.fill();
+        } else if (motion && extra.cd) {
+          glow(ctx, scx, scy, slotSize * 1.5, tone, 0.18 * pulse(3, 0.4));
+        }
         const lvl = WL[k];
-        ctx.fillStyle = "#d4af37";
+        ctx.fillStyle = C.gold;
         ctx.beginPath();
         ctx.roundRect(sx, slotY + slotSize, slotSize, badgeH, 3);
         ctx.fill();
@@ -381,14 +649,13 @@ window.UI = (() => {
         ctx.font = `900 ${badgeTextSize}px 'Noto Sans JP', sans-serif`;
         ctx.fillText(lvl >= 5 ? "MAX" : `L${lvl}`, sx + slotSize / 2, slotY + slotSize + badgeTextSize + 3);
       } else {
-        // 未解鎖空槽位：虛線框
         ctx.save();
         ctx.setLineDash([3, 3]);
         ctx.strokeStyle = "rgba(180, 195, 220, 0.35)";
         ctx.lineWidth = 1.5;
-        ctx.fillStyle = "rgba(12, 15, 24, 0.45)";
+        ctx.fillStyle = "rgba(12, 15, 24, 0.5)";
         ctx.beginPath();
-        ctx.roundRect(sx, slotY, slotSize, slotSize, 8);
+        ctx.roundRect(sx, slotY, slotSize, slotSize, 9);
         ctx.fill();
         ctx.stroke();
         ctx.fillStyle = "rgba(180, 195, 220, 0.35)";
@@ -399,7 +666,6 @@ window.UI = (() => {
       }
     }
 
-    // 被動體質欄 (護盾, 增傷, 攻速, 暴擊, 移速, 衝刺, 燈油, 磁鐵)
     const passives = [
       { id: "shield", lvl: b.shield || 0, active: (b.shield || 0) > 0 },
       { id: "dmg", lvl: Math.round(((b.dmg || 1.2) - 1.2) / 0.35), active: (b.dmg || 1.2) > 1.25 },
@@ -416,6 +682,7 @@ window.UI = (() => {
     const visibleCount = passives.length <= passiveSlots ? passives.length : passiveSlots - 1;
     passives.slice(0, visibleCount).forEach((pas, pIdx) => {
       const px = passiveX + pIdx * (slotSize + slotGap);
+      glassBox(ctx, px, slotY, slotSize, slotSize, 9, "rgba(14, 12, 24, 0.9)", "rgba(255, 213, 79, 0.55)", 1.4);
       drawEmblem(ctx, pas.id, px + slotSize / 2, slotY + slotSize / 2, 14);
       ctx.fillStyle = "#ffd54f";ctx.beginPath();
       ctx.roundRect(px, slotY + slotSize, slotSize, badgeH, 3);ctx.fill();
@@ -426,7 +693,7 @@ window.UI = (() => {
     const hiddenPassives = passives.length - visibleCount;
     if (hiddenPassives > 0) {
       const px = passiveX + visibleCount * (slotSize + slotGap);
-      glassBox(ctx, px, slotY, slotSize, slotSize + badgeH, 6, "rgba(36, 30, 14, 0.94)", "#ffd54f");
+      glassBox(ctx, px, slotY, slotSize, slotSize + badgeH, 6, "rgba(40, 32, 12, 0.94)", "#ffd54f");
       ctx.fillStyle = "#ffe28b";ctx.textAlign = "center";
       ctx.font = `900 ${badgeTextSize}px 'Noto Sans JP', sans-serif`;
       ctx.fillText(`＋${hiddenPassives}`, px + slotSize / 2, slotY + slotSize / 2 + badgeTextSize * 0.35);
@@ -434,10 +701,9 @@ window.UI = (() => {
     }
     ctx.restore();
 
-    // 觸控虛擬按鈕
+    // --- 觸控虛擬按鈕 ---
     {
       ctx.save();
-      // 開場只用半透明搖桿輪廓提示「左側可拖曳」，不彈教學文字。
       if (touch && !joy && elapsed < 15) {
         const hintY = bounds.bottom - footerHeight - 76;
         ctx.strokeStyle = "rgba(255,255,255,0.28)";
@@ -449,47 +715,44 @@ window.UI = (() => {
         ctx.arc(bounds.left + 105, hintY, 20, 0, 6.28);
         ctx.stroke();
       }
-      const cdRatio = Math.max(0, Math.min(1, dashCd / Math.max(0.01, dashMax)));
-      const readyRatio = 1 - cdRatio;
-      ctx.fillStyle = cdRatio <= 0.001 ? "rgba(255, 255, 255, 0.72)" : "rgba(30, 38, 58, 0.72)";
-      ctx.beginPath();
-      ctx.arc(btnD.x, btnD.y, btnD.r, 0, 6.28);
-      ctx.fill();
-      if (cdRatio > 0.001) {
-        ctx.fillStyle = "rgba(255, 255, 255, 0.42)";
+      const cdRatio = clamp(dashCd / Math.max(0.01, dashMax), 0, 1);
+      const ready = cdRatio <= 0.001;
+      const ring = (btn, fill, stroke) => {
+        glow(ctx, btn.x, btn.y, btn.r * 3, stroke, ready ? 0.3 : 0.12);
+        ctx.fillStyle = fill;
+        ctx.beginPath(); ctx.arc(btn.x, btn.y, btn.r, 0, 6.28); ctx.fill();
+        ctx.strokeStyle = stroke; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(btn.x, btn.y, btn.r, 0, 6.28); ctx.stroke();
+      };
+      ring(btnD, ready ? "rgba(240, 248, 255, 0.78)" : "rgba(26, 32, 52, 0.78)", ready ? "#ffffff" : "#6f7ea8");
+      if (!ready) {
+        ctx.fillStyle = "rgba(160, 200, 255, 0.42)";
         ctx.beginPath();
         ctx.moveTo(btnD.x, btnD.y);
-        ctx.arc(btnD.x, btnD.y, btnD.r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * readyRatio);
+        ctx.arc(btnD.x, btnD.y, btnD.r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - cdRatio));
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.78)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(btnD.x, btnD.y, btnD.r, 0, 6.28);
-        ctx.stroke();
       }
       ctx.textAlign = "center";
-      ctx.fillStyle = cdRatio <= 0.001 ? "#1e2436" : "#ffffff";
+      ctx.fillStyle = ctx.strokeStyle = ready ? "#1e2436" : "#ffffff";
       ctx.font = readableFont(16, "900");
-      drawActionIcon(ctx,'dash',btnD.x,btnD.y-12,12);
+      drawActionIcon(ctx, 'dash', btnD.x, btnD.y - 12, 12);
       ctx.fillText(dashCd > 0 ? `${dashCd.toFixed(1)}s` : "衝刺", btnD.x, btnD.y + 20);
 
       if (inter) {
-        ctx.fillStyle = "rgba(255, 210, 80, 0.85)";
-        ctx.beginPath();
-        ctx.arc(btnE.x, btnE.y, btnE.r, 0, 6.28);
-        ctx.fill();
-        ctx.fillStyle = "#1e2436";
-        drawActionIcon(ctx,'pickup',btnE.x,btnE.y-10,10);
+        ring(btnE, "rgba(255, 210, 80, 0.88)", "#fff3c4");
+        ctx.fillStyle = ctx.strokeStyle = "#1e2436";
+        drawActionIcon(ctx, 'pickup', btnE.x, btnE.y - 10, 10);
         ctx.fillText("取貨", btnE.x, btnE.y + 20);
       }
 
       if (joy) {
-        ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
         ctx.beginPath();
         ctx.arc(joy.x, joy.y, 60, 0, 6.28);
         ctx.fill();
-        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.strokeStyle = "rgba(255, 240, 200, 0.45)"; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = "rgba(255, 245, 220, 0.78)";
         ctx.beginPath();
         ctx.arc(joy.x + joy.dx * 60, joy.y + joy.dy * 60, 26, 0, 6.28);
         ctx.fill();
@@ -497,9 +760,9 @@ window.UI = (() => {
       ctx.restore();
     }
     if (!touch && elapsed < 12) {
-      glassBox(ctx, bounds.left + 22, bounds.bottom - footerHeight - 50, 72, 30, 7, "rgba(12,16,28,0.62)", "rgba(255,255,255,0.25)", 1);
+      glassBox(ctx, bounds.left + 22, bounds.bottom - footerHeight - 50, 72, 30, 8, "rgba(12,16,28,0.7)", "rgba(255,255,255,0.28)", 1);
       ctx.textAlign = "center";
-      ctx.fillStyle = "rgba(255,255,255,0.72)";
+      ctx.fillStyle = "rgba(255,255,255,0.78)";
       ctx.font = readableFont(12, "900");
       ctx.fillText("拖曳移動", bounds.left + 58, bounds.bottom - footerHeight - 30);
     }
@@ -514,10 +777,6 @@ window.UI = (() => {
 
     // 1. 雙層金箔金屬框與外圈陰影
     ctx.save();
-    ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
-    ctx.shadowBlur = r * 0.28;
-    ctx.shadowOffsetY = r * 0.1;
-
     const goldGrad = ctx.createLinearGradient(-r, -r, r, r);
     goldGrad.addColorStop(0, "#fff1a8");
     goldGrad.addColorStop(0.28, "#d4af37");
@@ -1033,40 +1292,48 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 3. 升級選卡：HoloCure 式橫向選項列；整列都是觸控區，降低手機誤觸。
-  function drawLevelUp(ctx, level, choices, WL, WI) {
+
+  // 3. 升級三選一：武器色、NEW 緞帶、等級節點與重抽。
+  function drawLevelUp(ctx, level, choices, WL, WI, rerolls = 0, time = Date.now() / 1000) {
     ctx.save();
-    ctx.fillStyle = "rgba(6, 9, 18, 0.94)";
+    ctx.fillStyle = "rgba(6, 9, 18, 0.93)";
     fillScreen(ctx);
+    glow(ctx, W / 2, 46, 620, C.gold, 0.2 * pulse(2, 0.6));
+    glow(ctx, W / 2, 330, 1100, "#2b3a78", 0.1);
 
     ctx.textAlign = "center";
-    ctx.font = "900 30px 'Kaisei Decol', 'Noto Sans JP', serif";
-    ctx.fillStyle = "#ffe28b";
-    ctx.shadowColor = "rgba(255, 215, 100, 0.7)";
-    ctx.shadowBlur = 14;
+    ctx.font = titleFont(32);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillText(`LEVEL UP!　Lv.${level}`, W / 2, 51);
+    ctx.fillStyle = C.goldHi;
     ctx.fillText(`LEVEL UP!　Lv.${level}`, W / 2, 48);
-    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "rgba(232, 195, 106, 0.55)"; ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 250, 56); ctx.lineTo(W / 2 - 40, 56); ctx.moveTo(W / 2 + 40, 56); ctx.lineTo(W / 2 + 250, 56);
+    ctx.stroke();
+    ctx.fillStyle = C.gold;
+    ctx.save(); ctx.translate(W / 2, 56); ctx.rotate(Math.PI / 4); ctx.fillRect(-4, -4, 8, 8); ctx.restore();
 
     // 頂部只顯示 4 個主動槽，不再放長篇說明。
     const ownedKeys = WI ? Object.keys(WI).filter(k => (WL[k] || 0) > 0) : [];
     const maxSlots = 4;
-    const barW = 500, barH = 52;
+    const barW = 620, barH = 70;
     const barX = W / 2 - barW / 2, barY = 64;
 
-    glassBox(ctx, barX, barY, barW, barH, 10, "rgba(18, 24, 40, 0.9)", "#d4af37", 1.5);
+    glassBox(ctx, barX, barY, barW, barH, 10, "rgba(18, 20, 36, 0.9)", C.gold, 1.5);
     const slotStartX = barX + 22;
     for (let s = 0; s < maxSlots; s++) {
-      const sx = slotStartX + s * 116;
+      const sx = slotStartX + s * 150;
       const k = ownedKeys[s];
       if (k) {
-        glassBox(ctx, sx, barY + 7, 104, 38, 6, "rgba(26, 36, 62, 0.9)", "#d4af37", 1.2);
-        drawEmblem(ctx, k, sx + 18, barY + 23, 14);
+        glassBox(ctx, sx, barY + 7, 140, 56, 6, "rgba(26, 30, 56, 0.9)", WEAPON_TONE[k] || C.gold, 1.4);
+        drawEmblem(ctx, k, sx + 18, barY + 49, 12);
         ctx.fillStyle = "#ffeed4";
         ctx.font = readableFont(12, "900");
-        ctx.textAlign = "left";
-        fitText(ctx, WI[k].zh, sx + 38, barY + 22, 62);
-        ctx.font = "900 11px sans-serif";
-        ctx.fillText(`L${WL[k]}`, sx + 38, barY + 38);
+        ctx.textAlign = "center";
+        fitText(ctx, WI[k].zh, sx + 70, barY + 31, 132);
+        ctx.font = readableFont(12, "900");
+        ctx.fillText(`L${WL[k]}`, sx + 70, barY + 58);
       } else {
         ctx.save();
         ctx.setLineDash([3, 3]);
@@ -1081,49 +1348,67 @@ window.UI = (() => {
 
     const cardW = 720, cardH = 108;
     const startX = 90, gap = 14, cy = 176;
+    const cardFill = ctx.createLinearGradient(0, 0, cardW, cardH);
+    cardFill.addColorStop(0, "#232a46");
+    cardFill.addColorStop(0.5, "#141a2d");
+    cardFill.addColorStop(1, "#0d101d");
 
     choices.forEach((c, i) => {
       const cx = startX;
       const rowY = cy + i * (cardH + gap);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
-      ctx.beginPath();
-      ctx.roundRect(cx + 5, rowY + 6, cardW, cardH, 14);
-      ctx.fill();
-
-      const cardGrad = ctx.createLinearGradient(cx, rowY, cx + cardW, rowY + cardH);
-      cardGrad.addColorStop(0, "#222a42");
-      cardGrad.addColorStop(0.45, "#141a2b");
-      cardGrad.addColorStop(1, "#0d101d");
       const isWeapon = c.type === "weapon";
-      const catColor = isWeapon ? (c.id === "barrier" ? "#1976d2" : (c.id === "katana" ? "#c62828" : "#8e24aa")) : "#00897b";
-      glassBox(ctx, cx, rowY, cardW, cardH, 14, cardGrad, catColor, 2.2);
+      const isNew = !!c.levelText && (c.levelText.includes("新") || c.levelText.includes("NEW"));
+      const awakening = c.lv===5 || c.rarity==='max';
+      const tone = awakening ? C.goldHi : isWeapon ? (WEAPON_TONE[c.id] || C.gold) : C.jade;
+
+      // 卡片後方的色光，讓三張卡靠色彩就能分辨。
+      glow(ctx, cx + 36, rowY + 62, 150, tone, 0.34);
+      glassBox(ctx, cx, rowY, cardW, cardH, 14, cardFill, tone, awakening?3:2.2, isNew||awakening);
+      ctx.fillStyle = tone;
+      ctx.beginPath(); ctx.roundRect(cx + 6, rowY + 14, 3.5, cardH - 28, 2); ctx.fill();
 
       // 大型號碼＋紋章，讓鍵盤與觸控的對應一眼可見。
-      glassBox(ctx, cx + 12, rowY + 14, 48, 80, 10, "rgba(8, 12, 22, 0.78)", "#d4af37", 1.3);
+      glassBox(ctx, cx + 14, rowY + 14, 48, 80, 10, "rgba(8, 12, 22, 0.8)", C.gold, 1.3);
       ctx.textAlign = "center";
-      ctx.fillStyle = "#ffe082";
+      ctx.fillStyle = C.goldHi;
       ctx.font = "900 20px sans-serif";
-      ctx.fillText(String(i + 1), cx + 36, rowY + 39);
-      drawEmblem(ctx, c.id, cx + 36, rowY + 70, 18);
+      ctx.fillText(String(i + 1), cx + 38, rowY + 39);
+      glow(ctx, cx + 38, rowY + 70, 70, tone, 0.5);
+      drawEmblem(ctx, c.id, cx + 38, rowY + 70, 18);
 
       ctx.textAlign = "left";
       ctx.fillStyle = "#ffffff";
-      ctx.font = "900 20px 'Kaisei Decol', 'Noto Sans JP', serif";
-      ctx.fillText(c.n, cx + 78, rowY + 31);
+      ctx.font = readableFont(21, "900");
+      ctx.fillText(c.n, cx + 80, rowY + 31);
       ctx.fillStyle = "#ffd54f";
       ctx.font = readableFont(12, "bold");
-      ctx.fillText(c.s || "", cx + 78, rowY + 51);
+      ctx.fillText(c.s || "", cx + 300, rowY + 31);
 
-      const isNew = c.levelText && (c.levelText.includes("新") || c.levelText.includes("NEW"));
-      glassBox(ctx, cx + 500, rowY + 14, 198, 28, 7, isNew ? "rgba(212, 175, 55, 0.25)" : "rgba(33, 150, 243, 0.2)", isNew ? "#ffd54f" : "#64b5f6", 1.2);
+      // 右上：等級狀態膠囊，下方節點顯示武器 Lv 進度。
+      glassBox(ctx, cx + 500, rowY + 12, 198, 28, 7, isNew ? "rgba(232, 195, 106, 0.26)" : "rgba(60, 140, 230, 0.2)", isNew ? "#ffd54f" : "#64b5f6", 1.2);
       ctx.textAlign = "center";
-      ctx.fillStyle = isNew ? "#ffe082" : "#90caf9";
+      ctx.fillStyle = awakening || isNew ? "#ffe082" : "#90caf9";
       ctx.font = readableFont(12, "900");
-      fitText(ctx, c.levelText || "◆ 妖力精進", cx + 599, rowY + 33, 180);
+      fitText(ctx, c.levelText || "◆ 妖力精進", cx + 599, rowY + 31, 180);
+
+      if (isWeapon && !isNew) {
+        const cur = WL[c.id] || 0;
+        for (let p = 1; p <= 5; p++) {
+          const px = cx + 599 + (p - 3) * 22, py = rowY + 54;
+          const filled = p <= cur, next = p === cur + 1;
+          ctx.fillStyle = filled ? tone : next ? C.goldHi : "rgba(255,255,255,0.14)";
+          if (next && !calm()) { glow(ctx, px, py, 26, C.goldHi, 0.5 * pulse(5, 0.3)); }
+          ctx.save(); ctx.translate(px, py); ctx.rotate(Math.PI / 4); ctx.fillRect(-5, -5, 10, 10); ctx.restore();
+        }
+      }
+      ctx.fillStyle = tone;
+      ctx.font = readableFont(12, "900");
+      ctx.textAlign = "right";
+      ctx.fillText(isWeapon ? "【主動】" : "【被動】", cx + 486, rowY + 31);
 
       ctx.textAlign = "left";
       ctx.font = readableFont(14, "bold");
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = "#f1f4ff";
       const lines = [];
       let line = "";
       for (const char of c.d || "") {
@@ -1131,13 +1416,16 @@ window.UI = (() => {
         line += char;
       }
       lines.push(line);
-      lines.slice(0, 2).forEach((text, index) => fitText(ctx, text, cx + 78, rowY + 76 + index * 23, 620));
-      ctx.fillStyle = "#98a9c5";
-      ctx.font = readableFont(11, "900");
-      ctx.textAlign = "center";
-      fitText(ctx, isWeapon ? "【主動】" : "【被動】", cx + 350, rowY + 51, 180);
+      lines.slice(0, 2).forEach((text, index) => fitText(ctx, text, cx + 80, rowY + 72 + index * fontPx(ctx.font) * 1.15, 600));
     });
 
+    // 重抽與操作提示
+    const rr = REROLL_BTN;
+    ctx.textAlign = "left";
+    ctx.fillStyle = C.dim;
+    ctx.font = readableFont(12, "bold");
+    ctx.fillText("按 1 / 2 / 3 或直接點選　R 或 Y 重抽", startX, rr.y + rr.h / 2 + 5);
+    drawButton(ctx, rr, `重抽 ×${rerolls}`, { tone: "cyan", size: 16, icon: "cards", disabled: rerolls <= 0 });
     ctx.restore();
   }
 
@@ -1174,9 +1462,9 @@ window.UI = (() => {
     const {x:bx,y:by,w:boxW,h:boxH} = layout;
     const mid = bx+boxW/2;
 
-    glassBox(ctx, bx, by, boxW, boxH, 16, "rgba(20, 14, 34, 0.98)", "#ff5470", 2.5);
+    glow(ctx, mid, by + boxH / 2, boxW * 1.2, "#ff3b5c", 0.2 * pulse(4, 0.5));
+    glassBox(ctx, bx, by, boxW, boxH, 16, "rgba(24, 12, 34, 0.98)", `rgba(255, 84, 112, ${0.75 + 0.25 * pulse(5, 0.2)})`, 2.6, true);
 
-    const n = bossQ.ans.length;
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffeed4";
     ctx.font = readableFont(20, "900");
@@ -1191,8 +1479,12 @@ window.UI = (() => {
 
     bossQ.ans.forEach((w, i) => {
       const {x:ox,y:oy,w:optW,h:optH} = layout.options[i];
-      glassBox(ctx, ox, oy, optW, optH, 10, bossQ.lock > 0 ? "#333c57" : "#ffeed4", "#d4af37", 2);
-      ctx.fillStyle = "#1e1829";
+      glassBox(ctx, ox, oy, optW, optH, 10, bossQ.lock > 0 ? "#333c57" : "#f4e6c8", bossQ.lock > 0 ? "#6c7592" : C.gold, 2);
+      if (bossQ.lock <= 0) {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+        ctx.beginPath(); ctx.roundRect(ox + 5, oy + 4, optW - 10, optH * 0.3, 6); ctx.fill();
+      }
+      ctx.fillStyle = bossQ.lock > 0 ? "#8e97b4" : "#1e1829";
       ctx.font = readableFont(18, "900");
       const badge = mode === 'gamepad' ? ["LB", "RB", "Y"][i] : mode === 'touch' ? '' : i + 1;
       ctx.fillText(`${badge ? badge + ' ' : ''}${w.jp}`, ox + optW / 2, oy + optH/2+7, optW - 12);
@@ -1214,8 +1506,8 @@ window.UI = (() => {
     // 被動修行 (Passive Enhancements)
     { name: "金剛結界", jp: "けっかい", type: "被動", desc: "召喚金剛勾玉護盾，抵擋 2 次受傷（可疊加）", emblem: "shield" },
     { name: "長明燈油", jp: "あぶら", type: "被動", desc: "燈油上限 +30 並立即補滿，且常駐每秒回油", emblem: "oil_max" },
-    { name: "添燈香油", jp: "かいふく", type: "被動", desc: "恢復 50% 燈油，並震退周圍妖怪", emblem: "oil_heal" },
-    { name: "修羅破軍", jp: "こうげき", type: "被動", desc: "整體傷害係數 +0.35", emblem: "dmg" },
+    { name: "添燈香油", jp: "かいふく", type: "被動", desc: "恢復 50% 燈油，並震退周圍妖怪（每場最多 3 次）", emblem: "oil_heal" },
+    { name: "修羅破軍", jp: "こうげき", type: "被動", desc: "整體傷害係數 +0.35（最多 6 層）", emblem: "dmg" },
     { name: "神樂疾奏", jp: "れんぞく", type: "被動", desc: "妖刀、結界、靈針冷卻縮短", emblem: "rate" },
     { name: "心眼一閃", jp: "かいしん", type: "被動", desc: "妖刀/天雷暴擊率 +15%，結界 +10%", emblem: "crit" },
     { name: "神足草履", jp: "いどう", type: "被動", desc: "移動速度約 +15%（最多 3 層）", emblem: "spd" },
@@ -1223,7 +1515,7 @@ window.UI = (() => {
     { name: "招財勾玉", jp: "じしゃく", type: "被動", desc: "靈玉吸取範圍 +80", emblem: "mag" }
   ];
 
-  function drawCodex(ctx, STORE, ALL, tab = "cards", page = 0) {
+  function drawCodex(ctx, STORE, ALL, tab = "cards", page = 0, maskReadings = false) {
     ctx.save();
     ctx.fillStyle = "rgba(10, 14, 26, 0.96)";
     fillScreen(ctx);
@@ -1232,11 +1524,11 @@ window.UI = (() => {
 
     // 1. 頂部大標題
     ctx.textAlign = "center";
-    ctx.font = "900 28px 'Kaisei Decol', 'Noto Sans JP', serif";
+    ctx.font = titleFont(28);
     ctx.fillStyle = "#ffe28b";
     ctx.shadowColor = "rgba(255, 215, 100, 0.5)";
     ctx.shadowBlur = 10;
-    ctx.fillText(isCards ? "— 秘 術 卡 片 一 覽 (Card Compendium) —" : "— 百 鬼 單 字 繪 卷 (Codex) —", W / 2, 40);
+    ctx.fillText(isCards ? "秘術卡片" : "單字圖鑑", W / 2, 40);
     ctx.shadowBlur = 0;
 
     // 2. 雙標籤頁切換按鈕
@@ -1377,23 +1669,25 @@ window.UI = (() => {
 
         const m = STORE.get(w.jp);
         const seen = (m.ok + m.ng) > 0;
+        const revealed = seen && !(maskReadings && m.box < 4);
 
-        glassBox(ctx, cx, cy, cardW, cardH, 8, seen ? "#fcf4e3" : "#20273a", seen ? "#d4af37" : "#36415a", 1.5);
+        glassBox(ctx, cx, cy, cardW, cardH, 8, revealed ? "#fcf4e3" : "#20273a", revealed ? "#d4af37" : "#36415a", 1.5);
 
         ctx.textAlign = "center";
-        ctx.fillStyle = seen ? "#1e1829" : "#e7ecff";
+        ctx.fillStyle = revealed ? "#1e1829" : "#e7ecff";
         ctx.font = compact ? "20px sans-serif" : "24px sans-serif";
-        if (seen) drawWordCue(ctx, w, cx + cardW / 2, cy + 23, 26);
+        if (revealed) drawWordCue(ctx, w, cx + cardW / 2, cy + 23, 26);
         else ctx.fillText("？", cx + cardW / 2, cy + (compact ? 27 : 32));
 
         ctx.font = readableFont(20, "900");
-        ctx.fillText(seen ? w.jp : "？？", cx + cardW / 2, cy + (compact ? 48 : 56));
+        ctx.fillText(revealed ? w.jp : "？？", cx + cardW / 2, cy + (compact ? 48 : 56));
 
-        if (seen) {
+        if (revealed) {
           ctx.font = readableFont(18, "700");
           ctx.fillStyle = "#63503c";
           ctx.fillText(w.zh, cx + cardW / 2, cy + (compact ? 64 : 74));
-
+        }
+        if (revealed || (seen && maskReadings)) {
           ctx.fillStyle = "#d48819";
           ctx.font = readableFont(16, "700");
           ctx.fillText("★".repeat(m.box) + "☆".repeat(4 - m.box), cx + cardW / 2, cy + (compact ? 94 : 107));
@@ -1415,129 +1709,119 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 結算：同一條夜路壓暗，左邊站著快遞員，中間是今夜的帳。
-  function drawEndScreen(ctx, state, score, delivered, failed, misses, focus = 0) {
+
+  // 6. 結算：勝利是破曉暖光，失敗是冷色月光；只留標題、分數、送達／誤配文字與記錯的字。
+  function drawEndScreen(ctx, state, score, delivered, failed, misses, focus = 0, summary = {}) {
     ctx.save();
     const isWon = state === "won";
+    const time = summary.time ?? Date.now() / 1000;
 
-    ctx.fillStyle = "rgba(6, 8, 18, 0.76)";
+    ctx.fillStyle = "rgba(6, 8, 18, 0.8)";
     fillScreen(ctx);
-    const sky = ctx.createLinearGradient(0, 0, 0, 280);
-    if (isWon) {
-      sky.addColorStop(0, "rgba(255, 168, 80, 0.46)");
-      sky.addColorStop(0.4, "rgba(120, 72, 96, 0.2)");
-      sky.addColorStop(1, "rgba(6, 8, 18, 0)");
-    } else {
-      sky.addColorStop(0, "rgba(12, 14, 28, 0.35)");
-      sky.addColorStop(1, "rgba(6, 8, 18, 0)");
+    glow(ctx, W / 2, isWon ? 40 : 60, 1250, isWon ? "#ff9d4a" : "#34457f", isWon ? 0.42 : 0.3);
+    if (isWon) glow(ctx, W / 2, 40, 420, "#ffe0a4", 0.28 * pulse(1.5, 0.6));
+
+    if (!calm()) {
+      [[120, 70], [760, 96], [180, 400], [820, 330]].forEach((p, i) => {
+        ctx.fillStyle = `rgba(255, 186, 206, ${0.2 + i * 0.05})`;
+        ctx.beginPath();
+        ctx.ellipse(p[0] + Math.sin(time * 0.8 + i * 2) * 14, p[1] + ((time * 14 + i * 90) % 60), 7, 4, i * 0.7 + time * 0.5, 0, 6.28);
+        ctx.fill();
+      });
     }
-    ctx.fillStyle = sky;
-    fillScreen(ctx);
-    const vig = ctx.createRadialGradient(W / 2, 250, 80, W / 2, 280, 520);
-    vig.addColorStop(0, "rgba(6, 8, 18, 0.42)");
-    vig.addColorStop(1, "rgba(6, 8, 18, 0)");
-    ctx.fillStyle = vig;
-    fillScreen(ctx);
-
-    const petals = [[120, 70], [760, 96], [640, 210], [90, 240], [800, 340], [180, 400]];
-    petals.forEach((p, i) => {
-      ctx.fillStyle = `rgba(255, 186, 206, ${0.28 + (i % 3) * 0.08})`;
-      ctx.beginPath();
-      ctx.ellipse(p[0], p[1], 7, 4, i * 0.7, 0, 6.28);
-      ctx.fill();
-    });
 
     const courier = window.ART && window.ART.player;
     if (courier && courier.naturalWidth) {
       const pw = 150;
       const ph = pw * courier.naturalHeight / courier.naturalWidth;
       ctx.save();
-      if (!isWon) ctx.filter = "brightness(0.62) saturate(0.8)";
+      if (!isWon) ctx.globalAlpha = 0.6;
       ctx.drawImage(courier, 24, 528 - ph, pw, ph);
       ctx.restore();
     }
 
     const cardX = 210, cardY = 78, cardW = 652, cardH = 390;
     const mid = cardX + cardW / 2;
-    ctx.fillStyle = "rgba(12, 16, 30, 0.9)";
-    ctx.beginPath();
-    ctx.roundRect(cardX, cardY, cardW, cardH, 14);
-    ctx.fill();
-    ctx.strokeStyle = isWon ? "rgba(232, 188, 106, 0.85)" : "rgba(196, 154, 122, 0.55)";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+    glassBox(ctx, cardX, cardY, cardW, cardH, 16, "rgba(12, 14, 28, 0.93)", isWon ? "rgba(240, 196, 110, 0.95)" : "rgba(196, 154, 122, 0.6)", isWon ? 2.2 : 1.6, true);
 
     ctx.textAlign = "center";
-    ctx.font = "900 36px 'Kaisei Decol', 'Noto Sans JP', serif";
+    glow(ctx, mid, cardY + 52, 300, isWon ? "#ffb347" : "#7b8bd0", 0.3);
+    ctx.font = titleFont(32);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+    ctx.fillText(isWon ? "夜已破曉" : "燈油已盡", mid, cardY + 63);
     ctx.fillStyle = isWon ? "#ffe0a4" : "#f0c2bc";
-    ctx.fillText(isWon ? "夜已破曉" : "燈油已盡", mid, cardY + 52);
-    ctx.font = readableFont(14, "700");
-    ctx.fillStyle = "rgba(255, 236, 214, 0.72)";
-    ctx.fillText(isWon ? "這一夜的配達，送到天明" : "燈滅了，路還留在原處", mid, cardY + 78);
+    ctx.fillText(isWon ? "夜已破曉" : "燈油已盡", mid, cardY + 60);
 
-    ctx.strokeStyle = "rgba(232, 188, 106, 0.35)";
+    ctx.strokeStyle = "rgba(232, 188, 106, 0.4)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(cardX + 48, cardY + 98);
-    ctx.lineTo(cardX + cardW - 48, cardY + 98);
+    ctx.moveTo(cardX + 48, cardY + 84);
+    ctx.lineTo(mid - 8, cardY + 84);
+    ctx.moveTo(mid + 8, cardY + 84);
+    ctx.lineTo(cardX + cardW - 48, cardY + 84);
     ctx.stroke();
+    ctx.fillStyle = C.gold;
+    ctx.save(); ctx.translate(mid, cardY + 84); ctx.rotate(Math.PI / 4); ctx.fillRect(-3, -3, 6, 6); ctx.restore();
 
-    ctx.font = readableFont(13, "700");
-    ctx.fillStyle = "rgba(255, 226, 180, 0.7)";
-    ctx.fillText("今夜功績", mid, cardY + 128);
-    ctx.font = "900 54px 'Kaisei Decol', serif";
+    // 分數：直接放大，不另加框；新紀錄用發亮字，否則以淡字顯示歷史最高。
+    ctx.font = titleFont(60);
     ctx.fillStyle = "#fff1cc";
-    ctx.fillText(score.toLocaleString(), mid, cardY + 186);
+    ctx.fillText(score.toLocaleString(), mid, cardY + 160);
+    if (summary.newBest) {
+      glow(ctx, mid, cardY + 186, 150, C.goldHi, 0.4 * pulse(4, 0.4));
+      ctx.fillStyle = C.goldHi;
+      ctx.font = readableFont(15, "900");
+      ctx.fillText("新紀錄！", mid, cardY + 190);
+    } else if (summary.prevBest > 0) {
+      ctx.font = readableFont(13, "700");
+      ctx.fillStyle = C.dim;
+      ctx.fillText(`最高 ${summary.prevBest.toLocaleString()}`, mid, cardY + 190);
+    }
 
-    ctx.font = readableFont(18, "700");
-    ctx.fillStyle = "#f4e7cf";
-    ctx.fillText(`送達  ${delivered} 件`, mid - 110, cardY + 232);
-    ctx.fillStyle = failed > 0 ? "#f0b8b4" : "#f4e7cf";
-    ctx.fillText(`誤配  ${failed} 件`, mid + 110, cardY + 232);
+    // 送達／誤配：用文字最清楚，只排成一行，不分格。
+    const statY = cardY + 238;
+    ctx.font = "900 24px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+    const stats = [
+      [`送達  ${delivered} 件`, "#f4e7cf"],
+      [`誤配  ${failed} 件`, failed > 0 ? "#f0b8b4" : "rgba(244, 231, 207, 0.55)"]
+    ];
+    const pairGap = 72, statW = stats.map(([label]) => ctx.measureText(label).width);
+    let sx = mid - (statW[0] + statW[1] + pairGap) / 2;
+    ctx.textAlign = "left";
+    stats.forEach(([label, color], i) => {
+      ctx.fillStyle = color;
+      ctx.fillText(label, sx, statY);
+      sx += statW[i] + pairGap;
+    });
+    ctx.textAlign = "center";
 
     const reviewWords = [...new Map((misses || []).map(w => [w.jp, w])).values()];
     const reviewList = reviewWords.slice(0, 5);
     ctx.font = readableFont(15, "700");
     if (reviewList.length > 0) {
-      ctx.fillStyle = "rgba(255, 214, 196, 0.86)";
-      ctx.fillText(`今夜記錯的字：共 ${reviewWords.length} 字${reviewWords.length > 5 ? "，僅顯示前 5 字" : ""}`, mid, cardY + 278);
+      ctx.fillStyle = "rgba(255, 214, 196, 0.9)";
+      ctx.fillText(`今夜記錯的字：共 ${reviewWords.length} 字${reviewWords.length > 5 ? "，僅顯示前 5 字" : ""}`, mid, cardY + 296);
       ctx.font = readableFont(16, "700");
       ctx.fillStyle = "#fff6ea";
       const parts = reviewList.map(w => `${w.jp}（${w.zh}）`);
       let line = "";
-      let lineY = cardY + 308;
+      let lineY = cardY + 325;
       parts.forEach(part => {
         const next = line ? `${line}　　${part}` : part;
         if (line && ctx.measureText(next).width > cardW - 80) {
           ctx.fillText(line, mid, lineY);
           line = part;
-          lineY += 24;
+          lineY += fontPx(ctx.font) * 1.25;
         } else {
           line = next;
         }
       });
       if (line) ctx.fillText(line, mid, lineY);
-    } else {
-      ctx.fillStyle = "rgba(255, 236, 214, 0.82)";
-      const note = delivered >= 3 ? "送出的包裹，今夜都送到了" : delivered > 0 ? "送出去的，都沒有送錯" : "這一路還沒把包裹送出去";
-      ctx.fillText(note, mid, cardY + 292);
     }
 
-    const drawEndButton = (btn, label, primary = false) => {
-      ctx.fillStyle = primary ? "#1a140e" : "rgba(16, 20, 32, 0.94)";
-      ctx.beginPath();
-      ctx.roundRect(btn.x, btn.y, btn.w, btn.h, 8);
-      ctx.fill();
-      ctx.strokeStyle = primary ? "#e6c27a" : "rgba(220, 226, 238, 0.55)";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.fillStyle = primary ? "#ffe3ad" : "#edf2ff";
-      ctx.font = readableFont(18, "900");
-      ctx.fillText(label, btn.x + btn.w / 2, btn.y + 31);
-    };
-    drawEndButton(RESTART_BTN, "再踏夜行", true);
-    drawEndButton(WORLD_BTN, "回旅路地圖");
-    drawEndButton(HOME_BTN, "回到首頁");
+    drawButton(ctx, RESTART_BTN, "再踏夜行", { tone: "primary", size: 18 });
+    drawButton(ctx, WORLD_BTN, "回旅路地圖", { size: 18 });
+    drawButton(ctx, HOME_BTN, "回到首頁", { size: 18 });
     drawMenuFocus(ctx, END_BTNS[focus]);
 
     ctx.restore();
@@ -1545,13 +1829,13 @@ window.UI = (() => {
 
   // 7. 暫停與系統設定選單 (日式黑漆金箔和風御札)
   const PAUSE_BTNS = [
-    { id: "resume", label: "◆ 繼 續 夜 行 ◆", y: 180 },
-    { id: "cards", label: "◆ 秘 術 卡 片 一 覽 ◆", y: 232 },
-    { id: "codex", label: "◆ 百 鬼 單 字 卷 ◆", y: 284 },
-    { id: "mute", label: "◆ 聲 音 音 效 ： 開 ◆", labelMuted: "◆ 聲 音 音 效 ： 關 ◆", y: 336 },
-    { id: "controls", label: "◆ 操作與自定義 ◆", y: 388 },
-    { id: "tutorial", label: "◆ 重看操作教學 ◆", y: 440 },
-    { id: "menu", label: "◆ 返 回 主 選 單 ◆", y: 492 }
+    { id: "resume", label: "繼續夜行", y: 180, tone: "primary" },
+    { id: "cards", label: "秘術卡片", y: 232 },
+    { id: "codex", label: "單字圖鑑", y: 284 },
+    { id: "mute", label: "聲音：開", labelMuted: "聲音：關", y: 336 },
+    { id: "controls", label: "操作與自定義", y: 388 },
+    { id: "tutorial", label: "重看操作教學", y: 440 },
+    { id: "menu", label: "返回主選單", y: 492, tone: "danger" }
   ];
   function pauseButtons() {
     const compact = (window.VIEWPORT?.get().scale || 1) < 0.8;
@@ -1564,40 +1848,39 @@ window.UI = (() => {
     ctx.save();
     ctx.fillStyle = "rgba(6, 8, 16, 0.92)";
     fillScreen(ctx);
+    glow(ctx, W / 2, 120, 700, C.gold, 0.12);
+
+    const buttons = pauseButtons();
+    const panelX = Math.min(...buttons.map(b => b.x)) - 24;
+    const panelY = 92;
+    const panelR = Math.max(...buttons.map(b => b.x + b.w)) + 24;
+    const panelB = Math.max(...buttons.map(b => b.y + b.h)) + 28;
+    glassBox(ctx, panelX, panelY, panelR - panelX, panelB - panelY, 16, "rgba(14, 12, 18, 0.95)", C.gold, 1.8, true);
 
     ctx.textAlign = "center";
-    ctx.font = "900 36px 'Kaisei Decol', 'Noto Sans JP', serif";
-    ctx.fillStyle = "#ffe28b";
-    ctx.shadowColor = "rgba(255, 215, 100, 0.6)";
-    ctx.shadowBlur = 14;
-    ctx.fillText("— 暫 歇 —", W / 2, 138);
-    ctx.shadowBlur = 0;
+    ctx.font = titleFont(36);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+    ctx.fillText("暫停", W / 2, 135);
+    ctx.fillStyle = C.goldHi;
+    ctx.fillText("暫停", W / 2, 132);
 
-    ctx.font = readableFont(12, "bold");
-    ctx.fillStyle = "rgba(255, 235, 180, 0.55)";
-    ctx.fillText("SYSTEM PAUSE", W / 2, 164);
+    ctx.font = readableFont(13, "bold");
+    ctx.fillStyle = "rgba(255, 235, 180, 0.72)";
+    ctx.fillText("這一夜先停在這裡", W / 2, 158);
 
-    pauseButtons().forEach((b, i) => {
-      let label = b.label;
-      if (b.id === "mute") {
-        label = muted ? b.labelMuted : b.label;
-      }
-      glassBox(ctx, b.x, b.y, b.w, b.h, 10, "rgba(18, 22, 36, 0.95)", "rgba(212, 175, 55, 0.8)", 1.6);
-      ctx.textAlign = "center";
-      ctx.fillStyle = "#ffeed4";
-      ctx.font = readableFont(15, "900");
-      ctx.fillText(label, b.x+b.w/2, b.y+b.h/2+6);
-      if(i === focus) drawMenuFocus(ctx,b);
+    buttons.forEach((b, i) => {
+      const label = b.id === "mute" && muted ? b.labelMuted : b.label;
+      drawButton(ctx, b, label, { tone: b.tone || "normal", size: b.tone === "primary" ? 18 : 15, focus: i === focus });
     });
 
-    ctx.fillStyle = "rgba(255, 235, 180, 0.45)";
+    ctx.fillStyle = "rgba(255, 235, 180, 0.62)";
     ctx.font = readableFont(12, "");
-    ctx.fillText("[ ↑↓ 選擇 · Enter/A 確認 · Esc/B 繼續 ]", W / 2, 570);
+    ctx.fillText("上下選擇 · Enter／A 確認 · Esc／B 繼續", W / 2, panelB - 14);
 
     ctx.restore();
   }
 
-  // 6. 百鬼夜行 3 次閃爍警報匾額與全螢幕紅光警戒 (Surge Warning Banner)
+  // 8. 百鬼夜行 3 次閃爍警報匾額與全螢幕紅光警戒 (Surge Warning Banner)
   function drawSurgeWarning(ctx, surgeWarningT) {
     if (surgeWarningT <= 0) return;
     ctx.save();
@@ -1606,35 +1889,23 @@ window.UI = (() => {
     const progress = Math.max(0, totalDuration - surgeWarningT);
     const cycle = Math.min(3, Math.floor(progress / cycleDuration) + 1);
     const phase = (progress % cycleDuration) / cycleDuration;
-    // 0~1 的平滑閃爍光波
     const flashBrightness = Math.sin(phase * Math.PI);
     const alpha = Math.max(0.18, flashBrightness);
 
-    // 1. 全螢幕四邊暗紅警戒警報光暈
+    const bounds = screenBounds();
     ctx.strokeStyle = `rgba(255, 30, 30, ${alpha * 0.85})`;
     ctx.lineWidth = 14;
-    const bounds = screenBounds();
     ctx.strokeRect(bounds.left + 7, bounds.top + 7, bounds.width - 14, bounds.height - 14);
 
     ctx.fillStyle = `rgba(255, 20, 20, ${alpha * 0.14})`;
     fillScreen(ctx);
 
-    // 2. 中央神社朱漆警報木匾
     const bw = 460, bh = 72;
     const bx = (bounds.left+bounds.right-bw)/2, by = bounds.top+110;
 
-    ctx.shadowColor = `rgba(255, 40, 40, ${alpha * 0.95})`;
-    ctx.shadowBlur = 22;
+    glow(ctx, bx + bw / 2, by + bh / 2, bw * 1.3, "#ff2a2a", alpha * 0.5);
+    glassBox(ctx, bx, by, bw, bh, 10, "rgba(52, 10, 14, 0.97)", `rgba(255, 70, 70, ${alpha})`, 2.6, true);
 
-    const bgGrad = ctx.createLinearGradient(bx, by, bx + bw, by + bh);
-    bgGrad.addColorStop(0, "rgba(42, 8, 12, 0.96)");
-    bgGrad.addColorStop(0.5, "rgba(68, 14, 20, 0.96)");
-    bgGrad.addColorStop(1, "rgba(35, 6, 10, 0.96)");
-    glassBox(ctx, bx, by, bw, bh, 10, bgGrad, `rgba(255, 70, 70, ${alpha})`, 2.5);
-
-    ctx.shadowBlur = 0;
-
-    // 警報角標 [ 預警 1/3 ]
     ctx.fillStyle = "#ffd54f";
     ctx.beginPath();
     ctx.roundRect(bx + bw - 100, by + 10, 88, 22, 5);
@@ -1644,20 +1915,57 @@ window.UI = (() => {
     ctx.textAlign = "center";
     ctx.fillText(`警報 ${cycle} / 3`, bx + bw - 56, by + 25);
 
-    // 主標題
     ctx.textAlign = "center";
-    ctx.font = "900 24px 'Kaisei Decol', serif";
+    ctx.font = titleFont(24);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillText("警報・百鬼夜行", bx + bw / 2, by + 36);
     ctx.fillStyle = "#fff2a8";
-    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
-    ctx.shadowBlur = 6;
-    ctx.fillText("⚠ 警 報 ・ 百 鬼 夜 行 ⚠", bx + bw / 2 - 25, by + 33);
-    ctx.shadowBlur = 0;
+    ctx.fillText("警報・百鬼夜行", bx + bw / 2, by + 33);
 
-    // 副標題
     ctx.font = readableFont(13, "900");
     ctx.fillStyle = "#ffcdd2";
-    ctx.fillText("— 妖 氣 逼 近 ！ 請 準 備 迎 戰 —", W / 2, by + 57);
+    ctx.fillText("妖氣逼近，準備迎戰", W / 2, by + 57);
 
+    ctx.restore();
+  }
+
+  // 9. 關卡標題卡：進場 3 秒內淡入淡出，不擋操作。
+  function drawTitleCard(ctx, stage, chapter, t) {
+    const total = 3, age = total - t;
+    const a = clamp(Math.min(age / 0.5, t / 0.8), 0, 1);
+    if (a <= 0 || !stage) return;
+    const b = screenBounds(), cx = (b.left + b.right) / 2, cy = b.top + b.height * 0.36;
+    ctx.save();
+    ctx.globalAlpha = a;
+    glow(ctx, cx, cy, 760, "#0a0d18", 0.55);
+    glow(ctx, cx, cy, 420, C.gold, 0.12);
+    ctx.textAlign = "center";
+    ctx.font = readableFont(14, "900");
+    ctx.fillStyle = C.gold;
+    ctx.fillText(`第 ${chapter} 夜`, cx, cy - 34);
+    ctx.font = titleFont(44);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillText(stage.name, cx, cy + 14);
+    ctx.fillStyle = C.goldHi;
+    ctx.fillText(stage.name, cx, cy + 10);
+    if (stage.sub) {
+      ctx.font = readableFont(15, "700");
+      ctx.fillStyle = C.dim;
+      ctx.fillText(stage.sub, cx, cy + 40);
+    }
+    const lw = 130 * a;
+    ctx.strokeStyle = "rgba(232, 195, 106, 0.6)"; ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(cx - lw - 10, cy + 56); ctx.lineTo(cx - 10, cy + 56); ctx.moveTo(cx + 10, cy + 56); ctx.lineTo(cx + lw + 10, cy + 56);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 畫面切換時的短暫黑幕淡出（ratio 由 1 → 0）。
+  function drawFade(ctx, ratio) {
+    ctx.save();
+    ctx.fillStyle = `rgba(4, 5, 12, ${clamp(ratio, 0, 1) * 0.85})`;
+    fillScreen(ctx);
     ctx.restore();
   }
 
@@ -1671,7 +1979,6 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 天氣圖案不依賴 Emoji 字型；抽象方向與缺圖單字使用中文語意。
   function drawWordCue(ctx, word, x, y, size = 28) {
     ctx.save();
     ctx.textAlign = "center";
@@ -1749,10 +2056,17 @@ window.UI = (() => {
     }
     if (line) lines.push(line);
     const lineHeight = Number(ctx.font.match(/([\d.]+)px/)[1]) * 1.35;
-    glassBox(ctx, x, y, width, lines.length * lineHeight + 16, 8, "rgba(12,16,28,0.94)", "#ffd54f");
+    const height = lines.length * lineHeight + 16;
+    glassBox(ctx, x, y, width, height, 8, "rgba(12,16,28,0.94)", "#ffd54f");
     ctx.textAlign = "left";ctx.fillStyle = "#ffd54f";
     lines.forEach((value, i) => ctx.fillText(value, x + 12, y + 8 + lineHeight * (i + 0.8)));
     ctx.restore();
+    return height;
+  }
+
+  function titleFont(size) {
+    const scale = window.VIEWPORT?.get().scale || 1;
+    return readableFont(Math.max(size, Math.ceil(18 / scale)), "700").replace("'Noto Sans JP'", "'Kaisei Decol'");
   }
 
   function readableFont(size, weight = "700") {
@@ -1775,6 +2089,9 @@ window.UI = (() => {
     drawEndScreen,
     drawPauseMenu,
     drawSurgeWarning,
+    drawTitleCard,
+    drawFade,
+    drawButton,
     PAUSE_BTNS, pauseButtons, MENU_BTNS, END_BTNS, EXIT_BTNS, drawExitConfirm,
     PAUSE_BTN_W: 280,
     PAUSE_BTN_H: 44,
@@ -1784,6 +2101,7 @@ window.UI = (() => {
     MENU_START_BTN,
     MENU_CONTROLS_BTN,
     HINT_BTN,
+    REROLL_BTN,
     CARD_LIST
   };
 })();
