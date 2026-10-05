@@ -308,3 +308,5 @@
 驗證：269/269 Node 回歸通過，0 skip，退出碼0；所有 js 語法與 git diff --check 通過。新增失敗重現保存在 space-rabbit-red.txt、space-rabbit-balance-red.txt，最終結果在 space-rabbit-tests.txt；初始近身測試的出生無敵等待不足已修正，不能拿那個設定錯誤單獨當缺陷證據。符扇測試按新四符幾何改為中央命中與扇面外目標，仍驗證 Lv4 沒有範圍爆炸、Lv5 同波不疊傷。
 
 瀏覽器：space-rabbit-ui-preview.html 載入正式 UI／FX／詞庫，不載入 game／store、不寫正式進度；568×320 已檢視結算五詞、Boss 紅叉、10:00 與秘術分頁，圖片存 artifacts/validation/space-rabbit-*.jpg。正式入口另檢查啟動與選單操作。這些都是桌面瀏覽器／受控畫面證據；沒有新的手機 FPS、iPad 音訊、自然完整通關或物理裝置驗證。
+
+發布補充：正式入口的九份修改腳本使用 `20261005-space-rabbit` 版本參數，避免舊玩家沿用瀏覽器快取；腳本內容與上述已驗證修復提交相同。

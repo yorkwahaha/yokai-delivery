@@ -2,1626 +2,1626 @@ TAP version 13
 # Subtest: title prioritizes only the cover and leaves music downloads until playback
 ok 1 - title prioritizes only the cover and leaves music downloads until playback
   ---
-  duration_ms: 1.3314
+  duration_ms: 1.6672
   type: 'test'
   ...
 # Subtest: WebP failures retry preserved originals once and settle even when both are absent
 ok 2 - WebP failures retry preserved originals once and settle even when both are absent
   ---
-  duration_ms: 2.2595
+  duration_ms: 2.6237
   type: 'test'
   ...
 # Subtest: asset progress counts settled images including failures, without counting retry as completion
 ok 3 - asset progress counts settled images including failures, without counting retry as completion
   ---
-  duration_ms: 0.8418
+  duration_ms: 0.7838
   type: 'test'
   ...
 # Subtest: new movement, posture and landmark images ship both WebP and PNG fallback files
 ok 4 - new movement, posture and landmark images ship both WebP and PNG fallback files
   ---
-  duration_ms: 1.0344
+  duration_ms: 1.04
   type: 'test'
   ...
 # Subtest: muting during a speech ramp cannot leave stale music volume after unmute
 ok 5 - muting during a speech ramp cannot leave stale music volume after unmute
   ---
-  duration_ms: 2.5677
+  duration_ms: 3.3903
   type: 'test'
   ...
 # Subtest: repeated buffered shield effects replace the previous voice
 ok 6 - repeated buffered shield effects replace the previous voice
   ---
-  duration_ms: 1.0535
+  duration_ms: 1.3488
   type: 'test'
   ...
 # Subtest: Web Audio output shares compression and ducks effects while speech plays
 ok 7 - Web Audio output shares compression and ducks effects while speech plays
   ---
-  duration_ms: 1.4721
+  duration_ms: 1.061
   type: 'test'
   ...
 # Subtest: blocked BGM attempts once until a user gesture retries it
 ok 8 - blocked BGM attempts once until a user gesture retries it
   ---
-  duration_ms: 0.7138
+  duration_ms: 1.1033
   type: 'test'
   ...
 # Subtest: restartMusic rewinds both tracks so replay and map start from the beginning
 ok 9 - restartMusic rewinds both tracks so replay and map start from the beginning
   ---
-  duration_ms: 0.6712
+  duration_ms: 0.7958
   type: 'test'
   ...
 # Subtest: mute setting persists across audio reloads
 ok 10 - mute setting persists across audio reloads
   ---
-  duration_ms: 0.9333
+  duration_ms: 0.7153
   type: 'test'
   ...
 # Subtest: all vocabulary maps to an existing prerecorded clip, including every rain-port word
 ok 11 - all vocabulary maps to an existing prerecorded clip, including every rain-port word
   ---
-  duration_ms: 3.371
+  duration_ms: 3.6397
   type: 'test'
   ...
 # Subtest: pause lowers music and speech completion cannot restore full volume until resume
 ok 12 - pause lowers music and speech completion cannot restore full volume until resume
   ---
-  duration_ms: 0.9381
+  duration_ms: 1.3107
   type: 'test'
   ...
 # Subtest: new event clips and replaced SFX use versioned paths and respect mute
 ok 13 - new event clips and replaced SFX use versioned paths and respect mute
   ---
-  duration_ms: 1.2604
+  duration_ms: 1.9584
   type: 'test'
   ...
 # Subtest: suspension stops music, speech and queued ramps without a frame and stale speech cannot restart them
 ok 14 - suspension stops music, speech and queued ramps without a frame and stale speech cannot restart them
   ---
-  duration_ms: 0.9311
+  duration_ms: 1.648
   type: 'test'
   ...
 # Subtest: six absent SFX synthesize immediately and never create missing-file Audio requests
 ok 15 - six absent SFX synthesize immediately and never create missing-file Audio requests
   ---
-  duration_ms: 1.3019
+  duration_ms: 1.6381
   type: 'test'
   ...
 # Subtest: interrupted iPad audio contexts are resumed instead of left silent
 ok 16 - interrupted iPad audio contexts are resumed instead of left silent
   ---
-  duration_ms: 0.9075
+  duration_ms: 1.1434
   type: 'test'
   ...
 # Subtest: blocked MP3 effects use the unlocked synthesizer and still retry the MP3
 ok 17 - blocked MP3 effects use the unlocked synthesizer and still retry the MP3
   ---
-  duration_ms: 0.8373
+  duration_ms: 1.112
   type: 'test'
   ...
 # Subtest: cold word audio fetches once, decodes once and reuses unlocked buffer playback
 ok 18 - cold word audio fetches once, decodes once and reuses unlocked buffer playback
   ---
-  duration_ms: 1.1312
+  duration_ms: 1.0449
   type: 'test'
   ...
 # Subtest: late decoded audio never starts after suspension or a replaced word
 ok 19 - late decoded audio never starts after suspension or a replaced word
   ---
-  duration_ms: 1.6815
+  duration_ms: 3.2932
   type: 'test'
   ...
 # Subtest: buffered audio stops immediately on mute or suspension and does not replay on wake
 ok 20 - buffered audio stops immediately on mute or suspension and does not replay on wake
   ---
-  duration_ms: 1.2421
+  duration_ms: 1.9301
   type: 'test'
   ...
 # Subtest: temporary playback cancellation and policy rejection never permanently disable an MP3
 ok 21 - temporary playback cancellation and policy rejection never permanently disable an MP3
   ---
-  duration_ms: 1.7723
+  duration_ms: 2.87
   type: 'test'
   ...
 # Subtest: a genuine unsupported MP3 uses synthesis and suppresses repeat requests
 ok 22 - a genuine unsupported MP3 uses synthesis and suppresses repeat requests
   ---
-  duration_ms: 0.7092
+  duration_ms: 1.7946
   type: 'test'
   ...
 # Subtest: octopus belongs to the sea pack while the turtle stays by the pond
 ok 23 - octopus belongs to the sea pack while the turtle stays by the pond
   ---
-  duration_ms: 0.581
+  duration_ms: 1.1953
   type: 'test'
   ...
 # Subtest: house identities stay unique throughout distant positive and negative chunks
 ok 24 - house identities stay unique throughout distant positive and negative chunks
   ---
-  duration_ms: 11.5691
+  duration_ms: 15.7901
   type: 'test'
   ...
 # Subtest: night-town keeps the original 9 word packs and 27 unique words
 ok 25 - night-town keeps the original 9 word packs and 27 unique words
   ---
-  duration_ms: 0.5679
+  duration_ms: 0.73
   type: 'test'
   ...
 # Subtest: rain-port is a separate playable stage with its own packs and weather tuning
 ok 26 - rain-port is a separate playable stage with its own packs and weather tuning
   ---
-  duration_ms: 0.4792
+  duration_ms: 0.408
   type: 'test'
   ...
 # Subtest: initial 3x3 chunks preserve the original district order
 ok 27 - initial 3x3 chunks preserve the original district order
   ---
-  duration_ms: 0.167
+  duration_ms: 0.1463
   type: 'test'
   ...
 # Subtest: world streams chunks at arbitrarily distant and negative coordinates
 ok 28 - world streams chunks at arbitrarily distant and negative coordinates
   ---
-  duration_ms: 0.1846
+  duration_ms: 0.3994
   type: 'test'
   ...
 # Subtest: chunk cache stays bounded and only pinned delivery chunks survive travel
 ok 29 - chunk cache stays bounded and only pinned delivery chunks survive travel
   ---
-  duration_ms: 0.3759
+  duration_ms: 0.4789
   type: 'test'
   ...
 # Subtest: regenerated chunks are deterministic
 ok 30 - regenerated chunks are deterministic
   ---
-  duration_ms: 0.1946
+  duration_ms: 0.1487
   type: 'test'
   ...
 # Subtest: default controls, arrows and left-handed preset map to actions
 ok 31 - default controls, arrows and left-handed preset map to actions
   ---
-  duration_ms: 1.5572
+  duration_ms: 2.5157
   type: 'test'
   ...
 # Subtest: rebinding rejects duplicate and reserved keys, and replaces the old key
 ok 32 - rebinding rejects duplicate and reserved keys, and replaces the old key
   ---
-  duration_ms: 0.6735
+  duration_ms: 0.9708
   type: 'test'
   ...
 # Subtest: malformed or duplicate saved bindings fall back safely
 ok 33 - malformed or duplicate saved bindings fall back safely
   ---
-  duration_ms: 1.739
+  duration_ms: 2.3813
   type: 'test'
   ...
 # Subtest: misdelivery enemies approach a readable distance without overshoot and retreat if crowded
 ok 34 - misdelivery enemies approach a readable distance without overshoot and retreat if crowded
   ---
-  duration_ms: 0.8487
+  duration_ms: 1.5162
   type: 'test'
   ...
 # Subtest: gamepad can navigate presets and leave the native controls dialog
 ok 35 - gamepad can navigate presets and leave the native controls dialog
   ---
-  duration_ms: 1.119
+  duration_ms: 2.1543
   type: 'test'
   ...
 # Subtest: display labels track presets, custom bindings and saved controls
 ok 36 - display labels track presets, custom bindings and saved controls
   ---
-  duration_ms: 0.6679
+  duration_ms: 1.0065
   type: 'test'
   ...
 # Subtest: Lv2/Lv3 inherit the old mid/MAX projectile density and Lv5 keeps bounded volleys
 ok 37 - Lv2/Lv3 inherit the old mid/MAX projectile density and Lv5 keeps bounded volleys
   ---
-  duration_ms: 0.8741
+  duration_ms: 2.2726
   type: 'test'
   ...
 # Subtest: swept movement stops a fast projectile at a thin wall between frame endpoints
 ok 38 - swept movement stops a fast projectile at a thin wall between frame endpoints
   ---
-  duration_ms: 0.1748
+  duration_ms: 0.3807
   type: 'test'
   ...
 # Subtest: the final frame cannot push an expiring projectile beyond its intended range
 ok 39 - the final frame cannot push an expiring projectile beyond its intended range
   ---
-  duration_ms: 0.0707
+  duration_ms: 0.1477
   type: 'test'
   ...
 # Subtest: a needle curves only during its first 0.28 seconds and then locks its final heading
 ok 40 - a needle curves only during its first 0.28 seconds and then locks its final heading
   ---
-  duration_ms: 0.1917
+  duration_ms: 0.3553
   type: 'test'
   ...
 # Subtest: a spirit reacquires a living foe after its target dies and has bounded steering
 ok 41 - a spirit reacquires a living foe after its target dies and has bounded steering
   ---
-  duration_ms: 0.6812
+  duration_ms: 1.0406
   type: 'test'
   ...
 # Subtest: full pool preserves structural strokes and seals and reduced motion covers all emitters
 ok 42 - full pool preserves structural strokes and seals and reduced motion covers all emitters
   ---
-  duration_ms: 3.3099
+  duration_ms: 4.6512
   type: 'test'
   ...
 # Subtest: FX works without a DOM and never exceeds the particle cap
 ok 43 - FX works without a DOM and never exceeds the particle cap
   ---
-  duration_ms: 9.2763
+  duration_ms: 8.8975
   type: 'test'
   ...
 # Subtest: a full particle pool still admits the essential awakened floor sigil without raising the cap
 ok 44 - a full particle pool still admits the essential awakened floor sigil without raising the cap
   ---
-  duration_ms: 1.0949
+  duration_ms: 0.8432
   type: 'test'
   ...
 # Subtest: general effects spawn something and all particles expire
 ok 45 - general effects spawn something and all particles expire
   ---
-  duration_ms: 2.6713
+  duration_ms: 2.8826
   type: 'test'
   ...
 # Subtest: ground particles are drawn only by the ground pass and air particles only by the main pass
 ok 46 - ground particles are drawn only by the ground pass and air particles only by the main pass
   ---
-  duration_ms: 0.7946
+  duration_ms: 1.3747
   type: 'test'
   ...
 # Subtest: reduced motion emits fewer particles than normal motion
 ok 47 - reduced motion emits fewer particles than normal motion
   ---
-  duration_ms: 1.5449
+  duration_ms: 1.5845
   type: 'test'
   ...
 # Subtest: adaptive budget only shrinks below roughly 25fps and recovers afterwards
 ok 48 - adaptive budget only shrinks below roughly 25fps and recovers afterwards
   ---
-  duration_ms: 1.0451
+  duration_ms: 1.173
   type: 'test'
   ...
 # Subtest: FX source avoids per-frame expensive canvas features
 ok 49 - FX source avoids per-frame expensive canvas features
   ---
-  duration_ms: 0.311
+  duration_ms: 0.3614
   type: 'test'
   ...
 # Subtest: crisp skill sprites bake without a radial glow gradient
 ok 50 - crisp skill sprites bake without a radial glow gradient
   ---
-  duration_ms: 0.7317
+  duration_ms: 0.8694
   type: 'test'
   ...
 # Subtest: lightning follow-up branches wait for their beat without consuming their visible lifetime
 ok 51 - lightning follow-up branches wait for their beat without consuming their visible lifetime
   ---
-  duration_ms: 0.6847
+  duration_ms: 0.9754
   type: 'test'
   ...
 # Subtest: rain-port removes stacked survival penalties while retaining its stage identity
 ok 52 - rain-port removes stacked survival penalties while retaining its stage identity
   ---
-  duration_ms: 2.1808
+  duration_ms: 4.2778
   type: 'test'
   ...
 # Subtest: run pacing is ten minutes with a final boss just before dawn
 ok 53 - run pacing is ten minutes with a final boss just before dawn
   ---
-  duration_ms: 0.1423
+  duration_ms: 0.208
   type: 'test'
   ...
 # Subtest: xp curve rises steadily and avoids the old low early thresholds
 ok 54 - xp curve rises steadily and avoids the old low early thresholds
   ---
-  duration_ms: 0.7892
+  duration_ms: 2.3073
   type: 'test'
   ...
 # Subtest: enemy density ramps across the whole ten-minute run
 ok 55 - enemy density ramps across the whole ten-minute run
   ---
-  duration_ms: 0.1349
+  duration_ms: 0.2634
   type: 'test'
   ...
 # Subtest: a theoretical full clear of base spawns lands in the low-30 level range
 ok 56 - a theoretical full clear of base spawns lands in the low-30 level range
   ---
-  duration_ms: 0.233
+  duration_ms: 0.4708
   type: 'test'
   ...
 # Subtest: overtime keeps raising enemy tier without raising spawn pressure
 ok 57 - overtime keeps raising enemy tier without raising spawn pressure
   ---
-  duration_ms: 0.1043
+  duration_ms: 0.1453
   type: 'test'
   ...
 # Subtest: orders teach the loop gradually instead of flooding the opening
 ok 58 - orders teach the loop gradually instead of flooding the opening
   ---
-  duration_ms: 0.0706
+  duration_ms: 0.3885
   type: 'test'
   ...
 # Subtest: resizing the skill codex clamps mobile pages back to a visible desktop page
 ok 59 - resizing the skill codex clamps mobile pages back to a visible desktop page
   ---
-  duration_ms: 10.0874
+  duration_ms: 12.4751
   type: 'test'
   ...
 # Subtest: misdelivery costs oil immediately, grants no farming score and hints recover their oil cost
 ok 60 - misdelivery costs oil immediately, grants no farming score and hints recover their oil cost
   ---
-  duration_ms: 4.6737
+  duration_ms: 4.7565
   type: 'test'
   ...
 # Subtest: Boss wrong slots keep their position and cannot be selected again or by key repeat
 ok 61 - Boss wrong slots keep their position and cannot be selected again or by key repeat
   ---
-  duration_ms: 3.6561
+  duration_ms: 3.7697
   type: 'test'
   ...
 # Subtest: thunder ranks 1 to 4 damage overlapping targets only once per volley
 ok 62 - thunder ranks 1 to 4 damage overlapping targets only once per volley
   ---
-  duration_ms: 11.3061
+  duration_ms: 13.242
   type: 'test'
   ...
 # Subtest: night-town misdelivery can approach contact range without ranged shots
 ok 63 - night-town misdelivery can approach contact range without ranged shots
   ---
-  duration_ms: 6.2205
+  duration_ms: 6.2195
   type: 'test'
   ...
 # Subtest: enemy attack drawings are triggered by actual contact or projectile release and expire with gameplay time
 ok 64 - enemy attack drawings are triggered by actual contact or projectile release and expire with gameplay time
   ---
-  duration_ms: 3.0038
+  duration_ms: 3.23
   type: 'test'
   ...
 # Subtest: exhausted upgrades consume one level without trapping the run or granting invented rewards
 ok 65 - exhausted upgrades consume one level without trapping the run or granting invented rewards
   ---
-  duration_ms: 3.7607
+  duration_ms: 4.0918
   type: 'test'
   ...
 # Subtest: uncollected gems stay bounded under repeated kills and merging preserves all nearby XP
 ok 66 - uncollected gems stay bounded under repeated kills and merging preserves all nearby XP
   ---
-  duration_ms: 17.139
+  duration_ms: 17.6634
   type: 'test'
   ...
 # Subtest: leaving distant drops reclaims them while nearby and boundary drops remain collectible
 ok 67 - leaving distant drops reclaims them while nearby and boundary drops remain collectible
   ---
-  duration_ms: 3.4848
+  duration_ms: 3.2706
   type: 'test'
   ...
 # Subtest: a full gem pool cannot merge a new local reward into an abandoned drop due for reclamation
 ok 68 - a full gem pool cannot merge a new local reward into an abandoned drop due for reclamation
   ---
-  duration_ms: 10.1461
+  duration_ms: 10.2449
   type: 'test'
   ...
 # Subtest: tutorials freeze oil regeneration, time and Boss schedule even after long-lantern upgrades
 ok 69 - tutorials freeze oil regeneration, time and Boss schedule even after long-lantern upgrades
   ---
-  duration_ms: 4.5083
+  duration_ms: 4.3567
   type: 'test'
   ...
 # Subtest: Boss replacement lock ignores early keyboard or gamepad input but accepts a fresh press after expiry
 ok 70 - Boss replacement lock ignores early keyboard or gamepad input but accepts a fresh press after expiry
   ---
-  duration_ms: 11.1711
+  duration_ms: 11.6578
   type: 'test'
   ...
 # Subtest: small word pools keep delivery and Boss choices defined and unique
 ok 71 - small word pools keep delivery and Boss choices defined and unique
   ---
-  duration_ms: 7.8932
+  duration_ms: 9.3084
   type: 'test'
   ...
 # Subtest: starting again cannot pick up the previous run pending order before its first update
 ok 72 - starting again cannot pick up the previous run pending order before its first update
   ---
-  duration_ms: 2.176
+  duration_ms: 3.5079
   type: 'test'
   ...
 # Subtest: frame recovery removes a tutorial overlay from the aborted run
 ok 73 - frame recovery removes a tutorial overlay from the aborted run
   ---
-  duration_ms: 2.0923
+  duration_ms: 2.3898
   type: 'test'
   ...
 # Subtest: settlement learning summary measures this run only and keeps assisted answers separate from star gains
 ok 74 - settlement learning summary measures this run only and keeps assisted answers separate from star gains
   ---
-  duration_ms: 2.5852
+  duration_ms: 2.8001
   type: 'test'
   ...
 # Subtest: Lv5 katana launches a piercing wind blade at a distant forward foe, never behind or through buildings
 ok 75 - Lv5 katana launches a piercing wind blade at a distant forward foe, never behind or through buildings
   ---
-  duration_ms: 5.5747
+  duration_ms: 5.8294
   type: 'test'
   ...
 # Subtest: one wind blade pierces at most three foes
 ok 76 - one wind blade pierces at most three foes
   ---
-  duration_ms: 4.3488
+  duration_ms: 3.2878
   type: 'test'
   ...
 # Subtest: Lv5 paper talismans actually explode over an area; Lv4 still only hits its flight path
 ok 77 - Lv5 paper talismans actually explode over an area; Lv4 still only hits its flight path
   ---
-  duration_ms: 6.1587
+  duration_ms: 9.0934
   type: 'test'
   ...
 # Subtest: Lv5 foxfire launches homing spirits and can damage a foe beyond the old orbit
 ok 78 - Lv5 foxfire launches homing spirits and can damage a foe beyond the old orbit
   ---
-  duration_ms: 4.7281
+  duration_ms: 7.7025
   type: 'test'
   ...
 # Subtest: Lv5 foxfire replaces contact damage instead of silently stacking the old orbit attack
 ok 79 - Lv5 foxfire replaces contact damage instead of silently stacking the old orbit attack
   ---
-  duration_ms: 3.2334
+  duration_ms: 3.0865
   type: 'test'
   ...
 # Subtest: homing spirits stop at a building before a distant target
 ok 80 - homing spirits stop at a building before a distant target
   ---
-  duration_ms: 6.3391
+  duration_ms: 3.7867
   type: 'test'
   ...
 # Subtest: Lv5 needles bend once after launch while Lv4 stays straight
 ok 81 - Lv5 needles bend once after launch while Lv4 stays straight
   ---
-  duration_ms: 5.6505
+  duration_ms: 6.1234
   type: 'test'
   ...
 # Subtest: awakening mid-flight does not turn old straight needles or returning talismans into a different attack
 ok 82 - awakening mid-flight does not turn old straight needles or returning talismans into a different attack
   ---
-  duration_ms: 6.3181
+  duration_ms: 7.9899
   type: 'test'
   ...
 # Subtest: Lv5 thunder domain hits every eligible foe once, excludes distant foes and preserves the Boss shield
 ok 83 - Lv5 thunder domain hits every eligible foe once, excludes distant foes and preserves the Boss shield
   ---
-  duration_ms: 2.9025
+  duration_ms: 3.0922
   type: 'test'
   ...
 # Subtest: overlapping thunder centers never multiply a single cast and raw damage grows at every level
 ok 84 - overlapping thunder centers never multiply a single cast and raw damage grows at every level
   ---
-  duration_ms: 13.6764
+  duration_ms: 12.6912
   type: 'test'
   ...
 # Subtest: awakening projectiles reset on restart and none bypass a shielded Boss
 ok 85 - awakening projectiles reset on restart and none bypass a shielded Boss
   ---
-  duration_ms: 31.7533
+  duration_ms: 34.4886
   type: 'test'
   ...
 # Subtest: a long MAX volley run keeps wind, spirits, needles and explosive talismans bounded
 ok 86 - a long MAX volley run keeps wind, spirits, needles and explosive talismans bounded
   ---
-  duration_ms: 183.4382
+  duration_ms: 193.3672
   type: 'test'
   ...
 # Subtest: redesigned foxfire bodies retain the combat orbit and count at all five levels
 ok 87 - redesigned foxfire bodies retain the combat orbit and count at all five levels
   ---
-  duration_ms: 2.729
+  duration_ms: 2.8701
   type: 'test'
   ...
 # Subtest: hit stop still advances oil and the Boss clock
 ok 88 - hit stop still advances oil and the Boss clock
   ---
-  duration_ms: 2.1451
+  duration_ms: 2.5163
   type: 'test'
   ...
 # Subtest: pause stops speech and ages visual effects
 ok 89 - pause stops speech and ages visual effects
   ---
-  duration_ms: 2.017
+  duration_ms: 2.3723
   type: 'test'
   ...
 # Subtest: rain is static when reduced motion is requested
 ok 90 - rain is static when reduced motion is requested
   ---
-  duration_ms: 1.9856
+  duration_ms: 2.2334
   type: 'test'
   ...
 # Subtest: mobile menu and codex tabs accept expanded touch targets
 ok 91 - mobile menu and codex tabs accept expanded touch targets
   ---
-  duration_ms: 1.869
+  duration_ms: 2.223
   type: 'test'
   ...
 # Subtest: pause hit target stays inside the HUD edge and outside score text
 ok 92 - pause hit target stays inside the HUD edge and outside score text
   ---
-  duration_ms: 2.2804
+  duration_ms: 2.5335
   type: 'test'
   ...
 # Subtest: enemy bullets expire inside buildings
 ok 93 - enemy bullets expire inside buildings
   ---
-  duration_ms: 2.3059
+  duration_ms: 2.5445
   type: 'test'
   ...
 # Subtest: distant misdelivery enemies despawn without clearing the saved mistake
 ok 94 - distant misdelivery enemies despawn without clearing the saved mistake
   ---
-  duration_ms: 2.5962
+  duration_ms: 2.7216
   type: 'test'
   ...
 # Subtest: defeating the previous Boss does not postpone an already due final Boss
 ok 95 - defeating the previous Boss does not postpone an already due final Boss
   ---
-  duration_ms: 2.9521
+  duration_ms: 4.2882
   type: 'test'
   ...
 # Subtest: rain motion follows its streak direction and rain-port has no petals or fireflies
 ok 96 - rain motion follows its streak direction and rain-port has no petals or fireflies
   ---
-  duration_ms: 2.0464
+  duration_ms: 2.4341
   type: 'test'
   ...
 # Subtest: two oil upgrades still consume oil at rest
 ok 97 - two oil upgrades still consume oil at rest
   ---
-  duration_ms: 2.062
+  duration_ms: 2.3339
   type: 'test'
   ...
 # Subtest: misdelivery finds a clear spawn when the answer and adjacent fallback are blocked
 ok 98 - misdelivery finds a clear spawn when the answer and adjacent fallback are blocked
   ---
-  duration_ms: 3.2312
+  duration_ms: 2.2615
   type: 'test'
   ...
 # Subtest: frame errors pause the run, show recovery text and keep the next frame scheduled
 ok 99 - frame errors pause the run, show recovery text and keep the next frame scheduled
   ---
-  duration_ms: 2.368
+  duration_ms: 2.5515
   type: 'test'
   ...
 # Subtest: shield hit feedback is throttled and colored rings fade
 ok 100 - shield hit feedback is throttled and colored rings fade
   ---
-  duration_ms: 2.3811
+  duration_ms: 2.1142
   type: 'test'
   ...
 # Subtest: enemy fireballs render above night lighting and weather
 ok 101 - enemy fireballs render above night lighting and weather
   ---
-  duration_ms: 2.1166
+  duration_ms: 2.1659
   type: 'test'
   ...
 # Subtest: a trapped misdelivery enemy recovers to a clear position
 ok 102 - a trapped misdelivery enemy recovers to a clear position
   ---
-  duration_ms: 2.2698
+  duration_ms: 2.5531
   type: 'test'
   ...
 # Subtest: small pause targets accept clicks within a 44 CSS pixel hit area
 ok 103 - small pause targets accept clicks within a 44 CSS pixel hit area
   ---
-  duration_ms: 2.2386
+  duration_ms: 2.7909
   type: 'test'
   ...
 # Subtest: rain-port runtime uses reduced shooter pressure and the intended recovery pacing
 ok 104 - rain-port runtime uses reduced shooter pressure and the intended recovery pacing
   ---
-  duration_ms: 5.1628
+  duration_ms: 6.4399
   type: 'test'
   ...
 # {"scenario":"runtime-stage-pressure","results":{"night-town":{"goal":6,"xp":30,"spawnInterval":1.1400000000000001,"shooters":0,"ghostSpeed":85.75,"firstBossHp":32},"rain-port":{"goal":6,"xp":30,"spawnInterval":1.311,"shooters":16,"ghostSpeed":85.75,"firstBossHp":33}}}
 # Subtest: abandon confirmation defaults to keeping the paused run and blocks covered actions
 ok 105 - abandon confirmation defaults to keeping the paused run and blocks covered actions
   ---
-  duration_ms: 2.0986
+  duration_ms: 2.4101
   type: 'test'
   ...
 # Subtest: abandon confirmation works for touch and gamepad without leaking confirmation
 ok 106 - abandon confirmation works for touch and gamepad without leaking confirmation
   ---
-  duration_ms: 4.2934
+  duration_ms: 4.6225
   type: 'test'
   ...
 # Subtest: Boss pointer answers use the rendered layout without covering bottom controls
 ok 107 - Boss pointer answers use the rendered layout without covering bottom controls
   ---
-  duration_ms: 6.351
+  duration_ms: 6.8674
   type: 'test'
   ...
 # Subtest: Boss mistakes reach settlement, count once per submission and reset only run review
 ok 108 - Boss mistakes reach settlement, count once per submission and reset only run review
   ---
-  duration_ms: 2.2259
+  duration_ms: 2.5205
   type: 'test'
   ...
 # Subtest: lethal Boss mistake still reaches settlement review before run ends
 ok 109 - lethal Boss mistake still reaches settlement review before run ends
   ---
-  duration_ms: 3.4564
+  duration_ms: 3.8056
   type: 'test'
   ...
 # Subtest: delivery hint cannot promote mastery through a simultaneous same-word Boss quiz
 ok 110 - delivery hint cannot promote mastery through a simultaneous same-word Boss quiz
   ---
-  duration_ms: 2.2518
+  duration_ms: 2.5508
   type: 'test'
   ...
 # Subtest: Boss eliminated answer assistance also applies to an active same-word delivery
 ok 111 - Boss eliminated answer assistance also applies to an active same-word delivery
   ---
-  duration_ms: 2.1403
+  duration_ms: 2.2982
   type: 'test'
   ...
 # Subtest: unrelated delivery assistance does not penalize independent Boss mastery
 ok 112 - unrelated delivery assistance does not penalize independent Boss mastery
   ---
-  duration_ms: 2.0586
+  duration_ms: 2.2616
   type: 'test'
   ...
 # Subtest: same-word Boss retains delivery assistance after the parcel is submitted first
 ok 113 - same-word Boss retains delivery assistance after the parcel is submitted first
   ---
-  duration_ms: 2.1846
+  duration_ms: 5.6601
   type: 'test'
   ...
 # Subtest: hinted same-word delivery auto-submits after 0.45 seconds while Boss remains unanswered
 ok 114 - hinted same-word delivery auto-submits after 0.45 seconds while Boss remains unanswered
   ---
-  duration_ms: 8.79
+  duration_ms: 7.9942
   type: 'test'
   ...
-# {"scenario":"hint-auto-delivery-first","elapsed":0.46000000000000024,"score":25,"oilGain":11.9957,"bossPending":true,"afterDelivery":{"ok":1,"ng":0,"box":0,"lastSeen":1791195878787,"missBoost":1}}
-# {"scenario":"hint-auto-delivery-then-boss","afterBoss":{"ok":2,"ng":0,"box":0,"lastSeen":1791195878787,"missBoost":1}}
+# {"scenario":"hint-auto-delivery-first","elapsed":0.46000000000000024,"score":25,"oilGain":11.9957,"bossPending":true,"afterDelivery":{"ok":1,"ng":0,"box":0,"lastSeen":1791196281658,"missBoost":1}}
+# {"scenario":"hint-auto-delivery-then-boss","afterBoss":{"ok":2,"ng":0,"box":0,"lastSeen":1791196281658,"missBoost":1}}
 # Subtest: same-word Boss answer at 1.79s follows current feedback rule without extending its lifetime
 ok 115 - same-word Boss answer at 1.79s follows current feedback rule without extending its lifetime
   ---
-  duration_ms: 16.6849
+  duration_ms: 16.8015
   type: 'test'
   ...
-# {"scenario":"ordinary-delivery-feedback-boundary","elapsed":1.7900000000000014,"feedbackAlive":true,"feedbackLife":0.009999999999998581,"score":50,"afterBoss":{"ok":2,"ng":0,"box":2,"lastSeen":1791195878804,"missBoost":1}}
+# {"scenario":"ordinary-delivery-feedback-boundary","elapsed":1.7900000000000014,"feedbackAlive":true,"feedbackLife":0.009999999999998581,"score":50,"afterBoss":{"ok":2,"ng":0,"box":2,"lastSeen":1791196281675,"missBoost":1}}
 # Subtest: same-word Boss answer at 1.81s follows current feedback rule without extending its lifetime
 ok 116 - same-word Boss answer at 1.81s follows current feedback rule without extending its lifetime
   ---
-  duration_ms: 16.5452
+  duration_ms: 17.0484
   type: 'test'
   ...
-# {"scenario":"ordinary-delivery-feedback-boundary","elapsed":1.8100000000000014,"feedbackAlive":false,"feedbackLife":0,"score":50,"afterBoss":{"ok":2,"ng":0,"box":2,"lastSeen":1791195878821,"missBoost":1}}
+# {"scenario":"ordinary-delivery-feedback-boundary","elapsed":1.8100000000000014,"feedbackAlive":false,"feedbackLife":0,"score":50,"afterBoss":{"ok":2,"ng":0,"box":2,"lastSeen":1791196281692,"missBoost":1}}
 # Subtest: Boss assistance survives leaving and reentering quiz range
 ok 117 - Boss assistance survives leaving and reentering quiz range
   ---
-  duration_ms: 2.8943
+  duration_ms: 3.1466
   type: 'test'
   ...
 # Subtest: Boss assistance stays on a changed word and clears on a replay
 ok 118 - Boss assistance stays on a changed word and clears on a replay
   ---
-  duration_ms: 2.5393
+  duration_ms: 5.2047
   type: 'test'
   ...
-# {"scenario":"changed-word-keeps-assistance","assisted":true,"afterAnswer":{"ok":1,"ng":0,"box":0,"lastSeen":1791195878826,"missBoost":1}}
-# {"scenario":"new-run-clears-assistance","assisted":false,"afterAnswer":{"ok":1,"ng":2,"box":1,"lastSeen":1791195878826,"missBoost":1}}
+# {"scenario":"changed-word-keeps-assistance","assisted":true,"afterAnswer":{"ok":1,"ng":0,"box":0,"lastSeen":1791196281700,"missBoost":1}}
+# {"scenario":"new-run-clears-assistance","assisted":false,"afterAnswer":{"ok":1,"ng":2,"box":1,"lastSeen":1791196281701,"missBoost":1}}
 # Subtest: second hint transfers assistance to a Boss that appeared after the first hint
 ok 119 - second hint transfers assistance to a Boss that appeared after the first hint
   ---
-  duration_ms: 2.154
+  duration_ms: 2.3592
   type: 'test'
   ...
 # Subtest: assisted submission marks a same-word Boss created after the last hint
 ok 120 - assisted submission marks a same-word Boss created after the last hint
   ---
-  duration_ms: 2.1373
+  duration_ms: 2.7351
   type: 'test'
   ...
 # Subtest: ordinary delivery correction remains visible during an independent same-word Boss answer
 ok 121 - ordinary delivery correction remains visible during an independent same-word Boss answer
   ---
-  duration_ms: 4.0266
+  duration_ms: 2.4654
   type: 'test'
   ...
 # Subtest: new pickup inherits only the current same-word Boss assistance
 ok 122 - new pickup inherits only the current same-word Boss assistance
   ---
-  duration_ms: 2.1075
+  duration_ms: 2.2199
   type: 'test'
   ...
 # Subtest: purification feedback overlaps the next real priority order without granting mastery
 ok 123 - purification feedback overlaps the next real priority order without granting mastery
   ---
-  duration_ms: 2.5392
+  duration_ms: 2.9237
   type: 'test'
   ...
 # Subtest: automatic order refill can repeat a purified word while its correction is still alive
 ok 124 - automatic order refill can repeat a purified word while its correction is still alive
   ---
-  duration_ms: 2.8059
+  duration_ms: 3.3332
   type: 'test'
   ...
 # Subtest: scheduled Boss can draw a purified word and open its quiz before correction expires
 ok 125 - scheduled Boss can draw a purified word and open its quiz before correction expires
   ---
-  duration_ms: 2.7472
+  duration_ms: 3.3904
   type: 'test'
   ...
 # Subtest: delivery mistake persists, avoids its living answer badge and returns after purification
 ok 126 - delivery mistake persists, avoids its living answer badge and returns after purification
   ---
-  duration_ms: 2.8327
+  duration_ms: 7.8721
   type: 'test'
   ...
 # Subtest: first-run tutorial freezes time, oil and gameplay input, and skip persists
 ok 127 - first-run tutorial freezes time, oil and gameplay input, and skip persists
   ---
-  duration_ms: 4.3084
+  duration_ms: 4.798
   type: 'test'
   ...
 # Subtest: malformed tutorial progress recovers and touch confirmation does not start dragging
 ok 128 - malformed tutorial progress recovers and touch confirmation does not start dragging
   ---
-  duration_ms: 2.069
+  duration_ms: 2.0233
   type: 'test'
   ...
 # Subtest: context lessons cover listening, delivery, dash and Boss without changing assistance
 ok 129 - context lessons cover listening, delivery, dash and Boss without changing assistance
   ---
-  duration_ms: 2.1102
+  duration_ms: 2.0414
   type: 'test'
   ...
 # Subtest: replay is available from pause, gamepad consumes confirmation and returns to pause
 ok 130 - replay is available from pause, gamepad consumes confirmation and returns to pause
   ---
-  duration_ms: 1.963
+  duration_ms: 2.0932
   type: 'test'
   ...
 # Subtest: mobile pause replay uses the same enlarged geometry for drawing and pointer input
 ok 131 - mobile pause replay uses the same enlarged geometry for drawing and pointer input
   ---
-  duration_ms: 2.3412
+  duration_ms: 2.5103
   type: 'test'
   ...
 # Subtest: mouse drag begins on the right half and moves the courier; touch stays on left
 ok 132 - mouse drag begins on the right half and moves the courier; touch stays on left
   ---
-  duration_ms: 2.5088
+  duration_ms: 2.2769
   type: 'test'
   ...
 # Subtest: custom movement, dash and blur route through real event listeners
 ok 133 - custom movement, dash and blur route through real event listeners
   ---
-  duration_ms: 2.1826
+  duration_ms: 2.4491
   type: 'test'
   ...
 # Subtest: misdelivery enemy settles away from player and retains a ranged penalty after the tutorial stage
 ok 134 - misdelivery enemy settles away from player and retains a ranged penalty after the tutorial stage
   ---
-  duration_ms: 7.7914
+  duration_ms: 8.3173
   type: 'test'
   ...
 # Subtest: first stage enemies never fire bullets
 ok 135 - first stage enemies never fire bullets
   ---
-  duration_ms: 8.2773
+  duration_ms: 8.3422
   type: 'test'
   ...
 # Subtest: empty pickup pool cannot crash order creation
 ok 136 - empty pickup pool cannot crash order creation
   ---
-  duration_ms: 2.1214
+  duration_ms: 2.3191
   type: 'test'
   ...
 # Subtest: releasing one equivalent movement key keeps the other held key active
 ok 137 - releasing one equivalent movement key keeps the other held key active
   ---
-  duration_ms: 2.0138
+  duration_ms: 2.2385
   type: 'test'
   ...
 # Subtest: cargo stays visible beside an idle courier with no movement history
 ok 138 - cargo stays visible beside an idle courier with no movement history
   ---
-  duration_ms: 3.5887
+  duration_ms: 4.0101
   type: 'test'
   ...
 # Subtest: cargo icon is painted behind the courier, never over the face
 ok 139 - cargo icon is painted behind the courier, never over the face
   ---
-  duration_ms: 2.3832
+  duration_ms: 2.3118
   type: 'test'
   ...
 # Subtest: Boss death and settlement audio fire once per event, not once per frame
 ok 140 - Boss death and settlement audio fire once per event, not once per frame
   ---
-  duration_ms: 3.2104
+  duration_ms: 2.8464
   type: 'test'
   ...
 # Subtest: expanded fullscreen edges and corner HUD buttons share the same pointer mapping
 ok 141 - expanded fullscreen edges and corner HUD buttons share the same pointer mapping
   ---
-  duration_ms: 2.771
+  duration_ms: 2.6599
   type: 'test'
   ...
 # Subtest: scheduled Boss shield, kill reward and overdue successor follow one lifecycle
 ok 142 - scheduled Boss shield, kill reward and overdue successor follow one lifecycle
   ---
-  duration_ms: 3.5539
+  duration_ms: 3.247
   type: 'test'
   ...
 # {"scenario":"boss-kill-and-breather","killScore":400,"killOil":35,"gemDrops":9,"masteryBefore":1,"masteryAfter":1,"bossStage":2,"bossT":179.97000000000003}
 # Subtest: real needle updates defeat a scheduled Boss after ordinary answering without kill mastery
 ok 143 - real needle updates defeat a scheduled Boss after ordinary answering without kill mastery
   ---
-  duration_ms: 62.2906
+  duration_ms: 64.3606
   type: 'test'
   ...
 # {"scenario":"needle-boss-integration","assisted":false,"initialHp":32,"combatSeconds":13.940000000007132,"score":400,"masteryAfterAnswer":1,"masteryAfterKill":1,"killEvents":1}
 # Subtest: real needle updates defeat a scheduled Boss after assisted answering without kill mastery
 ok 144 - real needle updates defeat a scheduled Boss after assisted answering without kill mastery
   ---
-  duration_ms: 64.356
+  duration_ms: 65.6315
   type: 'test'
   ...
 # {"scenario":"needle-boss-integration","assisted":true,"initialHp":32,"combatSeconds":13.940000000007132,"score":400,"masteryAfterAnswer":0,"masteryAfterKill":0,"killEvents":1}
 # Subtest: final Boss requires the delivery goal and victory settles progression only once
 ok 145 - final Boss requires the delivery goal and victory settles progression only once
   ---
-  duration_ms: 13.321
+  duration_ms: 13.895
   type: 'test'
   ...
 # {"scenario":"final-boss-victory-settlement","state":"won","finishes":1,"score":1600,"delivered":6,"stats":{"bestScore":1600,"bestDeliveries":6,"clears":1,"attempts":1},"rainPortUnlocked":true}
 # Subtest: final victory sequence: boss shakes and explodes, minions burn away, dawn rises, then settlement after 2s
 ok 146 - final victory sequence: boss shakes and explodes, minions burn away, dawn rises, then settlement after 2s
   ---
-  duration_ms: 15.7136
+  duration_ms: 16.2253
   type: 'test'
   ...
 # Subtest: running out of oil snuffs the lamp, fades the BGM, and settles only after two dark seconds
 ok 147 - running out of oil snuffs the lamp, fades the BGM, and settles only after two dark seconds
   ---
-  duration_ms: 3.9417
+  duration_ms: 4.6937
   type: 'test'
   ...
 # Subtest: first hint hides written answer and assisted delivery cannot promote mastery
 ok 148 - first hint hides written answer and assisted delivery cannot promote mastery
   ---
-  duration_ms: 2.2776
+  duration_ms: 2.5554
   type: 'test'
   ...
 # Subtest: pickup bubble shows meaning instead of written answer
 ok 149 - pickup bubble shows meaning instead of written answer
   ---
-  duration_ms: 2.2597
+  duration_ms: 4.5189
   type: 'test'
   ...
 # Subtest: Boss question preserves gamepad pickup, dash and hint; shoulders and Y answer
 ok 150 - Boss question preserves gamepad pickup, dash and hint; shoulders and Y answer
   ---
-  duration_ms: 2.2614
+  duration_ms: 2.7795
   type: 'test'
   ...
 # Subtest: codex words pages are reachable by keyboard and gamepad without changing tabs
 ok 151 - codex words pages are reachable by keyboard and gamepad without changing tabs
   ---
-  duration_ms: 2.0323
+  duration_ms: 2.3112
   type: 'test'
   ...
 # Subtest: all upgrade input paths reject accidental selection for the first 0.4 seconds
 ok 152 - all upgrade input paths reject accidental selection for the first 0.4 seconds
   ---
-  duration_ms: 8.3624
+  duration_ms: 8.776
   type: 'test'
   ...
 # Subtest: regular and ring enemies spawn beyond wide view and camera lag
 ok 153 - regular and ring enemies spawn beyond wide view and camera lag
   ---
-  duration_ms: 6.3308
+  duration_ms: 7.1413
   type: 'test'
   ...
 # Subtest: scheduled Boss spawns outside the widescreen view through real update logic
 ok 154 - scheduled Boss spawns outside the widescreen view through real update logic
   ---
-  duration_ms: 2.3795
+  duration_ms: 2.588
   type: 'test'
   ...
 # Subtest: each dedicated gamepad Boss answer button selects its documented option
 ok 155 - each dedicated gamepad Boss answer button selects its documented option
   ---
-  duration_ms: 6.729
+  duration_ms: 7.0768
   type: 'test'
   ...
 # Subtest: actors are painted by ground contact so roofs cover the north side and yield at the doorway
 ok 156 - actors are painted by ground contact so roofs cover the north side and yield at the doorway
   ---
-  duration_ms: 2.1538
+  duration_ms: 2.3251
   type: 'test'
   ...
 # Subtest: frame maps logical coordinates to CSS scale and refreshes renderer DPR
 ok 157 - frame maps logical coordinates to CSS scale and refreshes renderer DPR
   ---
-  duration_ms: 1.6577
+  duration_ms: 2.0551
   type: 'test'
   ...
 # Subtest: lightning ignores shield immunity and spends its target on a damageable enemy
 ok 158 - lightning ignores shield immunity and spends its target on a damageable enemy
   ---
-  duration_ms: 2.0782
+  duration_ms: 2.4028
   type: 'test'
   ...
 # Subtest: barrier and healing knockback cannot tunnel through a thin building
 ok 159 - barrier and healing knockback cannot tunnel through a thin building
   ---
-  duration_ms: 4.2903
+  duration_ms: 4.6235
   type: 'test'
   ...
 # Subtest: Boss chooses an unblocked offscreen spawn and retries without advancing when ring is obstructed
 ok 160 - Boss chooses an unblocked offscreen spawn and retries without advancing when ring is obstructed
   ---
-  duration_ms: 2.3201
+  duration_ms: 2.4804
   type: 'test'
   ...
 # Subtest: foxfire impact plays one sound for a simultaneous group of hits
 ok 161 - foxfire impact plays one sound for a simultaneous group of hits
   ---
-  duration_ms: 2.3193
+  duration_ms: 2.5848
   type: 'test'
   ...
 # Subtest: portrait stops time, blocks all resume input paths, and landscape requires manual resume
 ok 162 - portrait stops time, blocks all resume input paths, and landscape requires manual resume
   ---
-  duration_ms: 2.0763
+  duration_ms: 2.2188
   type: 'test'
   ...
 # Subtest: visibility change suspends audio immediately without requiring a frame
 ok 163 - visibility change suspends audio immediately without requiring a frame
   ---
-  duration_ms: 1.8753
+  duration_ms: 2.026
   type: 'test'
   ...
 # Subtest: idle needles retain last facing and still aim at a nearby enemy
 ok 164 - idle needles retain last facing and still aim at a nearby enemy
   ---
-  duration_ms: 2.2265
+  duration_ms: 2.3502
   type: 'test'
   ...
 # Subtest: keyboard menus reach settings, both codex tabs, mute and home; restart resets session
 ok 165 - keyboard menus reach settings, both codex tabs, mute and home; restart resets session
   ---
-  duration_ms: 2.5287
+  duration_ms: 2.3079
   type: 'test'
   ...
 # Subtest: gamepad directional menus confirm once without leaking actions into the new screen
 ok 166 - gamepad directional menus confirm once without leaking actions into the new screen
   ---
-  duration_ms: 17.453
+  duration_ms: 2.07
   type: 'test'
   ...
 # Subtest: controls dialog gamepad events do not activate the covered menu
 ok 167 - controls dialog gamepad events do not activate the covered menu
   ---
-  duration_ms: 1.9004
+  duration_ms: 1.7462
   type: 'test'
   ...
 # Subtest: widescreen map back button accepts pointer at the screen edge and home clears held movement
 ok 168 - widescreen map back button accepts pointer at the screen edge and home clears held movement
   ---
-  duration_ms: 2.627
+  duration_ms: 2.3498
   type: 'test'
   ...
 # Subtest: pickup speaks the word once and delivery does not repeat it
 ok 169 - pickup speaks the word once and delivery does not repeat it
   ---
-  duration_ms: 2.2689
+  duration_ms: 2.2137
   type: 'test'
   ...
 # Subtest: dawn does not end a run that still needs the delivery goal or the boss
 ok 170 - dawn does not end a run that still needs the delivery goal or the boss
   ---
-  duration_ms: 2.2331
+  duration_ms: 2.596
   type: 'test'
   ...
 # Subtest: level-up keeps draining oil and waits until a card is chosen
 ok 171 - level-up keeps draining oil and waits until a card is chosen
   ---
-  duration_ms: 9.1842
+  duration_ms: 10.196
   type: 'test'
   ...
 # Subtest: misdelivery speed ignores movement upgrades
 ok 172 - misdelivery speed ignores movement upgrades
   ---
-  duration_ms: 3.0181
+  duration_ms: 3.0594
   type: 'test'
   ...
 # Subtest: priority orders prefer a house that teaches the same word
 ok 173 - priority orders prefer a house that teaches the same word
   ---
-  duration_ms: 2.1556
+  duration_ms: 2.5722
   type: 'test'
   ...
 # Subtest: expired orders cost neither oil nor misdelivery count, and the open slot refills immediately
 ok 174 - expired orders cost neither oil nor misdelivery count, and the open slot refills immediately
   ---
-  duration_ms: 2.2225
+  duration_ms: 2.5358
   type: 'test'
   ...
 # Subtest: gamepad select opens the codex from pause and not during play
 ok 175 - gamepad select opens the codex from pause and not during play
   ---
-  duration_ms: 2.0207
+  duration_ms: 2.2041
   type: 'test'
   ...
 # Subtest: damage and oil-heal upgrades stop after their stack caps
 ok 176 - damage and oil-heal upgrades stop after their stack caps
   ---
-  duration_ms: 2.1401
+  duration_ms: 2.2826
   type: 'test'
   ...
 # Subtest: map background is baked once while distant landmarks are not submitted
 ok 177 - map background is baked once while distant landmarks are not submitted
   ---
-  duration_ms: 2.8395
+  duration_ms: 3.3327
   type: 'test'
   ...
 # Subtest: playable landmarks change drawing only after completion and the selected stage shows its actual best score
 ok 178 - playable landmarks change drawing only after completion and the selected stage shows its actual best score
   ---
-  duration_ms: 11.0431
+  duration_ms: 10.7872
   type: 'test'
   ...
 # Subtest: compact map title and subtitle retain a full readable line gap inside their header
 ok 179 - compact map title and subtitle retain a full readable line gap inside their header
   ---
-  duration_ms: 0.3898
+  duration_ms: 0.3084
   type: 'test'
   ...
 # Subtest: overworld exposes one large connected route map
 ok 180 - overworld exposes one large connected route map
   ---
-  duration_ms: 0.2051
+  duration_ms: 0.1362
   type: 'test'
   ...
 # Subtest: mini courier moves node-to-node along directional roads
 ok 181 - mini courier moves node-to-node along directional roads
   ---
-  duration_ms: 0.2999
+  duration_ms: 0.2735
   type: 'test'
   ...
 # Subtest: rain-port is implemented but stays sealed until night-town is cleared
 ok 182 - rain-port is implemented but stays sealed until night-town is cleared
   ---
-  duration_ms: 0.1078
+  duration_ms: 0.1026
   type: 'test'
   ...
 # Subtest: overworld camera follows the miniature player but stays inside map bounds
 ok 183 - overworld camera follows the miniature player but stays inside map bounds
   ---
-  duration_ms: 0.6538
+  duration_ms: 0.5982
   type: 'test'
   ...
 # Subtest: touch hit testing uses scrolled world coordinates
 ok 184 - touch hit testing uses scrolled world coordinates
   ---
-  duration_ms: 0.1782
+  duration_ms: 0.112
   type: 'test'
   ...
 # Subtest: overworld renderer can draw the map without image assets
 ok 185 - overworld renderer can draw the map without image assets
   ---
-  duration_ms: 0.3287
+  duration_ms: 0.3087
   type: 'test'
   ...
 # Subtest: expanded viewport draws a full-width title and anchors the clickable back button at its corner
 ok 186 - expanded viewport draws a full-width title and anchors the clickable back button at its corner
   ---
-  duration_ms: 0.3681
+  duration_ms: 0.3152
   type: 'test'
   ...
 # Subtest: failed storage writes expose an error and successful retries clear it
 ok 187 - failed storage writes expose an error and successful retries clear it
   ---
-  duration_ms: 1.8801
+  duration_ms: 2.1536
   type: 'test'
   ...
 # Subtest: legacy save data is upgraded without losing vocabulary progress
 ok 188 - legacy save data is upgraded without losing vocabulary progress
   ---
-  duration_ms: 0.4979
+  duration_ms: 0.5489
   type: 'test'
   ...
 # Subtest: clearing night-town unlocks rain-port and stores per-stage records
 ok 189 - clearing night-town unlocks rain-port and stores per-stage records
   ---
-  duration_ms: 0.9567
+  duration_ms: 1.0855
   type: 'test'
   ...
 # Subtest: a failed run records stage bests but does not unlock the next stage
 ok 190 - a failed run records stage bests but does not unlock the next stage
   ---
-  duration_ms: 0.5202
+  duration_ms: 0.3876
   type: 'test'
   ...
 # Subtest: unresolved mistakes survive reload, replay and stage switching until answered
 ok 191 - unresolved mistakes survive reload, replay and stage switching until answered
   ---
-  duration_ms: 0.5122
+  duration_ms: 0.6857
   type: 'test'
   ...
 # Subtest: review sampling applies mistake weights within the supplied stage pool
 ok 192 - review sampling applies mistake weights within the supplied stage pool
   ---
-  duration_ms: 0.4783
+  duration_ms: 1.0331
   type: 'test'
   ...
 # Subtest: malformed save containers recover without losing valid vocabulary and best scores
 ok 193 - malformed save containers recover without losing valid vocabulary and best scores
   ---
-  duration_ms: 1.4103
+  duration_ms: 3.0815
   type: 'test'
   ...
 # Subtest: invalid mastery, flags and stage counters normalize to finite valid values
 ok 194 - invalid mastery, flags and stage counters normalize to finite valid values
   ---
-  duration_ms: 0.3496
+  duration_ms: 0.6924
   type: 'test'
   ...
 # Subtest: roundRect fallback supports scalar and numeric corner lists, scales radii, and preserves native implementations
 ok 195 - roundRect fallback supports scalar and numeric corner lists, scales radii, and preserves native implementations
   ---
-  duration_ms: 4.1332
+  duration_ms: 6.2868
   type: 'test'
   ...
 # Subtest: enemy movement alternates a second drawing; attacks override walking and reduced motion keeps walking static
 ok 196 - enemy movement alternates a second drawing; attacks override walking and reduced motion keeps walking static
   ---
-  duration_ms: 1.9385
+  duration_ms: 2.0008
   type: 'test'
   ...
 # Subtest: dash uses its dedicated drawing and absent new art falls back to existing sprites
 ok 197 - dash uses its dedicated drawing and absent new art falls back to existing sprites
   ---
-  duration_ms: 0.928
+  duration_ms: 0.989
   type: 'test'
   ...
 # Subtest: missing specialized enemy art uses the fallback image crop rather than an incompatible atlas rectangle
 ok 198 - missing specialized enemy art uses the fallback image crop rather than an incompatible atlas rectangle
   ---
-  duration_ms: 0.7439
+  duration_ms: 0.7546
   type: 'test'
   ...
 # Subtest: atlas crops stay inside shipped images and every frame shares its requested ground anchor
 ok 199 - atlas crops stay inside shipped images and every frame shares its requested ground anchor
   ---
-  duration_ms: 6.7292
+  duration_ms: 7.7233
   type: 'test'
   ...
 # Subtest: shield labels remain text and effects expire even during hit stop
 ok 200 - shield labels remain text and effects expire even during hit stop
   ---
-  duration_ms: 1.2309
+  duration_ms: 1.3124
   type: 'test'
   ...
 # Subtest: reduced motion disables shake and hit stop
 ok 201 - reduced motion disables shake and hit stop
   ---
-  duration_ms: 0.9335
+  duration_ms: 0.9141
   type: 'test'
   ...
 # Subtest: katana arcs gain one sharp contour per tier without rebuilding glow gradients
 ok 202 - katana arcs gain one sharp contour per tier without rebuilding glow gradients
   ---
-  duration_ms: 2.6687
+  duration_ms: 2.8789
   type: 'test'
   ...
 # Subtest: Canvas backings preserve viewport mapping within bounded raster budgets
 ok 203 - Canvas backings preserve viewport mapping within bounded raster budgets
   ---
-  duration_ms: 2.287
+  duration_ms: 2.513
   type: 'test'
   ...
 # Subtest: large high-DPR windows do not multiply the scene into over six million pixels
 ok 204 - large high-DPR windows do not multiply the scene into over six million pixels
   ---
-  duration_ms: 0.7464
+  duration_ms: 0.8318
   type: 'test'
   ...
 # Subtest: soft lighting raster stays bounded while the final layer covers the full viewport
 ok 205 - soft lighting raster stays bounded while the final layer covers the full viewport
   ---
-  duration_ms: 0.7669
+  duration_ms: 0.9273
   type: 'test'
   ...
 # Subtest: static terrain reuses one buffered canvas and refreshes for camera bounds and late assets
 ok 206 - static terrain reuses one buffered canvas and refreshes for camera bounds and late assets
   ---
-  duration_ms: 1.065
+  duration_ms: 1.1011
   type: 'test'
   ...
 # Subtest: terrain uses the actual float32 transform for a one-to-one buffered blit
 ok 207 - terrain uses the actual float32 transform for a one-to-one buffered blit
   ---
-  duration_ms: 1.3058
+  duration_ms: 1.2112
   type: 'test'
   ...
 # Subtest: stone roads do not paint pale curb stripes or a dark road cross
 ok 208 - stone roads do not paint pale curb stripes or a dark road cross
   ---
-  duration_ms: 0.1774
+  duration_ms: 0.1921
   type: 'test'
   ...
 # Subtest: water districts do not paint breathing stripes and terrain still refreshes on resize
 ok 209 - water districts do not paint breathing stripes and terrain still refreshes on resize
   ---
-  duration_ms: 0.8204
+  duration_ms: 1.1824
   type: 'test'
   ...
 # Subtest: resize refreshes DPR and backing resolution when moving between displays
 ok 210 - resize refreshes DPR and backing resolution when moving between displays
   ---
-  duration_ms: 0.6547
+  duration_ms: 0.7861
   type: 'test'
   ...
 # Subtest: full upgraded oil capacity keeps the same lantern radius as full base capacity
 ok 211 - full upgraded oil capacity keeps the same lantern radius as full base capacity
   ---
-  duration_ms: 0.7505
+  duration_ms: 0.8471
   type: 'test'
   ...
 # Subtest: monster hit flashes use a cached white silhouette without Canvas filter
 ok 212 - monster hit flashes use a cached white silhouette without Canvas filter
   ---
-  duration_ms: 0.6797
+  duration_ms: 0.7378
   type: 'test'
   ...
 # Subtest: night midtones stay readable and warm light stays on the lamps
 ok 213 - night midtones stay readable and warm light stays on the lamps
   ---
-  duration_ms: 0.8485
+  duration_ms: 0.8873
   type: 'test'
   ...
 # Subtest: reduced motion drops drifting petals and fireflies
 ok 214 - reduced motion drops drifting petals and fireflies
   ---
-  duration_ms: 1.2775
+  duration_ms: 1.2158
   type: 'test'
   ...
 # Subtest: house signs identify shops and never expose unrelated vocabulary or hint translations
 ok 215 - house signs identify shops and never expose unrelated vocabulary or hint translations
   ---
-  duration_ms: 0.8842
+  duration_ms: 0.9131
   type: 'test'
   ...
 # Subtest: all five levels retain local glow and crisp marks without fullscreen flashes
 ok 216 - all five levels retain local glow and crisp marks without fullscreen flashes
   ---
-  duration_ms: 6.5395
+  duration_ms: 7.23
   type: 'test'
   ...
 # Subtest: needle and foxfire bodies have five distinct silhouettes with bounded local glow
 ok 217 - needle and foxfire bodies have five distinct silhouettes with bounded local glow
   ---
-  duration_ms: 1.2404
+  duration_ms: 1.2829
   type: 'test'
   ...
 # Subtest: reduced motion retains tier structure with static short-lived accents
 ok 218 - reduced motion retains tier structure with static short-lived accents
   ---
-  duration_ms: 1.2389
+  duration_ms: 1.3154
   type: 'test'
   ...
 # Subtest: reduced motion keeps the actual thunder domain size instead of a tiny initial circle
 ok 219 - reduced motion keeps the actual thunder domain size instead of a tiny initial circle
   ---
-  duration_ms: 1.0782
+  duration_ms: 1.3252
   type: 'test'
   ...
 # Subtest: each level now has a distinct rank
 ok 220 - each level now has a distinct rank
   ---
-  duration_ms: 1.0432
+  duration_ms: 1.1275
   type: 'test'
   ...
 # Subtest: every skill grows across all five levels
 ok 221 - every skill grows across all five levels
   ---
-  duration_ms: 115.1302
+  duration_ms: 122.6991
   type: 'test'
   ...
 # Subtest: katana tier 1 is far subtler than the old always-max look
 ok 222 - katana tier 1 is far subtler than the old always-max look
   ---
-  duration_ms: 4.9747
+  duration_ms: 4.968
   type: 'test'
   ...
 # Subtest: purification array is a flattened ground ellipse behind actors with an asymmetric rune per tier
 ok 223 - purification array is a flattened ground ellipse behind actors with an asymmetric rune per tier
   ---
-  duration_ms: 1.4011
+  duration_ms: 1.5326
   type: 'test'
   ...
 # Subtest: rune sprites differ per tier so Lv5 gets a more elaborate array
 ok 224 - rune sprites differ per tier so Lv5 gets a more elaborate array
   ---
-  duration_ms: 1.1138
+  duration_ms: 1.1257
   type: 'test'
   ...
 # Subtest: thunder inherits the old strongest strike at Lv3 and adds a domain at Lv5
 ok 225 - thunder inherits the old strongest strike at Lv3 and adds a domain at Lv5
   ---
-  duration_ms: 1.2606
+  duration_ms: 1.2984
   type: 'test'
   ...
 # Subtest: fire talisman ignites targets at Lv1-4 and explodes at Lv5
 ok 226 - fire talisman ignites targets at Lv1-4 and explodes at Lv5
   ---
-  duration_ms: 1.2708
+  duration_ms: 1.2683
   type: 'test'
   ...
 # Subtest: burning stops when the target dies and the list stays bounded
 ok 227 - burning stops when the target dies and the list stays bounded
   ---
-  duration_ms: 1.3578
+  duration_ms: 1.4977
   type: 'test'
   ...
 # Subtest: new skills can be registered without touching fx.js
 ok 228 - new skills can be registered without touching fx.js
   ---
-  duration_ms: 0.7179
+  duration_ms: 0.7155
   type: 'test'
   ...
 # Subtest: game wires every weapon through SKILLFX and draws the ground layer before actors
 ok 229 - game wires every weapon through SKILLFX and draws the ground layer before actors
   ---
-  duration_ms: 8.0122
+  duration_ms: 8.5655
   type: 'test'
   ...
 # Subtest: fire orbit render count matches combat count
 ok 230 - fire orbit render count matches combat count
   ---
-  duration_ms: 0.5626
+  duration_ms: 0.6983
   type: 'test'
   ...
 # Subtest: horizontal level-up hitboxes and rendered rows share the same dimensions
 ok 231 - horizontal level-up hitboxes and rendered rows share the same dimensions
   ---
-  duration_ms: 0.1763
+  duration_ms: 0.5131
   type: 'test'
   ...
 # Subtest: mobile hint has a visible exported hit target
 ok 232 - mobile hint has a visible exported hit target
   ---
-  duration_ms: 0.0955
+  duration_ms: 0.1465
   type: 'test'
   ...
 # Subtest: interface fonts download a character subset
 ok 233 - interface fonts download a character subset
   ---
-  duration_ms: 0.259
+  duration_ms: 0.4048
   type: 'test'
   ...
 # Subtest: answer pads paint on the ground before the player and monsters
 ok 234 - answer pads paint on the ground before the player and monsters
   ---
-  duration_ms: 0.5308
+  duration_ms: 0.7543
   type: 'test'
   ...
 # Subtest: dormant reverse-delivery rendering retains its text branch; live orders stay forward
 ok 235 - dormant reverse-delivery rendering retains its text branch; live orders stay forward
   ---
-  duration_ms: 0.0885
+  duration_ms: 0.1102
   type: 'test'
   ...
 # Subtest: settlement retains all five review words on a small screen
 ok 236 - settlement retains all five review words on a small screen
   ---
-  duration_ms: 12.3682
+  duration_ms: 11.829
   type: 'test'
   ...
 # Subtest: mobile skill codex exposes every skill through pages and marks unavailable arrows
 ok 237 - mobile skill codex exposes every skill through pages and marks unavailable arrows
   ---
-  duration_ms: 2.8886
+  duration_ms: 3.2109
   type: 'test'
   ...
 # Subtest: codex readings and translations use font-sized vertical separation
 ok 238 - codex readings and translations use font-sized vertical separation
   ---
-  duration_ms: 1.2051
+  duration_ms: 1.4249
   type: 'test'
   ...
 # Subtest: settlement uses distinct victory and kneeling drawings, with original art fallback
 ok 239 - settlement uses distinct victory and kneeling drawings, with original art fallback
   ---
-  duration_ms: 1.1114
+  duration_ms: 1.1361
   type: 'test'
   ...
 # Subtest: menu loading progress and settlement star totals remain readable on compact screens
 ok 240 - menu loading progress and settlement star totals remain readable on compact screens
   ---
-  duration_ms: 1.9257
+  duration_ms: 2.1671
   type: 'test'
   ...
 # Subtest: HUD bars reuse gradients and rebuild for changed transform, geometry, tone or canvas context
 ok 241 - HUD bars reuse gradients and rebuild for changed transform, geometry, tone or canvas context
   ---
-  duration_ms: 2.7289
+  duration_ms: 2.8533
   type: 'test'
   ...
 # Subtest: small-screen level-up descriptions and settlement review lines keep readable spacing
 ok 242 - small-screen level-up descriptions and settlement review lines keep readable spacing
   ---
-  duration_ms: 1.4063
+  duration_ms: 1.5347
   type: 'test'
   ...
 # Subtest: oil numbers and bar remain prominent and low-oil warning uses capacity ratio
 ok 243 - oil numbers and bar remain prominent and low-oil warning uses capacity ratio
   ---
-  duration_ms: 6.8196
+  duration_ms: 7.2252
   type: 'test'
   ...
 # Subtest: HUD skill badges are readable and their labels fit their backing rectangles
 ok 244 - HUD skill badges are readable and their labels fit their backing rectangles
   ---
-  duration_ms: 7.0877
+  duration_ms: 7.2096
   type: 'test'
   ...
 # Subtest: passive overflow discloses the exact hidden count and vanishes when everything fits
 ok 245 - passive overflow discloses the exact hidden count and vanishes when everything fits
   ---
-  duration_ms: 16.5036
+  duration_ms: 17.3364
   type: 'test'
   ...
 # Subtest: opening touch joystick guidance stays above the taller skill footer
 ok 246 - opening touch joystick guidance stays above the taller skill footer
   ---
-  duration_ms: 2.6726
+  duration_ms: 2.8642
   type: 'test'
   ...
 # Subtest: Boss quiz clears the actual skill footer after its labels grow
 ok 247 - Boss quiz clears the actual skill footer after its labels grow
   ---
-  duration_ms: 5.0263
+  duration_ms: 5.8869
   type: 'test'
   ...
 # Subtest: Boss quiz geometry fits the viewport above the bottom HUD with shared hit targets
 ok 248 - Boss quiz geometry fits the viewport above the bottom HUD with shared hit targets
   ---
-  duration_ms: 5.8458
+  duration_ms: 6.7902
   type: 'test'
   ...
 # Subtest: readableFont uses viewport scale without DOM geometry reads
 ok 249 - readableFont uses viewport scale without DOM geometry reads
   ---
-  duration_ms: 0.8066
+  duration_ms: 0.8517
   type: 'test'
   ...
 # Subtest: hint sentences wrap without truncation and retain readable font size
 ok 250 - hint sentences wrap without truncation and retain readable font size
   ---
-  duration_ms: 0.7654
+  duration_ms: 0.7962
   type: 'test'
   ...
 # Subtest: settlement counts distinct mistaken words and discloses only truncated reviews
 ok 251 - settlement counts distinct mistaken words and discloses only truncated reviews
   ---
-  duration_ms: 11.6152
+  duration_ms: 12.543
   type: 'test'
   ...
 # Subtest: every second-stage Boss question has Chinese meaning even without Emoji support
 ok 252 - every second-stage Boss question has Chinese meaning even without Emoji support
   ---
-  duration_ms: 9.2335
+  duration_ms: 9.5678
   type: 'test'
   ...
 # Subtest: settlement shows unique delivery and Boss corrections without changing misdelivery count
 ok 253 - settlement shows unique delivery and Boss corrections without changing misdelivery count
   ---
-  duration_ms: 0.8046
+  duration_ms: 0.8586
   type: 'test'
   ...
 # Subtest: direction arrows rotate in place inside the task area instead of travelling along the screen edge
 ok 254 - direction arrows rotate in place inside the task area instead of travelling along the screen edge
   ---
-  duration_ms: 1.0262
+  duration_ms: 1.0357
   type: 'test'
   ...
 # Subtest: parcel icon is the system emoji and no hand-drawn house-like cargo glyph remains
 ok 255 - parcel icon is the system emoji and no hand-drawn house-like cargo glyph remains
   ---
-  duration_ms: 0.5563
+  duration_ms: 0.5798
   type: 'test'
   ...
 # Subtest: HUD shows level as a bottom edge strip and drops combo, shield and caption boxes
 ok 256 - HUD shows level as a bottom edge strip and drops combo, shield and caption boxes
   ---
-  duration_ms: 2.5713
+  duration_ms: 2.7305
   type: 'test'
   ...
 # Subtest: every live vocabulary HUD uses meaning before hints and written correction only after explicit assistance
 ok 257 - every live vocabulary HUD uses meaning before hints and written correction only after explicit assistance
   ---
-  duration_ms: 30.5712
+  duration_ms: 32.2551
   type: 'test'
   ...
 # Subtest: north and south have distinct text cues and unknown images retain meaning
 ok 258 - north and south have distinct text cues and unknown images retain meaning
   ---
-  duration_ms: 1.0032
+  duration_ms: 1.0303
   type: 'test'
   ...
 # Subtest: mobile body text renders at approximately 14 CSS pixels
 ok 259 - mobile body text renders at approximately 14 CSS pixels
   ---
-  duration_ms: 2.1059
+  duration_ms: 2.3887
   type: 'test'
   ...
 # Subtest: all 39 words remain reachable across three readable codex pages
 ok 260 - all 39 words remain reachable across three readable codex pages
   ---
-  duration_ms: 2.8541
+  duration_ms: 3.2071
   type: 'test'
   ...
 # Subtest: in-run codex mask hides readings and icons until four stars
 ok 261 - in-run codex mask hides readings and icons until four stars
   ---
-  duration_ms: 1.4581
+  duration_ms: 1.5111
   type: 'test'
   ...
 # Subtest: emoji cues use the system emoji glyph
 ok 262 - emoji cues use the system emoji glyph
   ---
-  duration_ms: 14.9764
+  duration_ms: 17.5954
   type: 'test'
   ...
 # Subtest: desktop HUD exposes the same dash cooldown seconds as mobile
 ok 263 - desktop HUD exposes the same dash cooldown seconds as mobile
   ---
-  duration_ms: 0.8034
+  duration_ms: 0.8219
   type: 'test'
   ...
 # Subtest: tutorial copy follows live bindings and never embeds any current answer
 ok 264 - tutorial copy follows live bindings and never embeds any current answer
   ---
-  duration_ms: 1.3449
+  duration_ms: 1.2838
   type: 'test'
   ...
 # Subtest: all tutorial text and buttons stay within mobile card without Emoji rendering
 ok 265 - all tutorial text and buttons stay within mobile card without Emoji rendering
   ---
-  duration_ms: 3.5881
+  duration_ms: 3.6677
   type: 'test'
   ...
 # Subtest: Boss option badges follow active keyboard, gamepad or touch input
 ok 266 - Boss option badges follow active keyboard, gamepad or touch input
   ---
-  duration_ms: 1.7821
+  duration_ms: 1.9098
   type: 'test'
   ...
 # Subtest: viewport and bounds reuse their objects until window dimensions change
 ok 267 - viewport and bounds reuse their objects until window dimensions change
   ---
-  duration_ms: 0.5492
+  duration_ms: 0.5727
   type: 'test'
   ...
 # Subtest: fullscreen preserves uniform scale and keeps the complete interface visible
 ok 268 - fullscreen preserves uniform scale and keeps the complete interface visible
   ---
-  duration_ms: 0.1631
+  duration_ms: 0.1592
   type: 'test'
   ...
 # Subtest: each HUD edge adds exactly 20 CSS pixels across screen scales
 ok 269 - each HUD edge adds exactly 20 CSS pixels across screen scales
   ---
-  duration_ms: 0.1518
+  duration_ms: 0.1084
   type: 'test'
   ...
 1..269
@@ -1632,4 +1632,4 @@ ok 269 - each HUD edge adds exactly 20 CSS pixels across screen scales
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 950.8505
+# duration_ms 1021.0314
