@@ -4,6 +4,12 @@ const assert = require("node:assert/strict");
 const CONTENT = require("../js/words.js");
 const WORLD = require("../js/world.js");
 
+test('octopus belongs to the sea pack while the turtle stays by the pond',()=>{
+  assert.ok(CONTENT.getPack('beach').words.some(w=>w.jp==='たこ'));
+  assert.ok(CONTENT.getPack('pond').words.some(w=>w.jp==='かめ'));
+  assert.equal(CONTENT.getAllWords().find(w=>w.jp==='かみなり').zh,'雷');
+});
+
 test('house identities stay unique throughout distant positive and negative chunks',()=>{
   const world=WORLD.createStageWorld(CONTENT.getStage('night-town'),CONTENT),ids=new Set();
   for(let x=-30;x<=30;x++)for(let y=-30;y<=30;y++)for(const h of world.getChunk(x,y).houses){assert.ok(!ids.has(h.id),`${x},${y}: ${h.id}`);ids.add(h.id);assert.ok(Number.isFinite(h.phase));}

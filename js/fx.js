@@ -6,7 +6,7 @@ window.FX = (() => {
   const sprites = new Map();
   const ps = [];
   const bolts = [];
-  let budget = 1, avgDt = 1 / 60, calm = false, calmCheck = 0;
+  let budget = 1, avgDt = 1 / 60, calm = !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches, calmCheck = 0;
   let flashT = 0, flashMax = 0.12, flashColor = "#ffffff", flashPower = 0.2;
 
   const rnd = (a, b) => a + Math.random() * (b - a);
@@ -191,7 +191,7 @@ window.FX = (() => {
 
   // o.sy：垂直壓扁比例（45 度俯瞰的地面圖案用）；o.ground：畫在角色後方的地面層。
   function add(kind, color, o) {
-    const priority=o.priority??(o.ground&&(kind.startsWith('rune')||kind==='storm'||kind==='edge'));
+    const priority=o.priority??(kind==='stroke'||kind==='seal'||(o.ground&&(kind.startsWith('rune')||kind==='storm'||kind==='edge')));
     if (ps.length >= MAX) {
       if(!priority)return;
       const disposable=ps.findIndex(p=>!p.priority);if(disposable<0)return;
@@ -200,7 +200,9 @@ window.FX = (() => {
     ps.push({
       kind, priority, blend: 'lighter',
       s: sprite(kind, color), x: 0, y: 0, vx: 0, vy: 0, drag: 0, g: 0, rot: 0, vr: 0, sx: 1, sy: 1, a: 1,
-      s0: 16, s1: 16, delay: 0, ease: false, ground: false, ...o, life: o.life, max: o.life
+      s0: 16, s1: 16, delay: 0, ease: false, ground: false, ...o,
+      ...(calm ? {vx:0,vy:0,vr:0,g:0,delay:0,s0:o.ground?(o.s1??o.s0??16):(o.s0??16),s1:o.ground?(o.s1??o.s0??16):(o.s0??16)} : {}),
+      life: calm ? Math.min(o.life,0.3) : o.life, max: calm ? Math.min(o.life,0.3) : o.life
     });
   }
 
@@ -336,12 +338,13 @@ window.FX = (() => {
   // 在世界座標（已套用鏡頭位移）上加法繪製。view 為螢幕可視範圍，用來裁切。
   // ground=true 畫地面層（咒陣等，要在角色之前、被角色蓋住）；false 畫空中層。
   function drawLayer(ctx, cam, view, ground) {
-    const x0 = cam.x + view.left - 80, x1 = cam.x + view.right + 80;
-    const y0 = cam.y + view.top - 80, y1 = cam.y + view.bottom + 80;
+    const x0 = cam.x + view.left, x1 = cam.x + view.right;
+    const y0 = cam.y + view.top, y1 = cam.y + view.bottom;
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     for (const p of ps) {
-      if (p.ground !== ground || p.delay > 0 || !p.s || p.x < x0 || p.x > x1 || p.y < y0 || p.y > y1) continue;
+      const margin = Math.max(p.s0,p.s1) * Math.max(1,Math.abs(p.sx),Math.abs(p.sy)) / 2;
+      if (p.ground !== ground || p.delay > 0 || !p.s || p.x+margin < x0 || p.x-margin > x1 || p.y+margin < y0 || p.y-margin > y1) continue;
       ctx.globalCompositeOperation = p.blend;
       paint(ctx, p);
     }

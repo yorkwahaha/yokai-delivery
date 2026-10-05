@@ -10,6 +10,32 @@ function loadUI(width = 585) {
   return { UI: env.window.UI, context, texts, env };
 }
 
+test('settlement retains all five review words on a small screen',()=>{
+  const r=loadUI(568);r.env.window.innerWidth=568;r.env.window.innerHeight=320;
+  vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
+  const words=Array.from({length:5},(_,i)=>({jp:'かな'+i,zh:'中文'+i}));
+  r.UI.drawEndScreen(r.context,'lost',0,0,5,words,0,{learning:{practiced:5,gained:0,lost:5,review:5}});
+  for(const w of words)assert.ok(r.texts.some(t=>t.value.includes(w.jp)),w.jp);
+});
+
+test('mobile skill codex exposes every skill through pages and marks unavailable arrows',()=>{
+  const r=loadUI(568);r.env.window.innerWidth=568;r.env.window.innerHeight=320;
+  vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
+  const count=Math.ceil(r.UI.CARD_LIST.length/r.UI.codexRows());
+  for(let page=0;page<count;page++)r.UI.drawCodex(r.context,{get:()=>({ok:1,ng:0,box:2})},[],'cards',page);
+  for(const c of r.UI.CARD_LIST)assert.ok(r.texts.some(t=>t.value===c.name),c.name);
+  assert.equal(r.UI.codexButtons('cards',0,39).find(b=>b.id==='prev').disabled,true);
+  assert.equal(r.UI.codexButtons('cards',count-1,39).find(b=>b.id==='next').disabled,true);
+});
+
+test('codex readings and translations use font-sized vertical separation',()=>{
+  const r=loadUI(1920),labels=[];r.env.window.innerWidth=1920;r.env.window.innerHeight=1080;
+  vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
+  r.context.fillText=(value,x,y)=>labels.push({value,x,y,size:parseFloat(r.context.font.match(/([\d.]+)px/)[1])});
+  r.UI.drawCodex(r.context,{get:()=>({ok:1,ng:0,box:1})},[{jp:'かさ',zh:'雨傘',cue:'text'}],'words');
+  const jp=labels.find(t=>t.value==='かさ'),zh=labels.find(t=>t.value==='雨傘'&&t.y>jp.y);assert.ok(zh.y-jp.y>=zh.size);
+});
+
 test('settlement uses distinct victory and kneeling drawings, with original art fallback',()=>{
   const r=loadUI(900),images=[];r.context.drawImage=(...args)=>images.push(args);
   const base={naturalWidth:216,naturalHeight:352},won={naturalWidth:1024,naturalHeight:1536},lost={naturalWidth:1024,naturalHeight:1024};
@@ -63,7 +89,7 @@ test('small-screen level-up descriptions and settlement review lines keep readab
   assert.ok(labels.find(l=>l.value==='金剛結界').size*r.env.window.VIEWPORT.get().scale>=14);
   labels.length=0;
   r.UI.drawEndScreen(r.context,'lost',100,2,2,Array.from({length:5},(_,i)=>({jp:'あいうえお'+i,zh:'複習字詞'})));
-  const reviews=labels.filter(l=>l.value.includes('（複習字詞）'));
+  const reviews=labels.filter(l=>l.x<500 && l.value.includes('（複習字詞）'));
   for(let i=1;i<reviews.length;i++)assert.ok(reviews[i].y-reviews[i-1].y>=reviews[i].size*1.2);
 });
 

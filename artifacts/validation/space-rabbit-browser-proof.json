@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-05",
+  "type": "desktop browser and controlled UI",
+  "viewports": [
+    {
+      "width": 568,
+      "height": 320,
+      "scenes": [
+        "summary-five-words",
+        "boss-wrong-slot",
+        "hud-clock-10:00",
+        "skill-codex"
+      ]
+    },
+    {
+      "width": 900,
+      "height": 600,
+      "scenes": [
+        "official-menu",
+        "official-overworld"
+      ]
+    }
+  ],
+  "console": {
+    "warn": 0,
+    "error": 0,
+    "scope": "observed preview and formal menu/map navigation"
+  },
+  "limits": [
+    "No physical phone or iPad validation",
+    "No natural full run or FPS measurement",
+    "UI preview excludes game/store"
+  ]
+}

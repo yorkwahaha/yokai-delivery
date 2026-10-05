@@ -1,6 +1,16 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const viewport = require('../js/viewport.js');
+
+test('viewport and bounds reuse their objects until window dimensions change',()=>{
+  const oldW=global.innerWidth,oldH=global.innerHeight;
+  try{
+    global.innerWidth=568;global.innerHeight=320;
+    const v=viewport.get(),b=viewport.bounds(),h=viewport.hudBounds();
+    for(let i=0;i<100;i++){assert.equal(viewport.get(),v);assert.equal(viewport.bounds(),b);assert.equal(viewport.hudBounds(),h);}
+    global.innerWidth=844;assert.notEqual(viewport.get(),v);assert.notEqual(viewport.bounds(),b);assert.notEqual(viewport.hudBounds(),h);
+  }finally{global.innerWidth=oldW;global.innerHeight=oldH;}
+});
 test('fullscreen preserves uniform scale and keeps the complete interface visible', () => {
   for (const [w, h] of [[844,390], [1280,800], [1920,1080], [1024,768], [390,844]]) {
     const v = viewport.calculate(w,h);

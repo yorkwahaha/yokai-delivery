@@ -21,7 +21,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
   c.RENDERER = new Proxy({ drawHouse: h => actorCalls.push(`house:${h.id}`), drawPlayer: () => actorCalls.push('player'), drawMonster: e => actorCalls.push(`enemy:${e.id}`), getCtx: () => ctx, getDpr: () => c.devicePixelRatio || 1, getCam: () => ({ x: 900, y: 600 }), getShakeOffset: () => ({x:0,y:0}), updateEffects: () => false }, { get: (o, k) => o[k] || (() => {}) });
   vm.runInContext(fs.readFileSync('js/ui.js','utf8'),c);
   const uiButtons=Object.fromEntries(Object.entries(c.UI).filter(([,v])=>typeof v!=='function'));
-  c.UI = new Proxy({ ...uiButtons, pauseButtons:c.UI.pauseButtons, bossQuizLayout:c.UI.bossQuizLayout, HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
+  c.UI = new Proxy({ ...uiButtons, codexButtons:c.UI.codexButtons, codexRows:c.UI.codexRows, pauseButtons:c.UI.pauseButtons, bossQuizLayout:c.UI.bossQuizLayout, HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
   const source = fs.readFileSync('js/game.js', 'utf8');
   const end = source.lastIndexOf('})();');
   const hook = `window.fixture = { start, update, frame, drawWorld, drawStageWeather, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons,
@@ -87,6 +87,47 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
 
+test('resizing the skill codex clamps mobile pages back to a visible desktop page',()=>{
+  const g=loadGame();g.env.innerWidth=568;g.env.innerHeight=320;g.setState('codex');
+  for(let i=0;i<4;i++)g.events.keydown(key('ArrowRight','ArrowRight'));
+  assert.equal(g.snapshot().codexPage,4);
+  g.env.innerWidth=900;g.env.innerHeight=600;g.frame(16);assert.equal(g.snapshot().codexPage,0);
+});
+
+test('misdelivery costs oil immediately, grants no farming score and hints recover their oil cost',()=>{
+  const g=loadGame();g.start();g.setOil(50);g.prepareOrder();
+  g.resolve(g.snapshot().job.ans.findIndex(w=>w!==g.snapshot().job.word));
+  assert.equal(g.snapshot().oil,42);
+  g.hurt(g.snapshot().enemies.find(e=>e.type==='mis'),999);assert.equal(g.snapshot().score,0);
+  g.prepareOrder();const oil=g.snapshot().oil;g.triggerHint();g.triggerHint();
+  g.resolve(g.snapshot().job.ans.indexOf(g.snapshot().job.word));assert.equal(g.snapshot().oil,oil+5);
+});
+
+test('Boss wrong slots keep their position and cannot be selected again or by key repeat',()=>{
+  const g=loadGame();g.start();g.prepareBoss();const q=g.snapshot().bossQ;
+  q.ans=[...q.ans.filter(w=>w!==q.word),q.word];
+  const original=[...q.ans];g.answerBoss(0);g.unlockBoss();
+  assert.deepEqual([...q.ans],original);assert.ok(q.wrong.includes(0));
+  const oil=g.snapshot().oil;g.answerBoss(0);assert.equal(g.snapshot().oil,oil);
+  g.events.keydown({...key('Digit3','3'),repeat:true});
+  assert.ok(g.snapshot().enemies.find(e=>e.type==='boss').shield);
+  g.answerBoss(2);assert.ok(g.snapshot().floats.some(t=>t.v.includes(q.word.jp)));
+});
+
+test('thunder ranks 1 to 4 damage overlapping targets only once per volley',()=>{
+  for(let rank=1;rank<=4;rank++){
+    const g=loadGame();g.start();g.combatScene('thunder',[{dx:100},{dx:105},{dx:110}],[],rank);
+    g.weapons(0.01);
+    for(const e of g.snapshot().enemies)assert.ok(999-e.hp<=1.8*1.2*(3.5+rank*1.5)+1e-6);
+  }
+});
+
+test('night-town misdelivery can approach contact range without ranged shots',()=>{
+  const g=loadGame();g.start();g.clearSolids();g.combatScene('katana',[{dx:86,type:'mis',w:g.env.CONTENT.getStageWords('night-town')[0],speed:200}],[],0);
+  const oil=g.snapshot().oil;for(let i=0;i<32;i++)g.update(0.05);
+  assert.ok(g.snapshot().oil<oil-1);assert.equal(g.snapshot().enemyBullets.length,0);
+});
+
 test('enemy attack drawings are triggered by actual contact or projectile release and expire with gameplay time',()=>{
   const g=loadGame();g.start('rain-port');g.combatScene('katana',[{dx:100,type:'shooter',speed:0,shootCd:0.005}],[],0);
   g.update(0.01);const shooter=g.snapshot().enemies[0];assert.ok(shooter.attackT>0);assert.ok(g.snapshot().enemyBullets.length>0);
@@ -142,8 +183,8 @@ test('Boss replacement lock ignores early keyboard or gamepad input but accepts 
     const g=loadGame();g.start();g.prepareBoss();g.moveBoss(200);
     const bs=g.snapshot().enemies.find(e=>e.type==='boss'),old=bs.word.jp;
     for (const w of g.env.CONTENT.getStageWords('night-town'))g.snapshot().enemies.push({type:'mis',w,hp:999,x:g.snapshot().x+1600,y:g.snapshot().y,speed:0,flash:0,wob:0});
-    g.answerBoss(g.snapshot().bossQ.ans.findIndex(w=>w!==bs.word));g.unlockBoss();
-    g.answerBoss(g.snapshot().bossQ.ans.findIndex(w=>w!==bs.word));
+    g.answerBoss(g.snapshot().bossQ.ans.findIndex((w,i)=>w!==bs.word&&!g.snapshot().bossQ.wrong.includes(i)));g.unlockBoss();
+    g.answerBoss(g.snapshot().bossQ.ans.findIndex((w,i)=>w!==bs.word&&!g.snapshot().bossQ.wrong.includes(i)));
     assert.notEqual(bs.word.jp,old);assert.equal(g.snapshot().bossQ.lock,1);assert.equal(bs.wasAssisted,true);
     const gp={connected:true,axes:[0,0],buttons:Array.from({length:16},()=>({pressed:false}))};
     g.env.navigator.getGamepads=()=>[gp];
@@ -214,7 +255,7 @@ test('one wind blade pierces at most three foes',()=>{
 
 test('Lv5 paper talismans actually explode over an area; Lv4 still only hits its flight path',()=>{
   for(const level of [4,5]){
-    const g=loadGame();g.start();g.combatScene('boom',[{dx:180},{dx:180,dy:90},{dx:180,dy:240}],[],level);
+    const g=loadGame();g.start();g.combatScene('boom',[{dx:180},{dx:180,dy:-130},{dx:180,dy:240}],[],level);
     for(let i=0;i<42;i++)g.weapons(0.01);
     const foes=g.snapshot().enemies;assert.ok(foes[0].hp<999);
     assert.equal(foes[1].hp<999,level===5);assert.equal(foes[2].hp,999);
@@ -294,7 +335,7 @@ test('a long MAX volley run keeps wind, spirits, needles and explosive talismans
 });
 
 test('redesigned foxfire bodies retain the combat orbit and count at all five levels',()=>{
-  const g=loadGame();g.start();const counts=[2,4,5,5,5];
+  const g=loadGame();g.start();const counts=[2,4,5,6,6];
   for(const level of [1,2,3,4,5]){
     g.combatScene('fire',[],[],level);const flames=[];
     g.env.SKILLFX.paint=(ctx,id,lv,p)=>{if(id==='fire')flames.push({lv,p});};
@@ -572,7 +613,7 @@ test('hinted same-word delivery auto-submits after 0.45 seconds while Boss remai
   const submitted=g.snapshot();
   assert.equal(submitted.job,null);
   assert.equal(submitted.score,25);
-  assert.ok(Math.abs(submitted.oil-oilBefore-4)<0.01);
+  assert.ok(Math.abs(submitted.oil-oilBefore-12)<0.01);
   assert.ok(submitted.bossQ);
   assert.equal(submitted.enemies.find(e=>e.type==='boss').shield,true);
   assert.equal(g.env.STORE.get(jp).ok,1);
@@ -621,8 +662,8 @@ test('Boss assistance survives leaving and reentering quiz range',()=>{
 test('Boss assistance stays on a changed word and clears on a replay',t=>{
   const g=loadGame();g.start();g.prepareBoss();
   const old=g.snapshot().bossQ.word.jp;
-  g.answerBoss(g.snapshot().bossQ.ans.findIndex(w=>w.jp!==old));g.unlockBoss();
-  g.answerBoss(g.snapshot().bossQ.ans.findIndex(w=>w.jp!==old));g.unlockBoss();
+  g.answerBoss(g.snapshot().bossQ.ans.findIndex((w,i)=>w.jp!==old&&!g.snapshot().bossQ.wrong.includes(i)));g.unlockBoss();
+  g.answerBoss(g.snapshot().bossQ.ans.findIndex((w,i)=>w.jp!==old&&!g.snapshot().bossQ.wrong.includes(i)));g.unlockBoss();
   const next=g.snapshot().bossQ;assert.notEqual(next.word.jp,old);
   assert.equal(next.wasAssisted,true);
   g.answerBoss(next.ans.indexOf(next.word));assert.equal(g.env.STORE.get(next.word.jp).box,0);
@@ -902,7 +943,7 @@ for(const assisted of [false,true]) {
     assert.equal(boss.hp,initialHp);assert.equal(g.snapshot().score,0);
     g.unlockBoss();
     if(assisted) {
-      const q=g.snapshot().bossQ;g.answerBoss(q.ans.findIndex(w=>w!==q.word));g.unlockBoss();
+      const q=g.snapshot().bossQ;g.answerBoss(q.ans.findIndex((w,i)=>w!==q.word&&!q.wrong.includes(i)));g.unlockBoss();
     }
     const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
     assert.equal(boss.shield,false);
@@ -1225,14 +1266,14 @@ test('widescreen map back button accepts pointer at the screen edge and home cle
 });
 
 test('pickup speaks the word once and delivery does not repeat it', () => {
-  const g = loadGame(); g.start(); g.prepareOrder();
+  const g = loadGame(); g.start(); g.setOil(80); g.prepareOrder();
   assert.equal(g.audioCalls.filter(n => n === 'speak').length, 1);
   const before = g.snapshot().oil;
   g.triggerHint(); g.triggerHint();
   const hinted = g.snapshot().oil;
   assert.ok(before - hinted >= 7);
   g.resolve(g.snapshot().job.ans.indexOf(g.snapshot().job.word));
-  assert.ok(g.snapshot().oil < before);
+  assert.ok(g.snapshot().oil > before);
   assert.equal(g.snapshot().score, 25);
   assert.equal(g.audioCalls.filter(n => n === 'speak').length, 2); // 取貨 1 次 + 提示重播 1 次
 });

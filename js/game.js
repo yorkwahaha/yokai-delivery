@@ -119,7 +119,7 @@
       if (state === "pause") { quitConfirm = true; menuFocus = 0; }
       else returnHome();
     }
-    else if (id === "cards" || id === "codex") { codexBack = state; codexTab = id === "cards" ? "cards" : "words"; state = "codex"; }
+    else if (id === "cards" || id === "codex") { codexBack = state; selectCodex(id === "cards" ? "cards" : "words"); state = "codex"; }
   }
   let overworld = window.OVERWORLD.createState("gate");
   let overworldNoticeT = 0;
@@ -167,6 +167,13 @@
   let bossT = BOSS_TIMES[0], bossStage = 0, finalBossDefeated = false;
   let finalBossPos = null, finalBossEnt = null, victorySeq = null;
   let ended = false, bossQ = null, codexBack = "menu", codexTab = "cards", codexPage = 0;
+  let codexFocus = 'cards';
+  function selectCodex(id) {
+    codexFocus = id;
+    if(id==='cards'||id==='words'){codexTab=id;codexPage=0;}
+    else if(id==='prev'||id==='next')turnCodexPage(id==='prev'?-1:1);
+    else if(id==='back')state=codexBack;
+  }
   let worldSyncSignature = "";
 
   // Only operation guidance: never reads the current word or mutates answer assistance.
@@ -257,10 +264,10 @@
   const WEAPON_UPGRADES = {
     katana:["暖光單刃，斬擊前方妖怪","雙刃交叉，距離 +16、傷害 +0.8","三刃收束，距離與傷害再提升","蓄風四刃；下一階射出穿透風刃","覺醒・風刃：斬擊同時射出穿透風刃"],
     barrier:["展開單盤除魔陣，震退四周妖怪","雙盤刻印，範圍與傷害提升","反轉雙盤，範圍、傷害再提升","蓄勢大陣；下一階升起光柱","覺醒・昇靈結界：光柱升起，範圍與震退最強"],
-    fire:["召喚 2 顆暖光狐火環繞護身","狐火增加至 4 顆，傷害提升","五火白芯，傷害再提升","蓄魂五火；下一階化為追蹤鬼火","覺醒・追魂鬼火：五靈追擊遠方妖怪"],
-    boom:["單符回旋，穿透路徑上的妖怪","一次擲出 2 枚符咒","三符碎焰，冷卻縮短","蓄火三符；下一階改為投射爆符","覺醒・爆符：三符命中引爆範圍傷害"],
+    fire:["召喚 2 顆暖光狐火環繞護身","狐火增加至 4 顆，傷害提升","五火白芯，傷害再提升","蓄魂六火；下一階化為追蹤鬼火","覺醒・追魂鬼火：六靈追擊遠方妖怪"],
+    boom:["單符回旋，穿透路徑上的妖怪","一次擲出 2 枚符咒","三符碎焰，冷卻縮短","蓄火四符；下一階改為投射爆符","覺醒・爆符：四符命中引爆範圍傷害"],
     thunder:["落雷轟擊最強妖怪及近處敵人","同時鎖定 2 名強敵","同時鎖定 3 名強敵","三雷餘波擴大；下一階展開雷獄","覺醒・雷獄：轟擊大範圍內所有妖怪"],
-    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","七星噴射；下一階弧線射出","覺醒・弧光七星：七針彎曲一次後直飛"]
+    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階弧線射出","覺醒・弧光八星：八針彎曲一次後直飛"]
   };
 
   let proj = [], needles = [], winds = [], ghosts = [], surgeT = SURGE_FIRST, fAng = 0, fireEmitT = 0;
@@ -550,10 +557,10 @@
       delivered++;
       if (j.assisted) {
         STORE.recAssisted(j.word.jp);
-        oil = Math.min(maxOil, oil + 4);
+        oil = Math.min(maxOil, oil + 12);
         score += 25;
         say(`${w.jp}＝${w.zh} 輔助送達！`, pos.x, pos.y - 35, "#fff0a6");
-        say("燈油 +4 點（神助）", pos.x, pos.y - 12, "#ffd27a");
+        say("燈油 +12 點（神助）", pos.x, pos.y - 12, "#ffd27a");
       } else {
         STORE.rec(j.word.jp, true);
         const gain = 10;
@@ -568,9 +575,10 @@
       AUDIO.deliverSuccess();
     } else {
       failed++;
+      oil = Math.max(0,oil-8);
       misses.push(j.word);
       STORE.rec(j.word.jp, false);
-      say("誤配！單字有誤，瘴氣妖魔現身！", pos.x, pos.y - 36, "#ff8f8f");
+      say("誤配！燈油 -8，瘴氣妖魔現身！", pos.x, pos.y - 36, "#ff8f8f");
       const cappedElapsed = Math.min(elapsed, DAWN);
       const awayX = pos.x - j.to.x;
       const awayY = pos.y - j.to.y;
@@ -607,6 +615,7 @@
       RENDERER.triggerShake(6);
       AUDIO.deliverWrong();
       AUDIO.speak(j.word.jp); // 出現時即播一次讀音
+      if(oil<=0)loseRun();
     }
   }
 
@@ -634,7 +643,7 @@
 
     // 怪物擊敗
     const isMis = e.type === "mis";
-    score += isMis ? 30 : e.type === "boss" ? 400 : 15;
+    score += isMis ? 0 : e.type === "boss" ? 400 : 15;
 
     if (e.type === "boss") {
       AUDIO.bossDeath();
@@ -941,14 +950,12 @@
     // 圖鑑：LB / RB 切換頁籤；十字鍵左右翻單字頁；B 返回。
     if (state === "codex") {
       if (justPressed(4)) {
-        codexTab = "cards";
+        selectCodex('cards');
       } else if (justPressed(5)) {
-        codexTab = "words";
+        selectCodex('words');
       }
-      if (codexTab === "words") {
-        if (justPressed(14)) turnCodexPage(-1);
-        else if (justPressed(15)) turnCodexPage(1);
-      }
+      if (justPressed(14)) selectCodex('prev');
+      else if (justPressed(15)) selectCodex('next');
       if (justPressed(1)) {
         state = codexBack;
       }
@@ -974,6 +981,7 @@
   const mkQ = bs => {
     return {
       word: bs.word,
+      wrong: [],
       lock: 0.4,
       wasAssisted: !!bs.wasAssisted,
       ans: answerChoices(bs.word)
@@ -985,6 +993,7 @@
     const bs = enemies.find(e => e.type === "boss" && e.shield);
     if (!bossQ || bossQ.lock > 0 || !bs) return;
     if (i < 0 || i >= bossQ.ans.length) return;
+    if (bossQ.wrong.includes(i)) return;
     const ok = bossQ.ans[i] === bs.word;
 
     if (ok) {
@@ -995,7 +1004,7 @@
       }
       bs.shield = false;
       bossQ = null;
-      say("結界破除！全力進攻！", bs.x, bs.y - 75, "#9be7ff");
+      say(`${bs.word.jp}＝${bs.word.zh}・結界破除！`, bs.x, bs.y - 75, "#9be7ff");
       burst(bs.x, bs.y, "#9be7ff", 35);
       FX.flash("#9be7ff", 0.18, 0.22);
       FX.emit("ring", "#9be7ff", { x: bs.x, y: bs.y, life: 0.3, s0: 20, s1: 110, a: 0.9, ease: true });
@@ -1012,8 +1021,8 @@
         loseRun();
         return;
       }
-      if (bossQ.ans.length > 2) {
-        bossQ.ans = bossQ.ans.filter((_, idx) => idx !== i);
+      bossQ.wrong.push(i);
+      if (bossQ.wrong.length < bossQ.ans.length - 1) {
         bossQ.wasAssisted = true;
         bs.wasAssisted = true;
         if (job?.word.jp === bs.word.jp) job.assisted = true;
@@ -1021,6 +1030,7 @@
         say("排除錯誤選項，再試一次！", P.x, P.y - 75, "#ffb3ba");
       } else {
         const lastWordJp = bs.word ? bs.word.jp : "";
+        say(`${bs.word.jp}＝${bs.word.zh}・記住正解再挑戰`, P.x, P.y - 100, "#fff0a6");
         const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
         let pool = ALL.filter(w => w.jp !== lastWordJp && !livingMisWords.has(w.jp));
         if (pool.length === 0) pool = ALL.filter(w => w.jp !== lastWordJp);
@@ -1175,7 +1185,7 @@
           }
           shootAng = near ? Math.atan2(near.y - P.y, near.x - P.x) : P.faceAng;
         }
-        const spread = WL.needle===5 ? 1.35 : 0.45;
+        const spread = WL.needle===5 ? 1.35 : WL.needle===4 ? 0.65 : 0.45;
         for (let i = 0; i < count; i++) {
           const a = shootAng + (i - (count - 1) / 2) * (spread / Math.max(1, count - 1));
           needles.push({
@@ -1224,7 +1234,7 @@
           const volleyHits = new Set();
           const baseAng = Math.atan2(t.y - P.y, t.x - P.x);
           for (let i = 0; i < count; i++) {
-            const a = baseAng + (i - (count - 1) / 2) * 0.32;
+            const a = baseAng + (i - (count - 1) / 2) * (WL.boom>=4?0.28:0.32);
             proj.push({ x: P.x, y: P.y, vx: Math.cos(a) * 440, vy: Math.sin(a) * 440, t: 0, back: false, life:WL.boom===5?1.25:2, level:WL.boom, volleyHits });
           }
           AUDIO.boomerang();
@@ -1567,7 +1577,7 @@
       const d = Math.hypot(dx, dy) || 1;
 
       // 所有怪物逼近玩家（加入建築物碰撞障礙滑移）
-      const step = CFG.chaseStep(d, curSpd, dt, e.type);
+      const step = CFG.chaseStep(d, curSpd, dt, e.type, STAGE_ENEMY.shots !== false);
       const stepX = ((dx || (d === 1 && !dy ? 1 : 0)) / d) * step;
       const stepY = (dy / d) * step;
       const oldX = e.x, oldY = e.y;
@@ -2199,7 +2209,7 @@
     ctx.restore();
 
     // 16. 動態 2D 光影遮罩（深夜至黎明）
-    RENDERER.renderLighting(P, LAMPS, oil, visualElapsed, DAWN, maxOil, lampOutAmount());
+    RENDERER.renderLighting(P, LAMPS, oil, visualElapsed, DAWN, maxOil, lampOutAmount(), shakeOffset);
 
     // 技能光效自帶光源：在夜色遮罩之後加法繪製，才會真的「發亮」而不是被壓暗。
     ctx.save();
@@ -2217,7 +2227,7 @@
 
     // 敵方火彈自發光，放在夜色與雨霧之上，避免遠距離攻擊被壓暗。
     ctx.save();
-    ctx.translate(-cam.x, -cam.y);
+    ctx.translate(-cam.x + shakeOffset.x, -cam.y + shakeOffset.y);
     for (const eb of enemyBullets) {
       ctx.fillStyle = "#ba68c8";
       ctx.beginPath();ctx.arc(eb.x, eb.y, 8, 0, 6.28);ctx.fill();
@@ -2251,7 +2261,9 @@
   }
 
   function turnCodexPage(delta) {
-    const lastPage = Math.max(0, Math.ceil(codexWords().length / 15) - 1);
+    const next = UI.codexButtons(codexTab,codexPage,codexWords().length).find(b=>b.id==='next');
+    if(delta>0&&next.disabled)return;
+    const lastPage = codexTab==='cards'?Math.ceil(UI.CARD_LIST.length/UI.codexRows())-1:Math.max(0,Math.ceil(codexWords().length/15)-1);
     codexPage = clamp(codexPage + delta, 0, lastPage);
   }
 
@@ -2316,10 +2328,15 @@
     if (state === "codex") {
       if (e.code === "Tab") {
         e.preventDefault();
-        codexTab = codexTab === "cards" ? "words" : "cards";
-      } else if (codexTab === "words" && (action === "l" || action === "r")) {
+        selectCodex(codexTab === "cards" ? "words" : "cards");
+      } else if (action === "l" || action === "r") {
         e.preventDefault();
-        turnCodexPage(action === "l" ? -1 : 1);
+        selectCodex(action === "l" ? 'prev' : 'next');
+      } else if(action==='u'||action==='d') {
+        e.preventDefault();const buttons=UI.codexButtons(codexTab,codexPage,codexWords().length);
+        const index=buttons.findIndex(b=>b.id===codexFocus);codexFocus=buttons[(index+(action==='u'?-1:1)+buttons.length)%buttons.length].id;
+      } else if(!e.repeat&&(e.code==='Enter'||action==='interact')) {
+        e.preventDefault();selectCodex(codexFocus);
       }
       return;
     }
@@ -2348,7 +2365,7 @@
     }
     if (state !== "play") return;
     if (action === "interact") interact();
-    else if (bossQ && "123".includes(e.key)) {
+    else if (bossQ && !e.repeat && "123".includes(e.key)) {
       const idx = +e.key - 1;
       if (idx >= 0 && idx < bossQ.ans.length) answerBoss(idx);
     }
@@ -2439,15 +2456,8 @@
     }
 
     if (state === "codex") {
-      if (codexTab === "words") {
-        if (hitButton(p, {x:40,y:78,w:64,h:40})) { turnCodexPage(-1); return; }
-        if (hitButton(p, {x:796,y:78,w:64,h:40})) { turnCodexPage(1); return; }
-      }
-      // 點擊頂部標籤頁切換
-      const tabW = 160, tabH = 32, tabY = 56;
-      const tabCardsX = W / 2 - tabW - 8, tabWordsX = W / 2 + 8;
-      if (hitButton(p, {x:tabCardsX,y:tabY,w:tabW,h:tabH})) { codexTab = "cards"; return; }
-      if (hitButton(p, {x:tabWordsX,y:tabY,w:tabW,h:tabH})) { codexTab = "words"; return; }
+      const button=UI.codexButtons(codexTab,codexPage,codexWords().length).find(b=>hitButton(p,b));
+      if(button){if(!button.disabled)selectCodex(button.id);return;}
 
       // 點擊底部返回按鈕或外圍區域
       if (hitButton(p, {x:W/2-95,y:548,w:190,h:42})) {
@@ -2522,6 +2532,10 @@
 
   cv.addEventListener("contextmenu", e => e.preventDefault());
   cv.addEventListener("pointermove", e => {
+    if(state==='codex'){
+      const p=pp(e),button=UI.codexButtons(codexTab,codexPage,codexWords().length).find(b=>hitButton(p,b));
+      if(button)codexFocus=button.id;
+    }
     if (joy?.id !== e.pointerId) return;
     const p = pp(e);
     const dx = p.x - joy.x, dy = p.y - joy.y;
@@ -2691,9 +2705,10 @@
     }
 
     if (state === "codex") {
-      UI.drawCodex(ctx, STORE, codexWords(), codexTab, codexPage, codexBack === "play" || codexBack === "pause");
+      const lastPage=codexTab==='cards'?Math.ceil(UI.CARD_LIST.length/UI.codexRows())-1:Math.ceil(codexWords().length/15)-1;
+      codexPage=clamp(codexPage,0,Math.max(0,lastPage));
+      UI.drawCodex(ctx, STORE, codexWords(), codexTab, codexPage, codexBack === "play" || codexBack === "pause", codexFocus);
     }
-    if (state !== "menu") UI.drawAssetProgress(ctx);
     if (tutorial) UI.drawTutorial(ctx, tutorial, inputMode);
     if (fadeT > 0) UI.drawFade(ctx, fadeT / FADE_TIME);
 

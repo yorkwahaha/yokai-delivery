@@ -66,8 +66,13 @@ window.RENDERER = (() => {
 
   function bounds() { return window.VIEWPORT?.bounds() || { left:0, top:0, right:W, bottom:H, width:W, height:H }; }
   function allowsMotion() {
-    return !window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    return motionAllowed;
   }
+  const motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+  let motionAllowed = !motionQuery?.matches;
+  const motionChanged = e => { motionAllowed = !e.matches; };
+  if(motionQuery?.addEventListener)motionQuery.addEventListener('change',motionChanged);
+  else motionQuery?.addListener?.(motionChanged);
   function resize() {
     const v = window.VIEWPORT?.get() || {width:W,height:H,offsetX:0,offsetY:0};
     const scale = v.scale || 1;
@@ -223,12 +228,13 @@ window.RENDERER = (() => {
 
     shake = Math.max(0, shake - 32 * dt);
 
+    const area = bounds();
     for (const p of SAKURA) {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.rot += p.vRot * dt;
-      if (p.x > bounds().right + 30) p.x = bounds().left - 30;
-      if (p.y > bounds().bottom + 30) p.y = bounds().top - 30;
+      if (p.x > area.right + 30) p.x = area.left - 30;
+      if (p.y > area.bottom + 30) p.y = area.top - 30;
     }
 
     for (const d of dmgNumbers) {
@@ -282,7 +288,7 @@ window.RENDERER = (() => {
   // 地名、鳥居與櫻樹跟底圖一起快取。
   function drawGroundBase(chunks, groundKey) {
     const area = bounds(), v = window.VIEWPORT?.get() || {scale:1};
-    const pixelScale = (v.scale || 1) * dpr, x = camX + area.left, y = camY + area.top;
+    const pixelScale = ctx.getTransform?.()?.a || (v.scale || 1) * dpr, x = camX + area.left, y = camY + area.top;
     const groundImg = window.ART && window.ART[groundKey];
     const toriiImg = window.ART && window.ART.prop_torii;
     const sakuraImg = window.ART && window.ART.prop_sakura;
@@ -323,7 +329,7 @@ window.RENDERER = (() => {
         c.fillStyle = g;c.fillRect(chunk.x,chunk.y,chunk.w,chunk.h);
         drawStaticChunk(c, chunk, toriiImg, toriiReady, sakuraImg, sakuraReady);
       }
-      terrainState = {left,top,width,height,key:groundKey,image:groundImg,pixelScale,toriiReady,sakuraReady,viewW:area.width,viewH:area.height,chunks:chunks.slice()};
+      terrainState = {left,top,width:pw/pixelScale,height:ph/pixelScale,key:groundKey,image:groundImg,pixelScale,toriiReady,sakuraReady,viewW:area.width,viewH:area.height,chunks:chunks.slice()};
     }
     const t = terrainState;
     ctx.drawImage(terrainCv,t.left,t.top,t.width,t.height);
@@ -636,7 +642,7 @@ window.RENDERER = (() => {
 
   // 繪製立體多光源動態光影（柔和三次樣條光暈 + 街燈光暈池）
   const LAMP_LIGHT_LIFT = 30; // 石燈火袋離腳底的高度；game.js 的石燈光暈用同一數值
-  function renderLighting(P, LAMPS, oil, elapsed, dawnTime, maxOil = 100, lampOut = 0) {
+  function renderLighting(P, LAMPS, oil, elapsed, dawnTime, maxOil = 100, lampOut = 0, offset = {x:0,y:0}) {
     const progress = clamp(elapsed / dawnTime, 0, 1);
     lightCtx.globalCompositeOperation = "source-over";
     const area = bounds();
@@ -655,8 +661,8 @@ window.RENDERER = (() => {
     lightCtx.globalCompositeOperation = "destination-out";
 
     // 1. 主角提燈核心光照
-    const screenPx = P.x - camX;
-    const screenPy = P.y - camY;
+    const screenPx = P.x - camX + offset.x;
+    const screenPy = P.y - camY + offset.y;
     const flicker = allowsMotion() ? Math.sin(elapsed * 16) * 3 : 0;
     const baseRadius = Math.max(16, (150 + clamp(oil / Math.max(1, maxOil), 0, 1) * 170 + flicker) * (1 - lampOut));
 
@@ -674,7 +680,7 @@ window.RENDERER = (() => {
     // 2. 街角提燈 (LAMPS) 暖光池（燈滅時一併退去）
     lightCtx.globalAlpha = 1 - lampOut;
     LAMPS.forEach(l => {
-      const lx = l.x - camX, ly = l.y - LAMP_LIGHT_LIFT - camY; // 光心在石燈火袋，不是腳底
+      const lx = l.x - camX + offset.x, ly = l.y - LAMP_LIGHT_LIFT - camY + offset.y; // 光心在石燈火袋，不是腳底
       if (lx < area.left - 180 || lx > area.right + 180 || ly < area.top - 180 || ly > area.bottom + 180) return;
       const g = lightCtx.createRadialGradient(lx, ly, 12, lx, ly, 160);
       g.addColorStop(0, "rgba(0,0,0,0.95)");
@@ -692,7 +698,7 @@ window.RENDERER = (() => {
     ctx.drawImage(lightCv, area.left, area.top, area.width, area.height);
     if (lampOut < 1) paintWarmPool(screenPx, screenPy, baseRadius * 0.62);
     if (lampOut < 1) LAMPS.forEach(l => {
-      const lx = l.x - camX, ly = l.y - LAMP_LIGHT_LIFT - camY;
+      const lx = l.x - camX + offset.x, ly = l.y - LAMP_LIGHT_LIFT - camY + offset.y;
       if (lx < area.left - 180 || lx > area.right + 180 || ly < area.top - 180 || ly > area.bottom + 180) return;
       paintWarmPool(lx, ly, 108);
     });
@@ -813,7 +819,8 @@ window.RENDERER = (() => {
     const area = bounds();
     ctx.save();
     // 飄動櫻花雨
-    for (const p of SAKURA.slice(0, petalCount)) {
+    for (let i=0;i<Math.min(SAKURA.length,petalCount);i++) {
+      const p=SAKURA[i];
       const sx = p.x, sy = p.y;
       if (sx < area.left - 30 || sx > area.right + 30 || sy < area.top - 30 || sy > area.bottom + 30) continue;
       ctx.save();
@@ -827,7 +834,8 @@ window.RENDERER = (() => {
     }
 
     // 螢火蟲 (夜行幽火)
-    for (const f of FIREFLIES.slice(0, fireflyCount)) {
+    for (let i=0;i<Math.min(FIREFLIES.length,fireflyCount);i++) {
+      const f=FIREFLIES[i];
       const fx = f.x + Math.sin(elapsed * 2 + f.phase) * 30;
       const fy = f.y + Math.cos(elapsed * 1.5 + f.phase) * 20;
       if (fx < area.left - 20 || fx > area.right + 20 || fy < area.top - 20 || fy > area.bottom + 20) continue;

@@ -42,6 +42,6 @@
   }
 
   const rank=l=>clamp(Math.floor(l)||1,1,5)-1;
-  const api={move,curve,seek,FIRE_ORBIT:98,fireCount:l=>[2,4,5,5,5][rank(l)],needleCount:l=>[3,5,7,7,7][rank(l)],boomCount:l=>[1,2,3,3,3][rank(l)]};root.EVOLUTIONS=api;
+  const api={move,curve,seek,FIRE_ORBIT:98,fireCount:l=>[2,4,5,6,6][rank(l)],needleCount:l=>[3,5,7,8,8][rank(l)],boomCount:l=>[1,2,3,4,4][rank(l)]};root.EVOLUTIONS=api;
   if(typeof module!=='undefined')module.exports=api;
 })();

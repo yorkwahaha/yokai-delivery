@@ -236,7 +236,7 @@
       ctx.beginPath();
       ctx.arc(0, 0, 49, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.shadowBlur = 0;
+
     }
 
     if (node.type === "waypoint") {
@@ -373,19 +373,8 @@
     ctx.restore();
   }
 
-  function draw(ctx, state, elapsed, noticeT = 0) {
-    ctx.save();
-    const sky = ctx.createLinearGradient(0, 0, 0, VIEW_H);
-    sky.addColorStop(0, "#d9d5b6");
-    sky.addColorStop(0.55, "#a7c1a0");
-    sky.addColorStop(1, "#73958b");
-    ctx.fillStyle = sky;
-    const area = root.VIEWPORT?.bounds() || {left:0,top:0,width:VIEW_W,height:VIEW_H};
-    ctx.fillRect(area.left, area.top, area.width, area.height);
-
-    ctx.save();
-    ctx.translate(-state.camX, -state.camY);
-
+  let mapBase = null;
+  function drawMapBase(ctx) {
     ctx.fillStyle = "#9dc7be";
     ctx.fillRect(0, 0, MAP_W, MAP_H);
 
@@ -429,10 +418,34 @@
       ctx.beginPath(); ctx.arc(x + 20, y + 18, 24, 0, Math.PI * 2); ctx.fill();
     }
 
+  }
+
+  function draw(ctx, state, elapsed, noticeT = 0) {
+    ctx.save();
+    const sky = ctx.createLinearGradient(0, 0, 0, VIEW_H);
+    sky.addColorStop(0, "#d9d5b6");
+    sky.addColorStop(0.55, "#a7c1a0");
+    sky.addColorStop(1, "#73958b");
+    ctx.fillStyle = sky;
+    const area = root.VIEWPORT?.bounds() || {left:0,top:0,width:VIEW_W,height:VIEW_H};
+    ctx.fillRect(area.left, area.top, area.width, area.height);
+
+    ctx.save();
+    ctx.translate(-state.camX, -state.camY);
+
+    if (!mapBase && root.document?.createElement) {
+      mapBase = root.document.createElement('canvas');mapBase.width=MAP_W;mapBase.height=MAP_H;
+      drawMapBase(mapBase.getContext('2d'));
+    }
+    if(mapBase)ctx.drawImage(mapBase,0,0);else drawMapBase(ctx);
+
     for (const [a, b] of EDGES) drawRoad(ctx, nodeById.get(a), nodeById.get(b));
 
     const selectedId = state.targetId || state.currentId;
-    for (const node of NODES) drawLandmark(ctx, node, elapsed, node.id === selectedId);
+    for (const node of NODES) {
+      if(node.x+140<state.camX+area.left||node.x-140>state.camX+area.left+area.width||node.y+140<state.camY+area.top||node.y-140>state.camY+area.top+area.height)continue;
+      drawLandmark(ctx,node,elapsed,node.id===selectedId);
+    }
 
     drawMiniPlayer(ctx, state, elapsed);
     ctx.restore();

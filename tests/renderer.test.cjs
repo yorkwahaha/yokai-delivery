@@ -20,7 +20,7 @@ function loadRenderer(width, height, dpr = 1, CanvasContext) {
   }
   const main = canvas();
   const env = {innerWidth:width, innerHeight:height, devicePixelRatio:dpr,
-    document:{createElement:canvas}, ART:{}, UI:{readableFont: () => '20px sans-serif'}, CanvasRenderingContext2D:CanvasContext};
+    matchMedia:()=>({matches:false,addEventListener:(type,fn)=>{env.motionChange=fn;}}), document:{createElement:canvas}, ART:{}, UI:{readableFont: () => '20px sans-serif'}, CanvasRenderingContext2D:CanvasContext};
   env.window=env;
   const context=vm.createContext(env);
   for (const name of ['viewport','renderer']) vm.runInContext(fs.readFileSync(`js/${name}.js`,'utf8'),context);
@@ -50,7 +50,7 @@ test('enemy movement alternates a second drawing; attacks override walking and r
   r.env.RENDERER.drawMonster(e,{x:600},0);assert.equal(r.images.at(-1)[0],base);
   r.env.RENDERER.drawMonster(e,{x:600},0.2);assert.equal(r.images.at(-1)[0],atlas);
   e.attackT=0.2;r.env.RENDERER.drawMonster(e,{x:600},0);assert.ok(r.images.at(-1)[1]>=atlas.naturalWidth/2);
-  r.env.matchMedia=()=>({matches:true});e.attackT=0;r.env.RENDERER.drawMonster(e,{x:600},0.2);assert.equal(r.images.at(-1)[0],base);
+  r.env.motionChange({matches:true});e.attackT=0;r.env.RENDERER.drawMonster(e,{x:600},0.2);assert.equal(r.images.at(-1)[0],base);
 });
 
 test('dash uses its dedicated drawing and absent new art falls back to existing sprites',()=>{
@@ -91,7 +91,7 @@ test('shield labels remain text and effects expire even during hit stop', () => 
 });
 
 test('reduced motion disables shake and hit stop', () => {
-  const r=loadRenderer(900,600);r.env.matchMedia=()=>({matches:true});
+  const r=loadRenderer(900,600);r.env.motionChange({matches:true});
   r.env.RENDERER.triggerShake(14);r.env.RENDERER.triggerHitStop(1);
   assert.deepEqual({...r.env.RENDERER.getShakeOffset()},{x:0,y:0});
   assert.equal(r.env.RENDERER.updateEffects(0.01),false);
@@ -155,6 +155,16 @@ test('static terrain reuses one buffered canvas and refreshes for camera bounds 
   assert.ok(cached.fills.length>shifted);const loaded=cached.fills.length;
   r.env.RENDERER.drawGround(4,600,[{...chunks[0],theme:'mystic'}],'ground_dirt');assert.ok(cached.fills.length>loaded);
   assert.equal(r.canvases.length,count+1);
+});
+
+test('terrain uses the actual float32 transform for a one-to-one buffered blit',()=>{
+  const r=loadRenderer(1080,720),scale=1.2000000476837158;
+  r.main.ctx.getTransform=()=>({a:scale,d:scale});
+  r.env.RENDERER.drawGround(0,600,[]);
+  const blit=r.images.find(args=>args.length===5&&r.canvases.includes(args[0])&&args[0]!==r.main&&args[0].width>1000);
+  assert.ok(blit);assert.ok(Math.abs(blit[3]*scale-blit[0].width)<1e-8);assert.ok(Math.abs(blit[4]*scale-blit[0].height)<1e-8);
+  let boundsCalls=0;const bounds=r.env.VIEWPORT.bounds;r.env.VIEWPORT.bounds=()=>{boundsCalls++;return bounds();};
+  r.env.RENDERER.updateEffects(0.016);assert.equal(boundsCalls,1);
 });
 
 test('stone roads do not paint pale curb stripes or a dark road cross',()=>{
@@ -221,7 +231,7 @@ test('night midtones stay readable and warm light stays on the lamps', () => {
 
 test('reduced motion drops drifting petals and fireflies', () => {
   const r = loadRenderer(900, 600);
-  r.env.matchMedia = query => ({ matches: query === '(prefers-reduced-motion: reduce)' });
+  r.env.motionChange({matches:true});
   let marks = 0;
   r.main.ctx.arc = () => { marks++; };
   r.main.ctx.ellipse = () => { marks++; };

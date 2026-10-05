@@ -3,9 +3,9 @@ const assert=require('node:assert/strict');
 const E=require('../js/evolutions.js');
 
 test('Lv2/Lv3 inherit the old mid/MAX projectile density and Lv5 keeps bounded volleys',()=>{
-  assert.deepEqual([1,2,3,4,5].map(E.needleCount),[3,5,7,7,7]);
-  assert.deepEqual([1,2,3,4,5].map(E.boomCount),[1,2,3,3,3]);
-  assert.deepEqual([1,2,3,4,5].map(E.fireCount),[2,4,5,5,5]);
+  assert.deepEqual([1,2,3,4,5].map(E.needleCount),[3,5,7,8,8]);
+  assert.deepEqual([1,2,3,4,5].map(E.boomCount),[1,2,3,4,4]);
+  assert.deepEqual([1,2,3,4,5].map(E.fireCount),[2,4,5,6,6]);
 });
 
 test('swept movement stops a fast projectile at a thin wall between frame endpoints',()=>{

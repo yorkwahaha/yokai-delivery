@@ -13,6 +13,15 @@ function loadFx(reduceMotion = false) {
 const view = { left: 0, top: 0, right: 900, bottom: 600, width: 900, height: 600 };
 const ctx = new Proxy({}, { get: (o, k) => (k in o ? o[k] : () => {}), set: (o, k, v) => { o[k] = v; return true; } });
 
+test('full pool preserves structural strokes and seals and reduced motion covers all emitters',()=>{
+  const FX=loadFx();for(let i=0;i<460;i++)FX.emit('glow','#fff',{life:1});
+  for(const kind of ['stroke','seal'])FX.emit(kind,'#fff',{life:1});
+  for(const kind of ['stroke','seal'])assert.ok(FX.particles().some(p=>p.kind===kind));
+  const calm=loadFx(true);
+  calm.burst(0,0);calm.death(0,0);calm.deliver(0,0);
+  for(const p of calm.particles())assert.equal(Math.abs(p.vx)+Math.abs(p.vy)+Math.abs(p.vr)+Math.abs(p.s1-p.s0),0);
+});
+
 test('FX works without a DOM and never exceeds the particle cap', () => {
   const FX = loadFx();
   for (let i = 0; i < 200; i++) FX.burst(100, 100, '#ff8a1f', 60);

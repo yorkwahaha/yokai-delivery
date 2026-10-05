@@ -1,0 +1,17 @@
+<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>空間兔複查・受控 UI 驗證</title><style>html,body{margin:0;background:#101423;overflow:hidden}canvas{display:block;width:100vw;height:100vh}</style>
+<canvas id="game" aria-label="受控 UI 驗證，未載入遊戲或存檔"></canvas>
+<script src="../../js/viewport.js"></script><script src="../../js/words.js"></script><script src="../../js/fx.js"></script><script src="../../js/ui.js"></script>
+<script>
+const scene=new URLSearchParams(location.search).get('scene')||'end',canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');
+const words=CONTENT.getAllWords(),store={get:()=>({ok:1,ng:0,box:2})},labels=[];
+const fill=ctx.fillText.bind(ctx);ctx.fillText=(value,x,y,maxWidth)=>{const m=ctx.measureText(value);labels.push({value,x,y,width:Math.min(m.width,maxWidth??Infinity),font:ctx.font,align:ctx.textAlign,ascent:m.actualBoundingBoxAscent,descent:m.actualBoundingBoxDescent});fill(value,x,y,maxWidth);};
+function draw(){const v=VIEWPORT.get();canvas.width=innerWidth;canvas.height=innerHeight;ctx.setTransform(v.scale,0,0,v.scale,v.offsetX*v.scale,v.offsetY*v.scale);labels.length=0;
+if(scene==='cards'||scene==='words')UI.drawCodex(ctx,store,words,scene,0,false,scene);
+else if(scene==='cards2')UI.drawCodex(ctx,store,words,'cards',1,false,'next');
+else if(scene==='boss')UI.drawBossQuiz(ctx,{word:words[0],ans:words.slice(0,3),wrong:[1],lock:0},'keyboard');
+else if(scene==='hud')UI.drawHud(ctx,{x:0,y:0},80,100,0,600,2,0,100,3,12,45,null,0,[],null,null,false,null,{x:810,y:420,r:38},{x:810,y:530,r:46},{x:848,y:14,w:38,h:52},{},{},{},0);
+else UI.drawEndScreen(ctx,'lost',400,2,5,words.slice(0,5),0,{learning:{practiced:5,gained:1,lost:2,review:5}});
+canvas.dataset.labels=JSON.stringify(labels);canvas.dataset.scene=scene;}
+addEventListener('resize',draw);draw();
+</script></html>
