@@ -1,0 +1,21 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="../../"><title>Sakana 複核：受控 HUD 預覽</title>
+<style>html,body{margin:0;background:#101524;overflow:hidden}canvas{display:block;width:100vw;height:100vh}nav{position:absolute;left:8px;bottom:12px;display:flex;gap:8px;align-items:center;background:#101524cc;color:#fff;font:12px sans-serif}button{font:12px sans-serif}</style></head><body><canvas id="game"></canvas><nav><button id="normal">正常燈油</button><button id="low">低燈油</button><span id="status"></span></nav>
+<script src="js/viewport.js?v=20261005-11"></script><script src="js/renderer.js?v=20261005-10"></script><script src="js/fx.js?v=20261005-10"></script><script src="js/ui.js?v=20261005-11"></script>
+<script>
+window.ART={};window.previewErrors=[];addEventListener('error',e=>previewErrors.push(e.message));
+const canvas=document.getElementById('game');RENDERER.init(canvas);const ctx=RENDERER.getCtx();
+let oil=80,frames=0,created=0,barCreated=0;const makeGradient=ctx.createLinearGradient.bind(ctx);
+ctx.createLinearGradient=(...args)=>{created++;if(args[1]===0 && args[3]===0)barCreated++;return makeGradient(...args);};
+document.getElementById('normal').onclick=()=>oil=80;document.getElementById('low').onclick=()=>oil=10;
+function render(){
+ RENDERER.resize();const v=VIEWPORT.get(),d=RENDERER.getDpr(),b=VIEWPORT.bounds();ctx.setTransform(v.scale*d,0,0,v.scale*d,v.offsetX*v.scale*d,v.offsetY*v.scale*d);
+ ctx.fillStyle='#101524';ctx.fillRect(b.left,b.top,b.width,b.height);
+ const h=VIEWPORT.hudBounds();
+ UI.drawHud(ctx,{x:0,y:0},oil,100,120,600,2,0,100,3,12,45,null,0,[],null,null,true,null,
+  {x:h.right-138,y:h.bottom-180,r:38},{x:h.right-138,y:h.bottom-70,r:46},{x:h.right-52,y:h.top+14,w:38,h:52},
+  {katana:5,fire:5,needle:5,barrier:5},{katana:{},fire:{},needle:{},barrier:{}},{},0,6,0,1.8,false,
+  {time:0,boss:{type:'boss',hp:70,max:100,shield:true}});
+ document.getElementById('status').textContent=`受控 ${++frames} 幀／條狀漸層 ${barCreated} 次（全部 ${created} 次）`;
+ requestAnimationFrame(render);
+}render();
+</script></body></html>

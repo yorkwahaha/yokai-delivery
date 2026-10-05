@@ -1,0 +1,20 @@
+✖ playable landmarks change drawing only after completion and the selected stage shows its actual best score (1.6341ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53.9682
+
+✖ failing tests:
+
+test at tests\overworld.test.cjs:13:1
+✖ playable landmarks change drawing only after completion and the selected stage shows its actual best score (1.6341ms)
+  TypeError: Cannot read properties of undefined (reading 'index')
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\overworld.test.cjs:21:60)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)

@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-05",
+  "tests": {
+    "pass": 247,
+    "fail": 0,
+    "skip": 0
+  },
+  "evidence": "VM regression and controlled browser preview, no deployment",
+  "sha256": {
+    "js/game.js": "6ef35335a1330a6a57b1b780861fe4b095db1c7ec2680473b1646b1d3db87ea2",
+    "js/ui.js": "6a4c4cd3045fd3bd00ddf9eeb7533ecdcdfe43780d1914992aae8267160ac692",
+    "index.html": "1280465807c7fbe2b6b88fbd556908172fb3bacd985f1d0812191c1b390f9c37",
+    "tests/input-runtime.test.cjs": "6c470de775e7cbdca73c129830f00c98bb218bd52d3b2c9bf55ae712b3b1f1e3",
+    "tests/ui-readability.test.cjs": "00f9c652c151f894514bf1a39c165541702735c922db816ee5dc27881c9f0963"
+  }
+}

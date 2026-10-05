@@ -74,6 +74,15 @@
   }
   const ansPos = h => [{ x: h.x - 85, y: h.y + 75 }, { x: h.x + 85, y: h.y + 75 }, { x: h.x, y: h.y + 122 }];
   const getWordDistrictWords = word => window.CONTENT.getSiblingWords(word);
+  function answerChoices(word) {
+    const seen = new Set([word.jp]), distractors = [];
+    for (const w of [...shuffle(getWordDistrictWords(word)), ...shuffle(ALL)]) {
+      if (!w || seen.has(w.jp)) continue;
+      seen.add(w.jp); distractors.push(w);
+      if (distractors.length === 2) break;
+    }
+    return shuffle([word, ...distractors]);
+  }
 
   // ---------- 遊戲狀態 ----------
   const P = { x: START.x, y: START.y, inv: 0, faceAng: 0, faceX: 1 };
@@ -117,11 +126,36 @@
   let gpOverworldDir = "";
   let elapsed = 0, warnDawnT = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;
   let orders = [], job = null, enemies = [], enemyBullets = [], gems = [], texts = [], rings = [], misses = [];
+  const GEM_LIMIT = 512, GEM_DISTANCE = 2400;
+  function dropGem(x, y, v) {
+    if (gems.length < GEM_LIMIT) { gems.push({x,y,v}); return; }
+    // 滿池合併到最近一顆，保留經驗總量；只在擊殺時掃描，非每幀搜尋。
+    let nearest = gems[0], best = Infinity;
+    for (const g of gems) {
+      const d = (g.x-x)**2 + (g.y-y)**2;
+      if (d < best) { best = d; nearest = g; }
+    }
+    if (dist(P,nearest) > GEM_DISTANCE) Object.assign(nearest,{x,y,v,done:false});
+    else nearest.v += v;
+  }
   // rerolls 是每局可重抽升級選項的次數。
   let rerolls = 2, titleCardT = 0;
   // 畫面切換不再硬切：新畫面從黑幕淡入。
   const FADE_TIME = 0.45;
   let lastScreen = "menu", fadeT = 0, runSummary = null;
+  let learningStart = {};
+  function learningSummary() {
+    const result = { practiced: 0, gained: 0, lost: 0, review: 0 };
+    for (const [jp, m] of Object.entries(STORE.data.m)) {
+      const before = learningStart[jp] || {ok:0,ng:0,box:0};
+      if (m.ok === before.ok && m.ng === before.ng) continue;
+      result.practiced++;
+      result.gained += Math.max(0,m.box-before.box);
+      result.lost += Math.max(0,before.box-m.box);
+      if (m.missBoost > 1) result.review++;
+    }
+    return result;
+  }
   const wMax = { katana: 0.72, barrier: 3, needle: 1, boom: 2, thunder: 2.6, fire:1.1 };
   let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0, endCooldown = 0;
   let dashDir = { x: 1, y: 0 };
@@ -361,7 +395,8 @@
     proj = []; needles = []; winds = []; ghosts = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1; lastWarningCycle = 0;
     wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0;
     elapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
-    orders = []; job = null; enemies = []; gems = []; texts = []; rings = []; misses = [];
+    orders = []; job = null; inter = null; enemies = []; gems = []; texts = []; rings = []; misses = [];
+    learningStart = Object.fromEntries(Object.entries(STORE.data.m).map(([jp,m])=>[jp,{ok:m.ok,ng:m.ng,box:m.box}]));
     FX.reset();
     SKILLFX.reset();
     rerolls = 2; titleCardT = 3; runSummary = null;
@@ -442,6 +477,13 @@
       choices = pc.slice(0, 3);
     }
 
+    if (!choices.length) {
+      xp = Math.max(0, xp - xpNeed());
+      level++;
+      state = "play";
+      say("修行圓滿・繼續夜行", P.x, P.y - 45, "#ffe9a0");
+      return;
+    }
     state = "levelup";
     levelupCooldown = 0.4;
     keys.clear(); heldCodes.clear();
@@ -474,13 +516,7 @@
     orders = orders.filter(x => x !== o);
 
     // 干擾項優先挑選包裹單字自身所屬區的近義詞（如動物區 ねこ 優先配 いぬ、うさぎ）
-    const distractors = shuffle(getWordDistrictWords(o.word));
-    while (distractors.length < 2) {
-      const other = pick(ALL.filter(w => w.jp !== o.word.jp && !distractors.some(d => d.jp === w.jp)));
-      if (other) distractors.push(other);
-      else break;
-    }
-    const finalAns = shuffle([o.word, distractors[0], distractors[1]]);
+    const finalAns = answerChoices(o.word);
 
     job = {
       word: o.word,
@@ -612,14 +648,14 @@
       say(e.final ? "夜明けの大妖鬼 撃破！" : "大妖鬼擊破！燈油 +35", e.x, e.y - 65, "#ffe9a0");
       if (!e.final) RENDERER.triggerShake(14); // 最終 Boss 由收尾演出處理，不震動整個畫面
       for (let k = 0; k < 8; k++) {
-        gems.push({ x: e.x + (Math.random() - 0.5) * 70, y: e.y + (Math.random() - 0.5) * 70, v: 6 });
+        dropGem(e.x + (Math.random() - 0.5) * 70, e.y + (Math.random() - 0.5) * 70, 6);
       }
       // 不再誤將擊殺視為單字掌握 STORE.rec
     }
 
     const gemCount = 1;
     for (let i = 0; i < gemCount; i++) {
-      gems.push({ x: e.x + (Math.random() - 0.5) * 28, y: e.y + (Math.random() - 0.5) * 28, v: 2 });
+      dropGem(e.x + (Math.random() - 0.5) * 28, e.y + (Math.random() - 0.5) * 28, 2);
     }
     FX.death(e.x, e.y, isMis ? "#c98cff" : "#bce9ff", e.type === "boss");
 
@@ -936,17 +972,11 @@
   }
 
   const mkQ = bs => {
-    const distractors = shuffle(getWordDistrictWords(bs.word));
-    while (distractors.length < 2) {
-      const other = pick(ALL.filter(w => w.jp !== bs.word.jp && !distractors.some(d => d.jp === w.jp)));
-      if (other) distractors.push(other);
-      else break;
-    }
     return {
       word: bs.word,
       lock: 0.4,
       wasAssisted: !!bs.wasAssisted,
-      ans: shuffle([bs.word, distractors[0], distractors[1]])
+      ans: answerChoices(bs.word)
     };
   };
 
@@ -1525,6 +1555,7 @@
     for (const e of enemies) {
       if (e.hp <= 0) continue;
       e.flash = Math.max(0, e.flash - dt);
+      e.attackT = Math.max(0, (e.attackT || 0) - dt);
       if (e.slowT > 0) e.slowT -= dt;
       if (e.type === "mis") {
         e.speed = MIS_SPEED;
@@ -1542,6 +1573,7 @@
       const oldX = e.x, oldY = e.y;
       if (!blocked(e.x + stepX, e.y, 16)) e.x += stepX;
       if (!blocked(e.x, e.y + stepY, 16)) e.y += stepY;
+      e.walking = !revealing && (e.x !== oldX || e.y !== oldY);
       if (e.type === "mis") {
         e.stuckT = step > 0 && e.x === oldX && e.y === oldY ? (e.stuckT || 0) + dt : 0;
         if (e.stuckT >= 2.5) {
@@ -1557,6 +1589,7 @@
         e.shootCd = (e.shootCd || (2.0 + Math.random())) - dt;
         if (e.shootCd <= 0 && d > 50 && d < (e.type === "mis" ? 200 : 460)) {
           e.shootCd = 3.2 + Math.random() * 1.2;
+          e.attackT = 0.24;
           const bulletSpeed = 230;
           enemyBullets.push({
             x: e.x, y: e.y,
@@ -1569,6 +1602,7 @@
 
       const hitRadius = (e.type === "boss" ? 52 : e.type === "tank" ? 34 : e.type === "mis" ? 32 : 25);
       if (!revealing && P.inv <= 0 && d < hitRadius) {
+        e.attackT = 0.24;
         if (b.shield && b.shield > 0) {
           b.shield--;
           P.inv = 0.85;
@@ -1677,6 +1711,7 @@
     const att = 110 + b.mag * 80;
     for (const g of gems) {
       const d = dist(P, g);
+      if (d > GEM_DISTANCE) { g.done = true; continue; }
       if (d < att && d > 0) {
         const s = 240 + (att - d) * 3;
         g.x += ((P.x - g.x) / d) * s * dt;
@@ -1747,7 +1782,7 @@
       if (job.lock <= 0 && toDist < 270) {
         const ps = ansPos(job.to);
         let nd = 38;
-        ps.forEach((p, i) => {
+        ps.slice(0,job.ans.length).forEach((p, i) => {
           if (job.eliminatedIdx === i) return;
           const d = dist(P, p);
           if (d < nd) { nd = d; idx = i; }
@@ -1890,7 +1925,7 @@
       }
 
       // 答題圓墊在地面上，店面、玩家和妖怪都畫在它後面。判定仍是墊心 38px。
-      ansPos(job.to).forEach((p, i) => {
+      ansPos(job.to).slice(0,job.ans.length).forEach((p, i) => {
         const cur = (job.idx === i);
         const isEliminated = (job.eliminatedIdx === i);
         const isTarget = (job.ans[i] === job.word);
@@ -2511,6 +2546,11 @@
     menuFocusState = "menu";
     quitConfirm = false;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
+    tutorial = null; bossQ = null; job = null; inter = null;
+    orders = []; enemies = []; gems = []; texts = []; rings = [];
+    proj = []; needles = []; winds = []; ghosts = []; enemyBullets = [];
+    victorySeq = null; lampSeq = null; finalBossEnt = null;
+    FX.reset(); SKILLFX.reset(); RENDERER.clearShake();
     AUDIO.setSuspended(false);
   }
   function frame(now) {
@@ -2593,7 +2633,7 @@
       if (state === "won") AUDIO.fanfare();
       else AUDIO.lose();
       const prevBest = STORE.getStageStats(STAGE.id).bestScore || 0;
-      runSummary = { prevBest, newBest: score > prevBest, goal: GOAL_DELIVERIES, stageName: STAGE.name };
+      runSummary = { prevBest, newBest: score > prevBest, goal: GOAL_DELIVERIES, stageName: STAGE.name, learning: learningSummary() };
       STORE.finish(STAGE.id, score, delivered, state === "won");
     }
     if (state === "play") titleCardT = Math.max(0, titleCardT - dt);
@@ -2653,6 +2693,7 @@
     if (state === "codex") {
       UI.drawCodex(ctx, STORE, codexWords(), codexTab, codexPage, codexBack === "play" || codexBack === "pause");
     }
+    if (state !== "menu") UI.drawAssetProgress(ctx);
     if (tutorial) UI.drawTutorial(ctx, tutorial, inputMode);
     if (fadeT > 0) UI.drawFade(ctx, fadeT / FADE_TIME);
 

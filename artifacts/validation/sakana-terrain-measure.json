@@ -1,0 +1,131 @@
+{
+  "kind": "VM invalidation count; fixed chunks; constant camera speed",
+  "limitations": [
+    "Continuous dash is a stress scenario, not normal dash cooldown behavior",
+    "No rasterization, FPS or GC measured",
+    "The proposed 80px early-refresh rule was not added",
+    "Production padding unchanged"
+  ],
+  "result": [
+    {
+      "padding": 120,
+      "width": 568,
+      "height": 320,
+      "speed": 230,
+      "seconds": 10,
+      "rebuilds": 18,
+      "rebuildsPerSecond": 1.8,
+      "backingPixels": 311808
+    },
+    {
+      "padding": 120,
+      "width": 568,
+      "height": 320,
+      "speed": 780,
+      "seconds": 10,
+      "rebuilds": 60,
+      "rebuildsPerSecond": 6,
+      "backingPixels": 311808
+    },
+    {
+      "padding": 120,
+      "width": 900,
+      "height": 600,
+      "speed": 230,
+      "seconds": 10,
+      "rebuilds": 18,
+      "rebuildsPerSecond": 1.8,
+      "backingPixels": 957600
+    },
+    {
+      "padding": 120,
+      "width": 900,
+      "height": 600,
+      "speed": 780,
+      "seconds": 10,
+      "rebuilds": 60,
+      "rebuildsPerSecond": 6,
+      "backingPixels": 957600
+    },
+    {
+      "padding": 120,
+      "width": 1920,
+      "height": 1080,
+      "speed": 230,
+      "seconds": 10,
+      "rebuilds": 18,
+      "rebuildsPerSecond": 1.8,
+      "backingPixels": 1580544
+    },
+    {
+      "padding": 120,
+      "width": 1920,
+      "height": 1080,
+      "speed": 780,
+      "seconds": 10,
+      "rebuilds": 60,
+      "rebuildsPerSecond": 6,
+      "backingPixels": 1580544
+    },
+    {
+      "padding": 300,
+      "width": 568,
+      "height": 320,
+      "speed": 230,
+      "seconds": 10,
+      "rebuilds": 7,
+      "rebuildsPerSecond": 0.7,
+      "backingPixels": 568320
+    },
+    {
+      "padding": 300,
+      "width": 568,
+      "height": 320,
+      "speed": 780,
+      "seconds": 10,
+      "rebuilds": 25,
+      "rebuildsPerSecond": 2.5,
+      "backingPixels": 568320
+    },
+    {
+      "padding": 300,
+      "width": 900,
+      "height": 600,
+      "speed": 230,
+      "seconds": 10,
+      "rebuilds": 7,
+      "rebuildsPerSecond": 0.7,
+      "backingPixels": 1800000
+    },
+    {
+      "padding": 300,
+      "width": 900,
+      "height": 600,
+      "speed": 780,
+      "seconds": 10,
+      "rebuilds": 25,
+      "rebuildsPerSecond": 2.5,
+      "backingPixels": 1800000
+    },
+    {
+      "padding": 300,
+      "width": 1920,
+      "height": 1080,
+      "speed": 230,
+      "seconds": 10,
+      "rebuilds": 7,
+      "rebuildsPerSecond": 0.7,
+      "backingPixels": 2880000
+    },
+    {
+      "padding": 300,
+      "width": 1920,
+      "height": 1080,
+      "speed": 780,
+      "seconds": 10,
+      "rebuilds": 25,
+      "rebuildsPerSecond": 2.5,
+      "backingPixels": 2880000
+    }
+  ]
+}

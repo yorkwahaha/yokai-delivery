@@ -223,7 +223,7 @@
   function drawLandmark(ctx, node, elapsed, selected) {
     const canEnter = isEnterable(node);
     const accessible = isNodeAccessible(node);
-    const pulse = selected ? 1 + Math.sin(elapsed * 5) * 0.05 : 1;
+    const pulse = selected && !root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 1 + Math.sin(elapsed * 5) * 0.05 : 1;
     ctx.save();
     ctx.translate(node.x, node.y);
     ctx.scale(pulse, pulse);
@@ -265,7 +265,12 @@
     ctx.fill();
     ctx.stroke();
 
-    if (node.landmark === "town") {
+    const artKey = node.landmark === 'town' ? 'map_night_town_v1' : node.landmark === 'port' ? 'map_rain_port_v1' : null;
+    const landmarkArt = artKey && root.ART?.[artKey];
+    const completed = canEnter && !!root.STORE?.isStageCompleted?.(node.stageId);
+    if (landmarkArt?.naturalWidth && root.RENDERER?.drawFrame) {
+      root.RENDERER.drawFrame(ctx,landmarkArt,artKey,completed?1:0,0,32,100);
+    } else if (node.landmark === "town") {
       const img = root.ART && root.ART.house_tavern;
       if (img && img.complete && img.naturalWidth) ctx.drawImage(img, -40, -55, 80, 72);
       else {
@@ -319,6 +324,11 @@
       ctx.font = readableFont(Math.max(22, Math.ceil(18 / (root.VIEWPORT?.get?.().scale || 1))), "700").replace("'Noto Sans JP'", "'Kaisei Decol'");
       ctx.textAlign = "center";
       ctx.fillText("封", 0, 8);
+    } else if (completed) {
+      ctx.save();ctx.translate(37,24);ctx.rotate(-0.12);
+      ctx.fillStyle='#f5e4bd';ctx.fillRect(-15,-16,30,32);
+      ctx.strokeStyle='#9e3327';ctx.lineWidth=2;ctx.strokeRect(-15,-16,30,32);
+      ctx.fillStyle='#9e3327';ctx.font=readableFont(20,'900');ctx.textAlign='center';ctx.fillText('済',0,8);ctx.restore();
     }
 
     ctx.restore();
@@ -335,12 +345,18 @@
   }
 
   function drawMiniPlayer(ctx, state, elapsed) {
-    const bob = Math.sin(elapsed * 7) * 3;
+    const motion = !root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    const bob = motion ? Math.sin(elapsed * 7) * 3 : 0;
     const walking = isMoving(state);
     const walkFrame = Math.floor(elapsed * 10) % 2 === 0 ? "player_walk1" : "player_walk2";
-    const img = root.ART && (walking ? (root.ART[walkFrame] || root.ART.player) : root.ART.player);
+    const img = root.ART && (walking && motion ? (root.ART[walkFrame] || root.ART.player) : root.ART.player);
+    // 到站時站在町屋旁，沿路平滑插值顯示位移，不改節點／命中座標。
+    const from = nodeById.get(state.fromId) || currentNode(state), to = nodeById.get(state.targetId) || from;
+    const u = walking ? ease(clamp(state.moveT/state.moveDuration,0,1)) : 0;
+    const fx = from.type === 'stage' ? -75 : 0, fy = from.type === 'stage' ? 23 : -35;
+    const tx = to.type === 'stage' ? -75 : 0, ty = to.type === 'stage' ? 23 : -35;
     ctx.save();
-    ctx.translate(state.x, state.y - 35 + bob);
+    ctx.translate(state.x+fx+(tx-fx)*u, state.y+fy+(ty-fy)*u+bob);
     if (img && img.complete && img.naturalWidth) {
       const h = 54;
       const w = h * img.naturalWidth / img.naturalHeight;
@@ -423,15 +439,20 @@
 
     // Fixed UI: title + current location only. No stage cards.
     ctx.fillStyle = "rgba(16, 23, 27, 0.78)";
-    ctx.fillRect(area.left, area.top, area.width, 72);
+    const titleFont = readableFont(Math.max(24, Math.ceil(18 / (root.VIEWPORT?.get?.().scale || 1))), "700").replace("'Noto Sans JP'", "'Kaisei Decol'");
+    const subtitleFont = readableFont(12,"700");
+    const titleSize = Number(titleFont.match(/([\d.]+)px/)[1]), subtitleSize = Number(subtitleFont.match(/([\d.]+)px/)[1]);
+    const titleY = area.top+Math.max(32,titleSize);
+    const subtitleY = titleY+Math.max(21,(titleSize+subtitleSize)/2+4);
+    ctx.fillRect(area.left, area.top, area.width, Math.max(72,subtitleY-area.top+subtitleSize*.25+6));
     const back = backButton();
     ctx.textAlign = "center";
     ctx.fillStyle = "#fff1bd";
-    ctx.font = readableFont(Math.max(24, Math.ceil(18 / (root.VIEWPORT?.get?.().scale || 1))), "700").replace("'Noto Sans JP'", "'Kaisei Decol'");
-    ctx.fillText("妖怪快遞社・旅路圖", VIEW_W / 2, area.top + 32);
-    ctx.font = readableFont(12, "700");
+    ctx.font = titleFont;
+    ctx.fillText("妖怪快遞社・旅路圖", VIEW_W / 2, titleY);
+    ctx.font = subtitleFont;
     ctx.fillStyle = "rgba(255,255,255,0.68)";
-    ctx.fillText("道をたどって、次の配達先へ", VIEW_W / 2, area.top + 53);
+    ctx.fillText("道をたどって、次の配達先へ", VIEW_W / 2, subtitleY);
 
     ctx.fillStyle = "rgba(19, 24, 30, 0.82)";
     ctx.beginPath(); ctx.roundRect(back.x, back.y, back.w, back.h, 10); ctx.fill();
@@ -442,20 +463,23 @@
     const here = currentNode(state);
     if (here.type === "stage" && !isMoving(state)) {
       const canEnter = isEnterable(here);
-      const panelW = 380, panelH = 72, px = VIEW_W / 2 - panelW / 2, py = VIEW_H - 88;
+      const panelW = 380, panelH = 100, px = VIEW_W / 2 - panelW / 2, py = VIEW_H - 116;
       ctx.fillStyle = canEnter ? "rgba(31, 25, 20, 0.91)" : "rgba(30, 24, 34, 0.91)";
       ctx.beginPath(); ctx.roundRect(px, py, panelW, panelH, 14); ctx.fill();
       ctx.strokeStyle = canEnter ? "#e4c264" : "#80668a"; ctx.lineWidth = 2; ctx.stroke();
       ctx.textAlign = "center";
       ctx.fillStyle = canEnter ? "#ffe6a5" : "#e0c8e7";
       ctx.font = readableFont(19, "900");
-      ctx.fillText(here.label, VIEW_W / 2, py + 28);
+      const completed = canEnter && !!root.STORE?.isStageCompleted?.(here.stageId);
+      ctx.fillText(here.label+(completed?'・配達済':''), VIEW_W / 2, py + 25);
       ctx.font = readableFont(12, "800");
       ctx.fillStyle = "rgba(255,255,255,0.72)";
-      ctx.fillText(canEnter ? "配達開始　Enter / A" : "封印中・後續開放", VIEW_W / 2, py + 51);
+      const best = root.STORE?.getStageStats?.(here.stageId)?.bestScore || 0;
+      ctx.fillText(canEnter ? (best ? `最高 ${best.toLocaleString()} 點` : '尚無配達紀錄') : '封印中・後續開放', VIEW_W / 2, py + 52);
+      if(canEnter)ctx.fillText('配達開始　Enter / A', VIEW_W / 2, py + 82);
 
       if (canEnter) {
-        const glow = 0.72 + Math.sin(elapsed * 5) * 0.18;
+        const glow = root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 0.72 : 0.72 + Math.sin(elapsed * 5) * 0.18;
         ctx.fillStyle = `rgba(121, 78, 28, ${glow})`;
         ctx.beginPath(); ctx.roundRect(ENTER_BTN.x, ENTER_BTN.y, ENTER_BTN.w, ENTER_BTN.h, 16); ctx.fill();
         ctx.strokeStyle = "#ffe39a"; ctx.lineWidth = 2; ctx.stroke();

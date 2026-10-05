@@ -35,6 +35,16 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     tutorialState: () => tutorial,
     reviewWords: () => misses,
     answerBoss,
+    maxOutUpgrades: () => {
+      Object.keys(WL).forEach(k=>WL[k]=['katana','barrier','needle','fire'].includes(k)?5:0);
+      for(const u of UP)while(!u.ok || u.ok())u.f();
+    },
+    setXp: value => { xp=value; },
+    currentXp: () => xp,
+    currentChoices: () => choices,
+    restrictWords: words => { replaceList(ALL, words); },
+    pendingPickup: () => inter,
+    summary: () => runSummary,
     setOil: value => { oil=value; },
     setElapsed: value => {elapsed=value;},
     stageTuning: () => ({goal:GOAL_DELIVERIES,xp:xpNeed(),spawnInterval:CFG.spawnInterval(elapsed)*SPAWN_INTERVAL_SCALE}),
@@ -76,6 +86,115 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
+
+test('enemy attack drawings are triggered by actual contact or projectile release and expire with gameplay time',()=>{
+  const g=loadGame();g.start('rain-port');g.combatScene('katana',[{dx:100,type:'shooter',speed:0,shootCd:0.005}],[],0);
+  g.update(0.01);const shooter=g.snapshot().enemies[0];assert.ok(shooter.attackT>0);assert.ok(g.snapshot().enemyBullets.length>0);
+  g.update(0.3);assert.equal(shooter.attackT,0);
+  g.combatScene('katana',[{dx:10,type:'tank',speed:0}],[],0);g.update(1.3);assert.ok(g.snapshot().enemies[0].attackT>0);
+});
+
+test('exhausted upgrades consume one level without trapping the run or granting invented rewards',()=>{
+  const g=loadGame();g.start();g.maxOutUpgrades();g.setXp(10000);
+  const before=g.snapshot(),req=g.stageTuning().xp;
+  g.offerUp();assert.equal(g.snapshot().state,'play');assert.equal(g.currentChoices().length,0);
+  assert.equal(g.snapshot().level,before.level+1);assert.equal(g.currentXp(),10000-req);
+  assert.equal(g.snapshot().oil,before.oil);assert.equal(g.snapshot().score,before.score);
+  g.update(0.01);assert.equal(g.snapshot().state,'play');assert.equal(g.snapshot().level,before.level+2);
+});
+
+test('uncollected gems stay bounded under repeated kills and merging preserves all nearby XP',()=>{
+  const g=loadGame();g.start();const p=g.snapshot();
+  for(let i=0;i<1200;i++)g.hurt({type:'ghost',hp:1,x:p.x+1000+(i%200),y:p.y},10);
+  const gems=g.snapshot().gems;assert.ok(gems.length<=512);assert.equal(gems.reduce((sum,q)=>sum+q.v,0),2400);
+  g.update(0.01);assert.equal(g.snapshot().gems.reduce((sum,q)=>sum+q.v,0),2400);
+  g.hurt({type:'boss',hp:1,x:p.x+1000,y:p.y,shield:false},10);
+  assert.ok(g.snapshot().gems.length<=512);assert.equal(g.snapshot().gems.reduce((sum,q)=>sum+q.v,0),2450);
+});
+
+test('leaving distant drops reclaims them while nearby and boundary drops remain collectible',()=>{
+  const g=loadGame();g.start();const p=g.snapshot();
+  for(const d of [500,2390,2500])g.hurt({type:'ghost',hp:1,x:p.x+d,y:p.y},10);
+  // Generated drops have a small random offset; place them exactly at the intended boundaries.
+  g.snapshot().gems.forEach((q,i)=>{q.x=p.x+[500,2400,2500][i];q.y=p.y;});
+  g.update(0.01);assert.equal(g.snapshot().gems.length,2);assert.equal(g.currentXp(),0);
+  g.placeAt(p.x+500,p.y);g.update(0.01);assert.equal(g.currentXp(),2);
+});
+
+test('a full gem pool cannot merge a new local reward into an abandoned drop due for reclamation',()=>{
+  const g=loadGame();g.start();const p=g.snapshot();
+  for(let i=0;i<600;i++)g.hurt({type:'ghost',hp:1,x:p.x+1000,y:p.y},10);
+  g.placeAt(p.x+10000,p.y);g.hurt({type:'ghost',hp:1,x:p.x+10000,y:p.y},10);
+  g.update(0.01);assert.equal(g.currentXp(),2);assert.equal(g.snapshot().gems.length,0);
+});
+
+test('tutorials freeze oil regeneration, time and Boss schedule even after long-lantern upgrades',()=>{
+  for(const replay of [false,true]) {
+    const g=loadGame(!replay);g.start();g.upgradeOil();g.upgradeOil();g.setOil(50);
+    if(replay)g.replayTutorial();assert.ok(g.tutorialState());const before=g.snapshot();
+    for(let i=0;i<120;i++)g.update(0.05);
+    const after=g.snapshot();assert.equal(after.oil,50);assert.equal(after.elapsed,before.elapsed);assert.equal(after.bossT,before.bossT);
+  }
+});
+
+test('Boss replacement lock ignores early keyboard or gamepad input but accepts a fresh press after expiry',()=>{
+  for (const input of ['keyboard','gamepad']) {
+    const g=loadGame();g.start();g.prepareBoss();g.moveBoss(200);
+    const bs=g.snapshot().enemies.find(e=>e.type==='boss'),old=bs.word.jp;
+    for (const w of g.env.CONTENT.getStageWords('night-town'))g.snapshot().enemies.push({type:'mis',w,hp:999,x:g.snapshot().x+1600,y:g.snapshot().y,speed:0,flash:0,wob:0});
+    g.answerBoss(g.snapshot().bossQ.ans.findIndex(w=>w!==bs.word));g.unlockBoss();
+    g.answerBoss(g.snapshot().bossQ.ans.findIndex(w=>w!==bs.word));
+    assert.notEqual(bs.word.jp,old);assert.equal(g.snapshot().bossQ.lock,1);assert.equal(bs.wasAssisted,true);
+    const gp={connected:true,axes:[0,0],buttons:Array.from({length:16},()=>({pressed:false}))};
+    g.env.navigator.getGamepads=()=>[gp];
+    const press=()=>{
+      const i=g.snapshot().bossQ.ans.indexOf(bs.word);
+      if(input==='keyboard'){g.events.keydown(key(`Digit${i+1}`,`${i+1}`));g.events.keyup(key(`Digit${i+1}`,`${i+1}`));}
+      else {const button=[4,5,3][i];gp.buttons[button].pressed=true;g.pollGamepad();gp.buttons[button].pressed=false;g.pollGamepad();}
+    };
+    press();assert.equal(bs.shield,true);
+    for(let i=0;i<21;i++)g.update(0.05);
+    assert.ok(g.snapshot().bossQ.lock===0);press();assert.equal(bs.shield,false);assert.equal(g.snapshot().bossQ,null);
+  }
+});
+
+test('small word pools keep delivery and Boss choices defined and unique',()=>{
+  for(const size of [1,2,3]) {
+    const g=loadGame();g.start();const word={jp:'試験',zh:'測試',packId:'absent'};
+    const words=[word,...Array.from({length:size-1},(_,i)=>({jp:`別${i}`,zh:`其他${i}`,packId:'absent'}))];
+    g.restrictWords(words);g.pickupWord(word);g.prepareBoss(word);
+    for(const ans of [g.snapshot().job.ans,g.snapshot().bossQ.ans]) {
+      assert.ok(ans.every(Boolean));assert.equal(ans.length,size);
+      assert.equal(new Set(ans.map(w=>w.jp)).size,size);assert.equal(ans.filter(w=>w===word).length,1);
+    }
+    assert.doesNotThrow(()=>g.drawWorld());
+    g.unlockBoss();g.answerBoss(g.snapshot().bossQ.ans.indexOf(word));
+    g.resolve(g.snapshot().job.ans.indexOf(word));assert.equal(g.snapshot().delivered,1);
+  }
+});
+
+test('starting again cannot pick up the previous run pending order before its first update',()=>{
+  const g=loadGame();g.start();g.preparePickup();assert.ok(g.pendingPickup());
+  g.start();assert.equal(g.pendingPickup(),null);
+  g.events.keydown(key('KeyE','e'));assert.equal(g.snapshot().job,null);
+});
+
+test('frame recovery removes a tutorial overlay from the aborted run',()=>{
+  const g=loadGame(true);g.start();assert.ok(g.tutorialState());
+  g.env.console={error(){}};g.env.RENDERER.drawGround=()=>{throw new Error('draw failed');};
+  g.frame(16);g.events.keydown(key('Enter','Enter'));
+  assert.equal(g.snapshot().state,'menu');assert.equal(g.tutorialState(),null);
+});
+
+test('settlement learning summary measures this run only and keeps assisted answers separate from star gains',()=>{
+  const g=loadGame(),s=g.env.STORE;
+  s.rec('ねこ',true);s.rec('ねこ',true);g.start();
+  s.rec('ねこ',false);s.rec('いぬ',true);s.recAssisted('うさぎ');
+  g.setState('lost');g.frame(16);
+  const l=g.summary().learning;assert.equal(l.practiced,3);assert.equal(l.gained,1);assert.equal(l.lost,1);assert.equal(l.review,1);
+  s.rec('いぬ',true);assert.equal(g.summary().learning.gained,1,'settlement is a snapshot');
+  g.start();g.setState('lost');g.frame(32);assert.deepEqual({...g.summary().learning},{practiced:0,gained:0,lost:0,review:0});
+});
 
 test('Lv5 katana launches a piercing wind blade at a distant forward foe, never behind or through buildings',()=>{
   for(const walls of [[],[{x0:140,x1:160,y0:-100,y1:100}]]){

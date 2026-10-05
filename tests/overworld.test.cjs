@@ -10,6 +10,33 @@ function finishMove(state) {
   }
 }
 
+test('playable landmarks change drawing only after completion and the selected stage shows its actual best score',()=>{
+  let completed=false;const calls=[],texts=[];const gradient={addColorStop(){}};
+  const ctx=new Proxy({fillText:t=>texts.push(t),createLinearGradient:()=>gradient,createRadialGradient:()=>gradient},{get:(o,k)=>o[k]||(()=>{})});
+  global.ART={map_night_town_v1:{complete:true,naturalWidth:1774,naturalHeight:887}};
+  global.RENDERER={drawFrame:(ctx,img,key,index)=>calls.push({key,index})};
+  global.STORE={isStageCompleted:id=>id==='night-town'&&completed,isStageUnlocked:id=>id==='night-town',getStageStats:()=>({bestScore:1234})};
+  try {
+    const state=OVERWORLD.createState('night-town');OVERWORLD.draw(ctx,state,0,0);
+    assert.equal(calls.find(c=>c.key==='map_night_town_v1').index,0);
+    completed=true;calls.length=0;texts.length=0;OVERWORLD.draw(ctx,state,0,0);
+    assert.equal(calls.find(c=>c.key==='map_night_town_v1').index,1);
+    assert.ok(texts.some(t=>String(t).includes('1,234')));assert.ok(texts.some(t=>String(t).includes('配達済')));
+    assert.equal(OVERWORLD.confirm(OVERWORLD.createState('sakura-pass')).ok,false);
+  } finally {delete global.ART;delete global.RENDERER;delete global.STORE;}
+});
+
+test('compact map title and subtitle retain a full readable line gap inside their header',()=>{
+  const labels=[],gradient={addColorStop(){}};
+  const ctx=new Proxy({fillText:(text,x,y)=>labels.push({text,y}),createLinearGradient:()=>gradient,createRadialGradient:()=>gradient},{get:(o,k)=>o[k]||(()=>{})});
+  global.UI={readableFont:()=> '700 27px sans-serif'};
+  try {
+    OVERWORLD.draw(ctx,OVERWORLD.createState('gate'),0,0);
+    const title=labels.find(l=>l.text==='妖怪快遞社・旅路圖'),subtitle=labels.find(l=>l.text==='道をたどって、次の配達先へ');
+    assert.ok(subtitle.y-title.y>=27);assert.ok(subtitle.y+27*.2<=72);
+  } finally {delete global.UI;}
+});
+
 test("overworld exposes one large connected route map", () => {
   assert.ok(OVERWORLD.MAP_W > OVERWORLD.VIEW_W);
   assert.ok(OVERWORLD.MAP_H > OVERWORLD.VIEW_H);

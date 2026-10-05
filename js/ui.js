@@ -28,6 +28,25 @@ window.UI = (() => {
   const fontPx = font => Number(font.match(/([\d.]+)px/)[1]);
 
   const sheenCache = new Map();
+  const barCache = new WeakMap();
+  const BAR_COLORS = {
+    oil: [[0,"#ff6a13"],[0.6,"#ffb42e"],[1,"#ffe28a"]],
+    lowOil: [[0,"#d4141f"],[1,"#ff7a43"]],
+    xp: [[0,"#2b7bff"],[1,"#7fe3f0"]],
+    dawn: [[0,"#4a5bd8"],[0.7,"#ff8a4a"],[1,"#ffe28a"]],
+    boss: [[0,"#b3122a"],[0.6,"#ff4d3a"],[1,"#ffb347"]]
+  };
+  function barGradient(ctx, kind, x0, x1, transform = ctx.getTransform?.()) {
+    let cache = barCache.get(ctx);
+    if (!cache) { cache = new Map(); barCache.set(ctx,cache); }
+    const old = cache.get(kind), a = old?.transform, b = transform;
+    if (old && old.x0 === x0 && old.x1 === x1 &&
+        a?.a === b?.a && a?.b === b?.b && a?.c === b?.c && a?.d === b?.d && a?.e === b?.e && a?.f === b?.f) return old.gradient;
+    const gradient = ctx.createLinearGradient(x0,0,x1,0);
+    for (const [offset,color] of BAR_COLORS[kind]) gradient.addColorStop(offset,color);
+    cache.set(kind,{x0,x1,transform,gradient});
+    return gradient;
+  }
   function sheen(ctx, h) {
     const key = Math.round(h);
     let g = sheenCache.get(key);
@@ -213,6 +232,18 @@ window.UI = (() => {
   const END_BTNS = [{id:'restart',...RESTART_BTN},{id:'world',...WORLD_BTN},{id:'menu',...HOME_BTN}];
 
   // 1. 主選單：封面圖＋暖色光暈與上升的火星，主要行動只有一個大按鈕。
+  function drawAssetProgress(ctx) {
+    const p = window.ART_PROGRESS;
+    if (!p || p.settled >= p.total) return;
+    const b = screenBounds(), x = (b.left+b.right)/2, y = b.top+104;
+    ctx.save();
+    glassBox(ctx,x-180,y-28,360,62,10,"rgba(12,16,28,0.94)",C.gold);
+    ctx.textAlign = "center"; ctx.font = readableFont(15,"700"); ctx.fillStyle = C.text;
+    ctx.fillText(`圖像準備 ${p.settled} / ${p.total}`,x,y);
+    ctx.fillStyle = "#393441"; ctx.fillRect(x-158,y+14,316,5);
+    ctx.fillStyle = C.gold; ctx.fillRect(x-158,y+14,316*p.settled/p.total,5);
+    ctx.restore();
+  }
   function drawMainMenu(ctx, STORE, elapsed, focus = 0) {
     ctx.save();
     const motion = !calm();
@@ -268,6 +299,7 @@ window.UI = (() => {
       drawButton(ctx, bt, label, { size: 13, icon: bt.id === "cards" ? "cards" : bt.id === "codex" ? "codex" : null });
     }
     drawMenuFocus(ctx, MENU_BTNS[focus]);
+    drawAssetProgress(ctx);
 
     ctx.restore();
   }
@@ -427,9 +459,7 @@ window.UI = (() => {
     ctx.fillStyle = "#1c0f14";
     ctx.beginPath(); ctx.roundRect(bx, by, bw, barH, barH / 2); ctx.fill();
     if (hp > 0) {
-      const g = ctx.createLinearGradient(bx, 0, bx + bw, 0);
-      g.addColorStop(0, "#b3122a"); g.addColorStop(0.6, "#ff4d3a"); g.addColorStop(1, "#ffb347");
-      ctx.fillStyle = g;
+      ctx.fillStyle = barGradient(ctx,"boss",bx,bx+bw);
       ctx.beginPath(); ctx.roundRect(bx, by, Math.max(barH, bw * hp), barH, barH / 2); ctx.fill();
       ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
       ctx.beginPath(); ctx.roundRect(bx + 3, by + 2, Math.max(0, bw * hp - 6), barH * 0.32, barH / 4); ctx.fill();
@@ -448,6 +478,7 @@ window.UI = (() => {
   // 2. 全螢幕 HUD：左上生命（燈油）與經驗、中上任務／Boss、右上黎明與小地圖、左下武器格。
   function drawHud(ctx, P, oil, maxOil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, goalDeliveries = 6, dashCd = 0, dashMax = 1.8, bossHunt = false, extra = {}) {
     ctx.save();
+    const gradientTransform = ctx.getTransform?.();
     const bounds = window.VIEWPORT?.hudBounds() || screenBounds();
     const scale = window.VIEWPORT?.get().scale || (document.getElementById("game")?.getBoundingClientRect().width || 900) / 900;
     const time = extra.time ?? Date.now() / 1000;
@@ -477,10 +508,7 @@ window.UI = (() => {
     ctx.fill();
     if (oilRatio > 0) {
       const fillW = Math.max(oilBarH, barW * oilRatio);
-      const g = ctx.createLinearGradient(barX, 0, barX + barW, 0);
-      if (lowOil) { g.addColorStop(0, "#d4141f"); g.addColorStop(1, "#ff7a43"); }
-      else { g.addColorStop(0, "#ff6a13"); g.addColorStop(0.6, "#ffb42e"); g.addColorStop(1, "#ffe28a"); }
-      ctx.fillStyle = g;
+      ctx.fillStyle = barGradient(ctx,lowOil?"lowOil":"oil",barX,barX+barW,gradientTransform);
       ctx.beginPath(); ctx.roundRect(barX, barY, fillW, oilBarH, oilBarH / 2); ctx.fill();
       ctx.fillStyle = "rgba(255, 255, 255, 0.24)";
       ctx.beginPath(); ctx.roundRect(barX + 3, barY + 2, Math.max(0, fillW - 6), oilBarH * 0.34, oilBarH / 4); ctx.fill();
@@ -500,9 +528,7 @@ window.UI = (() => {
       ctx.fillStyle = "rgba(6, 10, 22, 0.78)";
       ctx.fillRect(sb.left, xpY, sb.width, xpH);
       if (xpRatio > 0) {
-        const xg = ctx.createLinearGradient(sb.left, 0, sb.right, 0);
-        xg.addColorStop(0, "#2b7bff"); xg.addColorStop(1, "#7fe3f0");
-        ctx.fillStyle = xg;
+        ctx.fillStyle = barGradient(ctx,"xp",sb.left,sb.right,gradientTransform);
         ctx.fillRect(sb.left, xpY, sb.width * xpRatio, xpH);
         ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
         ctx.fillRect(sb.left, xpY, sb.width * xpRatio, 1);
@@ -529,9 +555,7 @@ window.UI = (() => {
     ctx.fillStyle = "#1b2238";
     ctx.beginPath(); ctx.roundRect(dawnBarX, dawnBarY, dawnBarW, 9, 4.5); ctx.fill();
     if (dawnProgress > 0) {
-      const dg = ctx.createLinearGradient(dawnBarX, 0, dawnBarX + dawnBarW, 0);
-      dg.addColorStop(0, "#4a5bd8"); dg.addColorStop(0.7, "#ff8a4a"); dg.addColorStop(1, "#ffe28a");
-      ctx.fillStyle = dg;
+      ctx.fillStyle = barGradient(ctx,"dawn",dawnBarX,dawnBarX+dawnBarW,gradientTransform);
       ctx.beginPath(); ctx.roundRect(dawnBarX, dawnBarY, Math.max(9, dawnBarW * dawnProgress), 9, 4.5); ctx.fill();
       glow(ctx, dawnBarX + dawnBarW * dawnProgress, dawnBarY + 4.5, 26, "#ffd27a", 0.6);
     }
@@ -1730,13 +1754,13 @@ window.UI = (() => {
       });
     }
 
-    const courier = window.ART && window.ART.player;
+    const courierKey = isWon ? "player_win_v1" : "player_kneel_v1";
+    const courier = window.ART && (window.ART[courierKey] || window.ART.player);
     if (courier && courier.naturalWidth) {
-      const pw = 150;
-      const ph = pw * courier.naturalHeight / courier.naturalWidth;
+      const ph = window.ART[courierKey] ? (isWon ? 270 : 210) : 150 * courier.naturalHeight / courier.naturalWidth;
       ctx.save();
-      if (!isWon) ctx.globalAlpha = 0.6;
-      ctx.drawImage(courier, 24, 528 - ph, pw, ph);
+      if (window.RENDERER?.drawFrame) window.RENDERER.drawFrame(ctx,courier,window.ART[courierKey]?courierKey:'player',0,108,470,ph);
+      else ctx.drawImage(courier,108-ph*courier.naturalWidth/courier.naturalHeight/2,470-ph,ph*courier.naturalWidth/courier.naturalHeight,ph);
       ctx.restore();
     }
 
@@ -1795,28 +1819,38 @@ window.UI = (() => {
     });
     ctx.textAlign = "center";
 
+    if (summary.learning) {
+      const l = summary.learning;
+      ctx.font = readableFont(15,"700"); ctx.fillStyle = C.text;
+      ctx.fillText(`今夜練習 ${l.practiced} 字・待複習 ${l.review} 字`,mid,cardY+269);
+      ctx.fillStyle = C.goldHi;
+      ctx.fillText(`熟練星：升星 +${l.gained}・降星 −${l.lost}`,mid,cardY+299);
+    }
     const reviewWords = [...new Map((misses || []).map(w => [w.jp, w])).values()];
     const reviewList = reviewWords.slice(0, 5);
     ctx.font = readableFont(15, "700");
     if (reviewList.length > 0) {
       ctx.fillStyle = "rgba(255, 214, 196, 0.9)";
-      ctx.fillText(`今夜記錯的字：共 ${reviewWords.length} 字${reviewWords.length > 5 ? "，僅顯示前 5 字" : ""}`, mid, cardY + 296);
+      ctx.fillText(`今夜記錯的字：共 ${reviewWords.length} 字${summary.learning ? "（以下節錄）" : reviewWords.length > 5 ? "，僅顯示前 5 字" : ""}`, mid, cardY + (summary.learning ? 328 : 296));
       ctx.font = readableFont(16, "700");
       ctx.fillStyle = "#fff6ea";
       const parts = reviewList.map(w => `${w.jp}（${w.zh}）`);
       let line = "";
-      let lineY = cardY + 325;
+      let lineY = cardY + (summary.learning ? 355 : 325);
+      const lineStep = fontPx(ctx.font) * 1.25;
+      const lines = [];
       parts.forEach(part => {
         const next = line ? `${line}　　${part}` : part;
         if (line && ctx.measureText(next).width > cardW - 80) {
-          ctx.fillText(line, mid, lineY);
+          lines.push(line);
           line = part;
-          lineY += fontPx(ctx.font) * 1.25;
         } else {
           line = next;
         }
       });
-      if (line) ctx.fillText(line, mid, lineY);
+      if (line) lines.push(line);
+      const maxLines = Math.max(1,Math.floor((cardY+cardH-14-lineY)/lineStep)+1);
+      lines.slice(0,maxLines).forEach((text,i)=>fitText(ctx,text+(i===maxLines-1 && lines.length>maxLines ? "…" : ""),mid,lineY+i*lineStep,cardW-80));
     }
 
     drawButton(ctx, RESTART_BTN, "再踏夜行", { tone: "primary", size: 18 });
@@ -2087,6 +2121,7 @@ window.UI = (() => {
     drawBossQuiz, bossQuizLayout,
     drawCodex,
     drawEndScreen,
+    drawAssetProgress,
     drawPauseMenu,
     drawSurgeWarning,
     drawTitleCard,

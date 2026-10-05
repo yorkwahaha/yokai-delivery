@@ -1,8 +1,49 @@
 // 渲染引擎：商業級和風手繪管線、石疊地坪紋理、町屋店鋪建築、動態 2D 多光源與 Game Juice
+// 舊版 Canvas 備援：本專案僅使用數字半徑，不覆寫原生 roundRect。
+if (typeof CanvasRenderingContext2D !== "undefined" && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, radii = 0) {
+    const r = Array.isArray(radii) ? radii : [radii];
+    if (!r.length || r.length > 4 || r.some(n => n < 0)) throw new RangeError("Invalid corner radii");
+    if (![x,y,w,h,...r].every(Number.isFinite)) return;
+    let [tl,tr,br,bl] = [r[0],r[1] ?? r[0],r[2] ?? r[0],r[3] ?? r[1] ?? r[0]];
+    if (w < 0) { x += w; w = -w; [tl,tr,br,bl] = [tr,tl,bl,br]; }
+    if (h < 0) { y += h; h = -h; [tl,tr,br,bl] = [bl,br,tr,tl]; }
+    const scale = Math.min(1,w/(tl+tr || 1),w/(bl+br || 1),h/(tl+bl || 1),h/(tr+br || 1));
+    tl *= scale; tr *= scale; br *= scale; bl *= scale;
+    this.moveTo(x+tl,y);
+    this.arcTo(x+w,y,x+w,y+h,tr);
+    this.arcTo(x+w,y+h,x,y+h,br);
+    this.arcTo(x,y+h,x,y,bl);
+    this.arcTo(x,y,x+w,y,tl);
+    this.closePath();
+  };
+}
 window.RENDERER = (() => {
   const W = 900, H = 600;
   const SCENE_PIXELS = 921600, LIGHT_PIXELS = 280000;
   const HOUSE_NAMES = { house_shop: "夜行商店", house_tavern: "宵待酒屋", house_shrine: "稻荷社" };
+  // Alpha 邊界只在素材製作時讀取；[sx,sy,w,h,腳底水平錨點]，不在每幀掃描像素。
+  const FRAME_BOUNDS = {
+    player:[[6,4,197,340,103.5]],player_walk1:[[3,4,197,340,103.5]],player_walk2:[[2,4,199,340,103.5]],
+    ghost:[[8,11,133,189,74.5]],runner:[[10,11,207,136,113.5]],boss:[[10,10,232,310,126.5]],
+    mis:[[10,9,171,311,95.5]],tank:[[11,11,259,307,140]],shooter:[[9,11,182,178,99.5]],
+    player_dash_v1:[[101,22,1412,963,768]],player_win_v1:[[111,32,910,1462,512]],player_kneel_v1:[[159,87,953,1161,612]],
+    ghost_motion_v1:[[247,50,550,742,443.5],[1032,148,690,660,1330.5]],
+    runner_motion_v1:[[26,198,820,492,443.5],[904,239,848,442,1330.5]],
+    boss_motion_v1:[[16,42,871,778,443.5],[887,36,882,781,1330.5]],
+    mis_motion_v1:[[240,13,526,850,443.5],[1045,35,604,828,1330.5]],
+    tank_motion_v1:[[28,30,859,809,443.5],[887,103,863,735,1330.5]],
+    shooter_motion_v1:[[161,140,515,627,443.5],[1042,152,625,623,1330.5]],
+    map_night_town_v1:[[49,46,823,784,443.5],[924,47,820,787,1330.5]],
+    map_rain_port_v1:[[30,17,817,834,443.5],[917,16,815,835,1330.5]]
+  };
+  function drawFrame(c, image, key, index, x, y, height) {
+    const frames = FRAME_BOUNDS[key] || [[0,0,image.naturalWidth,image.naturalHeight,image.naturalWidth/2]];
+    const r = frames[index] || frames[0], scale = height / frames[0][3];
+    const box = {sx:r[0],sy:r[1],sw:r[2],sh:r[3],dx:x+(r[0]-r[4])*scale,dy:y-r[3]*scale,dw:r[2]*scale,dh:r[3]*scale};
+    c.drawImage(image,box.sx,box.sy,box.sw,box.sh,box.dx,box.dy,box.dw,box.dh);
+    return box;
+  }
   let cv, ctx, dpr;
   let lightCv, lightCtx;
   let stonePattern = null;
@@ -167,8 +208,8 @@ window.RENDERER = (() => {
     });
   }
 
-  function addGhostTrail(img, x, y, flipX, scale, alpha = 0.4) {
-    ghostTrails.push({ img, x, y, flipX, scale, life: 0.22, maxLife: 0.22, alpha });
+  function addGhostTrail(img, x, y, flipX, scale, alpha = 0.4, key = "player", height = 114) {
+    ghostTrails.push({ img, x, y, flipX, scale, key, height, life: 0.22, maxLife: 0.22, alpha });
   }
 
   // tier 1–3 對應妖刀斬 Lv1–2／Lv3–4／Lv5：刀芒厚度、亮度與火星數量逐級加強。
@@ -353,6 +394,7 @@ window.RENDERER = (() => {
     ctx.save();
     const isMoving = Math.hypot(moveDir.x, moveDir.y) > 0.1;
     const motion = allowsMotion();
+    if (!motion) ghostTrails = [];
     // 步伐畫在走路幀裡。擠壓會把左右腳吃掉，所以主體不再跟著正弦變形。
     const walkBob = isMoving && motion ? Math.sin(elapsed * 10) * 2 : 0;
     const squash = 1;
@@ -364,15 +406,19 @@ window.RENDERER = (() => {
     const flipX = P.faceX < 0 ? -1 : 1;
 
     // 兩幀步伐切換：移動時左右腳邁步 (walk1 <-> walk2)，靜止時站立 (player)
-    let pImg = window.ART.player;
-    if (isMoving) {
+    let pKey = "player", pImg = window.ART.player;
+    if (isMoving && motion) {
       const stepIdx = Math.floor(elapsed * 6) % 2;
       if (stepIdx === 0 && window.ART.player_walk1) {
         pImg = window.ART.player_walk1;
+        pKey = "player_walk1";
       } else if (stepIdx === 1 && window.ART.player_walk2) {
         pImg = window.ART.player_walk2;
+        pKey = "player_walk2";
       }
     }
+    if (isDashing && window.ART.player_dash_v1) { pKey = "player_dash_v1"; pImg = window.ART[pKey]; }
+    const poseHeight = pKey === "player_dash_v1" ? 80 : 114;
 
     // 投影陰影
     ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
@@ -382,7 +428,7 @@ window.RENDERER = (() => {
 
     // 衝刺時加入殘影
     if (isDashing && motion && Math.random() < 0.45 && pImg) {
-      addGhostTrail(pImg, P.x, P.y + walkBob, flipX, 1.0, 0.45);
+      addGhostTrail(pImg, P.x, P.y + walkBob, flipX, 1.0, 0.45, pKey, poseHeight);
     }
 
     // 繪製殘影
@@ -392,9 +438,7 @@ window.RENDERER = (() => {
       ctx.globalAlpha = a;
       ctx.translate(g.x, g.y);
       ctx.scale(g.flipX, 1);
-      const pw = 70;
-      const ph = (g.img.naturalWidth && g.img.naturalHeight) ? (pw * g.img.naturalHeight / g.img.naturalWidth) : 96;
-      ctx.drawImage(g.img, -pw / 2, -ph + 20, pw, ph);
+      drawFrame(ctx,g.img,g.key,0,0,20,g.height);
       ctx.restore();
     }
 
@@ -433,9 +477,7 @@ window.RENDERER = (() => {
     }
 
     if (pImg) {
-      const pw = 70;
-      const ph = (pImg.naturalWidth && pImg.naturalHeight) ? (pw * pImg.naturalHeight / pImg.naturalWidth) : 96;
-      ctx.drawImage(pImg, -pw / 2, -ph + 20, pw, ph);
+      drawFrame(ctx,pImg,pKey,0,0,20,poseHeight);
     } else {
       ctx.fillStyle = "#e07a3c";
       ctx.beginPath();
@@ -495,20 +537,30 @@ window.RENDERER = (() => {
     if (sprite) {
       const aspect = (sprite.naturalWidth && sprite.naturalHeight) ? (sprite.naturalHeight / sprite.naturalWidth) : 1;
       const actualH = sw * aspect;
-      ctx.drawImage(sprite, -sw / 2, -actualH * 0.85, sw, actualH);
+      const kind = isBoss ? "boss" : isMis ? "mis" : ["runner","tank","shooter"].includes(e.type) ? e.type : "ghost";
+      let artKey = kind, artIndex = 0;
+      if (!window.ART[kind] && sprite === window.ART.ghost) artKey = 'ghost';
+      const atlas = window.ART[`${kind}_motion_v1`];
+      if (atlas && !e.dying && !e.burning && !e.revealT) {
+        if (e.attackT > 0) { sprite = atlas; artKey = `${kind}_motion_v1`; artIndex = 1; }
+        else if (e.walking && allowsMotion() && Math.floor(elapsed*6+(e.wob||0))%2) { sprite = atlas; artKey = `${kind}_motion_v1`; }
+      }
+      const box = drawFrame(ctx,sprite,artKey,artIndex,0,actualH*0.15,actualH);
       if (e.flash > 0) {
-        let mask = hitSilhouettes.get(sprite);
+        let masks = hitSilhouettes.get(sprite);
+        if (!masks) { masks = new Map(); hitSilhouettes.set(sprite,masks); }
+        let mask = masks.get(artIndex);
         if (!mask) {
           mask = document.createElement("canvas");
-          mask.width = 128; mask.height = Math.max(1, Math.round(128 * aspect));
+          mask.width = 128; mask.height = Math.max(1, Math.round(128 * box.sh/box.sw));
           const mc = mask.getContext("2d");
-          mc.drawImage(sprite, 0, 0, mask.width, mask.height);
+          mc.drawImage(sprite,box.sx,box.sy,box.sw,box.sh,0,0,mask.width,mask.height);
           mc.globalCompositeOperation = "source-in";
           mc.fillStyle = "#ffffff"; mc.fillRect(0, 0, mask.width, mask.height);
-          hitSilhouettes.set(sprite, mask);
+          masks.set(artIndex,mask);
         }
         ctx.globalAlpha *= 0.7;
-        ctx.drawImage(mask, -sw / 2, -actualH * 0.85, sw, actualH);
+        ctx.drawImage(mask,box.dx,box.dy,box.dw,box.dh);
       }
     } else {
       ctx.fillStyle = e.flash > 0 ? "#ffffff" : isBoss ? "#8a2434" : isMis ? "#68399e" : "#80c4ff";
@@ -806,6 +858,7 @@ window.RENDERER = (() => {
     drawGround,
     drawHouse,
     drawPlayer,
+    drawFrame,
     drawMonster,
     renderLighting,
     drawDamageNumbers,

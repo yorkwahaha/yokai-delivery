@@ -43,7 +43,8 @@ window.CONTROLS = (() => {
       const delta = pressed(12) || pressed(14) ? -1 : pressed(13) || pressed(15) ? 1 : 0;
       if (delta) {
         const index = buttons.indexOf(document.activeElement);
-        buttons[(index + delta + buttons.length) % buttons.length]?.focus();
+        const next = index < 0 ? (delta > 0 ? 0 : buttons.length - 1) : (index + delta + buttons.length) % buttons.length;
+        buttons[next]?.focus();
       } else if (pressed(0) && buttons.includes(document.activeElement)) document.activeElement.click();
     },
     mount() {

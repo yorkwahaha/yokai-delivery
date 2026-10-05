@@ -1,0 +1,28 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="../../"><title>妖怪快遞・動作與旅路美術試演</title><style>html,body{margin:0;background:#141b2b;overflow:hidden}canvas{display:block;width:100vw;height:100vh}nav{position:absolute;left:6px;top:5px;display:flex;gap:4px;flex-wrap:wrap;max-width:95vw}button{font:12px sans-serif;padding:4px 7px}#note{position:absolute;left:6px;bottom:4px;color:#eee;background:#111b;font:11px sans-serif}</style></head><body><canvas id="game"></canvas><nav><button data-scene="walk">敵人移動</button><button data-scene="attack">敵人攻擊</button><button data-scene="player">角色姿態</button><button data-scene="won">勝利結算</button><button data-scene="lost">敗退結算</button><button data-scene="map-before">旅路通關前</button><button data-scene="map-after">旅路通關後</button><button data-scene="port">雨夜港</button></nav><div id="note">受控美術試演・不寫正式存檔・非自然通關</div>
+<script src="js/words.js?v=20261005-6"></script><script src="js/viewport.js?v=20261003-8"></script><script src="js/assets.js?v=20261005-12"></script><script src="js/renderer.js?v=20261005-12"></script><script src="js/fx.js?v=20261005-10"></script><script src="js/ui.js?v=20261005-12"></script><script src="js/overworld.js?v=20261005-12"></script>
+<script>
+window.previewErrors=[];addEventListener('error',e=>previewErrors.push(e.message));
+const nativeMatchMedia=window.matchMedia.bind(window);let reduced=nativeMatchMedia('(prefers-reduced-motion: reduce)').matches;
+window.matchMedia=q=>q==='(prefers-reduced-motion: reduce)'?{matches:reduced}:nativeMatchMedia(q);
+const motionButton=document.createElement('button');motionButton.textContent='減少動態';document.querySelector('nav').append(motionButton);
+let scene='walk',completed=false,world=OVERWORLD.createState('night-town');
+window.STORE={data:{best:1250,bestDel:6},isStageCompleted:id=>completed&&['night-town','rain-port'].includes(id),isStageUnlocked:id=>id==='night-town'||completed&&id==='rain-port',getStageStats:()=>({bestScore:completed?1250:0})};
+for(const button of document.querySelectorAll('button'))button.onclick=()=>{if(button===motionButton){reduced=!reduced;motionButton.textContent='減少動態：'+(reduced?'開':'關');return;}scene=button.dataset.scene;if(scene==='map-before')completed=false;if(scene==='map-after')completed=true;world=OVERWORLD.createState(scene==='port'?'rain-port':'night-town');};
+const canvas=document.getElementById('game');RENDERER.init(canvas);loadGameArt();let last=performance.now();
+const names=['ghost','runner','boss','mis','tank','shooter'],labels=['幽火','疾行妖','大妖鬼','誤配妖','石守妖','提燈妖'];
+function render(now){
+ const dt=Math.min(.05,(now-last)/1000);last=now;RENDERER.updateEffects(dt);RENDERER.resize();const ctx=RENDERER.getCtx(),v=VIEWPORT.get(),d=RENDERER.getDpr(),b=VIEWPORT.bounds();
+ ctx.setTransform(v.scale*d,0,0,v.scale*d,v.offsetX*v.scale*d,v.offsetY*v.scale*d);ctx.fillStyle='#182031';ctx.fillRect(b.left,b.top,b.width,b.height);
+ const t=now/1000;
+ if(scene==='walk'||scene==='attack') {
+  names.forEach((type,i)=>{const x=150+(i%3)*300,y=i<3?255:485;ctx.strokeStyle='#647078';ctx.beginPath();ctx.moveTo(x-95,y+40);ctx.lineTo(x+95,y+40);ctx.stroke();RENDERER.drawMonster({type,x,y,hp:10,max:10,walking:true,attackT:scene==='attack'?.24:0,wob:0},{x:2000},t);ctx.textAlign='center';ctx.font=UI.readableFont(16);ctx.fillStyle='#fff0d2';ctx.fillText(labels[i],x,y+72);});
+ } else if(scene==='player') {
+  ctx.save();ctx.scale(2.2,2.2);RENDERER.drawPlayer({x:160/2.2,y:430/2.2,faceX:1},true,0,t,{x:1,y:0});ctx.restore();
+  for(const [key,x,h] of [['player_win_v1',465,300],['player_kneel_v1',750,230]])if(ART[key])RENDERER.drawFrame(ctx,ART[key],key,0,x,474,h);
+  ctx.textAlign='center';ctx.font=UI.readableFont(18);ctx.fillStyle='#fff0d2';['衝刺','配達完遂','燈油已盡'].forEach((l,i)=>ctx.fillText(l,[160,465,750][i],535));
+ } else if(scene==='won'||scene==='lost') {
+  UI.drawEndScreen(ctx,scene,1250,6,2,[{jp:'うさぎ',zh:'兔子'},{jp:'さかな',zh:'魚'}],0,{time:0,newBest:true,learning:{practiced:12,gained:8,lost:2,review:2}});
+ } else OVERWORLD.draw(ctx,world,t,0);
+ UI.drawAssetProgress(ctx);requestAnimationFrame(render);
+}requestAnimationFrame(render);
+</script></body></html>

@@ -10,6 +10,47 @@ function loadUI(width = 585) {
   return { UI: env.window.UI, context, texts, env };
 }
 
+test('settlement uses distinct victory and kneeling drawings, with original art fallback',()=>{
+  const r=loadUI(900),images=[];r.context.drawImage=(...args)=>images.push(args);
+  const base={naturalWidth:216,naturalHeight:352},won={naturalWidth:1024,naturalHeight:1536},lost={naturalWidth:1024,naturalHeight:1024};
+  r.env.window.ART={player:base,player_win_v1:won,player_kneel_v1:lost};
+  r.UI.drawEndScreen(r.context,'won',100,6,0,[]);assert.equal(images[0][0],won);
+  images.length=0;r.UI.drawEndScreen(r.context,'lost',0,0,0,[]);assert.equal(images[0][0],lost);
+  delete r.env.window.ART.player_kneel_v1;images.length=0;r.UI.drawEndScreen(r.context,'lost',0,0,0,[]);assert.equal(images[0][0],base);
+  r.env.window.RENDERER={drawFrame:(ctx,img,key)=>images.push([img,key])};images.length=0;
+  r.UI.drawEndScreen(r.context,'lost',0,0,0,[]);assert.equal(images[0][1],'player','fallback must use original crop coordinates');
+});
+
+test('menu loading progress and settlement star totals remain readable on compact screens',()=>{
+  for(const width of [900,568]) {
+    const r=loadUI(width);r.env.window.innerWidth=width;r.env.window.innerHeight=width===568?320:600;
+    vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
+    r.env.window.ART_PROGRESS={settled:4,total:18,failed:0};
+    r.UI.drawMainMenu(r.context,{data:{}},0);
+    assert.ok(r.texts.some(t=>t.value.includes('4 / 18')));
+    r.texts.length=0;
+    r.UI.drawEndScreen(r.context,'lost',100,2,2,[],0,{learning:{practiced:3,gained:1,lost:1,review:1}});
+    assert.ok(r.texts.some(t=>t.value.includes('練習 3 字')&&t.value.includes('待複習 1 字')));
+    assert.ok(r.texts.some(t=>t.value.includes('升星 +1')&&t.value.includes('降星 −1')));
+  }
+});
+
+test('HUD bars reuse gradients and rebuild for changed transform, geometry, tone or canvas context',()=>{
+  const r=loadUI(900);let made=0,m={a:1,b:0,c:0,d:1,e:0,f:0};
+  const colors=[];
+  r.context.getTransform=()=>m;
+  r.context.createLinearGradient=()=>{made++;return {addColorStop:(p,c)=>colors.push(c)};};
+  const draw=(ctx=r.context,oil=80)=>r.UI.drawHud(ctx,{x:0,y:0},oil,100,120,600,2,0,100,3,12,45,null,0,[],null,null,false,null,
+    {x:810,y:420,r:38},{x:810,y:530,r:46},{x:848,y:14,w:38,h:52},{},{},{},0);
+  draw();const first=made;draw();assert.equal(made,first,'unchanged bars must reuse gradients');
+  draw(r.context,10);assert.equal(made,first+1);assert.ok(colors.includes('#d4141f'));
+  m={...m,a:2,d:2};const beforeScale=made;draw();assert.ok(made>=beforeScale+3);
+  const beforeResize=made;r.env.window.innerWidth=844;r.env.window.innerHeight=390;
+  vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);draw();assert.ok(made>beforeResize);
+  const other=loadUI(900).context;other.getTransform=()=>m;other.createLinearGradient=r.context.createLinearGradient;
+  const beforeContext=made;draw(other);assert.ok(made>beforeContext);
+});
+
 test('small-screen level-up descriptions and settlement review lines keep readable spacing',()=>{
   const r=loadUI(568);r.env.window.innerWidth=568;r.env.window.innerHeight=320;
   vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);

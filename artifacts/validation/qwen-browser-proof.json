@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-05",
+  "browser": "Codex in-app browser",
+  "evidenceType": "controlled UI rendering and normal entry smoke check",
+  "preview": "artifacts/validation/qwen-ui-preview.html?legacy=1",
+  "viewports": [
+    {
+      "width": 568,
+      "height": 320
+    },
+    {
+      "width": 900,
+      "height": 600
+    }
+  ],
+  "legacySimulation": "Native CanvasRenderingContext2D.roundRect removed only in preview",
+  "consoleErrorsAndWarnings": [],
+  "limitations": [
+    "Not old-browser hardware validation",
+    "Not natural completion",
+    "Not mobile FPS",
+    "Not iPad audio validation",
+    "Preview does not load game.js or store.js"
+  ]
+}

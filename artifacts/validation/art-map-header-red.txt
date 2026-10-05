@@ -1,0 +1,30 @@
+✖ compact map title and subtitle retain a full readable line gap inside their header (3.2637ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54.715
+
+✖ failing tests:
+
+test at tests\overworld.test.cjs:29:1
+✖ compact map title and subtitle retain a full readable line gap inside their header (3.2637ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(subtitle.y-title.y>=27)
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\overworld.test.cjs:36:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

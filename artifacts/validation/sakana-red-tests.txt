@@ -1,0 +1,75 @@
+✖ exhausted upgrades consume one level without trapping the run or granting invented rewards (9.4375ms)
+✖ uncollected gems stay bounded under repeated kills and merging preserves all nearby XP (16.4161ms)
+✖ leaving distant drops reclaims them while nearby and boundary drops remain collectible (3.7179ms)
+✔ tutorials freeze oil regeneration, time and Boss schedule even after long-lantern upgrades (4.0837ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 1
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 85.7454
+
+✖ failing tests:
+
+test at tests\input-runtime.test.cjs:90:1
+✖ exhausted upgrades consume one level without trapping the run or granting invented rewards (9.4375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'levelup' !== 'play'
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:93:22)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'levelup',
+    expected: 'play',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:99:1
+✖ uncollected gems stay bounded under repeated kills and merging preserves all nearby XP (16.4161ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(gems.length<=512)
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:102:39)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:106:1
+✖ leaving distant drops reclaims them while nearby and boundary drops remain collectible (3.7179ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  3 !== 2
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:111:25)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 3,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-05",
+  "browser": "Codex in-app browser",
+  "viewports": [
+    {
+      "width": 900,
+      "height": 600
+    },
+    {
+      "width": 568,
+      "height": 320
+    }
+  ],
+  "preview": "artifacts/validation/art-motion-showcase.html",
+  "controlledScenes": [
+    "six enemy walk/attack drawings",
+    "courier dash/victory/kneeling",
+    "win/loss settlement",
+    "night-town and rain-port before/after completion",
+    "reduced-motion walking"
+  ],
+  "normalUI": "local index.html home opened, Enter used to enter the real overworld; battle not started",
+  "reducedMotionScreenshotStable": true,
+  "observedErrorWarningLogs": [],
+  "evidenceFiles": [
+    "art-player-poses.jpg",
+    "art-enemy-attacks.jpg",
+    "art-map-cleared.jpg",
+    "art-map-port-mobile.jpg",
+    "art-end-won-mobile.jpg",
+    "art-end-lost-mobile.jpg",
+    "art-reduced-motion-mobile.jpg",
+    "art-live-map-mobile.jpg"
+  ],
+  "limitations": [
+    "Preview uses temporary in-memory progress and forced drawing states",
+    "Not natural completion",
+    "Not mobile hardware FPS or memory validation",
+    "Not a deployment"
+  ]
+}

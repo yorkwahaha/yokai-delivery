@@ -47,6 +47,8 @@ test('gamepad can navigate presets and leave the native controls dialog',()=>{
  vm.runInNewContext(fs.readFileSync('js/controls.js','utf8'),env);const c=env.window.CONTROLS;c.mount();opener.onclick();
  const gp={buttons:Array.from({length:16},()=>({pressed:false}))};const press=i=>{gp.buttons[i].pressed=true;c.gamepad(gp,[]);gp.buttons[i].pressed=false;};
  press(13);assert.equal(env.document.activeElement,buttons[1]);press(0);assert.equal(clicked,1);press(1);assert.equal(dialog.open,false);opener.onclick();events.keydown({code:'Escape',preventDefault(){},stopPropagation(){}});assert.equal(dialog.open,false);
+ opener.onclick();env.document.activeElement=null;press(12);assert.equal(env.document.activeElement,buttons[2]);
+ env.document.activeElement=null;press(13);assert.equal(env.document.activeElement,buttons[0]);
 });
 test('display labels track presets, custom bindings and saved controls',()=>{
  const c=controls(); assert.equal(c.label('dash'),'空白鍵');

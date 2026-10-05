@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="../../"><title>Qwen 複核：受控介面預覽</title>
+<style>html,body{margin:0;background:#101524;overflow:hidden}canvas{display:block;width:100vw;height:100vh}nav{position:absolute;left:8px;bottom:4px;display:flex;gap:6px}button{font:12px sans-serif}</style></head>
+<body><canvas id="game"></canvas><nav><button id="loading">載入示例</button><button id="end">結算示例</button></nav>
+<script>
+// 驗證專用：移除圓角 API 以檢查備援；不載入遊戲或存檔。
+if(new URLSearchParams(location.search).has('legacy'))delete CanvasRenderingContext2D.prototype.roundRect;
+window.previewErrors=[];addEventListener('error',e=>previewErrors.push(e.message));
+</script>
+<script src="js/viewport.js?v=20261005-10"></script><script src="js/assets.js?v=20261005-10"></script><script src="js/renderer.js?v=20261005-10"></script><script src="js/fx.js?v=20261005-10"></script><script src="js/ui.js?v=20261005-10"></script>
+<script>
+const canvas=document.getElementById('game');RENDERER.init(canvas);
+let scene='end';
+document.getElementById('loading').onclick=()=>{scene='loading';};document.getElementById('end').onclick=()=>{scene='end';};
+const misses=[{jp:'うさぎ',zh:'兔子'},{jp:'さかな',zh:'魚'},{jp:'ひこうき',zh:'飛機'},{jp:'おにぎり',zh:'飯糰'},{jp:'じてんしゃ',zh:'腳踏車'}];
+function render(){
+ RENDERER.resize();const ctx=RENDERER.getCtx(),v=VIEWPORT.get(),d=RENDERER.getDpr();
+ ctx.setTransform(v.scale*d,0,0,v.scale*d,v.offsetX*v.scale*d,v.offsetY*v.scale*d);ctx.fillStyle='#101524';const b=VIEWPORT.bounds();ctx.fillRect(b.left,b.top,b.width,b.height);
+ if(scene==='loading'){ART_PROGRESS={settled:4,total:18,failed:0};UI.drawMainMenu(ctx,{data:{best:1200,bestDel:6}},0);}
+ else UI.drawEndScreen(ctx,'lost',1250,6,3,misses,0,{prevBest:1400,learning:{practiced:12,gained:8,lost:2,review:3},time:0});
+ requestAnimationFrame(render);
+}render();
+</script></body></html>

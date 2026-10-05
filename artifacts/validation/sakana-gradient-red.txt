@@ -1,0 +1,30 @@
+✖ HUD bars reuse gradients and rebuild for changed transform, geometry, tone or canvas context (3.7272ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.5907
+
+✖ failing tests:
+
+test at tests\ui-readability.test.cjs:27:1
+✖ HUD bars reuse gradients and rebuild for changed transform, geometry, tone or canvas context (3.7272ms)
+  AssertionError [ERR_ASSERTION]: unchanged bars must reuse gradients
+
+  8 !== 5
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\ui-readability.test.cjs:34:41)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 8,
+    expected: 5,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-function loadRenderer(width, height, dpr = 1) {
+function loadRenderer(width, height, dpr = 1, CanvasContext) {
   const canvases = [], texts = [], images = [];
   const gradient = { addColorStop() {} };
   function canvas() {
@@ -20,13 +20,64 @@ function loadRenderer(width, height, dpr = 1) {
   }
   const main = canvas();
   const env = {innerWidth:width, innerHeight:height, devicePixelRatio:dpr,
-    document:{createElement:canvas}, ART:{}, UI:{readableFont: () => '20px sans-serif'}};
+    document:{createElement:canvas}, ART:{}, UI:{readableFont: () => '20px sans-serif'}, CanvasRenderingContext2D:CanvasContext};
   env.window=env;
   const context=vm.createContext(env);
   for (const name of ['viewport','renderer']) vm.runInContext(fs.readFileSync(`js/${name}.js`,'utf8'),context);
   context.RENDERER.init(main);
   return {env:context, main, canvases, texts, images};
 }
+
+test('roundRect fallback supports scalar and numeric corner lists, scales radii, and preserves native implementations',()=>{
+  const calls=[];
+  class Legacy {moveTo(...a){calls.push(['move',...a]);}arcTo(...a){calls.push(['arc',...a]);}closePath(){calls.push(['close']);}}
+  loadRenderer(900,600,1,Legacy);const ctx=new Legacy();
+  assert.equal(typeof ctx.roundRect,'function');
+  assert.equal(ctx.roundRect(0,0,100,40,[10,20]),undefined);
+  assert.deepEqual(calls.filter(c=>c[0]==='arc').map(c=>c.at(-1)),[20,10,20,10]);
+  calls.length=0;ctx.roundRect(0,0,20,10,20);assert.ok(calls.filter(c=>c[0]==='arc').every(c=>c.at(-1)===5));
+  calls.length=0;ctx.roundRect(100,0,-100,40,[1,2,3,4]);assert.deepEqual(calls.filter(c=>c[0]==='arc').map(c=>c.at(-1)),[1,4,3,2]);
+  assert.throws(()=>ctx.roundRect(0,0,10,10,[]),{name:'RangeError'});
+  assert.throws(()=>ctx.roundRect(0,0,10,10,-1),{name:'RangeError'});
+  class Native extends Legacy {roundRect(){return 'native';}}const native=Native.prototype.roundRect;
+  loadRenderer(900,600,1,Native);assert.equal(Native.prototype.roundRect,native);
+});
+
+test('enemy movement alternates a second drawing; attacks override walking and reduced motion keeps walking static',()=>{
+  const r=loadRenderer(900,600),base={naturalWidth:184,naturalHeight:208},atlas={naturalWidth:1774,naturalHeight:887};
+  r.env.ART.ghost=base;r.env.ART.ghost_motion_v1=atlas;
+  const e={type:'ghost',x:450,y:300,walking:true,wob:0};
+  r.env.RENDERER.drawMonster(e,{x:600},0);assert.equal(r.images.at(-1)[0],base);
+  r.env.RENDERER.drawMonster(e,{x:600},0.2);assert.equal(r.images.at(-1)[0],atlas);
+  e.attackT=0.2;r.env.RENDERER.drawMonster(e,{x:600},0);assert.ok(r.images.at(-1)[1]>=atlas.naturalWidth/2);
+  r.env.matchMedia=()=>({matches:true});e.attackT=0;r.env.RENDERER.drawMonster(e,{x:600},0.2);assert.equal(r.images.at(-1)[0],base);
+});
+
+test('dash uses its dedicated drawing and absent new art falls back to existing sprites',()=>{
+  const r=loadRenderer(900,600),base={naturalWidth:216,naturalHeight:352},dash={naturalWidth:1024,naturalHeight:1024};
+  r.env.ART.player=base;r.env.ART.player_dash_v1=dash;
+  r.env.RENDERER.drawPlayer({x:450,y:300},true,0,0,{x:0,y:0});assert.equal(r.images.at(-1)[0],dash);
+  delete r.env.ART.player_dash_v1;r.env.RENDERER.drawPlayer({x:450,y:300},true,0,0,{x:0,y:0});assert.equal(r.images.at(-1)[0],base);
+});
+
+test('missing specialized enemy art uses the fallback image crop rather than an incompatible atlas rectangle',()=>{
+  const r=loadRenderer(900,600),ghost={naturalWidth:149,naturalHeight:208};r.env.ART.ghost=ghost;
+  r.env.RENDERER.drawMonster({type:'runner',x:450,y:300},{x:600},0);
+  const a=r.images.at(-1);assert.equal(a[0],ghost);assert.ok(a[1]+a[3]<=ghost.naturalWidth);
+});
+
+test('atlas crops stay inside shipped images and every frame shares its requested ground anchor',()=>{
+  const r=loadRenderer(900,600);
+  const names=['ghost','runner','boss','mis','tank','shooter'].map(k=>k+'_motion_v1').concat(['player_dash_v1','player_win_v1','player_kneel_v1','map_night_town_v1','map_rain_port_v1']);
+  for(const name of names){
+    const png=fs.readFileSync(`assets/img/${name}.png`),image={naturalWidth:png.readUInt32BE(16),naturalHeight:png.readUInt32BE(20)};
+    for(const i of [0,1]){
+      const b=r.env.RENDERER.drawFrame(r.main.ctx,image,name,i,50,80,100);
+      assert.ok(b.sx>=0&&b.sy>=0&&b.sx+b.sw<=image.naturalWidth&&b.sy+b.sh<=image.naturalHeight,name);
+      assert.ok(Math.abs(b.dy+b.dh-80)<1e-8,name);
+    }
+  }
+});
 
 test('shield labels remain text and effects expire even during hit stop', () => {
   const r=loadRenderer(900,600);

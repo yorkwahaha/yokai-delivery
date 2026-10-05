@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-05",
+  "test": {
+    "pass": 256,
+    "fail": 0,
+    "skip": 0
+  },
+  "sha256": {
+    "index.html": "66f72bcb1f899d3af2d29a794af919a44ec72eea771d8067b2549b30ce7333a4",
+    "js/assets.js": "1d941dabb8716b850ee7dc6ce80be62c307199bf131b42edb14338c8f3332863",
+    "js/game.js": "702afb594e5a2d71b8431bab1e880180eaa0467bc18a5f31b158878db5f1198c",
+    "js/renderer.js": "f0a521c9e52cc5e9253b42c32360f79911bc6ac49da9a9a7151b5628396af9dd",
+    "js/ui.js": "8a7fabfeda431a0a30e22113764e52330c78989ef5bfb899604acb8358064010",
+    "js/overworld.js": "aa15ef2bd7be8c8675a7c775c7f8867b61d70b0c11b8cfa0ae45511c292bcbcf"
+  }
+}

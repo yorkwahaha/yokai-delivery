@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-05",
+  "browser": "Codex in-app browser",
+  "kind": "controlled HUD rendering and normal entry smoke check",
+  "preview": "artifacts/validation/sakana-hud-preview.html",
+  "observations": [
+    {
+      "width": 568,
+      "height": 320,
+      "oil": 80,
+      "frames": 931,
+      "barGradientsCreated": 4
+    },
+    {
+      "width": 568,
+      "height": 320,
+      "oil": 10,
+      "frames": 950,
+      "barGradientsCreated": 5
+    },
+    {
+      "width": 900,
+      "height": 600,
+      "oil": 10,
+      "frames": 1918,
+      "barGradientsCreated": 9
+    }
+  ],
+  "errorWarningLogs": [],
+  "limitations": [
+    "Other emblem and fire gradients still allocated",
+    "No FPS measured",
+    "No natural max-upgrade completion",
+    "No iPad audio or physical gamepad evidence",
+    "Preview does not load game.js or store.js"
+  ]
+}
