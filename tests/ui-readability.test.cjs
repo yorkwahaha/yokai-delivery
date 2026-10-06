@@ -36,6 +36,15 @@ test('surge warning has just one short label',()=>{
   assert.deepEqual([...new Set(r.texts.map(t=>t.value))],['百鬼夜行']);
 });
 
+test('surge warning uses soft edge gradients instead of a thick red frame',()=>{
+  const src=fs.readFileSync('js/ui.js','utf8');
+  assert.match(src,/const edgeDepth = Math\.max\(58,/);
+  assert.match(src,/paintEdgeGlow\(/);
+  const surge=src.slice(src.indexOf('function drawSurgeWarning'),src.indexOf('// 9. 關卡標題卡'));
+  assert.doesNotMatch(surge,/strokeRect\(/);
+  assert.doesNotMatch(surge,/lineWidth = 14/);
+});
+
 test('settlement retains all five review words on a small screen',()=>{
   const r=loadUI(568);r.env.window.innerWidth=568;r.env.window.innerHeight=320;
   vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
@@ -216,6 +225,11 @@ test('diegetic radar phase 2 keeps the clock outside navigation content and pres
   assert.match(src,/const DIEGETIC_SKILL_FAN_ENABLED = true/,'hand-painted skill fan is enabled');
   assert.match(src,/hud_skill_fan/,'hand-painted fan asset is preferred');
   assert.match(src,/const drawW = 220/,'fan uses a bounded responsive draw size');
+  assert.match(src,/const fanBottomY = 66/,'fan is lifted clear of the EXP bar');
+  assert.match(src,/const levelProgress = clamp\(\(lvl - 1\) \/ 4, 0, 1\)/,'skill levels use quarter-ring progress');
+  assert.match(src,/ctx\.arc\(sx, sy, levelR, levelArcStart, levelArcStart \+ levelArcSweep\)/,'skill level is drawn around the orb');
+  assert.match(src,/ctx\.arc\(beadX, beadY,/,'skill level arc ends in a readable bead');
+  assert.doesNotMatch(src,/roundRect\(sx - 19, sy \+ 17, 38, badgeH/,'diegetic fan no longer uses level badges');
   assert.match(src,/\[0\.783, 0\.803\]/,'fifth fan aperture is reserved');
   assert.match(src,/第五洞保留為未解鎖槽/,'fifth aperture remains locked');
 });
@@ -232,8 +246,8 @@ test('diegetic delivery guidance uses original radar icons and an omamori hint',
   assert.match(src,/const dropY = -14 \* \(1 - easeOut\)/,'omamori slides down while swinging in');
   assert.match(src,/\(nowMs - omamoriEnterAtMs\) \/ 520/,'omamori entry settles in about half a second');
   assert.match(src,/HINT_BTN\.w = compactLandscape \? 50 : 43/,'omamori is larger on phone and tablet');
-  assert.match(src,/if \(!diegetic\) \{\n\s*const remaining = Math\.round/,'diegetic active delivery no longer draws the legacy cargo cue or compass arrow');
-  assert.match(src,/else if \(!diegetic\) \{\n\s*\/\/ 沒有進行中的委託/,'classic alone keeps the old pickup arrow prompt');
+  assert.match(src,/if \(!diegetic\) \{\r?\n\s*const remaining = Math\.round/,'diegetic active delivery no longer draws the legacy cargo cue or compass arrow');
+  assert.match(src,/else if \(!diegetic\) \{\r?\n\s*\/\/ 沒有進行中的委託/,'classic alone keeps the old pickup arrow prompt');
 });
 
 test('HUD skill badges are readable and their labels fit their backing rectangles',()=>{

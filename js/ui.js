@@ -921,7 +921,9 @@ window.UI = (() => {
     const drawW = 220;
     const drawH = drawW * (art.naturalHeight / art.naturalWidth);
     const dx = -6;
-    const dy = 82 - drawH;
+    // 底部留白給 EXP bar：比上一版上移 16 logical px（實際約 19px）。
+    const fanBottomY = 66;
+    const dy = fanBottomY - drawH;
     const slots = [
       [0.178, 0.225],
       [0.374, 0.310],
@@ -951,17 +953,36 @@ window.UI = (() => {
           ctx.closePath();
           ctx.fill();
         }
-        const lvl = WL[k];
-        ctx.fillStyle = "#e8c36a";
-        ctx.strokeStyle = "#6d471d";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.roundRect(sx - 19, sy + 17, 38, badgeH, 4);
-        ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#201516";
-        ctx.textAlign = "center";
-        ctx.font = "900 " + badgeTextSize + "px Noto Sans JP, sans-serif";
-        ctx.fillText(lvl >= 5 ? "MAX" : "L" + lvl, sx, sy + 17 + badgeTextSize + 3);
+        // 等級融入技能球外圈：Lv1 基本框、Lv2/3/4 = 1/4、1/2、3/4 圈，
+        // Lv5 滿圈並加強光。弧線尾端的小珠讓小尺寸下也能看出成長。
+        const lvl = Math.max(1, Math.min(5, WL[k] || 1));
+        const levelProgress = clamp((lvl - 1) / 4, 0, 1);
+        if (levelProgress > 0) {
+          const levelArcStart = -Math.PI / 2;
+          const levelArcSweep = Math.PI * 2 * levelProgress;
+          const levelR = slotR + 5.2;
+          const levelGlowAlpha = lvl >= 5
+            ? (0.44 + (motion ? 0.14 * pulse(2.2, 0.4) : 0))
+            : 0.25;
+          ctx.save();
+          ctx.lineCap = "round";
+          ctx.lineWidth = lvl >= 5 ? 3.1 : 2.5;
+          ctx.strokeStyle = lvl >= 5 ? "#ffe6a2" : "#f2c768";
+          ctx.shadowColor = "#ffd86f";
+          ctx.shadowBlur = lvl >= 5 ? 10 : 4;
+          ctx.globalAlpha = 0.88 + levelGlowAlpha * 0.12;
+          ctx.beginPath();
+          ctx.arc(sx, sy, levelR, levelArcStart, levelArcStart + levelArcSweep);
+          ctx.stroke();
+          const beadA = levelArcStart + levelArcSweep;
+          const beadX = sx + Math.cos(beadA) * levelR;
+          const beadY = sy + Math.sin(beadA) * levelR;
+          ctx.fillStyle = "#fff0b8";
+          ctx.beginPath();
+          ctx.arc(beadX, beadY, lvl >= 5 ? 2.7 : 2.2, 0, 6.283);
+          ctx.fill();
+          ctx.restore();
+        }
       } else {
         ctx.fillStyle = "rgba(232,195,106,.52)";
         ctx.textAlign = "center";
@@ -2648,7 +2669,7 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 8. 百鬼夜行：單行短警告與紅色邊緣。
+  // 8. 百鬼夜行：單行短警告與周邊妖氣紅暈。
   function drawSurgeWarning(ctx, surgeWarningT) {
     if (surgeWarningT <= 0) return;
     ctx.save();
@@ -2660,11 +2681,29 @@ window.UI = (() => {
     const alpha = Math.max(0.18, flashBrightness);
 
     const bounds = screenBounds();
-    ctx.strokeStyle = `rgba(255, 30, 30, ${alpha * 0.85})`;
-    ctx.lineWidth = 14;
-    ctx.strokeRect(bounds.left + 7, bounds.top + 7, bounds.width - 14, bounds.height - 14);
-
-    ctx.fillStyle = `rgba(255, 20, 20, ${alpha * 0.14})`;
+    const edgeDepth = Math.max(58, Math.min(118, Math.min(bounds.width, bounds.height) * 0.17));
+    const edgeAlpha = alpha * 0.34;
+    const paintEdgeGlow = (x0, y0, x1, y1, x, y, w, h, reverse = false) => {
+      const g = ctx.createLinearGradient(x0, y0, x1, y1);
+      if (reverse) {
+        g.addColorStop(0, "rgba(180, 18, 32, 0)");
+        g.addColorStop(1, `rgba(210, 24, 40, ${edgeAlpha})`);
+      } else {
+        g.addColorStop(0, `rgba(210, 24, 40, ${edgeAlpha})`);
+        g.addColorStop(1, "rgba(180, 18, 32, 0)");
+      }
+      ctx.fillStyle = g;
+      ctx.fillRect(x, y, w, h);
+    };
+    paintEdgeGlow(bounds.left, bounds.top, bounds.left, bounds.top + edgeDepth,
+      bounds.left, bounds.top, bounds.width, edgeDepth);
+    paintEdgeGlow(bounds.left, bounds.bottom - edgeDepth, bounds.left, bounds.bottom,
+      bounds.left, bounds.bottom - edgeDepth, bounds.width, edgeDepth, true);
+    paintEdgeGlow(bounds.left, bounds.top, bounds.left + edgeDepth, bounds.top,
+      bounds.left, bounds.top, edgeDepth, bounds.height);
+    paintEdgeGlow(bounds.right - edgeDepth, bounds.top, bounds.right, bounds.top,
+      bounds.right - edgeDepth, bounds.top, edgeDepth, bounds.height, true);
+    ctx.fillStyle = `rgba(160, 10, 24, ${alpha * 0.026})`;
     fillScreen(ctx);
 
     const bw = 240, bh = 52;
