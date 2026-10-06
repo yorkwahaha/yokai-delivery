@@ -221,6 +221,8 @@ test('diegetic delivery guidance uses original radar icons and an omamori hint',
   assert.match(src,/function drawRadarPickupIcon\(/,'pickup radar icon is custom vector art');
   assert.match(src,/function drawRadarDeliverySeal\(/,'delivery radar icon is custom vector art');
   assert.match(src,/function drawDiegeticOmamoriHint\(/,'delivery hint uses an omamori');
+  assert.match(src,/hud_omamori_hint_listen/,'hand-painted omamori asset is preferred');
+  assert.doesNotMatch(src,/const cost = stage === 0/,'hint cost is not permanently printed on the omamori');
   assert.match(src,/if \(diegetic && job && !bossHunt\)/,'omamori hit area only moves beside lantern for active deliveries');
   assert.match(src,/else if \(!diegetic\) \{\n\s*\/\/ 沒有進行中的委託/,'classic alone keeps the old pickup arrow prompt');
 });

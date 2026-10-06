@@ -799,10 +799,9 @@ window.UI = (() => {
     ctx.beginPath();ctx.roundRect(b.x,b.y,b.w,b.h,3);ctx.fill();ctx.stroke();ctx.fillStyle=disabled?'#6b665d':'#39261d';ctx.textAlign='center';ctx.font=readableFont(13,'900');ctx.fillText(label,b.x+b.w/2,b.y+b.h/2+5,b.w-8);ctx.restore();
   }
 
-  function drawDiegeticOmamoriHint(ctx, b, stage, time) {
+  function drawDiegeticOmamoriHintFallback(ctx, b, stage, time) {
     const disabled = stage >= 2;
     const label = stage === 0 ? "聴" : stage === 1 ? "詞" : "済";
-    const cost = stage === 0 ? "−3" : stage === 1 ? "−4" : "";
     const sway = calm() ? 0 : Math.sin(time * 1.9 + 0.5) * 0.028;
     const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
     ctx.save();
@@ -838,9 +837,45 @@ window.UI = (() => {
     ctx.textAlign = "center";
     ctx.font = readableFont(14, "900");
     ctx.fillText(label, cx, b.y + 31);
-    if (cost) {
-      ctx.font = readableFont(8, "900");
-      ctx.fillText(cost, cx, b.y + b.h - 7);
+    ctx.restore();
+  }
+
+  function drawDiegeticOmamoriHint(ctx, b, stage, time) {
+    const art = window.ART?.hud_omamori_hint_listen;
+    if (!art?.complete || !art.naturalWidth || !art.naturalHeight) {
+      drawDiegeticOmamoriHintFallback(ctx, b, stage, time);
+      return;
+    }
+
+    const disabled = stage >= 2;
+    const sway = calm() ? 0 : Math.sin(time * 1.9 + 0.5) * 0.022;
+    const aspect = art.naturalWidth / art.naturalHeight;
+    const drawH = b.h;
+    const drawW = drawH * aspect;
+    const dx = b.x + (b.w - drawW) / 2;
+    const dy = b.y;
+    const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(sway);
+    ctx.translate(-cx, -cy);
+    ctx.globalAlpha = disabled ? 0.58 : 1;
+    ctx.drawImage(art, dx, dy, drawW, drawH);
+
+    if (stage >= 1) {
+      const tag = stage === 1 ? "詞" : "済";
+      const r = Math.max(8, b.w * 0.17);
+      const tx = b.x + b.w - r * 0.6, ty = b.y + b.h - r * 0.8;
+      ctx.globalAlpha = disabled ? 0.72 : 0.92;
+      ctx.fillStyle = disabled ? "#6f625c" : "#274f68";
+      ctx.strokeStyle = disabled ? "#b9aaa1" : "#bfeef2";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(tx, ty, r, 0, 6.283); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#f6f0df";
+      ctx.textAlign = "center";
+      ctx.font = readableFont(Math.max(9, r * 0.9), "900");
+      ctx.fillText(tag, tx, ty + r * 0.34);
     }
     ctx.restore();
   }

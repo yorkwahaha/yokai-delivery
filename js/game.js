@@ -1077,7 +1077,7 @@
       if (wrongIndices.length > 0) {
         job.eliminatedIdx = pick(wrongIndices);
       }
-      say("天狐靈音：聆聽發音，排除一項！（輔助）", P.x, P.y - 45, "#80deea");
+      say("天狐靈音：聆聽發音，排除一項！（燈油 -3）", P.x, P.y - 45, "#80deea");
       AUDIO.pickup();
     } else if (job.hintStage === 1 && oil > 4) {
       oil -= 4;
@@ -1085,7 +1085,7 @@
       job.assisted = true;
       job.showMeaningT = 4.0;
       hintT = 4.0;
-      say(`破幻神符：${job.word.jp} 意為「${job.word.zh}」`, P.x, P.y - 45, "#ffd54f");
+      say(`破幻神符：${job.word.jp} 意為「${job.word.zh}」（燈油 -4）`, P.x, P.y - 45, "#ffd54f");
       AUDIO.pickup();
     }
     if (job.assisted) markBossAssisted(job.word);
