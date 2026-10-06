@@ -1,5 +1,12 @@
 // 使用者介面（UI）：漆器金箔和風介面。面板、按鈕、HUD、升級卡與結算頁共用同一組色票與繪製函式。
 // 光暈優先使用 FX.glow 的預烘焙貼圖；面板仍使用漸層，圖鑑標題保留少量 shadowBlur。
+// HUD 可回退：預設 diegetic；也可用 ?hud=classic / ?hud=diegetic 即時比較。
+{
+  const hasLocation = typeof location !== 'undefined';
+  const requestedHud = hasLocation ? new URLSearchParams(location.search).get('hud') : null;
+  if (requestedHud === 'classic' || requestedHud === 'diegetic') window.UI_THEME = requestedHud;
+  if (window.UI_THEME !== 'classic' && window.UI_THEME !== 'diegetic') window.UI_THEME = hasLocation ? 'diegetic' : 'classic';
+}
 window.UI = (() => {
   const screenBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:900,bottom:600,width:900,height:600};
   function fillScreen(ctx) { const b = screenBounds(); ctx.fillRect(b.left,b.top,b.width,b.height); }
@@ -319,6 +326,95 @@ window.UI = (() => {
     ctx.restore();
   }
 
+  // Diegetic HUD：把重要資訊變成夜行世界裡的實體物件。
+  function drawDiegeticOilLantern(ctx, x, y, oil, maxOil, lowOil, time) {
+    const ratio = clamp(oil / Math.max(1, maxOil), 0, 1);
+    const cx = x + 45, top = y + 18, bodyH = 106;
+    const lit = lowOil ? '#ff6650' : '#ffb23d';
+    const flicker = calm() ? 0.84 : 0.78 + Math.sin(time * 7.2) * 0.08 + Math.sin(time * 12.5) * 0.04;
+    ctx.save();
+    ctx.strokeStyle = '#9b6a34'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(cx - 25, top + 2); ctx.quadraticCurveTo(cx - 31, y - 2, cx, y - 5); ctx.quadraticCurveTo(cx + 31, y - 2, cx + 25, top + 2); ctx.stroke();
+    glow(ctx, cx, top + 49, 150, lit, 0.28 * flicker);
+    const paper = ctx.createLinearGradient(cx - 42, top, cx + 42, top + bodyH);
+    paper.addColorStop(0, lowOil ? '#dfa070' : '#f0cb83'); paper.addColorStop(0.5, lowOil ? '#ce805d' : '#e5ae65'); paper.addColorStop(1, '#bf7748');
+    ctx.fillStyle = paper; ctx.strokeStyle = '#5d3422'; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.moveTo(cx - 29, top); ctx.quadraticCurveTo(cx - 46, top + 20, cx - 42, top + 53); ctx.quadraticCurveTo(cx - 40, top + 88, cx - 26, top + bodyH);
+    ctx.quadraticCurveTo(cx, top + bodyH + 7, cx + 26, top + bodyH); ctx.quadraticCurveTo(cx + 40, top + 88, cx + 42, top + 53); ctx.quadraticCurveTo(cx + 46, top + 20, cx + 29, top); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = 'rgba(97,47,25,.48)'; ctx.lineWidth = 1.2;
+    for (const yy of [top + 22, top + 43, top + 65, top + 86]) { ctx.beginPath(); ctx.moveTo(cx - 39, yy); ctx.quadraticCurveTo(cx, yy + 5, cx + 39, yy); ctx.stroke(); }
+    ctx.fillStyle = '#4a2b1d'; ctx.beginPath(); ctx.roundRect(cx - 31, top - 7, 62, 10, 4); ctx.fill(); ctx.beginPath(); ctx.roundRect(cx - 30, top + bodyH - 2, 60, 9, 4); ctx.fill();
+    ctx.fillStyle = '#51251d'; ctx.strokeStyle = '#8d532f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(cx - 22, top + 29, 44, 42, 9); ctx.fill(); ctx.stroke();
+    glow(ctx, cx, top + 50, 76, lit, 0.6 * flicker);
+    const flameH = 10 + 17 * Math.max(0.16, ratio);
+    ctx.fillStyle = lowOil ? '#ff684e' : '#ffd258'; ctx.beginPath(); ctx.moveTo(cx, top + 62); ctx.bezierCurveTo(cx - 12, top + 54, cx - 8, top + 47 - flameH * 0.3, cx, top + 38);
+    ctx.bezierCurveTo(cx + 2, top + 47 - flameH * 0.22, cx + 12, top + 50, cx + 9, top + 59); ctx.quadraticCurveTo(cx + 5, top + 65, cx, top + 62); ctx.fill();
+    ctx.fillStyle = '#fff0a0'; ctx.beginPath(); ctx.ellipse(cx + 1, top + 55, 3.5, 7, 0.2, 0, 6.283); ctx.fill();
+    ctx.textAlign = 'center'; ctx.font = readableFont(11, '900'); ctx.fillStyle = '#5b2a1e'; ctx.fillText('燈油', cx, top + 17);
+    ctx.font = readableFont(15, '900'); ctx.fillStyle = '#341b16'; ctx.fillText(Math.ceil(oil) + '/' + maxOil, cx, top + 95);
+    ctx.strokeStyle = '#9f2d24'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(cx, top + bodyH + 7); ctx.lineTo(cx, top + bodyH + 23); ctx.stroke();
+    ctx.lineWidth = 2; for (const dx of [-6,-2,2,6]) { ctx.beginPath(); ctx.moveTo(cx, top + bodyH + 15); ctx.lineTo(cx + dx, top + bodyH + 30); ctx.stroke(); }
+    ctx.restore();
+  }
+
+  function drawDiegeticMinimap(ctx, x, y, size, P, orders, job, boss) {
+    const cx = x + size / 2, cy = y + size / 2, outerR = size / 2, mapR = outerR - 17, k = (mapR - 7) / 1300;
+    ctx.save();
+    ctx.fillStyle = 'rgba(7,9,18,.92)'; ctx.beginPath(); ctx.arc(cx + 2, cy + 4, outerR + 3, 0, 6.283); ctx.fill();
+    const metal = ctx.createLinearGradient(x, y, x + size, y + size);
+    metal.addColorStop(0, '#fff0a2'); metal.addColorStop(.22, '#ba8428'); metal.addColorStop(.55, '#6c4619'); metal.addColorStop(.78, '#e7ba52'); metal.addColorStop(1, '#8b5c20');
+    ctx.fillStyle = metal; ctx.beginPath(); ctx.arc(cx, cy, outerR, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#15162a'; ctx.beginPath(); ctx.arc(cx, cy, outerR - 6, 0, 6.283); ctx.fill();
+    ctx.strokeStyle = '#e8c36a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, outerR - 10, 0, 6.283); ctx.stroke();
+    for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2, r0 = outerR - (i % 3 === 0 ? 15 : 12), r1 = outerR - 8; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); ctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); ctx.stroke(); }
+    ctx.font = readableFont(9, '900'); ctx.textAlign = 'center'; ctx.fillStyle = '#f4d77a'; ctx.fillText('北', cx, y + 17); ctx.fillText('南', cx, y + size - 10); ctx.fillText('西', x + 13, cy + 4); ctx.fillText('東', x + size - 13, cy + 4);
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, mapR, 0, 6.283); ctx.clip(); ctx.fillStyle = 'rgba(10,17,34,.97)'; ctx.fillRect(cx-mapR, cy-mapR, mapR*2, mapR*2);
+    ctx.strokeStyle = 'rgba(127,227,240,.13)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx-mapR,cy); ctx.lineTo(cx+mapR,cy); ctx.moveTo(cx,cy-mapR); ctx.lineTo(cx,cy+mapR); ctx.stroke();
+    for (const rr of [mapR*.38,mapR*.72]) { ctx.beginPath(); ctx.arc(cx,cy,rr,0,6.283); ctx.stroke(); }
+    const place = (wx, wy) => { let dx = (wx - P.x) * k, dy = (wy - P.y) * k; const len = Math.hypot(dx,dy), max = mapR - 8, edge = len > max; if (edge && len > 0) { dx *= max / len; dy *= max / len; } return {x:cx+dx,y:cy+dy,edge}; };
+    for (const o of orders) { const m = place(o.from.x,o.from.y), urgent = o.life < 25, color = urgent ? '#ff6b5b' : o.life < 55 ? '#ffb347' : C.gold; glow(ctx,m.x,m.y,m.edge?10:15,color,urgent ? .75 : .48); ctx.fillStyle=color; ctx.beginPath(); ctx.arc(m.x,m.y,m.edge?2.5:3.5,0,6.283); ctx.fill(); }
+    if (job) { const m=place(job.to.x,job.to.y); glow(ctx,m.x,m.y,24,C.cyan,.55); ctx.fillStyle=C.cyan; ctx.save();ctx.translate(m.x,m.y);ctx.rotate(Math.PI/4);ctx.fillRect(-4,-4,8,8);ctx.restore(); }
+    if (boss) { const m=place(boss.x,boss.y); glow(ctx,m.x,m.y,28,'#ff3b4f',.6); ctx.fillStyle='#ff3b4f';ctx.beginPath();ctx.arc(m.x,m.y,5,0,6.283);ctx.fill(); }
+    glow(ctx,cx,cy,20,'#ffffff',.65); ctx.fillStyle='#fff'; ctx.save(); ctx.translate(cx,cy); ctx.rotate(P.faceAng||0); ctx.beginPath(); ctx.moveTo(7,0);ctx.lineTo(-4,-4);ctx.lineTo(-1,0);ctx.lineTo(-4,4);ctx.closePath();ctx.fill();ctx.restore();
+    ctx.restore(); ctx.restore();
+  }
+
+  function drawDiegeticQuestBoard(ctx, x, y, w, h) {
+    ctx.save();
+    ctx.strokeStyle='#7b3b28';ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x+w*.26,y+6);ctx.quadraticCurveTo(x+w*.5,y-19,x+w*.74,y+6);ctx.stroke();
+    ctx.fillStyle='#9e3428';ctx.beginPath();ctx.arc(x+w*.5,y-6,7,0,6.283);ctx.fill();
+    ctx.fillStyle='#3a241b';ctx.strokeStyle='#17110e';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-9,y+9);ctx.lineTo(x+w*.5,y-2);ctx.lineTo(x+w+9,y+9);ctx.lineTo(x+w-2,y+17);ctx.lineTo(x+2,y+17);ctx.closePath();ctx.fill();ctx.stroke();
+    const wood=ctx.createLinearGradient(x,y,x,y+h);wood.addColorStop(0,'#c18b52');wood.addColorStop(.5,'#9f6439');wood.addColorStop(1,'#77472f');
+    ctx.fillStyle=wood;ctx.strokeStyle='#4b2d20';ctx.lineWidth=2.4;ctx.beginPath();ctx.roundRect(x,y+12,w,h-12,5);ctx.fill();ctx.stroke();
+    ctx.strokeStyle='rgba(72,39,25,.28)';ctx.lineWidth=1.2;for(let i=0;i<4;i++){const yy=y+25+i*11;ctx.beginPath();ctx.moveTo(x+10,yy);ctx.bezierCurveTo(x+w*.28,yy-4,x+w*.67,yy+5,x+w-9,yy);ctx.stroke();}
+    ctx.fillStyle='#eee0bb';ctx.strokeStyle='#7e6040';ctx.lineWidth=1.2;ctx.save();ctx.translate(x+15,y+22);ctx.rotate(-.018);ctx.beginPath();ctx.roundRect(0,0,w-30,h-31,2);ctx.fill();ctx.stroke();ctx.restore();
+    ctx.fillStyle='#4c3325';for(const px of [x+27,x+w-27]){ctx.beginPath();ctx.arc(px,y+27,2.3,0,6.283);ctx.fill();}ctx.restore();
+  }
+
+  function drawDiegeticHintTag(ctx, b, label, disabled) {
+    ctx.save();ctx.fillStyle=disabled?'#c8bea7':'#e6d7ac';ctx.strokeStyle=disabled?'#7e786a':'#75512f';ctx.lineWidth=1.6;
+    ctx.beginPath();ctx.roundRect(b.x,b.y,b.w,b.h,3);ctx.fill();ctx.stroke();ctx.fillStyle=disabled?'#6b665d':'#39261d';ctx.textAlign='center';ctx.font=readableFont(13,'900');ctx.fillText(label,b.x+b.w/2,b.y+b.h/2+5,b.w-8);ctx.restore();
+  }
+
+  function drawDiegeticSkillFan(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion) {
+    const cx=2, cy=78, fanR=132, a0=-1.48, a1=-0.12;
+    ctx.save();
+    ctx.fillStyle='rgba(0,0,0,.36)';ctx.beginPath();ctx.moveTo(cx+4,cy+5);ctx.arc(cx+4,cy+5,fanR+6,a0,a1);ctx.closePath();ctx.fill();
+    const fan=ctx.createRadialGradient(cx,cy,8,cx,cy,fanR);fan.addColorStop(0,'#5a321f');fan.addColorStop(.14,'#34243a');fan.addColorStop(.48,'#182046');fan.addColorStop(1,'#0b1232');
+    ctx.fillStyle=fan;ctx.strokeStyle='#d9b65b';ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,fanR,a0,a1);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='rgba(224,185,93,.30)';ctx.beginPath();ctx.moveTo(cx+28,cy-32);ctx.lineTo(cx+58,cy-75);ctx.lineTo(cx+79,cy-54);ctx.lineTo(cx+103,cy-83);ctx.lineTo(cx+126,cy-35);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='rgba(232,195,106,.75)';ctx.lineWidth=1.3;for(let i=0;i<=8;i++){const a=a0+(a1-a0)*i/8;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*fanR,cy+Math.sin(a)*fanR);ctx.stroke();}
+    ctx.fillStyle='#dcb553';ctx.beginPath();ctx.arc(cx,cy,8,0,6.283);ctx.fill();ctx.fillStyle='#5a261d';ctx.beginPath();ctx.arc(cx,cy,3.8,0,6.283);ctx.fill();
+    const angles=[-1.34,-1.02,-.70,-.38], iconR=91;
+    for(let i=0;i<4;i++){const a=angles[i],sx=cx+Math.cos(a)*iconR,sy=cy+Math.sin(a)*iconR,k=ownedKeys[i];
+      if(k){const tone=WEAPON_TONE[k]||C.gold;glow(ctx,sx,sy,56,tone,motion ? .18*pulse(3,.4) : .1);drawEmblem(ctx,k,sx,sy,18);const cd=extra.cd?.[k]||0;
+        if(cd>.02){ctx.fillStyle='rgba(4,6,14,.67)';ctx.beginPath();ctx.moveTo(sx,sy);ctx.arc(sx,sy,18,-Math.PI/2,-Math.PI/2+Math.PI*2*cd);ctx.closePath();ctx.fill();}
+        const lvl=WL[k];ctx.fillStyle='#e8c36a';ctx.strokeStyle='#6d471d';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(sx-22,sy+20,44,badgeH,4);ctx.fill();ctx.stroke();ctx.fillStyle='#201516';ctx.textAlign='center';ctx.font='900 '+badgeTextSize+'px Noto Sans JP, sans-serif';ctx.fillText(lvl>=5?'MAX':'L'+lvl,sx,sy+20+badgeTextSize+3);
+      }else{ctx.strokeStyle='rgba(232,195,106,.42)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx,sy,19,0,6.283);ctx.stroke();ctx.fillStyle='rgba(232,195,106,.5)';ctx.textAlign='center';ctx.font=readableFont(13,'900');ctx.fillText('＋',sx,sy+5);}
+    }
+    ctx.restore();
+  }
+
   const lowOilCache = new Map();
   // 燈油見底：四周泛紅並隨心跳明滅，越接近 0 越快。
   function drawLowOil(ctx, ratio, time) {
@@ -479,50 +575,49 @@ window.UI = (() => {
   }
 
   // 2. 全螢幕 HUD：左上生命（燈油）與經驗、中上任務／Boss、右上黎明與小地圖、左下武器格。
-  function drawHud(ctx, P, oil, maxOil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, goalDeliveries = 6, dashCd = 0, dashMax = 1.8, bossHunt = false, extra = {}) {
+  function drawHudBase(theme, ctx, P, oil, maxOil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, goalDeliveries = 6, dashCd = 0, dashMax = 1.8, bossHunt = false, extra = {}) {
     ctx.save();
     const gradientTransform = ctx.getTransform?.();
     const bounds = window.VIEWPORT?.hudBounds() || screenBounds();
     const scale = window.VIEWPORT?.get().scale || (document.getElementById("game")?.getBoundingClientRect().width || 900) / 900;
     const time = extra.time ?? Date.now() / 1000;
     const motion = !calm();
+    const diegetic = theme === 'diegetic';
     const curMaxOil = maxOil || 100;
     const oilRatio = clamp(oil / curMaxOil, 0, 1), lowOil = oilRatio <= 0.25;
     if (lowOil) drawLowOil(ctx, oilRatio, time);
 
-    // --- 左上：燈油＝生命。燈籠圖示＋粗條，不加底框；低油時整條轉紅並脈動。 ---
+    // --- 左上：classic 為條狀油量；diegetic 直接把生命資訊變成提燈本體。 ---
     const oilTextSize = Math.max(20, Math.ceil(18 / scale));
     const oilBarH = Math.max(18, Math.ceil(16 / scale));
-    const pBoxX = bounds.left + 18, pBoxY = bounds.top + 14, pBoxW = Math.max(250, Math.ceil(170 / scale));
+    const pBoxX = bounds.left + 18, pBoxY = bounds.top + 14;
+    const pBoxW = diegetic ? Math.max(112, Math.ceil(82 / scale)) : Math.max(250, Math.ceil(170 / scale));
     const pBoxH = oilTextSize + oilBarH + 12;
-    if (lowOil && motion) glow(ctx, pBoxX + pBoxW / 2, pBoxY + pBoxH / 2, pBoxW * 1.6, "#ff3b3b", 0.3 * pulse(8, 0.3));
+    if (lowOil && motion) glow(ctx, pBoxX + pBoxW / 2, pBoxY + pBoxH / 2, pBoxW * 1.6, '#ff3b3b', 0.3 * pulse(8, 0.3));
 
-    drawLantern(ctx, pBoxX + 16, pBoxY + pBoxH / 2, Math.max(28, oilTextSize * 1.5), lowOil ? "#ff6a4a" : "#ffb03a");
-    ctx.fillStyle = "#fff4dd";
-    ctx.font = readableFont(oilTextSize, "900");
-    ctx.textAlign = "right";
-    inkText(ctx, `${Math.ceil(oil)}/${curMaxOil}`, pBoxX + pBoxW - 4, pBoxY + oilTextSize);
-    ctx.textAlign = "left";
-
-    const barX = pBoxX + 40, barY = pBoxY + oilTextSize + 7, barW = pBoxW - 44;
-    ctx.fillStyle = "#1c1814";
-    ctx.beginPath();
-    ctx.roundRect(barX, barY, barW, oilBarH, oilBarH / 2);
-    ctx.fill();
-    if (oilRatio > 0) {
-      const fillW = Math.max(oilBarH, barW * oilRatio);
-      ctx.fillStyle = barGradient(ctx,lowOil?"lowOil":"oil",barX,barX+barW,gradientTransform);
-      ctx.beginPath(); ctx.roundRect(barX, barY, fillW, oilBarH, oilBarH / 2); ctx.fill();
-      ctx.fillStyle = "rgba(255, 255, 255, 0.24)";
-      ctx.beginPath(); ctx.roundRect(barX + 3, barY + 2, Math.max(0, fillW - 6), oilBarH * 0.34, oilBarH / 4); ctx.fill();
-      glow(ctx, barX + fillW, barY + oilBarH / 2, oilBarH * 3.2, lowOil ? "#ff4030" : "#ffc766", 0.75 * (motion ? pulse(4, 0.7) : 0.8));
+    if (diegetic) {
+      drawDiegeticOilLantern(ctx, pBoxX, pBoxY - 4, oil, curMaxOil, lowOil, time);
+    } else {
+      drawLantern(ctx, pBoxX + 16, pBoxY + pBoxH / 2, Math.max(28, oilTextSize * 1.5), lowOil ? '#ff6a4a' : '#ffb03a');
+      ctx.fillStyle = '#fff4dd';
+      ctx.font = readableFont(oilTextSize, '900');
+      ctx.textAlign = 'right';
+      inkText(ctx, Math.ceil(oil) + '/' + curMaxOil, pBoxX + pBoxW - 4, pBoxY + oilTextSize);
+      ctx.textAlign = 'left';
+      const barX = pBoxX + 40, barY = pBoxY + oilTextSize + 7, barW = pBoxW - 44;
+      ctx.fillStyle = '#1c1814'; ctx.beginPath(); ctx.roundRect(barX, barY, barW, oilBarH, oilBarH / 2); ctx.fill();
+      if (oilRatio > 0) {
+        const fillW = Math.max(oilBarH, barW * oilRatio);
+        ctx.fillStyle = barGradient(ctx, lowOil ? 'lowOil' : 'oil', barX, barX + barW, gradientTransform);
+        ctx.beginPath(); ctx.roundRect(barX, barY, fillW, oilBarH, oilBarH / 2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,.24)'; ctx.beginPath(); ctx.roundRect(barX + 3, barY + 2, Math.max(0, fillW - 6), oilBarH * 0.34, oilBarH / 4); ctx.fill();
+        glow(ctx, barX + fillW, barY + oilBarH / 2, oilBarH * 3.2, lowOil ? '#ff4030' : '#ffc766', 0.75 * (motion ? pulse(4, 0.7) : 0.8));
+      }
+      ctx.strokeStyle = 'rgba(0,0,0,.32)'; ctx.lineWidth = 1.2; ctx.beginPath();
+      for (let i = 1; i < 10; i++) { ctx.moveTo(barX + barW * i / 10, barY + 2); ctx.lineTo(barX + barW * i / 10, barY + oilBarH - 2); }
+      ctx.stroke(); ctx.strokeStyle = lowOil ? '#ff8a75' : 'rgba(232,195,106,.7)'; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.roundRect(barX, barY, barW, oilBarH, oilBarH / 2); ctx.stroke();
     }
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.32)"; ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    for (let i = 1; i < 10; i++) { ctx.moveTo(barX + barW * i / 10, barY + 2); ctx.lineTo(barX + barW * i / 10, barY + oilBarH - 2); }
-    ctx.stroke();
-    ctx.strokeStyle = lowOil ? "#ff8a75" : "rgba(232, 195, 106, 0.7)"; ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.roundRect(barX, barY, barW, oilBarH, oilBarH / 2); ctx.stroke();
 
     // --- 畫面最下緣：經驗薄條（全寬），等級數字浮在條上方正中。 ---
     {
@@ -586,8 +681,10 @@ window.UI = (() => {
     ctx.textAlign = "left";
 
     const compact = scale < 0.62;
-    const mapW = compact ? 120 : 172, mapH = compact ? 84 : 118, mapY = sBoxY + sBoxH + 8;
-    drawMinimap(ctx, sBoxX + sBoxW - mapW, mapY, mapW, mapH, P, orders || [], job, extra.boss, time);
+    const mapW = diegetic ? (compact ? 108 : 136) : (compact ? 120 : 172);
+    const mapH = diegetic ? mapW : (compact ? 84 : 118), mapY = sBoxY + sBoxH + 8;
+    if (diegetic) drawDiegeticMinimap(ctx, sBoxX + sBoxW - mapW, mapY, mapW, P, orders || [], job, extra.boss);
+    else drawMinimap(ctx, sBoxX + sBoxW - mapW, mapY, mapW, mapH, P, orders || [], job, extra.boss, time);
     if (!compact && orders?.length) drawOrderList(ctx, sBoxX + sBoxW - mapW, mapY + mapH + 6, mapW, fontPx(readableFont(12)) + 14, orders, P, inter);
 
     // --- 暫停鈕 ---
@@ -595,11 +692,12 @@ window.UI = (() => {
     ctx.fillStyle = ctx.strokeStyle = "#ffd54f";
     drawActionIcon(ctx, 'pause', btnPause.x + btnPause.w / 2, btnPause.y + btnPause.h / 2, 10);
 
-    // --- 中上：任務。只保留「現在要做什麼」，直接浮在場景上，不加底框。 ---
+    // --- 中上：classic 浮字；diegetic 改成屋簷木牌＋紙札。 ---
     const taskX = Math.max(248, pBoxX + pBoxW + 5), taskY = bounds.top + 14;
-    const taskW = Math.min(370, sBoxX - taskX - 15), taskH = 52;
+    const taskW = Math.min(370, sBoxX - taskX - 15), taskH = diegetic ? 68 : 52;
+    if (diegetic) drawDiegeticQuestBoard(ctx, taskX, taskY - 5, taskW, taskH + 5);
     HINT_BTN.x = taskX + taskW - HINT_BTN.w - 8;
-    HINT_BTN.y = bounds.top + 20;
+    HINT_BTN.y = bounds.top + (diegetic ? 28 : 20);
     ctx.textAlign = "left";
     let afterTask = taskY + taskH + 6;
     if (bossHunt) {
@@ -612,18 +710,22 @@ window.UI = (() => {
       drawCompass(ctx, taskX + taskW / 2 + 84, taskY + 26, extra.bossAngle, { color: "#ff3b4f", count: 2, size: 1.2 });
     } else if (job) {
       const remaining = Math.round(Math.hypot(P.x - job.to.x, P.y - job.to.y) / 10) * 10;
-      ctx.fillStyle = "#fff3ca";
-      ctx.font = readableFont(18, "900");
-      if (job.word.cue !== "text") drawWordCue(ctx, job.word, taskX + 27, taskY + 16, 24);
-      inkText(ctx, job.word.zh, taskX + (job.word.cue === "text" ? 16 : 48), taskY + 23);
-      drawCompass(ctx, taskX + 24, taskY + 40, extra.guideAngle, { color: "#ffd152", size: 1.1 });
-      ctx.fillStyle = "#82d8ff";
-      ctx.font = readableFont(12, "900");
-      inkText(ctx, `${remaining}`, taskX + 44, taskY + 44);
+      ctx.fillStyle = diegetic ? '#43291d' : '#fff3ca';
+      ctx.font = readableFont(18, '900');
+      if (job.word.cue !== 'text') drawWordCue(ctx, job.word, taskX + 27, taskY + 16, 24);
+      if (diegetic) ctx.fillText(job.word.zh, taskX + (job.word.cue === 'text' ? 16 : 48), taskY + 27);
+      else inkText(ctx, job.word.zh, taskX + (job.word.cue === 'text' ? 16 : 48), taskY + 23);
+      drawCompass(ctx, taskX + 24, taskY + 40, extra.guideAngle, { color: '#ffd152', size: 1.1 });
+      ctx.fillStyle = diegetic ? '#5a3828' : '#82d8ff';
+      ctx.font = readableFont(12, '900');
+      if (diegetic) ctx.fillText(String(remaining), taskX + 44, taskY + 48);
+      else inkText(ctx, String(remaining), taskX + 44, taskY + 44);
 
       const hintStage = job.hintStage || 0;
-      drawButton(ctx, HINT_BTN, hintStage === 0 ? "聽 -3" : hintStage === 1 ? "詞 -4" : "✓", {
-        tone: "cyan", size: 14, icon: hintStage === 0 ? "listen" : "hint", disabled: hintStage >= 2
+      const hintLabel = hintStage === 0 ? '聽 -3' : hintStage === 1 ? '詞 -4' : '✓';
+      if (diegetic) drawDiegeticHintTag(ctx, HINT_BTN, hintLabel, hintStage >= 2);
+      else drawButton(ctx, HINT_BTN, hintLabel, {
+        tone: 'cyan', size: 14, icon: hintStage === 0 ? 'listen' : 'hint', disabled: hintStage >= 2
       });
 
       if (job.showMeaningT > 0) {
@@ -650,48 +752,29 @@ window.UI = (() => {
     ctx.scale(1.2, 1.2);
     const slotStartX = 0, slotY = 0;
 
-    for (let i = 0; i < maxActiveSlots; i++) {
-      const sx = slotStartX + i * (slotSize + slotGap);
-      const k = ownedKeys[i];
-      if (k) {
-        const tone = WEAPON_TONE[k] || C.gold, scx = sx + slotSize / 2, scy = slotY + slotSize / 2;
-        glassBox(ctx, sx, slotY, slotSize, slotSize, 9, "rgba(14, 12, 24, 0.9)", tone, 1.8);
-        drawEmblem(ctx, k, scx, scy, 17);
-        const cd = extra.cd?.[k] || 0;
-        if (cd > 0.02) {
-          ctx.fillStyle = "rgba(4, 6, 14, 0.66)";
-          ctx.beginPath();
-          ctx.moveTo(scx, scy);
-          ctx.arc(scx, scy, slotSize / 2 - 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * cd);
-          ctx.closePath();
-          ctx.fill();
-        } else if (motion && extra.cd) {
-          glow(ctx, scx, scy, slotSize * 1.5, tone, 0.18 * pulse(3, 0.4));
+    if (diegetic) {
+      drawDiegeticSkillFan(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion);
+    } else {
+      for (let i = 0; i < maxActiveSlots; i++) {
+        const sx = slotStartX + i * (slotSize + slotGap);
+        const k = ownedKeys[i];
+        if (k) {
+          const tone = WEAPON_TONE[k] || C.gold, scx = sx + slotSize / 2, scy = slotY + slotSize / 2;
+          glassBox(ctx, sx, slotY, slotSize, slotSize, 9, 'rgba(14, 12, 24, 0.9)', tone, 1.8);
+          drawEmblem(ctx, k, scx, scy, 17);
+          const cd = extra.cd?.[k] || 0;
+          if (cd > 0.02) {
+            ctx.fillStyle = 'rgba(4, 6, 14, 0.66)'; ctx.beginPath(); ctx.moveTo(scx, scy);
+            ctx.arc(scx, scy, slotSize / 2 - 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * cd); ctx.closePath(); ctx.fill();
+          } else if (motion && extra.cd) glow(ctx, scx, scy, slotSize * 1.5, tone, 0.18 * pulse(3, 0.4));
+          const lvl = WL[k]; ctx.fillStyle = C.gold; ctx.beginPath(); ctx.roundRect(sx, slotY + slotSize, slotSize, badgeH, 3); ctx.fill();
+          ctx.fillStyle = '#161022'; ctx.textAlign = 'center'; ctx.font = '900 ' + badgeTextSize + 'px Noto Sans JP, sans-serif';
+          ctx.fillText(lvl >= 5 ? 'MAX' : 'L' + lvl, sx + slotSize / 2, slotY + slotSize + badgeTextSize + 3);
+        } else {
+          ctx.save(); ctx.setLineDash([3, 3]); ctx.strokeStyle = 'rgba(180,195,220,.35)'; ctx.lineWidth = 1.5; ctx.fillStyle = 'rgba(12,15,24,.5)';
+          ctx.beginPath(); ctx.roundRect(sx, slotY, slotSize, slotSize, 9); ctx.fill(); ctx.stroke(); ctx.fillStyle = 'rgba(180,195,220,.35)';
+          ctx.textAlign = 'center'; ctx.font = readableFont(13, 'bold'); ctx.fillText('＋', sx + slotSize / 2, slotY + slotSize / 2 + 5); ctx.restore();
         }
-        const lvl = WL[k];
-        ctx.fillStyle = C.gold;
-        ctx.beginPath();
-        ctx.roundRect(sx, slotY + slotSize, slotSize, badgeH, 3);
-        ctx.fill();
-        ctx.fillStyle = "#161022";
-        ctx.textAlign = "center";
-        ctx.font = `900 ${badgeTextSize}px 'Noto Sans JP', sans-serif`;
-        ctx.fillText(lvl >= 5 ? "MAX" : `L${lvl}`, sx + slotSize / 2, slotY + slotSize + badgeTextSize + 3);
-      } else {
-        ctx.save();
-        ctx.setLineDash([3, 3]);
-        ctx.strokeStyle = "rgba(180, 195, 220, 0.35)";
-        ctx.lineWidth = 1.5;
-        ctx.fillStyle = "rgba(12, 15, 24, 0.5)";
-        ctx.beginPath();
-        ctx.roundRect(sx, slotY, slotSize, slotSize, 9);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = "rgba(180, 195, 220, 0.35)";
-        ctx.textAlign = "center";
-        ctx.font = readableFont(13, "bold");
-        ctx.fillText("＋", sx + slotSize / 2, slotY + slotSize / 2 + 5);
-        ctx.restore();
       }
     }
 
@@ -797,6 +880,18 @@ window.UI = (() => {
     }
 
     ctx.restore();
+  }
+
+  function drawHudClassic(...args) {
+    return drawHudBase('classic', ...args);
+  }
+
+  function drawHudDiegetic(...args) {
+    return drawHudBase('diegetic', ...args);
+  }
+
+  function drawHud(...args) {
+    return window.UI_THEME === 'classic' ? drawHudClassic(...args) : drawHudDiegetic(...args);
   }
 
   // 繪製日式和風紋章勳章（Kamon Emblems - 商業級金屬鍍金家紋）
@@ -2118,7 +2213,7 @@ window.UI = (() => {
     controlLabel, tutorialCopy, drawTutorial, drawActionIcon, TUTORIAL_BTNS,
     drawWordCue,
     drawMainMenu,
-    drawHud,
+    drawHud, drawHudClassic, drawHudDiegetic,
     drawLevelUp,
     drawEmblem,
     drawBossQuiz, bossQuizLayout,
