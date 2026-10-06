@@ -507,7 +507,8 @@ window.UI = (() => {
     const span = Math.PI * 5 / 3;
     const end = start + span;
     const angle = start + span * p;
-    const ringR = size * 0.347;
+    // 時間環收進金屬內緣，避免月亮與黃銅裝飾重疊而「消失」。
+    const ringR = size * 0.305;
     const tickOuter = ringR + size * 0.016;
     const tickInner = ringR - size * 0.014;
 
@@ -534,19 +535,21 @@ window.UI = (() => {
     const mx = cx + Math.cos(angle) * ringR;
     const my = cy + Math.sin(angle) * ringR;
     const eased = p * p * (3 - 2 * p);
-    const markerR = size * (0.026 + eased * 0.008);
-    glow(ctx, mx, my, size * (0.15 + eased * 0.06), eased > 0.55 ? "#ffb347" : "#d9e5ff", 0.42);
+    const markerR = size * (0.034 + eased * 0.007);
+    glow(ctx, mx, my, size * (0.18 + eased * 0.06), eased > 0.55 ? "#ffb347" : "#d9e5ff", 0.62);
 
     const moonAlpha = clamp(1 - eased * 1.15, 0, 1);
     if (moonAlpha > 0.01) {
       ctx.globalAlpha = moonAlpha;
       ctx.fillStyle = "#e9efff";
+      ctx.strokeStyle = "rgba(255,248,220,.92)";
+      ctx.lineWidth = Math.max(1.1, size * 0.007);
       ctx.beginPath();
       ctx.moveTo(mx + markerR * 0.15, my - markerR);
       ctx.bezierCurveTo(mx - markerR * 0.95, my - markerR * 0.55, mx - markerR * 0.95, my + markerR * 0.62, mx + markerR * 0.12, my + markerR);
       ctx.bezierCurveTo(mx - markerR * 0.18, my + markerR * 0.32, mx + markerR * 0.3, my - markerR * 0.36, mx + markerR * 0.15, my - markerR);
       ctx.closePath();
-      ctx.fill();
+      ctx.fill(); ctx.stroke();
     }
 
     const sunAlpha = clamp((eased - 0.22) / 0.78, 0, 1);
@@ -579,28 +582,23 @@ window.UI = (() => {
   }
 
   function drawDiegeticRadarStatus(ctx, x, y, w, delivered, goalDeliveries, score) {
-    const h = 28;
+    const h = 24;
     ctx.save();
-    ctx.fillStyle = "rgba(8,11,22,.72)";
-    ctx.strokeStyle = "rgba(232,195,106,.48)";
-    ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.roundRect(x + 6, y, w - 12, h, 10); ctx.fill(); ctx.stroke();
-
     ctx.fillStyle = ctx.strokeStyle = "#ffe0a4";
-    drawActionIcon(ctx, "pickup", x + 20, y + h / 2, 7);
+    drawActionIcon(ctx, "pickup", x + 19, y + h / 2, 7);
     ctx.textAlign = "left";
     ctx.font = readableFont(12, "900");
     ctx.fillStyle = "#fff1cc";
-    inkText(ctx, `${delivered}/${goalDeliveries}`, x + 32, y + 19);
+    inkText(ctx, `${delivered}/${goalDeliveries}`, x + 31, y + 17);
 
     const scoreText = String(score);
     ctx.textAlign = "right";
     ctx.fillStyle = "#fff1cc";
-    inkText(ctx, scoreText, x + w - 14, y + 19);
+    inkText(ctx, scoreText, x + w - 10, y + 17);
     const scoreW = ctx.measureText(scoreText).width;
     ctx.fillStyle = C.gold;
     ctx.save();
-    ctx.translate(x + w - 22 - scoreW, y + h / 2);
+    ctx.translate(x + w - 18 - scoreW, y + h / 2);
     ctx.rotate(Math.PI / 4);
     ctx.fillRect(-3, -3, 6, 6);
     ctx.restore();
@@ -616,8 +614,10 @@ window.UI = (() => {
       return;
     }
 
-    const cx = x + size / 2, cy = y + size / 2;
-    const mapR = size * 0.286;
+    // 素材透明洞實測中心約在 (49.9%, 48.1%)，不是圖片幾何正中央。
+    // 依實際洞口對位，讓雷達內容向上約 2%，並稍微放大填滿內圈。
+    const cx = x + size * 0.499, cy = y + size * 0.481;
+    const mapR = size * 0.292;
     const k = (mapR - 7) / 1300;
     ctx.save();
     ctx.save();
@@ -961,7 +961,7 @@ window.UI = (() => {
     if (diegetic) {
       mapY = sBoxY;
       drawDiegeticMinimap(ctx, mapX, mapY, mapW, P, orders || [], job, extra.boss, dawnProgress, dawnSecLeft, time);
-      const statH = drawDiegeticRadarStatus(ctx, mapX, mapY + mapH + 2, mapW, delivered, goalDeliveries, score);
+      const statH = drawDiegeticRadarStatus(ctx, mapX, mapY + mapH, mapW, delivered, goalDeliveries, score);
       orderY = mapY + mapH + statH + 6;
     } else {
       ctx.textAlign = "left";

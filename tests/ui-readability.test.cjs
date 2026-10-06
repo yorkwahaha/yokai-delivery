@@ -198,6 +198,8 @@ test('diegetic radar uses illustrated frame with responsive phone and tablet siz
     assert.ok(r.texts.some(t=>t.value==='8:00'),`${width}: remaining time is integrated into radar`);
     assert.ok(r.texts.some(t=>t.value==='2/6'),`${width}: delivery progress sits with radar`);
     assert.ok(r.texts.some(t=>t.value==='345'),`${width}: score sits with radar`);
+    const status=r.texts.filter(t=>t.value==='2/6'||t.value==='345');
+    assert.ok(status.every(t=>t.y>frame[2]+frame[4]),`${width}: stats remain directly below radar without a separate panel`);
   }
 });
 
