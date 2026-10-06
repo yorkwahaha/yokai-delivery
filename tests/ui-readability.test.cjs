@@ -178,6 +178,26 @@ test('diegetic lantern grows on phone landscape, keeps tablet scale, and swings 
   }
 });
 
+test('diegetic radar uses illustrated frame with responsive phone and tablet sizing',()=>{
+  for(const [width,height,expectedSize] of [[844,390,190],[1180,820,174]]) {
+    const r=loadUI(width);r.env.window.innerWidth=width;r.env.window.innerHeight=height;
+    vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
+    r.env.window.UI_THEME='diegetic';
+    const lantern={complete:true,naturalWidth:1086,naturalHeight:1448};
+    const radar={complete:true,naturalWidth:1254,naturalHeight:1254};
+    r.env.window.ART={hud_lantern_oil:lantern,hud_radar_frame:radar};
+    const images=[];r.context.drawImage=(...args)=>images.push(args);
+    const bounds=r.env.window.VIEWPORT.hudBounds();
+    r.UI.drawHud(r.context,{x:0,y:0,faceAng:.4},100,100,120,600,0,0,0,1,0,30,null,0,[],null,null,true,null,
+      {x:bounds.right-138,y:bounds.bottom-180,r:38},{x:bounds.right-138,y:bounds.bottom-70,r:46},
+      {x:bounds.right-52,y:bounds.top+14,w:38,h:52},{},{},{},0,6,0,1.8,false,{time:1.234});
+    const frame=images.find(args=>args[0]===radar);
+    assert.ok(frame,`${width}: illustrated radar frame is rendered`);
+    assert.equal(Math.round(frame[3]),expectedSize,`${width}: radar frame width`);
+    assert.equal(Math.round(frame[4]),expectedSize,`${width}: radar frame height`);
+  }
+});
+
 test('HUD skill badges are readable and their labels fit their backing rectangles',()=>{
   for(const [width,height] of [[900,600],[844,390],[667,375],[568,320],[800,600],[1920,1080]]) {
     const r=drawHudFixture(width,height,160,160,{shield:6,dmg:1.9,rate:2,crit:2,spd:2,dash:2,mag:2});

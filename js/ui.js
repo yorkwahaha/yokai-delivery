@@ -479,7 +479,7 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  function drawDiegeticMinimap(ctx, x, y, size, P, orders, job, boss) {
+  function drawDiegeticMinimapFallback(ctx, x, y, size, P, orders, job, boss) {
     const cx = x + size / 2, cy = y + size / 2, outerR = size / 2, mapR = outerR - 17, k = (mapR - 7) / 1300;
     ctx.save();
     ctx.fillStyle = 'rgba(7,9,18,.92)'; ctx.beginPath(); ctx.arc(cx + 2, cy + 4, outerR + 3, 0, 6.283); ctx.fill();
@@ -499,6 +499,81 @@ window.UI = (() => {
     if (boss) { const m=place(boss.x,boss.y); glow(ctx,m.x,m.y,28,'#ff3b4f',.6); ctx.fillStyle='#ff3b4f';ctx.beginPath();ctx.arc(m.x,m.y,5,0,6.283);ctx.fill(); }
     glow(ctx,cx,cy,20,'#ffffff',.65); ctx.fillStyle='#fff'; ctx.save(); ctx.translate(cx,cy); ctx.rotate(P.faceAng||0); ctx.beginPath(); ctx.moveTo(7,0);ctx.lineTo(-4,-4);ctx.lineTo(-1,0);ctx.lineTo(-4,4);ctx.closePath();ctx.fill();ctx.restore();
     ctx.restore(); ctx.restore();
+  }
+
+  function drawDiegeticMinimap(ctx, x, y, size, P, orders, job, boss) {
+    const art = window.ART?.hud_radar_frame;
+    if (!art?.complete || !art.naturalWidth || !art.naturalHeight) {
+      drawDiegeticMinimapFallback(ctx, x, y, size, P, orders, job, boss);
+      return;
+    }
+
+    const cx = x + size / 2, cy = y + size / 2;
+    const mapR = size * 0.286;
+    const k = (mapR - 7) / 1300;
+    ctx.save();
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, mapR, 0, 6.283);
+    ctx.clip();
+
+    const glass = ctx.createRadialGradient(cx - mapR * 0.22, cy - mapR * 0.28, 0, cx, cy, mapR);
+    glass.addColorStop(0, "rgba(22,34,56,.98)");
+    glass.addColorStop(0.62, "rgba(9,19,36,.98)");
+    glass.addColorStop(1, "rgba(3,9,22,.99)");
+    ctx.fillStyle = glass;
+    ctx.fillRect(cx - mapR, cy - mapR, mapR * 2, mapR * 2);
+
+    ctx.strokeStyle = "rgba(127,227,240,.13)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - mapR, cy); ctx.lineTo(cx + mapR, cy);
+    ctx.moveTo(cx, cy - mapR); ctx.lineTo(cx, cy + mapR);
+    ctx.stroke();
+    for (const rr of [mapR * 0.36, mapR * 0.7]) {
+      ctx.beginPath(); ctx.arc(cx, cy, rr, 0, 6.283); ctx.stroke();
+    }
+
+    const place = (wx, wy) => {
+      let dx = (wx - P.x) * k, dy = (wy - P.y) * k;
+      const len = Math.hypot(dx, dy), max = mapR - 7, edge = len > max;
+      if (edge && len > 0) { dx *= max / len; dy *= max / len; }
+      return { x: cx + dx, y: cy + dy, edge };
+    };
+
+    for (const o of orders) {
+      const m = place(o.from.x, o.from.y), urgent = o.life < 25;
+      const color = urgent ? "#ff5b4f" : o.life < 55 ? "#ffb347" : C.gold;
+      glow(ctx, m.x, m.y, m.edge ? 10 : 15, color, urgent ? 0.75 : 0.48);
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(m.x, m.y, m.edge ? 2.4 : 3.4, 0, 6.283); ctx.fill();
+    }
+    if (job) {
+      const m = place(job.to.x, job.to.y);
+      glow(ctx, m.x, m.y, 24, C.cyan, 0.55);
+      ctx.fillStyle = C.cyan;
+      ctx.save(); ctx.translate(m.x, m.y); ctx.rotate(Math.PI / 4); ctx.fillRect(-4, -4, 8, 8); ctx.restore();
+    }
+    if (boss) {
+      const m = place(boss.x, boss.y);
+      glow(ctx, m.x, m.y, 28, "#ff3b4f", 0.62);
+      ctx.fillStyle = "#ff3b4f";
+      ctx.beginPath(); ctx.arc(m.x, m.y, 5, 0, 6.283); ctx.fill();
+    }
+
+    glow(ctx, cx, cy, 20, "#ffffff", 0.62);
+    ctx.fillStyle = "#fff8df";
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(P.faceAng || 0);
+    ctx.beginPath();
+    ctx.moveTo(7, 0); ctx.lineTo(-4, -4); ctx.lineTo(-1, 0); ctx.lineTo(-4, 4);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.restore();
+
+    ctx.drawImage(art, x, y, size, size);
+    ctx.restore();
   }
 
   function drawDiegeticQuestBoard(ctx, x, y, w, h) {
@@ -803,7 +878,9 @@ window.UI = (() => {
     ctx.textAlign = "left";
 
     const compact = scale < 0.62;
-    const mapW = diegetic ? (compact ? 108 : 136) : (compact ? 120 : 172);
+    const compactLandscape = (window.innerHeight || 600) <= 500 &&
+      (window.innerWidth || 900) > (window.innerHeight || 600) * 1.55;
+    const mapW = diegetic ? (compactLandscape ? 190 : 174) : (compact ? 120 : 172);
     const mapH = diegetic ? mapW : (compact ? 84 : 118), mapY = sBoxY + sBoxH + 8;
     if (diegetic) drawDiegeticMinimap(ctx, sBoxX + sBoxW - mapW, mapY, mapW, P, orders || [], job, extra.boss);
     else drawMinimap(ctx, sBoxX + sBoxW - mapW, mapY, mapW, mapH, P, orders || [], job, extra.boss, time);

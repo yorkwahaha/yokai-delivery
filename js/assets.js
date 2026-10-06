@@ -48,6 +48,17 @@ function loadHudLanternArt() {
   img.src = "assets/img/ui/hud_lantern_oil.png";
 }
 
+function loadHudRadarArt() {
+  const img = new Image();
+  img.fetchPriority = "high";
+  img.decoding = "async";
+  img.onload = () => { ART.hud_radar_frame = img; };
+  img.onerror = () => {
+    console.warn("[Assets] HUD 雷達外框素材載入失敗，將使用程式繪製備援。");
+  };
+  img.src = "assets/img/ui/hud_radar_frame.png";
+}
+
 // 首頁只載入封面；進入旅路或遊戲才下載角色、敵人與場景。
 loadArt("cover");
 let gameArtStarted = false;
@@ -56,6 +67,7 @@ window.loadGameArt = () => {
   gameArtStarted = true;
   window.ART_PROGRESS.total = GAME_ASSET_NAMES.length + 1;
   loadHudLanternArt();
+  loadHudRadarArt();
   GAME_ASSET_NAMES.forEach(loadArt);
 };
 

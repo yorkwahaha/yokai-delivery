@@ -25,12 +25,13 @@ test('title prioritizes only the cover and leaves music downloads until playback
   images[0].onload();
   assert.equal(env.ART.cover, images[0]);
   env.loadGameArt();
-  assert.equal(images.length, 31);
+  assert.equal(images.length, 32);
   env.loadGameArt();
-  assert.equal(images.length, 31);
+  assert.equal(images.length, 32);
   for (const image of images.slice(1)) image.onload();
   assert.equal(env.ART_READY, true);
   assert.ok(env.ART.hud_lantern_oil);
+  assert.ok(env.ART.hud_radar_frame);
   assert.ok(env.ART.ground_dirt);
   assert.ok(env.ART.ground);
 });
