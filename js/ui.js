@@ -11,7 +11,7 @@ window.UI = (() => {
   const screenBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:900,bottom:600,width:900,height:600};
   // 暫時停用尚未素材化的 diegetic 假繪馬／假扇子；保留程式以便日後換正式素材再開。
   const DIEGETIC_QUEST_BOARD_ENABLED = false;
-  const DIEGETIC_SKILL_FAN_ENABLED = false;
+  const DIEGETIC_SKILL_FAN_ENABLED = true;
   function fillScreen(ctx) { const b = screenBounds(); ctx.fillRect(b.left,b.top,b.width,b.height); }
   const W = 900, H = 600;
   const RESTART_BTN = { x: 150, y: 492, w: 180, h: 48 };
@@ -892,7 +892,7 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  function drawDiegeticSkillFan(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion) {
+  function drawDiegeticSkillFanFallback(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion) {
     const cx=2, cy=78, fanR=132, a0=-1.48, a1=-0.12;
     ctx.save();
     ctx.fillStyle='rgba(0,0,0,.36)';ctx.beginPath();ctx.moveTo(cx+4,cy+5);ctx.arc(cx+4,cy+5,fanR+6,a0,a1);ctx.closePath();ctx.fill();
@@ -909,6 +909,85 @@ window.UI = (() => {
       }else{ctx.strokeStyle='rgba(232,195,106,.42)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx,sy,19,0,6.283);ctx.stroke();ctx.fillStyle='rgba(232,195,106,.5)';ctx.textAlign='center';ctx.font=readableFont(13,'900');ctx.fillText('＋',sx,sy+5);}
     }
     ctx.restore();
+  }
+
+  function drawDiegeticSkillFan(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion) {
+    const art = window.ART?.hud_skill_fan;
+    if (!art?.complete || !art.naturalWidth || !art.naturalHeight) {
+      drawDiegeticSkillFanFallback(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion);
+      return 140;
+    }
+
+    const drawW = 220;
+    const drawH = drawW * (art.naturalHeight / art.naturalWidth);
+    const dx = -6;
+    const dy = 82 - drawH;
+    const slots = [
+      [0.178, 0.225],
+      [0.374, 0.310],
+      [0.541, 0.437],
+      [0.660, 0.626],
+      [0.783, 0.803]
+    ];
+    const slotR = 15.8;
+
+    ctx.save();
+    ctx.drawImage(art, dx, dy, drawW, drawH);
+
+    for (let i = 0; i < 4; i++) {
+      const [nx, ny] = slots[i];
+      const sx = dx + drawW * nx, sy = dy + drawH * ny;
+      const k = ownedKeys[i];
+      if (k) {
+        const tone = WEAPON_TONE[k] || C.gold;
+        glow(ctx, sx, sy, 46, tone, motion ? 0.17 * pulse(3, 0.4) : 0.09);
+        drawEmblem(ctx, k, sx, sy, 13.5);
+        const cd = extra.cd?.[k] || 0;
+        if (cd > 0.02) {
+          ctx.fillStyle = "rgba(4,6,14,.68)";
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.arc(sx, sy, slotR - 1, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * cd);
+          ctx.closePath();
+          ctx.fill();
+        }
+        const lvl = WL[k];
+        ctx.fillStyle = "#e8c36a";
+        ctx.strokeStyle = "#6d471d";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(sx - 19, sy + 17, 38, badgeH, 4);
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#201516";
+        ctx.textAlign = "center";
+        ctx.font = "900 " + badgeTextSize + "px Noto Sans JP, sans-serif";
+        ctx.fillText(lvl >= 5 ? "MAX" : "L" + lvl, sx, sy + 17 + badgeTextSize + 3);
+      } else {
+        ctx.fillStyle = "rgba(232,195,106,.52)";
+        ctx.textAlign = "center";
+        ctx.font = readableFont(13, "900");
+        ctx.fillText("＋", sx, sy + 5);
+      }
+    }
+
+    // 第五洞保留為未解鎖槽：只顯示鎖頭，不綁任何技能資料。
+    {
+      const [nx, ny] = slots[4];
+      const sx = dx + drawW * nx, sy = dy + drawH * ny;
+      ctx.fillStyle = "rgba(7,10,24,.62)";
+      ctx.beginPath(); ctx.arc(sx, sy, slotR - 1, 0, 6.283); ctx.fill();
+      ctx.strokeStyle = "rgba(226,190,98,.72)";
+      ctx.lineWidth = 1.7;
+      ctx.beginPath(); ctx.arc(sx, sy - 2, 5.6, Math.PI, 0); ctx.stroke();
+      ctx.fillStyle = "rgba(226,190,98,.78)";
+      ctx.beginPath(); ctx.roundRect(sx - 7, sy - 2, 14, 11, 2.5); ctx.fill();
+      ctx.fillStyle = "rgba(32,24,26,.82)";
+      ctx.beginPath(); ctx.arc(sx, sy + 3, 1.5, 0, 6.283); ctx.fill();
+      ctx.fillRect(sx - 0.7, sy + 3, 1.4, 3.2);
+    }
+
+    ctx.restore();
+    return drawW;
   }
 
   const lowOilCache = new Map();
@@ -1288,8 +1367,9 @@ window.UI = (() => {
     const slotStartX = 0, slotY = 0;
 
     const useSkillFan = diegetic && DIEGETIC_SKILL_FAN_ENABLED;
+    let fanWidth = 0;
     if (useSkillFan) {
-      drawDiegeticSkillFan(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion);
+      fanWidth = drawDiegeticSkillFan(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion);
     } else {
       for (let i = 0; i < maxActiveSlots; i++) {
         const sx = slotStartX + i * (slotSize + slotGap);
@@ -1325,7 +1405,8 @@ window.UI = (() => {
       { id: "mag", lvl: b.mag || 0, active: (b.mag || 0) > 0 }
     ].filter(p => p.active);
 
-    const passiveX = maxActiveSlots * (slotSize + slotGap) + 8, available = (bounds.width - 18 - 180) / 1.2;
+    const passiveX = useSkillFan ? fanWidth + 12 : maxActiveSlots * (slotSize + slotGap) + 8;
+    const available = (bounds.width - 18 - 180) / 1.2;
     const passiveSlots = Math.max(1, Math.floor((available - passiveX + slotGap) / (slotSize + slotGap)));
     const visibleCount = passives.length <= passiveSlots ? passives.length : passiveSlots - 1;
     passives.slice(0, visibleCount).forEach((pas, pIdx) => {

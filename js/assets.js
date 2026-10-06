@@ -70,6 +70,17 @@ function loadHudOmamoriArt() {
   img.src = "assets/img/ui/hud_omamori_hint_listen.png?v=20261006-omamori1";
 }
 
+function loadHudSkillFanArt() {
+  const img = new Image();
+  img.fetchPriority = "high";
+  img.decoding = "async";
+  img.onload = () => { ART.hud_skill_fan = img; };
+  img.onerror = () => {
+    console.warn("[Assets] HUD 摺扇素材載入失敗，將使用程式繪製備援。");
+  };
+  img.src = "assets/img/ui/hud_skill_fan.png?v=20261006-fan1";
+}
+
 // 首頁只載入封面；進入旅路或遊戲才下載角色、敵人與場景。
 loadArt("cover");
 let gameArtStarted = false;
@@ -80,6 +91,7 @@ window.loadGameArt = () => {
   loadHudLanternArt();
   loadHudRadarArt();
   loadHudOmamoriArt();
+  loadHudSkillFanArt();
   GAME_ASSET_NAMES.forEach(loadArt);
 };
 

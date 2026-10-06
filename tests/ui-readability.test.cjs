@@ -213,7 +213,11 @@ test('diegetic radar phase 2 keeps the clock outside navigation content and pres
   assert.match(src,/const pulsePhase = \(time \* 1\.65\) % 1/,'danger pulse is active');
   assert.match(src,/const dawnGlow = clamp\(\(dawnProgress - 0\.62\) \/ 0\.38/,'dawn glow is active');
   assert.match(src,/const DIEGETIC_QUEST_BOARD_ENABLED = false/,'placeholder quest board stays disabled');
-  assert.match(src,/const DIEGETIC_SKILL_FAN_ENABLED = false/,'placeholder skill fan stays disabled');
+  assert.match(src,/const DIEGETIC_SKILL_FAN_ENABLED = true/,'hand-painted skill fan is enabled');
+  assert.match(src,/hud_skill_fan/,'hand-painted fan asset is preferred');
+  assert.match(src,/const drawW = 220/,'fan uses a bounded responsive draw size');
+  assert.match(src,/\[0\.783, 0\.803\]/,'fifth fan aperture is reserved');
+  assert.match(src,/第五洞保留為未解鎖槽/,'fifth aperture remains locked');
 });
 
 test('diegetic delivery guidance uses original radar icons and an omamori hint',()=>{
