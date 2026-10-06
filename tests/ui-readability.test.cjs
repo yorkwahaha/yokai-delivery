@@ -224,6 +224,11 @@ test('diegetic delivery guidance uses original radar icons and an omamori hint',
   assert.match(src,/hud_omamori_hint_listen/,'hand-painted omamori asset is preferred');
   assert.doesNotMatch(src,/const cost = stage === 0/,'hint cost is not permanently printed on the omamori');
   assert.match(src,/if \(diegetic && job && !bossHunt\)/,'omamori hit area only moves beside lantern for active deliveries');
+  assert.match(src,/Math\.sin\(p \* Math\.PI \* 5\)/,'omamori enters with a damped multi-swing pendulum');
+  assert.match(src,/const dropY = -14 \* \(1 - easeOut\)/,'omamori slides down while swinging in');
+  assert.match(src,/\(nowMs - omamoriEnterAtMs\) \/ 520/,'omamori entry settles in about half a second');
+  assert.match(src,/HINT_BTN\.w = compactLandscape \? 50 : 43/,'omamori is larger on phone and tablet');
+  assert.match(src,/if \(!diegetic\) \{\n\s*const remaining = Math\.round/,'diegetic active delivery no longer draws the legacy cargo cue or compass arrow');
   assert.match(src,/else if \(!diegetic\) \{\n\s*\/\/ 沒有進行中的委託/,'classic alone keeps the old pickup arrow prompt');
 });
 

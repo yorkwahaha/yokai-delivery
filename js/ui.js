@@ -20,6 +20,8 @@ window.UI = (() => {
   const MENU_START_BTN = { x: W / 2 - 132, y: 478, w: 264, h: 54 };
   const MENU_CONTROLS_BTN = { x: 20, y: 22, w: 180, h: 38 };
   const HINT_BTN = { x: 532, y: 20, w: 78, h: 40 };
+  let omamoriJobRef = null;
+  let omamoriEnterAtMs = 0;
   const REROLL_BTN = { x: 620, y: 538, w: 190, h: 44 };
   const TUTORIAL_BTNS = [{x:100,y:390,w:330,h:70},{x:470,y:390,w:330,h:70}];
   const EXIT_BTNS = [{id:'exit-cancel',x:195,y:330,w:240,h:70},{id:'exit-confirm',x:465,y:330,w:240,h:70}];
@@ -840,7 +842,7 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  function drawDiegeticOmamoriHint(ctx, b, stage, time) {
+  function drawDiegeticOmamoriHint(ctx, b, stage, time, entryProgress = 1, lanternHit = 0) {
     const art = window.ART?.hud_omamori_hint_listen;
     if (!art?.complete || !art.naturalWidth || !art.naturalHeight) {
       drawDiegeticOmamoriHintFallback(ctx, b, stage, time);
@@ -848,19 +850,29 @@ window.UI = (() => {
     }
 
     const disabled = stage >= 2;
-    const sway = calm() ? 0 : Math.sin(time * 1.9 + 0.5) * 0.022;
+    const p = calm() ? 1 : clamp(entryProgress, 0, 1);
+    const easeOut = 1 - Math.pow(1 - p, 3);
+    const dropY = -14 * (1 - easeOut);
+    const entrySwing = calm() ? 0 : Math.sin(p * Math.PI * 5) * (Math.PI / 180 * 18) * Math.pow(1 - p, 1.15);
+    const idleSwing = calm() ? 0 : (
+      Math.sin((time - 0.11) * 1.35 + 0.35) * 0.018 +
+      Math.sin((time - 0.11) * 0.72 + 1.1) * 0.007
+    ) * p;
+    const impactSwing = calm() ? 0 : Math.sin((time - 0.09) * 18) * 0.045 * clamp(lanternHit, 0, 1) * p;
+    const sway = entrySwing + idleSwing + impactSwing;
     const aspect = art.naturalWidth / art.naturalHeight;
     const drawH = b.h;
     const drawW = drawH * aspect;
     const dx = b.x + (b.w - drawW) / 2;
     const dy = b.y;
-    const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    const pivotX = b.x + b.w / 2;
+    const pivotY = b.y + 3;
 
     ctx.save();
-    ctx.translate(cx, cy);
+    ctx.translate(pivotX, pivotY + dropY);
     ctx.rotate(sway);
-    ctx.translate(-cx, -cy);
-    ctx.globalAlpha = disabled ? 0.58 : 1;
+    ctx.translate(-pivotX, -pivotY);
+    ctx.globalAlpha = (disabled ? 0.58 : 1) * clamp(p * 1.8, 0, 1);
     ctx.drawImage(art, dx, dy, drawW, drawH);
 
     if (stage >= 1) {
@@ -1194,17 +1206,25 @@ window.UI = (() => {
     const useQuestBoard = diegetic && DIEGETIC_QUEST_BOARD_ENABLED;
     const taskW = Math.min(370, sBoxX - taskX - 15), taskH = useQuestBoard ? 68 : 52;
     if (useQuestBoard) drawDiegeticQuestBoard(ctx, taskX, taskY - 5, taskW, taskH + 5);
+    let omamoriEntryProgress = 1;
     if (diegetic && job && !bossHunt) {
+      const nowMs = performance.now();
+      if (job !== omamoriJobRef) {
+        omamoriJobRef = job;
+        omamoriEnterAtMs = nowMs;
+      }
+      omamoriEntryProgress = calm() ? 1 : clamp((nowMs - omamoriEnterAtMs) / 520, 0, 1);
       const lanternArt = window.ART?.hud_lantern_oil;
       const lanternAspect = lanternArt?.naturalWidth && lanternArt?.naturalHeight
         ? lanternArt.naturalWidth / lanternArt.naturalHeight : 0.75;
       const lanternVisualH = compactLandscape ? 190 : 168;
       const lanternVisualW = lanternVisualH * lanternAspect;
-      HINT_BTN.w = compactLandscape ? 42 : 38;
-      HINT_BTN.h = compactLandscape ? 58 : 54;
+      HINT_BTN.w = compactLandscape ? 50 : 43;
+      HINT_BTN.h = compactLandscape ? 69 : 60;
       HINT_BTN.x = pBoxX + lanternVisualW - 4;
-      HINT_BTN.y = pBoxY + (compactLandscape ? 60 : 54);
+      HINT_BTN.y = pBoxY + (compactLandscape ? 56 : 50);
     } else {
+      omamoriJobRef = null;
       HINT_BTN.w = 78;
       HINT_BTN.h = 40;
       HINT_BTN.x = taskX + taskW - HINT_BTN.w - 8;
@@ -1221,21 +1241,23 @@ window.UI = (() => {
       drawCompass(ctx, taskX + taskW / 2 - 84, taskY + 26, extra.bossAngle, { color: "#ff3b4f", count: 2, size: 1.2 });
       drawCompass(ctx, taskX + taskW / 2 + 84, taskY + 26, extra.bossAngle, { color: "#ff3b4f", count: 2, size: 1.2 });
     } else if (job) {
-      const remaining = Math.round(Math.hypot(P.x - job.to.x, P.y - job.to.y) / 10) * 10;
-      ctx.fillStyle = useQuestBoard ? '#43291d' : '#fff3ca';
-      ctx.font = readableFont(18, '900');
-      if (job.word.cue !== 'text') drawWordCue(ctx, job.word, taskX + 27, taskY + 16, 24);
-      if (useQuestBoard) ctx.fillText(job.word.zh, taskX + (job.word.cue === 'text' ? 16 : 48), taskY + 27);
-      else inkText(ctx, job.word.zh, taskX + (job.word.cue === 'text' ? 16 : 48), taskY + 23);
-      drawCompass(ctx, taskX + 24, taskY + 40, extra.guideAngle, { color: '#ffd152', size: 1.1 });
-      ctx.fillStyle = useQuestBoard ? '#5a3828' : '#82d8ff';
-      ctx.font = readableFont(12, '900');
-      if (useQuestBoard) ctx.fillText(String(remaining), taskX + 44, taskY + 48);
-      else inkText(ctx, String(remaining), taskX + 44, taskY + 44);
+      if (!diegetic) {
+        const remaining = Math.round(Math.hypot(P.x - job.to.x, P.y - job.to.y) / 10) * 10;
+        ctx.fillStyle = useQuestBoard ? '#43291d' : '#fff3ca';
+        ctx.font = readableFont(18, '900');
+        if (job.word.cue !== 'text') drawWordCue(ctx, job.word, taskX + 27, taskY + 16, 24);
+        if (useQuestBoard) ctx.fillText(job.word.zh, taskX + (job.word.cue === 'text' ? 16 : 48), taskY + 27);
+        else inkText(ctx, job.word.zh, taskX + (job.word.cue === 'text' ? 16 : 48), taskY + 23);
+        drawCompass(ctx, taskX + 24, taskY + 40, extra.guideAngle, { color: '#ffd152', size: 1.1 });
+        ctx.fillStyle = useQuestBoard ? '#5a3828' : '#82d8ff';
+        ctx.font = readableFont(12, '900');
+        if (useQuestBoard) ctx.fillText(String(remaining), taskX + 44, taskY + 48);
+        else inkText(ctx, String(remaining), taskX + 44, taskY + 44);
+      }
 
       const hintStage = job.hintStage || 0;
       const hintLabel = hintStage === 0 ? '聽 -3' : hintStage === 1 ? '詞 -4' : '✓';
-      if (diegetic) drawDiegeticOmamoriHint(ctx, HINT_BTN, hintStage, time);
+      if (diegetic) drawDiegeticOmamoriHint(ctx, HINT_BTN, hintStage, time, omamoriEntryProgress, extra.lanternHit || 0);
       else if (useQuestBoard) drawDiegeticHintTag(ctx, HINT_BTN, hintLabel, hintStage >= 2);
       else drawButton(ctx, HINT_BTN, hintLabel, {
         tone: 'cyan', size: 14, icon: hintStage === 0 ? 'listen' : 'hint', disabled: hintStage >= 2
