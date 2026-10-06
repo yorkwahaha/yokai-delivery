@@ -508,7 +508,9 @@ window.UI = (() => {
     const end = start + span;
     const angle = start + span * p;
     // 時間標記掛在羅盤外緣，不進入雷達資料區；玩家看到它會理解為時序，而非目標點。
-    const ringR = size * 0.465;
+    // 軌道再外移，讓月亮/太陽完全脫離雷達資料區與黃銅內框；
+    // 標記可以略微超出圖片邊界，但仍緊貼整顆羅盤的視覺輪廓。
+    const ringR = size * 0.56;
     const danger = clamp((p - 0.78) / 0.22, 0, 1);
     const dangerPulse = 0.5 + Math.sin(time * 5.4) * 0.5;
     const trackColor = danger > 0.7 ? "#ff5d45" : danger > 0.18 ? "#ff9b52" : "#ffd36f";
@@ -526,9 +528,10 @@ window.UI = (() => {
     const mx = cx + Math.cos(angle) * ringR;
     const my = cy + Math.sin(angle) * ringR;
     const eased = p * p * (3 - 2 * p);
-    const markerR = size * (0.027 + eased * 0.006);
+    const markerR = size * (0.034 + eased * 0.006);
     const markerColor = danger > 0.55 ? "#ff714e" : eased > 0.5 ? "#ffb347" : "#d9e5ff";
-    glow(ctx, mx, my, size * (0.13 + eased * 0.06 + danger * dangerPulse * 0.04), markerColor, 0.66);
+    // 標記本體放大、光暈收斂，讓弦月輪廓比 bloom 更容易辨認。
+    glow(ctx, mx, my, size * (0.095 + eased * 0.05 + danger * dangerPulse * 0.04), markerColor, 0.44);
 
     const moonAlpha = clamp(1 - eased * 1.15, 0, 1);
     if (moonAlpha > 0.01) {
@@ -536,12 +539,16 @@ window.UI = (() => {
       ctx.fillStyle = "#e9efff";
       ctx.strokeStyle = "rgba(255,248,220,.92)";
       ctx.lineWidth = Math.max(1.1, size * 0.007);
+      // 用 even-odd 雙圓做真正的弦月；隨夜色推進稍微變厚，再交棒給日輪。
+      const wax = clamp(eased / 0.46, 0, 1);
+      const innerR = markerR * (0.91 - wax * 0.08);
+      const innerX = mx + markerR * (0.46 - wax * 0.16);
+      const innerY = my - markerR * 0.04;
       ctx.beginPath();
-      ctx.moveTo(mx + markerR * 0.15, my - markerR);
-      ctx.bezierCurveTo(mx - markerR * 0.95, my - markerR * 0.55, mx - markerR * 0.95, my + markerR * 0.62, mx + markerR * 0.12, my + markerR);
-      ctx.bezierCurveTo(mx - markerR * 0.18, my + markerR * 0.32, mx + markerR * 0.3, my - markerR * 0.36, mx + markerR * 0.15, my - markerR);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
+      ctx.arc(mx, my, markerR, 0, 6.283);
+      ctx.arc(innerX, innerY, innerR, 0, 6.283);
+      ctx.fill("evenodd");
+      ctx.beginPath(); ctx.arc(mx, my, markerR, 0, 6.283); ctx.stroke();
     }
 
     const sunAlpha = clamp((eased - 0.22) / 0.78, 0, 1);
@@ -614,7 +621,8 @@ window.UI = (() => {
     // 素材透明洞實測中心約在 (49.9%, 48.1%)，不是圖片幾何正中央。
     // 依實際洞口對位，讓雷達內容向上約 2%，並稍微放大填滿內圈。
     const cx = x + size * 0.499, cy = y + size * 0.481;
-    const mapR = size * 0.292;
+    // 放大雷達底盤，讓它吃滿素材的中央透明洞；超出的部分仍會被外框自然遮住。
+    const mapR = size * 0.315;
     const k = (mapR - 7) / 1300;
     ctx.save();
     ctx.save();

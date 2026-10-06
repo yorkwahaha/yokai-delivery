@@ -44,7 +44,7 @@ test('WebP failures retry preserved originals once and settle even when both are
   env.loadGameArt();
   for (const image of images.slice(1)) {
     image.onerror();
-    assert.ok(image.src.endsWith('.png'));
+    assert.ok(image.src.split('?')[0].endsWith('.png'));
     image.onload();
   }
   assert.equal(env.ART_READY, true);

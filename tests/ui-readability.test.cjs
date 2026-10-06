@@ -205,7 +205,9 @@ test('diegetic radar uses illustrated frame with responsive phone and tablet siz
 
 test('diegetic radar phase 2 keeps the clock outside navigation content and preserves integrated status',()=>{
   const src=fs.readFileSync('js/ui.js','utf8');
-  assert.match(src,/const ringR = size \* 0\.465/,'time marker rides the outer rim');
+  assert.match(src,/const ringR = size \* 0\.56/,'time marker rides beyond the decorative rim');
+  assert.match(src,/ctx\.fill\("evenodd"\)/,'moon starts as a true crescent');
+  assert.match(src,/const mapR = size \* 0\.315/,'radar content fills the central aperture');
   assert.doesNotMatch(src,/for \(let i = 0; i <= 10; i\+\+\)/,'extra hour ticks are removed');
   assert.match(src,/const sweepA = \(time \* 0\.72\)/,'radar sweep is active');
   assert.match(src,/const pulsePhase = \(time \* 1\.65\) % 1/,'danger pulse is active');

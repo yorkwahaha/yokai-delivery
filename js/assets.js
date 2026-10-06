@@ -56,7 +56,7 @@ function loadHudRadarArt() {
   img.onerror = () => {
     console.warn("[Assets] HUD 雷達外框素材載入失敗，將使用程式繪製備援。");
   };
-  img.src = "assets/img/ui/hud_radar_frame.png";
+  img.src = "assets/img/ui/hud_radar_frame.png?v=20261006-radar2";
 }
 
 // 首頁只載入封面；進入旅路或遊戲才下載角色、敵人與場景。
