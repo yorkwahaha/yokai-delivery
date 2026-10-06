@@ -159,7 +159,7 @@
     return result;
   }
   const wMax = { katana: 0.72, barrier: 3, needle: 1, boom: 2, thunder: 2.6, fire:1.1 };
-  let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0, endCooldown = 0;
+  let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0, endCooldown = 0, lanternHitT = 0;
   let dashDir = { x: 1, y: 0 };
   let choices = [], levelupCooldown = 0, joy = null, touch = window.matchMedia?.("(pointer: coarse)")?.matches || false, inter = null, cargo = { x: 0, y: 0 }, pTrail = [], last = performance.now();
   const btnE = { x: 810, y: 420, r: 38 }, btnD = { x: 810, y: 530, r: 46 };
@@ -410,7 +410,7 @@
     SKILLFX.reset();
     rerolls = 2; titleCardT = 3; runSummary = null;
     bossStage = 0; bossT = BOSS_TIMES[0]; finalBossDefeated = false; finalBossPos = null; finalBossEnt = null; victorySeq = null; lampSeq = null;
-    ended = false; bossQ = null; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0;
+    ended = false; bossQ = null; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0; lanternHitT = 0;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     pTrail = [];
     for (let i = 0; i <= 24; i++) {
@@ -1443,6 +1443,9 @@
 
     if (warnDawnT > 0) warnDawnT -= dt;
 
+    // 燈火受擊衝量獨立衰減；即使命中停頓，也讓 HUD 的震盪自然回穩。
+    lanternHitT = Math.max(0, lanternHitT - dt);
+
     // 命中停頓只凍結戰鬥動作；夜行時鐘、Boss 排程與耗油照常前進。
     if (hitStopped) return;
 
@@ -1660,6 +1663,7 @@
         } else {
           const dmg = (slamHit ? 20 : e.type === "tank" ? 18 : 10);
           oil -= dmg;
+          lanternHitT = 0.42;
           P.inv = 1.0;
           RENDERER.triggerShake(10);
           burst(P.x, P.y, "#ff6b81", 18);
@@ -1693,6 +1697,7 @@
         } else {
           const dmg = 8;
           oil -= dmg;
+          lanternHitT = 0.42;
           P.inv = 0.85;
           RENDERER.triggerShake(7);
           burst(P.x, P.y, "#ff6b81", 14);
@@ -2664,6 +2669,7 @@
     const huntTarget = bossHunting ? enemies.find(e => e.type === "boss" && e.final && e.hp > 0) : null;
     return {
       time, cd, houses, cam: RENDERER.getCam(),
+      lanternHit: clamp(lanternHitT / 0.42, 0, 1),
       // 固定在任務區旋轉的方向箭頭：送貨／取貨目標（金），破曉後的大妖鬼（赤雙箭頭）。
       guideAngle: guideTarget ? Math.atan2(guideTarget.y - P.y, guideTarget.x - P.x) : null,
       bossAngle: huntTarget ? Math.atan2(huntTarget.y - P.y, huntTarget.x - P.x) : null,

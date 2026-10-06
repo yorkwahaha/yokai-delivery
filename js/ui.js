@@ -357,7 +357,7 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  function drawDiegeticOilLantern(ctx, x, y, oil, maxOil, lowOil, time) {
+  function drawDiegeticOilLantern(ctx, x, y, oil, maxOil, lowOil, time, hit = 0) {
     const art = window.ART?.hud_lantern_oil;
     if (!art?.complete || !art.naturalWidth || !art.naturalHeight) {
       drawDiegeticOilLanternFallback(ctx, x, y, oil, maxOil, lowOil, time);
@@ -365,8 +365,11 @@ window.UI = (() => {
     }
 
     const ratio = clamp(oil / Math.max(1, maxOil), 0, 1);
+    const hitImpulse = clamp(hit, 0, 1);
+    const motion = !calm();
     const lit = lowOil ? "#ff5848" : "#ffb13b";
-    const flicker = calm() ? 0.84 : 0.8 + Math.sin(time * 7.2) * 0.07 + Math.sin(time * 12.7) * 0.035;
+    const flicker = motion ? 0.82 + Math.sin(time * 7.2) * 0.065 + Math.sin(time * 12.7) * 0.035 : 0.86;
+    const hitDim = 1 - hitImpulse * 0.55;
     const assetH = 168;
     const assetW = assetH * (art.naturalWidth / art.naturalHeight);
     const dx = x - 4;
@@ -376,49 +379,84 @@ window.UI = (() => {
     const windowW = assetW * 0.285;
     const windowH = assetH * 0.235;
 
+    const bodyCx = dx + assetW * 0.57;
+    const bodyCy = dy + assetH * 0.55;
+    const bodyW = assetW * 0.58;
+    const bodyH = assetH * 0.60;
+    const oilLight = 0.28 + Math.pow(ratio, 0.7) * 0.72;
+
     ctx.save();
-    glow(ctx, windowCx, windowCy, assetW * 0.75, lit, (lowOil ? 0.34 : 0.24) * flicker);
+    glow(ctx, windowCx, windowCy, assetW * (0.52 + ratio * 0.26), lit, (0.08 + ratio * 0.24) * flicker * hitDim);
 
     // 先在透明窗洞後方畫火焰，再覆上美術素材，窗框自然遮住邊緣。
     ctx.save();
     ctx.beginPath();
     ctx.roundRect(windowCx - windowW / 2, windowCy - windowH / 2, windowW, windowH, Math.max(4, windowW * 0.12));
     ctx.clip();
-    const innerGlow = ctx.createRadialGradient(windowCx, windowCy + windowH * 0.08, 0, windowCx, windowCy, windowW * 0.62);
-    innerGlow.addColorStop(0, lowOil ? "rgba(255,96,58,.55)" : "rgba(255,209,82,.62)");
-    innerGlow.addColorStop(0.58, lowOil ? "rgba(190,40,30,.32)" : "rgba(255,114,24,.34)");
+    const innerGlow = ctx.createRadialGradient(windowCx, windowCy + windowH * 0.08, 0, windowCx, windowCy, windowW * (0.5 + ratio * 0.18));
+    innerGlow.addColorStop(0, lowOil ? `rgba(255,96,58,${0.22 + oilLight * 0.34 * hitDim})` : `rgba(255,209,82,${0.24 + oilLight * 0.42 * hitDim})`);
+    innerGlow.addColorStop(0.58, lowOil ? `rgba(190,40,30,${0.12 + oilLight * 0.2 * hitDim})` : `rgba(255,114,24,${0.12 + oilLight * 0.24 * hitDim})`);
     innerGlow.addColorStop(1, "rgba(35,12,10,0)");
     ctx.fillStyle = innerGlow;
     ctx.fillRect(windowCx - windowW / 2, windowCy - windowH / 2, windowW, windowH);
 
-    const flameScale = 0.58 + ratio * 0.42;
-    const flameH = windowH * 0.66 * flameScale;
-    const flameW = windowW * 0.42 * flameScale;
+    const baseSway = motion ? Math.sin(time * 2.35) * 0.12 + Math.sin(time * 4.1 + 0.7) * 0.045 : 0;
+    const impactSway = motion ? (Math.sin(time * 42) * 0.46 + Math.sin(time * 67 + 1.3) * 0.17) * hitImpulse : 0;
+    const sway = baseSway + impactSway;
+    const stretch = motion ? 1 + Math.sin(time * 5.2 + 0.4) * 0.045 + Math.sin(time * 31) * 0.12 * hitImpulse : 1;
+    const flameScale = (0.46 + Math.pow(ratio, 0.72) * 0.54) * (1 - hitImpulse * 0.1);
+    const flameH = windowH * 0.66 * flameScale * stretch;
+    const flameW = windowW * 0.42 * flameScale / Math.sqrt(Math.max(0.72, stretch));
     const fy = windowCy + windowH * 0.29;
+    const tipX = windowCx + flameW * sway;
+    const midX = windowCx + flameW * sway * 0.42;
+    ctx.globalAlpha = hitDim;
     ctx.fillStyle = lowOil ? "#ff6a49" : "#ffb52d";
     ctx.beginPath();
     ctx.moveTo(windowCx, fy);
-    ctx.bezierCurveTo(windowCx - flameW * 0.72, fy - flameH * 0.2, windowCx - flameW * 0.35, fy - flameH * 0.62, windowCx - flameW * 0.08, fy - flameH);
-    ctx.bezierCurveTo(windowCx + flameW * 0.02, fy - flameH * 0.66, windowCx + flameW * 0.64, fy - flameH * 0.5, windowCx + flameW * 0.46, fy - flameH * 0.13);
+    ctx.bezierCurveTo(windowCx - flameW * 0.72, fy - flameH * 0.2, midX - flameW * 0.35, fy - flameH * 0.62, tipX - flameW * 0.08, fy - flameH);
+    ctx.bezierCurveTo(tipX + flameW * 0.02, fy - flameH * 0.66, midX + flameW * 0.64, fy - flameH * 0.5, windowCx + flameW * 0.46, fy - flameH * 0.13);
     ctx.quadraticCurveTo(windowCx + flameW * 0.22, fy + flameH * 0.08, windowCx, fy);
     ctx.fill();
     ctx.fillStyle = lowOil ? "#ffd17a" : "#fff08a";
     ctx.beginPath();
-    ctx.ellipse(windowCx + flameW * 0.02, fy - flameH * 0.18, flameW * 0.13, flameH * 0.25, 0.18, 0, 6.283);
+    ctx.ellipse(windowCx + flameW * (0.02 + sway * 0.18), fy - flameH * 0.18, flameW * 0.13, flameH * 0.25, sway * 0.24, 0, 6.283);
     ctx.fill();
     ctx.restore();
 
     ctx.drawImage(art, dx, dy, assetW, assetH);
 
+    // 紙罩不直接降整張 PNG 透明度：以局部 multiply + screen 疊出內部透光感。
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(bodyCx, bodyCy, bodyW / 2, bodyH / 2, 0, 0, 6.283);
+    ctx.clip();
+    const dimAlpha = (1 - ratio) * 0.2 + hitImpulse * 0.14;
+    if (dimAlpha > 0.005) {
+      ctx.globalCompositeOperation = "multiply";
+      ctx.globalAlpha = dimAlpha;
+      ctx.fillStyle = lowOil ? "#8d3025" : "#5d3b2a";
+      ctx.fillRect(bodyCx - bodyW / 2, bodyCy - bodyH / 2, bodyW, bodyH);
+    }
+    ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = (0.055 + ratio * 0.21) * hitDim;
+    const paperGlow = ctx.createRadialGradient(bodyCx, bodyCy - bodyH * 0.08, bodyW * 0.05, bodyCx, bodyCy, bodyW * 0.56);
+    paperGlow.addColorStop(0, lowOil ? "#ff9f62" : "#fff0a4");
+    paperGlow.addColorStop(0.65, lowOil ? "#d95b43" : "#ffc45e");
+    paperGlow.addColorStop(1, "rgba(255,180,80,0)");
+    ctx.fillStyle = paperGlow;
+    ctx.fillRect(bodyCx - bodyW / 2, bodyCy - bodyH / 2, bodyW, bodyH);
+    ctx.restore();
+
     // 數字維持即時資料，不烘進圖片。
     const valueY = dy + assetH * 0.655;
-    const valueSize = Math.max(15, assetW * 0.15);
+    const valueSize = Math.max(14, assetW * 0.126);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.font = readableFont(valueSize, "900");
-    ctx.lineWidth = Math.max(1.2, valueSize * 0.07);
-    ctx.strokeStyle = "rgba(255,238,185,.48)";
-    ctx.fillStyle = lowOil ? "#7a1d18" : "#3d1d14";
+    ctx.lineWidth = Math.max(1.2, valueSize * 0.09);
+    ctx.strokeStyle = "rgba(255,238,190,.82)";
+    ctx.fillStyle = lowOil ? "#7a2c24" : "#4a2a1d";
     const value = String(Math.ceil(oil)) + "/" + String(maxOil);
     ctx.strokeText(value, windowCx, valueY, assetW * 0.58);
     ctx.fillText(value, windowCx, valueY, assetW * 0.58);
@@ -664,7 +702,7 @@ window.UI = (() => {
     if (lowOil && motion) glow(ctx, pBoxX + pBoxW / 2, pBoxY + pBoxH / 2, pBoxW * 1.6, '#ff3b3b', 0.3 * pulse(8, 0.3));
 
     if (diegetic) {
-      drawDiegeticOilLantern(ctx, pBoxX, pBoxY - 4, oil, curMaxOil, lowOil, time);
+      drawDiegeticOilLantern(ctx, pBoxX, pBoxY - 4, oil, curMaxOil, lowOil, time, extra.lanternHit || 0);
     } else {
       drawLantern(ctx, pBoxX + 16, pBoxY + pBoxH / 2, Math.max(28, oilTextSize * 1.5), lowOil ? '#ff6a4a' : '#ffb03a');
       ctx.fillStyle = '#fff4dd';
