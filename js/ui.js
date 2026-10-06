@@ -327,7 +327,7 @@ window.UI = (() => {
   }
 
   // Diegetic HUD：把重要資訊變成夜行世界裡的實體物件。
-  function drawDiegeticOilLantern(ctx, x, y, oil, maxOil, lowOil, time) {
+  function drawDiegeticOilLanternFallback(ctx, x, y, oil, maxOil, lowOil, time) {
     const ratio = clamp(oil / Math.max(1, maxOil), 0, 1);
     const cx = x + 45, top = y + 18, bodyH = 106;
     const lit = lowOil ? '#ff6650' : '#ffb23d';
@@ -354,6 +354,74 @@ window.UI = (() => {
     ctx.font = readableFont(15, '900'); ctx.fillStyle = '#341b16'; ctx.fillText(Math.ceil(oil) + '/' + maxOil, cx, top + 95);
     ctx.strokeStyle = '#9f2d24'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(cx, top + bodyH + 7); ctx.lineTo(cx, top + bodyH + 23); ctx.stroke();
     ctx.lineWidth = 2; for (const dx of [-6,-2,2,6]) { ctx.beginPath(); ctx.moveTo(cx, top + bodyH + 15); ctx.lineTo(cx + dx, top + bodyH + 30); ctx.stroke(); }
+    ctx.restore();
+  }
+
+  function drawDiegeticOilLantern(ctx, x, y, oil, maxOil, lowOil, time) {
+    const art = window.ART?.hud_lantern_oil;
+    if (!art?.complete || !art.naturalWidth || !art.naturalHeight) {
+      drawDiegeticOilLanternFallback(ctx, x, y, oil, maxOil, lowOil, time);
+      return;
+    }
+
+    const ratio = clamp(oil / Math.max(1, maxOil), 0, 1);
+    const lit = lowOil ? "#ff5848" : "#ffb13b";
+    const flicker = calm() ? 0.84 : 0.8 + Math.sin(time * 7.2) * 0.07 + Math.sin(time * 12.7) * 0.035;
+    const assetH = 168;
+    const assetW = assetH * (art.naturalWidth / art.naturalHeight);
+    const dx = x - 4;
+    const dy = y - 6;
+    const windowCx = dx + assetW * 0.571;
+    const windowCy = dy + assetH * 0.445;
+    const windowW = assetW * 0.285;
+    const windowH = assetH * 0.235;
+
+    ctx.save();
+    glow(ctx, windowCx, windowCy, assetW * 0.75, lit, (lowOil ? 0.34 : 0.24) * flicker);
+
+    // 先在透明窗洞後方畫火焰，再覆上美術素材，窗框自然遮住邊緣。
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(windowCx - windowW / 2, windowCy - windowH / 2, windowW, windowH, Math.max(4, windowW * 0.12));
+    ctx.clip();
+    const innerGlow = ctx.createRadialGradient(windowCx, windowCy + windowH * 0.08, 0, windowCx, windowCy, windowW * 0.62);
+    innerGlow.addColorStop(0, lowOil ? "rgba(255,96,58,.55)" : "rgba(255,209,82,.62)");
+    innerGlow.addColorStop(0.58, lowOil ? "rgba(190,40,30,.32)" : "rgba(255,114,24,.34)");
+    innerGlow.addColorStop(1, "rgba(35,12,10,0)");
+    ctx.fillStyle = innerGlow;
+    ctx.fillRect(windowCx - windowW / 2, windowCy - windowH / 2, windowW, windowH);
+
+    const flameScale = 0.58 + ratio * 0.42;
+    const flameH = windowH * 0.66 * flameScale;
+    const flameW = windowW * 0.42 * flameScale;
+    const fy = windowCy + windowH * 0.29;
+    ctx.fillStyle = lowOil ? "#ff6a49" : "#ffb52d";
+    ctx.beginPath();
+    ctx.moveTo(windowCx, fy);
+    ctx.bezierCurveTo(windowCx - flameW * 0.72, fy - flameH * 0.2, windowCx - flameW * 0.35, fy - flameH * 0.62, windowCx - flameW * 0.08, fy - flameH);
+    ctx.bezierCurveTo(windowCx + flameW * 0.02, fy - flameH * 0.66, windowCx + flameW * 0.64, fy - flameH * 0.5, windowCx + flameW * 0.46, fy - flameH * 0.13);
+    ctx.quadraticCurveTo(windowCx + flameW * 0.22, fy + flameH * 0.08, windowCx, fy);
+    ctx.fill();
+    ctx.fillStyle = lowOil ? "#ffd17a" : "#fff08a";
+    ctx.beginPath();
+    ctx.ellipse(windowCx + flameW * 0.02, fy - flameH * 0.18, flameW * 0.13, flameH * 0.25, 0.18, 0, 6.283);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.drawImage(art, dx, dy, assetW, assetH);
+
+    // 數字維持即時資料，不烘進圖片。
+    const valueY = dy + assetH * 0.655;
+    const valueSize = Math.max(15, assetW * 0.15);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = readableFont(valueSize, "900");
+    ctx.lineWidth = Math.max(1.2, valueSize * 0.07);
+    ctx.strokeStyle = "rgba(255,238,185,.48)";
+    ctx.fillStyle = lowOil ? "#7a1d18" : "#3d1d14";
+    const value = String(Math.ceil(oil)) + "/" + String(maxOil);
+    ctx.strokeText(value, windowCx, valueY, assetW * 0.58);
+    ctx.fillText(value, windowCx, valueY, assetW * 0.58);
     ctx.restore();
   }
 

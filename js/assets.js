@@ -37,6 +37,17 @@ function loadArt(n) {
   img.src = `assets/img/${n}.webp`;
 }
 
+function loadHudLanternArt() {
+  const img = new Image();
+  img.fetchPriority = "high";
+  img.decoding = "async";
+  img.onload = () => { ART.hud_lantern_oil = img; };
+  img.onerror = () => {
+    console.warn("[Assets] HUD 燈籠素材載入失敗，將使用程式繪製備援。");
+  };
+  img.src = "assets/img/ui/hud_lantern_oil.png";
+}
+
 // 首頁只載入封面；進入旅路或遊戲才下載角色、敵人與場景。
 loadArt("cover");
 let gameArtStarted = false;
@@ -44,6 +55,7 @@ window.loadGameArt = () => {
   if (gameArtStarted) return;
   gameArtStarted = true;
   window.ART_PROGRESS.total = GAME_ASSET_NAMES.length + 1;
+  loadHudLanternArt();
   GAME_ASSET_NAMES.forEach(loadArt);
 };
 
