@@ -54,6 +54,7 @@ window.RENDERER = (() => {
 
   // 鏡頭與打擊震動
   let camX = 0, camY = 0;
+  let prevCamX = 0, prevCamY = 0;
   let shake = 0;
   let hitStop = 0;
 
@@ -105,17 +106,20 @@ window.RENDERER = (() => {
     // 預先生成高品質石疊（和風石磚路）無縫貼圖
     createStonePattern();
 
-    // 初始化飄落櫻花雨 (50 片)；無邊界世界改採螢幕空間粒子。
+    // 初始化飄落櫻花雨 (50 片)；分層次景深 (遠景 0.65x、中景 1.0x、前景 1.45x)
     for (let i = 0; i < 50; i++) {
+      const depth = i < 14 ? 0.65 : i < 38 ? 1.0 : 1.45;
+      const baseSize = 5 + Math.random() * 6;
       SAKURA.push({
         x: area.left + Math.random() * area.width,
         y: area.top + Math.random() * area.height,
-        vx: 35 + Math.random() * 45,
-        vy: 25 + Math.random() * 35,
-        size: 5 + Math.random() * 6,
+        vx: (35 + Math.random() * 45) * (depth === 1.45 ? 1.25 : depth === 0.65 ? 0.8 : 1.0),
+        vy: (25 + Math.random() * 35) * (depth === 1.45 ? 1.25 : depth === 0.65 ? 0.8 : 1.0),
+        size: baseSize * (depth === 1.45 ? 1.75 : depth === 0.65 ? 0.75 : 1.0),
         rot: Math.random() * 6.28,
         vRot: (Math.random() - 0.5) * 3,
-        alpha: 0.55 + Math.random() * 0.4
+        alpha: (0.55 + Math.random() * 0.4) * (depth === 1.45 ? 0.85 : depth === 0.65 ? 0.45 : 1.0),
+        depth
       });
     }
 
@@ -229,12 +233,19 @@ window.RENDERER = (() => {
     shake = Math.max(0, shake - 32 * dt);
 
     const area = bounds();
+    const camDx = camX - prevCamX, camDy = camY - prevCamY;
+    prevCamX = camX; prevCamY = camY;
+
     for (const p of SAKURA) {
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.rot += p.vRot * dt;
-      if (p.x > area.right + 30) p.x = area.left - 30;
-      if (p.y > area.bottom + 30) p.y = area.top - 30;
+      if (allowsMotion()) {
+        p.x += p.vx * dt - camDx * ((p.depth || 1) - 1);
+        p.y += p.vy * dt - camDy * ((p.depth || 1) - 1);
+        p.rot += p.vRot * dt;
+      }
+      if (p.x > area.right + 40) p.x = area.left - 40;
+      else if (p.x < area.left - 40) p.x = area.right + 40;
+      if (p.y > area.bottom + 40) p.y = area.top - 40;
+      else if (p.y < area.top - 40) p.y = area.bottom + 40;
     }
 
     for (const d of dmgNumbers) {
@@ -436,10 +447,34 @@ window.RENDERER = (() => {
     const isMoving = Math.hypot(moveDir.x, moveDir.y) > 0.1;
     const motion = allowsMotion();
     if (!motion) ghostTrails = [];
-    // 步伐畫在走路幀裡。擠壓會把左右腳吃掉，所以主體不再跟著正弦變形。
-    const walkBob = isMoving && motion ? Math.sin(elapsed * 10) * 2 : 0;
-    const squash = 1;
-    const stretch = 1;
+    // 1. 步伐彈跳物理 (Procedural Spring Step Bob)
+    const walkBob = isMoving && motion ? Math.abs(Math.sin(elapsed * 12)) * 3.5 : 0;
+
+    // 2. 彈性骨骼與次級動態 (Squash & Stretch, Lean Tilt, Secondary Inertial Shear)
+    let squash = 1, stretch = 1, leanAng = 0, shearX = 0;
+    if (motion) {
+      if (isDashing) {
+        // 衝刺時：前衝拉伸與前傾俯衝
+        squash = 1.15;
+        stretch = 0.88;
+        leanAng = 0.16;
+        shearX = -0.10;
+      } else if (isMoving) {
+        // 跑步步伐有機彈性：著地與起跳交替起伏
+        const stridePhase = Math.sin(elapsed * 12);
+        squash = 1.0 + stridePhase * 0.05;
+        stretch = 1.0 - stridePhase * 0.04;
+        // 跑步身體微前傾
+        leanAng = clamp(moveDir.x * (P.faceX || 1) * 0.07, -0.12, 0.12);
+        // 背負木箱與手持提燈的次級慣性滯後剪切 (Secondary Pendulum Shear)
+        shearX = clamp(-moveDir.x * (P.faceX || 1) * 0.06, -0.08, 0.08);
+      } else if (inv > 0) {
+        // 受傷頓挫震顫
+        const flinch = Math.sin(elapsed * 26) * 0.10;
+        squash = 1.0 + flinch;
+        stretch = 1.0 - flinch * 0.8;
+      }
+    }
 
     // 素材朝右。左右移動才改面向，停下或只上下走時維持最後朝向。
     if (moveDir.x < -0.05) P.faceX = -1;
@@ -461,15 +496,16 @@ window.RENDERER = (() => {
     if (isDashing && window.ART.player_dash_v1) { pKey = "player_dash_v1"; pImg = window.ART[pKey]; }
     const poseHeight = pKey === "player_dash_v1" ? 80 : 114;
 
-    // 投影陰影
+    // 投影陰影：隨身體起伏微幅呼吸
+    const shadowScale = motion && isMoving ? (1.0 - (walkBob / 18)) : 1.0;
     ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
     ctx.beginPath();
-    ctx.ellipse(P.x, P.y + 22, 28 * squash, 11 * stretch, 0, 0, 6.28);
+    ctx.ellipse(P.x, P.y + 22, 28 * shadowScale, 11 * shadowScale, 0, 0, 6.28);
     ctx.fill();
 
     // 衝刺時加入殘影
     if (isDashing && motion && Math.random() < 0.45 && pImg) {
-      addGhostTrail(pImg, P.x, P.y + walkBob, flipX, 1.0, 0.45, pKey, poseHeight);
+      addGhostTrail(pImg, P.x, P.y - walkBob, flipX, 1.0, 0.45, pKey, poseHeight);
     }
 
     // 繪製殘影
@@ -483,9 +519,11 @@ window.RENDERER = (() => {
       ctx.restore();
     }
 
-    // 主體變換
-    ctx.translate(P.x, P.y + walkBob);
+    // 主體變換 (結合 步伐起伏 + 前傾角 + 次級剪切 + 擠壓拉伸)
+    ctx.translate(P.x, P.y - walkBob);
     ctx.scale(flipX * squash, stretch);
+    if (leanAng !== 0) ctx.rotate(leanAng);
+    if (shearX !== 0) ctx.transform(1, 0, shearX, 1, 0, 0);
 
     // 金剛結界護盾環繞（若 shield > 0）
     if (shield > 0) {
@@ -534,7 +572,8 @@ window.RENDERER = (() => {
     ctx.save();
     const isBoss = e.type === "boss";
     const isMis = e.type === "mis";
-    const bob = allowsMotion() ? Math.sin(elapsed * 5 + (e.wob || 0)) * 2 : 0;
+    const motion = allowsMotion();
+    const bob = motion ? Math.sin(elapsed * 5 + (e.wob || 0)) * 2 : 0;
 
     // 目標朝向：玩家在怪物左邊時為 -1，在右邊時為 1
     const dirTowardsPlayer = (P.x < e.x) ? -1 : 1;
@@ -542,15 +581,48 @@ window.RENDERER = (() => {
     // 新素材一律朝畫面右側，玩家在左側時才水平翻轉。
     const scaleX = dirTowardsPlayer === 1 ? 1 : -1;
 
-    // 陰影
+    // 程序化次級彈性骨骼與果凍軟體物理 (Procedural Spring & Soft-body Secondary Motion)
+    let sX = 1, sY = 1, tilt = 0;
+    if (motion) {
+      if (isBoss) {
+        // 大妖 Boss：威嚴慢速深呼吸與沉重受傷後座力
+        const breath = Math.sin(elapsed * 2.6 + (e.wob || 0)) * 0.04;
+        sX = 1 + breath;
+        sY = 1 - breath * 0.6;
+        if (e.flash > 0) { sX *= 1.12; sY *= 0.90; }
+      } else if (e.type === "runner") {
+        // 疾走怪：奔馳起伏拉伸與前傾俯衝
+        const stride = Math.sin(elapsed * 12 + (e.wob || 0));
+        sX = 1 + stride * 0.12;
+        sY = 1 - stride * 0.10;
+        tilt = 0.12;
+        if (e.flash > 0) { sX *= 1.20; sY *= 0.80; }
+      } else if (e.type === "tank") {
+        // 巨盾怪：笨重重踏頓挫
+        const stomp = Math.abs(Math.sin(elapsed * 4 + (e.wob || 0)));
+        sX = 1 + (1 - stomp) * 0.08;
+        sY = 1 - (1 - stomp) * 0.07;
+        if (e.flash > 0) { sX *= 1.15; sY *= 0.88; }
+      } else {
+        // 幽靈怪 (ghost / shooter / mis)：果凍軟體呼吸與受傷劇烈彈動震顫
+        const jelly = Math.sin(elapsed * 4.5 + (e.wob || 0)) * 0.08;
+        sX = 1 + jelly;
+        sY = 1 - jelly;
+        tilt = Math.sin(elapsed * 3 + (e.wob || 0)) * 0.07;
+        if (e.flash > 0) { sX *= 1.28; sY *= 0.74; }
+      }
+    }
+
+    // 陰影：隨身體呼吸同步縮放
     ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-    const shadowR = isBoss ? 52 : isMis ? 32 : 22;
+    const shadowR = (isBoss ? 52 : isMis ? 32 : 22) * sX;
     ctx.beginPath();
-    ctx.ellipse(e.x, e.y + shadowR * 0.85, shadowR, shadowR * 0.4, 0, 0, 6.28);
+    ctx.ellipse(e.x, e.y + (isBoss ? 52 : isMis ? 32 : 22) * 0.85, shadowR, shadowR * 0.4, 0, 0, 6.28);
     ctx.fill();
 
     ctx.translate(e.x, e.y + bob);
-    ctx.scale(scaleX, 1);
+    ctx.scale(scaleX * sX, sY);
+    if (tilt !== 0) ctx.rotate(tilt);
 
     let sprite = null;
     let sw = 50;
@@ -849,19 +921,90 @@ window.RENDERER = (() => {
     ctx.restore();
   }
 
+  // 繪製地面高空流雲視差層 (Far Sky Cloud Shadows, 0.20x)
+  function drawGroundParallax(elapsed, dawnTime, cam = { x: camX, y: camY }) {
+    if (!allowsMotion()) return;
+    const area = bounds();
+    ctx.save();
+    const cloudSpeed = elapsed * 15;
+    const cloudParallax = 0.20;
+    const cx0 = cam.x * (1 - cloudParallax) + cloudSpeed;
+    const cy0 = cam.y * (1 - cloudParallax) + cloudSpeed * 0.4;
+    const worldLeft = cam.x + area.left - 100;
+    const worldTop = cam.y + area.top - 100;
+    const worldW = area.width + 200;
+    const worldH = area.height + 200;
+
+    for (let c = 0; c < 3; c++) {
+      const seed = c * 520;
+      const px = worldLeft + ((cx0 + seed) % (worldW + 500)) - 250;
+      const py = worldTop + ((cy0 + seed * 0.7) % (worldH + 400)) - 200;
+      const g = ctx.createRadialGradient(px, py, 50, px, py, 260);
+      g.addColorStop(0, "rgba(8, 12, 22, 0.22)");
+      g.addColorStop(0.6, "rgba(10, 14, 26, 0.11)");
+      g.addColorStop(1, "rgba(12, 16, 28, 0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.ellipse(px, py, 270, 150, 0.2, 0, 6.28);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // 繪製中景夜行妖霧流動視差層 (Midground Volumetric Mist, 0.45x)
+  // 採用超柔邊高斯徑向羽化煙霧團，邊界 100% 漸淡到 0，徹底消除生硬邊框感
+  function drawMistParallax(elapsed, dawnTime, cam = { x: camX, y: camY }) {
+    if (!allowsMotion()) return;
+    const area = bounds();
+    ctx.save();
+    const mistYBase = [area.top + area.height * 0.26, area.top + area.height * 0.68];
+    for (let m = 0; m < 2; m++) {
+      const mSpeed = (m === 0 ? 12 : -9) * elapsed;
+      const basePhase = m * 3.1 + elapsed * 0.4;
+      const puffs = 4;
+      const step = (area.width + 500) / puffs;
+      for (let i = 0; i < puffs; i++) {
+        const seed = i * 197 + m * 431;
+        const driftX = ((cam.x * 0.45 + mSpeed + i * step) % (area.width + 500)) - 250;
+        const px = area.left + driftX;
+        const py = mistYBase[m] + Math.sin(basePhase + i * 1.4) * 20 + ((cam.y * 0.15) % 40);
+        const rx = 180 + (seed % 60);
+        const ry = 46 + (seed % 20);
+
+        // 柔和雙半徑漸層：中心淡光 (alpha ~ 0.032)，邊緣 100% 淡出到 0
+        const g = ctx.createRadialGradient(px, py, 6, px, py, rx);
+        g.addColorStop(0, "rgba(140, 170, 225, 0.034)");
+        g.addColorStop(0.45, "rgba(135, 165, 220, 0.016)");
+        g.addColorStop(1, "rgba(120, 150, 210, 0)");
+
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.ellipse(px, py, rx, ry, Math.sin(basePhase + i) * 0.04, 0, 6.28);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
   function drawAtmosphere(elapsed, petalCount = 50, fireflyCount = FIREFLIES.length) {
     if (!allowsMotion()) return;
     const area = bounds();
     ctx.save();
-    // 飄動櫻花雨
-    for (let i=0;i<Math.min(SAKURA.length,petalCount);i++) {
-      const p=SAKURA[i];
+    // 飄動櫻花雨 (按景深層次繪製，近景帶有柔邊大氣光芒)
+    for (let i = 0; i < Math.min(SAKURA.length, petalCount); i++) {
+      const p = SAKURA[i];
       const sx = p.x, sy = p.y;
       if (sx < area.left - 30 || sx > area.right + 30 || sy < area.top - 30 || sy > area.bottom + 30) continue;
       ctx.save();
       ctx.translate(sx, sy);
       ctx.rotate(p.rot);
-      ctx.fillStyle = `rgba(255, 195, 220, ${p.alpha})`;
+      if (p.depth > 1.2) {
+        ctx.fillStyle = `rgba(255, 210, 230, ${p.alpha * 0.9})`;
+      } else if (p.depth < 0.8) {
+        ctx.fillStyle = `rgba(220, 160, 190, ${p.alpha * 0.6})`;
+      } else {
+        ctx.fillStyle = `rgba(255, 195, 220, ${p.alpha})`;
+      }
       ctx.beginPath();
       ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, 6.28);
       ctx.fill();
@@ -899,6 +1042,8 @@ window.RENDERER = (() => {
     addSlashArc,
     updateEffects,
     drawGround,
+    drawGroundParallax,
+    drawMistParallax,
     drawHouse,
     drawPlayer,
     drawFrame,

@@ -21,6 +21,7 @@
   // 初始化高畫質渲染引擎
   RENDERER.init(cv);
   const ctx = RENDERER.getCtx();
+  const HAPTICS = window.HAPTICS || { dash(){}, damage(){}, shield(){}, hit(){}, pickup(){}, deliverSuccess(){}, deliverWrong(){}, bossDefeat(){}, levelUp(){}, warning(){} };
   CONTROLS.mount();
   const controlsButton = document.getElementById("controls-open");
   const viewBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:W,bottom:H,width:W,height:H};
@@ -277,7 +278,7 @@
 
   const UP = [
     { id: "shield", n: "金剛結界", s: "けっかい", cat: "防禦生存", d: "召喚金剛勾玉護盾，抵擋 2 次受傷（可疊加）", f: () => { b.shield = Math.min(6, (b.shield || 0) + 2); }, ok: () => (b.shield || 0) < 6 },
-    { id: "oil_max", n: "長明燈油", s: "あぶら", cat: "血厚續航", d: "燈油上限 +30 並立即補滿，常駐每秒回油 +0.12（上限 2 層）", f: () => { maxOil += 30; oil = maxOil; b.oilRegen = Math.min(0.24, (b.oilRegen || 0) + 0.12); }, ok: () => (b.oilRegen || 0) < 0.24 },
+    { id: "oil_max", n: "長明燈油", s: "あぶら", cat: "血厚續航", d: "燈油上限 +30 並補充 30 點，常駐每秒回油 +0.06（上限 2 層）", f: () => { maxOil += 30; oil = Math.min(maxOil, oil + 30); b.oilRegen = Math.min(0.12, (b.oilRegen || 0) + 0.06); }, ok: () => (b.oilRegen || 0) < 0.12 },
     { id: "oil_heal", n: "添燈香油", s: "かいふく", cat: "緊急急救", d: "恢復 50% 燈油，並震退周圍妖怪（每場最多 3 次）", f: () => {
       b.heals = (b.heals || 0) + 1;
       oil = Math.min(maxOil, oil + maxOil * 0.5);
@@ -497,6 +498,7 @@
     keys.clear(); heldCodes.clear();
     joy = null;
     AUDIO.levelUp();
+    HAPTICS.levelUp();
   }
 
   function pickUp(i) {
@@ -545,6 +547,7 @@
     cargo = { x: pTrail.length > 0 ? pTrail[pTrail.length - 1].x : P.x - 44, y: pTrail.length > 0 ? pTrail[pTrail.length - 1].y : P.y + 10 };
     say("裝好了", P.x, P.y - 45, "#ffe9a0");
     AUDIO.pickup();
+    HAPTICS.pickup();
     AUDIO.speak(o.word.jp); // 取貨時就念出單字，讓沒學過的玩家先聽到再配送
   }
 
@@ -574,6 +577,7 @@
       FX.deliver(pos.x, pos.y);
       RENDERER.triggerShake(7);
       AUDIO.deliverSuccess();
+      HAPTICS.deliverSuccess();
     } else {
       failed++;
       oil = Math.max(0,oil-8);
@@ -615,6 +619,7 @@
       burst(pos.x, pos.y, "#c98cff", 24);
       RENDERER.triggerShake(6);
       AUDIO.deliverWrong();
+      HAPTICS.deliverWrong();
       AUDIO.speak(j.word.jp); // 出現時即播一次讀音
       if(oil<=0)loseRun();
     }
@@ -632,6 +637,7 @@
     }
     e.hp -= dmg;
     e.flash = 0.12;
+    HAPTICS.hit(isCrit);
     burst(e.x, e.y, "#ffe6aa", 4);
     RENDERER.spawnDamageNumber(dmg, e.x, e.y - 25, isCrit, isCrit ? "#ffcc00" : "#ffffff");
 
@@ -648,6 +654,7 @@
 
     if (e.type === "boss") {
       AUDIO.bossDeath();
+      HAPTICS.bossDefeat();
       if (e.final) {
         finalBossDefeated = true;
         finalBossPos = { x: e.x, y: e.y };
@@ -693,6 +700,7 @@
     FX.dashTrail(P.x, P.y, dashDir.x, dashDir.y);
     RENDERER.triggerShake(3);
     AUDIO.dash();
+    HAPTICS.dash();
   }
 
   // 燈油耗盡演出（秒）：提燈熄滅、BGM 淡出停止 → 黑暗中停留 2 秒 → 才進入結算。
@@ -706,6 +714,10 @@
 
   function loseRun() {
     if (state === "lampout" || state === "lost") return;
+    if (finalBossDefeated && delivered >= GOAL_DELIVERIES) {
+      startVictorySequence();
+      return;
+    }
     state = "lampout";
     lampSeq = { t: 0 };
     keys.clear(); heldCodes.clear();
@@ -1005,17 +1017,20 @@
       }
       bs.shield = false;
       bossQ = null;
+      bs.quiz = null;
       say(`${bs.word.jp}＝${bs.word.zh}・結界破除！`, bs.x, bs.y - 75, "#9be7ff");
       burst(bs.x, bs.y, "#9be7ff", 35);
       FX.flash("#9be7ff", 0.18, 0.22);
       FX.emit("ring", "#9be7ff", { x: bs.x, y: bs.y, life: 0.3, s0: 20, s1: 110, a: 0.9, ease: true });
       RENDERER.triggerShake(9);
       AUDIO.breakShield();
+      HAPTICS.shield();
     } else {
       misses.push(bs.word);
       STORE.rec(bs.word.jp, false);
       oil -= 8;
       AUDIO.deliverWrong();
+      HAPTICS.deliverWrong();
       say("答錯！燈油 -8 點，結界震盪！", P.x, P.y - 50, "#ff8f8f");
       if (oil <= 0) {
         oil = 0;
@@ -1038,7 +1053,8 @@
         if (pool.length === 0) pool = ALL;
         bs.word = STORE.pick(pool);
         bs.wasAssisted = true;
-        bossQ = mkQ(bs);
+        bs.quiz = mkQ(bs);
+        bossQ = bs.quiz;
         bossQ.lock = 1.0;
       }
     }
@@ -1135,7 +1151,9 @@
       const blockBlade=(x,y,r)=>[-0.9,-0.45,0,0.45,0.9].some(t=>blocked(x-Math.sin(wave.ang)*180*t,y+Math.cos(wave.ang)*180*t,r));
       if(!EVOLUTIONS.move(wave,dt,blockBlade,12))continue;
       for(const e of enemies)if(e.hp>0 && !wave.hits.has(e) && Math.abs((e.x-wave.x)*Math.cos(wave.ang)+(e.y-wave.y)*Math.sin(wave.ang))<(e.type==='boss'?95:75) && Math.abs(-(e.x-wave.x)*Math.sin(wave.ang)+(e.y-wave.y)*Math.cos(wave.ang))<180+(e.type==='boss'?40:22)){
-        wave.hits.add(e);hurt(e,wave.dmg);SKILLFX.play("katana","hit",5,{x:e.x,y:e.y,ang:wave.ang});
+        wave.hits.add(e);
+        const decay = [1, 0.75, 0.55][Math.min(wave.hits.size - 1, 2)];
+        hurt(e, wave.dmg * decay);SKILLFX.play("katana","hit",5,{x:e.x,y:e.y,ang:wave.ang});
         if(wave.hits.size>=3){wave.life=0;break;}
       }
     }
@@ -1397,6 +1415,7 @@
     oil = Math.min(maxOil, oil - dt * 0.43 + (b.oilRegen || 0) * dt); // 10 分鐘制：總自然耗油維持接近舊 5 分鐘制
     if (oil <= 0) {
       oil = 0;
+      if (finalBossDefeated && delivered >= GOAL_DELIVERIES) { startVictorySequence(); return; }
       loseRun();
       return;
     }
@@ -1404,6 +1423,16 @@
       if (delivered >= GOAL_DELIVERIES && finalBossDefeated) {
         startVictorySequence();
         return;
+      }
+      if (!finalBossDefeated) {
+        const activeBoss = enemies.find(e => e.type === "boss" && e.hp > 0);
+        if (activeBoss && !activeBoss.final) {
+          activeBoss.final = true;
+          bossStage = BOSS_TIMES.length;
+          say("大妖鬼覺醒！破曉決戰", activeBoss.x, activeBoss.y - 75, "#ff5555");
+        } else if (!activeBoss && bossStage < BOSS_TIMES.length - 1) {
+          bossStage = BOSS_TIMES.length - 1; bossT = 0;
+        }
       }
       if (warnDawnT === 0) {
         warnDawnT = -1;
@@ -1540,6 +1569,7 @@
         // 啟動 2.4 秒預警（閃爍 3 次，每 0.8 秒一次）
         surgeWarningT = 2.4;
         AUDIO.warningPulse();
+        HAPTICS.warning();
         RENDERER.triggerShake(5);
         surgePendingTier = tier;
         surgePendingCount = 10 + Math.floor(cappedElapsed / 60);
@@ -1626,6 +1656,7 @@
           burst(P.x, P.y, "#ffe28b", 22);
           say(`護盾抵擋！剩餘 ${b.shield}`, P.x, P.y - 45, "#ffe28b");
           AUDIO.breakShield();
+          HAPTICS.shield();
         } else {
           const dmg = (slamHit ? 20 : e.type === "tank" ? 18 : 10);
           oil -= dmg;
@@ -1634,6 +1665,7 @@
           burst(P.x, P.y, "#ff6b81", 18);
           say(`受傷！燈油 -${dmg} 點`, P.x, P.y - 36, "#ff6b81");
           AUDIO.hurt();
+          HAPTICS.damage();
           if (oil <= 0) {
             oil = 0;
             loseRun();
@@ -1657,6 +1689,7 @@
           RENDERER.triggerShake(5);
           say(`護盾抵擋！剩餘 ${b.shield}`, P.x, P.y - 45, "#ffe28b");
           AUDIO.breakShield();
+          HAPTICS.shield();
         } else {
           const dmg = 8;
           oil -= dmg;
@@ -1665,6 +1698,7 @@
           burst(P.x, P.y, "#ff6b81", 14);
           say(`妖火中彈！燈油 -${dmg} 點`, P.x, P.y - 36, "#ff6b81");
           AUDIO.hurt();
+          HAPTICS.damage();
           if (oil <= 0) {
             oil = 0;
             loseRun();
@@ -1675,7 +1709,7 @@
     }
     enemyBullets = enemyBullets.filter(eb => eb.life > 0);
     const despawnRadius = Math.max(1150, spawnRadius(0) + 300);
-    enemies = enemies.filter(e => e.hp > 0 && (e.type === "boss" || (e.type === "mis" && e.revealT > 0) || dist(e, P) < despawnRadius));
+    enemies = enemies.filter(e => e.hp > 0 && (e.type === "boss" || (e.type === "mis" && dist(e, P) < 3000) || dist(e, P) < despawnRadius));
 
     if (elapsed >= DAWN && finalBossDefeated && delivered >= GOAL_DELIVERIES && state === "play") {
       startVictorySequence();
@@ -1717,7 +1751,8 @@
 
     const bs = enemies.find(e => e.type === "boss" && e.shield);
     if (bs && dist(P, bs) < 380) {
-      if (!bossQ) bossQ = mkQ(bs);
+      if (!bs.quiz) bs.quiz = mkQ(bs);
+      bossQ = bs.quiz;
       bossQ.lock = Math.max(0, bossQ.lock - dt);
     } else {
       bossQ = null;
@@ -1894,6 +1929,9 @@
 
     // 1. 地面與道路
     RENDERER.drawGround(visualElapsed, DAWN, activeChunks, STAGE_VISUAL.ground || "ground");
+
+    // 2. 地面高空流雲投影視差層 (Far Sky Cloud Shadows, 0.20x)
+    RENDERER.drawGroundParallax?.(visualElapsed, DAWN, cam);
 
     // 3. 街角石燈。畫在角色之前，腳底對齊燈位；圖還沒載入時退回提燈符號。
     LAMPS.forEach(l => {
@@ -2237,7 +2275,8 @@
     ctx.restore();
     FX.drawFlash(ctx, view);
 
-
+    // 16.5 中景流動夜霧視差層 (Midground Volumetric Mist, 0.45x)
+    RENDERER.drawMistParallax?.(visualElapsed, DAWN, cam);
 
     // 17. 櫻花雨與夜行幽火
     const motion = liveMotion();
@@ -2506,7 +2545,13 @@
       const node = window.OVERWORLD.hitTest(overworld, p.x, p.y);
       if (node) {
         if (node.id === overworld.currentId) confirmOverworld();
-        else window.OVERWORLD.moveTo(overworld, node.id);
+        else {
+          const ok = window.OVERWORLD.moveTo(overworld, node.id);
+          if (!ok && !window.OVERWORLD.isEnterable(node)) {
+            overworldNoticeT = 1.5;
+            AUDIO.warningPulse?.();
+          }
+        }
       }
       return;
     }
@@ -2646,11 +2691,7 @@
     if (state === "play") {
       update(dt, hitStopped);
     } else if (state === "levelup") {
-      oil -= dt * 0.43;
-      if (oil <= 0) {
-        oil = 0;
-        loseRun();
-      }
+      // 升級選卡期間凍結燈油消耗與遊戲時間，給予玩家安心閱讀與思考時間
     } else if (state === "lampout") {
       updateLampSequence(dt);
     } else if (state === "victory") {

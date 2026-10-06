@@ -52,6 +52,7 @@
       y: node.y,
       fromId: null,
       targetId: null,
+      pathQueue: [],
       moveT: 0,
       moveDuration: 0.42,
       camX: clamp(node.x - VIEW_W / 2, -area.left, MAP_W - area.right),
@@ -86,25 +87,59 @@
     return implemented && unlocked && isNodeAccessible(node);
   }
 
+  function findPath(fromId, targetId) {
+    if (fromId === targetId) return [];
+    const queue = [[fromId]];
+    const visited = new Set([fromId]);
+    while (queue.length > 0) {
+      const path = queue.shift();
+      const curr = path[path.length - 1];
+      for (const nextId of adjacency.get(curr) || []) {
+        if (visited.has(nextId)) continue;
+        const nextNode = nodeById.get(nextId);
+        if (!nextNode) continue;
+        const canStep = isNodeAccessible(nextNode) && (nextNode.type !== "stage" || isEnterable(nextNode));
+        if (!canStep) continue;
+        visited.add(nextId);
+        const newPath = [...path, nextId];
+        if (nextId === targetId) return newPath.slice(1);
+        queue.push(newPath);
+      }
+    }
+    return null;
+  }
+
   function moveTo(state, targetId) {
     if (!state || isMoving(state)) return false;
-    const options = adjacency.get(state.currentId) || [];
-    if (!options.includes(targetId)) return false;
     const from = currentNode(state);
     const to = nodeById.get(targetId);
     if (!to) return false;
     if (!isNodeAccessible(to) || (to.type === "stage" && !isEnterable(to))) {
       return false;
     }
+    const options = adjacency.get(state.currentId) || [];
+    if (options.includes(targetId)) {
+      state.pathQueue = [];
+      state.fromId = from.id;
+      state.targetId = to.id;
+      state.moveT = 0;
+      state.moveDuration = clamp(Math.hypot(to.x - from.x, to.y - from.y) / 440, 0.42, 0.72);
+      return true;
+    }
+    const path = findPath(state.currentId, targetId);
+    if (!path || path.length === 0) return false;
+    const firstStep = nodeById.get(path[0]);
+    state.pathQueue = path.slice(1);
     state.fromId = from.id;
-    state.targetId = to.id;
+    state.targetId = firstStep.id;
     state.moveT = 0;
-    state.moveDuration = clamp(Math.hypot(to.x - from.x, to.y - from.y) / 440, 0.42, 0.72);
+    state.moveDuration = clamp(Math.hypot(firstStep.x - from.x, firstStep.y - from.y) / 440, 0.42, 0.72);
     return true;
   }
 
   function move(state, dx, dy) {
     if (!state || isMoving(state)) return false;
+    state.pathQueue = [];
     const len = Math.hypot(dx, dy);
     if (len < 0.1) return false;
     dx /= len;
@@ -145,6 +180,10 @@
         state.fromId = null;
         state.targetId = null;
         state.moveT = 0;
+        if (state.pathQueue && state.pathQueue.length > 0) {
+          const nextTarget = state.pathQueue.shift();
+          moveTo(state, nextTarget);
+        }
       }
     }
 
@@ -556,6 +595,7 @@
     isMoving,
     isNodeAccessible,
     isEnterable,
+    findPath,
     move,
     moveTo,
     update,

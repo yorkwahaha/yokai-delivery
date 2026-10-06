@@ -1353,16 +1353,12 @@ test('dawn does not end a run that still needs the delivery goal or the boss', (
   assert.ok(g.snapshot().oil > 70);
 });
 
-test('level-up keeps draining oil and waits until a card is chosen', () => {
-  const drained = loadGame(); drained.start(); drained.offerUp(); drained.setOil(0.02);
-  drained.frame(50); assert.equal(drained.snapshot().state, 'lampout');
-  for (let i = 2; i <= 70; i++) drained.frame(i * 50);
-  assert.equal(drained.snapshot().state, 'lost');
+test('level-up freezes oil drain and waits until a card is chosen', () => {
   const g = loadGame(); g.start(); g.setOil(90); g.offerUp();
   for (let i = 1; i <= 160; i++) g.frame(i * 50);
   assert.equal(g.snapshot().state, 'levelup');
   assert.equal(g.snapshot().level, 1);
-  assert.ok(g.snapshot().oil < 90);
+  assert.equal(g.snapshot().oil, 90);
   g.events.keydown(key('Digit1', '1'));
   assert.equal(g.snapshot().state, 'play');
   assert.equal(g.snapshot().level, 2);
