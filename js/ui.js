@@ -370,7 +370,11 @@ window.UI = (() => {
     const lit = lowOil ? "#ff5848" : "#ffb13b";
     const flicker = motion ? 0.82 + Math.sin(time * 7.2) * 0.065 + Math.sin(time * 12.7) * 0.035 : 0.86;
     const hitDim = 1 - hitImpulse * 0.55;
-    const assetH = 168;
+    const compactLandscape = (window.innerHeight || 600) <= 500 &&
+      (window.innerWidth || 900) > (window.innerHeight || 600) * 1.55;
+    // 手機橫向的可視邏輯寬度會比 900 大很多；只在這種寬扁視窗放大約 13%，
+    // 平板/桌面維持原比例，避免 4:3 畫面左上角過重。
+    const assetH = compactLandscape ? 190 : 168;
     const assetW = assetH * (art.naturalWidth / art.naturalHeight);
     const dx = x - 4;
     const dy = y - 6;
@@ -384,8 +388,17 @@ window.UI = (() => {
     const bodyW = assetW * 0.58;
     const bodyH = assetH * 0.60;
     const oilLight = 0.28 + Math.pow(ratio, 0.7) * 0.72;
+    const pivotX = dx + assetW * 0.57;
+    const pivotY = dy + assetH * 0.025;
+    const idleSwing = motion ? Math.sin(time * 1.55) * 0.012 + Math.sin(time * 2.7 + 0.9) * 0.005 : 0;
+    const impactSwing = motion ? hitImpulse * (Math.sin(time * 32) * 0.055 + Math.sin(time * 47 + 0.5) * 0.018) : 0;
+    const lanternBob = motion ? Math.sin(time * 2.2 + 0.4) * 0.35 + hitImpulse * Math.sin(time * 36) * 1.3 : 0;
 
     ctx.save();
+    // 整顆提燈以吊鉤為支點做輕微次級物理；受擊時放大擺幅，之後隨 impulse 回穩。
+    ctx.translate(pivotX, pivotY + lanternBob);
+    ctx.rotate(idleSwing + impactSwing);
+    ctx.translate(-pivotX, -pivotY);
     glow(ctx, windowCx, windowCy, assetW * (0.52 + ratio * 0.26), lit, (0.08 + ratio * 0.24) * flicker * hitDim);
 
     // 先在透明窗洞後方畫火焰，再覆上美術素材，窗框自然遮住邊緣。
@@ -450,16 +463,19 @@ window.UI = (() => {
 
     // 數字維持即時資料，不烘進圖片。
     const valueY = dy + assetH * 0.655;
-    const valueSize = Math.max(14, assetW * 0.126);
+    const viewportScale = window.VIEWPORT?.get().scale || 1;
+    // 這組數字屬於燈籠美術的一部分，不套全域 14 CSS px 的 readableFont 下限，
+    // 否則在手機橫向會被強制放大而超出紙罩。
+    const valueSize = Math.max(assetW * 0.10, 11 / Math.max(0.01, viewportScale));
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = readableFont(valueSize, "900");
+    ctx.font = `900 ${valueSize}px 'Noto Sans JP', 'Microsoft JhengHei', sans-serif`;
     ctx.lineWidth = Math.max(1.2, valueSize * 0.09);
     ctx.strokeStyle = "rgba(255,238,190,.82)";
     ctx.fillStyle = lowOil ? "#7a2c24" : "#4a2a1d";
     const value = String(Math.ceil(oil)) + "/" + String(maxOil);
-    ctx.strokeText(value, windowCx, valueY, assetW * 0.58);
-    ctx.fillText(value, windowCx, valueY, assetW * 0.58);
+    ctx.strokeText(value, windowCx, valueY, assetW * 0.48);
+    ctx.fillText(value, windowCx, valueY, assetW * 0.48);
     ctx.restore();
   }
 
@@ -2069,10 +2085,15 @@ window.UI = (() => {
     const courierKey = isWon ? "player_win_v1" : "player_kneel_v1";
     const courier = window.ART && (window.ART[courierKey] || window.ART.player);
     if (courier && courier.naturalWidth) {
-      const ph = screenBounds().height * 2 / 3;
+      const bounds = screenBounds();
+      const ph = bounds.height * 2 / 3;
+      // drawFrame 的 x 是腳底水平錨點；依各結算素材的透明邊界預留左側安全距離。
+      // 寬螢幕仍沿用原本 108，平板/4:3 會自動右移，避免失敗立繪被畫布左緣裁切。
+      const leftAnchorRatio = isWon ? (512 - 111) / 1462 : (612 - 159) / 1161;
+      const portraitX = Math.max(108, bounds.left + 12 + ph * leftAnchorRatio);
       ctx.save();
-      if (window.RENDERER?.drawFrame) window.RENDERER.drawFrame(ctx,courier,window.ART[courierKey]?courierKey:'player',0,108,470,ph);
-      else ctx.drawImage(courier,108-ph*courier.naturalWidth/courier.naturalHeight/2,470-ph,ph*courier.naturalWidth/courier.naturalHeight,ph);
+      if (window.RENDERER?.drawFrame) window.RENDERER.drawFrame(ctx,courier,window.ART[courierKey]?courierKey:'player',0,portraitX,470,ph);
+      else ctx.drawImage(courier,portraitX-ph*courier.naturalWidth/courier.naturalHeight/2,470-ph,ph*courier.naturalWidth/courier.naturalHeight,ph);
       ctx.restore();
     }
 

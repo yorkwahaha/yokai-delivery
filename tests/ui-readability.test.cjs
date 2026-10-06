@@ -16,6 +16,8 @@ test('both settlement portraits occupy two thirds of viewport height',()=>{
   r.env.window.RENDERER={drawFrame:(...args)=>frames.push(args)};
   for(const state of ['won','lost'])r.UI.drawEndScreen(r.context,state,0,0,0,[]);
   for(const args of frames)assert.equal(args[6],400);
+  assert.ok(frames[0][4]>=120,'victory portrait keeps its visible alpha bounds on-screen');
+  assert.ok(frames[1][4]>=168,'kneeling portrait shifts right enough to avoid left-edge clipping');
 });
 
 test('settlement paints the character last and separates best record from delivery totals',()=>{
@@ -149,6 +151,30 @@ test('oil numbers and bar remain prominent and low-oil warning uses capacity rat
     assert.ok(number.cssSize>=18,`${width}: oil number size`);
     const bar=r.rects.find(b=>b.fill==='#1c1814');assert.ok(bar.h*r.scale>=12);assert.ok(bar.w>=180);
     assert.ok(!r.labels.some(t=>t.value==='低油！'||t.value==='燈油'),'oil is shown by icon and bar, not explanatory text');
+  }
+});
+
+test('diegetic lantern grows on phone landscape, keeps tablet scale, and swings as one assembly',()=>{
+  for(const [width,height,expectedH] of [[844,390,190],[1024,768,168]]) {
+    const r=loadUI(width);r.env.window.innerWidth=width;r.env.window.innerHeight=height;
+    vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
+    r.env.window.UI_THEME='diegetic';
+    const art={complete:true,naturalWidth:1086,naturalHeight:1448};
+    r.env.window.ART={hud_lantern_oil:art};
+    const images=[],turns=[],labels=[];
+    r.context.drawImage=(...args)=>images.push(args);
+    r.context.rotate=a=>turns.push(a);
+    r.context.fillText=(value,x,y,maxWidth)=>labels.push({value:String(value),font:r.context.font,maxWidth});
+    const bounds=r.env.window.VIEWPORT.hudBounds();
+    r.UI.drawHud(r.context,{x:0,y:0},100,100,120,600,0,0,0,1,0,30,null,0,[],null,null,true,null,
+      {x:bounds.right-138,y:bounds.bottom-180,r:38},{x:bounds.right-138,y:bounds.bottom-70,r:46},
+      {x:bounds.right-52,y:bounds.top+14,w:38,h:52},{},{},{},0,6,0,1.8,false,{time:1.234,lanternHit:.7});
+    const lantern=images.find(args=>args[0]===art);
+    assert.ok(lantern,`${width}: lantern art is rendered`);
+    assert.equal(Math.round(lantern[4]),expectedH,`${width}: responsive lantern height`);
+    assert.ok(turns.some(a=>Math.abs(a)>.001),`${width}: whole lantern has secondary swing`);
+    const value=labels.find(t=>t.value==='100/100'),fontSize=Number(value.font.match(/([\d.]+)px/)[1]);
+    assert.ok(fontSize*r.env.window.VIEWPORT.get().scale<=15,`${width}: oil digits stay visually compact`);
   }
 });
 
