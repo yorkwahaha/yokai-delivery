@@ -9,6 +9,9 @@
 }
 window.UI = (() => {
   const screenBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:900,bottom:600,width:900,height:600};
+  // 暫時停用尚未素材化的 diegetic 假繪馬／假扇子；保留程式以便日後換正式素材再開。
+  const DIEGETIC_QUEST_BOARD_ENABLED = false;
+  const DIEGETIC_SKILL_FAN_ENABLED = false;
   function fillScreen(ctx) { const b = screenBounds(); ctx.fillRect(b.left,b.top,b.width,b.height); }
   const W = 900, H = 600;
   const RESTART_BTN = { x: 150, y: 492, w: 180, h: 48 };
@@ -539,16 +542,18 @@ window.UI = (() => {
       ctx.fillStyle = "#e9efff";
       ctx.strokeStyle = "rgba(255,248,220,.92)";
       ctx.lineWidth = Math.max(1.1, size * 0.007);
-      // 用 even-odd 雙圓做真正的弦月；隨夜色推進稍微變厚，再交棒給日輪。
+      // 不再用雙圓挖空：直接畫單側弦月輪廓，避免視覺上像兩個月亮照鏡子。
       const wax = clamp(eased / 0.46, 0, 1);
-      // 內切圓明顯偏向右側，避免看成空心圓；起始即呈現清楚的細弦月。
-      const innerR = markerR * (0.96 - wax * 0.07);
-      const innerX = mx + markerR * (0.62 - wax * 0.18);
-      const innerY = my - markerR * 0.03;
+      const crescentTipX = mx + markerR * 0.38;
+      const crescentOuterX = mx - markerR * (0.90 - wax * 0.05);
+      const crescentInnerX = mx - markerR * (0.24 - wax * 0.12);
+      const innerBow = markerR * (0.52 + wax * 0.08);
       ctx.beginPath();
-      ctx.arc(mx, my, markerR, 0, 6.283);
-      ctx.arc(innerX, innerY, innerR, 0, 6.283);
-      ctx.fill("evenodd");
+      ctx.moveTo(crescentTipX, my - markerR * 0.90);
+      ctx.bezierCurveTo(crescentOuterX, my - markerR * 0.72, crescentOuterX, my + markerR * 0.72, crescentTipX, my + markerR * 0.90);
+      ctx.bezierCurveTo(crescentInnerX, my + innerBow, crescentInnerX, my - innerBow, crescentTipX, my - markerR * 0.90);
+      ctx.closePath();
+      ctx.fill();
     }
 
     const sunAlpha = clamp((eased - 0.22) / 0.78, 0, 1);
@@ -1050,12 +1055,13 @@ window.UI = (() => {
     ctx.fillStyle = ctx.strokeStyle = "#ffd54f";
     drawActionIcon(ctx, 'pause', btnPause.x + btnPause.w / 2, btnPause.y + btnPause.h / 2, 10);
 
-    // --- 中上：classic 浮字；diegetic 改成屋簷木牌＋紙札。 ---
+    // --- 中上任務：暫停使用假繪馬，diegetic 先回到乾淨的浮動資訊。 ---
     const taskX = Math.max(248, pBoxX + pBoxW + 5), taskY = bounds.top + 14;
-    const taskW = Math.min(370, sBoxX - taskX - 15), taskH = diegetic ? 68 : 52;
-    if (diegetic) drawDiegeticQuestBoard(ctx, taskX, taskY - 5, taskW, taskH + 5);
+    const useQuestBoard = diegetic && DIEGETIC_QUEST_BOARD_ENABLED;
+    const taskW = Math.min(370, sBoxX - taskX - 15), taskH = useQuestBoard ? 68 : 52;
+    if (useQuestBoard) drawDiegeticQuestBoard(ctx, taskX, taskY - 5, taskW, taskH + 5);
     HINT_BTN.x = taskX + taskW - HINT_BTN.w - 8;
-    HINT_BTN.y = bounds.top + (diegetic ? 28 : 20);
+    HINT_BTN.y = bounds.top + (useQuestBoard ? 28 : 20);
     ctx.textAlign = "left";
     let afterTask = taskY + taskH + 6;
     if (bossHunt) {
@@ -1068,20 +1074,20 @@ window.UI = (() => {
       drawCompass(ctx, taskX + taskW / 2 + 84, taskY + 26, extra.bossAngle, { color: "#ff3b4f", count: 2, size: 1.2 });
     } else if (job) {
       const remaining = Math.round(Math.hypot(P.x - job.to.x, P.y - job.to.y) / 10) * 10;
-      ctx.fillStyle = diegetic ? '#43291d' : '#fff3ca';
+      ctx.fillStyle = useQuestBoard ? '#43291d' : '#fff3ca';
       ctx.font = readableFont(18, '900');
       if (job.word.cue !== 'text') drawWordCue(ctx, job.word, taskX + 27, taskY + 16, 24);
-      if (diegetic) ctx.fillText(job.word.zh, taskX + (job.word.cue === 'text' ? 16 : 48), taskY + 27);
+      if (useQuestBoard) ctx.fillText(job.word.zh, taskX + (job.word.cue === 'text' ? 16 : 48), taskY + 27);
       else inkText(ctx, job.word.zh, taskX + (job.word.cue === 'text' ? 16 : 48), taskY + 23);
       drawCompass(ctx, taskX + 24, taskY + 40, extra.guideAngle, { color: '#ffd152', size: 1.1 });
-      ctx.fillStyle = diegetic ? '#5a3828' : '#82d8ff';
+      ctx.fillStyle = useQuestBoard ? '#5a3828' : '#82d8ff';
       ctx.font = readableFont(12, '900');
-      if (diegetic) ctx.fillText(String(remaining), taskX + 44, taskY + 48);
+      if (useQuestBoard) ctx.fillText(String(remaining), taskX + 44, taskY + 48);
       else inkText(ctx, String(remaining), taskX + 44, taskY + 44);
 
       const hintStage = job.hintStage || 0;
       const hintLabel = hintStage === 0 ? '聽 -3' : hintStage === 1 ? '詞 -4' : '✓';
-      if (diegetic) drawDiegeticHintTag(ctx, HINT_BTN, hintLabel, hintStage >= 2);
+      if (useQuestBoard) drawDiegeticHintTag(ctx, HINT_BTN, hintLabel, hintStage >= 2);
       else drawButton(ctx, HINT_BTN, hintLabel, {
         tone: 'cyan', size: 14, icon: hintStage === 0 ? 'listen' : 'hint', disabled: hintStage >= 2
       });
@@ -1110,7 +1116,8 @@ window.UI = (() => {
     ctx.scale(1.2, 1.2);
     const slotStartX = 0, slotY = 0;
 
-    if (diegetic) {
+    const useSkillFan = diegetic && DIEGETIC_SKILL_FAN_ENABLED;
+    if (useSkillFan) {
       drawDiegeticSkillFan(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion);
     } else {
       for (let i = 0; i < maxActiveSlots; i++) {

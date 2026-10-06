@@ -66,6 +66,12 @@ test('missing specialized enemy art uses the fallback image crop rather than an 
   const a=r.images.at(-1);assert.equal(a[0],ghost);assert.ok(a[1]+a[3]<=ghost.naturalWidth);
 });
 
+test('misdelivery monster word badge stays above the face',()=>{
+  const src=fs.readFileSync('js/renderer.js','utf8');
+  assert.match(src,/const badgeY = e\.y - 108/);
+  assert.doesNotMatch(src,/roundRect\(e\.x - bw \/ 2, e\.y - 72/);
+});
+
 test('atlas crops stay inside shipped images and every frame shares its requested ground anchor',()=>{
   const r=loadRenderer(900,600);
   const names=['ghost','runner','boss','mis','tank','shooter'].map(k=>k+'_motion_v1').concat(['player_dash_v1','player_win_v1','player_kneel_v1','map_night_town_v1','map_rain_port_v1']);

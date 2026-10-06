@@ -731,18 +731,19 @@ window.RENDERER = (() => {
       const badgeText = `${e.w.jp}＝${e.w.zh}`;
       ctx.font = UI.readableFont(20, "700");
       const bw = ctx.measureText(badgeText).width + 46;
+      const badgeY = e.y - 108;
       ctx.fillStyle = "rgba(35, 14, 52, 0.88)";
       ctx.beginPath();
-      ctx.roundRect(e.x - bw / 2, e.y - 72, bw, 32, 6);
+      ctx.roundRect(e.x - bw / 2, badgeY, bw, 32, 6);
       ctx.fill();
       ctx.strokeStyle = "#e1bee7";
       ctx.lineWidth = 1.4;
       ctx.stroke();
 
-      if (typeof UI.drawWordCue === "function") UI.drawWordCue(ctx, e.w, e.x - bw / 2 + 22, e.y - 56, 22);
+      if (typeof UI.drawWordCue === "function") UI.drawWordCue(ctx, e.w, e.x - bw / 2 + 22, badgeY + 16, 22);
       ctx.fillStyle = "#f5d4ff";
       ctx.textAlign = "center";
-      ctx.fillText(badgeText, e.x + 12, e.y - 49);
+      ctx.fillText(badgeText, e.x + 12, badgeY + 23);
       ctx.restore();
     }
   }
