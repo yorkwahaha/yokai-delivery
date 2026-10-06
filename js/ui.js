@@ -482,6 +482,64 @@ window.UI = (() => {
     ctx.restore();
   }
 
+  // 雷達專用原創 icon：不依賴 emoji 或貨物內容，避免之後換整套圖示時再牽動雷達。
+  function drawRadarPickupIcon(ctx, x, y, scale = 1, urgent = false) {
+    const s = 6.4 * scale;
+    ctx.save();
+    ctx.translate(x, y);
+    glow(ctx, 0, 0, s * 3.2, urgent ? "#ff6b50" : "#e8bd68", urgent ? 0.55 : 0.34);
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Math.max(1, 1.1 * scale);
+    ctx.strokeStyle = urgent ? "#ffd0a3" : "#ffe1a0";
+    ctx.fillStyle = urgent ? "#c85f3d" : "#b9783f";
+    ctx.beginPath();
+    ctx.moveTo(-s, -s * 0.35);
+    ctx.lineTo(0, -s * 0.92);
+    ctx.lineTo(s, -s * 0.35);
+    ctx.lineTo(s, s * 0.72);
+    ctx.lineTo(0, s * 1.08);
+    ctx.lineTo(-s, s * 0.72);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = urgent ? "#f3b56b" : "#e7b86d";
+    ctx.beginPath();
+    ctx.moveTo(-s, -s * 0.35);
+    ctx.lineTo(0, -s * 0.92);
+    ctx.lineTo(s, -s * 0.35);
+    ctx.lineTo(0, s * 0.18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,240,190,.68)";
+    ctx.beginPath(); ctx.moveTo(0, -s * 0.92); ctx.lineTo(0, s * 1.02); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawRadarDeliverySeal(ctx, x, y, scale = 1) {
+    const s = 7 * scale;
+    ctx.save();
+    ctx.translate(x, y);
+    glow(ctx, 0, 0, s * 3.8, "#6edff0", 0.44);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = "#234d70";
+    ctx.strokeStyle = "#9beaf2";
+    ctx.lineWidth = Math.max(1, 1.15 * scale);
+    ctx.beginPath(); ctx.roundRect(-s, -s, s * 2, s * 2, s * 0.28); ctx.fill(); ctx.stroke();
+    ctx.rotate(-Math.PI / 4);
+    ctx.strokeStyle = "#d9fbff";
+    ctx.lineWidth = Math.max(1, 1.05 * scale);
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.36, 0, 6.283); ctx.stroke();
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * s * 0.42, Math.sin(a) * s * 0.42);
+      ctx.lineTo(Math.cos(a) * s * 0.78, Math.sin(a) * s * 0.78);
+      ctx.stroke();
+    }
+    ctx.fillStyle = "#e9ffff";
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.14, 0, 6.283); ctx.fill();
+    ctx.restore();
+  }
+
   function drawDiegeticMinimapFallback(ctx, x, y, size, P, orders, job, boss) {
     const cx = x + size / 2, cy = y + size / 2, outerR = size / 2, mapR = outerR - 17, k = (mapR - 7) / 1300;
     ctx.save();
@@ -497,8 +555,8 @@ window.UI = (() => {
     ctx.strokeStyle = 'rgba(127,227,240,.13)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx-mapR,cy); ctx.lineTo(cx+mapR,cy); ctx.moveTo(cx,cy-mapR); ctx.lineTo(cx,cy+mapR); ctx.stroke();
     for (const rr of [mapR*.38,mapR*.72]) { ctx.beginPath(); ctx.arc(cx,cy,rr,0,6.283); ctx.stroke(); }
     const place = (wx, wy) => { let dx = (wx - P.x) * k, dy = (wy - P.y) * k; const len = Math.hypot(dx,dy), max = mapR - 8, edge = len > max; if (edge && len > 0) { dx *= max / len; dy *= max / len; } return {x:cx+dx,y:cy+dy,edge}; };
-    for (const o of orders) { const m = place(o.from.x,o.from.y), urgent = o.life < 25, color = urgent ? '#ff6b5b' : o.life < 55 ? '#ffb347' : C.gold; glow(ctx,m.x,m.y,m.edge?10:15,color,urgent ? .75 : .48); ctx.fillStyle=color; ctx.beginPath(); ctx.arc(m.x,m.y,m.edge?2.5:3.5,0,6.283); ctx.fill(); }
-    if (job) { const m=place(job.to.x,job.to.y); glow(ctx,m.x,m.y,24,C.cyan,.55); ctx.fillStyle=C.cyan; ctx.save();ctx.translate(m.x,m.y);ctx.rotate(Math.PI/4);ctx.fillRect(-4,-4,8,8);ctx.restore(); }
+    for (const o of orders) { const m = place(o.from.x,o.from.y), urgent = o.life < 25; drawRadarPickupIcon(ctx,m.x,m.y,m.edge?.72:1,urgent); }
+    if (job) { const m=place(job.to.x,job.to.y); drawRadarDeliverySeal(ctx,m.x,m.y,m.edge?.76:1); }
     if (boss) { const m=place(boss.x,boss.y); glow(ctx,m.x,m.y,28,'#ff3b4f',.6); ctx.fillStyle='#ff3b4f';ctx.beginPath();ctx.arc(m.x,m.y,5,0,6.283);ctx.fill(); }
     glow(ctx,cx,cy,20,'#ffffff',.65); ctx.fillStyle='#fff'; ctx.save(); ctx.translate(cx,cy); ctx.rotate(P.faceAng||0); ctx.beginPath(); ctx.moveTo(7,0);ctx.lineTo(-4,-4);ctx.lineTo(-1,0);ctx.lineTo(-4,4);ctx.closePath();ctx.fill();ctx.restore();
     ctx.restore(); ctx.restore();
@@ -695,16 +753,11 @@ window.UI = (() => {
 
     for (const o of orders) {
       const m = place(o.from.x, o.from.y), urgent = o.life < 25;
-      const color = urgent ? "#ff5b4f" : o.life < 55 ? "#ffb347" : C.gold;
-      glow(ctx, m.x, m.y, m.edge ? 10 : 15, color, urgent ? 0.75 : 0.48);
-      ctx.fillStyle = color;
-      ctx.beginPath(); ctx.arc(m.x, m.y, m.edge ? 2.4 : 3.4, 0, 6.283); ctx.fill();
+      drawRadarPickupIcon(ctx, m.x, m.y, m.edge ? 0.72 : 1, urgent);
     }
     if (job) {
       const m = place(job.to.x, job.to.y);
-      glow(ctx, m.x, m.y, 24, C.cyan, 0.55);
-      ctx.fillStyle = C.cyan;
-      ctx.save(); ctx.translate(m.x, m.y); ctx.rotate(Math.PI / 4); ctx.fillRect(-4, -4, 8, 8); ctx.restore();
+      drawRadarDeliverySeal(ctx, m.x, m.y, m.edge ? 0.76 : 1);
     }
     if (boss) {
       const m = place(boss.x, boss.y);
@@ -744,6 +797,52 @@ window.UI = (() => {
   function drawDiegeticHintTag(ctx, b, label, disabled) {
     ctx.save();ctx.fillStyle=disabled?'#c8bea7':'#e6d7ac';ctx.strokeStyle=disabled?'#7e786a':'#75512f';ctx.lineWidth=1.6;
     ctx.beginPath();ctx.roundRect(b.x,b.y,b.w,b.h,3);ctx.fill();ctx.stroke();ctx.fillStyle=disabled?'#6b665d':'#39261d';ctx.textAlign='center';ctx.font=readableFont(13,'900');ctx.fillText(label,b.x+b.w/2,b.y+b.h/2+5,b.w-8);ctx.restore();
+  }
+
+  function drawDiegeticOmamoriHint(ctx, b, stage, time) {
+    const disabled = stage >= 2;
+    const label = stage === 0 ? "聴" : stage === 1 ? "詞" : "済";
+    const cost = stage === 0 ? "−3" : stage === 1 ? "−4" : "";
+    const sway = calm() ? 0 : Math.sin(time * 1.9 + 0.5) * 0.028;
+    const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(sway);
+    ctx.translate(-cx, -cy);
+
+    ctx.strokeStyle = disabled ? "rgba(150,132,112,.65)" : "#d6a54a";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(cx, b.y - 8);
+    ctx.quadraticCurveTo(cx + 6, b.y - 2, cx + 2, b.y + 5);
+    ctx.stroke();
+
+    const grad = ctx.createLinearGradient(b.x, b.y, b.x, b.y + b.h);
+    grad.addColorStop(0, disabled ? "#8a7369" : "#9d2f2a");
+    grad.addColorStop(1, disabled ? "#665650" : "#651c20");
+    ctx.fillStyle = grad;
+    ctx.strokeStyle = disabled ? "#9f8d7e" : "#e1b75f";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(b.x + 4, b.y + 3);
+    ctx.quadraticCurveTo(cx, b.y - 1, b.x + b.w - 4, b.y + 3);
+    ctx.lineTo(b.x + b.w - 2, b.y + b.h - 8);
+    ctx.quadraticCurveTo(cx, b.y + b.h + 1, b.x + 2, b.y + b.h - 8);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = disabled ? "rgba(226,216,194,.72)" : "#f3e3bb";
+    ctx.beginPath(); ctx.roundRect(b.x + 7, b.y + 12, b.w - 14, b.h - 24, 3); ctx.fill();
+    ctx.fillStyle = disabled ? "#625a54" : "#4c2a24";
+    ctx.textAlign = "center";
+    ctx.font = readableFont(14, "900");
+    ctx.fillText(label, cx, b.y + 31);
+    if (cost) {
+      ctx.font = readableFont(8, "900");
+      ctx.fillText(cost, cx, b.y + b.h - 7);
+    }
+    ctx.restore();
   }
 
   function drawDiegeticSkillFan(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion) {
@@ -1060,8 +1159,22 @@ window.UI = (() => {
     const useQuestBoard = diegetic && DIEGETIC_QUEST_BOARD_ENABLED;
     const taskW = Math.min(370, sBoxX - taskX - 15), taskH = useQuestBoard ? 68 : 52;
     if (useQuestBoard) drawDiegeticQuestBoard(ctx, taskX, taskY - 5, taskW, taskH + 5);
-    HINT_BTN.x = taskX + taskW - HINT_BTN.w - 8;
-    HINT_BTN.y = bounds.top + (useQuestBoard ? 28 : 20);
+    if (diegetic && job && !bossHunt) {
+      const lanternArt = window.ART?.hud_lantern_oil;
+      const lanternAspect = lanternArt?.naturalWidth && lanternArt?.naturalHeight
+        ? lanternArt.naturalWidth / lanternArt.naturalHeight : 0.75;
+      const lanternVisualH = compactLandscape ? 190 : 168;
+      const lanternVisualW = lanternVisualH * lanternAspect;
+      HINT_BTN.w = compactLandscape ? 42 : 38;
+      HINT_BTN.h = compactLandscape ? 58 : 54;
+      HINT_BTN.x = pBoxX + lanternVisualW - 4;
+      HINT_BTN.y = pBoxY + (compactLandscape ? 60 : 54);
+    } else {
+      HINT_BTN.w = 78;
+      HINT_BTN.h = 40;
+      HINT_BTN.x = taskX + taskW - HINT_BTN.w - 8;
+      HINT_BTN.y = bounds.top + (useQuestBoard ? 28 : 20);
+    }
     ctx.textAlign = "left";
     let afterTask = taskY + taskH + 6;
     if (bossHunt) {
@@ -1087,7 +1200,8 @@ window.UI = (() => {
 
       const hintStage = job.hintStage || 0;
       const hintLabel = hintStage === 0 ? '聽 -3' : hintStage === 1 ? '詞 -4' : '✓';
-      if (useQuestBoard) drawDiegeticHintTag(ctx, HINT_BTN, hintLabel, hintStage >= 2);
+      if (diegetic) drawDiegeticOmamoriHint(ctx, HINT_BTN, hintStage, time);
+      else if (useQuestBoard) drawDiegeticHintTag(ctx, HINT_BTN, hintLabel, hintStage >= 2);
       else drawButton(ctx, HINT_BTN, hintLabel, {
         tone: 'cyan', size: 14, icon: hintStage === 0 ? 'listen' : 'hint', disabled: hintStage >= 2
       });
@@ -1098,7 +1212,7 @@ window.UI = (() => {
         ctx.font = readableFont(11, "bold");
         afterTask += drawHintText(ctx, `${job.word.jp}　${job.word.example || ""}`, taskX, taskY + taskH + 6, taskW) + 6;
       }
-    } else {
+    } else if (!diegetic) {
       // 沒有進行中的委託：包裹圖示＋箭頭，朝委託方向前進（靠近時圖示轉金色）。
       ctx.fillStyle = ctx.strokeStyle = inter ? "#ffe082" : "#f4e7cf";
       drawActionIcon(ctx, 'pickup', taskX + 27, taskY + 26, 13);

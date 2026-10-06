@@ -216,6 +216,15 @@ test('diegetic radar phase 2 keeps the clock outside navigation content and pres
   assert.match(src,/const DIEGETIC_SKILL_FAN_ENABLED = false/,'placeholder skill fan stays disabled');
 });
 
+test('diegetic delivery guidance uses original radar icons and an omamori hint',()=>{
+  const src=fs.readFileSync('js/ui.js','utf8');
+  assert.match(src,/function drawRadarPickupIcon\(/,'pickup radar icon is custom vector art');
+  assert.match(src,/function drawRadarDeliverySeal\(/,'delivery radar icon is custom vector art');
+  assert.match(src,/function drawDiegeticOmamoriHint\(/,'delivery hint uses an omamori');
+  assert.match(src,/if \(diegetic && job && !bossHunt\)/,'omamori hit area only moves beside lantern for active deliveries');
+  assert.match(src,/else if \(!diegetic\) \{\n\s*\/\/ 沒有進行中的委託/,'classic alone keeps the old pickup arrow prompt');
+});
+
 test('HUD skill badges are readable and their labels fit their backing rectangles',()=>{
   for(const [width,height] of [[900,600],[844,390],[667,375],[568,320],[800,600],[1920,1080]]) {
     const r=drawHudFixture(width,height,160,160,{shield:6,dmg:1.9,rate:2,crit:2,spd:2,dash:2,mag:2});
