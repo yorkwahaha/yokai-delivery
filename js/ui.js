@@ -501,10 +501,118 @@ window.UI = (() => {
     ctx.restore(); ctx.restore();
   }
 
-  function drawDiegeticMinimap(ctx, x, y, size, P, orders, job, boss) {
+  function drawDiegeticRadarClock(ctx, cx, cy, size, progress, secondsLeft, time) {
+    const p = clamp(progress, 0, 1);
+    const start = Math.PI * 5 / 6;
+    const span = Math.PI * 5 / 3;
+    const end = start + span;
+    const angle = start + span * p;
+    const ringR = size * 0.347;
+    const tickOuter = ringR + size * 0.016;
+    const tickInner = ringR - size * 0.014;
+
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineWidth = Math.max(1.1, size * 0.008);
+    ctx.strokeStyle = "rgba(255,231,164,.22)";
+    ctx.beginPath(); ctx.arc(cx, cy, ringR, start, end); ctx.stroke();
+    ctx.strokeStyle = "rgba(255,205,89,.72)";
+    ctx.beginPath(); ctx.arc(cx, cy, ringR, start, angle); ctx.stroke();
+
+    for (let i = 0; i <= 10; i++) {
+      const a = start + span * i / 10;
+      const major = i === 0 || i === 10 || i === 4;
+      const r0 = major ? tickInner - size * 0.006 : tickInner;
+      ctx.strokeStyle = major ? "rgba(255,226,145,.82)" : "rgba(255,226,145,.42)";
+      ctx.lineWidth = major ? Math.max(1.2, size * 0.009) : Math.max(0.8, size * 0.005);
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
+      ctx.lineTo(cx + Math.cos(a) * tickOuter, cy + Math.sin(a) * tickOuter);
+      ctx.stroke();
+    }
+
+    const mx = cx + Math.cos(angle) * ringR;
+    const my = cy + Math.sin(angle) * ringR;
+    const eased = p * p * (3 - 2 * p);
+    const markerR = size * (0.026 + eased * 0.008);
+    glow(ctx, mx, my, size * (0.15 + eased * 0.06), eased > 0.55 ? "#ffb347" : "#d9e5ff", 0.42);
+
+    const moonAlpha = clamp(1 - eased * 1.15, 0, 1);
+    if (moonAlpha > 0.01) {
+      ctx.globalAlpha = moonAlpha;
+      ctx.fillStyle = "#e9efff";
+      ctx.beginPath();
+      ctx.moveTo(mx + markerR * 0.15, my - markerR);
+      ctx.bezierCurveTo(mx - markerR * 0.95, my - markerR * 0.55, mx - markerR * 0.95, my + markerR * 0.62, mx + markerR * 0.12, my + markerR);
+      ctx.bezierCurveTo(mx - markerR * 0.18, my + markerR * 0.32, mx + markerR * 0.3, my - markerR * 0.36, mx + markerR * 0.15, my - markerR);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    const sunAlpha = clamp((eased - 0.22) / 0.78, 0, 1);
+    if (sunAlpha > 0.01) {
+      ctx.globalAlpha = sunAlpha;
+      ctx.strokeStyle = "#ffd36f";
+      ctx.fillStyle = "#ffc44f";
+      ctx.lineWidth = Math.max(1, size * 0.006);
+      if (eased > 0.58) {
+        const ray = markerR * (1.55 + eased * 0.2);
+        for (let i = 0; i < 8; i++) {
+          const a = time * 0.08 + i * Math.PI / 4;
+          ctx.beginPath();
+          ctx.moveTo(mx + Math.cos(a) * markerR * 1.05, my + Math.sin(a) * markerR * 1.05);
+          ctx.lineTo(mx + Math.cos(a) * ray, my + Math.sin(a) * ray);
+          ctx.stroke();
+        }
+      }
+      ctx.beginPath(); ctx.arc(mx, my, markerR * (0.72 + eased * 0.18), 0, 6.283); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    const sec = Math.max(0, Math.ceil(secondsLeft));
+    const secPart = sec % 60;
+    ctx.textAlign = "center";
+    ctx.font = readableFont(10, "900");
+    ctx.fillStyle = "rgba(255,239,205,.9)";
+    inkText(ctx, `${Math.floor(sec / 60)}:${secPart < 10 ? "0" : ""}${secPart}`, cx, cy + size * 0.23);
+    ctx.restore();
+  }
+
+  function drawDiegeticRadarStatus(ctx, x, y, w, delivered, goalDeliveries, score) {
+    const h = 28;
+    ctx.save();
+    ctx.fillStyle = "rgba(8,11,22,.72)";
+    ctx.strokeStyle = "rgba(232,195,106,.48)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.roundRect(x + 6, y, w - 12, h, 10); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = ctx.strokeStyle = "#ffe0a4";
+    drawActionIcon(ctx, "pickup", x + 20, y + h / 2, 7);
+    ctx.textAlign = "left";
+    ctx.font = readableFont(12, "900");
+    ctx.fillStyle = "#fff1cc";
+    inkText(ctx, `${delivered}/${goalDeliveries}`, x + 32, y + 19);
+
+    const scoreText = String(score);
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#fff1cc";
+    inkText(ctx, scoreText, x + w - 14, y + 19);
+    const scoreW = ctx.measureText(scoreText).width;
+    ctx.fillStyle = C.gold;
+    ctx.save();
+    ctx.translate(x + w - 22 - scoreW, y + h / 2);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillRect(-3, -3, 6, 6);
+    ctx.restore();
+    ctx.restore();
+    return h;
+  }
+
+  function drawDiegeticMinimap(ctx, x, y, size, P, orders, job, boss, dawnProgress = 0, dawnSecLeft = 0, time = 0) {
     const art = window.ART?.hud_radar_frame;
     if (!art?.complete || !art.naturalWidth || !art.naturalHeight) {
       drawDiegeticMinimapFallback(ctx, x, y, size, P, orders, job, boss);
+      drawDiegeticRadarClock(ctx, x + size / 2, y + size / 2, size, dawnProgress, dawnSecLeft, time);
       return;
     }
 
@@ -573,6 +681,7 @@ window.UI = (() => {
     ctx.restore();
 
     ctx.drawImage(art, x, y, size, size);
+    drawDiegeticRadarClock(ctx, cx, cy, size, dawnProgress, dawnSecLeft, time);
     ctx.restore();
   }
 
@@ -836,55 +945,65 @@ window.UI = (() => {
       ctx.textAlign = "left";
     }
 
-    // --- 右上：黎明進度（月亮＋條）與配達進度（包裹＋件數）＋分數，同樣不加底框。 ---
+    // --- 右上：classic 保留獨立時間條；diegetic 將時間、配達與分數整合進雷達群組。 ---
     const sBoxW = 215, sBoxH = 56;
     const sBoxX = bounds.right - sBoxW - Math.max(62, 44 / scale + 18), sBoxY = bounds.top + 14;
     const dawnProgress = clamp(elapsed / dawnTime, 0, 1);
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#ffd54f";
-    ctx.beginPath();
-    ctx.arc(sBoxX + 17, sBoxY + 17, 7, 0.5, 4.2);
-    ctx.arc(sBoxX + 20, sBoxY + 17, 6, 4.0, 0.7, true);
-    ctx.fill();
-    ctx.font = readableFont(12, "900");
-    const clockW = ctx.measureText("10:00").width;
-    const dawnBarW = Math.max(12,sBoxW - 46 - clockW), dawnBarX = sBoxX + 34, dawnBarY = sBoxY + 12;
-    ctx.fillStyle = "#1b2238";
-    ctx.beginPath(); ctx.roundRect(dawnBarX, dawnBarY, dawnBarW, 9, 4.5); ctx.fill();
-    if (dawnProgress > 0) {
-      ctx.fillStyle = barGradient(ctx,"dawn",dawnBarX,dawnBarX+dawnBarW,gradientTransform);
-      ctx.beginPath(); ctx.roundRect(dawnBarX, dawnBarY, Math.max(9, dawnBarW * dawnProgress), 9, 4.5); ctx.fill();
-      glow(ctx, dawnBarX + dawnBarW * dawnProgress, dawnBarY + 4.5, 26, "#ffd27a", 0.6);
-    }
-    ctx.strokeStyle = "rgba(232, 195, 106, 0.55)"; ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.roundRect(dawnBarX, dawnBarY, dawnBarW, 9, 4.5); ctx.stroke();
     const dawnSecLeft = Math.max(0, Math.ceil(dawnTime - elapsed));
-    const dawnSec = dawnSecLeft % 60;
-    ctx.fillStyle = "#ffeed4";
-    ctx.font = readableFont(12, "900");
-    ctx.textAlign = "right";
-    inkText(ctx, `${Math.floor(dawnSecLeft / 60)}:${dawnSec < 10 ? '0' : ''}${dawnSec}`, sBoxX + sBoxW - 4, sBoxY + 21);
-    ctx.fillStyle = ctx.strokeStyle = "#ffe0a4";
-    drawActionIcon(ctx, 'pickup', sBoxX + 17, sBoxY + 42, 8);
-    ctx.textAlign = "left";
-    ctx.font = readableFont(14, "900");
-    inkText(ctx, `${delivered}/${goalDeliveries}`, sBoxX + 32, sBoxY + 47);
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#fff1cc";
-    const scoreText = String(score);
-    inkText(ctx, scoreText, sBoxX + sBoxW - 4, sBoxY + 47);
-    ctx.fillStyle = C.gold;
-    ctx.save(); ctx.translate(sBoxX + sBoxW - 4 - ctx.measureText(scoreText).width - 9, sBoxY + 42); ctx.rotate(Math.PI / 4); ctx.fillRect(-3, -3, 6, 6); ctx.restore();
-    ctx.textAlign = "left";
-
     const compact = scale < 0.62;
     const compactLandscape = (window.innerHeight || 600) <= 500 &&
       (window.innerWidth || 900) > (window.innerHeight || 600) * 1.55;
     const mapW = diegetic ? (compactLandscape ? 190 : 174) : (compact ? 120 : 172);
-    const mapH = diegetic ? mapW : (compact ? 84 : 118), mapY = sBoxY + sBoxH + 8;
-    if (diegetic) drawDiegeticMinimap(ctx, sBoxX + sBoxW - mapW, mapY, mapW, P, orders || [], job, extra.boss);
-    else drawMinimap(ctx, sBoxX + sBoxW - mapW, mapY, mapW, mapH, P, orders || [], job, extra.boss, time);
-    if (!compact && orders?.length) drawOrderList(ctx, sBoxX + sBoxW - mapW, mapY + mapH + 6, mapW, fontPx(readableFont(12)) + 14, orders, P, inter);
+    const mapH = diegetic ? mapW : (compact ? 84 : 118);
+    const mapX = sBoxX + sBoxW - mapW;
+    let mapY, orderY;
+
+    if (diegetic) {
+      mapY = sBoxY;
+      drawDiegeticMinimap(ctx, mapX, mapY, mapW, P, orders || [], job, extra.boss, dawnProgress, dawnSecLeft, time);
+      const statH = drawDiegeticRadarStatus(ctx, mapX, mapY + mapH + 2, mapW, delivered, goalDeliveries, score);
+      orderY = mapY + mapH + statH + 6;
+    } else {
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#ffd54f";
+      ctx.beginPath();
+      ctx.arc(sBoxX + 17, sBoxY + 17, 7, 0.5, 4.2);
+      ctx.arc(sBoxX + 20, sBoxY + 17, 6, 4.0, 0.7, true);
+      ctx.fill();
+      ctx.font = readableFont(12, "900");
+      const clockW = ctx.measureText("10:00").width;
+      const dawnBarW = Math.max(12,sBoxW - 46 - clockW), dawnBarX = sBoxX + 34, dawnBarY = sBoxY + 12;
+      ctx.fillStyle = "#1b2238";
+      ctx.beginPath(); ctx.roundRect(dawnBarX, dawnBarY, dawnBarW, 9, 4.5); ctx.fill();
+      if (dawnProgress > 0) {
+        ctx.fillStyle = barGradient(ctx,"dawn",dawnBarX,dawnBarX+dawnBarW,gradientTransform);
+        ctx.beginPath(); ctx.roundRect(dawnBarX, dawnBarY, Math.max(9, dawnBarW * dawnProgress), 9, 4.5); ctx.fill();
+        glow(ctx, dawnBarX + dawnBarW * dawnProgress, dawnBarY + 4.5, 26, "#ffd27a", 0.6);
+      }
+      ctx.strokeStyle = "rgba(232, 195, 106, 0.55)"; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.roundRect(dawnBarX, dawnBarY, dawnBarW, 9, 4.5); ctx.stroke();
+      const dawnSec = dawnSecLeft % 60;
+      ctx.fillStyle = "#ffeed4";
+      ctx.font = readableFont(12, "900");
+      ctx.textAlign = "right";
+      inkText(ctx, `${Math.floor(dawnSecLeft / 60)}:${dawnSec < 10 ? "0" : ""}${dawnSec}`, sBoxX + sBoxW - 4, sBoxY + 21);
+      ctx.fillStyle = ctx.strokeStyle = "#ffe0a4";
+      drawActionIcon(ctx, "pickup", sBoxX + 17, sBoxY + 42, 8);
+      ctx.textAlign = "left";
+      ctx.font = readableFont(14, "900");
+      inkText(ctx, `${delivered}/${goalDeliveries}`, sBoxX + 32, sBoxY + 47);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#fff1cc";
+      const scoreText = String(score);
+      inkText(ctx, scoreText, sBoxX + sBoxW - 4, sBoxY + 47);
+      ctx.fillStyle = C.gold;
+      ctx.save(); ctx.translate(sBoxX + sBoxW - 4 - ctx.measureText(scoreText).width - 9, sBoxY + 42); ctx.rotate(Math.PI / 4); ctx.fillRect(-3, -3, 6, 6); ctx.restore();
+      ctx.textAlign = "left";
+      mapY = sBoxY + sBoxH + 8;
+      drawMinimap(ctx, mapX, mapY, mapW, mapH, P, orders || [], job, extra.boss, time);
+      orderY = mapY + mapH + 6;
+    }
+    if (!compact && orders?.length) drawOrderList(ctx, mapX, orderY, mapW, fontPx(readableFont(12)) + 14, orders, P, inter);
 
     // --- 暫停鈕 ---
     glassBox(ctx, btnPause.x, btnPause.y, btnPause.w, btnPause.h, 10, "rgba(24, 20, 36, 0.94)", C.gold, 1.8);

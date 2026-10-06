@@ -188,13 +188,16 @@ test('diegetic radar uses illustrated frame with responsive phone and tablet siz
     r.env.window.ART={hud_lantern_oil:lantern,hud_radar_frame:radar};
     const images=[];r.context.drawImage=(...args)=>images.push(args);
     const bounds=r.env.window.VIEWPORT.hudBounds();
-    r.UI.drawHud(r.context,{x:0,y:0,faceAng:.4},100,100,120,600,0,0,0,1,0,30,null,0,[],null,null,true,null,
+    r.UI.drawHud(r.context,{x:0,y:0,faceAng:.4},100,100,120,600,2,0,345,1,0,30,null,0,[],null,null,true,null,
       {x:bounds.right-138,y:bounds.bottom-180,r:38},{x:bounds.right-138,y:bounds.bottom-70,r:46},
       {x:bounds.right-52,y:bounds.top+14,w:38,h:52},{},{},{},0,6,0,1.8,false,{time:1.234});
     const frame=images.find(args=>args[0]===radar);
     assert.ok(frame,`${width}: illustrated radar frame is rendered`);
     assert.equal(Math.round(frame[3]),expectedSize,`${width}: radar frame width`);
     assert.equal(Math.round(frame[4]),expectedSize,`${width}: radar frame height`);
+    assert.ok(r.texts.some(t=>t.value==='8:00'),`${width}: remaining time is integrated into radar`);
+    assert.ok(r.texts.some(t=>t.value==='2/6'),`${width}: delivery progress sits with radar`);
+    assert.ok(r.texts.some(t=>t.value==='345'),`${width}: score sits with radar`);
   }
 });
 
