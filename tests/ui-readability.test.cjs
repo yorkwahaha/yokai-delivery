@@ -199,7 +199,7 @@ test('diegetic radar uses illustrated frame with responsive phone and tablet siz
     assert.ok(r.texts.some(t=>t.value==='2/6'),`${width}: delivery progress sits with radar`);
     assert.ok(r.texts.some(t=>t.value==='345'),`${width}: score sits with radar`);
     const status=r.texts.filter(t=>t.value==='2/6'||t.value==='345');
-    assert.ok(status.every(t=>t.y>frame[2]+frame[4]),`${width}: stats remain directly below radar without a separate panel`);
+    assert.ok(status.every(t=>t.y>=frame[2]+frame[4]-8),`${width}: stats tuck tightly beneath the radar without a separate panel`);
   }
 });
 
@@ -207,7 +207,7 @@ test('diegetic radar phase 2 keeps the clock outside navigation content and pres
   const src=fs.readFileSync('js/ui.js','utf8');
   assert.match(src,/const ringR = size \* 0\.56/,'time marker rides beyond the decorative rim');
   assert.match(src,/ctx\.fill\("evenodd"\)/,'moon starts as a true crescent');
-  assert.match(src,/const mapR = size \* 0\.315/,'radar content fills the central aperture');
+  assert.match(src,/const mapR = size \* 0\.365/,'radar content fills the central aperture');
   assert.doesNotMatch(src,/for \(let i = 0; i <= 10; i\+\+\)/,'extra hour ticks are removed');
   assert.match(src,/const sweepA = \(time \* 0\.72\)/,'radar sweep is active');
   assert.match(src,/const pulsePhase = \(time \* 1\.65\) % 1/,'danger pulse is active');

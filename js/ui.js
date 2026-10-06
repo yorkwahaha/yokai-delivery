@@ -541,14 +541,14 @@ window.UI = (() => {
       ctx.lineWidth = Math.max(1.1, size * 0.007);
       // 用 even-odd 雙圓做真正的弦月；隨夜色推進稍微變厚，再交棒給日輪。
       const wax = clamp(eased / 0.46, 0, 1);
-      const innerR = markerR * (0.91 - wax * 0.08);
-      const innerX = mx + markerR * (0.46 - wax * 0.16);
-      const innerY = my - markerR * 0.04;
+      // 內切圓明顯偏向右側，避免看成空心圓；起始即呈現清楚的細弦月。
+      const innerR = markerR * (0.96 - wax * 0.07);
+      const innerX = mx + markerR * (0.62 - wax * 0.18);
+      const innerY = my - markerR * 0.03;
       ctx.beginPath();
       ctx.arc(mx, my, markerR, 0, 6.283);
       ctx.arc(innerX, innerY, innerR, 0, 6.283);
       ctx.fill("evenodd");
-      ctx.beginPath(); ctx.arc(mx, my, markerR, 0, 6.283); ctx.stroke();
     }
 
     const sunAlpha = clamp((eased - 0.22) / 0.78, 0, 1);
@@ -586,26 +586,26 @@ window.UI = (() => {
   }
 
   function drawDiegeticRadarStatus(ctx, x, y, w, delivered, goalDeliveries, score) {
-    const h = 24;
+    const h = 22;
+    const center = x + w / 2;
     ctx.save();
     ctx.fillStyle = ctx.strokeStyle = "#ffe0a4";
-    drawActionIcon(ctx, "pickup", x + 19, y + h / 2, 7);
+    drawActionIcon(ctx, "pickup", center - 46, y + h / 2, 7);
     ctx.textAlign = "left";
     ctx.font = readableFont(12, "900");
     ctx.fillStyle = "#fff1cc";
-    inkText(ctx, `${delivered}/${goalDeliveries}`, x + 31, y + 17);
+    inkText(ctx, `${delivered}/${goalDeliveries}`, center - 34, y + 16);
 
     const scoreText = String(score);
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#fff1cc";
-    inkText(ctx, scoreText, x + w - 10, y + 17);
-    const scoreW = ctx.measureText(scoreText).width;
     ctx.fillStyle = C.gold;
     ctx.save();
-    ctx.translate(x + w - 18 - scoreW, y + h / 2);
+    ctx.translate(center + 18, y + h / 2);
     ctx.rotate(Math.PI / 4);
     ctx.fillRect(-3, -3, 6, 6);
     ctx.restore();
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#fff1cc";
+    inkText(ctx, scoreText, center + 29, y + 16);
     ctx.restore();
     return h;
   }
@@ -622,7 +622,7 @@ window.UI = (() => {
     // 依實際洞口對位，讓雷達內容向上約 2%，並稍微放大填滿內圈。
     const cx = x + size * 0.499, cy = y + size * 0.481;
     // 放大雷達底盤，讓它吃滿素材的中央透明洞；超出的部分仍會被外框自然遮住。
-    const mapR = size * 0.315;
+    const mapR = size * 0.365;
     const k = (mapR - 7) / 1300;
     ctx.save();
     ctx.save();
@@ -1000,8 +1000,9 @@ window.UI = (() => {
     if (diegetic) {
       mapY = sBoxY;
       drawDiegeticMinimap(ctx, mapX, mapY, mapW, P, orders || [], job, extra.boss, dawnProgress, dawnSecLeft, time);
-      const statH = drawDiegeticRadarStatus(ctx, mapX, mapY + mapH, mapW, delivered, goalDeliveries, score);
-      orderY = mapY + mapH + statH + 6;
+      const statY = mapY + mapH - 8;
+      const statH = drawDiegeticRadarStatus(ctx, mapX, statY, mapW, delivered, goalDeliveries, score);
+      orderY = statY + statH + 4;
     } else {
       ctx.textAlign = "left";
       ctx.fillStyle = "#ffd54f";
