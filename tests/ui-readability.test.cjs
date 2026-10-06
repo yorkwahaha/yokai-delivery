@@ -203,6 +203,15 @@ test('diegetic radar uses illustrated frame with responsive phone and tablet siz
   }
 });
 
+test('diegetic radar phase 2 keeps the clock outside navigation content and preserves integrated status',()=>{
+  const src=fs.readFileSync('js/ui.js','utf8');
+  assert.match(src,/const ringR = size \* 0\.465/,'time marker rides the outer rim');
+  assert.doesNotMatch(src,/for \(let i = 0; i <= 10; i\+\+\)/,'extra hour ticks are removed');
+  assert.match(src,/const sweepA = \(time \* 0\.72\)/,'radar sweep is active');
+  assert.match(src,/const pulsePhase = \(time \* 1\.65\) % 1/,'danger pulse is active');
+  assert.match(src,/const dawnGlow = clamp\(\(dawnProgress - 0\.62\) \/ 0\.38/,'dawn glow is active');
+});
+
 test('HUD skill badges are readable and their labels fit their backing rectangles',()=>{
   for(const [width,height] of [[900,600],[844,390],[667,375],[568,320],[800,600],[1920,1080]]) {
     const r=drawHudFixture(width,height,160,160,{shield:6,dmg:1.9,rate:2,crit:2,spd:2,dash:2,mag:2});

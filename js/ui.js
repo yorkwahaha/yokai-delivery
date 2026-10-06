@@ -507,36 +507,28 @@ window.UI = (() => {
     const span = Math.PI * 5 / 3;
     const end = start + span;
     const angle = start + span * p;
-    // 時間環收進金屬內緣，避免月亮與黃銅裝飾重疊而「消失」。
-    const ringR = size * 0.305;
-    const tickOuter = ringR + size * 0.016;
-    const tickInner = ringR - size * 0.014;
+    // 時間標記掛在羅盤外緣，不進入雷達資料區；玩家看到它會理解為時序，而非目標點。
+    const ringR = size * 0.465;
+    const danger = clamp((p - 0.78) / 0.22, 0, 1);
+    const dangerPulse = 0.5 + Math.sin(time * 5.4) * 0.5;
+    const trackColor = danger > 0.7 ? "#ff5d45" : danger > 0.18 ? "#ff9b52" : "#ffd36f";
 
     ctx.save();
     ctx.lineCap = "round";
-    ctx.lineWidth = Math.max(1.1, size * 0.008);
-    ctx.strokeStyle = "rgba(255,231,164,.22)";
+    ctx.lineWidth = Math.max(1.05, size * 0.006);
+    ctx.strokeStyle = "rgba(255,237,194,.13)";
     ctx.beginPath(); ctx.arc(cx, cy, ringR, start, end); ctx.stroke();
-    ctx.strokeStyle = "rgba(255,205,89,.72)";
+    ctx.globalAlpha = 0.6 + danger * dangerPulse * 0.35;
+    ctx.strokeStyle = trackColor;
     ctx.beginPath(); ctx.arc(cx, cy, ringR, start, angle); ctx.stroke();
-
-    for (let i = 0; i <= 10; i++) {
-      const a = start + span * i / 10;
-      const major = i === 0 || i === 10 || i === 4;
-      const r0 = major ? tickInner - size * 0.006 : tickInner;
-      ctx.strokeStyle = major ? "rgba(255,226,145,.82)" : "rgba(255,226,145,.42)";
-      ctx.lineWidth = major ? Math.max(1.2, size * 0.009) : Math.max(0.8, size * 0.005);
-      ctx.beginPath();
-      ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
-      ctx.lineTo(cx + Math.cos(a) * tickOuter, cy + Math.sin(a) * tickOuter);
-      ctx.stroke();
-    }
+    ctx.globalAlpha = 1;
 
     const mx = cx + Math.cos(angle) * ringR;
     const my = cy + Math.sin(angle) * ringR;
     const eased = p * p * (3 - 2 * p);
-    const markerR = size * (0.034 + eased * 0.007);
-    glow(ctx, mx, my, size * (0.18 + eased * 0.06), eased > 0.55 ? "#ffb347" : "#d9e5ff", 0.62);
+    const markerR = size * (0.027 + eased * 0.006);
+    const markerColor = danger > 0.55 ? "#ff714e" : eased > 0.5 ? "#ffb347" : "#d9e5ff";
+    glow(ctx, mx, my, size * (0.13 + eased * 0.06 + danger * dangerPulse * 0.04), markerColor, 0.66);
 
     const moonAlpha = clamp(1 - eased * 1.15, 0, 1);
     if (moonAlpha > 0.01) {
@@ -571,6 +563,11 @@ window.UI = (() => {
       ctx.beginPath(); ctx.arc(mx, my, markerR * (0.72 + eased * 0.18), 0, 6.283); ctx.fill();
     }
     ctx.globalAlpha = 1;
+    if (danger > 0.02) {
+      ctx.strokeStyle = `rgba(255,83,62,${0.22 + dangerPulse * danger * 0.55})`;
+      ctx.lineWidth = Math.max(1, size * 0.007);
+      ctx.beginPath(); ctx.arc(mx, my, markerR * (1.5 + dangerPulse * 0.45), 0, 6.283); ctx.stroke();
+    }
 
     const sec = Math.max(0, Math.ceil(secondsLeft));
     const secPart = sec % 60;
@@ -640,6 +637,40 @@ window.UI = (() => {
     ctx.stroke();
     for (const rr of [mapR * 0.36, mapR * 0.7]) {
       ctx.beginPath(); ctx.arc(cx, cy, rr, 0, 6.283); ctx.stroke();
+    }
+
+    // Phase 2：雷達掃描線。平時偏青，接近破曉時逐漸轉成警戒橘紅。
+    const danger = clamp((dawnProgress - 0.78) / 0.22, 0, 1);
+    const sweepA = (time * 0.72) % (Math.PI * 2);
+    const sx = cx + Math.cos(sweepA) * (mapR - 4);
+    const sy = cy + Math.sin(sweepA) * (mapR - 4);
+    const sweepColor = danger > 0.4 ? "#ff7558" : "#79dfe9";
+    ctx.strokeStyle = danger > 0.4
+      ? `rgba(255,117,88,${0.18 + danger * 0.22})`
+      : "rgba(121,223,233,.18)";
+    ctx.lineWidth = 1.1;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(sx, sy); ctx.stroke();
+    glow(ctx, sx, sy, 15 + danger * 8, sweepColor, 0.22 + danger * 0.22);
+
+    // 危急時用由內向外的 pulse 表達剩餘時間壓力，不另外增加文字或圖示。
+    if (danger > 0.01) {
+      const pulsePhase = (time * 1.65) % 1;
+      ctx.strokeStyle = `rgba(255,83,62,${danger * (1 - pulsePhase) * 0.42})`;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, mapR * (0.22 + pulsePhase * 0.7), 0, 6.283);
+      ctx.stroke();
+    }
+
+    // 接近清晨時，雷達南側逐漸出現暖色晨光；保持克制，避免蓋住導航資料。
+    const dawnGlow = clamp((dawnProgress - 0.62) / 0.38, 0, 1);
+    if (dawnGlow > 0.01) {
+      const morning = ctx.createRadialGradient(cx, cy + mapR * 0.72, 0, cx, cy + mapR * 0.72, mapR * 1.15);
+      morning.addColorStop(0, `rgba(255,195,112,${0.12 * dawnGlow})`);
+      morning.addColorStop(0.55, `rgba(255,125,82,${0.055 * dawnGlow})`);
+      morning.addColorStop(1, "rgba(255,110,70,0)");
+      ctx.fillStyle = morning;
+      ctx.fillRect(cx - mapR, cy - mapR, mapR * 2, mapR * 2);
     }
 
     const place = (wx, wy) => {
