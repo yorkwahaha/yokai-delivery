@@ -24,7 +24,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
   c.UI = new Proxy({ ...uiButtons, codexButtons:c.UI.codexButtons, codexRows:c.UI.codexRows, pauseButtons:c.UI.pauseButtons, bossQuizLayout:c.UI.bossQuizLayout, HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
   const source = fs.readFileSync('js/game.js', 'utf8');
   const end = source.lastIndexOf('})();');
-  const hook = `window.fixture = { start, update, frame, drawWorld, drawStageWeather, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons,
+  const hook = `window.fixture = { start, update, frame, drawWorld, drawStageWeather, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons, answerChoices,
     upgradeOil: () => UP.find(u=>u.id==='oil_max').f(),
     addRing: () => rings.push({x:P.x,y:P.y,r:40,life:0.08,maxL:0.32,color:'#ffffff'}),
     addBullet: () => enemyBullets.push({x:P.x+180,y:P.y,vx:0,vy:0,life:2}),
@@ -74,7 +74,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     meetDeliveryGoal: () => { delivered=GOAL_DELIVERIES; },
     prepareBoss: (word) => { const bs={x:P.x+200,y:P.y,type:'boss',word:word || ALL[0],hp:999,max:999,shield:true}; enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
     setState: next => { state=next; ended=false; },
-    snapshot: () => ({ state, quitConfirm, needles, proj, winds:typeof winds==='undefined'?[]:winds, ghosts:typeof ghosts==='undefined'?[]:ghosts, menuFocus, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, delivered, bossStage, bossT, finalBossDefeated, gems, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
+    snapshot: () => ({ state, quitConfirm, needles, proj, winds:typeof winds==='undefined'?[]:winds, ghosts:typeof ghosts==='undefined'?[]:ghosts, dragonShots, dragonScorches, menuFocus, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, delivered, bossStage, bossT, finalBossDefeated, gems, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
     addMis: () => enemies.push({x:P.x+100,y:P.y,type:"mis",w:ALL[0],hp:999,max:999,speed:210,flash:0,wob:0}), emptyHouses: () => houses.splice(0),
     tune: id => UP.find(u => u.id === id),
     housesNow: () => houses.map(h => ({ id: h.id, x: h.x, y: h.y, word: h.word })),
@@ -83,7 +83,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     failCount: () => failed,
     codexCount: () => codexWords().length };`;
   vm.runInContext(source.slice(0, end) + hook + source.slice(end), c);
-  return { ...c.fixture, events, canvasEvents, documentEvents, env: c, audioCalls, drawnText, actorCalls, transforms };
+  return { ...c.fixture, events, canvasEvents, documentEvents, env: c, ctx, audioCalls, drawnText, actorCalls, transforms };
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
@@ -104,6 +104,28 @@ test('misdelivery costs oil immediately, grants no farming score and hints recov
   g.resolve(g.snapshot().job.ans.indexOf(g.snapshot().job.word));assert.equal(g.snapshot().oil,oil+5);
 });
 
+test('all quiz choices hide answer length and mix hiragana with katakana when possible',()=>{
+  const g=loadGame();g.start();
+  const charLen=s=>Array.from(s.normalize('NFC')).length;
+  const script=s=>Array.from(s).every(ch=>/[ぁ-ゖー]/u.test(ch))?'hiragana':Array.from(s).every(ch=>/[ァ-ヺー]/u.test(ch))?'katakana':'mixed';
+  for(const word of g.env.CONTENT.getAllWords()){
+    const ans=g.answerChoices(word);
+    assert.equal(ans.length,3,word.jp);
+    assert.equal(new Set(ans.map(w=>w.jp)).size,3,word.jp);
+    assert.ok(ans.every(w=>charLen(w.jp)===charLen(word.jp)),word.jp);
+    const target=script(word.jp);
+    if(target==='hiragana'||target==='katakana'){
+      assert.ok(ans.some(w=>w!==word&&script(w.jp)===target),`${word.jp}: same script`);
+      assert.ok(ans.some(w=>w!==word&&script(w.jp)!==target&&script(w.jp)!=='mixed'),`${word.jp}: mixed scripts`);
+    }
+  }
+
+  const ramen=g.env.CONTENT.getAllWords().find(w=>w.jp==='ラーメン');
+  const ramenAns=g.answerChoices(ramen);
+  assert.ok(ramenAns.some(w=>w!==ramen&&['クーラー','アパート','スーパー','コーヒー'].includes(w.jp)));
+  g.prepareBoss(ramen);
+  assert.ok(g.snapshot().bossQ.ans.every(w=>charLen(w.jp)===charLen(ramen.jp)));
+});
 test('Boss wrong slots keep their position and cannot be selected again or by key repeat',()=>{
   const g=loadGame();g.start();g.prepareBoss();const q=g.snapshot().bossQ;
   q.ans=[...q.ans.filter(w=>w!==q.word),q.word];
@@ -200,14 +222,14 @@ test('Boss replacement lock ignores early keyboard or gamepad input but accepts 
   }
 });
 
-test('small word pools keep delivery and Boss choices defined and unique',()=>{
+test('small cargo pools still receive three defined, unique quiz choices',()=>{
   for(const size of [1,2,3]) {
     const g=loadGame();g.start();const word={jp:'試験',zh:'測試',packId:'absent'};
     const words=[word,...Array.from({length:size-1},(_,i)=>({jp:`別${i}`,zh:`其他${i}`,packId:'absent'}))];
     g.restrictWords(words);g.pickupWord(word);g.prepareBoss(word);
     for(const ans of [g.snapshot().job.ans,g.snapshot().bossQ.ans]) {
-      assert.ok(ans.every(Boolean));assert.equal(ans.length,size);
-      assert.equal(new Set(ans.map(w=>w.jp)).size,size);assert.equal(ans.filter(w=>w===word).length,1);
+      assert.ok(ans.every(Boolean));assert.equal(ans.length,3);
+      assert.equal(new Set(ans.map(w=>w.jp)).size,3);assert.equal(ans.filter(w=>w===word).length,1);
     }
     assert.doesNotThrow(()=>g.drawWorld());
     g.unlockBoss();g.answerBoss(g.snapshot().bossQ.ans.indexOf(word));
@@ -238,20 +260,37 @@ test('settlement learning summary measures this run only and keeps assisted answ
   g.start();g.setState('lost');g.frame(32);assert.deepEqual({...g.summary().learning},{practiced:0,gained:0,lost:0,review:0});
 });
 
-test('Lv5 katana launches a piercing wind blade at a distant forward foe, never behind or through buildings',()=>{
+test('Lv5 katana pierces buildings while only targeting the forward-facing arc',()=>{
   for(const walls of [[],[{x0:140,x1:160,y0:-100,y1:100}]]){
     const g=loadGame();g.start();g.face(0);g.combatScene('katana',[{dx:360},{dx:-150}],walls,5);
     for(let i=0;i<31;i++)g.weapons(0.01);assert.ok(g.snapshot().winds.length>0);
     for(let i=0;i<80;i++)g.weapons(0.01);
     assert.equal(g.snapshot().enemies[1].hp,999);
-    assert.equal(g.snapshot().enemies[0].hp<999,walls.length===0);
+    assert.equal(g.snapshot().enemies[0].hp<999,true,'MAX wave is explicitly allowed through buildings');
   }
 });
 
-test('one wind blade pierces at most three foes',()=>{
-  const g=loadGame();g.start();g.face(0);g.combatScene('katana',[{dx:360},{dx:400},{dx:440},{dx:500}],[],5);
-  for(let i=0;i<112;i++)g.weapons(0.01);
-  const foes=g.snapshot().enemies;assert.ok(foes.slice(0,3).every(e=>e.hp<999));assert.equal(foes[3].hp,999);
+test('Lv5 katana uses only the flying blade visual while lower ranks keep the local slash',()=>{
+  for(const level of [4,5]){
+    const g=loadGame();g.start();g.face(0);g.combatScene('katana',[{dx:150}],[],level);
+    let localSlash=0;const plays=[];
+    g.env.RENDERER.addSlashArc=()=>localSlash++;
+    g.env.SKILLFX.play=(...args)=>plays.push(args);
+    for(let i=0;i<40;i++)g.weapons(0.01);
+    assert.equal(localSlash,level===5?0:1);
+    assert.equal(plays.some(c=>c[0]==='katana'&&c[1]==='swing'),level<5);
+    assert.equal(g.snapshot().winds.length>0,level===5);
+  }
+});
+
+test('Lv5 wind blade stays alive across the screen and keeps piercing with distance and hit-count decay',()=>{
+  const g=loadGame();g.start();g.face(0);g.combatScene('katana',[{dx:280},{dx:360},{dx:440},{dx:520}],[],5);
+  for(let i=0;i<45;i++)g.weapons(0.01);
+  assert.ok(g.snapshot().winds.length>0,'blade should not retract after only a few hits');
+  for(let i=0;i<55;i++)g.weapons(0.01);
+  const damage=g.snapshot().enemies.map(e=>999-e.hp);
+  assert.ok(damage.every(v=>v>0),damage);
+  assert.ok(damage[0]>damage[1]&&damage[1]>damage[2]&&damage[2]>damage[3],damage);
 });
 
 test('MAX ice needles hit and freeze distinct foes in eight directions',()=>{
@@ -280,22 +319,25 @@ test('Lv5 paper talismans actually explode over an area; Lv4 still only hits its
   }
 });
 
-test('Lv5 foxfire launches homing spirits and can damage a foe beyond the old orbit',()=>{
-  const g=loadGame();g.start();g.combatScene('fire',[{dx:330,dy:60}],[],5);g.weapons(0.01);
-  assert.ok(g.snapshot().ghosts.length>0);
-  for(let i=0;i<170;i++)g.weapons(0.01);
-  assert.ok(g.snapshot().enemies[0].hp<999);assert.ok(g.snapshot().ghosts.length<=20);
+test('Lv5 foxfire keeps six orbiting flames and summons a targeted brief dragon',()=>{
+  const g=loadGame();g.start();g.env.Math=Object.create(Math);g.env.Math.random=()=>0.25;
+  g.combatScene('fire',[{dx:330,dy:60}],[],5);g.weapons(0.01);
+  const dragon=g.snapshot().ghosts[0];assert.ok(dragon?.dragon);assert.equal(dragon.launchAng,0);assert.ok(dragon.entry.startX<dragon.entry.endX);assert.ok(dragon.size>=550);
+  const flames=[];g.env.SKILLFX.paint=(ctx,id,lv,p)=>{if(id==='fire')flames.push({lv,p});};
+  g.drawWorld();assert.equal(flames.length,6);assert.ok(flames.every(f=>f.p.orbit===true));
 });
 
-test('MAX fire dragon circles once before dealing flight damage',()=>{
-  const g=loadGame();g.start();g.combatScene('fire',[{dx:98}],[],5);g.weapons(0.001);
-  assert.equal(g.snapshot().enemies[0].hp,999);
-  assert.equal(g.snapshot().ghosts.length,1);assert.equal(g.snapshot().ghosts[0].dragon,true);
-  for(let i=0;i<80;i++)g.weapons(0.01);assert.ok(g.snapshot().enemies[0].hp<999);
+test('MAX dragon approaches from offscreen, pauses inside, and fires once',()=>{
+  const g=loadGame();g.start();g.env.Math=Object.create(Math);g.env.Math.random=()=>0;
+  g.combatScene('fire',[{dx:360}],[],5);g.weapons(0.001);
+  const dragon=g.snapshot().ghosts[0],start=dragon.x;
+  for(let i=0;i<145;i++)g.weapons(0.01);
+  assert.ok(dragon.x>start+150);assert.ok(Math.abs(dragon.x-dragon.entry.endX)<4);assert.equal(dragon.shot,true);assert.ok(dragon.age<3);
 });
 
-test('homing spirits stop at a building before a distant target',()=>{
-  const g=loadGame();g.start();g.combatScene('fire',[{dx:330}], [{x0:140,x1:160,y0:-500,y1:500}],5);
+test('fireball impacts a building before reaching a distant target',()=>{
+  const g=loadGame();g.start();g.env.Math=Object.create(Math);g.env.Math.random=()=>0;
+  g.combatScene('fire',[{dx:330}], [{x0:140,x1:160,y0:-500,y1:500}],5);
   for(let i=0;i<200;i++)g.weapons(0.01);assert.equal(g.snapshot().enemies[0].hp,999);
 });
 
@@ -318,16 +360,19 @@ test('awakening mid-flight does not turn old straight needles or returning talis
   }
 });
 
-test('Lv5 thunder domain hits every eligible foe once, excludes distant foes and preserves the Boss shield',()=>{
+test('Lv5 thunder spawns paired random clouds and bolts, excludes distant foes and preserves the Boss shield',()=>{
   const g=loadGame();g.start();g.combatScene('thunder',Array.from({length:6},(_,i)=>({dx:120+i*30,dy:i%2*80})).concat([{dx:550},{dx:200,shield:true,type:'boss'}]),[],5);
-  g.env.Math=Object.create(Math);g.env.Math.random=()=>1;g.weapons(0.01);
-  const foes=g.snapshot().enemies;for(const e of foes.slice(0,6))assert.equal(e.hp,999-11*1.2);
-  assert.equal(foes[6].hp,999);assert.equal(foes[7].hp,999);
+  g.env.Math=Object.create(Math);g.env.Math.random=()=>0.5;
+  const calls=[];g.env.SKILLFX.play=(...args)=>calls.push(args);g.weapons(0.01);
+  const clouds=calls.filter(c=>c[0]==='thunder'&&c[1]==='storm'),bolts=calls.filter(c=>c[0]==='thunder'&&c[1]==='strike');
+  assert.equal(clouds.length,3);assert.equal(bolts.length,3);
+  for(let i=0;i<3;i++){assert.equal(clouds[i][3].x,bolts[i][3].x);assert.equal(clouds[i][3].y,bolts[i][3].y);}
+  const foes=g.snapshot().enemies;assert.ok(foes.slice(0,6).some(e=>e.hp<999));assert.equal(foes[6].hp,999);assert.equal(foes[7].hp,999);
 });
 
-test('overlapping thunder centers never multiply a single cast and raw damage grows at every level',()=>{
+test('lower thunder ranks keep growing raw damage without overlap multiplication',()=>{
   const damage=[];
-  for(const level of [1,2,3,4,5]){
+  for(const level of [1,2,3,4]){
     const g=loadGame();g.start();g.combatScene('thunder',[{dx:120},{dx:125},{dx:130}],[],level);
     g.env.Math=Object.create(Math);g.env.Math.random=()=>1;g.weapons(0.01);
     const values=g.snapshot().enemies.map(e=>999-e.hp);assert.ok(values.every(d=>Math.abs(d-(3.5+level*1.5)*1.2)<1e-8));damage.push(values[0]);
@@ -353,14 +398,26 @@ test('a long MAX volley run keeps wind, spirits, needles and explosive talismans
   }
 });
 
-test('foxfire keeps its Lv1-4 orbit and removes the old MAX orbit drawings',()=>{
-  const g=loadGame();g.start();const counts=[2,4,5,6,0];
+test('foxfire keeps its orbit at every rank including MAX',()=>{
+  const g=loadGame();g.start();const counts=[1,2,4,6,6];
   for(const level of [1,2,3,4,5]){
     g.combatScene('fire',[],[],level);const flames=[];
     g.env.SKILLFX.paint=(ctx,id,lv,p)=>{if(id==='fire')flames.push({lv,p});};
     g.drawWorld();assert.equal(flames.length,counts[level-1]);
-    for(const {lv,p} of flames){assert.equal(lv,level);assert.ok(Math.abs(Math.hypot(p.x-g.snapshot().x,p.y-g.snapshot().y)-98)<1e-8);assert.equal(p.origin.x,g.snapshot().x);assert.equal(p.origin.y,g.snapshot().y);}
+    for(const {lv,p} of flames){assert.equal(lv,level);assert.ok(Math.abs(Math.hypot(p.x-g.snapshot().x,p.y-g.snapshot().y)-98)<1e-8);assert.equal(p.origin.x,g.snapshot().x);assert.equal(p.origin.y,g.snapshot().y);assert.equal(p.orbit,true);}
   }
+});
+
+test('Lv4 foxfire detaches exactly three of six guardians while they attack, then restores the ring',()=>{
+  const g=loadGame();g.start();g.combatScene('fire',[{dx:320,dy:0,hp:999}],[],4);
+  g.weapons(0.01);
+  const attackers=g.snapshot().ghosts.filter(p=>p.fireAttack);
+  assert.equal(attackers.length,3);assert.equal(attackers.map(p=>p.slot).join(','),'0,2,4');
+  const flames=[];g.env.SKILLFX.paint=(ctx,id,lv,p)=>{if(id==='fire')flames.push(p);};
+  g.drawWorld();assert.equal(flames.length,3);
+  attackers.forEach(p=>{p.returning=true;p.x=g.snapshot().x+10;p.y=g.snapshot().y;});
+  g.weapons(0.05);const restored=[];g.env.SKILLFX.paint=(ctx,id,lv,p)=>{if(id==='fire')restored.push(p);};
+  g.drawWorld();assert.equal(restored.length,6);
 });
 
 test('hit stop still advances oil and the Boss clock',()=>{
@@ -1411,4 +1468,73 @@ test('damage and oil-heal upgrades stop after their stack caps', () => {
   const heal = g.tune('oil_heal'); stacks = 0;
   while (heal.ok && heal.ok()) { heal.f(); stacks++; }
   assert.equal(stacks, 3); assert.equal(heal.ok(), false);
+});
+
+test('MAX dragon impact leaves a burning ground zone that ticks after the projectile vanishes',()=>{
+  const g=loadGame();g.start();g.combatScene('fire',[{dx:280}],[],5);
+  g.weapons(0.01);
+  assert.equal(g.snapshot().ghosts.filter(v=>v.dragon).length,1);
+  for(let i=0;i<325;i++)g.weapons(0.01);
+  const first=g.snapshot(),enemy=first.enemies[0];
+  assert.equal(first.dragonShots.length,0,'projectile should impact and disappear');
+  assert.equal(first.ghosts.some(v=>v.dragon),false,'summon should not stay onscreen');
+  assert.equal(first.dragonScorches.length,1,'hit must ignite the ground');
+  assert.ok(enemy.hp<999,'fireball must damage the target');
+  const hpAfterImpact=enemy.hp;
+  for(let i=0;i<55;i++)g.weapons(0.01);
+  assert.ok(enemy.hp<hpAfterImpact,'staying on hot ground causes repeated damage');
+  assert.equal(g.snapshot().dragonScorches.length,1);
+  g.setWeaponRank('fire',0);
+  for(let i=0;i<750;i++)g.weapons(0.01);
+  assert.equal(g.snapshot().dragonScorches.length,0,'burning zone expires');
+});
+
+test('giant dragon renders after houses and the courier without duplicate passes',()=>{
+  const g=loadGame();g.start();g.combatScene('fire',[{dx:290}],[],5);g.weapons(0.01);
+  const events=[];
+  const oldPaint=g.env.SKILLFX.paint;
+  g.env.SKILLFX.paint=(ctx,id,lv,p)=>{if(p?.dragon)events.push('dragon');return oldPaint(ctx,id,lv,p);};
+  g.env.RENDERER.drawPlayer=()=>events.push('player');
+  g.env.RENDERER.drawHouse=()=>events.push('house');
+  g.occlusionScene(900);
+  g.drawWorld();
+  assert.equal(events.filter(v=>v==='dragon').length,1);
+  assert.ok(events.indexOf('dragon')>events.indexOf('player'));
+  assert.ok(events.includes('house'));
+  assert.ok(events.lastIndexOf('dragon')>events.lastIndexOf('house'));
+});
+
+test('MAX katana triple-speed projectile keeps the same facing and damage model',()=>{
+  const g=loadGame();g.start();g.face(0);g.combatScene('katana',[{dx:280}],[],5);
+  for(let i=0;i<31;i++)g.weapons(0.01);
+  const wave=g.snapshot().winds[0];
+  assert.ok(wave);
+  assert.equal(wave.vx,1680);
+  assert.equal(wave.vy,0);
+  assert.equal(wave.size,360);
+  assert.ok(wave.maxTravel>=1400);
+});
+
+test('the giant dragon can also enter from the right edge toward a left-side target',()=>{
+  const g=loadGame();g.start();g.combatScene('fire',[{dx:-300}],[],5);
+  g.weapons(0.01);
+  const d=g.snapshot().ghosts.find(p=>p.dragon);
+  assert.ok(d);
+  assert.equal(d.faceX,-1);
+  assert.ok(d.entry.startX>d.entry.endX);
+  assert.ok(d.size>=550&&d.size<=980);
+});
+
+test('a flying dragon fireball paints its art with visible ink embers and a bounded glow',()=>{
+  const g=loadGame();g.start();g.combatScene('fire',[{dx:480}],[],5);
+  for(let i=0;i<112;i++)g.weapons(0.01);
+  assert.equal(g.snapshot().dragonShots.length,1,'fireball should be visible mid-flight');
+  const ball={naturalWidth:256,naturalHeight:256},imageDraws=[],inkMarks=[];
+  g.env.ART={dragon_fireball_l5:ball};
+  g.ctx.drawImage=(img,...rest)=>{if(img===ball)imageDraws.push(rest);};
+  g.ctx.quadraticCurveTo=(...args)=>inkMarks.push(args);
+  g.drawWorld();
+  assert.equal(imageDraws.length,1,'fireball texture must render once');
+  assert.deepEqual(imageDraws[0],[-72,-72,144,144]);
+  assert.ok(inkMarks.length>=4,'comet needs brush-stroke sparks, not just a still image');
 });

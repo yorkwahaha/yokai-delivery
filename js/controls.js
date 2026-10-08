@@ -1,7 +1,7 @@
 // Physical key codes keep movement independent of keyboard language / Caps Lock.
 window.CONTROLS = (() => {
   const defaults = { u: 'KeyW', d: 'KeyS', l: 'KeyA', r: 'KeyD', dash: 'Space', interact: 'KeyE', hint: 'KeyH', pause: 'KeyP', codex: 'KeyC', mute: 'KeyM' };
-  const fixed = { ArrowUp: 'u', ArrowDown: 'd', ArrowLeft: 'l', ArrowRight: 'r', ShiftLeft: 'dash', ShiftRight: 'dash', Escape: 'pause' };
+  const fixed = { ArrowUp: 'u', ArrowDown: 'd', ArrowLeft: 'l', ArrowRight: 'r', Escape: 'pause' };
   const labels = { u: '向上', d: '向下', l: '向左', r: '向右', dash: '衝刺', interact: '取貨／確認', hint: '提示', pause: '暫停', codex: '圖鑑', mute: '靜音' };
   const valid = code => /^(Key[A-Z]|Space|Numpad[0456789])$/.test(code);
   const storageKey = 'yokai-controls-v1';

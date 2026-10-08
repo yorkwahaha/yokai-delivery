@@ -49,6 +49,61 @@ window.RENDERER = (() => {
   let stonePattern = null;
   let groundPattern = null;
   let groundPatternImage = null;
+  const groundAtlases = new WeakMap();
+  const SCENE_TILE = 512;
+  // 手繪石徑不是 seamless：四個裁切共用相同的週期邊緣，避免直線、十字接縫。
+  // 一張 1024 WebP 在首次出現時才建構一次 2x2 atlas，之後只做快取 canvas drawImage。
+  function groundAtlasFor(image) {
+    if (!image || image.naturalWidth !== 1024 || image.naturalHeight !== 1024) return null;
+    if (groundAtlases.has(image)) return groundAtlases.get(image);
+    const sourceCanvas = document.createElement("canvas");
+    sourceCanvas.width = sourceCanvas.height = 1024;
+    const sourceCtx = sourceCanvas.getContext("2d", {willReadFrequently:true});
+    if (!sourceCtx?.getImageData || !sourceCtx?.drawImage) return null;
+    sourceCtx.drawImage(image,0,0,1024,1024);
+    const src = sourceCtx.getImageData(0,0,1024,1024).data;
+    const base = new Uint8ClampedArray(SCENE_TILE*SCENE_TILE*4);
+    for (let y=0;y<SCENE_TILE;y++) for (let x=0;x<SCENE_TILE;x++) {
+      const from=((y+256)*1024+x+256)*4,to=(y*SCENE_TILE+x)*4;
+      for(let c=0;c<4;c++)base[to+c]=src[from+c];
+    }
+    // 加寬共同週期邊緣的漸變；降低突然中斷的墨線與矩形接縫感。
+    const GROUND_FEATHER = 120;
+    const blendEnds=(a,b,t)=>{
+      for(let c=0;c<3;c++){
+        const va=base[a+c],vb=base[b+c],mean=(va+vb)/2;
+        base[a+c]=va*(1-t)+mean*t;base[b+c]=vb*(1-t)+mean*t;
+      }
+    };
+    for(let y=0;y<SCENE_TILE;y++)for(let x=0;x<GROUND_FEATHER;x++)
+      blendEnds((y*SCENE_TILE+x)*4,(y*SCENE_TILE+511-x)*4,1-x/GROUND_FEATHER);
+    for(let x=0;x<SCENE_TILE;x++)for(let y=0;y<GROUND_FEATHER;y++)
+      blendEnds((y*SCENE_TILE+x)*4,((511-y)*SCENE_TILE+x)*4,1-y/GROUND_FEATHER);
+    const atlas=document.createElement("canvas");
+    atlas.width=atlas.height=1024;
+    const atlasCtx=atlas.getContext("2d");
+    if (!atlasCtx?.createImageData || !atlasCtx?.putImageData) return null;
+    const result=atlasCtx.createImageData(1024,1024), out=result.data;
+    for(let tile=0;tile<4;tile++) {
+      const sx=(tile&1)*512,sy=(tile>>1)*512;
+      for(let y=0;y<512;y++)for(let x=0;x<512;x++) {
+        const si=((sy+y)*1024+sx+x)*4,bi=(y*512+x)*4;
+        const oi=(((tile>>1)*512+y)*1024+(tile&1)*512+x)*4;
+        let mix=Math.min(1,Math.min(x,511-x,y,511-y)/128);
+        mix=mix*mix*(3-2*mix);
+        for(let c=0;c<3;c++)out[oi+c]=base[bi+c]*(1-mix)+src[si+c]*mix;
+        out[oi+3]=255;
+      }
+    }
+    atlasCtx.putImageData(result,0,0);
+    groundAtlases.set(image,atlas);
+    return atlas;
+  }
+  function groundTileIndex(x,y) {
+    let h=Math.imul(x,374761393)^Math.imul(y,668265263);
+    h=Math.imul(h^(h>>>13),1274126177);
+    return ((h^(h>>>16))>>>0)%4;
+  }
   let terrainCv = null, terrainState = null;
   const hitSilhouettes = new WeakMap();
 
@@ -134,55 +189,51 @@ window.RENDERER = (() => {
     }
   }
 
-  // 生成和風石磚路紋理 Pattern（確保高效且具備立體高光與溝縫）
+  // 生成木版畫式石疊 Pattern：硬墨線、低彩度色塊與乾刷紋，避免現代立體高光。
   function createStonePattern() {
     const pc = document.createElement("canvas");
     pc.width = 160;
     pc.height = 160;
     const pctx = pc.getContext("2d");
 
-    // 底色：深灰黑夜石材
-    pctx.fillStyle = "#181d28";
+    pctx.fillStyle = "#24252a";
     pctx.fillRect(0, 0, 160, 160);
 
-    // 磚塊陣列
     const stones = [
-      { x: 4, y: 4, w: 72, h: 34, c: "#222736" },
-      { x: 80, y: 4, w: 76, h: 34, c: "#1e2330" },
-      { x: 4, y: 42, w: 48, h: 34, c: "#252b3a" },
-      { x: 56, y: 42, w: 60, h: 34, c: "#202533" },
-      { x: 120, y: 42, w: 36, h: 34, c: "#272d3e" },
-      { x: 4, y: 80, w: 84, h: 34, c: "#1f2432" },
-      { x: 92, y: 80, w: 64, h: 34, c: "#242a39" },
-      { x: 4, y: 118, w: 56, h: 38, c: "#262c3c" },
-      { x: 64, y: 118, w: 54, h: 38, c: "#212635" },
-      { x: 122, y: 118, w: 34, h: 38, c: "#1d222f" }
+      { x: 3, y: 5, w: 73, h: 31, c: "#34343a" },
+      { x: 81, y: 3, w: 76, h: 35, c: "#2d3035" },
+      { x: 2, y: 43, w: 50, h: 32, c: "#39383b" },
+      { x: 57, y: 41, w: 59, h: 36, c: "#303136" },
+      { x: 121, y: 44, w: 37, h: 31, c: "#3a393d" },
+      { x: 3, y: 81, w: 85, h: 32, c: "#2f3135" },
+      { x: 93, y: 80, w: 64, h: 35, c: "#37373b" },
+      { x: 2, y: 120, w: 58, h: 36, c: "#39373a" },
+      { x: 65, y: 119, w: 53, h: 38, c: "#303136" },
+      { x: 123, y: 118, w: 35, h: 39, c: "#2b2d31" }
     ];
 
-    stones.forEach(s => {
+    stones.forEach((s,i) => {
       pctx.fillStyle = s.c;
       pctx.beginPath();
-      pctx.roundRect(s.x, s.y, s.w, s.h, 4);
+      pctx.moveTo(s.x+2,s.y+3);
+      pctx.lineTo(s.x+s.w-3,s.y+(i%2?1:4));
+      pctx.lineTo(s.x+s.w-1,s.y+s.h-3);
+      pctx.lineTo(s.x+4,s.y+s.h-1);
+      pctx.closePath();
       pctx.fill();
-
-      // 頂部高光
-      pctx.strokeStyle = "rgba(255, 255, 255, 0.07)";
-      pctx.lineWidth = 1.5;
-      pctx.beginPath();
-      pctx.moveTo(s.x + 2, s.y + s.h - 2);
-      pctx.lineTo(s.x + 2, s.y + 2);
-      pctx.lineTo(s.x + s.w - 2, s.y + 2);
+      pctx.strokeStyle = "rgba(17, 16, 20, 0.78)";
+      pctx.lineWidth = 2.2;
       pctx.stroke();
-
-      // 底部溝縫陰影
-      pctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
-      pctx.lineWidth = 1.5;
+      pctx.strokeStyle = i%2 ? "rgba(181, 164, 128, 0.10)" : "rgba(152, 167, 158, 0.10)";
+      pctx.lineWidth = 1;
       pctx.beginPath();
-      pctx.moveTo(s.x + s.w - 2, s.y + 2);
-      pctx.lineTo(s.x + s.w - 2, s.y + s.h - 2);
-      pctx.lineTo(s.x + 2, s.y + s.h - 2);
+      pctx.moveTo(s.x+9,s.y+9);pctx.lineTo(s.x+s.w-11,s.y+8+(i%3)*4);
+      pctx.moveTo(s.x+13,s.y+s.h-9);pctx.lineTo(s.x+s.w-16,s.y+s.h-12);
       pctx.stroke();
     });
+    pctx.strokeStyle = "rgba(221, 207, 170, 0.055)";
+    pctx.lineWidth = 1;
+    for(let y=12;y<160;y+=23){pctx.beginPath();pctx.moveTo(0,y);pctx.lineTo(160,y-5);pctx.stroke();}
 
     stonePattern = ctx.createPattern(pc, "repeat");
   }
@@ -265,39 +316,44 @@ window.RENDERER = (() => {
     return stopped;
   }
 
+  function drawStyledSceneryImage(c,image,x,y,w,h,alpha=1,kind="scenery") {
+    if(!image || !image.naturalWidth)return false;
+    c.save();
+    c.globalAlpha *= alpha;
+    c.filter = kind === "sakura" ? "saturate(78%) contrast(101%) brightness(92%)" :
+      kind === "house_tavern" || kind === "house_shrine" ? "saturate(86%) contrast(101%) sepia(2%) brightness(91%)" :
+      "saturate(88%) contrast(102%) sepia(2%) brightness(94%)";
+    c.shadowColor = "rgba(18, 15, 18, 0.28)";
+    c.shadowBlur = 0;
+    c.shadowOffsetX = 1;
+    c.shadowOffsetY = 1;
+    c.drawImage(image,x,y,w,h);
+    c.restore();
+    return true;
+  }
+
+  function drawScenerySprite(image,x,y,w,h,alpha=1) {
+    return drawStyledSceneryImage(ctx,image,x,y,w,h,alpha);
+  }
+
   function drawStaticChunk(c, chunk, toriiImg, toriiReady, sakuraImg, sakuraReady, paving) {
     const cx = chunk.x + chunk.w / 2, cy = chunk.y + chunk.h / 2;
     c.save();
-    // 靜態石疊道路與店前廣場一起烘焙，不增加逐幀圖層。
+    // 柔和土色道路，不再在房屋周圍畫黑色矩形庭院與筆直粗墨線。
     if(chunk.houses?.length) {
       const wet=chunk.theme==='water'||chunk.theme==='lotus'||chunk.theme==='harbor';
-      c.lineJoin='round';
+      c.lineJoin='round';c.lineCap='round';
       const road=()=>{
         c.beginPath();c.moveTo(chunk.x,cy);c.lineTo(chunk.x+chunk.w,cy);
         c.moveTo(cx,chunk.y);c.lineTo(cx,chunk.y+chunk.h);
         for(const h of chunk.houses){c.moveTo(h.x,h.y+140);c.lineTo(cx,h.y+140);c.lineTo(cx,cy);}c.stroke();
       };
-      c.strokeStyle='rgba(16,20,28,0.3)';c.lineWidth=88;road();
-      c.strokeStyle=paving||'#454746';c.globalAlpha=0.7;c.lineWidth=78;road();c.globalAlpha=1;
-      c.strokeStyle=wet?'rgba(45,62,68,0.24)':'rgba(117,99,70,0.4)';c.lineWidth=78;road();
+      c.strokeStyle=wet?'rgba(77,92,96,0.10)':'rgba(122,99,73,0.09)';
+      c.lineWidth=72;road();
       for(const h of chunk.houses) {
-        c.fillStyle='rgba(16,22,25,0.28)';c.beginPath();c.roundRect(h.x-170,h.y+47,340,186,10);c.fill();
-        c.fillStyle=paving||'#454746';c.beginPath();c.roundRect(h.x-165,h.y+52,330,176,9);c.fill();
-        c.fillStyle=wet?'rgba(45,62,68,0.25)':'rgba(117,99,70,0.44)';c.fill();
-        c.strokeStyle='rgba(216,198,151,0.3)';c.lineWidth=2;c.stroke();
-        // 低調邊石與苔蘚留在答案圈外，保留店前可讀的空地。
-        for(let k=0;k<12;k++){
-          c.fillStyle=k%3?'#686b60':'#555d51';c.fillRect(h.x-160+k*27,h.y+230,22,5);
-        }
-        for(const side of [-1,1]){
-          c.fillStyle='rgba(71,89,53,0.6)';c.beginPath();c.ellipse(h.x+side*178,h.y+78,12,6,0,0,6.283);c.fill();
-        }
-        if(wet){
-          const px=h.x+110,py=h.y+83,g=c.createLinearGradient(px,py-9,px,py+9);
-          g.addColorStop(0,'rgba(92,150,174,0.25)');g.addColorStop(1,'rgba(20,44,63,0.25)');
-          c.fillStyle=g;c.beginPath();c.ellipse(px,py,42,9,-0.08,0,6.283);c.fill();
-          c.strokeStyle='rgba(170,204,214,0.22)';c.lineWidth=1;c.beginPath();c.moveTo(px-25,py-3);c.lineTo(px+19,py-3);c.stroke();
-        }
+        // 庭院與門前鋪面改為淡土色橢圓，避免 340x186px 的硬邊方框。
+        c.fillStyle=wet?'rgba(79,95,98,0.07)':'rgba(137,114,82,0.07)';
+        c.beginPath();c.ellipse(h.x,h.y+140,156,83,0,0,6.283);c.fill();
       }
     }
     c.textAlign = "center";
@@ -308,21 +364,22 @@ window.RENDERER = (() => {
     c.fillStyle = "rgba(255, 230, 180, 0.14)";
     c.fillText(`— ${chunk.sub || ""} —`, cx, chunk.y + 129);
     if (chunk.decor?.torii && toriiReady) {
-      c.fillStyle = "rgba(0, 0, 0, 0.4)";
+      c.fillStyle = "rgba(16, 14, 17, 0.48)";
       c.beginPath();
       c.ellipse(cx, cy + 45, 90, 24, 0, 0, 6.28);
       c.fill();
       const tw = 150, th = tw * toriiImg.naturalHeight / toriiImg.naturalWidth;
-      c.drawImage(toriiImg, cx - tw / 2, cy - th + 36, tw, th);
+        drawStyledSceneryImage(c,toriiImg,cx-tw/2,cy-th+36,tw,th,1,"torii");
     }
     if (sakuraReady) {
-      const sw = 108, sh = sw * sakuraImg.naturalHeight / sakuraImg.naturalWidth;
       for (const tree of chunk.decor?.sakuraTrees || []) {
+        const factor=[.92,1,1.08][groundTileIndex(Math.floor(tree.x),Math.floor(tree.y))%3];
+        const sw=114*factor,sh=sw*sakuraImg.naturalHeight/sakuraImg.naturalWidth;
         c.fillStyle = "rgba(0, 0, 0, 0.35)";
         c.beginPath();
         c.ellipse(tree.x, tree.y - 4, 28, 10, 0, 0, 6.28);
         c.fill();
-        c.drawImage(sakuraImg, tree.x - sw / 2, tree.y - sh, sw, sh);
+        drawStyledSceneryImage(c,sakuraImg,tree.x-sw/2,tree.y-sh,sw,sh,.89,"sakura");
       }
     }
     c.restore();
@@ -356,24 +413,38 @@ window.RENDERER = (() => {
       c.imageSmoothingEnabled = true;
       c.imageSmoothingQuality = "low";
       const dirt = groundKey === "ground_dirt";
-      if (groundImg && groundImg.complete && groundImg.naturalWidth) {
-        if (groundPatternImage !== groundImg) {groundPattern = c.createPattern(groundImg,"repeat");groundPatternImage = groundImg;}
-        c.fillStyle = groundPattern || "#181d28";
-      } else c.fillStyle = dirt ? "#6b5135" : stonePattern || "#181d28";
+      // 第一層永遠先填實色，避免新圖延遲下載時露出黑框。
+      c.fillStyle = dirt ? "#6b5135" : stonePattern || "#303b42";
       c.fillRect(left,top,width,height);
-      const paving=courtImg?.naturalWidth?c.createPattern(courtImg,'repeat'):stonePattern;
-      paving?.setTransform?.({a:0.42,b:0,c:0,d:0.42,e:0,f:0});
+      const atlas = groundAtlasFor(groundImg);
+      if(atlas){
+        const x0=Math.floor(left/SCENE_TILE),x1=Math.ceil((left+width)/SCENE_TILE);
+        const y0=Math.floor(top/SCENE_TILE),y1=Math.ceil((top+height)/SCENE_TILE);
+        for(let ty=y0;ty<y1;ty++)for(let tx=x0;tx<x1;tx++){
+          const variant=groundTileIndex(tx,ty);
+          c.save();c.globalAlpha=0.78;
+          c.drawImage(atlas,(variant&1)*512,(variant>>1)*512,512,512,tx*SCENE_TILE,ty*SCENE_TILE,512,512);
+          c.restore();
+        }
+      }else if(groundImg?.naturalWidth){
+        if(groundPatternImage!==groundImg){groundPattern=c.createPattern(groundImg,"repeat");groundPatternImage=groundImg;}
+        c.save();c.globalAlpha=0.78;
+        c.fillStyle=groundPattern||"#303b42";c.fillRect(left,top,width,height);
+        c.restore();
+      }
+      // 淡米茶／青灰過色，讓石徑仍可辨識，但減少暗墨、花瓣、草叢的搶眼程度。
+      c.fillStyle=dirt?'rgba(154,132,103,0.12)':'rgba(79,94,102,0.11)';
+      c.fillRect(left,top,width,height);
+      // 原有固定間距的乾刷直線和未 seamless 的 courtyard repeat 會加重方格感。
       for (const chunk of chunks) {
         if (chunk.x > left+width || chunk.x+chunk.w < left || chunk.y > top+height || chunk.y+chunk.h < top) continue;
         const cx = chunk.x+chunk.w/2, cy = chunk.y+chunk.h/2;
-        const g = c.createRadialGradient(cx,cy,100,cx,cy,Math.max(chunk.w,chunk.h)*0.54);
-        const tint = chunk.theme === "sakura" ? ["255,160,200",0.14] :
-          chunk.theme === "water" || chunk.theme === "lotus" ? ["70,180,220",0.16] :
-          chunk.theme === "tavern" || chunk.theme === "market" ? ["255,180,100",0.14] :
-          chunk.theme === "mystic" ? ["180,140,255",0.15] : ["120,190,140",0.12];
-        g.addColorStop(0,`rgba(${tint[0]},${tint[1]})`);g.addColorStop(1,`rgba(${tint[0]},0)`);
-        c.fillStyle = g;c.fillRect(chunk.x,chunk.y,chunk.w,chunk.h);
-        drawStaticChunk(c, chunk, toriiImg, toriiReady, sakuraImg, sakuraReady, paving);
+        const tint = chunk.theme === "sakura" ? "rgba(112,76,91,0.045)" :
+          chunk.theme === "water" || chunk.theme === "lotus" || chunk.theme === "harbor" ? "rgba(61,85,92,0.05)" :
+          chunk.theme === "tavern" || chunk.theme === "market" ? "rgba(112,78,56,0.045)" :
+          chunk.theme === "mystic" ? "rgba(83,70,96,0.045)" : "rgba(69,83,72,0.035)";
+        c.fillStyle=tint;c.beginPath();c.ellipse(cx,cy,chunk.w*.47,chunk.h*.43,0,0,6.283);c.fill();
+        drawStaticChunk(c, chunk, toriiImg, toriiReady, sakuraImg, sakuraReady);
       }
       terrainState = {left,top,width:pw/pixelScale,height:ph/pixelScale,key:groundKey,image:groundImg,courtImage:courtImg,pixelScale,toriiReady,sakuraReady,viewW:area.width,viewH:area.height,chunks:chunks.slice()};
     }
@@ -390,13 +461,13 @@ window.RENDERER = (() => {
   function drawHouse(h) {
     ctx.save();
 
-    // 1. 建築深邃接觸陰影
-    ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+    // 1. 木版畫式接觸墨影：硬邊、低透明，不做柔亮卡通陰影。
+    ctx.fillStyle = "rgba(17, 14, 17, 0.62)";
     ctx.beginPath();
     ctx.ellipse(h.x, h.y + 46, 62, 18, 0, 0, 6.28);
     ctx.fill();
 
-    // 2. 選擇高品質手繪建築 Sprite（寬 132px，腳底貼近門口）
+    // 2. 新圖依實際透明裁切後的比例單獨定寬；腳底仍以 h.y+48 作為排序點。
     let houseSprite = window.ART.house_shop;
     if (h.bType === "house_tavern" && window.ART.house_tavern) {
       houseSprite = window.ART.house_tavern;
@@ -406,35 +477,45 @@ window.RENDERER = (() => {
       houseSprite = window.ART.house_shop;
     }
 
-    const bw = 132;
+    const bw = h.bType === "house_tavern" ? 175 : h.bType === "house_shrine" ? 158 : 166;
     const aspect = (houseSprite && houseSprite.naturalWidth && houseSprite.naturalHeight)
       ? (houseSprite.naturalHeight / houseSprite.naturalWidth)
       : 1.05;
     const bh = bw * aspect;
 
     if (houseSprite) {
-      ctx.drawImage(houseSprite, h.x - bw / 2, h.y - bh + 48, bw, bh);
+      drawStyledSceneryImage(ctx,houseSprite,h.x-bw/2,h.y-bh+48,bw,bh,1,h.bType);
     } else {
       ctx.fillStyle = "#3e3128";
       ctx.fillRect(h.x - 48, h.y - 30, 96, 75);
     }
 
-    // 3. 店門前和風黑漆金箔懸掛匾額；配送內容由委託氣泡顯示。
+    // 3. 木版招牌：墨色木板＋暗金細線，避免像獨立 UI 元件浮在場景上。
     ctx.save();
     const signW = 132, signH = 32;
     const signY = h.y + 36;
 
-    ctx.fillStyle = "#19141e";
+    ctx.fillStyle = "#2a211d";
     ctx.beginPath();
-    ctx.roundRect(h.x - signW / 2, signY, signW, signH, 5);
+    ctx.roundRect(h.x - signW / 2, signY, signW, signH, 2);
     ctx.fill();
-    ctx.strokeStyle = "#d4af37";
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "#171317";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.strokeStyle = "#9d7a45";
+    ctx.lineWidth = 1;
     ctx.stroke();
 
     ctx.textAlign = "center";
-    ctx.font = UI.readableFont(20, "900");
-    ctx.fillStyle = "#ffeed4";
+    // 町屋招牌用和風筆文字體；保留厚實暗底與暖色字，避免 20px 時過細。
+    ctx.font = UI.readableFont(21, "400").replace(
+      "'Noto Sans JP', 'Microsoft JhengHei', sans-serif",
+      "'Yuji Syuku', 'Kaisei Decol', 'Noto Sans JP', serif"
+    );
+    ctx.strokeStyle = "#e3d0a8";
+    ctx.lineWidth = 0.7;
+    ctx.strokeText(HOUSE_NAMES[h.bType] || HOUSE_NAMES.house_shop, h.x, signY + 23, signW - 8);
+    ctx.fillStyle = "#e3d0a8";
     ctx.fillText(HOUSE_NAMES[h.bType] || HOUSE_NAMES.house_shop, h.x, signY + 23, signW - 8);
     ctx.restore();
 
@@ -749,7 +830,7 @@ window.RENDERER = (() => {
   }
 
   // 繪製立體多光源動態光影（柔和三次樣條光暈 + 街燈光暈池）
-  const LAMP_LIGHT_LIFT = 30; // 石燈火袋離腳底的高度；game.js 的石燈光暈用同一數值
+  const LAMP_LIGHT_LIFT = 22; // 與 game.js 的新石燈火袋光心相同
   function renderLighting(P, LAMPS, oil, elapsed, dawnTime, maxOil = 100, lampOut = 0, offset = {x:0,y:0}) {
     const progress = clamp(elapsed / dawnTime, 0, 1);
     lightCtx.globalCompositeOperation = "source-over";
@@ -790,13 +871,13 @@ window.RENDERER = (() => {
     LAMPS.forEach(l => {
       const lx = l.x - camX + offset.x, ly = l.y - LAMP_LIGHT_LIFT - camY + offset.y; // 光心在石燈火袋，不是腳底
       if (lx < area.left - 180 || lx > area.right + 180 || ly < area.top - 180 || ly > area.bottom + 180) return;
-      const g = lightCtx.createRadialGradient(lx, ly, 12, lx, ly, 160);
+      const g = lightCtx.createRadialGradient(lx, ly, 10, lx, ly, 125);
       g.addColorStop(0, "rgba(0,0,0,0.95)");
       g.addColorStop(0.5, "rgba(0,0,0,0.5)");
       g.addColorStop(1, "rgba(0,0,0,0)");
       lightCtx.fillStyle = g;
       lightCtx.beginPath();
-      lightCtx.arc(lx, ly, 160, 0, 6.28);
+      lightCtx.arc(lx, ly, 125, 0, 6.28);
       lightCtx.fill();
     });
 
@@ -808,7 +889,7 @@ window.RENDERER = (() => {
     if (lampOut < 1) LAMPS.forEach(l => {
       const lx = l.x - camX + offset.x, ly = l.y - LAMP_LIGHT_LIFT - camY + offset.y;
       if (lx < area.left - 180 || lx > area.right + 180 || ly < area.top - 180 || ly > area.bottom + 180) return;
-      paintWarmPool(lx, ly, 108);
+      paintWarmPool(lx, ly, 76);
     });
 
     function paintWarmPool(x, y, radius) {
@@ -845,12 +926,56 @@ window.RENDERER = (() => {
     ctx.restore();
   }
 
+  function katanaVfxArt(rank = 3) {
+    const ranked = window.skillVfxArt?.("katana", rank);
+    if (ranked && ranked.naturalWidth > 0 && ranked.naturalHeight > 0) return { img: ranked, mirror: false };
+    const legacy = window.ART?.katana_wave_ukiyoe;
+    return legacy && legacy.naturalWidth > 0 && legacy.naturalHeight > 0 ? { img: legacy, mirror: true } : null;
+  }
+
+  function drawKatanaSlashArt(s, alpha, tierIdx, progress) {
+    const rank = tierIdx + 1;
+    const resolved = katanaVfxArt(rank);
+    if (!resolved) return false;
+    const { img, mirror } = resolved;
+    const scale = [0.78, 0.86, 0.94, 1.02, 1.0][tierIdx];
+    const h = s.radius * 2.02 * scale;
+    const w = h * img.naturalWidth / img.naturalHeight;
+    const forward = rank <= 4
+      ? s.radius * (0.08 + progress * 0.04)
+      : s.radius * 0.82;
+    const sweep = (progress - 0.48) * [0.08, 0.1, 0.12, 0.14, 0.18][tierIdx];
+
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(s.angle + sweep);
+    if (rank >= 3) {
+      ctx.save();
+      ctx.globalAlpha = alpha * (rank === 5 ? 0.22 : 0.13);
+      ctx.translate(-s.radius * 0.1, rank === 4 ? 5 : -7);
+      ctx.rotate(rank === 5 ? -0.075 : -0.045);
+      ctx.translate(forward + w * (rank <= 4 ? 0.04 : 0.14), 0);
+      if (mirror) ctx.scale(-1, 1);
+      ctx.drawImage(img, -w * 0.52, -h * 0.5, w * 1.04, h * 1.04);
+      ctx.restore();
+    }
+    ctx.globalAlpha = alpha * [0.82, 0.88, 0.92, 0.96, 1][tierIdx];
+    ctx.save();
+    ctx.translate(forward + w * (rank <= 4 ? 0.02 : 0.12), 0);
+    if (mirror) ctx.scale(-1, 1);
+    ctx.drawImage(img, -w * 0.5, -h * 0.5, w, h);
+    ctx.restore();
+    ctx.restore();
+    return true;
+  }
+
   function drawSlashArcs() {
     ctx.save();
     for (const s of slashArcs) {
       const progress = 1 - (s.life / s.maxLife);
       const tierIdx = Math.min(5, Math.max(1, s.tier || 3)) - 1;
       const alpha = s.life / s.maxLife * [0.8, 0.85, 0.95, 1, 1][tierIdx];
+      if (drawKatanaSlashArt(s, alpha, tierIdx, progress)) continue;
       ctx.save();
       ctx.translate(s.x, s.y);
       ctx.rotate(s.angle);
@@ -859,7 +984,7 @@ window.RENDERER = (() => {
       const steps = 28;
       const startAng = -s.spread / 2;
       const endAng = s.spread / 2;
-      const maxThick = [7, 8, 12, 17, 22][tierIdx] * (0.55 + 0.45 * alpha);
+      const maxThick = [7, 8, 12, 17, 28][tierIdx] * (0.55 + 0.45 * alpha);
 
       ctx.beginPath();
       // 外弧線 (Outer cutting edge)
@@ -885,13 +1010,13 @@ window.RENDERER = (() => {
       }
       ctx.closePath();
 
-      // 單刃 → 雙刃 → 三刃；細實色輪廓取代厚金焰漸層。
-      ctx.fillStyle = `rgba(226, 192, 128, ${alpha * 0.75})`;
+      // 單刃 → 雙刃 → 三刃；Lv5 加強實色金光與厚度。
+      ctx.fillStyle = tierIdx === 4 ? `rgba(255, 208, 102, ${alpha * 0.9})` : `rgba(226, 192, 128, ${alpha * 0.75})`;
       ctx.fill();
 
       // 2. 刀尖極限鋒刃白熱光芒 (Razor Sharp Core Line)
       ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.95})`;
-      ctx.lineWidth = [1.6, 1.7, 2.2, 2.8, 3.4][tierIdx];
+      ctx.lineWidth = [1.6, 1.7, 2.2, 2.8, 3.8][tierIdx];
       ctx.beginPath();
       ctx.arc(0, 0, s.radius, startAng + 0.08, endAng - 0.04);
       ctx.stroke();
@@ -905,15 +1030,37 @@ window.RENDERER = (() => {
         ctx.stroke();
       }
 
+      // Lv5 特有：次元裂隙與交錯居合劍芒 (Dimensional Cross-Cutting Blades)
+      if (tierIdx === 4) {
+        ctx.strokeStyle = `rgba(16, 12, 24, ${alpha * 0.85})`;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        for (let i = 0; i <= 6; i++) {
+          const a = startAng + (i / 6) * (endAng - startAng);
+          const r = s.radius + (i % 2 === 0 ? 14 : -12);
+          const px = Math.cos(a) * r, py = Math.sin(a) * r;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        ctx.strokeStyle = `rgba(142, 232, 255, ${alpha * 0.9})`;
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        const midA = (startAng + endAng) / 2;
+        ctx.moveTo(Math.cos(midA - 0.45) * (s.radius - 32), Math.sin(midA - 0.45) * (s.radius - 32));
+        ctx.lineTo(Math.cos(midA + 0.45) * (s.radius + 36), Math.sin(midA + 0.45) * (s.radius + 36));
+        ctx.stroke();
+      }
+
       // 4. 刀刃破裂火星 (Flying Sparks along the cutting arc)
-      const sparkCount = [3, 6, 9, 12, 16][tierIdx];
+      const sparkCount = [3, 6, 9, 12, 24][tierIdx];
       for (let k = 0; k < sparkCount; k++) {
         const st = (k + (s.life * 13) % 1) / sparkCount;
         const sang = startAng + st * (endAng - startAng);
         const sr = s.radius + (Math.sin(k * 7.3) * 16) + progress * 24;
         const sx = Math.cos(sang) * sr;
         const sy = Math.sin(sang) * sr;
-        ctx.fillStyle = k % 2 === 0 ? "#ffffff" : "#ffe082";
+        ctx.fillStyle = k % 3 === 0 ? "#ffffff" : k % 3 === 1 ? "#ffe082" : "#98f5ff";
         ctx.fillRect(sx - 1.5, sy - 1.5, 3, 3);
       }
 
@@ -922,7 +1069,7 @@ window.RENDERER = (() => {
     ctx.restore();
   }
 
-  // 繪製地面高空流雲視差層 (Far Sky Cloud Shadows, 0.20x)
+    // 水墨雲影：低透明平塗墨團，不使用現代柔光徑向漸層。
   function drawGroundParallax(elapsed, dawnTime, cam = { x: camX, y: camY }) {
     if (!allowsMotion()) return;
     const area = bounds();
@@ -940,20 +1087,15 @@ window.RENDERER = (() => {
       const seed = c * 520;
       const px = worldLeft + ((cx0 + seed) % (worldW + 500)) - 250;
       const py = worldTop + ((cy0 + seed * 0.7) % (worldH + 400)) - 200;
-      const g = ctx.createRadialGradient(px, py, 50, px, py, 260);
-      g.addColorStop(0, "rgba(8, 12, 22, 0.22)");
-      g.addColorStop(0.6, "rgba(10, 14, 26, 0.11)");
-      g.addColorStop(1, "rgba(12, 16, 28, 0)");
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.ellipse(px, py, 270, 150, 0.2, 0, 6.28);
-      ctx.fill();
+      ctx.fillStyle = c%2 ? "rgba(22, 23, 31, 0.055)" : "rgba(18, 20, 28, 0.075)";
+      ctx.beginPath();ctx.ellipse(px,py,270,150,0.2,0,6.28);ctx.fill();
+      ctx.fillStyle = "rgba(13, 15, 22, 0.04)";
+      ctx.beginPath();ctx.ellipse(px+70,py-18,185,82,-0.08,0,6.28);ctx.fill();
     }
     ctx.restore();
   }
 
-  // 繪製中景夜行妖霧流動視差層 (Midground Volumetric Mist, 0.45x)
-  // 採用超柔邊高斯徑向羽化煙霧團，邊界 100% 漸淡到 0，徹底消除生硬邊框感
+  // 中景夜霧改為薄墨刷痕：以兩層低透明橢圓代替高斯體積霧。
   function drawMistParallax(elapsed, dawnTime, cam = { x: camX, y: camY }) {
     if (!allowsMotion()) return;
     const area = bounds();
@@ -972,16 +1114,10 @@ window.RENDERER = (() => {
         const rx = 180 + (seed % 60);
         const ry = 46 + (seed % 20);
 
-        // 柔和雙半徑漸層：中心淡光 (alpha ~ 0.032)，邊緣 100% 淡出到 0
-        const g = ctx.createRadialGradient(px, py, 6, px, py, rx);
-        g.addColorStop(0, "rgba(140, 170, 225, 0.034)");
-        g.addColorStop(0.45, "rgba(135, 165, 220, 0.016)");
-        g.addColorStop(1, "rgba(120, 150, 210, 0)");
-
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.ellipse(px, py, rx, ry, Math.sin(basePhase + i) * 0.04, 0, 6.28);
-        ctx.fill();
+        ctx.fillStyle = m===0 ? "rgba(132, 145, 166, 0.018)" : "rgba(154, 148, 151, 0.016)";
+        ctx.beginPath();ctx.ellipse(px,py,rx,ry,Math.sin(basePhase+i)*0.04,0,6.28);ctx.fill();
+        ctx.fillStyle = "rgba(210, 202, 183, 0.010)";
+        ctx.beginPath();ctx.ellipse(px-35,py+7,rx*.72,ry*.48,-0.05,0,6.28);ctx.fill();
       }
     }
     ctx.restore();
@@ -1000,11 +1136,11 @@ window.RENDERER = (() => {
       ctx.translate(sx, sy);
       ctx.rotate(p.rot);
       if (p.depth > 1.2) {
-        ctx.fillStyle = `rgba(255, 210, 230, ${p.alpha * 0.9})`;
+        ctx.fillStyle = `rgba(192, 151, 166, ${p.alpha * 0.72})`;
       } else if (p.depth < 0.8) {
-        ctx.fillStyle = `rgba(220, 160, 190, ${p.alpha * 0.6})`;
+        ctx.fillStyle = `rgba(154, 119, 136, ${p.alpha * 0.50})`;
       } else {
-        ctx.fillStyle = `rgba(255, 195, 220, ${p.alpha})`;
+        ctx.fillStyle = `rgba(181, 137, 155, ${p.alpha * 0.70})`;
       }
       ctx.beginPath();
       ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, 6.28);
@@ -1019,7 +1155,7 @@ window.RENDERER = (() => {
       const fy = f.y + Math.cos(elapsed * 1.5 + f.phase) * 20;
       if (fx < area.left - 20 || fx > area.right + 20 || fy < area.top - 20 || fy > area.bottom + 20) continue;
       const pulse = 0.4 + 0.6 * Math.sin(elapsed * 4 + f.phase);
-      ctx.fillStyle = `rgba(180, 255, 220, ${pulse * 0.75})`;
+      ctx.fillStyle = `rgba(171, 211, 184, ${pulse * 0.58})`;
       ctx.beginPath();
       ctx.arc(fx, fy, 3.5, 0, 6.28);
       ctx.fill();
@@ -1046,6 +1182,7 @@ window.RENDERER = (() => {
     drawGroundParallax,
     drawMistParallax,
     drawHouse,
+    drawScenerySprite,
     drawPlayer,
     drawFrame,
     drawMonster,

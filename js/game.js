@@ -74,14 +74,50 @@
       if (!blocked(e.x, e.y + dy, 16)) e.y += dy;
     }
   }
-  const ansPos = h => [{ x: h.x - 125, y: h.y + 125 }, { x: h.x + 125, y: h.y + 125 }, { x: h.x, y: h.y + 190 }];
+  const ansPos = h => window.WORLD.answerPositions(h);
+  // 僅場景答案使用較自然的筆文字體。字型已在 index.html 子集載入，
+  // Noto 完整字面備援；不修改 HUD、教學和圖鑑的字體。
+  const sceneAnswerFont = size => UI.readableFont(size, "400").replace(
+    "'Noto Sans JP', 'Microsoft JhengHei', sans-serif",
+    "'Yuji Syuku', 'Kaisei Decol', 'Noto Sans JP', serif"
+  );
   const getWordDistrictWords = word => window.CONTENT.getSiblingWords(word);
+  const writtenLength = text => Array.from(String(text || "").normalize("NFC")).length;
+  const kanaScript = text => {
+    const chars = Array.from(String(text || ""));
+    if (chars.length && chars.every(ch => /[ぁ-ゖー]/u.test(ch))) return "hiragana";
+    if (chars.length && chars.every(ch => /[ァ-ヺー]/u.test(ch))) return "katakana";
+    return "mixed";
+  };
   function answerChoices(word) {
     const seen = new Set([word.jp]), distractors = [];
-    for (const w of [...shuffle(getWordDistrictWords(word)), ...shuffle(ALL)]) {
-      if (!w || seen.has(w.jp)) continue;
-      seen.add(w.jp); distractors.push(w);
-      if (distractors.length === 2) break;
+    const targetLength = writtenLength(word.jp);
+    const targetScript = kanaScript(word.jp);
+    const source = [
+      ...getWordDistrictWords(word),
+      ...ALL,
+      ...(window.CONTENT.getAnswerCandidates?.() || window.CONTENT.getAllWords())
+    ];
+    const candidates = shuffle(source).filter(w => w && !seen.has(w.jp) && writtenLength(w.jp) === targetLength);
+    const take = pool => {
+      const w = pool.find(candidate => !seen.has(candidate.jp));
+      if (!w) return false;
+      seen.add(w.jp);
+      distractors.push(w);
+      return true;
+    };
+
+    // 優先保留一個同文字系的近似項，再混入另一文字系，避免字數或平／片假名成為答案提示。
+    if (targetScript === "hiragana" || targetScript === "katakana") {
+      take(candidates.filter(w => kanaScript(w.jp) === targetScript));
+      take(candidates.filter(w => {
+        const script = kanaScript(w.jp);
+        return script !== targetScript && (script === "hiragana" || script === "katakana");
+      }));
+    }
+    while (distractors.length < 2 && take(candidates)) {}
+    if (distractors.length < 2) {
+      throw new Error(`Not enough same-length answer choices for ${word.jp}`);
     }
     return shuffle([word, ...distractors]);
   }
@@ -264,15 +300,15 @@
   };
 
   const WEAPON_UPGRADES = {
-    katana:["暖光單刃，斬擊前方妖怪","雙刃交叉，距離 +16、傷害 +0.8","三刃收束，距離與傷害再提升","蓄風四刃；下一階射出穿透風刃","覺醒・風刃：斬擊同時射出穿透風刃"],
-    barrier:["展開單盤除魔陣，震退四周妖怪","雙盤刻印，範圍與傷害提升","反轉雙盤，範圍、傷害再提升","蓄勢大陣；下一階升起光柱","覺醒・昇靈結界：光柱升起，範圍與震退最強"],
-    fire:["召喚 2 顆暖光狐火環繞護身","狐火增加至 4 顆，傷害提升","五火白芯，傷害再提升","蓄魂六火；下一階化為追蹤鬼火","覺醒・追魂鬼火：六靈追擊遠方妖怪"],
-    boom:["單符回旋，穿透路徑上的妖怪","一次擲出 2 枚符咒","三符碎焰，冷卻縮短","蓄火四符；下一階改為投射爆符","覺醒・爆符：四符命中引爆範圍傷害"],
-    thunder:["落雷轟擊最強妖怪及近處敵人","同時鎖定 2 名強敵","同時鎖定 3 名強敵","三雷餘波擴大；下一階展開雷獄","覺醒・雷獄：轟擊大範圍內所有妖怪"],
-    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階弧線射出","覺醒・弧光八星：八針彎曲一次後直飛"]
+    katana:["暖光單刃，斬擊前方妖怪","雙刃交叉，距離 +16、傷害 +0.8","三刃收束，距離與傷害再提升","蓄風四刃；下一階射出穿透風刃","覺醒・斷空殘月斬：射出巨型月牙直到畫面外，距離與穿透數越高傷害越低"],
+    barrier:["展開單盤除魔陣，震退四周妖怪","雙盤刻印，範圍與傷害提升","反轉雙盤，範圍、傷害再提升","蓄勢大陣；下一階升起光柱","覺醒・金剛退魔曼荼羅：聚怪核爆，展開淨化聖域"],
+    fire:["一顆狐火如衛星護身，偶爾飛出灼燒敵人再歸位","雙狐火環繞護身，輪流飛出攻擊","四狐火護體，其中兩顆可脫離追擊","六狐火護體，其中三顆會飛出灼敵後歸位","覺醒・墨焰黑龍：六顆狐火護體，間歇召喚黑龍吐出強力火球並點燃地面"],
+    boom:["單符回旋，穿透路徑上的妖怪","一次擲出 2 枚符咒","三符碎焰，冷卻縮短","蓄火四符；下一階改為投射爆符","覺醒・兩儀太極湮滅：太極爆符引爆範圍湮滅，消滅敵彈"],
+    thunder:["落雷轟擊最強妖怪及近處敵人","同時鎖定 2 名強敵","同時鎖定 3 名強敵","三雷餘波擴大；下一階召來雷雲","覺醒・建御雷神破界天罰：戰場隨機顯現雷雲，雲下接續降下天雷"],
+    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階弧線射出","覺醒・九尾極寒靈暴：扇面追蹤冰針，冰晶連鎖殉爆"]
   };
 
-  let proj = [], needles = [], winds = [], ghosts = [], surgeT = SURGE_FIRST, fAng = 0, fireEmitT = 0;
+  let proj = [], needles = [], winds = [], ghosts = [], dragonShots = [], dragonScorches = [], sacredSanctuary = null, surgeT = SURGE_FIRST, fAng = 0, fireEmitT = 0, fireSfxT = 0, fireAttackT = 0;
   let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1;
   const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0, fire: 0 };
 
@@ -401,7 +437,8 @@
     Object.assign(P, { x: START.x, y: START.y, inv: 1.2, faceAng: 0, faceX: 1 });
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0, dmgUp: 0, heals: 0 });
     Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 });
-    proj = []; needles = []; winds = []; ghosts = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1;
+    proj = []; needles = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1;
+    fAng = 0; fireEmitT = 0; fireSfxT = 0; fireAttackT = 0;
     wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0;
     elapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
     orders = []; job = null; inter = null; enemies = []; gems = []; texts = []; rings = []; misses = [];
@@ -675,6 +712,18 @@
       dropGem(e.x + (Math.random() - 0.5) * 28, e.y + (Math.random() - 0.5) * 28, 2);
     }
     FX.death(e.x, e.y, isMis ? "#c98cff" : "#bce9ff", e.type === "boss");
+
+    // 冰晶碎裂殉爆 (天狐靈針 Lv5)
+    if (!e._shattering && (e.freezeT > 0 || (e.freezeEnds && e.freezeEnds > elapsed)) && WL.needle === 5) {
+      e._shattering = true;
+      burst(e.x, e.y, "#bdf4ff", 14);
+      for (const foe of enemies) {
+        if (foe !== e && foe.hp > 0 && !foe.shield && dist(e, foe) < 130) {
+          hurt(foe, 4.5 * b.dmg);
+          EVOLUTIONS.freeze(foe, elapsed);
+        }
+      }
+    }
 
     if (isMis) {
       // 擊殺誤配妖怪驅散瘴氣，不呼叫 STORE.rec(true) 刷分
@@ -1095,6 +1144,8 @@
     if(q.done)return;q.done=true;
     SKILLFX.play("boom","hit",5,{x:q.x,y:q.y,r:135,evolved:true});
     AUDIO.boomerang(5);
+    RENDERER.triggerShake(5);
+    for(const eb of enemyBullets) if(eb.life>0 && dist(eb,q)<=135) { eb.life=0; burst(eb.x,eb.y,"#ffc172",6); }
     for(const e of enemies)if(e.hp>0&&!q.volleyHits.has(e)&&dist(e,q)<=135){
       q.volleyHits.add(e);hurt(e,5*b.dmg);e.ib=elapsed+0.38;
     }
@@ -1122,14 +1173,29 @@
         atkT = 0.1;
       } else {
         atkT = wMax.katana = Math.max(0.24, 0.72 - b.rate * 0.13);
-        if(WL.katana<5) RENDERER.addSlashArc(P.x, P.y, reach * 0.85, faceAng, 2.2, SKILLFX.tier(WL.katana));
-        SKILLFX.play("katana", "swing", WL.katana, { x: P.x, y: P.y, ang: faceAng, reach: reach * 0.85 });
+        if (WL.katana < 5) {
+          RENDERER.addSlashArc(P.x, P.y, reach * 0.85, faceAng, 2.2, SKILLFX.tier(WL.katana));
+          SKILLFX.play("katana", "swing", WL.katana, { x: P.x, y: P.y, ang: faceAng, reach: reach * 0.85 });
+        }
 
         // 僅判定面朝方向前方扇形範圍 (角度差 <= 1.22 弧度，約 140 度角)
+        if (WL.katana === 5) {
+          for (const eb of enemyBullets) {
+            if (eb.life > 0 && dist(P, eb) <= reach) {
+              const eang = Math.atan2(eb.y - P.y, eb.x - P.x);
+              let diff = Math.abs(eang - faceAng);
+              while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
+              if (diff <= 1.22) {
+                eb.life = 0;
+                burst(eb.x, eb.y, "#9bf7ff", 8);
+              }
+            }
+          }
+        }
         for (const e of enemies) {
           if (e.hp > 0) {
             const ed = dist(P, e);
-            if (ed <= reach) {
+            if (WL.katana < 5 && ed <= reach) {
               const eang = Math.atan2(e.y - P.y, e.x - P.x);
               let diff = Math.abs(eang - faceAng);
               while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
@@ -1142,20 +1208,36 @@
             }
           }
         }
-        if (WL.katana===5 && winds.length<8) winds.push({x:P.x,y:P.y,vx:Math.cos(faceAng)*560,vy:Math.sin(faceAng)*560,ang:faceAng,size:360,life:0.95,hits:new Set(),dmg:(b.dmg+3.2)*1.15});
+        if (WL.katana===5 && winds.length<8) winds.push({
+          x:P.x,y:P.y,originX:P.x,originY:P.y,vx:Math.cos(faceAng)*1680,vy:Math.sin(faceAng)*1680,
+          ang:faceAng,size:360,life:4,hits:new Set(),dmg:(b.dmg+3.2)*1.15,traveled:0,
+          maxTravel:Math.max(1400,spawnRadius(620)*2.1)
+        });
         AUDIO.slash(WL.katana);
       }
     }
 
     for(const wave of winds){
-      const blockBlade=(x,y,r)=>[-0.9,-0.45,0,0.45,0.9].some(t=>blocked(x-Math.sin(wave.ang)*180*t,y+Math.cos(wave.ang)*180*t,r));
-      if(!EVOLUTIONS.move(wave,dt,blockBlade,12))continue;
-      for(const e of enemies)if(e.hp>0 && !wave.hits.has(e) && Math.abs((e.x-wave.x)*Math.cos(wave.ang)+(e.y-wave.y)*Math.sin(wave.ang))<(e.type==='boss'?95:75) && Math.abs(-(e.x-wave.x)*Math.sin(wave.ang)+(e.y-wave.y)*Math.cos(wave.ang))<180+(e.type==='boss'?40:22)){
-        wave.hits.add(e);
-        const decay = [1, 0.75, 0.55][Math.min(wave.hits.size - 1, 2)];
-        hurt(e, wave.dmg * decay);SKILLFX.play("katana","hit",5,{x:e.x,y:e.y,ang:wave.ang});
-        if(wave.hits.size>=3){wave.life=0;break;}
+      if(!EVOLUTIONS.move(wave,dt,null,12))continue;
+      // 視覺與碰撞方向都以 projectile 的實際速度為準，不再依賴角色起手朝向。
+      wave.ang=Math.atan2(wave.vy,wave.vx);
+      wave.traveled=(wave.traveled||0)+Math.hypot(wave.vx,wave.vy)*dt;
+      for (const eb of enemyBullets) {
+        if (eb.life > 0 && dist(eb, wave) <= 90) {
+          eb.life = 0;
+          burst(eb.x, eb.y, "#9bf7ff", 6);
+        }
       }
+      for(const e of enemies)if(e.hp>0 && !wave.hits.has(e) && Math.abs((e.x-wave.x)*Math.cos(wave.ang)+(e.y-wave.y)*Math.sin(wave.ang))<(e.type==='boss'?95:75) && Math.abs(-(e.x-wave.x)*Math.sin(wave.ang)+(e.y-wave.y)*Math.cos(wave.ang))<180+(e.type==='boss'?40:22)){
+        const hitIndex=wave.hits.size;
+        wave.hits.add(e);
+        const distanceDecay=Math.max(0.42,1-(wave.traveled/Math.max(1,wave.maxTravel||1200))*0.52);
+        const pierceDecay=Math.max(0.3,Math.pow(0.82,hitIndex));
+        hurt(e, wave.dmg * distanceDecay * pierceDecay);SKILLFX.play("katana","hit",5,{x:e.x,y:e.y,ang:wave.ang});
+      }
+      const cam=RENDERER.getCam(),view=viewBounds(),margin=wave.size*0.62;
+      const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
+      if(wave.x<left-margin||wave.x>right+margin||wave.y<top-margin||wave.y>bottom+margin||wave.traveled>wave.maxTravel)wave.life=0;
     }
     winds=winds.filter(p=>p.life>0);
 
@@ -1165,6 +1247,14 @@
       if (wT.barrier <= 0) {
         wT.barrier = wMax.barrier = Math.max(1.2, 3.2 - WL.barrier * 0.42 - b.rate * 0.2);
         const r = 140 + WL.barrier * 28;
+        if (WL.barrier === 5) {
+          for (const e of enemies) {
+            if (e.hp > 0 && e.type !== "boss" && !e.shield && dist(P, e) <= r * 1.35) {
+              knockback(e, -35); // 曼荼羅聚怪
+            }
+          }
+          sacredSanctuary = { x: P.x, y: P.y, r, life: 2.5 };
+        }
         // 激發 360 度擴散金色退魔衝擊環與咒陣
         SKILLFX.play("barrier", "cast", WL.barrier, { x: P.x, y: P.y, r });
         let hitAny = false;
@@ -1183,6 +1273,18 @@
         }
         if (hitAny) RENDERER.triggerShake(5);
         AUDIO.barrier(WL.barrier);
+      }
+    }
+
+    if (sacredSanctuary && sacredSanctuary.life > 0) {
+      sacredSanctuary.life -= dt;
+      if (dist(P, sacredSanctuary) <= sacredSanctuary.r) {
+        oil = Math.min(maxOil, oil + dt * 0.35);
+      }
+      for (const e of enemies) {
+        if (e.hp > 0 && dist(e, sacredSanctuary) <= sacredSanctuary.r) {
+          e.slowT = Math.max(e.slowT || 0, 0.25);
+        }
       }
     }
 
@@ -1289,18 +1391,23 @@
     }
     proj = proj.filter(q => !q.done);
 
-    // 5. 狐火環繞 (Fireball)
-    if (WL.fire > 0 && WL.fire < 5) {
-      wT.fire = Math.max(0, wT.fire - dt);
+    // 5. 狐火環繞 + 脫離追擊
+    if (WL.fire > 0) {
+      fireSfxT = Math.max(0, fireSfxT - dt);
       let fireHit = false;
       fAng += dt * 2.8;
       const emitEmber = (fireEmitT -= dt) <= 0;
       if (emitEmber) fireEmitT = 0.05;
       const count = EVOLUTIONS.fireCount(WL.fire);
+      const awaySlots = new Set(ghosts.filter(p=>p.fireAttack&&p.life>0&&p.level===WL.fire).map(p=>p.slot));
       for (let i = 0; i < count; i++) {
+        if (awaySlots.has(i)) continue;
         const a = fAng + (i * 6.283) / count;
         const fx = P.x + Math.cos(a) * EVOLUTIONS.FIRE_ORBIT, fy = P.y + Math.sin(a) * EVOLUTIONS.FIRE_ORBIT;
-        if (emitEmber) SKILLFX.play("fire", "ember", WL.fire, { x: fx, y: fy, ang: a });
+        if (emitEmber) {
+          const orbitSpeed = EVOLUTIONS.FIRE_ORBIT * 2.8;
+          SKILLFX.play("fire", "ember", WL.fire, { x: fx, y: fy, ang: a, vx:-Math.sin(a)*orbitSpeed, vy:Math.cos(a)*orbitSpeed });
+        }
         for (const e of enemies) {
           if (e.hp > 0 && !(e.ifr > elapsed) && Math.hypot(e.x - fx, e.y - fy) < (e.type === "boss" ? 54 : 30)) {
             e.ifr = elapsed + 0.42;
@@ -1311,28 +1418,97 @@
           }
         }
       }
-      if (fireHit && wT.fire <= 0) { AUDIO.fireball(WL.fire); wT.fire = 0.15; }
+      if (fireHit && fireSfxT <= 0) { AUDIO.fireball(WL.fire); fireSfxT = 0.15; }
+      if(WL.fire<5){
+        fireAttackT=Math.max(0,fireAttackT-dt);
+        const targets=enemies.filter(e=>e.hp>0&&!e.shield&&dist(P,e)<520);
+        if(fireAttackT<=0 && targets.length && !ghosts.some(p=>p.fireAttack&&p.life>0)){
+          const n=Math.min(EVOLUTIONS.fireAttackCount(WL.fire),count);
+          for(let k=0;k<n;k++){
+            const slot=Math.floor(k*count/n),a=fAng+(slot*6.283)/count;
+            ghosts.push(EVOLUTIONS.fireSpirit(P,a,WL.fire,slot));
+          }
+          fireAttackT=EVOLUTIONS.fireAttackCooldown(WL.fire);
+        }
+      }
     }
 
+    // MAX foxfire: a short overhead apparition every four seconds.
     if(WL.fire===5){
-      wT.fire=Math.max(0,wT.fire-dt);fAng+=dt*2.8;
+      wT.fire=Math.max(0,wT.fire-dt);
       const targets=enemies.filter(e=>e.hp>0&&!e.shield&&dist(P,e)<560).sort((a,b)=>dist(P,a)-dist(P,b));
-      if(wT.fire<=0 && targets.length){
-        wT.fire=wMax.fire=1.4;
-        if(ghosts.length<3)ghosts.push(EVOLUTIONS.dragon(P,targets[Math.floor(Math.random()*Math.min(3,targets.length))],Math.random()*6.283));
+      if(wT.fire<=0 && targets.length && !ghosts.some(g=>g.dragon&&g.life>0)){
+        wT.fire=wMax.fire=4.5;
+        const target=targets[0],cam=RENDERER.getCam(),view=viewBounds();
+        const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
+        const face=target.x>=P.x?1:-1,size=Math.max(550,Math.min(980,view.width*0.72));
+        const endX=face>0?left+size*0.08:right-size*0.08;
+        const startX=face>0?left-size*0.8:right+size*0.8;
+        const y=clamp(P.y-90,top+view.height*0.27,bottom-view.height*0.23);
+        const summoned=EVOLUTIONS.dragon(P,face>0?0:Math.PI,Math.random()*6.283,{startX,endX,y,size});
+        summoned.target=target;ghosts.push(summoned);
         AUDIO.fireball(WL.fire);
       }
     }
     for(const spirit of ghosts){
-      if(spirit.dragon){if(!EVOLUTIONS.dragonStep(spirit,dt,P,blocked))continue;}
+      if(spirit.dragon){
+        // Follow the visible screen edge as the courier and camera move.
+        if(spirit.entry){
+          const cam=RENDERER.getCam(),view=viewBounds(),side=spirit.faceX,size=spirit.size;
+          const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
+          spirit.entry.startX=side>0?left-size*0.8:right+size*0.8;
+          spirit.entry.endX=side>0?left+size*0.08:right-size*0.08;
+          spirit.entry.y=clamp(P.y-90,top+view.height*0.27,bottom-view.height*0.23);
+        }
+        if(!EVOLUTIONS.dragonStep(spirit,dt,P,blocked))continue;
+      }
+      else if(spirit.fireAttack){if(!EVOLUTIONS.fireSpiritStep(spirit,dt,P,enemies,blocked))continue;}
       else {EVOLUTIONS.seek(spirit,dt,enemies);if(!EVOLUTIONS.move(spirit,dt,blocked,10))continue;}
-      if((spirit.trail-=dt)<=0){spirit.trail=0.05;SKILLFX.play("fire","ghostTrail",5,spirit);}
-      for(const e of enemies)if(e.hp>0&&(!spirit.dragon||spirit.age>0.6)&&dist(e,spirit)<(e.type==='boss'?64:42)){
-        if(!spirit.hitSet.has(e)){spirit.hitSet.add(e);hurt(e,(spirit.dragon?12:6.8)*b.dmg);SKILLFX.play("fire","hit",5,{x:e.x,y:e.y});}
-        if(!spirit.dragon){spirit.life=0;break;}
+      if(!spirit.dragon&&(spirit.trail-=dt)<=0){spirit.trail=0.05;SKILLFX.play("fire","ghostTrail",spirit.level??5,spirit);}
+      if(spirit.dragon){
+        if(!spirit.shot && spirit.age>=1.08){
+          const target=(spirit.target?.hp>0&&!spirit.target.shield?spirit.target:null) || enemies.filter(e=>e.hp>0&&!e.shield).sort((a,b)=>dist(spirit,a)-dist(spirit,b))[0] ||
+            {x:spirit.x+Math.cos(spirit.ang)*440,y:spirit.y+Math.sin(spirit.ang)*440};
+          dragonShots.push(EVOLUTIONS.dragonFireball(spirit,target));
+          spirit.shot=true;
+        }
+        continue;
+      }
+      if(spirit.fireAttack&&spirit.returning)continue;
+      for(const e of enemies)if(e.hp>0&&dist(e,spirit)<(e.type==='boss'?64:42)){
+        if(!spirit.hitSet.has(e)){
+          spirit.hitSet.add(e);
+          hurt(e,(2.1+(spirit.level||1)*0.9)*b.dmg);
+          SKILLFX.play("fire","hit",spirit.level??5,{x:e.x,y:e.y});
+          burst(e.x,e.y,"#ff7043",8);
+        }
+        if(spirit.fireAttack){spirit.returning=true;spirit.target=null;break;}
+        spirit.life=0;break;
       }
     }
     ghosts=ghosts.filter(p=>p.life>0);
+    for(const shot of dragonShots){
+      const impact=EVOLUTIONS.dragonFireballStep(shot,dt,enemies,blocked);
+      if(!impact.impact)continue;
+      if(impact.target)hurt(impact.target,15*b.dmg);
+      for(const e of enemies)if(e.hp>0&&e!==impact.target&&!e.shield&&Math.hypot(e.x-impact.x,e.y-impact.y)<172.5)hurt(e,4*b.dmg);
+      dragonScorches.push({x:impact.x,y:impact.y,life:6.5,maxLife:6.5,r:172.5,tick:0.35});
+      if(dragonScorches.length>8)dragonScorches.shift();
+      SKILLFX.play("fire","hit",5,{x:impact.x,y:impact.y});
+      burst(impact.x,impact.y,"#ff7a28",12);
+    }
+    dragonShots=dragonShots.filter(p=>p.life>0);
+    for(const scorch of dragonScorches){
+      scorch.life-=dt;
+      scorch.tick-=dt;
+      while(scorch.tick<=0&&scorch.life>0){
+        scorch.tick+=0.45;
+        for(const e of enemies)if(e.hp>0&&!e.shield&&Math.hypot(e.x-scorch.x,e.y-scorch.y)<scorch.r){
+          hurt(e,1.8*b.dmg);
+        }
+      }
+    }
+    dragonScorches=dragonScorches.filter(p=>p.life>0);
 
     // 6. 天狐落雷 (Thunder)
     if (WL.thunder > 0) {
@@ -1342,13 +1518,23 @@
         if (!c.length) {
           wT.thunder = 0.2;
         } else {
-          wT.thunder = wMax.thunder = Math.max(0.9, 2.6 - WL.thunder * 0.3);
+          wT.thunder = wMax.thunder = Math.max(0.85, 2.6 - WL.thunder * 0.35);
           if(WL.thunder===5){
-            const targets=enemies.filter(e=>e.hp>0 && !e.shield && dist(P,e)<380);
-            SKILLFX.play("thunder","storm",5,{x:P.x,y:P.y,r:380});
+            const targets=c;
             const isCrit=Math.random()<(0.2+(b.crit||0)*0.15),mult=isCrit?(1.8+(b.crit||0)*0.4):1;
-            targets.forEach(e=>hurt(e,11*b.dmg*mult,isCrit));
-            [...targets].sort((a,b)=>b.max-a.max).slice(0,6).forEach((e,i)=>SKILLFX.play("thunder","strike",5,{x:e.x,y:e.y,stormChild:true,delay:0.08+i*0.025}));
+            const struck=new Set(),strikeCount=Math.min(3,targets.length);
+            const start=targets.length?Math.min(targets.length-1,Math.floor(Math.random()*targets.length)):0;
+            for(let i=0;i<strikeCount;i++){
+              const step=Math.max(1,Math.floor(targets.length/strikeCount));
+              const anchor=targets[(start+i*step)%targets.length];
+              const x=anchor.x+(Math.random()-0.5)*72,y=anchor.y+(Math.random()-0.5)*52,delay=0.06+i*0.12;
+              SKILLFX.play("thunder","storm",5,{x,y,r:95,delay});
+              SKILLFX.play("thunder","strike",5,{x,y,stormChild:true,delay:delay+0.08});
+              for(const e of enemies)if(e.hp>0&&!e.shield&&!struck.has(e)&&Math.hypot(e.x-x,e.y-y)<=105){
+                struck.add(e);hurt(e,11*b.dmg*mult,isCrit);e.flash=0.22;e.slowT=0.35;
+              }
+            }
+            RENDERER.triggerShake(8);
           }else{
             const targets=[...c].sort((a,b)=>b.hp-a.hp).slice(0,Math.min(3,WL.thunder));
             const struck=new Set();
@@ -1941,14 +2127,15 @@
     // 3. 街角石燈。畫在角色之前，腳底對齊燈位；圖還沒載入時退回提燈符號。
     LAMPS.forEach(l => {
       if (!nearView(l.x, l.y)) return;
-      // 光源在石燈的火袋（約離腳底 30px 高），用柔邊的加法光暈，不再是貼地的硬邊圓。
-      FX.glow(ctx, l.x, l.y - 30, 150, "#ffcf6a", 0.5);
+      // 44px 新石燈的火袋中心約在腳底上方 22px，降低一排柔光球的視覺重量。
+      const lampLightY = l.y - 22;
+      FX.glow(ctx, l.x, lampLightY, 96, "#ffcf6a", 0.24);
       const lamp = window.ART && window.ART.prop_lantern;
       if (lamp && lamp.complete && lamp.naturalWidth) {
-        const lw = 34;
+        const lw = 44;
         const lh = lw * lamp.naturalHeight / lamp.naturalWidth;
-        ctx.drawImage(lamp, l.x - lw / 2, l.y - lh + 8, lw, lh);
-        FX.glow(ctx, l.x, l.y - 30, 44, "#ffe3a0", 0.55);
+        RENDERER.drawScenerySprite?.(lamp,l.x-lw/2,l.y-lh+8,lw,lh);
+        FX.glow(ctx, l.x, lampLightY, 32, "#ffe3a0", 0.34);
       } else {
         ctx.fillStyle = "#3a2a22";
         ctx.fillRect(l.x - 2, l.y - 16, 4, 22);
@@ -2002,7 +2189,7 @@
           ctx.stroke();
           ctx.textAlign = "center";
           ctx.fillStyle = "#888899";
-          ctx.font = UI.readableFont(18, "900");
+          ctx.font = job.rev ? UI.readableFont(18, "700") : sceneAnswerFont(19);
           ctx.fillText(answerText, p.x, p.y + 6);
           ctx.strokeStyle = "#e57373";
           ctx.lineWidth = 3;
@@ -2047,7 +2234,128 @@
     }
 
     // 技能的貼地圖案（淨化靈陣等）畫在所有角色之前，才會被角色蓋住。
+    if (sacredSanctuary && sacredSanctuary.life > 0) {
+      const lifeNorm = sacredSanctuary.life / 2.5;
+      const alpha = Math.min(0.92, lifeNorm * 1.3);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      const sr = sacredSanctuary.r, sx = sacredSanctuary.x, sy = sacredSanctuary.y;
+      const SQ = 0.6; // 俯視地面壓扁比率
+      const mandalaArt = window.ART?.barrier_mandala_ukiyoe;
+      if (mandalaArt?.naturalWidth > 0 && mandalaArt?.naturalHeight > 0) {
+        const width = sr * 2.32;
+        const height = width * mandalaArt.naturalHeight / mandalaArt.naturalWidth;
+        const breathe = 1 + Math.sin(elapsed * 3.2) * 0.015 * liveMotion();
+        ctx.translate(sx, sy);
+        ctx.scale(breathe, breathe);
+        ctx.drawImage(mandalaArt, -width / 2, -height / 2, width, height);
+        ctx.restore();
+      } else {
+
+      // 1. 曼荼羅外圍三重金輪結界 (Triple Golden Mandala Rings)
+      ctx.strokeStyle = '#ffdf7a'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.ellipse(sx, sy, sr, sr * SQ, 0, 0, 6.283); ctx.stroke();
+      ctx.strokeStyle = '#ffd54f'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(sx, sy, sr * 0.94, sr * 0.94 * SQ, 0, 0, 6.283); ctx.stroke();
+      ctx.strokeStyle = '#ffb300'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.ellipse(sx, sy, sr * 0.76, sr * 0.76 * SQ, 0, 0, 6.283); ctx.stroke();
+
+      // 曼荼羅金色神域柔光底色
+      ctx.fillStyle = 'rgba(255, 224, 130, 0.2)';
+      ctx.beginPath(); ctx.ellipse(sx, sy, sr, sr * SQ, 0, 0, 6.283); ctx.fill();
+
+      // 2. 旋轉金剛法輪輻條 (Rotating Vajra Dharma Wheel Spokes)
+      const rot = elapsed * 0.35;
+      ctx.strokeStyle = 'rgba(255, 215, 100, 0.65)'; ctx.lineWidth = 1.5;
+      for (let i = 0; i < 16; i++) {
+        const fa = rot + i * Math.PI / 8;
+        const r0 = sr * 0.28, r1 = sr * 0.76;
+        ctx.beginPath();
+        ctx.moveTo(sx + Math.cos(fa) * r0, sy + Math.sin(fa) * r0 * SQ);
+        ctx.lineTo(sx + Math.cos(fa) * r1, sy + Math.sin(fa) * r1 * SQ);
+        ctx.stroke();
+      }
+
+      // 3. 中心八葉蓮華曼荼羅印 (Center 8-Petal Lotus Mandorla)
+      const pulse = 1 + Math.sin(elapsed * 6) * 0.08;
+      ctx.fillStyle = 'rgba(255, 235, 160, 0.35)'; ctx.strokeStyle = '#ffe57f'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.ellipse(sx, sy, sr * 0.28 * pulse, sr * 0.28 * SQ * pulse, 0, 0, 6.283); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = '#ffab00'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.ellipse(sx, sy, sr * 0.16, sr * 0.16 * SQ, 0, 0, 6.283); ctx.stroke();
+
+      // 4. 擴散金色退魔衝擊光波 (Expanding Purifying Shockwave Rings)
+      const wavePhase = (elapsed * 1.5) % 1;
+      const waveR = sr * wavePhase;
+      ctx.strokeStyle = `rgba(255, 240, 180, ${(1 - wavePhase) * 0.7})`; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(sx, sy, waveR, waveR * SQ, 0, 0, 6.283); ctx.stroke();
+
+      // 5. 八方立體神域鳥居與通天神聖金光柱 (8 Radiant Torii Gates & Soaring Holy Light Pillars)
+      for (let i = 0; i < 8; i++) {
+        const ta = i * Math.PI / 4 + elapsed * 0.08;
+        const tx = sx + Math.cos(ta) * sr * 0.88, ty = sy + Math.sin(ta) * sr * 0.88 * SQ;
+
+        // 通天神光柱 (Skyward Celestial Light Pillar)
+        const beamH = 110 + Math.sin(elapsed * 3 + i) * 15;
+        const beamGrad = ctx.createLinearGradient(0, ty - beamH, 0, ty);
+        beamGrad.addColorStop(0, 'rgba(255, 245, 180, 0)');
+        beamGrad.addColorStop(0.3, 'rgba(255, 220, 100, 0.15)');
+        beamGrad.addColorStop(1, 'rgba(255, 235, 140, 0.45)');
+        ctx.fillStyle = beamGrad;
+        ctx.fillRect(tx - 12, ty - beamH, 24, beamH);
+
+        // 鳥居基座與朱紅柱 (Vermilion Torii Posts with Gold Caps)
+        ctx.fillStyle = '#b72818'; ctx.strokeStyle = '#4a0e08'; ctx.lineWidth = 1.2;
+        ctx.fillRect(tx - 8, ty - 26, 4, 26); ctx.strokeRect(tx - 8, ty - 26, 4, 26);
+        ctx.fillRect(tx + 4, ty - 26, 4, 26); ctx.strokeRect(tx + 4, ty - 26, 4, 26);
+        // 金色柱腳
+        ctx.fillStyle = '#ffd54f';
+        ctx.fillRect(tx - 9, ty - 3, 6, 4); ctx.fillRect(tx + 3, ty - 3, 6, 4);
+        // 貫 (Nuki - 中間橫樑)
+        ctx.fillStyle = '#9c2014';
+        ctx.fillRect(tx - 11, ty - 18, 22, 3);
+        // 笠木與島木 (Kasagi/Shimaki - 頂層微翹橫頂)
+        ctx.fillStyle = '#b72818'; ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(tx - 14, ty - 28); ctx.lineTo(tx + 14, ty - 28);
+        ctx.lineTo(tx + 12, ty - 24); ctx.lineTo(tx - 12, ty - 24);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        // 懸掛白色注連繩紙垂 (Sacred Shide Talismans)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(tx - 2, ty - 15, 4, 6);
+      }
+      ctx.restore();
+      }
+    }
     FX.drawGround(ctx, cam, view);
+    // Lit ground occupies a flattened perspective plane beneath every actor.
+    // Animated molten patch: slow breathing, flickering ink strokes and drifting embers.
+    const animateGroundHeat=liveMotion()!==0;
+    for(const zone of dragonScorches){
+      if(!nearView(zone.x,zone.y,zone.r*1.25))continue;
+      const age=zone.maxLife-zone.life,fade=Math.max(0,Math.min(0.84,zone.life/0.75,age/0.30));
+      const pulse=animateGroundHeat?1+Math.sin(age*7.5)*0.024:1;
+      const w=zone.r*2.1*pulse,h=zone.r*1.23*(animateGroundHeat?1+Math.sin(age*6.2)*0.02:1);
+      ctx.save();ctx.globalAlpha=fade;
+      const art=window.ART?.dragon_burning_ground_l5;
+      if(art?.naturalWidth>0){
+        ctx.drawImage(art,zone.x-w/2+(animateGroundHeat?Math.sin(age*3.5)*2:0),zone.y-h/2,w,h);
+      }else{
+        ctx.fillStyle='rgba(185,53,17,0.38)';
+        ctx.beginPath();ctx.ellipse(zone.x,zone.y,zone.r,zone.r*0.53,0,0,6.283);ctx.fill();
+      }
+      // Ink-like secondary motion without a costly whole-screen distortion shader.
+      for(let i=0;i<(animateGroundHeat?6:0);i++){
+        const a=i*2.4,fx=zone.x+Math.cos(a)*zone.r*0.65,fy=zone.y+Math.sin(a)*zone.r*0.29;
+        const sway=Math.sin(age*5+i*1.75)*8,rise=(age*21+i*13)%23;
+        ctx.strokeStyle='rgba(252,164,64,0.28)';ctx.lineWidth=2.5;
+        ctx.beginPath();ctx.moveTo(fx-7,fy+4);
+        ctx.quadraticCurveTo(fx+sway,fy-8-rise*0.3,fx+sway*0.7+7,fy-19-rise*0.6);ctx.stroke();
+        ctx.fillStyle='rgba(255,201,114,0.42)';
+        ctx.beginPath();ctx.arc(fx+sway*0.45,fy-4-rise,1.8+Math.sin(age*8+i)*0.5,0,6.283);ctx.fill();
+      }
+      ctx.restore();
+    }
+    SKILLFX.drawArtFx?.(ctx, true);
 
     // Boss 預告置於地面，固定圓心與實際傷害半徑一致。
     for (const e of enemies) if(e.hp>0 && e.slam && nearView(e.x,e.y)) {
@@ -2086,26 +2394,26 @@
     // 8. 武器彈幕 (符咒迴力鏢)
     for (const q of proj) SKILLFX.paint(ctx, "boom", q.level??WL.boom, { x: q.x, y: q.y, spin: elapsed * 16 });
 
-    // Lv1–4 保留環繞狐火；MAX 只畫實際飛行的火龍。
-    if (WL.fire > 0 && WL.fire < 5) {
+    // Lv1–4 狐火可追擊；MAX 六火常駐，黑龍每四秒短暫現身發射火球。
+    if (WL.fire > 0) {
       const count = EVOLUTIONS.fireCount(WL.fire);
       const orbitR = EVOLUTIONS.FIRE_ORBIT;
+      const awaySlots = new Set(ghosts.filter(p=>p.fireAttack&&p.life>0&&p.level===WL.fire).map(p=>p.slot));
       for (let i = 0; i < count; i++) {
+        if (awaySlots.has(i)) continue;
         const a = fAng + (i * 6.283) / count;
         SKILLFX.paint(ctx, "fire", WL.fire, {
           x: P.x + Math.cos(a) * orbitR, y: P.y + Math.sin(a) * orbitR,
-          ang: a, origin: P, orbitR, time: elapsed + i * 0.2
+          ang: a, origin: P, orbitR, time: elapsed + i * 0.2, orbit: true
         });
       }
     }
 
     // 12.5 破魔靈針彈幕
-    for(const p of winds) SKILLFX.paint(ctx,"wind",5,p);
-    for(const p of ghosts) SKILLFX.paint(ctx,"ghost",5,p);
+    for(const p of ghosts)if(!p.dragon)SKILLFX.paint(ctx,"ghost",p.level??5,p);
     for (const nd of needles) SKILLFX.paint(ctx, "needle", nd.level??WL.needle, { x: nd.x, y: nd.y, ang: Math.atan2(nd.vy, nd.vx) });
 
     // 13. 斬擊弧與結界擊中環
-    RENDERER.drawSlashArcs();
     for (const r of rings) {
       const maxL = r.maxL || 0.32;
       const progress = 1 - (r.life / maxL);
@@ -2196,10 +2504,11 @@
       ctx.save();ctx.textAlign='center';
       ansPos(job.to).slice(0,job.ans.length).forEach((p,i)=>{
         const meaning=job.showMeaningT>0 && job.ans[i]===job.word;
-        ctx.font="900 28px 'Noto Sans JP', 'Microsoft JhengHei', sans-serif";
-        ctx.strokeStyle='#ffffff';ctx.lineWidth=5;
+        ctx.strokeStyle='#fff4dd';ctx.lineWidth=2.5;
         const text=job.rev?job.ans[i].zh:job.ans[i].jp, y=p.y+(meaning?0:8);
-        ctx.strokeText(text,p.x,y);ctx.fillStyle=job.eliminatedIdx===i?'#888899':'#161224';ctx.fillText(text,p.x,y);
+        ctx.font=job.rev?UI.readableFont(31,'700'):sceneAnswerFont(33);
+        const ready=job.rev || UI.answerFontReady(text,31,'700');
+        if(ready){ctx.strokeText(text,p.x,y);ctx.fillStyle=job.eliminatedIdx===i?'#888899':'#161224';ctx.fillText(text,p.x,y);}
         if(meaning){ctx.font=UI.readableFont(13,'bold');ctx.fillStyle='#d84315';ctx.strokeText(`【${job.ans[i].zh}】`,p.x,p.y+19);ctx.fillText(`【${job.ans[i].zh}】`,p.x,p.y+19);}
       });ctx.restore();
     }
@@ -2277,6 +2586,55 @@
     ctx.save();
     ctx.translate(-cam.x + shakeOffset.x, -cam.y + shakeOffset.y);
     FX.draw(ctx, cam, view);
+    SKILLFX.drawArtFx?.(ctx, false);
+    // 妖刀手繪刀氣屬於自發光前景：夜色遮罩後再合成，保持浮世繪青白與金色筆觸。
+    for(const p of winds) SKILLFX.paint(ctx,"wind",5,p);
+    // World-top summon pass: the dragon is above houses, enemies and night lighting,
+    // while HUD remains on its own UI plane. Side entrance keeps the middle playable.
+    for(const dragon of ghosts)if(dragon.dragon&&dragon.life>0){
+      SKILLFX.paint(ctx,"ghost",5,dragon);
+    }
+    // The projectile floats above the world, separate from the ground fire.
+    for(const shot of dragonShots){
+      if(!nearView(shot.x,shot.y,120))continue;
+      ctx.save();ctx.translate(shot.x,shot.y);ctx.rotate(shot.ang);
+      // Bounded woodblock-ink comet tail and warm aura. Draw only while a
+      // shot is alive; no particles accumulate in long-running sessions.
+      const age=shot.maxLife-shot.life,anim=liveMotion()!==0;
+      const shimmer=anim?Math.sin(age*24)*0.045:0;
+      ctx.fillStyle='rgba(242,84,26,0.16)';
+      ctx.beginPath();ctx.ellipse(-11,0,86+shimmer*100,60+shimmer*80,0,0,6.283);ctx.fill();
+      ctx.fillStyle='rgba(255,180,64,0.18)';
+      ctx.beginPath();ctx.ellipse(-3,0,65,42,0,0,6.283);ctx.fill();
+      for(let i=0;i<(anim?10:4);i++){
+        const back=48+i*13+(anim?(age*82+i*7)%22:0);
+        const sideways=Math.sin(i*2.5+(anim?age*12:0))*(9+i*2.9);
+        const alpha=(0.36+(i%3)*0.16)*(1-i/15);
+        ctx.globalAlpha=alpha;
+        ctx.strokeStyle=i%3===0?'#ffe0a0':i%3===1?'#ff9d38':'#da4b1f';
+        ctx.lineWidth=3.8-i*0.2;
+        ctx.beginPath();
+        ctx.moveTo(-back+17,sideways-4);
+        ctx.quadraticCurveTo(-back+6,sideways-13,-back-9,sideways+4);
+        ctx.stroke();
+        ctx.fillStyle=i%2?'#ffd478':'#f47e35';
+        ctx.beginPath();ctx.arc(-back-5,sideways+7,2.5-i*0.12,0,6.283);ctx.fill();
+      }
+      ctx.globalAlpha=1;
+      const art=window.ART?.dragon_fireball_l5;
+      if(art?.naturalWidth>0){
+        ctx.drawImage(art,-72,-72,144,144);
+      }else{
+        ctx.fillStyle='#f6aa45';ctx.strokeStyle='#572720';ctx.lineWidth=3;
+        ctx.beginPath();ctx.arc(0,0,35,0,6.283);ctx.fill();ctx.stroke();
+      }
+      // A short golden brush-flash keeps the ball distinct from blue katana arcs.
+      ctx.globalAlpha=anim?0.64+Math.sin(age*22)*0.08:0.60;
+      ctx.strokeStyle='#ffe9a1';ctx.lineWidth=3.5;
+      ctx.beginPath();ctx.arc(0,0,57,-0.78,0.55);ctx.stroke();
+      ctx.globalAlpha=1;      ctx.restore();
+    }
+    RENDERER.drawSlashArcs();
     ctx.restore();
     FX.drawFlash(ctx, view);
 
@@ -2631,7 +2989,7 @@
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     tutorial = null; bossQ = null; job = null; inter = null;
     orders = []; enemies = []; gems = []; texts = []; rings = [];
-    proj = []; needles = []; winds = []; ghosts = []; enemyBullets = [];
+    proj = []; needles = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; enemyBullets = [];
     victorySeq = null; lampSeq = null; finalBossEnt = null;
     FX.reset(); SKILLFX.reset(); RENDERER.clearShake();
     AUDIO.setSuspended(false);

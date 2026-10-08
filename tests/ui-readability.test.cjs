@@ -226,12 +226,15 @@ test('diegetic radar phase 2 keeps the clock outside navigation content and pres
   assert.match(src,/hud_skill_fan/,'hand-painted fan asset is preferred');
   assert.match(src,/const drawW = 220/,'fan uses a bounded responsive draw size');
   assert.match(src,/const fanBottomY = 66/,'fan is lifted clear of the EXP bar');
-  assert.match(src,/const levelProgress = clamp\(\(lvl - 1\) \/ 4, 0, 1\)/,'skill levels use quarter-ring progress');
+  assert.match(src,/const levelProgress = clamp\(lvl \/ 5, 0, 1\)/,'all five skill levels get visible ring progress');
+  assert.match(src,/const levelColors = \["#9eb7c2", "#d96c55", "#6dbb91", "#6cb9d2", "#c9a7e6"\]/,'skill levels use distinct subdued Japanese color cues');
+  assert.match(src,/const breathe = motion \? \(0\.5 \+ 0\.5 \* pulse/,'skill level ring has a restrained breathing glow');
   assert.match(src,/ctx\.arc\(sx, sy, levelR, levelArcStart, levelArcStart \+ levelArcSweep\)/,'skill level is drawn around the orb');
   assert.match(src,/ctx\.arc\(beadX, beadY,/,'skill level arc ends in a readable bead');
   assert.doesNotMatch(src,/roundRect\(sx - 19, sy \+ 17, 38, badgeH/,'diegetic fan no longer uses level badges');
   assert.match(src,/\[0\.783, 0\.803\]/,'fifth fan aperture is reserved');
   assert.match(src,/第五洞保留為未解鎖槽/,'fifth aperture remains locked');
+  assert.match(src,/const bossBarY = Math\.max\(bounds\.top \+ 2, afterTask - \(compactLandscape \? 44 : 38\)\)/,'Boss bar is lifted toward the top safe edge');
 });
 
 test('diegetic delivery guidance uses original radar icons and an omamori hint',()=>{

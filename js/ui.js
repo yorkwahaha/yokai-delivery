@@ -953,31 +953,31 @@ window.UI = (() => {
           ctx.closePath();
           ctx.fill();
         }
-        // 等級融入技能球外圈：Lv1 基本框、Lv2/3/4 = 1/4、1/2、3/4 圈，
-        // Lv5 滿圈並加強光。弧線尾端的小珠讓小尺寸下也能看出成長。
+        // 等級融入技能球外圈：弧長＋和風色階同時區分 Lv1~5，並以克制呼吸光提示成長。
         const lvl = Math.max(1, Math.min(5, WL[k] || 1));
-        const levelProgress = clamp((lvl - 1) / 4, 0, 1);
+        const levelProgress = clamp(lvl / 5, 0, 1);
         if (levelProgress > 0) {
           const levelArcStart = -Math.PI / 2;
           const levelArcSweep = Math.PI * 2 * levelProgress;
           const levelR = slotR + 5.2;
-          const levelGlowAlpha = lvl >= 5
-            ? (0.44 + (motion ? 0.14 * pulse(2.2, 0.4) : 0))
-            : 0.25;
+          const levelColors = ["#9eb7c2", "#d96c55", "#6dbb91", "#6cb9d2", "#c9a7e6"];
+          const levelColor = levelColors[lvl - 1];
+          const breathe = motion ? (0.5 + 0.5 * pulse(1.7 + lvl * 0.18, i * 0.7)) : 0.55;
+          const levelGlowAlpha = 0.28 + breathe * (lvl >= 5 ? 0.32 : 0.18);
           ctx.save();
           ctx.lineCap = "round";
           ctx.lineWidth = lvl >= 5 ? 3.1 : 2.5;
-          ctx.strokeStyle = lvl >= 5 ? "#ffe6a2" : "#f2c768";
-          ctx.shadowColor = "#ffd86f";
-          ctx.shadowBlur = lvl >= 5 ? 10 : 4;
-          ctx.globalAlpha = 0.88 + levelGlowAlpha * 0.12;
+          ctx.strokeStyle = levelColor;
+          ctx.shadowColor = levelColor;
+          ctx.shadowBlur = (lvl >= 5 ? 9 : 4) + breathe * 3;
+          ctx.globalAlpha = 0.68 + levelGlowAlpha * 0.32;
           ctx.beginPath();
           ctx.arc(sx, sy, levelR, levelArcStart, levelArcStart + levelArcSweep);
           ctx.stroke();
           const beadA = levelArcStart + levelArcSweep;
           const beadX = sx + Math.cos(beadA) * levelR;
           const beadY = sy + Math.sin(beadA) * levelR;
-          ctx.fillStyle = "#fff0b8";
+          ctx.fillStyle = levelColor;
           ctx.beginPath();
           ctx.arc(beadX, beadY, lvl >= 5 ? 2.7 : 2.2, 0, 6.283);
           ctx.fill();
@@ -1375,7 +1375,8 @@ window.UI = (() => {
       drawActionIcon(ctx, 'pickup', taskX + 27, taskY + 26, 13);
       drawCompass(ctx, taskX + 68, taskY + 26, extra.guideAngle, { color: inter ? "#ffe082" : "#ffd152", size: 1.3 });
     }
-    if (extra.boss) drawBossBar(ctx, taskX, afterTask, taskW, extra.boss, scale, time);
+    const bossBarY = Math.max(bounds.top + 2, afterTask - (compactLandscape ? 44 : 38));
+    if (extra.boss) drawBossBar(ctx, taskX, bossBarY, taskW, extra.boss, scale, time);
 
     // --- 左下：武器格（含冷卻）＋被動體質欄 ---
     const ownedKeys = WI ? Object.keys(WI).filter(k => (WL[k] || 0) > 0) : [];
@@ -2248,9 +2249,12 @@ window.UI = (() => {
         ctx.beginPath(); ctx.roundRect(ox + 5, oy + 4, optW - 10, optH * 0.3, 6); ctx.fill();
       }
       ctx.fillStyle = wrong ? "#ffb3ba" : bossQ.lock > 0 ? "#8e97b4" : "#1e1829";
-      ctx.font = readableFont(18, "900");
       const badge = mode === 'gamepad' ? ["LB", "RB", "Y"][i] : mode === 'touch' ? '' : i + 1;
-      ctx.fillText(`${wrong ? '× ' : badge ? badge + ' ' : ''}${w.jp}`, ox + optW / 2, oy + optH/2+7, optW - 12);
+      const answerText = `${wrong ? '× ' : badge ? badge + ' ' : ''}${w.jp}`;
+      ctx.font = answerFont(18, "900");
+      if (answerFontReady(answerText, 18, "900")) {
+        ctx.fillText(answerText, ox + optW / 2, oy + optH/2+7, optW - 12);
+      }
     });
 
     ctx.restore();
@@ -2868,8 +2872,24 @@ window.UI = (() => {
     return `${weight || "700"} ${readable}px 'Noto Sans JP', 'Microsoft JhengHei', sans-serif`;
   }
 
+  function answerFont(size, weight = "700") {
+    const scale = window.VIEWPORT?.get().scale || (document.getElementById("game")?.getBoundingClientRect().width || 900) / 900;
+    const readable = scale < 1 ? Math.max(size, Math.min(31, Math.ceil(15 / scale))) : size;
+    return `${weight || "700"} ${readable}px 'Noto Sans JP', sans-serif`;
+  }
+
+  function answerFontReady(text = "あア日", size = 31, weight = "700") {
+    if (!document.fonts?.check) return true;
+    const font = answerFont(size, weight);
+    if (document.fonts.check(font, text)) return true;
+    document.fonts.load?.(font, text).catch?.(() => {});
+    return false;
+  }
+
   return {
     readableFont,
+    answerFont,
+    answerFontReady,
     drawHintText,
     controlLabel, tutorialCopy, drawTutorial, drawActionIcon, TUTORIAL_BTNS,
     drawWordCue,

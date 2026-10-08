@@ -1,5 +1,33 @@
-<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>六招 MAX・實際特效預覽</title>
-<style>body{margin:0;background:#101522;color:#efdfbf;font:16px system-ui}header{padding:14px 20px}h1{font-size:21px;margin:0 0 10px}p{margin:8px 0;color:#afbdcc;font-size:14px}nav{display:flex;gap:8px;flex-wrap:wrap}button,select{font:inherit;background:#293446;color:#f1e7ce;border:1px solid #867658;border-radius:7px;padding:7px 12px}iframe{border:0;width:100%;height:calc(100dvh - 180px);min-height:350px;background:#0c101a}</style>
-<header><h1>六招 MAX・實際特效預覽</h1><nav><select id="skill"><option value="katana">妖刀斬・無拖尾月牙</option><option value="needle">天狐靈針・八方冰針</option><option value="thunder">天狐雷・雷鼓天落</option><option value="barrier">淨化靈陣・八方土柱</option><option value="boom">陰陽符・陰陽裂焰</option><option value="fire">狐火炎・蛇行火龍</option></select><select id="rank"><option value="5">Lv5／MAX</option><option value="4">Lv4 對照</option></select><button id="pause">暫停</button><button id="slow">0.5 倍速</button><button id="still">關鍵畫面</button><button id="mixed">六招同場</button><button id="reset">重播</button></nav><p>使用實際遊戲的攻擊與繪製程式，敵人、時間和位置為受控設定；每五秒重播。此頁靜音，不寫入遊戲進度。</p></header>
+<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>六大主動技能重製・MAX覺醒實機震撼預覽</title>
+<style>body{margin:0;background:#0d111a;color:#efdfbf;font:15px system-ui}header{padding:12px 18px;background:#151b28;border-bottom:1px solid #332d24}h1{font-size:20px;margin:0 0 8px;color:#ffe39a}p{margin:6px 0;color:#afbdcc;font-size:13px}nav{display:flex;gap:8px;flex-wrap:wrap;align-items:center}button,select{font:inherit;background:#242d3d;color:#f1e7ce;border:1px solid #7c6d4e;border-radius:6px;padding:6px 12px;cursor:pointer}button:hover,select:hover{background:#323e54}button.active{background:#b87d26;color:#ffffff;border-color:#ffd54f}iframe{border:0;width:100%;height:calc(100dvh - 160px);min-height:400px;background:#0a0e17}</style>
+<header><h1>六大主動技能重製・MAX覺醒實機震撼預覽</h1><nav><select id="skill"><option value="katana">妖刀斬・天叢雲・次元裂破</option><option value="barrier">淨化靈陣・不動明王・金剛曼荼羅</option><option value="needle">天狐靈針・冰魄神針・千早百花</option><option value="boom">陰陽符・太極兩儀・九天真火爆裂</option><option value="fire">狐火炎・八咫赤龍・業火焚天</option><option value="thunder">天狐雷・雷神降臨・八雷天劫</option></select><select id="rank"><option value="5">Lv5／MAX 覺醒</option><option value="4">Lv4 對照</option></select><button id="rapid" class="active">⚡ 極速狂攻：開</button><button id="mode" class="active">👹 模式：萬妖狂潮</button><button id="pause">暫停</button><button id="slow">0.5 倍速</button><button id="still">關鍵特寫</button><button id="mixed">六招全開</button><button id="reset">重置</button></nav><p>實際遊戲攻擊與浮世繪視覺系統驅動。萬妖狂潮模式怪物具備實體血量，可完整觀察擊殺爆破、冰魄連鎖碎裂與子彈斬除！</p></header>
 <iframe id="cell" src="skillfx-lab-cell.html?skill=katana&level=5" title="技能實際特效"></iframe>
-<script>const cell=document.querySelector('#cell'),skill=document.querySelector('#skill'),rank=document.querySelector('#rank');let paused=false,slow=false,mixed=false;const send=(cmd,args={})=>cell.contentWindow.postMessage({type:'skillLab',cmd,...args},location.origin);function load(){paused=false;mixed=false;slow=false;document.querySelector("#slow").textContent="0.5 倍速";document.querySelector('#pause').textContent='暫停';cell.src='skillfx-lab-cell.html?skill='+skill.value+'&level='+rank.value;}skill.onchange=rank.onchange=load;document.querySelector('#pause').onclick=()=>{paused=!paused;send('pause',{value:paused});document.querySelector('#pause').textContent=paused?'播放':'暫停';};document.querySelector('#slow').onclick=()=>{slow=!slow;send('speed',{value:slow?0.5:1});document.querySelector('#slow').textContent=slow?'恢復原速':'0.5 倍速';};document.querySelector('#still').onclick=()=>{send('keyframe');paused=true;document.querySelector('#pause').textContent='播放';};document.querySelector('#mixed').onclick=()=>{mixed=!mixed;send('mixed',{value:mixed});};document.querySelector('#reset').onclick=()=>{send('reset');paused=false;document.querySelector('#pause').textContent='暫停';};</script></html>
+<script>
+const cell=document.querySelector('#cell'),skill=document.querySelector('#skill'),rank=document.querySelector('#rank');
+let paused=false,slow=false,mixed=false,rapid=true,isSwarm=true;
+const send=(cmd,args={})=>cell.contentWindow?.postMessage({type:'skillLab',cmd,...args},location.origin);
+function load(){
+  paused=false;mixed=false;slow=false;
+  document.querySelector("#slow").textContent="0.5 倍速";
+  document.querySelector('#pause').textContent='暫停';
+  cell.src='skillfx-lab-cell.html?skill='+skill.value+'&level='+rank.value;
+}
+skill.onchange=rank.onchange=load;
+document.querySelector('#rapid').onclick=function(){
+  rapid=!rapid;
+  this.textContent=rapid?'⚡ 極速狂攻：開':'⚡ 極速狂攻：關';
+  this.classList.toggle('active',rapid);
+  send('rapid',{value:rapid});
+};
+document.querySelector('#mode').onclick=function(){
+  isSwarm=!isSwarm;
+  this.textContent=isSwarm?'👹 模式：萬妖狂潮':'🎯 模式：木樁沙包';
+  this.classList.toggle('active',isSwarm);
+  send('mode',{value:isSwarm?'swarm':'dummy'});
+};
+document.querySelector('#pause').onclick=()=>{paused=!paused;send('pause',{value:paused});document.querySelector('#pause').textContent=paused?'播放':'暫停';};
+document.querySelector('#slow').onclick=()=>{slow=!slow;send('speed',{value:slow?0.5:1});document.querySelector('#slow').textContent=slow?'恢復原速':'0.5 倍速';};
+document.querySelector('#still').onclick=()=>{send('keyframe');paused=true;document.querySelector('#pause').textContent='播放';};
+document.querySelector('#mixed').onclick=function(){mixed=!mixed;this.classList.toggle('active',mixed);send('mixed',{value:mixed});};
+document.querySelector('#reset').onclick=()=>{send('reset');paused=false;document.querySelector('#pause').textContent='暫停';};
+</script></html>

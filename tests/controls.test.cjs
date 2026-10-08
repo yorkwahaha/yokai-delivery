@@ -11,7 +11,9 @@ test('default controls, arrows and left-handed preset map to actions', () => {
   const c = controls();
   assert.equal(c.action('KeyW'), 'u');
   assert.equal(c.action('ArrowLeft'), 'l');
-  assert.equal(c.action('ShiftRight'), 'dash');
+  assert.equal(c.action('Space'), 'dash');
+  assert.equal(c.action('ShiftLeft'), undefined);
+  assert.equal(c.action('ShiftRight'), undefined);
   c.preset('left');
   assert.equal(c.action('KeyI'), 'u');
   assert.equal(c.action('KeyW'), undefined);

@@ -12,6 +12,12 @@ test("fire orbit render count matches combat count", () => {
   assert.equal((game.match(new RegExp(escaped, "g")) || []).length, 2);
 });
 
+test("MAX katana wave crosses buildings and spans the viewport", () => {
+  assert.match(game, /EVOLUTIONS\.move\(wave,dt,null,12\)/);
+  assert.ok(!game.includes("blockBlade"), "Lv5 katana should not collide with houses or walls");
+  assert.match(game, /maxTravel:Math\.max\(1400,spawnRadius\(620\)\*2\.1\)/);
+});
+
 test("horizontal level-up hitboxes and rendered rows share the same dimensions", () => {
   assert.match(game, /cardW = 720, cardH = 108/);
   assert.match(ui, /cardW = 720, cardH = 108/);
@@ -23,12 +29,15 @@ test("mobile hint has a visible exported hit target", () => {
   assert.match(game, /UI\.HINT_BTN/);
 });
 
-test("interface fonts download a character subset", () => {
+test("interface fonts keep one full Noto answer face plus subset decorative faces", () => {
   const links = html.match(/https:\/\/fonts\.googleapis\.com\/css2\?[^"]+/g) || [];
-  assert.equal(links.length, 2);
-  assert.ok(links.every(link => link.includes("family=Noto+Sans+JP") && link.includes("&text=")));
-  assert.ok(!html.includes("display=swap\" rel=\"stylesheet\""));
-  const subset = links.map(link=>new URL(link).searchParams.get('text')).join('');
+  assert.equal(links.length, 3);
+  const fullAnswerFace = links.find(link => link.includes("family=Noto+Sans+JP") && !link.includes("&text="));
+  const subsetLinks = links.filter(link => link.includes("&text="));
+  assert.ok(fullAnswerFace, "answers need a complete Noto Sans JP face to prevent per-glyph fallback");
+  assert.equal(subsetLinks.length, 2);
+  assert.ok(subsetLinks.every(link => link.includes("family=Noto+Sans+JP")));
+  const subset = subsetLinks.map(link=>new URL(link).searchParams.get('text')).join('');
   for(const char of '王直接抽玩↻橫向遊設定完成返回↑↓') assert.ok(subset.includes(char),`missing font character: ${char}`);
 });
 

@@ -10,6 +10,15 @@ test('octopus belongs to the sea pack while the turtle stays by the pond',()=>{
   assert.equal(CONTENT.getAllWords().find(w=>w.jp==='かみなり').zh,'雷');
 });
 
+test('answer-only decoys stay out of cargo vocabulary but are available to quiz choices',()=>{
+  const cargo = CONTENT.getAllWords();
+  const answers = CONTENT.getAnswerCandidates();
+  for (const jp of ['クーラー','アパート']) {
+    assert.equal(cargo.some(w=>w.jp===jp), false, jp);
+    assert.equal(answers.some(w=>w.jp===jp), true, jp);
+  }
+});
+
 test('house identities stay unique throughout distant positive and negative chunks',()=>{
   const world=WORLD.createStageWorld(CONTENT.getStage('night-town'),CONTENT),ids=new Set();
   for(let x=-30;x<=30;x++)for(let y=-30;y<=30;y++)for(const h of world.getChunk(x,y).houses){assert.ok(!ids.has(h.id),`${x},${y}: ${h.id}`);ids.add(h.id);assert.ok(Number.isFinite(h.phase));}
@@ -107,4 +116,76 @@ test("regenerated chunks are deterministic", () => {
   const second = world.getChunk(-12, 37);
 
   assert.deepEqual(second.houses.map(h => [h.id, h.x, h.y, h.word.jp]), signature);
+});
+
+test("staggered houses leave room for all answer pads, even across chunk boundaries", () => {
+  for (const stageId of ["night-town", "rain-port"]) {
+    const world = WORLD.createStageWorld(CONTENT.getStage(stageId), CONTENT);
+    const chunks = [];
+    for (let cy = -2; cy <= 2; cy++) for (let cx = -2; cx <= 2; cx++) {
+      chunks.push(world.getChunk(cx, cy));
+    }
+    const houses = chunks.flatMap(c => c.houses);
+    assert.ok(chunks.every(c => c.houses.length === 3));
+    for (const h of houses) {
+      const pads = WORLD.answerPositions(h).map(p => [p.x,p.y]);
+      for (const other of houses) {
+        if (other === h) continue;
+        // 保守包住最大 175px 寬的酒館、屋頂、以及下方招牌。
+        const left=other.x-94,right=other.x+94,top=other.y-140,bottom=other.y+70;
+        for(const [x,y] of pads) {
+          const dx=Math.max(left-x,0,x-right),dy=Math.max(top-y,0,y-bottom);
+          assert.ok(Math.hypot(dx,dy)>=48,
+            `${stageId}: answer of ${h.id} too close to ${other.id} at ${x},${y}`);
+        }
+      }
+    }
+  }
+});
+
+test("each deterministic scene layout preserves breathing room across all neighboring combinations", () => {
+  const layouts = WORLD.HOUSE_LAYOUTS;
+  assert.equal(layouts.length, 3);
+  const nearest = {houses: Infinity, answers: Infinity, side: Infinity, visuals: Infinity};
+  const houseBox = h => ({x0:h.x-96,x1:h.x+96,y0:h.y-150,y1:h.y+70});
+  const pointGap = (p, box) => Math.hypot(
+    Math.max(box.x0-p.x,0,p.x-box.x1),
+    Math.max(box.y0-p.y,0,p.y-box.y1));
+  const rectGap = (a,b) => Math.hypot(
+    Math.max(a.x0-b.x1,b.x0-a.x1,0),
+    Math.max(a.y0-b.y1,b.y0-a.y1,0));
+  for(const [layoutAIndex,layoutA] of layouts.entries())
+  for(const [layoutBIndex,layoutB] of layouts.entries())
+  for(let cy=-1;cy<=1;cy++)for(let cx=-1;cx<=1;cx++) {
+    if(cx===0&&cy===0&&layoutAIndex!==layoutBIndex)continue;
+    for(const [i,posA] of layoutA.entries())
+    for(const [j,posB] of layoutB.entries()) {
+      if(cx===0&&cy===0&&i===j)continue;
+      const a={x:posA[0],y:posA[1]},
+            b={x:posB[0]+cx*900,y:posB[1]+cy*600};
+      nearest.houses=Math.min(nearest.houses,Math.hypot(a.x-b.x,a.y-b.y));
+      nearest.visuals=Math.min(nearest.visuals,rectGap(houseBox(a),houseBox(b)));
+      if(Math.abs(a.y-b.y)<220)nearest.side=Math.min(nearest.side,Math.abs(a.x-b.x));
+      for(const p of WORLD.answerPositions(a))
+        nearest.answers=Math.min(nearest.answers,pointGap(p,houseBox(b)));
+      for(const p of WORLD.answerPositions(b))
+        nearest.answers=Math.min(nearest.answers,pointGap(p,houseBox(a)));
+    }
+  }
+  assert.ok(nearest.houses>=380,`too close buildings: ${nearest.houses}`);
+  assert.ok(nearest.side>=380,`side-to-side houses: ${nearest.side}`);
+  assert.ok(nearest.visuals>=94,`building silhouettes: ${nearest.visuals}`);
+  assert.ok(nearest.answers>=48,`answers near neighboring buildings: ${nearest.answers}`);
+
+  const stage=CONTENT.getStage("night-town");
+  const world=WORLD.createStageWorld(stage,CONTENT);
+  const variants=new Set();
+  for(let cy=-5;cy<=5;cy++)for(let cx=-5;cx<=5;cx++){
+    const chunk=world.getChunk(cx,cy);
+    const coords=chunk.houses.map(h=>[h.x-cx*900,h.y-cy*600]);
+    const variant=layouts.findIndex(layout=>layout.every((position,i)=>position[0]===coords[i][0]&&position[1]===coords[i][1]));
+    assert.ok(variant>=0,`unknown layout: ${cx},${cy}`);
+    variants.add(variant);
+  }
+  assert.equal(variants.size,3);
 });

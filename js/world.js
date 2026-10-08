@@ -8,6 +8,20 @@
     Object.freeze([210, 440]),
     Object.freeze([690, 440])
   ]);
+  // Three deterministic staggered arrangements validated for adjacent chunks.
+  const HOUSE_LAYOUTS = Object.freeze([
+    Object.freeze([[191,150],[710,156],[446,443]].map(Object.freeze.bind(Object))),
+    Object.freeze([[193,141],[707,155],[453,454]].map(Object.freeze.bind(Object))),
+    Object.freeze([[198,159],[710,156],[456,450]].map(Object.freeze.bind(Object)))
+  ]);
+  // Shared locations used by answer rendering, interaction and geometry tests.
+  function answerPositions(h) {
+    return [
+      {x:h.x-110,y:h.y+125},
+      {x:h.x+110,y:h.y+125},
+      {x:h.x,y:h.y+190}
+    ];
+  }
 
   const mod = (n, m) => ((n % m) + m) % m;
 
@@ -66,6 +80,7 @@
       const pack = content.getPack(packIds[packIndex]);
       const baseX = cx * chunkWidth;
       const baseY = cy * chunkHeight;
+      const layout = HOUSE_LAYOUTS[hashCoords(cx, cy, seed ^ 0x5e1a0d) % HOUSE_LAYOUTS.length];
       const emptySlot = mod(cx + cy * 2 + 1, SPOTS.length);
       const packWords = pack.words || [];
       const wordOffset = packWords.length > 3 ? hashCoords(cx, cy, seed) % packWords.length : 0;
@@ -78,6 +93,7 @@
       const houses = [];
       SPOTS.forEach((spot, slot) => {
         if (slot === emptySlot || wi >= words.length) return;
+        const position = layout[wi];
         const word = words[wi++];
         const phaseHash = hashCoords(cx * 11 + slot, cy * 17 + slot, seed);
         const id = `${stage.id}:${cx},${cy}:${slot}`;
@@ -85,10 +101,10 @@
           id,
           phase: (phaseHash % 10000) / 997,
           chunkKey: key,
-          x: baseX + spot[0],
-          y: baseY + spot[1],
-          dx: baseX + spot[0],
-          dy: baseY + spot[1] + 60,
+          x: baseX + position[0],
+          y: baseY + position[1],
+          dx: baseX + position[0],
+          dy: baseY + position[1] + 60,
           color: pack.color,
           bType: buildingType(pack.theme, slot),
           district: pack.name,
@@ -187,7 +203,7 @@
     };
   }
 
-  const api = { SPOTS, mod, hashCoords, chunkKey, parseChunkKey, createStageWorld };
+  const api = { SPOTS, HOUSE_LAYOUTS, answerPositions, mod, hashCoords, chunkKey, parseChunkKey, createStageWorld };
   root.WORLD = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })();

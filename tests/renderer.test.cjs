@@ -103,14 +103,41 @@ test('reduced motion disables shake and hit stop', () => {
   assert.equal(r.env.RENDERER.updateEffects(0.01),false);
 });
 
-test('katana arcs gain one sharp contour per tier without rebuilding glow gradients',()=>{
-  const contours=[];
-  for(const tier of [1,2,3]){
-    const r=loadRenderer(900,600);let arcs=0;
-    r.main.ctx.arc=()=>arcs++;r.main.ctx.createRadialGradient=()=>{throw new Error('blade halo');};
-    r.env.RENDERER.addSlashArc(0,0,120,0,2.2,tier);r.env.RENDERER.drawSlashArcs();contours.push(arcs);
-  }
-  assert.deepEqual(contours,[1,2,3]);
+test('katana local slash mirrors the ukiyo-e art so the convex edge faces attack direction, with Canvas fallback',()=>{
+  const r=loadRenderer(900,600),art={naturalWidth:261,naturalHeight:300};
+  r.env.ART.katana_wave_ukiyoe=art;
+  let arcs=0;const scales=[];r.main.ctx.arc=()=>arcs++;r.main.ctx.scale=(...args)=>scales.push(args);
+  r.env.RENDERER.addSlashArc(0,0,120,0,2.2,3);r.env.RENDERER.drawSlashArcs();
+  assert.ok(r.images.some(a=>a[0]===art),'loaded katana art must be composited with drawImage');
+  assert.ok(scales.some(([x,y])=>x===-1&&y===1),'local slash must mirror the source raster just like the flying blade');
+  assert.equal(arcs,0,'loaded art must skip the old procedural crescent');
+
+  delete r.env.ART.katana_wave_ukiyoe;r.images.length=0;
+  r.env.RENDERER.addSlashArc(0,0,120,0,2.2,2);r.env.RENDERER.drawSlashArcs();
+  assert.ok(arcs>0,'missing asset keeps the old safe fallback');
+});
+
+test('katana renderer selects the exact five-rank raster before the legacy crescent',()=>{
+  const r=loadRenderer(900,600),legacy={naturalWidth:261,naturalHeight:300},rank4={naturalWidth:300,naturalHeight:220},scales=[];
+  r.main.ctx.scale=(...args)=>scales.push(args);
+  r.env.ART.katana_wave_ukiyoe=legacy;r.env.ART.katana_l4=rank4;
+  r.env.skillVfxArt=(id,rank)=>id==='katana'?r.env.ART['katana_l'+rank]:null;
+  r.env.RENDERER.addSlashArc(0,0,120,0,2.2,4);r.env.RENDERER.drawSlashArcs();
+  assert.ok(r.images.some(a=>a[0]===rank4));
+  assert.ok(!r.images.some(a=>a[0]===legacy));
+  assert.ok(!scales.some(([x,y])=>x===-1&&y===1),'five-rank katana art already faces the intended direction and must not be mirrored');
+});
+
+test('katana Lv1-Lv4 ranked slashes stay close to the courier instead of floating far forward',()=>{
+  const r=loadRenderer(900,600),art={naturalWidth:1254,naturalHeight:1254},translates=[];
+  r.main.ctx.translate=(...args)=>translates.push(args);
+  r.env.ART.katana_l4=art;
+  r.env.skillVfxArt=(id,rank)=>id==='katana'&&rank===4?art:null;
+  r.env.RENDERER.addSlashArc(0,0,120,0,2.2,4);
+  r.env.RENDERER.drawSlashArcs();
+  const forwardTranslations=translates.filter(([x,y])=>x>0&&y===0).map(([x])=>x);
+  assert.ok(forwardTranslations.length>0);
+  assert.ok(Math.max(...forwardTranslations)<45,'Lv4 local slash should remain attached to the player-side attack origin');
 });
 
 test('Canvas backings preserve viewport mapping within bounded raster budgets', () => {
@@ -260,4 +287,58 @@ test('house signs identify shops and never expose unrelated vocabulary or hint t
   }
   assert.deepEqual(r.texts,['夜行商店','宵待酒屋','稻荷社']);
   assert.doesNotThrow(() => r.env.RENDERER.drawHouse({x:450,y:300,bType:'unknown'}));
+});
+
+test('phase-two houses keep separate visual widths and the original depth foot anchor', () => {
+  const r=loadRenderer(900,600);
+  for(const [bType,width] of [['house_shop',166],['house_tavern',175],['house_shrine',158]]) {
+    const image={naturalWidth:320,naturalHeight:400};
+    r.env.ART[bType]=image;
+    r.env.RENDERER.drawHouse({x:450,y:300,bType});
+    const draw=r.images.findLast(call=>call[0]===image);
+    assert.ok(draw,bType);
+    assert.equal(draw[3],width,bType);
+    assert.equal(draw[2]+draw[4],348,bType);
+  }
+});
+
+test('phase-two ground atlas crops meet on every horizontal and vertical tile boundary', () => {
+  const r=loadRenderer(900,600);
+  const source=new Uint8ClampedArray(1024*1024*4);
+  for(let y=0;y<1024;y++)for(let x=0;x<1024;x++){
+    const i=(y*1024+x)*4;
+    source[i]=x/4;source[i+1]=y/4;source[i+2]=(x*7+y*3)%256;source[i+3]=255;
+  }
+  let atlas;
+  const originalCreate=r.env.document.createElement;
+  r.env.document.createElement=()=>{
+    const canvas=originalCreate();
+    canvas.ctx.getImageData=()=>({data:source});
+    canvas.ctx.createImageData=(w,h)=>({data:new Uint8ClampedArray(w*h*4)});
+    canvas.ctx.putImageData=image=>{atlas=image.data;};
+    canvas.ctx.createPattern=()=>({setTransform(){}});
+    return canvas;
+  };
+  r.env.ART.ground_dirt={naturalWidth:1024,naturalHeight:1024,complete:true};
+  r.env.RENDERER.drawGround(0,600,[],'ground_dirt');
+  assert.ok(atlas);
+  const sample=(tile,x,y,ch)=>atlas[(((tile>>1)*512+y)*1024+(tile&1)*512+x)*4+ch];
+  for(let a=0;a<4;a++)for(let b=0;b<4;b++)for(let n=0;n<512;n+=7)for(let ch=0;ch<4;ch++){
+    assert.equal(sample(a,511,n,ch),sample(b,0,n,ch),'horizontal crop seam');
+    assert.equal(sample(a,n,511,ch),sample(b,n,0,ch),'vertical crop seam');
+  }
+});
+
+test('quiet ground removes dark rectangular courtyards and wide ink-road borders', () => {
+  const r=loadRenderer(900,600);
+  r.env.RENDERER.drawGround(0,600,[],'ground_dirt');
+  const c=r.canvases.at(-1).ctx, rectangles=[], strokes=[];
+  c.roundRect=(...args)=>rectangles.push(args);
+  c.stroke=()=>strokes.push({color:c.strokeStyle,width:c.lineWidth});
+  const chunks=[{x:0,y:0,w:900,h:600,theme:'market',name:'街',sub:'',houses:[{x:220,y:160}]}];
+  r.env.RENDERER.drawGround(1,600,chunks,'ground_dirt');
+  assert.deepEqual(rectangles,[],'ground should not draw courtyard rectangles');
+  assert.ok(strokes.every(s=>!String(s.color).includes('18,16,19')),'no near-black road borders');
+  assert.ok(strokes.every(s=>s.width<=72),'no oversized stroke outlines');
+  assert.ok(strokes.length<=2,'no repeating dry-brush grid');
 });

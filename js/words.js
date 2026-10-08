@@ -169,6 +169,24 @@
     return [pack.id, Object.freeze({ ...pack, words: Object.freeze(words) })];
   }));
 
+  // 答題專用干擾詞：不會成為貨物、也不會進圖鑑或要求語音檔。
+  // 目的只在於讓答題墊能維持與正解相同字數，避免玩家用字數猜答案。
+  const ANSWER_DECOYS = Object.freeze([
+    ["バス", "公車"], ["ドア", "門"], ["カギ", "鑰匙"],
+    ["テレビ", "電視"], ["ホテル", "飯店"], ["アイス", "冰淇淋"], ["カメラ", "相機"],
+    ["クーラー", "冷氣"], ["アパート", "公寓"], ["スーパー", "超市"], ["コーヒー", "咖啡"]
+  ].map(([jp, zh], index) => Object.freeze({
+    id: `answer-decoy:${index}`,
+    packId: "answer-decoy",
+    jp,
+    zh,
+    icon: "",
+    cue: "text",
+    romaji: "",
+    example: "",
+    decoy: true
+  })));
+
   const PACK_ORDER = Object.freeze(RAW_PACKS.map(pack => pack.id));
   const NIGHT_TOWN_PACKS = Object.freeze([
     "animals", "beach", "nightsky", "sweets", "station", "port", "sakura", "tavern", "pond"
@@ -314,6 +332,10 @@
     return out;
   }
 
+  function getAnswerCandidates() {
+    return [...getAllWords(), ...ANSWER_DECOYS];
+  }
+
   const api = Object.freeze({
     WORD_PACKS,
     PACK_ORDER,
@@ -323,7 +345,8 @@
     getStage,
     getStageWords,
     getSiblingWords,
-    getAllWords
+    getAllWords,
+    getAnswerCandidates
   });
 
   root.CONTENT = api;

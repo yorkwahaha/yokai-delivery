@@ -60,24 +60,70 @@
     e.freezeT=e.type==='boss'?0.15:0.5;e.freezeEnds=elapsed+e.freezeT;e.freezeReady=elapsed+2;return true;
   }
 
-  function dragon(origin,target,phase=0) {
-    return {dragon:true,x:origin.x+98,y:origin.y,age:0,life:2.2,ang:Math.PI/2,
-      vx:0,vy:0,target,phase,trail:0,hitSet:new Set(),points:[]};
+  function dragon(origin,launchAng=0,phase=0,entry=null) {
+    const faceX=Math.cos(launchAng)<0?-1:1;
+    return {dragon:true,x:entry?.startX??origin.x,y:entry?.y??origin.y-85,
+      age:0,life:3,ang:launchAng,faceX,
+      entry, size:entry?.size??340,vx:0,vy:0,launchAng,phase,shot:false,
+      trail:0,hitSet:new Set(),points:[]};
   }
   function dragonStep(p,dt,origin,blocked) {
     if(dt<=0)return p.life>0;
-    p.age+=dt;
-    if(p.age<=0.6){
-      const a=p.age/0.6*Math.PI*2,nx=origin.x+Math.cos(a)*98,ny=origin.y+Math.sin(a)*98;
-      p.vx=(nx-p.x)/dt;p.vy=(ny-p.y)/dt;p.ang=Math.atan2(p.vy,p.vx);
-    }else{
-      if(p.launchAng==null)p.launchAng=p.target?.hp>0?Math.atan2(p.target.y-p.y,p.target.x-p.x):origin.faceAng||0;
-      p.ang=p.launchAng+Math.sin((p.age-0.6)*10+p.phase)*0.38;
-      p.vx=Math.cos(p.ang)*520;p.vy=Math.sin(p.ang)*520;
+    p.age+=dt;p.life-=dt;
+    if(p.entry) {
+      const enter=Math.sin(Math.min(1,p.age/0.72)*Math.PI/2);
+      const leave=p.age>2.35?Math.sin(Math.min(1,(p.age-2.35)/0.65)*Math.PI/2):0;
+      p.x=p.entry.startX+(p.entry.endX-p.entry.startX)*enter*(1-leave);
+      p.y=p.entry.y+Math.sin(p.age*5+p.phase)*3;
+    } else {
+      p.x=origin.x;p.y=origin.y-85+Math.sin(p.age*5+p.phase)*3;
     }
-    const alive=move(p,dt,blocked,12),prev=p.points.at(-1);
-    if(!prev||Math.hypot(p.x-prev.x,p.y-prev.y)>6){p.points.push({x:p.x,y:p.y});if(p.points.length>24)p.points.shift();}
-    return alive;
+    p.faceX=Math.cos(p.ang)<0?-1:1;
+    return p.life>0;
+  }
+
+  function dragonFireball(dragon,target) {
+    const x=dragon.x+dragon.faceX*(dragon.size??340)*0.33,y=dragon.y+14;
+    const ang=Math.atan2(target.y-y,target.x-x),speed=510;
+    return {dragonFireball:true,x,y,ang,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed,
+      life:1.75,maxLife:1.75,radius:24};
+  }
+  // Swept collision prevents skipping a target or obstacle at low FPS.
+  function dragonFireballStep(p,dt,enemies,blocked) {
+    if(p.life<=0)return {impact:true,x:p.x,y:p.y,target:null};
+    const travel=Math.min(Math.max(0,dt),p.life),steps=Math.max(1,Math.ceil(Math.hypot(p.vx,p.vy)*travel/10));
+    for(let i=0;i<steps;i++){
+      const x=p.x+p.vx*travel/steps,y=p.y+p.vy*travel/steps;
+      if(blocked?.(x,y,p.radius)){p.life=0;return {impact:true,x:p.x,y:p.y,target:null};}
+      p.x=x;p.y=y;
+      const target=enemies.find(e=>e.hp>0&&!e.shield&&Math.hypot(e.x-x,e.y-y)<(e.type==='boss'?46:30));
+      if(target){p.life=0;return {impact:true,x,y,target};}
+    }
+    p.life-=dt;
+    return p.life<=0?{impact:true,x:p.x,y:p.y,target:null}:{impact:false};
+  }
+  function fireSpirit(origin,launchAng=0,level=1,slot=0) {
+    const r=98;
+    return {fireAttack:true,level,slot,x:origin.x+Math.cos(launchAng)*r,y:origin.y+Math.sin(launchAng)*r,
+      age:0,life:2.6,ang:launchAng,vx:Math.cos(launchAng)*250,vy:Math.sin(launchAng)*250,
+      trail:0,target:null,returning:false,faceX:(origin.faceX??1)<0?-1:1,hitSet:new Set()};
+  }
+  function fireSpiritStep(p,dt,origin,enemies,blocked) {
+    if(dt<=0)return p.life>0;
+    if(origin?.faceX)p.faceX=origin.faceX<0?-1:1;
+    if(p.returning){
+      p.age=(p.age||0)+dt;
+      const dx=origin.x-p.x,dy=origin.y-p.y,d=Math.hypot(dx,dy);
+      if(d<=72){p.life=0;return false;}
+      const aim=Math.atan2(dy,dx);
+      p.ang+=clamp(delta(p.ang,aim),-dt*7,dt*7);
+      const speed=Math.min(500,330+p.age*80);
+      p.vx=Math.cos(p.ang)*speed;p.vy=Math.sin(p.ang)*speed;
+      return move(p,dt,blocked,10);
+    }
+    seek(p,dt,enemies);
+    if(!p.target){p.returning=true;return true;}
+    return move(p,dt,blocked,10);
   }
 
   function seek(p,dt,enemies) {
@@ -95,6 +141,9 @@
   }
 
   const rank=l=>clamp(Math.floor(l)||1,1,5)-1;
-  const api={move,curve,seek,iceVolley,freeze,dragon,dragonStep,FIRE_ORBIT:98,fireCount:l=>[2,4,5,6,6][rank(l)],needleCount:l=>[3,5,7,8,8][rank(l)],boomCount:l=>[1,2,3,4,4][rank(l)]};root.EVOLUTIONS=api;
+  const api={move,curve,seek,iceVolley,freeze,dragon,dragonStep,dragonFireball,dragonFireballStep,fireSpirit,fireSpiritStep,FIRE_ORBIT:98,
+    fireCount:l=>[1,2,4,6,6][rank(l)],fireAttackCount:l=>[1,1,2,3,0][rank(l)],
+    fireAttackCooldown:l=>[2.5,2.2,1.9,1.55,1.05][rank(l)],
+    needleCount:l=>[3,5,7,8,8][rank(l)],boomCount:l=>[1,2,3,4,4][rank(l)]};root.EVOLUTIONS=api;
   if(typeof module!=='undefined')module.exports=api;
 })();
