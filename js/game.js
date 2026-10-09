@@ -2219,18 +2219,10 @@
       });
     }
 
-    // 6. 靈玉經驗寶石
+    // 6. 手繪封印靈玉：以墨線／和紙亮面取代螢光圓點。
     for (const g of gems) {
       if (!nearView(g.x, g.y, 40)) continue;
-      FX.glow(ctx, g.x, g.y, g.v > 2 ? 54 : 38, "#6bf0ff", 0.55 + 0.25 * Math.sin(elapsed * 6 + g.x));
-      ctx.fillStyle = "#6bf0ff";
-      ctx.beginPath();
-      ctx.arc(g.x, g.y, g.v > 2 ? 8 : 6, 0, 6.28);
-      ctx.fill();
-      ctx.fillStyle = "#fff";
-      ctx.beginPath();
-      ctx.arc(g.x - 2, g.y - 2, 2, 0, 6.28);
-      ctx.fill();
+      RENDERER.drawSpiritGem(g, elapsed);
     }
 
     // 技能的貼地圖案（淨化靈陣等）畫在所有角色之前，才會被角色蓋住。

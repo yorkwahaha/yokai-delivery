@@ -695,7 +695,7 @@ window.RENDERER = (() => {
     }
 
     // 陰影：隨身體呼吸同步縮放
-    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+    ctx.fillStyle = "rgba(32, 26, 31, 0.37)";
     const shadowR = (isBoss ? 52 : isMis ? 32 : 22) * sX;
     ctx.beginPath();
     ctx.ellipse(e.x, e.y + (isBoss ? 52 : isMis ? 32 : 22) * 0.85, shadowR, shadowR * 0.4, 0, 0, 6.28);
@@ -771,17 +771,24 @@ window.RENDERER = (() => {
       ctx.translate(e.x, e.y);
       if (e.shield) {
         const ringRot = elapsed * 1.8;
-        ctx.strokeStyle = "#8ae4ffdd";
-        ctx.lineWidth = 4.5;
-        ctx.setLineDash([14, 8]);
+        ctx.strokeStyle = "#cfac6b";
+        ctx.lineWidth = 3.5;
+        ctx.setLineDash([12, 9]);
         ctx.beginPath();
         ctx.arc(0, -35, 68, ringRot, ringRot + 6.28);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        ctx.textAlign = "center";
-        ctx.font = "26px sans-serif";
-        ctx.fillText("🛡", 0, -110);
+        // 盾牌 Emoji 改為和紙家紋，保留護盾辨識度。
+        ctx.fillStyle = "#ead6a9";
+        ctx.strokeStyle = "#392a32";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0,-121);ctx.lineTo(11,-112);ctx.lineTo(9,-95);
+        ctx.lineTo(0,-88);ctx.lineTo(-9,-95);ctx.lineTo(-11,-112);
+        ctx.closePath();ctx.fill();ctx.stroke();
+        ctx.strokeStyle = "#a95743";ctx.lineWidth = 2.3;
+        ctx.beginPath();ctx.moveTo(-5,-108);ctx.lineTo(0,-98);ctx.lineTo(5,-108);ctx.stroke();
       }
 
       // 漆器金邊血條
@@ -827,6 +834,34 @@ window.RENDERER = (() => {
       ctx.fillText(badgeText, e.x + 12, badgeY + 23);
       ctx.restore();
     }
+  }
+
+  // 手繪六角封印靈玉：墨線、和紙面與低強度金箔圈。
+  function drawSpiritGem(g, elapsed) {
+    const large = g.v > 2, radius = large ? 10 : 8;
+    const rise = allowsMotion() ? Math.sin(elapsed * 4 + g.x * .07) * 1.7 : 0;
+    ctx.save();
+    ctx.translate(g.x, g.y - rise);
+    ctx.fillStyle = "rgba(31,26,32,.32)";
+    ctx.beginPath();ctx.ellipse(0,radius*.75,radius*.86,3,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle = large ? "rgba(203,165,92,.72)" : "rgba(203,165,92,.48)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();ctx.ellipse(0,0,radius+3,(radius+3)*.85,0,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle = "#6d9999";
+    ctx.strokeStyle = "#24252c";
+    ctx.lineWidth = 2;
+    ctx.lineJoin = "round";
+    ctx.beginPath();ctx.moveTo(0,-radius);ctx.lineTo(radius*.72,-radius*.35);
+    ctx.lineTo(radius*.72,radius*.42);ctx.lineTo(0,radius);
+    ctx.lineTo(-radius*.72,radius*.42);ctx.lineTo(-radius*.72,-radius*.35);
+    ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle = "#d9cda9";
+    ctx.beginPath();ctx.moveTo(0,-radius*.7);ctx.lineTo(radius*.35,-radius*.18);
+    ctx.lineTo(0,radius*.36);ctx.lineTo(-radius*.35,-radius*.18);
+    ctx.closePath();ctx.fill();
+    ctx.strokeStyle = "#354d58";ctx.lineWidth = 1.1;
+    ctx.beginPath();ctx.moveTo(0,radius*.36);ctx.lineTo(0,radius*.79);ctx.stroke();
+    ctx.restore();
   }
 
   // 繪製立體多光源動態光影（柔和三次樣條光暈 + 街燈光暈池）
@@ -1186,6 +1221,7 @@ window.RENDERER = (() => {
     drawPlayer,
     drawFrame,
     drawMonster,
+    drawSpiritGem,
     renderLighting,
     drawDamageNumbers,
     drawSlashArcs,

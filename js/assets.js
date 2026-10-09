@@ -16,6 +16,12 @@ const SCENERY_ASSET_KEYS = new Set([
   "house_shop", "house_tavern", "house_shrine", "prop_torii",
   "prop_sakura", "prop_lantern", "ground", "ground_dirt"
 ]);
+// 第二刀：六類妖怪的靜態與動作素材共享木版畫色板；原 PNG 保留作備援。
+const YOKAI_ASSET_KEYS = new Set([
+  "ghost", "runner", "tank", "shooter", "mis", "boss",
+  "ghost_motion_v1", "runner_motion_v1", "tank_motion_v1",
+  "shooter_motion_v1", "mis_motion_v1", "boss_motion_v1"
+]);
 let loadedCount = 0;
 const markSettled = (failed = false) => {
   loadedCount++;
@@ -41,6 +47,8 @@ function loadArt(n) {
   };
   img.src = SCENERY_ASSET_KEYS.has(n)
     ? `assets/img/scenery/${n}.webp?v=20261008-scene2`
+    : YOKAI_ASSET_KEYS.has(n)
+    ? `assets/img/yokai/${n}.webp?v=20261009-ink1`
     : `assets/img/${n}.webp`;
 }
 

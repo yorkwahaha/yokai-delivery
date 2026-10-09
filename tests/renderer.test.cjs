@@ -255,6 +255,17 @@ test('monster hit flashes use a cached white silhouette without Canvas filter',(
   assert.equal(filters,0);assert.equal(r.canvases.length,count);assert.equal(count,initial+1);
 });
 
+test('spirit gems render as inked faceted talismans and honor reduced motion',()=>{
+  const r=loadRenderer(900,600), c=r.main.ctx, colors=[];
+  let fill='';
+  Object.defineProperty(c,'fillStyle',{configurable:true,get(){return fill;},set(v){fill=v;colors.push(v);}});
+  assert.doesNotThrow(()=>r.env.RENDERER.drawSpiritGem({x:120,y:180,v:6},1));
+  assert.ok(colors.includes('#6d9999'),'jade body is visible');
+  assert.ok(colors.includes('#d9cda9'),'paper reflection is visible');
+  r.env.motionChange({matches:true});
+  assert.doesNotThrow(()=>r.env.RENDERER.drawSpiritGem({x:120,y:180,v:2},1));
+});
+
 test('night midtones stay readable and warm light stays on the lamps', () => {
   const r = loadRenderer(900, 600), light = r.canvases[1], styles = [];
   let fill = '';

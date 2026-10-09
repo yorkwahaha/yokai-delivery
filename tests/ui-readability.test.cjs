@@ -104,12 +104,22 @@ test('HUD bars reuse gradients and rebuild for changed transform, geometry, tone
   const draw=(ctx=r.context,oil=80)=>r.UI.drawHud(ctx,{x:0,y:0},oil,100,120,600,2,0,100,3,12,45,null,0,[],null,null,false,null,
     {x:810,y:420,r:38},{x:810,y:530,r:46},{x:848,y:14,w:38,h:52},{},{},{},0);
   draw();const first=made;draw();assert.equal(made,first,'unchanged bars must reuse gradients');
-  draw(r.context,10);assert.equal(made,first+1);assert.ok(colors.includes('#d4141f'));
+  draw(r.context,10);assert.equal(made,first+1);assert.ok(colors.includes('#922f36'));
   m={...m,a:2,d:2};const beforeScale=made;draw();assert.ok(made>=beforeScale+3);
   const beforeResize=made;r.env.window.innerWidth=844;r.env.window.innerHeight=390;
   vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);draw();assert.ok(made>beforeResize);
   const other=loadUI(900).context;other.getTransform=()=>m;other.createLinearGradient=r.context.createLinearGradient;
   const beforeContext=made;draw(other);assert.ok(made>beforeContext);
+});
+
+test('woodblock UI reuses a paper-wash panel instead of the old glass sheen',()=>{
+  const src=fs.readFileSync('js/ui.js','utf8');
+  assert.match(src,/木版畫共用框/);
+  assert.match(src,/rgba\(223,199,150,\.065\)/);
+  assert.doesNotMatch(src,/function sheen\(/);
+  assert.match(src,/const cardFill = "rgba\(43,39,39,\.98\)"/);
+  const r=loadUI(568);
+  assert.doesNotThrow(()=>r.UI.drawLevelUp(r.context,2,[{type:'weapon',id:'katana',n:'妖刀斬',s:'かたな',d:'向前斬擊',lv:1}],{}, {},1));
 });
 
 test('small-screen level-up descriptions and settlement review lines keep readable spacing',()=>{

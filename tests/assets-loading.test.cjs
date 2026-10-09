@@ -103,8 +103,24 @@ test('foxfire exposes separate orbit, attack and Lv5 dragon asset slots',()=>{
 test('new movement, posture and landmark images ship both WebP and PNG fallback files',()=>{
   const {env,images}=loadAssets();env.loadGameArt();
   const extra=images.filter(i=>/_v[12]/.test(i.src));assert.equal(extra.length,12);
-  for(const i of extra){assert.ok(fs.existsSync(i.src),i.src);i.onerror();assert.ok(fs.existsSync(i.src),i.src);i.onload();}
+  for(const i of extra){assert.ok(fs.existsSync(i.src.split('?')[0]),i.src);i.onerror();assert.ok(fs.existsSync(i.src.split('?')[0]),i.src);i.onload();}
   assert.ok(env.ART.player_kneel_v1);assert.ok(env.ART.boss_motion_v1);assert.ok(env.ART.map_rain_port_v1);
+});
+
+test('all six woodblock yokai and their motion atlases load with original fallback',()=>{
+  const {env,images}=loadAssets();env.loadGameArt();
+  for(const kind of ['ghost','runner','tank','shooter','mis','boss']){
+    for(const name of [kind,kind+'_motion_v1']){
+      const path='assets/img/yokai/'+name+'.webp';
+      const image=images.find(img=>img.src.split('?')[0]===path);
+      assert.ok(image,name+' must load from the ink collection');
+      const bytes=fs.readFileSync(path);
+      assert.equal(bytes.toString('ascii',0,4),'RIFF');
+      assert.equal(bytes.toString('ascii',8,12),'WEBP');
+      image.onerror();
+      assert.equal(image.src,'assets/img/'+name+'.png');
+    }
+  }
 });
 
 test('new dragon fireball and scorched-ground sprites load from optimized WebP assets',()=>{

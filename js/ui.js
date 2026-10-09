@@ -1,4 +1,4 @@
-// 使用者介面（UI）：漆器金箔和風介面。面板、按鈕、HUD、升級卡與結算頁共用同一組色票與繪製函式。
+// 使用者介面（UI）：半水墨、和紙、木版畫介面；面板、按鈕、升級卡共用墨線與版畫色票。
 // 光暈優先使用 FX.glow 的預烘焙貼圖；面板仍使用漸層，圖鑑標題保留少量 shadowBlur。
 // HUD 可回退：預設 diegetic；也可用 ?hud=classic / ?hud=diegetic 即時比較。
 {
@@ -28,25 +28,24 @@ window.UI = (() => {
 
   // ---- 色票與共用繪製工具 ----
   const C = {
-    gold: "#e8c36a", goldHi: "#fff0b8", ink: "#0a0d18", vermilion: "#e0523f",
-    jade: "#46c99a", azure: "#4aa3ff", violet: "#b36bff", cyan: "#7fe3f0",
-    text: "#fff3da", dim: "rgba(255, 240, 210, 0.68)"
+    gold: "#c6a56d", goldHi: "#f3dfad", ink: "#221e24", vermilion: "#bf6149",
+    jade: "#82a78e", azure: "#7e9eaa", violet: "#9c88a6", cyan: "#92bac0",
+    text: "#f2e4c8", dim: "rgba(225,209,181,.77)"
   };
-  const WEAPON_TONE = { katana: "#e0523f", barrier: "#4aa3ff", fire: "#ff8a1f", boom: "#b36bff", thunder: "#ffd54f", needle: "#7fe3f0" };
+  const WEAPON_TONE = { katana: "#c46b51", barrier: "#7faab1", fire: "#d49459", boom: "#a18aac", thunder: "#cfb577", needle: "#8ab4b1" };
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
   const calm = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   const glow = (ctx, x, y, size, color, alpha) => window.FX?.glow(ctx, x, y, size, color, alpha);
   const pulse = (speed = 3, lo = 0.6) => calm() ? 0.85 : lo + (1 - lo) * (0.5 + 0.5 * Math.sin(Date.now() / 1000 * speed));
   const fontPx = font => Number(font.match(/([\d.]+)px/)[1]);
 
-  const sheenCache = new Map();
   const barCache = new WeakMap();
   const BAR_COLORS = {
-    oil: [[0,"#ff6a13"],[0.6,"#ffb42e"],[1,"#ffe28a"]],
-    lowOil: [[0,"#d4141f"],[1,"#ff7a43"]],
-    xp: [[0,"#2b7bff"],[1,"#7fe3f0"]],
-    dawn: [[0,"#4a5bd8"],[0.7,"#ff8a4a"],[1,"#ffe28a"]],
-    boss: [[0,"#b3122a"],[0.6,"#ff4d3a"],[1,"#ffb347"]]
+    oil: [[0,"#a45a3c"],[.6,"#c99150"],[1,"#e3cb8c"]],
+    lowOil: [[0,"#922f36"],[1,"#d46f54"]],
+    xp: [[0,"#5a7c88"],[1,"#aed2c7"]],
+    dawn: [[0,"#647381"],[.7,"#cc8e64"],[1,"#dec38a"]],
+    boss: [[0,"#802e39"],[.6,"#b85443"],[1,"#d5a56e"]]
   };
   function barGradient(ctx, kind, x0, x1, transform = ctx.getTransform?.()) {
     let cache = barCache.get(ctx);
@@ -59,74 +58,51 @@ window.UI = (() => {
     cache.set(kind,{x0,x1,transform,gradient});
     return gradient;
   }
-  function sheen(ctx, h) {
-    const key = Math.round(h);
-    let g = sheenCache.get(key);
-    if (!g) {
-      g = ctx.createLinearGradient(0, 0, 0, h);
-      g.addColorStop(0, "rgba(255, 244, 214, 0.17)");
-      g.addColorStop(0.45, "rgba(255, 244, 214, 0.02)");
-      g.addColorStop(1, "rgba(0, 0, 0, 0.2)");
-      sheenCache.set(key, g);
-    }
-    return g;
-  }
-
-  // 漆器面板：底影、本體、頂部高光、內側金線、外框；ornate 再加四角金具。
-  function glassBox(ctx, x, y, w, h, r = 10, fill = "rgba(14, 18, 30, 0.84)", stroke = "rgba(232, 195, 106, 0.6)", strokeW = 1.5, ornate = false) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.fillStyle = "rgba(0, 0, 0, 0.36)";
-    ctx.beginPath();
-    ctx.roundRect(0, 3, w, h, r);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.roundRect(0, 0, w, h, r);
-    ctx.fillStyle = fill;
-    ctx.fill();
-    ctx.fillStyle = sheen(ctx, h);
-    ctx.fill();
-    if (stroke) {
-      ctx.strokeStyle = stroke;
-      ctx.lineWidth = strokeW;
-      ctx.stroke();
-    }
-    if (w > 40 && h > 26) {
-      ctx.beginPath();
-      ctx.roundRect(3.5, 3.5, w - 7, h - 7, Math.max(2, r - 3));
-      ctx.strokeStyle = "rgba(255, 226, 150, 0.16)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-    if (ornate) {
-      ctx.strokeStyle = C.gold;
-      ctx.lineWidth = 2.2;
-      ctx.lineCap = "round";
-      const d = Math.min(18, w / 5, h / 5);
-      for (const [cx, cy, sx, sy] of [[5, 5, 1, 1], [w - 5, 5, -1, 1], [5, h - 5, 1, -1], [w - 5, h - 5, -1, -1]]) {
-        ctx.beginPath();
-        ctx.moveTo(cx, cy + d * sy);
-        ctx.lineTo(cx, cy);
-        ctx.lineTo(cx + d * sx, cy);
-        ctx.stroke();
-        ctx.fillStyle = C.goldHi;
-        ctx.beginPath();
-        ctx.arc(cx + 5 * sx, cy + 5 * sy, 1.7, 0, 6.283);
-        ctx.fill();
+  // 木版畫共用框：和紙刷染、墨線、金箔角印；沿用所有舊座標與點擊範圍。
+  function glassBox(ctx,x,y,w,h,r=10,fill="rgba(34,31,32,.92)",stroke="rgba(197,162,105,.7)",strokeW=1.5,ornate=false){
+    if(!(w>0&&h>0))return;
+    ctx.save();ctx.translate(x,y);
+    const rad=Math.max(2,Math.min(6,r,w/6,h/6));
+    ctx.lineJoin="round";ctx.fillStyle="rgba(23,20,24,.48)";
+    ctx.beginPath();ctx.roundRect(2,3,w,h,rad);ctx.fill();
+    ctx.beginPath();ctx.roundRect(0,0,w,h,rad);ctx.fillStyle=fill;ctx.fill();
+    if(w>34&&h>23){
+      ctx.save();ctx.clip();
+      ctx.fillStyle="rgba(223,199,150,.065)";
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(w*.58,0);
+      ctx.lineTo(w*.19,Math.min(h*.46,32));ctx.lineTo(0,h*.7);ctx.closePath();ctx.fill();
+      ctx.strokeStyle="rgba(227,199,154,.11)";ctx.lineWidth=1;
+      for(const t of [.33,.72]){
+        ctx.beginPath();ctx.moveTo(w*t,2);
+        ctx.lineTo(Math.min(w-3,w*t+Math.min(38,h*.32)),2);ctx.stroke();
       }
+      ctx.restore();
+      ctx.beginPath();ctx.roundRect(3,3,w-6,h-6,Math.max(1,rad-2));
+      ctx.strokeStyle="rgba(222,191,137,.19)";ctx.lineWidth=1;ctx.stroke();
+    }
+    if(stroke){ctx.beginPath();ctx.roundRect(0,0,w,h,rad);ctx.strokeStyle=stroke;ctx.lineWidth=strokeW;ctx.stroke();}
+    if(ornate&&w>=70&&h>=38){
+      ctx.strokeStyle="#b69a64";ctx.lineWidth=2;ctx.lineCap="square";
+      const d=Math.min(14,w/8,h/8);
+      for(const [cx,cy,sx,sy] of [[5,5,1,1],[w-5,5,-1,1],[5,h-5,1,-1],[w-5,h-5,-1,-1]]){
+        ctx.beginPath();ctx.moveTo(cx,cy+d*sy);ctx.lineTo(cx,cy);
+        ctx.lineTo(cx+d*sx,cy);ctx.stroke();
+      }
+      ctx.fillStyle="#c19e62";ctx.beginPath();
+      ctx.moveTo(w-23,h-10);ctx.lineTo(w-15,h-16);
+      ctx.lineTo(w-8,h-10);ctx.lineTo(w-15,h-5);ctx.closePath();ctx.fill();
     }
     ctx.restore();
   }
-
   function drawMenuFocus(ctx, btn) {
     if (!btn) return;
     const p = pulse(5, 0.55);
     ctx.save();
     ctx.lineJoin = "round";
     ctx.beginPath(); ctx.roundRect(btn.x - 4, btn.y - 4, btn.w + 8, btn.h + 8, 13);
-    ctx.strokeStyle = `rgba(127, 227, 240, ${0.1 + 0.12 * p})`; ctx.lineWidth = 10; ctx.stroke();
-    ctx.strokeStyle = `rgba(127, 227, 240, ${0.6 + 0.4 * p})`; ctx.lineWidth = 2.6; ctx.stroke();
-    ctx.fillStyle = C.cyan;
+    ctx.strokeStyle = `rgba(208,169,106,${0.1 + 0.12 * p})`; ctx.lineWidth = 8; ctx.stroke();
+    ctx.strokeStyle = `rgba(239,205,142,${0.6 + 0.4 * p})`; ctx.lineWidth = 2.3; ctx.stroke();
+    ctx.fillStyle = C.goldHi;
     for (const [cx, cy] of [[btn.x - 4, btn.y - 4], [btn.x + btn.w + 4, btn.y - 4], [btn.x - 4, btn.y + btn.h + 4], [btn.x + btn.w + 4, btn.y + btn.h + 4]]) {
       ctx.save(); ctx.translate(cx, cy); ctx.rotate(Math.PI / 4); ctx.fillRect(-3, -3, 6, 6); ctx.restore();
     }
@@ -134,18 +110,20 @@ window.UI = (() => {
   }
 
   const BUTTON_TONES = {
-    normal: { fill: "rgba(24, 20, 36, 0.95)", stroke: "rgba(232, 195, 106, 0.75)", width: 1.6, text: C.text },
-    primary: { fill: "rgba(92, 30, 24, 0.97)", stroke: C.gold, width: 2.4, text: "#fff1cc" },
-    danger: { fill: "rgba(58, 20, 24, 0.96)", stroke: "#e7a090", width: 1.6, text: "#ffd2c8" },
-    cyan: { fill: "rgba(24, 52, 66, 0.95)", stroke: "#80deea", width: 1.6, text: "#e0fbff" }
+    normal: { fill: "rgba(40,36,35,.96)", stroke: "#b79a68", width: 1.6, text: C.text },
+    primary: { fill: "rgba(112,54,43,.97)", stroke: "#d6b47a", width: 2.2, text: "#f7e8c7" },
+    danger: { fill: "rgba(94,42,44,.97)", stroke: "#cf9482", width: 1.6, text: "#f7d7c3" },
+    cyan: { fill: "rgba(50,76,79,.97)", stroke: "#9cc8c5", width: 1.6, text: "#e5f2e9" }
   };
   // 所有按鈕共用：同一組字級、狀態與焦點樣式。
   function drawButton(ctx, b, label, { tone = "normal", size = 18, focus = false, icon = null, disabled = false } = {}) {
     const t = BUTTON_TONES[tone] || BUTTON_TONES.normal;
     glassBox(ctx, b.x, b.y, b.w, b.h, Math.min(12, b.h / 4), disabled ? "rgba(34, 36, 46, 0.9)" : t.fill, disabled ? "#59606f" : t.stroke, t.width);
     if (tone === "primary" && !disabled) {
-      ctx.fillStyle = "rgba(255, 170, 120, 0.16)";
-      ctx.beginPath(); ctx.roundRect(b.x + 4, b.y + 4, b.w - 8, b.h * 0.4, 8); ctx.fill();
+      ctx.fillStyle = "rgba(237,201,137,.13)";
+      ctx.fillRect(b.x+4,b.y+4,5,b.h-8);
+      ctx.fillStyle = "rgba(235,207,153,.10)";
+      ctx.fillRect(b.x+12,b.y+4,b.w-16,1);
     }
     ctx.textAlign = "center";
     ctx.font = readableFont(size, "900");
@@ -1541,10 +1519,10 @@ window.UI = (() => {
     // 1. 雙層金箔金屬框與外圈陰影
     ctx.save();
     const goldGrad = ctx.createLinearGradient(-r, -r, r, r);
-    goldGrad.addColorStop(0, "#fff1a8");
-    goldGrad.addColorStop(0.28, "#d4af37");
-    goldGrad.addColorStop(0.72, "#856417");
-    goldGrad.addColorStop(1, "#f5dc7a");
+    goldGrad.addColorStop(0, "#e8d7af");
+    goldGrad.addColorStop(0.28, "#c3a168");
+    goldGrad.addColorStop(0.72, "#765f43");
+    goldGrad.addColorStop(1, "#d7b981");
 
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, 6.283);
@@ -1566,7 +1544,7 @@ window.UI = (() => {
     // 2. 內凹深色金屬襯圈
     ctx.beginPath();
     ctx.arc(0, 0, r * 0.86, 0, 6.283);
-    ctx.fillStyle = "#0c0e18";
+    ctx.fillStyle = "#28262b";
     ctx.fill();
 
     // 3. 元素專屬底色微光 (Elemental Core Gradient)
@@ -1574,21 +1552,14 @@ window.UI = (() => {
     const coreGrad = ctx.createRadialGradient(0, 0, innerR * 0.15, 0, 0, innerR);
 
     const PALETTE = {
-      katana:   ["#d32f2f", "#4a0b12"], // 赤紅妖刀
-      barrier:  ["#1976d2", "#072042"], // 蔚藍結界
-      fire:     ["#f57c00", "#451602"], // 烈火狐炎
-      boom:     ["#8e24aa", "#290638"], // 幽紫咒符
-      thunder:  ["#fbc02d", "#3b2c02"], // 曜金雷光
-      needle:   ["#00acc1", "#022e33"], // 蒼青靈針
-      shield:   ["#ffa000", "#422500"], // 金剛護盾
-      oil_max:  ["#e64a19", "#401305"], // 常夜燈火
-      oil_heal: ["#388e3c", "#0a290f"], // 翡翠仙露
-      dmg:      ["#b71c1c", "#3b0000"], // 修羅狂怒
-      rate:     ["#c2185b", "#3d031c"], // 神樂舞踏
-      crit:     ["#d81b60", "#3d0218"], // 心眼致命
-      spd:      ["#00897b", "#022924"], // 風天神足
-      dash:     ["#673ab7", "#1c0b3d"], // 縮地幻步
-      mag:      ["#43a047", "#0d2b10"]  // 招財引靈
+      katana: ["#bf6b50", "#593b3a"], barrier: ["#79a6ac", "#394d54"],
+      fire: ["#cd9260", "#62412e"], boom: ["#9e83a4", "#483e50"],
+      thunder: ["#c3a56a", "#595039"], needle: ["#83ada7", "#355358"],
+      shield: ["#c2a56e", "#594a35"], oil_max: ["#ba7854", "#5e4637"],
+      oil_heal: ["#8ca47d", "#3e5844"], dmg: ["#b16b59", "#543a36"],
+      rate: ["#b47e86", "#553a45"], crit: ["#c08a83", "#5a3a42"],
+      spd: ["#80aa91", "#3c5749"], dash: ["#998ca9", "#444254"],
+      mag: ["#a4ae7a", "#4d593b"]
     };
 
     const [c1, c2] = PALETTE[id] || ["#37474f", "#12191d"];
@@ -2056,7 +2027,7 @@ window.UI = (() => {
   }
 
 
-  // 3. 升級三選一：武器色、NEW 緞帶、等級節點與重抽。
+  // 3. 升級三選一：和紙長卷卡、朱印、等級節點與重抽。
   function drawLevelUp(ctx, level, choices, WL, WI, rerolls = 0, time = Date.now() / 1000) {
     ctx.save();
     ctx.fillStyle = "rgba(6, 9, 18, 0.93)";
@@ -2083,13 +2054,13 @@ window.UI = (() => {
     const barW = 620, barH = 70;
     const barX = W / 2 - barW / 2, barY = 64;
 
-    glassBox(ctx, barX, barY, barW, barH, 10, "rgba(18, 20, 36, 0.9)", C.gold, 1.5);
+    glassBox(ctx, barX, barY, barW, barH, 8, "rgba(40,36,35,.96)", C.gold, 1.5);
     const slotStartX = barX + 22;
     for (let s = 0; s < maxSlots; s++) {
       const sx = slotStartX + s * 150;
       const k = ownedKeys[s];
       if (k) {
-        glassBox(ctx, sx, barY + 7, 140, 56, 6, "rgba(26, 30, 56, 0.9)", WEAPON_TONE[k] || C.gold, 1.4);
+        glassBox(ctx, sx, barY + 7, 140, 56, 5, "rgba(50,44,43,.94)", WEAPON_TONE[k] || C.gold, 1.4);
         drawEmblem(ctx, k, sx + 18, barY + 49, 12);
         ctx.fillStyle = "#ffeed4";
         ctx.font = readableFont(12, "900");
@@ -2111,10 +2082,8 @@ window.UI = (() => {
 
     const cardW = 720, cardH = 108;
     const startX = 90, gap = 14, cy = 176;
-    const cardFill = ctx.createLinearGradient(0, 0, cardW, cardH);
-    cardFill.addColorStop(0, "#232a46");
-    cardFill.addColorStop(0.5, "#141a2d");
-    cardFill.addColorStop(1, "#0d101d");
+    // 和紙色底：避免深藍玻璃質感與新場景的木版畫衝突。
+    const cardFill = "rgba(43,39,39,.98)";
 
     choices.forEach((c, i) => {
       const cx = startX;
@@ -2124,23 +2093,25 @@ window.UI = (() => {
       const awakening = c.lv===5 || c.rarity==='max';
       const tone = awakening ? C.goldHi : isWeapon ? (WEAPON_TONE[c.id] || C.gold) : C.jade;
 
-      // 卡片後方的色光，讓三張卡靠色彩就能分辨。
-      glow(ctx, cx + 36, rowY + 62, 150, tone, 0.34);
-      glassBox(ctx, cx, rowY, cardW, cardH, 14, cardFill, tone, awakening?3:2.2, isNew||awakening);
+      // 朱印色左邊線保留屬性差異；卡面用暖紙與墨線代替霓虹漸層。
+      glassBox(ctx,cx,rowY,cardW,cardH,8,
+        awakening ? "rgba(79,54,40,.98)" : cardFill,
+        tone,awakening?2.7:1.8,isNew||awakening);
+      ctx.fillStyle="rgba(202,176,130,.1)";
+      ctx.fillRect(cx+75,rowY+41,cardW-93,1);
       ctx.fillStyle = tone;
       ctx.beginPath(); ctx.roundRect(cx + 6, rowY + 14, 3.5, cardH - 28, 2); ctx.fill();
 
       // 大型號碼＋紋章，讓鍵盤與觸控的對應一眼可見。
-      glassBox(ctx, cx + 14, rowY + 14, 48, 80, 10, "rgba(8, 12, 22, 0.8)", C.gold, 1.3);
+      glassBox(ctx, cx + 14, rowY + 14, 48, 80, 5, "rgba(54,42,37,.95)", C.gold, 1.3);
       ctx.textAlign = "center";
       ctx.fillStyle = C.goldHi;
       ctx.font = "900 20px sans-serif";
       ctx.fillText(String(i + 1), cx + 38, rowY + 39);
-      glow(ctx, cx + 38, rowY + 70, 70, tone, 0.5);
       drawEmblem(ctx, c.id, cx + 38, rowY + 70, 18);
 
       ctx.textAlign = "left";
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = "#f5e5c9";
       ctx.font = readableFont(21, "900");
       ctx.fillText(c.n, cx + 80, rowY + 31);
       ctx.fillStyle = "#ffd54f";
@@ -2148,9 +2119,9 @@ window.UI = (() => {
       ctx.fillText(c.s || "", cx + 300, rowY + 31);
 
       // 右上：等級狀態膠囊，下方節點顯示武器 Lv 進度。
-      glassBox(ctx, cx + 500, rowY + 12, 198, 28, 7, isNew ? "rgba(232, 195, 106, 0.26)" : "rgba(60, 140, 230, 0.2)", isNew ? "#ffd54f" : "#64b5f6", 1.2);
+      glassBox(ctx, cx + 500, rowY + 12, 198, 28, 4, isNew ? "rgba(102,68,45,.88)" : "rgba(65,73,69,.88)", isNew ? "#d9b47e" : "#8aafa8", 1.2);
       ctx.textAlign = "center";
-      ctx.fillStyle = awakening || isNew ? "#ffe082" : "#90caf9";
+      ctx.fillStyle = awakening || isNew ? "#ffe1ad" : "#c9ded4";
       ctx.font = readableFont(12, "900");
       fitText(ctx, c.levelText || "◆ 妖力精進", cx + 599, rowY + 31, 180);
 
@@ -2171,7 +2142,7 @@ window.UI = (() => {
 
       ctx.textAlign = "left";
       ctx.font = readableFont(14, "bold");
-      ctx.fillStyle = "#f1f4ff";
+      ctx.fillStyle = "#e3d6bd";
       const lines = [];
       let line = "";
       for (const char of c.d || "") {
@@ -2226,7 +2197,7 @@ window.UI = (() => {
     const mid = bx+boxW/2;
 
     glow(ctx, mid, by + boxH / 2, boxW * 1.2, "#ff3b5c", 0.2 * pulse(4, 0.5));
-    glassBox(ctx, bx, by, boxW, boxH, 16, "rgba(24, 12, 34, 0.98)", `rgba(255, 84, 112, ${0.75 + 0.25 * pulse(5, 0.2)})`, 2.6, true);
+    glassBox(ctx, bx, by, boxW, boxH, 8, "rgba(57,38,39,.98)", `rgba(190,100,80,${0.75 + 0.25 * pulse(5, 0.2)})`, 2.4, true);
 
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffeed4";
