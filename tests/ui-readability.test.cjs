@@ -27,6 +27,28 @@ function loadUI(width = 585, simulatePaper = false) {
   return { UI: env.window.UI, context, texts, env };
 }
 
+test('button optical safe area centers the painted label and keeps short menu labels legible',()=>{
+  const r=loadUI(900,true),b={id:'resume',x:310,y:180,w:280,h:44};
+  const safe=r.UI.buttonTextArea(b,'primary');
+  assert.ok(safe.x<b.x+b.w/2&&safe.width>185);
+  r.UI.drawButton(r.context,b,'繼續夜行',{tone:'primary',size:18});
+  assert.equal(r.texts.filter(t=>t.value==='繼續夜行').at(-1).x,safe.x);
+  assert.ok(r.UI.buttonTextArea({id:'cards',x:615,y:22,w:125,h:38},'normal').width>95);
+});
+test('illustrated button hover and pressed render differently, disabled never depresses',()=>{
+  const r=loadUI(900,true),b={id:'resume',x:310,y:180,w:280,h:44},fills=[],moves=[];
+  r.context.fill=()=>fills.push(r.context.fillStyle);
+  r.context.translate=(x,y)=>moves.push([x,y]);
+  r.UI.setButtonHover('resume');r.UI.drawButton(r.context,b,'繼續夜行',{tone:'primary',focus:true});
+  assert.ok(fills.includes('rgba(255,218,145,.15)'));
+  fills.length=0;r.UI.pressButton('resume');
+  r.UI.drawButton(r.context,b,'繼續夜行',{tone:'primary',focus:true});
+  assert.ok(moves.some(([x,y])=>x===0&&y===2));
+  assert.ok(fills.includes('rgba(53,29,22,.28)'));
+  const before=moves.length;
+  r.UI.drawButton(r.context,b,'繼續夜行',{tone:'primary',focus:true,disabled:true});
+  assert.equal(moves.length,before);
+});
 test('both settlement portraits occupy two thirds of viewport height',()=>{
   const r=loadUI(900),frames=[];
   r.env.window.ART={player_win_v1:{naturalWidth:100},player_kneel_v1:{naturalWidth:100}};

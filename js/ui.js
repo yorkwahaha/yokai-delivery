@@ -255,25 +255,29 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  function drawMenuFocus(ctx, btn) {
+  // 像朱印和金泥筆觸的選取回饋，對已核准的插畫不做重新描繪。
+  const buttonFeedback = { hoverId: null, pressedId: null, until: 0 };
+  function setButtonHover(id = null) { buttonFeedback.hoverId = id; }
+  function pressButton(id) {
+    buttonFeedback.pressedId = id;
+    buttonFeedback.until = Date.now() + 190;
+  }
+  function isButtonPressed(id) {
+    return !!id && buttonFeedback.pressedId === id && Date.now() < buttonFeedback.until;
+  }
+  function drawMenuFocus(ctx, btn, hovered = false) {
     if (!btn) return;
-    const pulseStrength = 0.72 + 0.24 * pulse(4,.6);
+    const bright = pulse(3.5, .8);
     ctx.save();
-    ctx.lineCap = "round";
-    ctx.strokeStyle = `rgba(247, 213, 145, ${pulseStrength})`;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(btn.x + btn.w / 2 - 24, btn.y + btn.h - 5);
-    ctx.bezierCurveTo(btn.x + btn.w / 2 - 9, btn.y + btn.h - 3,
-      btn.x + btn.w / 2 + 10, btn.y + btn.h - 5,
-      btn.x + btn.w / 2 + 24, btn.y + btn.h - 5);
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = hovered ? "rgba(255,229,163,.92)" : `rgba(251,218,145,${.68 * bright})`;
+    ctx.lineWidth = hovered ? 2.1 : 1.6;
+    // 細金泥沿著紙牌中央的輪廓，不貼近兩端流蘇。
+    tagPath(ctx,btn.x + 9,btn.y + 4,btn.w - 25,btn.h - 8,7);
     ctx.stroke();
-    // Only one vermilion seal; no glowing digital selection rectangle.
-    ctx.globalAlpha = pulseStrength;
-    ctx.fillStyle = "#b75f4d";
-    ctx.beginPath();
-    ctx.arc(btn.x + 10, btn.y + btn.h * .5, 3.5,0,Math.PI*2);
-    ctx.fill();
+    // 只在紙牌左內側加朱印／金點，取代原先不容易辨識的短底線。
+    ctx.fillStyle = hovered ? "#eeae75" : "#b75f4d";
+    ctx.beginPath();ctx.arc(btn.x + 18,btn.y + btn.h*.5,hovered ? 4.4 : 3.6,0,Math.PI*2);ctx.fill();
     ctx.restore();
   }
 
@@ -283,27 +287,66 @@ window.UI = (() => {
     danger: { fill: "rgba(113,49,47,.98)", stroke: "#d49a83", width: 1.6, text: "#f7d7c3" },
     cyan: { fill: "rgba(65,96,89,.98)", stroke: "#b2c6aa", width: 1.6, text: "#e5f2e9" }
   };
-  // 共享木牌元件，繼續使用原矩形 hitbox、字級與輸入焦點。
+  // 圖片外緣可能含流蘇、繩結，文字需以實際牌面為中心而非以 hitbox 中心硬對齊。
+  function buttonTextArea(b, tone="normal", icon=false) {
+    const scale = b.h / 80;
+    // 窄型首頁按鈕不應被視覺安全區過度壓縮導致中文字被擠小。
+    const compact = b.w < 170;
+    const left = (compact ? 13 : tone === "primary" || tone === "danger" ? 36 : 30) * scale + (icon ? 22 : 0);
+    const right = (compact ? 23 : tone === "primary" || tone === "danger" ? 53 : 49) * scale;
+    const safeW = Math.max(22,b.w - left - right);
+    return { x: b.x + left + safeW / 2, width: safeW - (compact ? 6 : 12), y: b.y + b.h/2 };
+  }
+
+  // 真正的互動狀態：鍵盤/手把選中、滑鼠 hover、按下、disabled 彼此有差異。
   function drawButton(ctx,b,label,{tone="normal",size=18,focus=false,icon=null,disabled=false}={}) {
     const t=BUTTON_TONES[tone]||BUTTON_TONES.normal;
+    const hovered=!disabled && buttonFeedback.hoverId===b.id;
+    const pressed=!disabled && isButtonPressed(b.id);
+    const selected=!disabled && (focus || hovered);
+    ctx.save();
+    if(pressed)ctx.translate(0,2);  // 按鈕和文字一同下沉；hitbox 本身完全不變。
+    if(selected && !pressed){
+      ctx.shadowColor="rgba(245,185,91,.36)";
+      ctx.shadowBlur=hovered?13:8;
+    }
     drawWoodTag(ctx,b,tone,disabled);
+    ctx.shadowBlur=0;
+    if(selected || pressed){
+      ctx.save();
+      // 只在手繪牌面上刷一層暖光或暗朱色，不疊現代玻璃高光。
+      ctx.fillStyle = pressed ? "rgba(53,29,22,.28)" : hovered ? "rgba(255,218,145,.15)" : "rgba(250,208,133,.10)";
+      tagPath(ctx,b.x+8,b.y+5,b.w-24,b.h-10,6);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    const showIcon=!!icon && b.w>=120;
+    const safe=buttonTextArea(b,tone,showIcon);
     ctx.textAlign="center";
     ctx.font=readableFont(size,"900");
-    const showIcon=icon&&b.w>=120;
-    const labelW=b.w-(showIcon?70:48);
-    const x=b.x+b.w/2+(showIcon?14:0);
-    const y=b.y+b.h/2+fontPx(ctx.font)*.35;
-    const painted = !!illustratedArt[tone === "primary" ? "primary" : tone === "danger" ? "danger" : "neutral"]?.naturalWidth;
-    const darkLettering = painted && tone !== "primary" && tone !== "danger";
-    ctx.fillStyle = darkLettering ? "rgba(255,240,214,.4)" : "rgba(18,13,12,.55)";
-    ctx.fillText(label,x+1,y+1,labelW);
+    // 真字框（有支援的瀏覽器）校正基準線，否則沿用近似原字體的光學值。
+    const metrics=ctx.measureText(label);
+    const fontSize=fontPx(ctx.font);
+    const asc=Number.isFinite(metrics.actualBoundingBoxAscent)?metrics.actualBoundingBoxAscent:fontSize*.76;
+    const desc=Number.isFinite(metrics.actualBoundingBoxDescent)?metrics.actualBoundingBoxDescent:fontSize*.12;
+    const y=safe.y+(asc-desc)/2;
+    const painted=!!illustratedArt[tone==="primary"?"primary":tone==="danger"?"danger":"neutral"]?.naturalWidth;
+    const darkLettering=painted && tone!=="primary" && tone!=="danger";
+    ctx.fillStyle=darkLettering?"rgba(255,240,214,.35)":"rgba(18,13,12,.52)";
+    ctx.fillText(label,safe.x+1,y+1,safe.width);
     ctx.fillStyle=disabled?"#b7a28a":darkLettering?"#332722":t.text;
-    ctx.fillText(label,x,y,labelW);
+    ctx.fillText(label,safe.x,y,safe.width);
     if(showIcon){
       ctx.fillStyle=ctx.strokeStyle=disabled?"#b2a28b":darkLettering?"#594335":C.goldHi;
       drawActionIcon(ctx,icon,b.x+31,b.y+b.h/2,9);
     }
-    if(focus)drawMenuFocus(ctx,b);
+    if(selected && !pressed)drawMenuFocus(ctx,b,hovered);
+    if(pressed){
+      ctx.fillStyle="rgba(242,211,146,.62)";
+      ctx.fillRect(b.x+20,b.y+b.h-6,Math.max(5,b.w-49),1.5);
+    }
+    ctx.restore();
   }
 
   function drawExitConfirm(ctx, focus = 0) {
@@ -447,7 +490,7 @@ window.UI = (() => {
     ctx.fillStyle = "#ffe28b";
     ctx.fillText("百鬼橫行之夜・單字配達物語", W / 2, 440);
 
-    drawButton(ctx, MENU_START_BTN, "旅路地圖", { tone: "primary", size: 22, icon: "pickup" });
+    drawButton(ctx, {...MENU_START_BTN,id:"start"}, "旅路地圖", { tone: "primary", size: 22, icon: "pickup", focus:focus===0 });
     if (motion) glow(ctx, W / 2, MENU_START_BTN.y + MENU_START_BTN.h / 2, 380, C.gold, 0.08 + 0.05 * Math.sin(elapsed * 3));
 
     ctx.fillStyle = C.dim;
@@ -456,9 +499,8 @@ window.UI = (() => {
 
     for (const bt of MENU_BTNS.slice(1)) {
       const label = bt.id === "controls" ? "操作與自定義" : bt.id === "cards" ? "卡片一覽" : "單字圖鑑";
-      drawButton(ctx, bt, label, { size: 13, icon: bt.id === "cards" ? "cards" : bt.id === "codex" ? "codex" : null });
+      drawButton(ctx, bt, label, { size: 13, focus:MENU_BTNS[focus]?.id===bt.id, icon: bt.id === "cards" ? "cards" : bt.id === "codex" ? "codex" : null });
     }
-    drawMenuFocus(ctx, MENU_BTNS[focus]);
     drawAssetProgress(ctx);
 
     ctx.restore();
@@ -2727,10 +2769,9 @@ window.UI = (() => {
       parts.forEach((text,i)=>fitText(ctx,text,cardX+100+colW*(i%cols+0.5),lineY+Math.floor(i/cols)*lineStep,colW-12));
     }
 
-    drawButton(ctx, RESTART_BTN, "再踏夜行", { tone: "primary", size: 18 });
-    drawButton(ctx, WORLD_BTN, "回旅路地圖", { size: 18 });
-    drawButton(ctx, HOME_BTN, "回到首頁", { size: 18 });
-    drawMenuFocus(ctx, END_BTNS[focus]);
+    drawButton(ctx, END_BTNS[0], "再踏夜行", { tone: "primary", size: 18, focus: focus===0 });
+    drawButton(ctx, END_BTNS[1], "回旅路地圖", { size: 18, focus: focus===1 });
+    drawButton(ctx, END_BTNS[2], "回到首頁", { size: 18, focus: focus===2 });
 
     // 最後繪製特寫，提燈與角色輪廓可跨過資訊卡邊框。
     const courierKey = isWon ? "player_win_v1" : "player_kneel_v1";
@@ -3033,6 +3074,7 @@ window.UI = (() => {
     drawEndScreen,
     drawAssetProgress,
     drawPauseMenu,
+    setButtonHover, pressButton, buttonTextArea,
     drawSurgeWarning,
     drawTitleCard,
     drawFade,

@@ -73,6 +73,8 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     moveBoss: distance => { const bs=enemies.find(e=>e.type==='boss'); Object.assign(bs,{x:P.x+distance,y:P.y,speed:0,wob:0,flash:0}); },
     clearOrders: () => { orders=[];job=null; },
     replayTutorial: () => activateMenu('tutorial'),
+    flushMenuPress: () => { if(pendingMenuActivation){pendingMenuActivation.remaining=0;runFrame(last+16);} },
+    pendingMenuPress: () => pendingMenuActivation && {...pendingMenuActivation},
     atDestination: () => { P.x=job.to.x; P.y=job.to.y+110; },
     atAnswer: () => { const p=ansPos(job.to)[job.ans.indexOf(job.word)];P.x=p.x;P.y=p.y; },
     dashLesson: () => { elapsed=12; },
@@ -107,6 +109,25 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
 
+test('menu action waits for its pressed frame and blocks duplicated confirmation',()=>{
+  const g=loadGame();g.events.keydown(key('Enter','Enter'));
+  assert.equal(g.snapshot().state,'menu');
+  assert.equal(g.pendingMenuPress().id,'start');
+  g.events.keydown(key('Enter','Enter'));
+  assert.equal(g.pendingMenuPress().id,'start');
+  g.flushMenuPress();
+  assert.equal(g.snapshot().state,'overworld');
+  assert.equal(g.pendingMenuPress(),null);
+});
+test('mouse hovering over a painted plaque focuses it without moving the hit target',()=>{
+  const g=loadGame();g.start();g.setState('pause');
+  const b=g.env.UI.pauseButtons()[2],v=g.env.VIEWPORT.get();
+  const pt=pointer((b.x+b.w/2+v.offsetX)*v.scale,(b.y+b.h/2+v.offsetY)*v.scale);
+  g.canvasEvents.pointermove(pt);assert.equal(g.snapshot().menuFocus,2);
+  g.canvasEvents.pointerdown(pt);assert.equal(g.snapshot().state,'pause');
+  assert.equal(g.pendingMenuPress().id,'codex');
+  g.flushMenuPress();assert.equal(g.snapshot().state,'codex');
+});
 test('consecutive injury notices separate and rapidly fade their predecessors',()=>{
   const g=loadGame();
   g.notice('受創・燈油 −10',900,550);
@@ -476,7 +497,7 @@ test('rain is static when reduced motion is requested',()=>{
 test('mobile menu and codex tabs accept expanded touch targets',()=>{
   const g=loadGame();g.env.innerWidth=844;g.env.innerHeight=390;g.frame(16);
   const v=g.env.VIEWPORT.get(),bt=g.env.UI.MENU_BTNS.find(b=>b.id==='codex');
-  const tap=(x,y)=>g.canvasEvents.pointerdown(pointer((x+v.offsetX)*v.scale,(y+v.offsetY)*v.scale,'touch'));
+  const tap=(x,y)=>{g.canvasEvents.pointerdown(pointer((x+v.offsetX)*v.scale,(y+v.offsetY)*v.scale,'touch'));g.flushMenuPress();};
   tap(bt.x+bt.w/2,bt.y+bt.h+8);assert.equal(g.snapshot().state,'codex');
   tap(360,49);assert.equal(g.snapshot().codexTab,'cards');
 });
@@ -639,16 +660,17 @@ test('abandon confirmation defaults to keeping the paused run and blocks covered
   const savedBefore=g.env.localStorage.getItem('yokai-delivery-v1');
   let finishes=0;const finish=g.env.STORE.finish;g.env.STORE.finish=(...args)=>{finishes++;return finish(...args);};
   g.events.keydown(key('Escape','Escape'));
-  const request=()=>{for(let i=0;i<g.env.UI.PAUSE_BTNS.findIndex(b=>b.id==='menu');i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));};
+  const enter=()=>{g.events.keydown(key('Enter','Enter'));g.flushMenuPress();};
+  const request=()=>{for(let i=0;i<g.env.UI.PAUSE_BTNS.findIndex(b=>b.id==='menu');i++)g.events.keydown(key('ArrowDown'));enter();};
   request();assert.equal(g.snapshot().state,'pause');assert.equal(g.snapshot().quitConfirm,true);
   assert.equal(g.snapshot().menuFocus,0);
   g.events.keydown(key('KeyC','c'));g.events.keydown({...key('Enter','Enter'),repeat:true});g.update(1);
   assert.equal(g.snapshot().quitConfirm,true);assert.equal(g.snapshot().state,'pause');
   assert.equal(g.snapshot().job,before.job);assert.equal(g.snapshot().bossQ,before.bossQ);
   assert.equal(g.snapshot().elapsed,before.elapsed);assert.equal(g.snapshot().oil,before.oil);
-  g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().quitConfirm,false);assert.equal(g.snapshot().state,'pause');
+  enter();assert.equal(g.snapshot().quitConfirm,false);assert.equal(g.snapshot().state,'pause');
   request();g.events.keydown(key('Escape','Escape'));assert.equal(g.snapshot().state,'pause');assert.equal(g.snapshot().quitConfirm,false);
-  request();g.events.keydown(key('ArrowRight'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'menu');
+  request();g.events.keydown(key('ArrowRight'));enter();assert.equal(g.snapshot().state,'menu');
   assert.equal(g.env.localStorage.getItem('yokai-delivery-v1'),savedBefore);
   assert.equal(finishes,0); // Abandonment is not a win/loss settlement; prior word history survives.
 });
@@ -657,16 +679,18 @@ test('abandon confirmation works for touch and gamepad without leaking confirmat
   for(const mode of ['touch','gamepad']) {
     const g=loadGame();g.env.innerWidth=844;g.env.innerHeight=390;g.start();g.setState('pause');
     const v=g.env.VIEWPORT.get();
-    const click=b=>g.canvasEvents.pointerdown(pointer((b.x+b.w/2+v.offsetX)*v.scale,(b.y+b.h/2+v.offsetY)*v.scale,'touch'));
+    const click=b=>{g.canvasEvents.pointerdown(pointer((b.x+b.w/2+v.offsetX)*v.scale,(b.y+b.h/2+v.offsetY)*v.scale,'touch'));g.flushMenuPress();};
     const request=()=>click(g.env.UI.pauseButtons().find(b=>b.id==='menu'));
     request();assert.equal(g.snapshot().state,'pause');assert.equal(g.snapshot().quitConfirm,true);
     if(mode==='touch') {
       click(g.env.UI.EXIT_BTNS[0]);assert.equal(g.snapshot().state,'pause');request();click(g.env.UI.EXIT_BTNS[1]);
     } else {
       const buttons=Array.from({length:16},()=>({pressed:false}));g.env.navigator.getGamepads=()=>[{connected:true,axes:[0,0],buttons}];
-      const press=i=>{buttons[i].pressed=true;g.pollGamepad();buttons[i].pressed=false;g.pollGamepad();};
+      const press=i=>{buttons[i].pressed=true;g.pollGamepad();buttons[i].pressed=false;g.pollGamepad();g.flushMenuPress();};
       press(1);assert.equal(g.snapshot().state,'pause');assert.equal(g.snapshot().quitConfirm,false);
       request();press(15);buttons[0].pressed=true;g.pollGamepad();g.pollGamepad();
+      assert.equal(g.snapshot().state,'pause','pressed sprite is shown before navigation');
+      g.flushMenuPress();
       assert.equal(g.snapshot().state,'menu'); // Holding A must not immediately enter the map.
     }
     assert.equal(g.snapshot().state,'menu');assert.equal(g.snapshot().quitConfirm,false);
@@ -967,6 +991,7 @@ test('mobile pause replay uses the same enlarged geometry for drawing and pointe
  const v=g.env.VIEWPORT.get(),btn=g.env.UI.pauseButtons().find(b=>b.id==='tutorial');
  assert.ok(btn.h*v.scale>=44);
  g.canvasEvents.pointerdown(pointer((btn.x+btn.w/2+v.offsetX)*v.scale,(btn.y+btn.h/2+v.offsetY)*v.scale,'touch'));
+ g.flushMenuPress();
  assert.equal(g.tutorialState().id,'pickup');assert.equal(g.snapshot().state,'pause');
 });
 test('mouse drag begins on the right half and moves the courier; touch stays on left', () => {
@@ -1390,19 +1415,21 @@ test('idle needles retain last facing and still aim at a nearby enemy',()=>{
  g.combatScene('needle',[{dx:200}]);g.weapons(.01);assert.ok(g.snapshot().needles.slice(-3).every(n=>n.vx>0));
 });
 test('keyboard menus reach settings, both codex tabs, mute and home; restart resets session',()=>{
- const g=loadGame();g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.equal(g.env.document.getElementById('controls-open').clicked,true);
- g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'codex');assert.equal(g.snapshot().codexTab,'cards');
- g.events.keydown(key('Escape','Escape'));g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().codexTab,'words');
+ const g=loadGame();
+ const enter=()=>{g.events.keydown(key('Enter','Enter'));g.flushMenuPress();};
+ g.events.keydown(key('ArrowDown'));enter();assert.equal(g.env.document.getElementById('controls-open').clicked,true);
+ g.events.keydown(key('ArrowDown'));enter();assert.equal(g.snapshot().state,'codex');assert.equal(g.snapshot().codexTab,'cards');
+ g.events.keydown(key('Escape','Escape'));g.events.keydown(key('ArrowDown'));enter();assert.equal(g.snapshot().codexTab,'words');
  g.start();g.prepareOrder();g.events.keydown(key('Escape','Escape'));
- for(let i=0;i<3;i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));assert.ok(g.audioCalls.includes('toggleMute'));
- for(let i=0;i<3;i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));
- assert.equal(g.snapshot().quitConfirm,true);g.events.keydown(key('ArrowRight'));g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'menu');
+ for(let i=0;i<3;i++)g.events.keydown(key('ArrowDown'));enter();assert.ok(g.audioCalls.includes('toggleMute'));
+ for(let i=0;i<3;i++)g.events.keydown(key('ArrowDown'));enter();
+ assert.equal(g.snapshot().quitConfirm,true);g.events.keydown(key('ArrowRight'));enter();assert.equal(g.snapshot().state,'menu');
  g.start();assert.equal(g.snapshot().job,null);assert.equal(g.snapshot().elapsed,0);assert.equal(g.snapshot().oil,100);assert.equal(g.snapshot().enemies.length,0);
 });
 test('gamepad directional menus confirm once without leaking actions into the new screen',()=>{
  const g=loadGame();g.start();g.events.keydown(key('Escape','Escape'));
  const buttons=Array.from({length:16},()=>({pressed:false}));g.env.navigator.getGamepads=()=>[{connected:true,axes:[0,0],buttons}];
- const press=i=>{buttons[i].pressed=true;g.pollGamepad();buttons[i].pressed=false;g.pollGamepad();};
+ const press=i=>{buttons[i].pressed=true;g.pollGamepad();buttons[i].pressed=false;g.pollGamepad();g.flushMenuPress();};
  press(13);press(0);assert.equal(g.snapshot().state,'codex');assert.equal(g.snapshot().codexTab,'cards');press(1);assert.equal(g.snapshot().state,'pause');
  g.setState('won');press(15);press(0);assert.equal(g.snapshot().state,'overworld');
 });
@@ -1414,11 +1441,11 @@ test('controls dialog gamepad events do not activate the covered menu',()=>{
 });
 test('widescreen map back button accepts pointer at the screen edge and home clears held movement',()=>{
  const g=loadGame();g.env.innerWidth=1800;g.env.innerHeight=600;
- g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'overworld');
+ g.events.keydown(key('Enter','Enter'));g.flushMenuPress();assert.equal(g.snapshot().state,'overworld');
  g.canvasEvents.pointerdown(pointer(30,30));assert.equal(g.snapshot().state,'menu');
  g.start();g.events.keydown(key('KeyD','d'));g.events.keydown(key('Escape','Escape'));
- for(let i=0;i<g.env.UI.PAUSE_BTNS.findIndex(b=>b.id==='menu');i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));
- assert.equal(g.snapshot().quitConfirm,true);g.events.keydown(key('ArrowRight'));g.events.keydown(key('Enter','Enter'));
+ for(let i=0;i<g.env.UI.PAUSE_BTNS.findIndex(b=>b.id==='menu');i++)g.events.keydown(key('ArrowDown'));g.events.keydown(key('Enter','Enter'));g.flushMenuPress();
+ assert.equal(g.snapshot().quitConfirm,true);g.events.keydown(key('ArrowRight'));g.events.keydown(key('Enter','Enter'));g.flushMenuPress();
  assert.equal(g.snapshot().state,'menu');assert.equal(g.snapshot().keys.length,0);
  g.start();assert.equal(g.snapshot().joy,null);
 });

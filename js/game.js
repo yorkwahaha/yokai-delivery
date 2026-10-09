@@ -129,15 +129,25 @@
   let state = "menu";
   let quitConfirm = false;
   let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "";
+  let pendingMenuActivation = null;
+  function activateWithFeedback(id) {
+    if (pendingMenuActivation || ((state === "won" || state === "lost") && endCooldown > 0)) return;
+    UI.pressButton?.(id);
+    pendingMenuActivation = { id, state, quitConfirm, remaining: 0.12 };
+  }
   function menuButtons() {
     if (menuFocusState !== state) { menuFocus = 0; menuFocusState = state; }
     return quitConfirm ? UI.EXIT_BTNS : state === "menu" ? UI.MENU_BTNS : state === "pause" ? UI.PAUSE_BTNS : state === "won" || state === "lost" ? UI.END_BTNS : null;
   }
   function moveMenu(delta) {
+    if (pendingMenuActivation) return;
+    UI.setButtonHover?.(null);
     const buttons = menuButtons();
     menuFocus = (menuFocus + delta + buttons.length) % buttons.length;
   }
   function returnHome() {
+    pendingMenuActivation = null;
+    UI.setButtonHover?.(null);
     quitConfirm = false;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     state = "menu"; menuFocus = 0; menuFocusState = state;
@@ -964,7 +974,7 @@
       const dir = Math.abs(ax) > Math.abs(ay) ? (ax > 0.55 ? 1 : ax < -0.55 ? -1 : 0) : (ay > 0.55 ? 1 : ay < -0.55 ? -1 : 0);
       if (dir && dir !== gpMenuDir) moveMenu(dir);
       gpMenuDir = dir;
-      if (justPressed(0)) { AUDIO.init(); activateMenu(buttons[menuFocus].id); }
+      if (justPressed(0)) { AUDIO.init(); activateWithFeedback(buttons[menuFocus].id); }
       else if (justPressed(1) || justPressed(9)) { if (quitConfirm) activateMenu('exit-cancel'); else if (state === 'pause') togglePause(); else if (state === 'won' || state === 'lost') returnHome(); }
       else if (justPressed(8) && !quitConfirm) activateMenu('codex');
       gpPrevButtons = gp.buttons.map(b => b.pressed);
@@ -2722,7 +2732,7 @@
       if (e.repeat) return;
       if (e.code === 'Escape' || action === 'pause') activateMenu('exit-cancel');
       else if (e.code === 'Tab' || ['u','d','l','r'].includes(action)) moveMenu(e.code === 'Tab' ? (e.shiftKey ? -1 : 1) : ['u','l'].includes(action) ? -1 : 1);
-      else if (e.key === 'Enter' || action === 'interact') activateMenu(menuButtons()[menuFocus].id);
+      else if (e.key === 'Enter' || action === 'interact') activateWithFeedback(menuButtons()[menuFocus].id);
       return;
     }
     if (action) e.preventDefault();
@@ -2774,7 +2784,7 @@
     if (buttons) {
       if (e.code === 'Tab' || ['u','d','l','r'].includes(action)) {
         e.preventDefault(); moveMenu(e.code === 'Tab' ? (e.shiftKey ? -1 : 1) : ['u','l'].includes(action) ? -1 : 1);
-      } else if (!e.repeat && (e.key === 'Enter' || action === 'interact')) { e.preventDefault(); AUDIO.init(); activateMenu(buttons[menuFocus].id); }
+      } else if (!e.repeat && (e.key === 'Enter' || action === 'interact')) { e.preventDefault(); AUDIO.init(); activateWithFeedback(buttons[menuFocus].id); }
       return;
     }
     if (state === "levelup" && !e.repeat && "123".includes(e.key)) {
@@ -2860,7 +2870,7 @@
 
     if (quitConfirm) {
       const button = UI.EXIT_BTNS.find(b=>hitButton(p, b));
-      if (button) activateMenu(button.id);
+      if (button) { menuFocus = UI.EXIT_BTNS.indexOf(button); activateWithFeedback(button.id); }
       return;
     }
 
@@ -2878,7 +2888,8 @@
       for (const btn of UI.pauseButtons?.() || UI.PAUSE_BTNS) {
         const x=btn.x ?? bx, w=btn.w ?? btnW, h=btn.h ?? btnH;
         if (hitButton(p, {x, y:btn.y, w, h})) {
-          activateMenu(btn.id);
+          menuFocus = (UI.pauseButtons?.() || UI.PAUSE_BTNS).findIndex(b=>b.id===btn.id);
+          activateWithFeedback(btn.id);
           return;
         }
       }
@@ -2929,7 +2940,7 @@
     }
     if (state === 'menu' || state === 'won' || state === 'lost') {
       const btn = menuButtons().find(b => hitButton(p, b));
-      if (btn) activateMenu(btn.id);
+      if (btn) { menuFocus = menuButtons().findIndex(b=>b.id===btn.id); activateWithFeedback(btn.id); }
       return;
     }
     if (state === "levelup") {
@@ -2968,6 +2979,14 @@
 
   cv.addEventListener("contextmenu", e => e.preventDefault());
   cv.addEventListener("pointermove", e => {
+    if(e.pointerType === 'mouse'){
+      const available = quitConfirm ? UI.EXIT_BTNS
+        : state === "pause" ? UI.pauseButtons?.()
+        : ["menu","won","lost"].includes(state) ? menuButtons() : null;
+      const over = available?.find(b=>hitButton(pp(e),b));
+      UI.setButtonHover?.(over?.id || null);
+      if(over && !pendingMenuActivation) menuFocus = available.findIndex(b=>b.id===over.id);
+    }
     if(state==='codex'){
       const p=pp(e),button=UI.codexButtons(codexTab,codexPage,codexWords().length).find(b=>hitButton(p,b));
       if(button)codexFocus=button.id;
@@ -2981,6 +3000,7 @@
     joy.dy = (dy * s) / 60;
   });
 
+  cv.addEventListener("pointerleave", () => UI.setButtonHover?.(null));
   ["pointerup", "pointercancel", "lostpointercapture"].forEach(ev => {
     cv.addEventListener(ev, e => {
       if (joy?.id === e.pointerId) joy = null;
@@ -3049,6 +3069,14 @@
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
     levelupCooldown = Math.max(0, levelupCooldown - dt);
+    if (pendingMenuActivation) {
+      const action = pendingMenuActivation;
+      if (state !== action.state || quitConfirm !== action.quitConfirm) pendingMenuActivation = null;
+      else if ((action.remaining -= dt) <= 0) {
+        pendingMenuActivation = null;
+        activateMenu(action.id);
+      }
+    }
 
     // 不論遊戲處於何種狀態（結算、升級或暫停），每幀精準倒數冷卻時間
     if (endCooldown > 0) {
