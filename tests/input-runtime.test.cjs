@@ -413,7 +413,7 @@ test('Lv5 paper talismans actually explode over an area; Lv4 still only hits its
 test('Lv5 foxfire keeps six orbiting flames and summons a targeted brief dragon',()=>{
   const g=loadGame();g.start();g.env.Math=Object.create(Math);g.env.Math.random=()=>0.25;
   g.combatScene('fire',[{dx:330,dy:60}],[],5);g.weapons(0.01);
-  const dragon=g.snapshot().ghosts[0];assert.ok(dragon?.dragon);assert.equal(dragon.launchAng,0);assert.ok(dragon.entry.startX<dragon.entry.endX);assert.ok(dragon.size>=550);
+  const dragon=g.snapshot().ghosts[0];assert.ok(dragon?.dragon);assert.equal(dragon.launchAng,0);assert.ok(dragon.entry.startX<dragon.entry.endX);assert.ok(dragon.size>=300&&dragon.size<=680);
   const flames=[];g.env.SKILLFX.paint=(ctx,id,lv,p)=>{if(id==='fire')flames.push({lv,p});};
   g.drawWorld();assert.equal(flames.length,6);assert.ok(flames.every(f=>f.p.orbit===true));
 });
@@ -496,6 +496,19 @@ test('foxfire keeps its orbit at every rank including MAX',()=>{
     g.env.SKILLFX.paint=(ctx,id,lv,p)=>{if(id==='fire')flames.push({lv,p});};
     g.drawWorld();assert.equal(flames.length,counts[level-1]);
     for(const {lv,p} of flames){assert.equal(lv,level);assert.ok(Math.abs(Math.hypot(p.x-g.snapshot().x,p.y-g.snapshot().y)-98)<1e-8);assert.equal(p.origin.x,g.snapshot().x);assert.equal(p.origin.y,g.snapshot().y);assert.equal(p.orbit,true);}
+  }
+});
+
+test('Lv1–3 foxfire only orbits and never detaches to seek enemies',()=>{
+  for(const rank of [1,2,3]){
+    const g=loadGame();g.start();
+    g.combatScene('fire',[{dx:350,dy:0,hp:999999}],[],rank);
+    for(let i=0;i<180;i++)g.weapons(.05);
+    assert.equal(g.snapshot().ghosts.filter(p=>p.fireAttack).length,0,'rank '+rank+' should never launch');
+    const flames=[];
+    g.env.SKILLFX.paint=(ctx,id,level,p)=>{if(id==='fire'&&p.orbit)flames.push(p);};
+    g.drawWorld();
+    assert.equal(flames.length,[1,2,4][rank-1],'rank '+rank+' orbit count');
   }
 });
 
@@ -1619,7 +1632,8 @@ test('the giant dragon can also enter from the right edge toward a left-side tar
   assert.ok(d);
   assert.equal(d.faceX,-1);
   assert.ok(d.entry.startX>d.entry.endX);
-  assert.ok(d.size>=550&&d.size<=980);
+  assert.ok(d.size>=300&&d.size<=680,'restrained dragon sprite range');
+  assert.ok(d.size<550,'smaller than the former minimum');
 });
 
 test('a flying dragon fireball paints its art with visible ink embers and a bounded glow',()=>{

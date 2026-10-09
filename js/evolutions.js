@@ -142,7 +142,7 @@
 
   const rank=l=>clamp(Math.floor(l)||1,1,5)-1;
   const api={move,curve,seek,iceVolley,freeze,dragon,dragonStep,dragonFireball,dragonFireballStep,fireSpirit,fireSpiritStep,FIRE_ORBIT:98,
-    fireCount:l=>[1,2,4,6,6][rank(l)],fireAttackCount:l=>[1,1,2,3,0][rank(l)],
+    fireCount:l=>[1,2,4,6,6][rank(l)],fireAttackCount:l=>[0,0,0,3,0][rank(l)],
     fireAttackCooldown:l=>[2.5,2.2,1.9,1.55,1.05][rank(l)],
     needleCount:l=>[3,5,7,8,8][rank(l)],boomCount:l=>[1,2,3,4,4][rank(l)]};root.EVOLUTIONS=api;
   if(typeof module!=='undefined')module.exports=api;

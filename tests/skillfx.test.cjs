@@ -72,6 +72,20 @@ test('the other five skills composite their ukiyo-e assets while retaining effec
   for(const key of keys)assert.ok(drawn.includes(env.ART[key]),key+' must reach drawImage');
 });
 
+test('raster foxfire orbit sizes never decrease from Lv1 through Lv5',()=>{
+  const {SKILLFX,env}=load();
+  const art={naturalWidth:256,naturalHeight:256},draws=[];
+  env.skillVfxArt=(id,rank)=>id==='fire'?art:null;
+  const ctx=new Proxy({globalAlpha:1,drawImage:(img,x,y,w,h)=>{if(img===art)draws.push(w);}}, {get:(o,k)=>o[k]??(()=>{})});
+  const widths=[];
+  for(const rank of [1,2,3,4,5]){
+    draws.length=0;
+    SKILLFX.paint(ctx,'fire',rank,{x:50,y:50,ang:0,origin:{x:0,y:0,faceX:1},orbit:true,orbitR:98,time:0});
+    widths.push(Math.max(...draws));
+  }
+  assert.deepEqual(widths,[68,70,72,74,76]);
+});
+
 test('ranked skill rasters keep Lv4 and Lv5 as independent art slots',()=>{
   const {SKILLFX,env}=load(),drawn=[];
   env.skillVfxKey=(id,rank)=>id+'_l'+rank;

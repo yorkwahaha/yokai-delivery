@@ -154,7 +154,7 @@ test('HUD bars reuse gradients and rebuild for changed transform, geometry, tone
 test('pause and settlement use physical boards, buttons use chamfered wooden tags',()=>{
   const src=fs.readFileSync('js/ui.js','utf8');
   const buttons=src.slice(src.indexOf('function drawButton('),src.indexOf('function drawExitConfirm('));
-  assert.match(buttons,/drawWoodTag\(ctx,b,tone,disabled\)/);
+  assert.match(buttons,/drawWoodTag\(ctx,b,tone,disabled,quiet\)/);
   assert.doesNotMatch(buttons,/roundRect\(/);
   assert.match(src,/drawWashiBoard\(ctx,panelX,panelY/);
   assert.match(src,/drawWashiBoard\(ctx,cardX,cardY/);
@@ -176,6 +176,18 @@ test('approved illustrated WebP art replaces procedural panels with genuine slic
   r.UI.drawPauseMenu(r.context,false,0);
   assert.ok(draws.some(a=>a[0].src?.includes('pause_panel.webp')),'pause should use the paper notice');
   assert.ok(draws.some(a=>a[0].src?.includes('button_primary.webp')),'primary action remains distinct');
+});
+
+test('approved pause composition retains the left courier and paper-menu serif',()=>{
+  const r=loadUI(900,true),img={naturalWidth:720,naturalHeight:900},draws=[],fonts=[];
+  r.env.window.ART={player_kneel_v1:img};
+  r.context.drawImage=(...args)=>draws.push(args);
+  r.context.fillText=(value,x,y)=>{if(['暫停','秘術卡片','繼續夜行'].includes(value))fonts.push({value,font:r.context.font,x,y});};
+  r.UI.drawPauseMenu(r.context,false,0);
+  assert.ok(draws.some(a=>a[0]===img&&a[1]<420),'courier illustration stays beside the paper board');
+  assert.ok(fonts.some(t=>t.value==='暫停'&&t.font.includes('Serif TC')),'title uses calligraphic serif');
+  assert.ok(fonts.some(t=>t.value==='秘術卡片'&&t.font.includes('Serif TC')),'button font remains in same family');
+  assert.ok(fonts.some(t=>t.value==='暫停'&&t.x>450),'heading aligns with right-hand notice');
 });
 
 test('approved UI artwork is text-free WebP and stays under a 110 KB payload',()=>{

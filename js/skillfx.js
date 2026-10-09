@@ -342,7 +342,8 @@ window.SKILLFX = (() => {
         const sway=motion()?Math.sin(phase)*.08:0;
         const breathe=motion()?Math.sin(phase*1.18):0;
         const stretchX=.98-breathe*.035,stretchY=1.03+breathe*.075;
-        const w=[68,40,46,52,58][visualRank-1];
+        // 升級不得讓單顆狐火縮水；每階保持或略增大。
+        const w=[68,70,72,74,76][visualRank-1];
         if(motion()){
           const tangentX=-Math.sin(ang),tangentY=Math.cos(ang);
           drawImageArt(ctx,ranked,{x:x-tangentX*4,y:y+bob-tangentY*3,w:w*.94,ang:sway*.55,a:.18,sx:face*.97,sy:1.04});

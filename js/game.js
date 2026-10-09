@@ -313,7 +313,7 @@
   const WEAPON_UPGRADES = {
     katana:["暖光單刃，斬擊前方妖怪","雙刃交叉，距離 +16、傷害 +0.8","三刃收束，距離與傷害再提升","蓄風四刃；下一階射出穿透風刃","覺醒・斷空殘月斬：射出巨型月牙直到畫面外，距離與穿透數越高傷害越低"],
     barrier:["展開單盤除魔陣，震退四周妖怪","雙盤刻印，範圍與傷害提升","反轉雙盤，範圍、傷害再提升","蓄勢大陣；下一階升起光柱","覺醒・金剛退魔曼荼羅：聚怪核爆，展開淨化聖域"],
-    fire:["一顆狐火如衛星護身，偶爾飛出灼燒敵人再歸位","雙狐火環繞護身，輪流飛出攻擊","四狐火護體，其中兩顆可脫離追擊","六狐火護體，其中三顆會飛出灼敵後歸位","覺醒・墨焰黑龍：六顆狐火護體，間歇召喚黑龍吐出強力火球並點燃地面"],
+    fire:["一顆狐火環繞護身，僅接觸周遭妖怪","兩顆狐火環繞護身，不主動飛出","四顆狐火環繞護身，不主動飛出","六顆狐火護體，其中三顆會飛出灼敵後歸位","覺醒・墨焰黑龍：六顆狐火護體，間歇召喚黑龍吐出強力火球並點燃地面"],
     boom:["單符回旋，穿透路徑上的妖怪","一次擲出 2 枚符咒","三符碎焰，冷卻縮短","蓄火四符；下一階改為投射爆符","覺醒・兩儀太極湮滅：太極爆符引爆範圍湮滅，消滅敵彈"],
     thunder:["落雷轟擊最強妖怪及近處敵人","同時鎖定 2 名強敵","同時鎖定 3 名強敵","三雷餘波擴大；下一階召來雷雲","覺醒・建御雷神破界天罰：戰場隨機顯現雷雲，雲下接續降下天雷"],
     needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階弧線射出","覺醒・九尾極寒靈暴：扇面追蹤冰針，冰晶連鎖殉爆"]
@@ -1452,7 +1452,8 @@
         }
       }
       if (fireHit && fireSfxT <= 0) { AUDIO.fireball(WL.fire); fireSfxT = 0.15; }
-      if(WL.fire<5){
+      // Lv1–3 僅維持環繞與接觸傷害；Lv4 才准許三顆脫離追擊。
+      if(WL.fire===4){
         fireAttackT=Math.max(0,fireAttackT-dt);
         const targets=enemies.filter(e=>e.hp>0&&!e.shield&&dist(P,e)<520);
         if(fireAttackT<=0 && targets.length && !ghosts.some(p=>p.fireAttack&&p.life>0)){
@@ -1474,7 +1475,8 @@
         wT.fire=wMax.fire=4.5;
         const target=targets[0],cam=RENDERER.getCam(),view=viewBounds();
         const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
-        const face=target.x>=P.x?1:-1,size=Math.max(550,Math.min(980,view.width*0.72));
+        // 收斂黑龍佔屏比例：原始 0.72 視野寬且最少 550 過於龐大。
+        const face=target.x>=P.x?1:-1,size=clamp(view.width*0.44,300,680);
         const endX=face>0?left+size*0.08:right-size*0.08;
         const startX=face>0?left-size*0.8:right+size*0.8;
         const y=clamp(P.y-90,top+view.height*0.27,bottom-view.height*0.23);
@@ -2419,7 +2421,7 @@
     // 8. 武器彈幕 (符咒迴力鏢)
     for (const q of proj) SKILLFX.paint(ctx, "boom", q.level??WL.boom, { x: q.x, y: q.y, spin: elapsed * 16 });
 
-    // Lv1–4 狐火可追擊；MAX 六火常駐，黑龍每四秒短暫現身發射火球。
+    // Lv1–3 僅環繞、Lv4 三火脫離追擊；MAX 六火常駐並召喚黑龍。
     if (WL.fire > 0) {
       const count = EVOLUTIONS.fireCount(WL.fire);
       const orbitR = EVOLUTIONS.FIRE_ORBIT;
