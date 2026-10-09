@@ -33,6 +33,7 @@
   });
 
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const magnetRadius = rank => 110 + clamp(rank, 0, 3) * 80;
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const pick = a => a[Math.floor(Math.random() * a.length)];
   const shuffle = a => {
@@ -62,17 +63,34 @@
     return words;
   }
   const blocked = (x, y, r = 18) => solids.some(s => Math.hypot(x - clamp(x, s.x0, s.x1), y - clamp(y, s.y0, s.y1)) < r);
+  // 擊退用逐幀位移，保留碰撞而不是在施放當幀直接跳到終點。
+  const KNOCK_SPEED = 520;
   function knockback(e, distance) {
-    if (e.type === "boss") return;
+    if (e.type === "boss" || e.hp <= 0 || !distance) return;
     const length = dist(P, e) || 1;
-    const steps = Math.ceil(distance / 8);
-    const dx = (e.x - P.x) / length * distance / steps;
-    const dy = (e.y - P.y) / length * distance / steps;
-    // 小步分軸檢查沿途碰撞，避免落點安全但中途穿越建築。
+    const sign = Math.sign(distance);
+    (e.knockQueue ||= []).push({
+      dx: (e.x - P.x) / length * sign,
+      dy: (e.y - P.y) / length * sign,
+      remaining: Math.abs(distance)
+    });
+    // 不允許多次快速觸發留下無限長的擊退佇列。
+    if (e.knockQueue.length > 3) e.knockQueue.shift();
+  }
+  function moveKnockback(e, dt) {
+    const q = e.knockQueue;
+    if (!q?.length) return false;
+    const k = q[0], distance = Math.min(k.remaining, KNOCK_SPEED * dt);
+    const steps = Math.max(1, Math.ceil(distance / 8));
     for (let i = 0; i < steps; i++) {
+      const dx = k.dx * distance / steps, dy = k.dy * distance / steps;
+      // 分軸、分段碰撞：牆壁會擋住推力，不會穿過建築。
       if (!blocked(e.x + dx, e.y, 16)) e.x += dx;
       if (!blocked(e.x, e.y + dy, 16)) e.y += dy;
     }
+    k.remaining -= distance;
+    if (k.remaining <= 0.001) q.shift();
+    return true;
   }
   const ansPos = h => window.WORLD.answerPositions(h);
   // 僅場景答案使用較自然的筆文字體。字型已在 index.html 子集載入，
@@ -303,19 +321,19 @@
   const WL = { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 };
   const WI = {
     katana: { id: "katana", jp: "かたな", zh: "妖刀斬", type: "active", category: "方向斬擊", desc: "揮出凌厲新月刀芒，斬裂前方扇形妖怪" },
-    barrier: { id: "barrier", jp: "じょうか", zh: "淨化靈陣", type: "active", category: "全方結界", desc: "展開 360 度除魔陣，週期性震退並重創周身妖怪" },
+    barrier: { id: "barrier", jp: "じょうか", zh: "淨化靈陣", type: "active", category: "全方結界", desc: "展開 360 度低傷害除魔陣，Lv4 起可震退周身妖怪" },
     fire: { id: "fire", jp: "きつねび", zh: "狐火炎", type: "active", category: "烈焰火把", desc: "周身飛旋烈焰火把，高速甩擊灼燒貼身妖怪" },
     boom: { id: "boom", jp: "おふだ", zh: "陰陽符", type: "active", category: "穿透咒符", desc: "擲出迴旋陰陽符咒，來回穿透路徑上的敵人" },
-    thunder: { id: "thunder", jp: "いかずち", zh: "天狐雷", type: "active", category: "天罰落雷", desc: "引導九天金雷轟擊最強妖怪，造成毀滅性打擊" },
+    thunder: { id: "thunder", jp: "いかずち", zh: "天狐雷", type: "active", category: "天罰落雷", desc: "隨等級擴大索敵與雷擊數量；Lv4 隨機擊倒畫面內 3～5 隻妖怪" },
     needle: { id: "needle", jp: "せんぼん", zh: "天狐靈針", type: "active", category: "高速靈針", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪" }
   };
 
   const WEAPON_UPGRADES = {
     katana:["暖光單刃，斬擊前方妖怪","雙刃交叉，距離 +16、傷害 +0.8","三刃收束，距離與傷害再提升","蓄風四刃；下一階射出穿透風刃","覺醒・斷空殘月斬：射出巨型月牙直到畫面外，距離與穿透數越高傷害越低"],
-    barrier:["展開單盤除魔陣，震退四周妖怪","雙盤刻印，範圍與傷害提升","反轉雙盤，範圍、傷害再提升","蓄勢大陣；下一階升起光柱","覺醒・金剛退魔曼荼羅：聚怪核爆，展開淨化聖域"],
+    barrier:["展開單盤除魔陣，低傷害全方位攻擊","雙盤刻印，範圍擴大、傷害小幅提升","反轉雙盤，範圍與傷害再提升","蓄勢大陣，命中可震退敵人","覺醒・金剛退魔曼荼羅：聚怪後震退，展開淨化聖域"],
     fire:["一顆狐火環繞護身，僅接觸周遭妖怪","兩顆狐火環繞護身，不主動飛出","四顆狐火環繞護身，不主動飛出","六顆狐火護體，其中三顆會飛出灼敵後歸位","覺醒・墨焰黑龍：六顆狐火護體，間歇召喚黑龍吐出強力火球並點燃地面"],
     boom:["單符回旋，穿透路徑上的妖怪","一次擲出 2 枚符咒","三符碎焰，冷卻縮短","蓄火四符；下一階改為投射爆符","覺醒・兩儀太極湮滅：太極爆符引爆範圍湮滅，消滅敵彈"],
-    thunder:["落雷轟擊最強妖怪及近處敵人","同時鎖定 2 名強敵","同時鎖定 3 名強敵","三雷餘波擴大；下一階召來雷雲","覺醒・建御雷神破界天罰：戰場隨機顯現雷雲，雲下接續降下天雷"],
+    thunder:["190 範圍內攻擊最近 1 隻，低傷害","270 範圍內同時攻擊 2 隻，普通小怪約兩擊擊倒","350 範圍內同時攻擊 3 隻，可秒殺一般小怪","全畫面隨機秒殺 3～5 隻一般妖怪","覺醒・建御雷神破界天罰：戰場隨機顯現雷雲，雲下接續降下天雷"],
     needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階弧線射出","覺醒・九尾極寒靈暴：扇面追蹤冰針，冰晶連鎖殉爆"]
   };
 
@@ -1297,9 +1315,13 @@
             if (ed <= r) {
               hitAny = true;
               const isCrit = Math.random() < (0.15 + (b.crit || 0) * 0.1);
-              hurt(e, (2.0 + WL.barrier * 1.1) * b.dmg * (isCrit ? 1.6 : 1.0), isCrit);
-              // 強力 360 度外向擊退
-              knockback(e, 50 + WL.barrier * 10);
+              // Lv1–4 單次傷害只有同等級妖刀約 40%；Lv5 維持覺醒但威力減半。
+              const damage = WL.barrier === 5
+                ? (2.0 + WL.barrier * 1.1) * b.dmg * 0.5
+                : (b.dmg + (WL.barrier - 1) * 0.8) * 0.4;
+              hurt(e, damage * (isCrit ? 1.6 : 1.0), isCrit);
+              // Lv4 才解鎖擊退；Lv5 先聚怪再推散，兩段都走逐幀位移。
+              if (WL.barrier >= 4) knockback(e, 50 + WL.barrier * 10);
               burst(e.x, e.y, "#ffe082", 6);
             }
           }
@@ -1545,43 +1567,70 @@
     }
     dragonScorches=dragonScorches.filter(p=>p.life>0);
 
-    // 6. 天狐落雷 (Thunder)
+    // 6. 天狐落雷：Lv1–3 按招財勾玉同級距離精準單點；Lv4 全螢幕隨機斬除小怪。
     if (WL.thunder > 0) {
       wT.thunder -= dt;
       if (wT.thunder <= 0) {
-        const c = enemies.filter(e => e.hp > 0 && !e.shield && dist(P, e) < 450);
-        if (!c.length) {
+        const rank = WL.thunder;
+        let candidates;
+        if (rank === 4) {
+          const cam = RENDERER.getCam(), view = viewBounds();
+          const left = cam.x + view.left, right = cam.x + view.right;
+          const top = cam.y + view.top, bottom = cam.y + view.bottom;
+          // Boss 必須保留答題破盾及首領戰；只從實際可見的一般妖怪中隨機挑選。
+          candidates = enemies.filter(e => e.hp > 0 && !e.shield && e.type !== "boss" &&
+            e.x >= left && e.x <= right && e.y >= top && e.y <= bottom);
+        } else {
+          const radius = rank === 5 ? 450 : magnetRadius(rank);
+          candidates = enemies.filter(e => e.hp > 0 && !e.shield && dist(P, e) <= radius);
+        }
+        if (!candidates.length) {
           wT.thunder = 0.2;
         } else {
-          wT.thunder = wMax.thunder = Math.max(0.85, 2.6 - WL.thunder * 0.35);
-          if(WL.thunder===5){
-            const targets=c;
-            const isCrit=Math.random()<(0.2+(b.crit||0)*0.15),mult=isCrit?(1.8+(b.crit||0)*0.4):1;
-            const struck=new Set(),strikeCount=Math.min(3,targets.length);
-            const start=targets.length?Math.min(targets.length-1,Math.floor(Math.random()*targets.length)):0;
-            for(let i=0;i<strikeCount;i++){
-              const step=Math.max(1,Math.floor(targets.length/strikeCount));
-              const anchor=targets[(start+i*step)%targets.length];
-              const x=anchor.x+(Math.random()-0.5)*72,y=anchor.y+(Math.random()-0.5)*52,delay=0.06+i*0.12;
-              SKILLFX.play("thunder","storm",5,{x,y,r:95,delay});
-              SKILLFX.play("thunder","strike",5,{x,y,stormChild:true,delay:delay+0.08});
-              for(const e of enemies)if(e.hp>0&&!e.shield&&!struck.has(e)&&Math.hypot(e.x-x,e.y-y)<=105){
-                struck.add(e);hurt(e,11*b.dmg*mult,isCrit);e.flash=0.22;e.slowT=0.35;
+          wT.thunder = wMax.thunder = Math.max(0.85, 2.6 - rank * 0.35);
+          if (rank === 5) {
+            // 覺醒雷雲沿用既有的群體落雷與地面判定。
+            const targets = candidates;
+            const isCrit = Math.random() < (0.2 + (b.crit || 0) * 0.15), mult = isCrit ? (1.8 + (b.crit || 0) * 0.4) : 1;
+            const struck = new Set(), strikeCount = Math.min(3, targets.length);
+            const start = targets.length ? Math.min(targets.length - 1, Math.floor(Math.random() * targets.length)) : 0;
+            for (let i = 0; i < strikeCount; i++) {
+              const step = Math.max(1, Math.floor(targets.length / strikeCount));
+              const anchor = targets[(start + i * step) % targets.length];
+              const x = anchor.x + (Math.random() - 0.5) * 72, y = anchor.y + (Math.random() - 0.5) * 52, delay = 0.06 + i * 0.12;
+              SKILLFX.play("thunder", "storm", 5, {x,y,r:95,delay});
+              SKILLFX.play("thunder", "strike", 5, {x,y,stormChild:true,delay:delay+0.08});
+              for (const e of enemies) if (e.hp > 0 && !e.shield && !struck.has(e) && Math.hypot(e.x-x,e.y-y) <= 105) {
+                struck.add(e); hurt(e,11*b.dmg*mult,isCrit); e.flash = 0.22; e.slowT = 0.35;
               }
             }
             RENDERER.triggerShake(8);
-          }else{
-            const targets=[...c].sort((a,b)=>b.hp-a.hp).slice(0,Math.min(3,WL.thunder));
-            const struck=new Set();
-            targets.forEach(t=>{
-              SKILLFX.play("thunder","strike",WL.thunder,{x:t.x,y:t.y});
-              const isCrit=Math.random()<(0.2+(b.crit||0)*0.15),mult=isCrit?(1.8+(b.crit||0)*0.4):1;
-              for(const e of enemies)if(e.hp>0&&!struck.has(e)&&dist(e,t)<(WL.thunder===4?95:75)){
-                struck.add(e);hurt(e,(3.5+WL.thunder*1.5)*b.dmg*mult,isCrit);
-              }
-            });
+          } else if (rank === 4) {
+            // 等機率無放回抽取 3～5 隻：不擴散到視野外，也不重複轟同一隻。
+            const shuffled = [...candidates];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            const count = Math.min(shuffled.length, 3 + Math.floor(Math.random() * 3));
+            for (const e of shuffled.slice(0, count)) {
+              SKILLFX.play("thunder", "strike", 4, {x:e.x,y:e.y});
+              hurt(e, e.hp); // 只秒殺一般妖怪，不略過 Boss 戰鬥機制。
+            }
+          } else {
+            // 同級勾玉的固定半徑：Lv1 190／Lv2 270／Lv3 350，與實際持有勾玉等級無關。
+            const targets = [...candidates].sort((a,b) => dist(P,a) - dist(P,b)).slice(0,rank);
+            for (const e of targets) {
+              SKILLFX.play("thunder", "strike", rank, {x:e.x,y:e.y});
+              const damage = rank === 1 ? 0.5 * b.dmg
+                : rank === 2 ? 0.9 * b.dmg
+                : Math.max((e.type === "tank" ? 4.5 : 6) * b.dmg,
+                    e.type !== "tank" && e.type !== "boss" ? e.hp : 0);
+              // Lv1 低傷，Lv2 普通幽靈約兩擊倒地；Lv3 秒殺一般小怪而不秒殺坦克與 Boss。
+              hurt(e, damage);
+            }
           }
-          AUDIO.thunder(WL.thunder);
+          AUDIO.thunder(rank);
         }
       }
     }
@@ -1805,6 +1854,7 @@
       if (e.hp <= 0) continue;
       e.flash = Math.max(0, e.flash - dt);
       e.attackT = Math.max(0, (e.attackT || 0) - dt);
+      const knocked = moveKnockback(e, dt);
       if(e.freezeT>0){e.freezeT=Math.max(0,e.freezeEnds==null?e.freezeT-dt:e.freezeEnds-elapsed);e.walking=false;if(e.freezeT>0)continue;}
       if (e.slowT > 0) e.slowT -= dt;
       if (e.type === "mis") {
@@ -1837,13 +1887,13 @@
       const bossBusy = e.type === "boss" && (e.slam || e.slamRecovery > 0);
 
       // 所有怪物逼近玩家（加入建築物碰撞障礙滑移）
-      const step = bossBusy ? 0 : CFG.chaseStep(d, curSpd, dt, e.type, STAGE_ENEMY.shots !== false);
+      const step = (bossBusy || knocked) ? 0 : CFG.chaseStep(d, curSpd, dt, e.type, STAGE_ENEMY.shots !== false);
       const stepX = ((dx || (d === 1 && !dy ? 1 : 0)) / d) * step;
       const stepY = (dy / d) * step;
       const oldX = e.x, oldY = e.y;
       if (!blocked(e.x + stepX, e.y, 16)) e.x += stepX;
       if (!blocked(e.x, e.y + stepY, 16)) e.y += stepY;
-      e.walking = !revealing && (e.x !== oldX || e.y !== oldY);
+      e.walking = !knocked && !revealing && (e.x !== oldX || e.y !== oldY);
       if (e.type === "mis") {
         e.stuckT = step > 0 && e.x === oldX && e.y === oldY ? (e.stuckT || 0) + dt : 0;
         if (e.stuckT >= 2.5) {
@@ -1871,7 +1921,7 @@
       }
 
       const hitRadius = (e.type === "boss" ? 52 : e.type === "tank" ? 34 : e.type === "mis" ? 32 : 25);
-      if (!revealing && P.inv <= 0 && (slamHit || (!bossBusy && d < hitRadius))) {
+      if (!revealing && P.inv <= 0 && (slamHit || (!bossBusy && Math.hypot(P.x - e.x, P.y - e.y) < hitRadius))) {
         e.attackT = 0.24;
         if (b.shield && b.shield > 0) {
           b.shield--;
@@ -1985,7 +2035,7 @@
     }
 
     // 靈玉經驗吸收
-    const att = 110 + b.mag * 80;
+    const att = magnetRadius(b.mag);
     for (const g of gems) {
       const d = dist(P, g);
       if (d > GEM_DISTANCE) { g.done = true; continue; }

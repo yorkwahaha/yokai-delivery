@@ -41,6 +41,21 @@ test('title prioritizes only the cover and leaves music downloads until playback
   assert.ok(env.ART.ground);
 });
 
+test('entering a game preloads Lv1 katana art before the first attack',()=>{
+  const {env,images}=loadAssets();
+  assert.equal(images.filter(i=>i.src?.includes('/katana_l1.webp')).length,0);
+  env.loadGameArt();
+  const requests=images.filter(i=>i.src?.includes('/katana_l1.webp'));
+  assert.equal(requests.length,1);
+  assert.equal(requests[0].fetchPriority,'high');
+  assert.equal(env.skillVfxArt('katana',1),null);
+  assert.equal(images.filter(i=>i.src?.includes('/katana_l1.webp')).length,1);
+  requests[0].naturalWidth=512;requests[0].naturalHeight=512;requests[0].onload();
+  assert.equal(env.skillVfxArt('katana',1),requests[0]);
+  env.loadGameArt();
+  assert.equal(images.filter(i=>i.src?.includes('/katana_l1.webp')).length,1);
+});
+
 test('resting courier art is fetched only after pause is opened', () => {
   const { env, images } = loadAssets();
   assert.equal(images.length, 1,'resting art does not block cover download');
@@ -62,7 +77,7 @@ test('WebP failures retry preserved originals once and settle even when both are
   for (const image of images.slice(1)) {
     image.onerror();
     if (image.src.includes('/vfx/')) {
-      assert.ok(image.src.split('?')[0].endsWith(image.src.includes('/vfx/raster/dragon_') ? '.webp' : '.svg'));
+      assert.ok(image.src.split('?')[0].endsWith(/\/vfx\/raster\/(?:dragon_|katana_l1)/.test(image.src) ? '.webp' : '.svg'));
     } else {
       assert.ok(image.src.split('?')[0].endsWith('.png'));
       image.onload();

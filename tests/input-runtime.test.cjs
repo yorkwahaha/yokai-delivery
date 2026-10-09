@@ -66,6 +66,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     summary: () => runSummary,
     setOil: value => { oil=value; },
     setElapsed: value => {elapsed=value;},
+    stepKnock: (e,dt) => moveKnockback(e,dt),
     scheduleSurge: () => {surgeT=0;},
     stageTuning: () => ({goal:GOAL_DELIVERIES,xp:xpNeed(),spawnInterval:CFG.spawnInterval(elapsed)*SPAWN_INTERVAL_SCALE}),
     unlockBoss: () => { bossQ.lock=0; },
@@ -228,12 +229,58 @@ test('Boss wrong slots keep their position and cannot be selected again or by ke
   g.answerBoss(2);assert.ok(g.snapshot().floats.some(t=>t.v.includes(q.word.jp)));
 });
 
-test('thunder ranks 1 to 4 damage overlapping targets only once per volley',()=>{
-  for(let rank=1;rank<=4;rank++){
-    const g=loadGame();g.start();g.combatScene('thunder',[{dx:100},{dx:105},{dx:110}],[],rank);
+test('Lv1–3 thunder strikes exactly its target count without nearby splash damage',()=>{
+  for(const rank of [1,2,3]){
+    const g=loadGame();g.start();
+    g.combatScene('thunder',Array.from({length:5},(_,i)=>({dx:100+i*3,hp:999})),[],rank);
     g.weapons(0.01);
-    for(const e of g.snapshot().enemies)assert.ok(999-e.hp<=1.8*1.2*(3.5+rank*1.5)+1e-6);
+    assert.equal(g.snapshot().enemies.filter(e=>e.hp<999).length,rank);
   }
+});
+
+
+test('barrier Lv1–4 deals only 40 percent of same-rank katana damage; Lv5 deals half its former base damage',()=>{
+  for(let rank=1;rank<=5;rank++){
+    const g=loadGame();g.start();
+    g.env.Math=Object.create(Math);g.env.Math.random=()=>1;
+    g.combatScene('barrier',[{dx:100,speed:0}],[],rank);
+    g.weapons(0.01);
+    const e=g.snapshot().enemies[0],actual=999-e.hp;
+    const expected=rank===5 ? (2+5*1.1)*1.2*0.5 : (1.2+(rank-1)*0.8)*0.4;
+    assert.ok(Math.abs(actual-expected)<1e-8,`Lv${rank}: ${actual} vs ${expected}`);
+    assert.equal((e.knockQueue||[]).length,rank<4?0:rank===4?1:2,
+      'only Lv4+ can knock back, and Lv5 keeps its two-phase pull/push');
+  }
+});
+
+test('barrier knockback is visible across frames instead of teleporting, including Lv5 pull then push',()=>{
+  for(const rank of [4,5]){
+    const g=loadGame();g.start();g.combatScene('barrier',[{dx:100,speed:0}],[],rank);
+    const e=g.snapshot().enemies[0],origin=e.x;
+    g.weapons(0.01);
+    assert.equal(e.x,origin,'cast must not instantly change coordinates');
+    g.update(0.016);
+    assert.ok(Math.abs(e.x-origin)>0 && Math.abs(e.x-origin)<20,'first frame is a small displacement');
+    assert.equal(Math.sign(e.x-origin),rank===5?-1:1,'Lv5 gathers before releasing');
+    for(let i=0;i<28;i++)g.update(0.016);
+    assert.ok(e.x>origin+45,'after animation the target is pushed away');
+    assert.equal((e.knockQueue||[]).length,0);
+  }
+});
+
+test('barrier push stops at a blocking wall without tunneling and never knocks back a boss',()=>{
+  const g=loadGame();g.start();
+  g.combatScene('barrier',[{dx:100,speed:0}], [{x0:128,x1:144,y0:-70,y1:70}],4);
+  const e=g.snapshot().enemies[0],initial=e.x;
+  g.weapons(0.01);
+  for(let i=0;i<30;i++)g.stepKnock(e,0.016);
+  assert.ok(e.x>=initial && e.x<initial+13,'wall blocks knockback movement');
+  g.combatScene('barrier',[{dx:100,speed:0,type:'boss',shield:false}],[],5);
+  const boss=g.snapshot().enemies[0],bossX=boss.x;
+  g.weapons(0.01);
+  assert.equal((boss.knockQueue||[]).length,0);
+  for(let i=0;i<24;i++)g.update(0.016);
+  assert.equal(boss.x,bossX);
 });
 
 test('night-town misdelivery can approach contact range without ranged shots',()=>{
@@ -461,14 +508,58 @@ test('Lv5 thunder spawns paired random clouds and bolts, excludes distant foes a
   const foes=g.snapshot().enemies;assert.ok(foes.slice(0,6).some(e=>e.hp<999));assert.equal(foes[6].hp,999);assert.equal(foes[7].hp,999);
 });
 
-test('lower thunder ranks keep growing raw damage without overlap multiplication',()=>{
-  const damage=[];
-  for(const level of [1,2,3,4]){
-    const g=loadGame();g.start();g.combatScene('thunder',[{dx:120},{dx:125},{dx:130}],[],level);
-    g.env.Math=Object.create(Math);g.env.Math.random=()=>1;g.weapons(0.01);
-    const values=g.snapshot().enemies.map(e=>999-e.hp);assert.ok(values.every(d=>Math.abs(d-(3.5+level*1.5)*1.2)<1e-8));damage.push(values[0]);
+test('Lv1–3 thunder radius exactly matches magnet Lv1–3 (190 / 270 / 350) without owning it',()=>{
+  for (const rank of [1,2,3]) {
+    const radius=110+rank*80,g=loadGame();g.start();
+    g.combatScene('thunder',[{dx:radius-0.1,hp:80},{dx:radius+0.1,hp:80}],[],rank);
+    g.weapons(0.01);
+    assert.ok(g.snapshot().enemies[0].hp<80,'target inside radius must be struck at rank '+rank);
+    assert.equal(g.snapshot().enemies[1].hp,80,'target outside radius must remain safe at rank '+rank);
   }
-  assert.ok(damage.every((d,i)=>!i||d>damage[i-1]));
+});
+
+test('Lv1 is weak, Lv2 needs two attacks for a basic ghost, Lv3 kills basic mobs but not a tank or Boss',()=>{
+  const a=loadGame();a.start();a.combatScene('thunder',[{dx:110,hp:2}],[],1);
+  a.weapons(0.01);
+  assert.ok(a.snapshot().enemies[0].hp>1 && a.snapshot().enemies[0].hp<2);
+
+  const b=loadGame();b.start();b.combatScene('thunder',[{dx:100,hp:2},{dx:130,hp:2}],[],2);
+  b.weapons(0.01);
+  assert.ok(b.snapshot().enemies.every(e=>e.hp>0 && e.hp<2),'both targets survive first Lv2 bolt');
+  b.weapons(2);
+  assert.ok(b.snapshot().enemies.every(e=>e.hp<=0),'second Lv2 bolt kills both ordinary ghosts');
+
+  const c=loadGame();c.start();c.combatScene('thunder',[
+    {dx:100,hp:18,type:'ghost'}, {dx:160,hp:12,type:'runner'}, {dx:240,hp:40,type:'tank'}
+  ],[],3);
+  c.weapons(0.01);
+  const [ghost,runner,tank]=c.snapshot().enemies;
+  assert.ok(ghost.hp<=0 && runner.hp<=0,'ordinary small enemies fall in one Lv3 volley');
+  assert.ok(tank.hp>0,'Lv3 must not erase heavy tanks regardless of their HP');
+  const d=loadGame();d.start();d.combatScene('thunder',[{dx:160,type:'boss',hp:200,shield:false}],[],3);
+  d.weapons(0.01);
+  assert.ok(d.snapshot().enemies[0].hp>0,'Boss cannot be killed through Lv3 execute damage');
+});
+
+test('Lv4 randomly kills 3–5 distinct visible normal enemies and never offscreen foes or bosses',()=>{
+  for(const [roll,expected] of [[0,3],[0.999,5]]){
+    const g=loadGame();g.start();
+    const normal=Array.from({length:7},(_,i)=>({dx:-340+i*110,dy:0,hp:60,type:'ghost'}));
+    g.combatScene('thunder',normal.concat([
+      {dx:470,hp:60,type:'ghost'}, {dx:0,dy:320,hp:60,type:'ghost'},
+      {dx:110,hp:500,type:'boss',shield:false}, {dx:120,hp:500,type:'boss',shield:true}
+    ]),[],4);
+    g.env.Math=Object.create(Math);g.env.Math.random=()=>roll;
+    const calls=[];g.env.SKILLFX.play=(...args)=>calls.push(args);
+    g.weapons(0.01);
+    const enemies=g.snapshot().enemies;
+    assert.equal(enemies.slice(0,7).filter(e=>e.hp<=0).length,expected);
+    assert.ok(enemies.slice(7).every(e=>e.hp>0),'out-of-frame targets and bosses remain untouched');
+    assert.equal(calls.filter(c=>c[0]==='thunder'&&c[1]==='strike').length,expected);
+  }
+  const g=loadGame();g.start();g.combatScene('thunder',[{dx:100,hp:7}],[],4);
+  g.weapons(0.01);
+  assert.ok(g.snapshot().enemies[0].hp<=0,'fewer than three visible foes are all struck once');
 });
 
 test('awakening projectiles reset on restart and none bypass a shielded Boss',()=>{
@@ -1401,7 +1492,7 @@ test('frame maps logical coordinates to CSS scale and refreshes renderer DPR', (
 
 test('lightning ignores shield immunity and spends its target on a damageable enemy', () => {
   const g=loadGame(); g.start();
-  g.combatScene('thunder',[{dx:200,type:'boss',shield:true,hp:9999},{dx:-200,hp:999}]);
+  g.combatScene('thunder',[{dx:180,type:'boss',shield:true,hp:9999},{dx:-180,hp:999}]);
   g.weapons(0.01);
   assert.equal(g.snapshot().enemies[0].hp,9999);
   assert.ok(g.snapshot().enemies[1].hp<999);

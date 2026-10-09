@@ -2409,10 +2409,10 @@ window.UI = (() => {
   const CARD_LIST = [
     // 主動秘術 (Active Weapons)
     { name: "妖刀斬", jp: "かたな", type: "主動", desc: "揮出凌厲新月刀芒，斬裂前方扇形妖怪", emblem: "katana" },
-    { name: "淨化靈陣", jp: "じょうか", type: "主動", desc: "展開 360 度除魔陣，週期性震退並重創周身妖怪", emblem: "barrier" },
+    { name: "淨化靈陣", jp: "じょうか", type: "主動", desc: "展開 360 度低傷害除魔陣，Lv4 起可震退周身妖怪", emblem: "barrier" },
     { name: "狐火炎", jp: "きつねび", type: "主動", desc: "周身飛旋烈焰火把，高速甩擊灼燒貼身妖怪", emblem: "fire" },
     { name: "陰陽符", jp: "おふだ", type: "主動", desc: "擲出迴旋陰陽符咒，來回穿透路徑上的敵人", emblem: "boom" },
-    { name: "天狐雷", jp: "いかずち", type: "主動", desc: "引導九天金雷轟擊最強妖怪，造成毀滅性打擊", emblem: "thunder" },
+    { name: "天狐雷", jp: "いかずち", type: "主動", desc: "雷擊範圍與目標逐級提升，Lv4 隨機擊倒全畫面內 3～5 隻一般妖怪", emblem: "thunder" },
     { name: "天狐靈針", jp: "せんぼん", type: "主動", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪", emblem: "needle" },
 
     // 被動修行 (Passive Enhancements)

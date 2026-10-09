@@ -162,7 +162,7 @@ window.skillVfxArt = (id, level) => {
   if (ready?.naturalWidth > 0 && ready?.naturalHeight > 0) return ready;
   if (skillLevelLoads.has(key)) return null;
   const img = new Image();
-  img.fetchPriority = "low";
+  img.fetchPriority = id === "katana" && rank === 1 ? "high" : "low";
   img.decoding = "async";
   img.onload = () => { ART[key] = img; skillLevelLoads.set(key, "ready"); };
   img.onerror = () => { skillLevelLoads.set(key, "missing"); };
@@ -198,6 +198,8 @@ window.loadGameArt = () => {
   loadHudRadarArt();
   loadHudOmamoriArt();
   loadHudSkillFanArt();
+  // 進遊戲時就預載 Lv1 主刀圖，避免首刀才開始下載。
+  window.skillVfxArt("katana", 1);
   loadSkillVfxArt("katana_wave_ukiyoe", "katana");
   loadSkillVfxArt("barrier_mandala_ukiyoe", "barrier_ground_45");
   loadSkillVfxArt("needle_hama_ukiyoe", "needle");

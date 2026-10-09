@@ -986,8 +986,8 @@ window.RENDERER = (() => {
   function katanaVfxArt(rank = 3) {
     const ranked = window.skillVfxArt?.("katana", rank);
     if (ranked && ranked.naturalWidth > 0 && ranked.naturalHeight > 0) return { img: ranked, mirror: false };
-    const legacy = window.ART?.katana_wave_ukiyoe;
-    return legacy && legacy.naturalWidth > 0 && legacy.naturalHeight > 0 ? { img: legacy, mirror: true } : null;
+    // 禁止等級圖尚未載入時顯示舊 katana.webp；寧用 Canvas 刀弧作短暫備援。
+    return null;
   }
 
   function drawKatanaSlashArt(s, alpha, tierIdx, progress) {

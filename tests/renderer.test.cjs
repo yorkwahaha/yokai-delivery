@@ -103,21 +103,26 @@ test('reduced motion disables shake and hit stop', () => {
   assert.equal(r.env.RENDERER.updateEffects(0.01),false);
 });
 
-test('katana local slash mirrors the ukiyo-e art so the convex edge faces attack direction, with Canvas fallback',()=>{
-  const r=loadRenderer(900,600),art={naturalWidth:261,naturalHeight:300};
-  r.env.ART.katana_wave_ukiyoe=art;
-  let arcs=0;const scales=[];r.main.ctx.arc=()=>arcs++;r.main.ctx.scale=(...args)=>scales.push(args);
-  r.env.RENDERER.addSlashArc(0,0,120,0,2.2,3);r.env.RENDERER.drawSlashArcs();
-  assert.ok(r.images.some(a=>a[0]===art),'loaded katana art must be composited with drawImage');
-  assert.ok(scales.some(([x,y])=>x===-1&&y===1),'local slash must mirror the source raster just like the flying blade');
-  assert.equal(arcs,0,'loaded art must skip the old procedural crescent');
+test('first katana slash never uses the legacy raster while the correct Lv1 image is loading',()=>{
+  const r=loadRenderer(900,600),legacy={naturalWidth:261,naturalHeight:300};
+  r.env.ART.katana_wave_ukiyoe=legacy;
+  const requests=[];let ranked=null,arcs=0;
+  r.env.skillVfxArt=(id,rank)=>{requests.push([id,rank]);return ranked;};
+  r.main.ctx.arc=()=>arcs++;
+  r.env.RENDERER.addSlashArc(0,0,120,0,2.2,1);
+  r.env.RENDERER.drawSlashArcs();
+  assert.equal(requests[0][0],'katana');assert.equal(requests[0][1],1);
+  assert.equal(r.images.length,0,'never draw katana.webp on the first slash');
+  assert.ok(arcs>0,'show the Canvas crescent instead of the wrong raster on a slow connection');
 
-  delete r.env.ART.katana_wave_ukiyoe;r.images.length=0;
-  r.env.RENDERER.addSlashArc(0,0,120,0,2.2,2);r.env.RENDERER.drawSlashArcs();
-  assert.ok(arcs>0,'missing asset keeps the old safe fallback');
+  ranked={naturalWidth:512,naturalHeight:512};r.images.length=0;
+  const before=arcs;r.env.RENDERER.drawSlashArcs();
+  assert.ok(r.images.some(args=>args[0]===ranked),'once loaded, use katana_l1.webp on that same attack');
+  assert.ok(!r.images.some(args=>args[0]===legacy));
+  assert.equal(arcs,before,'ranked art replaces the Canvas fallback');
 });
 
-test('katana renderer selects the exact five-rank raster before the legacy crescent',()=>{
+test('katana renderer uses the correct ranked raster without mirroring it',()=>{
   const r=loadRenderer(900,600),legacy={naturalWidth:261,naturalHeight:300},rank4={naturalWidth:300,naturalHeight:220},scales=[];
   r.main.ctx.scale=(...args)=>scales.push(args);
   r.env.ART.katana_wave_ukiyoe=legacy;r.env.ART.katana_l4=rank4;
