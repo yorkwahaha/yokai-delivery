@@ -12,7 +12,12 @@ test('injury floating words have bright fill and solid ink outline in the active
   assert.match(block,/strokeText\(t\.v, t\.x, t\.y\)/);
   assert.match(block,/#17151a/);
   assert.match(block,/#fff1b6/);
-  assert.match(block,/lineWidth = 6/);
+  assert.match(block,/lineWidth = 3\.2/);
+  assert.match(block,/clamp\(t.life \* 1\.15/);
+  assert.doesNotMatch(block,/lineWidth = 6/);
+  const injury = src.slice(src.indexOf('const say ='), src.indexOf('const burst ='));
+  assert.match(injury,/t.life = Math.min\(t.life, 0\.12\)/);
+  assert.match(injury,/t.y -= 22/);
 });
 
 function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') {
@@ -37,6 +42,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
   const source = fs.readFileSync('js/game.js', 'utf8');
   const end = source.lastIndexOf('})();');
   const hook = `window.fixture = { start, update, frame, drawWorld, drawStageWeather, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons, answerChoices,
+    notice: (message,x=900,y=550) => say(message,x,y),
     upgradeOil: () => UP.find(u=>u.id==='oil_max').f(),
     addRing: () => rings.push({x:P.x,y:P.y,r:40,life:0.08,maxL:0.32,color:'#ffffff'}),
     addBullet: () => enemyBullets.push({x:P.x+180,y:P.y,vx:0,vy:0,life:2}),
@@ -99,6 +105,21 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
+
+test('consecutive injury notices separate and rapidly fade their predecessors',()=>{
+  const g=loadGame();
+  g.notice('受創・燈油 −10',900,550);
+  const old=g.snapshot().floats.at(-1);
+  assert.equal(old.life,1.12);
+  g.notice('受創・燈油 −10',900,550);
+  const notices=g.snapshot().floats.slice(-2);
+  assert.equal(notices.length,2);
+  assert.ok(old.life<=0.12);
+  assert.equal(old.y,528);
+  assert.equal(notices[1].life,1.12);
+  g.notice('新的學習提示',900,550);
+  assert.equal(g.snapshot().floats.at(-1).life,1.8,'other notifications stay unchanged');
+});
 
 test('resizing the skill codex clamps mobile pages back to a visible desktop page',()=>{
   const g=loadGame();g.env.innerWidth=568;g.env.innerHeight=320;g.setState('codex');

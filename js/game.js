@@ -337,7 +337,16 @@
     { id: "mag", n: "招財勾玉", s: "じしゃく", cat: "輔助資源", d: "靈玉吸取範圍 +80", f: () => { b.mag++; }, ok: () => b.mag < 3 }
   ];
 
-  const say = (v, x, y, c = "#fff") => texts.push({ v, x, y, c, life: 1.8 });
+  // Stop concurrent injury warnings becoming two ghosted copies at the same location.
+  const say = (v, x, y, c = "#fff") => {
+    const injury = typeof v === "string" && /^(受創|妖火灼身)/.test(v);
+    if (injury) for (const t of texts) {
+      if (!t.injury || Math.abs(t.x - x) > 180 || Math.abs(t.y - y) > 110) continue;
+      t.life = Math.min(t.life, 0.12);
+      t.y -= 22;
+    }
+    texts.push({ v, x, y, c, life: injury ? 1.12 : 1.8, injury });
+  };
   const burst = (x, y, c, n = 16) => FX.burst(x, y, c, n);
 
   function makeOrder() {
@@ -2432,16 +2441,16 @@
     for (const t of texts) {
       const injury = typeof t.v === "string" && /^(受創|妖火灼身)/.test(t.v);
       ctx.save();
-      ctx.globalAlpha = injury ? clamp(t.life * 0.85 + 0.3, 0, 1) : clamp(t.life, 0, 1);
+      ctx.globalAlpha = injury ? clamp(t.life * 1.15, 0, 1) : clamp(t.life, 0, 1);
       ctx.textAlign = "center";
       ctx.font = UI.readableFont(injury ? 20 : 17, injury ? "900" : "bold");
       if (injury) {
         ctx.lineJoin = "round";
         ctx.strokeStyle = "#17151a";
-        ctx.lineWidth = 6;
+        ctx.lineWidth = 3.2;
         ctx.strokeText(t.v, t.x, t.y);
         ctx.strokeStyle = "#fff9e8";
-        ctx.lineWidth = 1.4;
+        ctx.lineWidth = 0.65;
         ctx.strokeText(t.v, t.x, t.y);
       }
       ctx.fillStyle = injury ? "#fff1b6" : t.c;

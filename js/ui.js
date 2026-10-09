@@ -107,7 +107,7 @@ window.UI = (() => {
       image.fetchPriority = "low";
       image.onload = () => { washiArt[name] = image; };
       image.onerror = () => { /* 無素材時維持程式備援 */ };
-      image.src = `assets/img/ui/${file}.webp?v=20261009-washi2`;
+      image.src = `assets/img/ui/${file}.webp?v=20261009-washi3`;
     }
   }
   function drawWashiSlices(ctx, image, x, y, w, h, cropX, cropY, padX, padY) {
@@ -253,10 +253,10 @@ window.UI = (() => {
     ctx.strokeStyle = `rgba(247, 213, 145, ${pulseStrength})`;
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(btn.x + Math.min(24,btn.w*.1), btn.y + btn.h - 4);
-    ctx.bezierCurveTo(btn.x + btn.w*.29, btn.y + btn.h - 2,
-      btn.x + btn.w*.65, btn.y + btn.h - 6,
-      btn.x + btn.w - Math.min(26,btn.w*.1), btn.y + btn.h - 4);
+    ctx.moveTo(btn.x + btn.w / 2 - 24, btn.y + btn.h - 5);
+    ctx.bezierCurveTo(btn.x + btn.w / 2 - 9, btn.y + btn.h - 3,
+      btn.x + btn.w / 2 + 10, btn.y + btn.h - 5,
+      btn.x + btn.w / 2 + 24, btn.y + btn.h - 5);
     ctx.stroke();
     // Only one vermilion seal; no glowing digital selection rectangle.
     ctx.globalAlpha = pulseStrength;
