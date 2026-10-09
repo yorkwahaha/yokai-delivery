@@ -129,6 +129,7 @@
   let state = "menu";
   let quitConfirm = false;
   let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "";
+  let levelupFocus = 0, gpLevelupDir = "";
   let pendingMenuActivation = null;
   function activateWithFeedback(id) {
     if (pendingMenuActivation || ((state === "won" || state === "lost") && endCooldown > 0)) return;
@@ -550,6 +551,8 @@
       return;
     }
     state = "levelup";
+    levelupFocus = 0;
+    gpLevelupDir = "";
     levelupCooldown = 0.4;
     keys.clear(); heldCodes.clear();
     joy = null;
@@ -954,6 +957,23 @@
     // 2. 按鈕邊緣觸發判定 (Edge Trigger)
     const justPressed = i => gp.buttons[i]?.pressed && !gpPrevButtons[i];
 
+    // 升級頁優先於一般遊戲按鍵。Xbox A 確認「焦點紙札」，Y 重抽；
+    // B/X 不再錯誤地直接選第 2/3 張。搖桿需回中才可再次移動，防止連跳。
+    if (state === "levelup") {
+      const axis = Math.abs(ay) >= Math.abs(ax) ? ay : ax;
+      const dir = axis > 0.55 ? 1 : axis < -0.55 ? -1 : 0;
+      if (dir && dir !== gpLevelupDir) {
+        levelupFocus = clamp(levelupFocus + dir, 0, Math.max(0, choices.length - 1));
+      }
+      gpLevelupDir = dir;
+      if (justPressed(0)) { AUDIO.init(); pickUp(levelupFocus); }
+      else if (justPressed(3)) reroll();
+      gpPrevButtons = gp.buttons.map(b => b.pressed);
+      gpMove = { x: 0, y: 0 };
+      return;
+    }
+    gpLevelupDir = "";
+
     if (state === "overworld") {
       let dir = "";
       if (Math.abs(ax) > Math.abs(ay) && Math.abs(ax) > 0.55) dir = ax > 0 ? "right" : "left";
@@ -982,29 +1002,23 @@
     }
     gpMenuDir = '';
 
-    // A 鍵 (Button 0): 互動 / 選卡1 / 確認
+    // A 鍵 (Button 0)：遊戲中互動（升級選卡已在上方獨立處理）
     if (justPressed(0)) {
       AUDIO.init();
       if (state === "overworld") confirmOverworld();
-      else if (state === "levelup") pickUp(0);
       else if (state === "play" && inter) interact();
     }
 
-    // B 鍵 (Button 1): 衝刺 / 選卡2
+    // B 鍵 (Button 1): 衝刺
     if (justPressed(1)) {
       if (state === "overworld") returnHome();
-      else if (state === "levelup") pickUp(1);
       else if (state === "play") dash();
     }
 
-    // X 鍵 (Button 2): 提示 / 選卡3
+    // X 鍵 (Button 2): 提示
     if (justPressed(2)) {
-      if (state === "levelup") pickUp(2);
-      else if (state === "play" && job) triggerHint();
+      if (state === "play" && job) triggerHint();
     }
-
-    // Y 鍵 (Button 3)：升級畫面重抽
-    if (state === "levelup" && justPressed(3)) reroll();
 
     // Boss 答題專用：LB / RB / Y；保留 A 取貨、B 衝刺、X 提示。
     if (state === "play" && bossQ) {
@@ -2787,12 +2801,24 @@
       } else if (!e.repeat && (e.key === 'Enter' || action === 'interact')) { e.preventDefault(); AUDIO.init(); activateWithFeedback(buttons[menuFocus].id); }
       return;
     }
-    if (state === "levelup" && !e.repeat && "123".includes(e.key)) {
-      pickUp(+e.key - 1);
-      return;
-    }
-    if (state === "levelup" && !e.repeat && e.code === "KeyR") {
-      reroll();
+    if (state === "levelup") {
+      if (e.code === 'Tab' || ['u','d','l','r'].includes(action)) {
+        e.preventDefault();
+        if (!e.repeat) {
+          const dir = e.code === 'Tab' ? (e.shiftKey ? -1 : 1) : ['u','l'].includes(action) ? -1 : 1;
+          levelupFocus = clamp(levelupFocus + dir, 0, Math.max(0, choices.length - 1));
+        }
+      } else if (!e.repeat && "123".includes(e.key) && e.key.length === 1) {
+        e.preventDefault();
+        levelupFocus = +e.key - 1;
+        pickUp(levelupFocus);
+      } else if (!e.repeat && (e.key === 'Enter' || action === 'interact')) {
+        e.preventDefault();
+        pickUp(levelupFocus);
+      } else if (!e.repeat && e.code === 'KeyR') {
+        e.preventDefault();
+        reroll();
+      }
       return;
     }
     if (state === "overworld") {
@@ -2949,6 +2975,7 @@
         const cx = startX;
         const rowY = cy + i * (cardH + gap);
         if (p.x >= cx && p.x <= cx + cardW && p.y >= rowY && p.y <= rowY + cardH) {
+          levelupFocus = i;
           pickUp(i);
           return;
         }
@@ -2979,6 +3006,13 @@
 
   cv.addEventListener("contextmenu", e => e.preventDefault());
   cv.addEventListener("pointermove", e => {
+    if (state === "levelup" && e.pointerType === "mouse") {
+      const pt = pp(e);
+      for (let i=0;i<choices.length;i++) {
+        const y=176+i*122;
+        if (pt.x>=90 && pt.x<=810 && pt.y>=y && pt.y<=y+108) {levelupFocus=i;break;}
+      }
+    }
     if(e.pointerType === 'mouse'){
       const available = quitConfirm ? UI.EXIT_BTNS
         : state === "pause" ? UI.pauseButtons?.()
@@ -3156,7 +3190,7 @@
         if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
         if (titleCardT > 0 && state === "play") UI.drawTitleCard(ctx, STAGE, stageChapter(), titleCardT);
         if (bossQ) UI.drawBossQuiz(ctx, bossQ, inputMode);
-        if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000);
+        if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000, levelupFocus, inputMode);
         if (state === "pause") {
           UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false, quitConfirm ? 0 : menuFocus);
           if (quitConfirm) UI.drawExitConfirm(ctx, menuFocus);

@@ -219,12 +219,50 @@ test('approved nine-slice and three-slice drawings remain valid on five device p
   }
 });
 
+test('level-up illustrated cards preserve slice geometry on desktop tablet and phone viewports',()=>{
+  for (const [name,width,height] of [
+    ['desktop',1440,810],['tablet-horizontal',1024,768],['tablet-vertical',768,1024],
+    ['phone-horizontal',844,390],['phone-vertical',390,844]
+  ]) {
+    const r=loadUI(width,true),images=[];
+    r.env.window.innerWidth=width;r.env.window.innerHeight=height;
+    vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
+    r.context.drawImage=(...args)=>images.push(args);
+    r.UI.drawLevelUp(r.context,2,[
+      {type:'weapon',id:'katana',n:'妖刀斬',s:'かたな',d:'雙刃交叉，距離 +16',levelText:'◆ 等級 1→2'},
+      {type:'passive',id:'speed',n:'神足草履',s:'いどう',d:'移動速度 +15%',levelText:'◆ 體質修行'},
+      {type:'passive',id:'oil',n:'添燈香油',s:'かいふく',d:'恢復燈油',levelText:'◆ 體質修行'}
+    ],{katana:1},{katana:{zh:'妖刀斬'}},2,0,2,'gamepad');
+    assert.ok(images.some(a=>a[0].src?.includes('result_panel.webp')),name+' main panel');
+    assert.ok(images.some(a=>a[0].src?.includes('button_primary.webp')),name+' focused card');
+    assert.ok(images.some(a=>a[0].src?.includes('button_secondary.webp')),name+' unselected cards');
+    for(const a of images.filter(a=>a[0].src?.includes('/ui/illustrated/'))){
+      assert.equal(a.length,9,name+' source/destination slicing');
+      const [sx,sy,sw,sh,dx,dy,dw,dh]=a.slice(1);
+      assert.ok([sx,sy,sw,sh,dx,dy,dw,dh].every(Number.isFinite),name+' finite geometry');
+      assert.ok(sw>0&&sh>0&&dw>0&&dh>0,name+' positive slice dimensions');
+      assert.ok(sx>=0&&sy>=0&&sx+sw<=a[0].naturalWidth+0.1&&sy+sh<=a[0].naturalHeight+0.1,name+' source crop');
+    }
+  }
+});
+
 test('woodblock UI reuses a paper-wash panel instead of the old glass sheen',()=>{
   const src=fs.readFileSync('js/ui.js','utf8');
   assert.match(src,/木版畫共用框/);
   assert.match(src,/rgba\(223,199,150,\.065\)/);
   assert.doesNotMatch(src,/function sheen\(/);
-  assert.match(src,/const cardFill = "rgba\(43,39,39,\.98\)"/);
+  assert.match(src,/const LEVEL_CARD_LAYOUT = \{x:90,y:176,w:720,h:108,gap:14\}/);
+  assert.doesNotMatch(src.slice(src.indexOf('function drawLevelUp('),src.indexOf('// 4.',src.indexOf('function drawLevelUp('))),/glassBox\(/);
+  const illustrated=loadUI(900,true),images=[];
+  illustrated.context.drawImage=(...args)=>images.push(args);
+  illustrated.UI.drawLevelUp(illustrated.context,2,[
+    {type:'weapon',id:'katana',n:'妖刀斬',s:'かたな',d:'向前斬擊',lv:1},
+    {type:'passive',id:'shield',n:'神足草履',s:'いどう',d:'移動速度上升',lv:1}
+  ],{katana:1},{katana:{zh:'妖刀斬'}},2,0,1,'gamepad');
+  assert.ok(images.some(a=>a[0].src?.includes('result_panel.webp')),'level page uses approved washi scroll');
+  assert.ok(images.some(a=>a[0].src?.includes('button_primary.webp')),'focused option uses approved vermilion art');
+  assert.ok(images.some(a=>a[0].src?.includes('button_secondary.webp')),'normal option uses approved paper art');
+  assert.ok(illustrated.texts.some(x=>x.value.includes('左搖桿')),'Xbox button legend is visible');
   const r=loadUI(568);
   assert.doesNotThrow(()=>r.UI.drawLevelUp(r.context,2,[{type:'weapon',id:'katana',n:'妖刀斬',s:'かたな',d:'向前斬擊',lv:1}],{}, {},1));
 });

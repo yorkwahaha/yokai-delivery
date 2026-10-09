@@ -2237,139 +2237,123 @@ window.UI = (() => {
   }
 
 
-  // 3. 升級三選一：和紙長卷卡、朱印、等級節點與重抽。
-  function drawLevelUp(ctx, level, choices, WL, WI, rerolls = 0, time = Date.now() / 1000) {
+  // 3. 升級三選一：直接組合已核准的卷物與御札 WebP，避免現代玻璃 HUD。
+  // 卡片幾何不變，沿用 game.js 原本 720×108 的觸控 hitbox。
+  const LEVEL_CARD_LAYOUT = {x:90,y:176,w:720,h:108,gap:14};
+  function drawLevelUp(ctx, level, choices, WL, WI, rerolls = 0, time = Date.now() / 1000, focus = 0, inputMode = "keyboard") {
     ctx.save();
-    ctx.fillStyle = "rgba(6, 9, 18, 0.93)";
+    ctx.fillStyle = "rgba(6, 8, 16, 0.88)";
     fillScreen(ctx);
-    glow(ctx, W / 2, 46, 620, C.gold, 0.2 * pulse(2, 0.6));
-    glow(ctx, W / 2, 330, 1100, "#2b3a78", 0.1);
 
-    ctx.textAlign = "center";
-    ctx.font = titleFont(32);
-    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-    ctx.fillText(`LEVEL UP!　Lv.${level}`, W / 2, 51);
-    ctx.fillStyle = C.goldHi;
-    ctx.fillText(`LEVEL UP!　Lv.${level}`, W / 2, 48);
-    ctx.strokeStyle = "rgba(232, 195, 106, 0.55)"; ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(W / 2 - 250, 56); ctx.lineTo(W / 2 - 40, 56); ctx.moveTo(W / 2 + 40, 56); ctx.lineTo(W / 2 + 250, 56);
-    ctx.stroke();
-    ctx.fillStyle = C.gold;
-    ctx.save(); ctx.translate(W / 2, 56); ctx.rotate(Math.PI / 4); ctx.fillRect(-4, -4, 8, 8); ctx.restore();
+    // 一本淺色夜行修行帖：角飾／櫻花／卷軸保持與正式結算畫面一致。
+    drawWashiBoard(ctx, 55, 54, 790, 530, true);
+    const header={id:"level-title",x:295,y:18,w:310,h:57};
+    drawWoodTag(ctx,header,"primary");
+    ctx.textAlign="center";
+    ctx.fillStyle="#fff0d1";
+    ctx.font=titleFont(29);
+    ctx.fillText(`修行進階・Lv.${level}`, W/2, 57);
 
-    // 頂部只顯示 4 個主動槽，不再放長篇說明。
-    const ownedKeys = WI ? Object.keys(WI).filter(k => (WL[k] || 0) > 0) : [];
-    const maxSlots = 4;
-    const barW = 620, barH = 70;
-    const barX = W / 2 - barW / 2, barY = 64;
-
-    glassBox(ctx, barX, barY, barW, barH, 8, "rgba(40,36,35,.96)", C.gold, 1.5);
-    const slotStartX = barX + 22;
-    for (let s = 0; s < maxSlots; s++) {
-      const sx = slotStartX + s * 150;
-      const k = ownedKeys[s];
-      if (k) {
-        glassBox(ctx, sx, barY + 7, 140, 56, 5, "rgba(50,44,43,.94)", WEAPON_TONE[k] || C.gold, 1.4);
-        drawEmblem(ctx, k, sx + 18, barY + 49, 12);
-        ctx.fillStyle = "#ffeed4";
-        ctx.font = readableFont(12, "900");
-        ctx.textAlign = "center";
-        fitText(ctx, WI[k].zh, sx + 70, barY + 31, 132);
-        ctx.font = readableFont(12, "900");
-        ctx.fillText(`L${WL[k]}`, sx + 70, barY + 58);
-      } else {
-        ctx.save();
-        ctx.setLineDash([3, 3]);
-        glassBox(ctx, sx, barY + 7, 104, 38, 6, "rgba(10, 14, 24, 0.5)", "rgba(180, 195, 220, 0.35)", 1);
-        ctx.fillStyle = "rgba(180, 195, 220, 0.4)";
-        ctx.font = readableFont(11, "bold");
-        ctx.textAlign = "center";
-        ctx.fillText("＋", sx + 52, barY + 29);
-        ctx.restore();
+    // 同一張手繪紙牌承載既有四個主動技槽，取消透明黑框與虛線槽。
+    const barX=140,barY=84,barW=620,barH=76;
+    const paper=illustratedArt.neutral;
+    if(paper?.naturalWidth)drawRibbonSlices(ctx,paper,barX,barY,barW,barH);
+    else drawWoodTag(ctx,{x:barX,y:barY,w:barW,h:barH},"normal");
+    const equipped=WI?Object.keys(WI).filter(k=>(WL[k]||0)>0).slice(0,4):[];
+    ctx.save();
+    ctx.textAlign="center";
+    for(let i=0;i<4;i++){
+      const mid=barX+82+i*152;
+      if(i>0){
+        ctx.strokeStyle="rgba(97,64,46,.23)";ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(barX+6+i*152,barY+18);ctx.lineTo(barX+6+i*152,barY+59);ctx.stroke();
+      }
+      const k=equipped[i];
+      if(k){
+        drawEmblem(ctx,k,mid-48,barY+38,11);
+        ctx.font=readableFont(12,"900");ctx.fillStyle="#35271f";
+        fitText(ctx,WI[k].zh,mid+8,barY+35,104);
+        ctx.font=readableFont(11,"800");
+        ctx.fillText(`Lv.${WL[k]}`,mid+8,barY+54);
+      }else{
+        ctx.fillStyle="rgba(94,68,51,.34)";
+        ctx.font=readableFont(12,"700");
+        ctx.fillText("空札",mid,barY+44);
       }
     }
+    ctx.restore();
 
-    const cardW = 720, cardH = 108;
-    const startX = 90, gap = 14, cy = 176;
-    // 和紙色底：避免深藍玻璃質感與新場景的木版畫衝突。
-    const cardFill = "rgba(43,39,39,.98)";
+    const {x:cardX,y:cardY,w:cardW,h:cardH,gap}=LEVEL_CARD_LAYOUT;
+    choices.forEach((c,i)=>{
+      const x=cardX,y=cardY+i*(cardH+gap),selected=i===focus;
+      const weapon=c.type==="weapon",newCard=!!c.levelText&&(/新|NEW/.test(c.levelText));
+      const awakening=c.lv===5||c.rarity==="max";
+      const cardAsset=illustratedArt[selected?"primary":"neutral"];
+      if(cardAsset?.naturalWidth){
+        // 僅中段可延展；櫻花、金飾、右側流蘇保持正確比例。
+        drawRibbonSlices(ctx,cardAsset,x,y,cardW,cardH);
+      }else{
+        drawWoodTag(ctx,{x,y,w:cardW,h:cardH},selected?"primary":"normal");
+      }
+      const ink=selected?"#fff1d5":"#35271e";
+      const secondary=selected?"#f9dcad":"#644c38";
 
-    choices.forEach((c, i) => {
-      const cx = startX;
-      const rowY = cy + i * (cardH + gap);
-      const isWeapon = c.type === "weapon";
-      const isNew = !!c.levelText && (c.levelText.includes("新") || c.levelText.includes("NEW"));
-      const awakening = c.lv===5 || c.rarity==='max';
-      const tone = awakening ? C.goldHi : isWeapon ? (WEAPON_TONE[c.id] || C.gold) : C.jade;
+      if(selected){
+        // 和風朱印＋窄金線提示焦點，避免霓虹矩形高光。
+        ctx.fillStyle="#f7d690";
+        ctx.beginPath();ctx.arc(x+69,y+21,4.5,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle="rgba(255,226,170,.75)";ctx.lineWidth=2;
+        ctx.beginPath();ctx.moveTo(x+94,y+cardH-16);ctx.lineTo(x+cardW-101,y+cardH-16);ctx.stroke();
+      }
+      ctx.textAlign="center";
+      ctx.fillStyle=selected?"#ffe9bd":"#704a36";
+      ctx.font=readableFont(19,"900");
+      ctx.fillText(String(i+1),x+50,y+40);
+      drawEmblem(ctx,c.id,x+50,y+73,16);
 
-      // 朱印色左邊線保留屬性差異；卡面用暖紙與墨線代替霓虹漸層。
-      glassBox(ctx,cx,rowY,cardW,cardH,8,
-        awakening ? "rgba(79,54,40,.98)" : cardFill,
-        tone,awakening?2.7:1.8,isNew||awakening);
-      ctx.fillStyle="rgba(202,176,130,.1)";
-      ctx.fillRect(cx+75,rowY+41,cardW-93,1);
-      ctx.fillStyle = tone;
-      ctx.beginPath(); ctx.roundRect(cx + 6, rowY + 14, 3.5, cardH - 28, 2); ctx.fill();
+      // 左側欄位：名稱、讀音、修行類別。右側：升級資訊與等級印記。
+      ctx.textAlign="left";
+      ctx.fillStyle=ink;
+      ctx.font=readableFont(21,"900");
+      fitText(ctx,c.n,x+80,y+33,255);
+      ctx.font=readableFont(13,"700");ctx.fillStyle=secondary;
+      fitText(ctx,c.s||"",x+325,y+33,105);
+      ctx.font=readableFont(12,"800");
+      ctx.fillText(weapon?"主動秘術":"被動修行",x+443,y+33,96);
 
-      // 大型號碼＋紋章，讓鍵盤與觸控的對應一眼可見。
-      glassBox(ctx, cx + 14, rowY + 14, 48, 80, 5, "rgba(54,42,37,.95)", C.gold, 1.3);
-      ctx.textAlign = "center";
-      ctx.fillStyle = C.goldHi;
-      ctx.font = "900 20px sans-serif";
-      ctx.fillText(String(i + 1), cx + 38, rowY + 39);
-      drawEmblem(ctx, c.id, cx + 38, rowY + 70, 18);
-
-      ctx.textAlign = "left";
-      ctx.fillStyle = "#f5e5c9";
-      ctx.font = readableFont(21, "900");
-      ctx.fillText(c.n, cx + 80, rowY + 31);
-      ctx.fillStyle = "#ffd54f";
-      ctx.font = readableFont(12, "bold");
-      ctx.fillText(c.s || "", cx + 300, rowY + 31);
-
-      // 右上：等級狀態膠囊，下方節點顯示武器 Lv 進度。
-      glassBox(ctx, cx + 500, rowY + 12, 198, 28, 4, isNew ? "rgba(102,68,45,.88)" : "rgba(65,73,69,.88)", isNew ? "#d9b47e" : "#8aafa8", 1.2);
-      ctx.textAlign = "center";
-      ctx.fillStyle = awakening || isNew ? "#ffe1ad" : "#c9ded4";
-      ctx.font = readableFont(12, "900");
-      fitText(ctx, c.levelText || "◆ 妖力精進", cx + 599, rowY + 31, 180);
-
-      if (isWeapon && !isNew) {
-        const cur = WL[c.id] || 0;
-        for (let p = 1; p <= 5; p++) {
-          const px = cx + 599 + (p - 3) * 22, py = rowY + 54;
-          const filled = p <= cur, next = p === cur + 1;
-          ctx.fillStyle = filled ? tone : next ? C.goldHi : "rgba(255,255,255,0.14)";
-          if (next && !calm()) { glow(ctx, px, py, 26, C.goldHi, 0.5 * pulse(5, 0.3)); }
-          ctx.save(); ctx.translate(px, py); ctx.rotate(Math.PI / 4); ctx.fillRect(-5, -5, 10, 10); ctx.restore();
+      ctx.textAlign="center";
+      ctx.fillStyle=selected?"#ffedbd":"#6b4331";
+      ctx.font=readableFont(12,"900");
+      fitText(ctx,c.levelText||(awakening?"◆ 覺醒":"◆ 體質修行"),x+608,y+33,146);
+      if(weapon&&!newCard){
+        const current=WL[c.id]||0;
+        for(let k=1;k<=5;k++){
+          const px=x+608+(k-3)*20,py=y+59;
+          ctx.fillStyle=k<=current?(selected?"#f1bd8d":"#a24f3c"):k===current+1?(selected?"#fff1b4":"#b87b3d"):(selected?"rgba(255,232,199,.28)":"rgba(92,69,52,.2)");
+          ctx.save();ctx.translate(px,py);ctx.rotate(Math.PI/4);ctx.fillRect(-4,-4,8,8);ctx.restore();
         }
       }
-      ctx.fillStyle = tone;
-      ctx.font = readableFont(12, "900");
-      ctx.textAlign = "right";
-      ctx.fillText(isWeapon ? "【主動】" : "【被動】", cx + 486, rowY + 31);
-
-      ctx.textAlign = "left";
-      ctx.font = readableFont(14, "bold");
-      ctx.fillStyle = "#e3d6bd";
-      const lines = [];
-      let line = "";
-      for (const char of c.d || "") {
-        if (ctx.measureText(line + char).width > 620 && line) { lines.push(line); line = ""; }
-        line += char;
+      ctx.font=readableFont(14,"700");
+      ctx.textAlign="left";ctx.fillStyle=ink;
+      const lines=[];let line="";
+      for(const char of c.d||""){
+        if(ctx.measureText(line+char).width>530&&line){lines.push(line);line="";}
+        line+=char;
       }
       lines.push(line);
-      lines.slice(0, 2).forEach((text, index) => fitText(ctx, text, cx + 80, rowY + 72 + index * fontPx(ctx.font) * 1.15, 600));
+      lines.slice(0,2).forEach((txt,n)=>fitText(ctx,txt,x+80,y+73+n*fontPx(ctx.font)*1.16,530));
     });
-
-    // 重抽與操作提示
-    const rr = REROLL_BTN;
-    ctx.textAlign = "left";
-    ctx.fillStyle = C.dim;
-    ctx.font = readableFont(12, "bold");
-    ctx.fillText("按 1 / 2 / 3 或直接點選　R 或 Y 重抽", startX, rr.y + rr.h / 2 + 5);
-    drawButton(ctx, rr, `重抽 ×${rerolls}`, { tone: "cyan", size: 16, icon: "cards", disabled: rerolls <= 0 });
+    const rr=REROLL_BTN;
+    ctx.textAlign="left";
+    ctx.font=readableFont(12,"800");
+    ctx.fillStyle="#423125";
+    const legend=inputMode==="gamepad"
+      ?"十字鍵／左搖桿 選卡　A 確認　Y 重抽"
+      :inputMode==="touch"
+      ?"直接點選紙札　可點重抽"
+      :"↑↓ 選卡 · Enter 確認 · 1／2／3 直選 · R 重抽";
+    fitText(ctx,legend,cardX,rr.y+rr.h/2+5,520);
+    drawButton(ctx,{...rr,id:"reroll"},`重抽 ×${rerolls}`,{tone:"normal",size:16,icon:"cards",disabled:rerolls<=0});
     ctx.restore();
   }
 

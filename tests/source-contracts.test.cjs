@@ -20,7 +20,7 @@ test("MAX katana wave crosses buildings and spans the viewport", () => {
 
 test("horizontal level-up hitboxes and rendered rows share the same dimensions", () => {
   assert.match(game, /cardW = 720, cardH = 108/);
-  assert.match(ui, /cardW = 720, cardH = 108/);
+  assert.ok(ui.includes('LEVEL_CARD_LAYOUT = {x:90,y:176,w:720,h:108,gap:14}'));
 });
 
 test("mobile hint has a visible exported hit target", () => {

@@ -95,7 +95,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     meetDeliveryGoal: () => { delivered=GOAL_DELIVERIES; },
     prepareBoss: (word) => { const bs={x:P.x+200,y:P.y,type:'boss',word:word || ALL[0],hp:999,max:999,shield:true}; enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
     setState: next => { state=next; ended=false; },
-    snapshot: () => ({ state, quitConfirm, needles, proj, winds:typeof winds==='undefined'?[]:winds, ghosts:typeof ghosts==='undefined'?[]:ghosts, dragonShots, dragonScorches, menuFocus, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, delivered, bossStage, bossT, finalBossDefeated, gems, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
+    snapshot: () => ({ state, quitConfirm, needles, proj, winds:typeof winds==='undefined'?[]:winds, ghosts:typeof ghosts==='undefined'?[]:ghosts, dragonShots, dragonScorches, menuFocus, levelupFocus, rerolls, levelupCooldown, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, delivered, bossStage, bossT, finalBossDefeated, gems, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
     addMis: () => enemies.push({x:P.x+100,y:P.y,type:"mis",w:ALL[0],hp:999,max:999,speed:210,flash:0,wob:0}), emptyHouses: () => houses.splice(0),
     tune: id => UP.find(u => u.id === id),
     housesNow: () => houses.map(h => ({ id: h.id, x: h.x, y: h.y, word: h.word })),
@@ -108,6 +108,42 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
+
+test('Xbox pad navigates level-up cards with stick or D-pad, A confirms focus, and B/X cannot misselect',()=>{
+  const g=loadGame();g.start();g.offerUp();assert.equal(g.snapshot().state,'levelup');
+  for(let n=1;n<=10;n++)g.frame(n*50);
+  const buttons=Array.from({length:16},()=>({pressed:false})),axes=[0,0];
+  g.env.navigator.getGamepads=()=>[{connected:true,axes,buttons}];
+  const press=n=>{buttons[n].pressed=true;g.pollGamepad();buttons[n].pressed=false;g.pollGamepad();};
+  axes[1]=0.9;g.pollGamepad();assert.equal(g.snapshot().levelupFocus,1);
+  g.pollGamepad();assert.equal(g.snapshot().levelupFocus,1,'held stick does not repeat');
+  axes[1]=0;g.pollGamepad();
+  press(13);assert.equal(g.snapshot().levelupFocus,2,'D-pad down advances');
+  press(13);assert.equal(g.snapshot().levelupFocus,2,'focus is clamped');
+  press(1);press(2);assert.equal(g.snapshot().state,'levelup','B and X do not select arbitrary cards');
+  press(12);assert.equal(g.snapshot().levelupFocus,1,'D-pad up moves back');
+  press(0);assert.equal(g.snapshot().state,'play','A confirms focused card');
+  assert.equal(g.snapshot().level,2);
+});
+
+test('Xbox Y rerolls once, and keyboard Enter confirms highlighted level-up without changing touch geometry',()=>{
+  const g=loadGame();g.start();g.offerUp();
+  for(let n=1;n<=10;n++)g.frame(n*50);
+  const buttons=Array.from({length:16},()=>({pressed:false}));
+  g.env.navigator.getGamepads=()=>[{connected:true,axes:[0,0],buttons}];
+  buttons[3].pressed=true;g.pollGamepad();g.pollGamepad();
+  assert.equal(g.snapshot().rerolls,1,'holding Y cannot reroll twice');
+  buttons[3].pressed=false;g.pollGamepad();
+  assert.equal(g.snapshot().levelupFocus,0);
+  for(let n=11;n<=21;n++)g.frame(n*50);
+  g.events.keydown(key('ArrowDown'));assert.equal(g.snapshot().levelupFocus,1);
+  g.events.keydown(key('Enter','Enter'));assert.equal(g.snapshot().state,'play');
+  const t=loadGame();t.start();t.offerUp();
+  for(let n=1;n<=10;n++)t.frame(n*50);
+  const v=t.env.VIEWPORT.get(),cx=90+720/2,cy=176+122+54;
+  t.canvasEvents.pointerdown(pointer((cx+v.offsetX)*v.scale,(cy+v.offsetY)*v.scale,'touch'));
+  assert.equal(t.snapshot().state,'play','touch still selects second card via original hitbox');
+});
 
 test('menu action waits for its pressed frame and blocks duplicated confirmation',()=>{
   const g=loadGame();g.events.keydown(key('Enter','Enter'));
