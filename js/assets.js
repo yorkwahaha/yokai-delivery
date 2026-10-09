@@ -49,8 +49,23 @@ function loadArt(n) {
     ? `assets/img/scenery/${n}.webp?v=20261008-scene2`
     : YOKAI_ASSET_KEYS.has(n)
     ? `assets/img/yokai/${n}.webp?v=20261009-ink1`
-    : `assets/img/${n}.webp`;
+    : `assets/img/${n}.webp${["cover","player_win_v1","player_kneel_v1"].includes(n)?"?v=20261010-character-set1":""}`;
 }
+
+// 休息立繪只會在打開暫停選單時下載，不佔遊戲首屏載入預算。
+let pauseRestRequested = false;
+window.loadPauseRestArt = function loadPauseRestArt() {
+  if (pauseRestRequested || window.ART?.player_rest_v1) return;
+  pauseRestRequested = true;
+  const img = new Image();
+  img.fetchPriority = "low";
+  img.decoding = "async";
+  img.onload = () => { window.ART.player_rest_v1 = img; };
+  img.onerror = () => {
+    console.warn("[Assets] 休息角色未載入，暫停畫面仍可正常使用。");
+  };
+  img.src = "assets/img/player_rest_v1.webp?v=20261010-character-set1";
+};
 
 function loadHudLanternArt() {
   const img = new Image();

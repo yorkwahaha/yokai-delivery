@@ -110,6 +110,22 @@ test('codex readings and translations use font-sized vertical separation',()=>{
   const jp=labels.find(t=>t.value==='かさ'),zh=labels.find(t=>t.value==='雨傘'&&t.y>jp.y);assert.ok(zh.y-jp.y>=zh.size);
 });
 
+test('new approved 900x1200 ending portraits render whole without stale crop',()=>{
+  const r=loadUI(900),images=[];
+  const won={naturalWidth:900,naturalHeight:1200},lost={naturalWidth:900,naturalHeight:1200};
+  r.env.window.ART={player_win_v1:won,player_kneel_v1:lost};
+  r.env.window.RENDERER={drawFrame:()=>{throw Error('new full art cannot use old crop');}};
+  r.context.drawImage=(...args)=>images.push(args);
+  for(const [state,art] of [['won',won],['lost',lost]]){
+    images.length=0;r.UI.drawEndScreen(r.context,state,0,0,0,[]);
+    const call=images.find(args=>args[0]===art);
+    assert.ok(call,state+' illustration found');
+    assert.equal(call.length,5,'full sprite uses uncut image');
+    assert.equal(call[4],400,'correct viewport height');
+    assert.ok(call[1]>=0&&call[1]+call[3]>210,'natural scroll overlap');
+  }
+});
+
 test('settlement uses distinct victory and kneeling drawings, with original art fallback',()=>{
   const r=loadUI(900),images=[];r.context.drawImage=(...args)=>images.push(args);
   const base={naturalWidth:216,naturalHeight:352},won={naturalWidth:1024,naturalHeight:1536},lost={naturalWidth:1024,naturalHeight:1024};
@@ -180,11 +196,15 @@ test('approved illustrated WebP art replaces procedural panels with genuine slic
 
 test('approved pause composition retains the left courier and paper-menu serif',()=>{
   const r=loadUI(900,true),img={naturalWidth:720,naturalHeight:900},draws=[],fonts=[];
-  r.env.window.ART={player_kneel_v1:img};
+  r.env.window.ART={player_rest_v1:img};
+  let requested=0;
+  r.env.window.loadPauseRestArt=()=>requested++;
   r.context.drawImage=(...args)=>draws.push(args);
   r.context.fillText=(value,x,y)=>{if(['暫停','秘術卡片','繼續夜行'].includes(value))fonts.push({value,font:r.context.font,x,y});};
   r.UI.drawPauseMenu(r.context,false,0);
-  assert.ok(draws.some(a=>a[0]===img&&a[1]<420),'courier illustration stays beside the paper board');
+  assert.equal(requested,1,'rest art is requested lazily when pause menu opens');
+  assert.ok(draws.some(a=>a[0]===img&&a[1]<470&&a[4]===455),'resting courier sits beside the paper board');
+  assert.ok(!draws.some(a=>a[0].src?.includes('player_kneel_v1')),'failed-run sprite is never drawn on pause');
   assert.ok(fonts.some(t=>t.value==='暫停'&&t.font.includes('Serif TC')),'title uses calligraphic serif');
   assert.ok(fonts.some(t=>t.value==='秘術卡片'&&t.font.includes('Serif TC')),'button font remains in same family');
   assert.ok(fonts.some(t=>t.value==='暫停'&&t.x>450),'heading aligns with right-hand notice');

@@ -19,7 +19,7 @@ function loadAssets() {
 test('title prioritizes only the cover and leaves music downloads until playback', () => {
   const { env, images, tracks } = loadAssets();
   assert.equal(images.length, 1);
-  assert.equal(images[0].src, 'assets/img/cover.webp');
+  assert.equal(images[0].src, 'assets/img/cover.webp?v=20261010-character-set1');
   assert.equal(images[0].fetchPriority, 'high');
   assert.ok(tracks.every(track => track.preload === 'none'));
   images[0].onload();
@@ -39,6 +39,18 @@ test('title prioritizes only the cover and leaves music downloads until playback
   assert.ok(env.ART.katana_wave_ukiyoe);
   assert.ok(env.ART.ground_dirt);
   assert.ok(env.ART.ground);
+});
+
+test('resting courier art is fetched only after pause is opened', () => {
+  const { env, images } = loadAssets();
+  assert.equal(images.length, 1,'resting art does not block cover download');
+  env.loadPauseRestArt();
+  assert.equal(images.length, 2);
+  assert.match(images[1].src,/player_rest_v1\.webp\?v=20261010-character-set1$/);
+  env.loadPauseRestArt();
+  assert.equal(images.length, 2,'repeat pause reuses asset');
+  images[1].onload();
+  assert.equal(env.ART.player_rest_v1,images[1]);
 });
 
 test('WebP failures retry preserved originals once and settle even when both are absent', () => {

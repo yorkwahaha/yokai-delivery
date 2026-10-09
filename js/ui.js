@@ -312,7 +312,7 @@ window.UI = (() => {
     const px=scale<1?Math.max(size,Math.min(28,Math.ceil(14/scale))):size;
     return `${weight} ${px}px 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif`;
   }
-  function drawButton(ctx,b,label,{tone="normal",size=18,focus=false,icon=null,disabled=false,quiet=false,scrollText=false}={}) {
+  function drawButton(ctx,b,label,{tone="normal",size=18,focus=false,icon=null,disabled=false,quiet=false,scrollText=false,visualOffsetY=0}={}) {
     const t=BUTTON_TONES[tone]||BUTTON_TONES.normal;
     const hovered=!disabled && buttonFeedback.hoverId===b.id;
     const pressed=!disabled && isButtonPressed(b.id);
@@ -343,7 +343,7 @@ window.UI = (() => {
     const fontSize=fontPx(ctx.font);
     const asc=Number.isFinite(metrics.actualBoundingBoxAscent)?metrics.actualBoundingBoxAscent:fontSize*.76;
     const desc=Number.isFinite(metrics.actualBoundingBoxDescent)?metrics.actualBoundingBoxDescent:fontSize*.12;
-    const y=safe.y+(asc-desc)/2;
+    const y=safe.y+(asc-desc)/2+visualOffsetY;
     const painted=!!illustratedArt[tone==="primary"?"primary":tone==="danger"?"danger":"neutral"]?.naturalWidth;
     const darkLettering=painted && tone!=="primary" && tone!=="danger";
     ctx.fillStyle=darkLettering?"rgba(255,240,214,.35)":"rgba(18,13,12,.52)";
@@ -2668,9 +2668,9 @@ window.UI = (() => {
     // 木框旅帳標題保留清晰描墨，不增加漂浮光環。
     ctx.font = titleFont(32);
     ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
-    ctx.fillText(isWon ? "夜已破曉" : "燈油已盡", mid, cardY + 63);
+    ctx.fillText(isWon ? "夜已破曉" : "燈油已盡", mid, cardY + 54);
     ctx.fillStyle = "#f6e9ce";
-    ctx.fillText(isWon ? "夜已破曉" : "燈油已盡", mid, cardY + 60);
+    ctx.fillText(isWon ? "夜已破曉" : "燈油已盡", mid, cardY + 51);
 
     // 線條與裝飾已融入紙張貼圖，不再以數位等距分隔線覆蓋。
 
@@ -2733,9 +2733,9 @@ window.UI = (() => {
       parts.forEach((text,i)=>fitText(ctx,text,cardX+100+colW*(i%cols+0.5),lineY+Math.floor(i/cols)*lineStep,colW-12));
     }
 
-    drawButton(ctx, END_BTNS[0], "再踏夜行", { tone: "primary", size: 18, focus: focus===0,scrollText:true });
-    drawButton(ctx, END_BTNS[1], "回旅路地圖", { size: 18, focus: focus===1,quiet:true,scrollText:true });
-    drawButton(ctx, END_BTNS[2], "回到首頁", { size: 18, focus: focus===2,quiet:true,scrollText:true });
+    drawButton(ctx, END_BTNS[0], "再踏夜行", { tone: "primary", size: 18, focus: focus===0,scrollText:true,visualOffsetY:-5 });
+    drawButton(ctx, END_BTNS[1], "回旅路地圖", { size: 18, focus: focus===1,quiet:true,scrollText:true,visualOffsetY:-5 });
+    drawButton(ctx, END_BTNS[2], "回到首頁", { size: 18, focus: focus===2,quiet:true,scrollText:true,visualOffsetY:-5 });
 
     // 最後繪製特寫，提燈與角色輪廓可跨過資訊卡邊框。
     const courierKey = isWon ? "player_win_v1" : "player_kneel_v1";
@@ -2745,11 +2745,19 @@ window.UI = (() => {
       const ph = bounds.height * 2 / 3;
       // drawFrame 的 x 是腳底水平錨點；依各結算素材的透明邊界預留左側安全距離。
       // 寬螢幕仍沿用原本 108，平板/4:3 會自動右移，避免失敗立繪被畫布左緣裁切。
-      const leftAnchorRatio = isWon ? (512 - 111) / 1462 : (612 - 159) / 1161;
-      const portraitX = Math.max(108, bounds.left + 12 + ph * leftAnchorRatio);
       ctx.save();
-      if (window.RENDERER?.drawFrame) window.RENDERER.drawFrame(ctx,courier,window.ART[courierKey]?courierKey:'player',0,portraitX,470,ph);
-      else ctx.drawImage(courier,portraitX-ph*courier.naturalWidth/courier.naturalHeight/2,470-ph,ph*courier.naturalWidth/courier.naturalHeight,ph);
+      // 新版勝利／失敗立繪是完整去背單圖，不能使用舊版的固定裁切座標。
+      const newPortrait = !!window.ART?.[courierKey] && courier.naturalWidth === 900 && courier.naturalHeight === 1200;
+      if (newPortrait) {
+        const pw = ph * courier.naturalWidth / courier.naturalHeight;
+        const left = Math.max(bounds.left + 10, cardX - pw * .65);
+        ctx.drawImage(courier, left, 470 - ph, pw, ph);
+      } else {
+        const leftAnchorRatio = isWon ? (512 - 111) / 1462 : (612 - 159) / 1161;
+        const portraitX = Math.max(108, bounds.left + 12 + ph * leftAnchorRatio);
+        if (window.RENDERER?.drawFrame) window.RENDERER.drawFrame(ctx,courier,window.ART[courierKey]?courierKey:'player',0,portraitX,470,ph);
+        else ctx.drawImage(courier,portraitX-ph*courier.naturalWidth/courier.naturalHeight/2,470-ph,ph*courier.naturalWidth/courier.naturalHeight,ph);
+      }
       ctx.restore();
     }
 
@@ -2788,12 +2796,19 @@ window.UI = (() => {
     // 大尺寸版仿照核准稿：角色與狐狸面具／燈籠留在左側，
     // 右側只放一塊告示紙和七張克制的紙札；狹長螢幕保留原適配排列。
     const panelMid=(panelX+panelR)/2;
-    if(!compact){
-      const courier=window.ART?.player_kneel_v1;
-      if(courier?.naturalWidth && courier?.naturalHeight){
-        const h=410,w=h*courier.naturalWidth/courier.naturalHeight;
+    window.loadPauseRestArt?.();
+    const courier=window.ART?.player_rest_v1;
+    if(courier?.naturalWidth && courier?.naturalHeight){
+      // 手機橫向左側有剩餘留白時保留休息角色；小到放不下則省略，
+      // 但永遠不縮小暫停面板的觸控 hitbox。
+      const margin=panelX-screenBounds().left-8;
+      const h=compact?Math.min(235,margin*courier.naturalHeight/courier.naturalWidth):455;
+      if(h>=125){
+        const w=h*courier.naturalWidth/courier.naturalHeight;
+        const x=compact?panelX-w-5:Math.max(0,panelX-w+18);
+        const y=compact?panelB-h-9:110;
         ctx.save();ctx.globalAlpha=.96;
-        ctx.drawImage(courier,Math.max(0,355-w),132,w,h);
+        ctx.drawImage(courier,x,y,w,h);
         ctx.restore();
       }
     }
@@ -2802,13 +2817,13 @@ window.UI = (() => {
     ctx.textAlign = "center";
     ctx.font = scrollFont(36,"700");
     ctx.fillStyle = "rgba(0, 0, 0, 0.20)";
-    ctx.fillText("暫停", panelMid, 134);
+    ctx.fillText("暫停", panelMid, 146);
     ctx.fillStyle = "#3d2a20";
-    ctx.fillText("暫停", panelMid, 132);
+    ctx.fillText("暫停", panelMid, 144);
 
     ctx.font = scrollFont(13,"700");
     ctx.fillStyle = "#573d2d";
-    ctx.fillText("這一夜先停在這裡", panelMid, 158);
+    ctx.fillText("這一夜先停在這裡", panelMid, 163);
 
     buttons.forEach((b, i) => {
       const label = b.id === "mute" && muted ? b.labelMuted : b.label;
