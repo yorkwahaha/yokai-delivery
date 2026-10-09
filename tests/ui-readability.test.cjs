@@ -8,9 +8,19 @@ function loadUI(width = 585, simulatePaper = false) {
   const env = { window: {}, document: { getElementById: () => ({ getBoundingClientRect: () => ({ width }) }) } };
   if (simulatePaper) {
     env.window.Image = class {
-      constructor(){ this.naturalWidth = 960; this.naturalHeight = 1350; }
-      set src(value){ this._src = value; this.onload?.(); }
-      get src(){ return this._src; }
+      constructor(){ this.naturalWidth = 0; this.naturalHeight = 0; }
+      set src(value){
+        this._src=value;
+        const name=value.split('/').at(-1).split('?')[0];
+        const dimensions={
+          'pause_panel.webp':[326,349],'result_panel.webp':[587,323],
+          'button_primary.webp':[396,80],'button_secondary.webp':[395,85],
+          'button_danger.webp':[397,87],'title_tag.webp':[121,358]
+        };
+        [this.naturalWidth,this.naturalHeight]=dimensions[name]||[0,0];
+        this.onload?.();
+      }
+      get src(){return this._src;}
     };
   }
   vm.runInNewContext(fs.readFileSync('js/ui.js', 'utf8'), env);
@@ -134,16 +144,57 @@ test('pause and settlement use physical boards, buttons use chamfered wooden tag
   assert.ok(polygonSegments>20,'wood placards and hand-bound noticeboard use cut-angle paths');
 });
 
-test('loaded hand-inked washi assets replace procedural ledger, notice and wooden buttons',()=>{
+test('approved illustrated WebP art replaces procedural panels with genuine sliced illustrations',()=>{
   const r=loadUI(900,true), draws=[];
   r.context.drawImage=(...a)=>draws.push(a);
   r.UI.drawEndScreen(r.context,'lost',210,0,0,[]);
-  assert.ok(draws.some(a=>a[0].src?.includes('ledger_washi.webp')),'settlement must use raster paper');
-  assert.ok(draws.some(a=>a[0].src?.includes('ofuda_')),'settlement actions must use raster paper slips');
+  assert.ok(draws.some(a=>a[0].src?.includes('result_panel.webp')),'settlement must draw illustrated result panel');
+  assert.ok(draws.some(a=>a[0].src?.includes('button_')),'settlement buttons must use hand-painted artwork');
   draws.length=0;
   r.UI.drawPauseMenu(r.context,false,0);
-  assert.ok(draws.some(a=>a[0].src?.includes('notice_washi.webp')),'pause should use the paper notice');
-  assert.ok(draws.some(a=>a[0].src?.includes('ofuda_vermilion.webp')),'primary action remains distinct');
+  assert.ok(draws.some(a=>a[0].src?.includes('pause_panel.webp')),'pause should use the paper notice');
+  assert.ok(draws.some(a=>a[0].src?.includes('button_primary.webp')),'primary action remains distinct');
+});
+
+test('approved UI artwork is text-free WebP and stays under a 110 KB payload',()=>{
+  const path=require('node:path');
+  const dir='assets/img/ui/illustrated';
+  const names=['pause_panel','result_panel','button_primary','button_secondary','button_danger','title_tag'];
+  let total=0;
+  for(const name of names){
+    const p=path.join(dir,name+'.webp');
+    const bytes=fs.readFileSync(p);
+    assert.equal(bytes.toString('ascii',0,4),'RIFF');
+    assert.equal(bytes.toString('ascii',8,12),'WEBP');
+    total+=bytes.length;
+  }
+  assert.ok(total<=110*1024,'new illustration payload must remain lightweight');
+});
+
+test('approved nine-slice and three-slice drawings remain valid on five device proportions',()=>{
+  for(const [name,width,height] of [
+    ['desktop',1440,810],['tablet-landscape',1024,768],['tablet-portrait',768,1024],
+    ['phone-landscape',844,390],['phone-portrait',390,844]
+  ]){
+    const r=loadUI(width,true);
+    r.env.window.innerWidth=width;r.env.window.innerHeight=height;
+    vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
+    const vp=r.env.window.VIEWPORT.get();
+    assert.ok(vp.scale>0 && Number.isFinite(vp.scale),name+' scale');
+    const draws=[];
+    r.context.drawImage=(...args)=>draws.push(args);
+    assert.doesNotThrow(()=>r.UI.drawPauseMenu(r.context,false,0),name+' pause');
+    assert.doesNotThrow(()=>r.UI.drawEndScreen(r.context,'lost',210,0,0,[]),name+' result');
+    assert.ok(draws.some(a=>a[0].src?.includes('pause_panel.webp')),name+' pause image');
+    assert.ok(draws.some(a=>a[0].src?.includes('result_panel.webp')),name+' result image');
+    for(const a of draws){
+      if(!a[0].src?.includes('assets/img/ui/illustrated/')||a.length!==9)continue;
+      const [sx,sy,sw,sh,dx,dy,dw,dh]=a.slice(1);
+      for(const value of [sx,sy,sw,sh,dx,dy,dw,dh])assert.ok(Number.isFinite(value),name+' finite slices');
+      assert.ok(sw>0&&sh>0&&dw>0&&dh>0,name+' no degenerate slices');
+      assert.ok(sx>=0&&sy>=0&&sx+sw<=a[0].naturalWidth+0.01&&sy+sh<=a[0].naturalHeight+0.01,name+' source bounds');
+    }
+  }
 });
 
 test('woodblock UI reuses a paper-wash panel instead of the old glass sheen',()=>{

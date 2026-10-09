@@ -10,10 +10,11 @@ test('injury floating words have bright fill and solid ink outline in the active
   assert.ok(from>=0&&to>from);
   assert.match(block,/受創\|妖火灼身/);
   assert.match(block,/strokeText\(t\.v, t\.x, t\.y\)/);
-  assert.match(block,/#17151a/);
-  assert.match(block,/#fff1b6/);
-  assert.match(block,/lineWidth = 3\.2/);
+  assert.match(block,/#211719/);
+  assert.match(block,/#fff4d3/);
+  assert.match(block,/lineWidth = 2\.6/);
   assert.match(block,/clamp\(t.life \* 1\.15/);
+  assert.match(block,/ctx.font = UI.readableFont\(17, "bold"\)/);
   assert.doesNotMatch(block,/lineWidth = 6/);
   const injury = src.slice(src.indexOf('const say ='), src.indexOf('const burst ='));
   assert.match(injury,/t.life = Math.min\(t.life, 0\.12\)/);

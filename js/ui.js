@@ -94,20 +94,20 @@ window.UI = (() => {
     }
     ctx.restore();
   }
-  // 預先烘焙的和紙水墨貼圖；即使載入較慢也可安全使用 Canvas 備援。
-  const washiArt = Object.create(null);
+  // 核准美術圖檔：不再使用程式生成的和紙作主底板。
+  const illustratedArt = Object.create(null);
   if (typeof window.Image === "function") {
     for (const [name, file] of [
-      ["ledger", "ledger_washi"], ["notice", "notice_washi"],
-      ["neutral", "ofuda_neutral"], ["vermilion", "ofuda_vermilion"],
-      ["cyan", "ofuda_cyan"]
+      ["ledger", "result_panel"], ["notice", "pause_panel"],
+      ["neutral", "button_secondary"], ["primary", "button_primary"],
+      ["danger", "button_danger"], ["title", "title_tag"]
     ]) {
       const image = new window.Image();
       image.decoding = "async";
       image.fetchPriority = "low";
-      image.onload = () => { washiArt[name] = image; };
+      image.onload = () => { illustratedArt[name] = image; };
       image.onerror = () => { /* 無素材時維持程式備援 */ };
-      image.src = `assets/img/ui/${file}.webp?v=20261009-washi3`;
+      image.src = `assets/img/ui/illustrated/${file}.webp?v=20261009-final-art1`;
     }
   }
   function drawWashiSlices(ctx, image, x, y, w, h, cropX, cropY, padX, padY) {
@@ -126,7 +126,17 @@ window.UI = (() => {
     }
   }
 
-  // 舊木牌作為 WebP 失敗時的繪圖備援；hitbox 使用原 b 矩形。
+  // 3-slice：左右裝飾保持原始比例，中央可自由延展。
+  function drawRibbonSlices(ctx, image, x, y, w, h, left = 62, right = 58) {
+    const iw = image.naturalWidth, ih = image.naturalHeight;
+    if (!iw || !ih || w <= 0 || h <= 0) return;
+    // 依按鈕高度等比縮放端飾；只讓中段水平延展。
+    const dl = Math.min(left * h / ih, w * .27), dr = Math.min(right * h / ih, w * .27);
+    ctx.drawImage(image, 0, 0, left, ih, x, y, dl, h);
+    ctx.drawImage(image, left, 0, iw-left-right, ih, x+dl, y, w-dl-dr, h);
+    ctx.drawImage(image, iw-right, 0, right, ih, x+w-dr, y, dr, h);
+  }
+  // 舊木牌僅作 WebP 失敗時的備援。hitbox 保留原矩形。
   function tagPath(ctx,x,y,w,h,cut=11) {
     const c=Math.max(2,Math.min(cut,w*.08,h*.27));
     ctx.beginPath();
@@ -136,11 +146,11 @@ window.UI = (() => {
     ctx.lineTo(x,y+h-c);ctx.lineTo(x,y+c);ctx.closePath();
   }
   function drawWoodTag(ctx,b,tone="normal",disabled=false) {
-    const tagArt = washiArt[tone === "primary" || tone === "danger" ? "vermilion" : tone === "cyan" ? "cyan" : "neutral"];
+    const tagArt = illustratedArt[tone === "primary" ? "primary" : tone === "danger" ? "danger" : "neutral"];
     if (tagArt?.naturalWidth) {
       ctx.save();
       if (disabled) ctx.globalAlpha = 0.56;
-      drawWashiSlices(ctx,tagArt,b.x,b.y,b.w,b.h,42,44,14,Math.min(12,b.h * .24));
+      drawRibbonSlices(ctx,tagArt,b.x,b.y,b.w,b.h);
       ctx.restore();
       return;
     }
@@ -182,11 +192,11 @@ window.UI = (() => {
 
   // 和紙旅帳／告示板：素材正常時使用墨染和紙貼圖，程式木框只作備援。
   function drawWashiBoard(ctx,x,y,w,h,ledger=false) {
-    const art = washiArt[ledger ? "ledger" : "notice"];
+    const art = illustratedArt[ledger ? "ledger" : "notice"];
     if (art?.naturalWidth) {
       ctx.save();
-      if (ledger) ctx.drawImage(art,x,y,w,h);
-      else drawWashiSlices(ctx,art,x,y,w,h,70,83,26,26);
+      if (ledger) drawWashiSlices(ctx,art,x,y,w,h,54,51,54,51);
+      else drawWashiSlices(ctx,art,x,y,w,h,40,50,40,50);
       ctx.restore();
       return;
     }
@@ -283,12 +293,14 @@ window.UI = (() => {
     const labelW=b.w-(showIcon?70:48);
     const x=b.x+b.w/2+(showIcon?14:0);
     const y=b.y+b.h/2+fontPx(ctx.font)*.35;
-    ctx.fillStyle="rgba(18,13,12,.72)";
-    ctx.fillText(label,x+1,y+2,labelW);
-    ctx.fillStyle=disabled?"#b2a28b":t.text;
+    const painted = !!illustratedArt[tone === "primary" ? "primary" : tone === "danger" ? "danger" : "neutral"]?.naturalWidth;
+    const darkLettering = painted && tone !== "primary" && tone !== "danger";
+    ctx.fillStyle = darkLettering ? "rgba(255,240,214,.4)" : "rgba(18,13,12,.55)";
+    ctx.fillText(label,x+1,y+1,labelW);
+    ctx.fillStyle=disabled?"#b7a28a":darkLettering?"#332722":t.text;
     ctx.fillText(label,x,y,labelW);
     if(showIcon){
-      ctx.fillStyle=ctx.strokeStyle=disabled?"#b2a28b":C.goldHi;
+      ctx.fillStyle=ctx.strokeStyle=disabled?"#b2a28b":darkLettering?"#594335":C.goldHi;
       drawActionIcon(ctx,icon,b.x+31,b.y+b.h/2,9);
     }
     if(focus)drawMenuFocus(ctx,b);
@@ -298,9 +310,9 @@ window.UI = (() => {
     ctx.save();
     ctx.fillStyle = 'rgba(6,8,18,0.84)';fillScreen(ctx);
     drawWashiBoard(ctx,160,160,580,270,false);
-    ctx.textAlign = 'center';ctx.fillStyle = '#ffe3ad';ctx.font = readableFont(24,'900');
+    ctx.textAlign = 'center';ctx.fillStyle = '#3a291f';ctx.font = readableFont(24,'900');
     ctx.fillText('是否放棄本局？',450,215);
-    ctx.fillStyle = '#edf2ff';ctx.font = readableFont(15);
+    ctx.fillStyle = '#46342a';ctx.font = readableFont(15);
     ctx.fillText('將返回首頁，本局未結算的成績不會記錄。',450,260);
     ctx.fillText('已儲存的單字學習紀錄會保留。',450,290);
     EXIT_BTNS.forEach((b,i)=>drawButton(ctx,b,i===0?'繼續本局':'放棄並回首頁',{tone:i===0?'cyan':'danger',focus:i===focus}));
@@ -2644,29 +2656,30 @@ window.UI = (() => {
     const cardX = 210, cardY = 54, cardW = 652, cardH = 430;
     const mid = cardX + cardW / 2;
     drawWashiBoard(ctx,cardX,cardY,cardW,cardH,true);
-
+    // 朱紅題籤以手繪底圖呈現，標題文字仍由程式渲染。
+    drawWoodTag(ctx,{x:mid-139,y:cardY+12,w:278,h:58},"primary");
     ctx.textAlign = "center";
     // 木框旅帳標題保留清晰描墨，不增加漂浮光環。
     ctx.font = titleFont(32);
     ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
     ctx.fillText(isWon ? "夜已破曉" : "燈油已盡", mid, cardY + 63);
-    ctx.fillStyle = isWon ? "#ffe0a4" : "#f0c2bc";
+    ctx.fillStyle = "#f6e9ce";
     ctx.fillText(isWon ? "夜已破曉" : "燈油已盡", mid, cardY + 60);
 
     // 線條與裝飾已融入紙張貼圖，不再以數位等距分隔線覆蓋。
 
     // 分數：直接放大，不另加框；新紀錄用發亮字，否則以淡字顯示歷史最高。
     ctx.font = titleFont(60);
-    ctx.fillStyle = "#fff1cc";
+    ctx.fillStyle = "#382b22";
     ctx.fillText(score.toLocaleString(), mid, cardY + 160);
     if (summary.newBest) {
       glow(ctx, mid, cardY + 186, 150, C.goldHi, 0.4 * pulse(4, 0.4));
-      ctx.fillStyle = C.goldHi;
+      ctx.fillStyle = "#8c4737";
       ctx.font = readableFont(15, "900");
       ctx.fillText("新紀錄！", mid, cardY + 190);
     } else if (summary.prevBest > 0) {
       ctx.font = readableFont(13, "700");
-      ctx.fillStyle = C.dim;
+      ctx.fillStyle = "#654735";
       ctx.fillText(`最高 ${summary.prevBest.toLocaleString()}`, mid, cardY + 190);
     }
 
@@ -2674,8 +2687,8 @@ window.UI = (() => {
     const statY = cardY + 230;
     ctx.font = "900 24px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
     const stats = [
-      [`送達  ${delivered} 件`, "#f4e7cf"],
-      [`誤配  ${failed} 件`, failed > 0 ? "#f0b8b4" : "rgba(244, 231, 207, 0.55)"]
+      [`送達  ${delivered} 件`, "#3c3026"],
+      [`誤配  ${failed} 件`, failed > 0 ? "#814e3c" : "#887160"]
     ];
     const pairGap = 72, statW = stats.map(([label]) => ctx.measureText(label).width);
     let sx = mid - (statW[0] + statW[1] + pairGap) / 2;
@@ -2691,10 +2704,10 @@ window.UI = (() => {
     let summaryY = statY;
     if (summary.learning) {
       const l = summary.learning;
-      ctx.font = readableFont(15,"700"); ctx.fillStyle = C.text;
+      ctx.font = readableFont(15,"700"); ctx.fillStyle = "#423127";
       summaryY += summaryStep;
       ctx.fillText(`今夜練習 ${l.practiced} 字・待複習 ${l.review} 字`,mid,summaryY);
-      ctx.fillStyle = C.goldHi;
+      ctx.fillStyle = "#864b37";
       summaryY += summaryStep;
       ctx.fillText(`熟練星：升星 +${l.gained}・降星 −${l.lost}`,mid,summaryY);
     }
@@ -2702,11 +2715,11 @@ window.UI = (() => {
     const reviewList = reviewWords.slice(0, 5);
     ctx.font = readableFont(15, "700");
     if (reviewList.length > 0) {
-      ctx.fillStyle = "rgba(255, 214, 196, 0.9)";
+      ctx.fillStyle = "#854b40";
       summaryY += summaryStep;
       ctx.fillText(`今夜記錯的字：共 ${reviewWords.length} 字${reviewWords.length > 5 ? "，僅顯示前 5 字" : ""}`, mid, summaryY);
       ctx.font = readableFont(16, "700");
-      ctx.fillStyle = "#fff6ea";
+      ctx.fillStyle = "#382d27";
       const parts = reviewList.map(w => `${w.jp}（${w.zh}）`);
       const lineY = summaryY + Math.max(28,fontPx(ctx.font)*1.25);
       const lineStep = fontPx(ctx.font) * 1.25;
@@ -2772,11 +2785,11 @@ window.UI = (() => {
     ctx.font = titleFont(36);
     ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
     ctx.fillText("暫停", W / 2, 135);
-    ctx.fillStyle = C.goldHi;
+    ctx.fillStyle = "#3d2a20";
     ctx.fillText("暫停", W / 2, 132);
 
     ctx.font = readableFont(13, "bold");
-    ctx.fillStyle = "rgba(255, 235, 180, 0.72)";
+    ctx.fillStyle = "#573d2d";
     ctx.fillText("這一夜先停在這裡", W / 2, 158);
 
     buttons.forEach((b, i) => {
@@ -2784,7 +2797,7 @@ window.UI = (() => {
       drawButton(ctx, b, label, { tone: b.tone || "normal", size: b.tone === "primary" ? 18 : 15, focus: i === focus });
     });
 
-    ctx.fillStyle = "rgba(255, 235, 180, 0.62)";
+    ctx.fillStyle = "#624633";
     ctx.font = readableFont(12, "");
     ctx.fillText("上下選擇 · Enter／A 確認 · Esc／B 繼續", W / 2, panelB - 14);
 

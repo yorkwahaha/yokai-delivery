@@ -2443,17 +2443,14 @@
       ctx.save();
       ctx.globalAlpha = injury ? clamp(t.life * 1.15, 0, 1) : clamp(t.life, 0, 1);
       ctx.textAlign = "center";
-      ctx.font = UI.readableFont(injury ? 20 : 17, injury ? "900" : "bold");
+      ctx.font = UI.readableFont(17, "bold");
       if (injury) {
         ctx.lineJoin = "round";
-        ctx.strokeStyle = "#17151a";
-        ctx.lineWidth = 3.2;
-        ctx.strokeText(t.v, t.x, t.y);
-        ctx.strokeStyle = "#fff9e8";
-        ctx.lineWidth = 0.65;
+        ctx.strokeStyle = "#211719";
+        ctx.lineWidth = 2.6;
         ctx.strokeText(t.v, t.x, t.y);
       }
-      ctx.fillStyle = injury ? "#fff1b6" : t.c;
+      ctx.fillStyle = injury ? "#fff4d3" : t.c;
       ctx.fillText(t.v, t.x, t.y);
       ctx.restore();
     }
