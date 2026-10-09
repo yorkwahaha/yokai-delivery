@@ -2,10 +2,17 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
-function loadUI(width = 585) {
+function loadUI(width = 585, simulatePaper = false) {
   const texts = [], gradient = { addColorStop() {} };
   const context = new Proxy({ fillText: (value, x, y) => texts.push({ value, x, y }), measureText: value => ({ width: [...value].length * 20 }), createLinearGradient: () => gradient, createRadialGradient: () => gradient }, { get: (o, k) => o[k] || (() => {}) });
   const env = { window: {}, document: { getElementById: () => ({ getBoundingClientRect: () => ({ width }) }) } };
+  if (simulatePaper) {
+    env.window.Image = class {
+      constructor(){ this.naturalWidth = 960; this.naturalHeight = 1350; }
+      set src(value){ this._src = value; this.onload?.(); }
+      get src(){ return this._src; }
+    };
+  }
   vm.runInNewContext(fs.readFileSync('js/ui.js', 'utf8'), env);
   return { UI: env.window.UI, context, texts, env };
 }
@@ -125,6 +132,18 @@ test('pause and settlement use physical boards, buttons use chamfered wooden tag
   r.context.lineTo=()=>polygonSegments++;
   r.UI.drawPauseMenu(r.context,false,1);
   assert.ok(polygonSegments>20,'wood placards and hand-bound noticeboard use cut-angle paths');
+});
+
+test('loaded hand-inked washi assets replace procedural ledger, notice and wooden buttons',()=>{
+  const r=loadUI(900,true), draws=[];
+  r.context.drawImage=(...a)=>draws.push(a);
+  r.UI.drawEndScreen(r.context,'lost',210,0,0,[]);
+  assert.ok(draws.some(a=>a[0].src?.includes('ledger_washi.webp')),'settlement must use raster paper');
+  assert.ok(draws.some(a=>a[0].src?.includes('ofuda_')),'settlement actions must use raster paper slips');
+  draws.length=0;
+  r.UI.drawPauseMenu(r.context,false,0);
+  assert.ok(draws.some(a=>a[0].src?.includes('notice_washi.webp')),'pause should use the paper notice');
+  assert.ok(draws.some(a=>a[0].src?.includes('ofuda_vermilion.webp')),'primary action remains distinct');
 });
 
 test('woodblock UI reuses a paper-wash panel instead of the old glass sheen',()=>{

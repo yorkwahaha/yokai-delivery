@@ -94,7 +94,39 @@ window.UI = (() => {
     }
     ctx.restore();
   }
-  // 尖角切邊的手工木牌／御札外形，hitbox 仍使用原 b 矩形。
+  // 預先烘焙的和紙水墨貼圖；即使載入較慢也可安全使用 Canvas 備援。
+  const washiArt = Object.create(null);
+  if (typeof window.Image === "function") {
+    for (const [name, file] of [
+      ["ledger", "ledger_washi"], ["notice", "notice_washi"],
+      ["neutral", "ofuda_neutral"], ["vermilion", "ofuda_vermilion"],
+      ["cyan", "ofuda_cyan"]
+    ]) {
+      const image = new window.Image();
+      image.decoding = "async";
+      image.fetchPriority = "low";
+      image.onload = () => { washiArt[name] = image; };
+      image.onerror = () => { /* 無素材時維持程式備援 */ };
+      image.src = `assets/img/ui/${file}.webp?v=20261009-washi2`;
+    }
+  }
+  function drawWashiSlices(ctx, image, x, y, w, h, cropX, cropY, padX, padY) {
+    const iw = image.naturalWidth, ih = image.naturalHeight;
+    const sw = [cropX, iw - cropX * 2, cropX], sh = [cropY, ih - cropY * 2, cropY];
+    const px = Math.min(padX, w / 3), py = Math.min(padY, h / 3);
+    const dw = [px, w - 2 * px, px], dh = [py, h - 2 * py, py];
+    let sy = 0, dy = y;
+    for (let row = 0; row < 3; row++) {
+      let sx = 0, dx = x;
+      for (let col = 0; col < 3; col++) {
+        ctx.drawImage(image, sx, sy, sw[col], sh[row], dx, dy, dw[col], dh[row]);
+        sx += sw[col]; dx += dw[col];
+      }
+      sy += sh[row]; dy += dh[row];
+    }
+  }
+
+  // 舊木牌作為 WebP 失敗時的繪圖備援；hitbox 使用原 b 矩形。
   function tagPath(ctx,x,y,w,h,cut=11) {
     const c=Math.max(2,Math.min(cut,w*.08,h*.27));
     ctx.beginPath();
@@ -104,6 +136,14 @@ window.UI = (() => {
     ctx.lineTo(x,y+h-c);ctx.lineTo(x,y+c);ctx.closePath();
   }
   function drawWoodTag(ctx,b,tone="normal",disabled=false) {
+    const tagArt = washiArt[tone === "primary" || tone === "danger" ? "vermilion" : tone === "cyan" ? "cyan" : "neutral"];
+    if (tagArt?.naturalWidth) {
+      ctx.save();
+      if (disabled) ctx.globalAlpha = 0.56;
+      drawWashiSlices(ctx,tagArt,b.x,b.y,b.w,b.h,42,44,14,Math.min(12,b.h * .24));
+      ctx.restore();
+      return;
+    }
     const t=BUTTON_TONES[tone] || BUTTON_TONES.normal;
     const {x,y,w,h}=b;
     ctx.save();
@@ -140,8 +180,16 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  // 紙木告示板／夜行旅帳：明確不同於數位 modal 的切邊紙面、木框、掛繩與卷軸軸心。
+  // 和紙旅帳／告示板：素材正常時使用墨染和紙貼圖，程式木框只作備援。
   function drawWashiBoard(ctx,x,y,w,h,ledger=false) {
+    const art = washiArt[ledger ? "ledger" : "notice"];
+    if (art?.naturalWidth) {
+      ctx.save();
+      if (ledger) ctx.drawImage(art,x,y,w,h);
+      else drawWashiSlices(ctx,art,x,y,w,h,70,83,26,26);
+      ctx.restore();
+      return;
+    }
     ctx.save();
     ctx.translate(x,y);
     ctx.fillStyle="rgba(8,7,8,.55)";
@@ -199,14 +247,23 @@ window.UI = (() => {
 
   function drawMenuFocus(ctx, btn) {
     if (!btn) return;
-    const bright=pulse(4,.7);
-    ctx.save();ctx.lineJoin="round";
-    ctx.strokeStyle=`rgba(248,222,159,${.6+.35*bright})`;
-    ctx.lineWidth=2.8;
-    tagPath(ctx,btn.x-4,btn.y-4,btn.w+8,btn.h+8,12);ctx.stroke();
-    ctx.strokeStyle=`rgba(248,222,159,${.24+.16*bright})`;
-    ctx.lineWidth=5.5;
-    tagPath(ctx,btn.x-2,btn.y-2,btn.w+4,btn.h+4,10);ctx.stroke();
+    const pulseStrength = 0.72 + 0.24 * pulse(4,.6);
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.strokeStyle = `rgba(247, 213, 145, ${pulseStrength})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(btn.x + Math.min(24,btn.w*.1), btn.y + btn.h - 4);
+    ctx.bezierCurveTo(btn.x + btn.w*.29, btn.y + btn.h - 2,
+      btn.x + btn.w*.65, btn.y + btn.h - 6,
+      btn.x + btn.w - Math.min(26,btn.w*.1), btn.y + btn.h - 4);
+    ctx.stroke();
+    // Only one vermilion seal; no glowing digital selection rectangle.
+    ctx.globalAlpha = pulseStrength;
+    ctx.fillStyle = "#b75f4d";
+    ctx.beginPath();
+    ctx.arc(btn.x + 10, btn.y + btn.h * .5, 3.5,0,Math.PI*2);
+    ctx.fill();
     ctx.restore();
   }
 
@@ -2587,7 +2644,6 @@ window.UI = (() => {
     const cardX = 210, cardY = 54, cardW = 652, cardH = 430;
     const mid = cardX + cardW / 2;
     drawWashiBoard(ctx,cardX,cardY,cardW,cardH,true);
-    drawWoodTag(ctx,{x:mid-129,y:cardY+10,w:258,h:62},isWon?"primary":"danger");
 
     ctx.textAlign = "center";
     // 木框旅帳標題保留清晰描墨，不增加漂浮光環。
@@ -2597,16 +2653,7 @@ window.UI = (() => {
     ctx.fillStyle = isWon ? "#ffe0a4" : "#f0c2bc";
     ctx.fillText(isWon ? "夜已破曉" : "燈油已盡", mid, cardY + 60);
 
-    ctx.strokeStyle = "rgba(232, 188, 106, 0.4)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(cardX + 48, cardY + 84);
-    ctx.lineTo(mid - 8, cardY + 84);
-    ctx.moveTo(mid + 8, cardY + 84);
-    ctx.lineTo(cardX + cardW - 48, cardY + 84);
-    ctx.stroke();
-    ctx.fillStyle = C.gold;
-    ctx.save(); ctx.translate(mid, cardY + 84); ctx.rotate(Math.PI / 4); ctx.fillRect(-3, -3, 6, 6); ctx.restore();
+    // 線條與裝飾已融入紙張貼圖，不再以數位等距分隔線覆蓋。
 
     // 分數：直接放大，不另加框；新紀錄用發亮字，否則以淡字顯示歷史最高。
     ctx.font = titleFont(60);
@@ -2720,7 +2767,6 @@ window.UI = (() => {
     const panelR = Math.max(...buttons.map(b => b.x + b.w)) + 24;
     const panelB = Math.max(...buttons.map(b => b.y + b.h)) + 28;
     drawWashiBoard(ctx,panelX,panelY,panelR-panelX,panelB-panelY,false);
-    drawWoodTag(ctx,{x:W/2-98,y:panelY+9,w:196,h:47},"primary");
 
     ctx.textAlign = "center";
     ctx.font = titleFont(36);

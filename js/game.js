@@ -2428,15 +2428,26 @@
       ctx.restore();
     }
 
-    // 14. 飄字（發光粒子在夜色遮罩之後以加法混色繪製）
+    // 14. 飄字：受傷提示用高對比墨邊 + 亮色字，避免被褐色場景吞掉。
     for (const t of texts) {
-      ctx.globalAlpha = clamp(t.life, 0, 1);
+      const injury = typeof t.v === "string" && /^(受創|妖火灼身)/.test(t.v);
+      ctx.save();
+      ctx.globalAlpha = injury ? clamp(t.life * 0.85 + 0.3, 0, 1) : clamp(t.life, 0, 1);
       ctx.textAlign = "center";
-      ctx.font = UI.readableFont(17, "bold");
-      ctx.fillStyle = t.c;
+      ctx.font = UI.readableFont(injury ? 20 : 17, injury ? "900" : "bold");
+      if (injury) {
+        ctx.lineJoin = "round";
+        ctx.strokeStyle = "#17151a";
+        ctx.lineWidth = 6;
+        ctx.strokeText(t.v, t.x, t.y);
+        ctx.strokeStyle = "#fff9e8";
+        ctx.lineWidth = 1.4;
+        ctx.strokeText(t.v, t.x, t.y);
+      }
+      ctx.fillStyle = injury ? "#fff1b6" : t.c;
       ctx.fillText(t.v, t.x, t.y);
+      ctx.restore();
     }
-    ctx.globalAlpha = 1;
 
     // 15. 浮動傷害數字
     RENDERER.drawDamageNumbers();

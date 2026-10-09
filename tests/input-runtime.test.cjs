@@ -3,6 +3,18 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 
+test('injury floating words have bright fill and solid ink outline in the active game draw path',()=>{
+  const src=fs.readFileSync('js/game.js','utf8');
+  const from=src.indexOf('// 14. 飄字'),to=src.indexOf('// 15. 浮動傷害數字',from);
+  const block=src.slice(from,to);
+  assert.ok(from>=0&&to>from);
+  assert.match(block,/受創\|妖火灼身/);
+  assert.match(block,/strokeText\(t\.v, t\.x, t\.y\)/);
+  assert.match(block,/#17151a/);
+  assert.match(block,/#fff1b6/);
+  assert.match(block,/lineWidth = 6/);
+});
+
 function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') {
   const events = {}, canvasEvents = {}, documentEvents = {};
   const gradient = { addColorStop() {} };
