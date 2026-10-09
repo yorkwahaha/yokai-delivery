@@ -219,7 +219,7 @@ test('approved nine-slice and three-slice drawings remain valid on five device p
   }
 });
 
-test('level-up illustrated cards preserve slice geometry on desktop tablet and phone viewports',()=>{
+test('readability-first level-up only uses the scroll frame and reroll artwork across viewports',()=>{
   for (const [name,width,height] of [
     ['desktop',1440,810],['tablet-horizontal',1024,768],['tablet-vertical',768,1024],
     ['phone-horizontal',844,390],['phone-vertical',390,844]
@@ -234,8 +234,8 @@ test('level-up illustrated cards preserve slice geometry on desktop tablet and p
       {type:'passive',id:'oil',n:'添燈香油',s:'かいふく',d:'恢復燈油',levelText:'◆ 體質修行'}
     ],{katana:1},{katana:{zh:'妖刀斬'}},2,0,2,'gamepad');
     assert.ok(images.some(a=>a[0].src?.includes('result_panel.webp')),name+' main panel');
-    assert.ok(images.some(a=>a[0].src?.includes('button_primary.webp')),name+' focused card');
-    assert.ok(images.some(a=>a[0].src?.includes('button_secondary.webp')),name+' unselected cards');
+    assert.ok(!images.some(a=>a[0].src?.includes('button_primary.webp')),name+' no repeated ornate cards');
+    assert.ok(images.some(a=>a[0].src?.includes('button_secondary.webp')),name+' reroll retains small painted control');
     for(const a of images.filter(a=>a[0].src?.includes('/ui/illustrated/'))){
       assert.equal(a.length,9,name+' source/destination slicing');
       const [sx,sy,sw,sh,dx,dy,dw,dh]=a.slice(1);
@@ -260,8 +260,11 @@ test('woodblock UI reuses a paper-wash panel instead of the old glass sheen',()=
     {type:'passive',id:'shield',n:'神足草履',s:'いどう',d:'移動速度上升',lv:1}
   ],{katana:1},{katana:{zh:'妖刀斬'}},2,0,1,'gamepad');
   assert.ok(images.some(a=>a[0].src?.includes('result_panel.webp')),'level page uses approved washi scroll');
-  assert.ok(images.some(a=>a[0].src?.includes('button_primary.webp')),'focused option uses approved vermilion art');
-  assert.ok(images.some(a=>a[0].src?.includes('button_secondary.webp')),'normal option uses approved paper art');
+  assert.ok(!images.some(a=>a[0].src?.includes('button_primary.webp')),'no decorative full-width ribbons on choices');
+  assert.ok(images.some(a=>a[0].src?.includes('button_secondary.webp')),'reroll retains a painted paper button');
+  const levelPart=src.slice(src.indexOf('function drawLevelUp('),src.indexOf('// 4.',src.indexOf('function drawLevelUp(')));
+  assert.match(levelPart,/readableFont\(25,"900"\)/,'skill names are larger');
+  assert.match(levelPart,/readableFont\(20,"700"\)/,'skill descriptions are larger');
   assert.ok(illustrated.texts.some(x=>x.value.includes('左搖桿')),'Xbox button legend is visible');
   const r=loadUI(568);
   assert.doesNotThrow(()=>r.UI.drawLevelUp(r.context,2,[{type:'weapon',id:'katana',n:'妖刀斬',s:'かたな',d:'向前斬擊',lv:1}],{}, {},1));
@@ -273,7 +276,7 @@ test('small-screen level-up descriptions and settlement review lines keep readab
   const labels=[];r.context.measureText=value=>({width:[...String(value)].length*parseFloat(r.context.font.match(/([\d.]+)px/)[1])});
   r.context.fillText=(value,x,y)=>labels.push({value,x,y,size:parseFloat(r.context.font.match(/([\d.]+)px/)[1])});
   r.UI.drawLevelUp(r.context,3,[{type:'passive',id:'shield',n:'金剛結界',s:'けっかい',d:'恢復燈油並震退周圍妖怪'.repeat(3)}],{katana:1},{katana:{zh:'妖刀斬'}},2);
-  const description=labels.filter(l=>l.x===170 && l.y>=240),name=labels.find(l=>l.value==='妖刀斬');
+  const description=labels.filter(l=>l.x===170 && l.y>=240),name=labels.find(l=>l.value.startsWith('妖刀斬'));
   assert.equal(description.length,2);assert.ok(description[1].y-description[0].y>=description[0].size*1.1);
   assert.ok(name.size*r.env.window.VIEWPORT.get().scale>=14);
   assert.ok(labels.find(l=>l.value==='金剛結界').size*r.env.window.VIEWPORT.get().scale>=14);

@@ -2237,123 +2237,91 @@ window.UI = (() => {
   }
 
 
-  // 3. 升級三選一：直接組合已核准的卷物與御札 WebP，避免現代玻璃 HUD。
-  // 卡片幾何不變，沿用 game.js 原本 720×108 的觸控 hitbox。
+  // 3. 升級三選一：閱讀優先。只使用一張和紙外框，選項不再重複大面積花飾。
+  // 卡片位置必須與 game.js 的 720×108、122 行距 hitbox 一致。
   const LEVEL_CARD_LAYOUT = {x:90,y:176,w:720,h:108,gap:14};
-  function drawLevelUp(ctx, level, choices, WL, WI, rerolls = 0, time = Date.now() / 1000, focus = 0, inputMode = "keyboard") {
+  function drawLevelUp(ctx, level, choices, WL, WI, rerolls = 0, time = Date.now()/1000, focus = 0, inputMode = "keyboard") {
     ctx.save();
-    ctx.fillStyle = "rgba(6, 8, 16, 0.88)";
+    ctx.fillStyle="rgba(6,8,16,.89)";
     fillScreen(ctx);
-
-    // 一本淺色夜行修行帖：角飾／櫻花／卷軸保持與正式結算畫面一致。
-    drawWashiBoard(ctx, 55, 54, 790, 530, true);
-    const header={id:"level-title",x:295,y:18,w:310,h:57};
-    drawWoodTag(ctx,header,"primary");
+    ctx.globalAlpha=.88;
+    drawWashiBoard(ctx,55,38,790,547,true);
+    ctx.globalAlpha=1;
     ctx.textAlign="center";
-    ctx.fillStyle="#fff0d1";
-    ctx.font=titleFont(29);
-    ctx.fillText(`修行進階・Lv.${level}`, W/2, 57);
+    ctx.font=titleFont(30);ctx.fillStyle="#39271f";
+    ctx.fillText("修行進階  Lv."+level,W/2,87);
 
-    // 同一張手繪紙牌承載既有四個主動技槽，取消透明黑框與虛線槽。
-    const barX=140,barY=84,barW=620,barH=76;
-    const paper=illustratedArt.neutral;
-    if(paper?.naturalWidth)drawRibbonSlices(ctx,paper,barX,barY,barW,barH);
-    else drawWoodTag(ctx,{x:barX,y:barY,w:barW,h:barH},"normal");
+    // 簡潔技能列表：小字槽改為一條易讀的已習得摘要。
+    ctx.fillStyle="rgba(249,239,217,.93)";
+    ctx.beginPath();ctx.roundRect(110,110,680,49,7);ctx.fill();
+    ctx.strokeStyle="rgba(100,69,49,.45)";ctx.lineWidth=1;ctx.stroke();
+    ctx.textAlign="left";ctx.font=readableFont(15,"900");ctx.fillStyle="#634331";
+    ctx.fillText("已習得",125,142);
     const equipped=WI?Object.keys(WI).filter(k=>(WL[k]||0)>0).slice(0,4):[];
-    ctx.save();
-    ctx.textAlign="center";
     for(let i=0;i<4;i++){
-      const mid=barX+82+i*152;
-      if(i>0){
-        ctx.strokeStyle="rgba(97,64,46,.23)";ctx.lineWidth=1;
-        ctx.beginPath();ctx.moveTo(barX+6+i*152,barY+18);ctx.lineTo(barX+6+i*152,barY+59);ctx.stroke();
-      }
-      const k=equipped[i];
+      const k=equipped[i],x=225+i*137;
       if(k){
-        drawEmblem(ctx,k,mid-48,barY+38,11);
-        ctx.font=readableFont(12,"900");ctx.fillStyle="#35271f";
-        fitText(ctx,WI[k].zh,mid+8,barY+35,104);
-        ctx.font=readableFont(11,"800");
-        ctx.fillText(`Lv.${WL[k]}`,mid+8,barY+54);
+        ctx.font=readableFont(17,"800");ctx.fillStyle="#362820";
+        fitText(ctx,WI[k].zh,x,132,123);
+        ctx.font=readableFont(13,"700");ctx.fillStyle="#725440";
+        ctx.fillText("Lv."+WL[k],x,153);
       }else{
-        ctx.fillStyle="rgba(94,68,51,.34)";
-        ctx.font=readableFont(12,"700");
-        ctx.fillText("空札",mid,barY+44);
+        ctx.font=readableFont(15,"700");ctx.fillStyle="#a6947d";
+        ctx.fillText("—",x,142);
       }
     }
-    ctx.restore();
-
     const {x:cardX,y:cardY,w:cardW,h:cardH,gap}=LEVEL_CARD_LAYOUT;
     choices.forEach((c,i)=>{
       const x=cardX,y=cardY+i*(cardH+gap),selected=i===focus;
-      const weapon=c.type==="weapon",newCard=!!c.levelText&&(/新|NEW/.test(c.levelText));
+      const weapon=c.type==="weapon";
       const awakening=c.lv===5||c.rarity==="max";
-      const cardAsset=illustratedArt[selected?"primary":"neutral"];
-      if(cardAsset?.naturalWidth){
-        // 僅中段可延展；櫻花、金飾、右側流蘇保持正確比例。
-        drawRibbonSlices(ctx,cardAsset,x,y,cardW,cardH);
-      }else{
-        drawWoodTag(ctx,{x,y,w:cardW,h:cardH},selected?"primary":"normal");
-      }
-      const ink=selected?"#fff1d5":"#35271e";
-      const secondary=selected?"#f9dcad":"#644c38";
-
+      ctx.save();
+      ctx.fillStyle=selected?"#fff1dc":"#f3e8d6";
+      ctx.beginPath();ctx.roundRect(x+3,y+3,cardW-6,cardH-6,8);ctx.fill();
+      ctx.lineWidth=selected?2.8:1.15;
+      ctx.strokeStyle=selected?"#a94e38":"rgba(111,78,56,.68)";ctx.stroke();
+      ctx.fillStyle=selected?"#b8503e":"#c7ae91";
+      ctx.fillRect(x+5,y+11,5,cardH-22);
       if(selected){
-        // 和風朱印＋窄金線提示焦點，避免霓虹矩形高光。
-        ctx.fillStyle="#f7d690";
-        ctx.beginPath();ctx.arc(x+69,y+21,4.5,0,Math.PI*2);ctx.fill();
-        ctx.strokeStyle="rgba(255,226,170,.75)";ctx.lineWidth=2;
-        ctx.beginPath();ctx.moveTo(x+94,y+cardH-16);ctx.lineTo(x+cardW-101,y+cardH-16);ctx.stroke();
+        ctx.fillStyle="#b8503e";ctx.beginPath();ctx.arc(x+20,y+21,4,0,Math.PI*2);ctx.fill();
       }
-      ctx.textAlign="center";
-      ctx.fillStyle=selected?"#ffe9bd":"#704a36";
-      ctx.font=readableFont(19,"900");
-      ctx.fillText(String(i+1),x+50,y+40);
-      drawEmblem(ctx,c.id,x+50,y+73,16);
+      ctx.textAlign="center";ctx.font=readableFont(17,"900");
+      ctx.fillStyle=selected?"#954733":"#7b624d";
+      ctx.fillText(String(i+1),x+35,y+34);
+      drawEmblem(ctx,c.id,x+37,y+72,17);
 
-      // 左側欄位：名稱、讀音、修行類別。右側：升級資訊與等級印記。
-      ctx.textAlign="left";
-      ctx.fillStyle=ink;
-      ctx.font=readableFont(21,"900");
-      fitText(ctx,c.n,x+80,y+33,255);
-      ctx.font=readableFont(13,"700");ctx.fillStyle=secondary;
-      fitText(ctx,c.s||"",x+325,y+33,105);
-      ctx.font=readableFont(12,"800");
-      ctx.fillText(weapon?"主動秘術":"被動修行",x+443,y+33,96);
+      ctx.textAlign="left";ctx.fillStyle="#30251f";
+      ctx.font=readableFont(25,"900");
+      fitText(ctx,c.n,x+80,y+38,290);
+      ctx.font=readableFont(16,"700");ctx.fillStyle="#765640";
+      fitText(ctx,c.s||"",x+365,y+38,114);
+      ctx.textAlign="right";ctx.font=readableFont(16,"900");
+      ctx.fillStyle=selected?"#953d32":"#6d4a37";
+      const suffix=c.levelText||(awakening?"覺醒":weapon?"主動秘術":"被動修行");
+      fitText(ctx,suffix,x+cardW-26,y+39,190);
 
-      ctx.textAlign="center";
-      ctx.fillStyle=selected?"#ffedbd":"#6b4331";
-      ctx.font=readableFont(12,"900");
-      fitText(ctx,c.levelText||(awakening?"◆ 覺醒":"◆ 體質修行"),x+608,y+33,146);
-      if(weapon&&!newCard){
-        const current=WL[c.id]||0;
-        for(let k=1;k<=5;k++){
-          const px=x+608+(k-3)*20,py=y+59;
-          ctx.fillStyle=k<=current?(selected?"#f1bd8d":"#a24f3c"):k===current+1?(selected?"#fff1b4":"#b87b3d"):(selected?"rgba(255,232,199,.28)":"rgba(92,69,52,.2)");
-          ctx.save();ctx.translate(px,py);ctx.rotate(Math.PI/4);ctx.fillRect(-4,-4,8,8);ctx.restore();
-        }
-      }
-      ctx.font=readableFont(14,"700");
-      ctx.textAlign="left";ctx.fillStyle=ink;
+      // 技能效果為第二閱讀重點：增大到 20px，長文允許兩行。
+      ctx.textAlign="left";ctx.font=readableFont(20,"700");
+      ctx.fillStyle="#34281f";
+      const maxWidth=cardW-108,description=String(c.d||"");
       const lines=[];let line="";
-      for(const char of c.d||""){
-        if(ctx.measureText(line+char).width>530&&line){lines.push(line);line="";}
+      for(const char of description){
+        if(ctx.measureText(line+char).width>maxWidth&&line){lines.push(line);line="";}
         line+=char;
       }
-      lines.push(line);
-      lines.slice(0,2).forEach((txt,n)=>fitText(ctx,txt,x+80,y+73+n*fontPx(ctx.font)*1.16,530));
+      if(line||!lines.length)lines.push(line);
+      const lineHeight=Math.ceil(fontPx(ctx.font)*1.15);
+      const firstLine=lines.length>1?69:79;
+      lines.slice(0,2).forEach((txt,n)=>fitText(ctx,txt,x+80,y+firstLine+n*lineHeight,maxWidth));
+      ctx.restore();
     });
-    const rr=REROLL_BTN;
-    ctx.textAlign="left";
-    ctx.font=readableFont(12,"800");
-    ctx.fillStyle="#423125";
-    const legend=inputMode==="gamepad"
-      ?"十字鍵／左搖桿 選卡　A 確認　Y 重抽"
-      :inputMode==="touch"
-      ?"直接點選紙札　可點重抽"
+
+    ctx.textAlign="left";ctx.font=readableFont(14,"800");ctx.fillStyle="#47352a";
+    const legend=inputMode==="gamepad"?"十字鍵／左搖桿 選卡 · A 確認 · Y 重抽"
+      :inputMode==="touch"?"點選技能 · 可按右側重抽"
       :"↑↓ 選卡 · Enter 確認 · 1／2／3 直選 · R 重抽";
-    fitText(ctx,legend,cardX,rr.y+rr.h/2+5,520);
-    drawButton(ctx,{...rr,id:"reroll"},`重抽 ×${rerolls}`,{tone:"normal",size:16,icon:"cards",disabled:rerolls<=0});
+    fitText(ctx,legend,cardX,565,510);
+    drawButton(ctx,{...REROLL_BTN,id:"reroll"},"重抽 ×"+rerolls,{tone:"normal",size:16,icon:"cards",disabled:rerolls<=0});
     ctx.restore();
   }
 
