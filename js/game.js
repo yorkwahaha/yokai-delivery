@@ -1853,7 +1853,7 @@
           P.inv = 1.0;
           RENDERER.triggerShake(10);
           burst(P.x, P.y, "#ff6b81", 18);
-          say(`受傷！燈油 -${dmg} 點`, P.x, P.y - 36, "#ff6b81");
+          say(`受創・燈油 −${dmg}`, P.x, P.y - 36, "#cb6e60");
           AUDIO.hurt();
           HAPTICS.damage();
           if (oil <= 0) {
@@ -1887,7 +1887,7 @@
           P.inv = 0.85;
           RENDERER.triggerShake(7);
           burst(P.x, P.y, "#ff6b81", 14);
-          say(`妖火中彈！燈油 -${dmg} 點`, P.x, P.y - 36, "#ff6b81");
+          say(`妖火灼身・燈油 −${dmg}`, P.x, P.y - 36, "#cb6e60");
           AUDIO.hurt();
           HAPTICS.damage();
           if (oil <= 0) {

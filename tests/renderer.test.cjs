@@ -246,6 +246,18 @@ test('full upgraded oil capacity keeps the same lantern radius as full base capa
   assert.equal(radii[0],radii[1]);
 });
 
+test('oil injury warnings appear as stamped paper notices rather than plain floating text',()=>{
+  const r=loadRenderer(900,600);
+  let strokes=0,edges=0;
+  r.main.ctx.stroke=()=>strokes++;
+  r.main.ctx.lineTo=()=>edges++;
+  r.env.RENDERER.spawnDamageNumber('受創・燈油 −10',100,100,'#cb6e60');
+  r.env.RENDERER.drawDamageNumbers();
+  assert.ok(r.texts.includes('受創・燈油 −10'));
+  assert.ok(edges>=5,'paper notice has angular silhouette');
+  assert.ok(strokes>=2,'ink edging and vermilion seal accents are painted');
+});
+
 test('monster hit flashes use a cached white silhouette without Canvas filter',()=>{
   const r=loadRenderer(900,600),sprite={naturalWidth:80,naturalHeight:100};r.env.ART.ghost=sprite;
   let filters=0;Object.defineProperty(r.main.ctx,'filter',{set(){filters++;}});

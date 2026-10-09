@@ -112,6 +112,21 @@ test('HUD bars reuse gradients and rebuild for changed transform, geometry, tone
   const beforeContext=made;draw(other);assert.ok(made>beforeContext);
 });
 
+test('pause and settlement use physical boards, buttons use chamfered wooden tags',()=>{
+  const src=fs.readFileSync('js/ui.js','utf8');
+  const buttons=src.slice(src.indexOf('function drawButton('),src.indexOf('function drawExitConfirm('));
+  assert.match(buttons,/drawWoodTag\(ctx,b,tone,disabled\)/);
+  assert.doesNotMatch(buttons,/roundRect\(/);
+  assert.match(src,/drawWashiBoard\(ctx,panelX,panelY/);
+  assert.match(src,/drawWashiBoard\(ctx,cardX,cardY/);
+  assert.match(src,/if\(ledger\)\{/);
+  const r=loadUI(568);
+  let polygonSegments=0;
+  r.context.lineTo=()=>polygonSegments++;
+  r.UI.drawPauseMenu(r.context,false,1);
+  assert.ok(polygonSegments>20,'wood placards and hand-bound noticeboard use cut-angle paths');
+});
+
 test('woodblock UI reuses a paper-wash panel instead of the old glass sheen',()=>{
   const src=fs.readFileSync('js/ui.js','utf8');
   assert.match(src,/木版畫共用框/);

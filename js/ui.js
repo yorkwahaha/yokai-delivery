@@ -94,54 +94,153 @@ window.UI = (() => {
     }
     ctx.restore();
   }
-  function drawMenuFocus(ctx, btn) {
-    if (!btn) return;
-    const p = pulse(5, 0.55);
+  // 尖角切邊的手工木牌／御札外形，hitbox 仍使用原 b 矩形。
+  function tagPath(ctx,x,y,w,h,cut=11) {
+    const c=Math.max(2,Math.min(cut,w*.08,h*.27));
+    ctx.beginPath();
+    ctx.moveTo(x+c,y);ctx.lineTo(x+w-c,y);
+    ctx.lineTo(x+w,y+c);ctx.lineTo(x+w,y+h-c);
+    ctx.lineTo(x+w-c,y+h);ctx.lineTo(x+c,y+h);
+    ctx.lineTo(x,y+h-c);ctx.lineTo(x,y+c);ctx.closePath();
+  }
+  function drawWoodTag(ctx,b,tone="normal",disabled=false) {
+    const t=BUTTON_TONES[tone] || BUTTON_TONES.normal;
+    const {x,y,w,h}=b;
     ctx.save();
-    ctx.lineJoin = "round";
-    ctx.beginPath(); ctx.roundRect(btn.x - 4, btn.y - 4, btn.w + 8, btn.h + 8, 13);
-    ctx.strokeStyle = `rgba(208,169,106,${0.1 + 0.12 * p})`; ctx.lineWidth = 8; ctx.stroke();
-    ctx.strokeStyle = `rgba(239,205,142,${0.6 + 0.4 * p})`; ctx.lineWidth = 2.3; ctx.stroke();
-    ctx.fillStyle = C.goldHi;
-    for (const [cx, cy] of [[btn.x - 4, btn.y - 4], [btn.x + btn.w + 4, btn.y - 4], [btn.x - 4, btn.y + btn.h + 4], [btn.x + btn.w + 4, btn.y + btn.h + 4]]) {
-      ctx.save(); ctx.translate(cx, cy); ctx.rotate(Math.PI / 4); ctx.fillRect(-3, -3, 6, 6); ctx.restore();
+    ctx.lineJoin="round";
+    ctx.fillStyle="rgba(16,13,14,.52)";
+    tagPath(ctx,x+2,y+4,w,h,10);ctx.fill();
+    ctx.fillStyle=disabled?"#474039":t.fill;
+    tagPath(ctx,x,y,w,h,10);ctx.fill();
+    ctx.strokeStyle=disabled?"#80776a":t.stroke;
+    ctx.lineWidth=tone==="primary"?2.6:2;
+    tagPath(ctx,x,y,w,h,10);ctx.stroke();
+    ctx.strokeStyle="rgba(226,193,139,.45)";ctx.lineWidth=1;
+    tagPath(ctx,x+4,y+4,w-8,h-8,7);ctx.stroke();
+    // 木板條紋是垂直纖維與橫向斷墨，不使用 glossy 斜光。
+    ctx.strokeStyle="rgba(221,182,119,.10)";
+    ctx.lineWidth=1;
+    for(const k of [.23,.48,.74]){
+      ctx.beginPath();ctx.moveTo(x+13,y+h*k);
+      ctx.lineTo(x+w-13,y+h*k+(k>.5?-2:2));ctx.stroke();
+    }
+    // 兩端的綁繩與印章是物件語彙，不改按鈕的文字安全區。
+    ctx.strokeStyle="rgba(221,196,150,.72)";ctx.lineWidth=1.2;
+    for(const px of [x+13,x+w-13]){
+      ctx.beginPath();ctx.moveTo(px,y+10);ctx.lineTo(px,y+h-10);ctx.stroke();
+      ctx.fillStyle="#332822";ctx.beginPath();ctx.arc(px,y+h/2,2,0,6.283);ctx.fill();
+    }
+    if(tone==="primary"||tone==="danger"){
+      const stampX=x+w-23,stampY=y+h/2;
+      ctx.fillStyle=tone==="primary"?"rgba(202,137,95,.68)":"rgba(140,63,58,.80)";
+      ctx.beginPath();ctx.arc(stampX,stampY,Math.min(9,h*.18),0,6.283);ctx.fill();
+      ctx.strokeStyle="rgba(240,202,155,.80)";
+      ctx.lineWidth=1;ctx.beginPath();ctx.arc(stampX,stampY,Math.min(6,h*.14),0,6.283);ctx.stroke();
     }
     ctx.restore();
   }
 
-  const BUTTON_TONES = {
-    normal: { fill: "rgba(40,36,35,.96)", stroke: "#b79a68", width: 1.6, text: C.text },
-    primary: { fill: "rgba(112,54,43,.97)", stroke: "#d6b47a", width: 2.2, text: "#f7e8c7" },
-    danger: { fill: "rgba(94,42,44,.97)", stroke: "#cf9482", width: 1.6, text: "#f7d7c3" },
-    cyan: { fill: "rgba(50,76,79,.97)", stroke: "#9cc8c5", width: 1.6, text: "#e5f2e9" }
-  };
-  // 所有按鈕共用：同一組字級、狀態與焦點樣式。
-  function drawButton(ctx, b, label, { tone = "normal", size = 18, focus = false, icon = null, disabled = false } = {}) {
-    const t = BUTTON_TONES[tone] || BUTTON_TONES.normal;
-    glassBox(ctx, b.x, b.y, b.w, b.h, Math.min(12, b.h / 4), disabled ? "rgba(34, 36, 46, 0.9)" : t.fill, disabled ? "#59606f" : t.stroke, t.width);
-    if (tone === "primary" && !disabled) {
-      ctx.fillStyle = "rgba(237,201,137,.13)";
-      ctx.fillRect(b.x+4,b.y+4,5,b.h-8);
-      ctx.fillStyle = "rgba(235,207,153,.10)";
-      ctx.fillRect(b.x+12,b.y+4,b.w-16,1);
+  // 紙木告示板／夜行旅帳：明確不同於數位 modal 的切邊紙面、木框、掛繩與卷軸軸心。
+  function drawWashiBoard(ctx,x,y,w,h,ledger=false) {
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.fillStyle="rgba(8,7,8,.55)";
+    tagPath(ctx,8,10,w,h,20);ctx.fill();
+    ctx.fillStyle="#4b3229";
+    tagPath(ctx,0,0,w,h,20);ctx.fill();
+    ctx.strokeStyle="#a47b50";ctx.lineWidth=3;
+    tagPath(ctx,0,0,w,h,20);ctx.stroke();
+    ctx.fillStyle=ledger?"#4e4038":"#57483b";
+    tagPath(ctx,10,12,w-20,h-24,14);ctx.fill();
+    ctx.strokeStyle="rgba(196,158,112,.65)";ctx.lineWidth=1.5;
+    tagPath(ctx,13,15,w-26,h-30,12);ctx.stroke();
+    // 橫向紙纖維、卷軸裝訂紋，幾乎不佔畫面而能清楚辨識紙材。
+    ctx.save();
+    tagPath(ctx,15,18,w-30,h-36,10);ctx.clip();
+    ctx.strokeStyle="rgba(230,198,151,.11)";ctx.lineWidth=1;
+    for(let k=0;k<12;k++){
+      const yy=25+(h-50)*(k+.3)/12;
+      ctx.beginPath();ctx.moveTo(24+(k%3)*18,yy);
+      ctx.lineTo(w-25-(k%4)*13,yy+(k%2?1:-1));ctx.stroke();
     }
-    ctx.textAlign = "center";
-    ctx.font = readableFont(size, "900");
-    const showIcon = icon && b.w >= 120;
-    const labelW = b.w - (showIcon ? 56 : 20);
-    const y = b.y + b.h / 2 + fontPx(ctx.font) * 0.35, x = b.x + b.w / 2 + (showIcon ? 16 : 0);
-    ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
-    ctx.fillText(label, x, y + 1.5, labelW);
-    ctx.fillStyle = disabled ? "#8a91a0" : t.text;
-    ctx.fillText(label, x, y, labelW);
-    if (showIcon) { ctx.fillStyle = ctx.strokeStyle = disabled ? "#8a91a0" : C.gold; drawActionIcon(ctx, icon, b.x + 24, b.y + b.h / 2, 9); }
-    if (focus) drawMenuFocus(ctx, b);
+    ctx.restore();
+    ctx.fillStyle="#6d4d34";ctx.strokeStyle="#b38c59";ctx.lineWidth=1.5;
+    if(ledger){
+      // 帳冊書脊與上下木軸，使結算頁成為旅帳而不是發光玻璃卡片。
+      ctx.fillRect(12,14,13,h-28);
+      ctx.fillRect(w-26,14,13,h-28);
+      for(const px of [19,w-19]){
+        ctx.beginPath();ctx.arc(px,19,9,0,6.283);ctx.fill();ctx.stroke();
+        ctx.beginPath();ctx.arc(px,h-19,9,0,6.283);ctx.fill();ctx.stroke();
+      }
+      ctx.fillStyle="#a26750";ctx.fillRect(w-39,38,5,Math.min(h-76,100));
+    }else{
+      // 神社告示板的兩根縱木柱、掛繩與頂部庇檐。
+      ctx.fillRect(6,14,9,h-28);ctx.fillRect(w-15,14,9,h-28);
+      ctx.fillStyle="#654633";
+      ctx.beginPath();ctx.moveTo(-10,13);ctx.lineTo(12,-9);
+      ctx.lineTo(w-12,-9);ctx.lineTo(w+10,13);ctx.closePath();ctx.fill();
+      ctx.strokeStyle="#b58b59";ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(-10,13);ctx.lineTo(12,-9);ctx.lineTo(w-12,-9);ctx.lineTo(w+10,13);ctx.stroke();
+      for(const px of [38,w-38]){
+        ctx.strokeStyle="#c0a070";ctx.lineWidth=2;
+        ctx.beginPath();ctx.moveTo(px,-8);ctx.lineTo(px,15);ctx.stroke();
+        ctx.fillStyle="#c5ab78";ctx.beginPath();ctx.arc(px,13,3,0,6.283);ctx.fill();
+      }
+    }
+    // 朱印落款
+    ctx.strokeStyle="rgba(170,85,65,.75)";ctx.lineWidth=2;
+    ctx.beginPath();ctx.rect(w-40,h-45,18,18);ctx.stroke();
+    ctx.strokeStyle="rgba(170,85,65,.35)";
+    ctx.beginPath();ctx.moveTo(w-37,h-36);ctx.lineTo(w-25,h-36);
+    ctx.moveTo(w-31,h-42);ctx.lineTo(w-31,h-29);ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawMenuFocus(ctx, btn) {
+    if (!btn) return;
+    const bright=pulse(4,.7);
+    ctx.save();ctx.lineJoin="round";
+    ctx.strokeStyle=`rgba(248,222,159,${.6+.35*bright})`;
+    ctx.lineWidth=2.8;
+    tagPath(ctx,btn.x-4,btn.y-4,btn.w+8,btn.h+8,12);ctx.stroke();
+    ctx.strokeStyle=`rgba(248,222,159,${.24+.16*bright})`;
+    ctx.lineWidth=5.5;
+    tagPath(ctx,btn.x-2,btn.y-2,btn.w+4,btn.h+4,10);ctx.stroke();
+    ctx.restore();
+  }
+
+  const BUTTON_TONES = {
+    normal: { fill: "rgba(101,75,56,.98)", stroke: "#c3a279", width: 1.6, text: C.text },
+    primary: { fill: "rgba(146,65,48,.98)", stroke: "#e2bd85", width: 2.2, text: "#f7e8c7" },
+    danger: { fill: "rgba(113,49,47,.98)", stroke: "#d49a83", width: 1.6, text: "#f7d7c3" },
+    cyan: { fill: "rgba(65,96,89,.98)", stroke: "#b2c6aa", width: 1.6, text: "#e5f2e9" }
+  };
+  // 共享木牌元件，繼續使用原矩形 hitbox、字級與輸入焦點。
+  function drawButton(ctx,b,label,{tone="normal",size=18,focus=false,icon=null,disabled=false}={}) {
+    const t=BUTTON_TONES[tone]||BUTTON_TONES.normal;
+    drawWoodTag(ctx,b,tone,disabled);
+    ctx.textAlign="center";
+    ctx.font=readableFont(size,"900");
+    const showIcon=icon&&b.w>=120;
+    const labelW=b.w-(showIcon?70:48);
+    const x=b.x+b.w/2+(showIcon?14:0);
+    const y=b.y+b.h/2+fontPx(ctx.font)*.35;
+    ctx.fillStyle="rgba(18,13,12,.72)";
+    ctx.fillText(label,x+1,y+2,labelW);
+    ctx.fillStyle=disabled?"#b2a28b":t.text;
+    ctx.fillText(label,x,y,labelW);
+    if(showIcon){
+      ctx.fillStyle=ctx.strokeStyle=disabled?"#b2a28b":C.goldHi;
+      drawActionIcon(ctx,icon,b.x+31,b.y+b.h/2,9);
+    }
+    if(focus)drawMenuFocus(ctx,b);
   }
 
   function drawExitConfirm(ctx, focus = 0) {
     ctx.save();
     ctx.fillStyle = 'rgba(6,8,18,0.84)';fillScreen(ctx);
-    glassBox(ctx,160,160,580,270,16,'rgba(16,14,26,0.97)',C.gold,2,true);
+    drawWashiBoard(ctx,160,160,580,270,false);
     ctx.textAlign = 'center';ctx.fillStyle = '#ffe3ad';ctx.font = readableFont(24,'900');
     ctx.fillText('是否放棄本局？',450,215);
     ctx.fillStyle = '#edf2ff';ctx.font = readableFont(15);
@@ -1275,7 +1374,7 @@ window.UI = (() => {
     if (!compact && orders?.length) drawOrderList(ctx, mapX, orderY, mapW, fontPx(readableFont(12)) + 14, orders, P, inter);
 
     // --- 暫停鈕 ---
-    glassBox(ctx, btnPause.x, btnPause.y, btnPause.w, btnPause.h, 10, "rgba(24, 20, 36, 0.94)", C.gold, 1.8);
+    drawWoodTag(ctx,btnPause,"normal");
     ctx.fillStyle = ctx.strokeStyle = "#ffd54f";
     drawActionIcon(ctx, 'pause', btnPause.x + btnPause.w / 2, btnPause.y + btnPause.h / 2, 10);
 
@@ -2487,10 +2586,11 @@ window.UI = (() => {
 
     const cardX = 210, cardY = 54, cardW = 652, cardH = 430;
     const mid = cardX + cardW / 2;
-    glassBox(ctx, cardX, cardY, cardW, cardH, 16, "rgba(12, 14, 28, 0.93)", isWon ? "rgba(240, 196, 110, 0.95)" : "rgba(196, 154, 122, 0.6)", isWon ? 2.2 : 1.6, true);
+    drawWashiBoard(ctx,cardX,cardY,cardW,cardH,true);
+    drawWoodTag(ctx,{x:mid-129,y:cardY+10,w:258,h:62},isWon?"primary":"danger");
 
     ctx.textAlign = "center";
-    glow(ctx, mid, cardY + 52, 300, isWon ? "#ffb347" : "#7b8bd0", 0.3);
+    // 木框旅帳標題保留清晰描墨，不增加漂浮光環。
     ctx.font = titleFont(32);
     ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
     ctx.fillText(isWon ? "夜已破曉" : "燈油已盡", mid, cardY + 63);
@@ -2612,14 +2712,15 @@ window.UI = (() => {
     ctx.save();
     ctx.fillStyle = "rgba(6, 8, 16, 0.92)";
     fillScreen(ctx);
-    glow(ctx, W / 2, 120, 700, C.gold, 0.12);
+    // 紙木告示板不再依賴大面積霓虹氛圍光。
 
     const buttons = pauseButtons();
     const panelX = Math.min(...buttons.map(b => b.x)) - 24;
     const panelY = 92;
     const panelR = Math.max(...buttons.map(b => b.x + b.w)) + 24;
     const panelB = Math.max(...buttons.map(b => b.y + b.h)) + 28;
-    glassBox(ctx, panelX, panelY, panelR - panelX, panelB - panelY, 16, "rgba(14, 12, 18, 0.95)", C.gold, 1.8, true);
+    drawWashiBoard(ctx,panelX,panelY,panelR-panelX,panelB-panelY,false);
+    drawWoodTag(ctx,{x:W/2-98,y:panelY+9,w:196,h:47},"primary");
 
     ctx.textAlign = "center";
     ctx.font = titleFont(36);

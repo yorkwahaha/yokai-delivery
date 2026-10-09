@@ -949,14 +949,36 @@ window.RENDERER = (() => {
       const alpha = clamp(d.life / 0.3, 0, 1);
       ctx.globalAlpha = alpha;
       ctx.textAlign = "center";
-      ctx.font = `900 ${Math.round(20 * d.scale)}px 'Zen Maru Gothic', sans-serif`;
-
-      ctx.strokeStyle = "#1a162b";
-      ctx.lineWidth = 4;
-      ctx.strokeText(d.val, d.x, d.y);
-
-      ctx.fillStyle = d.color;
-      ctx.fillText(d.val, d.x, d.y);
+      const message=String(d.val);
+      if (message.includes("燈油")) {
+        // 貼在畫面上的短御札／朱印警示：仍跟隨原世界座標及生命週期。
+        // 不改數值傷害、Boss label 的繪法與更新頻率。
+        ctx.save();
+        const fontSize=Math.max(15,Math.round(17*d.scale));
+        ctx.font=`900 ${fontSize}px 'Noto Sans JP','Zen Maru Gothic',sans-serif`;
+        const halfW=clamp(ctx.measureText(message).width/2+17,60,215);
+        const cy=d.y-8,h=32,tip=8,px=d.x;
+        ctx.fillStyle="rgba(33,24,25,.90)";
+        ctx.beginPath();ctx.moveTo(px-halfW+tip,cy-h/2);
+        ctx.lineTo(px+halfW-tip,cy-h/2);ctx.lineTo(px+halfW,cy);
+        ctx.lineTo(px+halfW-tip,cy+h/2);
+        ctx.lineTo(px-halfW+tip,cy+h/2);ctx.lineTo(px-halfW,cy);ctx.closePath();
+        ctx.fill();
+        ctx.lineWidth=1.7;ctx.strokeStyle="#c79373";ctx.stroke();
+        // 封緘朱印與不完全對稱的墨痕。
+        ctx.fillStyle="#a94d43";ctx.beginPath();
+        ctx.arc(px-halfW+13,cy,6,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle="rgba(230,182,125,.45)";
+        ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(px-halfW+26,cy+10);
+        ctx.lineTo(px+halfW-10,cy+9);ctx.stroke();
+        ctx.fillStyle="#f1d5b6";ctx.fillText(message,px+5,cy+fontSize*.33,halfW*2-33);
+        ctx.restore();
+      } else {
+        ctx.font=`900 ${Math.round(20*d.scale)}px 'Zen Maru Gothic', sans-serif`;
+        ctx.strokeStyle="#211b20";ctx.lineWidth=3.5;
+        ctx.strokeText(message,d.x,d.y);
+        ctx.fillStyle=d.color;ctx.fillText(message,d.x,d.y);
+      }
     }
     ctx.restore();
   }
