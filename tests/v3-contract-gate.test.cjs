@@ -143,3 +143,16 @@ test('V3 contract: a first-encounter boss word is introduced once and completion
   assert.equal(g.env.STORE.get(question.word.jp).box,0,'an introduced word is not an independent recall');
   assert.equal(g.snapshot().enemies.find(e=>e.type==='boss').shield,false);
 });
+
+test('V3 contract: a charging boss stops with its full body outside a building', () => {
+  const g=fresh();
+  // Let initial posted orders pin their chunks before installing the controlled wall.
+  for(let i=0;i<3;i++)g.update(.01);
+  g.combatScene('katana',[{dx:-140,hp:999,max:999,type:'boss',bossIndex:1,_attackStep:1,speed:0,attackCd:0}],
+    [{x0:100,x1:110,y0:-500,y1:500}],0);
+  const wallLeft=g.snapshot().x+100,boss=g.snapshot().enemies[0];
+  g.update(.01);assert.equal(boss.hazard.kind,'charge');
+  for(let i=0;i<36;i++)g.update(.05);
+  assert.ok(boss.x>wallLeft-60,'the charge reaches the wall');
+  assert.ok(boss.x<=wallLeft-32,'the body must stay outside, not just its center');
+});

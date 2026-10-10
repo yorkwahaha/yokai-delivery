@@ -1,0 +1,556 @@
+{
+  "kind": "weapon-only stationary boss",
+  "sources": {
+    "game": "e90d817b2bdc5a65249213e0c0302ddf9fa07871f8ae9642909a813502139bd1",
+    "evolutions": "45bdd7c2c8e6179875bf1412b40293d6a2a24bf0a2f5b23dfd0420c2b2d190b8",
+    "config": "bf46b30082c28d73e1ad3c2de79604a7f5f36903845889d16e0009f28efe3f42"
+  },
+  "hp": 1400,
+  "damageCoefficient": 2.4,
+  "secondsStep": 0.01,
+  "limits": "Four MAX supplied, no passive rate/crit, no incoming damage, no AI movement, no quiz, no delivery or natural growth; target at dx140.",
+  "min": 23.09,
+  "max": 43.39,
+  "rows": [
+    {
+      "seed": 11,
+      "build": [
+        "katana",
+        "barrier",
+        "needle",
+        "boom"
+      ],
+      "seconds": 33.81,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "katana",
+        "barrier",
+        "needle",
+        "fire"
+      ],
+      "seconds": 26.15,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "katana",
+        "barrier",
+        "needle",
+        "thunder"
+      ],
+      "seconds": 33.3,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "katana",
+        "barrier",
+        "boom",
+        "fire"
+      ],
+      "seconds": 31.89,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "katana",
+        "barrier",
+        "boom",
+        "thunder"
+      ],
+      "seconds": 41.74,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "katana",
+        "barrier",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 32.43,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "katana",
+        "needle",
+        "boom",
+        "fire"
+      ],
+      "seconds": 23.55,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "katana",
+        "needle",
+        "boom",
+        "thunder"
+      ],
+      "seconds": 28.93,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "katana",
+        "needle",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 23.09,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "katana",
+        "boom",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 27.39,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "barrier",
+        "needle",
+        "boom",
+        "fire"
+      ],
+      "seconds": 26.15,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "barrier",
+        "needle",
+        "boom",
+        "thunder"
+      ],
+      "seconds": 33.75,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "barrier",
+        "needle",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 26.15,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "barrier",
+        "boom",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 31.32,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 11,
+      "build": [
+        "needle",
+        "boom",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 23.84,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "katana",
+        "barrier",
+        "needle",
+        "boom"
+      ],
+      "seconds": 33.3,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "katana",
+        "barrier",
+        "needle",
+        "fire"
+      ],
+      "seconds": 26.47,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "katana",
+        "barrier",
+        "needle",
+        "thunder"
+      ],
+      "seconds": 33.15,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "katana",
+        "barrier",
+        "boom",
+        "fire"
+      ],
+      "seconds": 31.89,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "katana",
+        "barrier",
+        "boom",
+        "thunder"
+      ],
+      "seconds": 41.81,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "katana",
+        "barrier",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 31.34,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "katana",
+        "needle",
+        "boom",
+        "fire"
+      ],
+      "seconds": 23.79,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "katana",
+        "needle",
+        "boom",
+        "thunder"
+      ],
+      "seconds": 28.93,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "katana",
+        "needle",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 24.11,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "katana",
+        "boom",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 27.41,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "barrier",
+        "needle",
+        "boom",
+        "fire"
+      ],
+      "seconds": 26.47,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "barrier",
+        "needle",
+        "boom",
+        "thunder"
+      ],
+      "seconds": 34.6,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "barrier",
+        "needle",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 26.15,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "barrier",
+        "boom",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 32.11,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 23,
+      "build": [
+        "needle",
+        "boom",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 24.11,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "katana",
+        "barrier",
+        "needle",
+        "boom"
+      ],
+      "seconds": 33.81,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "katana",
+        "barrier",
+        "needle",
+        "fire"
+      ],
+      "seconds": 26.67,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "katana",
+        "barrier",
+        "needle",
+        "thunder"
+      ],
+      "seconds": 33.15,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "katana",
+        "barrier",
+        "boom",
+        "fire"
+      ],
+      "seconds": 31.89,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "katana",
+        "barrier",
+        "boom",
+        "thunder"
+      ],
+      "seconds": 43.39,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "katana",
+        "barrier",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 30.57,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "katana",
+        "needle",
+        "boom",
+        "fire"
+      ],
+      "seconds": 23.55,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "katana",
+        "needle",
+        "boom",
+        "thunder"
+      ],
+      "seconds": 29.4,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "katana",
+        "needle",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 23.55,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "katana",
+        "boom",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 26.52,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "barrier",
+        "needle",
+        "boom",
+        "fire"
+      ],
+      "seconds": 26.47,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "barrier",
+        "needle",
+        "boom",
+        "thunder"
+      ],
+      "seconds": 33.75,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "barrier",
+        "needle",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 26.83,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "barrier",
+        "boom",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 33.08,
+      "killed": true,
+      "remainingHp": 0
+    },
+    {
+      "seed": 47,
+      "build": [
+        "needle",
+        "boom",
+        "fire",
+        "thunder"
+      ],
+      "seconds": 24.2,
+      "killed": true,
+      "remainingHp": 0
+    }
+  ]
+}
