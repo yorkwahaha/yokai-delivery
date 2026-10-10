@@ -77,3 +77,23 @@ test('V3 contract: first boss starts with fixed HP independent of player power',
   const g=fresh();g.scheduleBoss();g.update(.05);const boss=g.snapshot().enemies.find(e=>e.type==='boss');
   assert.ok(boss);assert.equal(boss.max,300);
 });
+
+test('V3 contract: safe reading freezes nearby enemies as well as damage', () => {
+  const g=fresh();g.prepareOrder();g.atDestination();
+  g.combatScene('barrier',[{dx:80,hp:200,speed:100}],[],0);
+  const enemy=g.snapshot().enemies[0],position={x:enemy.x,y:enemy.y};
+  g.update(.05);g.update(.2);
+  assert.equal(g.snapshot().job.reading,true);
+  assert.deepEqual({x:enemy.x,y:enemy.y},position);
+  assert.equal(enemy.hp,200);
+});
+
+test('V3 contract: expired freeze cannot cause a delayed shatter explosion', () => {
+  const g=fresh();g.combatScene('barrier',[{dx:150,hp:20,speed:0},{dx:175,hp:200,speed:0}],[],0);
+  const [victim,neighbor]=g.snapshot().enemies;
+  g.env.EVOLUTIONS.freeze(victim,0,{used:false,hits:new Set()});
+  for(let i=0;i<12;i++)g.update(.05);
+  assert.equal(victim.freezeT,0);
+  const before=neighbor.hp;g.hurt(victim,999);
+  assert.equal(neighbor.hp,before);
+});
