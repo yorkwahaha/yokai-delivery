@@ -1,0 +1,45 @@
+✔ octopus belongs to the sea pack while the turtle stays by the pond (1.1271ms)
+✔ answer-only decoys stay out of cargo vocabulary but are available to quiz choices (0.1392ms)
+✔ house identities stay unique throughout distant positive and negative chunks (11.4354ms)
+✔ night-town keeps the original 9 word packs and 27 unique words (0.5717ms)
+✔ rain-port is a separate playable stage with its own packs and weather tuning (0.4143ms)
+✔ initial 3x3 chunks preserve the original district order (0.1134ms)
+✔ world streams chunks at arbitrarily distant and negative coordinates (0.3063ms)
+✔ chunk cache stays bounded and only pinned delivery chunks survive travel (0.5611ms)
+✔ regenerated chunks are deterministic (0.1592ms)
+✔ staggered houses leave room for all answer pads, even across chunk boundaries (6.9528ms)
+✔ each deterministic scene layout preserves breathing room across all neighboring combinations (1.3231ms)
+✔ large dragon enters from offscreen, holds, and exits after three seconds (1.3705ms)
+✔ ice volley chooses eight distinct living targets around the courier and curves into them (1.2957ms)
+✔ ice freeze duration is bounded and cannot be refreshed into a permanent stun (0.1872ms)
+✔ foxfire orbit and detached attack counts follow the 1/2/3/3/3 specialist progression (0.913ms)
+✔ a detached foxfire seeks a foe, then returns to the courier instead of disappearing on hit (0.3846ms)
+✔ swept movement stops a fast projectile at a thin wall between frame endpoints (0.1147ms)
+✔ the final frame cannot push an expiring projectile beyond its intended range (0.0783ms)
+✔ a needle curves only during its first 0.28 seconds and then locks its final heading (0.14ms)
+✔ a spirit reacquires a living foe after its target dies and has bounded steering (0.2434ms)
+✔ MAX dragon launches one swept fireball that hits a target (0.2807ms)
+✔ dragon missile respects barriers and creates an impact at flight expiry (0.1164ms)
+✔ rain-port removes stacked survival penalties while retaining its stage identity (1.7714ms)
+✔ run pacing is ten minutes with a final boss just before dawn (0.1036ms)
+✔ xp curve rises steadily and avoids the old low early thresholds (0.1737ms)
+✔ enemy density ramps across the whole ten-minute run (0.0919ms)
+✔ a theoretical full clear of base spawns lands in the low-30 level range (0.2419ms)
+✔ overtime caps enemy tier and spawn pressure at dawn (0.1074ms)
+✔ orders teach the loop gradually instead of flooding the opening (0.0627ms)
+✔ failed storage writes expose an error and successful retries clear it (1.7323ms)
+✔ legacy save data is upgraded without losing vocabulary progress (0.3257ms)
+✔ clearing night-town unlocks rain-port and stores per-stage records (0.3092ms)
+✔ a failed run records stage bests but does not unlock the next stage (0.3138ms)
+✔ unresolved mistakes survive reload, replay and stage switching until answered (0.5228ms)
+✔ review sampling applies mistake weights within the supplied stage pool (0.3819ms)
+✔ malformed save containers recover without losing valid vocabulary and best scores (1.5133ms)
+✔ invalid mastery, flags and stage counters normalize to finite valid values (0.3951ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 78.6955

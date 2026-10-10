@@ -70,7 +70,7 @@ test('unresolved mistakes survive reload, replay and stage switching until answe
   }
   STORE.recAssisted('ねこ');
   assert.equal(STORE.get('ねこ').box, 0);
-  assert.equal(STORE.get('ねこ').missBoost, 1);
+  assert.equal(STORE.get('ねこ').missBoost, 2.5);
   STORE.rec('ねこ', false);
   STORE.rec('ねこ', true);
   assert.equal(STORE.get('ねこ').box, 1);

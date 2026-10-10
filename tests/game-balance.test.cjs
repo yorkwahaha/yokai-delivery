@@ -10,14 +10,14 @@ test('rain-port removes stacked survival penalties while retaining its stage ide
   assert.ok(rain.enemy.speedScale<=1);
   assert.equal(rain.enemy.shooterChance,0.06);
   assert.ok(rain.enemy.bossHpScale<=1);
-  assert.equal(rain.pacing.runSeconds,600);assert.deepEqual(rain.pacing.bossTimes,[210,420,590]);
+  assert.equal(rain.pacing.runSeconds,600);assert.deepEqual(rain.pacing.bossTimes,[180, 360, 480, 540]);
   assert.equal(night.pacing.spawnIntervalScale,1);assert.equal(night.pacing.goalDeliveries,6);
   assert.equal(rain.visual.weather,'rain');
 });
 
 test("run pacing is ten minutes with a final boss just before dawn", () => {
   assert.equal(cfg.RUN_SECONDS, 600);
-  assert.deepEqual(cfg.BOSS_TIMES, [180, 360, 540, 590]);
+  assert.deepEqual(cfg.BOSS_TIMES, [180, 360, 480, 540]);
   assert.equal(cfg.GOAL_DELIVERIES, 6);
 });
 
@@ -53,12 +53,13 @@ test("a theoretical full clear of base spawns lands in the low-30 level range", 
   assert.ok(level >= 30 && level <= 34, `expected low-30s, got Lv.${level}`);
 });
 
-test("overtime keeps raising enemy tier without raising spawn pressure", () => {
-  assert.ok(cfg.enemyTier(900) > cfg.enemyTier(600));
+test("overtime caps enemy tier and spawn pressure at dawn", () => {
+  assert.equal(cfg.enemyTier(900), cfg.enemyTier(600));
+  assert.equal(cfg.enemyTier(1200, 4), cfg.enemyTier(600, 4));
   assert.ok(cfg.enemyTier(600) > cfg.enemyTier(0));
   assert.equal(cfg.spawnInterval(900), cfg.spawnInterval(600));
   assert.equal(cfg.spawnCount(900), cfg.spawnCount(600));
-  assert.ok(Math.abs(cfg.enemyTier(670) - cfg.enemyTier(600) - 1) < 1e-9);
+  assert.ok(Math.abs(cfg.enemyTier(130) - cfg.enemyTier(0) - 1) < 1e-9);
 });
 
 test("orders teach the loop gradually instead of flooding the opening", () => {

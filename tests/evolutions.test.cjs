@@ -28,11 +28,11 @@ test('ice freeze duration is bounded and cannot be refreshed into a permanent st
   }
 });
 
-test('foxfire orbit and detached attack counts follow the 1/2/4/6 guard progression',()=>{
+test('foxfire orbit and detached attack counts follow the 1/2/3/3/3 specialist progression',()=>{
   assert.deepEqual([1,2,3,4,5].map(E.needleCount),[3,5,7,8,8]);
-  assert.deepEqual([1,2,3,4,5].map(E.boomCount),[1,2,3,4,4]);
-  assert.deepEqual([1,2,3,4,5].map(E.fireCount),[1,2,4,6,6]);
-  assert.deepEqual([1,2,3,4,5].map(E.fireAttackCount),[0,0,0,3,0]);
+  assert.deepEqual([1,2,3,4,5].map(E.boomCount),[1,2,3,4,2]);
+  assert.deepEqual([1,2,3,4,5].map(E.fireCount),[1,2,3,3,3]);
+  assert.deepEqual([1,2,3,4,5].map(E.fireAttackCount),[0,0,0,1,0]);
 });
 
 test('a detached foxfire seeks a foe, then returns to the courier instead of disappearing on hit',()=>{

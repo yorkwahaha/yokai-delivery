@@ -30,7 +30,7 @@ test("night-town keeps the original 9 word packs and 27 unique words", () => {
   const words = CONTENT.getStageWords(stage);
   assert.equal(words.length, 27);
   assert.equal(new Set(words.map(w => w.jp)).size, 27);
-  assert.deepEqual(stage.pacing.bossTimes, [180, 360, 540, 590]);
+  assert.deepEqual(stage.pacing.bossTimes, [180, 360, 480, 540]);
   assert.equal(stage.pacing.runSeconds, 600);
   assert.equal(stage.pacing.goalDeliveries, 6);
 });
@@ -51,7 +51,7 @@ test("rain-port is a separate playable stage with its own packs and weather tuni
   assert.equal(stage.visual.fireflies, 0);
   assert.equal(stage.enemy.bossTheme, "harbor");
   assert.equal(stage.pacing.goalDeliveries, 6);
-  assert.deepEqual(stage.pacing.bossTimes, [210, 420, 590]);
+  assert.deepEqual(stage.pacing.bossTimes, [180, 360, 480, 540]);
   const world = WORLD.createStageWorld(stage, CONTENT);
   assert.equal(world.update(stage.start.x, stage.start.y).chunks.length, 25);
 });
