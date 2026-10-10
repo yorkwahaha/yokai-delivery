@@ -1,0 +1,145 @@
+✔ V3 UI harness calibration: current HUD draws real oil and level labels (4.8062ms)
+✖ V3 UI: both HUD themes explain the next delivery seal without revealing the answer (4.1301ms)
+✖ V3 UI: safe reading and free first hint are visible on a small screen (1.1893ms)
+✖ V3 UI: level-up shows saved seals and the cost of choosing a MAX card (1.4293ms)
+✖ V3 UI: settlement distinguishes independent recall from assisted completion (9.6293ms)
+✖ V3 UI: optional listening has at most three unique words and keeps its buttons usable (1.1478ms)
+✖ V3 UI: delivery tutorial states the real dwell time and safe reading (1.4132ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 1
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 71.9011
+
+✖ failing tests:
+
+test at tests\v3-ui.test.cjs:34:1
+✖ V3 UI: both HUD themes explain the next delivery seal without revealing the answer (4.1301ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(r.labels.some(t => /覺醒印.*1/.test(t.value)))
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-ui.test.cjs:37:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-ui.test.cjs:43:1
+✖ V3 UI: safe reading and free first hint are visible on a small screen (1.1893ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(r.labels.some(t => /安心讀題/.test(t.value)))
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-ui.test.cjs:45:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-ui.test.cjs:50:1
+✖ V3 UI: level-up shows saved seals and the cost of choosing a MAX card (1.4293ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(r.labels.some(t => /覺醒印.*1/.test(t.value)))
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-ui.test.cjs:54:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-ui.test.cjs:58:1
+✖ V3 UI: settlement distinguishes independent recall from assisted completion (9.6293ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(r.labels.some(t => /獨立回想.*5/.test(t.value)))
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-ui.test.cjs:62:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-ui.test.cjs:68:1
+✖ V3 UI: optional listening has at most three unique words and keeps its buttons usable (1.1478ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-ui.test.cjs:71:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-ui.test.cjs:79:1
+✖ V3 UI: delivery tutorial states the real dwell time and safe reading (1.4132ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(r.labels.some(t => /0\.65/.test(t.value)))
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-ui.test.cjs:82:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
