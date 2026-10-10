@@ -1,0 +1,260 @@
+{
+  "images": [
+    {
+      "path": "assets/img/cover.webp",
+      "bytes": 273554
+    },
+    {
+      "path": "assets/img/player.webp",
+      "bytes": 65606
+    },
+    {
+      "path": "assets/img/map_night_town_v1.webp",
+      "bytes": 49530
+    },
+    {
+      "path": "assets/img/map_rain_port_v1.webp",
+      "bytes": 60144
+    },
+    {
+      "path": "assets/img/overworld_night_v2.webp",
+      "bytes": 206850
+    },
+    {
+      "path": "assets/img/scenery/prop_sakura.webp",
+      "bytes": 66220
+    },
+    {
+      "path": "assets/img/scenery/prop_torii.webp",
+      "bytes": 47486
+    },
+    {
+      "path": "assets/img/ui/hud_lantern_oil.webp",
+      "bytes": 45018
+    },
+    {
+      "path": "assets/img/ui/hud_radar_frame.webp",
+      "bytes": 77452
+    },
+    {
+      "path": "assets/img/ui/hud_omamori_hint_listen.webp",
+      "bytes": 43880
+    },
+    {
+      "path": "assets/img/ui/hud_skill_fan.webp",
+      "bytes": 67808
+    },
+    {
+      "path": "assets/img/yokai/ghost.webp",
+      "bytes": 8516
+    },
+    {
+      "path": "assets/img/yokai/mis.webp",
+      "bytes": 30940
+    },
+    {
+      "path": "assets/img/yokai/boss.webp",
+      "bytes": 21754
+    },
+    {
+      "path": "assets/img/yokai/runner.webp",
+      "bytes": 9072
+    },
+    {
+      "path": "assets/img/yokai/tank.webp",
+      "bytes": 28602
+    },
+    {
+      "path": "assets/img/yokai/shooter.webp",
+      "bytes": 10916
+    },
+    {
+      "path": "assets/img/scenery/house_shop.webp",
+      "bytes": 60570
+    },
+    {
+      "path": "assets/img/scenery/house_shrine.webp",
+      "bytes": 58326
+    },
+    {
+      "path": "assets/img/scenery/house_tavern.webp",
+      "bytes": 68148
+    },
+    {
+      "path": "assets/img/scenery/prop_lantern.webp",
+      "bytes": 32570
+    },
+    {
+      "path": "assets/img/scenery/ground.webp",
+      "bytes": 131198
+    },
+    {
+      "path": "assets/img/scenery/ground_dirt.webp",
+      "bytes": 134446
+    },
+    {
+      "path": "assets/img/vfx/raster/katana_l1.webp",
+      "bytes": 83558
+    },
+    {
+      "path": "assets/img/player_rest_v1.webp",
+      "bytes": 229076
+    },
+    {
+      "path": "assets/img/vfx/raster/katana_l2.webp",
+      "bytes": 210694
+    },
+    {
+      "path": "assets/img/vfx/raster/katana_l3.webp",
+      "bytes": 328194
+    },
+    {
+      "path": "assets/img/vfx/raster/katana_l4.webp",
+      "bytes": 378998
+    },
+    {
+      "path": "assets/img/vfx/raster/katana_l5.webp",
+      "bytes": 366896
+    },
+    {
+      "path": "assets/img/vfx/raster/barrier_ground_45.webp",
+      "bytes": 6338
+    },
+    {
+      "path": "assets/img/vfx/raster/needle.webp",
+      "bytes": 4198
+    },
+    {
+      "path": "assets/img/vfx/raster/ofuda.webp",
+      "bytes": 7194
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_orbit_l1.webp",
+      "bytes": 35726
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_attack_l1.webp",
+      "bytes": 34056
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_orbit_l2.webp",
+      "bytes": 41910
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_attack_l2.webp",
+      "bytes": 49108
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_orbit_l3.webp",
+      "bytes": 50920
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_attack_l3.webp",
+      "bytes": 61362
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_orbit_l4.webp",
+      "bytes": 61758
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_attack_l4.webp",
+      "bytes": 63018
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_orbit_l5.webp",
+      "bytes": 76798
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_attack_l5.webp",
+      "bytes": 59204
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_dragon_l5.webp",
+      "bytes": 295146
+    },
+    {
+      "path": "assets/img/vfx/raster/dragon_fireball_l5.webp",
+      "bytes": 82970
+    },
+    {
+      "path": "assets/img/vfx/raster/dragon_burning_ground_l5.webp",
+      "bytes": 153894
+    },
+    {
+      "path": "assets/img/vfx/raster/thunder_strike.webp",
+      "bytes": 8986
+    },
+    {
+      "path": "assets/img/vfx/raster/thunder_cloud_45.webp",
+      "bytes": 11932
+    },
+    {
+      "path": "assets/img/player_walk1.webp",
+      "bytes": 69830
+    },
+    {
+      "path": "assets/img/player_walk2.webp",
+      "bytes": 71558
+    },
+    {
+      "path": "assets/img/yokai/ghost_motion_v1.webp",
+      "bytes": 45124
+    },
+    {
+      "path": "assets/img/yokai/runner_motion_v1.webp",
+      "bytes": 51882
+    },
+    {
+      "path": "assets/img/yokai/boss_motion_v1.webp",
+      "bytes": 85644
+    },
+    {
+      "path": "assets/img/yokai/mis_motion_v1.webp",
+      "bytes": 66554
+    },
+    {
+      "path": "assets/img/yokai/tank_motion_v1.webp",
+      "bytes": 98396
+    },
+    {
+      "path": "assets/img/yokai/shooter_motion_v1.webp",
+      "bytes": 38660
+    },
+    {
+      "path": "assets/img/player_dash_v1.webp",
+      "bytes": 62388
+    },
+    {
+      "path": "assets/img/player_win_v1.webp",
+      "bytes": 204736
+    },
+    {
+      "path": "assets/img/player_kneel_v1.webp",
+      "bytes": 221572
+    },
+    {
+      "path": "assets/img/ui/illustrated/result_panel.webp",
+      "bytes": 38316
+    },
+    {
+      "path": "assets/img/ui/illustrated/pause_panel.webp",
+      "bytes": 30140
+    },
+    {
+      "path": "assets/img/ui/illustrated/button_secondary.webp",
+      "bytes": 8506
+    },
+    {
+      "path": "assets/img/ui/illustrated/button_primary.webp",
+      "bytes": 6952
+    },
+    {
+      "path": "assets/img/ui/illustrated/button_danger.webp",
+      "bytes": 7780
+    },
+    {
+      "path": "assets/img/ui/illustrated/title_tag.webp",
+      "bytes": 8298
+    }
+  ]
+}

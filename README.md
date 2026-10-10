@@ -357,3 +357,5 @@
 | 雙端震動回饋系統 | 新增 `js/haptics.js`：行動裝置支援 Web Vibration API (`navigator.vibrate`)，手把支援 Gamepad Haptics Dual-Rumble（高頻微震＋低頻重擊分級），完整串接衝刺、斬擊命中、受傷、護盾、送達、大妖擊破與狂潮預警 |
 
 驗證：298/298 Node 回歸測試通過，0 skip，退出碼 0。
+
+2026-10-10 專案清理：退役素材與歷史截圖／日誌已移出，舊路徑可從 Git 歷史或本機封存還原。最新驗證保留 loading4 系列；清單與還原說明見 docs/project-cleanup.md。

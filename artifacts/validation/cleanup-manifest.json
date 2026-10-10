@@ -1,0 +1,2496 @@
+{
+  "restoreCommit": "d1570b1ab24ec25aa9f140976b67ea905258c3fc",
+  "records": [
+    {
+      "path": "assets/img/ground.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 356856,
+      "sha256": "3bc3098353957dbe7847b3291f9f712a8849c78e0e9ad26014630dbbe28b38fd",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/ground_dirt.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 36850,
+      "sha256": "efb1502aeb4fe8e4ca935c3c844a4a5ab86e008171769ac06673142b5a52b343",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/house_shop.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 62560,
+      "sha256": "f578f276ba4e0e0298001b1a2e6fac17e281bb83534885c23677dce8a303295d",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/house_shrine.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 184344,
+      "sha256": "90e40f633e2deefd5a34d6dc4f49e18fe655a4466a4c20ba1c80fd17f7fa1e41",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/house_tavern.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 163446,
+      "sha256": "e6c25e3f7891f73b9d1d5ddf060b85143f9397cf37ad438214b899ddb613ede7",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/prop_lantern.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 43192,
+      "sha256": "456509dd4184908f0aa9da31d18df586d99e4bfa79328f08282e55fad79bfa81",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/prop_sakura.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 209160,
+      "sha256": "54b8b4fcac9d7a45119ef1cdfa411f8c410dd7ca931a9a4d392355849f645942",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/prop_torii.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 110194,
+      "sha256": "c4efb162f96f95a78cb3eb74fb5cbdea9f46e8b0e39f2dd2ab66cd437c962d13",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/overworld_night_v1.png",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 3441373,
+      "sha256": "bd51dfa004360d66563254e14aec4b0ade19a2c826b20da610d76ab1a7bf276a",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/overworld_night_v1.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 689404,
+      "sha256": "9c43c64073cde2a39e1ae5a158371490f2f588b31578dd38cce6b3ee43872114",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/barrier_mandala_ukiyoe.svg",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 905,
+      "sha256": "3bf67dd1854be1206038fd2552bcb1ae72655b83b76a103fdb974acd64912a9b",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/foxfire_dragon_ukiyoe.svg",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 655,
+      "sha256": "e44254494c164bf0c7d08f7640ccaff773dac0b8ff6c7db612b82f96732d3f13",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/foxfire_ukiyoe.svg",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 600,
+      "sha256": "47753cee2dea33a3ca9dd030fad70809490fdd8ba5e675ba42d62a6f37aafcb5",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/katana_wave_ukiyoe.svg",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 848,
+      "sha256": "41bf41608dde307ec695174f06c4095fee2c9ef2219004d8e624ea6710a23958",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/needle_hama_ukiyoe.svg",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 518,
+      "sha256": "7e75f53e443ca7933ea93c83cc0d2abf161d9231fbff19437430a8b75337e8f5",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/needle_ice_ukiyoe.svg",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 552,
+      "sha256": "c68fa0d8c6efd09513eb7f280f92a4ba155fed71dd2529d49e083093f7c1fed9",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/ofuda_ukiyoe.svg",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 680,
+      "sha256": "9790b1818df4dc6b5b5683ed4efb79f6d9975b07b391cb4aa680eb96a47efbae",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/taiji_ofuda_ukiyoe.svg",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 657,
+      "sha256": "e4a27fe700c5b14109b6dd012015fd659fa93040833c6d70cdf7eec7c6d90c6c",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/thunder_drum_ukiyoe.svg",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 758,
+      "sha256": "8a16c8682bded8b562337be379b8235b8f651e3933393c40a08507975d6ea2cd",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/thunder_ukiyoe.svg",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 563,
+      "sha256": "5987976481b1e56df18c3bea885103c117183965d0c459c027261b6666416690",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/raster/katana.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 8310,
+      "sha256": "6d69d4753e83e70af08d172416a19a429b1aefcb661b17fbb52bccd43e25c384",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/raster/foxfire.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 2564,
+      "sha256": "1f3bf05ccd00de8143e32acf13a874f9a088fe19363786514dcc57286c95c73c",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/raster/foxfire_dragon.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 16202,
+      "sha256": "d81e331f2d83363fa7cc86b15637c3b888558089494d67d018ca0dacc4158b0d",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/ui/ledger_washi.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 15012,
+      "sha256": "71a72f3f1f15a320a719d848a23980e9753f246f4f766295a2d924adac4de2db",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/ui/notice_washi.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 16886,
+      "sha256": "37290bd8e651a909419730dae33594101d65f9105ebd0dd8bc2c04e3eb9f7a0b",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/ui/ofuda_cyan.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 4156,
+      "sha256": "0ff0232563ddfa34240337d50cb86ad22d6d0c1dc3e8595a1666289adcd381d0",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/ui/ofuda_neutral.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 4476,
+      "sha256": "247f3b61d38805f252ec8d5c44ca8f04052a1d282673b1ab18ac9dc2d9b08bd9",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/ui/ofuda_vermilion.webp",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 4170,
+      "sha256": "73ae56a6c960cab6cf5bf06d2f7a41f68631d4064d71a72d2e756382f5ddd27f",
+      "tracked": true
+    },
+    {
+      "path": "tools/generate-ui-washi.py",
+      "reason": "retired-runtime-asset-or-generator",
+      "bytes": 5651,
+      "sha256": "859d1068099faa1cd312b1486da16c24394ddd0b4005746c09b10d66bb301bd2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-end-lost-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 30324,
+      "sha256": "31d57d96a4d15f539344d604d4e42d442bf0a65bb6ea28985bad4ee34546b1d2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-end-won-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 31198,
+      "sha256": "4302fb2a40a0c9699989e2024ae268c18969700fc2fec8c2b64f244347b20fed",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-enemy-attacks.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 32686,
+      "sha256": "52a036b3099b2acde9aa052c0f96daebbfd740a8e9e1cca9998c5e61f7a474eb",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-fallback-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 1924,
+      "sha256": "e42323ba60f874ee5ebe4c384fc010ed70575e135b5b3b90a15d1eaa83fa416f",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-live-map-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 20043,
+      "sha256": "0ecc1a201c2b8b2350e73bc95d2eefee8ebb6ec87a0c862fef35705fc073e8d0",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-map-cleared.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 43289,
+      "sha256": "b82194738b5567912cc7509f769338dcd3877e5f623a0b0df181644f977db2e8",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-map-header-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 970,
+      "sha256": "92ba93a817a20ea2507d648fa93788f132cc4718a6662a3a780b8faee4d456cf",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-map-port-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 27451,
+      "sha256": "2f91cbf0eec8430f39aefa1ffb5270e3d9e6aa4d5310f7929c2ce4c903fe3990",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-map-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 830,
+      "sha256": "c8fc91eccaa1b15791966aa4c26118f3c42fb6b6203717657d837a7e171f0ab4",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-motion-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 4320,
+      "sha256": "1e254a88728eda462b6b1e5609f08862f01cc44f833e362beb830a8a8ad69e24",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-motion-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 24858,
+      "sha256": "671bcb0627bca57a911bab7ebf6dc833959abfb8be368712913f602e2f68d150",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-player-poses.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 38191,
+      "sha256": "62dd2624a792a5367eb0acd81d7699760737bfd055ee06d7329142a4662a28b6",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-reduced-motion-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 19561,
+      "sha256": "898a823ad9991bea604381e32f8a5421653d17397d59581de1afdd77ee4938cf",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-round2-desktop.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 112656,
+      "sha256": "439c6dc4c804da16791eee492fbd76f6fd1104a4213c60d71673dffc1b25c7ab",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-round2-mobile-game.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 26489,
+      "sha256": "8c090977b7623b532a0726667243eff6315c4602d4afb9d2b180493b28a91224",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-round2-north-desktop.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 190787,
+      "sha256": "068230bcde2d8aa511f8981d2f5382379349e682a574256d9bfe794b51e1bce3",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-round2-north-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 43692,
+      "sha256": "09e15d488b65b9bb31b95d1cf9c911ad5607196b2c12e09b9d12480a51b3a5c2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-round2-south-desktop.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 187785,
+      "sha256": "17a0c7782a914dc8bfbd0e94c2b7e3a0251f5011ca517a29ed5c3deef4f0a087",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-round2-south-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 42701,
+      "sha256": "4e84e302418ed3387bd9cb83e68771ef669d6b86ac951bef4a927e8d83609753",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-timing-red.cjs",
+      "reason": "historical-validation-output",
+      "bytes": 673,
+      "sha256": "d0702c701b12977eb5cdbbac59b76cefe1648ac0cdc5d204192a00dab3741b9a",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/art-timing-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 985,
+      "sha256": "de9823caf2fbfa5142f67e0efb1a15bfe654e30adc5f9b3e47c5be105a069743",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/audit-mobile-end.png",
+      "reason": "historical-validation-output",
+      "bytes": 17171,
+      "sha256": "204dcbf730fffe2ed67263152950aa131fe652fb4c6281440e57e923a6daefe4",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/audit-mobile-levelup.png",
+      "reason": "historical-validation-output",
+      "bytes": 31678,
+      "sha256": "99652edbb547f5931b1f5ae3aa82ecfbb8b3ed5579ac54e87618f41c580f2f04",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/audit-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 20864,
+      "sha256": "ddaa277ad5dc15c9a993a3a2edf9fcdffdc24ef607c7ccc1b7dcb3ae5e934c1f",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/boss-cue-kiri-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 44916,
+      "sha256": "2ad4122d054adee4c1f0529654a2963710a7876e7d9783e6211e05dd134f6f00",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/boss-cue-kita-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 45019,
+      "sha256": "ea79a1713f901871d5505adb3e8042ba3cd5606fc4ceb1bca21a5c2b04222285",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/boss-cue-minami-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 45323,
+      "sha256": "9d8d6108b5e20bf312f3e393598935797acb57b8a659739a29045e669dd69504",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/desktop-controls.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 77518,
+      "sha256": "35f55591e762959285de32ae9502c7989fb2118101d989060cf08c8ff7fcc025",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/fullscreen-desktop.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 137681,
+      "sha256": "8ed68e14ecee722f86104324ef1e47847a21f14591feb42f8d4b18afd0f3ca1a",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/fullscreen-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 37696,
+      "sha256": "aa7027e9aceaf1d1242eb43ae6315fd5af42f3beb87813c58a79e58a62dd409d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/gemini-audio-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 978,
+      "sha256": "54fd736e29d95a3adef7e2761b11f3daed15bf179ac84df3374312b98f2a5d52",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/gemini-baseline-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 34726,
+      "sha256": "d922f1aa09bb75ac9f0a03cab8124d46fc904b3f04741ac2c1a885ad2f952536",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/gemini-green-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 36597,
+      "sha256": "026900fa89833658487722774beb21334ca2b55913a24f8f5f6febdafc5813f6",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/gemini-red-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 27093,
+      "sha256": "986f406f35bf6a91529b8c3b4ec8b51719d0e3250a5c5f2d68ea76c3149debfd",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/gemini-settings-proof.png",
+      "reason": "historical-validation-output",
+      "bytes": 121381,
+      "sha256": "144281213aa1bfab7e4eedb2b6fe16ec24abf0548ff76ffb915438d2425601ff",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/hud-safe-4by3.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 78849,
+      "sha256": "17f8b970a94a25ccae2ac9c370d9a44c0f3c22b3c45d3f408169a9ac5eb7b847",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading-baseline.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 66113,
+      "sha256": "027a525a5dc01df3bb372e30e80360ccfb2926b07f494643868b71a49c691778",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading-green-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 36062,
+      "sha256": "01da70fa6587fea13baaed1cc6070710a0cc903571a8a72b097188906d9e8ebb",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading-home-desktop.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 197744,
+      "sha256": "9ccde2178e2389c8d5d9bb5cf93010beb02d7cf831dea0204f3dc9ce8d08cba8",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading-mobile-game.png",
+      "reason": "historical-validation-output",
+      "bytes": 58130,
+      "sha256": "9f8f1e0aac6da9bd954d70f89b1943a4a79327b723088d0618f9b284c0f0c934",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading-mobile-map.png",
+      "reason": "historical-validation-output",
+      "bytes": 86868,
+      "sha256": "ad343773d53158ec341d02a58959e2deff4e223f4b7ae1010f4c377659a459a6",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading-optimized.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 66775,
+      "sha256": "1c11448b62edfad5fcbc3230e4e4bd9758f6885c930d9b269fb7cafa6dca6c14",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading-red-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 23420,
+      "sha256": "054d0395d06b35311f325e5bd268d34dfeeb2e455d781114bbf2baea5e1089cb",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading-remote-before.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 67750,
+      "sha256": "aea0cb4748a0b76888f5207eedc4a862ca2657e840ef8ef03224816f904a18c9",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading2-green-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 36834,
+      "sha256": "bd14a653ef15e6257ded0bc52b5f1b587d7987fcb3c386461e8091728c96f197",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading2-mobile-game.png",
+      "reason": "historical-validation-output",
+      "bytes": 63644,
+      "sha256": "dfea05697d284d25e82f07cfdc0b08067008e8f14c26cc289828528ec58e4b60",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading2-red-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 24128,
+      "sha256": "f242e3d112e477af98e1ec7a8ac1b4af39ff30b679eb875c17ca57747354ac85",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading3-green-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 37208,
+      "sha256": "992ff420d743789a54388132246c118613cbac75fc68a2c2861bc00a44f0cf6f",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading3-red-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 4417,
+      "sha256": "41f7b38b7118446fbb6f293ff6ec5d14e5df1b31f27389323732b82c96447f51",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/loading4-red-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 25222,
+      "sha256": "5239bc82ed99f4c00a711272802b259441379437b8e639d2a917b325f1bb7d56",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/mobile-game.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 36100,
+      "sha256": "e09d33dfabbe7f74753709fdcbc0364f0fe3316804dc21d2998e73e88a620b0a",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/qwen-loading-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 37670,
+      "sha256": "79d840e615cbe40c9d0590620b2bfae6e0e967de578d0adafff4692770c5cb42",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/qwen-review-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 23140,
+      "sha256": "3f9db0eb4f61fc2ae293170aadbcfb88ff73a43ad3f1f7582aaa631e2ddf3efc",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/qwen-summary-desktop.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 40267,
+      "sha256": "dde89ed470b9b88945a7cdd1e64613ab679b1a7e739a76ecb8be225dcb89831b",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/qwen-summary-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 20453,
+      "sha256": "4706b553c005dd0b7b59c73eda7d06f95c1be1c48a73b0a1caea3decd590b2e5",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/rain-port-word-cues.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 30204,
+      "sha256": "0307dec61f7ff29278836365c69007d47d4b5cce94cb7cca606b1f4fe1feaf20",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-controlled-boss-before.png",
+      "reason": "historical-validation-output",
+      "bytes": 104635,
+      "sha256": "e09f98dcbcc37247915f757e5a6dd2ba109610f8c4cd35419b468094a51c8997",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-controlled-boss-codex.png",
+      "reason": "historical-validation-output",
+      "bytes": 87106,
+      "sha256": "276df897ceffd6b3f99bbcb0d0ec12b857b49ca432e75c83d51f3ffcf00ccad3",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-controlled-boss-correct.png",
+      "reason": "historical-validation-output",
+      "bytes": 112706,
+      "sha256": "fd6785a95ec5909cf5e89a76b42f1220d01ce04696d3c922fcf6c51dffbba03b",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-controlled-boss-leave.png",
+      "reason": "historical-validation-output",
+      "bytes": 106098,
+      "sha256": "f0dff2996550e31a3a447147373ffb30c77366df19373dcbd1e78b9aa6b7a20a",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-controlled-boss-quiz.png",
+      "reason": "historical-validation-output",
+      "bytes": 132449,
+      "sha256": "4231b81a4b59edeaf341d614dbd024ae851613127b9140187e9d376cccb52a6d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-controlled-boss-reenter.png",
+      "reason": "historical-validation-output",
+      "bytes": 123625,
+      "sha256": "28e3e5f1ae4d2b6c00c284a56ba2ea1cc0ff18818f667f16adc4c8a57e723075",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-controlled-boss-spawn.png",
+      "reason": "historical-validation-output",
+      "bytes": 107657,
+      "sha256": "59e0f88dd9548413aa136f25a10a2038b368a35b4f980321d5c4886e9fbc8872",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-controlled-boss-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 9767,
+      "sha256": "bff3f0617d3b8d1d8c1716b426d3bb707517923ac362f1faad54deb2b6f7f1ba",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-controlled-boss-wrong.png",
+      "reason": "historical-validation-output",
+      "bytes": 130601,
+      "sha256": "c9ff49d211a329d82fbca2512cc8655118fe8ed3781ad1bfd88cafcdb4bca1e5",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-natural-A-99s.png",
+      "reason": "historical-validation-output",
+      "bytes": 117699,
+      "sha256": "91b0a059bc8ad9c5b1422c7b75bf65cd378a9e7616b1e9101096f7e86053d0ed",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-natural-A-book-low-oil.png",
+      "reason": "historical-validation-output",
+      "bytes": 117836,
+      "sha256": "696e27a73a63ad682e5fb326a4032bb9b6d23125c6cdf7838b59320dc83daab3",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-natural-A-injury-68s.png",
+      "reason": "historical-validation-output",
+      "bytes": 117764,
+      "sha256": "71a14c811ddc97a074a9d07175da8f3c01ca67aa87212c843cba4b6e513f3a37",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-natural-A-injury-88s.png",
+      "reason": "historical-validation-output",
+      "bytes": 118986,
+      "sha256": "bf534b9824c022813988fc5976befd18f7d79dfde28e0be45f6f33daeb5be811",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-natural-A-settlement.png",
+      "reason": "historical-validation-output",
+      "bytes": 73504,
+      "sha256": "948158040e8dd02ff03f6609c0d9bcaed5b6c2ceecfac823997513bf6e4cc913",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-natural-B-79s.png",
+      "reason": "historical-validation-output",
+      "bytes": 106117,
+      "sha256": "1960e3001aff5ec986fd44e2e48cac04c8f46159c7685b7f163196a3c54b1aa6",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-natural-B-89s.png",
+      "reason": "historical-validation-output",
+      "bytes": 97762,
+      "sha256": "941e90e93ee8a38ab102ad64ff1f40519f388128164c464503629db966e35ba2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-natural-B-settlement.png",
+      "reason": "historical-validation-output",
+      "bytes": 71622,
+      "sha256": "f1967000f7ff6c692b8d85ed2e2b488532ee746ad4f8cca6d25ea2c23ea2d059",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-natural-flower-result.png",
+      "reason": "historical-validation-output",
+      "bytes": 116158,
+      "sha256": "91743927080edb9164b1229bf90c2d851b42c0af1c0002923c8eaf1c60dddcc8",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-natural-oil-upgraded.png",
+      "reason": "historical-validation-output",
+      "bytes": 143370,
+      "sha256": "63a3faad2c828fb84eb183ff3f8f82b62f8894fc6f71616fb4801b09d23c3797",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-natural-sea-upgrade.png",
+      "reason": "historical-validation-output",
+      "bytes": 97909,
+      "sha256": "f1a1897aa059b20fd07082195e7aeea13d4364ff3e038dd3c66f45d95c64cca5",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round10-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 9777,
+      "sha256": "7e83faddef62eeaee4bb57ce96f4fcb2981cfaff61f16282af92db7e86b176ee",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round11-controlled-focused-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 2489,
+      "sha256": "b170b85971eb07e3b0acdccf3920dcc7b88d4e4c88145491073a9f476cf7a848",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round11-controlled-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 11149,
+      "sha256": "b7ed6026b0c1fde5ab0ee9a22916d45e063b2975c403a8e793ec95060d83b1e8",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round12-controlled-focused-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 662,
+      "sha256": "362ecf02b69a06103e0e479757d4adc12a3abd04118baa136f09dc14f4c8047d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round12-controlled-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 11686,
+      "sha256": "96066e2eb627cc328f09ea85c234985d428e0f9e40c4b8997ffd5703df733dd2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round13-controlled-focused-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 696,
+      "sha256": "659af0a3539d429b88d33ba53bc3a54263e66682b0caafb26246fcceb969120c",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round13-controlled-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 12264,
+      "sha256": "b06dfdd7684f073591540a77f73d609459c1fbc1bde2cb7e67d6e6b3a2052311",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round14-live-title.png",
+      "reason": "historical-validation-output",
+      "bytes": 239686,
+      "sha256": "44d47932447b19d48b71fdc258cf3be92125867ff5e1150fd8ddb9a4896ea57c",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round14-settlement-desktop.png",
+      "reason": "historical-validation-output",
+      "bytes": 67829,
+      "sha256": "beb18aaab66d1a1082b6e3d1d936d03c33f910b59e5c542dbc74be7e8d9c6c9a",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round14-settlement-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 19572,
+      "sha256": "c9687fa632d35368ffa1f66a9788da5f846a6778f0fd227f3fa9d7f0b14a147c",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round14-settlement-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 963,
+      "sha256": "909b66ae6f370c186ced15f689be72ffb5051e9e38c5b3329f4f0ce1ae64c99e",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round14-settlement-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 12354,
+      "sha256": "1f0ddc296c46ee6295a264d57037359a1fdc53ead84166cf9d1f82d73cb1b787",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round15-boss-3x2.png",
+      "reason": "historical-validation-output",
+      "bytes": 53214,
+      "sha256": "184c79a4301d7407b0e9534f15c1c2b439c6ece2d6cccac74ad8d86dbb474b10",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round15-boss-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 32218,
+      "sha256": "5c40428dec854c4436794fe18749eea134c02237071fcb6cac7894443f9902a1",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round15-boss-ultrawide.png",
+      "reason": "historical-validation-output",
+      "bytes": 50581,
+      "sha256": "bc7559cc02bd53456fb09e14adf63f4bf91ce044a99f87e5873a3dd9dff7930a",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round15-controls-overlap-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 1022,
+      "sha256": "df43c2b958445060dbc9b51340d4a280d49224b40c9002b1887e5b75b26ba8d9",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round15-exit-cancel.png",
+      "reason": "historical-validation-output",
+      "bytes": 34357,
+      "sha256": "bca405f4707ce30a0e9ebfc59b7aa1b3380b6bf1c61a05435aa1d235833d7036",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round15-exit-confirm.png",
+      "reason": "historical-validation-output",
+      "bytes": 28137,
+      "sha256": "2f3f79415cbb83b9f7a4d308883ffe94865d06af4bbbc60d41c92a1ad46dfffb",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round15-exit-home.png",
+      "reason": "historical-validation-output",
+      "bytes": 86805,
+      "sha256": "5f281cb6deab282eba3e4087e418cef1e1274b99aedbb2dfd53251cf7339c2e7",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round15-exit-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 19691,
+      "sha256": "3687a54d1c7863de1eae1728050a01065e42444485f2fb911e85d711df7a9c1b",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round15-focused-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 592,
+      "sha256": "20ad9e22ccc1e2b9f65014a9af31b739b8f671b6c22ac26e029ef304ac5a6f6d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round15-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 3480,
+      "sha256": "25de76a092991998cc2137701ce8aa33cbdd253e98f820ef0e62b8b80b8fc19a",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round15-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 12832,
+      "sha256": "66856bffe042ad042419b0f5bdec662a8eba510853b4b14c72ad4dbbca10dca2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round16-browser-audio.png",
+      "reason": "historical-validation-output",
+      "bytes": 34160,
+      "sha256": "864a9b30c7b8cf9002c983bc1403d8dce3f641c1c20467787c2283b406311f23",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round16-focused-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 33403,
+      "sha256": "28a863a214b759b627fe80b261aadd60470ea0c09b469242970be3539ab4938f",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round16-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 4182,
+      "sha256": "6df7e05fa9df88789a8f04c075f5b17164667fdc49704b330ca0b0f539484333",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round16-release-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 13747,
+      "sha256": "f43d82a3c4a7e4dc47f0b3ad85049a4e3bed5f47cad189fbcfc8f16c51367b35",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round16-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 13741,
+      "sha256": "d00b3d551701c731a8e76188ec8d2da4f46c61f101d8bfd3768c7ab4494c89e9",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round17-coverage.txt",
+      "reason": "historical-validation-output",
+      "bytes": 15695,
+      "sha256": "b9ee3908084345157ea04e68551b36c738760720acbd03d33d550b9f87bed6a2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round17-error-recovery.png",
+      "reason": "historical-validation-output",
+      "bytes": 6010,
+      "sha256": "0c5a47b8bab38e9cd8526caaf672e23b91cebdecec54f2b3230f08a84a900d67",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round17-focused-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 1912,
+      "sha256": "16851cf969bb24356cbb30a61762613d8a1b502db8fc1aceb8adf2254617ce64",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round17-green-recovery.txt",
+      "reason": "historical-validation-output",
+      "bytes": 263,
+      "sha256": "2befb66d5b578f198c22e7847240a9053a96a0b81174d3733d8f047a43b67164",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round17-hint-desktop.png",
+      "reason": "historical-validation-output",
+      "bytes": 83995,
+      "sha256": "60e26d5bd924081d534c3b199dc5ef626c4d82aade4849d2dfbc080594b7f108",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round17-hint-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 35613,
+      "sha256": "6f31d544c7c0ad079b003ef5474d4cfdd2d68d8e07c49befd98454e9a2d205d5",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round17-rain-desktop.png",
+      "reason": "historical-validation-output",
+      "bytes": 28327,
+      "sha256": "318c92867922bea42d7f1aac2da49ec786956b1168b0bac583d3267ef76c5338",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round17-rain-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 21337,
+      "sha256": "308b3fb760db33917e69be318d8397d279947f544da60a50fbcc489ab095f920",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round17-red-extra.txt",
+      "reason": "historical-validation-output",
+      "bytes": 3712,
+      "sha256": "9fe30a18df90aab7248c8e8a352a69f1f582d026e642d8e81a8ca8e2a869a12f",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round17-red-recovery.txt",
+      "reason": "historical-validation-output",
+      "bytes": 1155,
+      "sha256": "ed4982cf38cd511d14954904690214e666b8a0278c5c34ff4ecfacea0d320215",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round17-red-trapped.txt",
+      "reason": "historical-validation-output",
+      "bytes": 916,
+      "sha256": "76a82b6287c189fd435c14ca5621624102a5d3f7fd2451dac78422db59ee87e9",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round17-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 7690,
+      "sha256": "d74192bde9100e1309176f4e375997b920f0a7a9088e36d118de5d96846b4f3f",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round17-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 14829,
+      "sha256": "f8d482eadd1ff4c191077ba2b72687a41563a656c62d0e11ecbe683c8ba47dd9",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-boss-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 886,
+      "sha256": "00a746b343194e518e143176fc02a690ff8072347ed6a87c31131f646411a069",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-coverage.txt",
+      "reason": "historical-validation-output",
+      "bytes": 16145,
+      "sha256": "c0e78e313704b64e56d7dc3cf8d53a9e0c3b1cb6fc1e5c0f79199a0632f92722",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-focused-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 557,
+      "sha256": "90cbc4c2b1d8e833f51dc51445e5813f7b39abeec2d58415545061bd16956549",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-hud-boss-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 40074,
+      "sha256": "7731b1263659ee3fdc184605911f3d1c5d001dc344ad19bc29decfa6ad417381",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-hud-boss-small.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 26192,
+      "sha256": "a25554b2ea3735622db390c70ea9eb8452903fb3b1a4b349896f556480eaf1dc",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-hud-empty-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 36223,
+      "sha256": "9bf5b25a2917feecdee4d3353a41733dda60abb3f2ba23ed3471b971504e4584",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-hud-full-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 42513,
+      "sha256": "97c752461b85f2790889d3f15be2db1d073bac0ce925d9071eeabc3ae30ec6d8",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-hud-full-wide.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 91225,
+      "sha256": "b1c319d47d1fa3b117d4bbd69b0182a5a44bac3f85d1fdaa2fb2abc85a03c70d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-hud-low-4by3.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 47119,
+      "sha256": "94825a0f4e88dc0b167f08b9decbd7895a950c4f80854ce225d03490f13bcdc2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-hud-low-desktop.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 52942,
+      "sha256": "822839dfea1b6d3e5356b2fa43d7aeb3fe3825d63e38f045d73985dd84971913",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-hud-low-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 36794,
+      "sha256": "38faf82e1c8029398860af88a144b145e15b0f3e91c9498fd278dc8206590620",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-hud-low-small.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 24299,
+      "sha256": "974f07a40957d2b7144b8ac431baa6c7ece1e24f55c530f8069c3e3ac2f73eee",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-hud-touch-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 36705,
+      "sha256": "b5272c79cfc1659d9ee4f9272bf0545e427e6c1ca650d8cf327920769168c9ae",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-hud-touch-small.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 24094,
+      "sha256": "d76e0fa681e39fe9a9b1fe96cfbc784d80e18dd4e26101ccbc6eaf560704c1be",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 2781,
+      "sha256": "2dce96b089b34444136eeab3e1438c5ee54f381826c2b69be9c05b8c97540002",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-release-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 15286,
+      "sha256": "6523724fd21723013833f314e2b8fe98156a785dceda0cdfda52f75960281e42",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-small-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 396,
+      "sha256": "fa7566b5f02ffa4e07df414817470968fdf1ce347f2b287a13b93f9f72067759",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 15283,
+      "sha256": "9b654b06a4be3a67015786b7dd733a4a336b01b2c42df43034f6df330eede6db",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round18-touch-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 894,
+      "sha256": "08496e9561e81c2051172bf0ce61f97d5c9236acfbf4f2067b36c61b89bf58dd",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round19-budget-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 2003,
+      "sha256": "9efd3d29ce938c2137187a933cb63d249e2379aa25522d921f3fce8d73caabf6",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round19-coverage.txt",
+      "reason": "historical-validation-output",
+      "bytes": 16531,
+      "sha256": "d2d8e808dab764a57ab489efebd06b943d9e3cd1a6692a4a9be52a561a5741b1",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round19-glow-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 936,
+      "sha256": "6d55ca88cf093ca919c7e389cf8e0c80e1ecd883e5df330373898a62b06d1cbe",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round19-optimized-desktop.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 65317,
+      "sha256": "83f7d755036ede99a8d8975cc655a89caf4976c68873d5905c69c930cd31f476",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round19-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 2934,
+      "sha256": "79355eab18703223a1ff23de1fb0131ed4f2a6842e973e19db1ca4e220f096a0",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round19-renderer-initial-failure.txt",
+      "reason": "historical-validation-output",
+      "bytes": 2344,
+      "sha256": "ffbb11fdcd0e6aa917771d7a003207305fff9110f3d54e714068afa1ec68f994",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round19-renderer-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 964,
+      "sha256": "6180ce71522e933397f876b6330548177c5d58e414e6587c2a3d3b9e59983d77",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round19-terrain-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 1949,
+      "sha256": "6e50502501a64d2f6eeeb2cb04b8fa472cca8370f2cc7fd4af65e236a74f2050",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round19-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 15656,
+      "sha256": "dd6421609f461be310181c2ca3f59aa87ea6422892931207d46ce2a49b745bf1",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round20-boss.png",
+      "reason": "historical-validation-output",
+      "bytes": 1369540,
+      "sha256": "e2a5d70442cce4f4cc6a4f3d7d8b6bc7bfc295c1faa606701dc8b7800f84974a",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round20-browser.cjs",
+      "reason": "historical-validation-output",
+      "bytes": 2645,
+      "sha256": "cb0287f352e14b46e818efa11fa511effab4c0c1f98a875a2b374db6960704c2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round20-delivery.png",
+      "reason": "historical-validation-output",
+      "bytes": 1372972,
+      "sha256": "ecdef3955e4c7e6ff88c634a139f1960e75887951f283cc009c256edf005536d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round20-focused.txt",
+      "reason": "historical-validation-output",
+      "bytes": 15858,
+      "sha256": "39fd4985e4e9bf2d2ae42bb8a95fcf40160c4bc95cda3418506247358c2c71f2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round20-lost-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 248689,
+      "sha256": "5d81b483fbe731194d62f56b444c0e28ea2027eacd50720c37984c252cd4a76d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round20-lost.png",
+      "reason": "historical-validation-output",
+      "bytes": 770572,
+      "sha256": "2b25c160d695f0107f93d4f9f7b3a6ea1d9ccbf23574fc3012c5c77af6db35b9",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round20-map.png",
+      "reason": "historical-validation-output",
+      "bytes": 2633871,
+      "sha256": "9943d4a272709496d4bd0adc55287757452fc253e7d4f29b2c4e4ac6ffcf550d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round20-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 18887,
+      "sha256": "8dcfe8c07cadc1dbe893202ef47562c52a8db846df97c1f61e6a46a0bf5b23de",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round20-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 26475,
+      "sha256": "64ee2f8674ef60ef1fc8af82c58f293f8f96a4361307b91703bce71bad502137",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round20-won-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 239138,
+      "sha256": "3338f7e67fc7c2e6a34ec5876f61ead3cc40ce57d876e85e8581ace475ab6a7f",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round20-won.png",
+      "reason": "historical-validation-output",
+      "bytes": 733569,
+      "sha256": "2dac7c984239b4d58073ee096a979d1f74cf5498a9becffa3cc8a8ca544d9131",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round21-boss.png",
+      "reason": "historical-validation-output",
+      "bytes": 1331604,
+      "sha256": "00e249bda80c5847213ded9a3dffdc66b9bf08a8acbdb5af175711f5a7aab408",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round21-browser.cjs",
+      "reason": "historical-validation-output",
+      "bytes": 2777,
+      "sha256": "fa28f731c621777fe3cbf93995b48b91f4eb7d905a51cc8b55b4a416947bee15",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round21-delivery.png",
+      "reason": "historical-validation-output",
+      "bytes": 1335962,
+      "sha256": "db39ae36eebbb08aea52f8ed5b13d190ddc40a64be6fd3122ac02f22e250a03c",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round21-lost-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 265354,
+      "sha256": "266f084141300a1a0313603c60a9918f25b8ef480fbbd830cf9c67e1fa8180d8",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round21-lost.png",
+      "reason": "historical-validation-output",
+      "bytes": 825020,
+      "sha256": "748a7aa810858dbdcd93859e3fc9539649ca51b991d792dd8643487c7cd811df",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round21-map.png",
+      "reason": "historical-validation-output",
+      "bytes": 2331094,
+      "sha256": "1ee1979e9d9f47137dd8673e5e7ae7d1ce0da385b6639982810a0e81d49d9e14",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round21-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 19071,
+      "sha256": "5fe3ac15e6b00b2031cc66ee671e9930d24d621490d7c5754cad479a2496d9f2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round21-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 26799,
+      "sha256": "02c5e74b940a2b46a469ed152f5e6aa606d6681941d818c82cf2b6927eac5b80",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round21-won-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 251726,
+      "sha256": "de6c7a05d3919b87c9c92ddc063fd858f30df63f7be3fecdfcc1e1eb38ab7d1b",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round21-won.png",
+      "reason": "historical-validation-output",
+      "bytes": 773585,
+      "sha256": "2f2336e4b435f9e3859fe187b187c92b2ea9d86b23b441e797fd7ef7a6a9a411",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round22-boss.png",
+      "reason": "historical-validation-output",
+      "bytes": 1327934,
+      "sha256": "438d2844f7b57945ea8a7db9148f6293badd3248dc011ebf470cfb692b98aab7",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round22-browser.cjs",
+      "reason": "historical-validation-output",
+      "bytes": 3339,
+      "sha256": "792dc06f94f38902bafb8c232a16a0a096480a3f0d0cfcedd8d4473859beb500",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round22-delivery.png",
+      "reason": "historical-validation-output",
+      "bytes": 1367126,
+      "sha256": "0dce1b8eaec2946e3c9133d34df375ac213fa642645c444251b014d9d4b8e7cd",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round22-lost-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 264981,
+      "sha256": "455756633231b3380fba789a3ac61ed5f62bc0941a74def9412af542cd23e2f2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round22-lost.png",
+      "reason": "historical-validation-output",
+      "bytes": 825870,
+      "sha256": "7244aed704870d31917523830b9806f48367dae1bd31632b67a3f701758aab3d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round22-map.png",
+      "reason": "historical-validation-output",
+      "bytes": 2332301,
+      "sha256": "98dc1f51dd4b01cff54b7c8561822e301cac7d8eb9ce4f5df5afa761472c1b38",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round22-max-concepts.png",
+      "reason": "historical-validation-output",
+      "bytes": 242856,
+      "sha256": "b80a16339926c9f42ae6d6bf906e014107b1c1e47a06643c256760ff3257f4d2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round22-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 26878,
+      "sha256": "902fd05664df80328e3209be2996848e6873340c66ec7b99b44edf005348c83b",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round22-won-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 251874,
+      "sha256": "73be2addc94bec12c0f2daf2ffea24396df693902026a0c38a05df568844213c",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round22-won.png",
+      "reason": "historical-validation-output",
+      "bytes": 776093,
+      "sha256": "ab01f31c98a4296b388be0a4f6b954ddbe6ac4de8534ebf6f5c75ab007c6a199",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round23-boss.png",
+      "reason": "historical-validation-output",
+      "bytes": 1467575,
+      "sha256": "2463ad94f3696966cf5bc5fa453c1a39ceb7f2a2fc241927ebc4998d32c39d51",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round23-browser.cjs",
+      "reason": "historical-validation-output",
+      "bytes": 3339,
+      "sha256": "05166c8d6e6e2c38dcde9133a128d4a5132400b7bf21dcca0bdd22118a5e5147",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round23-delivery.png",
+      "reason": "historical-validation-output",
+      "bytes": 1510733,
+      "sha256": "dd6aea4cca4057af34a68859281a3ad13f97c7e38a81b2e490d86dcc9d84d667",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round23-lost-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 276149,
+      "sha256": "be5d27461c02309a6e5bca203ae231c8bba7f855757b79c52ae3989c3a7f171c",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round23-lost.png",
+      "reason": "historical-validation-output",
+      "bytes": 874744,
+      "sha256": "715a448e9f1553512ebf799ca6f28ef4306f5da28a80137ecdfbd55aafea8c56",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round23-map.png",
+      "reason": "historical-validation-output",
+      "bytes": 2332317,
+      "sha256": "acc92872b3a38cb2fb1cb72ca4dbe56c74ab089d08be9fcc73dedda158ad9e33",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round23-max-concepts.png",
+      "reason": "historical-validation-output",
+      "bytes": 243057,
+      "sha256": "0a6bc8fb3ddf93fe1fa2f0dcc913746fce4cc5a137b89453084429efc4a9b8e8",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round23-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 27068,
+      "sha256": "2df28ba2e55f72b704d838b2f0ff1b0b117e4cce0fdad6710fec894715024869",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round23-won-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 264440,
+      "sha256": "c63f036f03897cd46c0e3fafd0a34b5b7f5e5b5b5bf6282316a6ce7630ec4786",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round23-won.png",
+      "reason": "historical-validation-output",
+      "bytes": 825405,
+      "sha256": "c8dee644ae63bdea986b6e09d762ad3e8e899ac6aac06659013062a535bdfa92",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round24-browser.cjs",
+      "reason": "historical-validation-output",
+      "bytes": 1919,
+      "sha256": "0684ce3500bce64db52cf7e272ea07532692a5f37d78475d60489a8636b6b463",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round24-katana.png",
+      "reason": "historical-validation-output",
+      "bytes": 1060392,
+      "sha256": "31e3bd611c360fde2432b2627033027dd2e9ca1acea92f6b8737148fe76f8140",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round24-mixed.png",
+      "reason": "historical-validation-output",
+      "bytes": 817791,
+      "sha256": "5ee04800a0c1e337158bca138d85d2c2a3aa4e91a593a1e75fe5c14672826479",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round24-mobile-reduced.png",
+      "reason": "historical-validation-output",
+      "bytes": 438188,
+      "sha256": "9a3a6ab72ca58720b90c180304477353341d30206bcca453a2e69944270881d7",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round24-needle.png",
+      "reason": "historical-validation-output",
+      "bytes": 1102596,
+      "sha256": "0de6f13cb06cb71e6a76d67ca5a12b8b2035c6974d5defb0758b816456b7b6e4",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round24-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 3976,
+      "sha256": "b7871a400dcdae569f319eeab4db8cc66f63b4b3f71d21ad6adbc691b87a4a54",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round24-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 27542,
+      "sha256": "29e49d2f2012736d213b1ebecfad2d2dc2190116c5912ca3b59de091eb299280",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round24-thunder.png",
+      "reason": "historical-validation-output",
+      "bytes": 1059847,
+      "sha256": "587cbbc10ce45d3c8f994dd46041951d025537bb49438996abdba1d08a448a68",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round25-barrier.png",
+      "reason": "historical-validation-output",
+      "bytes": 1048344,
+      "sha256": "4bc71ddfcef5979005d01dd115b295347e013f92d8366044f657bcae888f4d02",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round25-boom.png",
+      "reason": "historical-validation-output",
+      "bytes": 1066036,
+      "sha256": "2193b81a8d80a229719fb53fa3229cf19bb6f2d920fe7299d6f82c831cb5b780",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round25-browser.cjs",
+      "reason": "historical-validation-output",
+      "bytes": 2725,
+      "sha256": "cd583c16b165dc0d9e0c1fb317ca584e3dc533b90eedf317cdf5b94ad55447f0",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round25-fire.png",
+      "reason": "historical-validation-output",
+      "bytes": 1060035,
+      "sha256": "b4ccca9d0690f7a18504fbcd382aa9ff217959c05c2911b378a507b7b5f1d705",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round25-katana.png",
+      "reason": "historical-validation-output",
+      "bytes": 1057237,
+      "sha256": "cf2137431deb7c8740a51f9b79e3cc491ef4f80ef664c39b8ccb06fdb1a7ff17",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round25-mixed.png",
+      "reason": "historical-validation-output",
+      "bytes": 861336,
+      "sha256": "75db16c5a14e6f6b08fbc5ee0918b2425820699e7d2424f9a75c6a2c0cb672de",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round25-mobile-reduced.png",
+      "reason": "historical-validation-output",
+      "bytes": 403323,
+      "sha256": "26c794dbce11f1c0b3ec2377b1c555dbaac577175bbb68d59e5e437c1d8f727a",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round25-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 17176,
+      "sha256": "5de2b4eb4e9965176a321f03ca26cfe4d51cd1a7f1f8e4c59ca608f705f514fd",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round25-release-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 27659,
+      "sha256": "d24d012af5e6aea4e2557498ba280158f0d2ddf5b34e118541443c28de99965f",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round25-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 27652,
+      "sha256": "5e883a525357f367f2477cfc17eaf7878910859f3e8c92dc017001a1bd149dd7",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round25-thunder.png",
+      "reason": "historical-validation-output",
+      "bytes": 1067605,
+      "sha256": "a15a2e69f354eaf7f414ddc5eb32b5e2c098ca6748f32564fd8a94b3bf40e265",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round3-landscape-paused.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 19514,
+      "sha256": "505bb281833f55e5c24c1fa31096518a7103e208f25673a2bdaae44ea512c0e4",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round3-landscape-resumed.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 25792,
+      "sha256": "e1484bb438ef2751ca42c5c3097aa86c8325429f5b471956e26a171d56d94943",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round3-portrait.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 5105,
+      "sha256": "b51af25a65fca4a408365bb5766a2da58ac1f0c30695485f0b9daaee1cfd36c9",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round4-audio-playing.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 37579,
+      "sha256": "f2c4aa764f09a65bbc14c3c763e380bdd639a89a034376769cacdc0e3f09d370",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round4-audio-playing.txt",
+      "reason": "historical-validation-output",
+      "bytes": 468,
+      "sha256": "1d86b88e4efe291dd2c580ea056655d4aac25dad2cc4883c2737057fab078bc2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round4-game-audio.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 8384,
+      "sha256": "53c0c817c46480e4a1ac460ffc48142e50263ce6a82dfb94170c703a52e2c3e6",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round4-game-audio.txt",
+      "reason": "historical-validation-output",
+      "bytes": 446,
+      "sha256": "19df180dcbf8ee4813ea49ddb48532f5169de8f156dc3ea2dbeee388ca2f41a8",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round4-overworld-desktop.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 82356,
+      "sha256": "d3b423846b27f252224de7f4500929ddc0bdc3b03c731d1a91b4d5f86c2fe331",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round4-overworld-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 26867,
+      "sha256": "874f4bc99fb31011b36402cb83142874016c1ad5132708ebd01517d52a32a6e1",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round4-pause-focus-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 21287,
+      "sha256": "1196a2dde06d843dbe9318e770c8b0d39e6370901d51e5c50606212c8677d940",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round5-codex-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 26225,
+      "sha256": "8946fe273d9627ba7d85eddd96221b4de2f85259dd076811d7e88e60a81cb2aa",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round5-icons-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 25921,
+      "sha256": "77469dc28a2840b0b66eb662e1a5083f0cf097e3d1e153d96e242fcf000ddfc5",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round5-pause-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 30659,
+      "sha256": "f9c8540742895ab4787c844e6d97e9cf8989b57e0245693f1e9fa0a1a58fee23",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round5-portrait.png",
+      "reason": "historical-validation-output",
+      "bytes": 11307,
+      "sha256": "266677c9988cec0363164ac9bd7a7a82d36caf41191689f5a11699bc477c96e0",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round5-replay-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 26635,
+      "sha256": "19625a23691edc0087e46ec6e20e31130bd2499f438affd4487ceebf7dafa82e",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round5-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 7781,
+      "sha256": "3a6726070d93b3b12e1ff0fc45a647aa4781aa3150bb754e24cbb5de2dfbe371",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round5-tutorial-bindings-desktop.png",
+      "reason": "historical-validation-output",
+      "bytes": 72459,
+      "sha256": "8d580c2f2b2658f4a2ab0674bbae215d56d0ceb9a5408445664614ffde9dc7f5",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round5-tutorial-boss-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 32254,
+      "sha256": "eab282faa2363b9bd6face843960784aa5f7d54a1c194c49f8dcc7ecc39a8ace",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round5-tutorial-dash-desktop.png",
+      "reason": "historical-validation-output",
+      "bytes": 88177,
+      "sha256": "6a995fe40144471d776d7708531587b06ff8b89f3948fc306ae83618f7ea3788",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round5-tutorial-delivery-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 31402,
+      "sha256": "89119e89c4ca616e027c3e9d07f51c90994604ee90b809a8f5290d19b93c13af",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round5-tutorial-listen-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 35484,
+      "sha256": "52368515b3b0bce06265bd27fd77356d006cf7273ed9d099e4884c962a7a3be1",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round5-tutorial-pickup-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 29503,
+      "sha256": "8909084d7748e513d0781e6a04a654a58f52966f700119b74c2fc33ca1f34b41",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round6-codex-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 31826,
+      "sha256": "ca43a9ba7586664876150d118a2dccf2b7bcd6112dd2b378b900f2c08a4a58e8",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round6-cross-hint-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 32875,
+      "sha256": "51e874ffc1ad1fabca1e16eadf01442efda690b5c4164a293efd87919f03589a",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round6-cross-hint-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 5495,
+      "sha256": "7ec0dd36178a6d216f87878cd997ec647608dcd0b4e0d5aa6454d0c87f6550f5",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round6-live-title.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 142516,
+      "sha256": "9b6e65ef31173d02f732cd911ab49c0d2d0830e8e6e12a836349f02d41a259ba",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round6-natural-entry-desktop.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 80471,
+      "sha256": "f10899a67469245a604e1fee560a3e566c77628a885626754ef90a5d9e4e0310",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round6-natural-entry-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 25671,
+      "sha256": "973ccfa173a38fa00a033dcc2587a5d1d8d6417c0f263e9eb65182432e224d05",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round6-portrait.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 5105,
+      "sha256": "b51af25a65fca4a408365bb5766a2da58ac1f0c30695485f0b9daaee1cfd36c9",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round6-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 6533,
+      "sha256": "3aaea708dee92daad4da022426d63184f9295181384eca9b6458e46681aee339",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round6-settlement-desktop.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 92170,
+      "sha256": "2e44b7b4d43d0fd6a00b77dfaa464cc614e6d3fb4ea018bc5d92c1ecd05b712b",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round6-settlement-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 29097,
+      "sha256": "69f854dd50ab2470058a4a8efcf204e50432b2d12c12d6786b44f3b6dc07c925",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round6-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 8857,
+      "sha256": "70c272c06ff63b5865ef4958cdaa14441bab681b6261f7d2ea89a4cc32db8941",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-controlled-assisted-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 35326,
+      "sha256": "fc35e50e33128eb44b20b14c3123d754bd290e688355fae981fcc87b92706636",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-controlled-codex-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 38173,
+      "sha256": "ca7e67e3f6c41f28f25ab05de28ae7b8c345a1d3f32a9e1296e3ec76b93b6b28",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-controlled-overlap-desktop.png",
+      "reason": "historical-validation-output",
+      "bytes": 143368,
+      "sha256": "0eb4ad189159c33140c39930c2907068146db90063348e6cc31fb06032110474",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-controlled-overlap-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 39024,
+      "sha256": "69af62f9638f7a67d34a6b51431729df9d3337b70277822cf500a369de1a9eab",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-controlled-seven-misses-mobile.png",
+      "reason": "historical-validation-output",
+      "bytes": 30986,
+      "sha256": "58e0716835edd1a0754b5a8cad3bfb9da783d4dad97fcbfc193b38db91c6d9a1",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-green-focused.txt",
+      "reason": "historical-validation-output",
+      "bytes": 4035,
+      "sha256": "e01e9679e9e205608662e55fce4c0ccc11be1dc3fa4d03e4f6938452d8bf3e8d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-live-title.png",
+      "reason": "historical-validation-output",
+      "bytes": 142439,
+      "sha256": "1b115e688716ea3480b0d122f90f2287e80ca603b766cef9f161ab407dafb4d9",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-natural-desktop-settlement.png",
+      "reason": "historical-validation-output",
+      "bytes": 76748,
+      "sha256": "3331d64112031e5dfd86f6583cc7934063d8ee5f6995219b9dc28558f7ba80b0",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-natural-mobile-feedback.png",
+      "reason": "historical-validation-output",
+      "bytes": 29053,
+      "sha256": "f7b35a3b8448630198d9994c8d18c4b3ff0bf8f555f01a75cc0e1f284596856b",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-natural-mobile-retry.png",
+      "reason": "historical-validation-output",
+      "bytes": 28755,
+      "sha256": "f90712f093b36ac9fbd00a96dec0888d78ecc12cbcb154c450af9e5dbdbd08b0",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-red-late-boss.txt",
+      "reason": "historical-validation-output",
+      "bytes": 5394,
+      "sha256": "d7f306be6ef88e00cb7f8055f7d1f5836847be27dd5215d5e59e84718bbad5fd",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-red-second-hint.txt",
+      "reason": "historical-validation-output",
+      "bytes": 5207,
+      "sha256": "a5bde45b271afcd8e3e1cbca6ae69bb6b77c6f7570c93a0e3a6bf8f7d4f4a7ee",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 5801,
+      "sha256": "e8952eee118e56bdd387eb498b7232bcaa34ac74c6b55c3cceb8441ce963e88f",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-release-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 9773,
+      "sha256": "ea3394622953abaea22aaed51db8105110d8474aa4097643f908134d20629eb4",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-static-checks.txt",
+      "reason": "historical-validation-output",
+      "bytes": 610,
+      "sha256": "fae927e0d0c8604b2c7fa42138fabcaec6d21755ec141fc92c9a069bba7f6e9d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round7-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 9773,
+      "sha256": "94550d732f41a754962dd12228694da8de20823ad6a11b86d1b9d008992cd7c3",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round8-natural-desktop-book-delivery.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 135167,
+      "sha256": "ce223d6ef2a3ab6156583e2bf1d95a40e58c489076c3eb74f302d15ec46cba03",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round8-natural-desktop-book-result.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 138574,
+      "sha256": "18d16f57b2cdd9c2b83ec0a2174fcd8fc099ebe48b473bc2d0cb3d793db95d6e",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round8-natural-desktop-kill.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 127939,
+      "sha256": "004386fdcdaa0c301e007eb9d5086d318177d955da1552bfdd0b3aefa3f17e50",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round8-natural-desktop-redraw.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 130829,
+      "sha256": "1101f2a6450b72c4efe8050368b718e33b3f3e7c715d8fffbea953586d6a05c0",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round8-natural-desktop-settlement.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 85979,
+      "sha256": "75c66928e4b73d233ef0f98e626fe849de7a83be1e4e5ab3494a4bc72a04ffdd",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round8-natural-desktop-wrong.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 133832,
+      "sha256": "4f3840a7ed3ad3dbbde4a0e6f492e671d02d1fdfdcf0162bc7ea8a10e27f77e9",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round8-natural-mobile-answer-back.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 31801,
+      "sha256": "5441aa4edee20693efd886b421b87ea1c17330aaf744642b2731166020258375",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round8-natural-mobile-codex.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 28678,
+      "sha256": "e0ee8549b2f4292165a19885e4b0844a3026322fbe35a70e097f7b7e1d042675",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round8-natural-mobile-fish-retry.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 27116,
+      "sha256": "7289df01ba81c332822b1f3fb43509636329d9824966ee600f2ac50d77e78ac5",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round8-natural-mobile-settlement.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 21426,
+      "sha256": "3ae7fe02c064e5ec757747f34765a6a013966ed96365db0feffb82c8551da48d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round8-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 9774,
+      "sha256": "e0dc17a72fa91c4fa72628c4af75b6b16961db1865c2af336adeffc829cbbd2d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round9-live-title.png",
+      "reason": "historical-validation-output",
+      "bytes": 130206,
+      "sha256": "3814ebbe50397847fca0cc95a8eb141ed203fd38313749bdc260689d2df7a7ee",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round9-natural-B-92s.png",
+      "reason": "historical-validation-output",
+      "bytes": 124487,
+      "sha256": "d4f36584cdcad588d9b5c6798b405c722bf6bde4b0bb55730bd05b8592acbd54",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round9-natural-B-continued.png",
+      "reason": "historical-validation-output",
+      "bytes": 119503,
+      "sha256": "e011ed0edb7f53edee4d613b24b03df6973b627650ffec9aa679267052909afa",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round9-natural-B-late.png",
+      "reason": "historical-validation-output",
+      "bytes": 117686,
+      "sha256": "c42fc8d5b82d09d1fed6d605be8fb58a6a4bb43c653ced7242a592e569df44c7",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round9-natural-B-settlement.png",
+      "reason": "historical-validation-output",
+      "bytes": 77870,
+      "sha256": "22056b86a1033f127ef97c0bd306e6c534818d07670b32ea90a493ff8f04604b",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round9-natural-flower-upgrade.png",
+      "reason": "historical-validation-output",
+      "bytes": 103957,
+      "sha256": "e61cb7dde16230c3365332d3e3cd0772540d7ef204bfcc6b9b1d0b9c79d99ec2",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round9-natural-umbrella-result.png",
+      "reason": "historical-validation-output",
+      "bytes": 133289,
+      "sha256": "6531655ec937a31b818820328565f057e0ed09e385511215a97db02a9da72f9d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round9-release-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 9763,
+      "sha256": "1add736022a32a1d3e81009f6c52cc7d0ee3a4cdd4b483f092d3f21f9ecfed72",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/round9-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 9780,
+      "sha256": "9329666a10664cf76e0f8e5486b2179ab636cbb228c333ac51842c352194fd42",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/sakana-gradient-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 969,
+      "sha256": "eaf34c355f79b71d51d71d12370f15837c1d4913c7b6de1c99bf0df00b4dd7c0",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/sakana-hud-desktop.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 33123,
+      "sha256": "28a27ab2c3b8dd17d9d5ed079dd77759ff6abf5518f7968cf9825ab4061af1f7",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/sakana-hud-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 18534,
+      "sha256": "0431272c245f8b72b0ed10a7f4b5ab2585297eadc217fb35106c47e7ae7658dc",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/sakana-red-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 3058,
+      "sha256": "8ebc626c70c95945a4dc63bcf4ee254ae93220f205bf39b9b12d7d556a29e352",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/sakana-review-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 23876,
+      "sha256": "e13f6fea69d61a2616c41a2344bcbe98c7f66e811a172109e48c413a6aaf87d5",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/skillfx-five-barrier.png",
+      "reason": "historical-validation-output",
+      "bytes": 149456,
+      "sha256": "9065d7020b391c6e778b2448059bbbc588dee310e1fdd6647adeb7d7aba4e3a8",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/skillfx-five-boom.png",
+      "reason": "historical-validation-output",
+      "bytes": 143196,
+      "sha256": "377f72e67911d83c163cc2ede20b7942e6f85febdf7203d968c64f54623a8e74",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/skillfx-five-fire.png",
+      "reason": "historical-validation-output",
+      "bytes": 145371,
+      "sha256": "0090861c120c98e6bbfad4e59ce39a8b7fa10e0b8cdc9b9c02e1fa56b99f02c0",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/skillfx-five-katana.png",
+      "reason": "historical-validation-output",
+      "bytes": 144656,
+      "sha256": "e10c1657a2604723429db1e18a4846c13405ce802d475bc34e64bc9fe7a5aab5",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/skillfx-five-level-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 23375,
+      "sha256": "0fa69c539f5cb5fe4d64a9f7e8ae47a91c18eee5e6c59a62ef52520a3cde2f19",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/skillfx-five-mixed.png",
+      "reason": "historical-validation-output",
+      "bytes": 165249,
+      "sha256": "4bc2a9fd1ed2bd0ffd2b37beb237dff85d1a17fa8cf9eacf7ec5855b9049cdff",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/skillfx-five-needle.png",
+      "reason": "historical-validation-output",
+      "bytes": 141311,
+      "sha256": "a47998c0dcfbd486b9b9ad776af01194f265c92afd37aec230b69ce1e3896fa6",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/skillfx-five-reduced.png",
+      "reason": "historical-validation-output",
+      "bytes": 157218,
+      "sha256": "1bf0f36436edf43608a71a885abc45615ed68467ba6449b2e7f55122b52c910d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/skillfx-five-thunder.png",
+      "reason": "historical-validation-output",
+      "bytes": 159192,
+      "sha256": "ef77a121cfe1903c7146b58d5280cb467c53c6d4b1f2ea6efe6f5fc7d1c38e0b",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/skillfx-max-combat.png",
+      "reason": "historical-validation-output",
+      "bytes": 80133,
+      "sha256": "1b8a9df22c41f9dc1bcbeba03cf42e1a1e6890d30f7082c5dd5f1f2d8567183e",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/skillfx-reduced-motion.png",
+      "reason": "historical-validation-output",
+      "bytes": 144512,
+      "sha256": "11b102e2f58019021d80dc9055b41bccdfc4327f2249cb5fa723d561ffc0a4e1",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/skillfx-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 20604,
+      "sha256": "f4f6e5ccc56c1318484b7bf057ccd2f92b16c73ab9e394714167abcf7aa03b16",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/skillfx-three-tiers.png",
+      "reason": "historical-validation-output",
+      "bytes": 146828,
+      "sha256": "ef3ed05ff4f6c9b5ea11f3dd614f8572559a08874e83837c1bf96cf17190ff1e",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/space-rabbit-balance-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 1004,
+      "sha256": "48075423d56e73a88d4306fbd18067be80fb63fcea3fcc92ee40af1ac84985c4",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/space-rabbit-boss-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 7794,
+      "sha256": "d9d8a8199977ca8812d42bee9f98737893aab713b2725ef13b91e78daec4aa70",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/space-rabbit-cards-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 24803,
+      "sha256": "56d9a1ffbcc89a03ab57de1e38bd74f8c4b7d47bda20cab36b70567827b239d4",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/space-rabbit-hud-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 9591,
+      "sha256": "427917cb9641576aaa4652bc85064f64c2575aaf1e5d28f8b6daa4b3a4f4a24d",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/space-rabbit-map.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 31764,
+      "sha256": "a16fb9d22f84d4f931c688c68640a32b78b9514c118a8d4f8c518a5ad2735ca7",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/space-rabbit-red.txt",
+      "reason": "historical-validation-output",
+      "bytes": 21636,
+      "sha256": "6581a5c6fc40a3445a68f6e171f3cc7863059c484b5e9349e54d674d75b49340",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/space-rabbit-summary-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 18068,
+      "sha256": "7627938e5434a9554175f9cd8432fc83d25ddacf4cb7aa43f3dab1a64f5fb65e",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/space-rabbit-tests.txt",
+      "reason": "historical-validation-output",
+      "bytes": 61875,
+      "sha256": "c6ace61b28bd70aa5d10fc565f5b3a4d270209341b6f1c28bcf4d0732109cec6",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/terrain-night-town-desktop.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 86724,
+      "sha256": "cd90203a94696720d5ba632383549fc0b96a3269690882f35adb43ff4f458c64",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/terrain-night-town-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 29680,
+      "sha256": "ed76d4e01fe7682eea65d3f30c9df21da3d7c2fcc69c07dcdf7902d0fdd07ca7",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/terrain-rain-port-mobile.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 42241,
+      "sha256": "9d3e7b831eb1491231cc00e59c5a725a972f1fdfd4e26b4e823d6c85b2306f96",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/ui-adjustments-hud.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 114264,
+      "sha256": "d92f902c357300a0859a643bd70e7c90fd532db85fa2c3f13f8c73fca372440f",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/ui-adjustments-level.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 85998,
+      "sha256": "13dbae615617b310c2b5db64696501c33ec76ea6ff4e49f8e67df3878ea201ee",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/ui-adjustments-mobile-level.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 37107,
+      "sha256": "deaab5701f31d81709401cd741a4476585a0812c853ec577cb6e2c11833a65fe",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/ui-adjustments-pause.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 52934,
+      "sha256": "9c8ea7135f6a61ef141dfd53893fe24cea34adc78b2625091937d1c45078222a",
+      "tracked": true
+    },
+    {
+      "path": "artifacts/validation/ui-adjustments-words.jpg",
+      "reason": "historical-validation-output",
+      "bytes": 105007,
+      "sha256": "2abaa76300cd1692fed40ab8113f799e6047ef5b8cecff0e74ec3dbcce4faf59",
+      "tracked": true
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_vfx_game_ready/fire_attack_l1.webp",
+      "reason": "byte-identical-import-copy",
+      "duplicateOf": "assets/img/vfx/raster/fire_attack_l1.webp",
+      "bytes": 34056,
+      "sha256": "9783eae4a973375612ba72195c1041caaf20728e3fe8409f7fd5a394dfd7f14d",
+      "tracked": false
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_vfx_game_ready/fire_attack_l2.webp",
+      "reason": "byte-identical-import-copy",
+      "duplicateOf": "assets/img/vfx/raster/fire_attack_l2.webp",
+      "bytes": 49108,
+      "sha256": "0415e95744896c146f360297e00158ae1fc808327e6a7075ac3cae0f004954ec",
+      "tracked": false
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_vfx_game_ready/fire_attack_l3.webp",
+      "reason": "byte-identical-import-copy",
+      "duplicateOf": "assets/img/vfx/raster/fire_attack_l3.webp",
+      "bytes": 61362,
+      "sha256": "4ac3a54ca8cb487b3535fd25e62e87fae73d8ab48c81f26548ba4886f6fdf6f0",
+      "tracked": false
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_vfx_game_ready/fire_attack_l4.webp",
+      "reason": "byte-identical-import-copy",
+      "duplicateOf": "assets/img/vfx/raster/fire_attack_l4.webp",
+      "bytes": 63018,
+      "sha256": "4c9f17a2cca840faafa7e323434e9f2fd009d67b3a54d80f923aabb411393d4c",
+      "tracked": false
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_vfx_game_ready/fire_attack_l5.webp",
+      "reason": "byte-identical-import-copy",
+      "duplicateOf": "assets/img/vfx/raster/fire_attack_l5.webp",
+      "bytes": 59204,
+      "sha256": "1ff6f01ea10515ced7fa2fc18dcc5dd92b8571d5f70fbc85b18d5d1352f35889",
+      "tracked": false
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_vfx_game_ready/fire_dragon_l5.webp",
+      "reason": "byte-identical-import-copy",
+      "duplicateOf": "assets/img/vfx/raster/fire_dragon_l5.webp",
+      "bytes": 295146,
+      "sha256": "6eea4b5fad59d305c0d34f95ab9c5f5a1cbc5b1717abeedbd53b57ab35175404",
+      "tracked": false
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_vfx_game_ready/fire_orbit_l1.webp",
+      "reason": "byte-identical-import-copy",
+      "duplicateOf": "assets/img/vfx/raster/fire_orbit_l1.webp",
+      "bytes": 35726,
+      "sha256": "d805c9ede255f5f0575ad65539ba60404564d24683c863e097ad7785f3132e57",
+      "tracked": false
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_vfx_game_ready/fire_orbit_l2.webp",
+      "reason": "byte-identical-import-copy",
+      "duplicateOf": "assets/img/vfx/raster/fire_orbit_l2.webp",
+      "bytes": 41910,
+      "sha256": "b852233f32429648488b60738edb1557861010d02e47b95016a2402a25fcf582",
+      "tracked": false
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_vfx_game_ready/fire_orbit_l3.webp",
+      "reason": "byte-identical-import-copy",
+      "duplicateOf": "assets/img/vfx/raster/fire_orbit_l3.webp",
+      "bytes": 50920,
+      "sha256": "32db0a5b1020bb0ad014ad792e6fdda9cec81b21708e8b70dc7ad9761d238b1e",
+      "tracked": false
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_vfx_game_ready/fire_orbit_l4.webp",
+      "reason": "byte-identical-import-copy",
+      "duplicateOf": "assets/img/vfx/raster/fire_orbit_l4.webp",
+      "bytes": 61758,
+      "sha256": "65c8f606172335e278a2f22a705a23edadbd7481bbc15541c657928d95e543b3",
+      "tracked": false
+    },
+    {
+      "path": "assets/img/vfx/raster/fire_vfx_game_ready/fire_orbit_l5.webp",
+      "reason": "byte-identical-import-copy",
+      "duplicateOf": "assets/img/vfx/raster/fire_orbit_l5.webp",
+      "bytes": 76798,
+      "sha256": "a31eb875e4ccca1e009191c6eea58c63bfa90011e6e3c9e809a26bb21aa7dde5",
+      "tracked": false
+    },
+    {
+      "path": "artifacts/validation/gemini-audio-before.js",
+      "reason": "agent-temporary-diagnostic",
+      "bytes": 29417,
+      "sha256": "4b2e45d41b2ff161642529105d7b477b464dc1015d903905cd4dde29ef7cd839",
+      "tracked": false
+    },
+    {
+      "path": "artifacts/validation/gemini-audio-red.test.cjs",
+      "reason": "agent-temporary-diagnostic",
+      "bytes": 18256,
+      "sha256": "b6c34c876210e078ba84b667a88cb9637768e65fec619b6621eba4867dc6458c",
+      "tracked": false
+    },
+    {
+      "path": "artifacts/validation/loading3-intermediate-tests.txt",
+      "reason": "agent-temporary-diagnostic",
+      "bytes": 6962,
+      "sha256": "6f019eff7d9beb59d709ec86f099cf3cfeec3377be8573846e1ffad57f90cb4d",
+      "tracked": false
+    },
+    {
+      "path": "artifacts/validation/loading4-intermediate-tests.txt",
+      "reason": "agent-temporary-diagnostic",
+      "bytes": 24194,
+      "sha256": "d048372c437047de9d734fb31ae8dd992fd6e78b4d1ad965c382ba8e92677184",
+      "tracked": false
+    },
+    {
+      "path": "artifacts/validation/loading2-origin-range.bin",
+      "reason": "agent-temporary-diagnostic",
+      "bytes": 2,
+      "sha256": "3843971dcfdee5083e6289e1bbdbb003e538b5a8a668fc43ae4f19d415ac18a2",
+      "tracked": false
+    },
+    {
+      "path": "artifacts/validation/loading2-origin-range-headers.txt",
+      "reason": "agent-temporary-diagnostic",
+      "bytes": 763,
+      "sha256": "7a100fb841853ab9ece220e2dcf01a64706e76e18ecdfa7f26a57a2e60378832",
+      "tracked": false
+    }
+  ],
+  "totalFiles": 354,
+  "totalBytes": 59486509
+}
