@@ -97,3 +97,22 @@ test('V3 contract: expired freeze cannot cause a delayed shatter explosion', () 
   const before=neighbor.hp;g.hurt(victim,999);
   assert.equal(neighbor.hp,before);
 });
+
+test('V3 contract: a scheduled boss reviews a word actually picked up this run', () => {
+  for(let seed=1;seed<=12;seed++) {
+    const g=loadGame({seed});g.start();g.stopSpawns();g.prepareOrder();
+    const word=g.snapshot().job.word;g.resolve(g.snapshot().job.ans.indexOf(word));
+    g.scheduleBoss();g.update(.05);
+    const boss=g.snapshot().enemies.find(e=>e.type==='boss');
+    assert.ok(boss);assert.equal(boss.word.jp,word.jp,`seed ${seed}: posted orders do not count as studied words`);
+  }
+});
+
+test('V3 contract: leaving a boss quiz consumes its one safe-reading entry', () => {
+  const g=fresh();g.prepareBoss();g.update(.05);
+  const frozen=g.snapshot().elapsed;g.update(.1);assert.equal(g.snapshot().elapsed,frozen);
+  g.moveBoss(500);g.update(.1);const resumed=g.snapshot().elapsed;
+  assert.ok(resumed>frozen);
+  g.moveBoss(100);g.update(.1);
+  assert.ok(g.snapshot().elapsed>resumed,'reentry must not repeatedly freeze combat');
+});

@@ -1,0 +1,66 @@
+✔ V3 contract: common boss timeline and bounded overtime difficulty (0.8507ms)
+✔ V3 contract: independent and assisted deliveries each grant 26 XP (15.511ms)
+✔ V3 contract: first hint is free and duplicate presses cannot reach paid hint (4.1905ms)
+✔ V3 contract: a wrong answer retains the job and charges six oil only once (3.1821ms)
+✔ V3 contract: Lv4 cannot awaken before deliveries, three deliveries unlock a saved seal (4.663ms)
+✔ V3 contract: damage passive stops at four increments of 0.30 (3.1756ms)
+✔ V3 contract: destination reading freezes elapsed time, oil and weapon damage (4.5899ms)
+✔ V3 contract: thunder Lv3 and Lv4 damage cannot execute a high-HP ordinary enemy (8.6064ms)
+✔ V3 contract: MAX barrier fields never restore oil (3.866ms)
+✔ V3 contract: fire and talisman rank counts match the new specialist behavior (0.2205ms)
+✔ V3 contract: one ice volley shares its finite shatter budget and new freezes clear old sources (0.4805ms)
+✔ V3 contract: assisted recall preserves error priority and repeated independent recall cannot farm stars (4.0391ms)
+✔ V3 contract: first boss starts with fixed HP independent of player power (3.5387ms)
+✔ V3 contract: safe reading freezes nearby enemies as well as damage (3.9893ms)
+✔ V3 contract: expired freeze cannot cause a delayed shatter explosion (4.8355ms)
+✖ V3 contract: a scheduled boss reviews a word actually picked up this run (4.0066ms)
+✖ V3 contract: leaving a boss quiz consumes its one safe-reading entry (4.6124ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 15
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 133.5593
+
+✖ failing tests:
+
+test at tests\v3-contract-gate.test.cjs:101:1
+✖ V3 contract: a scheduled boss reviews a word actually picked up this run (4.0066ms)
+  AssertionError [ERR_ASSERTION]: seed 1: posted orders do not count as studied words
+  
+  'かめ' !== 'さかな'
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:107:28)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'かめ',
+    expected: 'さかな',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:111:1
+✖ V3 contract: leaving a boss quiz consumes its one safe-reading entry (4.6124ms)
+  AssertionError [ERR_ASSERTION]: reentry must not repeatedly freeze combat
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:117:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
