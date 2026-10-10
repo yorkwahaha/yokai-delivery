@@ -2403,15 +2403,16 @@ window.UI = (() => {
 
     ctx.textAlign = "center";
     ctx.font = readableFont(11, '800'); ctx.fillStyle = '#b6f1e7';
-    ctx.fillText(q.reading === false ? '戰鬥已恢復・答對破盾' : '安心讀題・作答後恢復戰鬥', mid, by - 12);
+    ctx.fillText(bossQ.reading === false ? '戰鬥已恢復・答對破盾' : '安心讀題・作答後恢復戰鬥', mid, by - 12);
     ctx.fillStyle = "#ffeed4";
     ctx.font = readableFont(20, "900");
+    const question = `${bossQ.word.zh}　→　${bossQ.introduced || bossQ.wasAssisted ? bossQ.word.jp : '？'}`;
     if (bossQ.word.cue === "text" || !bossQ.word.icon) {
-      ctx.fillText(`${bossQ.word.zh}　→　？`, mid, by + 30);
+      ctx.fillText(question, mid, by + 30, boxW - 32);
     } else {
       drawWordCue(ctx, bossQ.word, mid - 88, by + 22, 30);
       ctx.textAlign = "left";
-      ctx.fillText(`${bossQ.word.zh}　→　？`, mid - 62, by + 30);
+      ctx.fillText(question, mid - 62, by + 30, boxW - 110);
     }
     ctx.textAlign = "center";
 
