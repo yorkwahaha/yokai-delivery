@@ -132,3 +132,14 @@ test('V3 contract: order creation respects a study session with no eligible word
   g.start();g.makeOrder();
   assert.equal(g.snapshot().orders.length,0,'no all-vocabulary fallback may bypass cooling or exclusions');
 });
+
+test('V3 contract: a first-encounter boss word is introduced once and completion stays assisted', () => {
+  const g=fresh();g.scheduleBoss();g.update(.05);g.moveBoss(100);
+  const spoken=g.audioCalls.filter(k=>k==='speak').length;
+  g.update(.05);const question=g.snapshot().bossQ;
+  assert.ok(question);assert.equal(g.audioCalls.filter(k=>k==='speak').length,spoken+1);
+  g.update(.05);assert.equal(g.audioCalls.filter(k=>k==='speak').length,spoken+1);
+  g.unlockBoss();g.answerBoss(question.ans.indexOf(question.word));
+  assert.equal(g.env.STORE.get(question.word.jp).box,0,'an introduced word is not an independent recall');
+  assert.equal(g.snapshot().enemies.find(e=>e.type==='boss').shield,false);
+});
