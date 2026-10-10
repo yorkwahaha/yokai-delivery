@@ -16,6 +16,35 @@ function loadAssets() {
   return { env, images, tracks };
 }
 
+test('core readiness excludes optional animation and result portraits, and keeps later downloads in background',()=>{
+  const {env,images}=loadAssets();env.loadGameArt();
+  assert.ok(!images.some(i=>/motion_v1|player_win_v1|player_kneel_v1/.test(i.src)));
+  for(const image of [...images]) image.onload();
+  assert.equal(env.ART_READY,true,'all actual scene art and HUD are ready');
+  const optional=images.find(i=>/player_walk1/.test(i.src));assert.ok(optional);
+  assert.equal(optional.fetchPriority,'low');
+  assert.equal(env.ART_PROGRESS.settled,env.ART_PROGRESS.total,'optional download does not keep loading overlay');
+  assert.ok(env.ART.ghost&&env.ART.boss&&env.ART.ground&&env.ART.hud_skill_fan);
+});
+
+test('map readiness warms the upcoming core game without changing the visible map progress',()=>{
+  const {env,images}=loadAssets();env.loadMapArt();const map=[...images];
+  assert.equal(map.length,7);map.forEach(i=>i.onload());
+  assert.equal(env.MAP_ART_READY,true);
+  assert.ok(images.some(i=>i.src.includes('/ui/hud_skill_fan')),'core is warmed while choosing a route');
+  assert.equal(env.ART_PROGRESS.total,7);assert.equal(env.ART_PROGRESS.settled,7);
+  assert.ok(!images.some(i=>/motion_v1|player_win_v1/.test(i.src)));
+  for(const image of images.filter(i=>!map.includes(i))) image.onload();
+  const count=images.length;env.loadGameArt();assert.equal(env.ART_READY,true);
+  assert.ok(images.length<=count+1,'only one optional image may start after already-warm game entry');
+});
+
+test('cover completion begins route preparation before the user clicks start',()=>{
+  const {env,images}=loadAssets();assert.equal(images.length,1);images[0].onload();
+  assert.ok(images.some(i=>i.src.includes('overworld_night_v2')));
+  assert.equal(env.MAP_ART_READY,false);
+});
+
 test('blocking scene images have high fetch priority instead of competing below music',()=>{
   const {env,images}=loadAssets();env.loadMapArt();env.loadGameArt();
   for(const image of images.filter(i=>!i.src.includes('/vfx/'))) assert.equal(image.fetchPriority,'high',image.src);

@@ -1,0 +1,89 @@
+[Assets] Missing dragon art: dragon_fireball_l5
+[Assets] Missing dragon art: dragon_burning_ground_l5
+✖ core readiness excludes optional animation and result portraits, and keeps later downloads in background (4.5412ms)
+✖ map readiness warms the upcoming core game without changing the visible map progress (1.2318ms)
+✖ cover completion begins route preparation before the user clicks start (0.8396ms)
+✔ blocking scene images have high fetch priority instead of competing below music (0.6627ms)
+✔ map loads only its own art, then game reuses those requests and includes HUD readiness (0.815ms)
+✔ HUD uses small WebP distribution files and preserves PNG error fallbacks (1.0148ms)
+✔ title prioritizes only the cover and leaves music downloads until playback (0.7347ms)
+✔ entering a game preloads Lv1 katana art before the first attack (0.6942ms)
+✔ resting courier art is fetched only after pause is opened (0.7987ms)
+✔ WebP failures retry preserved originals once and settle even when both are absent (2.1249ms)
+✔ asset progress counts settled images including failures, without counting retry as completion (0.8172ms)
+✔ five-rank skill art exposes all 30 fixed filenames and loads each slot lazily (0.6478ms)
+✔ foxfire exposes separate orbit, attack and Lv5 dragon asset slots (0.6116ms)
+✔ new movement, posture and landmark images ship both WebP and PNG fallback files (2.6321ms)
+✔ all six woodblock yokai and their motion atlases load with original fallback (1.8268ms)
+✔ new dragon fireball and scorched-ground sprites load from optimized WebP assets (0.9229ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 13
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 77.0478
+
+✖ failing tests:
+
+test at tests\assets-loading.test.cjs:19:1
+✖ core readiness excludes optional animation and result portraits, and keeps later downloads in background (4.5412ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(!images.some(i=>/motion_v1|player_win_v1|player_kneel_v1/.test(i.src)))
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\assets-loading.test.cjs:21:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\assets-loading.test.cjs:30:1
+✖ map readiness warms the upcoming core game without changing the visible map progress (1.2318ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  10 !== 7
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\assets-loading.test.cjs:32:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 10,
+    expected: 7,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\assets-loading.test.cjs:42:1
+✖ cover completion begins route preparation before the user clicks start (0.8396ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(images.some(i=>i.src.includes('overworld_night_v2')))
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\assets-loading.test.cjs:44:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
