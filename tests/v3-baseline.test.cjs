@@ -7,8 +7,17 @@
 // 「舊規格」會被新程式改寫成新規格，校準測試變成假綠。因此這裡一律讀 da98b4b。
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { loadGame, BASELINE_REVISION } = require('./helpers/game-runtime.cjs');
-const cfg = require('../js/config.js');
+const { loadGame, BASELINE_REVISION, readAtRevision } = require('./helpers/game-runtime.cjs');
+const vm = require('node:vm');
+
+// 基線常數必須來自 da98b4b，不能 require 現行 js/config.js——
+// 否則 AGY 調整 config 之後，「舊規格」會被新數值改寫成假綠。
+const BASELINE_CFG = (() => {
+  const box = { window: {} }; box.window.window = box.window;
+  vm.runInNewContext(readAtRevision(BASELINE_REVISION, 'config.js'), box,
+    { filename: BASELINE_REVISION + ':js/config.js' });
+  return box.window.GAME_CONFIG;
+})();
 
 // 校準沙箱：所有 js/* 固定讀 da98b4b，與 working tree 無關。
 const baseline = options => loadGame({ seed: 1, revision: BASELINE_REVISION, ...options });
@@ -133,11 +142,23 @@ test('baseline: 舊規格 — 靈針 Lv5 殉爆可遞迴連鎖（V3 要設總預
   assert.equal(alive, 0, `舊規格一發清空 5 隻預凍敵，剩 ${alive} 隻 —— 這是 V3 要限制的行為`);
 });
 
-test('baseline: 舊規格 — xpNeed 與節奏常數', () => {
-  assert.equal(cfg.xpNeed(1), 30);
-  assert.equal(cfg.RUN_SECONDS, 600);
-  assert.equal(cfg.GOAL_DELIVERIES, 6);
-  assert.deepEqual(cfg.BOSS_TIMES, [180, 360, 540, 590]);
+test('baseline: 舊規格 — xpNeed 與節奏常數（固定讀 da98b4b，不受 AGY 改 config 影響）', () => {
+  assert.equal(BASELINE_CFG.xpNeed(1), 30);
+  assert.equal(BASELINE_CFG.RUN_SECONDS, 600);
+  assert.equal(BASELINE_CFG.GOAL_DELIVERIES, 6);
+  // 跨 vm realm 的陣列身分不同，deepEqual 會因原型不一致而失敗，故先轉成原生陣列。
+  assert.deepEqual(Array.from(BASELINE_CFG.BOSS_TIMES), [180, 360, 540, 590]);
+});
+
+test('校準環境正確性：基線常數不得來自 working tree', () => {
+  const live = require('../js/config.js');
+  // 若 AGY 改了 RUN_SECONDS／BOSS_TIMES，本測試仍須以舊值斷言成立。
+  assert.equal(BASELINE_CFG.RUN_SECONDS, 600);
+  assert.deepEqual(Array.from(BASELINE_CFG.BOSS_TIMES), [180, 360, 540, 590]);
+  // 記錄差異（若有），供 artifacts/validation/v3-acceptance-*.json 記錄規格差異。
+  if (JSON.stringify(live.BOSS_TIMES) !== JSON.stringify(BASELINE_CFG.BOSS_TIMES)) {
+    assert.ok(true, `現行 config 已改動：${JSON.stringify(live.BOSS_TIMES)}（基線仍固定舊值）`);
+  }
 });
 
 test('baseline: seeded 沙箱可重現同一組抽詞序列', () => {
