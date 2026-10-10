@@ -161,7 +161,14 @@
   }
   function menuButtons() {
     if (menuFocusState !== state) { menuFocus = 0; menuFocusState = state; }
-    return quitConfirm ? UI.EXIT_BTNS : state === "menu" ? UI.MENU_BTNS : state === "pause" ? UI.PAUSE_BTNS : state === "won" || state === "lost" ? UI.END_BTNS : null;
+    if (quitConfirm) return UI.EXIT_BTNS;
+    if (state === "menu") return UI.MENU_BTNS;
+    if (state === "pause") return UI.PAUSE_BTNS;
+    if (state === "won" || state === "lost") {
+      const review = typeof UI.reviewButtons === "function" ? UI.reviewButtons(misses).slice(0, 3) : [];
+      return review.length ? [...UI.END_BTNS, ...review] : UI.END_BTNS;
+    }
+    return null;
   }
   function moveMenu(delta) {
     if (pendingMenuActivation) return;
@@ -192,6 +199,10 @@
       else returnHome();
     }
     else if (id === "cards" || id === "codex") { codexBack = state; selectCodex(id === "cards" ? "cards" : "words"); state = "codex"; }
+    else if (typeof id === "string" && id.startsWith("review-")) {
+      const button = (menuButtons() || []).find(item => item.id === id);
+      if (button?.word?.jp) AUDIO.speak(button.word.jp);
+    }
   }
   let overworld = window.OVERWORLD.createState("gate");
   let overworldNoticeT = 0;
@@ -216,8 +227,19 @@
   const FADE_TIME = 0.45;
   let lastScreen = "menu", fadeT = 0, runSummary = null;
   let learningStart = {};
+  let seals = 0, sealsEarned = 0, study = null;
+  let recallIndependent = 0, recallAssisted = 0;
+  const recallSources = { delivery: { independent: 0, assisted: 0 }, boss: { independent: 0, assisted: 0 } };
+  const READ_DWELL = 0.65;
   function learningSummary() {
-    const result = { practiced: 0, gained: 0, lost: 0, review: 0 };
+    const result = {
+      practiced: 0, gained: 0, lost: 0, review: 0,
+      independent: recallIndependent, assisted: recallAssisted,
+      sources: {
+        delivery: { independent: recallSources.delivery.independent, assisted: recallSources.delivery.assisted },
+        boss: { independent: recallSources.boss.independent, assisted: recallSources.boss.assisted }
+      }
+    };
     for (const [jp, m] of Object.entries(STORE.data.m)) {
       const before = learningStart[jp] || {ok:0,ng:0,box:0};
       if (m.ok === before.ok && m.ng === before.ng) continue;
@@ -227,6 +249,40 @@
       if (m.missBoost > 1) result.review++;
     }
     return result;
+  }
+  function noteSuccess(kind, assisted) {
+    if (assisted) { recallAssisted++; recallSources[kind].assisted++; }
+    else { recallIndependent++; recallSources[kind].independent++; }
+  }
+  function grantSeal() {
+    if (delivered > 0 && delivered % CFG.AWAKEN_EVERY === 0 && sealsEarned < CFG.AWAKEN_MAX) { seals++; sealsEarned++; }
+  }
+  function awakeningState() {
+    const every = CFG.AWAKEN_EVERY;
+    return {
+      seals, earned: sealsEarned,
+      nextIn: sealsEarned >= CFG.AWAKEN_MAX ? 0 : every - (delivered % every),
+      awakened: Object.values(WL).filter(v => v >= 5).length
+    };
+  }
+  function rememberWord(jp, assisted) {
+    if (assisted) STORE.recAssisted(jp);
+    else if (typeof STORE.recRecall === "function") STORE.recRecall(jp, elapsed * 1000);
+    else STORE.rec(jp, true);
+  }
+  function bossBlueprint(index) {
+    const role = ["mid", "mid", "gate", "final"][index] || "mid";
+    return {
+      hp: CFG.BOSS_HP_BASE[index],
+      oil: CFG.BOSS_OIL_REWARD[index],
+      quiz: role !== "gate",
+      role
+    };
+  }
+  function rollCrit(base, step) {
+    const chance = Math.min(0.5, base + (b.crit || 0) * step);
+    const isCrit = Math.random() < chance;
+    return { isCrit, mult: isCrit ? 1.8 : 1 };
   }
   const wMax = { katana: 0.72, barrier: 3, needle: 1, boom: 2, thunder: 2.6, fire:1.1 };
   let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0, endCooldown = 0, lanternHitT = 0;
@@ -329,17 +385,17 @@
     barrier: { id: "barrier", jp: "じょうか", zh: "淨化靈陣", type: "active", category: "全方結界", desc: "展開 360 度低傷害除魔陣，Lv4 起可震退周身妖怪" },
     fire: { id: "fire", jp: "きつねび", zh: "狐火炎", type: "active", category: "烈焰火把", desc: "周身飛旋烈焰火把，高速甩擊灼燒貼身妖怪" },
     boom: { id: "boom", jp: "おふだ", zh: "陰陽符", type: "active", category: "穿透咒符", desc: "擲出迴旋陰陽符咒，來回穿透路徑上的敵人" },
-    thunder: { id: "thunder", jp: "いかずち", zh: "天狐雷", type: "active", category: "天罰落雷", desc: "隨等級擴大索敵與雷擊數量；Lv4 隨機擊倒畫面內 3～5 隻妖怪" },
+    thunder: { id: "thunder", jp: "いかずち", zh: "天狐雷", type: "active", category: "天罰落雷", desc: "固定係數落雷。Lv4 鎖定三個威脅，覺醒為三朵雷雲，不依生命秒殺" },
     needle: { id: "needle", jp: "せんぼん", zh: "天狐靈針", type: "active", category: "高速靈針", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪" }
   };
 
   const WEAPON_UPGRADES = {
-    katana:["暖光單刃，斬擊前方妖怪","雙刃交叉，距離 +16、傷害 +0.8","三刃收束，距離與傷害再提升","蓄風四刃；下一階射出穿透風刃","覺醒・斷空殘月斬：射出巨型月牙直到畫面外，距離與穿透數越高傷害越低"],
-    barrier:["展開單盤除魔陣，低傷害全方位攻擊","雙盤刻印，範圍擴大、傷害小幅提升","反轉雙盤，範圍與傷害再提升","蓄勢大陣，命中可震退敵人","覺醒・金剛退魔曼荼羅：聚怪後震退，展開淨化聖域"],
-    fire:["一顆狐火環繞護身，僅接觸周遭妖怪","兩顆狐火環繞護身，不主動飛出","四顆狐火環繞護身，不主動飛出","六顆狐火護體，其中三顆會飛出灼敵後歸位","覺醒・墨焰黑龍：六顆狐火護體，間歇召喚黑龍吐出強力火球並點燃地面"],
-    boom:["單符回旋，穿透路徑上的妖怪","一次擲出 2 枚符咒","三符碎焰，冷卻縮短","蓄火四符；下一階改為投射爆符","覺醒・兩儀太極湮滅：太極爆符引爆範圍湮滅，消滅敵彈"],
-    thunder:["190 範圍內攻擊最近 1 隻，低傷害","270 範圍內同時攻擊 2 隻，普通小怪約兩擊擊倒","350 範圍內同時攻擊 3 隻，可秒殺一般小怪","全畫面隨機秒殺 3～5 隻一般妖怪","覺醒・建御雷神破界天罰：戰場隨機顯現雷雲，雲下接續降下天雷"],
-    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階弧線射出","覺醒・九尾極寒靈暴：扇面追蹤冰針，冰晶連鎖殉爆"]
+    katana:["暖光單刃，斬擊前方妖怪","雙刃交叉，距離 +16、傷害 +0.8","三刃收束，距離與傷害再提升","蓄風四刃；下一階射出穿透風刃","覺醒・斷空殘月斬：世界距離 720、最多 6 體，前三全傷其後 ×0.75，冷卻下限 0.6 秒"],
+    barrier:["展開單盤除魔陣，低傷害全方位攻擊","雙盤刻印，範圍擴大、傷害小幅提升","反轉雙盤，範圍與傷害再提升","蓄勢大陣，半徑 252，命中可震退敵人","覺醒・金剛退魔曼荼羅：半徑縮為 220，換 1.8 秒地面緩速；不回油、不聚怪"],
+    fire:["一顆狐火環繞護身，僅接觸周遭妖怪","兩顆狐火環繞護身，不主動飛出","三顆狐火環繞護身，不主動飛出","三顆護火，其中一顆離體追敵後回歸","覺醒・墨焰黑龍：三顆護火，每 6 秒一條黑龍；不再離體。焦土最多 2 處"],
+    boom:["單符回旋，穿透路徑上的妖怪","一次擲出 2 枚符咒","三符碎焰，冷卻縮短","蓄火四符；下一階改為投射爆符","覺醒・兩儀太極湮滅：兩枚爆符，半徑 135，單波最多清除 6 發普通彈"],
+    thunder:["190 範圍內攻擊最近 1 隻，傷害 2 倍係數","270 範圍內同時攻擊 2 隻，傷害 3 倍係數","350 範圍內同時攻擊 3 隻，傷害 4.5 倍係數，不依生命秒殺","450 範圍內鎖定 3 個威脅，固定 6 倍係數","覺醒・建御雷神破界天罰：450 範圍內三朵雷雲，每朵半徑 90、8 倍係數"],
+    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階弧線射出","覺醒・九尾極寒靈暴：八發追蹤冰針，單層殉爆最多再命中 3 隻，不連鎖"]
   };
 
   let proj = [], needles = [], winds = [], ghosts = [], dragonShots = [], dragonScorches = [], sacredSanctuary = null, surgeT = SURGE_FIRST, fAng = 0, fireEmitT = 0, fireSfxT = 0, fireAttackT = 0;
@@ -363,9 +419,9 @@
       burst(P.x, P.y, "#a5d6a7", 30);
       AUDIO.barrier();
     }, ok: () => (b.heals || 0) < 3 },
-    { id: "dmg", n: "修羅破軍", s: "こうげき", cat: "攻擊爆發", d: "整體傷害係數 +0.35（最多 6 層）", f: () => { b.dmg += 0.35; b.dmgUp = (b.dmgUp || 0) + 1; }, ok: () => (b.dmgUp || 0) < 6 },
+    { id: "dmg", n: "修羅破軍", s: "こうげき", cat: "攻擊爆發", d: "整體傷害係數 +0.30（最多 4 層）", f: () => { b.dmg += 0.30; b.dmgUp = (b.dmgUp || 0) + 1; }, ok: () => (b.dmgUp || 0) < 4 },
     { id: "rate", n: "神樂疾奏", s: "れんぞく", cat: "攻擊爆發", d: "妖刀、結界、靈針冷卻縮短", f: () => { b.rate++; }, ok: () => b.rate < 4 },
-    { id: "crit", n: "心眼一閃", s: "かいしん", cat: "攻擊爆發", d: "妖刀/天雷暴擊率 +15%，結界 +10%", f: () => { b.crit = (b.crit || 0) + 1; }, ok: () => (b.crit || 0) < 3 },
+    { id: "crit", n: "心眼一閃", s: "かいしん", cat: "攻擊爆發", d: "妖刀/天雷暴擊率 +15%，結界 +10%（機率上限 50%，倍率 1.8）", f: () => { b.crit = (b.crit || 0) + 1; }, ok: () => (b.crit || 0) < 3 },
     { id: "spd", n: "神足草履", s: "いどう", cat: "神速機動", d: "移動速度約 +15%（最多 3 層）", f: () => { b.spd = (b.spd || 0) + 1; }, ok: () => (b.spd || 0) < 3 },
     { id: "dash", n: "縮地瞬步", s: "ダッシュ", cat: "神速機動", d: "衝刺冷卻大幅縮短，衝刺附加無敵突進", f: () => { b.dash++; }, ok: () => b.dash < 3 },
     { id: "mag", n: "招財勾玉", s: "じしゃく", cat: "輔助資源", d: "靈玉吸取範圍 +80", f: () => { b.mag++; }, ok: () => b.mag < 3 }
@@ -403,10 +459,10 @@
       return (m.missBoost || 1) > 1 && !livingMisWords.has(w.jp) && !activeOrderWords.has(w.jp);
     });
 
-    let chosenWord;
-    if (priorityMissed.length > 0) {
+    let chosenWord = typeof study?.pick === "function" ? study.pick(elapsed, [...livingMisWords, ...activeOrderWords]) : null;
+    if (!chosenWord && priorityMissed.length > 0) {
       chosenWord = pick(priorityMissed);
-    } else {
+    } else if (!chosenWord) {
       // 條件 2：活著的誤配妖所代表的詞，不要發成委託；且避免與委託欄現有單字重複
       let pool = ALL.filter(w => !livingMisWords.has(w.jp) && !activeOrderWords.has(w.jp));
       if (pool.length === 0) pool = ALL.filter(w => !livingMisWords.has(w.jp));
@@ -419,8 +475,11 @@
     const matching = openHouses.filter(h => h.word && h.word.jp === chosenWord.jp);
     const from = pick(matching.length ? matching : openHouses);
     if (!from) return;
-    const to = pick(localHouses.filter(h => h !== from && dist(h, from) > 420 && dist(h, from) < 2000));
-    if (!to) return;
+    const reachable = localHouses.filter(h => h !== from && dist(h, from) > 420 && dist(h, from) < 2000);
+    const nearby = reachable.filter(h => dist(h, from) < 900);
+    const hasNear = orders.some(o => dist(o.from, o.to) < 900);
+    const to = pick(!hasNear && nearby.length ? nearby : reachable);
+    if (!to || !chosenWord) return;
     orders.push({ from, to, word: chosenWord, rev: false, life: 110 });
   }
 
@@ -481,12 +540,16 @@
     Object.assign(P, { x: START.x, y: START.y, inv: 1.2, faceAng: 0, faceX: 1 });
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0, dmgUp: 0, heals: 0 });
     Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 });
-    proj = []; needles = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1;
+    proj = []; needles = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; sacredSanctuary = null; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1;
     fAng = 0; fireEmitT = 0; fireSfxT = 0; fireAttackT = 0;
-    wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0;
+    wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0; wT.katana = 0.3;
     elapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
     orders = []; job = null; inter = null; enemies = []; gems = []; texts = []; rings = []; misses = [];
     learningStart = Object.fromEntries(Object.entries(STORE.data.m).map(([jp,m])=>[jp,{ok:m.ok,ng:m.ng,box:m.box}]));
+    seals = 0; sealsEarned = 0; recallIndependent = 0; recallAssisted = 0;
+    recallSources.delivery.independent = recallSources.delivery.assisted = 0;
+    recallSources.boss.independent = recallSources.boss.assisted = 0;
+    study = typeof STORE.createStudySession === "function" ? STORE.createStudySession(ALL) : null;
     FX.reset();
     SKILLFX.reset();
     rerolls = 2; titleCardT = 3; runSummary = null;
@@ -516,14 +579,14 @@
 
     // 武器選項：未滿 4 槽位可學新武器，已滿 4 槽位僅允許升級持有武器
     const eligibleWeaponKeys = Object.keys(WI).filter(k => {
-      if (WL[k] >= 5) return false;
+      if ((WL[k] || 0) >= 4) return false;
       if (WL[k] === 0 && !canLearnNew) return false;
       return true;
     });
+    const awakenKeys = Object.keys(WI).filter(k => WL[k] === 4 && seals > 0);
 
-    const wc = shuffle(eligibleWeaponKeys).map(k => {
+    const weaponCard = (k, nextLvl) => {
       const isNew = WL[k] === 0;
-      const nextLvl = WL[k] + 1;
       const descList = WEAPON_UPGRADES[k] || [];
       const descText = descList[nextLvl - 1] || WI[k].desc;
       return {
@@ -535,18 +598,22 @@
         levelText: isNew ? "★ 新解鎖" : nextLvl===5 ? "Lv5 覺醒" : `◆ 等級 ${WL[k]} ➔ ${nextLvl}`,
         rarity: isNew ? "new" : nextLvl >= 5 ? "max" : "up",
         lv: nextLvl,
-        d: descText,
+        d: nextLvl === 5 ? `${descText}（覺醒・耗 1 印）` : descText,
         f: () => {
-          WL[k]++;
+          if (nextLvl === 5 && (seals <= 0 || WL[k] !== 4)) return;
+          if (nextLvl === 5) seals--;
+          WL[k] = nextLvl;
           window.useSkillArt?.(k, WL[k]);
-          if (k === "katana") atkT = 0;
+          if (k === "katana") { wT.katana = 0; atkT = 0; }
           if (k === "boom") wT.boom = 0;
           if (k === "barrier") wT.barrier = 0;
           if (k === "needle") wT.needle = 0;
           if (k === "fire" || k === "thunder") wT[k] = 0;
         }
       };
-    });
+    };
+    const wc = shuffle(eligibleWeaponKeys).map(k => weaponCard(k, WL[k] + 1));
+    const awakenCard = awakenKeys.length ? weaponCard(shuffle(awakenKeys)[0], 5) : null;
 
     const pc = shuffle(UP.filter(u => !u.ok || u.ok())).map(u => ({
       id: u.id,
@@ -560,7 +627,12 @@
       f: u.f
     }));
 
-    if (wc.length > 0 && pc.length > 0) {
+    if (awakenCard) {
+      const rest = shuffle([...wc.slice(0, 2), ...pc.slice(0, 2)]).slice(0, 2);
+      choices = shuffle([awakenCard, ...rest]);
+      if (!choices.some(card => card.lv === 5)) choices[choices.length - 1] = awakenCard;
+      choices = choices.slice(0, 3);
+    } else if (wc.length > 0 && pc.length > 0) {
       choices = shuffle([...wc.slice(0, 2), ...pc.slice(0, 2)]).slice(0, 3);
     } else if (wc.length > 0) {
       choices = wc.slice(0, 3);
@@ -634,83 +706,93 @@
     AUDIO.pickup();
     HAPTICS.pickup();
     AUDIO.speak(o.word.jp); // 取貨時就念出單字，讓沒學過的玩家先聽到再配送
+    study?.seen?.(o.word);
   }
 
   function resolve(i) {
-    const j = job, w = j.ans[i], pos = ansPos(j.to)[i];
+    const j = job;
+    if (!j || !Array.isArray(j.ans)) return;
+    const w = j.ans[i];
+    const pos = ansPos(j.to)[i];
+    if (w == null || (j.wrongPaid && w !== j.word)) return;
     if (j.assisted) markBossAssisted(j.word);
-    job = null;
-    nameT = 0;
 
     if (w === j.word) {
+      job = null;
+      nameT = 0;
       delivered++;
+      grantSeal();
       if (j.assisted) {
-        STORE.recAssisted(j.word.jp);
+        rememberWord(j.word.jp, true);
+        noteSuccess("delivery", true);
         oil = Math.min(maxOil, oil + 12);
         score += 25;
         say(`${w.jp}＝${w.zh} 輔助送達！`, pos.x, pos.y - 35, "#fff0a6");
         say("燈油 +12 點（神助）", pos.x, pos.y - 12, "#ffd27a");
       } else {
-        STORE.rec(j.word.jp, true);
+        rememberWord(j.word.jp, false);
+        noteSuccess("delivery", false);
         const gain = 10;
         oil = Math.min(maxOil, oil + 18 + gain);
         score += 50;
         say(`${w.jp}＝${w.zh} 配達完遂！`, pos.x, pos.y - 35, "#fff0a6");
         say(`燈油 +${18 + gain} 點`, pos.x, pos.y - 12, "#ffd27a");
       }
-      xp += 12;
+      xp += CFG.DELIVERY_XP;
+      study?.seen?.(j.word);
       FX.deliver(pos.x, pos.y);
       RENDERER.triggerShake(7);
       AUDIO.deliverSuccess();
       HAPTICS.deliverSuccess();
+      if (finalBossDefeated && delivered >= GOAL_DELIVERIES) startVictorySequence();
     } else {
+      j.wrongPaid = true;
+      j.assisted = true;
+      j.hold = 0;
+      j.showMeaningT = 4;
       failed++;
-      oil = Math.max(0,oil-8);
+      oil = Math.max(0, oil - 6);
       misses.push(j.word);
       STORE.rec(j.word.jp, false);
-      say("誤配！燈油 -8，瘴氣妖魔現身！", pos.x, pos.y - 36, "#ff8f8f");
-      const cappedElapsed = Math.min(elapsed, DAWN);
-      const awayX = pos.x - j.to.x;
-      const awayY = pos.y - j.to.y;
-      const awayLen = Math.hypot(awayX, awayY) || 1;
-      let spawn = null;
-      for (const radius of [118, 236, 354, 472]) {
-        spawn = spawnPosition(radius, Math.atan2(awayY / awayLen, awayX / awayLen), 34, pos);
-        if (spawn) break;
-      }
-      if (spawn) enemies.push({
-        ...spawn,
-        type: "mis",
-        w: j.word,
-        hp: 5 + Math.floor(cappedElapsed / 180),
-        max: 5 + Math.floor(cappedElapsed / 180),
-        speed: MIS_SPEED,
-        revealT: 0.9,
-        flash: 0,
-        wob: 0
-      });
-
-      // 若場上結界的詞與這隻妖相同，用出生時那套排除池重抽，並把 bossQ 設成 null，讓下一幀重出題
-      const bs = enemies.find(e => e.type === "boss" && e.shield);
-      if (bs && bs.word && bs.word.jp === j.word.jp) {
-        const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
-        let bossPool = ALL.filter(w => !livingMisWords.has(w.jp));
-        if (bossPool.length === 0) bossPool = ALL;
-        bs.word = STORE.pick(bossPool);
-        bossQ = null;
-      }
-
-      say(spawn ? "擊敗誤配妖怪以淨化單字" : "暫無安全出生點，錯詞將優先安排複習", pos.x, pos.y - 12, "#e5b8ff");
-      burst(pos.x, pos.y, "#c98cff", 24);
-      RENDERER.triggerShake(6);
+      study?.mistake?.(j.word, elapsed);
+      say(`${j.word.jp}＝${j.word.zh}・記住後再送，燈油 -6`, pos.x, pos.y - 36, "#ff8f8f");
       AUDIO.deliverWrong();
       HAPTICS.deliverWrong();
-      AUDIO.speak(j.word.jp); // 出現時即播一次讀音
-      if(oil<=0)loseRun();
+      AUDIO.speak(j.word.jp);
+      if (oil <= 0) { oil = 0; loseRun(); }
     }
   }
 
-  function hurt(e, dmg, isCrit = false) {
+  function hurtPlayer(amount, label) {
+    if (state !== "play" || P.inv > 0) return false;
+    if (b.shield > 0) {
+      b.shield--;
+      P.inv = 0.85;
+      RENDERER.triggerShake(6);
+      burst(P.x, P.y, "#ffe28b", 22);
+      say(`護盾抵擋！剩餘 ${b.shield}`, P.x, P.y - 45, "#ffe28b");
+      AUDIO.breakShield();
+      HAPTICS.shield();
+      return false;
+    }
+    oil -= amount;
+    lanternHitT = 0.42;
+    P.inv = 1;
+    RENDERER.triggerShake(10);
+    burst(P.x, P.y, "#ff6b81", 18);
+    say(label || `受創・燈油 −${amount}`, P.x, P.y - 36, "#cb6e60");
+    AUDIO.hurt();
+    HAPTICS.damage();
+    if (oil <= 0) {
+      oil = 0;
+      if (finalBossDefeated && delivered >= GOAL_DELIVERIES) startVictorySequence();
+      else loseRun();
+      return true;
+    }
+    return false;
+  }
+
+  function hurt(e, dmg, isCrit = false, fromShatter = false) {
     if (e.hp <= 0) return;
     if (e.shield) {
       e.flash = 0.08;
@@ -745,14 +827,16 @@
         finalBossPos = { x: e.x, y: e.y };
         finalBossEnt = e;
       }
-      oil = Math.min(maxOil, oil + 35);
+      const reward = e.oilReward || 35;
+      oil = Math.min(maxOil, oil + reward);
       bossT = BOSS_TIMES[bossStage] == null ? Infinity : Math.max(0, BOSS_TIMES[bossStage] - elapsed);
-      say(e.final ? "夜明けの大妖鬼 撃破！" : "大妖鬼擊破！燈油 +35", e.x, e.y - 65, "#ffe9a0");
+      say(e.final ? "夜明けの大妖鬼 撃破！" : `大妖鬼擊破！燈油 +${reward}`, e.x, e.y - 65, "#ffe9a0");
       if (!e.final) RENDERER.triggerShake(14); // 最終 Boss 由收尾演出處理，不震動整個畫面
       for (let k = 0; k < 8; k++) {
         dropGem(e.x + (Math.random() - 0.5) * 70, e.y + (Math.random() - 0.5) * 70, 6);
       }
       // 不再誤將擊殺視為單字掌握 STORE.rec
+      if (e.final && delivered >= GOAL_DELIVERIES) startVictorySequence();
     }
 
     const gemCount = 1;
@@ -761,15 +845,20 @@
     }
     FX.death(e.x, e.y, isMis ? "#c98cff" : "#bce9ff", e.type === "boss");
 
-    // 冰晶碎裂殉爆 (天狐靈針 Lv5)
-    if (!e._shattering && (e.freezeT > 0 || (e.freezeEnds && e.freezeEnds > elapsed)) && WL.needle === 5) {
-      e._shattering = true;
+    // 冰晶碎裂：同一 volley 只爆一次，最多再命中 3 隻，不凍結、不遞迴。
+    if (e.shatterVolley && !(e.freezeT > 0 && (e.freezeEnds == null || elapsed < e.freezeEnds))) delete e.shatterVolley;
+    const volley = e.shatterVolley;
+    if (!fromShatter && volley && !volley.used) {
+      volley.used = true;
       burst(e.x, e.y, "#bdf4ff", 14);
+      let extra = 0;
       for (const foe of enemies) {
-        if (foe !== e && foe.hp > 0 && !foe.shield && dist(e, foe) < 130) {
-          hurt(foe, 4.5 * b.dmg);
-          EVOLUTIONS.freeze(foe, elapsed);
-        }
+        if (extra >= 3) break;
+        if (foe === e || foe.hp <= 0 || foe.shield || foe.type === "boss") continue;
+        if (volley.hits.has(foe) || dist(e, foe) >= 105) continue;
+        volley.hits.add(foe);
+        extra++;
+        hurt(foe, 2.5 * b.dmg, false, true);
       }
     }
 
@@ -1047,7 +1136,7 @@
     }
 
     // Boss 答題專用：LB / RB / Y；保留 A 取貨、B 衝刺、X 提示。
-    if (state === "play" && bossQ) {
+    if (state === "play" && bossQ && !job?.reading) {
       if (justPressed(4)) answerBoss(0);
       else if (justPressed(5)) answerBoss(1);
       else if (justPressed(3) && bossQ.ans.length > 2) answerBoss(2);
@@ -1118,12 +1207,11 @@
     const ok = bossQ.ans[i] === bs.word;
 
     if (ok) {
-      if (bs.wasAssisted || bossQ.wasAssisted || (job?.assisted && job.word.jp === bs.word.jp)) {
-        STORE.recAssisted(bs.word.jp);
-      } else {
-        STORE.rec(bs.word.jp, true);
-      }
+      const assisted = bs.wasAssisted || bossQ.wasAssisted || (job?.assisted && job.word.jp === bs.word.jp);
+      rememberWord(bs.word.jp, assisted);
+      noteSuccess("boss", assisted);
       bs.shield = false;
+      bs.quizzed = true;
       bossQ = null;
       bs.quiz = null;
       say(`${bs.word.jp}＝${bs.word.zh}・結界破除！`, bs.x, bs.y - 75, "#9be7ff");
@@ -1134,37 +1222,27 @@
       AUDIO.breakShield();
       HAPTICS.shield();
     } else {
-      misses.push(bs.word);
-      STORE.rec(bs.word.jp, false);
-      oil -= 8;
+      if (!bs.wrongPaid) {
+        bs.wrongPaid = true;
+        misses.push(bs.word);
+        STORE.rec(bs.word.jp, false);
+        study?.mistake?.(bs.word, elapsed);
+        oil -= 6;
+      }
+      bossQ.wasAssisted = true;
+      bs.wasAssisted = true;
+      if (job?.word.jp === bs.word.jp) job.assisted = true;
       AUDIO.deliverWrong();
       HAPTICS.deliverWrong();
-      say("答錯！燈油 -8 點，結界震盪！", P.x, P.y - 50, "#ff8f8f");
+      AUDIO.speak(bs.word.jp);
+      say(`${bs.word.jp}＝${bs.word.zh}・同一題再答`, P.x, P.y - 50, "#ff8f8f");
       if (oil <= 0) {
         oil = 0;
         loseRun();
         return;
       }
       bossQ.wrong.push(i);
-      if (bossQ.wrong.length < bossQ.ans.length - 1) {
-        bossQ.wasAssisted = true;
-        bs.wasAssisted = true;
-        if (job?.word.jp === bs.word.jp) job.assisted = true;
-        bossQ.lock = 0.8;
-        say("排除錯誤選項，再試一次！", P.x, P.y - 75, "#ffb3ba");
-      } else {
-        const lastWordJp = bs.word ? bs.word.jp : "";
-        say(`${bs.word.jp}＝${bs.word.zh}・記住正解再挑戰`, P.x, P.y - 100, "#fff0a6");
-        const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
-        let pool = ALL.filter(w => w.jp !== lastWordJp && !livingMisWords.has(w.jp));
-        if (pool.length === 0) pool = ALL.filter(w => w.jp !== lastWordJp);
-        if (pool.length === 0) pool = ALL;
-        bs.word = STORE.pick(pool);
-        bs.wasAssisted = true;
-        bs.quiz = mkQ(bs);
-        bossQ = bs.quiz;
-        bossQ.lock = 1.0;
-      }
+      bossQ.lock = 0.3;
     }
   }
 
@@ -1174,10 +1252,9 @@
   }
 
   function triggerHint() {
-    if (state !== "play" || !job || oil <= 3 || hintT > 0) return;
+    if (state !== "play" || !job || hintT > 0) return;
     if (!job.hintStage) job.hintStage = 0;
     if (job.hintStage === 0) {
-      oil -= 3;
       job.hintStage = 1;
       hintT = 0.5;
       job.assisted = true;
@@ -1186,7 +1263,7 @@
       if (wrongIndices.length > 0) {
         job.eliminatedIdx = pick(wrongIndices);
       }
-      say("天狐靈音：聆聽發音，排除一項！（燈油 -3）", P.x, P.y - 45, "#80deea");
+      say("天狐靈音：聆聽發音，排除一項！", P.x, P.y - 45, "#80deea");
       AUDIO.pickup();
     } else if (job.hintStage === 1 && oil > 4) {
       oil -= 4;
@@ -1202,19 +1279,24 @@
 
   function explodeTalisman(q){
     if(q.done)return;q.done=true;
+    const wave = q.wave || { hits: q.volleyHits || new Set(), bullets: 0 };
     SKILLFX.play("boom","hit",5,{x:q.x,y:q.y,r:135,evolved:true});
     AUDIO.boomerang(5);
     RENDERER.triggerShake(5);
-    for(const eb of enemyBullets) if(eb.life>0 && dist(eb,q)<=135) { eb.life=0; burst(eb.x,eb.y,"#ffc172",6); }
-    for(const e of enemies)if(e.hp>0&&!q.volleyHits.has(e)&&dist(e,q)<=135){
-      q.volleyHits.add(e);hurt(e,5*b.dmg);e.ib=elapsed+0.38;
+    for(const eb of enemyBullets) {
+      if (wave.bullets >= 6) break;
+      if (eb.life>0 && !eb.bossHazard && dist(eb,q)<=135) { eb.life=0; wave.bullets++; burst(eb.x,eb.y,"#ffc172",6); }
+    }
+    for(const e of enemies)if(e.hp>0&&!wave.hits.has(e)&&dist(e,q)<=135){
+      wave.hits.add(e);hurt(e,6.5*b.dmg);e.ib=elapsed+0.38;
     }
   }
 
   function weapons(dt) {
     // 1. 妖刀斬擊 (Katana) - 方向性扇形斬擊 (依玩家面朝方向前方 140 度扇形索敵，不擊中身後)
-    atkT -= dt;
-    if (WL.katana > 0 && atkT <= 0) {
+    wT.katana = (wT.katana ?? atkT) - dt;
+    atkT = wT.katana;
+    if (WL.katana > 0 && wT.katana <= 0) {
       const reach = 145 + (WL.katana - 1) * 16;
       const faceAng = P.faceAng || 0;
       let hasEnemyInArc = false;
@@ -1230,48 +1312,33 @@
         }
       }
       if (!hasEnemyInArc) {
-        atkT = 0.1;
+        wT.katana = atkT = 0.1;
       } else {
-        atkT = wMax.katana = Math.max(0.24, 0.72 - b.rate * 0.13);
-        if (WL.katana < 5) {
-          RENDERER.addSlashArc(P.x, P.y, reach * 0.85, faceAng, 2.2, SKILLFX.tier(WL.katana));
-          SKILLFX.play("katana", "swing", WL.katana, { x: P.x, y: P.y, ang: faceAng, reach: reach * 0.85 });
-        }
+        wT.katana = atkT = wMax.katana = Math.max(0.6, 0.72 - b.rate * 0.13);
+        const swingReach = WL.katana === 5 ? 720 : reach * 0.85;
+        RENDERER.addSlashArc(P.x, P.y, swingReach, faceAng, 2.2, SKILLFX.tier(WL.katana));
+        SKILLFX.play("katana", "swing", WL.katana, { x: P.x, y: P.y, ang: faceAng, reach: swingReach });
 
         // 僅判定面朝方向前方扇形範圍 (角度差 <= 1.22 弧度，約 140 度角)
-        if (WL.katana === 5) {
-          for (const eb of enemyBullets) {
-            if (eb.life > 0 && dist(P, eb) <= reach) {
-              const eang = Math.atan2(eb.y - P.y, eb.x - P.x);
-              let diff = Math.abs(eang - faceAng);
-              while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
-              if (diff <= 1.22) {
-                eb.life = 0;
-                burst(eb.x, eb.y, "#9bf7ff", 8);
-              }
-            }
-          }
-        }
         for (const e of enemies) {
-          if (e.hp > 0) {
+          if (e.hp > 0 && WL.katana < 5) {
             const ed = dist(P, e);
-            if (WL.katana < 5 && ed <= reach) {
+            if (ed <= reach) {
               const eang = Math.atan2(e.y - P.y, e.x - P.x);
               let diff = Math.abs(eang - faceAng);
               while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
               if (diff <= 1.22) {
-                const isCrit = Math.random() < (0.2 + (b.crit || 0) * 0.15);
-                const mult = isCrit ? (1.8 + (b.crit || 0) * 0.4) : 1.0;
-                hurt(e, (b.dmg + (WL.katana - 1) * 0.8) * mult, isCrit);
-                SKILLFX.play("katana", "hit", WL.katana, { x: e.x, y: e.y, ang: faceAng, crit: isCrit });
+                const crit = rollCrit(0.2, 0.15);
+                hurt(e, (b.dmg + (WL.katana - 1) * 0.8) * crit.mult, crit.isCrit);
+                SKILLFX.play("katana", "hit", WL.katana, { x: e.x, y: e.y, ang: faceAng, crit: crit.isCrit });
               }
             }
           }
         }
         if (WL.katana===5 && winds.length<8) winds.push({
           x:P.x,y:P.y,originX:P.x,originY:P.y,vx:Math.cos(faceAng)*1680,vy:Math.sin(faceAng)*1680,
-          ang:faceAng,size:360,life:4,hits:new Set(),dmg:(b.dmg+3.2)*1.15,traveled:0,
-          maxTravel:Math.max(1400,spawnRadius(620)*2.1)
+          ang:faceAng,size:360,life:1.2,hits:new Set(),dmg:(b.dmg+3.2)*1.15,traveled:0,
+          maxTravel:720
         });
         AUDIO.slash(WL.katana);
       }
@@ -1283,19 +1350,17 @@
       wave.ang=Math.atan2(wave.vy,wave.vx);
       wave.traveled=(wave.traveled||0)+Math.hypot(wave.vx,wave.vy)*dt;
       for (const eb of enemyBullets) {
-        if (eb.life > 0 && dist(eb, wave) <= 90) {
+        if (eb.life > 0 && !eb.bossHazard && dist(eb, wave) <= 90) {
           eb.life = 0;
           burst(eb.x, eb.y, "#9bf7ff", 6);
         }
       }
-      for(const e of enemies)if(e.hp>0 && !wave.hits.has(e) && Math.abs((e.x-wave.x)*Math.cos(wave.ang)+(e.y-wave.y)*Math.sin(wave.ang))<(e.type==='boss'?95:75) && Math.abs(-(e.x-wave.x)*Math.sin(wave.ang)+(e.y-wave.y)*Math.cos(wave.ang))<180+(e.type==='boss'?40:22)){
+      for(const e of enemies)if(e.hp>0 && wave.hits.size<6 && !wave.hits.has(e) && Math.abs((e.x-wave.x)*Math.cos(wave.ang)+(e.y-wave.y)*Math.sin(wave.ang))<(e.type==='boss'?95:75) && Math.abs(-(e.x-wave.x)*Math.sin(wave.ang)+(e.y-wave.y)*Math.cos(wave.ang))<180+(e.type==='boss'?40:22)){
         const hitIndex=wave.hits.size;
         wave.hits.add(e);
-        const distanceDecay=Math.max(0.42,1-(wave.traveled/Math.max(1,wave.maxTravel||1200))*0.52);
-        const pierceDecay=Math.max(0.3,Math.pow(0.82,hitIndex));
-        const isCrit = Math.random() < (0.2 + (b.crit || 0) * 0.15);
-        const mult = isCrit ? (1.8 + (b.crit || 0) * 0.4) : 1;
-        hurt(e, wave.dmg * distanceDecay * pierceDecay * mult, isCrit);SKILLFX.play("katana","hit",5,{x:e.x,y:e.y,ang:wave.ang,crit:isCrit});
+        const pierceScale=hitIndex<3?1:0.75;
+        const crit=rollCrit(0.2,0.15);
+        hurt(e, wave.dmg * pierceScale * crit.mult, crit.isCrit);SKILLFX.play("katana","hit",5,{x:e.x,y:e.y,ang:wave.ang,crit:crit.isCrit});
       }
       const cam=RENDERER.getCam(),view=viewBounds(),margin=wave.size*0.62;
       const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
@@ -1307,34 +1372,22 @@
     if (WL.barrier > 0) {
       wT.barrier -= dt;
       if (wT.barrier <= 0) {
-        wT.barrier = wMax.barrier = Math.max(1.2, 3.2 - WL.barrier * 0.42 - b.rate * 0.2);
-        const r = 140 + WL.barrier * 28;
-        if (WL.barrier === 5) {
-          for (const e of enemies) {
-            if (e.hp > 0 && e.type !== "boss" && !e.shield && dist(P, e) <= r * 1.35) {
-              knockback(e, -35); // 曼荼羅聚怪
-            }
-          }
-          sacredSanctuary = { x: P.x, y: P.y, r, life: 2.5 };
-        }
-        // 激發 360 度擴散金色退魔衝擊環與咒陣
+        const awakened = WL.barrier === 5;
+        wT.barrier = wMax.barrier = awakened ? 3.2 : Math.max(1.2, 3.2 - WL.barrier * 0.42 - b.rate * 0.2);
+        const r = awakened ? 220 : 140 + WL.barrier * 28;
+        if (awakened) sacredSanctuary = { x: P.x, y: P.y, r, life: 1.8, maxLife: 1.8 };
         SKILLFX.play("barrier", "cast", WL.barrier, { x: P.x, y: P.y, r });
         let hitAny = false;
         for (const e of enemies) {
-          if (e.hp > 0) {
-            const ed = dist(P, e);
-            if (ed <= r) {
-              hitAny = true;
-              const isCrit = Math.random() < (0.15 + (b.crit || 0) * 0.1);
-              // Lv1–4 單次傷害只有同等級妖刀約 40%；Lv5 維持覺醒但威力減半。
-              const damage = WL.barrier === 5
-                ? (2.0 + WL.barrier * 1.1) * b.dmg * 0.5
-                : (b.dmg + (WL.barrier - 1) * 0.8) * 0.4;
-              hurt(e, damage * (isCrit ? 1.6 : 1.0), isCrit);
-              // Lv4 才解鎖擊退；Lv5 先聚怪再推散，兩段都走逐幀位移。
-              if (WL.barrier >= 4) knockback(e, 50 + WL.barrier * 10);
-              burst(e.x, e.y, "#ffe082", 6);
-            }
+          if (e.hp > 0 && dist(P, e) <= r) {
+            hitAny = true;
+            const crit = rollCrit(0.15, 0.1);
+            const damage = awakened
+              ? (2.0 + WL.barrier * 1.1) * b.dmg * 0.5
+              : (b.dmg + (WL.barrier - 1) * 0.8) * 0.4;
+            hurt(e, damage * crit.mult, crit.isCrit);
+            if (WL.barrier >= 4 && e.type !== "boss") knockback(e, 50 + WL.barrier * 10);
+            burst(e.x, e.y, "#ffe082", 6);
           }
         }
         if (hitAny) RENDERER.triggerShake(5);
@@ -1344,21 +1397,14 @@
 
     if (sacredSanctuary && sacredSanctuary.life > 0) {
       sacredSanctuary.life -= dt;
-      if (dist(P, sacredSanctuary) <= sacredSanctuary.r) {
-        oil = Math.min(maxOil, oil + dt * 0.35);
-      }
-      for (const e of enemies) {
-        if (e.hp > 0 && dist(e, sacredSanctuary) <= sacredSanctuary.r) {
-          e.slowT = Math.max(e.slowT || 0, 0.25);
-        }
-      }
     }
 
     // 3. 天狐靈針 (Needles) - 面朝方向多發穿甲破魔靈針
     if (WL.needle > 0) {
       wT.needle -= dt;
       if (wT.needle <= 0) {
-        wT.needle = wMax.needle = Math.max(0.45, 1.25 - WL.needle * 0.16 - b.rate * 0.1);
+        const needleFloor = WL.needle === 5 ? 0.65 : 0.45;
+        wT.needle = wMax.needle = Math.max(needleFloor, 1.25 - WL.needle * 0.16 - b.rate * 0.1);
         const count = EVOLUTIONS.needleCount(WL.needle);
         const moveDir = move();
         let shootAng = 0;
@@ -1399,7 +1445,7 @@
         if (e.hp > 0 && !(e.inb > elapsed) && !nd.hits?.has(e) && dist(e, nd) < (e.type === "boss" ? 54 : 30)) {
           e.inb = elapsed + 0.2;
           hurt(e, nd.dmg * b.dmg);
-          if(nd.ice){nd.hits.add(e);EVOLUTIONS.freeze(e,elapsed);}
+          if(nd.ice){nd.hits.add(e);EVOLUTIONS.freeze(e,elapsed,nd.volley||null);}
           SKILLFX.play("needle", "hit", nd.level??WL.needle, { x: nd.x, y: nd.y });
         }
       }
@@ -1418,13 +1464,13 @@
         if (!t) {
           wT.boom = 0.15;
         } else {
-          wT.boom = wMax.boom = Math.max(0.75, 2.0 - WL.boom * 0.24);
+          wT.boom = wMax.boom = WL.boom === 5 ? Math.max(1.6, 2.0 - WL.boom * 0.24) : Math.max(0.75, 2.0 - WL.boom * 0.24);
           const count = EVOLUTIONS.boomCount(WL.boom);
-          const volleyHits = new Set();
+          const wave = { hits: new Set(), bullets: 0 };
           const baseAng = Math.atan2(t.y - P.y, t.x - P.x);
           for (let i = 0; i < count; i++) {
             const a = baseAng + (i - (count - 1) / 2) * (WL.boom>=4?0.28:0.32);
-            proj.push({ x: P.x, y: P.y, vx: Math.cos(a) * 440, vy: Math.sin(a) * 440, t: 0, back: false, life:WL.boom===5?1.25:2, level:WL.boom, volleyHits });
+            proj.push({ x: P.x, y: P.y, vx: Math.cos(a) * 440, vy: Math.sin(a) * 440, t: 0, back: false, life:WL.boom===5?1.25:2, level:WL.boom, volleyHits: wave.hits, wave });
           }
           if(WL.boom<5) AUDIO.boomerang(WL.boom);
         }
@@ -1500,13 +1546,28 @@
       }
     }
 
-    // MAX foxfire: a short overhead apparition every four seconds.
+    // MAX foxfire: one dragon every 6 seconds, aimed at a pack ahead rather than the player's feet.
     if(WL.fire===5){
       wT.fire=Math.max(0,wT.fire-dt);
-      const targets=enemies.filter(e=>e.hp>0&&!e.shield&&dist(P,e)<560).sort((a,b)=>dist(P,a)-dist(P,b));
-      if(wT.fire<=0 && targets.length && !ghosts.some(g=>g.dragon&&g.life>0)){
-        wT.fire=wMax.fire=4.5;
-        const target=targets[0],cam=RENDERER.getCam(),view=viewBounds();
+      const face = P.faceAng || 0;
+      const ahead = enemies.filter(e => {
+        if (e.hp <= 0 || e.shield) return false;
+        const d = dist(P, e);
+        if (d < 90 || d > 560) return false;
+        let diff = Math.abs(Math.atan2(e.y - P.y, e.x - P.x) - face);
+        while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
+        return diff <= 1.15;
+      });
+      const pool = ahead.length ? ahead : enemies.filter(e => e.hp > 0 && !e.shield && dist(P, e) > 90 && dist(P, e) < 560);
+      let target = null, bestN = -1;
+      for (const e of pool) {
+        let n = 0;
+        for (const o of pool) if (dist(o, e) < 140) n++;
+        if (n > bestN) { target = e; bestN = n; }
+      }
+      if(wT.fire<=0 && target && !ghosts.some(g=>g.dragon&&g.life>0)){
+        wT.fire=wMax.fire=6;
+        const cam=RENDERER.getCam(),view=viewBounds();
         const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
         // 收斂黑龍佔屏比例：原始 0.72 視野寬且最少 550 過於龐大。
         const face=target.x>=P.x?1:-1,size=clamp(view.width*0.44,300,680);
@@ -1558,10 +1619,9 @@
     for(const shot of dragonShots){
       const impact=EVOLUTIONS.dragonFireballStep(shot,dt,enemies,blocked);
       if(!impact.impact)continue;
-      if(impact.target)hurt(impact.target,15*b.dmg);
-      for(const e of enemies)if(e.hp>0&&e!==impact.target&&!e.shield&&Math.hypot(e.x-impact.x,e.y-impact.y)<172.5)hurt(e,4*b.dmg);
-      dragonScorches.push({x:impact.x,y:impact.y,life:6.5,maxLife:6.5,r:172.5,tick:0.35});
-      if(dragonScorches.length>8)dragonScorches.shift();
+      if(impact.target)hurt(impact.target,12*b.dmg);
+      for(const e of enemies)if(e.hp>0&&e!==impact.target&&!e.shield&&Math.hypot(e.x-impact.x,e.y-impact.y)<140)hurt(e,4*b.dmg);
+      if(dragonScorches.length<2) dragonScorches.push({x:impact.x,y:impact.y,life:2.5,maxLife:2.5,r:140,tick:0.6});
       SKILLFX.play("fire","hit",5,{x:impact.x,y:impact.y});
       burst(impact.x,impact.y,"#ff7a28",12);
     }
@@ -1570,77 +1630,49 @@
       scorch.life-=dt;
       scorch.tick-=dt;
       while(scorch.tick<=0&&scorch.life>0){
-        scorch.tick+=0.45;
-        for(const e of enemies)if(e.hp>0&&!e.shield&&Math.hypot(e.x-scorch.x,e.y-scorch.y)<scorch.r){
+        scorch.tick+=0.6;
+        for(const e of enemies)if(e.hp>0&&!e.shield&&!(e.scorchReady>elapsed)&&Math.hypot(e.x-scorch.x,e.y-scorch.y)<scorch.r){
+          e.scorchReady = elapsed + 0.6;
           hurt(e,1.8*b.dmg);
         }
       }
     }
     dragonScorches=dragonScorches.filter(p=>p.life>0);
 
-    // 6. 天狐落雷：Lv1–3 按招財勾玉同級距離精準單點；Lv4 全螢幕隨機斬除小怪。
+    // 6. 天狐落雷：固定係數，不依生命秒殺。
     if (WL.thunder > 0) {
       wT.thunder -= dt;
       if (wT.thunder <= 0) {
         const rank = WL.thunder;
-        let candidates;
-        if (rank === 4) {
-          const cam = RENDERER.getCam(), view = viewBounds();
-          const left = cam.x + view.left, right = cam.x + view.right;
-          const top = cam.y + view.top, bottom = cam.y + view.bottom;
-          // Boss 必須保留答題破盾及首領戰；只從實際可見的一般妖怪中隨機挑選。
-          candidates = enemies.filter(e => e.hp > 0 && !e.shield && e.type !== "boss" &&
-            e.x >= left && e.x <= right && e.y >= top && e.y <= bottom);
-        } else {
-          const radius = rank === 5 ? 450 : magnetRadius(rank);
-          candidates = enemies.filter(e => e.hp > 0 && !e.shield && dist(P, e) <= radius);
-        }
+        const radius = rank >= 4 ? 450 : magnetRadius(rank);
+        const candidates = enemies.filter(e => e.hp > 0 && !e.shield && dist(P, e) <= radius);
         if (!candidates.length) {
           wT.thunder = 0.2;
         } else {
-          wT.thunder = wMax.thunder = Math.max(0.85, 2.6 - rank * 0.35);
+          const threat = e => e.type === "boss" ? 0 : e.type === "shooter" ? 1 : e.type === "tank" ? 2 : 3;
+          candidates.sort((a, b) => rank >= 4 ? (threat(a) - threat(b) || dist(P, a) - dist(P, b)) : dist(P, a) - dist(P, b));
+          wT.thunder = wMax.thunder = rank === 5 ? 2.4 : rank === 4 ? 2 : Math.max(2, 2.6 - rank * 0.35);
+          const crit = rollCrit(0.2, 0.15);
           if (rank === 5) {
-            // 覺醒雷雲沿用既有的群體落雷與地面判定。
-            const targets = candidates;
-            const isCrit = Math.random() < (0.2 + (b.crit || 0) * 0.15), mult = isCrit ? (1.8 + (b.crit || 0) * 0.4) : 1;
-            const struck = new Set(), strikeCount = Math.min(3, targets.length);
-            const start = targets.length ? Math.min(targets.length - 1, Math.floor(Math.random() * targets.length)) : 0;
-            for (let i = 0; i < strikeCount; i++) {
-              const step = Math.max(1, Math.floor(targets.length / strikeCount));
-              const anchor = targets[(start + i * step) % targets.length];
-              const x = anchor.x + (Math.random() - 0.5) * 72, y = anchor.y + (Math.random() - 0.5) * 52, delay = 0.06 + i * 0.12;
-              SKILLFX.play("thunder", "storm", 5, {x,y,r:95,delay});
-              SKILLFX.play("thunder", "strike", 5, {x,y,stormChild:true,delay:delay+0.08});
-              for (const e of enemies) if (e.hp > 0 && !e.shield && !struck.has(e) && Math.hypot(e.x-x,e.y-y) <= 105) {
-                struck.add(e); hurt(e,11*b.dmg*mult,isCrit); e.flash = 0.22; e.slowT = 0.35;
+            const anchors = candidates.slice(0, 3);
+            const struck = new Set();
+            anchors.forEach((anchor, i) => {
+              const delay = 0.06 + i * 0.12;
+              SKILLFX.play("thunder", "storm", 5, { x: anchor.x, y: anchor.y, r: 90, delay });
+              SKILLFX.play("thunder", "strike", 5, { x: anchor.x, y: anchor.y, r: 90, stormChild: true, delay: delay + 0.08 });
+              for (const e of enemies) if (e.hp > 0 && !e.shield && !struck.has(e) && dist(e, anchor) <= 90) {
+                struck.add(e);
+                hurt(e, 8 * b.dmg * crit.mult, crit.isCrit);
+                e.flash = 0.22;
               }
-            }
+            });
             RENDERER.triggerShake(8);
-          } else if (rank === 4) {
-            // 等機率無放回抽取 3～5 隻：不擴散到視野外，也不重複轟同一隻。
-            const shuffled = [...candidates];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-              const j = Math.floor(Math.random() * (i + 1));
-              [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            const count = Math.min(shuffled.length, 3 + Math.floor(Math.random() * 3));
-            for (const e of shuffled.slice(0, count)) {
-              SKILLFX.play("thunder", "strike", 4, {x:e.x,y:e.y});
-              const isCrit = Math.random() < (0.2 + (b.crit || 0) * 0.15);
-              hurt(e, e.hp, isCrit); // 一般妖怪原本即秒殺；暴擊保留命中回饋。
-            }
           } else {
-            // 同級勾玉的固定半徑：Lv1 190／Lv2 270／Lv3 350，與實際持有勾玉等級無關。
-            const targets = [...candidates].sort((a,b) => dist(P,a) - dist(P,b)).slice(0,rank);
-            for (const e of targets) {
-              SKILLFX.play("thunder", "strike", rank, {x:e.x,y:e.y});
-              const damage = rank === 1 ? 0.5 * b.dmg
-                : rank === 2 ? 0.9 * b.dmg
-                : Math.max((e.type === "tank" ? 4.5 : 6) * b.dmg,
-                    e.type !== "tank" && e.type !== "boss" ? e.hp : 0);
-              // Lv1 低傷，Lv2 普通幽靈約兩擊倒地；Lv3 秒殺一般小怪而不秒殺坦克與 Boss。
-              const isCrit = Math.random() < (0.2 + (b.crit || 0) * 0.15);
-              hurt(e, damage * (isCrit ? (1.8 + (b.crit || 0) * 0.4) : 1), isCrit);
+            const mult = rank === 1 ? 2 : rank === 2 ? 3 : rank === 3 ? 4.5 : 6;
+            const count = rank === 4 ? 3 : rank;
+            for (const e of candidates.slice(0, count)) {
+              SKILLFX.play("thunder", "strike", rank, { x: e.x, y: e.y, r: radius });
+              hurt(e, mult * b.dmg * crit.mult, crit.isCrit);
             }
           }
           AUDIO.thunder(rank);
@@ -1693,35 +1725,40 @@
     checkTutorial();
     if (tutorial) return;
 
-    elapsed += dt;
-    bossT -= dt;
-    oil = Math.min(maxOil, oil - dt * 0.43 + (b.oilRegen || 0) * dt); // 10 分鐘制：總自然耗油維持接近舊 5 分鐘制
-    if (oil <= 0) {
-      oil = 0;
-      if (finalBossDefeated && delivered >= GOAL_DELIVERIES) { startVictorySequence(); return; }
-      loseRun();
-      return;
+    let quizNear = null;
+    for (const e of enemies) {
+      if (e.type !== "boss" || !e.shield || e.hp <= 0 || e.quizClosed) continue;
+      if (dist(P, e) < 380) quizNear = e;
+      else if (e.quizEntered) e.quizClosed = true;
     }
-    if (elapsed >= DAWN) {
-      if (delivered >= GOAL_DELIVERIES && finalBossDefeated) {
-        startVictorySequence();
+    if (quizNear) quizNear.quizEntered = true;
+    if (job && !job.readClosed && dist(P, job.to) < 220) job.reading = true;
+    if (job?.reading && dist(P, job.to) >= 270) { job.reading = false; job.readClosed = true; }
+    const safeRead = !!(job?.reading || quizNear);
+    if (!safeRead) {
+      elapsed += dt;
+      bossT -= dt;
+      oil = Math.min(maxOil, oil - dt * 0.43 + (b.oilRegen || 0) * dt);
+      if (oil <= 0) {
+        oil = 0;
+        if (finalBossDefeated && delivered >= GOAL_DELIVERIES) { startVictorySequence(); return; }
+        loseRun();
         return;
       }
-      // 破曉後仍依序生成逾期首領；不把早期首領升格而略過中間波次。
-      if (warnDawnT === 0) {
+      if (elapsed >= DAWN && warnDawnT === 0) {
         warnDawnT = -1;
         const need = Math.max(0, GOAL_DELIVERIES - delivered);
         say(!finalBossDefeated ? "擊敗大妖" : `還差 ${need} 件委託`, P.x, P.y - 75, "#ffb3ba");
       }
     }
 
-    if (warnDawnT > 0) warnDawnT -= dt;
+    if (warnDawnT > 0 && !safeRead) warnDawnT -= dt;
 
     // 燈火受擊衝量獨立衰減；即使命中停頓，也讓 HUD 的震盪自然回穩。
     lanternHitT = Math.max(0, lanternHitT - dt);
 
     // 命中停頓只凍結戰鬥動作；夜行時鐘、Boss 排程與耗油照常前進。
-    if (hitStopped) return;
+    if (hitStopped && !safeRead) return;
 
     P.inv = Math.max(0, P.inv - dt);
     dashT = Math.max(0, dashT - dt);
@@ -1741,18 +1778,17 @@
     for (const r of rings) r.life -= dt;
     rings = rings.filter(r => r.life > 0);
 
-    for (const o of orders) o.life -= dt;
-    const expired = orders.filter(o => o.life <= 0).length;
-    orders = orders.filter(o => o.life > 0);
-    if (expired) {
-      say("委託逾期", P.x, P.y - 45, "#ff8f8f"); // 逾期不扣燈油、不算誤配
-    }
-
-    orderT -= dt;
-    const desiredOrders = CFG.orderSlots(elapsed, delivered);
-    if (orderT <= 0 || orders.length < desiredOrders) {
-      makeOrder();
-      orderT = 7 + Math.random() * 3;
+    if (!safeRead) {
+      for (const o of orders) o.life -= dt;
+      const expired = orders.filter(o => o.life <= 0).length;
+      orders = orders.filter(o => o.life > 0);
+      if (expired) say("委託逾期", P.x, P.y - 45, "#ff8f8f");
+      orderT -= dt;
+      const desiredOrders = CFG.orderSlots(elapsed, delivered);
+      if (orderT <= 0 || orders.length < desiredOrders) {
+        makeOrder();
+        orderT = 7 + Math.random() * 3;
+      }
     }
 
     // 玩家位移（基礎速度微調較慢，可藉由卡片提升）
@@ -1814,6 +1850,7 @@
       cargo.y = P.y + Math.sin(angle) * FOLLOW_DIST;
     }
 
+    if (!safeRead) {
     // 武器運算
     weapons(dt);
 
@@ -1855,43 +1892,46 @@
         surgePendingCount = 10 + Math.floor(cappedElapsed / 60);
       }
     }
+    }
 
+    if (!safeRead) {
     // 敵人邏輯與傷害碰撞（衝撞扣燈油；若有護盾則扣護盾）
     for (const e of enemies) {
       if (e.hp <= 0) continue;
       e.flash = Math.max(0, e.flash - dt);
       e.attackT = Math.max(0, (e.attackT || 0) - dt);
       const knocked = moveKnockback(e, dt);
-      if(e.freezeT>0){e.freezeT=Math.max(0,e.freezeEnds==null?e.freezeT-dt:e.freezeEnds-elapsed);e.walking=false;if(e.freezeT>0)continue;}
+      if (e.freezeT > 0) {
+        e.freezeT = Math.max(0, e.freezeEnds == null ? e.freezeT - dt : e.freezeEnds - elapsed);
+        if (!(e.freezeT > 0 && (e.freezeEnds == null || elapsed < e.freezeEnds))) {
+          e.freezeT = 0;
+          delete e.shatterVolley;
+        } else {
+          e.walking = false;
+          continue;
+        }
+      }
       if (e.slowT > 0) e.slowT -= dt;
       if (e.type === "mis") {
         e.speed = MIS_SPEED;
       }
       const revealing = e.revealT && e.revealT > 0;
       if (revealing) e.revealT = Math.max(0, e.revealT - dt);
-      const curSpd = revealing ? 0 : ((e.slowT && e.slowT > 0) ? Math.min(e.speed, 25) : e.speed);
+      const baseSpd = Number.isFinite(e.speed) ? e.speed : 0;
+      let curSpd = revealing ? 0 : ((e.slowT && e.slowT > 0) ? Math.min(baseSpd, 25) : baseSpd);
+      if (sacredSanctuary && sacredSanctuary.life > 0 && e.type !== "boss" && dist(e, sacredSanctuary) <= sacredSanctuary.r) curSpd *= 0.6;
+      let hazardHit = null;
+      if (e.type === "boss" && window.BOSS_AI?.step) {
+        const stepped = window.BOSS_AI.step(e, P, dt, {
+          blocked: (x, y, r = 16) => blocked(x, y, r),
+          stageId: STAGE.id,
+          paused: surgeWarningT > 0
+        });
+        if (stepped?.hit) hazardHit = stepped.hit;
+      }
       const dx = P.x - e.x, dy = P.y - e.y;
       const d = Math.hypot(dx, dy) || 1;
-
-      // 定點預告砸地：蓄勢時鎖定位置，玩家可離開 150px 判定範圍。
-      let slamHit = false;
-      if (e.type === "boss") {
-        e.slamCd = Math.max(0, (e.slamCd || 0) - dt);
-        e.slamRecovery = Math.max(0, (e.slamRecovery || 0) - dt);
-        if (e.slam) {
-          e.slam.t -= dt;
-          if (e.slam.t <= 0) {
-            slamHit = Math.hypot(P.x-e.slam.x,P.y-e.slam.y) < 150;
-            rings.push({x:e.slam.x,y:e.slam.y,life:0.4,maxL:0.4,maxR:150,color:'#ff8050'});
-            burst(e.slam.x,e.slam.y,'#ffbd72',28);
-            e.slam = null; e.slamRecovery = 0.7; e.attackT = 0.4;
-            RENDERER.triggerShake(8); AUDIO.thunder();
-          }
-        } else if (e.slamCd <= 0 && e.slamRecovery <= 0 && d < 230) {
-          e.slam = {x:e.x,y:e.y,t:1.1}; e.slamCd = 5;
-        }
-      }
-      const bossBusy = e.type === "boss" && (e.slam || e.slamRecovery > 0);
+      const bossBusy = e.type === "boss" && !!e.hazard;
 
       // 所有怪物逼近玩家（加入建築物碰撞障礙滑移）
       const step = (bossBusy || knocked) ? 0 : CFG.chaseStep(d, curSpd, dt, e.type, STAGE_ENEMY.shots !== false);
@@ -1928,32 +1968,10 @@
       }
 
       const hitRadius = (e.type === "boss" ? 52 : e.type === "tank" ? 34 : e.type === "mis" ? 32 : 25);
-      if (!revealing && P.inv <= 0 && (slamHit || (!bossBusy && Math.hypot(P.x - e.x, P.y - e.y) < hitRadius))) {
+      if (!revealing && (hazardHit || (!bossBusy && Math.hypot(P.x - e.x, P.y - e.y) < hitRadius))) {
         e.attackT = 0.24;
-        if (b.shield && b.shield > 0) {
-          b.shield--;
-          P.inv = 0.85;
-          RENDERER.triggerShake(6);
-          burst(P.x, P.y, "#ffe28b", 22);
-          say(`護盾抵擋！剩餘 ${b.shield}`, P.x, P.y - 45, "#ffe28b");
-          AUDIO.breakShield();
-          HAPTICS.shield();
-        } else {
-          const dmg = (slamHit ? 20 : e.type === "tank" ? 18 : 10);
-          oil -= dmg;
-          lanternHitT = 0.42;
-          P.inv = 1.0;
-          RENDERER.triggerShake(10);
-          burst(P.x, P.y, "#ff6b81", 18);
-          say(`受創・燈油 −${dmg}`, P.x, P.y - 36, "#cb6e60");
-          AUDIO.hurt();
-          HAPTICS.damage();
-          if (oil <= 0) {
-            oil = 0;
-            loseRun();
-            return;
-          }
-        }
+        const dmg = hazardHit ? hazardHit.damage : (e.type === "tank" ? 18 : 10);
+        if (hurtPlayer(dmg)) return;
       }
     }
 
@@ -1963,73 +1981,63 @@
       eb.y += eb.vy * dt;
       eb.life -= dt;
       if (blocked(eb.x, eb.y, 8)) { eb.life = 0; continue; }
-      if (dist(P, eb) < 20 && P.inv <= 0) {
+      if (dist(P, eb) < 20) {
         eb.life = 0;
-        if (b.shield && b.shield > 0) {
-          b.shield--;
-          P.inv = 0.8;
-          RENDERER.triggerShake(5);
-          say(`護盾抵擋！剩餘 ${b.shield}`, P.x, P.y - 45, "#ffe28b");
-          AUDIO.breakShield();
-          HAPTICS.shield();
-        } else {
-          const dmg = 8;
-          oil -= dmg;
-          lanternHitT = 0.42;
-          P.inv = 0.85;
-          RENDERER.triggerShake(7);
-          burst(P.x, P.y, "#ff6b81", 14);
-          say(`妖火灼身・燈油 −${dmg}`, P.x, P.y - 36, "#cb6e60");
-          AUDIO.hurt();
-          HAPTICS.damage();
-          if (oil <= 0) {
-            oil = 0;
-            loseRun();
-            return;
-          }
-        }
+        if (hurtPlayer(8, "妖火灼身・燈油 −8")) return;
       }
     }
     enemyBullets = enemyBullets.filter(eb => eb.life > 0);
     const despawnRadius = Math.max(1150, spawnRadius(0) + 300);
     enemies = enemies.filter(e => e.hp > 0 && (e.type === "boss" || (e.type === "mis" && dist(e, P) < 3000) || dist(e, P) < despawnRadius));
 
-    if (elapsed >= DAWN && finalBossDefeated && delivered >= GOAL_DELIVERIES && state === "play") {
+    if (finalBossDefeated && delivered >= GOAL_DELIVERIES && state === "play") {
       startVictorySequence();
       return;
     }
 
-    // 3 / 6 / 9 分鐘中型 Boss，9:50 最終 Boss；上一隻尚未擊破時不重疊。
-    if (bossT <= 0 && bossStage < BOSS_TIMES.length && !enemies.some(e => e.type === "boss")) {
-      const a = Math.random() * 6.283;
-      const cappedElapsed = Math.min(elapsed, DAWN);
-      const isFinal = bossStage === BOSS_TIMES.length - 1;
-      const stageScale = 1 + bossStage * 0.15 + (isFinal ? 0.55 : 0);
-      const hp = Math.round((18 + level * 2.2) * (1 + pw * 0.04 + cappedElapsed / 380) * stageScale * (STAGE_ENEMY.bossHpScale || 1));
-      const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
-      let bossPool = ALL.filter(w => !livingMisWords.has(w.jp));
-      if (bossPool.length === 0) bossPool = ALL;
-      const radius = spawnRadius(520);
-      const position = spawnPosition(radius, a, 52);
+    if (bossT <= 0 && bossStage < BOSS_TIMES.length) {
+      const plan = bossBlueprint(bossStage);
+      const alive = enemies.filter(e => e.type === "boss" && e.hp > 0);
+      const wait = plan.role === "final"
+        ? alive.some(e => !e.gatekeeper)
+        : plan.role === "gate"
+          ? alive.some(e => !e.final)
+          : alive.length > 0;
+      const position = wait || plan.hp == null ? null : spawnPosition(spawnRadius(520), Math.random() * 6.283, 52);
       if (position) {
+        const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
+        let bossPool = ALL.filter(w => !livingMisWords.has(w.jp));
+        if (bossPool.length === 0) bossPool = ALL;
+        let word = null;
+        if (plan.quiz) {
+          const studied = study?.seenWords?.() || [];
+          word = studied.length ? studied[studied.length - 1] : STORE.pick(bossPool);
+        }
         enemies.push({
           ...position,
           type: "boss",
-          word: STORE.pick(bossPool),
-          shield: true,
-          final: isFinal,
-          hp, max: hp,
-          speed: 40 + (cappedElapsed / DAWN) * 45,
+          word,
+          shield: !!plan.quiz,
+          role: plan.role,
+          gatekeeper: plan.role === "gate",
+          final: plan.role === "final",
+          bossIndex: bossStage,
+          oilReward: plan.oil,
+          hp: plan.hp,
+          max: plan.hp,
+          speed: plan.role === "gate" ? 70 : plan.role === "final" ? 46 : 58,
           flash: 0,
-          wob: 0
+          wob: 0,
+          attackCd: 1.2
         });
         bossStage++;
         const nextBossAt = BOSS_TIMES[bossStage];
         bossT = nextBossAt == null ? Number.POSITIVE_INFINITY : Math.max(0, nextBossAt - elapsed);
         const harborBoss = STAGE_ENEMY.bossTheme === "harbor";
-        say(isFinal ? (harborBoss ? "港霧大妖" : "大妖出現") : (harborBoss ? "港霧妖將" : "大妖出現"), P.x, P.y - 75, "#ff8f8f");
+        say(plan.role === "final" ? (harborBoss ? "港霧大妖" : "大妖出現") : (harborBoss ? "港霧妖將" : "大妖出現"), P.x, P.y - 75, "#ff8f8f");
         AUDIO.thunder();
       }
+    }
     }
 
     const bs = enemies.find(e => e.type === "boss" && e.shield);
@@ -2041,6 +2049,7 @@
       bossQ = null;
     }
 
+    if (!safeRead) {
     // 靈玉經驗吸收
     const att = magnetRadius(b.mag);
     for (const g of gems) {
@@ -2059,6 +2068,7 @@
       }
     }
     gems = gems.filter(g => !g.done);
+    }
 
     // 配送取貨：靠近町屋即可出現裝置對應的取貨操作。
     inter = null;
@@ -2087,23 +2097,24 @@
 
       if (job.sanctuaryT > 0) {
         job.sanctuaryT -= dt;
-        // 結界震退衝擊：將 240px 內的怪物強力推開並施加暫時緩速，推動時檢查建築物阻擋
-        for (const e of enemies) {
-          const ed = dist(job.to, e);
-          if (ed < 240 && e.type !== "boss") {
-            const pushAng = Math.atan2(e.y - job.to.y, e.x - job.to.x);
-            const px = Math.cos(pushAng) * 200 * dt;
-            const py = Math.sin(pushAng) * 200 * dt;
-            if (!blocked(e.x + px, e.y, 16)) e.x += px;
-            if (!blocked(e.x, e.y + py, 16)) e.y += py;
-            e.slowT = 0.8;
+        // 開場台詞與光環仍走。讀題時不震退、不刪彈。
+        if (!safeRead) {
+          for (const e of enemies) {
+            const ed = dist(job.to, e);
+            if (ed < 240 && e.type !== "boss") {
+              const pushAng = Math.atan2(e.y - job.to.y, e.x - job.to.x);
+              const px = Math.cos(pushAng) * 200 * dt;
+              const py = Math.sin(pushAng) * 200 * dt;
+              if (!blocked(e.x + px, e.y, 16)) e.x += px;
+              if (!blocked(e.x, e.y + py, 16)) e.y += py;
+              e.slowT = 0.8;
+            }
           }
-        }
-        // 消除結界半徑內的幽冥妖火彈，保護答題專注
-        for (const eb of enemyBullets) {
-          if (dist(job.to, eb) < 240) {
-            eb.life = 0;
-            burst(eb.x, eb.y, "#ffe082", 4);
+          for (const eb of enemyBullets) {
+            if (dist(job.to, eb) < 240) {
+              eb.life = 0;
+              burst(eb.x, eb.y, "#ffe082", 4);
+            }
           }
         }
       }
@@ -2127,7 +2138,7 @@
         job.hold = 0;
       } else if (idx >= 0) {
         job.hold += dt;
-        if (job.hold >= 0.45) resolve(idx);
+        if (job.hold >= READ_DWELL) resolve(idx);
       }
     }
 
@@ -2140,7 +2151,7 @@
       curCam.y + (targetCamY - curCam.y) * Math.min(1, dt * 9)
     );
 
-    if (xp >= xpNeed()) offerUp();
+    if (!safeRead && xp >= xpNeed()) offerUp();
   }
 
   function drawStageWeather(t) {
@@ -2189,6 +2200,74 @@
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     UI.drawWordCue(ctx, job.word, cargo.x, cyPos + 1, job.word.cue === "emoji" ? 40 : 28);
+    ctx.restore();
+  }
+
+  function drawBossHazard(h) {
+    if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) return;
+    ctx.save();
+    ctx.globalAlpha = h.phase === "recovery" ? 0.28 : 0.72;
+    if (h.kind === "slam") {
+      const r = h.r || 150;
+      ctx.fillStyle = "rgba(255,65,35,0.18)";
+      ctx.strokeStyle = "#ffbd72";
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(h.x, h.y, r, 0, 6.283); ctx.fill(); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = "#fff0cb";
+      ctx.font = UI.readableFont(16, "900");
+      ctx.textAlign = "center";
+      ctx.fillText("砸地！離開紅圈", h.x, h.y + 8);
+    } else if (h.kind === "charge") {
+      const ang = h.angle || 0;
+      const len = 620 * 0.65;
+      ctx.strokeStyle = "rgba(255,120,50,0.45)";
+      ctx.lineWidth = 104;
+      ctx.lineCap = "butt";
+      ctx.beginPath();
+      ctx.moveTo(h.x, h.y);
+      ctx.lineTo(h.x + Math.cos(ang) * len, h.y + Math.sin(ang) * len);
+      ctx.stroke();
+    } else if (h.kind === "ring") {
+      const gap = h.gapAngle || 0;
+      const half = (h.gapWidth || Math.PI / 2) / 2;
+      ctx.strokeStyle = "rgba(255,80,40,0.85)";
+      ctx.lineWidth = 28;
+      ctx.beginPath();
+      ctx.arc(h.x, h.y, h.r || 80, gap + half, gap + Math.PI * 2 - half);
+      ctx.stroke();
+    } else if (h.kind === "tide") {
+      const ang = h.angle || 0;
+      const cos = Math.cos(ang), sin = Math.sin(ang);
+      const off = h.safeOffset || 0;
+      const lane = h.safeWidth || 130;
+      const sx = h.x - sin * off, sy = h.y + cos * off;
+      ctx.strokeStyle = "rgba(150,230,255,0.55)";
+      ctx.lineWidth = lane;
+      ctx.lineCap = "butt";
+      ctx.beginPath();
+      ctx.moveTo(sx - cos * 300, sy - sin * 300);
+      ctx.lineTo(sx + cos * 300, sy + sin * 300);
+      ctx.stroke();
+      const prog = Number.isFinite(h.progress) ? h.progress : -280;
+      const wx = h.x + cos * prog, wy = h.y + sin * prog;
+      const gap = lane / 2;
+      ctx.strokeStyle = h.phase === "telegraph" ? "rgba(80,150,200,0.4)" : "rgba(30,110,170,0.75)";
+      ctx.lineWidth = 120;
+      ctx.beginPath();
+      ctx.moveTo(wx - sin * (off - 460), wy + cos * (off - 460));
+      ctx.lineTo(wx - sin * (off - gap), wy + cos * (off - gap));
+      ctx.moveTo(wx - sin * (off + gap), wy + cos * (off + gap));
+      ctx.lineTo(wx - sin * (off + 460), wy + cos * (off + 460));
+      ctx.stroke();
+      if (h.phase === "telegraph") {
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = "#d7f6ff";
+        ctx.font = UI.readableFont(16, "900");
+        ctx.textAlign = "center";
+        ctx.fillText("潮來！站上亮帶", sx, sy);
+      }
+    }
     ctx.restore();
   }
 
@@ -2304,7 +2383,7 @@
           ctx.strokeStyle = "#ff5500";
           ctx.lineWidth = 6;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, 44, -1.57, -1.57 + 6.283 * Math.min(1, job.hold / 0.45));
+          ctx.arc(p.x, p.y, 44, -1.57, -1.57 + 6.283 * Math.min(1, job.hold / READ_DWELL));
           ctx.stroke();
         }
         ctx.restore();
@@ -2319,7 +2398,7 @@
 
     // 技能的貼地圖案（淨化靈陣等）畫在所有角色之前，才會被角色蓋住。
     if (sacredSanctuary && sacredSanctuary.life > 0) {
-      const lifeNorm = sacredSanctuary.life / 2.5;
+      const lifeNorm = sacredSanctuary.life / (sacredSanctuary.maxLife || 1.8);
       const alpha = Math.min(0.92, lifeNorm * 1.3);
       ctx.save();
       ctx.globalAlpha = alpha;
@@ -2441,16 +2520,7 @@
     }
     SKILLFX.drawArtFx?.(ctx, true);
 
-    // Boss 預告置於地面，固定圓心與實際傷害半徑一致。
-    for (const e of enemies) if(e.hp>0 && e.slam && nearView(e.x,e.y)) {
-      const s=e.slam, progress=1-s.t/1.1;
-      ctx.save();ctx.fillStyle='rgba(255,65,35,0.16)';ctx.strokeStyle='#ffbd72';ctx.lineWidth=3;
-      ctx.beginPath();ctx.arc(s.x,s.y,150,0,6.283);ctx.fill();ctx.stroke();
-      ctx.strokeStyle='#ff583a';ctx.lineWidth=6;
-      ctx.beginPath();ctx.arc(s.x,s.y,150,-1.57,-1.57+6.283*progress);ctx.stroke();
-      ctx.font=UI.readableFont(16,'900');ctx.fillStyle='#fff0cb';ctx.textAlign='center';
-      ctx.fillText('砸地！離開紅圈',s.x,s.y+80);ctx.restore();
-    }
+    for (const e of enemies) if (e.hp > 0 && e.hazard && nearView(e.hazard.x, e.hazard.y, 480)) drawBossHazard(e.hazard);
 
     // 7. 依腳底地面接觸點排序；北側角色被屋頂遮住，南側角色在屋前。
     const actors = [
@@ -2891,7 +2961,7 @@
     }
     if (state !== "play") return;
     if (action === "interact") interact();
-    else if (bossQ && !e.repeat && "123".includes(e.key)) {
+    else if (bossQ && !job?.reading && !e.repeat && "123".includes(e.key)) {
       const idx = +e.key - 1;
       if (idx >= 0 && idx < bossQ.ans.length) answerBoss(idx);
     }
@@ -3044,7 +3114,7 @@
       if (UI.REROLL_BTN && hitButton(p, UI.REROLL_BTN)) reroll();
       return;
     }
-    if (bossQ) {
+    if (bossQ && !job?.reading) {
       const layout = UI.bossQuizLayout(bossQ.ans.length);
       for (let i = 0; i < layout.options.length; i++) {
         const option = layout.options[i];
@@ -3155,7 +3225,13 @@
       // 固定在任務區旋轉的方向箭頭：送貨／取貨目標（金），破曉後的大妖鬼（赤雙箭頭）。
       guideAngle: guideTarget ? Math.atan2(guideTarget.y - P.y, guideTarget.x - P.x) : null,
       bossAngle: huntTarget ? Math.atan2(huntTarget.y - P.y, huntTarget.x - P.x) : null,
-      boss: enemies.find(e => e.type === "boss" && e.hp > 0) || null
+      boss: enemies.find(e => e.type === "boss" && e.hp > 0) || null,
+      awakening: awakeningState(),
+      reading: {
+        active: !!(job?.reading || bossQ),
+        kind: job?.reading ? "delivery" : "boss",
+        progress: job ? Math.min(1, (job.hold || 0) / READ_DWELL) : 0
+      }
     };
   }
 
@@ -3259,7 +3335,7 @@
         if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
         if (titleCardT > 0 && state === "play") UI.drawTitleCard(ctx, STAGE, stageChapter(), titleCardT);
         if (bossQ) UI.drawBossQuiz(ctx, bossQ, inputMode);
-        if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000, levelupFocus, inputMode);
+        if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000, levelupFocus, inputMode, awakeningState());
         if (state === "pause") {
           UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false, quitConfirm ? 0 : menuFocus);
           if (quitConfirm) UI.drawExitConfirm(ctx, menuFocus);

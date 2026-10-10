@@ -1,0 +1,2247 @@
+npm notice run test
+npm notice run node --test tests/*.test.cjs
+[Assets] 圖片 player_walk1 載入失敗，將使用程式繪製備援。
+✔ initial katana raster is required before core readiness, without any old skill downloads (3.583ms)
+✔ offered skill art is warmed without pausing; choosing it waits only for that rank (2.1143ms)
+✔ selected MAX fire waits for orbit, attack, dragon and separate projectile art (1.4296ms)
+✔ MAX thunder prepares its rank-four child strike as well as rank-five cloud (0.7479ms)
+✔ core readiness excludes optional animation and result portraits, and keeps later downloads in background (1.2669ms)
+✔ map readiness warms the upcoming core game without changing the visible map progress (0.9145ms)
+✔ cover completion begins route preparation before the user clicks start (0.6578ms)
+✔ blocking scene images have high fetch priority instead of competing below music (0.8155ms)
+✔ map loads only its own art, then game reuses those requests and includes HUD readiness (1.4404ms)
+✔ HUD uses small WebP distribution files and preserves PNG error fallbacks (1.1995ms)
+✔ title prioritizes only the cover and leaves music downloads until playback (2.2644ms)
+✔ entering a game preloads Lv1 katana art before the first attack (1.5491ms)
+✔ resting courier art is fetched only after pause is opened (1.1612ms)
+✔ WebP failures retry preserved originals once and settle even when both are absent (4.3642ms)
+✔ asset progress counts settled images including failures, without counting retry as completion (1.2476ms)
+✔ all declared skill ranks and variants reference shipped WebP files (2.0099ms)
+✔ five-rank skill art exposes 30 ranked slots and loads each file lazily (1.0114ms)
+✔ foxfire exposes separate orbit, attack and Lv5 dragon asset slots (0.9183ms)
+✔ new movement, posture and landmark images ship both WebP and PNG fallback files (1.7105ms)
+✔ all six woodblock yokai and their motion atlases load with original fallback (2.5013ms)
+✔ new dragon fireball and scorched-ground sprites load from optimized WebP assets (2.2494ms)
+✔ muting during a speech ramp cannot leave stale music volume after unmute (3.5903ms)
+✔ repeated buffered shield effects replace the previous voice (1.6451ms)
+✔ Web Audio output shares compression and ducks effects while speech plays (1.9583ms)
+✔ blocked BGM attempts once until a user gesture retries it (1.045ms)
+✔ preparing the next music track starts synchronously and restart preserves its pending playback (0.8446ms)
+✔ restartMusic rewinds both tracks so replay and map start from the beginning (0.7022ms)
+✔ mute setting persists across audio reloads (0.7612ms)
+✔ all vocabulary maps to an existing prerecorded clip, including every rain-port word (4.5171ms)
+✔ pause lowers music and speech completion cannot restore full volume until resume (2.3614ms)
+✔ new event clips and replaced SFX use versioned paths and respect mute (2.7637ms)
+✔ suspension stops music, speech and queued ramps without a frame and stale speech cannot restart them (1.4374ms)
+✔ six absent SFX synthesize immediately and never create missing-file Audio requests (3.0124ms)
+✔ delayed synthesized notes are discarded across suspend/resume and mute/unmute (3.9921ms)
+✔ interrupted iPad audio contexts are resumed instead of left silent (1.0424ms)
+✔ blocked MP3 effects use the unlocked synthesizer and still retry the MP3 (1.1123ms)
+✔ all six skills route levels 1-4 and 5 to distinct filenames and fall back to legacy audio (2.245ms)
+✔ warning sound uses original playback rate in buffer and media fallback (2.0095ms)
+✔ cold word audio fetches once, decodes once and reuses unlocked buffer playback (1.2218ms)
+✔ late decoded audio never starts after suspension or a replaced word (3.9472ms)
+✔ buffered audio stops immediately on mute or suspension and does not replay on wake (1.5647ms)
+✔ temporary playback cancellation and policy rejection never permanently disable an MP3 (2.1751ms)
+✔ a genuine unsupported MP3 uses synthesis and suppresses repeat requests (0.7991ms)
+✔ octopus belongs to the sea pack while the turtle stays by the pond (1.5883ms)
+✔ answer-only decoys stay out of cargo vocabulary but are available to quiz choices (0.2783ms)
+✔ house identities stay unique throughout distant positive and negative chunks (17.1197ms)
+✖ night-town keeps the original 9 word packs and 27 unique words (3.0134ms)
+✖ rain-port is a separate playable stage with its own packs and weather tuning (0.48ms)
+✔ initial 3x3 chunks preserve the original district order (0.2605ms)
+✔ world streams chunks at arbitrarily distant and negative coordinates (0.471ms)
+✔ chunk cache stays bounded and only pinned delivery chunks survive travel (0.3563ms)
+✔ regenerated chunks are deterministic (0.2241ms)
+✔ staggered houses leave room for all answer pads, even across chunk boundaries (10.2661ms)
+✔ each deterministic scene layout preserves breathing room across all neighboring combinations (1.8831ms)
+✔ default controls, arrows and left-handed preset map to actions (1.3416ms)
+✔ rebinding rejects duplicate and reserved keys, and replaces the old key (0.5725ms)
+✔ malformed or duplicate saved bindings fall back safely (1.9788ms)
+✔ misdelivery enemies approach a readable distance without overshoot and retreat if crowded (0.6439ms)
+✔ gamepad can navigate presets and leave the native controls dialog (0.8696ms)
+✔ display labels track presets, custom bindings and saved controls (0.5619ms)
+✔ settings mounts the persisted haptics choice and updates it via the checkbox (0.8978ms)
+✔ large dragon enters from offscreen, holds, and exits after three seconds (1.6925ms)
+✔ ice volley chooses eight distinct living targets around the courier and curves into them (1.6841ms)
+✔ ice freeze duration is bounded and cannot be refreshed into a permanent stun (0.1908ms)
+✖ foxfire orbit and detached attack counts follow the 1/2/4/6 guard progression (1.1315ms)
+✔ a detached foxfire seeks a foe, then returns to the courier instead of disappearing on hit (0.4962ms)
+✔ swept movement stops a fast projectile at a thin wall between frame endpoints (0.1774ms)
+✔ the final frame cannot push an expiring projectile beyond its intended range (1.0571ms)
+✔ a needle curves only during its first 0.28 seconds and then locks its final heading (0.2187ms)
+✔ a spirit reacquires a living foe after its target dies and has bounded steering (0.1903ms)
+✔ MAX dragon launches one swept fireball that hits a target (0.3761ms)
+✔ dragon missile respects barriers and creates an impact at flight expiry (0.2003ms)
+✔ full pool preserves structural strokes and seals and reduced motion covers all emitters (3.3693ms)
+✔ FX works without a DOM and never exceeds the particle cap (17.6739ms)
+✔ a full particle pool still admits the essential awakened floor sigil without raising the cap (1.08ms)
+✔ general effects spawn something and all particles expire (3.2231ms)
+✔ ground particles are drawn only by the ground pass and air particles only by the main pass (1.4363ms)
+✔ reduced motion emits fewer particles than normal motion (2.0127ms)
+✔ adaptive budget only shrinks below roughly 25fps and recovers afterwards (1.4061ms)
+✔ FX source avoids per-frame expensive canvas features (0.5429ms)
+✔ crisp skill sprites bake without a radial glow gradient (1.1718ms)
+✔ lightning follow-up branches wait for their beat without consuming their visible lifetime (0.92ms)
+✖ rain-port removes stacked survival penalties while retaining its stage identity (2.2435ms)
+✖ run pacing is ten minutes with a final boss just before dawn (0.8579ms)
+✔ xp curve rises steadily and avoids the old low early thresholds (0.2007ms)
+✔ enemy density ramps across the whole ten-minute run (0.1008ms)
+✔ a theoretical full clear of base spawns lands in the low-30 level range (0.2162ms)
+✖ overtime keeps raising enemy tier without raising spawn pressure (9.355ms)
+✔ orders teach the loop gradually instead of flooding the opening (0.1711ms)
+遊戲迴圈發生錯誤 TypeError: Cannot read properties of undefined (reading 'slice')
+    at menuButtons (evalmachine.<anonymous>:168:87)
+    at runFrame (evalmachine.<anonymous>:3216:5)
+    at Object.frame (evalmachine.<anonymous>:3171:13)
+    at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:480:24)
+    at Test.runInAsyncScope (node:async_hooks:227:14)
+    at Test.run (node:internal/test_runner/test:1402:25)
+    at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    at Test.postRun (node:internal/test_runner/test:1542:19)
+    at Test.run (node:internal/test_runner/test:1467:12)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+遊戲迴圈發生錯誤 TypeError: Cannot read properties of undefined (reading 'slice')
+    at menuButtons (evalmachine.<anonymous>:168:87)
+    at runFrame (evalmachine.<anonymous>:3216:5)
+    at Object.frame (evalmachine.<anonymous>:3171:13)
+    at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1291:24)
+    at Test.runInAsyncScope (node:async_hooks:227:14)
+    at Test.run (node:internal/test_runner/test:1402:25)
+    at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    at Test.postRun (node:internal/test_runner/test:1542:19)
+    at Test.run (node:internal/test_runner/test:1467:12)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+遊戲迴圈發生錯誤 TypeError: Cannot read properties of undefined (reading 'slice')
+    at menuButtons (evalmachine.<anonymous>:168:87)
+    at runFrame (evalmachine.<anonymous>:3216:5)
+    at Object.frame (evalmachine.<anonymous>:3171:13)
+    at run (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1446:49)
+    at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1451:3)
+    at Test.runInAsyncScope (node:async_hooks:227:14)
+    at Test.run (node:internal/test_runner/test:1402:25)
+    at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    at Test.postRun (node:internal/test_runner/test:1542:19)
+    at Test.run (node:internal/test_runner/test:1467:12)
+✔ injury floating words have bright fill and solid ink outline in the active game draw path (2.0533ms)
+✔ entering a stage does not bulk-download words and unused sound effects (17.1651ms)
+✔ upgrade options warm only offered ranks and selected art pauses the game clock until ready (6.4557ms)
+✔ pending essential art freezes the run and menu music is requested before its delayed action (7.3927ms)
+✔ unknown word length falls back to real distinct answers without crashing (4.1671ms)
+✖ first hint rejects a duplicate press then allows the second stage after cooldown (4.2491ms)
+✔ delivery sanctuary triggers only once even when leaving and reentering its radius (10.3715ms)
+✔ dash cannot cross a thin wall in a 50ms frame (5.2445ms)
+✔ dawn retains all overdue Boss waves and only the fourth kill completes the final goal (13.3029ms)
+✖ crit upgrade applies to thunder ranks 1 through 4 and awakened katana wind hits (3.7117ms)
+✔ Xbox pad navigates level-up cards with stick or D-pad, A confirms focus, and B/X cannot misselect (7.0001ms)
+✔ Xbox Y rerolls once, and keyboard Enter confirms highlighted level-up without changing touch geometry (11.3361ms)
+✔ menu action waits for its pressed frame and blocks duplicated confirmation (3.7942ms)
+✔ mouse hovering over a painted plaque focuses it without moving the hit target (3.87ms)
+✔ consecutive injury notices separate and rapidly fade their predecessors (2.7017ms)
+✔ resizing the skill codex clamps mobile pages back to a visible desktop page (2.6216ms)
+✖ misdelivery costs oil immediately, grants no farming score and hints recover their oil cost (4.4765ms)
+✔ all quiz choices hide answer length and mix hiragana with katakana when possible (5.7137ms)
+✔ Boss wrong slots keep their position and cannot be selected again or by key repeat (5.436ms)
+✔ Lv1–3 thunder strikes exactly its target count without nearby splash damage (11.9772ms)
+✖ barrier Lv1–4 deals only 40 percent of same-rank katana damage; Lv5 deals half its former base damage (16.384ms)
+✖ barrier knockback is visible across frames instead of teleporting, including Lv5 pull then push (13.7159ms)
+✔ barrier push stops at a blocking wall without tunneling and never knocks back a boss (10.6228ms)
+✔ night-town misdelivery can approach contact range without ranged shots (6.7659ms)
+✔ enemy attack drawings are triggered by actual contact or projectile release and expire with gameplay time (3.6061ms)
+✔ exhausted upgrades consume one level without trapping the run or granting invented rewards (4.3734ms)
+✔ uncollected gems stay bounded under repeated kills and merging preserves all nearby XP (18.7173ms)
+✔ leaving distant drops reclaims them while nearby and boundary drops remain collectible (3.2952ms)
+✔ a full gem pool cannot merge a new local reward into an abandoned drop due for reclamation (11.7183ms)
+✔ tutorials freeze oil regeneration, time and Boss schedule even after long-lantern upgrades (5.3951ms)
+✖ Boss replacement lock ignores early keyboard or gamepad input but accepts a fresh press after expiry (3.5466ms)
+✔ small cargo pools still receive three defined, unique quiz choices (11.0452ms)
+✔ starting again cannot pick up the previous run pending order before its first update (2.9596ms)
+✔ frame recovery removes a tutorial overlay from the aborted run (3.2614ms)
+✖ settlement learning summary measures this run only and keeps assisted answers separate from star gains (3.4818ms)
+✔ Lv5 katana pierces buildings while only targeting the forward-facing arc (7.4925ms)
+✖ Lv5 katana uses only the flying blade visual while lower ranks keep the local slash (6.2005ms)
+✖ Lv5 wind blade stays alive across the screen and keeps piercing with distance and hit-count decay (3.6476ms)
+✔ MAX ice needles hit and freeze distinct foes in eight directions (8.8288ms)
+✔ frozen shooter cannot move or fire until the ice expires (3.3982ms)
+✖ Lv5 paper talismans actually explode over an area; Lv4 still only hits its flight path (8.021ms)
+✖ Lv5 foxfire keeps six orbiting flames and summons a targeted brief dragon (3.7416ms)
+✔ MAX dragon approaches from offscreen, pauses inside, and fires once (5.1106ms)
+✔ fireball impacts a building before reaching a distant target (5.9744ms)
+✔ Lv5 needles bend once after launch while Lv4 stays straight (7.5616ms)
+✔ awakening mid-flight does not turn old straight needles or returning talismans into a different attack (9.5444ms)
+✔ Lv5 thunder spawns paired random clouds and bolts, excludes distant foes and preserves the Boss shield (3.1894ms)
+✔ Lv1–3 thunder radius exactly matches magnet Lv1–3 (190 / 270 / 350) without owning it (8.4777ms)
+✖ noncritical Lv1 is weak, Lv2 needs two attacks for a basic ghost, Lv3 kills basic mobs but not a tank or Boss (4.8029ms)
+✖ Lv4 randomly kills 3–5 distinct visible normal enemies and never offscreen foes or bosses (2.9011ms)
+✔ awakening projectiles reset on restart and none bypass a shielded Boss (29.3718ms)
+✔ a long MAX volley run keeps wind, spirits, needles and explosive talismans bounded (284.2316ms)
+✖ foxfire keeps its orbit at every rank including MAX (3.1019ms)
+✖ Lv1–3 foxfire only orbits and never detaches to seek enemies (18.5553ms)
+✖ Lv4 foxfire detaches exactly three of six guardians while they attack, then restores the ring (3.4404ms)
+✔ hit stop still advances oil and the Boss clock (3.4856ms)
+✔ pause stops speech and ages visual effects (3.5636ms)
+✔ rain is static when reduced motion is requested (3.3316ms)
+✔ mobile menu and codex tabs accept expanded touch targets (2.7511ms)
+✔ pause hit target stays inside the HUD edge and outside score text (3.4476ms)
+✔ enemy bullets expire inside buildings (2.7935ms)
+✔ distant misdelivery enemies despawn without clearing the saved mistake (4.0573ms)
+✖ defeating the previous Boss does not postpone an already due final Boss (3.7568ms)
+✔ rain motion follows its streak direction and rain-port has no petals or fireflies (2.7059ms)
+✔ two oil upgrades still consume oil at rest (3.5254ms)
+✖ misdelivery finds a clear spawn when the answer and adjacent fallback are blocked (3.1863ms)
+✔ frame errors pause the run, show recovery text and keep the next frame scheduled (3.2143ms)
+✔ shield hit feedback is throttled and colored rings fade (2.8918ms)
+✔ enemy fireballs render above night lighting and weather (2.7549ms)
+✔ a trapped misdelivery enemy recovers to a clear position (3.0143ms)
+✔ small pause targets accept clicks within a 44 CSS pixel hit area (3.0273ms)
+✖ rain-port runtime uses reduced shooter pressure and the intended recovery pacing (6.5061ms)
+✔ shooters are fragile and bosses resist skill knockback (2.7883ms)
+✔ rain-port shooter rate remains 6 percent before tanks start spawning (3.1903ms)
+✖ a shield absorbs the boss heavy attack instead of oil (4.4176ms)
+✔ each surge plays one warning cue throughout its preparation and arrival (7.353ms)
+✖ boss slam warns, locks its center, hits once for 20 oil, and can be dodged (4.5005ms)
+✔ abandon confirmation defaults to keeping the paused run and blocks covered actions (4.3836ms)
+✔ abandon confirmation works for touch and gamepad without leaking confirmation (6.6773ms)
+✔ Boss pointer answers use the rendered layout without covering bottom controls (14.4255ms)
+✔ Boss mistakes reach settlement, count once per submission and reset only run review (3.3924ms)
+✖ lethal Boss mistake still reaches settlement review before run ends (3.1633ms)
+✔ delivery hint cannot promote mastery through a simultaneous same-word Boss quiz (3.4007ms)
+✔ Boss eliminated answer assistance also applies to an active same-word delivery (3.1911ms)
+✔ unrelated delivery assistance does not penalize independent Boss mastery (2.9266ms)
+✔ same-word Boss retains delivery assistance after the parcel is submitted first (2.9971ms)
+✖ hinted same-word delivery auto-submits after 0.45 seconds while Boss remains unanswered (6.1942ms)
+✖ same-word Boss answer at 1.79s follows current feedback rule without extending its lifetime (10.9972ms)
+✖ same-word Boss answer at 1.81s follows current feedback rule without extending its lifetime (11.05ms)
+✔ Boss assistance survives leaving and reentering quiz range (3.7541ms)
+✖ Boss assistance stays on a changed word and clears on a replay (2.8783ms)
+✔ second hint transfers assistance to a Boss that appeared after the first hint (3.3808ms)
+✔ assisted submission marks a same-word Boss created after the last hint (3.4173ms)
+✖ ordinary delivery correction remains visible during an independent same-word Boss answer (3.54ms)
+✔ new pickup inherits only the current same-word Boss assistance (3.313ms)
+✖ purification feedback overlaps the next real priority order without granting mastery (3.2086ms)
+✖ automatic order refill can repeat a purified word while its correction is still alive (3.3666ms)
+✖ scheduled Boss can draw a purified word and open its quiz before correction expires (3.1162ms)
+✖ delivery mistake persists, avoids its living answer badge and returns after purification (3.0388ms)
+✔ first-run tutorial freezes time, oil and gameplay input, and skip persists (5.3947ms)
+✔ malformed tutorial progress recovers and touch confirmation does not start dragging (2.5824ms)
+✔ context lessons cover listening, delivery, dash and Boss without changing assistance (2.8669ms)
+✔ replay is available from pause, gamepad consumes confirmation and returns to pause (7.7383ms)
+✔ mobile pause replay uses the same enlarged geometry for drawing and pointer input (6.0074ms)
+✔ mouse drag begins on the right half and moves the courier; touch stays on left (2.8447ms)
+✔ custom movement, dash and blur route through real event listeners (2.8367ms)
+✔ misdelivery enemy settles away from player and retains a ranged penalty after the tutorial stage (10.4261ms)
+✔ first stage enemies never fire bullets (10.7217ms)
+✔ empty pickup pool cannot crash order creation (2.6085ms)
+✔ releasing one equivalent movement key keeps the other held key active (2.45ms)
+✔ cargo stays visible beside an idle courier with no movement history (4.984ms)
+✔ cargo icon is painted behind the courier, never over the face (3.1605ms)
+✖ Boss death and settlement audio fire once per event, not once per frame (2.8486ms)
+✔ expanded fullscreen edges and corner HUD buttons share the same pointer mapping (3.0412ms)
+✖ scheduled Boss shield, kill reward and overdue successor follow one lifecycle (3.8584ms)
+✖ real needle updates defeat a scheduled Boss after ordinary answering without kill mastery (4.3576ms)
+✖ real needle updates defeat a scheduled Boss after assisted answering without kill mastery (4.1844ms)
+✖ final Boss requires the delivery goal and victory settles progression only once (4.3001ms)
+✖ final victory sequence: boss shakes and explodes, minions burn away, dawn rises, then settlement after 2s (4.4947ms)
+✖ running out of oil snuffs the lamp, fades the BGM, and settles only after two dark seconds (4.9215ms)
+✔ first hint hides written answer and assisted delivery cannot promote mastery (2.7783ms)
+✔ pickup bubble shows meaning instead of written answer (2.6952ms)
+✖ Boss question preserves gamepad pickup, dash and hint; shoulders and Y answer (2.9335ms)
+✔ codex words pages are reachable by keyboard and gamepad without changing tabs (2.4532ms)
+✔ all upgrade input paths reject accidental selection for the first 0.4 seconds (8.8577ms)
+✔ regular and ring enemies spawn beyond wide view and camera lag (7.7761ms)
+✔ scheduled Boss spawns outside the widescreen view through real update logic (3.0639ms)
+✔ each dedicated gamepad Boss answer button selects its documented option (8.2913ms)
+✔ actors are painted by ground contact so roofs cover the north side and yield at the doorway (2.5991ms)
+✔ frame maps logical coordinates to CSS scale and refreshes renderer DPR (2.0741ms)
+✔ lightning ignores shield immunity and spends its target on a damageable enemy (2.6395ms)
+✔ barrier and healing knockback cannot tunnel through a thin building (4.9928ms)
+✔ Boss chooses an unblocked offscreen spawn and retries without advancing when ring is obstructed (8.3266ms)
+✔ foxfire impact plays one sound for a simultaneous group of hits (3.2974ms)
+✔ portrait stops time, blocks all resume input paths, and landscape requires manual resume (2.5445ms)
+✔ visibility change suspends audio immediately without requiring a frame (2.3594ms)
+✔ idle needles retain last facing and still aim at a nearby enemy (2.4844ms)
+✔ keyboard menus reach settings, both codex tabs, mute and home; restart resets session (3.4608ms)
+✖ gamepad directional menus confirm once without leaking actions into the new screen (2.9511ms)
+✔ controls dialog gamepad events do not activate the covered menu (2.1557ms)
+✔ widescreen map back button accepts pointer at the screen edge and home clears held movement (3.0792ms)
+✖ pickup speaks the word once and delivery does not repeat it (3.6208ms)
+✔ dawn does not end a run that still needs the delivery goal or the boss (3.2942ms)
+✔ level-up freezes oil drain and waits until a card is chosen (6.0656ms)
+✔ misdelivery speed ignores movement upgrades (3.0248ms)
+✖ priority orders prefer a house that teaches the same word (2.5063ms)
+✔ expired orders cost neither oil nor misdelivery count, and the open slot refills immediately (2.5401ms)
+✔ gamepad select opens the codex from pause and not during play (2.4554ms)
+✖ damage and oil-heal upgrades stop after their stack caps (2.3697ms)
+✖ MAX dragon impact leaves a burning ground zone that ticks after the projectile vanishes (7.5332ms)
+✔ giant dragon renders after houses and the courier without duplicate passes (3.3304ms)
+✖ MAX katana triple-speed projectile keeps the same facing and damage model (2.8344ms)
+✔ the giant dragon can also enter from the right edge toward a left-side target (2.9675ms)
+✔ a flying dragon fireball paints its art with visible ink embers and a bounded glow (5.2013ms)
+✔ media cache survives a deployment and changed query parameters but refreshes changed content (26.2525ms)
+✔ cached MP3 supports start, suffix and invalid Range requests without downloading again (1.7321ms)
+✔ cold music preserves the browser Range request instead of starting a full download (0.7201ms)
+✔ worker leaves HTML, scripts and unknown URLs under normal browser caching (1.1646ms)
+✔ published worker content revisions match every local media file (54.3323ms)
+✔ multi-hop cruising completes all steps and empties its queue (0.8908ms)
+✔ wide viewport camera keeps raster map covering every visible edge (0.195ms)
+✔ map background is baked once while distant landmarks are not submitted (2.1938ms)
+✔ map courier is twice as tall and mist freezes under reduced motion (2.6288ms)
+✔ playable landmarks change drawing only after completion and the selected stage shows its actual best score (54.3542ms)
+✔ compact map title and subtitle retain a full readable line gap inside their header (0.444ms)
+✔ overworld exposes one large connected route map (0.177ms)
+✔ mini courier moves node-to-node along directional roads (0.2508ms)
+✔ rain-port is implemented but stays sealed until night-town is cleared (0.187ms)
+✔ overworld camera follows the miniature player but stays inside map bounds (0.1443ms)
+✔ touch hit testing uses scrolled world coordinates (0.1742ms)
+✔ overworld renderer can draw the map without image assets (0.3087ms)
+✔ expanded viewport draws a full-width title and anchors the clickable back button at its corner (0.2848ms)
+✔ parallax functions are exported and active under motion (3.8024ms)
+✔ parallax functions respect prefers-reduced-motion (1.0515ms)
+✔ shop signs remain uncorrupted without dead 2.5D shift code (2.0583ms)
+✔ player dynamic secondary motion applies squash, stretch and lean on movement (1.2229ms)
+✔ monsters exhibit soft-body breathing and impact squash on hit (1.5666ms)
+✔ Boss quiz state is preserved when exiting and re-entering detection radius (21.6171ms)
+✔ Oil does not drain while reading level-up upgrade cards (2.8253ms)
+✔ Overworld pathfinding allows navigating to multi-hop unlocked nodes (3.1357ms)
+✔ Early boss remains an intermediate boss at DAWN so later waves cannot be skipped (4.5725ms)
+✔ failed storage writes expose an error and successful retries clear it (1.7124ms)
+✔ legacy save data is upgraded without losing vocabulary progress (0.3567ms)
+✔ clearing night-town unlocks rain-port and stores per-stage records (0.3699ms)
+✔ a failed run records stage bests but does not unlock the next stage (0.2876ms)
+✖ unresolved mistakes survive reload, replay and stage switching until answered (1.2521ms)
+✔ review sampling applies mistake weights within the supplied stage pool (0.3847ms)
+✔ malformed save containers recover without losing valid vocabulary and best scores (1.2473ms)
+✔ invalid mastery, flags and stage counters normalize to finite valid values (0.3101ms)
+✔ roundRect fallback supports scalar and numeric corner lists, scales radii, and preserves native implementations (4.8415ms)
+✔ enemy movement alternates a second drawing; attacks override walking and reduced motion keeps walking static (1.7319ms)
+✔ dash uses its dedicated drawing and absent new art falls back to existing sprites (2.9233ms)
+✔ missing specialized enemy art uses the fallback image crop rather than an incompatible atlas rectangle (1.2438ms)
+✔ misdelivery monster word badge stays above the face (0.8828ms)
+✔ atlas crops stay inside shipped images and every frame shares its requested ground anchor (12.6724ms)
+✔ half-size movement atlases preserve layout and crop within their actual pixels (1.5765ms)
+✔ shield labels remain text and effects expire even during hit stop (5.5301ms)
+✔ reduced motion disables shake and hit stop (1.9749ms)
+✔ first katana slash never uses the legacy raster while the correct Lv1 image is loading (1.7116ms)
+✔ katana renderer uses the correct ranked raster without mirroring it (1.2921ms)
+✔ katana Lv1-Lv4 ranked slashes stay close to the courier instead of floating far forward (1.0692ms)
+✔ Canvas backings preserve viewport mapping within bounded raster budgets (3.1332ms)
+✔ large high-DPR windows do not multiply the scene into over six million pixels (0.7901ms)
+✔ soft lighting raster stays bounded while the final layer covers the full viewport (0.8339ms)
+✔ static terrain reuses one buffered canvas and refreshes for camera bounds and late assets (1.2523ms)
+✔ courtyard paving arriving late refreshes the cached terrain only once (1.0062ms)
+✔ terrain uses the actual float32 transform for a one-to-one buffered blit (1.1865ms)
+✔ stone roads do not paint pale curb stripes or a dark road cross (0.3002ms)
+✔ water districts do not paint breathing stripes and terrain still refreshes on resize (2.7732ms)
+✔ resize refreshes DPR and backing resolution when moving between displays (1.2251ms)
+✔ full upgraded oil capacity keeps the same lantern radius as full base capacity (0.9282ms)
+✔ oil injury warnings appear as stamped paper notices rather than plain floating text (0.8099ms)
+✔ monster hit flashes use a cached white silhouette without Canvas filter (0.8285ms)
+✔ spirit gems render as inked faceted talismans and honor reduced motion (0.8594ms)
+✔ night midtones stay readable and warm light stays on the lamps (0.9241ms)
+✔ reduced motion drops drifting petals and fireflies (1.171ms)
+✔ house signs identify shops and never expose unrelated vocabulary or hint translations (1.1554ms)
+✔ phase-two houses keep separate visual widths and the original depth foot anchor (1.1102ms)
+✔ phase-two ground atlas crops meet on every horizontal and vertical tile boundary (173.4747ms)
+✔ quiet ground removes dark rectangular courtyards and wide ink-road borders (1.1868ms)
+✔ ranked thunder artwork suppresses the oversized procedural blue bolt without requiring legacy art (4.5759ms)
+✔ all new MAX effect sprites bake nonempty canvases (1.2327ms)
+✔ MAX sword wave keeps ranked art orientation while rotating it with travel direction (2.4163ms)
+✔ the other five skills composite their ukiyo-e assets while retaining effect logic (3.3549ms)
+✔ raster foxfire orbit sizes never decrease from Lv1 through Lv5 (2.5192ms)
+✔ ranked skill rasters keep Lv4 and Lv5 as independent art slots (2.4692ms)
+✔ all five levels retain local glow and crisp marks without fullscreen flashes (5.6674ms)
+✔ needle and foxfire bodies have five distinct silhouettes with bounded local glow (1.2279ms)
+✔ reduced motion retains tier structure with static short-lived accents (1.8138ms)
+✔ thunder removes the player floor domain and places local currents on strike points (1.2407ms)
+✔ each level now has a distinct rank (0.7446ms)
+✔ every skill grows across all five levels (132.0753ms)
+✔ katana tier 1 is far subtler than the old always-max look (4.1424ms)
+✔ purification array is a flattened ground ellipse behind actors with an asymmetric rune per tier (1.7726ms)
+✔ MAX purification replaces rune layers with eight outward stone pillars (1.2591ms)
+✔ thunder retains lower-tier strikes and uses the airborne cloud raster at MAX (1.2922ms)
+✔ foxfire raster remains upright around the orbit and adds upward secondary flame motion (0.866ms)
+✔ foxfire ranked sprites breathe and mirror with the courier facing direction (0.8765ms)
+✔ fire talisman ignites targets at Lv1-4 and explodes at Lv5 (1.5011ms)
+✔ burning stops when the target dies and the list stays bounded (1.5815ms)
+✔ new skills can be registered without touching fx.js (0.7467ms)
+✔ game wires every weapon through SKILLFX and draws the ground layer before actors (9.8586ms)
+✔ MAX sword raster uses 80 percent opacity while keeping the projectile visible (0.8327ms)
+✔ large dragon image is rendered at the provided cinematic size (0.7005ms)
+✔ fire orbit render count matches combat count (0.9448ms)
+✖ MAX katana wave crosses buildings and spans the viewport (2.3623ms)
+✔ horizontal level-up hitboxes and rendered rows share the same dimensions (0.1846ms)
+✔ mobile hint has a visible exported hit target (0.136ms)
+✔ interface fonts keep one full Noto answer face plus subset decorative faces (0.2792ms)
+✔ answer pads paint on the ground before the player and monsters (0.1332ms)
+✔ dormant reverse-delivery rendering retains its text branch; live orders stay forward (0.0874ms)
+✔ button optical safe area centers the painted label and keeps short menu labels legible (3.6796ms)
+✔ illustrated button hover and pressed render differently, disabled never depresses (2.4309ms)
+✔ both settlement portraits occupy two thirds of viewport height (16.3707ms)
+✔ settlement paints the character last and separates best record from delivery totals (2.1155ms)
+✔ surge warning has just one short label (1.4947ms)
+✔ surge warning uses soft edge gradients instead of a thick red frame (0.5581ms)
+✖ settlement retains all five review words on a small screen (1.5892ms)
+✔ mobile skill codex exposes every skill through pages and marks unavailable arrows (3.1159ms)
+✔ codex readings and translations use font-sized vertical separation (1.5164ms)
+✔ new approved 900x1200 ending portraits render whole without stale crop (1.8729ms)
+✔ settlement uses distinct victory and kneeling drawings, with original art fallback (1.3871ms)
+✔ menu loading progress and settlement star totals remain readable on compact screens (2.5243ms)
+✔ HUD bars reuse gradients and rebuild for changed transform, geometry, tone or canvas context (3.7832ms)
+✔ pause and settlement use physical boards, buttons use chamfered wooden tags (1.9795ms)
+✔ approved illustrated WebP art replaces procedural panels with genuine sliced illustrations (1.0908ms)
+✔ approved pause composition retains the left courier and paper-menu serif (0.9686ms)
+✔ approved UI artwork is text-free WebP and stays under a 110 KB payload (0.5438ms)
+✔ approved nine-slice and three-slice drawings remain valid on five device proportions (6.2478ms)
+✔ readability-first level-up only uses the scroll frame and reroll artwork across viewports (5.3452ms)
+✔ woodblock UI reuses a paper-wash panel instead of the old glass sheen (3.2504ms)
+✖ small-screen level-up descriptions and settlement review lines keep readable spacing (3.6394ms)
+✔ oil numbers and bar remain prominent and low-oil warning uses capacity ratio (9.1736ms)
+✔ diegetic lantern grows on phone landscape, keeps tablet scale, and swings as one assembly (3.1618ms)
+✔ diegetic radar uses illustrated frame with responsive phone and tablet sizing (2.5856ms)
+✖ diegetic radar phase 2 keeps the clock outside navigation content and preserves integrated status (0.8056ms)
+✔ diegetic delivery guidance uses original radar icons and an omamori hint (0.5874ms)
+✔ HUD skill badges are readable and their labels fit their backing rectangles (8.625ms)
+✔ passive overflow discloses the exact hidden count and vanishes when everything fits (23.2544ms)
+✔ opening touch joystick guidance stays above the taller skill footer (3.0062ms)
+✔ Boss quiz clears the actual skill footer after its labels grow (6.5387ms)
+✔ Boss quiz geometry fits the viewport above the bottom HUD with shared hit targets (5.4327ms)
+✔ readableFont uses viewport scale without DOM geometry reads (0.7405ms)
+✔ hint sentences wrap without truncation and retain readable font size (0.8589ms)
+✖ settlement counts distinct mistaken words and discloses only truncated reviews (3.3826ms)
+✔ every second-stage Boss question has Chinese meaning even without Emoji support (11.8964ms)
+✖ settlement shows unique delivery and Boss corrections without changing misdelivery count (1.3708ms)
+✔ direction arrows rotate in place inside the task area instead of travelling along the screen edge (1.2995ms)
+✔ parcel icon is the system emoji and no hand-drawn house-like cargo glyph remains (0.7461ms)
+✔ HUD shows level as a bottom edge strip and drops combo, shield and caption boxes (3.7417ms)
+✔ every live vocabulary HUD uses meaning before hints and written correction only after explicit assistance (44.8241ms)
+✔ north and south have distinct text cues and unknown images retain meaning (0.852ms)
+✔ mobile body text renders at approximately 14 CSS pixels (2.6931ms)
+✔ all 39 words remain reachable across three readable codex pages (4.0516ms)
+✔ in-run codex mask hides readings and icons until four stars (1.6884ms)
+✔ emoji cues use the system emoji glyph (18.3963ms)
+✔ desktop HUD exposes the same dash cooldown seconds as mobile (0.9609ms)
+✖ tutorial copy follows live bindings and never embeds any current answer (1.7247ms)
+✔ all tutorial text and buttons stay within mobile card without Emoji rendering (6.8106ms)
+✔ Boss option badges follow active keyboard, gamepad or touch input (2.77ms)
+✔ 校準環境正確性：沙箱讀到的是 da98b4b，而非目前 working tree (310.3705ms)
+✔ baseline: 沙箱能啟動一局並進入 play 狀態 (259.0217ms)
+✔ baseline: 舊規格 — 單筆配送 +12XP、+50 分、答對升星 (264.0137ms)
+✔ baseline: 舊規格 — 答錯扣 8 油並記為失誤 (249.2114ms)
+✔ baseline: 舊規格 — 第一段提示扣 3 油、第二段扣 4 油 (255.3452ms)
+✔ baseline: 舊規格 — 答案停留門檻 0.45 秒自動提交（V3 改為 0.65 秒） (245.1498ms)
+✔ V3 RED: 答案停留門檻改為 0.65 秒，0.60 秒不得提交 (14.3037ms)
+✔ baseline: 舊規格 — 純站樁的淨耗油為 0.43 - 0.12 = 0.31/s（V3 要消滅的無成本永動機） (267.1392ms)
+✔ baseline: 舊規格 — 靈針 Lv5 殉爆可遞迴連鎖（V3 要設總預算） (247.3307ms)
+✔ baseline: 舊規格 — xpNeed 與節奏常數（固定讀 da98b4b，不受 AGY 改 config 影響） (0.5131ms)
+✔ 校準環境正確性：基線常數不得來自 working tree (0.5382ms)
+✔ baseline: seeded 沙箱可重現同一組抽詞序列 (745.2362ms)
+✔ V3 Boss AI: slam locks the original target during its warning (0.8084ms)
+✔ V3 Boss AI: locked slam hits once and opens a recovery window (0.8935ms)
+✔ V3 Boss AI: moving away from a locked ground strike avoids the hit (0.1325ms)
+✔ V3 Boss AI: shielding and reading pause stop attacks and timers (0.1515ms)
+✔ V3 Boss AI: second boss alternates ground strike and straight charge (0.2402ms)
+✔ V3 Boss AI: charge uses swept wall collision and cannot cross a thin building (0.2587ms)
+✔ V3 Boss AI: full-health final boss has no ring and half-health unlocks one (0.7157ms)
+✔ V3 Boss AI: ring has a real gap and hits an unsafe swept annulus only once (0.8092ms)
+✔ V3 Boss AI: tide is exclusive to the port and keeps a safe lane (0.3922ms)
+✔ V3 Boss AI: warning, impact and recovery never overlap a second main attack (0.1588ms)
+✔ V3 Boss AI: a defeated boss cannot start or finish an attack (0.1029ms)
+✔ V3 contract: common boss timeline and bounded overtime difficulty (0.9156ms)
+✔ V3 contract: independent and assisted deliveries each grant 26 XP (18.1727ms)
+✔ V3 contract: first hint is free and duplicate presses cannot reach paid hint (4.0365ms)
+✔ V3 contract: a wrong answer retains the job and charges six oil only once (4.2139ms)
+✔ V3 contract: Lv4 cannot awaken before deliveries, three deliveries unlock a saved seal (5.5477ms)
+✔ V3 contract: damage passive stops at four increments of 0.30 (3.4672ms)
+✔ V3 contract: destination reading freezes elapsed time, oil and weapon damage (5.9699ms)
+✔ V3 contract: thunder Lv3 and Lv4 damage cannot execute a high-HP ordinary enemy (9.3668ms)
+✔ V3 contract: MAX barrier fields never restore oil (3.7376ms)
+✔ V3 contract: fire and talisman rank counts match the new specialist behavior (0.2041ms)
+✔ V3 contract: one ice volley shares its finite shatter budget and new freezes clear old sources (0.5594ms)
+✔ V3 contract: assisted recall preserves error priority and repeated independent recall cannot farm stars (3.1069ms)
+✔ V3 contract: first boss starts with fixed HP independent of player power (3.5186ms)
+✖ V3 contract: safe reading freezes nearby enemies as well as damage (6.0629ms)
+✖ V3 contract: expired freeze cannot cause a delayed shatter explosion (5.3292ms)
+✔ V3: 單筆成功配送給 26 XP（舊規格 12） (29.5558ms)
+✔ V3: 取貨不給 XP，經驗只來自配送與擊殺 (4.3391ms)
+✖ V3: 每 3 筆成功配送得 1 枚覺醒印，上限 4、不跨局 (4.0001ms)
+✖ V3: 提示協助的配送同樣計入覺醒印與 26 XP (12.4013ms)
+✔ V3: 擊殺 Boss、取貨、誤配妖都不給覺醒印 (4.108ms)
+✖ V3: Lv4 持印時，升級選單保證至少一張可覺醒的卡 (3.3074ms)
+✔ V3: 沒有印時，Lv5 不可取得 (3.1387ms)
+✔ V3: 選擇 Lv5 會消耗一枚覺醒印 (3.4678ms)
+✔ V3: 第一段提示免費（舊規格扣 3 油） (3.8642ms)
+✖ V3: 第二段提示仍扣 4 油 (4.0408ms)
+✔ V3: 錯答只扣 6 油（舊規格 8） (3.5807ms)
+✔ V3: 錯答不再額外生成誤配妖，且保留原單可補送 (4.2274ms)
+✔ V3: 錯答後補送仍給 XP 與印，但標記 assisted 不加熟練 (10.2394ms)
+✔ V3: 純站樁不得無成本淨回油（舊規格可淨 +0.04/s） (23.5049ms)
+✔ V3: 淨化靈陣不再回油（護盾聖域須真的啟動才測得到） (14.4152ms)
+✔ V3: 舊規格對照 — 靈陣 Lv5 聖域會回油，V3 必須關閉它 (5.937ms)
+✖ V3: 陣 Lv1–4 CD 不得低於 1.2 秒（以實際施放間隔量測） (38.4108ms)
+✔ V3: 陣 Lv5 施放半徑 220（讀實際 SKILLFX 參數） (4.0816ms)
+✔ V3: 陣 Lv5 地場生命 1.8 秒（不再 2.5 秒） (9.1939ms)
+✖ V3: 雷 Lv3 對高血量普通怪不得保底擊殺（4.5B 固定傷害，不是依當前 HP） (4.5215ms)
+✔ V3: 雷 Lv3 命中數上限 3（不因場上更多敵而增加） (4.9501ms)
+✔ V3: 雷 Lv5 範圍 90（讀實際 SKILLFX 參數） (3.8405ms)
+✔ V3: 雷 Lv5 每波對同一敵人只中一次 (4.4935ms)
+✔ V3: 符單波最多清 6 發普通彈（超出部分必須保留） (4.6184ms)
+✖ V3: 針殉爆總額外命中上限 3、半徑 105（讀實際傷害與範圍） (6.9095ms)
+✔ V3: 針殉爆半徑 105（130px 內的鄰敵不被波及） (3.2167ms)
+✖ V3: 火 Lv5 護火 3 顆（讀實際 spirit 數量） (3.8753ms)
+✖ V3: 火 Lv5 龍的召喚間隔不低於 6 秒 (3.7774ms)
+✔ V3: 焦土同時最多 2 處 (49.2506ms)
+✖ V3: 刀 Lv5 最遠 720 世界距離、穿透上限 6（讀實際風刃幾何） (4.2787ms)
+✖ V3: 刀 CD 下限 0.6 秒（以實際斬擊間隔量測） (26.6782ms)
+✔ V3 API: STORE.createStudySession(pool, random) 提供 pick/seen/mistake/seenWords (2.7192ms)
+✔ V3 API: STORE.recRecall 對同詞 30 秒內不重複升星 (2.3838ms)
+✔ V3 API: recAssisted 不清掉 missBoost，需獨立答對才解除 (3.3687ms)
+✔ V3 API: EVOLUTIONS.iceVolley 為同波共用 volley，freeze 綁定 shatterVolley (2.6742ms)
+{"scenario":"study-quota","poolSize":8,"backgroundRate":0,"usedRateAfterQuota":0,"controlPriorityHits":1,"controlCycles":30}
+✔ V3: 錯詞優先帶回恰好 2 次，之後回歸一般抽取（對照組統計法） (13.0907ms)
+✔ V3: 錯詞到期前不得被 priority 提前帶回 (5.2608ms)
+✔ V3: 錯詞重現之間必須插入別詞，不得連續同一詞 (4.9016ms)
+✔ V3: 8 詞池用盡後 exclude 掉全部詞時 pick 必須回傳 null (6.0199ms)
+✔ V3: pick 的 exclude 必須真的被排除 (3.5016ms)
+✔ V3: seenWords 是方法且可列出本局已接觸詞 (2.5357ms)
+✔ V3 UI harness calibration: current HUD draws real oil and level labels (6.6202ms)
+✔ V3 UI: both HUD themes explain the next delivery seal without revealing the answer (4.4671ms)
+✔ V3 UI: safe reading and free first hint are visible on a small screen (1.5731ms)
+✔ V3 UI: level-up shows saved seals and the cost of choosing a MAX card (1.6742ms)
+✔ V3 UI: settlement distinguishes independent recall from assisted completion (10.1959ms)
+✔ V3 UI: optional listening has at most three unique words and keeps its buttons usable (1.1346ms)
+✔ V3 UI: delivery tutorial states the real dwell time and safe reading (1.4391ms)
+✔ viewport and bounds reuse their objects until window dimensions change (0.8492ms)
+✔ fullscreen preserves uniform scale and keeps the complete interface visible (0.231ms)
+✔ each HUD edge adds exactly 20 CSS pixels across screen scales (0.1652ms)
+ℹ tests 478
+ℹ suites 0
+ℹ pass 406
+ℹ fail 72
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3057.196
+
+✖ failing tests:
+
+test at tests\content-world.test.cjs:27:1
+✖ night-town keeps the original 9 word packs and 27 unique words (3.0134ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+      180,
+      360,
+  +   480,
+      540,
+  -   590
+    ]
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\content-world.test.cjs:33:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 180, 360, 480, 540 ],
+    expected: [ 180, 360, 540, 590 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\content-world.test.cjs:38:1
+✖ rain-port is a separate playable stage with its own packs and weather tuning (0.48ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   180,
+  +   360,
+  +   480,
+  +   540
+  -   210,
+  -   420,
+  -   590
+    ]
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\content-world.test.cjs:54:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 180, 360, 480, 540 ],
+    expected: [ 210, 420, 590 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\evolutions.test.cjs:31:1
+✖ foxfire orbit and detached attack counts follow the 1/2/4/6 guard progression (1.1315ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+      1,
+      2,
+      3,
+      4,
+  +   2
+  -   4
+    ]
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\evolutions.test.cjs:33:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 1, 2, 3, 4, 2 ],
+    expected: [ 1, 2, 3, 4, 4 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\game-balance.test.cjs:5:1
+✖ rain-port removes stacked survival penalties while retaining its stage identity (2.2435ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   180,
+  +   360,
+  +   480,
+  +   540
+  -   210,
+  -   420,
+  -   590
+    ]
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\game-balance.test.cjs:13:51)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 180, 360, 480, 540 ],
+    expected: [ 210, 420, 590 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\game-balance.test.cjs:18:1
+✖ run pacing is ten minutes with a final boss just before dawn (0.8579ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+      180,
+      360,
+  +   480,
+      540,
+  -   590
+    ]
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\game-balance.test.cjs:20:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 180, 360, 480, 540 ],
+    expected: [ 180, 360, 540, 590 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\game-balance.test.cjs:56:1
+✖ overtime keeps raising enemy tier without raising spawn pressure (9.355ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(cfg.enemyTier(900) > cfg.enemyTier(600))
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\game-balance.test.cjs:57:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:146:1
+✖ first hint rejects a duplicate press then allows the second stage after cooldown (4.2491ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  80 !== 77
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:149:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 80,
+    expected: 77,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:182:1
+✖ crit upgrade applies to thunder ranks 1 through 4 and awakened katana wind hits (3.7117ms)
+  AssertionError [ERR_ASSERTION]: rank 1
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:188:38)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:275:1
+✖ misdelivery costs oil immediately, grants no farming score and hints recover their oil cost (4.4765ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  44 !== 42
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:278:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 44,
+    expected: 42,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:327:1
+✖ barrier Lv1–4 deals only 40 percent of same-rank katana damage; Lv5 deals half its former base damage (16.384ms)
+  AssertionError [ERR_ASSERTION]: only Lv4+ can knock back, and Lv5 keeps its two-phase pull/push
+
+  1 !== 2
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:336:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:341:1
+✖ barrier knockback is visible across frames instead of teleporting, including Lv5 pull then push (13.7159ms)
+  AssertionError [ERR_ASSERTION]: Lv5 gathers before releasing
+
+  1 !== -1
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:349:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: -1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:427:1
+✖ Boss replacement lock ignores early keyboard or gamepad input but accepts a fresh press after expiry (3.5466ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: 'ねこ'
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:434:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'ねこ',
+    expected: 'ねこ',
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:476:1
+✖ settlement learning summary measures this run only and keeps assisted answers separate from star gains (3.4818ms)
+  TypeError: Cannot read properties of null (reading 'learning')
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:481:22)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\input-runtime.test.cjs:496:1
+✖ Lv5 katana uses only the flying blade visual while lower ranks keep the local slash (6.2005ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  1 !== 0
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:503:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:509:1
+✖ Lv5 wind blade stays alive across the screen and keeps piercing with distance and hit-count decay (3.6476ms)
+  AssertionError [ERR_ASSERTION]: 5.059999999999945,5.059999999999945,5.059999999999945,3.794999999999959
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:517:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:536:1
+✖ Lv5 paper talismans actually explode over an area; Lv4 still only hits its flight path (8.021ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  991.2 !== 993
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:542:26)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 991.2,
+    expected: 993,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:546:1
+✖ Lv5 foxfire keeps six orbiting flames and summons a targeted brief dragon (3.7416ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  3 !== 6
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:551:24)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 3,
+    expected: 6,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:607:1
+✖ noncritical Lv1 is weak, Lv2 needs two attacks for a basic ghost, Lv3 kills basic mobs but not a tank or Boss (4.8029ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(a.snapshot().enemies[0].hp>1 && a.snapshot().enemies[0].hp<2)
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:611:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:632:1
+✖ Lv4 randomly kills 3–5 distinct visible normal enemies and never offscreen foes or bosses (2.9011ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  0 !== 3
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:644:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 3,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:671:1
+✖ foxfire keeps its orbit at every rank including MAX (3.1019ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  3 !== 4
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:676:26)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 3,
+    expected: 4,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:681:1
+✖ Lv1–3 foxfire only orbits and never detaches to seek enemies (18.5553ms)
+  AssertionError [ERR_ASSERTION]: rank 3 orbit count
+
+  3 !== 4
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:690:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 3,
+    expected: 4,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:694:1
+✖ Lv4 foxfire detaches exactly three of six guardians while they attack, then restores the ring (3.4404ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  1 !== 3
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:698:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 3,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:753:1
+✖ defeating the previous Boss does not postpone an already due final Boss (3.7568ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(g.snapshot().bossT<2)
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:756:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:774:1
+✖ misdelivery finds a clear spawn when the answer and adjacent fallback are blocked (3.1863ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(mis)
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:777:65)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:817:1
+✖ rain-port runtime uses reduced shooter pressure and the intended recovery pacing (6.5061ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  300 !== 33
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:833:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 300,
+    expected: 33,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:855:1
+✖ a shield absorbs the boss heavy attack instead of oil (4.4176ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(g.audioCalls.includes('breakShield'))
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:859:47)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:870:1
+✖ boss slam warns, locks its center, hits once for 20 oil, and can be dodged (4.5005ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(boss.slam)
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:874:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:959:1
+✖ lethal Boss mistake still reaches settlement review before run ends (3.1633ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'play' !== 'lampout'
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:963:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'play',
+    expected: 'lampout',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1014:1
+✖ hinted same-word delivery auto-submits after 0.45 seconds while Boss remains unanswered (6.1942ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + {
+  +   ans: [
+  +     {
+  +       cue: 'text',
+  +       decoy: true,
+  +       example: '',
+  +       icon: '',
+  +       id: 'answer-decoy:2',
+  +       jp: 'カギ',
+  +       packId: 'answer-decoy',
+  +       romaji: '',
+  +       zh: '鑰匙'
+  +     },
+  +     {
+  +       cue: 'emoji',
+  +       example: 'たかい やま を のぼる',
+  +       icon: '🗻',
+  +       id: 'sakura:1',
+  +       jp: 'やま',
+  +       packId: 'sakura',
+  +       romaji: 'yama',
+  +       zh: '山'
+  +     },
+  +     {
+  +       cue: 'emoji',
+  +       example: 'よるの ほし が ひかる',
+  +       icon: '⭐',
+  +       id: 'nightsky:1',
+  +       jp: 'ほし',
+  +       packId: 'nightsky',
+  +       romaji: 'hoshi',
+  +       zh: '星星'
+  +     }
+  +   ],
+  +   assisted: true,
+  +   eliminatedIdx: 2,
+  +   hintStage: 1,
+  +   hold: 0.45000000000000023,
+  +   idx: 1,
+  +   lock: 0,
+  +   reading: true,
+  +   rev: false,
+  +   sanctuaryT: 2.3400000000000096,
+  +   sanctuaryTriggered: true,
+  +   showMeaningT: 0,
+  +   to: {
+  +     bType: 'house_tavern',
+  +     chunkKey: '1,-1',
+  +     color: '#7a4732',
+  +     district: '食堂街',
+  +     dx: 1356,
+  +     dy: -90,
+  +     id: 'night-town:1,-1:3',
+  +     packId: 'tavern',
+  +     phase: 8.280842527582749,
+  +     word: {
+  +       cue: 'emoji',
+  +       example: 'やきたての パンは いい においが します',
+  +       icon: '🍞',
+  +       id: 'tavern:2',
+  +       jp: 'パン',
+  +       packId: 'tavern',
+  +       romaji: 'pan',
+  +       zh: '麵包'
+  +     },
+  +     x: 1356,
+  +     y: -150
+  +   },
+  +   word: {
+  +     cue: 'emoji',
+  +     example: 'たかい やま を のぼる',
+  +     icon: '🗻',
+  +     id: 'sakura:1',
+  +     jp: 'やま',
+  +     packId: 'sakura',
+  +     romaji: 'yama',
+  +     zh: '山'
+  +   }
+  + }
+  - null
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1024:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { word: { id: 'sakura:1', packId: 'sakura', jp: 'やま', zh: '山', icon: '🗻', cue: 'emoji', romaji: 'yama', example: 'たかい やま を のぼる' }, to: { id: 'night-town:1,-1:3', phase: 8.280842527582749, chunkKey: '1,-1', x: 1356, y: -150, dx: 1356, dy: -90, color: '#7a4732', bType: 'house_tavern', district: '食堂街', packId: 'tavern', word: [Object] }, ans: [ [Object], [Object], [Object] ], hold: 0.45000000000000023, idx: 1, lock: 0, rev: false, sanctuaryT: 2.3400000000000096, sanctuaryTriggered: true, hintStage: 1, eliminatedIdx: 2, showMeaningT: 0, assisted: true, reading: true },
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1040:3
+✖ same-word Boss answer at 1.79s follows current feedback rule without extending its lifetime (10.9972ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  1 !== 2
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1057:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1040:3
+✖ same-word Boss answer at 1.81s follows current feedback rule without extending its lifetime (11.05ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  1 !== 2
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1057:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1072:1
+✖ Boss assistance stays on a changed word and clears on a replay (2.8783ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: 'ねこ'
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1077:40)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'ねこ',
+    expected: 'ねこ',
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1104:1
+✖ ordinary delivery correction remains visible during an independent same-word Boss answer (3.54ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  1 !== 2
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1110:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1121:1
+✖ purification feedback overlaps the next real priority order without granting mastery (3.2086ms)
+  TypeError: Cannot read properties of undefined (reading 'hp')
+      at Object.hurt (evalmachine.<anonymous>:767:11)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1124:60)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\input-runtime.test.cjs:1131:1
+✖ automatic order refill can repeat a purified word while its correction is still alive (3.3666ms)
+  TypeError: Cannot read properties of undefined (reading 'hp')
+      at Object.hurt (evalmachine.<anonymous>:767:11)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1138:60)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\input-runtime.test.cjs:1146:1
+✖ scheduled Boss can draw a purified word and open its quiz before correction expires (3.1162ms)
+  TypeError: Cannot read properties of undefined (reading 'hp')
+      at Object.hurt (evalmachine.<anonymous>:767:11)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1150:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\input-runtime.test.cjs:1162:1
+✖ delivery mistake persists, avoids its living answer badge and returns after purification (3.0388ms)
+  TypeError: Cannot read properties of undefined (reading 'hp')
+      at Object.hurt (evalmachine.<anonymous>:767:11)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1172:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\input-runtime.test.cjs:1286:1
+✖ Boss death and settlement audio fire once per event, not once per frame (2.8486ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  0 !== 1
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1292:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1310:1
+✖ scheduled Boss shield, kill reward and overdue successor follow one lifecycle (3.8584ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(g.snapshot().bossT>170)
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1343:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1348:3
+✖ real needle updates defeat a scheduled Boss after ordinary answering without kill mastery (4.3576ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(g.audioCalls.includes('needle'))
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1353:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1348:3
+✖ real needle updates defeat a scheduled Boss after assisted answering without kill mastery (4.1844ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(g.audioCalls.includes('needle'))
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1353:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1381:1
+✖ final Boss requires the delivery goal and victory settles progression only once (4.3001ms)
+  TypeError: Cannot set properties of null (setting 'lock')
+      at Object.unlockBoss (evalmachine.<anonymous>:3372:35)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1387:38)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\input-runtime.test.cjs:1419:1
+✖ final victory sequence: boss shakes and explodes, minions burn away, dawn rises, then settlement after 2s (4.4947ms)
+  TypeError: Cannot set properties of null (setting 'lock')
+      at Object.unlockBoss (evalmachine.<anonymous>:3372:35)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1424:38)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\input-runtime.test.cjs:1444:1
+✖ running out of oil snuffs the lamp, fades the BGM, and settles only after two dark seconds (4.9215ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'pause' !== 'lost'
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1451:27)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'pause',
+    expected: 'lost',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1476:1
+✖ Boss question preserves gamepad pickup, dash and hint; shoulders and Y answer (2.9335ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(g.snapshot().bossQ !== q || g.snapshot().oil === oilBefore - 8)
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1490:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1657:1
+✖ gamepad directional menus confirm once without leaking actions into the new screen (2.9511ms)
+  TypeError: Cannot read properties of undefined (reading 'slice')
+      at menuButtons (evalmachine.<anonymous>:168:87)
+      at Object.pollGamepad (evalmachine.<anonymous>:1077:21)
+      at press (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1660:44)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1662:20)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\input-runtime.test.cjs:1681:1
+✖ pickup speaks the word once and delivery does not repeat it (3.6208ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(before - hinted >= 7)
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1687:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1723:1
+✖ priority orders prefer a house that teaches the same word (2.5063ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'ラーメン' !== 'くるま'
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1730:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'ラーメン',
+    expected: 'くるま',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1752:1
+✖ damage and oil-heal upgrades stop after their stack caps (2.3697ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  4 !== 6
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1756:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 4,
+    expected: 6,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1762:1
+✖ MAX dragon impact leaves a burning ground zone that ticks after the projectile vanishes (7.5332ms)
+  AssertionError [ERR_ASSERTION]: staying on hot ground causes repeated damage
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1774:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\input-runtime.test.cjs:1796:1
+✖ MAX katana triple-speed projectile keeps the same facing and damage model (2.8344ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(wave.maxTravel>=1400)
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:1804:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\progression.test.cjs:61:1
+✖ unresolved mistakes survive reload, replay and stage switching until answered (1.2521ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  2.5 !== 1
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\progression.test.cjs:73:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2.5,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\source-contracts.test.cjs:15:1
+✖ MAX katana wave crosses buildings and spans the viewport (2.3623ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /maxTravel:Math\.max\(1400,spawnRadius\(620\)\*2\.1\)/. Input:
+
+  '(() => {\n' +
+    '  "use strict";\n' +
+    '\n' +
+    '  const W = 900, H = 600;\n' +
+    '  const CFG = window.GAME_CONFIG;\n' +
+    '  let STAGE = window.CONTENT.getStage("night-town");\n' +
+    '  let STAGE_PACING = STAGE.pacing || {};\n' +
+    '  let STAGE_VISUAL = STAGE.visual || {};\n' +
+    '  let STAGE_ENEMY = STAGE.enemy || {};\n' +
+    '  let START = STAGE.start || { x: 1350, y: 900 };\n' +
+    '  let DAWN = STAGE_PACING.runSeconds || CFG.RUN_SECONDS;\n' +
+    '  let GOAL_DELIVERIES = STAGE_PACING.goalDeliveries || CFG.GOAL_DELIVERIES;\n' +
+    '  let BOSS_TIMES = STAGE_PACING.bossTimes || CFG.BOSS_TIMES;\n' +
+    '  let SURGE_FIRST = STAGE_PACING.surgeFirst || CFG.SURGE_FIRST;\n' +
+    '  let SURGE_INTERVAL = STAGE_PACING.surgeInterval || CFG.SURGE_INTERVAL;\n' +
+    '  let XP_NEED_SCALE = STAGE_PACING.xpNeedScale || 1;\n' +
+    '  let SPAWN_INTERVAL_SCALE = STAGE_PACING.spawnIntervalScale || 1;\n' +
+    '  let SPAWN_COUNT_BONUS = STAGE_PACING.spawnCountBonus || 0;\n' +
+    '  const cv = document.getElementById("game");\n' +
+    '\n' +
+    '  // 初始化高畫質渲染引擎\n' +
+    '  RENDERER.init(cv);\n' +
+    '  const ctx = RENDERER.getCtx();\n' +
+    '  const HAPTICS = window.HAPTICS || { dash(){}, damage(){}, shield(){}, hit(){}, pickup(){}, deliverSuccess(){}, deliverWrong(){}, bossDefeat(){}, levelUp(){}, warning(){} };\n' +
+    '  CONTROLS.mount();\n' +
+    '  const controlsButton = document.getElementById("controls-open");\n' +
+    '  const viewBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:W,bottom:H,width:W,height:H};\n' +
+    '  const isPortrait = () => window.innerWidth <= 900 && window.innerHeight >= window.innerWidth;\n' +
+    '  addEventListener("resize", () => {\n' +
+    '    RENDERER.resize?.(); joy = null;\n' +
+    '    if (isPortrait()) suspend();\n' +
+    '    else wakeAudio();\n' +
+    '  });\n' +
+    '\n' +
+    '  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));\n' +
+    '  const magnetRadius = rank => 110 + clamp(rank, 0, 3) * 80;\n' +
+    '  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);\n' +
+    '  const pick = a => a[Math.floor(Math.random() * a.length)];\n' +
+    '  const shuffle = a => {\n' +
+    '    a = [...a];\n' +
+    '    for (let i = a.length - 1; i > 0; i--) {\n' +
+    '      const j = Math.floor(Math.random() * (i + 1));\n' +
+    '      [a[i], a[j]] = [a[j], a[i]];\n' +
+    '    }\n' +
+    '    return a;\n' +
+    '  };\n' +
+    '\n' +
+    '  // ---------- Stage / Word Pack / Chunk 世界 ----------\n' +
+    '  let WORLD_STATE = window.WORLD.createStageWorld(STAGE, window.CONTENT);\n' +
+    '  const houses = [], solids = [], LAMPS = [], activeChunks = [];\n' +
+    '  const ALL = window.CONTENT.getStageWords(STAGE);\n' +
+    '  const MIS_SPEED = 200;\n' +
+    '  function codexWords() {\n' +
+    '    const seen = new Set(), words = [];\n' +
+    '    for (const stage of Object.values(window.CONTENT.STAGES || {})) {\n' +
+    '      if (!stage.implemented || !STORE.isStageUnlocked(stage.id)) continue;\n' +
+    '      for (const word of window.CONTENT.getStageWords(stage)) {\n' +
+    '        if (seen.has(word.jp)) continue;\n' +
+    '        seen.add(word.jp);\n' +
+    '        words.push(word);\n' +
+    '      }\n' +
+    '    }\n' +
+    '    return words;\n' +
+    '  }\n' +
+    '  const blocked = (x, y, r = 18) => solids.some(s => Math.hypot(x - clamp(x, s.x0, s.x1), y - clamp(y, s.y0, s.y1)) < r);\n' +
+    '  // 擊退用逐幀位移，保留碰撞而不是在施放當幀直接跳到終點。\n' +
+    '  const KNOCK_SPEED = 520;\n' +
+    '  function knockback(e, distance) {\n' +
+    '    if (e.type === "boss" || e.hp <= 0 || !distance) return;\n' +
+    '    const length = dist(P, e) || 1;\n' +
+    '    const sign = Math.sign(distance);\n' +
+    '    (e.knockQueue ||= []).push({\n' +
+    '      dx: (e.x - P.x) / length * sign,\n' +
+    '      dy: (e.y - P.y) / length * sign,\n' +
+    '      remaining: Math.abs(distance)\n' +
+    '    });\n' +
+    '    // 不允許多次快速觸發留下無限長的擊退佇列。\n' +
+    '    if (e.knockQueue.length > 3) e.knockQueue.shift();\n' +
+    '  }\n' +
+    '  function moveKnockback(e, dt) {\n' +
+    '    const q = e.knockQueue;\n' +
+    '    if (!q?.length) return false;\n' +
+    '    const k = q[0], distance = Math.min(k.remaining, KNOCK_SPEED * dt);\n' +
+    '    const steps = Math.max(1, Math.ceil(distance / 8));\n' +
+    '    for (let i = 0; i < steps; i++) {\n' +
+    '      const dx = k.dx * distance / steps, dy = k.dy * distance / steps;\n' +
+    '      // 分軸、分段碰撞：牆壁會擋住推力，不會穿過建築。\n' +
+    '      if (!blocked(e.x + dx, e.y, 16)) e.x += dx;\n' +
+    '      if (!blocked(e.x, e.y + dy, 16)) e.y += dy;\n' +
+    '    }\n' +
+    '    k.remaining -= distance;\n' +
+    '    if (k.remaining <= 0.001) q.shift();\n' +
+    '    return true;\n' +
+    '  }\n' +
+    '  const ansPos = h => window.WORLD.answerPositions(h);\n' +
+    '  // 僅場景答案使用較自然的筆文字體。字型已在 index.html 子集載入，\n' +
+    '  // Noto 完整字面備援；不修改 HUD、教學和圖鑑的字體。\n' +
+    '  const sceneAnswerFont = size => UI.readableFont(size, "400").replace(\n' +
+    `    "'Noto Sans JP', 'Microsoft JhengHei', sans-serif",\n` +
+    `    "'Yuji Syuku', 'Kaisei Decol', 'Noto Sans JP', serif"\n` +
+    '  );\n' +
+    '  const getWordDistrictWords = word => window.CONTENT.getSiblingWords(word);\n' +
+    '  const writtenLength = text => Array.from(String(text || "").normalize("NFC")).length;\n' +
+    '  const kanaScript = text => {\n' +
+    '    const chars = Array.from(String(text || ""));\n' +
+    '    if (chars.length && chars.every(ch => /[ぁ-ゖー]/u.test(ch))) return "hiragana";\n' +
+    '    if (chars.length && chars.every(ch => /[ァ-ヺー]/u.test(ch))) return "katakana";\n' +
+    '    return "mixed";\n' +
+    '  };\n' +
+    '  function answerChoices(word) {\n' +
+    '    const seen = new Set([word.jp]), distractors = [];\n' +
+    '    const targetLength = writtenLength(word.jp);\n' +
+    '    const targetScript = kanaScript(word.jp);\n' +
+    '    const source = [\n' +
+    '      ...getWordDistrictWords(word),\n' +
+    '      ...ALL,\n' +
+    '      ...(window.CONTENT.getAnswerCandidates?.() || window.CONTENT.getAllWords())\n' +
+    '    ];\n' +
+    '    const candidates = shuffle(source).filter(w => w && !seen.has(w.jp) && writtenLength(w.jp) === targetLength);\n' +
+    '    const take = pool => {\n' +
+    '      const w = pool.find(candidate => !seen.has(candidate.jp));\n' +
+    '      if (!w) return false;\n' +
+    '      seen.add(w.jp);\n' +
+    '      distractors.push(w);\n' +
+    '      return true;\n' +
+    '    };\n' +
+    '\n' +
+    '    // 優先保留一個同文字系的近似項，再混入另一文字系，避免字數或平／片假名成為答案提示。\n' +
+    '    if (targetScript === "hiragana" || targetScript === "katakana") {\n' +
+    '      take(candidates.filter(w => kanaScript(w.jp) === targetScript));\n' +
+    '      take(candidates.filter(w => {\n' +
+    '        const script = kanaScript(w.jp);\n' +
+    '        return script !== targetScript && (script === "hiragana" || script === "katakana");\n' +
+    '      }));\n' +
+    '    }\n' +
+    '    while (distractors.length < 2 && take(candidates)) {}\n' +
+    '    if (distractors.length < 2) {\n' +
+    '      // 未來詞包缺少同長度詞時仍使用真實且不重複的詞，不中斷當局。\n' +
+    '      while (distractors.length < 2 && take(shuffle(source).filter(w => w && w.jp))) {}\n' +
+    '    }\n' +
+    '    return shuffle([word, ...distractors]);\n' +
+    '  }\n' +
+    '\n' +
+    '  // ---------- 遊戲狀態 ----------\n' +
+    '  const P = { x: START.x, y: START.y, inv: 0, faceAng: 0, faceX: 1 };\n' +
+    '  const b = { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0 };\n' +
+    '  const keys = new Set(), heldCodes = new Set();\n' +
+    '  let state = "menu";\n' +
+    "  const artPending = () => state === 'overworld' ? window.MAP_ART_READY === false\n" +
+    "    : ['play','pause','levelup'].includes(state) && window.ART_READY === false;\n" +
+    '  let quitConfirm = false;\n' +
+    '  let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "";\n' +
+    '  let levelupFocus = 0, gpLevelupDir = "";\n' +
+    '  let pendingMenuActivation = null;\n' +
+    '  function activateWithFeedback(id) {\n' +
+    '    if (pendingMenuActivation || ((state === "won" || state === "lost") && endCooldown > 0)) return;\n' +
+    "    if (id === 'start' || id === 'world') AUDIO.prepareMusic?.('overworld');\n" +
+    "    else if (id === 'restart') AUDIO.prepareMusic?.('play');\n" +
+    '    UI.pressButton?.(id);\n' +
+    '    pendingMenuActivation = { id, state, quitConfirm, remaining: 0.12 };\n' +
+    '  }\n' +
+    '  function menuButtons() {\n' +
+    '    if (menuFocusState !== state) { menuFocus = 0; menuFocusState = state; }\n' +
+    '    if (quitConfirm) return UI.EXIT_BTNS;\n' +
+    '    if (state === "menu") return UI.MENU_BTNS;\n' +
+    '    if (state === "pause") return UI.PAUSE_BTNS;\n' +
+    '    if (state === "won" || state === "lost") {\n' +
+    '      const review = typeof UI.reviewButtons === "function" ? UI.reviewButtons(misses).slice(0, 3) : [];\n' +
+    '      return review.length ? [...UI.END_BTNS, ...review] : UI.END_BTNS;\n' +
+    '    }\n' +
+    '    return null;\n' +
+    '  }\n' +
+    '  function moveMenu(delta) {\n' +
+    '    if (pendingMenuActivation) return;\n' +
+    '    UI.setButtonHover?.(null);\n' +
+    '    const buttons = menuButtons();\n' +
+    '    menuFocus = (menuFocus + delta + buttons.length) % buttons.length;\n' +
+    '  }\n' +
+    '  function returnHome() {\n' +
+    '    pendingMenuActivation = null;\n' +
+    '    UI.setButtonHover?.(null);\n' +
+    '    quitConfirm = false;\n' +
+    '    keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };\n' +
+    '    state = "menu"; menuFocus = 0; menuFocusState = state;\n' +
+    '  }\n' +
+    '  function activateMenu(id) {\n' +
+    '    if ((state === "won" || state === "lost") && endCooldown > 0) return;\n' +
+    '    if (id === "start") enterOverworld();\n' +
+    '    else if (id === "restart") start();\n' +
+    '    else if (id === "world") enterOverworld(false);\n' +
+    '    else if (id === "resume") togglePause();\n' +
+    '    else if (id === "mute") AUDIO.toggleMute();\n' +
+    '    else if (id === "controls") controlsButton.click();\n' +
+    `    else if (id === "tutorial") showTutorial('pickup', true);\n` +
+    '    else if (id === "exit-cancel") { quitConfirm = false; menuFocus = 0; }\n' +
+    '    else if (id === "exit-confirm") returnHome();\n' +
+    '    else if (id === "menu") {\n' +
+    '      if (state === "pause") { quitConfirm = true; menuFocus = 0; }\n' +
+    '      else returnHome();\n' +
+    '    }\n' +
+    '    else if (id === "cards" || id === "codex") { codexBack = state; selectCodex(id === "cards" ? "cards" : "words"); state = "codex"; }\n' +
+    '    else if (typeof id === "string" && id.startsWith("review-")) {\n' +
+    '      const button = (menuButtons() || []).find(item => item.id === id);\n' +
+    '      if (button?.word?.jp) AUDIO.speak(button.word.jp);\n' +
+    '    }\n' +
+    '  }\n' +
+    '  let overworld = window.OVERWORLD.createState("gate");\n' +
+    '  let overworldNoticeT = 0;\n' +
+    '  let gpOverworldDir = "";\n' +
+    '  let elapsed = 0, warnDawnT = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;\n' +
+    '  let orders = [], job = null, enemies = [], enemyBullets = [], gems = [], texts = [], rings = [], misses = [];\n' +
+    '  const GEM_LIMIT = 512, GEM_DISTANCE = 2400;\n' +
+    '  function dropGem(x, y, v) {\n' +
+    '    if (gems.length < GEM_LIMIT) { gems.push({x,y,v}); return; }\n' +
+    '    // 滿池合併到最近一顆，保留經驗總量；只在擊殺時掃描，非每幀搜尋。\n' +
+    '    let nearest = gems[0], best = Infinity;\n' +
+    '    for (const g of gems) {\n' +
+    '      const d = (g.x-x)**2 + (g.y-y)**2;\n' +
+    '      if (d < best) { best = d; nearest = g; }\n' +
+    '    }\n' +
+    '    if (dist(P,nearest) > GEM_DISTANCE) Object.assign(nearest,{x,y,v,done:false});\n' +
+    '    else nearest.v += v;\n' +
+    '  }\n' +
+    '  // rerolls 是每局可重抽升級選項的次數。\n' +
+    '  let rerolls = 2, titleCardT = 0;\n' +
+    '  // 畫面切換不再硬切：新畫面從黑幕淡入。\n' +
+    '  const FADE_TIME = 0.45;\n' +
+    '  let lastScreen = "menu", fadeT = 0, runSummary = null;\n' +
+    '  let learningStart = {};\n' +
+    '  let seals = 0, sealsEarned = 0, study = null;\n' +
+    '  let recallIndependent = 0, recallAssisted = 0;\n' +
+    '  const recallSources = { delivery: { independent: 0, assisted: 0 }, boss: { i'... 123606 more characters
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\source-contracts.test.cjs:18:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: `(() => {\n  "use strict";\n\n  const W = 900, H = 600;\n  const CFG = window.GAME_CONFIG;\n  let STAGE = window.CONTENT.getStage("night-town");\n  let STAGE_PACING = STAGE.pacing || {};\n  let STAGE_VISUAL = STAGE.visual || {};\n  let STAGE_ENEMY = STAGE.enemy || {};\n  let START = STAGE.start || { x: 1350, y: 900 };\n  let DAWN = STAGE_PACING.runSeconds || CFG.RUN_SECONDS;\n  let GOAL_DELIVERIES = STAGE_PACING.goalDeliveries || CFG.GOAL_DELIVERIES;\n  let BOSS_TIMES = STAGE_PACING.bossTimes || CFG.BOSS_TIMES;\n  let SURGE_FIRST = STAGE_PACING.surgeFirst || CFG.SURGE_FIRST;\n  let SURGE_INTERVAL = STAGE_PACING.surgeInterval || CFG.SURGE_INTERVAL;\n  let XP_NEED_SCALE = STAGE_PACING.xpNeedScale || 1;\n  let SPAWN_INTERVAL_SCALE = STAGE_PACING.spawnIntervalScale || 1;\n  let SPAWN_COUNT_BONUS = STAGE_PACING.spawnCountBonus || 0;\n  const cv = document.getElementById("game");\n\n  // 初始化高畫質渲染引擎\n  RENDERER.init(cv);\n  const ctx = RENDERER.getCtx();\n  const HAPTICS = window.HAPTICS || { dash(){}, damage(){}, shield(){}, hit(){}, pickup(){}, deliverSuccess(){}, deliverWrong(){}, bossDefeat(){}, levelUp(){}, warning(){} };\n  CONTROLS.mount();\n  const controlsButton = document.getElementById("controls-open");\n  const viewBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:W,bottom:H,width:W,height:H};\n  const isPortrait = () => window.innerWidth <= 900 && window.innerHeight >= window.innerWidth;\n  addEventListener("resize", () => {\n    RENDERER.resize?.(); joy = null;\n    if (isPortrait()) suspend();\n    else wakeAudio();\n  });\n\n  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));\n  const magnetRadius = rank => 110 + clamp(rank, 0, 3) * 80;\n  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);\n  const pick = a => a[Math.floor(Math.random() * a.length)];\n  const shuffle = a => {\n    a = [...a];\n    for (let i = a.length - 1; i > 0; i--) {\n      const j = Math.floor(Math.random() * (i + 1));\n      [a[i], a[j]] = [a[j], a[i]];\n    }\n    return a;\n  };\n\n  // ---------- Stage / Word Pack / Chunk 世界 ----------\n  let WORLD_STATE = window.WORLD.createStageWorld(STAGE, window.CONTENT);\n  const houses = [], solids = [], LAMPS = [], activeChunks = [];\n  const ALL = window.CONTENT.getStageWords(STAGE);\n  const MIS_SPEED = 200;\n  function codexWords() {\n    const seen = new Set(), words = [];\n    for (const stage of Object.values(window.CONTENT.STAGES || {})) {\n      if (!stage.implemented || !STORE.isStageUnlocked(stage.id)) continue;\n      for (const word of window.CONTENT.getStageWords(stage)) {\n        if (seen.has(word.jp)) continue;\n        seen.add(word.jp);\n        words.push(word);\n      }\n    }\n    return words;\n  }\n  const blocked = (x, y, r = 18) => solids.some(s => Math.hypot(x - clamp(x, s.x0, s.x1), y - clamp(y, s.y0, s.y1)) < r);\n  // 擊退用逐幀位移，保留碰撞而不是在施放當幀直接跳到終點。\n  const KNOCK_SPEED = 520;\n  function knockback(e, distance) {\n    if (e.type === "boss" || e.hp <= 0 || !distance) return;\n    const length = dist(P, e) || 1;\n    const sign = Math.sign(distance);\n    (e.knockQueue ||= []).push({\n      dx: (e.x - P.x) / length * sign,\n      dy: (e.y - P.y) / length * sign,\n      remaining: Math.abs(distance)\n    });\n    // 不允許多次快速觸發留下無限長的擊退佇列。\n    if (e.knockQueue.length > 3) e.knockQueue.shift();\n  }\n  function moveKnockback(e, dt) {\n    const q = e.knockQueue;\n    if (!q?.length) return false;\n    const k = q[0], distance = Math.min(k.remaining, KNOCK_SPEED * dt);\n    const steps = Math.max(1, Math.ceil(distance / 8));\n    for (let i = 0; i < steps; i++) {\n      const dx = k.dx * distance / steps, dy = k.dy * distance / steps;\n      // 分軸、分段碰撞：牆壁會擋住推力，不會穿過建築。\n      if (!blocked(e.x + dx, e.y, 16)) e.x += dx;\n      if (!blocked(e.x, e.y + dy, 16)) e.y += dy;\n    }\n    k.remaining -= distance;\n    if (k.remaining <= 0.001) q.shift();\n    return true;\n  }\n  const ansPos = h => window.WORLD.answerPositions(h);\n  // 僅場景答案使用較自然的筆文字體。字型已在 index.html 子集載入，\n  // Noto 完整字面備援；不修改 HUD、教學和圖鑑的字體。\n  const sceneAnswerFont = size => UI.readableFont(size, "400").replace(\n    "'Noto Sans JP', 'Microsoft JhengHei', sans-serif",\n    "'Yuji Syuku', 'Kaisei Decol', 'Noto Sans JP', serif"\n  );\n  const getWordDistrictWords = word => window.CONTENT.getSiblingWords(word);\n  const writtenLength = text => Array.from(String(text || "").normalize("NFC")).length;\n  const kanaScript = text => {\n    const chars = Array.from(String(text || ""));\n    if (chars.length && chars.every(ch => /[ぁ-ゖー]/u.test(ch))) return "hiragana";\n    if (chars.length && chars.every(ch => /[ァ-ヺー]/u.test(ch))) return "katakana";\n    return "mixed";\n  };\n  function answerChoices(word) {\n    const seen = new Set([word.jp]), distractors = [];\n    const targetLength = writtenLength(word.jp);\n    const targetScript = kanaScript(word.jp);\n    const source = [\n      ...getWordDistrictWords(word),\n      ...ALL,\n      ...(window.CONTENT.getAnswerCandidates?.() || window.CONTENT.getAllWords())\n    ];\n    const candidates = shuffle(source).filter(w => w && !seen.has(w.jp) && writtenLength(w.jp) === targetLength);\n    const take = pool => {\n      const w = pool.find(candidate => !seen.has(candidate.jp));\n      if (!w) return false;\n      seen.add(w.jp);\n      distractors.push(w);\n      return true;\n    };\n\n    // 優先保留一個同文字系的近似項，再混入另一文字系，避免字數或平／片假名成為答案提示。\n    if (targetScript === "hiragana" || targetScript === "katakana") {\n      take(candidates.filter(w => kanaScript(w.jp) === targetScript));\n      take(candidates.filter(w => {\n        const script = kanaScript(w.jp);\n        return script !== targetScript && (script === "hiragana" || script === "katakana");\n      }));\n    }\n    while (distractors.length < 2 && take(candidates)) {}\n    if (distractors.length < 2) {\n      // 未來詞包缺少同長度詞時仍使用真實且不重複的詞，不中斷當局。\n      while (distractors.length < 2 && take(shuffle(source).filter(w => w && w.jp))) {}\n    }\n    return shuffle([word, ...distractors]);\n  }\n\n  // ---------- 遊戲狀態 ----------\n  const P = { x: START.x, y: START.y, inv: 0, faceAng: 0, faceX: 1 };\n  const b = { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0 };\n  const keys = new Set(), heldCodes = new Set();\n  let state = "menu";\n  const artPending = () => state === 'overworld' ? window.MAP_ART_READY === false\n    : ['play','pause','levelup'].includes(state) && window.ART_READY === false;\n  let quitConfirm = false;\n  let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "";\n  let levelupFocus = 0, gpLevelupDir = "";\n  let pendingMenuActivation = null;\n  function activateWithFeedback(id) {\n    if (pendingMenuActivation || ((state === "won" || state === "lost") && endCooldown > 0)) return;\n    if (id === 'start' || id === 'world') AUDIO.prepareMusic?.('overworld');\n    else if (id === 'restart') AUDIO.prepareMusic?.('play');\n    UI.pressButton?.(id);\n    pendingMenuActivation = { id, state, quitConfirm, remaining: 0.12 };\n  }\n  function menuButtons() {\n    if (menuFocusState !== state) { menuFocus = 0; menuFocusState = state; }\n    if (quitConfirm) return UI.EXIT_BTNS;\n    if (state === "menu") return UI.MENU_BTNS;\n    if (state === "pause") return UI.PAUSE_BTNS;\n    if (state === "won" || state === "lost") {\n      const review = typeof UI.reviewButtons === "function" ? UI.reviewButtons(misses).slice(0, 3) : [];\n      return review.length ? [...UI.END_BTNS, ...review] : UI.END_BTNS;\n    }\n    return null;\n  }\n  function moveMenu(delta) {\n    if (pendingMenuActivation) return;\n    UI.setButtonHover?.(null);\n    const buttons = menuButtons();\n    menuFocus = (menuFocus + delta + buttons.length) % buttons.length;\n  }\n  function returnHome() {\n    pendingMenuActivation = null;\n    UI.setButtonHover?.(null);\n    quitConfirm = false;\n    keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };\n    state = "menu"; menuFocus = 0; menuFocusState = state;\n  }\n  function activateMenu(id) {\n    if ((state === "won" || state === "lost") && endCooldown > 0) return;\n    if (id === "start") enterOverworld();\n    else if (id === "restart") start();\n    else if (id === "world") enterOverworld(false);\n    else if (id === "resume") togglePause();\n    else if (id === "mute") AUDIO.toggleMute();\n    else if (id === "controls") controlsButton.click();\n    else if (id === "tutorial") showTutorial('pickup', true);\n    else if (id === "exit-cancel") { quitConfirm = false; menuFocus = 0; }\n    else if (id === "exit-confirm") returnHome();\n    else if (id === "menu") {\n      if (state === "pause") { quitConfirm = true; menuFocus = 0; }\n      else returnHome();\n    }\n    else if (id === "cards" || id === "codex") { codexBack = state; selectCodex(id === "cards" ? "cards" : "words"); state = "codex"; }\n    else if (typeof id === "string" && id.startsWith("review-")) {\n      const button = (menuButtons() || []).find(item => item.id === id);\n      if (button?.word?.jp) AUDIO.speak(button.word.jp);\n    }\n  }\n  let overworld = window.OVERWORLD.createState("gate");\n  let overworldNoticeT = 0;\n  let gpOverworldDir = "";\n  let elapsed = 0, warnDawnT = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;\n  let orders = [], job = null, enemies = [], enemyBullets = [], gems = [], texts = [], rings = [], misses = [];\n  const GEM_LIMIT = 512, GEM_DISTANCE = 2400;\n  function dropGem(x, y, v) {\n    if (gems.length < GEM_LIMIT) { gems.push({x,y,v}); return; }\n    // 滿池合併到最近一顆，保留經驗總量；只在擊殺時掃描，非每幀搜尋。\n    let nearest = gems[0], best = Infinity;\n    for (const g of gems) {\n      const d = (g.x-x)**2 + (g.y-y)**2;\n      if (d < best) { best = d; nearest = g; }\n    }\n    if (dist(P,nearest) > GEM_DISTANCE) Object.assign(nearest,{x,y,v,done:false});\n    else nearest.v += v;\n  }\n  // rerolls 是每局可重抽升級選項的次數。\n  let rerolls = 2, titleCardT = 0;\n  // 畫面切換不再硬切：新畫面從黑幕淡入。\n  const FADE_TIME = 0.45;\n  let lastScreen = "menu", fadeT = 0, runSummary = null;\n  let learningStart = {};\n  let seals = 0, sealsEarned = 0, study = null;\n  let recallIndependent = 0, recallAssisted = 0;\n  const recallSources = { delivery: { independent: 0, assisted: 0 }, boss: { i`... 123606 more characters,
+    expected: /maxTravel:Math\.max\(1400,spawnRadius\(620\)\*2\.1\)/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\ui-readability.test.cjs:87:1
+✖ settlement retains all five review words on a small screen (1.5892ms)
+  AssertionError [ERR_ASSERTION]: かな3
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\ui-readability.test.cjs:92:31)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\ui-readability.test.cjs:305:1
+✖ small-screen level-up descriptions and settlement review lines keep readable spacing (3.6394ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(reviews[i].y-reviews[i-1].y>=reviews[i].size*1.2)
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\ui-readability.test.cjs:318:43)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\ui-readability.test.cjs:405:1
+✖ diegetic radar phase 2 keeps the clock outside navigation content and preserves integrated status (0.8056ms)
+  AssertionError [ERR_ASSERTION]: Boss bar is lifted toward the top safe edge
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\ui-readability.test.cjs:427:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '// 使用者介面（UI）：半水墨、和紙、木版畫介面；面板、按鈕、升級卡共用墨線與版畫色票。\n// 光暈優先使用 FX.glow 的預烘焙貼圖；面板仍使用漸層，圖鑑標題保留少量 shadowBlur。\n// HUD 可回退：預設 diegetic；也可用 ?hud=classic / ?hud=diegetic 即時比較。\n{\n  const hasLocation = typeof location !== \'undefined\';\n  const requestedHud = hasLocation ? new URLSearchParams(location.search).get(\'hud\') : null;\n  if (requestedHud === \'classic\' || requestedHud === \'diegetic\') window.UI_THEME = requestedHud;\n  if (window.UI_THEME !== \'classic\' && window.UI_THEME !== \'diegetic\') window.UI_THEME = hasLocation ? \'diegetic\' : \'classic\';\n}\nwindow.UI = (() => {\n  const screenBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:900,bottom:600,width:900,height:600};\n  // 暫時停用尚未素材化的 diegetic 假繪馬／假扇子；保留程式以便日後換正式素材再開。\n  const DIEGETIC_QUEST_BOARD_ENABLED = false;\n  const DIEGETIC_SKILL_FAN_ENABLED = true;\n  function fillScreen(ctx) { const b = screenBounds(); ctx.fillRect(b.left,b.top,b.width,b.height); }\n  const W = 900, H = 600;\n  const RESTART_BTN = { x: 150, y: 492, w: 180, h: 48 };\n  const WORLD_BTN = { x: 360, y: 492, w: 180, h: 48 };\n  const HOME_BTN = { x: 570, y: 492, w: 180, h: 48 };\n  const MENU_START_BTN = { x: W / 2 - 132, y: 478, w: 264, h: 54 };\n  const MENU_CONTROLS_BTN = { x: 20, y: 22, w: 180, h: 38 };\n  const HINT_BTN = { x: 532, y: 20, w: 78, h: 40 };\n  let omamoriJobRef = null;\n  let omamoriEnterAtMs = 0;\n  const REROLL_BTN = { x: 620, y: 538, w: 190, h: 44 };\n  const TUTORIAL_BTNS = [{x:100,y:390,w:330,h:70},{x:470,y:390,w:330,h:70}];\n  const EXIT_BTNS = [{id:\'exit-cancel\',x:195,y:330,w:240,h:70},{id:\'exit-confirm\',x:465,y:330,w:240,h:70}];\n\n  // ---- 色票與共用繪製工具 ----\n  const C = {\n    gold: "#c6a56d", goldHi: "#f3dfad", ink: "#221e24", vermilion: "#bf6149",\n    jade: "#82a78e", azure: "#7e9eaa", violet: "#9c88a6", cyan: "#92bac0",\n    text: "#f2e4c8", dim: "rgba(225,209,181,.77)"\n  };\n  const WEAPON_TONE = { katana: "#c46b51", barrier: "#7faab1", fire: "#d49459", boom: "#a18aac", thunder: "#cfb577", needle: "#8ab4b1" };\n  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));\n  const calm = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;\n  const glow = (ctx, x, y, size, color, alpha) => window.FX?.glow(ctx, x, y, size, color, alpha);\n  const pulse = (speed = 3, lo = 0.6) => calm() ? 0.85 : lo + (1 - lo) * (0.5 + 0.5 * Math.sin(Date.now() / 1000 * speed));\n  const fontPx = font => Number(font.match(/([\\d.]+)px/)[1]);\n\n  const barCache = new WeakMap();\n  const BAR_COLORS = {\n    oil: [[0,"#a45a3c"],[.6,"#c99150"],[1,"#e3cb8c"]],\n    lowOil: [[0,"#922f36"],[1,"#d46f54"]],\n    xp: [[0,"#5a7c88"],[1,"#aed2c7"]],\n    dawn: [[0,"#647381"],[.7,"#cc8e64"],[1,"#dec38a"]],\n    boss: [[0,"#802e39"],[.6,"#b85443"],[1,"#d5a56e"]]\n  };\n  function barGradient(ctx, kind, x0, x1, transform = ctx.getTransform?.()) {\n    let cache = barCache.get(ctx);\n    if (!cache) { cache = new Map(); barCache.set(ctx,cache); }\n    const old = cache.get(kind), a = old?.transform, b = transform;\n    if (old && old.x0 === x0 && old.x1 === x1 &&\n        a?.a === b?.a && a?.b === b?.b && a?.c === b?.c && a?.d === b?.d && a?.e === b?.e && a?.f === b?.f) return old.gradient;\n    const gradient = ctx.createLinearGradient(x0,0,x1,0);\n    for (const [offset,color] of BAR_COLORS[kind]) gradient.addColorStop(offset,color);\n    cache.set(kind,{x0,x1,transform,gradient});\n    return gradient;\n  }\n  // 木版畫共用框：和紙刷染、墨線、金箔角印；沿用所有舊座標與點擊範圍。\n  function glassBox(ctx,x,y,w,h,r=10,fill="rgba(34,31,32,.92)",stroke="rgba(197,162,105,.7)",strokeW=1.5,ornate=false){\n    if(!(w>0&&h>0))return;\n    ctx.save();ctx.translate(x,y);\n    const rad=Math.max(2,Math.min(6,r,w/6,h/6));\n    ctx.lineJoin="round";ctx.fillStyle="rgba(23,20,24,.48)";\n    ctx.beginPath();ctx.roundRect(2,3,w,h,rad);ctx.fill();\n    ctx.beginPath();ctx.roundRect(0,0,w,h,rad);ctx.fillStyle=fill;ctx.fill();\n    if(w>34&&h>23){\n      ctx.save();ctx.clip();\n      ctx.fillStyle="rgba(223,199,150,.065)";\n      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(w*.58,0);\n      ctx.lineTo(w*.19,Math.min(h*.46,32));ctx.lineTo(0,h*.7);ctx.closePath();ctx.fill();\n      ctx.strokeStyle="rgba(227,199,154,.11)";ctx.lineWidth=1;\n      for(const t of [.33,.72]){\n        ctx.beginPath();ctx.moveTo(w*t,2);\n        ctx.lineTo(Math.min(w-3,w*t+Math.min(38,h*.32)),2);ctx.stroke();\n      }\n      ctx.restore();\n      ctx.beginPath();ctx.roundRect(3,3,w-6,h-6,Math.max(1,rad-2));\n      ctx.strokeStyle="rgba(222,191,137,.19)";ctx.lineWidth=1;ctx.stroke();\n    }\n    if(stroke){ctx.beginPath();ctx.roundRect(0,0,w,h,rad);ctx.strokeStyle=stroke;ctx.lineWidth=strokeW;ctx.stroke();}\n    if(ornate&&w>=70&&h>=38){\n      ctx.strokeStyle="#b69a64";ctx.lineWidth=2;ctx.lineCap="square";\n      const d=Math.min(14,w/8,h/8);\n      for(const [cx,cy,sx,sy] of [[5,5,1,1],[w-5,5,-1,1],[5,h-5,1,-1],[w-5,h-5,-1,-1]]){\n        ctx.beginPath();ctx.moveTo(cx,cy+d*sy);ctx.lineTo(cx,cy);\n        ctx.lineTo(cx+d*sx,cy);ctx.stroke();\n      }\n      ctx.fillStyle="#c19e62";ctx.beginPath();\n      ctx.moveTo(w-23,h-10);ctx.lineTo(w-15,h-16);\n      ctx.lineTo(w-8,h-10);ctx.lineTo(w-15,h-5);ctx.closePath();ctx.fill();\n    }\n    ctx.restore();\n  }\n  // 核准美術圖檔：不再使用程式生成的和紙作主底板。\n  const illustratedArt = Object.create(null);\n  if (typeof window.Image === "function") {\n    for (const [name, file] of [\n      ["ledger", "result_panel"], ["notice", "pause_panel"],\n      ["neutral", "button_secondary"], ["primary", "button_primary"],\n      ["danger", "button_danger"], ["title", "title_tag"]\n    ]) {\n      const image = new window.Image();\n      image.decoding = "async";\n      image.fetchPriority = "low";\n      image.onload = () => { illustratedArt[name] = image; };\n      image.onerror = () => { /* 無素材時維持程式備援 */ };\n      image.src = `assets/img/ui/illustrated/${file}.webp?v=20261009-final-art1`;\n    }\n  }\n  function drawWashiSlices(ctx, image, x, y, w, h, cropX, cropY, padX, padY) {\n    const iw = image.naturalWidth, ih = image.naturalHeight;\n    const sw = [cropX, iw - cropX * 2, cropX], sh = [cropY, ih - cropY * 2, cropY];\n    const px = Math.min(padX, w / 3), py = Math.min(padY, h / 3);\n    const dw = [px, w - 2 * px, px], dh = [py, h - 2 * py, py];\n    let sy = 0, dy = y;\n    for (let row = 0; row < 3; row++) {\n      let sx = 0, dx = x;\n      for (let col = 0; col < 3; col++) {\n        ctx.drawImage(image, sx, sy, sw[col], sh[row], dx, dy, dw[col], dh[row]);\n        sx += sw[col]; dx += dw[col];\n      }\n      sy += sh[row]; dy += dh[row];\n    }\n  }\n\n  // 3-slice：左右裝飾保持原始比例，中央可自由延展。\n  function drawRibbonSlices(ctx, image, x, y, w, h, left = 62, right = 58) {\n    const iw = image.naturalWidth, ih = image.naturalHeight;\n    if (!iw || !ih || w <= 0 || h <= 0) return;\n    // 依按鈕高度等比縮放端飾；只讓中段水平延展。\n    const dl = Math.min(left * h / ih, w * .27), dr = Math.min(right * h / ih, w * .27);\n    ctx.drawImage(image, 0, 0, left, ih, x, y, dl, h);\n    ctx.drawImage(image, left, 0, iw-left-right, ih, x+dl, y, w-dl-dr, h);\n    ctx.drawImage(image, iw-right, 0, right, ih, x+w-dr, y, dr, h);\n  }\n  // 舊木牌僅作 WebP 失敗時的備援。hitbox 保留原矩形。\n  function tagPath(ctx,x,y,w,h,cut=11) {\n    const c=Math.max(2,Math.min(cut,w*.08,h*.27));\n    ctx.beginPath();\n    ctx.moveTo(x+c,y);ctx.lineTo(x+w-c,y);\n    ctx.lineTo(x+w,y+c);ctx.lineTo(x+w,y+h-c);\n    ctx.lineTo(x+w-c,y+h);ctx.lineTo(x+c,y+h);\n    ctx.lineTo(x,y+h-c);ctx.lineTo(x,y+c);ctx.closePath();\n  }\n  function drawWoodTag(ctx,b,tone="normal",disabled=false,quiet=false) {\n    const tagArt = illustratedArt[tone === "primary" ? "primary" : tone === "danger" ? "danger" : "neutral"];\n    if (tagArt?.naturalWidth) {\n      ctx.save();\n      if (disabled) ctx.globalAlpha = 0.56;\n      if (quiet && tone === "normal") {\n        // 取原畫和紙中段，省去重複流蘇；不是程式產生的新材質。\n        const iw=tagArt.naturalWidth, ih=tagArt.naturalHeight,cap=Math.min(65,iw*.19);\n        ctx.drawImage(tagArt,cap,0,iw-cap*2,ih,b.x,b.y,b.w,b.h);\n        ctx.strokeStyle="rgba(104,72,49,.6)";\n        ctx.lineWidth=1.15;\n        tagPath(ctx,b.x+1,b.y+1,b.w-2,b.h-2,5);\n        ctx.stroke();\n      } else drawRibbonSlices(ctx,tagArt,b.x,b.y,b.w,b.h);\n      ctx.restore();\n      return;\n    }\n    const t=BUTTON_TONES[tone] || BUTTON_TONES.normal;\n    const {x,y,w,h}=b;\n    ctx.save();\n    ctx.lineJoin="round";\n    ctx.fillStyle="rgba(16,13,14,.52)";\n    tagPath(ctx,x+2,y+4,w,h,10);ctx.fill();\n    ctx.fillStyle=disabled?"#474039":t.fill;\n    tagPath(ctx,x,y,w,h,10);ctx.fill();\n    ctx.strokeStyle=disabled?"#80776a":t.stroke;\n    ctx.lineWidth=tone==="primary"?2.6:2;\n    tagPath(ctx,x,y,w,h,10);ctx.stroke();\n    ctx.strokeStyle="rgba(226,193,139,.45)";ctx.lineWidth=1;\n    tagPath(ctx,x+4,y+4,w-8,h-8,7);ctx.stroke();\n    // 木板條紋是垂直纖維與橫向斷墨，不使用 glossy 斜光。\n    ctx.strokeStyle="rgba(221,182,119,.10)";\n    ctx.lineWidth=1;\n    for(const k of [.23,.48,.74]){\n      ctx.beginPath();ctx.moveTo(x+13,y+h*k);\n      ctx.lineTo(x+w-13,y+h*k+(k>.5?-2:2));ctx.stroke();\n    }\n    // 兩端的綁繩與印章是物件語彙，不改按鈕的文字安全區。\n    ctx.strokeStyle="rgba(221,196,150,.72)";ctx.lineWidth=1.2;\n    for(const px of [x+13,x+w-13]){\n      ctx.beginPath();ctx.moveTo(px,y+10);ctx.lineTo(px,y+h-10);ctx.stroke();\n      ctx.fillStyle="#332822";ctx.beginPath();ctx.arc(px,y+h/2,2,0,6.283);ctx.fill();\n    }\n    if(tone==="primary"||tone==="danger"){\n      const stampX=x+w-23,stampY=y+h/2;\n      ctx.fillStyle=tone==="primary"?"rgba(202,137,95,.68)":"rgba(140,63,58,.80)";\n      ctx.beginPath();ctx.arc(stampX,stampY,Math.min(9,h*.18),0,6.283);ctx.fill();\n      ctx.strokeStyle="rgba(240,202,155,.80)";\n      ctx.lineWidth=1;ctx.beginPath();ctx.arc(stampX,stampY,Math.min(6,h*.14),0,6.283);ctx.stroke();\n    }\n    ctx.restore();\n  }\n\n  // 和紙旅帳／告示板：素材正常時使用墨染和紙貼圖，程式木框只作備援。\n  function drawWashiBoard(ctx,x,y,w,h,ledger=false) {\n    const art = illustratedArt[ledger ? "ledger" : "notice"];\n    if (art?.naturalWidth) {\n      ctx.save();\n      if (ledger) drawWashiSlices(ctx,art,x,y,w,h,54,51,54,51);\n      else drawWashiSlices(ctx,art,x,y,w,h,40,50,40,50);\n      ctx.restore();\n      return;\n    }\n    ctx.save();\n    ctx.translate(x,y);\n   '... 129707 more characters,
+    expected: /const bossBarY = Math\.max\(bounds\.top \+ 2, afterTask - \(compactLandscape \? 44 : 38\)\)/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\ui-readability.test.cjs:519:1
+✖ settlement counts distinct mistaken words and discloses only truncated reviews (3.3826ms)
+  AssertionError [ERR_ASSERTION]: 844/lost/1: 今夜記錯的字：共 1 字
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\ui-readability.test.cjs:529:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\ui-readability.test.cjs:547:1
+✖ settlement shows unique delivery and Boss corrections without changing misdelivery count (1.3708ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(texts.some(t=>t.value==='今夜記錯的字：共 2 字'))
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\ui-readability.test.cjs:551:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\ui-readability.test.cjs:658:1
+✖ tutorial copy follows live bindings and never embeds any current answer (1.7247ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(UI.tutorialCopy('delivery','touch')[2].includes('0.45'))
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\ui-readability.test.cjs:672:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:81:1
+✖ V3 contract: safe reading freezes nearby enemies as well as damage (6.0629ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    {
+  +   x: 3007.408584883752,
+  +   y: 909.4368042151594
+  -   x: 2978,
+  -   y: 869
+    }
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:87:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { x: 3007.408584883752, y: 909.4368042151594 },
+    expected: { x: 2978, y: 869 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:91:1
+✖ V3 contract: expired freeze cannot cause a delayed shatter explosion (5.3292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  197 !== 200
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:98:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 197,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-core.test.cjs:32:1
+✖ V3: 每 3 筆成功配送得 1 枚覺醒印，上限 4、不跨局 (4.0001ms)
+  AssertionError [ERR_ASSERTION]: 缺少覺醒印計數（V3 未實作）
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:35:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-core.test.cjs:52:1
+✖ V3: 提示協助的配送同樣計入覺醒印與 26 XP (12.4013ms)
+  TypeError: Cannot set properties of null (setting 'lock')
+      at Object.prepareOrder (I:\Projects\yokai-delivery\js\game.js:3360:75)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:55:7)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\v3-core.test.cjs:77:1
+✖ V3: Lv4 持印時，升級選單保證至少一張可覺醒的卡 (3.3074ms)
+  AssertionError [ERR_ASSERTION]: 持印的 Lv4 技應在選單中提供 Lv5 選項
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:83:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-core.test.cjs:121:1
+✖ V3: 第二段提示仍扣 4 油 (4.0408ms)
+  AssertionError [ERR_ASSERTION]: 第二段應扣 4 油（含自然耗油），實際 4.00
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:130:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-core.test.cjs:212:1
+✖ V3: 陣 Lv1–4 CD 不得低於 1.2 秒（以實際施放間隔量測） (38.4108ms)
+  AssertionError [ERR_ASSERTION]: 施放間隔不得低於 1.2 秒，實際 NaN
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:223:34)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-core.test.cjs:255:1
+✖ V3: 雷 Lv3 對高血量普通怪不得保底擊殺（4.5B 固定傷害，不是依當前 HP） (4.5215ms)
+  AssertionError [ERR_ASSERTION]: Lv3 雷不得依當前 HP 處刑 99HP 怪；全滅代表仍有 e.hp 保底分支
+
+  0 !== 3
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:268:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 3,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-core.test.cjs:328:1
+✖ V3: 針殉爆總額外命中上限 3、半徑 105（讀實際傷害與範圍） (6.9095ms)
+  AssertionError [ERR_ASSERTION]: 一發針最多再帶走 3 隻，8 隻群應剩 ≥5；實際剩 4（遞迴未關閉或預算過大）
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:337:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-core.test.cjs:360:1
+✖ V3: 火 Lv5 護火 3 顆（讀實際 spirit 數量） (3.8753ms)
+  TypeError: Cannot read properties of undefined (reading 'filter')
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:366:37)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\v3-core.test.cjs:370:1
+✖ V3: 火 Lv5 龍的召喚間隔不低於 6 秒 (3.7774ms)
+  TypeError: g.snapshot.ghosts is not iterable
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:381:34)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\v3-core.test.cjs:403:1
+✖ V3: 刀 Lv5 最遠 720 世界距離、穿透上限 6（讀實際風刃幾何） (4.2787ms)
+  AssertionError [ERR_ASSERTION]: Lv5 應射出風刃
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:414:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-core.test.cjs:421:1
+✖ V3: 刀 CD 下限 0.6 秒（以實際斬擊間隔量測） (26.6782ms)
+  AssertionError [ERR_ASSERTION]: 15 秒內應有多次斬擊，實際 0
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:439:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

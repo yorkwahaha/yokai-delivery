@@ -1,0 +1,50 @@
+✔ large dragon enters from offscreen, holds, and exits after three seconds (1.2975ms)
+✔ ice volley chooses eight distinct living targets around the courier and curves into them (1.093ms)
+✔ ice freeze duration is bounded and cannot be refreshed into a permanent stun (0.1175ms)
+✔ foxfire orbit and detached attack counts follow the 1/2/3/3/3 specialist progression (0.5382ms)
+✔ a detached foxfire seeks a foe, then returns to the courier instead of disappearing on hit (0.3636ms)
+✔ swept movement stops a fast projectile at a thin wall between frame endpoints (0.0901ms)
+✔ the final frame cannot push an expiring projectile beyond its intended range (0.0708ms)
+✔ a needle curves only during its first 0.28 seconds and then locks its final heading (0.1184ms)
+✔ a spirit reacquires a living foe after its target dies and has bounded steering (0.1002ms)
+✔ MAX dragon launches one swept fireball that hits a target (0.2301ms)
+✔ dragon missile respects barriers and creates an impact at flight expiry (0.1116ms)
+✔ failed storage writes expose an error and successful retries clear it (1.939ms)
+✔ legacy save data is upgraded without losing vocabulary progress (0.3009ms)
+✔ clearing night-town unlocks rain-port and stores per-stage records (0.3078ms)
+✔ a failed run records stage bests but does not unlock the next stage (0.22ms)
+✔ unresolved mistakes survive reload, replay and stage switching until answered (0.4089ms)
+✔ review sampling applies mistake weights within the supplied stage pool (0.3277ms)
+✔ malformed save containers recover without losing valid vocabulary and best scores (1.1778ms)
+✔ invalid mastery, flags and stage counters normalize to finite valid values (0.7653ms)
+✔ V3 Boss AI: slam locks the original target during its warning (1.3427ms)
+✔ V3 Boss AI: locked slam hits once and opens a recovery window (0.215ms)
+✔ V3 Boss AI: moving away from a locked ground strike avoids the hit (0.0976ms)
+✔ V3 Boss AI: shielding and reading pause stop attacks and timers (0.1429ms)
+✔ V3 Boss AI: second boss alternates ground strike and straight charge (0.1877ms)
+✔ V3 Boss AI: charge uses swept wall collision and cannot cross a thin building (0.5601ms)
+✔ V3 Boss AI: full-health final boss has no ring and half-health unlocks one (0.674ms)
+✔ V3 Boss AI: ring has a real gap and hits an unsafe swept annulus only once (0.6295ms)
+✔ V3 Boss AI: tide is exclusive to the port and keeps a safe lane (0.4439ms)
+✔ V3 Boss AI: warning, impact and recovery never overlap a second main attack (0.0756ms)
+✔ V3 Boss AI: a defeated boss cannot start or finish an attack (0.0979ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 66.1173
+ℹ start of coverage report
+ℹ -------------------------------------------------------------------------------------------
+ℹ file           | line % | branch % | funcs % | uncovered lines
+ℹ -------------------------------------------------------------------------------------------
+ℹ js             |        |          |         |
+ℹ  boss-ai.js    |  94.92 |    81.37 |  100.00 | 47-49 53-54 152-153 211-213 257-259 283-284
+ℹ  evolutions.js | 100.00 |    86.54 |   95.65 |
+ℹ  store.js      |  66.04 |    83.58 |   90.91 | 114-128 146 150-219 242-246
+ℹ -------------------------------------------------------------------------------------------
+ℹ all files      |  85.20 |    83.88 |   94.23 |
+ℹ -------------------------------------------------------------------------------------------
+ℹ end of coverage report

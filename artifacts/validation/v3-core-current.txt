@@ -1,0 +1,108 @@
+✔ V3: 單筆成功配送給 26 XP（舊規格 12） (19.9507ms)
+✔ V3: 取貨不給 XP，經驗只來自配送與擊殺 (3.5127ms)
+✖ V3: 每 3 筆成功配送得 1 枚覺醒印，上限 4、不跨局 (11.7897ms)
+✖ V3: 提示協助的配送同樣計入覺醒印與 26 XP (10.6789ms)
+✔ V3: 擊殺 Boss、取貨、誤配妖都不給覺醒印 (4.1649ms)
+✖ V3: Lv4 持印時，升級選單保證至少一張可覺醒的卡 (11.2167ms)
+✔ V3: 沒有印時，Lv5 不可取得 (3.1522ms)
+✔ V3: 選擇 Lv5 會消耗一枚覺醒印 (3.3505ms)
+✔ V3: 第一段提示免費（舊規格扣 3 油） (3.1626ms)
+✔ V3: 第二段提示仍扣 4 油 (4.0607ms)
+✔ V3: 錯答只扣 6 油（舊規格 8） (3.5474ms)
+✔ V3: 錯答不再額外生成誤配妖，且保留原單可補送 (5.3279ms)
+✔ V3: 錯答後補送仍給 XP 與印，但標記 assisted 不加熟練 (9.1448ms)
+✔ V3: 純站樁不得無成本淨回油（舊規格可淨 +0.04/s） (22.6725ms)
+✔ V3: 淨化靈陣不再回油（護盾聖域須真的啟動才測得到） (13.6417ms)
+✔ V3: 舊規格對照 — 靈陣 Lv5 聖域會回油，V3 必須關閉它 (5.9056ms)
+✔ V3: 陣 Lv1–4 CD 不得低於 1.2 秒（以實際施放間隔量測） (36.8555ms)
+✔ V3: 陣 Lv5 施放半徑 220（讀實際 SKILLFX 參數） (4.211ms)
+✔ V3: 陣 Lv5 地場生命 1.8 秒（不再 2.5 秒） (8.7708ms)
+✔ V3: 雷 Lv3 對高血量普通怪不得保底擊殺（4.5B 固定傷害，不是依當前 HP） (4.84ms)
+✔ V3: 雷 Lv3 命中數上限 3（不因場上更多敵而增加） (8.3544ms)
+✔ V3: 雷 Lv5 範圍 90（讀實際 SKILLFX 參數） (3.494ms)
+✔ V3: 雷 Lv5 每波對同一敵人只中一次 (3.8472ms)
+✔ V3: 符單波最多清 6 發普通彈（超出部分必須保留） (4.1378ms)
+✔ V3: 針殉爆單次施放只爆一次、總額外命中 ≤3、半徑 105 (3.4722ms)
+✔ V3: 針殉爆半徑 105（130px 內的鄰敵不被波及） (2.8464ms)
+✔ V3: 火 Lv5 護火 3 顆（讀實際 spirit 數量） (3.7914ms)
+✖ V3: 火 Lv5 龍的召喚間隔不低於 6 秒 (117.2803ms)
+✔ V3: 焦土同時最多 2 處 (104.8623ms)
+✔ V3: 刀 Lv5 最遠 720 世界距離、穿透上限 6（讀實際風刃幾何） (5.122ms)
+✔ V3: 刀 CD 下限 0.6 秒（以實際斬擊間隔量測） (115.1517ms)
+✔ V3 API: STORE.createStudySession(pool, random) 提供 pick/seen/mistake/seenWords (2.6634ms)
+✔ V3 API: STORE.recRecall 對同詞 30 秒內不重複升星 (2.1706ms)
+✔ V3 API: recAssisted 不清掉 missBoost，需獨立答對才解除 (2.0141ms)
+✔ V3 API: EVOLUTIONS.iceVolley 為同波共用 volley，freeze 綁定 shatterVolley (2.207ms)
+{"scenario":"study-quota","poolSize":8,"backgroundRate":0,"usedRateAfterQuota":0,"controlPriorityHits":1,"controlCycles":30}
+✔ V3: 錯詞優先帶回恰好 2 次，之後回歸一般抽取（對照組統計法） (11.1075ms)
+✔ V3: 錯詞到期前不得被 priority 提前帶回 (3.1426ms)
+✔ V3: 錯詞重現之間必須插入別詞，不得連續同一詞 (3.5965ms)
+✔ V3: 8 詞池用盡後 exclude 掉全部詞時 pick 必須回傳 null (4.5764ms)
+✔ V3: pick 的 exclude 必須真的被排除 (2.9997ms)
+✔ V3: seenWords 是方法且可列出本局已接觸詞 (2.362ms)
+ℹ tests 41
+ℹ suites 0
+ℹ pass 37
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 629.9053
+
+✖ failing tests:
+
+test at tests\v3-core.test.cjs:32:1
+✖ V3: 每 3 筆成功配送得 1 枚覺醒印，上限 4、不跨局 (11.7897ms)
+  TypeError: Cannot read properties of null (reading 'to')
+      at Object.atAnswer (I:\Projects\yokai-delivery\js\game.js:3408:40)
+      at deliver (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:40:7)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:43:31)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\v3-core.test.cjs:52:1
+✖ V3: 提示協助的配送同樣計入覺醒印與 26 XP (10.6789ms)
+  TypeError: Cannot read properties of null (reading 'to')
+      at Object.atAnswer (I:\Projects\yokai-delivery\js\game.js:3408:40)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:57:7)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\v3-core.test.cjs:77:1
+✖ V3: Lv4 持印時，升級選單保證至少一張可覺醒的卡 (11.2167ms)
+  TypeError: Cannot read properties of null (reading 'to')
+      at Object.atAnswer (I:\Projects\yokai-delivery\js\game.js:3408:40)
+      at deliver (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:82:25)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:85:25)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\v3-core.test.cjs:399:1
+✖ V3: 火 Lv5 龍的召喚間隔不低於 6 秒 (117.2803ms)
+  AssertionError [ERR_ASSERTION]: 龍召喚間隔不得低於 6 秒，實際 0.05
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-core.test.cjs:414:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

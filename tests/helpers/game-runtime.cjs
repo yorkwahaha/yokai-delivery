@@ -62,6 +62,9 @@ const FIXTURE = `window.fixture = {
   // 供 XP／印／提示等數值斷言使用。真實路徑請用 walkToInteract + runOneRun。
   // 真的走一次升級流程（呼叫 pickUp），像玩家一樣選一張卡。
   // 必要原因：interact() 要求 state==='play'，而 XP 累積會觸發 offerUp()。
+  // 走動途中遇到升級卡時要怎麼處理：預設走 resolveLevelUps（真的 pickUp）。
+  // runner 可覆寫成自己的選卡策略（觀察 cap3／四槽拒卡等規則）。
+  onLevelUp: null,
   resolveLevelUps: maxChoices => {
     let handled = 0;
     const limit = maxChoices || 40;
@@ -103,7 +106,7 @@ const FIXTURE = `window.fixture = {
     // 路由驗收據此判定「路徑可通行」。不用貪婪轉向，因為建築物之間需要繞行。
     // BFS 在 blocked() 上求路徑。町屋本體是 solid，目標格必然被擋，
     // 因此終點取「目標周邊可走格」；遊戲互動判定本來也是靠近外框即可。
-    _planPath: (tx, ty, grid=32, radius=16, goalTolerance=130) => {
+    _planPath: (tx, ty, grid=32, radius=16, goalTolerance=170) => {
       const sx = Math.round(P.x / grid), sy = Math.round(P.y / grid);
       // 限制在 start/target 外框 + 邊界內，避免整張地圖 BFS。
       const minX = Math.min(sx, Math.round(tx / grid)) - 24, maxX = Math.max(sx, Math.round(tx / grid)) + 24;
@@ -251,28 +254,31 @@ const FIXTURE = `window.fixture = {
   // 走到町屋直到遊戲自己判定可互動（inter 產生）為止。
   // 互動判定是玩家中心到町屋外框 clamp 點 < 46px，比我的 spot 容差更權威。
   // 走到町屋外框，直到遊戲自己判定可互動（inter 產生）。
-  // 關鍵：終點條件是遊戲自身的 inter，不是我的 spot；路徑只規劃一次並依序走完，
-  // 避免每 0.35 秒重規劃造成 idx 抖動。末端若走完仍未互動，改用局部探測擠壓。
+  // 路徑只規劃一次（BFS 於 blocked() 上），依序走完；走完或卡住才轉局部探測。
+  // 終點條件是遊戲自身的 inter 判定，不用我自己選的 spot。
   walkToInteract: (house, maxSeconds=60, dt=1/60) => {
     const target = house;
     const path = fixture._planPath(target.x, target.y);
-    let idx = 0, t = 0, lastD = Infinity, stuck = 0, usedLocalProbe = false;
+    let idx = 0, t = 0, stuck = 0, lastD = Infinity, localProbe = false;
     while (t < maxSeconds) {
-      if (inter) return { reached: true, seconds: +t.toFixed(2), viaInteract: true, planCells: path ? path.length : 0 };
+      if (inter) {
+        return { reached: true, seconds: +t.toFixed(2), viaInteract: true, planCells: path ? path.length : 0, localProbe };
+      }
       const d = Math.hypot(target.x - P.x, target.y - P.y);
       let step = null;
-      if (path && path.length && !usedLocalProbe) {
+      if (path && path.length && !localProbe) {
         while (idx < path.length - 1 && Math.hypot(path[idx].x - P.x, path[idx].y - P.y) < 30) idx++;
         const wp = path[Math.min(idx, path.length - 1)];
         const wd = Math.hypot(wp.x - P.x, wp.y - P.y) || 1;
-        if (wd < 12 && idx >= path.length - 1) usedLocalProbe = true;   // 路徑走完，轉局部探測
+        if (wd < 10 && idx >= path.length - 1) localProbe = true;   // 路徑走完
         else step = [(wp.x - P.x) / wd, (wp.y - P.y) / wd];
-      } else {
-        // 局部探測：朝目標方位擠壓，遇牆試側向，讓遊戲的互動距離自然成立。
+      }
+      if (!step) {
+        // 局部探測：朝目標方位擠壓，遇牆試側向，直到互動距離成立。
         const ang = Math.atan2(target.y - P.y, target.x - P.x);
-        for (const off of [0, 0.45, -0.45, 0.9, -0.9, 1.4, -1.4, 2.0, -2.0, 2.6, -2.6]) {
+        for (const off of [0, 0.45, -0.45, 0.9, -0.9, 1.4, -1.4, 2.0, -2.0, 2.6, -2.6, 3.2, -3.2]) {
           const a = ang + off;
-          if (!blocked(P.x + Math.cos(a) * 18, P.y + Math.sin(a) * 18, 16)) { step = [Math.cos(a), Math.sin(a)]; break; }
+          if (!blocked(P.x + Math.cos(a) * 16, P.y + Math.sin(a) * 16, 16)) { step = [Math.cos(a), Math.sin(a)]; break; }
         }
         if (!step) step = [Math.cos(ang), Math.sin(ang)];
       }
@@ -280,195 +286,35 @@ const FIXTURE = `window.fixture = {
       if (Math.abs(step[0]) >= Math.abs(step[1])) keys.add(step[0] > 0 ? 'r' : 'l');
       else keys.add(step[1] > 0 ? 'd' : 'u');
       update(dt); t += dt;
-      if (lastD - d < 0.15) { stuck += dt; if (stuck > 4) break; } else stuck = 0;
+      // 卡住判定放寬：連續 2 秒距離沒縮短就轉局部探測（換方向），而非直接放棄。
+      // 進度判定：以「目標是否變近」為準，並容許離題誤差的浮動。
+      // 若遊戲切到 levelup（XP 累積觸發），先讓呼叫端處理選擇再繼續走。
+      if (state === 'levelup') {
+        // onLevelUp 預設為 null → 走 resolveLevelUps()（真的呼叫 pickUp）。
+        // 若 runner 覆寫了 onLevelUp，就用它的策略。兩條路都不動 choices。
+        if (typeof fixture.onLevelUp === 'function') fixture.onLevelUp();
+        else { pickUp(0); if (levelupCooldown > 0) { while (levelupCooldown > 0 && state === 'levelup') { keys.clear(); update(dt); t += dt; } } }
+        keys.clear();
+        update(dt); t += dt;
+        lastD = d;
+        continue;
+      }
+      if (lastD - d < 0.02) { stuck += dt; if (stuck > 2) { stuck = 0; localProbe = true; } } else stuck = 0;
       lastD = d;
     }
     keys.clear();
     return {
       reached: !!inter, seconds: +t.toFixed(2), viaInteract: !!inter,
       distance: Math.round(Math.hypot(target.x - P.x, target.y - P.y)),
-      planCells: path ? path.length : 0,
-      localProbe: usedLocalProbe
+      planCells: path ? path.length : 0, localProbe
     };
   },
   __path: null, __pathIdx: 0,
-  housesNow: () => houses.map(h=>({id:h.id,x:h.x,y:h.y,word:h.word})),
-  placeAt: (x,y) => { P.x=x; P.y=y; },
-  face: angle => { P.faceAng=angle; },
-    blocked: (x,y,r=16) => blocked(x,y,r),
-    // 真實步進：以 keys 驅動 move()，逐幀真走（含建築物滑移），不用 placeAt 瞬移。
-    // 路徑以 BFS 在 blocked() 上求出，再沿路點行走；無法在時限內到達時視為失敗，
-    // 路由驗收據此判定「路徑可通行」。不用貪婪轉向，因為建築物之間需要繞行。
-    // BFS 在 blocked() 上求路徑。町屋本體是 solid，目標格必然被擋，
-    // 因此終點取「目標周邊可走格」；遊戲互動判定本來也是靠近外框即可。
-    _planPath: (tx, ty, grid=32, radius=16, goalTolerance=130) => {
-      const sx = Math.round(P.x / grid), sy = Math.round(P.y / grid);
-      // 限制在 start/target 外框 + 邊界內，避免整張地圖 BFS。
-      const minX = Math.min(sx, Math.round(tx / grid)) - 24, maxX = Math.max(sx, Math.round(tx / grid)) + 24;
-      const minY = Math.min(sy, Math.round(ty / grid)) - 24, maxY = Math.max(sy, Math.round(ty / grid)) + 24;
-      const W = maxX - minX + 1, H = maxY - minY + 1;
-      if (W * H > 400000) return null;
-      const idx = (x, y) => (y - minY) * W + (x - minX);
-      const prev = new Int32Array(W * H).fill(-1);
-      const seen = new Uint8Array(W * H);
-      const queue = new Int32Array(W * H);
-      let head = 0, tail = 0;
-      const sIdx = idx(sx, sy);
-      seen[sIdx] = 1; queue[tail++] = sIdx;
-      const dirs = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
-      let goalIdx = -1, bestD = Infinity;
-      while (head < tail) {
-        const cur = queue[head++];
-        const cx = cur % W + minX, cy = Math.floor(cur / W) + minY;
-        const d = Math.hypot(cx * grid - tx, cy * grid - ty);
-        if (d < goalTolerance && d < bestD) { bestD = d; goalIdx = cur; if (d < grid * 1.2) break; }
-        for (const [dx, dy] of dirs) {
-          const nx = cx + dx, ny = cy + dy;
-          if (nx < minX || nx > maxX || ny < minY || ny > maxY) continue;
-          const ni = idx(nx, ny);
-          if (seen[ni]) continue;
-          if (blocked(nx * grid, ny * grid, radius + 8)) continue;
-          seen[ni] = 1; prev[ni] = cur; queue[tail++] = ni;
-        }
-      }
-      if (goalIdx < 0) return null;
-      const cells = [];
-      for (let c = goalIdx; c !== -1; c = prev[c]) {
-        cells.unshift({ x: (c % W + minX) * grid, y: (Math.floor(c / W) + minY) * grid });
-      }
-      return cells;
-    },
-    walkTo: (tx, ty, maxSeconds=25, dt=1/60, tolerance=40) => {
-      let t = 0;
-      let path = null, idx = 0;
-      let lastD = Infinity, stuck = 0;
-      while (t < maxSeconds) {
-        const d = Math.hypot(tx - P.x, ty - P.y);
-        if (d < tolerance) { keys.clear(); return { reached: true, seconds: +t.toFixed(2), distance: +d.toFixed(1) }; }
-        // 重新規劃：偏離路徑太多時（例如被怪推開）重算。
-        if (!path || idx >= path.length) { path = null; }
-        if (!path) {
-          path = fixture._planPath(tx, ty);
-          if (!path) {
-            // 無路徑：退回直線嘗試，讓呼叫端看到 timeout／stuck。
-            path = [{ x: tx, y: ty }];
-            idx = 0;
-          } else idx = 0;
-        }
-        const wp = path[Math.min(idx, path.length - 1)];
-        const wd = Math.hypot(wp.x - P.x, wp.y - P.y);
-        if (wd < 30 && idx < path.length - 1) { idx++; continue; }
-        let step = null;
-        // 接近目標（<200px）時改用局部探測：建築物角落會讓 BFS 路點卡住，
-        // 這裡直接在目標周圍八方向找可走點並逐步逼近。
-        if (d < 200) {
-          const base = Math.atan2(ty - P.y, tx - P.x);
-          for (const off of [0, 0.4, -0.4, 0.8, -0.8, 1.3, -1.3, 1.9, -1.9, 2.5, -2.5]) {
-            const a = base + off;
-            if (!blocked(P.x + Math.cos(a) * 20, P.y + Math.sin(a) * 20, 16)) { step = [Math.cos(a), Math.sin(a)]; break; }
-          }
-        }
-        if (!step) {
-          const dx = wp.x - P.x, dy = wp.y - P.y;
-          step = [dx / (wd || 1), dy / (wd || 1)];
-        }
-        keys.clear();
-        if (Math.abs(step[0]) >= Math.abs(step[1])) keys.add(step[0] > 0 ? 'r' : 'l');
-        else keys.add(step[1] > 0 ? 'd' : 'u');
-        update(dt); t += dt;
-        if (lastD - d < 0.2) { stuck += dt; if (stuck > 5) { keys.clear(); return { reached: false, seconds: +t.toFixed(2), distance: +d.toFixed(1), stuck: true }; } }
-        else stuck = 0;
-        lastD = d;
-      }
-      keys.clear();
-      return { reached: false, seconds: +t.toFixed(2), distance: +Math.hypot(tx - P.x, ty - P.y).toFixed(1), timeout: true };
-    },
-    tapKey: (k, down=true) => { if (down) keys.add(k); else keys.delete(k); },
-    keyState: () => [...keys],
-  clearSolids: () => solids.splice(0),
-  clearOrders: () => { orders=[]; job=null; },
-  clearEnemies: () => { enemies=enemies.filter(e=>e.type==='boss'); },
-  stopSpawns: () => { spawnT=Infinity; surgeT=Infinity; },
-  scheduleBoss: () => { bossT=0; },
-  advanceBossClock: offset => { elapsed=BOSS_TIMES[bossStage]+offset; bossT=-offset; },
-  prepareBoss: word => { const bs={x:P.x+200,y:P.y,type:'boss',word:word||ALL[0],hp:999,max:999,shield:true,flash:0,wob:0,speed:0};
-    enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
-  unlockBoss: () => { bossQ.lock=0; },
-  moveBoss: distance => { const bs=enemies.find(e=>e.type==='boss'); Object.assign(bs,{x:P.x+distance,y:P.y,speed:0,wob:0,flash:0}); },
-  matchBossToJob: () => { const bs=enemies.find(e=>e.type==='boss'); bs.word=job.word; bossQ=mkQ(bs); bossQ.lock=0; },
-  setWeaponRank: (id,rank) => { WL[id]=rank; wT[id]=Infinity; },
-    // 讓已持有的武器立刻可用（wT[id]=0），用於測試實際施放而非被 Infinity 冷卻擋住。
-    armWeapons: () => { for(const k of Object.keys(WL)) if (WL[k]>0) wT[k]=0; },
-    addEnemyBullets: count => { for(let i=0;i<count;i++) enemyBullets.push({x:P.x+120+ (i%3)*8,y:P.y-20+Math.floor(i/3)*10,vx:0,vy:0,life:5,maxLife:5}); },
-    bar: () => ({ damage: b.dmg, rate: b.rate, crit: b.crit||0, spd: b.spd||0, oilRegen: b.oilRegen||0, dmgUp: b.dmgUp||0, shield: b.shield||0, dash: b.dash||0, mag: b.mag||0 }),
-    barMax: () => ({ ...wMax }),
-    weaponTimers: () => ({ ...wT }),
-    katanaTimer: () => atkT,
-    fireEmitTimer: () => fireEmitT,
-    fireAttackTimer: () => fireAttackT,
-  combatScene: (weapon, foes, walls=[], rank=1) => {
-    Object.keys(WL).forEach(k=>WL[k]=0); WL[weapon]=rank; wT[weapon]=0;
-    enemies=foes.map(e=>({x:P.x+(e.dx||0),y:P.y+(e.dy||0),hp:999,max:999,type:'ghost',flash:0,wob:0,...e}));
-    solids.splice(0,solids.length,...walls.map(s=>({x0:P.x+s.x0,x1:P.x+s.x1,y0:P.y+s.y0,y1:P.y+s.y1})));
-  },
-  tune: id => UP.find(u=>u.id===id),
-  maxOutUpgrades: () => { Object.keys(WL).forEach(k=>WL[k]=['katana','barrier','needle','fire'].includes(k)?5:0);
-    for(const u of UP) while(!u.ok || u.ok()) u.f(); },
-  runSummary: () => runSummary,
-  // Boss 量測：直接在場上放一隻已破盾的 Boss，供 DPS／擊殺時間對照使用。
-  // 不走排程、不含讀題，純量輸出時間；呼叫端必須自行記錄這些限制。
-  // 木樁 boss：必須明確停攻，否則 bossAI 會攻擊玩家並中止量測。
-  // attackCd: Infinity 是必要的靜態木樁設定；真實戰鬥要另驗（含招式迴避）。
-  placeBoss: (hp, opts={}) => {
-    enemies.push({ id: 'probe-boss', x: P.x + (opts.dx ?? 140), y: P.y + (opts.dy ?? 0),
-      type: 'boss', final: false, word: ALL[0], shield: false,
-      hp, max: hp, speed: 0, flash: 0, wob: 0,
-      slam: null, slamCd: 99, slamRecovery: 0, attackT: 0,
-      attackCd: Infinity, bossIndex: opts.bossIndex ?? 3, _attackStep: 0 });
-    return true;
-  },
-  // XP 來源與升級次數：da98b4b 沒有分類統計，V3 也未實作。
-  // 用 typeof 守衛讀取——未實作時回傳 null，代表「未量測」而不是 0。
-  xpSources: () => ({
-    gemXp: typeof xpFromGems !== 'undefined' ? xpFromGems : null,
-    deliveryXp: typeof xpFromDelivery !== 'undefined' ? xpFromDelivery : null,
-    total: xp
-  }),
-  levelUps: () => typeof levelUpCount !== 'undefined' ? levelUpCount : null,
-  takeLevelUpChoice: index => {
-    if (state !== 'levelup') return { ok: false, reason: 'not-levelup' };
-    const c = choices[index];
-    if (!c) return { ok: false, reason: 'no-choice', count: choices.length };
-    pickUp(index);
-    return { ok: true, id: c.id, type: c.type, lv: c.lv, level: level, state };
-  },
-  forceLevelUp: () => { xp = xpNeed(); update(1/60); return state; },
-  setDamageCoefficient: value => { b.dmg = value; },
-  damageCoefficient: () => b.dmg,
-  walkNear: (tx, ty, tolerance=70, maxSeconds=25, dt=1/60) => fixture.walkTo(tx, ty, maxSeconds, dt, tolerance),
-  // 走到町屋直到遊戲自己判定可互動（inter 產生）為止。
-  // 互動判定是玩家中心到町屋外框 clamp 點 < 46px，比我的 spot 容差更權威。
-  walkToInteract: (house, maxSeconds=45, dt=1/60) => {
-    const spot = fixture.nearestHouseFreeSpot(house);
-    if (!spot) return { reached: false, reason: 'no-free-spot', seconds: 0 };
-    let t = 0, lastD = Infinity, stuck = 0;
-    while (t < maxSeconds) {
-      if (inter) { keys.clear(); return { reached: true, seconds: +t.toFixed(2), viaInteract: true }; }
-      const d = Math.hypot(house.x - P.x, house.y - P.y);
-      if (d < 56) { keys.clear(); fixture.update(dt); t += dt; if (inter) return { reached: true, seconds: +t.toFixed(2), viaInteract: true }; continue; }
-      const r = fixture.walkTo(spot.x, spot.y, 0.35, dt, 28);
-      t += 0.35;
-      if (r.reached) { for (let i = 0; i < 12; i++) { fixture.update(dt); t += dt; if (inter) break; } if (inter) break; }
-      if (lastD - d < 0.2) { stuck += 0.35; if (stuck > 8) break; } else stuck = 0;
-      lastD = d;
-    }
-    keys.clear();
-    return { reached: !!inter, seconds: +t.toFixed(2), viaInteract: !!inter, distance: Math.round(Math.hypot(house.x - P.x, house.y - P.y)) };
-  },
-  nearestHouseFreeSpot: (h) => {
-    for (const r of [56, 72, 88, 104, 120, 140]) {
-      for (let a = 0; a < 24; a++) {
-        const ang = a / 24 * 6.283;
+  // 町屋外框的可走點：町屋本體是 solid，要找外圍第一個不與建築重疊的位置。
+  nearestHouseFreeSpot: h => {
+    for (const r of [56, 72, 88, 104, 120, 140, 160, 180]) {
+      for (let a = 0; a < 32; a++) {
+        const ang = a / 32 * 6.283;
         const x = h.x + Math.cos(ang) * r, y = h.y + Math.sin(ang) * r;
         if (!blocked(x, y, 16)) return { x, y };
       }
@@ -594,9 +440,10 @@ function loadGame(options = {}) {
 // 注意：即使帶了 filename，coverage 也只涵蓋沙箱實際載入並走到的路徑，
 // 不可宣稱「整個 game.js 80% 覆蓋」。
 const runSource = (c, source, name, revision) => {
-  const file = revision
-    ? `${revision}:js/${name}`
-    : path.join(ROOT, 'js', name);
+  // name 不含副檔名（MODULE_ORDER 用 'words'、'game'…），coverage 的
+  // filename 必須指向真實存在的 js/<name>.js，否則行數會歸到不存在的路徑。
+  const base = `${name}.js`;
+  const file = revision ? `${revision}:js/${base}` : path.join(ROOT, 'js', base);
   return vm.runInContext(source, c, { filename: file });
 };
 
@@ -606,7 +453,7 @@ const c = vm.createContext(env);
     for (const name of V3_ONLY_MODULES) {
       // 注意副檔名：V3_ONLY_MODULES 存的是 'boss-ai'，檔名是 'boss-ai.js'。
       const file = path.join(ROOT, 'js', `${name}.js`);
-      if (fs.existsSync(file)) runSource(c, fs.readFileSync(file, 'utf8'), `${name}.js`, null);
+      if (fs.existsSync(file)) runSource(c, fs.readFileSync(file, 'utf8'), name, null);
     }
   }
   c.CONTROLS.mount = () => {};

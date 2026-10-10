@@ -1,0 +1,602 @@
+{
+  "sourceSha256": "d57ba6cba141aa59df54a7be1549ebaa22b0cb39b9968e212552e5d775394396",
+  "kind": "controlled-static-dps",
+  "dt": 0.016666666666666666,
+  "distance": 140,
+  "seeds": [
+    11,
+    23,
+    47
+  ],
+  "limits": [
+    "weapons and logical elapsed only; no AI movement, incoming damage, delivery XP, reading or human reaction",
+    "B2.4; no rate or critical passives; four MAX slots; fixed 1400HP"
+  ],
+  "rows": [
+    {
+      "seed": 11,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "needle": 5,
+        "boom": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 33.95,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "needle": 5,
+        "fire": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 26.43,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "needle": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 33.85,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "boom": 5,
+        "fire": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 31.92,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "boom": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 42.57,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 32.3,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "katana": 5,
+        "needle": 5,
+        "boom": 5,
+        "fire": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 24.2,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "katana": 5,
+        "needle": 5,
+        "boom": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 27.7,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "katana": 5,
+        "needle": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 24.18,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "katana": 5,
+        "boom": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 27.17,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "barrier": 5,
+        "needle": 5,
+        "boom": 5,
+        "fire": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 26.8,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "barrier": 5,
+        "needle": 5,
+        "boom": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 33.85,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "barrier": 5,
+        "needle": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 26.6,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "barrier": 5,
+        "boom": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 32.18,
+      "killed": true
+    },
+    {
+      "seed": 11,
+      "build": {
+        "needle": 5,
+        "boom": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 24.2,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "needle": 5,
+        "boom": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 34.17,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "needle": 5,
+        "fire": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 26.08,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "needle": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 33.3,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "boom": 5,
+        "fire": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 32.18,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "boom": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 43.52,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 32.82,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "katana": 5,
+        "needle": 5,
+        "boom": 5,
+        "fire": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 23.5,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "katana": 5,
+        "needle": 5,
+        "boom": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 29.37,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "katana": 5,
+        "needle": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 23.55,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "katana": 5,
+        "boom": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 26.08,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "barrier": 5,
+        "needle": 5,
+        "boom": 5,
+        "fire": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 26.15,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "barrier": 5,
+        "needle": 5,
+        "boom": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 34.17,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "barrier": 5,
+        "needle": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 26.6,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "barrier": 5,
+        "boom": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 31.43,
+      "killed": true
+    },
+    {
+      "seed": 23,
+      "build": {
+        "needle": 5,
+        "boom": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 24.18,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "needle": 5,
+        "boom": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 33.95,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "needle": 5,
+        "fire": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 26.48,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "needle": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 33.85,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "boom": 5,
+        "fire": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 31.92,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "boom": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 43.52,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "katana": 5,
+        "barrier": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 30.83,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "katana": 5,
+        "needle": 5,
+        "boom": 5,
+        "fire": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 24.2,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "katana": 5,
+        "needle": 5,
+        "boom": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 29.32,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "katana": 5,
+        "needle": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 23.1,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "katana": 5,
+        "boom": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 26.6,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "barrier": 5,
+        "needle": 5,
+        "boom": 5,
+        "fire": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 26.15,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "barrier": 5,
+        "needle": 5,
+        "boom": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 33.85,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "barrier": 5,
+        "needle": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 26.6,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "barrier": 5,
+        "boom": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 32.18,
+      "killed": true
+    },
+    {
+      "seed": 47,
+      "build": {
+        "needle": 5,
+        "boom": 5,
+        "fire": 5,
+        "thunder": 5
+      },
+      "B": 2.4,
+      "hp": 1400,
+      "seconds": 24.47,
+      "killed": true
+    }
+  ]
+}
