@@ -227,9 +227,9 @@
 test at tests\assets-loading.test.cjs:19:1
 ✖ blocking scene images have high fetch priority instead of competing below music (2.3245ms)
   AssertionError [ERR_ASSERTION]: assets/img/player.webp
-  
+
   'low' !== 'high'
-  
+
       at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\assets-loading.test.cjs:21:73)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1402:25)
@@ -246,9 +246,9 @@ test at tests\assets-loading.test.cjs:19:1
 test at tests\input-runtime.test.cjs:24:1
 ✖ entering a stage does not bulk-download words and unused sound effects (12.5961ms)
   AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
-  
+
     assert.ok(!g.audioCalls.includes('preloadWords'))
-  
+
       at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:25:39)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1402:25)
@@ -267,9 +267,9 @@ test at tests\input-runtime.test.cjs:24:1
 test at tests\media-cache.test.cjs:44:1
 ✖ cold music preserves the browser Range request instead of starting a full download (1.2601ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
-  
+
   200 !== 206
-  
+
       at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\media-cache.test.cjs:46:10)
       at async Test.run (node:internal/test_runner/test:1409:7)
       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
