@@ -82,3 +82,19 @@ test('V3 UI: delivery tutorial states the real dwell time and safe reading', () 
   assert.ok(r.labels.some(t => /0\.65/.test(t.value)));
   assert.ok(r.labels.some(t => /安心|暫停/.test(t.value)));
 });
+
+test('V3 UI: boss protection status follows the actual reading flag', () => {
+  for (const reading of [true, false]) {
+    const r = loadUI();
+    r.UI.drawBossQuiz(r.ctx,{word,ans:[word],wrong:[],lock:0,reading});
+    assert.ok(r.labels.some(t => t.value.includes(reading ? '安心讀題' : '戰鬥已恢復')));
+  }
+});
+
+test('V3 UI: introduced or assisted boss words keep the full meaning association visible', () => {
+  for (const flag of ['introduced', 'wasAssisted']) {
+    const r = loadUI();
+    r.UI.drawBossQuiz(r.ctx,{word,ans:[word],wrong:[],lock:0,reading:true,[flag]:true});
+    assert.ok(r.labels.some(t => t.value.includes(word.zh) && t.value.includes(word.jp)));
+  }
+});
