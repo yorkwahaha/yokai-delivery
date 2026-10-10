@@ -232,10 +232,10 @@ test at tests\controls.test.cjs:10:1
 ✖ default controls, arrows and left-handed preset map to actions (1.5672ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
   + actual - expected
-  
+
   + undefined
   - 'dash'
-  
+
       at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\controls.test.cjs:15:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1402:25)
@@ -264,9 +264,9 @@ test at tests\input-runtime.test.cjs:114:1
 test at tests\input-runtime.test.cjs:123:1
 ✖ first hint rejects a duplicate press then allows the second stage after cooldown (4.7164ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
-  
+
   73 !== 77
-  
+
       at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:126:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1402:25)
@@ -285,9 +285,9 @@ test at tests\input-runtime.test.cjs:123:1
 test at tests\input-runtime.test.cjs:132:1
 ✖ dash cannot cross a thin wall in a 50ms frame (7.4128ms)
   AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
-  
+
     assert.ok(g.snapshot().x-x<2)
-  
+
       at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:135:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1402:25)
@@ -306,9 +306,9 @@ test at tests\input-runtime.test.cjs:132:1
 test at tests\input-runtime.test.cjs:138:1
 ✖ dawn retains all overdue Boss waves and only the fourth kill completes the final goal (4.6815ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
-  
+
   true !== false
-  
+
       at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:143:28)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1402:25)
@@ -346,10 +346,10 @@ test at tests\overworld.test.cjs:7:1
 ✖ multi-hop cruising completes all steps and empties its queue (1.4111ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
   + actual - expected
-  
+
   + 'cross-west'
   - 'rain-port'
-  
+
       at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\overworld.test.cjs:13:12)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1402:25)
@@ -366,9 +366,9 @@ test at tests\overworld.test.cjs:7:1
 test at tests\phase1-fixes.test.cjs:104:1
 ✖ Early boss remains an intermediate boss at DAWN so later waves cannot be skipped (4.4817ms)
   AssertionError [ERR_ASSERTION]: Dawn must not promote an unfinished intermediate Boss
-  
+
   true !== false
-  
+
       at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\phase1-fixes.test.cjs:114:10)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1402:25)

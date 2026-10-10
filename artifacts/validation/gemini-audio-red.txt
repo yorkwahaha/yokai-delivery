@@ -13,9 +13,9 @@
 test at artifacts\validation\gemini-audio-red.test.cjs:176:1
 ✖ delayed synthesized notes are discarded across suspend/resume and mute/unmute (2.5644ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
-  
+
   12 !== 3
-  
+
       at TestContext.<anonymous> (I:\Projects\yokai-delivery\artifacts\validation\gemini-audio-red.test.cjs:192:12)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1402:25)
