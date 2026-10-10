@@ -1,0 +1,12 @@
+✔ V3 contract: common boss timeline and bounded overtime difficulty (2.1605ms)
+✔ V3 contract: fire and talisman rank counts match the new specialist behavior (0.1482ms)
+✔ V3 contract: one ice volley shares its finite shatter budget and new freezes clear old sources (0.4707ms)
+✔ V3 contract: assisted recall preserves error priority and repeated independent recall cannot farm stars (11.0087ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 64.429

@@ -6,7 +6,12 @@
   const CONFIG = {
     RUN_SECONDS,
     GOAL_DELIVERIES: 6,
-    BOSS_TIMES: [180, 360, 540, 590],
+    BOSS_TIMES: [180, 360, 480, 540],
+    BOSS_HP_BASE: [300, 650, 120, 1400],
+    BOSS_OIL_REWARD: [35, 35, 20, 35],
+    DELIVERY_XP: 26,
+    AWAKEN_EVERY: 3,
+    AWAKEN_MAX: 4,
     SURGE_FIRST: 75,
     SURGE_INTERVAL: 75,
     chaseStep(distance, speed, dt, type, canShoot = true) {
@@ -28,7 +33,7 @@
     enemyTier(elapsed, power = 0) {
       const t = Math.max(0, elapsed || 0);
       const paced = Math.min(t, RUN_SECONDS);
-      return 1 + paced / 130 + Math.max(0, t - RUN_SECONDS) / 70 + power * 0.05;
+      return 1 + paced / 130 + power * 0.05;
     },
     orderSlots(elapsed, delivered) {
       if ((delivered || 0) === 0) return 1;

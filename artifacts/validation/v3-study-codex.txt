@@ -1,0 +1,1 @@
+Priority quota, delayed recall, interleave and exclusion verified against real STORE

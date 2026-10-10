@@ -44,6 +44,7 @@
   function iceVolley(origin,enemies,face=0,random=Math.random) {
     const targets=enemies.filter(e=>e.hp>0&&!e.shield&&Math.hypot(e.x-origin.x,e.y-origin.y)<520);
     for(let i=targets.length-1;i>0;i--){const j=Math.min(i,Math.floor(random()*(i+1)));[targets[i],targets[j]]=[targets[j],targets[i]];}
+    const shatterBudget={used:false,hits:new Set()};
     return Array.from({length:8},(_,i)=>{
       const target=targets[i],a=target?Math.atan2(target.y-origin.y,target.x-origin.x):face+i*Math.PI/4;
       const aimX=target?target.x:origin.x+Math.cos(a)*440,aimY=target?target.y:origin.y+Math.sin(a)*440;
@@ -51,13 +52,16 @@
       return {x:origin.x,y:origin.y,originX:origin.x,originY:origin.y,target,aimX,aimY,
         controlX:(origin.x+aimX)/2-Math.sin(a)*bend,controlY:(origin.y+aimY)/2+Math.cos(a)*bend,
         curveDuration:clamp(d/640,0.22,0.75),vx:Math.cos(a)*640,vy:Math.sin(a)*640,ang:a,
-        curve:true,ice:true,age:0,life:0.95,level:5,dmg:4.9,trail:0,hits:new Set()};
+        curve:true,ice:true,age:0,life:0.95,level:5,dmg:4.9,trail:0,hits:new Set(),volley:shatterBudget};
     });
   }
 
-  function freeze(e,elapsed) {
+  function freeze(e,elapsed,volley=null) {
     if(e.hp<=0||e.shield||e.freezeReady>elapsed)return false;
-    e.freezeT=e.type==='boss'?0.15:0.5;e.freezeEnds=elapsed+e.freezeT;e.freezeReady=elapsed+2;return true;
+    e.freezeT=e.type==='boss'?0.15:0.5;e.freezeEnds=elapsed+e.freezeT;e.freezeReady=elapsed+2;
+    if(volley) e.shatterVolley=volley;
+    else delete e.shatterVolley;
+    return true;
   }
 
   function dragon(origin,launchAng=0,phase=0,entry=null) {
@@ -142,8 +146,8 @@
 
   const rank=l=>clamp(Math.floor(l)||1,1,5)-1;
   const api={move,curve,seek,iceVolley,freeze,dragon,dragonStep,dragonFireball,dragonFireballStep,fireSpirit,fireSpiritStep,FIRE_ORBIT:98,
-    fireCount:l=>[1,2,4,6,6][rank(l)],fireAttackCount:l=>[0,0,0,3,0][rank(l)],
+    fireCount:l=>[1,2,3,3,3][rank(l)],fireAttackCount:l=>[0,0,0,1,0][rank(l)],
     fireAttackCooldown:l=>[2.5,2.2,1.9,1.55,1.05][rank(l)],
-    needleCount:l=>[3,5,7,8,8][rank(l)],boomCount:l=>[1,2,3,4,4][rank(l)]};root.EVOLUTIONS=api;
+    needleCount:l=>[3,5,7,8,8][rank(l)],boomCount:l=>[1,2,3,4,2][rank(l)]};root.EVOLUTIONS=api;
   if(typeof module!=='undefined')module.exports=api;
 })();

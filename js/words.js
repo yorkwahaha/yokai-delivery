@@ -214,7 +214,7 @@
       pacing: Object.freeze({
         runSeconds: 600,
         goalDeliveries: 6,
-        bossTimes: Object.freeze([180, 360, 540, 590]),
+        bossTimes: Object.freeze([180, 360, 480, 540]),
         surgeFirst: 75,
         surgeInterval: 75,
         xpNeedScale: 1,
@@ -255,7 +255,7 @@
       pacing: Object.freeze({
         runSeconds: 600,
         goalDeliveries: 6,
-        bossTimes: Object.freeze([210, 420, 590]),
+        bossTimes: Object.freeze([180, 360, 480, 540]),
         surgeFirst: 90,
         surgeInterval: 80,
         xpNeedScale: 1,
