@@ -1,0 +1,500 @@
+{
+  "kind": "input-controller",
+  "seed": 12,
+  "mode": "delivery",
+  "horizon": 600,
+  "stopReason": "horizon",
+  "gameElapsed": 600,
+  "wallMs": 64710,
+  "frames": 13500,
+  "movementSeconds": 645.65,
+  "maximumStep": 39,
+  "delivered": 42,
+  "level": 19,
+  "xp": 181,
+  "oil": 76.65,
+  "state": "play",
+  "seals": 2,
+  "fourSealAt": 160.90000000000234,
+  "maxedAtElapsed": null,
+  "weapons": {
+    "katana": 3,
+    "barrier": 1,
+    "fire": 5,
+    "boom": 0,
+    "thunder": 5,
+    "needle": 0
+  },
+  "maxed": [
+    "fire",
+    "thunder"
+  ],
+  "xpLedger": {
+    "totalEarned": 1944,
+    "fromDelivery": 1092,
+    "fromEnemies": 852,
+    "level": 19,
+    "xp": 181,
+    "delivered": 42
+  },
+  "picks": {
+    "passive": 5,
+    "weapon": 13,
+    "awaken": 2
+  },
+  "pickLog": [
+    {
+      "at": 29.25000000000028,
+      "level": 1,
+      "id": "fire",
+      "type": "weapon",
+      "rank": 1,
+      "needed": 30
+    },
+    {
+      "at": 38.34999999999996,
+      "level": 2,
+      "id": "thunder",
+      "type": "weapon",
+      "rank": 1,
+      "needed": 67
+    },
+    {
+      "at": 62.2999999999986,
+      "level": 3,
+      "id": "fire",
+      "type": "weapon",
+      "rank": 2,
+      "needed": 111
+    },
+    {
+      "at": 75.39999999999786,
+      "level": 4,
+      "id": "barrier",
+      "type": "weapon",
+      "rank": 1,
+      "needed": 162
+    },
+    {
+      "at": 103.04999999999629,
+      "level": 5,
+      "id": "fire",
+      "type": "weapon",
+      "rank": 3,
+      "needed": 221
+    },
+    {
+      "at": 139.6499999999975,
+      "level": 6,
+      "id": "dmg",
+      "type": "passive",
+      "rank": null,
+      "needed": 288
+    },
+    {
+      "at": 165.45000000000337,
+      "level": 7,
+      "id": "mag",
+      "type": "passive",
+      "rank": null,
+      "needed": 363
+    },
+    {
+      "at": 191.25000000000924,
+      "level": 8,
+      "id": "katana",
+      "type": "weapon",
+      "rank": 2,
+      "needed": 446
+    },
+    {
+      "at": 233.50000000001884,
+      "level": 9,
+      "id": "thunder",
+      "type": "weapon",
+      "rank": 2,
+      "needed": 538
+    },
+    {
+      "at": 265.30000000002605,
+      "level": 10,
+      "id": "thunder",
+      "type": "weapon",
+      "rank": 3,
+      "needed": 638
+    },
+    {
+      "at": 284.4500000000304,
+      "level": 11,
+      "id": "fire",
+      "type": "weapon",
+      "rank": 4,
+      "needed": 747
+    },
+    {
+      "at": 325.9000000000398,
+      "level": 12,
+      "id": "fire",
+      "type": "weapon",
+      "rank": 5,
+      "needed": 865
+    },
+    {
+      "at": 367.40000000004926,
+      "level": 13,
+      "id": "dmg",
+      "type": "passive",
+      "rank": null,
+      "needed": 992
+    },
+    {
+      "at": 406.05000000005805,
+      "level": 14,
+      "id": "katana",
+      "type": "weapon",
+      "rank": 3,
+      "needed": 1128
+    },
+    {
+      "at": 431.2500000000638,
+      "level": 15,
+      "id": "dmg",
+      "type": "passive",
+      "rank": null,
+      "needed": 1273
+    },
+    {
+      "at": 488.5000000000768,
+      "level": 16,
+      "id": "dmg",
+      "type": "passive",
+      "rank": null,
+      "needed": 1427
+    },
+    {
+      "at": 522.4000000000726,
+      "level": 17,
+      "id": "thunder",
+      "type": "weapon",
+      "rank": 4,
+      "needed": 1590
+    },
+    {
+      "at": 547.7000000000496,
+      "level": 18,
+      "id": "thunder",
+      "type": "weapon",
+      "rank": 5,
+      "needed": 1763
+    }
+  ],
+  "bossAnswers": [
+    {
+      "at": 261.9500000000253,
+      "word": "おちゃ",
+      "correct": true,
+      "introduced": false
+    }
+  ],
+  "deliveries": [
+    {
+      "at": 14.600000000000072,
+      "word": "さくら",
+      "delivered": 1,
+      "level": 1,
+      "oil": 100
+    },
+    {
+      "at": 29.20000000000028,
+      "word": "ケーキ",
+      "delivered": 2,
+      "level": 1,
+      "oil": 100
+    },
+    {
+      "at": 38.29999999999996,
+      "word": "かさ",
+      "delivered": 3,
+      "level": 2,
+      "oil": 100
+    },
+    {
+      "at": 54.249999999999055,
+      "word": "りんご",
+      "delivered": 4,
+      "level": 3,
+      "oil": 100
+    },
+    {
+      "at": 62.2499999999986,
+      "word": "ひこうき",
+      "delivered": 5,
+      "level": 3,
+      "oil": 100
+    },
+    {
+      "at": 72.74999999999801,
+      "word": "さかな",
+      "delivered": 6,
+      "level": 4,
+      "oil": 100
+    },
+    {
+      "at": 83.04999999999742,
+      "word": "かさ",
+      "delivered": 7,
+      "level": 5,
+      "oil": 100
+    },
+    {
+      "at": 102.99999999999629,
+      "word": "つき",
+      "delivered": 8,
+      "level": 5,
+      "oil": 99.42149999999873
+    },
+    {
+      "at": 124.54999999999507,
+      "word": "おちゃ",
+      "delivered": 9,
+      "level": 6,
+      "oil": 100
+    },
+    {
+      "at": 134.64999999999637,
+      "word": "ケーキ",
+      "delivered": 10,
+      "level": 6,
+      "oil": 100
+    },
+    {
+      "at": 141.3499999999979,
+      "word": "りんご",
+      "delivered": 11,
+      "level": 7,
+      "oil": 100
+    },
+    {
+      "at": 160.90000000000234,
+      "word": "さかな",
+      "delivered": 12,
+      "level": 7,
+      "oil": 100
+    },
+    {
+      "at": 189.15000000000876,
+      "word": "ケーキ",
+      "delivered": 13,
+      "level": 8,
+      "oil": 100
+    },
+    {
+      "at": 208.00000000001305,
+      "word": "ひこうき",
+      "delivered": 14,
+      "level": 9,
+      "oil": 100
+    },
+    {
+      "at": 217.15000000001513,
+      "word": "さくら",
+      "delivered": 15,
+      "level": 9,
+      "oil": 100
+    },
+    {
+      "at": 233.45000000001883,
+      "word": "おちゃ",
+      "delivered": 16,
+      "level": 9,
+      "oil": 100
+    },
+    {
+      "at": 248.10000000002216,
+      "word": "りんご",
+      "delivered": 17,
+      "level": 10,
+      "oil": 100
+    },
+    {
+      "at": 265.25000000002603,
+      "word": "ひこうき",
+      "delivered": 18,
+      "level": 10,
+      "oil": 100
+    },
+    {
+      "at": 284.4500000000304,
+      "word": "ケーキ",
+      "delivered": 19,
+      "level": 11,
+      "oil": 100
+    },
+    {
+      "at": 304.600000000035,
+      "word": "おちゃ",
+      "delivered": 20,
+      "level": 12,
+      "oil": 100
+    },
+    {
+      "at": 331.75000000004115,
+      "word": "かさ",
+      "delivered": 21,
+      "level": 13,
+      "oil": 56.32549999999843
+    },
+    {
+      "at": 351.3500000000456,
+      "word": "つき",
+      "delivered": 22,
+      "level": 13,
+      "oil": 55.89749999999786
+    },
+    {
+      "at": 365.65000000004886,
+      "word": "ケーキ",
+      "delivered": 23,
+      "level": 13,
+      "oil": 77.74849999999695
+    },
+    {
+      "at": 380.0000000000521,
+      "word": "おちゃ",
+      "delivered": 24,
+      "level": 14,
+      "oil": 81.57799999999604
+    },
+    {
+      "at": 398.4000000000563,
+      "word": "ひこうき",
+      "delivered": 25,
+      "level": 14,
+      "oil": 83.66599999999487
+    },
+    {
+      "at": 406.00000000005804,
+      "word": "つき",
+      "delivered": 26,
+      "level": 14,
+      "oil": 88.39799999999438
+    },
+    {
+      "at": 424.10000000006215,
+      "word": "さくら",
+      "delivered": 27,
+      "level": 15,
+      "oil": 70.61499999999323
+    },
+    {
+      "at": 430.5500000000636,
+      "word": "りんご",
+      "delivered": 28,
+      "level": 15,
+      "oil": 95.84149999999282
+    },
+    {
+      "at": 443.95000000006667,
+      "word": "つき",
+      "delivered": 29,
+      "level": 16,
+      "oil": 72.07949999999197
+    },
+    {
+      "at": 455.25000000006924,
+      "word": "りんご",
+      "delivered": 30,
+      "level": 16,
+      "oil": 77.22049999999125
+    },
+    {
+      "at": 465.40000000007154,
+      "word": "かさ",
+      "delivered": 31,
+      "level": 16,
+      "oil": 70.8559999999906
+    },
+    {
+      "at": 488.5000000000768,
+      "word": "つき",
+      "delivered": 32,
+      "level": 16,
+      "oil": 88.92299999998913
+    },
+    {
+      "at": 497.3500000000788,
+      "word": "かさ",
+      "delivered": 33,
+      "level": 17,
+      "oil": 100
+    },
+    {
+      "at": 513.7000000000805,
+      "word": "さくら",
+      "delivered": 34,
+      "level": 17,
+      "oil": 100
+    },
+    {
+      "at": 522.8000000000723,
+      "word": "ひこうき",
+      "delivered": 35,
+      "level": 18,
+      "oil": 100
+    },
+    {
+      "at": 531.2500000000646,
+      "word": "さくら",
+      "delivered": 36,
+      "level": 18,
+      "oil": 100
+    },
+    {
+      "at": 541.3000000000554,
+      "word": "つき",
+      "delivered": 37,
+      "level": 18,
+      "oil": 100
+    },
+    {
+      "at": 547.6500000000497,
+      "word": "りんご",
+      "delivered": 38,
+      "level": 18,
+      "oil": 100
+    },
+    {
+      "at": 558.25000000004,
+      "word": "つき",
+      "delivered": 39,
+      "level": 19,
+      "oil": 100
+    },
+    {
+      "at": 568.7000000000305,
+      "word": "りんご",
+      "delivered": 40,
+      "level": 19,
+      "oil": 100
+    },
+    {
+      "at": 579.4500000000207,
+      "word": "さくら",
+      "delivered": 41,
+      "level": 19,
+      "oil": 100
+    },
+    {
+      "at": 592.2000000000091,
+      "word": "かさ",
+      "delivered": 42,
+      "level": 19,
+      "oil": 100
+    }
+  ],
+  "limits": [
+    "Perfect answer/word-memory assumption; not human learning or device performance.",
+    "Movement includes time inside safe reading; gameElapsed excludes that time.",
+    "No forced positions, XP, skills, shields, oil or play state."
+  ]
+}

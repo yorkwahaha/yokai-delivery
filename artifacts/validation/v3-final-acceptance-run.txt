@@ -1,0 +1,31 @@
+{
+  "out": "artifacts\\validation\\v3-final-acceptance.json",
+  "standstillNetPerSecond": [
+    -0.31,
+    -0.31,
+    -0.31,
+    -0.31,
+    -0.31,
+    -0.31
+  ],
+  "bossSeconds": [
+    "2MAX-katana+needle/B1.2=81.43",
+    "3MAX-katana+needle+fire/B1.8=36.55",
+    "4MAX-katana+needle+fire+boom/B2.4=23.5",
+    "fullMaxOut/B2.4=23.83"
+  ],
+  "runs": [
+    "seed11 stop=horizon gameElapsed=600 wallMs=72046 delivered=32 lv=19 seals=2 fourSealAt=147.4999999999993 walk=619.45 passive=3 weapon=15 awaken=2 enemyXp=592 maxed=fire+needle state=play",
+    "seed12 stop=death gameElapsed=426.9 wallMs=31747 delivered=25 lv=17 seals=3 fourSealAt=160.90000000000234 walk=455.05 passive=5 weapon=11 awaken=1 enemyXp=538 maxed=fire state=lampout",
+    "seed23 stop=horizon gameElapsed=600 wallMs=50714 delivered=33 lv=29 seals=0 fourSealAt=156.05000000000123 walk=638.85 passive=9 weapon=19 awaken=4 enemyXp=1408 maxed=katana+barrier+thunder+needle state=play"
+  ],
+  "deliveryVsStandstill": {
+    "seed": 11,
+    "delivered": 32,
+    "seals": 2,
+    "enemyXp": 592,
+    "passive": 3,
+    "standstillStop": "death",
+    "standstillElapsed": 46.55
+  }
+}

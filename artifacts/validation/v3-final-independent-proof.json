@@ -1,0 +1,11 @@
+{
+  "kind": "Codex independent artifact verification",
+  "productionCommit": "c82afa9144e2b8e93f200fb62e3b85f0cea4302a",
+  "sourceHashesMatchCommit": true,
+  "controllerHashMatches": true,
+  "normalRunLedgersVerified": 4,
+  "fourMaxAt": 537.9500000000585,
+  "finalBossKilledAt": 622.5,
+  "victoryTriggered": true,
+  "limits": "Input simulator with perfect answers, not physical-device or human-learning evidence."
+}

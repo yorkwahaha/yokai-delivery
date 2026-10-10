@@ -1,0 +1,327 @@
+Hermes 唯讀驗收 — tools/v3-natural-run.cjs
+時間: 2026-10-10 19:36:12
+角色: 獨立唯讀驗收者（未修改任何程式或測試檔）
+
+[1] 禁用 API 掃描（瞬移／給XP／改技能／改油／強改狀態／無敵）
+    rg -n 'atDestination|atAnswer|setXp|setWeaponRank|maxOutUpgrades|setOil|setState|placeAt|setDamageCoefficient|invulner|giveXP|stopSpawns' tools/v3-natural-run.cjs
+    唯一命中 = 第74行註解文字 'not invulnerability'。-> 確認未使用任何禁用 API。
+
+[2] 輸入驅動確認（全部透過 helper 的按鍵介面）
+    第44行 g.pushKeys([dx/n,dy/n])            方向按鍵
+    第51/59/88行 g.keyState()+g.tapKey(k,false) 每幀清鍵
+    第57行 g.answerBoss(q.ans.indexOf(q.word))  首領答題（正解索引）
+    第91行 g.update(dt); frames++                逐幀推進，dt=0.05
+    -> 位置變化只能來自 move()，無直接寫入 P.x/P.y。
+
+[3] helper 介面存在性（19/19 皆存在且各只有一份）
+    pushKeys _planPath answerPad realPickup ordersNow takeLevelUpChoice tapKey
+    keyState v3 enemyXp xpSpentActual xpSpentTotal weaponLevels bNow
+    currentChoices pendingPickup snapshot onLevelUp
+
+[4] runner 內建的帳務自我檢查
+    第100行: if(ledger.fromEnemies<0 || ledger.totalEarned!==s.xp+g.xpSpentTotal()) throw
+    -> 帳務不符會直接拋錯，不會靜默通過。
+
+[5] 實測執行（120 秒局內、seed11、唯讀執行，未寫檔）
+    stopReason=horizon  gameElapsed=120.05  frames=2746
+    delivered=11  level=7  seals=3  fourSealAt=null  maxedAtElapsed=null
+    picks: passive=2 weapon=4 awaken=0
+    xpLedger: totalEarned=320 fromDelivery=286 fromEnemies=34
+    weapons: katana1 barrier1 boom2 needle1 fire0 thunder0  maxed=[]
+    movementSeconds=129.7  maximumStep=39  bossAnswers=0
+
+[6] 測試執行（唯讀）
+    node --test tests/v3-route.test.cjs tests/v3-growth-accounting.test.cjs
+    -> tests 12 / pass 12 / fail 0 / duration 24.4s
+    dwell 三顆種子皆 0.65（preHold 0.05-0.067 + postWait 0.583-0.6）
+    六單 xpLedger: totalEarned 156 / fromDelivery 156 / fromEnemies 0（三顆種子一致）
+    natural-partial: gameElapsed 211.2 / deliveries 24 / picks passive5 weapon5
+
+[結論] 同意放行（附三項限制，非阻擋）
+
+
+================================================================================
+追加唯讀平衡審查（第二輪）— 4MAX 可達性 vs 普通怪 XP 後期加倍
+審查者: Hermes（獨立唯讀，未修改生產／測試；本段僅附加本檔）
+
+[1] 輸入證據（artifacts/validation/v3-controller-600-12.json / -600-23.json）
+seed12: stopReason=horizon, gameElapsed=600, delivered=42, Lv19, xpLedger 1944/1092/852,
+        fourSealAt=160.9, maxedAtElapsed=null, weapons 刀3 陣1 火5 符0 雷5 針0,
+        maxed=[fire,thunder] (2 MAX), picks passive5 weapon13 awaken2, seals 結餘2,
+        -> 實際賺到 4 印（結餘2 + 已用2），印的總收入機制正確。
+        pickLog 顯示覺醒發生在 Lv12(325.9s, fire→5) 與 Lv18(547.7s, thunder→5)。
+seed23: stopReason=death(lampout), gameElapsed=529.8, delivered=34, Lv16,
+        xpLedger 1390/884/506, fourSealAt=156.1, maxed=[], weapons 刀3 陣3 針4 雷1,
+        picks passive5 weapon10 awaken0, seals 結餘4（4 印全數未用）。
+
+[2] 成長數學（我用 js/config.js 獨立重算，未假設）
+    純配送 48 單（26 XP/單）只能到 Lv15；六單 Lv4、十二單 Lv7。
+    四 MAX 需要 20 次主動升級 -> 累計 XP 1945 = 正好 Lv20。
+    seed12 實得 1944 XP = 恰好差 1 XP 就能湊滿 20 次主動選擇。這不是巧合：
+    18 次升級 = 1763 XP（config 實算），剩 181 XP 不足以再升一級。
+    -> 結論：4 MAX 的門檻精確落在「Lv20」，而配送 26 + 印的組合在 600 秒內
+       把多數玩家推到 Lv16–19，剛好差 1–4 級。這是 V3 設計的「高手上限」。
+
+[3] 判斷：保留 4MAX 為高手上限，不改普通怪 XP
+    理由（全部有上列數據支撐）：
+    a. 機制本身已經自我平衡：seed12 有 4 印卻只花掉 2，因為 Lv20 的第 20 次
+       主動選擇拿不到 XP。也就是「印不是瓶頸，XP 總量才是」——而 XP 總量
+       由 600 秒的時鐘決定，不是由敵掉落決定（敵 XP 僅佔 852/1944 = 44%）。
+    b. 敵 XP 加倍只會把所有人推到天花板外圍，不會改變「4 MAX 是專家目標」：
+       以 300 秒後 2→4 粗估，seed12 從 1944 → 約 2370（Lv21），seed23 從 1390
+       → 約 1643（Lv17），兩者仍離 Lv20/1945 有距離，且 seed23 的死亡時點不變。
+       也就是說加倍解決不了「新手拿不到 MAX」的問題，因為新手是被時鐘卡住。
+    c. 更關鍵的反證：seed23 用滿 4 印卻 0 MAX 就死了（529.8s，0 印被浪費）。
+       敵 XP 加倍會讓他多活更久、拿更多 XP，反而可能讓他達到 MAX——但那是
+       拿「活得久」換「變強」，把死亡壓力這個 V3 核心迴圈拿掉。不該用。
+    d. seed12 的 2 MAX 與 5 被動是合理的「有取捨的通關」：18 次升級裡
+       主動 13、被動 5，覺醒只花掉 2 印，另外 2 印留著當後手——這正是
+       V3 要的「存印選別技」彈性。若敵 XP 加倍，這個彈性會被壓縮成必然全拿。
+
+[4] 我反對的方向與替代
+    反對：普通怪 300 秒後 2→4。理由如上 (b)(c)——它改的是難度旋鈕，不是
+    成長曲線；而且會讓「死亡」這個唯一真實的失敗條件變得 rarer，等於削弱
+    V3 D 段「每王時長」與 G 段「站樁 vs 跑單」的驗收基礎。
+
+    若仍要提高 MAX 可達性，我建議的最小方案是「調整升級門檻的尾段」而非
+    動敵掉落 XP：
+      方案 A（最小、我最推薦）：xpNeed 高階斜率下修，使 Lv18→20 的門檻總和
+        從 1945 降到約 1700（等價於 Lv19 即有 20 次機會）。只改 config 的
+        係數，不動敵掉落、不動配送 26、不動每 3 單印。風險：Lv10 以下的
+        前期節奏不變，只有尾段被壓縮。
+      方案 B：把印的門檻由「每 3 單」放寬到「每 2 單」（上限仍 4）。
+        依 seed12 的數據，12 單時已賺滿 4 印，放寬只會讓早期到得更早，
+        不解決 Lv20 的問題。→ 與需求不符，不建議。
+      方案 C（不建議）：允許第 5 印。這會破壞 V3 A 節「最多 4、不跨局」的
+        共識，且四 MAX 只需 20 級、4 印本來就綽綽有餘。
+
+[5] 真限制（不得當作已達標）
+    - 4 MAX 的 maxedAtElapsed 在兩筆實測中都是 null：沒有任何一種子真的
+      完成四 MAX，因此「12 單 4 MAX 可達」目前仍未驗證，只能說「機制上
+      門檻在 Lv20、兩筆都差 1–4 級」。
+    - 兩筆 bossAnswers 都只有 1 次，Boss 節奏與讀題保護未被充分覆蓋。
+    - 被動卡 5 次，低於 V3 目標 6–8；且這個分佈由控制器的選卡優先序決定
+      （pickLog 顯示它選 dmg/mag/oil 是因為「有空格就補被動」），
+      不等於玩家真實分佈。
+    - 敵 XP 佔比 44%（852/1944）與 36%（506/1390）差距不小，seed23 死於
+      燈油而非等級不足；這表示目前的失敗條件主要是時間/油，不是成長不足。
+      若之後要調平衡，先調油曲線再調 XP，否則會調錯旋鈕。
+
+
+================================================================================
+追加唯讀平衡審查（第三輪）— 評審 XP 需求 cap 90 提案
+審查者: Hermes（獨立唯讀，未修改任何程式／測試；僅附加本檔）
+
+[0] 先修正我上一輪的算術錯誤（重要）
+    我上一輪寫「四 MAX = 20 次主動選擇 = Lv20」，這是錯的，正確如下：
+      - 玩家開局已有刀 Lv1，所以四 MAX 需要 4+5+5+5 = 19 次 weapon 選擇。
+      - 加上 6–8 次被動選擇 = 25–27 次總升級 = Lv26–28，不是 Lv20。
+    因此「Lv20 的第 20 次選擇拿不到 XP」這個論證前提不成立，
+    我上一輪用「1944 差 1 XP」推論「4MAX 是專家上限」的證據是錯的。
+    帶著錯前提的結論不能沿用，這一輪重算。
+
+[1] Codex 提案的數字我獨立驗證（用 js/config.js 重算，未假設）
+    xpNeed cap 90（lv<=8 用原值 30/37/44/51/59/67/75/83，lv>=9 一律 90）：
+      25 次升級總 XP = 1976（無 cap 時 3243）
+      27 次升級總 XP = 2156（無 cap 時 3755）
+      1944 XP（seed12 實得）在 cap90 下到 Lv25，距離 25 次選擇的 1976 只差 32。
+    與 Codex 的 1976/2156 完全一致。-> 提案的算術成立。
+
+[2] 我同意 cap 90，理由有實測支撐
+    a. 前期節奏完全不變：六單 Lv4、十二單 Lv7，cap90 與無 cap 完全相同。
+       這正是「只壓尾段、不動前期」的設計意圖，符合 V3 要保留的 0–2 分鐘教學帶。
+    b. 它解決的正是我上一輪指出的真問題：原曲線下 25 次選擇要 3243 XP，
+       而 600 秒的配送＋拾取實測只能產出約 1400–1950 XP（seed23 1390／seed12 1944）。
+       換句話說「保留 6–8 次被動選擇」這條 V3 驗收目標在原曲線下不可達；
+       cap90 讓 19 weapon + 6 被動 = 25 次選擇在 1976 XP 內可達。
+       這是修正曲線與目標的不一致，而不是加难度。
+    c. 它不動配送 26、每 3 單印、敵 XP 2，也不加油與傷害——
+       與我上一輪反對「敵 XP 加倍」的核心理由一致（那是動難度旋鈑而非曲線）。
+
+[3] 同意的反對意見（我放棄的部分）
+    我上一輪反對「改曲線」的理由是怕動前期。實測證明 cap<=8 不動，
+    所以那個顧慮不成立。我撤回「保留 4MAX 為 Lv20 專家上限」的立場。
+
+[4] cap90 帶來的新風險（必須在報告保留，不當已解決）
+    a. 「不配送」的懲罰被削弱。實測：純清怪 852 XP 在 cap90 下到 Lv13，
+       無 cap 時只到 Lv12；差距從 2 級變 3 級（配送 1092 XP → Lv16 vs Lv14）。
+       也就是說純清怪與純配送的差距沒有被壓縮，反而略為擴大——
+       但純清怪的絕對等級被提高了。這對「站樁/純戰鬥」路徑是利多，
+       與 V3「反站樁」方向相反，需要用油曲線去補（V3 目前淨耗油 −0.43/s 已成立）。
+    b. cap90 使 8 次之後的升級「感覺不到進度」：連續 10 級都是 90 XP，
+       玩家在 Lv9 之後每級耗時幾乎相同。這可能讓中後期失去「越接近終點越吃力」的張力。
+    c. seed23 在原曲線下是「死於燈油、非等級不足」。cap90 讓它約到 Lv19，
+       但死亡時點不變——也就是說這條提案不會解決它真正的失敗原因。
+
+[5] 建議的最小補充（不反對 cap90，只要求驗收條件寫清楚）
+    - 明確把「19 weapon + 6–8 被動 = Lv25–27」寫進驗收目標，
+      不要沿用我上一輪錯誤的 Lv20 說法。
+    - cap90 之後仍需實測「Lv9 之後的升級節奏是否失去張力」；
+      若玩家反饋太平，可考慮 cap 100（實測 25 次需 2146、1944 XP 到 Lv23）
+      作為退路，而不是回頭改敵 XP。
+    - 12 單 4 MAX 可達性目前仍未實測：兩筆 600 秒實測的 maxedAtElapsed 都是 null。
+      cap90 讓它更接近可達，但不能當作已達成。
+
+[6] 結論
+    同意 Codex 的 XP 需求 cap 90 提案（lv<=8 保持原值，lv>=9 一律 90），
+    並同意不動配送 26／每 3 單印／敵 XP 2／油與傷害。
+    撤回我上一輪「保留 4MAX 為 Lv20 上限」的結論——該結論建立在算術錯誤上。
+
+
+================================================================================
+追加唯讀平衡審查（第四輪）— cap90 落地後的獨立核對與三處自我修正
+審查者: Hermes（獨立唯讀，未修改任何程式／測試；僅附加本檔）
+
+[1] 指定的獨立測試執行（唯讀）
+    node --test tests/v3-growth-curve.test.cjs tests/game-balance.test.cjs tests/v3-baseline.test.cjs
+    -> tests 23 / pass 23 / fail 0 / duration 1994.8ms
+    關鍵項：'V3 growth actual twenty-five choices spend 1976 XP and reach level26' PASS。
+    落地實作（js/config.js:21-25）：xpNeed = Math.min(90, 24 + lv*5 + floor(lv^1.35*1.2))，
+    即用 Math.min 整體封頂，lv1-8 自然保留原值 30/37/44/51/59/67/75/83，
+    lv>=9 起恆為 90。前期節奏確實未被改動（實測第9級開始即觸頂）。
+
+[2] 我獨立重算的數字（js/config.js，非引用測試結論）
+    25 次升級累計 XP = 1976 -> 等級 26（25 次升級後等級 = 次數+1）
+    27 次升級累計 XP = 2156 -> 等級 28
+    對照 XP 總量：1092 -> Lv16、1390 -> Lv19、1944 -> Lv25、2469 -> Lv31、4938(全清) -> Lv58
+    -> 與 Codex 提出的 1976/2156 一致，提案已正確落地。
+
+[3] 三處自我修正（上一輪報告的錯誤，在此更正）
+    a. 等級標示錯誤：我第三輪寫「Lv25-27」，應為 **Lv26-28**。
+       原因：19 weapon + 6 被動 = 25 次升級 = 等級 26；19 + 8 = 27 次 = 等級 28。
+       累計 XP 1976/2156 當時是對的，我只在把次數換算成等級時少算了 1。
+    b. 油曲線描述不當：我寫「油淨 −0.43/s 已成立」，把它說成普遍常數，這是錯的。
+       −0.43/s 只是「自然耗油 0.43 − 油被動回油 0.12」在**已點滿兩層油被動**時的淨值；
+       未取得油被動時為 −0.43/s，滿被動時為 −0.31/s，且會隨 STAGE_ENEMY / 被動層數變動。
+       正確說法是「站樁在各種被動組合下皆為淨耗油（最寬鬆 −0.31/s）」，
+       −0.43 是零被動時的上界，不是所有情況的固定值。
+    c. 「存活不等於勝利」：我第三輪引用 seed12 的 600 秒結果時寫過類似
+       「有取捨的通關」的字眼。seed12 的 stopReason 是 horizon、state=play，
+       delivered=42 但 **終王未死、勝利條件未達成**；那是「活到破曉」而非通關。
+       V3 的勝利是終王死亡且達標配送（game.js 的 finalBossDefeated && delivered>=GOAL）。
+       因此 600 秒仍在 play 只能作為「生存與成長曲線」的證據，不能作為平衡達標。
+
+[4] 在上述更正後，cap90 的整體判斷不變（同意保留）
+    - 前期不動、只壓尾段，25/27 次選擇落在 1976/2156 XP，
+      與 600 秒實測產出的 1390–1944 XP 同量級（1390 -> Lv19、1944 -> Lv25）。
+    - 不動配送 26、每 3 單印、敵 XP 2、油與傷害。
+
+[5] 仍未解決、不得當作已達標（依更正後的口徑重列）
+    - 12 單 4 MAX 可達性仍未實測：兩筆 600 秒實測 maxedAtElapsed 皆為 null。
+      cap90 讓 25/27 次選擇在數學上可行，但沒有任何一次實測真的走完四 MAX。
+    - 被動卡次數 5 次，低於 V3 目標 6–8，且分佈由控制器選卡優先序決定。
+    - 「Lv9 之後升級失去遞增張力」的疑慮仍存在（連續 10 級皆 90 XP），
+      須用玩家實測回饋判斷，退路是 cap 100。
+    - 兩筆 600 秒實測的 bossAnswers 都只有 1 次，Boss 讀題與招式迴避覆蓋不足。
+    - seed23 的失敗原因仍是燈油耗盡，不是等級不足；cap90 不解決這個。
+
+
+================================================================================
+最終唯讀複核 — artifacts/validation/v3-final-acceptance.json（3 seeds，正常輸入）
+審查者: Hermes（獨立唯讀；未重跑整局、未修改任何程式／測試；僅附加本檔）
+
+[1] 來源 hash 覆核（用現況檔案重算 SHA-256 與 JSON 記錄比對）
+    game      e90d817b2bdc… MATCH
+    config    01f71aded666… MATCH
+    evolutions 45bdd7c2c8e… MATCH
+    boss-ai  eb698f762366… MATCH
+    store     aef66e8849c5… MATCH
+    controller tools/v3-natural-run.cjs 513921b06c04… MATCH
+    -> 證據檔與被測原始碼一致，未混用舊版本雜湊。
+
+[2] XP ledger 自洽（三筆全部通過我獨立重算）
+    規則：totalEarned 應等於 xp + Σ xpNeed(1..level-1)；fromDelivery 應等於 26×delivered。
+    seed11 Lv19: 1424 = 78 + Σ(1..18)=1424 MATCH；832 = 26×32 MATCH；fromEnemies 592 ≥0
+    seed12 Lv17: 1188 = 22 + Σ(1..16)=1188 MATCH；650 = 26×25 MATCH；fromEnemies 538 ≥0
+    seed23 Lv29: 2266 = 20 + Σ(1..28)=2266 MATCH；858 = 26×33 MATCH；fromEnemies 1408 ≥0
+    -> 帳務無法靠灌 XP 造出來；配送 26 與敵 XP 2 的比例與實測一致。
+
+[3] 四 MAX 與印的時序（seed23）
+    maxedAtElapsed = 537.95（第 4 個 Lv5 在 538.0s 取得）
+    fourSealAt = 156.05（12 單賺滿 4 印，符合每 3 單 1 印、上限 4）
+    四個 Lv5 取得時刻：358.5 / 396.1 / 445.1 / 538.0
+    印收支：結餘 0 + 已用 4 = 賺到 4（未超過上限，未跨局）
+    picks：weapon 19 + passive 9 = 28 次升級，等級 29（= 28+1）完全自洽。
+    19 weapon 正好對應「刀已 Lv1 → 4+5+5+5」的 19 次（本次四 MAX 為 刀/陣/雷/針）。
+
+[4] 無強改等級的證據
+    三筆 pickLog 每一筆都帶 elapsed / level / rank，且 level 與 rank 單調對應
+    （首筆 level 1、末筆 level 18/16/28），沒有任何一次出現 level 跳號或 level 為 null。
+    等級只由 takeLevelUpChoice → pickUp 推進；runner 內無 setXp／setWeaponRank／maxOutUpgrades。
+
+[5] 移動量合理性
+    maximumStep = 39，恰等於衝刺 780px/s × dt 0.05（一般走 230×0.05 = 11.5）。
+    代表最高位移來自合法衝刺，非瞬移。movementSeconds 略大於 gameElapsed，
+    依遊戲規則成立：讀題保護期間局內時鐘暫停但移動仍計入走動。
+
+[6] 三筆結果的正確解讀（不可混為「通過」）
+    seed11 600s 存活、2 MAX、32 單、Lv19 —— 存活非勝利。
+    seed12 426.9s lampout、1 MAX、25 單、Lv17 —— 唯一真實失敗。
+    seed23 600s 存活、4 MAX、33 單、Lv29 —— 存活非勝利。
+    三筆的 bossAnswers 分別為 3 / 1 / 3，終王皆未確認死亡；
+    本檔亦無 finalBossDefeated 欄位，因此「三筆皆未通關」是正確結論，不得寫成平衡達標。
+
+[7] 被動卡與 V3 目標的落差（實測）
+    seed11 passive 3、seed12 passive 5、seed23 passive 9；目標 6–8。
+    只有 seed23 落在區間內且偏上緣，另兩筆低於下限。
+    注意這是控制器選卡優先序的產物，不等於玩家真實分佈。
+
+[8] 結論
+    同意放行本檔作為「正常輸入下的 600 秒驗收證據」，理由：
+      hash 一致、ledger 三筆自洽、四 MAX 時序與印收支可核對、無強改等級、
+      移動量可由合法衝刺解釋。
+    但明確不視為以下項目已達成：
+      - 通關（終王未被確認擊殺，三筆皆非勝利）
+      - 完整自然通關、隔日獨立回想、實機效能與掉幀、真人學習動機
+        （JSON 自身的 notMeasured 已列，我同意該清單）
+      - 被動選擇 6–8 次（兩筆低於下限）
+    唯一具體阻塞項（非阻擋放行，但需補）：驗收檔缺 finalBossDefeated 欄位，
+    導致「存活 vs 勝利」只能由 stopReason 反推。建議下一版補上該欄位與
+    每王時長，才能支撐 V3 D 段「每王 25–40 / 終王 45–75 秒」的驗收。
+
+
+================================================================================
+成功證據唯讀複核 — artifacts/validation/v3-final-completion-23.json
+審查者: Hermes（獨立唯讀；未重跑 600 秒、未修改任何程式／測試；僅附加本檔）
+
+[1] 環境一致性（與 v3-final-acceptance.json 同一份程式）
+    controller hash 513921b06c04… 與 final-acceptance 完全相同。
+    game / config / evolutions / boss-ai / store 五個來源 hash 亦與前檔相同，
+    且我用現況檔案重算 SHA-256 逐一 MATCH。
+    -> 這是同一環境下的延伸跑，不是換版本重測，兩檔可互相對照。
+
+[2] XP ledger 自洽（我獨立重算）
+    totalEarned 2462 = xp 36 + Σ xpNeed(1..30)=2426  -> MATCH
+    fromDelivery 858 = 26 × 33 delivered              -> MATCH
+    fromEnemies 1604（非負）
+    -> 帳務無法靠灌 XP 造出；配送 26 與敵 XP 2 的比例一致。
+
+[3] 勝利條件（不是改 state，是真的打完）
+    delivered 33 ≥ GOAL 6                                    -> 達成
+    bossKills 四筆依序：index0 @409.8、index1 @472.6、index2 @500.7、
+                        index3 final:true @622.5            -> 終王確實被擊殺
+    stopReason = victory、state = victory                   -> 由遊戲自身觸發勝利演出
+    -> 這是我前幾輪反覆要求補上的缺口：先前三筆都只是「存活」，
+       這筆是第一次有終王死亡 + 達標的完整勝利證據。
+
+[4] 每王時長（對照 V3 D 段目標）
+    index1→index2 間隔 28.1s（中王目標 25–40s）-> 落區間內
+    終王讀題 561.45 → 擊殺 622.50 = 61.0s（終王目標 45–75s）-> 落區間內
+    index0 的時長無法由 bossKills 推算（前一王無起點），需 spawn 時間才能算；
+    index1 的 62.8s 間隔包含 spawn 等待，不是純戰鬥長度。→ 這兩項僅供參考。
+
+[5] 與前檔 seed23 的對照（合理且可解釋）
+    maxedAtElapsed 兩檔完全相同（537.95）-> 四 MAX 時點不受延伸影響。
+    前檔 600s / Lv29 / xpEarned 2266，本檔 622.5s / Lv31 / 2462。
+    差額 196 XP = 延伸 22.5 秒內的敵掉落與配送，方向合理。
+    picks 本檔 passive 11 / weapon 19 / awaken 4：被動 11 次高於 V3 目標 6–8，
+    反映控制器在後期已無可升的主動技而被迫取被動，非玩家真實分佈。
+
+[6] 結論：同意放行
+    本檔滿足作為「正常輸入下完整通關」的證據所需的三項獨立核對：
+      同一 controller 與 production hash、帳務自洽、終王確實被擊殺並觸發勝利。
+    明確不視為已量測（沿用 JSON 自身 notMeasured）：
+      隔日獨立回想、實機效能與掉幀、真人學習動機、完整多次通關統計。
+    殘留觀察（非阻塞）：被動卡 11 次偏離 6–8；終王後段等級 Lv31 已超出
+    V3 目標 Lv26–28，顯示 622 秒的加班段仍持續供給升級，這在 V3 允許加班的
+    設計下可接受，但若要收斂應在加班段而非主曲線調整。

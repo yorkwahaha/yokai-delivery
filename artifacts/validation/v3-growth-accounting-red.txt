@@ -1,0 +1,31 @@
+✖ V3 accounting: six deliveries keep exactly 156 earned XP after real level choices (31.6749ms)
+✔ V3 accounting: one collected ordinary kill contributes exactly two XP (5.1364ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 95.2504
+
+✖ failing tests:
+
+test at tests\v3-growth-accounting.test.cjs:6:1
+✖ V3 accounting: six deliveries keep exactly 156 earned XP after real level choices (31.6749ms)
+  AssertionError [ERR_ASSERTION]: sum the actual requirements at each past level
+
+  198 !== 156
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-growth-accounting.test.cjs:16:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 198,
+    expected: 156,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

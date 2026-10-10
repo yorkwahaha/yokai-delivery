@@ -1,0 +1,51 @@
+{
+  "kind": "controlled Chrome browser verification",
+  "viewport": {
+    "width": 844,
+    "height": 390
+  },
+  "sources": {
+    "game": "e90d817b2bdc5a65249213e0c0302ddf9fa07871f8ae9642909a813502139bd1",
+    "ui": "ab94aca0528b551bce9057607f299c8e01011f64bfca4b7d49c9f4db1912c1b5",
+    "config": "01f71aded66610fe95143bcf768cb03671b7e212ce02a8b1467cd3e9597e5e37"
+  },
+  "storage": "memory-only local harness",
+  "observed": {
+    "bossHp": 1400,
+    "bossIntroduction": "picture and Chinese meaning paired with Japanese",
+    "bossReading": {
+      "elapsed": 540.05,
+      "oil": 99.98,
+      "frozen": true
+    },
+    "deliveryReading": {
+      "elapsed": 0,
+      "oil": 80
+    },
+    "firstHint": {
+      "oil": 80,
+      "assisted": true
+    },
+    "wrongTwice": {
+      "oil": 74,
+      "failed": 1,
+      "jobRetained": true
+    },
+    "javascriptErrors": 0,
+    "guidedCompletion": {
+      "delivered": 1,
+      "failed": 1,
+      "job": null,
+      "oil": 85.96,
+      "elapsed": 0.1
+    }
+  },
+  "screenshots": [
+    "v3-final-boss-introduction.png",
+    "v3-final-mobile-guided.png"
+  ],
+  "limits": [
+    "Controlled scene buttons; not normal gameplay or a physical phone.",
+    "Long-term learning and performance unmeasured."
+  ]
+}

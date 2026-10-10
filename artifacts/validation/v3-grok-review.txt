@@ -1,0 +1,157 @@
+V3 Grok 唯讀審查（對照目前 helper / route / acceptance / game.js，不是舊快照）
+本檔只記錄證據。沒有改 js、測試或 runner。
+
+標註：已修 = 先前共審指出的問題，現況已不成立。仍待修 = 現檔仍在。
+
+============================================================
+blocking
+============================================================
+
+runner 兩項已由 Codex 採納。歸 Codex 修 acceptance，不再是未決定項，也不要改 game.js 曲線。
+
+1. tools/v3-acceptance.cjs:156-163　Codex 已採納
+   根因：runOneRun 在 walkNear(job.to, 容差 190) 之後呼叫 g.atDestination() 與 g.atAnswer()。
+   這兩個函式在 tests/helpers/game-runtime.cjs:152-153 直接寫 P.x/P.y。
+   190px 可以停在答題圈外，瞬移再完成送達。JSON 的 ok 不能當成真步進送達。
+   修法：改走 helper 已有的 walkIntoAnswerZone + walkToAnswerPad，刪掉這兩次設座標。
+   對照：tests/v3-route.test.cjs:36-40 的 deliverOnce 已是真步進。
+
+2. tools/v3-acceptance.cjs:177-184　Codex 已採納
+   根因：升級一律 takeLevelUpChoice(0)。覺醒卡在三張裡洗牌，不固定在第 0 張。
+   一直點第 0 張會先花掉槽位和被動，量不到四 MAX。
+   同檔 107 行 maxOutUpgrades 直接把等級寫成 5，只是木樁。
+   修法：有 lv===5 且持印就點那張；否則點持有中等級最低的武器；未滿四槽才點新武器；最後才點被動。
+
+3. 十二單與四 MAX　定義已更正，不是 production 缺陷，不改經驗曲線
+   舊稿把「四個技能都從 0 起算 = 20 次選卡」寫成曲線問題。那個起算是錯的。
+   js/game.js:382 與 :543：開局 WL.katana 已是 1，另外三個主動從 0 開始。
+   妖刀剩 Lv2、Lv3、Lv4、MAX 共 4 次。三把新主動各 5 次（Lv1 到 MAX）。四主動到 MAX 是 19 次，不是 20。
+   另加 6–8 次被動，合計 25–27 次選卡。
+   js/config.js:21-23 的 xpNeed 累計：第 25 次升級共 3243 XP，第 27 次共 3755 XP。
+   十二單只負責 4 印（每 3 單 1 印、上限 4）和 12×26 = 312 配送 XP。
+   四 MAX 的定義是：本局正常戰鬥 XP + 這 312 配送 XP + 實際選卡。不是十二單單獨把四個技能升滿。
+   因此不需要改 production 曲線。route 綠燈仍然不等於已經量完四 MAX。
+
+============================================================
+已成立（含已修）
+============================================================
+
+1. tests/v3-route.test.cjs:36-40、116-129 已修
+   deliverOnce 用 walkIntoAnswerZone 與 walkToAnswerPad，註解寫明不用 atDestination／atAnswer。
+   單筆斷言是 delivered === 1，不再靠瞬移。
+
+2. tests/v3-route.test.cjs:144-165 已修
+   六單現在要求 failure === null 且 delivered === 6。舊的 delivered >= 1 已不在。
+
+3. tests/v3-route.test.cjs:168-190 已修
+   被動卡斷言改為 picks.passive >= 1 且 level === 5。策略用 choiceIds 比對 shield／oil_max／dmg 等真實 id。
+   舊的 picks.passive >= 0 永遠成立，已不在。
+   setXp 在 172-174 行註明是 fixture 探針，不是自然累積。這條證明選得到被動卡，不證明自然經驗。
+
+4. tests/helpers/game-runtime.cjs:116-136 已修
+   walkToAnswerPad 只用 walkNear，容差預設 26，走到遊戲 ansPos 再等 job 消失。
+   atDestination／atAnswer 留在 152-153，註明只給受控單元，route 不再呼叫。
+
+5. tests/helpers/game-runtime.cjs:424-425 已修
+   v3().sealCount 讀的是遊戲裡的 seals（js/game.js:230 有 let seals）。不再是永遠的 undefined。
+
+6. tests/input-runtime.test.cjs:1690-1692 與 1763-1770 已修
+   兩段提示的油下降改為 >= 4 且 < 5（第二段 −4，加上約 0.6*0.43 的自然耗油）。
+   傷害被動改為 4 層，與 js/game.js 的 dmgUp < 4、每層 +0.30 一致。不再要求 6 層或至少扣 7 油。
+
+7. 新詞與安全讀題在 js/game.js 已成立
+   462-463：study.pick 回 null 就 return，不落到全詞庫。
+   710：study.seen 在 interact 取貨朗讀旁。743 在成功 resolve 再記一次。makeOrder 沒有 seen。
+   2031：首領題用 seenWords() 最後一詞，不用 study.pick。
+   2066-2070：沒見過的詞先說「假名＝意思」、朗讀、seen，並標 assisted。
+   1746-1754：配送 <220 進入、>=270 離開並 readClosed，一單一次。首領離開 380 設 quizClosed，只關這一次暫停。
+   1811 附近的玩家移動不在 safeRead 區塊裡，所以不是永久凍結；人可以走出範圍。
+   2078：bossQ.reading 只有 quizNear === 該首領時為 true。
+   2996、3149：配送讀題中不把 123／手把送去答首領。
+   2158-2173：讀題期間 hold 仍累加，門檻是 READ_DWELL 0.65（233、2173）。
+   850、1925：凍結過期會刪 shatterVolley，hurt 還會再查 freezeEnds。
+   1943：BOSS_AI blocked 預設半徑 32。
+   Codex 另加 charge 的 32 body 真壁外測試，回報 GREEN。readworld sync 穩定後，牆碰撞有效。Grok 本輪未重跑該測試。
+
+8. 首領讀題不是永久凍結。契約「leaving a boss quiz consumes its one safe-reading entry」已由 Codex 複跑進 20/20。
+   runner 若停在 380 以內，該單應記走不到。那是失敗，不是假通過。
+
+============================================================
+限制（不是假通過，也不能當成更強的證據）
+============================================================
+
+1. tests/v3-route.test.cjs:124-128 仍待修的是證據，不是 production 提前交卷
+   單筆配送只 console.log dwell，不再斷言 0.65 區間。
+   根因：答案墊選取半徑是 js/game.js:2161 的 38px。walkToAnswerPad 容差 26，最後幾幀已經站在墊上，hold 在走路的 update 裡先累積。
+   回傳的 dwell 只算「到達之後」的等待，所以會小於 0.65。提交條件仍是 hold >= 0.65。
+   0.65 的硬斷言在契約測試，不在這條 route。route 綠燈不能單獨證明停留門檻。
+
+2. tests/helpers/game-runtime.cjs:139-143 對 367 行
+   walkIntoAnswerZone 多傳的第 6 個引數 26 被 walkNear 忽略。實際容差是第 3 引數，deliverOnce 傳的是 190。
+   這只是走到屋邊的中途點。真正交卷閘門是 walkToAnswerPad 的 26px。不是假送達。
+   若之後有人只看 zone.reached，190px 會太鬆。
+
+3. tests/v3-route.test.cjs:155
+   六單用 handleLevelUps 的預設策略，也就是第 0 張。六單全綠不代表有覺醒，更不代表四 MAX。
+
+4. tests/v3-route.test.cjs:107-108
+   forceLevelUp 直接把 xp 設成 xpNeed。這條只證明走路中遇到升級不會卡死，不證明自然經驗。
+
+5. tools/v3-acceptance.cjs 的木樁段（measureBossKill、maxOut）有註明不含讀題與走位。
+   限制是不要把該 JSON 的 killed／seconds 寫成自然四 MAX。B 段瞬移與第 0 張選卡已由 Codex 採納，見 blocking 1 與 2。
+
+============================================================
+給 Codex 的最小修法（Grok 不改這些檔）
+============================================================
+
+- runner 兩項 Codex 已採納：B 段改走 walkToAnswerPad，選卡不要永遠點第 0 張。不要為了十二單去放寬 route，也不要改經驗曲線。
+- 成長定義：十二單 = 4 印 + 312 配送 XP。四主動到 MAX = 19 次選卡（妖刀已 Lv1）。加 6–8 被動 = 25–27 次，累計約 3243–3755 XP，不足的部分用本局戰鬥 XP。maxOut 不算這條。
+- game.js 的新詞閘門、一次安全讀題、0.65 hold、凍結來源清理，沒有要改的 production 缺陷。
+- Grok 主要實作與這次共審已完成，之後保持唯讀，等最終 release review。
+
+============================================================
+最終意見：同意 cap 90，不改 code（2026-10-10）
+============================================================
+
+判斷：同意 Codex 的 XP_NEED cap 90。保留前 8 次升級的原價，配送 26、印、普通怪 XP 2 都不動，也不加技能傷害或回油。這是養成上限的調整。它不是通關證明，也不是「4 MAX 已被證明不可達」的修補。Grok 沒有改 js/config.js。工作樹裡該函式已有未提交的 Math.min(90, …)（js/config.js:21-24）。下面的數字是用實測帳重算，不是 cap 後重跑。
+
+1. 600 秒存活不是通關
+   artifacts/validation/v3-controller-600-12.json：seed 12，stopReason=horizon，state=play，oil=76.65，elapsed=600，delivered=42。
+   通關條件是最終首領死亡且送達至少 6。42 單已超過 6。若最終首領已死，勝利會立刻發生。這局停在 play，所以最終首領還在。存活到 600 秒只表示油沒盡。
+
+2. 這些種子不能證明 4 MAX 不可達
+   量到的是三局控制器，不是全種子。
+   seed 12：1944 XP（配送 1092＋敵 852），Lv19，火與雷 2 MAX，被動 5，印結餘 2。無 cap 時 19 次純武器升級要 1945，這局總經驗差 1；實際把 5 次花在被動，武器只選了 13 次。
+   seed 23：1390 XP（884＋506），529.8 秒油盡，0 MAX，針停在 Lv4，印結餘 4。最後一次升級才把針升到 4，餘 117，下一次要 154，死前沒有再出現覺醒卡。
+   seed 11：822 XP，274.3 秒油盡，只有妖刀 MAX。死因是停送後繞首領，而且死在 300 秒前。
+   三局都沒有走出「19 次全給武器」的路徑。不能由此說生產曲線到不了 4 MAX。
+
+3. cap 90 的帳，與實測 1944 的距離
+   無 cap：xpNeed(lv)=24+lv*5+floor(lv^1.35*1.2)。前 8 次合計 446。第 9 次 92，第 19 次累計 1945，第 25 次累計 3243，第 27 次累計 3755。
+   cap 90：前 8 次仍是 446。第 9 次變 90，只少 2。之後每次 90。第 19 次累計 1436，第 24 次 1886，第 25 次 1976，第 27 次 2156。
+   妖刀開局 Lv1，四主動到 MAX 是 19 次。加 6 被動是 25 次，加 8 被動是 27 次。Codex 寫的 3243→1976、3755→2156 與這個式子一致。
+   把 seed 12 的 1944 原封不動放進 cap：花 1886 完成 24 次，剩 58，下一次要 90。距第 25 次還差 32，距第 27 次還差 212。
+   所以「1944 接近極限」對 4 MAX＋6 被動成立，差 32。對 4 MAX＋8 被動不那麼近，還差 212。24 次本身夠放進 19 次武器加 5 次被動，但是這次重算沒有重新選卡，不能把這 24 次寫成已經四 MAX。
+
+4. 為什麼選 cap，而不是 300 秒後把普通怪 XP 從 2 改成 4
+   配送 26 對一顆 2 XP 的比率是 13 比 1。cap 不改這個比率，兩種玩法一起變快。後期把怪的 XP 加倍會提高戰鬥經驗、壓低送貨的相對價值。seed 11 在 300 秒前死亡，那條加倍對它沒有作用。
+   同一筆收入重算：seed 23 的 1390 在 cap 下約完成 18 次（第 15 次累計 1076，餘額再升 3 次），仍然不到 19 次武器。seed 11 的 822 大約多 1 次。cap 沒有把這兩次失敗改成通關或四 MAX。
+
+5. 尚未量到的風險
+   cap 從第 9 次升級開始讓人提早變強。seed 12 的第 8 次在 191 秒，第 9 次在 233 秒。191 秒之後的擊殺會比這份 852 敵經驗多。多出的經驗可能補上那 32。這份同意是公式與舊帳的判斷，不是 cap 後的新實測。Codex 若留下工作樹裡的 cap，要重跑才知道 25 次還在不在極限外面。不要在 cap 上再把怪的 XP 改成 4。完整平衡仍由 Codex 量測。
+
+============================================================
+最終放行（cap 90 實測，2026-10-10）
+============================================================
+
+同意放行。沒有阻塞。本段只追加結論，沒有改 js 或測試。Grok 沒有重跑 Codex 回報的 504/504。
+
+證據：artifacts/validation/v3-final-completion-23.json。horizon 720。seed 23，stopReason=victory，state=victory，gameElapsed=622.5。sources 與 controllerHash 513921b0… 和 v3-final-acceptance.json、目前 js/game.js、js/config.js、js/evolutions.js、js/boss-ai.js、js/store.js、tools/v3-natural-run.cjs 相同。
+
+控制器只在 snapshot.state 已是 victory 或 won 時停止（tools/v3-natural-run.cjs:52）。它不寫 state。js/game.js:936 的 startVictorySequence 只在 state 仍是 play 時把 state 設成 victory。最終首領死亡且已送達至少 6 會走 840 行。bossKills 是更新前還活著、更新後 hp<=0 的同一個首領物件（控制器 101–104 行），不是手寫擊殺。
+
+四次擊殺：index 0 於 409.75、index 1 於 472.55、index 2 於 500.65、index 3 final:true 於 622.5。勝利時間與最後一次擊殺相同。當時已有 33 單。33×26=858，總經驗 2462，敵經驗 1604。Lv31 的 cap 90 花費是 2426，餘 36，2426+36=2462。最大單幀位移 39，是衝刺一幀。
+
+4 MAX 在 537.95 秒，早於通關。妖刀、結界、雷、針都是 5，印結餘 0。600 秒那份 acceptance 停在 play，是因為 horizon 600 時最終首領還沒死。這份把同一局放到 720，加時 22.5 秒後自然進入勝利演出。這是規則允許的加時通關，不是 600 秒內擊破。
+
+同一控制器下，seed 11 600 秒仍是 play、2 MAX，seed 12 426.9 秒油盡、1 MAX。限制留在 docs/v3-upgrade.md：完美答題、不是真人、不是每種子都通關。到此停止。

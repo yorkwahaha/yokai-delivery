@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// V3 驗收 runner（Hermes 責任範圍）。
+// V3 驗收 runner（Hermes 初稿，Codex 最終整合）。
 //
 // 兩類量測，界線必須清楚：
 //   A. geometry/probe —— 受控情境下的幾何與節奏量測（木樁 DPS、技能上限、站樁油曲線）。
@@ -15,6 +15,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto=require('node:crypto');
 const { loadGame, BASELINE_REVISION } = require('../tests/helpers/game-runtime.cjs');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -45,6 +46,7 @@ function measureStandstill(seed, seconds = 180, weaponRank = 5) {
   g.stopSpawns();
   g.clearEnemies();
   if (weaponRank) { g.setWeaponRank('barrier', weaponRank); g.armWeapons(); }
+  g.tune('oil_max').f(); g.tune('oil_max').f();
   g.setOil(80);
   const startOil = g.snapshot().oil;
   const samples = [];
@@ -58,7 +60,7 @@ function measureStandstill(seed, seconds = 180, weaponRank = 5) {
     startOil, endOil: +endOil.toFixed(2), delta: +(endOil - startOil).toFixed(2),
     netPerSecond: +((endOil - startOil) / seconds).toFixed(4),
     samples,
-    note: '站樁 + 靈陣 Lv5 + 兩層油被動；停生成不代表玩家能同時清怪'
+    note: '無敵人受控耗油；兩層油被動、靈陣等級見 weaponRank；非正常戰鬥'
   };
 }
 
@@ -78,16 +80,16 @@ function measureSkill(seed, weapon, rank, damageCoefficient = 1.2) {
     g.setDamageCoefficient(damageCoefficient);
     const walls = name === 'behindWall' ? [{ x0: 55, x1: 105, y0: -260, y1: 260 }] : [];
     g.combatScene(weapon, foes, walls, rank);
-    const before = g.snapshot().enemies.map(e => e.hp);
-    const oilStart = g.snapshot().oil;
+    const targets=g.snapshot().enemies.slice();
+    const before=targets.map(e=>e.hp);
     let t = 0;
-    while (t < 20 && g.snapshot().enemies.some(e => e.hp > 0)) { g.update(1 / 60); t += 1 / 60; }
-    const after = g.snapshot().enemies.map(e => e.hp);
+    while(t<20 && targets.some(e=>e.hp>0)){g.setElapsed(t);g.weapons(1/60);t+=1/60;}
+    const after=targets.map(e=>e.hp);
     out[name] = {
       rank, seconds: +t.toFixed(2),
       cleared: after.every(hp => hp <= 0),
       damageDealt: before.reduce((s, hp, i) => s + Math.max(0, hp - after[i]), 0),
-      oilDelta: +(g.snapshot().oil - oilStart).toFixed(2),
+      note:'Weapon-only stationary targets; no AI, incoming damage, oil or natural progression.',
       timeout: t >= 20
     };
   }
@@ -125,77 +127,20 @@ function measureBossKill(seed, label, opts) {
 
 // ---------------------------------------------------------------- B. real run
 
-/** 真步進的一次完整送單循環。 */
-function runOneRun(seed, targetDeliveries, opts) {
-  const spawns = !opts || opts.spawns !== false;
-  const g = boot(seed);
-  if (!spawns) { g.stopSpawns(); g.clearEnemies(); }
-  const perDelivery = [];
-  const picks = { passive: 0, weapon: 0, awaken: 0 };
-  let levelUpsHandled = 0;
+/**
+ * B 段：真正 600 秒自然運行。
+ *
+ * 嚴格禁止（在真實運行分支）：
+ *   - atDestination() / atAnswer()（瞬移）
+ *   - setXp / giveXP / setWeaponRank / maxOutUpgrades
+ *   - 無敵（不動 b.shield 與油量）
+ *   - setState 強改狀態跳過選卡
+ * 自然分支使用道路規劃、pushKeys / tapKey 正常移動、update 步進、answerBoss 選答案、
+ * takeLevelUpChoice（走遊戲自身流程）與 realPickup（走 interact）。
+ */
 
-  for (let i = 0; i < targetDeliveries; i++) {
-    let guard = 0;
-    while (guard < 1200 && !g.ordersNow().length) { g.update(0.1); guard++; }
-    const orders = g.ordersNow();
-    if (!orders.length) { perDelivery.push({ index: i, ok: false, reason: 'no-order-generated' }); break; }
-    const order = orders[0];
-
-    g.clearInteract();
-    const toPickup = g.walkToInteract(order.from);
-    if (!toPickup.reached) { perDelivery.push({ index: i, ok: false, reason: 'pickup-unreachable', walk: toPickup }); break; }
-    const picked = g.realPickup();
-    if (!picked) { perDelivery.push({ index: i, ok: false, reason: 'interact-failed', walk: toPickup }); break; }
-    const job = g.snapshot().job;
-
-    // 收件端不需要「互動」——送到屋邊即可答題。walkToInteract 的互動距離
-    // （玩家中心到 clamp 外框 < 46px）比答題區（< 220px 觸發結界、< 270px 可選）
-    // 嚴格得多，所以對收件屋改用 walkNear 放寬到可答題範圍。
-    const spot = g.nearestHouseFreeSpot(job.to);
-    if (!spot) { perDelivery.push({ index: i, ok: false, reason: 'no-free-spot-around-house' }); break; }
-    const toDrop = g.walkNear(job.to.x, job.to.y + 110, 190, 60, 1 / 60, 40);
-    if (!toDrop.reached) { perDelivery.push({ index: i, ok: false, reason: 'drop-unreachable', walk: toDrop }); break; }
-    g.atDestination();
-    g.update(1 / 60);
-    if (!g.snapshot().job) { perDelivery.push({ index: i, ok: false, reason: 'job-vanished-at-destination' }); break; }
-    g.atAnswer();
-    let waited = 0;
-    while (g.snapshot().job && waited < 4) { g.update(1 / 60); waited += 1 / 60; }
-
-    const s = g.snapshot();
-    perDelivery.push({
-      index: i, ok: !g.snapshot().job,
-      pickupSeconds: toPickup.seconds, dropSeconds: toDrop.seconds,
-      totalWalkSeconds: +(toPickup.seconds + toDrop.seconds).toFixed(2),
-      dwellWaited: +waited.toFixed(2),
-      delivered: s.delivered, xp: s.xp, level: s.level, oil: +s.oil.toFixed(1),
-      seals: g.v3().sealCount === undefined ? null : g.v3().sealCount,
-      xpSources: g.xpSources()
-    });
-
-    let guard2 = 0;
-    while (g.snapshot().state === 'levelup' && guard2 < 12) {
-      const choices = g.currentChoices() || [];
-      if (!choices.length) break;
-      const res = g.takeLevelUpChoice(0);
-      if (!res.ok) break;
-      levelUpsHandled++;
-      if (res.type === 'passive') picks.passive++;
-      else { picks.weapon++; if (res.lv === 5) picks.awaken++; }
-    }
-  }
-
-  const s = g.snapshot();
-  return {
-    kind: 'run', seed, targetDeliveries, spawns,
-    delivered: s.delivered, level: s.level, xp: s.xp,
-    oil: +s.oil.toFixed(1), elapsed: +s.elapsed.toFixed(1), state: s.state,
-    seals: g.v3().sealCount === undefined ? null : g.v3().sealCount,
-    levelUpsHandled, picks,
-    weapons: g.weaponLevels(), barrier: g.bar(),
-    perDelivery
-  };
-}
+const {runNaturalRun}=require('./v3-natural-run.cjs');
+function compareDeliveryVsStandstill(seed,seconds){return {seed,horizon:seconds,delivery:runNaturalRun(seed,{seconds}),standstill:runNaturalRun(seed,{seconds,mode:'standstill'})};}
 
 // ---------------------------------------------------------------- main
 
@@ -204,14 +149,16 @@ function main() {
     generatedBy: 'tools/v3-acceptance.cjs',
     node: process.version,
     baselineRevision: BASELINE_REVISION,
-    seeds: [SEED, SEED + 1, SEED + 2],
-    v3Spec: { deliveryXp: 26, sealsPerDeliveries: 3, sealMax: 4, bossHpTable: 'pending' },
+    seeds: [SEED, SEED + 1, SEED + 12],
+    sources:Object.fromEntries(['game','config','evolutions','boss-ai','store'].map(n=>[n,crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,'js',n+'.js'))).digest('hex')])),
+    controllerHash:crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,'tools/v3-natural-run.cjs'))).digest('hex'),
+    v3Spec: { deliveryXp: 26, sealsPerDeliveries: 3, sealMax: 4, bossHpTable: [300,650,120,1400] },
     limits: LIMITS,
     notMeasured: ['完整自然通關', '隔日獨立回想', '實機效能與掉幀', '真人學習動機'],
     standstill: [], skillScenarios: {}, bossKill: [], runs: []
   };
 
-  for (const seed of [SEED, SEED + 1, SEED + 2]) {
+  for (const seed of [SEED, SEED + 1, SEED + 12]) {
     report.standstill.push(measureStandstill(seed, 180, 5));
     report.standstill.push(measureStandstill(seed, 180, 0));
   }
@@ -229,11 +176,11 @@ function main() {
   report.bossKill.push(measureBossKill(SEED, '4MAX-katana+needle+fire+boom/B2.4', { hp: 1400, damageCoefficient: 2.4, weapons: fourMax }));
   report.bossKill.push(measureBossKill(SEED, 'fullMaxOut/B2.4', { hp: 1400, damageCoefficient: 2.4, maxOut: true }));
 
-  for (const seed of [SEED, SEED + 1]) {
-    for (const target of [6, 9, 12]) {
-      report.runs.push(runOneRun(seed, target, { spawns: true }));
-    }
+  // B 段：真正 600 秒自然運行（真步進、遊戲自身選卡流程、有 spawns）。
+  for (const seed of [SEED, SEED + 1, SEED + 12]) {
+    report.runs.push(runNaturalRun(seed, { wallBudgetMs: 150000 }));
   }
+  report.deliveryVsStandstill={seed:SEED,horizon:600,delivery:report.runs[0],standstill:runNaturalRun(SEED,{seconds:600,mode:'standstill'})};
 
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify(report, null, 2), 'utf8');
@@ -241,8 +188,34 @@ function main() {
     out: path.relative(ROOT, OUT),
     standstillNetPerSecond: report.standstill.map(s => s.netPerSecond),
     bossSeconds: report.bossKill.map(b => b.label + '=' + b.seconds + (b.killed ? '' : '(timeout)')),
-    runs: report.runs.map(r => 'seed' + r.seed + '/' + r.targetDeliveries + ': delivered=' + r.delivered + ' lv=' + r.level + ' ' + r.state)
+    runs: report.runs.map(r => [
+      'seed' + r.seed,
+      'stop=' + r.stopReason,
+      'gameElapsed=' + r.gameElapsed,
+      'wallMs=' + r.wallMs,
+      'delivered=' + r.delivered,
+      'lv=' + r.level,
+      'seals=' + r.seals,
+      'fourSealAt=' + r.fourSealAt,
+      'walk=' + r.movementSeconds,
+      'passive=' + r.picks.passive,
+      'weapon=' + r.picks.weapon,
+      'awaken=' + r.picks.awaken,
+      'enemyXp=' + r.xpLedger.fromEnemies,
+      'maxed=' + (r.maxed.length ? r.maxed.join('+') : 'none'),
+      'state=' + r.state
+    ].join(' ')),
+    deliveryVsStandstill: report.deliveryVsStandstill && {
+      seed: report.deliveryVsStandstill.seed,
+      delivered: report.deliveryVsStandstill.delivery.delivered,
+      seals: report.deliveryVsStandstill.delivery.seals,
+      enemyXp: report.deliveryVsStandstill.delivery.xpLedger.fromEnemies,
+      passive: report.deliveryVsStandstill.delivery.picks.passive,
+      standstillStop:report.deliveryVsStandstill.standstill.stopReason,
+      standstillElapsed:report.deliveryVsStandstill.standstill.gameElapsed
+    }
   }, null, 2));
 }
 
-main();
+if(require.main===module)main();
+module.exports={runNaturalRun,compareDeliveryVsStandstill};

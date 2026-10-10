@@ -3,7 +3,7 @@
   "sources": {
     "game": "e90d817b2bdc5a65249213e0c0302ddf9fa07871f8ae9642909a813502139bd1",
     "evolutions": "45bdd7c2c8e6179875bf1412b40293d6a2a24bf0a2f5b23dfd0420c2b2d190b8",
-    "config": "bf46b30082c28d73e1ad3c2de79604a7f5f36903845889d16e0009f28efe3f42"
+    "config": "01f71aded66610fe95143bcf768cb03671b7e212ce02a8b1467cd3e9597e5e37"
   },
   "hp": 1400,
   "damageCoefficient": 2.4,

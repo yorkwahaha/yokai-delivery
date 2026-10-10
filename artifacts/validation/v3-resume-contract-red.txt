@@ -1,0 +1,93 @@
+✔ V3 contract: common boss timeline and bounded overtime difficulty (1.5514ms)
+✔ V3 contract: independent and assisted deliveries each grant 26 XP (19.5926ms)
+✔ V3 contract: first hint is free and duplicate presses cannot reach paid hint (3.3044ms)
+✔ V3 contract: a wrong answer retains the job and charges six oil only once (3.0444ms)
+✔ V3 contract: Lv4 cannot awaken before deliveries, three deliveries unlock a saved seal (4.8638ms)
+✔ V3 contract: damage passive stops at four increments of 0.30 (2.5152ms)
+✔ V3 contract: destination reading freezes elapsed time, oil and weapon damage (3.8877ms)
+✔ V3 contract: thunder Lv3 and Lv4 damage cannot execute a high-HP ordinary enemy (7.7319ms)
+✔ V3 contract: MAX barrier fields never restore oil (2.9914ms)
+✔ V3 contract: fire and talisman rank counts match the new specialist behavior (0.1586ms)
+✔ V3 contract: one ice volley shares its finite shatter budget and new freezes clear old sources (0.3494ms)
+✔ V3 contract: assisted recall preserves error priority and repeated independent recall cannot farm stars (2.7094ms)
+✔ V3 contract: first boss starts with fixed HP independent of player power (3.0079ms)
+✔ V3 contract: safe reading freezes nearby enemies as well as damage (3.6672ms)
+✔ V3 contract: expired freeze cannot cause a delayed shatter explosion (4.679ms)
+✔ V3 contract: a scheduled boss reviews a word actually picked up this run (39.0287ms)
+✔ V3 contract: leaving a boss quiz consumes its one safe-reading entry (3.8164ms)
+✖ V3 contract: an awakened blade keeps its rear blind spot and cannot hit beyond 720 (3.8154ms)
+✖ V3 contract: order creation respects a study session with no eligible word (2.6285ms)
+✖ V3 contract: a first-encounter boss word is introduced once and completion stays assisted (3.0738ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 17
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 183.1252
+
+✖ failing tests:
+
+test at tests\v3-contract-gate.test.cjs:120:1
+✖ V3 contract: an awakened blade keeps its rear blind spot and cannot hit beyond 720 (3.8154ms)
+  AssertionError [ERR_ASSERTION]: the rear blind spot still matters at MAX
+
+  993.94 !== 999
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:125:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 993.94,
+    expected: 999,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:129:1
+✖ V3 contract: order creation respects a study session with no eligible word (2.6285ms)
+  AssertionError [ERR_ASSERTION]: no all-vocabulary fallback may bypass cooling or exclusions
+
+  1 !== 0
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:133:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:136:1
+✖ V3 contract: a first-encounter boss word is introduced once and completion stays assisted (3.0738ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  0 !== 1
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:140:30)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

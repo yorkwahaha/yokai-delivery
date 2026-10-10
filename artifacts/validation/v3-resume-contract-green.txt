@@ -1,0 +1,39 @@
+✔ V3 Boss AI: slam locks the original target during its warning (0.755ms)
+✔ V3 Boss AI: locked slam hits once and opens a recovery window (0.6686ms)
+✔ V3 Boss AI: moving away from a locked ground strike avoids the hit (0.1228ms)
+✔ V3 Boss AI: shielding and reading pause stop attacks and timers (0.1327ms)
+✔ V3 Boss AI: second boss alternates ground strike and straight charge (0.2069ms)
+✔ V3 Boss AI: charge uses swept wall collision and cannot cross a thin building (0.1889ms)
+✔ V3 Boss AI: full-health final boss has no ring and half-health unlocks one (0.8407ms)
+✔ V3 Boss AI: ring has a real gap and hits an unsafe swept annulus only once (0.623ms)
+✔ V3 Boss AI: tide is exclusive to the port and keeps a safe lane (0.3812ms)
+✔ V3 Boss AI: warning, impact and recovery never overlap a second main attack (0.2205ms)
+✔ V3 Boss AI: a defeated boss cannot start or finish an attack (0.3065ms)
+✔ V3 contract: common boss timeline and bounded overtime difficulty (0.8733ms)
+✔ V3 contract: independent and assisted deliveries each grant 26 XP (14.5336ms)
+✔ V3 contract: first hint is free and duplicate presses cannot reach paid hint (3.5994ms)
+✔ V3 contract: a wrong answer retains the job and charges six oil only once (3.6282ms)
+✔ V3 contract: Lv4 cannot awaken before deliveries, three deliveries unlock a saved seal (4.7234ms)
+✔ V3 contract: damage passive stops at four increments of 0.30 (2.7164ms)
+✔ V3 contract: destination reading freezes elapsed time, oil and weapon damage (4.1065ms)
+✔ V3 contract: thunder Lv3 and Lv4 damage cannot execute a high-HP ordinary enemy (8.0489ms)
+✔ V3 contract: MAX barrier fields never restore oil (3.3807ms)
+✔ V3 contract: fire and talisman rank counts match the new specialist behavior (0.19ms)
+✔ V3 contract: one ice volley shares its finite shatter budget and new freezes clear old sources (0.3717ms)
+✔ V3 contract: assisted recall preserves error priority and repeated independent recall cannot farm stars (2.9863ms)
+✔ V3 contract: first boss starts with fixed HP independent of player power (3.1822ms)
+✔ V3 contract: safe reading freezes nearby enemies as well as damage (3.8043ms)
+✔ V3 contract: expired freeze cannot cause a delayed shatter explosion (4.6944ms)
+✔ V3 contract: a scheduled boss reviews a word actually picked up this run (49.2481ms)
+✔ V3 contract: leaving a boss quiz consumes its one safe-reading entry (4.0301ms)
+✔ V3 contract: an awakened blade keeps its rear blind spot and cannot hit beyond 720 (3.2664ms)
+✔ V3 contract: order creation respects a study session with no eligible word (2.6499ms)
+✔ V3 contract: a first-encounter boss word is introduced once and completion stays assisted (3.9374ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 204.3348

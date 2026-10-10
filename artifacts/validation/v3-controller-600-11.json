@@ -1,0 +1,247 @@
+{
+  "kind": "input-controller",
+  "seed": 11,
+  "mode": "delivery",
+  "horizon": 600,
+  "stopReason": "death",
+  "gameElapsed": 274.3,
+  "wallMs": 22399,
+  "frames": 5847,
+  "movementSeconds": 277.9,
+  "maximumStep": 39,
+  "delivered": 14,
+  "level": 12,
+  "xp": 75,
+  "oil": 0,
+  "state": "lampout",
+  "seals": 3,
+  "fourSealAt": 110.09999999999589,
+  "maxedAtElapsed": null,
+  "weapons": {
+    "katana": 5,
+    "barrier": 2,
+    "fire": 0,
+    "boom": 3,
+    "thunder": 0,
+    "needle": 1
+  },
+  "maxed": [
+    "katana"
+  ],
+  "xpLedger": {
+    "totalEarned": 822,
+    "fromDelivery": 364,
+    "fromEnemies": 458,
+    "level": 12,
+    "xp": 75,
+    "delivered": 14
+  },
+  "picks": {
+    "passive": 1,
+    "weapon": 10,
+    "awaken": 1
+  },
+  "pickLog": [
+    {
+      "at": 22.85000000000019,
+      "level": 1,
+      "id": "needle",
+      "type": "weapon",
+      "rank": 1,
+      "needed": 30
+    },
+    {
+      "at": 27.80000000000026,
+      "level": 2,
+      "id": "boom",
+      "type": "weapon",
+      "rank": 1,
+      "needed": 67
+    },
+    {
+      "at": 41.399999999999785,
+      "level": 3,
+      "id": "boom",
+      "type": "weapon",
+      "rank": 2,
+      "needed": 111
+    },
+    {
+      "at": 53.59999999999909,
+      "level": 4,
+      "id": "barrier",
+      "type": "weapon",
+      "rank": 1,
+      "needed": 162
+    },
+    {
+      "at": 77.04999999999777,
+      "level": 5,
+      "id": "barrier",
+      "type": "weapon",
+      "rank": 2,
+      "needed": 221
+    },
+    {
+      "at": 93.09999999999685,
+      "level": 6,
+      "id": "mag",
+      "type": "passive",
+      "rank": null,
+      "needed": 288
+    },
+    {
+      "at": 110.14999999999588,
+      "level": 7,
+      "id": "boom",
+      "type": "weapon",
+      "rank": 3,
+      "needed": 363
+    },
+    {
+      "at": 161.90000000000256,
+      "level": 8,
+      "id": "katana",
+      "type": "weapon",
+      "rank": 2,
+      "needed": 446
+    },
+    {
+      "at": 194.25000000000992,
+      "level": 9,
+      "id": "katana",
+      "type": "weapon",
+      "rank": 3,
+      "needed": 538
+    },
+    {
+      "at": 226.95000000001735,
+      "level": 10,
+      "id": "katana",
+      "type": "weapon",
+      "rank": 4,
+      "needed": 638
+    },
+    {
+      "at": 261.5000000000252,
+      "level": 11,
+      "id": "katana",
+      "type": "weapon",
+      "rank": 5,
+      "needed": 747
+    }
+  ],
+  "bossAnswers": [
+    {
+      "at": 221.75000000001617,
+      "word": "かめ",
+      "correct": true,
+      "introduced": false
+    }
+  ],
+  "deliveries": [
+    {
+      "at": 11.900000000000034,
+      "word": "うさぎ",
+      "delivered": 1,
+      "level": 1,
+      "oil": 100
+    },
+    {
+      "at": 22.80000000000019,
+      "word": "かさ",
+      "delivered": 2,
+      "level": 1,
+      "oil": 100
+    },
+    {
+      "at": 27.75000000000026,
+      "word": "ほん",
+      "delivered": 3,
+      "level": 2,
+      "oil": 100
+    },
+    {
+      "at": 34.65000000000017,
+      "word": "うみ",
+      "delivered": 4,
+      "level": 3,
+      "oil": 100
+    },
+    {
+      "at": 41.34999999999979,
+      "word": "にじ",
+      "delivered": 5,
+      "level": 3,
+      "oil": 100
+    },
+    {
+      "at": 53.549999999999095,
+      "word": "かえる",
+      "delivered": 6,
+      "level": 4,
+      "oil": 100
+    },
+    {
+      "at": 57.84999999999885,
+      "word": "にじ",
+      "delivered": 7,
+      "level": 5,
+      "oil": 100
+    },
+    {
+      "at": 65.8999999999984,
+      "word": "かめ",
+      "delivered": 8,
+      "level": 5,
+      "oil": 100
+    },
+    {
+      "at": 77.24999999999775,
+      "word": "うさぎ",
+      "delivered": 9,
+      "level": 6,
+      "oil": 100
+    },
+    {
+      "at": 91.29999999999696,
+      "word": "ほん",
+      "delivered": 10,
+      "level": 6,
+      "oil": 100
+    },
+    {
+      "at": 100.09999999999646,
+      "word": "にじ",
+      "delivered": 11,
+      "level": 7,
+      "oil": 100
+    },
+    {
+      "at": 110.09999999999589,
+      "word": "かめ",
+      "delivered": 12,
+      "level": 7,
+      "oil": 100
+    },
+    {
+      "at": 208.7000000000132,
+      "word": "ケーキ",
+      "delivered": 13,
+      "level": 10,
+      "oil": 85.60199999999372
+    },
+    {
+      "at": 261.45000000002517,
+      "word": "うみ",
+      "delivered": 14,
+      "level": 11,
+      "oil": 32.91949999999045
+    }
+  ],
+  "limits": [
+    "Perfect answer/word-memory assumption; not human learning or device performance.",
+    "Movement includes time inside safe reading; gameElapsed excludes that time.",
+    "No forced positions, XP, skills, shields, oil or play state."
+  ]
+}

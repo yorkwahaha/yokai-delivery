@@ -1,0 +1,417 @@
+{
+  "kind": "input-controller",
+  "seed": 23,
+  "mode": "delivery",
+  "horizon": 600,
+  "stopReason": "death",
+  "gameElapsed": 529.8,
+  "wallMs": 56127,
+  "frames": 11854,
+  "movementSeconds": 568.6,
+  "maximumStep": 39,
+  "delivered": 34,
+  "level": 16,
+  "xp": 117,
+  "oil": 0,
+  "state": "lampout",
+  "seals": 4,
+  "fourSealAt": 156.05000000000123,
+  "maxedAtElapsed": null,
+  "weapons": {
+    "katana": 3,
+    "barrier": 3,
+    "fire": 0,
+    "boom": 0,
+    "thunder": 1,
+    "needle": 4
+  },
+  "maxed": [],
+  "xpLedger": {
+    "totalEarned": 1390,
+    "fromDelivery": 884,
+    "fromEnemies": 506,
+    "level": 16,
+    "xp": 117,
+    "delivered": 34
+  },
+  "picks": {
+    "passive": 5,
+    "weapon": 10,
+    "awaken": 0
+  },
+  "pickLog": [
+    {
+      "at": 25.250000000000224,
+      "level": 1,
+      "id": "oil_max",
+      "type": "passive",
+      "rank": null,
+      "needed": 30
+    },
+    {
+      "at": 36.150000000000084,
+      "level": 2,
+      "id": "barrier",
+      "type": "weapon",
+      "rank": 1,
+      "needed": 67
+    },
+    {
+      "at": 68.04999999999828,
+      "level": 3,
+      "id": "mag",
+      "type": "passive",
+      "rank": null,
+      "needed": 111
+    },
+    {
+      "at": 89.69999999999705,
+      "level": 4,
+      "id": "thunder",
+      "type": "weapon",
+      "rank": 1,
+      "needed": 162
+    },
+    {
+      "at": 106.84999999999607,
+      "level": 5,
+      "id": "katana",
+      "type": "weapon",
+      "rank": 2,
+      "needed": 221
+    },
+    {
+      "at": 149.2999999999997,
+      "level": 6,
+      "id": "needle",
+      "type": "weapon",
+      "rank": 1,
+      "needed": 288
+    },
+    {
+      "at": 176.00000000000577,
+      "level": 7,
+      "id": "oil_max",
+      "type": "passive",
+      "rank": null,
+      "needed": 363
+    },
+    {
+      "at": 229.800000000018,
+      "level": 8,
+      "id": "mag",
+      "type": "passive",
+      "rank": null,
+      "needed": 446
+    },
+    {
+      "at": 273.60000000002793,
+      "level": 9,
+      "id": "katana",
+      "type": "weapon",
+      "rank": 3,
+      "needed": 538
+    },
+    {
+      "at": 314.20000000003716,
+      "level": 10,
+      "id": "dmg",
+      "type": "passive",
+      "rank": null,
+      "needed": 638
+    },
+    {
+      "at": 390.5500000000545,
+      "level": 11,
+      "id": "barrier",
+      "type": "weapon",
+      "rank": 2,
+      "needed": 747
+    },
+    {
+      "at": 398.20000000005626,
+      "level": 12,
+      "id": "needle",
+      "type": "weapon",
+      "rank": 2,
+      "needed": 865
+    },
+    {
+      "at": 428.55000000006316,
+      "level": 13,
+      "id": "barrier",
+      "type": "weapon",
+      "rank": 3,
+      "needed": 992
+    },
+    {
+      "at": 466.1000000000717,
+      "level": 14,
+      "id": "needle",
+      "type": "weapon",
+      "rank": 3,
+      "needed": 1128
+    },
+    {
+      "at": 496.75000000007867,
+      "level": 15,
+      "id": "needle",
+      "type": "weapon",
+      "rank": 4,
+      "needed": 1273
+    }
+  ],
+  "bossAnswers": [
+    {
+      "at": 393.80000000005526,
+      "word": "かさ",
+      "correct": true,
+      "introduced": false
+    }
+  ],
+  "deliveries": [
+    {
+      "at": 11.700000000000031,
+      "word": "にじ",
+      "delivered": 1,
+      "level": 1,
+      "oil": 100
+    },
+    {
+      "at": 25.200000000000223,
+      "word": "ラーメン",
+      "delivered": 2,
+      "level": 1,
+      "oil": 100
+    },
+    {
+      "at": 36.10000000000009,
+      "word": "ほん",
+      "delivered": 3,
+      "level": 2,
+      "oil": 130
+    },
+    {
+      "at": 50.14999999999929,
+      "word": "ふね",
+      "delivered": 4,
+      "level": 3,
+      "oil": 130
+    },
+    {
+      "at": 67.99999999999828,
+      "word": "ほし",
+      "delivered": 5,
+      "level": 3,
+      "oil": 130
+    },
+    {
+      "at": 89.64999999999705,
+      "word": "ほん",
+      "delivered": 6,
+      "level": 4,
+      "oil": 129.98949999999712
+    },
+    {
+      "at": 96.39999999999667,
+      "word": "ラーメン",
+      "delivered": 7,
+      "level": 5,
+      "oil": 130
+    },
+    {
+      "at": 106.79999999999607,
+      "word": "かめ",
+      "delivered": 8,
+      "level": 5,
+      "oil": 130
+    },
+    {
+      "at": 117.49999999999547,
+      "word": "ふね",
+      "delivered": 9,
+      "level": 6,
+      "oil": 130
+    },
+    {
+      "at": 130.04999999999532,
+      "word": "ほし",
+      "delivered": 10,
+      "level": 6,
+      "oil": 130
+    },
+    {
+      "at": 149.2499999999997,
+      "word": "にじ",
+      "delivered": 11,
+      "level": 6,
+      "oil": 130
+    },
+    {
+      "at": 156.05000000000123,
+      "word": "かさ",
+      "delivered": 12,
+      "level": 7,
+      "oil": 130
+    },
+    {
+      "at": 175.95000000000576,
+      "word": "かめ",
+      "delivered": 13,
+      "level": 7,
+      "oil": 130
+    },
+    {
+      "at": 193.50000000000975,
+      "word": "ふね",
+      "delivered": 14,
+      "level": 8,
+      "oil": 160
+    },
+    {
+      "at": 205.05000000001237,
+      "word": "はな",
+      "delivered": 15,
+      "level": 8,
+      "oil": 160
+    },
+    {
+      "at": 229.95000000001804,
+      "word": "かさ",
+      "delivered": 16,
+      "level": 9,
+      "oil": 160
+    },
+    {
+      "at": 257.1000000000242,
+      "word": "はな",
+      "delivered": 17,
+      "level": 9,
+      "oil": 160
+    },
+    {
+      "at": 262.60000000002543,
+      "word": "にじ",
+      "delivered": 18,
+      "level": 9,
+      "oil": 160
+    },
+    {
+      "at": 273.5500000000279,
+      "word": "かめ",
+      "delivered": 19,
+      "level": 9,
+      "oil": 160
+    },
+    {
+      "at": 282.70000000003,
+      "word": "はな",
+      "delivered": 20,
+      "level": 10,
+      "oil": 160
+    },
+    {
+      "at": 298.9500000000337,
+      "word": "ラーメン",
+      "delivered": 21,
+      "level": 10,
+      "oil": 160
+    },
+    {
+      "at": 314.15000000003715,
+      "word": "ほし",
+      "delivered": 22,
+      "level": 10,
+      "oil": 160
+    },
+    {
+      "at": 329.50000000004064,
+      "word": "はな",
+      "delivered": 23,
+      "level": 11,
+      "oil": 160
+    },
+    {
+      "at": 343.7000000000439,
+      "word": "にじ",
+      "delivered": 24,
+      "level": 11,
+      "oil": 160
+    },
+    {
+      "at": 372.65000000005045,
+      "word": "はな",
+      "delivered": 25,
+      "level": 11,
+      "oil": 160
+    },
+    {
+      "at": 390.5000000000545,
+      "word": "ほん",
+      "delivered": 26,
+      "level": 11,
+      "oil": 160
+    },
+    {
+      "at": 408.4500000000586,
+      "word": "にじ",
+      "delivered": 27,
+      "level": 13,
+      "oil": 142.43549999999894
+    },
+    {
+      "at": 425.35000000006244,
+      "word": "ラーメン",
+      "delivered": 28,
+      "level": 13,
+      "oil": 147.19649999999794
+    },
+    {
+      "at": 435.10000000006465,
+      "word": "にじ",
+      "delivered": 29,
+      "level": 14,
+      "oil": 160
+    },
+    {
+      "at": 453.15000000006876,
+      "word": "はな",
+      "delivered": 30,
+      "level": 14,
+      "oil": 160
+    },
+    {
+      "at": 466.0500000000717,
+      "word": "ほん",
+      "delivered": 31,
+      "level": 14,
+      "oil": 124.00099999999924
+    },
+    {
+      "at": 478.3000000000745,
+      "word": "ラーメン",
+      "delivered": 32,
+      "level": 15,
+      "oil": 88.20349999999851
+    },
+    {
+      "at": 493.850000000078,
+      "word": "かさ",
+      "delivered": 33,
+      "level": 15,
+      "oil": 61.382999999997594
+    },
+    {
+      "at": 514.9000000000794,
+      "word": "ほし",
+      "delivered": 34,
+      "level": 16,
+      "oil": 62.85749999999635
+    }
+  ],
+  "limits": [
+    "Perfect answer/word-memory assumption; not human learning or device performance.",
+    "Movement includes time inside safe reading; gameElapsed excludes that time.",
+    "No forced positions, XP, skills, shields, oil or play state."
+  ]
+}

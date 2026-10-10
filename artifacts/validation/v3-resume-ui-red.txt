@@ -1,0 +1,43 @@
+✔ V3 UI harness calibration: current HUD draws real oil and level labels (5.4571ms)
+✔ V3 UI: both HUD themes explain the next delivery seal without revealing the answer (2.8786ms)
+✔ V3 UI: safe reading and free first hint are visible on a small screen (1.0477ms)
+✔ V3 UI: level-up shows saved seals and the cost of choosing a MAX card (2.118ms)
+✔ V3 UI: settlement distinguishes independent recall from assisted completion (10.6639ms)
+✔ V3 UI: optional listening has at most three unique words and keeps its buttons usable (1.0843ms)
+✔ V3 UI: delivery tutorial states the real dwell time and safe reading (1.1723ms)
+✖ V3 UI: boss protection status follows the actual reading flag (1.0047ms)
+✖ V3 UI: introduced or assisted boss words keep the full meaning association visible (0.7895ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 7
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 76.9424
+
+✖ failing tests:
+
+test at tests\v3-ui.test.cjs:86:1
+✖ V3 UI: boss protection status follows the actual reading flag (1.0047ms)
+  ReferenceError: q is not defined
+      at Object.drawBossQuiz (evalmachine.<anonymous>:2406:18)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-ui.test.cjs:89:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\v3-ui.test.cjs:94:1
+✖ V3 UI: introduced or assisted boss words keep the full meaning association visible (0.7895ms)
+  ReferenceError: q is not defined
+      at Object.drawBossQuiz (evalmachine.<anonymous>:2406:18)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-ui.test.cjs:97:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
