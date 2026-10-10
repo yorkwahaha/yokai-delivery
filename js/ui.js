@@ -383,7 +383,7 @@ window.UI = (() => {
     const key = action => controlLabel(action, mode);
     return {
       pickup: ['取貨', 'pickup', `移動：${key('move')}。沿包裹標記靠近委託房屋，再用${key('interact')}取貨。攻擊會自動發動。`],
-      listen: ['聽音與答題輔助', 'listen', `取貨時會播放發音；看包裹圖像與中文辨認詞義。${key('hint')}是答題輔助：第一階耗 3 油、重播並排除一項；第二階再耗 4 油、顯示詞句。使用任一階，這單不升星、得 25 分、回油 10。`],
+      listen: ['聽音與答題輔助', 'listen', `取貨時會播放發音；看包裹圖像與中文辨認詞義。${key('hint')}是答題輔助：第一階免費、重播並排除一項；第二階耗 4 油、顯示詞句。提示完成不升星，仍得 26 經驗與配送進度、回油 12。`],
       delivery: ['配送答題墊', 'pickup', '沿箭頭前往收件房屋。到站可安心讀題，戰鬥、燈油與局內時間暫停；離開恢復。走上假名答題墊停留 0.65 秒提交，移開可中斷；也可用確認鍵提交目前選項。'],
       dash: ['衝刺避險', 'dash', `移動中用${key('dash')}快速穿過危險；衝刺期間短暫無敵。右側衝刺鈕顯示冷卻秒數，恢復後才能再次使用。`],
       boss: ['Boss 作答', 'listen', `Boss 結界出題時，依圖像與中文選假名。作答：${key('boss')}；答對才能破除結界。取貨、衝刺仍可使用。`]
@@ -2281,12 +2281,14 @@ window.UI = (() => {
     ctx.globalAlpha=.88;
     drawWashiBoard(ctx,55,38,790,547,true);
     ctx.globalAlpha=1;
+    ctx.fillStyle='rgba(249,239,217,.96)';
+    ctx.beginPath();ctx.roundRect(110,51,680,58,7);ctx.fill();
     ctx.textAlign="center";
     ctx.font=titleFont(30);ctx.fillStyle="#39271f";
-    ctx.fillText("修行進階  Lv."+level,W/2,87);
+    ctx.fillText("修行進階  Lv."+level,W/2,awakening ? 79 : 87);
     if (awakening) {
       ctx.font = readableFont(12, '800'); ctx.fillStyle = '#725440';
-      ctx.fillText(`覺醒印 ${awakening.seals}・Lv.4 可用印升 MAX`, W/2, 105);
+      ctx.fillText(`覺醒印 ${awakening.seals}・Lv.4 可用印升 MAX`, W/2, 102);
     }
 
     // 簡潔技能列表：小字槽改為一條易讀的已習得摘要。

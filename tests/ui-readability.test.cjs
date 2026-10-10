@@ -84,12 +84,15 @@ test('surge warning uses soft edge gradients instead of a thick red frame',()=>{
   assert.doesNotMatch(surge,/lineWidth = 14/);
 });
 
-test('settlement retains all five review words on a small screen',()=>{
+test('settlement offers three review words and retains the full mistake count on a small screen',()=>{
   const r=loadUI(568);r.env.window.innerWidth=568;r.env.window.innerHeight=320;
   vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
   const words=Array.from({length:5},(_,i)=>({jp:'かな'+i,zh:'中文'+i}));
   r.UI.drawEndScreen(r.context,'lost',0,0,5,words,0,{learning:{practiced:5,gained:0,lost:5,review:5}});
-  for(const w of words)assert.ok(r.texts.some(t=>t.value.includes(w.jp)),w.jp);
+  for(const w of words.slice(0,3))assert.ok(r.texts.some(t=>t.value.includes(w.jp)),w.jp);
+  for(const w of words.slice(3))assert.ok(!r.texts.some(t=>t.value.includes(w.jp)),w.jp);
+  assert.ok(r.texts.some(t=>t.value.includes('共 5 字')));
+  assert.equal(r.UI.reviewButtons(words).length,3);
 });
 
 test('mobile skill codex exposes every skill through pages and marks unavailable arrows',()=>{
@@ -314,8 +317,12 @@ test('small-screen level-up descriptions and settlement review lines keep readab
   assert.ok(labels.find(l=>l.value==='金剛結界').size*r.env.window.VIEWPORT.get().scale>=14);
   labels.length=0;
   r.UI.drawEndScreen(r.context,'lost',100,2,2,Array.from({length:5},(_,i)=>({jp:'あいうえお'+i,zh:'複習字詞'})));
-  const reviews=labels.filter(l=>l.x<500 && l.value.includes('（複習字詞）'));
-  for(let i=1;i<reviews.length;i++)assert.ok(reviews[i].y-reviews[i-1].y>=reviews[i].size*1.2);
+  // drawButton paints a shadow and foreground; inspect one label per button.
+  const reviews=[...new Map(labels.filter(l=>l.value.includes('（複習字詞）')).map(l=>[l.value,l])).values()];
+  assert.equal(reviews.length,3);
+  for(let i=1;i<reviews.length;i++)assert.ok(reviews[i].x-reviews[i-1].x>=164);
+  const buttons=r.UI.reviewButtons(Array.from({length:5},(_,i)=>({jp:'あいうえお'+i,zh:'複習字詞'})));
+  assert.ok(buttons.every(b=>b.h>=44 && b.x>=0 && b.x+b.w<=900 && b.y+b.h<r.UI.END_BTNS[0].y));
 });
 
 function drawHudFixture(width, height, oil = 100, maxOil = 100, passives = {}, elapsed = 120) {
@@ -424,7 +431,7 @@ test('diegetic radar phase 2 keeps the clock outside navigation content and pres
   assert.doesNotMatch(src,/roundRect\(sx - 19, sy \+ 17, 38, badgeH/,'diegetic fan no longer uses level badges');
   assert.match(src,/\[0\.783, 0\.803\]/,'fifth fan aperture is reserved');
   assert.match(src,/第五洞保留為未解鎖槽/,'fifth aperture remains locked');
-  assert.match(src,/const bossBarY = Math\.max\(bounds\.top \+ 2, afterTask - \(compactLandscape \? 44 : 38\)\)/,'Boss bar is lifted toward the top safe edge');
+  assert.match(src,/const bossBarY = extra\.awakening \? afterTask \+ 4 : Math\.max\(bounds\.top \+ 2, afterTask - \(compactLandscape \? 44 : 38\)\)/,'Boss bar leaves room for awakening and safe-reading status');
 });
 
 test('diegetic delivery guidance uses original radar icons and an omamori hint',()=>{
@@ -525,10 +532,11 @@ test('settlement counts distinct mistaken words and discloses only truncated rev
     UI.drawEndScreen(context,state,400,2,0,misses);
     const labels=texts.map(t=>t.value);
     if(count) {
-      const expected=`今夜記錯的字：共 ${count} 字${count>5?'，僅顯示前 5 字':''}`;
+      const expected=`今夜記錯的字：共 ${count} 字・可選三詞回聽`;
       assert.ok(labels.includes(expected),`${width}/${state}/${count}: ${expected}`);
-      for(let i=0;i<Math.min(count,5);i++) assert.ok(labels.some(v=>v.includes(words[i].jp)));
-      for(let i=5;i<count;i++) assert.ok(!labels.some(v=>v.includes(words[i].jp)));
+      for(let i=0;i<Math.min(count,3);i++) assert.ok(labels.some(v=>v.includes(words[i].jp)));
+      for(let i=3;i<count;i++) assert.ok(!labels.some(v=>v.includes(words[i].jp)));
+      assert.equal(UI.reviewButtons(misses).length,Math.min(count,3));
     } else assert.ok(!labels.some(v=>v.includes('今夜記錯')));
     assert.ok(!labels.some(v=>count<=5 && v.includes('僅顯示')));
   }
@@ -548,9 +556,12 @@ test('settlement shows unique delivery and Boss corrections without changing mis
   const {UI,context,texts}=loadUI(844);
   const words=[{jp:'ねこ',zh:'貓'},{jp:'あめ',zh:'雨'}];
   UI.drawEndScreen(context,'lost',0,0,1,[words[0],words[1],words[1]]);
-  assert.ok(texts.some(t=>t.value==='今夜記錯的字：共 2 字'));
-  const rendered=texts.map(t=>t.value).join('|');
-  for(const w of words) assert.equal(rendered.split(`${w.jp}（${w.zh}）`).length-1,1);
+  assert.ok(texts.some(t=>t.value==='今夜記錯的字：共 2 字・可選三詞回聽'));
+  const reviewButtons=UI.reviewButtons([words[0],words[1],words[1]]);
+  for(const w of words) {
+    assert.equal(reviewButtons.filter(b=>b.word.jp===w.jp).length,1);
+    assert.ok(texts.some(t=>t.value===`${w.jp}（${w.zh}）`));
+  }
   assert.ok(!texts.some(t=>/連擊|連答|連續答對/.test(t.value)));
   assert.ok(texts.some(t=>t.value==='送達  0 件'));assert.ok(texts.some(t=>t.value==='誤配  1 件'));
 });
@@ -669,7 +680,8 @@ test('tutorial copy follows live bindings and never embeds any current answer',(
     const text=UI.tutorialCopy(id,mode).join(' ');
     assert.ok(words.every(w=>!text.includes(w.jp)), `${id}/${mode}`);
   }
-  assert.ok(UI.tutorialCopy('delivery','touch')[2].includes('0.45'));
+  assert.ok(UI.tutorialCopy('delivery','touch')[2].includes('0.65'));
+  assert.ok(UI.tutorialCopy('listen','gamepad')[2].includes('第一階免費'));
   assert.ok(UI.tutorialCopy('listen','gamepad')[2].includes('不升星'));
   assert.ok(UI.tutorialCopy('boss','gamepad')[2].includes('LB／RB／Y'));
   assert.ok(UI.tutorialCopy('pickup','touch')[2].includes('右側取貨鈕'));

@@ -12,10 +12,16 @@ test("fire orbit render count matches combat count", () => {
   assert.equal((game.match(new RegExp(escaped, "g")) || []).length, 2);
 });
 
-test("MAX katana wave crosses buildings and spans the viewport", () => {
+test("MAX katana wave crosses buildings and has a fixed world-distance limit", () => {
   assert.match(game, /EVOLUTIONS\.move\(wave,dt,null,12\)/);
   assert.ok(!game.includes("blockBlade"), "Lv5 katana should not collide with houses or walls");
-  assert.match(game, /maxTravel:Math\.max\(1400,spawnRadius\(620\)\*2\.1\)/);
+  assert.match(game, /maxTravel:720/);
+});
+
+test("independent boss controller loads before the real game runtime", () => {
+  assert.ok(html.indexOf('js/boss-ai.js')>=0);
+  assert.ok(html.indexOf('js/boss-ai.js')<html.indexOf('js/game.js'));
+  assert.match(game,/BOSS_AI\?\.step/);
 });
 
 test("horizontal level-up hitboxes and rendered rows share the same dimensions", () => {
