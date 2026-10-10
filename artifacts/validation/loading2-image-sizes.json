@@ -1,0 +1,162 @@
+{
+  "sourceCommit": "4be9ca34c0784653cb7b3f465ef1ba7d3aad80c0",
+  "quality": 88,
+  "images": [
+    {
+      "path": "assets/img/yokai/ghost_motion_v1.webp",
+      "beforeBytes": 134978,
+      "afterBytes": 45124,
+      "before": [
+        1774,
+        887
+      ],
+      "after": [
+        887,
+        444
+      ]
+    },
+    {
+      "path": "assets/img/yokai/runner_motion_v1.webp",
+      "beforeBytes": 162612,
+      "afterBytes": 51882,
+      "before": [
+        1774,
+        887
+      ],
+      "after": [
+        887,
+        444
+      ]
+    },
+    {
+      "path": "assets/img/yokai/boss_motion_v1.webp",
+      "beforeBytes": 287078,
+      "afterBytes": 85644,
+      "before": [
+        1774,
+        887
+      ],
+      "after": [
+        887,
+        444
+      ]
+    },
+    {
+      "path": "assets/img/yokai/mis_motion_v1.webp",
+      "beforeBytes": 202690,
+      "afterBytes": 66554,
+      "before": [
+        1774,
+        887
+      ],
+      "after": [
+        887,
+        444
+      ]
+    },
+    {
+      "path": "assets/img/yokai/tank_motion_v1.webp",
+      "beforeBytes": 309228,
+      "afterBytes": 98396,
+      "before": [
+        1774,
+        887
+      ],
+      "after": [
+        887,
+        444
+      ]
+    },
+    {
+      "path": "assets/img/yokai/shooter_motion_v1.webp",
+      "beforeBytes": 120748,
+      "afterBytes": 38660,
+      "before": [
+        1774,
+        887
+      ],
+      "after": [
+        887,
+        444
+      ]
+    },
+    {
+      "path": "assets/img/map_night_town_v1.webp",
+      "beforeBytes": 280768,
+      "afterBytes": 82796,
+      "before": [
+        1774,
+        887
+      ],
+      "after": [
+        887,
+        444
+      ]
+    },
+    {
+      "path": "assets/img/map_rain_port_v1.webp",
+      "beforeBytes": 390158,
+      "afterBytes": 105154,
+      "before": [
+        1774,
+        887
+      ],
+      "after": [
+        887,
+        444
+      ]
+    },
+    {
+      "path": "assets/img/player_dash_v1.webp",
+      "beforeBytes": 203130,
+      "afterBytes": 62388,
+      "before": [
+        1536,
+        1024
+      ],
+      "after": [
+        768,
+        512
+      ]
+    },
+    {
+      "path": "assets/img/overworld_night_v2.webp",
+      "beforeBytes": 567212,
+      "afterBytes": 206850,
+      "before": [
+        1641,
+        958
+      ],
+      "after": [
+        1024,
+        598
+      ]
+    },
+    {
+      "path": "assets/img/scenery/ground.webp",
+      "beforeBytes": 445830,
+      "afterBytes": 131198,
+      "before": [
+        1024,
+        1024
+      ],
+      "after": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "assets/img/scenery/ground_dirt.webp",
+      "beforeBytes": 458470,
+      "afterBytes": 134446,
+      "before": [
+        1024,
+        1024
+      ],
+      "after": [
+        512,
+        512
+      ]
+    }
+  ]
+}

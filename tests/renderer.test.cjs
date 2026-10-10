@@ -85,6 +85,15 @@ test('atlas crops stay inside shipped images and every frame shares its requeste
   }
 });
 
+test('half-size movement atlases preserve layout and crop within their actual pixels',()=>{
+  const r=loadRenderer(900,600),full={naturalWidth:1774,naturalHeight:887},small={naturalWidth:887,naturalHeight:444};
+  for(const key of ['ghost_motion_v1','boss_motion_v1','map_night_town_v1','map_rain_port_v1']) for(const i of [0,1]){
+    const a=r.env.RENDERER.drawFrame(r.main.ctx,full,key,i,50,80,100),b=r.env.RENDERER.drawFrame(r.main.ctx,small,key,i,50,80,100);
+    assert.ok(b.sx+b.sw<=small.naturalWidth&&b.sy+b.sh<=small.naturalHeight,key);
+    for(const k of ['dx','dy','dw','dh']) assert.equal(b[k],a[k],key+' '+k);
+  }
+});
+
 test('shield labels remain text and effects expire even during hit stop', () => {
   const r=loadRenderer(900,600);
   r.env.RENDERER.spawnDamageNumber('結界',100,100);

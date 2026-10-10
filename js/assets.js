@@ -44,7 +44,7 @@ const markSettled = (key, failed = false) => {
 function loadArt(n) {
   if (!requestArt(n)) return;
   const img = new Image();
-  img.fetchPriority = n === "cover" ? "high" : "low";
+  img.fetchPriority = "high";
   img.decoding = "async";
   img.onload = () => {
     ART[n] = img;
@@ -58,10 +58,10 @@ function loadArt(n) {
     img.src = `assets/img/${n}.${n === "cover" ? "jpg" : "png"}`;
   };
   img.src = SCENERY_ASSET_KEYS.has(n)
-    ? `assets/img/scenery/${n}.webp?v=20261008-scene2`
+    ? `assets/img/scenery/${n}.webp?v=20261010-loading2`
     : YOKAI_ASSET_KEYS.has(n)
-    ? `assets/img/yokai/${n}.webp?v=20261009-ink1`
-    : `assets/img/${n}.webp${["cover","player_win_v1","player_kneel_v1"].includes(n)?"?v=20261010-character-set1":""}`;
+    ? `assets/img/yokai/${n}.webp?v=20261010-loading2`
+    : `assets/img/${n}.webp?v=${["cover","player_win_v1","player_kneel_v1"].includes(n)?"20261010-character-set1":"20261010-loading2"}`;
 }
 
 // 休息立繪只會在打開暫停選單時下載，不佔遊戲首屏載入預算。

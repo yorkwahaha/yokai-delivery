@@ -21,6 +21,10 @@ test('injury floating words have bright fill and solid ink outline in the active
   assert.match(injury,/t.y -= 22/);
 });
 
+test('entering a stage does not bulk-download words and unused sound effects',()=>{
+  const g=loadGame();g.start();assert.ok(!g.audioCalls.includes('preloadWords'));
+});
+
 function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') {
   const events = {}, canvasEvents = {}, documentEvents = {};
   const gradient = { addColorStop() {} };

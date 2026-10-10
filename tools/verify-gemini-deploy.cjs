@@ -8,7 +8,7 @@ const git = (...args) => execFileSync('git', args);
 (async () => {
   const commit = git('rev-parse', 'HEAD').toString().trim();
   const label = process.argv[3] || 'gemini';
-  if (!/^[a-z-]+$/.test(label)) throw new Error('Invalid evidence label');
+  if (!/^[a-z][a-z0-9-]*$/.test(label)) throw new Error('Invalid evidence label');
   if (!/^\d+$/.test(process.argv[2] || '')) throw new Error('Provide the Pages run ID');
   const run = JSON.parse(execFileSync('gh', ['run', 'view', process.argv[2], '--json', 'headSha,status,conclusion,jobs,url']));
   if (run.headSha !== commit || run.status !== 'completed' || run.conclusion !== 'success' || run.jobs.some(j => j.conclusion !== 'success')) {
@@ -19,6 +19,8 @@ const git = (...args) => execFileSync('git', args);
   for (const path of ['service-worker.js', ...['hud_lantern_oil','hud_radar_frame','hud_omamori_hint_listen','hud_skill_fan'].map(key=>`assets/img/ui/${key}.webp`)]) {
     if (fs.existsSync(path)) files.push(path);
   }
+  const imageProof = `artifacts/validation/${label}-image-sizes.json`;
+  if (fs.existsSync(imageProof)) files.push(...JSON.parse(fs.readFileSync(imageProof,'utf8')).images.map(image=>image.path));
   const base = 'https://yorkwahaha.github.io/yokai-delivery/';
   const checks = await Promise.all(files.map(async path => {
     const response = await fetch(`${base}${path}?verify=${commit}`, { signal: AbortSignal.timeout(30000) });

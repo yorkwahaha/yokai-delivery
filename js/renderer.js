@@ -37,10 +37,17 @@ window.RENDERER = (() => {
     map_night_town_v1:[[49,46,823,784,443.5],[924,47,820,787,1330.5]],
     map_rain_port_v1:[[30,17,817,834,443.5],[917,16,815,835,1330.5]]
   };
+  // 裁切座標以原稿為基準，發佈版 atlas 可縮圖，PNG 備援仍使用原尺寸。
+  const FRAME_SOURCE_SIZE = {
+    player_dash_v1:[1536,1024],
+    ...Object.fromEntries(['ghost','runner','boss','mis','tank','shooter'].map(k=>[k+'_motion_v1',[1774,887]])),
+    map_night_town_v1:[1774,887],map_rain_port_v1:[1774,887]
+  };
   function drawFrame(c, image, key, index, x, y, height) {
     const frames = FRAME_BOUNDS[key] || [[0,0,image.naturalWidth,image.naturalHeight,image.naturalWidth/2]];
     const r = frames[index] || frames[0], scale = height / frames[0][3];
-    const box = {sx:r[0],sy:r[1],sw:r[2],sh:r[3],dx:x+(r[0]-r[4])*scale,dy:y-r[3]*scale,dw:r[2]*scale,dh:r[3]*scale};
+    const source = FRAME_SOURCE_SIZE[key], rx = source ? image.naturalWidth/source[0] : 1, ry = source ? image.naturalHeight/source[1] : 1;
+    const box = {sx:r[0]*rx,sy:r[1]*ry,sw:r[2]*rx,sh:r[3]*ry,dx:x+(r[0]-r[4])*scale,dy:y-r[3]*scale,dw:r[2]*scale,dh:r[3]*scale};
     c.drawImage(image,box.sx,box.sy,box.sw,box.sh,box.dx,box.dy,box.dw,box.dh);
     return box;
   }

@@ -16,6 +16,11 @@ function loadAssets() {
   return { env, images, tracks };
 }
 
+test('blocking scene images have high fetch priority instead of competing below music',()=>{
+  const {env,images}=loadAssets();env.loadMapArt();env.loadGameArt();
+  for(const image of images.filter(i=>!i.src.includes('/vfx/'))) assert.equal(image.fetchPriority,'high',image.src);
+});
+
 test('map loads only its own art, then game reuses those requests and includes HUD readiness',()=>{
   const {env,images}=loadAssets();env.loadMapArt();
   assert.equal(images.length,10);

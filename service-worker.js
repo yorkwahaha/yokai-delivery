@@ -78,9 +78,9 @@ const MEDIA_REVISIONS = {
   "assets/img/house_tavern.png": "4b14eac031a3f4715623bbef",
   "assets/img/house_tavern.webp": "e6c25e3f7891f73b9d1d5ddf",
   "assets/img/map_night_town_v1.png": "68238618784cd5f32c1750cf",
-  "assets/img/map_night_town_v1.webp": "8fb11227121b2907ec202e40",
+  "assets/img/map_night_town_v1.webp": "423f6e3e4af12d0ea88c809e",
   "assets/img/map_rain_port_v1.png": "11e188bb6305503e4fd9043c",
-  "assets/img/map_rain_port_v1.webp": "59aba0eed2b740365218b462",
+  "assets/img/map_rain_port_v1.webp": "3cde1356b277643f3e60b471",
   "assets/img/mis.png": "10fe3f9e3857ceffd383ec86",
   "assets/img/mis.webp": "c394297a978b3beb14fbe267",
   "assets/img/mis_motion_v1.png": "f5d7c7cbf60bb3a289c13e35",
@@ -88,11 +88,11 @@ const MEDIA_REVISIONS = {
   "assets/img/overworld_night_v1.png": "bd51dfa004360d66563254e1",
   "assets/img/overworld_night_v1.webp": "9c43c64073cde2a39e1ae5a1",
   "assets/img/overworld_night_v2.png": "f29d6c7547970846a0f82e31",
-  "assets/img/overworld_night_v2.webp": "fcfdb14539e7d6a75a9de852",
+  "assets/img/overworld_night_v2.webp": "fa7d326067e4ac838093a159",
   "assets/img/player.png": "0b0cb44d08245a7743ca8470",
   "assets/img/player.webp": "3a1385a0baf403b70f7cf9cd",
   "assets/img/player_dash_v1.png": "29cea003e9ebb4ef45705e9c",
-  "assets/img/player_dash_v1.webp": "6b2601a34dd4c6b215cc88f0",
+  "assets/img/player_dash_v1.webp": "5f76d599bb225aae89adad65",
   "assets/img/player_kneel_v1.png": "64895afc389f1eabe489fae9",
   "assets/img/player_kneel_v1.webp": "4a0ba200641076a0237305a1",
   "assets/img/player_rest_v1.webp": "2dcec0c2c5c8f8f4f35eea46",
@@ -113,8 +113,8 @@ const MEDIA_REVISIONS = {
   "assets/img/runner.webp": "020fcd9323f75a59f7f064fe",
   "assets/img/runner_motion_v1.png": "3e97f8291320610199812166",
   "assets/img/runner_motion_v1.webp": "ef83e70b99321550fbb24c57",
-  "assets/img/scenery/ground.webp": "436f1d7c9fb8557ed413a906",
-  "assets/img/scenery/ground_dirt.webp": "c8e51110d8fe34d03d488ee6",
+  "assets/img/scenery/ground.webp": "4bf18cb0c29a256947d3008e",
+  "assets/img/scenery/ground_dirt.webp": "d8a5a5d885cff6c64f7912a5",
   "assets/img/scenery/house_shop.webp": "459ce1e5db4a016eb72739c8",
   "assets/img/scenery/house_shrine.webp": "a304f888c5984b01017670c9",
   "assets/img/scenery/house_tavern.webp": "dd9aaddd9dfdd0a91ccdad16",
@@ -185,17 +185,17 @@ const MEDIA_REVISIONS = {
   "assets/img/vfx/thunder_drum_ukiyoe.svg": "8a16c8682bded8b562337be3",
   "assets/img/vfx/thunder_ukiyoe.svg": "5987976481b1e56df18c3bea",
   "assets/img/yokai/boss.webp": "84fc3b5ddf955fb6f088fa27",
-  "assets/img/yokai/boss_motion_v1.webp": "db26055aa07976e17938b14c",
+  "assets/img/yokai/boss_motion_v1.webp": "3c1b6df7dfa25e714e33410f",
   "assets/img/yokai/ghost.webp": "49d30a9aa837b6d3335221ea",
-  "assets/img/yokai/ghost_motion_v1.webp": "07c0acc4714803ffd690464f",
+  "assets/img/yokai/ghost_motion_v1.webp": "5fde819a21b89a073dc845ef",
   "assets/img/yokai/mis.webp": "0941497239d28e03955d60ad",
-  "assets/img/yokai/mis_motion_v1.webp": "895e10215a6dc8ad3382301e",
+  "assets/img/yokai/mis_motion_v1.webp": "1626818c4719020895c78ee9",
   "assets/img/yokai/runner.webp": "8e47a64c084f1888efb68f8e",
-  "assets/img/yokai/runner_motion_v1.webp": "3d08622c4fd9d9c386a74b56",
+  "assets/img/yokai/runner_motion_v1.webp": "ea46f2ede417a6c8de6802ba",
   "assets/img/yokai/shooter.webp": "21015debd37b7e11a42b47c3",
-  "assets/img/yokai/shooter_motion_v1.webp": "e0f5c8a2f2b97dac8f52a7c4",
+  "assets/img/yokai/shooter_motion_v1.webp": "5d69f8be15c9192459b6d2ba",
   "assets/img/yokai/tank.webp": "f5ffe33776f3131d61bb4f2a",
-  "assets/img/yokai/tank_motion_v1.webp": "5bb296948b79d418f122e84b"
+  "assets/img/yokai/tank_motion_v1.webp": "24aeaba98e685e4619487a2c"
 };
 const CACHE_NAME = 'yokai-media-v1';
 const scope = self.registration.scope;
@@ -213,7 +213,8 @@ async function serveMedia(event, path, revision) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(key);
   if (!cached) {
-    // Return the stream immediately. A full 200 response is also valid for a Range request.
+    // Safari probes audio with tiny ranges; preserve them instead of downloading the entire song.
+    if (event.request.headers.has('Range')) return fetch(event.request);
     const response = await fetch(key, { cache: 'no-store' });
     if (response.status === 200) event.waitUntil(cache.put(key, response.clone()).catch(() => {}));
     return response;

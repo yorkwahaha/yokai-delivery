@@ -14,7 +14,8 @@ async function serveMedia(event, path, revision) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(key);
   if (!cached) {
-    // Return the stream immediately. A full 200 response is also valid for a Range request.
+    // Safari probes audio with tiny ranges; preserve them instead of downloading the entire song.
+    if (event.request.headers.has('Range')) return fetch(event.request);
     const response = await fetch(key, { cache: 'no-store' });
     if (response.status === 200) event.waitUntil(cache.put(key, response.clone()).catch(() => {}));
     return response;

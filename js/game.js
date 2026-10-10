@@ -474,7 +474,7 @@
     window.loadGameArt?.();
     configureStage(stageId);
     AUDIO.init();
-    AUDIO.preloadWords?.(ALL);
+    // 單字與音效於實際播放時載入，避免與進關必要圖像爭用網路。
     state = "play";
     tutorial = null;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
