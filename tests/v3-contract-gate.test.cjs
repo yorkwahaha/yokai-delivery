@@ -116,3 +116,12 @@ test('V3 contract: leaving a boss quiz consumes its one safe-reading entry', () 
   g.moveBoss(100);g.update(.1);
   assert.ok(g.snapshot().elapsed>resumed,'reentry must not repeatedly freeze combat');
 });
+
+test('V3 contract: an awakened blade keeps its rear blind spot and cannot hit beyond 720', () => {
+  const g=fresh();g.combatScene('katana',[{dx:300,hp:999},{dx:-10,hp:999},{dx:800,hp:999}],[],5);
+  const [front,rear,beyond]=g.snapshot().enemies;
+  for(let i=0;i<65;i++)g.weapons(.01);
+  assert.ok(front.hp<999);
+  assert.equal(rear.hp,999,'the rear blind spot still matters at MAX');
+  assert.equal(beyond.hp,999,'movement overshoot must not extend the world range');
+});
