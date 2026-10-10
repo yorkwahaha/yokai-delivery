@@ -1,0 +1,259 @@
+✖ V3 Boss AI: slam locks the original target during its warning (0.8907ms)
+✖ V3 Boss AI: locked slam hits once and opens a recovery window (0.1218ms)
+✖ V3 Boss AI: moving away from a locked ground strike avoids the hit (0.0914ms)
+✖ V3 Boss AI: shielding and reading pause stop attacks and timers (0.1001ms)
+✖ V3 Boss AI: second boss alternates ground strike and straight charge (0.5381ms)
+✖ V3 Boss AI: charge uses swept wall collision and cannot cross a thin building (0.1381ms)
+✖ V3 Boss AI: full-health final boss has no ring and half-health unlocks one (0.1186ms)
+✖ V3 Boss AI: ring has a real gap and hits an unsafe swept annulus only once (0.1157ms)
+✖ V3 Boss AI: tide is exclusive to the port and keeps a safe lane (0.1175ms)
+✖ V3 Boss AI: warning, impact and recovery never overlap a second main attack (0.1503ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 0
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.8139
+
+✖ failing tests:
+
+test at tests\v3-boss-ai.test.cjs:16:1
+✖ V3 Boss AI: slam locks the original target during its warning (0.8907ms)
+  AssertionError [ERR_ASSERTION]: new boss attack controller is missing
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at fresh (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:6:10)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:17:11)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-boss-ai.test.cjs:22:1
+✖ V3 Boss AI: locked slam hits once and opens a recovery window (0.1218ms)
+  AssertionError [ERR_ASSERTION]: new boss attack controller is missing
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at fresh (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:6:10)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:23:11)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-boss-ai.test.cjs:27:1
+✖ V3 Boss AI: moving away from a locked ground strike avoids the hit (0.0914ms)
+  AssertionError [ERR_ASSERTION]: new boss attack controller is missing
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at fresh (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:6:10)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:28:11)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-boss-ai.test.cjs:31:1
+✖ V3 Boss AI: shielding and reading pause stop attacks and timers (0.1001ms)
+  AssertionError [ERR_ASSERTION]: new boss attack controller is missing
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at fresh (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:6:10)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:32:11)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-boss-ai.test.cjs:37:1
+✖ V3 Boss AI: second boss alternates ground strike and straight charge (0.5381ms)
+  AssertionError [ERR_ASSERTION]: new boss attack controller is missing
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at fresh (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:6:10)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:38:11)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-boss-ai.test.cjs:42:1
+✖ V3 Boss AI: charge uses swept wall collision and cannot cross a thin building (0.1381ms)
+  AssertionError [ERR_ASSERTION]: new boss attack controller is missing
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at fresh (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:6:10)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:43:11)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-boss-ai.test.cjs:47:1
+✖ V3 Boss AI: full-health final boss has no ring and half-health unlocks one (0.1186ms)
+  AssertionError [ERR_ASSERTION]: new boss attack controller is missing
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at fresh (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:6:10)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:48:22)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-boss-ai.test.cjs:60:1
+✖ V3 Boss AI: ring has a real gap and hits an unsafe swept annulus only once (0.1157ms)
+  AssertionError [ERR_ASSERTION]: new boss attack controller is missing
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at fresh (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:6:10)
+      at ring (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:56:11)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:61:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-boss-ai.test.cjs:68:1
+✖ V3 Boss AI: tide is exclusive to the port and keeps a safe lane (0.1175ms)
+  AssertionError [ERR_ASSERTION]: new boss attack controller is missing
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at fresh (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:6:10)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:69:11)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-boss-ai.test.cjs:76:1
+✖ V3 Boss AI: warning, impact and recovery never overlap a second main attack (0.1503ms)
+  AssertionError [ERR_ASSERTION]: new boss attack controller is missing
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at fresh (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:6:10)
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:77:11)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
