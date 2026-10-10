@@ -100,14 +100,17 @@ window.UI = (() => {
     for (const [name, file] of [
       ["ledger", "result_panel"], ["notice", "pause_panel"],
       ["neutral", "button_secondary"], ["primary", "button_primary"],
-      ["danger", "button_danger"], ["title", "title_tag"]
+      ["danger", "button_danger"], ["title", "title_tag"],
+      ["awakeningSeal", "awaken_seal"]
     ]) {
       const image = new window.Image();
       image.decoding = "async";
       image.fetchPriority = "low";
       image.onload = () => { illustratedArt[name] = image; };
       image.onerror = () => { /* 無素材時維持程式備援 */ };
-      image.src = `assets/img/ui/illustrated/${file}.webp?v=20261009-final-art1`;
+      image.src = name === "awakeningSeal"
+        ? "assets/img/ui/awaken_seal.svg?v=20261010-seal1"
+        : `assets/img/ui/illustrated/${file}.webp?v=20261009-final-art1`;
     }
   }
   function drawWashiSlices(ctx, image, x, y, w, h, cropX, cropY, padX, padY) {
@@ -1339,39 +1342,90 @@ window.UI = (() => {
     }
   }
 
-  // Boss 大血條：名稱、結界狀態、血量與 1/3 刻度。
+  // 妖將戰況木牌：用墨漆、銅邊與朱紅血槽，取代螢光玻璃卡片。
   function drawBossBar(ctx, x, y, w, boss, scale, time) {
     const hp = clamp(boss.hp / Math.max(1, boss.max), 0, 1), shield = !!boss.shield;
     const barH = Math.max(16, Math.ceil(13 / scale)), labelPx = fontPx(readableFont(13));
     const h = labelPx + barH + 20;
-    const tone = shield ? C.cyan : "#ff4d5e";
-    glow(ctx, x + w / 2, y + h / 2, w * 1.1, tone, 0.12 * pulse(4, 0.5));
-    glassBox(ctx, x, y, w, h, 10, "rgba(26, 8, 16, 0.95)", tone, 2.2);
+    ctx.save();
+    ctx.fillStyle = "rgba(22,15,14,.54)";
+    ctx.beginPath();ctx.roundRect(x+2,y+3,w,h,5);ctx.fill();
+    ctx.fillStyle = "rgba(49,32,26,.97)";
+    ctx.beginPath();ctx.roundRect(x,y,w,h,5);ctx.fill();
+    ctx.strokeStyle = "#ab8255";ctx.lineWidth = 2;
+    ctx.beginPath();ctx.roundRect(x+.8,y+.8,w-1.6,h-1.6,4);ctx.stroke();
+    ctx.strokeStyle = "rgba(224,193,139,.38)";ctx.lineWidth = 1;
+    ctx.beginPath();ctx.roundRect(x+4,y+4,w-8,h-8,3);ctx.stroke();
+    for (const pinX of [x+8,x+w-8]) {
+      ctx.fillStyle = "#c9a26b";
+      ctx.beginPath();ctx.arc(pinX,y+9,1.8,0,Math.PI*2);ctx.fill();
+    }
     ctx.textAlign = "left";
     ctx.font = readableFont(13, "900");
-    ctx.fillStyle = "#fff1f3";
+    ctx.fillStyle = "#f4deb1";
     const nameW = ctx.measureText(boss.final ? "大妖王" : "妖將").width;
     ctx.fillText(boss.final ? "大妖王" : "妖將", x + 12, y + labelPx + 5);
     ctx.textAlign = "right";
-    ctx.fillStyle = shield ? C.cyan : "#ff9aa6";
+    ctx.fillStyle = shield ? "#d7d5aa" : "#efb6a0";
     ctx.fillText(shield ? "結界展開・答對破除" : "結界已破・全力進攻", x + w - 12, y + labelPx + 5, Math.max(1,w-nameW-40));
     const bx = x + 10, by = y + labelPx + 11, bw = w - 20;
-    ctx.fillStyle = "#1c0f14";
-    ctx.beginPath(); ctx.roundRect(bx, by, bw, barH, barH / 2); ctx.fill();
+    ctx.fillStyle = "#251916";
+    ctx.beginPath();ctx.roundRect(bx,by,bw,barH,3);ctx.fill();
     if (hp > 0) {
       ctx.fillStyle = barGradient(ctx,"boss",bx,bx+bw);
-      ctx.beginPath(); ctx.roundRect(bx, by, Math.max(barH, bw * hp), barH, barH / 2); ctx.fill();
-      ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
-      ctx.beginPath(); ctx.roundRect(bx + 3, by + 2, Math.max(0, bw * hp - 6), barH * 0.32, barH / 4); ctx.fill();
+      ctx.beginPath();ctx.roundRect(bx,by,Math.min(bw,Math.max(3,bw*hp)),barH,3);ctx.fill();
+      ctx.fillStyle = "rgba(251,225,170,.14)";
+      ctx.fillRect(bx+2,by+2,Math.max(0,bw*hp-4),2);
     }
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.45)"; ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(45,25,21,.7)";ctx.lineWidth = 2;
     ctx.beginPath();
     for (const t of [1 / 3, 2 / 3]) { ctx.moveTo(bx + bw * t, by); ctx.lineTo(bx + bw * t, by + barH); }
     ctx.stroke();
-    if (shield) {
-      ctx.strokeStyle = `rgba(127, 227, 240, ${0.55 + 0.35 * pulse(5, 0.2)})`; ctx.lineWidth = 2.4;
-      ctx.beginPath(); ctx.roundRect(bx - 1, by - 1, bw + 2, barH + 2, barH / 2 + 1); ctx.stroke();
+    ctx.strokeStyle = shield ? "#baad79" : "#825a46";ctx.lineWidth = shield ? 1.8 : 1.2;
+    ctx.beginPath();ctx.roundRect(bx,by,bw,barH,3);ctx.stroke();
+    ctx.restore();
+    return h;
+  }
+
+  // 覺醒印：小繪馬、圖像印章與三步配送節點，避免純文字懸浮在場景。
+  function drawAwakeningTag(ctx, x, y, availableWidth, a) {
+    const w = Math.min(280,Math.max(162,availableWidth));
+    const px = x + Math.max(0,(availableWidth-w)/2), h = 40;
+    ctx.save();
+    if (illustratedArt.title?.naturalWidth) drawRibbonSlices(ctx,illustratedArt.title,px,y,w,h);
+    else glassBox(ctx,px,y,w,h,5,"rgba(55,36,29,.96)","#b18a5a",1.8);
+    // 墨漆內襯確保不同素材亮度、行動裝置上皆可讀。
+    ctx.fillStyle = "rgba(44,29,26,.86)";
+    ctx.beginPath();ctx.roundRect(px+39,y+5,w-46,h-10,4);ctx.fill();
+    const seal = illustratedArt.awakeningSeal;
+    if (seal?.naturalWidth) ctx.drawImage(seal,px+5,y+3,35,35);
+    else {
+      ctx.fillStyle="#a84537";ctx.beginPath();ctx.arc(px+23,y+20,15,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle="#e6be7c";ctx.lineWidth=1.8;
+      ctx.beginPath();ctx.arc(px+23,y+20,12,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle="#f4d6a0";ctx.textAlign="center";ctx.font=readableFont(15,"900");
+      ctx.fillText("印",px+23,y+25);
     }
+    ctx.fillStyle="#f3ddb1";ctx.textAlign="left";ctx.font=readableFont(14,"900");
+    ctx.fillText(`×${a.seals}`,px+44,y+25);
+    ctx.strokeStyle="rgba(214,172,112,.57)";ctx.lineWidth=1;
+    const divider=px+(w<220?91:103);
+    ctx.beginPath();ctx.moveTo(divider,y+11);ctx.lineTo(divider,y+29);ctx.stroke();
+    ctx.font=readableFont(w<220?11:12,"900");
+    ctx.fillStyle="#f3ddb1";
+    ctx.fillText(a.earned>=4 ? `覺醒 ${a.awakened}/4` : `再送 ${a.nextIn} 件`,
+      divider+9,y+24,w<220?w-109:w-135);
+    if (w>=240) {
+      const progress=a.earned>=4 ? Math.min(4,Math.max(0,a.awakened)) : Math.min(3,Math.max(0,3-a.nextIn));
+      const total=a.earned>=4?4:3;
+      for(let i=0;i<total;i++){
+        const dx=px+w-12-(total-1-i)*12;
+        ctx.fillStyle=i<progress?"#d9ab69":"#61473a";
+        ctx.strokeStyle=i<progress?"#e9c58b":"#96775b";
+        ctx.beginPath();ctx.arc(dx,y+10,3.3,0,Math.PI*2);ctx.fill();ctx.stroke();
+      }
+    }
+    ctx.restore();
     return h;
   }
 
@@ -1585,12 +1639,7 @@ window.UI = (() => {
       drawCompass(ctx, taskX + 68, taskY + 26, extra.guideAngle, { color: inter ? "#ffe082" : "#ffd152", size: 1.3 });
     }
     if (extra.awakening) {
-      const a = extra.awakening;
-      const label = a.earned >= 4 ? `覺醒 ${a.awakened}/4・存印 ${a.seals}` : `覺醒印 ${a.seals}・再送 ${a.nextIn} 件`;
-      ctx.textAlign = 'left'; ctx.font = readableFont(14, '900'); ctx.fillStyle = '#ffe2a0';
-      afterTask += 18;
-      fitText(ctx, label, taskX, afterTask, taskW);
-      afterTask += 14;
+      afterTask += drawAwakeningTag(ctx,taskX,afterTask-3,taskW,extra.awakening);
     }
     if (job?.reading || extra.reading?.active && extra.reading.kind === 'delivery') {
       ctx.textAlign = 'left'; ctx.font = readableFont(12, '800'); ctx.fillStyle = '#b6f1e7';
@@ -2398,13 +2447,15 @@ window.UI = (() => {
     const {x:bx,y:by,w:boxW,h:boxH} = layout;
     const mid = bx+boxW/2;
 
-    glow(ctx, mid, by + boxH / 2, boxW * 1.2, "#ff3b5c", 0.2 * pulse(4, 0.5));
-    glassBox(ctx, bx, by, boxW, boxH, 8, "rgba(57,38,39,.98)", `rgba(190,100,80,${0.75 + 0.25 * pulse(5, 0.2)})`, 2.4, true);
+    // 改成旅帳和紙與木版按鈕：去除霓虹光暈及光滑玻璃高光。
+    drawWashiBoard(ctx,bx,by,boxW,boxH,true);
+    ctx.fillStyle="rgba(45,30,26,.90)";
+    ctx.beginPath();ctx.roundRect(bx+18,by+13,boxW-36,29,4);ctx.fill();
 
     ctx.textAlign = "center";
-    ctx.font = readableFont(11, '800'); ctx.fillStyle = '#b6f1e7';
+    ctx.font = readableFont(11, '800'); ctx.fillStyle = '#f1d9aa';
     ctx.fillText(bossQ.reading === false ? '戰鬥已恢復・答對破盾' : '安心讀題・作答後恢復戰鬥', mid, by - 12);
-    ctx.fillStyle = "#ffeed4";
+    ctx.fillStyle = "#f8e9c8";
     ctx.font = readableFont(20, "900");
     const question = `${bossQ.word.zh}　→　${bossQ.introduced || bossQ.wasAssisted ? bossQ.word.jp : '？'}`;
     if (bossQ.word.cue === "text" || !bossQ.word.icon) {
@@ -2419,12 +2470,12 @@ window.UI = (() => {
     bossQ.ans.forEach((w, i) => {
       const {x:ox,y:oy,w:optW,h:optH} = layout.options[i];
       const wrong = bossQ.wrong?.includes(i);
-      glassBox(ctx, ox, oy, optW, optH, 10, wrong ? "#482735" : bossQ.lock > 0 ? "#333c57" : "#f4e6c8", wrong ? "#f0a0a0" : bossQ.lock > 0 ? "#6c7592" : C.gold, 2);
-      if (bossQ.lock <= 0) {
-        ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
-        ctx.beginPath(); ctx.roundRect(ox + 5, oy + 4, optW - 10, optH * 0.3, 6); ctx.fill();
+      drawWoodTag(ctx,{x:ox,y:oy,w:optW,h:optH},"normal",false,true);
+      if (wrong || bossQ.lock > 0) {
+        ctx.fillStyle = wrong ? "rgba(115,56,49,.76)" : "rgba(85,76,69,.43)";
+        ctx.beginPath();ctx.roundRect(ox+3,oy+3,optW-6,optH-6,5);ctx.fill();
       }
-      ctx.fillStyle = wrong ? "#ffb3ba" : bossQ.lock > 0 ? "#8e97b4" : "#1e1829";
+      ctx.fillStyle = wrong ? "#f8e2c4" : bossQ.lock > 0 ? "#6b574e" : "#352822";
       const badge = mode === 'gamepad' ? ["LB", "RB", "Y"][i] : mode === 'touch' ? '' : i + 1;
       const answerText = `${wrong ? '× ' : badge ? badge + ' ' : ''}${w.jp}`;
       ctx.font = answerFont(18, "900");

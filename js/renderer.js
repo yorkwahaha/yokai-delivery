@@ -843,30 +843,36 @@ window.RENDERER = (() => {
     }
   }
 
-  // 手繪六角封印靈玉：墨線、和紙面與低強度金箔圈。
+  // 提亮琉璃核心與金邊：小量固定輪廓光代替昂貴的逐珠模糊濾鏡。
   function drawSpiritGem(g, elapsed) {
-    const large = g.v > 2, radius = large ? 10 : 8;
+    const large = g.v > 2, radius = large ? 11 : 9;
     const rise = allowsMotion() ? Math.sin(elapsed * 4 + g.x * .07) * 1.7 : 0;
+    const gleam = allowsMotion() ? 0.78 + 0.22 * Math.sin(elapsed * 3.5 + g.x * .035) : 0.9;
     ctx.save();
     ctx.translate(g.x, g.y - rise);
-    ctx.fillStyle = "rgba(31,26,32,.32)";
+    ctx.fillStyle = "rgba(31,26,32,.34)";
     ctx.beginPath();ctx.ellipse(0,radius*.75,radius*.86,3,0,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle = large ? "rgba(203,165,92,.72)" : "rgba(203,165,92,.48)";
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();ctx.ellipse(0,0,radius+3,(radius+3)*.85,0,0,Math.PI*2);ctx.stroke();
-    ctx.fillStyle = "#6d9999";
-    ctx.strokeStyle = "#24252c";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = `rgba(145,239,234,${(0.24 * gleam).toFixed(3)})`;
+    ctx.lineWidth = 4;
+    ctx.beginPath();ctx.ellipse(0,0,radius+4,(radius+4)*.86,0,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle = `rgba(244,210,139,${(0.72 + 0.2 * gleam).toFixed(3)})`;
+    ctx.lineWidth = 1.9;
+    ctx.beginPath();ctx.ellipse(0,0,radius+2,(radius+2)*.86,0,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle = "#81dce2";
+    ctx.strokeStyle = "#33424a";
+    ctx.lineWidth = 1.6;
     ctx.lineJoin = "round";
     ctx.beginPath();ctx.moveTo(0,-radius);ctx.lineTo(radius*.72,-radius*.35);
     ctx.lineTo(radius*.72,radius*.42);ctx.lineTo(0,radius);
     ctx.lineTo(-radius*.72,radius*.42);ctx.lineTo(-radius*.72,-radius*.35);
     ctx.closePath();ctx.fill();ctx.stroke();
-    ctx.fillStyle = "#d9cda9";
+    ctx.fillStyle = "#e9ffff";
     ctx.beginPath();ctx.moveTo(0,-radius*.7);ctx.lineTo(radius*.35,-radius*.18);
     ctx.lineTo(0,radius*.36);ctx.lineTo(-radius*.35,-radius*.18);
     ctx.closePath();ctx.fill();
-    ctx.strokeStyle = "#354d58";ctx.lineWidth = 1.1;
+    ctx.fillStyle = "rgba(255,255,242,.88)";
+    ctx.beginPath();ctx.ellipse(-radius*.3,-radius*.35,1.6,2.7,-.35,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle = "#497987";ctx.lineWidth = 1.1;
     ctx.beginPath();ctx.moveTo(0,radius*.36);ctx.lineTo(0,radius*.79);ctx.stroke();
     ctx.restore();
   }

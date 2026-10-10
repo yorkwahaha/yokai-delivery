@@ -119,6 +119,7 @@ const MEDIA_REVISIONS = {
   "assets/img/tank.webp": "fad88f4ddeae620e16d3220d",
   "assets/img/tank_motion_v1.png": "d7aadc6932d1d2f4bf64bacd",
   "assets/img/tank_motion_v1.webp": "c5491157893ccf8286f1abc7",
+  "assets/img/ui/awaken_seal.svg": "b5dcbc2ac7abc0e73b18d659",
   "assets/img/ui/hud_lantern_oil.png": "0dc0efee8701805d0dbf9d2d",
   "assets/img/ui/hud_lantern_oil.webp": "4b48391cd3977db47e95a17a",
   "assets/img/ui/hud_omamori_hint_listen.png": "4ed543edb845c8d4993ff9c6",

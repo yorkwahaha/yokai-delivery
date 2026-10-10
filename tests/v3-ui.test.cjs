@@ -31,13 +31,21 @@ test('V3 UI harness calibration: current HUD draws real oil and level labels', (
   assert.ok(r.labels.some(t => t.value === '80/100'));
 });
 
-test('V3 UI: both HUD themes explain the next delivery seal without revealing the answer', () => {
+test('V3 UI: both HUD themes draw a pictorial seal tag and next-delivery progress, without revealing the answer', () => {
   for (const classic of [false, true]) {
     const r = loadUI(); r.hud(job(), {awakening:{seals:1,earned:1,nextIn:3,awakened:0}}, classic);
-    assert.ok(r.labels.some(t => /覺醒印.*1/.test(t.value)));
+    assert.ok(r.labels.some(t => t.value === '×1'), '印章旁應直接顯示持印數');
     assert.ok(r.labels.some(t => /再送.*3.*件/.test(t.value)));
+    assert.ok(!r.labels.some(t => /覺醒印.*再送/.test(t.value)), '不應再出現懸浮長句');
     assert.ok(!r.labels.some(t => t.value.includes(word.jp)));
   }
+});
+
+test('V3 UI: completed deliveries show awakening usage instead of another-delivery text', () => {
+  const r = loadUI(); r.hud(null, {awakening:{seals:2,earned:4,nextIn:0,awakened:2}});
+  assert.ok(r.labels.some(t=>t.value==='×2'));
+  assert.ok(r.labels.some(t=>t.value==='覺醒 2/4'));
+  assert.ok(!r.labels.some(t=>/再送/.test(t.value)));
 });
 
 test('V3 UI: safe reading and free first hint are visible on a small screen', () => {

@@ -286,8 +286,9 @@ test('spirit gems render as inked faceted talismans and honor reduced motion',()
   let fill='';
   Object.defineProperty(c,'fillStyle',{configurable:true,get(){return fill;},set(v){fill=v;colors.push(v);}});
   assert.doesNotThrow(()=>r.env.RENDERER.drawSpiritGem({x:120,y:180,v:6},1));
-  assert.ok(colors.includes('#6d9999'),'jade body is visible');
-  assert.ok(colors.includes('#d9cda9'),'paper reflection is visible');
+  assert.ok(colors.includes('#81dce2'),'bright turquoise jade body is visible');
+  assert.ok(colors.includes('#e9ffff'),'pale glass reflection is visible');
+  assert.ok(colors.includes('rgba(255,255,242,.88)'),'small highlight attracts pickup');
   r.env.motionChange({matches:true});
   assert.doesNotThrow(()=>r.env.RENDERER.drawSpiritGem({x:120,y:180,v:2},1));
 });
