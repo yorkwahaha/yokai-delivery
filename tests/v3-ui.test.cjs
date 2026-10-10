@@ -4,9 +4,10 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 
 function loadUI(width = 844, height = 390) {
-  const labels = [], gradient = { addColorStop() {} };
+  const labels = [], arcs = [], gradient = { addColorStop() {} };
   const ctx = new Proxy({
     fillText: (value, x, y) => labels.push({value: String(value), x, y}),
+    arc: (x,y,r) => arcs.push({x,y,r}),
     measureText: text => ({width: [...String(text)].length * 13}),
     createLinearGradient: () => gradient, createRadialGradient: () => gradient
   }, {get: (o, k) => o[k] || (() => {})});
@@ -20,7 +21,7 @@ function loadUI(width = 844, height = 390) {
     job, 0, [], null, null, false, null,
     {x:810,y:420,r:38}, {x:810,y:530,r:46}, {x:848,y:14,w:38,h:52},
     {katana:4}, {katana:{zh:'妖刀'}}, {}, 0, 6, 0, 1.8, false, extra);
-  return {UI, ctx, labels, env, hud};
+  return {UI, ctx, labels, arcs, env, hud};
 }
 const word = {jp:'ねこ',zh:'貓',icon:'🐱',cue:'emoji'};
 const job = () => ({word, to:{x:500,y:500},hintStage:0,hold:0,showMeaningT:0});
@@ -31,21 +32,33 @@ test('V3 UI harness calibration: current HUD draws real oil and level labels', (
   assert.ok(r.labels.some(t => t.value === '80/100'));
 });
 
-test('V3 UI: both HUD themes draw a pictorial seal tag and next-delivery progress, without revealing the answer', () => {
+test('V3 UI: both HUD themes show a seal count and three lamps without wording', () => {
   for (const classic of [false, true]) {
     const r = loadUI(); r.hud(job(), {awakening:{seals:1,earned:1,nextIn:3,awakened:0}}, classic);
-    assert.ok(r.labels.some(t => t.value === '×1'), '印章旁應直接顯示持印數');
-    assert.ok(r.labels.some(t => /再送.*3.*件/.test(t.value)));
-    assert.ok(!r.labels.some(t => /覺醒印.*再送/.test(t.value)), '不應再出現懸浮長句');
+    assert.ok(r.labels.some(t => t.value === '×1'), '印章旁顯示持印數');
+    assert.equal(r.arcs.filter(a=>a.r===3.5).length,3);
+    assert.ok(!r.labels.some(t => /覺醒|再送/.test(t.value)), '覺醒 HUD 不應再有中文');
     assert.ok(!r.labels.some(t => t.value.includes(word.jp)));
   }
 });
 
-test('V3 UI: completed deliveries show awakening usage instead of another-delivery text', () => {
+test('V3 UI: completed deliveries show four awakening lamps and count only', () => {
   const r = loadUI(); r.hud(null, {awakening:{seals:2,earned:4,nextIn:0,awakened:2}});
   assert.ok(r.labels.some(t=>t.value==='×2'));
-  assert.ok(r.labels.some(t=>t.value==='覺醒 2/4'));
-  assert.ok(!r.labels.some(t=>/再送/.test(t.value)));
+  assert.equal(r.arcs.filter(a=>a.r===3.5).length,4);
+  assert.ok(!r.labels.some(t=>/再送|覺醒/.test(t.value)));
+});
+
+test('V3 UI: boss quiz front board reveals its rear HP after the seal breaks', () => {
+  const r=loadUI(),boss={hp:70,max:100,shield:true,final:false};
+  r.UI.drawBossQuiz(r.ctx,{word,ans:[word,word,word],lock:0},'touch',boss);
+  assert.ok(r.labels.some(t=>t.value.includes(word.zh)));
+  const before=r.labels.length;
+  boss.shield=false;
+  r.UI.drawBossQuiz(r.ctx,null,'touch',boss,0.65);
+  const exposed=r.labels.slice(before).map(t=>t.value);
+  assert.ok(exposed.some(t=>t.includes('全力進攻')));
+  assert.ok(!exposed.some(t=>t.includes(word.jp)));
 });
 
 test('V3 UI: safe reading and free first hint are visible on a small screen', () => {

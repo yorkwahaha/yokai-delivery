@@ -431,7 +431,8 @@ test('diegetic radar phase 2 keeps the clock outside navigation content and pres
   assert.doesNotMatch(src,/roundRect\(sx - 19, sy \+ 17, 38, badgeH/,'diegetic fan no longer uses level badges');
   assert.match(src,/\[0\.783, 0\.803\]/,'fifth fan aperture is reserved');
   assert.match(src,/第五洞保留為未解鎖槽/,'fifth aperture remains locked');
-  assert.match(src,/const bossBarY = extra\.awakening \? afterTask \+ 4 : Math\.max\(bounds\.top \+ 2, afterTask - \(compactLandscape \? 44 : 38\)\)/,'Boss bar leaves room for awakening and safe-reading status');
+  assert.doesNotMatch(src,/const bossBarY = /,'Boss 不再佔用任務 HUD 下方的一塊血條');
+  assert.match(src,/drawBossBar\(ctx,bx\+7,by\+\(bossQ\?7:24\)/,'Boss 血條已搬進答題封印板下層');
 });
 
 test('diegetic delivery guidance uses original radar icons and an omamori hint',()=>{

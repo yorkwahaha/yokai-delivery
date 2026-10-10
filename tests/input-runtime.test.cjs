@@ -1798,12 +1798,15 @@ test('giant dragon renders after houses and the courier without duplicate passes
   g.env.SKILLFX.paint=(ctx,id,lv,p)=>{if(p?.dragon)events.push('dragon');return oldPaint(ctx,id,lv,p);};
   g.env.RENDERER.drawPlayer=()=>events.push('player');
   g.env.RENDERER.drawHouse=()=>events.push('house');
+  g.env.UI.drawHud=()=>events.push('hud');
   g.occlusionScene(900);
-  g.drawWorld();
+  g.setState('play');
+  g.frame(16);
   assert.equal(events.filter(v=>v==='dragon').length,1);
   assert.ok(events.indexOf('dragon')>events.indexOf('player'));
   assert.ok(events.includes('house'));
   assert.ok(events.lastIndexOf('dragon')>events.lastIndexOf('house'));
+  assert.ok(events.lastIndexOf('dragon')>events.lastIndexOf('hud'),'dragon overlays the HUD');
 });
 
 test('MAX katana triple-speed projectile keeps the same facing and damage model',()=>{
@@ -1817,6 +1820,15 @@ test('MAX katana triple-speed projectile keeps the same facing and damage model'
   assert.equal(wave.maxTravel,720);
 });
 
+test('MAX katana wind vanishes on reaching 720 rather than hanging for the rest of its life',()=>{
+  const g=loadGame();g.start();g.face(0);g.combatScene('katana',[{dx:280}],[],5);
+  for(let i=0;i<31;i++)g.weapons(0.01);
+  assert.equal(g.snapshot().winds.length,1,'wind appears');
+  g.setWeaponRank('katana',0); // No second attack should confuse the first wave's expiry.
+  for(let i=0;i<44;i++)g.weapons(0.01);
+  assert.equal(g.snapshot().winds.length,0,'the 720-unit cap removes the wind immediately');
+});
+
 test('the giant dragon can also enter from the right edge toward a left-side target',()=>{
   const g=loadGame();g.start();g.combatScene('fire',[{dx:-300}],[],5);
   g.weapons(0.01);
@@ -1824,8 +1836,8 @@ test('the giant dragon can also enter from the right edge toward a left-side tar
   assert.ok(d);
   assert.equal(d.faceX,-1);
   assert.ok(d.entry.startX>d.entry.endX);
-  assert.ok(d.size>=300&&d.size<=680,'restrained dragon sprite range');
-  assert.ok(d.size<550,'smaller than the former minimum');
+  assert.ok(d.size>=450&&d.size<=1020,'1.5× dragon sprite range');
+  assert.ok(d.size>=550,'large dragon is no longer reduced below the old minimum');
 });
 
 test('a flying dragon fireball paints its art with visible ink embers and a bounded glow',()=>{

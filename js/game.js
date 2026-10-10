@@ -294,7 +294,7 @@
 
   let bossT = BOSS_TIMES[0], bossStage = 0, finalBossDefeated = false;
   let finalBossPos = null, finalBossEnt = null, victorySeq = null;
-  let ended = false, bossQ = null, codexBack = "menu", codexTab = "cards", codexPage = 0;
+  let ended = false, bossQ = null, bossSealBreak = null, codexBack = "menu", codexTab = "cards", codexPage = 0;
   let codexFocus = 'cards';
   function selectCodex(id) {
     codexFocus = id;
@@ -555,7 +555,7 @@
     SKILLFX.reset();
     rerolls = 2; titleCardT = 3; runSummary = null;
     bossStage = 0; bossT = BOSS_TIMES[0]; finalBossDefeated = false; finalBossPos = null; finalBossEnt = null; victorySeq = null; lampSeq = null;
-    ended = false; bossQ = null; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0; lanternHitT = 0;
+    ended = false; bossQ = null; bossSealBreak = null; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0; lanternHitT = 0;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     pTrail = [];
     for (let i = 0; i <= 24; i++) {
@@ -1213,6 +1213,7 @@
       noteSuccess("boss", assisted);
       bs.shield = false;
       bs.quizzed = true;
+      bossSealBreak = { boss: bs, at: performance.now() };
       bossQ = null;
       bs.quiz = null;
       say(`${bs.word.jp}＝${bs.word.zh}・結界破除！`, bs.x, bs.y - 75, "#9be7ff");
@@ -1351,11 +1352,13 @@
       const stepDist=Math.hypot(wave.vx,wave.vy)*dt;
       const cap=wave.maxTravel||720;
       const nextTravel=(wave.traveled||0)+stepDist;
-      if(nextTravel>cap && stepDist>0){
+      if(nextTravel>=cap && stepDist>0){
         const back=(nextTravel-cap)/stepDist;
         wave.x-=wave.vx*dt*back;
         wave.y-=wave.vy*dt*back;
         wave.traveled=cap;
+        // 射程結束即消散，不停在原地等剩餘的生命時間。
+        wave.life=0;
       }else wave.traveled=nextTravel;
       for (const eb of enemyBullets) {
         if (eb.life > 0 && !eb.bossHazard && dist(eb, wave) <= 90) {
@@ -1381,7 +1384,7 @@
       }
       const cam=RENDERER.getCam(),view=viewBounds(),margin=wave.size*0.62;
       const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
-      if(wave.x<left-margin||wave.x>right+margin||wave.y<top-margin||wave.y>bottom+margin||wave.traveled>wave.maxTravel)wave.life=0;
+      if(wave.x<left-margin||wave.x>right+margin||wave.y<top-margin||wave.y>bottom+margin||wave.traveled>=wave.maxTravel)wave.life=0;
     }
     winds=winds.filter(p=>p.life>0);
 
@@ -1586,8 +1589,8 @@
         wT.fire=wMax.fire=6;
         const cam=RENDERER.getCam(),view=viewBounds();
         const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
-        // 收斂黑龍佔屏比例：原始 0.72 視野寬且最少 550 過於龐大。
-        const face=target.x>=P.x?1:-1,size=clamp(view.width*0.44,300,680);
+        // 黑龍在原版尺寸上放大 1.5 倍，仍維持左右側入場。
+        const face=target.x>=P.x?1:-1,size=clamp(view.width*0.66,450,1020);
         const endX=face>0?left+size*0.08:right-size*0.08;
         const startX=face>0?left-size*0.8:right+size*0.8;
         const y=clamp(P.y-90,top+view.height*0.27,bottom-view.height*0.23);
@@ -2783,11 +2786,7 @@
     SKILLFX.drawArtFx?.(ctx, false);
     // 妖刀手繪刀氣屬於自發光前景：夜色遮罩後再合成，保持浮世繪青白與金色筆觸。
     for(const p of winds) SKILLFX.paint(ctx,"wind",5,p);
-    // World-top summon pass: the dragon is above houses, enemies and night lighting,
-    // while HUD remains on its own UI plane. Side entrance keeps the middle playable.
-    for(const dragon of ghosts)if(dragon.dragon&&dragon.life>0){
-      SKILLFX.paint(ctx,"ghost",5,dragon);
-    }
+    // 黑龍改由 HUD 上層合成，避免再次被羅盤、提燈及任務 UI 蓋住。
     // The projectile floats above the world, separate from the ground fire.
     for(const shot of dragonShots){
       if(!nearView(shot.x,shot.y,120))continue;
@@ -2873,6 +2872,14 @@
       ctx.restore();
     }
 
+  }
+
+  function drawDragonHudOverlay() {
+    const cam = RENDERER.getCam(), shakeOffset = RENDERER.getShakeOffset();
+    ctx.save();
+    ctx.translate(-cam.x+shakeOffset.x,-cam.y+shakeOffset.y);
+    for (const dragon of ghosts) if (dragon.dragon && dragon.life>0) SKILLFX.paint(ctx,"ghost",5,dragon);
+    ctx.restore();
   }
 
   function turnCodexPage(delta) {
@@ -3365,8 +3372,11 @@
           dashCd, dashMax, bossHunt, hudExtra(now / 1000)
         );
         if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
+        if (state === "play") drawDragonHudOverlay();
         if (titleCardT > 0 && state === "play") UI.drawTitleCard(ctx, STAGE, stageChapter(), titleCardT);
-        if (bossQ) UI.drawBossQuiz(ctx, bossQ, inputMode);
+        const activeBoss = enemies.find(e => e.type === "boss" && e.hp > 0) || null;
+        const sealFade = bossSealBreak?.boss === activeBoss ? Math.max(0,1-(performance.now()-bossSealBreak.at)/850) : 0;
+        if (bossQ || activeBoss) UI.drawBossQuiz(ctx,bossQ,inputMode,activeBoss,sealFade);
         if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000, levelupFocus, inputMode, awakeningState());
         if (state === "pause") {
           UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false, quitConfirm ? 0 : menuFocus);

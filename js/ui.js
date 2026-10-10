@@ -1387,47 +1387,36 @@ window.UI = (() => {
     return h;
   }
 
-  // 覺醒印：小繪馬、圖像印章與三步配送節點，避免純文字懸浮在場景。
+  // 小繪馬覺醒印：固定靠右，僅保留印章數量與可視進度燈。
   function drawAwakeningTag(ctx, x, y, availableWidth, a) {
-    const w = Math.min(280,Math.max(162,availableWidth));
-    const px = x + Math.max(0,(availableWidth-w)/2), h = 40;
+    const w = Math.min(150,Math.max(92,availableWidth));
+    const px = x + Math.max(0,availableWidth-w), h = 30;
     ctx.save();
     if (illustratedArt.title?.naturalWidth) drawRibbonSlices(ctx,illustratedArt.title,px,y,w,h);
     else glassBox(ctx,px,y,w,h,5,"rgba(55,36,29,.96)","#b18a5a",1.8);
-    // 墨漆內襯確保不同素材亮度、行動裝置上皆可讀。
     ctx.fillStyle = "rgba(44,29,26,.86)";
-    ctx.beginPath();ctx.roundRect(px+39,y+5,w-46,h-10,4);ctx.fill();
+    ctx.beginPath();ctx.roundRect(px+30,y+4,w-35,h-8,4);ctx.fill();
     const seal = illustratedArt.awakeningSeal;
-    if (seal?.naturalWidth) ctx.drawImage(seal,px+5,y+3,35,35);
+    if (seal?.naturalWidth) ctx.drawImage(seal,px+3,y+2,26,26);
     else {
-      ctx.fillStyle="#a84537";ctx.beginPath();ctx.arc(px+23,y+20,15,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle="#e6be7c";ctx.lineWidth=1.8;
-      ctx.beginPath();ctx.arc(px+23,y+20,12,0,Math.PI*2);ctx.stroke();
-      ctx.fillStyle="#f4d6a0";ctx.textAlign="center";ctx.font=readableFont(15,"900");
-      ctx.fillText("印",px+23,y+25);
+      ctx.fillStyle="#a84537";ctx.beginPath();ctx.arc(px+16,y+15,11,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle="#e6be7c";ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(px+16,y+15,8,0,Math.PI*2);ctx.stroke();
     }
-    ctx.fillStyle="#f3ddb1";ctx.textAlign="left";ctx.font=readableFont(14,"900");
-    ctx.fillText(`×${a.seals}`,px+44,y+25);
-    ctx.strokeStyle="rgba(214,172,112,.57)";ctx.lineWidth=1;
-    const divider=px+(w<220?91:103);
-    ctx.beginPath();ctx.moveTo(divider,y+11);ctx.lineTo(divider,y+29);ctx.stroke();
-    ctx.font=readableFont(w<220?11:12,"900");
-    ctx.fillStyle="#f3ddb1";
-    ctx.fillText(a.earned>=4 ? `覺醒 ${a.awakened}/4` : `再送 ${a.nextIn} 件`,
-      divider+9,y+24,w<220?w-109:w-135);
-    if (w>=240) {
-      const progress=a.earned>=4 ? Math.min(4,Math.max(0,a.awakened)) : Math.min(3,Math.max(0,3-a.nextIn));
-      const total=a.earned>=4?4:3;
-      for(let i=0;i<total;i++){
-        const dx=px+w-12-(total-1-i)*12;
-        ctx.fillStyle=i<progress?"#d9ab69":"#61473a";
-        ctx.strokeStyle=i<progress?"#e9c58b":"#96775b";
-        ctx.beginPath();ctx.arc(dx,y+10,3.3,0,Math.PI*2);ctx.fill();ctx.stroke();
-      }
+    ctx.fillStyle="#f3ddb1";ctx.textAlign="left";ctx.font=readableFont(13,"900");
+    ctx.fillText(`×${a.seals}`,px+32,y+20);
+    const progress=a.earned>=4 ? Math.min(4,Math.max(0,a.awakened)) : Math.min(3,Math.max(0,3-a.nextIn));
+    const total=a.earned>=4?4:3;
+    for(let i=0;i<total;i++){
+      const dx=px+w-10-(total-1-i)*11;
+      ctx.fillStyle=i<progress?"#eac178":"#513e34";
+      ctx.strokeStyle=i<progress?"#f9dfa1":"#9b7552";
+      ctx.beginPath();ctx.arc(dx,y+15,3.5,0,Math.PI*2);ctx.fill();ctx.stroke();
     }
     ctx.restore();
     return h;
   }
+
 
   // 2. 全螢幕 HUD：左上生命（燈油）與經驗、中上任務／Boss、右上黎明與小地圖、左下武器格。
   function drawHudBase(theme, ctx, P, oil, maxOil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, goalDeliveries = 6, dashCd = 0, dashMax = 1.8, bossHunt = false, extra = {}) {
@@ -1638,16 +1627,13 @@ window.UI = (() => {
       drawActionIcon(ctx, 'pickup', taskX + 27, taskY + 26, 13);
       drawCompass(ctx, taskX + 68, taskY + 26, extra.guideAngle, { color: inter ? "#ffe082" : "#ffd152", size: 1.3 });
     }
-    if (extra.awakening) {
-      afterTask += drawAwakeningTag(ctx,taskX,afterTask-3,taskW,extra.awakening);
-    }
+    if (extra.awakening) drawAwakeningTag(ctx,taskX,taskY+taskH+3,taskW,extra.awakening);
     if (job?.reading || extra.reading?.active && extra.reading.kind === 'delivery') {
       ctx.textAlign = 'left'; ctx.font = readableFont(12, '800'); ctx.fillStyle = '#b6f1e7';
       fitText(ctx, '安心讀題・離開恢復', taskX, afterTask + 16, taskW);
       afterTask += 32;
     }
-    const bossBarY = extra.awakening ? afterTask + 4 : Math.max(bounds.top + 2, afterTask - (compactLandscape ? 44 : 38));
-    if (extra.boss) drawBossBar(ctx, taskX, bossBarY, taskW, extra.boss, scale, time);
+    // Boss 血量與答題共用底部封印板，不在上方繪製第二塊血條。
 
     // --- 左下：武器格（含冷卻）＋被動體質欄 ---
     const ownedKeys = WI ? Object.keys(WI).filter(k => (WL[k] || 0) > 0) : [];
@@ -2440,14 +2426,46 @@ window.UI = (() => {
     return {x,y,w,h,options:Array.from({length:n},(_,i)=>({x:startX+i*(optW+gap),y:y+46,w:optW,h:optH}))};
   }
 
-  function drawBossQuiz(ctx, bossQ, mode = 'keyboard') {
-    if (!bossQ) return;
+  function drawBossQuiz(ctx, bossQ, mode = 'keyboard', boss = null, breakFade = 0) {
+    if (!bossQ && !boss) return;
     ctx.save();
-    const layout = bossQuizLayout(bossQ.ans.length);
+    const layout = bossQuizLayout(bossQ?.ans.length || 3);
     const {x:bx,y:by,w:boxW,h:boxH} = layout;
     const mid = bx+boxW/2;
 
-    // 改成旅帳和紙與木版按鈕：去除霓虹光暈及光滑玻璃高光。
+    // 下層血量板：答題時被表層封印紙遮住；答對後在原位顯露。
+    if (boss) {
+      const scale = window.VIEWPORT?.get().scale || 1;
+      drawBossBar(ctx,bx+7,by+(bossQ?7:24),boxW-14,boss,scale,Date.now()/1000);
+    }
+    if (!bossQ) {
+      if (boss?.shield) {
+        drawWashiBoard(ctx,bx,by+14,boxW,64,true);
+        ctx.fillStyle="#45332a";ctx.font=readableFont(18,"900");ctx.textAlign="center";
+        ctx.fillText("封印中・靠近妖將解除結界",mid,by+53,boxW-32);
+      } else if (breakFade > 0 && !calm()) {
+        // 答對的瞬間，表層裂成兩半飄離，下層 Boss 血條隨之露出。
+        ctx.save();ctx.globalAlpha=breakFade*.86;
+        const drift=(1-breakFade)*34;
+        for(const side of [-1,1]){
+          const edge=mid+side*(5+drift);
+          ctx.fillStyle="#d8be91";ctx.strokeStyle="#77513b";ctx.lineWidth=2;
+          ctx.beginPath();
+          ctx.moveTo(edge,by+25);ctx.lineTo(edge+side*(boxW*.46),by+22);
+          ctx.lineTo(edge+side*(boxW*.46),by+73);ctx.lineTo(edge+side*19,by+65);
+          ctx.lineTo(edge-side*10,by+53);ctx.lineTo(edge+side*15,by+43);
+          ctx.closePath();ctx.fill();ctx.stroke();
+          ctx.strokeStyle="#6c4233";
+          ctx.beginPath();ctx.moveTo(edge+side*13,by+37);ctx.lineTo(edge+side*49,by+52);
+          ctx.lineTo(edge+side*67,by+34);ctx.stroke();
+        }
+        ctx.restore();
+      }
+      ctx.restore();
+      return;
+    }
+
+    // 上層和紙題板：保留原有選項位置，觸控判定與鍵盤快捷鍵不變。
     drawWashiBoard(ctx,bx,by,boxW,boxH,true);
     ctx.fillStyle="rgba(45,30,26,.90)";
     ctx.beginPath();ctx.roundRect(bx+18,by+13,boxW-36,29,4);ctx.fill();
