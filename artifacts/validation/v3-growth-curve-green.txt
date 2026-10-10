@@ -1,0 +1,31 @@
+✔ rain-port removes stacked survival penalties while retaining its stage identity (1.7397ms)
+✔ run pacing is ten minutes with a final boss just before dawn (0.1701ms)
+✔ xp curve preserves opening thresholds and caps later growth at 90 (0.2588ms)
+✔ enemy density ramps across the whole ten-minute run (0.1344ms)
+✔ a theoretical full clear stays an upper capacity estimate under the V3 growth cap (0.2862ms)
+✔ overtime caps enemy tier and spawn pressure at dawn (0.148ms)
+✔ orders teach the loop gradually instead of flooding the opening (0.0911ms)
+✔ 校準環境正確性：沙箱讀到的是 da98b4b，而非目前 working tree (281.4558ms)
+✔ baseline: 沙箱能啟動一局並進入 play 狀態 (241.9642ms)
+✔ baseline: 舊規格 — 單筆配送 +12XP、+50 分、答對升星 (240.9009ms)
+✔ baseline: 舊規格 — 答錯扣 8 油並記為失誤 (262.5391ms)
+✔ baseline: 舊規格 — 第一段提示扣 3 油、第二段扣 4 油 (239.7013ms)
+✔ baseline: 舊規格 — 答案停留門檻 0.45 秒自動提交（V3 改為 0.65 秒） (239.2019ms)
+✔ V3 RED: 答案停留門檻改為 0.65 秒，0.60 秒不得提交 (13.5909ms)
+✔ baseline: 舊規格 — 純站樁的淨耗油為 0.43 - 0.12 = 0.31/s（V3 要消滅的無成本永動機） (253.0745ms)
+✔ baseline: 舊規格 — 靈針 Lv5 殉爆可遞迴連鎖（V3 要設總預算） (253.8352ms)
+✔ baseline: 舊規格 — xpNeed 與節奏常數（固定讀 da98b4b，不受 AGY 改 config 影響） (0.5186ms)
+✔ 校準環境正確性：基線常數不得來自 working tree (0.5549ms)
+✔ baseline: seeded 沙箱可重現同一組抽詞序列 (723.2437ms)
+✔ V3 growth preserves the first eight upgrade thresholds (0.9104ms)
+✔ V3 growth caps later upgrades at 90 without reducing early requirements (0.1626ms)
+✔ V3 growth budgets four MAX plus six or eight passive choices (0.0987ms)
+✔ V3 growth actual twenty-five choices spend 1976 XP and reach level26 (129.1573ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2846.9299

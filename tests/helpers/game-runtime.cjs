@@ -573,7 +573,7 @@ function loadGame(options = {}) {
 const runSource = (c, source, name, revision) => {
   // name 不含副檔名（MODULE_ORDER 用 'words'、'game'…），coverage 的
   // filename 必須指向真實存在的 js/<name>.js，否則行數會歸到不存在的路徑。
-  const base = `${name}.js`;
+  const base = name.endsWith('.js') ? name : `${name}.js`;
   const file = revision ? `${revision}:js/${base}` : path.join(ROOT, 'js', base);
   return vm.runInContext(source, c, { filename: file });
 };

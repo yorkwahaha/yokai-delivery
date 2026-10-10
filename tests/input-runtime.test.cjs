@@ -47,12 +47,12 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
   const env = { console, Set, Map, Math, Date, performance: { now: () => 0 }, navigator: {}, requestAnimationFrame() {}, localStorage: { getItem: k => storage.get(k) || null, setItem: (k,v) => storage.set(k,v) }, document: { hidden: false, getElementById: id => id === 'controls-open' ? controlsButton : canvas, addEventListener: (k, f) => { documentEvents[k] = f; } }, addEventListener: (k, f) => { events[k] = f; } };
   env.window = env;
   const c = vm.createContext(env);
-  for (const name of ['words', 'world', 'store', 'config', 'viewport', 'controls', 'overworld', 'fx', 'skillfx', 'evolutions', 'boss-ai']) vm.runInContext(fs.readFileSync(`js/${name}.js`, 'utf8'), c);
+  for (const name of ['words', 'world', 'store', 'config', 'viewport', 'controls', 'overworld', 'fx', 'skillfx', 'evolutions', 'boss-ai']) vm.runInContext(fs.readFileSync(`js/${name}.js`, 'utf8'), c, {filename: require('node:path').resolve(`js/${name}.js`)});
   c.CONTROLS.mount = () => {};
   const audioCalls = [];
   c.AUDIO = new Proxy({}, { get: (o, name) => () => audioCalls.push(name) });
   c.RENDERER = new Proxy({ drawHouse: h => actorCalls.push(`house:${h.id}`), drawPlayer: () => actorCalls.push('player'), drawMonster: e => actorCalls.push(`enemy:${e.id}`), getCtx: () => ctx, getDpr: () => c.devicePixelRatio || 1, getCam: () => ({ x: 900, y: 600 }), getShakeOffset: () => ({x:0,y:0}), updateEffects: () => false }, { get: (o, k) => o[k] || (() => {}) });
-  vm.runInContext(fs.readFileSync('js/ui.js','utf8'),c);
+  vm.runInContext(fs.readFileSync('js/ui.js','utf8'),c,{filename:require('node:path').resolve('js/ui.js')});
   const uiButtons=Object.fromEntries(Object.entries(c.UI).filter(([,v])=>typeof v!=='function'));
   c.UI = new Proxy({ ...uiButtons, codexButtons:c.UI.codexButtons, codexRows:c.UI.codexRows, pauseButtons:c.UI.pauseButtons, bossQuizLayout:c.UI.bossQuizLayout, reviewButtons:c.UI.reviewButtons, HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
   const source = fs.readFileSync('js/game.js', 'utf8');
@@ -121,7 +121,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     ageOrders: seconds => { for (const o of orders) o.life -= seconds; },
     failCount: () => failed,
     codexCount: () => codexWords().length };`;
-  vm.runInContext(source.slice(0, end) + hook + source.slice(end), c);
+  vm.runInContext(source.slice(0, end) + hook + source.slice(end), c,{filename:require('node:path').resolve('js/game.js')});
   return { ...c.fixture, events, canvasEvents, documentEvents, env: c, ctx, audioCalls, drawnText, actorCalls, transforms };
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });

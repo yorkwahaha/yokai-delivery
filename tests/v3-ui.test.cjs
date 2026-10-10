@@ -13,7 +13,7 @@ function loadUI(width = 844, height = 390) {
   const env = {window: {innerWidth: width, innerHeight: height},
     performance: {now: () => 1000},
     document: {getElementById: () => ({getBoundingClientRect: () => ({width})})}};
-  vm.runInNewContext(fs.readFileSync('js/ui.js', 'utf8'), env);
+  vm.runInNewContext(fs.readFileSync('js/ui.js', 'utf8'), env, {filename: require('node:path').resolve('js/ui.js')});
   const UI = env.window.UI;
   const hud = (job, extra = {}, classic = false) => UI[classic ? 'drawHudClassic' : 'drawHudDiegetic'](
     ctx, {x: 0, y: 0}, 80, 100, 120, 600, 3, 0, 150, 4, 20, 45,

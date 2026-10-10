@@ -20,7 +20,8 @@
     },
     xpNeed(level) {
       const lv = Math.max(1, Number(level) || 1);
-      return 24 + lv * 5 + Math.floor(Math.pow(lv, 1.35) * 1.2);
+      // Keep the opening pace; later delivery runs must have room for four awakenings.
+      return Math.min(90, 24 + lv * 5 + Math.floor(Math.pow(lv, 1.35) * 1.2));
     },
     spawnInterval(elapsed) {
       const t = Math.min(Math.max(0, elapsed || 0), RUN_SECONDS);
