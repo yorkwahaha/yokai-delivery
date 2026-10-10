@@ -65,6 +65,35 @@ const FIXTURE = `window.fixture = {
   // 走動途中遇到升級卡時要怎麼處理：預設走 resolveLevelUps（真的 pickUp）。
   // runner 可覆寫成自己的選卡策略（觀察 cap3／四槽拒卡等規則）。
   onLevelUp: null,
+  // XP 花費帳（累加器）：takeLevelUpChoice 每次成功選卡時記下 pickUp 實際扣掉的
+  // xpNeed 值。開新局時必須歸零，否則殘留值會讓 XP 帳失真。
+  xpSpentLedger: { total: 0, entries: [] },
+  resetXpLedger: () => { fixture.xpSpentLedger.total = 0; fixture.xpSpentLedger.entries.length = 0; },
+  // 真正的一幀：走 runFrame(now)，它會遞減 levelupCooldown。
+  // 注意：update(dt) 在 state !== 'play' 時直接 return，所以升級冷卻必須靠幀推進，
+  // 這是先前 walkToInteract 無限迴圈的根因。
+  stepFrame: ms => {
+    // 沙箱的 performance.now() 恆為 0，若每次傳同一個 now，dt 會是 0，
+    // levelupCooldown 永遠不減（這是先前無限迴圈的真正機制）。
+    // 用檔案層的單調時鐘推進，確保每幀 dt = 指定毫秒。
+    fixture.__now += (ms || 16.7);
+    runFrame(fixture.__now);
+    return { state, levelupCooldown };
+  },
+  __now: 1000,
+  stepFrames: (count, ms) => {
+    let n = 0;
+    for (let i = 0; i < (count || 1); i++) { fixture.stepFrame(ms); n++; }
+    return { frames: n, state, levelupCooldown };
+  },
+  levelUpCooldown: () => levelupCooldown,
+  // 等待升級冷卻歸零（用幀推進，不強改 state、不跳過 choices 流程）。
+  waitLevelUpCooldown: maxFrames => {
+    let n = 0;
+    const limit = maxFrames || 120;
+    while (levelupCooldown > 0 && n < limit) { fixture.stepFrame(16.7); n++; }
+    return { frames: n, levelupCooldown, state };
+  },
   resolveLevelUps: maxChoices => {
     let handled = 0;
     const limit = maxChoices || 40;
@@ -87,6 +116,66 @@ const FIXTURE = `window.fixture = {
     const ok = interact();
     if (job) job.lock = 0;
     return !!job;
+  },
+  // 真正的答案墊位置（由遊戲自己的 ansPos 決定），不硬編座標。
+  answerPad: index => { const j = job; if (!j) return null; return ansPos(j.to)[index == null ? j.ans.indexOf(j.word) : index]; },
+  // 真步進走到答案墊並提交：只用 walkNear（keys 驅動），不瞬移。
+  // atAnswer／atDestination 仍保留給 controlled 單元測試使用，兩者不可混用。
+  // dwell 量測要包含「進半徑後已累積的 hold」：walkNear 的容差可能讓玩家
+  // 在 hold 已經開始累積時才到位。因此總 dwell = job.hold + 到達後的等待。
+  jobHold: () => (job ? (job.hold || 0) : 0),
+  // XP 來源帳：pickUp 每次升級恰好扣掉當級 xpNeed(level)，因此累計花費可精確回推。
+  // 這讓「敵掉落 XP = 總獲得 − 配送 26×單數」在有升級時仍然正確（不再出現負值）。
+  // 注意：xpNeed() 內部已乘 XP_NEED_SCALE（Math.round(CFG.xpNeed(level) * SCALE)），
+  // 因此累積花費直接呼叫 xpNeed()，與遊戲扣的是同一個值，不會漏掉關卡縮放。
+  // XP 帳的正確算法：xpNeed() 無參數時讀「當前 level」，因此迴圈裡呼叫
+  // 每次都加同一個值 → 高估花費（曾讓六單帳變成 198/42 而非 156/0）。
+  // 正確做法是照 game.js:510 的公式逐級求和：Math.round(CFG.xpNeed(lv) * SCALE)。
+  xpSpentTotal: maxLevel => {
+    let total = 0;
+    const to = maxLevel === undefined ? level : maxLevel;
+    for (let lv = 1; lv < to; lv++) total += Math.round(CFG.xpNeed(lv) * XP_NEED_SCALE);
+    return total;
+  },
+  // 實際花費：以 pickUp 前讀到的 xpNeed 為準逐次累加，與遊戲扣的數字完全一致。
+  // 兩者相等可當帳務正確的交叉驗證。
+  xpSpentActual: () => fixture.xpSpentLedger.total,
+  xpEarnedTotal: () => xp + fixture.xpSpentLedger.total,
+  enemyXp: () => {
+    const total = fixture.xpEarnedTotal();
+    const fromDelivery = 26 * delivered;
+    return { totalEarned: total, fromDelivery, fromEnemies: total - fromDelivery, level, xp, delivered };
+  },
+  walkToAnswerPad: (opts) => {
+    const o = opts || {};
+    const j = job;
+    if (!j) return { ok: false, reason: 'no-job' };
+    const pad = fixture.answerPad(o.index);
+    if (!pad) return { ok: false, reason: 'no-pad' };
+    const tolerance = o.tolerance || 26;
+    const r = fixture.walkNear(pad.x, pad.y, tolerance, o.maxSeconds || 60, 1 / 60, o.tolerance2 || tolerance);
+    if (!r.reached) return { ok: false, reason: 'pad-unreachable', walk: r, pad: { x: Math.round(pad.x), y: Math.round(pad.y) } };
+    // 進入墊子半徾時 hold 可能已開始累積，因此先記錄，再等提交。
+    const preHold = job ? (job.hold || 0) : 0;
+    let waited = 0;
+    while (job && waited < (o.maxWait || 4)) { update(1 / 60); waited += 1 / 60; }
+    return {
+      ok: !job,
+      preHold: +preHold.toFixed(3),
+      postWait: +waited.toFixed(3),
+      // 總停留時間 = 進半徾前已累積 + 到達後等待；這才是玩家實際感受的讀題時間。
+      dwell: +(preHold + waited).toFixed(3),
+      walk: r,
+      pad: { x: Math.round(pad.x), y: Math.round(pad.y) },
+      delivered: delivered, xp: xp, level: level
+    };
+  },
+  // 進答題區（觸發結界）：真步進到 job.to 附近，而不是直接設座標。
+  walkIntoAnswerZone: opts => {
+    const o = opts || {};
+    const j = job;
+    if (!j) return { ok: false, reason: 'no-job' };
+    return fixture.walkNear(j.to.x, j.to.y + 110, o.tolerance || 190, o.maxSeconds || 60, 1 / 60, 26);
   },
   preparePickup: () => { makeOrder(); inter=orders[0]; },
     // 清掉互動快取，讓 update() 依玩家實際位置重新判定 inter（真取貨流程）。
@@ -143,51 +232,80 @@ const FIXTURE = `window.fixture = {
       }
       return cells;
     },
-    walkTo: (tx, ty, maxSeconds=25, dt=1/60, tolerance=40) => {
-      let t = 0;
-      let path = null, idx = 0;
-      let lastD = Infinity, stuck = 0;
-      while (t < maxSeconds) {
-        const d = Math.hypot(tx - P.x, ty - P.y);
-        if (d < tolerance) { keys.clear(); return { reached: true, seconds: +t.toFixed(2), distance: +d.toFixed(1) }; }
-        // 重新規劃：偏離路徑太多時（例如被怪推開）重算。
-        if (!path || idx >= path.length) { path = null; }
-        if (!path) {
-          path = fixture._planPath(tx, ty);
-          if (!path) {
-            // 無路徑：退回直線嘗試，讓呼叫端看到 timeout／stuck。
-            path = [{ x: tx, y: ty }];
-            idx = 0;
-          } else idx = 0;
-        }
-        const wp = path[Math.min(idx, path.length - 1)];
-        const wd = Math.hypot(wp.x - P.x, wp.y - P.y);
-        if (wd < 30 && idx < path.length - 1) { idx++; continue; }
-        let step = null;
-        // 接近目標（<200px）時改用局部探測：建築物角落會讓 BFS 路點卡住，
-        // 這裡直接在目標周圍八方向找可走點並逐步逼近。
-        if (d < 200) {
-          const base = Math.atan2(ty - P.y, tx - P.x);
-          for (const off of [0, 0.4, -0.4, 0.8, -0.8, 1.3, -1.3, 1.9, -1.9, 2.5, -2.5]) {
-            const a = base + off;
-            if (!blocked(P.x + Math.cos(a) * 20, P.y + Math.sin(a) * 20, 16)) { step = [Math.cos(a), Math.sin(a)]; break; }
-          }
-        }
-        if (!step) {
-          const dx = wp.x - P.x, dy = wp.y - P.y;
-          step = [dx / (wd || 1), dy / (wd || 1)];
-        }
+    // 依 move() 的正規化邏輯決定按鍵：move() 會把 (x,y) 正規化成長度 1 的向量，
+  // 因此同時按兩個軸會得到「斜走」（每軸約 0.707），單軸則是全速直走。
+  // 這裡依「主要軸」單鍵全速；若該軸被擋，就退到次要軸，最後才用斜走。
+  pushKeys: step => {
+    const ax = Math.abs(step[0]), ay = Math.abs(step[1]);
+    const kx = step[0] > 0 ? 'r' : 'l', ky = step[1] > 0 ? 'd' : 'u';
+    // 探測半徑必須等於遊戲實際使用的碰撞半徑：遊戲以 blocked(x,y) 的預設
+    // r=18 判定玩家位移。若探測用 16，就會把「實際被擋」的軸判成可走，
+    // 按下去卻不動 → 玩家永久卡在格子邊（先前 seed11 第4單的真正原因）。
+    const probe = 22;
+    const xFree = !blocked(P.x + step[0] * probe, P.y);
+    const yFree = !blocked(P.x, P.y + step[1] * probe);
+    if (ax >= ay && xFree) keys.add(kx);
+    else if (ay > ax && yFree) keys.add(ky);
+    else if (xFree) keys.add(kx);
+    else if (yFree) keys.add(ky);
+    else { keys.add(kx); keys.add(ky); }   // 兩軸都被擋：讓遊戲的滑移處理
+    return [...keys];
+  },
+  // 真步進走位：以 keys 驅動 move()，逐幀走（含建築滑移）。
+  // 路徑一次 BFS 後依序走完；距離接近時轉局部探測（建築角落會讓格點卡住）。
+  // 嚴格限制：任何一步都不瞬移、不給 XP、不改等級。
+  walkTo: (tx, ty, maxSeconds=90, dt=1/60, tolerance=40) => {
+    let path = fixture._planPath(tx, ty);
+    let idx = 0, t = 0, lastD = Infinity, stuck = 0, localProbe = false, replans = 0;
+    while (t < maxSeconds) {
+      const d = Math.hypot(tx - P.x, ty - P.y);
+      if (d < tolerance) { keys.clear(); return { reached: true, seconds: +t.toFixed(2), distance: +d.toFixed(1), planCells: path ? path.length : 0, replans }; }
+      // 升級卡：幀推進解冷卻（update 在非 play 時直接 return，冷卻只由 runFrame 減）。
+      if (state === 'levelup') {
         keys.clear();
-        if (Math.abs(step[0]) >= Math.abs(step[1])) keys.add(step[0] > 0 ? 'r' : 'l');
-        else keys.add(step[1] > 0 ? 'd' : 'u');
-        update(dt); t += dt;
-        if (lastD - d < 0.2) { stuck += dt; if (stuck > 5) { keys.clear(); return { reached: false, seconds: +t.toFixed(2), distance: +d.toFixed(1), stuck: true }; } }
-        else stuck = 0;
+        if (typeof fixture.onLevelUp === 'function') fixture.onLevelUp();
+        else fixture.resolveLevelUps(40);
+        if (state === 'levelup') fixture.waitLevelUpCooldown(240);
+        fixture.stepFrame(16.7);
+        t += 16.7 / 1000;
         lastD = d;
+        continue;
+      }
+      // 路徑耗盡或走不動 → 局部探測；連續失敗才重新規劃（上限 3 次，避免抖動）。
+      if (!path || idx >= path.length) { path = null; localProbe = true; }
+      if (!localProbe && (!path || path.length === 0)) {
+        if (replans >= 3) localProbe = true;
+        else { path = fixture._planPath(tx, ty); idx = 0; replans++; if (!path) localProbe = true; }
+      }
+      let step = null;
+      if (!localProbe && path && path.length) {
+        while (idx < path.length - 1 && Math.hypot(path[idx].x - P.x, path[idx].y - P.y) < 30) idx++;
+        const wp = path[Math.min(idx, path.length - 1)];
+        const wd = Math.hypot(wp.x - P.x, wp.y - P.y) || 1;
+        if (wd < 8 && idx >= path.length - 1) localProbe = true;
+        else step = [(wp.x - P.x) / wd, (wp.y - P.y) / wd];
+      }
+      if (!step) {
+        const base = Math.atan2(ty - P.y, tx - P.x);
+        for (const off of [0, 0.4, -0.4, 0.8, -0.8, 1.3, -1.3, 1.9, -1.9, 2.5, -2.5, 3.1, -3.1]) {
+          const a = base + off;
+          if (!blocked(P.x + Math.cos(a) * 18, P.y + Math.sin(a) * 18, 16)) { step = [Math.cos(a), Math.sin(a)]; break; }
+        }
+        if (!step) step = [Math.cos(base), Math.sin(base)];
       }
       keys.clear();
-      return { reached: false, seconds: +t.toFixed(2), distance: +Math.hypot(tx - P.x, ty - P.y).toFixed(1), timeout: true };
-    },
+      fixture.pushKeys(step);
+      update(dt); t += dt;
+      if (lastD - d < 0.02) { stuck += dt; if (stuck > 2) { stuck = 0; localProbe = true; } } else stuck = 0;
+      lastD = d;
+    }
+    keys.clear();
+    return {
+      reached: false, seconds: +t.toFixed(2),
+      distance: +Math.hypot(tx - P.x, ty - P.y).toFixed(1),
+      timeout: true, planCells: path ? path.length : 0, replans
+    };
+  },
     tapKey: (k, down=true) => { if (down) keys.add(k); else keys.delete(k); },
     keyState: () => [...keys],
   clearSolids: () => solids.splice(0),
@@ -241,22 +359,33 @@ const FIXTURE = `window.fixture = {
   }),
   levelUps: () => typeof levelUpCount !== 'undefined' ? levelUpCount : null,
   takeLevelUpChoice: index => {
-    if (state !== 'levelup') return { ok: false, reason: 'not-levelup' };
+    if (state !== 'levelup') return { ok: false, reason: 'not-levelup', state };
     const c = choices[index];
-    if (!c) return { ok: false, reason: 'no-choice', count: choices.length };
+    if (!c) return { ok: false, reason: 'no-choice', count: choices.length, ids: choices.map(x => x.id) };
+    // pickUp 被 levelupCooldown 擋下；先等冷卻（幀推進），再選。
+    if (levelupCooldown > 0) fixture.waitLevelUpCooldown(120);
+    if (state !== 'levelup') return { ok: false, reason: 'cooldown-ended-state', state };
+    const beforeLevel = level;
+    const needed = xpNeed();            // pickUp 即扣這個值（xp = max(0, xp - xpNeed())）
     pickUp(index);
-    return { ok: true, id: c.id, type: c.type, lv: c.lv, level: level, state };
+    const effective = level !== beforeLevel && state !== 'levelup';
+    if (effective) { const L = fixture.xpSpentLedger; L.total += needed; L.entries.push({ atLevel: beforeLevel, needed, level: level }); }
+    return {
+      ok: effective, id: c.id, type: c.type, lv: c.lv,
+      level, beforeLevel, state,
+      reason: effective ? null : ('pick-had-no-effect:lvl' + beforeLevel + '->' + level + ',state=' + state)
+    };
   },
   forceLevelUp: () => { xp = xpNeed(); update(1/60); return state; },
   setDamageCoefficient: value => { b.dmg = value; },
   damageCoefficient: () => b.dmg,
-  walkNear: (tx, ty, tolerance=70, maxSeconds=25, dt=1/60) => fixture.walkTo(tx, ty, maxSeconds, dt, tolerance),
+  walkNear: (tx, ty, tolerance=70, maxSeconds=90, dt=1/60) => fixture.walkTo(tx, ty, maxSeconds, dt, tolerance),
   // 走到町屋直到遊戲自己判定可互動（inter 產生）為止。
   // 互動判定是玩家中心到町屋外框 clamp 點 < 46px，比我的 spot 容差更權威。
   // 走到町屋外框，直到遊戲自己判定可互動（inter 產生）。
   // 路徑只規劃一次（BFS 於 blocked() 上），依序走完；走完或卡住才轉局部探測。
   // 終點條件是遊戲自身的 inter 判定，不用我自己選的 spot。
-  walkToInteract: (house, maxSeconds=60, dt=1/60) => {
+  walkToInteract: (house, maxSeconds=150, dt=1/60) => {
     const target = house;
     const path = fixture._planPath(target.x, target.y);
     let idx = 0, t = 0, stuck = 0, lastD = Infinity, localProbe = false;
@@ -283,19 +412,21 @@ const FIXTURE = `window.fixture = {
         if (!step) step = [Math.cos(ang), Math.sin(ang)];
       }
       keys.clear();
-      if (Math.abs(step[0]) >= Math.abs(step[1])) keys.add(step[0] > 0 ? 'r' : 'l');
-      else keys.add(step[1] > 0 ? 'd' : 'u');
+      fixture.pushKeys(step);
       update(dt); t += dt;
       // 卡住判定放寬：連續 2 秒距離沒縮短就轉局部探測（換方向），而非直接放棄。
       // 進度判定：以「目標是否變近」為準，並容許離題誤差的浮動。
       // 若遊戲切到 levelup（XP 累積觸發），先讓呼叫端處理選擇再繼續走。
       if (state === 'levelup') {
-        // onLevelUp 預設為 null → 走 resolveLevelUps()（真的呼叫 pickUp）。
-        // 若 runner 覆寫了 onLevelUp，就用它的策略。兩條路都不動 choices。
-        if (typeof fixture.onLevelUp === 'function') fixture.onLevelUp();
-        else { pickUp(0); if (levelupCooldown > 0) { while (levelupCooldown > 0 && state === 'levelup') { keys.clear(); update(dt); t += dt; } } }
+        // 升級卡期間不能只呼叫 update()：state 非 play 時 update 直接 return，
+        // levelupCooldown 只在 runFrame 遞減，因此這裡必須推進真幀。
         keys.clear();
-        update(dt); t += dt;
+        if (typeof fixture.onLevelUp === 'function') fixture.onLevelUp();
+        else if (state === 'levelup') fixture.resolveLevelUps(40);
+        // 等待冷卻（走幀）直到可以再次操作
+        if (state === 'levelup') fixture.waitLevelUpCooldown(120);
+        fixture.stepFrame(16.7);
+        t += 16.7 / 1000;
         lastD = d;
         continue;
       }
