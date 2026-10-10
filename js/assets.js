@@ -29,7 +29,9 @@ const CORE_ASSET_NAMES = ["player", "ghost", "mis", "boss", "runner", "tank", "s
 const HUD_ASSET_NAMES = ["hud_lantern_oil", "hud_radar_frame", "hud_omamori_hint_listen", "hud_skill_fan"];
 const requestedArt = new Set(), settledArt = new Set(), failedArt = new Set();
 let gameArtStarted = false, mapArtStarted = false, coreArtStarted = false;
-let progressNames = ["cover"], backgroundKey = null, backgroundVfxStarted = false;
+let progressNames = ["cover"], backgroundKey = null;
+const activeSkillArt = new Map([["katana", ["katana_l1"]]]);
+const gameAssetNames = () => ["cover", ...CORE_ASSET_NAMES, ...HUD_ASSET_NAMES, ...new Set([...activeSkillArt.values()].flat())];
 const backgroundNames = GAME_ASSET_NAMES.filter(key => !CORE_ASSET_NAMES.includes(key));
 const requestArt = key => {
   if (requestedArt.has(key)) return false;
@@ -40,7 +42,7 @@ const updateReadiness = () => {
   window.ART_PROGRESS = {total:progressNames.length,settled:progressNames.filter(key=>settledArt.has(key)).length,
     failed:progressNames.filter(key=>failedArt.has(key)).length};
   window.MAP_ART_READY = ["cover", ...MAP_ASSET_NAMES].every(key => settledArt.has(key));
-  window.ART_READY = gameArtStarted && ["cover", ...CORE_ASSET_NAMES, ...HUD_ASSET_NAMES].every(key=>settledArt.has(key));
+  window.ART_READY = gameArtStarted && gameAssetNames().every(key=>settledArt.has(key));
 };
 const markSettled = (key, failed = false) => {
   if (settledArt.has(key)) return;
@@ -103,36 +105,13 @@ function loadHudArt(key) {
   };
   img.src = `assets/img/ui/${key}.webp?v=20261010-loading3`;
 }
-function loadSkillVfxArt(key, file) {
-  const img = new Image();
-  img.fetchPriority = "low";
-  img.decoding = "async";
-  img.onload = () => { ART[key] = img; };
-  img.onerror = () => {
-    img.onerror = () => {
-      console.warn(`[Assets] 技能特效素材 ${key} 載入失敗，將使用 Canvas 備援。`);
-    };
-    img.src = `assets/img/vfx/${key}.svg?v=20261007-vfx2`;
-  };
-  img.src = `assets/img/vfx/raster/${file}.webp?v=20261007-raster1`;
-}
-
-function loadDragonVfxArt() {
-  for(const key of ["dragon_fireball_l5","dragon_burning_ground_l5"]) {
-    const img=new Image();
-    img.fetchPriority="low";img.decoding="async";
-    img.onload=()=>{ ART[key]=img; };
-    img.onerror=()=>{ console.warn("[Assets] Missing dragon art: "+key); };
-    img.src="assets/img/vfx/raster/"+key+".webp?v=20261009-dragon1";
-  }
-}
 const SKILL_LEVEL_FILES = Object.freeze({
   katana: Object.freeze(["katana_l1", "katana_l2", "katana_l3", "katana_l4", "katana_l5"]),
-  barrier: Object.freeze(["barrier_l1", "barrier_l2", "barrier_l3", "barrier_l4", "barrier_l5"]),
-  needle: Object.freeze(["needle_l1", "needle_l2", "needle_l3", "needle_l4", "needle_l5"]),
-  boom: Object.freeze(["boom_l1", "boom_l2", "boom_l3", "boom_l4", "boom_l5"]),
-  fire: Object.freeze(["fire_l1", "fire_l2", "fire_l3", "fire_l4", "fire_l5"]),
-  thunder: Object.freeze(["thunder_l1", "thunder_l2", "thunder_l3", "thunder_l4", "thunder_l5"])
+  barrier: Object.freeze(Array(5).fill("barrier_ground_45")),
+  needle: Object.freeze(Array(5).fill("needle")),
+  boom: Object.freeze(Array(5).fill("ofuda")),
+  fire: Object.freeze(["fire_orbit_l1", "fire_orbit_l2", "fire_orbit_l3", "fire_orbit_l4", "fire_orbit_l5"]),
+  thunder: Object.freeze(["thunder_strike", "thunder_strike", "thunder_strike", "thunder_strike", "thunder_cloud_45"])
 });
 const SKILL_VARIANT_FILES = Object.freeze({
   fire: Object.freeze({
@@ -145,38 +124,47 @@ const skillLevelLoads = new Map();
 const skillRank = level => Math.max(1, Math.min(5, Math.floor(level) || 1));
 window.SKILL_LEVEL_FILES = SKILL_LEVEL_FILES;
 window.SKILL_VARIANT_FILES = SKILL_VARIANT_FILES;
-window.skillVfxKey = (id, level) => SKILL_LEVEL_FILES[id] ? id + "_l" + skillRank(level) : null;
+window.skillVfxKey = (id, level) => SKILL_LEVEL_FILES[id]?.[skillRank(level) - 1] || null;
 window.skillVfxFile = (id, level) => SKILL_LEVEL_FILES[id]?.[skillRank(level) - 1] || null;
-window.skillVfxArt = (id, level) => {
-  const rank = skillRank(level), file = window.skillVfxFile(id, rank), key = window.skillVfxKey(id, rank);
+function loadSkillImage(key, file, version) {
   if (!file || !key) return null;
   const ready = ART[key];
   if (ready?.naturalWidth > 0 && ready?.naturalHeight > 0) return ready;
   if (skillLevelLoads.has(key)) return null;
   const img = new Image();
-  img.fetchPriority = id === "katana" && rank === 1 ? "high" : "low";
+  img.fetchPriority = "high";
   img.decoding = "async";
-  img.onload = () => { ART[key] = img; skillLevelLoads.set(key, "ready"); };
-  img.onerror = () => { skillLevelLoads.set(key, "missing"); };
+  img.onload = () => { ART[key] = img; skillLevelLoads.set(key, "ready"); markSettled(key); };
+  img.onerror = () => { skillLevelLoads.set(key, "missing"); markSettled(key, true); };
   skillLevelLoads.set(key, "loading");
-  img.src = "assets/img/vfx/raster/" + file + ".webp?v=20261007-skilltiers1";
+  img.src = "assets/img/vfx/raster/" + file + ".webp?v=" + version;
   return null;
-};
+}
+window.skillVfxArt = (id, level) => loadSkillImage(window.skillVfxKey(id, level), window.skillVfxFile(id, level), "20261007-skilltiers1");
 window.skillVfxVariantKey = (id, variant, level) => SKILL_VARIANT_FILES[id]?.[variant]?.[skillRank(level) - 1] || null;
 window.skillVfxVariantArt = (id, variant, level) => {
-  const file = window.skillVfxVariantKey(id, variant, level), key = file;
-  if (!file || !key) return null;
-  const ready = ART[key];
-  if (ready?.naturalWidth > 0 && ready?.naturalHeight > 0) return ready;
-  if (skillLevelLoads.has(key)) return null;
-  const img = new Image();
-  img.fetchPriority = "low";
-  img.decoding = "async";
-  img.onload = () => { ART[key] = img; skillLevelLoads.set(key, "ready"); };
-  img.onerror = () => { skillLevelLoads.set(key, "missing"); };
-  skillLevelLoads.set(key, "loading");
-  img.src = "assets/img/vfx/raster/" + file + ".webp?v=20261008-firevariants1";
-  return null;
+  const file = window.skillVfxVariantKey(id, variant, level);
+  return loadSkillImage(file, file, "20261008-firevariants1");
+};
+
+window.prepareSkillArt = (id, level) => {
+  const rank = skillRank(level), key = window.skillVfxKey(id, rank);
+  if (!key) return [];
+  const keys = [key];window.skillVfxArt(id, rank);
+  if (id === 'thunder' && rank === 5) {keys.push(window.skillVfxKey(id,4));window.skillVfxArt(id,4);}
+  if (id === 'fire') {
+    const variants = ['orbit', ...(rank>=4?['attack']:[]), ...(rank===5?['dragon']:[])];
+    for(const variant of variants){keys.push(window.skillVfxVariantKey(id,variant,rank));window.skillVfxVariantArt(id,variant,rank);}
+    if(rank===5) for(const file of ['dragon_fireball_l5','dragon_burning_ground_l5']) {keys.push(file);loadSkillImage(file,file,'20261009-dragon1');}
+  }
+  return [...new Set(keys)];
+};
+window.useSkillArt = (id, level) => {
+  const keys = window.prepareSkillArt(id, level);
+  if (!keys.length) return;
+  activeSkillArt.set(id,keys);
+  if (gameArtStarted) progressNames = gameAssetNames();
+  updateReadiness();
 };
 
 // 封面完成才準備旅路；旅路完成後預先下載開局正式美術。
@@ -197,7 +185,8 @@ function preloadCoreArt() {
 }
 window.loadGameArt = () => {
   gameArtStarted = true;
-  progressNames = ["cover", ...CORE_ASSET_NAMES, ...HUD_ASSET_NAMES];
+  activeSkillArt.clear();activeSkillArt.set('katana',['katana_l1']);
+  progressNames = gameAssetNames();
   preloadCoreArt();
   updateReadiness();
   loadBackgroundArt();
@@ -211,19 +200,6 @@ function loadBackgroundArt() {
     loadArt(backgroundKey, "low");
     return;
   }
-  if (backgroundVfxStarted) return;
-  backgroundVfxStarted = true;
-  loadSkillVfxArt("katana_wave_ukiyoe", "katana");
-  loadSkillVfxArt("barrier_mandala_ukiyoe", "barrier_ground_45");
-  loadSkillVfxArt("needle_hama_ukiyoe", "needle");
-  loadSkillVfxArt("needle_ice_ukiyoe", "needle");
-  loadSkillVfxArt("ofuda_ukiyoe", "ofuda");
-  loadSkillVfxArt("taiji_ofuda_ukiyoe", "ofuda");
-  loadSkillVfxArt("foxfire_ukiyoe", "foxfire");
-  loadSkillVfxArt("foxfire_dragon_ukiyoe", "foxfire_dragon");
-  loadDragonVfxArt();
-  loadSkillVfxArt("thunder_ukiyoe", "thunder_strike");
-  loadSkillVfxArt("thunder_drum_ukiyoe", "thunder_cloud_45");
 }
 
 // BGM 背景音樂：遊戲與旅路地圖各自使用獨立循環曲。

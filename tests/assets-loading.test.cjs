@@ -32,21 +32,22 @@ test('offered skill art is warmed without pausing; choosing it waits only for th
   const image=images.at(-1);assert.equal(image.fetchPriority,'high');
   env.useSkillArt('needle',3);assert.equal(images.length,count+1);assert.equal(env.ART_READY,false);
   assert.equal(env.ART_PROGRESS.total,total+1);image.onload();assert.equal(env.ART_READY,true);
-  env.useSkillArt('needle',4);assert.equal(env.ART_READY,false);images.at(-1).onerror();assert.equal(env.ART_READY,true);
+  env.useSkillArt('needle',4);assert.equal(env.ART_READY,true,'shared shipped art is reused between ranks');
+  env.useSkillArt('katana',4);assert.equal(env.ART_READY,false);images.at(-1).onerror();assert.equal(env.ART_READY,true);
   assert.equal(env.ART_PROGRESS.total,total+1,'only current rank blocks gameplay');
 });
 
 test('selected MAX fire waits for orbit, attack, dragon and separate projectile art',()=>{
   const {env,images}=loadAssets();env.loadGameArt();for(const image of images) image.onload();
   const count=images.length;env.useSkillArt('fire',5);const fire=images.slice(count);
-  assert.equal(fire.length,6);assert.ok(fire.every(i=>i.fetchPriority==='high'));
+  assert.equal(fire.length,5);assert.ok(fire.every(i=>i.fetchPriority==='high'));
   fire.slice(0,-1).forEach(i=>i.onload());assert.equal(env.ART_READY,false);
   fire.at(-1).onload();assert.equal(env.ART_READY,true);
 });
 
 test('MAX thunder prepares its rank-four child strike as well as rank-five cloud',()=>{
   const {env,images}=loadAssets();env.prepareSkillArt('thunder',5);
-  assert.equal(images.filter(i=>/thunder_l[45]\.webp/.test(i.src)).length,2);
+  assert.equal(images.filter(i=>/thunder_(strike|cloud_45)\.webp/.test(i.src)).length,2);
 });
 
 test('core readiness excludes optional animation and result portraits, and keeps later downloads in background',()=>{
@@ -127,13 +128,13 @@ test('title prioritizes only the cover and leaves music downloads until playback
   assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 23);
   for (const image of images) image.onload();
   assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 34);
-  assert.equal(images.filter(image => image.src.includes('/vfx/raster/katana.webp')).length, 1);
+  assert.equal(images.filter(image => image.src.includes('/vfx/raster/katana.webp')).length, 0);
   assert.equal(env.ART_READY, true);
   assert.ok(env.ART.hud_lantern_oil);
   assert.ok(env.ART.hud_radar_frame);
   assert.ok(env.ART.hud_omamori_hint_listen);
   assert.ok(env.ART.hud_skill_fan);
-  assert.ok(env.ART.katana_wave_ukiyoe);
+  assert.ok(env.ART.katana_l1);
   assert.ok(env.ART.ground_dirt);
   assert.ok(env.ART.ground);
 });
@@ -195,16 +196,21 @@ test('asset progress counts settled images including failures, without counting 
   assert.deepEqual({...env.ART_PROGRESS},{settled:0,total:1,failed:0});
   images[0].onerror();assert.equal(env.ART_PROGRESS.settled,0);
   images[0].onerror();assert.deepEqual({...env.ART_PROGRESS},{settled:1,total:1,failed:1});
-  env.loadGameArt();assert.equal(env.ART_PROGRESS.total,20);
+  env.loadGameArt();assert.equal(env.ART_PROGRESS.total,21);
   images.slice(1).forEach(image=>image.onload());
-  assert.deepEqual({...env.ART_PROGRESS},{settled:20,total:20,failed:1});assert.equal(env.ART_READY,true);
+  assert.deepEqual({...env.ART_PROGRESS},{settled:21,total:21,failed:1});assert.equal(env.ART_READY,true);
 });
 
-test('five-rank skill art exposes all 30 fixed filenames and loads each slot lazily',()=>{
+test('all declared skill ranks and variants reference shipped WebP files',()=>{
+  const {env}=loadAssets();
+  const files=[...Object.values(env.SKILL_LEVEL_FILES).flat(),...Object.values(env.SKILL_VARIANT_FILES.fire).flat()].filter(Boolean);
+  for(const file of files) assert.ok(fs.existsSync('assets/img/vfx/raster/'+file+'.webp'),file+' must exist');
+});
+
+test('five-rank skill art exposes 30 ranked slots and loads each file lazily',()=>{
   const {env,images}=loadAssets();
   const ids=['katana','barrier','needle','boom','fire','thunder'];
   assert.equal(ids.flatMap(id=>env.SKILL_LEVEL_FILES[id]).length,30);
-  assert.deepEqual(ids.map(id=>env.SKILL_LEVEL_FILES[id][4]),ids.map(id=>id+'_l5'));
   const before=images.length;
   assert.equal(env.skillVfxArt('katana',4),null);
   assert.equal(images.length,before+1);
@@ -254,6 +260,7 @@ test('new dragon fireball and scorched-ground sprites load from optimized WebP a
   const {env,images}=loadAssets();
   env.loadGameArt();
   for(const image of images) image.onload();
+  env.prepareSkillArt('fire',5);
   for(const name of ['dragon_fireball_l5','dragon_burning_ground_l5']){
     const path='assets/img/vfx/raster/'+name+'.webp';
     assert.equal(images.filter(img=>img.src===path+'?v=20261009-dragon1').length,1,name);

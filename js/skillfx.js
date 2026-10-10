@@ -386,7 +386,7 @@ window.SKILLFX = (() => {
   define("thunder",{
     strike(t,{x,y,stormChild,delay=0.08},rank=t) {
       pushRankedArt('thunder',stormChild?Math.min(rank,4):rank,'thunder_ukiyoe',{x,y:y-126,w:stormChild?88:[58,72,88,104,122][rank-1],life:stormChild ? .34 : .26,delay:motion()?delay:0,a:stormChild ? .9 : .84});
-      const paintedThunder=!!art('thunder_ukiyoe');
+      const paintedThunder=!!rankedArt('thunder',stormChild?Math.min(rank,4):rank) || !!art('thunder_ukiyoe');
       if(stormChild){
         FX.bolt(x,y,{w:paintedThunder?0.5:3.3,a:0.9,h:paintedThunder?205:520,jag:28,life:0.32,delay:motion()?delay:0,halo:paintedThunder?0.025:0.07});
         emit('current','#b7e5ff',{x,y,priority:true,life:0.6,delay:motion()?delay:0,s0:24,s1:130,a:0.85,ground:true,sy:SQ,ease:true});

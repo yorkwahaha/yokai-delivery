@@ -30,7 +30,7 @@ test('upgrade options warm only offered ranks and selected art pauses the game c
   g.env.prepareSkillArt=(id,rank)=>prepared.push([id,rank]);
   g.env.useSkillArt=(id,rank)=>{selected.push([id,rank]);g.env.ART_READY=false;};
   g.offerUp();const choices=g.weaponChoices();assert.ok(choices.length);
-  assert.deepEqual(prepared,choices.map(c=>[c.id,c.lv]));
+  assert.deepEqual(prepared,Array.from(choices,c=>[c.id,c.lv]));
   const choice=choices[0];choice.f();assert.deepEqual(selected,[[choice.id,choice.lv]]);
   g.setState('play');const before=g.snapshot();g.update(1);
   assert.equal(g.snapshot().elapsed,before.elapsed);assert.equal(g.snapshot().oil,before.oil);

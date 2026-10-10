@@ -538,6 +538,7 @@
         d: descText,
         f: () => {
           WL[k]++;
+          window.useSkillArt?.(k, WL[k]);
           if (k === "katana") atkT = 0;
           if (k === "boom") wT.boom = 0;
           if (k === "barrier") wT.barrier = 0;
@@ -567,6 +568,7 @@
       choices = pc.slice(0, 3);
     }
 
+    for (const choice of choices) if (choice.type === 'weapon') window.prepareSkillArt?.(choice.id, choice.lv);
     if (!choices.length) {
       xp = Math.max(0, xp - xpNeed());
       level++;

@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "ready": 15,
+  "used": [
+    "katana_l1",
+    "barrier_ground_45",
+    "needle",
+    "ofuda",
+    "fire_orbit_l1",
+    "thunder_strike",
+    "katana_l3",
+    "fire_orbit_l3",
+    "katana_l5",
+    "fire_orbit_l5",
+    "thunder_cloud_45"
+  ],
+  "legacy": []
+}

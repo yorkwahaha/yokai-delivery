@@ -1,0 +1,23 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><base href="../../"><title>技能新圖首發驗證</title><style>body{margin:0;background:#17131e;color:#efdfb9;font:14px sans-serif}pre{white-space:pre-wrap;margin:10px}canvas{display:block;width:900px;height:720px;max-width:100%}</style></head><body><pre id="result">準備六技能 Lv1、Lv3、Lv5 新圖…</pre><canvas id="proof" width="900" height="720"></canvas><script src="js/assets.js?v=20261010-loading4"></script><script src="js/fx.js"></script><script src="js/skillfx.js?v=20261010-loading4"></script><script>
+const ids=['katana','barrier','needle','boom','fire','thunder'],ranks=[1,3,5];
+const keys=[...new Set(ids.flatMap(id=>ranks.flatMap(rank=>prepareSkillArt(id,rank))))];
+const result=document.querySelector('#result'),started=performance.now();
+const check=setInterval(()=>{
+ const missing=keys.filter(key=>!ART[key]?.naturalWidth);
+ if(missing.length){if(performance.now()-started>30000){clearInterval(check);result.textContent=JSON.stringify({passed:false,missing});}return;}
+ clearInterval(check);const c=document.querySelector('#proof').getContext('2d'),used=new Set(),draw=c.drawImage.bind(c);
+ c.drawImage=(img,...args)=>{for(const key of keys)if(ART[key]===img)used.add(key);draw(img,...args);};
+ c.fillStyle='#191620';c.fillRect(0,0,900,720);
+ for(let row=0;row<3;row++)for(let col=0;col<6;col++){
+  const id=ids[col],rank=ranks[row],x=col*150,y=row*240;FX.reset();SKILLFX.reset();
+  c.save();c.beginPath();c.rect(x,y,150,240);c.clip();c.translate(x+75,y+110);
+  c.fillStyle='#f4dfac';c.textAlign='center';c.font='15px sans-serif';c.fillText(id+' Lv'+rank,0,-85);
+  const p={x:0,y:30,ang:0,spin:0,r:55,reach:65,orbit:true,origin:{x:0,y:30},orbitR:70,time:.25};
+  if(id==='katana'){SKILLFX.play(id,'swing',rank,p);c.drawImage(skillVfxArt(id,rank),-65,-65,130,130);}else if(id==='barrier')SKILLFX.play(id,'cast',rank,p);
+  else if(id==='thunder')SKILLFX.play(id,'strike',rank,{x:0,y:95,delay:0});else SKILLFX.paint(c,id,rank,p);
+  FX.update(.025);SKILLFX.update(.025);FX.drawGround(c,{x:0,y:0},{left:-200,right:200,top:-200,bottom:200});SKILLFX.drawArtFx(c,true);FX.draw(c,{x:0,y:0},{left:-200,right:200,top:-200,bottom:200});SKILLFX.drawArtFx(c,false);c.restore();
+ }
+ const legacy=['katana_wave_ukiyoe','barrier_mandala_ukiyoe','needle_hama_ukiyoe','ofuda_ukiyoe','foxfire_ukiyoe','thunder_ukiyoe'].filter(k=>ART[k]);
+ result.textContent=JSON.stringify({passed:legacy.length===0&&ids.every(id=>ranks.some(rank=>used.has(skillVfxKey(id,rank)))),ready:keys.length,used:[...used],legacy},null,2);
+},50);
+</script></body></html>

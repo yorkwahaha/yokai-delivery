@@ -1,0 +1,108 @@
+{
+  "images": [
+    {
+      "bytes": 6338,
+      "path": "assets/img/vfx/raster/barrier_ground_45.webp"
+    },
+    {
+      "bytes": 153894,
+      "path": "assets/img/vfx/raster/dragon_burning_ground_l5.webp"
+    },
+    {
+      "bytes": 82970,
+      "path": "assets/img/vfx/raster/dragon_fireball_l5.webp"
+    },
+    {
+      "bytes": 34056,
+      "path": "assets/img/vfx/raster/fire_attack_l1.webp"
+    },
+    {
+      "bytes": 49108,
+      "path": "assets/img/vfx/raster/fire_attack_l2.webp"
+    },
+    {
+      "bytes": 61362,
+      "path": "assets/img/vfx/raster/fire_attack_l3.webp"
+    },
+    {
+      "bytes": 63018,
+      "path": "assets/img/vfx/raster/fire_attack_l4.webp"
+    },
+    {
+      "bytes": 59204,
+      "path": "assets/img/vfx/raster/fire_attack_l5.webp"
+    },
+    {
+      "bytes": 295146,
+      "path": "assets/img/vfx/raster/fire_dragon_l5.webp"
+    },
+    {
+      "bytes": 35726,
+      "path": "assets/img/vfx/raster/fire_orbit_l1.webp"
+    },
+    {
+      "bytes": 41910,
+      "path": "assets/img/vfx/raster/fire_orbit_l2.webp"
+    },
+    {
+      "bytes": 50920,
+      "path": "assets/img/vfx/raster/fire_orbit_l3.webp"
+    },
+    {
+      "bytes": 61758,
+      "path": "assets/img/vfx/raster/fire_orbit_l4.webp"
+    },
+    {
+      "bytes": 76798,
+      "path": "assets/img/vfx/raster/fire_orbit_l5.webp"
+    },
+    {
+      "bytes": 16202,
+      "path": "assets/img/vfx/raster/foxfire_dragon.webp"
+    },
+    {
+      "bytes": 2564,
+      "path": "assets/img/vfx/raster/foxfire.webp"
+    },
+    {
+      "bytes": 83558,
+      "path": "assets/img/vfx/raster/katana_l1.webp"
+    },
+    {
+      "bytes": 210694,
+      "path": "assets/img/vfx/raster/katana_l2.webp"
+    },
+    {
+      "bytes": 328194,
+      "path": "assets/img/vfx/raster/katana_l3.webp"
+    },
+    {
+      "bytes": 378998,
+      "path": "assets/img/vfx/raster/katana_l4.webp"
+    },
+    {
+      "bytes": 366896,
+      "path": "assets/img/vfx/raster/katana_l5.webp"
+    },
+    {
+      "bytes": 8310,
+      "path": "assets/img/vfx/raster/katana.webp"
+    },
+    {
+      "bytes": 4198,
+      "path": "assets/img/vfx/raster/needle.webp"
+    },
+    {
+      "bytes": 7194,
+      "path": "assets/img/vfx/raster/ofuda.webp"
+    },
+    {
+      "bytes": 11932,
+      "path": "assets/img/vfx/raster/thunder_cloud_45.webp"
+    },
+    {
+      "bytes": 8986,
+      "path": "assets/img/vfx/raster/thunder_strike.webp"
+    }
+  ]
+}
