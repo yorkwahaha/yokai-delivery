@@ -1,0 +1,162 @@
+{
+  "sourceCommit": "1cbde916cf7779d3a835e7a4b37f20a2439ed74b",
+  "quality": 90,
+  "images": [
+    {
+      "path": "assets/img/scenery/house_shop.webp",
+      "beforeBytes": 141804,
+      "afterBytes": 60570,
+      "before": [
+        640,
+        592
+      ],
+      "after": [
+        384,
+        355
+      ]
+    },
+    {
+      "path": "assets/img/scenery/house_shrine.webp",
+      "beforeBytes": 136554,
+      "afterBytes": 58326,
+      "before": [
+        640,
+        668
+      ],
+      "after": [
+        384,
+        401
+      ]
+    },
+    {
+      "path": "assets/img/scenery/house_tavern.webp",
+      "beforeBytes": 155510,
+      "afterBytes": 68148,
+      "before": [
+        640,
+        642
+      ],
+      "after": [
+        384,
+        385
+      ]
+    },
+    {
+      "path": "assets/img/scenery/prop_torii.webp",
+      "beforeBytes": 74060,
+      "afterBytes": 47486,
+      "before": [
+        512,
+        542
+      ],
+      "after": [
+        384,
+        406
+      ]
+    },
+    {
+      "path": "assets/img/scenery/prop_sakura.webp",
+      "beforeBytes": 103386,
+      "afterBytes": 66220,
+      "before": [
+        512,
+        506
+      ],
+      "after": [
+        384,
+        380
+      ]
+    },
+    {
+      "path": "assets/img/scenery/prop_lantern.webp",
+      "beforeBytes": 47032,
+      "afterBytes": 32570,
+      "before": [
+        320,
+        460
+      ],
+      "after": [
+        256,
+        368
+      ]
+    },
+    {
+      "path": "assets/img/ui/hud_lantern_oil.webp",
+      "beforeBytes": 79942,
+      "afterBytes": 45018,
+      "before": [
+        576,
+        768
+      ],
+      "after": [
+        384,
+        512
+      ]
+    },
+    {
+      "path": "assets/img/ui/hud_radar_frame.webp",
+      "beforeBytes": 144062,
+      "afterBytes": 77452,
+      "before": [
+        768,
+        768
+      ],
+      "after": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "assets/img/ui/hud_omamori_hint_listen.webp",
+      "beforeBytes": 88006,
+      "afterBytes": 43880,
+      "before": [
+        512,
+        768
+      ],
+      "after": [
+        341,
+        512
+      ]
+    },
+    {
+      "path": "assets/img/ui/hud_skill_fan.webp",
+      "beforeBytes": 124008,
+      "afterBytes": 67808,
+      "before": [
+        768,
+        576
+      ],
+      "after": [
+        512,
+        384
+      ]
+    },
+    {
+      "path": "assets/img/map_night_town_v1.webp",
+      "beforeBytes": 82796,
+      "afterBytes": 49530,
+      "before": [
+        887,
+        444
+      ],
+      "after": [
+        640,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/map_rain_port_v1.webp",
+      "beforeBytes": 105154,
+      "afterBytes": 60144,
+      "before": [
+        887,
+        444
+      ],
+      "after": [
+        640,
+        320
+      ]
+    }
+  ]
+}

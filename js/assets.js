@@ -23,32 +23,44 @@ const YOKAI_ASSET_KEYS = new Set([
   "ghost_motion_v1", "runner_motion_v1", "tank_motion_v1",
   "shooter_motion_v1", "mis_motion_v1", "boss_motion_v1"
 ]);
-const MAP_ASSET_NAMES = ["player", "player_walk1", "player_walk2", "map_night_town_v1", "map_rain_port_v1", "overworld_night_v2", "house_tavern", "prop_sakura", "prop_torii"];
-const requestedArt = new Set(), settledArt = new Set();
-let gameArtStarted = false;
+const MAP_ASSET_NAMES = ["player", "map_night_town_v1", "map_rain_port_v1", "overworld_night_v2", "prop_sakura", "prop_torii"];
+const CORE_ASSET_NAMES = ["player", "ghost", "mis", "boss", "runner", "tank", "shooter",
+  "house_shop", "house_shrine", "house_tavern", "prop_torii", "prop_lantern", "prop_sakura", "ground", "ground_dirt"];
+const HUD_ASSET_NAMES = ["hud_lantern_oil", "hud_radar_frame", "hud_omamori_hint_listen", "hud_skill_fan"];
+const requestedArt = new Set(), settledArt = new Set(), failedArt = new Set();
+let gameArtStarted = false, mapArtStarted = false, coreArtStarted = false;
+let progressNames = ["cover"], backgroundKey = null, backgroundVfxStarted = false;
+const backgroundNames = GAME_ASSET_NAMES.filter(key => !CORE_ASSET_NAMES.includes(key));
 const requestArt = key => {
   if (requestedArt.has(key)) return false;
   requestedArt.add(key);
-  window.ART_PROGRESS.total = requestedArt.size;
   return true;
+};
+const updateReadiness = () => {
+  window.ART_PROGRESS = {total:progressNames.length,settled:progressNames.filter(key=>settledArt.has(key)).length,
+    failed:progressNames.filter(key=>failedArt.has(key)).length};
+  window.MAP_ART_READY = ["cover", ...MAP_ASSET_NAMES].every(key => settledArt.has(key));
+  window.ART_READY = gameArtStarted && ["cover", ...CORE_ASSET_NAMES, ...HUD_ASSET_NAMES].every(key=>settledArt.has(key));
 };
 const markSettled = (key, failed = false) => {
   if (settledArt.has(key)) return;
   settledArt.add(key);
-  window.ART_PROGRESS.settled = settledArt.size;
-  if (failed) window.ART_PROGRESS.failed++;
-  window.MAP_ART_READY = ["cover", ...MAP_ASSET_NAMES].every(key => settledArt.has(key));
-  window.ART_READY = gameArtStarted && settledArt.size === requestedArt.size;
+  if (failed) failedArt.add(key);
+  if (key === backgroundKey) backgroundKey = null;
+  updateReadiness();
+  if (mapArtStarted && window.MAP_ART_READY) preloadCoreArt();
+  loadBackgroundArt();
 };
 
-function loadArt(n) {
+function loadArt(n, priority = "high") {
   if (!requestArt(n)) return;
   const img = new Image();
-  img.fetchPriority = "high";
+  img.fetchPriority = priority;
   img.decoding = "async";
   img.onload = () => {
     ART[n] = img;
     markSettled(n);
+    if (n === "cover" && !gameArtStarted && !mapArtStarted) window.loadMapArt();
   };
   img.onerror = () => {
     img.onerror = () => {
@@ -58,10 +70,10 @@ function loadArt(n) {
     img.src = `assets/img/${n}.${n === "cover" ? "jpg" : "png"}`;
   };
   img.src = SCENERY_ASSET_KEYS.has(n)
-    ? `assets/img/scenery/${n}.webp?v=20261010-loading2`
+    ? `assets/img/scenery/${n}.webp?v=20261010-loading3`
     : YOKAI_ASSET_KEYS.has(n)
     ? `assets/img/yokai/${n}.webp?v=20261010-loading2`
-    : `assets/img/${n}.webp?v=${["cover","player_win_v1","player_kneel_v1"].includes(n)?"20261010-character-set1":"20261010-loading2"}`;
+    : `assets/img/${n}.webp?v=${["cover","player_win_v1","player_kneel_v1"].includes(n)?"20261010-character-set1":n.startsWith('map_')?"20261010-loading3":"20261010-loading2"}`;
 }
 
 // 休息立繪只會在打開暫停選單時下載，不佔遊戲首屏載入預算。
@@ -89,7 +101,7 @@ function loadHudArt(key) {
     img.onerror = () => { console.warn(`[Assets] ${key} 載入失敗。`); markSettled(key, true); };
     img.src = `assets/img/ui/${key}.png`;
   };
-  img.src = `assets/img/ui/${key}.webp?v=20261010-loading1`;
+  img.src = `assets/img/ui/${key}.webp?v=20261010-loading3`;
 }
 function loadSkillVfxArt(key, file) {
   const img = new Image();
@@ -167,19 +179,40 @@ window.skillVfxVariantArt = (id, variant, level) => {
   return null;
 };
 
-// 首頁只載入封面；進入旅路或遊戲才下載角色、敵人與場景。
+// 封面完成才準備旅路；旅路完成後預先下載開局正式美術。
 loadArt("cover");
-window.loadMapArt = () => MAP_ASSET_NAMES.forEach(loadArt);
-window.loadGameArt = () => {
-  if (gameArtStarted) return;
-  gameArtStarted = true;
-
-  loadHudArt("hud_lantern_oil");
-  loadHudArt("hud_radar_frame");
-  loadHudArt("hud_omamori_hint_listen");
-  loadHudArt("hud_skill_fan");
-  // 進遊戲時就預載 Lv1 主刀圖，避免首刀才開始下載。
+window.loadMapArt = () => {
+  mapArtStarted = true;
+  progressNames = ["cover", ...MAP_ASSET_NAMES];
+  MAP_ASSET_NAMES.forEach(key=>loadArt(key));
+  updateReadiness();
+  if (window.MAP_ART_READY) preloadCoreArt();
+};
+function preloadCoreArt() {
+  if (coreArtStarted) return;
+  coreArtStarted = true;
+  HUD_ASSET_NAMES.forEach(loadHudArt);
+  CORE_ASSET_NAMES.forEach(key=>loadArt(key));
   window.skillVfxArt("katana", 1);
+}
+window.loadGameArt = () => {
+  gameArtStarted = true;
+  progressNames = ["cover", ...CORE_ASSET_NAMES, ...HUD_ASSET_NAMES];
+  preloadCoreArt();
+  updateReadiness();
+  loadBackgroundArt();
+};
+function loadBackgroundArt() {
+  if (!window.ART_READY || backgroundKey) return;
+  // 動作與結果圖不擋開局，仍有正式靜態角色；背景每次只下載一張。
+  while (backgroundNames.length && requestedArt.has(backgroundNames[0])) backgroundNames.shift();
+  if (backgroundNames.length) {
+    backgroundKey = backgroundNames.shift();
+    loadArt(backgroundKey, "low");
+    return;
+  }
+  if (backgroundVfxStarted) return;
+  backgroundVfxStarted = true;
   loadSkillVfxArt("katana_wave_ukiyoe", "katana");
   loadSkillVfxArt("barrier_mandala_ukiyoe", "barrier_ground_45");
   loadSkillVfxArt("needle_hama_ukiyoe", "needle");
@@ -191,8 +224,7 @@ window.loadGameArt = () => {
   loadDragonVfxArt();
   loadSkillVfxArt("thunder_ukiyoe", "thunder_strike");
   loadSkillVfxArt("thunder_drum_ukiyoe", "thunder_cloud_45");
-  GAME_ASSET_NAMES.forEach(loadArt);
-};
+}
 
 // BGM 背景音樂：遊戲與旅路地圖各自使用獨立循環曲。
 // audio.js 會依畫面狀態切換，並在單字發音時暫時降低 BGM 音量。

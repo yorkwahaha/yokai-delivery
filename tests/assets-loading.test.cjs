@@ -25,6 +25,10 @@ test('core readiness excludes optional animation and result portraits, and keeps
   assert.equal(optional.fetchPriority,'low');
   assert.equal(env.ART_PROGRESS.settled,env.ART_PROGRESS.total,'optional download does not keep loading overlay');
   assert.ok(env.ART.ghost&&env.ART.boss&&env.ART.ground&&env.ART.hud_skill_fan);
+  const count=images.length;env.loadGameArt();assert.equal(images.length,count,'pending background download is not duplicated');
+  optional.onerror();assert.equal(images.length,count,'fallback finishes before next background image');
+  optional.onerror();assert.equal(env.ART_READY,true);assert.equal(images.length,count+1);
+  assert.equal(env.ART_PROGRESS.failed,0,'background failure does not affect scene readiness');
 });
 
 test('map readiness warms the upcoming core game without changing the visible map progress',()=>{
@@ -52,14 +56,14 @@ test('blocking scene images have high fetch priority instead of competing below 
 
 test('map loads only its own art, then game reuses those requests and includes HUD readiness',()=>{
   const {env,images}=loadAssets();env.loadMapArt();
-  assert.equal(images.length,10);
+  assert.equal(images.length,7);
   assert.ok(!images.some(i=>/hud_|boss_motion|tank_motion|ground_dirt/.test(i.src)));
   images.forEach(i=>i.onload());assert.equal(env.MAP_ART_READY,true);
   assert.equal(env.ART_READY,false);
-  const loaded=new Set(images);env.loadGameArt();
+  env.loadGameArt();
   assert.equal(images.filter(i=>i.src.includes('overworld_night_v2.webp')).length,1);
   const hud=images.find(i=>i.src.includes('hud_skill_fan.webp'));
-  images.filter(i=>i!==hud&&!loaded.has(i)).forEach(i=>i.onload());
+  images.filter(i=>i!==hud).forEach(i=>i.onload());
   assert.equal(env.ART_READY,false,'pending HUD must keep game in loading');
   hud.onload();assert.equal(env.ART_READY,true);
 });
@@ -84,12 +88,13 @@ test('title prioritizes only the cover and leaves music downloads until playback
   images[0].onload();
   assert.equal(env.ART.cover, images[0]);
   env.loadGameArt();
-  assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 34);
-  assert.ok(images.some(image => image.src.includes('/vfx/raster/katana.webp')));
+  assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 23);
+  assert.ok(!images.some(image => image.src.includes('/vfx/raster/katana.webp')));
   env.loadGameArt();
+  assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 23);
+  for (const image of images) image.onload();
   assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 34);
   assert.equal(images.filter(image => image.src.includes('/vfx/raster/katana.webp')).length, 1);
-  for (const image of images.slice(1)) image.onload();
   assert.equal(env.ART_READY, true);
   assert.ok(env.ART.hud_lantern_oil);
   assert.ok(env.ART.hud_radar_frame);
@@ -133,7 +138,8 @@ test('WebP failures retry preserved originals once and settle even when both are
   assert.equal(images[0].src, 'assets/img/cover.jpg');
   images[0].onload();
   env.loadGameArt();
-  for (const image of images.slice(1)) {
+  for (const image of images) {
+    if (image === images[0]) continue;
     image.onerror();
     if (image.src.includes('/vfx/')) {
       assert.ok(image.src.split('?')[0].endsWith(/\/vfx\/raster\/(?:dragon_|katana_l1)/.test(image.src) ? '.webp' : '.svg'));
@@ -156,9 +162,9 @@ test('asset progress counts settled images including failures, without counting 
   assert.deepEqual({...env.ART_PROGRESS},{settled:0,total:1,failed:0});
   images[0].onerror();assert.equal(env.ART_PROGRESS.settled,0);
   images[0].onerror();assert.deepEqual({...env.ART_PROGRESS},{settled:1,total:1,failed:1});
-  env.loadGameArt();assert.equal(env.ART_PROGRESS.total,34);
+  env.loadGameArt();assert.equal(env.ART_PROGRESS.total,20);
   images.slice(1).forEach(image=>image.onload());
-  assert.deepEqual({...env.ART_PROGRESS},{settled:34,total:34,failed:1});assert.equal(env.ART_READY,true);
+  assert.deepEqual({...env.ART_PROGRESS},{settled:20,total:20,failed:1});assert.equal(env.ART_READY,true);
 });
 
 test('five-rank skill art exposes all 30 fixed filenames and loads each slot lazily',()=>{
@@ -188,6 +194,7 @@ test('foxfire exposes separate orbit, attack and Lv5 dragon asset slots',()=>{
 
 test('new movement, posture and landmark images ship both WebP and PNG fallback files',()=>{
   const {env,images}=loadAssets();env.loadGameArt();
+  for(const image of images) image.onload();
   const extra=images.filter(i=>/_v[12]/.test(i.src));assert.equal(extra.length,12);
   for(const i of extra){assert.ok(fs.existsSync(i.src.split('?')[0]),i.src);i.onerror();assert.ok(fs.existsSync(i.src.split('?')[0]),i.src);i.onload();}
   assert.ok(env.ART.player_kneel_v1);assert.ok(env.ART.boss_motion_v1);assert.ok(env.ART.map_rain_port_v1);
@@ -195,6 +202,7 @@ test('new movement, posture and landmark images ship both WebP and PNG fallback 
 
 test('all six woodblock yokai and their motion atlases load with original fallback',()=>{
   const {env,images}=loadAssets();env.loadGameArt();
+  for(const image of images) image.onload();
   for(const kind of ['ghost','runner','tank','shooter','mis','boss']){
     for(const name of [kind,kind+'_motion_v1']){
       const path='assets/img/yokai/'+name+'.webp';
@@ -212,6 +220,7 @@ test('all six woodblock yokai and their motion atlases load with original fallba
 test('new dragon fireball and scorched-ground sprites load from optimized WebP assets',()=>{
   const {env,images}=loadAssets();
   env.loadGameArt();
+  for(const image of images) image.onload();
   for(const name of ['dragon_fireball_l5','dragon_burning_ground_l5']){
     const path='assets/img/vfx/raster/'+name+'.webp';
     assert.equal(images.filter(img=>img.src===path+'?v=20261009-dragon1').length,1,name);

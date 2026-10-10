@@ -22,7 +22,7 @@ const git = (...args) => execFileSync('git', args);
   const imageProof = `artifacts/validation/${label}-image-sizes.json`;
   if (fs.existsSync(imageProof)) files.push(...JSON.parse(fs.readFileSync(imageProof,'utf8')).images.map(image=>image.path));
   const base = 'https://yorkwahaha.github.io/yokai-delivery/';
-  const checks = await Promise.all(files.map(async path => {
+  const checks = await Promise.all([...new Set(files)].map(async path => {
     const response = await fetch(`${base}${path}?verify=${commit}`, { signal: AbortSignal.timeout(30000) });
     if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
     const remoteHash = hash(Buffer.from(await response.arrayBuffer()));

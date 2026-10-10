@@ -1,0 +1,35 @@
+{
+  "mapBytes": 769390,
+  "mapImages": 7,
+  "newStageBytes": 912774,
+  "newStageRequests": 17,
+  "coreReadyTotal": 20,
+  "mapPaths": [
+    "assets/img/cover.webp",
+    "assets/img/player.webp",
+    "assets/img/map_night_town_v1.webp",
+    "assets/img/map_rain_port_v1.webp",
+    "assets/img/overworld_night_v2.webp",
+    "assets/img/scenery/prop_sakura.webp",
+    "assets/img/scenery/prop_torii.webp"
+  ],
+  "waiting": [
+    "assets/img/ui/hud_lantern_oil.webp",
+    "assets/img/ui/hud_radar_frame.webp",
+    "assets/img/ui/hud_omamori_hint_listen.webp",
+    "assets/img/ui/hud_skill_fan.webp",
+    "assets/img/yokai/ghost.webp",
+    "assets/img/yokai/mis.webp",
+    "assets/img/yokai/boss.webp",
+    "assets/img/yokai/runner.webp",
+    "assets/img/yokai/tank.webp",
+    "assets/img/yokai/shooter.webp",
+    "assets/img/scenery/house_shop.webp",
+    "assets/img/scenery/house_shrine.webp",
+    "assets/img/scenery/house_tavern.webp",
+    "assets/img/scenery/prop_lantern.webp",
+    "assets/img/scenery/ground.webp",
+    "assets/img/scenery/ground_dirt.webp",
+    "assets/img/vfx/raster/katana_l1.webp"
+  ]
+}
