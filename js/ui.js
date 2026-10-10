@@ -448,10 +448,10 @@ window.UI = (() => {
   const END_BTNS = [{id:'restart',...RESTART_BTN},{id:'world',...WORLD_BTN},{id:'menu',...HOME_BTN}];
 
   // 1. 主選單：封面圖＋暖色光暈與上升的火星，主要行動只有一個大按鈕。
-  function drawAssetProgress(ctx) {
+  function drawAssetProgress(ctx, centered = false) {
     const p = window.ART_PROGRESS;
     if (!p || p.settled >= p.total) return;
-    const b = screenBounds(), x = (b.left+b.right)/2, y = b.top+104;
+    const b = screenBounds(), x = (b.left+b.right)/2, y = centered ? (b.top+b.bottom)/2 : b.top+104;
     ctx.save();
     glassBox(ctx,x-180,y-28,360,62,10,"rgba(12,16,28,0.94)",C.gold);
     ctx.textAlign = "center"; ctx.font = readableFont(15,"700"); ctx.fillStyle = C.text;

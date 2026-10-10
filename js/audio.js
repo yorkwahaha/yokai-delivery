@@ -11,6 +11,7 @@ window.AUDIO = (() => {
   let wordDucking = false;
   let pauseDucking = false;
   let activeBgm = null;
+  let preparedBgm = null;
   let musicShouldPlay = false;
   const bgmAttempts = new WeakSet();
   function playMusic(audio, retry = false) {
@@ -461,11 +462,14 @@ window.AUDIO = (() => {
     // 重玩或回到地圖時，音樂從頭開始，不接著上一局的進度。
     restartMusic() {
       musicTracks().forEach(audio => {
-        audio.pause();
-        try { audio.currentTime = 0; } catch {}
+        if (audio !== preparedBgm) {
+          audio.pause();
+          try { audio.currentTime = 0; } catch {}
+        }
         bgmAttempts.delete(audio);
       });
-      activeBgm = null;
+      activeBgm = preparedBgm;
+      preparedBgm = null;
       bgmStep = 0;
       bgmTimer = 0;
     },
@@ -473,6 +477,15 @@ window.AUDIO = (() => {
       const ac = getCtx();
       if (musicShouldPlay && !muted && !suspended) playMusic(activeBgm, true);
       return ac;
+    },
+    prepareMusic(state) {
+      if (muted || suspended) return;
+      preparedBgm = state === 'overworld' ? (window.MAP_BGM || window.BGM) : window.BGM;
+      if (preparedBgm) {
+        try { preparedBgm.currentTime = 0; } catch {}
+        preparedBgm.volume = musicVolume();
+        playMusic(preparedBgm, true);
+      }
     },
     preloadWords(words) {
       const ac = getCtx();

@@ -111,6 +111,13 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
 
+test('pending essential art freezes the run and menu music is requested before its delayed action',()=>{
+  const g=loadGame();g.start();g.env.ART_READY=false;const before=g.snapshot();g.update(0.05);
+  assert.equal(g.snapshot().elapsed,before.elapsed);assert.equal(g.snapshot().oil,before.oil);
+  const menu=loadGame();menu.events.keydown(key('Enter','Enter'));
+  assert.ok(menu.audioCalls.includes('prepareMusic'));assert.equal(menu.snapshot().state,'menu');
+});
+
 test('unknown word length falls back to real distinct answers without crashing', () => {
   const g=loadGame();g.start();
   const word={jp:'とてもながいみちのことばです',zh:'測試詞'};

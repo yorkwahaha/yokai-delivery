@@ -146,12 +146,16 @@
   const b = { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0 };
   const keys = new Set(), heldCodes = new Set();
   let state = "menu";
+  const artPending = () => state === 'overworld' ? window.MAP_ART_READY === false
+    : ['play','pause','levelup'].includes(state) && window.ART_READY === false;
   let quitConfirm = false;
   let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "";
   let levelupFocus = 0, gpLevelupDir = "";
   let pendingMenuActivation = null;
   function activateWithFeedback(id) {
     if (pendingMenuActivation || ((state === "won" || state === "lost") && endCooldown > 0)) return;
+    if (id === 'start' || id === 'world') AUDIO.prepareMusic?.('overworld');
+    else if (id === 'restart') AUDIO.prepareMusic?.('play');
     UI.pressButton?.(id);
     pendingMenuActivation = { id, state, quitConfirm, remaining: 0.12 };
   }
@@ -435,7 +439,7 @@
   }
 
   function enterOverworld(reset = true) {
-    window.loadGameArt?.();
+    window.loadMapArt?.();
     if (reset) overworld = window.OVERWORLD.createState("gate");
     AUDIO.restartMusic();
     overworldNoticeT = 0;
@@ -446,12 +450,12 @@
   }
 
   function moveOverworld(dx, dy) {
-    if (state !== "overworld") return false;
+    if (state !== "overworld" || artPending()) return false;
     return window.OVERWORLD.move(overworld, dx, dy);
   }
 
   function confirmOverworld() {
-    if (state !== "overworld") return;
+    if (state !== "overworld" || artPending()) return;
     const result = window.OVERWORLD.confirm(overworld);
     if (result.ok && result.stageId) {
       start(result.stageId);
@@ -465,6 +469,7 @@
 
   function start(stageId = STAGE.id) {
     quitConfirm = false;
+    AUDIO.prepareMusic?.('play');
     AUDIO.restartMusic();
     window.loadGameArt?.();
     configureStage(stageId);
@@ -1681,7 +1686,7 @@
   }
 
   function update(dt, hitStopped = false) {
-    if (state !== "play") return;
+    if (state !== "play" || artPending()) return;
     if (isPortrait()) { suspend(); return; }
     checkTutorial();
     if (tutorial) return;
@@ -2780,6 +2785,7 @@
       return;
     }
     if (isPortrait() || document.hidden) return;
+    if (artPending()) return;
     if (CONTROLS.isOpen()) return;
     if (e.target?.closest?.('button, input, select, textarea, dialog')) return;
     if (!e.repeat && state === "play") AUDIO.init();
@@ -2933,6 +2939,7 @@
     e.preventDefault();
     if (frameError) { recoverFrameError(); return; }
     if (isPortrait() || document.hidden) return;
+    if (artPending()) return;
     cv.setPointerCapture(e.pointerId);
     AUDIO.init();
     touch = e.pointerType !== "mouse";
@@ -3213,7 +3220,15 @@
     btnD.y = bounds.bottom - btnD.r - 24;
     btnE.x = btnD.x;
     btnE.y = btnD.y - 110;
-    if (state === "menu") {
+    if (artPending()) {
+      ctx.save();
+      const area = viewBounds(), cover = window.ART?.cover;
+      ctx.fillStyle = '#080c1a'; ctx.fillRect(area.left,area.top,area.width,area.height);
+      if (cover) ctx.drawImage(cover,area.left,area.top,area.width,area.height);
+      ctx.fillStyle = 'rgba(8,12,26,0.88)'; ctx.fillRect(area.left,area.top,area.width,area.height);
+      UI.drawAssetProgress?.(ctx,true);
+      ctx.restore();
+    } else if (state === "menu") {
       UI.drawMainMenu(ctx, STORE, now / 1000, menuFocus);
     } else if (state === "overworld") {
       window.OVERWORLD.draw(ctx, overworld, now / 1000, overworldNoticeT);

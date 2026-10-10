@@ -39,6 +39,18 @@ test('blocked BGM attempts once until a user gesture retries it', async()=>{
   await Promise.resolve();assert.equal(attempts,1);a.init();assert.equal(attempts,2);
 });
 
+test('preparing the next music track starts synchronously and restart preserves its pending playback',()=>{
+  const track=()=>({paused:true,volume:0,currentTime:0,attempts:0,pause(){this.paused=true;},play(){this.paused=false;this.attempts++;return Promise.resolve();}});
+  const bgm=track(),map=track();
+  const env={window:{BGM:bgm,MAP_BGM:map},Audio:class {addEventListener(){}},console,setTimeout,clearTimeout};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);const a=env.window.AUDIO;
+  a.prepareMusic('overworld');assert.equal(map.attempts,1);assert.equal(bgm.attempts,0);
+  a.restartMusic();assert.equal(map.paused,false);a.updateBgm(0.016,'overworld',0,600);
+  assert.equal(map.attempts,1);
+  a.prepareMusic('play');assert.equal(bgm.attempts,1);a.restartMusic();
+  assert.equal(bgm.paused,false);assert.equal(map.paused,true);
+});
+
 test('restartMusic rewinds both tracks so replay and map start from the beginning',()=>{
   const mk=()=>({paused:false,volume:0,currentTime:42,pause(){this.paused=true;},play(){this.paused=false;return Promise.resolve();}});
   const bgm=mk(),map=mk();class Audio {addEventListener(){} pause(){} play(){return Promise.resolve();}}

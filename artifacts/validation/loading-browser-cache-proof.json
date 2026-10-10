@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "controlled": true,
+  "imageStatus": 200,
+  "imageRevisionKeys": 1,
+  "musicRangeStatus": 206,
+  "musicRangeBytes": 100,
+  "contentRange": "bytes 0-99/2035220"
+}

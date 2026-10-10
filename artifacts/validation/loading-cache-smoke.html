@@ -1,0 +1,24 @@
+<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><title>素材快取驗證</title>
+<h1>素材快取／音樂分段驗證</h1><pre id="result">驗證中…</pre>
+<script>
+(async()=>{
+  const base=new URL('../../',location.href);
+  await navigator.serviceWorker.register(new URL('service-worker.js',base),{updateViaCache:'none'});
+  await navigator.serviceWorker.ready;
+  if (!navigator.serviceWorker.controller) await new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}));
+  const image=new URL('assets/img/ui/hud_skill_fan.webp?probe=first',base);
+  const first=await fetch(image);await first.arrayBuffer();
+  const cache=await caches.open('yokai-media-v1');
+  image.search='?probe=another-deploy';const second=await fetch(image);await second.arrayBuffer();
+  const music=new URL('assets/audio/MAP.mp3',base);
+  await (await fetch(music)).arrayBuffer();
+  const range=await fetch(music,{headers:{Range:'bytes=0-99'}});const data=await range.arrayBuffer();
+  const keys=(await cache.keys()).map(k=>k.url);
+  const records={controlled:!!navigator.serviceWorker.controller,imageStatus:second.status,
+    imageRevisionKeys:keys.filter(k=>k.includes('hud_skill_fan.webp')).length,
+    musicRangeStatus:range.status,musicRangeBytes:data.byteLength,contentRange:range.headers.get('Content-Range')};
+  const passed=records.controlled&&records.imageStatus===200&&records.imageRevisionKeys===1&&records.musicRangeStatus===206&&records.musicRangeBytes===100;
+  document.getElementById('result').textContent=JSON.stringify({passed,...records},null,2);
+  document.body.dataset.result=passed?'pass':'fail';
+})().catch(e=>{document.getElementById('result').textContent=e.stack;document.body.dataset.result='fail';});
+</script></html>

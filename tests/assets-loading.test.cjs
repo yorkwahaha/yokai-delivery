@@ -16,6 +16,31 @@ function loadAssets() {
   return { env, images, tracks };
 }
 
+test('map loads only its own art, then game reuses those requests and includes HUD readiness',()=>{
+  const {env,images}=loadAssets();env.loadMapArt();
+  assert.equal(images.length,10);
+  assert.ok(!images.some(i=>/hud_|boss_motion|tank_motion|ground_dirt/.test(i.src)));
+  images.forEach(i=>i.onload());assert.equal(env.MAP_ART_READY,true);
+  assert.equal(env.ART_READY,false);
+  const loaded=new Set(images);env.loadGameArt();
+  assert.equal(images.filter(i=>i.src.includes('overworld_night_v2.webp')).length,1);
+  const hud=images.find(i=>i.src.includes('hud_skill_fan.webp'));
+  images.filter(i=>i!==hud&&!loaded.has(i)).forEach(i=>i.onload());
+  assert.equal(env.ART_READY,false,'pending HUD must keep game in loading');
+  hud.onload();assert.equal(env.ART_READY,true);
+});
+
+test('HUD uses small WebP distribution files and preserves PNG error fallbacks',()=>{
+  const {env,images}=loadAssets();env.loadGameArt();
+  const hud=images.filter(i=>i.src.includes('/ui/hud_'));
+  assert.equal(hud.length,4);
+  for(const image of hud){
+    const file=image.src.split('?')[0];assert.ok(file.endsWith('.webp'));
+    assert.ok(fs.statSync(file).size<150000,file);
+    image.onerror();assert.ok(image.src.endsWith('.png'));
+  }
+});
+
 test('title prioritizes only the cover and leaves music downloads until playback', () => {
   const { env, images, tracks } = loadAssets();
   assert.equal(images.length, 1);
@@ -97,9 +122,9 @@ test('asset progress counts settled images including failures, without counting 
   assert.deepEqual({...env.ART_PROGRESS},{settled:0,total:1,failed:0});
   images[0].onerror();assert.equal(env.ART_PROGRESS.settled,0);
   images[0].onerror();assert.deepEqual({...env.ART_PROGRESS},{settled:1,total:1,failed:1});
-  env.loadGameArt();assert.equal(env.ART_PROGRESS.total,30);
+  env.loadGameArt();assert.equal(env.ART_PROGRESS.total,34);
   images.slice(1).forEach(image=>image.onload());
-  assert.deepEqual({...env.ART_PROGRESS},{settled:30,total:30,failed:1});assert.equal(env.ART_READY,true);
+  assert.deepEqual({...env.ART_PROGRESS},{settled:34,total:34,failed:1});assert.equal(env.ART_READY,true);
 });
 
 test('five-rank skill art exposes all 30 fixed filenames and loads each slot lazily',()=>{
