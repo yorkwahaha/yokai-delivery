@@ -86,6 +86,12 @@ window.AUDIO = (() => {
     bufferSources.clear();wordSource=null;
   }
 
+  function scheduleNote(callback, delay) {
+    const epoch = audioEpoch;
+    if (muted || suspended) return;
+    setTimeout(() => { if (!muted && !suspended && epoch === audioEpoch) callback(); }, delay);
+  }
+
   function musicTracks() {
     return [...new Set([window.BGM, window.MAP_BGM].filter(Boolean))];
   }
@@ -437,14 +443,14 @@ window.AUDIO = (() => {
     bossDeath() {
       playTaiko(48, 0.3);
       playHyoshigi(0.18);
-      [520, 390, 260].forEach((freq, i) => setTimeout(() => playSuzu(freq, 0.1), i * 140));
+      [520, 390, 260].forEach((freq, i) => scheduleNote(() => playSuzu(freq, 0.1), i * 140));
     },
     fanfare() {
-      [261.63, 329.63, 392, 523.25].forEach((freq, i) => setTimeout(() => playShamisen(freq, 0.5, 0.12), i * 180));
-      setTimeout(() => playSuzu(1046.5, 0.12), 600);
+      [261.63, 329.63, 392, 523.25].forEach((freq, i) => scheduleNote(() => playShamisen(freq, 0.5, 0.12), i * 180));
+      scheduleNote(() => playSuzu(1046.5, 0.12), 600);
     },
     lose() {
-      [392, 329.63, 261.63, 196].forEach((freq, i) => setTimeout(() => playShamisen(freq, 0.6, 0.1), i * 240));
+      [392, 329.63, 261.63, 196].forEach((freq, i) => scheduleNote(() => playShamisen(freq, 0.6, 0.1), i * 240));
     },
     // 燈油耗盡：BGM 淡出後停止（updateBgm 在 lampout 狀態不再重新啟動音樂）。
     fadeOutMusic(duration = 700) {
@@ -674,7 +680,7 @@ window.AUDIO = (() => {
     // 接取委託音效（輕快和紙與鈴鐺音，區別於送達大吉）
     pickup() {
       playSuzu(1560, 0.08);
-      setTimeout(() => playShamisen(noteFreq(2, 260), 0.22, 0.08), 40);
+      scheduleNote(() => playShamisen(noteFreq(2, 260), 0.22, 0.08), 40);
     },
 
     // 結界啟動音效（神道清聖結界）
@@ -727,8 +733,8 @@ window.AUDIO = (() => {
     // 送達正確（拍子木 + 神樂鈴大吉）
     deliverSuccess() {
       playHyoshigi(0.2);
-      setTimeout(() => playSuzu(1760, 0.14), 60);
-      setTimeout(() => playShamisen(noteFreq(7, 260), 0.4, 0.15), 140);
+      scheduleNote(() => playSuzu(1760, 0.14), 60);
+      scheduleNote(() => playShamisen(noteFreq(7, 260), 0.4, 0.15), 140);
     },
 
     // 送達錯誤 / 誤配妖怪召喚
@@ -759,9 +765,9 @@ window.AUDIO = (() => {
     // 升級音效
     levelUp() {
       [0, 4, 7, 12].forEach((s, idx) => {
-        setTimeout(() => playShamisen(noteFreq(s, 293), 0.5, 0.13), idx * 80);
+        scheduleNote(() => playShamisen(noteFreq(s, 293), 0.5, 0.13), idx * 80);
       });
-      setTimeout(() => playSuzu(1980, 0.15), 320);
+      scheduleNote(() => playSuzu(1980, 0.15), 320);
     },
 
     // 單次、固定音調的百鬼夜行預警。

@@ -4,6 +4,18 @@ const assert = require("node:assert/strict");
 const CONTENT = require("../js/words.js");
 const OVERWORLD = require("../js/overworld.js");
 
+test('multi-hop cruising completes all steps and empties its queue', () => {
+  global.STORE = { isStageUnlocked: () => true, isStageCompleted: () => true };
+  try {
+    const state = OVERWORLD.createState('gate');
+    assert.equal(OVERWORLD.moveTo(state, 'rain-port'), true);
+    for (let i = 0; i < 10; i++) OVERWORLD.update(state, 1);
+    assert.equal(state.currentId, 'rain-port');
+    assert.equal(state.targetId, null);
+    assert.equal(state.pathQueue.length, 0);
+  } finally { delete global.STORE; }
+});
+
 test('wide viewport camera keeps raster map covering every visible edge',()=>{
   global.VIEWPORT={bounds:()=>({left:-200,top:0,right:1100,bottom:600})};
   try {

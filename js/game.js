@@ -135,7 +135,8 @@
     }
     while (distractors.length < 2 && take(candidates)) {}
     if (distractors.length < 2) {
-      throw new Error(`Not enough same-length answer choices for ${word.jp}`);
+      // 未來詞包缺少同長度詞時仍使用真實且不重複的詞，不中斷當局。
+      while (distractors.length < 2 && take(shuffle(source).filter(w => w && w.jp))) {}
     }
     return shuffle([word, ...distractors]);
   }
@@ -1171,6 +1172,7 @@
     if (job.hintStage === 0) {
       oil -= 3;
       job.hintStage = 1;
+      hintT = 0.5;
       job.assisted = true;
       AUDIO.speak(job.word.jp);
       const wrongIndices = job.ans.map((w, idx) => w !== job.word ? idx : -1).filter(idx => idx >= 0);
@@ -1284,7 +1286,9 @@
         wave.hits.add(e);
         const distanceDecay=Math.max(0.42,1-(wave.traveled/Math.max(1,wave.maxTravel||1200))*0.52);
         const pierceDecay=Math.max(0.3,Math.pow(0.82,hitIndex));
-        hurt(e, wave.dmg * distanceDecay * pierceDecay);SKILLFX.play("katana","hit",5,{x:e.x,y:e.y,ang:wave.ang});
+        const isCrit = Math.random() < (0.2 + (b.crit || 0) * 0.15);
+        const mult = isCrit ? (1.8 + (b.crit || 0) * 0.4) : 1;
+        hurt(e, wave.dmg * distanceDecay * pierceDecay * mult, isCrit);SKILLFX.play("katana","hit",5,{x:e.x,y:e.y,ang:wave.ang,crit:isCrit});
       }
       const cam=RENDERER.getCam(),view=viewBounds(),margin=wave.size*0.62;
       const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
@@ -1615,7 +1619,8 @@
             const count = Math.min(shuffled.length, 3 + Math.floor(Math.random() * 3));
             for (const e of shuffled.slice(0, count)) {
               SKILLFX.play("thunder", "strike", 4, {x:e.x,y:e.y});
-              hurt(e, e.hp); // 只秒殺一般妖怪，不略過 Boss 戰鬥機制。
+              const isCrit = Math.random() < (0.2 + (b.crit || 0) * 0.15);
+              hurt(e, e.hp, isCrit); // 一般妖怪原本即秒殺；暴擊保留命中回饋。
             }
           } else {
             // 同級勾玉的固定半徑：Lv1 190／Lv2 270／Lv3 350，與實際持有勾玉等級無關。
@@ -1627,7 +1632,8 @@
                 : Math.max((e.type === "tank" ? 4.5 : 6) * b.dmg,
                     e.type !== "tank" && e.type !== "boss" ? e.hp : 0);
               // Lv1 低傷，Lv2 普通幽靈約兩擊倒地；Lv3 秒殺一般小怪而不秒殺坦克與 Boss。
-              hurt(e, damage);
+              const isCrit = Math.random() < (0.2 + (b.crit || 0) * 0.15);
+              hurt(e, damage * (isCrit ? (1.8 + (b.crit || 0) * 0.4) : 1), isCrit);
             }
           }
           AUDIO.thunder(rank);
@@ -1694,16 +1700,7 @@
         startVictorySequence();
         return;
       }
-      if (!finalBossDefeated) {
-        const activeBoss = enemies.find(e => e.type === "boss" && e.hp > 0);
-        if (activeBoss && !activeBoss.final) {
-          activeBoss.final = true;
-          bossStage = BOSS_TIMES.length;
-          say("大妖鬼覺醒！破曉決戰", activeBoss.x, activeBoss.y - 75, "#ff5555");
-        } else if (!activeBoss && bossStage < BOSS_TIMES.length - 1) {
-          bossStage = BOSS_TIMES.length - 1; bossT = 0;
-        }
-      }
+      // 破曉後仍依序生成逾期首領；不把早期首領升格而略過中間波次。
       if (warnDawnT === 0) {
         warnDawnT = -1;
         const need = Math.max(0, GOAL_DELIVERIES - delivered);
@@ -1758,10 +1755,13 @@
     }
     const baseSpd = 230 + (b.spd || 0) * 35;
     const sp = dashT > 0 ? 780 : baseSpd;
-    const nx = P.x + m.x * sp * dt;
-    const ny = P.y + m.y * sp * dt;
-    if (!blocked(nx, P.y)) P.x = nx;
-    if (!blocked(P.x, ny)) P.y = ny;
+    const steps = Math.max(1, Math.ceil(sp * dt / 9));
+    for (let i = 0; i < steps; i++) {
+      const nx = P.x + m.x * sp * dt / steps;
+      const ny = P.y + m.y * sp * dt / steps;
+      if (!blocked(nx, P.y)) P.x = nx;
+      if (!blocked(P.x, ny)) P.y = ny;
+    }
     syncWorld();
 
     if (keys.has("dash")) dash();

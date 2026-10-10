@@ -12,8 +12,11 @@ test('default controls, arrows and left-handed preset map to actions', () => {
   assert.equal(c.action('KeyW'), 'u');
   assert.equal(c.action('ArrowLeft'), 'l');
   assert.equal(c.action('Space'), 'dash');
-  assert.equal(c.action('ShiftLeft'), undefined);
-  assert.equal(c.action('ShiftRight'), undefined);
+  assert.equal(c.action('ShiftLeft'), 'dash');
+  assert.equal(c.action('ShiftRight'), 'dash');
+  assert.equal(c.bind('dash', 'ShiftLeft'), true);
+  assert.equal(c.label('dash'), '左 Shift');
+  assert.equal(c.bind('hint', 'ShiftRight'), false);
   c.preset('left');
   assert.equal(c.action('KeyI'), 'u');
   assert.equal(c.action('KeyW'), undefined);
@@ -44,7 +47,7 @@ test('misdelivery enemies approach a readable distance without overshoot and ret
 test('gamepad can navigate presets and leave the native controls dialog',()=>{
  const env={window:{},localStorage:{getItem:()=>null,setItem(){}}};const events={};let clicked=0;
  const buttons=Array.from({length:3},()=>({focus(){env.document.activeElement=this;},click(){clicked++;}}));
- const dialog={open:false,querySelectorAll:s=>s==='button'?buttons:[],showModal(){this.open=true;env.document.activeElement=buttons[0];},close(){this.open=false;events.close();},addEventListener:(k,f)=>events[k]=f};
+ const dialog={open:false,querySelectorAll:s=>s==='button, input'?buttons:[],showModal(){this.open=true;env.document.activeElement=buttons[0];},close(){this.open=false;events.close();},addEventListener:(k,f)=>events[k]=f};
  const opener={};env.document={getElementById:id=>id==='controls-dialog'?dialog:id==='controls-open'?opener:{focus(){}},activeElement:null};
  vm.runInNewContext(fs.readFileSync('js/controls.js','utf8'),env);const c=env.window.CONTROLS;c.mount();opener.onclick();
  const gp={buttons:Array.from({length:16},()=>({pressed:false}))};const press=i=>{gp.buttons[i].pressed=true;c.gamepad(gp,[]);gp.buttons[i].pressed=false;};
@@ -56,4 +59,17 @@ test('display labels track presets, custom bindings and saved controls',()=>{
  const c=controls(); assert.equal(c.label('dash'),'空白鍵');
  c.preset('left');assert.equal(c.label('interact'),'U');assert.equal(c.label('hint'),'O');
  c.bind('interact','KeyT');assert.equal(c.label('interact'),'T');
+});
+
+test('settings mounts the persisted haptics choice and updates it via the checkbox',()=>{
+  const haptics={checked:true},opener={},dialog={querySelectorAll:()=>[],addEventListener(){}};
+  const saved=new Map([['yokai-haptics-v1','false']]);
+  const env={window:{},localStorage:{getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v)},
+    document:{getElementById:id=>id==='haptics-enabled'?haptics:id==='controls-dialog'?dialog:opener}};
+  vm.runInNewContext(fs.readFileSync('js/haptics.js','utf8'),env);
+  vm.runInNewContext(fs.readFileSync('js/controls.js','utf8'),env);
+  env.window.CONTROLS.mount();assert.equal(haptics.checked,false);
+  haptics.checked=true;haptics.onchange();
+  assert.equal(env.window.HAPTICS.enabled,true);
+  assert.equal(saved.get('yokai-haptics-v1'),'true');
 });

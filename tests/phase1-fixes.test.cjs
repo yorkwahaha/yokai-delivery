@@ -101,7 +101,7 @@ test('Overworld pathfinding allows navigating to multi-hop unlocked nodes', () =
   assert.deepEqual([...path], ['night-town', 'cross-west', 'rain-port'], 'findPath should find multi-hop route through night-town and cross-west');
 });
 
-test('Early boss awakens as final boss at DAWN to prevent soft-lock', () => {
+test('Early boss remains an intermediate boss at DAWN so later waves cannot be skipped', () => {
   const c = loadGameEnv();
   c.fixture.start('night-town');
   const boss = c.fixture.addBoss(false);
@@ -111,5 +111,5 @@ test('Early boss awakens as final boss at DAWN to prevent soft-lock', () => {
   c.fixture.setElapsed(600);
   c.fixture.update(0.1);
 
-  assert.equal(boss.final, true, 'Boss should awaken into final boss when dawn breaks');
+  assert.equal(boss.final, false, 'Dawn must not promote an unfinished intermediate Boss');
 });

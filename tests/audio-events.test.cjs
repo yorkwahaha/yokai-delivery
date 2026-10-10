@@ -173,6 +173,26 @@ class PlaybackTestContext {
  createGain(){const param={setValueAtTime(){},exponentialRampToValueAtTime(){}};return {frequency:param,gain:param,connect(){},start(){PlaybackTestContext.starts++;},stop(){}};}
 }
 
+test('delayed synthesized notes are discarded across suspend/resume and mute/unmute',()=>{
+  const callbacks=[];
+  class Context extends PlaybackTestContext {
+    constructor(){super();this.sampleRate=1000;}
+    suspend(){this.state='suspended';return Promise.resolve();}
+    resume(){this.state='running';return Promise.resolve();}
+    createBufferSource(){return this.createGain();}
+    createBuffer(){return {getChannelData:()=>new Float32Array(40)};}
+  }
+  const env={window:{AudioContext:Context},Audio:class {addEventListener(){} pause(){}},console,
+    setTimeout:cb=>{callbacks.push(cb);return callbacks.length;},clearTimeout(){}};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  const a=env.window.AUDIO;
+  for(const cancel of [()=>{a.setSuspended(true);a.setSuspended(false);},()=>{a.toggleMute();a.toggleMute();}]) {
+    a.bossDeath();const before=PlaybackTestContext.starts;cancel();
+    callbacks.splice(0).forEach(cb=>cb());
+    assert.equal(PlaybackTestContext.starts,before);
+  }
+});
+
 test('interrupted iPad audio contexts are resumed instead of left silent',()=>{
   let resumes=0;
   class Context extends PlaybackTestContext {constructor(){super();this.state='interrupted';}resume(){resumes++;this.state='running';return Promise.resolve();}}

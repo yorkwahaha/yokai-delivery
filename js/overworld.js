@@ -182,7 +182,9 @@
         state.moveT = 0;
         if (state.pathQueue && state.pathQueue.length > 0) {
           const nextTarget = state.pathQueue.shift();
-          moveTo(state, nextTarget);
+          const remaining = state.pathQueue;
+          if (moveTo(state, nextTarget)) state.pathQueue = remaining;
+          else state.pathQueue = [];
         }
       }
     }

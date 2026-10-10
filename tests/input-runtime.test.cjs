@@ -99,6 +99,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     snapshot: () => ({ state, quitConfirm, needles, proj, winds:typeof winds==='undefined'?[]:winds, ghosts:typeof ghosts==='undefined'?[]:ghosts, dragonShots, dragonScorches, menuFocus, levelupFocus, rerolls, levelupCooldown, x:P.x, y:P.y, joy, dashCd, oil, score, level, elapsed, delivered, bossStage, bossT, finalBossDefeated, gems, cargo, job, orders, bossQ, codexTab, codexPage, floats:texts, enemies, enemyBullets, keys: [...keys] }),
     addMis: () => enemies.push({x:P.x+100,y:P.y,type:"mis",w:ALL[0],hp:999,max:999,speed:210,flash:0,wob:0}), emptyHouses: () => houses.splice(0),
     tune: id => UP.find(u => u.id === id),
+    thinDashWall: () => { syncWorld(); solids.splice(0,solids.length,{x0:P.x+19,x1:P.x+20,y0:P.y-100,y1:P.y+100}); dashDir={x:1,y:0};dashT=0.2; },
     housesNow: () => houses.map(h => ({ id: h.id, x: h.x, y: h.y, word: h.word })),
     placeAt: (x, y) => { P.x = x; P.y = y; },
     ageOrders: seconds => { for (const o of orders) o.life -= seconds; },
@@ -109,6 +110,67 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
+
+test('unknown word length falls back to real distinct answers without crashing', () => {
+  const g=loadGame();g.start();
+  const word={jp:'とてもながいみちのことばです',zh:'測試詞'};
+  const choices=g.answerChoices(word);
+  assert.equal(choices.length,3);
+  assert.equal(new Set(choices.map(w=>w.jp)).size,3);
+  assert.ok(choices.includes(word));
+});
+
+test('first hint rejects a duplicate press then allows the second stage after cooldown', () => {
+  const g=loadGame();g.start();g.prepareOrder();g.setOil(80);
+  g.triggerHint();g.triggerHint();
+  assert.equal(g.snapshot().oil,77);
+  assert.equal(g.snapshot().job.hintStage,1);
+  g.update(0.6);g.triggerHint();
+  assert.equal(g.snapshot().job.hintStage,2);
+});
+
+test('delivery sanctuary triggers only once even when leaving and reentering its radius',()=>{
+  const g=loadGame();g.start();g.prepareOrder();g.atDestination();g.update(0.01);
+  const job=g.snapshot().job,to=job.to;
+  assert.equal(job.sanctuaryTriggered,true);
+  g.placeAt(to.x+500,to.y);g.update(0.1);g.atDestination();g.update(0.01);
+  assert.equal(g.audioCalls.filter(n=>n==='sanctuary').length,1);
+  assert.ok(job.sanctuaryT<2.7);
+});
+
+test('dash cannot cross a thin wall in a 50ms frame', () => {
+  const g=loadGame();g.start();g.thinDashWall();const x=g.snapshot().x;
+  g.update(0.05);
+  assert.ok(g.snapshot().x-x<2);
+});
+
+test('dawn retains all overdue Boss waves and only the fourth kill completes the final goal', () => {
+  const g=loadGame();g.start();g.clearSolids();g.scheduleBoss();g.update(0.01);
+  g.setElapsed(601);g.meetDeliveryGoal();g.setOil(100);g.update(0.01);
+  for(let stage=0;stage<4;stage++) {
+    const boss=g.snapshot().enemies.find(e=>e.type==='boss'&&e.hp>0);
+    assert.ok(boss);assert.equal(boss.final,stage===3);
+    boss.shield=false;g.hurt(boss,9999);g.update(0.01);
+    assert.equal(g.snapshot().finalBossDefeated,stage===3);
+    assert.equal(g.snapshot().state,stage===3?'victory':'play');
+  }
+});
+
+test('crit upgrade applies to thunder ranks 1 through 4 and awakened katana wind hits', () => {
+  for(const rank of [1,2,3,4]) {
+    const g=loadGame();g.start();g.env.Math=Object.create(Math);g.env.Math.random=()=>0.5;
+    const crits=[];g.env.RENDERER.spawnDamageNumber=(d,x,y,crit)=>crits.push(crit);
+    for(let i=0;i<3;i++)g.tune('crit').f();
+    g.combatScene('thunder',[{dx:100}],[],rank);g.weapons(0.01);
+    assert.ok(crits.length>0);assert.ok(crits.every(Boolean),`rank ${rank}`);
+  }
+  const g=loadGame();g.start();g.env.Math=Object.create(Math);g.env.Math.random=()=>0.5;
+  const crits=[];g.env.RENDERER.spawnDamageNumber=(d,x,y,crit)=>crits.push(crit);
+  for(let i=0;i<3;i++)g.tune('crit').f();
+  g.face(0);g.combatScene('katana',[{dx:400}],[],5);
+  for(let i=0;i<10;i++)g.weapons(0.05);
+  assert.ok(crits.length>0);assert.ok(crits.every(Boolean));
+});
 
 test('Xbox pad navigates level-up cards with stick or D-pad, A confirms focus, and B/X cannot misselect',()=>{
   const g=loadGame();g.start();g.offerUp();assert.equal(g.snapshot().state,'levelup');
@@ -192,8 +254,8 @@ test('misdelivery costs oil immediately, grants no farming score and hints recov
   g.resolve(g.snapshot().job.ans.findIndex(w=>w!==g.snapshot().job.word));
   assert.equal(g.snapshot().oil,42);
   g.hurt(g.snapshot().enemies.find(e=>e.type==='mis'),999);assert.equal(g.snapshot().score,0);
-  g.prepareOrder();const oil=g.snapshot().oil;g.triggerHint();g.triggerHint();
-  g.resolve(g.snapshot().job.ans.indexOf(g.snapshot().job.word));assert.equal(g.snapshot().oil,oil+5);
+  g.prepareOrder();const oil=g.snapshot().oil;g.triggerHint();g.update(0.6);g.triggerHint();
+  g.resolve(g.snapshot().job.ans.indexOf(g.snapshot().job.word));assert.ok(Math.abs(g.snapshot().oil-(oil+5-0.6*0.43))<1e-8);
 });
 
 test('all quiz choices hide answer length and mix hiragana with katakana when possible',()=>{
@@ -422,7 +484,8 @@ test('Lv5 katana uses only the flying blade visual while lower ranks keep the lo
 });
 
 test('Lv5 wind blade stays alive across the screen and keeps piercing with distance and hit-count decay',()=>{
-  const g=loadGame();g.start();g.face(0);g.combatScene('katana',[{dx:280},{dx:360},{dx:440},{dx:520}],[],5);
+  const g=loadGame();g.start();g.env.Math=Object.create(Math);g.env.Math.random=()=>0.99;
+  g.face(0);g.combatScene('katana',[{dx:280},{dx:360},{dx:440},{dx:520}],[],5);
   for(let i=0;i<45;i++)g.weapons(0.01);
   assert.ok(g.snapshot().winds.length>0,'blade should not retract after only a few hits');
   for(let i=0;i<55;i++)g.weapons(0.01);
@@ -518,12 +581,14 @@ test('Lv1–3 thunder radius exactly matches magnet Lv1–3 (190 / 270 / 350) wi
   }
 });
 
-test('Lv1 is weak, Lv2 needs two attacks for a basic ghost, Lv3 kills basic mobs but not a tank or Boss',()=>{
-  const a=loadGame();a.start();a.combatScene('thunder',[{dx:110,hp:2}],[],1);
+test('noncritical Lv1 is weak, Lv2 needs two attacks for a basic ghost, Lv3 kills basic mobs but not a tank or Boss',()=>{
+  const a=loadGame();a.start();a.env.Math=Object.create(Math);a.env.Math.random=()=>0.99;
+  a.combatScene('thunder',[{dx:110,hp:2}],[],1);
   a.weapons(0.01);
   assert.ok(a.snapshot().enemies[0].hp>1 && a.snapshot().enemies[0].hp<2);
 
-  const b=loadGame();b.start();b.combatScene('thunder',[{dx:100,hp:2},{dx:130,hp:2}],[],2);
+  const b=loadGame();b.start();b.env.Math=Object.create(Math);b.env.Math.random=()=>0.99;
+  b.combatScene('thunder',[{dx:100,hp:2},{dx:130,hp:2}],[],2);
   b.weapons(0.01);
   assert.ok(b.snapshot().enemies.every(e=>e.hp>0 && e.hp<2),'both targets survive first Lv2 bolt');
   b.weapons(2);
@@ -1594,7 +1659,7 @@ test('pickup speaks the word once and delivery does not repeat it', () => {
   const g = loadGame(); g.start(); g.setOil(80); g.prepareOrder();
   assert.equal(g.audioCalls.filter(n => n === 'speak').length, 1);
   const before = g.snapshot().oil;
-  g.triggerHint(); g.triggerHint();
+  g.triggerHint(); g.update(0.6); g.triggerHint();
   const hinted = g.snapshot().oil;
   assert.ok(before - hinted >= 7);
   g.resolve(g.snapshot().job.ans.indexOf(g.snapshot().job.word));
