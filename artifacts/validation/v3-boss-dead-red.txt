@@ -1,0 +1,42 @@
+✔ V3 Boss AI: slam locks the original target during its warning (0.7236ms)
+✔ V3 Boss AI: locked slam hits once and opens a recovery window (0.7041ms)
+✔ V3 Boss AI: moving away from a locked ground strike avoids the hit (0.1171ms)
+✔ V3 Boss AI: shielding and reading pause stop attacks and timers (0.1229ms)
+✔ V3 Boss AI: second boss alternates ground strike and straight charge (0.2042ms)
+✔ V3 Boss AI: charge uses swept wall collision and cannot cross a thin building (0.5529ms)
+✔ V3 Boss AI: full-health final boss has no ring and half-health unlocks one (0.4975ms)
+✔ V3 Boss AI: ring has a real gap and hits an unsafe swept annulus only once (0.57ms)
+✔ V3 Boss AI: tide is exclusive to the port and keeps a safe lane (0.379ms)
+✔ V3 Boss AI: warning, impact and recovery never overlap a second main attack (0.1565ms)
+✖ V3 Boss AI: a defeated boss cannot start or finish an attack (5.1063ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 10
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 66.5753
+
+✖ failing tests:
+
+test at tests\v3-boss-ai.test.cjs:81:1
+✖ V3 Boss AI: a defeated boss cannot start or finish an attack (5.1063ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(!e.hazard)
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-boss-ai.test.cjs:83:27)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

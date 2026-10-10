@@ -78,3 +78,9 @@ test('V3 Boss AI: warning, impact and recovery never overlap a second main attac
   for(let i=0;i<10;i++){AI.start(e,p,'night-town');assert.equal(e.hazard,original);AI.step(e,p,.05);}
   assert.equal(e.hazard.kind,'slam');
 });
+test('V3 Boss AI: a defeated boss cannot start or finish an attack',()=>{
+  const e=fresh(),p=player();e.hp=0;
+  AI.step(e,p,.05);assert.ok(!e.hazard);
+  e.hp=300;AI.start(e,p);e.hp=0;
+  assert.equal(run(e,p,2).filter(r=>r.hit).length,0);
+});
