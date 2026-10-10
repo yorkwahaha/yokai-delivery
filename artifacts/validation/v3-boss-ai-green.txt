@@ -1,0 +1,19 @@
+✔ V3 Boss AI: slam locks the original target during its warning (0.7594ms)
+✔ V3 Boss AI: locked slam hits once and opens a recovery window (0.6166ms)
+✔ V3 Boss AI: moving away from a locked ground strike avoids the hit (0.1247ms)
+✔ V3 Boss AI: shielding and reading pause stop attacks and timers (0.1291ms)
+✔ V3 Boss AI: second boss alternates ground strike and straight charge (0.2034ms)
+✔ V3 Boss AI: charge uses swept wall collision and cannot cross a thin building (0.191ms)
+✔ V3 Boss AI: full-health final boss has no ring and half-health unlocks one (0.8508ms)
+✔ V3 Boss AI: ring has a real gap and hits an unsafe swept annulus only once (0.6466ms)
+✔ V3 Boss AI: tide is exclusive to the port and keeps a safe lane (0.33ms)
+✔ V3 Boss AI: warning, impact and recovery never overlap a second main attack (0.1631ms)
+✔ V3 Boss AI: a defeated boss cannot start or finish an attack (0.0917ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.8197
