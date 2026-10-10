@@ -11,6 +11,14 @@ function load(reduced = false) {
   return { FX: env.FX, SKILLFX: env.SKILLFX, env };
 }
 
+test('ranked thunder artwork suppresses the oversized procedural blue bolt without requiring legacy art',()=>{
+  const {FX,SKILLFX,env}=load(),bolts=[];
+  env.skillVfxArt=()=>({naturalWidth:128,naturalHeight:256});
+  FX.bolt=(x,y,options)=>bolts.push(options);
+  SKILLFX.play('thunder','strike',3,{x:0,y:0});
+  assert.equal(bolts[0].h,175);assert.equal(bolts[0].w,0.32);
+});
+
 test('all new MAX effect sprites bake nonempty canvases',()=>{
   const gradient={addColorStop(){}};
   const ctx=new Proxy({createRadialGradient:()=>gradient},{get:(o,k)=>o[k]||(()=>{})});

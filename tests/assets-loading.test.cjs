@@ -16,6 +16,39 @@ function loadAssets() {
   return { env, images, tracks };
 }
 
+test('initial katana raster is required before core readiness, without any old skill downloads',()=>{
+  const {env,images}=loadAssets();env.loadGameArt();
+  const blade=images.find(i=>i.src.includes('/katana_l1.webp'));
+  for(const image of [...images]) if(image!==blade) image.onload();
+  assert.equal(env.ART_READY,false);blade.onload();assert.equal(env.ART_READY,true);
+  for(const image of images) image.onload();
+  assert.ok(!images.some(i=>/\/(katana|needle|ofuda|foxfire|thunder_strike|barrier_ground_45)\.webp/.test(i.src)));
+});
+
+test('offered skill art is warmed without pausing; choosing it waits only for that rank',()=>{
+  const {env,images}=loadAssets();env.loadGameArt();for(const image of images) image.onload();
+  const count=images.length,total=env.ART_PROGRESS.total;
+  env.prepareSkillArt('needle',3);assert.equal(images.length,count+1);assert.equal(env.ART_READY,true);
+  const image=images.at(-1);assert.equal(image.fetchPriority,'high');
+  env.useSkillArt('needle',3);assert.equal(images.length,count+1);assert.equal(env.ART_READY,false);
+  assert.equal(env.ART_PROGRESS.total,total+1);image.onload();assert.equal(env.ART_READY,true);
+  env.useSkillArt('needle',4);assert.equal(env.ART_READY,false);images.at(-1).onerror();assert.equal(env.ART_READY,true);
+  assert.equal(env.ART_PROGRESS.total,total+1,'only current rank blocks gameplay');
+});
+
+test('selected MAX fire waits for orbit, attack, dragon and separate projectile art',()=>{
+  const {env,images}=loadAssets();env.loadGameArt();for(const image of images) image.onload();
+  const count=images.length;env.useSkillArt('fire',5);const fire=images.slice(count);
+  assert.equal(fire.length,6);assert.ok(fire.every(i=>i.fetchPriority==='high'));
+  fire.slice(0,-1).forEach(i=>i.onload());assert.equal(env.ART_READY,false);
+  fire.at(-1).onload();assert.equal(env.ART_READY,true);
+});
+
+test('MAX thunder prepares its rank-four child strike as well as rank-five cloud',()=>{
+  const {env,images}=loadAssets();env.prepareSkillArt('thunder',5);
+  assert.equal(images.filter(i=>/thunder_l[45]\.webp/.test(i.src)).length,2);
+});
+
 test('core readiness excludes optional animation and result portraits, and keeps later downloads in background',()=>{
   const {env,images}=loadAssets();env.loadGameArt();
   assert.ok(!images.some(i=>/motion_v1|player_win_v1|player_kneel_v1/.test(i.src)));

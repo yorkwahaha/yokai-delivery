@@ -1,0 +1,325 @@
+[Assets] 圖片 player_walk1 載入失敗，將使用程式繪製備援。
+[Assets] Missing dragon art: dragon_fireball_l5
+[Assets] Missing dragon art: dragon_burning_ground_l5
+✖ initial katana raster is required before core readiness, without any old skill downloads (2.6028ms)
+✖ offered skill art is warmed without pausing; choosing it waits only for that rank (0.9756ms)
+✖ selected MAX fire waits for orbit, attack, dragon and separate projectile art (1.3849ms)
+✖ MAX thunder prepares its rank-four child strike as well as rank-five cloud (0.6251ms)
+✔ core readiness excludes optional animation and result portraits, and keeps later downloads in background (1.1975ms)
+✔ map readiness warms the upcoming core game without changing the visible map progress (0.951ms)
+✔ cover completion begins route preparation before the user clicks start (0.7282ms)
+✔ blocking scene images have high fetch priority instead of competing below music (0.701ms)
+✔ map loads only its own art, then game reuses those requests and includes HUD readiness (0.9689ms)
+✔ HUD uses small WebP distribution files and preserves PNG error fallbacks (1.1937ms)
+✔ title prioritizes only the cover and leaves music downloads until playback (0.9767ms)
+✔ entering a game preloads Lv1 katana art before the first attack (0.7265ms)
+✔ resting courier art is fetched only after pause is opened (0.6997ms)
+✔ WebP failures retry preserved originals once and settle even when both are absent (2.189ms)
+✔ asset progress counts settled images including failures, without counting retry as completion (1.2ms)
+✔ five-rank skill art exposes all 30 fixed filenames and loads each slot lazily (0.6522ms)
+✔ foxfire exposes separate orbit, attack and Lv5 dragon asset slots (0.6876ms)
+✔ new movement, posture and landmark images ship both WebP and PNG fallback files (2.857ms)
+✔ all six woodblock yokai and their motion atlases load with original fallback (5.4423ms)
+✔ new dragon fireball and scorched-ground sprites load from optimized WebP assets (1.7346ms)
+✔ injury floating words have bright fill and solid ink outline in the active game draw path (1.5715ms)
+✔ entering a stage does not bulk-download words and unused sound effects (88.4783ms)
+✖ upgrade options warm only offered ranks and selected art pauses the game clock until ready (4.662ms)
+✔ pending essential art freezes the run and menu music is requested before its delayed action (6.7293ms)
+✔ unknown word length falls back to real distinct answers without crashing (3.8283ms)
+✔ first hint rejects a duplicate press then allows the second stage after cooldown (4.6499ms)
+✔ delivery sanctuary triggers only once even when leaving and reentering its radius (3.4193ms)
+✔ dash cannot cross a thin wall in a 50ms frame (3.0851ms)
+✔ dawn retains all overdue Boss waves and only the fourth kill completes the final goal (5.3559ms)
+✔ crit upgrade applies to thunder ranks 1 through 4 and awakened katana wind hits (16.3453ms)
+✔ Xbox pad navigates level-up cards with stick or D-pad, A confirms focus, and B/X cannot misselect (5.2577ms)
+✔ Xbox Y rerolls once, and keyboard Enter confirms highlighted level-up without changing touch geometry (8.535ms)
+✔ menu action waits for its pressed frame and blocks duplicated confirmation (3.5687ms)
+✔ mouse hovering over a painted plaque focuses it without moving the hit target (3.1276ms)
+✔ consecutive injury notices separate and rapidly fade their predecessors (2.3749ms)
+✔ resizing the skill codex clamps mobile pages back to a visible desktop page (2.6936ms)
+✔ misdelivery costs oil immediately, grants no farming score and hints recover their oil cost (4.4909ms)
+✔ all quiz choices hide answer length and mix hiragana with katakana when possible (5.7466ms)
+✔ Boss wrong slots keep their position and cannot be selected again or by key repeat (4.6145ms)
+✔ Lv1–3 thunder strikes exactly its target count without nearby splash damage (9.3392ms)
+✔ barrier Lv1–4 deals only 40 percent of same-rank katana damage; Lv5 deals half its former base damage (15.2909ms)
+✔ barrier knockback is visible across frames instead of teleporting, including Lv5 pull then push (17.1466ms)
+✔ barrier push stops at a blocking wall without tunneling and never knocks back a boss (6.3012ms)
+✔ night-town misdelivery can approach contact range without ranged shots (6.8951ms)
+✔ enemy attack drawings are triggered by actual contact or projectile release and expire with gameplay time (3.7111ms)
+✔ exhausted upgrades consume one level without trapping the run or granting invented rewards (4.429ms)
+✔ uncollected gems stay bounded under repeated kills and merging preserves all nearby XP (16.6343ms)
+✔ leaving distant drops reclaims them while nearby and boundary drops remain collectible (3.5578ms)
+✔ a full gem pool cannot merge a new local reward into an abandoned drop due for reclamation (10.2672ms)
+✔ tutorials freeze oil regeneration, time and Boss schedule even after long-lantern upgrades (6.3094ms)
+✔ Boss replacement lock ignores early keyboard or gamepad input but accepts a fresh press after expiry (51.9407ms)
+✔ small cargo pools still receive three defined, unique quiz choices (10.668ms)
+✔ starting again cannot pick up the previous run pending order before its first update (4.1599ms)
+✔ frame recovery removes a tutorial overlay from the aborted run (2.7052ms)
+✔ settlement learning summary measures this run only and keeps assisted answers separate from star gains (3.2505ms)
+✔ Lv5 katana pierces buildings while only targeting the forward-facing arc (6.0071ms)
+✔ Lv5 katana uses only the flying blade visual while lower ranks keep the local slash (5.4864ms)
+✔ Lv5 wind blade stays alive across the screen and keeps piercing with distance and hit-count decay (3.2886ms)
+✔ MAX ice needles hit and freeze distinct foes in eight directions (6.37ms)
+✔ frozen shooter cannot move or fire until the ice expires (3.7544ms)
+✔ Lv5 paper talismans actually explode over an area; Lv4 still only hits its flight path (8.7331ms)
+✔ Lv5 foxfire keeps six orbiting flames and summons a targeted brief dragon (3.8866ms)
+✔ MAX dragon approaches from offscreen, pauses inside, and fires once (7.8111ms)
+✔ fireball impacts a building before reaching a distant target (7.122ms)
+✔ Lv5 needles bend once after launch while Lv4 stays straight (6.9855ms)
+✔ awakening mid-flight does not turn old straight needles or returning talismans into a different attack (6.6824ms)
+✔ Lv5 thunder spawns paired random clouds and bolts, excludes distant foes and preserves the Boss shield (2.8649ms)
+✔ Lv1–3 thunder radius exactly matches magnet Lv1–3 (190 / 270 / 350) without owning it (8.3337ms)
+✔ noncritical Lv1 is weak, Lv2 needs two attacks for a basic ghost, Lv3 kills basic mobs but not a tank or Boss (14.4996ms)
+✔ Lv4 randomly kills 3–5 distinct visible normal enemies and never offscreen foes or bosses (8.8698ms)
+✔ awakening projectiles reset on restart and none bypass a shielded Boss (35.2904ms)
+✔ a long MAX volley run keeps wind, spirits, needles and explosive talismans bounded (331.1203ms)
+✔ foxfire keeps its orbit at every rank including MAX (3.5733ms)
+✔ Lv1–3 foxfire only orbits and never detaches to seek enemies (19.839ms)
+✔ Lv4 foxfire detaches exactly three of six guardians while they attack, then restores the ring (4.1263ms)
+✔ hit stop still advances oil and the Boss clock (3.2629ms)
+✔ pause stops speech and ages visual effects (3.1811ms)
+✔ rain is static when reduced motion is requested (2.7522ms)
+✔ mobile menu and codex tabs accept expanded touch targets (2.5478ms)
+✔ pause hit target stays inside the HUD edge and outside score text (3.106ms)
+✔ enemy bullets expire inside buildings (3.0275ms)
+✔ distant misdelivery enemies despawn without clearing the saved mistake (4.479ms)
+✔ defeating the previous Boss does not postpone an already due final Boss (3.7145ms)
+✔ rain motion follows its streak direction and rain-port has no petals or fireflies (2.9664ms)
+✔ two oil upgrades still consume oil at rest (3.7393ms)
+✔ misdelivery finds a clear spawn when the answer and adjacent fallback are blocked (3.1435ms)
+✔ frame errors pause the run, show recovery text and keep the next frame scheduled (3.2063ms)
+✔ shield hit feedback is throttled and colored rings fade (2.8325ms)
+✔ enemy fireballs render above night lighting and weather (2.7963ms)
+✔ a trapped misdelivery enemy recovers to a clear position (3.2748ms)
+✔ small pause targets accept clicks within a 44 CSS pixel hit area (3.2151ms)
+✔ rain-port runtime uses reduced shooter pressure and the intended recovery pacing (7.1732ms)
+ℹ {"scenario":"runtime-stage-pressure","results":{"night-town":{"goal":6,"xp":30,"spawnInterval":1.1400000000000001,"shooters":0,"ghostSpeed":85.75,"firstBossHp":32},"rain-port":{"goal":6,"xp":30,"spawnInterval":1.311,"shooters":6,"ghostSpeed":85.75,"firstBossHp":33}}}
+✔ shooters are fragile and bosses resist skill knockback (3.0537ms)
+✔ rain-port shooter rate remains 6 percent before tanks start spawning (2.9944ms)
+✔ a shield absorbs the boss heavy attack instead of oil (4.4963ms)
+✔ each surge plays one warning cue throughout its preparation and arrival (7.3904ms)
+✔ boss slam warns, locks its center, hits once for 20 oil, and can be dodged (9.3374ms)
+✔ abandon confirmation defaults to keeping the paused run and blocks covered actions (4.1902ms)
+✔ abandon confirmation works for touch and gamepad without leaking confirmation (6.8801ms)
+✔ Boss pointer answers use the rendered layout without covering bottom controls (13.4722ms)
+✔ Boss mistakes reach settlement, count once per submission and reset only run review (3.5121ms)
+✔ lethal Boss mistake still reaches settlement review before run ends (4.7333ms)
+✔ delivery hint cannot promote mastery through a simultaneous same-word Boss quiz (3.5788ms)
+✔ Boss eliminated answer assistance also applies to an active same-word delivery (3.364ms)
+✔ unrelated delivery assistance does not penalize independent Boss mastery (3.5402ms)
+✔ same-word Boss retains delivery assistance after the parcel is submitted first (3.5266ms)
+✔ hinted same-word delivery auto-submits after 0.45 seconds while Boss remains unanswered (7.8465ms)
+ℹ {"scenario":"hint-auto-delivery-first","elapsed":0.46000000000000024,"score":25,"oilGain":11.9957,"bossPending":true,"afterDelivery":{"ok":1,"ng":0,"box":0,"lastSeen":1791600466514,"missBoost":1}}
+ℹ {"scenario":"hint-auto-delivery-then-boss","afterBoss":{"ok":2,"ng":0,"box":0,"lastSeen":1791600466514,"missBoost":1}}
+✔ same-word Boss answer at 1.79s follows current feedback rule without extending its lifetime (18.5341ms)
+ℹ {"scenario":"ordinary-delivery-feedback-boundary","elapsed":1.7900000000000014,"feedbackAlive":true,"feedbackLife":0.009999999999998581,"score":50,"afterBoss":{"ok":2,"ng":0,"box":2,"lastSeen":1791600466533,"missBoost":1}}
+✔ same-word Boss answer at 1.81s follows current feedback rule without extending its lifetime (19.2507ms)
+ℹ {"scenario":"ordinary-delivery-feedback-boundary","elapsed":1.8100000000000014,"feedbackAlive":false,"feedbackLife":0,"score":50,"afterBoss":{"ok":2,"ng":0,"box":2,"lastSeen":1791600466552,"missBoost":1}}
+✔ Boss assistance survives leaving and reentering quiz range (4.3028ms)
+✔ Boss assistance stays on a changed word and clears on a replay (4.2278ms)
+ℹ {"scenario":"changed-word-keeps-assistance","assisted":true,"afterAnswer":{"ok":1,"ng":0,"box":0,"lastSeen":1791600466560,"missBoost":1}}
+ℹ {"scenario":"new-run-clears-assistance","assisted":false,"afterAnswer":{"ok":1,"ng":2,"box":1,"lastSeen":1791600466561,"missBoost":1}}
+✔ second hint transfers assistance to a Boss that appeared after the first hint (3.6246ms)
+✔ assisted submission marks a same-word Boss created after the last hint (3.5388ms)
+✔ ordinary delivery correction remains visible during an independent same-word Boss answer (3.6268ms)
+✔ new pickup inherits only the current same-word Boss assistance (3.3894ms)
+✔ purification feedback overlaps the next real priority order without granting mastery (3.3359ms)
+✔ automatic order refill can repeat a purified word while its correction is still alive (3.8474ms)
+✔ scheduled Boss can draw a purified word and open its quiz before correction expires (7.3698ms)
+✔ delivery mistake persists, avoids its living answer badge and returns after purification (3.7408ms)
+✔ first-run tutorial freezes time, oil and gameplay input, and skip persists (5.8892ms)
+✔ malformed tutorial progress recovers and touch confirmation does not start dragging (2.5821ms)
+✔ context lessons cover listening, delivery, dash and Boss without changing assistance (2.9895ms)
+✔ replay is available from pause, gamepad consumes confirmation and returns to pause (2.832ms)
+✔ mobile pause replay uses the same enlarged geometry for drawing and pointer input (3.4321ms)
+✔ mouse drag begins on the right half and moves the courier; touch stays on left (3.178ms)
+✔ custom movement, dash and blur route through real event listeners (2.7394ms)
+✔ misdelivery enemy settles away from player and retains a ranged penalty after the tutorial stage (10.8465ms)
+✔ first stage enemies never fire bullets (10.7689ms)
+✔ empty pickup pool cannot crash order creation (2.9421ms)
+✔ releasing one equivalent movement key keeps the other held key active (2.6446ms)
+✔ cargo stays visible beside an idle courier with no movement history (4.9825ms)
+✔ cargo icon is painted behind the courier, never over the face (2.9764ms)
+✔ Boss death and settlement audio fire once per event, not once per frame (3.5064ms)
+✔ expanded fullscreen edges and corner HUD buttons share the same pointer mapping (3.3277ms)
+✔ scheduled Boss shield, kill reward and overdue successor follow one lifecycle (3.8865ms)
+ℹ {"scenario":"boss-kill-and-breather","killScore":400,"killOil":35,"gemDrops":9,"masteryBefore":1,"masteryAfter":1,"bossStage":2,"bossT":179.97000000000003}
+✔ real needle updates defeat a scheduled Boss after ordinary answering without kill mastery (65.8948ms)
+ℹ {"scenario":"needle-boss-integration","assisted":false,"initialHp":32,"combatSeconds":13.940000000007132,"score":400,"masteryAfterAnswer":1,"masteryAfterKill":1,"killEvents":1}
+✔ real needle updates defeat a scheduled Boss after assisted answering without kill mastery (62.5624ms)
+ℹ {"scenario":"needle-boss-integration","assisted":true,"initialHp":32,"combatSeconds":13.940000000007132,"score":400,"masteryAfterAnswer":0,"masteryAfterKill":0,"killEvents":1}
+✔ final Boss requires the delivery goal and victory settles progression only once (11.5526ms)
+ℹ {"scenario":"final-boss-victory-settlement","state":"won","finishes":1,"score":1600,"delivered":6,"stats":{"bestScore":1600,"bestDeliveries":6,"clears":1,"attempts":1},"rainPortUnlocked":true}
+✔ final victory sequence: boss shakes and explodes, minions burn away, dawn rises, then settlement after 2s (16.0522ms)
+✔ running out of oil snuffs the lamp, fades the BGM, and settles only after two dark seconds (4.5302ms)
+✔ first hint hides written answer and assisted delivery cannot promote mastery (3.3683ms)
+✔ pickup bubble shows meaning instead of written answer (3.2004ms)
+✔ Boss question preserves gamepad pickup, dash and hint; shoulders and Y answer (3.2158ms)
+✔ codex words pages are reachable by keyboard and gamepad without changing tabs (2.7805ms)
+✔ all upgrade input paths reject accidental selection for the first 0.4 seconds (10.4038ms)
+✔ regular and ring enemies spawn beyond wide view and camera lag (8.3878ms)
+✔ scheduled Boss spawns outside the widescreen view through real update logic (3.005ms)
+✔ each dedicated gamepad Boss answer button selects its documented option (9.7907ms)
+✔ actors are painted by ground contact so roofs cover the north side and yield at the doorway (2.8444ms)
+✔ frame maps logical coordinates to CSS scale and refreshes renderer DPR (2.4092ms)
+✔ lightning ignores shield immunity and spends its target on a damageable enemy (3.0178ms)
+✔ barrier and healing knockback cannot tunnel through a thin building (5.6096ms)
+✔ Boss chooses an unblocked offscreen spawn and retries without advancing when ring is obstructed (2.8482ms)
+✔ foxfire impact plays one sound for a simultaneous group of hits (2.8363ms)
+✔ portrait stops time, blocks all resume input paths, and landscape requires manual resume (2.6799ms)
+✔ visibility change suspends audio immediately without requiring a frame (2.808ms)
+✔ idle needles retain last facing and still aim at a nearby enemy (2.965ms)
+✔ keyboard menus reach settings, both codex tabs, mute and home; restart resets session (3.618ms)
+✔ gamepad directional menus confirm once without leaking actions into the new screen (3.1132ms)
+✔ controls dialog gamepad events do not activate the covered menu (2.3196ms)
+✔ widescreen map back button accepts pointer at the screen edge and home clears held movement (3.4527ms)
+✔ pickup speaks the word once and delivery does not repeat it (4.2564ms)
+✔ dawn does not end a run that still needs the delivery goal or the boss (3.5251ms)
+✔ level-up freezes oil drain and waits until a card is chosen (6.2641ms)
+✔ misdelivery speed ignores movement upgrades (3.4535ms)
+✔ priority orders prefer a house that teaches the same word (3.0527ms)
+✔ expired orders cost neither oil nor misdelivery count, and the open slot refills immediately (2.9015ms)
+✔ gamepad select opens the codex from pause and not during play (2.7425ms)
+✔ damage and oil-heal upgrades stop after their stack caps (2.9504ms)
+✔ MAX dragon impact leaves a burning ground zone that ticks after the projectile vanishes (10.8444ms)
+✔ giant dragon renders after houses and the courier without duplicate passes (4.118ms)
+✔ MAX katana triple-speed projectile keeps the same facing and damage model (3.0536ms)
+✔ the giant dragon can also enter from the right edge toward a left-side target (3.4021ms)
+✔ a flying dragon fireball paints its art with visible ink embers and a bounded glow (6.2393ms)
+✖ ranked thunder artwork suppresses the oversized procedural blue bolt without requiring legacy art (17.9345ms)
+✔ all new MAX effect sprites bake nonempty canvases (0.9063ms)
+✔ MAX sword wave keeps ranked art orientation while rotating it with travel direction (1.4721ms)
+✔ the other five skills composite their ukiyo-e assets while retaining effect logic (1.8016ms)
+✔ raster foxfire orbit sizes never decrease from Lv1 through Lv5 (1.2957ms)
+✔ ranked skill rasters keep Lv4 and Lv5 as independent art slots (1.4783ms)
+✔ all five levels retain local glow and crisp marks without fullscreen flashes (4.248ms)
+✔ needle and foxfire bodies have five distinct silhouettes with bounded local glow (1.1705ms)
+✔ reduced motion retains tier structure with static short-lived accents (1.6183ms)
+✔ thunder removes the player floor domain and places local currents on strike points (1.2114ms)
+✔ each level now has a distinct rank (0.8076ms)
+✔ every skill grows across all five levels (118.0799ms)
+✔ katana tier 1 is far subtler than the old always-max look (3.9871ms)
+✔ purification array is a flattened ground ellipse behind actors with an asymmetric rune per tier (1.7817ms)
+✔ MAX purification replaces rune layers with eight outward stone pillars (1.1826ms)
+✔ thunder retains lower-tier strikes and uses the airborne cloud raster at MAX (1.3258ms)
+✔ foxfire raster remains upright around the orbit and adds upward secondary flame motion (0.8865ms)
+✔ foxfire ranked sprites breathe and mirror with the courier facing direction (0.8467ms)
+✔ fire talisman ignites targets at Lv1-4 and explodes at Lv5 (1.3898ms)
+✔ burning stops when the target dies and the list stays bounded (1.5456ms)
+✔ new skills can be registered without touching fx.js (0.7869ms)
+✔ game wires every weapon through SKILLFX and draws the ground layer before actors (9.4587ms)
+✔ MAX sword raster uses 80 percent opacity while keeping the projectile visible (0.8077ms)
+✔ large dragon image is rendered at the provided cinematic size (0.7065ms)
+ℹ tests 198
+ℹ suites 0
+ℹ pass 192
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1534.2125
+
+✖ failing tests:
+
+test at tests\assets-loading.test.cjs:19:1
+✖ initial katana raster is required before core readiness, without any old skill downloads (2.6028ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\assets-loading.test.cjs:23:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\assets-loading.test.cjs:28:1
+✖ offered skill art is warmed without pausing; choosing it waits only for that rank (0.9756ms)
+  TypeError: env.prepareSkillArt is not a function
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\assets-loading.test.cjs:31:7)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests\assets-loading.test.cjs:39:1
+✖ selected MAX fire waits for orbit, attack, dragon and separate projectile art (1.3849ms)
+  TypeError: env.useSkillArt is not a function
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\assets-loading.test.cjs:41:33)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\assets-loading.test.cjs:47:1
+✖ MAX thunder prepares its rank-four child strike as well as rank-five cloud (0.6251ms)
+  TypeError: env.prepareSkillArt is not a function
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\assets-loading.test.cjs:48:39)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests\input-runtime.test.cjs:28:1
+✖ upgrade options warm only offered ranks and selected art pauses the game clock until ready (4.662ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + []
+  - [
+  -   [
+  -     'fire',
+  -     1
+  -   ],
+  -   [
+  -     'katana',
+  -     2
+  -   ]
+  - ]
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\input-runtime.test.cjs:33:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ [ 'fire', 1 ], [ 'katana', 2 ] ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\skillfx.test.cjs:14:1
+✖ ranked thunder artwork suppresses the oversized procedural blue bolt without requiring legacy art (17.9345ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  580 !== 175
+
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\skillfx.test.cjs:19:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 580,
+    expected: 175,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -25,6 +25,17 @@ test('entering a stage does not bulk-download words and unused sound effects',()
   const g=loadGame();g.start();assert.ok(!g.audioCalls.includes('preloadWords'));
 });
 
+test('upgrade options warm only offered ranks and selected art pauses the game clock until ready',()=>{
+  const g=loadGame(),prepared=[],selected=[];g.start();
+  g.env.prepareSkillArt=(id,rank)=>prepared.push([id,rank]);
+  g.env.useSkillArt=(id,rank)=>{selected.push([id,rank]);g.env.ART_READY=false;};
+  g.offerUp();const choices=g.weaponChoices();assert.ok(choices.length);
+  assert.deepEqual(prepared,choices.map(c=>[c.id,c.lv]));
+  const choice=choices[0];choice.f();assert.deepEqual(selected,[[choice.id,choice.lv]]);
+  g.setState('play');const before=g.snapshot();g.update(1);
+  assert.equal(g.snapshot().elapsed,before.elapsed);assert.equal(g.snapshot().oil,before.oil);
+});
+
 function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') {
   const events = {}, canvasEvents = {}, documentEvents = {};
   const gradient = { addColorStop() {} };
@@ -49,6 +60,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
   const hook = `window.fixture = { start, update, frame, drawWorld, drawStageWeather, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons, answerChoices,
     notice: (message,x=900,y=550) => say(message,x,y),
     upgradeOil: () => UP.find(u=>u.id==='oil_max').f(),
+    weaponChoices: () => choices.filter(c=>c.type==='weapon'),
     addRing: () => rings.push({x:P.x,y:P.y,r:40,life:0.08,maxL:0.32,color:'#ffffff'}),
     addBullet: () => enemyBullets.push({x:P.x+180,y:P.y,vx:0,vy:0,life:2}),
     wallBullet: () => { syncWorld(); solids.push({x0:P.x+150,x1:P.x+210,y0:P.y-40,y1:P.y+40}); enemyBullets.push({x:P.x+180,y:P.y,vx:0,vy:0,life:2}); },
