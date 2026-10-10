@@ -1,0 +1,42 @@
+✔ 校準環境正確性：沙箱讀到的是 da98b4b，而非目前 working tree (276.628ms)
+✔ baseline: 沙箱能啟動一局並進入 play 狀態 (247.6553ms)
+✔ baseline: 舊規格 — 單筆配送 +12XP、+50 分、答對升星 (251.4185ms)
+✔ baseline: 舊規格 — 答錯扣 8 油並記為失誤 (239.0017ms)
+✔ baseline: 舊規格 — 第一段提示扣 3 油、第二段扣 4 油 (241.5612ms)
+✔ baseline: 舊規格 — 答案停留門檻 0.45 秒自動提交（V3 改為 0.65 秒） (243.0726ms)
+✖ V3 RED: 答案停留門檻改為 0.65 秒，0.60 秒不得提交 (7.2663ms)
+✔ baseline: 舊規格 — 純站樁的淨耗油為 0.43 - 0.12 = 0.31/s（V3 要消滅的無成本永動機） (258.7594ms)
+✔ baseline: 舊規格 — 靈針 Lv5 殉爆可遞迴連鎖（V3 要設總預算） (244.6616ms)
+✔ baseline: 舊規格 — xpNeed 與節奏常數 (0.5129ms)
+✔ baseline: seeded 沙箱可重現同一組抽詞序列 (716.5781ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 10
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2781.754
+
+✖ failing tests:
+
+test at tests\v3-baseline.test.cjs:94:1
+✖ V3 RED: 答案停留門檻改為 0.65 秒，0.60 秒不得提交 (7.2663ms)
+  AssertionError [ERR_ASSERTION]: V3：0.60 秒仍應等待，尚未到 0.65 門檻
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-baseline.test.cjs:100:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

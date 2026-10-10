@@ -1,0 +1,386 @@
+✖ V3 contract: common boss timeline and bounded overtime difficulty (1.7345ms)
+✖ V3 contract: independent and assisted deliveries each grant 26 XP (10.7945ms)
+✖ V3 contract: first hint is free and duplicate presses cannot reach paid hint (2.9816ms)
+✖ V3 contract: a wrong answer retains the job and charges six oil only once (3.8397ms)
+✖ V3 contract: Lv4 cannot awaken before deliveries, three deliveries unlock a saved seal (3.8732ms)
+✖ V3 contract: damage passive stops at four increments of 0.30 (3.1009ms)
+✖ V3 contract: destination reading freezes elapsed time, oil and weapon damage (4.5689ms)
+✖ V3 contract: thunder Lv3 and Lv4 damage cannot execute a high-HP ordinary enemy (3.9452ms)
+✖ V3 contract: MAX barrier fields never restore oil (3.616ms)
+✖ V3 contract: fire and talisman rank counts match the new specialist behavior (0.2888ms)
+✖ V3 contract: one ice volley shares its finite shatter budget and new freezes clear old sources (2.3509ms)
+✖ V3 contract: assisted recall preserves error priority and repeated independent recall cannot farm stars (2.7168ms)
+✖ V3 contract: first boss starts with fixed HP independent of player power (2.9772ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 0
+ℹ fail 13
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 106.3226
+
+✖ failing tests:
+
+test at tests\v3-contract-gate.test.cjs:13:1
+✖ V3 contract: common boss timeline and bounded overtime difficulty (1.7345ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      180,
+      360,
+  -   480,
+      540,
+  +   590
+    ]
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:14:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 180, 360, 540, 590 ],
+    expected: [ 180, 360, 480, 540 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:17:1
+✖ V3 contract: independent and assisted deliveries each grant 26 XP (10.7945ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  12 !== 26
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:18:83)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 12,
+    expected: 26,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:20:1
+✖ V3 contract: first hint is free and duplicate presses cannot reach paid hint (2.9816ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  77 !== 80
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:22:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 77,
+    expected: 80,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:24:1
+✖ V3 contract: a wrong answer retains the job and charges six oil only once (3.8397ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - {
+  -   ans: [
+  -     {
+  -       cue: 'emoji',
+  -       example: 'かわいい ねこ が います',
+  -       icon: '🐱',
+  -       id: 'animals:0',
+  -       jp: 'ねこ',
+  -       packId: 'animals',
+  -       romaji: 'neko',
+  -       zh: '貓'
+  -     },
+  -     {
+  -       cue: 'text',
+  -       decoy: true,
+  -       example: '',
+  -       icon: '',
+  -       id: 'answer-decoy:0',
+  -       jp: 'バス',
+  -       packId: 'answer-decoy',
+  -       romaji: '',
+  -       zh: '公車'
+  -     },
+  -     {
+  -       cue: 'emoji',
+  -       example: 'ひろい うみ を みる',
+  -       icon: '🌊',
+  -       id: 'beach:1',
+  -       jp: 'うみ',
+  -       packId: 'beach',
+  -       romaji: 'umi',
+  -       zh: '海'
+  -     }
+  -   ],
+  -   assisted: false,
+  -   eliminatedIdx: -1,
+  -   hintStage: 0,
+  -   hold: 0,
+  -   idx: -1,
+  -   lock: 0,
+  -   rev: false,
+  -   sanctuaryT: 0,
+  -   sanctuaryTriggered: false,
+  -   showMeaningT: 0,
+  -   to: {
+  -     bType: 'house_shop',
+  -     chunkKey: '3,2',
+  -     color: '#4f7a5b',
+  -     district: '動物街',
+  -     dx: 3410,
+  -     dy: 1416,
+  -     id: 'night-town:3,2:2',
+  -     packId: 'animals',
+  -     phase: 4.637913741223671,
+  -     word: {
+  -       cue: 'emoji',
+  -       example: 'げんきな いぬ が はしる',
+  -       icon: '🐶',
+  -       id: 'animals:1',
+  -       jp: 'いぬ',
+  -       packId: 'animals',
+  -       romaji: 'inu',
+  -       zh: '狗'
+  -     },
+  -     x: 3410,
+  -     y: 1356
+  -   },
+  -   word: {
+  -     cue: 'emoji',
+  -     example: 'かわいい ねこ が います',
+  -     icon: '🐱',
+  -     id: 'animals:0',
+  -     jp: 'ねこ',
+  -     packId: 'animals',
+  -     romaji: 'neko',
+  -     zh: '貓'
+  -   }
+  - }
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:27:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: { word: { id: 'animals:0', packId: 'animals', jp: 'ねこ', zh: '貓', icon: '🐱', cue: 'emoji', romaji: 'neko', example: 'かわいい ねこ が います' }, to: { id: 'night-town:3,2:2', phase: 4.637913741223671, chunkKey: '3,2', x: 3410, y: 1356, dx: 3410, dy: 1416, color: '#4f7a5b', bType: 'house_shop', district: '動物街', packId: 'animals', word: [Object] }, ans: [ [Object], [Object], [Object] ], hold: 0, idx: -1, lock: 0, rev: false, sanctuaryT: 0, sanctuaryTriggered: false, hintStage: 0, eliminatedIdx: -1, showMeaningT: 0, assisted: false },
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:33:1
+✖ V3 contract: Lv4 cannot awaken before deliveries, three deliveries unlock a saved seal (3.8732ms)
+  AssertionError [ERR_ASSERTION]: eligible offer guarantees an awakening card
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:38:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:41:1
+✖ V3 contract: damage passive stops at four increments of 0.30 (3.1009ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:43:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:45:1
+✖ V3 contract: destination reading freezes elapsed time, oil and weapon damage (4.5689ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0.25 !== 0.05
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:47:48)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0.25,
+    expected: 0.05,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:50:1
+✖ V3 contract: thunder Lv3 and Lv4 damage cannot execute a high-HP ordinary enemy (3.9452ms)
+  AssertionError [ERR_ASSERTION]: rank 3 must use fixed damage
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:52:44)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:54:1
+✖ V3 contract: MAX barrier fields never restore oil (3.616ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 80.87499999999991
+  - 80
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:57:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 80.87499999999991,
+    expected: 80,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:59:1
+✖ V3 contract: fire and talisman rank counts match the new specialist behavior (0.2888ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      1,
+      2,
+  +   4,
+  +   6,
+  +   6
+  -   3,
+  -   3,
+  -   3
+    ]
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:60:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 1, 2, 4, 6, 6 ],
+    expected: [ 1, 2, 3, 3, 3 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:63:1
+✖ V3 contract: one ice volley shares its finite shatter budget and new freezes clear old sources (2.3509ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(needles[0].volley)
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:64:50)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:69:1
+✖ V3 contract: assisted recall preserves error priority and repeated independent recall cannot farm stars (2.7168ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 2.5
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:70:78)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 2.5,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\v3-contract-gate.test.cjs:76:1
+✖ V3 contract: first boss starts with fixed HP independent of player power (2.9772ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  22 !== 300
+  
+      at TestContext.<anonymous> (I:\Projects\yokai-delivery\tests\v3-contract-gate.test.cjs:78:26)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 22,
+    expected: 300,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
