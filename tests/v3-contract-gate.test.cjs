@@ -125,3 +125,10 @@ test('V3 contract: an awakened blade keeps its rear blind spot and cannot hit be
   assert.equal(rear.hp,999,'the rear blind spot still matters at MAX');
   assert.equal(beyond.hp,999,'movement overshoot must not extend the world range');
 });
+
+test('V3 contract: order creation respects a study session with no eligible word', () => {
+  const g=loadGame({seed:7});
+  g.env.STORE.createStudySession=()=>({pick:()=>null,seen(){},seenWords:()=>[],mistake(){}});
+  g.start();g.makeOrder();
+  assert.equal(g.snapshot().orders.length,0,'no all-vocabulary fallback may bypass cooling or exclusions');
+});
