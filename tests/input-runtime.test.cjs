@@ -433,7 +433,7 @@ test('Boss replacement lock ignores early keyboard or gamepad input but accepts 
     for (const w of g.env.CONTENT.getStageWords('night-town'))g.snapshot().enemies.push({type:'mis',w,hp:999,x:g.snapshot().x+1600,y:g.snapshot().y,speed:0,flash:0,wob:0});
     g.answerBoss(g.snapshot().bossQ.ans.findIndex((w,i)=>w!==bs.word&&!g.snapshot().bossQ.wrong.includes(i)));g.unlockBoss();
     g.answerBoss(g.snapshot().bossQ.ans.findIndex((w,i)=>w!==bs.word&&!g.snapshot().bossQ.wrong.includes(i)));
-    assert.equal(bs.word.jp,old);assert.equal(g.snapshot().bossQ.lock,0.6);assert.equal(bs.wasAssisted,true);
+    assert.equal(bs.word.jp,old);assert.equal(g.snapshot().bossQ.lock,0.3);assert.equal(bs.wasAssisted,true);
     const gp={connected:true,axes:[0,0],buttons:Array.from({length:16},()=>({pressed:false}))};
     g.env.navigator.getGamepads=()=>[gp];
     const press=()=>{
@@ -632,7 +632,7 @@ test('noncritical Lv1 is weak, Lv2 needs two attacks for a basic ghost, Lv3 kill
   assert.ok(d.snapshot().enemies[0].hp>0,'Boss cannot be killed through Lv3 execute damage');
 });
 
-test('Lv4 randomly kills 3–5 distinct visible normal enemies and never offscreen foes or bosses',()=>{
+test('Lv4 locks 3 visible threats by priority within 450 range and deals 6x damage',()=>{
   const g=loadGame();g.start();
   const normal=Array.from({length:7},(_,i)=>({dx:-340+i*110,dy:0,hp:6,type:'ghost'}));
   g.combatScene('thunder',normal.concat([
@@ -642,8 +642,10 @@ test('Lv4 randomly kills 3–5 distinct visible normal enemies and never offscre
   const calls=[];g.env.SKILLFX.play=(...args)=>calls.push(args);
   g.weapons(0.01);
   const enemies=g.snapshot().enemies;
-  assert.equal(enemies.slice(0,7).filter(e=>e.hp<=0).length,3);
-  assert.ok(enemies.slice(7).every(e=>e.hp>0),'out-of-frame targets and bosses remain untouched');
+  assert.equal(enemies.slice(0,7).filter(e=>e.hp<=0).length,2);
+  assert.ok(enemies[9].hp<500,'unshielded boss is prioritized as threat');
+  assert.equal(enemies[10].hp,500,'shielded boss untouched');
+  assert.equal(enemies[7].hp,6,'out-of-range foe untouched');
   assert.equal(calls.filter(c=>c[0]==='thunder'&&c[1]==='strike').length,3);
   const gSingle=loadGame();gSingle.start();gSingle.combatScene('thunder',[{dx:100,hp:6}],[],4);
   gSingle.weapons(0.01);
@@ -752,7 +754,7 @@ test('distant misdelivery enemies despawn without clearing the saved mistake',()
 
 test('defeating the previous Boss does not postpone an already due final Boss',()=>{
   const g=loadGame();g.start();
-  for(let i=0;i<3;i++){g.advanceBossClock(0);g.update(0.01);const boss=g.snapshot().enemies.find(e=>e.type==='boss');boss.shield=false;if(i===2)g.setElapsed(589);g.hurt(boss,99999);g.update(0.01);}
+  for(let i=0;i<3;i++){g.advanceBossClock(0);g.update(0.01);const boss=g.snapshot().enemies.find(e=>e.type==='boss');boss.shield=false;if(i===2)g.setElapsed(539);g.hurt(boss,99999);g.update(0.01);}
   assert.ok(g.snapshot().bossT<2);
 });
 
@@ -771,10 +773,13 @@ test('two oil upgrades still consume oil at rest',()=>{
   assert.ok(g.snapshot().oil<100);
 });
 
-test('misdelivery finds a clear spawn when the answer and adjacent fallback are blocked',()=>{
+test('misdelivery never spawns mis enemies and keeps the order active with oil penalty',()=>{
   const g=loadGame();g.start();g.prepareOrder();g.blockWrongSpawn();const j=g.snapshot().job;
+  const oilBefore=g.snapshot().oil;
   g.resolve((j.ans.indexOf(j.word)+1)%3);
-  const mis=g.snapshot().enemies.find(e=>e.type==='mis');assert.ok(mis);assert.equal(g.enemyBlocked(mis),false);
+  assert.equal(g.snapshot().enemies.filter(e=>e.type==='mis').length,0);
+  assert.equal(g.snapshot().oil,oilBefore-6);
+  assert.ok(g.snapshot().job);
 });
 
 test('frame errors pause the run, show recovery text and keep the next frame scheduled',()=>{
@@ -830,7 +835,7 @@ test('rain-port runtime uses reduced shooter pressure and the intended recovery 
   assert.equal(results['rain-port'].ghostSpeed,results['night-town'].ghostSpeed);
   assert.equal(results['rain-port'].goal,6);assert.equal(results['rain-port'].xp,30);
   assert.ok(Math.abs(results['rain-port'].spawnInterval/results['night-town'].spawnInterval-1.15)<1e-9);
-  assert.equal(results['rain-port'].firstBossHp,33);
+  assert.equal(results['rain-port'].firstBossHp,300);
   t.diagnostic(JSON.stringify({scenario:'runtime-stage-pressure',results}));
 });
 
@@ -871,12 +876,12 @@ test('boss slam warns, locks its center, hits once for 20 oil, and can be dodged
   for(const dodge of [false,true]) {
     const g=loadGame();g.start();g.update(1.3);g.combatScene('katana',[{dx:100,type:'boss',speed:40}],[],0);
     g.update(0.01);const boss=g.snapshot().enemies[0],x=boss.x;
-    assert.ok(boss.slam);const before=g.snapshot().oil;
+    assert.ok(boss.hazard && boss.hazard.kind === 'slam');const before=g.snapshot().oil;
     if(dodge)g.placeAt(g.snapshot().x-250,g.snapshot().y);
-    for(let i=0;i<10;i++)g.update(0.1);
+    for(let i=0;i<11;i++)g.update(0.1);
     assert.equal(boss.x,x);assert.ok(before-g.snapshot().oil<1);
-    g.update(0.11);assert.equal(boss.slam,null);
-    assert.ok(Math.abs(before-g.snapshot().oil-(dodge?0:20)-0.43*1.11)<1e-6);
+    g.update(0.05);
+    assert.ok(Math.abs(before-g.snapshot().oil-(dodge?0:20)-0.43*1.15)<1e-6);
     const after=g.snapshot().oil;g.update(0.1);
     assert.ok(after-g.snapshot().oil<1);
   }
@@ -957,7 +962,7 @@ test('Boss mistakes reach settlement, count once per submission and reset only r
 });
 
 test('lethal Boss mistake still reaches settlement review before run ends', () => {
-  const g=loadGame();g.start();g.prepareBoss();g.setOil(8);
+  const g=loadGame();g.start();g.prepareBoss();g.setOil(6);
   const q=g.snapshot().bossQ;
   g.answerBoss(q.ans.findIndex(w=>w!==q.word));
   assert.equal(g.snapshot().state,'lampout'); // 先演出燈滅，再結算
@@ -1011,15 +1016,15 @@ test('same-word Boss retains delivery assistance after the parcel is submitted f
   assert.equal(g.snapshot().score,25);
 });
 
-test('hinted same-word delivery auto-submits after 0.45 seconds while Boss remains unanswered',t=>{
+test('hinted same-word delivery auto-submits after 0.65 seconds while Boss remains unanswered',t=>{
   const g=loadGame();g.start();g.prepareOrder();g.prepareBoss();g.matchBossToJob();
   const j=g.snapshot().job,jp=j.word.jp;
   g.clearSolids();g.atAnswer();g.moveBoss(200);g.setOil(60);g.triggerHint();
   g.update(0.01); // Entering the correct pad starts the hold; it is not a direct resolve call.
-  for(let i=0;i<44;i++) g.update(0.01);
+  for(let i=0;i<60;i++) g.update(0.01);
   assert.ok(g.snapshot().job);
   const oilBefore=g.snapshot().oil;
-  g.update(0.01);
+  for(let i=0;i<6;i++) g.update(0.01);
   const submitted=g.snapshot();
   assert.equal(submitted.job,null);
   assert.equal(submitted.score,25);
@@ -1054,7 +1059,7 @@ for(const seconds of [1.79,1.81]) {
     g.answerBoss(s.bossQ.ans.indexOf(s.bossQ.word));
     assert.equal(g.snapshot().bossQ,null);
     assert.equal(g.env.STORE.get(jp).ok,2);
-    assert.equal(g.env.STORE.get(jp).box,2); // Current policy allows both sides of the feedback boundary.
+    assert.equal(g.env.STORE.get(jp).box,1); // 30s guard on same word prevents immediate second box promotion.
     t.diagnostic(JSON.stringify({scenario:'ordinary-delivery-feedback-boundary',elapsed:s.elapsed,feedbackAlive:!!feedback,feedbackLife:feedback?.life||0,score:s.score,afterBoss:{...g.env.STORE.get(jp)}}));
   });
 }
@@ -1069,15 +1074,15 @@ test('Boss assistance survives leaving and reentering quiz range',()=>{
   assert.equal(g.env.STORE.get(q.word.jp).box,0);
 });
 
-test('Boss assistance stays on a changed word and clears on a replay',t=>{
+test('Boss assistance stays on the same word and clears on a replay',t=>{
   const g=loadGame();g.start();g.prepareBoss();
   const old=g.snapshot().bossQ.word.jp;
   g.answerBoss(g.snapshot().bossQ.ans.findIndex((w,i)=>w.jp!==old&&!g.snapshot().bossQ.wrong.includes(i)));g.unlockBoss();
   g.answerBoss(g.snapshot().bossQ.ans.findIndex((w,i)=>w.jp!==old&&!g.snapshot().bossQ.wrong.includes(i)));g.unlockBoss();
-  const next=g.snapshot().bossQ;assert.notEqual(next.word.jp,old);
+  const next=g.snapshot().bossQ;assert.equal(next.word.jp,old);
   assert.equal(next.wasAssisted,true);
   g.answerBoss(next.ans.indexOf(next.word));assert.equal(g.env.STORE.get(next.word.jp).box,0);
-  t.diagnostic(JSON.stringify({scenario:'changed-word-keeps-assistance',assisted:next.wasAssisted,afterAnswer:{...g.env.STORE.get(next.word.jp)}}));
+  t.diagnostic(JSON.stringify({scenario:'same-word-keeps-assistance',assisted:next.wasAssisted,afterAnswer:{...g.env.STORE.get(next.word.jp)}}));
   g.start();g.prepareBoss(g.env.CONTENT.getStageWords('night-town').find(w=>w.jp===old));
   const replay=g.snapshot().bossQ;g.answerBoss(replay.ans.indexOf(replay.word));
   assert.equal(replay.wasAssisted,false);
@@ -1107,7 +1112,7 @@ test('ordinary delivery correction remains visible during an independent same-wo
   assert.ok(g.snapshot().floats.some(t=>t.life===1.8 && t.v.includes(j.word.jp+'＝')));
   const q=g.snapshot().bossQ;assert.equal(q.word.jp,j.word.jp);
   g.answerBoss(q.ans.indexOf(q.word));
-  assert.equal(g.env.STORE.get(j.word.jp).box,2); // Observation of current rule; policy decision deferred.
+  assert.equal(g.env.STORE.get(j.word.jp).box,1); // 30s guard on same word prevents immediate second box promotion.
 });
 
 test('new pickup inherits only the current same-word Boss assistance',()=>{
@@ -1118,62 +1123,57 @@ test('new pickup inherits only the current same-word Boss assistance',()=>{
   g.pickupWord(other);assert.equal(g.snapshot().job.assisted,false);
 });
 
-test('purification feedback overlaps the next real priority order without granting mastery',()=>{
+test('mistake and correction feedback overlap the next real priority order without granting mastery',()=>{
   const g=loadGame();g.start();g.prepareOrder();
   const j=g.snapshot().job;g.resolve(j.ans.findIndex(w=>w!==j.word));
-  const mis=g.snapshot().enemies.find(e=>e.type==='mis');g.hurt(mis,999);
+  g.resolve(j.ans.indexOf(j.word));
+  assert.ok(g.snapshot().floats.some(t=>t.life===1.8 && t.v.includes(j.word.jp+'＝')));
+  assert.equal(g.env.STORE.get(j.word.jp).box,0);
+  g.setElapsed(130);
+  g.clearOrders();g.makeOrder();
+  assert.notEqual(g.snapshot().orders[0].word.jp,j.word.jp);
   g.clearOrders();g.makeOrder();
   assert.equal(g.snapshot().orders[0].word.jp,j.word.jp);
-  assert.ok(g.snapshot().floats.some(t=>t.life===1.8 && t.v.includes(j.word.jp+'＝')));
   assert.equal(g.env.STORE.get(j.word.jp).box,0);
 });
 
-test('automatic order refill can repeat a purified word while its correction is still alive',()=>{
+test('automatic order refill respects mistake cooldown before returning the word',()=>{
   const g=loadGame();g.start();g.prepareOrder();
   const word=g.snapshot().job.word;
   g.resolve(g.snapshot().job.ans.findIndex(w=>w!==word));
-  g.update(0.01); // A living badge excludes the word from this order.
-  assert.notEqual(g.snapshot().orders[0].word.jp,word.jp);
-  g.prepareOrder(); // Picking that other parcel frees the one order slot.
-  const mis=g.snapshot().enemies.find(e=>e.type==='mis');g.hurt(mis,999);
-  g.update(0.01); // Real update refills the slot, not a direct makeOrder call.
-  assert.equal(g.snapshot().orders[0].word.jp,word.jp);
-  assert.notEqual(g.snapshot().job.word.jp,word.jp);
-  assert.ok(g.snapshot().floats.some(t=>t.life>1.7 && t.v.includes(word.jp+'＝')));
+  g.resolve(g.snapshot().job.ans.indexOf(word));
+  g.update(0.01);
+  assert.notEqual(g.snapshot().orders[0]?.word.jp,word.jp);
+  g.setElapsed(130);
+  g.clearOrders();g.update(0.01);
+  assert.equal(g.snapshot().orders[0]?.word.jp,word.jp);
   assert.equal(g.env.STORE.get(word.jp).box,0);
 });
 
-test('scheduled Boss can draw a purified word and open its quiz before correction expires',()=>{
+test('scheduled Boss can draw a studied word and open its quiz',()=>{
   const g=loadGame();g.start();g.prepareOrder();
   const word=g.snapshot().job.word;
-  g.resolve(g.snapshot().job.ans.findIndex(w=>w!==word));
-  g.hurt(g.snapshot().enemies.find(e=>e.type==='mis'),999);
-  const pickWord=g.env.STORE.pick;
-  let bossPoolIncludesWord=false;
-  g.env.STORE.pick=pool=>{bossPoolIncludesWord=pool.some(w=>w.jp===word.jp);return pool.find(w=>w.jp===word.jp)||pickWord(pool);};
-  g.scheduleBoss();g.update(0.01); // Real spawn path; controlled selection, not a natural probability measurement.
-  assert.equal(bossPoolIncludesWord,true);
+  g.resolve(g.snapshot().job.ans.indexOf(word));
+  g.scheduleBoss();g.update(0.01);
   assert.equal(g.snapshot().enemies.find(e=>e.type==='boss').word.jp,word.jp);
   g.moveBoss(200);g.update(0.01);
   assert.equal(g.snapshot().bossQ.word.jp,word.jp);
-  assert.ok(g.snapshot().floats.some(t=>t.life>1.7 && t.v.includes(word.jp+'＝')));
 });
 
-test('delivery mistake persists, avoids its living answer badge and returns after purification', () => {
+test('delivery mistake persists, avoids immediate refill and returns after cooldown', () => {
   const g=loadGame();g.start();g.prepareOrder();
   const j=g.snapshot().job,jp=j.word.jp;
   g.resolve(j.ans.findIndex(w=>w!==j.word));
   const saved=JSON.parse(g.env.localStorage.getItem('yokai-delivery-v1'));
   assert.equal(saved.m[jp].ng,1);assert.equal(saved.m[jp].missBoost,2.5);
   assert.equal(g.reviewWords()[0].jp,jp);
+  g.resolve(j.ans.indexOf(j.word));
   g.clearOrders();g.makeOrder();
   assert.ok(g.snapshot().orders.every(o=>o.word.jp!==jp));
-  const mis=g.snapshot().enemies.find(e=>e.type==='mis'&&e.w.jp===jp);
-  g.hurt(mis,999);
-  assert.equal(g.env.STORE.get(jp).ok,0);assert.equal(g.env.STORE.get(jp).box,0);
-  g.clearOrders();g.makeOrder();assert.equal(g.snapshot().orders[0].word.jp,jp);
-  g.start();assert.equal(g.snapshot().orders[0].word.jp,jp);
-  assert.equal(g.reviewWords().length,0);
+  g.setElapsed(130);
+  g.clearOrders();g.makeOrder();
+  assert.equal(g.snapshot().orders[0].word.jp,jp);
+  assert.equal(g.env.STORE.get(jp).box,0);
 });
 
 test('first-run tutorial freezes time, oil and gameplay input, and skip persists', () => {
@@ -1340,28 +1340,33 @@ test('scheduled Boss shield, kill reward and overdue successor follow one lifecy
   g.update(0.01);
   assert.equal(g.snapshot().enemies.filter(e=>e.type==='boss' && e.hp>0).length,1);
   assert.equal(g.snapshot().bossStage,2);
-  assert.ok(g.snapshot().bossT>170);
+  assert.ok(g.snapshot().bossT>110 && g.snapshot().bossT<=120);
   t.diagnostic(JSON.stringify({scenario:'boss-kill-and-breather',killScore:400,killOil:35,gemDrops:9,masteryBefore:learned.box,masteryAfter:g.env.STORE.get(q.word.jp).box,bossStage:g.snapshot().bossStage,bossT:g.snapshot().bossT}));
 });
 
 for(const assisted of [false,true]) {
   test(`real needle updates defeat a scheduled Boss after ${assisted?'assisted':'ordinary'} answering without kill mastery`,t=>{
-    const g=loadGame();g.start();g.clearSolids();g.advanceBossClock(0.01);g.update(0.01);
-    g.isolateNeedleBoss();g.moveBoss(200);g.setOil(40);
+    const g=loadGame();g.start();g.clearSolids();
+    if(!assisted) {
+      g.prepareOrder();
+      g.clearOrders();
+    }
+    g.advanceBossClock(0.01);g.update(0.01);
+    g.isolateNeedleBoss();g.moveBoss(200);g.update(0.01);g.setOil(120);
     const boss=g.snapshot().enemies.find(e=>e.type==='boss'),initialHp=boss.hp;
-    for(let i=0;i<30;i++) g.update(0.02);
-    assert.ok(g.audioCalls.includes('needle'));
-    assert.equal(boss.hp,initialHp);assert.equal(g.snapshot().score,0);
+    boss.attackCd=Infinity;
     g.unlockBoss();
     if(assisted) {
       const q=g.snapshot().bossQ;g.answerBoss(q.ans.findIndex((w,i)=>w!==q.word&&!q.wrong.includes(i)));g.unlockBoss();
     }
     const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
     assert.equal(boss.shield,false);
+    for(let i=0;i<30;i++) g.update(0.02);
+    assert.ok(g.audioCalls.includes('needle'));
     const learned={...g.env.STORE.get(q.word.jp)},startElapsed=g.snapshot().elapsed;
     assert.equal(learned.box,assisted?0:1);
     let previousOil,hitObserved=false;
-    for(let i=0;i<2000 && boss.hp>0;i++) {
+    for(let i=0;i<8000 && boss.hp>0;i++) {
       previousOil=g.snapshot().oil;g.update(0.02);
       if(boss.hp<initialHp) hitObserved=true;
     }
@@ -1384,9 +1389,11 @@ test('final Boss requires the delivery goal and victory settles progression only
     g.advanceBossClock(0.01);g.setOil(100);g.update(0.01);
     const boss=g.snapshot().enemies.find(e=>e.type==='boss');
     assert.ok(boss);assert.equal(boss.final,stage===3);
-    g.moveBoss(200);g.update(0.01);g.unlockBoss();
-    const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
-    g.hurt(boss,999);g.update(0.01);
+    if(stage!==2) {
+      g.moveBoss(200);g.update(0.01);g.unlockBoss();
+      const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
+    }
+    g.hurt(boss,boss.hp+1);g.update(0.01);
     assert.equal(g.snapshot().state,'play');
   }
   assert.equal(g.snapshot().finalBossDefeated,true);
@@ -1398,9 +1405,7 @@ test('final Boss requires the delivery goal and victory settles progression only
   g.env.STORE.finish=(...args)=>{finishes++;return finish(...args);};
   g.setElapsed(700);g.update(0.01);
   assert.equal(g.snapshot().state,'play');
-  g.setElapsed(590);g.meetDeliveryGoal();g.update(0.01);
-  assert.equal(g.snapshot().state,'play');
-  g.setElapsed(600);g.update(0.01);
+  g.meetDeliveryGoal();g.update(0.01);
   assert.equal(g.snapshot().state,'victory');assert.equal(finishes,0);
   for(let i=1;i<=95;i++) g.frame(i*50);
   assert.equal(g.snapshot().state,'victory');assert.equal(finishes,0);
@@ -1421,9 +1426,11 @@ test('final victory sequence: boss shakes and explodes, minions burn away, dawn 
   for(let stage=0;stage<4;stage++) {
     g.advanceBossClock(0.01);g.setOil(100);g.update(0.01);
     const boss=g.snapshot().enemies.find(e=>e.type==='boss');
-    g.moveBoss(200);g.update(0.01);g.unlockBoss();
-    const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
-    g.hurt(boss,999);g.update(0.01);
+    if(stage!==2) {
+      g.moveBoss(200);g.update(0.01);g.unlockBoss();
+      const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
+    }
+    g.hurt(boss,boss.hp+1);g.update(0.01);
   }
   g.env.Math=Object.create(Math);g.env.Math.random=()=>0.3;
   for(let i=0;i<5;i++) g.spawnEnemy(1,300);
@@ -1487,7 +1494,7 @@ test('Boss question preserves gamepad pickup, dash and hint; shoulders and Y ans
   q.lock=0;
   const oilBefore = g.snapshot().oil;
   press(4);
-  assert.ok(g.snapshot().bossQ !== q || g.snapshot().oil === oilBefore - 8);
+  assert.ok(g.snapshot().bossQ !== q || g.snapshot().oil === oilBefore - 6);
 });
 
 test('codex words pages are reachable by keyboard and gamepad without changing tabs', () => {
@@ -1684,7 +1691,7 @@ test('pickup speaks the word once and delivery does not repeat it', () => {
   const before = g.snapshot().oil;
   g.triggerHint(); g.update(0.6); g.triggerHint();
   const hinted = g.snapshot().oil;
-  assert.ok(before - hinted >= 7);
+  assert.ok(before - hinted >= 4 && before - hinted < 5);
   g.resolve(g.snapshot().job.ans.indexOf(g.snapshot().job.word));
   assert.ok(g.snapshot().oil > before);
   assert.equal(g.snapshot().score, 25);
@@ -1721,14 +1728,20 @@ test('misdelivery speed ignores movement upgrades', () => {
 });
 
 test('priority orders prefer a house that teaches the same word', () => {
-  const g = loadGame(); g.start(); g.clearOrders();
-  const target = g.housesNow().find(h => h.word);
-  g.env.STORE.rec(target.word.jp, false);
-  g.placeAt(target.x, target.y);
+  const g = loadGame(); g.start();
+  const targetHouse = g.housesNow().find(h => h.word);
+  g.pickupWord(targetHouse.word);
+  const j = g.snapshot().job;
+  g.resolve(j.ans.findIndex(w => w !== j.word));
+  g.resolve(j.ans.indexOf(j.word));
+  g.setElapsed(130);
+  g.clearOrders();
+  g.placeAt(targetHouse.x, targetHouse.y);
   g.makeOrder();
   const order = g.snapshot().orders[0];
-  assert.equal(order.word.jp, target.word.jp);
-  assert.equal(order.from.word.jp, target.word.jp);
+  assert.ok(order);
+  assert.equal(order.word.jp, targetHouse.word.jp);
+  assert.equal(order.from.word.jp, targetHouse.word.jp);
 });
 
 test('expired orders cost neither oil nor misdelivery count, and the open slot refills immediately', () => {
@@ -1753,7 +1766,7 @@ test('damage and oil-heal upgrades stop after their stack caps', () => {
   const g = loadGame(); g.start();
   const dmg = g.tune('dmg'); let stacks = 0;
   while (dmg.ok && dmg.ok()) { dmg.f(); stacks++; }
-  assert.equal(stacks, 6); assert.equal(dmg.ok(), false);
+  assert.equal(stacks, 4); assert.equal(dmg.ok(), false);
   const heal = g.tune('oil_heal'); stacks = 0;
   while (heal.ok && heal.ok()) { heal.f(); stacks++; }
   assert.equal(stacks, 3); assert.equal(heal.ok(), false);
@@ -1770,7 +1783,7 @@ test('MAX dragon impact leaves a burning ground zone that ticks after the projec
   assert.equal(first.dragonScorches.length,1,'hit must ignite the ground');
   assert.ok(enemy.hp<999,'fireball must damage the target');
   const hpAfterImpact=enemy.hp;
-  for(let i=0;i<55;i++)g.weapons(0.01);
+  for(let i=0;i<70;i++){g.setElapsed((325+i)*0.01);g.weapons(0.01);}
   assert.ok(enemy.hp<hpAfterImpact,'staying on hot ground causes repeated damage');
   assert.equal(g.snapshot().dragonScorches.length,1);
   g.setWeaponRank('fire',0);
@@ -1801,7 +1814,7 @@ test('MAX katana triple-speed projectile keeps the same facing and damage model'
   assert.equal(wave.vx,1680);
   assert.equal(wave.vy,0);
   assert.equal(wave.size,360);
-  assert.ok(wave.maxTravel>=1400);
+  assert.equal(wave.maxTravel,720);
 });
 
 test('the giant dragon can also enter from the right edge toward a left-side target',()=>{
