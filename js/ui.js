@@ -384,7 +384,7 @@ window.UI = (() => {
     return {
       pickup: ['取貨', 'pickup', `移動：${key('move')}。沿包裹標記靠近委託房屋，再用${key('interact')}取貨。攻擊會自動發動。`],
       listen: ['聽音與答題輔助', 'listen', `取貨時會播放發音；看包裹圖像與中文辨認詞義。${key('hint')}是答題輔助：第一階耗 3 油、重播並排除一項；第二階再耗 4 油、顯示詞句。使用任一階，這單不升星、得 25 分、回油 10。`],
-      delivery: ['配送答題墊', 'pickup', '沿箭頭前往收件房屋，走上你選的假名答題墊。停留 0.45 秒會自動提交；移開可中斷。配送不能用 1／2／3 作答。'],
+      delivery: ['配送答題墊', 'pickup', '沿箭頭前往收件房屋。到站可安心讀題，戰鬥、燈油與局內時間暫停；離開恢復。走上假名答題墊停留 0.65 秒提交，移開可中斷；也可用確認鍵提交目前選項。'],
       dash: ['衝刺避險', 'dash', `移動中用${key('dash')}快速穿過危險；衝刺期間短暫無敵。右側衝刺鈕顯示冷卻秒數，恢復後才能再次使用。`],
       boss: ['Boss 作答', 'listen', `Boss 結界出題時，依圖像與中文選假名。作答：${key('boss')}；答對才能破除結界。取貨、衝刺仍可使用。`]
     }[id];
@@ -446,6 +446,11 @@ window.UI = (() => {
 
   const MENU_BTNS = [{id:'start',...MENU_START_BTN},{id:'controls',...MENU_CONTROLS_BTN},{id:'cards',x:615,y:22,w:125,h:38},{id:'codex',x:755,y:22,w:125,h:38}];
   const END_BTNS = [{id:'restart',...RESTART_BTN},{id:'world',...WORLD_BTN},{id:'menu',...HOME_BTN}];
+  function reviewButtons(misses = []) {
+    return [...new Map(misses.map(w => [w.jp, w])).values()].slice(0, 3).map((word, i) => ({
+      id: `review-${i}`, word, x: 305 + i * 174, y: 428, w: 164, h: 44
+    }));
+  }
 
   // 1. 主選單：封面圖＋暖色光暈與上升的火星，主要行動只有一個大按鈕。
   function drawAssetProgress(ctx, centered = false) {
@@ -1556,8 +1561,12 @@ window.UI = (() => {
       }
 
       const hintStage = job.hintStage || 0;
-      const hintLabel = hintStage === 0 ? '聽 -3' : hintStage === 1 ? '詞 -4' : '✓';
-      if (diegetic) drawDiegeticOmamoriHint(ctx, HINT_BTN, hintStage, time, omamoriEntryProgress, extra.lanternHit || 0);
+      const hintLabel = hintStage === 0 ? '聽 免費' : hintStage === 1 ? '詞 -4' : '✓';
+      if (diegetic) {
+        drawDiegeticOmamoriHint(ctx, HINT_BTN, hintStage, time, omamoriEntryProgress, extra.lanternHit || 0);
+        ctx.textAlign = 'center'; ctx.font = readableFont(11, '900'); ctx.fillStyle = '#fff3ca';
+        inkText(ctx, hintStage === 0 ? '免費' : hintStage === 1 ? '−4油' : '提示済', HINT_BTN.x + HINT_BTN.w / 2, HINT_BTN.y + HINT_BTN.h + 16);
+      }
       else if (useQuestBoard) drawDiegeticHintTag(ctx, HINT_BTN, hintLabel, hintStage >= 2);
       else drawButton(ctx, HINT_BTN, hintLabel, {
         tone: 'cyan', size: 14, icon: hintStage === 0 ? 'listen' : 'hint', disabled: hintStage >= 2
@@ -1575,7 +1584,20 @@ window.UI = (() => {
       drawActionIcon(ctx, 'pickup', taskX + 27, taskY + 26, 13);
       drawCompass(ctx, taskX + 68, taskY + 26, extra.guideAngle, { color: inter ? "#ffe082" : "#ffd152", size: 1.3 });
     }
-    const bossBarY = Math.max(bounds.top + 2, afterTask - (compactLandscape ? 44 : 38));
+    if (extra.awakening) {
+      const a = extra.awakening;
+      const label = a.earned >= 4 ? `覺醒 ${a.awakened}/4・存印 ${a.seals}` : `覺醒印 ${a.seals}・再送 ${a.nextIn} 件`;
+      ctx.textAlign = 'left'; ctx.font = readableFont(14, '900'); ctx.fillStyle = '#ffe2a0';
+      afterTask += 18;
+      fitText(ctx, label, taskX, afterTask, taskW);
+      afterTask += 14;
+    }
+    if (job?.reading || extra.reading?.active && extra.reading.kind === 'delivery') {
+      ctx.textAlign = 'left'; ctx.font = readableFont(12, '800'); ctx.fillStyle = '#b6f1e7';
+      fitText(ctx, '安心讀題・離開恢復', taskX, afterTask + 16, taskW);
+      afterTask += 32;
+    }
+    const bossBarY = extra.awakening ? afterTask + 4 : Math.max(bounds.top + 2, afterTask - (compactLandscape ? 44 : 38));
     if (extra.boss) drawBossBar(ctx, taskX, bossBarY, taskW, extra.boss, scale, time);
 
     // --- 左下：武器格（含冷卻）＋被動體質欄 ---
@@ -2252,7 +2274,7 @@ window.UI = (() => {
   // 3. 升級三選一：閱讀優先。只使用一張和紙外框，選項不再重複大面積花飾。
   // 卡片位置必須與 game.js 的 720×108、122 行距 hitbox 一致。
   const LEVEL_CARD_LAYOUT = {x:90,y:176,w:720,h:108,gap:14};
-  function drawLevelUp(ctx, level, choices, WL, WI, rerolls = 0, time = Date.now()/1000, focus = 0, inputMode = "keyboard") {
+  function drawLevelUp(ctx, level, choices, WL, WI, rerolls = 0, time = Date.now()/1000, focus = 0, inputMode = "keyboard", awakening = null) {
     ctx.save();
     ctx.fillStyle="rgba(6,8,16,.89)";
     fillScreen(ctx);
@@ -2262,6 +2284,10 @@ window.UI = (() => {
     ctx.textAlign="center";
     ctx.font=titleFont(30);ctx.fillStyle="#39271f";
     ctx.fillText("修行進階  Lv."+level,W/2,87);
+    if (awakening) {
+      ctx.font = readableFont(12, '800'); ctx.fillStyle = '#725440';
+      ctx.fillText(`覺醒印 ${awakening.seals}・Lv.4 可用印升 MAX`, W/2, 105);
+    }
 
     // 簡潔技能列表：小字槽改為一條易讀的已習得摘要。
     ctx.fillStyle="rgba(249,239,217,.93)";
@@ -2309,7 +2335,7 @@ window.UI = (() => {
       fitText(ctx,c.s||"",x+365,y+38,114);
       ctx.textAlign="right";ctx.font=readableFont(16,"900");
       ctx.fillStyle=selected?"#953d32":"#6d4a37";
-      const suffix=c.levelText||(awakening?"覺醒":weapon?"主動秘術":"被動修行");
+      const suffix=awakening?"覺醒・耗 1 印":c.levelText||(weapon?"主動秘術":"被動修行");
       fitText(ctx,suffix,x+cardW-26,y+39,190);
 
       // 技能效果為第二閱讀重點：增大到 20px，長文允許兩行。
@@ -2374,6 +2400,8 @@ window.UI = (() => {
     glassBox(ctx, bx, by, boxW, boxH, 8, "rgba(57,38,39,.98)", `rgba(190,100,80,${0.75 + 0.25 * pulse(5, 0.2)})`, 2.4, true);
 
     ctx.textAlign = "center";
+    ctx.font = readableFont(11, '800'); ctx.fillStyle = '#b6f1e7';
+    ctx.fillText('安心讀題・作答後恢復戰鬥', mid, by - 12);
     ctx.fillStyle = "#ffeed4";
     ctx.font = readableFont(20, "900");
     if (bossQ.word.cue === "text" || !bossQ.word.icon) {
@@ -2409,17 +2437,17 @@ window.UI = (() => {
   const CARD_LIST = [
     // 主動秘術 (Active Weapons)
     { name: "妖刀斬", jp: "かたな", type: "主動", desc: "揮出凌厲新月刀芒，斬裂前方扇形妖怪", emblem: "katana" },
-    { name: "淨化靈陣", jp: "じょうか", type: "主動", desc: "展開 360 度低傷害除魔陣，Lv4 起可震退周身妖怪", emblem: "barrier" },
-    { name: "狐火炎", jp: "きつねび", type: "主動", desc: "周身飛旋烈焰火把，高速甩擊灼燒貼身妖怪", emblem: "fire" },
+    { name: "淨化靈陣", jp: "じょうか", type: "主動", desc: "Lv4 解圍；MAX 範圍縮為 220、每 3.2 秒脈衝，留下 1.8 秒固定慢場，不回油", emblem: "barrier" },
+    { name: "狐火炎", jp: "きつねび", type: "主動", desc: "三階起三團護火；Lv4 一火追擊，MAX 每六秒召龍，焦土最多兩處且不疊傷", emblem: "fire" },
     { name: "陰陽符", jp: "おふだ", type: "主動", desc: "擲出迴旋陰陽符咒，來回穿透路徑上的敵人", emblem: "boom" },
-    { name: "天狐雷", jp: "いかずち", type: "主動", desc: "雷擊範圍與目標逐級提升，Lv4 隨機擊倒全畫面內 3～5 隻一般妖怪", emblem: "thunder" },
+    { name: "天狐雷", jp: "いかずち", type: "主動", desc: "固定傷害優先打近身威脅；Lv4 三目標，MAX 三朵雷雲，同波同敵只中一次", emblem: "thunder" },
     { name: "天狐靈針", jp: "せんぼん", type: "主動", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪", emblem: "needle" },
 
     // 被動修行 (Passive Enhancements)
     { name: "金剛結界", jp: "けっかい", type: "被動", desc: "召喚金剛勾玉護盾，抵擋 2 次受傷（可疊加）", emblem: "shield" },
     { name: "長明燈油", jp: "あぶら", type: "被動", desc: "燈油上限 +30 並立即補滿，且常駐每秒回油", emblem: "oil_max" },
     { name: "添燈香油", jp: "かいふく", type: "被動", desc: "恢復 50% 燈油，並震退周圍妖怪（每場最多 3 次）", emblem: "oil_heal" },
-    { name: "修羅破軍", jp: "こうげき", type: "被動", desc: "整體傷害係數 +0.35（最多 6 層）", emblem: "dmg" },
+    { name: "修羅破軍", jp: "こうげき", type: "被動", desc: "整體傷害係數 +0.30（最多 4 層）", emblem: "dmg" },
     { name: "神樂疾奏", jp: "れんぞく", type: "被動", desc: "妖刀、結界、靈針冷卻縮短", emblem: "rate" },
     { name: "心眼一閃", jp: "かいしん", type: "被動", desc: "妖刀/天雷暴擊率 +15%，結界 +10%", emblem: "crit" },
     { name: "神足草履", jp: "いどう", type: "被動", desc: "移動速度約 +15%（最多 3 層）", emblem: "spd" },
@@ -2712,25 +2740,22 @@ window.UI = (() => {
       const l = summary.learning;
       ctx.font = readableFont(15,"700"); ctx.fillStyle = "#423127";
       summaryY += summaryStep;
-      ctx.fillText(`今夜練習 ${l.practiced} 字・待複習 ${l.review} 字`,mid,summaryY);
+      ctx.fillText(l.independent == null ? `今夜練習 ${l.practiced} 字・待複習 ${l.review} 字` : `獨立回想 ${l.independent} 次・提示完成 ${l.assisted || 0} 次`,mid,summaryY);
       ctx.fillStyle = "#864b37";
       summaryY += summaryStep;
-      ctx.fillText(`熟練星：升星 +${l.gained}・降星 −${l.lost}`,mid,summaryY);
+      ctx.fillText(l.independent == null ? `熟練星：升星 +${l.gained}・降星 −${l.lost}` : `下次複習 ${l.review} 字・星數僅記錄本局練習`,mid,summaryY);
     }
     const reviewWords = [...new Map((misses || []).map(w => [w.jp, w])).values()];
-    const reviewList = reviewWords.slice(0, 5);
+    const reviewList = reviewWords.slice(0, 3);
     ctx.font = readableFont(15, "700");
     if (reviewList.length > 0) {
       ctx.fillStyle = "#854b40";
       summaryY += summaryStep;
-      ctx.fillText(`今夜記錯的字：共 ${reviewWords.length} 字${reviewWords.length > 5 ? "，僅顯示前 5 字" : ""}`, mid, summaryY);
+      ctx.fillText(`今夜記錯的字：共 ${reviewWords.length} 字・可選三詞回聽`, mid, summaryY);
       ctx.font = readableFont(16, "700");
       ctx.fillStyle = "#382d27";
-      const parts = reviewList.map(w => `${w.jp}（${w.zh}）`);
-      const lineY = summaryY + Math.max(28,fontPx(ctx.font)*1.25);
-      const lineStep = fontPx(ctx.font) * 1.25;
-      const cols = parts.length > 4 ? 3 : 2, colW = (cardW-132)/cols;
-      parts.forEach((text,i)=>fitText(ctx,text,cardX+100+colW*(i%cols+0.5),lineY+Math.floor(i/cols)*lineStep,colW-12));
+      reviewButtons(reviewList).forEach((button, i) => drawButton(ctx, button,
+        `${button.word.jp}（${button.word.zh}）`, {size:14, quiet:true, focus:focus===3+i}));
     }
 
     drawButton(ctx, END_BTNS[0], "再踏夜行", { tone: "primary", size: 18, focus: focus===0,scrollText:true,visualOffsetY:-5 });
@@ -3063,7 +3088,7 @@ window.UI = (() => {
     drawEmblem,
     drawBossQuiz, bossQuizLayout,
     drawCodex, codexRows, codexButtons,
-    drawEndScreen,
+    drawEndScreen, reviewButtons,
     drawAssetProgress,
     drawPauseMenu,
     setButtonHover, pressButton, buttonTextArea,

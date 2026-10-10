@@ -1,0 +1,15 @@
+✔ V3 UI harness calibration: current HUD draws real oil and level labels (4.6362ms)
+✔ V3 UI: both HUD themes explain the next delivery seal without revealing the answer (3.0821ms)
+✔ V3 UI: safe reading and free first hint are visible on a small screen (1.0216ms)
+✔ V3 UI: level-up shows saved seals and the cost of choosing a MAX card (1.2105ms)
+✔ V3 UI: settlement distinguishes independent recall from assisted completion (9.3296ms)
+✔ V3 UI: optional listening has at most three unique words and keeps its buttons usable (0.889ms)
+✔ V3 UI: delivery tutorial states the real dwell time and safe reading (1.1221ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 69.3739
