@@ -460,6 +460,7 @@
     });
 
     let chosenWord = typeof study?.pick === "function" ? study.pick(elapsed, [...livingMisWords, ...activeOrderWords]) : null;
+    if (study && typeof study.pick === "function" && !chosenWord) return;
     if (!chosenWord && priorityMissed.length > 0) {
       chosenWord = pick(priorityMissed);
     } else if (!chosenWord) {
@@ -1346,16 +1347,32 @@
 
     for(const wave of winds){
       if(!EVOLUTIONS.move(wave,dt,null,12))continue;
-      // 視覺與碰撞方向都以 projectile 的實際速度為準，不再依賴角色起手朝向。
       wave.ang=Math.atan2(wave.vy,wave.vx);
-      wave.traveled=(wave.traveled||0)+Math.hypot(wave.vx,wave.vy)*dt;
+      const stepDist=Math.hypot(wave.vx,wave.vy)*dt;
+      const cap=wave.maxTravel||720;
+      const nextTravel=(wave.traveled||0)+stepDist;
+      if(nextTravel>cap && stepDist>0){
+        const back=(nextTravel-cap)/stepDist;
+        wave.x-=wave.vx*dt*back;
+        wave.y-=wave.vy*dt*back;
+        wave.traveled=cap;
+      }else wave.traveled=nextTravel;
       for (const eb of enemyBullets) {
         if (eb.life > 0 && !eb.bossHazard && dist(eb, wave) <= 90) {
           eb.life = 0;
           burst(eb.x, eb.y, "#9bf7ff", 6);
         }
       }
-      for(const e of enemies)if(e.hp>0 && wave.hits.size<6 && !wave.hits.has(e) && Math.abs((e.x-wave.x)*Math.cos(wave.ang)+(e.y-wave.y)*Math.sin(wave.ang))<(e.type==='boss'?95:75) && Math.abs(-(e.x-wave.x)*Math.sin(wave.ang)+(e.y-wave.y)*Math.cos(wave.ang))<180+(e.type==='boss'?40:22)){
+      for(const e of enemies){
+        if(!(e.hp>0) || wave.hits.size>=6 || wave.hits.has(e)) continue;
+        const along=Math.abs((e.x-wave.x)*Math.cos(wave.ang)+(e.y-wave.y)*Math.sin(wave.ang));
+        const side=Math.abs(-(e.x-wave.x)*Math.sin(wave.ang)+(e.y-wave.y)*Math.cos(wave.ang));
+        if(along>=(e.type==='boss'?95:75) || side>=180+(e.type==='boss'?40:22)) continue;
+        const ox=e.x-wave.originX, oy=e.y-wave.originY;
+        if(Math.hypot(ox,oy)>720) continue;
+        let ad=Math.abs(Math.atan2(oy,ox)-wave.ang);
+        while(ad>Math.PI) ad=Math.abs(ad-2*Math.PI);
+        if(ad>1.22) continue;
         const hitIndex=wave.hits.size;
         wave.hits.add(e);
         const pierceScale=hitIndex<3?1:0.75;
@@ -1923,7 +1940,7 @@
       let hazardHit = null;
       if (e.type === "boss" && window.BOSS_AI?.step) {
         const stepped = window.BOSS_AI.step(e, P, dt, {
-          blocked: (x, y, r = 16) => blocked(x, y, r),
+          blocked: (x, y, r = 32) => blocked(x, y, r),
           stageId: STAGE.id,
           paused: surgeWarningT > 0
         });
@@ -2009,9 +2026,11 @@
         let bossPool = ALL.filter(w => !livingMisWords.has(w.jp));
         if (bossPool.length === 0) bossPool = ALL;
         let word = null;
+        let introduced = true;
         if (plan.quiz) {
           const studied = study?.seenWords?.() || [];
-          word = studied.length ? studied[studied.length - 1] : STORE.pick(bossPool);
+          if (studied.length) word = studied[studied.length - 1];
+          else { word = STORE.pick(bossPool); introduced = false; }
         }
         enemies.push({
           ...position,
@@ -2028,7 +2047,8 @@
           speed: plan.role === "gate" ? 70 : plan.role === "final" ? 46 : 58,
           flash: 0,
           wob: 0,
-          attackCd: 1.2
+          attackCd: 1.2,
+          introduced
         });
         bossStage++;
         const nextBossAt = BOSS_TIMES[bossStage];
@@ -2042,8 +2062,20 @@
 
     const bs = enemies.find(e => e.type === "boss" && e.shield);
     if (bs && dist(P, bs) < 380) {
-      if (!bs.quiz) bs.quiz = mkQ(bs);
+      if (!bs.quiz) {
+        const needsIntro = bs.introduced === false && !!bs.word;
+        if (needsIntro) {
+          say(`${bs.word.jp}＝${bs.word.zh}`, bs.x, bs.y - 78, "#9be7ff");
+          AUDIO.speak(bs.word.jp);
+          study?.seen?.(bs.word);
+          bs.wasAssisted = true;
+          bs.introduced = true;
+        }
+        bs.quiz = mkQ(bs);
+        if (needsIntro) bs.quiz.introduced = true;
+      }
       bossQ = bs.quiz;
+      bossQ.reading = quizNear === bs;
       bossQ.lock = Math.max(0, bossQ.lock - dt);
     } else {
       bossQ = null;
@@ -3228,7 +3260,7 @@
       boss: enemies.find(e => e.type === "boss" && e.hp > 0) || null,
       awakening: awakeningState(),
       reading: {
-        active: !!(job?.reading || bossQ),
+        active: !!(job?.reading || bossQ?.reading),
         kind: job?.reading ? "delivery" : "boss",
         progress: job ? Math.min(1, (job.hold || 0) / READ_DWELL) : 0
       }
