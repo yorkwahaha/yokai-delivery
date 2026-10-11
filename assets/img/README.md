@@ -1,6 +1,6 @@
 # 動作與旅路素材
 
-旅路目前使用 `overworld_night_v2.png`／`.webp`，發佈 WebP 已縮圖以降低首次下載。遊戲只載入 v2；完整提示與參考素材見 `artifacts/validation/round21-map-prompt.json`。
+旅路正式底圖採用 **半水墨＋浮世繪＋半 Q 版童話繪卷風格** `overworld_ukiyoe_v3.webp`，原稿另存 `overworld_ukiyoe_v3.png` 作圖片載入失敗時備援。圖片 1376×768（貼合 1800×1050 世界地圖），WebP 約 375 KB，畫面包含夜行町、雨夜港、妖櫻山道、百鬼京都與黃泉境。這不是 SVG／Canvas 程式生成背景；節點、道路、文字仍由原本 Canvas 動態繪製、維持互動與解鎖規則。
 
 舊旅路 v1 已退役並移入本機封存，也可由 Git 歷史還原。原始提示仍存於 `artifacts/validation/round20-map-prompt.json`。
 

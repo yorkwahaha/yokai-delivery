@@ -40,6 +40,22 @@ test('map background is baked once while distant landmarks are not submitted',()
   assert.ok(!labels.includes(env.OVERWORLD.NODES.find(n=>n.id==='yomi').label));
 });
 
+test('overworld draws real generated map image before roads and landmarks, with legacy fallback',()=>{
+  const img={naturalWidth:1289,naturalHeight:752},old={naturalWidth:1024};
+  const calls=[],g={addColorStop(){}};
+  const ctx=new Proxy({drawImage:(...p)=>calls.push(p),createLinearGradient:()=>g,createRadialGradient:()=>g},{get:(o,k)=>o[k]||(()=>{})});
+  global.ART={overworld_ukiyoe_v3:img,overworld_night_v2:old};
+  try {
+    const state=OVERWORLD.createState('night-town');
+    OVERWORLD.draw(ctx,state,0);
+    assert.equal(calls[0][0],img);
+    assert.deepEqual(calls[0].slice(1),[0,0,OVERWORLD.MAP_W,OVERWORLD.MAP_H]);
+    delete global.ART.overworld_ukiyoe_v3;calls.length=0;
+    OVERWORLD.draw(ctx,state,0);
+    assert.equal(calls[0][0],old,'legacy bitmap is a safe fallback');
+  }finally{delete global.ART;}
+});
+
 test('map courier is twice as tall and mist freezes under reduced motion',()=>{
   const vm=require('node:vm'),fs=require('node:fs');
   for(const reduce of [false,true]) {

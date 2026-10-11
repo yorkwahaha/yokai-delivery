@@ -496,7 +496,7 @@
     ctx.save();
     ctx.translate(-state.camX, -state.camY);
 
-    const background = root.ART?.overworld_night_v2;
+    const background = root.ART?.overworld_ukiyoe_v3 || root.ART?.overworld_night_v2;
     if (background?.naturalWidth) {
       ctx.drawImage(background,0,0,MAP_W,MAP_H);
     } else {

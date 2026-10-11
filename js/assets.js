@@ -12,7 +12,7 @@ const GAME_ASSET_NAMES = [
   "ghost", "mis", "boss", "runner", "tank", "shooter",
   "house_shop", "house_shrine", "house_tavern", "prop_torii", "prop_lantern", "prop_sakura", "ground", "ground_dirt",
   "ghost_motion_v1", "runner_motion_v1", "boss_motion_v1", "mis_motion_v1", "tank_motion_v1", "shooter_motion_v1",
-  "player_dash_v1", "player_win_v1", "player_kneel_v1", "map_night_town_v1", "map_rain_port_v1", "overworld_night_v2"
+  "player_dash_v1", "player_win_v1", "player_kneel_v1", "map_night_town_v1", "map_rain_port_v1", "overworld_ukiyoe_v3"
 ];
 // 新版主角動作圖皆為非關卡必要資產：進入遊戲後背景預載，舊版 Sprite 可即時備援。
 const PLAYER_ACTION_ART = Object.freeze([
@@ -30,7 +30,7 @@ const YOKAI_ASSET_KEYS = new Set([
   "ghost_motion_v1", "runner_motion_v1", "tank_motion_v1",
   "shooter_motion_v1", "mis_motion_v1", "boss_motion_v1"
 ]);
-const MAP_ASSET_NAMES = ["player", "map_night_town_v1", "map_rain_port_v1", "overworld_night_v2", "prop_sakura", "prop_torii"];
+const MAP_ASSET_NAMES = ["player", "map_night_town_v1", "map_rain_port_v1", "overworld_ukiyoe_v3", "prop_sakura", "prop_torii"];
 const CORE_ASSET_NAMES = ["player", "ghost", "mis", "boss", "runner", "tank", "shooter",
   "house_shop", "house_shrine", "house_tavern", "prop_torii", "prop_lantern", "prop_sakura", "ground", "ground_dirt"];
 const HUD_ASSET_NAMES = ["hud_lantern_oil", "hud_radar_frame", "hud_omamori_hint_listen", "hud_skill_fan"];
@@ -82,7 +82,7 @@ function loadArt(n, priority = "high") {
     ? `assets/img/scenery/${n}.webp?v=20261010-loading3`
     : YOKAI_ASSET_KEYS.has(n)
     ? `assets/img/yokai/${n}.webp?v=20261010-loading2`
-    : `assets/img/${n}.webp?v=${PLAYER_ACTION_ART.includes(n)?"20261011-character-v3":["cover","player_win_v1","player_kneel_v1"].includes(n)?"20261010-character-set1":n.startsWith('map_')?"20261010-loading3":"20261010-loading2"}`;
+    : `assets/img/${n}.webp?v=${PLAYER_ACTION_ART.includes(n)?"20261011-character-v3":["cover","player_win_v1","player_kneel_v1"].includes(n)?"20261010-character-set1":n==="overworld_ukiyoe_v3"?"20261011-ukiyoe-v3":n.startsWith('map_')?"20261010-loading3":"20261010-loading2"}`;
 }
 
 // 休息立繪只會在打開暫停選單時下載，不佔遊戲首屏載入預算。
