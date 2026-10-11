@@ -431,8 +431,7 @@ test('diegetic radar phase 2 keeps the clock outside navigation content and pres
   assert.doesNotMatch(src,/roundRect\(sx - 19, sy \+ 17, 38, badgeH/,'diegetic fan no longer uses level badges');
   assert.match(src,/\[0\.783, 0\.803\]/,'fifth fan aperture is reserved');
   assert.match(src,/第五洞保留為未解鎖槽/,'fifth aperture remains locked');
-  assert.doesNotMatch(src,/const bossBarY = /,'Boss 不再佔用任務 HUD 下方的一塊血條');
-  assert.match(src,/drawBossBar\(ctx,bx\+7,by\+\(bossQ\?7:24\)/,'Boss 血條已搬進答題封印板下層');
+  assert.match(src,/drawBossBar\(ctx,layout\.bar\.x,layout\.bar\.y,layout\.bar\.w/,'王戰血條獨立置中於答題板下方');
 });
 
 test('diegetic delivery guidance uses original radar icons and an omamori hint',()=>{
@@ -485,11 +484,13 @@ test('opening touch joystick guidance stays above the taller skill footer',()=>{
   }
 });
 
-test('Boss quiz clears the actual skill footer after its labels grow',()=>{
+test('Boss quiz and health bar clear the skill fan horizontally, even beside its tall artwork',()=>{
   for(const [width,height] of [[900,600],[844,390],[667,375],[568,320],[800,600],[1920,1080]]) {
-    const r=drawHudFixture(width,height),max=r.labels.find(t=>t.value==='MAX');
-    const backing=r.rects.find(b=>max.left>=b.x && max.right<=b.x+b.w && max.y>=b.y && max.y<=b.y+b.h);
-    assert.ok(r.quiz.y+r.quiz.h+10<=backing.y-backing.w,`${width}: Boss/footer clearance`);
+    const r=drawHudFixture(width,height);
+    assert.ok(r.quiz.x>=r.bounds.left+280,`${width}: Boss panel must clear the fan's full width`);
+    assert.ok(r.quiz.bar.x>=r.bounds.left+280,`${width}: Boss bar must clear fan`);
+    assert.ok(r.quiz.bar.y>=r.quiz.y+r.quiz.h+8,`${width}: quiz and bar are separate`);
+    assert.ok(r.quiz.bar.y+r.quiz.bar.h<=r.bounds.bottom-50,`${width}: bar clears bottom EXP line`);
     assert.ok(r.quiz.y>=r.bounds.top);
   }
 });
@@ -501,8 +502,11 @@ test('Boss quiz geometry fits the viewport above the bottom HUD with shared hit 
     const bounds=env.window.VIEWPORT.hudBounds(),scale=env.window.VIEWPORT.get().scale;
     const layout=UI.bossQuizLayout(n);
     assert.ok(layout.x>=bounds.left && layout.x+layout.w<=bounds.right);
+    assert.ok(layout.x>=bounds.left+280); // Keep clear of fan, even with long tassels.
     assert.ok(layout.x+layout.w<=bounds.right-208); // Keep clear of pickup/dash circles and their pointer margin.
     assert.ok(layout.y>=bounds.top && layout.y+layout.h<bounds.bottom-62);
+    assert.ok(layout.bar.x>=layout.x && layout.bar.x+layout.bar.w<=layout.x+layout.w);
+    assert.ok(layout.bar.y>=layout.y+layout.h+8 && layout.bar.y+layout.bar.h<=bounds.bottom-50);
     assert.equal(layout.options.length,n);
     for(const b of layout.options) {
       assert.ok(b.x>=layout.x && b.x+b.w<=layout.x+layout.w);

@@ -1342,47 +1342,35 @@ window.UI = (() => {
     }
   }
 
-  // 妖將戰況木牌：用墨漆、銅邊與朱紅血槽，取代螢光玻璃卡片。
+  // 王戰血條：獨立置中、低矮橫向長條；避免大片木框擋住戰場。
   function drawBossBar(ctx, x, y, w, boss, scale, time) {
     const hp = clamp(boss.hp / Math.max(1, boss.max), 0, 1), shield = !!boss.shield;
-    const barH = Math.max(16, Math.ceil(13 / scale)), labelPx = fontPx(readableFont(13));
-    const h = labelPx + barH + 20;
+    const barH = Math.max(11, Math.ceil(10 / scale)), labelPx = fontPx(readableFont(13));
+    const h = labelPx + barH + 16;
     ctx.save();
-    ctx.fillStyle = "rgba(22,15,14,.54)";
-    ctx.beginPath();ctx.roundRect(x+2,y+3,w,h,5);ctx.fill();
-    ctx.fillStyle = "rgba(49,32,26,.97)";
-    ctx.beginPath();ctx.roundRect(x,y,w,h,5);ctx.fill();
-    ctx.strokeStyle = "#ab8255";ctx.lineWidth = 2;
-    ctx.beginPath();ctx.roundRect(x+.8,y+.8,w-1.6,h-1.6,4);ctx.stroke();
-    ctx.strokeStyle = "rgba(224,193,139,.38)";ctx.lineWidth = 1;
-    ctx.beginPath();ctx.roundRect(x+4,y+4,w-8,h-8,3);ctx.stroke();
-    for (const pinX of [x+8,x+w-8]) {
-      ctx.fillStyle = "#c9a26b";
-      ctx.beginPath();ctx.arc(pinX,y+9,1.8,0,Math.PI*2);ctx.fill();
-    }
+    ctx.fillStyle = "rgba(25,17,20,.82)";
+    ctx.beginPath();ctx.roundRect(x,y,w,h,3);ctx.fill();
+    ctx.strokeStyle = "rgba(181,136,92,.7)";ctx.lineWidth = 1.2;
+    ctx.beginPath();ctx.roundRect(x+.6,y+.6,w-1.2,h-1.2,3);ctx.stroke();
     ctx.textAlign = "left";
     ctx.font = readableFont(13, "900");
     ctx.fillStyle = "#f4deb1";
     const nameW = ctx.measureText(boss.final ? "大妖王" : "妖將").width;
-    ctx.fillText(boss.final ? "大妖王" : "妖將", x + 12, y + labelPx + 5);
+    ctx.fillText(boss.final ? "大妖王" : "妖將", x + 10, y + labelPx + 1);
     ctx.textAlign = "right";
     ctx.fillStyle = shield ? "#d7d5aa" : "#efb6a0";
-    ctx.fillText(shield ? "結界展開・答對破除" : "結界已破・全力進攻", x + w - 12, y + labelPx + 5, Math.max(1,w-nameW-40));
-    const bx = x + 10, by = y + labelPx + 11, bw = w - 20;
+    ctx.fillText(shield ? "結界展開・答對破除" : "結界已破・全力進攻", x + w - 10, y + labelPx + 1, Math.max(1,w-nameW-32));
+    const bx = x + 9, by = y + labelPx + 5, bw = w - 18;
     ctx.fillStyle = "#251916";
-    ctx.beginPath();ctx.roundRect(bx,by,bw,barH,3);ctx.fill();
+    ctx.beginPath();ctx.roundRect(bx,by,bw,barH,2);ctx.fill();
     if (hp > 0) {
       ctx.fillStyle = barGradient(ctx,"boss",bx,bx+bw);
-      ctx.beginPath();ctx.roundRect(bx,by,Math.min(bw,Math.max(3,bw*hp)),barH,3);ctx.fill();
+      ctx.beginPath();ctx.roundRect(bx,by,Math.min(bw,Math.max(2,bw*hp)),barH,2);ctx.fill();
       ctx.fillStyle = "rgba(251,225,170,.14)";
-      ctx.fillRect(bx+2,by+2,Math.max(0,bw*hp-4),2);
+      ctx.fillRect(bx+2,by+2,Math.max(0,bw*hp-4),1.5);
     }
-    ctx.strokeStyle = "rgba(45,25,21,.7)";ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (const t of [1 / 3, 2 / 3]) { ctx.moveTo(bx + bw * t, by); ctx.lineTo(bx + bw * t, by + barH); }
-    ctx.stroke();
-    ctx.strokeStyle = shield ? "#baad79" : "#825a46";ctx.lineWidth = shield ? 1.8 : 1.2;
-    ctx.beginPath();ctx.roundRect(bx,by,bw,barH,3);ctx.stroke();
+    ctx.strokeStyle = shield ? "#baad79" : "#a57b5d";ctx.lineWidth = 1.2;
+    ctx.beginPath();ctx.roundRect(bx,by,bw,barH,2);ctx.stroke();
     ctx.restore();
     return h;
   }
@@ -1544,10 +1532,19 @@ window.UI = (() => {
     }
     if (!compact && orders?.length) drawOrderList(ctx, mapX, orderY, mapW, fontPx(readableFont(12)) + 14, orders, P, inter);
 
-    // --- 暫停鈕 ---
+    // --- 暫停鈕：保留原和紙按鈕及 hitbox，墨藍實心符號在流蘇安全區內視覺置中。 ---
     drawWoodTag(ctx,btnPause,"normal");
-    ctx.fillStyle = ctx.strokeStyle = "#ffd54f";
-    drawActionIcon(ctx, 'pause', btnPause.x + btnPause.w / 2, btnPause.y + btnPause.h / 2, 10);
+    ctx.save();
+    ctx.translate(btnPause.x + btnPause.w / 2 - 1, btnPause.y + btnPause.h / 2 - 1);
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 2.3;
+    ctx.strokeStyle = "#f5f7f2"; // 淺色描邊可與木框、深背景分離，不再使用黃色
+    ctx.fillStyle = "#21364c";
+    for (const barX of [-7,3]) {
+      ctx.beginPath();ctx.roundRect(barX,-10,4,20,1);
+      ctx.stroke();ctx.fill();
+    }
+    ctx.restore();
 
     // --- 中上任務：暫停使用假繪馬，diegetic 先回到乾淨的浮動資訊。 ---
     const taskX = Math.max(248, pBoxX + pBoxW + 5), taskY = bounds.top + 14;
@@ -1627,7 +1624,12 @@ window.UI = (() => {
       drawActionIcon(ctx, 'pickup', taskX + 27, taskY + 26, 13);
       drawCompass(ctx, taskX + 68, taskY + 26, extra.guideAngle, { color: inter ? "#ffe082" : "#ffd152", size: 1.3 });
     }
-    if (extra.awakening) drawAwakeningTag(ctx,taskX,taskY+taskH+3,taskW,extra.awakening);
+    if (extra.awakening) {
+      // 奧義印記移至燈籠下緣，不再懸在畫面中央的任務牌下方。
+      // 橫向手機的燈籠高 190，其餘 168；預留原圖流蘇／提示御守的空間。
+      const sealY = diegetic ? bounds.top + (compactLandscape ? 200 : 178) : pBoxY + pBoxH + 14;
+      drawAwakeningTag(ctx,pBoxX,sealY,150,extra.awakening);
+    }
     if (job?.reading || extra.reading?.active && extra.reading.kind === 'delivery') {
       ctx.textAlign = 'left'; ctx.font = readableFont(12, '800'); ctx.fillStyle = '#b6f1e7';
       fitText(ctx, '安心讀題・離開恢復', taskX, afterTask + 16, taskW);
@@ -2416,14 +2418,19 @@ window.UI = (() => {
   function bossQuizLayout(n) {
     const bounds = window.VIEWPORT?.hudBounds() || screenBounds();
     const scale = window.VIEWPORT?.get().scale || (document.getElementById('game')?.getBoundingClientRect().width || 900)/900;
-    const left = bounds.left+18, right = bounds.right-208;
-    const w = Math.min(690,right-left), gap = n===2 ? 36 : 24;
-    const optW = Math.min(n===2 ? 260 : 200,(w-42-(n-1)*gap)/n);
+    // 扇面圖長約 264 logical px；右側保留衝刺鈕與外圈，僅使用中央真正可視安全區。
+    const left = bounds.left+282, right = bounds.right-208;
+    const w = Math.min(520,Math.max(1,right-left)), gap = n===2 ? 20 : 12;
+    const optW = Math.min(n===2 ? 220 : 152,(w-24-(n-1)*gap)/n);
     const optH = Math.max(46,Math.ceil(44/scale)), h = optH+59;
-    const {footerHeight} = skillMetrics(scale, document.getElementById('game')?.getContext?.('2d'));
-    const x = left+(right-left-w)/2, y = bounds.bottom-Math.max(86,footerHeight+24)-h;
+    const center = (bounds.left+bounds.right)/2;
+    const x = clamp(center-w/2,left,right-w);
+    const bossBarH = fontPx(readableFont(13))+Math.max(11,Math.ceil(10/scale))+16;
+    const gapToBar = 12, bottomInset = 52;
+    const y = bounds.bottom-bottomInset-bossBarH-gapToBar-h;
     const startX = x+(w-n*optW-(n-1)*gap)/2;
-    return {x,y,w,h,options:Array.from({length:n},(_,i)=>({x:startX+i*(optW+gap),y:y+46,w:optW,h:optH}))};
+    return {x,y,w,h,bar:{x,y:y+h+gapToBar,w,h:bossBarH},
+      options:Array.from({length:n},(_,i)=>({x:startX+i*(optW+gap),y:y+46,w:optW,h:optH}))};
   }
 
   function drawBossQuiz(ctx, bossQ, mode = 'keyboard', boss = null, breakFade = 0) {
@@ -2433,18 +2440,14 @@ window.UI = (() => {
     const {x:bx,y:by,w:boxW,h:boxH} = layout;
     const mid = bx+boxW/2;
 
-    // 下層血量板：答題時被表層封印紙遮住；答對後在原位顯露。
+    // 王戰血條只在這裡畫一次；答題板在上、血條在下，不再彼此壓住。
     if (boss) {
       const scale = window.VIEWPORT?.get().scale || 1;
-      drawBossBar(ctx,bx+7,by+(bossQ?7:24),boxW-14,boss,scale,Date.now()/1000);
+      drawBossBar(ctx,layout.bar.x,layout.bar.y,layout.bar.w,boss,scale,Date.now()/1000);
     }
     if (!bossQ) {
-      if (boss?.shield) {
-        drawWashiBoard(ctx,bx,by+14,boxW,64,true);
-        ctx.fillStyle="#45332a";ctx.font=readableFont(18,"900");ctx.textAlign="center";
-        ctx.fillText("封印中・靠近妖將解除結界",mid,by+53,boxW-32);
-      } else if (breakFade > 0 && !calm()) {
-        // 答對的瞬間，表層裂成兩半飄離，下層 Boss 血條隨之露出。
+      if (breakFade > 0 && !calm()) {
+        // 答對瞬間在答題板原處破封，王戰血條始終清楚留在下方。
         ctx.save();ctx.globalAlpha=breakFade*.86;
         const drift=(1-breakFade)*34;
         for(const side of [-1,1]){
@@ -3168,6 +3171,8 @@ window.UI = (() => {
     drawTitleCard,
     drawFade,
     drawButton,
+    // 旅路與暫停、結算共用核准的手繪材質。
+    drawWoodTag, drawWashiBoard,
     PAUSE_BTNS, pauseButtons, MENU_BTNS, END_BTNS, EXIT_BTNS, drawExitConfirm,
     PAUSE_BTN_W: 280,
     PAUSE_BTN_H: 44,

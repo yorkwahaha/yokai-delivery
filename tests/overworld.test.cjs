@@ -197,8 +197,44 @@ test("overworld renderer can draw the map without image assets", () => {
   assert.doesNotThrow(() => OVERWORLD.draw(ctx, state, 1.25, 0));
 });
 
-test('expanded viewport draws a full-width title and anchors the clickable back button at its corner',()=>{
+test('expanded viewport draws a full-width feathered title backdrop and anchors the back hitbox at its corner',()=>{
  const rects=[];const gradient={addColorStop(){}};const ctx=new Proxy({fillRect:(...a)=>rects.push(a),createLinearGradient:()=>gradient,createRadialGradient:()=>gradient},{get:(o,k)=>o[k]||(()=>{})});
  global.VIEWPORT={bounds:()=>({left:-450,top:-40,width:1800,height:680})};
- try {const back=OVERWORLD.backButton();assert.equal(back.x,-432);assert.equal(back.y,-22);OVERWORLD.draw(ctx,OVERWORLD.createState('gate'),0,0);assert.ok(rects.some(r=>r[0]===-450&&r[1]===-40&&r[2]===1800&&r[3]===72));}finally{delete global.VIEWPORT;}
+ try {const back=OVERWORLD.backButton();assert.equal(back.x,-432);assert.equal(back.y,-22);OVERWORLD.draw(ctx,OVERWORLD.createState('gate'),0,0);assert.ok(rects.some(r=>r[0]===-450&&r[1]===-40&&r[2]===1800&&r[3]===105));}finally{delete global.VIEWPORT;}
+});
+
+test('journey map reuses approved paper labels and controls, with the new courier preferred and legacy fallback',()=>{
+ const calls={tags:[],buttons:[],boards:[],images:[],preload:0};
+ const g={addColorStop(){}};
+ const ctx=new Proxy({
+   drawImage:(...args)=>calls.images.push(args),
+   createLinearGradient:()=>g,createRadialGradient:()=>g
+ },{get:(obj,key)=>key in obj?obj[key]:(()=>{})});
+ const walk={complete:true,naturalWidth:832,naturalHeight:1024};
+ global.ART={player_walk_left_v2:walk,overworld_night_v2:{naturalWidth:1641}};
+ global.STORE={isStageCompleted:()=>false,isStageUnlocked:()=>true};
+ global.CONTENT={getStage:()=>({implemented:true,unlockedByDefault:true})};
+ global.loadMapPlayerArt=()=>{calls.preload++};
+ global.UI={
+   readableFont:(size)=>'700 '+size+'px sans-serif',
+   drawWoodTag:(...args)=>calls.tags.push(args),
+   drawWashiBoard:(...args)=>calls.boards.push(args),
+   drawButton:(...args)=>calls.buttons.push(args)
+ };
+ try {
+   const state=OVERWORLD.createState('night-town');
+   OVERWORLD.draw(ctx,state,0,0);
+   assert.ok(calls.images.some(args=>args[0]===walk),'small map courier uses updated full-body sprite');
+   assert.ok(calls.preload>=1,'optional courier download requested');
+   assert.ok(calls.tags.length>1,'map title and stage labels reuse illustrated ribbons');
+   assert.ok(calls.boards.length>=1,'selected-stage information is on illustrated washi board');
+   assert.deepEqual(calls.buttons.map(c=>c[2]),['← 首頁','出發'],'shared paper buttons preserve existing actions');
+   delete global.ART.player_walk_left_v2;
+   global.ART.player={complete:true,naturalWidth:216,naturalHeight:352};
+   calls.images.length=0;
+   OVERWORLD.draw(ctx,state,0,0);
+   assert.ok(calls.images.some(args=>args[0]===global.ART.player),'legacy miniature survives missing new art');
+ } finally {
+   for (const name of ['ART','STORE','CONTENT','UI','loadMapPlayerArt']) delete global[name];
+ }
 });

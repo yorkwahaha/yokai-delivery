@@ -7,11 +7,18 @@ window.ART_PROGRESS = { settled: 0, total: 1, failed: 0 };
 window.audioAsset = path => `${path}?v=20261003-3`;
 
 const GAME_ASSET_NAMES = [
-  "player", "player_walk1", "player_walk2", "ghost", "mis", "boss", "runner", "tank", "shooter",
+  "player", "player_walk1", "player_walk2",
+  "player_idle_v2", "player_walk_left_v2", "player_walk_right_v2", "player_dash_v2", "player_hurt_v2", "player_attack_v2",
+  "ghost", "mis", "boss", "runner", "tank", "shooter",
   "house_shop", "house_shrine", "house_tavern", "prop_torii", "prop_lantern", "prop_sakura", "ground", "ground_dirt",
   "ghost_motion_v1", "runner_motion_v1", "boss_motion_v1", "mis_motion_v1", "tank_motion_v1", "shooter_motion_v1",
   "player_dash_v1", "player_win_v1", "player_kneel_v1", "map_night_town_v1", "map_rain_port_v1", "overworld_night_v2"
 ];
+// 新版主角動作圖皆為非關卡必要資產：進入遊戲後背景預載，舊版 Sprite 可即時備援。
+const PLAYER_ACTION_ART = Object.freeze([
+  "player_idle_v2", "player_walk_left_v2", "player_walk_right_v2", "player_dash_v2",
+  "player_hurt_v2", "player_attack_v2"
+]);
 // 第二階段正式場景圖獨立放置；舊版 PNG 僅在 WebP 無法解碼時備援。
 const SCENERY_ASSET_KEYS = new Set([
   "house_shop", "house_tavern", "house_shrine", "prop_torii",
@@ -75,7 +82,7 @@ function loadArt(n, priority = "high") {
     ? `assets/img/scenery/${n}.webp?v=20261010-loading3`
     : YOKAI_ASSET_KEYS.has(n)
     ? `assets/img/yokai/${n}.webp?v=20261010-loading2`
-    : `assets/img/${n}.webp?v=${["cover","player_win_v1","player_kneel_v1"].includes(n)?"20261010-character-set1":n.startsWith('map_')?"20261010-loading3":"20261010-loading2"}`;
+    : `assets/img/${n}.webp?v=${PLAYER_ACTION_ART.includes(n)?"20261011-character-v3":["cover","player_win_v1","player_kneel_v1"].includes(n)?"20261010-character-set1":n.startsWith('map_')?"20261010-loading3":"20261010-loading2"}`;
 }
 
 // 休息立繪只會在打開暫停選單時下載，不佔遊戲首屏載入預算。
@@ -175,6 +182,13 @@ window.loadMapArt = () => {
   MAP_ASSET_NAMES.forEach(key=>loadArt(key));
   updateReadiness();
   if (window.MAP_ART_READY) preloadCoreArt();
+};
+// 旅路角色採用新圖，但保持地圖進入速度；只在實際繪圖時背景下載。
+let mapPlayerRequested = false;
+window.loadMapPlayerArt = () => {
+  if (mapPlayerRequested) return;
+  mapPlayerRequested = true;
+  PLAYER_ACTION_ART.slice(0,3).forEach(key=>loadArt(key,"low"));
 };
 function preloadCoreArt() {
   if (coreArtStarted) return;

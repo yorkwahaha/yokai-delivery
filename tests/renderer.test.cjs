@@ -28,6 +28,19 @@ function loadRenderer(width, height, dpr = 1, CanvasContext) {
   return {env:context, main, canvases, texts, images};
 }
 
+test('Boss world sprite keeps its seal ring but does not draw a duplicate local HP bar', () => {
+  const r = loadRenderer(900,600);
+  const localBars = [], rings = [];
+  r.main.ctx.roundRect = (...args) => localBars.push(args);
+  r.main.ctx.arc = (...args) => rings.push(args);
+  r.env.RENDERER.drawMonster(
+    {type:'boss',x:400,y:300,hp:150,max:300,shield:true,flash:0,wob:0},
+    {x:200,y:300},1
+  );
+  assert.ok(rings.some(a=>a[2]===68), 'boss seal ring remains visible while shielded');
+  assert.equal(localBars.length,0,'boss sprite draws no foot HP strip; HUD owns the only HP bar');
+});
+
 test('roundRect fallback supports scalar and numeric corner lists, scales radii, and preserves native implementations',()=>{
   const calls=[];
   class Legacy {moveTo(...a){calls.push(['move',...a]);}arcTo(...a){calls.push(['arc',...a]);}closePath(){calls.push(['close']);}}
@@ -58,6 +71,36 @@ test('dash uses its dedicated drawing and absent new art falls back to existing 
   r.env.ART.player=base;r.env.ART.player_dash_v1=dash;
   r.env.RENDERER.drawPlayer({x:450,y:300},true,0,0,{x:0,y:0});assert.equal(r.images.at(-1)[0],dash);
   delete r.env.ART.player_dash_v1;r.env.RENDERER.drawPlayer({x:450,y:300},true,0,0,{x:0,y:0});assert.equal(r.images.at(-1)[0],base);
+});
+
+test('approved courier action sprites switch by walking, slashing, dashing and genuine damage',()=>{
+  const r=loadRenderer(900,600);
+  const keys=['player_walk_left_v2','player_walk_right_v2','player_dash_v2','player_hurt_v2','player_attack_v2'];
+  const art=Object.fromEntries(keys.map(key=>[key,{naturalWidth:832,naturalHeight:1024}]));
+  Object.assign(r.env.ART,art);
+  const P={x:450,y:300,faceX:1},move={x:1,y:0};
+  const shown=(dash,inv,time,motion,slash=false,hurt=false)=>{
+    r.env.RENDERER.drawPlayer(P,dash,inv,time,motion,0,slash,hurt);
+    return r.images.at(-1);
+  };
+  assert.equal(shown(false,0,0,move)[0],art.player_walk_left_v2);
+  assert.equal(shown(false,0,0.2,move)[0],art.player_walk_right_v2);
+  assert.equal(shown(false,0,0,{x:0,y:0})[0],art.player_walk_left_v2,'idle retains new character');
+  assert.equal(shown(false,0,0,move,true)[0],art.player_attack_v2,'slash overrides gait');
+  assert.equal(shown(true,0.4,0,move)[0],art.player_dash_v2,'dash invulnerability is not hurt');
+  assert.equal(shown(false,1,0,move)[0],art.player_walk_left_v2,'other invincibility is not hurt');
+  assert.equal(shown(true,1,0,move,true,true)[0],art.player_hurt_v2,'real damage pose takes priority');
+  assert.equal(shown(false,0,0,move,true)[4],1024,'full art is uncropped');
+  assert.equal(shown(false,0,0,move,true)[8],114,'new full-body sprites use same display height');
+});
+
+test('new courier sprites are optional, old art remains available while images are not ready',()=>{
+  const r=loadRenderer(900,600),old={naturalWidth:216,naturalHeight:352};
+  r.env.ART.player=old;
+  r.env.RENDERER.drawPlayer({x:450,y:300},false,0,0,{x:0,y:0});
+  assert.equal(r.images.at(-1)[0],old);
+  r.env.RENDERER.drawPlayer({x:450,y:300},false,0,0,{x:1,y:0},0,true,true);
+  assert.equal(r.images.at(-1)[0],old,'no missing transparent sprite or blank player');
 });
 
 test('missing specialized enemy art uses the fallback image crop rather than an incompatible atlas rectangle',()=>{
@@ -158,15 +201,15 @@ test('Canvas backings preserve viewport mapping within bounded raster budgets', 
   for (const [width,height,dpr] of [[1920,1080,1],[844,390,3],[1280,800,1.25]]) {
     const r=loadRenderer(width,height,dpr), light=r.canvases[1];
     const density=r.env.RENDERER.getDpr(), v=r.env.VIEWPORT.get();
-    assert.ok(density<=Math.min(dpr,2));assert.ok(density>=0.34);
-    assert.ok(r.main.width*r.main.height<=921600+4000);
+    assert.ok(density<=Math.min(dpr,2));assert.ok(density>=0.45);
+    assert.ok(r.main.width*r.main.height<=(Math.min(width,height)<600?1280000:2073600)+5000);
     assert.deepEqual([r.main.width,r.main.height],[Math.round(width*density),Math.round(height*density)]);
     assert.ok(light.width*light.height<=282000);
     assert.ok(light.width<=width && light.height<=height);
     const transform=light.transforms.at(-1);
     assert.ok(Math.abs(transform[0]/v.scale-light.width/width)<1/width);
     assert.equal(transform[4],v.offsetX*transform[0]);
-    assert.equal(r.main.ctx.imageSmoothingQuality,'low');
+    assert.equal(r.main.ctx.imageSmoothingQuality,'medium');
     assert.equal(r.main.contextOptions.alpha,false);
     assert.equal(light.contextOptions,null);
     r.env.RENDERER.renderLighting({x:450,y:300},[],95,0,600);
@@ -178,8 +221,8 @@ test('Canvas backings preserve viewport mapping within bounded raster budgets', 
 
 test('large high-DPR windows do not multiply the scene into over six million pixels',()=>{
   const r=loadRenderer(1680,949,2);
-  assert.ok(r.main.width*r.main.height<=921600+4000);
-  assert.ok(r.env.RENDERER.getDpr()<1);
+  assert.ok(r.main.width*r.main.height<=2073600+5000);
+  assert.ok(r.env.RENDERER.getDpr()<2);
 });
 
 test('soft lighting raster stays bounded while the final layer covers the full viewport',()=>{
@@ -202,6 +245,33 @@ test('static terrain reuses one buffered canvas and refreshes for camera bounds 
   assert.ok(cached.fills.length>shifted);const loaded=cached.fills.length;
   r.env.RENDERER.drawGround(4,600,[{...chunks[0],theme:'mystic'}],'ground_dirt');assert.ok(cached.fills.length>loaded);
   assert.equal(r.canvases.length,count+1);
+});
+
+test('scrolling terrain reuses the already-painted overlap and repaints only the newly exposed strip',()=>{
+  const r=loadRenderer(900,600);
+  const chunks=[{x:0,y:0,w:900,h:600,cx:0,theme:'market',name:'街',sub:''}];
+  r.env.RENDERER.drawGround(0,600,chunks,'ground_dirt');
+  const cache=r.canvases.at(-1), beforeDraws=r.images.length, beforeFills=cache.fills.length;
+  r.env.RENDERER.setCam(250,0);
+  r.env.RENDERER.drawGround(1,600,chunks,'ground_dirt');
+  const draws=r.images.slice(beforeDraws);
+  assert.ok(draws.some(args=>args[0]===cache && args.length===3),'buffer must scroll-copy the overlap, not redraw everything');
+  const fills=cache.fills.slice(beforeFills).filter(args=>args.length===4);
+  assert.ok(fills.length>0 && fills.every(args=>args[2]<500),
+    'new terrain fill should be limited to a narrow exposed strip');
+  assert.equal(r.canvases.at(-1),cache,'no extra full-size raster buffer is allocated');
+});
+
+test('streaming unrelated offscreen chunks does not invalidate visible terrain',()=>{
+  const r=loadRenderer(900,600);
+  const near={x:0,y:0,w:900,h:600,cx:0,theme:'market',name:'街',sub:''};
+  const far={x:9000,y:9000,w:900,h:600,cx:9000,theme:'harbor',name:'港',sub:''};
+  r.env.RENDERER.drawGround(0,600,[near],'ground_dirt');
+  const cache=r.canvases.at(-1),fills=cache.fills.length;
+  r.env.RENDERER.drawGround(1,600,[near,far],'ground_dirt');
+  assert.equal(cache.fills.length,fills,'new chunks outside the terrain cache are not relevant');
+  r.env.RENDERER.drawGround(2,600,[{...near,theme:'sakura'},far],'ground_dirt');
+  assert.ok(cache.fills.length>fills,'genuinely changed visible terrain still refreshes');
 });
 
 test('courtyard paving arriving late refreshes the cached terrain only once',()=>{
@@ -249,7 +319,7 @@ test('resize refreshes DPR and backing resolution when moving between displays',
   const density=r.env.RENDERER.getDpr();
   assert.deepEqual([r.main.width,r.main.height],[Math.round(844*density),Math.round(390*density)]);
   assert.ok(density>1 && density<2);
-  assert.ok(r.main.width*r.main.height<=921600+4000);
+  assert.ok(r.main.width*r.main.height<=1280000+5000);
 });
 
 test('full upgraded oil capacity keeps the same lantern radius as full base capacity',()=>{

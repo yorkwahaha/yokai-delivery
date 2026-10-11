@@ -4,10 +4,12 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 
 function loadUI(width = 844, height = 390) {
-  const labels = [], arcs = [], gradient = { addColorStop() {} };
+  const labels = [], arcs = [], roundRects = [], fills = [], gradient = { addColorStop() {} };
   const ctx = new Proxy({
     fillText: (value, x, y) => labels.push({value: String(value), x, y}),
     arc: (x,y,r) => arcs.push({x,y,r}),
+    roundRect: (x,y,w,h,r) => roundRects.push({x,y,w,h,r}),
+    fill: () => fills.push(ctx.fillStyle),
     measureText: text => ({width: [...String(text)].length * 13}),
     createLinearGradient: () => gradient, createRadialGradient: () => gradient
   }, {get: (o, k) => o[k] || (() => {})});
@@ -21,7 +23,7 @@ function loadUI(width = 844, height = 390) {
     job, 0, [], null, null, false, null,
     {x:810,y:420,r:38}, {x:810,y:530,r:46}, {x:848,y:14,w:38,h:52},
     {katana:4}, {katana:{zh:'妖刀'}}, {}, 0, 6, 0, 1.8, false, extra);
-  return {UI, ctx, labels, arcs, env, hud};
+  return {UI, ctx, labels, arcs, roundRects, fills, env, hud};
 }
 const word = {jp:'ねこ',zh:'貓',icon:'🐱',cue:'emoji'};
 const job = () => ({word, to:{x:500,y:500},hintStage:0,hold:0,showMeaningT:0});
@@ -49,16 +51,50 @@ test('V3 UI: completed deliveries show four awakening lamps and count only', () 
   assert.ok(!r.labels.some(t=>/再送|覺醒/.test(t.value)));
 });
 
-test('V3 UI: boss quiz front board reveals its rear HP after the seal breaks', () => {
+test('awakening seal moves below the lantern at the left HUD edge on landscape devices', () => {
+  for (const [width,height] of [[1280,720],[1024,768],[844,390]]) {
+    const r=loadUI(width,height);
+    const scale=Math.min(width/900,height/600),vw=width/scale,vh=height/scale;
+    const offsetX=(vw-900)/2,offsetY=(vh-600)/2;
+    const hudBounds={left:-offsetX+20/scale,top:-offsetY+20/scale,
+      right:900+offsetX-20/scale,bottom:600+offsetY-20/scale};
+    r.env.window.VIEWPORT={get:()=>({scale,offsetX,offsetY}),
+      bounds:()=>({left:-offsetX,top:-offsetY,right:900+offsetX,bottom:600+offsetY,width:vw,height:vh}),
+      hudBounds:()=>hudBounds};
+    r.hud(job(), {awakening:{seals:2,earned:2,nextIn:2,awakened:0}});
+    const badge=r.labels.find(t=>t.value==='×2');
+    assert.ok(badge, 'seal count must remain visible');
+    const screenX=(badge.x+offsetX)*scale,screenY=(badge.y+offsetY)*scale;
+    assert.ok(screenX>=26&&screenX<=95, `${width}x${height}: badge must stay near left screen edge, not central mission area`);
+    assert.ok(Math.abs(screenY-(20+(height<=500?220:198)*scale))<0.001,
+      'badge clears the taller landscape lantern art');
+  }
+});
+
+test('pause control uses centered navy and white solid bars rather than thin yellow strokes',()=>{
+  const r=loadUI();r.hud(null);
+  const bars=r.roundRects.filter(b=>b.w===4 && b.h===20);
+  assert.equal(bars.length,2);
+  assert.deepEqual(bars.map(b=>b.x),[-7,3]);
+  assert.ok(r.fills.includes('#21364c'),'pause bars are ink navy, not gold');
+});
+
+test('V3 UI: one persistent central Boss HP bar survives quiz and seal break', () => {
   const r=loadUI(),boss={hp:70,max:100,shield:true,final:false};
   r.UI.drawBossQuiz(r.ctx,{word,ans:[word,word,word],lock:0},'touch',boss);
   assert.ok(r.labels.some(t=>t.value.includes(word.zh)));
+  assert.equal(r.labels.filter(t=>t.value==='妖將').length,1);
+  assert.ok(r.labels.some(t=>t.value.includes('結界展開')));
   const before=r.labels.length;
   boss.shield=false;
   r.UI.drawBossQuiz(r.ctx,null,'touch',boss,0.65);
   const exposed=r.labels.slice(before).map(t=>t.value);
+  assert.equal(exposed.filter(t=>t==='妖將').length,1);
   assert.ok(exposed.some(t=>t.includes('全力進攻')));
   assert.ok(!exposed.some(t=>t.includes(word.jp)));
+  const geometry=r.UI.bossQuizLayout(3);
+  assert.ok(geometry.bar.y>geometry.y+geometry.h);
+  assert.ok(geometry.bar.w<=520);
 });
 
 test('V3 UI: safe reading and free first hint are visible on a small screen', () => {

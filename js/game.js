@@ -286,6 +286,7 @@
   }
   const wMax = { katana: 0.72, barrier: 3, needle: 1, boom: 2, thunder: 2.6, fire:1.1 };
   let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0, endCooldown = 0, lanternHitT = 0;
+  let playerAttackPoseT = 0, playerHurtPoseT = 0; // 視覺專用計時，不影響武器冷卻／碰撞
   let dashDir = { x: 1, y: 0 };
   let choices = [], levelupCooldown = 0, joy = null, touch = window.matchMedia?.("(pointer: coarse)")?.matches || false, inter = null, cargo = { x: 0, y: 0 }, pTrail = [], last = performance.now();
   const btnE = { x: 810, y: 420, r: 38 }, btnD = { x: 810, y: 530, r: 46 };
@@ -555,7 +556,7 @@
     SKILLFX.reset();
     rerolls = 2; titleCardT = 3; runSummary = null;
     bossStage = 0; bossT = BOSS_TIMES[0]; finalBossDefeated = false; finalBossPos = null; finalBossEnt = null; victorySeq = null; lampSeq = null;
-    ended = false; bossQ = null; bossSealBreak = null; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0; lanternHitT = 0;
+    ended = false; bossQ = null; bossSealBreak = null; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0; lanternHitT = 0; playerAttackPoseT = playerHurtPoseT = 0;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     pTrail = [];
     for (let i = 0; i <= 24; i++) {
@@ -779,6 +780,7 @@
     oil -= amount;
     lanternHitT = 0.42;
     P.inv = 1;
+    playerHurtPoseT = 0.44; // +0.2 秒視覺時間，無敵與碰撞不變
     RENDERER.triggerShake(10);
     burst(P.x, P.y, "#ff6b81", 18);
     say(label || `受創・燈油 −${amount}`, P.x, P.y - 36, "#cb6e60");
@@ -1317,6 +1319,7 @@
         wT.katana = atkT = 0.1;
       } else {
         wT.katana = atkT = wMax.katana = Math.max(0.6, 0.72 - b.rate * 0.13);
+        playerAttackPoseT = 0.16;
         const swingReach = WL.katana === 5 ? 720 : reach * 0.85;
         RENDERER.addSlashArc(P.x, P.y, swingReach, faceAng, 2.2, SKILLFX.tier(WL.katana));
         SKILLFX.play("katana", "swing", WL.katana, { x: P.x, y: P.y, ang: faceAng, reach: swingReach });
@@ -1781,6 +1784,8 @@
     if (hitStopped && !safeRead) return;
 
     P.inv = Math.max(0, P.inv - dt);
+    playerAttackPoseT = Math.max(0, playerAttackPoseT - dt);
+    playerHurtPoseT = Math.max(0, playerHurtPoseT - dt);
     dashT = Math.max(0, dashT - dt);
     dashCd = Math.max(0, dashCd - dt);
     hintT = Math.max(0, hintT - dt);
@@ -2576,7 +2581,7 @@
         ctx.restore();
       } else {
         drawCargo(); // 貨物圖示畫在角色後方，不遮住角色臉與上半身
-        RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, move(), b.shield || 0);
+        RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, move(), b.shield || 0, playerAttackPoseT > 0, playerHurtPoseT > 0);
       }
     }
 

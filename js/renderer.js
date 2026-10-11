@@ -20,7 +20,8 @@ if (typeof CanvasRenderingContext2D !== "undefined" && !CanvasRenderingContext2D
 }
 window.RENDERER = (() => {
   const W = 900, H = 600;
-  const SCENE_PIXELS = 921600, LIGHT_PIXELS = 280000;
+  // Avoid upscaling a 720p internal canvas on modern desktop displays.
+  const SCENE_PIXELS_DESKTOP = 2073600, SCENE_PIXELS_MOBILE = 1280000, LIGHT_PIXELS = 280000;
   const HOUSE_NAMES = { house_shop: "夜行商店", house_tavern: "宵待酒屋", house_shrine: "稻荷社" };
   // Alpha 邊界只在素材製作時讀取；[sx,sy,w,h,腳底水平錨點]，不在每幀掃描像素。
   const FRAME_BOUNDS = {
@@ -140,11 +141,12 @@ window.RENDERER = (() => {
     const v = window.VIEWPORT?.get() || {width:W,height:H,offsetX:0,offsetY:0};
     const scale = v.scale || 1;
     const cssPixels = v.width * v.height * scale * scale;
-    // 畫面像素預算約 720p。點擊座標仍走 CSS 邏輯座標，縮小的是 backing store。
-    dpr = Math.min(window.devicePixelRatio || 1, 2, Math.max(0.34, Math.sqrt(SCENE_PIXELS / Math.max(1, cssPixels))));
+    const budget = Math.min(window.innerWidth, window.innerHeight) < 600 ? SCENE_PIXELS_MOBILE : SCENE_PIXELS_DESKTOP;
+    // Higher quality on desktops; bounded mobile backing store protects FPS.
+    dpr = Math.min(window.devicePixelRatio || 1, 2, Math.max(0.45, Math.sqrt(budget / Math.max(1, cssPixels))));
     cv.width = Math.round(v.width * scale * dpr); cv.height = Math.round(v.height * scale * dpr);
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "low";
+    ctx.imageSmoothingQuality = "medium";
     // 柔和遮罩以較低解析度繪製；合成時仍覆蓋相同的完整視口。
     const lightScale = scale * Math.min(1, Math.sqrt(LIGHT_PIXELS / cssPixels));
     lightCv.width = Math.round(v.width * lightScale); lightCv.height = Math.round(v.height * lightScale);
@@ -393,32 +395,10 @@ window.RENDERER = (() => {
   }
 
   // 地名、鳥居與櫻樹跟底圖一起快取。
-  function drawGroundBase(chunks, groundKey) {
-    const area = bounds(), v = window.VIEWPORT?.get() || {scale:1};
-    const pixelScale = ctx.getTransform?.()?.a || (v.scale || 1) * dpr, x = camX + area.left, y = camY + area.top;
-    const groundImg = window.ART && window.ART[groundKey];
-    const courtImg = window.ART?.ground;
-    const toriiImg = window.ART && window.ART.prop_torii;
-    const sakuraImg = window.ART && window.ART.prop_sakura;
-    const toriiReady = !!(toriiImg && toriiImg.complete && toriiImg.naturalWidth);
-    const sakuraReady = !!(sakuraImg && sakuraImg.complete && sakuraImg.naturalWidth);
-    const cached = terrainState;
-    if (!cached || cached.key !== groundKey || cached.image !== groundImg || cached.courtImage !== courtImg || cached.pixelScale !== pixelScale ||
-        cached.toriiReady !== toriiReady || cached.sakuraReady !== sakuraReady ||
-        cached.viewW !== area.width || cached.viewH !== area.height || x < cached.left || y < cached.top ||
-        x + area.width > cached.left + cached.width || y + area.height > cached.top + cached.height ||
-        cached.chunks.length !== chunks.length || chunks.some((chunk,i)=>chunk!==cached.chunks[i])) {
-      const left = x - 120, top = y - 120, width = area.width + 240, height = area.height + 240;
-      const pw = Math.ceil(width * pixelScale), ph = Math.ceil(height * pixelScale);
-      terrainCv ||= document.createElement("canvas");
-      if (terrainCv.width !== pw) terrainCv.width = pw;
-      if (terrainCv.height !== ph) terrainCv.height = ph;
-      const c = terrainCv.getContext("2d");
-      c.setTransform(1,0,0,1,0,0);
-      c.clearRect(0,0,terrainCv.width,terrainCv.height);
-      c.setTransform(pixelScale,0,0,pixelScale,-left*pixelScale,-top*pixelScale);
-      c.imageSmoothingEnabled = true;
-      c.imageSmoothingQuality = "low";
+  // Paint only this world-space region: leave cached overlapping pixels unchanged.
+  function paintTerrainRegion(c,region,chunks,groundKey,groundImg,toriiImg,toriiReady,sakuraImg,sakuraReady){
+    const {left,top,width,height}=region;
+    c.save();c.beginPath();c.rect(left,top,width,height);c.clip();
       const dirt = groundKey === "ground_dirt";
       // 第一層永遠先填實色，避免新圖延遲下載時露出黑框。
       c.fillStyle = dirt ? "#6b5135" : stonePattern || "#303b42";
@@ -453,7 +433,76 @@ window.RENDERER = (() => {
         c.fillStyle=tint;c.beginPath();c.ellipse(cx,cy,chunk.w*.47,chunk.h*.43,0,0,6.283);c.fill();
         drawStaticChunk(c, chunk, toriiImg, toriiReady, sakuraImg, sakuraReady);
       }
-      terrainState = {left,top,width:pw/pixelScale,height:ph/pixelScale,key:groundKey,image:groundImg,courtImage:courtImg,pixelScale,toriiReady,sakuraReady,viewW:area.width,viewH:area.height,chunks:chunks.slice()};
+    c.restore();
+  }
+
+  function drawGroundBase(chunks, groundKey) {
+    const area = bounds(), v = window.VIEWPORT?.get() || {scale:1};
+    const pixelScale = ctx.getTransform?.()?.a || (v.scale || 1) * dpr, x = camX + area.left, y = camY + area.top;
+    const groundImg = window.ART && window.ART[groundKey];
+    const courtImg = window.ART?.ground;
+    const toriiImg = window.ART && window.ART.prop_torii;
+    const sakuraImg = window.ART && window.ART.prop_sakura;
+    const toriiReady = !!(toriiImg && toriiImg.complete && toriiImg.naturalWidth);
+    const sakuraReady = !!(sakuraImg && sakuraImg.complete && sakuraImg.naturalWidth);
+    const cached = terrainState;
+    // Streaming adds/removes entire 900x600 chunks far outside the painted cache.
+    // Do not invalidate visible ground for those offscreen bookkeeping changes.
+    const chunksInRegion = (list,left,top,width,height) =>
+      list.filter(chunk => chunk.x < left + width && chunk.x + chunk.w > left &&
+        chunk.y < top + height && chunk.y + chunk.h > top);
+    const currentLocalChunks = cached
+      ? chunksInRegion(chunks,cached.left,cached.top,cached.width,cached.height) : [];
+    const assetsChanged = !cached || cached.key !== groundKey || cached.image !== groundImg || cached.courtImage !== courtImg ||
+      cached.pixelScale !== pixelScale || cached.toriiReady !== toriiReady || cached.sakuraReady !== sakuraReady ||
+      cached.viewW !== area.width || cached.viewH !== area.height ||
+      cached.chunks.length !== currentLocalChunks.length ||
+      currentLocalChunks.some((chunk,i)=>chunk!==cached.chunks[i]);
+    const movedBeyondCache = !assetsChanged && (x < cached.left || y < cached.top ||
+      x + area.width > cached.left + cached.width || y + area.height > cached.top + cached.height);
+    if (assetsChanged || movedBeyondCache) {
+      // Snap origins to physical pixels so the blit and newly painted strips share texel boundaries.
+      const left = Math.floor((x - 120) * pixelScale) / pixelScale;
+      const top = Math.floor((y - 120) * pixelScale) / pixelScale;
+      const pw = Math.ceil((area.width + 240) * pixelScale);
+      const ph = Math.ceil((area.height + 240) * pixelScale);
+      terrainCv ||= document.createElement("canvas");
+      const resized = terrainCv.width !== pw || terrainCv.height !== ph;
+      if (terrainCv.width !== pw) terrainCv.width = pw;
+      if (terrainCv.height !== ph) terrainCv.height = ph;
+      const c = terrainCv.getContext("2d");
+      c.setTransform(1,0,0,1,0,0);
+      const dx = cached ? Math.round((cached.left - left) * pixelScale) : 0;
+      const dy = cached ? Math.round((cached.top - top) * pixelScale) : 0;
+      const scrollReuse = movedBeyondCache && !assetsChanged && !resized && Math.abs(dx) < pw && Math.abs(dy) < ph;
+      if (scrollReuse) {
+        // Same-canvas drawImage uses the pre-operation bitmap; retain painted overlap on a scroll.
+        c.drawImage(terrainCv, dx, dy);
+      } else {
+        c.clearRect(0,0,pw,ph);
+      }
+      c.setTransform(pixelScale,0,0,pixelScale,-left*pixelScale,-top*pixelScale);
+      c.imageSmoothingEnabled = true;
+      c.imageSmoothingQuality = "low";
+      const right=left+pw/pixelScale, bottom=top+ph/pixelScale;
+      const paint=(rl,rt,rr,rb)=>{
+        if(rr-rl<=0.00001 || rb-rt<=0.00001)return;
+        paintTerrainRegion(c,{left:rl,top:rt,width:rr-rl,height:rb-rt},
+          chunks,groundKey,groundImg,toriiImg,toriiReady,sakuraImg,sakuraReady);
+      };
+      if (scrollReuse) {
+        const oldRight=cached.left+cached.width, oldBottom=cached.top+cached.height;
+        if(left<cached.left)paint(left,top,cached.left,bottom);
+        if(right>oldRight)paint(oldRight,top,right,bottom);
+        const overlapLeft=Math.max(left,cached.left), overlapRight=Math.min(right,oldRight);
+        if(top<cached.top)paint(overlapLeft,top,overlapRight,cached.top);
+        if(bottom>oldBottom)paint(overlapLeft,oldBottom,overlapRight,bottom);
+      } else {
+        paint(left,top,right,bottom);
+      }
+      terrainState = {left,top,width:pw/pixelScale,height:ph/pixelScale,key:groundKey,image:groundImg,
+        courtImage:courtImg,pixelScale,toriiReady,sakuraReady,viewW:area.width,viewH:area.height,
+        chunks:chunksInRegion(chunks,left,top,pw/pixelScale,ph/pixelScale)};
     }
     const t = terrainState;
     ctx.drawImage(terrainCv,t.left,t.top,t.width,t.height);
@@ -530,17 +579,17 @@ window.RENDERER = (() => {
   }
 
   // 繪製主角（高解析度 Chibi + 步伐彈跳 + 衝刺殘影）
-  function drawPlayer(P, isDashing, inv, elapsed, moveDir, shield = 0) {
+  function drawPlayer(P, isDashing, inv, elapsed, moveDir, shield = 0, isSlashing = false, isHurt = false) {
     ctx.save();
     const isMoving = Math.hypot(moveDir.x, moveDir.y) > 0.1;
     const motion = allowsMotion();
     if (!motion) ghostTrails = [];
     // 1. 步伐彈跳物理 (Procedural Spring Step Bob)
-    const walkBob = isMoving && motion ? Math.abs(Math.sin(elapsed * 12)) * 3.5 : 0;
+    const walkBob = isMoving && motion && !isHurt ? Math.abs(Math.sin(elapsed * 12)) * 1.5 : 0;
 
     // 2. 彈性骨骼與次級動態 (Squash & Stretch, Lean Tilt, Secondary Inertial Shear)
     let squash = 1, stretch = 1, leanAng = 0, shearX = 0;
-    if (motion) {
+    if (motion && !isHurt) {
       if (isDashing) {
         // 衝刺時：前衝拉伸與前傾俯衝
         squash = 1.15;
@@ -550,17 +599,12 @@ window.RENDERER = (() => {
       } else if (isMoving) {
         // 跑步步伐有機彈性：著地與起跳交替起伏
         const stridePhase = Math.sin(elapsed * 12);
-        squash = 1.0 + stridePhase * 0.05;
-        stretch = 1.0 - stridePhase * 0.04;
+        squash = 1.0 + stridePhase * 0.018;
+        stretch = 1.0 - stridePhase * 0.015;
         // 跑步身體微前傾
-        leanAng = clamp(moveDir.x * (P.faceX || 1) * 0.07, -0.12, 0.12);
+        leanAng = clamp(moveDir.x * (P.faceX || 1) * 0.035, -0.05, 0.05);
         // 背負木箱與手持提燈的次級慣性滯後剪切 (Secondary Pendulum Shear)
-        shearX = clamp(-moveDir.x * (P.faceX || 1) * 0.06, -0.08, 0.08);
-      } else if (inv > 0) {
-        // 受傷頓挫震顫
-        const flinch = Math.sin(elapsed * 26) * 0.10;
-        squash = 1.0 + flinch;
-        stretch = 1.0 - flinch * 0.8;
+        shearX = clamp(-moveDir.x * (P.faceX || 1) * 0.025, -0.04, 0.04);
       }
     }
 
@@ -570,10 +614,15 @@ window.RENDERER = (() => {
     const flipX = P.faceX < 0 ? -1 : 1;
 
     // 兩幀步伐切換：移動時左右腳邁步 (walk1 <-> walk2)，靜止時站立 (player)
-    let pKey = "player", pImg = window.ART.player;
+    let pKey = window.ART.player_idle_v2 ? "player_idle_v2" : window.ART.player_walk_left_v2 ? "player_walk_left_v2" : "player";
+    let pImg = window.ART[pKey];
     if (isMoving && motion) {
       const stepIdx = Math.floor(elapsed * 6) % 2;
-      if (stepIdx === 0 && window.ART.player_walk1) {
+      const newKey = stepIdx === 0 ? "player_walk_left_v2" : "player_walk_right_v2";
+      if (window.ART[newKey]) {
+        pImg = window.ART[newKey];
+        pKey = newKey;
+      } else if (stepIdx === 0 && window.ART.player_walk1) {
         pImg = window.ART.player_walk1;
         pKey = "player_walk1";
       } else if (stepIdx === 1 && window.ART.player_walk2) {
@@ -581,7 +630,12 @@ window.RENDERER = (() => {
         pKey = "player_walk2";
       }
     }
-    if (isDashing && window.ART.player_dash_v1) { pKey = "player_dash_v1"; pImg = window.ART[pKey]; }
+    if (isSlashing && window.ART.player_attack_v2) { pKey = "player_attack_v2"; pImg = window.ART[pKey]; }
+    if (isDashing && (window.ART.player_dash_v2 || window.ART.player_dash_v1)) {
+      pKey = window.ART.player_dash_v2 ? "player_dash_v2" : "player_dash_v1";
+      pImg = window.ART[pKey];
+    }
+    if (isHurt && window.ART.player_hurt_v2) { pKey = "player_hurt_v2"; pImg = window.ART[pKey]; }
     const poseHeight = pKey === "player_dash_v1" ? 80 : 114;
 
     // 投影陰影：隨身體起伏微幅呼吸
@@ -644,6 +698,8 @@ window.RENDERER = (() => {
     }
 
     if (pImg) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
       drawFrame(ctx,pImg,pKey,0,0,20,poseHeight);
     } else {
       ctx.fillStyle = "#e07a3c";
@@ -772,7 +828,7 @@ window.RENDERER = (() => {
 
     ctx.restore();
 
-    // Boss 結界與血條
+    // Boss 身上的結界保留，但血量統一由 UI 中下方王戰血條呈現。
     if (isBoss && !e.dying) {
       ctx.save();
       ctx.translate(e.x, e.y);
@@ -798,24 +854,6 @@ window.RENDERER = (() => {
         ctx.beginPath();ctx.moveTo(-5,-108);ctx.lineTo(0,-98);ctx.lineTo(5,-108);ctx.stroke();
       }
 
-      // 漆器金邊血條
-      const bw = 88, bh = 9;
-      ctx.fillStyle = "#191522";
-      ctx.beginPath();
-      ctx.roundRect(-bw / 2, 42, bw, bh, 4);
-      ctx.fill();
-      ctx.strokeStyle = "#d4af37";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      const hpRatio = clamp(e.hp / (e.max || 1), 0, 1);
-      const hpGrad = ctx.createLinearGradient(-bw / 2, 0, bw / 2, 0);
-      hpGrad.addColorStop(0, "#ff4d64");
-      hpGrad.addColorStop(1, "#ffa726");
-      ctx.fillStyle = hpGrad;
-      ctx.beginPath();
-      ctx.roundRect(-bw / 2, 42, bw * hpRatio, bh, 4);
-      ctx.fill();
       ctx.restore();
     }
 

@@ -226,14 +226,14 @@
     const open = [a,b].every(node => node.type === 'stage' ? isEnterable(node) : isNodeAccessible(node));
     const ax = a.x, ay = a.y, bx = b.x, by = b.y;
     ctx.lineCap = "round";
-    ctx.strokeStyle = open ? "rgba(20, 28, 34, 0.56)" : "rgba(34, 31, 42, 0.38)";
+    ctx.strokeStyle = open ? "rgba(56, 38, 27, 0.64)" : "rgba(58, 45, 43, 0.38)";
     ctx.lineWidth = 18;
     ctx.beginPath();
     ctx.moveTo(ax, ay);
     ctx.lineTo(bx, by);
     ctx.stroke();
 
-    ctx.strokeStyle = open ? "rgba(220, 200, 154, 0.72)" : "rgba(122, 111, 132, 0.42)";
+    ctx.strokeStyle = open ? "rgba(238, 207, 149, 0.76)" : "rgba(146, 132, 118, 0.42)";
     ctx.lineWidth = 9;
     ctx.setLineDash([20, 11]);
     ctx.beginPath();
@@ -272,10 +272,10 @@
     ctx.scale(pulse, pulse);
 
     if (selected) {
-      ctx.strokeStyle = canEnter ? "rgba(255, 226, 130, 0.95)" : "rgba(196, 156, 220, 0.9)";
+      ctx.strokeStyle = canEnter ? "rgba(195, 67, 50, 0.94)" : "rgba(116, 91, 84, 0.86)";
       ctx.lineWidth = 4;
-      ctx.shadowColor = canEnter ? "#ffe082" : "#a86bd1";
-      ctx.shadowBlur = 16;
+      ctx.shadowColor = "rgba(82, 42, 27, 0.45)";
+      ctx.shadowBlur = 5;
       ctx.beginPath();
       ctx.arc(0, 0, 49, 0, Math.PI * 2);
       ctx.stroke();
@@ -300,8 +300,8 @@
       return;
     }
 
-    ctx.fillStyle = "rgba(28, 35, 42, 0.88)";
-    ctx.strokeStyle = canEnter ? "#d9b957" : "#77667e";
+    ctx.fillStyle = "rgba(237, 216, 171, 0.88)";
+    ctx.strokeStyle = canEnter ? "#9c4c35" : "#75665c";
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(0, 0, 36, 0, Math.PI * 2);
@@ -378,23 +378,28 @@
 
     ctx.save();
     ctx.textAlign = "center";
-    ctx.fillStyle = "rgba(12,14,28,0.9)";
-    ctx.beginPath();ctx.roundRect(node.x-104,node.y+43,208,node.sub?46:28,7);ctx.fill();
+    const labelPlate={x:node.x-104,y:node.y+43,w:208,h:node.sub?46:28};
+    if (root.UI?.drawWoodTag) root.UI.drawWoodTag(ctx,labelPlate,"normal",!canEnter,true);
+    else {ctx.fillStyle="rgba(240,219,182,.95)";ctx.beginPath();ctx.roundRect(labelPlate.x,labelPlate.y,labelPlate.w,labelPlate.h,4);ctx.fill();}
     ctx.font = readableFont(16, "900");
-    ctx.fillStyle = canEnter ? "#fff0c2" : "#d4bcdf";
+    ctx.fillStyle = canEnter ? "#39271d" : "#6b5c55";
     ctx.fillText(node.label, node.x, node.y + 62);
     ctx.font = readableFont(11, "700");
-    ctx.fillStyle = "#c1c9dd";
+    ctx.fillStyle = "#775846";
     ctx.fillText(node.sub || "", node.x, node.y + 79);
     ctx.restore();
   }
 
   function drawMiniPlayer(ctx, state, elapsed) {
+    root.loadMapPlayerArt?.();
     const motion = !root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
     const bob = motion ? Math.sin(elapsed * 7) * 3 : 0;
     const walking = isMoving(state);
-    const walkFrame = Math.floor(elapsed * 10) % 2 === 0 ? "player_walk1" : "player_walk2";
-    const img = root.ART && (walking && motion ? (root.ART[walkFrame] || root.ART.player) : root.ART.player);
+    const walkFrame = Math.floor(elapsed * 10) % 2 === 0 ? "player_walk_left_v2" : "player_walk_right_v2";
+    const oldFrame = Math.floor(elapsed * 10) % 2 === 0 ? "player_walk1" : "player_walk2";
+    const img = root.ART && (walking && motion
+      ? (root.ART[walkFrame] || root.ART[oldFrame] || root.ART.player)
+      : (root.ART.player_idle_v2 || root.ART.player_walk_left_v2 || root.ART.player));
     // 到站時站在町屋旁，沿路平滑插值顯示位移，不改節點／命中座標。
     const from = nodeById.get(state.fromId) || currentNode(state), to = nodeById.get(state.targetId) || from;
     const u = walking ? ease(clamp(state.moveT/state.moveDuration,0,1)) : 0;
@@ -514,69 +519,64 @@
     drawMiniPlayer(ctx, state, elapsed);
     ctx.restore();
 
-    // Fixed UI: title + current location only. No stage cards.
-    ctx.fillStyle = "rgba(16, 23, 27, 0.78)";
+    // 旅路固定 UI 沿用暫停與結算的紙札素材，不覆蓋現代黑卡。
     const titleFont = readableFont(Math.max(24, Math.ceil(18 / (root.VIEWPORT?.get?.().scale || 1))), "700").replace("'Noto Sans JP'", "'Kaisei Decol'");
     const subtitleFont = readableFont(12,"700");
     const titleSize = Number(titleFont.match(/([\d.]+)px/)[1]), subtitleSize = Number(subtitleFont.match(/([\d.]+)px/)[1]);
     const titleY = area.top+Math.max(32,titleSize);
     const subtitleY = titleY+Math.max(21,(titleSize+subtitleSize)/2+4);
-    ctx.fillRect(area.left, area.top, area.width, Math.max(72,subtitleY-area.top+subtitleSize*.25+6));
+    const fade=ctx.createLinearGradient(0,area.top,0,area.top+105);
+    fade.addColorStop(0,"rgba(21,17,21,.58)");fade.addColorStop(1,"rgba(21,17,21,0)");
+    ctx.fillStyle=fade;ctx.fillRect(area.left,area.top,area.width,105);
+    const titlePlate={x:VIEW_W/2-191,y:area.top-1,w:382,h:Math.max(75,subtitleY-area.top+19)};
+    root.UI?.drawWoodTag?.(ctx,titlePlate,"primary");
     const back = backButton();
     ctx.textAlign = "center";
-    ctx.fillStyle = "#fff1bd";
+    ctx.fillStyle = "#fff2d5";
     ctx.font = titleFont;
     ctx.fillText("妖怪快遞社・旅路圖", VIEW_W / 2, titleY);
     ctx.font = subtitleFont;
-    ctx.fillStyle = "rgba(255,255,255,0.68)";
+    ctx.fillStyle = "#f1d8a9";
     ctx.fillText("道をたどって、次の配達先へ", VIEW_W / 2, subtitleY);
 
-    ctx.fillStyle = "rgba(19, 24, 30, 0.82)";
-    ctx.beginPath(); ctx.roundRect(back.x, back.y, back.w, back.h, 10); ctx.fill();
-    ctx.strokeStyle = "rgba(255,236,190,0.6)"; ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.textAlign = "center"; ctx.fillStyle = "#fff0c2"; ctx.font = readableFont(13, "900");
-    ctx.fillText("← 首頁", back.x + back.w / 2, back.y + 25);
+    if (root.UI?.drawButton) root.UI.drawButton(ctx,{...back,id:"map-home"},"← 首頁",{size:13,quiet:true,scrollText:true});
+    else {ctx.fillStyle="#eed6ae";ctx.fillRect(back.x,back.y,back.w,back.h);ctx.textAlign="center";ctx.fillStyle="#372920";ctx.font=readableFont(13,"900");ctx.fillText("← 首頁",back.x+back.w/2,back.y+25);}
 
     const here = currentNode(state);
     if (here.type === "stage" && !isMoving(state)) {
       const canEnter = isEnterable(here);
       const panelW = 380, panelH = 100, px = VIEW_W / 2 - panelW / 2, py = VIEW_H - 116;
-      ctx.fillStyle = canEnter ? "rgba(31, 25, 20, 0.91)" : "rgba(30, 24, 34, 0.91)";
-      ctx.beginPath(); ctx.roundRect(px, py, panelW, panelH, 14); ctx.fill();
-      ctx.strokeStyle = canEnter ? "#e4c264" : "#80668a"; ctx.lineWidth = 2; ctx.stroke();
+      if(root.UI?.drawWashiBoard)root.UI.drawWashiBoard(ctx,px,py,panelW,panelH,true);
+      else{ctx.fillStyle="#eed6ae";ctx.beginPath();ctx.roundRect(px,py,panelW,panelH,8);ctx.fill();}
       ctx.textAlign = "center";
-      ctx.fillStyle = canEnter ? "#ffe6a5" : "#e0c8e7";
+      ctx.fillStyle = canEnter ? "#35271f" : "#73645a";
       ctx.font = readableFont(19, "900");
       const completed = canEnter && !!root.STORE?.isStageCompleted?.(here.stageId);
       ctx.fillText(here.label+(completed?'・配達済':''), VIEW_W / 2, py + 25);
       ctx.font = readableFont(12, "800");
-      ctx.fillStyle = "rgba(255,255,255,0.72)";
+      ctx.fillStyle = "#5f4736";
       const best = root.STORE?.getStageStats?.(here.stageId)?.bestScore || 0;
       ctx.fillText(canEnter ? (best ? `最高 ${best.toLocaleString()} 點` : '尚無配達紀錄') : '封印中・後續開放', VIEW_W / 2, py + 52);
       if(canEnter)ctx.fillText('配達開始　Enter / A', VIEW_W / 2, py + 82);
 
       if (canEnter) {
-        const glow = root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 0.72 : 0.72 + Math.sin(elapsed * 5) * 0.18;
-        ctx.fillStyle = `rgba(121, 78, 28, ${glow})`;
-        ctx.beginPath(); ctx.roundRect(ENTER_BTN.x, ENTER_BTN.y, ENTER_BTN.w, ENTER_BTN.h, 16); ctx.fill();
-        ctx.strokeStyle = "#ffe39a"; ctx.lineWidth = 2; ctx.stroke();
-        ctx.fillStyle = "#fff2c6"; ctx.font = readableFont(15, "900");
-        ctx.fillText("出發", ENTER_BTN.x + ENTER_BTN.w / 2, ENTER_BTN.y + 37);
+        if(root.UI?.drawButton)root.UI.drawButton(ctx,{...ENTER_BTN,id:"map-enter"},"出發",{tone:"primary",size:15,scrollText:true,focus:true});
+        else{ctx.fillStyle="#9c4535";ctx.fillRect(ENTER_BTN.x,ENTER_BTN.y,ENTER_BTN.w,ENTER_BTN.h);ctx.fillStyle="#fff2c6";ctx.font=readableFont(15,"900");ctx.fillText("出發",ENTER_BTN.x+ENTER_BTN.w/2,ENTER_BTN.y+37);}
       }
     } else {
       ctx.textAlign = "center";
-      ctx.fillStyle = "rgba(20, 27, 31, 0.7)";
-      ctx.beginPath(); ctx.roundRect(VIEW_W / 2 - 180, VIEW_H - 54, 360, 34, 12); ctx.fill();
-      ctx.fillStyle = "#fff1c9"; ctx.font = readableFont(12, "800");
+      if(root.UI?.drawWoodTag)root.UI.drawWoodTag(ctx,{x:VIEW_W/2-180,y:VIEW_H-54,w:360,h:34},"normal",false,true);
+      else{ctx.fillStyle="#eed6ae";ctx.fillRect(VIEW_W/2-180,VIEW_H-54,360,34);}
+      ctx.fillStyle = "#3a2920"; ctx.font = readableFont(12, "800");
       ctx.fillText("方向鍵 / 搖桿 / 點擊相鄰地標移動", VIEW_W / 2, VIEW_H - 32);
     }
 
     if (noticeT > 0) {
       const a = Math.min(1, noticeT * 2);
-      ctx.fillStyle = `rgba(44, 18, 53, ${0.9 * a})`;
-      ctx.beginPath(); ctx.roundRect(VIEW_W / 2 - 150, 92, 300, 48, 12); ctx.fill();
-      ctx.strokeStyle = `rgba(220, 180, 235, ${a})`; ctx.lineWidth = 2; ctx.stroke();
-      ctx.fillStyle = `rgba(248, 225, 255, ${a})`; ctx.font = readableFont(15, "900");
+      ctx.globalAlpha=a;
+      if(root.UI?.drawWoodTag)root.UI.drawWoodTag(ctx,{x:VIEW_W/2-150,y:92,w:300,h:48},"danger");
+      else{ctx.fillStyle="#7b3935";ctx.fillRect(VIEW_W/2-150,92,300,48);}
+      ctx.fillStyle = "#fff0da";ctx.font=readableFont(15,"900");
       ctx.fillText("未開放或尚未解鎖", VIEW_W / 2, 122);
     }
 

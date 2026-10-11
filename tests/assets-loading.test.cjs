@@ -65,6 +65,23 @@ test('core readiness excludes optional animation and result portraits, and keeps
   assert.equal(env.ART_PROGRESS.failed,0,'background failure does not affect scene readiness');
 });
 
+test('idle and five action sprites request light background WebP and do not delay gameplay readiness',()=>{
+  const {env,images}=loadAssets();
+  env.loadGameArt();
+  assert.ok(!images.some(i=>/player_.*_v2\.webp/.test(i.src)),'new art does not compete with core images');
+  for(const img of [...images]) img.onload();
+  assert.equal(env.ART_READY,true,'the game becomes ready before new action art');
+  // 背景管線一次只允許一張圖；模擬非同步逐張完成後繼續下載下一張。
+  for(let i=0;i<images.length&&i<100;i++) images[i].onload();
+  const names=['player_idle_v2','player_walk_left_v2','player_walk_right_v2','player_dash_v2','player_hurt_v2','player_attack_v2'];
+  const actionImages=images.filter(i=>names.some(n=>i.src.includes(n+'.webp')));
+  assert.equal(actionImages.length,6,'idle and all five optional poses are requested once');
+  assert.ok(actionImages.every(i=>i.fetchPriority==='low' && i.src.includes('20261011-character-v3')));
+  assert.equal(env.ART_READY,true,'poses do not gate the game');
+  env.loadGameArt();
+  assert.equal(images.filter(i=>names.some(n=>i.src.includes(n+'.webp'))).length,6,'sprites do not redownload');
+});
+
 test('map readiness warms the upcoming core game without changing the visible map progress',()=>{
   const {env,images}=loadAssets();env.loadMapArt();const map=[...images];
   assert.equal(map.length,7);map.forEach(i=>i.onload());
@@ -127,7 +144,8 @@ test('title prioritizes only the cover and leaves music downloads until playback
   env.loadGameArt();
   assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 23);
   for (const image of images) image.onload();
-  assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 34);
+  assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 40,
+    'six optional courier poses including idle are appended to the existing background asset queue');
   assert.equal(images.filter(image => image.src.includes('/vfx/raster/katana.webp')).length, 0);
   assert.equal(env.ART_READY, true);
   assert.ok(env.ART.hud_lantern_oil);
@@ -231,10 +249,11 @@ test('foxfire exposes separate orbit, attack and Lv5 dragon asset slots',()=>{
   assert.equal(images.length,before+1);assert.ok(images.at(-1).src.includes('/vfx/raster/fire_orbit_l4.webp'));
 });
 
-test('new movement, posture and landmark images ship both WebP and PNG fallback files',()=>{
+test('legacy movement, posture and landmark images still ship WebP and PNG fallback files',()=>{
   const {env,images}=loadAssets();env.loadGameArt();
   for(const image of images) image.onload();
-  const extra=images.filter(i=>/_v[12]/.test(i.src));assert.equal(extra.length,12);
+  const extra=images.filter(i=>/_v[12]/.test(i.src) && !/player_(idle|walk_left|walk_right|dash|hurt|attack)_v2/.test(i.src));
+  assert.equal(extra.length,12);
   for(const i of extra){assert.ok(fs.existsSync(i.src.split('?')[0]),i.src);i.onerror();assert.ok(fs.existsSync(i.src.split('?')[0]),i.src);i.onload();}
   assert.ok(env.ART.player_kneel_v1);assert.ok(env.ART.boss_motion_v1);assert.ok(env.ART.map_rain_port_v1);
 });
