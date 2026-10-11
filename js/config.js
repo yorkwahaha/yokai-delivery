@@ -20,8 +20,9 @@
     },
     xpNeed(level) {
       const lv = Math.max(1, Number(level) || 1);
-      // Keep the opening pace; later delivery runs must have room for four awakenings.
-      return Math.min(90, 24 + lv * 5 + Math.floor(Math.pow(lv, 1.35) * 1.2));
+      // Preserve Lv.1-20 pacing for four awakenings; raise late-game costs as enemy density grows.
+      const openingNeed = Math.min(90, 24 + lv * 5 + Math.floor(Math.pow(lv, 1.35) * 1.2));
+      return openingNeed + Math.max(0, lv - 20) * 12;
     },
     spawnInterval(elapsed) {
       const t = Math.min(Math.max(0, elapsed || 0), RUN_SECONDS);

@@ -21,13 +21,13 @@ test("run pacing is ten minutes with a final boss just before dawn", () => {
   assert.equal(cfg.GOAL_DELIVERIES, 6);
 });
 
-test("xp curve preserves opening thresholds and caps later growth at 90", () => {
-  const values = Array.from({ length: 35 }, (_, i) => cfg.xpNeed(i + 1));
+test("xp curve preserves levels 1-20 and scales after level 20", () => {
+  const values = Array.from({ length: 40 }, (_, i) => cfg.xpNeed(i + 1));
   for (let i = 1; i < values.length; i++) assert.ok(values[i] >= values[i - 1]);
-  assert.ok(values[0] >= 30);
-  const toLevel30 = values.slice(0, 29).reduce((a, b) => a + b, 0);
-  assert.equal(toLevel30,2336);
-  assert.equal(values[8],90);assert.equal(values[34],90);
+  assert.equal(values[0], 30);
+  assert.equal(values[8], 90); assert.equal(values[19], 90);
+  assert.deepEqual([25, 30, 35, 40].map(lv => cfg.xpNeed(lv)), [150, 210, 270, 330]);
+  assert.equal(values.slice(0, 29).reduce((a, b) => a + b, 0), 2876);
 });
 
 test("enemy density ramps across the whole ten-minute run", () => {
@@ -38,7 +38,7 @@ test("enemy density ramps across the whole ten-minute run", () => {
   assert.ok(cfg.spawnInterval(600) >= 0.48);
 });
 
-test("a theoretical full clear stays an upper capacity estimate under the V3 growth cap", () => {
+test("a theoretical ten-minute full clear remains within the revised level range", () => {
   let t = 8;
   let spawned = 0;
   while (t < cfg.RUN_SECONDS) {
@@ -51,7 +51,7 @@ test("a theoretical full clear stays an upper capacity estimate under the V3 gro
     xp -= cfg.xpNeed(level);
     level++;
   }
-  assert.ok(level >= 55 && level <= 60, `expected upper-capacity Lv55-60, got Lv.${level}`);
+  assert.ok(level >= 36 && level <= 40, `expected upper-capacity Lv36-40, got Lv.${level}`);
 });
 
 test("overtime caps enemy tier and spawn pressure at dawn", () => {
