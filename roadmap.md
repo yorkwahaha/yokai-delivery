@@ -2,7 +2,7 @@
 
 > **本檔是 Living Roadmap，供後續任何 Agent／新對話直接接手。**
 >
-> 最後更新：**2026-10-12** ｜ 當前工作：**A5 旅路地圖完整介面驗證完成，使用者已核准 2026-10-12 Git 提交與 GitHub Pages 部署；A6 實體手機／平板操作驗收仍待進行**
+> 最後更新：**2026-10-12** ｜ 當前工作：**A5 八關旅路正式發布完成（功能提交 4f2191b、Pages run 38207637192 成功）；下一步 A6 實體手機／平板實測與 3–8 關內容開發**
 >
 > **所有 ChatGPT、Codex、Cursor、OpenCode、其他 Agent：接手先讀這份檔案，並核對原始碼與 Git。每完成一階段、需求更動或碰到問題，直接更新本檔進度與日誌，不用等整案完工，也不用讓使用者重貼對話。**
 
@@ -173,13 +173,13 @@
 2. 以第 3 節的 V0 為討論起點，規劃每個地景位置、道路和過渡地形、舊四個 waypoint、新關卡互動空間。
 3. 現在已將核准的純地景 WebP 與八關互動節點接入，檢查 `artifacts/validation/eight-stage-a5/` 的畫面證據與 `tests/overworld-eight-stage.test.cjs`；**切勿把 `櫻花妖境八關地圖.png` 烘焙 UI 版直接當背景。**
 4. 現有 8 個節點的顯示、封印與點擊已實作；保留前兩關可玩，後六關為 placeholder。任何後續詞庫／玩法實作需保護舊存檔、現有解鎖順序與新 UI，**不能誤開未完成關卡**。
-5. A5 八關旅路介面已獲使用者於 2026-10-12 授權提交／部署：需先保護所有不相關的未追蹤素材、完成回歸，再選擇性提交正式程式與地景／測試／編輯器。部署成功後在最新日誌註明 SHA、Pages 結果。**A6 實體手機／平板操作、下載與 FPS 驗收仍未完成**，不可把線上發布等同真機通過。
+5. **A5 八關旅路已由使用者授權並完成 GitHub Pages 正式發布**：功能提交 `4f2191bf23373ace37d83a7ca3da1c45b67baab3`、[GitHub Pages Actions run 38207637192](https://github.com/yorkwahaha/yokai-delivery/actions/runs/38207637192) 成功，正式網址 `https://yorkwahaha.github.io/yokai-delivery/`；線上 `index.html`、`js/overworld.js`、`js/overworld-layout.js`、`assets/img/overworld_approved_v2.webp` SHA-256 與 Git 提交逐一相同。已排除不相關的原始素材和測試截圖。**A6 實體手機／平板操作、網速及 FPS 驗收仍未完成**，不等於真機驗收通過。
 
 ## 6. 更新日誌（最新一筆放最上方）
 
 | 日期 | 階段 | 完成／變更／驗證證據 | Commit／部署 |
 |---|---|---|---|
-| 2026-10-12 | A5 release 授權／待確認發布 | 使用者確認八關旅路介面微調已可收尾，明確授權更新 roadmap、Git Commit／Push、GitHub Pages 發布；發布僅包含 A4/A5 必要程式、4K 背景、編輯器與測試，不納入無關暫存圖及匯入原稿；A6 真機仍需試玩。待部署完成後記錄 commit SHA 與線上驗證。 | 使用者已授權；驗證中 |
+| 2026-10-12 | **A5 release [x] 正式上線** | 30 個相關檔案已選擇性提交；循序回歸 **537/537 通過**，Chrome 手機直向真實頁面通過。GitHub Pages build／deploy／report 三工作均 success；現場下載 `index.html`、旅路程式、節點配置與高解析地景的 SHA-256 全部符合 `4f2191b` Git 內容。大量未追蹤素材、驗證截圖及開發原稿留在本機未發布。**A6 真機試玩尚未驗收、3–8 關仍封印。** | 功能提交 `4f2191bf23373ace37d83a7ca3da1c45b67baab3`；[Pages run 38207637192](https://github.com/yorkwahaha/yokai-delivery/actions/runs/38207637192) **success** |
 | 2026-10-12 | A5.5 [x] 角色左右轉向／往回走不倒退 | `js/overworld.js` 記錄移動朝向並按路線每段 x 位移更新；左移將相同腳步素材水平鏡射，右移恢復原向，停止後保留朝向；新增 `tests/overworld-facing.test.cjs` 3 項回歸，**537/537 全測試通過**，手機 Chrome 真實 `index.html` 地圖載入測試通過；背景／定位配置不動。A5 地圖介面本機完成，A6 真機／上線未完成 | 未提交／未部署 |
 | 2026-10-12 | A5.4 [x] 旅路字體與對齊精修 | `← 首頁` 使用與地名一致的 Kaisei Decol 明朝標題字、深墨 #39261d／淺米白細描邊（`mapTypography:"title"`）；地名主字 16→15px、上移 2px，假名上移 4px，牌面不改；上方標題與副標、底部提示字上移 4px，◀ ▶ 只提高文字 4px（`visualOffsetY`），按鈕底圖與 hitbox 不變。限定 `js/overworld.js`、`js/ui.js` 的旅路 opt-in，`index.html` 腳本版本更新。修正一項舊測試誤以為轉檔來源 4K 必須存在的問題（正式 WebP 正常）。Chrome 實際主程式桌機 1500×900／手機直向 390×844 截圖：`artifacts/validation/eight-stage-a5/map-typography-alignment-v2-{desktop,phone}.png`；**534/534 回歸測試通過**。手動定位檔 `js/overworld-layout.js` SHA256 `315fe42e93dbcd2f6224d5751906099ba87f7dc158e9b5e3d579a0239bd432a6` 保持不變。 | 未提交／未部署 |
 | 2026-10-12 | A5.3 [x] 旅路字體／描邊／底色對比優化 | 深墨字＋暖米白細描邊、和風明朝標題與木牌、可讀正文與紅色按鈕暖白字、紙面中央柔光；UI 變更只在旅路 opt-in，不改玩法／地圖定位；真實 Chrome 1500×900 與 390×844 畫面驗證；新增 2 項自動測試，重建快取後 **532/532 通過**。截圖於 `artifacts/validation/eight-stage-a5/map-typography-*.png` | 未提交／未部署 |
