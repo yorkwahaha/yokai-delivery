@@ -246,8 +246,12 @@ test('all six skills route levels 1-4 and 5 to distinct filenames and fall back 
   for(const [method,id] of [['slash','katana'],['barrier','barrier'],['needle','needle'],['boomerang','boom'],['fireball','fire'],['thunder','thunder']]) {
     for(const level of [1,4,5]) {
       env.window.AUDIO[method](level);
-      assert.equal(tracks.at(-1).src,`assets/audio/sfx/${id}-${level===5?'lv5':'lv1-4'}.mp3`);
+      assert.equal(tracks.at(-1).src,`assets/audio/sfx/${id}-${(id==='fire'||level!==5)?'lv1-4':'lv5'}.mp3`);
     }
+  }
+  for(const [method,file] of [['fireDragon','fire-lv5-dragon'],['fireDragonBall','fire-lv5-ball'],['fireGround','fire-lv5']]){
+    env.window.AUDIO[method]();
+    assert.equal(tracks.at(-1).src,`assets/audio/sfx/${file}.mp3`);
   }
   env.window.AUDIO.slash(5);const failed=tracks.at(-1);failed.error={code:4};failed.handlers.error();
   assert.equal(tracks.at(-1).src,'assets/audio/sfx/slash.mp3');

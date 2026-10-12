@@ -403,7 +403,7 @@ test('V3: 火 Lv5 護火 3 顆（讀實際 spirit 數量）', () => {
   assert.ok(orbits.length <= 3, `Lv5 護火應為 3 顆，實際 ${orbits.length}`);
 });
 
-test('V3: 火 Lv5 龍的召喚間隔不低於 6 秒（以新龍物件出現為準，不看持續存在的實例）', () => {
+test('V3: Lv5 龍完整露臉 1.5 秒、退場後間隔 5 秒（新召喚相隔 7.2 秒）', () => {
   const g = g0();
   g.stopSpawns();
   g.clearEnemies();
@@ -425,12 +425,12 @@ test('V3: 火 Lv5 龍的召喚間隔不低於 6 秒（以新龍物件出現為�
   assert.ok(times.length >= 2,
     `45 秒內應召喚多次龍，實際 ${times.length} 次（現存實例 ${g.snapshot().dragonGhosts.length}）`);
   for (let i = 1; i < times.length; i++) {
-    assert.ok(times[i] - times[i - 1] >= 6 - 1e-6,
-      `龍召喚間隔不得低於 6 秒，實際 ${(times[i] - times[i - 1]).toFixed(2)}（序列 ${JSON.stringify(times.slice(0, 6))}）`);
+    assert.ok(times[i] - times[i - 1] >= 7.18,
+      `龍召喚間隔不得低於 7.18 秒，實際 ${(times[i] - times[i - 1]).toFixed(2)}（序列 ${JSON.stringify(times.slice(0, 6))}）`);
   }
 });
 
-test('V3: 焦土同時最多 2 處', () => {
+test('V3: Lv5 三顆火球生成三處焦土', () => {
   const g = g0();
   g.stopSpawns();
   g.clearEnemies();
@@ -440,7 +440,7 @@ test('V3: 焦土同時最多 2 處', () => {
   ], [], 5);
   let peak = 0;
   for (let i = 0; i < 400; i++) { g.update(0.05); peak = Math.max(peak, g.snapshot().dragonScorches.length); }
-  assert.ok(peak <= 2, `焦土同時最多 2 處，實際峰值 ${peak}`);
+  assert.equal(peak,3, `焦土應同時有三處，實際峰值 ${peak}`);
 });
 
 test('V3: 刀 Lv5 最遠 720 世界距離、穿透上限 6（讀實際風刃幾何）', () => {

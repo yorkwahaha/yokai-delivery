@@ -67,7 +67,7 @@
   function dragon(origin,launchAng=0,phase=0,entry=null) {
     const faceX=Math.cos(launchAng)<0?-1:1;
     return {dragon:true,x:entry?.startX??origin.x,y:entry?.y??origin.y-85,
-      age:0,life:3,ang:launchAng,faceX,
+      age:0,life:2.2,ang:launchAng,faceX,
       entry, size:entry?.size??340,vx:0,vy:0,launchAng,phase,shot:false,
       trail:0,hitSet:new Set(),points:[]};
   }
@@ -75,8 +75,9 @@
     if(dt<=0)return p.life>0;
     p.age+=dt;p.life-=dt;
     if(p.entry) {
-      const enter=Math.sin(Math.min(1,p.age/0.72)*Math.PI/2);
-      const leave=p.age>2.35?Math.sin(Math.min(1,(p.age-2.35)/0.65)*Math.PI/2):0;
+      const enter=Math.sin(Math.min(1,p.age/0.35)*Math.PI/2);
+      // Hold fully in view for 1.5s, then retreat over another 0.35s.
+      const leave=p.age>1.85?Math.sin(Math.min(1,(p.age-1.85)/0.35)*Math.PI/2):0;
       p.x=p.entry.startX+(p.entry.endX-p.entry.startX)*enter*(1-leave);
       p.y=p.entry.y+Math.sin(p.age*5+p.phase)*3;
     } else {
@@ -86,11 +87,12 @@
     return p.life>0;
   }
 
-  function dragonFireball(dragon,target) {
+  function dragonFireball(dragon,target,groundTarget=false) {
     const x=dragon.x+dragon.faceX*(dragon.size??340)*0.33,y=dragon.y+14;
     const ang=Math.atan2(target.y-y,target.x-x),speed=510;
     return {dragonFireball:true,x,y,ang,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed,
-      life:1.75,maxLife:1.75,radius:24};
+      life:1.75,maxLife:1.75,radius:24,
+      ...(groundTarget?{groundTarget:true,landX:target.x,landY:target.y}:{})};
   }
   // Swept collision prevents skipping a target or obstacle at low FPS.
   function dragonFireballStep(p,dt,enemies,blocked) {
@@ -100,7 +102,11 @@
       const x=p.x+p.vx*travel/steps,y=p.y+p.vy*travel/steps;
       if(blocked?.(x,y,p.radius)){p.life=0;return {impact:true,x:p.x,y:p.y,target:null};}
       p.x=x;p.y=y;
-      const target=enemies.find(e=>e.hp>0&&!e.shield&&Math.hypot(e.x-x,e.y-y)<(e.type==='boss'?46:30));
+      if(p.groundTarget && Math.hypot(p.landX-x,p.landY-y)<=Math.hypot(p.vx,p.vy)*travel/steps){
+        p.x=p.landX;p.y=p.landY;p.life=0;
+        return {impact:true,x:p.x,y:p.y,target:null};
+      }
+      const target=!p.groundTarget&&enemies.find(e=>e.hp>0&&!e.shield&&Math.hypot(e.x-x,e.y-y)<(e.type==='boss'?46:30));
       if(target){p.life=0;return {impact:true,x,y,target};}
     }
     p.life-=dt;

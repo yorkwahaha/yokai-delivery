@@ -2,11 +2,13 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const E=require('../js/evolutions.js');
 
-test('large dragon enters from offscreen, holds, and exits after three seconds',()=>{
+test('dragon enters, holds for 1.5 seconds and exits at 2.2 seconds',()=>{
   const origin={x:40,y:120,faceAng:0},entry={startX:-220,endX:135,y:100,size:340},p=E.dragon(origin,0,0,entry);
   for(let i=0;i<20;i++)E.dragonStep(p,0.01,origin,(x,y,r)=>true);
   assert.ok(p.x>entry.startX&&p.x<entry.endX);assert.ok(Math.abs(p.y-entry.y)<4);assert.equal(p.faceX,1);assert.equal(p.size,340);
-  assert.ok(p.life>2.7,'barriers must not despawn the brief summon');
+  assert.ok(p.life>1.9,'barriers must not despawn the brief summon');
+  for(let i=0;i<160;i++)E.dragonStep(p,0.01,origin,null);
+  assert.ok(Math.abs(p.x-entry.endX)<0.5,'dragon must hold for 1.5 seconds');
   const left=E.dragon(origin,Math.PI,0);E.dragonStep(left,0.01,origin,null);assert.equal(left.faceX,-1);
   for(let i=0;i<330&&p.life>0;i++)E.dragonStep(p,0.01,origin,null);
   assert.equal(p.life<=0,true);
@@ -72,7 +74,7 @@ test('a spirit reacquires a living foe after its target dies and has bounded ste
   live.hp=0;E.seek(p,0.05,[dead,live]);assert.equal(p.target,null);assert.ok(Number.isFinite(p.vx+p.vy));
 });
 
-test('MAX dragon launches one swept fireball that hits a target',()=>{
+test('ordinary targeted dragon fireball still hits a target',()=>{
   const d=E.dragon({x:0,y:0},0,0);
   const foe={x:245,y:0,hp:100};
   const shot=E.dragonFireball(d,foe);
@@ -82,6 +84,17 @@ test('MAX dragon launches one swept fireball that hits a target',()=>{
   assert.equal(impact.impact,true);
   assert.equal(impact.target,foe);
   assert.equal(shot.life,0);
+});
+
+test('ground-targeted dragon shots land at their three distinct coordinates',()=>{
+  const d=E.dragon({x:0,y:0},0,0),targets=[{x:220,y:-140},{x:260,y:0},{x:220,y:140}],enemy={x:190,y:0,hp:100};
+  for(const landing of targets){
+    const shot=E.dragonFireball(d,landing,true);
+    assert.equal(shot.groundTarget,true);
+    let hit={impact:false};for(let i=0;i<120&&!hit.impact;i++)hit=E.dragonFireballStep(shot,.016,[enemy],null);
+    assert.ok(hit.impact);
+    assert.ok(Math.hypot(hit.x-landing.x,hit.y-landing.y)<1);
+  }
 });
 
 test('dragon missile respects barriers and creates an impact at flight expiry',()=>{

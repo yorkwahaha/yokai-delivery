@@ -126,6 +126,44 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
 }
 const pointer = (x, y, type = 'mouse') => ({ clientX: x, clientY: y, pointerId: 1, pointerType: type, button: 0, preventDefault() {} });
 const key = (code, value = '') => ({ code, key: value, preventDefault() {} });
+test('canvas view switch preserves the running game and world geometry',()=>{
+  const g=loadGame();g.start();g.frame(100);
+  const vp=g.env.VIEWPORT,before=g.snapshot(),houses=g.housesNow().map(h=>[h.id,h.x,h.y]);
+  assert.equal(vp.tiltScale(),1,'VM starts in original 2D');
+  const v=vp.get(),b=vp.hudBounds();
+  const cx=b.right-52-1+26,cy=b.top+14+52+12+22;
+  const click=()=>g.canvasEvents.pointerdown(pointer(
+    (cx+v.offsetX)*v.scale,(cy+v.offsetY)*v.scale,'touch'));
+  click();
+  assert.equal(vp.tiltTargetScale(),.6);
+  assert.equal(vp.tiltScale(),1,'no instantaneous jump on pointer down');
+  assert.equal(g.snapshot().state,'play');
+  assert.equal(g.snapshot().elapsed,before.elapsed);
+  assert.equal(g.snapshot().x,before.x);
+  assert.equal(g.snapshot().y,before.y);
+  assert.deepEqual(g.housesNow().map(h=>[h.id,h.x,h.y]),houses);
+  g.frame(150);
+  assert.ok(vp.tiltScale()<1&&vp.tiltScale()>.6,'intermediate tilt is rendered by game loop');
+  for(let now=200;now<=950;now+=50)g.frame(now);
+  assert.equal(vp.tiltScale(),.6);
+  click();
+  assert.equal(vp.tiltScale(),.6);
+  for(let now=1000;now<=1800;now+=50)g.frame(now);
+  assert.equal(vp.tiltScale(),1);
+  assert.equal(g.snapshot().state,'play');
+  g.events.keydown(key('KeyV','v'));
+  assert.equal(vp.tiltTargetScale(),.6);
+  for(let now=1850;now<=2650;now+=50)g.frame(now);
+  assert.equal(vp.tiltScale(),.6);
+  g.events.keydown(key('KeyV','v'));
+  assert.equal(vp.tiltTargetScale(),1);
+});
+
+test('experience crystals draw upright in the world tilt transform',()=>{
+  const source=fs.readFileSync('js/game.js','utf8');
+  assert.match(source,/upright\(g\.x, g\.y, \(\) => RENDERER\.drawSpiritGem\(g, elapsed\)\)/);
+});
+
 
 test('pending essential art freezes the run and menu music is requested before its delayed action',()=>{
   const g=loadGame();g.start();g.env.ART_READY=false;const before=g.snapshot();g.update(0.05);
@@ -553,12 +591,14 @@ test('Lv5 foxfire keeps six orbiting flames and summons a targeted brief dragon'
   g.drawWorld();assert.equal(flames.length,3);assert.ok(flames.every(f=>f.p.orbit===true));
 });
 
-test('MAX dragon approaches from offscreen, pauses inside, and fires once',()=>{
+test('MAX dragon enters, holds, and shoots three fireballs at one volley',()=>{
   const g=loadGame();g.start();g.env.Math=Object.create(Math);g.env.Math.random=()=>0;
   g.combatScene('fire',[{dx:360}],[],5);g.weapons(0.001);
   const dragon=g.snapshot().ghosts[0],start=dragon.x;
   for(let i=0;i<145;i++)g.weapons(0.01);
-  assert.ok(dragon.x>start+150);assert.ok(Math.abs(dragon.x-dragon.entry.endX)<4);assert.equal(dragon.shot,true);assert.ok(dragon.age<3);
+  assert.ok(dragon.x>start+150);assert.ok(Math.abs(dragon.x-dragon.entry.endX)<4);assert.equal(dragon.shot,true);assert.ok(dragon.age<2.2);
+  assert.ok(g.audioCalls.includes('fireDragon'),'dragon summon uses its entrance sound');
+  assert.ok(g.audioCalls.includes('fireDragonBall'),'three-fireball volley uses its dedicated sound');
 });
 
 test('fireball impacts a building before reaching a distant target',()=>{
@@ -1779,12 +1819,14 @@ test('MAX dragon impact leaves a burning ground zone that ticks after the projec
   const first=g.snapshot(),enemy=first.enemies[0];
   assert.equal(first.dragonShots.length,0,'projectile should impact and disappear');
   assert.equal(first.ghosts.some(v=>v.dragon),false,'summon should not stay onscreen');
-  assert.equal(first.dragonScorches.length,1,'hit must ignite the ground');
+  assert.equal(first.dragonScorches.length,3,'three fireballs ignite three patches');
+  assert.ok(first.dragonScorches.every(p=>p.maxLife===5),'each burning patch persists for five seconds');
+  assert.ok(g.audioCalls.includes('fireGround'),'burning starts its dedicated sound');
   assert.ok(enemy.hp<999,'fireball must damage the target');
   const hpAfterImpact=enemy.hp;
   for(let i=0;i<70;i++){g.setElapsed((325+i)*0.01);g.weapons(0.01);}
   assert.ok(enemy.hp<hpAfterImpact,'staying on hot ground causes repeated damage');
-  assert.equal(g.snapshot().dragonScorches.length,1);
+  assert.equal(g.snapshot().dragonScorches.length,3);
   g.setWeaponRank('fire',0);
   for(let i=0;i<750;i++)g.weapons(0.01);
   assert.equal(g.snapshot().dragonScorches.length,0,'burning zone expires');
@@ -1841,14 +1883,14 @@ test('the giant dragon can also enter from the right edge toward a left-side tar
 
 test('a flying dragon fireball paints its art with visible ink embers and a bounded glow',()=>{
   const g=loadGame();g.start();g.combatScene('fire',[{dx:480}],[],5);
-  for(let i=0;i<112;i++)g.weapons(0.01);
-  assert.equal(g.snapshot().dragonShots.length,1,'fireball should be visible mid-flight');
+  for(let i=0;i<73;i++)g.weapons(0.01);
+  assert.equal(g.snapshot().dragonShots.length,3,'three fireballs should be visible after launch');
   const ball={naturalWidth:256,naturalHeight:256},imageDraws=[],inkMarks=[];
   g.env.ART={dragon_fireball_l5:ball};
   g.ctx.drawImage=(img,...rest)=>{if(img===ball)imageDraws.push(rest);};
   g.ctx.quadraticCurveTo=(...args)=>inkMarks.push(args);
   g.drawWorld();
-  assert.equal(imageDraws.length,1,'fireball texture must render once');
+  assert.equal(imageDraws.length,3,'each of the three fireballs renders its image');
   assert.deepEqual(imageDraws[0],[-72,-72,144,144]);
   assert.ok(inkMarks.length>=4,'comet needs brush-stroke sparks, not just a still image');
 });

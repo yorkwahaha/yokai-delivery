@@ -27,6 +27,56 @@ function loadRenderer(width, height, dpr = 1, CanvasContext) {
   context.RENDERER.init(main);
   return {env:context, main, canvases, texts, images};
 }
+test('torii and sakura stay in the same live actor pass at 2D, mid-tilt and 2.5D',()=>{
+  const r=loadRenderer(900,600);
+  const torii={complete:true,naturalWidth:400,naturalHeight:480};
+  const sakura={complete:true,naturalWidth:250,naturalHeight:450};
+  r.env.ART.prop_torii=torii;r.env.ART.prop_sakura=sakura;
+  const tree={x:270,y:335};
+  const chunk={x:0,y:0,w:900,h:600,name:'夜行町',sub:'商街',decor:{torii:true,sakuraTrees:[tree]}};
+  const actor={torii:chunk,y:336};
+  const renderAt=(tilt)=>{
+    const prev= r.images.length;
+    r.env.VIEWPORT.setTiltScale(1);
+    if(tilt===0.8){r.env.VIEWPORT.animateTiltScale(.6,.8);r.env.VIEWPORT.advanceTilt(.4);}
+    else r.env.VIEWPORT.setTiltScale(tilt);
+    r.env.RENDERER.drawGround(0,600,[chunk],'ground_dirt');
+    assert.equal(r.images.slice(prev).filter(call=>call[0]===torii||call[0]===sakura).length,0,
+      'no static cached torii/tree at any angle');
+    const before=r.images.length;
+    r.env.RENDERER.drawDecorActor(actor);
+    r.env.RENDERER.drawDecorActor({tree,y:tree.y});
+    const calls=r.images.slice(before).filter(call=>call[0]===torii||call[0]===sakura);
+    assert.deepEqual(calls.map(call=>call[0]),[torii,sakura],
+      'both sprites have a live image pass in every view');
+  };
+  for(const k of [1,.8,.6,1,.8,.6])renderAt(k);
+});
+
+test('actor shadows are world-space floor marks, never warped with upright sprites',()=>{
+  const r=loadRenderer(900,600),events=[],ellipses=[];
+  r.env.VIEWPORT.setTiltScale(.6);
+  r.main.ctx.ellipse=(...args)=>{events.push('shadow');ellipses.push(args);};
+  r.main.ctx.scale=(...args)=>events.push('upright');
+  r.env.ART.prop_torii={naturalWidth:350,naturalHeight:380};
+  const chunk={x:0,y:0,w:900,h:600,decor:{torii:true}};
+  r.env.RENDERER.drawDecorActor({torii:chunk});
+  assert.deepEqual(ellipses.map(p=>p.slice(0,4)),[[400,338,23,8],[500,338,23,8]]);
+  assert.ok(events.indexOf('shadow')<events.indexOf('upright'),
+    'torii contact shadows are drawn before vertical inverse-scale');
+  ellipses.length=0;events.length=0;
+  r.env.RENDERER.drawPlayerShadow({x:460,y:240},0,{x:0,y:0});
+  assert.deepEqual(ellipses[0].slice(0,4),[460,262,28,11]);
+  r.env.RENDERER.drawPlayer({x:460,y:240,faceX:1},false,0,0,{x:0,y:0});
+  assert.equal(ellipses.length,1,'upright courier sprite does not repaint floor shadow');
+  ellipses.length=0;
+  r.env.RENDERER.drawHouseShadow({x:400,y:240});
+  assert.deepEqual(ellipses[0].slice(0,4),[400,286,58,14]);
+  ellipses.length=0;
+  r.env.RENDERER.drawMonsterShadow({type:'ghost',x:100,y:200});
+  assert.deepEqual(ellipses[0].slice(0,4),[100,218.7,22,8.8]);
+});
+
 
 test('Boss world sprite keeps its seal ring but does not draw a duplicate local HP bar', () => {
   const r = loadRenderer(900,600);
@@ -448,5 +498,8 @@ test('quiet ground removes dark rectangular courtyards and wide ink-road borders
   assert.deepEqual(rectangles,[],'ground should not draw courtyard rectangles');
   assert.ok(strokes.every(s=>!String(s.color).includes('18,16,19')),'no near-black road borders');
   assert.ok(strokes.every(s=>s.width<=72),'no oversized stroke outlines');
-  assert.ok(strokes.length<=2,'no repeating dry-brush grid');
+  // One faint road pass plus up to twelve tiny, scattered paving/moss marks.
+  // These are not the formerly repeating wide dry-brush grid.
+  assert.ok(strokes.length<=13,'no repeating dry-brush grid');
+  assert.ok(strokes.slice(1).every(s=>s.width<=3),'details stay narrow and unobtrusive');
 });

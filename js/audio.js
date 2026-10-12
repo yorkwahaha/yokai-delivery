@@ -13,6 +13,7 @@ window.AUDIO = (() => {
   let activeBgm = null;
   let preparedBgm = null;
   let musicShouldPlay = false;
+  let bossMusic = false, bossMix = 0;
   const bgmAttempts = new WeakSet();
   function playMusic(audio, retry = false) {
     if (!audio || !audio.paused || (!retry && bgmAttempts.has(audio))) return;
@@ -94,7 +95,7 @@ window.AUDIO = (() => {
   }
 
   function musicTracks() {
-    return [...new Set([window.BGM, window.MAP_BGM].filter(Boolean))];
+    return [...new Set([window.BGM, window.MAP_BGM, window.BOSS_BGM].filter(Boolean))];
   }
 
   function rampMusicVolume(audio, target, duration = 180) {
@@ -127,13 +128,21 @@ window.AUDIO = (() => {
     wordDucking = enabled;
     if (effectsBus) effectsBus.gain.value = enabled ? 0.3 : 1;
     activeSfx.forEach(audio => { audio.volume = audio.sfxVolume * (enabled ? 0.3 : 1); });
-    const target = musicVolume();
     const duration = enabled ? 140 : 220;
-    musicTracks().forEach(audio => rampMusicVolume(audio, target, duration));
+    musicTracks().forEach(audio => rampMusicVolume(audio, musicTarget(audio), duration));
   }
 
   function musicVolume() {
     return pauseDucking ? BGM_PAUSE_VOLUME : wordDucking ? BGM_DUCK_VOLUME : BGM_NORMAL_VOLUME;
+  }
+
+  function musicTarget(audio) {
+    const level=musicVolume();
+    if(bossMusic && window.BOSS_BGM) {
+      if(audio===window.BOSS_BGM)return level*bossMix;
+      if(audio===window.BGM)return level*(1-bossMix);
+    }
+    return level;
   }
 
   function beginWordSpeech() {
@@ -175,10 +184,15 @@ window.AUDIO = (() => {
   // 預留兩組素材；沒有檔案時退回目前音效，不需放空白 MP3。
   const RANKED_SFX = {slash:'katana',barrier:'barrier',needle:'needle',boomerang:'boom',fireball:'fire',thunder:'thunder'};
   for(const [name,id] of Object.entries(RANKED_SFX)) for(const rank of ['Base','Max']) {
+    if(name==='fireball' && rank==='Max')continue;
     const key=name+rank;
     SFX_FILES[key]=`assets/audio/sfx/${id}-${rank==='Max'?'lv5':'lv1-4'}.mp3`;
     SFX_VOLUME[key]=SFX_VOLUME[name];
   }
+  SFX_FILES.fireDragon='assets/audio/sfx/fire-lv5-dragon.mp3';
+  SFX_FILES.fireDragonBall='assets/audio/sfx/fire-lv5-ball.mp3';
+  SFX_FILES.fireGround='assets/audio/sfx/fire-lv5.mp3';
+  SFX_VOLUME.fireDragon=.78;SFX_VOLUME.fireDragonBall=.68;SFX_VOLUME.fireGround=.54;
   const unavailableSfx = new Set();
   const activeSfx = new Set();
 
@@ -459,8 +473,15 @@ window.AUDIO = (() => {
       musicTracks().forEach(audio => { if (!audio.paused) rampMusicVolume(audio, 0, duration); });
       setTimeout(() => musicTracks().forEach(audio => audio.pause()), duration + 30);
     },
+    // Stop only on entry to results, not on the boss death cinematic.
+    stopBossMusic() {
+      bossMusic = false; bossMix = 0; musicShouldPlay = false;
+      musicTracks().forEach(audio => { if (!audio.paused) audio.pause(); });
+      activeBgm = null;
+    },
     // 重玩或回到地圖時，音樂從頭開始，不接著上一局的進度。
     restartMusic() {
+      bossMusic = false; bossMix = 0;
       musicTracks().forEach(audio => {
         if (audio !== preparedBgm) {
           audio.pause();
@@ -490,7 +511,11 @@ window.AUDIO = (() => {
     preloadWords(words) {
       const ac = getCtx();
       if (!ac || typeof fetch !== 'function' || !ac.decodeAudioData) return;
-      const paths = [...words.map(w=>WORD_FILES[w.jp]).filter(Boolean).map(file=>`assets/audio/words/${file}.mp3`),...Object.values(SFX_FILES)];
+      // Lv5 dragon clips load at first use, never with the initial vocabulary.
+      const standardSfx=Object.entries(SFX_FILES)
+        .filter(([key])=>!['fireDragon','fireDragonBall','fireGround'].includes(key))
+        .map(([,file])=>file);
+      const paths = [...words.map(w=>WORD_FILES[w.jp]).filter(Boolean).map(file=>`assets/audio/words/${file}.mp3`),...new Set(standardSfx)];
       let next = 0;
       const worker = async()=>{while(next<paths.length){const path=paths[next++];try {await loadBuffer(path,ac);}catch(e){}}};
       for(let i=0;i<4;i++) worker();
@@ -524,7 +549,7 @@ window.AUDIO = (() => {
         if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(id);
       }
       bgmRamps.clear();
-      musicTracks().forEach(audio => { audio.volume = musicVolume(); });
+      musicTracks().forEach(audio => { audio.volume = musicTarget(audio); });
       if (muted) musicTracks().forEach(audio => audio.pause());
       else if (musicShouldPlay && activeBgm) playMusic(activeBgm, true);
       if (muted) {
@@ -789,16 +814,29 @@ window.AUDIO = (() => {
       playHyoshigi(0.22);
     },
 
-    // 背景音樂：旅路地圖用 MAP.mp3、遊戲用 BGM.mp3。
+    // Only the final boss' broken seal changes the music; audio is not fetched on entry.
+    startBossMusic() {
+      if (bossMusic) return;
+      bossMusic = true; bossMix = 0;
+      const boss = window.BOSS_BGM;
+      if (boss && !muted && !suspended) {
+        boss.volume = 0;
+        bgmAttempts.delete(boss);
+        playMusic(boss, true);
+      }
+    },
+
+    // 背景音樂：MAP 地圖、BGM 戰鬥、最終 Boss 破封後 BOSS.mp3。
     // 外部檔不存在時才退回日式五音程序化循環。
     updateBgm(dt, state, elapsed, dawnTime) {
       if (suspended || state === "lampout") return;
       const paused = state === "pause";
       if (pauseDucking !== paused) {
         pauseDucking = paused;
-        musicTracks().forEach(audio => rampMusicVolume(audio, musicVolume(), 220));
+        musicTracks().forEach(audio => rampMusicVolume(audio, musicTarget(audio), 220));
       }
-      const isMusicActive = (state === "play" || state === "levelup" || state === "pause" || state === "overworld");
+      // Keep boss music through the final death/victory cinematic; end at results.
+      const isMusicActive = (state === "play" || state === "levelup" || state === "pause" || state === "overworld" || state === "victory");
       musicShouldPlay = isMusicActive && !muted;
       if (muted || !isMusicActive) {
         musicTracks().forEach(audio => {
@@ -808,6 +846,24 @@ window.AUDIO = (() => {
         return;
       }
 
+      const boss = state !== 'overworld' && bossMusic && window.BOSS_BGM;
+      if (boss) {
+        if (activeBgm !== boss) {
+          activeBgm = boss;
+          bgmAttempts.delete(boss);
+          boss.volume = 0;
+        }
+        playMusic(boss);
+        if (bossMix < 1 && window.BGM) playMusic(window.BGM);
+        bossMix = Math.min(1, bossMix + Math.max(0, dt) / 1.1);
+        boss.volume = musicVolume() * bossMix;
+        if (window.BGM) {
+          window.BGM.volume = musicVolume() * (1 - bossMix);
+          if (bossMix >= 1 && !window.BGM.paused) window.BGM.pause();
+        }
+        if (window.MAP_BGM && !window.MAP_BGM.paused) window.MAP_BGM.pause();
+        return;
+      }
       const desiredBgm = state === "overworld"
         ? (window.MAP_BGM || window.BGM)
         : window.BGM;
@@ -856,6 +912,10 @@ window.AUDIO = (() => {
     }
   };
 
+  // Separate dragon cues with normal foxfire as their missing-audio fallback.
+  api.fireDragon=()=>api.fireball(1);
+  api.fireDragonBall=()=>api.fireball(1);
+  api.fireGround=()=>api.fireball(1);
   // 對外 API 保持不變；只替 SFX 方法加上一層「MP3 優先、合成音 fallback」。
   [...new Set([...Object.keys(SFX_FILES),...Object.keys(RANKED_SFX)])].forEach(name => {
     const fallback = api[name];
@@ -863,12 +923,19 @@ window.AUDIO = (() => {
     api[name] = (...args) => {
       const level=args[0];
       if(RANKED_SFX[name] && Number.isInteger(level) && level>=1 && level<=5) {
-        const key=name+(level===5?'Max':'Base');
+        const key=name+(name==='fireball'||level!==5?'Base':'Max');
         return playExternalSfx(key,()=>playExternalSfx(name,fallback,[]),[]);
       }
       return playExternalSfx(name, fallback, args);
     };
   });
 
+  // Prepare three Lv5 cues only after the player acquires the dragon skill.
+  api.preloadDragon=()=>{
+    if(muted||suspended||typeof fetch!=='function')return;
+    const ac=getCtx();if(!ac?.decodeAudioData)return;
+    for(const key of ['fireDragon','fireDragonBall','fireGround'])
+      loadBuffer(SFX_FILES[key],ac).catch(()=>{});
+  };
   return api;
 })();

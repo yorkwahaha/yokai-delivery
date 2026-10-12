@@ -36,10 +36,96 @@ window.SKILLFX = (() => {
     artFx.push({key,max:life,life,...o});
   }
   function pushRankedArt(id,rank,legacyKey,o={}) { pushArt(rankedKey(id,rank,legacyKey),o); }
+  function drawBarrierRaster(ctx,p,fade) {
+    const image = window.barrierCoreArt?.(p.rank) || art(p.key);
+    if (!image) return false;
+    const tier = window.barrierArtTier?.(p.rank) || {scale:1,alpha:0.90};
+    const progress = Math.max(0, p.max-p.life);
+    const inT = Math.min(1,progress/0.15);
+    const ease = 1-Math.pow(1-inT,3);
+    const pulse = motion() ? 1+Math.sin(progress*5)*0.012 : 1;
+    const size = p.r*2.18*tier.scale*(0.67+ease*0.33)*pulse;
+    const intensity = tier.alpha*ease*fade;
+    const angle = motion() ? progress*0.11 : 0;
+    return drawImageArt(ctx,image,{x:p.x,y:p.y,w:size,ang:angle,a:intensity});
+  }
+  const OFUDA_PROJECTILE_SCALE = Object.freeze([.92,.96,1,1.04,1.08]);
+  function drawOfudaProjectile(ctx,rank,p) {
+    const image = window.ofudaRasterArt?.("main");
+    if (!image) return false;
+    const t = p.age ?? (p.spin||0)/16;
+    const alpha = Math.max(0,Math.min(1,t/.09,(p.life??.3)/.18))*(p.exitAlpha??1);
+    const sway = motion() ? Math.sin(t*5.5)*.085 : 0;
+    // The caller's VIEWPORT.upright() anchors this floating paper above the floor.
+    return drawImageArt(ctx,image,{x:p.x,y:p.y-22,
+      w:104*OFUDA_PROJECTILE_SCALE[rank-1],ang:sway,
+      sx:motion()?1+Math.sin(t*7)*.025:1,a:alpha});
+  }
+  function drawOfudaImpact(ctx,p) {
+    const image = window.ofudaRasterArt?.(p.ofudaImpact);
+    if (!image) return false;
+    const age = Math.max(0,p.max-p.life),max = p.ofudaImpact==="max";
+    const emerge = Math.min(1,age/.065);
+    const fade = Math.min(1,p.life/(max?.19:.14));
+    const width = (max?240:[126,136,148,160][Math.min(3,p.rank-1)])
+      *(.73+.27*(1-Math.pow(1-emerge,3)));
+    const paint = () => drawImageArt(ctx,image,{
+      x:p.x,y:p.y-(max?40:28),w:width,
+      ang:motion()?Math.sin(age*6)*.035:0,a:emerge*fade
+    });
+    // Impact paintings are vertical sprites. Camera pitch acts only on the anchor.
+    if(window.VIEWPORT?.upright) window.VIEWPORT.upright(ctx,p.x,p.y,paint);
+    else paint();
+    return true;
+  }
+  function drawThunderRaster(ctx,p){
+    const img=window.thunderRasterArt?.(p.thunderRaster);
+    if(!img)return false;
+    const kind=p.thunderRaster,age=Math.max(0,p.max-p.life),max=p.rank===5;
+    const fade=Math.min(1,p.life/(kind==='cloud'?.14:.08));
+    const appear=Math.min(1,age/(kind==='mark'?.06:.04));
+    const alpha=fade*appear;
+    if(kind==='mark'){
+      // World-ground camera matrix applies pitch exactly once.
+      const w=(max?162:115)*(.7+.3*(1-Math.pow(1-appear,3)));
+      return drawImageArt(ctx,img,{x:p.x,y:p.y,w,a:alpha*.88,ang:motion()?age*.08:0});
+    }
+    const paint=()=>{
+      if(kind==='cloud'){
+        const w=max?152:[102,110,116,124][Math.min(3,p.rank-1)];
+        return drawImageArt(ctx,img,{x:p.x,y:p.y-(max?175:158)+(motion()?Math.sin(age*4)*2:0),
+          w:w*(motion()?1+.012*Math.sin(age*5):1),a:alpha*(max?.92:.86)});
+      }
+      // The upright bolt's bottom edge is anchored at the ground strike origin.
+      const h=max?222:194,w=max?150:124;
+      return drawImageArt(ctx,img,{x:p.x,y:p.y-h/2,w:w*(.94+.06*appear),
+        h:h*(.97+.03*appear),a:alpha});
+    };
+    if(window.VIEWPORT?.upright)window.VIEWPORT.upright(ctx,p.x,p.y,paint);
+    else paint();
+    return true;
+  }
   function drawArtFx(ctx,ground=false){
     for(const p of artFx){
       if(!!p.ground!==ground || p.delay>0)continue;
       const fade=Math.min(1,p.life/Math.max(.001,p.max)*1.45);
+      if(p.barrierRaster && drawBarrierRaster(ctx,p,fade)) continue;
+      if(p.ofudaImpact && drawOfudaImpact(ctx,p)) continue;
+      if(p.thunderRaster && drawThunderRaster(ctx,p)) continue;
+      const onmyo=window.ONMYO_VFX;
+      if(onmyo && p.onmyo){
+        const age=Math.max(0,p.max-p.life);
+        const paint=()=>{
+          if(p.onmyo==='seal') onmyo.seal(ctx,p.x,p.y,p.r,age,p.rank,fade);
+          if(p.onmyo==='mark') onmyo.lightningMark(ctx,p.x,p.y,p.r,age,fade);
+          if(p.onmyo==='cloud') onmyo.cloud(ctx,p.x,p.y-146,age,p.rank,fade);
+          if(p.onmyo==='strike') onmyo.strike(ctx,p.x,p.y,age,p.rank,fade);
+        };
+        if(ground)paint();
+        else if(window.VIEWPORT?.upright)window.VIEWPORT.upright(ctx,p.x,p.y,paint);
+        else paint();
+        continue;
+      }
       drawArt(ctx,p.key,{...p,a:(p.a??1)*fade});
     }
   }
@@ -47,8 +133,23 @@ window.SKILLFX = (() => {
   function define(id,events) { skills[id] = events; }
   function play(id,event,level,params={}) {
     const rank=tierOf(level),fn=skills[id]?.[event];if(!fn)return;
+    if(id==='boom'&&event==='trail'&&window.ofudaRasterArt?.('main')){
+      if(Math.random()<.4) emit('spark','#dfbba1',{x:params.x,y:params.y,
+        life:.12,s0:4,s1:1,a:.36,vy:-12});
+      return;
+    }
     if(id==='barrier'&&event==='cast'&&rank===5){earthCast(params);accent(id,event,rank,params);return;}
     if(id==='boom'&&event==='hit'){
+      const kind=rank===5?'max':'hit';
+      if(window.ofudaRasterArt?.(kind)){
+        // Raster is the impact itself; retain the existing burn side effect.
+        if(rank!==5) ignite(params.target,rank===1?1.2:2,Math.min(rank,2));
+        pushArt(null,{x:params.x,y:params.y,rank,ofudaImpact:kind,ground:false,
+          life:rank===5?.52:.38});
+        chips(params.x,params.y,rank===5?'#d95656':'#d0b392',
+          rank===5?7:3,{speed:rank===5?170:110,size:rank===5?9:6,life:.22});
+        return;
+      }
       if(rank===5){explosion(params);accent(id,event,rank,params);return;}
       ignite(params.target,rank===1?1.2:2,Math.min(rank,2));
     }
@@ -58,6 +159,11 @@ window.SKILLFX = (() => {
   }
   function paint(ctx,id,level,params={}) {
     const rank=tierOf(level);
+    if(id==='boom' && drawOfudaProjectile(ctx,rank,params)) return;
+    if(id==='boom'&&window.ONMYO_VFX?.ofuda){
+      window.ONMYO_VFX.ofuda(ctx,params.x,params.y, (params.spin||0)/16,rank);
+      return;
+    }
     if(id==='needle'&&rank===5){iceNeedle(ctx,params,rank);return;}
     if(id==='fire'&&rank===5&&!params.orbit){dragonBody(ctx,params,rank);return;}
     if(id==='boom'&&rank===5){yinBody(ctx,params,rank);return;}
@@ -131,6 +237,8 @@ window.SKILLFX = (() => {
     ctx.restore();
   }
   function accent(id,event,rank,p){
+    if(id==="thunder" && ["strike","storm"].includes(event) &&
+      (window.thunderRasterArt?.(rank===5?"max":"strike")||window.thunderRasterArt?.("cloud"))) return;
     const trailing=['trail','ember','ghostTrail'].includes(event);
     if(trailing&&rank<4)return;
     const {x,y}=p,size=trailing?[0,0,0,20,30][rank-1]:[40,54,70,90,124][rank-1];
@@ -153,6 +261,21 @@ window.SKILLFX = (() => {
   }
 
   function explosion({x,y,r=135}){
+    if(window.ONMYO_VFX?.ofuda){
+      // MAX remains a two-beat damaging explosion; redraw only its presentation.
+      emit('edge','#f3e4da',{x,y,ground:true,sy:1,life:.35,
+        s0:60,s1:r*2.1,a:.8,ease:true});
+      emit('edge','#dd555a',{x,y,ground:true,sy:1,life:.42,
+        s0:46,s1:r*1.65,a:.7,ease:true});
+      for(let i=0;i<12;i++){
+        const a=i*Math.PI/6,v=150+i%3*35;
+        emit('seal',i%2?'#fff1dc':'#d74d56',{x,y,life:.42,
+          vx:Math.cos(a)*v,vy:Math.sin(a)*v-20,drag:3,
+          rot:a,vr:2,s0:24,s1:5,a:.9});
+      }
+      chips(x,y,'#f17f80',14,{speed:260,size:12,life:.35});
+      return;
+    }
     emit('yin','#eee8cf',{x,y,life:0.25,s0:128,s1:48,a:0.95});
     emit('edge','#ffb566',{x,y,life:0.45,delay:motion()?0.08:0,s0:60,s1:r*2.1,a:0.9,ground:true,sy:SQ,ease:true});
     emit('edge','#fbe7a3',{x,y,life:0.35,delay:0.05,s0:40,s1:r*1.7,a:0.75,ground:true,sy:SQ,ease:true});
@@ -165,6 +288,26 @@ window.SKILLFX = (() => {
   }
 
   function earthCast({x,y,r}){
+    if(window.barrierCoreArt?.(5)){
+      pushArt('barrier_core_main',{x,y,r,rank:5,barrierRaster:true,
+        ground:true,life:.88});
+      emit('glow','#65d3ce',{x,y,life:.3,s0:r*.6,s1:r*1.3,
+        a:.2,ground:true,sy:1,blend:'source-over'});
+      return;
+    }
+    if(window.ONMYO_VFX?.seal){
+      pushArt(null,{onmyo:'seal',x,y,r,rank:5,ground:true,life:.78});
+      emit('edge','#7ce6df',{x,y,life:.5,s0:r*.8,s1:r*2.1,
+        ground:true,sy:1,a:.6,blend:'source-over'});
+      for(let i=0;i<8;i++){
+        const a=i*Math.PI/4;
+        const px=x+Math.cos(a)*r*.22,py=y+Math.sin(a)*r*.22;
+        emit('rock',i%2?'#879b8f':'#b2d3c4',{x:px,y:py,foot:true,priority:true,
+          life:.65,s0:22,s1:r*.56,a:.78,
+          vx:Math.cos(a)*r*1.8,vy:Math.sin(a)*r*1.8,drag:2.4});
+      }
+      return;
+    }
     pushRankedArt('barrier',5,'barrier_mandala_ukiyoe',{x,y,w:r*2.32,ground:true,life:.68,a:.92});
     emit('edge','#ffd54f',{x,y,life:0.55,s0:r*.5,s1:r*2.2,a:0.85,ground:true,sy:SQ,rot:0.1,ease:true});
     emit('edge','#d48800',{x,y,life:0.58,s0:r*.4,s1:r*1.9,a:0.7,ground:true,sy:SQ,rot:-0.2,ease:true});
@@ -184,7 +327,7 @@ window.SKILLFX = (() => {
     const image=rankedVariantArt('fire','dragon',rank) || art('foxfire_dragon_ukiyoe');
     if(!image)return;
     const face=Math.cos(ang)<0?-1:1;
-    const alpha=Math.min(1,age/0.28,Math.max(0,(3-age)/0.35));
+    const alpha=Math.max(0,Math.min(1,age/0.16,(2.2-age)/0.2));
     drawImageArt(ctx,image,{x,y:y+(motion()?Math.sin(age*8)*2:0),w:size,sx:face,a:alpha});
   }
   function ghostBody(ctx,{x,y,ang=0,scale=1}){
@@ -231,6 +374,26 @@ window.SKILLFX = (() => {
   // 靈陣：單咒盤 → 雙刻線 → 反轉雙盤＋十二方刻印；中心始終留空。
   define("barrier",{
     cast(t,{x,y,r},rank=t) {
+      if(window.barrierCoreArt?.(rank)){
+        pushArt('barrier_core_main',{x,y,r,rank,barrierRaster:true,
+          ground:true,life:T(t,.64,.72,.82)});
+        // Small pulse only: the painted image is the visual focus.
+        emit('glow','#65d3ce',{x,y,life:.28,s0:r*.54,s1:r*1.18,
+          a:.18,ground:true,sy:1,blend:'source-over'});
+        return;
+      }
+      if(window.ONMYO_VFX?.seal){
+        pushArt(null,{onmyo:'seal',x,y,r,rank,ground:true,life:.58});
+        for(let i=0;i<6;i++){
+          const a=i*Math.PI/3,dx=Math.cos(a)*r*.72,dy=Math.sin(a)*r*.72;
+          emit('spark',i%3===0?'#ead5ac':'#a8f8ee',
+            {x:x+dx,y:y+dy,life:.37,s0:12,s1:3,a:.78,ground:false,
+              vx:Math.cos(a)*24,vy:-18,priority:false});
+        }
+        emit('edge','#47cbbd',{x,y,life:.30,s0:r*1.8,s1:r*2.05,
+          a:.43,ground:true,sy:1,blend:'source-over'});
+        return;
+      }
       pushRankedArt('barrier',rank,'barrier_mandala_ukiyoe',{x,y,w:r*2.22,ground:true,life:T(t,.34,.42,.52),a:T(t,.44,.62,.8)});
       const edge=(scale,delay,a)=>emit('edge','#d8b86e',{x,y,life:0.42,delay,s0:r*scale,s1:r*2.05,a,ease:true,ground:true,sy:SQ});
       edge(1.45,0,0.55);
@@ -286,10 +449,27 @@ window.SKILLFX = (() => {
   // 陰陽符：硃砂紙符 → 雙符火尾 → 撕符爆裂；MAX 的強度來自碎符與二拍衝擊。
   define("boom",{
     trail(t,{x,y}) {
+      if(window.ONMYO_VFX?.ofuda){
+        for(let i=count(T(t,1,2,3));i>0;i--){
+          emit(i%2?'spark':'shard',i%2?'#faeee2':'#d6524c',
+            {x:x+rnd(-8,8),y:y+rnd(-8,8),life:.20,s0:8,s1:2,a:.65,
+              vx:rnd(-26,26),vy:-rnd(12,38),drag:3});
+        }
+        return;
+      }
       for(let i=count(T(t,1,2,3));i>0;i--)flame(x+rnd(-3,3),y+rnd(-3,3),T(t,10,15,20),'#ce623d',0.22,{vy:-rnd(18,36),vx:rnd(-12,12),drag:3});
       if(t>=2)emit('seal','#cfbb93',{x,y,life:0.18,s0:T(t,0,12,18),s1:5,rot:0.25,a:T(t,0,0.38,0.55)});
     },
     hit(t,{x,y,target}) {
+      if(window.ONMYO_VFX?.ofuda){
+        chips(x,y,'#ee4f53',T(t,3,6,9),
+          {speed:175,size:T(t,7,9,12),life:.32});
+        for(let i=0;i<4;i++)
+          emit('seal',i%2?'#fff1d9':'#c63846',{x,y,life:.3,
+            vx:rnd(-100,100),vy:-rnd(35,95),drag:3,
+            s0:13,s1:3,rot:i*.5,vr:2,a:.85});
+        return;
+      }
       if(t<3){
         ignite(target,T(t,1.2,2),t);
         for(let i=0;i<T(t,2,4,0);i++)flame(x+rnd(-5,5),y+rnd(-5,5),T(t,16,22,0),'#d96538',0.3,{vy:-rnd(30,60),vx:rnd(-20,20),drag:3});
@@ -385,6 +565,48 @@ window.SKILLFX = (() => {
   // 落雷：單線 → 寬芯＋碎屑 → 分叉後拍；不鋪地面圈、不做全畫面閃白。
   define("thunder",{
     strike(t,{x,y,stormChild,delay=0.08},rank=t) {
+      // Image-led thunder; each failed/missing part retains the matching legacy art.
+      const artFor=kind=>window.thunderRasterArt?.(kind);
+      const bolt=rank===5?'max':'strike';
+      if(artFor('cloud')||artFor('mark')||artFor(bolt)){
+        const wait=motion()?delay:0;
+        const component=(kind,life,ground,r)=>{
+          if(artFor(kind))pushArt(null,{thunderRaster:kind,x,y,rank,ground,life,delay:wait});
+          else if(window.ONMYO_VFX)
+            pushArt(null,{onmyo:kind==='max'?'strike':kind,
+              x,y,rank,r,ground,life,delay:wait});
+        };
+        component('mark',.32,true,stormChild?38:30);
+        if(!stormChild)component('cloud',.45,false,0);
+        component(bolt,stormChild?.33:.28,false,0);
+        emit('glow','#8bdef2',{x,y,life:.12,s0:28,s1:65,
+          a:.16,ground:true,sy:1,delay:wait});
+        for(let i=0;i<(rank===5?6:3);i++){
+          const a=i*Math.PI*2/(rank===5?6:3);
+          emit('spark','#d9f9ff',{x:x+Math.cos(a)*19,y:y+Math.sin(a)*12,
+            life:.16,delay:wait,s0:rank===5?8:5,s1:1,vy:-24,a:.52});
+        }
+        return;
+      }
+
+      if(window.ONMYO_VFX?.strike){
+        const wait=motion()?delay:0;
+        pushArt(null,{onmyo:'mark',x,y,r:stormChild?38:30,rank,
+          life:.42,delay:wait,ground:true});
+        pushArt(null,{onmyo:'cloud',x,y,rank,
+          life:stormChild?.55:.42,delay:wait,ground:false});
+        pushArt(null,{onmyo:'strike',x,y,rank,
+          life:stormChild?.33:.28,delay:wait,ground:false});
+        emit('glow','#83d6f2',{x,y,life:.24,s0:36,s1:84,
+          a:.24,ground:true,sy:1,blend:'lighter',delay:wait});
+        for(let i=0;i<5;i++){
+          const a=i*6.283/5,rr=24+(i%2)*10;
+          emit('spark',i%2?'#a8f5ff':'#fff9de',
+            {x:x+Math.cos(a)*rr,y:y+Math.sin(a)*rr,life:.22,
+              delay:wait,s0:13,s1:2,vy:-40,a:.88});
+        }
+        return;
+      }
       pushRankedArt('thunder',stormChild?Math.min(rank,4):rank,'thunder_ukiyoe',{x,y:y-126,w:stormChild?88:[58,72,88,104,122][rank-1],life:stormChild ? .34 : .26,delay:motion()?delay:0,a:stormChild ? .9 : .84});
       const paintedThunder=!!rankedArt('thunder',stormChild?Math.min(rank,4):rank) || !!art('thunder_ukiyoe');
       if(stormChild){
@@ -403,6 +625,17 @@ window.SKILLFX = (() => {
   });
 
   skills.thunder.storm=(t,{x,y,r,delay=0},rank=t)=>{
+    if(window.thunderRasterArt?.("cloud")){
+      pushArt(null,{thunderRaster:"cloud",x,y,rank,life:.68,
+        delay:motion()?delay:0,ground:false});
+      return;
+    }
+
+    if(window.ONMYO_VFX?.cloud){
+      pushArt(null,{onmyo:'cloud',x,y,rank,
+        life:.7,delay:motion()?delay:0,ground:false});
+      return;
+    }
     pushRankedArt('thunder',rank,'thunder_drum_ukiyoe',{x,y:y-104,w:rank===5?176:150,life:.66,delay:motion()?delay:0,a:.86});
     // 主視覺縮小並降低密度，仍與同座標落雷成對。
     const cy = y - 82;

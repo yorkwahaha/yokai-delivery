@@ -25,6 +25,18 @@
   CONTROLS.mount();
   const controlsButton = document.getElementById("controls-open");
   const viewBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:W,bottom:H,width:W,height:H};
+  const tiltK = () => window.VIEWPORT?.tiltScale?.() || 1;
+  const worldViewBounds = () => window.VIEWPORT?.worldBounds?.() || viewBounds();
+  const upright = (x,y,draw) => window.VIEWPORT.upright(ctx,x,y,draw);
+  const uprightHere = (x,y) => {
+    const k=tiltK();
+    if(k!==1){ctx.translate(x,y);ctx.scale(1,1/k);ctx.translate(-x,-y);}
+  };
+  const tiltWorld = (cam,shake) => {
+    const k=tiltK();
+    ctx.translate(-cam.x+shake.x,(-cam.y+shake.y)*k);
+    if(k!==1)ctx.scale(1,k);
+  };
   const isPortrait = () => window.innerWidth <= 900 && window.innerHeight >= window.innerWidth;
   addEventListener("resize", () => {
     RENDERER.resize?.(); joy = null;
@@ -46,7 +58,9 @@
   };
 
   // ---------- Stage / Word Pack / Chunk 世界 ----------
-  let WORLD_STATE = window.WORLD.createStageWorld(STAGE, window.CONTENT);
+  const worldSpacingScaleY = () => window.VIEWPORT?.spacingScaleY?.() || 1;
+  let WORLD_STATE = window.WORLD.createStageWorld(STAGE, window.CONTENT,
+    {spacingScaleY:worldSpacingScaleY()});
   const houses = [], solids = [], LAMPS = [], activeChunks = [];
   const ALL = window.CONTENT.getStageWords(STAGE);
   const MIS_SPEED = 200;
@@ -291,6 +305,19 @@
   let choices = [], levelupCooldown = 0, joy = null, touch = window.matchMedia?.("(pointer: coarse)")?.matches || false, inter = null, cargo = { x: 0, y: 0 }, pTrail = [], last = performance.now();
   const btnE = { x: 810, y: 420, r: 38 }, btnD = { x: 810, y: 530, r: 46 };
   const btnPause = { x: W - 52, y: 14, w: 38, h: 52 };
+  // Compact interactive view switch below pause, outside the minimap's right edge.
+  const btnView = { id: 'view-toggle', x: W - 66, y: 80, w: 52, h: 44 };
+  function toggleViewMode() {
+    const viewport = window.VIEWPORT;
+    if (!viewport?.setTiltScale || state !== 'play') return;
+    const next = (viewport.tiltTargetScale?.() ?? viewport.tiltScale()) === 1 ? 0.6 : 1;
+    // Projection animates in world space over 0.8 s; buildings and collisions
+    // stay fixed. Respect reduced-motion without compromising the switch.
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    viewport.animateTiltScale(next, reduce ? 0 : 0.8);
+    // Do not teleport the camera: each frame compensates around the courier.
+    keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
+  }
   let gpPrevButtons = [], gpMove = { x: 0, y: 0 };
 
   let bossT = BOSS_TIMES[0], bossStage = 0, finalBossDefeated = false;
@@ -348,7 +375,8 @@
     STAGE_PACING = STAGE.pacing || {};
     STAGE_VISUAL = STAGE.visual || {};
     STAGE_ENEMY = STAGE.enemy || {};
-    START = STAGE.start || { x: 1350, y: 900 };
+    const sourceStart = STAGE.start || { x: 1350, y: 900 };
+    START = {x:sourceStart.x,y:sourceStart.y*worldSpacingScaleY()};
     DAWN = STAGE_PACING.runSeconds || CFG.RUN_SECONDS;
     GOAL_DELIVERIES = STAGE_PACING.goalDeliveries || CFG.GOAL_DELIVERIES;
     BOSS_TIMES = STAGE_PACING.bossTimes || CFG.BOSS_TIMES;
@@ -357,7 +385,8 @@
     XP_NEED_SCALE = STAGE_PACING.xpNeedScale || 1;
     SPAWN_INTERVAL_SCALE = STAGE_PACING.spawnIntervalScale || 1;
     SPAWN_COUNT_BONUS = STAGE_PACING.spawnCountBonus || 0;
-    WORLD_STATE = window.WORLD.createStageWorld(STAGE, window.CONTENT);
+    WORLD_STATE = window.WORLD.createStageWorld(STAGE, window.CONTENT,
+      {spacingScaleY:worldSpacingScaleY()});
     replaceList(ALL, window.CONTENT.getStageWords(STAGE));
   }
 
@@ -393,7 +422,7 @@
   const WEAPON_UPGRADES = {
     katana:["暖光單刃，斬擊前方妖怪","雙刃交叉，距離 +16、傷害 +0.8","三刃收束，距離與傷害再提升","蓄風四刃；下一階射出穿透風刃","覺醒・斷空殘月斬：世界距離 720、最多 6 體，前三全傷其後 ×0.75，冷卻下限 0.6 秒"],
     barrier:["展開單盤除魔陣，低傷害全方位攻擊","雙盤刻印，範圍擴大、傷害小幅提升","反轉雙盤，範圍與傷害再提升","蓄勢大陣，半徑 252，命中可震退敵人","覺醒・金剛退魔曼荼羅：半徑縮為 220，換 1.8 秒地面緩速；不回油、不聚怪"],
-    fire:["一顆狐火環繞護身，僅接觸周遭妖怪","兩顆狐火環繞護身，不主動飛出","三顆狐火環繞護身，不主動飛出","三顆護火，其中一顆離體追敵後回歸","覺醒・墨焰黑龍：三顆護火，每 6 秒一條黑龍；不再離體。焦土最多 2 處"],
+    fire:["一顆狐火環繞護身，僅接觸周遭妖怪","兩顆狐火環繞護身，不主動飛出","三顆狐火環繞護身，不主動飛出","三顆護火，其中一顆離體追敵後回歸","覺醒・墨焰黑龍：三顆護火，每 7.2 秒一條黑龍（露臉 1.5 秒＋退場後 5 秒）；不再離體。每次三球、五秒焦土最多三處"],
     boom:["單符回旋，穿透路徑上的妖怪","一次擲出 2 枚符咒","三符碎焰，冷卻縮短","蓄火四符；下一階改為投射爆符","覺醒・兩儀太極湮滅：兩枚爆符，半徑 135，單波最多清除 6 發普通彈"],
     thunder:["190 範圍內攻擊最近 1 隻，傷害 2 倍係數","270 範圍內同時攻擊 2 隻，傷害 3 倍係數","350 範圍內同時攻擊 3 隻，傷害 4.5 倍係數，不依生命秒殺","450 範圍內鎖定 3 個威脅，固定 6 倍係數","覺醒・建御雷神破界天罰：450 範圍內三朵雷雲，每朵半徑 90、8 倍係數"],
     needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階弧線射出","覺醒・九尾極寒靈暴：八發追蹤冰針，單層殉爆最多再命中 3 隻，不連鎖"]
@@ -583,7 +612,7 @@
     worldSyncSignature = "";
     syncWorld(true);
     makeOrder();
-    RENDERER.setCam(P.x - W / 2, P.y - H / 2);
+    RENDERER.setCam(P.x - W / 2, P.y - H / (2 * tiltK()));
     checkTutorial();
   }
 
@@ -626,6 +655,7 @@
           if (k === "barrier") wT.barrier = 0;
           if (k === "needle") wT.needle = 0;
           if (k === "fire" || k === "thunder") wT[k] = 0;
+          if (k === "fire" && WL[k] === 5) AUDIO.preloadDragon?.();
         }
       };
     };
@@ -1026,6 +1056,7 @@
 
     if (t >= VICTORY.settle) {
       state = "won";
+      AUDIO.stopBossMusic?.();
       endCooldown = 0.8;
     }
   }
@@ -1230,6 +1261,7 @@
       noteSuccess("boss", assisted);
       bs.shield = false;
       bs.quizzed = true;
+      if (bs.final) AUDIO.startBossMusic?.();
       bossSealBreak = { boss: bs, at: performance.now() };
       bossQ = null;
       bs.quiz = null;
@@ -1400,7 +1432,7 @@
         const crit=rollCrit(0.2,0.15);
         hurt(e, wave.dmg * pierceScale * crit.mult, crit.isCrit);SKILLFX.play("katana","hit",5,{x:e.x,y:e.y,ang:wave.ang,crit:crit.isCrit});
       }
-      const cam=RENDERER.getCam(),view=viewBounds(),margin=wave.size*0.62;
+      const cam=RENDERER.getCam(),view=worldViewBounds(),margin=wave.size*0.62;
       const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
       if(wave.x<left-margin||wave.x>right+margin||wave.y<top-margin||wave.y>bottom+margin||wave.traveled>=wave.maxTravel)wave.life=0;
     }
@@ -1579,12 +1611,13 @@
             const slot=Math.floor(k*count/n),a=fAng+(slot*6.283)/count;
             ghosts.push(EVOLUTIONS.fireSpirit(P,a,WL.fire,slot));
           }
+          AUDIO.fireball(4); // Detached foxfire uses the same fire-lv1-4 sound as orbiting flames.
           fireAttackT=EVOLUTIONS.fireAttackCooldown(WL.fire);
         }
       }
     }
 
-    // MAX foxfire: one dragon every 6 seconds, aimed at a pack ahead rather than the player's feet.
+    // MAX: 0.35s entry, 1.5s fully visible, 0.35s exit, then 5s offscreen.
     if(WL.fire===5){
       wT.fire=Math.max(0,wT.fire-dt);
       const face = P.faceAng || 0;
@@ -1604,8 +1637,8 @@
         if (n > bestN) { target = e; bestN = n; }
       }
       if(wT.fire<=0 && target && !ghosts.some(g=>g.dragon&&g.life>0)){
-        wT.fire=wMax.fire=6;
-        const cam=RENDERER.getCam(),view=viewBounds();
+        wT.fire=wMax.fire=7.2;
+        const cam=RENDERER.getCam(),view=worldViewBounds();
         const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
         // 黑龍在原版尺寸上放大 1.5 倍，仍維持左右側入場。
         const face=target.x>=P.x?1:-1,size=clamp(view.width*0.66,450,1020);
@@ -1614,14 +1647,14 @@
         const y=clamp(P.y-90,top+view.height*0.27,bottom-view.height*0.23);
         const summoned=EVOLUTIONS.dragon(P,face>0?0:Math.PI,Math.random()*6.283,{startX,endX,y,size});
         summoned.target=target;ghosts.push(summoned);
-        AUDIO.fireball(WL.fire);
+        AUDIO.fireDragon?.();
       }
     }
     for(const spirit of ghosts){
       if(spirit.dragon){
         // Follow the visible screen edge as the courier and camera move.
         if(spirit.entry){
-          const cam=RENDERER.getCam(),view=viewBounds(),side=spirit.faceX,size=spirit.size;
+          const cam=RENDERER.getCam(),view=worldViewBounds(),side=spirit.faceX,size=spirit.size;
           const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
           spirit.entry.startX=side>0?left-size*0.8:right+size*0.8;
           spirit.entry.endX=side>0?left+size*0.08:right-size*0.08;
@@ -1633,10 +1666,27 @@
       else {EVOLUTIONS.seek(spirit,dt,enemies);if(!EVOLUTIONS.move(spirit,dt,blocked,10))continue;}
       if(!spirit.dragon&&(spirit.trail-=dt)<=0){spirit.trail=0.05;SKILLFX.play("fire","ghostTrail",spirit.level??5,spirit);}
       if(spirit.dragon){
-        if(!spirit.shot && spirit.age>=1.08){
+        if(!spirit.shot && spirit.age>=0.60){
           const target=(spirit.target?.hp>0&&!spirit.target.shield?spirit.target:null) || enemies.filter(e=>e.hp>0&&!e.shield).sort((a,b)=>dist(spirit,a)-dist(spirit,b))[0] ||
             {x:spirit.x+Math.cos(spirit.ang)*440,y:spirit.y+Math.sin(spirit.ang)*440};
-          dragonShots.push(EVOLUTIONS.dragonFireball(spirit,target));
+          const cam=RENDERER.getCam(), view=worldViewBounds();
+          const left=cam.x+view.left+30,right=cam.x+view.right-30,top=cam.y+view.top+30,bottom=cam.y+view.bottom-30;
+          const angle=Math.random()*Math.PI*2,landings=[];
+          for(let k=0;k<3;k++){
+            let point=null;
+            for(let attempt=0;attempt<10;attempt++){
+              const a=angle+k*Math.PI*2/3+(Math.random()-.5)*.30+attempt*.41;
+              const radius=105+Math.random()*30;
+              const x=clamp(target.x+Math.cos(a)*radius,left,right),y=clamp(target.y+Math.sin(a)*radius,top,bottom);
+              if(blocked(x,y,30)||landings.some(p=>Math.hypot(p.x-x,p.y-y)<125))continue;
+              point={x,y};break;
+            }
+            // Keep three projectiles even in a crowded village; collision remains authoritative.
+            landings.push(point||{x:clamp(target.x+Math.cos(angle+k*Math.PI*2/3)*165,left,right),
+              y:clamp(target.y+Math.sin(angle+k*Math.PI*2/3)*165,top,bottom)});
+          }
+          for(const point of landings)dragonShots.push(EVOLUTIONS.dragonFireball(spirit,point,true));
+          AUDIO.fireDragonBall?.();
           spirit.shot=true;
         }
         continue;
@@ -1659,7 +1709,9 @@
       if(!impact.impact)continue;
       if(impact.target)hurt(impact.target,12*b.dmg);
       for(const e of enemies)if(e.hp>0&&e!==impact.target&&!e.shield&&Math.hypot(e.x-impact.x,e.y-impact.y)<140)hurt(e,4*b.dmg);
-      if(dragonScorches.length<2) dragonScorches.push({x:impact.x,y:impact.y,life:2.5,maxLife:2.5,r:140,tick:0.6});
+      if(dragonScorches.length===0)AUDIO.fireGround?.();
+      if(dragonScorches.length>=3)dragonScorches.shift();
+      dragonScorches.push({x:impact.x,y:impact.y,life:5,maxLife:5,r:140,tick:0.6});
       SKILLFX.play("fire","hit",5,{x:impact.x,y:impact.y});
       burst(impact.x,impact.y,"#ff7a28",12);
     }
@@ -1720,8 +1772,8 @@
   }
 
   function spawnRadius(minimum) {
-    const area = viewBounds(), cam = RENDERER.getCam();
-    const lag = Math.hypot(P.x - (cam.x + W / 2), P.y - (cam.y + H / 2));
+    const area = worldViewBounds(), cam = RENDERER.getCam();
+    const lag = Math.hypot(P.x - (cam.x + W / 2), P.y - (cam.y + H / (2 * tiltK())));
     return Math.max(minimum, Math.hypot(area.width / 2, area.height / 2) + lag + 64);
   }
 
@@ -2199,7 +2251,7 @@
 
     // 鏡頭平滑追蹤
     const targetCamX = P.x - W / 2;
-    const targetCamY = P.y - H / 2;
+    const targetCamY = P.y - H / (2 * tiltK());
     const curCam = RENDERER.getCam();
     RENDERER.setCam(
       curCam.x + (targetCamX - curCam.x) * Math.min(1, dt * 9),
@@ -2272,7 +2324,7 @@
       ctx.fillStyle = "#fff0cb";
       ctx.font = UI.readableFont(16, "900");
       ctx.textAlign = "center";
-      ctx.fillText("砸地！離開紅圈", h.x, h.y + 8);
+      upright(h.x,h.y,()=>ctx.fillText("砸地！離開紅圈", h.x, h.y + 8));
     } else if (h.kind === "charge") {
       const ang = h.angle || 0;
       const len = 620 * 0.65;
@@ -2326,9 +2378,10 @@
     ctx.restore();
   }
 
+  let frameShakeOffset = {x:0,y:0};
   function drawWorld() {
     const cam = RENDERER.getCam();
-    const shakeOffset = RENDERER.getShakeOffset();
+    const shakeOffset = frameShakeOffset;
     const holdDawn = elapsed >= DAWN && state !== "victory" && state !== "won" && state !== "lost";
     const dawnBlend = state === "victory" ? victoryDawn() : 0;
     const visualElapsed = holdDawn
@@ -2338,14 +2391,15 @@
         : elapsed;
 
     ctx.save();
-    ctx.translate(-cam.x + shakeOffset.x, -cam.y + shakeOffset.y);
-    const view = viewBounds();
+    tiltWorld(cam,shakeOffset);
+    const view = worldViewBounds();
     const nearView = (x, y, margin = 220) =>
       x >= cam.x + view.left - margin && x <= cam.x + view.right + margin &&
       y >= cam.y + view.top - margin && y <= cam.y + view.bottom + margin;
 
     // 1. 地面與道路
     RENDERER.drawGround(visualElapsed, DAWN, activeChunks, STAGE_VISUAL.ground || "ground");
+    RENDERER.drawDistrictLabels?.(activeChunks);
 
     // 2. 地面高空流雲投影視差層 (Far Sky Cloud Shadows, 0.20x)
     RENDERER.drawGroundParallax?.(visualElapsed, DAWN, cam);
@@ -2360,8 +2414,8 @@
       if (lamp && lamp.complete && lamp.naturalWidth) {
         const lw = 44;
         const lh = lw * lamp.naturalHeight / lamp.naturalWidth;
-        RENDERER.drawScenerySprite?.(lamp,l.x-lw/2,l.y-lh+8,lw,lh);
-        FX.glow(ctx, l.x, lampLightY, 32, "#ffe3a0", 0.34);
+        upright(l.x,l.y+8,()=>RENDERER.drawScenerySprite?.(lamp,l.x-lw/2,l.y-lh+8,lw,lh));
+        upright(l.x,l.y+8,()=>FX.glow(ctx, l.x, lampLightY, 32, "#ffe3a0", 0.34));
       } else {
         ctx.fillStyle = "#3a2a22";
         ctx.fillRect(l.x - 2, l.y - 16, 4, 22);
@@ -2416,7 +2470,7 @@
           ctx.textAlign = "center";
           ctx.fillStyle = "#888899";
           ctx.font = job.rev ? UI.readableFont(18, "700") : sceneAnswerFont(19);
-          ctx.fillText(answerText, p.x, p.y + 6);
+          upright(p.x,p.y,()=>ctx.fillText(answerText, p.x, p.y + 6));
           ctx.strokeStyle = "#e57373";
           ctx.lineWidth = 3;
           ctx.beginPath();
@@ -2448,7 +2502,8 @@
     // 6. 手繪封印靈玉：以墨線／和紙亮面取代螢光圓點。
     for (const g of gems) {
       if (!nearView(g.x, g.y, 40)) continue;
-      RENDERER.drawSpiritGem(g, elapsed);
+      // Experience crystals float upright above their ground contact point.
+      upright(g.x, g.y, () => RENDERER.drawSpiritGem(g, elapsed));
     }
 
     // 技能的貼地圖案（淨化靈陣等）畫在所有角色之前，才會被角色蓋住。
@@ -2458,9 +2513,26 @@
       ctx.save();
       ctx.globalAlpha = alpha;
       const sr = sacredSanctuary.r, sx = sacredSanctuary.x, sy = sacredSanctuary.y;
-      const SQ = 0.6; // 俯視地面壓扁比率
+      const SQ = 1.6 - tiltK(); // 圖像預壓縮隨攝影機角度連續變化，避免切換時跳一下
       const mandalaArt = window.ART?.barrier_mandala_ukiyoe;
-      if (mandalaArt?.naturalWidth > 0 && mandalaArt?.naturalHeight > 0) {
+      const coreArt = window.barrierCoreArt?.(5);
+      if (coreArt?.naturalWidth > 0 && coreArt?.naturalHeight > 0) {
+        const tier = window.barrierArtTier?.(5) || {scale:1.18,alpha:0.90};
+        // Preserve the world-ground transform; only vary painted width/opacity.
+        ctx.globalAlpha = tier.alpha * Math.min(1,lifeNorm*1.3);
+        const width = sr*2.15*tier.scale;
+        const height = width*coreArt.naturalHeight/coreArt.naturalWidth;
+        const breathe = 1 + Math.sin(elapsed*2.3)*0.016*liveMotion();
+        ctx.translate(sx,sy);
+        ctx.rotate(liveMotion()?elapsed*.10:0);
+        ctx.scale(breathe,breathe);
+        ctx.drawImage(coreArt,-width/2,-height/2,width,height);
+        ctx.restore();
+      } else if (window.ONMYO_VFX?.seal) {
+        // Ground-space taiji/bagua diagram. The world camera alone applies perspective.
+        window.ONMYO_VFX.seal(ctx,sx,sy,sr,elapsed,5,alpha);
+        ctx.restore();
+      } else if (mandalaArt?.naturalWidth > 0 && mandalaArt?.naturalHeight > 0) {
         const width = sr * 2.32;
         const height = width * mandalaArt.naturalHeight / mandalaArt.naturalWidth;
         const breathe = 1 + Math.sin(elapsed * 3.2) * 0.015 * liveMotion();
@@ -2550,7 +2622,7 @@
     const animateGroundHeat=liveMotion()!==0;
     for(const zone of dragonScorches){
       if(!nearView(zone.x,zone.y,zone.r*1.25))continue;
-      const age=zone.maxLife-zone.life,fade=Math.max(0,Math.min(0.84,zone.life/0.75,age/0.30));
+      const age=zone.maxLife-zone.life,fade=Math.max(0,Math.min(0.84,zone.life/1.0,age/0.30));
       const pulse=animateGroundHeat?1+Math.sin(age*7.5)*0.024:1;
       const w=zone.r*2.1*pulse,h=zone.r*1.23*(animateGroundHeat?1+Math.sin(age*6.2)*0.02:1);
       ctx.save();ctx.globalAlpha=fade;
@@ -2581,27 +2653,41 @@
     const actors = [
       ...houses.filter(h => nearView(h.x, h.y)).map(h => ({ house: h, y: h.y + 48 })),
       ...enemies.filter(e => nearView(e.x, e.y)).map(e => ({ enemy: e, y: e.y + (e.type === "boss" ? 44 : e.type === "mis" ? 27 : 19) })),
-      { player: P, y: P.y + 20 }
+      { player: P, y: P.y + 20 },
+      // Single continuous scenery pass at EVERY tilt. No cached↔live toggle.
+      ...activeChunks.flatMap(chunk => [
+        ...(chunk.decor?.torii ? [{torii:chunk,y:chunk.y+chunk.h/2+36}] : []),
+        ...(chunk.decor?.sakuraTrees||[]).map(tree=>({tree,y:tree.y}))
+      ]).filter(actor => actor.torii
+        ? nearView(actor.torii.x+actor.torii.w/2,actor.y,140)
+        : nearView(actor.tree.x,actor.tree.y,140))
     ];
     actors.sort((a, b) => a.y - b.y);
     for (const actor of actors) {
-      if (actor.house) RENDERER.drawHouse(actor.house);
-      else if (actor.enemy) {
+      if (actor.torii || actor.tree) RENDERER.drawDecorActor?.(actor,P.y);
+      else if (actor.house) {
+        RENDERER.drawHouseShadow?.(actor.house);
+        upright(actor.house.x,actor.house.y+46,()=>RENDERER.drawHouse(actor.house,P.y));
+      } else if (actor.enemy) {
         const e = actor.enemy;
         ctx.save();
         if (e.vanish != null) ctx.globalAlpha = Math.max(0, Math.min(1, e.vanish));
-        RENDERER.drawMonster(e, P, elapsed);
+        RENDERER.drawMonsterShadow?.(e);
+        upright(e.x,e.y,()=>RENDERER.drawMonster(e, P, elapsed));
         if(e.freezeT>0) SKILLFX.paint(ctx,'ice',5,{x:e.x,y:e.y,boss:e.type==='boss'});
 
         ctx.restore();
       } else {
-        drawCargo(); // 貨物圖示畫在角色後方，不遮住角色臉與上半身
-        RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, move(), b.shield || 0, playerAttackPoseT > 0, playerHurtPoseT > 0);
+        const movement = move();
+        RENDERER.drawPlayerShadow?.(P, elapsed, movement);
+        upright(P.x,P.y,()=>drawCargo()); // 貨物在直立角色後方
+        upright(P.x,P.y,()=>RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, movement, b.shield || 0, playerAttackPoseT > 0, playerHurtPoseT > 0));
       }
     }
 
     // 8. 武器彈幕 (符咒迴力鏢)
-    for (const q of proj) SKILLFX.paint(ctx, "boom", q.level??WL.boom, { x: q.x, y: q.y, spin: elapsed * 16 });
+    for (const q of proj) upright(q.x,q.y,()=>
+      SKILLFX.paint(ctx, "boom", q.level??WL.boom, { x: q.x, y: q.y, spin: elapsed * 16, age:q.t, life:q.life, exitAlpha:q.back?Math.min(1,Math.hypot(q.x-P.x,q.y-P.y)/90):1 }));
 
     // Lv1–3 僅環繞、Lv4 三火脫離追擊；MAX 六火常駐並召喚黑龍。
     if (WL.fire > 0) {
@@ -2611,18 +2697,21 @@
       for (let i = 0; i < count; i++) {
         if (awaySlots.has(i)) continue;
         const a = fAng + (i * 6.283) / count;
-        SKILLFX.paint(ctx, "fire", WL.fire, {
-          x: P.x + Math.cos(a) * orbitR, y: P.y + Math.sin(a) * orbitR,
-          ang: a, origin: P, orbitR, time: elapsed + i * 0.2, orbit: true
-        });
+        const fx=P.x+Math.cos(a)*orbitR,fy=P.y+Math.sin(a)*orbitR;
+        upright(fx,fy,()=>SKILLFX.paint(ctx, "fire", WL.fire, {
+          x:fx, y:fy, ang:a, origin:P, orbitR, time:elapsed+i*.2, orbit:true
+        }));
       }
     }
 
     // 12.5 破魔靈針彈幕
-    for(const p of ghosts)if(!p.dragon)SKILLFX.paint(ctx,"ghost",p.level??5,p);
-    for (const nd of needles) SKILLFX.paint(ctx, "needle", nd.level??WL.needle, { x: nd.x, y: nd.y, ang: Math.atan2(nd.vy, nd.vx) });
+    for(const p of ghosts)if(!p.dragon)
+      upright(p.x,p.y,()=>SKILLFX.paint(ctx,"ghost",p.level??5,p));
+    for (const nd of needles)
+      upright(nd.x,nd.y,()=>SKILLFX.paint(ctx,"needle",nd.level??WL.needle,
+        { x:nd.x,y:nd.y,ang:Math.atan2(nd.vy,nd.vx) }));
 
-    // 13. 斬擊弧與結界擊中環
+    // 13. 斬擊弧與結界擊中環 — impact rings belong to the ground plane.
     for (const r of rings) {
       const maxL = r.maxL || 0.32;
       const progress = 1 - (r.life / maxL);
@@ -2652,6 +2741,7 @@
       ctx.globalAlpha = injury ? clamp(t.life * 1.15, 0, 1) : clamp(t.life, 0, 1);
       ctx.textAlign = "center";
       ctx.font = UI.readableFont(17, "bold");
+      uprightHere(t.x,t.y);
       if (injury) {
         ctx.lineJoin = "round";
         ctx.strokeStyle = "#211719";
@@ -2675,7 +2765,7 @@
       // 若有待接委託：升起顯眼的金色導引光柱與包裹圖標
       if (hasOrder) {
         const floatY = h.y - 75 + Math.sin(elapsed * 4 + h.phase) * 4 * liveMotion();
-        ctx.save();
+        ctx.save();uprightHere(h.x,h.y+46);
         const beam = ctx.createLinearGradient(0, floatY - 24, 0, h.y - 8);
         beam.addColorStop(0, "rgba(255, 215, 80, 0.45)");
         beam.addColorStop(1, "rgba(255, 215, 80, 0)");
@@ -2699,7 +2789,7 @@
       // 若為送貨目的地：升起靈光鳥居標記
       if (isDestination) {
         const floatY = h.y - 80 + Math.sin(elapsed * 4) * 4 * liveMotion();
-        ctx.save();
+        ctx.save();uprightHere(h.x,h.y+46);
         ctx.fillStyle = "#40c4ff";
         ctx.beginPath();
         ctx.arc(h.x, floatY, 14, 0, 6.28);
@@ -2720,6 +2810,7 @@
     if(job && dist(P,job.to)<330) {
       ctx.save();ctx.textAlign='center';
       ansPos(job.to).slice(0,job.ans.length).forEach((p,i)=>{
+        ctx.save();uprightHere(p.x,p.y);
         const meaning=job.showMeaningT>0 && job.ans[i]===job.word;
         ctx.strokeStyle='#fff4dd';ctx.lineWidth=2.5;
         const text=job.rev?job.ans[i].zh:job.ans[i].jp, y=p.y+(meaning?0:8);
@@ -2727,6 +2818,7 @@
         const ready=job.rev || UI.answerFontReady(text,31,'700');
         if(ready){ctx.strokeText(text,p.x,y);ctx.fillStyle=job.eliminatedIdx===i?'#888899':'#161224';ctx.fillText(text,p.x,y);}
         if(meaning){ctx.font=UI.readableFont(13,'bold');ctx.fillStyle='#d84315';ctx.strokeText(`【${job.ans[i].zh}】`,p.x,p.y+19);ctx.fillText(`【${job.ans[i].zh}】`,p.x,p.y+19);}
+        ctx.restore();
       });ctx.restore();
     }
 
@@ -2736,7 +2828,7 @@
       const floatY = h.y - 128 + Math.sin(elapsed * 3.5 + h.phase) * 4 * liveMotion();
       const isTarget = (inter === o);
 
-      ctx.save();
+      ctx.save();uprightHere(h.x,h.y+46);
       // 繪卷底框（寬度足 196px，確保圖標與文字完整展示不被遮擋截斷）
       const bw = 196, bh = 42;
       const bx = h.x - bw / 2;
@@ -2765,7 +2857,7 @@
 
       // 靠近町屋時顯示最短操作標籤；觸控版不出現鍵盤字樣。
       if (isTarget) {
-        ctx.save();
+        ctx.save();uprightHere(h.x,h.y+46);
         const tagY = floatY + 48;
         // 連接木札與按鍵標籤的雙金繩
         ctx.strokeStyle = "#d4af37";
@@ -2801,11 +2893,12 @@
 
     // 技能光效自帶光源：在夜色遮罩之後加法繪製，才會真的「發亮」而不是被壓暗。
     ctx.save();
-    ctx.translate(-cam.x + shakeOffset.x, -cam.y + shakeOffset.y);
+    tiltWorld(cam,shakeOffset);
     FX.draw(ctx, cam, view);
     SKILLFX.drawArtFx?.(ctx, false);
     // 妖刀手繪刀氣屬於自發光前景：夜色遮罩後再合成，保持浮世繪青白與金色筆觸。
-    for(const p of winds) SKILLFX.paint(ctx,"wind",5,p);
+    for(const p of winds)
+      upright(p.x,p.y,()=>SKILLFX.paint(ctx,"wind",5,p));
     // 黑龍改由 HUD 上層合成，避免再次被羅盤、提燈及任務 UI 蓋住。
     // The projectile floats above the world, separate from the ground fire.
     for(const shot of dragonShots){
@@ -2861,20 +2954,20 @@
 
     // 敵方火彈自發光，放在夜色與雨霧之上，避免遠距離攻擊被壓暗。
     ctx.save();
-    ctx.translate(-cam.x + shakeOffset.x, -cam.y + shakeOffset.y);
-    for (const eb of enemyBullets) {
+    tiltWorld(cam,shakeOffset);
+    for (const eb of enemyBullets) upright(eb.x,eb.y,()=>{
       ctx.fillStyle = "#ba68c8";
       ctx.beginPath();ctx.arc(eb.x, eb.y, 8, 0, 6.28);ctx.fill();
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();ctx.arc(eb.x, eb.y, 3.5, 0, 6.28);ctx.fill();
-    }
+    });
     ctx.restore();
 
     // 破曉後若配達已完成，使用與送貨金箭頭不同的赤色雙箭頭追蹤最終大妖鬼。
     const bossHunt = elapsed >= DAWN && delivered >= GOAL_DELIVERIES && !finalBossDefeated;
     const bossTarget = bossHunt ? enemies.find(e => e.type === "boss" && e.final && e.hp > 0) : null;
     if (bossTarget) {
-      const sx = bossTarget.x - cam.x, sy = bossTarget.y - cam.y;
+      const sx = bossTarget.x - cam.x, sy = (bossTarget.y - cam.y) * tiltK();
       const onScreen = sx >= viewBounds().left + 70 && sx <= viewBounds().right - 70 && sy >= viewBounds().top + 90 && sy <= viewBounds().bottom - 70;
       ctx.save();
       ctx.strokeStyle = "#ff3b4f";
@@ -2882,6 +2975,7 @@
       ctx.lineWidth = 4;
       if (onScreen) {
         const pulseR = 58 + Math.sin(elapsed * 8) * 7;
+        // Already screen-space: no inverse world scale here.
         ctx.beginPath();
         ctx.arc(sx, sy - 30, pulseR, 0, 6.28);
         ctx.stroke();
@@ -2894,11 +2988,12 @@
 
   }
 
-  function drawDragonHudOverlay() {
-    const cam = RENDERER.getCam(), shakeOffset = RENDERER.getShakeOffset();
+  function drawDragonHudOverlay(shakeOffset = {x:0,y:0}) {
+    const cam = RENDERER.getCam();
     ctx.save();
-    ctx.translate(-cam.x+shakeOffset.x,-cam.y+shakeOffset.y);
-    for (const dragon of ghosts) if (dragon.dragon && dragon.life>0) SKILLFX.paint(ctx,"ghost",5,dragon);
+    tiltWorld(cam,shakeOffset);
+    for (const dragon of ghosts) if (dragon.dragon && dragon.life>0)
+      upright(dragon.x,dragon.y,()=>SKILLFX.paint(ctx,"ghost",5,dragon));
     ctx.restore();
   }
 
@@ -3019,6 +3114,7 @@
       return;
     }
     if (state !== "play") return;
+    if (e.code === 'KeyV' && !action && !e.repeat) { e.preventDefault(); toggleViewMode(); return; }
     if (action === "interact") interact();
     else if (bossQ && !job?.reading && !e.repeat && "123".includes(e.key)) {
       const idx = +e.key - 1;
@@ -3087,6 +3183,12 @@
     if (quitConfirm) {
       const button = UI.EXIT_BTNS.find(b=>hitButton(p, b));
       if (button) { menuFocus = UI.EXIT_BTNS.indexOf(button); activateWithFeedback(button.id); }
+      return;
+    }
+
+    // Instant 2D / 2.5D toggle. Do not let this touch start a movement joystick.
+    if (state === 'play' && hitButton(p, btnView)) {
+      toggleViewMode();
       return;
     }
 
@@ -3304,8 +3406,17 @@
 
   function runFrame(now) {
     menuButtons();
-    const dt = Math.min((now - last) / 1000, 0.05);
+    const dt = Math.max(0, Math.min((now - last) / 1000, 0.05));
     last = now;
+    const previousTilt = tiltK();
+    window.VIEWPORT?.advanceTilt?.(dt);
+    const currentTilt = tiltK();
+    if (previousTilt !== currentTilt && ['play','pause','levelup'].includes(state)) {
+      // Keep the player's screen-height unchanged while the ground rotates.
+      const camera = RENDERER.getCam();
+      const screenY = (P.y-camera.y)*previousTilt;
+      RENDERER.setCam(camera.x, P.y-screenY/currentTilt);
+    }
     levelupCooldown = Math.max(0, levelupCooldown - dt);
     if (pendingMenuActivation) {
       const action = pendingMenuActivation;
@@ -3363,6 +3474,8 @@
     const bounds = window.VIEWPORT?.hudBounds() || viewBounds();
     btnPause.x = bounds.right - btnPause.w - Math.max(0, (44 / (window.VIEWPORT?.get().scale || 1) - btnPause.w) / 2);
     btnPause.y = bounds.top + 14;
+    btnView.x = bounds.right - btnView.w - 1;
+    btnView.y = btnPause.y + btnPause.h + 12;
     btnD.x = bounds.right - btnD.r * 3;
     btnD.y = bounds.bottom - btnD.r - 24;
     btnE.x = btnD.x;
@@ -3380,6 +3493,7 @@
     } else if (state === "overworld") {
       window.OVERWORLD.draw(ctx, overworld, now / 1000, overworldNoticeT);
     } else {
+      frameShakeOffset = RENDERER.getShakeOffset();
       drawWorld();
       if (state === "victory" || state === "lampout") {
         const dawnP = victoryDawn();
@@ -3401,8 +3515,10 @@
           job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, GOAL_DELIVERIES,
           dashCd, dashMax, bossHunt, hudExtra(now / 1000)
         );
+        if (state === 'play') UI.drawButton(ctx, btnView,
+          (window.VIEWPORT?.tiltTargetScale?.() ?? tiltK()) === 1 ? '2.5D' : '2D', {size: 13, quiet: true, scrollText: false});
         if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
-        if (state === "play") drawDragonHudOverlay();
+        if (state === "play") drawDragonHudOverlay(frameShakeOffset);
         if (titleCardT > 0 && state === "play") UI.drawTitleCard(ctx, STAGE, stageChapter(), titleCardT);
         const activeBoss = enemies.find(e => e.type === "boss" && e.hp > 0) || null;
         const sealFade = bossSealBreak?.boss === activeBoss ? Math.max(0,1-(performance.now()-bossSealBreak.at)/850) : 0;

@@ -260,7 +260,7 @@ window.FX = (() => {
       pts.push(px, py);
     }
     pts.push(x, y);
-    bolts.push({ pts, life: o.life || 0.3, max: o.life || 0.3, w: o.w || 1, a: o.a || 1, halo: o.halo ?? 0.28, delay: o.delay || 0 });
+    bolts.push({ x,y,pts, life: o.life || 0.3, max: o.life || 0.3, w: o.w || 1, a: o.a || 1, halo: o.halo ?? 0.28, delay: o.delay || 0 });
     if (bolts.length > 12) bolts.shift();
   }
 
@@ -352,9 +352,12 @@ window.FX = (() => {
     if (a < 0.02 || size < 1) return;
     ctx.globalAlpha = a;
     if(p.foot){
-      ctx.save();ctx.translate(p.x,p.y);ctx.fillStyle='rgba(12,17,24,0.25)';
-      ctx.beginPath();ctx.ellipse(0,0,size*.32,size*.09,0,0,6.283);ctx.fill();
-      ctx.drawImage(p.s,-size/2,-size*.96,size,size);ctx.restore();return;
+      ctx.save();ctx.fillStyle='rgba(12,17,24,0.25)';
+      ctx.beginPath();ctx.ellipse(p.x,p.y,size*.32,size*.09,0,0,6.283);ctx.fill();
+      const standing=()=>ctx.drawImage(p.s,p.x-size/2,p.y-size*.96,size,size);
+      if(window.VIEWPORT?.upright)window.VIEWPORT.upright(ctx,p.x,p.y,standing);
+      else standing();
+      ctx.restore();return;
     }
     if (p.rot === 0 && p.sx === 1 && p.sy === 1 && p.vr === 0) {
       ctx.drawImage(p.s, p.x - size / 2, p.y - size / 2, size, size);
@@ -379,7 +382,11 @@ window.FX = (() => {
       const margin = Math.max(p.s0,p.s1) * Math.max(1,Math.abs(p.sx),Math.abs(p.sy)) / 2;
       if (p.ground !== ground || p.delay > 0 || !p.s || p.x+margin < x0 || p.x-margin > x1 || p.y+margin < y0 || p.y-margin > y1) continue;
       ctx.globalCompositeOperation = p.blend;
-      paint(ctx, p);
+      // Ground particles receive the full world tilt; air particles inverse-scale
+      // around their own anchor so paper sparks/light columns are not flattened.
+      if(!ground && window.VIEWPORT?.upright){
+        window.VIEWPORT.upright(ctx,p.x,p.y,()=>paint(ctx,p));
+      }else paint(ctx,p);
     }
     ctx.restore();
   }
@@ -400,9 +407,13 @@ window.FX = (() => {
       if (b.delay > 0) continue;
       const a = Math.min(1, b.life / b.max * 1.6) * b.a;
       const trace = () => { ctx.beginPath(); for (let i = 0; i < b.pts.length; i += 2) ctx[i ? "lineTo" : "moveTo"](b.pts[i], b.pts[i + 1]); ctx.stroke(); };
-      ctx.strokeStyle = "#ffd54f"; ctx.lineWidth = 16 * b.w; ctx.globalAlpha = a * b.halo; trace();
-      ctx.strokeStyle = "#fff6a8"; ctx.lineWidth = 7 * b.w; ctx.globalAlpha = a * 0.7; trace();
-      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = Math.max(1, 2.6 * b.w); ctx.globalAlpha = a; trace();
+      const drawBolt=()=>{
+        ctx.strokeStyle = "#ffd54f"; ctx.lineWidth = 16 * b.w; ctx.globalAlpha = a * b.halo; trace();
+        ctx.strokeStyle = "#fff6a8"; ctx.lineWidth = 7 * b.w; ctx.globalAlpha = a * 0.7; trace();
+        ctx.strokeStyle = "#ffffff"; ctx.lineWidth = Math.max(1, 2.6 * b.w); ctx.globalAlpha = a; trace();
+      };
+      if(window.VIEWPORT?.upright)window.VIEWPORT.upright(ctx,b.x,b.y,drawBolt);
+      else drawBolt();
     }
     ctx.restore();
   }

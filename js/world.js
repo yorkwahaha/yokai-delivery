@@ -52,12 +52,16 @@
     return "house_shop";
   }
 
-  function createStageWorld(stage, content) {
+  function createStageWorld(stage, content, options = {}) {
     if (!stage || !content) throw new Error("createStageWorld requires stage and content");
 
     const worldCfg = stage.world || {};
     const chunkWidth = worldCfg.chunkWidth || 900;
-    const chunkHeight = worldCfg.chunkHeight || 600;
+    // 2.5D Y spacing is real world geometry, not sprite-only displacement.
+    // Original chunks/layout remain unchanged at spacingScaleY=1.
+    const spacingScaleY = Number.isFinite(options.spacingScaleY)
+      ? Math.max(1, Math.min(1.3, options.spacingScaleY)) : 1;
+    const chunkHeight = (worldCfg.chunkHeight || 600) * spacingScaleY;
     const activeRadius = Math.max(1, worldCfg.activeRadius || 2);
     const seed = worldCfg.seed || 0;
     const layoutOffset = worldCfg.layoutOffset || 0;
@@ -102,9 +106,9 @@
           phase: (phaseHash % 10000) / 997,
           chunkKey: key,
           x: baseX + position[0],
-          y: baseY + position[1],
+          y: baseY + position[1] * spacingScaleY,
           dx: baseX + position[0],
-          dy: baseY + position[1] + 60,
+          dy: baseY + position[1] * spacingScaleY + 60,
           color: pack.color,
           bType: buildingType(pack.theme, slot),
           district: pack.name,
@@ -128,13 +132,13 @@
         floorColor: pack.floorColor,
         theme: pack.theme,
         houses,
-        lamps: [{ x: baseX + chunkWidth / 2 + 62, y: baseY + chunkHeight / 2 - 62 }],
+        lamps: [{ x: baseX + chunkWidth / 2 + 62, y: baseY + (chunkHeight / 2 - 62 * spacingScaleY) }],
         decor: {
           torii: mod(cx, 3) === 1 && mod(cy, 2) === 0,
           sakuraTrees: pack.theme === "sakura"
             ? [
-                { x: baseX + 160, y: baseY + 120 },
-                { x: baseX + chunkWidth - 140, y: baseY + 120 }
+                { x: baseX + 160, y: baseY + 120 * spacingScaleY },
+                { x: baseX + chunkWidth - 140, y: baseY + 120 * spacingScaleY }
               ]
             : []
         }

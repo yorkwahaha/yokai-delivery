@@ -4,7 +4,7 @@ window.ART_READY = false;
 window.MAP_ART_READY = false;
 window.ART_PROGRESS = { settled: 0, total: 1, failed: 0 };
 // Bump when replacing audio assets so deployed browser caches fetch the new clips.
-window.audioAsset = path => `${path}?v=20261003-3`;
+window.audioAsset = path => `${path}?v=20261013-boss-mobile2`;
 
 const GAME_ASSET_NAMES = [
   "player", "player_walk1", "player_walk2",
@@ -155,6 +155,134 @@ function loadSkillImage(key, file, version) {
   return null;
 }
 window.skillVfxArt = (id, level) => loadSkillImage(window.skillVfxKey(id, level), window.skillVfxFile(id, level), "20261007-skilltiers1");
+// Barrier images remain on-demand: neither image belongs to first-screen assets.
+const BARRIER_RASTER_FILES = Object.freeze({
+  barrier_core_main: "assets/img/vfx/purification_array_vfx.webp?v=20261012-barrier-tiers1",
+  barrier_core_lv5: "assets/img/vfx/purification_array_lv5_vfx.webp?v=20261012-barrier-tiers1"
+});
+const BARRIER_ART_TIERS = Object.freeze([
+  Object.freeze({artKey:"barrier_core_main",scale:0.72,alpha:0.30}),
+  Object.freeze({artKey:"barrier_core_main",scale:0.86,alpha:0.50}),
+  Object.freeze({artKey:"barrier_core_main",scale:1.00,alpha:0.75}),
+  Object.freeze({artKey:"barrier_core_main",scale:1.12,alpha:0.90}),
+  Object.freeze({artKey:"barrier_core_lv5",scale:1.18,alpha:0.90})
+]);
+window.BARRIER_ART_TIERS = BARRIER_ART_TIERS;
+window.barrierArtTier = level => BARRIER_ART_TIERS[skillRank(level)-1];
+const barrierRasterRequested = new Set();
+function requestBarrierRaster(key) {
+  const cached = ART[key];
+  if (cached?.naturalWidth > 0 && cached?.naturalHeight > 0) return cached;
+  if (barrierRasterRequested.has(key)) return null;
+  barrierRasterRequested.add(key);
+  const img = new Image();
+  img.fetchPriority = "low";
+  img.decoding = "async";
+  img.onload = () => {
+    // Reject opaque poster-style images; retain the regular/legacy fallback.
+    try {
+      const probe = document.createElement("canvas");
+      probe.width = probe.height = 16;
+      const ctx = probe.getContext("2d", {willReadFrequently:true});
+      if (!ctx || !img.naturalWidth || !img.naturalHeight) throw Error("invalid image");
+      ctx.drawImage(img, 0, 0, 16, 16);
+      const rgba = ctx.getImageData(0, 0, 16, 16).data;
+      if ([0,15,240,255].every(i => rgba[i*4+3] >= 250))
+        throw Error("corners are opaque; transparency required");
+      ART[key] = img;
+    } catch (error) {
+      console.warn("[Assets] Barrier image not accepted; retaining fallback:", key, error.message);
+    }
+  };
+  img.onerror = () => console.warn("[Assets] Barrier image unavailable; retaining fallback:", key);
+  img.src = BARRIER_RASTER_FILES[key];
+  return null;
+}
+// Lv5 requests its own artwork and can use the normal image until it is ready.
+// If both fail, callers retain their earlier hand-painted fallback.
+window.barrierCoreArt = (level=1) => {
+  const normal = requestBarrierRaster("barrier_core_main");
+  const key = window.barrierArtTier(level).artKey;
+  return key === "barrier_core_main" ? normal : requestBarrierRaster(key) || normal;
+};
+
+// Lazy on-demand Ofuda art, independent of cover/map/first-play readiness.
+const OFUDA_RASTER_FILES = Object.freeze({
+  main: "assets/img/vfx/ofuda_projectile.webp?v=20261012-ofuda-raster1",
+  hit: "assets/img/vfx/ofuda_hit_burst.webp?v=20261012-ofuda-raster1",
+  max: "assets/img/vfx/ofuda_max_burst.webp?v=20261012-ofuda-raster1"
+});
+const OFUDA_RASTER_KEYS = Object.freeze({
+  main: "ofuda_raster_main", hit: "ofuda_raster_hit", max: "ofuda_raster_max"
+});
+const ofudaRasterRequested = new Set();
+window.ofudaRasterArt = kind => {
+  const key = OFUDA_RASTER_KEYS[kind], path = OFUDA_RASTER_FILES[kind];
+  if (!key || !path) return null;
+  const cached = ART[key];
+  if (cached?.naturalWidth > 0 && cached?.naturalHeight > 0) return cached;
+  if (ofudaRasterRequested.has(key)) return null;
+  ofudaRasterRequested.add(key);
+  const img = new Image();
+  img.fetchPriority = "low";
+  img.decoding = "async";
+  img.onload = () => {
+    try {
+      const probe = document.createElement("canvas");
+      probe.width = probe.height = 16;
+      const ctx = probe.getContext("2d", {willReadFrequently:true});
+      if (!ctx || !img.naturalWidth || !img.naturalHeight) throw Error("invalid image");
+      ctx.drawImage(img, 0, 0, 16, 16);
+      const rgba = ctx.getImageData(0, 0, 16, 16).data;
+      if ([0,15,240,255].every(i => rgba[i*4+3] >= 250))
+        throw Error("opaque background");
+      ART[key] = img;
+    } catch(error) {
+      console.warn("[Assets] Ofuda image rejected, retaining legacy art:", kind, error.message);
+    }
+  };
+  img.onerror = () => console.warn("[Assets] Ofuda image unavailable, retaining legacy art:", kind);
+  img.src = path;
+  return null;
+};
+
+// On-demand thunder PNGs; excluded from cover/map/core readiness.
+const THUNDER_PNGS=Object.freeze({
+ cloud:"thunder_cloud_vfx.webp",mark:"thunder_sigil_vfx.webp",
+ strike:"thunder_strike_vfx.webp",max:"thunder_strike_lv5_vfx.webp"
+});
+const thunderRequests=new Set();
+window.thunderRasterArt=kind=>{
+ const file=THUNDER_PNGS[kind],key="thunder_raster_"+kind;
+ if(!file)return null;
+ if(ART[key]?.naturalWidth>0&&ART[key]?.naturalHeight>0)return ART[key];
+ if(thunderRequests.has(kind))return null;
+ thunderRequests.add(kind);
+ const img=new Image();img.decoding="async";img.fetchPriority="low";
+ img.onload=()=>{
+  try{
+   if(!img.naturalWidth||!img.naturalHeight)throw Error("invalid dimensions");
+   const c=document.createElement("canvas");c.width=c.height=32;
+   const g=c.getContext("2d",{willReadFrequently:true});
+   if(!g)throw Error("no image canvas");
+   g.clearRect(0,0,32,32);g.drawImage(img,0,0,32,32);
+   const data=g.getImageData(0,0,32,32).data;
+   let corners=0,border=0,total=0;
+   for(let y=0;y<32;y++)for(let x=0;x<32;x++){
+    const a=data[(y*32+x)*4+3];
+    if((x<3||x>28)&&(y<3||y>28)&&a>220)corners++;
+    if(x<2||x>29||y<2||y>29){total++;if(a>180)border++;}
+   }
+   // Reject pasted poster/checkerboard backgrounds; never show opaque squares.
+   if(corners>18||border>total*.55)throw Error("opaque or noisy image margins");
+   ART[key]=img;
+  }catch(e){console.warn("[Assets] Thunder raster rejected; fallback:",kind,e.message);}
+ };
+ img.onerror=()=>console.warn("[Assets] Thunder raster missing; fallback:",kind);
+ img.src="assets/img/vfx/"+file+"?v=20261012-thunder-raster1";
+ return null;
+};
+
 window.skillVfxVariantKey = (id, variant, level) => SKILL_VARIANT_FILES[id]?.[variant]?.[skillRank(level) - 1] || null;
 window.skillVfxVariantArt = (id, variant, level) => {
   const file = window.skillVfxVariantKey(id, variant, level);
@@ -165,7 +293,10 @@ window.prepareSkillArt = (id, level) => {
   const rank = skillRank(level), key = window.skillVfxKey(id, rank);
   if (!key) return [];
   const keys = [key];window.skillVfxArt(id, rank);
+  if (id === "barrier") window.barrierCoreArt?.(rank);
+  if (id === "boom") { window.ofudaRasterArt?.("main"); window.ofudaRasterArt?.(rank===5?"max":"hit"); }
   if (id === 'thunder' && rank === 5) {keys.push(window.skillVfxKey(id,4));window.skillVfxArt(id,4);}
+  if(id==="thunder")for(const kind of ["cloud","mark",rank===5?"max":"strike"])window.thunderRasterArt?.(kind);
   if (id === 'fire') {
     const variants = ['orbit', ...(rank>=4?['attack']:[]), ...(rank===5?['dragon']:[])];
     for(const variant of variants){keys.push(window.skillVfxVariantKey(id,variant,rank));window.skillVfxVariantArt(id,variant,rank);}
@@ -235,12 +366,19 @@ const configureMusic = audio => {
 
 window.BGM = null;
 window.MAP_BGM = null;
+window.BOSS_BGM = null;
 try {
   const bgmAudio = configureMusic(new Audio(window.audioAsset("assets/audio/BGM.mp3")));
   bgmAudio.addEventListener("error", () => {
     window.BGM = null;
   }, { once: true });
   window.BGM = bgmAudio;
+
+  // Final boss music is lazy: audio.preload = 'none' until the last seal falls.
+  const bossAudio = configureMusic(new Audio());
+  bossAudio.src = window.audioAsset("assets/audio/BOSS.mp3");
+  bossAudio.addEventListener("error", () => { window.BOSS_BGM = null; }, { once: true });
+  window.BOSS_BGM = bossAudio;
 
   const mapAudio = configureMusic(new Audio(window.audioAsset("assets/audio/MAP.mp3")));
   mapAudio.addEventListener("error", () => {

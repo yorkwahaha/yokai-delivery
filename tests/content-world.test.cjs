@@ -4,6 +4,40 @@ const assert = require("node:assert/strict");
 const CONTENT = require("../js/words.js");
 const WORLD = require("../js/world.js");
 
+test("0.60 world spacing expands true geometry and delivery/collision positions", () => {
+  const stage = CONTENT.getStage("night-town");
+  const normal = WORLD.createStageWorld(stage, CONTENT);
+  const spaced = WORLD.createStageWorld(stage, CONTENT, {spacingScaleY:1.2});
+  assert.equal(spaced.chunkWidth, normal.chunkWidth);
+  assert.equal(spaced.chunkHeight, normal.chunkHeight*1.2);
+  for (const [cx,cy] of [[0,0],[1,2],[-1,-2],[8,-11]]) {
+    const a=normal.getChunk(cx,cy),b=spaced.getChunk(cx,cy);
+    assert.equal(b.key,a.key);
+    assert.ok(Math.abs(b.y-a.y*1.2)<1e-8);
+    for(let i=0;i<a.houses.length;i++){
+      const original=a.houses[i],adjusted=b.houses[i];
+      assert.equal(adjusted.id,original.id);
+      assert.equal(adjusted.x,original.x);
+      assert.ok(Math.abs(adjusted.y-original.y*1.2)<1e-8);
+      assert.equal(adjusted.dy,adjusted.y+60);
+      assert.deepEqual(WORLD.answerPositions(adjusted).map(p=>[p.x,p.y]),
+        WORLD.answerPositions(original).map(p=>[p.x, p.y-original.y+adjusted.y]));
+    }
+    assert.ok(Math.abs(b.lamps[0].y-a.lamps[0].y*1.2)<1e-8);
+    for(let i=0;i<a.decor.sakuraTrees.length;i++)
+      assert.ok(Math.abs(b.decor.sakuraTrees[i].y-a.decor.sakuraTrees[i].y*1.2)<1e-8);
+  }
+  const a=normal.getChunk(0,0).houses,b=spaced.getChunk(0,0).houses;
+  const span=houses=>Math.max(...houses.map(h=>h.y))-Math.min(...houses.map(h=>h.y));
+  assert.ok(Math.abs(span(b)-span(a)*1.2)<1e-8);
+  const snapshot=spaced.update(900,900);
+  for(const house of snapshot.houses){
+    assert.ok(snapshot.solids.some(s=>s.chunkKey===house.chunkKey &&
+      s.x0===house.x-48 && s.y0===house.y-25));
+  }
+});
+
+
 test('octopus belongs to the sea pack while the turtle stays by the pond',()=>{
   assert.ok(CONTENT.getPack('beach').words.some(w=>w.jp==='たこ'));
   assert.ok(CONTENT.getPack('pond').words.some(w=>w.jp==='かめ'));

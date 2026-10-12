@@ -129,6 +129,8 @@ window.RENDERER = (() => {
   let ghostTrails = [];
 
   function bounds() { return window.VIEWPORT?.bounds() || { left:0, top:0, right:W, bottom:H, width:W, height:H }; }
+  function tiltK() { return window.VIEWPORT?.tiltScale?.() || 1; }
+  function worldBounds() { return window.VIEWPORT?.worldBounds?.() || bounds(); }
   function allowsMotion() {
     return motionAllowed;
   }
@@ -325,13 +327,21 @@ window.RENDERER = (() => {
     return stopped;
   }
 
-  function drawStyledSceneryImage(c,image,x,y,w,h,alpha=1,kind="scenery") {
+  function drawStyledSceneryImage(c,image,x,y,w,h,alpha=1,kind="scenery",depthBlur=0) {
     if(!image || !image.naturalWidth)return false;
     c.save();
     c.globalAlpha *= alpha;
     c.filter = kind === "sakura" ? "saturate(78%) contrast(101%) brightness(92%)" :
       kind === "house_tavern" || kind === "house_shrine" ? "saturate(86%) contrast(101%) sepia(2%) brightness(91%)" :
       "saturate(88%) contrast(102%) sepia(2%) brightness(94%)";
+    // Only distant architectural sprites receive gentle atmospheric DOF.
+    // Ground silhouettes, house nameplates, quiz labels and HUD stay crisp.
+    if (depthBlur > 0.05) {
+      // Soft woodblock atmosphere: depth = blur + cool color + lower contrast.
+      // This filter is applied ONLY to the sprite, not its readable signboard.
+      const depth = Math.min(1, depthBlur / 2.25);
+      c.filter += ` saturate(${Math.round(100-depth*27)}%) contrast(${Math.round(100-depth*17)}%) brightness(${Math.round(100+depth*7)}%) blur(${depthBlur.toFixed(2)}px)`;
+    }
     c.shadowColor = "rgba(18, 15, 18, 0.28)";
     c.shadowBlur = 0;
     c.shadowOffsetX = 1;
@@ -345,7 +355,7 @@ window.RENDERER = (() => {
     return drawStyledSceneryImage(ctx,image,x,y,w,h,alpha);
   }
 
-  function drawStaticChunk(c, chunk, toriiImg, toriiReady, sakuraImg, sakuraReady, paving) {
+  function drawStaticChunk(c, chunk) {
     const cx = chunk.x + chunk.w / 2, cy = chunk.y + chunk.h / 2;
     c.save();
     // 柔和土色道路，不再在房屋周圍畫黑色矩形庭院與筆直粗墨線。
@@ -365,33 +375,61 @@ window.RENDERER = (() => {
         c.beginPath();c.ellipse(h.x,h.y+140,156,83,0,0,6.283);c.fill();
       }
     }
-    c.textAlign = "center";
-    c.font = "900 38px 'Kaisei Decol', 'Noto Sans JP', serif";
-    c.fillStyle = "rgba(255, 230, 180, 0.18)";
-    c.fillText(chunk.name, cx, chunk.y + 105);
-    c.font = "bold 15px 'Zen Maru Gothic', sans-serif";
-    c.fillStyle = "rgba(255, 230, 180, 0.14)";
-    c.fillText(`— ${chunk.sub || ""} —`, cx, chunk.y + 129);
-    if (chunk.decor?.torii && toriiReady) {
-      c.fillStyle = "rgba(16, 14, 17, 0.48)";
-      c.beginPath();
-      c.ellipse(cx, cy + 45, 90, 24, 0, 0, 6.28);
-      c.fill();
-      const tw = 150, th = tw * toriiImg.naturalHeight / toriiImg.naturalWidth;
-        drawStyledSceneryImage(c,toriiImg,cx-tw/2,cy-th+36,tw,th,1,"torii");
-    }
-    if (sakuraReady) {
-      for (const tree of chunk.decor?.sakuraTrees || []) {
-        const factor=[.92,1,1.08][groundTileIndex(Math.floor(tree.x),Math.floor(tree.y))%3];
-        const sw=114*factor,sh=sw*sakuraImg.naturalHeight/sakuraImg.naturalWidth;
-        c.fillStyle = "rgba(0, 0, 0, 0.35)";
-        c.beginPath();
-        c.ellipse(tree.x, tree.y - 4, 28, 10, 0, 0, 6.28);
-        c.fill();
-        drawStyledSceneryImage(c,sakuraImg,tree.x-sw/2,tree.y-sh,sw,sh,.89,"sakura");
-      }
-    }
+    // Static terrain contains ONLY terrain and roads. District lettering,
+    // torii and trees always render as actors, in both 2D and tilted views.
+    // A cached 2D torii must never survive a switch into tilted mode.
     c.restore();
+  }
+
+  // Scenery uses one continuous actor path at EVERY angle (including 2D).
+  // Contact shadows are painted on the floor before the upright sprites.
+  function drawDecorActor(actor, viewerY = null) {
+    const chunk = actor.torii, tree = actor.tree;
+    const atmosphericDepth = y => viewerY == null ? 0 :
+      clamp((viewerY-y-290)/650,0,1)*clamp((1-tiltK())/0.4,0,1)*1.65;
+    if (chunk) {
+      const img=window.ART?.prop_torii;
+      if (!img?.naturalWidth) return;
+      const cx=chunk.x+chunk.w/2,cy=chunk.y+chunk.h/2,tw=150;
+      const th=tw*img.naturalHeight/img.naturalWidth;
+      // Gate feet touch at cx±50, cy+36: use restrained contact shadows,
+      // not the old huge 90×24 oval (which looked detached in overhead view).
+      ctx.save();
+      ctx.fillStyle="rgba(16,14,17,0.28)";
+      for(const dx of [-50,50]){
+        ctx.beginPath();ctx.ellipse(cx+dx,cy+38,23,8,0,0,6.28);ctx.fill();
+      }
+      ctx.restore();
+      window.VIEWPORT.upright(ctx,cx,cy+36,()=>{
+        drawStyledSceneryImage(ctx,img,cx-tw/2,cy-th+36,tw,th,1,"torii",
+          atmosphericDepth(cy));
+      });
+    } else if (tree) {
+      const img=window.ART?.prop_sakura;
+      if (!img?.naturalWidth) return;
+      const factor=[.92,1,1.08][groundTileIndex(Math.floor(tree.x),Math.floor(tree.y))%3];
+      const sw=114*factor,sh=sw*img.naturalHeight/img.naturalWidth;
+      ctx.save();ctx.fillStyle="rgba(0,0,0,0.28)";
+      ctx.beginPath();ctx.ellipse(tree.x,tree.y-4,28,10,0,0,6.28);ctx.fill();
+      ctx.restore();
+      window.VIEWPORT.upright(ctx,tree.x,tree.y,()=>{
+        drawStyledSceneryImage(ctx,img,tree.x-sw/2,tree.y-sh,sw,sh,.89,"sakura",
+          atmosphericDepth(tree.y));
+      });
+    }
+  }
+  function drawDistrictLabels(chunks) {
+    for (const chunk of chunks) {
+      const cx=chunk.x+chunk.w/2,y=chunk.y+105;
+      window.VIEWPORT.upright(ctx,cx,y,()=>{
+        ctx.save();ctx.textAlign="center";
+        ctx.font="900 38px 'Kaisei Decol', 'Noto Sans JP', serif";
+        ctx.fillStyle="rgba(255,230,180,0.18)";ctx.fillText(chunk.name,cx,y);
+        ctx.font="bold 15px 'Zen Maru Gothic', sans-serif";
+        ctx.fillStyle="rgba(255,230,180,0.14)";ctx.fillText(`— ${chunk.sub || ""} —`,cx,y+24);
+        ctx.restore();
+      });
+    }
   }
 
   // 地名、鳥居與櫻樹跟底圖一起快取。
@@ -431,13 +469,28 @@ window.RENDERER = (() => {
           chunk.theme === "tavern" || chunk.theme === "market" ? "rgba(112,78,56,0.045)" :
           chunk.theme === "mystic" ? "rgba(83,70,96,0.045)" : "rgba(69,83,72,0.035)";
         c.fillStyle=tint;c.beginPath();c.ellipse(cx,cy,chunk.w*.47,chunk.h*.43,0,0,6.283);c.fill();
-        drawStaticChunk(c, chunk, toriiImg, toriiReady, sakuraImg, sakuraReady);
+        drawStaticChunk(c, chunk);
+        // Sparse engraved paving seams and moss specks at WORLD scale.
+        // Cached once per visible strip; automatically foreshortened by 0.60 tilt.
+        // Do not alter roads, collisions, or tile geometry.
+        for(let i=0;i<12;i++){
+          const seed=(chunk.x*13+chunk.y*7+i*3571);
+          const ix=chunk.x+40+((Math.abs(Math.sin(seed*.019))*997)%Math.max(1,chunk.w-80));
+          const iy=chunk.y+45+((Math.abs(Math.cos(seed*.027))*997)%Math.max(1,chunk.h-90));
+          c.strokeStyle=i%3===0?'rgba(71,92,72,0.18)':'rgba(189,175,151,0.14)';
+          c.lineWidth=i%3===0?2.4:1.5;c.beginPath();
+          c.moveTo(ix-9,iy+2);c.lineTo(ix+14,iy-1);c.stroke();
+          if(i%4===0){
+            c.fillStyle='rgba(67,99,77,0.17)';
+            c.beginPath();c.ellipse(ix,iy+4,9,3,0,0,6.28);c.fill();
+          }
+        }
       }
     c.restore();
   }
 
   function drawGroundBase(chunks, groundKey) {
-    const area = bounds(), v = window.VIEWPORT?.get() || {scale:1};
+    const area = worldBounds(), v = window.VIEWPORT?.get() || {scale:1};
     const pixelScale = ctx.getTransform?.()?.a || (v.scale || 1) * dpr, x = camX + area.left, y = camY + area.top;
     const groundImg = window.ART && window.ART[groundKey];
     const courtImg = window.ART?.ground;
@@ -454,8 +507,9 @@ window.RENDERER = (() => {
     const currentLocalChunks = cached
       ? chunksInRegion(chunks,cached.left,cached.top,cached.width,cached.height) : [];
     const assetsChanged = !cached || cached.key !== groundKey || cached.image !== groundImg || cached.courtImage !== courtImg ||
-      cached.pixelScale !== pixelScale || cached.toriiReady !== toriiReady || cached.sakuraReady !== sakuraReady ||
-      cached.viewW !== area.width || cached.viewH !== area.height ||
+      cached.pixelScale !== pixelScale ||
+      // Camera transition varies visible world height on every frame.
+      // Cache coverage below, not viewport height equality, governs rebuilds.
       cached.chunks.length !== currentLocalChunks.length ||
       currentLocalChunks.some((chunk,i)=>chunk!==cached.chunks[i]);
     const movedBeyondCache = !assetsChanged && (x < cached.left || y < cached.top ||
@@ -501,7 +555,7 @@ window.RENDERER = (() => {
         paint(left,top,right,bottom);
       }
       terrainState = {left,top,width:pw/pixelScale,height:ph/pixelScale,key:groundKey,image:groundImg,
-        courtImage:courtImg,pixelScale,toriiReady,sakuraReady,viewW:area.width,viewH:area.height,
+        courtImage:courtImg,pixelScale,viewW:area.width,viewH:area.height,
         chunks:chunksInRegion(chunks,left,top,pw/pixelScale,ph/pixelScale)};
     }
     const t = terrainState;
@@ -513,15 +567,31 @@ window.RENDERER = (() => {
     drawGroundBase(chunks, groundKey);
   }
 
-  // 繪製高精緻度日式町屋店鋪（真實店鋪 Sprite + 障子金光 + 和風招牌）
-  function drawHouse(h) {
-    ctx.save();
+  // All ground-contact shadows are rendered BEFORE the upright projection.
+  // Their height is flattened by the world camera's current tilt, continuously.
+  function drawHouseShadow(h) {
+    ctx.save();ctx.fillStyle="rgba(17,14,17,0.48)";
+    ctx.beginPath();ctx.ellipse(h.x,h.y+46,58,14,0,0,6.28);ctx.fill();
+    ctx.restore();
+  }
+  function drawPlayerShadow(P, elapsed, moveDir = {x:0,y:0}) {
+    const moving=Math.hypot(moveDir.x||0,moveDir.y||0)>0.1 && allowsMotion();
+    const bob=moving?Math.abs(Math.sin(elapsed*12))*1.5:0;
+    const size=1-bob/18;
+    ctx.save();ctx.fillStyle="rgba(0,0,0,0.39)";
+    ctx.beginPath();ctx.ellipse(P.x,P.y+22,28*size,11*size,0,0,6.28);ctx.fill();
+    ctx.restore();
+  }
+  function drawMonsterShadow(e) {
+    const radius=e.type==="boss"?52:e.type==="mis"?32:22;
+    ctx.save();ctx.fillStyle="rgba(32,26,31,0.33)";
+    ctx.beginPath();ctx.ellipse(e.x,e.y+radius*0.85,radius,radius*0.4,0,0,6.28);ctx.fill();
+    ctx.restore();
+  }
 
-    // 1. 木版畫式接觸墨影：硬邊、低透明，不做柔亮卡通陰影。
-    ctx.fillStyle = "rgba(17, 14, 17, 0.62)";
-    ctx.beginPath();
-    ctx.ellipse(h.x, h.y + 46, 62, 18, 0, 0, 6.28);
-    ctx.fill();
+  // 繪製高精緻度日式町屋店鋪（真實店鋪 Sprite + 障子金光 + 和風招牌）
+  function drawHouse(h, viewerY = null) {
+    ctx.save();
 
     // 2. 新圖依實際透明裁切後的比例單獨定寬；腳底仍以 h.y+48 作為排序點。
     let houseSprite = window.ART.house_shop;
@@ -540,7 +610,11 @@ window.RENDERER = (() => {
     const bh = bw * aspect;
 
     if (houseSprite) {
-      drawStyledSceneryImage(ctx,houseSprite,h.x-bw/2,h.y-bh+48,bw,bh,1,h.bType);
+      // Camera looks north: only buildings far above the courier are distant.
+      const distance = viewerY == null ? 0 : Math.max(0,viewerY-h.y);
+      const focus = clamp((distance-290)/650,0,1)*clamp((1-tiltK())/0.4,0,1);
+      drawStyledSceneryImage(ctx,houseSprite,h.x-bw/2,h.y-bh+48,bw,bh,1,h.bType,
+        focus*2.25);
     } else {
       ctx.fillStyle = "#3e3128";
       ctx.fillRect(h.x - 48, h.y - 30, 96, 75);
@@ -638,13 +712,7 @@ window.RENDERER = (() => {
     if (isHurt && window.ART.player_hurt_v2) { pKey = "player_hurt_v2"; pImg = window.ART[pKey]; }
     const poseHeight = pKey === "player_dash_v1" ? 80 : 114;
 
-    // 投影陰影：隨身體起伏微幅呼吸
-    const shadowScale = motion && isMoving ? (1.0 - (walkBob / 18)) : 1.0;
-    ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-    ctx.beginPath();
-    ctx.ellipse(P.x, P.y + 22, 28 * shadowScale, 11 * shadowScale, 0, 0, 6.28);
-    ctx.fill();
-
+    // Foot contact shadow belongs to drawPlayerShadow(), in ground space.
     // 衝刺時加入殘影
     if (isDashing && motion && Math.random() < 0.45 && pImg) {
       addGhostTrail(pImg, P.x, P.y - walkBob, flipX, 1.0, 0.45, pKey, poseHeight);
@@ -757,13 +825,7 @@ window.RENDERER = (() => {
       }
     }
 
-    // 陰影：隨身體呼吸同步縮放
-    ctx.fillStyle = "rgba(32, 26, 31, 0.37)";
-    const shadowR = (isBoss ? 52 : isMis ? 32 : 22) * sX;
-    ctx.beginPath();
-    ctx.ellipse(e.x, e.y + (isBoss ? 52 : isMis ? 32 : 22) * 0.85, shadowR, shadowR * 0.4, 0, 0, 6.28);
-    ctx.fill();
-
+    // Enemy contact shadow is rendered separately in world floor space.
     ctx.translate(e.x, e.y + bob);
     ctx.scale(scaleX * sX, sY);
     if (tilt !== 0) ctx.rotate(tilt);
@@ -937,7 +999,8 @@ window.RENDERER = (() => {
 
     // 1. 主角提燈核心光照
     const screenPx = P.x - camX + offset.x;
-    const screenPy = P.y - camY + offset.y;
+    const k = tiltK();
+    const screenPy = (P.y - camY + offset.y) * k;
     const flicker = allowsMotion() ? Math.sin(elapsed * 16) * 3 : 0;
     const baseRadius = Math.max(16, (150 + clamp(oil / Math.max(1, maxOil), 0, 1) * 170 + flicker) * (1 - lampOut));
 
@@ -947,24 +1010,32 @@ window.RENDERER = (() => {
     playerGlow.addColorStop(0.8, "rgba(0,0,0,0.35)");
     playerGlow.addColorStop(1, "rgba(0,0,0,0)");
 
+    lightCtx.save();
+    if(k!==1){lightCtx.translate(screenPx,screenPy);lightCtx.scale(1,k);lightCtx.translate(-screenPx,-screenPy);}
     lightCtx.fillStyle = playerGlow;
     lightCtx.beginPath();
     lightCtx.arc(screenPx, screenPy, baseRadius, 0, 6.28);
     lightCtx.fill();
+    lightCtx.restore();
 
     // 2. 街角提燈 (LAMPS) 暖光池（燈滅時一併退去）
     lightCtx.globalAlpha = 1 - lampOut;
     LAMPS.forEach(l => {
-      const lx = l.x - camX + offset.x, ly = l.y - LAMP_LIGHT_LIFT - camY + offset.y; // 光心在石燈火袋，不是腳底
+      const lx = l.x - camX + offset.x;
+      const ly = k===1 ? l.y-LAMP_LIGHT_LIFT-camY+offset.y
+        : (l.y+8-camY+offset.y)*k-(8+LAMP_LIGHT_LIFT); // 直立石燈火袋距底邊30px
       if (lx < area.left - 180 || lx > area.right + 180 || ly < area.top - 180 || ly > area.bottom + 180) return;
       const g = lightCtx.createRadialGradient(lx, ly, 10, lx, ly, 125);
       g.addColorStop(0, "rgba(0,0,0,0.95)");
       g.addColorStop(0.5, "rgba(0,0,0,0.5)");
       g.addColorStop(1, "rgba(0,0,0,0)");
+      lightCtx.save();
+      if(k!==1){lightCtx.translate(lx,ly);lightCtx.scale(1,k);lightCtx.translate(-lx,-ly);}
       lightCtx.fillStyle = g;
       lightCtx.beginPath();
       lightCtx.arc(lx, ly, 125, 0, 6.28);
       lightCtx.fill();
+      lightCtx.restore();
     });
 
     lightCtx.globalAlpha = 1;
@@ -973,7 +1044,9 @@ window.RENDERER = (() => {
     ctx.drawImage(lightCv, area.left, area.top, area.width, area.height);
     if (lampOut < 1) paintWarmPool(screenPx, screenPy, baseRadius * 0.62);
     if (lampOut < 1) LAMPS.forEach(l => {
-      const lx = l.x - camX + offset.x, ly = l.y - LAMP_LIGHT_LIFT - camY + offset.y;
+      const lx = l.x - camX + offset.x;
+      const ly = k===1 ? l.y-LAMP_LIGHT_LIFT-camY+offset.y
+        : (l.y+8-camY+offset.y)*k-(8+LAMP_LIGHT_LIFT);
       if (lx < area.left - 180 || lx > area.right + 180 || ly < area.top - 180 || ly > area.bottom + 180) return;
       paintWarmPool(lx, ly, 76);
     });
@@ -982,6 +1055,7 @@ window.RENDERER = (() => {
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
       ctx.globalAlpha = 1 - lampOut;
+      if(k!==1){ctx.translate(x,y);ctx.scale(1,k);ctx.translate(-x,-y);}
       const warm = ctx.createRadialGradient(x, y, radius * 0.05, x, y, radius);
       warm.addColorStop(0, "rgba(255, 186, 96, 0.20)");
       warm.addColorStop(0.55, "rgba(255, 140, 64, 0.07)");
@@ -997,6 +1071,9 @@ window.RENDERER = (() => {
   function drawDamageNumbers() {
     ctx.save();
     for (const d of dmgNumbers) {
+      ctx.save();
+      const k=tiltK();
+      if(k!==1){ctx.translate(d.x,d.y);ctx.scale(1,1/k);ctx.translate(-d.x,-d.y);}
       const alpha = clamp(d.life / 0.3, 0, 1);
       ctx.globalAlpha = alpha;
       ctx.textAlign = "center";
@@ -1030,6 +1107,7 @@ window.RENDERER = (() => {
         ctx.strokeText(message,d.x,d.y);
         ctx.fillStyle=d.color;ctx.fillText(message,d.x,d.y);
       }
+      ctx.restore();
     }
     ctx.restore();
   }
@@ -1180,7 +1258,7 @@ window.RENDERER = (() => {
     // 水墨雲影：低透明平塗墨團，不使用現代柔光徑向漸層。
   function drawGroundParallax(elapsed, dawnTime, cam = { x: camX, y: camY }) {
     if (!allowsMotion()) return;
-    const area = bounds();
+    const area = worldBounds();
     ctx.save();
     const cloudSpeed = elapsed * 15;
     const cloudParallax = 0.20;
@@ -1290,6 +1368,11 @@ window.RENDERER = (() => {
     drawGroundParallax,
     drawMistParallax,
     drawHouse,
+    drawHouseShadow,
+    drawPlayerShadow,
+    drawMonsterShadow,
+    drawDecorActor,
+    drawDistrictLabels,
     drawScenerySprite,
     drawPlayer,
     drawFrame,
