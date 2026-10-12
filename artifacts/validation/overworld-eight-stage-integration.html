@@ -1,0 +1,50 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Yokai Delivery A5 eight-stage smoke</title>
+<style>html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#e2d7be}canvas{display:block;width:100%;height:100%}#proof{position:fixed;left:2px;bottom:2px;color:transparent;font-size:1px;pointer-events:none}</style>
+</head><body><canvas id="game"></canvas><span id="proof"></span>
+<script src="../../js/words.js"></script><script src="../../js/viewport.js"></script>
+<script src="../../js/ui.js"></script><script src="../../js/overworld.js"></script>
+<script>
+window.STORE={
+ isStageCompleted:id=>id==="night-town",
+ isStageUnlocked:id=>["night-town","rain-port"].includes(id),
+ getStageStats:id=>({bestScore:id==="night-town"?1234:0})
+};
+window.loadMapPlayerArt=()=>{};
+window.ART={};
+window.RENDERER={drawFrame:(ctx,img,key,index,x,y,w)=>{
+const sw=img.naturalWidth/2,sh=img.naturalHeight;
+ctx.drawImage(img,sw*index,0,sw,sh,x-w/2,y-(w*sh/sw),w,w*sh/sw);
+}};
+const root=document.documentElement,proof=document.getElementById("proof");
+const params=new URLSearchParams(location.search);
+const stageId=params.get("stage")||"night-town";
+const loading=["overworld_approved_v2","map_night_town_v1","map_rain_port_v1","player_idle_v2","prop_sakura","prop_torii"];
+(async()=>{
+const items=await Promise.all(loading.map(name=>new Promise(resolve=>{
+  const im=new Image();
+  im.onload=()=>{ART[name]=im;resolve({name,ok:true})};
+  im.onerror=()=>resolve({name,ok:false});
+  im.src="../../assets/img/"+name+".webp";
+})));
+const state=OVERWORLD.createState(stageId);
+if(OVERWORLD.STAGE_NODES.some(n=>n.id===stageId))OVERWORLD.inspect(state,stageId);
+for(let n=0;n<10;n++)OVERWORLD.update(state,.3);
+const canvas=document.getElementById("game"),dpr=Math.min(2,devicePixelRatio||1);
+canvas.width=Math.round(innerWidth*dpr);canvas.height=Math.round(innerHeight*dpr);
+const v=VIEWPORT.get(),ctx=canvas.getContext("2d");
+ctx.setTransform(dpr*v.scale,0,0,dpr*v.scale,(innerWidth/v.scale-v.width)*(dpr*v.scale)/2+(v.offsetX*dpr*v.scale),(innerHeight/v.scale-v.height)*(dpr*v.scale)/2+(v.offsetY*dpr*v.scale));
+OVERWORLD.draw(ctx,state,3,0);
+const good=!!ART.overworld_approved_v2&&state.inspectId===stageId;
+const label=OVERWORLD.selectedNode(state).label;
+root.dataset.ready=good?"true":"false";
+root.dataset.node=state.currentId;
+root.dataset.selected=stageId;
+root.dataset.world=OVERWORLD.MAP_W+"x"+OVERWORLD.MAP_H;
+root.dataset.logical=v.width.toFixed(0)+"x"+v.height.toFixed(0);
+root.dataset.images=items.filter(x=>x.ok).length;
+proof.textContent=(good?"OK":"FAIL")+" selected="+label+" world="+root.dataset.world+" logical="+root.dataset.logical;
+document.title=good?"A5 READY "+label:"A5 MAP FAILED";
+})().catch(e=>{root.dataset.ready="error";proof.textContent=e.stack;document.title="A5 ERROR "+e.message;});
+</script></body></html>

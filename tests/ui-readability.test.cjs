@@ -35,6 +35,25 @@ test('button optical safe area centers the painted label and keeps short menu la
   assert.equal(r.texts.filter(t=>t.value==='繼續夜行').at(-1).x,safe.x);
   assert.ok(r.UI.buttonTextArea({id:'cards',x:615,y:22,w:125,h:38},'normal').width>95);
 });
+test('journey home uses Kaisei Decol engraving and arrow glyphs can rise optically',()=>{
+  const r=loadUI(900,true),button={id:'map-home',x:18,y:18,w:104,h:40};
+  const traces=[];
+  r.context.fillText=(value,x,y)=>traces.push({value,x,y,font:r.context.font,fill:r.context.fillStyle});
+  r.context.strokeText=(value,x,y)=>traces.push({value,x,y,stroke:r.context.strokeStyle});
+  r.UI.drawButton(r.context,button,'← 首頁',{size:14,quiet:true,mapTypography:'title'});
+  const home=traces.find(t=>t.value==='← 首頁'&&t.fill);
+  assert.match(home.font,/Kaisei Decol/);
+  assert.equal(home.fill,'#39261d');
+  assert.ok(traces.some(t=>t.value==='← 首頁'&&t.stroke==='rgba(255,245,220,.86)'));
+  traces.length=0;
+  const arrow={id:'map-next',x:828,y:404,w:54,h:52};
+  r.UI.drawButton(r.context,arrow,'▶',{size:19,quiet:true,mapTypography:'body'});
+  const regular=traces.find(t=>t.value==='▶'&&t.fill).y;
+  traces.length=0;
+  r.UI.drawButton(r.context,arrow,'▶',{size:19,quiet:true,mapTypography:'body',visualOffsetY:-4});
+  const raised=traces.find(t=>t.value==='▶'&&t.fill).y;
+  assert.equal(raised,regular-4);
+});
 test('illustrated button hover and pressed render differently, disabled never depresses',()=>{
   const r=loadUI(900,true),b={id:'resume',x:310,y:180,w:280,h:44},fills=[],moves=[];
   r.context.fill=()=>fills.push(r.context.fillStyle);

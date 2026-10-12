@@ -271,6 +271,11 @@
       implemented: false,
       wordPacks: Object.freeze([])
     }),
+    "bamboo-maze": Object.freeze({
+      id: "bamboo-maze", name: "竹影迷宮", sub: "たけかげめいろ",
+      description: "青綠竹林中的色彩與數量關卡，尚在製作中。",
+      implemented: false, wordPacks: Object.freeze([])
+    }),
     "hyakki-kyoto": Object.freeze({
       id: "hyakki-kyoto",
       name: "百鬼京都",
@@ -278,6 +283,16 @@
       description: "妖怪密度極高的古都關卡。預定加入生活動詞與店家詞彙。",
       implemented: false,
       wordPacks: Object.freeze([])
+    }),
+    "snow-temple": Object.freeze({
+      id: "snow-temple", name: "雪燈山寺", sub: "せつとうさんじ",
+      description: "雪山古寺中的動作與身體詞彙關卡，尚在製作中。",
+      implemented: false, wordPacks: Object.freeze([])
+    }),
+    "spirit-ferry": Object.freeze({
+      id: "spirit-ferry", name: "幽世渡口", sub: "かくりよわたし",
+      description: "靈河渡口的感受、狀態與表達關卡，尚在製作中。",
+      implemented: false, wordPacks: Object.freeze([])
     }),
     "yomi": Object.freeze({
       id: "yomi",

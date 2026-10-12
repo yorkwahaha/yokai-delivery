@@ -2,7 +2,7 @@
 
 > **本檔是 Living Roadmap，供後續任何 Agent／新對話直接接手。**
 >
-> 最後更新：**2026-10-12** ｜ 當前工作：**A1 八關旅路地圖構圖（尚未開始）**
+> 最後更新：**2026-10-12** ｜ 當前工作：**A5 旅路地圖完整介面驗證完成，使用者已核准 2026-10-12 Git 提交與 GitHub Pages 部署；A6 實體手機／平板操作驗收仍待進行**
 >
 > **所有 ChatGPT、Codex、Cursor、OpenCode、其他 Agent：接手先讀這份檔案，並核對原始碼與 Git。每完成一階段、需求更動或碰到問題，直接更新本檔進度與日誌，不用等整案完工，也不用讓使用者重貼對話。**
 
@@ -130,16 +130,19 @@
 
 ## 4. 實作路線與進度 Checklist
 
-**目前正在準備：A1 八關地景定位。** 此輪**只建立 Roadmap**，沒有實作地圖、單字卡或八關。
+**目前進度：A1–A5 的八關旅路地圖與互動 UI 均完成本機實作；A6 的真實裝置驗收與部署尚未完成。** 已建立 docs/overworld-eight-stage-layout-v1.html（可切換 900×600 攝影機視角）及 docs/overworld-eight-stage-layout-v1.md（構圖、路線、座標與 UI 留白說明）。**旅路地圖／互動 UI 已經實際寫進原遊戲程式**，詳見 `docs/overworld-a5-integrated-report.md`；只有單字卡、第三至第八關的遊戲內容尚未實作。
 
 ### A｜旅路地圖（優先）
 - [x] **A0 企劃方向定案**：八關、三章、Q 版水墨、地景式、互動與背景分層。僅規格確認，非美術完成。
-- [ ] **A1 八關定位構圖**：重新確認 3000×1600 是否合理；固定景區、八關中心、完整道路、原 waypoint 去向、互動安全區，交付構圖定位稿。
-- [ ] **A2 局部視野驗收**：逐關檢查 900×600 視野、角色／名稱牌／固定 UI、道路與地形、手機和平板可視範圍；向使用者確認構圖。
-- [ ] **A3 Q 版水墨背景草稿**：以「已核准的構圖」與「使用者設計圖」真正作為圖片參考，產出**沒有任何 UI 的純景觀草稿**，由使用者驗收。
-- [ ] **A4 正式美術／效能**：正式背景，分區 WebP／原圖備援／快取與按需載入，兼顧畫風與手機速度。
-- [ ] **A5 遊戲接圖與新路網**：八關 NODES／EDGES、攝影機、角色／地標／鎖定標記正確疊圖、舊 ID／存檔相容。
-- [ ] **A6 各裝置驗收與上線**：真實桌機／手機／平板、關卡移動、UI 遮擋、載入速度、回歸測試；經使用者授權才 commit、部署。
+- [x] **A1 八關定位構圖（使用者 2026-10-12 核准空間定位）**：提出 3000×1600 V1，配置八關＋九個道路 waypoint（保留四個舊 ID）、區域形狀、16 段主線道路、低干擾留白；交付 docs/overworld-eight-stage-layout-v1.html + .md。已驗證 HTML 內嵌 JS 語法與 8 關／17 節點資料。**空間定位已獲使用者核准**，跨裝置與正式美術仍需 A2/A3 驗證。
+- [x] **A2 跨比例構圖與 HUD 幾何驗證（已完成）**：用真實 viewport.js 公式及 js/overworld.js HUD 幾何檢查 8 關×8 螢幕比例＝64 組；原 3000×1600＋固定 HUD 在直式有高度不足／重疊；3000×2200 地景可見範圍＋底部 HUD 對 bounds.bottom/right 定位方案 64/64 組通過幾何檢查。已產出可切換預覽、Node 可重跑驗證、Chrome headless 截圖與說明，見 docs/overworld-a2-validation-notes.md。**此項不等於真機或真正八關遊戲驗收；正式實作／真機檢查仍在 A5/A6。**
+- [x] **A3 Q 版水墨純場景美術草稿（使用者已選定）**：使用者比較兩張生成稿後選定第二張 `霧嵐之境_櫻花雪域幻境地圖.png` 為純地景主背景，並核准之後的八關 UI 疊圖配置。`櫻花妖境八關地圖.png` 僅作 UI 疊圖參考，**不可直接當背景**。選定原圖已由使用者放進 Windows 專案 `artifacts/references/霧嵐之境_櫻花雪域幻境地圖.png`，並已製作 WebP。
+- [x] **A4 正式背景接圖與直向延伸（本機驗證完成）**：使用者已將純場景 `artifacts/references/霧嵐之境_櫻花雪域幻境地圖.png` 放進專案，檔案 1672×941、3,867,162 bytes；執行 `python tools/prepare-approved-overworld.py` 生成 `assets/img/overworld_approved_v2.webp`，539,354 bytes（縮小 86.1%）及來源雜湊清單。`js/assets.js` 優先載入新圖、只在失敗時下載舊版 `overworld_ukiyoe_v3`；`js/overworld.js` 已優先繪製新圖，程式繪製的道路／角色／木牌／按鈕維持分層；更新 `index.html` 資產版本與 `service-worker.js` 圖片版本。**已更新至 527/527 全套測試通過；Chrome headless 本地 smoke 載入新圖成功，截圖 `artifacts/validation/overworld-a4-approved-night-town.png`**。**目前採 3000×2200 的世界座標，主圖按原生比例繪製約 3000×1688，南側以同一張圖的末段鏡像＋漸層霧景補足直式視野，不額外下載圖片；八個關卡沿核准的 A1 座標配置。已另以 Chrome 實際執行 `index.html` 的 390×844 手機直向主選單→旅路，確認橫向遮罩在選關時隱藏、WebP 真正載入；手機下載與幀率仍須 A6 真機量測。**
+- [x] **A5 八關地圖與互動 UI 本機實裝**：17 個節點（8 正式關＋9 過渡點）、16 段連續道路，保留既有五關與四舊 waypoint 的 ID；新增三關詞庫佔位（implemented:false）；舊 STORE key 保留並依新 8 關順序解鎖。Canvas 動態繪製八關木牌、可遊玩／已通關朱印／封印、角色位移、選關資訊及出發／前往／返回按鈕。左右箭頭可鏡頭瀏覽尚未完成的關卡，但**不能越級旅行或進入 3–8 關**。已修正直向鏡頭及 HUD 跟隨可視底邊，並提高深色木牌文字對比。八關與手機／平板模擬截圖位於 `artifacts/validation/eight-stage-a5/`，`tests/overworld-eight-stage.test.cjs` 及全套 527/527 測試通過；真實 game.js 手機直向觸控測試亦通過。**是本機完整互動地圖，不是 3–8 關已可玩。**
+- [x] **A5.1 旅路地圖可視化編輯器（2026-10-12 完成本機實作）**：新增 `開啟旅路地圖編輯器.cmd`，以 `node tools/map-editor-server.cjs --open` 啟動只綁定 127.0.0.1 的 `editor/overworld.html`。關卡路線點／地標圖示／名稱木牌三組座標與圖示比例、木牌寬度、背景縮放和平移皆可拖曳；提供 9 個路口、鏡頭安全框、滑輪檢視縮放、復原／重做、瀏覽器暫存、JSON 備份／匯入。點『套用至本機遊戲』後伺服器驗證座標及 17 IDs，直接更新 `js/overworld-layout.js`，正式 `index.html` 已載入該表且 `js/overworld.js` 直接讀取。**530/530 全套測試通過，Chrome 真實編輯器拖曳道路／地標、縮放背景、POST 儲存、Node 遊戲設定讀回通過**（`tools/map-editor-smoke.cjs`，測後還原原始設定；截圖 `artifacts/validation/map-editor-visual-smoke.png`）。操作見 `docs/overworld-editor-usage.md`。暫不 commit／deploy，用戶自行對位後再驗收。
+- [x] **A5.3 旅路資訊板、木牌與按鈕文字視覺統一（2026-10-12）**：僅調整 `js/overworld.js` 與 `js/ui.js`（`drawButton` 新增僅旅路使用的 `mapTypography` opt-in），不改座標表及 4K 背景。淺和紙的中央資訊板以柔和放射米色提亮，不畫現代卡片邊框；主標題、關卡木牌用 `Kaisei Decol`／明朝後備＋深墨 `#39261d`、1.5px 淺米描邊，分數與操作說明用 `Noto Sans JP`／微軟正黑體＋深棕 `#53382a`、同描邊。紅色「出發」等按鈕使用暖白 `#fff0d7`＋深褐描邊；首頁與左右選關按鈕以深墨色書卷字融入和風底牌。按鈕原尺寸、命中區域、遊戲流程均不動。`index.html` 已更新 JS 版本，Chrome 真正 index.html 電腦及手機 Canvas 截圖分別在 `artifacts/validation/eight-stage-a5/map-typography-stage-board.png` 和 `map-typography-phone.png`；新增 `tests/overworld-typography.test.cjs` 二項樣式／封印斷言，重建媒體快取後 **532/532 全測試通過（循序）**，未部署。
+- [x] **A5.5 旅路角色往返方向修復（2026-10-12）**：`js/overworld.js` 的原兩張走路素材是交替腳步姿勢，不是朝左／右兩個方向。現於 `createState` 記錄 `facing`，在 `moveTo` 的直接相鄰節點及多段路徑第一段、後續自動換段時都依目標 x 判斷朝向（左右，純垂直保留原方向），`drawMiniPlayer` 僅對左向進行 `ctx.scale(-1,1)` 水平鏡射；站定後保留最後朝向。**地圖座標、背景、UI、碰撞與角色站位皆不變**。新增 `tests/overworld-facing.test.cjs` 3 項測試（來回走、多段路徑、鏡頭瀏覽不瞬移），**537/537 全套循序測試通過**，真實 Chrome `index.html` 手機直向載入地圖通過。`index.html` 更新 `overworld.js` 快取版本；未提交／未部署。此階段標誌 **A5 旅路地圖介面本機開發完成**，不代表八關戰鬥內容或 A6 實機驗收已完成。
+- [~] **A6 裝置驗收與上線（模擬及自動測試完成，真機／部署待辦）**：Chrome headless 測試八關 900×600，另有手機橫向 844×390、直向 390×844／360×800、平板 1194×834 的渲染截圖；全套 `npm test` 為 **527/527 通過**，新純背景約 527 KiB 且只下載一次，舊版僅載入失敗才備援。尚未拿使用者實體手機／平板測試觸控、效能及瀏覽器快取；**本輪無 commit、無 deploy**。
 
 ### B｜日文詞庫與故事（可與地圖規劃並進）
 - [ ] **B1 八關正式詞庫表**：逐詞列日文、假名、漢字、繁中意思、詞性、關卡、重複歸屬；去重並排除近義詞歧義。
@@ -164,19 +167,32 @@
 
 ## 5. 下一位接手者的優先任務
 
-**從 A1 八關地圖定位稿開始**，但須先確認使用者本輪是否授權實作：
+**A4/A5 的八關旅路地圖介面已完成本機接入，詳見 `docs/overworld-a5-integrated-report.md`。下階段用戶可直接以 `開啟旅路地圖編輯器.cmd` 調整美術位置，按套用儲存，再執行 A6：真機觸控／視覺／載入速度驗收、必要微調；只有獲使用者同意才 Commit／Deploy。**
 
 1. 讀本檔與 `js/overworld.js`、`js/viewport.js`、`js/words.js`，檢視現有路網／視野／進度紀錄。
 2. 以第 3 節的 V0 為討論起點，規劃每個地景位置、道路和過渡地形、舊四個 waypoint、新關卡互動空間。
-3. 以 900×600 實際局部視圖檢查節點與 HUD 位置；交付**可以給使用者檢視的構圖定位稿**。
-4. **未核准構圖前不要開始正式生圖、也不要把節點／關卡文字烘焙進背景圖。**
-5. A1 得到驗證後更新本檔的 checkbox、完成證據、日期、下一步與日誌。
+3. 現在已將核准的純地景 WebP 與八關互動節點接入，檢查 `artifacts/validation/eight-stage-a5/` 的畫面證據與 `tests/overworld-eight-stage.test.cjs`；**切勿把 `櫻花妖境八關地圖.png` 烘焙 UI 版直接當背景。**
+4. 現有 8 個節點的顯示、封印與點擊已實作；保留前兩關可玩，後六關為 placeholder。任何後續詞庫／玩法實作需保護舊存檔、現有解鎖順序與新 UI，**不能誤開未完成關卡**。
+5. A5 八關旅路介面已獲使用者於 2026-10-12 授權提交／部署：需先保護所有不相關的未追蹤素材、完成回歸，再選擇性提交正式程式與地景／測試／編輯器。部署成功後在最新日誌註明 SHA、Pages 結果。**A6 實體手機／平板操作、下載與 FPS 驗收仍未完成**，不可把線上發布等同真機通過。
 
 ## 6. 更新日誌（最新一筆放最上方）
 
 | 日期 | 階段 | 完成／變更／驗證證據 | Commit／部署 |
 |---|---|---|---|
-| 2026-10-12 | Roadmap 建立 | 彙整八關主線、N5 主題詞、四次配送字卡、動態機率、Q 版地景母版及 A–D 工作階段；核對 `js/words.js`、`js/overworld.js`、`js/assets.js` 目前狀態 | 本輪僅文件，未提交／未部署 |
+| 2026-10-12 | A5 release 授權／待確認發布 | 使用者確認八關旅路介面微調已可收尾，明確授權更新 roadmap、Git Commit／Push、GitHub Pages 發布；發布僅包含 A4/A5 必要程式、4K 背景、編輯器與測試，不納入無關暫存圖及匯入原稿；A6 真機仍需試玩。待部署完成後記錄 commit SHA 與線上驗證。 | 使用者已授權；驗證中 |
+| 2026-10-12 | A5.5 [x] 角色左右轉向／往回走不倒退 | `js/overworld.js` 記錄移動朝向並按路線每段 x 位移更新；左移將相同腳步素材水平鏡射，右移恢復原向，停止後保留朝向；新增 `tests/overworld-facing.test.cjs` 3 項回歸，**537/537 全測試通過**，手機 Chrome 真實 `index.html` 地圖載入測試通過；背景／定位配置不動。A5 地圖介面本機完成，A6 真機／上線未完成 | 未提交／未部署 |
+| 2026-10-12 | A5.4 [x] 旅路字體與對齊精修 | `← 首頁` 使用與地名一致的 Kaisei Decol 明朝標題字、深墨 #39261d／淺米白細描邊（`mapTypography:"title"`）；地名主字 16→15px、上移 2px，假名上移 4px，牌面不改；上方標題與副標、底部提示字上移 4px，◀ ▶ 只提高文字 4px（`visualOffsetY`），按鈕底圖與 hitbox 不變。限定 `js/overworld.js`、`js/ui.js` 的旅路 opt-in，`index.html` 腳本版本更新。修正一項舊測試誤以為轉檔來源 4K 必須存在的問題（正式 WebP 正常）。Chrome 實際主程式桌機 1500×900／手機直向 390×844 截圖：`artifacts/validation/eight-stage-a5/map-typography-alignment-v2-{desktop,phone}.png`；**534/534 回歸測試通過**。手動定位檔 `js/overworld-layout.js` SHA256 `315fe42e93dbcd2f6224d5751906099ba87f7dc158e9b5e3d579a0239bd432a6` 保持不變。 | 未提交／未部署 |
+| 2026-10-12 | A5.3 [x] 旅路字體／描邊／底色對比優化 | 深墨字＋暖米白細描邊、和風明朝標題與木牌、可讀正文與紅色按鈕暖白字、紙面中央柔光；UI 變更只在旅路 opt-in，不改玩法／地圖定位；真實 Chrome 1500×900 與 390×844 畫面驗證；新增 2 項自動測試，重建快取後 **532/532 通過**。截圖於 `artifacts/validation/eight-stage-a5/map-typography-*.png` | 未提交／未部署 |
+| 2026-10-12 | A5.2 4K 地景對位換圖 | 確認使用者放入 `assets/img/overworld_approved_v2_4k.webp` 實際為 3840×2161（標示 2160、只差一列），與舊 1672×941 圖的低頻像素相關性 0.9999；**構圖、座標無須重調**。保持 `js/overworld-layout.js` SHA256 `315fe42e93dbcd2f6224d5751906099ba87f7dc158e9b5e3d579a0239bd432a6` 完全未改。4K 以 WebP Q94 編碼至 `assets/img/overworld_approved_v2.webp`，2,084,884 bytes（比原始 8,191,352 bytes 少 74.5%，保留 3840×2161），更新快取版本及預設優先使用 4K。A6 真機仍待測試 | 未提交／未部署 |
+| 2026-10-12 | A5.1 [x] 可視化地圖編輯器 | 追加 editor/overworld.html + js、tools/map-editor-server.cjs、`開啟旅路地圖編輯器.cmd`、正式 js/overworld-layout.js 資料來源、三層獨立定位與背景縮放；本機 Chrome 真正拖曳／儲存／遊戲程式讀回通過，530/530 全測試通過，見 docs/overworld-editor-usage.md | 未提交／未部署 |
+| 2026-10-12 | A5 完整互動與手機直向入口驗證 | 修正原 `index.html` 直式全屏旋轉遮罩阻擋旅路的問題：主選單及地圖可直式操作，戰鬥仍要橫向。新增 3 項真實輸入測試；**527/527 全套通過**。CDP 用真正 `index.html` 通過手機 390×844 首頁→旅路並確認素材載入（`tools/overworld-live-page-smoke.cjs`）；完整交接在 `docs/overworld-a5-integrated-report.md` | 未提交／未部署 |
+| 2026-10-12 | A4 [x]／A5 [x]／A6 [~] | 八關 17 節點 16 道路、動態木牌／封印／通關、關卡瀏覽箭頭與出發／前往、3–8 未實作封印、直向 3000×2200 補景與 HUD 貼邊皆已接入；當時 524/524 全測試通過（後續新增 3 項直向操作測試，現為 527/527），Chrome 八關及多尺寸截圖 `artifacts/validation/eight-stage-a5/`。真機觸控及線上版仍待驗收 | 未提交／未部署 |
+| 2026-10-12 | A4 [~]／接圖第一步完成 | 選定 PNG 已到位，轉檔為約 527 KiB 的 WebP（-86.1%），更新 js/assets.js、js/overworld.js、index.html、tools/build-media-cache.cjs、service-worker.js 及資產／旅路測試；518/518 及 Chrome 真實圖片載入檢查通過；截圖 artifacts/validation/overworld-a4-approved-night-town.png。舊 5 關座標尚未對齊新圖，直向延伸尚未做 | 未提交／未部署 |
+| 2026-10-12 | A3 [x]／A4 [!] | 使用者選定第二張純地景 `霧嵐之境_櫻花雪域幻境地圖.png`，八關木牌／虛線疊圖僅作對位參考。新建 tools/prepare-approved-overworld.py，Pillow WebP 驗證與拒用疊圖測試通過；Windows 專案尚無純地景來源 PNG，故尚未轉檔或接入 JS；請將原圖放進 artifacts/references | 未提交／未部署 |
+| 2026-10-12 | A2 [x]／A3 [~] | 已完成 8 關×8 比例＝64 組幾何驗證，原直向 HUD 有碰撞／圖資高度不足；2200 高延伸＋底部 HUD 貼邊之方案 64/64 通過；產出 A2 比較頁、Node 測試 JSON、四張 Chrome 截圖與 A3 美術簡報；找回兩張舊設計圖的 ChatGPT 檔案，Windows 專案尚未取得原圖 | 未提交／未部署 |
+| 2026-10-12 | A1 核准／A2 [~] | 使用者同意八關構圖定位；瀏覽器開啟 V1、核對原始碼名牌／角色／HUD，跨裝置實際測試未完成；見 docs/overworld-a2-validation-notes.md | 未提交／未部署 |
+| 2026-10-12 | A1 草稿 [~] | 建立 docs/overworld-eight-stage-layout-v1.html 與 .md：3000×1600、8 正式關＋9 waypoint、16 段路、局部視野與 HUD 留白；Node 語法與資料結構基本檢查通過，尚待使用者審核 | 草稿未提交／未部署 |
+| 2026-10-12 | Roadmap 建立 | 彙整八關主線、N5 主題詞、四次配送字卡、動態機率、Q 版地景母版及 A–D 工作階段；核對 `js/words.js`、`js/overworld.js`、`js/assets.js` 目前狀態 | **已提交 fa81c73**／未部署 |
 
 > **更新範例**：`2026-10-13 | A1 [~] | 完成 eight-stage-layout-v1 草稿，900×600 局部視野尚待使用者確認 | 未提交／未部署`。
 >

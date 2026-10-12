@@ -315,7 +315,7 @@ window.UI = (() => {
     const px=scale<1?Math.max(size,Math.min(28,Math.ceil(14/scale))):size;
     return `${weight} ${px}px 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif`;
   }
-  function drawButton(ctx,b,label,{tone="normal",size=18,focus=false,icon=null,disabled=false,quiet=false,scrollText=false,visualOffsetY=0}={}) {
+  function drawButton(ctx,b,label,{tone="normal",size=18,focus=false,icon=null,disabled=false,quiet=false,scrollText=false,visualOffsetY=0,mapTypography=false}={}) {
     const t=BUTTON_TONES[tone]||BUTTON_TONES.normal;
     const hovered=!disabled && buttonFeedback.hoverId===b.id;
     const pressed=!disabled && isButtonPressed(b.id);
@@ -340,7 +340,14 @@ window.UI = (() => {
     const showIcon=!!icon && b.w>=120;
     const safe=buttonTextArea(b,tone,showIcon);
     ctx.textAlign="center";
-    ctx.font=scrollText?scrollFont(size,"700"):readableFont(size,"900");
+    // 只有旅路 mapTypography 採用同款明朝題字與筆畫描邊；戰鬥/選卡 HUD 保持原樣。
+    if(mapTypography==="title"){
+      // 與關卡地名共用 Kaisei Decol；只影響旅路首頁鈕，不改其他遊戲按鈕。
+      const px=fontPx(scrollFont(size,"700"));
+      ctx.font=`700 ${px}px 'Kaisei Decol', 'Noto Serif TC', 'PMingLiU', serif`;
+    }else{
+      ctx.font=mapTypography?scrollFont(size,"700"):scrollText?scrollFont(size,"700"):readableFont(size,"900");
+    }
     // 真字框（有支援的瀏覽器）校正基準線，否則沿用近似原字體的光學值。
     const metrics=ctx.measureText(label);
     const fontSize=fontPx(ctx.font);
@@ -349,10 +356,20 @@ window.UI = (() => {
     const y=safe.y+(asc-desc)/2+visualOffsetY;
     const painted=!!illustratedArt[tone==="primary"?"primary":tone==="danger"?"danger":"neutral"]?.naturalWidth;
     const darkLettering=painted && tone!=="primary" && tone!=="danger";
-    ctx.fillStyle=darkLettering?"rgba(255,240,214,.35)":"rgba(18,13,12,.52)";
-    ctx.fillText(label,safe.x+1,y+1,safe.width);
-    ctx.fillStyle=disabled?"#b7a28a":darkLettering?"#332722":t.text;
-    ctx.fillText(label,safe.x,y,safe.width);
+    if(mapTypography){
+      const ink=disabled?"#766759":tone==="primary"||tone==="danger"?"#fff0d7":mapTypography==="title"?"#39261d":"#3e281c";
+      ctx.lineWidth=1.8;
+      ctx.lineJoin="round";
+      ctx.strokeStyle=tone==="primary"||tone==="danger"?"rgba(63,29,20,.9)":"rgba(255,245,220,.86)";
+      if(typeof ctx.strokeText==="function")ctx.strokeText(label,safe.x,y,safe.width);
+      ctx.fillStyle=ink;
+      ctx.fillText(label,safe.x,y,safe.width);
+    }else{
+      ctx.fillStyle=darkLettering?"rgba(255,240,214,.35)":"rgba(18,13,12,.52)";
+      ctx.fillText(label,safe.x+1,y+1,safe.width);
+      ctx.fillStyle=disabled?"#b7a28a":darkLettering?"#332722":t.text;
+      ctx.fillText(label,safe.x,y,safe.width);
+    }
     if(showIcon){
       ctx.fillStyle=ctx.strokeStyle=disabled?"#b2a28b":darkLettering?"#594335":C.goldHi;
       drawActionIcon(ctx,icon,b.x+31,b.y+b.h/2,9);

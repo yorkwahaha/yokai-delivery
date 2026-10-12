@@ -96,21 +96,28 @@ test('map readiness warms the upcoming core game without changing the visible ma
 
 test('cover completion begins route preparation before the user clicks start',()=>{
   const {env,images}=loadAssets();assert.equal(images.length,1);images[0].onload();
-  assert.ok(images.some(i=>i.src.includes('overworld_ukiyoe_v3.webp')));
+  assert.ok(images.some(i=>i.src.includes('overworld_approved_v2.webp')));
+  assert.ok(!images.some(i=>i.src.includes('overworld_ukiyoe_v3.webp')),'old map should not be downloaded alongside the approved map');
   assert.equal(env.MAP_ART_READY,false);
 });
 
-test('real painted map is a shipped lightweight WebP backed by a PNG, not an SVG',()=>{
+test('approved pure environment map is a small WebP; old map loads only if it fails',()=>{
   const {env,images}=loadAssets();env.loadMapArt();
-  const map=images.find(i=>i.src.includes('/overworld_ukiyoe_v3.webp'));
-  assert.ok(map,'new painted image is a required map request');
-  assert.match(map.src,/v=20261011-ukiyoe-v3/);
-  assert.ok(fs.statSync('assets/img/overworld_ukiyoe_v3.webp').size<450000);
-  assert.ok(fs.statSync('assets/img/overworld_ukiyoe_v3.png').size>0);
-  assert.equal(fs.readFileSync('assets/img/overworld_ukiyoe_v3.webp').toString('ascii',0,4),'RIFF');
-  assert.ok(!fs.existsSync('assets/img/overworld_edo_v3.svg'),'old SVG has been retired');
-  map.onerror();assert.equal(map.src,'assets/img/overworld_ukiyoe_v3.png');
-  map.onload();assert.equal(env.ART.overworld_ukiyoe_v3,map);
+  const map=images.find(i=>i.src.includes('/overworld_approved_v2.webp'));
+  assert.ok(map,'approved image must be a required map request');
+  assert.match(map.src,/v=20261012-approved-v2-4k/);
+  assert.ok(fs.statSync('assets/img/overworld_approved_v2.webp').size<2500000, 'optimized 4K image should stay under 2.5 MB');
+  // The optional 4K source may be archived after optimization; only the shipped
+  // WebP must exist for the game to render and recover from network failures.
+  assert.ok(fs.statSync('artifacts/references/霧嵐之境_櫻花雪域幻境地圖.png').size>0);
+  assert.equal(fs.readFileSync('assets/img/overworld_approved_v2.webp').toString('ascii',0,4),'RIFF');
+  assert.ok(!images.some(i=>i.src.includes('/overworld_ukiyoe_v3.webp')),'no duplicate background download');
+  map.onerror();
+  const old=images.find(i=>i.src.includes('/overworld_ukiyoe_v3.webp'));
+  assert.ok(old,'older painted map is a failure-only fallback');
+  assert.equal(env.MAP_ART_READY,false,'remaining map assets still gate initial map readiness');
+  old.onerror();assert.equal(old.src,'assets/img/overworld_ukiyoe_v3.png');
+  old.onload();assert.equal(env.ART.overworld_ukiyoe_v3,old);
 });
 
 test('blocking scene images have high fetch priority instead of competing below music',()=>{
@@ -125,7 +132,8 @@ test('map loads only its own art, then game reuses those requests and includes H
   images.forEach(i=>i.onload());assert.equal(env.MAP_ART_READY,true);
   assert.equal(env.ART_READY,false);
   env.loadGameArt();
-  assert.equal(images.filter(i=>i.src.includes('overworld_ukiyoe_v3.webp')).length,1);
+  assert.equal(images.filter(i=>i.src.includes('overworld_approved_v2.webp')).length,1);
+  assert.equal(images.filter(i=>i.src.includes('overworld_ukiyoe_v3.webp')).length,0);
   const hud=images.find(i=>i.src.includes('hud_skill_fan.webp'));
   images.filter(i=>i!==hud).forEach(i=>i.onload());
   assert.equal(env.ART_READY,false,'pending HUD must keep game in loading');
@@ -208,6 +216,8 @@ test('WebP failures retry preserved originals once and settle even when both are
     image.onerror();
     if (image.src.includes('/vfx/')) {
       assert.ok(image.src.split('?')[0].endsWith(/\/vfx\/raster\/(?:dragon_|katana_l1)/.test(image.src) ? '.webp' : '.svg'));
+    } else if (image.src.includes('/overworld_approved_v2.webp')) {
+      assert.ok(images.some(i=>i.src.includes('/overworld_ukiyoe_v3.webp')),'failed approved map queues old-map fallback');
     } else {
       assert.ok(image.src.split('?')[0].endsWith('.png'));
       image.onload();
@@ -265,8 +275,8 @@ test('foxfire exposes separate orbit, attack and Lv5 dragon asset slots',()=>{
 test('legacy movement, posture and landmark images still ship WebP and PNG fallback files',()=>{
   const {env,images}=loadAssets();env.loadGameArt();
   for(const image of images) image.onload();
-  const extra=images.filter(i=>/_v[123]/.test(i.src) && !/player_(idle|walk_left|walk_right|dash|hurt|attack)_v2/.test(i.src));
-  assert.equal(extra.length,12);
+  const extra=images.filter(i=>/_v[123]/.test(i.src) && !/player_(idle|walk_left|walk_right|dash|hurt|attack)_v2/.test(i.src) && !/overworld_approved_v2/.test(i.src));
+  assert.equal(extra.length,11,'old overworld image is not downloaded without an approved-map failure');
   for(const i of extra){assert.ok(fs.existsSync(i.src.split('?')[0]),i.src);i.onerror();assert.ok(fs.existsSync(i.src.split('?')[0]),i.src);i.onload();}
   assert.ok(env.ART.player_kneel_v1);assert.ok(env.ART.boss_motion_v1);assert.ok(env.ART.map_rain_port_v1);
 });

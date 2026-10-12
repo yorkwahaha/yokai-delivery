@@ -3,13 +3,16 @@
   const STORE = (() => {
     const K = "yokai-delivery-v1";
   const WT = [6, 4, 2, 1, .5];
+  // Keep existing progress entries untouched; insert the three new stage IDs.
   const NEXT_STAGE = {
     "night-town": "rain-port",
     "rain-port": "sakura-pass",
-    "sakura-pass": "hyakki-kyoto",
-    "hyakki-kyoto": "yomi"
+    "sakura-pass": "bamboo-maze",
+    "bamboo-maze": "hyakki-kyoto",
+    "hyakki-kyoto": "snow-temple",
+    "snow-temple": "spirit-ferry",
+    "spirit-ferry": "yomi"
   };
-
   const fresh = () => ({
     m: Object.create(null),
     best: 0,

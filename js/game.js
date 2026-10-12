@@ -508,6 +508,8 @@
     joy = null;
     gpOverworldDir = "";
     state = "overworld";
+    // A journey map is intentionally browsable in portrait. Only active combat requires rotation.
+    if (document.body?.dataset) document.body.dataset.gameScreen = "map";
   }
 
   function moveOverworld(dx, dy) {
@@ -517,6 +519,19 @@
 
   function confirmOverworld() {
     if (state !== "overworld" || artPending()) return;
+    const selected = window.OVERWORLD.selectedNode(overworld);
+    if (selected.id !== overworld.currentId) {
+      if (window.OVERWORLD.isEnterable(selected)) {
+        if (!window.OVERWORLD.moveTo(overworld, selected.id)) {
+          overworldNoticeT = 1.5;
+          AUDIO.warningPulse?.(1);
+        }
+      } else {
+        overworldNoticeT = 1.5;
+        AUDIO.warningPulse?.(1);
+      }
+      return;
+    }
     const result = window.OVERWORLD.confirm(overworld);
     if (result.ok && result.stageId) {
       start(result.stageId);
@@ -1016,7 +1031,7 @@
   }
 
   function pollGamepad() {
-    if (isPortrait() || document.hidden) {
+    if ((isPortrait() && state !== "overworld" && state !== "menu") || document.hidden) {
       gpMove = { x: 0, y: 0 };
       // 消耗遮罩期間的按鈕狀態，回橫向後需重新按下。
       const gp = navigator.getGamepads?.()?.find(g => g && g.connected);
@@ -2900,7 +2915,7 @@
       if (!e.repeat && (e.code === "Enter" || e.code === "Escape")) recoverFrameError();
       return;
     }
-    if (isPortrait() || document.hidden) return;
+    if ((isPortrait() && state !== "overworld" && state !== "menu") || document.hidden) return;
     if (artPending()) return;
     if (CONTROLS.isOpen()) return;
     if (e.target?.closest?.('button, input, select, textarea, dialog')) return;
@@ -3054,7 +3069,7 @@
   document.getElementById("game-container").addEventListener("pointerdown", e => {
     e.preventDefault();
     if (frameError) { recoverFrameError(); return; }
-    if (isPortrait() || document.hidden) return;
+    if ((isPortrait() && state !== "overworld" && state !== "menu") || document.hidden) return;
     if (artPending()) return;
     cv.setPointerCapture(e.pointerId);
     AUDIO.init();
@@ -3119,22 +3134,30 @@
         return;
       }
 
-      const enter = window.OVERWORLD.ENTER_BTN;
-      const here = window.OVERWORLD.currentNode(overworld);
-      if (window.OVERWORLD.isEnterable(here) && hitButton(p, enter)) {
+      // Browse arrows pan to any of the eight stages, even those not yet playable.
+      const browse = window.OVERWORLD.browseButtons?.() || [];
+      const selectedBrowse = browse.find(b => hitButton(p,b));
+      if (selectedBrowse) {
+        window.OVERWORLD.browse(overworld,selectedBrowse.id==="next" ? 1 : -1);
+        return;
+      }
+      const enter = window.OVERWORLD.enterButton?.() || window.OVERWORLD.ENTER_BTN;
+      const here = window.OVERWORLD.selectedNode(overworld);
+      if (window.OVERWORLD.isEnterable(here) && hitButton(p,enter)) {
         confirmOverworld();
         return;
       }
 
-      const node = window.OVERWORLD.hitTest(overworld, p.x, p.y);
+      const node = window.OVERWORLD.hitTest(overworld,p.x,p.y);
       if (node) {
-        if (node.id === overworld.currentId) confirmOverworld();
-        else {
-          const ok = window.OVERWORLD.moveTo(overworld, node.id);
-          if (!ok && !window.OVERWORLD.isEnterable(node)) {
-            overworldNoticeT = 1.5;
-            AUDIO.warningPulse?.();
-          }
+        if (node.id === overworld.currentId) {
+          window.OVERWORLD.clearInspect(overworld);
+          confirmOverworld();
+        } else if (node.type === "stage" && !window.OVERWORLD.isEnterable(node)) {
+          window.OVERWORLD.inspect(overworld,node.id);
+        } else {
+          const ok = window.OVERWORLD.moveTo(overworld,node.id);
+          if (!ok && node.type === "stage") window.OVERWORLD.inspect(overworld,node.id);
         }
       }
       return;
@@ -3328,6 +3351,8 @@
     }
     if (state === "play") titleCardT = Math.max(0, titleCardT - dt);
     const screen = state === "codex" ? lastScreen : state === "menu" ? "menu" : state === "overworld" ? "map" : state === "won" || state === "lost" ? "end" : "run";
+    const uiScreen = state === "overworld" ? "map" : state === "menu" ? "menu" : "other";
+    if (document.body?.dataset && document.body.dataset.gameScreen !== uiScreen) document.body.dataset.gameScreen = uiScreen;
     if (screen !== lastScreen) { lastScreen = screen; fadeT = FADE_TIME; }
     fadeT = Math.max(0, fadeT - dt);
 

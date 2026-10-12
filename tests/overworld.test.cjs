@@ -40,19 +40,24 @@ test('map background is baked once while distant landmarks are not submitted',()
   assert.ok(!labels.includes(env.OVERWORLD.NODES.find(n=>n.id==='yomi').label));
 });
 
-test('overworld draws real generated map image before roads and landmarks, with legacy fallback',()=>{
-  const img={naturalWidth:1289,naturalHeight:752},old={naturalWidth:1024};
+test('overworld draws approved environment map ahead of the legacy fallbacks',()=>{
+  const layout=require("../js/overworld-layout.js").background;
+  const approved={naturalWidth:3840,naturalHeight:2161},painted={naturalWidth:1289,naturalHeight:752},old={naturalWidth:1024};
   const calls=[],g={addColorStop(){}};
   const ctx=new Proxy({drawImage:(...p)=>calls.push(p),createLinearGradient:()=>g,createRadialGradient:()=>g},{get:(o,k)=>o[k]||(()=>{})});
-  global.ART={overworld_ukiyoe_v3:img,overworld_night_v2:old};
+  global.ART={overworld_approved_v2:approved,overworld_ukiyoe_v3:painted,overworld_night_v2:old};
   try {
     const state=OVERWORLD.createState('night-town');
     OVERWORLD.draw(ctx,state,0);
-    assert.equal(calls[0][0],img);
-    assert.deepEqual(calls[0].slice(1),[0,0,OVERWORLD.MAP_W,OVERWORLD.MAP_H]);
+    assert.equal(calls[0][0],approved,'the selected image is the primary background');
+    assert.deepEqual(calls[0].slice(1),[layout.x,layout.y,layout.width,Math.round(layout.width*approved.naturalHeight/approved.naturalWidth)]);
+    assert.ok(calls.every(args=>args[0]!==approved || args.length===5),'landscape view culls the unseen portrait extension');
+    delete global.ART.overworld_approved_v2;calls.length=0;
+    OVERWORLD.draw(ctx,state,0);
+    assert.equal(calls[0][0],painted,'previous painted map is the first fallback');
     delete global.ART.overworld_ukiyoe_v3;calls.length=0;
     OVERWORLD.draw(ctx,state,0);
-    assert.equal(calls[0][0],old,'legacy bitmap is a safe fallback');
+    assert.equal(calls[0][0],old,'legacy bitmap remains a final fallback');
   }finally{delete global.ART;}
 });
 
@@ -108,7 +113,9 @@ test('compact map title and subtitle retain a full readable line gap inside thei
 test("overworld exposes one large connected route map", () => {
   assert.ok(OVERWORLD.MAP_W > OVERWORLD.VIEW_W);
   assert.ok(OVERWORLD.MAP_H > OVERWORLD.VIEW_H);
-  assert.equal(OVERWORLD.NODES.filter(n => n.type === "stage").length, 5);
+  assert.equal(OVERWORLD.NODES.filter(n => n.type === "stage").length, 8);
+  assert.equal(OVERWORLD.NODES.filter(n => n.type === "waypoint").length, 9);
+  assert.equal(OVERWORLD.EDGES.length, 16);
 
   const seen = new Set(["gate"]);
   const queue = ["gate"];
@@ -229,7 +236,7 @@ test('journey map reuses approved paper labels and controls, with the new courie
  const walk={complete:true,naturalWidth:832,naturalHeight:1024};
  global.ART={player_walk_left_v2:walk,overworld_night_v2:{naturalWidth:1641}};
  global.STORE={isStageCompleted:()=>false,isStageUnlocked:()=>true};
- global.CONTENT={getStage:()=>({implemented:true,unlockedByDefault:true})};
+ global.CONTENT={getStage:id=>({id,implemented:true,unlockedByDefault:true})};
  global.loadMapPlayerArt=()=>{calls.preload++};
  global.UI={
    readableFont:(size)=>'700 '+size+'px sans-serif',
@@ -244,7 +251,7 @@ test('journey map reuses approved paper labels and controls, with the new courie
    assert.ok(calls.preload>=1,'optional courier download requested');
    assert.ok(calls.tags.length>1,'map title and stage labels reuse illustrated ribbons');
    assert.ok(calls.boards.length>=1,'selected-stage information is on illustrated washi board');
-   assert.deepEqual(calls.buttons.map(c=>c[2]),['← 首頁','出發'],'shared paper buttons preserve existing actions');
+   assert.deepEqual(calls.buttons.map(c=>c[2]),['← 首頁','◀','▶','出發'],'shared paper buttons include chapter browsing and stage entry');
    delete global.ART.player_walk_left_v2;
    global.ART.player={complete:true,naturalWidth:216,naturalHeight:352};
    calls.images.length=0;

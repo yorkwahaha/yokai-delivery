@@ -57,7 +57,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
   c.UI = new Proxy({ ...uiButtons, codexButtons:c.UI.codexButtons, codexRows:c.UI.codexRows, pauseButtons:c.UI.pauseButtons, bossQuizLayout:c.UI.bossQuizLayout, reviewButtons:c.UI.reviewButtons, HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
   const source = fs.readFileSync('js/game.js', 'utf8');
   const end = source.lastIndexOf('})();');
-  const hook = `window.fixture = { start, update, frame, drawWorld, drawStageWeather, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons, answerChoices,
+  const hook = `window.fixture = { start, update, frame, enterOverworld, getOverworld: () => overworld, confirmOverworld, drawWorld, drawStageWeather, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons, answerChoices,
     notice: (message,x=900,y=550) => say(message,x,y),
     upgradeOil: () => UP.find(u=>u.id==='oil_max').f(),
     weaponChoices: () => choices.filter(c=>c.type==='weapon'),
@@ -324,7 +324,6 @@ test('Lv1–3 thunder strikes exactly its target count without nearby splash dam
     assert.equal(g.snapshot().enemies.filter(e=>e.hp<999).length,rank);
   }
 });
-
 
 test('barrier Lv1–4 deals only 40 percent of same-rank katana damage; Lv5 deals half its former base damage',()=>{
   for(let rank=1;rank<=5;rank++){
@@ -1852,4 +1851,61 @@ test('a flying dragon fireball paints its art with visible ink embers and a boun
   assert.equal(imageDraws.length,1,'fireball texture must render once');
   assert.deepEqual(imageDraws[0],[-72,-72,144,144]);
   assert.ok(inkMarks.length>=4,'comet needs brush-stroke sparks, not just a still image');
+});
+
+test('portrait map responds to touch browse buttons but never launches a sealed future chapter',()=>{
+  const g=loadGame();
+  g.env.innerWidth=390;g.env.innerHeight=844;
+  g.env.MAP_ART_READY=true;
+  g.enterOverworld();
+  const v=g.env.VIEWPORT.get();
+  const tap=box=>{
+    const x=(box.x+box.w/2+v.offsetX)*g.env.innerWidth/v.width;
+    const y=(box.y+box.h/2+v.offsetY)*g.env.innerHeight/v.height;
+    g.canvasEvents.pointerdown(pointer(x,y,'touch'));
+  };
+  const next=g.env.OVERWORLD.browseButtons().find(b=>b.id==='next');
+  for(let i=0;i<8;i++)tap(next);
+  const map=g.getOverworld();
+  assert.equal(map.currentId,'gate','browsing does not teleport the courier');
+  assert.equal(map.inspectId,'yomi');
+  assert.equal(g.snapshot().state,'overworld');
+  tap(g.env.OVERWORLD.enterButton());
+  assert.equal(g.snapshot().state,'overworld','a future stage can never launch');
+  assert.equal(map.currentId,'gate');
+});
+
+test('portrait map touch can choose and travel to the first playable stage',()=>{
+  const g=loadGame();
+  g.env.innerWidth=390;g.env.innerHeight=844;
+  g.env.MAP_ART_READY=true;
+  g.enterOverworld();
+  const v=g.env.VIEWPORT.get();
+  const tap=box=>g.canvasEvents.pointerdown(pointer(
+    (box.x+box.w/2+v.offsetX)*g.env.innerWidth/v.width,
+    (box.y+box.h/2+v.offsetY)*g.env.innerHeight/v.height,'touch'
+  ));
+  tap(g.env.OVERWORLD.browseButtons().find(b=>b.id==='next'));
+  assert.equal(g.getOverworld().inspectId,'night-town');
+  tap(g.env.OVERWORLD.enterButton());
+  assert.equal(g.getOverworld().targetId,'night-town');
+  assert.equal(g.getOverworld().inspectId,null);
+  g.env.OVERWORLD.update(g.getOverworld(),1);
+  assert.equal(g.getOverworld().currentId,'night-town');
+  tap(g.env.OVERWORLD.enterButton());
+  assert.equal(g.snapshot().state,'play','the existing first-stage launch flow stays usable');
+});
+
+test('portrait main menu can open the map and suppress only its rotation overlay',()=>{
+  const g=loadGame();
+  g.env.innerWidth=390;g.env.innerHeight=844;
+  g.env.document.body={dataset:{}};
+  g.env.MAP_ART_READY=true;
+  const v=g.env.VIEWPORT.get(),start=g.env.UI.MENU_BTNS[0];
+  const x=(start.x+start.w/2+v.offsetX)*g.env.innerWidth/v.width;
+  const y=(start.y+start.h/2+v.offsetY)*g.env.innerHeight/v.height;
+  g.canvasEvents.pointerdown(pointer(x,y,'touch'));
+  g.flushMenuPress();
+  assert.equal(g.snapshot().state,'overworld','portrait users can reach the journey without rotating first');
+  assert.equal(g.env.document.body.dataset.gameScreen,'map');
 });

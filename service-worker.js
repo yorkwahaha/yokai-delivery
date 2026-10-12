@@ -80,6 +80,7 @@ const MEDIA_REVISIONS = {
   "assets/img/mis.webp": "c394297a978b3beb14fbe267",
   "assets/img/mis_motion_v1.png": "f5d7c7cbf60bb3a289c13e35",
   "assets/img/mis_motion_v1.webp": "43e0c637d27f7fa228ca375b",
+  "assets/img/overworld_approved_v2.webp": "4da08a1e08c353628c365162",
   "assets/img/overworld_night_v2.png": "f29d6c7547970846a0f82e31",
   "assets/img/overworld_night_v2.webp": "fa7d326067e4ac838093a159",
   "assets/img/overworld_ukiyoe_v3.png": "c444109c5b53b526c93db366",
