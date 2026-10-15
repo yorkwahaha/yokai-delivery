@@ -178,7 +178,8 @@ test('game projectile and impact use viewport upright, without camera overrides'
   const game=fs.readFileSync('js/game.js','utf8');
   const skill=fs.readFileSync('js/skillfx.js','utf8');
   assert.match(game,/for \(const q of proj\) upright\(q\.x,q\.y/);
-  assert.match(game,/spin: elapsed \* 16, age:q\.t, life:q\.life/);
+  // R5：黏貼中的符咒改慢速自轉並以固定 life 1s 顯示（不再隨 life 淡出回程）。
+  assert.match(game,/spin: elapsed \* \(q\.stuck \? 4 : 16\), age:q\.t, life:q\.stuck \? 1 : q\.life/);
   assert.match(skill,/window\.VIEWPORT\?\.upright\) window\.VIEWPORT\.upright\(ctx,p\.x,p\.y,paint\)/);
   assert.doesNotMatch(skill,/ctx\.scale\(1,0\.6\)/);
 });

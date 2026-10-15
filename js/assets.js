@@ -31,10 +31,135 @@ const YOKAI_ASSET_KEYS = new Set([
   "shooter_motion_v1", "mis_motion_v1", "boss_motion_v1"
 ]);
 // A4 選定純地景版優先下載；舊版只在失敗時啟動備援，避免平板手機同時下載兩張大地圖。
-const MAP_ASSET_NAMES = ["player", "map_night_town_v1", "map_rain_port_v1", "overworld_approved_v2", "prop_sakura", "prop_torii"];
+// 僅旅路地圖所需資產：overworld 地圖 + 玩家 + 共用道具。關卡地圖在 start() 時再載。
+const OVERWORLD_MAP_ASSET_NAMES = ["player", "overworld_approved_v2", "prop_sakura", "prop_torii"];
+const STAGE_MAP_ASSET_NAMES = ["map_night_town_v1", "map_rain_port_v1"];
+const MAP_ASSET_NAMES = [...OVERWORLD_MAP_ASSET_NAMES, ...STAGE_MAP_ASSET_NAMES];
 const CORE_ASSET_NAMES = ["player", "ghost", "mis", "boss", "runner", "tank", "shooter",
   "house_shop", "house_shrine", "house_tavern", "prop_torii", "prop_lantern", "prop_sakura", "ground", "ground_dirt"];
 const HUD_ASSET_NAMES = ["hud_lantern_oil", "hud_radar_frame", "hud_omamori_hint_listen", "hud_skill_fan"];
+
+// 八關資產插槽定義（資料導向，審圖通過後只要換映射即可，不改引擎）
+// 每關包含：地面、場景/建築/裝飾/地標、專屬敵人 idle/attack、Boss idle/attack
+// 缺圖時回落現役共用資產，標記 WAITING_ART；未核准候選不接 production
+const STAGE_ASSET_SLOTS = Object.freeze({
+  "night-town": Object.freeze({
+    map: "map_night_town_v1",
+    ground: "ground_dirt",
+    scene: ["house_shop", "house_shrine", "house_tavern", "prop_torii", "prop_lantern", "prop_sakura"],
+    enemy: {
+      ghost: { idle: "ghost", attack: "ghost_motion_v1" },
+      runner: { idle: "runner", attack: "runner_motion_v1" },
+      tank: { idle: "tank", attack: "tank_motion_v1" },
+      shooter: { idle: "shooter", attack: "shooter_motion_v1" },
+      mis: { idle: "mis", attack: "mis_motion_v1" },
+      boss: { idle: "boss", attack: "boss_motion_v1" }
+    }
+  }),
+  "rain-port": Object.freeze({
+    map: "map_rain_port_v1",
+    ground: "ground",
+    scene: ["port_warehouse", "prop_mooring_post", "prop_port_lighthouse", "prop_cargo_crates", "prop_port_boat", "prop_anchor_gear", "vfx_rain_splash_ripple"],
+    trans: ["ground_stone_wood_transition_v2", "ground_trans_stone_wood_h", "ground_trans_stone_wood_v", "ground_stone_var1", "ground_stone_var2", "ground_wood_dock_var1", "ground_wood_dock_var2"],
+    enemy: {
+      ghost: { idle: "ghost", attack: "ghost_motion_v1" },
+      runner: { idle: "runner", attack: "runner_motion_v1" },
+      tank: { idle: "tank", attack: "tank_motion_v1" },
+      shooter: { idle: "shooter", attack: "shooter_motion_v1" },
+      mis: { idle: "mis", attack: "mis_motion_v1" },
+      shiome: { idle: "minion_shiome_idle", attack: "minion_shiome_attack" },
+      boss: { idle: "boss_ikari_umibozu_idle", attack: "boss_ikari_umibozu_attack" }
+    }
+  }),
+  "sakura-pass": Object.freeze({
+    map: "map_sakura_pass_v1",
+    ground: "ground_dirt",
+    scene: ["shrine_pavilion", "landmark_corrupted_sakura"],
+    trans: ["ground_trans_dirt_to_steps_h", "ground_sakura_steps"],
+    enemy: {
+      ghost: { idle: "ghost", attack: "ghost_motion_v1" },
+      runner: { idle: "runner", attack: "runner_motion_v1" },
+      tank: { idle: "tank", attack: "tank_motion_v1" },
+      shooter: { idle: "shooter", attack: "shooter_motion_v1" },
+      mis: { idle: "mis", attack: "mis_motion_v1" },
+      boss: { idle: "boss", attack: "boss_motion_v1" }
+    }
+  }),
+  "bamboo-maze": Object.freeze({
+    map: "map_bamboo_maze_v1",
+    ground: "ground",
+    scene: [],
+    trans: [],
+    enemy: {
+      ghost: { idle: "ghost", attack: "ghost_motion_v1" },
+      runner: { idle: "runner", attack: "runner_motion_v1" },
+      tank: { idle: "tank", attack: "tank_motion_v1" },
+      shooter: { idle: "shooter", attack: "shooter_motion_v1" },
+      mis: { idle: "mis", attack: "mis_motion_v1" },
+      boss: { idle: "boss", attack: "boss_motion_v1" }
+    }
+  }),
+  "hyakki-kyoto": Object.freeze({
+    map: "map_hyakki_kyoto_v1",
+    ground: "ground_dirt",
+    scene: [],
+    trans: [],
+    enemy: {
+      ghost: { idle: "ghost", attack: "ghost_motion_v1" },
+      runner: { idle: "runner", attack: "runner_motion_v1" },
+      tank: { idle: "tank", attack: "tank_motion_v1" },
+      shooter: { idle: "shooter", attack: "shooter_motion_v1" },
+      mis: { idle: "mis", attack: "mis_motion_v1" },
+      boss: { idle: "boss", attack: "boss_motion_v1" }
+    }
+  }),
+  "snow-temple": Object.freeze({
+    map: "map_snow_temple_v1",
+    ground: "ground",
+    scene: [],
+    trans: [],
+    enemy: {
+      ghost: { idle: "ghost", attack: "ghost_motion_v1" },
+      runner: { idle: "runner", attack: "runner_motion_v1" },
+      tank: { idle: "tank", attack: "tank_motion_v1" },
+      shooter: { idle: "shooter", attack: "shooter_motion_v1" },
+      mis: { idle: "mis", attack: "mis_motion_v1" },
+      boss: { idle: "boss", attack: "boss_motion_v1" }
+    }
+  }),
+  "spirit-ferry": Object.freeze({
+    map: "map_spirit_ferry_v1",
+    ground: "ground_dirt",
+    scene: [],
+    trans: [],
+    enemy: {
+      ghost: { idle: "ghost", attack: "ghost_motion_v1" },
+      runner: { idle: "runner", attack: "runner_motion_v1" },
+      tank: { idle: "tank", attack: "tank_motion_v1" },
+      shooter: { idle: "shooter", attack: "shooter_motion_v1" },
+      mis: { idle: "mis", attack: "mis_motion_v1" },
+      boss: { idle: "boss", attack: "boss_motion_v1" }
+    }
+  }),
+  "yomi": Object.freeze({
+    map: "map_yomi_v1",
+    ground: "ground",
+    scene: [],
+    trans: [],
+    enemy: {
+      ghost: { idle: "ghost", attack: "ghost_motion_v1" },
+      runner: { idle: "runner", attack: "runner_motion_v1" },
+      tank: { idle: "tank", attack: "tank_motion_v1" },
+      shooter: { idle: "shooter", attack: "shooter_motion_v1" },
+      mis: { idle: "mis", attack: "mis_motion_v1" },
+      boss: { idle: "boss", attack: "boss_motion_v1" }
+    }
+  })
+});
+
+// 追蹤各關 WAITING_ART 狀態（供外部查詢）
+window.STAGE_ART_STATUS = {};
+
 const requestedArt = new Set(), settledArt = new Set(), failedArt = new Set();
 let gameArtStarted = false, mapArtStarted = false, coreArtStarted = false;
 let progressNames = ["cover"], backgroundKey = null;
@@ -49,7 +174,7 @@ const requestArt = key => {
 const updateReadiness = () => {
   window.ART_PROGRESS = {total:progressNames.length,settled:progressNames.filter(key=>settledArt.has(key)).length,
     failed:progressNames.filter(key=>failedArt.has(key)).length};
-  window.MAP_ART_READY = ["cover", ...MAP_ASSET_NAMES].every(key => settledArt.has(key));
+  window.MAP_ART_READY = ["cover", ...OVERWORLD_MAP_ASSET_NAMES].every(key => settledArt.has(key));
   window.ART_READY = gameArtStarted && gameAssetNames().every(key=>settledArt.has(key));
 };
 const markSettled = (key, failed = false) => {
@@ -58,7 +183,6 @@ const markSettled = (key, failed = false) => {
   if (failed) failedArt.add(key);
   if (key === backgroundKey) backgroundKey = null;
   updateReadiness();
-  if (mapArtStarted && window.MAP_ART_READY) preloadCoreArt();
   loadBackgroundArt();
 };
 
@@ -312,15 +436,268 @@ window.useSkillArt = (id, level) => {
   updateReadiness();
 };
 
-// 封面完成才準備旅路；旅路完成後預先下載開局正式美術。
+// 雨夜港町固定檔名。不從清單說明文字猜角色。四張核准圖與道具都走 runtime 目錄，進關才載。
+// M15-03 來源註記。下面的 assets/img URL 不變，不載 E_/B_/G_/H_/O_ 檔名。
+// 位元組已與 canonical 相同：G_ground_stone、G_ground_wood_dock、H_port_warehouse、H_fishmonger、
+// O_prop_mooring_post、O_prop_port_lighthouse、O_prop_cargo_crates、O_prop_port_boat
+// （art/stage2-rain-port/scene/）。O_prop_anchor_gear 與現役 prop_anchor_gear.webp 位元組不同，URL 不改。
+// 核准 v2 runtime 是 ground_stone_wood_transition_v2.webp，位元組與
+// art/stage2-rain-port/scene/G_stone_wood_transition_v2.webp 相同，不覆蓋舊過渡圖。
+window.PORT_ART = {};
+window.PORT_ART_STATUS = {};
+const RAIN_PORT_ASSETS = Object.freeze({
+  stone: "assets/img/rain-port/ground_stone.webp",
+  dock: "assets/img/rain-port/ground_wood_dock.webp",
+  warehouse: "assets/img/rain-port/port_warehouse.webp",
+  mooring: "assets/img/rain-port/prop_mooring_post.webp",
+  beacon: "assets/img/rain-port/prop_port_lighthouse.webp",
+  crate: "assets/img/rain-port/prop_cargo_crates.webp",
+  boat: "assets/img/rain-port/prop_port_boat.webp",
+  anchor: "assets/img/rain-port/prop_anchor_gear.webp",
+  ripple: "assets/img/rain-port/vfx_rain_splash_ripple.webp"
+});
+const RAIN_PORT_FISH = Object.freeze({
+  fishmonger: "assets/img/rain-port/port_fishmonger.webp"
+});
+const RAIN_PORT_GROUND = Object.freeze({
+  stoneVar1: "assets/img/rain-port/ground_stone_var1.webp",
+  stoneVar2: "assets/img/rain-port/ground_stone_var2.webp",
+  woodVar1: "assets/img/rain-port/ground_wood_dock_var1.webp",
+  woodVar2: "assets/img/rain-port/ground_wood_dock_var2.webp",
+  transH: "assets/img/rain-port/ground_trans_stone_wood_h.webp",
+  transV: "assets/img/rain-port/ground_trans_stone_wood_v.webp",
+  stoneWoodV2: "assets/img/rain-port/ground_stone_wood_transition_v2.webp"
+});
+const portCatalog = () => ({ ...RAIN_PORT_ASSETS, ...RAIN_PORT_FISH, ...RAIN_PORT_GROUND });
+const portRequested = new Set();
+function loadPortSprites(roles) {
+  if (typeof Image !== "function") return;
+  const table = portCatalog();
+  for (const role of roles || Object.keys(RAIN_PORT_ASSETS)) {
+    const url = table[role];
+    if (!url || portRequested.has(role)) continue;
+    portRequested.add(role);
+    window.PORT_ART_STATUS[role] = "loading";
+    const img = new Image();
+    if (img.dataset) img.dataset.url = url;
+    img.fetchPriority = "low";
+    img.decoding = "async";
+    img.onload = () => {
+      window.PORT_ART[role] = img;
+      window.PORT_ART_STATUS[role] = "ready";
+    };
+    img.onerror = () => {
+      window.PORT_ART_STATUS[role] = "error";
+    };
+    img.src = `${url}?v=20261013-rain-port2`;
+  }
+}
+window.PORT_ENEMIES = {};
+window.PORT_ENEMY_STATUS = {};
+// Canonical：art/stage2-rain-port/characters/ 的 E_shiome_idle、E_shiome_attack、B_ikari_idle、B_ikari_attack。runtime 檔名維持舊名。
+const PORT_ENEMY_ASSETS = Object.freeze({
+  shiomeIdle: "assets/img/rain-port/enemies/minion_shiome_idle.webp",
+  shiomeAttack: "assets/img/rain-port/enemies/minion_shiome_attack.webp",
+  bossIdle: "assets/img/rain-port/enemies/boss_ikari_umibozu_idle.webp",
+  bossAttack: "assets/img/rain-port/enemies/boss_ikari_umibozu_attack.webp"
+});
+const portEnemyRequested = new Set();
+function loadPortEnemies() {
+  if (typeof Image !== "function") return;
+  for (const role of Object.keys(PORT_ENEMY_ASSETS)) {
+    const url = PORT_ENEMY_ASSETS[role];
+    if (portEnemyRequested.has(role)) continue;
+    portEnemyRequested.add(role);
+    window.PORT_ENEMY_STATUS[role] = "loading";
+    const img = new Image();
+    if (img.dataset) img.dataset.url = url;
+    img.decoding = "async";
+    img.onload = () => {
+      window.PORT_ENEMIES[role] = img;
+      window.PORT_ENEMY_STATUS[role] = "ready";
+    };
+    img.onerror = () => { window.PORT_ENEMY_STATUS[role] = "error"; };
+    img.src = `${url}?v=20261014-stage2-enemies1`;
+  }
+}
+window.refreshPortArt = () => {
+  loadPortSprites(Object.keys(portCatalog()));
+  loadPortEnemies();
+};
+
+// 妖櫻山道只在進關時載三張地面。直向過渡未核准，不在這張表。
+// Canonical：art/stage3-sakura-pass/scene/ 的 G_mountain_dirt、G_trans_dirt_to_steps_h、G_sakura_steps。loader URL 不變。
+window.SAKURA_ART = {};
+window.SAKURA_ART_STATUS = {};
+const SAKURA_GROUND_ASSETS = Object.freeze({
+  dirt: "assets/img/sakura-pass/ground_mountain_dirt.webp",
+  transH: "assets/img/sakura-pass/ground_trans_dirt_to_steps_h.webp",
+  steps: "assets/img/sakura-pass/ground_sakura_steps.webp"
+});
+const sakuraRequested = new Set();
+window.refreshSakuraArt = () => {
+  if (typeof Image !== "function") return;
+  for (const role of Object.keys(SAKURA_GROUND_ASSETS)) {
+    const url = SAKURA_GROUND_ASSETS[role];
+    if (sakuraRequested.has(role)) continue;
+    sakuraRequested.add(role);
+    window.SAKURA_ART_STATUS[role] = "loading";
+    const img = new Image();
+    if (img.dataset) img.dataset.url = url;
+    img.decoding = "async";
+    img.onload = () => {
+      window.SAKURA_ART[role] = img;
+      window.SAKURA_ART_STATUS[role] = "ready";
+    };
+    img.onerror = () => { window.SAKURA_ART_STATUS[role] = "error"; };
+    img.src = `${url}?v=20261014-sakura-ground1`;
+  }
+};
+// Canonical：H_shrine_pavilion、O_corrupted_sakura。loader URL 仍是 shrine_pavilion 與 landmark_corrupted_sakura。
+const SAKURA_SCENE_ASSETS = Object.freeze({
+  pavilion: "assets/img/sakura-pass/shrine_pavilion.webp",
+  ancientSakura: "assets/img/sakura-pass/landmark_corrupted_sakura.webp"
+});
+const sakuraSceneRequested = new Set();
+window.refreshSakuraScene = () => {
+  if (typeof Image !== "function") return;
+  for (const role of Object.keys(SAKURA_SCENE_ASSETS)) {
+    const url = SAKURA_SCENE_ASSETS[role];
+    if (sakuraSceneRequested.has(role)) continue;
+    sakuraSceneRequested.add(role);
+    window.SAKURA_ART_STATUS[role] = "loading";
+    const img = new Image();
+    if (img.dataset) img.dataset.url = url;
+    img.decoding = "async";
+    img.onload = () => {
+      window.SAKURA_ART[role] = img;
+      window.SAKURA_ART_STATUS[role] = "ready";
+    };
+    img.onerror = () => { window.SAKURA_ART_STATUS[role] = "error"; };
+    img.src = `${url}?v=20261014-sakura-scene1`;
+  }
+};
+
+// 封面完成才準備旅路；旅路只載 overworld 地圖與共用道具。關卡地圖在 start() 時再載。
+// 核心遊戲美術（妖怪、町屋、地面）延遲到 loadGameArt() 才預載，避免首屏多載。
 loadArt("cover");
 window.loadMapArt = () => {
   mapArtStarted = true;
-  progressNames = ["cover", ...MAP_ASSET_NAMES];
-  MAP_ASSET_NAMES.forEach(key=>loadArt(key));
+  progressNames = ["cover", ...OVERWORLD_MAP_ASSET_NAMES];
+  OVERWORLD_MAP_ASSET_NAMES.forEach(key=>loadArt(key));
   updateReadiness();
-  if (window.MAP_ART_READY) preloadCoreArt();
+  // 不在這裡呼叫 preloadCoreArt()，改由 loadGameArt() 觸發
 };
+window.loadStageMapArt = (stageId) => {
+  const slots = STAGE_ASSET_SLOTS[stageId];
+  if (!slots) {
+    console.warn(`[Assets] Unknown stageId: ${stageId}, falling back to night-town`);
+    loadStageAssets("night-town");
+    return;
+  }
+  // 由 loadStageAssets 統一處理 map 載入與 fallback，避免重複請求與漏掉 fallback
+  loadStageAssets(stageId);
+};
+
+// 載入特定關卡的場景、轉場、專屬敵人/Boss 資產
+// 缺圖回落現役共用資產，標記 WAITING_ART；不阻塞遊戲進場
+function loadStageAssets(stageId) {
+  const slots = STAGE_ASSET_SLOTS[stageId];
+  if (!slots) return;
+
+  const status = { missing: [], loaded: [], fallback: [] };
+  window.STAGE_ART_STATUS[stageId] = status;
+
+  // 輔助：嘗試載入，失敗則回落並標記
+  const tryLoad = (key, fallbackKey = null, isCritical = false) => {
+    if (!key || requestedArt.has(key)) return true;
+    const img = new Image();
+    img.fetchPriority = isCritical ? "high" : "low";
+    img.decoding = "async";
+    img.onload = () => {
+      ART[key] = img;
+      markSettled(key);
+      status.loaded.push(key);
+    };
+    img.onerror = () => {
+      if (fallbackKey && ART[fallbackKey]?.naturalWidth > 0) {
+        ART[key] = ART[fallbackKey];
+        status.fallback.push({ key, fallback: fallbackKey });
+        markSettled(key, true);
+      } else {
+        status.missing.push(key);
+        markSettled(key, true);
+      }
+    };
+    requestedArt.add(key);
+    const isScene = SCENERY_ASSET_KEYS.has(key);
+    const isYokai = YOKAI_ASSET_KEYS.has(key);
+    img.src = isScene
+      ? `assets/img/scenery/${key}.webp?v=20261010-loading3`
+      : isYokai
+        ? `assets/img/yokai/${key}.webp?v=20261010-loading2`
+        : `assets/img/${key}.webp?v=20261010-loading2`;
+    return false;
+  };
+
+  // 關卡地圖（若不存在則回落到 night-town 或 rain-port）
+  const mapKey = slots.map;
+  if (mapKey) {
+    // 若已請求且已完成，直接使用
+    if (requestedArt.has(mapKey) && settledArt.has(mapKey)) {
+      status.loaded.push(mapKey);
+    } else if (!requestedArt.has(mapKey)) {
+      // 首次請求：載入並設定 fallback
+      const img = new Image();
+      img.fetchPriority = "high";
+      img.decoding = "async";
+      img.onload = () => {
+        ART[mapKey] = img;
+        markSettled(mapKey);
+        status.loaded.push(mapKey);
+      };
+      img.onerror = () => {
+        // Map 不存在時，回落到 night-town（已存在）
+        const fallbackMap = "map_night_town_v1";
+        if (ART[fallbackMap]?.naturalWidth > 0) {
+          ART[mapKey] = ART[fallbackMap];
+          status.fallback.push({ key: mapKey, fallback: fallbackMap });
+          markSettled(mapKey, true);
+        } else {
+          status.missing.push(mapKey);
+          markSettled(mapKey, true);
+        }
+      };
+      requestedArt.add(mapKey);
+      img.src = `assets/img/${mapKey}.webp?v=20261010-loading3`;
+    } else {
+      // 已請求但尚未完成：等待現有載入完成，完成後檢查是否需要 fallback
+      // 這裡不重複請求，依賴現有的 onerror 處理
+      // 若現有載入失敗且未設定 fallback，這裡無法補救，但正常情況下 onerror 已處理
+    }
+  }
+
+  // 地面
+  tryLoad(slots.ground);
+
+  // 場景/建築/裝飾/地標
+  (slots.scene || []).forEach(key => tryLoad(key));
+
+  // 轉場
+  (slots.trans || []).forEach(key => tryLoad(key));
+
+  // 專屬敵人 idle/attack
+  if (slots.enemy) {
+    for (const [enemyType, arts] of Object.entries(slots.enemy)) {
+      // 雨港專用敵人由 PORT_ENEMIES loader 處理，跳過通用載入
+      if (stageId === "rain-port" && (enemyType === "shiome" || enemyType === "boss")) {
+        continue;
+      }
+      if (arts.idle) tryLoad(arts.idle, enemyType === "boss" ? "boss" : enemyType);
+      if (arts.attack) tryLoad(arts.attack, arts.idle || (enemyType === "boss" ? "boss" : enemyType));
+    }
+  }
+}
 // 旅路角色採用新圖，但保持地圖進入速度；只在實際繪圖時背景下載。
 let mapPlayerRequested = false;
 window.loadMapPlayerArt = () => {

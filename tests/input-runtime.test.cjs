@@ -44,17 +44,19 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
   const canvas = { addEventListener: (k, f) => { canvasEvents[k] = f; }, setPointerCapture() {}, getBoundingClientRect: () => ({ left: 0, top: 0, width: env.innerWidth || 900, height: env.innerHeight || 600 }) };
   const controlsButton = { click() { this.clicked = true; } };
   const storage = new Map(tutorialSaved === null ? [] : [['yokai-tutorial-v1', tutorialSaved]]);
-  const env = { console, Set, Map, Math, Date, performance: { now: () => 0 }, navigator: {}, requestAnimationFrame() {}, localStorage: { getItem: k => storage.get(k) || null, setItem: (k,v) => storage.set(k,v) }, document: { hidden: false, getElementById: id => id === 'controls-open' ? controlsButton : canvas, addEventListener: (k, f) => { documentEvents[k] = f; } }, addEventListener: (k, f) => { events[k] = f; } };
+  const Event = class Event { constructor(type) { this.type = type; } };
+  const env = { console, Set, Map, Math, Date, Event, performance: { now: () => 0 }, navigator: {}, requestAnimationFrame() {}, localStorage: { getItem: k => storage.get(k) || null, setItem: (k,v) => storage.set(k,v) }, document: { hidden: false, getElementById: id => id === 'controls-open' ? controlsButton : canvas, addEventListener: (k, f) => { documentEvents[k] = f; } }, addEventListener: (k, f) => { events[k] = f; } };
   env.window = env;
+  env.window.dispatchEvent = () => {};
   const c = vm.createContext(env);
-  for (const name of ['words', 'world', 'store', 'config', 'viewport', 'controls', 'overworld', 'fx', 'skillfx', 'evolutions', 'boss-ai']) vm.runInContext(fs.readFileSync(`js/${name}.js`, 'utf8'), c, {filename: require('node:path').resolve(`js/${name}.js`)});
+  for (const name of ['words', 'world', 'store', 'config', 'viewport', 'controls', 'overworld', 'fx', 'skillfx', 'evolutions', 'boss-ai', 'card-collection', 'card-gallery-model', 'card-gallery-ui']) vm.runInContext(fs.readFileSync(`js/${name}.js`, 'utf8'), c, {filename: require('node:path').resolve(`js/${name}.js`)});
   c.CONTROLS.mount = () => {};
   const audioCalls = [];
   c.AUDIO = new Proxy({}, { get: (o, name) => () => audioCalls.push(name) });
   c.RENDERER = new Proxy({ drawHouse: h => actorCalls.push(`house:${h.id}`), drawPlayer: () => actorCalls.push('player'), drawMonster: e => actorCalls.push(`enemy:${e.id}`), getCtx: () => ctx, getDpr: () => c.devicePixelRatio || 1, getCam: () => ({ x: 900, y: 600 }), getShakeOffset: () => ({x:0,y:0}), updateEffects: () => false }, { get: (o, k) => o[k] || (() => {}) });
   vm.runInContext(fs.readFileSync('js/ui.js','utf8'),c,{filename:require('node:path').resolve('js/ui.js')});
   const uiButtons=Object.fromEntries(Object.entries(c.UI).filter(([,v])=>typeof v!=='function'));
-  c.UI = new Proxy({ ...uiButtons, codexButtons:c.UI.codexButtons, codexRows:c.UI.codexRows, pauseButtons:c.UI.pauseButtons, bossQuizLayout:c.UI.bossQuizLayout, reviewButtons:c.UI.reviewButtons, HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
+  c.UI = new Proxy({ ...uiButtons, codexButtons:c.UI.codexButtons, codexRows:c.UI.codexRows, pauseButtons:c.UI.pauseButtons, bossQuizLayout:c.UI.bossQuizLayout, reviewButtons:c.UI.reviewButtons, wordGallery:c.UI.wordGallery, wordGalleryViewport:c.UI.wordGalleryViewport, HINT_BTN: { x: 532, y: 20, w: 78, h: 40 }, readableFont: () => '20px sans-serif' }, { get: (o, k) => o[k] || (() => {}) });
   const source = fs.readFileSync('js/game.js', 'utf8');
   const end = source.lastIndexOf('})();');
   const hook = `window.fixture = { start, update, frame, enterOverworld, getOverworld: () => overworld, confirmOverworld, drawWorld, drawStageWeather, makeOrder, hurt, pollGamepad, offerUp, triggerHint, resolve, spawnEnemy, weapons, answerChoices,
@@ -573,13 +575,26 @@ test('frozen shooter cannot move or fire until the ice expires',()=>{
   g.update(0.41);assert.notEqual(e.x,x);assert.equal(g.snapshot().enemyBullets.length,1);
 });
 
-test('Lv5 paper talismans actually explode over an area; Lv4 still only hits its flight path',()=>{
-  for(const level of [4,5]){
-    const g=loadGame();g.start();g.combatScene('boom',[{dx:180},{dx:180,dy:-130},{dx:180,dy:240}],[],level);
-    for(let i=0;i<42;i++)g.weapons(0.01);
-    const foes=g.snapshot().enemies;assert.ok(foes[0].hp<999);
-    assert.equal(foes[1].hp<999,level===5);assert.equal(foes[2].hp,999);
-    if(level===5){assert.equal(foes[0].hp,991.2);assert.equal(foes[1].hp,991.2);}
+// R5 改版後：符咒命中即黏貼、延遲爆炸，被貼目標吃全傷、周邊只吃 20% 濺射。
+// 舊契約「Lv4 只打飛行路徑、MAX 才爆炸」已被 R5 取代；細項契約（延遲秒數、
+// 單符只爆一次、Boss 護盾、暫停結算、分離音效）見 R6 獨立驗收
+// tests/r5-talisman-blast.acceptance.cjs。這裡只守護「各階都黏貼＋延遲＋比例」。
+test('paper talismans paste before exploding: full damage on the target, 20% splash nearby, none outside',()=>{
+  for(const level of [1,4,5]){
+    const g=loadGame();g.start();g.combatScene('boom',[{dx:180},{dx:220},{dx:180,dy:240}],[],level);
+    const foes=g.snapshot().enemies;
+    let pasted=-1;
+    for(let i=0;i<400&&pasted<0;i++){
+      g.weapons(0.01);
+      if(g.snapshot().proj.some(q=>Math.hypot(q.x-foes[0].x,q.y-foes[0].y)<70))pasted=i;
+    }
+    assert.ok(pasted>=0,'Lv'+level+' 符咒應命中並黏住目標');
+    assert.equal(foes[0].hp,999,'Lv'+level+' 黏貼當下不得立即結算傷害');
+    for(let i=0;i<200;i++)g.weapons(0.01);
+    assert.ok(foes[0].hp<999,'Lv'+level+' 延遲後必須爆破');
+    assert.ok(foes[1].hp>foes[0].hp,'Lv'+level+' 周邊只應吃 20% 濺射，不得與主目標同傷');
+    assert.ok(foes[1].hp<999,'Lv'+level+' 周邊應受 20% 濺射');
+    assert.equal(foes[2].hp,999,'Lv'+level+' 範圍外不得受傷');
   }
 });
 
@@ -617,12 +632,17 @@ test('Lv5 needles bend once after launch while Lv4 stays straight',()=>{
   }
 });
 
-test('awakening mid-flight does not turn old straight needles or returning talismans into a different attack',()=>{
+// R5 改版後 boom 不再有「回程」階段（q.back 已移除，改為黏貼＋延遲引爆），
+// 因此這裡守護的是同一條跨階契約：發射後才覺醒，舊彈體不得被改寫成新階的攻擊。
+test('awakening mid-flight does not turn old straight needles or in-flight talismans into a different attack',()=>{
   for(const skill of ['needle','boom']){
     const g=loadGame();g.start();g.combatScene(skill,[{dx:420}],[],4);g.weapons(0.01);
     const old=skill==='needle'?g.snapshot().needles[0]:g.snapshot().proj[0];assert.equal(old.level,4);
+    const fuseAtLaunch=old.fuse;
     g.setWeaponRank(skill,5);for(let i=0;i<(skill==='needle'?20:65);i++)g.weapons(0.01);
-    assert.equal(old.level,4);if(skill==='needle')assert.equal(old.curve,false);else assert.equal(old.back,true);
+    assert.equal(old.level,4);
+    if(skill==='needle')assert.equal(old.curve,false);
+    else assert.equal(old.fuse,fuseAtLaunch,'已發射的符咒不得因覺醒而改變引爆延遲');
   }
 });
 
@@ -1536,12 +1556,35 @@ test('Boss question preserves gamepad pickup, dash and hint; shoulders and Y ans
   assert.ok(g.snapshot().bossQ !== q || g.snapshot().oil === oilBefore - 6);
 });
 
+test('a disabled gallery replay click does not unlock audio', () => {
+  const g = loadGame();
+  g.start();
+  g.setState('pause');
+  g.events.keydown(key('KeyC', 'c'));
+  if (g.snapshot().codexTab !== 'words') g.events.keydown(key('Tab', 'Tab'));
+  assert.equal(g.snapshot().codexTab, 'words');
+  const buttons = g.env.UI.codexButtons('words', g.snapshot().codexPage, g.codexCount(), { filter: { by: 'all', id: null }, page: g.snapshot().codexPage });
+  const replay = buttons.find(b => b.id === 'replay');
+  const back = buttons.find(b => b.id === 'back');
+  assert.equal(replay.disabled, true);
+  const v = g.env.VIEWPORT.get();
+  const at = b => pointer((b.x + b.w / 2 + v.offsetX) * v.scale, (b.y + b.h / 2 + v.offsetY) * v.scale);
+  const inits = () => g.audioCalls.filter(name => name === 'init').length;
+  const before = inits();
+  g.canvasEvents.pointerdown(at(replay));
+  g.canvasEvents.pointerup(at(replay));
+  assert.equal(inits(), before);
+  assert.equal(g.snapshot().state, 'codex');
+  g.canvasEvents.pointerdown(at(back));
+  assert.ok(inits() > before);
+});
+
 test('codex words pages are reachable by keyboard and gamepad without changing tabs', () => {
   const g = loadGame(); g.start(); g.setState('codex');
   g.events.keydown(key('Tab', 'Tab'));
   assert.equal(g.snapshot().codexTab, 'words');
   assert.equal(g.codexCount(), 27);
-  for (let i=0; i<4; i++) g.events.keydown(key('ArrowRight', 'ArrowRight'));
+  g.events.keydown(key('ArrowRight', 'ArrowRight'));
   assert.equal(g.snapshot().codexPage, 1);
   g.events.keydown(key('ArrowLeft', 'ArrowLeft')); assert.equal(g.snapshot().codexPage, 0);
   const buttons = Array.from({length:16}, () => ({pressed:false}));

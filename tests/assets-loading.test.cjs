@@ -84,14 +84,20 @@ test('idle and five action sprites request light background WebP and do not dela
 
 test('map readiness warms the upcoming core game without changing the visible map progress',()=>{
   const {env,images}=loadAssets();env.loadMapArt();const map=[...images];
-  assert.equal(map.length,7);map.forEach(i=>i.onload());
+  assert.equal(map.length,5);map.forEach(i=>i.onload());
   assert.equal(env.MAP_ART_READY,true);
-  assert.ok(images.some(i=>i.src.includes('/ui/hud_skill_fan')),'core is warmed while choosing a route');
-  assert.equal(env.ART_PROGRESS.total,7);assert.equal(env.ART_PROGRESS.settled,7);
+  // Core game art (HUD, yokai, houses) is NO LONGER warmed during map load;
+  // it is deferred to loadGameArt() to avoid unnecessary downloads on cold start.
+  assert.ok(!images.some(i=>i.src.includes('/ui/hud_skill_fan')),'core is NOT warmed during map load');
+  assert.equal(env.ART_PROGRESS.total,5);assert.equal(env.ART_PROGRESS.settled,5);
   assert.ok(!images.some(i=>/motion_v1|player_win_v1/.test(i.src)));
   for(const image of images.filter(i=>!map.includes(i))) image.onload();
-  const count=images.length;env.loadGameArt();assert.equal(env.ART_READY,true);
-  assert.ok(images.length<=count+1,'only one optional image may start after already-warm game entry');
+  const count=images.length;env.loadGameArt();
+  // Core assets are now loading; settle them to reach ART_READY
+  for(const image of images.filter(i=>!map.includes(i) && i!==images[count-1])) image.onload();
+  assert.equal(env.ART_READY,true);
+  // loadGameArt() now loads core assets (21) + background; not just one optional image
+  assert.ok(images.length > count, 'loadGameArt() loads core assets and background');
 });
 
 test('cover completion begins route preparation before the user clicks start',()=>{
@@ -127,7 +133,7 @@ test('blocking scene images have high fetch priority instead of competing below 
 
 test('map loads only its own art, then game reuses those requests and includes HUD readiness',()=>{
   const {env,images}=loadAssets();env.loadMapArt();
-  assert.equal(images.length,7);
+  assert.equal(images.length,5);
   assert.ok(!images.some(i=>/hud_|boss_motion|tank_motion|ground_dirt/.test(i.src)));
   images.forEach(i=>i.onload());assert.equal(env.MAP_ART_READY,true);
   assert.equal(env.ART_READY,false);
@@ -160,10 +166,10 @@ test('title prioritizes only the cover and leaves music downloads until playback
   images[0].onload();
   assert.equal(env.ART.cover, images[0]);
   env.loadGameArt();
-  assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 23);
+  assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 21);
   assert.ok(!images.some(image => image.src.includes('/vfx/raster/katana.webp')));
   env.loadGameArt();
-  assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 23);
+  assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 21);
   for (const image of images) image.onload();
   assert.equal(images.filter(image => !image.src.includes('/vfx/')).length, 40,
     'six optional courier poses including idle are appended to the existing background asset queue');

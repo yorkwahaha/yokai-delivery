@@ -58,9 +58,9 @@ test('house identities stay unique throughout distant positive and negative chun
   for(let x=-30;x<=30;x++)for(let y=-30;y<=30;y++)for(const h of world.getChunk(x,y).houses){assert.ok(!ids.has(h.id),`${x},${y}: ${h.id}`);ids.add(h.id);assert.ok(Number.isFinite(h.phase));}
 });
 
-test("night-town keeps the original 9 word packs and 27 unique words", () => {
+test("night-town maintains theme packs and unique words", () => {
   const stage = CONTENT.getStage("night-town");
-  assert.equal(stage.wordPacks.length, 9);
+  assert.equal(stage.wordPacks.length, 6);
   const words = CONTENT.getStageWords(stage);
   assert.equal(words.length, 27);
   assert.equal(new Set(words.map(w => w.jp)).size, 27);
@@ -73,9 +73,9 @@ test("rain-port is a separate playable stage with its own packs and weather tuni
   const stage = CONTENT.getStage("rain-port");
   assert.equal(stage.implemented, true);
   assert.equal(stage.unlockedByDefault, false);
-  assert.deepEqual(stage.wordPacks, ["rain-weather", "port-directions", "port"]);
+  assert.deepEqual(stage.wordPacks, ["rain-weather", "port-directions", "port", "beach", "port-spatial", "port-transit"]);
   const words = CONTENT.getStageWords(stage);
-  assert.equal(words.length, 15);
+  assert.equal(words.length, 27);
   assert.ok(words.some(w => w.jp === "あめ"));
   assert.ok(words.some(w => w.jp === "みぎ"));
   assert.ok(words.some(w => w.jp === "ふね"));
@@ -90,13 +90,13 @@ test("rain-port is a separate playable stage with its own packs and weather tuni
   assert.equal(world.update(stage.start.x, stage.start.y).chunks.length, 25);
 });
 
-test("initial 3x3 chunks preserve the original district order", () => {
+test("initial 3x3 chunks preserve the district order", () => {
   const stage = CONTENT.getStage("night-town");
   const world = WORLD.createStageWorld(stage, CONTENT);
   const expected = [
-    ["animals", "beach", "nightsky"],
-    ["sweets", "station", "port"],
-    ["sakura", "tavern", "pond"]
+    ["animals", "station", "pond"],
+    ["town-people", "town-house", "town-places"],
+    ["animals", "station", "pond"]
   ];
 
   expected.forEach((row, cy) => {

@@ -2,6 +2,8 @@
 // 局部柔光與硬邊輪廓並存。命中判定在 game.js，彎曲／追蹤彈道在 evolutions.js。
 window.SKILLFX = (() => {
   const SQ = 0.6;
+  // 螢幕縱向保持 2D 的 SQ。世界已乘 k，落點與純視覺速度用 SQ/k。實體彈速不走這裡。
+  const groundSquash = () => SQ / (window.VIEWPORT?.tiltScale?.() || 1);
   const tierOf = level => Math.max(1,Math.min(5,Math.floor(level)||1));
   const T = (tier, weak, mid, strong) => tier === 1 ? weak : tier === 2 ? mid : strong;
   const skills = {}, burning = [], artFx = [];
@@ -92,9 +94,12 @@ window.SKILLFX = (() => {
     }
     const paint=()=>{
       if(kind==='cloud'){
-        const w=max?152:[102,110,116,124][Math.min(3,p.rank-1)];
-        return drawImageArt(ctx,img,{x:p.x,y:p.y-(max?175:158)+(motion()?Math.sin(age*4)*2:0),
-          w:w*(motion()?1+.012*Math.sin(age*5):1),a:alpha*(max?.92:.86)});
+        const boltH=max?222:194;
+        const w=(max?152:[102,110,116,124][Math.min(3,p.rank-1)])*(motion()?1+.012*Math.sin(age*5):1);
+        const hh=w*img.naturalHeight/Math.max(1,img.naturalWidth);
+        // thunder_cloud_vfx.webp ink starts at row 141/764. Sit that body over the bolt's hard top.
+        const lift=boltH+12-hh*(0.5-141/764);
+        return drawImageArt(ctx,img,{x:p.x,y:p.y-lift+(motion()?Math.sin(age*4)*2:0),w,a:alpha*(max?.92:.86)});
       }
       // The upright bolt's bottom edge is anchored at the ground strike origin.
       const h=max?222:194,w=max?150:124;
@@ -106,12 +111,12 @@ window.SKILLFX = (() => {
     return true;
   }
   function drawArtFx(ctx,ground=false){
-    for(const p of artFx){
-      if(!!p.ground!==ground || p.delay>0)continue;
+    const drawEntry=p=>{
+      if(!!p.ground!==ground || p.delay>0)return;
       const fade=Math.min(1,p.life/Math.max(.001,p.max)*1.45);
-      if(p.barrierRaster && drawBarrierRaster(ctx,p,fade)) continue;
-      if(p.ofudaImpact && drawOfudaImpact(ctx,p)) continue;
-      if(p.thunderRaster && drawThunderRaster(ctx,p)) continue;
+      if(p.barrierRaster && drawBarrierRaster(ctx,p,fade)) return;
+      if(p.ofudaImpact && drawOfudaImpact(ctx,p)) return;
+      if(p.thunderRaster && drawThunderRaster(ctx,p)) return;
       const onmyo=window.ONMYO_VFX;
       if(onmyo && p.onmyo){
         const age=Math.max(0,p.max-p.life);
@@ -124,10 +129,16 @@ window.SKILLFX = (() => {
         if(ground)paint();
         else if(window.VIEWPORT?.upright)window.VIEWPORT.upright(ctx,p.x,p.y,paint);
         else paint();
-        continue;
+        return;
       }
       drawArt(ctx,p.key,{...p,a:(p.a??1)*fade});
+    };
+    const cover=[];
+    for(const p of artFx){
+      if(!ground && p.thunderRaster==='cloud'){cover.push(p);continue;}
+      drawEntry(p);
     }
+    for(const p of cover) drawEntry(p);
   }
 
   function define(id,events) { skills[id] = events; }
@@ -253,7 +264,7 @@ window.SKILLFX = (() => {
     }
     if(id==='barrier'&&event==='cast'&&rank===5){
       for(let i=0;i<8;i++){
-        const a=i*Math.PI/4,px=x+Math.cos(a)*p.r*0.76,py=y+Math.sin(a)*p.r*0.76*SQ;
+        const a=i*Math.PI/4,px=x+Math.cos(a)*p.r*0.76,py=y+Math.sin(a)*p.r*0.76*groundSquash();
         emit('glow',i%2?'#a3ecd7':'#ffe19a',{x:px,y:py-38,life:0.55,s0:22,s1:28,sy:4.2,a:0.2,blend:'lighter',vy:-24});
         cut(px,py-30,Math.PI/2,78,i*0.016,'#f7e5b6');
       }
@@ -281,8 +292,8 @@ window.SKILLFX = (() => {
     emit('edge','#fbe7a3',{x,y,life:0.35,delay:0.05,s0:40,s1:r*1.7,a:0.75,ground:true,sy:SQ,ease:true});
     emit('glow','#ffc070',{x,y,life:0.25,s0:95,s1:175,a:0.3,blend:'lighter'});
     for(let i=0;i<8;i++)cut(x,y,i*Math.PI/4,125,i*0.015,'#ffe3ab');
-    for(let i=count(16);i>0;i--){const a=i*6.2832/16;emit('shard',i%2?'#272331':'#eee8cf',{x,y,life:0.42,delay:motion()?0.08:0,vx:Math.cos(a)*280,vy:Math.sin(a)*280*SQ,drag:3,rot:a,vr:4,s0:36,s1:8,a:0.9});}
-    for(let i=0;i<8;i++){const a=i*6.283/8;emit('seal',i%2?'#df3826':'#e89b42',{x,y,life:0.45,delay:0.04,vx:Math.cos(a)*240,vy:Math.sin(a)*240*SQ,drag:2.8,rot:a,vr:3,s0:24,s1:8,a:0.92});}
+    for(let i=count(16);i>0;i--){const a=i*6.2832/16;emit('shard',i%2?'#272331':'#eee8cf',{x,y,life:0.42,delay:motion()?0.08:0,vx:Math.cos(a)*280,vy:Math.sin(a)*280*groundSquash(),drag:3,rot:a,vr:4,s0:36,s1:8,a:0.9});}
+    for(let i=0;i<8;i++){const a=i*6.283/8;emit('seal',i%2?'#df3826':'#e89b42',{x,y,life:0.45,delay:0.04,vx:Math.cos(a)*240,vy:Math.sin(a)*240*groundSquash(),drag:2.8,rot:a,vr:3,s0:24,s1:8,a:0.92});}
     for(let i=0;i<10;i++){const a=i*6.283/10;flame(x,y,45,'#e85a20',0.42,{delay:motion()?0.08:0,vx:Math.cos(a)*230,vy:Math.sin(a)*170-35,drag:3,a:0.85});}
     chips(x,y,'#ffc172',28,{speed:380,size:19,life:0.45,delay:0.05});
   }
@@ -313,9 +324,9 @@ window.SKILLFX = (() => {
     emit('edge','#d48800',{x,y,life:0.58,s0:r*.4,s1:r*1.9,a:0.7,ground:true,sy:SQ,rot:-0.2,ease:true});
     emit('glow','#ffe082',{x,y,life:0.28,s0:130,s1:170,a:0.25,ground:true,sy:SQ,blend:'lighter'});
     for(let i=0;i<8;i++){
-      const a=i*6.283/8,px=x+Math.cos(a)*r*.22,py=y+Math.sin(a)*r*.22*SQ;
+      const a=i*6.283/8,px=x+Math.cos(a)*r*.22,py=y+Math.sin(a)*r*.22*groundSquash();
       emit('rock',i%2?'#b5a37b':'#c4b38f',{x:px,y:py,foot:true,priority:true,life:0.7,delay:motion()?i*0.012:0,s0:28,s1:r*.65,a:0.95,
-        vx:Math.cos(a)*r*2.2,vy:Math.sin(a)*r*2.2*SQ,drag:2.4});
+        vx:Math.cos(a)*r*2.2,vy:Math.sin(a)*r*2.2*groundSquash(),drag:2.4});
       chips(px,py,'#ffd54f',5,{ang:a,speed:190,size:16,life:0.35});
       emit('seal',i%2?'#ffe082':'#ffb300',{x:px,y:py,life:0.48,s0:20,s1:28,rot:a+Math.PI/2,ground:true,sy:SQ,a:0.85});
     }
@@ -405,9 +416,9 @@ window.SKILLFX = (() => {
       const n=T(t,4,8,12);
       for(let i=0;i<n;i++){
         const a=i*6.2832/n;
-        emit('seal',i%2?'#d9ba78':'#eadcc0',{x:x+Math.cos(a)*r*0.78,y:y+Math.sin(a)*r*0.78*SQ,
+        emit('seal',i%2?'#d9ba78':'#eadcc0',{x:x+Math.cos(a)*r*0.78,y:y+Math.sin(a)*r*0.78*groundSquash(),
           life:0.42,delay:t===3?0.12:0.04,s0:T(t,12,16,20),s1:T(t,16,22,28),rot:a+Math.PI/2,
-          vx:Math.cos(a)*T(t,14,28,48),vy:Math.sin(a)*T(t,14,28,48)*SQ,a:0.8,ground:true,sy:SQ});
+          vx:Math.cos(a)*T(t,14,28,48),vy:Math.sin(a)*T(t,14,28,48)*groundSquash(),a:0.8,ground:true,sy:SQ});
       }
     }
   });
@@ -571,10 +582,32 @@ window.SKILLFX = (() => {
       if(artFor('cloud')||artFor('mark')||artFor(bolt)){
         const wait=motion()?delay:0;
         const component=(kind,life,ground,r)=>{
-          if(artFor(kind))pushArt(null,{thunderRaster:kind,x,y,rank,ground,life,delay:wait});
-          else if(window.ONMYO_VFX)
+          if(artFor(kind)){
+            pushArt(null,{thunderRaster:kind,x,y,rank,ground,life,delay:wait});
+            return;
+          }
+          if(window.ONMYO_VFX){
             pushArt(null,{onmyo:kind==='max'?'strike':kind,
               x,y,rank,r,ground,life,delay:wait});
+            return;
+          }
+          // index 不載入 ONMYO。缺的那一件沿用舊圖或程序雷，不把整段落雷吞掉，也不再畫第二朵雲。
+          if(kind==='cloud'){
+            pushRankedArt('thunder',rank,'thunder_drum_ukiyoe',{x,y:y-104,w:rank===5?176:150,life,delay:wait,a:.86});
+            return;
+          }
+          if(kind==='mark'){
+            emit('current','#b7e5ff',{x,y,priority:true,life:.6,delay:wait,s0:24,s1:stormChild?130:90,a:.85,ground:true,sy:SQ,ease:true});
+            return;
+          }
+          const storm=!!stormChild;
+          FX.bolt(x,y,{w:storm?3.3:(rank===5?3.3:T(t,.35,.62,.95)),a:.9,
+            h:storm?520:T(t,420,500,580),jag:storm?28:T(t,12,22,30),
+            life:storm?.32:.22,delay:wait,halo:storm?.07:.035});
+          if(!storm&&t===3){
+            FX.bolt(x-8,y,{w:.45,jag:32,h:180,life:.18,delay:motion()?.07:0,halo:.025});
+            FX.bolt(x+8,y,{w:.4,jag:38,h:240,life:.18,delay:motion()?.13:0,halo:.025});
+          }
         };
         component('mark',.32,true,stormChild?38:30);
         if(!stormChild)component('cloud',.45,false,0);

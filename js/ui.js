@@ -315,7 +315,7 @@ window.UI = (() => {
     const px=scale<1?Math.max(size,Math.min(28,Math.ceil(14/scale))):size;
     return `${weight} ${px}px 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif`;
   }
-  function drawButton(ctx,b,label,{tone="normal",size=18,focus=false,icon=null,disabled=false,quiet=false,scrollText=false,visualOffsetY=0,mapTypography=false}={}) {
+  function drawButton(ctx,b,label,{tone="normal",size=18,focus=false,icon=null,disabled=false,quiet=false,scrollText=false,visualOffsetY=0,mapTypography=false,fit=false,fitMin=10}={}) {
     const t=BUTTON_TONES[tone]||BUTTON_TONES.normal;
     const hovered=!disabled && buttonFeedback.hoverId===b.id;
     const pressed=!disabled && isButtonPressed(b.id);
@@ -347,6 +347,15 @@ window.UI = (() => {
       ctx.font=`700 ${px}px 'Kaisei Decol', 'Noto Serif TC', 'PMingLiU', serif`;
     }else{
       ctx.font=mapTypography?scrollFont(size,"700"):scrollText?scrollFont(size,"700"):readableFont(size,"900");
+    }
+    // 結算回顧這類長詞鈕可要求等比縮字（fit），避免 fillText maxWidth 非等比壓扁；
+    // 未傳 fit 的全部按鈕維持原渲染，零影響。
+    if (fit) {
+      const tw = ctx.measureText ? ctx.measureText(label).width : 0;
+      if (tw > safe.width && tw > 0) {
+        const shrunk = Math.max(fitMin, Math.floor(fontPx(ctx.font) * (safe.width / tw) * 10) / 10);
+        ctx.font = ctx.font.replace(/([\d.]+)px/, `${shrunk}px`);
+      }
     }
     // 真字框（有支援的瀏覽器）校正基準線，否則沿用近似原字體的光學值。
     const metrics=ctx.measureText(label);
@@ -1371,9 +1380,15 @@ window.UI = (() => {
     ctx.beginPath();ctx.roundRect(x+.6,y+.6,w-1.2,h-1.2,3);ctx.stroke();
     ctx.textAlign = "left";
     ctx.font = readableFont(13, "900");
+    const stageTitle = boss && boss.stageId && window.STORY && typeof window.STORY.get === "function"
+      ? (() => { try { const st = window.STORY.get(boss.stageId); return st && st.bossTitle || null; } catch { return null; } })()
+      : null;
+    // 稱號來源：當前實例所屬關卡 metadata 優先（防跨關錯帶舊稱號），再用實例 title，最後通用 fallback；
+    // 三者皆無才用 大妖王/妖將，絕不以共用圖推定關卡。
+    const bossLabel = stageTitle || boss.title || (boss.final ? "大妖王" : "妖將");
+    const nameW = ctx.measureText(bossLabel).width;
     ctx.fillStyle = "#f4deb1";
-    const nameW = ctx.measureText(boss.final ? "大妖王" : "妖將").width;
-    ctx.fillText(boss.final ? "大妖王" : "妖將", x + 10, y + labelPx + 1);
+    ctx.fillText(bossLabel, x + 10, y + labelPx + 1);
     ctx.textAlign = "right";
     ctx.fillStyle = shield ? "#d7d5aa" : "#efb6a0";
     ctx.fillText(shield ? "結界展開・答對破除" : "結界已破・全力進攻", x + w - 10, y + labelPx + 1, Math.max(1,w-nameW-32));
@@ -1599,7 +1614,8 @@ window.UI = (() => {
       ctx.textAlign = "center";
       ctx.fillStyle = `rgba(255, 138, 154, ${0.7 + bossPulse * 0.3})`;
       ctx.font = "900 22px 'Noto Sans JP', sans-serif";
-      inkText(ctx, "擊敗大妖", taskX + taskW / 2, taskY + 32);
+      const huntTitle = (extra && extra.bossTitle) ? `擊敗${extra.bossTitle}` : "擊敗大妖";
+      inkText(ctx, huntTitle, taskX + taskW / 2, taskY + 32);
       drawCompass(ctx, taskX + taskW / 2 - 84, taskY + 26, extra.bossAngle, { color: "#ff3b4f", count: 2, size: 1.2 });
       drawCompass(ctx, taskX + taskW / 2 + 84, taskY + 26, extra.bossAngle, { color: "#ff3b4f", count: 2, size: 1.2 });
     } else if (job) {
@@ -2497,11 +2513,11 @@ window.UI = (() => {
     ctx.font = readableFont(20, "900");
     const question = `${bossQ.word.zh}　→　${bossQ.introduced || bossQ.wasAssisted ? bossQ.word.jp : '？'}`;
     if (bossQ.word.cue === "text" || !bossQ.word.icon) {
-      ctx.fillText(question, mid, by + 30, boxW - 32);
+      fitText(ctx, question, mid, by + 30, boxW - 32, { minSize: 14, wrap: true });
     } else {
       drawWordCue(ctx, bossQ.word, mid - 88, by + 22, 30);
       ctx.textAlign = "left";
-      ctx.fillText(question, mid - 62, by + 30, boxW - 110);
+      fitText(ctx, question, mid - 62, by + 30, boxW - 110, { minSize: 14, wrap: true });
     }
     ctx.textAlign = "center";
 
@@ -2518,7 +2534,7 @@ window.UI = (() => {
       const answerText = `${wrong ? '× ' : badge ? badge + ' ' : ''}${w.jp}`;
       ctx.font = answerFont(18, "900");
       if (answerFontReady(answerText, 18, "900")) {
-        ctx.fillText(answerText, ox + optW / 2, oy + optH/2+7, optW - 12);
+        fitText(ctx, answerText, ox + optW / 2, oy + optH / 2 + 7, optW - 12, { minSize: 13, wrap: true });
       }
     });
 
@@ -2531,7 +2547,7 @@ window.UI = (() => {
     { name: "妖刀斬", jp: "かたな", type: "主動", desc: "揮出凌厲新月刀芒，斬裂前方扇形妖怪", emblem: "katana" },
     { name: "淨化靈陣", jp: "じょうか", type: "主動", desc: "Lv4 解圍；MAX 範圍縮為 220、每 3.2 秒脈衝，留下 1.8 秒固定慢場，不回油", emblem: "barrier" },
     { name: "狐火炎", jp: "きつねび", type: "主動", desc: "三階起三團護火；Lv4 一火追擊，MAX 每六秒召龍，焦土最多兩處且不疊傷", emblem: "fire" },
-    { name: "陰陽符", jp: "おふだ", type: "主動", desc: "擲出迴旋陰陽符咒，來回穿透路徑上的敵人", emblem: "boom" },
+    { name: "陰陽符", jp: "おふだ", type: "主動", desc: "命中後黏在妖怪身上，延遲爆炸並向周圍濺射", emblem: "boom" },
     { name: "天狐雷", jp: "いかずち", type: "主動", desc: "固定傷害優先打近身威脅；Lv4 三目標，MAX 三朵雷雲，同波同敵只中一次", emblem: "thunder" },
     { name: "天狐靈針", jp: "せんぼん", type: "主動", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪", emblem: "needle" },
 
@@ -2548,19 +2564,79 @@ window.UI = (() => {
   ];
 
   const codexRows = () => (window.VIEWPORT?.get().scale || 1)<0.8 ? 3 : Math.floor(396 / Math.max(26.2,fontPx(readableFont(13,"900"))+8));
-  function codexButtons(tab, page, wordCount) {
+  function wordGalleryViewport() {
+    const view = window.VIEWPORT?.get?.() || { width: 900, height: 600, scale: 1, offsetX: 0, offsetY: 0 };
+    const scale = view.scale > 0 ? view.scale : 1;
+    const offsetY = view.offsetY || 0;
+    const tabReach = Math.max(0, (44 / scale - 32) / 2);
+    const chrome = Math.max(96, 88 + tabReach + offsetY - 4);
+    return {
+      scale,
+      width: view.width > 0 ? view.width : 900,
+      height: Math.max(160, (view.height > 0 ? view.height : 600) - chrome),
+      offsetX: view.offsetX || 0,
+      offsetY: offsetY - chrome
+    };
+  }
+  function wordGallery() {
+    const content = window.CONTENT;
+    const words = content && typeof content.getAllWords === "function" ? content.getAllWords() : [];
+    const catalogs = {
+      stages: Object.values(content && content.STAGES || {}).map(stage => ({ id: stage.id, name: stage.name })),
+      packs: Object.values(content && content.WORD_PACKS || {}).map(pack => ({ id: pack.id, name: pack.name, sub: pack.sub || "" }))
+    };
+    let source = { key: null, marks: Object.create(null) };
+    const api = window.CARD_DELIVERY;
+    if (api && typeof api.openCards === "function") {
+      try {
+        const bag = api.openCards(window.localStorage, window.location);
+        const snap = typeof bag.snapshot === "function" ? bag.snapshot() : null;
+        source = { key: typeof bag.key === "string" ? bag.key : null, marks: snap && snap.marks || Object.create(null) };
+      } catch { /* 讀不到配送印記就保持 0，熟練度不能補上 */ }
+    }
+    const gallery = window.CARD_GALLERY;
+    const view = gallery && typeof gallery.project === "function" ? gallery.project(words, source, catalogs) : { cards: [] };
+    const sets = window.CARD_COLLECTION && typeof window.CARD_COLLECTION.completeSets === "function"
+      ? window.CARD_COLLECTION.completeSets(Object.values(content && content.WORD_PACKS || {}), source.marks)
+      : [];
+    const done = sets.filter(set => set.complete).length;
+    const focus = sets.find(set => set.complete) || sets.find(set => set.total && !set.complete);
+    const packLine = sets.length
+      ? `收藏 ${done}/${sets.length}${focus ? "・" + focus.name + " " + focus.full + "/" + focus.total : ""}`
+      : "";
+    return { catalogs, source, cards: view.cards || [], packLine };
+  }
+  function wordCodexButtons(state) {
+    const pack = wordGallery();
+    const drawn = window.CARD_GALLERY_UI.draw(
+      { save() {}, restore() {}, fillText() {} },
+      pack.cards,
+      state || { filter: { by: "all", id: null }, page: 0 },
+      { paper: illustratedArt.neutral, drawRibbonSlices() {}, drawWoodTag() {}, drawButton() {}, readableFont },
+      wordGalleryViewport(),
+      pack.catalogs
+    );
+    return [
+      { id: "cards", x: 282, y: 56, w: 160, h: 32 },
+      { id: "words", x: 458, y: 56, w: 160, h: 32 }
+    ].concat(drawn.buttons.filter(button => !String(button.id).startsWith("card:")));
+  }
+  function codexButtons(tab, page, wordCount, galleryState) {
+    if (tab === "words" && window.CARD_GALLERY_UI && typeof window.CARD_GALLERY_UI.draw === "function") {
+      return wordCodexButtons(galleryState || { filter: { by: "all", id: null }, page: page || 0 });
+    }
     const pages = Math.ceil((tab==='cards'?CARD_LIST.length:wordCount)/(tab==='cards'?codexRows():15));
     return [{id:'cards',x:282,y:56,w:160,h:32},{id:'words',x:458,y:56,w:160,h:32},
       {id:'prev',x:40,y:78,w:64,h:40,disabled:page<=0},{id:'next',x:796,y:78,w:64,h:40,disabled:page>=pages-1},
       {id:'back',x:365,y:554,w:170,h:32}];
   }
-  function drawCodex(ctx, STORE, ALL, tab = "cards", page = 0, maskReadings = false, focus = tab) {
+  function drawCodex(ctx, STORE, ALL, tab = "cards", page = 0, maskReadings = false, focus = tab, galleryState = null) {
     ctx.save();
     ctx.fillStyle = "rgba(10, 14, 26, 0.96)";
     fillScreen(ctx);
 
     const isCards = tab === "cards";
-    const buttons = codexButtons(tab,page,ALL.length);
+    const buttons = codexButtons(tab, page, ALL.length, galleryState || { filter: { by: "all", id: null }, page });
 
     // 1. 頂部大標題
     ctx.textAlign = "center";
@@ -2702,55 +2778,23 @@ window.UI = (() => {
       ctx.textBaseline = "alphabetic";
       }
 
+    } else if (window.CARD_GALLERY_UI && typeof window.CARD_GALLERY_UI.draw === "function") {
+      const pack = wordGallery();
+      window.CARD_GALLERY_UI.draw(ctx, pack.cards, Object.assign({ packLine: pack.packLine }, galleryState || { filter: { by: "all", id: null }, page }), {
+        paper: illustratedArt.neutral,
+        drawRibbonSlices,
+        drawWoodTag,
+        drawButton,
+        readableFont
+      }, wordGalleryViewport(), pack.catalogs);
     } else {
-      // 3. 百鬼單字卷頁面 (36 個妖怪單字)
-      ctx.font = readableFont(13, "bold");
-      ctx.fillStyle = "#cad7f5";
-      ctx.fillText(`答對升星・錯詞優先複習　${page + 1}/${Math.max(1, Math.ceil(ALL.length / 15))}`, W / 2, 114, W-240);
-
-      const mastered = ALL.filter(w => STORE.get(w.jp).box >= 4).length;
-      const compact = false;
-      const columns = 5, cardW = 154, cardH = 124;
-      const stepX = 166, stepY = 132, startX = 40, startY = 128;
-      ALL.slice(page * 15, page * 15 + 15).forEach((w, i) => {
-        const col = i % columns;
-        const row = (i / columns) | 0;
-        const cx = startX + col * stepX;
-        const cy = startY + row * stepY;
-
-        const m = STORE.get(w.jp);
-        const seen = (m.ok + m.ng) > 0;
-        const revealed = seen && !(maskReadings && m.box < 4);
-
-        glassBox(ctx, cx, cy, cardW, cardH, 8, revealed ? "#fcf4e3" : "#20273a", revealed ? "#d4af37" : "#36415a", 1.5);
-
-        ctx.textAlign = "center";
-        ctx.fillStyle = revealed ? "#1e1829" : "#e7ecff";
-        ctx.font = compact ? "20px sans-serif" : "24px sans-serif";
-        if (revealed) drawWordCue(ctx, w, cx + cardW / 2, cy + 23, 26);
-        else ctx.fillText("？", cx + cardW / 2, cy + (compact ? 27 : 32));
-
-        ctx.font = readableFont(20, "900");
-        ctx.fillText(revealed ? w.jp : "？？", cx + cardW / 2, cy + (compact ? 48 : 56));
-
-        if (revealed) {
-          ctx.font = readableFont(18, "700");
-          ctx.fillStyle = "#63503c";
-          ctx.fillText(w.zh, cx + cardW / 2, cy + 56 + fontPx(ctx.font) + 4);
-        }
-        if (revealed || (seen && maskReadings)) {
-          ctx.fillStyle = "#d48819";
-          ctx.font = readableFont(16, "700");
-          ctx.fillText("★".repeat(m.box) + "☆".repeat(4 - m.box), cx + cardW / 2, cy + 120);
-        }
-      });
-
-      ctx.font = readableFont(14, "900");
-      ctx.fillStyle = "#ffe28b";
-      ctx.fillText(`←/→ 翻頁・Tab 或 LB/RB 頁籤　精通 ${mastered}/${ALL.length}`, W / 2, 545);
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#24180f";
+      ctx.font = readableFont(16, "900");
+      ctx.fillText("言靈圖鑑未載入", W / 2, 180);
     }
 
-    for(const b of buttons.slice(2))drawButton(ctx,b,b.id==='prev'?'‹':b.id==='next'?'›':'返回 [ESC / C / B]',{size:14,disabled:b.disabled,focus:focus===b.id});
+    if (isCards) for(const b of buttons.slice(2))drawButton(ctx,b,b.id==='prev'?'‹':b.id==='next'?'›':'返回 [ESC / C / B]',{size:14,disabled:b.disabled,focus:focus===b.id});
     const tabButton=buttons.find(b=>b.id===focus);
     if(tabButton && ['cards','words'].includes(focus))drawMenuFocus(ctx,tabButton);
     if(isCards){ctx.textAlign='center';ctx.font=readableFont(14,'700');ctx.fillStyle=C.gold;ctx.fillText(`←/→ 翻頁・↑/↓ 焦點　${page+1}/${Math.ceil(CARD_LIST.length/codexRows())}`,W/2,545);}
@@ -2847,7 +2891,12 @@ window.UI = (() => {
       ctx.font = readableFont(16, "700");
       ctx.fillStyle = "#382d27";
       reviewButtons(reviewList).forEach((button, i) => drawButton(ctx, button,
-        `${button.word.jp}（${button.word.zh}）`, {size:14, quiet:true, focus:focus===3+i}));
+        `${button.word.jp}（${button.word.zh}）`, {size:14, quiet:true, focus:focus===3+i, fit:true}));
+    } else if (isWon && summary.clearText) {
+      summaryY += summaryStep;
+      ctx.font = readableFont(14, "600");
+      ctx.fillStyle = "#5c4030";
+      ctx.fillText(summary.clearText, mid, summaryY);
     }
 
     drawButton(ctx, END_BTNS[0], "再踏夜行", { tone: "primary", size: 18, focus: focus===0,scrollText:true,visualOffsetY:-5 });
@@ -3013,6 +3062,10 @@ window.UI = (() => {
     const a = clamp(Math.min(age / 0.5, t / 0.8), 0, 1);
     if (a <= 0 || !stage) return;
     const b = screenBounds(), cx = (b.left + b.right) / 2, cy = b.top + b.height * 0.36;
+    const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(stage.id);
+    const stageNum = story?.stageNumber || (Object.keys(window.CONTENT?.STAGES || {}).indexOf(stage.id) + 1) || 1;
+    const chapNum = story?.chapter || chapter || (stageNum <= 3 ? 1 : stageNum <= 6 ? 2 : 3);
+    const chapTitle = story?.chapterTitle || (chapNum === 1 ? "夜行起點" : chapNum === 2 ? "百鬼異變" : "黃泉之門");
     ctx.save();
     ctx.globalAlpha = a;
     glow(ctx, cx, cy, 760, "#0a0d18", 0.55);
@@ -3020,7 +3073,7 @@ window.UI = (() => {
     ctx.textAlign = "center";
     ctx.font = readableFont(14, "900");
     ctx.fillStyle = C.gold;
-    ctx.fillText(`第 ${chapter} 夜`, cx, cy - 34);
+    ctx.fillText(`第 ${stageNum} 夜・第 ${chapNum} 章「${chapTitle}」`, cx, cy - 34);
     ctx.font = titleFont(44);
     ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
     ctx.fillText(stage.name, cx, cy + 14);
@@ -3029,12 +3082,18 @@ window.UI = (() => {
     if (stage.sub) {
       ctx.font = readableFont(15, "700");
       ctx.fillStyle = C.dim;
-      ctx.fillText(stage.sub, cx, cy + 40);
+      ctx.fillText(stage.sub, cx, cy + 38);
+    }
+    if (story && story.opening) {
+      ctx.font = readableFont(13, "600");
+      ctx.fillStyle = "#e3dac9";
+      fitText(ctx, story.opening, cx, cy + 62, Math.min(b.width * 0.85, 580));
     }
     const lw = 130 * a;
     ctx.strokeStyle = "rgba(232, 195, 106, 0.6)"; ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.moveTo(cx - lw - 10, cy + 56); ctx.lineTo(cx - 10, cy + 56); ctx.moveTo(cx + 10, cy + 56); ctx.lineTo(cx + lw + 10, cy + 56);
+    const lineY = story?.opening ? cy + 80 : cy + 56;
+    ctx.moveTo(cx - lw - 10, lineY); ctx.lineTo(cx - 10, lineY); ctx.moveTo(cx + 10, lineY); ctx.lineTo(cx + lw + 10, lineY);
     ctx.stroke();
     ctx.restore();
   }
@@ -3047,13 +3106,94 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  function fitText(ctx, text, x, y, maxWidth) {
-    ctx.save();
-    const width = ctx.measureText(text).width;
-    if (width > maxWidth) {
-      ctx.font = ctx.font.replace(/([\d.]+)px/, (_, size) => `${Number(size) * maxWidth / width}px`);
+  // 日語斷句與禁則處理（行首禁止出現促音、拗音、長音與標點）
+  function splitText2(text) {
+    if (!text || text.length <= 1) return [text || "", ""];
+    const spaceIdx = text.indexOf(" ");
+    let splitIdx;
+    if (spaceIdx > 0 && spaceIdx < text.length - 1) {
+      const afterSpace = text.slice(spaceIdx + 1);
+      if (afterSpace.length <= 4) {
+        splitIdx = spaceIdx;
+      } else {
+        splitIdx = Math.ceil(text.length / 2);
+      }
+    } else {
+      splitIdx = Math.ceil(text.length / 2);
     }
-    ctx.fillText(text, x, y);
+    const noLineStart = /[ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮー、。！？]/;
+    if (splitIdx < text.length && noLineStart.test(text[splitIdx])) {
+      splitIdx++;
+    }
+    return [text.slice(0, splitIdx).trimEnd(), text.slice(splitIdx).trimStart()];
+  }
+
+  function fitText(ctx, text, x, y, maxWidth, options = {}) {
+    if (!text) return;
+    ctx.save();
+    const maxW = Math.max(1, maxWidth || 0);
+    const measured = ctx.measureText ? ctx.measureText(text).width : text.length * 16;
+    if (!maxW || measured <= maxW) {
+      if (options.stroke) ctx.strokeText(text, x, y);
+      ctx.fillText(text, x, y);
+      ctx.restore();
+      return;
+    }
+
+    const fontMatch = String(ctx.font).match(/([\d.]+)px/);
+    const origSize = fontMatch ? Number(fontMatch[1]) : 16;
+    const scaledSize = Math.floor(origSize * (maxW / measured) * 10) / 10;
+    const minFloor = options.minSize;
+
+    // 若等比縮小後仍高於可讀下限，或未開啟多行折行，則以單行等比縮小顯示（避免 Canvas 非等比壓扁）
+    if (!minFloor || scaledSize >= minFloor || !options.wrap) {
+      const finalSize = minFloor ? Math.max(minFloor, scaledSize) : scaledSize;
+      ctx.font = ctx.font.replace(/([\d.]+)px/, `${finalSize}px`);
+      if (options.stroke) ctx.strokeText(text, x, y);
+      ctx.fillText(text, x, y);
+      ctx.restore();
+      return;
+    }
+
+    // 低於可讀性下限：在現有框內進行安全二行折行，不生新 UI
+    const [l1, l2] = splitText2(text);
+    if (!l2) {
+      ctx.font = ctx.font.replace(/([\d.]+)px/, `${minFloor}px`);
+      if (options.stroke) ctx.strokeText(text, x, y);
+      ctx.fillText(text, x, y);
+      ctx.restore();
+      return;
+    }
+
+    let twoLineSize = Math.max(minFloor, Math.min(origSize - 2, Math.floor(origSize * 0.8)));
+    ctx.font = ctx.font.replace(/([\d.]+)px/, `${twoLineSize}px`);
+    const w1 = ctx.measureText ? ctx.measureText(l1).width : l1.length * twoLineSize;
+    const w2 = ctx.measureText ? ctx.measureText(l2).width : l2.length * twoLineSize;
+    const maxSub = Math.max(w1, w2);
+    if (maxSub > maxW) {
+      twoLineSize = Math.max(Math.floor(minFloor * 0.8), Math.floor(twoLineSize * (maxW / maxSub) * 10) / 10);
+      ctx.font = ctx.font.replace(/([\d.]+)px/, `${twoLineSize}px`);
+    }
+
+    const lh = options.lineHeight || Math.max(minFloor + 2, Math.floor(origSize * 0.72));
+    let y1, y2;
+    if (options.y1 != null && options.y2 != null) {
+      y1 = options.y1;
+      y2 = options.y2;
+    } else if (ctx.textBaseline === "middle") {
+      y1 = y - lh * 0.5;
+      y2 = y + lh * 0.5;
+    } else {
+      y1 = y - lh * 0.45;
+      y2 = y + lh * 0.55;
+    }
+
+    if (options.stroke) {
+      ctx.strokeText(l1, x, y1);
+      ctx.strokeText(l2, x, y2);
+    }
+    ctx.fillText(l1, x, y1);
+    ctx.fillText(l2, x, y2);
     ctx.restore();
   }
 
@@ -3171,6 +3311,8 @@ window.UI = (() => {
     readableFont,
     answerFont,
     answerFontReady,
+    fitText,
+    splitText2,
     drawHintText,
     controlLabel, tutorialCopy, drawTutorial, drawActionIcon, TUTORIAL_BTNS,
     drawWordCue,
@@ -3179,7 +3321,7 @@ window.UI = (() => {
     drawLevelUp,
     drawEmblem,
     drawBossQuiz, bossQuizLayout,
-    drawCodex, codexRows, codexButtons,
+    drawCodex, codexRows, codexButtons, wordGallery, wordGalleryViewport,
     drawEndScreen, reviewButtons,
     drawAssetProgress,
     drawPauseMenu,

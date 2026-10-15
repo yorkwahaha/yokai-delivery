@@ -124,11 +124,28 @@ test('mobile skill codex exposes every skill through pages and marks unavailable
   assert.equal(r.UI.codexButtons('cards',count-1,39).find(b=>b.id==='next').disabled,true);
 });
 
+function mountWordGallery(env, marks) {
+  env.URLSearchParams = URLSearchParams;
+  env.localStorage = { getItem: () => JSON.stringify({ v: 1, marks: marks || {}, events: {} }), setItem() {} };
+  env.location = { hostname: "127.0.0.1", search: "" };
+  env.window.localStorage = env.localStorage;
+  env.window.location = env.location;
+  env.window.URLSearchParams = URLSearchParams;
+  for (const file of ["words.js", "card-collection.js", "card-delivery-bridge.js", "card-gallery-model.js", "card-gallery-ui.js", "viewport.js"]) {
+    vm.runInNewContext(fs.readFileSync("js/" + file, "utf8"), env);
+  }
+  env.window.CARD_COLLECTION = env.CARD_COLLECTION;
+  env.window.CARD_DELIVERY = env.CARD_DELIVERY;
+  env.window.CARD_GALLERY = env.CARD_GALLERY;
+  env.window.CARD_GALLERY_UI = env.CARD_GALLERY_UI;
+  if (env.VIEWPORT) env.window.VIEWPORT = env.VIEWPORT;
+}
+
 test('codex readings and translations use font-sized vertical separation',()=>{
   const r=loadUI(1920),labels=[];r.env.window.innerWidth=1920;r.env.window.innerHeight=1080;
-  vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
+  mountWordGallery(r.env, { "かさ": 4 });
   r.context.fillText=(value,x,y)=>labels.push({value,x,y,size:parseFloat(r.context.font.match(/([\d.]+)px/)[1])});
-  r.UI.drawCodex(r.context,{get:()=>({ok:1,ng:0,box:1})},[{jp:'かさ',zh:'雨傘',cue:'text'}],'words');
+  r.UI.drawCodex(r.context,{get:()=>({ok:1,ng:0,box:1})},[],'words',0,false,'words',{filter:{by:'all',id:null},page:0});
   const jp=labels.find(t=>t.value==='かさ'),zh=labels.find(t=>t.value==='雨傘'&&t.y>jp.y);assert.ok(zh.y-jp.y>=zh.size);
 });
 
@@ -640,40 +657,49 @@ test('mobile body text renders at approximately 14 CSS pixels', () => {
     assert.ok(size * width / 900 >= 14);
   }
 });
-test('all 39 words remain reachable across three readable codex pages', () => {
-  const words = Array.from({ length: 39 }, (_, i) => ({ jp: `word${i}`, zh: '詞', icon: '📦', example: 'れいぶん' }));
-  const store = { get: () => ({ ok: 1, ng: 0, box: 1 }) };
-  const seen = [];
-  for (let page = 0; page < 3; page++) {
-    const { UI, context, texts } = loadUI();
-    UI.drawCodex(context, store, words, 'words', page);
-    const labels = texts.filter(t => /^word\d+$/.test(t.value));
-    assert.equal(labels.length, page === 2 ? 9 : 15);
-    assert.ok(labels.every(t => t.y < 520));
-    seen.push(...labels.map(t => t.value));
-  }
-  assert.equal(new Set(seen).size, 39);
-  const { UI, context, texts } = loadUI();
-  UI.drawCodex(context, store, words, 'words', 0);
-  assert.ok(!texts.some(t => t.value === 'れいぶん'));
+test('word codex pages follow delivery marks and do not print examples or emoji', () => {
+  const store = { get: () => ({ ok: 9, ng: 0, box: 4 }) };
+  const locked = loadUI();
+  mountWordGallery(locked.env, { "ねこ": 2 });
+  locked.UI.drawCodex(locked.context, store, [{ jp: "ねこ", zh: "貓", icon: "🐱", example: "れいぶん" }], "words", 0, true);
+  const masked = locked.texts.map(t => t.value);
+  assert.ok(masked.includes("鎖"));
+  assert.ok(masked.includes("2/4"));
+  assert.ok(!masked.includes("ねこ"));
+  assert.ok(!masked.includes("貓"));
+  assert.ok(!masked.includes("🐱"));
+  assert.ok(!masked.includes("れいぶん"));
+  const shown = loadUI();
+  mountWordGallery(shown.env, { "ねこ": 4 });
+  shown.UI.drawCodex(shown.context, store, [], "words", 0, true, "words", { filter: { by: "all", id: null }, page: 0 });
+  const open = shown.texts.map(t => t.value);
+  assert.ok(open.includes("ねこ"));
+  assert.ok(open.includes("貓"));
+  assert.ok(open.includes("4/4"));
+  assert.ok(open.includes("待解鎖插畫"));
+  assert.ok(!open.includes("🐱"));
+  assert.ok(!open.includes("名詞"));
 });
-test('in-run codex mask hides readings and icons until four stars', () => {
+test('delivery marks open a word card and learning stars do not', () => {
   const word = { jp: 'ねこ', zh: '貓', icon: '🐱', cue: 'emoji' };
-  const hidden = { get: () => ({ ok: 1, ng: 1, box: 1 }) };
-  const { UI, context, texts } = loadUI();
+  const hidden = { get: () => ({ ok: 4, ng: 0, box: 4 }) };
+  const { UI, context, texts, env } = loadUI();
+  mountWordGallery(env, {});
   UI.drawCodex(context, hidden, [word], 'words', 0, true);
   const masked = texts.map(t => t.value);
-  assert.ok(masked.includes('？？'));
+  assert.ok(masked.includes('鎖'));
+  assert.ok(masked.includes('0/4'));
   assert.ok(!masked.includes('ねこ'));
   assert.ok(!masked.includes('貓'));
   assert.ok(!masked.includes('🐱'));
-  const mastered = { get: () => ({ ok: 4, ng: 0, box: 4 }) };
   const shown = loadUI();
-  shown.UI.drawCodex(shown.context, mastered, [word], 'words', 0, true);
+  mountWordGallery(shown.env, { 'ねこ': 4 });
+  shown.UI.drawCodex(shown.context, { get: () => ({ ok: 0, ng: 0, box: 0 }) }, [word], 'words', 0, true);
   const open = shown.texts.map(t => t.value);
   assert.ok(open.includes('ねこ'));
   assert.ok(open.includes('貓'));
-  assert.ok(open.includes('🐱'));
+  assert.ok(open.includes('4/4'));
+  assert.ok(!open.includes('🐱'));
 });
 test('emoji cues use the system emoji glyph', () => {
   const ui = fs.readFileSync('js/ui.js', 'utf8');

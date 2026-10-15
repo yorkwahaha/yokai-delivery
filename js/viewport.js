@@ -58,26 +58,87 @@
     if (t >= 1) { selectedTilt = transition.to; transition = null; }
     return selectedTilt;
   };
+  let zoomStageId = "";
+  const setZoomStage = id => { zoomStageId = id || ""; };
+  function zoomChoice(loc) {
+    const place = loc || root.location;
+    const host = String(place && place.hostname || "").trim().toLowerCase().replace(/^\[|\]$/g, "");
+    const loop = host === "localhost" || host === "127.0.0.1" || host === "::1";
+    if (!loop) return 1;
+    const raw = String(place && place.search || "");
+    const query = new URLSearchParams(raw.charAt(0) === "?" ? raw.slice(1) : raw).get("zoom");
+    const choices = { "1": 1, "1.1": 1.1, "1.10": 1.1, "1.15": 1.15 };
+    return Object.hasOwn(choices, query) ? choices[query] : 1;
+  }
+  const selectedWorldZoom = () => zoomStageId === "sakura-pass" ? zoomChoice() : 1;
+  const worldZoom = () => {
+    const selected = selectedWorldZoom();
+    const k = tiltScale();
+    if (selected === 1 || k === 1) return 1;
+    const gain = Math.max(0, Math.min(1, (1 - k) / 0.4));
+    return 1 + (selected - 1) * gain;
+  };
+  const projectPoint = (x, y, cam = { x: 0, y: 0 }, shake = { x: 0, y: 0 }, k = tiltScale(), z = worldZoom()) => {
+    const ax = 450, ay = 300;
+    return {
+      x: ax + z * (x - cam.x + shake.x - ax),
+      y: ay + z * (k * (y - cam.y + shake.y) - ay)
+    };
+  };
+  const unprojectPoint = (x, y, cam = { x: 0, y: 0 }, shake = { x: 0, y: 0 }, k = tiltScale(), z = worldZoom()) => {
+    const ax = 450, ay = 300;
+    return {
+      x: cam.x - shake.x + ax + (x - ax) / z,
+      y: cam.y - shake.y + (ay + (y - ay) / z) / k
+    };
+  };
+  function depthMode(loc) {
+    const place = loc || root.location;
+    const host = String(place && place.hostname || "").trim().toLowerCase().replace(/^\[|\]$/g, "");
+    const loop = host === "localhost" || host === "127.0.0.1" || host === "::1";
+    if (!loop) return "default";
+    const raw = String(place && place.search || "");
+    const query = new URLSearchParams(raw.charAt(0) === "?" ? raw.slice(1) : raw).get("depth");
+    return query === "off" || query === "enhanced" ? query : "default";
+  }
   const spacingScaleY = () => {
     if (initialTiltScale() !== 0.6) return 1;
     const query = root.location?.search || "";
     return /(?:^|[?&])spacing=1(?:\.0)?(?:&|$)/.test(query) ? 1 : 1.2;
   };
-  const worldBounds = () => {
-    const a = bounds(), k = tiltScale();
-    return {left:a.left,right:a.right,top:a.top/k,bottom:a.bottom/k,width:a.width,height:a.height/k};
+  const boundsAtZoom = z => {
+    const a = bounds();
+    const p = unprojectPoint(a.left, a.top, { x: 0, y: 0 }, { x: 0, y: 0 }, tiltScale(), z);
+    const q = unprojectPoint(a.right, a.bottom, { x: 0, y: 0 }, { x: 0, y: 0 }, tiltScale(), z);
+    return { left: p.x, top: p.y, right: q.x, bottom: q.y, width: q.x - p.x, height: q.y - p.y };
   };
-  const worldToScreen = (x,y,cam={x:0,y:0},shake={x:0,y:0}) =>
-    ({x:x-cam.x+shake.x,y:(y-cam.y+shake.y)*tiltScale()});
-  const screenToWorld = (x,y,cam={x:0,y:0},shake={x:0,y:0}) =>
-    ({x:x+cam.x-shake.x,y:y/tiltScale()+cam.y-shake.y});
+  const worldBounds = () => boundsAtZoom(worldZoom());
+  const worldBoundsAtZoom = z => boundsAtZoom(z);
+  const worldToScreen = (x, y, cam = { x: 0, y: 0 }, shake = { x: 0, y: 0 }) => projectPoint(x, y, cam, shake);
+  const screenToWorld = (x, y, cam = { x: 0, y: 0 }, shake = { x: 0, y: 0 }) => unprojectPoint(x, y, cam, shake);
+  function drawBounds(cam = { x: 0, y: 0 }, shake = { x: 0, y: 0 }, overhang = {}, halo = 0) {
+    const k = tiltScale();
+    const a = bounds();
+    const p = unprojectPoint(a.left - halo, a.top - halo, cam, shake);
+    const q = unprojectPoint(a.right + halo, a.bottom + halo, cam, shake);
+    const leftOver = overhang.left || 0, rightOver = overhang.right || 0;
+    const topOver = overhang.top || 0, bottomOver = overhang.bottom || 0;
+    const left = p.x - rightOver, right = q.x + leftOver;
+    const top = p.y - bottomOver / k, bottom = q.y + topOver / k;
+    return { left, right, top, bottom, width: right - left, height: bottom - top };
+  }
+  function reanchor(player, cam, prevK, prevZ, nextK, nextZ) {
+    const s = projectPoint(player.x, player.y, cam, { x: 0, y: 0 }, prevK, prevZ);
+    const q = unprojectPoint(s.x, s.y, { x: 0, y: 0 }, { x: 0, y: 0 }, nextK, nextZ);
+    return { x: player.x - q.x, y: player.y - q.y };
+  }
   const upright = (ctx,x,y,draw) => {
     const k=tiltScale();
     if(k===1)return draw();
     ctx.save();ctx.translate(x,y);ctx.scale(1,1/k);ctx.translate(-x,-y);
     try{return draw();}finally{ctx.restore();}
   };
-  root.VIEWPORT = {calculate,get,bounds,hudBounds,tiltScale,tiltTargetScale,setTiltScale,animateTiltScale,advanceTilt,spacingScaleY,worldBounds,
-    worldToScreen,screenToWorld,upright};
+  root.VIEWPORT = {calculate,get,bounds,hudBounds,tiltScale,tiltTargetScale,setTiltScale,animateTiltScale,advanceTilt,spacingScaleY,depthMode,
+    setZoomStage,selectedWorldZoom,worldZoom,worldBounds,worldBoundsAtZoom,drawBounds,reanchor,worldToScreen,screenToWorld,upright};
   if (typeof module !== 'undefined') module.exports = root.VIEWPORT;
 })();

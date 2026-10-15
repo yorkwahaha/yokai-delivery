@@ -24,17 +24,29 @@ test('approved A1 geometry has eight actual stage anchors and 9 transition stops
   for(const stage of OW.STAGE_NODES)assert.equal(CONTENT.getStage(stage.stageId).id,stage.stageId);
 });
 
-test('only the first two stages can launch; the other six are genuinely unfinished',()=>{
+test('all eight stages are enterable when unlocked; fresh save only opens night-town',()=>{
+  global.STORE={
+    isStageCompleted:()=>false,
+    isStageUnlocked:id=>id==='night-town'
+  };
+  try{
+    assert.equal(OW.isEnterable(OW.STAGE_NODES[0]),true,'night-town open on fresh save');
+    for(const stage of OW.STAGE_NODES.slice(1)){
+      assert.equal(OW.isEnterable(stage),false,`${stage.id} locked on fresh save`);
+    }
+  }finally{delete global.STORE;}
+
   global.STORE={
     isStageCompleted:()=>true,
     isStageUnlocked:()=>true
   };
   try{
-    assert.equal(OW.isEnterable(OW.STAGE_NODES[0]),true);
-    assert.equal(OW.isEnterable(OW.STAGE_NODES[1]),true);
-    for(const stage of OW.STAGE_NODES.slice(2)){
-      assert.equal(OW.isEnterable(stage),false,stage.id);
-      assert.equal(OW.confirm(OW.createState(stage.id)).ok,false);
+    for(const stage of OW.STAGE_NODES){
+      const impl=CONTENT.getStage(stage.stageId)?.implemented===true;
+      assert.equal(OW.isEnterable(stage),impl,stage.id);
+      if(impl){
+        assert.equal(OW.confirm(OW.createState(stage.id)).ok,true);
+      }
     }
   }finally{delete global.STORE;}
 });

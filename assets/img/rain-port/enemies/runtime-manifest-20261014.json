@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-10-14T07:34:00Z",
+  "status": "USER_APPROVED_FOR_RUNTIME",
+  "approval_record": {
+    "approver": "USER (使用者最新命令)",
+    "scope": "art/r4/handpainted-candidates/stage2-enemies/rework/ approved 4 WebP sprites",
+    "decision": "角色等待核准閘門已解除，正式接入 runtime assets/img/rain-port/enemies/",
+    "gate_status": "STAGE_IDENTITY_PARTIAL_APPROVED (Yokai approved; Stage floor and full composition still require human visual review before deploy)"
+  },
+  "runtime_sprites": {
+    "minion_shiome_idle": {
+      "runtime_path": "assets/img/rain-port/enemies/minion_shiome_idle.webp",
+      "source_candidate_path": "art/stage2-rain-port/characters/E_shiome_idle.webp",
+      "canvas_size": [
+        250,
+        220
+      ],
+      "format": "WEBP",
+      "mode": "RGBA",
+      "bytes": 37608,
+      "sha256": "ff9442bcd0850b79848d20b426d5be2a70f2cbd29ae64d13d76cf74a3b357bbe",
+      "runtime_anchor": {
+        "x": 125,
+        "y": 205,
+        "type": "foot_ground_anchor"
+      },
+      "description": "Stage 2 Seaport Minion (Shiome-Kozo) Idle sprite, approved for runtime"
+    },
+    "minion_shiome_attack": {
+      "runtime_path": "assets/img/rain-port/enemies/minion_shiome_attack.webp",
+      "source_candidate_path": "art/stage2-rain-port/characters/E_shiome_attack.webp",
+      "canvas_size": [
+        250,
+        220
+      ],
+      "format": "WEBP",
+      "mode": "RGBA",
+      "bytes": 58596,
+      "sha256": "e7a5d9d6980f6851ea78d66ba49ce68efca59ac7cfc862f7f42718c6f6cc6551",
+      "runtime_anchor": {
+        "x": 125,
+        "y": 205,
+        "type": "foot_ground_anchor"
+      },
+      "description": "Stage 2 Seaport Minion (Shiome-Kozo) Attack wave gesture sprite, approved for runtime"
+    },
+    "boss_ikari_umibozu_idle": {
+      "runtime_path": "assets/img/rain-port/enemies/boss_ikari_umibozu_idle.webp",
+      "source_candidate_path": "art/stage2-rain-port/characters/B_ikari_idle.webp",
+      "canvas_size": [
+        350,
+        330
+      ],
+      "format": "WEBP",
+      "mode": "RGBA",
+      "bytes": 123806,
+      "sha256": "5a90500d7b5528ec19d08726ca6e67b1f432e1ef9a5f8573e57d453e6c651d29",
+      "runtime_anchor": {
+        "x": 175,
+        "y": 320,
+        "type": "water_baseline_anchor"
+      },
+      "description": "Stage 2 Seaport Boss (Ikari-Umibozu) Idle stance sprite, approved for runtime"
+    },
+    "boss_ikari_umibozu_attack": {
+      "runtime_path": "assets/img/rain-port/enemies/boss_ikari_umibozu_attack.webp",
+      "source_candidate_path": "art/stage2-rain-port/characters/B_ikari_attack.webp",
+      "canvas_size": [
+        350,
+        330
+      ],
+      "format": "WEBP",
+      "mode": "RGBA",
+      "bytes": 119126,
+      "sha256": "6abeef6cbd3c6cb1585b193375b9159d2b1888b5e270007cc0f83b3fde8e162c",
+      "runtime_anchor": {
+        "x": 175,
+        "y": 320,
+        "type": "water_baseline_anchor"
+      },
+      "description": "Stage 2 Seaport Boss (Ikari-Umibozu) Attack tidal anchor slam sprite, approved for runtime"
+    }
+  }
+}

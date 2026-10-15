@@ -510,23 +510,30 @@ const FIXTURE = `window.fixture = {
     proj: typeof proj==='undefined'?[]:proj,
     needles: typeof needles==='undefined'?[]:needles,
     choiceLv: choices.map(c=>c.lv), choiceIds: choices.map(c=>c.id),
-    runSummary
+    runSummary,
+    codexTab: typeof codexTab === "undefined" ? null : codexTab,
+    codexPage: typeof codexPage === "undefined" ? null : codexPage,
+    codexBack: typeof codexBack === "undefined" ? null : codexBack,
+    codexFilter: typeof codexFilter === "undefined" ? null : codexFilter
   })
 };`;
 
 /**
  * 建立一個完整的遊戲執行期沙箱。
- * @param {{seed?:number, stage?:string, storage?:Object}} options
+ * @param {{seed?:number, stage?:string, storage?:Object, srcRoot?:string}} options
  *   seed 決定 Math.random 的固定序列，讓排程／抽詞可重現。
+ *   srcRoot 指向替代的 js/ 目錄（R6 校準用：對 production 唯讀，模擬實作跑在 temp 副本）。
  */
 function loadGame(options = {}) {
   const seed = options.seed === undefined ? 1 : options.seed;
   const stage = options.stage || 'night-town';
   // revision 指向 git 提交時，全部 js/* 一律讀該版本（baseline 用）。
   const revision = options.revision || null;
+  const srcRoot = options.srcRoot || path.join(ROOT, 'js');
+  const localRead = name => fs.readFileSync(path.join(srcRoot, name), 'utf8');
   const reader = revision
     ? name => readAtRevision(revision, name)
-    : read;
+    : localRead;
 
   // 可重現亂數：mulberry32，取代 Math.random。
   let state = seed >>> 0;
@@ -560,9 +567,11 @@ function loadGame(options = {}) {
       hidden: false, getElementById: id => id === 'controls-open' ? { click() {} } : canvas,
       addEventListener() {}
     },
-    addEventListener: (k, f) => { events[k] = f; }
+    addEventListener: (k, f) => { events[k] = f; },
+    Event: class Event { constructor(type) { this.type = type; } }
   };
   env.window = env;
+  env.window.dispatchEvent = () => {};
   env.innerWidth = 900;
   env.innerHeight = 600;
 
@@ -570,21 +579,25 @@ function loadGame(options = {}) {
 // 只會看到 helper 本身，直接 require 的 config/store 也無法計入 game.js 的覆蓋率。
 // 注意：即使帶了 filename，coverage 也只涵蓋沙箱實際載入並走到的路徑，
 // 不可宣稱「整個 game.js 80% 覆蓋」。
-const runSource = (c, source, name, revision) => {
+const runSource = (c, source, name, revision, srcRoot) => {
   // name 不含副檔名（MODULE_ORDER 用 'words'、'game'…），coverage 的
   // filename 必須指向真實存在的 js/<name>.js，否則行數會歸到不存在的路徑。
   const base = name.endsWith('.js') ? name : `${name}.js`;
-  const file = revision ? `${revision}:js/${base}` : path.join(ROOT, 'js', base);
+  const file = revision ? `${revision}:js/${base}` : path.join(srcRoot, base);
   return vm.runInContext(source, c, { filename: file });
 };
 
 const c = vm.createContext(env);
-  for (const name of MODULE_ORDER) runSource(c, reader(`${name}.js`), name, revision);
+  for (const name of MODULE_ORDER) runSource(c, reader(`${name}.js`), name, revision, srcRoot);
   if (!revision) {
+    for (const name of ["card-collection", "card-gallery-model", "card-gallery-ui"]) {
+      const file = path.join(srcRoot, `${name}.js`);
+      if (fs.existsSync(file)) runSource(c, fs.readFileSync(file, "utf8"), name, null, srcRoot);
+    }
     for (const name of V3_ONLY_MODULES) {
       // 注意副檔名：V3_ONLY_MODULES 存的是 'boss-ai'，檔名是 'boss-ai.js'。
-      const file = path.join(ROOT, 'js', `${name}.js`);
-      if (fs.existsSync(file)) runSource(c, fs.readFileSync(file, 'utf8'), name, null);
+      const file = path.join(srcRoot, `${name}.js`);
+      if (fs.existsSync(file)) runSource(c, fs.readFileSync(file, 'utf8'), name, null, srcRoot);
     }
   }
   c.CONTROLS.mount = () => {};
@@ -614,19 +627,20 @@ const c = vm.createContext(env);
     addSlashArc: (x, y, reach, ang, width, tier) => { slashLog.push({ x, y, reach, ang, width, tier }); },
     spawnDamageNumber() {}
   }, { get: (o, k) => o[k] || (() => {}) });
-  runSource(c, reader('ui.js'), 'ui.js', revision);
+  runSource(c, reader('ui.js'), 'ui.js', revision, srcRoot);
   const uiStatics = Object.fromEntries(Object.entries(c.UI).filter(([, v]) => typeof v !== 'function'));
   c.UI = new Proxy({
     ...uiStatics,
     bossQuizLayout: c.UI.bossQuizLayout, codexButtons: c.UI.codexButtons,
     codexRows: c.UI.codexRows, pauseButtons: c.UI.pauseButtons,
+    wordGallery: c.UI.wordGallery, wordGalleryViewport: c.UI.wordGalleryViewport,
     HINT_BTN: { x: 532, y: 20, w: 78, h: 40 },
     readableFont: () => '20px sans-serif'
   }, { get: (o, k) => o[k] || (() => {}) });
 
   const source = reader('game.js');
   const end = source.lastIndexOf('})();');
-  runSource(c, source.slice(0, end) + FIXTURE + source.slice(end), 'game.js', revision);
+  runSource(c, source.slice(0, end) + FIXTURE + source.slice(end), 'game.js', revision, srcRoot);
 
   const fixture = c.window.fixture;
   fixture.ctx = ctx;

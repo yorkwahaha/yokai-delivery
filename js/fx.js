@@ -359,12 +359,15 @@ window.FX = (() => {
       else standing();
       ctx.restore();return;
     }
-    if (p.rot === 0 && p.sx === 1 && p.sy === 1 && p.vr === 0) {
+    // Authored ground sy stays the 2D factor. Draw sy/k so on-screen squash stays that factor at every tilt.
+    const tilt = window.VIEWPORT?.tiltScale?.() || 1;
+    const sy = p.ground && p.sy !== 1 ? p.sy / tilt : p.sy;
+    if (p.rot === 0 && p.sx === 1 && sy === 1 && p.vr === 0) {
       ctx.drawImage(p.s, p.x - size / 2, p.y - size / 2, size, size);
     } else {
       ctx.save();
       ctx.translate(p.x, p.y);
-      if (p.sy !== 1) ctx.scale(1, p.sy);
+      if (sy !== 1) ctx.scale(1, sy);
       ctx.rotate(p.rot);
       ctx.drawImage(p.s, -size * p.sx / 2, -size / 2, size * p.sx, size);
       ctx.restore();

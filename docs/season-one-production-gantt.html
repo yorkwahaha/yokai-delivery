@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>妖怪快遞社｜第一季製作甘特圖</title>
+<style>
+:root{--bg:#131a20;--panel:#1c252c;--panel2:#22303a;--ink:#f3ecd9;--muted:#b4bdb9;--line:#3d4b50;--gold:#efc67e;--green:#8dcab4;--blue:#95bce5;--violet:#c5a6df;--red:#e9a9a1}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top left,#27342f 0,#131a20 52%);color:var(--ink);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Microsoft JhengHei","Noto Sans TC",sans-serif}
+a{color:var(--gold)}.wrap{max-width:1300px;margin:auto;padding:28px 24px 72px}.eyebrow{font-size:12px;letter-spacing:3px;color:var(--gold);font-weight:800}.hero{position:relative;padding:32px 34px;border:1px solid #6a6249;border-radius:19px;background:linear-gradient(140deg,#25382f,#161f24 65%);overflow:hidden}.hero:after{content:"妖";position:absolute;right:12px;top:-70px;font:300px/1 serif;color:rgba(239,198,126,.047);pointer-events:none}h1{font:700 clamp(26px,3vw,42px)/1.25 "Yu Mincho","Noto Serif TC",serif;margin:9px 0}h2{font-size:20px;margin:36px 0 14px}h3{font-size:16px;margin:12px 0 4px}.muted{color:var(--muted)}.hero p{max-width:760px;color:#ccd6cd;margin:8px 0 0}.nav{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.nav a{border:1px solid #766e52;border-radius:9px;text-decoration:none;padding:7px 13px;background:#27342b;color:var(--ink);font-size:13px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}.metric,.panel,.stage,.owner{background:var(--panel);border:1px solid var(--line);border-radius:14px}.metric{padding:16px}.metric strong{display:block;font-size:26px;font-variant-numeric:tabular-nums;line-height:1.2;color:#f5dfb2}.metric span{font-size:12px;color:var(--muted)}.warning{margin-top:18px;border-left:3px solid var(--gold);background:#292b29;padding:12px 15px;color:#dfdfce;font-size:13px}.gridowners{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.owner{padding:16px;min-height:185px}.owner .role{font-size:12px;letter-spacing:1px;font-weight:800}.owner p{margin:6px 0 0;color:var(--muted);font-size:13px}.owner .source{font-size:11px;margin-top:9px;color:var(--gold)}.owner:nth-child(1){border-top:3px solid var(--gold)}.owner:nth-child(2){border-top:3px solid var(--blue)}.owner:nth-child(3){border-top:3px solid var(--violet)}.owner:nth-child(4){border-top:3px solid var(--green)}.deps{display:flex;align-items:center;gap:4px;overflow-x:auto;padding:12px 2px 14px}.dep{background:#273239;border:1px solid #53626a;border-radius:10px;padding:11px 13px;white-space:nowrap;text-align:center;font-size:12px}.dep b{display:block;color:var(--gold)}.arrow{color:var(--gold);font-size:20px;padding:0 7px}.panel{padding:16px}.toolbar{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 14px}.btn{background:#26343d;border:1px solid #52646c;color:var(--ink);border-radius:8px;padding:7px 11px;cursor:pointer;font:inherit;font-size:12px}.btn[aria-pressed=true]{background:#e8c38a;color:#26291e;font-weight:800;border-color:#e8c38a}.scroll{overflow-x:auto;border:1px solid #3b4b52;border-radius:12px}.gantt{min-width:1160px;display:block}.cal-head,.cal-row{display:grid;grid-template-columns:258px 1fr}.cal-head{background:#25313a;position:sticky;top:0;z-index:2}.cal-head .namehead{padding:10px 14px;font-size:12px;color:#e9c88e;border-right:1px solid var(--line)}.days{display:grid;grid-template-columns:repeat(16,1fr)}.day{padding:9px 0;text-align:center;font-size:11px;color:#bac5c6;border-right:1px solid #43525a}.day:first-child{color:var(--gold)}.cal-row{min-height:60px;border-top:1px solid #364550}.cal-row:hover{background:#25333b}.taskname{border-right:1px solid var(--line);padding:8px 12px;display:flex;flex-direction:column;justify-content:center}.taskname b{font-size:12px}.taskname small{color:var(--muted);font-size:10px}.track{position:relative;background:repeating-linear-gradient(to right,transparent 0,transparent calc(6.25% - 1px),#314049 calc(6.25% - 1px),#314049 6.25%)}.bar{position:absolute;top:16px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;font-weight:800;color:#10212a;padding:0 8px}.bar.art{background:var(--gold)}.bar.code{background:var(--blue)}.bar.ui{background:var(--violet)}.bar.qa{background:var(--green)}.bar.critical{outline:2px dashed rgba(254,232,176,.5);outline-offset:2px}.bar.pause{background:repeating-linear-gradient(135deg,#b8a587,#b8a587 9px,#d9c6a4 9px,#d9c6a4 17px)}.milestone{position:absolute;top:11px;width:36px;height:36px;background:var(--gold);transform:rotate(45deg) scale(.68);border:2px solid #fff1d4}.legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:12px}.dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px}.stagegrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.stage{padding:14px 15px}.stage .num{font-size:11px;color:var(--gold);font-weight:800}.stage .tag{display:inline-block;font-size:10px;padding:2px 8px;margin-top:8px;border-radius:20px;border:1px solid #53646a;color:#cfdbd8}.stage p{font-size:12px;color:var(--muted);margin:6px 0}.stage strong{display:block}.stage .status{font-size:12px;color:var(--gold);font-weight:700}.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.rule{padding:16px;border-left:3px solid #738996;background:#202c33;border-radius:8px}.rule h3{margin-top:0}.rule p{font-size:13px;color:var(--muted);margin:4px 0}.foot{margin-top:25px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}@media(max-width:980px){.metrics,.stagegrid{grid-template-columns:repeat(2,1fr)}.gridowners{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.wrap{padding:14px 12px 48px}.hero{padding:22px 20px}.metrics,.stagegrid,.gridowners,.rules{grid-template-columns:1fr 1fr}.owner{min-height:0}.metric strong{font-size:22px}.rules{grid-template-columns:1fr}}@media print{body{background:white;color:#111}.wrap{max-width:none}.hero,.metric,.panel,.stage,.owner,.rule{background:white;color:#111;border-color:#aaa}.muted,.owner p,.stage p,.rule p{color:#333}.bar{print-color-adjust:exact;-webkit-print-color-adjust:exact}.gantt{min-width:1050px}.scroll{overflow:visible}.nav,.toolbar{display:none}}
+</style></head>
+<body><main class="wrap">
+<header class="hero"><div class="eyebrow">YOKAI DELIVERY · SEASON ONE · PRODUCTION BOARD</div><h1>妖怪快遞社<br>第一季製作甘特圖</h1>
+<p>2026-10-15 規劃快照。用「完成關卡、核准素材、解決阻塞」衡量進度，不用 Agent 的工作時間或新增測試數量衡量成果。</p>
+<div class="nav"><a href="season-one-master-plan.md">完整遊戲企劃／派工表</a><a href="../art/Preview_index.html">開啟第2–8關美術預覽</a><a href="../roadmap.md">歷史 Roadmap</a></div></header>
+<section class="metrics"><div class="metric"><strong>8 / 8</strong><span>共用程式／關卡資料基線已存在</span></div><div class="metric"><strong>0 / 8</strong><span>已確認整關正式封版（不是說沒有進度）</span></div><div class="metric"><strong>4 關</strong><span>第3–6關有待審美術候選</span></div><div class="metric"><strong>2 關</strong><span>第7、8關缺正式美術</span></div></section>
+<div class="warning"><b>2026-10-15 14:21 新決策：M1 八關功能與資產插槽先全部接完；M2 再集中審圖與語音。</b> 美術核准不得阻止程式先接線，但未核准圖片仍不可接入正式遊戲。排程只是工作順序示意，生圖受限及實機／人審會讓 M2 延後。加速遊玩測試不等於自然10分鐘完成。</div>
+<h2>分工與交接</h2><section class="gridowners">
+<div class="owner"><div class="role" style="color:var(--gold)">AGY · 美術／內容</div><h3>新關卡視覺與敵人母版</h3><p>地面、建築、裝飾、地標、專怪與 Boss。先 Stage3–6 候選核准，再製作 Stage7/8。</p><div class="source">副：詞庫、故事、天候資料</div></div>
+<div class="owner"><div class="role" style="color:var(--blue)">KILO · 核心程式</div><h3>正式接圖與真正可玩</h3><p>共用戰鬥／配送／Boss／存檔；素材核准後接入，修理跨關真 Bug。</p><div class="source">副：自然遊玩平衡／載入問題</div></div>
+<div class="owner"><div class="role" style="color:var(--violet)">MUSE · UI／裝置</div><h3>手機、平板、題板</h3><p>以真正 Stage3–8 畫面查遮擋、點擊、文字可讀；不重測已通過的第一關。</p><div class="source">副：圖鑑與結算顯示</div></div>
+<div class="owner"><div class="role" style="color:var(--green)">CODEX · 決策／驗收</div><h3>重要節點才介入</h3><p>只有需要取捨、跨 Agent 衝突、發行前整合才叫用，不常駐監工。</p><div class="source">使用者保留美術／玩法／部署最後決策</div></div>
+</section>
+<h2>兩階段關鍵路徑：先 M1 接線，再 M2 素材放行</h2><div class="deps">
+<div class="dep"><b>M1 程式</b> 八關共用引擎</div><span class="arrow">→</span>
+<div class="dep"><b>M1 通關</b> 八關功能</div><span class="arrow">→</span>
+<div class="dep"><b>M2 素材</b> 集中審圖</div><span class="arrow">→</span>
+<div class="dep"><b>M2 接圖</b> 審定後換圖</div><span class="arrow">→</span>
+<div class="dep"><b>真機</b> 手機／平板</div><span class="arrow">→</span>
+<div class="dep"><b>發布</b> 使用者授權</div></div>
+<h2>第一季甘特圖 <span class="muted" style="font-size:12px;font-weight:400">2026/10/16 起約16個工作天 · 排程假設而非實際完成度</span></h2>
+<section class="panel"><div class="toolbar" id="filters"><button class="btn" data-filter="all" aria-pressed="true">全部</button><button class="btn" data-filter="art" aria-pressed="false">美術／核准</button><button class="btn" data-filter="code" aria-pressed="false">程式</button><button class="btn" data-filter="ui" aria-pressed="false">UI</button><button class="btn" data-filter="qa" aria-pressed="false">實玩／驗收</button></div>
+<div class="scroll"><div class="gantt" id="gantt"></div></div>
+<div class="legend"><span><i class="dot" style="background:var(--gold)"></i>美術／人審</span><span><i class="dot" style="background:var(--blue)"></i>程式</span><span><i class="dot" style="background:var(--violet)"></i>UI</span><span><i class="dot" style="background:var(--green)"></i>測試／驗收</span><span>虛線：關鍵依賴</span></div>
+</section>
+<h2>八關狀態：剩餘交付，而不是把程式完成等同關卡完成</h2>
+<section class="stagegrid">
+<div class="stage"><span class="num">01 · CHAPTER I</span><strong>夜行町</strong><p>人物／動物／住家／場所 · 27 詞</p><span class="status">現役原型／真機與自然局待驗</span></div>
+<div class="stage"><span class="num">02 · CHAPTER I</span><strong>雨夜港町</strong><p>方位／天氣／交通 · 27 詞</p><span class="status">石木v2單圖已核准，整關待審</span></div>
+<div class="stage"><span class="num">03 · CHAPTER I</span><strong>妖櫻山道</strong><p>自然／季節／時間 · 22 詞</p><span class="status">新地景 v2 待核准</span></div>
+<div class="stage"><span class="num">04 · CHAPTER II</span><strong>竹影迷宮</strong><p>顏色／形容詞／數量 · 22 詞</p><span class="status">明亮地景／妖怪母版待核准</span></div>
+<div class="stage"><span class="num">05 · CHAPTER II</span><strong>百鬼京都</strong><p>食物／飲料／購物 · 21 詞</p><span class="status">候選 v1；專怪／Boss待補</span></div>
+<div class="stage"><span class="num">06 · CHAPTER II</span><strong>雪燈山寺</strong><p>動作／移動／身體 · 24 詞</p><span class="status">候選 v1；專怪／Boss待補</span></div>
+<div class="stage"><span class="num">07 · CHAPTER III</span><strong>幽世渡口</strong><p>狀態／感受／表達 · 21 詞</p><span class="status">規格已在／正式美術缺</span></div>
+<div class="stage"><span class="num">08 · CHAPTER III</span><strong>黃泉境</strong><p>164詞綜合與錯題加權</p><span class="status">規格已在／終王美術缺</span></div>
+</section>
+<h2>每輪執行的三條規則</h2><div class="rules">
+<div class="rule"><h3>1. 有畫面或有功能</h3><p>每一工作包必須讓一關更接近完成，產出可玩版本、可審素材或修復可重現問題。</p></div>
+<div class="rule"><h3>2. 完成才改狀態</h3><p>單一素材核准≠整關；加速測試≠自然實玩；Chrome尺寸≠實體iPad效能。</p></div>
+<div class="rule"><h3>3. 不撞檔、不瞎忙</h3><p>各 Agent 主＋副工作獨立。遇人審則切另一條線，沒真 Bug 就不硬改，不擅部署。</p></div></div>
+<footer class="foot">本頁是 2026-10-15 的離線規劃快照。若最新進度與本頁不同，以 <a href="season-one-master-plan.md">season-one-master-plan.md</a> 的關卡矩陣與交付物為準。音訊／TTS／BGM／API Key 凍結；部署需使用者另行許可。</footer>
+</main>
+<script>
+const days=[["10/16","五"],["10/19","一"],["10/20","二"],["10/21","三"],["10/22","四"],["10/23","五"],["10/26","一"],["10/27","二"],["10/28","三"],["10/29","四"],["10/30","五"],["11/02","一"],["11/03","二"],["11/04","三"],["11/05","四"],["11/06","五"]];
+const tasks=[
+{t:"M1 八關地景／敵人／Boss插槽",o:"Kilo",c:"code",s:0,e:4,critical:1,note:"缺圖安全fallback／不接未審圖"},
+{t:"M1 八關內容、故事與資料",o:"AGY",c:"code",s:0,e:3,critical:0,note:"只做資料接線，語音凍結"},
+{t:"M1 八關HUD／Boss題板UI",o:"Muse Spark",c:"ui",s:0,e:4,critical:0,note:"跨關stageId，不重複舊QA"},
+{t:"M1 八關整合與真頁面驗證",o:"Kilo＋Codex",c:"qa",s:4,e:6,critical:1,note:"加速流程≠自然10分鐘"},
+{t:"M2 第二至四關美術集中核准",o:"使用者＋AGY",c:"art",s:7,e:9,critical:1,note:"批次審圖，不阻擋M1"},
+{t:"M2 第五至六關美術集中核准",o:"使用者＋AGY",c:"art",s:7,e:10,critical:1,note:"候選及專怪母版待審"},
+{t:"M2 第七至八關正式美術",o:"AGY＋使用者",c:"art",s:9,e:13,critical:1,note:"生圖429須順延"},
+{t:"M2 已核准圖片一次換槽",o:"Kilo",c:"code",s:9,e:14,critical:0,note:"只接已審定圖"},
+{t:"自然遊玩與實體裝置驗收",o:"使用者＋Muse＋Kilo",c:"qa",s:13,e:15,critical:1,note:"手機、iPad、Xbox"},
+{t:"發行決策／仍需授權",o:"Codex＋使用者",c:"qa",s:15,e:15,critical:1,note:"語音未解凍不得擅自發行"}
+];
+const gantt=document.getElementById("gantt");
+function render(filter){
+gantt.replaceChildren();
+const head=document.createElement("div");head.className="cal-head";head.innerHTML='<div class="namehead">階段工作包／責任人</div><div class="days">'+days.map(d=>'<div class="day">'+d[0]+'<br>'+d[1]+'</div>').join("")+'</div>';gantt.appendChild(head);
+for(const t of tasks.filter(t=>filter==="all"||filter===t.c)){
+ const row=document.createElement("div");row.className="cal-row";
+ const name=document.createElement("div");name.className="taskname";name.innerHTML='<b>'+t.t+'</b><small>'+t.o+' · '+t.note+'</small>';
+ const track=document.createElement("div");track.className="track";
+ const bar=document.createElement("div");bar.className="bar "+t.c+(t.critical?" critical":"");bar.style.left=(t.s/16*100)+"%";bar.style.width=((t.e-t.s+1)/16*100)+"%";bar.textContent=t.critical?"關鍵路徑":"預估時段";bar.title=t.t+"｜"+t.note+"（估計）";
+ track.appendChild(bar);row.append(name,track);gantt.appendChild(row);
+}
+}
+render("all");
+document.querySelectorAll("[data-filter]").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll("[data-filter]").forEach(b=>b.setAttribute("aria-pressed","false"));btn.setAttribute("aria-pressed","true");render(btn.dataset.filter)}));
+</script></body></html>

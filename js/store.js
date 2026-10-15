@@ -1,7 +1,10 @@
 (() => {
   const root = typeof window !== "undefined" ? window : globalThis;
   const STORE = (() => {
-    const K = "yokai-delivery-v1";
+    const OFFICIAL_KEY = "yokai-delivery-v1";
+    const K = root.DEV_MODE && typeof root.DEV_MODE.sessionKey === "function"
+      ? root.DEV_MODE.sessionKey(root.location)
+      : OFFICIAL_KEY;
   const WT = [6, 4, 2, 1, .5];
   // Keep existing progress entries untouched; insert the three new stage IDs.
   const NEXT_STAGE = {

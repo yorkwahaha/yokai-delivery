@@ -54,18 +54,18 @@
     {id:"cross-west",x:565,y:1220,type:"waypoint",label:"分かれ道",unlockAfter:"night-town"},
     {id:"rain-port",x:730,y:1330,type:"stage",stageId:"rain-port",label:"雨夜港町",sub:"あめよのみなと",enterable:true,landmark:"port",unlockAfter:"night-town"},
     {id:"port-rise",x:910,y:1150,type:"waypoint",label:"港後坡",unlockAfter:"night-town"},
-    {id:"sakura-pass",x:1070,y:975,type:"stage",stageId:"sakura-pass",label:"妖櫻山道",sub:"ようざくらさんどう",enterable:false,landmark:"sakura",unlockAfter:"rain-port"},
+    {id:"sakura-pass",x:1070,y:975,type:"stage",stageId:"sakura-pass",label:"妖櫻山道",sub:"ようざくらさんどう",enterable:true,landmark:"sakura",unlockAfter:"rain-port"},
     {id:"cross-east",x:1220,y:830,type:"waypoint",label:"古道",unlockAfter:"rain-port"},
-    {id:"bamboo-maze",x:1380,y:720,type:"stage",stageId:"bamboo-maze",label:"竹影迷宮",sub:"たけかげめいろ",enterable:false,landmark:"bamboo",unlockAfter:"sakura-pass"},
+    {id:"bamboo-maze",x:1380,y:720,type:"stage",stageId:"bamboo-maze",label:"竹影迷宮",sub:"たけかげめいろ",enterable:true,landmark:"bamboo",unlockAfter:"sakura-pass"},
     {id:"bamboo-exit",x:1520,y:845,type:"waypoint",label:"竹林出口",unlockAfter:"sakura-pass"},
-    {id:"hyakki-kyoto",x:1710,y:955,type:"stage",stageId:"hyakki-kyoto",label:"百鬼京都",sub:"ひゃっききょうと",enterable:false,landmark:"kyoto",unlockAfter:"bamboo-maze"},
+    {id:"hyakki-kyoto",x:1710,y:955,type:"stage",stageId:"hyakki-kyoto",label:"百鬼京都",sub:"ひゃっききょうと",enterable:true,landmark:"kyoto",unlockAfter:"bamboo-maze"},
     {id:"lookout",x:1900,y:780,type:"waypoint",label:"見晴台",unlockAfter:"bamboo-maze"},
-    {id:"snow-temple",x:2080,y:555,type:"stage",stageId:"snow-temple",label:"雪燈山寺",sub:"せつとうさんじ",enterable:false,landmark:"snow",unlockAfter:"hyakki-kyoto"},
+    {id:"snow-temple",x:2080,y:555,type:"stage",stageId:"snow-temple",label:"雪燈山寺",sub:"せつとうさんじ",enterable:true,landmark:"snow",unlockAfter:"hyakki-kyoto"},
     {id:"snow-pass",x:2260,y:740,type:"waypoint",label:"雪路",unlockAfter:"hyakki-kyoto"},
-    {id:"spirit-ferry",x:2430,y:1040,type:"stage",stageId:"spirit-ferry",label:"幽世渡口",sub:"かくりよわたし",enterable:false,landmark:"ferry",unlockAfter:"snow-temple"},
+    {id:"spirit-ferry",x:2430,y:1040,type:"stage",stageId:"spirit-ferry",label:"幽世渡口",sub:"かくりよわたし",enterable:true,landmark:"ferry",unlockAfter:"snow-temple"},
     {id:"yomi-ford",x:2585,y:770,type:"waypoint",label:"幽河彼岸",unlockAfter:"snow-temple"},
     {id:"yomi-ascent",x:2675,y:545,type:"waypoint",label:"黃泉斜坡",unlockAfter:"spirit-ferry"},
-    {id:"yomi",x:2770,y:375,type:"stage",stageId:"yomi",label:"黃泉境",sub:"よみのさかい",enterable:false,landmark:"yomi",unlockAfter:"spirit-ferry"}
+    {id:"yomi",x:2770,y:375,type:"stage",stageId:"yomi",label:"黃泉境",sub:"よみのさかい",enterable:true,landmark:"yomi",unlockAfter:"spirit-ferry"}
   ].map(n => {
     const override = LAYOUT?.nodes?.[n.id], route = override?.route;
     const x = Number.isFinite(route?.x) ? route.x : n.x;
