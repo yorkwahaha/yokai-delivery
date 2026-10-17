@@ -305,8 +305,22 @@
       role
     };
   }
-  function rollCrit(base, step) {
-    const chance = Math.min(0.5, base + (b.crit || 0) * step);
+  function rollCrit(base, step, critLvl = b.crit) {
+    let chance;
+    if (typeof base === "object" && base !== null) {
+      if (typeof base.critChance === "number") {
+        chance = base.critChance;
+      } else {
+        const lvl = typeof base.critLvl === "number" ? base.critLvl : (b.crit || 0);
+        const bVal = typeof step === "number" ? step : 0.2;
+        const sVal = typeof critLvl === "number" ? critLvl : 0.15;
+        chance = Math.min(0.5, bVal + lvl * sVal);
+      }
+    } else if (typeof step === "undefined") {
+      chance = Math.min(0.5, base || 0);
+    } else {
+      chance = Math.min(0.5, base + (critLvl || 0) * step);
+    }
     const isCrit = Math.random() < chance;
     return { isCrit, mult: isCrit ? 1.8 : 1 };
   }
@@ -445,6 +459,819 @@
     worldSyncSignature = signature;
   }
   const WL = { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 };
+  let buildRevision = 1;
+  let buildMutations = [];
+  let buildCharms = [];
+  let buildDuos = [];
+
+  const CHARM_CONFIG = {
+    charm_power: {
+      id: "charm_power",
+      n: "力紋守",
+      s: "りきもん",
+      cat: "【 御守護符 】",
+      levelText: "◆ 御守加持",
+      d: "對已持有技能增加小幅基礎傷害（+0.20）；次級傷害不再次乘算",
+      requirementText: "御守槽位未滿（最多 3 種）",
+      limitText: "每局最多佩戴 3 款不同御守（不可重複取得）",
+      inPool: true
+    },
+    charm_step: {
+      id: "charm_step",
+      n: "風步守",
+      s: "かぜあるき",
+      cat: "【 御守護符 】",
+      levelText: "◆ 御守加持",
+      d: "提升移動速度（+28 px/s），採單一集中參數；無穿牆、無無敵",
+      requirementText: "御守槽位未滿（最多 3 種）",
+      limitText: "每局最多佩戴 3 款不同御守（不可重複取得）",
+      inPool: true
+    },
+    charm_gather: {
+      id: "charm_gather",
+      n: "招靈守",
+      s: "しょうれい",
+      cat: "【 御守護符 】",
+      levelText: "◆ 御守加持",
+      d: "擴大靈玉拾取吸收半徑（+75 px）；不增產量、不自動完成送貨",
+      requirementText: "御守槽位未滿（最多 3 種）",
+      limitText: "每局最多佩戴 3 款不同御守（不可重複取得）",
+      inPool: true
+    },
+    charm_cadence: {
+      id: "charm_cadence",
+      n: "疾奏守",
+      s: "しっそう",
+      cat: "【 御守護符 】",
+      levelText: "◆ 御守加持",
+      d: "妖刀、靈陣、靈針攻擊冷卻小幅縮短（有效頻率 +0.25）；保留每招冷卻下限與 Lv5 固有節奏，不加速雷雲、火龍或時鐘",
+      requirementText: "御守槽位未滿（最多 3 種）",
+      limitText: "每局最多佩戴 3 款不同御守（不可重複取得）",
+      inPool: true
+    },
+    charm_reach: {
+      id: "charm_reach",
+      n: "遠霞守",
+      s: "とおがすみ",
+      cat: "【 御守護符 】",
+      levelText: "◆ 御守加持",
+      d: "妖刀、靈陣、靈針射程與符咒爆炸半徑 +10%；飛行物同步射程快照，保留 Lv5 上限與安全區判定",
+      requirementText: "御守槽位未滿（最多 3 種）",
+      limitText: "每局最多佩戴 3 款不同御守（不可重複取得）",
+      inPool: true
+    },
+    charm_guard: {
+      id: "charm_guard",
+      n: "紙甲守",
+      s: "かみよろい",
+      cat: "【 御守護符 】",
+      levelText: "◆ 御守加持",
+      d: "受創燈油損失減少 10%；護盾與無敵優先判定，小傷不歸零、不回油，不減免答題扣油",
+      requirementText: "御守槽位未滿（最多 3 種）",
+      limitText: "每局最多佩戴 3 款不同御守（不可重複取得）",
+      inPool: true
+    }
+  };
+
+  const MUTATION_CONFIG = {
+    mut_fan: {
+      id: "mut_fan",
+      skillId: "needle",
+      skillIds: ["needle", "boom"],
+      n: "千本散射",
+      s: "さんしゃ",
+      cat: "【 共享變異 】",
+      levelText: "◆ 共享變異",
+      d: "朝向多角度散射，發數增加且散射角擴大；單發傷害按發數比例分攤（每次施放總傷害預算上限控管）",
+      requirementText: "持有天狐靈針或陰陽符（取得其他適用技能後沿用）",
+      limitText: "每種限選一次（每技能最多 3 種變異，取得其他適用技能後沿用）",
+      inPool: true
+    },
+    mut_seek: {
+      id: "mut_seek",
+      skillId: "needle",
+      skillIds: ["needle", "boom"],
+      n: "引魂追跡",
+      s: "ついせき",
+      cat: "【 共享變異 】",
+      levelText: "◆ 共享變異",
+      d: "靈針與未黏附陰陽符具備轉向角速率平滑追蹤妖怪，失去目標後沿當前方向直行（非瞬移）",
+      requirementText: "持有天狐靈針或陰陽符（取得其他適用技能後沿用）",
+      limitText: "每種限選一次（每技能最多 3 種變異，取得其他適用技能後沿用）",
+      inPool: true
+    },
+    mut_frost: {
+      id: "mut_frost",
+      skillId: "needle",
+      skillIds: ["needle", "boom"],
+      n: "冰魄封靈",
+      s: "ひょうはくふうれい",
+      cat: "【 共享變異 】",
+      levelText: "◆ 共享變異",
+      d: "靈針命中與陰陽符主爆累積寒冷並短暫冰封；Boss 具備高寒冷門檻與 2.0 秒抗性免疫期（不被永久失能）",
+      requirementText: "持有天狐靈針或陰陽符（取得其他適用技能後沿用）",
+      limitText: "每種限選一次（每技能最多 3 種變異，取得其他適用技能後沿用）",
+      inPool: true
+    },
+    mut_pierce: {
+      id: "mut_pierce",
+      skillId: "needle",
+      skillIds: ["needle"],
+      n: "靈針・穿透增額",
+      s: "せんぼん・ぞうがく",
+      cat: "【 靈針變異 】",
+      levelText: "◆ 靈針變異",
+      d: "保持既有穿透；第 2、第 3 隻命中獨敵各增加該針生成時 15% 傷害（總增額至多 30%），不額外投射，同敵去重",
+      requirementText: "持有天狐靈針",
+      limitText: "每種限選一次（每技能最多 3 種變異）",
+      inPool: true
+    },
+    mut_return: {
+      id: "mut_return",
+      skillId: "needle",
+      skillIds: ["needle"],
+      n: "靈針・回旋折返",
+      s: "せんぼん・おりかえし",
+      cat: "【 靈針變異 】",
+      levelText: "◆ 靈針變異",
+      d: "沿途累積位移達有限距離後單次折返飛回生成原點；回程不再轉向，往返同敵至多扣血一次，總壽命不延長且不額外生成新針",
+      requirementText: "持有天狐靈針",
+      limitText: "每種限選一次（每技能最多 3 種變異）",
+      inPool: true
+    },
+    mut_crosscut: {
+      id: "mut_crosscut",
+      skillId: "katana",
+      skillIds: ["katana"],
+      n: "妖刀・十字交斬",
+      s: "ようとう・こうざん",
+      cat: "【 妖刀變異 】",
+      levelText: "◆ 妖刀變異",
+      d: "主斬後延遲施展一次有限側向交叉斬；共用攻擊預算與傷害上界，Lv5 風刃不重複派生",
+      requirementText: "持有退魔妖刀",
+      limitText: "每種限選一次（每技能最多 3 種變異）",
+      inPool: true
+    },
+    mut_pulse: {
+      id: "mut_pulse",
+      skillId: "barrier",
+      skillIds: ["barrier"],
+      n: "靈陣・連環脈衝",
+      s: "れいじん・みゃくどう",
+      cat: "【 靈陣變異 】",
+      levelText: "◆ 靈陣變異",
+      d: "一次大陣拆為兩次較小脈衝；兩次共享原傷害與控制預算，不重置受擊冷卻",
+      requirementText: "持有淨化靈陣",
+      limitText: "每種限選一次（每技能最多 3 種變異）",
+      inPool: true
+    },
+    mut_branch: {
+      id: "mut_branch",
+      skillId: "thunder",
+      skillIds: ["thunder"],
+      n: "天狐雷・連鎖分歧",
+      s: "てんこれい・ぶんき",
+      cat: "【 天狐雷變異 】",
+      levelText: "◆ 天狐雷變異",
+      d: "主雷命中後分出至多 1 道次級雷擊，傷害為當次主雷 25%；次級不得再分支，不以生命百分比計傷",
+      requirementText: "持有天狐雷",
+      limitText: "每種限選一次（每技能最多 3 種變異）",
+      inPool: true
+    },
+    mut_orbit: {
+      id: "mut_orbit",
+      skillId: "fire",
+      skillIds: ["fire"],
+      n: "狐火・偏心輪道",
+      s: "こか・へんしんりんどう",
+      cat: "【 狐火變異 】",
+      levelText: "◆ 狐火變異",
+      d: "狐火環繞半徑改為長短軸偏心橢圓（rx=126, ry=78），不增加火球數量與接觸傷害倍率，保持各級接觸與 Lv5 黑龍特性",
+      requirementText: "持有狐火",
+      limitText: "每種限選一次（每技能最多 3 種變異）",
+      inPool: true
+    },
+    mut_splitblast: {
+      id: "mut_splitblast",
+      skillId: "boom",
+      skillIds: ["boom"],
+      n: "陰陽符・餘燼爆散",
+      s: "おふだ・ばくさん",
+      cat: "【 陰陽符變異 】",
+      levelText: "◆ 陰陽符變異",
+      d: "主爆後原爆心延遲 0.18 秒產生一次小型次爆（半徑 55%）；對原直擊目標取主爆全傷 25%，其餘取濺射傷 25%，無擊退、不再次派生",
+      requirementText: "持有陰陽符",
+      limitText: "每種限選一次（每技能最多 3 種變異）",
+      inPool: true
+    }
+  };
+
+  const DUO_CONFIG = {
+    duo_thundercircle: {
+      id: "duo_thundercircle",
+      skillIds: ["barrier", "thunder"],
+      n: "雷紋陣",
+      s: "らいもんじん",
+      cat: "【 共鳴奧義 】",
+      levelText: "◆ 共鳴奧義",
+      d: "淨化靈陣內落雷引發墨紋衝擊（延遲 0.12 秒、半徑 64）；至多命中 3 敵各一次，總傷害為該次非暴擊雷基傷 20% 分攤（無再派生）",
+      beforeText: "落雷",
+      afterText: "墨紋衝擊",
+      requirementText: "持有淨化靈陣 Lv3+ 與 天狐雷 Lv3+",
+      limitText: "每局限選一次（不占主動、御守、變異槽位；不重新落雷、不聚怪）",
+      inPool: true
+    },
+    duo_inkfire: {
+      id: "duo_inkfire",
+      skillIds: ["katana", "fire"],
+      n: "墨焰斬",
+      s: "ぼくえんざん",
+      cat: "【 共鳴奧義 】",
+      levelText: "◆ 共鳴奧義",
+      d: "妖刀命中灼燒目標時留下墨焰痕（延遲 0.12 秒、半徑 56）；至多命中 3 敵各一次，總傷害為該次非暴擊刀傷 20% 分攤（無再派生）",
+      beforeText: "直接斬",
+      afterText: "留墨焰",
+      requirementText: "持有退魔妖刀 Lv3+ 與 狐火炎 Lv3+",
+      limitText: "每局限選一次（不占主動、御守、變異槽位；每次攻擊有觸發上限、無再派生）",
+      inPool: true
+    },
+    duo_frostseal: {
+      id: "duo_frostseal",
+      skillIds: ["needle", "boom"],
+      n: "寒封符",
+      s: "かんぷうふ",
+      cat: "【 共鳴奧義 】",
+      levelText: "◆ 共鳴奧義",
+      d: "陰陽符主爆命中帶寒冷目標時給一次受限控場反應（普通怪凍結結束後追擊×0.65持續0.35秒，Boss追擊×0.90持續0.15秒；每cast限1敵、2秒免疫）",
+      beforeText: "直投",
+      afterText: "寒封",
+      requirementText: "持有天狐靈針 Lv3+ 與 陰陽符 Lv3+",
+      limitText: "每局限選一次（不占主動、御守、變異槽位；不重置冰封、Boss受限）",
+      inPool: true
+    },
+    duo_cinderseal: {
+      id: "duo_cinderseal",
+      skillIds: ["fire", "boom"],
+      n: "餘燼符",
+      s: "よじんふ",
+      cat: "【 共鳴奧義 】",
+      levelText: "◆ 共鳴奧義",
+      d: "陰陽符主爆命中灼燒目標時留下短效餘燼（延遲 0.3 秒、半徑 64、持續 0.8 秒）；至多命中 3 敵各一次，總傷害為該次非暴擊符傷 15% 分攤（無再派生）",
+      beforeText: "引爆",
+      afterText: "留餘燼",
+      requirementText: "持有狐火炎 Lv3+ 與 陰陽符 Lv3+",
+      limitText: "每局限選一次（不占主動、御守、變異槽位；每次引爆限一處、無再派生）",
+      inPool: true
+    }
+  };
+
+  function addDuo(id) {
+    const cfg = DUO_CONFIG[id];
+    if (!cfg || !cfg.inPool) return false;
+    if (buildDuos.includes(id)) return false;
+    if (!cfg.skillIds.every(s => (WL[s] || 0) >= 3)) return false;
+    buildDuos.push(id);
+    buildRevision++;
+    return true;
+  }
+
+  function removeDuo(id) {
+    const idx = buildDuos.indexOf(id);
+    if (idx >= 0) {
+      buildDuos.splice(idx, 1);
+      buildRevision++;
+      return true;
+    }
+    return false;
+  }
+
+  function getSkillMutations(skillId, list = buildMutations) {
+    if (!Array.isArray(list)) return [];
+    return list.filter(id => {
+      const cfg = MUTATION_CONFIG[id];
+      if (!cfg) return false;
+      if (Array.isArray(cfg.skillIds)) return cfg.skillIds.includes(skillId);
+      return cfg.skillId === skillId;
+    });
+  }
+
+  function addMutation(id) {
+    const cfg = MUTATION_CONFIG[id];
+    if (!cfg || !cfg.inPool) return false;
+    if (buildMutations.includes(id)) return false;
+    const applicable = Array.isArray(cfg.skillIds) ? cfg.skillIds : [cfg.skillId];
+    const owned = applicable.filter(s => (WL[s] || 0) > 0);
+    if (owned.length === 0) return false;
+    if (owned.some(s => getSkillMutations(s).length >= 3)) return false;
+    buildMutations.push(id);
+    buildRevision++;
+    return true;
+  }
+
+  function removeMutation(id) {
+    const idx = buildMutations.indexOf(id);
+    if (idx >= 0) {
+      buildMutations.splice(idx, 1);
+      buildRevision++;
+      return true;
+    }
+    return false;
+  }
+
+  function addCharm(id) {
+    if (!CHARM_CONFIG[id]) return false;
+    if (buildCharms.includes(id)) return false;
+    if (buildCharms.length >= 3) return false;
+    buildCharms.push(id);
+    buildRevision++;
+    return true;
+  }
+
+  function removeCharm(id) {
+    const idx = buildCharms.indexOf(id);
+    if (idx >= 0) {
+      buildCharms.splice(idx, 1);
+      buildRevision++;
+      return true;
+    }
+    return false;
+  }
+
+  function getEffectiveDmg(buildState = null) {
+    const charms = (buildState && Array.isArray(buildState.charms)) ? buildState.charms : buildCharms;
+    const powerBonus = charms.includes("charm_power") ? 0.20 : 0;
+    return (b.dmg || 1) + powerBonus;
+  }
+
+  function getEffectiveMoveSpeed(buildState = null) {
+    const charms = (buildState && Array.isArray(buildState.charms)) ? buildState.charms : buildCharms;
+    const stepBonus = charms.includes("charm_step") ? 28 : 0;
+    return 230 + (b.spd || 0) * 35 + stepBonus;
+  }
+
+  function getEffectiveMagnetRadius(buildState = null) {
+    const charms = (buildState && Array.isArray(buildState.charms)) ? buildState.charms : buildCharms;
+    const gatherBonus = charms.includes("charm_gather") ? 75 : 0;
+    return magnetRadius(b.mag) + gatherBonus;
+  }
+
+  function getEffectiveRate(buildState = null) {
+    const charms = (buildState && Array.isArray(buildState.charms)) ? buildState.charms : buildCharms;
+    const cadenceBonus = charms.includes("charm_cadence") ? 0.25 : 0;
+    return (b.rate || 0) + cadenceBonus;
+  }
+
+  function getEffectiveReachMultiplier(buildState = null) {
+    const charms = (buildState && Array.isArray(buildState.charms)) ? buildState.charms : buildCharms;
+    return charms.includes("charm_reach") ? 1.10 : 1.0;
+  }
+
+  function applyFrost(e, now, volley = null) {
+    if (e.hp <= 0 || e.shield) return false;
+    if (e.freezeReady && e.freezeReady > now) return false;
+    if (e.freezeT > 0 && (e.freezeEnds == null || now < e.freezeEnds)) return false;
+
+    const threshold = e.type === "boss" ? 3 : 1;
+    e.frostHits = (e.frostHits || 0) + 1;
+    if (e.frostHits < threshold) {
+      return false;
+    }
+    e.frostHits = 0;
+    return EVOLUTIONS.freeze(e, now, volley);
+  }
+
+  function getBuildState() {
+    const activeSkills = Object.keys(WI).filter(k => (WL[k] || 0) > 0);
+    return {
+      schemaVersion: 1,
+      activeSkills,
+      charms: [...buildCharms],
+      mutations: [...buildMutations],
+      duos: [...buildDuos]
+    };
+  }
+
+  function resolveAttackSpec(skillId, lvl, buildState, options = {}) {
+    const level = typeof lvl === "number" ? lvl : (WL[skillId] || 0);
+    const baseRate = getEffectiveRate(buildState);
+    const baseDmg = getEffectiveDmg(buildState);
+    const reachMult = getEffectiveReachMultiplier(buildState);
+    if (skillId === "katana") {
+      const baseReach = 145 + (level - 1) * 16;
+      const reach = level === 5 ? baseReach : Math.round(baseReach * reachMult);
+      const swingReach = level === 5 ? 720 : reach * 0.85;
+      const cooldown = Math.max(0.6, 0.72 - baseRate * 0.13);
+      const slashDmg = baseDmg + (level - 1) * 0.8;
+      const windDmg = (baseDmg + 3.2) * 1.15;
+      const mutations = (buildState && Array.isArray(buildState.mutations))
+        ? buildState.mutations
+        : buildMutations;
+      const hasCrosscut = mutations.includes("mut_crosscut");
+      const crosscutDmg = Number((slashDmg * 0.60).toFixed(2));
+      const crosscutReach = level === 5 ? 220 : Math.round(reach * 0.90);
+      const duos = (buildState && Array.isArray(buildState.duos))
+        ? buildState.duos
+        : (buildDuos || []);
+      const hasDuoInkfire = duos.includes("duo_inkfire");
+      const critLvl = typeof options.critLvl === "number"
+        ? options.critLvl
+        : (buildState?.passives?.crit ?? b.crit ?? 0);
+      const critChance = Math.min(0.5, 0.2 + critLvl * 0.15);
+      return {
+        skillId: "katana",
+        level,
+        isAwakened: level === 5,
+        reach,
+        swingReach,
+        arc: 1.22,
+        cooldown,
+        slashDmg,
+        windDmg,
+        maxTravel: 720,
+        pierceLimit: 6,
+        pierceScaleAfterThree: 0.75,
+        source: hasCrosscut ? "mutation" : (hasDuoInkfire ? "duo" : "base"),
+        derivationDepth: 0,
+        hasCrosscut,
+        crosscutDelay: 0.16,
+        crosscutDmg,
+        crosscutReach,
+        crosscutArc: 1.15,
+        crosscutAngleOffset: Math.PI * 0.42,
+        hasDuoInkfire,
+        duoInkfire: hasDuoInkfire ? { delay: 0.12, radius: 56, budgetRate: 0.20, maxTargets: 3 } : null,
+        critLvl,
+        critChance,
+        critMult: 1.8
+      };
+    }
+    if (skillId === "needle") {
+      const isAwakened = level === 5;
+      const needleFloor = isAwakened ? 0.65 : 0.45;
+      const cooldown = Math.max(needleFloor, 1.25 - level * 0.16 - baseRate * 0.1);
+      const rawCount = window.EVOLUTIONS?.needleCount ? window.EVOLUTIONS.needleCount(level) : [3, 5, 7, 8, 8][Math.max(0, Math.min(4, level - 1))];
+      const speed = 640;
+      const rawSpread = isAwakened ? 1.35 : (level === 4 ? 0.65 : 0.45);
+      const rawLife = isAwakened ? 0.95 : 0.65;
+      const life = Number((rawLife * reachMult).toFixed(4));
+      const range = Math.round(440 * reachMult);
+      const rawBaseDamage = isAwakened ? 4.9 : (1.4 + level * 0.7);
+
+      const mutations = (buildState && Array.isArray(buildState.mutations))
+        ? buildState.mutations
+        : (buildMutations || []);
+      const hasFan = mutations.includes("mut_fan");
+      const hasSeek = mutations.includes("mut_seek");
+      const hasFrost = mutations.includes("mut_frost");
+      const hasPierce = mutations.includes("mut_pierce");
+      const hasReturn = mutations.includes("mut_return");
+
+      const count = hasFan ? rawCount + 3 : rawCount;
+      const spread = hasFan ? rawSpread + 0.35 : rawSpread;
+      const perShotScale = hasFan ? 0.72 : 1.0;
+      const baseDamage = Number((rawBaseDamage * perShotScale).toFixed(4));
+      const damage = baseDamage * baseDmg;
+
+      const tracking = isAwakened || hasSeek;
+      const turnRate = tracking ? (isAwakened ? 4.8 : 4.2) : 0;
+      const seekRange = Math.round(480 * reachMult);
+      const frost = isAwakened || hasFrost;
+
+      const pierceBonusScale = hasPierce ? 0.15 : 0;
+      const maxPierceBonusHits = hasPierce ? 2 : 0;
+      const pierceBonusMax = hasPierce ? 0.30 : 0;
+
+      const returnDistance = hasReturn ? Math.min(220, Number((speed * life * 0.40).toFixed(2))) : 0;
+
+      const spec = {
+        skillId: "needle",
+        level,
+        isAwakened,
+        source: mutations.length > 0 ? "mutation" : "base",
+        count,
+        speed,
+        spread,
+        life,
+        range,
+        cooldown,
+        baseDamage,
+        damage,
+        tracking,
+        frost,
+        hasPierce,
+        pierceBonusScale,
+        maxPierceBonusHits,
+        pierceBonusMax,
+        hasReturn,
+        returnDistance,
+        derivation: "none"
+      };
+
+      if (hasFan) {
+        spec.fan = true;
+        spec.perShotScale = perShotScale;
+        spec.damageBudget = {
+          baseNominal: rawCount * rawBaseDamage * baseDmg,
+          totalNominal: count * damage,
+          perShotScale
+        };
+      }
+      if (hasSeek) {
+        spec.seek = true;
+        spec.turnRate = turnRate;
+        spec.seekRange = seekRange;
+      }
+      if (hasFrost) {
+        spec.frostThreshold = 1;
+        spec.bossFrostThreshold = 3;
+      }
+      if (hasPierce) {
+        spec.pierce = true;
+        spec.pierceBonusScale = pierceBonusScale;
+        spec.maxPierceBonusHits = maxPierceBonusHits;
+        spec.pierceBonusMax = pierceBonusMax;
+      }
+      if (hasReturn) {
+        spec.return = true;
+        spec.returnDistance = returnDistance;
+      }
+      if (mutations.length > 0) {
+        spec.mutations = [...mutations];
+      }
+      return spec;
+    }
+    if (skillId === "barrier") {
+      const isAwakened = level === 5;
+      const cooldown = isAwakened
+        ? 3.2
+        : Math.max(1.2, 3.2 - level * 0.42 - baseRate * 0.2);
+      const baseRadius = isAwakened
+        ? 220
+        : Math.round((140 + level * 28) * reachMult);
+      const baseDamage = isAwakened
+        ? (2.0 + level * 1.1) * baseDmg * 0.5
+        : (baseDmg + (level - 1) * 0.8) * 0.4;
+      const mutations = (buildState && Array.isArray(buildState.mutations))
+        ? buildState.mutations
+        : buildMutations;
+      const hasPulse = mutations.includes("mut_pulse");
+      const pulseCount = hasPulse ? 2 : 1;
+      const pulseDelay = 0.18;
+      const pulseScale = hasPulse ? 0.50 : 1.0;
+      const radius = hasPulse ? Math.round(baseRadius * 0.85) : baseRadius;
+      const damage = Number((baseDamage * pulseScale).toFixed(4));
+      const fullKnockback = level >= 4 ? 50 + level * 10 : 0;
+      const knockback = hasPulse ? Math.round(fullKnockback * 0.50) : fullKnockback;
+      const critLvl = typeof options.critLvl === "number"
+        ? options.critLvl
+        : (buildState?.passives?.crit ?? b.crit ?? 0);
+      const critChance = Math.min(0.5, 0.15 + critLvl * 0.10);
+      const sanctuary = isAwakened ? { duration: 1.8, radius: 220 } : null;
+
+      return {
+        skillId: "barrier",
+        level,
+        isAwakened,
+        source: hasPulse ? "mutation" : "base",
+        derivationDepth: 0,
+        cooldown,
+        baseRadius,
+        radius,
+        baseDamage,
+        damage,
+        hasPulse,
+        pulseCount,
+        pulseDelay,
+        pulseScale,
+        pulseRadius: radius,
+        knockback,
+        fullKnockback,
+        critLvl,
+        critChance,
+        critMult: 1.8,
+        sanctuary
+      };
+    }
+    if (skillId === "thunder") {
+      const isAwakened = level === 5;
+      const cooldown = isAwakened
+        ? 2.4
+        : level === 4
+          ? 2.0
+          : Math.max(2.0, Number((2.6 - level * 0.35).toFixed(2)));
+      const mult = level === 1 ? 2.0 : level === 2 ? 3.0 : level === 3 ? 4.5 : level === 4 ? 6.0 : 8.0;
+      const baseDmg = getEffectiveDmg(buildState);
+      const reachMult = getEffectiveReachMultiplier(buildState);
+      const rawRadius = level >= 4 ? 450 : (110 + Math.min(level, 3) * 80);
+      const radius = Math.round(rawRadius * reachMult);
+      const targetCount = level === 4 ? 3 : (level === 5 ? 3 : level);
+      const damage = Number((mult * baseDmg).toFixed(4));
+      const cloudRadius = 90;
+
+      const mutations = (buildState && Array.isArray(buildState.mutations))
+        ? buildState.mutations
+        : buildMutations;
+      const hasBranch = mutations.includes("mut_branch");
+      const branchCount = hasBranch ? 1 : 0;
+      const branchScale = 0.25;
+      const branchDamage = Number((damage * branchScale).toFixed(4));
+      const branchRadius = Math.round(180 * reachMult);
+
+      const duos = (buildState && Array.isArray(buildState.duos))
+        ? buildState.duos
+        : buildDuos;
+      const hasDuoThundercircle = duos.includes("duo_thundercircle");
+
+      const critLvl = typeof options.critLvl === "number"
+        ? options.critLvl
+        : (buildState?.passives?.crit ?? b.crit ?? 0);
+      const critChance = Math.min(0.5, 0.2 + critLvl * 0.15);
+
+      return {
+        skillId: "thunder",
+        level,
+        isAwakened,
+        source: hasBranch ? "mutation" : (hasDuoThundercircle ? "duo" : "base"),
+        derivationDepth: 0,
+        cooldown,
+        mult,
+        baseDamage: damage,
+        damage,
+        radius,
+        targetCount,
+        hasBranch,
+        branchCount,
+        branchScale,
+        branchDamage,
+        branchRadius,
+        cloudRadius,
+        hasDuoThundercircle,
+        duoThundercircle: hasDuoThundercircle ? { delay: 0.12, radius: 64, budgetRate: 0.20, maxTargets: 3 } : null,
+        critLvl,
+        critChance,
+        critMult: 1.8
+      };
+    }
+    if (skillId === "fire") {
+      const isAwakened = level === 5;
+      const count = window.EVOLUTIONS?.fireCount ? window.EVOLUTIONS.fireCount(level) : [1, 2, 3, 3, 3][Math.max(0, Math.min(4, level - 1))];
+      const mutations = (buildState && Array.isArray(buildState.mutations))
+        ? buildState.mutations
+        : buildMutations;
+      const hasOrbit = mutations.includes("mut_orbit");
+      const rx = hasOrbit ? 126 : 98;
+      const ry = hasOrbit ? 78 : 98;
+      const angularSpeed = 2.8;
+      const hitInterval = 0.42;
+      const contactDamage = Number(((1.2 + level * 0.6) * baseDmg).toFixed(4));
+      const attackCount = window.EVOLUTIONS?.fireAttackCount ? window.EVOLUTIONS.fireAttackCount(level) : [0, 0, 0, 1, 0][Math.max(0, Math.min(4, level - 1))];
+      const spiritDamage = Number(((2.1 + (level || 1) * 0.9) * baseDmg).toFixed(4));
+      const spiritCooldown = window.EVOLUTIONS?.fireAttackCooldown ? window.EVOLUTIONS.fireAttackCooldown(level) : [2.5, 2.2, 1.9, 1.55, 1.05][Math.max(0, Math.min(4, level - 1))];
+      const cooldown = isAwakened ? 7.2 : spiritCooldown;
+      const dragonDirectDmg = Number((12 * baseDmg).toFixed(4));
+      const dragonSplashDmg = Number((4 * baseDmg).toFixed(4));
+      const dragonScorchDmg = Number((1.8 * baseDmg).toFixed(4));
+      const scorchDuration = 5;
+      const scorchRadius = 140;
+
+      const duos = (buildState && Array.isArray(buildState.duos))
+        ? buildState.duos
+        : (buildDuos || []);
+      const hasDuoInkfire = duos.includes("duo_inkfire");
+      const hasDuoCinderseal = duos.includes("duo_cinderseal");
+
+      return {
+        skillId: "fire",
+        level,
+        isAwakened,
+        source: hasOrbit ? "mutation" : ((hasDuoInkfire || hasDuoCinderseal) ? "duo" : "base"),
+        derivationDepth: 0,
+        count,
+        hasOrbit,
+        hasDuoInkfire,
+        hasDuoCinderseal,
+        rx,
+        ry,
+        angularSpeed,
+        hitInterval,
+        contactDamage,
+        attackCount,
+        spiritDamage,
+        spiritCooldown,
+        cooldown,
+        dragonDirectDmg,
+        dragonSplashDmg,
+        dragonScorchDmg,
+        scorchDuration,
+        scorchRadius
+      };
+    }
+    if (skillId === "boom") {
+      const isAwakened = level === 5;
+      const baseCount = window.EVOLUTIONS?.boomCount ? window.EVOLUTIONS.boomCount(level) : [1, 2, 3, 4, 2][Math.max(0, Math.min(4, level - 1))];
+      const cooldown = isAwakened ? 1.6 : Number((2.0 - level * 0.24).toFixed(2));
+      const speed = 440;
+      const life = 1.4;
+      const fuse = 1.5;
+      const spread = level >= 4 ? 0.28 : 0.32;
+      const baseRadius = [78, 92, 108, 122, 135][Math.max(0, Math.min(4, level - 1))];
+      const radius = Math.round(baseRadius * reachMult);
+      const rawDamage = 1.5 + level * 0.7;
+      const baseDamage = Number((rawDamage * baseDmg).toFixed(4));
+      const splashScale = 0.20;
+      const baseSplashDamage = Number((baseDamage * splashScale).toFixed(4));
+      const knockback = 72;
+
+      const mutations = (buildState && Array.isArray(buildState.mutations))
+        ? buildState.mutations
+        : (buildMutations || []);
+      const hasFan = mutations.includes("mut_fan");
+      const hasSplitblast = mutations.includes("mut_splitblast");
+      const hasSeek = mutations.includes("mut_seek");
+      const hasFrost = mutations.includes("mut_frost");
+      const tracking = hasSeek;
+      const turnRate = hasSeek ? 4.2 : 0;
+      const seekRange = Math.round(480 * reachMult);
+      const frost = hasFrost;
+      const frostThreshold = 1;
+      const bossFrostThreshold = 3;
+
+      const count = hasFan ? Math.min(6, baseCount + 2) : baseCount;
+      const damage = hasFan ? ((baseDamage * baseCount) / count) : baseDamage;
+      const splashDamage = hasFan ? ((baseSplashDamage * baseCount) / count) : baseSplashDamage;
+
+      const splitblastDelay = 0.18;
+      const splitblastRadiusScale = 0.55;
+      const splitblastRadius = hasSplitblast ? Math.round(radius * splitblastRadiusScale) : 0;
+      const splitblastDirectScale = 0.25;
+      const splitblastSplashScale = 0.25;
+      const splitblastDirectDamage = hasSplitblast
+        ? (hasFan ? (damage * splitblastDirectScale) : Number((damage * splitblastDirectScale).toFixed(4)))
+        : 0;
+      const splitblastSplashDamage = hasSplitblast
+        ? (hasFan ? (splashDamage * splitblastSplashScale) : Number((splashDamage * splitblastSplashScale).toFixed(4)))
+        : 0;
+
+      const duos = (buildState && Array.isArray(buildState.duos))
+        ? buildState.duos
+        : (buildDuos || []);
+      const hasDuoFrostseal = duos.includes("duo_frostseal");
+      const hasDuoCinderseal = duos.includes("duo_cinderseal");
+
+      return {
+        skillId: "boom",
+        level,
+        isAwakened,
+        source: (hasFan || hasSplitblast || hasSeek || hasFrost) ? "mutation" : ((hasDuoFrostseal || hasDuoCinderseal) ? "duo" : "base"),
+        derivationDepth: 0,
+        baseCount,
+        count,
+        cooldown,
+        speed,
+        life,
+        fuse,
+        spread,
+        baseRadius,
+        radius,
+        baseDamage: rawDamage,
+        damage,
+        splashScale,
+        splashDamage,
+        knockback,
+        hasFan,
+        fan: hasFan,
+        hasSplitblast,
+        splitblastDelay,
+        splitblastRadiusScale,
+        splitblastRadius,
+        splitblastDirectScale,
+        splitblastSplashScale,
+        splitblastDirectDamage,
+        splitblastSplashDamage,
+        hasSeek,
+        seek: hasSeek,
+        tracking,
+        turnRate,
+        seekRange,
+        hasFrost,
+        frost,
+        frostThreshold,
+        bossFrostThreshold,
+        hasDuoFrostseal,
+        duoFrostseal: hasDuoFrostseal ? { slowDuration: 0.35, slowMult: 0.65, bossSlowDuration: 0.15, bossSlowMult: 0.90, immuneDuration: 2.0 } : null,
+        hasDuoCinderseal,
+        duoCinderseal: hasDuoCinderseal ? { delay: 0.3, radius: 64, life: 0.8, budgetRate: 0.15, maxTargets: 3 } : null,
+        mutations: [...mutations]
+      };
+    }
+    return {
+      skillId,
+      level,
+      isAwakened: level === 5,
+      source: "base"
+    };
+  }
+
   const WI = {
     katana: { id: "katana", jp: "かたな", zh: "妖刀斬", type: "active", category: "方向斬擊", desc: "揮出凌厲新月刀芒，斬裂前方扇形妖怪" },
     barrier: { id: "barrier", jp: "じょうか", zh: "淨化靈陣", type: "active", category: "全方結界", desc: "展開 360 度低傷害除魔陣，Lv4 起可震退周身妖怪" },
@@ -463,7 +1290,7 @@
     needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階弧線射出","覺醒・九尾極寒靈暴：八發追蹤冰針，單層殉爆最多再命中 3 隻，不連鎖"]
   };
 
-  let proj = [], needles = [], winds = [], ghosts = [], dragonShots = [], dragonScorches = [], sacredSanctuary = null, surgeT = SURGE_FIRST, fAng = 0, fireEmitT = 0, fireSfxT = 0, fireAttackT = 0;
+  let proj = [], needles = [], winds = [], ghosts = [], dragonShots = [], dragonScorches = [], crosscuts = [], barrierPulses = [], sacredSanctuary = null, splitblasts = [], duoShockwaves = [], inkfireMarks = [], surgeT = SURGE_FIRST, fAng = 0, fireEmitT = 0, fireSfxT = 0, fireAttackT = 0;
   let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1;
   const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0, fire: 0 };
 
@@ -678,7 +1505,11 @@
     Object.assign(P, { x: START.x, y: START.y, inv: 1.2, faceAng: 0, faceX: 1 });
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0, dmgUp: 0, heals: 0 });
     Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 });
-    proj = []; needles = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; sacredSanctuary = null; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1;
+    buildRevision++;
+    buildMutations = [];
+    buildCharms = [];
+    buildDuos = [];
+    proj = []; needles = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; splitblasts = []; duoShockwaves = []; inkfireMarks = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1;
     fAng = 0; fireEmitT = 0; fireSfxT = 0; fireAttackT = 0;
     wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0; wT.katana = 0.3;
     elapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
@@ -711,7 +1542,8 @@
   const xpNeed = () => Math.round(CFG.xpNeed(level) * XP_NEED_SCALE);
   const MAX_ACTIVE_WEAPONS = 4;
 
-  function offerUp() {
+  function getEligibleChoices() {
+    const scopeRevision = buildRevision;
     const owned = Object.keys(WI).filter(k => (WL[k] || 0) > 0);
     const canLearnNew = owned.length < MAX_ACTIVE_WEAPONS;
 
@@ -724,60 +1556,352 @@
     const awakenKeys = Object.keys(WI).filter(k => WL[k] === 4 && seals > 0);
 
     const weaponCard = (k, nextLvl) => {
+      let consumed = false;
       const isNew = WL[k] === 0;
       const descList = WEAPON_UPGRADES[k] || [];
       const descText = descList[nextLvl - 1] || WI[k].desc;
+      const choiceId = `weapon:${k}:${nextLvl}`;
+
+      const checkWeaponEligibility = () => {
+        if (consumed || scopeRevision !== buildRevision) return false;
+        if (nextLvl === 5) return seals > 0 && WL[k] === 4;
+        if (WL[k] === 0) return Object.keys(WI).filter(key => (WL[key] || 0) > 0).length < MAX_ACTIVE_WEAPONS;
+        return (WL[k] || 0) + 1 === nextLvl && nextLvl <= 5;
+      };
+
+      const applyWeaponEffect = () => {
+        if (!checkWeaponEligibility()) return false;
+        consumed = true;
+        if (nextLvl === 5) seals--;
+        WL[k] = nextLvl;
+        window.useSkillArt?.(k, WL[k]);
+        if (k === "katana") { wT.katana = 0; atkT = 0; }
+        if (k === "boom") wT.boom = 0;
+        if (k === "barrier") wT.barrier = 0;
+        if (k === "needle") wT.needle = 0;
+        if (k === "fire" || k === "thunder") wT[k] = 0;
+        if (k === "fire" && WL[k] === 5) AUDIO.preloadDragon?.();
+        return true;
+      };
+
       return {
         id: k,
+        choiceId,
         type: "weapon",
         n: WI[k].zh,
         s: WI[k].jp,
         cat: `【 ${WI[k].category} 】`,
-        levelText: isNew ? "★ 新解鎖" : nextLvl===5 ? "Lv5 覺醒" : `◆ 等級 ${WL[k]} ➔ ${nextLvl}`,
+        levelText: isNew ? "★ 新解鎖" : nextLvl === 5 ? "Lv5 覺醒" : `◆ 等級 ${WL[k]} ➔ ${nextLvl}`,
         rarity: isNew ? "new" : nextLvl >= 5 ? "max" : "up",
         lv: nextLvl,
         d: nextLvl === 5 ? `${descText}（覺醒・耗 1 印）` : descText,
-        f: () => {
-          if (nextLvl === 5 && (seals <= 0 || WL[k] !== 4)) return;
-          if (nextLvl === 5) seals--;
-          WL[k] = nextLvl;
-          window.useSkillArt?.(k, WL[k]);
-          if (k === "katana") { wT.katana = 0; atkT = 0; }
-          if (k === "boom") wT.boom = 0;
-          if (k === "barrier") wT.barrier = 0;
-          if (k === "needle") wT.needle = 0;
-          if (k === "fire" || k === "thunder") wT[k] = 0;
-          if (k === "fire" && WL[k] === 5) AUDIO.preloadDragon?.();
-        }
+        revision: scopeRevision,
+        ok: checkWeaponEligibility,
+        f: applyWeaponEffect
       };
     };
     const wc = shuffle(eligibleWeaponKeys).map(k => weaponCard(k, WL[k] + 1));
     const awakenCard = awakenKeys.length ? weaponCard(shuffle(awakenKeys)[0], 5) : null;
 
-    const pc = shuffle(UP.filter(u => !u.ok || u.ok())).map(u => ({
-      id: u.id,
-      type: "passive",
-      n: u.n,
-      s: u.s,
-      cat: `【 ${u.cat} 】`,
-      levelText: "◆ 體質修行",
-      rarity: "passive",
-      d: u.d,
-      f: u.f
-    }));
+    const pc = shuffle(UP.filter(u => !u.ok || u.ok())).map(u => {
+      let consumed = false;
+      const choiceId = `passive:${u.id}`;
+      const checkPassiveEligibility = () => {
+        if (consumed || scopeRevision !== buildRevision) return false;
+        return !u.ok || u.ok();
+      };
+      const applyPassiveEffect = () => {
+        if (!checkPassiveEligibility()) return false;
+        consumed = true;
+        u.f();
+        return true;
+      };
+      return {
+        id: u.id,
+        choiceId,
+        type: "passive",
+        n: u.n,
+        s: u.s,
+        cat: `【 ${u.cat} 】`,
+        levelText: "◆ 體質修行",
+        rarity: "passive",
+        d: u.d,
+        revision: scopeRevision,
+        ok: checkPassiveEligibility,
+        f: applyPassiveEffect
+      };
+    });
 
+    // 變異選項：每技能最多 3 個變異；已持有至少一個適用武器，且所有已持有適用技能均未滿 3 個
+    const eligibleMutationKeys = Object.keys(MUTATION_CONFIG).filter(mutId => {
+      const cfg = MUTATION_CONFIG[mutId];
+      if (!cfg || !cfg.inPool) return false;
+      if (buildMutations.includes(mutId)) return false;
+      const applicable = Array.isArray(cfg.skillIds) ? cfg.skillIds : [cfg.skillId];
+      const owned = applicable.filter(s => (WL[s] || 0) > 0);
+      if (owned.length === 0) return false;
+      return owned.every(s => getSkillMutations(s).length < 3);
+    });
+
+    const mutationCard = (mutId) => {
+      let consumed = false;
+      const meta = MUTATION_CONFIG[mutId];
+      const skillId = meta.skillId;
+      const choiceId = `mutation:${skillId}:${mutId}`;
+      const applicable = Array.isArray(meta.skillIds) ? meta.skillIds : [skillId];
+      const owned = applicable.filter(s => (WL[s] || 0) > 0);
+
+      let cardName = meta.n;
+      let cardCat = meta.cat;
+      let cardLevelText = meta.levelText;
+      let cardReq = meta.requirementText;
+      let cardDesc = meta.d;
+
+      if (mutId === "mut_fan") {
+        const hasNeedle = owned.includes("needle");
+        const hasBoom = owned.includes("boom");
+        if (hasNeedle && !hasBoom) {
+          cardName = "靈針・千本散射";
+          cardCat = "【 靈針變異 】";
+          cardLevelText = "◆ 靈針變異";
+          cardReq = "持有天狐靈針（取得陰陽符後亦適用）";
+          cardDesc = "朝向多角度散射，發數增加且散射角擴大；單發傷害分配受限（每次施放總傷害預算上限控管）";
+        } else if (!hasNeedle && hasBoom) {
+          cardName = "陰陽符・千本散射";
+          cardCat = "【 陰陽符變異 】";
+          cardLevelText = "◆ 陰陽符變異";
+          cardReq = "持有陰陽符（取得天狐靈針後亦適用）";
+          cardDesc = "朝向多角度散射，陰陽符發數增加（+2、最多 6 發）；每符傷害按發數比例分攤，保持每次施放總傷害預算上限";
+        } else if (hasNeedle && hasBoom) {
+          cardName = "千本散射";
+          cardCat = "【 共享變異 】";
+          cardLevelText = "◆ 共享變異";
+          cardReq = "持有天狐靈針或陰陽符（同時生效，後續取得亦適用）";
+          cardDesc = "朝向多角度散射，靈針與陰陽符發數增加；單發傷害按發數比例分攤，共享每次施放總傷害預算控管";
+        }
+      } else if (mutId === "mut_seek") {
+        const hasNeedle = owned.includes("needle");
+        const hasBoom = owned.includes("boom");
+        if (hasNeedle && !hasBoom) {
+          cardName = "靈針・引魂追跡";
+          cardCat = "【 靈針變異 】";
+          cardLevelText = "◆ 靈針變異";
+          cardReq = "持有天狐靈針（取得陰陽符後亦適用）";
+          cardDesc = "靈針具備轉向角速率平滑追蹤妖怪，失去目標後沿當前方向直行（非瞬移）";
+        } else if (!hasNeedle && hasBoom) {
+          cardName = "陰陽符・引魂追跡";
+          cardCat = "【 陰陽符變異 】";
+          cardLevelText = "◆ 陰陽符變異";
+          cardReq = "持有陰陽符（取得天狐靈針後亦適用）";
+          cardDesc = "未黏附陰陽符具備轉向角速率平滑追蹤妖怪，失去目標後沿當前方向直行（非瞬移）";
+        } else if (hasNeedle && hasBoom) {
+          cardName = "引魂追跡";
+          cardCat = "【 共享變異 】";
+          cardLevelText = "◆ 共享變異";
+          cardReq = "持有天狐靈針或陰陽符（同時生效，後續取得亦適用）";
+          cardDesc = "靈針與未黏附陰陽符具備轉向角速率平滑追蹤妖怪，失去目標後沿當前方向直行（非瞬移）";
+        }
+      } else if (mutId === "mut_frost") {
+        const hasNeedle = owned.includes("needle");
+        const hasBoom = owned.includes("boom");
+        if (hasNeedle && !hasBoom) {
+          cardName = "靈針・冰魄封靈";
+          cardCat = "【 靈針變異 】";
+          cardLevelText = "◆ 靈針變異";
+          cardReq = "持有天狐靈針（取得陰陽符後亦適用）";
+          cardDesc = "命中累積寒冷並短暫冰封；Boss 具備高寒冷門檻與 2.0 秒抗性免疫期（不被永久失能）";
+        } else if (!hasNeedle && hasBoom) {
+          cardName = "陰陽符・冰魄封靈";
+          cardCat = "【 陰陽符變異 】";
+          cardLevelText = "◆ 陰陽符變異";
+          cardReq = "持有陰陽符（取得天狐靈針後亦適用）";
+          cardDesc = "主爆命中累積寒冷並短暫冰封（次爆不累寒）；Boss 具備高寒冷門檻與 2.0 秒抗性免疫期（不被永久失能）";
+        } else if (hasNeedle && hasBoom) {
+          cardName = "冰魄封靈";
+          cardCat = "【 共享變異 】";
+          cardLevelText = "◆ 共享變異";
+          cardReq = "持有天狐靈針或陰陽符（同時生效，後續取得亦適用）";
+          cardDesc = "靈針命中與陰陽符主爆累積寒冷並短暫冰封；Boss 具備高寒冷門檻與 2.0 秒抗性免疫期（不被永久失能）";
+        }
+      }
+
+      const checkMutationEligibility = () => {
+        if (consumed || scopeRevision !== buildRevision) return false;
+        if (!meta || !meta.inPool) return false;
+        if (buildMutations.includes(mutId)) return false;
+        const currentOwned = applicable.filter(s => (WL[s] || 0) > 0);
+        if (currentOwned.length === 0) return false;
+        return currentOwned.every(s => getSkillMutations(s).length < 3);
+      };
+
+      const applyMutationEffect = () => {
+        if (!checkMutationEligibility()) return false;
+        consumed = true;
+        buildMutations.push(mutId);
+        return true;
+      };
+
+      return {
+        id: mutId,
+        choiceId,
+        type: "mutation",
+        skillId: owned.length === 1 ? owned[0] : skillId,
+        skillIds: owned.length > 0 ? [...owned] : [...applicable],
+        n: cardName,
+        s: meta.s,
+        cat: cardCat,
+        levelText: cardLevelText,
+        rarity: "mutation",
+        d: cardDesc,
+        requirementText: cardReq,
+        limitText: meta.limitText,
+        revision: scopeRevision,
+        ok: checkMutationEligibility,
+        f: applyMutationEffect
+      };
+    };
+
+    const mc = shuffle(eligibleMutationKeys).map(id => mutationCard(id));
+
+    // 御守選項：等級達 2 以上、御守未滿 3 個
+    const eligibleCharmKeys = (level >= 2 && buildCharms.length < 3)
+      ? Object.keys(CHARM_CONFIG).filter(id => CHARM_CONFIG[id].inPool && !buildCharms.includes(id))
+      : [];
+
+    const charmCard = (charmId) => {
+      let consumed = false;
+      const meta = CHARM_CONFIG[charmId];
+      const choiceId = `charm:${charmId}`;
+
+      const checkCharmEligibility = () => {
+        if (consumed || scopeRevision !== buildRevision) return false;
+        if (!meta || !meta.inPool) return false;
+        if (buildCharms.includes(charmId)) return false;
+        return buildCharms.length < 3;
+      };
+
+      const applyCharmEffect = () => {
+        if (!checkCharmEligibility()) return false;
+        consumed = true;
+        buildCharms.push(charmId);
+        return true;
+      };
+
+      return {
+        id: charmId,
+        choiceId,
+        type: "charm",
+        n: meta.n,
+        s: meta.s,
+        cat: meta.cat,
+        levelText: meta.levelText,
+        rarity: "charm",
+        d: meta.d,
+        requirementText: meta.requirementText,
+        limitText: meta.limitText,
+        revision: scopeRevision,
+        ok: checkCharmEligibility,
+        f: applyCharmEffect
+      };
+    };
+
+    const cc = shuffle(eligibleCharmKeys).map(id => charmCard(id));
+
+    // 共鳴選項：兩技能均持有且至少 Lv3，每組限選一次，其他 Duo 未啟用
+    const eligibleDuoKeys = Object.keys(DUO_CONFIG).filter(duoId => {
+      const cfg = DUO_CONFIG[duoId];
+      if (!cfg || !cfg.inPool) return false;
+      if (buildDuos.includes(duoId)) return false;
+      return cfg.skillIds.every(s => (WL[s] || 0) >= 3);
+    });
+
+    const duoCard = (duoId) => {
+      let consumed = false;
+      const meta = DUO_CONFIG[duoId];
+      const choiceId = `duo:${duoId}`;
+
+      const checkDuoEligibility = () => {
+        if (consumed || scopeRevision !== buildRevision) return false;
+        if (!meta || !meta.inPool) return false;
+        if (buildDuos.includes(duoId)) return false;
+        return meta.skillIds.every(s => (WL[s] || 0) >= 3);
+      };
+
+      const applyDuoEffect = () => {
+        if (!checkDuoEligibility()) return false;
+        consumed = true;
+        buildDuos.push(duoId);
+        return true;
+      };
+
+      return {
+        id: duoId,
+        choiceId,
+        type: "duo",
+        skillIds: [...meta.skillIds],
+        n: meta.n,
+        s: meta.s,
+        cat: meta.cat,
+        levelText: meta.levelText,
+        rarity: "duo",
+        d: meta.d,
+        beforeText: meta.beforeText,
+        afterText: meta.afterText,
+        requirementText: meta.requirementText,
+        limitText: meta.limitText,
+        revision: scopeRevision,
+        ok: checkDuoEligibility,
+        f: applyDuoEffect
+      };
+    };
+
+    const dc = shuffle(eligibleDuoKeys).map(id => duoCard(id));
+
+    let result = [];
     if (awakenCard) {
-      const rest = shuffle([...wc.slice(0, 2), ...pc.slice(0, 2)]).slice(0, 2);
-      choices = shuffle([awakenCard, ...rest]);
-      if (!choices.some(card => card.lv === 5)) choices[choices.length - 1] = awakenCard;
-      choices = choices.slice(0, 3);
-    } else if (wc.length > 0 && pc.length > 0) {
-      choices = shuffle([...wc.slice(0, 2), ...pc.slice(0, 2)]).slice(0, 3);
-    } else if (wc.length > 0) {
-      choices = wc.slice(0, 3);
+      const restPool = shuffle([...wc.slice(0, 2), ...mc.slice(0, 2), ...cc.slice(0, 2), ...dc.slice(0, 2), ...pc.slice(0, 2)]);
+      const rest = restPool.slice(0, 2);
+      if (mc.length > 0 && !rest.some(card => card.type === "mutation") && rest.length > 0) {
+        rest[rest.length - 1] = mc[0];
+      }
+      if (cc.length > 0 && !rest.some(card => card.type === "charm")) {
+        const nonMutIdx = rest.findIndex(c => c.type !== "mutation");
+        if (nonMutIdx >= 0) {
+          rest[nonMutIdx] = cc[0];
+        } else if (rest.length < 2) {
+          rest.push(cc[0]);
+        }
+      }
+      result = shuffle([awakenCard, ...rest]);
+      if (!result.some(card => card.lv === 5)) result[result.length - 1] = awakenCard;
+      result = result.slice(0, 3);
     } else {
-      choices = pc.slice(0, 3);
+      const pool = [];
+      if (wc.length > 0) pool.push(...wc.slice(0, 2));
+      if (mc.length > 0) pool.push(...mc.slice(0, 2));
+      if (cc.length > 0) pool.push(...cc.slice(0, 2));
+      if (dc.length > 0) pool.push(...dc.slice(0, 2));
+      if (pc.length > 0) pool.push(...pc.slice(0, 2));
+      result = shuffle(pool).slice(0, 3);
+      if (mc.length > 0 && !result.some(card => card.type === "mutation")) {
+        result[result.length - 1] = mc[0];
+      }
+      if (cc.length > 0 && !result.some(card => card.type === "charm")) {
+        const nonMutIdx = result.findIndex(c => c.type !== "mutation");
+        if (nonMutIdx >= 0) {
+          result[nonMutIdx] = cc[0];
+        } else if (result.length < 3) {
+          result.push(cc[0]);
+        }
+      }
     }
+    return result;
+  }
+
+  function offerUp() {
+    if (state !== "play" && state !== "levelup") return;
+    buildRevision++;
+    choices = getEligibleChoices();
 
     for (const choice of choices) if (choice.type === 'weapon') window.prepareSkillArt?.(choice.id, choice.lv);
     if (!choices.length) {
@@ -797,17 +1921,48 @@
     HAPTICS.levelUp();
   }
 
-  function pickUp(i) {
-    if (state !== "levelup" || levelupCooldown > 0 || !choices[i]) return;
+  function applyChoice(choiceId, revision) {
+    if (state !== "levelup") return { ok: false, reason: "not_in_levelup" };
+    if (levelupCooldown > 0) return { ok: false, reason: "cooldown_active" };
+    if (typeof revision !== "number" || revision !== buildRevision) {
+      return { ok: false, reason: "stale_revision" };
+    }
+
+    let idx = -1;
+    if (typeof choiceId === "number") {
+      idx = choiceId >= 0 && choiceId < choices.length ? choiceId : -1;
+    } else if (typeof choiceId === "string") {
+      idx = choices.findIndex(c => c.choiceId === choiceId || c.id === choiceId);
+    }
+    if (idx < 0 || !choices[idx]) return { ok: false, reason: "invalid_choice_id" };
+
+    const choice = choices[idx];
+    if (typeof choice.ok === "function" && !choice.ok()) {
+      return { ok: false, reason: "ineligible" };
+    }
+
     const req = xpNeed();
-    choices[i].f();
+    const applied = choice.f();
+    if (applied === false) {
+      return { ok: false, reason: "ineligible" };
+    }
     xp = Math.max(0, xp - req);
     level++;
+    buildRevision++;
     state = "play";
     P.inv = 0.6;
-    say(`獲得：${choices[i].n}`, P.x, P.y - 45, "#ffe9a0");
-    if(choices[i].lv===5){say(`${choices[i].n}・覺醒！`,P.x,P.y-75,"#b8f2df");AUDIO.fanfare();}
+    say(`獲得：${choice.n}`, P.x, P.y - 45, "#ffe9a0");
+    if (choice.lv === 5) {
+      say(`${choice.n}・覺醒！`, P.x, P.y - 75, "#b8f2df");
+      AUDIO.fanfare();
+    }
     FX.levelUp(P.x, P.y);
+    return { ok: true, revision: buildRevision, level, id: choice.id };
+  }
+
+  function pickUp(i) {
+    if (state !== "levelup" || levelupCooldown > 0 || !choices[i]) return;
+    return applyChoice(i, buildRevision);
   }
 
   function reroll() {
@@ -909,6 +2064,7 @@
   }
 
   function hurtPlayer(amount, label) {
+    if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) return false;
     if (state !== "play" || P.inv > 0) return false;
     if (b.shield > 0) {
       b.shield--;
@@ -920,13 +2076,25 @@
       HAPTICS.shield();
       return false;
     }
-    oil -= amount;
+    const hasGuard = buildCharms.includes("charm_guard");
+    const actualDamage = hasGuard
+      ? Math.min(amount, Math.max(Number.MIN_VALUE, parseFloat((amount * 0.90).toPrecision(12))))
+      : amount;
+    oil -= actualDamage;
     lanternHitT = 0.42;
     P.inv = 1;
     playerHurtPoseT = 0.44; // +0.2 秒視覺時間，無敵與碰撞不變
     RENDERER.triggerShake(10);
     burst(P.x, P.y, "#ff6b81", 18);
-    say(label || `受創・燈油 −${amount}`, P.x, P.y - 36, "#cb6e60");
+    let hurtText = label;
+    if (!hurtText) {
+      hurtText = `受創・燈油 −${actualDamage}`;
+    } else if (/[−-]\s*\d+(?:\.\d+)?/.test(hurtText)) {
+      hurtText = hurtText.replace(/[−-]\s*\d+(?:\.\d+)?/, `−${actualDamage}`);
+    } else {
+      hurtText = `${hurtText}・燈油 −${actualDamage}`;
+    }
+    say(hurtText, P.x, P.y - 36, "#cb6e60");
     AUDIO.hurt();
     HAPTICS.damage();
     if (oil <= 0) {
@@ -960,6 +2128,7 @@
     }
 
     if (e.hp > 0) return;
+    e.freezeT = 0; delete e.shatterVolley; e.frostHits = 0;
 
     // 怪物擊敗
     const isMis = e.type === "mis";
@@ -1060,7 +2229,7 @@
     job = null;
     inter = null;
     enemyBullets = [];
-    winds = []; ghosts = []; proj = [];
+    winds = []; ghosts = []; proj = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; dragonShots = []; dragonScorches = []; splitblasts = []; duoShockwaves = []; inkfireMarks = [];
     AUDIO.fadeOutMusic(700);
     window.dispatchEvent(new Event('gamepause'));
   }
@@ -1090,7 +2259,7 @@
     if (boss) enemies.push(boss);
     victorySeq = { t: 0, bossX: p.x, bossY: p.y, boss, blastT: 0, blasts: 0, bossGone: !boss, ignited: false, fireT: 0 };
     state = "victory";
-    winds=[];ghosts=[];proj=[];
+    winds = []; ghosts = []; proj = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; dragonShots = []; dragonScorches = []; splitblasts = []; duoShockwaves = []; inkfireMarks = [];
     keys.clear(); heldCodes.clear();
     joy = null;
     bossQ = null;
@@ -1435,8 +2604,8 @@
   const BOOM_SPLASH = 0.2;
   const BOOM_KNOCK = 72;
   const BOOM_RADIUS = [78, 92, 108, 122, 135];
-  const boomRadius = rank => BOOM_RADIUS[Math.max(0, Math.min(4, (rank | 0) - 1))];
-  const boomFullDamage = rank => (1.5 + rank * 0.7) * b.dmg;
+  const boomRadius = rank => Math.round(BOOM_RADIUS[Math.max(0, Math.min(4, (rank | 0) - 1))] * getEffectiveReachMultiplier());
+  const boomFullDamage = rank => (1.5 + rank * 0.7) * getEffectiveDmg();
   function boomTargetLive(q) {
     const e = q.target;
     return !!(e && e.hp > 0 && enemies.includes(e));
@@ -1446,43 +2615,167 @@
     q.exploded = true;
     q.done = true;
     const rank = q.level ?? WL.boom;
-    const radius = boomRadius(rank);
-    const full = boomFullDamage(rank);
+    const radius = q.radius ?? boomRadius(rank);
+    const full = q.damage ?? boomFullDamage(rank);
+    const splash = q.splashDamage ?? Number((full * BOOM_SPLASH).toFixed(4));
+    const knock = q.knockback ?? BOOM_KNOCK;
     const primary = q.target;
     const primaryLive = !!(primary && primary.hp > 0 && enemies.includes(primary));
     SKILLFX.play("boom", "hit", rank, { x: q.x, y: q.y, r: radius, target: primaryLive ? primary : null, evolved: rank === 5 });
     if (typeof AUDIO.ofudaBurst === "function") AUDIO.ofudaBurst(rank);
     RENDERER.triggerShake(rank === 5 ? 5 : 3);
     let harmed = false;
+    const castState = q.castState || (q.castState = { frostsealUsed: false, cinderUsed: false });
     if (primaryLive) {
+      const primaryCold = !primary.shield && !primary.vanish && !primary.done && ((primary.frostHits > 0) || (primary.freezeEnds && primary.freezeEnds > elapsed));
+      const primaryBurned = !primary.shield && !primary.vanish && !primary.done && !!(primary.fireBurnEnds && primary.fireBurnEnds > elapsed);
       const before = primary.hp;
       hurt(primary, full);
-      if (primary.hp < before) harmed = true;
+      if (primary.hp < before) {
+        harmed = true;
+        if (q.hasDuoFrostseal && !castState.frostsealUsed && primaryCold && primary.hp > 0 && !primary.vanish && !primary.done) {
+          if (!primary.frostsealImmuneEnds || elapsed >= primary.frostsealImmuneEnds) {
+            castState.frostsealUsed = true;
+            primary.frostsealImmuneEnds = elapsed + 2.0;
+            if (primary.type === "boss") {
+              primary.frostsealSlowEnds = elapsed + 0.15;
+              primary.frostsealSlowMult = 0.90;
+            } else {
+              const freezeActive = primary.freezeEnds && primary.freezeEnds > elapsed;
+              primary.frostsealSlowEnds = (freezeActive ? primary.freezeEnds : elapsed) + 0.35;
+              primary.frostsealSlowMult = 0.65;
+            }
+            SKILLFX.play("boom", "hit", rank, { x: primary.x, y: primary.y, r: 40, frostseal: true });
+          }
+        }
+        if (q.hasDuoCinderseal && !castState.cinderUsed && primaryBurned) {
+          castState.cinderUsed = true;
+          if (dragonScorches.length < 3) {
+            dragonScorches.push({
+              x: primary.x,
+              y: primary.y,
+              life: 0.8,
+              maxLife: 0.8,
+              r: 64,
+              delay: 0.3,
+              birthFrame: true,
+              isCinder: true,
+              damageBudget: Number((full * 0.15).toFixed(4)),
+              ticked: false
+            });
+            SKILLFX.play("fire", "hit", 5, { x: primary.x, y: primary.y, cinder: true });
+          }
+        }
+        if (q.frost && primary.hp > 0) {
+          applyFrost(primary, elapsed, null);
+        }
+      }
     }
     for (const e of enemies) {
       if (e === primary || e.hp <= 0 || dist(e, q) > radius) continue;
+      const eCold = !e.shield && !e.vanish && !e.done && ((e.frostHits > 0) || (e.freezeEnds && e.freezeEnds > elapsed));
+      const eBurned = !e.shield && !e.vanish && !e.done && !!(e.fireBurnEnds && e.fireBurnEnds > elapsed);
       const before = e.hp;
-      hurt(e, full * BOOM_SPLASH);
-      knockback(e, BOOM_KNOCK, q);
-      if (e.hp < before) harmed = true;
+      hurt(e, splash);
+      knockback(e, knock, q);
+      if (e.hp < before) {
+        harmed = true;
+        if (q.hasDuoFrostseal && !castState.frostsealUsed && eCold && e.hp > 0 && !e.vanish && !e.done) {
+          if (!e.frostsealImmuneEnds || elapsed >= e.frostsealImmuneEnds) {
+            castState.frostsealUsed = true;
+            e.frostsealImmuneEnds = elapsed + 2.0;
+            if (e.type === "boss") {
+              e.frostsealSlowEnds = elapsed + 0.15;
+              e.frostsealSlowMult = 0.90;
+            } else {
+              const freezeActive = e.freezeEnds && e.freezeEnds > elapsed;
+              e.frostsealSlowEnds = (freezeActive ? e.freezeEnds : elapsed) + 0.35;
+              e.frostsealSlowMult = 0.65;
+            }
+            SKILLFX.play("boom", "hit", rank, { x: e.x, y: e.y, r: 40, frostseal: true });
+          }
+        }
+        if (q.hasDuoCinderseal && !castState.cinderUsed && eBurned) {
+          castState.cinderUsed = true;
+          if (dragonScorches.length < 3) {
+            dragonScorches.push({
+              x: e.x,
+              y: e.y,
+              life: 0.8,
+              maxLife: 0.8,
+              r: 64,
+              delay: 0.3,
+              birthFrame: true,
+              isCinder: true,
+              damageBudget: Number((full * 0.15).toFixed(4)),
+              ticked: false
+            });
+            SKILLFX.play("fire", "hit", 5, { x: e.x, y: e.y, cinder: true });
+          }
+        }
+        if (q.frost && e.hp > 0) {
+          applyFrost(e, elapsed, null);
+        }
+      }
     }
     if (!harmed) HAPTICS.hit(false);
+
+    if (q.hasSplitblast && splitblasts.length < 32) {
+      splitblasts.push({
+        x: q.x,
+        y: q.y,
+        delay: q.splitblastDelay ?? 0.18,
+        radius: q.splitblastRadius ?? Math.round(radius * 0.55),
+        directDamage: q.splitblastDirectDamage ?? Number((full * 0.25).toFixed(4)),
+        splashDamage: q.splitblastSplashDamage ?? Number((splash * 0.25).toFixed(4)),
+        primaryTarget: primary,
+        level: rank,
+        hits: new Set(),
+        triggered: false
+      });
+    }
   }
 
   function weapons(dt) {
+    // 0. 墨焰斬延遲墨焰痕佇列（上限 16，延遲 0.12 秒，出生幀 dt 不扣，在妖刀攻擊前推進）
+    if (inkfireMarks.length > 0) {
+      for (const im of inkfireMarks) {
+        im.delay -= dt;
+        if (im.delay <= 0) {
+          im.triggered = true;
+          SKILLFX.play("katana", "hit", 1, { x: im.x, y: im.y, inkfire: true });
+          burst(im.x, im.y, "#ff3d00", 8);
+          const hitTargets = enemies
+            .filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done && dist(im, e) <= im.radius)
+            .slice(0, 3);
+          if (hitTargets.length > 0) {
+            const damagePerTarget = im.damageBudget / hitTargets.length;
+            for (const e of hitTargets) {
+              if (e.hp > 0 && !e.shield && !e.vanish && !e.done) {
+                hurt(e, damagePerTarget, false);
+                e.flash = 0.15;
+              }
+            }
+          }
+        }
+      }
+      inkfireMarks = inkfireMarks.filter(im => !im.triggered);
+    }
+
     // 1. 妖刀斬擊 (Katana) - 方向性扇形斬擊 (依玩家面朝方向前方 140 度扇形索敵，不擊中身後)
     wT.katana = (wT.katana ?? atkT) - dt;
     atkT = wT.katana;
     if (WL.katana > 0 && wT.katana <= 0) {
-      const reach = 145 + (WL.katana - 1) * 16;
+      const spec = resolveAttackSpec("katana", WL.katana, getBuildState(), { faceAng: P.faceAng || 0 });
+      const reach = spec.reach;
       const faceAng = P.faceAng || 0;
       let hasEnemyInArc = false;
       for (const e of enemies) {
-        if (e.hp > 0 && dist(P, e) <= (WL.katana===5?560:reach)) {
+        if (e.hp > 0 && dist(P, e) <= (spec.isAwakened ? 560 : reach)) {
           const eang = Math.atan2(e.y - P.y, e.x - P.x);
           let diff = Math.abs(eang - faceAng);
           while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
-          if (diff <= 1.22) {
+          if (diff <= spec.arc) {
             hasEnemyInArc = true;
             break;
           }
@@ -1491,104 +2784,245 @@
       if (!hasEnemyInArc) {
         wT.katana = atkT = 0.1;
       } else {
-        wT.katana = atkT = wMax.katana = Math.max(0.6, 0.72 - b.rate * 0.13);
+        wT.katana = atkT = wMax.katana = spec.cooldown;
         playerAttackPoseT = 0.16;
-        const swingReach = WL.katana === 5 ? 720 : reach * 0.85;
+        const swingReach = spec.swingReach;
         RENDERER.addSlashArc(P.x, P.y, swingReach, faceAng, 2.2, SKILLFX.tier(WL.katana));
         SKILLFX.play("katana", "swing", WL.katana, { x: P.x, y: P.y, ang: faceAng, reach: swingReach });
 
-        // 僅判定面朝方向前方扇形範圍 (角度差 <= 1.22 弧度，約 140 度角)
+        let qualifyingInkfireHit = null;
+        const mainHits = new Set();
+        // 僅判定面朝方向前方扇形範圍 (角度差 <= spec.arc 弧度，約 140 度角)
         for (const e of enemies) {
-          if (e.hp > 0 && WL.katana < 5) {
+          if (e.hp > 0 && !spec.isAwakened) {
             const ed = dist(P, e);
             if (ed <= reach) {
               const eang = Math.atan2(e.y - P.y, e.x - P.x);
               let diff = Math.abs(eang - faceAng);
               while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
-              if (diff <= 1.22) {
-                const crit = rollCrit(0.2, 0.15);
-                hurt(e, (b.dmg + (WL.katana - 1) * 0.8) * crit.mult, crit.isCrit);
+              if (diff <= spec.arc) {
+                mainHits.add(e);
+                const wasBurned = !!(e.fireBurnEnds && e.fireBurnEnds > elapsed);
+                const hpBefore = e.hp;
+                const crit = rollCrit(spec);
+                hurt(e, spec.slashDmg * crit.mult, crit.isCrit);
                 SKILLFX.play("katana", "hit", WL.katana, { x: e.x, y: e.y, ang: faceAng, crit: crit.isCrit });
+                if (spec.hasDuoInkfire && !qualifyingInkfireHit && wasBurned && e.hp < hpBefore && !e.shield && !e.vanish && !e.done) {
+                  qualifyingInkfireHit = { x: e.x, y: e.y, baseDmg: spec.slashDmg };
+                }
               }
             }
           }
         }
-        if (WL.katana===5 && winds.length<8) winds.push({
-          x:P.x,y:P.y,originX:P.x,originY:P.y,vx:Math.cos(faceAng)*1680,vy:Math.sin(faceAng)*1680,
-          ang:faceAng,size:360,life:1.2,hits:new Set(),dmg:(b.dmg+3.2)*1.15,traveled:0,
-          maxTravel:720
+        if (qualifyingInkfireHit && inkfireMarks.length < 16) {
+          const damageBudget = Number((qualifyingInkfireHit.baseDmg * 0.20).toFixed(4));
+          inkfireMarks.push({
+            x: qualifyingInkfireHit.x,
+            y: qualifyingInkfireHit.y,
+            radius: 56,
+            delay: 0.12,
+            damageBudget,
+            triggered: false
+          });
+        }
+        if (spec.isAwakened && winds.length < 8) winds.push({
+          x: P.x, y: P.y, originX: P.x, originY: P.y, vx: Math.cos(faceAng) * 1680, vy: Math.sin(faceAng) * 1680,
+          ang: faceAng, size: 360, life: 1.2, hits: new Set(),
+          dmg: spec.windDmg, traveled: 0, maxTravel: spec.maxTravel,
+          pierceLimit: spec.pierceLimit, pierceScale: spec.pierceScaleAfterThree,
+          attackSnapshot: spec,
+          critLvl: spec.critLvl,
+          critChance: spec.critChance,
+          mainHits,
+          inkfireUsed: false
         });
+        if (spec.hasCrosscut && crosscuts.length < 4) {
+          const crossAng = faceAng + (spec.crosscutAngleOffset || (Math.PI * 0.42));
+          crosscuts.push({
+            x: P.x,
+            y: P.y,
+            faceAng,
+            crossAng,
+            delay: spec.crosscutDelay || 0.16,
+            reach: spec.crosscutReach,
+            arc: spec.crosscutArc || 1.15,
+            dmg: spec.crosscutDmg,
+            level: WL.katana,
+            hits: new Set(),
+            mainHits,
+            derivationDepth: (spec.derivationDepth || 0) + 1,
+            critLvl: spec.critLvl,
+            critChance: spec.critChance,
+            attackSnapshot: { ...spec }
+          });
+        }
         AUDIO.slash(WL.katana);
       }
     }
 
-    for(const wave of winds){
-      if(!EVOLUTIONS.move(wave,dt,null,12))continue;
-      wave.ang=Math.atan2(wave.vy,wave.vx);
-      const stepDist=Math.hypot(wave.vx,wave.vy)*dt;
-      const cap=wave.maxTravel||720;
-      const nextTravel=(wave.traveled||0)+stepDist;
-      if(nextTravel>=cap && stepDist>0){
-        const back=(nextTravel-cap)/stepDist;
-        wave.x-=wave.vx*dt*back;
-        wave.y-=wave.vy*dt*back;
-        wave.traveled=cap;
+    for (const wave of winds) {
+      if (!EVOLUTIONS.move(wave, dt, null, 12)) continue;
+      wave.ang = Math.atan2(wave.vy, wave.vx);
+      const stepDist = Math.hypot(wave.vx, wave.vy) * dt;
+      const cap = wave.maxTravel || 720;
+      const nextTravel = (wave.traveled || 0) + stepDist;
+      if (nextTravel >= cap && stepDist > 0) {
+        const back = (nextTravel - cap) / stepDist;
+        wave.x -= wave.vx * dt * back;
+        wave.y -= wave.vy * dt * back;
+        wave.traveled = cap;
         // 射程結束即消散，不停在原地等剩餘的生命時間。
-        wave.life=0;
-      }else wave.traveled=nextTravel;
+        wave.life = 0;
+      } else wave.traveled = nextTravel;
       for (const eb of enemyBullets) {
         if (eb.life > 0 && !eb.bossHazard && dist(eb, wave) <= 90) {
           eb.life = 0;
           burst(eb.x, eb.y, "#9bf7ff", 6);
         }
       }
-      for(const e of enemies){
-        if(!(e.hp>0) || wave.hits.size>=6 || wave.hits.has(e)) continue;
-        const along=Math.abs((e.x-wave.x)*Math.cos(wave.ang)+(e.y-wave.y)*Math.sin(wave.ang));
-        const side=Math.abs(-(e.x-wave.x)*Math.sin(wave.ang)+(e.y-wave.y)*Math.cos(wave.ang));
-        if(along>=(e.type==='boss'?95:75) || side>=180+(e.type==='boss'?40:22)) continue;
-        const ox=e.x-wave.originX, oy=e.y-wave.originY;
-        if(Math.hypot(ox,oy)>720) continue;
-        let ad=Math.abs(Math.atan2(oy,ox)-wave.ang);
-        while(ad>Math.PI) ad=Math.abs(ad-2*Math.PI);
-        if(ad>1.22) continue;
-        const hitIndex=wave.hits.size;
+      for (const e of enemies) {
+        const pierceCap = wave.pierceLimit || 6;
+        if (!(e.hp > 0) || wave.hits.size >= pierceCap || wave.hits.has(e)) continue;
+        const along = Math.abs((e.x - wave.x) * Math.cos(wave.ang) + (e.y - wave.y) * Math.sin(wave.ang));
+        const side = Math.abs(-(e.x - wave.x) * Math.sin(wave.ang) + (e.y - wave.y) * Math.cos(wave.ang));
+        if (along >= (e.type === 'boss' ? 95 : 75) || side >= 180 + (e.type === 'boss' ? 40 : 22)) continue;
+        const ox = e.x - wave.originX, oy = e.y - wave.originY;
+        if (Math.hypot(ox, oy) > (wave.maxTravel || 720)) continue;
+        let ad = Math.abs(Math.atan2(oy, ox) - wave.ang);
+        while (ad > Math.PI) ad = Math.abs(ad - 2 * Math.PI);
+        if (ad > 1.22) continue;
+        const wasBurned = !!(e.fireBurnEnds && e.fireBurnEnds > elapsed);
+        const hpBefore = e.hp;
+        const hitIndex = wave.hits.size;
         wave.hits.add(e);
-        const pierceScale=hitIndex<3?1:0.75;
-        const crit=rollCrit(0.2,0.15);
-        hurt(e, wave.dmg * pierceScale * crit.mult, crit.isCrit);SKILLFX.play("katana","hit",5,{x:e.x,y:e.y,ang:wave.ang,crit:crit.isCrit});
+        if (wave.mainHits) wave.mainHits.add(e);
+        const pierceScale = hitIndex < 3 ? 1 : (wave.pierceScale || 0.75);
+        const crit = rollCrit(wave.attackSnapshot || wave);
+        hurt(e, wave.dmg * pierceScale * crit.mult, crit.isCrit);
+        SKILLFX.play("katana", "hit", 5, { x: e.x, y: e.y, ang: wave.ang, crit: crit.isCrit });
+        if (wave.attackSnapshot?.hasDuoInkfire && !wave.inkfireUsed && wasBurned && e.hp < hpBefore && !e.shield && !e.vanish && !e.done) {
+          wave.inkfireUsed = true;
+          if (inkfireMarks.length < 16) {
+            const baseDmg = wave.dmg * pierceScale;
+            const damageBudget = Number((baseDmg * 0.20).toFixed(4));
+            inkfireMarks.push({
+              x: e.x,
+              y: e.y,
+              radius: 56,
+              delay: 0.12,
+              damageBudget,
+              triggered: false
+            });
+          }
+        }
       }
-      const cam=RENDERER.getCam(),view=worldViewBounds(),margin=wave.size*0.62;
-      const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
-      if(wave.x<left-margin||wave.x>right+margin||wave.y<top-margin||wave.y>bottom+margin||wave.traveled>=wave.maxTravel)wave.life=0;
+      const cam = RENDERER.getCam(), view = worldViewBounds(), margin = wave.size * 0.62;
+      const left = cam.x + view.left, right = cam.x + view.right, top = cam.y + view.top, bottom = cam.y + view.bottom;
+      if (wave.x < left - margin || wave.x > right + margin || wave.y < top - margin || wave.y > bottom + margin || wave.traveled >= wave.maxTravel) wave.life = 0;
     }
-    winds=winds.filter(p=>p.life>0);
+    winds = winds.filter(p => p.life > 0);
+
+    if (crosscuts.length > 0) {
+      for (const cc of crosscuts) {
+        cc.delay -= dt;
+        if (cc.delay <= 0 && !cc.triggered) {
+          cc.triggered = true;
+          const tier = SKILLFX.tier(cc.level);
+          RENDERER.addSlashArc(cc.x, cc.y, cc.reach, cc.crossAng, 2.0, tier);
+          SKILLFX.play("katana", "swing", cc.level, { x: cc.x, y: cc.y, ang: cc.crossAng, reach: cc.reach });
+          AUDIO.slash(cc.level);
+          for (const e of enemies) {
+            if (e.hp > 0 && !cc.hits.has(e)) {
+              const ed = Math.hypot(e.x - cc.x, e.y - cc.y);
+              if (ed <= cc.reach) {
+                let diff = Math.abs(Math.atan2(e.y - cc.y, e.x - cc.x) - cc.crossAng);
+                while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
+                if (diff <= cc.arc) {
+                  cc.hits.add(e);
+                  const isMainHit = cc.mainHits && cc.mainHits.has(e);
+                  const baseSlash = cc.attackSnapshot ? cc.attackSnapshot.slashDmg : (cc.dmg / 0.60);
+                  const finalDmg = isMainHit
+                    ? Number((baseSlash * 0.40).toFixed(2))
+                    : cc.dmg;
+                  const crit = rollCrit(cc.attackSnapshot || cc);
+                  hurt(e, finalDmg * crit.mult, crit.isCrit);
+                  SKILLFX.play("katana", "hit", cc.level, { x: e.x, y: e.y, ang: cc.crossAng, crit: crit.isCrit });
+                }
+              }
+            }
+          }
+        }
+      }
+      crosscuts = crosscuts.filter(cc => !cc.triggered);
+    }
 
     // 2. 淨化靈陣 (Barrier AoE) - 360 度全方位退魔衝擊環（全新卡牌秘術技能）
     if (WL.barrier > 0) {
       wT.barrier -= dt;
       if (wT.barrier <= 0) {
-        const awakened = WL.barrier === 5;
-        wT.barrier = wMax.barrier = awakened ? 3.2 : Math.max(1.2, 3.2 - WL.barrier * 0.42 - b.rate * 0.2);
-        const r = awakened ? 220 : 140 + WL.barrier * 28;
-        if (awakened) sacredSanctuary = { x: P.x, y: P.y, r, life: 1.8, maxLife: 1.8 };
-        SKILLFX.play("barrier", "cast", WL.barrier, { x: P.x, y: P.y, r });
+        const spec = resolveAttackSpec("barrier", WL.barrier, getBuildState());
+        wT.barrier = wMax.barrier = spec.cooldown;
+        const r = spec.radius;
+        if (spec.isAwakened && spec.sanctuary) {
+          sacredSanctuary = { x: P.x, y: P.y, r: spec.sanctuary.radius, life: spec.sanctuary.duration, maxLife: spec.sanctuary.duration };
+        }
+        SKILLFX.play("barrier", "cast", spec.level, { x: P.x, y: P.y, r });
         let hitAny = false;
         for (const e of enemies) {
           if (e.hp > 0 && dist(P, e) <= r) {
             hitAny = true;
-            const crit = rollCrit(0.15, 0.1);
-            const damage = awakened
-              ? (2.0 + WL.barrier * 1.1) * b.dmg * 0.5
-              : (b.dmg + (WL.barrier - 1) * 0.8) * 0.4;
-            hurt(e, damage * crit.mult, crit.isCrit);
-            if (WL.barrier >= 4 && e.type !== "boss") knockback(e, 50 + WL.barrier * 10);
+            const crit = rollCrit(spec);
+            hurt(e, spec.damage * crit.mult, crit.isCrit);
+            if (spec.knockback > 0 && e.type !== "boss") knockback(e, spec.knockback);
             burst(e.x, e.y, "#ffe082", 6);
           }
         }
         if (hitAny) RENDERER.triggerShake(5);
-        AUDIO.barrier(WL.barrier);
+        AUDIO.barrier(spec.level);
+
+        if (spec.hasPulse && barrierPulses.length < 4) {
+          barrierPulses.push({
+            x: P.x,
+            y: P.y,
+            delay: spec.pulseDelay || 0.18,
+            radius: spec.radius,
+            damage: spec.damage,
+            knockback: spec.knockback,
+            level: spec.level,
+            hits: new Set(),
+            derivationDepth: (spec.derivationDepth || 0) + 1,
+            critLvl: spec.critLvl,
+            critChance: spec.critChance,
+            attackSnapshot: { ...spec }
+          });
+        }
       }
+    }
+
+    if (barrierPulses.length > 0) {
+      for (const bp of barrierPulses) {
+        bp.delay -= dt;
+        if (bp.delay <= 0 && !bp.triggered) {
+          bp.triggered = true;
+          SKILLFX.play("barrier", "cast", bp.level, { x: bp.x, y: bp.y, r: bp.radius });
+          AUDIO.barrier(bp.level);
+          let hitAny = false;
+          for (const e of enemies) {
+            if (e.hp > 0 && !bp.hits.has(e)) {
+              if (Math.hypot(e.x - bp.x, e.y - bp.y) <= bp.radius) {
+                bp.hits.add(e);
+                hitAny = true;
+                const crit = rollCrit(bp.attackSnapshot || bp);
+                hurt(e, bp.damage * crit.mult, crit.isCrit);
+                if (bp.knockback > 0 && e.type !== "boss") knockback(e, bp.knockback, bp);
+                burst(e.x, e.y, "#ffe082", 6);
+              }
+            }
+          }
+          if (hitAny) RENDERER.triggerShake(3);
+        }
+      }
+      barrierPulses = barrierPulses.filter(bp => !bp.triggered);
     }
 
     if (sacredSanctuary && sacredSanctuary.life > 0) {
@@ -1599,9 +3033,9 @@
     if (WL.needle > 0) {
       wT.needle -= dt;
       if (wT.needle <= 0) {
-        const needleFloor = WL.needle === 5 ? 0.65 : 0.45;
-        wT.needle = wMax.needle = Math.max(needleFloor, 1.25 - WL.needle * 0.16 - b.rate * 0.1);
-        const count = EVOLUTIONS.needleCount(WL.needle);
+        const spec = resolveAttackSpec("needle", WL.needle, getBuildState());
+        wT.needle = wMax.needle = spec.cooldown;
+        const count = spec.count;
         const moveDir = move();
         let shootAng = 0;
         if (Math.hypot(moveDir.x, moveDir.y) > 0.1) {
@@ -1614,35 +3048,210 @@
           }
           shootAng = near ? Math.atan2(near.y - P.y, near.x - P.x) : P.faceAng;
         }
-        const spread = WL.needle===5 ? 1.35 : WL.needle===4 ? 0.65 : 0.45;
-        if(WL.needle===5) needles.push(...EVOLUTIONS.iceVolley(P,enemies,shootAng));
-        else for (let i = 0; i < count; i++) {
-          const a = shootAng + (i - (count - 1) / 2) * (spread / Math.max(1, count - 1));
-          needles.push({
-            x: P.x, y: P.y,
-            vx: Math.cos(a) * 640, vy: Math.sin(a) * 640,
-            life: WL.needle===5 ? 0.95 : 0.65,
-            level:WL.needle,
-            curve:WL.needle===5,launchAng:a,ang:a,age:0,aimX:P.x+Math.cos(shootAng)*440,aimY:P.y+Math.sin(shootAng)*440,
-            dmg: 1.4 + WL.needle * 0.7,
-            trail: 0
-          });
+
+        if (spec.isAwakened) {
+          const volley = EVOLUTIONS.iceVolley(P, enemies, shootAng);
+          for (const nd of volley) {
+            nd.dmg = spec.damage; // 快照傷害，飛行途中不回寫
+            nd.baseDmg = spec.baseDamage;
+            nd.speed = spec.speed;
+            nd.range = spec.range;
+            nd.attackSnapshot = spec;
+            nd.tracking = spec.tracking;
+            nd.turnRate = spec.turnRate || 4.8;
+            nd.seekRange = spec.seekRange || 480;
+            nd.frost = spec.frost;
+            nd.hasPierce = spec.hasPierce || false;
+            nd.pierceBonusScale = spec.pierceBonusScale || 0;
+            nd.maxPierceBonusHits = spec.maxPierceBonusHits || 0;
+            nd.pierceBonusMax = spec.pierceBonusMax || 0;
+            nd.pierceHits = 0;
+            nd.pierceBonusCount = 0;
+            nd.pierceBonusScaleTotal = 0;
+            nd.originX = nd.originX ?? P.x;
+            nd.originY = nd.originY ?? P.y;
+            nd.hasReturn = spec.hasReturn || false;
+            nd.returnDistance = spec.returnDistance || 0;
+            nd.distanceTraveled = 0;
+            nd.returned = false;
+            nd.returning = false;
+            needles.push(nd);
+          }
+          if (spec.fan) {
+            const extraCount = spec.count - 8;
+            const sharedVolley = volley[0]?.volley || { used: false, hits: new Set() };
+            for (let i = 0; i < extraCount; i++) {
+              const a = shootAng + ((i % 2 === 0 ? 1 : -1) * (0.85 + Math.floor(i / 2) * 0.35));
+              needles.push({
+                x: P.x, y: P.y,
+                originX: P.x, originY: P.y,
+                vx: Math.cos(a) * spec.speed, vy: Math.sin(a) * spec.speed,
+                life: spec.life,
+                level: spec.level,
+                curve: false, launchAng: a, ang: a, age: 0,
+                aimX: P.x + Math.cos(a) * spec.range, aimY: P.y + Math.sin(a) * spec.range,
+                dmg: spec.damage,
+                baseDmg: spec.baseDamage,
+                speed: spec.speed,
+                range: spec.range,
+                hits: new Set(),
+                trail: 0,
+                ice: true,
+                frost: true,
+                tracking: spec.tracking,
+                turnRate: spec.turnRate || 4.8,
+                seekRange: spec.seekRange || 480,
+                target: null,
+                attackSnapshot: spec,
+                volley: sharedVolley,
+                hasPierce: spec.hasPierce || false,
+                pierceBonusScale: spec.pierceBonusScale || 0,
+                maxPierceBonusHits: spec.maxPierceBonusHits || 0,
+                pierceBonusMax: spec.pierceBonusMax || 0,
+                pierceHits: 0,
+                pierceBonusCount: 0,
+                pierceBonusScaleTotal: 0,
+                hasReturn: spec.hasReturn || false,
+                returnDistance: spec.returnDistance || 0,
+                distanceTraveled: 0,
+                returned: false,
+                returning: false
+              });
+            }
+          }
+        } else {
+          const spread = spec.spread;
+          for (let i = 0; i < count; i++) {
+            const a = shootAng + (i - (count - 1) / 2) * (spread / Math.max(1, count - 1));
+            needles.push({
+              x: P.x, y: P.y,
+              originX: P.x, originY: P.y,
+              vx: Math.cos(a) * spec.speed, vy: Math.sin(a) * spec.speed,
+              life: spec.life,
+              level: spec.level,
+              curve: false, launchAng: a, ang: a, age: 0,
+              aimX: P.x + Math.cos(shootAng) * spec.range, aimY: P.y + Math.sin(shootAng) * spec.range,
+              dmg: spec.damage, // 快照傷害，飛行途中不回寫
+              baseDmg: spec.baseDamage,
+              speed: spec.speed,
+              range: spec.range,
+              hits: new Set(), // 命中同敵去重
+              trail: 0,
+              ice: spec.frost || false,
+              frost: spec.frost || false,
+              tracking: spec.tracking || false,
+              turnRate: spec.turnRate || 4.2,
+              seekRange: spec.seekRange || 480,
+              target: null,
+              attackSnapshot: spec,
+              hasPierce: spec.hasPierce || false,
+              pierceBonusScale: spec.pierceBonusScale || 0,
+              maxPierceBonusHits: spec.maxPierceBonusHits || 0,
+              pierceBonusMax: spec.pierceBonusMax || 0,
+              pierceHits: 0,
+              pierceBonusCount: 0,
+              pierceBonusScaleTotal: 0,
+              hasReturn: spec.hasReturn || false,
+              returnDistance: spec.returnDistance || 0,
+              distanceTraveled: 0,
+              returned: false,
+              returning: false
+            });
+          }
         }
-        SKILLFX.play("needle", "fire", WL.needle, { x: P.x + Math.cos(shootAng) * 28, y: P.y + Math.sin(shootAng) * 28 });
-        AUDIO.needle(WL.needle);
+        SKILLFX.play("needle", "fire", spec.level, { x: P.x + Math.cos(shootAng) * 28, y: P.y + Math.sin(shootAng) * 28 });
+        AUDIO.needle(spec.level);
       }
     }
 
     for (const nd of needles) {
-      EVOLUTIONS.curve(nd,dt);
-      if(!EVOLUTIONS.move(nd,dt,nd.curve?blocked:null,6))continue;
-      if ((nd.trail -= dt) <= 0) { nd.trail = 0.03; SKILLFX.play("needle", "trail", nd.level??WL.needle, { x: nd.x, y: nd.y, ang: Math.atan2(nd.vy, nd.vx) }); }
+      if (!nd.returning) {
+        EVOLUTIONS.curve(nd, dt);
+        if (nd.tracking && (!nd.curve || nd.curved || nd.curveDone)) {
+          if (!nd.target || nd.target.hp <= 0 || dist(nd, nd.target) > (nd.seekRange || 480)) {
+            nd.target = null;
+            nd.retargetT = (nd.retargetT || 0) - dt;
+            if (nd.retargetT <= 0) {
+              nd.retargetT = 0.12;
+              let nearest = nd.seekRange || 480;
+              for (const e of enemies) {
+                if (e.hp > 0 && !nd.hits?.has(e)) {
+                  const d = dist(nd, e);
+                  if (d < nearest) {
+                    nearest = d;
+                    nd.target = e;
+                  }
+                }
+              }
+            }
+          }
+          if (nd.target && nd.target.hp > 0) {
+            const targetAng = Math.atan2(nd.target.y - nd.y, nd.target.x - nd.x);
+            const diff = Math.atan2(Math.sin(targetAng - nd.ang), Math.cos(targetAng - nd.ang));
+            const maxTurn = (nd.turnRate || 4.2) * dt;
+            const turn = Math.max(-maxTurn, Math.min(maxTurn, diff));
+            nd.ang += turn;
+            nd.vx = Math.cos(nd.ang) * nd.speed;
+            nd.vy = Math.sin(nd.ang) * nd.speed;
+          }
+        }
+      }
+      const prevX = nd.x, prevY = nd.y;
+      if (!EVOLUTIONS.move(nd, dt, nd.curve ? blocked : null, 6)) continue;
+      const stepDist = Math.hypot(nd.x - prevX, nd.y - prevY);
+
+      if (nd.hasReturn && !nd.returned) {
+        nd.distanceTraveled = (nd.distanceTraveled || 0) + stepDist;
+        if (nd.distanceTraveled >= nd.returnDistance) {
+          nd.returned = true;
+          nd.returning = true;
+          nd.curve = false;
+          nd.curved = true;
+          nd.curveDone = true;
+          nd.tracking = false;
+          const retAng = Math.atan2(nd.originY - nd.y, nd.originX - nd.x);
+          nd.ang = retAng;
+          const spd = nd.speed || 640;
+          nd.vx = Math.cos(retAng) * spd;
+          nd.vy = Math.sin(retAng) * spd;
+        }
+      } else if (nd.returning) {
+        const dOrigin = Math.hypot(nd.x - nd.originX, nd.y - nd.originY);
+        const pastOrigin = ((nd.x - nd.originX) * nd.vx + (nd.y - nd.originY) * nd.vy) >= 0;
+        if (dOrigin <= Math.max(20, stepDist * 1.1) || pastOrigin) {
+          nd.life = 0;
+        }
+      }
+      if ((nd.trail -= dt) <= 0) {
+        nd.trail = 0.03;
+        SKILLFX.play("needle", "trail", nd.level ?? WL.needle, { x: nd.x, y: nd.y, ang: Math.atan2(nd.vy, nd.vx) });
+      }
       for (const e of enemies) {
         if (e.hp > 0 && !(e.inb > elapsed) && !nd.hits?.has(e) && dist(e, nd) < (e.type === "boss" ? 54 : 30)) {
           e.inb = elapsed + 0.2;
-          hurt(e, nd.dmg * b.dmg);
-          if(nd.ice){nd.hits.add(e);EVOLUTIONS.freeze(e,elapsed,nd.volley||null);}
-          SKILLFX.play("needle", "hit", nd.level??WL.needle, { x: nd.x, y: nd.y });
+          nd.hits?.add(e);
+          let dmg = nd.dmg;
+          if (nd.hasPierce && !e.shield) {
+            nd.pierceHits = (nd.pierceHits || 0) + 1;
+            if (nd.pierceHits > 1) {
+              const maxHits = nd.maxPierceBonusHits ?? 2;
+              const bonusCount = nd.pierceBonusCount || 0;
+              if (bonusCount < maxHits) {
+                const maxBudget = nd.pierceBonusMax ?? 0.30;
+                const usedScale = nd.pierceBonusScaleTotal || 0;
+                const remainingScale = Math.max(0, maxBudget - usedScale);
+                const addScale = Math.min(nd.pierceBonusScale ?? 0.15, remainingScale);
+                if (addScale > 0) {
+                  dmg = nd.dmg * (1 + addScale);
+                  nd.pierceBonusCount = bonusCount + 1;
+                  nd.pierceBonusScaleTotal = usedScale + addScale;
+                }
+              }
+            }
+          }
+          hurt(e, dmg);
+          if (nd.frost || nd.ice) applyFrost(e, elapsed, nd.volley || null);
+          SKILLFX.play("needle", "hit", nd.level ?? WL.needle, { x: nd.x, y: nd.y });
         }
       }
     }
@@ -1660,20 +3269,75 @@
         if (!t) {
           wT.boom = 0.15;
         } else {
-          wT.boom = wMax.boom = WL.boom === 5 ? Math.max(1.6, 2.0 - WL.boom * 0.24) : Math.max(0.75, 2.0 - WL.boom * 0.24);
-          const count = EVOLUTIONS.boomCount(WL.boom);
+          const spec = resolveAttackSpec("boom", WL.boom, getBuildState());
+          wT.boom = wMax.boom = spec.cooldown;
+          const count = spec.count;
           const baseAng = Math.atan2(t.y - P.y, t.x - P.x);
+          const castState = { frostsealUsed: false, cinderUsed: false };
           for (let i = 0; i < count; i++) {
-            const a = baseAng + (i - (count - 1) / 2) * (WL.boom >= 4 ? 0.28 : 0.32);
+            const a = baseAng + (i - (count - 1) / 2) * spec.spread;
             proj.push({
-              x: P.x, y: P.y, vx: Math.cos(a) * 440, vy: Math.sin(a) * 440,
-              t: 0, life: 1.4, level: WL.boom, stuck: false, fuse: 0, target: null, exploded: false
+              x: P.x, y: P.y,
+              vx: Math.cos(a) * spec.speed,
+              vy: Math.sin(a) * spec.speed,
+              ang: a,
+              speed: spec.speed,
+              t: 0,
+              life: spec.life,
+              fuse: 0,
+              initialFuse: spec.fuse,
+              level: spec.level,
+              stuck: false,
+              target: null,
+              seekTarget: null,
+              retargetT: 0,
+              searchCount: 0,
+              tracking: spec.tracking,
+              turnRate: spec.turnRate || 4.2,
+              seekRange: spec.seekRange,
+              hasSeek: spec.hasSeek,
+              frost: spec.frost,
+              hasFrost: spec.hasFrost,
+              hasDuoFrostseal: spec.hasDuoFrostseal,
+              hasDuoCinderseal: spec.hasDuoCinderseal,
+              castState: castState,
+              exploded: false,
+              radius: spec.radius,
+              damage: spec.damage,
+              splashDamage: spec.splashDamage,
+              knockback: spec.knockback,
+              hasSplitblast: spec.hasSplitblast,
+              splitblastDelay: spec.splitblastDelay,
+              splitblastRadius: spec.splitblastRadius,
+              splitblastDirectDamage: spec.splitblastDirectDamage,
+              splitblastSplashDamage: spec.splitblastSplashDamage,
+              mutations: [...spec.mutations]
             });
           }
           if (typeof AUDIO.ofudaLaunch === "function") AUDIO.ofudaLaunch(WL.boom);
           else AUDIO.boomerang(WL.boom);
         }
       }
+    }
+
+    if (splitblasts.length > 0) {
+      for (const sb of splitblasts) {
+        sb.delay -= dt;
+        if (sb.delay <= 0) {
+          sb.triggered = true;
+          SKILLFX.play("boom", "hit", sb.level, { x: sb.x, y: sb.y, r: sb.radius, secondary: true });
+          for (const e of enemies) {
+            if (e.hp <= 0 || e.shield || sb.hits.has(e)) continue;
+            if (dist(e, sb) <= sb.radius) {
+              sb.hits.add(e);
+              const isPrimary = (e === sb.primaryTarget);
+              const dmg = isPrimary ? sb.directDamage : sb.splashDamage;
+              hurt(e, dmg);
+            }
+          }
+        }
+      }
+      splitblasts = splitblasts.filter(sb => !sb.triggered);
     }
 
     for (const q of proj) {
@@ -1686,6 +3350,44 @@
         if (q.fuse <= 0) explodeTalisman(q);
         continue;
       }
+
+      if (q.tracking) {
+        if (q.seekTarget) {
+          if (q.seekTarget.hp <= 0 || q.seekTarget.shield || q.seekTarget.vanish || q.seekTarget.done || !enemies.includes(q.seekTarget) || dist(q, q.seekTarget) > q.seekRange) {
+            q.seekTarget = null;
+          }
+        }
+        q.retargetT = (q.retargetT || 0) - dt;
+        if (!q.seekTarget && q.retargetT <= 1e-4) {
+          q.retargetT = 0.20;
+          q.searchCount = (q.searchCount || 0) + 1;
+          let nearest = q.seekRange;
+          let chosen = null;
+          for (const e of enemies) {
+            if (e.hp > 0 && !e.shield && !e.vanish && !e.done) {
+              const d = dist(q, e);
+              if (d <= nearest) {
+                nearest = d;
+                chosen = e;
+              }
+            }
+          }
+          q.seekTarget = chosen;
+        }
+        if (q.seekTarget) {
+          const curAng = (typeof q.ang === "number") ? q.ang : Math.atan2(q.vy, q.vx);
+          const targetAng = Math.atan2(q.seekTarget.y - q.y, q.seekTarget.x - q.x);
+          const diff = Math.atan2(Math.sin(targetAng - curAng), Math.cos(targetAng - curAng));
+          const maxTurn = (q.turnRate || 4.2) * dt;
+          const turn = Math.max(-maxTurn, Math.min(maxTurn, diff));
+          const newAng = Math.atan2(Math.sin(curAng + turn), Math.cos(curAng + turn));
+          q.ang = newAng;
+          const spd = q.speed || 440;
+          q.vx = Math.cos(newAng) * spd;
+          q.vy = Math.sin(newAng) * spd;
+        }
+      }
+
       q.t += dt;
       q.x += q.vx * dt;
       q.y += q.vy * dt;
@@ -1696,7 +3398,8 @@
         if (e.hp > 0 && Math.hypot(e.x - q.x, e.y - q.y) < (e.type === "boss" ? 54 : 32)) {
           q.stuck = true;
           q.target = e;
-          q.fuse = BOOM_FUSE;
+          q.seekTarget = null;
+          q.fuse = q.initialFuse ?? BOOM_FUSE;
           q.x = e.x;
           q.y = e.y;
           q.vx = 0;
@@ -1714,25 +3417,30 @@
     if (WL.fire > 0) {
       fireSfxT = Math.max(0, fireSfxT - dt);
       let fireHit = false;
-      fAng += dt * 2.8;
+      const fireSpec = resolveAttackSpec("fire", WL.fire, getBuildState());
+      fAng += dt * fireSpec.angularSpeed;
       const emitEmber = (fireEmitT -= dt) <= 0;
       if (emitEmber) fireEmitT = 0.05;
-      const count = EVOLUTIONS.fireCount(WL.fire);
+      const count = fireSpec.count;
       const awaySlots = new Set(ghosts.filter(p=>p.fireAttack&&p.life>0&&p.level===WL.fire).map(p=>p.slot));
       for (let i = 0; i < count; i++) {
         if (awaySlots.has(i)) continue;
         const a = fAng + (i * 6.283) / count;
-        const fx = P.x + Math.cos(a) * EVOLUTIONS.FIRE_ORBIT, fy = P.y + Math.sin(a) * EVOLUTIONS.FIRE_ORBIT;
+        const fx = P.x + Math.cos(a) * fireSpec.rx, fy = P.y + Math.sin(a) * fireSpec.ry;
         if (emitEmber) {
-          const orbitSpeed = EVOLUTIONS.FIRE_ORBIT * 2.8;
-          SKILLFX.play("fire", "ember", WL.fire, { x: fx, y: fy, ang: a, vx:-Math.sin(a)*orbitSpeed, vy:Math.cos(a)*orbitSpeed });
+          SKILLFX.play("fire", "ember", WL.fire, { x: fx, y: fy, ang: a, vx:-Math.sin(a)*fireSpec.rx*fireSpec.angularSpeed, vy:Math.cos(a)*fireSpec.ry*fireSpec.angularSpeed });
         }
         for (const e of enemies) {
           if (e.hp > 0 && !(e.ifr > elapsed) && Math.hypot(e.x - fx, e.y - fy) < (e.type === "boss" ? 54 : 30)) {
-            e.ifr = elapsed + 0.42;
+            e.ifr = elapsed + fireSpec.hitInterval;
             const hpBefore = e.hp;
-            hurt(e, (1.2 + WL.fire * 0.6) * b.dmg);
-            if (e.hp < hpBefore) fireHit = true;
+            hurt(e, fireSpec.contactDamage);
+            if (e.hp < hpBefore) {
+              fireHit = true;
+              if ((fireSpec.hasDuoInkfire || fireSpec.hasDuoCinderseal) && e.hp > 0 && !e.shield && !e.vanish && !e.done) {
+                e.fireBurnEnds = elapsed + 1.0;
+              }
+            }
             SKILLFX.play("fire", "hit", WL.fire, { x: fx, y: fy });
           }
         }
@@ -1743,13 +3451,19 @@
         fireAttackT=Math.max(0,fireAttackT-dt);
         const targets=enemies.filter(e=>e.hp>0&&!e.shield&&dist(P,e)<520);
         if(fireAttackT<=0 && targets.length && !ghosts.some(p=>p.fireAttack&&p.life>0)){
-          const n=Math.min(EVOLUTIONS.fireAttackCount(WL.fire),count);
+          const n=Math.min(fireSpec.attackCount,count);
           for(let k=0;k<n;k++){
             const slot=Math.floor(k*count/n),a=fAng+(slot*6.283)/count;
-            ghosts.push(EVOLUTIONS.fireSpirit(P,a,WL.fire,slot));
+            const spirit = EVOLUTIONS.fireSpirit(P,a,WL.fire,slot);
+            spirit.x = P.x + Math.cos(a) * fireSpec.rx;
+            spirit.y = P.y + Math.sin(a) * fireSpec.ry;
+            spirit.spiritDamage = fireSpec.spiritDamage;
+            spirit.hasDuoInkfire = !!fireSpec.hasDuoInkfire;
+            spirit.hasDuoCinderseal = !!fireSpec.hasDuoCinderseal;
+            ghosts.push(spirit);
           }
           AUDIO.fireball(4); // Detached foxfire uses the same fire-lv1-4 sound as orbiting flames.
-          fireAttackT=EVOLUTIONS.fireAttackCooldown(WL.fire);
+          fireAttackT=fireSpec.spiritCooldown;
         }
       }
     }
@@ -1774,7 +3488,8 @@
         if (n > bestN) { target = e; bestN = n; }
       }
       if(wT.fire<=0 && target && !ghosts.some(g=>g.dragon&&g.life>0)){
-        wT.fire=wMax.fire=7.2;
+        const dragonSpec = resolveAttackSpec("fire", 5, getBuildState());
+        wT.fire=wMax.fire=dragonSpec.cooldown;
         const cam=RENDERER.getCam(),view=worldViewBounds();
         const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
         // 黑龍在原版尺寸上放大 1.5 倍，仍維持左右側入場。
@@ -1783,7 +3498,15 @@
         const startX=face>0?left-size*0.8:right+size*0.8;
         const y=clamp(P.y-90,top+view.height*0.27,bottom-view.height*0.23);
         const summoned=EVOLUTIONS.dragon(P,face>0?0:Math.PI,Math.random()*6.283,{startX,endX,y,size});
-        summoned.target=target;ghosts.push(summoned);
+        summoned.target=target;
+        summoned.dragonDirectDmg = dragonSpec.dragonDirectDmg;
+        summoned.dragonSplashDmg = dragonSpec.dragonSplashDmg;
+        summoned.dragonScorchDmg = dragonSpec.dragonScorchDmg;
+        summoned.scorchDuration = dragonSpec.scorchDuration;
+        summoned.scorchRadius = dragonSpec.scorchRadius;
+        summoned.hasDuoInkfire = !!dragonSpec.hasDuoInkfire;
+        summoned.hasDuoCinderseal = !!dragonSpec.hasDuoCinderseal;
+        ghosts.push(summoned);
         AUDIO.fireDragon?.();
       }
     }
@@ -1822,7 +3545,17 @@
             landings.push(point||{x:clamp(target.x+Math.cos(angle+k*Math.PI*2/3)*165,left,right),
               y:clamp(target.y+Math.sin(angle+k*Math.PI*2/3)*165,top,bottom)});
           }
-          for(const point of landings)dragonShots.push(EVOLUTIONS.dragonFireball(spirit,point,true));
+          for(const point of landings) {
+            const fireball = EVOLUTIONS.dragonFireball(spirit,point,true);
+            fireball.dragonDirectDmg = spirit.dragonDirectDmg;
+            fireball.dragonSplashDmg = spirit.dragonSplashDmg;
+            fireball.dragonScorchDmg = spirit.dragonScorchDmg;
+            fireball.scorchDuration = spirit.scorchDuration;
+            fireball.scorchRadius = spirit.scorchRadius;
+            fireball.hasDuoInkfire = !!spirit.hasDuoInkfire;
+            fireball.hasDuoCinderseal = !!spirit.hasDuoCinderseal;
+            dragonShots.push(fireball);
+          }
           AUDIO.fireDragonBall?.();
           spirit.shot=true;
         }
@@ -1832,7 +3565,12 @@
       for(const e of enemies)if(e.hp>0&&dist(e,spirit)<(e.type==='boss'?64:42)){
         if(!spirit.hitSet.has(e)){
           spirit.hitSet.add(e);
-          hurt(e,(2.1+(spirit.level||1)*0.9)*b.dmg);
+          const spiritDmg = typeof spirit.spiritDamage === "number" ? spirit.spiritDamage : (2.1+(spirit.level||1)*0.9)*getEffectiveDmg();
+          const hpBefore = e.hp;
+          hurt(e, spiritDmg);
+          if (e.hp < hpBefore && (spirit.hasDuoInkfire || spirit.hasDuoCinderseal) && e.hp > 0 && !e.shield && !e.vanish && !e.done) {
+            e.fireBurnEnds = elapsed + 1.0;
+          }
           SKILLFX.play("fire","hit",spirit.level??5,{x:e.x,y:e.y});
           burst(e.x,e.y,"#ff7043",8);
         }
@@ -1844,65 +3582,210 @@
     for(const shot of dragonShots){
       const impact=EVOLUTIONS.dragonFireballStep(shot,dt,enemies,blocked);
       if(!impact.impact)continue;
-      if(impact.target)hurt(impact.target,12*b.dmg);
-      for(const e of enemies)if(e.hp>0&&e!==impact.target&&!e.shield&&Math.hypot(e.x-impact.x,e.y-impact.y)<140)hurt(e,4*b.dmg);
+      const directDmg = typeof shot.dragonDirectDmg === "number" ? shot.dragonDirectDmg : 12*getEffectiveDmg();
+      const splashDmg = typeof shot.dragonSplashDmg === "number" ? shot.dragonSplashDmg : 4*getEffectiveDmg();
+      if(impact.target) {
+        const hpBefore = impact.target.hp;
+        hurt(impact.target, directDmg);
+        if (impact.target.hp < hpBefore && (shot.hasDuoInkfire || shot.hasDuoCinderseal) && impact.target.hp > 0 && !impact.target.shield && !impact.target.vanish && !impact.target.done) {
+          impact.target.fireBurnEnds = elapsed + 1.0;
+        }
+      }
+      for(const e of enemies) {
+        if(e.hp>0&&e!==impact.target&&!e.shield&&Math.hypot(e.x-impact.x,e.y-impact.y)<140) {
+          const hpBefore = e.hp;
+          hurt(e, splashDmg);
+          if (e.hp < hpBefore && (shot.hasDuoInkfire || shot.hasDuoCinderseal) && e.hp > 0 && !e.shield && !e.vanish && !e.done) {
+            e.fireBurnEnds = elapsed + 1.0;
+          }
+        }
+      }
       if(dragonScorches.length===0)AUDIO.fireGround?.();
       if(dragonScorches.length>=3)dragonScorches.shift();
-      dragonScorches.push({x:impact.x,y:impact.y,life:5,maxLife:5,r:140,tick:0.6});
+      const scorchDmg = typeof shot.dragonScorchDmg === "number" ? shot.dragonScorchDmg : 1.8*getEffectiveDmg();
+      const scorchDur = typeof shot.scorchDuration === "number" ? shot.scorchDuration : 5;
+      const scorchRad = typeof shot.scorchRadius === "number" ? shot.scorchRadius : 140;
+      dragonScorches.push({
+        x:impact.x,
+        y:impact.y,
+        life:scorchDur,
+        maxLife:scorchDur,
+        r:scorchRad,
+        tick:0.6,
+        scorchDamage:scorchDmg,
+        hasDuoInkfire: !!shot.hasDuoInkfire,
+        hasDuoCinderseal: !!shot.hasDuoCinderseal
+      });
       SKILLFX.play("fire","hit",5,{x:impact.x,y:impact.y});
       burst(impact.x,impact.y,"#ff7a28",12);
     }
     dragonShots=dragonShots.filter(p=>p.life>0);
     for(const scorch of dragonScorches){
+      if (scorch.isCinder) {
+        if (scorch.birthFrame) {
+          scorch.birthFrame = false;
+          continue;
+        }
+        scorch.life -= dt;
+        scorch.delay -= dt;
+        if (scorch.delay <= 0 && !scorch.ticked) {
+          scorch.ticked = true;
+          SKILLFX.play("boom", "hit", 1, { x: scorch.x, y: scorch.y, r: scorch.r, cinder: true });
+          burst(scorch.x, scorch.y, "#ff5722", 6);
+          const hitTargets = enemies
+            .filter(e => {
+              if (e.hp <= 0 || e.shield || e.vanish || e.done) return false;
+              if (e.scorchReady > elapsed) return false;
+              const coveredByDragon = dragonScorches.some(s => !s.isCinder && s.life > 0 && Math.hypot(e.x - s.x, e.y - s.y) <= s.r);
+              if (coveredByDragon) return false;
+              return Math.hypot(e.x - scorch.x, e.y - scorch.y) <= scorch.r;
+            })
+            .slice(0, 3);
+          if (hitTargets.length > 0) {
+            const damagePerTarget = scorch.damageBudget / hitTargets.length;
+            for (const e of hitTargets) {
+              if (e.hp > 0 && !e.shield && !e.vanish && !e.done) {
+                hurt(e, damagePerTarget, false);
+                e.flash = 0.15;
+                e.scorchReady = Math.max(e.scorchReady || 0, elapsed + 0.3);
+              }
+            }
+          }
+        }
+        continue;
+      }
       scorch.life-=dt;
       scorch.tick-=dt;
       while(scorch.tick<=0&&scorch.life>0){
         scorch.tick+=0.6;
         for(const e of enemies)if(e.hp>0&&!e.shield&&!(e.scorchReady>elapsed)&&Math.hypot(e.x-scorch.x,e.y-scorch.y)<scorch.r){
           e.scorchReady = elapsed + 0.6;
-          hurt(e,1.8*b.dmg);
+          const scorchDmg = typeof scorch.scorchDamage === "number" ? scorch.scorchDamage : 1.8*getEffectiveDmg();
+          const hpBefore = e.hp;
+          hurt(e, scorchDmg);
+          if (e.hp < hpBefore && (scorch.hasDuoInkfire || scorch.hasDuoCinderseal) && e.hp > 0 && !e.shield && !e.vanish && !e.done) {
+            e.fireBurnEnds = elapsed + 1.0;
+          }
         }
       }
     }
     dragonScorches=dragonScorches.filter(p=>p.life>0);
 
+    // 5.9 共鳴奧義：雷紋陣延遲衝擊佇列（次級佇列上限 16，延遲 0.12 秒，出生前當幀時間不扣）
+    if (duoShockwaves.length > 0) {
+      for (const sw of duoShockwaves) {
+        sw.delay -= dt;
+        if (sw.delay <= 0) {
+          sw.triggered = true;
+          SKILLFX.play("thunder", "strike", 1, { x: sw.x, y: sw.y, r: sw.radius, shockwave: true });
+          const hitTargets = enemies
+            .filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done && dist(sw, e) <= sw.radius)
+            .slice(0, 3);
+          if (hitTargets.length > 0) {
+            const damagePerTarget = sw.damageBudget / hitTargets.length;
+            for (const e of hitTargets) {
+              if (e.hp > 0 && !e.shield && !e.vanish && !e.done) {
+                hurt(e, damagePerTarget, false);
+                e.flash = 0.15;
+              }
+            }
+          }
+        }
+      }
+      duoShockwaves = duoShockwaves.filter(sw => !sw.triggered);
+    }
+
     // 6. 天狐落雷：固定係數，不依生命秒殺。
     if (WL.thunder > 0) {
       wT.thunder -= dt;
       if (wT.thunder <= 0) {
-        const rank = WL.thunder;
-        const radius = rank >= 4 ? 450 : magnetRadius(rank);
-        const candidates = enemies.filter(e => e.hp > 0 && !e.shield && dist(P, e) <= radius);
+        const spec = resolveAttackSpec("thunder", WL.thunder, getBuildState());
+        const radius = spec.radius;
+        const candidates = enemies.filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done && dist(P, e) <= radius);
         if (!candidates.length) {
           wT.thunder = 0.2;
         } else {
           const threat = e => e.type === "boss" ? 0 : e.type === "shooter" ? 1 : e.type === "tank" ? 2 : 3;
-          candidates.sort((a, b) => rank >= 4 ? (threat(a) - threat(b) || dist(P, a) - dist(P, b)) : dist(P, a) - dist(P, b));
-          wT.thunder = wMax.thunder = rank === 5 ? 2.4 : rank === 4 ? 2 : Math.max(2, 2.6 - rank * 0.35);
-          const crit = rollCrit(0.2, 0.15);
-          if (rank === 5) {
-            const anchors = candidates.slice(0, 3);
-            const struck = new Set();
+          candidates.sort((a, b) => spec.level >= 4 ? (threat(a) - threat(b) || dist(P, a) - dist(P, b)) : dist(P, a) - dist(P, b));
+          wT.thunder = wMax.thunder = spec.cooldown;
+          const crit = rollCrit(spec);
+          const struck = new Set();
+          const primaryTargets = [];
+
+          // Duo 雷紋陣陣內快照
+          const currentBuild = getBuildState();
+          const duos = currentBuild.duos;
+          const barrierLvl = WL.barrier || (currentBuild.activeSkills?.includes("barrier") ? 3 : 0);
+          const hasDuoThundercircle = duos.includes("duo_thundercircle") && barrierLvl >= 1;
+          const circleCenter = { x: P.x, y: P.y };
+          const barrierRadius = hasDuoThundercircle
+            ? resolveAttackSpec("barrier", barrierLvl, currentBuild).radius
+            : 0;
+          let qualifyingHitPoint = null;
+
+          if (spec.level === 5) {
+            const anchors = candidates.slice(0, spec.targetCount);
             anchors.forEach((anchor, i) => {
               const delay = 0.06 + i * 0.12;
-              SKILLFX.play("thunder", "storm", 5, { x: anchor.x, y: anchor.y, r: 90, delay });
-              SKILLFX.play("thunder", "strike", 5, { x: anchor.x, y: anchor.y, r: 90, stormChild: true, delay: delay + 0.08 });
-              for (const e of enemies) if (e.hp > 0 && !e.shield && !struck.has(e) && dist(e, anchor) <= 90) {
+              SKILLFX.play("thunder", "storm", 5, { x: anchor.x, y: anchor.y, r: spec.cloudRadius, delay });
+              SKILLFX.play("thunder", "strike", 5, { x: anchor.x, y: anchor.y, r: spec.cloudRadius, stormChild: true, delay: delay + 0.08 });
+              for (const e of enemies) if (e.hp > 0 && !e.shield && !e.vanish && !e.done && !struck.has(e) && dist(e, anchor) <= spec.cloudRadius) {
                 struck.add(e);
-                hurt(e, 8 * b.dmg * crit.mult, crit.isCrit);
+                primaryTargets.push(e);
+                const hpBefore = e.hp;
+                hurt(e, spec.damage * crit.mult, crit.isCrit);
                 e.flash = 0.22;
+                if (!qualifyingHitPoint && hasDuoThundercircle && hpBefore > e.hp && dist(e, circleCenter) <= barrierRadius && !e.vanish && !e.done) {
+                  qualifyingHitPoint = { x: e.x, y: e.y };
+                }
               }
             });
             RENDERER.triggerShake(8);
           } else {
-            const mult = rank === 1 ? 2 : rank === 2 ? 3 : rank === 3 ? 4.5 : 6;
-            const count = rank === 4 ? 3 : rank;
+            const count = spec.targetCount;
             for (const e of candidates.slice(0, count)) {
-              SKILLFX.play("thunder", "strike", rank, { x: e.x, y: e.y, r: radius });
-              hurt(e, mult * b.dmg * crit.mult, crit.isCrit);
+              struck.add(e);
+              primaryTargets.push(e);
+              SKILLFX.play("thunder", "strike", spec.level, { x: e.x, y: e.y, r: radius });
+              const hpBefore = e.hp;
+              hurt(e, spec.damage * crit.mult, crit.isCrit);
+              if (!qualifyingHitPoint && hasDuoThundercircle && hpBefore > e.hp && dist(e, circleCenter) <= barrierRadius && !e.vanish && !e.done) {
+                qualifyingHitPoint = { x: e.x, y: e.y };
+              }
             }
           }
-          AUDIO.thunder(rank);
+
+          if (spec.hasBranch && spec.branchCount > 0 && primaryTargets.length > 0) {
+            let branchTarget = null;
+            for (const pt of primaryTargets) {
+              const subCandidates = enemies.filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done && !struck.has(e) && dist(pt, e) <= spec.branchRadius);
+              if (subCandidates.length > 0) {
+                subCandidates.sort((a, b) => dist(pt, a) - dist(pt, b));
+                branchTarget = subCandidates[0];
+                break;
+              }
+            }
+            if (branchTarget) {
+              struck.add(branchTarget);
+              SKILLFX.play("thunder", "strike", spec.level, { x: branchTarget.x, y: branchTarget.y, r: spec.branchRadius, branch: true });
+              hurt(branchTarget, spec.branchDamage * crit.mult, crit.isCrit);
+              branchTarget.flash = 0.15;
+            }
+          }
+
+          if (qualifyingHitPoint && duoShockwaves.length < 16) {
+            duoShockwaves.push({
+              x: qualifyingHitPoint.x,
+              y: qualifyingHitPoint.y,
+              radius: 64,
+              delay: 0.12,
+              damageBudget: Number((spec.damage * 0.20).toFixed(4)),
+              triggered: false,
+              level: spec.level
+            });
+          }
+
+          AUDIO.thunder(spec.level);
         }
       }
     }
@@ -2079,7 +3962,7 @@
     if (Math.hypot(m.x, m.y) > 0.05) {
       P.faceAng = Math.atan2(m.y, m.x);
     }
-    const baseSpd = 230 + (b.spd || 0) * 35;
+    const baseSpd = getEffectiveMoveSpeed();
     const sp = dashT > 0 ? 780 : baseSpd;
     const steps = Math.max(1, Math.ceil(sp * dt / 9));
     for (let i = 0; i < steps; i++) {
@@ -2203,6 +4086,9 @@
       const baseSpd = Number.isFinite(e.speed) ? e.speed : 0;
       let curSpd = revealing ? 0 : ((e.slowT && e.slowT > 0) ? Math.min(baseSpd, 25) : baseSpd);
       if (sacredSanctuary && sacredSanctuary.life > 0 && e.type !== "boss" && dist(e, sacredSanctuary) <= sacredSanctuary.r) curSpd *= 0.6;
+      if (e.frostsealSlowEnds && elapsed < e.frostsealSlowEnds && (!e.freezeEnds || elapsed >= e.freezeEnds)) {
+        curSpd *= (e.frostsealSlowMult || 1.0);
+      }
       let hazardHit = null;
       if (e.type === "boss" && window.BOSS_AI?.step) {
         const stepped = window.BOSS_AI.step(e, P, dt, {
@@ -2355,6 +4241,7 @@
           title: bossTitle,
           bossIndex: bossStage,
           stageId: STAGE.id,
+          bossTheme: STAGE_ENEMY.bossTheme,
           oilReward: plan.oil,
           hp: plan.hp,
           max: plan.hp,
@@ -2399,7 +4286,7 @@
 
     if (!safeRead) {
     // 靈玉經驗吸收
-    const att = magnetRadius(b.mag);
+    const att = getEffectiveMagnetRadius();
     for (const g of gems) {
       const d = dist(P, g);
       if (d > GEM_DISTANCE) { g.done = true; continue; }
@@ -2499,7 +4386,7 @@
       curCam.y + (targetCamY - curCam.y) * Math.min(1, dt * 9)
     );
 
-    if (!safeRead && xp >= xpNeed()) offerUp();
+    if (!safeRead && state === "play" && xp >= xpNeed()) offerUp();
   }
 
   let rainLoad = 1;
@@ -3071,15 +4958,16 @@
 
     // Lv1–3 僅環繞、Lv4 三火脫離追擊；MAX 六火常駐並召喚黑龍。
     if (WL.fire > 0) {
-      const count = EVOLUTIONS.fireCount(WL.fire);
-      const orbitR = EVOLUTIONS.FIRE_ORBIT;
+      const fireSpec = resolveAttackSpec("fire", WL.fire, getBuildState());
+      const count = fireSpec.count;
+      const rx = fireSpec.rx, ry = fireSpec.ry;
       const awaySlots = new Set(ghosts.filter(p=>p.fireAttack&&p.life>0&&p.level===WL.fire).map(p=>p.slot));
       for (let i = 0; i < count; i++) {
         if (awaySlots.has(i)) continue;
         const a = fAng + (i * 6.283) / count;
-        const fx=P.x+Math.cos(a)*orbitR,fy=P.y+Math.sin(a)*orbitR;
+        const fx=P.x+Math.cos(a)*rx,fy=P.y+Math.sin(a)*ry;
         upright(fx,fy,()=>SKILLFX.paint(ctx, "fire", WL.fire, {
-          x:fx, y:fy, ang:a, origin:P, orbitR, time:elapsed+i*.2, orbit:true
+          x:fx, y:fy, ang:a, origin:P, orbitR:rx, orbitRy:ry, rx, ry, time:elapsed+i*.2, orbit:true
         }));
       }
     }
@@ -3603,6 +5491,42 @@
     const button = UI.codexButtons("words", codexPage, codexWords().length, wordCodexState()).find(b => hitButton(p, b));
     return !!(button && button.id === "replay" && button.disabled);
   }
+
+  function levelUpLayout() {
+    const custom = typeof UI.levelUpLayout === "function" ? UI.levelUpLayout(choices.length) : null;
+    const baseCard = { x: 90, y: 176, w: 720, h: 108, gap: 14 };
+    const card = custom && custom.card
+      ? {
+          x: typeof custom.card.x === "number" ? custom.card.x : baseCard.x,
+          y: typeof custom.card.y === "number" ? custom.card.y : baseCard.y,
+          w: typeof custom.card.w === "number" ? custom.card.w : baseCard.w,
+          h: typeof custom.card.h === "number" ? custom.card.h : baseCard.h,
+          gap: typeof custom.card.gap === "number" ? custom.card.gap : baseCard.gap
+        }
+      : baseCard;
+    const reroll = custom && custom.reroll && typeof custom.reroll.x === "number" ? custom.reroll : UI.REROLL_BTN;
+    return { card, reroll };
+  }
+
+  function hitLevelUpCard(p) {
+    if (!p) return -1;
+    const { card } = levelUpLayout();
+    const count = choices.length;
+    for (let i = 0; i < count; i++) {
+      const rowY = card.y + i * (card.h + card.gap);
+      if (p.x >= card.x && p.x <= card.x + card.w && p.y >= rowY && p.y <= rowY + card.h) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  function hitLevelUpReroll(p) {
+    if (!p) return false;
+    const { reroll: btn } = levelUpLayout();
+    return !!(btn && hitButton(p, btn));
+  }
+
   document.getElementById("game-container").addEventListener("pointerdown", e => {
     e.preventDefault();
     if (frameError) { recoverFrameError(); return; }
@@ -3714,17 +5638,13 @@
       return;
     }
     if (state === "levelup") {
-      const cardW = 720, cardH = 108, startX = 90, gap = 14, cy = 176;
-      for (let i = 0; i < 3; i++) {
-        const cx = startX;
-        const rowY = cy + i * (cardH + gap);
-        if (p.x >= cx && p.x <= cx + cardW && p.y >= rowY && p.y <= rowY + cardH) {
-          levelupFocus = i;
-          pickUp(i);
-          return;
-        }
+      const hitIndex = hitLevelUpCard(p);
+      if (hitIndex >= 0) {
+        levelupFocus = hitIndex;
+        pickUp(hitIndex);
+        return;
       }
-      if (UI.REROLL_BTN && hitButton(p, UI.REROLL_BTN)) reroll();
+      if (hitLevelUpReroll(p)) reroll();
       return;
     }
     if (bossQ && !job?.reading) {
@@ -3751,11 +5671,8 @@
   cv.addEventListener("contextmenu", e => e.preventDefault());
   cv.addEventListener("pointermove", e => {
     if (state === "levelup" && e.pointerType === "mouse") {
-      const pt = pp(e);
-      for (let i=0;i<choices.length;i++) {
-        const y=176+i*122;
-        if (pt.x>=90 && pt.x<=810 && pt.y>=y && pt.y<=y+108) {levelupFocus=i;break;}
-      }
+      const hitIndex = hitLevelUpCard(pp(e));
+      if (hitIndex >= 0) levelupFocus = hitIndex;
     }
     if(e.pointerType === 'mouse'){
       const available = quitConfirm ? UI.EXIT_BTNS
@@ -3797,7 +5714,7 @@
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     tutorial = null; bossQ = null; job = null; inter = null;
     orders = []; enemies = []; gems = []; texts = []; rings = [];
-    proj = []; needles = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; enemyBullets = [];
+    proj = []; needles = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; splitblasts = []; duoShockwaves = []; inkfireMarks = []; enemyBullets = [];
     victorySeq = null; lampSeq = null; finalBossEnt = null;
     FX.reset(); SKILLFX.reset(); RENDERER.clearShake();
     AUDIO.setSuspended(false);
