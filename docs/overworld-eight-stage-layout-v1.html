@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Yokai Delivery｜八關旅路定位稿 V1</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f1ede4;color:#3e332a;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
+header{background:#44382e;color:#f8ead4;padding:22px 26px}h1{margin:0 0 5px;font-size:24px}header p{margin:0;opacity:.85;line-height:1.6;font-size:13px}
+main{max-width:1420px;margin:auto;padding:20px}section{background:#fffaf1;border:1px solid #dfd3c1;border-radius:12px;padding:18px;margin-bottom:18px}h2{margin:0 0 12px;font-size:17px}
+svg{display:block;width:100%;height:auto;background:#ede2cd;border:1px solid #d8c6ac;border-radius:8px}
+.grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px}
+label{font-size:13px}select{font:inherit;font-size:14px;padding:7px;border:1px solid #b39d81;border-radius:6px;background:#fbf3e5}
+.controls{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin:0 0 12px}
+.note{color:#766856;font-size:13px;line-height:1.7}#info{font-size:12px;color:#654f3b;padding:8px 0;line-height:1.6}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;border-bottom:1px solid #e8dccb;padding:7px 4px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:#75634f;margin-top:10px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}main{padding:10px}section{padding:12px}header{padding:18px}}
+</style></head>
+<body>
+<header><h1>妖怪快遞社・旅路圖｜八關構圖定位 V1</h1>
+<p>這是構圖／道路／互動層檢查工具，<strong>不是正式美術，也不是用 SVG 取代生成的水墨底圖。</strong> 色塊是區域氛圍的佈局參考，絕不是要畫成獨立的圓形關卡平台。</p></header>
+<main>
+<section><h2>完整世界（暫定 3000 × 1600）</h2>
+<svg id="overview" viewBox="0 0 3000 1600" aria-label="完整八關構圖">
+<defs><linearGradient id="paper" x2="1" y2="1"><stop stop-color="#f0e8d7"/><stop offset="1" stop-color="#e7dcc5"/></linearGradient><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M100 0H0V100" fill="none" stroke="#786756" stroke-opacity=".12" stroke-width="2"/></pattern></defs>
+<g id="world"></g><rect id="focusRect" fill="#ae4f3c" fill-opacity=".08" stroke="#a65c40" stroke-width="8" stroke-dasharray="28 14"/></svg>
+<div class="legend"><span><i class="dot" style="background:#a05f42"></i>八個正式關卡</span><span><i class="dot" style="background:#c4ae8d"></i>九個過渡 waypoint</span><span><i class="dot" style="background:#ac7c50"></i>低細節留白（構圖用）</span><span><i class="dot" style="background:#aa5944"></i>目前關卡視野</span></div>
+<p class="note">底圖正式繪製時不包含任何文字、路線虛線、角色、標示或 UI。這些元素只出現在定位稿的獨立遊戲層，以便對位檢查。</p></section>
+<div class="grid"><section>
+<h2>900 × 600 角色攝影機局部視野</h2>
+<div class="controls"><label>檢查關卡：<select id="stage"></select></label><label><input type="checkbox" id="zones" checked> 留白安全區</label></div>
+<div id="info"></div><svg id="viewport" viewBox="0 0 900 600" aria-label="局部攝影機檢查"></svg>
+<p class="note">木色半透明的頂部標題、左上返回、底部資訊、右下出發為 HUD 預留框；關卡名牌約 208×46，角色示意高度 108。這裡不是遊戲正式渲染；需在 A2 再作實際瀏覽器／裝置疊圖驗收。</p>
+</section><section>
+<h2>八關正式節點</h2>
+<table><thead><tr><th>#</th><th>關卡</th><th>X</th><th>Y</th><th>章</th></tr></thead><tbody id="stageRows"></tbody></table>
+<p class="note">與現在遊戲不同：現有只寫五個正式節點、四個道路節點。這份定位稿使用八關與九個 waypoint，未修改遊戲程式。五個舊關卡 ID 和四個舊 waypoint ID 都保留。</p>
+<p class="note">完整路線：旅立ち → 夜行町 → 分かれ道 → 雨夜港町 → 港後坡 → 妖櫻山道 → 古道 → 竹影迷宮 → 竹林出口 → 百鬼京都 → 見晴台 → 雪燈山寺 → 雪路 → 幽世渡口 → 幽河彼岸 → 黃泉斜坡 → 黃泉境。</p>
+<p class="note"><strong>待確認：</strong>位置與分區大小、章節過渡、實際構圖比例、第二張設計圖原參考，以及八關視野的美術留白。</p>
+</section></div>
+</main>
+<script>
+(function(){
+"use strict";
+var MW=3000,MH=1600,VW=900,VH=600;
+var stages=[
+{id:"night-town",name:"夜行町",x:390,y:1180,chapter:1,col:"#a86b44"},
+{id:"rain-port",name:"雨夜港町",x:730,y:1330,chapter:1,col:"#5c8490"},
+{id:"sakura-pass",name:"妖櫻山道",x:1070,y:975,chapter:1,col:"#bf8b96"},
+{id:"bamboo-maze",name:"竹影迷宮",x:1380,y:720,chapter:2,col:"#719070"},
+{id:"hyakki-kyoto",name:"百鬼京都",x:1710,y:955,chapter:2,col:"#aa765c"},
+{id:"snow-temple",name:"雪燈山寺",x:2080,y:555,chapter:2,col:"#89a6ae"},
+{id:"spirit-ferry",name:"幽世渡口",x:2430,y:1040,chapter:3,col:"#55828b"},
+{id:"yomi",name:"黃泉境",x:2770,y:375,chapter:3,col:"#8a5263"}
+];
+var pass=[
+{id:"gate",name:"旅立ち",x:180,y:1210},
+{id:"cross-west",name:"分かれ道",x:565,y:1220},
+{id:"port-rise",name:"港後坡",x:910,y:1150},
+{id:"cross-east",name:"古道",x:1220,y:830},
+{id:"bamboo-exit",name:"竹林出口",x:1520,y:845},
+{id:"lookout",name:"見晴台",x:1900,y:780},
+{id:"snow-pass",name:"雪路",x:2260,y:740},
+{id:"yomi-ford",name:"幽河彼岸",x:2585,y:770},
+{id:"yomi-ascent",name:"黃泉斜坡",x:2675,y:545}
+];
+var sequence=["gate","night-town","cross-west","rain-port","port-rise","sakura-pass","cross-east","bamboo-maze","bamboo-exit","hyakki-kyoto","lookout","snow-temple","snow-pass","spirit-ferry","yomi-ford","yomi-ascent","yomi"];
+var ids={};stages.concat(pass).forEach(function(n){ids[n.id]=n;});
+var fields=[
+["M0 830Q190 690 550 840T1090 1190L1110 1600H0Z","#c9b59c",.44],
+["M0 1260Q270 1120 600 1210T1130 1140L1170 1600H0Z","#669dab",.33],
+["M760 860Q850 550 1150 430T1500 690Q1400 1000 1050 1190Z","#d3a0ae",.4],
+["M1110 340Q1300 170 1550 345T1740 725Q1670 965 1400 1010T1110 340Z","#76957b",.35],
+["M1430 870Q1610 710 1800 730T2110 1040Q1920 1280 1710 1140T1430 870Z","#b69272",.39],
+["M1740 160Q1950 -25 2270 140T2450 620Q2270 880 2000 790T1740 160Z","#a9bdc2",.62],
+["M2160 900Q2390 665 2600 805T2860 1410Q2500 1530 2230 1320Z","#6c9299",.54],
+["M2480 60Q2770 -20 3000 35V1110Q2790 1180 2620 940T2480 60Z","#ad7280",.47]
+];
+var art='<rect x="0" y="0" width="3000" height="1600" fill="url(#paper)"/><rect x="0" y="0" width="3000" height="1600" fill="url(#grid)"/>';
+fields.forEach(function(v){art+='<path d="'+v[0]+'" fill="'+v[1]+'" fill-opacity="'+v[2]+'"/>';});
+art+='<g stroke-linecap="round" fill="none">';
+for(var i=0;i<sequence.length-1;i++){var a=ids[sequence[i]],b=ids[sequence[i+1]];
+art+='<path d="M'+a.x+' '+a.y+'L'+b.x+' '+b.y+'" stroke="#705c48" stroke-width="19" stroke-opacity=".58"/>';
+art+='<path d="M'+a.x+' '+a.y+'L'+b.x+' '+b.y+'" stroke="#fff3d4" stroke-width="8" stroke-dasharray="17 12"/>';
+}
+art+='</g><g id="quietZones">';
+stages.forEach(function(n){art+='<rect x="'+(n.x-132)+'" y="'+(n.y-135)+'" width="264" height="250" rx="58" fill="#fff8e9" fill-opacity=".32" stroke="#b99e6e" stroke-width="4" stroke-dasharray="12 12"/>';});
+art+='</g>';
+stages.forEach(function(n,i){
+art+='<circle cx="'+n.x+'" cy="'+n.y+'" r="30" fill="#fff6e8" stroke="'+n.col+'" stroke-width="9"/>';
+art+='<text x="'+n.x+'" y="'+(n.y+11)+'" text-anchor="middle" font-size="32" font-weight="bold" fill="#4f392f">'+(i+1)+'</text>';
+art+='<rect x="'+(n.x-110)+'" y="'+(n.y-94)+'" width="220" height="58" rx="10" fill="#fff9ea" fill-opacity=".92" stroke="#c3ab8b" stroke-width="2"/>';
+art+='<text x="'+n.x+'" y="'+(n.y-54)+'" text-anchor="middle" font-size="36" font-weight="bold" fill="#43362d">'+n.name+'</text>';
+});
+pass.forEach(function(n){art+='<circle cx="'+n.x+'" cy="'+n.y+'" r="13" fill="#ddd0b4" stroke="#816e55" stroke-width="5"/><text x="'+(n.x+17)+'" y="'+(n.y-17)+'" font-size="25" fill="#5f5140">'+n.name+'</text>';});
+art+='<g fill="#695b4b" font-weight="bold" font-size="44" opacity=".62"><text x="85" y="455">第一章｜人間與近郊</text><text x="1140" y="210">第二章｜百鬼異變</text><text x="2350" y="1460">第三章｜黃泉之門</text></g>';
+document.getElementById("world").innerHTML=art;
+var vp=document.getElementById("viewport");
+vp.innerHTML='<defs>'+document.querySelector("#overview defs").innerHTML+'</defs><g id="localWorld">'+art+'</g><g id="hud"></g>';
+var select=document.getElementById("stage"),tbody=document.getElementById("stageRows");
+stages.forEach(function(n,i){var o=document.createElement("option");o.value=i;o.textContent=(i+1)+". "+n.name;select.appendChild(o);tbody.innerHTML+='<tr><td>'+(i+1)+'</td><td>'+n.name+'</td><td>'+n.x+'</td><td>'+n.y+'</td><td>'+n.chapter+'</td></tr>';});
+function clamp(x,lo,hi){return Math.max(lo,Math.min(hi,x));}
+function redraw(){var n=stages[+select.value||0],cx=clamp(n.x-450,0,MW-VW),cy=clamp(n.y-300,0,MH-VH);
+vp.setAttribute("viewBox",cx+" "+cy+" 900 600");
+var focus=document.getElementById("focusRect");focus.setAttribute("x",cx);focus.setAttribute("y",cy);focus.setAttribute("width",900);focus.setAttribute("height",600);
+var labelBottom=n.y+89-cy,labelTop=n.y+43-cy,overlap=Math.max(0,Math.min(584,labelBottom)-Math.max(484,labelTop));
+document.getElementById("info").textContent="鏡頭：X "+cx+"–"+(cx+900)+"，Y "+cy+"–"+(cy+600)+"｜節點畫面位置 "+(n.x-cx)+","+(n.y-cy)+"｜"+(overlap?"名牌與底部板有重疊風險":"名牌與底部面板縱向無重疊");
+var h='<g fill="none" stroke="#916c4a" stroke-width="3" stroke-dasharray="7 6"><rect x="'+(n.x-104)+'" y="'+(n.y+43)+'" width="208" height="46"/><rect x="'+(n.x-92)+'" y="'+(n.y-85)+'" width="34" height="108"/></g>';
+h+='<g font-size="18" text-anchor="middle" fill="#3c2e22">';
+h+='<rect x="'+(cx+18)+'" y="'+(cy+18)+'" width="104" height="40" rx="5" fill="#ebd6ae" fill-opacity=".9"/><text x="'+(cx+70)+'" y="'+(cy+44)+'">首頁</text>';
+h+='<rect x="'+(cx+259)+'" y="'+(cy+3)+'" width="382" height="77" rx="8" fill="#9a7755" fill-opacity=".85"/><text x="'+(cx+450)+'" y="'+(cy+49)+'" fill="#fff">標題區</text>';
+h+='<rect x="'+(cx+260)+'" y="'+(cy+484)+'" width="380" height="100" rx="8" fill="#efdab1" fill-opacity=".9"/><text x="'+(cx+450)+'" y="'+(cy+542)+'">關卡資訊面板</text>';
+h+='<rect x="'+(cx+768)+'" y="'+(cy+512)+'" width="112" height="62" rx="8" fill="#ad6d4d" fill-opacity=".9"/><text x="'+(cx+824)+'" y="'+(cy+550)+'" fill="#fff">出發</text></g>';
+document.getElementById("hud").innerHTML=h;
+var show=document.getElementById("zones").checked;
+document.querySelector("#quietZones").style.display=show?"":"none";
+vp.querySelector("#quietZones").style.display=show?"":"none";
+}
+select.addEventListener("change",redraw);document.getElementById("zones").addEventListener("change",redraw);redraw();
+})();
+</script></body></html>

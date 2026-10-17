@@ -1,0 +1,41 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>陰陽術重製｜本機美術檢查</title><style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#151b21;color:#f7eeda;font:16px/1.6 system-ui,"Microsoft JhengHei",sans-serif}main{max-width:1400px;margin:auto;padding:25px}h1{margin:0;font-size:27px;color:#ecd8ad}p{color:#d2d4cf}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}article{border:1px solid #83775d;background:#253038;padding:12px;border-radius:12px}h2{font-size:18px;margin:3px 0 10px}canvas{width:100%;aspect-ratio:4/3;display:block;border-radius:8px}small{color:#dbd5c4}@media(max-width:800px){.grid{grid-template-columns:1fr}}button{background:#334852;border:1px solid #a5bbb5;color:white;padding:9px 16px;border-radius:9px;cursor:pointer}</style></head><body><main>
+<h1>陰陽術三技｜視覺重製本機檢查</h1>
+<p>程序式 Canvas 繪製、青綠太極八卦靈陣、藍紫白雷雲與落雷、朱紅和紙御札。非正式遊戲畫面。三格可切換地面投影，空中／紙符保持直立。</p>
+<button id="tilt" type="button">切換 2D／2.5D</button>
+<div class="grid"><article><h2>淨化靈陣 · 地面</h2><canvas width="420" height="315" id="seal"></canvas><small>青綠主環、白玉陰陽魚、八卦刻印、不同速度旋轉。</small></article>
+<article><h2>天狐雷 · 空中＋地面</h2><canvas width="420" height="315" id="thunder"></canvas><small>冷色雲層在空中，鎖定符印留在地面，落雷上下連結。</small></article>
+<article><h2>陰陽符 · 直立御札</h2><canvas width="420" height="315" id="ofuda"></canvas><small>紅印和紙、墨寫符紋、邊線，緩慢翻轉而非高速旋轉。</small></article></div>
+<p>不更改現有正式素材或技能判定；此頁檢查後才接入正式遊戲。</p>
+</main><script src="../js/onyo-vfx.js"></script><script>
+let k=.6,t=0;document.getElementById('tilt').addEventListener('click',()=>{k=k===1?.6:1;});
+function backdrop(c,x,y){
+ const w=c.canvas.width,h=c.canvas.height;
+ c.fillStyle='#635c55';c.fillRect(0,0,w,h);
+ c.strokeStyle='#817a6d';c.lineWidth=1;
+ for(let i=0;i<22;i++){let sx=(i*117)%w,sy=(i*87)%h;c.beginPath();c.moveTo(sx,sy);c.lineTo(sx+42,sy+9);c.stroke();}
+ c.fillStyle='#ccb28d';c.font='13px sans-serif';c.fillText('YOKAI DELIVERY  ·  GROUND',12,24);
+}
+function draw(){
+ t+=1/60;
+ for(const name of ['seal','thunder','ofuda']){
+  const canvas=document.getElementById(name),c=canvas.getContext('2d');
+  c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,420,315);backdrop(c);
+  const x=210,y=235;c.save();c.translate(0,y*(1-k));c.scale(1,k);
+  if(name==='seal')window.ONMYO_VFX.seal(c,x,y,110,t,5);
+  if(name==='thunder'){
+    window.ONMYO_VFX.lightningMark(c,x,y,40,t,.9);
+    c.save();c.translate(x,y);c.scale(1,1/k);c.translate(-x,-y);
+    window.ONMYO_VFX.cloud(c,x,y-146,t,5);
+    window.ONMYO_VFX.strike(c,x,y,t,5);c.restore();
+  }
+  if(name==='ofuda'){
+    c.save();c.translate(x,y);c.scale(1,1/k);c.translate(-x,-y);
+    window.ONMYO_VFX.ofuda(c,x,y-25,t,5);c.restore();
+  }
+  c.restore();
+ }
+ requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+</script></body></html>

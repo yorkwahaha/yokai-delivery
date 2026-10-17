@@ -1,0 +1,1685 @@
+{
+  "source": "approved A1; viewport formulas from js/viewport.js; HUD coordinates from js/overworld.js",
+  "generatedAt": "2026-10-12",
+  "route": {
+    "stages": 8,
+    "waypoints": 9,
+    "edges": 16,
+    "maxHop": 344.8
+  },
+  "current": {
+    "world": "3000x1600, HUD fixed 900x600",
+    "devices": [
+      {
+        "device": "baseline desktop",
+        "screen": "900x600",
+        "logical": [
+          900,
+          600
+        ],
+        "map": "3000x1600",
+        "responsiveHud": false,
+        "mapCovered": true,
+        "collisions": 0,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 0,
+            "camY": 880,
+            "stageScreen": [
+              390,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 1000,
+            "stageScreen": [
+              450,
+              330
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 675,
+            "stageScreen": [
+              450,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 420,
+            "stageScreen": [
+              450,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 655,
+            "stageScreen": [
+              450,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 255,
+            "stageScreen": [
+              450,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1980,
+            "camY": 740,
+            "stageScreen": [
+              450,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 2100,
+            "camY": 75,
+            "stageScreen": [
+              670,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "desktop 16:10",
+        "screen": "1440x900",
+        "logical": [
+          960,
+          600
+        ],
+        "map": "3000x1600",
+        "responsiveHud": false,
+        "mapCovered": true,
+        "collisions": 0,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 30,
+            "camY": 880,
+            "stageScreen": [
+              390,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 1000,
+            "stageScreen": [
+              480,
+              330
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 675,
+            "stageScreen": [
+              480,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 420,
+            "stageScreen": [
+              480,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 655,
+            "stageScreen": [
+              480,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 255,
+            "stageScreen": [
+              480,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1980,
+            "camY": 740,
+            "stageScreen": [
+              480,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 2070,
+            "camY": 75,
+            "stageScreen": [
+              730,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "ultrawide desktop",
+        "screen": "2560x1080",
+        "logical": [
+          1422.2,
+          600
+        ],
+        "map": "3000x1600",
+        "responsiveHud": false,
+        "mapCovered": true,
+        "collisions": 0,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 261.1,
+            "camY": 880,
+            "stageScreen": [
+              390,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 1000,
+            "stageScreen": [
+              711.1,
+              330
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 675,
+            "stageScreen": [
+              711.1,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 420,
+            "stageScreen": [
+              711.1,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 655,
+            "stageScreen": [
+              711.1,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 255,
+            "stageScreen": [
+              711.1,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1838.9,
+            "camY": 740,
+            "stageScreen": [
+              852.2,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 1838.9,
+            "camY": 75,
+            "stageScreen": [
+              1192.2,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "phone landscape",
+        "screen": "844x390",
+        "logical": [
+          1298.5,
+          600
+        ],
+        "map": "3000x1600",
+        "responsiveHud": false,
+        "mapCovered": true,
+        "collisions": 0,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 199.2,
+            "camY": 880,
+            "stageScreen": [
+              390,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 1000,
+            "stageScreen": [
+              649.2,
+              330
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 675,
+            "stageScreen": [
+              649.2,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 420,
+            "stageScreen": [
+              649.2,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 655,
+            "stageScreen": [
+              649.2,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 255,
+            "stageScreen": [
+              649.2,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1900.8,
+            "camY": 740,
+            "stageScreen": [
+              728.5,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 1900.8,
+            "camY": 75,
+            "stageScreen": [
+              1068.5,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "phone portrait",
+        "screen": "390x844",
+        "logical": [
+          900,
+          1947.7
+        ],
+        "map": "3000x1600",
+        "responsiveHud": false,
+        "mapCovered": false,
+        "collisions": 4,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 0,
+            "camY": 673.8,
+            "stageScreen": [
+              390,
+              1180
+            ],
+            "overlaps": [
+              "label:panel",
+              "player:panel",
+              "landmark:panel"
+            ],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 673.8,
+            "stageScreen": [
+              450,
+              1330
+            ],
+            "overlaps": [
+              "player:panel"
+            ],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 673.8,
+            "stageScreen": [
+              450,
+              975
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 673.8,
+            "stageScreen": [
+              450,
+              720
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 673.8,
+            "stageScreen": [
+              450,
+              955
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 673.8,
+            "stageScreen": [
+              450,
+              555
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1980,
+            "camY": 673.8,
+            "stageScreen": [
+              450,
+              1040
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 2100,
+            "camY": 673.8,
+            "stageScreen": [
+              670,
+              375
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "small phone portrait",
+        "screen": "360x800",
+        "logical": [
+          900,
+          2000
+        ],
+        "map": "3000x1600",
+        "responsiveHud": false,
+        "mapCovered": false,
+        "collisions": 5,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 0,
+            "camY": 700,
+            "stageScreen": [
+              390,
+              1180
+            ],
+            "overlaps": [
+              "label:panel",
+              "player:panel",
+              "landmark:panel"
+            ],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 700,
+            "stageScreen": [
+              450,
+              1330
+            ],
+            "overlaps": [
+              "player:panel",
+              "landmark:panel"
+            ],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 700,
+            "stageScreen": [
+              450,
+              975
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 700,
+            "stageScreen": [
+              450,
+              720
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 700,
+            "stageScreen": [
+              450,
+              955
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 700,
+            "stageScreen": [
+              450,
+              555
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1980,
+            "camY": 700,
+            "stageScreen": [
+              450,
+              1040
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 2100,
+            "camY": 700,
+            "stageScreen": [
+              670,
+              375
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "tablet landscape",
+        "screen": "1194x834",
+        "logical": [
+          900,
+          628.6
+        ],
+        "map": "3000x1600",
+        "responsiveHud": false,
+        "mapCovered": true,
+        "collisions": 0,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 0,
+            "camY": 880,
+            "stageScreen": [
+              390,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 985.7,
+            "stageScreen": [
+              450,
+              358.6
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 675,
+            "stageScreen": [
+              450,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 420,
+            "stageScreen": [
+              450,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 655,
+            "stageScreen": [
+              450,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 255,
+            "stageScreen": [
+              450,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1980,
+            "camY": 740,
+            "stageScreen": [
+              450,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 2100,
+            "camY": 75,
+            "stageScreen": [
+              670,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "tablet portrait",
+        "screen": "834x1194",
+        "logical": [
+          900,
+          1288.5
+        ],
+        "map": "3000x1600",
+        "responsiveHud": false,
+        "mapCovered": true,
+        "collisions": 3,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 0,
+            "camY": 655.8,
+            "stageScreen": [
+              390,
+              868.5
+            ],
+            "overlaps": [
+              "label:panel",
+              "player:panel",
+              "landmark:panel"
+            ],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 655.8,
+            "stageScreen": [
+              450,
+              1018.5
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 655.8,
+            "stageScreen": [
+              450,
+              663.5
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 420,
+            "stageScreen": [
+              450,
+              644.2
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 655,
+            "stageScreen": [
+              450,
+              644.2
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 344.2,
+            "stageScreen": [
+              450,
+              555
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1980,
+            "camY": 655.8,
+            "stageScreen": [
+              450,
+              728.5
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 2100,
+            "camY": 344.2,
+            "stageScreen": [
+              670,
+              375
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      }
+    ]
+  },
+  "proposed": {
+    "world": "3000x2200, HUD anchored to viewport.bottom/right",
+    "devices": [
+      {
+        "device": "baseline desktop",
+        "screen": "900x600",
+        "logical": [
+          900,
+          600
+        ],
+        "map": "3000x2200",
+        "responsiveHud": true,
+        "mapCovered": true,
+        "collisions": 0,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 0,
+            "camY": 880,
+            "stageScreen": [
+              390,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 1030,
+            "stageScreen": [
+              450,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 675,
+            "stageScreen": [
+              450,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 420,
+            "stageScreen": [
+              450,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 655,
+            "stageScreen": [
+              450,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 255,
+            "stageScreen": [
+              450,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1980,
+            "camY": 740,
+            "stageScreen": [
+              450,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 2100,
+            "camY": 75,
+            "stageScreen": [
+              670,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "desktop 16:10",
+        "screen": "1440x900",
+        "logical": [
+          960,
+          600
+        ],
+        "map": "3000x2200",
+        "responsiveHud": true,
+        "mapCovered": true,
+        "collisions": 0,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 30,
+            "camY": 880,
+            "stageScreen": [
+              390,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 1030,
+            "stageScreen": [
+              480,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 675,
+            "stageScreen": [
+              480,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 420,
+            "stageScreen": [
+              480,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 655,
+            "stageScreen": [
+              480,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 255,
+            "stageScreen": [
+              480,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1980,
+            "camY": 740,
+            "stageScreen": [
+              480,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 2070,
+            "camY": 75,
+            "stageScreen": [
+              730,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "ultrawide desktop",
+        "screen": "2560x1080",
+        "logical": [
+          1422.2,
+          600
+        ],
+        "map": "3000x2200",
+        "responsiveHud": true,
+        "mapCovered": true,
+        "collisions": 0,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 261.1,
+            "camY": 880,
+            "stageScreen": [
+              390,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 1030,
+            "stageScreen": [
+              711.1,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 675,
+            "stageScreen": [
+              711.1,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 420,
+            "stageScreen": [
+              711.1,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 655,
+            "stageScreen": [
+              711.1,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 255,
+            "stageScreen": [
+              711.1,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1838.9,
+            "camY": 740,
+            "stageScreen": [
+              852.2,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 1838.9,
+            "camY": 75,
+            "stageScreen": [
+              1192.2,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "phone landscape",
+        "screen": "844x390",
+        "logical": [
+          1298.5,
+          600
+        ],
+        "map": "3000x2200",
+        "responsiveHud": true,
+        "mapCovered": true,
+        "collisions": 0,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 199.2,
+            "camY": 880,
+            "stageScreen": [
+              390,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 1030,
+            "stageScreen": [
+              649.2,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 675,
+            "stageScreen": [
+              649.2,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 420,
+            "stageScreen": [
+              649.2,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 655,
+            "stageScreen": [
+              649.2,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 255,
+            "stageScreen": [
+              649.2,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1900.8,
+            "camY": 740,
+            "stageScreen": [
+              728.5,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 1900.8,
+            "camY": 75,
+            "stageScreen": [
+              1068.5,
+              300
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "phone portrait",
+        "screen": "390x844",
+        "logical": [
+          900,
+          1947.7
+        ],
+        "map": "3000x2200",
+        "responsiveHud": true,
+        "mapCovered": true,
+        "collisions": 0,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 0,
+            "camY": 880,
+            "stageScreen": [
+              390,
+              973.8
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 926.2,
+            "stageScreen": [
+              450,
+              1077.7
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 675,
+            "stageScreen": [
+              450,
+              973.8
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 673.8,
+            "stageScreen": [
+              450,
+              720
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 673.8,
+            "stageScreen": [
+              450,
+              955
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 673.8,
+            "stageScreen": [
+              450,
+              555
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1980,
+            "camY": 740,
+            "stageScreen": [
+              450,
+              973.8
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 2100,
+            "camY": 673.8,
+            "stageScreen": [
+              670,
+              375
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "small phone portrait",
+        "screen": "360x800",
+        "logical": [
+          900,
+          2000
+        ],
+        "map": "3000x2200",
+        "responsiveHud": true,
+        "mapCovered": true,
+        "collisions": 0,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 0,
+            "camY": 880,
+            "stageScreen": [
+              390,
+              1000
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 900,
+            "stageScreen": [
+              450,
+              1130
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 700,
+            "stageScreen": [
+              450,
+              975
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 700,
+            "stageScreen": [
+              450,
+              720
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 700,
+            "stageScreen": [
+              450,
+              955
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 700,
+            "stageScreen": [
+              450,
+              555
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1980,
+            "camY": 740,
+            "stageScreen": [
+              450,
+              1000
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 2100,
+            "camY": 700,
+            "stageScreen": [
+              670,
+              375
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "tablet landscape",
+        "screen": "1194x834",
+        "logical": [
+          900,
+          628.6
+        ],
+        "map": "3000x2200",
+        "responsiveHud": true,
+        "mapCovered": true,
+        "collisions": 0,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 0,
+            "camY": 880,
+            "stageScreen": [
+              390,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 1030,
+            "stageScreen": [
+              450,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 675,
+            "stageScreen": [
+              450,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 420,
+            "stageScreen": [
+              450,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 655,
+            "stageScreen": [
+              450,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 255,
+            "stageScreen": [
+              450,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1980,
+            "camY": 740,
+            "stageScreen": [
+              450,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 2100,
+            "camY": 75,
+            "stageScreen": [
+              670,
+              314.3
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      },
+      {
+        "device": "tablet portrait",
+        "screen": "834x1194",
+        "logical": [
+          900,
+          1288.5
+        ],
+        "map": "3000x2200",
+        "responsiveHud": true,
+        "mapCovered": true,
+        "collisions": 0,
+        "offscreenLabels": [],
+        "stages": [
+          {
+            "stage": "夜行町",
+            "camX": 0,
+            "camY": 880,
+            "stageScreen": [
+              390,
+              644.2
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雨夜港町",
+            "camX": 280,
+            "camY": 1030,
+            "stageScreen": [
+              450,
+              644.2
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "妖櫻山道",
+            "camX": 620,
+            "camY": 675,
+            "stageScreen": [
+              450,
+              644.2
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "竹影迷宮",
+            "camX": 930,
+            "camY": 420,
+            "stageScreen": [
+              450,
+              644.2
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "百鬼京都",
+            "camX": 1260,
+            "camY": 655,
+            "stageScreen": [
+              450,
+              644.2
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "雪燈山寺",
+            "camX": 1630,
+            "camY": 344.2,
+            "stageScreen": [
+              450,
+              555
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "幽世渡口",
+            "camX": 1980,
+            "camY": 740,
+            "stageScreen": [
+              450,
+              644.2
+            ],
+            "overlaps": [],
+            "withinStage": true
+          },
+          {
+            "stage": "黃泉境",
+            "camX": 2100,
+            "camY": 344.2,
+            "stageScreen": [
+              670,
+              375
+            ],
+            "overlaps": [],
+            "withinStage": true
+          }
+        ]
+      }
+    ]
+  }
+}
