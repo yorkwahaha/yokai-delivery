@@ -70,7 +70,7 @@
 - 禁 reset、clean、checkout 及任何會清除／覆蓋 dirty 的操作。
 - 不刪未知檔、不覆寫他人候選、母版、測試證據或正在修改的檔。
 - 經授權僅清可證廢棄且無有效引用的衍生檔／舊交接，保留現役／母版／QA／待審。
-- **2026-10-17 使用者最新授權取代舊不 commit 條款：允許安全 LOCAL commit，禁止 push／deploy。** 僅 Codex 統籌提交，不打斷現役 writer；其他 Agent 不自行 stage／commit。
+- **2026-10-17 最新使用者授權：安全 LOCAL commit，禁止 push／deploy。** Codex 額度不足由 ChatGPT 暫代總監期間，AGY 僅獲本輪 HOUSEKEEPING-P1 已驗低風險 QA 工具／測試／非權威文件之逐檔白名單 stage/LOCAL commit 權限；不得寫 game/UI/STORE、四權威、音訊/KEY/env/素材、未知檔；Codex 復工後交回調度權。
 - 僅正式停檔、SHA 固定、獨立 QA 通過的 code＋配套 tests 同主題小批提交；四權威文件本次更新完成後可同組提交。未 GREEN 的整包契約、正在改的 game／UI／G-R1／E12.x 不提交。
 - 已有 LOCAL commits：d7b4981（STORE＋F-R1 test）、3bffe44（audio-freeze guard＋自測）、52c9366（M1 contract＋E11 tests）；不得重複 stage。HEAD 已非 54a4690。新授權不等於所有 dirty 可提交。
 - 歷史 checkpoint 政策不自動執行；未來須依最新明確授權判斷。

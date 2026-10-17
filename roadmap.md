@@ -12,6 +12,15 @@
 
 [AGENTS.md](AGENTS.md) 是短協作入口，由 Codex 與上列兩份新文檔一併獨占；其他 Agent 不修改這四檔。不掃全庫 docs/art；舊總計畫、甘特、執行看板與重啟交接按需作證據追溯，不能再各自成為派工來源。
 
+### 2026-10-17 11:35｜Codex 額度暫停、臨時總監接管
+
+**M1 IN_PROGRESS，Codex w7:p1 idle；最後5h額度約2%。** ChatGPT暫代總監，已建立每小時條件檢查：即時證實五小時額度回升至少80%、不撞writer後才交接回Codex，不提前喚醒。
+
+- **AGY w7:p4／HOUSEKEEPING-P1**：使用者授權整理原約388筆dirty，限已驗證低風險、非敏感、非素材的QA工具／測試／非權威文件，分組白名單LOCAL commit。不可碰game/UI/STORE、四權威、音訊/KEY/env、未審藝術、未知檔，不可全庫stage/刪除；交付每筆hash與測試。
+- **Grok w7:p7／E-R12.3**：舊340K/500K session保留，已以/new建新session 01a147f1-ccca-7071-881e-33b2292dbdf0，實測Grok4.7 high、4.5K起始；唯一js/ui.js＋tests/grok-m1-e-r12.test.cjs writer。修844×390真Chrome卡片截字／按鈕貼底，驗四Duo合法pair及mouse/touch/keyboard appliedId、levelup→play；不碰game/store。
+- **Space Bunny w7:p5／E-R12.2-QA5**：唯讀交件，已驗真Chrome/CDP但發現手機文字像素裁切，鍵盤只移焦與重抽未套卡、套卡後play未斷言、summary缺exitCode/storeSHA，舊6/6非最終gate；R12.3停檔後再驗。
+- **安全線／恢復**：原啟動HEAD 738e5aa，後續以實際git為準；M1整體未驗收、不進M2。保留所有dirty及音訊/KEY/母版凍結；禁push/deploy/reset/clean/checkout。Codex重置後核最新HEAD/agent交件/原RED→GREEN，再接回總監及M1-G真頁Gate。
+
 ### 現場狀態與重要已完成事實
 
 | 項目 | 已有事實／證據來源 | 保留限制 |
@@ -23,7 +32,7 @@
 | 旅路／選關 | 八關入口、連續旅路及 dev 選關已有工程紀錄 | 正式／dev 保存隔離與後續新增解鎖仍須回歸 |
 | 鏡頭基準 | Canvas2D tilt=.60、房屋 Y 1.20、2D 回退；S1 切鏡曾由使用者回報正常 | 不等於所有設備冷開／FPS 通過；P0 慢載現象曾 NOT_REPRODUCED，不能捏造新修復 |
 | 已核准素材 | S1 現役風格基準；S2 石木 v2、Shiome／Ikari 指定 rework 圖已有核准記錄 | 單圖核准不等於整關；不得重生或覆蓋核准母版 |
-| 本機 checkpoint | 現HEAD52c9366，前3bffe44/d7b4981；歷史54a4690保留 | 均LOCAL，不重做/不reset；非異地備份，未push/deploy，新M1仍未完成 |
+| 本機 checkpoint | HEAD f175244（四權威文件），父52c9366/3bffe44/d7b4981 | 四個LOCAL，不重做/不reset；文件13權威連結/精確stage四檔/內容SHA一致/cached diff-check exit0，提交後index空、391 status entries保留，未push/deploy |
 
 55/55 的精確測試命令、快照與產物由後續 owner 交接補齊；目前採「使用者提供的已完成基線」口徑，不虛構本輪獨立執行證據。其他歷史 PASS 僅對當時快照有效。
 
@@ -33,7 +42,7 @@
 
 ### 2026-10-17 新授權：安全 LOCAL checkpoint（不 push／deploy）
 
-使用者已授權分批本機提交已驗收成果，覆蓋下方歷史不 commit 條款。現場 HEAD `52c9366`，前兩筆 `3bffe44`／`d7b4981`；三筆由使用者／MCP1完成，Codex不重做。52c9366是contract＋E11兩測試（使用者與D/runtime合跑111/111，只stage兩檔）；3bffe44是guard＋自測（root本輪2/2 exit0）；d7b4981是STORE＋F-R1（使用者25/25、既有root13/13保留）。暫存區已核空；不是異地備份。
+使用者已授權分批本機提交已驗收成果，覆蓋下方歷史不 commit 條款。最新文件checkpoint HEAD `f175244`（Codex，僅四權威文件）；前三筆 `52c9366`／`3bffe44`／`d7b4981` 由使用者／MCP1完成，不重做。52c9366是contract＋E11兩測試（使用者與D/runtime合跑111/111，只stage兩檔）；3bffe44是guard＋自測（root本輪2/2 exit0）；d7b4981是STORE＋F-R1（使用者25/25、既有root13/13保留）。暫存區已核空；不是異地備份。
 
 | 分組／status entries | 本輪處置／可提交條件 |
 |---|---|
@@ -44,7 +53,7 @@
 | 素材項 23（含折疊art/） | 核准母版與未審候選均保護；未逐件核准分類，不以名稱判定安全，不stage |
 | ignored 159 entries | 驗證原證據/衍生/歷史保留、不強制add、不清理；不是159個檔案的精確計數 |
 
-以上是395個status entries（原397快照後52c9366提交兩測試）的路徑分類，含折疊目錄，不等於397件已審內容。每批只用 `git add -- 白名單`，先核 `git diff --cached --name-only`／`--check`、必要測試與HEAD，若混入未知暫存內容即停，不擅自清理他人index。禁止add ./-A/-u、reset/clean/checkout、push/deploy。
+以上是文件checkpoint前395個status entries（原397快照後52c9366提交兩測試）的路徑分類，含折疊目錄，不等於397件已審內容。每批只用 `git add -- 白名單`，先核 `git diff --cached --name-only`／`--check`、必要測試與HEAD，若混入未知暫存內容即停，不擅自清理他人index。禁止add ./-A/-u、reset/clean/checkout、push/deploy。
 
 **新RED已固定版獨立重現：** 使用者MCP1整包TEST_EXIT=1後，AGY G-R1正式idle/停寫；game c39d10／C test e3756beb2fdff882固定，root `--test-name-pattern='M1-C-11'` exit1 at797、`'M1-B-12'` exit1 at769（皆audio-freeze）。C11同測試記憶體觀測實得eligible=[duo:duo_inkfire]、duos=[]，舊空池前提是假；原失敗保留，不改game藏卡。AGY G-R1.1獨占自身B/C修正合法池與反向；D/runtime多餘EOF空行由其僅清尾端，SHA將變且重驗。未GREEN不提交整包B/C/D/runtime/G為已驗。
 
@@ -54,7 +63,7 @@
 | AGY `w7:p4` | G-R1受控結算子票root4/4與原race反例已收；G-R1.1測試退修 | game c39d10b03ff8dc7e正式凍結；現只自身B/C/D/runtime/G tests，送票exit0/working且已見B/C讀檔。原B12/C11 focused各exit1，C11剩duo_inkfire，修真空池/負向/seed/持久race/EOF空白，不碰UI/STORE |
 | Grok `w7:p7` | E12/E12.1證據NOT_PASSED→E12.2同票退修 | E12.1正式idle/test5eaa441f05fa771c；原Chrome tutorial:true教學遮罩且非法六主動fixture。E12.2已派exit0/working，限UI/自身E12測試/新run，先修教學/合法pair/真CDP與實繪量測；UI6593da982bf5644b，native321K/500K，不重開/換模型 |
 | OpenCode／Muse（原`w7:p6`） | 暫停全部M1寫入與請求，原UI權交代理 | 最新agent list已無此pane，未重啟，不推定額度恢復；保留PAUSED。10/17 08:00預計恢復，不自動切回；Grok完成當票→Codex驗收→評估交回 |
-| Space Bunny／OpenCode `w7:p5` | Q1–4子診斷已交；現F-R2唯讀真幀保存失敗/dev隔離 | 送票exit0/working，待原始交付；零檔案寫權，game c39/STORE5fe535固定，不讀AGY動態test，不重做F-R1或舊suite；native227K(22%) |
+| Space Bunny／OpenCode `w7:p5` | F-R2真幀保存邊界TARGETED_PASS／正式停檔idle | root獨立3案例stdin Node audio-freeze exit0，game c39/STORE5fe535/UI6593前後不變；failed won舊JSON不變/警告可見/reload未解鎖、lost不清關、dev won只dev key，均finish1次。受控終局fixture/VM，非Chrome/正常全局；暫待G/UI固定版新負向，不填busy |
 | Muse Spark／原Kilo | Muse1.3 Free已下架（使用者確認）；原Kilo停用、不再參與 | F-Q2現由使用者選定Space Bunny接管；撤銷Muse候選WAITING_ROUTE_AUTH作為現行blocker，不再核路由／登入、不發Cloudflare或Muse請求、不恢復Nemotron |
 | OpenCode Kiro（歷史`w7:p8`） | 無現役pane、舊F-Q2未交付且已停；本輪不參與 | 舊plan路由能回覆／讀檔但無QA結果，僅歷史，不再等待同模型執行agent決策。現行F-Q2是p5 Space Bunny全新明確接管，不能混作Kiro已成功或重試舊請求 |
 
@@ -103,11 +112,13 @@ E-R10命令阻塞已診斷：Grok擬用PowerShell將UI diff寫到白名單外 `I
 | Done：Codex固定UI純Chrome子驗證 | UI `0943480b4990b7cb`，Grok E-R10.2仍另行寫契約測試 | 真Chrome1000×700／844×390／1024×640，crosscut＋frost雙卡與四Duo單卡共15個受控fixture案例；全文／字級／實測邊界／44CSS／雙卡焦點樣式可收，三張真PNG已實看。meta15.56／14.30／14.93CSS。證據 `artifacts/validation/director-m1-e-r10-chrome-20261017/2026-10-16T16-21-33-662Z/`；初輪exit1為總監探針誤判Chrome將700正規化bold及emblem沿用rect，原摘要保留；同批真trace修正分析 `reanalysis.json` exit0／15案例通過，非重跑Chrome。pageErrors空、伺服器未收到game/audio/SW路徑，保留favicon失敗／console記錄；不假稱真game事件、三卡全組合、Duo實戰、自然局或實機 |
 | 未交付／請求中止：M1-F-Q1 | Kilo `w7:p5` 唯讀QA | 新QA票送入exit0、observed working，但多次間隔觀察只有供應商處理畫面，無首個工具動作／QA結果；已按介面兩次esc中止，不再重試／切模型。未取得本票Timeout／429訊息，不能推定具體錯誤碼；不列已恢復可用。F缺口由Codex收斂，後續交可用writer |
 | Done：F既有保存基線核對；非完整F | Codex唯讀QA | audio guard下聚焦 `tests/progression.test.cjs`＋`tests/dev-stage-selector.test.cjs` **6/6 exit0**：真STORE正式/dev隔離、storage寫失敗/恢復、舊詞庫存檔、S1勝利解鎖S2、敗局不解鎖、壞容器保合法資料。未改store，首通冪等／新build與永久分離仍待與新組合整合驗收；不新增無consumer中途續局系統 |
-| Next／Owner | AGY G-R1.1停寫→root原B12/C11/race/固定SHA/白空白QA；Grok E12.2真頁三視口；p5 F-R2真保存失敗 | 通過後code＋配套tests同主題LOCAL小批，未綠不提交整包。下一G完整正常三build/全部Boss節點/真Chrome仍未驗，不以dmg35結算腳本冒充完整局；缺實體WAITING_DEVICE，M1仍IN_PROGRESS，不M2 |
+| Next／Owner | AGY G-R1.1停寫→root原B12/C11/race/固定SHA/白空白QA；Grok E12.2真頁三視口；p5 F-R2已收→固定G/UI新版負向 | 通過後code＋配套tests同主題LOCAL小批，未綠不提交整包。下一G完整正常三build/全部Boss節點/真Chrome仍未驗，不以dmg35結算腳本冒充完整局；缺實體WAITING_DEVICE，M1仍IN_PROGRESS，不M2 |
 | NOT_PASSED：M1-E-R12；E-R12.2已啟動 | Grok w7:p7，固定SHA與缺陷來源見頂部 | E-R12 NOT_PASSED（Chrome證據）：UI 6593da982bf5644b／test 600d829c93829bd2，未重跑已知6/6。總監源碼核實harness只算scale/offset卻未套ctx transform，且body/canvas非真頁CSS；已實看chrome-mvbrzxpt/mp.png左裁字、tb.png溢出/scrollbars。logical card.x=-85/panel.x=-113不能單獨判正式UI裁切，須套真game變換。BROWSER_CAPTURED不代表BROWSER_VERIFIED，fixture非真offer/apply；退同票E-R12.1核真正卡/完整pair與before/after/限制、14CSS/44CSS/三視口bounds及觸控鍵盤真事件。 正式卡必用runtime canonical ID/kana；只兩白名單與新run，保留舊截圖，不改game/store。 |
 | Done：M1-F-R1 正式STORE guard子票 | Space Bunny p5正式停檔／Herdr done；STORE5fe53548a3de8740／test59459c054be4c5ba | 真磁碟STORE.finish兩行count(Number(...))，自報原RED9測5過4敗→GREEN9/9；Codex獨立node --require ./tools/director-audio-freeze.cjs --test tests/spacebunny-m1-f-r1.test.cjs新9/9，另progression/dev-stage-selector以「clearing night-town unlocks／a failed run records／real STORE keeps／failed storage writes expose」必要4/4，共13/13 exit0。原獨立VM種best40/stage40/del3後finish(Infinity,NaN,false)，記憶體/JSON/重載best皆40、stage40、del3、不解鎖且canSave true，exit0；syntax/scoped diff0。只收正式guard子票，完整F新build整合／UI結算／自然局／實體未驗，不以自報25/25重複重跑 |
 
 E12.1正式拒收：test5eaa441f05fa771c、game-mvbtdjl8/game-sha.json載入/前後c39d10一致；chrome-error.txt原真Input RED，只有dt.png，before/after皆tutorial:true，root實看教學覆蓋。prep()六武器Lv3非法，不列正式build；未root等價重跑明知失敗Chrome。E12.2改真關教學/每Duo合法pair+katana/每種輸入分次offer/實際draw trace及三視口；不是已證production點擊缺陷。
+
+F-R2保存邊界TARGETED_PASS：p5自報A/B與C分輪（總輪曾含harness失敗，未冒稱整輪全PASS）；正式停檔後root獨立同一stdin命令3案例exit0，actual weapon/update→victory/lampout→真frame演出won/lost→STORE.finish，每案finishCalls=1/storageAttempts=1。official失敗canSave=false、原JSON byte-identical、真game fillText有儲存失敗警告、reload不解鎖；official lost不清關、不存局內build；dev won使用真dev-mode先於store載入，只寫yokai-delivery-dev-v1，official原字串不變且dev重載completed=true。fixture預置6配送/低HP final Boss/合法build/受控時鐘，非完整配送/Boss/自然局/Chrome。game c39d10/store5fe535/UI6593da前後一致，不修改任何檔。下一p5待G/UI固定版有價值QA，未恢復其他模型。
 
 G-R1受控結算子票TARGETED_PASS：game c39d10b03ff8dc7e、G test5ae2c605731cde7b，正式停檔/idle後root `node --require ./tools/director-audio-freeze.cjs --test tests/agy-m1-g.test.cjs` 4/4 exit0。額外原始99e374字節以記憶體移除兩guard還原且SHA完全一致，真武器殺final boss+待升XP，原state=levelup、新c39=victory，stdin探針exit0。只收結算consumer：腳本teleport、強制bossStage3/elapsed540、dmg35/補油/注XP與UIstub，非正常強度/完整首領節點/自然局/Chrome。G-R1.1須誠實更名/固定seed/持久race案例後收件，不先放行G整段。
 
