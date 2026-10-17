@@ -16,15 +16,29 @@
 
 **M1 IN_PROGRESS／整體 gate NOT_PASSED；本節覆蓋下方暫代監工及舊 working／額度文字。** 最新使用者親自查 `/status`：5h100%（18:40重置）、weekly41%、context已用315K/475K、剩34%；這是接回時快照，不是工具可持續讀取的即時值，接近80%先保存精簡交接。
 
-1. **工作樹／保護**：現查HEAD `14cec7a`，前序`510666e`／`24215f9`／`c670a68`均保留，索引空。使用者約245 dirty；數量非安全白名單。game `c39d10b03ff8dc7e`、UI `1d8fcbc803a53568`、G test `ca0d3ce98ee63f50`、E12 test `4966014d07774699`。只允許正式停檔、固定SHA、獨立GREEN後的同類LOCAL提交；不push/deploy/reset/clean/checkout，不讀改音訊／KEY／env／素材。
+1. **工作樹／保護**：接回時HEAD `14cec7a`，本輪現HEAD `9432aad`（四權威，17個本地Markdown連結／精確四檔／cached check0），父`436d1dc`（UI＋E12.3）。兩筆提交後索引均核空；`510666e`／`24215f9`／`c670a68`等歷史完整保留。最近盤點244 status entries（含折疊目錄），數量非安全白名單。game `c39d10b03ff8dc7e`、UI `1d8fcbc803a53568`、G test `ca0d3ce98ee63f50`；E12.3受測test `4966014d07774699`，僅EOF修整後已提交`4c942c21f419a054`，Grok新票可再變動，後續重新鎖SHA。只允許停檔／QA綠的同類LOCAL提交；不push/deploy/reset/clean/checkout，不讀改音訊／KEY／env／素材。
 2. **AGY w7:p4／M1-G-R3（working，已見真工具）**：唯一game.js及自身G tests writer；已讀原suite並重跑既有130/130（AGY提供，非本輪root獨立重跑）。新主票正常參數三build、約600秒、6配送／2封印／四Boss、勝敗重開、結算返回旅路→真選關重進、正式/dev隔離及pending-XP終王race。禁用dmg35、補油、跳時鐘／Boss充當正常局；受控與自然分列。B12/C11合法Duo空池修正已收，不重做或藏卡造綠。HOUSEKEEPING停止作主線。
-3. **Grok w7:p7／E-R12.3（正式交件，root驗收中）**：同session `01a147f1-ccca-7071-881e-33b2292dbdf0`，使用者接回快照282K/500K；唯一UI＋自身E12 test writer，已要求暫停寫檔。root固定上述SHA親跑`node --require ./tools/director-audio-freeze.cjs --test tests/grok-m1-e-r12.test.cjs`，靜態四項先GREEN，Chrome尚未收件。門檻：三視口1000×700／844×390／1024×640、真合法Duo ID套用、mouse/touch/Enter→play、真measureText／像素裁切／手機重抽不壓卡／錯誤及原負向。自報數字不等於E或M1整段通過。
-4. **Space Bunny w7:p5／E12.3唯讀獨立QA（working，已見工具）**：現場309.5K／30%快照；不重複root Chrome，核applyChoice／BuildState、原手機裁切、真fixture界線；完成後只讀核G返回旅路再進關缺口。零production與四權威寫權，不干擾AGY動態G test，不啟用Kilo／Muse／Kiro。
-5. **下一收件**：root依正式停檔＋前後SHA＋命令exit＋原負向收E12.3及G-R3；RED同票最小退修，GREEN後才安排真頁三build最小缺口及安全同主題LOCAL checkpoint。自然真人／實機未驗，實機WAITING_DEVICE；未達M1 gate不進M2。Git整理僅空檔副業。
+3. **Grok w7:p7／G-UI-R1已收；Next G-UI-R2一build正常參數真頁長局**：唯一UI＋自身E12 test writer。root新增三視口受控返回重進／配送選卡1/1 exit0，詳見下段。先checkpoint再接AGY成功配方，不讀其動態test。session仍`01a147f1-ccca-7071-881e-33b2292dbdf0`，黃燈提醒後最新可見324K/500K，未擅重開或切模型，下一票續核70%／80%交接。
+4. **Space Bunny w7:p5／Q6.1及Q7已收，idle待固定G-R3獨立QA**：唯一自身`tests/spacebunny-m1-g-return.test.cjs`，Q7原reload誤用舊seed已退修，修後兩key實際storage正式reload root1/1 exit0。零production／四權威寫權、不讀動態tests；約379K/36%快照。無新固定版不重跑舊PASS或造suite；原Kilo/Muse/Kiro停用。
+5. **下一收件**：root依正式停檔＋前後SHA＋命令exit＋原負向收G-R3／G-UI-R1／G-Q7；RED同票最小退修，GREEN後才安排剩餘真頁三build最小缺口及安全同主題LOCAL checkpoint。自然真人／實機未驗，實機WAITING_DEVICE；未達M1 gate不進M2。Git整理僅空檔副業。
 
 **E12.3 root收件增量／TARGETED＋BROWSER_VERIFIED（受控子票）**：上述固定game/UI/test正式停檔後root親跑完整6/6、exit0（122.9s）；三視口dt/mp/tb各9／10／9次CDP真選卡，四Duo mouse/touch與鍵盤Enter的appliedId一致且state=play、level+1、revision增加，手機另數字直選。原tutorial遮罩負向／合法含katana pair／真measureText及寒封符全文界線通過，三張PNG已實看；重抽高度44.44／44.20／44.80 CSS、畫布底餘58.89／34.45／56.53 CSS，0違規／pageErrors0／audioLeak0。證據`artifacts/validation/grok-m1-e-r12-20261017/game-mvbz0rhy/`，game前後c39d10、UI1d8fcb、test496601未變、STORE5fe535。未驗完整console error（目前只Runtime.exceptionThrown）、其餘Duo逐一像素全文及真頁長局；不冒稱E/G整段或自然／實體通過。精確stage僅UI＋E12 test後cached diff-check exit2，test:709末尾空行；Grok僅移除末尾空行、root核語義未變後再提交，尚未宣稱新commit成功。
 
 **LOCAL checkpoint已完成 `436d1dc`**：只UI＋E12 test，Grok正式停檔後root以新test＋CRLF重建原496601完整SHA一致，確證僅刪末尾2bytes；新test`4c942c21f419a054`，UI仍1d8fcb。未等價重跑Chrome；精確兩檔stage／cached diff-check exit0，提交後index空，不push/deploy。下一Grok **M1-G-UI-R1**：同UI/test唯一writer，真頁失敗結算→旅路→CDP選夜行町→確認再進、重進配送/答題/選卡及build清空/保存冪等；完整console收集、其餘三Duo實繪字框另補，受控與正常長局分列，不跨AGY game。Space Bunny審查已交（未跑Node，不採其誤把VM measureText stub當Chrome度量之結論）；新 **G-Q6** 只寫`tests/spacebunny-m1-g-return.test.cjs`，真game/STORE/OVERWORLD返回／鎖關／artPending負向，從HEAD取固定sandbox不讀AGY動態test。AGY G-R3繼續正常長局主線。
+
+**持續收件安排（單次，非無限監控）**：三位均已見working＋工具：AGY新audio-freeze scratch探針觸發AUDIO_FREEZE而非長局PASS，仍需用現役安全sandbox修harness；game/G當時SHA仍未變，scratch保留不提交。Grok已明確接G-UI-R1並搜尋真返回介面（context313K/500K快照，接近350K先交接）；p5已建立獨立G-Q6、正在修自身oracle，尚未root收件。各票一個最長1h Herdr settled回呼：G-R3 PID51760、G-Q6 PID56896、G-UI-R1 PID43776；只喚回Codex核實正式交件，不自動QA PASS/commit/恢復模型。使用者後續停止改向優先，回呼wait非0先診斷。Codex下一步先核SHA/exit/原負向，合格續M1，不以四人idle結案。
+
+**G-Q6交件／root部分收件、Q6.1同票退修**：p5正式done且停寫，test`602beabda079f46b`／game c39／STORE5fe固定；root音訊guard獨立4/4 exit0，won/lost→真旅路重進、保存計次、鎖關及artPending→ready續行受測可收（終局fixture、非正常長局或Chrome）。但重進前Build始終空：root記憶體故意移除start三個mutations/charms/duos清理後仍4/4 exit0，證明重置斷言假綠，不能放行清理。counter初輪生成碼SyntaxError exit1保留為harness錯誤；改以記憶體固定game字串的有效counter4/4 exit0，無磁碟production寫入。p5 Q6.1只補原test的合法非空build前置及省略清理必RED對照，正式版GREEN後root再收；未提交此test，其他writer繼續。Q6 waiter56896已回呼完成，不重用。
+
+**下一回呼入口**：Q6.1已送入現役p5（working），新單次waiter PID12096，舊56896已結束；AGY51760／Grok43776仍各待本票，勿重派。AGY已實際建立正常四Boss時序模擬，正以原傷害/燈油參數修自身受控路徑；尚未交長局PASS。Grok已實際編修本票helper（context335K/500K最新可見快照，下一輪先核70%黃燈，不擅重開），尚未交真頁返回PASS。root最新增量未另碎拆commit，待下一實際收件同組保存；索引空、僅LOCAL兩筆新增，無push/deploy。收件後再決定下一安全小票，非等待使用者重新授權。
+
+**G-Q6.1 root正式收件**：p5第二次正式停檔後，Lv5前置收斂為katana及Duo所需招皆Lv3，避免三覺醒與兩印記不符；test `c439043cc7ceeb38`（前一修訂d702fec5），game c39／STORE5fe／UI1d8fcb／overworld `f02aaae0fc066328`。root `node --require ./tools/director-audio-freeze.cjs --test --test-name-pattern='^(won|lost)' tests/spacebunny-m1-g-return.test.cjs` **2/2 exit0**；同版僅子process設`SQU_OMIT_CLEANUP=mutations,charms,duos`，**0/2 exit1**，兩案均AssertionError「重進後御守必須清空」、殘留charm_power，證明不再空build假綠，旗標刪除不改全域環境。五檔前後SHA一致。真getBuildState非空前置／world重進回基線／保存計次子gate已收；fixture注入build及終局，不宣稱合法取得流程、正常長局、Chrome或實體。先不提交此單test，等下一穩定M1整合同主題批次。原Q6.1 waiter12096已回呼結束；p5續G-Q7只補DEV返回重進隔離，不重跑舊130/Chrome。
+
+G-Q7已觀察working及實際編修自身boot/test，單次1h settled回呼PID36704；AGY51760/Grok43776仍運作，不重複註冊。Q6.1收件紀錄與本輪角色更新已寫roadmap／AGENTS／PRODUCTION_PLAN、scoped diff-check0，索引空；production與新G/Q7/E12動態測試均不stage。現有stage1正常長局／真頁返回票仍在進行，M1 gate尚未通過。
+
+**G-UI-R1正式收件／M1仍未過**：Grok停寫game c39／UI1d8fcb／E12 test`1735f6bf5210ed83`，root僅新增`--test-name-pattern='M1-G-UI-R1'` **1/1 exit0（64.9s）**，不重跑舊28選卡。真Chrome三視口結算→CDP回旅路→點夜行町→出發真start，starts1→2／finishes保持1、非空build清空，各重進配送1筆、取件/答案停留/選卡→play且level2。證據`artifacts/validation/grok-m1-e-r12-20261017/gr1-mvbzobg1/`，其餘三Duo×視口9字框0違規，root實看5張新PNG（3視口餘燼＋手機墨焰/雷紋）。Runtime.consoleAPICalled error0／exception0／audioLeak0，未接Log domain，不冒稱所有瀏覽器Log無錯。終局won/lost直接預置、位置/XP注入，明標受控，非正常長局／自然／實體；game/UI/test前後SHA一致。
+
+**G-Q7正式收件**：原`deb9e832` root新案1/1，但reload使用舊seed，只收寫入/重進後退同票一處。修後`b900ef6b6cffc229`正式停寫，root `--test-name-pattern='^DEV：'` **1/1 exit0**（所有Node均audio-freeze）：真dev-mode→STORE/frame保存→world重進，dev clears1/attempts2、正式JSON byte-identical；`boot(Object.fromEntries(b.storage),{search:''})`確含兩key，正式reload不完成/不解鎖。game c39／STORE5fe／test前後不變；仍VM終局fixture，不是正常長局/Chrome。Q7 waiter36704與Grok43776已回呼結束，不重用；AGY51760仍待G-R3。兩停檔GREEN測試可與本次權威更新同主題LOCAL checkpoint，不碰AGY活動game/G test。Codex自身pane footer已讀但無quota/context數值，當前UNKNOWN，不冒用接回快照當即時值。
 
 ### 歷史：2026-10-17 11:35｜Codex 額度暫停、臨時總監接管（已被接回指令覆蓋）
 

@@ -274,7 +274,7 @@ async function runR123(opts) {
   chromeResult.dir = dir;
   chromeResult.runId = runId;
   chromeResult.offerInjected = true;
-  if (gameShaBefore !== BASE_GAME) problem("game SHA 不是基線 " + gameShaBefore.slice(0, 16));
+  if (!opts.reentry && gameShaBefore !== BASE_GAME) problem("game SHA 不是基線 " + gameShaBefore.slice(0, 16));
   const probe = [
     "const __r121Traces = [];",
     "const __r121Fill = ctx.fillText.bind(ctx);",
@@ -310,7 +310,7 @@ async function runR123(opts) {
     "  return __r121Fill(text, x, y, maxWidth);",
     "};",
     "window.__r121 = {",
-    "  applies: [],",
+    "  applies: [], starts: 0, runStarts: 0, finishes: 0, lastStart: '',",
     "  arm(ids) {",
     "    for (const k of Object.keys(WI)) WL[k] = 0;",
     "    WL.katana = 3;",
@@ -352,7 +352,22 @@ async function runR123(opts) {
     "      traces: __r121Traces.filter((t) => t.text && t.text.length <= 180).slice(-500),",
     "      cards: window.__r121.cards(),",
     "      round: { backDx: backX - mid.x, backDy: backY - mid.y, rerollCssH: L.reroll.h * r.height / v.height, scrollW: document.documentElement.scrollWidth, scrollH: document.documentElement.scrollHeight, iw: innerWidth, ih: innerHeight } };",
-    "  }",
+    "  },",
+    "  css(x, y) { const v = window.VIEWPORT.get(); const r = cv.getBoundingClientRect(); return { x: r.left + (x + v.offsetX) * r.width / v.width, y: r.top + (y + v.offsetY) * r.height / v.height }; },",
+    "  worldPoint() { const b = window.UI.END_BTNS.find((btn) => btn.id === 'world'); return window.__r121.css(b.x + b.w / 2, b.y + b.h / 2); },",
+    "  nodePoint(id) { const n = window.OVERWORLD.NODES.find((node) => node.id === id); return window.__r121.css(n.x - overworld.camX, n.y - overworld.camY); },",
+    "  enterPoint() { const b = window.OVERWORLD.enterButton(); return window.__r121.css(b.x + b.w / 2, b.y + b.h / 2); },",
+    "  interactPoint() { return window.__r121.css(btnE.x, btnE.y); },",
+    "  map() { const sel = window.OVERWORLD.selectedNode(overworld); return { state: state, current: overworld.currentId, target: overworld.targetId || '', selected: sel && sel.id, mapArt: window.MAP_ART_READY === true }; },",
+    "  build() { const b = getBuildState(); return { skills: b.activeSkills, charms: b.charms, mutations: b.mutations, duos: b.duos, stage: STAGE.id, attempts: STORE.getStageStats('night-town').attempts, delivered: delivered, state: state, level: level }; },",
+    "  seedDuo(id) { return { ok: addDuo(id) === true, duos: getBuildState().duos.slice() }; },",
+    "  presetEnd(kind) { ended = false; endCooldown = 0; state = kind === 'won' ? 'won' : 'lost'; if (!runSummary) runSummary = { goal: 6, stageName: STAGE.name || '' }; return { preset: true, kind: state }; },",
+    "  counts() { return { starts: window.__r121.starts, runStarts: window.__r121.runStarts, finishes: window.__r121.finishes, lastStart: window.__r121.lastStart }; },",
+    "  place(x, y) { P.x = x; P.y = y; },",
+    "  pickupSpot() { const o = orders[0]; return o ? { x: o.from.x, y: o.from.y } : null; },",
+    "  answerSpot() { if (!job || !job.word) return null; const i = job.ans.findIndex((a) => a && a.jp === job.word.jp); if (i < 0) return null; const p = ansPos(job.to)[i]; return { x: p.x, y: p.y, i: i }; },",
+    "  leg() { const o = orders[0]; const near = o ? Math.hypot(P.x - o.from.x, P.y - o.from.y) : null; return { state: state, delivered: delivered, job: !!job, inter: !!inter, tutorial: !!tutorial, level: level, art: window.ART_READY === true, orders: orders.length, near: near }; },",
+    "  primeLevel() { if (state !== 'play') return { ok: false, state: state }; xp = xpNeed(); return { ok: true }; }",
     "};",
     "const __r123Apply = applyChoice;",
     "applyChoice = function(choiceId, revision) {",
@@ -364,12 +379,20 @@ async function runR123(opts) {
     "  const result = __r123Apply(choiceId, revision);",
     "  window.__r121.applies.push({ arg: choiceId, ok: !!(result && result.ok), appliedId: result && result.ok && meta ? meta.choiceId : null, appliedKey: result && result.id ? result.id : '', reason: result && result.reason ? result.reason : '', appliedState: state, level: level, rev: buildRevision });",
     "  return result;",
-    "};"
+    "};",
+    "const __r1Start = start;",
+    "start = function(stageId) { window.__r121.starts++; const out = __r1Start(stageId); window.__r121.lastStart = STAGE && STAGE.id; return out; };",
+    "const __r1Run = STORE.startRun.bind(STORE);",
+    "STORE.startRun = function(stageId) { window.__r121.runStarts++; return __r1Run(stageId); };",
+    "const __r1Fin = STORE.finish.bind(STORE);",
+    "STORE.finish = function() { window.__r121.finishes++; return __r1Fin.apply(STORE, arguments); };"
   ].join("\n");
   const gameSrc = rawGame.slice(0, endIdx) + "\n" + probe + "\n" + rawGame.slice(endIdx);
   let preview = null, chrome = null;
   const kill = () => { try { if (preview) preview.kill(); } catch {} try { if (chrome) chrome.kill(); } catch {} };
   const pageErrors = [];
+  const consoleErrors = [];
+  const consoleLogs = [];
   const audioLeak = [];
   try {
     preview = spawn(process.execPath, ["--require", path.join(root, "tools", "director-audio-freeze.cjs"), path.join(root, "tools", "director-preview.cjs"), "--port=" + port], { stdio: ["ignore", "pipe", "pipe"] });
@@ -412,6 +435,13 @@ async function runR123(opts) {
           } }));
         } else ws.send(JSON.stringify({ id: 800000 + seq, method: "Fetch.continueRequest", params: { requestId: msg.params.requestId } }));
       } else if (msg.method === "Runtime.exceptionThrown") pageErrors.push(JSON.stringify(msg.params.exceptionDetails).slice(0, 300));
+      else if (msg.method === "Runtime.consoleAPICalled") {
+        const type = msg.params && msg.params.type;
+        const text = ((msg.params && msg.params.args) || []).map((a) => a.value != null ? String(a.value) : (a.description || "")).join(" ").slice(0, 180);
+        const row = type + " " + text;
+        if (type === "error") { if (consoleErrors.length < 20) consoleErrors.push(row); }
+        else if (consoleLogs.length < 20) consoleLogs.push(row);
+      }
       else if (msg.method === "Network.responseReceived") {
         const u = msg.params.response.url || "";
         if ((/\.(mp3|wav|ogg|m4a)(\?|$)/i.test(u) || /\/assets\/audio\//i.test(u)) && msg.params.response.status === 200) audioLeak.push(u);
@@ -530,6 +560,118 @@ async function runR123(opts) {
       }
       return { kind, choiceId, appliedId: ok[0].appliedId, state: snap.state, level: snap.level, rev: snap.rev };
     };
+    const waitUntil = async (read, ok, tries, step) => {
+      let last = null;
+      for (let i = 0; i < tries; i++) {
+        last = await read();
+        if (ok(last)) return last;
+        await sleep(step);
+      }
+      return last;
+    };
+    const doReentry = async (name, view) => {
+      const kind = name === "mp" ? "lost" : "won";
+      view.preset = kind;
+      view.note = "終局是預置 " + kind + "，不是自然破曉或燈盡。重進的 start 只來自出發按鈕。取件落點與答題站位是受控座標，取貨鍵、答題停留、選卡點擊是真 CDP。";
+      await evalJs("window.__r121.arm(" + JSON.stringify(["needle", "boom"]) + ")");
+      const seeded = await evalJs("window.__r121.seedDuo('duo_frostseal')");
+      if (!seeded || !seeded.ok) throw new Error(name + " 預置寒封符失敗 " + JSON.stringify(seeded));
+      const beforeBuild = await evalJs("window.__r121.build()");
+      view.buildBefore = beforeBuild;
+      if (!beforeBuild.duos.includes("duo_frostseal")) throw new Error(name + " BuildState 沒有套卡");
+      const counts0 = await evalJs("window.__r121.counts()");
+      await evalJs("window.__r121.presetEnd('" + kind + "')");
+      const settled = await waitUntil(() => evalJs("window.__r121.counts()"), (c) => c && c.finishes === counts0.finishes + 1, 20, 50);
+      if (!settled || settled.finishes !== counts0.finishes + 1) throw new Error(name + " 結算沒有寫入一次 " + JSON.stringify(settled));
+      await pressKey("Escape", "Escape", 27);
+      await sleep(150);
+      const closedTut = await evalJs("window.__r121.snap()");
+      if (!closedTut || closedTut.tutorial) throw new Error(name + " 結算時教學還擋著返回鈕");
+      const back = await evalJs("window.__r121.worldPoint()");
+      await pressMouse(back.x, back.y);
+      const onMap = await waitUntil(() => evalJs("window.__r121.map()"), (m) => m && m.state === "overworld", 20, 50);
+      if (!onMap || onMap.state !== "overworld") throw new Error(name + " 回旅路按鈕沒有進地圖 " + JSON.stringify(onMap));
+      const mapArt = await waitUntil(() => evalJs("window.MAP_ART_READY===true"), (v) => v === true, 40, 200);
+      if (mapArt !== true) throw new Error(name + " GAME MAP_ART_READY 未完成");
+      const node = await evalJs("window.__r121.nodePoint('night-town')");
+      await pressMouse(node.x, node.y);
+      const arrived = await waitUntil(() => evalJs("window.__r121.map()"), (m) => m && m.current === "night-town" && !m.target, 40, 80);
+      if (!arrived || arrived.current !== "night-town") throw new Error(name + " GAME 沒有走到夜行町 " + JSON.stringify(arrived));
+      const starts0 = await evalJs("window.__r121.counts()");
+      const attempts0 = beforeBuild.attempts;
+      const go = await evalJs("window.__r121.enterPoint()");
+      await pressMouse(go.x, go.y);
+      const playing = await waitUntil(() => evalJs("window.__r121.build()"), (b) => b && b.state === "play" && b.stage === "night-town", 40, 80);
+      const counts1 = await evalJs("window.__r121.counts()");
+      view.buildAfter = playing;
+      view.counts = { before: starts0, after: counts1 };
+      if (!playing || playing.state !== "play" || playing.stage !== "night-town") throw new Error(name + " 出發沒有真 start " + JSON.stringify(playing));
+      const artBack = await waitUntil(() => evalJs("window.ART_READY===true"), (v) => v === true, 40, 200);
+      if (artBack !== true) throw new Error(name + " 重進後 ART_READY 沒回來");
+      if (counts1.starts !== starts0.starts + 1) throw new Error(name + " start 次數不是 +1 " + JSON.stringify(counts1));
+      if (counts1.lastStart !== "night-town") throw new Error(name + " start 舞台不是 night-town");
+      if (playing.attempts !== attempts0 + 1) throw new Error(name + " 保存次數不是 +1 " + playing.attempts + " vs " + attempts0);
+      if (counts1.finishes !== settled.finishes) throw new Error(name + " 重進又寫了一次結算");
+      if (playing.duos.length || playing.charms.length || playing.mutations.length || JSON.stringify(playing.skills) !== JSON.stringify(["katana"])) {
+        throw new Error(name + " 重進沒清空 build " + JSON.stringify(playing));
+      }
+      const tut = await evalJs("window.__r121.leg()");
+      if (tut && tut.tutorial) {
+        await pressKey("Escape", "Escape", 27);
+        await sleep(150);
+      }
+      const spot = await evalJs("window.__r121.pickupSpot()");
+      if (!spot) throw new Error(name + " GAME 重進後沒有訂單");
+      await evalJs("window.__r121.place(" + spot.x + "," + spot.y + ")");
+      await evalJs("window.__r121.frames(3)");
+      const leg0 = await evalJs("window.__r121.leg()");
+      if (leg0.tutorial) throw new Error(name + " 教學還擋著取件");
+      if (!leg0.inter) throw new Error(name + " GAME 站在取件點卻沒有 inter " + JSON.stringify(leg0));
+      const pick = await evalJs("window.__r121.interactPoint()");
+      await pressMouse(pick.x, pick.y);
+      const held = await waitUntil(() => evalJs("window.__r121.leg()"), (g) => g && g.job, 15, 40);
+      if (!held || !held.job) throw new Error(name + " 真取件沒有產生配送 " + JSON.stringify(held));
+      const pad = await evalJs("window.__r121.answerSpot()");
+      if (!pad) throw new Error(name + " GAME 沒有正確答案位置");
+      await evalJs("window.__r121.place(" + pad.x + "," + pad.y + ")");
+      const doneLeg = await waitUntil(() => evalJs("window.__r121.leg()"), (g) => g && g.delivered === beforeBuild.delivered + 1 && !g.job, 30, 100);
+      view.delivery = doneLeg;
+      if (!doneLeg || doneLeg.delivered !== beforeBuild.delivered + 1) throw new Error(name + " 答題沒有送達 " + JSON.stringify(doneLeg));
+      await evalJs("window.__r121.applies.length = 0");
+      const primed = await evalJs("window.__r121.primeLevel()");
+      if (!primed || !primed.ok) throw new Error(name + " 無法把經驗送到升級門檻");
+      const levelup = await waitUntil(() => evalJs("window.__r121.snap()"), (s) => s && s.state === "levelup" && s.n > 0, 30, 50);
+      if (!levelup || levelup.state !== "levelup") throw new Error(name + " 重進後遊戲沒有自己打開選卡");
+      await waitCool();
+      const offered = await evalJs("window.__r121.cards()");
+      const pt = await evalJs("window.__r121.cardPoint(0)");
+      await pressMouse(pt.x, pt.y);
+      await sleep(200);
+      const applies = await evalJs("window.__r121.applies.slice()");
+      const afterPick = await evalJs("window.__r121.snap()");
+      const ok = (applies || []).filter((a) => a.ok);
+      view.levelup = { offered: (offered || []).map((c) => c.choiceId), applied: ok[0] || null, state: afterPick && afterPick.state, level: afterPick && afterPick.level };
+      if (ok.length !== 1 || ok[0].appliedId !== offered[0].choiceId || ok[0].appliedState !== "play" || !afterPick || afterPick.state !== "play" || afterPick.level !== levelup.level + 1) {
+        throw new Error(name + " 重進後選卡沒恢復 " + JSON.stringify(view.levelup));
+      }
+      view.duos = [];
+      for (const [id, skills] of duos) {
+        if (id === "duo:duo_frostseal") continue;
+        await armOffer(name, id, skills);
+        await evalJs("window.__r121.setMode('keyboard')");
+        await evalJs("window.__r121.tracesClear()");
+        await evalJs("window.__r121.frames(2)");
+        const shot = await send("Page.captureScreenshot", { format: "png", fromSurface: true }, 20000);
+        if (!shot.data || shot.data.length < 5000) throw new Error(name + " " + id + " png");
+        const file = path.join(dir, name + "-" + id.slice(4) + ".png");
+        fs.writeFileSync(file, Buffer.from(shot.data, "base64"));
+        shots.push(file);
+        const measured = await evalJs("window.__r121.measure()");
+        const audit = auditViewport(name + ":" + id, measured);
+        view.duos.push({ id, violations: audit.violations });
+        for (const v of audit.violations) problem(v);
+      }
+    };
     const onlyViews = process.env.R123_VIEWS ? process.env.R123_VIEWS.split(",") : null;
     for (const [w, h, name] of [[1000, 700, "dt"], [844, 390, "mp"], [1024, 640, "tb"]]) {
       if (onlyViews && !onlyViews.includes(name)) continue;
@@ -551,6 +693,8 @@ async function runR123(opts) {
           try { art = await evalJs("window.ART_READY===true"); if (art) break; } catch {}
         }
         if (!art) throw new Error(name + " ART_READY 未完成");
+        if (opts.reentry) await doReentry(name, view);
+        else {
         let opened = null;
         for (let i = 0; i < 25; i++) {
           opened = await evalJs("window.__r121.snap()");
@@ -613,6 +757,7 @@ async function runR123(opts) {
           try { view.selects.push(await choose(name, "digit", "duo:duo_thundercircle", ["barrier", "thunder"])); }
           catch (e) { problem(e.message || e); }
         }
+        }
       } catch (e) {
         problem(name + " " + (e.message || e));
         view.error = String(e.message || e).slice(0, 400);
@@ -620,7 +765,7 @@ async function runR123(opts) {
       views.push(view);
       console.log("r123 " + name + " violations " + view.violations.length + " selects " + view.selects.length);
     }
-    for (const id of Object.keys(expectDuo)) {
+    if (!opts.reentry) for (const id of Object.keys(expectDuo)) {
       const card = seen[id];
       if (!card) problem("真 offerUp 未出現 " + id);
       else {
@@ -636,9 +781,16 @@ async function runR123(opts) {
     } catch (e) { problem("layout count " + (e.message || e)); }
     if (pageErrors.length) problem("pageErrors " + pageErrors.join(";"));
     if (audioLeak.length) problem("audioLeak " + audioLeak.join(";"));
+    if (consoleErrors.some((row) => /ui\.js|drawLevelUp|levelUpLayout/.test(row))) problem("console error 指向 UI " + consoleErrors.join(";"));
+    const diskNow = crypto.createHash("sha256").update(fs.readFileSync(gamePath)).digest("hex");
+    if (diskNow !== gameShaBefore) problem("game 中途變動，本輪不可當固定版 PASS");
     chromeResult.shots = shots;
     chromeResult.pageErrors = pageErrors;
+    chromeResult.consoleErrors = consoleErrors;
+    chromeResult.consoleLogs = consoleLogs;
+    chromeResult.consoleCollected = true;
     chromeResult.audioLeak = audioLeak;
+    chromeResult.fixedVersion = diskNow === gameShaBefore;
     fs.writeFileSync(path.join(dir, "visibility.json"), JSON.stringify({ problems, views, pageErrors, audioLeak }, null, 2));
     if (problems.length) {
       chromeResult.status = "RED";
@@ -683,6 +835,44 @@ test("真 game 頁：可見字框、applyChoice 與三視口", { timeout: 300000
   const endIdx = rawGame.lastIndexOf("})();");
   assert.ok(endIdx > 0, "game.js IIFE");
   await runR123({ http, spawn, port, cdpPort, runId, dir, root, gamePath, gameShaBefore, rawGame, endIdx });
+});
+
+test("M1-G-UI-R1 結算回旅路真重進", { timeout: 300000 }, async () => {
+  const http = require("node:http");
+  const { spawn } = require("node:child_process");
+  const port = 9481;
+  const cdpPort = 9371;
+  const runId = "gr1-" + Date.now().toString(36);
+  const dir = path.join(__dirname, "..", "artifacts", "validation", "grok-m1-e-r12-20261017", runId);
+  fs.mkdirSync(dir, { recursive: true });
+  const root = path.join(__dirname, "..");
+  const gamePath = path.join(root, "js", "game.js");
+  const uiBefore = sha256File(UI_PATH);
+  const rawBuf = fs.readFileSync(gamePath);
+  const gameShaBefore = crypto.createHash("sha256").update(rawBuf).digest("hex");
+  const rawGame = rawBuf.toString("utf8");
+  const endIdx = rawGame.lastIndexOf("})();");
+  assert.ok(endIdx > 0, "game.js IIFE");
+  let failedRun = null;
+  try {
+    await runR123({ http, spawn, port, cdpPort, runId, dir, root, gamePath, gameShaBefore, rawGame, endIdx, reentry: true });
+  } catch (error) {
+    failedRun = error;
+  }
+  const summary = {
+    ticket: "M1-G-UI-R1", runId, dir,
+    uiShaBefore: uiBefore, uiShaAfter: sha256File(UI_PATH),
+    testSha: sha256File(__filename),
+    gameShaBefore, gameShaAfter: sha256File(gamePath),
+    storeSha: sha256File(path.join(root, "js", "store.js")),
+    fixedVersion: sha256File(gamePath) === gameShaBefore,
+    exitCode: failedRun ? 1 : 0,
+    chrome: chromeResult,
+    nonNatural: true, device: "WAITING_DEVICE",
+    note: "受控真頁。終局預置後才點回旅路／夜行町／出發。不是自然局，不是實機。console 另記，不以 pageErrors 空陣列當 console 無錯。"
+  };
+  fs.writeFileSync(path.join(dir, "r1-summary.json"), JSON.stringify(summary, null, 2));
+  if (failedRun) throw failedRun;
 });
 
 test("收束摘要", () => {
