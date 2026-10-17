@@ -12,7 +12,21 @@
 
 [AGENTS.md](AGENTS.md) 是短協作入口，由 Codex 與上列兩份新文檔一併獨占；其他 Agent 不修改這四檔。不掃全庫 docs/art；舊總計畫、甘特、執行看板與重啟交接按需作證據追溯，不能再各自成為派工來源。
 
-### 2026-10-17 11:35｜Codex 額度暫停、臨時總監接管
+### 2026-10-17｜Codex 正式接回總監：M1 衝刺現行交接
+
+**M1 IN_PROGRESS／整體 gate NOT_PASSED；本節覆蓋下方暫代監工及舊 working／額度文字。** 最新使用者親自查 `/status`：5h100%（18:40重置）、weekly41%、context已用315K/475K、剩34%；這是接回時快照，不是工具可持續讀取的即時值，接近80%先保存精簡交接。
+
+1. **工作樹／保護**：現查HEAD `14cec7a`，前序`510666e`／`24215f9`／`c670a68`均保留，索引空。使用者約245 dirty；數量非安全白名單。game `c39d10b03ff8dc7e`、UI `1d8fcbc803a53568`、G test `ca0d3ce98ee63f50`、E12 test `4966014d07774699`。只允許正式停檔、固定SHA、獨立GREEN後的同類LOCAL提交；不push/deploy/reset/clean/checkout，不讀改音訊／KEY／env／素材。
+2. **AGY w7:p4／M1-G-R3（working，已見真工具）**：唯一game.js及自身G tests writer；已讀原suite並重跑既有130/130（AGY提供，非本輪root獨立重跑）。新主票正常參數三build、約600秒、6配送／2封印／四Boss、勝敗重開、結算返回旅路→真選關重進、正式/dev隔離及pending-XP終王race。禁用dmg35、補油、跳時鐘／Boss充當正常局；受控與自然分列。B12/C11合法Duo空池修正已收，不重做或藏卡造綠。HOUSEKEEPING停止作主線。
+3. **Grok w7:p7／E-R12.3（正式交件，root驗收中）**：同session `01a147f1-ccca-7071-881e-33b2292dbdf0`，使用者接回快照282K/500K；唯一UI＋自身E12 test writer，已要求暫停寫檔。root固定上述SHA親跑`node --require ./tools/director-audio-freeze.cjs --test tests/grok-m1-e-r12.test.cjs`，靜態四項先GREEN，Chrome尚未收件。門檻：三視口1000×700／844×390／1024×640、真合法Duo ID套用、mouse/touch/Enter→play、真measureText／像素裁切／手機重抽不壓卡／錯誤及原負向。自報數字不等於E或M1整段通過。
+4. **Space Bunny w7:p5／E12.3唯讀獨立QA（working，已見工具）**：現場309.5K／30%快照；不重複root Chrome，核applyChoice／BuildState、原手機裁切、真fixture界線；完成後只讀核G返回旅路再進關缺口。零production與四權威寫權，不干擾AGY動態G test，不啟用Kilo／Muse／Kiro。
+5. **下一收件**：root依正式停檔＋前後SHA＋命令exit＋原負向收E12.3及G-R3；RED同票最小退修，GREEN後才安排真頁三build最小缺口及安全同主題LOCAL checkpoint。自然真人／實機未驗，實機WAITING_DEVICE；未達M1 gate不進M2。Git整理僅空檔副業。
+
+**E12.3 root收件增量／TARGETED＋BROWSER_VERIFIED（受控子票）**：上述固定game/UI/test正式停檔後root親跑完整6/6、exit0（122.9s）；三視口dt/mp/tb各9／10／9次CDP真選卡，四Duo mouse/touch與鍵盤Enter的appliedId一致且state=play、level+1、revision增加，手機另數字直選。原tutorial遮罩負向／合法含katana pair／真measureText及寒封符全文界線通過，三張PNG已實看；重抽高度44.44／44.20／44.80 CSS、畫布底餘58.89／34.45／56.53 CSS，0違規／pageErrors0／audioLeak0。證據`artifacts/validation/grok-m1-e-r12-20261017/game-mvbz0rhy/`，game前後c39d10、UI1d8fcb、test496601未變、STORE5fe535。未驗完整console error（目前只Runtime.exceptionThrown）、其餘Duo逐一像素全文及真頁長局；不冒稱E/G整段或自然／實體通過。精確stage僅UI＋E12 test後cached diff-check exit2，test:709末尾空行；Grok僅移除末尾空行、root核語義未變後再提交，尚未宣稱新commit成功。
+
+**LOCAL checkpoint已完成 `436d1dc`**：只UI＋E12 test，Grok正式停檔後root以新test＋CRLF重建原496601完整SHA一致，確證僅刪末尾2bytes；新test`4c942c21f419a054`，UI仍1d8fcb。未等價重跑Chrome；精確兩檔stage／cached diff-check exit0，提交後index空，不push/deploy。下一Grok **M1-G-UI-R1**：同UI/test唯一writer，真頁失敗結算→旅路→CDP選夜行町→確認再進、重進配送/答題/選卡及build清空/保存冪等；完整console收集、其餘三Duo實繪字框另補，受控與正常長局分列，不跨AGY game。Space Bunny審查已交（未跑Node，不採其誤把VM measureText stub當Chrome度量之結論）；新 **G-Q6** 只寫`tests/spacebunny-m1-g-return.test.cjs`，真game/STORE/OVERWORLD返回／鎖關／artPending負向，從HEAD取固定sandbox不讀AGY動態test。AGY G-R3繼續正常長局主線。
+
+### 歷史：2026-10-17 11:35｜Codex 額度暫停、臨時總監接管（已被接回指令覆蓋）
 
 **M1 IN_PROGRESS，Codex w7:p1 idle；最後5h額度約2%。** ChatGPT暫代總監，已建立每小時條件檢查：即時證實五小時額度回升至少80%、不撞writer後才交接回Codex，不提前喚醒。
 

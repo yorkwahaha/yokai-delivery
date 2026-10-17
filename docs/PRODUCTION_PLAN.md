@@ -14,15 +14,19 @@
 
 ## 2. Owner、寫入範圍與交接
 
+**2026-10-17 Codex正式接回，覆蓋下方歷史票快照：** HEAD14cec7a、index空；M1仍IN_PROGRESS，不進M2。AGY唯一game.js＋自身G tests，主票G-R3正常參數約600秒三build、6配送／2封印／四Boss、勝敗重玩與返回旅路真重進、正式/dev及終王pending-XP；不以跳時／dmg35腳本當正常局。Grok E12.3已停寫，UI1d8fcbc803a53568／test4966014d07774699由root固定版真Chrome獨立QA中。Space Bunny唯讀核E12.3及G原負向，不重複root Browser、不碰production／四權威。Codex只四權威＋QA＋安全LOCAL統籌；Git整理限主線空檔，GREEN同類可集中提交，不push/deploy。可銜接證據／驗收狀態以roadmap最新節為準。
+
+**本輪E12.3子gate已收**：root固定上述SHA獨立6/6 exit0，三視口28次真CDP輸入各appliedId符合、回play，寒封符真字框／14CSS／44CSS／教學遮罩負向與三PNG受測通過；證據`grok-m1-e-r12-20261017/game-mvbz0rhy/`。受控offer／非自然／WAITING_DEVICE，完整console error與其他Duo逐卡像素全文及完整G留下一票，不以6/6放行M1。LOCAL checkpoint前cached diff-check發現test末尾空行exit2，由Grok僅白空白修整再root核對。
+
 以下是責任配置，不是自動啟動 Agent 的授權。一次只給每人一個主工作與一個可選備用工作；一檔一 writer，開始前核對當前 owner，不沿用重啟前 pane 狀態。
 
 | Owner | 主責 | 寫入範圍／交接要求 |
 |---|---|---|
 | Codex | 主：技術方向、接口／依賴、QA gate、唯一 roadmap；副：關鍵整合與風險／資源額度 | 獨占 `docs/GAME_DESIGN_MASTER.md`、`docs/PRODUCTION_PLAN.md`、`roadmap.md`、`AGENTS.md`；不搶 production writer；各 M gate 在 Herdr 回覆及本文件末段報告 |
 | 原Kilo（停用） | 不再參與；其歷史production範圍不自動恢復 | 原w7:p5已由使用者改為Space Bunny；js/game.js及自身D/runtime現由AGY獨占，其他production修改仍須總監明確指定writer |
-| Space Bunny／OpenCode | F-R2唯讀真幀保存失敗/dev隔離 | 零檔案寫權；不讀AGY動態test，game c39d10/STORE5fe535固定，非Chrome/完整G |
-| AGY | G-R1受控結算已收；G-R1.1必要回歸測試退修 | game c39d10正式凍結，只自身B/C/D/runtime/G tests；合法空池/反向/seed/race/EOF，不改UI/STORE |
-| Grok（現役UI writer） | E12證據拒收，E12.2真頁UI同票退修 | 唯一ui.js＋自身E12測試/新run；修正harness變換，三視口真game draw/click/apply與全文熱區 |
+| Space Bunny／OpenCode | E12.3 source/artifact審查已交；新G-Q6返回consumer負向 | 只新增自身tests/spacebunny-m1-g-return.test.cjs；真game/STORE/OVERWORLD返回再進／保存冪等與鎖關、artReady，終局fixture明標；不寫production或他人動態tests |
+| AGY | G-R1.1已收；G-R3正常參數三build長局 | 唯一game.js及自身G tests；不得跳Boss時鐘或提高傷害冒充完整局；正常參數／受控路徑分列，正式停檔後root QA，不改UI/STORE |
+| Grok（現役UI writer） | E12.3受控真頁已收/LOCAL436d1dc；G-UI-R1真頁旅路重進 | 唯一ui.js＋自身E12測試/新run；本輪root6/6、三視口28真選卡；新票補返回重進consumer、完整console與其餘Duo實繪欄位，不代正常三build完整G |
 | 使用者 | 新美術／聲音／重大內容與平衡取捨、實機協助、發布決策 | 人審特定版本；未回覆不視為核准；外部 ComfyUI 由使用者自行操作 |
 
 新增 production 檔、`index.html`、service worker 或其他人測試若確有必要，先指定 writer 與交接範圍；不因一般重構順手改。歷史Kiro／Kilo／Cursor派工不可自行恢復；最新現役為AGY G-R1、Grok E12.1與Space Bunny G-Q1唯讀QA，各一主票，狀態見roadmap頂部。Muse Spark候選已取消，不再等待舊路由決策；不擴張或切換其他模型。
@@ -186,6 +190,8 @@ M1 不要求新圖、新音訊、新十三招全部到位或八關正式美術�
 ### Codex 恢復後的現行交接／C-R2、E-R9
 
 最新使用者指示已恢復 Codex 總監工作，覆蓋 roadmap 的歷史額度暫停安排。已讀暫代總監最新交接與 Herdr 現場，AGY／Muse C-R1／E-R8 均有正式交件；Kilo 仍暫停。以下舊首波 working／game 凍結及尾部 R6 報告是版本歷史，**本節現行表與最新里程碑報告優先**。
+
+**最新穩定checkpoint／F子gate：** f175244已LOCAL提交四權威文件（13連結、精確四檔stage/cached check0），index空、391 status entries保護。F-R2 root獨立真幀3案例exit0，保存失敗警告/原JSON/重載、lost不清關、dev正式隔離已收受控VM子gate，非Chrome/完整G；p5待固定G/UI新負向。其餘G-R1.1/E12.2仍working，不stage其檔。
 
 **最新Git授權／待驗：** 使用者2026-10-17允許安全LOCAL commit，push/deploy仍禁止；d7b4981（STORE/F-R1）、3bffe44（guard/test）、52c9366（contract/E11兩tests）已在HEAD歷史、不重做。四權威本次更新完成後同組checkpoint；production/test須正式停寫＋固定SHA＋獨立GREEN再白名單小批提交。新使用者MCP1整包測試exit1，C:797 expected play/actual levelup，root固定game c39與C e375後focused C11/B12各exit1，C11實測剩duo_inkfire屬舊池前提，G-R1.1僅修自身測試，不把整包提交為PASS。G-R1 game新c39d10兩處狀態守衛已root原99e374反例→新victory及4/4驗綠，只收受控結算子票（teleport/跳終王/dmg35/UIstub），完整G未過；E12.1真CDP RED因tutorial:true與六主動fixture，E12.2同票退修。盤點分組與保留原因見roadmap，395 dirty/159 ignored entries不等於安全白名單；不讀改凍結項或刪檔。
 

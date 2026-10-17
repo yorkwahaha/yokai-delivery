@@ -47,10 +47,12 @@
 |---|---|
 | Codex | docs/GAME_DESIGN_MASTER.md、docs/PRODUCTION_PLAN.md、roadmap.md、AGENTS.md |
 | 原Kilo（停用、不再參與） | 舊production owner表由現行暫時writer覆蓋；w7:p5已由使用者親自改為Space Bunny，禁止恢復Nemotron |
-| Space Bunny／OpenCode（使用者指定） | w7:p5現F-R2唯讀真幀保存失敗/dev隔離QA，零檔案寫權；Q1–4已交診斷/受測子案例。STORE5fe53548a3de8740，不碰game/UI/四權威或他人動態test |
-| AGY | w7:p4唯一runtime owner；現G-R1.1僅自身B/C/D/runtime/G tests writer，game.js凍結c39d10b03ff8dc7e，不動UI/STORE；C11/B12池前提與可重現回歸修正，正式停檔再QA |
+| Space Bunny／OpenCode（使用者指定） | w7:p5 E12.3唯讀審查已交，現G-Q6只新增tests/spacebunny-m1-g-return.test.cjs核返回consumer；零production/四權威寫權，不干擾AGY動態G test，不重複root Chrome |
+| AGY | w7:p4唯一game.js及自身G tests writer，現M1-G-R3正常參數三build長局／勝敗重進；game基準c39d10，B12/C11舊池修正已收，任何production變更正式停檔後root QA |
 | 舊Muse／OpenCode UI（暫停） | 原UI範圍由Grok持有；不自動切回。與現行Space Bunny/OpenCode唯讀F-Q2是不同角色 |
-| Grok（現役UI writer） | w7:p7 E-R12.2同票退修，限js/ui.js＋tests/grok-m1-e-r12.test.cjs及自身新run；先修教學遮罩/合法pair/真CDP輸入/實繪量測，不改game/store |
+| Grok（現役UI writer） | w7:p7 E-R12.3子gate已收且LOCAL436d1dc；現M1-G-UI-R1真頁旅路重進／console與Duo字框，唯一js/ui.js＋tests/grok-m1-e-r12.test.cjs及自身新run；同session不重開，不改game/store |
+
+- **2026-10-17正式接回覆蓋下方舊快照**：Codex恢復唯一總監與四權威writer，HEAD14cec7a；AGY G-R3／p5 E12.3 QA已見working及工具，Grok停檔受驗。使用者接回/status快照5h100%、weekly41%、context315K/475K剩34%，不是native即時讀數；接近80%先精簡交接。Git整理只作空檔副業，不取代M1主線。舊Kilo/Muse/Kiro停用，不進M2。
 
 - **現行暫時 owner（2026-10-17）**：R14原固定版runtime子票已收；G-R1新game c39d10b03ff8dc7e，root獨立4/4及原99e374→levelup/新c39→victory真武器反例GREEN，只收受控結算子票（teleport/時鐘跳轉/dmg35/UIstub），非正常三build完整局。B12/C11固定版focused各exit1，C11實得duo_inkfire仍可選；AGY G-R1.1只修自身測試、game凍結。Grok E12.1真CDP受教學遮罩/非法六主動fixture拒收，E12.2同票working。Space Bunny F-R2唯讀結算失敗/dev整合working。其他Agent停用；Codex四權威/QA/LOCAL提交統籌，M1 IN_PROGRESS，不M2。
 - **本輪派工與保護**：各一主票，game/UI一檔一writer；G-Q3只讀，不另造重複suite。正式停檔後固定SHA/原負向/真consumer獨立收件，不以idle或測試數結案。429/Timeout/登入錯誤停且診斷，不盲試；音訊/KEY/env/核准資產與400 dirty保護，LOCAL commit依第5節，禁push/deploy。
@@ -71,7 +73,7 @@
 - 不刪未知檔、不覆寫他人候選、母版、測試證據或正在修改的檔。
 - 經授權僅清可證廢棄且無有效引用的衍生檔／舊交接，保留現役／母版／QA／待審。
 - **2026-10-17 最新使用者授權：安全 LOCAL commit，禁止 push／deploy。** Codex 額度不足由 ChatGPT 暫代總監期間，AGY 僅獲本輪 HOUSEKEEPING-P1 已驗低風險 QA 工具／測試／非權威文件之逐檔白名單 stage/LOCAL commit 權限；不得寫 game/UI/STORE、四權威、音訊/KEY/env/素材、未知檔；Codex 復工後交回調度權。
-- 僅正式停檔、SHA 固定、獨立 QA 通過的 code＋配套 tests 同主題小批提交；四權威文件本次更新完成後可同組提交。未 GREEN 的整包契約、正在改的 game／UI／G-R1／E12.x 不提交。
+- 僅正式停檔、SHA 固定、獨立 QA 通過的 code＋配套 tests 同主題提交；同類GREEN十數至數十檔可集中1–2筆，不刻意拆碎。四權威本次更新後可同組提交。未GREEN或正在寫的game／UI／G tests不提交。現HEAD14cec7a（歷史工具61檔），父510666e（歷史文件53檔）；既有checkpoint不重做。
 - 已有 LOCAL commits：d7b4981（STORE＋F-R1 test）、3bffe44（audio-freeze guard＋自測）、52c9366（M1 contract＋E11 tests）；不得重複 stage。HEAD 已非 54a4690。新授權不等於所有 dirty 可提交。
 - 歷史 checkpoint 政策不自動執行；未來須依最新明確授權判斷。
 - 即使另獲提交許可也禁 add -A、add .、add -u 等全庫 stage。
