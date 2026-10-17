@@ -2342,96 +2342,207 @@ window.UI = (() => {
 
 
   // 3. 升級三選一：閱讀優先。只使用一張和紙外框，選項不再重複大面積花飾。
-  // 卡片位置必須與 game.js 的 720×108、122 行距 hitbox 一致。
-  const LEVEL_CARD_LAYOUT = {x:90,y:176,w:720,h:108,gap:14};
+  // M1-E-R4 共用 layout／熱區單一來源：game.js pointerdown/pointermove/重抽經由
+  // UI.levelUpLayout(count) 取同一座標；缺 getter 時 game fallback 舊座標（game 側保留）。
+  // 卡片几何不沿用舊 720×108：以真 hud 安全寬度置中加寬、固定卡高 130／行距 136，
+  // 面板抬頭與已習得摘要壓縮讓位；高度／pitch 全 chart 由此函式唯一決定。
+  // 和紙帳頁左右 54、上下 51 是框飾，不是內文區。選卡文字與重抽都放在框內，
+  // 並離可見畫布底至少 8 CSS px。三張卡共用同一高度，供 game 熱區逐列命中。
+  function levelUpLayout(count) {
+    const v = window.VIEWPORT?.get() || { scale: 1, width: 900, height: 600, offsetX: 0, offsetY: 0 };
+    const scale = v.scale || 1;
+    const visLeft = -(v.offsetX || 0), visTop = -(v.offsetY || 0);
+    const visRight = visLeft + (v.width || 900), visBottom = visTop + (v.height || 600);
+    const raw = (typeof count === "number" && Number.isFinite(count)) ? count : 3;
+    const n = Math.max(0, Math.min(3, Math.round(raw)));
+    const edge = 1;
+    const panel = {
+      x: Math.round(visLeft + edge), y: Math.round(visTop + edge),
+      w: Math.round(visRight - visLeft - edge * 2), h: Math.round(visBottom - visTop - edge * 2),
+    };
+    const slack = 1, frameX = 54, frameY = 51;
+    const inner = {
+      left: panel.x + frameX + slack, top: panel.y + frameY + slack,
+      right: panel.x + panel.w - frameX - slack, bottom: panel.y + panel.h - frameY - slack,
+    };
+    const rH = Math.ceil(44 / scale);
+    const innerW = Math.max(240, inner.right - inner.left);
+    const rW = Math.min(200, Math.max(156, Math.round(innerW * 0.24)));
+    const reroll = { x: Math.round(inner.right - rW), y: Math.round(inner.bottom - rH), w: rW, h: rH };
+    const titleH = Math.ceil(scale < 1 ? Math.max(18, 14 / scale) : 22);
+    const summaryH = titleH;
+    const band = 2;
+    const titleBar = { x: Math.round(inner.left), y: Math.round(inner.top), w: Math.round(innerW), h: titleH };
+    const summaryBar = { x: titleBar.x, y: titleBar.y + titleH + band, w: titleBar.w, h: summaryH };
+    const cardsTop = summaryBar.y + summaryH + band;
+    const cardsBottom = reroll.y - band;
+    const slots = Math.max(n, 1);
+    const gap = 3;
+    let cardH = Math.floor((cardsBottom - cardsTop - gap * (slots - 1)) / slots);
+    const minCard = Math.ceil(44 / scale);
+    if (cardH < minCard) cardH = minCard;
+    const card = { x: titleBar.x, y: Math.round(cardsTop), w: titleBar.w, h: cardH, gap };
+    return { card, reroll, panel, titleBar, summaryBar, count: n, scale };
+  }
+  const CHOICE_TYPE_LABEL = { weapon: "主動", passive: "被動", charm: "御守", mutation: "變異", duo: "共鳴" };
+  function choiceText(v) { return (typeof v === "string" && v.length) ? v : ""; }
   function drawLevelUp(ctx, level, choices, WL, WI, rerolls = 0, time = Date.now()/1000, focus = 0, inputMode = "keyboard", awakening = null) {
     ctx.save();
     ctx.fillStyle="rgba(6,8,16,.89)";
     fillScreen(ctx);
     ctx.globalAlpha=.88;
-    drawWashiBoard(ctx,55,38,790,547,true);
+    // 與 game.js 熱區同源：同一 count 取同一 levelUpLayout。
+    const L = levelUpLayout(choices.length);
+    const { panel, titleBar, summaryBar } = L;
+    const panelCX = panel.x + panel.w / 2;
+    drawWashiBoard(ctx,panel.x,panel.y,panel.w,panel.h,true);
     ctx.globalAlpha=1;
     ctx.fillStyle='rgba(249,239,217,.96)';
-    ctx.beginPath();ctx.roundRect(110,51,680,58,7);ctx.fill();
+    ctx.beginPath();ctx.roundRect(titleBar.x,titleBar.y,titleBar.w,titleBar.h,7);ctx.fill();
+    ctx.textBaseline="alphabetic";
+    const inkOf=()=>{
+      const px=fontPx(ctx.font);
+      const m=ctx.measureText?ctx.measureText("國Ay"):{width:px};
+      const asc=Number.isFinite(m.actualBoundingBoxAscent)&&m.actualBoundingBoxAscent>0?m.actualBoundingBoxAscent:px*0.82;
+      const desc=Number.isFinite(m.actualBoundingBoxDescent)&&m.actualBoundingBoxDescent>0?m.actualBoundingBoxDescent:px*0.18;
+      return {px,asc,desc,lh:Math.max(px,Math.ceil(asc+desc))};
+    };
+    const bandBase=(bar)=>{
+      const m=inkOf();
+      return bar.y+(bar.h-(m.asc+m.desc))/2+m.asc;
+    };
     ctx.textAlign="center";
-    ctx.font=titleFont(30);ctx.fillStyle="#39271f";
-    ctx.fillText("修行進階  Lv."+level,W/2,awakening ? 79 : 87);
-    if (awakening) {
-      ctx.font = readableFont(12, '800'); ctx.fillStyle = '#725440';
-      ctx.fillText(`覺醒印 ${awakening.seals}・Lv.4 可用印升 MAX`, W/2, 102);
-    }
+    ctx.font=readableFont(L.scale<1?18:22,"900");ctx.fillStyle="#39271f";
+    const titleText=awakening
+      ? `修行進階  Lv.${level}・覺醒印${awakening.seals}・Lv4可升MAX`
+      : "修行進階  Lv."+level;
+    fitText(ctx,titleText,panelCX,bandBase(titleBar),titleBar.w-28);
 
-    // 簡潔技能列表：小字槽改為一條易讀的已習得摘要。
     ctx.fillStyle="rgba(249,239,217,.93)";
-    ctx.beginPath();ctx.roundRect(110,110,680,49,7);ctx.fill();
+    ctx.beginPath();ctx.roundRect(summaryBar.x,summaryBar.y,summaryBar.w,summaryBar.h,7);ctx.fill();
     ctx.strokeStyle="rgba(100,69,49,.45)";ctx.lineWidth=1;ctx.stroke();
     ctx.textAlign="left";ctx.font=readableFont(15,"900");ctx.fillStyle="#634331";
-    ctx.fillText("已習得",125,142);
+    const sumBase=bandBase(summaryBar);
+    ctx.fillText("已習得",summaryBar.x+12,sumBase);
     const equipped=WI?Object.keys(WI).filter(k=>(WL[k]||0)>0).slice(0,4):[];
+    const slotStep=(summaryBar.w-120)/4, slotMax=Math.max(60,Math.floor(slotStep)-12);
     for(let i=0;i<4;i++){
-      const k=equipped[i],x=225+i*137;
+      const k=equipped[i],x=summaryBar.x+108+i*slotStep;
       if(k){
-        ctx.font=readableFont(17,"800");ctx.fillStyle="#362820";
-        fitText(ctx,WI[k].zh,x,132,123);
-        ctx.font=readableFont(13,"700");ctx.fillStyle="#725440";
-        ctx.fillText("Lv."+WL[k],x,153);
+        ctx.font=readableFont(16,"800");ctx.fillStyle="#362820";
+        fitText(ctx,WI[k].zh+" Lv."+WL[k],x,sumBase,slotMax);
       }else{
         ctx.font=readableFont(15,"700");ctx.fillStyle="#a6947d";
-        ctx.fillText("—",x,142);
+        ctx.fillText("—",x,sumBase);
       }
     }
-    const {x:cardX,y:cardY,w:cardW,h:cardH,gap}=LEVEL_CARD_LAYOUT;
+    const wrapLine=(text,maxWidth)=>{
+      const rows=[]; let cur="";
+      const w=(s)=>ctx.measureText(s).width;
+      const parts=String(text||"").match(/[A-Za-z0-9.+%×/]+|\s+|./gu)||[];
+      const push=()=>{ if(cur){rows.push(cur); cur="";} };
+      for(const tok of parts){
+        if(cur&&w(cur+tok)>maxWidth)push();
+        if(!cur&&w(tok)>maxWidth){
+          for(const ch of tok){ if(cur&&w(cur+ch)>maxWidth)push(); cur+=ch; }
+        }else cur+=tok;
+      }
+      push();
+      return rows.length?rows:[""];
+    };
+    const {x:cardX,y:cardY,w:cardW,h:cardH,gap}=L.card;
     choices.forEach((c,i)=>{
       const x=cardX,y=cardY+i*(cardH+gap),selected=i===focus;
       const weapon=c.type==="weapon";
-      const awakening=c.lv===5||c.rarity==="max";
+      const awakenCard=c.lv===5||c.rarity==="max";
       ctx.save();
+      ctx.textBaseline="alphabetic";
       ctx.fillStyle=selected?"#fff1dc":"#f3e8d6";
       ctx.beginPath();ctx.roundRect(x+3,y+3,cardW-6,cardH-6,8);ctx.fill();
       ctx.lineWidth=selected?2.8:1.15;
       ctx.strokeStyle=selected?"#a94e38":"rgba(111,78,56,.68)";ctx.stroke();
+      ctx.font=readableFont(16,"900");
+      const head=inkOf();
+      const headerH=Math.min(Math.ceil(head.lh+2), Math.max(22, Math.floor(cardH*0.34)));
+      const headBase=y+(headerH-(head.asc+head.desc))/2+head.asc;
       ctx.fillStyle=selected?"#b8503e":"#c7ae91";
-      ctx.fillRect(x+5,y+11,5,cardH-22);
-      if(selected){
-        ctx.fillStyle="#b8503e";ctx.beginPath();ctx.arc(x+20,y+21,4,0,Math.PI*2);ctx.fill();
-      }
-      ctx.textAlign="center";ctx.font=readableFont(17,"900");
-      ctx.fillStyle=selected?"#954733":"#7b624d";
-      ctx.fillText(String(i+1),x+35,y+34);
-      drawEmblem(ctx,c.id,x+37,y+72,17);
-
+      ctx.fillRect(x+6,y+6,4,headerH-8);
+      const er=Math.min(12, Math.floor((headerH-6)/2));
+      drawEmblem(ctx,c.id,x+16+er,y+headerH/2,er);
+      const nameX=x+22+er*2;
+      ctx.textAlign="left";ctx.fillStyle=selected?"#954733":"#7b624d";
+      ctx.font=readableFont(15,"900");
+      const numW=ctx.measureText(String(i+1)).width;
+      ctx.fillText(String(i+1),nameX,headBase);
+      const typeLabel=CHOICE_TYPE_LABEL[c.type]||"升級";
+      const core=awakenCard?"覺醒・耗 1 印":((choiceText(c.levelText)||(weapon?"主動秘術":"被動修行")));
+      const suffix=core.includes(typeLabel)?core:(typeLabel+"・"+core);
+      ctx.font=readableFont(15,"900");ctx.fillStyle=selected?"#953d32":"#6d4a37";
+      ctx.textAlign="right";
+      const typeMax=Math.min(220, cardW*0.34);
+      const typeX=x+cardW-14;
+      fitText(ctx,suffix,typeX,headBase,typeMax);
       ctx.textAlign="left";ctx.fillStyle="#30251f";
-      ctx.font=readableFont(25,"900");
-      fitText(ctx,c.n,x+80,y+38,290);
-      ctx.font=readableFont(16,"700");ctx.fillStyle="#765640";
-      fitText(ctx,c.s||"",x+365,y+38,114);
-      ctx.textAlign="right";ctx.font=readableFont(16,"900");
-      ctx.fillStyle=selected?"#953d32":"#6d4a37";
-      const suffix=awakening?"覺醒・耗 1 印":c.levelText||(weapon?"主動秘術":"被動修行");
-      fitText(ctx,suffix,x+cardW-26,y+39,190);
+      ctx.font=readableFont(18,"900");
+      const nameMax=Math.max(80, typeX-typeMax-nameX-numW-28);
+      fitText(ctx,c.n,nameX+numW+8,headBase,nameMax*0.62);
+      ctx.font=readableFont(14,"700");ctx.fillStyle="#765640";
+      fitText(ctx,c.s||"",nameX+numW+8+nameMax*0.64,headBase,Math.max(40,nameMax*0.34));
 
-      // 技能效果為第二閱讀重點：增大到 20px，長文允許兩行。
-      ctx.textAlign="left";ctx.font=readableFont(20,"700");
-      ctx.fillStyle="#34281f";
-      const maxWidth=cardW-108,description=String(c.d||"");
-      const lines=[];let line="";
-      for(const char of description){
-        if(ctx.measureText(line+char).width>maxWidth&&line){lines.push(line);line="";}
-        line+=char;
+      ctx.textAlign="left";
+      const textX=x+12, textW=cardW-24;
+      const description=String(c.d||"");
+      const skillNames=Array.isArray(c.skillIds)
+        ? c.skillIds.map(id=>WI&&WI[id]&&WI[id].zh).filter(Boolean).join("・")
+        : "";
+      const beforeAfter=choiceText(c.beforeText)&&choiceText(c.afterText)
+        ? c.beforeText+" ➔ "+c.afterText
+        : (choiceText(c.beforeText)||choiceText(c.afterText));
+      const dupOf=(seg)=>!seg||seg===description||(seg.length>3&&description.includes(seg));
+      const metas=[];
+      if(skillNames&&!dupOf(skillNames))metas.push("影響："+skillNames);
+      const hasBefore=!!choiceText(c.beforeText),hasAfter=!!choiceText(c.afterText);
+      const dropBeforeAfter=beforeAfter&&(dupOf(beforeAfter)
+        ||(hasBefore&&hasAfter&&dupOf(c.beforeText)&&dupOf(c.afterText)));
+      if(beforeAfter&&!dropBeforeAfter)metas.push(beforeAfter);
+      if(choiceText(c.requirementText)&&!dupOf(c.requirementText))metas.push("條件："+c.requirementText);
+      if(choiceText(c.limitText)&&!dupOf(c.limitText))metas.push("限制："+c.limitText);
+      const bodyTop=y+headerH+1, bodyBottom=y+cardH-2;
+      ctx.font=readableFont(17,"700");
+      let descRows=description?wrapLine(description,textW):[];
+      let descLh=inkOf().lh;
+      let metaRows=[], metaLh=0;
+      const measureMeta=(text)=>{
+        ctx.font=readableFont(14,"700");
+        metaLh=inkOf().lh;
+        return text?wrapLine(text,textW):[];
+      };
+      if(metas.length){
+        metaRows=[];
+        for(const seg of metas) metaRows.push(...measureMeta(seg));
       }
-      if(line||!lines.length)lines.push(line);
-      const lineHeight=Math.ceil(fontPx(ctx.font)*1.15);
-      const firstLine=lines.length>1?69:79;
-      lines.slice(0,2).forEach((txt,n)=>fitText(ctx,txt,x+80,y+firstLine+n*lineHeight,maxWidth));
+      if(descRows.length*descLh+metaRows.length*metaLh>bodyBottom-bodyTop+1&&metas.length>1){
+        metaRows=measureMeta(metas.join(" ｜ "));
+      }
+      let top=bodyTop;
+      ctx.textAlign="left";ctx.font=readableFont(17,"700");ctx.fillStyle="#34281f";
+      descLh=inkOf().lh;
+      for(const line of descRows){ ctx.fillText(line,textX,top+inkOf().asc); top+=descLh; }
+      ctx.font=readableFont(14,"700");ctx.fillStyle="#5d4636";
+      metaLh=inkOf().lh;
+      for(const line of metaRows){ ctx.fillText(line,textX,top+inkOf().asc); top+=metaLh; }
       ctx.restore();
     });
 
+    ctx.textBaseline="alphabetic";
     ctx.textAlign="left";ctx.font=readableFont(14,"800");ctx.fillStyle="#47352a";
     const legend=inputMode==="gamepad"?"十字鍵／左搖桿 選卡 · A 確認 · Y 重抽"
       :inputMode==="touch"?"點選技能 · 可按右側重抽"
       :"↑↓ 選卡 · Enter 確認 · 1／2／3 直選 · R 重抽";
-    fitText(ctx,legend,cardX,565,510);
-    drawButton(ctx,{...REROLL_BTN,id:"reroll"},"重抽 ×"+rerolls,{tone:"normal",size:16,icon:"cards",disabled:rerolls<=0});
+    const legendM=inkOf();
+    const legendBase=L.reroll.y+(L.reroll.h-(legendM.asc+legendM.desc))/2+legendM.asc;
+    fitText(ctx,legend,L.card.x+8,legendBase,Math.max(80,L.reroll.x-L.card.x-16));
+    drawButton(ctx,{...L.reroll,id:"reroll"},"重抽 ×"+rerolls,{tone:"normal",size:16,icon:"cards",disabled:rerolls<=0});
     ctx.restore();
   }
 
@@ -3342,6 +3453,7 @@ window.UI = (() => {
     MENU_CONTROLS_BTN,
     HINT_BTN,
     REROLL_BTN,
+    levelUpLayout,
     CARD_LIST
   };
 })();
