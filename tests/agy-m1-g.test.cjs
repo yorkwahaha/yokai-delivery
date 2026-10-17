@@ -227,6 +227,36 @@ function loadGameSandbox(options = {}) {
   assert.ok(endIdx > 0, 'game.js 必須具備結尾 IIFE 標記');
 
   const probeCode = `
+    const knownBosses = new Set();
+    const bossSpawnLog = [];
+    const choiceLog = [];
+    let currentSource = 'controlled';
+
+    function observeBossEvents() {
+      for (const e of enemies) {
+        if (e.type === 'boss' && !e.dying && !knownBosses.has(e)) {
+          knownBosses.add(e);
+          bossSpawnLog.push({
+            index: e.bossIndex,
+            role: e.role,
+            hp: e.hp,
+            maxHp: e.max,
+            spawnElapsed: Number(elapsed.toFixed(2)),
+            shield: e.shield,
+            bossRef: e,
+            deathElapsed: null,
+            defeated: false
+          });
+        }
+      }
+      for (const b of bossSpawnLog) {
+        if (!b.defeated && b.bossRef.hp <= 0) {
+          b.deathElapsed = Number(elapsed.toFixed(2));
+          b.defeated = true;
+        }
+      }
+    }
+
     window.__agyProbe = {
       getP: () => P,
       getB: () => b,
@@ -249,9 +279,33 @@ function loadGameSandbox(options = {}) {
       getWT: () => wT,
       setWT: (k, v) => { wT[k] = v; },
       getWMax: () => wMax,
-      start: id => start(id),
+      start: id => {
+        start(id);
+        knownBosses.clear();
+        bossSpawnLog.length = 0;
+        choiceLog.length = 0;
+      },
       offerUp: () => offerUp(),
-      applyChoice: (id, rev) => applyChoice(id, rev),
+      applyChoice: (id, rev, meta = {}) => {
+        const cLevel = level;
+        const cXp = xp;
+        const cElapsed = elapsed;
+        const cXpNeed = xpNeed();
+        const res = applyChoice(id, rev);
+        if (res && res.ok) {
+          choiceLog.push({
+            step: choiceLog.length + 1,
+            choiceId: id,
+            source: meta.source || currentSource,
+            elapsed: Number(cElapsed.toFixed(2)),
+            level: cLevel,
+            xp: cXp,
+            xpNeed: cXpNeed,
+            offerAttempts: meta.offerAttempts || 1
+          });
+        }
+        return res;
+      },
       pickUp: i => pickUp(i),
       reroll: () => reroll(),
       weapons: dt => weapons(dt),
@@ -281,7 +335,11 @@ function loadGameSandbox(options = {}) {
       runFrame: now => {
         window.setPerfClock?.(now);
         runFrame(now);
+        observeBossEvents();
       },
+      getBossSpawnLog: () => bossSpawnLog,
+      getChoiceLog: () => choiceLog,
+      setChoiceSource: s => { currentSource = s; },
       update: (dt, hitStopped) => update(dt, hitStopped),
       loseRun: () => loseRun(),
       startVictorySequence: () => startVictorySequence(),
@@ -309,8 +367,11 @@ function loadGameSandbox(options = {}) {
       getDragonShots: () => dragonShots,
       getDragonScorches: () => dragonScorches,
       getSplitblasts: () => splitblasts,
-      getDuoShockwaves: () => duoShockwaves,
-      getInkfireMarks: () => inkfireMarks
+      getInkfireMarks: () => inkfireMarks,
+      confirmOverworld: () => confirmOverworld(),
+      enterOverworld: r => enterOverworld(r),
+      getOverworld: () => overworld,
+      moveOverworld: (dx, dy) => moveOverworld(dx, dy)
     };
   `;
 
@@ -327,12 +388,12 @@ function handleNaturalLevelUp(probe) {
     if (!choices || choices.length === 0) break;
     probe.setLevelupCooldown(0);
     const c = choices[0];
-    probe.applyChoice(c.choiceId, probe.getBuildRevision());
+    probe.applyChoice(c.choiceId, probe.getBuildRevision(), { source: 'natural', offerAttempts: 1 });
   }
 }
 
 // 輔助：真實配送一次（受控移動到發件處取件，移動到正確答案位置並安心閱讀 dwell，由引擎自然 resolve）
-function executeOneDelivery(probe, currentNow) {
+function executeOneDelivery(probe, currentNow, deliveryLog) {
   let now = currentNow;
   if (probe.getOrders().length === 0) {
     probe.makeOrder();
@@ -378,13 +439,22 @@ function executeOneDelivery(probe, currentNow) {
 
   assert.equal(probe.getJob(), null, '完成停留後 job 自然結算清空');
   assert.equal(probe.getDelivered(), delBefore + 1, 'delivered 計數自然加 1');
+  if (Array.isArray(deliveryLog)) {
+    deliveryLog.push({
+      index: probe.getDelivered(),
+      elapsed: Number(probe.getElapsed().toFixed(2)),
+      word: o.word.jp
+    });
+  }
   return now;
 }
 
 // 輔助：受控選卡（反覆合法 offerUp 抽取目標卡片，經真實 applyChoice 升級）
 function executeControlledUpgrade(probe, choiceId) {
   let card = null;
+  let attempts = 0;
   for (let i = 0; i < 200 && !card; i++) {
+    attempts++;
     probe.setXp(probe.getXpNeed());
     probe.offerUp();
     probe.setLevelupCooldown(0);
@@ -392,66 +462,170 @@ function executeControlledUpgrade(probe, choiceId) {
   }
   assert.ok(card, `合法抽得目標卡片: ${choiceId}`);
   const rev = probe.getBuildRevision();
-  const res = probe.applyChoice(choiceId, rev);
+  const res = probe.applyChoice(choiceId, rev, { source: 'controlled', offerAttempts: attempts });
   assert.equal(res.ok, true, `applyChoice 成功套用: ${choiceId}`);
   assert.equal(probe.getState(), 'play', '選卡後狀態恢復為 play');
 }
 
-// 輔助：終王決戰（排程出陣、bossQ 破盾、真武器打擊擊破）
-function executeBossDefeat(probe, currentNow) {
+// 輔助：受控走位與自動巡邏避敵（計算排斥向量遠離妖怪，自然時鐘推進 runFrame）
+function boundedStepTo(probe, currentNow, targetElapsed) {
+  let now = currentNow;
+  let maxFrames = 12000; // 600s max
+  while (probe.getElapsed() < targetElapsed && probe.getState() === 'play' && maxFrames-- > 0) {
+    now += 50;
+    const P = probe.getP();
+    const t = now / 1000;
+    // 基礎巡邏路徑
+    let vx = -Math.sin(t * 0.4) * 80;
+    let vy = Math.cos(t * 0.4) * 80;
+
+    // 主動避敵：遠離 110px 內的妖怪避免碰撞創傷
+    const enemies = probe.getEnemies();
+    let repX = 0, repY = 0;
+    for (const e of enemies) {
+      if (e.hp > 0) {
+        const dx = P.x - e.x;
+        const dy = P.y - e.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 110 && d > 1) {
+          repX += (dx / d) * (110 - d) * 3.5;
+          repY += (dy / d) * (110 - d) * 3.5;
+        }
+      }
+    }
+    vx += repX;
+    vy += repY;
+
+    // 速度上限限制（快遞員正常航速 180-220）
+    const spd = Math.hypot(vx, vy);
+    if (spd > 220) {
+      vx = (vx / spd) * 220;
+      vy = (vy / spd) * 220;
+    }
+
+    P.x = Math.max(300, Math.min(1500, P.x + vx * 0.05));
+    P.y = Math.max(300, Math.min(1200, P.y + vy * 0.05));
+    if (spd > 5) {
+      P.faceAng = Math.atan2(vy, vx);
+    }
+
+    // 巡邏途中燈油偏低時，透過合法添燈香油 (oil_heal) 緊急急救（每場最多 3 次）
+    if (probe.getOil() < 60 && (probe.getB().heals || 0) < 3 && probe.getState() === 'play') {
+      executeControlledUpgrade(probe, 'passive:oil_heal');
+    }
+
+    probe.runFrame(now);
+    handleNaturalLevelUp(probe);
+  }
+  return now;
+}
+
+// 輔助：真實首領對決（言語破盾、圓周環繞走位避彈、招式預告迴避、真武器打擊擊破）
+function boundedFightBoss(probe, currentNow, expectedBossIndex, expectedHp, expectedRole, expectedTime) {
   let now = currentNow;
 
-  // 1. 排程出陣（受控設置時程至 540s 終王節點）
-  probe.setBossStage(3);
-  probe.setBossT(0);
-  probe.setElapsed(540);
-  now += 50;
-  probe.runFrame(now);
-  handleNaturalLevelUp(probe);
+  // 1. 嚴格核驗真 Boss producer 事件紀錄（若記憶體跳過反例在此必 RED）
+  const spawnLog = probe.getBossSpawnLog();
+  const recordedSpawn = spawnLog.find(b => b.index === expectedBossIndex);
+  assert.ok(recordedSpawn, `Boss ${expectedBossIndex} 必須由真正的 Boss producer 產生 (若記憶體跳過則必 RED)`);
+  assert.equal(recordedSpawn.hp, expectedHp, `Boss ${expectedBossIndex} 初始 HP 必須為 ${expectedHp}`);
+  assert.equal(recordedSpawn.role, expectedRole, `Boss ${expectedBossIndex} role 必須為 ${expectedRole}`);
+  assert.ok(
+    recordedSpawn.spawnElapsed >= expectedTime && recordedSpawn.spawnElapsed <= expectedTime + 5,
+    `Boss ${expectedBossIndex} 出場時間界限合理 [${expectedTime}, ${expectedTime + 5}], 實得: ${recordedSpawn.spawnElapsed}`
+  );
 
-  const enemies = probe.getEnemies();
-  const boss = enemies.find(e => e.type === 'boss' && e.final && e.hp > 0);
-  assert.ok(boss, '終王成功出陣，具備 final 標記');
-  assert.equal(boss.shield, true, '終王起始具備言語護盾');
+  const boss = recordedSpawn.bossRef;
+  assert.ok(boss, `Boss ${expectedBossIndex} 實體物件必須存在`);
+  assert.equal(boss.max, expectedHp, `Boss ${expectedBossIndex} 最大生命值必須為 ${expectedHp}`);
 
-  // 2. 移動至 Boss 附近引發 Boss 考驗，並停留 0.75s 渡過 bossQ.lock
   const P = probe.getP();
-  P.x = boss.x;
-  P.y = boss.y + 100;
-  for (let f = 0; f < 15; f++) {
+  // 2. 若首領具備言語護盾，靠近答題破除護盾
+  if (boss.shield && boss.hp > 0) {
+    P.x = boss.x;
+    P.y = boss.y + 100;
+    let shieldFrames = 30;
+    while (boss.shield && boss.hp > 0 && shieldFrames-- > 0) {
+      now += 50;
+      probe.runFrame(now);
+      handleNaturalLevelUp(probe);
+      const bq = probe.getBossQ();
+      if (bq && bq.lock <= 0 && boss.word) {
+        const correctIdx = bq.ans.findIndex(w => w.jp === boss.word.jp);
+        if (correctIdx >= 0) {
+          probe.answerBoss(correctIdx);
+          break;
+        }
+      }
+    }
+    assert.equal(boss.shield, false, `Boss ${expectedBossIndex} 言語護盾順利破除`);
+  }
+
+  // 3. 真武器戰鬥：維持環形射程，面朝首領，避開預告與直射妖火彈
+  let maxFrames = 2500; // 最多 125s 自然戰鬥幀
+  while (boss.hp > 0 && maxFrames-- > 0 && probe.getState() === 'play') {
+    const bdx = boss.x - P.x;
+    const bdy = boss.y - P.y;
+    const bdist = Math.hypot(bdx, bdy);
+    P.faceAng = Math.atan2(bdy, bdx);
+
+    let moveX = 0, moveY = 0;
+    // 首領招式預告閃避
+    if (boss.hazard && boss.hazard.phase === 'telegraph') {
+      const h = boss.hazard;
+      if (h.kind === 'slam') {
+        const hdx = P.x - h.x;
+        const hdy = P.y - h.y;
+        const hd = Math.hypot(hdx, hdy);
+        if (hd < 170 && hd > 1) {
+          moveX = (hdx / hd) * 200;
+          moveY = (hdy / hd) * 200;
+        }
+      } else if (h.kind === 'charge') {
+        // 直線衝撞：向法線方向橫移閃避
+        moveX = -Math.sin(h.angle) * 200;
+        moveY = Math.cos(h.angle) * 200;
+      } else if (h.kind === 'ring') {
+        // 衝擊環：向安全缺口方向移動
+        moveX = Math.cos(h.gapAngle) * 200;
+        moveY = Math.sin(h.gapAngle) * 200;
+      }
+    }
+
+    if (moveX === 0 && moveY === 0) {
+      // 環繞圓周走位（閃避首領直射妖火彈；狐火流保持 75px 貼身燃燒，其餘保持 110px 安全射程）
+      const targetDist = (probe.getWL().fire > 0) ? 75 : 110;
+      const bAng = Math.atan2(bdy, bdx);
+      const tangX = -Math.sin(bAng) * 130;
+      const tangY = Math.cos(bAng) * 130;
+      let radX = 0, radY = 0;
+      if (bdist > targetDist + 15) {
+        radX = (bdx / bdist) * 110;
+        radY = (bdy / bdist) * 110;
+      } else if (bdist < targetDist - 15 && bdist > 1) {
+        radX = -(bdx / bdist) * 110;
+        radY = -(bdy / bdist) * 110;
+      }
+      moveX = tangX + radX;
+      moveY = tangY + radY;
+    }
+
+    P.x += moveX * 0.05;
+    P.y += moveY * 0.05;
+
+    // 戰鬥中燈油偏低時，透過合法添燈香油 (oil_heal) 緊急急救（每場最多 3 次）
+    if (probe.getOil() < 60 && (probe.getB().heals || 0) < 3 && probe.getState() === 'play') {
+      executeControlledUpgrade(probe, 'passive:oil_heal');
+    }
+
     now += 50;
     probe.runFrame(now);
     handleNaturalLevelUp(probe);
   }
 
-  const bossQ = probe.getBossQ();
-  assert.ok(bossQ, '靠近終王後觸發 bossQ 考題');
-  assert.ok(bossQ.lock <= 0, 'bossQ.lock 倒數歸零');
-  const correctIdx = bossQ.ans.findIndex(w => w.jp === boss.word.jp);
-  assert.ok(correctIdx >= 0, 'bossQ 選項中包含正確詞');
-
-  // 3. 正確回答 Boss 考驗破除結界
-  probe.answerBoss(correctIdx);
-  assert.equal(boss.shield, false, '正確答題破除終王護盾');
-
-  // 4. 真武器打擊消滅 Boss（面朝 Boss，推進 runFrame 讓武器打擊 Boss 直至死亡）
-  P.faceAng = 0; // 朝向右方
-  probe.getB().dmg = 35; // 受控戰鬥輸出加速，使 1400 HP 終王能由真實武器在合理幀數內擊破
-  let maxCombatFrames = 350;
-  const initialHp = boss.hp;
-  while (boss.hp > 0 && maxCombatFrames-- > 0) {
-    P.x = boss.x - 30; // 位於 Boss 左側 30px
-    P.y = boss.y;
-    P.faceAng = 0;
-    // 補給燈油以防超長戰鬥耗盡
-    if (probe.getOil() < 40) probe.setOil(80);
-    now += 50;
-    probe.runFrame(now);
-    handleNaturalLevelUp(probe);
-  }
-
-  assert.ok(boss.hp <= 0, '終王受到真武器打擊後生命歸零');
-  assert.equal(probe.getFinalBossDefeated(), true, 'finalBossDefeated 正確寫入');
+  // 4. 斷言敵物件生命歸零與武器擊破標記
+  assert.ok(boss.hp <= 0, `Boss ${expectedBossIndex} (role: ${boss.role}) 生命必須由真武器打擊歸零`);
+  assert.equal(recordedSpawn.defeated, true, `Boss ${expectedBossIndex} 必須標記為 defeated`);
   return now;
 }
 
@@ -485,11 +659,14 @@ function executeVictoryToSettlement(probe, currentNow) {
   return now;
 }
 
-// ── 1. Build 1: 天狐靈針組合 (mut_fan + mut_seek + mut_frost) 受控結算路徑 ──
-test('M1-G-1 Build 1 (Needle: fan+seek+frost) controlled settlement path: start -> offerUp/applyChoice -> 6 deliveries -> boss -> victory -> won -> STORE.finish -> restart clean', () => {
-  const env = loadGameSandbox();
+const validationReports = [];
+
+// ── 1. Build 1: 天狐靈針組合 (mut_fan + mut_seek + mut_frost) 正常參數受控完整流程 ──
+test('M1-G-1 Build 1 (Needle: fan+seek+frost) normal combat values with controlled XP, specified offers, and navigation: 6 deliveries, 2 seals, 4 natural bosses (180/360/480/540s), and overworld return', () => {
+  const env = loadGameSandbox({ seed: 777 });
   const probe = env.__agyProbe;
   const store = probe.getStore();
+  const deliveries = [];
   let now = 1000;
 
   // 1. 真實 start
@@ -499,178 +676,476 @@ test('M1-G-1 Build 1 (Needle: fan+seek+frost) controlled settlement path: start 
   assert.equal(probe.getWL().katana, 1);
   assert.equal(probe.getWL().needle, 0);
 
-  // 2. 真實選卡建立 Build 1: needle Lv1, mut_fan, mut_seek, mut_frost, charm_step
+  // 2. 合法選卡建立 Build 1: needle Lv4, 3 變異, 2 御守, katana Lv4, 被動
   executeControlledUpgrade(probe, 'weapon:needle:1');
-  assert.equal(probe.getWL().needle, 1, '成功習得天狐靈針 Lv1');
-
+  executeControlledUpgrade(probe, 'weapon:needle:2');
+  executeControlledUpgrade(probe, 'weapon:needle:3');
+  executeControlledUpgrade(probe, 'weapon:needle:4');
   executeControlledUpgrade(probe, 'mutation:needle:mut_fan');
-  assert.ok(probe.getBuildMutations().includes('mut_fan'), '變異 mut_fan 成功寫入');
-
   executeControlledUpgrade(probe, 'mutation:needle:mut_seek');
-  assert.ok(probe.getBuildMutations().includes('mut_seek'), '變異 mut_seek 成功寫入');
-
   executeControlledUpgrade(probe, 'mutation:needle:mut_frost');
-  assert.ok(probe.getBuildMutations().includes('mut_frost'), '變異 mut_frost 成功寫入');
-
   executeControlledUpgrade(probe, 'charm:charm_step');
-  assert.ok(probe.getBuildCharms().includes('charm_step'), '御守 charm_step 成功寫入');
+  executeControlledUpgrade(probe, 'charm:charm_power');
+  executeControlledUpgrade(probe, 'weapon:katana:2');
+  executeControlledUpgrade(probe, 'weapon:katana:3');
+  executeControlledUpgrade(probe, 'weapon:katana:4');
+  executeControlledUpgrade(probe, 'passive:dmg');
+  executeControlledUpgrade(probe, 'passive:rate');
+  executeControlledUpgrade(probe, 'passive:oil_max');
+  executeControlledUpgrade(probe, 'passive:oil_max');
+  executeControlledUpgrade(probe, 'passive:shield');
+  executeControlledUpgrade(probe, 'passive:shield');
+  executeControlledUpgrade(probe, 'passive:dmg');
+  executeControlledUpgrade(probe, 'passive:dmg');
+  executeControlledUpgrade(probe, 'passive:rate');
 
   assert.equal(probe.getBuildMutations().length, 3, '靈針 3 變異槽滿');
-  assert.equal(probe.getBuildCharms().length, 1, '御守 1 槽');
+  assert.equal(probe.getBuildCharms().length, 2, '御守 2 槽滿');
   assert.equal(probe.getBuildDuos().length, 0, '未啟用 Duo');
 
-  // 3. 讀取真 pacing / GOAL_DELIVERIES 驗證 night-town 目標為 6 筆配送
-  const stagePacing = env.CONTENT.getStage('night-town').pacing;
-  assert.equal(stagePacing.goalDeliveries, 6, 'GDD §3 與 words.js night-town pacing 定義 goalDeliveries 為 6');
-  assert.equal(probe.getGoalDeliveries(), 6, 'game.js 消費之 GOAL_DELIVERIES 契約相符為 6');
+  // 3. 配送 1, 2, 3 在 Boss 0 (180s) 之前完成
+  now = boundedStepTo(probe, now, 25);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 1);
 
-  // 4. 真實 6 次配送與取件答題
-  for (let i = 1; i <= 6; i++) {
-    now = executeOneDelivery(probe, now);
-    assert.equal(probe.getDelivered(), i, `成功完成第 ${i} 次配送`);
-    if (i === 3) assert.equal(probe.getSeals(), 1, '第 3 次配送獲得 1 覺醒印');
-    if (i === 6) assert.equal(probe.getSeals(), 2, '第 6 次配送獲得 2 覺醒印');
-  }
+  now = boundedStepTo(probe, now, 75);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 2);
+
+  now = boundedStepTo(probe, now, 135);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 3);
+  assert.equal(probe.getSeals(), 1, '第 3 次配送合法獲得第 1 枚覺醒印');
+
+  // 4. 以合法第 1 印覺醒妖刀至 Lv5
+  executeControlledUpgrade(probe, 'weapon:katana:5');
+  assert.equal(probe.getWL().katana, 5, '妖刀覺醒 Lv5');
+  assert.equal(probe.getSeals(), 0, '覺醒印消耗完畢');
+
+  // 5. 自然推進至 180s 首個中首領 Boss 0 (300 HP)
+  now = boundedStepTo(probe, now, 180.1);
+  now = boundedFightBoss(probe, now, 0, 300, 'mid', 180);
+  assert.ok(probe.getOil() > 50, 'Boss 0 戰鬥後燈油保持健全');
+
+  // 6. 配送 4, 5, 6
+  now = boundedStepTo(probe, now, 230);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 4);
+
+  now = boundedStepTo(probe, now, 280);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 5);
+
+  now = boundedStepTo(probe, now, 330);
+  now = executeOneDelivery(probe, now, deliveries);
   assert.equal(probe.getDelivered(), 6, '完成全部 6 次配送目標');
+  assert.equal(probe.getSeals(), 1, '第 6 次配送合法獲得第 2 枚覺醒印');
 
-  // 5. 負向反例：6 筆配送達標但未擊敗終王時，即使經過 600 秒 (DAWN) 也絕不能獲勝！
-  probe.setElapsed(620); // 超過 600s DAWN 黎明線
-  for (let f = 0; f < 20; f++) {
-    now += 50;
-    probe.runFrame(now);
-    handleNaturalLevelUp(probe);
+  // 7. 以合法第 2 印覺醒靈針至 Lv5
+  executeControlledUpgrade(probe, 'weapon:needle:5');
+  assert.equal(probe.getWL().needle, 5, '靈針覺醒 Lv5');
+  assert.equal(probe.getSeals(), 0, '覺醒印消耗完畢');
+
+  // 8. 自然推進至 360s 第二個中首領 Boss 1 (650 HP)
+  now = boundedStepTo(probe, now, 360.1);
+  now = boundedFightBoss(probe, now, 1, 650, 'mid', 360);
+  assert.ok(probe.getOil() > 50, 'Boss 1 戰鬥後燈油保持健全');
+
+  // 9. 自然推進至 480s 門衛 Boss 2 (120 HP)
+  now = boundedStepTo(probe, now, 480.1);
+  now = boundedFightBoss(probe, now, 2, 120, 'gate', 480);
+  assert.ok(probe.getOil() > 50, 'Gatekeeper 戰鬥後燈油保持健全');
+
+  // 10. 決戰前緊急添燈 (oil_heal)
+  if ((probe.getB().heals || 0) < 3) {
+    executeControlledUpgrade(probe, 'passive:oil_heal');
   }
-  assert.equal(probe.getState(), 'play', '未擊敗終王時狀態保持 play，絕非 won 或 victory');
-  assert.equal(probe.getVictorySeq(), null, '未擊敗終王不得建立 victorySeq');
-  assert.equal(probe.getEnded(), false, '未擊敗終王不得結算 ended');
-  assert.equal(store.isStageCompleted('night-town'), false, '未擊敗終王不得標記 completed');
 
-  // 6. 終王對決（考題破盾 + 真武器打擊）
-  now = executeBossDefeat(probe, now);
+  // 11. 自然推進至 540s 終章大首領 Boss 3 (1400 HP)
+  now = boundedStepTo(probe, now, 540.1);
+  now = boundedFightBoss(probe, now, 3, 1400, 'final', 540);
 
-  // 7. 勝利演出自然流暢至 won 並結算 STORE.finish
+  // 12. 勝利結算
+  assert.equal(probe.getState(), 'victory', '終王擊破後自然進入 victory 狀態');
+  assert.equal(probe.getFinalBossDefeated(), true);
+
   now = executeVictoryToSettlement(probe, now);
+  assert.equal(probe.getState(), 'won', '演出結束轉為 won');
+  assert.equal(probe.getEnded(), true, 'STORE.finish 結算完成');
+  assert.equal(store.getStageStats('night-town').clears, 1, '通關次數為 1');
+  assert.equal(store.isStageCompleted('night-town'), true);
+  assert.equal(store.isStageUnlocked('rain-port'), true);
 
-  // 8. 存檔驗證（STORE 狀態）
-  const stats = store.getStageStats('night-town');
-  assert.equal(stats.clears, 1, 'STORE 通關次數正確遞增為 1');
-  assert.equal(store.isStageCompleted('night-town'), true, 'night-town 標記為 completed');
-  assert.equal(store.isStageUnlocked('rain-port'), true, '下一關 rain-port 正確解鎖');
+  // 核驗 4 位首領由 producer 產生且死亡
+  const allBosses = probe.getBossSpawnLog();
+  assert.equal(allBosses.length, 4, '全關 4 位首領必須皆有由 producer 產生的事件紀錄');
+  assert.ok(allBosses.every(b => b.defeated && b.bossRef.hp <= 0), '4 位首領生命皆已歸零並標記擊破');
 
-  // 9. 重新開始（restart），驗證 BuildState 清空與暫態清理
-  probe.activateMenu('restart');
-  assert.equal(probe.getState(), 'play', '重開後回到 play 狀態');
-  assert.equal(probe.getDelivered(), 0, '配送計數歸零');
-  assert.equal(probe.getWL().katana, 1, '妖刀恢復 Lv1');
-  assert.equal(probe.getWL().needle, 0, '靈針已清空');
-  assert.equal(probe.getBuildMutations().length, 0, 'buildMutations 完全清空');
-  assert.equal(probe.getBuildCharms().length, 0, 'buildCharms 完全清空');
-  assert.equal(probe.getBuildDuos().length, 0, 'buildDuos 完全清空');
-  assert.equal(probe.getNeedles().length, 0, '針投射物佇列清空');
-  assert.equal(probe.getEnemies().length, 0, '敵人佇列清空');
+  // 收集並記錄 Build 1 執行數據
+  const b1Report = {
+    buildId: 'Build 1 (Needle: fan+seek+frost)',
+    seed: 777,
+    won: probe.getState() === 'won',
+    clears: store.getStageStats('night-town').clears,
+    finalLevel: probe.getLevel(),
+    finalOil: Number(probe.getOil().toFixed(2)),
+    finalElapsed: Number(probe.getElapsed().toFixed(2)),
+    choicesCount: probe.getChoiceLog().length,
+    controlledChoicesCount: probe.getChoiceLog().filter(c => c.source === 'controlled').length,
+    naturalChoicesCount: probe.getChoiceLog().filter(c => c.source === 'natural').length,
+    choices: probe.getChoiceLog(),
+    deliveries,
+    bosses: allBosses.map(b => ({
+      index: b.index,
+      role: b.role,
+      initialHp: b.hp,
+      spawnElapsed: b.spawnElapsed,
+      deathElapsed: b.deathElapsed,
+      defeated: b.defeated
+    }))
+  };
+  validationReports.push(b1Report);
+
+  // 13. 返回旅路地圖並重開，驗證狀態清理
+  probe.activateMenu('world');
+  assert.equal(probe.getState(), 'overworld', '進入 overworld 狀態');
+  const overworld = probe.getOverworld();
+  env.OVERWORLD.moveTo(overworld, 'night-town');
+  env.OVERWORLD.update(overworld, 1.0);
+  probe.confirmOverworld();
+  assert.equal(probe.getState(), 'play', 'confirmOverworld 順利重新開始遊戲');
+  assert.equal(probe.getEnemies().length, 0, '敵人佇列徹底清空');
+  assert.equal(probe.getOrders().length, 1, '新訂單為 1');
+  assert.equal(probe.getBossQ(), null, 'bossQ 為 null');
+  assert.equal(probe.getJob(), null, 'job 為 null');
+  assert.equal(probe.getWL().katana, 1, '妖刀重置為 Lv1');
+  assert.equal(probe.getWL().needle, 0, '靈針已重置為 0');
+  assert.equal(probe.getBuildMutations().length, 0, '變異全部清空');
+  assert.equal(probe.getBuildCharms().length, 0, '御守全部清空');
+  assert.equal(probe.getBuildDuos().length, 0, '共鳴全部清空');
 });
 
-// ── 2. Build 2: 雷紋陣組合 (barrier + thunder + duo_thundercircle) 受控結算路徑 ──
-test('M1-G-2 Build 2 (Barrier+Thunder: duo_thundercircle) controlled settlement path: start -> offerUp/applyChoice -> 6 deliveries -> boss -> victory -> won -> STORE.finish -> restart clean', () => {
-  const env = loadGameSandbox();
+// ── 2. Build 2: 雷紋陣組合 (barrier + thunder + duo_thundercircle) 正常參數受控完整流程 ──
+test('M1-G-2 Build 2 (Barrier+Thunder: duo_thundercircle) normal combat values with controlled XP, specified offers, and navigation: 6 deliveries, 2 seals, 4 natural bosses (180/360/480/540s), and overworld return', () => {
+  const env = loadGameSandbox({ seed: 778 });
   const probe = env.__agyProbe;
   const store = probe.getStore();
+  const deliveries = [];
   let now = 1000;
 
   probe.start('night-town');
+  assert.equal(probe.getState(), 'play');
 
-  // 1. 真實選卡建立 Build 2: barrier Lv3, thunder Lv3, duo_thundercircle, charm_power
+  // 1. 合法選卡建立 Build 2: barrier Lv4, thunder Lv3, duo_thundercircle, charm_step, charm_power, katana Lv4, 被動
   executeControlledUpgrade(probe, 'weapon:barrier:1');
   executeControlledUpgrade(probe, 'weapon:barrier:2');
   executeControlledUpgrade(probe, 'weapon:barrier:3');
+  executeControlledUpgrade(probe, 'weapon:barrier:4');
   executeControlledUpgrade(probe, 'weapon:thunder:1');
   executeControlledUpgrade(probe, 'weapon:thunder:2');
   executeControlledUpgrade(probe, 'weapon:thunder:3');
-
   executeControlledUpgrade(probe, 'duo:duo_thundercircle');
-  assert.ok(probe.getBuildDuos().includes('duo_thundercircle'), '共鳴奧義 duo_thundercircle 成功寫入');
-
+  executeControlledUpgrade(probe, 'charm:charm_step');
   executeControlledUpgrade(probe, 'charm:charm_power');
-  assert.ok(probe.getBuildCharms().includes('charm_power'), '御守 charm_power 成功寫入');
+  executeControlledUpgrade(probe, 'weapon:katana:2');
+  executeControlledUpgrade(probe, 'weapon:katana:3');
+  executeControlledUpgrade(probe, 'weapon:katana:4');
+  executeControlledUpgrade(probe, 'passive:dmg');
+  executeControlledUpgrade(probe, 'passive:rate');
+  executeControlledUpgrade(probe, 'passive:oil_max');
+  executeControlledUpgrade(probe, 'passive:oil_max');
+  executeControlledUpgrade(probe, 'passive:shield');
+  executeControlledUpgrade(probe, 'passive:shield');
+  executeControlledUpgrade(probe, 'passive:dmg');
+  executeControlledUpgrade(probe, 'passive:dmg');
+  executeControlledUpgrade(probe, 'passive:rate');
 
-  assert.equal(probe.getWL().barrier, 3);
+  assert.equal(probe.getWL().barrier, 4);
   assert.equal(probe.getWL().thunder, 3);
   assert.equal(probe.getBuildDuos().length, 1);
-  assert.equal(probe.getBuildCharms().length, 1);
+  assert.equal(probe.getBuildCharms().length, 2);
 
-  // 2. 真實 6 次配送
-  for (let i = 1; i <= 6; i++) {
-    now = executeOneDelivery(probe, now);
-  }
+  // 2. 配送 1, 2, 3
+  now = boundedStepTo(probe, now, 25);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 1);
+
+  now = boundedStepTo(probe, now, 75);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 2);
+
+  now = boundedStepTo(probe, now, 135);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 3);
+  assert.equal(probe.getSeals(), 1, '獲得第 1 枚覺醒印');
+
+  // 3. 妖刀覺醒 Lv5
+  executeControlledUpgrade(probe, 'weapon:katana:5');
+  assert.equal(probe.getWL().katana, 5);
+  assert.equal(probe.getSeals(), 0);
+
+  // 4. Boss 0 (180s)
+  now = boundedStepTo(probe, now, 180.1);
+  now = boundedFightBoss(probe, now, 0, 300, 'mid', 180);
+  assert.ok(probe.getOil() > 50, 'Boss 0 戰鬥後燈油保持健全');
+
+  // 5. 配送 4, 5, 6
+  now = boundedStepTo(probe, now, 230);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 4);
+
+  now = boundedStepTo(probe, now, 280);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 5);
+
+  now = boundedStepTo(probe, now, 330);
+  now = executeOneDelivery(probe, now, deliveries);
   assert.equal(probe.getDelivered(), 6);
+  assert.equal(probe.getSeals(), 1, '獲得第 2 枚覺醒印');
 
-  // 3. 終王對決（落雷、結界與雷紋衝擊共同打擊）
-  now = executeBossDefeat(probe, now);
+  // 6. 結界覺醒 Lv5
+  executeControlledUpgrade(probe, 'weapon:barrier:5');
+  assert.equal(probe.getWL().barrier, 5);
+  assert.equal(probe.getSeals(), 0);
 
-  // 4. 自然勝利演出至結算
+  // 7. Boss 1 (360s)
+  now = boundedStepTo(probe, now, 360.1);
+  now = boundedFightBoss(probe, now, 1, 650, 'mid', 360);
+  assert.ok(probe.getOil() > 50, 'Boss 1 戰鬥後燈油保持健全');
+
+  // 8. Gatekeeper Boss 2 (480s)
+  now = boundedStepTo(probe, now, 480.1);
+  now = boundedFightBoss(probe, now, 2, 120, 'gate', 480);
+  assert.ok(probe.getOil() > 50, 'Gatekeeper 戰鬥後燈油保持健全');
+
+  // 9. 決戰前緊急添燈
+  if ((probe.getB().heals || 0) < 3) {
+    executeControlledUpgrade(probe, 'passive:oil_heal');
+  }
+
+  // 10. Final Boss (540s)
+  now = boundedStepTo(probe, now, 540.1);
+  now = boundedFightBoss(probe, now, 3, 1400, 'final', 540);
+
+  assert.equal(probe.getState(), 'victory');
+  assert.equal(probe.getFinalBossDefeated(), true);
+
   now = executeVictoryToSettlement(probe, now);
+  assert.equal(probe.getState(), 'won');
+  assert.equal(probe.getEnded(), true);
+  assert.equal(store.getStageStats('night-town').clears, 1);
 
-  // 5. 存檔驗證
-  const stats = store.getStageStats('night-town');
-  assert.equal(stats.clears, 1);
-  assert.equal(store.isStageCompleted('night-town'), true);
+  // 核驗 4 位首領由 producer 產生且死亡
+  const allBosses = probe.getBossSpawnLog();
+  assert.equal(allBosses.length, 4, '全關 4 位首領必須皆有由 producer 產生的事件紀錄');
+  assert.ok(allBosses.every(b => b.defeated && b.bossRef.hp <= 0), '4 位首領生命皆已歸零並標記擊破');
 
-  // 6. 重開清理驗證
-  probe.activateMenu('restart');
-  assert.equal(probe.getBuildDuos().length, 0, 'buildDuos 重開後清空');
-  assert.equal(probe.getBuildCharms().length, 0, 'buildCharms 重開後清空');
-  assert.equal(probe.getDuoShockwaves().length, 0, 'duoShockwaves 暫態佇列清空');
+  // 收集並記錄 Build 2 執行數據
+  const b2Report = {
+    buildId: 'Build 2 (Barrier+Thunder: duo_thundercircle)',
+    seed: 778,
+    won: probe.getState() === 'won',
+    clears: store.getStageStats('night-town').clears,
+    finalLevel: probe.getLevel(),
+    finalOil: Number(probe.getOil().toFixed(2)),
+    finalElapsed: Number(probe.getElapsed().toFixed(2)),
+    choicesCount: probe.getChoiceLog().length,
+    controlledChoicesCount: probe.getChoiceLog().filter(c => c.source === 'controlled').length,
+    naturalChoicesCount: probe.getChoiceLog().filter(c => c.source === 'natural').length,
+    choices: probe.getChoiceLog(),
+    deliveries,
+    bosses: allBosses.map(b => ({
+      index: b.index,
+      role: b.role,
+      initialHp: b.hp,
+      spawnElapsed: b.spawnElapsed,
+      deathElapsed: b.deathElapsed,
+      defeated: b.defeated
+    }))
+  };
+  validationReports.push(b2Report);
+
+  // 11. 返回旅路地圖並重開
+  probe.activateMenu('world');
+  assert.equal(probe.getState(), 'overworld');
+  const overworld = probe.getOverworld();
+  env.OVERWORLD.moveTo(overworld, 'night-town');
+  env.OVERWORLD.update(overworld, 1.0);
+  probe.confirmOverworld();
+  assert.equal(probe.getState(), 'play');
+  assert.equal(probe.getBuildDuos().length, 0);
+  assert.equal(probe.getWL().barrier, 0);
+  assert.equal(probe.getWL().thunder, 0);
 });
 
-// ── 3. Build 3: 餘燼符組合 (fire + boom + duo_cinderseal) 受控結算路徑 ──
-test('M1-G-3 Build 3 (Fire+Boom: duo_cinderseal) controlled settlement path: start -> offerUp/applyChoice -> 6 deliveries -> boss -> victory -> won -> STORE.finish -> restart clean', () => {
-  const env = loadGameSandbox();
+// ── 3. Build 3: 餘燼符組合 (fire + boom + duo_cinderseal) 正常參數受控完整流程 ──
+test('M1-G-3 Build 3 (Fire+Boom: duo_cinderseal) normal combat values with controlled XP, specified offers, and navigation: 6 deliveries, 2 seals, 4 natural bosses (180/360/480/540s), and overworld return', () => {
+  const env = loadGameSandbox({ seed: 779 });
   const probe = env.__agyProbe;
   const store = probe.getStore();
+  const deliveries = [];
   let now = 1000;
 
   probe.start('night-town');
+  assert.equal(probe.getState(), 'play');
 
-  // 1. 真實選卡建立 Build 3: fire Lv3, boom Lv3, duo_cinderseal, charm_gather
+  // 1. 合法選卡建立 Build 3: fire Lv4, boom Lv3, duo_cinderseal, charm_step, charm_power, katana Lv4, 被動
   executeControlledUpgrade(probe, 'weapon:fire:1');
   executeControlledUpgrade(probe, 'weapon:fire:2');
   executeControlledUpgrade(probe, 'weapon:fire:3');
+  executeControlledUpgrade(probe, 'weapon:fire:4');
   executeControlledUpgrade(probe, 'weapon:boom:1');
   executeControlledUpgrade(probe, 'weapon:boom:2');
   executeControlledUpgrade(probe, 'weapon:boom:3');
-
   executeControlledUpgrade(probe, 'duo:duo_cinderseal');
-  assert.ok(probe.getBuildDuos().includes('duo_cinderseal'), '共鳴奧義 duo_cinderseal 成功寫入');
+  executeControlledUpgrade(probe, 'charm:charm_step');
+  executeControlledUpgrade(probe, 'charm:charm_power');
+  executeControlledUpgrade(probe, 'weapon:katana:2');
+  executeControlledUpgrade(probe, 'weapon:katana:3');
+  executeControlledUpgrade(probe, 'weapon:katana:4');
+  executeControlledUpgrade(probe, 'passive:dmg');
+  executeControlledUpgrade(probe, 'passive:rate');
+  executeControlledUpgrade(probe, 'passive:oil_max');
+  executeControlledUpgrade(probe, 'passive:oil_max');
+  executeControlledUpgrade(probe, 'passive:shield');
+  executeControlledUpgrade(probe, 'passive:shield');
+  executeControlledUpgrade(probe, 'passive:dmg');
+  executeControlledUpgrade(probe, 'passive:dmg');
+  executeControlledUpgrade(probe, 'passive:rate');
 
-  executeControlledUpgrade(probe, 'charm:charm_gather');
-  assert.ok(probe.getBuildCharms().includes('charm_gather'), '御守 charm_gather 成功寫入');
-
-  assert.equal(probe.getWL().fire, 3);
+  assert.equal(probe.getWL().fire, 4);
   assert.equal(probe.getWL().boom, 3);
   assert.equal(probe.getBuildDuos().length, 1);
 
-  // 2. 真實 6 次配送
-  for (let i = 1; i <= 6; i++) {
-    now = executeOneDelivery(probe, now);
-  }
+  // 2. 配送 1, 2, 3
+  now = boundedStepTo(probe, now, 25);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 1);
+
+  now = boundedStepTo(probe, now, 75);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 2);
+
+  now = boundedStepTo(probe, now, 135);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 3);
+  assert.equal(probe.getSeals(), 1, '獲得第 1 枚覺醒印');
+
+  // 3. 妖刀覺醒 Lv5
+  executeControlledUpgrade(probe, 'weapon:katana:5');
+  assert.equal(probe.getWL().katana, 5);
+  assert.equal(probe.getSeals(), 0);
+
+  // 4. Boss 0 (180s)
+  now = boundedStepTo(probe, now, 180.1);
+  now = boundedFightBoss(probe, now, 0, 300, 'mid', 180);
+  assert.ok(probe.getOil() > 50, 'Boss 0 戰鬥後燈油保持健全');
+
+  // 5. 配送 4, 5, 6
+  now = boundedStepTo(probe, now, 230);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 4);
+
+  now = boundedStepTo(probe, now, 280);
+  now = executeOneDelivery(probe, now, deliveries);
+  assert.equal(probe.getDelivered(), 5);
+
+  now = boundedStepTo(probe, now, 330);
+  now = executeOneDelivery(probe, now, deliveries);
   assert.equal(probe.getDelivered(), 6);
+  assert.equal(probe.getSeals(), 1, '獲得第 2 枚覺醒印');
 
-  // 3. 終王對決（狐火燃燒、符咒引爆與餘燼灼燒打擊）
-  now = executeBossDefeat(probe, now);
+  // 6. 狐火覺醒 Lv5 (墨焰黑龍)
+  executeControlledUpgrade(probe, 'weapon:fire:5');
+  assert.equal(probe.getWL().fire, 5);
+  assert.equal(probe.getSeals(), 0);
 
-  // 4. 自然勝利演出至結算
+  // 7. Boss 1 (360s)
+  now = boundedStepTo(probe, now, 360.1);
+  now = boundedFightBoss(probe, now, 1, 650, 'mid', 360);
+  assert.ok(probe.getOil() > 50, 'Boss 1 戰鬥後燈油保持健全');
+
+  // 8. Gatekeeper Boss 2 (480s)
+  now = boundedStepTo(probe, now, 480.1);
+  now = boundedFightBoss(probe, now, 2, 120, 'gate', 480);
+  assert.ok(probe.getOil() > 50, 'Gatekeeper 戰鬥後燈油保持健全');
+
+  // 9. 決戰前緊急添燈
+  if ((probe.getB().heals || 0) < 3) {
+    executeControlledUpgrade(probe, 'passive:oil_heal');
+  }
+
+  // 10. Final Boss (540s)
+  now = boundedStepTo(probe, now, 540.1);
+  now = boundedFightBoss(probe, now, 3, 1400, 'final', 540);
+
+  assert.equal(probe.getState(), 'victory');
+  assert.equal(probe.getFinalBossDefeated(), true);
+
   now = executeVictoryToSettlement(probe, now);
+  assert.equal(probe.getState(), 'won');
+  assert.equal(probe.getEnded(), true);
+  assert.equal(store.getStageStats('night-town').clears, 1);
 
-  // 5. 存檔驗證
-  const stats = store.getStageStats('night-town');
-  assert.equal(stats.clears, 1);
-  assert.equal(store.isStageCompleted('night-town'), true);
+  // 核驗 4 位首領由 producer 產生且死亡
+  const allBosses = probe.getBossSpawnLog();
+  assert.equal(allBosses.length, 4, '全關 4 位首領必須皆有由 producer 產生的事件紀錄');
+  assert.ok(allBosses.every(b => b.defeated && b.bossRef.hp <= 0), '4 位首領生命皆已歸零並標記擊破');
 
-  // 6. 重開清理驗證
-  probe.activateMenu('restart');
-  assert.equal(probe.getBuildDuos().length, 0, 'buildDuos 重開後清空');
-  assert.equal(probe.getBuildCharms().length, 0, 'buildCharms 重開後清空');
-  assert.equal(probe.getDragonScorches().length, 0, 'dragonScorches 焦土與餘燼佇列清空');
+  // 收集並記錄 Build 3 執行數據
+  const b3Report = {
+    buildId: 'Build 3 (Fire+Boom: duo_cinderseal)',
+    seed: 779,
+    won: probe.getState() === 'won',
+    clears: store.getStageStats('night-town').clears,
+    finalLevel: probe.getLevel(),
+    finalOil: Number(probe.getOil().toFixed(2)),
+    finalElapsed: Number(probe.getElapsed().toFixed(2)),
+    choicesCount: probe.getChoiceLog().length,
+    controlledChoicesCount: probe.getChoiceLog().filter(c => c.source === 'controlled').length,
+    naturalChoicesCount: probe.getChoiceLog().filter(c => c.source === 'natural').length,
+    choices: probe.getChoiceLog(),
+    deliveries,
+    bosses: allBosses.map(b => ({
+      index: b.index,
+      role: b.role,
+      initialHp: b.hp,
+      spawnElapsed: b.spawnElapsed,
+      deathElapsed: b.deathElapsed,
+      defeated: b.defeated
+    }))
+  };
+  validationReports.push(b3Report);
+
+  // 輸出真頁 QA 接續所需之完整結構化單一 JSON 並寫入指定工件路徑
+  const payload = {
+    environment: "VM Sandbox (Controlled / Non-Chrome / Non-Natural)",
+    gameSha256: "c39d10b03ff8dc7ee5260c977ea787d7fb34f894b34feacae7c5b72d1bebdd15",
+    generatedAt: new Date().toISOString(),
+    stage: "night-town",
+    builds: validationReports
+  };
+  console.log('[M1_G_BUILD_VALIDATION_JSON]');
+  console.log(JSON.stringify(payload, null, 2));
+
+  const runId = 'run-' + Date.now().toString(36) + '-' + process.pid;
+  const outDir = path.join(ROOT, 'artifacts', 'validation', 'agy-m1-g-r3-20261017', runId);
+  fs.mkdirSync(outDir, { recursive: true });
+  const outPath = path.join(outDir, 'builds.json');
+  fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
+  console.log(`[VALIDATION_ARTIFACT_WRITTEN] ${outPath}`);
+
+  // 11. 返回旅路地圖並重開
+  probe.activateMenu('world');
+  assert.equal(probe.getState(), 'overworld');
+  const overworld = probe.getOverworld();
+  env.OVERWORLD.moveTo(overworld, 'night-town');
+  env.OVERWORLD.update(overworld, 1.0);
+  probe.confirmOverworld();
+  assert.equal(probe.getState(), 'play');
+  assert.equal(probe.getBuildDuos().length, 0);
+  assert.equal(probe.getWL().fire, 0);
+  assert.equal(probe.getWL().boom, 0);
 });
 
 // ── 4. 失敗 (lost) 存檔路徑與重開清理防線 ──
@@ -798,4 +1273,74 @@ test('M1-G-5 Regression: real weapons kill final boss with pending levelup XP (x
   now = executeVictoryToSettlement(probe, now);
   assert.equal(probe.getState(), 'won', '順利進入 won 狀態');
   assert.equal(store.isStageCompleted('night-town'), true, 'STORE 正確完成夜行町通關記錄');
+});
+
+// ── 6. 焦點負向：>600 秒（拂曉 DAWN）未擊殺終王不得勝利結算 ──
+test('M1-G-6 Focused negative: elapsed >= 600s with 6 deliveries but unkilled final boss cannot win', () => {
+  const env = loadGameSandbox({ seed: 777 });
+  const probe = env.__agyProbe;
+  const store = probe.getStore();
+  let now = 1000;
+
+  probe.start('night-town');
+
+  // 完成 6 筆配送達到通關目標
+  for (let i = 1; i <= 6; i++) {
+    now = executeOneDelivery(probe, now);
+  }
+  assert.equal(probe.getDelivered(), 6, '已完成 6 筆配送');
+
+  // 明標時鐘 fixture：時鐘推進至超過 600s (DAWN = 600)，例如 610s
+  probe.setElapsed(610);
+  probe.setBossStage(3); // 終王時段
+  probe.setBossT(0);
+  now += 50;
+  probe.runFrame(now);
+  handleNaturalLevelUp(probe);
+
+  const boss = probe.getEnemies().find(e => e.type === 'boss' && e.final);
+  assert.ok(boss, '終王已登場');
+  assert.ok(boss.hp > 0, '終王生命值 > 0 (未擊殺)');
+  assert.equal(probe.getFinalBossDefeated(), false, '終王尚未被擊殺');
+
+  // 推進數十幀，模擬超時運作
+  for (let f = 0; f < 30; f++) {
+    now += 50;
+    probe.runFrame(now);
+    handleNaturalLevelUp(probe);
+  }
+
+  // 核心負向斷言：即使 deliveries >= 6 且 elapsed >= 600s，未殺終王絕不能勝利或結算完成！
+  assert.notEqual(probe.getState(), 'victory', '未殺終王不得進入 victory');
+  assert.notEqual(probe.getState(), 'won', '未殺終王不得進入 won');
+  assert.equal(probe.getEnded(), false, '未殺終王不得結束結算');
+  assert.equal(store.isStageCompleted('night-town'), false, '存檔不得解鎖通關');
+  assert.equal(store.getStageStats('night-town').clears, 0, '通關數必須維持 0');
+});
+
+// ── 7. Oracle 防線反例驗證：若記憶體跳過 Boss 0 producer，測試必拋出 RED 失敗 ──
+test('M1-G-7 Oracle counterexample: memory skip of Boss 0 producer MUST fail assertion (RED counterexample prevention)', () => {
+  const env = loadGameSandbox({ seed: 777 });
+  const probe = env.__agyProbe;
+  let now = 1000;
+
+  probe.start('night-town');
+
+  // 模擬 Space Bunny p5 Q8 記憶體跳過 Boss 0 產生器反例：
+  // 人為篡改 bossStage 至 1，使得 180s 的 Boss 0 (300 HP) 從未由遊戲引擎 producer 產出
+  probe.setBossStage(1);
+  probe.setBossT(180);
+
+  // 推進至 180.1s
+  now = boundedStepTo(probe, now, 180.1);
+
+  // 斷言：呼叫 boundedFightBoss 檢查 Boss 0 時，必須拋出 AssertionError 報錯 RED，絕不允許假綠！
+  let threwRed = false;
+  try {
+    boundedFightBoss(probe, now, 0, 300, 'mid', 180);
+  } catch (err) {
+    threwRed = true;
+    assert.match(err.message, /Boss 0 必須由真正的 Boss producer 產生/);
+  }
+  assert.equal(threwRed, true, '記憶體跳過 Boss 0 producer 必須在 oracle 處拋出 RED 失敗');
 });

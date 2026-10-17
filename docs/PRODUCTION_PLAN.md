@@ -20,15 +20,19 @@
 
 **G整合子gate報告（2026-10-17）**：G-UI-R1 root新增focused1/1 exit0，固定game c39／UI1d8fcb／E12test1735f6bf，三視口受控結算→真CDP旅路重進，各starts+1/finishes不重複、build清空、配送1筆與選卡play；其餘Duo×視口9字框0違規，root實看5張，證據`gr1-mvbzobg1/`。Runtime console error/exception0，未接Log domain。Q7舊seed reload前提退修後，test b900ef6b root DEV focused1/1 exit0，實際含dev/正式兩key的storage重載、正式JSON不變且不冒認dev完成。只收受控consumer，非正常三build完整長局／自然局／實機。AGY G-R3繼續，Grok下一票首build真頁，p5待固定版獨立QA，M1 IN_PROGRESS，不M2。
 
+**G-R3.2里程碑子票／TARGETED_PASS**：game c39／UI1d8／STORE5fe不變，G test e063838f正式停寫後root三Build **3/3 exit0（111.82秒）**，省Boss0真記憶體反例patched1/ran1 **exit1**；exact4／正常HP／死亡／六配送／兩印／保存重進受測通過。新req日誌正確、唯一runId保留原證據；root配方`agy-m1-g-r3-20261017/run-mvc1eo2h-15584/builds.json` SHA451df0c7bedcdd69，等級33/39/38，局內580.45/577.10/565.35秒。此為注入XP/指定卡/位置控制VM，不是正常取得／真Chrome／自然局。Q9 root另exit0只重現needle2+fan終局score一次400，該helper有跳時/dmg35/可補油，未窮舉／油量無判別力，不據此改game或泛稱去重已過。M1仍IN_PROGRESS。
+
+**下一主票M1-G-C1／Space Bunny**：只新tests/spacebunny-m1-g-chrome.test.cjs及自身唯一run證據，production／他人test／四權威凍結；真頁三Build、單一frame時鐘、正常XP與實際offer/有限重抽、真CDP套卡／配送／四Boss／結算／旅路重進。VM配方作優先順序參考，不能以XP注入/免費指定卡取代M1條件2；只完成clock或受控接線則fullRun=false，保留真失敗待診斷。AGY停寫，Grok8%保額度、不換模型。尚未驗完整Chrome、不M2／不發布，實體WAITING_DEVICE；Git只停檔GREEN同主題LOCAL。
+
 以下是責任配置，不是自動啟動 Agent 的授權。一次只給每人一個主工作與一個可選備用工作；一檔一 writer，開始前核對當前 owner，不沿用重啟前 pane 狀態。
 
 | Owner | 主責 | 寫入範圍／交接要求 |
 |---|---|---|
 | Codex | 主：技術方向、接口／依賴、QA gate、唯一 roadmap；副：關鍵整合與風險／資源額度 | 獨占 `docs/GAME_DESIGN_MASTER.md`、`docs/PRODUCTION_PLAN.md`、`roadmap.md`、`AGENTS.md`；不搶 production writer；各 M gate 在 Herdr 回覆及本文件末段報告 |
 | 原Kilo（停用） | 不再參與；其歷史production範圍不自動恢復 | 原w7:p5已由使用者改為Space Bunny；js/game.js及自身D/runtime現由AGY獨占，其他production修改仍須總監明確指定writer |
-| Space Bunny／OpenCode | Q6.1/Q7子gate已收，idle待G-R3固定版QA | 只自身tests/spacebunny-m1-g-return.test.cjs；非空清理root2/2、省清理0/2 exit1；Q7 b900ef6b root1/1 exit0，真兩key storage正式reload不冒認dev進度，終局fixture明標，不寫production或讀動態tests |
-| AGY | G-R1.1已收；G-R3正常參數三build長局 | 唯一game.js及自身G tests；不得跳Boss時鐘或提高傷害冒充完整局；正常參數／受控路徑分列，正式停檔後root QA，不改UI/STORE |
-| Grok（現役UI writer） | G-UI-R1已收；Next G-UI-R2首build正常參數真頁長局 | 唯一ui.js＋自身E12測試/新run；root新增1/1、三視口受控返回重進/配送/選卡、其餘Duo字框。Runtime console error/exception0，未接Log domain，沿AGY配方接正常長局，M1仍未過 |
+| Space Bunny／OpenCode | Q9限定配置已收，主票C1真Chrome三Build | 唯一新tests/spacebunny-m1-g-chrome.test.cjs及自身新run證據；零production／四權威／他人test寫權，正常XP/實際offer與受控導航分列，不改game/UI/store |
+| AGY | G-R3.2受控VM子票已收，正式停寫 | game c39凍結、G test e063 root3/3及省Boss0必RED；唯一game/自身tests writer。真頁若有可重現consumer RED再派最小runtime票，不預先擴功能 |
+| Grok（現役UI writer） | R1已收；R2僅clock接線，DEPENDENCY_WAIT／weekly剩8% | 唯一ui.js/E12測試owner，已停寫保額度；R2四幀接線root1/1但fullRun=false，尚無完整局。依AGY固定配方評估現役p5自有QA test承接，不跨writer／換模型 |
 | 使用者 | 新美術／聲音／重大內容與平衡取捨、實機協助、發布決策 | 人審特定版本；未回覆不視為核准；外部 ComfyUI 由使用者自行操作 |
 
 新增 production 檔、`index.html`、service worker 或其他人測試若確有必要，先指定 writer 與交接範圍；不因一般重構順手改。歷史Kiro／Kilo／Cursor派工不可自行恢復；最新現役為AGY G-R1、Grok E12.1與Space Bunny G-Q1唯讀QA，各一主票，狀態見roadmap頂部。Muse Spark候選已取消，不再等待舊路由決策；不擴張或切換其他模型。

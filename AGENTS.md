@@ -47,10 +47,10 @@
 |---|---|
 | Codex | docs/GAME_DESIGN_MASTER.md、docs/PRODUCTION_PLAN.md、roadmap.md、AGENTS.md |
 | 原Kilo（停用、不再參與） | 舊production owner表由現行暫時writer覆蓋；w7:p5已由使用者親自改為Space Bunny，禁止恢復Nemotron |
-| Space Bunny／OpenCode（使用者指定） | w7:p5 Q6.1/Q7已收，唯一自身tests/spacebunny-m1-g-return.test.cjs；idle待AGY固定G-R3獨立QA，不重跑舊PASS；零production/四權威寫權、不讀動態tests |
-| AGY | w7:p4唯一game.js及自身G tests writer，現M1-G-R3正常參數三build長局／勝敗重進；game基準c39d10，B12/C11舊池修正已收，任何production變更正式停檔後root QA |
+| Space Bunny／OpenCode（使用者指定） | w7:p5 Q9限定配置root重現exit0、非一般長局PASS；主票C1唯一新tests/spacebunny-m1-g-chrome.test.cjs與自身新run證據。正常XP/實際offer/單一時鐘真Chrome，零production／四權威／他人test寫權 |
+| AGY | w7:p4 R3.2正式停寫、G test e063 root三Build3/3 exit0及省Boss0真RED，game c39凍結。唯一game/自身tests writer，Chrome真consumer缺陷再派最小票；不跑舊130或擴功能 |
 | 舊Muse／OpenCode UI（暫停） | 原UI範圍由Grok持有；不自動切回。與現行Space Bunny/OpenCode唯讀F-Q2是不同角色 |
-| Grok（現役UI writer） | w7:p7 G-UI-R1已root收件，Next G-UI-R2一build正常參數真頁長局；唯一js/ui.js＋tests/grok-m1-e-r12.test.cjs及自身新run；不讀AGY動態test，同session不改模型，不改game/store |
+| Grok（現役UI writer） | w7:p7 R1已收；R2只有4幀clock接線，DEPENDENCY_WAIT/fullRun=false；weekly剩8%，正式停寫保額度，不續大型票。唯一UI/E12 test owner，UI1d8凍結，不換模型／重開；後續真頁QA依AGY固定配方協調現役p5自有tests，不交叉寫 |
 
 - **2026-10-17正式接回覆蓋下方舊快照**：Codex恢復唯一總監與四權威writer，HEAD14cec7a；AGY G-R3／p5 E12.3 QA已見working及工具，Grok停檔受驗。使用者接回/status快照5h100%、weekly41%、context315K/475K剩34%，不是native即時讀數；接近80%先精簡交接。Git整理只作空檔副業，不取代M1主線。舊Kilo/Muse/Kiro停用，不進M2。
 
