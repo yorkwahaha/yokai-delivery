@@ -250,8 +250,8 @@
         score = stageId;
         stageId = "night-town";
       }
-      const s = Number(score) || 0;
-      const n = Number(deliveries) || 0;
+      const s = count(Number(score));
+      const n = count(Number(deliveries));
       if (s > d.best) d.best = s;
       if (n > d.bestDel) d.bestDel = n;
 
