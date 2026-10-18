@@ -23,7 +23,7 @@ window.__sq = {
   start: id => start(id),
   frame, update, offerUp, applyChoice, hurt, loseRun,
   activateMenu, confirmOverworld, enterOverworld, moveOverworld,
-  snap: () => ({ state, level, score, delivered, stageId: STAGE.id, xp, endCooldown }),
+  snap: () => ({ state, level, score, delivered, elapsed, dawn: DAWN, finalBossDefeated, stageId: STAGE.id, xp, endCooldown }),
   overworld: () => overworld,
   build: () => getBuildState(),
   charms: () => [...buildCharms],
@@ -37,7 +37,8 @@ window.__sq = {
   isCompleted: id => STORE.isStageCompleted(id),
   pendingDepart: () => pendingDepart,
   // 受控終局 fixture（明確非自然長局）
-  presetEndgame: () => { delivered = GOAL_DELIVERIES; oil = 100; P.inv = 999; },
+  presetEndgame: () => { delivered = 0; elapsed = DAWN - 0.1; oil = 100; P.inv = 999; },
+  reachDawn: () => { elapsed = DAWN; },
   spawnFinalBoss: () => { const e = { x: P.x + 60, y: P.y, hp: 1, max: 9999, type: "boss", final: true, shield: false, slowT: 0 }; enemies.push(e); return e; },
   enterButton: () => window.OVERWORLD.enterButton(),
   moveTo: id => window.OVERWORLD.moveTo(overworld, id),
@@ -152,10 +153,15 @@ function enterFirstRunFromWorld(b) {
   assert.equal(b.q.snap().stageId, "night-town");
 }
 
-// 受控終局：達標配送數 → 真傷害擊殺終王 → 真勝利演出 → 真 runFrame 觸發 STORE.finish → won
+// 受控終局：零配送／破曉前真傷害擊殺終王 → 抵達 DAWN → 真演出／結算 → won
 function settleAsWin(b) {
   b.q.presetEndgame();
   b.q.hurt(b.q.spawnFinalBoss(), 999);
+  assert.equal(b.q.snap().delivered, 0, '此案不依賴配送門檻');
+  assert.equal(b.q.snap().finalBossDefeated, true, '終王由真 hurt 擊殺');
+  assert.equal(b.q.snap().state, 'play', '終王死亡但尚未破曉不得勝利');
+  b.q.reachDawn();
+  b.q.update(0.001);
   assert.equal(b.q.snap().state, "victory", "真傷害應觸發勝利演出");
   assert.equal(b.until(() => b.q.snap().state === "won"), true, "演出應自然走到 won");
   b.until(() => b.q.snap().endCooldown <= 0, 200);
@@ -268,7 +274,8 @@ test("lost → 回旅路地圖 → 真 confirm 重進：不解鎖、不清關、
 // 終局為受控 fixture（達標配送＋真傷害終王），非自然局／非十分鐘長局／非 Chrome／非實機。
 test("DEV：dev-mode 優先載入 → 勝利只寫 dev key → 回旅路真重進後 build 清空且正式 key 原封不動", () => {
   const officialSeed = JSON.stringify(SEED());
-  const officialStorage = { [OFFICIAL]: officialSeed };
+  // 本案驗存檔隔離而非新手教學；與正式勝利案使用同一個已跳過教學前置。
+  const officialStorage = { [OFFICIAL]: officialSeed, "yokai-tutorial-v1": '"skip"' };
   const b = boot(officialStorage, { search: "?dev=1" });
 
   // 真 dev-mode 必須在 STORE 之前載入並啟用（js/store.js 以 window.DEV_MODE 決定寫入 key）

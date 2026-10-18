@@ -475,6 +475,32 @@ window.UI = (() => {
 
   const MENU_BTNS = [{id:'start',...MENU_START_BTN},{id:'controls',...MENU_CONTROLS_BTN},{id:'cards',x:615,y:22,w:125,h:38},{id:'codex',x:755,y:22,w:125,h:38}];
   const END_BTNS = [{id:'restart',...RESTART_BTN},{id:'world',...WORLD_BTN},{id:'menu',...HOME_BTN}];
+  // 結算畫面「可見 = 可命中」單一來源。勝利只給「回旅路地圖」；失敗保留三顆主按鈕。
+  // game.js 命中測試與 drawEndScreen 都必須吃這個 getter，避免畫出但點不到、或點到但沒畫。
+  // rect 依實際 scale 放大到至少 44 CSS（END_BTNS 固定 48 logical，phone scale≈0.65 時只有 31 CSS），
+  // 以原中心對稱擴張並夾回可見範圍，確保按鈕在畫布內且可點。
+  function endScreenButtons(state) {
+    const v = (window.VIEWPORT && typeof window.VIEWPORT.get === "function" ? window.VIEWPORT.get() : null) || { scale: 1, width: 900, height: 600, offsetX: 0, offsetY: 0 };
+    const scale = v.scale || 1;
+    const minCss = 44;
+    const grow = (b) => {
+      const w = Math.max(b.w, Math.ceil(minCss / scale));
+      const h = Math.max(b.h, Math.ceil(minCss / scale));
+      const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+      const left = -(v.offsetX || 0), top = -(v.offsetY || 0);
+      const right = left + (v.width || 900), bottom = top + (v.height || 600);
+      let x = Math.round(cx - w / 2), y = Math.round(cy - h / 2);
+      if (y < top) y = Math.round(top);
+      if (y + h > bottom) y = Math.round(bottom - h);
+      if (x < left) x = Math.round(left);
+      if (x + w > right) x = Math.round(right - w);
+      return { ...b, x, y, w, h, cssW: Math.round(w * scale), cssH: Math.round(h * scale) };
+    };
+    const all = END_BTNS.map(grow);
+    if (state === "won") return all.filter(b => b.id === "world");
+    return all;
+  }
+  const END_BTN_LABEL = { restart: "再踏夜行", world: "回旅路地圖", menu: "回到首頁" };
   function reviewButtons(misses = []) {
     return [...new Map(misses.map(w => [w.jp, w])).values()].slice(0, 3).map((word, i) => ({
       id: `review-${i}`, word, x: 305 + i * 174, y: 428, w: 164, h: 44
@@ -2365,28 +2391,68 @@ window.UI = (() => {
       left: panel.x + frameX + slack, top: panel.y + frameY + slack,
       right: panel.x + panel.w - frameX - slack, bottom: panel.y + panel.h - frameY - slack,
     };
+    const pad = Math.max(4, Math.round(8 / scale));                 // 內容與邊框的呼吸空間（≈8 CSS）
+    const footerH = Math.ceil(58 / scale);                          // 底部專屬區：重抽鈕不與卡片共用空間
     const rH = Math.ceil(44 / scale);
     const innerW = Math.max(240, inner.right - inner.left);
     const rW = Math.min(200, Math.max(156, Math.round(innerW * 0.24)));
     const reroll = { x: Math.round(inner.right - rW), y: Math.round(inner.bottom - rH), w: rW, h: rH };
     const titleH = Math.ceil(scale < 1 ? Math.max(18, 14 / scale) : 22);
-    const summaryH = titleH;
+    const summaryH = titleH*(innerW*scale<640?2:1);
     const band = 2;
     const titleBar = { x: Math.round(inner.left), y: Math.round(inner.top), w: Math.round(innerW), h: titleH };
     const summaryBar = { x: titleBar.x, y: titleBar.y + titleH + band, w: titleBar.w, h: summaryH };
-    const cardsTop = summaryBar.y + summaryH + band;
-    const cardsBottom = reroll.y - band;
+    const footerTop = Math.round(Math.min(reroll.y - band, inner.bottom - footerH));
+    const cardsTop = summaryBar.y + summaryH + band + pad;          // 緊接標題摘要之下，不做置中留白
+    const cardsBottom = footerTop - pad;
     const slots = Math.max(n, 1);
-    const gap = 3;
-    let cardH = Math.floor((cardsBottom - cardsTop - gap * (slots - 1)) / slots);
+    const gap = Math.max(3, Math.round(6 / scale));
+    const avail = cardsBottom - cardsTop - gap * (slots - 1);
     const minCard = Math.ceil(44 / scale);
-    if (cardH < minCard) cardH = minCard;
-    const card = { x: titleBar.x, y: Math.round(cardsTop), w: titleBar.w, h: cardH, gap };
-    return { card, reroll, panel, titleBar, summaryBar, count: n, scale };
+    // 卡高依真實內容決定：墨框標題 + 2 行效果 + 1 行條件/限制 + 上下內距；不再撐滿畫面留下大空白。
+    const fit = Math.floor(avail / slots);
+    // 卡數少時平均吃掉 footer 以上的全部高度（消除卡片下方大片空白）；上界就是 fit，
+    // 因此絕不碰重抽鈕、不出畫布。內容實測高（真 measureText，drawLevelUp 每幀寫回）
+    // 只在 avail 極小時作為資訊；實際收斂由 drawLevelUp 的行距／字級 clamp 負責。
+    const measured = (__levelUpMeasured && __levelUpMeasured.n === slots) ? __levelUpMeasured.h : 0;
+    const cardH = Math.max(Math.ceil(24 / scale), fit);
+    const card = { x: titleBar.x, y: Math.round(cardsTop), w: titleBar.w, h: cardH, gap, contentH: measured };
+    return { card, reroll, panel, titleBar, summaryBar, footer: { y: footerTop, h: Math.max(0, inner.bottom - footerTop) }, count: n, scale, pad };
   }
   const CHOICE_TYPE_LABEL = { weapon: "主動", passive: "被動", charm: "御守", mutation: "變異", duo: "共鳴" };
+  // 修行進階：drawLevelUp 每幀用真 measureText 量出的內容高（供版面與驗收對照）
+  const __levelUpMeasured = { n: 0, h: 0 };
   function choiceText(v) { return (typeof v === "string" && v.length) ? v : ""; }
+  // 真卡精簡玩家文案：每則只留「玩家要決定的事」——效果（真實數值照抄 game 的 f）＋必要條件＋硬限制。
+  // 未登錄的卡不做字串替換、不截斷、不縮字級：直接顯示遊戲原文，並在下方只補一條不重複的條件/限制行。
+  const CARD_BRIEF = {
+    // ── 體質修行（被動）──
+    oil_max:   { e: "燈油上限 +30、立刻回 30；每秒耗油 −0.06", c: "", l: "最多 2 層" },
+    oil_heal:  { e: "回 50% 燈油並震退周圍妖怪", c: "", l: "每場最多 3 次" },
+    shield:    { e: "護盾擋 2 次受傷", c: "", l: "最多疊 6 次" },
+    dmg:       { e: "基礎傷害加成 +30%", c: "", l: "最多 4 層" },
+    rate:      { e: "妖刀、結界、靈針冷卻縮短", c: "", l: "最多 4 層" },
+    crit:      { e: "妖刀／天雷爆擊率 +15%、結界 +10%", c: "", l: "爆擊率上限 50%、倍率 1.8" },
+    spd:       { e: "移動速度 +15%", c: "", l: "最多 3 層" },
+    dash:      { e: "衝刺冷卻縮短，衝刺帶無敵", c: "", l: "最多 3 層" },
+    mag:       { e: "靈玉吸取範圍 +80", c: "", l: "最多 3 層" },
+    // ── 御守（最多 3 款）──
+    charm_power:  { e: "基礎傷害加成 +20%", c: "御守未滿 3 款", l: "" },
+    charm_step:   { e: "移動速度 +28", c: "御守未滿 3 款", l: "" },
+    charm_gather: { e: "靈玉吸取半徑 +75", c: "御守未滿 3 款", l: "" },
+    charm_cadence:{ e: "妖刀、靈陣、靈針冷卻略縮短", c: "御守未滿 3 款", l: "" },
+    charm_reach:  { e: "妖刀、靈陣、靈針射程與符咒爆炸半徑 +10%", c: "御守未滿 3 款", l: "" },
+    charm_guard:  { e: "受創時燈油損失 −10%", c: "御守未滿 3 款", l: "" },
+    mut_crosscut: { e: "主斬後追加一次交叉斬（60% 刀傷）；Lv5 風刃不追加", c: "持有退魔妖刀", l: "不可重複取得；每技能最多 3 種變異" },
+    // ── 共鳴奧義（不占主動、御守、變異槽位；一局只能取得一次，但效果仍可每次攻擊／每次施放觸發）──
+    duo_inkfire:     { e: "妖刀命中灼燒目標追加墨焰痕：每次攻擊最多 3 敵各一次，共 20% 刀傷", c: "退魔妖刀 Lv3＋狐火炎 Lv3", l: "不可重複取得；每次攻擊有觸發上限" },
+    duo_cinderseal:  { e: "陰陽符主爆命中灼燒目標，0.3 秒後追加一次餘燼，最多 3 敵分攤 15% 符傷", c: "狐火炎 Lv3＋陰陽符 Lv3", l: "不可重複取得；每次引爆限 1 處" },
+    duo_thundercircle:{ e: "靈陣內落雷時追加墨紋衝擊：至多 3 敵各一次，共 20% 雷傷", c: "淨化靈陣 Lv3＋天狐雷 Lv3", l: "不可重複取得" },
+    duo_frostseal:   { e: "陰陽符主爆命中寒冷目標後：普通怪移速 −35% 持續 0.35 秒、首領移速 −10% 持續 0.15 秒", c: "天狐靈針 Lv3＋陰陽符 Lv3", l: "不可重複取得；每次主爆限 1 敵、2 秒免疫" }
+  };
+  function cardBrief(id) { return Object.prototype.hasOwnProperty.call(CARD_BRIEF, id) ? CARD_BRIEF[id] : null; }
   function drawLevelUp(ctx, level, choices, WL, WI, rerolls = 0, time = Date.now()/1000, focus = 0, inputMode = "keyboard", awakening = null) {
+    const levelFont=(size,weight)=>readableFont(Math.max(size,Math.ceil(14/(window.VIEWPORT?.get().scale||1))),weight);
     ctx.save();
     ctx.fillStyle="rgba(6,8,16,.89)";
     fillScreen(ctx);
@@ -2412,28 +2478,31 @@ window.UI = (() => {
       return bar.y+(bar.h-(m.asc+m.desc))/2+m.asc;
     };
     ctx.textAlign="center";
-    ctx.font=readableFont(L.scale<1?18:22,"900");ctx.fillStyle="#39271f";
+    ctx.font=levelFont(L.scale<1?18:22,"900");ctx.fillStyle="#39271f";
     const titleText=awakening
-      ? `修行進階  Lv.${level}・覺醒印${awakening.seals}・Lv4可升MAX`
+      ? `修行進階  Lv.${level}・覺醒印${awakening.seals}`+(titleBar.w*L.scale<480?"":"・Lv4可升MAX")
       : "修行進階  Lv."+level;
     fitText(ctx,titleText,panelCX,bandBase(titleBar),titleBar.w-28);
 
     ctx.fillStyle="rgba(249,239,217,.93)";
     ctx.beginPath();ctx.roundRect(summaryBar.x,summaryBar.y,summaryBar.w,summaryBar.h,7);ctx.fill();
     ctx.strokeStyle="rgba(100,69,49,.45)";ctx.lineWidth=1;ctx.stroke();
-    ctx.textAlign="left";ctx.font=readableFont(15,"900");ctx.fillStyle="#634331";
-    const sumBase=bandBase(summaryBar);
+    ctx.textAlign="left";ctx.font=levelFont(15,"900");ctx.fillStyle="#634331";
+    const summaryRows=summaryBar.w*L.scale<640?2:1;
+    const sumBase=bandBase({...summaryBar,h:summaryBar.h/summaryRows});
     ctx.fillText("已習得",summaryBar.x+12,sumBase);
     const equipped=WI?Object.keys(WI).filter(k=>(WL[k]||0)>0).slice(0,4):[];
-    const slotStep=(summaryBar.w-120)/4, slotMax=Math.max(60,Math.floor(slotStep)-12);
+    const summaryCols=4/summaryRows;
+    const slotStep=(summaryBar.w-120)/summaryCols, slotMax=Math.max(60,Math.floor(slotStep)-12);
     for(let i=0;i<4;i++){
-      const k=equipped[i],x=summaryBar.x+108+i*slotStep;
+      const k=equipped[i],x=summaryBar.x+108+(i%summaryCols)*slotStep;
+      const slotBase=sumBase+Math.floor(i/summaryCols)*(summaryBar.h/summaryRows);
       if(k){
-        ctx.font=readableFont(16,"800");ctx.fillStyle="#362820";
-        fitText(ctx,WI[k].zh+" Lv."+WL[k],x,sumBase,slotMax);
+        ctx.font=levelFont(16,"800");ctx.fillStyle="#362820";
+        fitText(ctx,WI[k].zh+" Lv."+WL[k],x,slotBase,slotMax,{minSize:Math.ceil(14/L.scale)});
       }else{
-        ctx.font=readableFont(15,"700");ctx.fillStyle="#a6947d";
-        ctx.fillText("—",x,sumBase);
+        ctx.font=levelFont(15,"700");ctx.fillStyle="#a6947d";
+        ctx.fillText("—",x,slotBase);
       }
     }
     const wrapLine=(text,maxWidth)=>{
@@ -2461,88 +2530,131 @@ window.UI = (() => {
       ctx.beginPath();ctx.roundRect(x+3,y+3,cardW-6,cardH-6,8);ctx.fill();
       ctx.lineWidth=selected?2.8:1.15;
       ctx.strokeStyle=selected?"#a94e38":"rgba(111,78,56,.68)";ctx.stroke();
-      ctx.font=readableFont(16,"900");
+      // 標題列以「實際最大字級」（名稱 18px）的墨跡高度安排：不再用 16px 小字或 cardH*0.34 壓縮，
+      // 因此名稱 baseline 落在卡內框中、不會壓到上下邊框。框上下都留 padding。
+      const padY=Math.max(3,Math.round((L.scale<1?3:6)/(L.scale||1)));
+      const stackedHead=cardW*(L.scale||1)<480;
+      const kanaLine=stackedHead?Math.ceil(16/(L.scale||1)):0;
+      ctx.font=levelFont(18,"900");
       const head=inkOf();
-      const headerH=Math.min(Math.ceil(head.lh+2), Math.max(22, Math.floor(cardH*0.34)));
-      const headBase=y+(headerH-(head.asc+head.desc))/2+head.asc;
-      ctx.fillStyle=selected?"#b8503e":"#c7ae91";
-      ctx.fillRect(x+6,y+6,4,headerH-8);
-      const er=Math.min(12, Math.floor((headerH-6)/2));
-      drawEmblem(ctx,c.id,x+16+er,y+headerH/2,er);
-      const nameX=x+22+er*2;
+      const frameTop=y+padY;
+      const frameH=Math.max(Math.ceil(head.lh+padY*2), Math.min(Math.ceil(head.asc+head.desc+padY*2), cardH-padY*2))+kanaLine;
+      const headBase=frameTop+padY+head.asc;
+      ctx.fillStyle=selected?"rgba(255,241,220,.78)":"rgba(255,252,244,.42)";
+      ctx.beginPath();ctx.roundRect(x+padY,frameTop,cardW-padY*2,frameH,6);ctx.fill();
+      ctx.strokeStyle=selected?"rgba(169,78,56,.38)":"rgba(111,78,56,.26)";ctx.lineWidth=1;ctx.stroke();
+      const er=Math.min(12, Math.floor((frameH-8)/2));
+      drawEmblem(ctx,c.id,x+padY+8+er,frameTop+frameH/2,er);
+      const nameX=x+padY+14+er*2;
       ctx.textAlign="left";ctx.fillStyle=selected?"#954733":"#7b624d";
-      ctx.font=readableFont(15,"900");
+      ctx.font=levelFont(15,"900");
       const numW=ctx.measureText(String(i+1)).width;
       ctx.fillText(String(i+1),nameX,headBase);
       const typeLabel=CHOICE_TYPE_LABEL[c.type]||"升級";
       const core=awakenCard?"覺醒・耗 1 印":((choiceText(c.levelText)||(weapon?"主動秘術":"被動修行")));
       const suffix=core.includes(typeLabel)?core:(typeLabel+"・"+core);
-      ctx.font=readableFont(15,"900");ctx.fillStyle=selected?"#953d32":"#6d4a37";
-      ctx.textAlign="right";
       const typeMax=Math.min(220, cardW*0.34);
-      const typeX=x+cardW-14;
+      const typeX=x+cardW-padY-8;
+      const typeLeft=typeX-typeMax;
+      ctx.textAlign="right";ctx.font=levelFont(15,"900");ctx.fillStyle=selected?"#953d32":"#6d4a37";
       fitText(ctx,suffix,typeX,headBase,typeMax);
-      ctx.textAlign="left";ctx.fillStyle="#30251f";
-      ctx.font=readableFont(18,"900");
-      const nameMax=Math.max(80, typeX-typeMax-nameX-numW-28);
-      fitText(ctx,c.n,nameX+numW+8,headBase,nameMax*0.62);
-      ctx.font=readableFont(14,"700");ctx.fillStyle="#765640";
-      fitText(ctx,c.s||"",nameX+numW+8+nameMax*0.64,headBase,Math.max(40,nameMax*0.34));
+      // 名稱／假名改用實測寬度依序排：假名緊接名稱右側，不再用固定 62%/64% 切段，
+      // 因此名稱再長也不會壓到右側類型標籤（typeLeft 之前），短名稱也不留人工空隙。
+      const nameStart=nameX+numW+8;
+      const bandW=Math.max(56, typeLeft-nameStart-12);
+      const nameRaw=String(c.n||"");
+      const kanaRaw=String(c.s||"");
+      ctx.textAlign="left";
+      ctx.font=levelFont(18,"900");
+      const nameW=Math.min(ctx.measureText(nameRaw).width, bandW);
+      ctx.font=levelFont(14,"700");
+      const kanaW=kanaRaw?ctx.measureText(kanaRaw).width:0;
+      const kanaGap=10;
+      let nameRoom=bandW, kanaRoom=kanaW;
+      if(stackedHead){kanaRoom=bandW;}
+      else if(kanaRaw&&nameW+kanaW+kanaGap>bandW){
+        kanaRoom=Math.max(28,Math.min(kanaW,Math.floor(bandW*0.42)));
+        nameRoom=Math.max(40,bandW-kanaRoom-kanaGap);
+      }
+      ctx.font=levelFont(18,"900");ctx.fillStyle="#30251f";
+      fitText(ctx,nameRaw,nameStart,headBase,nameRoom);
+      if(kanaRaw){
+        ctx.font=levelFont(14,"700");ctx.fillStyle="#765640";
+        fitText(ctx,kanaRaw,stackedHead?nameStart:nameStart+Math.min(nameRoom,nameW)+kanaGap,headBase+kanaLine,kanaRoom);
+      }
 
       ctx.textAlign="left";
       const textX=x+12, textW=cardW-24;
-      const description=String(c.d||"");
-      const skillNames=Array.isArray(c.skillIds)
-        ? c.skillIds.map(id=>WI&&WI[id]&&WI[id].zh).filter(Boolean).join("・")
-        : "";
-      const beforeAfter=choiceText(c.beforeText)&&choiceText(c.afterText)
-        ? c.beforeText+" ➔ "+c.afterText
-        : (choiceText(c.beforeText)||choiceText(c.afterText));
-      const dupOf=(seg)=>!seg||seg===description||(seg.length>3&&description.includes(seg));
+      // 有精簡映射 → 只顯示「玩家要決策的三件事」；沒有映射 → 顯示遊戲原文全文，不截斷不縮字級。
+      const brief=cardBrief(c.id);
+      const description=brief?String(brief.e||""):String(c.d||"");
       const metas=[];
-      if(skillNames&&!dupOf(skillNames))metas.push("影響："+skillNames);
-      const hasBefore=!!choiceText(c.beforeText),hasAfter=!!choiceText(c.afterText);
-      const dropBeforeAfter=beforeAfter&&(dupOf(beforeAfter)
-        ||(hasBefore&&hasAfter&&dupOf(c.beforeText)&&dupOf(c.afterText)));
-      if(beforeAfter&&!dropBeforeAfter)metas.push(beforeAfter);
-      if(choiceText(c.requirementText)&&!dupOf(c.requirementText))metas.push("條件："+c.requirementText);
-      if(choiceText(c.limitText)&&!dupOf(c.limitText))metas.push("限制："+c.limitText);
-      const bodyTop=y+headerH+1, bodyBottom=y+cardH-2;
-      ctx.font=readableFont(17,"700");
-      let descRows=description?wrapLine(description,textW):[];
-      let descLh=inkOf().lh;
-      let metaRows=[], metaLh=0;
-      const measureMeta=(text)=>{
-        ctx.font=readableFont(14,"700");
-        metaLh=inkOf().lh;
-        return text?wrapLine(text,textW):[];
+      if(brief){
+        if(brief.c)metas.push("條件："+brief.c);
+        if(brief.l)metas.push("限制："+brief.l);
+      }else{
+        const skillNames=Array.isArray(c.skillIds)
+          ? c.skillIds.map(id=>WI&&WI[id]&&WI[id].zh).filter(Boolean).join("・")
+          : "";
+        const hasBefore=!!choiceText(c.beforeText),hasAfter=!!choiceText(c.afterText);
+        const beforeAfter=hasBefore&&hasAfter?c.beforeText+" ➔ "+c.afterText:(c.beforeText||c.afterText);
+        const dupOf=(seg)=>!seg||seg===description||(seg.length>3&&description.includes(seg));
+        // 只補一條不重複的條件／限制，避免逐項重複描述造成大空白。
+        const extra=[];
+        const reqText=choiceText(c.requirementText),limText=choiceText(c.limitText);
+        if(reqText&&!dupOf(reqText))extra.push("條件："+reqText);
+        if(limText&&!dupOf(limText))extra.push("限制："+limText);
+        if(beforeAfter&&!dupOf(beforeAfter)&&!(hasBefore&&hasAfter&&dupOf(c.beforeText)&&dupOf(c.afterText)))extra.unshift(beforeAfter);
+        if(skillNames&&!dupOf(skillNames))extra.unshift("影響："+skillNames);
+        if(extra.length)metas.push(extra.join(" ・ "));
+      }
+      // 由內框的內緣量起保留 7 CSS px，包含描邊厚度與字型小數誤差。
+      const bodyTop=frameTop+frameH+padY, bodyBottom=y+cardH-3-(selected?1.4:0.575)-7/(L.scale||1);
+      const room=Math.max(1,bodyBottom-bodyTop);
+      // 保底 clamp：依剩餘高度收斂——先縮行距（1→0.92→0.86→0.82→0.78），再降字級
+      //（readableFont 內建守住 14 CSS 下限），最後才裁切；保證最後一行不壓卡內框底。
+      const buildRows=(dSize,mSize,lh)=>{
+        ctx.font=levelFont(dSize,"700");
+        const dInk=inkOf();
+        const dLh=Math.max(1,Math.round(dInk.lh*lh));
+        const dRows=description?wrapLine(description,textW):[];
+        ctx.font=levelFont(mSize,"700");
+        const mInk=inkOf();
+        const mLh=Math.max(1,Math.round(mInk.lh*lh));
+        const mRows=metas.length?wrapLine(metas.length>1?metas.join(" ｜ "):metas[0],textW):[];
+        const h=mRows.length
+          ? dRows.length*dLh+(mRows.length-1)*mLh+mInk.asc+mInk.desc
+          : dRows.length ? (dRows.length-1)*dLh+dInk.asc+dInk.desc : 0;
+        return {dRows,dLh,mRows,mLh,dSize,mSize,h};
       };
-      if(metas.length){
-        metaRows=[];
-        for(const seg of metas) metaRows.push(...measureMeta(seg));
-      }
-      if(descRows.length*descLh+metaRows.length*metaLh>bodyBottom-bodyTop+1&&metas.length>1){
-        metaRows=measureMeta(metas.join(" ｜ "));
-      }
+      let V=buildRows(17,14,1);
+      if(V.h>room)V=buildRows(17,14,0.92);
+      if(V.h>room)V=buildRows(16,14,0.86);
+      if(V.h>room)V=buildRows(15,14,0.82);
+      if(V.h>room)V=buildRows(14,14,0.78);
+      const clipped=V.h>room;
+      if(__levelUpMeasured.n===choices.length&&V.h>__levelUpMeasured.h){__levelUpMeasured.n=choices.length;__levelUpMeasured.h=V.h;}
       let top=bodyTop;
-      ctx.textAlign="left";ctx.font=readableFont(17,"700");ctx.fillStyle="#34281f";
-      descLh=inkOf().lh;
-      for(const line of descRows){ ctx.fillText(line,textX,top+inkOf().asc); top+=descLh; }
-      ctx.font=readableFont(14,"700");ctx.fillStyle="#5d4636";
-      metaLh=inkOf().lh;
-      for(const line of metaRows){ ctx.fillText(line,textX,top+inkOf().asc); top+=metaLh; }
+      ctx.save();
+      if(clipped){ctx.beginPath();ctx.rect(x+3,bodyTop-2,cardW-6,room+4);ctx.clip();}
+      ctx.textAlign="left";
+      ctx.font=levelFont(V.dSize,"700");ctx.fillStyle="#34281f";
+      for(const line of V.dRows){ ctx.fillText(line,textX,top+inkOf().asc); top+=V.dLh; }
+      ctx.font=levelFont(V.mSize,"700");ctx.fillStyle="#5d4636";
+      for(const line of V.mRows){ ctx.fillText(line,textX,top+inkOf().asc); top+=V.mLh; }
+      ctx.restore();
       ctx.restore();
     });
 
     ctx.textBaseline="alphabetic";
-    ctx.textAlign="left";ctx.font=readableFont(14,"800");ctx.fillStyle="#47352a";
+    ctx.textAlign="left";ctx.font=levelFont(14,"800");ctx.fillStyle="#47352a";
     const legend=inputMode==="gamepad"?"十字鍵／左搖桿 選卡 · A 確認 · Y 重抽"
       :inputMode==="touch"?"點選技能 · 可按右側重抽"
-      :"↑↓ 選卡 · Enter 確認 · 1／2／3 直選 · R 重抽";
+      :(L.card.w*L.scale<480?"↑↓ 選卡 · Enter 確認 · R 重抽":"↑↓ 選卡 · Enter 確認 · 1／2／3 直選 · R 重抽");
     const legendM=inkOf();
     const legendBase=L.reroll.y+(L.reroll.h-(legendM.asc+legendM.desc))/2+legendM.asc;
     fitText(ctx,legend,L.card.x+8,legendBase,Math.max(80,L.reroll.x-L.card.x-16));
-    drawButton(ctx,{...L.reroll,id:"reroll"},"重抽 ×"+rerolls,{tone:"normal",size:16,icon:"cards",disabled:rerolls<=0});
+    drawButton(ctx,{...L.reroll,id:"reroll"},"重抽 ×"+rerolls,{tone:"normal",size:Math.max(16,Math.ceil(14/L.scale)),icon:"cards",disabled:rerolls<=0});
     ctx.restore();
   }
 
@@ -2971,8 +3083,17 @@ window.UI = (() => {
       [`送達  ${delivered} 件`, "#3c3026"],
       [`誤配  ${failed} 件`, failed > 0 ? "#814e3c" : "#887160"]
     ];
+    // 本局時間：只吃 AGY runtime 提供的 summary.elapsedSeconds（已排除暫停）；
+    // 不使用 summary.time（那是 performance 演出時間），也不截 600。欄位未到位前不顯示，避免假數字。
+    const elapsedSeconds = Number(summary && summary.elapsedSeconds);
+    if (Number.isFinite(elapsedSeconds) && elapsedSeconds >= 0) {
+      const totalSec = Math.floor(elapsedSeconds);
+      const clock = `${String(Math.floor(totalSec / 60)).padStart(2, "0")}:${String(totalSec % 60).padStart(2, "0")}`;
+      stats.push([`本局  ${clock}`, "#5c4736"]);
+    }
     const pairGap = 72, statW = stats.map(([label]) => ctx.measureText(label).width);
-    let sx = mid - (statW[0] + statW[1] + pairGap) / 2;
+    const statsTotalW = statW.reduce((a, b) => a + b, 0) + pairGap * (stats.length - 1);
+    let sx = mid - statsTotalW / 2;
     ctx.textAlign = "left";
     stats.forEach(([label, color], i) => {
       ctx.fillStyle = color;
@@ -2995,7 +3116,7 @@ window.UI = (() => {
     const reviewWords = [...new Map((misses || []).map(w => [w.jp, w])).values()];
     const reviewList = reviewWords.slice(0, 3);
     ctx.font = readableFont(15, "700");
-    if (reviewList.length > 0) {
+    if (!isWon && reviewList.length > 0) {
       ctx.fillStyle = "#854b40";
       summaryY += summaryStep;
       ctx.fillText(`今夜記錯的字：共 ${reviewWords.length} 字・可選三詞回聽`, mid, summaryY);
@@ -3010,9 +3131,12 @@ window.UI = (() => {
       ctx.fillText(summary.clearText, mid, summaryY);
     }
 
-    drawButton(ctx, END_BTNS[0], "再踏夜行", { tone: "primary", size: 18, focus: focus===0,scrollText:true,visualOffsetY:-5 });
-    drawButton(ctx, END_BTNS[1], "回旅路地圖", { size: 18, focus: focus===1,quiet:true,scrollText:true,visualOffsetY:-5 });
-    drawButton(ctx, END_BTNS[2], "回到首頁", { size: 18, focus: focus===2,quiet:true,scrollText:true,visualOffsetY:-5 });
+    // 與 game.js 命中測試同源：只畫 endScreenButtons(state) 這一個集合，順序即 focus 索引。
+    // 勝利只有「回旅路地圖」一顆且不畫任何 review 可點鈕；失敗保留三顆主按鈕＋原有 review。
+    endScreenButtons(state).forEach((btn, i) => {
+      drawButton(ctx, btn, END_BTN_LABEL[btn.id] || btn.id,
+        { tone: i === 0 ? "primary" : "quiet", size: 18, focus: focus === i, scrollText: true, visualOffsetY: -5 });
+    });
 
     // 最後繪製特寫，提燈與角色輪廓可跨過資訊卡邊框。
     const courierKey = isWon ? "player_win_v1" : "player_kneel_v1";
@@ -3443,7 +3567,7 @@ window.UI = (() => {
     drawButton,
     // 旅路與暫停、結算共用核准的手繪材質。
     drawWoodTag, drawWashiBoard,
-    PAUSE_BTNS, pauseButtons, MENU_BTNS, END_BTNS, EXIT_BTNS, drawExitConfirm,
+    PAUSE_BTNS, pauseButtons, MENU_BTNS, END_BTNS, endScreenButtons, EXIT_BTNS, drawExitConfirm,
     PAUSE_BTN_W: 280,
     PAUSE_BTN_H: 44,
     RESTART_BTN,

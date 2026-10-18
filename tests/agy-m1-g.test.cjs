@@ -324,6 +324,7 @@ function loadGameSandbox(options = {}) {
       getMaxOil: () => maxOil,
       getScore: () => score,
       getDelivered: () => delivered,
+      setDelivered: v => { delivered = v; },
       getFailed: () => failed,
       getOrders: () => orders,
       getJob: () => job,
@@ -346,6 +347,7 @@ function loadGameSandbox(options = {}) {
       updateLampSequence: dt => updateLampSequence(dt),
       updateVictorySequence: dt => updateVictorySequence(dt),
       activateMenu: id => activateMenu(id),
+      getMenuButtons: () => menuButtons(),
       returnHome: () => returnHome(),
       getEnded: () => ended,
       getRunSummary: () => runSummary,
@@ -357,6 +359,7 @@ function loadGameSandbox(options = {}) {
       getBossT: () => bossT,
       setBossT: v => { bossT = v; },
       getElapsed: () => elapsed,
+      getDawn: () => DAWN,
       setElapsed: v => { elapsed = v; },
       getGoalDeliveries: () => GOAL_DELIVERIES,
       ansPos: h => ansPos(h),
@@ -649,12 +652,16 @@ function executeVictoryToSettlement(probe, currentNow) {
   const summary = probe.getRunSummary();
   assert.ok(summary, 'runSummary 結算摘要自然建立');
   assert.equal(summary.stageName, '夜行町');
+  const elapsedAtSettlement = probe.getElapsed();
+  assert.equal(summary.elapsedSeconds, elapsedAtSettlement, '結算使用戰鬥經過時間快照');
 
-  // 等待 endCooldown (0.8s) 倒數結束，使後續 activateMenu('restart') 能合法觸發
+  // 勝利僅允許回旅路；失敗仍可重開。等冷卻結束再驗真入口。
   for (let f = 0; f < 25; f++) {
     now += 50;
     probe.runFrame(now);
   }
+  assert.deepEqual(Array.from(probe.getMenuButtons(), b => b.id), ['world'], 'won 只保留回旅路按鈕');
+  assert.equal(probe.getRunSummary().elapsedSeconds, elapsedAtSettlement, '演出／結算後不累計通關時間');
 
   return now;
 }
@@ -722,9 +729,9 @@ test('M1-G-1 Build 1 (Needle: fan+seek+frost) normal combat values with controll
   assert.equal(probe.getWL().katana, 5, '妖刀覺醒 Lv5');
   assert.equal(probe.getSeals(), 0, '覺醒印消耗完畢');
 
-  // 5. 自然推進至 180s 首個中首領 Boss 0 (300 HP)
+  // 5. 自然推進至 180s 首個中首領 Boss 0 (150 HP, 第一關 50% 縮放)
   now = boundedStepTo(probe, now, 180.1);
-  now = boundedFightBoss(probe, now, 0, 300, 'mid', 180);
+  now = boundedFightBoss(probe, now, 0, 150, 'mid', 180);
   assert.ok(probe.getOil() > 50, 'Boss 0 戰鬥後燈油保持健全');
 
   // 6. 配送 4, 5, 6
@@ -746,14 +753,14 @@ test('M1-G-1 Build 1 (Needle: fan+seek+frost) normal combat values with controll
   assert.equal(probe.getWL().needle, 5, '靈針覺醒 Lv5');
   assert.equal(probe.getSeals(), 0, '覺醒印消耗完畢');
 
-  // 8. 自然推進至 360s 第二個中首領 Boss 1 (650 HP)
+  // 8. 自然推進至 360s 第二個中首領 Boss 1 (325 HP, 第一關 50% 縮放)
   now = boundedStepTo(probe, now, 360.1);
-  now = boundedFightBoss(probe, now, 1, 650, 'mid', 360);
+  now = boundedFightBoss(probe, now, 1, 325, 'mid', 360);
   assert.ok(probe.getOil() > 50, 'Boss 1 戰鬥後燈油保持健全');
 
-  // 9. 自然推進至 480s 門衛 Boss 2 (120 HP)
+  // 9. 自然推進至 480s 門衛 Boss 2 (60 HP, 第一關 50% 縮放)
   now = boundedStepTo(probe, now, 480.1);
-  now = boundedFightBoss(probe, now, 2, 120, 'gate', 480);
+  now = boundedFightBoss(probe, now, 2, 60, 'gate', 480);
   assert.ok(probe.getOil() > 50, 'Gatekeeper 戰鬥後燈油保持健全');
 
   // 10. 決戰前緊急添燈 (oil_heal)
@@ -761,12 +768,15 @@ test('M1-G-1 Build 1 (Needle: fan+seek+frost) normal combat values with controll
     executeControlledUpgrade(probe, 'passive:oil_heal');
   }
 
-  // 11. 自然推進至 540s 終章大首領 Boss 3 (1400 HP)
+  // 11. 自然推進至 540s 終章大首領 Boss 3 (910 HP, 第一關 65% 縮放)
   now = boundedStepTo(probe, now, 540.1);
-  now = boundedFightBoss(probe, now, 3, 1400, 'final', 540);
+  now = boundedFightBoss(probe, now, 3, 910, 'final', 540);
 
-  // 12. 勝利結算
-  assert.equal(probe.getState(), 'victory', '終王擊破後自然進入 victory 狀態');
+  // 12. 勝利結算：終王擊殺後推進至破曉 (600.1s) 自然觸發破曉勝利
+  if (probe.getElapsed() < probe.getDawn()) assert.equal(probe.getState(), 'play', '終王死亡但天未亮仍不可勝利');
+  now = boundedStepTo(probe, now, 600.1);
+  assert.ok(probe.getElapsed() >= probe.getDawn(), '必須真的抵達 DAWN，不能提早以 victory 中止推進');
+  assert.equal(probe.getState(), 'victory', '終王擊破且抵達破曉後自然進入 victory 狀態');
   assert.equal(probe.getFinalBossDefeated(), true);
 
   now = executeVictoryToSettlement(probe, now);
@@ -826,7 +836,7 @@ test('M1-G-1 Build 1 (Needle: fan+seek+frost) normal combat values with controll
 });
 
 // ── 2. Build 2: 雷紋陣組合 (barrier + thunder + duo_thundercircle) 正常參數受控完整流程 ──
-test('M1-G-2 Build 2 (Barrier+Thunder: duo_thundercircle) normal combat values with controlled XP, specified offers, and navigation: 6 deliveries, 2 seals, 4 natural bosses (180/360/480/540s), and overworld return', () => {
+test('M1-G-2 Build 2 (Barrier+Thunder: duo_thundercircle) normal combat values with controlled XP, final-battle oil, specified offers, and navigation: 6 deliveries, 2 seals, 4 natural bosses (180/360/480/540s), and overworld return', () => {
   const env = loadGameSandbox({ seed: 778 });
   const probe = env.__agyProbe;
   const store = probe.getStore();
@@ -884,9 +894,9 @@ test('M1-G-2 Build 2 (Barrier+Thunder: duo_thundercircle) normal combat values w
   assert.equal(probe.getWL().katana, 5);
   assert.equal(probe.getSeals(), 0);
 
-  // 4. Boss 0 (180s)
+  // 4. Boss 0 (180s, 150 HP)
   now = boundedStepTo(probe, now, 180.1);
-  now = boundedFightBoss(probe, now, 0, 300, 'mid', 180);
+  now = boundedFightBoss(probe, now, 0, 150, 'mid', 180);
   assert.ok(probe.getOil() > 50, 'Boss 0 戰鬥後燈油保持健全');
 
   // 5. 配送 4, 5, 6
@@ -908,14 +918,14 @@ test('M1-G-2 Build 2 (Barrier+Thunder: duo_thundercircle) normal combat values w
   assert.equal(probe.getWL().barrier, 5);
   assert.equal(probe.getSeals(), 0);
 
-  // 7. Boss 1 (360s)
+  // 7. Boss 1 (360s, 325 HP)
   now = boundedStepTo(probe, now, 360.1);
-  now = boundedFightBoss(probe, now, 1, 650, 'mid', 360);
+  now = boundedFightBoss(probe, now, 1, 325, 'mid', 360);
   assert.ok(probe.getOil() > 50, 'Boss 1 戰鬥後燈油保持健全');
 
-  // 8. Gatekeeper Boss 2 (480s)
+  // 8. Gatekeeper Boss 2 (480s, 60 HP)
   now = boundedStepTo(probe, now, 480.1);
-  now = boundedFightBoss(probe, now, 2, 120, 'gate', 480);
+  now = boundedFightBoss(probe, now, 2, 60, 'gate', 480);
   assert.ok(probe.getOil() > 50, 'Gatekeeper 戰鬥後燈油保持健全');
 
   // 9. 決戰前緊急添燈
@@ -923,10 +933,26 @@ test('M1-G-2 Build 2 (Barrier+Thunder: duo_thundercircle) normal combat values w
     executeControlledUpgrade(probe, 'passive:oil_heal');
   }
 
-  // 10. Final Boss (540s)
+  // 10. Final Boss (540s, 910 HP)
   now = boundedStepTo(probe, now, 540.1);
-  now = boundedFightBoss(probe, now, 3, 1400, 'final', 540);
+  // 明標受控終戰資源：舊巡邏路徑已耗盡三次補油，補滿油並恢復三次補油額度。
+  // 僅驗整合，不代表正常整局資源平衡；不改戰鬥預算／武器／Boss HP。
+  const finalBattleOilFixture = {
+    before: probe.getOil(),
+    after: probe.getMaxOil(),
+    healsBefore: probe.getB().heals || 0,
+    healsAfter: 0
+  };
+  probe.setOil(finalBattleOilFixture.after);
+  probe.getB().heals = finalBattleOilFixture.healsAfter;
+  assert.equal(probe.getOil(), probe.getMaxOil(), '受控終戰前置只補足既有燈油上限');
+  assert.equal(probe.getB().heals, 0, '受控終戰前置恢復三次補油額度，不提高原三次上限');
+  now = boundedFightBoss(probe, now, 3, 910, 'final', 540);
 
+  // 11. 勝利結算：終王擊殺後推進至破曉 (600.1s) 自然觸發破曉勝利
+  if (probe.getElapsed() < probe.getDawn()) assert.equal(probe.getState(), 'play', '終王死亡但天未亮仍不可勝利');
+  now = boundedStepTo(probe, now, 600.1);
+  assert.ok(probe.getElapsed() >= probe.getDawn(), '必須真的抵達 DAWN，不能提早以 victory 中止推進');
   assert.equal(probe.getState(), 'victory');
   assert.equal(probe.getFinalBossDefeated(), true);
 
@@ -944,6 +970,7 @@ test('M1-G-2 Build 2 (Barrier+Thunder: duo_thundercircle) normal combat values w
   const b2Report = {
     buildId: 'Build 2 (Barrier+Thunder: duo_thundercircle)',
     seed: 778,
+    finalBattleOilFixture,
     won: probe.getState() === 'won',
     clears: store.getStageStats('night-town').clears,
     finalLevel: probe.getLevel(),
@@ -1036,9 +1063,9 @@ test('M1-G-3 Build 3 (Fire+Boom: duo_cinderseal) normal combat values with contr
   assert.equal(probe.getWL().katana, 5);
   assert.equal(probe.getSeals(), 0);
 
-  // 4. Boss 0 (180s)
+  // 4. Boss 0 (180s, 150 HP)
   now = boundedStepTo(probe, now, 180.1);
-  now = boundedFightBoss(probe, now, 0, 300, 'mid', 180);
+  now = boundedFightBoss(probe, now, 0, 150, 'mid', 180);
   assert.ok(probe.getOil() > 50, 'Boss 0 戰鬥後燈油保持健全');
 
   // 5. 配送 4, 5, 6
@@ -1060,14 +1087,14 @@ test('M1-G-3 Build 3 (Fire+Boom: duo_cinderseal) normal combat values with contr
   assert.equal(probe.getWL().fire, 5);
   assert.equal(probe.getSeals(), 0);
 
-  // 7. Boss 1 (360s)
+  // 7. Boss 1 (360s, 325 HP)
   now = boundedStepTo(probe, now, 360.1);
-  now = boundedFightBoss(probe, now, 1, 650, 'mid', 360);
+  now = boundedFightBoss(probe, now, 1, 325, 'mid', 360);
   assert.ok(probe.getOil() > 50, 'Boss 1 戰鬥後燈油保持健全');
 
-  // 8. Gatekeeper Boss 2 (480s)
+  // 8. Gatekeeper Boss 2 (480s, 60 HP)
   now = boundedStepTo(probe, now, 480.1);
-  now = boundedFightBoss(probe, now, 2, 120, 'gate', 480);
+  now = boundedFightBoss(probe, now, 2, 60, 'gate', 480);
   assert.ok(probe.getOil() > 50, 'Gatekeeper 戰鬥後燈油保持健全');
 
   // 9. 決戰前緊急添燈
@@ -1075,10 +1102,14 @@ test('M1-G-3 Build 3 (Fire+Boom: duo_cinderseal) normal combat values with contr
     executeControlledUpgrade(probe, 'passive:oil_heal');
   }
 
-  // 10. Final Boss (540s)
+  // 10. Final Boss (540s, 910 HP)
   now = boundedStepTo(probe, now, 540.1);
-  now = boundedFightBoss(probe, now, 3, 1400, 'final', 540);
+  now = boundedFightBoss(probe, now, 3, 910, 'final', 540);
 
+  // 11. 勝利結算：終王擊殺後推進至破曉 (600.1s) 自然觸發破曉勝利
+  if (probe.getElapsed() < probe.getDawn()) assert.equal(probe.getState(), 'play', '終王死亡但天未亮仍不可勝利');
+  now = boundedStepTo(probe, now, 600.1);
+  assert.ok(probe.getElapsed() >= probe.getDawn(), '必須真的抵達 DAWN，不能提早以 victory 中止推進');
   assert.equal(probe.getState(), 'victory');
   assert.equal(probe.getFinalBossDefeated(), true);
 
@@ -1120,7 +1151,7 @@ test('M1-G-3 Build 3 (Fire+Boom: duo_cinderseal) normal combat values with contr
   // 輸出真頁 QA 接續所需之完整結構化單一 JSON 並寫入指定工件路徑
   const payload = {
     environment: "VM Sandbox (Controlled / Non-Chrome / Non-Natural)",
-    gameSha256: "c39d10b03ff8dc7ee5260c977ea787d7fb34f894b34feacae7c5b72d1bebdd15",
+    gameSha256: require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'js/game.js'))).digest('hex'),
     generatedAt: new Date().toISOString(),
     stage: "night-town",
     builds: validationReports
@@ -1213,16 +1244,18 @@ test('M1-G-5 Regression: real weapons kill final boss with pending levelup XP (x
 
   probe.start('night-town');
 
-  // 1. 完成 6 筆配送達成通關目標
+  // 1. 保留原六配送成長 fixture，再歸零配送計數以驗證新勝利規則不靠配送門檻。
   for (let i = 1; i <= 6; i++) {
     now = executeOneDelivery(probe, now);
   }
   assert.equal(probe.getDelivered(), 6, '6 筆配送達標');
+  probe.setDelivered(0);
+  assert.equal(probe.getDelivered(), 0, '本案擊殺前為零配送 fixture');
 
   // 2. 終王出陣
   probe.setBossStage(3);
   probe.setBossT(0);
-  probe.setElapsed(540);
+  probe.setElapsed(probe.getDawn());
   now += 50;
   probe.runFrame(now);
   handleNaturalLevelUp(probe);
@@ -1245,8 +1278,8 @@ test('M1-G-5 Regression: real weapons kill final boss with pending levelup XP (x
   probe.answerBoss(correctIdx);
   assert.equal(boss.shield, false, '終王言語護盾破除');
 
-  // 3. 明確標記低 HP fixture (2 HP <= 妖刀單發傷 2.64) 與待升滿額 XP 條件
-  boss.hp = 2;
+  // 3. 明確標記低 HP fixture (1 HP <= 妖刀 Lv1 單發傷 1.2；新 normal profile 6 配送成長至 Lv5 妖刀1級) 與待升滿額 XP 條件
+  boss.hp = 1;
   probe.setXp(probe.getXpNeed());
   assert.ok(probe.getXp() >= probe.getXpNeed(), '驗證擊殺前已有待升級滿額 XP');
 
@@ -1264,6 +1297,7 @@ test('M1-G-5 Regression: real weapons kill final boss with pending levelup XP (x
 
   assert.ok(boss.hp <= 0, '真武器打擊致終王生命歸零');
   assert.equal(probe.getFinalBossDefeated(), true, 'finalBossDefeated 正確寫入');
+  assert.equal(probe.getDelivered(), 0, '真武器擊殺後零配送仍可通關');
 
   // 關鍵回歸斷言：儘管 xp >= xpNeed() 且擊殺掉落 48 XP 靈玉，狀態必須為 victory，絕不可被 offerUp() 覆寫為 levelup！
   assert.equal(probe.getState(), 'victory', '終王死亡且具備待升 XP 時狀態必為 victory，絕不被 offerUp 碰撞');
@@ -1337,7 +1371,7 @@ test('M1-G-7 Oracle counterexample: memory skip of Boss 0 producer MUST fail ass
   // 斷言：呼叫 boundedFightBoss 檢查 Boss 0 時，必須拋出 AssertionError 報錯 RED，絕不允許假綠！
   let threwRed = false;
   try {
-    boundedFightBoss(probe, now, 0, 300, 'mid', 180);
+    boundedFightBoss(probe, now, 0, 150, 'mid', 180);
   } catch (err) {
     threwRed = true;
     assert.match(err.message, /Boss 0 必須由真正的 Boss producer 產生/);

@@ -1,8 +1,10 @@
 # AGENTS.md — 妖怪快遞社正式協作入口
 
-版本：2026-10-17；使用者最新方向：Stage1-first。
+版本：2026-10-18；使用者最新方向：Stage1-first／五項P0修復後發布。
 本入口取代所有歷史派工、模型路由、常駐監工及 checkpoint 自動執行條款。
-2026-10-16 新會話已明確授權 Herdr Codex 總監派工製作 M1→M6；覆蓋舊「只做文件／不派工」。Codex 自身仍只寫下列四份文件，production 由各 writer 實作；音訊凍結；2026-10-17使用者最新授權僅安全LOCAL commit，由Codex依第5節統籌，禁止push／deploy。
+2026-10-16 新會話已明確授權 Herdr Codex 總監派工製作 M1→M6；覆蓋舊「只做文件／不派工」。Codex 自身仍只寫下列四份文件，production 由各 writer 實作；音訊凍結；2026-10-18使用者最新明確授權五項P0驗收後commit、push、部署，由Codex統籌；覆蓋舊只LOCAL／禁發布條款，音訊等保護不變。
+
+**2026-10-18 10:57使用者最新覆蓋**：Codex正式接回唯一總監與最終提交/Pages發布；Cursor/Sonnet月額度耗盡停止依賴。交付優先：五P0短驗→精確白名單提交→push→Pages核版；自然局交使用者，不以舊全量GREEN延遲MVP。AGY/Space Bunny本輪僅REL-Q1/Q2唯讀QA且已停檔，production凍結。Codex可為本次必要發版更新index.html版本查詢碼；不修改音訊/SW/其他production。舊writer表、禁push快照不覆蓋本授權，M2仍暫停。
 
 ## 1. 先讀短入口，不掃全庫
 
@@ -46,12 +48,12 @@
 | Owner | 獨占／主要範圍 |
 |---|---|
 | Codex | docs/GAME_DESIGN_MASTER.md、docs/PRODUCTION_PLAN.md、roadmap.md、AGENTS.md |
-| 原Kilo（停用、不再參與） | 舊production owner表由現行暫時writer覆蓋；w7:p5已由使用者親自改為Space Bunny，禁止恢復Nemotron |
-| Space Bunny／OpenCode（使用者指定） | w7:p5 Q9限定配置root重現exit0、非一般長局PASS；主票C1唯一新tests/spacebunny-m1-g-chrome.test.cjs與自身新run證據。正常XP/實際offer/單一時鐘真Chrome，零production／四權威／他人test寫權 |
-| AGY | w7:p4 R3.2正式停寫、G test e063 root三Build3/3 exit0及省Boss0真RED，game c39凍結。唯一game/自身tests writer，Chrome真consumer缺陷再派最小票；不跑舊130或擴功能 |
-| 舊Muse／OpenCode UI（暫停） | 原UI範圍由Grok持有；不自動切回。與現行Space Bunny/OpenCode唯讀F-Q2是不同角色 |
-| Grok（現役UI writer） | w7:p7 R1已收；R2只有4幀clock接線，DEPENDENCY_WAIT/fullRun=false；weekly剩8%，正式停寫保額度，不續大型票。唯一UI/E12 test owner，UI1d8凍結，不換模型／重開；後續真頁QA依AGY固定配方協調現役p5自有tests，不交叉寫 |
+| AGY w7:p4 | M1-P0-RUNTIME working；唯一js/game.js及自身stage1-balance/P0 tests。真Boss HP150/325/60/910、night-town dawn＋終王死不需配送、勝利單world按鈕consumer、elapsedSeconds快照；不改UI |
+| Space Bunny／OpenCode w7:p5 | Kilo供應商失敗後正式接M1-P0-UI，唯一js/ui.js及tests/spacebunny-m1-p0.test.cjs；選卡三視口/玩家短文案、endScreenButtons同源、MM:SS顯示。root獨立QA，不把自驗當獨立驗收 |
+| Kilo／Nemotron3 Ultra w7:p9 | 使用者本輪恢復並指定UI，實際NVIDIA overloaded且CLI自動重試；總監Ctrl+c已停止done seq1864，零UI改動，暫無writer，不換模/盲試 |
+| Grok Build／舊Muse／Kiro | 依最新指示停用，不派工、不恢復舊writer |
 
+**2026-10-18現行授權覆蓋下方所有舊票快照**：中午12:00台灣時間前完成M1為排程目標，未通過不假報。五P0需短程程式＋必要真Chrome，禁止反覆十分鐘自動長局；自然實玩由使用者執行。M1完成前不M2。Codex只四權威/獨立QA/提交發布統籌；production由上表單writer。
 - **2026-10-17正式接回覆蓋下方舊快照**：Codex恢復唯一總監與四權威writer，HEAD14cec7a；AGY G-R3／p5 E12.3 QA已見working及工具，Grok停檔受驗。使用者接回/status快照5h100%、weekly41%、context315K/475K剩34%，不是native即時讀數；接近80%先精簡交接。Git整理只作空檔副業，不取代M1主線。舊Kilo/Muse/Kiro停用，不進M2。
 
 - **現行暫時 owner（2026-10-17）**：R14原固定版runtime子票已收；G-R1新game c39d10b03ff8dc7e，root獨立4/4及原99e374→levelup/新c39→victory真武器反例GREEN，只收受控結算子票（teleport/時鐘跳轉/dmg35/UIstub），非正常三build完整局。B12/C11固定版focused各exit1，C11實得duo_inkfire仍可選；AGY G-R1.1只修自身測試、game凍結。Grok E12.1真CDP受教學遮罩/非法六主動fixture拒收，E12.2同票working。Space Bunny F-R2唯讀結算失敗/dev整合working。其他Agent停用；Codex四權威/QA/LOCAL提交統籌，M1 IN_PROGRESS，不M2。
@@ -72,7 +74,7 @@
 - 禁 reset、clean、checkout 及任何會清除／覆蓋 dirty 的操作。
 - 不刪未知檔、不覆寫他人候選、母版、測試證據或正在修改的檔。
 - 經授權僅清可證廢棄且無有效引用的衍生檔／舊交接，保留現役／母版／QA／待審。
-- **2026-10-17 最新使用者授權：安全 LOCAL commit，禁止 push／deploy。** Codex 額度不足由 ChatGPT 暫代總監期間，AGY 僅獲本輪 HOUSEKEEPING-P1 已驗低風險 QA 工具／測試／非權威文件之逐檔白名單 stage/LOCAL commit 權限；不得寫 game/UI/STORE、四權威、音訊/KEY/env/素材、未知檔；Codex 復工後交回調度權。
+- **2026-10-18 最新使用者授權：五項P0與受影響回歸/必要真Chrome通過後安全commit、push、部署。** Codex 額度不足由 ChatGPT 暫代總監期間，AGY 僅獲本輪 HOUSEKEEPING-P1 已驗低風險 QA 工具／測試／非權威文件之逐檔白名單 stage/LOCAL commit 權限；不得寫 game/UI/STORE、四權威、音訊/KEY/env/素材、未知檔；Codex 復工後交回調度權。
 - 僅正式停檔、SHA 固定、獨立 QA 通過的 code＋配套 tests 同主題提交；同類GREEN十數至數十檔可集中1–2筆，不刻意拆碎。四權威本次更新後可同組提交。未GREEN或正在寫的game／UI／G tests不提交。現HEAD14cec7a（歷史工具61檔），父510666e（歷史文件53檔）；既有checkpoint不重做。
 - 已有 LOCAL commits：d7b4981（STORE＋F-R1 test）、3bffe44（audio-freeze guard＋自測）、52c9366（M1 contract＋E11 tests）；不得重複 stage。HEAD 已非 54a4690。新授權不等於所有 dirty 可提交。
 - 歷史 checkpoint 政策不自動執行；未來須依最新明確授權判斷。

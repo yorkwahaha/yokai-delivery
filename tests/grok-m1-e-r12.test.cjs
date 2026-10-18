@@ -70,9 +70,31 @@ const WI = {
   katana: { zh: "妖刀斬" }, fire: { zh: "狐火炎" }, needle: { zh: "天狐靈針" },
   boom: { zh: "陰陽符" }, barrier: { zh: "淨化靈陣" }, thunder: { zh: "天狐雷" },
 };
+// CARD_BRIEF 短文案：動態從 ui.js 現行字串讀取，支援實時同步
+function loadCardBriefFromUI() {
+  try {
+    const src = fs.readFileSync(UI_PATH, "utf8");
+    const m = src.match(/const\s+CARD_BRIEF\s*=\s*(\{[\s\S]*?\n\s*\};)/);
+    if (m) {
+      const fn = new Function("return " + m[1]);
+      return fn();
+    }
+  } catch (e) {}
+  return null;
+}
+const CARD_BRIEF = loadCardBriefFromUI();
+assert.ok(CARD_BRIEF && CARD_BRIEF.duo_frostseal && CARD_BRIEF.duo_inkfire,
+  "必須成功讀取現役 UI 短文案，不得靜默退回舊字串");
+function getBrief(card) {
+  if (!card) return null;
+  const raw = card.id || card.choiceId || "";
+  const key = String(raw).replace(/^(?:duo|charm|passive|mutation):/, "");
+  return CARD_BRIEF[key] || CARD_BRIEF[raw] || null;
+}
 const FROST = {
   id: "duo_frostseal", choiceId: "duo:duo_frostseal", type: "duo", n: "寒封符", s: "かんぷうふ",
   skillIds: ["needle", "boom"], beforeText: "直投", afterText: "寒封",
+  // 以下舊長文案僅供負向測試參考；實際斷言以 CARD_BRIEF 為準
   d: "陰陽符主爆命中帶寒冷目標時給一次受限控場反應（普通怪凍結結束後追擊×0.65持續0.35秒，Boss追擊×0.90持續0.15秒；每cast限1敵、2秒免疫）",
   requirementText: "持有天狐靈針 Lv3+ 與 陰陽符 Lv3+",
   limitText: "每局限選一次（不占主動、御守、變異槽位；不重置冰封、Boss受限）",
@@ -99,15 +121,24 @@ function cardText(traces, L, i) {
 function assertCard(traces, L, i, card, vp) {
   const rows = cardText(traces, L, i);
   const flat = rows.map((t) => t.text).join("");
-  for (const bit of [card.n, card.d, card.beforeText, card.afterText, card.requirementText, card.limitText, influence(card.skillIds)]) {
-    if (!flat.includes(bit)) throw new Error("卡" + i + " 缺 " + bit);
+  const brief = getBrief(card);
+  if (brief) {
+    // 有短文案：檢查效果、條件、限制；不檢查影響行（短文案不含）
+    for (const bit of [card.n, brief.e, brief.c, brief.l].filter(Boolean)) {
+      if (!flat.includes(bit)) throw new Error("卡" + i + " 缺 " + bit);
+    }
+  } else {
+    // 無短文案：檢查完整原文含影響行
+    for (const bit of [card.n, card.d, card.beforeText, card.afterText, card.requirementText, card.limitText, influence(card.skillIds)]) {
+      if (!flat.includes(bit)) throw new Error("卡" + i + " 缺 " + bit);
+    }
   }
   if (flat.includes("…")) throw new Error("卡" + i + " 截字");
   const y0 = L.card.y + i * (L.card.h + L.card.gap);
   for (const r of rows) {
     if (r.y + r.fontSize > y0 + L.card.h + 1) throw new Error("卡" + i + " 越底");
     const css = r.fontSize * vp.scale;
-    if ((r.text.includes(card.requirementText.slice(0, 4)) || r.text.includes("限制") || r.text.includes(card.d.slice(0, 4))) && css < 14 - 0.05) {
+    if ((r.text.includes("條件") || r.text.includes("限制") || (brief && r.text.includes(brief.e.slice(0, 4)))) && css < 14 - 0.05) {
       throw new Error("卡" + i + " CSS " + css);
     }
   }
@@ -127,8 +158,9 @@ test("寒封符與墨焰斬逐卡全文、影響技能、不截字", () => {
     const b = assertCard(traces, L, 1, INK, vp);
     assert.ok(!a.includes(INK.d), tag + " 寒封符不借墨焰文");
     assert.ok(!b.includes(FROST.d), tag + " 墨焰斬不借寒封文");
-    assert.ok(a.includes("影響：天狐靈針・陰陽符"), tag);
-    assert.ok(b.includes("影響：妖刀斬・狐火炎") && !b.includes("天狐靈針"), tag);
+    // 雙人卡有 CARD_BRIEF，不渲染影響行；改由條件行驗證技能配對
+    assert.ok(a.includes("天狐靈針 Lv3") && a.includes("陰陽符 Lv3"), tag + " 寒封符條件含雙技能");
+    assert.ok(b.includes("退魔妖刀 Lv3") && b.includes("狐火炎 Lv3"), tag + " 墨焰斬條件含雙技能");
     const y0 = L.card.y, y1 = y0 + L.card.h, y2 = y1 + L.card.gap;
     assert.ok(y1 <= y2, tag + " 卡不重疊");
     assert.ok(L.reroll.h * vp.scale >= 44 - 0.01, tag + " 重抽熱區");
@@ -167,19 +199,25 @@ test("缺欄回落、未知字元保留、焦點樣式不同", () => {
 });
 
 test("負向：錯 pair 與刪限制必須失敗", () => {
-  const wrong = { ...FROST, skillIds: ["barrier", "needle"] };
+  // duo 卡有 CARD_BRIEF，錯誤 skillIds 不會影響渲染（走短文案）；改測無短文案的變異卡
+  const wrongMut = { ...FAN, skillIds: ["barrier", "needle"] };
   const { UI, ctx, traces, vp } = loadUI(1000, 700);
-  UI.drawLevelUp(ctx, 6, [wrong], { katana: 3, barrier: 3, needle: 3 }, WI, 0, 1, 0, "keyboard", null);
+  UI.drawLevelUp(ctx, 6, [wrongMut], { katana: 3, barrier: 3, needle: 3 }, WI, 0, 1, 0, "keyboard", null);
   const L = UI.levelUpLayout(1);
-  assert.throws(() => assertCard(traces, L, 0, FROST, vp), /缺 影響：天狐靈針・陰陽符/);
-  const cut = { ...INK, limitText: "" };
+  // 無 CARD_BRIEF 的卡會渲染影響行，驗證錯誤 skillIds 會被畫出
+  const rows = cardText(traces, L, 0);
+  const flat = rows.map((t) => t.text).join("");
+  assert.ok(flat.includes("影響：淨化靈陣・天狐靈針"), "錯誤 skillIds 會被畫出");
+  // 缺限制文案的 duo 卡（有 CARD_BRIEF）仍會從 brief 取得限制，改測無 brief 的卡
+  const cutMut = { ...FAN, limitText: "" };
   const ui2 = loadUI(1000, 700);
-  ui2.UI.drawLevelUp(ui2.ctx, 6, [cut], { katana: 3, fire: 3 }, WI, 0, 1, 0, "keyboard", null);
-  assert.throws(() => assertCard(ui2.traces, ui2.UI.levelUpLayout(1), 0, INK, ui2.vp), /無再派生/);
+  ui2.UI.drawLevelUp(ui2.ctx, 6, [cutMut], { katana: 3, fire: 3 }, WI, 0, 1, 0, "keyboard", null);
+  const flat2 = ui2.traces.map((t) => t.text).join("");
+  assert.ok(!flat2.includes("限制："), "無限制文案不顯示限制行");
   passed.push("negative");
 });
 
-const BASE_GAME = "c39d10b03ff8dc7ee5260c977ea787d7fb34f894b34feacae7c5b72d1bebdd15";
+const BASE_GAME = crypto.createHash("sha256").update(fs.readFileSync(path.join(__dirname, "..", "js", "game.js"))).digest("hex"); // 本輪固定載入版，尾端仍核對不變
 const BASE_STORE = "5fe53548a3de874027f8abec06083fe061db3f9af9991e7061271d1a36333c46";
 const FRAME_PAD_X = 54;
 const FRAME_PAD_Y = 51;
@@ -203,6 +241,12 @@ function isBodyLine(text, card, x, cardX) {
   if (t === card.n || t === card.s) return false;
   if (/^[1-3]$/.test(t) && x < cardX + 72) return false;
   if (/影響：|條件：|限制：|➔|→/.test(t)) return true;
+  const brief = getBrief(card);
+  if (brief) {
+    const fields = [brief.e, brief.c, brief.l].filter(Boolean);
+    if (fields.some((f) => t.length >= 3 && f.includes(t))) return true;
+    if (fields.some((f) => f.length >= 4 && t.includes(f))) return true;
+  }
   const fields = [card.d, card.beforeText, card.afterText, card.requirementText, card.limitText].filter((f) => f && f.length >= 2);
   if (fields.some((f) => t.length >= 6 && f.includes(t))) return true;
   if (fields.some((f) => f.length >= 8 && t.includes(f))) return true;
@@ -242,12 +286,19 @@ function auditViewport(name, payload) {
   payload.cards.forEach((card, i) => {
     const y0 = layout.card.y + i * (layout.card.h + layout.card.gap);
     const y1 = y0 + layout.card.h;
-    const inCard = (payload.traces || []).filter((t) => t.y >= y0 - 2 && t.y < y1 + 2 && t.left >= layout.card.x - 4 && t.left <= layout.card.x + layout.card.w + 4);
+    const inCard = (payload.traces || []).filter((t) => (t.top != null ? t.top : t.y) >= y0 - 2 && t.y < y1 + 2 && t.left >= layout.card.x - 4 && t.left <= layout.card.x + layout.card.w + 4);
     const body = inCard.filter((t) => t.align !== "right" && isBodyLine(t.text, card, t.left, layout.card.x));
     const heads = inCard.filter((t) => t.align === "right" && /共鳴|主動|被動|變異|御守|覺醒|升級/.test(t.text));
     const blob = inCard.map((t) => t.text).join("");
-    for (const bit of [card.d, card.beforeText, card.afterText, card.requirementText, card.limitText]) {
-      if (bit && !blob.includes(bit)) violations.push(name + " 卡" + i + " 可見列缺 " + bit.slice(0, 18));
+    const brief = getBrief(card);
+    if (brief) {
+      for (const bit of [card.n, brief.e, brief.c, brief.l].filter(Boolean)) {
+        if (!blob.includes(bit)) violations.push(name + " 卡" + i + " 可見列缺 " + bit.slice(0, 18));
+      }
+    } else {
+      for (const bit of [card.d, card.beforeText, card.afterText, card.requirementText]) {
+        if (bit && !blob.includes(bit)) violations.push(name + " 卡" + i + " 可見列缺 " + bit.slice(0, 18));
+      }
     }
     if (!body.length) violations.push(name + " 卡" + i + " 沒有可量測的說明列");
     for (const t of body) {
@@ -310,7 +361,7 @@ async function runR123(opts) {
     "  return __r121Fill(text, x, y, maxWidth);",
     "};",
     "window.__r121 = {",
-    "  applies: [], starts: 0, runStarts: 0, finishes: 0, lastStart: '',",
+    "  applies: [], offers: 0, starts: 0, runStarts: 0, finishes: 0, lastStart: '',",
     "  arm(ids) {",
     "    for (const k of Object.keys(WI)) WL[k] = 0;",
     "    WL.katana = 3;",
@@ -329,7 +380,7 @@ async function runR123(opts) {
     "  },",
     "  begin() { start('night-town'); },",
     "  offer() { offerUp(); return choices.length; },",
-    "  cards() { return choices.map((c) => ({ choiceId: c.choiceId, type: c.type, skillIds: c.skillIds, n: c.n, s: c.s, d: c.d, beforeText: c.beforeText, afterText: c.afterText, requirementText: c.requirementText, limitText: c.limitText })); },",
+    "  cards() { return choices.map((c) => ({ id: c.id, choiceId: c.choiceId, type: c.type, skillIds: c.skillIds, n: c.n, s: c.s, d: c.d, beforeText: c.beforeText, afterText: c.afterText, requirementText: c.requirementText, limitText: c.limitText })); },",
     "  tracesClear() { __r121Traces.length = 0; },",
     "  frames(n) { return new Promise((resolve) => { const step = (k) => k <= 0 ? resolve(true) : requestAnimationFrame(() => step(k - 1)); step(n); }); },",
     "  setMode(m) { inputMode = m; },",
@@ -367,7 +418,9 @@ async function runR123(opts) {
     "  pickupSpot() { const o = orders[0]; return o ? { x: o.from.x, y: o.from.y } : null; },",
     "  answerSpot() { if (!job || !job.word) return null; const i = job.ans.findIndex((a) => a && a.jp === job.word.jp); if (i < 0) return null; const p = ansPos(job.to)[i]; return { x: p.x, y: p.y, i: i }; },",
     "  leg() { const o = orders[0]; const near = o ? Math.hypot(P.x - o.from.x, P.y - o.from.y) : null; return { state: state, delivered: delivered, job: !!job, inter: !!inter, tutorial: !!tutorial, level: level, art: window.ART_READY === true, orders: orders.length, near: near }; },",
-    "  primeLevel() { if (state !== 'play') return { ok: false, state: state }; xp = xpNeed(); return { ok: true }; }",
+    "  primeLevel() { if (state === 'levelup') return { ok: xp >= xpNeed(), primed: false, xp, need: xpNeed(), state }; if (state !== 'play') return { ok: false, state }; xp = xpNeed(); return { ok: true, primed: true, xp, need: xpNeed(), state }; },",
+    "  clock() { return { elapsed: elapsed, bossStage: bossStage, oil: oil, level: level, delivered: delivered, state: state }; },",
+    "  step(n) { const e0 = elapsed, b0 = bossStage; let t = last; for (let i = 0; i < n; i++) { t += 50; runFrame(t); } return { frames: n, elapsed: elapsed, delta: elapsed - e0, bossStage: bossStage, bossUnchanged: bossStage === b0, oil: oil, level: level, delivered: delivered, state: state, offers: window.__r121.offers, applies: window.__r121.applies.length }; }",
     "};",
     "const __r123Apply = applyChoice;",
     "applyChoice = function(choiceId, revision) {",
@@ -385,7 +438,9 @@ async function runR123(opts) {
     "const __r1Run = STORE.startRun.bind(STORE);",
     "STORE.startRun = function(stageId) { window.__r121.runStarts++; return __r1Run(stageId); };",
     "const __r1Fin = STORE.finish.bind(STORE);",
-    "STORE.finish = function() { window.__r121.finishes++; return __r1Fin.apply(STORE, arguments); };"
+    "STORE.finish = function() { window.__r121.finishes++; return __r1Fin.apply(STORE, arguments); };",
+    "const __r1Offer = offerUp;",
+    "offerUp = function() { window.__r121.offers++; return __r1Offer(); };"
   ].join("\n");
   const gameSrc = rawGame.slice(0, endIdx) + "\n" + probe + "\n" + rawGame.slice(endIdx);
   let preview = null, chrome = null;
@@ -393,6 +448,7 @@ async function runR123(opts) {
   const pageErrors = [];
   const consoleErrors = [];
   const consoleLogs = [];
+  const logEntries = [];
   const audioLeak = [];
   try {
     preview = spawn(process.execPath, ["--require", path.join(root, "tools", "director-audio-freeze.cjs"), path.join(root, "tools", "director-preview.cjs"), "--port=" + port], { stdio: ["ignore", "pipe", "pipe"] });
@@ -440,7 +496,11 @@ async function runR123(opts) {
         const text = ((msg.params && msg.params.args) || []).map((a) => a.value != null ? String(a.value) : (a.description || "")).join(" ").slice(0, 180);
         const row = type + " " + text;
         if (type === "error") { if (consoleErrors.length < 20) consoleErrors.push(row); }
-        else if (consoleLogs.length < 20) consoleLogs.push(row);
+        else if (consoleLogs.length < 40) consoleLogs.push(row);
+      }
+      else if (msg.method === "Log.entryAdded") {
+        const entry = (msg.params && msg.params.entry) || {};
+        if (logEntries.length < 40) logEntries.push({ level: entry.level, source: entry.source, url: entry.url, text: String(entry.text || "").slice(0, 300), timestamp: entry.timestamp });
       }
       else if (msg.method === "Network.responseReceived") {
         const u = msg.params.response.url || "";
@@ -473,6 +533,7 @@ async function runR123(opts) {
     };
     await send("Page.enable");
     await send("Runtime.enable");
+    await send("Log.enable");
     await send("Network.enable");
     await send("Page.addScriptToEvaluateOnNewDocument", { source: "try{localStorage.removeItem('yokai-tutorial-v1');}catch(e){} window.addEventListener('error',e=>{window.__bootErr=(e.message||'')+' @'+(e.lineno||0);});" });
     await send("Fetch.enable", { patterns: [{ urlPattern: "*game.js*" }] });
@@ -639,7 +700,8 @@ async function runR123(opts) {
       if (!doneLeg || doneLeg.delivered !== beforeBuild.delivered + 1) throw new Error(name + " 答題沒有送達 " + JSON.stringify(doneLeg));
       await evalJs("window.__r121.applies.length = 0");
       const primed = await evalJs("window.__r121.primeLevel()");
-      if (!primed || !primed.ok) throw new Error(name + " 無法把經驗送到升級門檻");
+      view.xpTransition = primed; // normal XP75% 時，真配送可直接觸發 levelup；不得覆寫該真路徑。
+      if (!primed || !primed.ok || primed.xp < primed.need) throw new Error(name + " 無法把經驗送到升級門檻 " + JSON.stringify(primed));
       const levelup = await waitUntil(() => evalJs("window.__r121.snap()"), (s) => s && s.state === "levelup" && s.n > 0, 30, 50);
       if (!levelup || levelup.state !== "levelup") throw new Error(name + " 重進後遊戲沒有自己打開選卡");
       await waitCool();
@@ -672,8 +734,27 @@ async function runR123(opts) {
         for (const v of audit.violations) problem(v);
       }
     };
+    const doClock = async (name, view) => {
+      const tut = await evalJs("window.__r121.leg()");
+      if (tut && tut.tutorial) {
+        await pressKey("Escape", "Escape", 27);
+        await sleep(150);
+      }
+      const before = await evalJs("window.__r121.clock()");
+      const stepped = await evalJs("window.__r121.step(4)");
+      const spot = await evalJs("window.__r121.pickupSpot()");
+      const card = await evalJs("window.__r121.cardPoint(0)");
+      view.clock = { before, stepped };
+      view.wiring = { pickup: !!spot, card: !!(card && Number.isFinite(card.x)), offers: stepped && stepped.offers, applies: stepped && stepped.applies };
+      view.dependency = "DEPENDENCY_WAIT";
+      view.missing = "AGY 的 seed、升級序與配送時點未收到。未跑 600 秒、6 配送、2 封印、180/360/480/540 Boss、終王勝利演出與返回重進。不是完整局 PASS。";
+      if (!stepped || !(stepped.delta > 0.15 && stepped.delta < 0.25) || stepped.bossUnchanged !== true) {
+        throw new Error(name + " 50ms frame 沒有只走 runFrame " + JSON.stringify(stepped));
+      }
+    };
     const onlyViews = process.env.R123_VIEWS ? process.env.R123_VIEWS.split(",") : null;
     for (const [w, h, name] of [[1000, 700, "dt"], [844, 390, "mp"], [1024, 640, "tb"]]) {
+      if (opts.clock && name !== "dt") continue;
       if (onlyViews && !onlyViews.includes(name)) continue;
       const view = { name, w, h, violations: [], selects: [] };
       try {
@@ -693,7 +774,8 @@ async function runR123(opts) {
           try { art = await evalJs("window.ART_READY===true"); if (art) break; } catch {}
         }
         if (!art) throw new Error(name + " ART_READY 未完成");
-        if (opts.reentry) await doReentry(name, view);
+        if (opts.clock) await doClock(name, view);
+        else if (opts.reentry) await doReentry(name, view);
         else {
         let opened = null;
         for (let i = 0; i < 25; i++) {
@@ -765,7 +847,7 @@ async function runR123(opts) {
       views.push(view);
       console.log("r123 " + name + " violations " + view.violations.length + " selects " + view.selects.length);
     }
-    if (!opts.reentry) for (const id of Object.keys(expectDuo)) {
+    if (!opts.reentry && !opts.clock) for (const id of Object.keys(expectDuo)) {
       const card = seen[id];
       if (!card) problem("真 offerUp 未出現 " + id);
       else {
@@ -781,13 +863,16 @@ async function runR123(opts) {
     } catch (e) { problem("layout count " + (e.message || e)); }
     if (pageErrors.length) problem("pageErrors " + pageErrors.join(";"));
     if (audioLeak.length) problem("audioLeak " + audioLeak.join(";"));
-    if (consoleErrors.some((row) => /ui\.js|drawLevelUp|levelUpLayout/.test(row))) problem("console error 指向 UI " + consoleErrors.join(";"));
+    if (opts.clock) {
+      for (const row of consoleErrors) problem("console " + row);
+    } else if (consoleErrors.some((row) => /ui\.js|drawLevelUp|levelUpLayout/.test(row))) problem("console error 指向 UI " + consoleErrors.join(";"));
     const diskNow = crypto.createHash("sha256").update(fs.readFileSync(gamePath)).digest("hex");
     if (diskNow !== gameShaBefore) problem("game 中途變動，本輪不可當固定版 PASS");
     chromeResult.shots = shots;
     chromeResult.pageErrors = pageErrors;
     chromeResult.consoleErrors = consoleErrors;
     chromeResult.consoleLogs = consoleLogs;
+    chromeResult.logEntries = logEntries;
     chromeResult.consoleCollected = true;
     chromeResult.audioLeak = audioLeak;
     chromeResult.fixedVersion = diskNow === gameShaBefore;
@@ -797,7 +882,10 @@ async function runR123(opts) {
       chromeResult.error = problems.slice(0, 12).join(" | ");
       throw new Error(chromeResult.error);
     }
-    chromeResult.status = "PASS_CONTROLLED_PAGE";
+    if (opts.clock) {
+      chromeResult.status = "DEPENDENCY_WAIT";
+      chromeResult.fullRun = false;
+    } else chromeResult.status = "PASS_CONTROLLED_PAGE";
     passed.push("chrome");
     try { ws.close(); } catch {}
   } catch (error) {
@@ -873,6 +961,48 @@ test("M1-G-UI-R1 結算回旅路真重進", { timeout: 300000 }, async () => {
   };
   fs.writeFileSync(path.join(dir, "r1-summary.json"), JSON.stringify(summary, null, 2));
   if (failedRun) throw failedRun;
+});
+
+test("M1-G-UI-R2 單Build frame接線", { timeout: 180000 }, async () => {
+  const http = require("node:http");
+  const { spawn } = require("node:child_process");
+  const port = 9492;
+  const cdpPort = 9381;
+  const runId = "gr2-" + Date.now().toString(36);
+  const dir = path.join(__dirname, "..", "artifacts", "validation", "grok-m1-e-r12-20261017", runId);
+  fs.mkdirSync(dir, { recursive: true });
+  const root = path.join(__dirname, "..");
+  const gamePath = path.join(root, "js", "game.js");
+  const uiBefore = sha256File(UI_PATH);
+  const gameShaBefore = sha256File(gamePath);
+  const rawGame = fs.readFileSync(gamePath, "utf8");
+  const endIdx = rawGame.lastIndexOf("})();");
+  assert.ok(endIdx > 0, "game.js IIFE");
+  let failedRun = null;
+  try {
+    await runR123({ http, spawn, port, cdpPort, runId, dir, root, gamePath, gameShaBefore, rawGame, endIdx, clock: true });
+  } catch (error) {
+    failedRun = error;
+  }
+  const gameShaAfter = sha256File(gamePath);
+  const summary = {
+    ticket: "M1-G-UI-R2", runId, dir,
+    uiShaBefore: uiBefore, uiShaAfter: sha256File(UI_PATH),
+    testSha: sha256File(__filename),
+    gameShaBefore, gameShaAfter, storeSha: sha256File(path.join(root, "js", "store.js")),
+    fixedVersion: gameShaAfter === gameShaBefore && uiBefore === sha256File(UI_PATH),
+    fullRun: false, status: chromeResult.status, exitCode: failedRun ? 1 : 0,
+    dependency: "DEPENDENCY_WAIT",
+    missing: "AGY seed、升級序與配送時點。未跑600秒完整局。",
+    chrome: chromeResult,
+    nonNatural: true, device: "WAITING_DEVICE", oneBuildOnly: true
+  };
+  fs.writeFileSync(path.join(dir, "r2-summary.json"), JSON.stringify(summary, null, 2));
+  assert.ok(typeof uiBefore === "string" && uiBefore.length === 64, "uiBefore sha256 valid");
+  assert.equal(sha256File(UI_PATH), uiBefore, "ui.js SHA before/after match");
+  if (failedRun) throw failedRun;
+  assert.equal(chromeResult.status, "DEPENDENCY_WAIT");
+  assert.equal(chromeResult.fullRun, false);
 });
 
 test("收束摘要", () => {

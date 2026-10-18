@@ -3,7 +3,20 @@
 
   const W = 900, H = 600;
   const CFG = window.GAME_CONFIG;
+  // hard 原樣保存既有小怪曲線；僅夜行町預設 normal，暫不接難度 UI。
+  const MOB_DIFFICULTY_PROFILES = Object.freeze({
+    hard: Object.freeze({ hpScale: 1, speedScale: 1, timeScale: 1, powerScale: 1,
+      intervalScale: 1, cap: 95, surgeCountScale: 1, surgePacingScale: 1, capSurges: false, xpNeedScale: 1 }),
+    normal: Object.freeze({ hpScale: 0.65, speedScale: 0.82, timeScale: 0.35, powerScale: 0,
+      intervalScale: 1.15, cap: 57, surgeCountScale: 0.6, surgePacingScale: 2, capSurges: true, xpNeedScale: 0.75 })
+  });
+  function mobDifficultyForStage(stage) {
+    return stage.id === "night-town"
+      ? MOB_DIFFICULTY_PROFILES[stage.pacing?.mobDifficulty === "hard" ? "hard" : "normal"]
+      : MOB_DIFFICULTY_PROFILES.hard;
+  }
   let STAGE = window.CONTENT.getStage("night-town");
+  let MOB_DIFFICULTY = mobDifficultyForStage(STAGE);
   let STAGE_PACING = STAGE.pacing || {};
   let STAGE_VISUAL = STAGE.visual || {};
   let STAGE_ENEMY = STAGE.enemy || {};
@@ -11,9 +24,9 @@
   let DAWN = STAGE_PACING.runSeconds || CFG.RUN_SECONDS;
   let GOAL_DELIVERIES = STAGE_PACING.goalDeliveries || CFG.GOAL_DELIVERIES;
   let BOSS_TIMES = STAGE_PACING.bossTimes || CFG.BOSS_TIMES;
-  let SURGE_FIRST = STAGE_PACING.surgeFirst || CFG.SURGE_FIRST;
-  let SURGE_INTERVAL = STAGE_PACING.surgeInterval || CFG.SURGE_INTERVAL;
-  let XP_NEED_SCALE = STAGE_PACING.xpNeedScale || 1;
+  let SURGE_FIRST = (STAGE_PACING.surgeFirst || CFG.SURGE_FIRST) * MOB_DIFFICULTY.surgePacingScale;
+  let SURGE_INTERVAL = (STAGE_PACING.surgeInterval || CFG.SURGE_INTERVAL) * MOB_DIFFICULTY.surgePacingScale;
+  let XP_NEED_SCALE = (STAGE_PACING.xpNeedScale || 1) * MOB_DIFFICULTY.xpNeedScale;
   let SPAWN_INTERVAL_SCALE = STAGE_PACING.spawnIntervalScale || 1;
   let SPAWN_COUNT_BONUS = STAGE_PACING.spawnCountBonus || 0;
   const cv = document.getElementById("game");
@@ -185,9 +198,16 @@
     if (quitConfirm) return UI.EXIT_BTNS;
     if (state === "menu") return UI.MENU_BTNS;
     if (state === "pause") return UI.PAUSE_BTNS;
-    if (state === "won" || state === "lost") {
+    if (state === "won") {
+      const btns = typeof UI.endScreenButtons === "function" ? UI.endScreenButtons(state) : null;
+      if (Array.isArray(btns) && btns.length) return btns;
+      const worldBtn = UI.END_BTNS ? UI.END_BTNS.find(b => b.id === "world") : null;
+      return worldBtn ? [worldBtn] : [];
+    }
+    if (state === "lost") {
+      const base = (typeof UI.endScreenButtons === "function" ? UI.endScreenButtons(state) : null) || UI.END_BTNS || [];
       const review = typeof UI.reviewButtons === "function" ? UI.reviewButtons(misses).slice(0, 3) : [];
-      return review.length ? [...UI.END_BTNS, ...review] : UI.END_BTNS;
+      return review.length ? [...base, ...review] : base;
     }
     return null;
   }
@@ -209,6 +229,10 @@
   }
   function activateMenu(id) {
     if ((state === "won" || state === "lost") && endCooldown > 0) return;
+    if (state === "won" || state === "lost") {
+      const allowed = menuButtons() || [];
+      if (!allowed.some(b => b && b.id === id)) return;
+    }
     if (id === "start") enterOverworld();
     else if (id === "restart") start();
     else if (id === "world") enterOverworld(false);
@@ -298,8 +322,12 @@
   }
   function bossBlueprint(index) {
     const role = ["mid", "mid", "gate", "final"][index] || "mid";
+    let hp = CFG.BOSS_HP_BASE[index];
+    if (STAGE && STAGE.id === "night-town" && typeof hp === "number") {
+      hp = role === "final" ? Math.round(hp * 0.65) : Math.round(hp * 0.5);
+    }
     return {
-      hp: CFG.BOSS_HP_BASE[index],
+      hp,
       oil: CFG.BOSS_OIL_REWARD[index],
       quiz: role !== "gate",
       role
@@ -348,6 +376,14 @@
 
   let bossT = BOSS_TIMES[0], bossStage = 0, finalBossDefeated = false;
   let finalBossPos = null, finalBossEnt = null, victorySeq = null;
+
+  function checkVictoryCondition() {
+    if (!finalBossDefeated) return false;
+    if (STAGE && STAGE.id === "night-town") {
+      return elapsed >= DAWN;
+    }
+    return delivered >= GOAL_DELIVERIES;
+  }
   let ended = false, bossQ = null, bossSealBreak = null, codexBack = "menu", codexTab = "cards", codexPage = 0;
   let codexFocus = 'cards', codexFilter = { by: "all", id: null };
   function wordCodexState() {
@@ -419,6 +455,7 @@
 
   function configureStage(stageId = "night-town") {
     STAGE = window.CONTENT.getStage(stageId);
+    MOB_DIFFICULTY = mobDifficultyForStage(STAGE);
     STAGE_PACING = STAGE.pacing || {};
     STAGE_VISUAL = STAGE.visual || {};
     STAGE_ENEMY = STAGE.enemy || {};
@@ -427,9 +464,9 @@
     DAWN = STAGE_PACING.runSeconds || CFG.RUN_SECONDS;
     GOAL_DELIVERIES = STAGE_PACING.goalDeliveries || CFG.GOAL_DELIVERIES;
     BOSS_TIMES = STAGE_PACING.bossTimes || CFG.BOSS_TIMES;
-    SURGE_FIRST = STAGE_PACING.surgeFirst || CFG.SURGE_FIRST;
-    SURGE_INTERVAL = STAGE_PACING.surgeInterval || CFG.SURGE_INTERVAL;
-    XP_NEED_SCALE = STAGE_PACING.xpNeedScale || 1;
+    SURGE_FIRST = (STAGE_PACING.surgeFirst || CFG.SURGE_FIRST) * MOB_DIFFICULTY.surgePacingScale;
+    SURGE_INTERVAL = (STAGE_PACING.surgeInterval || CFG.SURGE_INTERVAL) * MOB_DIFFICULTY.surgePacingScale;
+    XP_NEED_SCALE = (STAGE_PACING.xpNeedScale || 1) * MOB_DIFFICULTY.xpNeedScale;
     SPAWN_INTERVAL_SCALE = STAGE_PACING.spawnIntervalScale || 1;
     SPAWN_COUNT_BONUS = STAGE_PACING.spawnCountBonus || 0;
     WORLD_STATE = window.WORLD.createStageWorld(STAGE, window.CONTENT,
@@ -1170,7 +1207,7 @@
       const isAwakened = level === 5;
       const baseCount = window.EVOLUTIONS?.boomCount ? window.EVOLUTIONS.boomCount(level) : [1, 2, 3, 4, 2][Math.max(0, Math.min(4, level - 1))];
       const cooldown = isAwakened ? 1.6 : Number((2.0 - level * 0.24).toFixed(2));
-      const speed = 440;
+      const speed = 880;
       const life = 1.4;
       const fuse = 1.5;
       const spread = level >= 4 ? 0.28 : 0.32;
@@ -2044,7 +2081,7 @@
       RENDERER.triggerShake(7);
       AUDIO.deliverSuccess();
       HAPTICS.deliverSuccess();
-      if (finalBossDefeated && delivered >= GOAL_DELIVERIES) startVictorySequence();
+      if (checkVictoryCondition()) startVictorySequence();
     } else {
       j.wrongPaid = true;
       j.assisted = true;
@@ -2099,7 +2136,7 @@
     HAPTICS.damage();
     if (oil <= 0) {
       oil = 0;
-      if (finalBossDefeated && delivered >= GOAL_DELIVERIES) startVictorySequence();
+      if (checkVictoryCondition()) startVictorySequence();
       else loseRun();
       return true;
     }
@@ -2153,7 +2190,7 @@
         dropGem(e.x + (Math.random() - 0.5) * 70, e.y + (Math.random() - 0.5) * 70, 6);
       }
       // 不再誤將擊殺視為單字掌握 STORE.rec
-      if (e.final && delivered >= GOAL_DELIVERIES) startVictorySequence();
+      if (e.final && checkVictoryCondition()) startVictorySequence();
     }
 
     const gemCount = 1;
@@ -2217,7 +2254,7 @@
 
   function loseRun() {
     if (state === "lampout" || state === "lost") return;
-    if (finalBossDefeated && delivered >= GOAL_DELIVERIES) {
+    if (checkVictoryCondition()) {
       startVictorySequence();
       return;
     }
@@ -2260,6 +2297,7 @@
     victorySeq = { t: 0, bossX: p.x, bossY: p.y, boss, blastT: 0, blasts: 0, bossGone: !boss, ignited: false, fireT: 0 };
     state = "victory";
     winds = []; ghosts = []; proj = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; dragonShots = []; dragonScorches = []; splitblasts = []; duoShockwaves = []; inkfireMarks = [];
+    gems = [];
     keys.clear(); heldCodes.clear();
     joy = null;
     bossQ = null;
@@ -2430,7 +2468,7 @@
       if (dir && dir !== gpMenuDir) moveMenu(dir);
       gpMenuDir = dir;
       if (justPressed(0)) { AUDIO.init(); activateWithFeedback(buttons[menuFocus].id); }
-      else if (justPressed(1) || justPressed(9)) { if (quitConfirm) activateMenu('exit-cancel'); else if (state === 'pause') togglePause(); else if (state === 'won' || state === 'lost') returnHome(); }
+      else if (justPressed(1) || justPressed(9)) { if (quitConfirm) activateMenu('exit-cancel'); else if (state === 'pause') togglePause(); else if (state === 'won' || state === 'lost') activateMenu('menu'); }
       else if (justPressed(8) && !quitConfirm) activateMenu('codex');
       gpPrevButtons = gp.buttons.map(b => b.pressed);
       return;
@@ -3382,7 +3420,7 @@
           const turn = Math.max(-maxTurn, Math.min(maxTurn, diff));
           const newAng = Math.atan2(Math.sin(curAng + turn), Math.cos(curAng + turn));
           q.ang = newAng;
-          const spd = q.speed || 440;
+          const spd = q.speed || 880;
           q.vx = Math.cos(newAng) * spd;
           q.vy = Math.sin(newAng) * spd;
         }
@@ -3855,6 +3893,15 @@
     return null;
   }
 
+  function mobPacing(atElapsed, power) {
+    const cappedElapsed = Math.min(atElapsed, DAWN);
+    return {
+      tier: CFG.enemyTier(Math.min(atElapsed, CFG.RUN_SECONDS) * MOB_DIFFICULTY.timeScale, power * MOB_DIFFICULTY.powerScale),
+      interval: CFG.spawnInterval(cappedElapsed * MOB_DIFFICULTY.timeScale) * SPAWN_INTERVAL_SCALE * MOB_DIFFICULTY.intervalScale,
+      count: Math.max(1, CFG.spawnCount(cappedElapsed) + SPAWN_COUNT_BONUS)
+    };
+  }
+
   function spawnEnemy(tier, rad, ang, ring) {
     const position = spawnPosition(spawnRadius(rad), ang ?? Math.random() * 6.283, 26);
     if (!position) return;
@@ -3862,8 +3909,8 @@
 
     // 怪物速度曲線：封頂於 10 分鐘，破曉後加班不再增加怪物難度。
     const cappedElapsed = Math.min(elapsed, DAWN);
-    const speedRamp = (cappedElapsed / DAWN) * 75;
-    const stageSpeed = STAGE_ENEMY.speedScale || 1;
+    const speedRamp = (cappedElapsed / DAWN) * 75 * MOB_DIFFICULTY.timeScale;
+    const stageSpeed = (STAGE_ENEMY.speedScale || 1) * MOB_DIFFICULTY.speedScale;
     const shooterChance = STAGE_ENEMY.shooterChance ?? 0.14;
     const canShoot = STAGE_ENEMY.shots !== false;
     let t = { type: "ghost", hp: 2.0 * tier, speed: (52 + speedRamp * 0.9) * stageSpeed };
@@ -3878,7 +3925,8 @@
       t = { type: "shooter", hp: tier, speed: (48 + speedRamp * 0.8) * stageSpeed };
     }
 
-    enemies.push({ ...position, flash: 0, wob: Math.random() * 6, slowT: 0, ...t, hp: Math.ceil(t.hp), max: Math.ceil(t.hp) });
+    enemies.push({ ...position, flash: 0, wob: Math.random() * 6, slowT: 0, ...t,
+      hp: Math.ceil(t.hp * MOB_DIFFICULTY.hpScale), max: Math.ceil(t.hp * MOB_DIFFICULTY.hpScale) });
   }
 
   function update(dt, hitStopped = false) {
@@ -3903,7 +3951,7 @@
       oil = Math.min(maxOil, oil - dt * 0.43 + (b.oilRegen || 0) * dt);
       if (oil <= 0) {
         oil = 0;
-        if (finalBossDefeated && delivered >= GOAL_DELIVERIES) { startVictorySequence(); return; }
+        if (checkVictoryCondition()) { startVictorySequence(); return; }
         loseRun();
         return;
       }
@@ -3912,7 +3960,8 @@
         const need = Math.max(0, GOAL_DELIVERIES - delivered);
         const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
         const bTitle = story?.bossTitle || "大妖";
-        say(!finalBossDefeated ? `擊敗${bTitle}` : `還差 ${need} 件委託`, P.x, P.y - 75, "#ffb3ba");
+        const prompt = !finalBossDefeated ? `擊敗${bTitle}` : (STAGE.id === "night-town" ? "破曉已至" : `還差 ${need} 件委託`);
+        say(prompt, P.x, P.y - 75, "#ffb3ba");
       }
     }
 
@@ -4023,13 +4072,14 @@
     // 敵人生成強度計算：整段 10 分鐘平滑拉升，破曉後加班不再增加難度。
     const cappedElapsed = Math.min(elapsed, DAWN);
     const pw = Object.values(WL).reduce((x, y) => x + y, 0) + b.dmg + b.rate;
-    const tier = CFG.enemyTier(elapsed, pw);
+    const pressure = mobPacing(elapsed, pw);
+    const tier = pressure.tier;
 
     spawnT -= dt;
     if (spawnT <= 0) {
-      spawnT = CFG.spawnInterval(cappedElapsed) * SPAWN_INTERVAL_SCALE;
-      const count = Math.max(1, CFG.spawnCount(cappedElapsed) + SPAWN_COUNT_BONUS);
-      for (let k = 0; k < count && enemies.length < 95; k++) {
+      spawnT = pressure.interval;
+      const count = pressure.count;
+      for (let k = 0; k < count && enemies.length < MOB_DIFFICULTY.cap; k++) {
         spawnEnemy(tier, 560);
       }
     }
@@ -4042,7 +4092,7 @@
         surgeWarningT = 0;
         surgeT = SURGE_INTERVAL;
         RENDERER.triggerShake(14);
-        for (let k = 0; k < surgePendingCount; k++) {
+        for (let k = 0; k < surgePendingCount && (!MOB_DIFFICULTY.capSurges || enemies.length < MOB_DIFFICULTY.cap); k++) {
           spawnEnemy(surgePendingTier, 450, (k / surgePendingCount) * 6.283, true);
         }
       }
@@ -4055,7 +4105,7 @@
         HAPTICS.warning();
         RENDERER.triggerShake(5);
         surgePendingTier = tier;
-        surgePendingCount = 10 + Math.floor(cappedElapsed / 60);
+        surgePendingCount = Math.max(1, Math.floor((10 + Math.floor(cappedElapsed / 60)) * MOB_DIFFICULTY.surgeCountScale));
       }
     }
     }
@@ -4200,7 +4250,7 @@
     const despawnRadius = Math.max(1150, spawnRadius(0) + 300);
     enemies = enemies.filter(e => e.hp > 0 && (e.type === "boss" || (e.type === "mis" && dist(e, P) < 3000) || dist(e, P) < despawnRadius));
 
-    if (finalBossDefeated && delivered >= GOAL_DELIVERIES && state === "play") {
+    if (checkVictoryCondition() && state === "play") {
       startVictorySequence();
       return;
     }
@@ -5272,8 +5322,8 @@
     }
     ctx.restore();
 
-    // 破曉後若配達已完成，使用與送貨金箭頭不同的赤色雙箭頭追蹤最終大妖鬼。
-    const bossHunt = elapsed >= DAWN && delivered >= GOAL_DELIVERIES && !finalBossDefeated;
+    // 破曉後若配達已完成（第一關破曉即可），使用與送貨金箭頭不同的赤色雙箭頭追蹤最終大妖鬼。
+    const bossHunt = elapsed >= DAWN && (STAGE.id === "night-town" || delivered >= GOAL_DELIVERIES) && !finalBossDefeated;
     const bossTarget = bossHunt ? enemies.find(e => e.type === "boss" && e.final && e.hp > 0) : null;
     if (bossTarget) {
       const huntScreen = window.VIEWPORT?.worldToScreen
@@ -5753,7 +5803,7 @@
     if (WL.katana > 0) cd.katana = clamp((atkT - 0.1) / Math.max(0.01, wMax.katana - 0.1), 0, 1);
     for (const k of ["barrier", "needle", "boom", "thunder", ...(WL.fire===5?["fire"]:[])]) if (WL[k] > 0) cd[k] = clamp(wT[k] / wMax[k], 0, 1);
     const guideTarget = job ? job.to : orders.reduce((n, o) => (!n || dist(P, o.from) < dist(P, n) ? o.from : n), null);
-    const bossHunting = elapsed >= DAWN && delivered >= GOAL_DELIVERIES && !finalBossDefeated;
+    const bossHunting = elapsed >= DAWN && (STAGE.id === "night-town" || delivered >= GOAL_DELIVERIES) && !finalBossDefeated;
     const huntTarget = bossHunting ? enemies.find(e => e.type === "boss" && e.final && e.hp > 0) : null;
     const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
     const bossTitle = huntTarget?.title || story?.bossTitle || "大妖";
@@ -5840,6 +5890,7 @@
       runSummary = {
         prevBest,
         newBest: score > prevBest,
+        elapsedSeconds: elapsed,
         goal: GOAL_DELIVERIES,
         stageName: STAGE.name,
         learning: learningSummary(),
@@ -5899,7 +5950,7 @@
         }
       } else {
         const dashMax = Math.max(0.6, 1.8 - b.dash * 0.38);
-        const bossHunt = elapsed >= DAWN && delivered >= GOAL_DELIVERIES && !finalBossDefeated;
+        const bossHunt = elapsed >= DAWN && (STAGE.id === "night-town" || delivered >= GOAL_DELIVERIES) && !finalBossDefeated;
         UI.drawHud(
           ctx, P, oil, maxOil, elapsed, DAWN, delivered, failed, score, level, xp, xpNeed(),
           job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, GOAL_DELIVERIES,

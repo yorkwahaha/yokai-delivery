@@ -75,7 +75,10 @@ test('V3 contract: assisted recall preserves error priority and repeated indepen
 });
 test('V3 contract: first boss starts with fixed HP independent of player power', () => {
   const g=fresh();g.scheduleBoss();g.update(.05);const boss=g.snapshot().enemies.find(e=>e.type==='boss');
-  assert.ok(boss);assert.equal(boss.max,300);
+  assert.ok(boss);assert.equal(boss.max,150);
+  const powered=fresh();powered.tune('dmg').f();powered.scheduleBoss();powered.update(.05);
+  const bossP=powered.snapshot().enemies.find(e=>e.type==='boss');
+  assert.ok(bossP);assert.equal(bossP.max,150);
 });
 
 test('V3 contract: safe reading freezes nearby enemies as well as damage', () => {

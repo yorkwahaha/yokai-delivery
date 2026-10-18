@@ -322,7 +322,9 @@ test('woodblock UI reuses a paper-wash panel instead of the old glass sheen',()=
   assert.match(src,/木版畫共用框/);
   assert.match(src,/rgba\(223,199,150,\.065\)/);
   assert.doesNotMatch(src,/function sheen\(/);
-  assert.match(src,/const LEVEL_CARD_LAYOUT = \{x:90,y:176,w:720,h:108,gap:14\}/);
+  assert.match(src,/function levelUpLayout\(count\)/,'繪製與命中共用動態卡片 layout');
+  const layout=loadUI(900).UI.levelUpLayout(3);
+  assert.ok(layout.card.h>=44 && layout.card.y+3*layout.card.h+2*layout.card.gap<=layout.reroll.y,'三卡與重抽各自保留熱區');
   assert.doesNotMatch(src.slice(src.indexOf('function drawLevelUp('),src.indexOf('// 4.',src.indexOf('function drawLevelUp('))),/glassBox\(/);
   const illustrated=loadUI(900,true),images=[];
   illustrated.context.drawImage=(...args)=>images.push(args);
@@ -334,8 +336,8 @@ test('woodblock UI reuses a paper-wash panel instead of the old glass sheen',()=
   assert.ok(!images.some(a=>a[0].src?.includes('button_primary.webp')),'no decorative full-width ribbons on choices');
   assert.ok(images.some(a=>a[0].src?.includes('button_secondary.webp')),'reroll retains a painted paper button');
   const levelPart=src.slice(src.indexOf('function drawLevelUp('),src.indexOf('// 4.',src.indexOf('function drawLevelUp(')));
-  assert.match(levelPart,/readableFont\(25,"900"\)/,'skill names are larger');
-  assert.match(levelPart,/readableFont\(20,"700"\)/,'skill descriptions are larger');
+  assert.match(levelPart,/levelFont\(18,"900"\)/,'名稱採可讀字級');
+  assert.match(levelPart,/levelFont\(V.dSize,"700"\)/,'實際字級與量測選定值一致');
   assert.ok(illustrated.texts.some(x=>x.value.includes('左搖桿')),'Xbox button legend is visible');
   const r=loadUI(568);
   assert.doesNotThrow(()=>r.UI.drawLevelUp(r.context,2,[{type:'weapon',id:'katana',n:'妖刀斬',s:'かたな',d:'向前斬擊',lv:1}],{}, {},1));
@@ -346,9 +348,12 @@ test('small-screen level-up descriptions and settlement review lines keep readab
   vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),r.env);
   const labels=[];r.context.measureText=value=>({width:[...String(value)].length*parseFloat(r.context.font.match(/([\d.]+)px/)[1])});
   r.context.fillText=(value,x,y)=>labels.push({value,x,y,size:parseFloat(r.context.font.match(/([\d.]+)px/)[1])});
-  r.UI.drawLevelUp(r.context,3,[{type:'passive',id:'shield',n:'金剛結界',s:'けっかい',d:'恢復燈油並震退周圍妖怪'.repeat(3)}],{katana:1},{katana:{zh:'妖刀斬'}},2);
-  const description=labels.filter(l=>l.x===170 && l.y>=240),name=labels.find(l=>l.value.startsWith('妖刀斬'));
-  assert.equal(description.length,2);assert.ok(description[1].y-description[0].y>=description[0].size*1.1);
+  r.UI.drawLevelUp(r.context,3,[{type:'passive',id:'readability-fixture',n:'金剛結界',s:'けっかい',d:'恢復燈油並震退周圍妖怪'.repeat(6)}],{katana:1},{katana:{zh:'妖刀斬'}},2);
+  const card=r.UI.levelUpLayout(1).card;
+  const description=labels.filter(l=>l.x===card.x+12 && l.y>card.y && !l.value.startsWith('影響：')),name=labels.find(l=>l.value.startsWith('妖刀斬'));
+  assert.ok(description.length>=2,'長效果文應真折行');
+  assert.equal(description.map(l=>l.value).join(''),'恢復燈油並震退周圍妖怪'.repeat(6),'折行不得省略文案');
+  for(let i=1;i<description.length;i++)assert.ok(description[i].y-description[i-1].y>=description[i-1].size,'行距不得壓住前一行');
   assert.ok(name.size*r.env.window.VIEWPORT.get().scale>=14);
   assert.ok(labels.find(l=>l.value==='金剛結界').size*r.env.window.VIEWPORT.get().scale>=14);
   labels.length=0;
@@ -572,13 +577,25 @@ test('settlement counts distinct mistaken words and discloses only truncated rev
     if(count) misses.push(words[0]); // Repeated mistakes must not inflate the distinct-word total.
     UI.drawEndScreen(context,state,400,2,0,misses);
     const labels=texts.map(t=>t.value);
-    if(count) {
-      const expected=`今夜記錯的字：共 ${count} 字・可選三詞回聽`;
-      assert.ok(labels.includes(expected),`${width}/${state}/${count}: ${expected}`);
-      for(let i=0;i<Math.min(count,3);i++) assert.ok(labels.some(v=>v.includes(words[i].jp)));
-      for(let i=3;i<count;i++) assert.ok(!labels.some(v=>v.includes(words[i].jp)));
-      assert.equal(UI.reviewButtons(misses).length,Math.min(count,3));
-    } else assert.ok(!labels.some(v=>v.includes('今夜記錯')));
+    if(state === 'lost') {
+      if(count) {
+        const expected=`今夜記錯的字：共 ${count} 字・可選三詞回聽`;
+        assert.ok(labels.includes(expected),`${width}/${state}/${count}: ${expected}`);
+        for(let i=0;i<Math.min(count,3);i++) assert.ok(labels.some(v=>v.includes(words[i].jp)));
+        for(let i=3;i<count;i++) assert.ok(!labels.some(v=>v.includes(words[i].jp)));
+        assert.equal(UI.reviewButtons(misses).length,Math.min(count,3));
+      } else {
+        assert.ok(!labels.some(v=>v.includes('今夜記錯')));
+      }
+      assert.equal(UI.endScreenButtons(state).length, 3);
+    } else {
+      // won 契約：只有「回旅路地圖」一顆按鈕，不揭露亦不繪製記錯字回顧列
+      assert.ok(!labels.some(v=>v.includes('今夜記錯')), `${width}/${state}/${count}: won 不應顯示記錯回顧標題`);
+      assert.ok(!labels.some(v=>words.some(w=>v.includes(w.jp))), `${width}/${state}/${count}: won 不應繪製回顧單字按鈕`);
+      assert.equal(UI.endScreenButtons(state).length, 1);
+      assert.equal(UI.endScreenButtons(state)[0].id, 'world');
+      assert.equal(UI.reviewButtons(misses).length, Math.min(count,3));
+    }
     assert.ok(!labels.some(v=>count<=5 && v.includes('僅顯示')));
   }
 });

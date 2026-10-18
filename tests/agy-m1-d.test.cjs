@@ -3210,7 +3210,7 @@ test('M1-D-42 resolveAttackSpec boom snapshot numerical fidelity, baseline prese
     assert.equal(spec.derivationDepth, 0);
     assert.equal(spec.count, expectedCounts[lvl - 1]);
     assert.equal(spec.cooldown, expectedCds[lvl - 1]);
-    assert.equal(spec.speed, 440);
+    assert.equal(spec.speed, 880);
     assert.equal(spec.life, 1.4);
     assert.equal(spec.fuse, 1.5);
     assert.equal(spec.spread, lvl >= 4 ? 0.28 : 0.32);
@@ -3950,7 +3950,7 @@ test('M1-D-49 resolveAttackSpec boom Lv1-5 fan prototype numerical fidelity, bas
     assert.equal(fanSpec.baseCount, expectedBaseCounts[lvl - 1]);
     assert.equal(fanSpec.count, expectedFanCounts[lvl - 1]);
     assert.equal(fanSpec.cooldown, expectedCds[lvl - 1]);
-    assert.equal(fanSpec.speed, 440);
+    assert.equal(fanSpec.speed, 880);
     assert.equal(fanSpec.life, 1.4);
     assert.equal(fanSpec.fuse, 1.5);
     assert.equal(fanSpec.spread, expectedSpreads[lvl - 1], '沿用原相鄰角距 .32，Lv4 0.28');
@@ -4376,7 +4376,7 @@ test('M1-D-54 resolveAttackSpec boom Lv1-5 seek prototype numerical fidelity, ba
     assert.equal(seekSpec.baseCount, expectedBaseCounts[lvl - 1]);
     assert.equal(seekSpec.count, expectedBaseCounts[lvl - 1]);
     assert.equal(seekSpec.cooldown, expectedCds[lvl - 1]);
-    assert.equal(seekSpec.speed, 440);
+    assert.equal(seekSpec.speed, 880);
     assert.equal(seekSpec.life, 1.4);
     assert.equal(seekSpec.fuse, 1.5);
     assert.equal(seekSpec.spread, expectedSpreads[lvl - 1]);
@@ -4398,8 +4398,8 @@ test('M1-D-54 resolveAttackSpec boom Lv1-5 seek prototype numerical fidelity, ba
   assert.equal(reachSpec.seekRange, 528, 'charm_reach (reachMult=1.10) 下 seekRange 縮放為 528');
 });
 
-// ── 55. 真物理執行：角速度限制（<= 4.2 * dt）、定速 440、無瞬移、wrap-around 最短轉向與壽命消散 ────
-test('M1-D-55 Boom projectile physical execution: angular turn limit (<= 4.2 * dt), constant speed 440, no teleport, wrap-around shortest turn, and life expiry dissipation', () => {
+// ── 55. 真物理執行：角速度限制（<= 4.2 * dt）、定速 880、無瞬移、wrap-around 最短轉向與壽命消散 ────
+test('M1-D-55 Boom projectile physical execution: angular turn limit (<= 4.2 * dt), constant speed 880, no teleport, wrap-around shortest turn, and life expiry dissipation', () => {
   const env = loadGameSandbox();
   const probe = env.__agyProbe;
   probe.start('night-town');
@@ -4418,9 +4418,9 @@ test('M1-D-55 Boom projectile physical execution: angular turn limit (<= 4.2 * d
   // 手動注入朝向正右方 (angle 0) 的符咒
   probe.setProj([{
     x: 100, y: 200,
-    vx: 440, vy: 0,
+    vx: 880, vy: 0,
     ang: 0,
-    speed: 440,
+    speed: 880,
     t: 0,
     life: 1.4,
     fuse: 0,
@@ -4451,12 +4451,12 @@ test('M1-D-55 Boom projectile physical execution: angular turn limit (<= 4.2 * d
   // 角速度上限：0.05s 內最大轉向角為 4.2 * 0.05 = 0.21 rad
   // 目標差為 +1.5708 rad，轉向應精準等於 0.21 rad
   assert.ok(Math.abs(p.ang - 0.21) < 1e-4, `轉向角 ${p.ang} 未受限於 4.2 * dt (0.21)`);
-  // 速度模長嚴格維持 440
+  // 速度模長嚴格維持 880
   const spd = Math.hypot(p.vx, p.vy);
-  assert.ok(Math.abs(spd - 440) < 1e-4, `速度模長 ${spd} 偏離 440`);
-  // 單步位移嚴格等於 440 * 0.05 = 22（無瞬移）
+  assert.ok(Math.abs(spd - 880) < 1e-4, `速度模長 ${spd} 偏離 880`);
+  // 單步位移嚴格等於 880 * 0.05 = 44（無瞬移）
   const stepDist = Math.hypot(p.x - 100, p.y - 200);
-  assert.ok(Math.abs(stepDist - 22) < 1e-4, `單步位移 ${stepDist} 不等於 22 (無瞬移)`);
+  assert.ok(Math.abs(stepDist - 44) < 1e-4, `單步位移 ${stepDist} 不等於 44 (無瞬移)`);
 
   // 2. Wrap-around 跨 branch cut 最短角度轉向驗證
   // 符咒當前角度 +3.10 rad（接近 +PI），目標角度 -3.10 rad（接近 -PI）
@@ -4469,9 +4469,9 @@ test('M1-D-55 Boom projectile physical execution: angular turn limit (<= 4.2 * d
   probe.setEnemies([wrapEnemy]);
   probe.setProj([{
     x: 200, y: 200,
-    vx: Math.cos(3.10) * 440, vy: Math.sin(3.10) * 440,
+    vx: Math.cos(3.10) * 880, vy: Math.sin(3.10) * 880,
     ang: 3.10,
-    speed: 440,
+    speed: 880,
     t: 0,
     life: 1.4,
     fuse: 0,
@@ -4503,7 +4503,7 @@ test('M1-D-55 Boom projectile physical execution: angular turn limit (<= 4.2 * d
   // 3. 壽命消散無續命
   probe.setEnemies([]); // 空場
   probe.setProj([{
-    x: 0, y: 0, vx: 440, vy: 0, ang: 0, speed: 440,
+    x: 0, y: 0, vx: 880, vy: 0, ang: 0, speed: 880,
     t: 0, life: 1.4, fuse: 0, initialFuse: 1.5, level: 1,
     stuck: false, target: null, seekTarget: null, retargetT: 0, searchCount: 0,
     tracking: true, turnRate: 4.2, seekRange: 480, hasSeek: true,
@@ -4916,7 +4916,7 @@ test('M1-D-60 resolveAttackSpec boom Lv1-5 frost prototype numerical fidelity, b
     assert.equal(frostSpec.baseCount, expectedBaseCounts[lvl - 1]);
     assert.equal(frostSpec.count, expectedBaseCounts[lvl - 1]);
     assert.equal(frostSpec.cooldown, expectedCds[lvl - 1]);
-    assert.equal(frostSpec.speed, 440);
+    assert.equal(frostSpec.speed, 880);
     assert.equal(frostSpec.life, 1.4);
     assert.equal(frostSpec.fuse, 1.5);
     assert.equal(frostSpec.spread, expectedSpreads[lvl - 1]);
@@ -6772,8 +6772,8 @@ test('M1-D-85 Talisman launch, attachment, fuse explosion, and burn precondition
   assert.equal(probe.getProj().length, 3, 'Lv3 投擲 3 枚陰陽符');
   assert.ok(probe.getProj().every(q => q.hasDuoCinderseal), '全符快照 hasDuoCinderseal');
 
-  // 飛行命中黏附
-  probe.weapons(0.25);
+  // OFUDA 速度翻倍：飛行步長減半，保留原碰撞／引信／傷害斷言。
+  probe.weapons(0.125);
   assert.ok(probe.getProj().some(q => q.stuck), '符咒成功黏附目標');
 
   // 引信倒數爆炸
@@ -6848,7 +6848,7 @@ test('M1-D-86 Fan and Lv5 cast-sharing: multi-talisman cast generates at most 1 
   probe.weapons(0.001); // 齊射 5 符
 
   assert.equal(probe.getProj().length, 5, 'fan 生成 5 枚符咒');
-  probe.weapons(0.25);
+  probe.weapons(0.125); // OFUDA 飛行速度 ×2，飛行步長減半。
   probe.weapons(1.6);
 
   assert.ok(primaryFoe.hp < 100, '主目標受直擊');
@@ -6865,7 +6865,7 @@ test('M1-D-86 Fan and Lv5 cast-sharing: multi-talisman cast generates at most 1 
   probe.setEnemies([unburnedPrimary, burnedSplash, burnedSplash2]);
   probe.setWT('boom', 0);
   probe.weapons(0.001);
-  probe.weapons(0.25);
+  probe.weapons(0.125); // OFUDA 飛行速度 ×2，飛行步長減半。
   probe.weapons(1.6);
 
   assert.equal(probe.getDragonScorches().length, 1, '直擊未灼燒時由合格濺射產 1 處餘燼，同 cast 後續濺射不重複');
@@ -6882,7 +6882,7 @@ test('M1-D-86 Fan and Lv5 cast-sharing: multi-talisman cast generates at most 1 
   probe.setWT('boom', 0);
   probe.weapons(0.001);
   assert.equal(probe.getProj().length, 2, 'Lv5 兩儀延爆生成 2 枚符咒');
-  probe.weapons(0.25);
+  probe.weapons(0.125); // OFUDA 飛行速度 ×2，飛行步長減半。
   probe.weapons(1.6);
   assert.equal(probe.getDragonScorches().length, 1, 'Lv5 雙符齊射整 cast 依然僅 1 處餘燼');
 });
@@ -6904,7 +6904,7 @@ test('M1-D-87 Cinder timing (0.3s), birth dt not deducted, single tick, 3-target
   probe.setEnemies([target]);
   probe.setWT('boom', 0);
   probe.weapons(0.001);
-  probe.weapons(0.25);
+  probe.weapons(0.125); // OFUDA 飛行速度 ×2，飛行步長減半。
   probe.weapons(1.6); // 爆炸當幀生成餘燼
   assert.equal(probe.getDragonScorches().length, 1);
   const cinder = probe.getDragonScorches()[0];

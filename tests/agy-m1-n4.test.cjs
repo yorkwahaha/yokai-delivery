@@ -81,6 +81,12 @@ function createSandbox(seed = 777) {
   sandbox.HAPTICS = new Proxy({}, { get: () => () => {} });
   sandbox.RENDERER = new Proxy({ getCtx: () => ctx, getDpr: () => 1, getCam: () => ({ x: 900, y: 600 }), getShakeOffset: () => ({ x: 0, y: 0 }), getCanvas: () => canvas, updateEffects: () => false }, { get: (o, k) => (k in o ? o[k] : () => {}) });
 
+  // 本檔保留舊多種子難度診斷；明確選 hard，不將舊死亡／成長門檻套到新 normal。
+  const historicalGetStage = sandbox.CONTENT.getStage;
+  sandbox.CONTENT = { ...sandbox.CONTENT, getStage(id) {
+    const stage = historicalGetStage(id);
+    return { ...stage, pacing: { ...stage.pacing, mobDifficulty: 'hard' } };
+  } };
   const rawGame = readJs('game.js');
   const endIdx = rawGame.lastIndexOf('})();');
 
@@ -467,11 +473,11 @@ test('M1-G-N4-1 Multi-seed (777 & 42) bounded telemetry: genuine producer at 180
     assert.ok(r.finalDel >= 4, `${r.label}: 必須完成至少 4 次配送, 實得: ${r.finalDel}`);
     // 2. 正常升級至 Level 7 以上
     assert.ok(r.finalLvl >= 7, `${r.label}: 必須正常升級至 Level 7 以上, 實得: ${r.finalLvl}`);
-    // 3. 首領 Boss 0 必須由引擎真 producer 於 180s 生成，maxHp 為 300
+    // 3. night-town Boss 0 必須由引擎真 producer 於 180s 生成，maxHp 為原值 50%：150
     assert.ok(r.bossLog.length >= 1, `${r.label}: 必須生成 Boss 0`);
     assert.equal(r.bossLog[0].index, 0);
     assert.ok(r.bossLog[0].spawnElapsed >= 180);
-    assert.equal(r.bossLog[0].maxHp, 300);
+    assert.equal(r.bossLog[0].maxHp, 150);
     // 4. 首領言語結界必須透過 answerBoss 成功破除
     assert.equal(r.bossLog[0].bossRef.shield, false, `${r.label}: Boss 0 護盾必須成功破除`);
     // 5. 存活時間必須達到 200s 以上（成功進入首 Boss 決戰時點）
@@ -483,6 +489,7 @@ test('M1-G-N4-1 Multi-seed (777 & 42) bounded telemetry: genuine producer at 180
 
 // ── Test 2: M1-G-N4-2 首 Boss 傷害算術精確解析與空間怪群干擾數學驗證 ──
 test('M1-G-N4-2 Mathematical Proof: Boss 0 damage arithmetic, mob auto-targeting dilution, and invalidity of 56 DPS claim', () => {
+  // 保留歷史 300 HP 的算術反例，不將其當成本輪 150 HP 的通關／DPS 實測。
   // 1. 理論單體輸出 vs 實際群體輸出算術模型
   const arithmeticProof = {
     // 妖刀 Lv1 數值
@@ -519,6 +526,7 @@ test('M1-G-N4-2 Mathematical Proof: Boss 0 damage arithmetic, mob auto-targeting
 
 // ── Test 3: M1-G-N4-3 書面清點受控通道、診斷 200~220s 數值瓶頸、零造綠作弊 ──
 test('M1-G-N4-3 Controlled Channels Audit & Honest Diagnosis: Zero runtime errors, pure attrition barrier', () => {
+  // 書面診斷與建議來自歷史 300 HP 基線；本輪新 HP 的動態斷言在 N4-1。
   // 1. 書面清點所有受控通道
   const controlledChannelsAudit = {
     isNaturalChromeRun: false,

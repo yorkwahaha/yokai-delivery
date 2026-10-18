@@ -27,6 +27,8 @@ test('entering a stage does not bulk-download words and unused sound effects',()
 
 test('upgrade options warm only offered ranks and selected art pauses the game clock until ready',()=>{
   const g=loadGame(),prepared=[],selected=[];g.start();
+  // 此單測必須抽到武器以驗美術暖載；固定此沙盒亂數，不假設任意三卡必有武器。
+  g.env.Math=Object.create(Math);g.env.Math.random=()=>0.999999;
   g.env.prepareSkillArt=(id,rank)=>prepared.push([id,rank]);
   g.env.useSkillArt=(id,rank)=>{selected.push([id,rank]);g.env.ART_READY=false;};
   g.offerUp();const choices=g.weaponChoices();assert.ok(choices.length);
@@ -75,9 +77,23 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     maxOutUpgrades: () => {
       Object.keys(WL).forEach(k=>WL[k]=['katana','barrier','needle','fire'].includes(k)?5:0);
       for(const u of UP)while(!u.ok || u.ok())u.f();
+      // 四主動的真候選耗盡：靈針三變異滿槽，其餘持有技能的適用變異全取得。
+      buildMutations=['mut_crosscut','mut_pulse','mut_sanctuary','mut_fan','mut_seek','mut_frost','mut_orbit'];
+      buildCharms=['charm_power','charm_step','charm_gather'];
+      buildDuos=['duo_inkfire']; // 本組合仍合格的共鳴，不能靠忽略它假造空池。
     },
+    eligibleChoices: () => getEligibleChoices(),
     setXp: value => { xp=value; },
     currentXp: () => xp,
+    finishTraining: () => {
+      if(state==="play" && xp>=xpNeed())offerUp();
+      if(state!=="levelup")return false;
+      levelupCooldown=0;
+      const i=choices.findIndex(c=>!["oil_max","oil_heal"].includes(c.id));
+      if(i<0)throw new Error("fixture requires a non-oil training choice");
+      pickUp(i);
+      return state==="play";
+    },
     currentChoices: () => choices,
     restrictWords: words => { replaceList(ALL, words); },
     pendingPickup: () => inter,
@@ -86,7 +102,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
     setElapsed: value => {elapsed=value;},
     stepKnock: (e,dt) => moveKnockback(e,dt),
     scheduleSurge: () => {surgeT=0;},
-    stageTuning: () => ({goal:GOAL_DELIVERIES,xp:xpNeed(),spawnInterval:CFG.spawnInterval(elapsed)*SPAWN_INTERVAL_SCALE}),
+    stageTuning: () => ({goal:GOAL_DELIVERIES,xp:xpNeed(),spawnInterval:mobPacing(elapsed,0).interval}),
     unlockBoss: () => { bossQ.lock=0; },
     matchBossToJob: () => { const bs=enemies.find(e=>e.type==='boss'); bs.word=job.word;bossQ=mkQ(bs);bossQ.lock=0; },
     moveBoss: distance => { const bs=enemies.find(e=>e.type==='boss'); Object.assign(bs,{x:P.x+distance,y:P.y,speed:0,wob:0,flash:0}); },
@@ -319,6 +335,7 @@ test('misdelivery costs oil immediately, grants no farming score and hints recov
   assert.equal(g.snapshot().enemies.filter(e=>e.type==='mis').length,0);
   assert.equal(g.snapshot().score,0);
   g.resolve(g.snapshot().job.ans.indexOf(g.snapshot().job.word));
+  assert.equal(g.finishTraining(),true,'normal XP需求降低後，先完成配送觸發的真選卡');
   g.prepareOrder();const oil=g.snapshot().oil;g.triggerHint();g.update(0.6);g.triggerHint();
   g.resolve(g.snapshot().job.ans.indexOf(g.snapshot().job.word));assert.ok(Math.abs(g.snapshot().oil-(oil+8-0.6*0.43))<1e-8);
 });
@@ -424,6 +441,7 @@ test('enemy attack drawings are triggered by actual contact or projectile releas
 
 test('exhausted upgrades consume one level without trapping the run or granting invented rewards',()=>{
   const g=loadGame();g.start();g.maxOutUpgrades();g.setXp(10000);
+  assert.equal(g.eligibleChoices().length,0,'前置必須真正耗盡所有合法候選');
   const before=g.snapshot(),req=g.stageTuning().xp;
   g.offerUp();assert.equal(g.snapshot().state,'play');assert.equal(g.currentChoices().length,0);
   assert.equal(g.snapshot().level,before.level+1);assert.equal(g.currentXp(),10000-req);
@@ -891,9 +909,11 @@ test('rain-port runtime uses reduced shooter pressure and the intended recovery 
   }
   assert.equal(results['rain-port'].shooters,6);
   assert.equal(results['night-town'].shooters,0); // 第一關新手關不出現燈籠怪
-  assert.equal(results['rain-port'].ghostSpeed,results['night-town'].ghostSpeed);
+  assert.equal(results['rain-port'].ghostSpeed,85.75,'雨港維持原速度曲線');
+  assert.equal(results['night-town'].ghostSpeed,(52+13.125*0.9)*0.82,'夜行町 normal 在 300s 的速度為約 52.32625');
   assert.equal(results['rain-port'].goal,6);assert.equal(results['rain-port'].xp,30);
-  assert.ok(Math.abs(results['rain-port'].spawnInterval/results['night-town'].spawnInterval-1.15)<1e-9);
+  assert.ok(Math.abs(results['rain-port'].spawnInterval-1.311)<1e-9,'雨港保留原生成間隔');
+  assert.ok(Math.abs(results['night-town'].spawnInterval-1.80435)<1e-9,'夜行町只調降自身 normal 湧出速度');
   assert.equal(results['rain-port'].firstBossHp,300);
   t.diagnostic(JSON.stringify({scenario:'runtime-stage-pressure',results}));
 });
@@ -928,7 +948,7 @@ test('each surge plays one warning cue throughout its preparation and arrival',(
   for(let i=0;i<27;i++)g.update(0.1);
   assert.equal(g.audioCalls.filter(name=>name==='warningPulse').length,1);
   assert.equal(g.audioCalls.filter(name=>name==='thunder').length,0);
-  assert.ok(g.snapshot().enemies.length>=10);
+  assert.equal(g.snapshot().enemies.length,6,'night-town normal 包圍波為原 10 隻的 60%，仍只播一次預警');
 });
 
 test('boss slam warns, locks its center, hits once for 20 oil, and can be dodged', () => {
@@ -1201,6 +1221,7 @@ test('automatic order refill respects mistake cooldown before returning the word
   const word=g.snapshot().job.word;
   g.resolve(g.snapshot().job.ans.findIndex(w=>w!==word));
   g.resolve(g.snapshot().job.ans.indexOf(word));
+  assert.equal(g.finishTraining(),true,'normal 配送已觸發升級，先真選卡再推 play');
   g.update(0.01);
   assert.notEqual(g.snapshot().orders[0]?.word.jp,word.jp);
   g.setElapsed(130);
@@ -1213,6 +1234,7 @@ test('scheduled Boss can draw a studied word and open its quiz',()=>{
   const g=loadGame();g.start();g.prepareOrder();
   const word=g.snapshot().job.word;
   g.resolve(g.snapshot().job.ans.indexOf(word));
+  assert.equal(g.finishTraining(),true,'normal 配送已觸發升級，先真選卡再推 play');
   g.scheduleBoss();g.update(0.01);
   assert.equal(g.snapshot().enemies.find(e=>e.type==='boss').word.jp,word.jp);
   g.moveBoss(200);g.update(0.01);
@@ -1413,6 +1435,7 @@ for(const assisted of [false,true]) {
     g.advanceBossClock(0.01);g.update(0.01);
     g.isolateNeedleBoss();g.moveBoss(200);g.update(0.01);g.setOil(120);
     const boss=g.snapshot().enemies.find(e=>e.type==='boss'),initialHp=boss.hp;
+    assert.equal(initialHp,150,'night-town 首 Boss 為原值的 50%');
     boss.attackCd=Infinity;
     g.unlockBoss();
     if(assisted) {
@@ -1431,7 +1454,9 @@ for(const assisted of [false,true]) {
     }
     assert.equal(hitObserved,true);assert.ok(boss.hp<=0);
     assert.equal(g.snapshot().score,400);
-    assert.ok(Math.abs(g.snapshot().oil-previousOil-(35-0.02*0.43))<1e-8);
+    // HP 減半使擊殺較早發生；35 點回油仍需受本案未升級的 100 油量上限約束。
+    const expectedOil=Math.min(100,previousOil+35-0.02*0.43);
+    assert.ok(Math.abs(g.snapshot().oil-expectedOil)<1e-8);
     assert.deepEqual({...g.env.STORE.get(q.word.jp)},learned);
     assert.equal(g.audioCalls.filter(n=>n==='bossDeath').length,1);
     const score=g.snapshot().score,combatSeconds=g.snapshot().elapsed-startElapsed;
@@ -1442,12 +1467,13 @@ for(const assisted of [false,true]) {
   });
 }
 
-test('final Boss requires the delivery goal and victory settles progression only once',t=>{
+test('night-town final Boss requires dawn without a delivery goal and victory settles progression only once',t=>{
   const g=loadGame();g.start();g.clearSolids();
   for(let stage=0;stage<4;stage++) {
     g.advanceBossClock(0.01);g.setOil(100);g.update(0.01);
     const boss=g.snapshot().enemies.find(e=>e.type==='boss');
     assert.ok(boss);assert.equal(boss.final,stage===3);
+    assert.equal(boss.max,[150,325,60,910][stage]);
     if(stage!==2) {
       g.moveBoss(200);g.update(0.01);g.unlockBoss();
       const q=g.snapshot().bossQ;g.answerBoss(q.ans.indexOf(q.word));
@@ -1462,10 +1488,12 @@ test('final Boss requires the delivery goal and victory settles progression only
   let finishes=0;
   const finish=g.env.STORE.finish;
   g.env.STORE.finish=(...args)=>{finishes++;return finish(...args);};
-  g.setElapsed(700);g.update(0.01);
+  const dawn=require('../js/config.js').RUN_SECONDS;
+  g.setElapsed(dawn-0.02);g.update(0.01);
   assert.equal(g.snapshot().state,'play');
-  g.meetDeliveryGoal();g.update(0.01);
+  g.setElapsed(dawn);g.update(0.01);
   assert.equal(g.snapshot().state,'victory');assert.equal(finishes,0);
+  assert.equal(g.snapshot().delivered,0,'零配送不阻止破曉後勝利');
   for(let i=1;i<=95;i++) g.frame(i*50);
   assert.equal(g.snapshot().state,'victory');assert.equal(finishes,0);
   for(let i=96;i<=102;i++) g.frame(i*50);
@@ -1780,7 +1808,7 @@ test('pickup speaks the word once and delivery does not repeat it', () => {
   assert.equal(g.audioCalls.filter(n => n === 'speak').length, 2); // 取貨 1 次 + 提示重播 1 次
 });
 
-test('dawn does not end a run that still needs the delivery goal or the boss', () => {
+test('night-town dawn does not end a run while the final Boss is alive', () => {
   const g = loadGame(); g.start(); g.setOil(80); g.setElapsed(644); g.update(0.5);
   assert.equal(g.snapshot().state, 'play');
   g.setElapsed(900); g.update(0.01);
@@ -1816,9 +1844,13 @@ test('priority orders prefer a house that teaches the same word', () => {
   const j = g.snapshot().job;
   g.resolve(j.ans.findIndex(w => w !== j.word));
   g.resolve(j.ans.indexOf(j.word));
+  assert.equal(g.finishTraining(),true,'normal 配送已觸發升級，先真選卡再測優先取件');
   g.setElapsed(130);
   g.clearOrders();
   g.placeAt(targetHouse.x, targetHouse.y);
+  // 這案鎖「選中字詞後優先匹配町屋」；固定沙盒 RNG 的優先詞抽樣分支，避免機率分支使 house oracle 偶發失敗。
+  g.env.Math=Object.assign(Object.create(Math),{random:()=>0});
+  assert.ok(g.env.STORE.get(targetHouse.word.jp).missBoost>1,'優先詞確由先前誤配建立');
   g.makeOrder();
   const order = g.snapshot().orders[0];
   assert.ok(order);

@@ -12,15 +12,39 @@
 
 [AGENTS.md](AGENTS.md) 是短協作入口，由 Codex 與上列兩份新文檔一併獨占；其他 Agent 不修改這四檔。不掃全庫 docs/art；舊總計畫、甘特、執行看板與重啟交接按需作證據追溯，不能再各自成為派工來源。
 
+### 2026-10-18 10:57｜Codex接回／Stage1 MVP發版（唯一最新狀態）
+
+- **Stage1 MVP RELEASE_READY；M1完整gate仍IN_PROGRESS，M2暫停。** 使用者最新取捨：先部署可玩版，自然實玩由使用者驗收，不等完整三Build／真機／全部歷史測試。
+- Codex唯一總監、QA與提交部署；Cursor/Sonnet因月額度耗盡停止依賴（使用者回報11/2重置）。AGY REL-Q1短QA已交件，Space Bunny REL-Q2資源唯讀QA已交件，兩者正式停檔；Kilo/Grok不派。
+- 五P0受測通過：night-town Boss真spawn HP150/325/60/910；破曉且終王死亡不需配送；won單world有效返回、lost三鈕；elapsedSeconds/MM:SS/暫停隔離；玩家短卡文案與8視口墨底至少8.73 CSS px、14CSS字級／44CSS熱區。
+- night-town normal：HP×.65、移速×.82、時間成長×.35、移除玩家等級追漲、spawn間隔×1.15、cap57、包圍數×.6／週期×2；XP需求每級round(原值×.75)。hard與其他關保留原曲線，Boss／DAWN600不變。
+- 固定game SHA ab659ecad552f2c9／UI ac574c3364255b24。本輪working短回歸263/263、精確HEAD候選runtime199/199、combat+normal98/98 exit0；HEAD舊資源＋新game/UI真Chrome進關/教學Escape後時間推進、無例外/音訊讀取。候選整合舊harness卡教學／準備前置，未冒稱通過；先前同game/UI真結算／返回／暫停與P0三視口證據保留。
+- 原index已有21檔staged，僅以明列白名單隔離提交；其他音訊、js/audio.js、Boss AI/renderer/assets/words dirty、KEY/env、未核准素材與暫存全保留不納入。index.html只換game/UI版本查詢碼。發布SHA／Pages結果完成後補記。
+- 未完：正常三Build完整自然局、實體手機/平板/手把、玩家回饋後平衡與UI微調；非本次MVP上線阻塞。證據scratch/director-release-{head-runtime,head-chrome,smoke,p0-regression,combat-normal}.log及兩Agent JSON。
+
+### 2026-10-18｜M1五P0衝刺／提交部署新授權（唯一最新狀態）
+
+**M1 IN_PROGRESS／尚未驗收，不M2。目標今日12:00台灣時間前完成；未GREEN不假報。** 使用者明確授權驗收後commit＋push＋部署，覆蓋舊LOCAL-only；不要反覆跑十分鐘局，實玩由使用者負責。
+
+1. **現場**：HEAD ca3b68a（17檔已驗housekeeping LOCAL），index空、25 tracked dirty＋223 untracked快照，全部保護。game5b8f6d23626712dd已有Boss倍率／新勝利規則，UI1d8fcbc803a53568未改，STORE5fe53548a3de8740不變。前兩項是MODIFIED、未獨立QA，不能重做或宣稱完成。
+2. **AGY p4／M1-P0-RUNTIME working＋接單**：唯一game＋自身stage1-balance/P0 tests；核真spawn HP150/325/60/910、零配送dawn＋終王死亡、活Boss/未破曉/跨關負向與pendingXP/STORE一次；接UI.endScreenButtons(state)、提供runSummary.elapsedSeconds快照。第一輪排程估20–40分鐘，非供應商保證。
+3. **Kilo p9／BLOCKED_PROVIDER→已停止**：本輪依新授權恢復UI票，但NVIDIA Service temporarily overloaded，CLI自行retry至attempt4；Escape無效後Ctrl+c停止，Herdr done seq1864、UI SHA未改。未取得實作交付，無writer、不盲試/換模。Grok Build已不在現役list，依指示停用。
+4. **Space Bunny p5／M1-P0-UI working（正式接替Kilo）**：原短QA票已轉UI單主票，僅UI＋tests/spacebunny-m1-p0.test.cjs，root承擔獨立QA。修重疊/空白/短玩家文案、won唯一world/lost三鈕、MM:SS；真Chrome桌機1000×700/手機844×390/平板1024×640字框與真事件/截圖，不碰game/STORE。移交前Kilo停寫與UI1d8固定已確認。
+5. **QA與發布**：C1.2舊9c111bbe自報2/2真短閉環待root核，不冒稱完整三Build；五P0正式停寫固定SHA後優先短回歸/原負向/必要Chrome。Pages唯讀實查legacy source master:/、原status built、既有正式站https://yorkwahaha.github.io/yokai-delivery/，gh登入/API可用；未push或部署新版本。音訊KEYenv/核准母版/候選不stage，保留原證據。新ticket完成即收件/續派，無價值才idle。
+
+**本輪QA增量／未放行**：root獨立C1.2 lifecycle focused1/1 exit0（1.22秒），另記憶體成功/故意throw兩路皆WS=3/closed=true、timer銷毀、closed send即拒絕，exit0（兩run-root-life-p0-*證據保留）；僅harness可用，不是M1 PASS。UI首輪8fa75b截圖已實看，但root追源發現新fixture用CSS844×390當logical viewport、沒套真scale/offset，所見手機溢出及24.1CSS卡高不能當真game缺陷；已退p5先載真viewport.js、套真Canvas transform再驗，不按假RED壓production。另要求真玩家短文案而非只替換術語、正確區分Duo不可重複取得與每次攻擊觸發。AGY新增短consumer測試中；舊G三長局不得以test.skip隱藏，已明確退修，未等價跑十分鐘。兩writer仍活動，無stage/新commit/push/deploy。
+
 ### 2026-10-17｜Codex 正式接回總監：M1 衝刺現行交接
 
 **M1 IN_PROGRESS／整體 gate NOT_PASSED；本節覆蓋下方暫代監工及舊 working／額度文字。** 最新使用者親自查 `/status`：5h100%（18:40重置）、weekly41%、context已用315K/475K、剩34%；這是接回時快照，不是工具可持續讀取的即時值，接近80%先保存精簡交接。
 
-1. **工作樹／保護**：接回HEAD14cec7a；現HEAD **740ec33**（兩停檔GREEN整合tests＋三權威，12連結／精確五檔內容／cached check0、提交後index空），父9432aad／436d1dc等歷史完整保留。game c39d10b03ff8dc7e／UI1d8fcbc803a53568，dirty全保護、不按數量stage；新G/R2 test需重新鎖SHA。只准安全LOCAL，不push/deploy/reset/clean/checkout，不讀改音訊／KEY／env／素材。
-2. **AGY w7:p4／R3.2 TARGETED_PASS，正式停寫**：game c39d10b03ff8dc7e／UI1d8fcb／STORE5fe凍結，G test`e063838f11219143` root新三Build **3/3 exit0（111.82秒）**，逐Boss index0–3／HP300/650/120/1400／真死亡、六配送／兩印／勝利保存／旅路重進受測通過，四檔前後SHA一致。省Boss0真producer記憶體反例patched1/ran1 **exit1**，不再缺席假綠。排除dying演出分身、apply前捕捉req；新首卡xp30/req30。root唯一產物`artifacts/validation/agy-m1-g-r3-20261017/run-mvc1eo2h-15584/builds.json` SHA`451df0c7bedcdd69`，三Build等級33/39/38、局內580.45/577.10/565.35秒，指定注入24/26/26卡，另自然8/12/11卡，明標VM Controlled／非Chrome／非自然。AGY原9afa版7/7 exit0（自驗）及run-01原證據保留；root以單行還原完整9afa SHA，確證e063只改唯一runId，未覆蓋證據。不重跑130／舊PASS，不以此放行M1。
-3. **Grok w7:p7／R2只有clock接線：DEPENDENCY_WAIT／LOW_QUOTA**：R1已收；R2完整首Build未完成，fullRun=false，正式停寫test15c6acc36cb38217／game c39／UI1d8。root只驗4×50ms runFrame共0.2s，不當完整局。session仍01a147f1-ccca-7071-881e-33b2292dbdf0，最新343K/500K且**weekly剩8%**；保額度，不再派大型票／換模型／重開。後續真頁QA依AGY固定配方，由總監評估現役p5自有tests承接，不改Grok檔。
-4. **Space Bunny w7:p5／Q9限定配置已收，新M1-G-C1 working＋真工具**：root從HEAD sandbox ca0d3ce98ee63f50獨立重現exit0，needle2+fan、六配送後真武器第219幀擊殺，score300→700僅+400、分身hp1／state victory；game/store前後一致。helper有跳540／dmg35／可補油，油100→100無判別力，未測XP掉落去重或最壞連發，不能宣稱普遍安全／正常局；沒有RED不派production修。C1已實際核Chrome／index載入／UI與frame入口，唯一新`tests/spacebunny-m1-g-chrome.test.cjs`與自身唯一run證據，零production／四權威／他人test寫權。context431.5K/41%快照，模型不變。Q8錯誤已更正，舊Kilo/Muse/Kiro停用。
-5. **下一Gate與owner**：p5 C1真index/game/UI/renderer，先首Build再同票三Build，1000×700／844×390／1024×640可各代表一Build；單一frame時鐘、正常XP＋實際offer及有限重抽、CDP套卡／返回重進，原VM指定配方只作優先順序參考（製作計畫M1條件2：不依賴指定掉落）。保留真失敗，不改HP／傷害／油／無敵／Boss時序，不以clock或受控注入接線宣完整局。三Build未驗之前M1 NOT_PASSED，實機WAITING_DEVICE、不M2。舊2364/22976回呼均已結束；本次安全LOCAL只考慮停檔GREEN G test＋三權威，不碰Grok未完成R2 test／其他dirty，尚無新commit。
+1. **工作樹／保護**：接回HEAD14cec7a；現HEAD **575420f**（R3.2 GREEN G test＋三權威，12連結／精確四檔stage與正規化內容一致／cached check0、提交後index空），父740ec33／9432aad／436d1dc等歷史完整保留。game c39d10b03ff8dc7e／UI1d8fcbc803a53568／STORE5fe凍結。C1活動新test、Grok未完成R2 test及其他dirty／素材未stage；本次只此LOCAL一筆，無push/deploy/reset/clean/checkout或音訊／KEY／env讀改。
+2. **AGY w7:p4／R3.2已收，N1診斷正式停寫**：game c39／UI1d8／STORE5fe／G test e063全凍結。R3.2 root三Build3/3 exit0（111.82秒）及省Boss0真producer反例exit1已收，原證據及SHA保留，不重跑；指定24/26/26卡的受控VM不等於正常XP。N1原探針遭shell/harness錯誤，後探索setXp不能當自然選卡，root已要求停止工具，AGY正式done。root另以575420f凍結helper記憶體移除兩處oil_heal注XP、禁所有狀態setter，seed777／LCG正常XP/實際offer政策：1917幀、wall1.727秒、局內93.25秒lampout、Lv3、2配送、0封印/0Boss、真選barrier1及needle1，exit1；前後game/STORE SHA不變。這是該導航/選卡政策失敗，非遊戲平衡普遍不可能或production缺陷；不據此改數值。AGY暫idle等真consumer缺口，context UNKNOWN。
+3. **Grok w7:p7／R2只有clock接線：DEPENDENCY_WAIT／LOW_QUOTA**：R1已收；R2完整首Build未完成，fullRun=false，正式停寫test15c6acc36cb38217／game c39／UI1d8。root只驗4×50ms共0.2s，不當完整局。session仍01a147f1-ccca-7071-881e-33b2292dbdf0，343K/500K／weekly8%僅舊快照；保額度，不派大型票／換模型／重開。
+4. **Space Bunny w7:p5／C1.1 NOT_COMPLETE，C1.2同票退修working＋真工具**：C1.1停寫test5dd38b11eb0c769c，兩次focused約10.47秒exit1 Runtime.evaluate deadline、phase navigate，無完整consumer。root記憶體載同版未改helper，真Chrome1.11秒獨立定位：withPage回傳ctx之前finally已關WS/kill Chrome，returned.closed=true、readyState=3，後續evaluate必500ms deadline；診斷exit0代表成功重現測試缺陷，非產品PASS。不是Fetch/preload故障，不盲重跑長局。p5已接C1.2並實際把情境放進withPage callback、加pump null防護、focused執行；最新仍menu-ready診斷中，未收件。其自動顯示context由45%變5%，同session ses_eb8c01bb4ffeUv6SU6HY2KF343／Space Bunny Free Personal max，原因未核，不宣稱手動重開/換模。
+5. **下一Gate與owner**：p5唯一同Chrome test及新run證據，先驗callback內WS open/evaluate2及成功/故意throw皆清理，再≤120秒真menu→旅路→start後ART_READY→首配送→正常XP真offer→CDP套卡回play。實際applyChoice ID/result＋BuildState效果/XP需求/level/revision/state作證，不能用「舊choices陣列清空」假oracle（game未清該陣列），不能直接apply冒事件。fullRun=false；未驗三不同Build/六配送/兩封印/四Boss/重進完整真頁，不改production、不注XP或油/HP/傷害/無敵/跳時。正式停寫固定SHA後root獨立原負向/consumer/Chrome收件，GREEN才續長局。M1 NOT_PASSED／WAITING_DEVICE，不M2。C1未GREEN不stage，本輪無新LOCAL、index空；舊48388/8712回呼已結束，不重用。
+
+**本輪續接**：C1.2已從失效CDP前進到真overworld；最新focused exit1（3.475秒）卡at-stage1，nodeEnt=gate/waypoint/enterable=false，尚未真進關／配送，不能宣稱smoke通過。已要求p5先定位night-town真選點/確認流程、不原樣pump600幀或直接start改state。單次最長1h settled回呼PID **40348** 已啟動核存在；舊48388/8712均結束。回呼只喚回核實，不自動PASS/commit；使用者後續停止改向優先。
 
 **R3.1 root獨立負向已收（test1cd58947）**：Node stdin記憶體只改game唯一`if (position)`producer，跳過Boss0但保留1/2/3原時序；Module自訂require確實只跑Build1，patched1/ran1，原「Boss0必須由producer產生」AssertionError、**exit1**，前後game/test完整SHA一致。`--test-name-pattern='M1-G-6 '` **1/1 exit0**，>610秒六配送而終王活著不勝利／不保存通關。不要重跑原100f五案假綠。三Build新正向只有Build3過：seed779、26 controlled＋11 natural共37選卡、finalElapsed565.35、油160，四Boss初始HP及死亡記錄均有；XP/指定offer/位置受控，不能宣稱自然23選卡或自然27–33級。
 

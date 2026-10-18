@@ -858,8 +858,8 @@ test('M1-RUNTIME-10 Six baseline weapons behavior and critical boundary verifica
 
   const proj = probe.getProj();
   assert.equal(proj.length, 1, 'Boom Lv1 生成單枚咒符');
-  // 飛行命中敵人並黏附
-  probe.weapons(0.25);
+  // OFUDA 速度翻倍：飛行步長減半，避免測試單幀跨過原有 hitbox。
+  probe.weapons(0.125);
   const talisman = proj[0];
   assert.equal(talisman.stuck, true, '咒符必須黏附於目標');
   assert.equal(talisman.target, boomTarget);
@@ -1154,6 +1154,9 @@ test('M1-RUNTIME-12 Six baseline weapons Lv1–Lv5 complete 30-case matrix of re
     assert.ok(Math.abs(probe.getWMax().boom - cd) < 0.001, `Boom Lv${lvl} 冷卻應為 ${cd}`);
     const proj = probe.getProj();
     assert.equal(proj.length, count, `Boom Lv${lvl} 投擲符咒數應為 ${count}`);
+    // OFUDA：只將飛行速度由 440 翻倍；下方冷卻／引信／傷害斷言維持原值。
+    assert.equal(proj[0].speed, 880, `Boom Lv${lvl} 真投射物須使用雙倍飛行速度`);
+    assert.ok(Math.abs(Math.hypot(proj[0].vx, proj[0].vy) - 880) < 1e-6, `Boom Lv${lvl} 真速度向量須為 880`);
 
     // 飛行命中並黏附（以精確步長推進確保扇形彈道碰撞判定）
     for (let step = 0; step < 5; step++) probe.weapons(0.05);
@@ -1370,7 +1373,7 @@ test('M1-RUNTIME-13 Real frame and update state paths: pause and levelup freeze 
   for (let i = 0; i < 4; i++) probe.update(0.025);
   assert.equal(newEnemy.hp, 100, '新局絕對不可受到前一局靈針之幽靈判定傷害');
 
-  // 5. 勝利狀態 (won)：建立真實 boss 擊敗與委託達成條件，推進真實勝利演出直到自然 transition 至 won
+  // 5. 勝利狀態 (won)：建立破曉與終王死亡前置，零配送仍能自然進入 won
   probe.start('night-town');
   probe.getWL().needle = 1;
   probe.setWT('needle', 0);
@@ -1379,10 +1382,11 @@ test('M1-RUNTIME-13 Real frame and update state paths: pause and levelup freeze 
   assert.ok(victoryNeedles.length > 0, '進入勝利流程前場上存在飛行中的靈針');
   const vicNd = victoryNeedles[0];
 
-  // 配置真實勝利前置條件：達成 10 件委託 (GOAL_DELIVERIES) 並擊敗最終 Boss
+  // night-town 新勝利契約：破曉且終王死亡，配送不是門檻。
   const pVic = probe.getP();
-  probe.setDelivered(10);
+  probe.setDelivered(0);
   probe.setFinalBossDefeated(true);
+  probe.setElapsed(require('../js/config.js').RUN_SECONDS);
   probe.setFinalBossPos({ x: pVic.x + 100, y: pVic.y });
   probe.setFinalBossEnt({ type: 'boss', final: true, hp: 0, max: 500, x: pVic.x + 100, y: pVic.y });
 

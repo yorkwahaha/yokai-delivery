@@ -55,23 +55,33 @@ function loadUI() {
 
 test("勝敗結算：標題/三鈕/回顧列與狀態一致，且全在手機映射可視內", () => {
   const misses = [{ jp: "おんなのこ", zh: "女孩" }, { jp: "ねこ", zh: "貓" }];
-  for (const [state, title] of [["lost", "燈油已盡"], ["won", "夜已破曉"]]) {
+  for (const [state, title, expectedButtons] of [
+    ["lost", "燈油已盡", ["再踏夜行", "回旅路地圖", "回到首頁"]],
+    ["won", "夜已破曉", ["回旅路地圖"]],
+  ]) {
     const { UI, ctx, traces } = loadUI();
     traces.length = 0;
     UI.drawEndScreen(ctx, state, 1234, state === "won" ? 6 : 2, 1, misses, 0, { time: 99 });
     const texts = traces.map(t => t.text);
     assert.ok(texts.includes(title), `${state} 應顯示「${title}」`);
-    for (const label of ["再踏夜行", "回旅路地圖", "回到首頁"]) {
+    for (const label of expectedButtons) {
       assert.ok(texts.includes(label), `${state} 應有「${label}」鈕`);
     }
-    assert.ok(texts.some(t => t.includes("今夜記錯的字")), `${state} 有誤配應列回顧頭`);
-    assert.ok(texts.includes("おんなのこ（女孩）"), `${state} 回顧詞條應完整（fit 縮字不斷字）`);
-    // 幾何：回顧列＋三鈕底緣在邏輯 600 內（手機均勻 0.65 即全可見）
-    const ends = UI.END_BTNS;
-    assert.ok(Math.max(...ends.map(b => b.y + b.h)) <= 600, `${state} 結算鈕底應在 600 內`);
-    const rev = UI.reviewButtons(misses);
-    assert.equal(rev.length, 2);
-    assert.ok(Math.max(...rev.map(b => b.y + b.h)) <= 600, `${state} 回顧列應在 600 內`);
+    // lost 有誤配才列回顧；won 無誤配不列回顧
+    if (state === "lost") {
+      assert.ok(texts.some(t => t.includes("今夜記錯的字")), `${state} 有誤配應列回顧頭`);
+      assert.ok(texts.includes("おんなのこ（女孩）"), `${state} 回顧詞條應完整（fit 縮字不斷字）`);
+    } else {
+      assert.ok(!texts.some(t => t.includes("今夜記錯的字")), `${state} 勝利無誤配不應出現回顧頭`);
+    }
+    // 幾何：按鈕底緣在邏輯 600 內（手機均勻 0.65 即全可見）
+    const buttons = state === "won" ? UI.endScreenButtons("won") : UI.END_BTNS;
+    assert.ok(Math.max(...buttons.map(b => b.y + b.h)) <= 600, `${state} 結算鈕底應在 600 內`);
+    if (state === "lost") {
+      const rev = UI.reviewButtons(misses);
+      assert.equal(rev.length, 2);
+      assert.ok(Math.max(...rev.map(b => b.y + b.h)) <= 600, `${state} 回顧列應在 600 內`);
+    }
   }
   // 無誤配＋勝利：顯示 clearText 而非回顧列（不並存、不打架）
   const { UI, ctx, traces } = loadUI();

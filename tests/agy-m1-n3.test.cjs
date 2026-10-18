@@ -87,6 +87,12 @@ function createSandbox(seed = 777) {
   sandbox.HAPTICS = new Proxy({}, { get: () => () => {} });
   sandbox.RENDERER = new Proxy({ getCtx: () => ctx, getDpr: () => 1, getCam: () => ({ x: 900, y: 600 }), getShakeOffset: () => ({ x: 0, y: 0 }), getCanvas: () => canvas, updateEffects: () => false }, { get: (o, k) => (k in o ? o[k] : () => {}) });
 
+  // 本檔保留舊 ~200s 瓶頸診斷；改為明確測 hard，normal 另由 codex-s1-difficulty 驗收。
+  const historicalGetStage = sandbox.CONTENT.getStage;
+  sandbox.CONTENT = { ...sandbox.CONTENT, getStage(id) {
+    const stage = historicalGetStage(id);
+    return { ...stage, pacing: { ...stage.pacing, mobDifficulty: 'hard' } };
+  } };
   const rawGame = readJs('game.js');
   const endIdx = rawGame.lastIndexOf('})();');
 
@@ -346,7 +352,7 @@ test('M1-G-N3-1 Boss 0 lifecycle tracking: 4 real deliveries, genuine producer a
   assert.ok(bossLog.length >= 1, 'Boss 0 必須由真 producer 生成');
   assert.equal(bossLog[0].index, 0, '首位登場首領 index 必須為 0');
   assert.ok(bossLog[0].spawnElapsed >= 180, `Boss 0 出場時間必須在 180s 以後, 實得: ${bossLog[0].spawnElapsed}`);
-  assert.equal(bossLog[0].maxHp, 300, 'Boss 0 最大生命值必須為 300');
+  assert.equal(bossLog[0].maxHp, 150, 'night-town Boss 0 最大生命值必須為 150（原值 50%）');
   // 4. 首領言語結界必須透過 answerBoss 順利破除
   assert.equal(bossLog[0].bossRef.shield, false, 'Boss 0 言語護盾必須順利被玩家答題破除');
   // 5. 存活時間必須大幅突破 180s，成功推進至 200s 以上關口
@@ -355,6 +361,7 @@ test('M1-G-N3-1 Boss 0 lifecycle tracking: 4 real deliveries, genuine producer a
 
 // ── Test 2: M1-G-N3-2 玩家可行輸入 vs Harness 控制邊界與 200s+ 數值瓶頸如實診斷 ──
 test('M1-G-N3-2 Honest Diagnosis: Player-feasible inputs vs Harness boundaries, 0 runtime crashes, and 200-204s boss/mob attrition barrier', () => {
+  // 以下為歷史 300 HP 基線的書面診斷，不是本輪 150 HP 的實測結果。
   // 1. 玩家可行輸入 vs Harness 控制明細確認
   const inputBoundaryDoc = {
     playerFeasibleInputs: [

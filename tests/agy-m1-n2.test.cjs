@@ -4,7 +4,7 @@
 // 1. 原 seed 777 笨導航（Policy 0）因「背對怪物移動、妖刀前方扇形斬擊判定完全落空、不拾取靈玉」導致 0 擊殺、70 隻怪物堆疊圍困，於 93-130s lampout 早死。
 // 2. 合理人類玩家可行導航策略（Policy 1 戰鬥風箏 / Policy 2 目標配送迎擊）在零注入（無 setXp/補油/無敵/跳秒/強選卡）下：
 //    - 成功揮砍命中，擊殺怪物並吸納靈玉。
-//    - 正常升至 Level 6~7，自然抽得靈針、變異與御守。
+//    - 正常升至 Level 5~6（normal profile 下自然抽得靈針、變異與御守；hard 基準下達 Level 6~7）。
 //    - 存活大幅延長至 175~180s+（成功推進至首位中首領 Boss 0 關口）。
 // 證明原早死屬導航與選卡策略缺陷，非遊戲數值平衡底層缺陷。
 
@@ -16,7 +16,7 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
 
-function createSandbox(seed = 777) {
+function createSandbox(seed = 777, options = {}) {
   const WINDOW = { width: 900, height: 600 };
   const storage = new Map([
     ['yokai-tutorial-v1', '"skip"'],
@@ -77,6 +77,15 @@ function createSandbox(seed = 777) {
   sandbox.AUDIO = new Proxy({}, { get: () => () => {} });
   sandbox.HAPTICS = new Proxy({}, { get: () => () => {} });
   sandbox.RENDERER = new Proxy({ getCtx: () => ctx, getDpr: () => 1, getCam: () => ({ x: 900, y: 600 }), getShakeOffset: () => ({ x: 0, y: 0 }), getCanvas: () => canvas, updateEffects: () => false }, { get: (o, k) => (k in o ? o[k] : () => {}) });
+
+  // 若明確指定難度（如 hard profile 基線重現），攔截 stage pacing
+  if (options.difficulty) {
+    const historicalGetStage = sandbox.CONTENT.getStage;
+    sandbox.CONTENT = { ...sandbox.CONTENT, getStage(id) {
+      const stage = historicalGetStage(id);
+      return { ...stage, pacing: { ...stage.pacing, mobDifficulty: options.difficulty } };
+    } };
+  }
 
   const rawGame = readJs('game.js');
   const endIdx = rawGame.lastIndexOf('})();');
@@ -313,7 +322,8 @@ function stepPolicy2(probe, now, targetPos) {
 
 // ── Test 1: 重現原 seed 777 笨導航（Policy 0）早死根因 ──
 test('M1-G-N2-1 Baseline Reproduction: Dumb Strategy (Policy 0) dies early (90-135s) due to backward facing, 0 kills, and enemy swarm', () => {
-  const probe = createSandbox(777);
+  // 本案重現 hard 難度早死基線（Policy 0 笨導航缺陷診斷）；比照 N3/N4 明確選 hard profile，不將舊早死門檻套到新 normal。
+  const probe = createSandbox(777, { difficulty: 'hard' });
   probe.start('night-town');
   let now = 1000;
   const deliveries = [25, 75, 135];
@@ -385,11 +395,13 @@ test('M1-G-N2-3 Feasible Strategy 2 (Objective Delivery + Combat): Completes 3 d
     handleLevelUp(probe);
   }
 
-  // 斷言：成功在 180s 存活（狀態為 play，完成 3 次配送，等級達 7，怪物數大幅受控）
+  // 斷言：成功在 180s 存活（狀態為 play，完成 3 次配送，等級達 Level 5，怪物數大幅受控）
   assert.equal(probe.getState(), 'play', '180s 時必須仍維持 play 存活狀態');
   assert.ok(probe.getElapsed() >= 180.0, '順利推進達到 180s 首領時段');
   assert.equal(probe.getDelivered(), 3, '已成功完成 3 次真配送');
-  assert.ok(probe.getLevel() >= 7, '等級自然提升達 Level 7');
+  // 新 normal profile 下：小怪湧潮頻率減半(surgePacingScale=2)、數量調降(surgeCountScale=0.6)、上限降至57，
+  // 場上自然靈玉掉落總量減少，純配送迎擊策略於 180s 期間自然成長達 Level 5（而非 hard 下因高怪量刷玉達 Level 7）
+  assert.ok(probe.getLevel() >= 5, '等級自然提升達 Level 5（normal profile 小怪湧潮降頻調降下，純配送迎擊策略自然達 Level 5）');
   assert.ok(probe.getOil() > 0, '燈油保持在安全值 > 0');
   assert.ok(probe.getEnemies().filter(e => e.hp > 0).length <= 25, '清怪效率顯著，怪物維持在 25 隻以下');
 });

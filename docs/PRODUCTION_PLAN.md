@@ -12,6 +12,25 @@
 
 成果必須分開標記：`DESIGNED`、`MODIFIED`、`STATIC_PASS`、`TARGETED_PASS`、`BROWSER_VERIFIED`、`PLAYER_VALIDATED`、`DEVICE_VERIFIED`、`ART_APPROVED`、`RELEASE_APPROVED`。加速、視口模擬、自然遊玩、人審與部署不能互代；沒有執行證據就標 `NOT_RUN` 或對應 WAITING。
 
+### 2026-10-18 10:57｜實際發版取捨／Codex唯一主控
+
+Stage1 MVP RELEASE_READY，完整M1仍IN_PROGRESS、不M2。五P0與normal/hard XP契約已短測，真Chrome三尺寸／8視口卡片及固定HEAD資源進關受測；不以完整自然局／真機作今日MVP發布前置。使用者明確授權現在精確commit＋push＋Pages上線，由使用者真人實玩後迭代。
+Codex負責發布；AGY REL-Q1短QA與Space Bunny REL-Q2資源唯讀QA已交件停檔，Cursor/Sonnet月額度耗盡不再依賴，Kilo/Grok不啟用。game ab659eca／UI ac574c33，候選runtime199/199、working短回歸263/263、combat+normal98/98 exit0；候選Chrome關教學後首關時間推進。未完為自然三Build、實機及後續平衡，保留NOT_RUN/WAITING_DEVICE，不冒稱全M1 PASS。提交與線上核實記roadmap最新段。
+
+### 2026-10-18 最新M1發布票（覆蓋下方舊長局與禁發布快照）
+
+使用者明確授權中午12:00台灣時間前推進M1提交部署；先完成五P0及相關回歸/必要瀏覽器，未GREEN不發布。不反覆跑十分鐘局，正常實玩由使用者負責，受控短測不冒稱自然局或實體驗證；M2仍暫停。
+
+| P0 | 單writer | 驗收 |
+|---|---|---|
+| Boss血量／勝利門檻 | AGY game | 真spawn HP150/325/60/910；其他關不變；零配送dawn＋終王死才勝、活Boss/pre-dawn負向 |
+| 修行選卡 | Space Bunny UI（Kilo overloaded停寫後移交） | 真效果短文案、無標題/假名/邊框重疊、三卡緊湊；1000×700／844×390／1024×640真字框/截圖/點按 |
+| 勝利唯一按鈕 | AGY consumer＋Space Bunny UI | UI.endScreenButtons(state)同源，won只world可見/可按且真回旅路；lost三主鈕保留 |
+| 實際通關時間 | AGY快照＋Space Bunny顯示 | summary.elapsedSeconds來自戰鬥elapsed，非performance/DAWN上限；MM:SS，pause不增 |
+| 發布gate | Codex | 正式停寫SHA、獨立原負向/短consumer/受影響回歸/三視口→白名單同主題commit→push→GitHub Pages＋線上程式版本核對 |
+
+現HEAD ca3b68a、index空；game5b8f6d23已有前兩項未驗修改，UI1d8fcbc8尚未改，STORE5fe53548凍結。Kilo現役新票仍NVIDIA overloaded，CLI自動重試已Ctrl+c停止done seq1864；無模型替換。Grok額度不足停用。AGY空檔僅可在總監給定已驗/停寫白名單後LOCAL批次提交，不能與總監並行操作index。音訊KEYenv/未核准素材不讀、不提交；發布沿用遠端master GitHub Pages，不跑會讀音訊的本機打包。
+
 ## 2. Owner、寫入範圍與交接
 
 **2026-10-17 Codex正式接回，覆蓋下方歷史票快照：** HEAD14cec7a、index空；M1仍IN_PROGRESS，不進M2。AGY唯一game.js＋自身G tests，主票G-R3正常參數約600秒三build、6配送／2封印／四Boss、勝敗重玩與返回旅路真重進、正式/dev及終王pending-XP；不以跳時／dmg35腳本當正常局。Grok E12.3已停寫，UI1d8fcbc803a53568／test4966014d07774699由root固定版真Chrome獨立QA中。Space Bunny唯讀核E12.3及G原負向，不重複root Browser、不碰production／四權威。Codex只四權威＋QA＋安全LOCAL統籌；Git整理限主線空檔，GREEN同類可集中提交，不push/deploy。可銜接證據／驗收狀態以roadmap最新節為準。
@@ -24,14 +43,16 @@
 
 **下一主票M1-G-C1／Space Bunny**：只新tests/spacebunny-m1-g-chrome.test.cjs及自身唯一run證據，production／他人test／四權威凍結；真頁三Build、單一frame時鐘、正常XP與實際offer/有限重抽、真CDP套卡／配送／四Boss／結算／旅路重進。VM配方作優先順序參考，不能以XP注入/免費指定卡取代M1條件2；只完成clock或受控接線則fullRun=false，保留真失敗待診斷。AGY停寫，Grok8%保額度、不換模型。尚未驗完整Chrome、不M2／不發布，實體WAITING_DEVICE；Git只停檔GREEN同主題LOCAL。
 
+**C1最新收件NOT_COMPLETE／C1.2同票退修working**：C1.1 test5dd38b11eb0c769c兩次focused約10.47秒exit1 Runtime.evaluate deadline，root真Chrome1.11秒獨立重現withPage在回傳ctx前finally已關WS/Chrome：closed=true/readyState3，後續evaluate必timeout；根因為測試生命週期，非Fetch/preload或產品錯誤。p5只改同test，把情境置於callback內、驗成功/throw清理，再≤120秒一配送/正常XP真offer→CDP套卡閉環，fullRun=false，不當三Build或M1完成。AGY N1已正式停寫，未交正常XP完整局；root由575420f helper移除兩處oil_heal注XP且禁setter，seed777/LCG政策實跑93.25局內秒lampout、Lv3/2配送/0封印/0Boss、exit1，僅政策失敗診斷，無production缺陷證明，不改數值。game c39/UI1d8/STORE5fe/G e063固定；C1未GREEN不stage，本輪無新LOCAL，M1 IN_PROGRESS，詳證與下一owner見roadmap頂部。
+
 以下是責任配置，不是自動啟動 Agent 的授權。一次只給每人一個主工作與一個可選備用工作；一檔一 writer，開始前核對當前 owner，不沿用重啟前 pane 狀態。
 
 | Owner | 主責 | 寫入範圍／交接要求 |
 |---|---|---|
 | Codex | 主：技術方向、接口／依賴、QA gate、唯一 roadmap；副：關鍵整合與風險／資源額度 | 獨占 `docs/GAME_DESIGN_MASTER.md`、`docs/PRODUCTION_PLAN.md`、`roadmap.md`、`AGENTS.md`；不搶 production writer；各 M gate 在 Herdr 回覆及本文件末段報告 |
 | 原Kilo（停用） | 不再參與；其歷史production範圍不自動恢復 | 原w7:p5已由使用者改為Space Bunny；js/game.js及自身D/runtime現由AGY獨占，其他production修改仍須總監明確指定writer |
-| Space Bunny／OpenCode | Q9限定配置已收，主票C1真Chrome三Build | 唯一新tests/spacebunny-m1-g-chrome.test.cjs及自身新run證據；零production／四權威／他人test寫權，正常XP/實際offer與受控導航分列，不改game/UI/store |
-| AGY | G-R3.2受控VM子票已收，正式停寫 | game c39凍結、G test e063 root3/3及省Boss0必RED；唯一game/自身tests writer。真頁若有可重現consumer RED再派最小runtime票，不預先擴功能 |
+| Space Bunny／OpenCode | C1 NOT_COMPLETE，C1.2同票退修working | 唯一tests/spacebunny-m1-g-chrome.test.cjs及新run證據；先修withPage回傳前finally提前關閉WS，再驗分段ready/短deadline/退出/一配送與正常XP真CDP選卡，fullRun=false；不改production／四權威／他人test |
+| AGY | R3.2已收；N1診斷正式停寫 | game c39/G e063凍結。未交正常XP完整局，root替代政策在93.25秒lampout，僅政策診斷；無真runtime RED不派數值修補，暫idle等固定Chrome結果 |
 | Grok（現役UI writer） | R1已收；R2僅clock接線，DEPENDENCY_WAIT／weekly剩8% | 唯一ui.js/E12測試owner，已停寫保額度；R2四幀接線root1/1但fullRun=false，尚無完整局。依AGY固定配方評估現役p5自有QA test承接，不跨writer／換模型 |
 | 使用者 | 新美術／聲音／重大內容與平衡取捨、實機協助、發布決策 | 人審特定版本；未回覆不視為核准；外部 ComfyUI 由使用者自行操作 |
 
