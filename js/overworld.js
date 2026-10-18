@@ -112,6 +112,7 @@
       pathQueue: [],
       moveT: 0,
       moveDuration: 0.42,
+      userPanned: false,
       camX: clamp(node.x - VIEW_W / 2, -area.left, MAP_W - area.right),
       camY: clamp(node.y - VIEW_H / 2, -area.top, MAP_H - area.bottom)
     };
@@ -201,6 +202,7 @@
       return false;
     }
     clearInspect(state);
+    state.userPanned = false;
     const options = adjacency.get(state.currentId) || [];
     if (options.includes(targetId)) {
       state.pathQueue = [];
@@ -276,13 +278,26 @@
     }
 
     const area = root.VIEWPORT?.bounds() || {left:0,top:0,right:VIEW_W,bottom:VIEW_H};
-    const focus = !isMoving(state) ? nodeById.get(state.inspectId) : null;
-    const centerX = focus?.x ?? state.x, centerY = focus?.y ?? state.y;
-    const targetCamX = clamp(centerX - VIEW_W / 2, -area.left, Math.max(-area.left, MAP_W - area.right));
-    const targetCamY = clamp(centerY - VIEW_H / 2, -area.top, Math.max(-area.top, MAP_H - area.bottom));
-    const k = Math.min(1, dt * 6.5);
-    state.camX += (targetCamX - state.camX) * k;
-    state.camY += (targetCamY - state.camY) * k;
+    if (isMoving(state) || !state.userPanned) {
+      const focus = !isMoving(state) ? nodeById.get(state.inspectId) : null;
+      const centerX = focus?.x ?? state.x, centerY = focus?.y ?? state.y;
+      const targetCamX = clamp(centerX - VIEW_W / 2, -area.left, Math.max(-area.left, MAP_W - area.right));
+      const targetCamY = clamp(centerY - VIEW_H / 2, -area.top, Math.max(-area.top, MAP_H - area.bottom));
+      const k = Math.min(1, dt * 6.5);
+      state.camX += (targetCamX - state.camX) * k;
+      state.camY += (targetCamY - state.camY) * k;
+    } else {
+      state.camX = clamp(state.camX, -area.left, Math.max(-area.left, MAP_W - area.right));
+      state.camY = clamp(state.camY, -area.top, Math.max(-area.top, MAP_H - area.bottom));
+    }
+  }
+
+  function pan(state, dx, dy) {
+    if (!state) return;
+    const area = root.VIEWPORT?.bounds() || {left:0,top:0,right:VIEW_W,bottom:VIEW_H};
+    state.userPanned = true;
+    state.camX = clamp(state.camX + dx, -area.left, Math.max(-area.left, MAP_W - area.right));
+    state.camY = clamp(state.camY + dy, -area.top, Math.max(-area.top, MAP_H - area.bottom));
   }
 
   function confirm(state) {
@@ -406,16 +421,14 @@
     const landmarkArt = artKey && root.ART?.[artKey];
     const completed = canEnter && !!root.STORE?.isStageCompleted?.(node.stageId);
     if (landmarkArt?.naturalWidth && root.RENDERER?.drawFrame) {
-      root.RENDERER.drawFrame(ctx,landmarkArt,artKey,completed?1:0,0,32,100);
+      root.RENDERER.drawFrame(ctx, landmarkArt, artKey, completed ? 1 : 0, 0, 32, 100);
     } else if (node.landmark === "town") {
       const img = root.ART && root.ART.house_tavern;
-      if (img && img.complete && img.naturalWidth) ctx.drawImage(img, -40, -55, 80, 72);
-      else {
-        ctx.fillStyle = "#d98d4e";
-        ctx.fillRect(-23, -22, 46, 34);
-        ctx.fillStyle = "#4b2d25";
-        ctx.beginPath();
-        ctx.moveTo(-30, -22); ctx.lineTo(0, -47); ctx.lineTo(30, -22); ctx.closePath(); ctx.fill();
+      if (img && img.complete && img.naturalWidth) {
+        ctx.drawImage(img, -40, -55, 80, 72);
+      } else if (typeof root.loadArt === "function") {
+        root.loadArt("map_night_town_v1");
+        root.loadArt("house_tavern");
       }
     } else if (node.landmark === "port") {
       ctx.strokeStyle = "#8ed7ee";
@@ -665,15 +678,7 @@
     if (root.UI?.drawButton) root.UI.drawButton(ctx,{...back,id:"map-home"},"← 首頁",{size:14,quiet:true,scrollText:true,mapTypography:"title"});
     else {ctx.fillStyle="#eed6ae";ctx.fillRect(back.x,back.y,back.w,back.h);drawMapText(ctx,"← 首頁",back.x+back.w/2,back.y+24,{size:14,heading:true,maxWidth:back.w-12});}
 
-    // Browse arrows only pan the camera; they never change the courier's actual location.
-    const arrows = browseButtons();
-    for (const button of arrows) {
-      const label = button.id === "previous" ? "◀" : "▶";
-      if (root.UI?.drawButton) root.UI.drawButton(ctx,{...button,id:"map-"+button.id},label,{size:19,quiet:true,mapTypography:"body",visualOffsetY:-4});
-      else {ctx.fillStyle="#dfc6a5";ctx.fillRect(button.x,button.y,button.w,button.h);
-        ctx.fillStyle="#39291f";ctx.font=readableFont(17,"900");ctx.textAlign="center";
-        ctx.fillText(label,button.x+button.w/2,button.y+30);}
-    }
+    // 左右切換鈕已退場，改由自由拖曳平移與點選節點移動代替
     const here = selectedNode(state);
     if (here.type === "stage" && !isMoving(state)) {
       const canEnter = isEnterable(here);
@@ -708,7 +713,7 @@
       ctx.textAlign = "center";
       if(root.UI?.drawWoodTag)root.UI.drawWoodTag(ctx,{x:VIEW_W/2-180,y:area.bottom-54,w:360,h:34},"normal",false,true);
       else{ctx.fillStyle="#eed6ae";ctx.fillRect(VIEW_W/2-180,area.bottom-54,360,34);}
-      drawMapText(ctx,"方向鍵移動・◀ ▶ 看八關・點擊木牌選關",VIEW_W/2,area.bottom-36,{size:12,maxWidth:318});
+      drawMapText(ctx,"拖曳平移地圖・點擊木牌或節點選關",VIEW_W/2,area.bottom-36,{size:12,maxWidth:318});
     }
 
     if (noticeT > 0) {
@@ -746,6 +751,7 @@
     findPath,
     move,
     moveTo,
+    pan,
     update,
     confirm,
     hitTest,

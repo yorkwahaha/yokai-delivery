@@ -32,7 +32,7 @@ const YOKAI_ASSET_KEYS = new Set([
 ]);
 // A4 選定純地景版優先下載；舊版只在失敗時啟動備援，避免平板手機同時下載兩張大地圖。
 // 僅旅路地圖所需資產：overworld 地圖 + 玩家 + 共用道具。關卡地圖在 start() 時再載。
-const OVERWORLD_MAP_ASSET_NAMES = ["player", "overworld_approved_v2", "prop_sakura", "prop_torii"];
+const OVERWORLD_MAP_ASSET_NAMES = ["player", "overworld_approved_v2", "prop_sakura", "prop_torii", "map_night_town_v1", "map_rain_port_v1", "house_tavern"];
 const STAGE_MAP_ASSET_NAMES = ["map_night_town_v1", "map_rain_port_v1"];
 const MAP_ASSET_NAMES = [...OVERWORLD_MAP_ASSET_NAMES, ...STAGE_MAP_ASSET_NAMES];
 const CORE_ASSET_NAMES = ["player", "ghost", "mis", "boss", "runner", "tank", "shooter",

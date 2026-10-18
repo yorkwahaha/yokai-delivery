@@ -5590,6 +5590,7 @@
     return !!(btn && hitButton(p, btn));
   }
 
+  let mapDrag = null;
   document.getElementById("game-container").addEventListener("pointerdown", e => {
     e.preventDefault();
     if (frameError) { recoverFrameError(); return; }
@@ -5667,32 +5668,22 @@
         return;
       }
 
-      // Browse arrows pan to any of the eight stages, even those not yet playable.
-      const browse = window.OVERWORLD.browseButtons?.() || [];
-      const selectedBrowse = browse.find(b => hitButton(p,b));
-      if (selectedBrowse) {
-        window.OVERWORLD.browse(overworld,selectedBrowse.id==="next" ? 1 : -1);
-        return;
-      }
       const enter = window.OVERWORLD.enterButton?.() || window.OVERWORLD.ENTER_BTN;
       const here = window.OVERWORLD.selectedNode(overworld);
-      if (window.OVERWORLD.isEnterable(here) && hitButton(p,enter)) {
+      if (window.OVERWORLD.isEnterable(here) && hitButton(p, enter)) {
         confirmOverworld();
         return;
       }
 
-      const node = window.OVERWORLD.hitTest(overworld,p.x,p.y);
-      if (node) {
-        if (node.id === overworld.currentId) {
-          window.OVERWORLD.clearInspect(overworld);
-          confirmOverworld();
-        } else if (node.type === "stage" && !window.OVERWORLD.isEnterable(node)) {
-          window.OVERWORLD.inspect(overworld,node.id);
-        } else {
-          const ok = window.OVERWORLD.moveTo(overworld,node.id);
-          if (!ok && node.type === "stage") window.OVERWORLD.inspect(overworld,node.id);
-        }
-      }
+      // 地圖自由拖曳與節點點選分離：pointerdown 僅記錄起始點，不立即觸發節點移動
+      mapDrag = {
+        id: e.pointerId,
+        startX: p.x,
+        startY: p.y,
+        lastX: p.x,
+        lastY: p.y,
+        dragged: false
+      };
       return;
     }
     if (state === 'menu' || state === 'won' || state === 'lost') {
@@ -5733,6 +5724,19 @@
 
   cv.addEventListener("contextmenu", e => e.preventDefault());
   cv.addEventListener("pointermove", e => {
+    if (state === "overworld" && mapDrag && mapDrag.id === e.pointerId) {
+      const p = pp(e);
+      const dx = p.x - mapDrag.lastX, dy = p.y - mapDrag.lastY;
+      mapDrag.lastX = p.x;
+      mapDrag.lastY = p.y;
+      if (Math.hypot(p.x - mapDrag.startX, p.y - mapDrag.startY) > 6) {
+        mapDrag.dragged = true;
+      }
+      if (mapDrag.dragged && window.OVERWORLD?.pan) {
+        window.OVERWORLD.pan(overworld, -dx, -dy);
+      }
+      return;
+    }
     if (state === "levelup" && e.pointerType === "mouse") {
       const hitIndex = hitLevelUpCard(pp(e));
       if (hitIndex >= 0) levelupFocus = hitIndex;
@@ -5763,6 +5767,26 @@
     cv.addEventListener(ev, e => {
       if (disabledWordReplay(e)) return;
       if (joy?.id === e.pointerId) joy = null;
+      if (state === "overworld" && mapDrag && mapDrag.id === e.pointerId) {
+        const wasDragged = mapDrag.dragged;
+        const p = pp(e);
+        mapDrag = null;
+        if (!wasDragged && ev === "pointerup") {
+          // 純點擊（位移 <= 6px）：進行節點點選與移動
+          const node = window.OVERWORLD?.hitTest(overworld, p.x, p.y);
+          if (node) {
+            if (node.id === overworld.currentId) {
+              window.OVERWORLD.clearInspect(overworld);
+              confirmOverworld();
+            } else if (node.type === "stage" && !window.OVERWORLD.isEnterable(node)) {
+              window.OVERWORLD.inspect(overworld, node.id);
+            } else {
+              const ok = window.OVERWORLD.moveTo(overworld, node.id);
+              if (!ok && node.type === "stage") window.OVERWORLD.inspect(overworld, node.id);
+            }
+          }
+        }
+      }
     });
   });
 

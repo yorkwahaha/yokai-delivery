@@ -1,6 +1,13 @@
 # Yokai Delivery — Roadmap／跨對話持續交接
 
+### 2026-10-18｜M1.1 第二批地圖／HUD 發布
+
+AGY 已正式停寫。①核准地圖節點圖預載、移除橘色方塊回落；②滑鼠／觸控拖曳、移除左右鈕、點節點沿路移動；⑤Boss 條縮短上移，保留原被動圖示容量；⑦戰鬥只顯示配送件數、內部分數與結算保留。隔離候選短測5/5 exit0；真Chrome啟動夜行町／ART_READY／實際幀運行 exit0，pageErrors/netFails/audioLeak皆0。早期專項曾抓到手機血條重疊7.8px，已再上移修正；不再重跑完整矩陣，真機與最終三視口版面待玩家實玩，未宣稱完整M1 gate。只發布本批JS／入口與自身短測，Stage8/M2/所有音訊無關dirty不納入。證據 scratch/m11-ui-release-20261018/。
+
+
 ### 2026-10-18 12:42｜M1.1第一批發布／UI續作（最新覆蓋）
+
+**首批已部署：c26c94c（origin/master 已同步），Pages run 39098185725 success／built；線上 5 個主要入口與 JS/SW＋175 首詞音皆 HTTP200 且 SHA256 相符（180/180）。voice 短測 4/4 exit0；①②⑤⑦仍待 AGY 正式交件，未宣稱七項全完成。證據 scratch/m11-release-20261018/online-proof.json；M2/Stage8/UI dirty 保留。**
 
 使用者已授權立即commit/push/Pages，不等完美Gate。第一批僅③新版175詞音（164 ASCII＋11別名、39 tracked／136新增）④靈陣去XP鈴聲／拾XP保留⑥真配送平均687→953px；七項未全收，①②⑤⑦UI待AGY同票交件後接續發布。Space Bunny額度耗盡不重試，M2暫停。
 採獨立release index＋HEAD精確snapshot：只加入詞音MP3、WORD_FILES/lazy/fallback、靈陣去鈴、已上線game必需音效API相容、詞音URL版本／SW v2詞音revision、配送producer與入口cache bust；BOSS/sfx/BGM改動、Stage8/M2 renderer/assets與M2-C重複文案不納入、不覆蓋dirty。Python站兩詞與本機hash相同、voice4/4 exit0，真makeOrder50樣本最短589px且配送/分數正常。部署hash與線上175首HTTP/主要JS核實完成後補記；證據scratch/m11-release-20261018/。

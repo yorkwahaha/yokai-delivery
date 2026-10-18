@@ -915,22 +915,11 @@ window.UI = (() => {
     const center = x + w / 2;
     ctx.save();
     ctx.fillStyle = ctx.strokeStyle = "#ffe0a4";
-    drawActionIcon(ctx, "pickup", center - 46, y + h / 2, 7);
+    drawActionIcon(ctx, "pickup", center - 24, y + h / 2, 7);
     ctx.textAlign = "left";
     ctx.font = readableFont(12, "900");
     ctx.fillStyle = "#fff1cc";
-    inkText(ctx, `${delivered}/${goalDeliveries}`, center - 34, y + 16);
-
-    const scoreText = String(score);
-    ctx.fillStyle = C.gold;
-    ctx.save();
-    ctx.translate(center + 18, y + h / 2);
-    ctx.rotate(Math.PI / 4);
-    ctx.fillRect(-3, -3, 6, 6);
-    ctx.restore();
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#fff1cc";
-    inkText(ctx, scoreText, center + 29, y + 16);
+    inkText(ctx, `${delivered}件`, center - 12, y + 16);
     ctx.restore();
     return h;
   }
@@ -1576,14 +1565,7 @@ window.UI = (() => {
       drawActionIcon(ctx, "pickup", sBoxX + 17, sBoxY + 42, 8);
       ctx.textAlign = "left";
       ctx.font = readableFont(14, "900");
-      inkText(ctx, `${delivered}/${goalDeliveries}`, sBoxX + 32, sBoxY + 47);
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#fff1cc";
-      const scoreText = String(score);
-      inkText(ctx, scoreText, sBoxX + sBoxW - 4, sBoxY + 47);
-      ctx.fillStyle = C.gold;
-      ctx.save(); ctx.translate(sBoxX + sBoxW - 4 - ctx.measureText(scoreText).width - 9, sBoxY + 42); ctx.rotate(Math.PI / 4); ctx.fillRect(-3, -3, 6, 6); ctx.restore();
-      ctx.textAlign = "left";
+      inkText(ctx, `${delivered}件`, sBoxX + 32, sBoxY + 47);
       mapY = sBoxY + sBoxH + 8;
       drawMinimap(ctx, mapX, mapY, mapW, mapH, P, orders || [], job, extra.boss, time);
       orderY = mapY + mapH + 6;
@@ -2674,17 +2656,20 @@ window.UI = (() => {
   function bossQuizLayout(n) {
     const bounds = window.VIEWPORT?.hudBounds() || screenBounds();
     const scale = window.VIEWPORT?.get().scale || (document.getElementById('game')?.getBoundingClientRect().width || 900)/900;
-    // 扇面圖長約 264 logical px；右側保留衝刺鈕與外圈，僅使用中央真正可視安全區。
-    const left = bounds.left+282, right = bounds.right-208;
-    const w = Math.min(520,Math.max(1,right-left)), gap = n===2 ? 20 : 12;
-    const optW = Math.min(n===2 ? 220 : 152,(w-24-(n-1)*gap)/n);
-    const optH = Math.max(46,Math.ceil(44/scale)), h = optH+59;
-    const center = (bounds.left+bounds.right)/2;
-    const x = clamp(center-w/2,left,right-w);
-    const bossBarH = fontPx(readableFont(13))+Math.max(11,Math.ceil(10/scale))+16;
-    const gapToBar = 12, bottomInset = 52;
-    const y = bounds.bottom-bottomInset-bossBarH-gapToBar-h;
-    const startX = x+(w-n*optW-(n-1)*gap)/2;
+    // 縮短／搬移 Boss HP 條與答題板：保留被動技全數可見，血條垂直浮於底部被動欄上方。
+    const left = bounds.left + (bounds.width <= 1024 ? 260 : 282);
+    const right = bounds.right - (bounds.width <= 1024 ? 120 : 180);
+    const maxW = bounds.width <= 900 ? 320 : bounds.width <= 1024 ? 360 : 420;
+    const w = Math.min(maxW, Math.max(1, right - left)), gap = n === 2 ? 18 : 10;
+    const optW = Math.min(n === 2 ? 200 : 140, (w - 20 - (n - 1) * gap) / n);
+    const optH = Math.max(44, Math.ceil(44 / scale)), h = optH + 54;
+    const center = (bounds.left + bounds.right) / 2;
+    const x = clamp(center - w / 2, left, right - w);
+    const bossBarH = fontPx(readableFont(13)) + Math.max(11, Math.ceil(10 / scale)) + 16;
+    const gapToBar = 10;
+    const bottomInset = bounds.height <= 480 ? 114 : 118;
+    const y = bounds.bottom - bottomInset - bossBarH - gapToBar - h;
+    const startX = x + (w - n * optW - (n - 1) * gap) / 2;
     return {x,y,w,h,bar:{x,y:y+h+gapToBar,w,h:bossBarH},
       options:Array.from({length:n},(_,i)=>({x:startX+i*(optW+gap),y:y+46,w:optW,h:optH}))};
   }
@@ -3581,3 +3566,4 @@ window.UI = (() => {
     CARD_LIST
   };
 })();
+if (typeof module !== "undefined" && module.exports) module.exports = window.UI;
