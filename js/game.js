@@ -1403,8 +1403,9 @@
     const orderCap = CFG.orderSlots(elapsed, delivered);
     if (orders.length >= orderCap) return;
     const busy = new Set(orders.map(o => o.from.id));
-    const localHouses = houses.filter(h => dist(P, h) < 2200);
-    if (!localHouses.length) return;
+    const nearbyHouses = houses.filter(h => dist(P, h) < 1400);
+    const candidateHouses = nearbyHouses.length >= 4 ? nearbyHouses : houses.filter(h => dist(P, h) < 2200);
+    if (!candidateHouses.length) return;
 
     // 1. 場上活著的誤配妖所代表的詞（妖還在時以戰鬥擊殺複習為主，不發重複委託避免照名牌選答案）
     const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
@@ -1443,14 +1444,26 @@
     }
 
     // 詞先決定，再盡量送到教同一個詞的町屋；沒有對應房子時仍用這個詞。
-    const openHouses = localHouses.filter(h => !busy.has(h.id));
+    const openHouses = candidateHouses.filter(h => !busy.has(h.id));
     const matching = openHouses.filter(h => h.word && h.word.jp === chosenWord.jp);
     const from = pick(matching.length ? matching : openHouses);
     if (!from) return;
-    const reachable = localHouses.filter(h => h !== from && dist(h, from) > 420 && dist(h, from) < 2000);
-    const nearby = reachable.filter(h => dist(h, from) < 900);
-    const hasNear = orders.some(o => dist(o.from, o.to) < 900);
-    const to = pick(!hasNear && nearby.length ? nearby : reachable);
+    // 最低合理分隔提升至 580px，合理上限 1250px，確保取件→送達平均路程明顯拉高且不致過度漂移
+    const reachable = houses.filter(h => h !== from && dist(h, from) >= 580 && dist(h, from) <= 1250);
+    const pool = reachable.length ? reachable : houses.filter(h => h !== from && dist(h, from) >= 420 && dist(h, from) <= 1600);
+    if (!pool.length) return;
+
+    // 分隔層級：中長程（850–1250px，約 70%）與近路捷徑（580–850px，約 30%）
+    const far = pool.filter(h => dist(h, from) >= 850);
+    const near = pool.filter(h => dist(h, from) < 850);
+    let to = null;
+    if (Math.random() < 0.30 && near.length > 0) {
+      to = pick(near);
+    } else if (far.length > 0) {
+      to = pick(far);
+    } else {
+      to = pick(pool);
+    }
     if (!to || !chosenWord) return;
     orders.push({ from, to, word: chosenWord, rev: false, life: 110, cardEventId: nextDeliveryEventId(chosenWord) });
   }

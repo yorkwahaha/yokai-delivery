@@ -259,7 +259,7 @@ window.AUDIO = (() => {
     "うさぎ": "usagi",
     "さかな": "sakana",
     "うみ": "umi",
-    "かめ": "kame",
+    "たこ": "tako",
     "つき": "tsuki",
     "ほし": "hoshi",
     "にじ": "niji",
@@ -279,7 +279,7 @@ window.AUDIO = (() => {
     "ラーメン": "ramen",
     "パン": "pan",
     "とり": "tori",
-    "たこ": "tako",
+    "かめ": "kame",
     "かえる": "kaeru",
     "あめ": "ame",
     "かぜ": "kaze",
@@ -292,15 +292,157 @@ window.AUDIO = (() => {
     "まえ": "mae",
     "うしろ": "ushiro",
     "きた": "kita",
-    "みなみ": "minami"
+    "みなみ": "minami",
+    "ひと": "hito",
+    "ともだち": "tomodachi",
+    "こども": "kodomo",
+    "おんなのこ": "onnanoko",
+    "おとこのこ": "otokonoko",
+    "いえ": "ie",
+    "まど": "mado",
+    "つくえ": "tsukue",
+    "いす": "isu",
+    "でんき": "denki",
+    "かぞく": "kazoku",
+    "へや": "heya",
+    "にわ": "niwa",
+    "まち": "machi",
+    "みち": "michi",
+    "はし": "hashi",
+    "こうえん": "kouen",
+    "がっこう": "gakkou",
+    "うえ": "ue",
+    "した": "shita",
+    "なか": "naka",
+    "そと": "soto",
+    "ちかく": "chikaku",
+    "とおく": "tooku",
+    "でんしゃ": "densha",
+    "じてんしゃ": "jitensha",
+    "えきいん": "ekiin",
+    "はる": "haru",
+    "なつ": "natsu",
+    "あき": "aki",
+    "ふゆ": "fuyu",
+    "もり": "mori",
+    "かわ": "kawa",
+    "きょう": "kyou",
+    "あした": "ashita",
+    "きのう": "kinou",
+    "いま": "ima",
+    "あさ": "asa",
+    "よる": "yoru",
+    "ひる": "hiru",
+    "じかん": "jikan",
+    "ぷん": "pun",
+    "いちにち": "ichinichi",
+    "あか": "aka",
+    "あお": "ao",
+    "しろ": "shiro",
+    "くろ": "kuro",
+    "みどり": "midori",
+    "きいろ": "kiiro",
+    "おおきい": "ookii",
+    "ちいさい": "chiisai",
+    "たかい": "takai",
+    "ひくい": "hikui",
+    "ながい": "nagai",
+    "みじかい": "mijikai",
+    "あたらしい": "atarashii",
+    "ふるい": "furui",
+    "おおい": "ooi",
+    "すくない": "sukunai",
+    "いい": "ii",
+    "ひとつ": "hitotsu",
+    "ふたつ": "futatsu",
+    "みっつ": "mittsu",
+    "たくさん": "takusan",
+    "すこし": "sukoshi",
+    "みず": "mizu",
+    "ごはん": "gohan",
+    "にく": "niku",
+    "やさい": "yasai",
+    "たまご": "tamago",
+    "くだもの": "kudamono",
+    "さけ": "sake",
+    "さら": "sara",
+    "ちゃわん": "chawan",
+    "すし": "sushi",
+    "みせ": "mise",
+    "おかね": "okane",
+    "かいもの": "kaimono",
+    "えん": "en",
+    "ねだん": "nedan",
+    "て": "te",
+    "あし": "ashi",
+    "め": "me",
+    "みみ": "mimi",
+    "くち": "kuchi",
+    "あたま": "atama",
+    "からだ": "karada",
+    "は": "ha",
+    "いく": "iku",
+    "くる": "kuru",
+    "もどる": "modoru",
+    "はしる": "hashiru",
+    "あるく": "aruku",
+    "とまる": "tomaru",
+    "はいる": "hairu",
+    "でる": "deru",
+    "みる": "miru",
+    "きく": "kiku",
+    "たべる": "taberu",
+    "のむ": "nomu",
+    "いう": "iu",
+    "まつ": "matsu",
+    "おきる": "okiru",
+    "ねる": "neru",
+    "うれしい": "ureshii",
+    "たのしい": "tanoshii",
+    "かなしい": "kanashii",
+    "さむい": "samui",
+    "あつい": "atsui",
+    "すずしい": "suzushii",
+    "あたたかい": "atatakai",
+    "すき": "suki",
+    "きらい": "kirai",
+    "じょうず": "jouzu",
+    "へた": "heta",
+    "しずか": "shizuka",
+    "にぎやか": "nigiyaka",
+    "ありがとう": "arigatou",
+    "すみません": "sumimasen",
+    "おはよう": "ohayou",
+    "こんにちは": "konnichiwa",
+    "こんばんは": "konbanwa",
+    "さようなら": "sayounara",
+    "はい": "hai",
+    "いいえ": "iie",
+    // 長音檔名別名。鍵是磁碟上的 Unicode 檔名，對應上面的 ASCII 詞，不是另外 11 個詞。
+    "arigatō": "arigatō",
+    "gakkō": "gakkō",
+    "jōzu": "jōzu",
+    "kinō": "kinō",
+    "kyō": "kyō",
+    "kōen": "kōen",
+    "ohayō": "ohayō",
+    "sayōnara": "sayōnara",
+    "tōku": "tōku",
+    "ōi": "ōi",
+    "ōkii": "ōkii"
   };
   const wordClips = {};
-  Object.values(WORD_FILES).forEach(file => {
+  // 說到才建立，preload=none。不要在啟動時為 164 詞加 11 個別名各做一個 Audio。
+  function ensureWordClip(file) {
+    if (!file) return null;
+    let audio = wordClips[file];
+    if (audio) return audio;
     const path = `assets/audio/words/${file}.mp3`;
-    const audio = new Audio(window.audioAsset?.(path) || path);
+    audio = new Audio(window.audioAsset?.(path) || path);
     audio.preload = "none";
     wordClips[file] = audio;
-  });
+    return audio;
+  }
 
   function stopWord(restoreMusic = true) {
     ++wordSpeechNonce;
@@ -659,7 +801,6 @@ window.AUDIO = (() => {
     barrier() {
       const ac = getCtx();
       if (!ac || muted) return;
-      playSuzu(1480, 0.15);
       const now = ac.currentTime;
       const osc = ac.createOscillator();
       const gain = ac.createGain();
@@ -732,18 +873,46 @@ window.AUDIO = (() => {
     speak(text) {
       if (muted || suspended) return;
       const file = WORD_FILES[text];
-      const audio = file && wordClips[file];
+      const audio = ensureWordClip(file);
+      const sayFallback = nonce => {
+        if (nonce !== wordSpeechNonce) return;
+        if (wordClip) {
+          try { wordClip.pause(); } catch (e) {}
+          wordClip = null;
+        }
+        if (!(window.speechSynthesis && window.SpeechSynthesisUtterance)) {
+          endWordSpeech(nonce);
+          return;
+        }
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = "ja-JP";
+        u.rate = 0.92;
+        u.onend = () => endWordSpeech(nonce);
+        u.onerror = () => endWordSpeech(nonce);
+        window.speechSynthesis.speak(u);
+      };
       if (audio) {
         if (window.speechSynthesis) window.speechSynthesis.cancel();
         stopWord(false);
         const nonce = beginWordSpeech();
+        let fell = false;
+        const failToSpeech = () => {
+          if (fell || nonce !== wordSpeechNonce) return;
+          fell = true;
+          sayFallback(nonce);
+        };
         const playMedia = () => {
+          if (nonce !== wordSpeechNonce) return;
           wordClip = audio;
           audio.volume = 1;
           try { audio.currentTime = 0; } catch (e) {}
           audio.onended = () => endWordSpeech(nonce);
-          audio.onerror = () => endWordSpeech(nonce);
-          try {audio.play().catch(()=>endWordSpeech(nonce));}catch(e){endWordSpeech(nonce);}
+          audio.onerror = () => failToSpeech();
+          try {
+            const result = audio.play();
+            if (result && typeof result.catch === "function") result.catch(() => failToSpeech());
+          } catch (e) { failToSpeech(); }
         };
         if (playBuffer(`assets/audio/words/${file}.mp3`,1,{
           speech:true,
@@ -755,17 +924,9 @@ window.AUDIO = (() => {
         playMedia();
         return;
       }
-      if (window.speechSynthesis && window.SpeechSynthesisUtterance) {
-        stopWord(false);
-        window.speechSynthesis.cancel();
-        const nonce = beginWordSpeech();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = "ja-JP";
-        u.rate = 0.92;
-        u.onend = () => endWordSpeech(nonce);
-        u.onerror = () => endWordSpeech(nonce);
-        window.speechSynthesis.speak(u);
-      }
+      stopWord(false);
+      const nonce = beginWordSpeech();
+      sayFallback(nonce);
     },
 
     // 送達正確（拍子木 + 神樂鈴大吉）
@@ -937,5 +1098,8 @@ window.AUDIO = (() => {
     for(const key of ['fireDragon','fireDragonBall','fireGround'])
       loadBuffer(SFX_FILES[key],ac).catch(()=>{});
   };
+  // 相容已上線 game 呼叫；沿用已發布 boom 音效，不加入本地未發布 sfx。
+  api.ofudaLaunch = rank => api.boomerang(rank);
+  api.ofudaBurst = rank => api.boomerang(rank);
   return api;
 })();

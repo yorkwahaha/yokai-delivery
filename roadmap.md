@@ -1,5 +1,15 @@
 # Yokai Delivery — Roadmap／跨對話持續交接
 
+### 2026-10-18 12:42｜M1.1第一批發布／UI續作（最新覆蓋）
+
+使用者已授權立即commit/push/Pages，不等完美Gate。第一批僅③新版175詞音（164 ASCII＋11別名、39 tracked／136新增）④靈陣去XP鈴聲／拾XP保留⑥真配送平均687→953px；七項未全收，①②⑤⑦UI待AGY同票交件後接續發布。Space Bunny額度耗盡不重試，M2暫停。
+採獨立release index＋HEAD精確snapshot：只加入詞音MP3、WORD_FILES/lazy/fallback、靈陣去鈴、已上線game必需音效API相容、詞音URL版本／SW v2詞音revision、配送producer與入口cache bust；BOSS/sfx/BGM改動、Stage8/M2 renderer/assets與M2-C重複文案不納入、不覆蓋dirty。Python站兩詞與本機hash相同、voice4/4 exit0，真makeOrder50樣本最短589px且配送/分數正常。部署hash與線上175首HTTP/主要JS核實完成後補記；證據scratch/m11-release-20261018/。
+
+### 2026-10-18 12:36｜M1.1快推發布（最新覆蓋）
+
+使用者已明確授權修好即精確commit＋push＋Pages，無需二次確認；M2仍暫停保留。Space Bunny月額度耗盡、UI上票未實作，停止依賴／重試；AGY w7:p4已接任唯一UI/map與必要assets/index writer，續做①②⑤⑦，runtime③④⑥已交。Codex只release隔離／短收件，不重派或跑長局。
+詞音白名單175首（164 ASCII＋11別名；39 tracked／136 untracked）已隔離staging；Python站neko/gakkou與本機bytes相同，voice短測3/3 exit0。真makeOrder50案平均687.05→953.26px、最短589.04px，一配送與score50成功。release只取HEAD上的voice/barrier、詞音cache bust與SW v2/詞音revision；BGM/sfx/OFUDA/Stage8/M2 renderer及無關dirty不納入。UI待AGY正式停檔後最小真頁核對並發布；證據scratch/m11-release-20261018/。
+
 ## 唯一新方向／索引｜2026-10-16 Stage1-first
 
 **使用者最新定案：先把第一關夜行町做成可完整重玩且精緻的 roguelike 垂直切片，再逐關擴充。** 其他關美術與單字聲包之後逐關替換，不阻塞第一關玩法深化。本節及三份權威文檔覆蓋下方所有過期派工、等待美術才能寫功能、額度／路由、舊 M1/M2 與 checkpoint 自動執行指令。
@@ -11,6 +21,23 @@
 | 本 roadmap 頂部 | 已驗事實、待複核缺口、目前階段及下一張票 |
 
 [AGENTS.md](AGENTS.md) 是短協作入口，由 Codex 與上列兩份新文檔一併獨占；其他 Agent 不修改這四檔。不掃全庫 docs/art；舊總計畫、甘特、執行看板與重啟交接按需作證據追溯，不能再各自成為派工來源。
+
+### 2026-10-18 11:52｜M1.1實玩Hotfix優先／M2 temporarily held（唯一最新狀態）
+
+使用者已經Herdr派送兩票，不重派；七項均待正式交件與最小收件，尚未宣稱修復。M2-B/C據使用者回報已交件停檔，其未提交成果保留；先修M1.1，再恢復M2。
+- M1.1七項：①恢復旅路完成／未開放圖片圖示（夜行町橘框＋済問題）；②觸控／滑鼠自由拖地圖、移除左右鈕、點節點沿路移動且左右轉向正確；③比對正式站／本機／Python http://192.168.50.107:8080/ 與SW快取，精確同步使用者新詞音；④靈陣不誤播拾XP鈴，真拾XP保留；⑤三視口終王HP條不遮左上被動技能；⑥提高平均配送路程且可達不卡關；⑦戰鬥HUD移除最低配送分母及分數，可顯示「18件」，內部分數與結算保留。
+- **AGY w7:p4／M1.1-runtime-audio**：唯一writer js/game.js、js/audio.js、service-worker.js、assets/audio/words/本票必要詞音及自身m11 tests；處理③④⑥與⑦runtime保護。若必要，js/assets.js亦僅AGY單寫，Space Bunny不得跨寫；既有Stage8 assets dirty原樣保護。
+- **Space Bunny/OpenCode w7:p5／M1.1-map-ui**：唯一writer js/ui.js、js/overworld.js、js/overworld-layout.js、必要index.html／樣式及自身m11 tests；處理①②⑤⑦UI，保留M1五P0與此前M2-C修改，不寫AGY範圍。
+- 音訊解凍僅本票指定的新詞音同步／靈陣誤播接線及必要SW修訂；其他BGM、TTS/tools/tts*、KEY/env、未審art維持凍結。既有M2 renderer/ui、Stage8 preview、音訊dirty與index均保護，不覆蓋、不混包。
+- Codex僅調度／決策，等兩人正式交件核內容與短冒煙，必要時最小整合／續派；不大量寫程式、不全面盤點或跑長局。**本輪僅交辦，未授權修好自動上線**：兩Agent禁Git提交；成果先留本機，收件後回報並確認是否部署，隔離M2／舊Stage8／無關音訊變更。
+
+### 2026-10-18 11:08｜M2並行授權／低額度調度（唯一最新狀態）
+
+使用者明確允許 **M2視覺工程與M1真人試玩並行**，覆蓋下方「完整M1 gate前不M2」；M1自然局／裝置缺口繼續未完，不冒稱通過。M1線上版9e9fbb7保留。
+- 使用者已直接派 M2-B：AGY w7:p4獨占 js/renderer.js、必要 js/viewport.js及自身M2 visual test；做首關投影、陰影、接地、遮擋/sort、切鏡中的1–3個可見修正。保護renderer既有Stage8 DEV preview dirty，不提交。
+- 使用者已直接派 M2-C：Space Bunny/OpenCode w7:p5獨占 js/ui.js及自身M2 UI test；做首關HUD／選卡／Boss預警可讀性1–3個可見修正，保護M1五P0。兩票均短測、交件待收，不push/deploy。
+- M2-A圖片FX待M2-B正式停檔後由同一AGY renderer writer串行；M2-D真3×3無縫／透明邊／核准素材清單先沿用已知證據，必要時再派一次純唯讀小票。Kilo不盲試供應商；未核新圖／音檔不接正式。
+- Codex依使用者回報5h約16%保額度，只做決策、writer協調及兩票正式交件後最小整合收件；本次兩文件記錄後停工，不另改程式或重測長局。M2暫不部署，等待使用者試玩M1與審視首批M2畫面；所有dirty、audio、KEY/env、未審art及既有index保護。
 
 ### 2026-10-18 10:59｜Stage1 MVP已上線（唯一最新狀態）
 

@@ -4,7 +4,7 @@ window.ART_READY = false;
 window.MAP_ART_READY = false;
 window.ART_PROGRESS = { settled: 0, total: 1, failed: 0 };
 // Bump when replacing audio assets so deployed browser caches fetch the new clips.
-window.audioAsset = path => `${path}?v=20261013-boss-mobile2`;
+window.audioAsset = path => `${path}?v=${path.startsWith("assets/audio/words/") ? "20261018-m11-voice" : "20261013-boss-mobile2"}`;
 
 const GAME_ASSET_NAMES = [
   "player", "player_walk1", "player_walk2",
