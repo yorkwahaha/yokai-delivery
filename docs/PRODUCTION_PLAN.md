@@ -14,8 +14,8 @@
 
 ### 2026-10-18 10:57｜實際發版取捨／Codex唯一主控
 
-Stage1 MVP RELEASE_READY，完整M1仍IN_PROGRESS、不M2。五P0與normal/hard XP契約已短測，真Chrome三尺寸／8視口卡片及固定HEAD資源進關受測；不以完整自然局／真機作今日MVP發布前置。使用者明確授權現在精確commit＋push＋Pages上線，由使用者真人實玩後迭代。
-Codex負責發布；AGY REL-Q1短QA與Space Bunny REL-Q2資源唯讀QA已交件停檔，Cursor/Sonnet月額度耗盡不再依賴，Kilo/Grok不啟用。game ab659eca／UI ac574c33，候選runtime199/199、working短回歸263/263、combat+normal98/98 exit0；候選Chrome關教學後首關時間推進。未完為自然三Build、實機及後續平衡，保留NOT_RUN/WAITING_DEVICE，不冒稱全M1 PASS。提交與線上核實記roadmap最新段。
+Stage1 MVP DEPLOYED，完整M1仍IN_PROGRESS、不M2。五P0與normal/hard XP契約已短測，真Chrome三尺寸／8視口卡片及固定HEAD資源進關受測；不以完整自然局／真機作今日MVP發布前置。使用者明確授權現在精確commit＋push＋Pages上線，由使用者真人實玩後迭代。
+Codex負責發布；AGY REL-Q1短QA與Space Bunny REL-Q2資源唯讀QA已交件停檔，Cursor/Sonnet月額度耗盡不再依賴，Kilo/Grok不啟用。game ab659eca／UI ac574c33，候選runtime199/199、working短回歸263/263、combat+normal98/98 exit0；候選Chrome關教學後首關時間推進。未完為自然三Build、實機及後續平衡，保留NOT_RUN/WAITING_DEVICE，不冒稱全M1 PASS。程式提交9e9fbb7已push；Pages run39091959639 build/deploy success，10:59台灣時間線上index＋9關鍵JS共10/10 blob SHA一致。試玩 https://yorkwahaha.github.io/yokai-delivery/?v=9e9fbb7 。下一owner使用者實玩，Codex依實際阻塞再派修，不啟動M2。
 
 ### 2026-10-18 最新M1發布票（覆蓋下方舊長局與禁發布快照）
 

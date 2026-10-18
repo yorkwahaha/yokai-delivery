@@ -12,15 +12,15 @@
 
 [AGENTS.md](AGENTS.md) 是短協作入口，由 Codex 與上列兩份新文檔一併獨占；其他 Agent 不修改這四檔。不掃全庫 docs/art；舊總計畫、甘特、執行看板與重啟交接按需作證據追溯，不能再各自成為派工來源。
 
-### 2026-10-18 10:57｜Codex接回／Stage1 MVP發版（唯一最新狀態）
+### 2026-10-18 10:59｜Stage1 MVP已上線（唯一最新狀態）
 
-- **Stage1 MVP RELEASE_READY；M1完整gate仍IN_PROGRESS，M2暫停。** 使用者最新取捨：先部署可玩版，自然實玩由使用者驗收，不等完整三Build／真機／全部歷史測試。
+- **Stage1 MVP DEPLOYED；M1完整gate仍IN_PROGRESS，M2暫停。** 使用者最新取捨：先部署可玩版，自然實玩由使用者驗收，不等完整三Build／真機／全部歷史測試。
 - Codex唯一總監、QA與提交部署；Cursor/Sonnet因月額度耗盡停止依賴（使用者回報11/2重置）。AGY REL-Q1短QA已交件，Space Bunny REL-Q2資源唯讀QA已交件，兩者正式停檔；Kilo/Grok不派。
 - 五P0受測通過：night-town Boss真spawn HP150/325/60/910；破曉且終王死亡不需配送；won單world有效返回、lost三鈕；elapsedSeconds/MM:SS/暫停隔離；玩家短卡文案與8視口墨底至少8.73 CSS px、14CSS字級／44CSS熱區。
 - night-town normal：HP×.65、移速×.82、時間成長×.35、移除玩家等級追漲、spawn間隔×1.15、cap57、包圍數×.6／週期×2；XP需求每級round(原值×.75)。hard與其他關保留原曲線，Boss／DAWN600不變。
 - 固定game SHA ab659ecad552f2c9／UI ac574c3364255b24。本輪working短回歸263/263、精確HEAD候選runtime199/199、combat+normal98/98 exit0；HEAD舊資源＋新game/UI真Chrome進關/教學Escape後時間推進、無例外/音訊讀取。候選整合舊harness卡教學／準備前置，未冒稱通過；先前同game/UI真結算／返回／暫停與P0三視口證據保留。
-- 原index已有21檔staged，僅以明列白名單隔離提交；其他音訊、js/audio.js、Boss AI/renderer/assets/words dirty、KEY/env、未核准素材與暫存全保留不納入。index.html只換game/UI版本查詢碼。發布SHA／Pages結果完成後補記。
-- 未完：正常三Build完整自然局、實體手機/平板/手把、玩家回饋後平衡與UI微調；非本次MVP上線阻塞。證據scratch/director-release-{head-runtime,head-chrome,smoke,p0-regression,combat-normal}.log及兩Agent JSON。
+- 原index已有21檔staged，僅以明列白名單隔離提交；其他音訊、js/audio.js、Boss AI/renderer/assets/words dirty、KEY/env、未核准素材與暫存全保留不納入。index.html只換game/UI版本查詢碼。程式發布提交 **9e9fbb71b782ffc096a936dcb745de1b484741ce**，push origin/master exit0；Pages [39091959639](https://github.com/yorkwahaha/yokai-delivery/actions/runs/39091959639) build/deploy success，10:59台灣時間線上入口＋9個關鍵JS共10/10 SHA與提交blob相同。立即試玩：https://yorkwahaha.github.io/yokai-delivery/?v=9e9fbb7 。
+- 未完三項：正常三Build完整自然局、實體手機/平板/手把、玩家回饋後平衡與UI微調；非本次MVP上線阻塞。下一owner：使用者線上實玩；Codex收真問題後按runtime→AGY／UI→明確交接writer／Space Bunny短QA派單，不為保持working虛造新票。證據scratch/director-release-{head-runtime,head-chrome,smoke,p0-regression,combat-normal}.log及兩Agent JSON；線上逐檔證據 scratch/director-release-online-proof.json。
 
 ### 2026-10-18｜M1五P0衝刺／提交部署新授權（唯一最新狀態）
 
