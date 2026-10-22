@@ -14,50 +14,68 @@
     return ang;
   }
 
-  function nextAttackKind(e, stageId) {
-    const isGate = e.bossIndex === 2 || e.gatekeeper;
-    const isFinal = e.bossIndex === 3 || e.final;
+  // 各 bossTheme 對應的攻擊招式池（資料導向，不硬編碼 stageId）
+  // slam/charge/ring/tide 為既有四大模板，未核准新招式不加入
+  const BOSS_THEME_POOLS = Object.freeze({
+    town:   Object.freeze({ base: ['slam', 'charge'], halfHp: ['slam', 'charge', 'ring'] }),
+    harbor: Object.freeze({ base: ['slam', 'charge', 'tide'], halfHp: ['slam', 'charge', 'ring', 'tide'] }),
+    // rain-port 專屬：潮汐扇形/水平岸浪、雨夜渦流/水柱
+    "rain-port": Object.freeze({
+      base: ['slam', 'charge', 'tide', 'tidalFan', 'rainVortex'],
+      halfHp: ['slam', 'charge', 'tide', 'tidalFan', 'rainVortex']
+    }),
+    sakura: Object.freeze({ base: ['slam', 'charge'], halfHp: ['slam', 'charge', 'ring'] }),
+    bamboo: Object.freeze({ base: ['slam', 'charge'], halfHp: ['slam', 'charge', 'ring'] }),
+    kyoto:  Object.freeze({ base: ['slam', 'charge'], halfHp: ['slam', 'charge', 'ring'] }),
+    temple: Object.freeze({ base: ['slam', 'charge'], halfHp: ['slam', 'charge', 'ring'] }),
+    ferry:  Object.freeze({ base: ['slam', 'charge'], halfHp: ['slam', 'charge', 'ring'] }),
+    yomi:   Object.freeze({ base: ['slam', 'charge', 'ring', 'tide'], halfHp: ['slam', 'charge', 'ring', 'tide'] })
+  });
 
-    if (e.bossIndex === 0 || isGate) {
-      return 'slam';
-    }
-
-    if (e.bossIndex === 1) {
-      const step = e._attackStep || 0;
-      e._attackStep = step + 1;
-      return step % 2 === 0 ? 'slam' : 'charge';
-    }
-
-    if (isFinal) {
-      const isPort = stageId === 'rain-port';
-      const halfHp = (e.hp || 0) <= 0.5 * (e.max || 1400);
-      const step = e._attackStep || 0;
-      e._attackStep = step + 1;
-
-      if (!halfHp) {
-        if (isPort) {
-          const pool = ['slam', 'charge', 'tide'];
-          return pool[step % pool.length];
-        }
-        return step % 2 === 0 ? 'slam' : 'charge';
-      }
-
-      // 半血以下解鎖 ring
-      if (isPort) {
-        const pool = ['slam', 'charge', 'ring', 'tide'];
-        return pool[step % pool.length];
-      }
-      const pool = ['slam', 'charge', 'ring'];
-      return pool[step % pool.length];
-    }
-
-    return 'slam';
+  function getBossTheme(e) {
+    // 優先從 STAGE_ENEMY.bossTheme 取得，其次從 e.bossTheme（相容舊碼）
+    const stageEnemy = window.STAGE_ENEMY;
+    return (stageEnemy && stageEnemy.bossTheme) || e.bossTheme || 'town';
   }
 
-  function start(e, player, stageId = 'night-town') {
+  function getAttackPool(e) {
+    const theme = getBossTheme(e);
+    const pool = BOSS_THEME_POOLS[theme] || BOSS_THEME_POOLS.town;
+    // 雨港專屬：以 stageId 判定，僅 rain-port 啟用 tidalFan/rainVortex
+    const stageId = (window.STAGE && window.STAGE.id) || (e && e.stageId) || '';
+    const isRainPort = stageId === 'rain-port';
+    const rainPortPool = isRainPort ? BOSS_THEME_POOLS['rain-port'] : null;
+    const effectivePool = rainPortPool || pool;
+    const isGate = e.bossIndex === 2 || e.gatekeeper;
+    const isFinal = e.bossIndex === 3 || e.final;
+    const halfHp = (e.hp || 0) <= 0.5 * (e.max || 1400);
+
+    if (isGate || e.bossIndex === 0) {
+      // 第一、三王固定 slam
+      return ['slam'];
+    }
+    if (e.bossIndex === 1) {
+      // 第二王：基礎輪換
+      return effectivePool.base || ['slam', 'charge'];
+    }
+    if (isFinal) {
+      // 最終王：依半血解鎖
+      return halfHp ? (effectivePool.halfHp || effectivePool.base) : (effectivePool.base || ['slam', 'charge']);
+    }
+    return effectivePool.base || ['slam'];
+  }
+
+  function nextAttackKind(e) {
+    const pool = getAttackPool(e);
+    const step = e._attackStep || 0;
+    e._attackStep = step + 1;
+    return pool[step % pool.length];
+  }
+
+  function start(e, player) {
     if (!e || (e.hp || 0) <= 0 || e.hazard || e.shield) return false;
 
-    const kind = nextAttackKind(e, stageId);
+    const kind = nextAttackKind(e);
     const p = player || { x: 0, y: 0 };
     const angle = Math.atan2(p.y - e.y, p.x - e.x);
 
@@ -104,6 +122,47 @@
         progress: -280,
         hit: false
       };
+    } else if (kind === 'tidalFan') {
+      // 潮汐扇形/水平岸浪掃擊：預警扇形，隨後水平掃過
+      e.hazard = {
+        kind: 'tidalFan',
+        phase: 'telegraph',
+        t: 0,
+        duration: 0.9,  // 0.6-1秒醒目預警
+        x: e.x,
+        y: e.y,
+        angle,
+        startAngle: angle - Math.PI / 3,  // 60度扇形
+        endAngle: angle + Math.PI / 3,
+        r: 200,
+        hit: false
+      };
+    } else if (kind === 'rainVortex') {
+      // 雨夜渦流/水柱警示落點：多個水柱落點預警，交錯落下
+      const vortexCount = 3 + (e.bossIndex === 3 ? 2 : 0); // final 多2個
+      const vortexes = [];
+      for (let i = 0; i < vortexCount; i++) {
+        const offsetAngle = (Math.random() - 0.5) * Math.PI * 0.6;
+        const offsetDist = 80 + Math.random() * 120;
+        vortexes.push({
+          x: e.x + Math.cos(angle + offsetAngle) * offsetDist,
+          y: e.y + Math.sin(angle + offsetAngle) * offsetDist,
+          angle: 0,
+          r: 28,
+          hit: false
+        });
+      }
+      e.hazard = {
+        kind: 'rainVortex',
+        phase: 'telegraph',
+        t: 0,
+        duration: 1.0,  // 預警 1 秒
+        x: e.x,
+        y: e.y,
+        angle,
+        vortexes,
+        hit: false
+      };
     } else {
       // 預設 slam: 鎖定玩家發動當下之位置
       e.hazard = {
@@ -135,7 +194,6 @@
     }
 
     const blocked = options.blocked || (() => false);
-    const stageId = options.stageId || 'night-town';
     const paused = !!options.paused;
 
     if (dt <= 0 || paused || e.shield) {
@@ -149,7 +207,7 @@
     let started = false;
     const p = player || { x: 0, y: 0 };
     if (!e.hazard && (e.attackCd || 0) <= 0 && dist(e, p) < 340) {
-      started = start(e, p, stageId);
+      started = start(e, p);
     }
 
     if (!e.hazard) {
@@ -256,6 +314,50 @@
         if (inWave && !inSafeLane && !h.hit) {
           h.hit = true;
           hit = { damage: 18, kind: 'tide', x: p.x, y: p.y };
+        }
+
+        if (h.t >= h.duration) {
+          h.phase = 'recovery';
+          h.t = 0;
+          h.duration = 1.35;
+        }
+      } else if (h.kind === 'tidalFan') {
+        // 潮汐扇形/水平岸浪掃擊：預警後水平掃過
+        const u = Math.min(1, h.t / h.duration);
+        const sweepAngle = h.startAngle + (h.endAngle - h.startAngle) * u;
+        const fanR = h.r;
+
+        const dx = p.x - h.x, dy = p.y - h.y;
+        const distToCenter = Math.hypot(dx, dy);
+        const angleToPlayer = Math.atan2(dy, dx);
+        const angleDiff = Math.abs(normalizeAngle(angleToPlayer - sweepAngle));
+
+        if (distToCenter <= fanR + 30 && angleDiff <= Math.PI / 12 && !h.hit) {
+          h.hit = true;
+          hit = { damage: 18, kind: 'tidalFan', x: p.x, y: p.y };
+        }
+
+        if (h.t >= h.duration) {
+          h.phase = 'recovery';
+          h.t = 0;
+          h.duration = 1.35;
+        }
+      } else if (h.kind === 'rainVortex') {
+        // 雨夜渦流/水柱：預警後多水柱交錯落下
+        const u = Math.min(1, h.t / h.duration);
+
+        if (u < 0.5) {
+          // 預警階段：只顯示落點標記
+        } else {
+          // 落下階段：水柱逐個激活
+          const fallProgress = (u - 0.5) * 2;
+          for (const v of h.vortexes) {
+            const vDist = dist(p, v);
+            if (vDist <= v.r + 20 && !v.hit) {
+              v.hit = true;
+              hit = { damage: 16, kind: 'rainVortex', x: v.x, y: v.y };
+            }
+          }
         }
 
         if (h.t >= h.duration) {

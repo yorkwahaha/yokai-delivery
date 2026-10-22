@@ -7,7 +7,10 @@ window.HAPTICS = (() => {
   const storageKey = 'yokai-haptics-v1';
   try {
     const saved = localStorage.getItem(storageKey);
-    if (saved !== null) enabled = JSON.parse(saved);
+    if (saved !== null) {
+      const parsed = JSON.parse(saved);
+      if (typeof parsed === 'boolean') enabled = parsed;
+    }
   } catch {}
 
   function save() {

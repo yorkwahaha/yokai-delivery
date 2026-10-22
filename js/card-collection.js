@@ -3,6 +3,16 @@
 
 // 獨立核心。未接入 index.html、STORE 或對局。Phase 2 才接到配送。
 const MARK_CAP = 4;
+// 已處理事件 id 只保留最近 EVENT_CAP 筆（物件保留插入順序，舊的先丟），避免存檔無限長大。
+const EVENT_CAP = 1000;
+
+function pruneEvents(events) {
+  const ids = Object.keys(events);
+  if (ids.length <= EVENT_CAP) return events;
+  const kept = Object.create(null);
+  for (const id of ids.slice(ids.length - EVENT_CAP)) kept[id] = true;
+  return kept;
+}
 
 function wordKey(jp) {
   if (typeof jp !== "string") return "";
@@ -37,6 +47,7 @@ function loadState(raw) {
     for (const [id, flag] of Object.entries(raw.events)) {
       if (flag === true && id) state.events[id] = true;
     }
+    state.events = pruneEvents(state.events);
   }
   if (raw.awards && typeof raw.awards === "object" && !Array.isArray(raw.awards)) {
     for (const [id, flag] of Object.entries(raw.awards)) {
@@ -66,8 +77,7 @@ function applyEvent(state, event) {
   const parsed = parseEvent(event);
   if (!parsed) return { state: base, applied: false, reason: "invalid" };
   if (base.events[parsed.id]) return { state: base, applied: false, reason: "duplicate" };
-  const events = Object.assign(Object.create(null), base.events);
-  events[parsed.id] = true;
+  const events = pruneEvents(Object.assign(Object.create(null), base.events, { [parsed.id]: true }));
   const marks = Object.assign(Object.create(null), base.marks);
   if (parsed.ok) marks[parsed.key] = Math.min(MARK_CAP, clampMark(marks[parsed.key] || 0) + 1);
   const awards = Object.assign(Object.create(null), base.awards);
@@ -176,6 +186,7 @@ function createCollection(storage = {}) {
 
 const api = {
   MARK_CAP,
+  EVENT_CAP,
   wordKey,
   loadState,
   migrate,

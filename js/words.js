@@ -832,6 +832,7 @@
       }),
       visual: Object.freeze({
         ground: "ground",
+        groundApproved: "ground_yomi",
         petals: 12,
         fireflies: 45,
         fog: 0.22

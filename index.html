@@ -47,21 +47,31 @@
       display: block;
       box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
     }
+    /* 直屏只給一個不可攔截的提示晶片：不能再用全螢幕遮罩吃掉 HUD／選卡／結算的觸控。 */
     #rotate-hint {
       display: none;
       position: fixed;
-      inset: 0;
+      left: 50%;
+      top: max(8px, env(safe-area-inset-top));
+      transform: translateX(-50%);
       z-index: 20;
-      place-items: center;
-      background: #080c1a;
+      max-width: calc(100vw - 24px);
+      padding: 5px 13px;
+      border-radius: 999px;
+      background: rgba(8, 12, 26, .82);
+      border: 1px solid rgba(255, 226, 139, .45);
       color: #ffe28b;
-      font-size: clamp(20px, 7vw, 34px);
+      font-size: 12px;
+      line-height: 1.35;
       font-weight: 900;
-      letter-spacing: .12em;
-      pointer-events: auto;
+      letter-spacing: .1em;
+      white-space: nowrap;
+      text-align: center;
+      opacity: .86;
+      pointer-events: none;
     }
     @media (orientation: portrait) and (max-width: 900px) {
-      #rotate-hint { display: grid; }
+      #rotate-hint { display: block; }
       body[data-game-screen="map"] #rotate-hint,
       body[data-game-screen="menu"] #rotate-hint { display: none; }
     }
@@ -112,15 +122,15 @@
   <script src="js/config.js?v=20261011-xp-growth"></script>
   <script src="js/viewport.js?v=20261014-p42zoom1"></script>
   <script src="js/controls.js?v=20261010-gemini-review"></script>
-  <script src="js/assets.js?v=20261018-m11-ui2"></script>
-  <script src="js/audio.js?v=20261018-m11-voice1"></script>
+  <script src="js/assets.js?v=20261015-port-v2"></script>
+  <script src="js/audio.js?v=20261013-boss-mobile2"></script>
   <script src="js/haptics.js?v=20261006-1"></script>
   <script src="js/renderer.js?v=20261015-port-v2"></script>
   <script src="js/fx.js?v=20261005-25"></script>
   <script src="js/skillfx.js?v=20261013-foxdragon1"></script>
-  <script src="js/ui.js?v=20261018-m11-ui2"></script>
+  <script src="js/ui.js?v=20261018-stage1-mvp1"></script>
   <script src="js/overworld-layout.js?v=20261012-visual-editor1"></script>
-  <script src="js/overworld.js?v=20261018-m11-ui2"></script>
+  <script src="js/overworld.js?v=20261013-b4-eight-stage"></script>
   <script src="js/evolutions.js?v=20261013-foxdragon1"></script>
   <script src="js/boss-ai.js?v=20261010-v3-balance"></script>
   <script src="js/story-dialogue.js?v=20261013-b3-story"></script>
@@ -128,7 +138,8 @@
   <script src="js/card-delivery-bridge.js?v=20261014-p42-c4"></script>
   <script src="js/card-gallery-model.js?v=20261014-p42-c3"></script>
   <script src="js/card-gallery-ui.js?v=20261014-p42-c4-e22"></script>
-  <script src="js/game.js?v=20261018-m11-ui2"></script>
+  <script src="js/fusion.js?v=20261020-f0-v1"></script>
+  <script src="js/game.js?v=20261018-stage1-mvp1"></script>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' }).catch(() => {});
 </script>

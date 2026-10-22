@@ -71,9 +71,17 @@
     return Object.hasOwn(choices, query) ? choices[query] : 1;
   }
   const selectedWorldZoom = () => zoomStageId === "sakura-pass" ? zoomChoice() : 1;
+  // dev=1&stage=rain-port&s2artprod=1 專用：2D 縮到 0.78（約 770 世界像素高）才放得下北建築＋石木岸＋南海。
+  // tilt .60 原本就看得到全景，縮放隨 tilt 平滑歸 1。其他關／沒 flag 一律 1。
+  const S2_DEV_ZOOM = 0.78;
+  const s2DevZoomActive = () => zoomStageId === "rain-port" && typeof root.isS2ArtProdEnabled === "function" && root.isS2ArtProdEnabled();
   const worldZoom = () => {
-    const selected = selectedWorldZoom();
     const k = tiltScale();
+    if (s2DevZoomActive()) {
+      const gainS2 = Math.max(0, Math.min(1, (k - 0.6) / 0.4));
+      return 1 - (1 - S2_DEV_ZOOM) * gainS2;
+    }
+    const selected = selectedWorldZoom();
     if (selected === 1 || k === 1) return 1;
     const gain = Math.max(0, Math.min(1, (1 - k) / 0.4));
     return 1 + (selected - 1) * gain;

@@ -3,17 +3,11 @@
 
   const W = 900, H = 600;
   const CFG = window.GAME_CONFIG;
-  // hard 原樣保存既有小怪曲線；僅夜行町預設 normal，暫不接難度 UI。
-  const MOB_DIFFICULTY_PROFILES = Object.freeze({
-    hard: Object.freeze({ hpScale: 1, speedScale: 1, timeScale: 1, powerScale: 1,
-      intervalScale: 1, cap: 95, surgeCountScale: 1, surgePacingScale: 1, capSurges: false, xpNeedScale: 1 }),
-    normal: Object.freeze({ hpScale: 0.65, speedScale: 0.82, timeScale: 0.35, powerScale: 0,
-      intervalScale: 1.15, cap: 57, surgeCountScale: 0.6, surgePacingScale: 2, capSurges: true, xpNeedScale: 0.75 })
-  });
+  // 小怪難度單一來源：CFG.resolveMobDifficultyProfile(stage)（B 線接口）。
+  // 保留 MOB_DIFFICULTY_PROFILES 名稱供既有測試探針讀取；預設值與原 inline 表 parity。
+  const MOB_DIFFICULTY_PROFILES = CFG.MOB_DIFFICULTY_PROFILES;
   function mobDifficultyForStage(stage) {
-    return stage.id === "night-town"
-      ? MOB_DIFFICULTY_PROFILES[stage.pacing?.mobDifficulty === "hard" ? "hard" : "normal"]
-      : MOB_DIFFICULTY_PROFILES.hard;
+    return CFG.resolveMobDifficultyProfile(stage);
   }
   let STAGE = window.CONTENT.getStage("night-town");
   let MOB_DIFFICULTY = mobDifficultyForStage(STAGE);
@@ -76,11 +70,72 @@
     return a;
   };
 
+  // 屋列距離（已批准口徑）：沿「沿途所有真 chunk」的 houses，以 50px X 列去重、兩端不計。
+  // 與 WORLD.update 的 50px X 去重同口徑，不是距離除常數；只數房屋的 X 列，不看高低排。
+  // 關鍵：必須先以「房屋 x 嚴格介於兩端」過濾、再做 50px 去重。
+  // 若先對整段 span 去重再回頭比對 x，端點房屋自己的 X 列會因 50px 取整而被誤算進去
+  // （例如端點 191→200、1610→1600 會被算成兩列），於是 2 屋列被當成 4 屋列。
+  function houseColumnsBetween(x1, x2) {
+    const lo = Math.min(x1, x2), hi = Math.max(x1, x2);
+    const xs = new Set();
+    if (!runBounds || !WORLD_STATE) return 0;
+    const cx0 = Math.floor(lo / WORLD_STATE.chunkWidth), cx1 = Math.floor(hi / WORLD_STATE.chunkWidth);
+    const cy0 = Math.floor(runBounds.minY / WORLD_STATE.chunkHeight), cy1 = Math.floor(runBounds.maxY / WORLD_STATE.chunkHeight);
+    for (let cx = cx0; cx <= cx1; cx++) {
+      for (let cy = cy0; cy <= cy1; cy++) {
+        const chunk = WORLD_STATE.getChunk(cx, cy);
+        if (!chunk || !chunk.houses) continue;
+        for (const h of chunk.houses) {
+          if (h.x > lo && h.x < hi) xs.add(Math.round(h.x / 50) * 50);
+        }
+      }
+    }
+    return xs.size;
+  }
+
+  // 配送完成後的狀態生命週期：把仍待取貨、但取貨點離「剛送達點」太近的委託就地重選取貨屋。
+  // 只動尚未被玩家取貨的委託（不在手上、也不是當下互動中的那一張）；重選不到就保留原委託，
+  // 寧可維持原委託也不會發一張同屋／過近的取貨。
+  function rerollPickupsTooCloseTo(referenceX, minCols = 3, minDx = 700, maxDx = 3600) {
+    if (STAGE.id !== "rain-port" || referenceX === null || referenceX === undefined) return;
+    const busyFrom = new Set();
+    if (job && job.from) busyFrom.add(job.from.id);
+    if (inter && inter.from) busyFrom.add(inter.from.id);
+    const colsBetween = (a, b) => houseColumnsBetween(a, b);
+    for (const o of orders) {
+      if (!o || !o.from) continue;
+      if (busyFrom.has(o.from.id)) continue;              // 手上／正在互動的委託不動
+      if (colsBetween(o.from.x, referenceX) >= minCols) continue;
+      const cands = houses.filter(h => {
+        if (!h || h.id === o.from.id) return false;
+        if (o.to && h.id === o.to.id) return false;        // 取貨屋不得就是自己的送達屋
+        if (busyFrom.has(h.id)) return false;
+        const dx = Math.abs(h.x - referenceX);
+        if (dx < minDx || dx > maxDx) return false;
+        // 重選後仍要守住原本的送達距離（取貨屋與送達屋不得貼在一起）
+        if (o.to && Math.abs(h.x - o.to.x) < minDx) return false;
+        return colsBetween(h.x, referenceX) >= minCols;
+      });
+      if (!cands.length) {
+        // 找不到同時滿足「離剛送達點 >=3 屋列」與「離自己送達屋 >=700px」的取貨屋：
+        // 寧可撤掉這張尚未取貨的委託（下一個 frame 會依新規則補發一張），也不要讓玩家
+        // 接下來走到同屋／鄰屋／2 屋列的取貨點。
+        orders = orders.filter(x => x !== o);
+        continue;
+      }
+      const sameWord = cands.filter(h => o.word && h.word && h.word.jp === o.word.jp);
+      const next = sameWord.length ? sameWord : cands;
+      o.from = next[Math.floor(Math.random() * next.length)];
+    }
+  }
+
   // ---------- Stage / Word Pack / Chunk 世界 ----------
   const worldSpacingScaleY = () => window.VIEWPORT?.spacingScaleY?.() || 1;
   let WORLD_STATE = window.WORLD.createStageWorld(STAGE, window.CONTENT,
     {spacingScaleY:worldSpacingScaleY()});
   const houses = [], solids = [], LAMPS = [], activeChunks = [];
+  // rain-port 戰鬥帶共享引用：syncWorld 賦值，blocked/spawnPosition/camera 直接讀取
+  let runBounds = null;
   const ALL = window.CONTENT.getStageWords(STAGE);
   const MIS_SPEED = 200;
   function codexWords() {
@@ -95,7 +150,13 @@
     }
     return words;
   }
-  const blocked = (x, y, r = 18) => solids.some(s => Math.hypot(x - clamp(x, s.x0, s.x1), y - clamp(y, s.y0, s.y1)) < r);
+  const blocked = (x, y, r = 18) => {
+    // rain-port：直接用 runBounds 做半徑判 Y，涵蓋任意 X（真無限 X）
+    if (runBounds) {
+      if (y - r < runBounds.minY || y + r > runBounds.maxY) return true;
+    }
+    return solids.some(s => Math.hypot(x - clamp(x, s.x0, s.x1), y - clamp(y, s.y0, s.y1)) < r);
+  };
   // 擊退用逐幀位移，保留碰撞而不是在施放當幀直接跳到終點。
   const KNOCK_SPEED = 520;
   function knockback(e, distance, origin = null) {
@@ -185,7 +246,10 @@
   let quitConfirm = false;
   let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "";
   let levelupFocus = 0, gpLevelupDir = "";
+  let gpFusionDir = 0;
+  let charmSwapIndex = 0, gpCharmDir = 0;
   let pendingMenuActivation = null;
+  let quitTarget = "home";
   function activateWithFeedback(id) {
     if (pendingMenuActivation || ((state === "won" || state === "lost") && endCooldown > 0)) return;
     if (id === 'start' || id === 'world') AUDIO.prepareMusic?.('overworld');
@@ -235,15 +299,21 @@
     }
     if (id === "start") enterOverworld();
     else if (id === "restart") start();
+    else if (id === "world" && state === "pause") { quitConfirm = true; quitTarget = "world"; menuFocus = 0; }
     else if (id === "world") enterOverworld(false);
     else if (id === "resume") togglePause();
     else if (id === "mute") AUDIO.toggleMute();
     else if (id === "controls") controlsButton.click();
     else if (id === "tutorial") showTutorial('pickup', true);
-    else if (id === "exit-cancel") { quitConfirm = false; menuFocus = 0; }
-    else if (id === "exit-confirm") returnHome();
+    else if (id === "exit-cancel") { quitConfirm = false; quitTarget = "home"; menuFocus = 0; }
+    else if (id === "exit-confirm") {
+      const toWorld = quitTarget === "world";
+      quitTarget = "home";
+      returnHome();
+      if (toWorld) enterOverworld(false);
+    }
     else if (id === "menu") {
-      if (state === "pause") { quitConfirm = true; menuFocus = 0; }
+      if (state === "pause") { quitConfirm = true; quitTarget = "home"; menuFocus = 0; }
       else returnHome();
     }
     else if (id === "cards" || id === "codex") { codexBack = state; selectCodex(id === "cards" ? "cards" : "words"); state = "codex"; }
@@ -252,13 +322,24 @@
       if (button?.word?.jp) AUDIO.speak(button.word.jp);
     }
   }
+  const OVERWORLD_LAST_KEY = "yokai.overworld.lastNode";
+  function loadOverworldNode() {
+    try { return localStorage.getItem(OVERWORLD_LAST_KEY) || "gate"; } catch (_) { return "gate"; }
+  }
+  function saveOverworldNode() {
+    try { if (overworld?.currentId) localStorage.setItem(OVERWORLD_LAST_KEY, overworld.currentId); } catch (_) {}
+  }
   let overworld = window.OVERWORLD.createState("gate");
+  let overworldExitArmT = 0;
   let pendingDepart = false;
   let overworldNoticeT = 0;
   let gpOverworldDir = "";
   let elapsed = 0, warnDawnT = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;
+  let lastDeliveryX = null;
   let orders = [], job = null, enemies = [], enemyBullets = [], gems = [], texts = [], rings = [], misses = [];
   let deliveryEventSeq = 0;
+  // 變異是稀有可選的強化，而非每次升級強塞的選項。
+  let lastMutationOfferLevel = -100;
   const GEM_LIMIT = 512, GEM_DISTANCE = 2400;
   function dropGem(x, y, v) {
     if (gems.length < GEM_LIMIT) { gems.push({x,y,v}); return; }
@@ -352,12 +433,13 @@
     const isCrit = Math.random() < chance;
     return { isCrit, mult: isCrit ? 1.8 : 1 };
   }
-  const wMax = { katana: 0.72, barrier: 3, needle: 1, boom: 2, thunder: 2.6, fire:1.1 };
+  const wMax = { katana: 0.72, barrier: 3, needle: 1, boom: 2, thunder: 2.6, fire: 1.1, fusion_inkblade: 1.8, fusion_foxiai: 1.6, fusion_exorcistblade: 1.7, fusion_foxfirebarrier: 2.5, fusion_exorcistseal: 2.0, fusion_thundercircle: 2.2, fusion_slashwheel: 2.0, fusion_foxthunderlantern: 2.4, fusion_flamefestival: 2.2, fusion_thundertalisman: 2.4 };
   let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0, endCooldown = 0, lanternHitT = 0;
   let playerAttackPoseT = 0, playerHurtPoseT = 0; // 視覺專用計時，不影響武器冷卻／碰撞
   let dashDir = { x: 1, y: 0 };
   let choices = [], levelupCooldown = 0, joy = null, touch = window.matchMedia?.("(pointer: coarse)")?.matches || false, inter = null, cargo = { x: 0, y: 0 }, pTrail = [], last = performance.now();
   const btnE = { x: 810, y: 420, r: 38 }, btnD = { x: 810, y: 530, r: 46 };
+  const btnFusionHeld = { id: 'fusion-reopen', x: 810, y: 310, r: 36 };
   const btnPause = { x: W - 52, y: 14, w: 38, h: 52 };
   // Compact interactive view switch below pause, outside the minimap's right edge.
   const btnView = { id: 'view-toggle', x: W - 66, y: 80, w: 52, h: 44 };
@@ -375,6 +457,9 @@
   let gpPrevButtons = [], gpMove = { x: 0, y: 0 };
 
   let bossT = BOSS_TIMES[0], bossStage = 0, finalBossDefeated = false;
+  // 終王排程到期但前面的大妖仍存活時的等待計時；逾時強制出場，避免卡關。
+  const FINAL_BOSS_WAIT_MAX = 45, FINAL_BOSS_HINT_EVERY = 12;
+  let finalBossWaitT = 0, finalBossHintT = 0;
   let finalBossPos = null, finalBossEnt = null, victorySeq = null;
 
   function checkVictoryCondition() {
@@ -461,6 +546,9 @@
     STAGE_ENEMY = STAGE.enemy || {};
     const sourceStart = STAGE.start || { x: 1350, y: 900 };
     START = {x:sourceStart.x,y:sourceStart.y*worldSpacingScaleY()};
+    // The original rain-port start at y=900 is outside the 180..780 walkable belt.
+    // Correct only the opt-in S2 art test, without moving the deployed gameplay start.
+    if (STAGE.id === "rain-port" && window.isS2ArtProdEnabled?.()) START.y = 480;
     DAWN = STAGE_PACING.runSeconds || CFG.RUN_SECONDS;
     GOAL_DELIVERIES = STAGE_PACING.goalDeliveries || CFG.GOAL_DELIVERIES;
     BOSS_TIMES = STAGE_PACING.bossTimes || CFG.BOSS_TIMES;
@@ -493,13 +581,41 @@
     replaceList(houses, snapshot.houses);
     replaceList(solids, snapshot.solids);
     replaceList(LAMPS, snapshot.lamps);
+    // rain-port 戰鬥帶 Y 邊界（minY..maxY），其他關為 null —— 共享 let runBounds
+    runBounds = snapshot.bounds;
+    // 燈籠腳底 solid：腳點在 l.y+8，寬 44，供碰撞/避障/no-spawn 使用
+    // 不新增燈籠、不改圖，只用既有 WORLD lamps 列表
+    const lampSolids = LAMPS.map(l => ({
+      x0: l.x - 22,
+      x1: l.x + 22,
+      y0: l.y + 8 - 22,
+      y1: l.y + 8 + 22,
+      chunkKey: l.chunkKey || null,
+      isLamp: true
+    }));
+    // 合併到 solids（house 優先，燈籠補足），避免重複位置常數
+    solids.push(...lampSolids);
+    // 不再用巨寬 solid 偽裝無限 X；blocked 直接用 runBounds 做半徑判 Y
     worldSyncSignature = signature;
   }
-  const WL = { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 };
+  const WL = { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 };
   let buildRevision = 1;
   let buildMutations = [];
   let buildCharms = [];
+  let charmLevels = {};
+  let charmDrops = [];
+  let charmDropSeq = 0;
+  let pendingCharmOffer = null;
+  let charmSwapHits = [];
   let buildDuos = [];
+  let fusionToken = null;
+  let fusionFocus = 0;
+  let fusionEffects = [];
+  let fusionStats = { casts: 0, directDmg: 0, scorchDmg: 0, byKind: {} };
+  let pendingFusionCompensation = false;
+  let isFreeCompensationChoice = false;
+  let fusionOpenedEpoch = 0;
+  let fusionOpenedRevision = 0;
 
   const CHARM_CONFIG = {
     charm_power: {
@@ -510,8 +626,8 @@
       levelText: "◆ 御守加持",
       d: "對已持有技能增加小幅基礎傷害（+0.20）；次級傷害不再次乘算",
       requirementText: "御守槽位未滿（最多 3 種）",
-      limitText: "每局最多佩戴 3 款不同御守（不可重複取得）",
-      inPool: true
+      limitText: "每局最多佩戴 3 款不同御守（同種可升至 Lv3）",
+      inPool: false
     },
     charm_step: {
       id: "charm_step",
@@ -521,8 +637,8 @@
       levelText: "◆ 御守加持",
       d: "提升移動速度（+28 px/s），採單一集中參數；無穿牆、無無敵",
       requirementText: "御守槽位未滿（最多 3 種）",
-      limitText: "每局最多佩戴 3 款不同御守（不可重複取得）",
-      inPool: true
+      limitText: "每局最多佩戴 3 款不同御守（同種可升至 Lv3）",
+      inPool: false
     },
     charm_gather: {
       id: "charm_gather",
@@ -532,8 +648,8 @@
       levelText: "◆ 御守加持",
       d: "擴大靈玉拾取吸收半徑（+75 px）；不增產量、不自動完成送貨",
       requirementText: "御守槽位未滿（最多 3 種）",
-      limitText: "每局最多佩戴 3 款不同御守（不可重複取得）",
-      inPool: true
+      limitText: "每局最多佩戴 3 款不同御守（同種可升至 Lv3）",
+      inPool: false
     },
     charm_cadence: {
       id: "charm_cadence",
@@ -543,8 +659,8 @@
       levelText: "◆ 御守加持",
       d: "妖刀、靈陣、靈針攻擊冷卻小幅縮短（有效頻率 +0.25）；保留每招冷卻下限與 Lv5 固有節奏，不加速雷雲、火龍或時鐘",
       requirementText: "御守槽位未滿（最多 3 種）",
-      limitText: "每局最多佩戴 3 款不同御守（不可重複取得）",
-      inPool: true
+      limitText: "每局最多佩戴 3 款不同御守（同種可升至 Lv3）",
+      inPool: false
     },
     charm_reach: {
       id: "charm_reach",
@@ -554,8 +670,8 @@
       levelText: "◆ 御守加持",
       d: "妖刀、靈陣、靈針射程與符咒爆炸半徑 +10%；飛行物同步射程快照，保留 Lv5 上限與安全區判定",
       requirementText: "御守槽位未滿（最多 3 種）",
-      limitText: "每局最多佩戴 3 款不同御守（不可重複取得）",
-      inPool: true
+      limitText: "每局最多佩戴 3 款不同御守（同種可升至 Lv3）",
+      inPool: false
     },
     charm_guard: {
       id: "charm_guard",
@@ -565,8 +681,8 @@
       levelText: "◆ 御守加持",
       d: "受創燈油損失減少 10%；護盾與無敵優先判定，小傷不歸零、不回油，不減免答題扣油",
       requirementText: "御守槽位未滿（最多 3 種）",
-      limitText: "每局最多佩戴 3 款不同御守（不可重複取得）",
-      inPool: true
+      limitText: "每局最多佩戴 3 款不同御守（同種可升至 Lv3）",
+      inPool: false
     }
   };
 
@@ -579,7 +695,7 @@
       s: "さんしゃ",
       cat: "【 共享變異 】",
       levelText: "◆ 共享變異",
-      d: "朝向多角度散射，發數增加且散射角擴大；單發傷害按發數比例分攤（每次施放總傷害預算上限控管）",
+      d: "多角度散射、發數增加；整輪名目總傷害提高 20%（單發按發數分配）",
       requirementText: "持有天狐靈針或陰陽符（取得其他適用技能後沿用）",
       limitText: "每種限選一次（每技能最多 3 種變異，取得其他適用技能後沿用）",
       inPool: true
@@ -631,7 +747,7 @@
       s: "せんぼん・おりかえし",
       cat: "【 靈針變異 】",
       levelText: "◆ 靈針變異",
-      d: "沿途累積位移達有限距離後單次折返飛回生成原點；回程不再轉向，往返同敵至多扣血一次，總壽命不延長且不額外生成新針",
+      d: "靈針單次折返，回程可對原目標額外命中一次，造成原傷害35%，不重複冰封",
       requirementText: "持有天狐靈針",
       limitText: "每種限選一次（每技能最多 3 種變異）",
       inPool: true
@@ -657,7 +773,7 @@
       s: "れいじん・みゃくどう",
       cat: "【 靈陣變異 】",
       levelText: "◆ 靈陣變異",
-      d: "一次大陣拆為兩次較小脈衝；兩次共享原傷害與控制預算，不重置受擊冷卻",
+      d: "靈陣保持原半徑，兩次脈衝各65%原傷害，完整命中總傷增加30%",
       requirementText: "持有淨化靈陣",
       limitText: "每種限選一次（每技能最多 3 種變異）",
       inPool: true
@@ -683,7 +799,7 @@
       s: "こか・へんしんりんどう",
       cat: "【 狐火變異 】",
       levelText: "◆ 狐火變異",
-      d: "狐火環繞半徑改為長短軸偏心橢圓（rx=126, ry=78），不增加火球數量與接觸傷害倍率，保持各級接觸與 Lv5 黑龍特性",
+      d: "狐火改為偏心橢圓軌道（rx=126, ry=78），接觸傷害+20%，Lv5黑龍傷害+15%，火球數不變",
       requirementText: "持有狐火",
       limitText: "每種限選一次（每技能最多 3 種變異）",
       inPool: true
@@ -815,11 +931,22 @@
     return false;
   }
 
+  const CHARM_IDS = ["charm_power", "charm_step", "charm_gather", "charm_cadence", "charm_reach", "charm_guard"];
+  const CHARM_MAX_LEVEL = 3;
+  const CHARM_SLOT_MAX = 3;
+  const CHARM_DROP_CAP = 24;
+  const CHARM_DROP_LIFE = 45;
+  const CHARM_DROP_PICKUP = 28;
+  const CHARM_NORMAL_CHANCE = 0.015;
+  const CHARM_ELITE_CHANCE = 0.02;
+  const CHARM_DROP_ART = "hud_omamori_hint_listen";
+
   function addCharm(id) {
     if (!CHARM_CONFIG[id]) return false;
     if (buildCharms.includes(id)) return false;
-    if (buildCharms.length >= 3) return false;
+    if (buildCharms.length >= CHARM_SLOT_MAX) return false;
     buildCharms.push(id);
+    charmLevels[id] = 1;
     buildRevision++;
     return true;
   }
@@ -828,39 +955,223 @@
     const idx = buildCharms.indexOf(id);
     if (idx >= 0) {
       buildCharms.splice(idx, 1);
+      delete charmLevels[id];
       buildRevision++;
       return true;
     }
     return false;
   }
 
-  function getEffectiveDmg(buildState = null) {
+  function resetCharmRun() {
+    buildCharms = [];
+    charmLevels = {};
+    charmDrops = [];
+    charmDropSeq = 0;
+    pendingCharmOffer = null;
+    charmSwapIndex = 0;
+    gpCharmDir = 0;
+    charmSwapHits = [];
+    // 重開／重置若發生在換守確認中，pending 已清空，必須把狀態放回 play，
+    // 否則 update 不會跑（state !== play early return），整局會卡死在換守畫面。
+    if (state === "charmswap") state = "play";
+  }
+
+  // 沒有 charmLevels 的舊 buildState 把已持有御守視為 Lv1，保住原本數值。
+  function charmLevelOf(id, buildState = null) {
     const charms = (buildState && Array.isArray(buildState.charms)) ? buildState.charms : buildCharms;
-    const powerBonus = charms.includes("charm_power") ? 0.20 : 0;
+    if (!charms.includes(id)) return 0;
+    const table = (buildState && buildState.charmLevels && typeof buildState.charmLevels === "object")
+      ? buildState.charmLevels
+      : (buildState ? null : charmLevels);
+    if (!table) return 1;
+    const raw = table[id];
+    const lv = Number.isFinite(raw) ? Math.floor(raw) : 1;
+    return Math.max(1, Math.min(CHARM_MAX_LEVEL, lv));
+  }
+
+  function charmDropChance(e) {
+    if (!e || e.type === "boss" || e.type === "mis") return 0;
+    if (e.elite === true || e.rank === "elite" || e.type === "tank") return CHARM_ELITE_CHANCE;
+    return CHARM_NORMAL_CHANCE;
+  }
+
+  function charmDropArt() {
+    const art = window.ART && window.ART[CHARM_DROP_ART];
+    if (!art || !art.complete || !(art.naturalWidth > 0) || !(art.naturalHeight > 0)) return null;
+    return art;
+  }
+
+  function spawnCharmDrop(x, y, charmId) {
+    while (charmDrops.length >= CHARM_DROP_CAP) charmDrops.shift();
+    const drop = {
+      id: ++charmDropSeq,
+      charmId,
+      x, y,
+      life: CHARM_DROP_LIFE
+    };
+    charmDrops.push(drop);
+    return drop;
+  }
+
+  function tryRollCharmDrop(e) {
+    if (!e || e.charmRolled) return null;
+    e.charmRolled = true;
+    const chance = charmDropChance(e);
+    if (!(chance > 0)) return null;
+    if (Math.random() >= chance) return null;
+    const charmId = CHARM_IDS[Math.floor(Math.random() * CHARM_IDS.length) % CHARM_IDS.length];
+    return spawnCharmDrop(e.x, e.y, charmId);
+  }
+
+  function paintCharmDrop(d) {
+    const art = charmDropArt();
+    if (!art || !d) return false;
+    const w = 40;
+    const h = w * art.naturalHeight / art.naturalWidth;
+    upright(d.x, d.y, () => {
+      ctx.drawImage(art, d.x - w / 2, d.y - h, w, h);
+    });
+    return true;
+  }
+
+  function charmViewList() {
+    return buildCharms.slice(0, CHARM_SLOT_MAX).map(id => ({
+      id,
+      name: CHARM_CONFIG[id]?.n || id,
+      level: charmLevelOf(id),
+      maxLevel: CHARM_MAX_LEVEL
+    }));
+  }
+
+  function charmPendingView() {
+    if (!pendingCharmOffer) return null;
+    const id = pendingCharmOffer.id;
+    return { id, name: CHARM_CONFIG[id]?.n || pendingCharmOffer.name || id, level: 1 };
+  }
+
+  function openCharmSwap(id) {
+    pendingCharmOffer = { id, name: CHARM_CONFIG[id]?.n || id };
+    charmSwapIndex = 0;
+    gpCharmDir = 0;
+    state = "charmswap";
+    keys.clear();
+    heldCodes.clear();
+    joy = null;
+  }
+
+  function closeCharmSwap() {
+    pendingCharmOffer = null;
+    charmSwapIndex = 0;
+    gpCharmDir = 0;
+    if (state === "charmswap") state = "play";
+  }
+
+  function resolveCharmSwap(action) {
+    if (state !== "charmswap" || !pendingCharmOffer) return false;
+    if (action === "cancel") {
+      // 返回：不丟棄，把御守放回腳邊；離開拾取範圍再靠近才會重新詢問。
+      const drop = spawnCharmDrop(P.x, P.y, pendingCharmOffer.id);
+      drop.holdUntilLeave = true;
+      closeCharmSwap();
+      return true;
+    }
+    if (action === "discard") {
+      say(`放棄 ${pendingCharmOffer.name}`, P.x, P.y - 45, "#ffe9a0");
+      closeCharmSwap();
+      return true;
+    }
+    const index = action === "confirm" ? charmSwapIndex : action;
+    if (!Number.isInteger(index) || index < 0 || index >= buildCharms.length || index >= CHARM_SLOT_MAX) return false;
+    const incoming = pendingCharmOffer.id;
+    const removed = buildCharms[index];
+    buildCharms[index] = incoming;
+    if (removed && removed !== incoming) delete charmLevels[removed];
+    charmLevels[incoming] = 1;
+    buildRevision++;
+    say(`換上 ${CHARM_CONFIG[incoming]?.n || incoming}`, P.x, P.y - 45, "#ffe9a0");
+    closeCharmSwap();
+    return true;
+  }
+
+  function acceptCharm(id) {
+    if (!CHARM_CONFIG[id]) return "invalid";
+    if (buildCharms.includes(id)) {
+      const lv = charmLevelOf(id);
+      if (lv >= CHARM_MAX_LEVEL) return "max";
+      charmLevels[id] = lv + 1;
+      buildRevision++;
+      say(`${CHARM_CONFIG[id].n} Lv${charmLevels[id]}`, P.x, P.y - 45, "#ffe9a0");
+      return "upgrade";
+    }
+    if (buildCharms.length >= CHARM_SLOT_MAX) return "swap";
+    buildCharms.push(id);
+    charmLevels[id] = 1;
+    buildRevision++;
+    say(`拾取 ${CHARM_CONFIG[id].n}`, P.x, P.y - 45, "#ffe9a0");
+    return "equip";
+  }
+
+  function updateCharmDrops(dt) {
+    for (const d of charmDrops) {
+      d.life -= dt;
+      if (d.life <= 0 || dist(P, d) > GEM_DISTANCE) {
+        d.done = true;
+        continue;
+      }
+      if (pendingCharmOffer || state !== "play") continue;
+      if (d.holdUntilLeave) {
+        if (dist(P, d) >= CHARM_DROP_PICKUP * 1.5) d.holdUntilLeave = false;
+        continue;
+      }
+      if (dist(P, d) >= CHARM_DROP_PICKUP) continue;
+      const result = acceptCharm(d.charmId);
+      if (result === "swap") {
+        d.done = true;
+        openCharmSwap(d.charmId);
+        continue;
+      }
+      if (result !== "invalid") {
+        d.done = true;
+        HAPTICS.pickup?.();
+      }
+    }
+    if (charmDrops.length > CHARM_DROP_CAP) charmDrops.splice(0, charmDrops.length - CHARM_DROP_CAP);
+    charmDrops = charmDrops.filter(d => !d.done);
+  }
+
+  function charmGuardOilLoss(amount) {
+    const lv = charmLevelOf("charm_guard");
+    if (lv <= 0) return amount;
+    const mul = 1 - 0.10 * lv;
+    return Math.min(amount, Math.max(Number.MIN_VALUE, parseFloat((amount * mul).toPrecision(12))));
+  }
+
+  function getEffectiveDmg(buildState = null) {
+    const powerBonus = charmLevelOf("charm_power", buildState) * 0.20;
     return (b.dmg || 1) + powerBonus;
   }
 
   function getEffectiveMoveSpeed(buildState = null) {
-    const charms = (buildState && Array.isArray(buildState.charms)) ? buildState.charms : buildCharms;
-    const stepBonus = charms.includes("charm_step") ? 28 : 0;
+    // 神足草履只計 b.spd×35；風步守只計每級 +28。兩段相加，不把御守乘進草履層數。
+    const stepBonus = charmLevelOf("charm_step", buildState) * 28;
     return 230 + (b.spd || 0) * 35 + stepBonus;
   }
 
   function getEffectiveMagnetRadius(buildState = null) {
-    const charms = (buildState && Array.isArray(buildState.charms)) ? buildState.charms : buildCharms;
-    const gatherBonus = charms.includes("charm_gather") ? 75 : 0;
-    return magnetRadius(b.mag) + gatherBonus;
+    const gatherBonus = charmLevelOf("charm_gather", buildState) * 75;
+    // 第二關 Normal 可移動中拾取經驗，不影響第一關或原 Hard。
+    const portNormalBonus = STAGE.id === "rain-port" && STAGE.pacing?.mobDifficulty !== "hard" ? 70 : 0;
+    return magnetRadius(b.mag) + portNormalBonus + gatherBonus;
   }
 
   function getEffectiveRate(buildState = null) {
-    const charms = (buildState && Array.isArray(buildState.charms)) ? buildState.charms : buildCharms;
-    const cadenceBonus = charms.includes("charm_cadence") ? 0.25 : 0;
+    const cadenceBonus = charmLevelOf("charm_cadence", buildState) * 0.25;
     return (b.rate || 0) + cadenceBonus;
   }
 
   function getEffectiveReachMultiplier(buildState = null) {
-    const charms = (buildState && Array.isArray(buildState.charms)) ? buildState.charms : buildCharms;
-    return charms.includes("charm_reach") ? 1.10 : 1.0;
+    const lv = charmLevelOf("charm_reach", buildState);
+    return lv > 0 ? 1 + 0.10 * lv : 1.0;
   }
 
   function applyFrost(e, now, volley = null) {
@@ -882,7 +1193,10 @@
     return {
       schemaVersion: 1,
       activeSkills,
+      WL: { ...WL },
+      ownedActiveCount: activeSkills.length,
       charms: [...buildCharms],
+      charmLevels: Object.fromEntries(buildCharms.map(id => [id, charmLevelOf(id)])),
       mutations: [...buildMutations],
       duos: [...buildDuos]
     };
@@ -965,7 +1279,7 @@
 
       const count = hasFan ? rawCount + 3 : rawCount;
       const spread = hasFan ? rawSpread + 0.35 : rawSpread;
-      const perShotScale = hasFan ? 0.72 : 1.0;
+      const perShotScale = hasFan ? Number(((rawCount * 1.20) / count).toFixed(4)) : 1.0;
       const baseDamage = Number((rawBaseDamage * perShotScale).toFixed(4));
       const damage = baseDamage * baseDmg;
 
@@ -1054,8 +1368,8 @@
       const hasPulse = mutations.includes("mut_pulse");
       const pulseCount = hasPulse ? 2 : 1;
       const pulseDelay = 0.18;
-      const pulseScale = hasPulse ? 0.50 : 1.0;
-      const radius = hasPulse ? Math.round(baseRadius * 0.85) : baseRadius;
+      const pulseScale = hasPulse ? 0.65 : 1.0;
+      const radius = baseRadius;
       const damage = Number((baseDamage * pulseScale).toFixed(4));
       const fullKnockback = level >= 4 ? 50 + level * 10 : 0;
       const knockback = hasPulse ? Math.round(fullKnockback * 0.50) : fullKnockback;
@@ -1160,14 +1474,14 @@
       const ry = hasOrbit ? 78 : 98;
       const angularSpeed = 2.8;
       const hitInterval = 0.42;
-      const contactDamage = Number(((1.2 + level * 0.6) * baseDmg).toFixed(4));
+      const contactDamage = Number(((1.2 + level * 0.6) * baseDmg * (hasOrbit ? 1.20 : 1)).toFixed(4));
       const attackCount = window.EVOLUTIONS?.fireAttackCount ? window.EVOLUTIONS.fireAttackCount(level) : [0, 0, 0, 1, 0][Math.max(0, Math.min(4, level - 1))];
       const spiritDamage = Number(((2.1 + (level || 1) * 0.9) * baseDmg).toFixed(4));
       const spiritCooldown = window.EVOLUTIONS?.fireAttackCooldown ? window.EVOLUTIONS.fireAttackCooldown(level) : [2.5, 2.2, 1.9, 1.55, 1.05][Math.max(0, Math.min(4, level - 1))];
       const cooldown = isAwakened ? 7.2 : spiritCooldown;
-      const dragonDirectDmg = Number((12 * baseDmg).toFixed(4));
-      const dragonSplashDmg = Number((4 * baseDmg).toFixed(4));
-      const dragonScorchDmg = Number((1.8 * baseDmg).toFixed(4));
+      const dragonDirectDmg = Number((12 * baseDmg * (hasOrbit ? 1.15 : 1)).toFixed(4));
+      const dragonSplashDmg = Number((4 * baseDmg * (hasOrbit ? 1.15 : 1)).toFixed(4));
+      const dragonScorchDmg = Number((1.8 * baseDmg * (hasOrbit ? 1.15 : 1)).toFixed(4));
       const scorchDuration = 5;
       const scorchRadius = 140;
 
@@ -1234,8 +1548,8 @@
       const bossFrostThreshold = 3;
 
       const count = hasFan ? Math.min(6, baseCount + 2) : baseCount;
-      const damage = hasFan ? ((baseDamage * baseCount) / count) : baseDamage;
-      const splashDamage = hasFan ? ((baseSplashDamage * baseCount) / count) : baseSplashDamage;
+      const damage = hasFan ? ((baseDamage * baseCount * 1.20) / count) : baseDamage;
+      const splashDamage = hasFan ? ((baseSplashDamage * baseCount * 1.20) / count) : baseSplashDamage;
 
       const splitblastDelay = 0.18;
       const splitblastRadiusScale = 0.55;
@@ -1301,6 +1615,282 @@
         mutations: [...mutations]
       };
     }
+    // 融合武器：墨焰斬
+    if (skillId === "fusion_inkblade") {
+      const isAwakened = true; // 融合武器即為覺醒狀態
+      const baseDmg = getEffectiveDmg(buildState);
+      const reachMult = getEffectiveReachMultiplier(buildState);
+      const baseReach = 280;
+      const reach = Math.round(baseReach * reachMult);
+      const cooldown = 1.2;
+      const slashDmg = Number((baseDmg * 10.5).toFixed(2));
+      const mutations = (buildState && Array.isArray(buildState.mutations))
+        ? buildState.mutations
+        : buildMutations;
+      const hasCrosscut = mutations.includes("mut_crosscut");
+      const crosscutDmg = Number((baseDmg * 1.5).toFixed(2));
+      const critLvl = typeof options.critLvl === "number"
+        ? options.critLvl
+        : (buildState?.passives?.crit ?? b.crit ?? 0);
+      const critChance = Math.min(0.5, 0.2 + (buildState?.passives?.crit ?? b.crit ?? 0) * 0.15);
+      return {
+        skillId: "fusion_inkblade",
+        level: 1,
+        isAwakened: true,
+        reach,
+        cooldown,
+        slashDmg,
+        arc: 2.0, // 114.6度扇形 (2.0 rad)
+        maxTargets: 6,
+        scorchDuration: 2.5,
+        scorchRadius: 80,
+        critChance,
+        critMult: 1.8,
+        source: "fusion",
+        derivationDepth: 0
+      };
+    }
+    // 融合武器：雷狐居合
+    if (skillId === "fusion_foxiai") {
+      const baseDmg = getEffectiveDmg(buildState);
+      const reachMult = getEffectiveReachMultiplier(buildState);
+      const critLvl = typeof options.critLvl === "number"
+        ? options.critLvl
+        : (buildState?.passives?.crit ?? b.crit ?? 0);
+      return {
+        skillId: "fusion_foxiai",
+        level: 1,
+        isAwakened: true,
+        reach: Math.round(360 * reachMult),
+        hitWidth: 64,
+        cooldown: 1.6,
+        warn: 0.18,
+        damage: Number((baseDmg * 21).toFixed(2)),
+        maxTargets: 4,
+        critChance: Math.min(0.5, 0.2 + critLvl * 0.15),
+        critMult: 1.8,
+        source: "fusion",
+        derivationDepth: 0
+      };
+    }
+    // 融合武器：退魔符刃
+    if (skillId === "fusion_exorcistblade") {
+      const baseDmg = getEffectiveDmg(buildState);
+      const reachMult = getEffectiveReachMultiplier(buildState);
+      const critLvl = typeof options.critLvl === "number"
+        ? options.critLvl
+        : (buildState?.passives?.crit ?? b.crit ?? 0);
+      return {
+        skillId: "fusion_exorcistblade",
+        level: 1,
+        isAwakened: true,
+        reach: Math.round(240 * reachMult),
+        arc: 1.6,
+        cooldown: 1.7,
+        warn: 0.1,
+        slashDmg: Number((baseDmg * 14).toFixed(2)),
+        burstDmg: Number((baseDmg * 8).toFixed(2)),
+        burstRadius: 72,
+        markDelay: 0.28,
+        maxTargets: 4,
+        burstMaxTargets: 3,
+        critChance: Math.min(0.5, 0.2 + critLvl * 0.15),
+        critMult: 1.8,
+        source: "fusion",
+        derivationDepth: 0
+      };
+    }
+    // 融合武器：妖火結界
+    if (skillId === "fusion_foxfirebarrier") {
+      const baseDmg = getEffectiveDmg(buildState);
+      const reachMult = getEffectiveReachMultiplier(buildState);
+      const critLvl = typeof options.critLvl === "number"
+        ? options.critLvl
+        : (buildState?.passives?.crit ?? b.crit ?? 0);
+      return {
+        skillId: "fusion_foxfirebarrier",
+        level: 1,
+        isAwakened: true,
+        radius: Math.round(150 * reachMult),
+        cooldown: 2.5,
+        warn: 0.12,
+        duration: 1.75,
+        pulses: 4,
+        pulseInterval: 0.35,
+        firstPulse: 0.12,
+        damage: Number((baseDmg * 8).toFixed(2)),
+        maxTargets: 6,
+        knockback: 70,
+        critChance: Math.min(0.5, 0.2 + critLvl * 0.15),
+        critMult: 1.8,
+        source: "fusion",
+        derivationDepth: 0
+      };
+    }
+    // 融合武器：退魔封陣
+    if (skillId === "fusion_exorcistseal") {
+      const baseDmg = getEffectiveDmg(buildState);
+      const reachMult = getEffectiveReachMultiplier(buildState);
+      const critLvl = typeof options.critLvl === "number"
+        ? options.critLvl
+        : (buildState?.passives?.crit ?? b.crit ?? 0);
+      return {
+        skillId: "fusion_exorcistseal",
+        level: 1,
+        isAwakened: true,
+        castRange: Math.round(190 * reachMult),
+        radius: Math.round(110 * reachMult),
+        cooldown: 2.0,
+        warn: 0.35,
+        duration: 1.15,
+        pulses: 4,
+        pulseInterval: 0.15,
+        firstPulse: 0.35,
+        damage: Number((baseDmg * 7.5).toFixed(2)),
+        maxTargets: 6,
+        critChance: Math.min(0.5, 0.2 + critLvl * 0.15),
+        critMult: 1.8,
+        source: "fusion",
+        derivationDepth: 0
+      };
+    }
+    // 融合武器：斬界輪（妖刀＋靈陣）
+    if (skillId === "fusion_slashwheel") {
+      const baseDmg = getEffectiveDmg(buildState);
+      const reachMult = getEffectiveReachMultiplier(buildState);
+      const critLvl = typeof options.critLvl === "number"
+        ? options.critLvl
+        : (buildState?.passives?.crit ?? b.crit ?? 0);
+      return {
+        skillId: "fusion_slashwheel",
+        level: 1,
+        isAwakened: true,
+        cooldown: 2.0,
+        expandTime: 0.45,
+        radius: Math.round(320 * reachMult),
+        bands: [
+          { at: Math.round(150 * reachMult), damage: Number((baseDmg * 9).toFixed(2)), maxTargets: 5 },
+          { at: Math.round(320 * reachMult), damage: Number((baseDmg * 6.5).toFixed(2)), maxTargets: 5 }
+        ],
+        critChance: Math.min(0.5, 0.2 + critLvl * 0.15),
+        critMult: 1.8,
+        source: "fusion",
+        derivationDepth: 0
+      };
+    }
+    // 融合武器：狐雷天燈（狐火＋天狐雷）
+    if (skillId === "fusion_foxthunderlantern") {
+      const baseDmg = getEffectiveDmg(buildState);
+      const reachMult = getEffectiveReachMultiplier(buildState);
+      const critLvl = typeof options.critLvl === "number"
+        ? options.critLvl
+        : (buildState?.passives?.crit ?? b.crit ?? 0);
+      return {
+        skillId: "fusion_foxthunderlantern",
+        level: 1,
+        isAwakened: true,
+        cooldown: 2.4,
+        count: 3,
+        lockRange: Math.round(360 * reachMult),
+        strikeRadius: 64,
+        warn: 0.5,
+        damage: Number((baseDmg * 8.5).toFixed(2)),
+        maxTargets: 3,
+        splashScale: 0.5,
+        critChance: Math.min(0.5, 0.2 + critLvl * 0.15),
+        critMult: 1.8,
+        source: "fusion",
+        derivationDepth: 0
+      };
+    }
+    // 融合武器：炎符祭（狐火＋陰陽符）
+    if (skillId === "fusion_flamefestival") {
+      const baseDmg = getEffectiveDmg(buildState);
+      const reachMult = getEffectiveReachMultiplier(buildState);
+      const critLvl = typeof options.critLvl === "number"
+        ? options.critLvl
+        : (buildState?.passives?.crit ?? b.crit ?? 0);
+      return {
+        skillId: "fusion_flamefestival",
+        level: 1,
+        isAwakened: true,
+        cooldown: 2.2,
+        count: 4,
+        range: Math.round(320 * reachMult),
+        landRadius: 62,
+        damage: Number((baseDmg * 7).toFixed(2)),
+        maxTargets: 3,
+        warn: 0.18,
+        emberTicks: 2,
+        emberInterval: 0.35,
+        emberRadius: 48,
+        emberDamage: Number((baseDmg * 3).toFixed(2)),
+        emberMaxTargets: 2,
+        critChance: Math.min(0.5, 0.2 + critLvl * 0.15),
+        critMult: 1.8,
+        source: "fusion",
+        derivationDepth: 0
+      };
+    }
+    // 融合武器：雷符神罰（天狐雷＋陰陽符）
+    if (skillId === "fusion_thundertalisman") {
+      const baseDmg = getEffectiveDmg(buildState);
+      const reachMult = getEffectiveReachMultiplier(buildState);
+      const critLvl = typeof options.critLvl === "number"
+        ? options.critLvl
+        : (buildState?.passives?.crit ?? b.crit ?? 0);
+      return {
+        skillId: "fusion_thundertalisman",
+        level: 1,
+        isAwakened: true,
+        cooldown: 2.4,
+        count: 5,
+        range: Math.round(300 * reachMult),
+        strikeRadius: 70,
+        warn: 0.36,
+        damage: Number((baseDmg * 6.5).toFixed(2)),
+        maxTargets: 4,
+        chainRadius: 130,
+        chainScale: 0.5,
+        chainMax: 1,
+        critChance: Math.min(0.5, 0.2 + critLvl * 0.15),
+        critMult: 1.8,
+        source: "fusion",
+        derivationDepth: 0
+      };
+    }
+    // 融合武器：雷陣封界（靈陣＋天狐雷；陣域脈衝＋定點警示落雷）
+    if (skillId === "fusion_thundercircle") {
+      const isAwakened = true;
+      const baseDmg = getEffectiveDmg(buildState);
+      const reachMult = getEffectiveReachMultiplier(buildState);
+      const cooldown = 2.2;
+      const radius = Math.round(240 * getEffectiveReachMultiplier(buildState));
+      const pulseInterval = 0.8;
+      const pulseCount = 5;
+      const pulseDamage = baseDmg * 2.0;
+      const pulseRadius = 90;
+      const critLvl = typeof options.critLvl === "number"
+        ? options.critLvl
+        : (buildState?.passives?.crit ?? b.crit ?? 0);
+      const critChance = Math.min(0.5, 0.2 + (buildState?.passives?.crit ?? b.crit ?? 0) * 0.15);
+      return {
+        skillId: "fusion_thundercircle",
+        level: 1,
+        isAwakened: true,
+        cooldown,
+        radius,
+        pulseInterval,
+        pulseCount,
+        pulseDamage,
+        pulseRadius,
+        pulseWarning: 0.6, // 預警時間
+        critChance,
+        critMult: 1.8,
+        source: "fusion",
+        derivationDepth: 0
+      };
+    }
     return {
       skillId,
       level,
@@ -1315,7 +1905,18 @@
     fire: { id: "fire", jp: "きつねび", zh: "狐火炎", type: "active", category: "烈焰火把", desc: "周身飛旋烈焰火把，高速甩擊灼燒貼身妖怪" },
     boom: { id: "boom", jp: "おふだ", zh: "陰陽符", type: "active", category: "延爆咒符", desc: "擲出符咒黏住妖怪，稍後爆炸；周圍受到濺射並震退" },
     thunder: { id: "thunder", jp: "いかずち", zh: "天狐雷", type: "active", category: "天罰落雷", desc: "固定係數落雷。Lv4 鎖定三個威脅，覺醒為三朵雷雲，不依生命秒殺" },
-    needle: { id: "needle", jp: "せんぼん", zh: "天狐靈針", type: "active", category: "高速靈針", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪" }
+    needle: { id: "needle", jp: "せんぼん", zh: "天狐靈針", type: "active", category: "高速靈針", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪" },
+    // 融合武器（十組 registry；全部都有真攻擊 consumer）
+    fusion_inkblade: { id: "fusion_inkblade", jp: "ぼくえんざん", zh: "墨焰斬", type: "active", category: "融合・扇形斬", desc: "大型扇形墨焰斬，命中留下短暫地面灼燒；妖刀與狐火共鳴覺醒" },
+    fusion_foxiai: { id: "fusion_foxiai", jp: "らいこいあい", zh: "雷狐居合", type: "active", category: "融合・雷斬", desc: "短預警後前向線性雷斬，穿過有限目標，每 cast 同敵一次" },
+    fusion_exorcistblade: { id: "fusion_exorcistblade", jp: "たいまふとう", zh: "退魔符刃", type: "active", category: "融合・符刃", desc: "前向刀斬附符印、有限延遲符爆，命中與符爆各自快照" },
+    fusion_foxfirebarrier: { id: "fusion_foxfirebarrier", jp: "ようかけっかい", zh: "妖火結界", type: "active", category: "融合・火域", desc: "施放點短時燃燒結界、有限週期脈衝，首碰擊退尋常妖怪" },
+    fusion_exorcistseal: { id: "fusion_exorcistseal", jp: "たいまふうじん", zh: "退魔封陣", type: "active", category: "融合・封陣", desc: "前方固定落點預警後有限多段符爆陣，不永久控制 Boss" },
+    fusion_thundercircle: { id: "fusion_thundercircle", jp: "らいじんふうかい", zh: "雷陣封界", type: "active", category: "融合・雷域", desc: "大型陣域脈衝定點引雷，在陣域內有節奏地多次擊中並可閃避警示；靈陣與天狐雷共鳴覺醒" },
+    fusion_slashwheel: { id: "fusion_slashwheel", jp: "ざんかいりん", zh: "斬界輪", type: "active", category: "融合・斬環", desc: "高速擴散內外雙斬環，各環每敵一次；妖刀與靈陣共鳴覺醒" },
+    fusion_foxthunderlantern: { id: "fusion_foxthunderlantern", jp: "こらいてんとう", zh: "狐雷天燈", type: "active", category: "融合・雷燈", desc: "三盞雷光燈籠鎖定目標、預警後定點落雷；狐火與天狐雷共鳴覺醒" },
+    fusion_flamefestival: { id: "fusion_flamefestival", jp: "えんぷさい", zh: "炎符祭", type: "active", category: "融合・火符", desc: "四枚火符交錯飛散、依序引爆並留短燼；狐火與陰陽符共鳴覺醒" },
+    fusion_thundertalisman: { id: "fusion_thundertalisman", jp: "らいふしんばつ", zh: "雷符神罰", type: "active", category: "融合・雷符", desc: "五枚雷符交錯落定、預警落雷並單次連鎖；天狐雷與陰陽符共鳴覺醒" },
   };
 
   const WEAPON_UPGRADES = {
@@ -1324,12 +1925,23 @@
     fire:["一顆狐火環繞護身，僅接觸周遭妖怪","兩顆狐火環繞護身，不主動飛出","三顆狐火環繞護身，不主動飛出","三顆護火，其中一顆離體追敵後回歸","覺醒・墨焰黑龍：三顆護火，每 7.2 秒一條黑龍（露臉 1.5 秒＋退場後 5 秒）；不再離體。每次三球、五秒焦土最多三處"],
     boom:["單符黏附後延遲爆炸；本體全傷，周圍濺射並震退","一次擲出 2 枚符咒","三符齊射，冷卻縮短","四符齊射，爆炸範圍加大","覺醒・兩儀延爆：兩枚符咒，爆炸範圍最大"],
     thunder:["190 範圍內攻擊最近 1 隻，傷害 2 倍係數","270 範圍內同時攻擊 2 隻，傷害 3 倍係數","350 範圍內同時攻擊 3 隻，傷害 4.5 倍係數，不依生命秒殺","450 範圍內鎖定 3 個威脅，固定 6 倍係數","覺醒・建御雷神破界天罰：450 範圍內三朵雷雲，每朵半徑 90、8 倍係數"],
-    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階弧線射出","覺醒・九尾極寒靈暴：八發追蹤冰針，單層殉爆最多再命中 3 隻，不連鎖"]
+    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階弧線射出","覺醒・九尾極寒靈暴：八發追蹤冰針，單層殉爆最多再命中 3 隻，不連鎖"],
+    // 融合武器升級描述（Lv1 即完成形，描述供圖鑑/確認畫面）
+    fusion_inkblade:["融合・墨焰斬：大型扇形墨焰斬，命中留下短暫地面灼燒；妖刀與狐火共鳴覺醒","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・墨焰斬：扇形 114.6°、半徑 280、地面灼燒 2.5 秒、冷卻 1.2 秒、直接斬擊與地面焦痕雙段傷害"],
+    fusion_thundercircle:["融合・雷陣封界：大型陣域脈衝定點引雷，在陣域內有節奏地多次擊中並可閃避警示","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・雷陣封界：陣域半徑 240、脈衝間隔 0.8 秒、落雷預警 0.6 秒、命中去重 0.3 秒"],
+    fusion_foxiai:["融合・雷狐居合：短預警前向線性雷斬，穿過有限目標","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・雷狐居合：前向雷斬、每 cast 同敵一次、短預警、有限穿透"],
+    fusion_exorcistblade:["融合・退魔符刃：前向斬附符印，短延遲符爆","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・退魔符刃：每 cast 斬擊與符爆快照分開，符爆上限 4 印"],
+    fusion_foxfirebarrier:["融合・妖火結界：施放點短時燃燒結界","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・妖火結界：max1 域、4 段脈衝、首碰擊退尋常妖怪"],
+    fusion_exorcistseal:["融合・退魔封陣：前方固定落點預警後多段符爆","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・退魔封陣：固定落點、有限多段符爆、Boss 不受永久控制"],
+    fusion_slashwheel:["融合・斬界輪：高速擴散內外雙斬環","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・斬界輪：雙環各每敵一次、半徑 320、冷卻 2.0 秒"],
+    fusion_foxthunderlantern:["融合・狐雷天燈：三盞雷光燈籠鎖定落雷","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・狐雷天燈：三燈各一擊、落點預警 0.5 秒、單燈最多 3 體"],
+    fusion_flamefestival:["融合・炎符祭：四枚火符交錯引爆留燼","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・炎符祭：四符依序引爆、每符 2 次短燼、派生上限固定"],
+    fusion_thundertalisman:["融合・雷符神罰：五枚雷符落定引雷連鎖","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・雷符神罰：五符各一擊、單次連鎖、Boss 不受控"],
   };
 
   let proj = [], needles = [], winds = [], ghosts = [], dragonShots = [], dragonScorches = [], crosscuts = [], barrierPulses = [], sacredSanctuary = null, splitblasts = [], duoShockwaves = [], inkfireMarks = [], surgeT = SURGE_FIRST, fAng = 0, fireEmitT = 0, fireSfxT = 0, fireAttackT = 0;
   let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1;
-  const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0, fire: 0 };
+  const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0, fire: 0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 };
 
   const UP = [
     { id: "shield", n: "金剛結界", s: "けっかい", cat: "防禦生存", d: "召喚金剛勾玉護盾，抵擋 2 次受傷（可疊加）", f: () => { b.shield = Math.min(6, (b.shield || 0) + 2); }, ok: () => (b.shield || 0) < 6 },
@@ -1373,7 +1985,7 @@
     const key = window.CARD_COLLECTION && typeof window.CARD_COLLECTION.wordKey === "function"
       ? window.CARD_COLLECTION.wordKey(word && word.jp)
       : (word && word.jp) || "word";
-    return `delivery:${STAGE.id}:${key}:${deliveryEventSeq}`;
+    return `delivery:${STAGE.id}:${(window.CARD_DELIVERY && window.CARD_DELIVERY.SESSION_ID) || "s"}:${key}:${deliveryEventSeq}`;
   }
 
   function stampDeliveryCard(job, pos) {
@@ -1446,16 +2058,84 @@
     // 詞先決定，再盡量送到教同一個詞的町屋；沒有對應房子時仍用這個詞。
     const openHouses = candidateHouses.filter(h => !busy.has(h.id));
     const matching = openHouses.filter(h => h.word && h.word.jp === chosenWord.jp);
-    const from = pick(matching.length ? matching : openHouses);
-    if (!from) return;
+
+    // rain-port：大幅拉長取件→送達水平距離（3~8棟房屋跨度，常見 4~7）
+    // 房屋間距約 300~400px，目標水平跨度 900~3200px（常見 1200~2800）
+    // 送達→下一取貨也拉開（3~6屋），遠近交錯、跨chunk不丟目標
+    const isRainPort = STAGE.id === "rain-port";
+    let from = null;
+
+if (isRainPort) {
+      // rain-port：取件點根據上次送達位置選擇（遠離上次送達點，3~8屋跨度，常見 4~7）
+      const referenceX = lastDeliveryX !== null ? lastDeliveryX : P.x;
+      const minH = 900, maxH = 3200, comMinH = 1200, comMaxH = 2800;
+      // 最少中間屋數：3棟（硬性門檻），目標 4 棟
+      const minBetweenHouses = 3;
+      const targetBetweenHouses = 4;
+
+      // 屋列口徑：已批准為「沿途所有真 chunk 的房屋、50px X 列去重、兩端不計」。
+      // 原本只用「目前已載入 chunk」的 houses 計數，會漏算中間未載入的屋列，
+      // 讓 2 屋列的取貨點被當成合格；這裡改用與驗收同一口徑的階段級屋列。
+      const colsBetween = (a, b) => houseColumnsBetween(a, b);
+
+      // 第一優先：按中間屋數篩選（硬性門檻）；同屋/同列因屋列數為 0 自然被排除
+      let reachable = houses.filter(h => colsBetween(h.x, referenceX) >= minBetweenHouses);
+      // 第二優先：在達到最少屋數的基礎上，偏好目標屋數範圍
+      const preferred = reachable.filter(h => colsBetween(h.x, referenceX) >= targetBetweenHouses && colsBetween(h.x, referenceX) <= 8);
+      // 第三優先：像素距離輔助篩選（避免過遠導致跨太多 chunk）
+      const pixelFiltered = (preferred.length ? preferred : reachable).filter(h => {
+        const dx = Math.abs(h.x - referenceX);
+        return dx >= minH && dx <= maxH;
+      });
+      // 兜底：即使放寬像素距離，也必須守住同一條硬門檻（>=3 屋列，避免同屋/鄰屋/2 屋列）
+      const fallback = houses.filter(h => {
+        const dx = Math.abs(h.x - referenceX);
+        return dx >= 700 && dx <= 3600 && colsBetween(h.x, referenceX) >= minBetweenHouses;
+      });
+      const pool = pixelFiltered.length ? pixelFiltered : (reachable.length ? reachable : fallback);
+
+      if (!pool.length) return;
+
+      // 從候選中按詞優先選取 from
+      const matchingFrom = pool.filter(h => h.word && h.word.jp === chosenWord.jp);
+      from = pick(matchingFrom.length ? matchingFrom : pool);
+      if (!from) return;
+
+      // 送達點：遠離取件點（3~8屋跨度，常見 4~7）
+      const minH2 = 900, maxH2 = 3200, comMinH2 = 1200, comMaxH2 = 2800;
+      const reachable2 = houses.filter(h => h !== from && Math.abs(h.x - from.x) >= minH && Math.abs(h.x - from.x) <= maxH);
+      const pool2 = reachable2.length ? reachable2 : houses.filter(h => h !== from && Math.abs(h.x - from.x) >= 700 && Math.abs(h.x - from.x) <= 3600);
+      if (!pool2.length) return;
+      const far2 = pool2.filter(h => Math.abs(h.x - from.x) >= comMinH2);
+      const near2 = pool2.filter(h => Math.abs(h.x - from.x) < comMinH2);
+      let to = null;
+      // 降低近距離送達機率：15% -> 8%
+      if (Math.random() < 0.08 && near2.length > 0) {
+        to = pick(near2);
+      } else if (far2.length > 0) {
+        to = pick(far2);
+      } else {
+        to = pick(pool2);
+      }
+      if (!to || !chosenWord) return;
+      orders.push({ from, to, word: chosenWord, rev: false, life: 110, cardEventId: nextDeliveryEventId(chosenWord) });
+      return;
+    }
+
+    // 非 rain-port：原有邏輯
+    const openHouses2 = candidateHouses.filter(h => !busy.has(h.id));
+    const matching2 = openHouses2.filter(h => h.word && h.word.jp === chosenWord.jp);
+    const from2 = pick(matching2.length ? matching2 : openHouses2);
+    if (!from2) return;
+
     // 最低合理分隔提升至 580px，合理上限 1250px，確保取件→送達平均路程明顯拉高且不致過度漂移
-    const reachable = houses.filter(h => h !== from && dist(h, from) >= 580 && dist(h, from) <= 1250);
-    const pool = reachable.length ? reachable : houses.filter(h => h !== from && dist(h, from) >= 420 && dist(h, from) <= 1600);
+    const reachable = houses.filter(h => h !== from2 && dist(h, from2) >= 580 && dist(h, from2) <= 1250);
+    const pool = reachable.length ? reachable : houses.filter(h => h !== from2 && dist(h, from2) >= 420 && dist(h, from2) <= 1600);
     if (!pool.length) return;
 
     // 分隔層級：中長程（850–1250px，約 70%）與近路捷徑（580–850px，約 30%）
-    const far = pool.filter(h => dist(h, from) >= 850);
-    const near = pool.filter(h => dist(h, from) < 850);
+    const far = pool.filter(h => dist(h, from2) >= 850);
+    const near = pool.filter(h => dist(h, from2) < 850);
     let to = null;
     if (Math.random() < 0.30 && near.length > 0) {
       to = pick(near);
@@ -1465,7 +2145,7 @@
       to = pick(pool);
     }
     if (!to || !chosenWord) return;
-    orders.push({ from, to, word: chosenWord, rev: false, life: 110, cardEventId: nextDeliveryEventId(chosenWord) });
+    orders.push({ from: from2, to, word: chosenWord, rev: false, life: 110, cardEventId: nextDeliveryEventId(chosenWord) });
   }
 
   function togglePause() {
@@ -1485,7 +2165,9 @@
 
   function enterOverworld(reset = true) {
     window.loadMapArt?.();
-    if (reset) overworld = window.OVERWORLD.createState("gate");
+    // 有進度（曾離開地圖時記下節點）就從上次位置繼續；新玩家仍從起點 gate 開始。
+    if (reset) overworld = window.OVERWORLD.createState(loadOverworldNode());
+    overworldExitArmT = 0;
     AUDIO.restartMusic();
     overworldNoticeT = 0;
     keys.clear(); heldCodes.clear();
@@ -1496,6 +2178,12 @@
     if (document.body?.dataset) document.body.dataset.gameScreen = "map";
   }
 
+  // 地圖返回主選單需再按一次確認，避免手把 B（戰鬥中是衝刺）誤觸。
+  function requestOverworldExit() {
+    if (state !== "overworld") return;
+    if (overworldExitArmT > 0) { overworldExitArmT = 0; saveOverworldNode(); returnHome(); return; }
+    overworldExitArmT = 2.5;
+  }
   function moveOverworld(dx, dy) {
     if (state !== "overworld" || artPending()) return false;
     return window.OVERWORLD.move(overworld, dx, dy);
@@ -1524,6 +2212,7 @@
       }
       return;
     }
+    saveOverworldNode();
     const result = window.OVERWORLD.confirm(overworld);
     if (result.ok && result.stageId) {
       start(result.stageId);
@@ -1535,14 +2224,112 @@
     }
   }
 
+  function initFusionBridge() {
+    if (!window.FUSION || typeof window.FUSION.bindGame !== "function") return;
+    window.FUSION.bindGame({
+      getEnv: () => ({
+        stageId: STAGE?.id || "night-town",
+        isRainPortNormal: STAGE?.id === "rain-port" && (STAGE?.pacing?.mobDifficulty !== "hard"),
+        elapsed: typeof elapsed === "number" ? elapsed : 0,
+        gameState: state,
+        search: (typeof location !== "undefined" && location.search) || ""
+      }),
+      getBuildState: () => getBuildState(),
+      getSkillMutations: (skillId) => getSkillMutations(skillId),
+      commitTransaction: (tx) => {
+        if (!tx || !Array.isArray(tx.parents) || !tx.fusionWeaponId) {
+          return { ok: false, error: "invalid_payload" };
+        }
+        for (const p of tx.parents) {
+          if ((WL[p] || 0) < 5) return { ok: false, error: `parent_not_lv5:${p}` };
+        }
+
+        // 1. 父技能歸零並停止攻擊計時
+        for (const p of tx.parents) {
+          WL[p] = 0;
+          wT[p] = 999999;
+        }
+
+        // 2. 裝備融合武器 (Lv1 完成態)
+        WL[tx.fusionWeaponId] = 1;
+        wT[tx.fusionWeaponId] = 0.2;
+        wMax[tx.fusionWeaponId] = tx.recipe?.cooldown || 1.8;
+        buildRevision++;
+
+        // 3. 停用來源父技能共鳴 (Duo)
+        buildDuos = buildDuos.filter(d => {
+          const cfg = DUO_CONFIG[d];
+          if (!cfg) return true;
+          return cfg.skillIds.every(s => (WL[s] || 0) > 0);
+        });
+
+        // 4. 清理來源父技能既有傷害投射與派生（其他技能投射保留）
+        if (tx.parents.includes("katana")) {
+          winds = [];
+          crosscuts = [];
+        }
+        if (tx.parents.includes("fire")) {
+          // ghosts 內含狐火護身、離體追敵與墨焰黑龍，全屬 fire 來源。
+          ghosts = [];
+          dragonShots = [];
+          dragonScorches = [];
+        }
+        if (tx.parents.includes("barrier")) {
+          barrierPulses = [];
+          sacredSanctuary = null;
+        }
+        if (tx.parents.includes("thunder")) {
+          duoShockwaves = [];
+        }
+        if (tx.parents.includes("boom")) {
+          proj = [];
+          splitblasts = [];
+        }
+        if (tx.parents.includes("katana") || tx.parents.includes("fire")) {
+          inkfireMarks = [];
+        }
+
+        // 5. 變異補償標記
+        if (tx.grantCompensation) {
+          pendingFusionCompensation = true;
+        }
+
+        return { ok: true };
+      },
+      openUpgradeChoice: (opts) => {
+        if (opts?.freeNonMutation) {
+          isFreeCompensationChoice = true;
+        }
+        offerUp();
+      },
+      spawnGroundToken: (x, y) => {
+        fusionToken = {
+          x: Number.isFinite(x) ? x : P.x,
+          y: Number.isFinite(y) ? y : P.y + 40,
+          r: 36
+        };
+      }
+    });
+  }
+
   function start(stageId = STAGE.id) {
     quitConfirm = false;
     AUDIO.prepareMusic?.('play');
     AUDIO.restartMusic();
     window.loadGameArt?.();
     window.loadStageMapArt?.(stageId);
+    // Reset S2 cache if switching away from rain-port or on fresh start
+    if (STAGE.id === "rain-port" && stageId !== "rain-port") {
+      window.resetS2ArtProdCache?.();
+    }
     configureStage(stageId);
-    if (STAGE.id === "rain-port") window.refreshPortArt?.();
+    if (STAGE.id === "rain-port") {
+      window.refreshPortArt?.();
+      // Load S2 production art assets if dev flag is enabled
+      if (window.loadS2ArtProdAssets) window.loadS2ArtProdAssets();
+      // Final S2 art comes from the processed RGBA/seam-locked manifest above,
+      // not the model's uncropped RGB/white-matte scene files.
+    }
     if (STAGE.id === "sakura-pass") {
       window.refreshSakuraArt?.();
       window.refreshSakuraScene?.();
@@ -1554,16 +2341,34 @@
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     Object.assign(P, { x: START.x, y: START.y, inv: 1.2, faceAng: 0, faceX: 1 });
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0, dmgUp: 0, heals: 0 });
-    Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0 });
+    Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 });
     buildRevision++;
     buildMutations = [];
-    buildCharms = [];
+    resetCharmRun();
     buildDuos = [];
+
+    // 融合系統重置與橋接更新
+    fusionToken = null;
+    fusionFocus = 0;
+    fusionEffects = [];
+    fusionStats = { casts: 0, directDmg: 0, scorchDmg: 0, byKind: {} };
+    pendingFusionCompensation = false;
+    isFreeCompensationChoice = false;
+    fusionOpenedEpoch = 0;
+    fusionOpenedRevision = 0;
+    initFusionBridge();
+    if (window.FUSION && typeof window.FUSION.reset === "function") {
+      window.FUSION.reset();
+    }
     proj = []; needles = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; splitblasts = []; duoShockwaves = []; inkfireMarks = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1;
     fAng = 0; fireEmitT = 0; fireSfxT = 0; fireAttackT = 0;
     wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0; wT.katana = 0.3;
+    for (const id of Object.keys(wT)) if (id.startsWith("fusion_")) wT[id] = 0;
     elapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
+    lastMutationOfferLevel = -100;
     orders = []; job = null; inter = null; enemies = []; gems = []; texts = []; rings = []; misses = [];
+    // 重新開局／切關：上次送達點不得跨局殘留，否則新一局的第一張取貨會拿舊局的位置當基準。
+    lastDeliveryX = null;
     learningStart = Object.fromEntries(Object.entries(STORE.data.m).map(([jp,m])=>[jp,{ok:m.ok,ng:m.ng,box:m.box}]));
     seals = 0; sealsEarned = 0; recallIndependent = 0; recallAssisted = 0;
     recallSources.delivery.independent = recallSources.delivery.assisted = 0;
@@ -1572,7 +2377,7 @@
     FX.reset();
     SKILLFX.reset();
     rerolls = 2; titleCardT = 3; runSummary = null;
-    bossStage = 0; bossT = BOSS_TIMES[0]; finalBossDefeated = false; finalBossPos = null; finalBossEnt = null; victorySeq = null; lampSeq = null;
+    bossStage = 0; bossT = BOSS_TIMES[0]; finalBossDefeated = false; finalBossWaitT = 0; finalBossHintT = 0; finalBossPos = null; finalBossEnt = null; victorySeq = null; lampSeq = null;
     ended = false; bossQ = null; bossSealBreak = null; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0; lanternHitT = 0; playerAttackPoseT = playerHurtPoseT = 0;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     pTrail = [];
@@ -1584,6 +2389,13 @@
     WORLD_STATE.reset();
     worldSyncSignature = "";
     syncWorld(true);
+    // rain-port：開局將 P.y 夾在戰鬥帶內（安全半徑 18）
+    if (runBounds) {
+      const safeR = 18;
+      P.y = Math.max(runBounds.minY + safeR, Math.min(runBounds.maxY - safeR, P.y));
+      // 同步 cargo y
+      cargo.y = P.y + 10;
+    }
     makeOrder();
     RENDERER.setCam(P.x - W / 2, P.y - H / (2 * tiltK()));
     checkTutorial();
@@ -1599,11 +2411,17 @@
 
     // 武器選項：未滿 4 槽位可學新武器，已滿 4 槽位僅允許升級持有武器
     const eligibleWeaponKeys = Object.keys(WI).filter(k => {
+      if (k.startsWith("fusion_")) return false; // 融合武器不可由普通升級抽取
+      if (window.FUSION && typeof window.FUSION.isSkillConsumed === "function" && window.FUSION.isSkillConsumed(k)) return false;
       if ((WL[k] || 0) >= 4) return false;
       if (WL[k] === 0 && !canLearnNew) return false;
       return true;
     });
-    const awakenKeys = Object.keys(WI).filter(k => WL[k] === 4 && seals > 0);
+    const awakenKeys = Object.keys(WI).filter(k => {
+      if (k.startsWith("fusion_")) return false;
+      if (window.FUSION && typeof window.FUSION.isSkillConsumed === "function" && window.FUSION.isSkillConsumed(k)) return false;
+      return WL[k] === 4 && seals > 0;
+    });
 
     const weaponCard = (k, nextLvl) => {
       let consumed = false;
@@ -1631,6 +2449,9 @@
         if (k === "needle") wT.needle = 0;
         if (k === "fire" || k === "thunder") wT[k] = 0;
         if (k === "fire" && WL[k] === 5) AUDIO.preloadDragon?.();
+        if (nextLvl === 5 && window.FUSION && typeof window.FUSION.onWeaponLevelUp === "function") {
+          window.FUSION.onWeaponLevelUp();
+        }
         return true;
       };
 
@@ -1682,8 +2503,8 @@
       };
     });
 
-    // 變異選項：每技能最多 3 個變異；已持有至少一個適用武器，且所有已持有適用技能均未滿 3 個
-    const eligibleMutationKeys = Object.keys(MUTATION_CONFIG).filter(mutId => {
+    // 變異選項：每技能最多 3 個變異；若為免費非變異補償選擇 (isFreeCompensationChoice)，則變異不進池
+    const eligibleMutationKeys = isFreeCompensationChoice ? [] : Object.keys(MUTATION_CONFIG).filter(mutId => {
       const cfg = MUTATION_CONFIG[mutId];
       if (!cfg || !cfg.inPool) return false;
       if (buildMutations.includes(mutId)) return false;
@@ -1811,12 +2632,15 @@
       };
     };
 
-    const mc = shuffle(eligibleMutationKeys).map(id => mutationCard(id));
+    // 25%機率提供最多1張變異，若已出現則接下來至少隔3級才會再出。
+    // cc 與 dc 在下方才宣告，這裡不可前置讀取（會踩 TDZ）；
+    // 只就已宣告的 awakenCard / wc / pc 判斷。
+    const otherUpgradeAvailable = !!awakenCard || wc.length > 0 || pc.length > 0;
+    const mutationOfferReady = otherUpgradeAvailable && eligibleMutationKeys.length > 0 && level - lastMutationOfferLevel >= 3 && Math.random() < 0.25;
+    const mc = mutationOfferReady ? [mutationCard(pick(eligibleMutationKeys))] : [];
 
-    // 御守選項：等級達 2 以上、御守未滿 3 個
-    const eligibleCharmKeys = (level >= 2 && buildCharms.length < 3)
-      ? Object.keys(CHARM_CONFIG).filter(id => CHARM_CONFIG[id].inPool && !buildCharms.includes(id))
-      : [];
+    // 六種 charm_* 只從地面拾取，升級卡池固定為空。
+    const eligibleCharmKeys = [];
 
     const charmCard = (charmId) => {
       let consumed = false;
@@ -1827,13 +2651,14 @@
         if (consumed || scopeRevision !== buildRevision) return false;
         if (!meta || !meta.inPool) return false;
         if (buildCharms.includes(charmId)) return false;
-        return buildCharms.length < 3;
+        return buildCharms.length < CHARM_SLOT_MAX;
       };
 
       const applyCharmEffect = () => {
         if (!checkCharmEligibility()) return false;
         consumed = true;
         buildCharms.push(charmId);
+        charmLevels[charmId] = 1;
         return true;
       };
 
@@ -1909,10 +2734,11 @@
 
     let result = [];
     if (awakenCard) {
-      const restPool = shuffle([...wc.slice(0, 2), ...mc.slice(0, 2), ...cc.slice(0, 2), ...dc.slice(0, 2), ...pc.slice(0, 2)]);
+      const restPool = shuffle([...wc.slice(0, 2), ...cc.slice(0, 2), ...dc.slice(0, 2), ...pc.slice(0, 2)]);
       const rest = restPool.slice(0, 2);
-      if (mc.length > 0 && !rest.some(card => card.type === "mutation") && rest.length > 0) {
-        rest[rest.length - 1] = mc[0];
+      if (mc.length > 0) {
+        if (rest.length >= 2) rest[1] = mc[0];
+        else rest.push(mc[0]);
       }
       if (cc.length > 0 && !rest.some(card => card.type === "charm")) {
         const nonMutIdx = rest.findIndex(c => c.type !== "mutation");
@@ -1928,13 +2754,13 @@
     } else {
       const pool = [];
       if (wc.length > 0) pool.push(...wc.slice(0, 2));
-      if (mc.length > 0) pool.push(...mc.slice(0, 2));
       if (cc.length > 0) pool.push(...cc.slice(0, 2));
       if (dc.length > 0) pool.push(...dc.slice(0, 2));
       if (pc.length > 0) pool.push(...pc.slice(0, 2));
       result = shuffle(pool).slice(0, 3);
-      if (mc.length > 0 && !result.some(card => card.type === "mutation")) {
-        result[result.length - 1] = mc[0];
+      if (mc.length > 0) {
+        if (result.length >= 3) result[2] = mc[0];
+        else result.push(mc[0]);
       }
       if (cc.length > 0 && !result.some(card => card.type === "charm")) {
         const nonMutIdx = result.findIndex(c => c.type !== "mutation");
@@ -1952,9 +2778,17 @@
     if (state !== "play" && state !== "levelup") return;
     buildRevision++;
     choices = getEligibleChoices();
+    if (choices.some(choice => choice.type === "mutation")) lastMutationOfferLevel = level;
 
     for (const choice of choices) if (choice.type === 'weapon') window.prepareSkillArt?.(choice.id, choice.lv);
     if (!choices.length) {
+      if (isFreeCompensationChoice) {
+        isFreeCompensationChoice = false;
+        pendingFusionCompensation = false;
+        state = "play";
+        say("靈息充盈・無可選項目", P.x, P.y - 45, "#ffe9a0");
+        return;
+      }
       xp = Math.max(0, xp - xpNeed());
       level++;
       state = "play";
@@ -1996,8 +2830,13 @@
     if (applied === false) {
       return { ok: false, reason: "ineligible" };
     }
-    xp = Math.max(0, xp - req);
-    level++;
+    if (isFreeCompensationChoice) {
+      isFreeCompensationChoice = false;
+      pendingFusionCompensation = false;
+    } else {
+      xp = Math.max(0, xp - req);
+      level++;
+    }
     buildRevision++;
     state = "play";
     P.inv = 0.6;
@@ -2016,7 +2855,12 @@
   }
 
   function reroll() {
-    if (state !== "levelup" || levelupCooldown > 0 || rerolls <= 0) return;
+    if (state !== "levelup" || levelupCooldown > 0) return;
+    if (isFreeCompensationChoice) {
+      offerUp();
+      return;
+    }
+    if (rerolls <= 0) return;
     rerolls--;
     offerUp();
   }
@@ -2064,6 +2908,7 @@
 
     if (w === j.word) {
       stampDeliveryCard(j, pos);
+      const deliveryToX = j.to.x;
       job = null;
       nameT = 0;
       delivered++;
@@ -2089,6 +2934,12 @@
         }
       }
       xp += CFG.DELIVERY_XP;
+      if (STAGE.id === "rain-port") {
+        lastDeliveryX = deliveryToX;
+        // 送達後：把「尚未取貨」且取貨點離剛送達點太近的委託就地重選取貨屋。
+        // 否則早先已排入的委託會讓玩家接下來仍走到剛送達的同一屋／鄰屋。
+        rerollPickupsTooCloseTo(deliveryToX);
+      }
       study?.seen?.(j.word);
       FX.deliver(pos.x, pos.y);
       RENDERER.triggerShake(7);
@@ -2126,10 +2977,7 @@
       HAPTICS.shield();
       return false;
     }
-    const hasGuard = buildCharms.includes("charm_guard");
-    const actualDamage = hasGuard
-      ? Math.min(amount, Math.max(Number.MIN_VALUE, parseFloat((amount * 0.90).toPrecision(12))))
-      : amount;
+    const actualDamage = charmGuardOilLoss(amount);
     oil -= actualDamage;
     lanternHitT = 0.42;
     P.inv = 1;
@@ -2167,6 +3015,7 @@
       return;
     }
     e.hp -= dmg;
+    if (e.hp <= 0) tryRollCharmDrop(e);
     e.flash = 0.12;
     HAPTICS.hit(isCrit);
     burst(e.x, e.y, "#ffe6aa", 4);
@@ -2204,11 +3053,18 @@
       }
       // 不再誤將擊殺視為單字掌握 STORE.rec
       if (e.final && checkVictoryCondition()) startVictorySequence();
+
+      // 融合系統：真 Boss 擊殺檢查繪馬掉落資格（必須 >= 360 秒）
+      if (window.FUSION && typeof window.FUSION.onBossDeath === "function") {
+        window.FUSION.onBossDeath(e);
+      }
     }
 
     const gemCount = 1;
+    // 第二關 Normal 只有普通小怪改為 3 XP；Boss 與誤配妖仍為原數值。
+    const gemValue = STAGE.id === "rain-port" && STAGE.pacing?.mobDifficulty !== "hard" && e.type !== "boss" && !isMis ? 3 : 2;
     for (let i = 0; i < gemCount; i++) {
-      dropGem(e.x + (Math.random() - 0.5) * 28, e.y + (Math.random() - 0.5) * 28, 2);
+      dropGem(e.x + (Math.random() - 0.5) * 28, e.y + (Math.random() - 0.5) * 28, gemValue);
     }
     FX.death(e.x, e.y, isMis ? "#c98cff" : "#bce9ff", e.type === "boss");
 
@@ -2280,6 +3136,7 @@
     inter = null;
     enemyBullets = [];
     winds = []; ghosts = []; proj = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; dragonShots = []; dragonScorches = []; splitblasts = []; duoShockwaves = []; inkfireMarks = [];
+    fusionEffects = [];
     AUDIO.fadeOutMusic(700);
     window.dispatchEvent(new Event('gamepause'));
   }
@@ -2310,6 +3167,7 @@
     victorySeq = { t: 0, bossX: p.x, bossY: p.y, boss, blastT: 0, blasts: 0, bossGone: !boss, ignited: false, fireT: 0 };
     state = "victory";
     winds = []; ghosts = []; proj = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; dragonShots = []; dragonScorches = []; splitblasts = []; duoShockwaves = []; inkfireMarks = [];
+    fusionEffects = [];
     gems = [];
     keys.clear(); heldCodes.clear();
     joy = null;
@@ -2460,6 +3318,34 @@
     }
     gpLevelupDir = "";
 
+    if (state === "fusion") {
+      const axis = Math.abs(ax) >= Math.abs(ay) ? ax : ay;
+      const dir = axis > 0.55 ? 1 : axis < -0.55 ? -1 : 0;
+      if (dir && dir !== gpFusionDir) fusionMoveFocus(dir);
+      gpFusionDir = dir;
+      if (justPressed(0)) {
+        fusionActivateFocused();
+      } else if (justPressed(1) || justPressed(9)) {
+        fusionCancelPanel();
+      }
+      gpPrevButtons = gp.buttons.map(b => b.pressed);
+      gpMove = { x: 0, y: 0 };
+      return;
+    }
+    gpFusionDir = 0;
+
+    if (state === "charmswap") {
+      const dir = ax > 0.55 ? 1 : ax < -0.55 ? -1 : 0;
+      if (dir && dir !== gpCharmDir) charmSwapIndex = (charmSwapIndex + dir + CHARM_SLOT_MAX) % CHARM_SLOT_MAX;
+      gpCharmDir = dir;
+      if (justPressed(0)) resolveCharmSwap("confirm");
+      else if (justPressed(1)) resolveCharmSwap("cancel");
+      gpPrevButtons = gp.buttons.map(b => b.pressed);
+      gpMove = { x: 0, y: 0 };
+      return;
+    }
+    gpCharmDir = 0;
+
     if (state === "overworld") {
       let dir = "";
       if (Math.abs(ax) > Math.abs(ay) && Math.abs(ax) > 0.55) dir = ax > 0 ? "right" : "left";
@@ -2481,7 +3367,7 @@
       if (dir && dir !== gpMenuDir) moveMenu(dir);
       gpMenuDir = dir;
       if (justPressed(0)) { AUDIO.init(); activateWithFeedback(buttons[menuFocus].id); }
-      else if (justPressed(1) || justPressed(9)) { if (quitConfirm) activateMenu('exit-cancel'); else if (state === 'pause') togglePause(); else if (state === 'won' || state === 'lost') activateMenu('menu'); }
+      else if (justPressed(1) || justPressed(9)) { if (quitConfirm) activateMenu('exit-cancel'); else if (state === 'pause') togglePause(); else if (state === 'won') activateMenu('world'); else if (state === 'lost') activateMenu('menu'); }
       else if (justPressed(8) && !quitConfirm) activateMenu('codex');
       gpPrevButtons = gp.buttons.map(b => b.pressed);
       return;
@@ -2497,13 +3383,24 @@
 
     // B 鍵 (Button 1): 衝刺
     if (justPressed(1)) {
-      if (state === "overworld") returnHome();
+      if (state === "overworld") requestOverworldExit();
       else if (state === "play") dash();
     }
 
     // X 鍵 (Button 2): 提示
     if (justPressed(2)) {
       if (state === "play" && job) triggerHint();
+    }
+
+    // 手把重開奧義確認面試：Y 鍵 (Button 3) 或 X 鍵 (Button 2 且無委託提示時)
+    if (state === "play" && window.FUSION && typeof window.FUSION.getState === "function") {
+      const fState = window.FUSION.getState();
+      if (fState.state === "held" && (justPressed(3) || (justPressed(2) && !job))) {
+        if (openFusionPanel()) {
+          gpPrevButtons = gp.buttons.map(b => b.pressed);
+          return;
+        }
+      }
     }
 
     // Boss 答題專用：LB / RB / Y；保留 A 取貨、B 衝刺、X 提示。
@@ -2787,6 +3684,159 @@
     }
   }
 
+  // ==========================================================================
+  // M2-FUSION runtime helpers：四優先攻擊、目標幾何、統計與選卡輸入
+  // ==========================================================================
+  const FUSION_FX_MAX = 12;
+
+  function fusionStatsFor(kind) {
+    if (!fusionStats.byKind) fusionStats.byKind = {};
+    if (!fusionStats.byKind[kind]) fusionStats.byKind[kind] = { casts: 0, damage: 0, hits: 0 };
+    return fusionStats.byKind[kind];
+  }
+  function fusionRecordCast(kind) {
+    fusionStats.casts++;
+    const s = fusionStatsFor(kind);
+    s.casts++;
+    return s;
+  }
+  function fusionRecordDamage(kind, dmg) {
+    const n = Number(dmg) || 0;
+    fusionStats.directDmg += n;
+    const s = fusionStatsFor(kind);
+    s.damage += n;
+    s.hits++;
+  }
+
+  function fusionTargetEligible(e) {
+    return !!(e && e.hp > 0 && !e.shield && !e.vanish && !e.done);
+  }
+
+  function fusionLineTargets(x, y, angle, length, width, maxTargets) {
+    const dx = Math.cos(angle), dy = Math.sin(angle);
+    const found = [];
+    for (const e of enemies) {
+      if (!fusionTargetEligible(e)) continue;
+      const rx = e.x - x, ry = e.y - y;
+      const t = rx * dx + ry * dy;
+      if (t < 0 || t > length) continue;
+      const perp = Math.abs(rx * dy - ry * dx);
+      if (perp > width * 0.5 + (Number(e.r) || 0)) continue;
+      found.push({ e, t });
+    }
+    found.sort((a, b) => a.t - b.t || dist({ x, y }, a.e) - dist({ x, y }, b.e));
+    return found.slice(0, maxTargets).map(v => v.e);
+  }
+
+  function fusionArcTargets(x, y, angle, reach, arc, maxTargets) {
+    const found = [];
+    for (const e of enemies) {
+      if (!fusionTargetEligible(e)) continue;
+      const d = Math.hypot(e.x - x, e.y - y);
+      if (d > reach) continue;
+      let diff = Math.abs(Math.atan2(e.y - y, e.x - x) - angle);
+      while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+      if (diff > arc * 0.5) continue;
+      found.push({ e, d });
+    }
+    found.sort((a, b) => a.d - b.d);
+    return found.slice(0, maxTargets).map(v => v.e);
+  }
+
+  function fusionViewModel() {
+    return window.FUSION && typeof window.FUSION.getViewModel === "function"
+      ? window.FUSION.getViewModel()
+      : {};
+  }
+  function fusionLayoutButtons() {
+    if (!window.FUSION || typeof UI.fusionLayout !== "function") return [];
+    const layout = UI.fusionLayout(null, fusionViewModel());
+    return layout && Array.isArray(layout.buttons) ? layout.buttons : [];
+  }
+  function fusionSyncOpen() {
+    if (!window.FUSION || typeof window.FUSION.getState !== "function") return;
+    const s = window.FUSION.getState();
+    fusionOpenedEpoch = s.runEpoch;
+    fusionOpenedRevision = s.revision;
+  }
+  function openFusionPanel() {
+    if (!window.FUSION || typeof window.FUSION.openFusionConfirm !== "function") return false;
+    if (!window.FUSION.openFusionConfirm()) return false;
+    state = "fusion";
+    const buttons = fusionLayoutButtons();
+    // 多配方時焦點落在第一張合武卡，避免 Enter/A 永遠直接確認第一張。
+    fusionFocus = buttons.length > 2 ? 2 : 0;
+    fusionSyncOpen();
+    return true;
+  }
+  function fusionRecipeName(id) {
+    const recipe = window.FUSION?.RECIPES?.[id];
+    return recipe?.name || "奧義";
+  }
+  function fusionConfirmSelected() {
+    if (!window.FUSION || typeof window.FUSION.executeFusion !== "function") return false;
+    const fState = window.FUSION.getState();
+    const selected = fState?.selectedRecipeId || null;
+    const res = window.FUSION.executeFusion(selected, fusionOpenedEpoch, fusionOpenedRevision);
+    if (res && res.ok) {
+      state = "play";
+      say(`${fusionRecipeName(res.fusedWeapon)}・融合覺醒！`, P.x, P.y - 75, "#ffcc66");
+      if (res.grantCompensation && typeof window.FUSION.consumeCompensation === "function") {
+        window.FUSION.consumeCompensation();
+      }
+      return true;
+    }
+    if (res && (res.reason === "stale_revision" || res.reason === "stale_epoch")) fusionSyncOpen();
+    return false;
+  }
+  function fusionCancelPanel() {
+    window.FUSION?.cancelFusion?.();
+    state = "play";
+    say("稍後再議", P.x, P.y - 45, "#e0d0b0");
+  }
+  function fusionSelectById(recipeId) {
+    if (!window.FUSION || typeof window.FUSION.selectRecipe !== "function") return false;
+    const res = window.FUSION.selectRecipe(recipeId, fusionOpenedEpoch, fusionOpenedRevision);
+    if (res && res.ok) {
+      fusionSyncOpen();
+      return true;
+    }
+    if (res && (res.reason === "stale_revision" || res.reason === "stale_epoch")) fusionSyncOpen();
+    return false;
+  }
+  function fusionMoveFocus(delta) {
+    const buttons = fusionLayoutButtons();
+    if (!buttons.length) return;
+    fusionFocus = ((fusionFocus + delta) % buttons.length + buttons.length) % buttons.length;
+  }
+  function fusionActivateFocused() {
+    const buttons = fusionLayoutButtons();
+    if (!buttons.length) return false;
+    fusionFocus = clamp(fusionFocus, 0, buttons.length - 1);
+    const btn = buttons[fusionFocus];
+    if (!btn) return false;
+    if (btn.id === "confirm") return fusionConfirmSelected();
+    if (btn.id === "later") { fusionCancelPanel(); return true; }
+    if (btn.recipeId) {
+      // 選卡只更新 selectedRecipeId；焦點回到確認鈕，再由玩家按確認。
+      if (fusionSelectById(btn.recipeId)) {
+        fusionFocus = 0;
+        return true;
+      }
+    }
+    return false;
+  }
+  function fusionPointerButton(btn, index) {
+    if (!btn) return false;
+    if (btn.id === "confirm") return fusionConfirmSelected();
+    if (btn.id === "later") { fusionCancelPanel(); return true; }
+    if (btn.recipeId) {
+      fusionFocus = index;
+      return fusionSelectById(btn.recipeId);
+    }
+    return false;
+  }
+
   function weapons(dt) {
     // 0. 墨焰斬延遲墨焰痕佇列（上限 16，延遲 0.12 秒，出生幀 dt 不扣，在妖刀攻擊前推進）
     if (inkfireMarks.length > 0) {
@@ -3005,6 +4055,502 @@
         }
       }
       crosscuts = crosscuts.filter(cc => !cc.triggered);
+    }
+
+    // 1-F. 融合武器：奧義・墨焰斬 (fusion_inkblade)
+    if (WL.fusion_inkblade > 0) {
+      wT.fusion_inkblade = (wT.fusion_inkblade ?? 0) - dt;
+      if (wT.fusion_inkblade <= 0) {
+        const spec = resolveAttackSpec("fusion_inkblade", WL.fusion_inkblade, getBuildState(), { faceAng: P.faceAng || 0 });
+        const reach = spec.reach || 280;
+        const faceAng = P.faceAng || 0;
+        let hasEnemyInArc = false;
+        for (const e of enemies) {
+          if (e.hp > 0 && dist(P, e) <= reach) {
+            let diff = Math.abs(Math.atan2(e.y - P.y, e.x - P.x) - faceAng);
+            while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
+            if (diff <= (spec.arc || 2.0) / 2) {
+              hasEnemyInArc = true;
+              break;
+            }
+          }
+        }
+        if (!hasEnemyInArc) {
+          wT.fusion_inkblade = 0.1;
+        } else {
+          wT.fusion_inkblade = wMax.fusion_inkblade = spec.cooldown || 1.2;
+          fusionRecordCast("fusion_inkblade");
+          playerAttackPoseT = 0.2;
+          const crit = rollCrit(spec);
+          let hitCount = 0;
+          for (const e of enemies) {
+            if (e.hp > 0 && !e.done && !e.vanish && hitCount < (spec.maxTargets || 6) && dist(P, e) <= reach) {
+              let diff = Math.abs(Math.atan2(e.y - P.y, e.x - P.x) - faceAng);
+              while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
+              if (diff <= (spec.arc || 2.0) / 2) {
+                hitCount++;
+                const hitDmg = spec.slashDmg * crit.mult;
+                hurt(e, hitDmg, crit.isCrit);
+                fusionRecordDamage("fusion_inkblade", hitDmg);
+                SKILLFX.play("katana", "hit", 5, { x: e.x, y: e.y, ang: faceAng, crit: crit.isCrit });
+              }
+            }
+          }
+          if (fusionEffects.length < FUSION_FX_MAX) {
+            fusionEffects.push({
+              kind: "fusion_inkblade",
+              phase: "active",
+              x: P.x,
+              y: P.y,
+              angle: faceAng,
+              radius: reach,
+              spread: spec.arc || 2.0,
+              progress: 0,
+              seed: Math.random() * 100,
+              burnDuration: spec.scorchDuration || 2.5,
+              burnAge: 0,
+              life: 0.8,
+              scorchDmg: Number((spec.slashDmg * 0.22).toFixed(2)),
+              tick: 0
+            });
+          }
+          AUDIO.slash(5);
+        }
+      }
+    }
+
+    // 1-G. 融合武器：奧義・雷狐居合 (fusion_foxiai)
+    if (WL.fusion_foxiai > 0) {
+      wT.fusion_foxiai = (wT.fusion_foxiai ?? 0) - dt;
+      if (wT.fusion_foxiai <= 0) {
+        const spec = resolveAttackSpec("fusion_foxiai", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const faceAng = P.faceAng || 0;
+        const preTargets = fusionLineTargets(P.x, P.y, faceAng, spec.reach, spec.hitWidth, spec.maxTargets);
+        if (!preTargets.length || fusionEffects.length >= FUSION_FX_MAX) {
+          wT.fusion_foxiai = 0.12;
+        } else {
+          wT.fusion_foxiai = wMax.fusion_foxiai = spec.cooldown;
+          playerAttackPoseT = 0.18;
+          fusionRecordCast("fusion_foxiai");
+          fusionEffects.push({
+            kind: "fusion_foxiai",
+            phase: "warn",
+            x: P.x,
+            y: P.y,
+            angle: faceAng,
+            radius: spec.reach,
+            spread: 0,
+            width: spec.hitWidth,
+            progress: 0,
+            seed: Math.random() * 100,
+            warn: spec.warn,
+            life: spec.warn + 0.36,
+            burnAge: 0,
+            damage: spec.damage,
+            maxTargets: spec.maxTargets,
+            critChance: spec.critChance,
+            critMult: spec.critMult,
+            triggered: false,
+            hitSet: new Set()
+          });
+          AUDIO.slash(5);
+        }
+      }
+    }
+
+    // 1-H. 融合武器：奧義・退魔符刃 (fusion_exorcistblade)
+    if (WL.fusion_exorcistblade > 0) {
+      wT.fusion_exorcistblade = (wT.fusion_exorcistblade ?? 0) - dt;
+      if (wT.fusion_exorcistblade <= 0) {
+        const spec = resolveAttackSpec("fusion_exorcistblade", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const faceAng = P.faceAng || 0;
+        const targets = fusionArcTargets(P.x, P.y, faceAng, spec.reach, spec.arc, spec.maxTargets);
+        if (!targets.length || fusionEffects.length >= FUSION_FX_MAX) {
+          wT.fusion_exorcistblade = 0.12;
+        } else {
+          wT.fusion_exorcistblade = wMax.fusion_exorcistblade = spec.cooldown;
+          playerAttackPoseT = 0.18;
+          fusionRecordCast("fusion_exorcistblade");
+          const crit = rollCrit(spec);
+          const marks = [];
+          for (const e of targets) {
+            const hitDmg = spec.slashDmg * crit.mult;
+            hurt(e, hitDmg, crit.isCrit);
+            fusionRecordDamage("fusion_exorcistblade", hitDmg);
+            SKILLFX.play("katana", "hit", 5, { x: e.x, y: e.y, ang: faceAng, crit: crit.isCrit });
+            marks.push({
+              target: e,
+              delay: spec.markDelay,
+              damage: spec.burstDmg,
+              radius: spec.burstRadius,
+              triggered: false
+            });
+          }
+          fusionEffects.push({
+            kind: "fusion_exorcistblade",
+            phase: "warn",
+            x: P.x,
+            y: P.y,
+            angle: faceAng,
+            radius: spec.reach,
+            spread: spec.arc,
+            progress: 0,
+            seed: Math.random() * 100,
+            warn: spec.warn,
+            life: 0.85,
+            burnAge: 0,
+            marks,
+            maxBurstTargets: spec.burstMaxTargets,
+            critChance: spec.critChance,
+            critMult: spec.critMult,
+            splashHits: new Set()
+          });
+          AUDIO.slash(5);
+        }
+      }
+    }
+
+    // 1-I. 融合武器：奧義・妖火結界 (fusion_foxfirebarrier)
+    if (WL.fusion_foxfirebarrier > 0) {
+      wT.fusion_foxfirebarrier = (wT.fusion_foxfirebarrier ?? 0) - dt;
+      if (wT.fusion_foxfirebarrier <= 0) {
+        const spec = resolveAttackSpec("fusion_foxfirebarrier", 1, getBuildState());
+        const activeField = fusionEffects.some(fx => fx.kind === "fusion_foxfirebarrier");
+        if (activeField || fusionEffects.length >= FUSION_FX_MAX) {
+          wT.fusion_foxfirebarrier = 0.15;
+        } else {
+          wT.fusion_foxfirebarrier = wMax.fusion_foxfirebarrier = spec.cooldown;
+          playerAttackPoseT = 0.16;
+          fusionRecordCast("fusion_foxfirebarrier");
+          fusionEffects.push({
+            kind: "fusion_foxfirebarrier",
+            phase: "warn",
+            x: P.x,
+            y: P.y,
+            angle: 0,
+            radius: spec.radius,
+            spread: 0,
+            progress: 0,
+            seed: Math.random() * 100,
+            warn: spec.warn,
+            life: spec.duration,
+            burnAge: 0,
+            damage: spec.damage,
+            pulses: spec.pulses,
+            pulseInterval: spec.pulseInterval,
+            nextPulse: spec.firstPulse,
+            pulseIndex: 0,
+            maxTargets: spec.maxTargets,
+            knockback: spec.knockback,
+            knocked: new Set(),
+            critChance: spec.critChance,
+            critMult: spec.critMult
+          });
+          AUDIO.barrier(5);
+        }
+      }
+    }
+
+    // 1-J. 融合武器：奧義・退魔封陣 (fusion_exorcistseal)
+    if (WL.fusion_exorcistseal > 0) {
+      wT.fusion_exorcistseal = (wT.fusion_exorcistseal ?? 0) - dt;
+      if (wT.fusion_exorcistseal <= 0) {
+        const spec = resolveAttackSpec("fusion_exorcistseal", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const activeSeals = fusionEffects.filter(fx => fx.kind === "fusion_exorcistseal").length;
+        if (activeSeals >= 2 || fusionEffects.length >= FUSION_FX_MAX) {
+          wT.fusion_exorcistseal = 0.2;
+        } else {
+          const faceAng = P.faceAng || 0;
+          const tx = P.x + Math.cos(faceAng) * spec.castRange;
+          const ty = P.y + Math.sin(faceAng) * spec.castRange;
+          wT.fusion_exorcistseal = wMax.fusion_exorcistseal = spec.cooldown;
+          playerAttackPoseT = 0.18;
+          fusionRecordCast("fusion_exorcistseal");
+          fusionEffects.push({
+            kind: "fusion_exorcistseal",
+            phase: "warn",
+            x: tx,
+            y: ty,
+            angle: faceAng,
+            radius: spec.radius,
+            spread: 0,
+            progress: 0,
+            seed: Math.random() * 100,
+            warn: spec.warn,
+            life: spec.duration,
+            burnAge: 0,
+            damage: spec.damage,
+            pulses: spec.pulses,
+            pulseInterval: spec.pulseInterval,
+            nextPulse: spec.firstPulse,
+            pulseIndex: 0,
+            maxTargets: spec.maxTargets,
+            critChance: spec.critChance,
+            critMult: spec.critMult
+          });
+          AUDIO.thunder(5);
+        }
+      }
+    }
+
+    // 1-K. 融合武器：奧義・斬界輪 (fusion_slashwheel)
+    if (WL.fusion_slashwheel > 0) {
+      wT.fusion_slashwheel = (wT.fusion_slashwheel ?? 0) - dt;
+      if (wT.fusion_slashwheel <= 0) {
+        const spec = resolveAttackSpec("fusion_slashwheel", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const near = enemies.some(e => e.hp > 0 && !e.vanish && !e.done && dist(P, e) <= spec.radius);
+        if (!near || fusionEffects.length >= FUSION_FX_MAX) {
+          wT.fusion_slashwheel = 0.12;
+        } else {
+          wT.fusion_slashwheel = wMax.fusion_slashwheel = spec.cooldown;
+          playerAttackPoseT = 0.18;
+          fusionRecordCast("fusion_slashwheel");
+          fusionEffects.push({
+            kind: "fusion_slashwheel",
+            phase: "warn",
+            x: P.x,
+            y: P.y,
+            angle: P.faceAng || 0,
+            radius: spec.radius,
+            spread: 0,
+            progress: 0,
+            seed: Math.random() * 100,
+            warn: 0.18,
+            life: (spec.expandTime || 0.45) + 0.5,
+            burnAge: 0,
+            expandTime: spec.expandTime || 0.45,
+            currentRadius: 0,
+            bands: (spec.bands || []).map(bd => ({ ...bd, hits: new Set(), fired: false })),
+            critChance: spec.critChance,
+            critMult: spec.critMult
+          });
+          AUDIO.slash(5);
+        }
+      }
+    }
+
+    // 1-L. 融合武器：奧義・狐雷天燈 (fusion_foxthunderlantern)
+    if (WL.fusion_foxthunderlantern > 0) {
+      wT.fusion_foxthunderlantern = (wT.fusion_foxthunderlantern ?? 0) - dt;
+      if (wT.fusion_foxthunderlantern <= 0) {
+        const spec = resolveAttackSpec("fusion_foxthunderlantern", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const faceAng = P.faceAng || 0;
+        const targets = enemies
+          .filter(e => fusionTargetEligible(e) && dist(P, e) <= spec.lockRange)
+          .sort((a, b) => dist(P, a) - dist(P, b))
+          .slice(0, spec.count || 3);
+        if (!targets.length || fusionEffects.length >= FUSION_FX_MAX) {
+          wT.fusion_foxthunderlantern = 0.12;
+        } else {
+          wT.fusion_foxthunderlantern = wMax.fusion_foxthunderlantern = spec.cooldown;
+          playerAttackPoseT = 0.18;
+          fusionRecordCast("fusion_foxthunderlantern");
+          const lanterns = [];
+          const count = spec.count || 3;
+          for (let i = 0; i < count; i++) {
+            const t = targets[i] || null;
+            const sa = faceAng + (i - (count - 1) / 2) * 0.8;
+            const sx = P.x + Math.cos(sa) * 56;
+            const sy = P.y + Math.sin(sa) * 56 - 36;
+            lanterns.push({
+              x: sx,
+              y: sy,
+              fromX: sx,
+              fromY: sy,
+              targetX: t ? t.x : P.x + Math.cos(sa) * 200,
+              targetY: t ? t.y : P.y + Math.sin(sa) * 200,
+              delay: (spec.warn || 0.5) + i * 0.1,
+              struck: false,
+              hitSet: new Set()
+            });
+          }
+          fusionEffects.push({
+            kind: "fusion_foxthunderlantern",
+            phase: "warn",
+            x: P.x,
+            y: P.y,
+            angle: faceAng,
+            radius: spec.lockRange,
+            spread: 0,
+            progress: 0,
+            seed: Math.random() * 100,
+            warn: spec.warn || 0.5,
+            life: (spec.warn || 0.5) + 0.8,
+            burnAge: 0,
+            lanterns,
+            strikeRadius: spec.strikeRadius || 64,
+            damage: spec.damage,
+            maxTargets: spec.maxTargets || 3,
+            splashScale: spec.splashScale || 0.5,
+            critChance: spec.critChance,
+            critMult: spec.critMult
+          });
+          AUDIO.thunder(5);
+        }
+      }
+    }
+
+    // 1-M. 融合武器：奧義・炎符祭 (fusion_flamefestival)
+    if (WL.fusion_flamefestival > 0) {
+      wT.fusion_flamefestival = (wT.fusion_flamefestival ?? 0) - dt;
+      if (wT.fusion_flamefestival <= 0) {
+        const spec = resolveAttackSpec("fusion_flamefestival", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const faceAng = P.faceAng || 0;
+        const near = enemies.some(e => e.hp > 0 && !e.vanish && !e.done && dist(P, e) <= spec.range);
+        if (!near || fusionEffects.length >= FUSION_FX_MAX) {
+          wT.fusion_flamefestival = 0.12;
+        } else {
+          wT.fusion_flamefestival = wMax.fusion_flamefestival = spec.cooldown;
+          playerAttackPoseT = 0.18;
+          fusionRecordCast("fusion_flamefestival");
+          const count = spec.count || 4;
+          const talismans = [];
+          for (let i = 0; i < count; i++) {
+            const sa = faceAng + (i - (count - 1) / 2) * 0.42;
+            const travel = 150 + i * 40;
+            talismans.push({
+              fromX: P.x,
+              fromY: P.y,
+              x: P.x,
+              y: P.y,
+              targetX: P.x + Math.cos(sa) * travel,
+              targetY: P.y + Math.sin(sa) * travel,
+              delay: 0.28 + i * 0.12,
+              exploded: false,
+              hitSet: new Set()
+            });
+          }
+          fusionEffects.push({
+            kind: "fusion_flamefestival",
+            phase: "warn",
+            x: P.x,
+            y: P.y,
+            angle: faceAng,
+            radius: spec.range,
+            spread: 0,
+            progress: 0,
+            seed: Math.random() * 100,
+            warn: spec.warn || 0.18,
+            life: 1.75,
+            burnAge: 0,
+            talismans,
+            embers: [],
+            landRadius: spec.landRadius || 62,
+            damage: spec.damage,
+            maxTargets: spec.maxTargets || 3,
+            emberTicks: spec.emberTicks || 2,
+            emberInterval: spec.emberInterval || 0.35,
+            emberRadius: spec.emberRadius || 48,
+            emberDamage: spec.emberDamage,
+            emberMaxTargets: spec.emberMaxTargets || 2,
+            critChance: spec.critChance,
+            critMult: spec.critMult
+          });
+          AUDIO.thunder(5);
+        }
+      }
+    }
+
+    // 1-N. 融合武器：奧義・雷陣封界 (fusion_thundercircle)
+    if (WL.fusion_thundercircle > 0) {
+      wT.fusion_thundercircle = (wT.fusion_thundercircle ?? 0) - dt;
+      if (wT.fusion_thundercircle <= 0) {
+        const spec = resolveAttackSpec("fusion_thundercircle", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const active = fusionEffects.filter(fx => fx.kind === "fusion_thundercircle").length;
+        const near = enemies.some(e => e.hp > 0 && !e.vanish && !e.done && dist(P, e) <= spec.radius);
+        if (active >= 1 || !near || fusionEffects.length >= FUSION_FX_MAX) {
+          wT.fusion_thundercircle = 0.15;
+        } else {
+          wT.fusion_thundercircle = wMax.fusion_thundercircle = spec.cooldown;
+          playerAttackPoseT = 0.16;
+          fusionRecordCast("fusion_thundercircle");
+          fusionEffects.push({
+            kind: "fusion_thundercircle",
+            phase: "warn",
+            x: P.x,
+            y: P.y,
+            angle: 0,
+            radius: spec.radius,
+            spread: 0,
+            progress: 0,
+            seed: Math.random() * 100,
+            warn: 0.5,
+            life: (spec.pulseCount - 1) * spec.pulseInterval + spec.pulseWarning + 0.8,
+            burnAge: 0,
+            pulses: spec.pulseCount,
+            pulseInterval: spec.pulseInterval,
+            nextPulse: 0.5,
+            pulseIndex: 0,
+            pulseDamage: spec.pulseDamage,
+            pulseRadius: spec.pulseRadius,
+            pulseWarning: spec.pulseWarning,
+            strikes: [],
+            critChance: spec.critChance,
+            critMult: spec.critMult
+          });
+          AUDIO.thunder(5);
+        }
+      }
+    }
+
+    // 1-O. 融合武器：奧義・雷符神罰 (fusion_thundertalisman)
+    if (WL.fusion_thundertalisman > 0) {
+      wT.fusion_thundertalisman = (wT.fusion_thundertalisman ?? 0) - dt;
+      if (wT.fusion_thundertalisman <= 0) {
+        const spec = resolveAttackSpec("fusion_thundertalisman", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const faceAng = P.faceAng || 0;
+        const near = enemies.some(e => e.hp > 0 && !e.vanish && !e.done && dist(P, e) <= spec.range);
+        if (!near || fusionEffects.length >= FUSION_FX_MAX) {
+          wT.fusion_thundertalisman = 0.12;
+        } else {
+          wT.fusion_thundertalisman = wMax.fusion_thundertalisman = spec.cooldown;
+          playerAttackPoseT = 0.18;
+          fusionRecordCast("fusion_thundertalisman");
+          const count = spec.count || 5;
+          const talismans = [];
+          for (let i = 0; i < count; i++) {
+            const sa = faceAng + (i - (count - 1) / 2) * 0.26;
+            const travel = 140 + (i % 3) * 50;
+            talismans.push({
+              fromX: P.x,
+              fromY: P.y,
+              x: P.x,
+              y: P.y,
+              targetX: P.x + Math.cos(sa) * travel,
+              targetY: P.y + Math.sin(sa) * travel,
+              delay: 0.32 + i * 0.14,
+              struck: false,
+              hitSet: new Set()
+            });
+          }
+          fusionEffects.push({
+            kind: "fusion_thundertalisman",
+            phase: "warn",
+            x: P.x,
+            y: P.y,
+            angle: faceAng,
+            radius: spec.range,
+            spread: 0,
+            progress: 0,
+            seed: Math.random() * 100,
+            warn: 0.12,
+            life: 1.95,
+            burnAge: 0,
+            talismans,
+            arcs: [],
+            strikeRadius: spec.strikeRadius || 70,
+            warnStrike: spec.warn || 0.36,
+            damage: spec.damage,
+            maxTargets: spec.maxTargets || 4,
+            chainRadius: spec.chainRadius || 130,
+            chainScale: spec.chainScale || 0.5,
+            chainMax: spec.chainMax || 1,
+            critChance: spec.critChance,
+            critMult: spec.critMult
+          });
+          AUDIO.thunder(5);
+        }
+      }
     }
 
     // 2. 淨化靈陣 (Barrier AoE) - 360 度全方位退魔衝擊環（全新卡牌秘術技能）
@@ -3278,11 +4824,16 @@
         SKILLFX.play("needle", "trail", nd.level ?? WL.needle, { x: nd.x, y: nd.y, ang: Math.atan2(nd.vy, nd.vx) });
       }
       for (const e of enemies) {
-        if (e.hp > 0 && !(e.inb > elapsed) && !nd.hits?.has(e) && dist(e, nd) < (e.type === "boss" ? 54 : 30)) {
-          e.inb = elapsed + 0.2;
-          nd.hits?.add(e);
-          let dmg = nd.dmg;
-          if (nd.hasPierce && !e.shield) {
+        const returnBonusHit = nd.hasReturn && nd.returning && nd.hits?.has(e) && !nd.returnBonusHits?.has(e);
+        if (e.hp > 0 && (returnBonusHit || (!(e.inb > elapsed) && !nd.hits?.has(e))) && dist(e, nd) < (e.type === "boss" ? 54 : 30)) {
+          if (returnBonusHit) {
+            (nd.returnBonusHits ??= new Set()).add(e);
+          } else {
+            e.inb = elapsed + 0.2;
+            nd.hits?.add(e);
+          }
+          let dmg = returnBonusHit ? nd.dmg * 0.35 : nd.dmg;
+          if (!returnBonusHit && nd.hasPierce && !e.shield) {
             nd.pierceHits = (nd.pierceHits || 0) + 1;
             if (nd.pierceHits > 1) {
               const maxHits = nd.maxPierceBonusHits ?? 2;
@@ -3301,7 +4852,7 @@
             }
           }
           hurt(e, dmg);
-          if (nd.frost || nd.ice) applyFrost(e, elapsed, nd.volley || null);
+          if (!returnBonusHit && (nd.frost || nd.ice)) applyFrost(e, elapsed, nd.volley || null);
           SKILLFX.play("needle", "hit", nd.level ?? WL.needle, { x: nd.x, y: nd.y });
         }
       }
@@ -3756,7 +5307,7 @@
         if (!candidates.length) {
           wT.thunder = 0.2;
         } else {
-          const threat = e => e.type === "boss" ? 0 : e.type === "shooter" ? 1 : e.type === "tank" ? 2 : 3;
+          const threat = e => e.type === "boss" ? 0 : (e.type === "shooter" || e.type === "shiome") ? 1 : e.type === "tank" ? 2 : 3;
           candidates.sort((a, b) => spec.level >= 4 ? (threat(a) - threat(b) || dist(P, a) - dist(P, b)) : dist(P, a) - dist(P, b));
           wT.thunder = wMax.thunder = spec.cooldown;
           const crit = rollCrit(spec);
@@ -3843,7 +5394,7 @@
   }
 
   function spawnRadius(minimum) {
-    const area = window.VIEWPORT?.worldBoundsAtZoom?.(1) || worldViewBounds(), cam = RENDERER.getCam();
+    const area = window.VIEWPORT?.worldBoundsAtZoom?.(Math.min(1, window.VIEWPORT?.worldZoom?.() ?? 1)) || worldViewBounds(), cam = RENDERER.getCam();
     const lag = Math.hypot(P.x - (cam.x + W / 2), P.y - (cam.y + H / (2 * tiltK())));
     return Math.max(minimum, Math.hypot(area.width / 2, area.height / 2) + lag + 64);
   }
@@ -3852,6 +5403,7 @@
     for (let tries = 0; tries <= 10; tries++) {
       const a = angle + tries * 0.63;
       const x = origin.x + Math.cos(a) * rad, y = origin.y + Math.sin(a) * rad;
+      // blocked 內已含 runBounds 半徑判 Y，無需重複檢查
       if (!blocked(x, y, collisionRadius)) return { x, y };
     }
     return null;
@@ -3915,7 +5467,7 @@
     };
   }
 
-  function spawnEnemy(tier, rad, ang, ring) {
+function spawnEnemy(tier, rad, ang, ring) {
     const position = spawnPosition(spawnRadius(rad), ang ?? Math.random() * 6.283, 26);
     if (!position) return;
     const r = Math.random();
@@ -3927,15 +5479,32 @@
     const shooterChance = STAGE_ENEMY.shooterChance ?? 0.14;
     const canShoot = STAGE_ENEMY.shots !== false;
     let t = { type: "ghost", hp: 2.0 * tier, speed: (52 + speedRamp * 0.9) * stageSpeed };
-    // 潮目小僧只在雨夜港町、且落在幽靈帶，不改射手／坦克門檻。pose 由招式相位寫入。
-    if (STAGE.id === "rain-port" && !ring && r >= 0.55 && r < 0.72) {
-      t = { type: "shiome", hp: 2.2 * tier, speed: (46 + speedRamp * 0.7) * stageSpeed, pose: "idle", shiomeCd: 0.8 };
-    } else if (cappedElapsed > 90 && r < 0.22) {
-      t = { type: "runner", hp: 1.5 * tier, speed: (110 + speedRamp * 1.1) * stageSpeed };
-    } else if (cappedElapsed > 200 && r < 0.36) {
-      t = { type: "tank", hp: 7 * tier, speed: (32 + speedRamp * 0.4) * stageSpeed };
-    } else if (cappedElapsed > 160 && r < (cappedElapsed > 200 ? 0.36 : 0.22) + shooterChance && !ring && canShoot) {
-      t = { type: "shooter", hp: tier, speed: (48 + speedRamp * 0.8) * stageSpeed };
+
+    // rain-port Normal：移除真正燈籠怪 (shooter) 的 spawn 與發彈，保留低 HP 海妖 (shiome) 作為唯一遠程
+    const isRainPortNormal = STAGE.id === "rain-port" && (STAGE.pacing?.mobDifficulty !== "hard");
+
+    if (isRainPortNormal) {
+      // Stage2 Normal：無燈籠怪 (shooter)，以海妖 (shiome) 擔任唯一遠程
+      // runner 90s+ (原 22%)、tank 200s+ (原 14%)、shiome 160s+ (取代 shooter)
+      if (cappedElapsed > 90 && r < 0.25) {
+        t = { type: "runner", hp: 1.5 * tier, speed: (110 + speedRamp * 1.1) * stageSpeed };
+      } else if (cappedElapsed > 200 && r < 0.40) {
+        t = { type: "tank", hp: 7.0 * tier, speed: (32 + speedRamp * 0.4) * stageSpeed };
+      } else if (cappedElapsed > 160 && r < (cappedElapsed > 200 ? 0.40 : 0.25) + shooterChance && !ring && canShoot) {
+        // 遠程敵人：由雨港原生海妖 (shiome) 擔任，低 HP < ghost (2.0)
+        t = { type: "shiome", hp: 0.7 * tier, speed: (46 + speedRamp * 0.7) * stageSpeed, pose: "idle" };
+      }
+    } else {
+      // 原有生成邏輯（hard 或其他關）
+      if (STAGE.id === "rain-port" && !ring && r >= 0.55 && r < 0.72) {
+        t = { type: "shiome", hp: 2.2 * tier, speed: (46 + speedRamp * 0.7) * stageSpeed, pose: "idle", shiomeCd: 0.8 };
+      } else if (cappedElapsed > 90 && r < 0.22) {
+        t = { type: "runner", hp: 1.5 * tier, speed: (110 + speedRamp * 1.1) * stageSpeed };
+      } else if (cappedElapsed > 200 && r < 0.36) {
+        t = { type: "tank", hp: 7.0 * tier, speed: (32 + speedRamp * 0.4) * stageSpeed };
+      } else if (cappedElapsed > 160 && r < (cappedElapsed > 200 ? 0.36 : 0.22) + shooterChance && !ring && canShoot) {
+        t = { type: "shooter", hp: tier, speed: (48 + speedRamp * 0.8) * stageSpeed };
+      }
     }
 
     enemies.push({ ...position, flash: 0, wob: Math.random() * 6, slowT: 0, ...t,
@@ -4125,6 +5694,7 @@
 
     if (!safeRead) {
     // 敵人邏輯與傷害碰撞（衝撞扣燈油；若有護盾則扣護盾）
+    const isRainPortNormal = STAGE.id === "rain-port" && (STAGE.pacing?.mobDifficulty !== "hard");
     for (const e of enemies) {
       if (e.hp <= 0) continue;
       e.flash = Math.max(0, e.flash - dt);
@@ -4167,8 +5737,13 @@
         }
       }
       if (e.type === "shiome") {
-        const waveHit = updateShiome(e, dt);
-        if (waveHit) hazardHit = waveHit;
+        if (!isRainPortNormal) {
+          const waveHit = updateShiome(e, dt);
+          if (waveHit) hazardHit = waveHit;
+        } else {
+          // Normal 雨港：停原波浪 hazard，避免雙攻擊；姿態由射擊 attackT 控制
+          e.pose = (e.attackT > 0) ? "attack" : "idle";
+        }
       }
       const dx = P.x - e.x, dy = P.y - e.y;
       const d = Math.hypot(dx, dy) || 1;
@@ -4214,6 +5789,10 @@
         e.stuckT = 0;
       }
       e.walking = !knocked && !revealing && (e.x !== oldX || e.y !== oldY);
+      // 真移動方向記錄：移動時更新 faceAng，停止/凍結/暫停/擊退/揭露不轉向
+      if (e.walking) {
+        e.faceAng = Math.atan2(e.y - oldY, e.x - oldX);
+      }
       if (e.type === "mis") {
         e.stuckT = step > 0 && e.x === oldX && e.y === oldY ? (e.stuckT || 0) + dt : 0;
         if (e.stuckT >= 2.5) {
@@ -4224,12 +5803,17 @@
         }
       }
 
-      // 射手型妖怪（shooter）：於中距離發射幽冥妖火彈
-      if (STAGE_ENEMY.shots !== false && (e.type === "shooter" || (e.type === "mis" && !revealing))) {
+      // 射手型妖怪：於中距離發射幽冥妖火彈
+      // 雨港 normal 移除真正燈籠怪 (shooter)，由海妖 (shiome) 走 enemyBullets 遠程分支，mis 停發；其他關或 hard 保留原機制 (shooter 與 mis 均可發彈)
+      const canShootType = isRainPortNormal
+        ? e.type === "shiome"
+        : (e.type === "shooter" || (e.type === "mis" && !revealing));
+      if (STAGE_ENEMY.shots !== false && canShootType) {
         e.shootCd = (e.shootCd || (2.0 + Math.random())) - dt;
         if (e.shootCd <= 0 && d > 50 && d < (e.type === "mis" ? 200 : 460)) {
           e.shootCd = 3.2 + Math.random() * 1.2;
           e.attackT = 0.24;
+          if (e.type === "shiome") e.pose = "attack";
           const bulletSpeed = 230;
           enemyBullets.push({
             x: e.x, y: e.y,
@@ -4271,11 +5855,21 @@
     if (bossT <= 0 && bossStage < BOSS_TIMES.length) {
       const plan = bossBlueprint(bossStage);
       const alive = enemies.filter(e => e.type === "boss" && e.hp > 0);
-      const wait = plan.role === "final"
+      let wait = plan.role === "final"
         ? alive.some(e => !e.gatekeeper)
         : plan.role === "gate"
           ? alive.some(e => !e.final)
           : alive.length > 0;
+      if (wait && plan.role === "final") {
+        finalBossWaitT += dt;
+        finalBossHintT -= dt;
+        if (finalBossHintT <= 0) {
+          finalBossHintT = FINAL_BOSS_HINT_EVERY;
+          const blocker = alive.find(e => !e.gatekeeper);
+          say(`先擊敗${blocker?.title || "大妖"}，終王才會現身`, P.x, P.y - 75, "#ffb3ba");
+        }
+        if (finalBossWaitT >= FINAL_BOSS_WAIT_MAX) wait = false;
+      }
       const position = wait || plan.hp == null ? null : spawnPosition(spawnRadius(520), Math.random() * 6.283, 52);
       if (position) {
         const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
@@ -4291,6 +5885,12 @@
         const harborBoss = STAGE_ENEMY.bossTheme === "harbor";
         const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
         const bossTitle = story?.bossTitle || (harborBoss ? "港霧大妖" : "大妖鬼");
+        const isRainPortNormal = STAGE.id === "rain-port" && (STAGE.pacing?.mobDifficulty !== "hard");
+        // rain-port Normal：前三王恢復高難度且第三王承接尾王強度；Hard本身完全不變。
+        const harborNormalBossHps = [300, 650, 900, 1400];
+        const bossHp = isRainPortNormal && typeof plan.hp === "number"
+          ? (harborNormalBossHps[bossStage] ?? plan.hp)
+          : plan.hp;
         enemies.push({
           ...position,
           type: "boss",
@@ -4306,14 +5906,15 @@
           stageId: STAGE.id,
           bossTheme: STAGE_ENEMY.bossTheme,
           oilReward: plan.oil,
-          hp: plan.hp,
-          max: plan.hp,
+          hp: bossHp,
+          max: bossHp,
           speed: plan.role === "gate" ? 70 : plan.role === "final" ? 46 : 58,
           flash: 0,
           wob: 0,
           attackCd: 1.2,
           introduced
         });
+        if (plan.role === "final") { finalBossWaitT = 0; finalBossHintT = 0; }
         bossStage++;
         const nextBossAt = BOSS_TIMES[bossStage];
         bossT = nextBossAt == null ? Number.POSITIVE_INFINITY : Math.max(0, nextBossAt - elapsed);
@@ -4367,6 +5968,7 @@
     }
     gems = gems.filter(g => !g.done);
     }
+    updateCharmDrops(dt);
 
     // 配送取貨：靠近町屋即可出現裝置對應的取貨操作。
     inter = null;
@@ -4442,12 +6044,354 @@
 
     // 鏡頭平滑追蹤
     const targetCamX = P.x - W / 2;
-    const targetCamY = P.y - H / (2 * tiltK());
+    // dev=1&stage=rain-port&s2artprod=1 專用：2D 鏡頭中心往戰鬥帶中央（北建築～南海）靠攏 60%，
+    // 搭配 viewport.js 的 S2 dev zoom；tilt .60 的偏移隨 tilt 平滑歸零。非 dev S2 完全不變。
+    const s2Gain = (STAGE.id === "rain-port" && window.isS2ArtProdEnabled?.())
+      ? Math.max(0, Math.min(1, (tiltK() - 0.6) / 0.4)) : 0;
+    const camFocusY = P.y + (450 - P.y) * 0.6 * s2Gain;
+    const targetCamY = camFocusY - H / (2 * tiltK());
     const curCam = RENDERER.getCam();
+    // rain-port：鏡頭 Y 夾在戰鬥帶中心 ± 視野一半
+    let clampedCamY = targetCamY;
+    if (runBounds) {
+      const halfViewH = H / (2 * tiltK());
+      const minCamY = runBounds.minY - halfViewH;
+      const maxCamY = runBounds.maxY - halfViewH;
+      clampedCamY = Math.max(minCamY, Math.min(maxCamY, targetCamY));
+    }
     RENDERER.setCam(
       curCam.x + (targetCamX - curCam.x) * Math.min(1, dt * 9),
-      curCam.y + (targetCamY - curCam.y) * Math.min(1, dt * 9)
+      curCam.y + (clampedCamY - curCam.y) * Math.min(1, dt * 9)
     );
+
+    // 融合特效時序推進、命中判定與地面短灼燒傷害
+    // 題板／讀題 safeRead 期間與武器、敵人同步凍結，避免合技在答題時繼續扣血。
+    for (const fx of fusionEffects) {
+      if (safeRead) break;
+      fx.burnAge += dt;
+      fx.progress = Math.min(1, fx.burnAge / (fx.life || 0.8));
+      const warn = Number(fx.warn) || 0;
+      if (fx.burnAge < warn) fx.phase = "warn";
+      else if (fx.kind === "fusion_inkblade") fx.phase = fx.progress >= 0.5 ? "fade" : "active";
+      else fx.phase = fx.progress >= 0.8 ? "fade" : "active";
+
+      // 地面焦墨短灼燒判定 (短灼燒，同目標 CD，目標上限)
+      if (fx.kind === "fusion_inkblade" && fx.burnAge < (fx.burnDuration || 2.5)) {
+        fx.tick = (fx.tick ?? 0) - dt;
+        if (fx.tick <= 0) {
+          fx.tick = 0.5; // 每 0.5 秒結算一次灼燒
+          const sDmg = typeof fx.scorchDmg === "number" ? fx.scorchDmg : 9;
+          let sHits = 0;
+          for (const e of enemies) {
+            if (e.hp > 0 && !e.shield && !e.vanish && !e.done && sHits < 4) {
+              if (e.fusionBurnUntil && e.fusionBurnUntil > elapsed) continue;
+              const d = dist({ x: fx.x, y: fx.y }, e);
+              if (d <= (fx.radius || 280) * 0.85) {
+                let diff = Math.abs(Math.atan2(e.y - fx.y, e.x - fx.x) - fx.angle);
+                while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
+                if (diff <= (fx.spread || 2.0) / 2) {
+                  sHits++;
+                  e.fusionBurnUntil = elapsed + 0.45;
+                  hurt(e, sDmg, false);
+                  fusionStats.scorchDmg += sDmg;
+                  e.flash = 0.08;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // 雷狐居合：短預警結束時一次線性結算，每 cast 同敵一次。
+      if (fx.kind === "fusion_foxiai" && !fx.triggered && fx.burnAge >= warn) {
+        fx.triggered = true;
+        const hits = fusionLineTargets(fx.x, fx.y, fx.angle, fx.radius, fx.width || 64, fx.maxTargets || 4);
+        const crit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
+        for (const e of hits) {
+          if (!fusionTargetEligible(e) || fx.hitSet.has(e)) continue;
+          fx.hitSet.add(e);
+          const dmg = fx.damage * crit.mult;
+          hurt(e, dmg, crit.isCrit);
+          fusionRecordDamage("fusion_foxiai", dmg);
+          SKILLFX.play("thunder", "hit", 5, { x: e.x, y: e.y, ang: fx.angle, crit: crit.isCrit });
+        }
+        if (hits.length) RENDERER.triggerShake(4);
+      }
+
+      // 退魔符刃：斬擊瞬傷後，每個符印在自己的短延遲以當前位置引爆。
+      if (fx.kind === "fusion_exorcistblade" && Array.isArray(fx.marks)) {
+        for (const mark of fx.marks) {
+          if (mark.triggered || fx.burnAge < mark.delay) continue;
+          mark.triggered = true;
+          const primary = mark.target;
+          if (!fusionTargetEligible(primary)) continue;
+          const crit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
+          const dmg = mark.damage * crit.mult;
+          hurt(primary, dmg, crit.isCrit);
+          fusionRecordDamage("fusion_exorcistblade", dmg);
+          let extra = 0;
+          const maxExtra = Math.max(0, (fx.maxBurstTargets || 3) - 1);
+          for (const e of enemies) {
+            if (extra >= maxExtra) break;
+            if (!fusionTargetEligible(e) || e === primary) continue;
+            if (fx.splashHits.has(e) || dist(e, primary) > mark.radius) continue;
+            fx.splashHits.add(e);
+            const splash = dmg * 0.5;
+            hurt(e, splash, false);
+            fusionRecordDamage("fusion_exorcistblade", splash);
+            extra++;
+          }
+          SKILLFX.play("boom", "hit", 5, { x: primary.x, y: primary.y, r: mark.radius });
+        }
+      }
+
+      // 妖火結界：max1 域，固定脈衝次數；首碰擊退尋常妖怪，Boss 不受控。
+      if (fx.kind === "fusion_foxfirebarrier") {
+        while ((fx.pulseIndex || 0) < (fx.pulses || 0) && fx.burnAge >= (fx.nextPulse || 0)) {
+          fx.pulseIndex = (fx.pulseIndex || 0) + 1;
+          fx.nextPulse = (fx.nextPulse || 0) + (fx.pulseInterval || 0.35);
+          const crit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
+          const targets = enemies
+            .filter(e => fusionTargetEligible(e) && dist(e, fx) <= fx.radius)
+            .sort((a, b) => dist(a, fx) - dist(b, fx))
+            .slice(0, fx.maxTargets || 6);
+          for (const e of targets) {
+            const dmg = fx.damage * crit.mult;
+            hurt(e, dmg, crit.isCrit);
+            fusionRecordDamage("fusion_foxfirebarrier", dmg);
+            if (e.type !== "boss" && !fx.knocked.has(e)) {
+              fx.knocked.add(e);
+              knockback(e, fx.knockback || 70, fx);
+            }
+          }
+          if (targets.length) RENDERER.triggerShake(2);
+        }
+      }
+
+      // 退魔封陣：固定落點預警後有限多段符爆，不永久控制 Boss。
+      if (fx.kind === "fusion_exorcistseal") {
+        while ((fx.pulseIndex || 0) < (fx.pulses || 0) && fx.burnAge >= (fx.nextPulse || 0)) {
+          fx.pulseIndex = (fx.pulseIndex || 0) + 1;
+          fx.nextPulse = (fx.nextPulse || 0) + (fx.pulseInterval || 0.15);
+          const crit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
+          const targets = enemies
+            .filter(e => fusionTargetEligible(e) && dist(e, fx) <= fx.radius)
+            .sort((a, b) => dist(a, fx) - dist(b, fx))
+            .slice(0, fx.maxTargets || 6);
+          for (const e of targets) {
+            const dmg = fx.damage * crit.mult;
+            hurt(e, dmg, crit.isCrit);
+            fusionRecordDamage("fusion_exorcistseal", dmg);
+          }
+          if (targets.length) RENDERER.triggerShake(3);
+        }
+      }
+
+      // 斬界輪：擴散內外雙環，每環逐敵一次；Boss 只吃傷害，不受控。
+      if (fx.kind === "fusion_slashwheel") {
+        const t = Math.min(1, (fx.burnAge || 0) / (fx.expandTime || 0.45));
+        fx.currentRadius = (fx.radius || 320) * t;
+        for (const band of (fx.bands || [])) {
+          if (band.fired || fx.currentRadius < band.at) continue;
+          band.fired = true;
+          const crit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
+          let hits = 0;
+          for (const e of enemies) {
+            if (hits >= (band.maxTargets || 5) || !fusionTargetEligible(e) || band.hits.has(e)) continue;
+            if (Math.abs(dist({ x: fx.x, y: fx.y }, e) - band.at) > 30) continue;
+            band.hits.add(e);
+            hits++;
+            const dmg = band.damage * crit.mult;
+            hurt(e, dmg, crit.isCrit);
+            fusionRecordDamage("fusion_slashwheel", dmg);
+            SKILLFX.play("katana", "hit", 5, { x: e.x, y: e.y, ang: fx.angle, crit: crit.isCrit });
+          }
+          if (hits) RENDERER.triggerShake(2);
+        }
+      }
+
+      // 狐雷天燈：三盞燈籠各自飛向鎖定點，預警後定點落雷；每燈每敵一次。
+      if (fx.kind === "fusion_foxthunderlantern" && Array.isArray(fx.lanterns)) {
+        for (const ln of fx.lanterns) {
+          const tr = Math.min(1, (fx.burnAge || 0) / Math.max(0.001, ln.delay || 0.001));
+          ln.x = ln.fromX + (ln.targetX - ln.fromX) * tr;
+          ln.y = ln.fromY + (ln.targetY - ln.fromY) * tr;
+          if (ln.struck || (fx.burnAge || 0) < ln.delay) continue;
+          ln.struck = true;
+          const crit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
+          const targets = enemies
+            .filter(e => fusionTargetEligible(e) && dist(e, ln) <= (fx.strikeRadius || 64))
+            .sort((a, b) => dist(a, ln) - dist(b, ln))
+            .slice(0, fx.maxTargets || 3);
+          for (let i = 0; i < targets.length; i++) {
+            const e = targets[i];
+            if (ln.hitSet.has(e)) continue;
+            ln.hitSet.add(e);
+            const raw = i === 0 ? fx.damage : fx.damage * (fx.splashScale || 0.5);
+            const dmg = raw * crit.mult;
+            hurt(e, dmg, crit.isCrit);
+            fusionRecordDamage("fusion_foxthunderlantern", dmg);
+            SKILLFX.play("thunder", "hit", 5, { x: e.x, y: e.y, crit: crit.isCrit });
+          }
+          RENDERER.triggerShake(2);
+        }
+      }
+
+      // 炎符祭：火符交錯飛行、依序引爆，每符只留兩次短燼；派生固定上限。
+      if (fx.kind === "fusion_flamefestival" && Array.isArray(fx.talismans)) {
+        for (const t of fx.talismans) {
+          const tr = Math.min(1, (fx.burnAge || 0) / Math.max(0.001, t.delay || 0.001));
+          t.x = t.fromX + (t.targetX - t.fromX) * tr;
+          t.y = t.fromY + (t.targetY - t.fromY) * tr;
+          if (t.exploded || (fx.burnAge || 0) < t.delay) continue;
+          t.exploded = true;
+          const crit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
+          const hits = enemies
+            .filter(e => fusionTargetEligible(e) && dist(e, t) <= (fx.landRadius || 62))
+            .sort((a, b) => dist(a, t) - dist(b, t))
+            .slice(0, fx.maxTargets || 3);
+          for (const e of hits) {
+            if (t.hitSet.has(e)) continue;
+            t.hitSet.add(e);
+            const dmg = fx.damage * crit.mult;
+            hurt(e, dmg, crit.isCrit);
+            fusionRecordDamage("fusion_flamefestival", dmg);
+            SKILLFX.play("boom", "hit", 5, { x: e.x, y: e.y, r: fx.landRadius });
+          }
+          if (fx.embers.length < 8) {
+            fx.embers.push({
+              x: t.x,
+              y: t.y,
+              ticksLeft: fx.emberTicks || 2,
+              nextTick: fx.emberInterval || 0.35,
+              hitSet: new Set()
+            });
+          }
+        }
+        for (const em of fx.embers) {
+          if (em.ticksLeft <= 0) continue;
+          em.nextTick -= dt;
+          if (em.nextTick > 0) continue;
+          em.nextTick = fx.emberInterval || 0.35;
+          em.ticksLeft--;
+          em.hitSet = new Set();
+          const crit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
+          const hits = enemies
+            .filter(e => fusionTargetEligible(e) && dist(e, em) <= (fx.emberRadius || 48))
+            .sort((a, b) => dist(a, em) - dist(b, em))
+            .slice(0, fx.emberMaxTargets || 2);
+          for (const e of hits) {
+            if (em.hitSet.has(e)) continue;
+            em.hitSet.add(e);
+            const dmg = fx.emberDamage * crit.mult;
+            hurt(e, dmg, crit.isCrit);
+            fusionRecordDamage("fusion_flamefestival", dmg);
+          }
+          if (hits.length) burst(em.x, em.y, "#ff7043", 4);
+        }
+      }
+
+      // 雷陣封界：大型陣域每 0.8 秒鎖定最多 3 個威脅，0.6 秒警示後定點落雷。
+      if (fx.kind === "fusion_thundercircle") {
+        while ((fx.pulseIndex || 0) < (fx.pulses || 0) && (fx.burnAge || 0) >= (fx.nextPulse || 0)) {
+          fx.pulseIndex = (fx.pulseIndex || 0) + 1;
+          fx.nextPulse = (fx.nextPulse || 0) + (fx.pulseInterval || 0.8);
+          const marks = enemies
+            .filter(e => fusionTargetEligible(e) && dist(e, fx) <= (fx.radius || 240))
+            .sort((a, b) => dist(a, fx) - dist(b, fx))
+            .slice(0, 3);
+          for (const e of marks) {
+            if (fx.strikes.length >= 12) break;
+            fx.strikes.push({
+              x: e.x,
+              y: e.y,
+              delay: fx.pulseWarning || 0.6,
+              radius: fx.pulseRadius || 90,
+              damage: fx.pulseDamage,
+              critChance: fx.critChance,
+              critMult: fx.critMult,
+              triggered: false,
+              hitSet: new Set()
+            });
+          }
+        }
+        for (const s of fx.strikes) {
+          s.delay -= dt;
+          if (s.triggered || s.delay > 0) continue;
+          s.triggered = true;
+          const crit = rollCrit({ critChance: s.critChance, critMult: s.critMult });
+          let hits = 0;
+          for (const e of enemies) {
+            if (hits >= 4 || !fusionTargetEligible(e) || s.hitSet.has(e)) continue;
+            if (dist(e, s) > (s.radius || 90)) continue;
+            s.hitSet.add(e);
+            hits++;
+            const dmg = s.damage * crit.mult;
+            hurt(e, dmg, crit.isCrit);
+            fusionRecordDamage("fusion_thundercircle", dmg);
+            SKILLFX.play("thunder", "hit", 5, { x: e.x, y: e.y, crit: crit.isCrit });
+          }
+          if (hits) RENDERER.triggerShake(3);
+        }
+      }
+
+      // 雷符神罰：五符落定、預警落雷；每個命中最多單次連鎖，不二次派生。
+      if (fx.kind === "fusion_thundertalisman" && Array.isArray(fx.talismans)) {
+        for (const t of fx.talismans) {
+          const tr = Math.min(1, (fx.burnAge || 0) / Math.max(0.001, t.delay || 0.001));
+          t.x = t.fromX + (t.targetX - t.fromX) * tr;
+          t.y = t.fromY + (t.targetY - t.fromY) * tr;
+          if (t.struck || (fx.burnAge || 0) < t.delay + (fx.warnStrike || 0.36)) continue;
+          t.struck = true;
+          const crit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
+          const hits = enemies
+            .filter(e => fusionTargetEligible(e) && dist(e, t) <= (fx.strikeRadius || 70))
+            .sort((a, b) => dist(a, t) - dist(b, t))
+            .slice(0, fx.maxTargets || 4);
+          const chained = new Set();
+          for (const e of hits) {
+            if (t.hitSet.has(e)) continue;
+            t.hitSet.add(e);
+            const dmg = fx.damage * crit.mult;
+            hurt(e, dmg, crit.isCrit);
+            fusionRecordDamage("fusion_thundertalisman", dmg);
+            SKILLFX.play("thunder", "hit", 5, { x: e.x, y: e.y, crit: crit.isCrit });
+            if (chained.size >= (fx.chainMax || 1)) continue;
+            let best = null, bestD = Infinity;
+            for (const other of enemies) {
+              if (!fusionTargetEligible(other) || other === e || t.hitSet.has(other) || chained.has(other)) continue;
+              const d2 = dist(other, e);
+              if (d2 > (fx.chainRadius || 130) || d2 >= bestD) continue;
+              best = other;
+              bestD = d2;
+            }
+            if (best) {
+              chained.add(best);
+              t.hitSet.add(best);
+              const chainDmg = fx.damage * (fx.chainScale || 0.5) * crit.mult;
+              hurt(best, chainDmg, crit.isCrit);
+              fusionRecordDamage("fusion_thundertalisman", chainDmg);
+              fx.arcs.push({ x1: e.x, y1: e.y, x2: best.x, y2: best.y });
+              SKILLFX.play("thunder", "hit", 5, { x: best.x, y: best.y, crit: crit.isCrit });
+            }
+          }
+          if (hits.length) RENDERER.triggerShake(2);
+        }
+      }
+    }
+    fusionEffects = fusionEffects.filter(fx => {
+      const ttl = fx.kind === "fusion_inkblade" ? (fx.burnDuration || 2.5) : (fx.life || 0.8);
+      return fx.burnAge < ttl;
+    });
+
+    // 融合繪馬地面互動檢查
+    if (fusionToken && window.FUSION && typeof window.FUSION.getState === "function") {
+      const fState = window.FUSION.getState();
+      if (fState.state === "ground" && dist(P, fusionToken) <= 48) {
+        window.FUSION.pickupTalisman();
+        openFusionPanel();
+      }
+    }
 
     if (!safeRead && state === "play" && xp >= xpNeed()) offerUp();
   }
@@ -4597,6 +6541,13 @@
 
   function drawBossHazard(h) {
     if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) return;
+
+    // 雨港專屬新招式委派給 RENDERER.drawBossHazard (drawPortBossHazard)
+    if (STAGE.id === "rain-port" && (h.kind === "tidalFan" || h.kind === "rainVortex")) {
+      RENDERER.drawBossHazard(ctx, h, elapsed);
+      return;
+    }
+
     ctx.save();
     ctx.globalAlpha = h.phase === "recovery" ? 0.28 : 0.72;
     if (h.kind === "slam") {
@@ -4802,6 +6753,11 @@
       upright(g.x, g.y, () => RENDERER.drawSpiritGem(g, elapsed));
     }
 
+    for (const d of charmDrops) {
+      if (!nearView(d.x, d.y, 60)) continue;
+      paintCharmDrop(d);
+    }
+
     // 技能的貼地圖案（淨化靈陣等）畫在所有角色之前，才會被角色蓋住。
     if (sacredSanctuary && sacredSanctuary.life > 0) {
       const lifeNorm = sacredSanctuary.life / (sacredSanctuary.maxLife || 1.8);
@@ -4954,6 +6910,7 @@
     }
 
     // 7. 依腳底地面接觸點排序；北側角色被屋頂遮住，南側角色在屋前。
+    const movement = move();
     const actors = [
       ...houses.filter(houseSeen).map(h => ({ house: h, y: h.y + 48 })),
       ...enemies.filter(e => nearView(e.x, e.y)).map(e => ({ enemy: e, y: e.y + (e.type === "boss" ? 44 : e.type === "mis" ? 27 : 19) })),
@@ -5007,11 +6964,14 @@
             ctx.fill();
           }
         });
-      } else {
-        const movement = move();
-        RENDERER.drawPlayerShadow?.(P, elapsed, movement);
-        upright(P.x,P.y,()=>drawCargo()); // 貨物在直立角色後方
-        upright(P.x,P.y,()=>RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, movement, b.shield || 0, playerAttackPoseT > 0, playerHurtPoseT > 0));
+} else if (actor.player) {
+        // 玩家：有狐火時在狐火分層中繪製，這裡跳過
+        if (!(WL.fire > 0)) {
+          const movement = move();
+          RENDERER.drawPlayerShadow?.(P, elapsed, movement);
+          upright(P.x, P.y, () => drawCargo());
+          upright(P.x, P.y, () => RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, movement, b.shield || 0, playerAttackPoseT > 0, playerHurtPoseT > 0));
+        }
       }
     }
 
@@ -5019,19 +6979,43 @@
     for (const q of proj) upright(q.x,q.y,()=>
       SKILLFX.paint(ctx, "boom", q.level??WL.boom, { x: q.x, y: q.y, spin: elapsed * (q.stuck ? 4 : 16), age:q.t, life:q.stuck ? 1 : q.life, exitAlpha:1 }));
 
-    // Lv1–3 僅環繞、Lv4 三火脫離追擊；MAX 六火常駐並召喚黑龍。
+// Lv1–3 僅環繞、Lv4 三火脫離追擊；MAX 六火常駐並召喚黑龍。
     if (WL.fire > 0) {
       const fireSpec = resolveAttackSpec("fire", WL.fire, getBuildState());
       const count = fireSpec.count;
       const rx = fireSpec.rx, ry = fireSpec.ry;
       const awaySlots = new Set(ghosts.filter(p=>p.fireAttack&&p.life>0&&p.level===WL.fire).map(p=>p.slot));
+
+      // 2.5D 狐火 orbit 上下遮擋：根據世界 Y 分前/後層
+      // 後半（fy > P.y，遠離攝影機）先畫在玩家之前；前半（fy <= P.y，靠近攝影機）畫在玩家之後
+      const backFireballs = [];
+      const frontFireballs = [];
       for (let i = 0; i < count; i++) {
         if (awaySlots.has(i)) continue;
         const a = fAng + (i * 6.283) / count;
-        const fx=P.x+Math.cos(a)*rx,fy=P.y+Math.sin(a)*ry;
-        upright(fx,fy,()=>SKILLFX.paint(ctx, "fire", WL.fire, {
-          x:fx, y:fy, ang:a, origin:P, orbitR:rx, orbitRy:ry, rx, ry, time:elapsed+i*.2, orbit:true
-        }));
+        const fx = P.x + Math.cos(a) * rx;
+        const fy = P.y + Math.sin(a) * ry;
+        const fireData = { x: fx, y: fy, ang: a, origin: P, orbitR: rx, orbitRy: ry, rx, ry, time: elapsed + i * 0.2, orbit: true };
+        if (fy > P.y) {
+          backFireballs.push({ fx, fy, fireData });
+        } else {
+          frontFireballs.push({ fx, fy, fireData });
+        }
+      }
+
+      // 先畫後層火球（fy > P.y，遠離攝影機）
+      for (const fb of backFireballs) {
+        upright(fb.fx, fb.fy, () => SKILLFX.paint(ctx, "fire", WL.fire, fb.fireData));
+      }
+
+      // 貨物在直立角色後方
+      upright(P.x, P.y, () => drawCargo());
+      // 玩家（只畫一次，在兩層火球之間）
+      upright(P.x, P.y, () => RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, movement, b.shield || 0, playerAttackPoseT > 0, playerHurtPoseT > 0));
+
+      // 再畫前層火球（fy <= P.y，靠近攝影機）
+      for (const fb of frontFireballs) {
+        upright(fb.fx, fb.fy, () => SKILLFX.paint(ctx, "fire", WL.fire, fb.fireData));
       }
     }
 
@@ -5333,6 +7317,39 @@
         });
       }
     }
+
+    // 繪製地面融合繪馬
+    if (fusionToken && window.FUSION && typeof window.FUSION.getState === "function") {
+      const fState = window.FUSION.getState();
+      if (fState.state === "ground") {
+        upright(fusionToken.x, fusionToken.y, () => {
+          ctx.save();
+          ctx.fillStyle = "rgba(220, 160, 60, 0.95)";
+          ctx.beginPath();
+          ctx.moveTo(0, -18);
+          ctx.lineTo(16, -6);
+          ctx.lineTo(16, 16);
+          ctx.lineTo(-16, 16);
+          ctx.lineTo(-16, -6);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = "#4a2a10";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = "#3a1505";
+          ctx.font = "bold 13px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("合", 0, 4);
+          ctx.restore();
+        });
+      }
+    }
+
+    // 繪製融合特效 (奧義・墨焰斬 / 雷紋陣)
+    for (const fx of fusionEffects) {
+      RENDERER.drawFusionFx?.(ctx, fx, elapsed);
+    }
     ctx.restore();
 
     // 破曉後若配達已完成（第一關破曉即可），使用與送貨金箭頭不同的赤色雙箭頭追蹤最終大妖鬼。
@@ -5413,16 +7430,27 @@
     }
     if (action) e.preventDefault();
     if (e.repeat && ["pause", "codex", "mute", "interact", "hint"].includes(action)) return;
+    if (state === "charmswap") {
+      e.preventDefault();
+      if (e.repeat) return;
+      if (action === "l" || e.code === "ArrowLeft") charmSwapIndex = (charmSwapIndex + CHARM_SLOT_MAX - 1) % CHARM_SLOT_MAX;
+      else if (action === "r" || e.code === "ArrowRight") charmSwapIndex = (charmSwapIndex + 1) % CHARM_SLOT_MAX;
+      else if (!e.repeat && "123".includes(e.key) && e.key.length === 1) resolveCharmSwap(+e.key - 1);
+      else if (e.key === "Enter" || action === "interact") resolveCharmSwap("confirm");
+      else if (e.code === "Escape" || action === "pause" || e.key === "Backspace") resolveCharmSwap("cancel");
+      return;
+    }
     if (action === "pause") {
       if (state === "codex") {
         state = codexBack;
         return;
       }
       if (state === "overworld" && e.key === "Escape") {
-        returnHome();
+        requestOverworldExit();
         return;
       }
-      if (state === "won" || state === "lost") { activateMenu("menu"); return; }
+      if (state === "won") { activateMenu("world"); return; }
+      if (state === "lost") { activateMenu("menu"); return; }
       if (state === "play" || state === "pause") {
         togglePause();
         return;
@@ -5483,6 +7511,22 @@
       }
       return;
     }
+    if (state === "fusion") {
+      if (e.code === 'Tab' || ['u','d','l','r'].includes(action) || e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+        e.preventDefault();
+        if (!e.repeat) {
+          const back = e.code === 'Tab' ? (e.shiftKey ? -1 : 1) : (action === 'u' || action === 'l' || e.code === 'ArrowLeft') ? -1 : 1;
+          fusionMoveFocus(back);
+        }
+      } else if (!e.repeat && (e.key === 'Enter' || action === 'interact' || e.code === 'Space')) {
+        e.preventDefault();
+        fusionActivateFocused();
+      } else if (!e.repeat && (e.code === 'Escape' || e.key === 'Escape')) {
+        e.preventDefault();
+        fusionCancelPanel();
+      }
+      return;
+    }
     if (state === "overworld") {
       if (action === "l") { e.preventDefault(); moveOverworld(-1, 0); }
       else if (action === "r") { e.preventDefault(); moveOverworld(1, 0); }
@@ -5492,6 +7536,13 @@
       return;
     }
     if (state !== "play") return;
+    if (e.code === 'KeyF' && !e.repeat && window.FUSION && typeof window.FUSION.getState === "function") {
+      const fState = window.FUSION.getState();
+      if (fState.state === "held") {
+        e.preventDefault();
+        if (openFusionPanel()) return;
+      }
+    }
     if (e.code === 'KeyV' && !action && !e.repeat) { e.preventDefault(); toggleViewMode(); return; }
     if (action === "interact") interact();
     else if (bossQ && !job?.reading && !e.repeat && "123".includes(e.key)) {
@@ -5655,16 +7706,13 @@
         state = codexBack;
         return;
       }
-      if (p.x < 30 || p.x > W - 30 || p.y < 20 || p.y > 590) {
-        state = codexBack;
-        return;
-      }
+      // 已移除「點邊緣 30px 即退出」：手機易誤觸，改只用返回鈕（與單字頁一致）。
       return;
     }
     if (state === "overworld") {
       const back = window.OVERWORLD.backButton();
       if (hitButton(p, back)) {
-        returnHome();
+        requestOverworldExit();
         return;
       }
 
@@ -5691,6 +7739,17 @@
       if (btn) { menuFocus = menuButtons().findIndex(b=>b.id===btn.id); activateWithFeedback(btn.id); }
       return;
     }
+    if (state === "charmswap") {
+      for (const h of charmSwapHits) {
+        if (p.x < h.x || p.x > h.x + h.w || p.y < h.y || p.y > h.y + h.h) continue;
+        if (h.id === "swap_discard") resolveCharmSwap("discard");
+        else if (h.id === "swap_0") resolveCharmSwap(0);
+        else if (h.id === "swap_1") resolveCharmSwap(1);
+        else if (h.id === "swap_2") resolveCharmSwap(2);
+        return;
+      }
+      return;
+    }
     if (state === "levelup") {
       const hitIndex = hitLevelUpCard(p);
       if (hitIndex >= 0) {
@@ -5701,6 +7760,20 @@
       if (hitLevelUpReroll(p)) reroll();
       return;
     }
+    if (state === "fusion" && window.FUSION && typeof UI.fusionLayout === "function") {
+      const model = window.FUSION.getViewModel ? window.FUSION.getViewModel() : {};
+      const layout = UI.fusionLayout(null, model);
+      if (layout && layout.buttons) {
+        for (let i = 0; i < layout.buttons.length; i++) {
+          const btn = layout.buttons[i];
+          if (hitButton(p, btn)) {
+            fusionPointerButton(btn, i);
+            return;
+          }
+        }
+      }
+      return;
+    }
     if (bossQ && !job?.reading) {
       const layout = UI.bossQuizLayout(bossQ.ans.length);
       for (let i = 0; i < layout.options.length; i++) {
@@ -5709,6 +7782,12 @@
           answerBoss(i);
           return;
         }
+      }
+    }
+    if (state === "play" && window.FUSION && typeof window.FUSION.getState === "function") {
+      const fState = window.FUSION.getState();
+      if (fState.state === "held" && hit(p, btnFusionHeld)) {
+        if (openFusionPanel()) return;
       }
     }
     if (inter && hit(p, btnE)) {
@@ -5802,6 +7881,7 @@
     tutorial = null; bossQ = null; job = null; inter = null;
     orders = []; enemies = []; gems = []; texts = []; rings = [];
     proj = []; needles = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; splitblasts = []; duoShockwaves = []; inkfireMarks = []; enemyBullets = [];
+    fusionEffects = [];
     victorySeq = null; lampSeq = null; finalBossEnt = null;
     FX.reset(); SKILLFX.reset(); RENDERER.clearShake();
     AUDIO.setSuspended(false);
@@ -5872,8 +7952,8 @@
     window.VIEWPORT?.advanceTilt?.(dt);
     const currentTilt = tiltK();
     const currentZoom = window.VIEWPORT?.worldZoom?.() || 1;
-    const liveRun = state === "play" || state === "pause" || state === "levelup"
-      || (state === "codex" && (codexBack === "play" || codexBack === "pause" || codexBack === "levelup"));
+    const liveRun = state === "play" || state === "pause" || state === "levelup" || state === "fusion" || state === "charmswap"
+      || (state === "codex" && (codexBack === "play" || codexBack === "pause" || codexBack === "levelup" || codexBack === "fusion"));
     if ((previousTilt !== currentTilt || previousZoom !== currentZoom) && liveRun) {
       const camera = RENDERER.getCam();
       const next = window.VIEWPORT?.reanchor?.(P, camera, previousTilt, previousZoom, currentTilt, currentZoom);
@@ -5906,8 +7986,8 @@
     }
     if (state === "play") {
       update(dt, hitStopped);
-    } else if (state === "levelup") {
-      // 升級選卡期間凍結燈油消耗與遊戲時間，給予玩家安心閱讀與思考時間
+    } else if (state === "levelup" || state === "fusion") {
+      // 升級選卡與融合確認期間凍結燈油消耗與遊戲時間，給予玩家安心閱讀與思考時間
     } else if (state === "lampout") {
       updateLampSequence(dt);
     } else if (state === "victory") {
@@ -5915,6 +7995,7 @@
     } else if (state === "overworld") {
       window.OVERWORLD.update(overworld, dt);
       if (overworldNoticeT > 0) overworldNoticeT = Math.max(0, overworldNoticeT - dt);
+    if (overworldExitArmT > 0) overworldExitArmT = Math.max(0, overworldExitArmT - dt);
     }
     AUDIO.updateBgm(dt, tutorial ? 'pause' : state, state === "overworld" ? 0 : elapsed, DAWN);
 
@@ -5958,6 +8039,8 @@
     btnD.y = bounds.bottom - btnD.r - 24;
     btnE.x = btnD.x;
     btnE.y = btnD.y - 110;
+    btnFusionHeld.x = btnE.x;
+    btnFusionHeld.y = btnE.y - 85;
     if (artPending()) {
       ctx.save();
       const area = viewBounds(), cover = window.ART?.cover;
@@ -5970,6 +8053,20 @@
       UI.drawMainMenu(ctx, STORE, now / 1000, menuFocus);
     } else if (state === "overworld") {
       window.OVERWORLD.draw(ctx, overworld, now / 1000, overworldNoticeT);
+      if (state === "overworld" && overworldExitArmT > 0) {
+        ctx.save();
+        const msg = "再按一次返回主選單";
+        ctx.font = "bold 18px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const tw = ctx.measureText(msg).width + 36;
+        ctx.globalAlpha = Math.min(1, overworldExitArmT / 0.4);
+        ctx.fillStyle = "rgba(20, 10, 14, 0.85)";
+        ctx.fillRect(W / 2 - tw / 2, H - 120, tw, 36);
+        ctx.fillStyle = "#ffe9a0";
+        ctx.fillText(msg, W / 2, H - 102);
+        ctx.restore();
+      }
     } else {
       frameShakeOffset = RENDERER.getShakeOffset();
       drawWorld();
@@ -5993,8 +8090,48 @@
           job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, GOAL_DELIVERIES,
           dashCd, dashMax, bossHunt, hudExtra(now / 1000)
         );
+        // 第2～8關：破曉且終王已倒，仍須送滿委託；常駐提示剩餘件數（勝利規則不變）。
+        if (state === "play" && STAGE.id !== "night-town" && elapsed >= DAWN && finalBossDefeated && delivered < GOAL_DELIVERIES) {
+          ctx.save();
+          const msg = `破曉已至・還差 ${GOAL_DELIVERIES - delivered} 件委託`;
+          ctx.font = "bold 18px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          const tw = ctx.measureText(msg).width + 32;
+          ctx.fillStyle = "rgba(20, 10, 14, 0.78)";
+          ctx.fillRect(W / 2 - tw / 2, 96, tw, 32);
+          ctx.fillStyle = "#ffd8a0";
+          ctx.fillText(msg, W / 2, 112);
+          ctx.restore();
+        }
+        if (typeof UI.drawCharmHud === "function") {
+          UI.drawCharmHud(ctx, {
+            charms: charmViewList(),
+            maxSlots: CHARM_SLOT_MAX,
+            pendingDrop: charmPendingView(),
+            inputMode
+          });
+        }
         if (state === 'play') UI.drawButton(ctx, btnView,
           (window.VIEWPORT?.tiltTargetScale?.() ?? tiltK()) === 1 ? '2.5D' : '2D', {size: 13, quiet: true, scrollText: false});
+        if (state === "play" && window.FUSION && typeof window.FUSION.getState === "function" && window.FUSION.getState().state === "held") {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(btnFusionHeld.x, btnFusionHeld.y, btnFusionHeld.r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(220, 160, 60, 0.92)";
+          ctx.fill();
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = "#4a2a10";
+          ctx.stroke();
+          ctx.fillStyle = "#3a1505";
+          ctx.font = "bold 15px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("奧義", btnFusionHeld.x, btnFusionHeld.y - 7);
+          ctx.font = "bold 11px sans-serif";
+          ctx.fillText("重開", btnFusionHeld.x, btnFusionHeld.y + 10);
+          ctx.restore();
+        }
         if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
         if (state === "play") drawDragonHudOverlay(frameShakeOffset);
         if (titleCardT > 0 && state === "play") UI.drawTitleCard(ctx, STAGE, stageChapter(), titleCardT);
@@ -6002,9 +8139,22 @@
         const sealFade = bossSealBreak?.boss === activeBoss ? Math.max(0,1-(performance.now()-bossSealBreak.at)/850) : 0;
         if (bossQ || activeBoss) UI.drawBossQuiz(ctx,bossQ,inputMode,activeBoss,sealFade);
         if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000, levelupFocus, inputMode, awakeningState());
+        if (state === "fusion" && window.FUSION && typeof UI.drawFusion === "function") {
+          const model = window.FUSION.getViewModel ? window.FUSION.getViewModel() : {};
+          UI.drawFusion(ctx, model, fusionFocus, inputMode);
+        }
+        if (state === "charmswap" && typeof UI.drawCharmSwap === "function") {
+          const swapHits = UI.drawCharmSwap(ctx, {
+            charms: charmViewList(),
+            pending: charmPendingView(),
+            selectedIndex: charmSwapIndex,
+            inputMode
+          });
+          if (Array.isArray(swapHits)) charmSwapHits = swapHits;
+        }
         if (state === "pause") {
           UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false, quitConfirm ? 0 : menuFocus);
-          if (quitConfirm) UI.drawExitConfirm(ctx, menuFocus);
+          if (quitConfirm) UI.drawExitConfirm(ctx, menuFocus, quitTarget);
         }
         if (state === "won" || state === "lost") UI.drawEndScreen(ctx, state, score, delivered, failed, misses, menuFocus, { ...runSummary, won: state === "won", time: now / 1000 });
       }
@@ -6051,5 +8201,56 @@
     });
   }
 
+  window.OMAMORI_CORE = {
+    ART_KEY: CHARM_DROP_ART,
+    NORMAL_CHANCE: CHARM_NORMAL_CHANCE,
+    ELITE_CHANCE: CHARM_ELITE_CHANCE,
+    DROP_CAP: CHARM_DROP_CAP,
+    build: () => getBuildState(),
+    drops: () => charmDrops.map(d => ({ id: d.id, charmId: d.charmId, x: d.x, y: d.y, life: d.life })),
+    hudModel: () => ({
+      charms: charmViewList(),
+      maxSlots: CHARM_SLOT_MAX,
+      pendingDrop: charmPendingView(),
+      inputMode
+    }),
+    swapModel: () => ({
+      charms: charmViewList(),
+      pending: charmPendingView(),
+      selectedIndex: charmSwapIndex,
+      inputMode
+    }),
+    resolveSwap: action => resolveCharmSwap(action),
+    paintDrops: () => {
+      let painted = 0;
+      for (const d of charmDrops) if (paintCharmDrop(d)) painted++;
+      return painted;
+    },
+    effects: () => ({
+      dmg: getEffectiveDmg(),
+      speed: getEffectiveMoveSpeed(),
+      waraji: (b.spd || 0) * 35,
+      step: charmLevelOf("charm_step") * 28,
+      magnet: getEffectiveMagnetRadius(),
+      rate: getEffectiveRate(),
+      reach: getEffectiveReachMultiplier(),
+      guardMul: charmLevelOf("charm_guard") > 0 ? 1 - 0.10 * charmLevelOf("charm_guard") : 1
+    }),
+    effectsOf: buildState => ({
+      dmg: getEffectiveDmg(buildState),
+      speed: getEffectiveMoveSpeed(buildState),
+      magnet: getEffectiveMagnetRadius(buildState),
+      rate: getEffectiveRate(buildState),
+      reach: getEffectiveReachMultiplier(buildState),
+      step: charmLevelOf("charm_step", buildState) * 28,
+      waraji: (b.spd || 0) * 35,
+      guardMul: charmLevelOf("charm_guard", buildState) > 0
+        ? 1 - 0.10 * charmLevelOf("charm_guard", buildState)
+        : 1
+    }),
+    guardOilLoss: amount => charmGuardOilLoss(amount)
+  };
+
+  initFusionBridge();
   requestAnimationFrame(frame);
 })();

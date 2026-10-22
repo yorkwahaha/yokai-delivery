@@ -27,7 +27,12 @@ function frameOf(viewport) {
   const gap = 8;
   const inner = Math.max(1, width - gap * 2);
   let columns = 4;
-  while (columns > 1 && Math.floor((inner - gap * (columns - 1)) / columns) < 48) columns = columns === 4 ? 2 : 1;
+  // 確保卡片寬度在 CSS 下至少 44 px（約 48 邏輯像素作為緩衝）
+  const minCardCss = 44;
+  const minCardLogical = Math.ceil(minCardCss / scale);
+  while (columns > 1 && Math.floor((inner - gap * (columns - 1)) / columns) < minCardLogical) {
+    columns = columns === 4 ? 2 : 1;
+  }
   const yFilters = top + gap;
   const yPager = yFilters + touch + gap;
   const yBack = top + height - gap - touch;
@@ -35,12 +40,12 @@ function frameOf(viewport) {
   const gridBottom = yBack - gap;
   let rows = 2;
   const gridH = gridBottom - gridTop;
-  const minCard = 132;
-  while (rows > 1 && Math.floor((gridH - gap * (rows - 1)) / rows) < minCard) rows -= 1;
+  const minCardH = Math.ceil(132 / scale); // 確保卡片高度在 CSS 下足夠
+  while (rows > 1 && Math.floor((gridH - gap * (rows - 1)) / rows) < minCardH) rows -= 1;
   if (gridH < 36) rows = 1;
   const pageSize = Math.max(1, columns * rows);
-  const cardW = Math.max(1, Math.floor((inner - gap * (columns - 1)) / columns));
-  const cardH = Math.max(1, Math.floor((Math.max(gridH, 36) - gap * (rows - 1)) / rows));
+  const cardW = Math.max(minCardLogical, Math.floor((inner - gap * (columns - 1)) / columns));
+  const cardH = Math.max(minCardH, Math.floor((Math.max(gridH, 36) - gap * (rows - 1)) / rows));
   const half = Math.max(touch, Math.floor((inner - gap) / 2));
   return {
     scale, left, top, right: left + width, bottom: top + height, width, height, touch, gap,

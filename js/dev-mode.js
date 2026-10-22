@@ -86,8 +86,8 @@ function writeProgress(storage, loc, data) {
 function remember(storage, loc, jp) {
   const data = readProgress(storage, loc);
   data.m = data.m || {};
-  const row = data.m[jp] || { ok: 0 };
-  row.ok += 1;
+  const row = data.m[jp] && typeof data.m[jp] === "object" ? data.m[jp] : { ok: 0 };
+  row.ok = (row.ok | 0) + 1;
   data.m[jp] = row;
   writeProgress(storage, loc, data);
   return data;
@@ -95,7 +95,9 @@ function remember(storage, loc, jp) {
 
 function finish(storage, loc, stageId) {
   const data = readProgress(storage, loc);
-  data.progress = data.progress || { unlocked: {}, completed: {}, stages: {} };
+  const p = data.progress && typeof data.progress === "object" ? data.progress : {};
+  for (const k of ["unlocked", "completed", "stages"]) if (!p[k] || typeof p[k] !== "object") p[k] = {};
+  data.progress = p;
   data.progress.completed[stageId] = true;
   data.progress.unlocked[stageId] = true;
   writeProgress(storage, loc, data);

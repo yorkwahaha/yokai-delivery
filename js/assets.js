@@ -4,7 +4,7 @@ window.ART_READY = false;
 window.MAP_ART_READY = false;
 window.ART_PROGRESS = { settled: 0, total: 1, failed: 0 };
 // Bump when replacing audio assets so deployed browser caches fetch the new clips.
-window.audioAsset = path => `${path}?v=${path.startsWith("assets/audio/words/") ? "20261018-m11-voice" : "20261013-boss-mobile2"}`;
+window.audioAsset = path => `${path}?v=20261018-m11-voice`;
 
 const GAME_ASSET_NAMES = [
   "player", "player_walk1", "player_walk2",
@@ -42,6 +42,1088 @@ const HUD_ASSET_NAMES = ["hud_lantern_oil", "hud_radar_frame", "hud_omamori_hint
 // 八關資產插槽定義（資料導向，審圖通過後只要換映射即可，不改引擎）
 // 每關包含：地面、場景/建築/裝飾/地標、專屬敵人 idle/attack、Boss idle/attack
 // 缺圖時回落現役共用資產，標記 WAITING_ART；未核准候選不接 production
+// DEV-ONLY: Stage8 preview toggle - enabled via ?dev=1&stage8preview=1 or window.STAGE8_PREVIEW = true
+const STAGE8_PREVIEW_ENABLED = (() => {
+  if (typeof window !== "undefined" && window.STAGE8_PREVIEW === true) return true;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("stage8preview") === "1" && params.get("dev") === "1";
+  } catch { return false; }
+})();
+
+// Stage8 preview asset keys (ONLY clean isolated props from connected-component extraction)
+// Ground tiles and path tiles DISABLED - they were rectangular artifacts
+// Source: irregular 1448x1086 sprite sheet -> connected components -> clean_prop_*
+const STAGE8_PREVIEW_KEYS = Object.freeze({
+  // Clean isolated props (47 items from connected-component extraction in sliced_v2/)
+  // Each is a genuinely isolated flower stalk, bone fragment, or rock with transparent borders
+  props: [
+    "stage8_clean_prop_0", "stage8_clean_prop_1", "stage8_clean_prop_2", "stage8_clean_prop_3",
+    "stage8_clean_prop_4", "stage8_clean_prop_5", "stage8_clean_prop_6", "stage8_clean_prop_7",
+    "stage8_clean_prop_8", "stage8_clean_prop_9", "stage8_clean_prop_10", "stage8_clean_prop_11",
+    "stage8_clean_prop_12", "stage8_clean_prop_13", "stage8_clean_prop_14", "stage8_clean_prop_15",
+    "stage8_clean_prop_16", "stage8_clean_prop_17", "stage8_clean_prop_18", "stage8_clean_prop_19",
+    "stage8_clean_prop_20", "stage8_clean_prop_21", "stage8_clean_prop_22", "stage8_clean_prop_23",
+    "stage8_clean_prop_24", "stage8_clean_prop_25", "stage8_clean_prop_26", "stage8_clean_prop_27",
+    "stage8_clean_prop_28", "stage8_clean_prop_29", "stage8_clean_prop_30", "stage8_clean_prop_31",
+    "stage8_clean_prop_32", "stage8_clean_prop_33", "stage8_clean_prop_34", "stage8_clean_prop_35",
+    "stage8_clean_prop_36", "stage8_clean_prop_37", "stage8_clean_prop_38", "stage8_clean_prop_39",
+    "stage8_clean_prop_40", "stage8_clean_prop_41", "stage8_clean_prop_42", "stage8_clean_prop_43",
+    "stage8_clean_prop_44", "stage8_clean_prop_45", "stage8_clean_prop_46"
+  ]
+});
+
+// Expose to window for renderer access
+if (typeof window !== "undefined") {
+  window.STAGE8_PREVIEW_ENABLED = STAGE8_PREVIEW_ENABLED;
+  window.STAGE8_PREVIEW_KEYS = STAGE8_PREVIEW_KEYS;
+}
+
+// DEV-ONLY: Stage2 Rain-Port candidate building preview toggle
+// Strictly requires URL query: dev=1 && portartcandidate=1
+const isPortArtCandidateEnabled = () => {
+  try {
+    const raw = String(typeof window !== "undefined" && window.location?.search || "");
+    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
+    const hasCandidate = /(?:^|[?&])portartcandidate=1(?=[&#]|$)/.test(raw);
+    return hasDev && hasCandidate;
+  } catch { return false; }
+};
+
+const PORT_CANDIDATE_KEYS = Object.freeze({
+  fishWorkshop: "port_fish_workshop_candidate",
+  weatheredWarehouse: "port_weathered_warehouse_candidate"
+});
+
+const PORT_CANDIDATE_METADATA = Object.freeze({
+  weatheredWarehouse: Object.freeze({
+    priority: "B",
+    targetType: "port_warehouse",
+    rawFile: "assets/img/rain-port/port_weathered_warehouse_candidate.png",
+    rawSha256: "ec233e79a340a96be529b9be5e25fa4987244cd4deb11d6f99d2a2f0ff7153e0",
+    rawBytes: 2449956,
+    cutoutFile: "assets/img/rain-port/port_weathered_warehouse_cutout_candidate.png",
+    cutoutSha256: "60efbd17fa869e9a4986f85020d40514ffb3b22c6d6c3c4a99de3b8e20c82139",
+    cutoutBytes: 2343526,
+    footprintW: 187,
+    footpointDy: 48,
+    shadowRx: 82,
+    shadowRy: 16,
+    bbox: Object.freeze({ minX: 13, maxX: 1239, minY: 130, maxY: 1148, opaqueW: 1227, opaqueH: 1019 }),
+    sourceRect: Object.freeze({ sx: 13, sy: 130, sw: 1227, sh: 1019 }),
+    footRatio: 1148 / 1254,
+    status: "USER_APPROVED"
+  }),
+  fishWorkshop: Object.freeze({
+    priority: "A",
+    targetType: "port_fishmonger",
+    rawFile: "assets/img/rain-port/port_fish_workshop_candidate.png",
+    rawSha256: "c4dead2f405398cd7aaa552622d4ab49529f0b1544f0add94abda2a0c18c1f1b",
+    rawBytes: 2367762,
+    cutoutFile: "assets/img/rain-port/port_fish_workshop_cutout_candidate.png",
+    cutoutSha256: "065fb9907ee5a6317254f31bc71e06d3e51dfedcf7f1da6a9bf4147feabd9b46",
+    cutoutBytes: 1956641,
+    footprintW: 201,
+    footpointDy: 48,
+    shadowRx: 88,
+    shadowRy: 16,
+    sign: "魚市工坊",
+    bbox: Object.freeze({ minX: 17, maxX: 1236, minY: 181, maxY: 1103, opaqueW: 1220, opaqueH: 923 }),
+    sourceRect: Object.freeze({ sx: 17, sy: 181, sw: 1221, sh: 923 }),
+    footRatio: 1103 / 1254,
+    status: "USER_APPROVED"
+  })
+});
+
+// DEV-ONLY: Stage2 Rain-Port candidate surface (V3 stone & harbor sea) preview toggle
+// Strictly requires URL query: dev=1 && (portsurfacecandidate=1 || surfacecandidate=1)
+const isPortSurfaceCandidateEnabled = () => {
+  try {
+    const raw = String(typeof window !== "undefined" && window.location?.search || "");
+    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
+    const hasCandidate = /(?:^|[?&])(?:portsurfacecandidate|surfacecandidate)=1(?=[&#]|$)/.test(raw);
+    return hasDev && hasCandidate;
+  } catch { return false; }
+};
+
+const PORT_SURFACE_CANDIDATE_METADATA = Object.freeze({
+  stoneV3: Object.freeze({
+    role: "stoneV3",
+    targetType: "ground_stone",
+    purpose: "central_walkable_stone",
+    rawFile: "assets/img/rain-port/ground_stone_nano_v3_candidate.jpg",
+    file: "assets/img/rain-port/ground_stone_nano_v3_seamless.png",
+    w: 1024,
+    h: 1024,
+    status: "CANDIDATE_PREVIEW"
+  }),
+  harborSea: Object.freeze({
+    role: "harborSea",
+    targetType: "sea_surface",
+    purpose: "southern_impassable_sea_bg",
+    rawFile: "assets/img/rain-port/port_harbor_sea_candidate.png",
+    file: "assets/img/rain-port/port_harbor_sea_norain_candidate.png",
+    fallbackFile: "assets/img/rain-port/port_harbor_sea_surface.png",
+    w: 1024,
+    h: 600,
+    status: "CANDIDATE_PREVIEW"
+  }),
+  stoneReflection: Object.freeze({
+    role: "stoneReflection",
+    targetType: "ground_accent",
+    purpose: "sparse_local_accent",
+    rawFile: "assets/img/rain-port/ground_stone_reflection_candidate.jpg",
+    file: "assets/img/rain-port/ground_stone_reflection_candidate.jpg",
+    w: 1024,
+    h: 1024,
+    status: "CANDIDATE_PREVIEW"
+  }),
+  stoneWoodTransition: Object.freeze({
+    role: "stoneWoodTransition",
+    targetType: "ground_transition",
+    purpose: "stone_to_wood_dock_seam",
+    rawFile: "assets/img/rain-port/ground_trans_stone_wood_candidate.png",
+    file: "assets/img/rain-port/ground_trans_stone_wood_candidate.png",
+    w: 1024,
+    h: 512,
+    status: "CANDIDATE_PREVIEW"
+  }),
+  northCliff: Object.freeze({
+    role: "northCliff",
+    targetType: "mountain_cliff",
+    purpose: "northern_backdrop_mountain_cliff",
+    rawFile: "assets/img/rain-port/port_north_cliff_candidate.png",
+    file: "assets/img/rain-port/port_north_cliff_candidate.png",
+    w: 1024,
+    h: 480,
+    status: "CANDIDATE_PREVIEW"
+  })
+});
+
+if (typeof window !== "undefined") {
+  window.isPortArtCandidateEnabled = isPortArtCandidateEnabled;
+  window.PORT_ART_CANDIDATE_ENABLED = isPortArtCandidateEnabled();
+  window.PORT_CANDIDATE_KEYS = PORT_CANDIDATE_KEYS;
+  window.PORT_CANDIDATE_METADATA = PORT_CANDIDATE_METADATA;
+  window.isPortSurfaceCandidateEnabled = isPortSurfaceCandidateEnabled;
+  window.PORT_SURFACE_CANDIDATE_ENABLED = isPortSurfaceCandidateEnabled();
+  window.PORT_SURFACE_CANDIDATE_METADATA = PORT_SURFACE_CANDIDATE_METADATA;
+}
+
+// DEV-ONLY: Stage2 Rain-Port S2 Production Art integration toggle
+// Strictly requires URL query: dev=1 && stage=rain-port && s2artprod=1
+const isS2ArtProdEnabled = () => {
+  try {
+    const raw = String(typeof window !== "undefined" && window.location?.search || "");
+    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
+    const hasStage = /(?:^|[?&])stage=rain-port(?=[&#]|$)/.test(raw);
+    const hasS2Prod = /(?:^|[?&])s2artprod=1(?=[&#]|$)/.test(raw);
+    return hasDev && hasStage && hasS2Prod;
+  } catch { return false; }
+};
+
+// S2 Production Art asset manifest loader (ONLY new Nano manifest for s2artprod=1)
+async function loadS2ArtProdManifest() {
+  if (!isS2ArtProdEnabled()) return null;
+  // ONLY new Nano manifest v1.3.0-nano - no legacy fallback for s2artprod=1
+  const nanoManifestUrl = 'art/stage2-rain-port/production-s2-nano-20261020/asset-manifest.json?v=' + Date.now();
+
+  try {
+    const res = await fetch(nanoManifestUrl);
+    if (!res.ok) {
+      throw new Error(`MANIFEST_HTTP_${res.status}`);
+    }
+    const manifest = await res.json();
+    manifest._sourceUrl = nanoManifestUrl;
+    return manifest;
+  } catch (e) {
+    console.error('[S2-ART] Failed to fetch Nano manifest:', e.message);
+    return null;
+  }
+}
+
+// S2 Production Art asset cache
+const S2_ART_PROD_CACHE = {
+  tiles: { stoneVariants: [], woodVariants: [], transitions: { h: [], v: [] } },
+  buildings: [],
+  props: [],
+  environment: [],
+  manifest: null,
+  loaded: false,
+  loadError: null
+};
+
+async function loadS2ArtProdAssets() {
+  if (!isS2ArtProdEnabled() || S2_ART_PROD_CACHE.loaded) return;
+  const manifest = await loadS2ArtProdManifest();
+  if (!manifest) {
+    S2_ART_PROD_CACHE.loadError = 'MANIFEST_FETCH_FAILED';
+    console.error('[S2-ART] Failed to fetch asset-manifest.json');
+    return;
+  }
+
+  // Support both v1.3.0-nano (usable_runtime_tiles) and legacy v1.2/v1.0
+  const runtimeTiles = manifest.tiles?.usable_runtime_tiles || manifest.tiles || {};
+  const stoneVariants = Array.isArray(runtimeTiles.stoneVariants) ? runtimeTiles.stoneVariants : [];
+  const woodVariants = Array.isArray(runtimeTiles.woodVariants) ? runtimeTiles.woodVariants : [];
+  const transitions = runtimeTiles.transitions || {};
+  S2_ART_PROD_CACHE.manifest = manifest;
+  S2_ART_PROD_CACHE.tiles = { stoneVariants, woodVariants, transitions: {
+    h: Array.isArray(transitions.h) ? transitions.h : [],
+    v: Array.isArray(transitions.v) ? transitions.v : []
+  } };
+  S2_ART_PROD_CACHE.buildings = Array.isArray(manifest.buildings) ? manifest.buildings : [];
+  S2_ART_PROD_CACHE.props = Array.isArray(manifest.props) ? manifest.props : [];
+  S2_ART_PROD_CACHE.environment = Array.isArray(manifest.environment) ? manifest.environment : [];
+  if (!stoneVariants.length || !woodVariants.length) {
+    S2_ART_PROD_CACHE.loadError = 'INVALID_MANIFEST_NO_RUNTIME_TILES';
+    console.error('[S2-ART] Missing usable stone/wood runtime tiles');
+    return;
+  }
+
+  // Load all tile images (prefer WebP, fallback to PNG)
+  const loadImage = (urlWebp, urlPng) => new Promise((resolve) => {
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = () => resolve({ img, ok: true });
+    img.onerror = () => {
+      const img2 = new Image();
+      img2.decoding = "async";
+      img2.onload = () => resolve({ img: img2, ok: true });
+      img2.onerror = () => resolve({ img: null, ok: false });
+      img2.src = urlPng;
+    };
+    img.src = urlWebp;
+  });
+
+  let anyLoaded = false;
+  // Load stone variants
+  for (const tile of S2_ART_PROD_CACHE.tiles.stoneVariants) {
+    if (tile.path_webp && tile.path) {
+      const result = await loadImage(tile.path_webp, tile.path);
+      tile._img = result.img;
+      tile._loaded = result.ok;
+      if (result.ok) anyLoaded = true;
+    }
+  }
+  // Load wood variants
+  for (const tile of S2_ART_PROD_CACHE.tiles.woodVariants) {
+    if (tile.path_webp && tile.path) {
+      const result = await loadImage(tile.path_webp, tile.path);
+      tile._img = result.img;
+      tile._loaded = result.ok;
+      if (result.ok) anyLoaded = true;
+    }
+  }
+  // Load transitions H
+  for (const tile of S2_ART_PROD_CACHE.tiles.transitions.h) {
+    if (tile.path_webp && tile.path) {
+      const result = await loadImage(tile.path_webp, tile.path);
+      tile._img = result.img;
+      tile._loaded = result.ok;
+      if (result.ok) anyLoaded = true;
+    }
+  }
+  // Load transitions V
+  for (const tile of S2_ART_PROD_CACHE.tiles.transitions.v) {
+    if (tile.path_webp && tile.path) {
+      const result = await loadImage(tile.path_webp, tile.path);
+      tile._img = result.img;
+      tile._loaded = result.ok;
+      if (result.ok) anyLoaded = true;
+    }
+  }
+  // Load buildings
+  for (const bld of S2_ART_PROD_CACHE.buildings) {
+    if (bld.path_webp && bld.path) {
+      const result = await loadImage(bld.path_webp, bld.path);
+      bld._img = result.img;
+      bld._loaded = result.ok;
+      if (result.ok) anyLoaded = true;
+    }
+  }
+  // Load props
+  for (const prop of S2_ART_PROD_CACHE.props) {
+    if (prop.path_webp && prop.path) {
+      const result = await loadImage(prop.path_webp, prop.path);
+      prop._img = result.img;
+      prop._loaded = result.ok;
+      if (result.ok) anyLoaded = true;
+    }
+  }
+  // Load environment (sea, cliff)
+  for (const env of S2_ART_PROD_CACHE.environment) {
+    if (env.path_webp && env.path) {
+      const result = await loadImage(env.path_webp, env.path);
+      env._img = result.img;
+      env._loaded = result.ok;
+      if (result.ok) anyLoaded = true;
+    }
+  }
+
+  S2_ART_PROD_CACHE.loaded = true;
+  if (!anyLoaded) {
+    S2_ART_PROD_CACHE.loadError = 'NO_TILES_LOADED';
+    console.error('[S2-ART] No tiles loaded successfully');
+  } else {
+    console.log('[S2-ART] Assets loaded:', {
+      stone: S2_ART_PROD_CACHE.tiles.stoneVariants.filter(t => t._loaded).length,
+      wood: S2_ART_PROD_CACHE.tiles.woodVariants.filter(t => t._loaded).length,
+      transH: S2_ART_PROD_CACHE.tiles.transitions.h.filter(t => t._loaded).length,
+      transV: S2_ART_PROD_CACHE.tiles.transitions.v.filter(t => t._loaded).length,
+      buildings: S2_ART_PROD_CACHE.buildings.filter(b => b._loaded).length,
+      props: S2_ART_PROD_CACHE.props.filter(p => p._loaded).length
+    });
+  }
+}
+
+// Reset S2 cache when leaving rain-port or restarting
+function resetS2ArtProdCache() {
+  S2_ART_PROD_CACHE.tiles = { stoneVariants: [], woodVariants: [], transitions: { h: [], v: [] } };
+  S2_ART_PROD_CACHE.buildings = [];
+  S2_ART_PROD_CACHE.props = [];
+  S2_ART_PROD_CACHE.manifest = null;
+  S2_ART_PROD_CACHE.loaded = false;
+  S2_ART_PROD_CACHE.loadError = null;
+}
+
+function getS2StoneTiles() {
+  if (!isS2ArtProdEnabled() || !S2_ART_PROD_CACHE.loaded) return null;
+  const tiles = S2_ART_PROD_CACHE.tiles.stoneVariants.filter(t => t._loaded && t._img?.naturalWidth);
+  if (!tiles.length && S2_ART_PROD_CACHE.loadError) console.warn('[S2-ART] getS2StoneTiles empty:', S2_ART_PROD_CACHE.loadError);
+  return tiles.length ? tiles : null;
+}
+
+function getS2WoodTiles() {
+  if (!isS2ArtProdEnabled() || !S2_ART_PROD_CACHE.loaded) return null;
+  const tiles = S2_ART_PROD_CACHE.tiles.woodVariants.filter(t => t._loaded && t._img?.naturalWidth);
+  if (!tiles.length && S2_ART_PROD_CACHE.loadError) console.warn('[S2-ART] getS2WoodTiles empty:', S2_ART_PROD_CACHE.loadError);
+  return tiles.length ? tiles : null;
+}
+
+function getS2TransitionsH() {
+  if (!isS2ArtProdEnabled() || !S2_ART_PROD_CACHE.loaded) return null;
+  const tiles = S2_ART_PROD_CACHE.tiles.transitions.h.filter(t => t._loaded && t._img?.naturalWidth);
+  if (!tiles.length && S2_ART_PROD_CACHE.loadError) console.warn('[S2-ART] getS2TransitionsH empty:', S2_ART_PROD_CACHE.loadError);
+  return tiles.length ? tiles : null;
+}
+
+function getS2TransitionsV() {
+  if (!isS2ArtProdEnabled() || !S2_ART_PROD_CACHE.loaded) return null;
+  const tiles = S2_ART_PROD_CACHE.tiles.transitions.v.filter(t => t._loaded && t._img?.naturalWidth);
+  if (!tiles.length && S2_ART_PROD_CACHE.loadError) console.warn('[S2-ART] getS2TransitionsV empty:', S2_ART_PROD_CACHE.loadError);
+  return tiles.length ? tiles : null;
+}
+
+function getS2Buildings() {
+  if (!isS2ArtProdEnabled() || !S2_ART_PROD_CACHE.loaded) return null;
+  const blds = S2_ART_PROD_CACHE.buildings.filter(b => b._loaded && b._img?.naturalWidth);
+  if (!blds.length && S2_ART_PROD_CACHE.loadError) console.warn('[S2-ART] getS2Buildings empty:', S2_ART_PROD_CACHE.loadError);
+  return blds.length ? blds : null;
+}
+
+function getS2Props() {
+  if (!isS2ArtProdEnabled() || !S2_ART_PROD_CACHE.loaded) return null;
+  const props = S2_ART_PROD_CACHE.props.filter(p => p._loaded && p._img?.naturalWidth);
+  if (!props.length && S2_ART_PROD_CACHE.loadError) console.warn('[S2-ART] getS2Props empty:', S2_ART_PROD_CACHE.loadError);
+  return props.length ? props : null;
+}
+
+function getS2Environment() {
+  if (!isS2ArtProdEnabled() || !S2_ART_PROD_CACHE.loaded) return null;
+  const env = S2_ART_PROD_CACHE.environment?.filter(e => e._loaded && e._img?.naturalWidth) || [];
+  if (!env.length && S2_ART_PROD_CACHE.loadError) console.warn('[S2-ART] getS2Environment empty:', S2_ART_PROD_CACHE.loadError);
+  return env.length ? env : null;
+}
+
+// DEV-ONLY: Stage2 ground kit (art/s2 hand-painted candidates, 4 stone + 3 wood + 3 transitions)
+// Strictly requires URL query: dev=1 && stage=rain-port && s2ground=kit
+// Isolated from the older s2artprod / portsurfacecandidate gates: those keep their own art.
+const isS2GroundKitEnabled = () => {
+  try {
+    const raw = String(typeof window !== "undefined" && window.location?.search || "");
+    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
+    const hasStage = /(?:^|[?&])stage=rain-port(?=[&#]|$)/.test(raw);
+    const hasKit = /(?:^|[?&])s2ground=kit(?=[&#]|$)/.test(raw);
+    return hasDev && hasStage && hasKit;
+  } catch { return false; }
+};
+
+// DEV-ONLY A/B: WebP candidate variant of the SAME ten ground-kit slots.
+// Strictly requires URL query: dev=1 && stage=rain-port && s2ground=kit && s2webp=1
+// Without s2webp=1 the PNG candidates in art/s2/ are loaded exactly as before, so the
+// existing kit URL keeps its bytes and the two variants are never mixed in one page.
+// These WebP files are ART_CANDIDATE / WAITING_USER_REVIEW and live outside the
+// production asset tree; this switch exists only for the local A/B comparison.
+const isS2GroundKitWebPEnabled = () => {
+  try {
+    const raw = String(typeof window !== "undefined" && window.location?.search || "");
+    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
+    const hasStage = /(?:^|[?&])stage=rain-port(?=[&#]|$)/.test(raw);
+    const hasKit = /(?:^|[?&])s2ground=kit(?=[&#]|$)/.test(raw);
+    const hasWebP = /(?:^|[?&])s2webp=1(?=[&#]|$)/.test(raw);
+    return hasDev && hasStage && hasKit && hasWebP;
+  } catch { return false; }
+};
+
+// Observed orientation is taken from the IMAGES, not from the file-name letters:
+//   t_stone_wood_v01.png -> stone TOP / wood BOTTOM, horizontal junction
+//   t_stone_wood_h01.png -> stone UPPER-LEFT / wood LOWER-RIGHT, diagonal junction
+//   t_stone_wood_c01.png -> stone LEFT / wood RIGHT, vertical straight boundary
+const S2_GROUND_KIT_SPECS = Object.freeze([
+  Object.freeze({ id: 'g_stone_01', file: 'g_stone_01.png', group: 'stone', observedOrientation: 'n/a-ground' }),
+  Object.freeze({ id: 'g_stone_02', file: 'g_stone_02.png', group: 'stone', observedOrientation: 'n/a-ground' }),
+  Object.freeze({ id: 'g_stone_03', file: 'g_stone_03.png', group: 'stone', observedOrientation: 'n/a-ground' }),
+  Object.freeze({ id: 'g_stone_04', file: 'g_stone_04.png', group: 'stone', observedOrientation: 'n/a-ground' }),
+  Object.freeze({ id: 'g_wood_01', file: 'g_wood_01.png', group: 'wood', observedOrientation: 'n/a-ground' }),
+  Object.freeze({ id: 'g_wood_02', file: 'g_wood_02.png', group: 'wood', observedOrientation: 'n/a-ground' }),
+  Object.freeze({ id: 'g_wood_03', file: 'g_wood_03.png', group: 'wood', observedOrientation: 'n/a-ground' }),
+  Object.freeze({ id: 't_stone_wood_v01', file: 't_stone_wood_v01.png', group: 'transition', observedOrientation: 'horizontal' }),
+  Object.freeze({ id: 't_stone_wood_h01', file: 't_stone_wood_h01.png', group: 'transition', observedOrientation: 'diagonal' }),
+  Object.freeze({ id: 't_stone_wood_c01', file: 't_stone_wood_c01.png', group: 'transition', observedOrientation: 'vertical' })
+]);
+
+// Where each transition may legally be used in the CURRENT rain-port world layout.
+// The world has one full-width horizontal stone/wood seam (dockSeamY). It has no diagonal
+// stone/wood junction and no stone/wood corner, so those two are never forced into the scene.
+const S2_GROUND_KIT_PLACEMENT = Object.freeze({
+  't_stone_wood_v01': Object.freeze({ role: 'horizontal', use: 'dockSeamY horizontal seam', state: 'USED' }),
+  't_stone_wood_h01': Object.freeze({ role: 'diagonal', use: 'none in this world layout', state: 'SKIPPED_ORIENTATION_MISMATCH' }),
+  't_stone_wood_c01': Object.freeze({ role: 'vertical', use: 'none in this world layout', state: 'SKIPPED_NO_VALID_CORNER' })
+});
+
+const S2_GROUND_KIT_BASE = 'art/s2/';
+// A/B-only source of the same ten slots in WebP. Still a candidate set: nothing here
+// promotes it to a production asset and no production path may read it.
+const S2_GROUND_KIT_WEBP_BASE = 'scratch/s2-kit-webp-opt-r1/candidates/';
+const S2_GROUND_KIT_CACHE = {
+  enabled: false, webp: false, started: false, loaded: false, loadError: null,
+  items: [], stone: [], wood: [],
+  transitions: { horizontal: null, diagonal: null, vertical: null },
+  requests: [], loadedCount: 0, total: 0, bytes: 0, startedAt: 0, finishedAt: 0, loadMs: 0
+};
+
+async function loadS2GroundKit() {
+  const cache = S2_GROUND_KIT_CACHE;
+  if (!cache.enabled || cache.started) return cache;
+  cache.started = true;
+  cache.startedAt = Date.now();
+  // Exactly one source per run: the PNG pack (default) OR the WebP pack (s2webp=1 only).
+  // The two packs are never requested together.
+  const webp = isS2GroundKitWebPEnabled();
+  cache.webp = webp;
+  const base = webp ? S2_GROUND_KIT_WEBP_BASE : S2_GROUND_KIT_BASE;
+  for (const spec of S2_GROUND_KIT_SPECS) {
+    const requestedFile = webp ? spec.file.replace(/\.png$/, '.webp') : spec.file;
+    const url = base + requestedFile;
+    cache.requests.push(url);
+    const item = { ...spec, requestedFile, url, _img: null, _loaded: false, _error: null, naturalWidth: 0, naturalHeight: 0 };
+    cache.items.push(item);
+    const img = new Image();
+    img.decoding = 'async';
+    const ok = await new Promise((resolve) => {
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+    item._img = ok ? img : null;
+    item._loaded = !!ok;
+    // Mark the image so the renderer can count REAL paint calls for it (a pick/size-sample
+    // must never count as a draw).
+    if (item._img) item._img.__s2KitId = item.id;
+    item.naturalWidth = ok ? (img.naturalWidth || 0) : 0;
+    item.naturalHeight = ok ? (img.naturalHeight || 0) : 0;
+    if (!ok) item._error = 'LOAD_FAILED';
+    if (ok) cache.loadedCount++;
+    if (spec.group === 'stone') cache.stone.push(item);
+    else if (spec.group === 'wood') cache.wood.push(item);
+    else {
+      const role = spec.observedOrientation;
+      if (role === 'horizontal') cache.transitions.horizontal = item;
+      else if (role === 'diagonal') cache.transitions.diagonal = item;
+      else if (role === 'vertical') cache.transitions.vertical = item;
+    }
+  }
+  cache.total = S2_GROUND_KIT_SPECS.length;
+  cache.loaded = cache.loadedCount > 0;
+  cache.loadError = cache.loadedCount === cache.total ? null : `LOADED_${cache.loadedCount}_OF_${cache.total}`;
+  cache.finishedAt = Date.now();
+  cache.loadMs = cache.finishedAt - cache.startedAt;
+  // The terrain cache must be invalidated once the (async) kit images exist, otherwise the
+  // page would keep showing the legacy fallback tiles.
+  try { window.RENDERER?.invalidateGroundCache?.(); } catch { /* renderer not ready yet */ }
+  return cache;
+}
+
+if (typeof window !== "undefined") {
+  window.isS2GroundKitEnabled = isS2GroundKitEnabled;
+  window.S2_GROUND_KIT_ENABLED = isS2GroundKitEnabled();
+  window.isS2GroundKitWebPEnabled = isS2GroundKitWebPEnabled;
+  window.S2_GROUND_KIT_WEBP_ENABLED = isS2GroundKitWebPEnabled();
+  window.S2_GROUND_KIT_SPECS = S2_GROUND_KIT_SPECS;
+  window.S2_GROUND_KIT_PLACEMENT = S2_GROUND_KIT_PLACEMENT;
+  window.S2_GROUND_KIT_CACHE = S2_GROUND_KIT_CACHE;
+  S2_GROUND_KIT_CACHE.enabled = window.S2_GROUND_KIT_ENABLED;
+  S2_GROUND_KIT_CACHE.webp = window.S2_GROUND_KIT_WEBP_ENABLED;
+  window.loadS2GroundKit = loadS2GroundKit;
+  window.getS2GroundKit = () => (S2_GROUND_KIT_CACHE.loaded ? S2_GROUND_KIT_CACHE : null);
+  // dev-only readable evidence (no game/UI surface is touched)
+  window.__S2_GROUND_KIT_EVIDENCE = () => ({
+    enabled: S2_GROUND_KIT_CACHE.enabled,
+    webp: S2_GROUND_KIT_CACHE.webp,
+    webpGate: isS2GroundKitWebPEnabled(),
+    started: S2_GROUND_KIT_CACHE.started,
+    loaded: S2_GROUND_KIT_CACHE.loaded,
+    loadError: S2_GROUND_KIT_CACHE.loadError,
+    loadedCount: S2_GROUND_KIT_CACHE.loadedCount,
+    total: S2_GROUND_KIT_CACHE.total,
+    loadMs: S2_GROUND_KIT_CACHE.loadMs,
+    requests: S2_GROUND_KIT_CACHE.requests.slice(),
+    items: S2_GROUND_KIT_CACHE.items.map(i => ({
+      id: i.id, file: i.file, requestedFile: i.requestedFile, url: i.url, group: i.group,
+      observedOrientation: i.observedOrientation,
+      loaded: i._loaded, error: i._error,
+      naturalWidth: i.naturalWidth, naturalHeight: i.naturalHeight
+    })),
+    placement: S2_GROUND_KIT_PLACEMENT
+  });
+  if (S2_GROUND_KIT_CACHE.enabled) {
+    // Only the strict dev gate starts this loader; without it no kit image is requested.
+    loadS2GroundKit();
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.isS2ArtProdEnabled = isS2ArtProdEnabled;
+  window.S2_ART_PROD_ENABLED = isS2ArtProdEnabled();
+  window.loadS2ArtProdAssets = loadS2ArtProdAssets;
+  window.resetS2ArtProdCache = resetS2ArtProdCache;
+  window.getS2StoneTiles = getS2StoneTiles;
+  window.getS2WoodTiles = getS2WoodTiles;
+  window.getS2TransitionsH = getS2TransitionsH;
+  window.getS2TransitionsV = getS2TransitionsV;
+  window.getS2Buildings = getS2Buildings;
+  window.getS2Props = getS2Props;
+  window.getS2Environment = getS2Environment;
+  window.S2_ART_PROD_CACHE = S2_ART_PROD_CACHE;
+}
+
+// DEV-ONLY: Fusion Collab Candidate preview toggle (墨焰斬、雷紋陣原型)
+// Strictly requires URL query: dev=1 && (fusioncandidate=1 || fusion=1) or window.FUSION_CANDIDATE_ENABLED = true
+const isFusionCandidateEnabled = () => {
+  if (typeof window !== "undefined" && window.FUSION_CANDIDATE_ENABLED === true) return true;
+  try {
+    const raw = String(typeof window !== "undefined" && window.location?.search || "");
+    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
+    const hasCandidate = /(?:^|[?&])(?:fusioncandidate|fusion)=1(?=[&#]|$)/.test(raw);
+    return hasDev && hasCandidate;
+  } catch { return false; }
+};
+
+// F1-A-ART-COMPARE: 取得候選美術模式 (banana | gpt | legacy)
+// 僅在精確 dev=1 & (fusioncandidate=1 || fusion=1) 時有效；正常遊戲一律 legacy
+const getFusionArtMode = () => {
+  if (!isFusionCandidateEnabled()) return "legacy";
+  try {
+    const raw = String(typeof window !== "undefined" && window.location?.search || "");
+    const match = /(?:^|[?&])fusionart=(banana|gpt|legacy)(?=[&#]|$)/i.exec(raw);
+    return match ? match[1].toLowerCase() : "legacy";
+  } catch {
+    return "legacy";
+  }
+};
+
+const FUSION_ART_CANDIDATE_CONFIG = Object.freeze({
+  banana: Object.freeze({
+    id: "banana",
+    label: "Nano Banana 2.1",
+    // 獨立 alpha 候選檔（去背透明 WebP，matte-eval 實測邊框 0%、深墨保留 98.71% -> USABLE_CANDIDATE）
+    alphaFile: "art/fusion/candidates/fusion_inkblade/banana_inkblade_alpha_candidate_v01.webp",
+    alphaFallbackFile: "art/fusion/candidates/fusion_inkblade/main_alpha_candidate_v01.webp",
+    // 來源原始圖（注意：main_v01.png 帶有實心矩形背景，無 alpha，不可直接當遊戲透明貼圖）
+    rawFile: "art/fusion/candidates/fusion_inkblade/main_v01.png",
+    hasAlpha: true,
+    usable: true,
+    status: "USABLE_CANDIDATE"
+  }),
+  gpt: Object.freeze({
+    id: "gpt",
+    label: "GPT Image",
+    // 獨立 alpha 候選檔（matte-eval 實測殘留 21.42% 和紙底與邊框暗暈 -> NOT_USABLE，嚴禁當戰鬥貼圖）
+    alphaFile: "art/fusion/candidates/fusion_inkblade/gpt_inkblade_alpha_candidate_v01.webp",
+    alphaFallbackFile: "art/fusion/candidates/fusion_inkblade/gpt_inkblade_alpha_candidate_v01.png",
+    // 來源原始圖（已在 Windows 到位，確認存在；但有紙底米白/半透明背景，未去背不可直接當遊戲貼圖）
+    rawFile: "art/fusion/candidates/fusion_inkblade/gpt_inkblade_original_v01.png",
+    hasAlpha: false,
+    usable: false,
+    status: "NOT_USABLE_WAITING_CUTOUT"
+  })
+});
+
+const FUSION_VFX_KEYS = Object.freeze({
+  fusion_inkblade: "fusion_inkblade_arc",
+  fusion_slashwheel: "fusion_slashwheel_arc",
+  fusion_foxiai: "fusion_foxiai_arc",
+  fusion_exorcistblade: "fusion_exorcistblade_arc",
+  fusion_foxfirebarrier: "fusion_foxfirebarrier_ward",
+  fusion_foxthunderlantern: "fusion_foxthunderlantern_sigil",
+  fusion_flamefestival: "fusion_flamefestival_fire",
+  fusion_thundercircle: "fusion_thundercircle_mark",
+  fusion_exorcistseal: "fusion_exorcistseal_array",
+  fusion_thundertalisman: "fusion_thundertalisman_strike"
+});
+
+const FUSION_VFX_METADATA = Object.freeze({
+  fusion_inkblade: Object.freeze({
+    id: "fusion_inkblade",
+    name: "墨焰斬",
+    parents: Object.freeze(["katana", "fire"]),
+    candidateAssetKey: "fusion_inkblade_arc",
+    file: "art/fusion/candidates/fusion_inkblade/main_alpha_candidate_v01.webp",
+    status: "WAITING_ART",
+    fallback: "procedural_ukiyoe_ink"
+  }),
+  fusion_slashwheel: Object.freeze({
+    id: "fusion_slashwheel",
+    name: "斬界輪",
+    parents: Object.freeze(["katana", "barrier"]),
+    candidateAssetKey: "fusion_slashwheel_arc",
+    file: "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+    status: "WAITING_IMPLEMENTATION",
+    fallback: "none"
+  }),
+  fusion_foxiai: Object.freeze({
+    id: "fusion_foxiai",
+    name: "雷狐居合",
+    parents: Object.freeze(["katana", "thunder"]),
+    candidateAssetKey: "fusion_foxiai_arc",
+    file: "art/fusion/candidates/fusion_foxiai/main_alpha_candidate_v02.webp",
+    status: "ART_CANDIDATE",
+    fallback: "tech_placeholder"
+  }),
+  fusion_exorcistblade: Object.freeze({
+    id: "fusion_exorcistblade",
+    name: "退魔符刃",
+    parents: Object.freeze(["katana", "boom"]),
+    candidateAssetKey: "fusion_exorcistblade_arc",
+    file: "art/fusion/candidates/fusion_exorcistblade/main_alpha_candidate_v02.webp",
+    status: "ART_CANDIDATE",
+    fallback: "tech_placeholder"
+  }),
+  fusion_foxfirebarrier: Object.freeze({
+    id: "fusion_foxfirebarrier",
+    name: "妖火結界",
+    parents: Object.freeze(["fire", "barrier"]),
+    candidateAssetKey: "fusion_foxfirebarrier_ward",
+    file: "art/fusion/candidates/fusion_foxfirebarrier/main_alpha_candidate_v02.webp",
+    status: "ART_CANDIDATE",
+    fallback: "tech_placeholder"
+  }),
+  fusion_foxthunderlantern: Object.freeze({
+    id: "fusion_foxthunderlantern",
+    name: "狐雷天燈",
+    parents: Object.freeze(["fire", "thunder"]),
+    candidateAssetKey: "fusion_foxthunderlantern_sigil",
+    file: "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+    status: "WAITING_IMPLEMENTATION",
+    fallback: "none"
+  }),
+  fusion_flamefestival: Object.freeze({
+    id: "fusion_flamefestival",
+    name: "炎符祭",
+    parents: Object.freeze(["fire", "boom"]),
+    candidateAssetKey: "fusion_flamefestival_fire",
+    file: "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+    status: "WAITING_IMPLEMENTATION",
+    fallback: "none"
+  }),
+  fusion_thundercircle: Object.freeze({
+    id: "fusion_thundercircle",
+    name: "雷陣封界",
+    parents: Object.freeze(["barrier", "thunder"]),
+    candidateAssetKey: "fusion_thundercircle_mark",
+    file: "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+    status: "WAITING_ART",
+    fallback: "procedural_thunder_seal"
+  }),
+  fusion_exorcistseal: Object.freeze({
+    id: "fusion_exorcistseal",
+    name: "退魔封陣",
+    parents: Object.freeze(["barrier", "boom"]),
+    candidateAssetKey: "fusion_exorcistseal_array",
+    file: "art/fusion/candidates/fusion_exorcistseal/main_alpha_candidate_v02.webp",
+    status: "ART_CANDIDATE",
+    fallback: "tech_placeholder"
+  }),
+  fusion_thundertalisman: Object.freeze({
+    id: "fusion_thundertalisman",
+    name: "雷符神罰",
+    parents: Object.freeze(["thunder", "boom"]),
+    candidateAssetKey: "fusion_thundertalisman_strike",
+    file: "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+    status: "WAITING_IMPLEMENTATION",
+    fallback: "none"
+  })
+});
+
+// ============================================================================
+// M2-FUSION-ART-BIND-R1：十招真圖 phase 綁定（DEV-ONLY 嚴格門檻）
+//
+// 生效 URL（缺一不可、參數順序無關）：
+//   ?dev=1&stage=rain-port&fusioncandidate=1&fusionart=banana
+// 其他任何情況（正常模式／無 dev／錯 stage／無 fusioncandidate／非 banana）
+// 一律不下載、不使用這套候選資產。
+// 這裡刻意不看 window.FUSION_CANDIDATE_ENABLED：單一旗標不得繞過 dev 門檻。
+//
+// phase 定義：
+//   main   招式主體（直立，隨攻擊角旋轉）
+//   hit    命中／爆點（直立，貼命中位置）
+//   ground 地面投影（世界座標，素材自帶透視比例）
+//   icon   識別徽章（小圖，直立）
+//
+// 候選圖留在 art/fusion/candidates/ 原位，不搬進 assets/img/vfx/fusion。
+// 未經使用者 ART_PASS 前一律視為 ART_CANDIDATE / WAITING_ART，
+// 不得覆蓋正式資產、不得當成已核准美術。
+// ============================================================================
+
+// 每個 phase 的來源（真檔 sha256 + alpha 內容框，供裁切定位用）
+const FUSION_ART_BIND_SOURCES = Object.freeze({
+  fusion_inkblade: Object.freeze({
+    main: Object.freeze({
+      file: "art/fusion/candidates/fusion_inkblade/main_alpha_candidate_v01.webp",
+      sha256: "1ecb4a7573470359c010555db215dd017f0aebe4954340b9915534bffd8a6f14",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([0, 37, 1264, 848])
+    }),
+    hit: Object.freeze({
+      file: "art/fusion/candidates/fusion_inkblade/hit_alpha_candidate_v01.webp",
+      sha256: "677f9fe9bc0f6b28a2ff9f136efb4a3bec353741dd25d47d27236abdb226a9ca",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([253, 120, 994, 747])
+    }),
+    ground: Object.freeze({
+      file: "art/fusion/candidates/fusion_inkblade/ground_alpha_candidate_v01.webp",
+      sha256: "5fc1abda8fe7a335b136f9c0f3e076b8356d5d3c2c4cd2550d04e008757eefdd",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([78, 310, 1177, 562])
+    }),
+    icon: null
+  }),
+  fusion_slashwheel: Object.freeze({
+    main: Object.freeze({
+      file: "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+      sha256: "912268eeebf114b4f5622d6deef2818e7a0c99abc9004cd9d53dfbd382673c38",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([201, 63, 1072, 779])
+    }),
+    hit: null,
+    ground: null,
+    icon: null
+  }),
+  fusion_foxiai: Object.freeze({
+    main: Object.freeze({
+      file: "art/fusion/candidates/fusion_foxiai/main_alpha_candidate_v02.webp",
+      sha256: "9e84e1dd4e24dde5a99b7e4fd454fe871ffd770ceefba05aa3bf7ca1a5599d38",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([92, 141, 1208, 726])
+    }),
+    hit: Object.freeze({
+      file: "art/fusion/candidates/fusion_foxiai/hit_alpha_candidate_v01.webp",
+      sha256: "f55f0aa2fa501fc3bb400ce71a6ade585de83f3141b8239438d8746059f72365",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([308, 160, 953, 694])
+    }),
+    ground: Object.freeze({
+      file: "art/fusion/candidates/fusion_foxiai/ground_alpha_candidate_v01.webp",
+      sha256: "2cab06fa5fe89caa477028320dffde6774dacc27e51f3d11317780169fea253a",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([60, 352, 1160, 494])
+    }),
+    icon: Object.freeze({
+      file: "art/fusion/candidates/fusion_foxiai/icon_alpha_candidate_v01.webp",
+      sha256: "a5c3b7648ed1fae307d1098241bea4be1cb71c76b8b009b23de16ddbbb6b3320",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([334, 134, 918, 720])
+    })
+  }),
+  fusion_exorcistblade: Object.freeze({
+    main: Object.freeze({
+      file: "art/fusion/candidates/fusion_exorcistblade/main_alpha_candidate_v02.webp",
+      sha256: "7d634b81af6f066de5412c2f1cf264efdd3b1dc885d152a4925307f5bda01dbd",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([139, 166, 1181, 640])
+    }),
+    hit: Object.freeze({
+      file: "art/fusion/candidates/fusion_exorcistblade/hit_alpha_candidate_v01.webp",
+      sha256: "5f676cf6c71300431618dbb8671026e54384d0f47a1731fb7165dd7b4d4b4238",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([227, 116, 1042, 734])
+    }),
+    ground: Object.freeze({
+      file: "art/fusion/candidates/fusion_exorcistblade/ground_alpha_candidate_v01.webp",
+      sha256: "cbaf8b871aea41cef38e8fe3499756a783f7c4dbbde2d27b8cbf57e990f1bfaa",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([40, 132, 1202, 694])
+    }),
+    icon: Object.freeze({
+      file: "art/fusion/candidates/fusion_exorcistblade/icon_alpha_candidate_v01.webp",
+      sha256: "c1865f590b7dd1c25fa15cb450c24a7d61073ed29f56c9d0020a910e62f8e020",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([367, 158, 891, 693])
+    })
+  }),
+  fusion_foxfirebarrier: Object.freeze({
+    main: Object.freeze({
+      file: "art/fusion/candidates/fusion_foxfirebarrier/main_alpha_candidate_v02.webp",
+      sha256: "cda1c296ebe4cb5abf93945cf2aba8df9a0ce75c8609b4e0bd015baa5105bc92",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([186, 109, 1066, 699])
+    }),
+    hit: Object.freeze({
+      file: "art/fusion/candidates/fusion_foxfirebarrier/hit_alpha_candidate_v01.webp",
+      sha256: "6b20717830c80bfbccd0538523c36aa6efa50d52ab4e54628cde139bd717d43b",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([302, 137, 980, 706])
+    }),
+    ground: Object.freeze({
+      file: "art/fusion/candidates/fusion_foxfirebarrier/ground_alpha_candidate_v01.webp",
+      sha256: "ddfbcc43e47499bca05d80d8ddae9f25e0d218f6c4db281a9fc3c1886c1ce9c6",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([131, 188, 1129, 670])
+    }),
+    icon: Object.freeze({
+      file: "art/fusion/candidates/fusion_foxfirebarrier/icon_alpha_candidate_v01.webp",
+      sha256: "6dfd62ab2f2d37cde977d745ddd6b5796af041c8cda909a74ecee4750ee36920",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([334, 108, 932, 740])
+    })
+  }),
+  fusion_foxthunderlantern: Object.freeze({
+    main: Object.freeze({
+      file: "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+      sha256: "34e3f654ce0a3de8c088d80b47d1e14011f8e660158b04b8d764480d792937fe",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([264, 32, 1100, 796])
+    }),
+    hit: null,
+    ground: null,
+    icon: null
+  }),
+  fusion_flamefestival: Object.freeze({
+    main: Object.freeze({
+      file: "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+      sha256: "68bfe9465b52fd5ff5cea0ac1a088c05d1afe82e458bfa7fc746b08a33d696c8",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([125, 34, 1164, 810])
+    }),
+    hit: null,
+    ground: null,
+    icon: null
+  }),
+  fusion_thundercircle: Object.freeze({
+    main: Object.freeze({
+      file: "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+      sha256: "8ac610ce2c92d71512e2f5cd4f4bee1cf8c398e9852ceed8a9ea5b4913987999",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([68, 82, 1197, 797])
+    }),
+    hit: null,
+    ground: null,
+    icon: null
+  }),
+  fusion_exorcistseal: Object.freeze({
+    main: Object.freeze({
+      file: "art/fusion/candidates/fusion_exorcistseal/main_alpha_candidate_v02.webp",
+      sha256: "95fc2373e064b8924b6fb10de62b17aaa83a2fedf1503370fb40741752550ff4",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([68, 45, 1194, 804])
+    }),
+    hit: Object.freeze({
+      file: "art/fusion/candidates/fusion_exorcistseal/hit_alpha_candidate_v01.webp",
+      sha256: "9f8fd2fbe6770f23e9f9de7fbb139475026f5bff7a4d32024e1e21e42cc3fa12",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([138, 55, 1146, 793])
+    }),
+    ground: Object.freeze({
+      file: "art/fusion/candidates/fusion_exorcistseal/ground_alpha_candidate_v01.webp",
+      sha256: "ce1ad08ec8a60ccde92f3fe98a736971b42d46a684ab5b5a13147a60833a9d3d",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([72, 128, 1176, 760])
+    }),
+    icon: Object.freeze({
+      file: "art/fusion/candidates/fusion_exorcistseal/icon_alpha_candidate_v01.webp",
+      sha256: "cd36d26c4545dc6d3d890b72e1ebf209bf21db61bba09ecb499076a790620c64",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([274, 136, 971, 720])
+    })
+  }),
+  fusion_thundertalisman: Object.freeze({
+    main: Object.freeze({
+      file: "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+      sha256: "d703e9980f9f96728e1671549d4d3690c4fc81bfe1db9e842ad30604d1c2f390",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([288, 1, 1023, 798])
+    }),
+    hit: null,
+    ground: null,
+    icon: null
+  })
+});
+
+const FUSION_ART_BIND_PHASES = Object.freeze(["main", "hit", "ground", "icon"]);
+
+// 嚴格 dev-only 門檻：dev=1 && stage=rain-port && fusioncandidate=1 && fusionart=banana
+// 與既有 isFusionCandidateEnabled() 分開：單獨 set window.FUSION_CANDIDATE_ENABLED=true
+// 不得讓這套候選資產生效。
+const isFusionArtBindEnabled = () => {
+  try {
+    const raw = String(typeof window !== "undefined" && window.location?.search || "");
+    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
+    const hasStage = /(?:^|[?&])stage=rain-port(?=[&#]|$)/.test(raw);
+    const hasCandidate = /(?:^|[?&])(?:fusioncandidate|fusion)=1(?=[&#]|$)/.test(raw);
+    const hasBanana = /(?:^|[?&])fusionart=banana(?=[&#]|$)/i.test(raw);
+    return hasDev && hasStage && hasCandidate && hasBanana;
+  } catch { return false; }
+};
+
+// 執行期狀態（window.FUSION_ART_BIND）
+// images[kind][phase] = HTMLImageElement；status[kind][phase] = idle|loading|ready|ready_fallback|missing
+const FUSION_ART_BIND = { images: {}, status: {}, requests: [] };
+
+// 解析某招某 phase 的實際來源；icon 缺檔時以 main 作臨時 DEV_ICON_FALLBACK（必標 WAITING_ART）。
+function getFusionArtBindDef(kind, phase) {
+  const table = FUSION_ART_BIND_SOURCES[kind];
+  if (!table) return null;
+  let def = table[phase] || null;
+  let fallback = false;
+  if (!def && phase === "icon") {
+    def = table.main || null;
+    fallback = !!def;
+  }
+  if (!def) return null;
+  return {
+    file: def.file,
+    sha256: def.sha256,
+    size: def.size,
+    bbox: def.bbox,
+    fallback
+  };
+}
+
+// 載入單一 phase 圖（缺檔 → status missing，不崩潰；重複呼叫不會重複請求）
+function loadFusionPhaseArt(kind, phase, forceRetry = false) {
+  if (typeof window === "undefined") return null;
+  if (!isFusionArtBindEnabled()) return null;
+  if (!kind || !FUSION_ART_BIND_PHASES.includes(phase)) return null;
+  const def = getFusionArtBindDef(kind, phase);
+  if (!def) return null;
+
+  const store = window.FUSION_ART_BIND;
+  store.images[kind] = store.images[kind] || {};
+  store.status[kind] = store.status[kind] || {};
+  const cur = store.status[kind][phase];
+  if (!forceRetry && (cur === "ready" || cur === "ready_fallback" || cur === "loading")) {
+    return store.images[kind][phase] || null;
+  }
+  if (!forceRetry && cur === "missing") return null;
+
+  store.status[kind][phase] = "loading";
+  const img = new Image();
+  img.decoding = "async";
+  img.onload = () => {
+    if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+      store.images[kind][phase] = img;
+      store.status[kind][phase] = def.fallback ? "ready_fallback" : "ready";
+    } else {
+      store.images[kind][phase] = null;
+      store.status[kind][phase] = "missing";
+    }
+  };
+  img.onerror = () => {
+    store.images[kind][phase] = null;
+    store.status[kind][phase] = "missing";
+  };
+  if (!store.requests.includes(def.file)) store.requests.push(def.file);
+  img.src = def.file + "?v=dev-bind-r1";
+  return null;
+}
+
+// 取圖：已就緒回傳 Image，否則觸發載入並回 null（不阻塞、不丟錯）
+function getFusionPhaseArt(kind, phase) {
+  if (typeof window === "undefined") return null;
+  if (!isFusionArtBindEnabled()) return null;
+  const img = window.FUSION_ART_BIND?.images?.[kind]?.[phase];
+  if (img && img.naturalWidth > 0) return img;
+  loadFusionPhaseArt(kind, phase);
+  return null;
+}
+
+// 一次載入十招全部 phase（缺檔者標 missing／absent，不影響其他 phase）
+function loadFusionArtBind(forceRetry = false) {
+  if (typeof window === "undefined") return;
+  if (!isFusionArtBindEnabled()) return;
+  for (const kind of Object.keys(FUSION_ART_BIND_SOURCES)) {
+    for (const phase of FUSION_ART_BIND_PHASES) {
+      loadFusionPhaseArt(kind, phase, forceRetry);
+    }
+  }
+}
+
+// 給測試與報告用的真實綁定狀態（不是 metadata 宣稱，是實際載入結果）
+function getFusionArtBindReport() {
+  const kinds = {};
+  for (const [kind, table] of Object.entries(FUSION_ART_BIND_SOURCES)) {
+    const phases = {};
+    for (const phase of FUSION_ART_BIND_PHASES) {
+      const def = getFusionArtBindDef(kind, phase);
+      const status = window.FUSION_ART_BIND?.status?.[kind]?.[phase] || "idle";
+      phases[phase] = {
+        file: def ? def.file : null,
+        sha256: def ? def.sha256 : null,
+        exists: !!def,
+        fallback: !!(def && def.fallback),
+        status,
+        naturalWidth: window.FUSION_ART_BIND?.images?.[kind]?.[phase]?.naturalWidth || 0,
+        naturalHeight: window.FUSION_ART_BIND?.images?.[kind]?.[phase]?.naturalHeight || 0
+      };
+    }
+    kinds[kind] = phases;
+  }
+  return {
+    enabled: isFusionArtBindEnabled(),
+    requests: (window.FUSION_ART_BIND?.requests || []).slice(),
+    kinds
+  };
+}
+
+// 全域候選圖檔與狀態管理
+if (typeof window !== "undefined") {
+  window.isFusionCandidateEnabled = isFusionCandidateEnabled;
+  window.FUSION_CANDIDATE_ENABLED = isFusionCandidateEnabled();
+  window.getFusionArtMode = getFusionArtMode;
+  window.FUSION_ART_CANDIDATE_CONFIG = FUSION_ART_CANDIDATE_CONFIG;
+  window.FUSION_VFX_KEYS = FUSION_VFX_KEYS;
+  window.FUSION_VFX_METADATA = FUSION_VFX_METADATA;
+  window.FUSION_ART = window.FUSION_ART || {};
+  window.FUSION_ART_STATUS = window.FUSION_ART_STATUS || {
+    mode: getFusionArtMode(),
+    banana: "unloaded",
+    gpt: "unloaded",
+    legacy: "ready"
+  };
+  // M2-FUSION-ART-BIND-R1
+  window.isFusionArtBindEnabled = isFusionArtBindEnabled;
+  window.FUSION_ART_BIND_ENABLED = isFusionArtBindEnabled();
+  window.FUSION_ART_BIND_SOURCES = FUSION_ART_BIND_SOURCES;
+  window.FUSION_ART_BIND_PHASES = FUSION_ART_BIND_PHASES;
+  window.FUSION_ART_BIND = window.FUSION_ART_BIND || FUSION_ART_BIND;
+  window.loadFusionPhaseArt = loadFusionPhaseArt;
+  window.getFusionPhaseArt = getFusionPhaseArt;
+  window.loadFusionArtBind = loadFusionArtBind;
+  window.getFusionArtBindDef = getFusionArtBindDef;
+  window.getFusionArtBindReport = getFusionArtBindReport;
+}
+
 const STAGE_ASSET_SLOTS = Object.freeze({
   "night-town": Object.freeze({
     map: "map_night_town_v1",
@@ -58,7 +1140,7 @@ const STAGE_ASSET_SLOTS = Object.freeze({
   }),
   "rain-port": Object.freeze({
     map: "map_rain_port_v1",
-    ground: "ground",
+    ground: "ground_stone",
     scene: ["port_warehouse", "prop_mooring_post", "prop_port_lighthouse", "prop_cargo_crates", "prop_port_boat", "prop_anchor_gear", "vfx_rain_splash_ripple"],
     trans: ["ground_stone_wood_transition_v2", "ground_trans_stone_wood_h", "ground_trans_stone_wood_v", "ground_stone_var1", "ground_stone_var2", "ground_wood_dock_var1", "ground_wood_dock_var2"],
     enemy: {
@@ -143,7 +1225,7 @@ const STAGE_ASSET_SLOTS = Object.freeze({
   }),
   "yomi": Object.freeze({
     map: "map_yomi_v1",
-    ground: "ground",
+    ground: STAGE8_PREVIEW_ENABLED ? "ground" : "ground",  // Use approved fallback as base
     scene: [],
     trans: [],
     enemy: {
@@ -156,6 +1238,7 @@ const STAGE_ASSET_SLOTS = Object.freeze({
     }
   })
 });
+if (typeof window !== "undefined") window.STAGE_ASSET_SLOTS = STAGE_ASSET_SLOTS;
 
 // 追蹤各關 WAITING_ART 狀態（供外部查詢）
 window.STAGE_ART_STATUS = {};
@@ -468,12 +1551,42 @@ const RAIN_PORT_GROUND = Object.freeze({
   transV: "assets/img/rain-port/ground_trans_stone_wood_v.webp",
   stoneWoodV2: "assets/img/rain-port/ground_stone_wood_transition_v2.webp"
 });
-const portCatalog = () => ({ ...RAIN_PORT_ASSETS, ...RAIN_PORT_FISH, ...RAIN_PORT_GROUND });
+const RAIN_PORT_CANDIDATE_ASSETS = Object.freeze({
+  fishWorkshop: "assets/img/rain-port/port_fish_workshop_cutout_candidate.png",
+  weatheredWarehouse: "assets/img/rain-port/port_weathered_warehouse_cutout_candidate.png"
+});
+const RAIN_PORT_SURFACE_CANDIDATE_ASSETS = Object.freeze({
+  stoneV3: "assets/img/rain-port/ground_stone_nano_v3_seamless.png",
+  stoneReflection: "assets/img/rain-port/ground_stone_reflection_candidate.jpg",
+  harborSea: "assets/img/rain-port/port_harbor_sea_norain_candidate.png",
+  stoneWoodTransition: "assets/img/rain-port/ground_trans_stone_wood_candidate.png",
+  northCliff: "assets/img/rain-port/port_north_cliff_candidate.png"
+});
+// DEV-ONLY: Stage2 Rain-Port coast kit (dev=1 && stage=rain-port && s2ground=kit).
+// Only the two backdrop images the kit actually paints:
+//   coastSea   = real ukiyo-e sea texture (tileable, 512x512 webp)
+//   coastCliff = bright RGBA rock with wave foam at its base (shoreline scenery object)
+// The old portsurfacecandidate set (stoneV3 / stoneReflection / legacy transition / dark
+// north cliff silhouette) stays exclusive to that older gate, so the kit never downloads
+// three images it does not paint.
+const RAIN_PORT_COAST_KIT_ASSETS = Object.freeze({
+  coastSea: "art/stage2-rain-port/production-s2-nano-20261020/environment/surface_sea_canonical.webp",
+  coastCliff: "art/stage2-rain-port/production-s2-nano-20261020/environment/cliff_north_rock.webp"
+});
+const COAST_KIT_ROLES = new Set(Object.keys(RAIN_PORT_COAST_KIT_ASSETS));
+const portCatalog = () => ({
+  ...RAIN_PORT_ASSETS,
+  ...RAIN_PORT_FISH,
+  ...RAIN_PORT_GROUND,
+  ...RAIN_PORT_CANDIDATE_ASSETS,
+  ...(isPortSurfaceCandidateEnabled() ? RAIN_PORT_SURFACE_CANDIDATE_ASSETS : {}),
+  ...(window.isS2GroundKitEnabled?.() ? RAIN_PORT_COAST_KIT_ASSETS : {})
+});
 const portRequested = new Set();
 function loadPortSprites(roles) {
   if (typeof Image !== "function") return;
   const table = portCatalog();
-  for (const role of roles || Object.keys(RAIN_PORT_ASSETS)) {
+  for (const role of roles || Object.keys(table)) {
     const url = table[role];
     if (!url || portRequested.has(role)) continue;
     portRequested.add(role);
@@ -485,11 +1598,26 @@ function loadPortSprites(roles) {
     img.onload = () => {
       window.PORT_ART[role] = img;
       window.PORT_ART_STATUS[role] = "ready";
+      // Coast kit images arrive async: the terrain cache must be invalidated, otherwise the
+      // port keeps showing the pre-artwork dark bands until something else forces a rebuild.
+      if (COAST_KIT_ROLES.has(role)) {
+        try { window.RENDERER?.invalidateGroundCache?.(); } catch { /* renderer not ready yet */ }
+      }
     };
     img.onerror = () => {
       window.PORT_ART_STATUS[role] = "error";
+      if (role in RAIN_PORT_CANDIDATE_ASSETS) {
+        window.PORT_ART_STATUS[role] = "missing";
+        const st = window.STAGE_ART_STATUS?.["rain-port"];
+        if (st) {
+          const candidateKey = role === "fishWorkshop" ? "port_fish_workshop_candidate" : "port_weathered_warehouse_candidate";
+          if (!st.missing.includes(candidateKey)) st.missing.push(candidateKey);
+          const fbKey = role === "fishWorkshop" ? "port_fishmonger" : "port_warehouse";
+          if (!st.fallback.some(f => f.key === candidateKey)) st.fallback.push({ key: candidateKey, fallback: fbKey });
+        }
+      }
     };
-    img.src = `${url}?v=20261013-rain-port2`;
+    img.src = `${url}?v=20261019-candidate1`;
   }
 }
 window.PORT_ENEMIES = {};
@@ -520,10 +1648,33 @@ function loadPortEnemies() {
     img.src = `${url}?v=20261014-stage2-enemies1`;
   }
 }
-window.refreshPortArt = () => {
+window.refreshPortArt = (force = false) => {
+  if (force) {
+    portRequested.clear();
+  }
   loadPortSprites(Object.keys(portCatalog()));
   loadPortEnemies();
 };
+
+// DEV-ONLY readable evidence for the coast kit (network + decode, not draw counts).
+// Draw counts live in the renderer (window.RENDERER.s2CoastDrawEvidence).
+if (typeof window !== "undefined") {
+  window.__S2_COAST_KIT_EVIDENCE = () => ({
+    enabled: !!window.isS2GroundKitEnabled?.(),
+    roles: Object.entries(RAIN_PORT_COAST_KIT_ASSETS).map(([role, file]) => {
+      const img = window.PORT_ART?.[role];
+      return {
+        role,
+        file,
+        status: window.PORT_ART_STATUS?.[role] || "not_requested",
+        loaded: !!img?.naturalWidth,
+        w: img?.naturalWidth || 0,
+        h: img?.naturalHeight || 0,
+        src: img?.currentSrc || img?.src || null
+      };
+    })
+  });
+}
 
 // 妖櫻山道只在進關時載三張地面。直向過渡未核准，不在這張表。
 // Canonical：art/stage3-sakura-pass/scene/ 的 G_mountain_dirt、G_trans_dirt_to_steps_h、G_sakura_steps。loader URL 不變。
@@ -630,13 +1781,18 @@ function loadStageAssets(stageId) {
       }
     };
     requestedArt.add(key);
+    const isPort = stageId === "rain-port" && (
+      key.startsWith("ground_") || key.startsWith("port_") || key.startsWith("prop_") || key.startsWith("vfx_")
+    );
     const isScene = SCENERY_ASSET_KEYS.has(key);
     const isYokai = YOKAI_ASSET_KEYS.has(key);
-    img.src = isScene
-      ? `assets/img/scenery/${key}.webp?v=20261010-loading3`
-      : isYokai
-        ? `assets/img/yokai/${key}.webp?v=20261010-loading2`
-        : `assets/img/${key}.webp?v=20261010-loading2`;
+    img.src = isPort
+      ? `assets/img/rain-port/${key}.webp?v=20261013-rain-port2`
+      : isScene
+        ? `assets/img/scenery/${key}.webp?v=20261010-loading3`
+        : isYokai
+          ? `assets/img/yokai/${key}.webp?v=20261010-loading2`
+          : `assets/img/${key}.webp?v=20261010-loading2`;
     return false;
   };
 
@@ -697,6 +1853,233 @@ function loadStageAssets(stageId) {
       if (arts.attack) tryLoad(arts.attack, arts.idle || (enemyType === "boss" ? "boss" : enemyType));
     }
   }
+
+  if (stageId === "rain-port") {
+    if (typeof window !== "undefined" && window.refreshPortArt) window.refreshPortArt();
+    if (!status.missing.includes("mountain_cliff")) status.missing.push("mountain_cliff"); // WAITING_ART: 北側阻擋背景山壁圖
+    if (!window.PORT_ART?.fishWorkshop?.naturalWidth && !status.missing.includes("port_fish_workshop_candidate")) {
+      status.missing.push("port_fish_workshop_candidate");
+    }
+    if (!window.PORT_ART?.weatheredWarehouse?.naturalWidth && !status.missing.includes("port_weathered_warehouse_candidate")) {
+      status.missing.push("port_weathered_warehouse_candidate");
+    }
+    if (isPortSurfaceCandidateEnabled()) {
+      if (!window.PORT_ART?.stoneV3?.naturalWidth && !status.missing.includes("ground_stone_nano_v3_seamless")) {
+        status.missing.push("ground_stone_nano_v3_seamless");
+      }
+      if (!window.PORT_ART?.harborSea?.naturalWidth && !status.missing.includes("port_harbor_sea_surface")) {
+        status.missing.push("port_harbor_sea_surface");
+      }
+    }
+    if (isFusionCandidateEnabled()) {
+      loadFusionCandidateArt();
+      if (!status.missing.includes("fusion_inkblade_arc")) status.missing.push("fusion_inkblade_arc");
+      if (!status.missing.includes("fusion_thundercircle_mark")) status.missing.push("fusion_thundercircle_mark");
+    }
+    // M2-FUSION-ART-BIND-R1：十招真圖 phase 綁定（僅嚴格 dev 門檻生效）
+    if (isFusionArtBindEnabled()) {
+      loadFusionArtBind();
+    }
+  }
+
+  // Stage8 preview: load preview assets from art/ candidate (not production assets/img/)
+  // Only runs when STAGE8_PREVIEW_ENABLED and asset file exists
+  if (STAGE8_PREVIEW_ENABLED && stageId === "yomi") {
+    loadStage8PreviewAssets(status);
+  }
+}
+
+// F1-A-ART-COMPARE: 延遲載入合技美術候選檔 (banana | gpt | legacy)
+// 規則：僅在精確 isFusionCandidateEnabled() 為 true 且 mode !== "legacy" 時執行延遲載入
+// 正常遊戲不進行任何合技候選圖請求；無圖或無 alpha 檔時安全回落 legacy
+function loadFusionCandidateArt(forceRetry = false) {
+  if (typeof window === "undefined") return;
+  const mode = getFusionArtMode();
+  if (!window.FUSION_ART_STATUS) {
+    window.FUSION_ART_STATUS = { mode: "legacy", banana: "unloaded", gpt: "unloaded", legacy: "ready" };
+  }
+  window.FUSION_ART_STATUS.mode = mode;
+  if (mode === "legacy" || !isFusionCandidateEnabled()) {
+    return;
+  }
+
+  if (mode === "banana") {
+    if (!forceRetry && (window.FUSION_ART_STATUS.banana === "ready" || window.FUSION_ART_STATUS.banana === "loading")) return;
+    window.FUSION_ART_STATUS.banana = "loading";
+    const cfg = FUSION_ART_CANDIDATE_CONFIG.banana;
+    // 優先載入透明 alpha 候選檔 (banana_inkblade_alpha_candidate_v01.webp / main_alpha_candidate_v01.webp)
+    const tryAlpha = (srcPath, fallbackFn) => {
+      const alphaImg = new Image();
+      alphaImg.decoding = "async";
+      alphaImg.onload = () => {
+        if (alphaImg.naturalWidth > 0 && alphaImg.naturalHeight > 0) {
+          window.FUSION_ART.banana = alphaImg;
+          window.FUSION_ART_STATUS.banana = "ready";
+        } else {
+          fallbackFn();
+        }
+      };
+      alphaImg.onerror = () => {
+        fallbackFn();
+      };
+      alphaImg.src = srcPath + "?v=dev-cand";
+    };
+
+    tryAlpha(cfg.alphaFile, () => {
+      if (cfg.alphaFallbackFile && cfg.alphaFallbackFile !== cfg.alphaFile) {
+        tryAlpha(cfg.alphaFallbackFile, checkBananaRawFallback);
+      } else {
+        checkBananaRawFallback();
+      }
+    });
+
+    function checkBananaRawFallback() {
+      // 檢查原始圖 main_v01.png。
+      // 【真圖規範】：main_v01.png 帶有實心矩形背景，無 alpha；不可直接當透明遊戲貼圖！
+      // 僅標記 waiting_alpha，保持 FUSION_ART.banana = null，安全回落 legacy。
+      const rawImg = new Image();
+      rawImg.decoding = "async";
+      rawImg.onload = () => {
+        window.FUSION_ART_STATUS.banana = "waiting_alpha";
+        window.FUSION_ART.banana = null;
+      };
+      rawImg.onerror = () => {
+        window.FUSION_ART_STATUS.banana = "missing";
+        window.FUSION_ART.banana = null;
+      };
+      rawImg.src = cfg.rawFile + "?v=dev-cand";
+    }
+  } else if (mode === "gpt") {
+    if (!forceRetry && (window.FUSION_ART_STATUS.gpt === "waiting_alpha" || window.FUSION_ART_STATUS.gpt === "loading")) return;
+    window.FUSION_ART_STATUS.gpt = "loading";
+    const cfg = FUSION_ART_CANDIDATE_CONFIG.gpt;
+
+    // 【品質 Gate 阻塞】：matte-eval 實測 GPT alpha 殘留 21.42% 紙底／暗角，評定 NOT_USABLE。
+    // GPT 原始圖已由本機離線檢查，禁止為了檢查存在而下載 3.4MB 帶紙底原圖。
+    // 無可用 cutout 時立即標記 waiting_alpha，安全回落 legacy；不動用使用者流量。
+    if (!cfg.usable) {
+      window.FUSION_ART_STATUS.gpt = "waiting_alpha";
+      window.FUSION_ART.gpt = null;
+      return;
+    }
+
+    // 若未來品質 Gate 重新通過 (cfg.usable === true)
+    const alphaImg = new Image();
+    alphaImg.decoding = "async";
+    alphaImg.onload = () => {
+      if (alphaImg.naturalWidth > 0 && alphaImg.naturalHeight > 0) {
+        window.FUSION_ART.gpt = alphaImg;
+        window.FUSION_ART_STATUS.gpt = "ready";
+      } else {
+        checkGptRawFallback();
+      }
+    };
+    alphaImg.onerror = () => {
+      checkGptRawFallback();
+    };
+    alphaImg.src = cfg.alphaFile + "?v=dev-cand";
+
+    function checkGptRawFallback() {
+      const rawImg = new Image();
+      rawImg.decoding = "async";
+      rawImg.onload = () => {
+        window.FUSION_ART_STATUS.gpt = "waiting_alpha";
+        window.FUSION_ART.gpt = null;
+      };
+      rawImg.onerror = () => {
+        window.FUSION_ART_STATUS.gpt = "missing";
+        window.FUSION_ART.gpt = null;
+      };
+      rawImg.src = cfg.rawFile + "?v=dev-cand";
+    }
+  }
+}
+
+// M2-FUSION: 通用合技候選貼圖延遲載入 (art/fusion/candidates/<id>/main_alpha_candidate_v01.webp)
+// 規則：僅在 isFusionCandidateEnabled() 為 true 時載入；缺圖安全標記 missing / null，不崩潰
+function loadFusionKindArt(kind) {
+  if (typeof window === "undefined" || !isFusionCandidateEnabled()) return null;
+  if (!kind || typeof kind !== "string") return null;
+  if (kind === "fusion_inkblade") {
+    loadFusionCandidateArt();
+    const mode = getFusionArtMode();
+    return window.FUSION_ART?.[mode] || null;
+  }
+  if (!window.FUSION_ART) window.FUSION_ART = {};
+  if (!window.FUSION_ART_STATUS) window.FUSION_ART_STATUS = {};
+
+  if (window.FUSION_ART[kind] && window.FUSION_ART[kind].naturalWidth > 0) {
+    return window.FUSION_ART[kind];
+  }
+  if (window.FUSION_ART_STATUS[kind] === "loading" || window.FUSION_ART_STATUS[kind] === "missing") {
+    return null;
+  }
+
+  window.FUSION_ART_STATUS[kind] = "loading";
+  const candidatePath = "art/fusion/candidates/" + kind + "/main_alpha_candidate_v02.webp";
+  const img = new Image();
+  img.decoding = "async";
+  img.onload = () => {
+    if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+      window.FUSION_ART[kind] = img;
+      window.FUSION_ART_STATUS[kind] = "ready";
+    } else {
+      window.FUSION_ART[kind] = null;
+      window.FUSION_ART_STATUS[kind] = "missing";
+    }
+  };
+  img.onerror = () => {
+    window.FUSION_ART[kind] = null;
+    window.FUSION_ART_STATUS[kind] = "missing";
+  };
+  img.src = candidatePath + "?v=dev-cand-v02";
+  return null;
+}
+
+if (typeof window !== "undefined") {
+  window.loadFusionCandidateArt = loadFusionCandidateArt;
+  window.loadFusionKindArt = loadFusionKindArt;
+}
+
+// Load Stage8 preview assets from art/stage8-yomi/sliced_v2/ (connected-component extracted clean props)
+// Source: irregular 1448x1086 sprite sheet -> 357 connected components -> 47 clean isolated props
+// Ground tiles and path tiles DISABLED (were rectangular artifacts with pale soil borders)
+// Falls back gracefully when extracted files are absent
+function loadStage8PreviewAssets(status) {
+  const keys = STAGE8_PREVIEW_KEYS;
+  const basePath = "art/stage8-yomi/sliced_v2/";
+
+  const tryLoadPreview = (key, filename) => {
+    if (!key || requestedArt.has(key)) return;
+    const img = new Image();
+    img.fetchPriority = "low";
+    img.decoding = "async";
+    img.onload = () => {
+      // Accept any valid dimensions - these are individual extracted clean props
+      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+        ART[key] = img;
+        markSettled(key);
+        status.loaded.push(key);
+      } else {
+        console.warn(`[Stage8 Preview] ${key} has invalid dimensions: ${img.naturalWidth}x${img.naturalHeight}`);
+        status.missing.push(key);
+        markSettled(key, true);
+      }
+    };
+    img.onerror = () => {
+      console.warn(`[Stage8 Preview] Failed to load ${key} from ${basePath}${filename}`);
+      status.missing.push(key);
+      markSettled(key, true);
+    };
+    requestedArt.add(key);
+    // Load from art/ candidate sliced_v2 directory, NOT production assets/img/
+    img.src = `${basePath}${filename}?v=dev-preview`;
+  };
+
+  // Load ONLY clean isolated props (47 items) - NO ground tiles, NO path tiles
+  keys.props.forEach((key, i) => {
+    tryLoadPreview(key, `clean_prop_${i}.png`);
+  });
 }
 // 旅路角色採用新圖，但保持地圖進入速度；只在實際繪圖時背景下載。
 let mapPlayerRequested = false;

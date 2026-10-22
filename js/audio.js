@@ -162,6 +162,7 @@ window.AUDIO = (() => {
   const SFX_FILES = {
     slash: "assets/audio/sfx/slash.mp3",
     boomerang: "assets/audio/sfx/boomerang.mp3",
+    ofudaLaunch: "assets/audio/sfx/ofuda.mp3",
     dash: "assets/audio/sfx/dash.mp3",
     needle: "assets/audio/sfx/needle.mp3",
     sanctuary: "assets/audio/sfx/sanctuary.mp3",
@@ -176,6 +177,7 @@ window.AUDIO = (() => {
   };
   const SFX_VOLUME = {
     slash: 0.72, boomerang: 0.62, fireball: 0.66, thunder: 0.82,
+    ofudaLaunch: 0.62,
     dash: 0.68, barrier: 0.72, needle: 0.62, hurt: 0.72,
     gem: 0.42, pickup: 0.62, sanctuary: 0.74, deliverSuccess: 0.78,
     deliverWrong: 0.72, breakShield: 0.82, levelUp: 0.76, warningPulse: 0.78,
@@ -252,7 +254,7 @@ window.AUDIO = (() => {
   }
 
   // 接單、提示、送達與誤配都念同一個單字。
-  // 目前 39 個詞統一使用 Gemini 3.8 Flash TTS / Leda（ja-JP）預錄。
+  // 164 個正規詞鍵對 ASCII 檔名。下面 11 個長音鍵只是同一詞的別名檔，避免被當成缺檔。
   const WORD_FILES = {
     "ねこ": "neko",
     "いぬ": "inu",
@@ -650,9 +652,16 @@ window.AUDIO = (() => {
         playMusic(preparedBgm, true);
       }
     },
+    dropPrepared() {
+      const audio = preparedBgm;
+      preparedBgm = null;
+      if (audio && !audio.paused) audio.pause();
+    },
     preloadWords(words) {
       const ac = getCtx();
       if (!ac || typeof fetch !== 'function' || !ac.decodeAudioData) return;
+      // 一次只收呼叫端點名的詞。不把別名檔或整包 175 首拉進來。
+      if (!Array.isArray(words) || words.length > 40) return;
       // Lv5 dragon clips load at first use, never with the initial vocabulary.
       const standardSfx=Object.entries(SFX_FILES)
         .filter(([key])=>!['fireDragon','fireDragonBall','fireGround'].includes(key))
@@ -724,7 +733,7 @@ window.AUDIO = (() => {
       osc.stop(now + 0.14);
     },
 
-    // 符咒迴力鏢
+    // 符咒發射（既有上升音）。爆炸另走 ofudaBurst，不共用這段。
     boomerang() {
       const ac = getCtx();
       if (!ac || muted) return;
@@ -740,6 +749,24 @@ window.AUDIO = (() => {
       gain.connect(output(ac));
       osc.start(now);
       osc.stop(now + 0.16);
+    },
+
+    // 符咒爆炸。合成音，不登記缺檔路徑，避免每次爆破去要尚未提供的 MP3。
+    ofudaBurst() {
+      const ac = getCtx();
+      if (!ac || muted) return;
+      const now = ac.currentTime;
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(210, now);
+      osc.frequency.exponentialRampToValueAtTime(55, now + 0.2);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.connect(gain);
+      gain.connect(output(ac));
+      osc.start(now);
+      osc.stop(now + 0.24);
     },
 
     // 狐火燃燒
@@ -797,7 +824,7 @@ window.AUDIO = (() => {
       osc.stop(now + 0.18);
     },
 
-    // 淨化靈陣（神道神樂鈴 + 深層除魔震波）
+    // 淨化靈陣（深層除魔震波）
     barrier() {
       const ac = getCtx();
       if (!ac || muted) return;
@@ -868,8 +895,7 @@ window.AUDIO = (() => {
       playHyoshigi(0.18);
     },
 
-    // 日語單字：既有詞優先播放預錄聲線；新關卡尚未補錄的詞才單獨退回 ja-JP 系統語音。
-    // 兩者互斥，避免曾經出現的預錄音與 fallback 同時發聲。
+    // 日語單字：有對應 MP3 就只播檔案。解碼或播放失敗才改走 ja-JP，兩者不會同時出聲。
     speak(text) {
       if (muted || suspended) return;
       const file = WORD_FILES[text];
@@ -991,6 +1017,14 @@ window.AUDIO = (() => {
     // 外部檔不存在時才退回日式五音程序化循環。
     updateBgm(dt, state, elapsed, dawnTime) {
       if (suspended || state === "lampout") return;
+      // 手勢裡 prepareMusic 已經 play() 的那一軌，在場景真正切過去之前不要被選單幀暫停。
+      if (preparedBgm && !muted) {
+        musicShouldPlay = true;
+        musicTracks().forEach(audio => { if (audio !== preparedBgm && !audio.paused) audio.pause(); });
+        activeBgm = preparedBgm;
+        playMusic(preparedBgm);
+        return;
+      }
       const paused = state === "pause";
       if (pauseDucking !== paused) {
         pauseDucking = paused;
@@ -1077,6 +1111,8 @@ window.AUDIO = (() => {
   api.fireDragon=()=>api.fireball(1);
   api.fireDragonBall=()=>api.fireball(1);
   api.fireGround=()=>api.fireball(1);
+  const ofudaLaunchFallback = api.boomerang;
+  const ofudaBurstFallback = api.ofudaBurst;
   // 對外 API 保持不變；只替 SFX 方法加上一層「MP3 優先、合成音 fallback」。
   [...new Set([...Object.keys(SFX_FILES),...Object.keys(RANKED_SFX)])].forEach(name => {
     const fallback = api[name];
@@ -1098,8 +1134,8 @@ window.AUDIO = (() => {
     for(const key of ['fireDragon','fireDragonBall','fireGround'])
       loadBuffer(SFX_FILES[key],ac).catch(()=>{});
   };
-  // 相容已上線 game 呼叫；沿用已發布 boom 音效，不加入本地未發布 sfx。
-  api.ofudaLaunch = rank => api.boomerang(rank);
-  api.ofudaBurst = rank => api.boomerang(rank);
+  // 發射與爆炸分聲道；爆炸沿用既有 Lv1–4／Lv5 分級，失敗各自回落原合成音。
+  api.ofudaLaunch = rank => playExternalSfx("ofudaLaunch", ofudaLaunchFallback, [rank]);
+  api.ofudaBurst = rank => playExternalSfx(rank === 5 ? "boomerangMax" : "boomerangBase", ofudaBurstFallback, [rank]);
   return api;
 })();

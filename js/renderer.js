@@ -23,14 +23,16 @@ window.RENDERER = (() => {
   // Avoid upscaling a 720p internal canvas on modern desktop displays.
   const SCENE_PIXELS_DESKTOP = 2073600, SCENE_PIXELS_MOBILE = 1280000, LIGHT_PIXELS = 280000;
   const HOUSE_NAMES = { house_shop: "夜行商店", house_tavern: "宵待酒屋", house_shrine: "稻荷社" };
+  let depthStageId = "";
+  function currentStageId() { return depthStageId || (typeof window !== "undefined" && window.STAGE?.id) || ""; }
 
   // 取得當前關卡的怪物/Boss sprite key（從 STAGE_ASSET_SLOTS 解析，缺圖回落通用）
   function getStageSpriteKey(e, spriteType) {
     // 雨港專用敵人由 PORT_ENEMIES 處理
-    if (window.STAGE?.id === "rain-port" && (e.type === "shiome" || e.umibozu)) {
+    if (currentStageId() === "rain-port" && (e.type === "shiome" || e.umibozu)) {
       return null;
     }
-    const slots = window.STAGE_ASSET_SLOTS?.[window.STAGE?.id];
+    const slots = window.STAGE_ASSET_SLOTS?.[currentStageId()];
     if (!slots?.enemy) return null;
     const enemyType = e.type === "boss" ? "boss" : e.type;
     const arts = slots.enemy[enemyType];
@@ -151,7 +153,6 @@ window.RENDERER = (() => {
 
   function bounds() { return window.VIEWPORT?.bounds() || { left:0, top:0, right:W, bottom:H, width:W, height:H }; }
   function tiltK() { return window.VIEWPORT?.tiltScale?.() || 1; }
-  let depthStageId = "";
   let groundCacheBuilds = 0;
   function depthMode() { return window.VIEWPORT?.depthMode?.() || "default"; }
   function sakuraDepthOn() {
@@ -327,7 +328,7 @@ window.RENDERER = (() => {
     return stopped;
   }
 
-  function drawStyledSceneryImage(c,image,x,y,w,h,alpha=1,kind="scenery",depthBlur=0) {
+  function drawStyledSceneryImage(c,image,x,y,w,h,alpha=1,kind="scenery",depthBlur=0,sourceRect=null) {
     if(!image || !image.naturalWidth)return false;
     c.save();
     c.globalAlpha *= alpha;
@@ -346,12 +347,21 @@ window.RENDERER = (() => {
     c.shadowBlur = 0;
     c.shadowOffsetX = 1;
     c.shadowOffsetY = 1;
-    c.drawImage(image,x,y,w,h);
+    if (sourceRect) {
+      c.drawImage(image, sourceRect.sx, sourceRect.sy, sourceRect.sw, sourceRect.sh, x, y, w, h);
+    } else {
+      c.drawImage(image, x, y, w, h);
+    }
     c.restore();
     return true;
   }
 
   function drawScenerySprite(image,x,y,w,h,alpha=1) {
+    if (currentStageId() === "rain-port" && (
+      image === window.ART?.prop_lantern ||
+      image === window.ART?.prop_port_lighthouse ||
+      image === window.PORT_ART?.beacon
+    )) return false;
     return drawStyledSceneryImage(ctx,image,x,y,w,h,alpha);
   }
 
@@ -359,13 +369,16 @@ window.RENDERER = (() => {
   // Contact shadows are painted on the floor before the upright sprites.
   function drawDecorActor(actor, viewerY = null) {
     const chunk = actor.torii, tree = actor.tree;
+    const tilt = tiltK() || 1;
+    const tiltFactor = clamp((1 - tilt) / 0.4, 0, 1);
     const atmosphericDepth = y => viewerY == null ? 0 :
-      clamp((viewerY-y-290)/650,0,1)*clamp((1-tiltK())/0.4,0,1)*1.65;
+      clamp((viewerY-y-290)/650,0,1)*tiltFactor*1.65;
     if (chunk) {
       const img=window.ART?.prop_torii;
       if (!img?.naturalWidth) return;
       const cx=chunk.x+chunk.w/2,cy=chunk.y+chunk.h/2,tw=150;
-      const th=tw*img.naturalHeight/img.naturalWidth;
+      const depthFactor = viewerY == null ? 1 : (1 + tiltFactor * (0.08 - clamp((viewerY - (cy + 36)) / 700, -0.3, 0.6) * 0.18));
+      const th=Math.round(tw*(img.naturalHeight/img.naturalWidth)*depthFactor);
       // Gate feet touch at cx±50, cy+36: use restrained contact shadows,
       // not the old huge 90×24 oval (which looked detached in overhead view).
       ctx.save();
@@ -382,7 +395,9 @@ window.RENDERER = (() => {
       const img=window.ART?.prop_sakura;
       if (!img?.naturalWidth) return;
       const factor=[.92,1,1.08][groundTileIndex(Math.floor(tree.x),Math.floor(tree.y))%3];
-      const sw=114*factor,sh=sw*img.naturalHeight/img.naturalWidth;
+      const sw=114*factor;
+      const depthFactor = viewerY == null ? 1 : (1 + tiltFactor * (0.08 - clamp((viewerY - tree.y) / 700, -0.3, 0.6) * 0.18));
+      const sh=Math.round(sw*(img.naturalHeight/img.naturalWidth)*depthFactor);
       ctx.save();ctx.fillStyle="rgba(0,0,0,0.28)";
       ctx.beginPath();ctx.ellipse(tree.x,tree.y-4,28,10,0,0,6.28);ctx.fill();
       ctx.restore();
@@ -428,11 +443,11 @@ window.RENDERER = (() => {
   // 地名、鳥居與櫻樹跟底圖一起快取。
   // Paint only this world-space region: leave cached overlapping pixels unchanged.
   // 相鄰磚共用整數像素邊，不重疊、不留縫，也不把邊緣像素拉寬來假裝無縫。
-  function tileImage(c, imgOrPick, left, top, right, bottom) {
+  function tileImage(c, imgOrPick, left, top, right, bottom, scale = 1) {
     const pick = typeof imgOrPick === "function" ? imgOrPick : () => imgOrPick;
     const sample = pick(0, 0);
     if (!sample?.naturalWidth || !sample?.naturalHeight || right - left < 1 || bottom - top < 1) return;
-    const tw = sample.naturalWidth, th = sample.naturalHeight;
+    const tw = sample.naturalWidth * scale, th = sample.naturalHeight * scale;
     const xform = c.getTransform?.() || { a: 1, d: 1, e: 0, f: 0 };
     const s = xform.a || 1;
     const e = xform.e || 0, f = xform.f || 0;
@@ -448,7 +463,10 @@ window.RENDERER = (() => {
       const dy0 = Math.round(ty * th * s + f);
       const dx1 = Math.round((tx + 1) * tw * s + e);
       const dy1 = Math.round((ty + 1) * th * s + f);
-      if (dx1 > dx0 && dy1 > dy0) c.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, dx0, dy0, dx1 - dx0, dy1 - dy0);
+      if (dx1 > dx0 && dy1 > dy0) {
+        c.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, dx0, dy0, dx1 - dx0, dy1 - dy0);
+        if (img && img.__s2KitId) kitNoteDraw(img.__s2KitId);   // counted only on a REAL paint
+      }
     }
     c.restore();
   }
@@ -465,18 +483,212 @@ window.RENDERER = (() => {
     const art = window.SAKURA_ART || {};
     return !!(art.dirt?.naturalWidth && art.transH?.naturalWidth && art.steps?.naturalWidth);
   }
-  window.sakuraTileRole = sakuraTileRole;
+  // S2 Nano Production Art: Direct loading of new Nano Banana 2.1 images from scene directory
+  // These are 2K (2048x2048) images that need to be tiled at 512 for seamless rendering
+  const S2_NANO_PATHS = {
+    stone: "art/stage2-rain-port/scene/G_ground_stone_nano_nb21_v1.png",
+    stoneVar1: "art/stage2-rain-port/scene/G_ground_stone_var1_nano_nb21_v1.png",
+    wood: "art/stage2-rain-port/scene/G_ground_wood_dock_nano_nb21_v1.png",
+    woodVar1: "art/stage2-rain-port/scene/G_ground_wood_dock_var1_nano_nb21_v1.png",
+    transH: "art/stage2-rain-port/scene/G_trans_stone_wood_h_nano_nb21_v1.png",
+    transV: "art/stage2-rain-port/scene/G_trans_stone_wood_v_nano_nb21_v1.png",
+    warehouse: "art/stage2-rain-port/scene/H_port_warehouse_nano_nb21_v1.png",
+    fishmonger: "art/stage2-rain-port/scene/H_fishmonger_nano_nb21_v1.png"
+  };
+  const S2_NANO_CACHE = {
+    stone: null, stoneVar1: null, wood: null, woodVar1: null,
+    transH: null, transV: null, warehouse: null, fishmonger: null,
+    loaded: false, loadError: null
+  };
+  async function loadS2NanoAssets() {
+    if (!window.isS2ArtProdEnabled?.() || S2_NANO_CACHE.loaded) return;
+    const loadImg = (url) => new Promise(resolve => {
+      const img = new Image();
+      img.decoding = "async";
+      img.onload = () => resolve({ img, ok: true, url });
+      img.onerror = () => resolve({ img: null, ok: false, url });
+      img.src = url + "?v=" + Date.now();
+    });
+    const results = await Promise.all(Object.entries(S2_NANO_PATHS).map(([k, url]) => loadImg(url).then(r => ({ key: k, ...r }))));
+    let anyOk = false;
+    for (const { key, img, ok, url } of results) {
+      if (ok && img?.naturalWidth) {
+        S2_NANO_CACHE[key] = img;
+        anyOk = true;
+        console.log(`[S2-NANO] Loaded ${key}: ${img.naturalWidth}x${img.naturalHeight} from ${url}`);
+      } else {
+        console.warn(`[S2-NANO] Failed to load ${key} from ${url}`);
+      }
+    }
+    S2_NANO_CACHE.loaded = true;
+    S2_NANO_CACHE.loadError = anyOk ? null : "NO_NANO_IMAGES_LOADED";
+    if (!anyOk) console.error("[S2-NANO] No Nano images loaded successfully");
+  }
+  function getS2NanoStone() {
+    if (!window.isS2ArtProdEnabled?.() || !S2_NANO_CACHE.loaded) return null;
+    return S2_NANO_CACHE.stone?.naturalWidth ? S2_NANO_CACHE.stone : null;
+  }
+  function getS2NanoWood() {
+    if (!window.isS2ArtProdEnabled?.() || !S2_NANO_CACHE.loaded) return null;
+    return S2_NANO_CACHE.wood?.naturalWidth ? S2_NANO_CACHE.wood : null;
+  }
+  function getS2NanoTransH() {
+    if (!window.isS2ArtProdEnabled?.() || !S2_NANO_CACHE.loaded) return null;
+    return S2_NANO_CACHE.transH?.naturalWidth ? S2_NANO_CACHE.transH : null;
+  }
+  function getS2NanoTransV() {
+    if (!window.isS2ArtProdEnabled?.() || !S2_NANO_CACHE.loaded) return null;
+    return S2_NANO_CACHE.transV?.naturalWidth ? S2_NANO_CACHE.transV : null;
+  }
+  function getS2NanoWarehouse() {
+    if (!window.isS2ArtProdEnabled?.() || !S2_NANO_CACHE.loaded) return null;
+    return S2_NANO_CACHE.warehouse?.naturalWidth ? S2_NANO_CACHE.warehouse : null;
+  }
+  function getS2NanoFishmonger() {
+    if (!window.isS2ArtProdEnabled?.() || !S2_NANO_CACHE.loaded) return null;
+    return S2_NANO_CACHE.fishmonger?.naturalWidth ? S2_NANO_CACHE.fishmonger : null;
+  }
+  // S2 Production Art tile pickers (for rain-port when s2artprod=1)
+  // Priority: new Nano images > manifest usable_runtime_tiles > legacy PORT_ART
+  function s2StoneTilePick() {
+    // Priority 1: New Nano stone (2048x2048, will be tiled at 512)
+    // Use only AGY's 512px edge-locked candidate, not raw 2048px concept-sized output.
+    // Priority 2: Manifest usable_runtime_tiles
+    const tiles = window.getS2StoneTiles?.();
+    if (!tiles?.length) return null;
+    const baseTile = tiles.find(t => (t.id === "tile_stone_canonical" || t.id === "tile_stone_base") && t._loaded && t._img?.naturalWidth);
+    if (baseTile) return () => baseTile._img;
+    return null;
+  }
+  function s2WoodTilePick() {
+    // Raw Nano wood is retained as evidence, never tiled directly.
+    const tiles = window.getS2WoodTiles?.();
+    if (!tiles?.length) return null;
+    const baseTile = tiles.find(t => (t.id === "tile_wood_dock_canonical" || t.id === "tile_wood_dock_base") && t._loaded && t._img?.naturalWidth);
+    if (baseTile) return () => baseTile._img;
+    return null;
+  }
+  function s2TransitionHPick() {
+    // Use true postprocessed shoreline transition only.
+    const tiles = window.getS2TransitionsH?.();
+    if (!tiles?.length) return null;
+    const approved = tiles.find(t => t.id === "tile_trans_stone_wood_h_canonical" && t.provenance_type === "NANO_SOURCE" && t._loaded && t._img?.naturalWidth);
+    if (approved) return () => approved._img;
+    const refined = tiles.find(t => t.id === "tile_trans_stone_wood_h_refined" && t._loaded && t._img?.naturalWidth);
+    if (refined) return () => refined._img;
+    return null;
+  }
+  function s2TransitionVPick() {
+    // Use true postprocessed canal transition only.
+    const tiles = window.getS2TransitionsV?.();
+    if (!tiles?.length) return null;
+    const refined = tiles.find(t => t.id === "tile_trans_stone_wood_v_canonical" && t.provenance_type === "NANO_SOURCE" && t._loaded && t._img?.naturalWidth);
+    if (refined) return () => refined._img;
+    return null;
+  }
+  // ---------------------------------------------------------------------
+  // S2 ground kit (DEV gate only: dev=1 & stage=rain-port & s2ground=kit)
+  // The 4 stone / 3 wood candidates are mixed deterministically per WORLD TILE CELL,
+  // so the same world point always shows the same candidate (no per-frame change, no
+  // flicker across the terrain cache or left/right movement).
+  // ---------------------------------------------------------------------
+  const S2_GROUND_KIT_TILE_WORLD = 512;   // one kit candidate covers 512 world px
+  function s2GroundKitEnabled() {
+    return typeof window.isS2GroundKitEnabled === "function"
+      ? !!window.isS2GroundKitEnabled()
+      : !!window.S2_GROUND_KIT_ENABLED;
+  }
+  function kitHash2(x, y, salt) {
+    let h = (Math.imul(x | 0, 0x27d4eb2d) ^ Math.imul(y | 0, 0x165667b1) ^ Math.imul(salt | 0, 0x9e3779b1)) >>> 0;
+    h ^= h >>> 15; h = Math.imul(h, 0x85ebca6b) >>> 0; h ^= h >>> 13;
+    return h >>> 0;
+  }
+  // Real paint-call counter for the kit candidates. It is incremented ONLY right after a
+  // successful c.drawImage of a kit image (the image carries __s2KitId). A pick or the
+  // size sample inside tileImage() is NOT a paint and must never be counted.
+  const S2_GROUND_KIT_DRAW_COUNTS = new Map();
+  function kitNoteDraw(id) {
+    if (!id) return;
+    S2_GROUND_KIT_DRAW_COUNTS.set(id, (S2_GROUND_KIT_DRAW_COUNTS.get(id) || 0) + 1);
+  }
+  // Returns a tileImage-compatible picker(tx, ty) -> Image, or null when the kit is not usable.
+  // The picker only SELECTS; the draw counter lives at the draw site.
+  function s2KitVariantPick(list, salt) {
+    const usable = (list || []).filter(t => t && t._loaded && t._img && t._img.naturalWidth);
+    if (!usable.length) return null;
+    return (tx, ty) => usable[kitHash2(tx, ty, salt) % usable.length]._img;
+  }
+  function s2KitScale() {
+    const kit = window.getS2GroundKit?.();
+    const img = kit?.stone?.[0]?._img || kit?.wood?.[0]?._img;
+    const nat = img?.naturalWidth || 1254;
+    return S2_GROUND_KIT_TILE_WORLD / nat;
+  }
+  // Dev-only readable evidence. NOTE the two lists are different things:
+  //   loadedSources = decoded/available candidates (+ their placement decision)
+  //   drawnSources  = candidates that were really painted (paint-call counter)
+  // A loaded candidate with no legal placement stays in loadedSources only.
+  function s2GroundKitDrawEvidence() {
+    const kit = window.getS2GroundKit?.();
+    const loaded = [];
+    const drawn = [];
+    const push = (t, group, role) => {
+      if (!t || !t._loaded) return;
+      const placement = window.S2_GROUND_KIT_PLACEMENT?.[t.id]?.state || null;
+      loaded.push({
+        id: t.id, group, role: role || null, placement,
+        src: t._img?.currentSrc || t._img?.src || t.url,
+        w: t.naturalWidth, h: t.naturalHeight
+      });
+      const count = S2_GROUND_KIT_DRAW_COUNTS.get(t.id) || 0;
+      if (count > 0) drawn.push({ id: t.id, group, role: role || null, placement, drawCallCount: count, src: t._img?.currentSrc || t._img?.src || t.url });
+    };
+    if (kit) {
+      for (const t of kit.stone || []) push(t, 'stone');
+      for (const t of kit.wood || []) push(t, 'wood');
+      for (const role of ['horizontal', 'diagonal', 'vertical']) push(kit.transitions?.[role], 'transition', role);
+    }
+    return {
+      enabled: s2GroundKitEnabled(),
+      loaded: !!kit,
+      scale: s2KitScale(),
+      loadedSources: loaded,
+      drawnSources: drawn,
+      notDrawn: loaded.filter(l => !drawn.some(d => d.id === l.id)).map(l => ({ id: l.id, placement: l.placement }))
+    };
+  }
+  function invalidateGroundCache() {
+    if (terrainState) { terrainState = null; groundCacheBuilds += 1; }
+  }
+  function resetS2GroundKitDrawCounts() { S2_GROUND_KIT_DRAW_COUNTS.clear(); }
+
   function portGroundPick(kind) {
     return () => {
       const art = window.PORT_ART || {};
+      const surfaceCand = typeof window.isPortSurfaceCandidateEnabled === "function"
+        ? window.isPortSurfaceCandidateEnabled()
+        : !!window.PORT_SURFACE_CANDIDATE_ENABLED;
+      const s2Enabled = typeof window.isS2ArtProdEnabled === "function" ? window.isS2ArtProdEnabled() : !!window.S2_ART_PROD_ENABLED;
       if (kind === "wood") {
+        if (s2Enabled) {
+          const woodPick = s2WoodTilePick();
+          if (woodPick) return woodPick();
+        }
         if (art.woodVar1?.naturalWidth) return art.woodVar1;
         return art.dock?.naturalWidth ? art.dock : null;
+      }
+      if (s2Enabled) {
+        const stonePick = s2StoneTilePick();
+        if (stonePick) return stonePick();
+      }
+      if (surfaceCand && art.stoneV3?.naturalWidth) {
+        return art.stoneV3;
       }
       if (art.stoneVar1?.naturalWidth) return art.stoneVar1;
       return art.stone?.naturalWidth ? art.stone : null;
     };
   }
+  window.portGroundPick = portGroundPick;
   function paintPortShore(c, chunk, region) {
     const bandTop = chunk.y + chunk.h - 256;
     const left = Math.max(region.left, chunk.x);
@@ -498,15 +710,20 @@ window.RENDERER = (() => {
   const PORT_SEAM_SH = 72;
   const PORT_SEAM_CENTER = 271;
   function paintPortTransitionSeam(c, img, chunk, region, seamY, flipped) {
-    const north = PORT_SEAM_CENTER - PORT_SEAM_SY;
-    const south = PORT_SEAM_SY + PORT_SEAM_SH - PORT_SEAM_CENTER;
+    const isCandidate = (img === window.PORT_ART?.stoneWoodTransition);
+    const seamSy = isCandidate ? 80 : PORT_SEAM_SY;
+    const seamSh = isCandidate ? 340 : PORT_SEAM_SH;
+    const seamCenter = isCandidate ? 256 : PORT_SEAM_CENTER;
+
+    const north = seamCenter - seamSy;
+    const south = seamSy + seamSh - seamCenter;
     const bandTop = flipped ? seamY - south : seamY - north;
     const bandBottom = flipped ? seamY + north : seamY + south;
     const left = Math.max(region.left, chunk.x);
     const right = Math.min(region.left + region.width, chunk.x + chunk.w);
     const top = Math.max(region.top, bandTop);
     const bottom = Math.min(region.top + region.height, bandBottom);
-    if (right - left < 1 || bottom - top < 1 || img.naturalHeight < PORT_SEAM_SY + PORT_SEAM_SH) return;
+    if (right - left < 1 || bottom - top < 1 || img.naturalHeight < seamSy + seamSh) return;
     c.save();
     c.beginPath();
     c.rect(left, top, right - left, bottom - top);
@@ -531,7 +748,7 @@ window.RENDERER = (() => {
       const dx1 = Math.round((tx + 1) * tw * s + e);
       const dy0 = Math.round(destTop * s + f);
       const dy1 = Math.round(destBottom * s + f);
-      if (dx1 > dx0 && dy1 > dy0) c.drawImage(img, 0, PORT_SEAM_SY, tw, PORT_SEAM_SH, dx0, dy0, dx1 - dx0, dy1 - dy0);
+      if (dx1 > dx0 && dy1 > dy0) c.drawImage(img, 0, seamSy, tw, seamSh, dx0, dy0, dx1 - dx0, dy1 - dy0);
     }
     c.restore();
   }
@@ -547,39 +764,715 @@ window.RENDERER = (() => {
       paintPortTransitionSeam(c, img, chunk, region, chunk.y + chunk.h, true);
     }
   }
+
+  function getPortBounds(chunks) {
+    if (Array.isArray(chunks)) {
+      const boundedChunk = chunks.find(c => c?.decor?.port?.bounds && typeof c.decor.port.bounds.minY === "number" && typeof c.decor.port.bounds.maxY === "number");
+      if (boundedChunk) return boundedChunk.decor.port.bounds;
+    }
+    if (typeof window !== "undefined" && window.WORLD_STATE?.bounds && typeof window.WORLD_STATE.bounds.minY === "number" && typeof window.WORLD_STATE.bounds.maxY === "number") {
+      return window.WORLD_STATE.bounds;
+    }
+    return null;
+  }
+
+  // ---------------------------------------------------------------------
+  // Coast backdrop (impassable north / south bands of the rain port).
+  // One real sea texture tiles the whole band on BOTH axes, world-anchored, so a band
+  // taller than the texture and negative world coordinates stay fully covered
+  // (no black strip, no stretching, no fake geometric sea).
+  // ---------------------------------------------------------------------
+  const S2_COAST_DRAWS = new Map();
+  function coastNoteDraw(img) {
+    if (!img) return;
+    const key = img.currentSrc || img.src || "coast";
+    S2_COAST_DRAWS.set(key, (S2_COAST_DRAWS.get(key) || 0) + 1);
+  }
+  function paintCoastSeaBand(c, img, left, top, right, bottom) {
+    if (!img?.naturalWidth || right - left < 1 || bottom - top < 1) return false;
+    const w = img.naturalWidth, h = img.naturalHeight;
+    const x0 = Math.floor(left / w), x1 = Math.ceil(right / w);
+    const y0 = Math.floor(top / h), y1 = Math.ceil(bottom / h);
+    for (let ty = y0; ty < y1; ty++) {
+      for (let tx = x0; tx < x1; tx++) {
+        c.drawImage(img, tx * w, ty * h, w, h);
+        coastNoteDraw(img);
+      }
+    }
+    return true;
+  }
+  function s2CoastArt() {
+    const kitOn = s2GroundKitEnabled();
+    const art = window.PORT_ART || {};
+    return {
+      kitOn,
+      // Kit gate prefers its own real sea tile; the legacy candidate sea stays the fallback.
+      sea: (kitOn && art.coastSea?.naturalWidth) ? art.coastSea : (art.harborSea || null),
+      // Bright RGBA rock with wave foam (kit only). The legacy north cliff is a near-black
+      // silhouette and is never used as a kit backdrop.
+      rock: (kitOn && art.coastCliff?.naturalWidth) ? art.coastCliff : null,
+      legacyCliff: art.northCliff || null
+    };
+  }
+  function s2CoastDrawEvidence() {
+    const art = s2CoastArt();
+    return {
+      enabled: !!art.kitOn,
+      sea: art.sea ? { src: art.sea.currentSrc || art.sea.src, w: art.sea.naturalWidth, h: art.sea.naturalHeight } : null,
+      rock: art.rock ? { src: art.rock.currentSrc || art.rock.src, w: art.rock.naturalWidth, h: art.rock.naturalHeight } : null,
+      draws: [...S2_COAST_DRAWS.entries()].map(([src, count]) => ({ src, count }))
+    };
+  }
+
+  function paintPortBoundedTerrain(c, region, chunks, stoneTile, portBounds) {
+    const { minY, maxY } = portBounds;
+    const { left, top, width, height } = region;
+    const woodTile = portGroundPick("wood")();
+    const surfaceCand = typeof window.isPortSurfaceCandidateEnabled === "function"
+      ? window.isPortSurfaceCandidateEnabled()
+      : !!window.PORT_SURFACE_CANDIDATE_ENABLED;
+    const s2Enabled = typeof window.isS2ArtProdEnabled === "function" ? window.isS2ArtProdEnabled() : !!window.S2_ART_PROD_ENABLED;
+    // S2 ground kit (dev gate) takes over the ground bands when it is enabled and loaded.
+    const kitEnabled = s2GroundKitEnabled();
+    const kit = kitEnabled ? (window.getS2GroundKit?.() || null) : null;
+    const kitStonePick = kit ? s2KitVariantPick(kit.stone, 0x5354) : null;
+    const kitWoodPick = kit ? s2KitVariantPick(kit.wood, 0x5744) : null;
+    const kitHorizontal = kit?.transitions?.horizontal && kit.transitions.horizontal._loaded
+      ? kit.transitions.horizontal : null;
+    // S2 Nano 512px 原稿鋪成 256 世界像素：單塊石板約角色半身，不是等身巨石。
+    const tScale = kitEnabled ? s2KitScale() : (s2Enabled ? 0.5 : 1);
+    const seamImg = (surfaceCand && window.PORT_ART?.stoneWoodTransition?.naturalWidth)
+      ? window.PORT_ART.stoneWoodTransition
+      : window.PORT_ART?.[PORT_V2_ROLE];
+    // S2 transitions (horizontal for stone-wood seam, vertical for chunk boundaries)
+    // For the ground kit the horizontal seam uses t_stone_wood_v01.png (OBSERVED horizontal:
+    // stone top / wood bottom). t_stone_wood_h01 (diagonal) and t_stone_wood_c01 (vertical
+    // straight) have no legal place in this world layout and are never drawn.
+    const s2TransHPick = kitEnabled
+      ? (kitHorizontal ? () => kitHorizontal._img : null)
+      : (s2Enabled ? s2TransitionHPick() : null);
+    const s2TransVPick = s2Enabled ? s2TransitionVPick() : null;
+    const beltHeight = maxY - minY;
+    const dockW = Math.min(220, Math.max(120, Math.round(beltHeight * 0.30)));
+    const dockSeamY = maxY - dockW;
+
+    // 預先以港口深暗夜色底填滿全區，確保北界 (y < minY) 與南界 (y > maxY) 絕不露舊石板
+    c.fillStyle = "#080c1a";
+    c.fillRect(left, top, width, height);
+
+    const coast = s2CoastArt();
+    // True once a REAL image already covers the north band. The per-chunk dark gradient is
+    // only a last-resort fallback and must never repaint over artwork that is already there
+    // (that overlay used to turn the north band back into flat #080c1a).
+    let northBackdropCovered = false;
+
+    // 0. 北側背景層 (y < minY)：真海面／山壁圖覆蓋整條可見北帶，消除大純黑帶與邊界硬切
+    if (minY > top) {
+      const nBottom = Math.min(top + height, minY);
+      c.save();
+      c.beginPath(); c.rect(left, top, width, nBottom - top); c.clip();
+      const nGrad = c.createLinearGradient(0, nBottom, 0, top);
+      nGrad.addColorStop(0, "#111827");
+      nGrad.addColorStop(0.35, "#0b101e");
+      nGrad.addColorStop(1, "#050711");
+      c.fillStyle = nGrad;
+      c.fillRect(left, top, width, nBottom - top);
+
+      if (coast.kitOn) {
+        // Kit gate: one real sea texture covers the whole north band (no black, no stretch).
+        if (coast.sea?.naturalWidth) {
+          northBackdropCovered = paintCoastSeaBand(c, coast.sea, left, top, left + width, nBottom);
+        }
+      } else if (surfaceCand) {
+        // Legacy portsurfacecandidate path keeps its own cliff-first promise.
+        const cliffImg = coast.legacyCliff;
+        if (cliffImg?.naturalWidth) {
+          const cliffW = cliffImg.naturalWidth;
+          const cliffH = cliffImg.naturalHeight;
+          const cliffY = minY - cliffH;
+          const x0 = Math.floor(left / cliffW) * cliffW;
+          const x1 = Math.ceil((left + width) / cliffW) * cliffW;
+          for (let sx = x0; sx < x1; sx += cliffW) {
+            c.drawImage(cliffImg, sx, cliffY, cliffW, cliffH);
+          }
+          northBackdropCovered = true;
+        } else if (coast.sea?.naturalWidth) {
+          northBackdropCovered = paintCoastSeaBand(c, coast.sea, left, top, left + width, nBottom);
+        }
+      }
+      c.restore();
+    }
+
+    for (const chunk of chunks) {
+      if (chunk.x > left + width || chunk.x + chunk.w < left || chunk.y > top + height || chunk.y + chunk.h < top) continue;
+
+      const rl = Math.max(left, chunk.x);
+      const rr = Math.min(left + width, chunk.x + chunk.w);
+      if (rr <= rl) continue;
+
+      // 1. 北側阻擋地面背景層 (y < minY)：只有真的沒有任何有效背景圖時才畫保底漸層，
+      //    絕不可覆蓋已經畫好的海面／山壁圖（否則北帶又變回純黑）
+      const nTop = Math.max(top, chunk.y);
+      const nBottom = Math.min(top + height, chunk.y + chunk.h, minY);
+      if (nBottom > nTop && !northBackdropCovered) {
+        c.save();
+        c.beginPath(); c.rect(rl, nTop, rr - rl, nBottom - nTop); c.clip();
+        const nGrad = c.createLinearGradient(0, nBottom, 0, nTop);
+        nGrad.addColorStop(0, "#111827");
+        nGrad.addColorStop(0.35, "#0b101e");
+        nGrad.addColorStop(1, "#050711");
+        c.fillStyle = nGrad;
+        c.fillRect(rl, nTop, rr - rl, nBottom - nTop);
+        c.restore();
+      }
+
+      // 2. 中部石板 / 木棧道戰鬥帶 (minY <= y <= maxY)
+      const mTop = Math.max(top, chunk.y, minY);
+      const mBottom = Math.min(top + height, chunk.y + chunk.h, maxY);
+      if (mBottom > mTop) {
+        // 石板鋪面 (minY <= y < dockSeamY)
+        const stoneTop = mTop;
+        const stoneBottom = Math.min(mBottom, dockSeamY);
+        const stoneSrc = kitStonePick || stoneTile;
+        if (stoneBottom > stoneTop && stoneSrc) {
+          c.save();
+          c.beginPath(); c.rect(rl, stoneTop, rr - rl, stoneBottom - stoneTop); c.clip();
+          tileImage(c, stoneSrc, rl, stoneTop, rr, stoneBottom, tScale);
+
+          // 消除地板直線切邊：於石板頂端 (minY) 鋪設柔和暗霧過渡，平滑融入北側山崖基座
+          if (stoneTop <= minY + 2) {
+            const edgeH = Math.min(28, stoneBottom - stoneTop);
+            const edgeGrad = c.createLinearGradient(0, minY, 0, minY + edgeH);
+            edgeGrad.addColorStop(0, "rgba(8, 12, 26, 0.78)");
+            edgeGrad.addColorStop(0.4, "rgba(8, 12, 26, 0.35)");
+            edgeGrad.addColorStop(1, "rgba(8, 12, 26, 0)");
+            c.fillStyle = edgeGrad;
+            c.fillRect(rl, minY, rr - rl, edgeH);
+          }
+          c.restore();
+
+          if (surfaceCand && window.PORT_ART?.stoneReflection?.naturalWidth) {
+            // 稀疏局部點綴 (不全區密鋪，以 chunk.x 為基準在特定間隔提供一處微光反射水窪)
+            const rx = chunk.x + 480;
+            const ry = Math.round((stoneTop + stoneBottom) / 2);
+            if (rx >= rl - 60 && rx <= rr + 60) {
+              c.save();
+              c.beginPath(); c.rect(rl, stoneTop, rr - rl, stoneBottom - stoneTop); c.clip();
+              c.globalAlpha = 0.22;
+              c.drawImage(window.PORT_ART.stoneReflection, 300, 300, 200, 100, rx - 60, ry - 30, 120, 60);
+              c.restore();
+            }
+          }
+        }
+
+        // 木棧道鋪面 (dockSeamY <= y <= maxY)
+        const woodTop = Math.max(mTop, dockSeamY);
+        const woodBottom = mBottom;
+        const woodSrc = kitWoodPick || woodTile;
+        if (woodBottom > woodTop && woodSrc) {
+          c.save();
+          c.beginPath(); c.rect(rl, woodTop, rr - rl, woodBottom - woodTop); c.clip();
+          tileImage(c, woodSrc, rl, woodTop, rr, woodBottom, tScale);
+          c.restore();
+        }
+      }
+
+      // 3. 南側海灣水面 (y > maxY) 且不當走路地板
+      // 沿用既有夜色底，缺連續海圖列 WAITING_ART，不造假漸層/幾何波紋/程序木樁
+      const sTop = Math.max(top, chunk.y, maxY);
+      const sBottom = Math.min(top + height, chunk.y + chunk.h);
+      if (sBottom > sTop) {
+        c.save();
+        c.beginPath(); c.rect(rl, sTop, rr - rl, sBottom - sTop); c.clip();
+        c.fillStyle = "#080c1a";
+        c.fillRect(rl, sTop, rr - rl, sBottom - sTop);
+
+        const surfaceCand = typeof window.isPortSurfaceCandidateEnabled === "function"
+          ? window.isPortSurfaceCandidateEnabled()
+          : !!window.PORT_SURFACE_CANDIDATE_ENABLED;
+        const seaImg = window.PORT_ART?.harborSea;
+        if (surfaceCand && seaImg?.naturalWidth) {
+          // 新海圖：只作為南側不可通行海背景，不作中央走地
+          // 頂端對齊 maxY（木棧道岸沿），橫向自接延展，底端柔和融入夜色
+          const seaW = seaImg.naturalWidth;
+          const seaH = seaImg.naturalHeight;
+          const x0 = Math.floor(rl / seaW) * seaW;
+          const x1 = Math.ceil(rr / seaW) * seaW;
+          for (let sx = x0; sx < x1; sx += seaW) {
+            c.drawImage(seaImg, sx, maxY, seaW, seaH);
+          }
+        }
+        c.restore();
+      }
+    }
+
+    // 3b. 南側真海面 (y > maxY)：整條可見南帶以同一張真海圖鋪滿，不留純黑、不壓進中央戰鬥帶
+    if (coast.kitOn && coast.sea?.naturalWidth && top + height > maxY) {
+      const sStart = Math.max(top, maxY);
+      c.save();
+      c.beginPath(); c.rect(left, sStart, width, top + height - sStart); c.clip();
+      paintCoastSeaBand(c, coast.sea, left, sStart, left + width, top + height);
+      c.restore();
+    }
+
+    // Paint genuine Nano Banana coastal scenery in world coordinates (dev S2 only).
+    if (s2Enabled) {
+      const environment = window.getS2Environment?.() || [];
+      const cliff = environment.find(e => e.id === "cliff_north_rock")?._img;
+      const sea = environment.find(e => e.id === "surface_sea_canonical")?._img;
+      if (sea?.naturalWidth && top < minY) {
+        // 北側也是海：同一張真海面、同一世界格線連續鋪滿，崖岩作為獨立物件稀疏立在岸線，不平鋪成怪異色帶。
+        const northEnd = Math.min(top + height, minY);
+        c.save(); c.beginPath(); c.rect(left, top, width, northEnd - top); c.clip();
+        tileImage(c, sea, left, top, left + width, northEnd);
+        c.restore();
+      }
+      if (cliff?.naturalWidth && top < minY + 40) {
+        const stride = 520, cw = 330, ch = Math.round(cw * cliff.naturalHeight / cliff.naturalWidth);
+        const s0 = Math.floor((left - cw) / stride), s1 = Math.ceil((left + width + cw) / stride);
+        for (let slot = s0; slot <= s1; slot++) {
+          const hsh = ((slot * 2654435761) >>> 0) % 7;
+          if (hsh === 3) continue; // 稀疏：約 1/7 空位
+          const cx = slot * stride + 90 + hsh * 37;
+          c.drawImage(cliff, cx - cw / 2, minY + 8 - ch, cw, ch);
+        }
+      }
+      if (sea?.naturalWidth && top + height > maxY) {
+        const southStart = Math.max(top, maxY);
+        c.save(); c.beginPath(); c.rect(left, southStart, width, top + height - southStart); c.clip();
+        tileImage(c, sea, left, southStart, left + width, top + height);
+        c.restore();
+      }
+    }
+
+    // 4. 石木接縫 (dockSeamY): 於整個可視區域橫向全域連續鋪設，避免按 chunk 裁切產生縱向斷裂補丁
+    // Use S2 horizontal transitions if available, otherwise fall back to legacy seamImg
+    if (s2TransHPick) {
+      // Tile S2 horizontal transitions across the full visible width at dockSeamY
+      const transTiles = kitEnabled
+        ? (kitHorizontal ? [{ _img: kitHorizontal._img }] : [])
+        : (window.getS2TransitionsH?.() || []);
+      if (transTiles.length && dockSeamY >= top - 200 && dockSeamY <= top + height + 200) {
+        // Use tileImage with the S2 transition picker
+        const sample = transTiles[0]._img;
+        if (sample?.naturalWidth) {
+          const tw = sample.naturalWidth, th = sample.naturalHeight;
+          const x0 = Math.floor((left - 120) / tw), x1 = Math.ceil((left + width + 240) / tw);
+          const y0 = Math.floor((dockSeamY - th/2) / th), y1 = Math.ceil((dockSeamY + th/2) / th);
+          // Read world-to-cache matrix BEFORE switching to pixel coordinates.
+          // Resetting first drew the Nano seam at world x beyond the offscreen canvas.
+          const xf = c.getTransform?.() || { a: 1, d: 1, e: 0, f: 0 };
+          c.save();
+          c.setTransform(1, 0, 0, 1, 0, 0);
+          c.imageSmoothingEnabled = false;
+          // 北石南木、過渡中心對齊 dockSeamY，8px strips fade at both edges.
+          const bandH = 232, fadeH = 56, slice = 8;
+          const syBase = Math.round(th / 2 - bandH / tScale / 2), srcSlice = slice / tScale;
+          const twW = tw * tScale;
+          const x0b = Math.floor((left - 120) / twW), x1b = Math.ceil((left + width + 240) / twW);
+          for (let tx = x0b; tx < x1b; tx++) {
+            const img = s2TransHPick(tx, 0);
+            if (!img?.naturalWidth) continue;
+            const dx0 = Math.round(tx * twW * (xf?.a || 1) + (xf?.e || 0)), dx1 = Math.round((tx + 1) * twW * (xf?.a || 1) + (xf?.e || 0));
+            for (let off = 0; off < bandH; off += slice) {
+              const edge = Math.min(off + slice, bandH - off);
+              const alpha = Math.min(1, edge / fadeH);
+              const wy0 = dockSeamY - bandH / 2 + off;
+              const dy0 = Math.round(wy0 * (xf?.d || 1) + (xf?.f || 0));
+              const dy1 = Math.round((wy0 + slice) * (xf?.d || 1) + (xf?.f || 0));
+              if (dx1 > dx0 && dy1 > dy0) {
+                c.globalAlpha = alpha;
+                c.drawImage(img, 0, syBase + (off / slice) * srcSlice, img.naturalWidth, srcSlice, dx0, dy0, dx1 - dx0, dy1 - dy0);
+                if (img && img.__s2KitId) kitNoteDraw(img.__s2KitId);   // counted only on a REAL paint
+              }
+            }
+          }
+          c.globalAlpha = 1;
+          c.restore();
+        }
+      }
+    } else if (!s2Enabled && seamImg?.naturalWidth && dockSeamY >= top - 200 && dockSeamY <= top + height + 200) {
+      paintPortTransitionSeam(c, seamImg, { x: left - 120, w: width + 240 }, region, dockSeamY, false);
+    }
+  }
+
+  // S2 Production Art: Render buildings and props from AGY asset manifest
+  // Expected manifest structure (v1.3.0-nano):
+  // buildings: [{ id, path_webp, width, height, footAnchor: {x, y}, displaySize, status, x: null, y: null, _img, _loaded }]
+  // props: [{ id, path_webp, width, height, footAnchor: {x, y}, displaySize, status, x: null, y: null, _img, _loaded }]
+  // environment: [{ id, path_webp, width, height, footAnchor?, _img, _loaded }]
+  function drawS2BuildingsAndProps(c, chunks, viewLeft, viewRight, minY, maxY, elapsed, motion) {
+    const buildings = window.getS2Buildings?.() || [];
+    const props = window.getS2Props?.() || [];
+    const environment = window.getS2Environment?.() || [];
+    if (!buildings.length && !props.length) return;
+
+    const tilt = tiltK() || 1;
+    const tiltFactor = clamp((1 - tilt) / 0.4, 0, 1);
+
+    // Helper to draw a building with proper upright and shadow
+    const drawBuilding = (img, bx, by, displayW, footAnchorY) => {
+      if (!img?.naturalWidth) return;
+      const aspect = img.naturalHeight / img.naturalWidth;
+      const bh = Math.round(displayW * aspect * (1 + tiltFactor * 0.06));
+      // Contact shadow
+      c.save();
+      c.fillStyle = "rgba(12, 16, 22, 0.44)";
+      c.beginPath();
+      c.ellipse(bx, by, displayW > 100 ? 72 : 22, displayW > 100 ? 15 : 8, 0, 0, 6.283);
+      c.fill();
+      c.restore();
+      const paintBuilding = () => {
+        c.drawImage(img, bx - displayW / 2, by - bh, displayW, bh);
+      };
+      if (window.VIEWPORT?.upright) window.VIEWPORT.upright(c, bx, by, paintBuilding);
+      else paintBuilding();
+    };
+
+    // Buildings are now drawn by drawHouse (anchored to the world quiz houses, Ysorted with actors),
+    // so the free-floating sparse pass is disabled to avoid duplicate/misaligned buildings.
+    const visibleWidth = viewRight - viewLeft;
+    if (false && buildings.length && visibleWidth > 0) {
+      const stride = 440;
+      const from = Math.floor((viewLeft - 300) / stride);
+      const to = Math.ceil((viewRight + 300) / stride);
+      for (let slot = from; slot <= to; slot++) {
+        const index = ((slot % buildings.length) + buildings.length) % buildings.length;
+        const bld = buildings[index];
+        if (!bld?._loaded || !bld._img?.naturalWidth) continue;
+        const stagger = ((slot % 3) + 3) % 3;
+        const bx = slot * stride + 190 + stagger * 17;
+        const by = minY + 150 + stagger * 13;
+        const displayW = Math.min(235, Math.max(178, bld.displaySize?.width ?? bld.width ?? 200));
+        drawBuilding(bld._img, bx, by, displayW, by);
+      }
+    }
+
+    // Render props (south side, near maxY and beyond) - distribute along dock/sea edge
+    if (props.length > 0) {
+      const stride = 285;
+      const first = Math.floor((viewLeft - 170) / stride);
+      const last = Math.ceil((viewRight + 170) / stride);
+      for (let slot = first; slot <= last; slot++) {
+        const index = ((slot % props.length) + props.length) % props.length;
+        const prop = props[index];
+        if (!prop?._loaded || !prop._img?.naturalWidth) continue;
+        const px = slot * stride + 105;
+        const isBoat = /boat/.test(prop.id || "");
+        const py = isBoat ? maxY + 5 : maxY - 100 + (((slot % 3) + 3) % 3) * 16;
+        const pw = isBoat ? 124 : Math.min(76, Math.max(42, prop.displaySize?.width ?? prop.width ?? 50));
+
+        // Contact shadow
+        c.save();
+        c.fillStyle = "rgba(10, 14, 18, 0.45)";
+        c.beginPath();
+        c.ellipse(px, py + 2, pw * 0.4, 5, 0, 0, 6.283);
+        c.fill();
+        c.restore();
+
+        const paintProp = () => {
+          const img = prop._img;
+          const ph = pw * img.naturalHeight / img.naturalWidth;
+          c.drawImage(img, px - pw / 2, py - ph + 4, pw, ph);
+        };
+
+        if (window.VIEWPORT?.upright) window.VIEWPORT.upright(c, px, py, paintProp);
+        else paintProp();
+      }
+    }
+  }
+
+  function drawPortSceneLayers(elapsed, chunks, portBounds) {
+    if (!portBounds || !Array.isArray(chunks)) return;
+    const { minY, maxY } = portBounds;
+    const area = window.VIEWPORT?.worldBoundsAtZoom?.(Math.min(1, window.VIEWPORT?.worldZoom?.() ?? 1)) || worldBounds();
+    const left = camX + area.left - 240;
+    const right = camX + area.left + area.width + 240;
+    const motion = allowsMotion();
+    const s2Enabled = typeof window.isS2ArtProdEnabled === "function" ? window.isS2ArtProdEnabled() : !!window.S2_ART_PROD_ENABLED;
+
+    // If S2 production art is enabled, render S2 buildings and props instead of legacy hardcoded items
+    if (s2Enabled) {
+      drawS2BuildingsAndProps(ctx, chunks, left, right, minY, maxY, elapsed, motion);
+      return;
+    }
+
+    // DEV kit gate (dev=1 & stage=rain-port & s2ground=kit): a real RGBA cliff rock with wave
+    // foam stands on the north shoreline. Sparse (one per chunk), drawn behind the north props,
+    // never a repeating floor and never inside the walkable belt (minY <= y <= maxY).
+    const kitCoast = s2CoastArt();
+    if (kitCoast.kitOn && kitCoast.rock?.naturalWidth) {
+      const rockImg = kitCoast.rock;
+      const rw = 300;
+      const rh = Math.round(rw * rockImg.naturalHeight / rockImg.naturalWidth);
+      for (const chunk of chunks) {
+        if (chunk.x + chunk.w < left || chunk.x > right) continue;
+        const rx = chunk.x + 700;
+        const ry = minY + 12;
+        const paintRock = () => {
+          ctx.drawImage(rockImg, rx - rw / 2, ry - rh, rw, rh);
+          coastNoteDraw(rockImg);
+        };
+        if (window.VIEWPORT?.upright) window.VIEWPORT.upright(ctx, rx, ry, paintRock);
+        else paintRock();
+      }
+    }
+
+    for (const chunk of chunks) {
+      if (chunk.x + chunk.w < left || chunk.x > right) continue;
+
+      // A. 北側阻擋背景層：沿現核准 A/B 與既有港景錯落遠近疏密，消掉整排一字排開與單調重複
+      const chunkIdx = Math.floor(chunk.x / 1024);
+      const isAltChunk = (chunkIdx % 2 !== 0);
+      const northItems = isAltChunk ? [
+        { kind: "fishmonger", offset: 120, w: 201, footY: minY + 6 },
+        { kind: "crate", offset: 260, w: 60, footY: minY + 2 },
+        { kind: "anchor", offset: 315, w: 44, footY: minY },
+        { kind: "crate", offset: 460, w: 68, footY: minY - 10 },
+        { kind: "warehouse", offset: 640, w: 187, footY: minY - 24 },
+        { kind: "crate", offset: 790, w: 56, footY: minY + 2 },
+        { kind: "anchor", offset: 870, w: 46, footY: minY + 4 }
+      ] : [
+        { kind: "warehouse", offset: 130, w: 187, footY: minY - 22 },
+        { kind: "crate", offset: 270, w: 64, footY: minY - 6 },
+        { kind: "crate", offset: 420, w: 54, footY: minY + 2 },
+        { kind: "fishmonger", offset: 590, w: 201, footY: minY + 8 },
+        { kind: "anchor", offset: 740, w: 45, footY: minY + 4 },
+        { kind: "crate", offset: 850, w: 66, footY: minY + 2 }
+      ];
+
+      for (const item of northItems) {
+        const itemX = chunk.x + item.offset;
+        if (itemX < left - 120 || itemX > right + 120) continue;
+        let img = window.PORT_ART?.[item.kind];
+        if (item.kind === "warehouse" && window.PORT_ART?.weatheredWarehouse?.naturalWidth) {
+          img = window.PORT_ART.weatheredWarehouse;
+        } else if (item.kind === "fishmonger" && window.PORT_ART?.fishWorkshop?.naturalWidth) {
+          img = window.PORT_ART.fishWorkshop;
+        }
+
+        ctx.save();
+        ctx.fillStyle = "rgba(12, 16, 22, 0.44)";
+        ctx.beginPath();
+        const wide = item.kind === "warehouse" || item.kind === "fishmonger";
+        ctx.ellipse(itemX, item.footY, wide ? 72 : 22, wide ? 15 : 8, 0, 0, 6.283);
+        ctx.fill();
+        ctx.restore();
+
+        const paintNorthItem = () => {
+          if (img?.naturalWidth) {
+            const candidateSourceRect = (img === window.PORT_ART?.weatheredWarehouse)
+              ? { sx: 13, sy: 130, sw: 1227, sh: 1019 }
+              : (img === window.PORT_ART?.fishWorkshop)
+              ? { sx: 17, sy: 181, sw: 1221, sh: 923 }
+              : null;
+            const aspect = candidateSourceRect
+              ? (candidateSourceRect.sh / candidateSourceRect.sw)
+              : (img.naturalHeight / img.naturalWidth);
+            const tilt = tiltK() || 1;
+            const tiltFactor = clamp((1 - tilt) / 0.4, 0, 1);
+            const bh = Math.round(item.w * aspect * (1 + tiltFactor * 0.06));
+            if (candidateSourceRect) {
+              ctx.drawImage(img, candidateSourceRect.sx, candidateSourceRect.sy, candidateSourceRect.sw, candidateSourceRect.sh,
+                itemX - item.w / 2, item.footY - bh, item.w, bh);
+            } else {
+              ctx.drawImage(img, itemX - item.w / 2, item.footY - bh, item.w, bh);
+            }
+          }
+          if (item.glow) {
+            ctx.save();
+            const beaconGrad = ctx.createRadialGradient(itemX, item.footY - 50, 4, itemX, item.footY - 50, 56);
+            beaconGrad.addColorStop(0, "rgba(255, 190, 90, 0.30)");
+            beaconGrad.addColorStop(0.5, "rgba(255, 160, 60, 0.12)");
+            beaconGrad.addColorStop(1, "rgba(255, 140, 40, 0)");
+            ctx.fillStyle = beaconGrad;
+            ctx.beginPath();
+            ctx.arc(itemX, item.footY - 50, 56, 0, 6.283);
+            ctx.fill();
+            ctx.restore();
+          }
+        };
+
+        if (window.VIEWPORT?.upright) window.VIEWPORT.upright(ctx, itemX, item.footY, paintNorthItem);
+        else paintNorthItem();
+      }
+
+      // B. 南側碼頭護欄、繫船柱與海灣船隻 (y >= maxY)
+      // B. 南側碼頭繫船柱、箱網錨具與海灣船隻 (y >= maxY)
+      // 使用現有 PORT_ART 真圖（mooring, crate, anchor, boat, ripple），不繪製幾何護欄線條
+      const southProps = [
+        { kind: "mooring", offset: 70, w: 34, y: maxY },
+        { kind: "mooring", offset: 220, w: 34, y: maxY },
+        { kind: "crate", offset: 370, w: 68, y: maxY },
+        { kind: "mooring", offset: 520, w: 34, y: maxY },
+        { kind: "anchor", offset: 670, w: 48, y: maxY },
+        { kind: "mooring", offset: 820, w: 34, y: maxY }
+      ];
+
+      for (const sp of southProps) {
+        const px = chunk.x + sp.offset;
+        if (px < left - 40 || px > right + 40) continue;
+        const img = window.PORT_ART?.[sp.kind];
+
+        ctx.save();
+        ctx.fillStyle = "rgba(10, 14, 18, 0.45)";
+        ctx.beginPath();
+        ctx.ellipse(px, sp.y + 2, sp.w * 0.4, 5, 0, 0, 6.283);
+        ctx.fill();
+        ctx.restore();
+
+        const paintSouthProp = () => {
+          if (img?.naturalWidth) {
+            const ph = sp.w * img.naturalHeight / img.naturalWidth;
+            ctx.drawImage(img, px - sp.w / 2, sp.y - ph + 4, sp.w, ph);
+          }
+        };
+        if (window.VIEWPORT?.upright) window.VIEWPORT.upright(ctx, px, sp.y, paintSouthProp);
+        else paintSouthProp();
+      }
+
+      const boatImg = window.PORT_ART?.boat;
+      const bx = chunk.x + 300;
+      const by = maxY + 85;
+      if (bx >= left - 120 && bx <= right + 120 && boatImg?.naturalWidth) {
+        const bobY = motion ? Math.sin(elapsed * 1.5 + chunk.x * 0.01) * 3.5 : 0;
+        const bobRot = motion ? Math.sin(elapsed * 1.2 + chunk.x * 0.01) * 0.025 : 0;
+
+        // 水中船隻柔邊接觸陰影
+        ctx.save();
+        ctx.fillStyle = "rgba(4, 10, 16, 0.55)";
+        ctx.beginPath();
+        ctx.ellipse(bx, by + 12 + bobY, 62, 16, 0, 0, 6.283);
+        ctx.fill();
+        ctx.restore();
+
+        const paintBoat = () => {
+          ctx.save();
+          ctx.translate(bx, by + bobY);
+          ctx.rotate(bobRot);
+          const bw = 126;
+          const bh = bw * boatImg.naturalHeight / boatImg.naturalWidth;
+          ctx.drawImage(boatImg, -bw / 2, -bh * 0.8, bw, bh);
+          ctx.restore();
+        };
+        if (window.VIEWPORT?.upright) window.VIEWPORT.upright(ctx, bx, by, paintBoat);
+        else paintBoat();
+      }
+
+      const rippleImg = window.PORT_ART?.ripple;
+      if (rippleImg?.naturalWidth && motion) {
+        ctx.save();
+        // 海面特有漣漪（嚴格僅 y > maxY 海面，不侵入陸地石板或碼頭）
+        for (let r = 0; r < 4; r++) {
+          const rx = chunk.x + 110 + r * 220;
+          const ry = maxY + 35 + ((r * 37) % 85);
+          const rPhase = ((elapsed * 0.65 + r * 0.28 + chunk.x * 0.003) % 1);
+          const rSize = 20 + rPhase * 32;
+          ctx.globalAlpha = (1 - rPhase) * 0.40;
+          ctx.drawImage(rippleImg, rx - rSize / 2, ry - rSize * 0.24, rSize, rSize * 0.48);
+        }
+        ctx.restore();
+      }
+    }
+  }
+
+  // Stage8 preview: render ONLY clean isolated props as sparse overlays on approved fallback ground
+  // DEV-ONLY: only runs when window.STAGE8_PREVIEW_ENABLED === true
+  // Source: irregular 1448x1086 sprite sheet -> 357 connected components -> 47 clean isolated props
+  // Ground tiles and path tiles DISABLED (were rectangular artifacts with pale soil borders)
+  // Props: genuinely isolated flower stalks, bone fragments, rocks with transparent borders
+  // Respects pseudo-2.5D tilt=0.60 and Stage1 micro-chibi proportion
+  function renderStage8PreviewOverlays(c, left, top, width, height, chunks) {
+    const keys = window.STAGE8_PREVIEW_KEYS;
+    if (!keys) return;
+
+    // Load ONLY clean props - ground tiles and path tiles are DISABLED
+    const props = keys.props?.map(k => window.ART?.[k]).filter(Boolean) || [];
+
+    if (props.length === 0) {
+      return; // No assets loaded yet
+    }
+
+    const tilt = 0.60;
+
+    // Scatter clean props (flower stalks, bone fragments, rocks) very sparsely
+    // Lower density: ~1 prop per 2-3 chunks, micro-chibi scale
+    for (const chunk of chunks) {
+      if (chunk.x > left + width || chunk.x + chunk.w < left ||
+          chunk.y > top + height || chunk.y + chunk.h < top) continue;
+
+      // Deterministic: ~33% of chunks get a prop (lower density)
+      const seed = Math.imul(chunk.x, 73856093) ^ Math.imul(chunk.y, 19349663);
+      if ((seed % 3) !== 0) continue; // Only 1/3 of chunks
+
+      const propSeed = Math.imul(chunk.x * 12345, 73856093) ^ Math.imul(chunk.y * 67890, 19349663);
+      const px = chunk.x + (propSeed % 1000) / 1000 * chunk.w;
+      const py = chunk.y + ((propSeed >> 10) % 1000) / 1000 * chunk.h;
+      const propIdx = (propSeed >> 20) % props.length;
+      const prop = props[propIdx];
+      if (!prop || !prop.naturalWidth) continue;
+
+      // Scale for micro-chibi proportion (Stage1 reference: small decor)
+      // Target: ~60-100px max dimension (smaller than before)
+      const maxDim = Math.max(prop.naturalWidth, prop.naturalHeight);
+      const targetSize = 60 + (propSeed % 100) / 100 * 40; // 60-100px
+      const scale = targetSize / maxDim;
+      const dw = prop.naturalWidth * scale;
+      const dh = prop.naturalHeight * scale;
+      const drawX = px - dw / 2;
+      const drawY = py - dh * (1 - tilt * 0.3); // Apply pseudo-2.5D tilt
+      c.drawImage(prop, drawX, drawY, dw, dh);
+    }
+  }
+
   function paintTerrainRegion(c,region,chunks,groundKey,groundImg,toriiImg,toriiReady,sakuraImg,sakuraReady,stageId){
     const {left,top,width,height}=region;
     c.save();c.beginPath();c.rect(left,top,width,height);c.clip();
     // 1024 原稿仍建對齊用 atlas（驗收讀 putImageData）。畫面上只貼原圖，不抽 512 變體。
-    if (groundImg && groundImg.naturalWidth === 1024 && groundImg.naturalHeight === 1024) groundAtlasFor(groundImg);
-    tileImage(c, groundImg, left, top, left + width, top + height);
+    if (stageId !== "rain-port") {
+      if (groundImg && groundImg.naturalWidth === 1024 && groundImg.naturalHeight === 1024) groundAtlasFor(groundImg);
+      tileImage(c, groundImg, left, top, left + width, top + height);
+    }
     if (stageId === "rain-port") {
       const stoneTile = portGroundPick("stone")();
-      for (const chunk of chunks) {
-        if (chunk.x > left+width || chunk.x+chunk.w < left || chunk.y > top+height || chunk.y+chunk.h < top) continue;
-        if (stoneTile?.naturalWidth) {
-          const roadBottom = chunk.decor?.port?.shore ? chunk.y + chunk.h - 256 : chunk.y + chunk.h;
-          const rl = Math.max(left, chunk.x), rr = Math.min(left + width, chunk.x + chunk.w);
-          const rt = Math.max(top, chunk.y), rb = Math.min(top + height, roadBottom);
-          if (rr - rl > 1 && rb - rt > 1) {
-            c.save(); c.beginPath(); c.rect(rl, rt, rr - rl, rb - rt); c.clip();
-            tileImage(c, stoneTile, rl, rt, rr, rb);
-            c.restore();
+      const portBounds = getPortBounds(chunks);
+      if (portBounds) {
+        paintPortBoundedTerrain(c, region, chunks, stoneTile, portBounds);
+      } else {
+        c.fillStyle = "#080c1a";
+        c.fillRect(left, top, width, height);
+        for (const chunk of chunks) {
+          if (chunk.x > left+width || chunk.x+chunk.w < left || chunk.y > top+height || chunk.y+chunk.h < top) continue;
+          if (stoneTile?.naturalWidth) {
+            const roadBottom = chunk.decor?.port?.shore ? chunk.y + chunk.h - 256 : chunk.y + chunk.h;
+            const rl = Math.max(left, chunk.x), rr = Math.min(left + width, chunk.x + chunk.w);
+            const rt = Math.max(top, chunk.y), rb = Math.min(top + height, roadBottom);
+            if (rr - rl > 1 && rb - rt > 1) {
+              c.save(); c.beginPath(); c.rect(rl, rt, rr - rl, rb - rt); c.clip();
+              tileImage(c, stoneTile, rl, rt, rr, rb);
+              c.restore();
+            }
           }
+          if (chunk.decor?.port?.shore) paintPortShore(c, chunk, region);
         }
-        if (chunk.decor?.port?.shore) paintPortShore(c, chunk, region);
+        paintPortTransitionSeams(c, chunks, region);
       }
-      paintPortTransitionSeams(c, chunks, region);
     }
     if (stageId === "sakura-pass" && sakuraArtReady()) {
       tileImage(c, tx => window.SAKURA_ART[sakuraTileRole(tx)], left, top, left + width, top + height);
+    }
+    // Stage8 preview: overlay extracted items on approved fallback ground (DEV-ONLY, ?dev=1&stage8preview=1)
+    // Source: irregular 1448x1086 sprite sheet -> pre-extracted items in art/stage8-yomi/sliced/
+    // NON-SEAMLESS: items composed as overlays on approved ground, no fabricated tiling
+    if (stageId === "yomi" && window.STAGE8_PREVIEW_ENABLED) {
+      renderStage8PreviewOverlays(c, left, top, width, height, chunks);
     }
     c.restore();
   }
 
   function drawGroundBase(chunks, groundKey, stageId = "") {
     const v = window.VIEWPORT?.get() || {scale:1};
-    const area = window.VIEWPORT?.worldBoundsAtZoom?.(1) || worldBounds();
+    const area = window.VIEWPORT?.worldBoundsAtZoom?.(Math.min(1, window.VIEWPORT?.worldZoom?.() ?? 1)) || worldBounds();
     const pixelScale = Math.fround((v.scale || 1) * (dpr || 1)), x = camX + area.left, y = camY + area.top;
     const groundImg = window.ART && window.ART[groundKey];
     const courtImg = window.ART?.ground;
@@ -595,11 +1488,39 @@ window.RENDERER = (() => {
         chunk.y < top + height && chunk.y + chunk.h > top);
     const currentLocalChunks = cached
       ? chunksInRegion(chunks,cached.left,cached.top,cached.width,cached.height) : [];
+    const portBounds = stageId === "rain-port" ? getPortBounds(chunks) : null;
+    const boundsStamp = portBounds ? `${portBounds.minY},${portBounds.maxY}` : "";
+    const surfaceCand = typeof window.isPortSurfaceCandidateEnabled === "function"
+      ? window.isPortSurfaceCandidateEnabled()
+      : !!window.PORT_SURFACE_CANDIDATE_ENABLED;
+    const portCandidateRoles = surfaceCand
+      ? ["stoneV3", "harborSea", "stoneWoodTransition", "stoneReflection", "northCliff"]
+      : [];
+    // Coast kit images arrive async: keep them in the cache signature so the port terrain
+    // rebuilds as soon as the real sea / cliff artwork exists (no stale dark bands).
+    const kitCoastRoles = window.isS2GroundKitEnabled?.() ? ["coastSea", "coastCliff"] : [];
+    const portRoles = ["stone", "dock", "stoneVar1", "woodVar1", "stoneWoodV2", ...portCandidateRoles, ...kitCoastRoles];
+    // Async S2 assets arrive after the first ground frame; include their image readiness
+    // in the terrain-cache signature so we never keep showing legacy tiles indefinitely.
+    const s2Tiles = window.S2_ART_PROD_CACHE?.tiles;
+    // S2 ground kit readiness (dev gate): the terrain cache must rebuild once the async kit
+    // candidates exist, otherwise the page would keep showing the legacy fallback tiles.
+    const kitStamp = window.isS2GroundKitEnabled?.() ? [
+      window.S2_GROUND_KIT_CACHE?.loaded ? "loaded" : "pending",
+      ...(window.S2_GROUND_KIT_CACHE?.items || []).map(t => `${t?.id}:${t?._img?.currentSrc || t?._img?.src || ""}:${t?._img?.naturalWidth || 0}`)
+    ].join("|") : "";
+    const s2Stamp = window.isS2ArtProdEnabled?.() ? [
+      window.S2_ART_PROD_CACHE?.loaded ? "loaded" : "pending",
+      ...(s2Tiles?.stoneVariants || []),
+      ...(s2Tiles?.woodVariants || []),
+      ...(s2Tiles?.transitions?.h || []),
+      ...(s2Tiles?.transitions?.v || [])
+    ].map(t => typeof t === "string" ? t : `${t?.id}:${t?._img?.currentSrc || t?._img?.src || ""}:${t?._img?.naturalWidth || 0}`).join("|") : "";
     const portStamp = stageId === "rain-port"
-      ? ["stone", "dock", "stoneVar1", "woodVar1", "stoneWoodV2"].map(role => {
+      ? `cand:${surfaceCand ? 1 : 0}|` + portRoles.map(role => {
           const img = window.PORT_ART?.[role];
-          return `${img?.currentSrc || ""}:${img?.naturalWidth || 0}`;
-        }).join("|")
+          return `${role}:${img?.currentSrc || img?.src || ""}:${img?.naturalWidth || 0}x${img?.naturalHeight || 0}`;
+        }).join("|") + `|bounds:${boundsStamp}|s2:${s2Stamp}|kit:${kitStamp}`
       : "";
     const sakuraStamp = stageId === "sakura-pass"
       ? ["dirt", "transH", "steps"].map(role => {
@@ -642,6 +1563,7 @@ window.RENDERER = (() => {
       const right=left+pw/pixelScale, bottom=top+ph/pixelScale;
       const paint=(rl,rt,rr,rb)=>{
         if(rr-rl<=0.00001 || rb-rt<=0.00001)return;
+        c.fillStyle = stageId === "night-town" || !stageId ? "#0e111a" : "#111420";
         c.fillRect(rl, rt, rr - rl, rb - rt);
         paintTerrainRegion(c,{left:rl,top:rt,width:rr-rl,height:rb-rt},
           chunks,groundKey,groundImg,toriiImg,toriiReady,sakuraImg,sakuraReady,stageId);
@@ -667,25 +1589,50 @@ window.RENDERER = (() => {
   // 海邊與池塘不再鋪會上下游動的水帶。那幾條會蓋在鳥居上，看起來像燈光在呼吸。
   function drawGround(elapsed, dawnTime, chunks = [], groundKey = "ground", stageId = "") {
     drawGroundBase(chunks, groundKey, stageId);
+    if (stageId === "rain-port") {
+      const portBounds = getPortBounds(chunks);
+      if (portBounds) {
+        drawPortSceneLayers(elapsed, chunks, portBounds);
+      }
+    }
   }
   function drawPortProp(p, viewerY = null) {
-    const img = window.PORT_ART?.[p.kind];
+    if (p.kind === "lamp" || p.kind === "lantern" || p.kind === "prop_lantern" || p.kind === "beacon") return;
+    if (p.kind === "mooring") {
+      const portBounds = getPortBounds(window.WORLD_STATE?.chunks);
+      if (portBounds && p.y < portBounds.maxY - 40) return;
+    }
+    let img = window.PORT_ART?.[p.kind];
+    if (p.kind === "warehouse" && window.PORT_ART?.weatheredWarehouse?.naturalWidth) {
+      img = window.PORT_ART.weatheredWarehouse;
+    } else if (p.kind === "fishmonger" && window.PORT_ART?.fishWorkshop?.naturalWidth) {
+      img = window.PORT_ART.fishWorkshop;
+    }
     const wide = p.kind === "warehouse" || p.kind === "fishmonger" || p.kind === "boat";
     ctx.save();
     ctx.fillStyle = "rgba(10,14,18,0.38)";
     ctx.beginPath();
     ctx.ellipse(p.x, p.y, wide ? 40 : 16, wide ? 11 : 6, 0, 0, 6.28);
     ctx.fill();
-    if (p.kind === "beacon") {
-      ctx.fillStyle = "rgba(255,176,84,0.22)";
-      ctx.beginPath(); ctx.ellipse(p.x, p.y, 34, 12, 0, 0, 6.28); ctx.fill();
-    }
     ctx.restore();
     const paint = () => {
       if (!img?.naturalWidth) return;
       const w = p.kind === "warehouse" || p.kind === "fishmonger" ? 210 : p.kind === "boat" ? 118 : 70;
-      const h = w * img.naturalHeight / img.naturalWidth;
-      ctx.drawImage(img, p.x - w / 2, p.y - h, w, h);
+      const candidateSourceRect = (img === window.PORT_ART?.weatheredWarehouse)
+        ? { sx: 13, sy: 130, sw: 1227, sh: 1019 }
+        : (img === window.PORT_ART?.fishWorkshop)
+        ? { sx: 17, sy: 181, sw: 1221, sh: 923 }
+        : null;
+      const aspect = candidateSourceRect
+        ? (candidateSourceRect.sh / candidateSourceRect.sw)
+        : (img.naturalHeight / img.naturalWidth);
+      const h = Math.round(w * aspect);
+      if (candidateSourceRect) {
+        ctx.drawImage(img, candidateSourceRect.sx, candidateSourceRect.sy, candidateSourceRect.sw, candidateSourceRect.sh,
+          p.x - w / 2, p.y - h, w, h);
+      } else {
+        ctx.drawImage(img, p.x - w / 2, p.y - h, w, h);
+      }
     };
     if (window.VIEWPORT?.upright) window.VIEWPORT.upright(ctx, p.x, p.y, paint);
     else paint();
@@ -694,13 +1641,17 @@ window.RENDERER = (() => {
   // All ground-contact shadows are rendered BEFORE the upright projection.
   // Their height is flattened by the world camera's current tilt, continuously.
   function drawLampShadow(l) {
+    if (currentStageId() === "rain-port") return;
     ctx.save();ctx.fillStyle="rgba(17,14,17,0.42)";
     ctx.beginPath();ctx.ellipse(l.x,l.y+8,16,6,0,0,6.28);ctx.fill();
     ctx.restore();
   }
   function drawHouseShadow(h) {
+    const bw = h.bType === "port_fishmonger" ? 201 : h.bType === "port_warehouse" ? 187 : h.bType === "house_tavern" ? 175 : h.bType === "house_shrine" ? 158 : h.bType === "house_shop" ? 166 : 0;
+    const rx = bw > 0 ? Math.round(bw * 0.44) : 58;
+    const ry = bw > 0 ? 16 : 14;
     ctx.save();ctx.fillStyle="rgba(17,14,17,0.48)";
-    ctx.beginPath();ctx.ellipse(h.x,h.y+46,58,14,0,0,6.28);ctx.fill();
+    ctx.beginPath();ctx.ellipse(h.x,h.y+46,rx,ry,0,0,6.28);ctx.fill();
     ctx.restore();
   }
   function drawPlayerShadow(P, elapsed, moveDir = {x:0,y:0}) {
@@ -753,9 +1704,19 @@ window.RENDERER = (() => {
     // 2. 新圖依實際透明裁切後的比例單獨定寬；腳底仍以 h.y+48 作為排序點。
     const portRole = h.bType === "port_fishmonger" ? "fishmonger" : h.bType === "port_warehouse" ? "warehouse" : "";
     let houseSprite = null;
+    let isFishWorkshop = false;
+
     if (portRole) {
-      const img = window.PORT_ART?.[portRole];
-      if (img?.naturalWidth) houseSprite = img;
+      if (h.bType === "port_warehouse" && window.PORT_ART?.weatheredWarehouse?.naturalWidth) {
+        houseSprite = window.PORT_ART.weatheredWarehouse;
+      } else if (h.bType === "port_fishmonger" && window.PORT_ART?.fishWorkshop?.naturalWidth) {
+        houseSprite = window.PORT_ART.fishWorkshop;
+        isFishWorkshop = true;
+      }
+      if (!houseSprite) {
+        const img = window.PORT_ART?.[portRole];
+        if (img?.naturalWidth) houseSprite = img;
+      }
     } else if (h.bType === "house_tavern" && window.ART.house_tavern) {
       houseSprite = window.ART.house_tavern;
     } else if (h.bType === "house_shrine" && window.ART.house_shrine) {
@@ -764,35 +1725,73 @@ window.RENDERER = (() => {
       houseSprite = window.ART.house_shop;
     }
 
+    // S2 Nano（dev s2artprod=1）：世界房直接換成 production-s2-nano 的透明 RGBA 建築，
+    // 不用 legacy 候選/原稿 sourceRect；缺圖只顯示載入中，不回落 legacy 冒充。
+    let s2Building = null;
+    if (portRole && (typeof window.isS2ArtProdEnabled === "function" ? window.isS2ArtProdEnabled() : !!window.S2_ART_PROD_ENABLED)) {
+      const list = window.getS2Buildings?.() || [];
+      houseSprite = null; isFishWorkshop = false;
+      if (list.length) {
+        // Deterministic world-house assignment; cover all five real Nano buildings
+        // during horizontal travel instead of collapsing to only two variants.
+        const houseSlot = Math.round(h.x / 390) + Math.round((h.y - 185) / 400);
+        const idx = ((houseSlot % list.length) + list.length) % list.length;
+        s2Building = list[idx];
+        houseSprite = s2Building._img;
+        (window.__s2HouseMap ||= {})[Math.round(h.x) + "," + Math.round(h.y)] = s2Building.id; // dev QA：世界房→Nano 建築對應證據
+      }
+    }
     // 第一關店寬 166、玩家立繪高 114。港倉 220／魚舖 236 約比町屋寬三成，候選再收 15%。
-    const bw = h.bType === "port_fishmonger" ? 201 : h.bType === "port_warehouse" ? 187 : h.bType === "house_tavern" ? 175 : h.bType === "house_shrine" ? 158 : 166;
-    const aspect = (houseSprite && houseSprite.naturalWidth && houseSprite.naturalHeight)
+    const bw = s2Building ? Math.min(165, Math.max(145, s2Building.displaySize?.width ?? 160))
+      : h.bType === "port_fishmonger" ? 201 : h.bType === "port_warehouse" ? 187 : h.bType === "house_tavern" ? 175 : h.bType === "house_shrine" ? 158 : 166;
+    const candidateSourceRect = s2Building ? null : (houseSprite === window.PORT_ART?.weatheredWarehouse)
+      ? { sx: 13, sy: 130, sw: 1227, sh: 1019 }
+      : (houseSprite === window.PORT_ART?.fishWorkshop)
+      ? { sx: 17, sy: 181, sw: 1221, sh: 923 }
+      : null;
+    const aspect = candidateSourceRect
+      ? (candidateSourceRect.sh / candidateSourceRect.sw)
+      : (houseSprite && houseSprite.naturalWidth && houseSprite.naturalHeight)
       ? (houseSprite.naturalHeight / houseSprite.naturalWidth)
       : 1.05;
-    const bh = bw * aspect;
+    const tilt = tiltK() || 1;
+    const tiltFactor = clamp((1 - tilt) / 0.4, 0, 1);
+    // 斜俯視 2.5D 建築立面 upright 與遠近尺度補償：固定 world-depth 比例，不隨 player/cam Y 浮動，僅隨 0.8s mode tween 平滑過渡
+    const depthFactor = 1 + tiltFactor * 0.06;
+    const bh = Math.round(bw * aspect * depthFactor);
 
     if (houseSprite && houseSprite.naturalWidth) {
       // Camera looks north: only buildings far above the courier are distant.
       const distance = viewerY == null ? 0 : Math.max(0,viewerY-h.y);
-      const focus = clamp((distance-290)/650,0,1)*clamp((1-tiltK())/0.4,0,1);
-      drawStyledSceneryImage(ctx,houseSprite,h.x-bw/2,h.y-bh+48,bw,bh,1,h.bType,
-        focus*2.25);
+      const focus = clamp((distance-290)/650,0,1)*tiltFactor;
+      const top = (h.y + 48) - bh;
+      if (s2Building && houseSprite?.naturalWidth) {
+        // 透明 RGBA 建築原圖直貼：不走遠景模糊／風格暗化，避免整棟發暗。
+        ctx.drawImage(houseSprite, h.x - bw / 2, top, bw, bh);
+      } else {
+        drawStyledSceneryImage(ctx,houseSprite,h.x-bw/2,top,bw,bh,1,h.bType,
+          focus*2.25, candidateSourceRect);
+      }
     } else {
       // 缺料不畫幾何房子。
     }
 
     ctx.save();
     const signW = 132;
-    const signY = h.y + 36;
+    const signY = (h.y + 48) - Math.round(bh * (12 / 174));
     ctx.textAlign = "center";
     // 町屋招牌用和風筆文字體；保留厚實暗底與暖色字，避免 20px 時過細。
-    ctx.font = UI.readableFont(21, "400").replace(
+    const uiReadableFont = (typeof UI !== "undefined" ? UI : window.UI)?.readableFont;
+    ctx.font = (uiReadableFont ? uiReadableFont(21, "400") : "21px serif").replace(
       "'Noto Sans JP', 'Microsoft JhengHei', sans-serif",
       "'Yuji Syuku', 'Kaisei Decol', 'Noto Sans JP', serif"
     );
     ctx.strokeStyle = "#e3d0a8";
     ctx.lineWidth = 0.7;
-    const signLabel = h.bType === "port_fishmonger" ? "魚舖"
+    const S2_SIGNS = { building_port_warehouse: "港町倉庫", building_fish_workshop: "魚市工坊", building_port_tavern: "海潮酒肆", building_wharf_shop: "碼頭商屋", building_port_teahouse: "番所茶屋" };
+    const signLabel = s2Building ? (S2_SIGNS[s2Building.id] || "港町商屋")
+      : isFishWorkshop ? "魚市工坊"
+      : h.bType === "port_fishmonger" ? "魚舖"
       : h.bType === "port_warehouse" ? "港町倉庫"
       : (HOUSE_NAMES[h.bType] || HOUSE_NAMES.house_shop);
     ctx.fillStyle = "#e3d0a8";
@@ -934,16 +1933,122 @@ window.RENDERER = (() => {
     ctx.restore();
   }
 
+  // 海坊主足底湧浪與潮波基座（依 motion 緩慢擴散的湧浪漣漪，walking 時波紋擴張）
+  function drawUmibozuWaterBase(targetCtx, elapsed, scale = 0.55, walking = false) {
+    targetCtx.save();
+    const waveT = elapsed * (walking ? 3.8 : 2.2);
+    const surgePulse = walking ? Math.sin(elapsed * 6.5) * 14 * scale : 0;
+    const r1 = (85 * scale + surgePulse * 0.5) * (1 + 0.08 * Math.sin(waveT));
+    const r2 = (125 * scale + surgePulse) * (1 + 0.06 * Math.sin(waveT + 1.6));
+
+    // 外環水花虛線
+    targetCtx.strokeStyle = "rgba(180, 228, 245, 0.35)";
+    targetCtx.lineWidth = 2.2;
+    targetCtx.setLineDash([8, 6]);
+    targetCtx.beginPath();
+    targetCtx.ellipse(0, 0, r2, r2 * 0.44, 0, 0, 6.2831853);
+    targetCtx.stroke();
+    targetCtx.setLineDash([]);
+
+    // 內圈湧浪薄暈
+    targetCtx.fillStyle = "rgba(38, 92, 138, 0.22)";
+    targetCtx.beginPath();
+    targetCtx.ellipse(0, 0, r1, r1 * 0.44, 0, 0, 6.2831853);
+    targetCtx.fill();
+    targetCtx.strokeStyle = "rgba(220, 245, 255, 0.55)";
+    targetCtx.lineWidth = 1.6;
+    targetCtx.stroke();
+    targetCtx.restore();
+  }
+
   // 繪製妖怪怪物（修正面向問題！根據各 Sprite 原生朝向計算正確鏡像）
-  function drawStage2Actor(e, P) {
+  // Phase2：使用 e.faceAng（真移動方向）與 e.walking，停/凍結維持末方向，初始無方向安全回落
+  function drawStage2Actor(e, P, elapsed) {
     const spec = e.type === "shiome"
-      ? { idle: "shiomeIdle", attack: "shiomeAttack", w: 250, h: 220, ax: 125, ay: 205, scale: 0.48 }
-      : { idle: "bossIdle", attack: "bossAttack", w: 350, h: 330, ax: 175, ay: 320, scale: 0.55 };
+      ? { idle: "shiomeIdle", attack: "shiomeAttack", w: 250, h: 220, ax: 125, ay: 205, scale: 0.48, nativeFacing: -1 }
+      : { idle: "bossIdle", attack: "bossAttack", w: 350, h: 330, ax: 175, ay: 320, scale: 0.55, nativeFacing: -1 };
     const key = (!e.shield && e.pose === "attack") ? spec.attack : spec.idle;
     const img = window.PORT_ENEMIES?.[key];
+    const motion = allowsMotion();
+
+    // 真移動方向：faceAng 為移動時更新的 atan2(dy,dx)，無移動時保持末值
+    // 初始無 faceAng 時，回落玩家相對方向
+    const hasFaceAng = typeof e.faceAng === "number" && isFinite(e.faceAng);
+    const dir = hasFaceAng ? (Math.cos(e.faceAng) < 0 ? -1 : 1) : (P.x < e.x ? -1 : 1);
+    const nativeFacing = spec.nativeFacing ?? 1;
+
     ctx.save();
     ctx.translate(e.x, e.y);
-    ctx.scale(P.x < e.x ? -1 : 1, 1);
+
+    // 海坊主足底湧浪與潮波基座（依 motion 緩慢擴散的湧浪漣漪）
+    if (e.type !== "shiome" && motion) {
+      drawUmibozuWaterBase(ctx, elapsed, spec.scale, !!e.walking);
+    }
+
+    ctx.scale(dir * nativeFacing, 1);
+
+    // Bounded 軟骨：呼吸/行走時的 squash/stretch/lean/shear（不只全身位移漂浮）
+    if (motion) {
+      const walking = !!e.walking;
+      const time = elapsed + (e.wob || 0);
+      if (e.type === "shiome") {
+        // 潮目小僧：提燈自然擺動、步態 squash/stretch 與剪切，腳底錨點固定
+        const cadence = elapsed * 8.5 + (e.wob || 0);
+        const breath = Math.sin(elapsed * 2.4 + (e.wob || 0)) * 0.035;
+        const stride = walking ? Math.sin(cadence) : 0;
+        const squash = 1 + breath + stride * 0.07;
+        const stretch = 1 - breath * 0.5 - stride * 0.055;
+        const shearX = walking ? Math.sin(cadence) * 0.06 : 0;
+        ctx.scale(squash, stretch);
+        if (shearX !== 0) {
+          ctx.transform(1, 0, shearX, 1, 0, 0);
+        }
+        if (e.flash > 0) {
+          const hitScale = 1 + e.flash * 0.15;
+          ctx.scale(hitScale, 1 / hitScale);
+        }
+      } else {
+        // 怒りの海坊主 (Ikari Umibozu)：深沉巨浪呼吸 + 潮流顫動 + 依 faceAng/walking 湧浪前傾
+        const breathT = time * 1.4;
+        const breath = Math.sin(breathT) * 0.04;
+        // 呼吸體積守恆：Y 展開時 X 微縮，腳底錨點固定在 (0, 0) 不跳動
+        ctx.scale(1 - breath * 0.35, 1 + breath);
+
+        // 緩慢水波顫動與行走時的波湧節奏（水平剪切，y=0 處零位移，保持下盤踏實）
+        const waveStride = walking ? Math.sin(elapsed * 5.2) * 0.035 : 0;
+        const waveTremor = Math.sin(time * 2.8) * 0.022 + waveStride;
+        ctx.transform(1, 0, waveTremor, 1, 0, 0);
+
+        if (walking) {
+          // 前進時微幅前傾衝浪勢態
+          ctx.transform(1, 0, 0.038, 1, 0, 0);
+        }
+
+        // 攻擊起手蓄力 (Windup Anticipation)：傾身後撤、緊繃微震
+        const isAttacking = e.pose === "attack" || (e.attackWindup && e.attackWindup > 0) || e.hazard?.phase === "telegraph";
+        if (isAttacking) {
+          const windupT = e.hazard ? Math.min(1, (e.hazard.t || 0) / (e.hazard.duration || 1)) : 0.5;
+          const lean = -0.055 * Math.sin(windupT * Math.PI * 0.5);
+          ctx.transform(1, 0, lean, 1, 0, 0);
+          const tension = 1 + 0.05 * Math.sin(windupT * Math.PI);
+          ctx.scale(1 / Math.sqrt(tension), tension);
+          if (windupT > 0.6) {
+            const jitter = (windupT - 0.6) / 0.4 * 2.5;
+            ctx.translate((Math.sin(elapsed * 45) * jitter), 0);
+          }
+        }
+
+        // 受擊抽搐 (Hit Twitch)：受傷水平抖動與形變
+        if (e.flash > 0) {
+          const twitchX = Math.sin(e.flash * 38) * (e.flash * 6.5);
+          ctx.translate(twitchX, 0);
+          const hitScale = 1 + e.flash * 0.16;
+          ctx.scale(hitScale, 1 / hitScale);
+        }
+      }
+    }
+
+    // 腳底對齊：ay 為素材腳點，繪製時保持 pivot 與 shadow/排序錨點一致
     if (img?.naturalWidth) {
       const sx = img.naturalWidth / spec.w, sy = img.naturalHeight / spec.h, s = spec.scale;
       ctx.drawImage(img, -spec.ax * sx * s, -spec.ay * sy * s, img.naturalWidth * s, img.naturalHeight * s);
@@ -980,7 +2085,7 @@ window.RENDERER = (() => {
 
   function drawMonster(e, P, elapsed) {
     if (e.type === "shiome" || e.umibozu) {
-      drawStage2Actor(e, P);
+      drawStage2Actor(e, P, elapsed);
       if (e.umibozu && !e.dying) drawBossSeal(e, elapsed);
       return;
     }
@@ -990,40 +2095,53 @@ window.RENDERER = (() => {
     const motion = allowsMotion();
     const bob = motion ? Math.sin(elapsed * 5 + (e.wob || 0)) * 2 : 0;
 
-    // 目標朝向：玩家在怪物左邊時為 -1，在右邊時為 1
-    const dirTowardsPlayer = (P.x < e.x) ? -1 : 1;
+    // Phase2：真移動方向 faceAng（game.js 移動時寫入 atan2(dy,dx)，停/凍結/擊退/揭露保持末值）
+    // 初始無 faceAng 時，安全回落玩家相對方向
+    const hasFaceAng = typeof e.faceAng === "number" && isFinite(e.faceAng);
+    const dir = hasFaceAng ? (Math.cos(e.faceAng) < 0 ? -1 : 1) : (P.x < e.x ? -1 : 1);
+    const scaleX = dir === 1 ? 1 : -1;
 
-    // 新素材一律朝畫面右側，玩家在左側時才水平翻轉。
-    const scaleX = dirTowardsPlayer === 1 ? 1 : -1;
-
-    // 程序化次級彈性骨骼與果凍軟體物理 (Procedural Spring & Soft-body Secondary Motion)
+    // 程序化次級彈性骨骼與果凍軟體物理 —— 依實際 e.walking 與 faceAng 做 bounded 軟骨
+    // 不只全身位移漂浮：腳底 pivot 與 shadow/排序錨點保持
     let sX = 1, sY = 1, tilt = 0;
     if (motion) {
+      const walking = !!e.walking;
+      const time = elapsed + (e.wob || 0);
       if (isBoss) {
         // 大妖 Boss：威嚴慢速深呼吸與沉重受傷後座力
-        const breath = Math.sin(elapsed * 2.6 + (e.wob || 0)) * 0.04;
+        const breath = Math.sin(time * 2.6) * 0.04;
         sX = 1 + breath;
         sY = 1 - breath * 0.6;
         if (e.flash > 0) { sX *= 1.12; sY *= 0.90; }
       } else if (e.type === "runner") {
-        // 疾走怪：奔馳起伏拉伸與前傾俯衝
-        const stride = Math.sin(elapsed * 12 + (e.wob || 0));
-        sX = 1 + stride * 0.12;
-        sY = 1 - stride * 0.10;
-        tilt = 0.12;
+        // 疾走怪：奔馳起伏拉伸與前傾俯衝 —— 僅走路時
+        if (walking) {
+          const stride = Math.sin(time * 12);
+          sX = 1 + stride * 0.12;
+          sY = 1 - stride * 0.10;
+          // 前傾方向跟隨 faceAng（移動朝向），非玩家相對
+          tilt = 0.12 * (hasFaceAng ? Math.sign(Math.cos(e.faceAng)) : dir);
+        }
         if (e.flash > 0) { sX *= 1.20; sY *= 0.80; }
       } else if (e.type === "tank") {
-        // 巨盾怪：笨重重踏頓挫
-        const stomp = Math.abs(Math.sin(elapsed * 4 + (e.wob || 0)));
-        sX = 1 + (1 - stomp) * 0.08;
-        sY = 1 - (1 - stomp) * 0.07;
+        // 巨盾怪：笨重重踏頓挫 —— 僅走路時
+        if (walking) {
+          const stomp = Math.abs(Math.sin(time * 4));
+          sX = 1 + (1 - stomp) * 0.08;
+          sY = 1 - (1 - stomp) * 0.07;
+        }
         if (e.flash > 0) { sX *= 1.15; sY *= 0.88; }
       } else {
         // 幽靈怪 (ghost / shooter / mis)：果凍軟體呼吸與受傷劇烈彈動震顫
-        const jelly = Math.sin(elapsed * 4.5 + (e.wob || 0)) * 0.08;
+        // 行走時加入微傾斜跟隨 faceAng
+        const jelly = Math.sin(time * 4.5) * 0.08;
         sX = 1 + jelly;
         sY = 1 - jelly;
-        tilt = Math.sin(elapsed * 3 + (e.wob || 0)) * 0.07;
+        if (walking && hasFaceAng) {
+          tilt = Math.sin(time * 3) * 0.05 * Math.sign(Math.cos(e.faceAng));
+        } else {
+          tilt = Math.sin(time * 3) * 0.07;
+        }
         if (e.flash > 0) { sX *= 1.28; sY *= 0.74; }
       }
     }
@@ -1070,7 +2188,9 @@ window.RENDERER = (() => {
         if (e.attackT > 0) { sprite = atlas; artKey = `${kind}_motion_v1`; artIndex = 1; }
         else if (e.walking && allowsMotion() && Math.floor(elapsed*6+(e.wob||0))%2) { sprite = atlas; artKey = `${kind}_motion_v1`; }
       }
-      const box = drawFrame(ctx,sprite,artKey,artIndex,0,actualH*0.15,actualH);
+      // 腳底對齊深度排序與接地陰影基準點 (Boss 44, Mis 27, 一般怪 19)，消除素材懸空與遮擋穿透
+      const footY = isBoss ? 44 : isMis ? 27 : 19;
+      const box = drawFrame(ctx,sprite,artKey,artIndex,0,footY,actualH);
       if (e.flash > 0) {
         let masks = hitSilhouettes.get(sprite);
         if (!masks) { masks = new Map(); hitSilhouettes.set(sprite,masks); }
@@ -1173,7 +2293,8 @@ window.RENDERER = (() => {
     const nightR = Math.round(28 + 62 * progress);
     const nightG = Math.round(32 + 40 * progress);
     const nightB = Math.round(58 + 18 * progress);
-    const nightAlpha = 0.72 * Math.pow(1 - progress, 1.05) * (1 - lampOut) + 0.97 * lampOut; // 燈滅時整個夜色壓到近乎全黑
+    const s2NightLift = (currentStageId() === "rain-port" && window.isS2ArtProdEnabled?.()) ? 0.5 : 1; // S2 dev：夜色遮罩減半，建築不被壓成剪影
+    const nightAlpha = 0.72 * s2NightLift * Math.pow(1 - progress, 1.05) * (1 - lampOut) + 0.97 * lampOut; // 燈滅時整個夜色壓到近乎全黑
 
     lightCtx.fillStyle = `rgba(${nightR}, ${nightG}, ${nightB}, ${nightAlpha})`;
     lightCtx.fillRect(area.left, area.top, area.width, area.height);
@@ -1206,35 +2327,36 @@ window.RENDERER = (() => {
     lightCtx.fill();
     lightCtx.restore();
 
-    // 2. 街角提燈 (LAMPS) 暖光池（燈滅時一併退去）
-    lightCtx.globalAlpha = 1 - lampOut;
-    LAMPS.forEach(l => {
-      const lampScreen = window.VIEWPORT?.worldToScreen
-        ? window.VIEWPORT.worldToScreen(l.x, l.y + 8, { x: camX, y: camY }, offset)
-        : { x: l.x - camX + offset.x, y: (l.y + 8 - camY + offset.y) * k };
-      const lx = lampScreen.x;
-      const ly = lampScreen.y - 30 * z;
-      const lampRadius = 125 * z;
-      if (lx < area.left - lampRadius || lx > area.right + lampRadius || ly < area.top - lampRadius || ly > area.bottom + lampRadius) return;
-      const g = lightCtx.createRadialGradient(lx, ly, 10, lx, ly, lampRadius);
-      g.addColorStop(0, "rgba(0,0,0,0.95)");
-      g.addColorStop(0.5, "rgba(0,0,0,0.5)");
-      g.addColorStop(1, "rgba(0,0,0,0)");
-      lightCtx.save();
-      if(k!==1){lightCtx.translate(lx,ly);lightCtx.scale(1,k);lightCtx.translate(-lx,-ly);}
-      lightCtx.fillStyle = g;
-      lightCtx.beginPath();
-      lightCtx.arc(lx, ly, lampRadius, 0, 6.28);
-      lightCtx.fill();
-      lightCtx.restore();
-    });
-
-    lightCtx.globalAlpha = 1;
+    // 2. 街角提燈 (LAMPS) 暖光池（燈滅時一併退去；雨港不使用第一關提燈）
+    if (currentStageId() !== "rain-port") {
+      lightCtx.globalAlpha = 1 - lampOut;
+      LAMPS.forEach(l => {
+        const lampScreen = window.VIEWPORT?.worldToScreen
+          ? window.VIEWPORT.worldToScreen(l.x, l.y + 8, { x: camX, y: camY }, offset)
+          : { x: l.x - camX + offset.x, y: (l.y + 8 - camY + offset.y) * k };
+        const lx = lampScreen.x;
+        const ly = lampScreen.y - 30 * z;
+        const lampRadius = 125 * z;
+        if (lx < area.left - lampRadius || lx > area.right + lampRadius || ly < area.top - lampRadius || ly > area.bottom + lampRadius) return;
+        const g = lightCtx.createRadialGradient(lx, ly, 10, lx, ly, lampRadius);
+        g.addColorStop(0, "rgba(0,0,0,0.95)");
+        g.addColorStop(0.5, "rgba(0,0,0,0.5)");
+        g.addColorStop(1, "rgba(0,0,0,0)");
+        lightCtx.save();
+        if(k!==1){lightCtx.translate(lx,ly);lightCtx.scale(1,k);lightCtx.translate(-lx,-ly);}
+        lightCtx.fillStyle = g;
+        lightCtx.beginPath();
+        lightCtx.arc(lx, ly, lampRadius, 0, 6.28);
+        lightCtx.fill();
+        lightCtx.restore();
+      });
+      lightCtx.globalAlpha = 1;
+    }
 
     // 夜色遮罩只合成一次。暖光是燈暈上的少數徑向漸層，不再鋪第二張全螢幕。
     ctx.drawImage(lightCv, area.left, area.top, area.width, area.height);
     if (lampOut < 1) paintWarmPool(screenPx, screenPy, baseRadius * 0.62);
-    if (lampOut < 1) LAMPS.forEach(l => {
+    if (lampOut < 1 && currentStageId() !== "rain-port") LAMPS.forEach(l => {
       const lampScreen = window.VIEWPORT?.worldToScreen
         ? window.VIEWPORT.worldToScreen(l.x, l.y + 8, { x: camX, y: camY }, offset)
         : { x: l.x - camX + offset.x, y: (l.y + 8 - camY + offset.y) * k };
@@ -1318,7 +2440,7 @@ window.RENDERER = (() => {
     const resolved = katanaVfxArt(rank);
     if (!resolved) return false;
     const { img, mirror } = resolved;
-    const scale = [0.78, 0.86, 0.94, 1.02, 1.0][tierIdx];
+    const scale = [0.78, 0.86, 0.94, 1.02, 1.25][tierIdx];
     const h = s.radius * 2.02 * scale;
     const w = h * img.naturalWidth / img.naturalHeight;
     const forward = rank <= 4
@@ -1345,6 +2467,7 @@ window.RENDERER = (() => {
     if (mirror) ctx.scale(-1, 1);
     ctx.drawImage(img, -w * 0.5, -h * 0.5, w, h);
     ctx.restore();
+
     ctx.restore();
     return true;
   }
@@ -1512,10 +2635,80 @@ window.RENDERER = (() => {
     ctx.restore();
   }
 
+  function drawPortAtmosphereRain(targetCtx, area, elapsed) {
+    if (!allowsMotion()) return;
+    const slant = 0.18; // 保持一致方向斜率
+    const spanX = area.width + 160;
+    const spanY = area.height + 160;
+    const camDriftX = camX * 0.25;
+    const camDriftY = camY * 0.25;
+    targetCtx.save();
+    targetCtx.lineCap = "round";
+
+    // 1. 分層細雨 (front/back 細雨)：總共 46 條，清晰可見且完全在 60 FPS 預算內
+    const layers = [
+      // Back layer (後層較細、較淡)
+      { count: 24, speed: 480, len: 16, width: 1.1, alpha: 0.30, color: "172, 214, 238" },
+      // Front layer (前層稍長、稍亮)
+      { count: 22, speed: 700, len: 26, width: 1.5, alpha: 0.48, color: "195, 235, 255" }
+    ];
+
+    let streakIndex = 0;
+    for (const layer of layers) {
+      targetCtx.lineWidth = layer.width;
+      targetCtx.strokeStyle = `rgba(${layer.color}, ${layer.alpha})`;
+      for (let i = 0; i < layer.count; i++, streakIndex++) {
+        const seed = streakIndex * 73 + 17;
+        const speed = layer.speed * (0.88 + ((seed % 29) / 29) * 0.24);
+        const travelX = speed * slant;
+        const baseX = ((seed * 137) % spanX);
+        const baseY = ((seed * 223) % spanY);
+        // 確保取模運算在負數偏移時依然週期平滑無突變
+        const rawX = (baseX + elapsed * travelX + camDriftX) % spanX;
+        const rawY = (baseY + elapsed * speed + camDriftY) % spanY;
+        const x = area.left + ((rawX + spanX) % spanX) - 40;
+        const y = area.top + ((rawY + spanY) % spanY) - 40;
+        const len = layer.len;
+        targetCtx.beginPath();
+        targetCtx.moveTo(x, y);
+        targetCtx.lineTo(x + len * slant, y + len);
+        targetCtx.stroke();
+      }
+    }
+
+    // 2. 弱地面雨點 (微小水花/雨滴落點)：落在可視陸地石板、碼頭與屋前
+    // 總共 18 點，快速生滅，不遮擋人物與 HUD
+    targetCtx.lineWidth = 1.0;
+    for (let d = 0; d < 18; d++) {
+      const dSeed = d * 89 + 31;
+      const dCycle = (elapsed * 2.4 + (dSeed % 23) / 23.0) % 1.0;
+      if (dCycle > 0.35) continue; // 只在水花觸地瞬間顯示
+      const dFrac = dCycle / 0.35; // 0..1
+      const dbX = (dSeed * 163) % spanX;
+      const dbY = (dSeed * 251) % spanY;
+      const dx = area.left + (((dbX + camDriftX * 0.8) % spanX + spanX) % spanX) - 20;
+      const dy = area.top + (((dbY + camDriftY * 0.8) % spanY + spanY) % spanY) - 20;
+      const dAlpha = (1.0 - dFrac) * 0.38;
+      targetCtx.strokeStyle = `rgba(195, 235, 255, ${dAlpha})`;
+      targetCtx.beginPath();
+      // 微小橢圓水波弧 (半徑 1.5 ~ 3.5px)
+      const rad = 1.5 + dFrac * 2.2;
+      targetCtx.ellipse(dx, dy, rad, rad * 0.45, 0, 0, 6.283);
+      targetCtx.stroke();
+    }
+
+    targetCtx.restore();
+  }
+
   function drawAtmosphere(elapsed, petalCount = 50, fireflyCount = FIREFLIES.length) {
     if (!allowsMotion()) return;
     const area = bounds();
     ctx.save();
+
+    // 雨港大氣層：持續細密有方向分層雨絲
+    if (currentStageId() === "rain-port") {
+      drawPortAtmosphereRain(ctx, area, elapsed);
+    }
     // 飄動櫻花雨 (按景深層次繪製，近景帶有柔邊大氣光芒)
     for (let i = 0; i < Math.min(SAKURA.length, petalCount); i++) {
       const p = SAKURA[i];
@@ -1537,19 +2730,1918 @@ window.RENDERER = (() => {
       ctx.restore();
     }
 
-    // 螢火蟲 (夜行幽火)
-    for (let i=0;i<Math.min(FIREFLIES.length,fireflyCount);i++) {
-      const f=FIREFLIES[i];
+    // 螢火蟲 (夜行幽火 / 浮世繪木版幽火光暈)
+    for (let i = 0; i < Math.min(FIREFLIES.length, fireflyCount); i++) {
+      const f = FIREFLIES[i];
       const fx = f.x + Math.sin(elapsed * 2 + f.phase) * 30;
       const fy = f.y + Math.cos(elapsed * 1.5 + f.phase) * 20;
       if (fx < area.left - 20 || fx > area.right + 20 || fy < area.top - 20 || fy > area.bottom + 20) continue;
       const pulse = 0.4 + 0.6 * Math.sin(elapsed * 4 + f.phase);
-      ctx.fillStyle = `rgba(171, 211, 184, ${pulse * 0.58})`;
+      // 外層和紙水墨幽火光暈 (Soft Ink-Wash Spirit Aura)
+      ctx.fillStyle = `rgba(142, 218, 192, ${pulse * 0.32})`;
       ctx.beginPath();
-      ctx.arc(fx, fy, 3.5, 0, 6.28);
+      ctx.arc(fx, fy, 5.5, 0, 6.28);
+      ctx.fill();
+      // 內層暖玉白芯 (Warm Jade Luminous Core)
+      ctx.fillStyle = `rgba(235, 255, 240, ${pulse * 0.85})`;
+      ctx.beginPath();
+      ctx.arc(fx, fy, 2.2, 0, 6.28);
       ctx.fill();
     }
     ctx.restore();
+  }
+
+  // =========================================================================
+  // 第二關雨港 Boss (Ikari Umibozu 怒りの海坊主) 專屬技能與全 Boss Hazard 視效
+  // 1. 潮汐扇面 (tidalFan / tidal_surge): 醒目預警扇形 + 洶湧浪濤推進
+  // 2. 港灣渦流水柱 (rainVortex / whirlpool_spout): 水面旋轉漩渦 + 沖天水柱噴發
+  // 3. 標準 Boss Hazard 保持 Stage 1 原樣 (slam, charge, ring, tide)
+  // =========================================================================
+  function drawPortBossHazard(targetCtx, h, elapsed = 0) {
+    if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) return false;
+    const c = targetCtx || ctx;
+    if (!c) return false;
+    const motion = allowsMotion();
+    const phase = h.phase || "telegraph";
+    const kind = h.kind || "slam";
+
+    // 1. 潮汐扇面 (tidalFan / tidal_surge / tide_fan)
+    if (kind === "tidalFan" || kind === "tidal_surge" || kind === "tide_fan") {
+      c.save();
+      const r = h.r || 210;
+      const angle = h.angle || 0;
+      const startAngle = h.startAngle ?? (angle - Math.PI / 3);
+      const endAngle = h.endAngle ?? (angle + Math.PI / 3);
+      const fanSpan = endAngle - startAngle;
+
+      if (phase === "telegraph") {
+        // 預警扇面：脈動海墨色半透扇形 + 白沫虛線弧邊 + 向外擴散之潮線
+        const pulse = motion ? Math.sin(elapsed * 7) * 0.08 : 0;
+        c.fillStyle = `rgba(32, 105, 155, ${0.20 + pulse})`;
+        c.beginPath();
+        c.moveTo(h.x, h.y);
+        c.arc(h.x, h.y, r, startAngle, endAngle);
+        c.closePath();
+        c.fill();
+
+        // 扇形兩側放射導引線
+        c.strokeStyle = "rgba(140, 220, 255, 0.45)";
+        c.lineWidth = 1.8;
+        c.beginPath();
+        c.moveTo(h.x, h.y);
+        c.lineTo(h.x + Math.cos(startAngle) * r, h.y + Math.sin(startAngle) * r);
+        c.moveTo(h.x, h.y);
+        c.lineTo(h.x + Math.cos(endAngle) * r, h.y + Math.sin(endAngle) * r);
+        c.stroke();
+
+        // 外弧白沫虛線警示圈
+        c.strokeStyle = "rgba(220, 248, 255, 0.85)";
+        c.lineWidth = 3.2;
+        c.setLineDash([10, 6]);
+        c.beginPath();
+        c.arc(h.x, h.y, r, startAngle, endAngle);
+        c.stroke();
+        c.setLineDash([]);
+
+        // 扇面內部動態向外推進的湧潮預警波紋
+        if (motion) {
+          const wavePhase = (elapsed * 2.2) % 1;
+          const waveR = r * wavePhase;
+          c.strokeStyle = `rgba(180, 235, 255, ${0.6 * (1 - wavePhase)})`;
+          c.lineWidth = 2.4;
+          c.beginPath();
+          c.arc(h.x, h.y, waveR, startAngle, endAngle);
+          c.stroke();
+        }
+      } else if (phase === "active") {
+        // 攻擊生效：巨浪洶湧推進！白色浪冠 + 深海藍水浪本體
+        const u = Math.min(1, (h.t || 0) / (h.duration || 0.45));
+        const curR = r * (0.15 + 0.85 * u);
+
+        // 浪後水面薄藍
+        c.fillStyle = "rgba(25, 80, 125, 0.35)";
+        c.beginPath();
+        c.moveTo(h.x, h.y);
+        c.arc(h.x, h.y, curR, startAngle, endAngle);
+        c.closePath();
+        c.fill();
+
+        // 巨浪厚水身
+        c.strokeStyle = "rgba(40, 125, 185, 0.80)";
+        c.lineWidth = 20;
+        c.lineCap = "round";
+        c.beginPath();
+        c.arc(h.x, h.y, curR, startAngle, endAngle);
+        c.stroke();
+
+        // 破碎白浪冠 (White Foam Crest)
+        c.strokeStyle = "rgba(255, 255, 255, 0.95)";
+        c.lineWidth = 6;
+        c.beginPath();
+        c.arc(h.x, h.y, curR + 3, startAngle, endAngle);
+        c.stroke();
+
+        // 飛濺水滴粒子點綴
+        if (motion) {
+          c.fillStyle = "rgba(240, 250, 255, 0.9)";
+          const dropCount = 7;
+          for (let i = 0; i <= dropCount; i++) {
+            const dropAng = startAngle + (fanSpan * (i / dropCount));
+            const sprayDist = curR + 10 + Math.sin(i * 3.7 + elapsed * 10) * 8;
+            c.beginPath();
+            c.arc(h.x + Math.cos(dropAng) * sprayDist, h.y + Math.sin(dropAng) * sprayDist, 3, 0, 6.283);
+            c.fill();
+          }
+        }
+      } else {
+        // recovery 回落：漸淡海沫
+        const fade = Math.max(0, 1 - (h.t || 0) / (h.duration || 1.35));
+        c.strokeStyle = `rgba(180, 230, 250, ${0.45 * fade})`;
+        c.lineWidth = 4;
+        c.beginPath();
+        c.arc(h.x, h.y, r, startAngle, endAngle);
+        c.stroke();
+      }
+      c.restore();
+      return true;
+    }
+
+    // 2. 港灣渦流水柱 (rainVortex / whirlpool_spout / vortex)
+    if (kind === "rainVortex" || kind === "whirlpool_spout" || kind === "vortex") {
+      c.save();
+      const vortexes = Array.isArray(h.vortexes) && h.vortexes.length > 0
+        ? h.vortexes
+        : [{ x: h.x, y: h.y, r: h.r || 32 }];
+
+      for (const v of vortexes) {
+        const vx = v.x, vy = v.y, vr = v.r || 32;
+
+        if (phase === "telegraph") {
+          // 預警階段：水面吸入漩渦 (Swirling Eddy)
+          c.save();
+          c.translate(vx, vy);
+          c.scale(1, 0.58); // 地面/水面透視壓扁
+          const rot = motion ? elapsed * 5.2 : 0;
+          c.rotate(rot);
+
+          // 漩渦深色核心
+          c.fillStyle = "rgba(18, 52, 85, 0.65)";
+          c.beginPath();
+          c.arc(0, 0, vr, 0, 6.283);
+          c.fill();
+
+          // 漩渦吸水旋臂 (3 條螺旋臂)
+          c.strokeStyle = "rgba(145, 235, 255, 0.85)";
+          c.lineWidth = 2.4;
+          for (let arm = 0; arm < 3; arm++) {
+            c.beginPath();
+            const armOffset = (arm * Math.PI * 2) / 3;
+            for (let step = 0; step <= 12; step++) {
+              const tStep = step / 12;
+              const curAng = armOffset + tStep * Math.PI * 1.5;
+              const curDist = vr * (1 - tStep * 0.7);
+              const px = Math.cos(curAng) * curDist;
+              const py = Math.sin(curAng) * curDist;
+              if (step === 0) c.moveTo(px, py);
+              else c.lineTo(px, py);
+            }
+            c.stroke();
+          }
+
+          // 外圍警示圈
+          c.strokeStyle = "rgba(220, 245, 255, 0.75)";
+          c.lineWidth = 1.6;
+          c.setLineDash([5, 4]);
+          c.beginPath();
+          c.arc(0, 0, vr * 1.15, 0, 6.283);
+          c.stroke();
+          c.restore();
+        } else if (phase === "active") {
+          // 攻擊階段：沖天水柱爆發 (Vertical Erupting Water Spout)
+          const u = Math.min(1, (h.t || 0) / (h.duration || 0.55));
+          // 水柱起落曲線：先疾速沖起，再散落
+          const riseCurve = Math.sin(u * Math.PI);
+          const colHeight = (130 + vr * 1.2) * riseCurve;
+          const colWidth = vr * (1.1 + 0.3 * (1 - riseCurve));
+
+          c.save();
+          c.translate(vx, vy);
+
+          // 1) 足底爆水環
+          c.save();
+          c.scale(1, 0.55);
+          c.strokeStyle = "rgba(240, 252, 255, 0.9)";
+          c.lineWidth = 4;
+          c.beginPath();
+          c.arc(0, 0, colWidth * 1.25, 0, 6.283);
+          c.stroke();
+          c.restore();
+
+          // 2) 水柱主體（垂直向上）
+          if (colHeight > 6) {
+            // 水柱外緣激流
+            const grad = c.createLinearGradient(0, 0, 0, -colHeight);
+            grad.addColorStop(0, "rgba(35, 115, 175, 0.85)");
+            grad.addColorStop(0.7, "rgba(75, 175, 225, 0.80)");
+            grad.addColorStop(1, "rgba(220, 248, 255, 0.95)");
+
+            c.fillStyle = grad;
+            c.beginPath();
+            c.moveTo(-colWidth * 0.5, 0);
+            c.quadraticCurveTo(-colWidth * 0.4, -colHeight * 0.5, -colWidth * 0.6, -colHeight);
+            c.lineTo(colWidth * 0.6, -colHeight);
+            c.quadraticCurveTo(colWidth * 0.4, -colHeight * 0.5, colWidth * 0.5, 0);
+            c.closePath();
+            c.fill();
+
+            // 水柱亮白水芯
+            c.fillStyle = "rgba(240, 252, 255, 0.7)";
+            c.fillRect(-colWidth * 0.18, -colHeight, colWidth * 0.36, colHeight);
+
+            // 3) 柱頂傘狀水花 (Foam Splash Cap)
+            c.fillStyle = "rgba(255, 255, 255, 0.92)";
+            c.beginPath();
+            c.ellipse(0, -colHeight, colWidth * 0.7, colWidth * 0.3, 0, 0, 6.283);
+            c.fill();
+
+            // 4) 頂部噴濺雨滴
+            if (motion) {
+              for (let d = 0; d < 6; d++) {
+                const dropAng = (d * Math.PI) / 3;
+                const dropDist = colWidth * (0.6 + 0.4 * Math.sin(d + elapsed * 12));
+                const dx = Math.cos(dropAng) * dropDist;
+                const dy = -colHeight + Math.sin(dropAng) * (dropDist * 0.4) - 8 * u;
+                c.beginPath();
+                c.arc(dx, dy, 2.5, 0, 6.283);
+                c.fill();
+              }
+            }
+          }
+          c.restore();
+        } else {
+          // recovery: 水柱散落波紋
+          const fade = Math.max(0, 1 - (h.t || 0) / (h.duration || 1.35));
+          c.save();
+          c.translate(vx, vy);
+          c.scale(1, 0.55);
+          c.strokeStyle = `rgba(180, 235, 255, ${0.5 * fade})`;
+          c.lineWidth = 2.5;
+          c.beginPath();
+          c.arc(0, 0, vr * (1.2 + (1 - fade) * 0.6), 0, 6.283);
+          c.stroke();
+          c.restore();
+        }
+      }
+      c.restore();
+      return true;
+    }
+
+    // 3. 原潮水 (tide)：保持並優化水色
+    if (kind === "tide") {
+      c.save();
+      const ang = h.angle || 0;
+      const cos = Math.cos(ang), sin = Math.sin(ang);
+      const off = h.safeOffset || 0;
+      const lane = h.safeWidth || 130;
+      const sx = h.x - sin * off, sy = h.y + cos * off;
+      c.strokeStyle = "rgba(150, 230, 255, 0.55)";
+      c.lineWidth = lane;
+      c.lineCap = "butt";
+      c.beginPath();
+      c.moveTo(sx - cos * 300, sy - sin * 300);
+      c.lineTo(sx + cos * 300, sy + sin * 300);
+      c.stroke();
+      const prog = Number.isFinite(h.progress) ? h.progress : -280;
+      const wx = h.x + cos * prog, wy = h.y + sin * prog;
+      const gap = lane / 2;
+      c.strokeStyle = phase === "telegraph" ? "rgba(80, 150, 200, 0.4)" : "rgba(30, 110, 170, 0.75)";
+      c.lineWidth = 120;
+      c.beginPath();
+      c.moveTo(wx - sin * (off - 460), wy + cos * (off - 460));
+      c.lineTo(wx - sin * (off - gap), wy + cos * (off - gap));
+      c.moveTo(wx - sin * (off + gap), wy + cos * (off + gap));
+      c.lineTo(wx - sin * (off + 460), wy + cos * (off + 460));
+      c.stroke();
+      c.restore();
+      return true;
+    }
+
+    // 4. 第一關與標準 Boss 技能 (slam / charge / ring)：嚴格保持 Stage 1 原樣
+    if (kind === "slam") {
+      c.save();
+      c.globalAlpha = phase === "recovery" ? 0.28 : 0.72;
+      const r = h.r || 150;
+      c.fillStyle = "rgba(255, 65, 35, 0.18)";
+      c.strokeStyle = "#ffbd72";
+      c.lineWidth = 3;
+      c.beginPath(); c.arc(h.x, h.y, r, 0, 6.2831853); c.fill(); c.stroke();
+      c.restore();
+      return true;
+    }
+
+    if (kind === "charge") {
+      c.save();
+      c.globalAlpha = phase === "recovery" ? 0.28 : 0.72;
+      const ang = h.angle || 0;
+      const len = 620 * 0.65;
+      c.strokeStyle = "rgba(255, 120, 50, 0.45)";
+      c.lineWidth = 104;
+      c.lineCap = "butt";
+      c.beginPath();
+      c.moveTo(h.x, h.y);
+      c.lineTo(h.x + Math.cos(ang) * len, h.y + Math.sin(ang) * len);
+      c.stroke();
+      c.restore();
+      return true;
+    }
+
+    if (kind === "ring") {
+      c.save();
+      c.globalAlpha = phase === "recovery" ? 0.28 : 0.72;
+      const gap = h.gapAngle || 0;
+      const half = (h.gapWidth || Math.PI / 2) / 2;
+      c.strokeStyle = "rgba(255, 80, 40, 0.85)";
+      c.lineWidth = 28;
+      c.beginPath();
+      c.arc(h.x, h.y, h.r || 80, gap + half, gap + Math.PI * 2 - half);
+      c.stroke();
+      c.restore();
+      return true;
+    }
+
+    return false;
+  }
+
+  // =========================================================================
+  // 狐火 2.5D 前後深度分割與渲染支援 (Fox Fire 2.5D Orbit Depth Split)
+  // 提供前後半圈深度判定、透視縮放/透明度、與雙 Pass (back/front/all) 調度支援
+  // =========================================================================
+  function isOrbitBack(ang) {
+    return Math.sin(ang) < 0;
+  }
+
+  function shouldDrawOrbitFlame(ang, pass = "all") {
+    if (pass === "back") return Math.sin(ang) < 0;
+    if (pass === "front") return Math.sin(ang) >= 0;
+    return true; // "all" 或未指定
+  }
+
+  function getOrbitDepthStyle(ang, rank = 1) {
+    const sinA = Math.sin(ang);
+    const isBack = sinA < 0;
+    const motion = allowsMotion();
+    const is2D = typeof window.VIEWPORT?.is2D === "function" ? window.VIEWPORT.is2D() : false;
+    if (is2D || !motion) {
+      return { pass: isBack ? "back" : "front", depthScale: 1, depthAlpha: 1, zIndex: isBack ? -1 : 1 };
+    }
+    const depthScale = isBack ? (0.90 + 0.10 * (1 + sinA)) : (1.0 + 0.08 * sinA);
+    const depthAlpha = isBack ? 0.82 : 1.0;
+    return { pass: isBack ? "back" : "front", depthScale, depthAlpha, zIndex: isBack ? -1 : 1 };
+  }
+
+  function drawFoxfireOrbit(targetCtx, P, fAng, fireLevel, fireSpec, elapsed = 0, ghosts = [], pass = "all") {
+    if (!fireSpec || typeof fireSpec.count !== "number" || fireSpec.count <= 0 || !fireLevel || fireLevel <= 0 || !P) return;
+    const count = fireSpec.count;
+    const rx = fireSpec.rx ?? fireSpec.r;
+    const ry = fireSpec.ry ?? fireSpec.r;
+    if (!Number.isFinite(rx) || !Number.isFinite(ry)) return;
+
+    const c = targetCtx || ctx;
+    if (!c) return;
+    const awaySlots = new Set(
+      (ghosts || []).filter(p => p.fireAttack && p.life > 0 && p.level === fireLevel).map(p => p.slot)
+    );
+    const viewport = window.VIEWPORT;
+    const is2D = typeof viewport?.is2D === "function" ? viewport.is2D() : false;
+
+    for (let i = 0; i < count; i++) {
+      if (awaySlots.has(i)) continue;
+      const a = fAng + (i * 6.2831853) / count;
+      const sinA = Math.sin(a);
+      const isBack = sinA < 0;
+
+      // Pass 判定：'back' 只畫背後半圈，'front' 只畫前瞻半圈，'all' 全畫
+      if (pass === "back" && !isBack) continue;
+      if (pass === "front" && isBack) continue;
+
+      const fx = P.x + Math.cos(a) * rx;
+      const fy = P.y + sinA * ry;
+
+      const style = getOrbitDepthStyle(a, fireLevel);
+
+      const paintFlame = () => {
+        c.save();
+        c.globalAlpha *= style.depthAlpha;
+        if (style.depthScale !== 1) {
+          c.translate(fx, fy);
+          c.scale(style.depthScale, style.depthScale);
+          c.translate(-fx, -fy);
+        }
+        if (window.SKILLFX?.paint) {
+          window.SKILLFX.paint(c, "fire", fireLevel, {
+            x: fx, y: fy, ang: a, origin: P, orbitR: rx, orbitRy: ry, rx, ry,
+            time: elapsed + i * 0.2, orbit: true, depthScale: style.depthScale, isBack
+          });
+        }
+        c.restore();
+      };
+
+      if (!is2D && viewport?.upright) {
+        viewport.upright(c, fx, fy, paintFlame);
+      } else {
+        paintFlame();
+      }
+    }
+  }
+
+  // =========================================================================
+  // M2-FUSION-ART-BIND-R1：十招真圖 phase 綁定層（DEV-ONLY 嚴格模式）
+  //
+  // 生效門檻（assets.js 唯一真實來源）：window.isFusionArtBindEnabled() === true
+  //   ⇔ ?dev=1&stage=rain-port&fusioncandidate=1&fusionart=banana
+  // 其他任何情況（正常模式／無 dev／錯 stage／無 fusioncandidate／非 banana）
+  // 這一層完全不畫、不載，既有程序幾何與正式資產路徑完全不變。
+  //
+  // phase 位置規則：
+  //   main   直立（upright）貼施法點／攻擊方向，隨攻擊角旋轉
+  //   hit    直立（upright）貼命中點／爆點
+  //   ground 世界座標貼地面位置（素材自帶透視比例，用 upright 保持作者視角）
+  //   icon   直立小徽章（僅真的有 icon 檔時才畫）
+  //
+  // 所有候選圖皆為 ART_CANDIDATE / WAITING_ART，只在 dev 門檻內使用，
+  // 不覆蓋 assets/img/ 正式資產、不搬移原檔。
+  // =========================================================================
+  function fusionBindEnabled() {
+    return typeof window !== "undefined"
+      && typeof window.isFusionArtBindEnabled === "function"
+      && window.isFusionArtBindEnabled() === true;
+  }
+
+  // 取某招某 phase 的真圖（未就緒回 null，不丟錯、不阻塞）
+  function fusionBindArt(kind, phase) {
+    if (!fusionBindEnabled()) return null;
+    if (typeof window.getFusionPhaseArt !== "function") return null;
+    const img = window.getFusionPhaseArt(kind, phase);
+    return img && img.naturalWidth > 0 ? img : null;
+  }
+
+  function fusionBindDef(kind, phase) {
+    if (typeof window === "undefined" || typeof window.getFusionArtBindDef !== "function") return null;
+    return window.getFusionArtBindDef(kind, phase);
+  }
+
+  // 以來源圖的 alpha 內容框裁切後貼圖，避免 1264x848 透明邊界造成偏移與縮小
+  function fusionBindSourceRect(kind, phase, img) {
+    const def = fusionBindDef(kind, phase);
+    const iw = (img && img.naturalWidth) || (def && def.size && def.size[0]) || 1;
+    const ih = (img && img.naturalHeight) || (def && def.size && def.size[1]) || 1;
+    const b = def && def.bbox;
+    if (b && b.length === 4 && b[2] > b[0] && b[3] > b[1]) {
+      return { sx: b[0], sy: b[1], sw: b[2] - b[0], sh: b[3] - b[1] };
+    }
+    return { sx: 0, sy: 0, sw: iw, sh: ih };
+  }
+
+  /**
+   * 貼一張 phase 真圖。
+   * opt: { kind, phase, x, y, width, alpha, flipX, rotate, centerX, anchorY }
+   *   centerX=true → 以 x 為中心；false → 由 x 起算向右延伸（前向錨點）
+   *   anchorY      → 0=貼地、0.5=垂直置中、1=貼頂
+   */
+  function drawFusionBindImage(c, img, opt) {
+    const def = fusionBindDef(opt.kind, opt.phase);
+    if (!img || !def) return false;
+    const src = fusionBindSourceRect(opt.kind, opt.phase, img);
+    const targetW = Math.max(1, opt.width || 120);
+    const targetH = targetW * (src.sh / src.sw);
+    const anchorY = opt.anchorY == null ? 0.5 : opt.anchorY;
+    const dx = opt.centerX ? -targetW * 0.5 : 0;
+    const dy = -targetH * anchorY;
+    c.save();
+    c.globalAlpha = Math.max(0, Math.min(1, opt.alpha == null ? 1 : opt.alpha));
+    c.translate(opt.x, opt.y);
+    if (opt.rotate) c.rotate(opt.rotate);
+    if (opt.flipX) {
+      c.translate(opt.centerX ? 0 : targetW, 0);
+      c.scale(-1, 1);
+    }
+    c.drawImage(img, src.sx, src.sy, src.sw, src.sh, dx, dy, targetW, targetH);
+    c.restore();
+    return true;
+  }
+
+  // 直立繪製（抵消 2.5D 的 y 壓縮，讓素材保持原比例）
+  function fusionBindUpright(c, x, y, draw) {
+    const viewport = typeof window !== "undefined" ? window.VIEWPORT : null;
+    if (viewport && typeof viewport.upright === "function") return viewport.upright(c, x, y, draw);
+    draw();
+    return true;
+  }
+
+  // 真圖 phase 綁定層：回傳 true 表示此招的視覺已由真圖接管
+  function drawFusionBindLayers(c, effect, is2D, tilt, motion, elapsed) {
+    if (!fusionBindEnabled()) return false;
+    const kind = effect.kind;
+    const phase = effect.phase || "active";
+    const progress = Number.isFinite(effect.progress) ? Math.max(0, Math.min(1, effect.progress)) : 0;
+    const x = Number.isFinite(effect.x) ? effect.x : 0;
+    const y = Number.isFinite(effect.y) ? effect.y : 0;
+    const angle = Number.isFinite(effect.angle) ? effect.angle : 0;
+    const radius = Number.isFinite(effect.radius) ? effect.radius : 200;
+    const burnAge = Number.isFinite(effect.burnAge) ? effect.burnAge : 0;
+
+    // 階段包絡：warn 呼吸、active 由 progress 起伏、fade 收斂
+    const env = phase === "warn"
+      ? (0.30 + 0.25 * Math.sin(elapsed * 10))
+      : phase === "active"
+        ? Math.min(1, Math.sin(progress * Math.PI) * 1.25)
+        : Math.max(0, 1 - progress);
+
+    // 距離上一次脈衝的時間（用於 hit phase 的閃光包絡）
+    const pulseFlash = (interval) => {
+      const idx = Number.isFinite(effect.pulseIndex) ? effect.pulseIndex : 0;
+      if (idx <= 0) return 0;
+      const next = Number.isFinite(effect.nextPulse) ? effect.nextPulse : 0;
+      const last = next - (interval || 0.35);
+      const t = burnAge - last;
+      if (t < 0 || t > 0.28) return 0;
+      return Math.max(0, 1 - t / 0.28);
+    };
+
+    const drawIcon = (ix, iy, alpha) => {
+      const icon = fusionBindArt(kind, "icon");
+      if (!icon) return;
+      const def = fusionBindDef(kind, "icon");
+      if (!def || def.fallback) return; // DEV_ICON_FALLBACK 不畫，避免主圖縮圖雜訊
+      fusionBindUpright(c, ix, iy, () => {
+        drawFusionBindImage(c, icon, {
+          kind, phase: "icon", x: ix, y: iy, width: 30, alpha: alpha * 0.9, centerX: true, anchorY: 0.5
+        });
+      });
+    };
+    const main = fusionBindArt(kind, "main");
+    const hit = fusionBindArt(kind, "hit");
+    const ground = fusionBindArt(kind, "ground");
+
+    const paintKind = () => {
+
+    // ---- #1 墨焰斬：主體刀光 + 地面焦痕 + 命中爆點 ----
+    if (kind === "fusion_inkblade") {
+      if (ground && (phase === "active" || phase === "fade")) {
+        const burnDuration = Number.isFinite(effect.burnDuration) ? effect.burnDuration : 0.8;
+        const scorch = phase === "active"
+          ? Math.min(1, progress * 1.8) * Math.max(0, 1 - burnAge / (burnDuration || 0.8))
+          : Math.max(0, 1 - progress) * Math.max(0, 1 - burnAge / (burnDuration || 0.8));
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, ground, {
+            kind, phase: "ground", x, y, width: radius * 2.0, alpha: env * scorch * 0.95,
+            rotate: angle, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      if (main) {
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, main, {
+            kind, phase: "main", x, y, width: radius * 1.35, alpha: env,
+            rotate: angle, flipX: true, anchorY: 0.5
+          });
+        });
+      }
+      if (hit && phase !== "warn") {
+        const hx = x + Math.cos(angle) * radius * 0.55;
+        const hy = y + Math.sin(angle) * radius * 0.55;
+        fusionBindUpright(c, hx, hy, () => {
+          drawFusionBindImage(c, hit, {
+            kind, phase: "hit", x: hx, y: hy, width: radius * 0.85, alpha: env * 0.95, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      drawIcon(x - 96, y - 104, env);
+      return true;
+    }
+
+    // ---- #2 斬界輪：旋轉輪刃（隨 currentRadius 展開） ----
+    if (kind === "fusion_slashwheel") {
+      if (main) {
+        const cur = Number.isFinite(effect.currentRadius) && effect.currentRadius > 0
+          ? effect.currentRadius
+          : radius * 0.35;
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, main, {
+            kind, phase: "main", x, y, width: Math.max(90, cur * 2), alpha: env * 0.95,
+            rotate: motion ? elapsed * 2.6 : 0, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      return true;
+    }
+
+    // ---- #3 雷狐居合：前向雷斬 + 命中閃電 + 地面旋渦 ----
+    if (kind === "fusion_foxiai") {
+      const finalAngle = (Number.isFinite(effect.targetX) && Number.isFinite(effect.targetY))
+        ? Math.atan2(effect.targetY - y, effect.targetX - x)
+        : angle;
+      if (ground) {
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, ground, {
+            kind, phase: "ground", x, y, width: radius * 1.5, alpha: env * 0.85,
+            rotate: finalAngle, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      if (main) {
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, main, {
+            kind, phase: "main", x, y, width: radius * 1.15, alpha: env,
+            rotate: finalAngle, flipX: true, anchorY: 0.5
+          });
+        });
+      }
+      if (hit && phase !== "warn") {
+        const hx = x + Math.cos(finalAngle) * radius * 0.8;
+        const hy = y + Math.sin(finalAngle) * radius * 0.8;
+        fusionBindUpright(c, hx, hy, () => {
+          drawFusionBindImage(c, hit, {
+            kind, phase: "hit", x: hx, y: hy, width: radius * 0.8, alpha: env * 0.95,
+            rotate: finalAngle, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      drawIcon(x - 96, y - 104, env);
+      return true;
+    }
+
+    // ---- #4 退魔符刃：符刃斬 + 每個符印爆點 + 地面火痕 ----
+    if (kind === "fusion_exorcistblade") {
+      if (ground) {
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, ground, {
+            kind, phase: "ground", x, y, width: radius * 1.6, alpha: env * 0.85,
+            rotate: angle, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      if (main) {
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, main, {
+            kind, phase: "main", x, y, width: radius * 1.1, alpha: env,
+            rotate: angle, flipX: true, anchorY: 0.5
+          });
+        });
+      }
+      if (hit && phase !== "warn") {
+        const marks = Array.isArray(effect.marks) ? effect.marks : [];
+        const triggered = marks.filter(m => m && m.triggered && m.target);
+        if (triggered.length) {
+          for (const m of triggered) {
+            const mx = m.target.x, my = m.target.y;
+            const mr = Number.isFinite(m.radius) ? m.radius : 90;
+            fusionBindUpright(c, mx, my, () => {
+              drawFusionBindImage(c, hit, {
+                kind, phase: "hit", x: mx, y: my, width: mr * 2.2, alpha: env * 0.95, centerX: true, anchorY: 0.5
+              });
+            });
+          }
+        } else {
+          fusionBindUpright(c, x, y, () => {
+            drawFusionBindImage(c, hit, {
+              kind, phase: "hit", x, y, width: radius * 0.8, alpha: env * 0.9, centerX: true, anchorY: 0.5
+            });
+          });
+        }
+      }
+      drawIcon(x - 96, y - 104, env);
+      return true;
+    }
+
+    // ---- #5 妖火結界：燃燒結界主體 + 脈衝結界環 + 地面環 ----
+    if (kind === "fusion_foxfirebarrier") {
+      if (ground) {
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, ground, {
+            kind, phase: "ground", x, y, width: radius * 1.9, alpha: env * 0.8, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      if (hit) {
+        const flash = pulseFlash(effect.pulseInterval);
+        const a = flash > 0 ? flash : env * 0.55;
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, hit, {
+            kind, phase: "hit", x, y, width: radius * 2.0 * (flash > 0 ? 1 + (1 - flash) * 0.12 : 1),
+            alpha: a * 0.95, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      if (main) {
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, main, {
+            kind, phase: "main", x, y, width: radius * 1.7, alpha: env * 0.9, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      drawIcon(x - 96, y - 104, env);
+      return true;
+    }
+
+    // ---- #6 狐雷天燈：每盞燈籠掛真圖 ----
+    if (kind === "fusion_foxthunderlantern") {
+      if (main) {
+        const lanterns = Array.isArray(effect.lanterns) ? effect.lanterns : [];
+        for (const ln of lanterns) {
+          if (!ln) continue;
+          const lx = Number.isFinite(ln.x) ? ln.x : x;
+          const ly = Number.isFinite(ln.y) ? ln.y : y;
+          fusionBindUpright(c, lx, ly, () => {
+            drawFusionBindImage(c, main, {
+              kind, phase: "main", x: lx, y: ly, width: 96,
+              alpha: (ln.struck ? env * 0.35 : env), centerX: true, anchorY: 0.5
+            });
+          });
+        }
+      }
+      return true;
+    }
+
+    // ---- #7 炎符祭：施放點火符爆 + 每張符引爆點 ----
+    if (kind === "fusion_flamefestival") {
+      if (main) {
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, main, {
+            kind, phase: "main", x, y, width: radius * 1.2, alpha: env * 0.9, centerX: true, anchorY: 0.5
+          });
+        });
+        const talismans = Array.isArray(effect.talismans) ? effect.talismans : [];
+        for (const t of talismans) {
+          if (!t || !t.exploded) continue;
+          const tx = Number.isFinite(t.x) ? t.x : x;
+          const ty = Number.isFinite(t.y) ? t.y : y;
+          const land = Number.isFinite(effect.landRadius) ? effect.landRadius : 62;
+          fusionBindUpright(c, tx, ty, () => {
+            drawFusionBindImage(c, main, {
+              kind, phase: "main", x: tx, y: ty, width: land * 2.2, alpha: env * 0.85, centerX: true, anchorY: 0.5
+            });
+          });
+        }
+      }
+      return true;
+    }
+
+    // ---- #8 雷陣封界：地面陣域真圖 ----
+    if (kind === "fusion_thundercircle") {
+      if (main) {
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, main, {
+            kind, phase: "main", x, y, width: radius * 2.0, alpha: env * 0.95, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      return true;
+    }
+
+    // ---- #9 退魔封陣：符爆主體 + 落點封陣 + 地面封陣 ----
+    if (kind === "fusion_exorcistseal") {
+      if (ground) {
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, ground, {
+            kind, phase: "ground", x, y, width: radius * 1.9, alpha: env * 0.8, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      if (hit) {
+        const flash = pulseFlash(effect.pulseInterval);
+        const a = flash > 0 ? flash : env * 0.6;
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, hit, {
+            kind, phase: "hit", x, y, width: radius * 2.0, alpha: a * 0.95, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      if (main) {
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, main, {
+            kind, phase: "main", x, y, width: radius * 1.4, alpha: env * 0.9, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      drawIcon(x - 96, y - 104, env);
+      return true;
+    }
+
+    // ---- #10 雷符神罰：施放點雷符 + 每張符落點 ----
+    if (kind === "fusion_thundertalisman") {
+      if (main) {
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, main, {
+            kind, phase: "main", x, y, width: radius * 1.2, alpha: env * 0.9, centerX: true, anchorY: 0.5
+          });
+        });
+        const talismans = Array.isArray(effect.talismans) ? effect.talismans : [];
+        for (const t of talismans) {
+          if (!t || !t.struck) continue;
+          const tx = Number.isFinite(t.x) ? t.x : x;
+          const ty = Number.isFinite(t.y) ? t.y : y;
+          const strike = Number.isFinite(effect.strikeRadius) ? effect.strikeRadius : 70;
+          fusionBindUpright(c, tx, ty, () => {
+            drawFusionBindImage(c, main, {
+              kind, phase: "main", x: tx, y: ty, width: strike * 1.9, alpha: env * 0.8, centerX: true, anchorY: 0.5
+            });
+          });
+        }
+      }
+      return true;
+    }
+
+    return false;
+    };
+
+    const painted = paintKind();
+    if (!painted) return false;
+
+    // DEV 標示：目前此招實際綁到哪些 phase（不是 metadata 宣稱，是實際存在的檔案）
+    const meta = typeof window !== "undefined" && window.FUSION_VFX_METADATA ? window.FUSION_VFX_METADATA[kind] : null;
+    const bound = ["main", "hit", "ground", "icon"].filter((ph) => {
+      const def = fusionBindDef(kind, ph);
+      return !!def && !def.fallback;
+    });
+    const missing = ["main", "hit", "ground", "icon"].filter((ph) => !bound.includes(ph));
+    c.save();
+    c.font = "11px sans-serif";
+    c.textAlign = "center";
+    c.fillStyle = `rgba(255, 215, 0, ${0.9 * Math.max(0.35, env)})`;
+    fusionBindUpright(c, x, y + radius * 0.58, () => {
+      c.fillText(
+        `[FUSION BIND: ${meta ? meta.name : kind} ${bound.join("+")}${missing.length ? " / " + missing.join("・") + " WAITING_ART" : ""}]`,
+        x,
+        y + radius * 0.58
+      );
+    });
+    c.restore();
+    return true;
+  }
+
+  // =========================================================================
+  // F0/F1-A 合技渲染原型：墨焰斬 (fusion_inkblade) 與雷紋陣 (fusion_thundercircle)
+  // 共享入口：RENDERER.drawFusionFx(targetCtx, effect, elapsed)
+  // Payload 契約：{ kind, phase: 'warn'|'active'|'fade', x, y, angle, radius, progress, seed, ... }
+  // =========================================================================
+  function drawFusionInkblade(c, x, y, angle, radius, spread, phase, progress, seed, burnDuration, burnAge, is2D, tilt, motion, elapsed) {
+    c.save();
+
+    // M2-FUSION-ART-BIND-R1：bind 模式下真圖 ground phase 取代這段程序焦痕。
+    const bindOwnsGround = fusionBindEnabled();
+
+    // 1. 地面焦墨與狐火裂隙 (Ground Scorch Layer - 2.5D tilt 扁平投影)
+    // warn 階段不畫地面焦痕；active 隨進度刻印；fade 隨 burnAge / progress 淡出
+    if (!bindOwnsGround && (phase === "active" || phase === "fade")) {
+      const scorchProgress = phase === "active" ? Math.min(1, progress * 1.8) : Math.max(0, 1 - progress);
+      const scorchDecay = Math.max(0, 1 - (burnAge / (burnDuration || 0.8)));
+      const scorchAlpha = scorchProgress * scorchDecay;
+
+      if (scorchAlpha > 0.01) {
+        c.save();
+        c.translate(x, y);
+        if (!is2D) {
+          c.scale(1, tilt); // 2.5D 地面透視扁平化
+        }
+        c.rotate(angle);
+
+        const halfSpread = spread * 0.5;
+        const groundR = radius * 0.92;
+
+        // 1-A. 和紙焦墨染底 (Charcoal Sumi Stain)
+        c.fillStyle = `rgba(14, 10, 18, ${0.42 * scorchAlpha})`;
+        c.beginPath();
+        c.moveTo(0, 0);
+        c.arc(0, 0, groundR, -halfSpread, halfSpread);
+        c.closePath();
+        c.fill();
+
+        // 1-B. 地表粗墨撕裂放射紋 (Radiating Sumi Fissures)
+        const crackCount = 7;
+        c.lineCap = "round";
+        for (let i = 0; i < crackCount; i++) {
+          const t = (i / (crackCount - 1)) * 2 - 1; // -1 to 1
+          const crackAng = t * halfSpread * 0.92;
+          const crackLen = groundR * (0.65 + 0.35 * Math.abs(Math.sin(seed * 3.7 + i * 1.9)));
+          const midWiggle = (Math.sin(seed * 7.1 + i * 2.3) * 12);
+
+          // 墨痕深溝
+          c.strokeStyle = `rgba(22, 14, 26, ${0.78 * scorchAlpha})`;
+          c.lineWidth = 3.6;
+          c.beginPath();
+          c.moveTo(0, 0);
+          const midX = Math.cos(crackAng) * crackLen * 0.5 - Math.sin(crackAng) * midWiggle;
+          const midY = Math.sin(crackAng) * crackLen * 0.5 + Math.cos(crackAng) * midWiggle;
+          const endX = Math.cos(crackAng) * crackLen;
+          const endY = Math.sin(crackAng) * crackLen;
+          c.quadraticCurveTo(midX, midY, endX, endY);
+          c.stroke();
+
+          // 1-C. 焦縫內嵌狐火微溫 (Inner Foxfire Glowing Crevice)
+          c.strokeStyle = `rgba(255, 95, 20, ${0.85 * scorchAlpha})`;
+          c.lineWidth = 1.8;
+          c.beginPath();
+          c.moveTo(0, 0);
+          c.quadraticCurveTo(midX, midY, endX * 0.85, endY * 0.85);
+          c.stroke();
+
+          // 熾熱白金節點 (Hot Ember Nodes)
+          c.fillStyle = `rgba(255, 235, 160, ${0.92 * scorchAlpha})`;
+          c.beginPath();
+          c.arc(midX * 0.7, midY * 0.7, 2.0, 0, 6.283);
+          c.fill();
+        }
+
+        // 1-D. 弧外緣焦墨毛邊 (Jagged outer rim)
+        c.strokeStyle = `rgba(18, 12, 22, ${0.55 * scorchAlpha})`;
+        c.lineWidth = 2.4;
+        c.setLineDash([12, 8]);
+        c.beginPath();
+        c.arc(0, 0, groundR * 0.96, -halfSpread * 0.98, halfSpread * 0.98);
+        c.stroke();
+        c.setLineDash([]);
+
+        c.restore();
+      }
+    }
+
+    // 2. 拔刀大型扇形破空墨焰斬 (Airborne Slashing Blade - Upright)
+    const paintBlade = () => {
+      c.save();
+      c.translate(x, y);
+
+      if (phase === "warn") {
+        // 蓄勢前搖 (Telegraph & Ink Gather)
+        const warnAlpha = 0.35 + 0.35 * Math.sin(elapsed * 12);
+        const halfSpread = spread * 0.5;
+
+        // 預警扇面虛線
+        c.strokeStyle = `rgba(255, 75, 30, ${warnAlpha * 0.75})`;
+        c.lineWidth = 2.0;
+        c.setLineDash([8, 6]);
+        c.beginPath();
+        c.arc(0, 0, radius, angle - halfSpread, angle + halfSpread);
+        c.stroke();
+        c.setLineDash([]);
+
+        // 刀心向內收束墨流 (Inward gathering ink trails)
+        c.strokeStyle = `rgba(16, 12, 22, ${warnAlpha * 0.85})`;
+        c.lineWidth = 2.5;
+        for (let i = 0; i < 4; i++) {
+          const a = angle - halfSpread + (i / 3) * spread;
+          const gatherR = radius * (0.4 + 0.5 * ((1 - progress + i * 0.25) % 1));
+          c.beginPath();
+          c.moveTo(Math.cos(a) * gatherR, Math.sin(a) * gatherR);
+          c.lineTo(Math.cos(a) * (gatherR * 0.6), Math.sin(a) * (gatherR * 0.6));
+          c.stroke();
+        }
+
+        // 刀柄聚集狐火星子
+        c.fillStyle = `rgba(255, 180, 60, ${warnAlpha * 0.9})`;
+        c.beginPath();
+        c.arc(0, 0, 4.5, 0, 6.283);
+        c.fill();
+        c.restore();
+        return;
+      }
+
+      // active & fade
+      const bladeAlpha = phase === "active"
+        ? Math.min(1, Math.sin(progress * Math.PI * 0.85) * 1.4)
+        : Math.max(0, (1 - progress) * 0.6);
+
+      // M2-FUSION-ART-BIND-R1：bind 模式下主體刀光改由真圖 main/hit phase 畫
+      // （真圖層已先畫，legacy 這段只保留 warn 預警扇與提示，不再重疊程序刀弧）。
+      if (fusionBindEnabled()) {
+        c.restore();
+        return;
+      }
+
+      if (bladeAlpha > 0.01) {
+        c.rotate(angle);
+        const halfSpread = spread * 0.5;
+        const curSpread = phase === "active" ? halfSpread * Math.min(1, 0.4 + progress * 0.9) : halfSpread;
+        const startA = -curSpread;
+        const endA = curSpread;
+
+        const candidateMode = typeof window !== "undefined" && typeof window.getFusionArtMode === "function"
+          ? window.getFusionArtMode()
+          : "legacy";
+        const artStatus = typeof window !== "undefined" && window.FUSION_ART_STATUS
+          ? (window.FUSION_ART_STATUS[candidateMode] || "legacy")
+          : "legacy";
+        const candidateImg = typeof window !== "undefined" && window.FUSION_ART
+          ? window.FUSION_ART[candidateMode]
+          : null;
+        const isArtReady = candidateMode !== "legacy" && artStatus === "ready" && candidateImg && candidateImg.naturalWidth > 0;
+
+        // ===================================================================
+        // F1-A-ORIENTATION: 來源圖方位特徵與局部水平鏡像規格表
+        // 來源圖構圖方位特徵 (Source Native Orientation Analysis):
+        // - banana (Nano main_v01.png / banana_inkblade_alpha_candidate_v01.webp):
+        //   原生 C 形凹開口朝向圖片 +X (右)，凸面銳利弧刃在圖片 -X (左)。
+        //   翻轉理由 (Flip Rationale): 局部攻擊座標系 (+X 為 forward 迎向敵方，-X 為持刀玩家核心)。
+        //   未翻轉時凸刃反而朝向玩家、凹口朝向敵人，方向顛倒；
+        //   必須在局部攻擊座標內執行 X 水平翻轉 (translate(targetW, 0) -> scale(-1, 1))，
+        //   使凸面刀刃朝向前鋒 (+forward/敵方)，凹缺口與拖尾墨跡貼向玩家核心 (0)。
+        // - gpt (GPT gpt_inkblade_original_v01.png / gpt_inkblade_alpha_candidate_v01.webp):
+        //   原生 C 形凹開口同樣朝向圖片 +X (右)，凸面刀芒在圖片 -X (左)。
+        //   翻轉理由 (Flip Rationale): 未來去背 Gate 解鎖 ready 後，依相同原圖構圖邏輯鏡像，
+        //   凸刃朝敵迎擊。目前 usable=false 門禁維持，僅供規格對齊與受控 reference 測試。
+        // ===================================================================
+        const CANDIDATE_ORIENTATION_SPEC = Object.freeze({
+          banana: Object.freeze({
+            sourceFile: "art/fusion/candidates/fusion_inkblade/banana_inkblade_alpha_candidate_v01.webp",
+            nativeOpening: "right",
+            flipX: true,
+            rationale: "C-curve opening faces +X (right); flipX aligns convex blade outward towards enemy (+forward)"
+          }),
+          gpt: Object.freeze({
+            sourceFile: "art/fusion/candidates/fusion_inkblade/gpt_inkblade_alpha_candidate_v01.webp",
+            nativeOpening: "right",
+            flipX: true,
+            rationale: "C-curve opening faces +X (right); flipX aligns convex blade outward towards enemy (+forward)"
+          })
+        });
+
+        if (isArtReady) {
+          // ===================================================================
+          // F1-A-ART-COMPARE: 候選圖檔已就緒 (Candidate Image Ready)
+          // 繪製主體圖檔，移除會遮蔽主體之粗黑大幾何扇形 (2-A) 與厚重炎芯 (2-C)
+          // 保留少量墨滴與狐火星芒 (2-E) 作為和風木刻版畫層次輔助
+          // ===================================================================
+          c.save();
+          c.globalAlpha = bladeAlpha;
+          const imgAspect = (candidateImg.naturalWidth && candidateImg.naturalHeight)
+            ? (candidateImg.naturalWidth / candidateImg.naturalHeight)
+            : 1.5;
+          const targetW = radius;
+          const targetH = targetW / imgAspect;
+          const dy = -targetH * 0.5;
+
+          const orient = CANDIDATE_ORIENTATION_SPEC[candidateMode];
+          if (orient && orient.flipX) {
+            // 局部水平鏡像：在攻擊朝向 (+X) 空間內翻轉，使凸刃迎敵 (+X)，凹口朝持刀玩家 (0)
+            // 座標占用維持 [0, targetW] (不超過 radius)，不更動全域世界座標
+            c.translate(targetW, 0);
+            c.scale(-1, 1);
+            c.drawImage(candidateImg, 0, dy, targetW, targetH);
+          } else {
+            c.drawImage(candidateImg, 0, dy, targetW, targetH);
+          }
+          c.restore();
+
+          // 2-E. 飛散墨滴與狐火星芒 (少量粒子輔助)
+          const sparkCount = 8;
+          for (let k = 0; k < sparkCount; k++) {
+            const kt = (k / sparkCount);
+            const sang = startA + kt * (endA - startA);
+            const scatter = (Math.sin(seed * 5.7 + k * 3.9) * 18);
+            const distProgress = (phase === "active" ? progress : 1.0) * 24;
+            const sr = radius + scatter + distProgress;
+            const sx = Math.cos(sang) * sr;
+            const sy = Math.sin(sang) * sr;
+            if (k % 2 === 0) {
+              c.fillStyle = `rgba(12, 8, 16, ${bladeAlpha * 0.85})`;
+              c.beginPath();
+              c.arc(sx, sy, 2.0, 0, 6.283);
+              c.fill();
+            } else {
+              c.fillStyle = "#ff5522";
+              c.beginPath();
+              c.arc(sx, sy, 2.4, 0, 6.283);
+              c.fill();
+            }
+          }
+
+          // 候選狀態標記 (ART_CANDIDATE，清楚標註非正式 ART_PASS)
+          c.save();
+          c.font = "11px sans-serif";
+          c.fillStyle = `rgba(255, 215, 0, ${bladeAlpha * 0.85})`;
+          c.textAlign = "center";
+          c.fillText(`[FUSION ART: ${candidateMode} (loaded)]`, radius * 0.5, -targetH * 0.5 - 6);
+          c.restore();
+
+        } else {
+          // ===================================================================
+          // 安全 Legacy 回落：完整程序浮世繪木版濃墨大外緣 (2-A ~ 2-E)
+          // ===================================================================
+          const steps = 18;
+          const maxThick = 24 * (phase === "active" ? (0.7 + 0.3 * Math.sin(progress * Math.PI)) : (1 - progress * 0.5));
+
+          // 2-A. 浮世繪木版濃墨大外緣 (Outer Sumi Calligraphy Body)
+          c.beginPath();
+          for (let i = 0; i <= steps; i++) {
+            const t = i / steps;
+            const a = startA + t * (endA - startA);
+            const bristle = motion ? Math.sin(seed * 4.1 + i * 2.8) * 4.5 : 0;
+            const th = Math.sin(t * Math.PI) * maxThick;
+            const r = radius + th * 0.55 + bristle;
+            const px = Math.cos(a) * r, py = Math.sin(a) * r;
+            if (i === 0) c.moveTo(px, py);
+            else c.lineTo(px, py);
+          }
+          for (let i = steps; i >= 0; i--) {
+            const t = i / steps;
+            const a = startA + t * (endA - startA);
+            const th = Math.sin(t * Math.PI) * maxThick;
+            const r = radius - th * 0.45;
+            const px = Math.cos(a) * r, py = Math.sin(a) * r;
+            c.lineTo(px, py);
+          }
+          c.closePath();
+          c.fillStyle = `rgba(10, 8, 14, ${bladeAlpha * 0.95})`;
+          c.fill();
+
+          // 2-B. 飛白狼毫細線 (Calligraphic Flying White / Feathery Strokes)
+          c.strokeStyle = `rgba(24, 18, 30, ${bladeAlpha * 0.85})`;
+          c.lineWidth = 1.6;
+          for (let f = 1; f <= 2; f++) {
+            c.beginPath();
+            for (let i = 0; i <= steps; i++) {
+              const t = i / steps;
+              const a = startA + t * (endA - startA);
+              const r = radius + Math.sin(t * Math.PI) * (maxThick * (0.2 + f * 0.18));
+              const px = Math.cos(a) * r, py = Math.sin(a) * r;
+              if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+            }
+            c.stroke();
+          }
+
+          // 2-C. 狐火烈焰炎芯 (Blazing Foxfire Flaming Core)
+          c.strokeStyle = `rgba(255, 60, 20, ${bladeAlpha * 0.95})`;
+          c.lineWidth = maxThick * 0.45;
+          c.lineCap = "round";
+          c.beginPath();
+          c.arc(0, 0, radius, startA + 0.08, endA - 0.08);
+          c.stroke();
+
+          // 內層高熱金光 (Golden Hot Core)
+          c.strokeStyle = `rgba(255, 190, 50, ${bladeAlpha * 0.92})`;
+          c.lineWidth = maxThick * 0.22;
+          c.beginPath();
+          c.arc(0, 0, radius, startA + 0.14, endA - 0.14);
+          c.stroke();
+
+          // 鋒刃極限白熱光芒 (Razor Sharp White Core Line)
+          c.strokeStyle = `rgba(255, 255, 240, ${bladeAlpha * 0.98})`;
+          c.lineWidth = 2.4;
+          c.beginPath();
+          c.arc(0, 0, radius, startA + 0.20, endA - 0.20);
+          c.stroke();
+
+          // 2-D. 逆向燃燒妖火齒羽 (Flame Tendrils / Barbs)
+          const barbCount = 8;
+          for (let b = 1; b < barbCount; b++) {
+            const t = b / barbCount;
+            const a = startA + t * (endA - startA);
+            const barbLen = 16 + (Math.sin(seed * 3.3 + b * 2.1) * 7);
+            const isFlame = b % 2 === 0;
+
+            c.strokeStyle = isFlame
+              ? `rgba(255, 140, 30, ${bladeAlpha * 0.9})`
+              : `rgba(12, 10, 16, ${bladeAlpha * 0.85})`;
+            c.lineWidth = isFlame ? 2.2 : 3.0;
+
+            const bx0 = Math.cos(a) * radius;
+            const by0 = Math.sin(a) * radius;
+            const tangA = a - Math.PI * 0.55;
+            const bx1 = bx0 + Math.cos(tangA) * barbLen;
+            const by1 = by0 + Math.sin(tangA) * barbLen;
+
+            c.beginPath();
+            c.moveTo(bx0, by0);
+            c.lineTo(bx1, by1);
+            c.stroke();
+          }
+
+          // 2-E. 飛散墨滴與狐火星芒 (Ejected Ink Drops & Foxfire Embers)
+          const sparkCount = 14;
+          for (let k = 0; k < sparkCount; k++) {
+            const kt = (k / sparkCount);
+            const sang = startA + kt * (endA - startA);
+            const scatter = (Math.sin(seed * 5.7 + k * 3.9) * 22);
+            const distProgress = (phase === "active" ? progress : 1.0) * 28;
+            const sr = radius + scatter + distProgress;
+            const sx = Math.cos(sang) * sr;
+            const sy = Math.sin(sang) * sr;
+            const isInk = k % 2 === 0;
+
+            if (isInk) {
+              c.fillStyle = `rgba(12, 8, 16, ${bladeAlpha * 0.9})`;
+              c.beginPath();
+              c.arc(sx, sy, 2.2, 0, 6.283);
+              c.fill();
+            } else {
+              c.fillStyle = k % 4 === 1 ? "#ffe082" : "#ff5522";
+              c.beginPath();
+              c.arc(sx, sy, 2.8, 0, 6.283);
+              c.fill();
+            }
+          }
+
+          // 候選模式無圖時，清楚標記原因與安全回落 (如 GPT missing 或 Banana waiting alpha)
+          if (candidateMode !== "legacy") {
+            c.save();
+            c.font = "11px sans-serif";
+            c.fillStyle = `rgba(255, 100, 100, ${bladeAlpha * 0.9})`;
+            c.textAlign = "center";
+            const reasonTag = candidateMode === "gpt"
+              ? (artStatus === "waiting_alpha" ? "GPT waiting alpha" : (artStatus === "missing" ? "GPT missing" : `GPT ${artStatus}`))
+              : (artStatus === "waiting_alpha" ? "banana waiting alpha" : (artStatus === "missing" ? "banana missing" : `${candidateMode} ${artStatus}`));
+            c.fillText(`[FUSION ART: ${reasonTag} -> fallback legacy]`, radius * 0.6, -maxThick - 12);
+            c.restore();
+          }
+        }
+      }
+      c.restore();
+    };
+
+    const viewport = typeof window !== "undefined" ? window.VIEWPORT : null;
+    if (!is2D && viewport?.upright) {
+      viewport.upright(c, x, y, paintBlade);
+    } else {
+      paintBlade();
+    }
+
+    c.restore();
+    return true;
+  }
+
+  function drawFusionThundercircle(c, x, y, radius, phase, progress, seed, is2D, tilt, motion, elapsed) {
+    c.save();
+    c.translate(x, y);
+    if (!is2D) {
+      c.scale(1, tilt); // 地面雷陣扁平透視
+    }
+
+    const r = radius || 230;
+    const rotSpeed = motion ? elapsed * 1.5 : 0;
+    const alpha = phase === "warn"
+      ? (0.4 + 0.3 * Math.sin(elapsed * 10))
+      : phase === "active"
+      ? Math.min(1, Math.sin(progress * Math.PI) * 1.2)
+      : Math.max(0, 1 - progress);
+
+    // M2-FUSION-ART-BIND-R1：bind 模式用真圖陣域取代程序雷紋環，
+    // 但保留 active 的放射雷芒（機制指示：脈衝落雷）。
+    const bindOwnsMain = fusionBindEnabled();
+
+    // 1. 外環雷紋結界圈 (Outer Thunder Trigram Seal Ring)
+    if (!bindOwnsMain) {
+      c.strokeStyle = phase === "warn"
+        ? `rgba(255, 200, 80, ${alpha * 0.65})`
+        : `rgba(140, 230, 255, ${alpha * 0.92})`;
+      c.lineWidth = 3.2;
+      c.beginPath();
+      c.arc(0, 0, r, 0, 6.283);
+      c.stroke();
+
+      // 2. 8 芒雷紋刻度 (8 Trigram / Tomoe Ticks)
+      c.save();
+      c.rotate(rotSpeed + seed);
+      c.lineWidth = 2.4;
+      for (let i = 0; i < 8; i++) {
+        const a = (i * Math.PI) / 4;
+        const x0 = Math.cos(a) * (r - 16);
+        const y0 = Math.sin(a) * (r - 16);
+        const x1 = Math.cos(a) * (r + 8);
+        const y1 = Math.sin(a) * (r + 8);
+        c.beginPath();
+        c.moveTo(x0, y0);
+        c.lineTo(x1, y1);
+        c.stroke();
+      }
+      c.restore();
+    }
+
+    // 3. 內圈落雷中心與脈衝 (Center Thunder Strike Grounding)
+    if (phase === "active") {
+      c.fillStyle = `rgba(180, 240, 255, ${alpha * 0.35})`;
+      c.beginPath();
+      c.arc(0, 0, r * 0.45 * progress, 0, 6.283);
+      c.fill();
+
+      // 放射雷芒 (Radiating Lightning Arcs)
+      c.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.95})`;
+      c.lineWidth = 2.0;
+      for (let j = 0; j < 6; j++) {
+        const ja = (j * Math.PI) / 3 + seed;
+        const jlen = r * (0.3 + 0.6 * progress);
+        const jmidX = Math.cos(ja) * jlen * 0.5 + (Math.sin(j * 4.7 + elapsed * 20) * 12);
+        const jmidY = Math.sin(ja) * jlen * 0.5 + (Math.cos(j * 4.7 + elapsed * 20) * 12);
+        c.beginPath();
+        c.moveTo(0, 0);
+        c.quadraticCurveTo(jmidX, jmidY, Math.cos(ja) * jlen, Math.sin(ja) * jlen);
+        c.stroke();
+      }
+    }
+
+    c.restore();
+    return true;
+  }
+
+  // M2-FUSION #3: 雷狐居合 (katana + thunder)
+  function drawFusionFoxiai(c, x, y, angle, radius, progress, seed, phase, is2D, tilt, motion, elapsed, targetX, targetY) {
+    c.save();
+    c.translate(x, y);
+
+    const r = radius || 220;
+    const finalAngle = (targetX !== null && targetY !== null)
+      ? Math.atan2(targetY - y, targetX - x)
+      : angle;
+    c.rotate(finalAngle);
+
+    // M2-FUSION-ART-BIND-R1：bind 模式改由真圖 phase 層負責（不再走 legacy 候選圖，
+    // 也避免同一個檔案被兩條路徑重複請求）。
+    const bindOwnsMain = fusionBindEnabled();
+    const candidateImg = (!bindOwnsMain && typeof window !== "undefined")
+      ? (window.FUSION_ART?.fusion_foxiai || (window.loadFusionKindArt ? window.loadFusionKindArt("fusion_foxiai") : null))
+      : null;
+    const isArtReady = !bindOwnsMain && !!(candidateImg && candidateImg.naturalWidth > 0);
+
+    const alpha = phase === "warn"
+      ? (0.35 + 0.35 * Math.sin(elapsed * 12))
+      : phase === "active"
+      ? Math.min(1, Math.sin(progress * Math.PI) * 1.3)
+      : Math.max(0, 1 - progress);
+
+    if (isArtReady) {
+      c.save();
+      c.globalAlpha = alpha;
+      const imgAspect = candidateImg.naturalWidth / candidateImg.naturalHeight || 1.49;
+      const targetW = r;
+      const targetH = targetW / imgAspect;
+      // Orientation: 來源凸鋒在西(左 x=93)、凹口開口及拖尾在東(右 x=1207)
+      // 局部攻擊座標內翻轉：translate(targetW, 0) -> scale(-1, 1)
+      // 確保凸鋒迎敵前向(+forward at targetW)、凹口前向投影小於凸鋒(接近角色核心 x=0)
+      c.translate(targetW, 0);
+      c.scale(-1, 1);
+      c.drawImage(candidateImg, 0, -targetH * 0.5, targetW, targetH);
+      c.restore();
+
+      // 微量電弧火花粒子（保留主體真圖視覺）
+      if (phase === "active") {
+        for (let i = 0; i < 4; i++) {
+          const px = r * (0.25 + i * 0.22);
+          const py = Math.sin(seed * 3.3 + i * 2.1 + elapsed * 10) * 6;
+          c.fillStyle = i % 2 === 0 ? "#80e5ff" : "#ffffff";
+          c.beginPath();
+          c.arc(px, py, 1.8, 0, 6.283);
+          c.fill();
+        }
+      }
+
+      c.save();
+      c.font = "11px sans-serif";
+      c.fillStyle = `rgba(180, 240, 255, ${alpha * 0.85})`;
+      c.textAlign = "center";
+      c.fillText("[FUSION ART: 雷狐居合 (loaded)]", targetW * 0.5, -targetH * 0.5 - 6);
+      c.restore();
+    } else if (!bindOwnsMain) {
+      if (phase === "warn") {
+        c.strokeStyle = `rgba(180, 220, 255, ${alpha * 0.65})`;
+        c.lineWidth = 1.8;
+        c.setLineDash([8, 6]);
+        c.beginPath();
+        c.moveTo(0, 0);
+        c.lineTo(r, 0);
+        c.stroke();
+        c.setLineDash([]);
+      } else {
+        c.strokeStyle = `rgba(220, 245, 255, ${alpha * 0.9})`;
+        c.lineWidth = 2.4;
+        c.beginPath();
+        c.moveTo(0, 0);
+        c.lineTo(r * (phase === "active" ? Math.min(1, progress * 1.5) : 1), 0);
+        c.stroke();
+
+        for (let i = 0; i < 4; i++) {
+          const px = r * (0.2 + i * 0.22);
+          const py = Math.sin(seed * 3.3 + i * 2.1 + elapsed * 10) * 8;
+          c.fillStyle = i % 2 === 0 ? "#80e5ff" : "#ffffff";
+          c.beginPath();
+          c.arc(px, py, 1.8, 0, 6.283);
+          c.fill();
+        }
+
+        c.save();
+        c.font = "11px sans-serif";
+        c.fillStyle = `rgba(140, 200, 255, ${alpha * 0.85})`;
+        c.textAlign = "center";
+        c.fillText("[FUSION TECH: 雷狐居合 WAITING_ART]", r * 0.5, -12);
+        c.restore();
+      }
+    }
+
+    c.restore();
+    return true;
+  }
+
+  // M2-FUSION #4: 退魔符刃 (katana + boom)
+  function drawFusionExorcistblade(c, x, y, angle, radius, spread, progress, seed, phase, is2D, tilt, motion, elapsed) {
+    c.save();
+    c.translate(x, y);
+    c.rotate(angle);
+
+    const r = radius || 200;
+    const sp = spread || 1.8;
+    // M2-FUSION-ART-BIND-R1：bind 模式改由真圖 phase 層負責。
+    const bindOwnsMain = fusionBindEnabled();
+    const candidateImg = (!bindOwnsMain && typeof window !== "undefined")
+      ? (window.FUSION_ART?.fusion_exorcistblade || (window.loadFusionKindArt ? window.loadFusionKindArt("fusion_exorcistblade") : null))
+      : null;
+    const isArtReady = !bindOwnsMain && !!(candidateImg && candidateImg.naturalWidth > 0);
+
+    const alpha = phase === "warn"
+      ? (0.35 + 0.35 * Math.sin(elapsed * 12))
+      : phase === "active"
+      ? Math.min(1, Math.sin(progress * Math.PI) * 1.3)
+      : Math.max(0, 1 - progress);
+
+    if (isArtReady) {
+      c.save();
+      c.globalAlpha = alpha;
+      const imgAspect = candidateImg.naturalWidth / candidateImg.naturalHeight || 1.49;
+      const targetW = r;
+      const targetH = targetW / imgAspect;
+      // Orientation: 來源凸刃在西(左 x=148)、凹口刀柄及符火拖尾在東(右 x=1161)
+      // 局部攻擊座標內翻轉：translate(targetW, 0) -> scale(-1, 1)
+      // 確保凸鋒迎敵前向(+forward at targetW)、凹口前向投影小於凸鋒(接近角色核心 x=0)
+      c.translate(targetW, 0);
+      c.scale(-1, 1);
+      c.drawImage(candidateImg, 0, -targetH * 0.5, targetW, targetH);
+      c.restore();
+
+      // 微量符文金火餘燼（保留主體真圖視覺）
+      if (phase === "active") {
+        const halfSp = sp * 0.5;
+        for (let i = 0; i < 4; i++) {
+          const a = -halfSp + (i / 3) * sp;
+          const px = Math.cos(a) * r * 0.95;
+          const py = Math.sin(a) * r * 0.95;
+          c.fillStyle = i % 2 === 0 ? "#ffd54f" : "#ff7043";
+          c.beginPath();
+          c.arc(px, py, 2.0, 0, 6.283);
+          c.fill();
+        }
+      }
+
+      c.save();
+      c.font = "11px sans-serif";
+      c.fillStyle = `rgba(255, 220, 100, ${alpha * 0.85})`;
+      c.textAlign = "center";
+      c.fillText("[FUSION ART: 退魔符刃 (loaded)]", targetW * 0.5, -targetH * 0.5 - 6);
+      c.restore();
+    } else if (!bindOwnsMain) {
+      const halfSp = sp * 0.5;
+      if (phase === "warn") {
+        c.strokeStyle = `rgba(255, 180, 50, ${alpha * 0.65})`;
+        c.lineWidth = 1.8;
+        c.setLineDash([8, 6]);
+        c.beginPath();
+        c.arc(0, 0, r, -halfSp, halfSp);
+        c.stroke();
+        c.setLineDash([]);
+      } else {
+        c.strokeStyle = `rgba(255, 230, 120, ${alpha * 0.9})`;
+        c.lineWidth = 2.4;
+        c.beginPath();
+        c.arc(0, 0, r, -halfSp, halfSp);
+        c.stroke();
+
+        for (let i = 0; i < 4; i++) {
+          const a = -halfSp + (i / 3) * sp;
+          const px = Math.cos(a) * r;
+          const py = Math.sin(a) * r;
+          c.fillStyle = i % 2 === 0 ? "#ffd54f" : "#ff7043";
+          c.beginPath();
+          c.arc(px, py, 2.2, 0, 6.283);
+          c.fill();
+        }
+
+        c.save();
+        c.font = "11px sans-serif";
+        c.fillStyle = `rgba(255, 200, 80, ${alpha * 0.85})`;
+        c.textAlign = "center";
+        c.fillText("[FUSION TECH: 退魔符刃 WAITING_ART]", r * 0.5, -12);
+        c.restore();
+      }
+    }
+
+    c.restore();
+    return true;
+  }
+
+  // M2-FUSION #5: 妖火結界 (fire + barrier)
+  function drawFusionFoxfirebarrier(c, x, y, radius, progress, seed, phase, is2D, tilt, motion, elapsed) {
+    c.save();
+    c.translate(x, y);
+
+    const r = radius || 180;
+    // M2-FUSION-ART-BIND-R1：bind 模式改由真圖 phase 層負責。
+    const bindOwnsMain = fusionBindEnabled();
+    const candidateImg = (!bindOwnsMain && typeof window !== "undefined")
+      ? (window.FUSION_ART?.fusion_foxfirebarrier || (window.loadFusionKindArt ? window.loadFusionKindArt("fusion_foxfirebarrier") : null))
+      : null;
+    const isArtReady = !bindOwnsMain && !!(candidateImg && candidateImg.naturalWidth > 0);
+
+    const alpha = phase === "warn"
+      ? (0.35 + 0.35 * Math.sin(elapsed * 10))
+      : phase === "active"
+      ? Math.min(1, Math.sin(progress * Math.PI) * 1.2)
+      : Math.max(0, 1 - progress);
+
+    if (isArtReady) {
+      c.save();
+      c.globalAlpha = alpha;
+      // 地陣 2D / .60 不二次壓得過扁：素材已帶 2.5D 透視 (h/w ~0.67)
+      // 在 2.5D tilt.60 下直接維持自然透視寬高，不額外 scale(1, tilt)；在純 2D 下維持均勻圓形
+      const targetW = r * 2.0;
+      const targetH = is2D ? (r * 2.0) : (targetW * (candidateImg.naturalHeight / candidateImg.naturalWidth || 0.67));
+      c.drawImage(candidateImg, -targetW * 0.5, -targetH * 0.5, targetW, targetH);
+      c.restore();
+
+      // 環繞狐火微光粒子 (4 顆，不遮蔽主體)
+      if (phase === "active") {
+        const rot = motion ? elapsed * 1.8 : 0;
+        const orbitRx = targetW * 0.48;
+        const orbitRy = targetH * 0.48;
+        for (let i = 0; i < 4; i++) {
+          const a = rot + (i * Math.PI * 0.5);
+          const fx = Math.cos(a) * orbitRx;
+          const fy = Math.sin(a) * orbitRy;
+          c.fillStyle = i % 2 === 0 ? "#ff5722" : "#ffb74d";
+          c.beginPath();
+          c.arc(fx, fy, 2.2, 0, 6.283);
+          c.fill();
+        }
+      }
+
+      c.save();
+      c.font = "11px sans-serif";
+      c.fillStyle = `rgba(255, 140, 80, ${alpha * 0.85})`;
+      c.textAlign = "center";
+      c.fillText("[FUSION ART: 妖火結界 (loaded)]", 0, -targetH * 0.5 - 8);
+      c.restore();
+    } else if (!bindOwnsMain) {
+      if (!is2D) c.scale(1, tilt);
+      c.strokeStyle = phase === "warn" ? `rgba(255, 120, 60, ${alpha * 0.6})` : `rgba(255, 90, 40, ${alpha * 0.85})`;
+      c.lineWidth = 2.2;
+      c.beginPath();
+      c.arc(0, 0, r, 0, 6.283);
+      c.stroke();
+
+      const rot = motion ? elapsed * 1.8 : 0;
+      for (let i = 0; i < 4; i++) {
+        const a = rot + (i * Math.PI * 0.5);
+        const fx = Math.cos(a) * r;
+        const fy = Math.sin(a) * r;
+        c.fillStyle = i % 2 === 0 ? "#ff5722" : "#ffb74d";
+        c.beginPath();
+        c.arc(fx, fy, 2.5, 0, 6.283);
+        c.fill();
+      }
+
+      c.save();
+      c.font = "11px sans-serif";
+      c.fillStyle = `rgba(255, 120, 70, ${alpha * 0.85})`;
+      c.textAlign = "center";
+      c.fillText("[FUSION TECH: 妖火結界 WAITING_ART]", 0, -r - 10);
+      c.restore();
+    }
+
+    c.restore();
+    return true;
+  }
+
+  // M2-FUSION #9: 退魔封陣 (barrier + boom)
+  function drawFusionExorcistseal(c, x, y, radius, progress, seed, phase, is2D, tilt, motion, elapsed, pulseIndex) {
+    c.save();
+    c.translate(x, y);
+
+    const r = radius || 210;
+    // M2-FUSION-ART-BIND-R1：bind 模式改由真圖 phase 層負責。
+    const bindOwnsMain = fusionBindEnabled();
+    const candidateImg = (!bindOwnsMain && typeof window !== "undefined")
+      ? (window.FUSION_ART?.fusion_exorcistseal || (window.loadFusionKindArt ? window.loadFusionKindArt("fusion_exorcistseal") : null))
+      : null;
+    const isArtReady = !bindOwnsMain && !!(candidateImg && candidateImg.naturalWidth > 0);
+
+    const alpha = phase === "warn"
+      ? (0.35 + 0.35 * Math.sin(elapsed * 10))
+      : phase === "active"
+      ? Math.min(1, Math.sin(progress * Math.PI) * 1.2)
+      : Math.max(0, 1 - progress);
+
+    if (isArtReady) {
+      c.save();
+      c.globalAlpha = alpha;
+      // 地陣 2D / .60 不二次壓得過扁：素材已帶 2.5D 透視 (h/w ~0.67)
+      const targetW = r * 2.0;
+      const targetH = is2D ? (r * 2.0) : (targetW * (candidateImg.naturalHeight / candidateImg.naturalWidth || 0.67));
+      c.drawImage(candidateImg, -targetW * 0.5, -targetH * 0.5, targetW, targetH);
+      c.restore();
+
+      // 4 方位微光符文節點 + 震波脈衝 (不覆蓋主體)
+      if (phase === "active") {
+        const nodeRx = targetW * 0.47;
+        const nodeRy = targetH * 0.47;
+        for (let i = 0; i < 4; i++) {
+          const a = (i * Math.PI * 0.5) + seed;
+          const nx = Math.cos(a) * nodeRx;
+          const ny = Math.sin(a) * nodeRy;
+          c.fillStyle = "#ffe082";
+          c.beginPath();
+          c.arc(nx, ny, 2.5, 0, 6.283);
+          c.fill();
+        }
+
+        const pulseScale = ((progress * 1.2 + pulseIndex * 0.2) % 1.0);
+        c.strokeStyle = `rgba(255, 240, 180, ${alpha * 0.45})`;
+        c.lineWidth = 1.4;
+        c.beginPath();
+        if (typeof c.ellipse === "function") {
+          c.ellipse(0, 0, targetW * 0.5 * pulseScale, targetH * 0.5 * pulseScale, 0, 0, 6.283);
+        } else {
+          c.arc(0, 0, r * pulseScale, 0, 6.283);
+        }
+        c.stroke();
+      }
+
+      c.save();
+      c.font = "11px sans-serif";
+      c.fillStyle = `rgba(255, 215, 0, ${alpha * 0.85})`;
+      c.textAlign = "center";
+      c.fillText("[FUSION ART: 退魔封陣 (loaded)]", 0, -targetH * 0.5 - 8);
+      c.restore();
+    } else if (!bindOwnsMain) {
+      if (!is2D) c.scale(1, tilt);
+      c.strokeStyle = phase === "warn" ? `rgba(255, 200, 50, ${alpha * 0.6})` : `rgba(255, 215, 0, ${alpha * 0.85})`;
+      c.lineWidth = 2.2;
+      c.beginPath();
+      c.arc(0, 0, r, 0, 6.283);
+      c.stroke();
+
+      for (let i = 0; i < 4; i++) {
+        const a = (i * Math.PI * 0.5) + seed;
+        const nx = Math.cos(a) * r;
+        const ny = Math.sin(a) * r;
+        c.fillStyle = "#ffe082";
+        c.beginPath();
+        c.arc(nx, ny, 3.0, 0, 6.283);
+        c.fill();
+      }
+
+      if (phase === "active") {
+        const pulseR = r * ((progress * 1.2 + pulseIndex * 0.2) % 1.0);
+        c.strokeStyle = `rgba(255, 240, 180, ${alpha * 0.5})`;
+        c.lineWidth = 1.6;
+        c.beginPath();
+        c.arc(0, 0, pulseR, 0, 6.283);
+        c.stroke();
+      }
+
+      c.save();
+      c.font = "11px sans-serif";
+      c.fillStyle = `rgba(255, 200, 60, ${alpha * 0.85})`;
+      c.textAlign = "center";
+      c.fillText("[FUSION TECH: 退魔封陣 WAITING_ART]", 0, -r - 10);
+      c.restore();
+    }
+
+    c.restore();
+    return true;
+  }
+
+  // System-A 新增五組的技術占位 VFX（未接新美術；只用既有輔助線／粒子語言）
+  // 不含程序幾何冒充正式藝術；標籤明示 WAITING_ART。
+  function drawFusionSystemA(c, effect, is2D, tilt, motion, elapsed) {
+    const kind = effect.kind;
+    const x = Number.isFinite(effect.x) ? effect.x : 0;
+    const y = Number.isFinite(effect.y) ? effect.y : 0;
+    const phase = effect.phase || "active";
+    const progress = Number.isFinite(effect.progress) ? Math.max(0, Math.min(1, effect.progress)) : 0;
+    const seed = Number.isFinite(effect.seed) ? effect.seed : 0;
+    const alpha = phase === "warn"
+      ? 0.35 + 0.35 * Math.sin(elapsed * 10)
+      : phase === "active"
+        ? Math.min(1, Math.sin(progress * Math.PI) * 1.2)
+        : Math.max(0, 1 - progress);
+
+    c.save();
+    c.translate(x, y);
+
+    // M2-FUSION-ART-BIND-R1：bind 模式已接真圖 main phase；
+    // 下列標籤改標示「main 已綁真圖、其餘 phase 仍待圖」，不冒稱已有正式美術。
+    const bindOn = fusionBindEnabled();
+    const bindNote = bindOn ? "main=真圖 / hit・ground・icon WAITING_ART" : "WAITING_ART";
+
+    if (kind === "fusion_slashwheel") {
+      const r = Number.isFinite(effect.currentRadius) ? effect.currentRadius : (effect.radius || 320);
+      c.strokeStyle = `rgba(140, 230, 220, ${alpha * 0.9})`;
+      c.lineWidth = 2.6;
+      for (const band of (effect.bands || [])) {
+        if (r < band.at - 2) continue;
+        c.beginPath();
+        c.arc(0, 0, band.at, 0, 6.283);
+        c.stroke();
+      }
+      c.save();
+      c.rotate((motion ? elapsed * 5 : 0) + seed);
+      c.strokeStyle = `rgba(235, 255, 255, ${alpha * 0.55})`;
+      c.lineWidth = 1.4;
+      for (let i = 0; i < 6; i++) {
+        const a = (i * Math.PI) / 3;
+        c.beginPath();
+        c.moveTo(Math.cos(a) * 40, Math.sin(a) * 40);
+        c.lineTo(Math.cos(a) * Math.max(40, r), Math.sin(a) * Math.max(40, r));
+        c.stroke();
+      }
+      c.restore();
+      c.fillStyle = `rgba(255, 240, 180, ${alpha * 0.8})`;
+      c.font = "11px sans-serif";
+      c.textAlign = "center";
+      c.fillText(`[FUSION TECH: 斬界輪 ${bindNote}]`, 0, -(r || 320) - 12);
+    }
+
+    if (kind === "fusion_foxthunderlantern") {
+      for (const ln of (effect.lanterns || [])) {
+        const lx = (Number.isFinite(ln.x) ? ln.x : x) - x;
+        const ly = (Number.isFinite(ln.y) ? ln.y : y) - y;
+        c.strokeStyle = `rgba(255, 205, 90, ${alpha * 0.8})`;
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.moveTo(lx, ly - 26);
+        c.lineTo(lx, ly - 8);
+        c.stroke();
+        c.fillStyle = `rgba(255, 225, 130, ${alpha * (ln.struck ? 0.35 : 0.85)})`;
+        c.beginPath();
+        c.arc(lx, ly, ln.struck ? 5 : 8, 0, 6.283);
+        c.fill();
+        if (ln.struck) {
+          c.strokeStyle = `rgba(150, 235, 255, ${alpha * 0.55})`;
+          c.lineWidth = 1.4;
+          c.beginPath();
+          c.arc(lx, ly, effect.strikeRadius || 64, 0, 6.283);
+          c.stroke();
+        }
+      }
+      c.fillStyle = `rgba(255, 240, 180, ${alpha * 0.8})`;
+      c.font = "11px sans-serif";
+      c.textAlign = "center";
+      c.fillText(`[FUSION TECH: 狐雷天燈 ${bindNote}]`, 0, -(effect.strikeRadius || 64) - 22);
+    }
+
+    if (kind === "fusion_flamefestival") {
+      for (const t of (effect.talismans || [])) {
+        const tx = (Number.isFinite(t.x) ? t.x : x) - x;
+        const ty = (Number.isFinite(t.y) ? t.y : y) - y;
+        c.save();
+        c.translate(tx, ty);
+        c.rotate(Math.atan2(t.targetY - t.fromY, t.targetX - t.fromX) + Math.PI * 0.5);
+        c.fillStyle = `rgba(255, 120, 60, ${alpha * (t.exploded ? 0.2 : 0.85)})`;
+        c.fillRect(-4, -9, 8, 18);
+        c.restore();
+        if (t.exploded) {
+          c.strokeStyle = `rgba(255, 150, 80, ${alpha * 0.65})`;
+          c.lineWidth = 1.6;
+          c.beginPath();
+          c.arc(tx, ty, effect.landRadius || 62, 0, 6.283);
+          c.stroke();
+        }
+      }
+      for (const em of (effect.embers || [])) {
+        if (em.ticksLeft <= 0) continue;
+        const ex = (Number.isFinite(em.x) ? em.x : x) - x;
+        const ey = (Number.isFinite(em.y) ? em.y : y) - y;
+        c.fillStyle = `rgba(255, 110, 60, ${alpha * 0.35 * Math.max(0, em.ticksLeft / (effect.emberTicks || 2))})`;
+        c.beginPath();
+        c.arc(ex, ey, effect.emberRadius || 48, 0, 6.283);
+        c.fill();
+      }
+      c.fillStyle = `rgba(255, 240, 180, ${alpha * 0.8})`;
+      c.font = "11px sans-serif";
+      c.textAlign = "center";
+      c.fillText(`[FUSION TECH: 炎符祭 ${bindNote}]`, 0, -(effect.landRadius || 62) - 18);
+    }
+
+    if (kind === "fusion_thundertalisman") {
+      c.strokeStyle = `rgba(150, 225, 255, ${alpha * 0.85})`;
+      c.lineWidth = 2;
+      for (const arc of (effect.arcs || [])) {
+        c.beginPath();
+        c.moveTo(arc.x1 - x, arc.y1 - y);
+        const mx = (arc.x1 + arc.x2) * 0.5 - x + Math.sin((arc.x1 + arc.y1) * 0.05) * 18;
+        const my = (arc.y1 + arc.y2) * 0.5 - y + Math.cos((arc.x2 + arc.y2) * 0.05) * 18;
+        c.quadraticCurveTo(mx, my, arc.x2 - x, arc.y2 - y);
+        c.stroke();
+      }
+      for (const t of (effect.talismans || [])) {
+        const tx = (Number.isFinite(t.x) ? t.x : x) - x;
+        const ty = (Number.isFinite(t.y) ? t.y : y) - y;
+        c.fillStyle = `rgba(120, 210, 255, ${alpha * (t.struck ? 0.18 : 0.8)})`;
+        c.fillRect(tx - 4, ty - 10, 8, 20);
+        if (t.struck) {
+          c.strokeStyle = `rgba(190, 240, 255, ${alpha * 0.75})`;
+          c.lineWidth = 1.6;
+          c.beginPath();
+          c.arc(tx, ty, effect.strikeRadius || 70, 0, 6.283);
+          c.stroke();
+        }
+      }
+      c.fillStyle = `rgba(200, 240, 255, ${alpha * 0.8})`;
+      c.font = "11px sans-serif";
+      c.textAlign = "center";
+      c.fillText(`[FUSION TECH: 雷符神罰 ${bindNote}]`, 0, -(effect.strikeRadius || 70) - 20);
+    }
+
+    c.restore();
+    return true;
+  }
+
+  function drawFusionFx(targetCtx, effect, elapsed = 0) {
+    if (!effect || typeof effect !== "object") return false;
+    const kind = effect.kind;
+    const SUPPORTED_KINDS = new Set([
+      "fusion_inkblade",
+      "fusion_thundercircle",
+      "fusion_foxiai",
+      "fusion_exorcistblade",
+      "fusion_foxfirebarrier",
+      "fusion_exorcistseal",
+      "fusion_slashwheel",
+      "fusion_foxthunderlantern",
+      "fusion_flamefestival",
+      "fusion_thundertalisman"
+    ]);
+    if (!SUPPORTED_KINDS.has(kind)) return false;
+
+    const c = targetCtx || ctx;
+    if (!c) return false;
+
+    const viewport = window.VIEWPORT;
+    const is2D = typeof viewport?.is2D === "function" ? viewport.is2D() : false;
+    const tilt = tiltK();
+    const motion = allowsMotion();
+
+    const x = Number.isFinite(effect.x) ? effect.x : 0;
+    const y = Number.isFinite(effect.y) ? effect.y : 0;
+    const phase = effect.phase || "active";
+    const progress = Number.isFinite(effect.progress) ? Math.max(0, Math.min(1, effect.progress)) : 0;
+    const seed = Number.isFinite(effect.seed) ? effect.seed : 0;
+
+    // M2-FUSION-ART-BIND-R1：真圖 phase 綁定層（僅嚴格 dev 門檻生效）。
+    // 綁定層先畫真圖（ground → hit → main），下面的 legacy 程序幾何只留機制指示。
+    drawFusionBindLayers(c, effect, is2D, tilt, motion, elapsed);
+
+    if (kind === "fusion_inkblade") {
+      const angle = Number.isFinite(effect.angle) ? effect.angle : 0;
+      const radius = Number.isFinite(effect.radius) ? effect.radius : 195;
+      const spread = Number.isFinite(effect.spread) ? effect.spread : 2.3;
+      const burnDuration = Number.isFinite(effect.burnDuration) ? effect.burnDuration : 0.8;
+      const burnAge = Number.isFinite(effect.burnAge) ? effect.burnAge : 0;
+      return drawFusionInkblade(c, x, y, angle, radius, spread, phase, progress, seed, burnDuration, burnAge, is2D, tilt, motion, elapsed);
+    }
+
+    if (kind === "fusion_thundercircle") {
+      const radius = Number.isFinite(effect.radius) ? effect.radius : 230;
+      return drawFusionThundercircle(c, x, y, radius, phase, progress, seed, is2D, tilt, motion, elapsed);
+    }
+
+    if (kind === "fusion_foxiai") {
+      const angle = Number.isFinite(effect.angle) ? effect.angle : 0;
+      const radius = Number.isFinite(effect.radius) ? effect.radius : 220;
+      const targetX = Number.isFinite(effect.targetX) ? effect.targetX : (Number.isFinite(effect.x2) ? effect.x2 : null);
+      const targetY = Number.isFinite(effect.targetY) ? effect.targetY : (Number.isFinite(effect.y2) ? effect.y2 : null);
+      return drawFusionFoxiai(c, x, y, angle, radius, progress, seed, phase, is2D, tilt, motion, elapsed, targetX, targetY);
+    }
+
+    if (kind === "fusion_exorcistblade") {
+      const angle = Number.isFinite(effect.angle) ? effect.angle : 0;
+      const radius = Number.isFinite(effect.radius) ? effect.radius : 200;
+      const spread = Number.isFinite(effect.spread) ? effect.spread : 1.8;
+      return drawFusionExorcistblade(c, x, y, angle, radius, spread, progress, seed, phase, is2D, tilt, motion, elapsed);
+    }
+
+    if (kind === "fusion_foxfirebarrier") {
+      const radius = Number.isFinite(effect.radius) ? effect.radius : 180;
+      return drawFusionFoxfirebarrier(c, x, y, radius, progress, seed, phase, is2D, tilt, motion, elapsed);
+    }
+
+    if (kind === "fusion_exorcistseal") {
+      const radius = Number.isFinite(effect.radius) ? effect.radius : 210;
+      const pulseIndex = Number.isFinite(effect.pulseIndex) ? effect.pulseIndex : 0;
+      return drawFusionExorcistseal(c, x, y, radius, progress, seed, phase, is2D, tilt, motion, elapsed, pulseIndex);
+    }
+
+    if (kind === "fusion_slashwheel" || kind === "fusion_foxthunderlantern"
+      || kind === "fusion_flamefestival" || kind === "fusion_thundertalisman") {
+      return drawFusionSystemA(c, effect, is2D, tilt, motion, elapsed);
+    }
+
+    return false;
   }
 
   return {
@@ -1572,6 +4664,10 @@ window.RENDERER = (() => {
     drawMistParallax,
     setDepthStage(id) { depthStageId = id || ""; },
     groundCacheStats: () => ({ builds: groundCacheBuilds, pixelScale: terrainState?.pixelScale || 0, width: terrainCv?.width || 0, height: terrainCv?.height || 0 }),
+    invalidateGroundCache,
+    s2CoastDrawEvidence,
+    s2GroundKitDrawEvidence,
+    resetS2GroundKitDrawCounts,
     sceneryDepth,
     drawHouse,
     drawHouseShadow,
@@ -1580,17 +4676,37 @@ window.RENDERER = (() => {
     drawMonsterShadow,
     drawDecorActor,
     drawPortProp,
+    getPortBounds,
+    paintPortBoundedTerrain,
+    drawPortSceneLayers,
     drawDistrictLabels,
     drawScenerySprite,
     drawPlayer,
     drawFrame,
     drawMonster,
+    drawStage2Actor,
+    drawUmibozuWaterBase,
+    drawBossHazard: drawPortBossHazard,
+    drawPortBossHazard,
+    isOrbitBack,
+    shouldDrawOrbitFlame,
+    getOrbitDepthStyle,
+    drawFoxfireOrbit,
+    drawFusionFx,
     drawGemShadow,
     drawSpiritGem,
     renderLighting,
     drawDamageNumbers,
     drawSlashArcs,
     drawAtmosphere,
+    drawPortAtmosphereRain,
+    loadS2NanoAssets,
+    getS2NanoStone,
+    getS2NanoWood,
+    getS2NanoTransH,
+    getS2NanoTransV,
+    getS2NanoWarehouse,
+    getS2NanoFishmonger,
     getShakeOffset() {
       if (!allowsMotion() || shake === 0) return { x: 0, y: 0 };
       return {

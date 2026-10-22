@@ -63,10 +63,27 @@
   }
 
   let saveFailed = false;
+  let saveTimer = null;
   const save = () => {
+    if (saveTimer !== null) { clearTimeout(saveTimer); saveTimer = null; }
     try { localStorage.setItem(K, JSON.stringify(d)); saveFailed = false; }
     catch { saveFailed = true; }
   };
+  // 答題類高頻寫入改 500ms 去抖；關卡開始/結算仍立即寫。flush() 立刻寫出待存資料。
+  const flush = () => { if (saveTimer !== null) save(); };
+  const saveSoon = () => {
+    // 沒有 pagehide/visibilitychange 可 flush 的環境（Node 測試等）維持同步寫入。
+    if (!lifecycleFlush || typeof setTimeout !== "function") { save(); return; }
+    if (saveTimer !== null) return;
+    saveTimer = setTimeout(() => { saveTimer = null; save(); }, 500);
+    if (saveTimer && typeof saveTimer.unref === "function") saveTimer.unref();
+  };
+  const lifecycleFlush = typeof root.addEventListener === "function"
+    && typeof document !== "undefined" && !!document && typeof document.addEventListener === "function";
+  if (lifecycleFlush) {
+    root.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", () => { if (document.hidden) flush(); });
+  }
 
   const get = jp => d.m[jp] || (d.m[jp] = { ok: 0, ng: 0, box: 0, lastSeen: 0, missBoost: 1 });
 
@@ -106,14 +123,14 @@
       m.box = Math.max(0, m.box - 1);
       m.missBoost = 2.5;
     }
-    save();
+    saveSoon();
   }
 
   function recAssisted(jp) {
     const m = get(jp);
     m.ok++;
     m.lastSeen = Date.now();
-    save();
+    saveSoon();
   }
 
   function recRecall(wordOrJp, nowMs = Date.now()) {
@@ -126,7 +143,7 @@
       m.ok++;
       m.lastSeen = Date.now();
       m.missBoost = 1;
-      save();
+      saveSoon();
       return;
     }
     rec(jp, true);
@@ -225,7 +242,8 @@
   }
 
   const api = {
-    canSave: () => !saveFailed,
+    canSave: () => { flush(); return !saveFailed; },
+    flush,
     data: d,
     get,
     getStageStats,

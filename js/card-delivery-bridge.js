@@ -70,6 +70,40 @@ function readRaw(storage, key) {
   catch { return null; }
 }
 
+// 每頁載入一次的唯一 id。game.js 組 cardEventId 時可附上，避免重整後序號從 0 重算被誤判重複。
+// 不可用 Math.random：測試與遊戲以種子控制 Math.random，多抽一次會改變整局亂數序列。
+const SESSION_ID = (() => {
+  let tail = "";
+  try {
+    const c = globalThis.crypto;
+    if (c && typeof c.getRandomValues === "function") tail = c.getRandomValues(new Uint32Array(1))[0].toString(36);
+  } catch { tail = ""; }
+  return Date.now().toString(36) + tail;
+})();
+
+// 快取：同一份 storage／key 的原始字串沒變時，不重 parse／migrate。
+const parsedCache = new WeakMap();
+
+function cachedState(storage, key) {
+  let text = null;
+  try { text = storage.getItem(key); } catch { text = null; }
+  let byKey = parsedCache.get(storage);
+  if (!byKey) { byKey = new Map(); parsedCache.set(storage, byKey); }
+  const hit = byKey.get(key);
+  if (hit && hit.text === text) return copyState(hit.state);
+  let raw = null;
+  try { raw = JSON.parse(text || "null"); } catch { raw = null; }
+  const state = cards.migrate(raw, raw ? undefined : readRaw(storage, LEARNING_KEY));
+  byKey.set(key, { text, state: copyState(state) });
+  return copyState(state);
+}
+
+function rememberSaved(storage, key, text, state) {
+  let byKey = parsedCache.get(storage);
+  if (!byKey) { byKey = new Map(); parsedCache.set(storage, byKey); }
+  byKey.set(key, { text, state: copyState(state) });
+}
+
 const unsaved = new WeakMap();
 
 function copyState(state) {
@@ -120,10 +154,9 @@ function openCards(storage, loc, packs) {
   const key = cardKey(loc);
   const held = heldFor(storage);
   const catalog = Array.isArray(packs) ? packs : defaultPacks();
-  const raw = readRaw(storage, key);
   let state = held.has(key)
     ? copyState(held.get(key))
-    : copyState(cards.migrate(raw, readRaw(storage, LEARNING_KEY)));
+    : cachedState(storage, key);
   return {
     key,
     snapshot: () => state,
@@ -141,8 +174,10 @@ function openCards(storage, loc, packs) {
       }
       held.set(key, copyState(state));
       try {
-        storage.setItem(key, JSON.stringify(state));
+        const text = JSON.stringify(state);
+        storage.setItem(key, text);
         held.delete(key);
+        rememberSaved(storage, key, text, state);
         return Object.assign({}, result, { persisted: true, storageError: null, newAwards });
       } catch (error) {
         return Object.assign({}, result, { persisted: false, storageError: storageErrorOf(error), newAwards });
@@ -158,6 +193,7 @@ const api = {
   OFFICIAL_KEY,
   DEV_KEY,
   LEARNING_KEY,
+  SESSION_ID,
   cardKey,
   availablePool,
   choose,
