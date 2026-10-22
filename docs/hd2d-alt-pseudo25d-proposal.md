@@ -2,8 +2,8 @@
 
 > **主線決策（2026-10-12）**：後續只維護本方案；先前 WebGL 雙畫布方向退出，不建立第二套渲染管線。可採納的光照、圖層與測試規範已收斂在本文件 §2。
 > **目標**：維持單一 Canvas 2D，呈現斜視地面、挺立角色、夜色與暖光；不引入 WebGL。
-> **狀態（2026-10-12）**：Stage 0 安全開關與 Stage 1 可視原型已實作並完成第一輪 Chrome 對照，但尚未經真人視覺選型、長時間或實機驗收；未 commit / deploy。後續【待驗證】仍須逐項完成。
-> **更新（2026-10-12）**：已選定 **`TILT_K=0.60`**，並在本機工作樹設定為遊戲預設試玩視角；Y 方向建築間距暫提高 20%，留有 `?tilt=1` 原 2D 回退。**線上正式版未變更，未 Commit／Push／Deploy**。完整 Stage 2–4 光影、技能與實機性能仍待驗收。
+> **狀態（2026-10-13 更新）**：B1–B4 本機自動驗收通過（OC 88/88 + Node 603/603），B5 平衡待測；P8 使用者試玩確認放行；P7 真機硬體量測（FPS/P95/RAM/溫度）及 TTS 實聲待補。
+> **更新（2026-10-13）**：已選定 **`TILT_K=0.60`**，並在本機工作樹設定為遊戲預設試玩視角；Y 方向建築間距為 1.20，留有 `?tilt=1` 原 2D 回退。P6 自動化驗收已通過；P2–P5 渲染實作於本機整合驗證通過，主觀視覺 P8 已獲使用者確認放行，P7 真機實測數據待補。B 階段關卡 3–8 內容與入口（B1–B4）本機自動驗收通過，B5 自然平衡待測。**未 Commit／Push／Deploy**。
 
 ---
 
@@ -339,3 +339,106 @@ upright(P.x, P.y,      () => RENDERER.drawPlayer(P, …));  // 玩家
 - 全部 9 張新 WebP 實際路徑已接上 `js/assets.js`；`service-worker.js` 透過 `tools/build-media-cache.cjs` 重建，共 194 項媒體版本指紋，排除未上線的本機 PNG 草稿。
 - `npm test` 完整跑過 571 項，571 pass、0 fail；已處理符咒 WebP 測試名及靈陣測試 Canvas mock，舊地坪測試依現況限制淡化筆觸。
 - 行動裝置網路與真機 FPS、Boss 音樂實機播放仍需部署後人工複核。
+
+## 22. 2026-10-13 Codex／Cursor／AGY／Opencode 2.5D 整合現況與 P2–P8 階段閘門
+
+> **定稿（seq126）**：本節 §22.5 之 P6 `[x]` 與 [oc-seq126-final-verification.md](../artifacts/validation/hd25d-integration/evidence/oc-seq126-final-verification.md) 為最新狀態。早先「P6 未放行／修復中」「Lv1 fixed-age 待重拍」「production 4 檔未改」等敘述若仍見於舊快照或對話，**已由本定稿取代**（`failure-evidence/` 歷史保留）。
+
+### 22.1 Codex／Cursor／AGY／Opencode 協同分工與整合成果
+
+1. **Codex**：
+   - 幾何與驗收契約裁決（0.60+1.20、`SQ/k`、groundSquash、 upright 分類）；P 階段閘門與 `roadmap.md`／本提案對齊。
+   - 正式素材接入規格（9 張 WebP：靈陣 2、符咒 3、天雷 4；§17 為歷史 Gemini 單招試驗紀錄，非現行四角色分工名）。
+2. **Cursor**：
+   - Production 核心渲染與幾何補償（`sy/k`、`SQ/k`、`gy=1/k`、雷柱雲接合、marker 同幀 shake）；驗收工具 S10 固定事件時間（`tools/hd25d-p6-canvas.cjs` `df4ae925...`）。
+   - 驗收期間 production 四檔雜湊自 seq117 起未變（P6 跑次 JS_STABLE；P2–P5 渲染實作已於本整合輪落地，≠整輪未改渲染）。
+   - 視覺真圖審查：Lv3 貫穿雷柱、Lv2 barrier、Lv4 boom、混技 tide 與 partial fallback 等（721 張 PNG 索引）。
+3. **AGY**：
+   - 獨立 CTM 幾何工具 `tools/hd25d-agy-transform.cjs`（SHA-256: `cc398fdc6181b06a0ed3824b2a96c1fe66d63e130fc793dfab636109e03fd728`，已凍結）。
+   - 真 Chrome CTM：地面 netY=0.6000、刀氣 **18 筆**（3 傾角×6 角度）、潮來文字 netY=1.0000、Boss marker 同幀 shake（三 $k$ `count: 4`，漂移 $\le 1\times 10^{-5}$）；4 例負向控制全捕捉。
+4. **Opencode**：
+   - Node **582/582** exit 0；P6 **combined** seq117 full + seq126 受影響補測（`--only=S3,S8,S10`，800/800）覆蓋 **S1–S11**。
+   - 獨立核對 AGY 原始 CTM 與 S10 336 影格（五階×三 tilt、30 strike draw>0）；正式報告：[oc-seq126-final-verification.md](../artifacts/validation/hd25d-integration/evidence/oc-seq126-final-verification.md)。
+
+### 22.2 AGY Chrome Headless CTM 幾何專項實測數據
+
+- **負向控制（Negative Control）自檢**：
+  - 4 個已知缺陷案例：地面二次壓扁（$s_y=0.36$ vs $0.60$）、妖刀未直立旋轉剪切（剪切非零、軸比失真）、潮來文字未直立壓扁（$s_y=0.60$ vs $1.00$）、未捕獲事件（$\text{count}=0$ 閘門）。
+  - 自檢結果：4 項負向案例均被精確攔截，證明檢驗具有效攔截能力（嚴格限定該 4 案例，不外推宣稱涵蓋所有未知回歸）。
+- **真實 Chrome Canvas CTM 實測數據（除去 Viewport Base Scale 歸一化，OC 獨立枚舉核對）**：
+  1. **地面粒子 Authored $s_y = 0.60$ 歸一化不變性**：透過 `FX.particles().at(-1).s` 唯一識別目標 Sprite，在 $k \in \{1.0, 0.8, 0.6\}$ 下實測 $\text{net } Y = s_v / s_u = 0.6000$（誤差 $0.0000$），全數通過。
+  2. **妖刀全角度直立旋轉對稱性**：過濾妖刀 Sprite，在 $k \in \{1.0, 0.8, 0.6\}$ 與 6 個旋轉角度（$0^\circ, 30^\circ, 45^\circ, 60^\circ, 90^\circ, 135^\circ$）共 18 筆測試中，全部命中指定角度且 $\text{count} > 0$；實測軸長比 $\text{ratio} = 1.0000$、正交內積剪切 $\text{skew} = 0.00000$，$\text{net } Y$ 與 1 之最大偏差為 $1.56\times 10^{-8}$，全數通過，無非等向壓縮與剪切。
+  3. **潮來警示文字直立不變性**：精確攔截 `ctx.fillText("潮來！站上亮帶")`，在 $k \in \{1.0, 0.8, 0.6\}$ 下實測文字高度 $\text{net } Y = s_v / s_u = 1.0000$（誤差 $0.0000$），全數通過。
+  4. **Boss 螢幕追蹤標記（大妖鬼）同幀 Shake 獨立非零捕獲與量測**：
+     - 透過 HTTP 記憶體注入受控 setter（`window.__agySetBossHunt`，不改動磁碟 production / fixture），實測 Boss Sprite draw 與 `fillText("大妖鬼")` 於 Shake={12, -8} 與 Shake={0, 0} 之位移比對。
+     - 保存 4 份原始 captures 與未四捨五入 raw metrics；三 $k$ `count: 4`（4 份均非零），兩者同幀使用相同 `frameShakeOffset`，相對偏移漂移 $\le 1\times 10^{-5}$（完全鎖定無分離），且 Y 軸震動位移隨傾角 $k$ 正確縮放（$k=1.0: -8.00, k=0.8: -6.40, k=0.6: -4.80$，無 mirror 公式，真 Chrome 獨立 draw 通過）。
+
+### 22.3 P5 原驗收要求完整保留
+
+P5 不得簡化為僅 9 張 WebP 的容量盤點，原驗收指標完整保留並持續列管：
+- **按需載入（Lazy-load）**：取得技能後才下載正式素材，確保不拖慢首屏載入時間與首頁啟動進度。
+- **程序式回退（Procedural Fallback）**：各品質檔及缺圖、解碼失敗（partial 404）時之程序化平滑降級機制已接圖並保留驗證。
+- **下載容量與行動端記憶體尖峰**：實際下載容量（目前 9 張 WebP 合計 6,808,928 bytes，相較原 PNG 節省 45.3%）、行動端解碼（decode，RGBA 像素緩衝區估算約 32.34 MiB，明確標示非 mobile GPU 實際佔用）及 GPU 記憶體尖峰控制。
+- **邊界與接合視覺品質**：Alpha 白邊／棋盤雜點（checkerboard noise）、透明留白、天雷柱與雷雲接合平滑性等，均列為待真圖終審與真機覆核項目，不因轉 WebP 或靜態盤點直接放行。
+
+### 22.4 Production 防污染校驗、服務一致性與詳細雜湊
+
+- **被測 Production 檔案雜湊與服務一致性**：
+  - Production 四檔（`js/fx.js`, `js/game.js`, `js/renderer.js`, `js/skillfx.js`）在本機 8788 HTTP 200，served SHA-256 與 disk 一致。
+  - **驗收期間**（seq117–seq126 P6 跑次）四檔雜湊未變（`JS_STABLE=True`）；≠宣稱整輪整合未改任何渲染（P2–P5 已落地）。
+- **工作樹保護精確宣告**：
+  - 既有未提交檔案**保護基準 50 項**中，本輪僅 `roadmap.md` 獲授權局部更新；排除 `roadmap.md` 後其餘 **49 項 SHA-256 均未變更（SHA unchanged）**。本提案 `docs/hd2d-alt-pseudo25d-proposal.md` 亦獲授權更新，但**不屬該 50 項基準**，故不計入「50 減 2 卻寫 49」之矛盾。
+  - 本次任務嚴格未進行 `git commit`、`git push` 或部署（deploy）操作。
+- **驗證環境詳細雜湊清單（SHA-256）**：
+
+```json
+{
+  "gitHead": "796516c0c846bcf9226988e1e44e0f824a4eea68",
+  "productionFiles": {
+    "js/fx.js": "52e2d08fe1523e8f8ea9262132a8c9061a7356f01d1e21bfb505bb053a267537",
+    "js/game.js": "e03c74e98d5d4cd20c4cc36c2bc300c0194babf5d5aa05b2630dc280449c406b",
+    "js/renderer.js": "ae13d08027564f0cd398ab7242c7b2ef929c35986c790e5f8299661222cb550b",
+    "js/skillfx.js": "ee2968cb71d47ae525d0a89f58cdf7a831f0e6d151a177cd1cef1f6e6b756086"
+  },
+  "jsAggregateSha256": "088E084BC66BF89A39DB6001E3EA2EF70AE53724ADF72BA4D5CED87B857F82C0",
+  "verificationTools": {
+    "tools/hd25d-p6-canvas.cjs": "df4ae925798bbd264d1b91476710366c1eacbd1f1dd0a240b1c56b608af33d36",
+    "tools/hd25d-agy-transform.cjs": "cc398fdc6181b06a0ed3824b2a96c1fe66d63e130fc793dfab636109e03fd728"
+  },
+  "protectedFilesStatus": {
+    "totalBaseline": 50,
+    "authorizedModified": ["roadmap.md", "docs/hd2d-alt-pseudo25d-proposal.md"],
+    "unrelatedUnchanged": 49,
+    "unrelatedShaMatch": true
+  }
+}
+```
+
+### 22.5 P0–P8 階段閘門現況與決策不變性
+
+核心幾何決策維持不變：戰鬥傾角採 **0.60**、建築間距採 **1.20**、支援 **2D ↔ 2.5D 平滑過渡與安全回退**。
+
+- **P0 傾角決策及動態對照基準**：`[x]`（0.60 本機候選，9 支獨立 MP4＋3 支三欄比較 MP4）。
+- **P1 2.5D 基礎程式與安全回退**：`[x]`（viewport.js 投影／upright、0.8s 平滑過渡、相機置中、接地影與經驗珠直立）。
+- **P2 六種技能空間分類及二次壓扁清理**：`[~]`（已實作／本機驗證，真機待 P7，主觀視覺 P8 已確認；幾何專項已驗證妖刀 18 筆旋轉對稱無剪切、地面粒子 netY=0.6000；雷柱 Lv5 硬切修復與混技 tide 文字層真圖已確認有效，Lv3 貫穿雷柱實證；**S10 固定時間事件影格已實拍通過**（336 影格、五階×三 tilt、30 strike draw>0 全通過，seq126 OC 核對））。
+- **P3 物件接地、遠近遮擋與文字分類**：`[~]`（已實作／本機驗證，真機待 P7，主觀視覺 P8 已確認；文字 netY=1.0000 通過；Boss marker 同幀 shake $\Delta$ 幾何一致性成立且 drift $\le 1\times 10^{-5}$；靜態排序已確認但接地動態待驗證）。
+- **P4 夜戰、照明與景深整合**：`[~]`（已實作／本機驗證，真機待 P7，主觀視覺 P8 已確認；光照、霧氣、遠景柔焦已接入，動態視覺待審）。
+- **P5 正式素材透明度、視覺與載入容量**：`[~]`（已實作／本機驗證，真機待 P7，主觀視覺 P8 已確認；9 張 WebP 已接入，lazyload/回退/頻寬/行動端解碼尖峰/白邊/棋盤雜點/接合平滑性列待驗）。
+- **P6 最新 Chrome 與 Node 完整回歸**：`[x]`（**自動驗收通過：full+受影響補測，Chrome headless；明列非 P7**；Node 582/582 exit 0 全數通過；combined seq117 full + seq126 S3/S8/S10 補測 exit 0 800/800 檢查通過，S1–S11 全覆蓋；336 事件關鍵影格涵蓋 3 實測 tilt 各 112、五階齊備、30 strike draw>0、6 storm-child cloud==1；S8 刀氣 18 筆偏差 $\le 1.56\times 10^{-8}$、ground 0.6000、文字 1.0000、Boss marker drift $\le 1\times 10^{-5}$；root 親看真圖確認有效；明列非 P7 實機，headless 模擬尺寸不代表實機效能／觸控）。
+- **P7 自然遊玩、手機與平板實機壓力／手感**：`[ ]`（**未驗，數據待補**；桌機 1280×800 與實體手機／平板 10–20 分鐘 FPS/P95/RAM/溫度等硬體數據及 TTS 實體發聲待補）。
+- **P8 2.5D 整合收尾／使用者驗收關卡**：`[x]`（**已放行**；使用者確認目前試玩沒問題，P8 視覺手感正式放行，授權 B 階段先行實作）。
+- **B1–B4 關卡 3–8 詞庫、語音、短劇與關卡實裝**：`[x]`（**本機自動驗收通過**；OC 88/88 exit 0 全數通過，含 8 真 won、16 反向 play、8 STORE reload 一致、11 地圖入口及截圖無例外；Node 603/603 pass；見 `artifacts/validation/b-stage/oc-final-verification.md`）。
+- **B5 教學平衡與錯題複習**：`[~]`（**詞池與錯題加權已驗，全 8 關 10min 自然平衡待測**；第 8 關 yomi 164 詞池與錯題加權已確認，自然戰鬥時長與平衡調優待實測）。
+
+### 22.6 歷史失敗紀錄、方法邊界與限制說明
+
+- **歷史真實失敗紀錄保留（真實錯誤歷史，不省略）**：
+  - **seq108（exit 1）**：44 筆 transition080 傾角不符（宣告 0.8、實測 0.6）；Lv1 strike 無柱卻未被判定，根因為以 rAF 幀數當 age 而雷柱 life 僅 0.28s（保存於 `failure-evidence/seq108-exit1/`）。
+  - **seq122/seq117（exit 1）**：392 檢查中唯一失敗為 S8 katana 以 `length === 3` 判定，但實際為 3 傾角 × 6 角度 = 18 筆，屬門檻基數誤植；幾何本身 18 筆全數通過（保存於 `failure-evidence/seq122-katana-count/`）。
+  - 上述歷史失敗已於修訂後之 `tools/hd25d-p6-canvas.cjs`（`df4ae9...`）與 seq126 獨立補測中完全修正並驗證通過。
+- **檢驗方法限制與邊界（嚴禁外推與過度宣稱）**：
+  1. **S3 之 transition080 不是固定 0.8 五階證明**：S3 為真實 rAF 自然過渡，捕獲時實測過渡終點 `actualTiltAtCapture` $\approx 0.6$；固定 0.8 五階已由 S10 專門事件影格完整覆蓋與驗證。
+  2. **S10 僅覆蓋受控測試場景**：敵人、時間、位置、技能等級皆為受控設定，不代表自然戰鬥多變狀態。
+  3. **模擬 Viewport 不等於實機硬體**：所有截圖與 CTM 量測均在 Chrome Headless 模擬解析度（1280×800, 844×390, 1194×834）下完成，不可作為實機觸控、GPU 算力或散熱表現之依據。
+  4. **記憶體估算非實機 GPU RAM**：WebP 解碼估算 32.34 MiB 僅為 RGBA 像素緩衝區理論大小，非行動裝置真實 GPU 記憶體與驅動開銷。
+  5. **P7 實機全部未測、P8 已獲使用者試玩放行、B1–B4 本機自動驗收通過、B5 平衡待測**：Node 603/603 與 OC 88/88 通過，P8 手感放行，B1–B4 落地並通過本機驗收；P7 真機數據（FPS/P95/RAM/溫度/TTS）與 B5 全 8 關 10min 自然平衡後續進行。

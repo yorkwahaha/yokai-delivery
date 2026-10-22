@@ -2,3 +2,21 @@
 /coverage/
 /.cleanup-archive/
 /art/media-source-backup/
+
+# Local QA evidence, browser profiles, snapshots and media-production intermediates.
+# Intentionally NOT part of the student-facing GitHub Pages build.
+/scratch/
+/art/
+
+# Kilo/Herdr personal machine settings and generated Python caches.
+/.kilo/
+**/__pycache__/
+*.pyc
+
+# Unapproved Stage 2 experimental surfaces and far-future scene candidates.
+# Keep locally for artist review; promote explicitly with git add -f only after approval.
+/assets/img/rain-port/*candidate*
+/assets/img/rain-port/port_harbor_sea_surface.png
+/assets/img/rain-port/ground_stone_nano_v3_seamless.png
+/assets/img/ground_yomi.webp
+/assets/img/scenery/ground_yomi.webp

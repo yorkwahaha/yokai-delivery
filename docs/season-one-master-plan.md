@@ -1,5 +1,14 @@
 # 妖怪快遞社 Yokai Delivery｜第一季遊戲企劃與製作總計畫
 
+## 2026-10-15 15:27｜生圖額度、Codex 接手與不用人審的工程項目（最新查核）
+
+- AGY 專用 image-generator 子 Agent 於台灣時間 2026-10-15 08:15:34，呼叫 gemini-3.1-flash-image 第三張圖遭 Google RESOURCE_EXHAUSTED 429。原始 quotaResetTimeStamp = 2026-10-20T08:26:52Z，即 **10 月 20 日 16:26:52 台灣時間**。這是服務端重置預告，在此之前不要反覆生圖測額度；AGY 文字／程式功能正常。
+- Codex 現在的 GPT-6.1-Sol High 工作階段已實際確認具備原生 image_gen__imagegen 工具與 imagegen Skill，可獨立替代 AGY 生產候選圖，但仍受該工具自身配額；未獲人審的圖不可接正式遊戲。沒有使用者明確要求生圖時不消耗圖像生成額度。
+- 已建立本機 M1 檢查點 54a4690（2026-10-15 15:15），不代表 337 筆殘留 dirty 被異地備份；目前仍不自動 Push／Deploy。
+
+**非人審後續最有價值的工作**：Kilo 核對第3–8關 enemy.bossTheme 是否有真正 Boss AI consumer，若已定義既有 slam／charge／ring／tide 模板可安全按資料配置，只做資料接口接線，不自行創造未核准攻擊或改平衡；其次執行代表關卡近10分鐘的連續運行／記憶體／升級／配送時序檢查，不得把加速模擬或 Chrome 無人操控稱為真人試玩。Muse 只處理真Chrome手機橫式及平板 Stage3–8 的可重現 Boss／結算／圖鑑／2D-2.5D遮擋或觸控 Bug。AGY 當前不用再整理已PASS審圖工具或重試429。
+沒有安全且實際玩家有感的剩餘工程，應標 WAITING_ART、WAITING_DEVICE 或 WAITING_HUMAN，而非製造測試／空轉。
+
 ## 2026-10-15｜使用者授權本機 Checkpoint Commit（取代舊禁止 commit 條款）
 
 使用者已明確同意：每完成且驗證通過一個重要里程碑，自動建立一次本機 Git Checkpoint Commit；沒有授權 Push 或 Deploy。

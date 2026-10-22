@@ -304,6 +304,73 @@ test('temporary playback cancellation and policy rejection never permanently dis
  assert.equal(clips.length,2,name);assert.equal(calls,2,name);
  }
  });
+test('ofuda launch and burst use separate clips, replace voices, and respect mute/suspension',()=>{
+  const tracks=[];
+  class Audio {
+    constructor(src){this.src=src;this.paused=false;tracks.push(this);}
+    addEventListener(){} play(){return Promise.resolve();} pause(){this.paused=true;}
+  }
+  const env={window:{audioAsset:p=>p+'?v=test'},Audio,console,setTimeout,clearTimeout};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  const a=env.window.AUDIO;
+  for(const level of [1,2,3,4,5]){
+    a.ofudaLaunch(level);
+    const launch=tracks.at(-1);
+    assert.equal(launch.src,'assets/audio/sfx/ofuda.mp3?v=test');
+    a.ofudaLaunch(level);
+    assert.equal(launch.paused,true,'repeated launches replace the previous launch voice');
+    const currentLaunch=tracks.at(-1);
+    a.ofudaBurst(level);
+    assert.equal(tracks.at(-1).src,`assets/audio/sfx/boom-${level===5?'lv5':'lv1-4'}.mp3?v=test`);
+    assert.equal(currentLaunch.paused,false,'burst must not replace the launch voice');
+    const burst=tracks.at(-1);
+    a.ofudaBurst(level);
+    assert.equal(burst.paused,true,'repeated bursts replace the previous burst voice');
+  }
+  const count=tracks.length;
+  a.toggleMute(); a.ofudaLaunch(1); a.ofudaBurst(5);
+  assert.equal(tracks.length,count);
+  a.toggleMute(); a.setSuspended(true); a.ofudaLaunch(1); a.ofudaBurst(5);
+  assert.equal(tracks.length,count);
+  a.setSuspended(false); a.ofudaLaunch(1);
+  assert.equal(tracks.at(-1).src,'assets/audio/sfx/ofuda.mp3?v=test');
+});
+
+test('unsupported ofuda clips fall back to their original launch/burst synthesizers',async()=>{
+  const tracks=[];
+  class Audio {
+    constructor(src){this.src=src;tracks.push(this);}
+    addEventListener(){} pause(){}
+    play(){return Promise.reject(Object.assign(new Error('unsupported'),{name:'NotSupportedError'}));}
+  }
+  const env={window:{AudioContext:PlaybackTestContext},Audio,console,setTimeout,clearTimeout};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  const a=env.window.AUDIO;
+  for(const [method,level,file] of [['ofudaLaunch',1,'ofuda'],['ofudaBurst',1,'boom-lv1-4'],['ofudaBurst',5,'boom-lv5']]){
+    const starts=PlaybackTestContext.starts;
+    a[method](level); await drainAudio();
+    assert.equal(tracks.at(-1).src,`assets/audio/sfx/${file}.mp3`);
+    assert.equal(PlaybackTestContext.starts,starts+1,'failed clip must synthesize once');
+    const count=tracks.length;
+    a[method](level); await drainAudio();
+    assert.equal(tracks.length,count,'unsupported clip must not be requested repeatedly');
+    assert.equal(PlaybackTestContext.starts,starts+2);
+  }
+});
+
+test('buffered ofuda playback is replaced, stopped on suspension, and never replayed on wake',async()=>{
+  const f=bufferedAudioFixture();
+  f.a.ofudaLaunch(1);
+  assert.deepEqual(f.requested,['assets/audio/sfx/ofuda.mp3?v=test']);
+  f.load(); await drainAudio();
+  f.a.ofudaLaunch(5); await drainAudio();
+  assert.equal(f.sources.length,2); assert.equal(f.sources[0].stopped,true);
+  f.a.setSuspended(true);
+  assert.equal(f.sources[1].stopped,true);
+  f.a.setSuspended(false); await drainAudio();
+  assert.equal(f.sources.length,2);
+});
+
  test('a genuine unsupported MP3 uses synthesis and suppresses repeat requests',async()=>{
  const starts=PlaybackTestContext.starts;
  let calls=0;class Audio{constructor(src){this.src=src;}addEventListener(){}pause(){}play(){calls++;return Promise.reject(Object.assign(new Error('unsupported'),{name:'NotSupportedError'}));}}

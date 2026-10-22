@@ -1,6 +1,146 @@
 # 妖怪快遞社｜官方製作計畫
 
-版本：2026-10-16／Stage1-first。產品規格見 [GAME_DESIGN_MASTER](GAME_DESIGN_MASTER.md)，實際狀態見 [roadmap](../roadmap.md)，協作入口見 [AGENTS](../AGENTS.md)。本文件是派工與 gate 依據；新會話已明確授權 Herdr Codex 分工執行 M1→M6。已派票及證據見末段與 roadmap 頂部，不表示已實作或已核准發布。
+### 2026-10-22｜S2新地表本機DEV候選已收／可開真頁，無縫未過
+
+p2原票及計數最小退修後正式停寫，Herdr completion seq325。新gate `dev=1&stage=rain-port&s2ground=kit` 已接assets／renderer，4石／3木世界座標穩定混鋪，v01按實圖作橫界，h/c無合法位置不硬鋪。10圖全解碼／manifest SHA相符，31.72MiB冷載，原PNG／manifest及game／world／ui／index均不變。14張真混鋪／方向診斷與7張真頁PNG可開；有2D／.60、石木交界、真左右位移+368／−230、Canvas source證據、四負向頁0新圖request。該視野僅實見4石／wood02／03／v，wood01載入未觀察到；不以pick或loaded冒充draw。
+
+收 **DEV_INTEGRATION_TECH_PASS_SCOPED**；root獨立8/8專測、真gate7案、真selector及tileImage非空繪製反例通過。接縫與重複 **TECH_QA_FAIL／WAITING_USER_REVIEW**，不ART_PASS、不投產、不代表自然局／實機／ABC整體通過。正式推薦URL **http://127.0.0.1:8895/index.html?dev=1&stage=rain-port&s2ground=kit**，rootHTTP200／listener PID52420且帶audio-freeze；舊8893 listener停止重啟命令被自動審核拒絕未執行，改新guarded端口、不藉Agent繞過。啟動命令、完整SHA／原圖保護與[收件證據](../scratch/s2-ground-kit/integrate-r1/SUMMARY.md)見[roadmap頂部](../roadmap.md)。無付費／生圖／Git發布，凍結區與dirty保留，Codex文件檢查後停寫。
+
+### 2026-10-22｜S2真十圖已核／新DEV-only接入票真執行中
+
+來源阻塞解除：root完整解碼`art/s2/`十張1254² RGB、逐筆SHA對manifest吻合，共31.72MiB；保留原manifest與候選未無縫狀態。舊preview／edge-qa stub不能算成果。空閒p2 MiniMax Free已接 **ART-S2DEV-INTEGRATE-R1 working seq294**，獨占assets／renderer、原preview工具、自身新test與scratch；p5工具ownership交回p2，p4不喚醒，game／world／ui／index保持凍結。只新`dev=1&stage=rain-port&s2ground=kit`可讀新4石／3木／3過渡，舊gate不混圖、無gate零新圖請求。
+
+要求真CLI混鋪／接縫診斷及音訊阻斷Chrome兩鏡頭／短走動／network與drawImage證據、真可用listener URL；接縫可TECH_QA_FAIL但不自動ART_PASS，不改原圖／人審狀態／正式assets。**目前派工已確認，接線／preview／真頁仍待收件**；精確SHA與界線見[roadmap頂部](../roadmap.md)。無付費／生圖／Git發布，凍結區與dirty保護。
+
+### 2026-10-22｜配送補正結清／受控技術範圍通過
+
+08補正及新verifier／log SHA已由root核實，舊4f710d14 runtime確為GREEN／exit0，先前RED exit1敘述撤回；新結果是**歷史量測檔重評**的舊檔FAIL／exit1、最終檔PASS／exit0，root已guarded重跑並另核兩檔各20完成列，不冒稱重跑舊runtime。logs/02／06無exit marker，FINAL需與作者4/4、35/35及root前輪獨立4/4共同引用；原raw／07保留，以08與SUMMARY更正為準。game91f01255／world91aaca4b／test bf952a63均未變，收 **CONTROLLED_RUNTIME_PASS_SCOPED／EVIDENCE_CORRECTION_CLOSED**，無需再退補正或改production。
+
+自然局／無候選動態路徑／舊#6同序號／實機與ABC最終整合仍未驗。C補件completion seq283、新地表工具done seq287各待獨立收件，不能以idle／done算PASS；art/s2仍缺，WAITING_SOURCE_FILES、未接新圖。Codex本次僅核證與文件diff檢查，不新派／付費／生圖／改JS／Git發布，凍結區及dirty保護，正式停寫；詳[roadmap頂部](../roadmap.md)。
+
+### 2026-10-22｜配送受控機制收件／只退證據口徑補正
+
+p2正式停寫done seq286，game固定 **91f01255cbff25d9**、world未改；root獨立guarded配送專測 **4/4 exit0**與前後SHA一致。作者最終35/35 log已核（配送4＋其他受影響31），不引用舊39/39。FINAL為20個真互動／正解／resolve的受控完成，下一取貨同屋與<=2屋列皆0/19、跨chunk／pin20/20；非自然走路，完全無候選路徑與舊#6同序號未動態覆核，UI同期漂移，不能當ABC最終整合。game／world本次正式凍結。
+
+root發現名為RED的舊JSON實際verdict GREEN、log EXIT_CODE=0，與摘要／07的RED exit1不符；收 **CONTROLLED_RUNTIME_PASS／EVIDENCE_CORRECTION_PENDING**，只一次退p2自有文件／新更正證據，真working seq288，不授runtime寫權、不重跑長局，保留原raw與log。p4 C done seq283尚未root獨立收；p5 ART-S2DEV前置working seq285僅寫新工具／scratch，art/s2仍缺，WAITING_SOURCE_FILES，未接遊戲。文件補正及C獨立收完才排有界固定版ABC；自然局／實機仍待驗。詳[roadmap頂部](../roadmap.md)，Codex未改production／付費／發布，凍結區與dirty保護。
+
+### 2026-10-22｜S2新十張地表第一階段已派／來源未到，不等於接圖完成
+
+新批4石／3木／3石木過渡預期在`art/s2/`，1254² RGB與完整SHA待真manifest核驗，狀態ART_CANDIDATE_NOT_SEAMLESS。現查該目錄、根目錄ZIP及Downloads同名ZIP皆未到，**WAITING_SOURCE_FILES**；使用者下載`YokaiDelivery_S2_Ground_Candidates.zip`解壓至專案根即可。ZIP交接SHA與精確十檔見[roadmap頂部](../roadmap.md)，本機尚未驗證，不能用舊V3／MethodB補位或假稱匯入成功。
+
+p5確認原idle且無製作子程序後，已用現有Nemotron免費route接新 **ART-S2DEV-PREP-R1 working seq285**；只寫新`tools/s2-ground-preview.cjs`與`scratch/s2-ground-kit/**`，作缺圖明確WAITING_SOURCE的來源檢查／混鋪及邊界composition QA工具與契約，未改runtime。p2 game／world仍working seq281不打斷；p4 C done seq283但尚未獨立收件，UI／test不動。assets／renderer現有gate與canonical單材流程已唯讀盤點，新4/3/3及c過渡尚無runtime映射。**只有真派工回執，工具成果未收、圖片未到、接線及真遊戲未驗**。
+
+待真圖／manifest核驗且p2停寫固定SHA，另確認assets／renderer無writer並明確授權後才派隔離dev gate接入，保留無dev預設／現有建物道具與舊圖。自鋪／任意混鋪、3×3／6×6／10×10、2D／.60真走動須分別驗收，僅ART_FAIL或WAITING_USER_REVIEW，不自動ART_PASS。禁止付費／生圖／Git發布及音訊KEY／SW／正式圖變動；本輪總監文件diff檢查後停寫，不建常駐監控。
+
+### 2026-10-22｜C-R2已獨立收件／UI與配送隔離續作
+
+root核R2六筆SHA、16張PNG並親看直屏卡片：**C-F2結算安全字框單項PASS**；C-F1原重抽重疊已消除，但18.4／23.83 CSS與卡內文字溢出為新退修，C整體仍RETURN_REQUIRED，15/15不能作44 CSS證據。融合focus／inputMode保持PARTIAL；既有直屏指標限制與圖鑑導覽LOW不混修。game4f710d14只是QA時未漂移的工作版，不是ABC固定整合版。
+
+p2 QA已停並核done seq279，才交接角色：原owner p4 `SYS-C-MINIMAL-RETURN-R2` **working seq280**，只寫ui／自身test與新證據；免費MiniMax p2承接**原配送票** **working seq281**，唯一game／world與自身新測試／delivery-minimax-r1證據。p5 writer已撤、維持idle，不重試timeout。保留非debug成果與C-F2，UI須同時44 CSS／不重疊／說明可讀，配送須真完成20單consumer與跨chunk／不同屋／距離及#6負向、必要Stage1 Hard／Boss／A融合回歸；不得改oracle造綠。只有續派回執，尚無新PASS。兩票固定停寫後才安排ABC有界真頁整合，舊39/39不適用；自然局WAITING_USER、實機WAITING_DEVICE。詳[roadmap頂部](../roadmap.md)，無production改動／付費／生圖／Git發布，凍結區與dirty保護，Codex本次停寫。
+
+### 2026-10-22早｜NONART-RESUME-DIRECTOR-R2現況與owner關卡
+
+本次實查：p5 idle seq274，末屏Upstream idle timeout、delivery-r1無SUMMARY，game仍有兩處臨時debug鉤子，**配送不收件**。核p5 CLI程序樹只有Node／Kilo、無活躍delivery腳本或寫檔子程序後，正式收回其game／world writer；保留全部dirty及非debug候選，不回退、不盲試同provider。當前game SHA `4f710d14788e7615`、world `91aaca4b062044f2`，完整checkpoint見[roadmap頂部](../roadmap.md)。舊game96b2c375與39/39不證新版本。
+
+p4補件已交、idle／completion seq272；15/15不能取代可及性驗收，摘要自述直屏卡高18.4／23.8 CSS。p2既有 `SYS-C-POSTRETURN-ACCESSIBILITY-QA-R2` 真working seq275，尚無SUMMARY；QA停寫／固定SHA／真反例前不讓p4動UI，不重派。若QA證實regression，再一次退p4最小補件；p2釋出QA角色後才優先考慮同一已證免費MiniMax route承接配送唯一writer，現在尚未授權／派出配送新writer。
+
+配送續票須清理debug鉤子、保留其他成果，單seed真consumer先通，再交20個完成配送的距離／不同屋／跨chunk可達與負向、配送#6及Stage1 Hard／Boss／A融合受影響回歸，不改oracle造綠。等game／world與UI最終固定才派有界ABC真頁／十融合／Normal Hard Boss／2D .60驗收；自然十分鐘WAITING_USER、實體device／gamepad／FPS WAITING_DEVICE。本輪僅接管與文件diff檢查，無production修改、無重派或付費／生圖／Git發布，音訊KEY／SW／正式圖凍結，正式停寫。
+
+### 2026-10-22｜C獨立QA已收／最小退修進行中，ABC整合未放行
+
+C為 **RETURN_REQUIRED**：root核9筆SHA與24張PNG，親看升級卡／重抽重疊；原契約13/13不覆蓋這個HIGH。C-F1卡片footer重疊與C-F2結算文字安全區不足已一次退原owner p4，`SYS-C-MINIMAL-RETURN-R1`真working seq267，只改ui／自有test與自身摘要／新證據，不重做融合UI。圖鑑導覽<44 CSS為既有LOW另列，完整融合文案／焦點／inputMode及真機仍未全驗。四視口兩鏡頭及刻意404／壞體fallback是受控證據，不代表C整體PASS。p2已正式交件停寫，可見狀態仍seq261，未虛構done。
+
+p5配送票原blocked seq264是工具Permission required，非已證quota；總監未批准未完整審查命令，退出後核done seq269，再向同一owner續接原票，改單一固定seed的受控probe，真working seq270。未換模型／第二writer，game／world仍獨占；只有續作回執、成果未收。等p5及C補件各自固定SHA正式交件後才排ABC真頁整合／Stage1 Hard與Boss短回歸，不借用舊39/39。證據與精確範圍見[roadmap頂部](../roadmap.md)，無付費／生圖／Git發布／凍結區變更。
+
+### 2026-10-22｜非美術工程接管（SYS-NONART-DIRECTOR-R1）
+
+已真核既有票：p5 `S2-DELIVERY-DISTANCE-R1` **working seq260**，獨占game／world及自身新測試／證據；p2 `SYS-C-INDEPENDENT-QA-R1` **working seq261**，只寫自己的20261022 QA目錄。兩票成果未收，本輪未重派。C原owner p4 idle seq253，C SUMMARY已正式停寫但尚未獨立QA；等p2固定SHA與反例，必要時才交p4一次最小補件。A+B+C真頁整合／Stage1 Hard與Boss短程回歸須等p5 game固定版，若C退修再等C固定版，不沿用舊39/39或A舊Chrome作新版本PASS。
+
+已知非美術欠帳與owner／gate見[roadmap頂部](../roadmap.md)：C窄屏與fallback獨立驗收、雨港取貨距離與配送#6分別覆核、固定版ABC整合、正常六配送／Lv5／融合可達性、既有學習收藏存檔解鎖及build生命週期整合覆蓋。可自動短測與自然約10分鐘／手感分開，後者WAITING_USER_PLAYTEST；手機平板／實體手把／裝置FPS為WAITING_DEVICE。不是宣告這些既有系統未實作，也不因美術未核准停止獨立系統工作。Codex本輪只文件交接與diff檢查，無新票、無production修改／付費／生圖／發布；音訊、KEY、SW及全部dirty保護，正式停寫。
+
+### 2026-10-21｜美術待審期間系統三線並行（最新使用者授權）
+
+**SYS-A/B獨立收件**：MiniMax Free `wC:p2 done seq258`，A五筆SHA與摘要／Chrome一致，game固定 `96b2c375f802b617`、B config `7f46bd90213559a5`。A9/9、B5/5、既有consumer8/8及B runtime探針exit0，收A已測固定版技術範圍與B resolver真runtime整合；產品bug未發現。舊B39/39僅 **PRE_A_FINAL_BUILD**，不能引用為最終A回歸。Chrome僅8案例／5配方，窄屏一案、2D兩案；不涵蓋C最新UI、真頁Boss／per-cast去重、自然局或實機。C待獨立收件，三線未全完；詳roadmap頂部與root-ab-receipt。LOW建議留待原owner後續，本輪不追加派工。
+
+本票覆蓋下方舊「只做Batch1A／production凍結」工作快照，音訊與Git發布保護不變。A `wC:p5`（game／fusion／renderer）補十組合技的可玩閉環；B `wC:p2`（config／boss-ai／words僅pacing）做保留預設的難度節奏框架與量測；C `wC:p4`（ui／assets／controls／viewport／dev-mode／card-gallery-ui／必要index UI）做HUD、行動端與缺圖fallback。初派皆DeepSeek V4.1 Flash Free（歷史working seq224／225／226）；額度耗盡後A/C安全轉交Kilo Nemotron free，B已收件，MiniMax Free完成獨立QA；精確檔案白名單、B→A resolver接口、驗收與來源SHA基線見roadmap頂部。Codex只一次性派工／去重／必要收件，不高頻監工、不跨寫production；三線尚未完工，不以working或舊PASS結案。美術未審不接production、不新增付費圖像／模型呼叫，不動音訊TTSBGM／KEY；禁stage／commit／push／deploy／reset／clean／checkout。正式停寫交件後才獨立核變更檔、本機證據、真阻塞與下一步。
+
+### 2026-10-20｜Batch1A 無付費前置／現場 w9（最新票）
+
+Codex `w9:p1` 唯一總監與 roadmap writer；OpenCode `w9:p2` 唯一橋接器及本票新增檔 writer，已正式停寫 done seq15。八份完整三聯 prompt、精確八 PNG／八 JSON 白名單與成本／來源資料已交；root 最終固定版真 dry-run 16次 exit0、focused 6/6 exit0、嚴格 JSON／路徑／SHA 檢查 PASS，僅收 **PREP_PASS**。交件入口 [README](../scratch/batch1a-nb21-prep-20261020/README.md)，prompt 在 `art/batch1a-nb21-prep-20261020/`；1K／2K 八張含輸入預留估算 US$0.4288／US$0.5632，實際帳單 null。AGY `w9:p4`／Kilo `w9:p3` 待 B 圖前 idle；舊 w7／舊票不恢復。卡點 **A_SOURCE_PENDING_IMPORT／WAITING_BUDGET**，無 B 圖／ART_PASS。禁止 execute、付費旗標、金鑰／配額試探與挪用 M2-FUSION US$3，原 ledger 不動；候選不接 production。禁 stage／提交／發布及 dirty 破壞，音訊與核准圖保護；固定 SHA、首輪 RED 修正及證據見 roadmap 頂部。
+
+### 2026-10-20｜F1-A首交未過：真收益與Chrome覆蓋同票補件
+
+game bb7f3d84固定版root獨立11/11 exit0收受控交易閉環，但同seed真30秒update量出父技約15.25DPS/合武3.30DPS（Boss對照14.85/3.30），與交件35–40DPS不符，不能收為有感融合。只退AGY局部fusion收益校準/真上限與原Chrome未實跑touch/兩視角/虛擬按鍵的覆蓋證據，不改BossHP/全局平衡、不重造引擎、不擴B/F2；F0架構PASS維持。原始curve/圖/命令與SHA詳roadmap頂部，候選美術/自然局/真機仍待驗，配送#6獨立RED，禁提交部署。
+
+### 2026-10-20｜FUSION F0架構Gate PASS／F1-A真墨焰斬續作
+
+固定game fad25735/fusion fff43383/index c74327c0，root runtime8/8 exit0、原query/revision兩負向轉GREEN且stale commit0；renderer/UI契約與44.2CSS先前已收，F0架構/狀態/測試分配Gate通過。可達性非此PASS：兩印記6配送、A9/B10選卡，6–8分鐘目標仍F3待實證。AGY唯一runtime與必要渲染/UI整合writer續F1-A真掉落/互動/母技停攻/獨立扇斬焦地/槽釋出與有限DPS/短Chrome；A收後才B，候選藝術WAITING_ART，配送#6 RED獨立保留。其他provider停用，禁提交部署/dirty破壞，詳SHA/log/限制見roadmap頂端。
+
+### 2026-10-20｜合技F0／F1-A已實際啟動（USER_APPROVED，本機候選）
+
+F0新固定runtime d2c7ed3b/b6cfa080 root8/8 exit0收橋接/交易/真補償子項；精確query近似鍵值誤啟用與過期revision仍commit兩個獨立反例exit1，僅同票交AGY最小修，F0 Gate未過。兩枚覺醒印記至少6配送（交件2配送文字錯誤已訂），6–8分鐘可達待F3，不私改Stage1/全域印記。F1-A真攻擊/Chrome仍待整合、不擴B/F2；證據/owner見roadmap。
+
+最新owner覆蓋：UI c3919fa6 root8/8及44.2CSS反例exit0已收元件。Kilo F0遇Upstream idle timeout，確認停寫且game2799b1ca/fusion98ac24e8/indexee920afe不變後撤其writer；AGY已全檔停寫，接唯一game/fusion/必要index與自有runtime tests修F0 bridge/交易。renderer/assets/ui暫固定，Space Bunny unavailable不重試、不換模；F0/F1-A真Gate仍待引擎/可達性短證據。原hunk/dirty與Git/音訊禁令不變。
+
+UI268fb01a root專項8/8 exit0已核資料/繪製契約，但手機42.25CSS熱區未達44，AGY僅補此原票。Kilo引擎檔已建立，root載入fusion98ac24e8語法exit1且跨檔私有state尚無bridge，已原票最小退修/要求真runtime測試與可達性短數據，未採其口頭F0 PASS。renderer/UI元件測試不等於融合交易Gate，不B/F2、不重跑88suite；證據/精確API與SHA見roadmap。
+
+AGY renderer518c5cbc/assets99a79539元件已固定，root focused8/8 exit0收接口與墨焰斬渲染原型；不含真gameplay/融合交易或美術核准，程序候選WAITING_ART。AGY按原分工串行轉唯一UI writer；Kilo仍實際實作game/fusion，未正式交件。F0可達性/真交易consumer與UI待收，尚不標F0或F1-A Gate PASS；詳SHA/證據/接口payload見roadmap頂端，不開B/F2或重跑88suite。
+
+依[FUSION_SYSTEM_PLAN](FUSION_SYSTEM_PLAN.md)循F0→F1-A墨焰斬→F1-B雷紋陣→F2→F3；Kilo seq2303獨占game/fusion與必要index載入，AGY seq2304獨占renderer/assets元件，停寫後串行接ui。Space Bunny provider unavailable未啟動/未動檔，不重試/換高價模型，已撤writer。Codex只決策/收件/唯一roadmap。F0架構/狀態/測試分配已落roadmap頂端，整體Gate仍待兩線接口與6–8分鐘可達性短數據；非衝突原型可並行，不虛報可玩PASS。來源變異完整保存＋每次融合一次免費非變異強化（有投入時），須測重複/失敗/空池不吞；兩母Lv5真正退出攻擊與欄位、淨釋1槽，一局一次。真印記規則需6配送，A最低9選卡/B10選卡，時間目標未驗不作弊宣稱。保護當前Stage2 XP80%/3XP/180吸取/Hard怪與王300/650/900/1400、Stage1/Hard、既有畫面/卡片/音訊；配送#6 RED獨立欠帳F3列入。禁止任何Git提交/部署與dirty破壞，HEAD e0278e5；未核VFX候選WAITING_ART。
+
+### 2026-10-19｜16:02六項P1最新優先：三線本機實作
+
+18:01續收僅#6：Kilo新版game a7cfdc4c確有雨港長距離分支。root真interact/resolve完成20個唯一事件、delivered20/跨chunk pin/答案Y通過；取送X中位1416、下取895，下取5/19同屋、合計13/19僅0–2中間屋列，**consumer exit1，仍未過#6**。同票只退雨港下一取貨/排隊訂單/無候選保底，重用root真20單helper。1–5沿已收結果不重跑；原始JSON、owner與限制見roadmap頂部，無長局/提交/發布。
+
+最新續收：#3 UI固定ce8c0d6b已收，原點/16條圖鑑/短句幾何root先前真Chrome1/1、最終淡金小hunk語法exit0與目視可辨，Space Bunny停寫。#4/#5 Kilo game4ab52886 root精確Normal/Hard/Stage1/怪池/掉落5/5 exit0；#6實體makeOrder未落雨港新策略、舊20單測錯stage world並未完成訂單，已同票只退路由/真20單consumer。前票狐火深度/Boss新招真Chrome仍待整合不假PASS。詳證據及目前assets4eebf31f見roadmap；禁Git發布。
+
+收件增量：AGY雨/北景固定renderer bc226532、assets6baf5f9c、640高山壁3f0de968，root專項4/4 exit0、更新真圖已看，#1/#2技術收件但新材質仍WAITING_ART。UI79b35e68原點修復、16條圖鑑與短句/同CTM圖示root真Chrome1/1 exit0；只餘深底圖鑑墨色過暗，同票最小配色補件，未全收#3。Kilo難度/20單配送未交件不算PASS。原始log與owner見roadmap頂部，不長局、不提交/部署。
+
+使用者推翻前版Normal折衷：雨港回原Hard基底，僅小怪HP/速各.80、前三王.5/終王.65（150/325/60/910）；其餘Hard節奏/成長/XP原值，Hard快照/Stage1不動，低HP shiome唯一遠程例外保留。Kilo seq2263獨占game/world/boss-ai做此數值及4–7屋為主、3–8屋變化的跨chunk真配送/20單驗收；AGY seq2262獨占renderer/assets做海陸雨方向及北景黑帶；Space Bunny seq2264獨占ui做所有變異單句＋共用圖示/手機真頁。均已Herdr working，未交件未PASS；先前狐火/Boss seq2260已停寫修補保留，整合只在三線固定後短測。詳owner/門檻見roadmap頂部。無提交/發布授權，e0278e5不動；候選美術仍待審、A/B已批准。
+
+### 2026-10-19｜Stage2 狐火／港灣Boss／Normal原票續收中（本機）
+
+**13:50續收更新**：Kilo已正式停寫交件，root固定game60d6005a/boss7dbaf6ed做真VM及真Chrome，**整合NOT_PASSED**：狐火Lv3/5兩mode引用未定義movement且玩家重畫；Boss真step未消費新增rain-port招池；surgePacing2.0偏離保留2.2。已同票最小退Kilo，實際working seq2254；renderer45f2f04b仍AGY停寫。Normal/Hard/Stage1/遠程掉落5/5 exit0僅收該子範圍；6/8/9.5分鐘各30秒一般生成樣本敵20/33/39、平均HP4.73/5.87/5.71，未含surge/Boss，尚非動態可控壓力完整窗口PASS。詳細原始證據/限制見roadmap頂部。無新功能/長局/提交發布，e0278e5不動。
+
+AGY renderer接口已停寫，45f2f04b／assets dc7141aa；root聚焦4/4 exit0，真fireSpec必傳、前後pass子契約已收，展示fixture不等於gameplay。Kilo仍唯一game/world/boss-ai writer，Herdr done回呼未伴正式交件；root已同票指出狐火movement作用域/玩家重畫與Stage2新招producer限定缺口，等待其最小修正及真consumer交付。Normal沿HP.65/speed.88/growth.45/cap65/surge.65/XP.70、Boss210/455/84/980；Hard/Stage1不變。最終僅必要短VM、6/8/9.5分鐘受控壓力樣本與真Chrome，不跑長局；目前整票IN_PROGRESS，藝術/自然局限制見roadmap。禁提交/推送/部署，線上e0278e5不動。
+
+### 2026-10-18｜Stage2 橫向港口本機可玩版已收
+
+Kilo game/world、AGY renderer已停寫，Space Bunny唯讀短QA已收。固定game d7de8313／world f13312fc／renderer e2f0bb8e；root world5/5＋scene/renderer/朝向/景深53/53 exit0，真Chrome短程exit0驗開局能動、Y180..780／任意X邊界、24次真生成出界0、實際配送答題點出界0、回第一關無runBounds殘留。renderer已有北建築／中石木／南港船層；缺連續海圖與構圖人審保留WAITING_ART，兩張石板候選不映射正式。詳roadmap頂部與scratch/spacebunny-m2-port-q/；未跑長局/真機，不宣稱美術封版。所有writer停檔，本輪無commit/push/deploy，HEAD e0278e5/index空，Stage8/其他dirty/音訊保護。
+
+### 2026-10-18｜M2-Hotfix IN_PROGRESS（本機，禁止發布）
+
+**A/K程式已收；V3已匯入，夜雨候選對照進行中／WAITING_ART。** 線上M1.1 e0278e5不動；本輪禁commit/push/deploy，Stage8／既有dirty／音訊／KEY保護。
+
+1. **AGY景深A已停檔收件**：renderer原快照F342279B；root 59/59 exit0、音訊凍結真Chrome同場景2D/.60短幀exit0，已看立面高度/接地差異。證據 scratch/m2-hotfix-20261018/，不等同Hades真3D或美術封版。
+2. **Kilo Phase1真consumer已驗**：game保留原house bounds/detour，world無diff；以現有WORLD.lamps腳底(l.y+8、畫寬44)加solid，未虛構港口燈籠。root真Chrome actual spawnEnemy負向無solid會生於燈腳，正式版避開；真shiome update左右移動、玩家翻面不改敵方向、凍結保持末方向，exit0。證據 scratch/m2-hotfix-runtime-20261018/runtime-proof.json；其舊VM自驗/弱繪製測試不列PASS。
+3. **Kilo Phase2退修與交接**：root真Canvas發現shiome原素材朝左，現鏡像對映相反。Kilo供應商曾Upstream idle timeout exceeded；Herdr誤報idle(seq2111)，visible核實其仍在處理queued票並已寫nativeFacing。root在該patch完成後esc安全停止、visible確認interrupted，保留成果；AGY現唯一renderer writer，核現有hunk並補自身真transform斷言，不重試Kilo。game/world凍結。AGY已正式停檔，root獨立48/48 exit0(新朝向6＋depth4＋renderer38)，真Chrome真素材Canvas左右鏡像/玩家位置不干擾/時序變形/腳點固定exit0，已看正確向右畫面。最終game 9e09829abc811d51、renderer 7c9e3a2f0803a950；證據 scratch/m2-hotfix-final-20261018/。語法check皆exit0；diff-check exit2僅renderer四行尾空白，列P2。既有Stage8 dirty不動。
+4. **V3取消待匯入阻塞**：使用者提供Cherry Studio來源，mcp1匯入 assets/img/rain-port/ground_stone_nano_v3_candidate.jpg，1024²、931178 bytes，root SHA256=24b6b5ae4910f9c4f10550d08e2df3da6c4a95bf3100f6cc2206909052f0329d。已看art/review/rain-port-v3/原亮度與bright10的3×3；使用者接縫量測左右8.26/上下15.13、內部約7.6，橫向接縫仍需真場景看。**WAITING_ART**：候選不映射正式、不覆蓋ground_stone*.webp；AGY完成K-FIX停檔後串行做D原亮度/+10%真雨夜短幀，只寫scratch。來源舊沙盒限制已過期，不再列阻塞。
+
+驗收限制：目前均受控短幀/真Canvas，非自然局/實體裝置。HEAD隔離預覽出現既有Stage2可選prop/ground URL 404，無pageErrors/音訊讀取，未擅接未核素材；K-FIX與候選夜雨對照尚未收，不宣稱整票完成。OpenCode額度耗盡idle，無新派工。
+
+### 2026-10-18｜M2 TECH_COMPLETE（本機收件，未發布）
+
+使用者已允許M2與M1真人試玩並行；線上仍為M1.1 **e0278e5**。本輪M2不commit/push/deploy，index空、所有Stage8／既有dirty／音訊／KEY保留。新M1實玩bug優先hotfix；不自動進M3。
+
+| 包 | 實際收件／owner |
+|---|---|
+| A 圖片FX | AGY：核准Lv5刀芒圖片scale 1.00→1.25、現有螢火輔助粒子雙層；新增程序主刀芒已撤回，其餘五技能沿用既有圖消費。 |
+| B 接地／鏡頭 | AGY：怪物腳底與排序／陰影對齊、房屋陰影按寬度、地板快取底色；2D／.60短幀已看，Stage8從預覽排除、原dirty保留。 |
+| C 可讀性 | Kilo先清重複錯文案；工具反覆確認與跨寫測試後停檔撤權，AGY接唯一UI收尾：保留正確fan玩家短文案、crosscut60%、原seek回落與M1.1 HUD；E11/E12跨寫已精確撤回，原斷言保留。 |
+| D 圖對照 | Codex純唯讀：實際核准ground/ground_dirt各3×3、三町屋／角色透明邊與真場景比例；無新圖核准，候選不接正式。 |
+
+獨立驗證：A4＋B3＋renderer38＝45/45 exit0；六技能圖片消費focused2/2 exit0；真Chrome啟動／圖片就緒／實際幀／2D→.60／刀芒短幀 exit0，pageErrors/audioLeak0（favicon404非阻塞）。最終renderer SHA **c468b949596f5748**、UI **2ccfa93f26e57840**。證據與命令：scratch/m2-director-20261018/final-receipt.json、ab-tests.log、start-proof.json、art-proof.json；截圖在 start-proof 所列dir。
+
+**不是全測試綠或藝術封版。** C原Chrome專項exit1因取錯scale鍵成NaN；僅暫存副本修正取值、保留斷言後exit1：手機卡內墨底餘裕約1px未達6px，未越框，列P2；未重跑完整三視口／真機。P2另有地面重複節奏、大扇面佔位與舊raw文案oracle待同步，下一程式owner AGY；不為此擴大本輪。P1／WAITING_HUMAN：使用者看M2首批畫面；新母版／候選仍WAITING_ART，缺新圖不阻現役圖技術收件；裝置／自然局維持M1/M3未驗。AGY與Kilo均已停寫，不恢復其他耗盡Agent。無新的M2發布授權，先留本機。
+
+### 2026-10-18 11:08｜最新覆蓋：M2與M1真人試玩並行
+
+使用者已允許M2開始規劃＋實作，覆蓋下方完整M1 gate前禁止M2的舊限制；M1自然局／裝置仍未完，與M2視覺工程分開驗收。
+- M2-B／AGY w7:p4：唯一renderer.js、必要viewport.js及自身visual test writer；首關投影／陰影／接地／遮擋sort／切鏡取1–3個可見修正，保護Stage8 DEV preview既有dirty、不提交。
+- M2-C／Space Bunny/OpenCode w7:p5：唯一ui.js及自身M2 UI test writer；HUD／選卡／Boss預警可讀性取1–3個可見修正，M1五P0不退化。兩票由使用者已派，僅短測，正式交件後Codex最小收件。
+- 次序：M2-B正式停檔→同AGY writer串行M2-A圖片FX；M2-D先用既有3×3／透明邊／核准清單證據，必要時一次純唯讀票。不恢復Kilo供應商盲試，不接未核圖／音檔。
+- Codex低額度僅決策／writer權／最終收件，本次記錄後停工保額度。M2不push/deploy，等使用者M1試玩及M2首批畫面審視；dirty、audio、KEY/env、未審art與既有index全保護。
 
 ## 1. 唯一製作順序與放行口徑
 

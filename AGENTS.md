@@ -1,5 +1,10 @@
 # AGENTS.md — 妖怪快遞社正式協作入口
 
+> **2026-10-21 最新場景美術與檔案縮名指令（適用往後所有 Agent）**：先讀 [新美術規格](docs/ART_STYLE.md)、[版本A生圖Prompt](docs/ART_PROMPTS.md)、[版本B八關需求](docs/ART_STAGES.md) 與 [舊素材清理清單](docs/ART_CLEANUP.md)；找圖先開 [art/README.md](art/README.md)。**新地板從近正上方平面材質畫、2.5D斜角由renderer投影**；建築/立體道具統一淺3/4，怪物微Q。**新候選縮為 `art/s1/`～`art/s8/` + 短檔名（如 `g_stone_01.png`）**，原始模型/日期/候選狀態進manifest，不追溯改舊路徑。先前10/15長命名／地板預烘角度、10/20 w9舊pane說明都是歷史，**當次Herdr狀態與roadmap頂部優先**。不得借此搬刪任何既有素材、呼叫付費API、冒稱ART_PASS、碰音訊/TTS/BGM/KEY、或提交部署；本輪只做文檔/非破壞盤點，三條系統Agent的JS writer不受影響。
+
+
+**2026-10-20 Batch1A 最新使用者覆蓋**：本輪只做八關地板三聯 B 組的無付費前置。現場 Herdr 為 Codex `w9:p1`（唯一總監／roadmap writer）、OpenCode `w9:p2`（唯一橋接器及本票新增檔 writer）、AGY `w9:p4`、Kilo `w9:p3`（B 圖未到，維持 idle）；舊 w7 不可用。先確認既有成果，禁止重做。依 `docs/ART_BATCH1A_NANOBANANA_HANDOFF_20261020.md` 準備八份完整 prompt、精確候選白名單、真橋接 dry-run、1K／2K 八張估算及 A 來源狀態；無可證來源標 `A_SOURCE_PENDING_IMPORT`。Codex 僅四權威文件、調度／費用守門及獨立 QA。禁止任何付費 API、`--execute`、設定 `NANOBANANA_APPROVED`、讀金鑰／試探配額或挪用 M2-FUSION US$3；禁止任何 stage／commit／push／deploy／reset／clean／checkout。保護全部 dirty、音訊與核准圖；新圖仍 `ART_CANDIDATE`，不得接 production。下方舊發布授權與 writer 表不適用本票。
+
 版本：2026-10-18；使用者最新方向：Stage1-first／五項P0修復後發布。
 本入口取代所有歷史派工、模型路由、常駐監工及 checkpoint 自動執行條款。
 2026-10-16 新會話已明確授權 Herdr Codex 總監派工製作 M1→M6；覆蓋舊「只做文件／不派工」。Codex 自身仍只寫下列四份文件，production 由各 writer 實作；音訊凍結；2026-10-18使用者最新明確授權五項P0驗收後commit、push、部署，由Codex統籌；覆蓋舊只LOCAL／禁發布條款，音訊等保護不變。

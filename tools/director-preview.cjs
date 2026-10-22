@@ -20,7 +20,9 @@ http.createServer((req, res) => {
   if (url === '/service-worker.js') { res.writeHead(200, { 'Content-Type': types['.js'] }).end('self.addEventListener("install",()=>self.skipWaiting());'); return; }
   if (url === '/') url = '/index.html';
   const allowed = ['/index.html', '/style.css', '/styles.css', '/manifest.json'].includes(url)
-    || /^\/(?:js\/[^/]+\.js|assets\/(?:img|fonts)\/)/.test(url);
+    || /^\/(?:js\/[^/]+\.js|assets\/(?:img|fonts)\/)/.test(url)
+    || /^\/art\/fusion\/candidates\/fusion_[a-z0-9_]+\/[^/]+\.(?:png|webp)$/.test(url)
+    || /^\/art\/stage2-rain-port\/(?:production-s2|production-s2-nano-20261020|scene)\//.test(url);
   const file = path.resolve(root, '.' + url), ext = path.extname(file).toLowerCase();
   if (!allowed || !types[ext] || !file.startsWith(root + path.sep)) { res.writeHead(404).end(); return; }
   fs.readFile(file, (err, data) => {

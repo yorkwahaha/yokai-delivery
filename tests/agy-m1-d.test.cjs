@@ -53,10 +53,14 @@ function loadGameSandbox(options = {}) {
     lcgState = (Math.imul(lcgState, 1664525) + 1013904223) >>> 0;
     return lcgState / 4294967296;
   };
+  let mockRandomVal = null;
+  let mockRandomFn = typeof options.random === 'function' ? options.random : null;
   const sandboxMath = Object.create(Math);
-  sandboxMath.random = typeof options.random === 'function'
-    ? options.random
-    : (typeof options.seed === 'number' ? lcgRand : () => Math.random());
+  sandboxMath.random = () => {
+    if (mockRandomVal !== null) return mockRandomVal;
+    if (mockRandomFn) return mockRandomFn();
+    return typeof options.seed === 'number' ? lcgRand() : Math.random();
+  };
 
   const env = {
     console,
@@ -110,6 +114,14 @@ function loadGameSandbox(options = {}) {
   env.__setRngSeed = s => {
     lcgState = (s >>> 0);
     sandboxMath.random = lcgRand;
+  };
+  env.__setMockRandom = fnOrVal => {
+    if (typeof fnOrVal === 'function') {
+      mockRandomFn = fnOrVal;
+      mockRandomVal = null;
+    } else {
+      mockRandomVal = fnOrVal;
+    }
   };
 
   const sandbox = vm.createContext(env);
@@ -232,6 +244,11 @@ function loadGameSandbox(options = {}) {
       setRngSeed: s => {
         if (typeof window.__setRngSeed === 'function') window.__setRngSeed(s);
       },
+      setMockRandom: fnOrVal => {
+        if (typeof window.__setMockRandom === 'function') window.__setMockRandom(fnOrVal);
+      },
+      getLastMutationOfferLevel: () => lastMutationOfferLevel,
+      setLastMutationOfferLevel: v => { lastMutationOfferLevel = v; },
       MUTATION_CONFIG: MUTATION_CONFIG
     };
   `;
@@ -270,6 +287,7 @@ test('M1-D-1 Per-skill mutation capacity (3 per skill) and mut_crosscut pool eli
 
   // 3. 持有妖刀時合法進池，且 schema 完整
   probe.getWL().katana = 1;
+  probe.setMockRandom(0);
   const eligibleChoices = probe.getEligibleChoices();
   const crosscutCard = eligibleChoices.find(c => c.id === 'mut_crosscut');
   assert.ok(crosscutCard, '持有妖刀時 mut_crosscut 必須能出現在候選池');
@@ -306,6 +324,7 @@ test('M1-D-1 Per-skill mutation capacity (3 per skill) and mut_crosscut pool eli
   // 6. 已持有後不可重複進池
   const choicesAfterAcquire = probe.getEligibleChoices();
   assert.ok(choicesAfterAcquire.every(c => c.id !== 'mut_crosscut'), '已持有 mut_crosscut 不得再次進池');
+  probe.setMockRandom(null);
 });
 
 // ── 2. resolveAttackSpec 快照一致性與 baseline 保持 ────────────
@@ -589,6 +608,7 @@ test('M1-D-7 Queue cap protection (<= 4) and negative protections against stale 
   probe.setXp(100);
   probe.setState('levelup');
   probe.setLevelupCooldown(0);
+  probe.setMockRandom(0);
 
   const eligible = probe.getEligibleChoices();
   const crosscutCard = eligible.find(c => c.id === 'mut_crosscut');
@@ -631,6 +651,7 @@ test('M1-D-7 Queue cap protection (<= 4) and negative protections against stale 
   const staleAfterReroll = probe.applyChoice(cardBeforeReroll.choiceId, revBeforeReroll);
   assert.equal(staleAfterReroll.ok, false);
   assert.equal(staleAfterReroll.reason, 'stale_revision');
+  probe.setMockRandom(null);
 });
 
 // ── 8. M1-D-8 真 crit applyChoice 前後舊 cc 暴擊率隔離＋新攻擊正向受益 ────
@@ -870,6 +891,7 @@ test('M1-D-11 mut_pulse pool eligibility, unowned barrier exclusion, owned barri
   // 2. 持有靈陣 (WL.barrier === 1)：mut_pulse 正常進池且 Schema 符合規範
   probe.getWL().barrier = 1;
   probe.setBuildMutations(['mut_crosscut']);
+  probe.setMockRandom(0);
   const choicesWithBarrier = probe.getEligibleChoices();
   const pulseCard = choicesWithBarrier.find(c => c.id === 'mut_pulse');
   assert.ok(pulseCard, '持有淨化靈陣時 mut_pulse 必須出現在選卡池');
@@ -881,7 +903,7 @@ test('M1-D-11 mut_pulse pool eligibility, unowned barrier exclusion, owned barri
   assert.equal(pulseCard.s, 'れいじん・みゃくどう');
   assert.equal(pulseCard.cat, '【 靈陣變異 】');
   assert.equal(pulseCard.levelText, '◆ 靈陣變異');
-  assert.ok(pulseCard.d.includes('兩次') && pulseCard.d.includes('較小') && pulseCard.d.includes('預算'), '文案明示兩次/較小/共享預算');
+  assert.ok(pulseCard.d.includes('兩次') && pulseCard.d.includes('65%') && pulseCard.d.includes('30%'), '文案明示兩次/65%/30%');
 
   // 3. 每技能變異上限獨立：needle 已滿 3 變異，katana 已有 1 變異，不阻擋 barrier 取得 mut_pulse
   probe.setBuildMutations(['mut_fan', 'mut_seek', 'mut_frost', 'mut_crosscut']);
@@ -936,6 +958,7 @@ test('M1-D-11 mut_pulse pool eligibility, unowned barrier exclusion, owned barri
   // E. 去重保護：已選取的 mut_pulse 絕不再出現在候選池
   const choicesAfter = probe.getEligibleChoices();
   assert.ok(!choicesAfter.some(c => c.id === 'mut_pulse'), '已持有的 mut_pulse 不得重複出現在選卡池');
+  probe.setMockRandom(null);
 });
 
 // ── 12. resolveAttackSpec barrier 數值快照與基線保持 ──────────
@@ -990,25 +1013,25 @@ test('M1-D-12 resolveAttackSpec barrier snapshot numerical fidelity, baseline pr
   assert.equal(s5.sanctuary?.duration, 1.8);
   assert.equal(s5.sanctuary?.radius, 220);
 
-  // 2. 具備 mut_pulse 變異時：拆兩次脈衝、預算與半徑折減
+  // 2. 具備 mut_pulse 變異時：兩次脈衝各 65% 原傷（合計 130%），半徑不縮小
   probe.setBuildMutations(['mut_pulse']);
   const sp1 = probe.resolveAttackSpec('barrier', 1, probe.getBuildState());
   assert.equal(sp1.hasPulse, true);
   assert.equal(sp1.pulseCount, 2);
   assert.equal(sp1.pulseDelay, 0.18);
-  assert.equal(sp1.pulseScale, 0.50);
-  assert.equal(sp1.radius, Math.round(168 * 0.85)); // 143
-  assert.equal(sp1.damage, Number((0.48 * 0.50).toFixed(4))); // 0.24
+  assert.equal(sp1.pulseScale, 0.65);
+  assert.equal(sp1.radius, 168);
+  assert.equal(sp1.damage, Number((0.48 * 0.65).toFixed(4))); // 0.312
   assert.equal(sp1.knockback, 0);
 
   const sp4 = probe.resolveAttackSpec('barrier', 4, probe.getBuildState());
-  assert.equal(sp4.radius, Math.round(252 * 0.85)); // 214
-  assert.equal(sp4.damage, Number((1.44 * 0.50).toFixed(4))); // 0.72
+  assert.equal(sp4.radius, 252);
+  assert.equal(sp4.damage, Number((1.44 * 0.65).toFixed(4))); // 0.936
   assert.equal(sp4.knockback, Math.round(90 * 0.50)); // 45 (折半)
 
   const sp5 = probe.resolveAttackSpec('barrier', 5, probe.getBuildState());
-  assert.equal(sp5.radius, Math.round(220 * 0.85)); // 187
-  assert.equal(sp5.damage, Number((4.5 * 0.50).toFixed(4))); // 2.25
+  assert.equal(sp5.radius, 220);
+  assert.equal(sp5.damage, Number((4.5 * 0.65).toFixed(4))); // 2.925
   assert.equal(sp5.knockback, Math.round(100 * 0.50)); // 50 (折半)
   assert.equal(sp5.sanctuary?.duration, 1.8);
   assert.equal(sp5.sanctuary?.radius, 220);
@@ -1028,10 +1051,10 @@ test('M1-D-13 weapons(dt) physical dual-pulse timing, damage budget cap <= 1.0x,
   const p = probe.getP();
   p.x = 200; p.y = 200;
 
-  // 目標 1：在縮減後脈衝半徑內 (dist = 50 <= 143)
+  // 目標 1：在脈衝半徑內 (dist = 50 <= 168)
   const targetInner = { x: 250, y: 200, hp: 100, max: 100, type: 'mob' };
-  // 目標 2：在原基線半徑內但超出脈衝半徑 (dist = 155 > 143 且 <= 168)
-  const targetOuter = { x: 355, y: 200, hp: 100, max: 100, type: 'mob' };
+  // 目標 2：超出脈衝半徑 (dist = 180 > 168)
+  const targetOuter = { x: 380, y: 200, hp: 100, max: 100, type: 'mob' };
 
   probe.setEnemies([targetInner, targetOuter]);
 
@@ -1040,16 +1063,16 @@ test('M1-D-13 weapons(dt) physical dual-pulse timing, damage budget cap <= 1.0x,
   probe.weapons(0.01);
 
   // 驗證第一波命中
-  const expectedPulse1Damage = 0.24;
-  assert.equal(Number((100 - targetInner.hp).toFixed(2)), expectedPulse1Damage, '第一道脈衝造成 0.5x 傷害');
-  assert.equal(targetOuter.hp, 100, '半徑縮減 0.85x 後超出範圍的敵人不受傷害');
+  const expectedPulse1Damage = 0.31;
+  assert.equal(Number((100 - targetInner.hp).toFixed(2)), expectedPulse1Damage, '第一道脈衝造成 0.65x 傷害');
+  assert.equal(targetOuter.hp, 100, '超出範圍的敵人不受傷害');
 
   // 驗證第二波脈衝進入延遲佇列
   assert.equal(probe.getBarrierPulses().length, 1);
   const queuedPulse = probe.getBarrierPulses()[0];
   assert.equal(queuedPulse.level, 1);
-  assert.equal(queuedPulse.radius, 143);
-  assert.equal(queuedPulse.damage, 0.24);
+  assert.equal(queuedPulse.radius, 168);
+  assert.equal(queuedPulse.damage, 0.312);
   assert.equal(Number(queuedPulse.delay.toFixed(2)), 0.17); // 0.18 - 0.01
 
   // 推進時間 0.10s (尚未到達 0.18s)
@@ -1061,9 +1084,9 @@ test('M1-D-13 weapons(dt) physical dual-pulse timing, damage budget cap <= 1.0x,
   probe.weapons(0.08);
   assert.equal(probe.getBarrierPulses().length, 0, '第二道脈衝觸發後佇列清理完成');
 
-  // 總傷害嚴格受控為 1.0x (0.24 + 0.24 = 0.48)
+  // 總傷害為 1.30x (0.31 + 0.31 = 0.62)
   const totalDamage = Number((100 - targetInner.hp).toFixed(2));
-  assert.equal(totalDamage, 0.48, '兩次脈衝總傷害恰為 1.0x 原一次基準傷害，不突破傷害預算');
+  assert.equal(totalDamage, 0.62, '兩次脈衝總傷害為 1.30x 原一次基準傷害 (0.31 + 0.31 = 0.62)');
   assert.equal(targetOuter.hp, 100, '外側邊界敵人全程無受創');
 });
 
@@ -1147,7 +1170,7 @@ test('M1-D-15 Position and crit snapshot isolation: movement during delay does n
   probe.weapons(0.01);
 
   // 第一波在 (200, 200) 命中 mobOrigin
-  assert.equal(Number((100 - mobOrigin.hp).toFixed(2)), 0.24, '第一波無暴擊 0.24 傷害');
+  assert.equal(Number((100 - mobOrigin.hp).toFixed(2)), 0.31, '第一波無暴擊 0.31 傷害');
   assert.equal(mobDestination.hp, 100);
 
   // 延遲期間：玩家瞬移至 (600, 200) 且暴擊升級 b.crit = 2 (critChance = 0.35)
@@ -1159,11 +1182,11 @@ test('M1-D-15 Position and crit snapshot isolation: movement during delay does n
 
   // 斷言：
   // 1. 座標快照隔離：第二波脈衝應在原點 (200, 200) 爆發，因此 mobOrigin 再次受創，mobDestination 未受創
-  assert.equal(Number((100 - mobOrigin.hp).toFixed(2)), 0.48, '第二波脈衝在快照原點爆發，mobOrigin 受到第二道脈衝傷害');
+  assert.equal(Number((100 - mobOrigin.hp).toFixed(2)), 0.62, '第二波脈衝在快照原點爆發，mobOrigin 受到第二道脈衝傷害');
   assert.equal(mobDestination.hp, 100, '玩家位移不拖曳已生成的脈衝，mobDestination 未受創');
 
-  // 2. 暴擊快照隔離：第二波脈衝快照 critChance 0.15，random 0.20 不暴擊，傷害依然是 0.24 (累計 0.48，而非 0.24 + 0.24*1.8 = 0.672)
-  assert.equal(Number((100 - mobOrigin.hp).toFixed(2)), 0.48, '延遲期間暴擊升級不回寫舊脈衝');
+  // 2. 暴擊快照隔離：第二波脈衝快照 critChance 0.15，random 0.20 不暴擊，傷害依然是 0.31 (累計 0.62)
+  assert.equal(Number((100 - mobOrigin.hp).toFixed(2)), 0.62, '延遲期間暴擊升級不回寫舊脈衝');
 
   // 3. 新攻擊正常受益：下一發 barrier 必須享受新暴擊 (critChance 0.35, random 0.20 < 0.35 => CRIT)
   probe.setWT('barrier', 0);
@@ -1172,7 +1195,7 @@ test('M1-D-15 Position and crit snapshot isolation: movement during delay does n
   probe.setEnemies([mobNew]);
   probe.weapons(0.01);
 
-  const expectedCritDamage = Number((0.24 * 1.8).toFixed(4));
+  const expectedCritDamage = Number((0.312 * 1.8).toFixed(4));
   assert.equal(Number((100 - mobNew.hp).toFixed(4)), expectedCritDamage, '新發動的 barrier 攻擊正常享受暴擊升級加成');
 });
 
@@ -1250,6 +1273,7 @@ test('M1-D-17 mut_branch pool eligibility, unowned thunder exclusion, owned incl
   probe.getWL().thunder = 1;
   // 已持有其他技能變異，使 mut_branch 成為天狐雷之唯一變異候選
   probe.setBuildMutations(['mut_crosscut', 'mut_pulse']);
+  probe.setMockRandom(0);
   const choicesWithThunder = probe.getEligibleChoices();
   const branchCard = choicesWithThunder.find(c => c.id === 'mut_branch');
   assert.ok(branchCard, '持有天狐雷時 mut_branch 必須出現在選卡池');
@@ -1317,6 +1341,7 @@ test('M1-D-17 mut_branch pool eligibility, unowned thunder exclusion, owned incl
   // E. 去重保護：已選取的 mut_branch 絕不再出現在候選池
   const choicesAfter = probe.getEligibleChoices();
   assert.ok(!choicesAfter.some(c => c.id === 'mut_branch'), '已持有的 mut_branch 不得重複出現在選卡池');
+  probe.setMockRandom(null);
 });
 
 // ── 18. resolveAttackSpec thunder 數值快照與基線保持 ──────────
@@ -1574,7 +1599,7 @@ test('M1-D-22 Crit roll snapshot, crit passive upgrade isolation, pause/levelup 
 
 // ── 23. mut_pierce 靈針變異卡池資格、選卡與每技能容量獨立契約 ────
 test('M1-D-23 mut_pierce pool eligibility, unowned needle exclusion, owned inclusion, per-skill capacity limit, schema, applyChoice, and negative protections', () => {
-  const env = loadGameSandbox();
+  const env = loadGameSandbox({ random: () => 0 });
   const probe = env.__agyProbe;
   probe.start('night-town');
 
@@ -1585,9 +1610,16 @@ test('M1-D-23 mut_pierce pool eligibility, unowned needle exclusion, owned inclu
   assert.ok(!choicesWithoutNeedle.some(c => c.id === 'mut_pierce'), '未持有天狐靈針時 mut_pierce 絕不可進入選卡池');
 
   // 2. 持有靈針 (WL.needle === 1)：mut_pierce 正常進池且 Schema 符合規範
+  probe.getWL().katana = 0;
   probe.getWL().needle = 1;
   probe.setBuildMutations(['mut_fan', 'mut_seek']);
   probe.setLevelupCooldown(0);
+  probe.setLastMutationOfferLevel(-100);
+  probe.setMockRandom(() => {
+    const s = new Error().stack;
+    if (s && s.includes('pick')) return 0.5;
+    return 0.1;
+  });
   let pierceCard = null;
   for (let i = 0; i < 20 && !pierceCard; i++) {
     const choices = probe.getEligibleChoices();
@@ -1614,7 +1646,11 @@ test('M1-D-23 mut_pierce pool eligibility, unowned needle exclusion, owned inclu
   assert.ok(!choicesFullNeedle.some(c => c.id === 'mut_pierce'), '靈針已滿 3 變異時 mut_pierce 絕不可進池');
 
   // B. 其他技能變異（katana 1, barrier 1, thunder 1）不阻擋 needle 取得 mut_pierce
+  probe.getWL().katana = 1;
+  probe.getWL().barrier = 1;
+  probe.getWL().thunder = 1;
   probe.setBuildMutations(['mut_fan', 'mut_seek', 'mut_crosscut', 'mut_pulse', 'mut_branch']);
+  probe.setLastMutationOfferLevel(-100);
   let choicesOtherSkillsPierce = null;
   for (let i = 0; i < 20 && !choicesOtherSkillsPierce; i++) {
     const choices = probe.getEligibleChoices();
@@ -1623,24 +1659,34 @@ test('M1-D-23 mut_pierce pool eligibility, unowned needle exclusion, owned inclu
   assert.ok(choicesOtherSkillsPierce, '其他技能變異不阻擋 needle 獨立獲得 mut_pierce');
 
   // 4. 真選卡 offerUp -> applyChoice 流程
-  probe.setBuildMutations([]);
+  probe.getWL().katana = 5;
+  probe.getWL().needle = 5;
+  probe.getWL().barrier = 5;
+  probe.getWL().thunder = 5;
+  probe.getWL().fire = 0;
+  probe.getWL().boom = 0;
+  probe.setBuildCharms(['charm_reach', 'charm_guard', 'charm_gather']);
+  probe.setBuildMutations(['mut_fan', 'mut_seek', 'mut_crosscut', 'mut_pulse', 'mut_branch']);
+  const bD23 = probe.getB();
+  bD23.shield = 6;
+  bD23.oilRegen = 0.12;
+  bD23.heals = 3;
+  bD23.dmgUp = 3;
+  bD23.rate = 4;
+  bD23.crit = 3;
+  bD23.spd = 3;
+  bD23.dash = 3;
+  bD23.mag = 3;
+
   probe.setLevel(2);
   probe.setXp(100);
   probe.setState('levelup');
   probe.setLevelupCooldown(0);
+  probe.setLastMutationOfferLevel(-100);
   probe.offerUp();
   probe.setLevelupCooldown(0);
   const currentChoices = probe.getChoices();
-  let pierceOffer = currentChoices.find(c => c.id === 'mut_pierce');
-  for (let attempt = 0; attempt < 100 && !pierceOffer; attempt++) {
-    const freshChoices = probe.getEligibleChoices();
-    const found = freshChoices.find(c => c.id === 'mut_pierce');
-    if (found) {
-      pierceOffer = found;
-      probe.setChoices([found]);
-      break;
-    }
-  }
+  const pierceOffer = currentChoices.find(c => c.id === 'mut_pierce');
   assert.ok(pierceOffer, '選卡候選必須包含 mut_pierce');
   const rev = probe.getBuildRevision();
   const xpBefore = probe.getXp();
@@ -1878,7 +1924,7 @@ test('M1-D-27 mut_fan extra needles independent calculation, valid 3-mutation st
   const specFanPierce = probe.resolveAttackSpec('needle', 1, probe.getBuildState());
   assert.equal(specFanPierce.count, 6, 'mut_fan 使得發數增加至 6');
   assert.equal(specFanPierce.hasPierce, true, 'mut_pierce 正常生效');
-  assert.equal(specFanPierce.perShotScale, 0.72, 'mut_fan 單發比例 0.72');
+  assert.equal(specFanPierce.perShotScale, 0.6, 'mut_fan 單發比例 0.6');
 
   probe.setWT('needle', 0);
   probe.weapons(0.01);
@@ -1922,10 +1968,10 @@ test('M1-D-27 mut_fan extra needles independent calculation, valid 3-mutation st
     assert.equal(Number(nd.pierceBonusScaleTotal.toFixed(4)), 0.30, '每針增額預算達到 30% 上限封頂');
   }
 
-  // 增額對帳：總增額 > 0 且等於 cap 3.26592 (<= sumBaseFanDmg * 0.30)
+  // 增額對帳：總增額 > 0 且等於 cap 2.7216 (<= sumBaseFanDmg * 0.30)
   const totalFanExtra = fanNeedles.reduce((sum, nd) => sum + nd.dmg * (nd.pierceBonusScaleTotal || 0), 0);
   assert.ok(totalFanExtra > 0, 'fan 6 針實質產生穿透增額');
-  assert.equal(Number(totalFanExtra.toFixed(5)), 3.26592, 'fan 6 針 30 次實碰總增額精確等於 3.26592 cap');
+  assert.equal(Number(totalFanExtra.toFixed(5)), 2.7216, 'fan 6 針 30 次實碰總增額精確等於 2.7216 cap');
   assert.ok(totalFanExtra <= sumBaseFanDmg * 0.30 + 1e-9, 'fan 6 針總增額受 30% 硬性封頂保護');
 
   // 敵人物理扣血總額與逐針結算對帳
@@ -2070,7 +2116,7 @@ test('M1-D-28 In-flight needle snapshot isolation against mutation acquisition, 
   activeNeedlesPierce.push(flyingPierceNeedle);
 
   assert.equal(flyingPierceNeedle.hasPierce, true, '飛行中靈針初始帶有 mut_pierce');
-  assert.equal(flyingPierceNeedle.dmg, 4.2336, '飛行中靈針生成時快照傷害為 4.2336');
+  assert.equal(Number(flyingPierceNeedle.dmg.toFixed(5)), 5.13144, '飛行中靈針生成時快照傷害為 5.13144');
 
   // 在舊針飛行中，玩家升級並透過真 offerUp -> applyChoice 選取唯一合格卡 passive:dmg
   probe.setLevel(2);
@@ -2099,25 +2145,25 @@ test('M1-D-28 In-flight needle snapshot isolation against mutation acquisition, 
   probe.setWT('katana', 999);
   probe.setWT('needle', 999); // 凍結靈針冷卻，確保只有舊針命中
 
-  // 推進時間命中 3 敵：舊針依生成時快照 4.2336 / 4.86864 / 4.86864 結算
+  // 推進時間命中 3 敵：舊針依生成時快照 5.13144 / 5.90116 / 5.90116 結算
   probe.weapons(0.12);
   assert.ok(flyingPierceNeedle.hits.has(enemyPierce1));
-  assert.equal(Number((100 - enemyPierce1.hp).toFixed(4)), 4.2336, '第 1 擊維持生成時快照 1.0x (4.2336)');
+  assert.equal(Number((100 - enemyPierce1.hp).toFixed(5)), 5.13144, '第 1 擊維持生成時快照 1.0x (5.13144)');
 
   probe.weapons(0.07);
   assert.ok(flyingPierceNeedle.hits.has(enemyPierce2));
-  assert.equal(Number((100 - enemyPierce2.hp).toFixed(5)), 4.86864, '第 2 擊依生成時快照 1.15x (4.86864)，不被新升級污染');
+  assert.equal(Number((100 - enemyPierce2.hp).toFixed(5)), 5.90116, '第 2 擊依生成時快照 1.15x (5.90116)，不被新升級污染');
 
   probe.weapons(0.07);
   assert.ok(flyingPierceNeedle.hits.has(enemyPierce3));
-  assert.equal(Number((100 - enemyPierce3.hp).toFixed(5)), 4.86864, '第 3 擊依生成時快照 1.15x (4.86864)，不被新升級污染');
+  assert.equal(Number((100 - enemyPierce3.hp).toFixed(5)), 5.90116, '第 3 擊依生成時快照 1.15x (5.90116)，不被新升級污染');
 
-  // 驗證升級後新發動的靈針正向享受新數值 (5.292 = 4.9 * 0.72 * 1.5)
+  // 驗證升級後新發動的靈針正向享受新數值 (6.4143 = 4.2762 * 1.5)
   probe.setWT('needle', 0);
   probe.weapons(0.01);
   const newNeedles = probe.getNeedles().filter(nd => nd !== flyingPierceNeedle);
   assert.ok(newNeedles.length > 0, '冷卻結束後發射新靈針');
-  assert.equal(newNeedles[0].dmg, 5.292, '新靈針精確享受升級後的 5.292 傷害');
+  assert.equal(Number(newNeedles[0].dmg.toFixed(4)), 6.4143, '新靈針精確享受升級後的 6.4143 傷害');
 
   // 2. pause / levelup 狀態凍結驗證
   probe.setWT('needle', 1.0);
@@ -2167,9 +2213,15 @@ test('M1-D-29 mut_return pool eligibility, unowned needle exclusion, owned inclu
   assert.ok(!choicesWithoutNeedle.some(c => c.id === 'mut_return'), '未持有天狐靈針時 mut_return 絕不可進入選卡池');
 
   // 2. 持有靈針 (WL.needle === 1)：mut_return 正常進池且 Schema 符合規範
+  probe.getWL().katana = 0;
   probe.getWL().needle = 1;
-  probe.setBuildMutations(['mut_fan', 'mut_seek']);
+  probe.setBuildMutations(['mut_fan', 'mut_pierce']);
   probe.setLevelupCooldown(0);
+  probe.setMockRandom(() => {
+    const s = new Error().stack;
+    if (s && s.includes('pick')) return 0.8;
+    return 0.1;
+  });
   let returnCard = null;
   for (let i = 0; i < 20 && !returnCard; i++) {
     const choices = probe.getEligibleChoices();
@@ -2185,7 +2237,7 @@ test('M1-D-29 mut_return pool eligibility, unowned needle exclusion, owned inclu
   assert.equal(returnCard.cat, '【 靈針變異 】');
   assert.equal(returnCard.levelText, '◆ 靈針變異');
   assert.equal(returnCard.rarity, 'mutation');
-  assert.ok(returnCard.d.includes('單次折返') && returnCard.d.includes('原點') && returnCard.d.includes('至多') && returnCard.d.includes('壽命不延長') && returnCard.d.includes('不額外生成新針'), '說明文案必須明示單次折返/原點/同敵至多一次/壽命不延長/不額外生成新針');
+  assert.ok(returnCard.d.includes('單次折返') && returnCard.d.includes('額外命中一次') && returnCard.d.includes('35%') && returnCard.d.includes('不重複冰封'), '說明文案必須明示單次折返/額外命中一次/35%/不重複冰封');
   assert.equal(returnCard.requirementText, '持有天狐靈針');
   assert.equal(returnCard.limitText, '每種限選一次（每技能最多 3 種變異）');
 
@@ -2196,7 +2248,7 @@ test('M1-D-29 mut_return pool eligibility, unowned needle exclusion, owned inclu
   assert.ok(!choicesFullNeedle.some(c => c.id === 'mut_return'), '靈針已滿 3 變異時 mut_return 絕不可進池');
 
   // B. 其他技能變異（katana 1, barrier 1, thunder 1）不阻擋 needle 取得 mut_return
-  probe.setBuildMutations(['mut_fan', 'mut_seek', 'mut_crosscut', 'mut_pulse', 'mut_branch']);
+  probe.setBuildMutations(['mut_fan', 'mut_pierce', 'mut_crosscut', 'mut_pulse', 'mut_branch']);
   let choicesOtherSkillsReturn = null;
   for (let i = 0; i < 20 && !choicesOtherSkillsReturn; i++) {
     const choices = probe.getEligibleChoices();
@@ -2219,7 +2271,7 @@ test('M1-D-29 mut_return pool eligibility, unowned needle exclusion, owned inclu
   bD29.shield = 6;
   bD29.oilRegen = 0.12;
   bD29.heals = 3;
-  bD29.dmgUp = 4;
+  bD29.dmgUp = 3;
   bD29.rate = 4;
   bD29.crit = 3;
   bD29.spd = 3;
@@ -2265,6 +2317,7 @@ test('M1-D-29 mut_return pool eligibility, unowned needle exclusion, owned inclu
   // E. 去重保護：已選取的 mut_return 絕不再出現在候選池
   const choicesAfter = probe.getEligibleChoices();
   assert.ok(!choicesAfter.some(c => c.id === 'mut_return'), '已持有的 mut_return 不得重複出現在選卡池');
+  probe.setMockRandom(null);
 });
 
 // ── 30. resolveAttackSpec needle 快照數值忠實度、Lv1–5 基線保持與 mut_return 參數 ──
@@ -2420,15 +2473,16 @@ test('M1-D-32 Needle outbound and inbound hit deduplication, pierce bonus budget
   probe.setEnemies([eOut, eIn]);
   eOut.inb = 0; // 模擬受擊間隔結束
 
-  // 回程推進穿過 eOut：受 hits Set 保護絕不重複扣血！
+  // 回程推進穿過 eOut：結算一次額外 35% 傷害，並以 returnBonusHits 去重防止第 3 次扣血！
   for (let t = 0; t < 3; t++) probe.weapons(0.05);
-  assert.equal(Number((100 - eOut.hp).toFixed(3)), baseDmg, '回程再次穿過 eOut 絕不重複結算扣血');
+  assert.equal(Number((100 - eOut.hp).toFixed(3)), 3.402, '回程再次穿過 eOut 結算一次額外 35% 傷害 (2.52 * 1.35 = 3.402)');
+  assert.ok(centerNeedle.returnBonusHits?.has(eOut), 'returnBonusHits 記錄該敵人，防止第 3 次重複結算');
 
   // 4. 回程推進命中 eIn：共享 pierceHits 預算，累計第 2 擊享受 1.15x (2.898)
   for (let t = 0; t < 2; t++) probe.weapons(0.05);
   assert.ok(centerNeedle.hits.has(eIn), '回程命中新怪 eIn');
   assert.equal(centerNeedle.pierceHits, 2, '回程新怪累計為第 2 擊');
-  assert.equal(Number((100 - eIn.hp).toFixed(3)), 2.898, 'eIn 共享穿透增額享受 1.15x (2.898)');
+  assert.equal(Number((100 - eIn.hp).toFixed(3)), 3.78, 'eIn 共享穿透增額 1.15x (2.898) 加上回程額外 35% 傷 (0.882) 合計 3.78');
   assert.ok(centerNeedle.pierceBonusScaleTotal <= 0.30, '穿透增額共享且不超額');
 
   // 5. 靈針返回原點消散
@@ -2559,6 +2613,7 @@ test('M1-D-35 mut_orbit pool eligibility, unowned fire exclusion, owned inclusio
   assert.ok(!choicesWithoutFire.some(c => c.id === 'mut_orbit'), '未持有狐火時 mut_orbit 絕不可進入選卡池');
 
   // 2. 持有狐火 (WL.fire === 1)：mut_orbit 正常進池且 Schema 符合規範
+  probe.getWL().katana = 0;
   probe.getWL().fire = 1;
   probe.setLevelupCooldown(0);
   let orbitCard = null;
@@ -2576,7 +2631,7 @@ test('M1-D-35 mut_orbit pool eligibility, unowned fire exclusion, owned inclusio
   assert.equal(orbitCard.cat, '【 狐火變異 】');
   assert.equal(orbitCard.levelText, '◆ 狐火變異');
   assert.equal(orbitCard.rarity, 'mutation');
-  assert.ok(orbitCard.d.includes('長短軸偏心橢圓') && orbitCard.d.includes('rx=126') && orbitCard.d.includes('ry=78') && orbitCard.d.includes('不增加火球數量') && orbitCard.d.includes('保持各級接觸') && orbitCard.d.includes('黑龍特性'), '說明文案必須明示長短軸偏心橢圓/rx126/ry78/不增加火球數量/保持各級接觸與黑龍特性');
+  assert.ok(orbitCard.d.includes('rx=126') && orbitCard.d.includes('ry=78') && orbitCard.d.includes('+20%') && orbitCard.d.includes('+15%'), '說明文案必須明示 rx=126/ry=78/接觸+20%/黑龍+15%');
   assert.equal(orbitCard.requirementText, '持有狐火');
   assert.equal(orbitCard.limitText, '每種限選一次（每技能最多 3 種變異）');
 
@@ -2609,7 +2664,7 @@ test('M1-D-35 mut_orbit pool eligibility, unowned fire exclusion, owned inclusio
   bD35.shield = 6;
   bD35.oilRegen = 0.12;
   bD35.heals = 3;
-  bD35.dmgUp = 4;
+  bD35.dmgUp = 3;
   bD35.rate = 4;
   bD35.crit = 3;
   bD35.spd = 3;
@@ -2620,8 +2675,10 @@ test('M1-D-35 mut_orbit pool eligibility, unowned fire exclusion, owned inclusio
   probe.setXp(100);
   probe.setState('levelup');
   probe.setLevelupCooldown(0);
+  probe.setMockRandom(0);
   probe.offerUp();
   probe.setLevelupCooldown(0);
+  probe.setMockRandom(null);
   const currentChoices = probe.getChoices();
   const orbitOffer = currentChoices.find(c => c.id === 'mut_orbit');
   assert.ok(orbitOffer, '選卡候選必須包含 mut_orbit');
@@ -2709,7 +2766,7 @@ test('M1-D-36 resolveAttackSpec fire snapshot numerical fidelity, baseline prese
     assert.equal(spec.ry, 78, `Lv${lvl} mut_orbit ry 必須為 78`);
     assert.equal(spec.count, expectedCounts[lvl - 1], `Lv${lvl} 變異後火數不可增加，仍為 ${expectedCounts[lvl - 1]}`);
     assert.equal(spec.angularSpeed, 2.8, `Lv${lvl} 變異後角速不可增加，仍為 2.8`);
-    assert.equal(spec.contactDamage, expectedContactDmgs[lvl - 1], `Lv${lvl} 變異後接觸傷不可增加，仍為 ${expectedContactDmgs[lvl - 1]}`);
+    assert.equal(spec.contactDamage, Number((expectedContactDmgs[lvl - 1] * 1.20).toFixed(4)), `Lv${lvl} 變異後接觸傷增加 20% 為 ${Number((expectedContactDmgs[lvl - 1] * 1.20).toFixed(4))}`);
   }
 });
 
@@ -2901,9 +2958,9 @@ test('M1-D-39 Lv5 Black Dragon 7.2s, 3 fireballs, 3 scorches, and full damage sn
   const dragon = probe.getGhosts().find(g => g.dragon && g.life > 0);
   assert.ok(dragon, '7.2s 冷卻就緒且有目標時召喚黑龍');
   assert.equal(probe.getWT().fire, 7.2, '黑龍冷卻計時重置為 7.2s');
-  assert.equal(dragon.dragonDirectDmg, 14.4, '黑龍直擊傷害快照為 14.4');
-  assert.equal(dragon.dragonSplashDmg, 4.8, '黑龍濺射傷害快照為 4.8');
-  assert.equal(dragon.dragonScorchDmg, 2.16, '黑龍焦土傷害快照為 2.16');
+  assert.equal(dragon.dragonDirectDmg, 16.56, '黑龍直擊傷害快照為 16.56');
+  assert.equal(dragon.dragonSplashDmg, 5.52, '黑龍濺射傷害快照為 5.52');
+  assert.equal(dragon.dragonScorchDmg, 2.484, '黑龍焦土傷害快照為 2.484');
   assert.equal(dragon.scorchDuration, 5, '焦土持續時間為 5s');
   assert.equal(dragon.scorchRadius, 140, '焦土半徑為 140');
 
@@ -2915,9 +2972,9 @@ test('M1-D-39 Lv5 Black Dragon 7.2s, 3 fireballs, 3 scorches, and full damage sn
   const shots = probe.getDragonShots();
   assert.equal(shots.length, 3, '黑龍噴出 3 枚火球');
   for (const shot of shots) {
-    assert.equal(shot.dragonDirectDmg, 14.4, '火球傳遞直擊傷快照 14.4');
-    assert.equal(shot.dragonSplashDmg, 4.8, '火球傳遞濺射傷快照 4.8');
-    assert.equal(shot.dragonScorchDmg, 2.16, '火球傳遞焦土傷快照 2.16');
+    assert.equal(shot.dragonDirectDmg, 16.56, '火球傳遞直擊傷快照 16.56');
+    assert.equal(shot.dragonSplashDmg, 5.52, '火球傳遞濺射傷快照 5.52');
+    assert.equal(shot.dragonScorchDmg, 2.484, '火球傳遞焦土傷快照 2.484');
   }
 
   // 4. 火球飛行中，透過真 offerUp/applyChoice 選取修羅破軍升級 b.dmg 至 1.50
@@ -2930,7 +2987,7 @@ test('M1-D-39 Lv5 Black Dragon 7.2s, 3 fireballs, 3 scorches, and full damage sn
   assert.equal(res1.ok, true, '真選卡修羅破軍成功');
   assert.equal(Number(b.dmg.toFixed(2)), 1.50, '真選卡後 b.dmg 提升至 1.50');
 
-  // 5. 正負對照組 1：groundTarget = true 落地 -> impact.target=null，僅濺射 [4.8, 4.8]
+  // 5. 正負對照組 1：groundTarget = true 落地 -> impact.target=null，僅濺射 [5.52, 5.52]
   const shot0 = shots[0];
   shot0.groundTarget = true;
   const gV1 = { x: 400, y: 300, hp: 500, max: 500, type: 'mob' };
@@ -2938,10 +2995,10 @@ test('M1-D-39 Lv5 Black Dragon 7.2s, 3 fireballs, 3 scorches, and full damage sn
   probe.setEnemies([gV1, gV2]);
   shot0.x = 400; shot0.y = 300; shot0.landX = 400; shot0.landY = 300; shot0.life = 0.001;
   probe.weapons(0.016);
-  assert.equal(Number((500 - gV1.hp).toFixed(4)), 4.8, '落地目標 1 僅受濺射傷害 4.8，不被 1.5 升級回寫且無直擊');
-  assert.equal(Number((500 - gV2.hp).toFixed(4)), 4.8, '落地目標 2 僅受濺射傷害 4.8，不被 1.5 升級回寫且無直擊');
+  assert.equal(Number((500 - gV1.hp).toFixed(4)), 5.52, '落地目標 1 僅受濺射傷害 5.52，不被 1.5 升級回寫且無直擊');
+  assert.equal(Number((500 - gV2.hp).toFixed(4)), 5.52, '落地目標 2 僅受濺射傷害 5.52，不被 1.5 升級回寫且無直擊');
 
-  // 5b. 正負對照組 2：groundTarget = false 飛行接觸 -> 碰撞直擊 [14.4, 4.8]
+  // 5b. 正負對照組 2：groundTarget = false 飛行接觸 -> 碰撞直擊 [16.56, 5.52]
   const shot1 = shots.find(s => s !== shot0 && s.life > 0);
   assert.ok(shot1, '存在第二枚火球供接觸碰撞驗證');
   shot1.groundTarget = false;
@@ -2950,17 +3007,17 @@ test('M1-D-39 Lv5 Black Dragon 7.2s, 3 fireballs, 3 scorches, and full damage sn
   probe.setEnemies([dV, sV]);
   shot1.x = 600; shot1.y = 300; shot1.vx = 510; shot1.vy = 0;
   probe.weapons(0.016);
-  assert.equal(Number((500 - dV.hp).toFixed(4)), 14.4, '直擊目標承受直擊傷 14.4，維持生成快照，不被 1.5 升級回寫為 18.0');
-  assert.equal(Number((500 - sV.hp).toFixed(4)), 4.8, '鄰近濺射目標承受濺射傷 4.8，維持生成快照，不被 1.5 升級回寫為 6.0');
+  assert.equal(Number((500 - dV.hp).toFixed(4)), 16.56, '直擊目標承受直擊傷 16.56，維持生成快照，不被 1.5 升級回寫為 18.0');
+  assert.equal(Number((500 - sV.hp).toFixed(4)), 5.52, '鄰近濺射目標承受濺射傷 5.52，維持生成快照，不被 1.5 升級回寫為 6.0');
 
   // 清除殘留火球避免干擾焦土判定
   probe.getDragonShots().length = 0;
 
-  // 6. 驗證落地生成之焦土維持生成快照 2.16
+  // 6. 驗證落地生成之焦土維持生成快照 2.484
   const scorches = probe.getDragonScorches();
   assert.ok(scorches.length >= 1, '火球落地生成焦土');
   const scorch = scorches[0];
-  assert.equal(scorch.scorchDamage, 2.16, '焦土傷害維持生成快照 2.16');
+  assert.equal(scorch.scorchDamage, 2.484, '焦土傷害維持生成快照 2.484');
   assert.equal(scorch.maxLife, 5, '焦土持續時間為 5s');
   assert.equal(scorch.r, 140, '焦土半徑為 140');
 
@@ -2974,12 +3031,12 @@ test('M1-D-39 Lv5 Black Dragon 7.2s, 3 fireballs, 3 scorches, and full damage sn
   assert.equal(res2.ok, true, '第二層修羅破軍真選卡成功');
   assert.equal(Number(b.dmg.toFixed(2)), 1.80, '真選卡後 b.dmg 提升至 1.80');
 
-  // 8. 現役焦土 tick 扣血：維持快照 2.16 結算，絕不被 1.80 回寫為 3.24
+  // 8. 現役焦土 tick 扣血：維持快照 2.484 結算，絕不被 1.80 回寫為 3.24
   const scorchVictim = { x: 400, y: 300, hp: 100, max: 100, type: 'mob' };
   probe.setEnemies([scorchVictim]);
   scorch.tick = 0;
   probe.weapons(0.016);
-  assert.equal(Number((100 - scorchVictim.hp).toFixed(4)), 2.16, '現役焦土 tick 傷依快照 2.16 結算，絕不回寫為 3.24');
+  assert.equal(Number((100 - scorchVictim.hp).toFixed(4)), 2.484, '現役焦土 tick 傷依快照 2.484 結算，絕不回寫為 3.24');
 
   // 9. 冷卻結束後新召喚的黑龍，完整享受新傷害快照 (b.dmg = 1.80)
   probe.getGhosts().length = 0;
@@ -2990,9 +3047,9 @@ test('M1-D-39 Lv5 Black Dragon 7.2s, 3 fireballs, 3 scorches, and full damage sn
   probe.weapons(0.016);
   const newDragon = probe.getGhosts().find(g => g.dragon && g.life > 0);
   assert.ok(newDragon, '7.2s 冷卻後召喚新黑龍');
-  assert.equal(newDragon.dragonDirectDmg, 21.6, '新黑龍直擊傷快照為 21.6 (12 * 1.8)');
-  assert.equal(newDragon.dragonSplashDmg, 7.2, '新黑龍濺射傷快照為 7.2 (4 * 1.8)');
-  assert.equal(newDragon.dragonScorchDmg, 3.24, '新黑龍焦土傷快照為 3.24 (1.8 * 1.8)');
+  assert.equal(newDragon.dragonDirectDmg, 24.84, '新黑龍直擊傷快照為 24.84 (12 * 1.8 * 1.15)');
+  assert.equal(newDragon.dragonSplashDmg, 8.28, '新黑龍濺射傷快照為 8.28 (4 * 1.8 * 1.15)');
+  assert.equal(newDragon.dragonScorchDmg, 3.726, '新黑龍焦土傷快照為 3.726 (1.8 * 1.8 * 1.15)');
 
   for (let step = 0; step < 45; step++) {
     probe.weapons(0.016);
@@ -3007,18 +3064,18 @@ test('M1-D-39 Lv5 Black Dragon 7.2s, 3 fireballs, 3 scorches, and full damage sn
   probe.setEnemies([newD, newS]);
   newShot.x = 600; newShot.y = 300; newShot.vx = 510; newShot.vy = 0;
   probe.weapons(0.016);
-  assert.equal(Number((500 - newD.hp).toFixed(4)), 21.6, '新火球直擊享受新快照 21.6');
-  assert.equal(Number((500 - newS.hp).toFixed(4)), 7.2, '新火球濺射享受新快照 7.2');
+  assert.equal(Number((500 - newD.hp).toFixed(4)), 24.84, '新火球直擊享受新快照 24.84');
+  assert.equal(Number((500 - newS.hp).toFixed(4)), 8.28, '新火球濺射享受新快照 8.28');
 
   const newScorches = probe.getDragonScorches();
   assert.ok(newScorches.length >= 1, '新火球生成新焦土');
   const newScorch = newScorches[newScorches.length - 1];
-  assert.equal(newScorch.scorchDamage, 3.24, '新焦土傷害快照為 3.24');
+  assert.equal(newScorch.scorchDamage, 3.726, '新焦土傷害快照為 3.726');
   const newScorchVictim = { x: newScorch.x, y: newScorch.y, hp: 100, max: 100, type: 'mob' };
   probe.setEnemies([newScorchVictim]);
   newScorch.tick = 0;
   probe.weapons(0.016);
-  assert.equal(Number((100 - newScorchVictim.hp).toFixed(4)), 3.24, '新焦土 tick 傷依新快照 3.24 結算');
+  assert.equal(Number((100 - newScorchVictim.hp).toFixed(4)), 3.726, '新焦土 tick 傷依新快照 3.726 結算');
 });
 
 // ── 40. 狐火狀態機與生命週期清理：pause/levelup 凍結、死亡/重開清空無殘留 ────
@@ -3129,7 +3186,11 @@ test('M1-D-41 mut_splitblast pool eligibility, unowned boom exclusion, owned inc
   assert.equal(typeof splitblastCard.f, 'function');
 
   // 4. 每技能容量獨立：needle 變異已滿 3 個，boom 仍能合法取得 mut_splitblast
-  probe.setBuildMutations(['mut_seek', 'mut_frost', 'mut_pierce', 'mut_crosscut', 'mut_pulse', 'mut_branch', 'mut_orbit']);
+  probe.getWL().katana = 0;
+  probe.getWL().needle = 1;
+  probe.getWL().boom = 1;
+  probe.setBuildMutations(['mut_pierce', 'mut_return', 'mut_fan']);
+  probe.setMockRandom(0);
   let foundWithFullNeedle = false;
   for (let i = 0; i < 30 && !foundWithFullNeedle; i++) {
     const choicesWithFullNeedle = probe.getEligibleChoices();
@@ -3138,8 +3199,11 @@ test('M1-D-41 mut_splitblast pool eligibility, unowned boom exclusion, owned inc
   assert.ok(foundWithFullNeedle, 'needle 滿 3 變異不阻擋 boom 取得 mut_splitblast');
 
   // 5. 真 offerUp -> applyChoice 寫入 BuildState 與 mutations 清單，驗證 XP 扣除、revision 推進、連按防重扣
-  probe.setBuildMutations(['mut_seek', 'mut_frost', 'mut_pierce', 'mut_crosscut', 'mut_pulse', 'mut_branch', 'mut_orbit']);
+  probe.getWL().katana = 0;
+  probe.getWL().needle = 1;
   probe.getWL().boom = 1;
+  probe.setBuildMutations(['mut_pierce', 'mut_return', 'mut_fan']);
+  probe.setMockRandom(0);
   const xpBefore = 100;
   let splitCard = null;
   for (let attempt = 0; attempt < 20 && !splitCard; attempt++) {
@@ -3161,6 +3225,7 @@ test('M1-D-41 mut_splitblast pool eligibility, unowned boom exclusion, owned inc
   assert.equal(probe.getState(), 'play', '套用後切回 play');
   assert.equal(probe.getBuildRevision(), cardRev + 1, 'buildRevision 必須推進');
   assert.ok(probe.getXp() < xpBefore, 'XP 必須依等級公式被扣除');
+  probe.setMockRandom(null);
 
   // 連按防重扣 XP
   const doubleClickRes = probe.applyChoice(splitCard.choiceId, cardRev);
@@ -3542,7 +3607,15 @@ test('M1-D-46 Real weapons producer and real offerUp/applyChoice upgrade isolati
   assert.equal(oldTalisman.stuck, false, '符咒處於飛行途中');
 
   // 飛行途中：觸發真 offerUp -> applyChoice 取得 mut_splitblast
-  probe.setBuildMutations(['mut_seek', 'mut_frost', 'mut_pierce', 'mut_crosscut', 'mut_pulse', 'mut_branch', 'mut_orbit']);
+  probe.getWL().katana = 0;
+  probe.getWL().needle = 0;
+  probe.getWL().boom = 1;
+  probe.setBuildMutations([]);
+  probe.setMockRandom(() => {
+    const s = new Error().stack;
+    if (s && s.includes('pick')) return 0.99;
+    return 0.1;
+  });
   let splitCardFlight = null;
   for (let attempt = 0; attempt < 20 && !splitCardFlight; attempt++) {
     probe.setXp(100);
@@ -3554,6 +3627,7 @@ test('M1-D-46 Real weapons producer and real offerUp/applyChoice upgrade isolati
   assert.ok(splitCardFlight, '真 offerUp 抽出 mut_splitblast');
   const applyResFlight = probe.applyChoice(splitCardFlight.choiceId, probe.getBuildRevision());
   assert.equal(applyResFlight.ok, true, '真 applyChoice 成功取得 mut_splitblast');
+  probe.setMockRandom(null);
 
   // 驗證飛行中舊符不回寫：
   assert.equal(oldTalisman.hasSplitblast, false, '飛行途中取得變異，舊符絕不被回寫 hasSplitblast');
@@ -3707,8 +3781,11 @@ test('M1-D-47 mut_fan shared pool eligibility, dynamic card presentation (boom-o
   }
 
   // 2. Needle-only: 持有靈針、未持有陰陽符
+  probe.getWL().katana = 0;
   probe.getWL().needle = 1;
   probe.getWL().boom = 0;
+  probe.setBuildMutations(['mut_pierce', 'mut_return']);
+  probe.setMockRandom(0);
   let fanNeedleCard = null;
   for (let i = 0; i < 30 && !fanNeedleCard; i++) {
     const choices = probe.getEligibleChoices();
@@ -3726,8 +3803,11 @@ test('M1-D-47 mut_fan shared pool eligibility, dynamic card presentation (boom-o
   assert.ok(fanNeedleCard.d.includes('每次施放'), '使用每次施放非 cast');
 
   // 3. Boom-only: 未持有靈針、持有陰陽符
+  probe.getWL().katana = 0;
   probe.getWL().needle = 0;
   probe.getWL().boom = 1;
+  probe.setBuildMutations(['mut_seek', 'mut_frost']);
+  probe.setMockRandom(0);
   let fanBoomCard = null;
   for (let i = 0; i < 30 && !fanBoomCard; i++) {
     const choices = probe.getEligibleChoices();
@@ -3745,8 +3825,11 @@ test('M1-D-47 mut_fan shared pool eligibility, dynamic card presentation (boom-o
   assert.ok(fanBoomCard.d.includes('每次施放') && !fanBoomCard.d.includes('cast'), '使用每次施放非 cast');
 
   // 4. Both owned: 同時持有靈針與陰陽符
+  probe.getWL().katana = 0;
   probe.getWL().needle = 1;
   probe.getWL().boom = 1;
+  probe.setBuildMutations(['mut_seek', 'mut_frost']);
+  probe.setMockRandom(0);
   let fanBothCard = null;
   for (let i = 0; i < 30 && !fanBothCard; i++) {
     const choices = probe.getEligibleChoices();
@@ -3762,6 +3845,7 @@ test('M1-D-47 mut_fan shared pool eligibility, dynamic card presentation (boom-o
   assert.ok(fanBothCard.limitText.includes('取得其他適用技能後沿用'));
 
   // 5. 已有 mut_fan 全局去重：不再重複出卡
+  probe.setMockRandom(null);
   probe.setBuildMutations(['mut_fan']);
   for (let i = 0; i < 10; i++) {
     const choices = probe.getEligibleChoices();
@@ -3801,12 +3885,13 @@ test('M1-D-48 Real offerUp -> applyChoice for mut_fan (boom-only and both), revi
   });
 
   // 1. Boom-only 真 offerUp -> applyChoice 取得 mut_fan
-  probe.getWL().katana = 1;
+  probe.getWL().katana = 0;
   probe.getWL().barrier = 0;
   probe.getWL().fire = 0;
   probe.getWL().needle = 0; // 未持有 needle
-  probe.getWL().boom = 1;   // 僅持有 boom (owned = [katana, boom] = 2 < 4)
-  probe.setBuildMutations([]);
+  probe.getWL().boom = 1;   // 僅持有 boom
+  probe.setBuildMutations(['mut_seek', 'mut_frost']);
+  probe.setMockRandom(0);
 
   let fanCard = null;
   for (let attempt = 0; attempt < 25 && !fanCard; attempt++) {
@@ -3816,6 +3901,7 @@ test('M1-D-48 Real offerUp -> applyChoice for mut_fan (boom-only and both), revi
     probe.setLevelupCooldown(0);
     fanCard = probe.getChoices().find(c => c.id === 'mut_fan');
   }
+  probe.setMockRandom(null);
   assert.ok(fanCard, 'boom-only 經真 offerUp 抽出 mut_fan');
   assert.equal(fanCard.choiceId, 'mutation:needle:mut_fan', 'opaque choiceId 正確');
   assert.deepEqual(Array.from(fanCard.skillIds), ['boom']);
@@ -3824,7 +3910,7 @@ test('M1-D-48 Real offerUp -> applyChoice for mut_fan (boom-only and both), revi
   const xpBefore = probe.getXp();
   const applyRes = probe.applyChoice(fanCard.choiceId, cardRev);
   assert.equal(applyRes.ok, true, 'boom-only 透過 canonical choiceId 成功套用 mut_fan');
-  assert.deepEqual(Array.from(probe.getBuildMutations()), ['mut_fan'], 'BuildState 維持 flat 單一全局 ID，無逐技能副本');
+  assert.ok(probe.getBuildMutations().includes('mut_fan'), 'BuildState 維持 flat 單一全局 ID');
   assert.equal(probe.getBuildRevision(), cardRev + 1, 'buildRevision 推進');
   assert.ok(probe.getXp() < xpBefore, 'XP 正確扣除');
 
@@ -3876,15 +3962,16 @@ test('M1-D-48 Real offerUp -> applyChoice for mut_fan (boom-only and both), revi
 
   // Case B: 反向繼承驗證（重置環境：先持 needle 取 mut_fan，後經真 offerUp -> applyChoice 取得陰陽符武器卡 -> 實際發射 3 符）
   probe.start('night-town');
-  probe.getWL().katana = 1;
+  probe.getWL().katana = 0;
   probe.getWL().needle = 1;
   probe.getWL().boom = 0;
   probe.getWL().barrier = 0;
   probe.getWL().fire = 0;
   probe.getWL().thunder = 0;
-  probe.setBuildMutations([]);
+  probe.setBuildMutations(['mut_pierce', 'mut_return']);
   probe.setBuildCharms(['charm_step', 'charm_gather', 'charm_guard']);
   Object.assign(probe.getB(), { shield: 6, oilRegen: 0.12, heals: 3, rate: 4, crit: 3, spd: 3, dash: 3, mag: 3, dmgUp: 4 });
+  probe.setMockRandom(0);
 
   let fanCardB = null;
   for (let attempt = 0; attempt < 25 && !fanCardB; attempt++) {
@@ -3897,6 +3984,7 @@ test('M1-D-48 Real offerUp -> applyChoice for mut_fan (boom-only and both), revi
   assert.ok(fanCardB, '真 offerUp 抽出 mut_fan');
   const applyFanB = probe.applyChoice(fanCardB.choiceId, probe.getBuildRevision());
   assert.equal(applyFanB.ok, true, '套用 mut_fan');
+  probe.setMockRandom(null);
 
   let boomCardB = null;
   for (let attempt = 0; attempt < 25 && !boomCardB; attempt++) {
@@ -3958,15 +4046,15 @@ test('M1-D-49 resolveAttackSpec boom Lv1-5 fan prototype numerical fidelity, bas
     assert.equal(fanSpec.knockback, 72);
     assert.equal(fanSpec.hasFan, true);
 
-    // 2. 直擊總預算嚴格對帳：每 cast 總直擊傷害 <= baseCount * baseDamage（浮點誤差 <= 1e-9）
+    // 2. 直擊總預算嚴格對帳：每 cast 總直擊傷害 <= baseCount * baseDamage * 1.20（浮點誤差 <= 1e-9）
     const totalDirectDamage = fanSpec.count * fanSpec.damage;
-    const allowedDirectDamage = baseSpec.count * baseSpec.damage;
+    const allowedDirectDamage = baseSpec.count * baseSpec.damage * 1.20;
     assert.ok(totalDirectDamage <= allowedDirectDamage + 1e-9, `Lv${lvl} 總直擊傷害預算超額: ${totalDirectDamage} > ${allowedDirectDamage}`);
     assert.ok(Math.abs(totalDirectDamage - allowedDirectDamage) <= 1e-9, `Lv${lvl} 總直擊傷害未精準分攤: diff=${Math.abs(totalDirectDamage - allowedDirectDamage)}`);
 
-    // 3. 濺射總預算嚴格對帳：每 cast 總濺射傷害 <= baseCount * baseSplashDamage（浮點誤差 <= 1e-9）
+    // 3. 濺射總預算嚴格對帳：每 cast 總濺射傷害 <= baseCount * baseSplashDamage * 1.20（浮點誤差 <= 1e-9）
     const totalSplashDamage = fanSpec.count * fanSpec.splashDamage;
-    const allowedSplashDamage = baseSpec.count * baseSpec.splashDamage;
+    const allowedSplashDamage = baseSpec.count * baseSpec.splashDamage * 1.20;
     assert.ok(totalSplashDamage <= allowedSplashDamage + 1e-9, `Lv${lvl} 總濺射傷害預算超額: ${totalSplashDamage} > ${allowedSplashDamage}`);
     assert.ok(Math.abs(totalSplashDamage - allowedSplashDamage) <= 1e-9, `Lv${lvl} 總濺射傷害未精準分攤: diff=${Math.abs(totalSplashDamage - allowedSplashDamage)}`);
   }
@@ -3978,12 +4066,12 @@ test('M1-D-49 resolveAttackSpec boom Lv1-5 fan prototype numerical fidelity, bas
       const bSpec = probe.resolveAttackSpec('boom', lvl, { mutations: [] });
       const fSpec = probe.resolveAttackSpec('boom', lvl, { mutations: ['mut_fan'] });
       const directSum = fSpec.count * fSpec.damage;
-      const directCap = bSpec.count * bSpec.damage;
+      const directCap = bSpec.count * bSpec.damage * 1.20;
       assert.ok(directSum <= directCap + 1e-9, `b.dmg=${testDmg} Lv${lvl} 直擊超額`);
       assert.ok(Math.abs(directSum - directCap) <= 1e-9);
 
       const splashSum = fSpec.count * fSpec.splashDamage;
-      const splashCap = bSpec.count * bSpec.splashDamage;
+      const splashCap = bSpec.count * bSpec.splashDamage * 1.20;
       assert.ok(splashSum <= splashCap + 1e-9, `b.dmg=${testDmg} Lv${lvl} 濺射超額`);
       assert.ok(Math.abs(splashSum - splashCap) <= 1e-9);
     }
@@ -4023,10 +4111,10 @@ test('M1-D-50 Real weapons producer consumes fan snapshot per talisman, launch a
   assert.equal(Math.round(p1.vy), 0, '符咒 1 朝正右方直射 (角 0)');
   assert.ok(p2.vy > 50, '符咒 2 朝偏下方散射 (角 +0.32)');
 
-  // 每符傷害為 2.64 / 3 = 0.88
+  // 每符傷害為 2.64 * 1.20 / 3 = 1.056
   for (const p of projectiles) {
-    assert.equal(Number(p.damage.toFixed(4)), 0.88, '每符快照傷害為 0.88');
-    assert.equal(Number(p.splashDamage.toFixed(4)), 0.176, '每符快照濺射傷為 0.176');
+    assert.equal(Number(p.damage.toFixed(4)), 1.056, '每符快照傷害為 1.056');
+    assert.equal(Number(p.splashDamage.toFixed(4)), 0.2112, '每符快照濺射傷為 0.2112');
   }
 
   // 步進至符咒 1 擊中幽靈並黏附
@@ -4048,7 +4136,7 @@ test('M1-D-50 Real weapons producer consumes fan snapshot per talisman, launch a
     if (p1.exploded) exploded = true;
   }
   assert.ok(exploded, '符咒 1 引爆');
-  assert.equal(Number((100 - ghost.hp).toFixed(4)), 0.88, '直擊造成分攤後快照傷 0.88');
+  assert.equal(Number((100 - ghost.hp).toFixed(4)), 1.056, '直擊造成分攤後快照傷 1.056');
 
   // Boss 抗性防護：Boss 受分攤平傷，絕無擊退
   const boss = { x: 300, y: 200, hp: 100, max: 100, type: 'boss' };
@@ -4072,7 +4160,7 @@ test('M1-D-50 Real weapons producer consumes fan snapshot per talisman, launch a
     bFuse++;
     if (bossProj.exploded) bossExploded = true;
   }
-  assert.equal(Number((100 - boss.hp).toFixed(4)), 0.88, 'Boss 受分攤後傷 0.88');
+  assert.equal(Number((100 - boss.hp).toFixed(4)), 1.056, 'Boss 受分攤後傷 1.056');
   assert.equal((boss.knockQueue || []).length, 0, 'Boss 具備完全擊退免疫');
 
   // 護盾與死敵防護
@@ -4104,14 +4192,14 @@ test('M1-D-51 mut_fan + mut_splitblast worst-case multi-talisman timing, seconda
   assert.equal(spec.count, 3);
   assert.equal(spec.hasFan, true);
   assert.equal(spec.hasSplitblast, true);
-  assert.equal(Number(spec.damage.toFixed(4)), 0.88);
-  assert.equal(Number(spec.splashDamage.toFixed(4)), 0.176);
-  assert.equal(Number(spec.splitblastDirectDamage.toFixed(4)), 0.22, '次爆直擊為分攤後主爆全傷 25% (0.88 * 0.25 = 0.22)');
-  assert.equal(Number(spec.splitblastSplashDamage.toFixed(4)), 0.044, '次爆濺射為分攤後主爆濺射傷 25% (0.176 * 0.25 = 0.044)');
+  assert.equal(Number(spec.damage.toFixed(4)), 1.056);
+  assert.equal(Number(spec.splashDamage.toFixed(4)), 0.2112);
+  assert.equal(Number(spec.splitblastDirectDamage.toFixed(4)), 0.264, '次爆直擊為分攤後主爆全傷 25% (1.056 * 0.25 = 0.264)');
+  assert.equal(Number(spec.splitblastSplashDamage.toFixed(4)), 0.0528, '次爆濺射為分攤後主爆濺射傷 25% (0.2112 * 0.25 = 0.0528)');
 
-  // 驗證整 cast 3 枚符咒的次爆總傷亦不超過無 fan 時的單符次爆傷 (0.66)
+  // 驗證整 cast 3 枚符咒的次爆總傷 (3 * 0.264 = 0.792)
   const totalSecondaryDirect = spec.count * spec.splitblastDirectDamage;
-  assert.ok(Math.abs(totalSecondaryDirect - 0.66) <= 1e-9, '3 符次爆直擊總和精準等於無 fan 次爆 0.66');
+  assert.ok(Math.abs(totalSecondaryDirect - 0.792) <= 1e-9, '3 符次爆直擊總和精準等於 0.792');
 
   // 2. 真 weapons 發射 3 符並黏附引爆
   const target = { x: 200, y: 200, hp: 100, max: 100, type: 'ghost' };
@@ -4143,7 +4231,7 @@ test('M1-D-51 mut_fan + mut_splitblast worst-case multi-talisman timing, seconda
   const queuedSbs = probe.getSplitblasts();
   assert.ok(queuedSbs.length >= 1, '次爆已入隊');
   assert.equal(queuedSbs[0].delay, 0.18, '新生成之次爆在出生當幀保留完整 0.18s');
-  assert.equal(Number(queuedSbs[0].directDamage.toFixed(4)), 0.22, '隊列中次爆使用分攤後 0.22 傷');
+  assert.equal(Number(queuedSbs[0].directDamage.toFixed(4)), 0.264, '隊列中次爆使用分攤後 0.264 傷');
 
   // 驗證 0.15s 內絕不觸發（R7.1 時序保護）
   const hpAfterMain = target.hp;
@@ -4217,6 +4305,7 @@ test('M1-D-52 In-flight talisman snapshot isolation against mut_fan acquisition 
   assert.equal(oldTalisman.stuck, false, '舊符飛行中');
 
   // 飛行途中：真 offerUp -> applyChoice 取得 mut_fan
+  probe.setMockRandom(0);
   let fanCardFlight = null;
   for (let attempt = 0; attempt < 25 && !fanCardFlight; attempt++) {
     probe.setXp(100);
@@ -4228,6 +4317,7 @@ test('M1-D-52 In-flight talisman snapshot isolation against mut_fan acquisition 
   assert.ok(fanCardFlight, '真 offerUp 抽出 mut_fan');
   const applyRes = probe.applyChoice(fanCardFlight.choiceId, probe.getBuildRevision());
   assert.equal(applyRes.ok, true, '真 applyChoice 成功取得 mut_fan');
+  probe.setMockRandom(null);
 
   // 驗證飛行中舊符絕不回寫：
   assert.equal(probe.getProj().length, 1, '飛行中取得 mut_fan，舊符絕不可分裂為多枚');
@@ -4251,14 +4341,14 @@ test('M1-D-52 In-flight talisman snapshot isolation against mut_fan acquisition 
   const newProjectiles = probe.getProj();
   assert.equal(newProjectiles.length, 3, '升級後真 weapons 發射 3 枚散射符咒');
   for (const np of newProjectiles) {
-    assert.equal(Number(np.damage.toFixed(4)), 0.88, '新符咒生效分攤傷害 0.88');
+    assert.equal(Number(np.damage.toFixed(4)), 1.056, '新符咒生效分攤傷害 1.056');
   }
 
   // 3. 天狐靈針既有 fan 規格完全保護（Lv5 冰魄靈針 + mut_fan）
   probe.getWL().needle = 5;
   const needleFanSpec = probe.resolveAttackSpec('needle', 5);
   assert.equal(needleFanSpec.fan, true, '靈針保有 fan');
-  assert.equal(needleFanSpec.perShotScale, 0.72, '靈針單發比例保持 0.72');
+  assert.equal(needleFanSpec.perShotScale, 0.8727, '靈針單發比例保持 0.8727');
   probe.getNeedles().length = 0;
   probe.setWT('needle', 0);
   probe.weapons(0.001);
@@ -4280,8 +4370,11 @@ test('M1-D-53 mut_seek shared pool eligibility, dynamic card presentation (boom-
   }
 
   // 2. Needle-only: 僅持有靈針
+  probe.getWL().katana = 0;
   probe.getWL().needle = 1;
   probe.getWL().boom = 0;
+  probe.setBuildMutations(['mut_fan']);
+  probe.setMockRandom(0);
   let seekNeedleCard = null;
   for (let i = 0; i < 30 && !seekNeedleCard; i++) {
     const choices = probe.getEligibleChoices();
@@ -4299,8 +4392,11 @@ test('M1-D-53 mut_seek shared pool eligibility, dynamic card presentation (boom-
   assert.ok(seekNeedleCard.d.includes('每次施放') || !seekNeedleCard.d.includes('cast'), '不含內部術語 cast');
 
   // 3. Boom-only: 僅持有陰陽符
+  probe.getWL().katana = 0;
   probe.getWL().needle = 0;
   probe.getWL().boom = 1;
+  probe.setBuildMutations(['mut_fan']);
+  probe.setMockRandom(0);
   let seekBoomCard = null;
   for (let i = 0; i < 30 && !seekBoomCard; i++) {
     const choices = probe.getEligibleChoices();
@@ -4318,8 +4414,11 @@ test('M1-D-53 mut_seek shared pool eligibility, dynamic card presentation (boom-
   assert.ok(seekBoomCard.d.includes('每次施放') || !seekBoomCard.d.includes('cast'), '不含內部術語 cast');
 
   // 4. Both owned: 同時持有靈針與陰陽符
+  probe.getWL().katana = 0;
   probe.getWL().needle = 1;
   probe.getWL().boom = 1;
+  probe.setBuildMutations(['mut_fan']);
+  probe.setMockRandom(0);
   let seekBothCard = null;
   for (let i = 0; i < 30 && !seekBothCard; i++) {
     const choices = probe.getEligibleChoices();
@@ -4351,6 +4450,7 @@ test('M1-D-53 mut_seek shared pool eligibility, dynamic card presentation (boom-
     assert.ok(choices.every(c => c.id !== 'mut_seek'), 'needle 滿 3 變異時，共享卡 mut_seek 必須被阻擋進池，不得讓 needle 超額');
   }
   assert.equal(probe.addMutation('mut_seek'), false, 'addMutation 亦必須阻擋滿槽技能超額');
+  probe.setMockRandom(null);
 });
 
 // ── 54. resolveAttackSpec boom Lv1–5 原型數值快照、基線保持、tracking 與 reachMult 縮放 ────
@@ -4607,13 +4707,14 @@ test('M1-D-57 Real offerUp -> applyChoice for mut_seek, bidirectional weapon lea
   Object.assign(probe.getB(), { shield: 6, oilRegen: 0.12, heals: 3, rate: 4, crit: 3, spd: 3, dash: 3, mag: 3, dmgUp: 4 });
 
   // 1. Case A: 先持有 boom，真選卡取得 mut_seek，後真選卡習得 needle
-  probe.getWL().katana = 1;
+  probe.getWL().katana = 0;
   probe.getWL().boom = 1;
   probe.getWL().needle = 0;
   probe.getWL().barrier = 0;
   probe.getWL().fire = 0;
   probe.getWL().thunder = 0;
-  probe.setBuildMutations([]);
+  probe.setBuildMutations(['mut_fan']);
+  probe.setMockRandom(0);
 
   let seekCardA = null;
   for (let attempt = 0; attempt < 25 && !seekCardA; attempt++) {
@@ -4626,6 +4727,7 @@ test('M1-D-57 Real offerUp -> applyChoice for mut_seek, bidirectional weapon lea
   assert.ok(seekCardA, 'boom-only 經真 offerUp 抽出 mut_seek');
   const applyA = probe.applyChoice(seekCardA.choiceId, probe.getBuildRevision());
   assert.equal(applyA.ok, true, '套用 mut_seek');
+  probe.setMockRandom(null);
 
   // 後學 needle
   let needleCardA = null;
@@ -4650,10 +4752,11 @@ test('M1-D-57 Real offerUp -> applyChoice for mut_seek, bidirectional weapon lea
   probe.start('night-town');
   probe.setBuildCharms(['charm_step', 'charm_gather', 'charm_guard']);
   Object.assign(probe.getB(), { shield: 6, oilRegen: 0.12, heals: 3, rate: 4, crit: 3, spd: 3, dash: 3, mag: 3, dmgUp: 4 });
-  probe.getWL().katana = 1;
+  probe.getWL().katana = 0;
   probe.getWL().needle = 1;
   probe.getWL().boom = 0;
-  probe.setBuildMutations([]);
+  probe.setBuildMutations(['mut_fan']);
+  probe.setMockRandom(0);
 
   let seekCardB = null;
   for (let attempt = 0; attempt < 25 && !seekCardB; attempt++) {
@@ -4666,6 +4769,7 @@ test('M1-D-57 Real offerUp -> applyChoice for mut_seek, bidirectional weapon lea
   assert.ok(seekCardB, 'needle-only 經真 offerUp 抽出 mut_seek');
   const applyB = probe.applyChoice(seekCardB.choiceId, probe.getBuildRevision());
   assert.equal(applyB.ok, true, '套用 mut_seek');
+  probe.setMockRandom(null);
 
   let boomCardB = null;
   for (let attempt = 0; attempt < 25 && !boomCardB; attempt++) {
@@ -4689,8 +4793,8 @@ test('M1-D-57 Real offerUp -> applyChoice for mut_seek, bidirectional weapon lea
   assert.equal(triSpec.count, 3, 'fan 生效：3 發');
   assert.equal(triSpec.tracking, true, 'seek 生效：tracking 追蹤');
   assert.equal(triSpec.hasSplitblast, true, 'splitblast 生效：次爆延遲');
-  assert.equal(Number(triSpec.damage.toFixed(4)), 0.88, 'fan 分攤主爆全傷 0.88');
-  assert.equal(Number(triSpec.splitblastDirectDamage.toFixed(4)), 0.22, '次爆直擊 0.22');
+  assert.equal(Number(triSpec.damage.toFixed(4)), 1.056, 'fan 分攤主爆全傷 1.056');
+  assert.equal(Number(triSpec.splitblastDirectDamage.toFixed(4)), 0.264, '次爆直擊 0.264');
 
   // 真 weapons 發射 3 符
   probe.getP().x = 100;
@@ -4704,7 +4808,7 @@ test('M1-D-57 Real offerUp -> applyChoice for mut_seek, bidirectional weapon lea
   for (const q of probe.getProj()) {
     assert.equal(q.tracking, true, '每符皆具備追蹤');
     assert.equal(q.hasSplitblast, true, '每符皆具備次爆');
-    assert.equal(Number(q.damage.toFixed(4)), 0.88);
+    assert.equal(Number(q.damage.toFixed(4)), 1.056);
   }
 });
 
@@ -4738,6 +4842,8 @@ test('M1-D-58 In-flight talisman and queued splitblast snapshot isolation, pause
   probe.weapons(0.05);
 
   // 飛行途中：真選卡取得 mut_seek
+  probe.setBuildMutations(['mut_fan']);
+  probe.setMockRandom(0);
   let seekCard = null;
   for (let attempt = 0; attempt < 25 && !seekCard; attempt++) {
     probe.setXp(100);
@@ -4749,6 +4855,7 @@ test('M1-D-58 In-flight talisman and queued splitblast snapshot isolation, pause
   assert.ok(seekCard, '抽出 mut_seek');
   const applyRes = probe.applyChoice(seekCard.choiceId, probe.getBuildRevision());
   assert.equal(applyRes.ok, true, '套用 mut_seek');
+  probe.setMockRandom(null);
 
   // 飛行中舊符快照隔離：絕不追溯獲得追蹤
   assert.equal(oldTalisman.tracking, false, '飛行中舊符絕不回寫 tracking');
@@ -4820,8 +4927,11 @@ test('M1-D-59 mut_frost shared pool eligibility, dynamic card presentation (boom
   }
 
   // 2. Needle-only: 僅持有靈針
+  probe.getWL().katana = 0;
   probe.getWL().needle = 1;
   probe.getWL().boom = 0;
+  probe.setBuildMutations(['mut_fan', 'mut_seek']);
+  probe.setMockRandom(0);
   let frostNeedleCard = null;
   for (let i = 0; i < 30 && !frostNeedleCard; i++) {
     const choices = probe.getEligibleChoices();
@@ -4839,8 +4949,11 @@ test('M1-D-59 mut_frost shared pool eligibility, dynamic card presentation (boom
   assert.ok(frostNeedleCard.d.includes('每次施放') || !frostNeedleCard.d.includes('cast'), '不含內部術語 cast');
 
   // 3. Boom-only: 僅持有陰陽符
+  probe.getWL().katana = 0;
   probe.getWL().needle = 0;
   probe.getWL().boom = 1;
+  probe.setBuildMutations(['mut_fan', 'mut_seek']);
+  probe.setMockRandom(0);
   let frostBoomCard = null;
   for (let i = 0; i < 30 && !frostBoomCard; i++) {
     const choices = probe.getEligibleChoices();
@@ -4858,8 +4971,11 @@ test('M1-D-59 mut_frost shared pool eligibility, dynamic card presentation (boom
   assert.ok(frostBoomCard.d.includes('每次施放') || !frostBoomCard.d.includes('cast'), '不含內部術語 cast');
 
   // 4. Both owned: 同時持有靈針與陰陽符
+  probe.getWL().katana = 0;
   probe.getWL().needle = 1;
   probe.getWL().boom = 1;
+  probe.setBuildMutations(['mut_fan', 'mut_seek']);
+  probe.setMockRandom(0);
   let frostBothCard = null;
   for (let i = 0; i < 30 && !frostBothCard; i++) {
     const choices = probe.getEligibleChoices();
@@ -4891,6 +5007,7 @@ test('M1-D-59 mut_frost shared pool eligibility, dynamic card presentation (boom
     assert.ok(choices.every(c => c.id !== 'mut_frost'), 'needle 滿 3 變異時，共享卡 mut_frost 必須被阻擋進池，不得讓 needle 超額');
   }
   assert.equal(probe.addMutation('mut_frost'), false, 'addMutation 亦必須阻擋滿槽技能超額');
+  probe.setMockRandom(null);
 });
 
 // ── 60. resolveAttackSpec boom Lv1–5 原型數值快照、基線保持、零額外增傷／範圍與門檻參數 ────
@@ -5105,13 +5222,14 @@ test('M1-D-63 Real offerUp -> applyChoice for mut_frost, bidirectional weapon le
   Object.assign(probe.getB(), { shield: 6, oilRegen: 0.12, heals: 3, rate: 4, crit: 3, spd: 3, dash: 3, mag: 3, dmgUp: 4 });
 
   // 1. Case A: 先持 boom 取 mut_frost，後真選卡習得 needle
-  probe.getWL().katana = 1;
+  probe.getWL().katana = 0;
   probe.getWL().boom = 1;
   probe.getWL().needle = 0;
   probe.getWL().barrier = 0;
   probe.getWL().fire = 0;
   probe.getWL().thunder = 0;
-  probe.setBuildMutations([]);
+  probe.setBuildMutations(['mut_fan', 'mut_seek']);
+  probe.setMockRandom(0);
 
   let frostCardA = null;
   for (let attempt = 0; attempt < 25 && !frostCardA; attempt++) {
@@ -5124,6 +5242,7 @@ test('M1-D-63 Real offerUp -> applyChoice for mut_frost, bidirectional weapon le
   assert.ok(frostCardA, 'boom-only 經真 offerUp 抽出 mut_frost');
   const applyA = probe.applyChoice(frostCardA.choiceId, probe.getBuildRevision());
   assert.equal(applyA.ok, true, '套用 mut_frost');
+  probe.setMockRandom(null);
 
   // 後學 needle
   let needleCardA = null;
@@ -5149,10 +5268,11 @@ test('M1-D-63 Real offerUp -> applyChoice for mut_frost, bidirectional weapon le
   probe.start('night-town');
   probe.setBuildCharms(['charm_step', 'charm_gather', 'charm_guard']);
   Object.assign(probe.getB(), { shield: 6, oilRegen: 0.12, heals: 3, rate: 4, crit: 3, spd: 3, dash: 3, mag: 3, dmgUp: 4 });
-  probe.getWL().katana = 1;
+  probe.getWL().katana = 0;
   probe.getWL().needle = 1;
   probe.getWL().boom = 0;
-  probe.setBuildMutations([]);
+  probe.setBuildMutations(['mut_fan', 'mut_seek']);
+  probe.setMockRandom(0);
 
   let frostCardB = null;
   for (let attempt = 0; attempt < 25 && !frostCardB; attempt++) {
@@ -5165,6 +5285,7 @@ test('M1-D-63 Real offerUp -> applyChoice for mut_frost, bidirectional weapon le
   assert.ok(frostCardB, 'needle-only 經真 offerUp 抽出 mut_frost');
   const applyB = probe.applyChoice(frostCardB.choiceId, probe.getBuildRevision());
   assert.equal(applyB.ok, true, '套用 mut_frost');
+  probe.setMockRandom(null);
 
   let boomCardB = null;
   for (let attempt = 0; attempt < 25 && !boomCardB; attempt++) {
@@ -5243,6 +5364,8 @@ test('M1-D-64 In-flight talisman snapshot isolation against mut_frost acquisitio
   probe.weapons(0.05);
 
   // 飛行途中：真選卡取得 mut_frost
+  probe.setBuildMutations(['mut_fan', 'mut_seek']);
+  probe.setMockRandom(0);
   let frostCard = null;
   for (let attempt = 0; attempt < 25 && !frostCard; attempt++) {
     probe.setXp(100);
@@ -5254,6 +5377,7 @@ test('M1-D-64 In-flight talisman snapshot isolation against mut_frost acquisitio
   assert.ok(frostCard, '抽出 mut_frost');
   const applyRes = probe.applyChoice(frostCard.choiceId, probe.getBuildRevision());
   assert.equal(applyRes.ok, true, '套用 mut_frost');
+  probe.setMockRandom(null);
 
   // 飛行中舊符快照隔離：絕不追溯獲得 frost
   assert.equal(oldTalisman.frost, false, '飛行中舊符絕不回寫 frost');
@@ -5545,21 +5669,32 @@ test('M1-D-67 Real thunder consumer inside/outside barrier, actual damage requir
   assert.equal(enemyShielded.hp, 50, '護盾怪血量不扣');
   assert.equal(probe.getDuoShockwaves().length, 0, '護盾敵無實傷，不觸發衝擊');
 
-  // 4. mut_pulse 靈陣連環脈衝使陣半徑縮小為 85%（224 * 0.85 = 190）
+  // 4. mut_pulse 靈陣連環脈衝保持原半徑（224），不縮圈
   probe.getDuoShockwaves().length = 0;
   probe.getEnemies().length = 0;
   probe.setBuildMutations(['mut_pulse']);
   const pulseBarrierSpec = probe.resolveAttackSpec('barrier', 3);
-  assert.equal(pulseBarrierSpec.radius, 190, 'mut_pulse barrier 半徑縮為 190');
+  assert.equal(pulseBarrierSpec.radius, 224, 'mut_pulse barrier 半徑保持原 224');
 
-  // 位於 205 處（原 224 內，但脈衝 190 外）
-  const enemyBetween = { x: 305, y: 100, hp: 50, maxHp: 50, type: 'normal' }; // dist = 205
+  // 位於 205 處（在 224 半徑內）
+  const enemyBetween = { x: 305, y: 100, hp: 50, maxHp: 50, type: 'normal' }; // dist = 205 <= 224
   probe.getEnemies().push(enemyBetween);
   probe.setWT('thunder', 0);
   probe.weapons(0.001);
 
   assert.ok(enemyBetween.hp < 50, '敵人受主雷傷害');
-  assert.equal(probe.getDuoShockwaves().length, 0, '脈衝縮圈後，205 位於陣外，不觸發衝擊');
+  assert.equal(probe.getDuoShockwaves().length, 1, '半徑保持 224，205 位於陣內，正常觸發衝擊');
+
+  // 位於 250 處（在 224 半徑外）
+  probe.getDuoShockwaves().length = 0;
+  probe.getEnemies().length = 0;
+  const enemyPulseOutside = { x: 350, y: 100, hp: 50, maxHp: 50, type: 'normal' }; // dist = 250 > 224
+  probe.getEnemies().push(enemyPulseOutside);
+  probe.setWT('thunder', 0);
+  probe.weapons(0.001);
+
+  assert.ok(enemyPulseOutside.hp < 50, '敵人受主雷傷害');
+  assert.equal(probe.getDuoShockwaves().length, 0, '250 位於陣外，不觸發衝擊');
 
   // 5. 反例 A：已離場敵（vanish: 1 或 done: true）不得作為主雷目標或雷紋陣合格觸發
   probe.getDuoShockwaves().length = 0;
