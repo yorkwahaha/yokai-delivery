@@ -1,5 +1,61 @@
 # Yokai Delivery — Roadmap／跨對話持續交接
 
+### 2026-10-23 / UI+FUSION+BOSS polish round — 即時收件看板（本機 dirty；非部署）
+
+| 票 | 目前可證狀態 | 單檔 writer／驗收依據 |
+|---|---|---|
+| C｜BGM / panel flow | **TECH_PASS_SCOPED／沿用總控已獨立收件**。Grok done seq251、[SUMMARY](scratch/audio-flow-polish-r1/SUMMARY.md)；使用者／總控已核三suite **34/34 exit0**、diff check及三來源SHA。音訊JS基線58e0b1a1…、C時game02a48a2b…；本輪不重做、不擴稱真耳聽通過 | Grok wD:p4唯一game／audio writer；C2僅game台詞，不重開音訊邏輯／音檔／TTS。C聲音聽感仍WAITING_HUMAN，後續game固定版另依C2／整合證據 |
+| C2｜雨港Boss台詞（B3跨檔） | **CONTROLLED_TECH_VISUAL_PASS**。Grok done seq254，[HANDOFF](scratch/audio-flow-polish-r1/BOSS_TEXT_HANDOFF.md)及root guarded專測2/2已收；獨立[CHECK_C2](scratch/codex-polish-independent-20261023/CHECK_C2.md)四組兩鏡頭／深淺背景真say/texts描邊／暗底可讀，root亦實看近景 | C2固定game ef9fae…首尾一致；原3.2浮點精度判斷屬harness誤判，以未變raw校準重判exit0，失敗證據保留。普通／受傷字原路徑保留；耳聽／自然流程／真機不由本票證成 |
+| C3｜Boss renderer委派 | **TECH_PASS_SCOPED／已停筆**。Grok done seq260，[SUMMARY](scratch/boss-telegraph-delegate-r1/SUMMARY.md)；作者C3五測＋C2兩測7/7，使用者獨立C3 **5/5**。game SHA256 `bc0e70af9dfd84b4a6a1addfb9ced3870fb16f77182a30291d0a119160c1e18c`由root實算吻合 | 只繪製委派，沿`drawBossHazard(ctx,h,elapsed)`，strict true才handled、false／缺失走舊fallback，不吞錯；C2文字／update／傷害／音訊未動。舊game寫權已釋放，Grok新D會話不得再改game |
+| B｜融合／御守 UI | **CONTROLLED_TECH_VISUAL_PASS／DEV輔助遮擋另列**。[R4 SUMMARY](scratch/ui-polish-r4/SUMMARY.md)＋root **19/19 exit0**／diff0；獨立[CHECK_B_R4](scratch/codex-polish-independent-20261023/b-r4/CHECK_B_R4.md)真844六配方glyph gap1.30 CSSpx、1366三行保留、真點選有效，命令exit0。R3原RED／swap／鍵盤成功範圍保留 | ui固定 `19baabef234839039b2de7e3fda7c795c57dfcb516b1ba1a6c418c364800b14a`；正常功能修復可收，原圖仍有DOM開發選關遮標題，不能稱整頁全無遮擋。58/61三既存Boss／radar fail不擴修；pA已停筆 |
+| C4｜DEV選關輔助遮擋 | **NODE_PASS／最終真頁補驗中・writer已停筆**。[SUMMARY](scratch/dev-helper-occlusion-r1/SUMMARY.md)只加八行DEV CSS，root實看diff／修後圖、相關9/9 exit0／diff0；other隱藏、menu／map保留入口。舊index版本字串斷言仍fail，raw保留不改index | dev-mode固定 `a1cae5ad1c2e331504fa498957bf4e4673d2d312dd40cadfa19ccd5692fb7451`，四核心不動；不加timer／新快捷鍵。獨立QA與D3-R3同一固定五檔，另核844選關→進關→融合不攔點擊→返回恢復與非DEV不mount |
+| D1｜雷狐方向 | **TECH_PASS_SCOPED／已停筆done269**。[作者SUMMARY](scratch/fusion-vfx-polish-grok-d1/SUMMARY.md)、root guarded Node **2/2 exit0**＋diffcheck0；獨立[真頁CHECK_D1](scratch/codex-polish-independent-20261023/d1/CHECK_D1.md)8案exit0：左右／斜向兩鏡頭、真hitSet前敵命中／背敵不命中、最大端點／中心誤差0.0000642px，空hitSet／非foxiai／缺dev控制通過 | renderer固定 `fa70b49b02d908780c4f3a37fc47929ca39e77a72d575e00598ab6fe293db408`；assets／game／ui仍各342d89…／bc0e70…／d9182a…。465 reads禁區0，兩次audio.js讀前stub，pageErrors0。24連續圖、原圖端點與tilt投影scope可證；.60首幅較淡退相已揭露，非自然局／ART_PASS |
+| D2｜融合靈陣 | **TECH_PASS_SCOPED・正式停筆seq279**。[SUMMARY](scratch/fusion-vfx-polish-grok-d2/SUMMARY.md)及root guarded D1＋D2 **4/4 exit0**；獨立真game兩招×兩鏡頭warn／steady／hit／fade與普通陣／gate通過，root實看雷陣steady／妖火hit玩家可辨 | renderer固定 `73af59a401d3016a30c39ae133fdb11c6e3cf2a54343e1209df30df27bb6ec7f`；assets342d89…／gamebc0e70…不變。[QA證據目錄](scratch/codex-polish-independent-20261023/d2/)保留原半徑外妖火fixture exit1，補兩個半徑內案例exit0真扣血，未假改raw；非自然局／ART_PASS。舊p6已中斷退出Herdr，未恢復寫權 |
+| D3｜Boss真圖handler | **R3_NODE_PASS／獨立真頁補驗中・writer已停筆**。[SUMMARY](scratch/fusion-vfx-polish-grok-d3/SUMMARY.md)改按alpha97×55框縮world圓及sector遮罩，扇1／2張、渦每圈1張，root新 **11/11 exit0**／diff0。原R2白圈堆疊152／57張與外點假危險反例如實保留 | renderer固定 `1cb198d9156155d6dcc44b7b111331125bce257537523cde17874a23aba97eb0`；DEV／舊安全回落／標準false不變。最終獨立QA核四真案／外點／輪廓及C4五檔scope，收後D4；128px源放大粗紋屬素材限制，不第四輪盲試。assets342d89…／gamebc0e70…未改 |
+| E｜缺件盤點／最小生圖 | **SOURCE_AUDIT_SCOPED已收／付費封鎖**。[七圖審核](scratch/art-gap-boss-fusion-r1/SOURCE_AUDIT.md)＋contactsheet已實看，root獨立七SHA全符、ui仍ed9e189a…；火彈不是火地、燃地／雷印中心實、普通陣雖中空但非獨特升級視覺，現妖火地暖感較弱 | 只證這七張不完全滿足兩項新圖規格，不能推成全庫不可複用／必須付費。兩張最小新圖仍是建議、ART_CANDIDATE；不改原圖／production，不冒稱ART_PASS。pA已停，D3 p4續修；成本及餘額UNKNOWN→BLOCKED_PAID，不探KEY／配額 |
+
+- **現場保護快照**：Herdr agent list：Codex wD:p1 idle、Grok wD:p4 idle、OpenCode wD:p6 idle、Kilo wD:p8/wD:p9 idle（派工前觀察）。HEAD 7562522、master，7 tracked modified／5 untracked，既有 dirty 包含 js/assets.js、js/audio.js、js/renderer.js、js/ui.js 與 UI 圖／tests；沒有任何階段性提交要求。Kilo p8 前次 Nemotron 推理輸出上限失敗，禁止無限重試同一供應商。
+- **收件條件**：依序正式收 C→B→D；必須查報告、實際 diff／測試／可重現視口，作者自驗不等於獨立人審；人審未完成列 WAITING_HUMAN。絕不 commit／push／deploy／reset／clean／checkout，保護學生線上版、聲音資產、既有候選與所有 dirty。
+- **跨檔修正／單 writer**：B writer 真查明 Boss 粉紅台詞不是 ui.js，而在 game.js 7052–7069 的 say/texts render loop；B 作者已選嚴守界限，只做 B1/B2，B3 正式改派 C writer C2（僅 game.js 描邊＋局部底帶），不得讓 UI writer 觸碰 game.js。
+- **正式接管增量**：Codex wD:p1唯一roadmap／PRODUCTION_PLAN writer，保護HEAD7562522、全dirty與學生線上版。已查Herdr／三票報告／git實際diff，獨立跑C2局部測試並補送B／D收件條件，無重複writer／重啟／provider重試。獨立QA已接[scratch/codex-polish-independent-20261023/](scratch/codex-polish-independent-20261023/)：先C2必要真圖，再依B／D固定SHA接力；不得採中間版本錯誤或作者自驗當完成。音訊C沿用總控已收34/34，本輪非C工作位仍讀前stub／guard，不讀音檔／TTS／KEY／env／SW；無付費生圖或本地Ollama。
+- **低額度交接增量**：使用者報Codex五小時剩13%，屬交接快照非native即時值；root節制監工，已完成B客觀摘要及D1真派，不重跑C34／R4全量、不盲重試Nemotron／OpenCode限額。B缺作者文件與畫面疑慮如實RETURN，D未完不寫PASS；下一收件依D1固定版再接D2，原R4收件段落不改。
+
+### 2026-10-23｜ART-FIRST三門完成看板／TECH_PASS_SCOPED・待人審，非部署
+
+| 門 | 已有證據／當前狀態 | Owner與下一交接 |
+|---|---|---|
+| A 真戰鬥／演出 | **TECH_PASS_SCOPED**。先[真頁RED exit1](scratch/codex-fusion-independent-final-20261023/red-command.log)證五招只有main consumer，再由p6唯一writer補五個renderer分支及R4品質退修。十招兩鏡頭39戰鬥phase×2＝**78/78真draw＋局部像素差分**；雷陣持續中心可辨玩家，入場爆發／尺寸／傷害／時序保留 | [p6 R4正式停筆收件](scratch/m2-fusion-art-enhance-r4/SUMMARY.md)，done seq228／報告補正seq230。root未親寫JS／跑Chrome；不以原作者allOK=false或舊22/22冒充新版本驗收。下一為USER_ART_REVIEW，非ART_PASS |
+| B 素材補強 | **TECH_PASS_SCOPED／REUSE_CANDIDATE**。40槽來源／bbox／SHA及透明度實驗通過；原生仍**24/40，缺16原生圖位**，以15個main複用＋1既有icon fallback呈現，沒有付費或新生成圖片。10個hit／ground改完整alpha輪廓，方形截邊已目視消除 | [實際來源映射](scratch/codex-fusion-independent-final-20261023/runtime-mapping-r4.json)明列斬界輪三槽用v02（舊計畫v01）、完整SHA及10槽bbox差異；舊manifest留史不覆寫。四套原生完整、墨焰斬三相＋圖示回落、其餘五招main＋複用，見逐招矩陣 |
+| C 獨立真遊玩驗收 | **TECH_PASS_SCOPED**。R4全量與離陣補驗皆exit0；實際tilt .60／1.00、20組各六幅連續圖、四負向server/CDP候選request0、真W Δy−61；雷陣active真D Δx **+257／+283**、中心與離陣均可辨、pageErrors0、首尾四SHA一致 | [最終獨立SUMMARY](scratch/codex-fusion-independent-final-20261023/SUMMARY.md)、[逐招矩陣](scratch/codex-fusion-independent-final-20261023/PHASE_MATRIX_R4.md)、[圖片索引](scratch/codex-fusion-independent-final-20261023/SHOT_INDEX_R4.md)、[品質審查](scratch/codex-fusion-independent-final-20261023/ART_REVIEW_R4.md)。本票工程三門收件完成，**自然P1 WAITING_HUMAN／WAITING_DEVICE／WAITING_USER_ART_REVIEW**保留，非發布 |
+
+- **最終R4固定版／實際入口**：assets SHA256 `342d89f9134fcc027c8bfadab72bbc971cb82287f466141ae961f05f04a8dd48`；renderer `91bed649dfdea677e77ce28ddb0f682a1e5eed30869ccfb6fa50902e1411de98`；game／ui與起點不變，四檔詳[integrity](scratch/codex-fusion-independent-final-20261023/integrity-r4-final.json)。root獨立HTTP核8902兩JS皆200、原始bytes SHA完全匹配。[真人DEV融合候選入口](http://127.0.0.1:8902/index.html?dev=1&stage=rain-port&s2ground=kit&s2webp=1&fusioncandidate=1&fusionart=banana)沿用完整聲音／鍵盤服務；本輪guarded QA為獨立靜音服務，未重驗真耳聽感，不把此入口稱自然融合已驗或正式部署。
+- **最終獨立測試／凍結作用域**：[全量log](scratch/codex-fusion-independent-final-20261023/readability-final-command.log)、[離陣log](scratch/codex-fusion-independent-final-20261023/occlusion-r3-command.log)均exit0；雙preload守門，R4全量Node **1255 FS reads／禁區嘗試0／5次audio.js讀前Proxy stub**，R4補驗 **309 reads／禁區嘗試0**。只證這兩次進程，不洗掉下方歷史p4違規讀取紀錄。獨立QA只寫自有scratch及patch提案，production由唯一p6實套；未改原圖或執行新生圖／付費API。
+- **收件終態／保護**：p6已正式停筆，p4供應商blocked、p8／p9維持已述阻塞不重試；獨立Codex QA完成自身8994與Chrome收尾、未動8902或刪任何證據。HEAD仍 **7562522**、stage空、全部既有dirty保留；本輪實改assets／renderer及root兩份權威文件，無commit／push／deploy／reset／clean／checkout。工程已可驗範圍結清，不為維持working另開支線，也不聲稱背景永續監工。以下為派工／退修歷史，不代表當前owner正在工作。
+
+- **本輪實際調度／續接**：root先查Herdr／HEAD／dirty與三份既有報告，再真prompt p8素材複用、p4獨立驗收、p6正式結舊票及接後續依賴；讀回p8 working seq175、p4 working seq176、p6 working seq160。p9缺授權保持idle，不重試供應商。agent_prompted／working不是完成；在本次Codex會話內按交件接力，不聲稱背景永久常駐。
+- **已解除空轉／續作checkpoint**：p6舊回合未有新交付，root以TUI中斷並等到done seq191，首尾assets／renderer SHA未變；未刪會話／未重啟app，以同一免費Step5 `/new`交精簡新票，已實查working seq192、新context13.6K。唯一writer不變，舊22/22基線不重做；p4已交複用映射並接獨立畫面判讀，缺失實體文件仍退回補齊。
+- **QA來源校正／免費路由續接**：root實看舊圖及scratch probe：equipInkblade設WL.fire／katana=5，之後equip只清fusion_鍵，基礎Lv5攻擊未隔離，跨招火龍不能直接歸因該融合；靜態單張不證動畫bug。p4的實體[REVIEW_MATRIX](scratch/m2-fusion-independent-play-r2/REVIEW_MATRIX.md)多處泛化描述已退回，不能視藝術核准。Gemma Cloud真monthly usage limit（ref c96d8230…）後不重試／不升級，核ui SHA未變，保留舊會話，在同p4 TUI切已授權免費Omni Step5＋新session，讀回working seq207；只寫[scratch/m2-fusion-independent-final-r3/](scratch/m2-fusion-independent-final-r3/)。舊CLI清單與TUI可選模型不混認；無本機模型或KEY／配額探測。最終服務須讀前stub js/audio.js及音檔／禁SW，靜音不算未讀檔。
+- **失敗供應商停止／QA違規紀錄**：Step5精簡及medium仍未交局部實作，p6停筆done seq208並核兩檔不變後，切清單存在的免費Omni雲端kr/qwen3-coder-next（非本地Qwen），working seq209後實交assets修改；p4停done seq210、核ui不變後同路線續QA。其後Kiro明確quota耗盡排784秒重試，root中斷p4到done seq215；Groq gpt-oss-120b備援又413，TPM8000低於會話請求，兩位blocked seq218／219，不升級不原樣重試。p4終端另顯示直接readFileSync js/audio.js的診斷命令並回[]，違反音訊凍結，**此QA不得宣稱零讀檔**；root未讀該內容，已停止回合，後續只准完整Proxy stub／server讀前封鎖＋guard，不能為修stub再讀音訊。舊會話／報告保留，未借路由重試付費API。
+- **R2舊基線核對（非最終R4）**：assets SHA `571606747ff91379fadaf9c6594ccd5b8ba691c79cae2b171af709ff3efae25f`、renderer `c0d7ccd847df39f8d5465f3d37edb301e86efcce4ca5364e881300709295f4f7`，吻合p6摘要縮寫；game `55eb1266a76935a99665fa7919cffa2cca5ea29188fc1edb0117a55597066def`、ui `9f472e1aaf4951874a165065d0455c0b0587091695e89df71313ae417ccddfa8`。p6原證據在 `scratch/fusion-inkblade-visual-20261023/run/`：report-tilt0.6.json／report-tilt1.json、sweep-fusion_*-tilt-{0.6,1}.png；root核SHA，不親跑Chrome或測試。
+- **驗收界線**：C須查名稱／主圖大小／命中殘留／建築與狐火遮擋及main-only五招辨識，不能只以draw數PASS。有界嘗試雙Lv5→Boss繪馬→融合→施放，自然流程不可自動完成則 **P1 WAITING_HUMAN**；真機欠缺列WAITING_DEVICE。原生缺件、複用候選、技術可見與USER_ART_PASS分列；主特效禁幾何／SVG，真輔助粒子可留。報告未齊不宣稱三門全過。
+- **付費／安全**：只在既有main／art/vfx免費複用確證不足才提最少生圖；Nano Banana2.1成本及歷史US$3餘額不明即BLOCKED_PAID，不探KEY／quota。HEAD實查7562522，保護全部dirty含音訊／UI成果、學生線上版、核准原圖／TTS／BGM／KEY／env／SW；無stage／commit／push／deploy／reset／clean／checkout。唯一production writer仍p6 assets／renderer、p4 ui；root僅權威文檔及調度，禁本地Ollama占ComfyUI VRAM。
+
+### 2026-10-23｜M2-FUSION-ART-FIRST／現成圖片優先・已續派待驗收
+
+- **決策／保護現場**：使用者直接授權動工，以融合可見演出／爽感優先。root實查HEAD **7562522**，dirty為既有js/audio.js、js/ui.js、tests/audio-events.test.cjs及新御守／被動UI圖片與測試；僅盤點路徑，不讀改音訊、不覆寫dirty。學生上線版／原圖／KEY／env／SW保護，第三階段不stage／commit／push／deploy／reset／clean／checkout。root只調度、roadmap及收件，不親改production、不跑Chrome。
+- **唯一writer／真續派**：沿用現役session，已對p6／p4／p8各補充原票且取得Herdr `agent_prompted`，無重啟或新增重疊writer。p6 OpenCode唯一 `js/assets.js`＋`js/renderer.js`，回執working seq160；聚焦四套完整phase及墨焰斬後再接其餘main，不改game、不無限掃查，交 `scratch/m2-fusion-art-first-r1/SUMMARY.md`。p4 OpenCode唯一 `js/ui.js`，只融合選單獨特候選圖標／預覽及素材QA，交 `scratch/m2-fusion-art-first-ui-qa-r1/SUMMARY.md`；續派回執idle seq167，尚不能稱已執行完成。p8 Kilo（使用者指定Nemotron 3 Ultra Free）只新增 `art/fusion/candidates/`文件或自身 `scratch/m2-fusion-art-first-source-qa-r1/**`，回執working seq166；獨立透明／尺寸／alpha邊緣／來源SHA QA，修整另存不覆蓋。p9 Gemini授權失敗維持idle，不喚醒；禁本機Ollama占ComfyUI VRAM。
+- **現成素材基線／缺件矩陣**（依使用者真盤點，候選不是藝術核准；p8補逐檔來源證據）：
+
+| 招式候選ID | 已有圖片 | 缺件 |
+|---|---|---|
+| fusion_foxiai／fusion_exorcistblade／fusion_foxfirebarrier／fusion_exorcistseal | 各main／hit／ground／icon | 無 |
+| fusion_inkblade | main／hit／ground | 獨立icon |
+| slashwheel／foxthunderlantern／flamefestival／thundercircle／thundertalisman | 各main | 各hit／ground／icon |
+
+- **演出門檻**：10/10透明RGBA WebP主圖先用現成高品質候選，DEV-only真攻擊／命中／殘留，調層級、尺寸及冷暖節奏，2D／tilt .60均可辨識；主特效禁程序幾何／SVG，真輔助粒子可保留。缺icon時可用各自main作候選縮圖，須明列衍生，不能把缺件改報已補。功能／圖片載入或draw次數不等於爽感、美術完成。
+- **獨立QA／最後收件閘門**：p6正式停筆並交完整assets／renderer SHA與逐招phase consumer後，p4獨立驗renderer十招短程真施放、來源drawImage／時序、畫面層級尺寸、2D／.60及未啟用gate負向；自改UI只能列作者自驗，不能混稱獨立UI QA。p8另交源圖alpha／尺寸／缺件清單。缺固定版記WAITING_FIXED_SHA、不反覆長跑；報告到齊後root核對SHA與證據再判TECH_PASS_SCOPED或RETURN，現在僅已續派／待收，不宣告PASS、USER_ART_PASS或正式上線。
+- **付費閘門**：僅在原圖與免費接線確證不能達成表現後才評估Nano Banana 2.1；先檢證既有管線成本及歷史US$3餘額的非機密證據，不明即BLOCKED_PAID，先完成免費接線。不讀KEY／探quota、不自行呼叫付費生圖，不以本票冒稱ART_PASS。root本輪只更新此節並做文件diff檢查；後續以交件／真阻塞續接，不高頻輪詢。
+
 ### 2026-10-22｜以後DEV真人試玩標準：8902完整功能／8901靜音QA
 
 - **使用者定案／入口**：往後真人DEV須可用WASD／方向鍵移動、Space／Shift衝刺、E取貨／互動，保有正常BGM／日語音檔／音效。[8902真人入口](http://127.0.0.1:8902/index.html?dev=1&stage=rain-port&s2ground=kit&s2webp=1)，融合候選另加 `&fusioncandidate=1&fusionart=banana`；8901保留靜音自動化QA，不作真人入口。

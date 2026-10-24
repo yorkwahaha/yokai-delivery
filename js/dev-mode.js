@@ -152,6 +152,14 @@ function mountDevPanel(doc, opts) {
   panel.appendChild(go);
   host.appendChild(toggle);
   host.appendChild(panel);
+  const styleId = "dev-stage-picker-screen";
+  if (typeof doc.getElementById !== "function" || !doc.getElementById(styleId)) {
+    const style = doc.createElement("style");
+    style.id = styleId;
+    style.textContent = 'body[data-game-screen="other"] #dev-stage-picker{display:none}';
+    const parent = doc.head || doc.body || doc.documentElement;
+    if (parent && typeof parent.appendChild === "function") parent.appendChild(style);
+  }
   (doc.body || doc.documentElement).appendChild(host);
   return host;
 }

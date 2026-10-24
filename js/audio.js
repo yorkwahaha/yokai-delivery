@@ -10,6 +10,9 @@ window.AUDIO = (() => {
   let wordSpeechNonce = 0;
   let wordDucking = false;
   let pauseDucking = false;
+  let modalDucking = false;
+  let fadeToken = 0;
+  let fadePending = false;
   let activeBgm = null;
   let preparedBgm = null;
   let musicShouldPlay = false;
@@ -22,6 +25,7 @@ window.AUDIO = (() => {
   }
   const BGM_NORMAL_VOLUME = 0.27;
   const BGM_DUCK_VOLUME = 0.10;
+  const BGM_MODAL_VOLUME = 0.16;
   const BGM_PAUSE_VOLUME = 0.055;
   const bgmRamps = new Map();
   const clipBuffers = new Map(), bufferSources = new Set();
@@ -133,7 +137,30 @@ window.AUDIO = (() => {
   }
 
   function musicVolume() {
-    return pauseDucking ? BGM_PAUSE_VOLUME : wordDucking ? BGM_DUCK_VOLUME : BGM_NORMAL_VOLUME;
+    if (pauseDucking) return BGM_PAUSE_VOLUME;
+    if (wordDucking) return BGM_DUCK_VOLUME;
+    if (modalDucking) return BGM_MODAL_VOLUME;
+    return BGM_NORMAL_VOLUME;
+  }
+
+  function cancelRamps() {
+    for (const id of bgmRamps.values()) {
+      if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(id);
+    }
+    bgmRamps.clear();
+  }
+
+  // 死亡淡出的暫停計時必須能作廢，否則重開後會把已經恢復的 BGM 再次停掉。
+  function endMusicFade() {
+    fadePending = false;
+    fadeToken++;
+    cancelRamps();
+  }
+
+  function restorePlayingVolume() {
+    musicTracks().forEach(audio => {
+      if (!audio.paused) audio.volume = musicTarget(audio);
+    });
   }
 
   function musicTarget(audio) {
@@ -614,8 +641,15 @@ window.AUDIO = (() => {
     // 燈油耗盡：BGM 淡出後停止（updateBgm 在 lampout 狀態不再重新啟動音樂）。
     fadeOutMusic(duration = 700) {
       musicShouldPlay = false;
+      fadePending = true;
+      const token = ++fadeToken;
       musicTracks().forEach(audio => { if (!audio.paused) rampMusicVolume(audio, 0, duration); });
-      setTimeout(() => musicTracks().forEach(audio => audio.pause()), duration + 30);
+      setTimeout(() => {
+        if (token !== fadeToken || !fadePending) return;
+        fadePending = false;
+        if (musicShouldPlay) return;
+        musicTracks().forEach(audio => { if (!audio.paused) audio.pause(); });
+      }, duration + 30);
     },
     // Stop only on entry to results, not on the boss death cinematic.
     stopBossMusic() {
@@ -625,6 +659,9 @@ window.AUDIO = (() => {
     },
     // 重玩或回到地圖時，音樂從頭開始，不接著上一局的進度。
     restartMusic() {
+      endMusicFade();
+      pauseDucking = false;
+      modalDucking = false;
       bossMusic = false; bossMix = 0;
       musicTracks().forEach(audio => {
         if (audio !== preparedBgm) {
@@ -635,8 +672,10 @@ window.AUDIO = (() => {
       });
       activeBgm = preparedBgm;
       preparedBgm = null;
+      if (activeBgm) activeBgm.volume = musicVolume();
       bgmStep = 0;
       bgmTimer = 0;
+      musicShouldPlay = !!activeBgm;
     },
     init() {
       const ac = getCtx();
@@ -1019,6 +1058,10 @@ window.AUDIO = (() => {
       if (suspended || state === "lampout") return;
       // 手勢裡 prepareMusic 已經 play() 的那一軌，在場景真正切過去之前不要被選單幀暫停。
       if (preparedBgm && !muted) {
+        if (fadePending) {
+          endMusicFade();
+          preparedBgm.volume = musicVolume();
+        }
         musicShouldPlay = true;
         musicTracks().forEach(audio => { if (audio !== preparedBgm && !audio.paused) audio.pause(); });
         activeBgm = preparedBgm;
@@ -1026,12 +1069,15 @@ window.AUDIO = (() => {
         return;
       }
       const paused = state === "pause";
-      if (pauseDucking !== paused) {
+      const modal = state === "fusion" || state === "charmswap";
+      if (pauseDucking !== paused || modalDucking !== modal) {
         pauseDucking = paused;
+        modalDucking = modal;
         musicTracks().forEach(audio => rampMusicVolume(audio, musicTarget(audio), 220));
       }
+      // 融合確認與御守替換維持同一條 BGM，只輕度 duck。暫停音軌會在關閉時重播並和 Boss 交叉淡出重疊。
       // Keep boss music through the final death/victory cinematic; end at results.
-      const isMusicActive = (state === "play" || state === "levelup" || state === "pause" || state === "overworld" || state === "victory");
+      const isMusicActive = (state === "play" || state === "levelup" || state === "charmswap" || state === "fusion" || state === "pause" || state === "overworld" || state === "victory");
       musicShouldPlay = isMusicActive && !muted;
       if (muted || !isMusicActive) {
         musicTracks().forEach(audio => {
@@ -1040,9 +1086,15 @@ window.AUDIO = (() => {
         activeBgm = null;
         return;
       }
+      if (fadePending) {
+        endMusicFade();
+        restorePlayingVolume();
+      }
 
       const boss = state !== 'overworld' && bossMusic && window.BOSS_BGM;
       if (boss) {
+        // Boss 交叉淡出每幀自寫音量。留下的 ramp 會在下一幀把音量拉回舊目標。
+        cancelRamps();
         if (activeBgm !== boss) {
           activeBgm = boss;
           bgmAttempts.delete(boss);

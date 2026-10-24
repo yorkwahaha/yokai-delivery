@@ -3121,12 +3121,25 @@ if (isRainPort) {
     return k >= 1 ? 1 : Math.max(0, Math.min(1, k + Math.sin(lampSeq.t * 38) * 0.12 * (1 - k)));
   };
 
+  function dismissCombatModals() {
+    if (state === "fusion" && window.FUSION && typeof window.FUSION.cancelFusion === "function") {
+      window.FUSION.cancelFusion();
+    }
+    if (state === "charmswap") {
+      pendingCharmOffer = null;
+      charmSwapIndex = 0;
+      gpCharmDir = 0;
+      charmSwapHits = [];
+    }
+  }
+
   function loseRun() {
     if (state === "lampout" || state === "lost") return;
     if (checkVictoryCondition()) {
       startVictorySequence();
       return;
     }
+    dismissCombatModals();
     state = "lampout";
     lampSeq = { t: 0 };
     keys.clear(); heldCodes.clear();
@@ -6542,11 +6555,9 @@ function spawnEnemy(tier, rad, ang, ring) {
   function drawBossHazard(h) {
     if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) return;
 
-    // 雨港專屬新招式委派給 RENDERER.drawBossHazard (drawPortBossHazard)
-    if (STAGE.id === "rain-port" && (h.kind === "tidalFan" || h.kind === "rainVortex")) {
-      RENDERER.drawBossHazard(ctx, h, elapsed);
-      return;
-    }
+    // 沿用 RENDERER.drawBossHazard(ctx, h, elapsed)。strict true 才表示真圖已畫出。
+    const portDraw = RENDERER && RENDERER.drawBossHazard;
+    if (typeof portDraw === "function" && portDraw(ctx, h, elapsed) === true) return;
 
     ctx.save();
     ctx.globalAlpha = h.phase === "recovery" ? 0.28 : 0.72;
@@ -7049,15 +7060,34 @@ function spawnEnemy(tier, rad, ang, ring) {
       ctx.restore();
     }
 
-    // 14. 飄字：受傷提示用高對比墨邊 + 亮色字，避免被褐色場景吞掉。
+    // 14. 飄字：受傷提示用墨邊。淡粉 Boss 出場台詞加黑墨描邊與局部暗底，避免被雨港深淺背景吃掉。
     for (const t of texts) {
       const injury = typeof t.v === "string" && /^(受創|妖火灼身)/.test(t.v);
+      const bossLine = !injury && typeof t.v === "string" && /浪潮將吞噬|出現！/.test(t.v);
       ctx.save();
       ctx.globalAlpha = injury ? clamp(t.life * 1.15, 0, 1) : clamp(t.life, 0, 1);
       ctx.textAlign = "center";
       ctx.font = UI.readableFont(17, "bold");
       uprightHere(t.x,t.y);
-      if (injury) {
+      if (bossLine) {
+        const half = Math.max(18, ctx.measureText(t.v).width) / 2 + 12;
+        const top = t.y - 18;
+        const bottom = t.y + 7;
+        const plate = ctx.createLinearGradient(t.x, top, t.x, bottom);
+        plate.addColorStop(0, "rgba(12, 8, 10, 0)");
+        plate.addColorStop(0.22, "rgba(12, 8, 10, 0.46)");
+        plate.addColorStop(0.78, "rgba(12, 8, 10, 0.46)");
+        plate.addColorStop(1, "rgba(12, 8, 10, 0)");
+        ctx.fillStyle = plate;
+        ctx.fillRect(t.x - half, top, half * 2, bottom - top);
+        ctx.lineJoin = "round";
+        ctx.strokeStyle = "#140c0e";
+        ctx.lineWidth = 3.2;
+        ctx.strokeText(t.v, t.x, t.y);
+        ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+        ctx.shadowBlur = 1.5;
+        ctx.shadowOffsetY = 1;
+      } else if (injury) {
         ctx.lineJoin = "round";
         ctx.strokeStyle = "#211719";
         ctx.lineWidth = 2.6;
@@ -7983,6 +8013,12 @@ function spawnEnemy(tier, rad, ang, ring) {
     if (pendingDepart && state === "overworld" && !artPending()) {
       pendingDepart = false;
       confirmOverworld();
+    }
+    // 面板背後的確認狀態沒了就回 play，避免 update 永遠不跑、整局卡在融合或換守。
+    if (state === "charmswap" && !pendingCharmOffer) state = "play";
+    if (state === "fusion") {
+      const phase = window.FUSION && typeof window.FUSION.getState === "function" ? window.FUSION.getState().state : "";
+      if (phase !== "confirming") state = "play";
     }
     if (state === "play") {
       update(dt, hitStopped);

@@ -2751,31 +2751,130 @@ window.RENDERER = (() => {
     ctx.restore();
   }
 
-  // =========================================================================
-  // 第二關雨港 Boss (Ikari Umibozu 怒りの海坊主) 專屬技能與全 Boss Hazard 視效
-  // 1. 潮汐扇面 (tidalFan / tidal_surge): 醒目預警扇形 + 洶湧浪濤推進
-  // 2. 港灣渦流水柱 (rainVortex / whirlpool_spout): 水面旋轉漩渦 + 沖天水柱噴發
-  // 3. 標準 Boss Hazard 保持 Stage 1 原樣 (slam, charge, ring, tide)
-  // =========================================================================
-  function drawPortBossHazard(targetCtx, h, elapsed = 0) {
-    if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) return false;
-    const c = targetCtx || ctx;
-    if (!c) return false;
+  // 雨港 tidalFan / rainVortex。DEV 候選且水紋 drawImage 成功才是 IMAGE。
+  // 正常頁、缺圖、載入中都回舊安全幾何，handled=true，分類 LEGACY_SAFETY_FALLBACK。
+  // slam / charge / ring / tide 仍回 false，交給 game 的 C3 fallback。
+  let bossHazardPass = "UNHANDLED";
+
+  function bossHazardImageDev() {
+    return typeof window !== "undefined"
+      && typeof window.isFusionArtBindEnabled === "function"
+      && window.isFusionArtBindEnabled() === true;
+  }
+  function bossHazardRipple() {
+    const img = typeof window !== "undefined" ? window.PORT_ART?.ripple : null;
+    return img && img.naturalWidth > 0 ? img : null;
+  }
+
+  // alpha>16 的含端點框：左16 上37 右112 下91。右/下用排除端 113/92，寬97 高55。
+  const RIPPLE_BOX = Object.freeze({ l: 16, t: 37, r: 113, b: 92 });
+
+  function drawRippleCircle(c, img, x, y, diameter, alpha) {
+    const iw = img.naturalWidth || 128;
+    const ih = img.naturalHeight || 128;
+    const bw = RIPPLE_BOX.r - RIPPLE_BOX.l;
+    const bh = RIPPLE_BOX.b - RIPPLE_BOX.t;
+    const destW = diameter * iw / bw;
+    const destH = diameter * ih / bh;
+    const cx = ((RIPPLE_BOX.l + RIPPLE_BOX.r) / 2) / iw;
+    const cy = ((RIPPLE_BOX.t + RIPPLE_BOX.b) / 2) / ih;
+    c.save();
+    c.globalAlpha = alpha;
+    c.drawImage(img, x - cx * destW, y - cy * destH, destW, destH);
+    c.restore();
+  }
+
+  function paintTidalFan(c, img, h, phase, elapsed, motion) {
+    const start0 = Number.isFinite(h.startAngle) ? h.startAngle : (h.angle || 0) - Math.PI / 3;
+    const end0 = Number.isFinite(h.endAngle) ? h.endAngle : (h.angle || 0) + Math.PI / 3;
+    const coreR = h.r > 0 ? h.r : 200;
+    const pad = Math.PI / 12;
+    const reach = coreR + 30;
+    const start = start0 - pad;
+    const end = end0 + pad;
+    let base = motion ? 0.5 + 0.16 * Math.sin((Number(elapsed) || 0) * 7) : 0.66;
+    let hot = base;
+    let sweep = null;
+    if (phase === "active") {
+      const dur = h.duration > 0 ? h.duration : 0.15;
+      const u = Math.min(1, Math.max(0, (Number(h.t) || 0) / dur));
+      sweep = start0 + (end0 - start0) * u;
+      base = 0.42;
+      hot = u < 0.5 ? 0.72 : 0.92;
+    } else if (phase === "recovery") {
+      const dur = h.duration > 0 ? h.duration : 1.35;
+      base = 0.36 * Math.max(0, 1 - (Number(h.t) || 0) / dur);
+      hot = base;
+    }
+    if (!(base > 0.02)) return 0;
+    let n = 0;
+    const sector = (a0, a1, alpha) => {
+      c.save();
+      c.beginPath();
+      c.moveTo(h.x, h.y);
+      c.arc(h.x, h.y, reach, a0, a1);
+      c.closePath();
+      c.clip();
+      drawRippleCircle(c, img, h.x, h.y, reach * 2, alpha);
+      c.restore();
+      c.save();
+      c.globalAlpha = Math.min(0.85, alpha);
+      c.strokeStyle = "rgba(210, 244, 255, 0.95)";
+      c.lineWidth = 1.5;
+      c.beginPath();
+      c.moveTo(h.x, h.y);
+      c.arc(h.x, h.y, reach, a0, a1);
+      c.closePath();
+      c.stroke();
+      c.restore();
+      n += 1;
+    };
+    sector(start, end, base);
+    if (sweep != null) sector(sweep - pad, sweep + pad, hot);
+    return n;
+  }
+
+  function paintRainVortex(c, img, h, phase, elapsed, motion) {
+    const list = Array.isArray(h.vortexes) && h.vortexes.length
+      ? h.vortexes
+      : [{ x: h.x, y: h.y, r: h.r || 32 }];
+    const dur = h.duration > 0 ? h.duration : (phase === "recovery" ? 1.35 : 0.15);
+    const u = Math.min(1, Math.max(0, (Number(h.t) || 0) / dur));
+    let alpha = motion ? 0.62 + 0.08 * Math.sin((Number(elapsed) || 0) * 7) : 0.7;
+    if (phase === "active") alpha = u < 0.5 ? 0.55 : 0.9;
+    else if (phase === "recovery") alpha = 0.36 * Math.max(0, 1 - u);
+    if (!(alpha > 0.02)) return 0;
+    let n = 0;
+    for (const v of list) {
+      if (!v || !Number.isFinite(v.x) || !Number.isFinite(v.y)) continue;
+      const hitR = (Number(v.r) > 0 ? Number(v.r) : 32) + 20;
+      drawRippleCircle(c, img, v.x, v.y, hitR * 2, alpha);
+      c.save();
+      c.globalAlpha = Math.min(0.9, alpha);
+      c.strokeStyle = "rgba(210, 244, 255, 0.95)";
+      c.lineWidth = 1.5;
+      c.beginPath();
+      c.arc(v.x, v.y, hitR, 0, Math.PI * 2);
+      c.stroke();
+      c.restore();
+      n += 1;
+    }
+    return n;
+  }
+
+  function paintLegacyPortHazard(c, h, elapsed) {
     const motion = allowsMotion();
     const phase = h.phase || "telegraph";
-    const kind = h.kind || "slam";
-
-    // 1. 潮汐扇面 (tidalFan / tidal_surge / tide_fan)
-    if (kind === "tidalFan" || kind === "tidal_surge" || kind === "tide_fan") {
+    const kind = h.kind || "";
+    const fan = kind === "tidalFan" || kind === "tidal_surge" || kind === "tide_fan";
+    if (fan) {
       c.save();
       const r = h.r || 210;
       const angle = h.angle || 0;
       const startAngle = h.startAngle ?? (angle - Math.PI / 3);
       const endAngle = h.endAngle ?? (angle + Math.PI / 3);
       const fanSpan = endAngle - startAngle;
-
       if (phase === "telegraph") {
-        // 預警扇面：脈動海墨色半透扇形 + 白沫虛線弧邊 + 向外擴散之潮線
         const pulse = motion ? Math.sin(elapsed * 7) * 0.08 : 0;
         c.fillStyle = `rgba(32, 105, 155, ${0.20 + pulse})`;
         c.beginPath();
@@ -2783,8 +2882,6 @@ window.RENDERER = (() => {
         c.arc(h.x, h.y, r, startAngle, endAngle);
         c.closePath();
         c.fill();
-
-        // 扇形兩側放射導引線
         c.strokeStyle = "rgba(140, 220, 255, 0.45)";
         c.lineWidth = 1.8;
         c.beginPath();
@@ -2793,8 +2890,6 @@ window.RENDERER = (() => {
         c.moveTo(h.x, h.y);
         c.lineTo(h.x + Math.cos(endAngle) * r, h.y + Math.sin(endAngle) * r);
         c.stroke();
-
-        // 外弧白沫虛線警示圈
         c.strokeStyle = "rgba(220, 248, 255, 0.85)";
         c.lineWidth = 3.2;
         c.setLineDash([10, 6]);
@@ -2802,51 +2897,38 @@ window.RENDERER = (() => {
         c.arc(h.x, h.y, r, startAngle, endAngle);
         c.stroke();
         c.setLineDash([]);
-
-        // 扇面內部動態向外推進的湧潮預警波紋
         if (motion) {
           const wavePhase = (elapsed * 2.2) % 1;
-          const waveR = r * wavePhase;
           c.strokeStyle = `rgba(180, 235, 255, ${0.6 * (1 - wavePhase)})`;
           c.lineWidth = 2.4;
           c.beginPath();
-          c.arc(h.x, h.y, waveR, startAngle, endAngle);
+          c.arc(h.x, h.y, r * wavePhase, startAngle, endAngle);
           c.stroke();
         }
       } else if (phase === "active") {
-        // 攻擊生效：巨浪洶湧推進！白色浪冠 + 深海藍水浪本體
         const u = Math.min(1, (h.t || 0) / (h.duration || 0.45));
         const curR = r * (0.15 + 0.85 * u);
-
-        // 浪後水面薄藍
         c.fillStyle = "rgba(25, 80, 125, 0.35)";
         c.beginPath();
         c.moveTo(h.x, h.y);
         c.arc(h.x, h.y, curR, startAngle, endAngle);
         c.closePath();
         c.fill();
-
-        // 巨浪厚水身
         c.strokeStyle = "rgba(40, 125, 185, 0.80)";
         c.lineWidth = 20;
         c.lineCap = "round";
         c.beginPath();
         c.arc(h.x, h.y, curR, startAngle, endAngle);
         c.stroke();
-
-        // 破碎白浪冠 (White Foam Crest)
         c.strokeStyle = "rgba(255, 255, 255, 0.95)";
         c.lineWidth = 6;
         c.beginPath();
         c.arc(h.x, h.y, curR + 3, startAngle, endAngle);
         c.stroke();
-
-        // 飛濺水滴粒子點綴
         if (motion) {
           c.fillStyle = "rgba(240, 250, 255, 0.9)";
-          const dropCount = 7;
-          for (let i = 0; i <= dropCount; i++) {
-            const dropAng = startAngle + (fanSpan * (i / dropCount));
+          for (let i = 0; i <= 7; i++) {
+            const dropAng = startAngle + fanSpan * (i / 7);
             const sprayDist = curR + 10 + Math.sin(i * 3.7 + elapsed * 10) * 8;
             c.beginPath();
             c.arc(h.x + Math.cos(dropAng) * sprayDist, h.y + Math.sin(dropAng) * sprayDist, 3, 0, 6.283);
@@ -2854,7 +2936,6 @@ window.RENDERER = (() => {
           }
         }
       } else {
-        // recovery 回落：漸淡海沫
         const fade = Math.max(0, 1 - (h.t || 0) / (h.duration || 1.35));
         c.strokeStyle = `rgba(180, 230, 250, ${0.45 * fade})`;
         c.lineWidth = 4;
@@ -2863,218 +2944,137 @@ window.RENDERER = (() => {
         c.stroke();
       }
       c.restore();
-      return true;
+      return;
     }
-
-    // 2. 港灣渦流水柱 (rainVortex / whirlpool_spout / vortex)
-    if (kind === "rainVortex" || kind === "whirlpool_spout" || kind === "vortex") {
-      c.save();
-      const vortexes = Array.isArray(h.vortexes) && h.vortexes.length > 0
-        ? h.vortexes
-        : [{ x: h.x, y: h.y, r: h.r || 32 }];
-
-      for (const v of vortexes) {
-        const vx = v.x, vy = v.y, vr = v.r || 32;
-
-        if (phase === "telegraph") {
-          // 預警階段：水面吸入漩渦 (Swirling Eddy)
-          c.save();
-          c.translate(vx, vy);
-          c.scale(1, 0.58); // 地面/水面透視壓扁
-          const rot = motion ? elapsed * 5.2 : 0;
-          c.rotate(rot);
-
-          // 漩渦深色核心
-          c.fillStyle = "rgba(18, 52, 85, 0.65)";
+    c.save();
+    const vortexes = Array.isArray(h.vortexes) && h.vortexes.length > 0
+      ? h.vortexes
+      : [{ x: h.x, y: h.y, r: h.r || 32 }];
+    for (const v of vortexes) {
+      const vx = v.x, vy = v.y, vr = v.r || 32;
+      if (phase === "telegraph") {
+        c.save();
+        c.translate(vx, vy);
+        c.scale(1, 0.58);
+        c.rotate(motion ? elapsed * 5.2 : 0);
+        c.fillStyle = "rgba(18, 52, 85, 0.65)";
+        c.beginPath();
+        c.arc(0, 0, vr, 0, 6.283);
+        c.fill();
+        c.strokeStyle = "rgba(145, 235, 255, 0.85)";
+        c.lineWidth = 2.4;
+        for (let arm = 0; arm < 3; arm++) {
           c.beginPath();
-          c.arc(0, 0, vr, 0, 6.283);
-          c.fill();
-
-          // 漩渦吸水旋臂 (3 條螺旋臂)
-          c.strokeStyle = "rgba(145, 235, 255, 0.85)";
-          c.lineWidth = 2.4;
-          for (let arm = 0; arm < 3; arm++) {
-            c.beginPath();
-            const armOffset = (arm * Math.PI * 2) / 3;
-            for (let step = 0; step <= 12; step++) {
-              const tStep = step / 12;
-              const curAng = armOffset + tStep * Math.PI * 1.5;
-              const curDist = vr * (1 - tStep * 0.7);
-              const px = Math.cos(curAng) * curDist;
-              const py = Math.sin(curAng) * curDist;
-              if (step === 0) c.moveTo(px, py);
-              else c.lineTo(px, py);
-            }
-            c.stroke();
+          const armOffset = (arm * Math.PI * 2) / 3;
+          for (let step = 0; step <= 12; step++) {
+            const tStep = step / 12;
+            const curAng = armOffset + tStep * Math.PI * 1.5;
+            const curDist = vr * (1 - tStep * 0.7);
+            const px = Math.cos(curAng) * curDist;
+            const py = Math.sin(curAng) * curDist;
+            if (step === 0) c.moveTo(px, py);
+            else c.lineTo(px, py);
           }
-
-          // 外圍警示圈
-          c.strokeStyle = "rgba(220, 245, 255, 0.75)";
-          c.lineWidth = 1.6;
-          c.setLineDash([5, 4]);
-          c.beginPath();
-          c.arc(0, 0, vr * 1.15, 0, 6.283);
           c.stroke();
-          c.restore();
-        } else if (phase === "active") {
-          // 攻擊階段：沖天水柱爆發 (Vertical Erupting Water Spout)
-          const u = Math.min(1, (h.t || 0) / (h.duration || 0.55));
-          // 水柱起落曲線：先疾速沖起，再散落
-          const riseCurve = Math.sin(u * Math.PI);
-          const colHeight = (130 + vr * 1.2) * riseCurve;
-          const colWidth = vr * (1.1 + 0.3 * (1 - riseCurve));
-
-          c.save();
-          c.translate(vx, vy);
-
-          // 1) 足底爆水環
-          c.save();
-          c.scale(1, 0.55);
-          c.strokeStyle = "rgba(240, 252, 255, 0.9)";
-          c.lineWidth = 4;
-          c.beginPath();
-          c.arc(0, 0, colWidth * 1.25, 0, 6.283);
-          c.stroke();
-          c.restore();
-
-          // 2) 水柱主體（垂直向上）
-          if (colHeight > 6) {
-            // 水柱外緣激流
-            const grad = c.createLinearGradient(0, 0, 0, -colHeight);
-            grad.addColorStop(0, "rgba(35, 115, 175, 0.85)");
-            grad.addColorStop(0.7, "rgba(75, 175, 225, 0.80)");
-            grad.addColorStop(1, "rgba(220, 248, 255, 0.95)");
-
-            c.fillStyle = grad;
-            c.beginPath();
-            c.moveTo(-colWidth * 0.5, 0);
-            c.quadraticCurveTo(-colWidth * 0.4, -colHeight * 0.5, -colWidth * 0.6, -colHeight);
-            c.lineTo(colWidth * 0.6, -colHeight);
-            c.quadraticCurveTo(colWidth * 0.4, -colHeight * 0.5, colWidth * 0.5, 0);
-            c.closePath();
-            c.fill();
-
-            // 水柱亮白水芯
-            c.fillStyle = "rgba(240, 252, 255, 0.7)";
-            c.fillRect(-colWidth * 0.18, -colHeight, colWidth * 0.36, colHeight);
-
-            // 3) 柱頂傘狀水花 (Foam Splash Cap)
-            c.fillStyle = "rgba(255, 255, 255, 0.92)";
-            c.beginPath();
-            c.ellipse(0, -colHeight, colWidth * 0.7, colWidth * 0.3, 0, 0, 6.283);
-            c.fill();
-
-            // 4) 頂部噴濺雨滴
-            if (motion) {
-              for (let d = 0; d < 6; d++) {
-                const dropAng = (d * Math.PI) / 3;
-                const dropDist = colWidth * (0.6 + 0.4 * Math.sin(d + elapsed * 12));
-                const dx = Math.cos(dropAng) * dropDist;
-                const dy = -colHeight + Math.sin(dropAng) * (dropDist * 0.4) - 8 * u;
-                c.beginPath();
-                c.arc(dx, dy, 2.5, 0, 6.283);
-                c.fill();
-              }
-            }
-          }
-          c.restore();
-        } else {
-          // recovery: 水柱散落波紋
-          const fade = Math.max(0, 1 - (h.t || 0) / (h.duration || 1.35));
-          c.save();
-          c.translate(vx, vy);
-          c.scale(1, 0.55);
-          c.strokeStyle = `rgba(180, 235, 255, ${0.5 * fade})`;
-          c.lineWidth = 2.5;
-          c.beginPath();
-          c.arc(0, 0, vr * (1.2 + (1 - fade) * 0.6), 0, 6.283);
-          c.stroke();
-          c.restore();
         }
+        c.strokeStyle = "rgba(220, 245, 255, 0.75)";
+        c.lineWidth = 1.6;
+        c.setLineDash([5, 4]);
+        c.beginPath();
+        c.arc(0, 0, vr * 1.15, 0, 6.283);
+        c.stroke();
+        c.setLineDash([]);
+        c.restore();
+      } else if (phase === "active") {
+        const u = Math.min(1, (h.t || 0) / (h.duration || 0.55));
+        const riseCurve = Math.sin(u * Math.PI);
+        const colHeight = (130 + vr * 1.2) * riseCurve;
+        const colWidth = vr * (1.1 + 0.3 * (1 - riseCurve));
+        c.save();
+        c.translate(vx, vy);
+        c.save();
+        c.scale(1, 0.55);
+        c.strokeStyle = "rgba(240, 252, 255, 0.9)";
+        c.lineWidth = 4;
+        c.beginPath();
+        c.arc(0, 0, colWidth * 1.25, 0, 6.283);
+        c.stroke();
+        c.restore();
+        if (colHeight > 6 && c.createLinearGradient) {
+          const grad = c.createLinearGradient(0, 0, 0, -colHeight);
+          grad.addColorStop(0, "rgba(35, 115, 175, 0.85)");
+          grad.addColorStop(0.7, "rgba(75, 175, 225, 0.80)");
+          grad.addColorStop(1, "rgba(220, 248, 255, 0.95)");
+          c.fillStyle = grad;
+          c.beginPath();
+          c.moveTo(-colWidth * 0.5, 0);
+          c.quadraticCurveTo(-colWidth * 0.4, -colHeight * 0.5, -colWidth * 0.6, -colHeight);
+          c.lineTo(colWidth * 0.6, -colHeight);
+          c.quadraticCurveTo(colWidth * 0.4, -colHeight * 0.5, colWidth * 0.5, 0);
+          c.closePath();
+          c.fill();
+          c.fillStyle = "rgba(240, 252, 255, 0.7)";
+          c.fillRect(-colWidth * 0.18, -colHeight, colWidth * 0.36, colHeight);
+        }
+        c.restore();
+      } else {
+        const fade = Math.max(0, 1 - (h.t || 0) / (h.duration || 1.35));
+        c.save();
+        c.translate(vx, vy);
+        c.scale(1, 0.55);
+        c.strokeStyle = `rgba(180, 235, 255, ${0.5 * fade})`;
+        c.lineWidth = 2.5;
+        c.beginPath();
+        c.arc(0, 0, vr * (1.2 + (1 - fade) * 0.6), 0, 6.283);
+        c.stroke();
+        c.restore();
       }
-      c.restore();
-      return true;
     }
-
-    // 3. 原潮水 (tide)：保持並優化水色
-    if (kind === "tide") {
-      c.save();
-      const ang = h.angle || 0;
-      const cos = Math.cos(ang), sin = Math.sin(ang);
-      const off = h.safeOffset || 0;
-      const lane = h.safeWidth || 130;
-      const sx = h.x - sin * off, sy = h.y + cos * off;
-      c.strokeStyle = "rgba(150, 230, 255, 0.55)";
-      c.lineWidth = lane;
-      c.lineCap = "butt";
-      c.beginPath();
-      c.moveTo(sx - cos * 300, sy - sin * 300);
-      c.lineTo(sx + cos * 300, sy + sin * 300);
-      c.stroke();
-      const prog = Number.isFinite(h.progress) ? h.progress : -280;
-      const wx = h.x + cos * prog, wy = h.y + sin * prog;
-      const gap = lane / 2;
-      c.strokeStyle = phase === "telegraph" ? "rgba(80, 150, 200, 0.4)" : "rgba(30, 110, 170, 0.75)";
-      c.lineWidth = 120;
-      c.beginPath();
-      c.moveTo(wx - sin * (off - 460), wy + cos * (off - 460));
-      c.lineTo(wx - sin * (off - gap), wy + cos * (off - gap));
-      c.moveTo(wx - sin * (off + gap), wy + cos * (off + gap));
-      c.lineTo(wx - sin * (off + 460), wy + cos * (off + 460));
-      c.stroke();
-      c.restore();
-      return true;
-    }
-
-    // 4. 第一關與標準 Boss 技能 (slam / charge / ring)：嚴格保持 Stage 1 原樣
-    if (kind === "slam") {
-      c.save();
-      c.globalAlpha = phase === "recovery" ? 0.28 : 0.72;
-      const r = h.r || 150;
-      c.fillStyle = "rgba(255, 65, 35, 0.18)";
-      c.strokeStyle = "#ffbd72";
-      c.lineWidth = 3;
-      c.beginPath(); c.arc(h.x, h.y, r, 0, 6.2831853); c.fill(); c.stroke();
-      c.restore();
-      return true;
-    }
-
-    if (kind === "charge") {
-      c.save();
-      c.globalAlpha = phase === "recovery" ? 0.28 : 0.72;
-      const ang = h.angle || 0;
-      const len = 620 * 0.65;
-      c.strokeStyle = "rgba(255, 120, 50, 0.45)";
-      c.lineWidth = 104;
-      c.lineCap = "butt";
-      c.beginPath();
-      c.moveTo(h.x, h.y);
-      c.lineTo(h.x + Math.cos(ang) * len, h.y + Math.sin(ang) * len);
-      c.stroke();
-      c.restore();
-      return true;
-    }
-
-    if (kind === "ring") {
-      c.save();
-      c.globalAlpha = phase === "recovery" ? 0.28 : 0.72;
-      const gap = h.gapAngle || 0;
-      const half = (h.gapWidth || Math.PI / 2) / 2;
-      c.strokeStyle = "rgba(255, 80, 40, 0.85)";
-      c.lineWidth = 28;
-      c.beginPath();
-      c.arc(h.x, h.y, h.r || 80, gap + half, gap + Math.PI * 2 - half);
-      c.stroke();
-      c.restore();
-      return true;
-    }
-
-    return false;
+    c.restore();
   }
 
-  // =========================================================================
-  // 狐火 2.5D 前後深度分割與渲染支援 (Fox Fire 2.5D Orbit Depth Split)
-  // 提供前後半圈深度判定、透視縮放/透明度、與雙 Pass (back/front/all) 調度支援
+  function drawPortBossHazard(targetCtx, h, elapsed = 0) {
+    if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) {
+      bossHazardPass = "UNHANDLED";
+      return false;
+    }
+    const c = targetCtx || ctx;
+    if (!c) {
+      bossHazardPass = "UNHANDLED";
+      return false;
+    }
+    const kind = h.kind || "";
+    const fan = kind === "tidalFan" || kind === "tidal_surge" || kind === "tide_fan";
+    const vortex = kind === "rainVortex" || kind === "whirlpool_spout" || kind === "vortex";
+    if (!fan && !vortex) {
+      bossHazardPass = "UNHANDLED";
+      return false;
+    }
+    if (bossHazardImageDev()) {
+      const img = bossHazardRipple();
+      if (img) {
+        const phase = h.phase || "telegraph";
+        const motion = allowsMotion();
+        let drew = 0;
+        c.save();
+        try {
+          drew = fan
+            ? paintTidalFan(c, img, h, phase, elapsed, motion)
+            : paintRainVortex(c, img, h, phase, elapsed, motion);
+        } finally {
+          c.restore();
+        }
+        if (drew > 0) {
+          bossHazardPass = "IMAGE";
+          return true;
+        }
+      }
+    }
+    paintLegacyPortHazard(c, h, elapsed || 0);
+    bossHazardPass = "LEGACY_SAFETY_FALLBACK";
+    return true;
+  }
+
   // =========================================================================
   function isOrbitBack(ang) {
     return Math.sin(ang) < 0;
@@ -3204,9 +3204,10 @@ window.RENDERER = (() => {
 
   /**
    * 貼一張 phase 真圖。
-   * opt: { kind, phase, x, y, width, alpha, flipX, rotate, centerX, anchorY }
+   * opt: { kind, phase, x, y, width, alpha, flipX, rotate, centerX, anchorY, line }
    *   centerX=true → 以 x 為中心；false → 由 x 起算向右延伸（前向錨點）
    *   anchorY      → 0=貼地、0.5=垂直置中、1=貼頂
+   *   line         → 可選 { angle, length, hilt, tip, anchor }，把裁切弦貼上攻擊線
    */
   function drawFusionBindImage(c, img, opt) {
     const def = fusionBindDef(opt.kind, opt.phase);
@@ -3220,6 +3221,25 @@ window.RENDERER = (() => {
     c.save();
     c.globalAlpha = Math.max(0, Math.min(1, opt.alpha == null ? 1 : opt.alpha));
     c.translate(opt.x, opt.y);
+    if (opt.line && opt.line.hilt && opt.line.tip) {
+      const sw = src.sw || 1;
+      const sh = src.sh || 1;
+      const du = opt.line.tip[0] - opt.line.hilt[0];
+      const dv = opt.line.tip[1] - opt.line.hilt[1];
+      const srcLen = Math.hypot(du, dv) || 1;
+      const destLen = Math.max(1, opt.line.length || 1);
+      const targetW = destLen * sw / srcLen;
+      const targetH = targetW * (sh / sw);
+      const hx = (opt.line.hilt[0] / sw) * targetW;
+      const hy = (opt.line.hilt[1] / sh) * targetH;
+      c.rotate(opt.line.angle || 0);
+      if (opt.line.anchor === "center") c.translate(-destLen * 0.5, 0);
+      c.rotate(-Math.atan2(dv, du));
+      c.translate(-hx, -hy);
+      c.drawImage(img, src.sx, src.sy, src.sw, src.sh, 0, 0, targetW, targetH);
+      c.restore();
+      return true;
+    }
     if (opt.rotate) c.rotate(opt.rotate);
     if (opt.flipX) {
       c.translate(opt.centerX ? 0 : targetW, 0);
@@ -3322,6 +3342,27 @@ window.RENDERER = (() => {
 
     // ---- #2 斬界輪：旋轉輪刃（隨 currentRadius 展開） ----
     if (kind === "fusion_slashwheel") {
+      // DEV reuse phases: only existing main-image crops; no new source artwork.
+      const reusePoints = [{ x, y, r: Math.max(45, (effect.currentRadius || radius * 0.35)) }];
+      for (const pt of reusePoints) {
+        if (ground) {
+          fusionBindUpright(c, pt.x, pt.y, () => {
+            drawFusionBindImage(c, ground, {
+              kind, phase: "ground", x: pt.x, y: pt.y, width: pt.r * 1.8,
+              alpha: env * 0.45, centerX: true, anchorY: 0.5
+            });
+          });
+        }
+        if (hit && phase !== "warn") {
+          fusionBindUpright(c, pt.x, pt.y, () => {
+            drawFusionBindImage(c, hit, {
+              kind, phase: "hit", x: pt.x, y: pt.y, width: pt.r * 1.4,
+              alpha: env * 0.7, centerX: true, anchorY: 0.5
+            });
+          });
+        }
+      }
+
       if (main) {
         const cur = Number.isFinite(effect.currentRadius) && effect.currentRadius > 0
           ? effect.currentRadius
@@ -3333,39 +3374,48 @@ window.RENDERER = (() => {
           });
         });
       }
+      drawIcon(x - 96, y - 104, env);
       return true;
     }
 
-    // ---- #3 雷狐居合：前向雷斬 + 命中閃電 + 地面旋渦 ----
+    // ---- #3 雷狐居合：主軸對齊 lineTargets 前向射線（t=0..radius），不用 target 覆寫 ----
+    // upright 抵消 tilt 後，世界向 (cos θ, sin θ) 的螢幕向是 atan2(k sin θ, cos θ)。
+    // 弦長 reach*hypot(cos θ, k sin θ) 時，尖端才落在投影後的攻擊線終點。
+    // 端點是 R4 裁切內不透明端點；尖端在圖的 +X。命中只畫 hitSet 上的敵人。
     if (kind === "fusion_foxiai") {
-      const finalAngle = (Number.isFinite(effect.targetX) && Number.isFinite(effect.targetY))
-        ? Math.atan2(effect.targetY - y, effect.targetX - x)
-        : angle;
-      if (ground) {
-        fusionBindUpright(c, x, y, () => {
-          drawFusionBindImage(c, ground, {
-            kind, phase: "ground", x, y, width: radius * 1.5, alpha: env * 0.85,
-            rotate: finalAngle, centerX: true, anchorY: 0.5
+      const kTilt = Number.isFinite(tilt) && tilt > 0 ? tilt : 1;
+      const cth = Math.cos(angle);
+      const sth = Math.sin(angle);
+      const hyp = Math.hypot(cth, kTilt * sth) || 1;
+      const screenAngle = Math.atan2(kTilt * sth, cth);
+      const reachPx = radius * hyp;
+      const chord = {
+        main: { hilt: [0, 297], tip: [1115, 10] },
+        ground: { hilt: [0, 80], tip: [1097, 72] },
+        hit: { hilt: [0, 532.5], tip: [644, 77] }
+      };
+      const paintLine = (img, phaseName, atX, atY, length, anchor, alpha) => {
+        fusionBindUpright(c, atX, atY, () => {
+          drawFusionBindImage(c, img, {
+            kind, phase: phaseName, x: atX, y: atY, alpha,
+            line: {
+              angle: screenAngle, length, anchor,
+              hilt: chord[phaseName].hilt, tip: chord[phaseName].tip
+            }
           });
         });
-      }
-      if (main) {
-        fusionBindUpright(c, x, y, () => {
-          drawFusionBindImage(c, main, {
-            kind, phase: "main", x, y, width: radius * 1.15, alpha: env,
-            rotate: finalAngle, flipX: true, anchorY: 0.5
-          });
-        });
-      }
-      if (hit && phase !== "warn") {
-        const hx = x + Math.cos(finalAngle) * radius * 0.8;
-        const hy = y + Math.sin(finalAngle) * radius * 0.8;
-        fusionBindUpright(c, hx, hy, () => {
-          drawFusionBindImage(c, hit, {
-            kind, phase: "hit", x: hx, y: hy, width: radius * 0.8, alpha: env * 0.95,
-            rotate: finalAngle, centerX: true, anchorY: 0.5
-          });
-        });
+      };
+      if (ground) paintLine(ground, "ground", x, y, reachPx, "hilt", env * 0.85);
+      if (main) paintLine(main, "main", x, y, reachPx, "hilt", env);
+      if (hit && phase !== "warn" && effect.hitSet && typeof effect.hitSet[Symbol.iterator] === "function") {
+        const hitDef = fusionBindDef(kind, "hit");
+        const hitSw = hitDef && hitDef.bbox && hitDef.bbox[2] > hitDef.bbox[0] ? hitDef.bbox[2] - hitDef.bbox[0] : 1;
+        const hitSrc = Math.hypot(chord.hit.tip[0] - chord.hit.hilt[0], chord.hit.tip[1] - chord.hit.hilt[1]) || 1;
+        const hitLen = Math.max(1, radius * 0.8 * hitSrc / hitSw);
+        for (const e of effect.hitSet) {
+          if (!e || !Number.isFinite(e.x) || !Number.isFinite(e.y)) continue;
+          paintLine(hit, "hit", e.x, e.y, hitLen, "center", env * 0.95);
+        }
       }
       drawIcon(x - 96, y - 104, env);
       return true;
@@ -3414,29 +3464,33 @@ window.RENDERER = (() => {
       return true;
     }
 
-    // ---- #5 妖火結界：燃燒結界主體 + 脈衝結界環 + 地面環 ----
+    // ---- #5 妖火結界：火地 → 暖封界 → 短脈衝。預警只鋪地，命中不常駐遮人。 ----
     if (kind === "fusion_foxfirebarrier") {
+      const flash = pulseFlash(effect.pulseInterval);
       if (ground) {
+        const groundAlpha = phase === "active" ? Math.min(env * 0.5, 0.40)
+          : phase === "warn" ? Math.min(env * 0.28, 0.16)
+          : Math.min(env * 0.22, 0.12);
         fusionBindUpright(c, x, y, () => {
           drawFusionBindImage(c, ground, {
-            kind, phase: "ground", x, y, width: radius * 1.9, alpha: env * 0.8, centerX: true, anchorY: 0.5
+            kind, phase: "ground", x, y, width: radius * (phase === "warn" ? 1.25 : 1.9),
+            alpha: groundAlpha, centerX: true, anchorY: 0.5
           });
         });
       }
-      if (hit) {
-        const flash = pulseFlash(effect.pulseInterval);
-        const a = flash > 0 ? flash : env * 0.55;
-        fusionBindUpright(c, x, y, () => {
-          drawFusionBindImage(c, hit, {
-            kind, phase: "hit", x, y, width: radius * 2.0 * (flash > 0 ? 1 + (1 - flash) * 0.12 : 1),
-            alpha: a * 0.95, centerX: true, anchorY: 0.5
-          });
-        });
-      }
-      if (main) {
+      if (main && phase !== "warn") {
+        const sealAlpha = phase === "active" ? Math.min(env * 0.72, 0.50) : Math.min(env * 0.3, 0.18);
         fusionBindUpright(c, x, y, () => {
           drawFusionBindImage(c, main, {
-            kind, phase: "main", x, y, width: radius * 1.7, alpha: env * 0.9, centerX: true, anchorY: 0.5
+            kind, phase: "main", x, y, width: radius * 1.7, alpha: sealAlpha, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      if (hit && phase === "active" && flash > 0) {
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, hit, {
+            kind, phase: "hit", x, y, width: radius * 2.0,
+            alpha: Math.min(0.35, flash * 0.35), centerX: true, anchorY: 0.5
           });
         });
       }
@@ -3446,6 +3500,27 @@ window.RENDERER = (() => {
 
     // ---- #6 狐雷天燈：每盞燈籠掛真圖 ----
     if (kind === "fusion_foxthunderlantern") {
+      // DEV reuse phases: only existing main-image crops; no new source artwork.
+      const reusePoints = (Array.isArray(effect.lanterns) ? effect.lanterns : []).filter(ln => ln && ln.struck).map(ln => ({ x: Number.isFinite(ln.targetX) ? ln.targetX : x, y: Number.isFinite(ln.targetY) ? ln.targetY : y, r: effect.strikeRadius || 64 }));
+      for (const pt of reusePoints) {
+        if (ground) {
+          fusionBindUpright(c, pt.x, pt.y, () => {
+            drawFusionBindImage(c, ground, {
+              kind, phase: "ground", x: pt.x, y: pt.y, width: pt.r * 1.8,
+              alpha: env * 0.45, centerX: true, anchorY: 0.5
+            });
+          });
+        }
+        if (hit && phase !== "warn") {
+          fusionBindUpright(c, pt.x, pt.y, () => {
+            drawFusionBindImage(c, hit, {
+              kind, phase: "hit", x: pt.x, y: pt.y, width: pt.r * 1.4,
+              alpha: env * 0.7, centerX: true, anchorY: 0.5
+            });
+          });
+        }
+      }
+
       if (main) {
         const lanterns = Array.isArray(effect.lanterns) ? effect.lanterns : [];
         for (const ln of lanterns) {
@@ -3460,11 +3535,33 @@ window.RENDERER = (() => {
           });
         }
       }
+      drawIcon(x - 96, y - 104, env);
       return true;
     }
 
     // ---- #7 炎符祭：施放點火符爆 + 每張符引爆點 ----
     if (kind === "fusion_flamefestival") {
+      // DEV reuse phases: only existing main-image crops; no new source artwork.
+      const reusePoints = (Array.isArray(effect.talismans) ? effect.talismans : []).filter(t => t && t.exploded).map(t => ({ x: Number.isFinite(t.x) ? t.x : x, y: Number.isFinite(t.y) ? t.y : y, r: effect.landRadius || 62 }));
+      for (const pt of reusePoints) {
+        if (ground) {
+          fusionBindUpright(c, pt.x, pt.y, () => {
+            drawFusionBindImage(c, ground, {
+              kind, phase: "ground", x: pt.x, y: pt.y, width: pt.r * 1.8,
+              alpha: env * 0.45, centerX: true, anchorY: 0.5
+            });
+          });
+        }
+        if (hit && phase !== "warn") {
+          fusionBindUpright(c, pt.x, pt.y, () => {
+            drawFusionBindImage(c, hit, {
+              kind, phase: "hit", x: pt.x, y: pt.y, width: pt.r * 1.4,
+              alpha: env * 0.7, centerX: true, anchorY: 0.5
+            });
+          });
+        }
+      }
+
       if (main) {
         fusionBindUpright(c, x, y, () => {
           drawFusionBindImage(c, main, {
@@ -3484,18 +3581,52 @@ window.RENDERER = (() => {
           });
         }
       }
+      drawIcon(x - 96, y - 104, env);
       return true;
     }
 
-    // ---- #8 雷陣封界：地面陣域真圖 ----
+    // ---- #8 雷陣封界：同一張 R4 陣圖。active 主圖<=.25、地<=.12、落雷短閃<=.35。 ----
+    // 預警小於 active；落雷只畫在 strikes 的 0.28s 窗，不常駐蓋住施法者。
     if (kind === "fusion_thundercircle") {
-      if (main) {
+      const fieldW = radius * 1.44;
+      if (ground) {
+        const groundAlpha = phase === "active" ? Math.min(env * 0.45, 0.12)
+          : phase === "warn" ? Math.min(env * 0.16, 0.08)
+          : Math.min(env * 0.12, 0.06);
         fusionBindUpright(c, x, y, () => {
-          drawFusionBindImage(c, main, {
-            kind, phase: "main", x, y, width: radius * 2.0, alpha: env * 0.95, centerX: true, anchorY: 0.5
+          drawFusionBindImage(c, ground, {
+            kind, phase: "ground", x, y, width: phase === "warn" ? radius * 1.05 : fieldW,
+            alpha: groundAlpha, centerX: true, anchorY: 0.5
           });
         });
       }
+      if (main) {
+        const sealAlpha = phase === "active" ? Math.min(env * 0.95, 0.25)
+          : phase === "warn" ? Math.min(env * 0.18, 0.10)
+          : Math.min(env * 0.25, 0.12);
+        fusionBindUpright(c, x, y, () => {
+          drawFusionBindImage(c, main, {
+            kind, phase: "main", x, y, width: phase === "warn" ? radius * 1.35 : radius * 2.0,
+            alpha: sealAlpha, centerX: true, anchorY: 0.5
+          });
+        });
+      }
+      if (hit && phase === "active" && Array.isArray(effect.strikes)) {
+        for (const s of effect.strikes) {
+          if (!s || s.triggered !== true || !Number.isFinite(s.x) || !Number.isFinite(s.y)) continue;
+          const age = -Number(s.delay);
+          if (!(age >= 0 && age <= 0.28)) continue;
+          const bolt = Math.min(0.35, (1 - age / 0.28) * 0.35);
+          const sr = Number.isFinite(s.radius) ? s.radius : 90;
+          fusionBindUpright(c, s.x, s.y, () => {
+            drawFusionBindImage(c, hit, {
+              kind, phase: "hit", x: s.x, y: s.y, width: sr * 1.6,
+              alpha: bolt, centerX: true, anchorY: 0.5
+            });
+          });
+        }
+      }
+      drawIcon(x - 96, y - 104, env);
       return true;
     }
 
@@ -3530,6 +3661,27 @@ window.RENDERER = (() => {
 
     // ---- #10 雷符神罰：施放點雷符 + 每張符落點 ----
     if (kind === "fusion_thundertalisman") {
+      // DEV reuse phases: only existing main-image crops; no new source artwork.
+      const reusePoints = (Array.isArray(effect.talismans) ? effect.talismans : []).filter(t => t && t.struck).map(t => ({ x: Number.isFinite(t.x) ? t.x : x, y: Number.isFinite(t.y) ? t.y : y, r: effect.strikeRadius || 70 }));
+      for (const pt of reusePoints) {
+        if (ground) {
+          fusionBindUpright(c, pt.x, pt.y, () => {
+            drawFusionBindImage(c, ground, {
+              kind, phase: "ground", x: pt.x, y: pt.y, width: pt.r * 1.8,
+              alpha: env * 0.45, centerX: true, anchorY: 0.5
+            });
+          });
+        }
+        if (hit && phase !== "warn") {
+          fusionBindUpright(c, pt.x, pt.y, () => {
+            drawFusionBindImage(c, hit, {
+              kind, phase: "hit", x: pt.x, y: pt.y, width: pt.r * 1.4,
+              alpha: env * 0.7, centerX: true, anchorY: 0.5
+            });
+          });
+        }
+      }
+
       if (main) {
         fusionBindUpright(c, x, y, () => {
           drawFusionBindImage(c, main, {
@@ -3549,6 +3701,7 @@ window.RENDERER = (() => {
           });
         }
       }
+      drawIcon(x - 96, y - 104, env);
       return true;
     }
 
@@ -4016,8 +4169,8 @@ window.RENDERER = (() => {
       c.restore();
     }
 
-    // 3. 內圈落雷中心與脈衝 (Center Thunder Strike Grounding)
-    if (phase === "active") {
+    // 3. 內圈落雷中心與脈衝。綁定真圖時不畫這層，避免幾何圓持續蓋住玩家。
+    if (phase === "active" && !bindOwnsMain) {
       c.fillStyle = `rgba(180, 240, 255, ${alpha * 0.35})`;
       c.beginPath();
       c.arc(0, 0, r * 0.45 * progress, 0, 6.283);
@@ -4687,6 +4840,7 @@ window.RENDERER = (() => {
     drawStage2Actor,
     drawUmibozuWaterBase,
     drawBossHazard: drawPortBossHazard,
+    bossHazardPass: () => bossHazardPass,
     drawPortBossHazard,
     isOrbitBack,
     shouldDrawOrbitFlame,

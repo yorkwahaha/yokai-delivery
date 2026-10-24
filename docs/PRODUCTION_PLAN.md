@@ -1,5 +1,19 @@
 # 妖怪快遞社｜官方製作計畫
 
+### 2026-10-23晚｜UI＋FUSION＋BOSS polish／低額度分階收件
+
+- 現行進度以[roadmap頂部看板](../roadmap.md)為準：C沿用總控獨驗34/34；C2已收兩鏡頭明暗真字體證據；C3 game委派已停筆，使用者獨驗5/5，game固定bc0e70af…。
+- B-R3 ui ed9e189a…雖root17/17／diff0、新14元件圖capture0，獨立真game六配方844仍證主副標7.15px與hero三行互疊，已RETURN_R4原pA只修compact header／hero；真點選／稍後／御守替換／放棄成功部分保留，不重跑整套。原58/61三既存失敗不擴修；[root客觀摘要](../scratch/director-polish-20261023/B_OBJECTIVE_SUMMARY.md)與R1–R3原raw留史，新R4固定後只補844／必要1366對照。非自然局／實機PASS。
+- D1已收Node2/2＋獨立真頁8案；D2固定renderer73af59a4…、assets342d89…／gamebc0e70…，root guarded四測＋獨立兩技兩鏡頭phase／真傷害／gate收TECH_PASS_SCOPED，原半徑fixture失敗與補驗原raw皆保留。Grok p4現接D3 Boss真圖handler working283，唯一assets／renderer，D4待交件後接力；B pA已停UI。舊p6意外恢復探索已中斷退出Herdr，兩D檔未變，不復授寫權。D2缺件先免費來源審核（fire_attack_l5實有raster路徑），費用不明禁止生成。原R4不重做，無付費／本地Ollama／提交部署。
+- D3 R1 renderer93b837…雖root整合11/11／diff0，仍因缺水紋時預警消失、未證真BOSSAI資料契約而RETURN_R2。p4續原票補DEV與安全fallback；外層strict true為handled，legacy幾何安全回落不可算IMAGE_PASS，圖片helper才以成功draw計證。真傷害以boss-ai.js125–165／324–367為準；不為通過測試讓危險隱形，R2與獨立真頁收前不派D4。
+- 最新增量：B-R4 UI19baabef…已收root19/19＋獨立844／1366真game字形與點選；DEV DOM遮擋另由pA C4只加dev-mode八行CSS、固定a1cae5ad…、root相關9/9，未改game。D3-R2接線雖過卻真圖堆疊外溢，再退R3固定renderer1cb198d9…，扇1／2張、渦每圈1張，root11/11／diff0；獨立QA正以固定五檔最小補驗D3-R3與C4，收後D4。兩份原失敗／raw留史，不第四輪盲試／付費補圖。
+
+### 2026-10-23｜ART-FIRST三門工程收件／TECH_PASS_SCOPED，待美術人審
+
+- 使用者本輪授權既有融合真圖演出優先；[roadmap完成看板](../roadmap.md)與[最終獨立SUMMARY](../scratch/codex-fusion-independent-final-20261023/SUMMARY.md)記錄正式收件。A先真RED發現五招metadata缺consumer，由唯一p6補五個renderer分支；再依連續圖修雷陣active遮蔽與10個複用裁切方邊。B原生仍24/40，以15真main複用＋1圖示回落完成DEV呈現，不新生圖／不付費。C最終R4兩鏡頭十招、78/78真phase＋ROI差分、四負向零候選請求、真位移／離陣、pageErrors0、首尾四SHA與來源／透明度通過。
+- p6已正式停筆，實改僅assets／renderer；game／ui起點SHA不變。最終assets `342d89f9134fcc027c8bfadab72bbc971cb82287f466141ae961f05f04a8dd48`、renderer `91bed649dfdea677e77ce28ddb0f682a1e5eed30869ccfb6fa50902e1411de98`。Gemma月額度／Kiro quota／Groq請求限制均已停止失敗重試；最後p6以明確free North路線套既定patch，獨立Codex QA用自身scratch完成驗收，root未親改JS／跑Chrome。p4歷史違規讀取音訊JS已記錄，不宣稱所有歷史零讀；R4兩個guarded QA進程才有1255／309次FS read入口、禁區嘗試0及5次audio.js讀前stub的限定證據。
+- 技術三門收 **TECH_PASS_SCOPED**，仍非自然雙Lv5→Boss繪馬→融合或USER_ART_PASS；P1 WAITING_HUMAN／WAITING_DEVICE／WAITING_USER_ART_REVIEW保留。root核8902實際HTTP兩JS200且SHA匹配，但未重驗真耳聽感。HEAD7562522／stage空／全部既有dirty／學生版／核准原圖／KEY／env／SW保留，無commit／push／deploy。完整逐招phase／原生缺件／連續圖／test log與人審限制見獨立收件，工程範圍結清後不另開無關票。
+
 ### 2026-10-22｜S2新地表本機DEV候選已收／可開真頁，無縫未過
 
 p2原票及計數最小退修後正式停寫，Herdr completion seq325。新gate `dev=1&stage=rain-port&s2ground=kit` 已接assets／renderer，4石／3木世界座標穩定混鋪，v01按實圖作橫界，h/c無合法位置不硬鋪。10圖全解碼／manifest SHA相符，31.72MiB冷載，原PNG／manifest及game／world／ui／index均不變。14張真混鋪／方向診斷與7張真頁PNG可開；有2D／.60、石木交界、真左右位移+368／−230、Canvas source證據、四負向頁0新圖request。該視野僅實見4石／wood02／03／v，wood01載入未觀察到；不以pick或loaded冒充draw。

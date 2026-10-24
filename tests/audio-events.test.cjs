@@ -377,3 +377,22 @@ test('buffered ofuda playback is replaced, stopped on suspension, and never repl
  const env={window:{AudioContext:PlaybackTestContext},Audio,console,setTimeout,clearTimeout};vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
  env.window.AUDIO.dash();await Promise.resolve();env.window.AUDIO.dash();assert.equal(calls,1);assert.equal(PlaybackTestContext.starts-starts,2);
  });
+
+test('omamori charm replacement keeps BGM audible', () => {
+  class Audio {
+    constructor() { this.paused=true; this.volume=.3; this.playCount=0; }
+    addEventListener() {}
+    play() { this.paused=false; this.playCount++; return Promise.resolve(); }
+    pause() { this.paused=true; }
+  }
+  const bgm=new Audio();
+  const env={window:{BGM:bgm},Audio,console,setTimeout,clearTimeout};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  const audio=env.window.AUDIO;
+  audio.updateBgm(.016,'play',100,600);
+  assert.equal(bgm.paused,false,'playing BGM should start');
+  audio.updateBgm(.016,'charmswap',100,600);
+  assert.equal(bgm.paused,false,'choosing a fourth omamori must not pause the BGM');
+  audio.updateBgm(.016,'play',100,600);
+  assert.equal(bgm.paused,false,'BGM should continue after replacement');
+});

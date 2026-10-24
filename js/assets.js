@@ -816,9 +816,24 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([201, 63, 1072, 779])
     }),
-    hit: null,
-    ground: null,
-    icon: null
+    hit: Object.freeze({
+      file: "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+      sha256: "912268eeebf114b4f5622d6deef2818e7a0c99abc9004cd9d53dfbd382673c38",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([201, 63, 1072, 779])
+    }),
+    ground: Object.freeze({
+      file: "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+      sha256: "912268eeebf114b4f5622d6deef2818e7a0c99abc9004cd9d53dfbd382673c38",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([201, 63, 1072, 779])
+    }),
+    icon: Object.freeze({
+      file: "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+      sha256: "912268eeebf114b4f5622d6deef2818e7a0c99abc9004cd9d53dfbd382673c38",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([504, 296, 760, 552])
+    })
   }),
   fusion_foxiai: Object.freeze({
     main: Object.freeze({
@@ -905,9 +920,24 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([264, 32, 1100, 796])
     }),
-    hit: null,
-    ground: null,
-    icon: null
+    hit: Object.freeze({
+      file: "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+      sha256: "34e3f654ce0a3de8c088d80b47d1e14011f8e660158b04b8d764480d792937fe",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([264, 32, 1100, 796])
+    }),
+    ground: Object.freeze({
+      file: "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+      sha256: "34e3f654ce0a3de8c088d80b47d1e14011f8e660158b04b8d764480d792937fe",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([264, 32, 1100, 796])
+    }),
+    icon: Object.freeze({
+      file: "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+      sha256: "34e3f654ce0a3de8c088d80b47d1e14011f8e660158b04b8d764480d792937fe",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([504, 296, 760, 552])
+    })
   }),
   fusion_flamefestival: Object.freeze({
     main: Object.freeze({
@@ -916,9 +946,24 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([125, 34, 1164, 810])
     }),
-    hit: null,
-    ground: null,
-    icon: null
+    hit: Object.freeze({
+      file: "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+      sha256: "68bfe9465b52fd5ff5cea0ac1a088c05d1afe82e458bfa7fc746b08a33d696c8",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([125, 34, 1164, 810])
+    }),
+    ground: Object.freeze({
+      file: "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+      sha256: "68bfe9465b52fd5ff5cea0ac1a088c05d1afe82e458bfa7fc746b08a33d696c8",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([125, 34, 1164, 810])
+    }),
+    icon: Object.freeze({
+      file: "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+      sha256: "68bfe9465b52fd5ff5cea0ac1a088c05d1afe82e458bfa7fc746b08a33d696c8",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([504, 296, 760, 552])
+    })
   }),
   fusion_thundercircle: Object.freeze({
     main: Object.freeze({
@@ -927,9 +972,24 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([68, 82, 1197, 797])
     }),
-    hit: null,
-    ground: null,
-    icon: null
+    hit: Object.freeze({
+      file: "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+      sha256: "8ac610ce2c92d71512e2f5cd4f4bee1cf8c398e9852ceed8a9ea5b4913987999",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([68, 82, 1197, 797])
+    }),
+    ground: Object.freeze({
+      file: "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+      sha256: "8ac610ce2c92d71512e2f5cd4f4bee1cf8c398e9852ceed8a9ea5b4913987999",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([68, 82, 1197, 797])
+    }),
+    icon: Object.freeze({
+      file: "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+      sha256: "8ac610ce2c92d71512e2f5cd4f4bee1cf8c398e9852ceed8a9ea5b4913987999",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([504, 296, 760, 552])
+    })
   }),
   fusion_exorcistseal: Object.freeze({
     main: Object.freeze({
@@ -964,9 +1024,24 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([288, 1, 1023, 798])
     }),
-    hit: null,
-    ground: null,
-    icon: null
+    hit: Object.freeze({
+      file: "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+      sha256: "d703e9980f9f96728e1671549d4d3690c4fc81bfe1db9e842ad30604d1c2f390",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([288, 1, 1023, 798])
+    }),
+    ground: Object.freeze({
+      file: "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+      sha256: "d703e9980f9f96728e1671549d4d3690c4fc81bfe1db9e842ad30604d1c2f390",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([288, 1, 1023, 798])
+    }),
+    icon: Object.freeze({
+      file: "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+      sha256: "d703e9980f9f96728e1671549d4d3690c4fc81bfe1db9e842ad30604d1c2f390",
+      size: Object.freeze([1264, 848]),
+      bbox: Object.freeze([504, 296, 760, 552])
+    })
   })
 });
 
