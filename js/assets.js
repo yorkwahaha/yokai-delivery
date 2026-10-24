@@ -210,34 +210,23 @@ if (typeof window !== "undefined") {
   window.PORT_SURFACE_CANDIDATE_METADATA = PORT_SURFACE_CANDIDATE_METADATA;
 }
 
-// DEV-ONLY: Stage2 Rain-Port S2 Production Art integration toggle
-// Strictly requires URL query: dev=1 && stage=rain-port && s2artprod=1
+// Stage2 published Nano scenery and buildings. These are loaded lazily only when the player
+// enters rain-port. s2legacy=1 is a developer escape hatch to compare the old renderer.
 const isS2ArtProdEnabled = () => {
-  try {
-    const raw = String(typeof window !== "undefined" && window.location?.search || "");
-    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
-    const hasStage = /(?:^|[?&])stage=rain-port(?=[&#]|$)/.test(raw);
-    const hasS2Prod = /(?:^|[?&])s2artprod=1(?=[&#]|$)/.test(raw);
-    return hasDev && hasStage && hasS2Prod;
-  } catch { return false; }
+  try { return !/(?:^|[?&])s2legacy=1(?=[&#]|$)/.test(String(window.location?.search || "")); }
+  catch { return true; }
 };
-
-// S2 Production Art asset manifest loader (ONLY new Nano manifest for s2artprod=1)
 async function loadS2ArtProdManifest() {
   if (!isS2ArtProdEnabled()) return null;
-  // ONLY new Nano manifest v1.3.0-nano - no legacy fallback for s2artprod=1
-  const nanoManifestUrl = 'art/stage2-rain-port/production-s2-nano-20261020/asset-manifest.json?v=' + Date.now();
-
+  const nanoManifestUrl = 'assets/img/rain-port/s2-production/asset-manifest.json?v=20261024-s2-release1';
   try {
     const res = await fetch(nanoManifestUrl);
-    if (!res.ok) {
-      throw new Error(`MANIFEST_HTTP_${res.status}`);
-    }
+    if (!res.ok) throw new Error(`MANIFEST_HTTP_${res.status}`);
     const manifest = await res.json();
     manifest._sourceUrl = nanoManifestUrl;
     return manifest;
   } catch (e) {
-    console.error('[S2-ART] Failed to fetch Nano manifest:', e.message);
+    console.error('[S2-ART] Published S2 manifest failed:', e.message);
     return null;
   }
 }
@@ -436,35 +425,13 @@ function getS2Environment() {
   return env.length ? env : null;
 }
 
-// DEV-ONLY: Stage2 ground kit (art/s2 hand-painted candidates, 4 stone + 3 wood + 3 transitions)
-// Strictly requires URL query: dev=1 && stage=rain-port && s2ground=kit
-// Isolated from the older s2artprod / portsurfacecandidate gates: those keep their own art.
+// Published S2 lightweight ground selection. Always WebP for normal play; s2legacy=1
+// is a developer-only opt-out, never an additional production asset download.
 const isS2GroundKitEnabled = () => {
-  try {
-    const raw = String(typeof window !== "undefined" && window.location?.search || "");
-    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
-    const hasStage = /(?:^|[?&])stage=rain-port(?=[&#]|$)/.test(raw);
-    const hasKit = /(?:^|[?&])s2ground=kit(?=[&#]|$)/.test(raw);
-    return hasDev && hasStage && hasKit;
-  } catch { return false; }
+  try { return !/(?:^|[?&])s2legacy=1(?=[&#]|$)/.test(String(window.location?.search || "")); }
+  catch { return true; }
 };
-
-// DEV-ONLY A/B: WebP candidate variant of the SAME ten ground-kit slots.
-// Strictly requires URL query: dev=1 && stage=rain-port && s2ground=kit && s2webp=1
-// Without s2webp=1 the PNG candidates in art/s2/ are loaded exactly as before, so the
-// existing kit URL keeps its bytes and the two variants are never mixed in one page.
-// These WebP files are ART_CANDIDATE / WAITING_USER_REVIEW and live outside the
-// production asset tree; this switch exists only for the local A/B comparison.
-const isS2GroundKitWebPEnabled = () => {
-  try {
-    const raw = String(typeof window !== "undefined" && window.location?.search || "");
-    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
-    const hasStage = /(?:^|[?&])stage=rain-port(?=[&#]|$)/.test(raw);
-    const hasKit = /(?:^|[?&])s2ground=kit(?=[&#]|$)/.test(raw);
-    const hasWebP = /(?:^|[?&])s2webp=1(?=[&#]|$)/.test(raw);
-    return hasDev && hasStage && hasKit && hasWebP;
-  } catch { return false; }
-};
+const isS2GroundKitWebPEnabled = () => true;
 
 // Observed orientation is taken from the IMAGES, not from the file-name letters:
 //   t_stone_wood_v01.png -> stone TOP / wood BOTTOM, horizontal junction
@@ -478,9 +445,7 @@ const S2_GROUND_KIT_SPECS = Object.freeze([
   Object.freeze({ id: 'g_wood_01', file: 'g_wood_01.png', group: 'wood', observedOrientation: 'n/a-ground' }),
   Object.freeze({ id: 'g_wood_02', file: 'g_wood_02.png', group: 'wood', observedOrientation: 'n/a-ground' }),
   Object.freeze({ id: 'g_wood_03', file: 'g_wood_03.png', group: 'wood', observedOrientation: 'n/a-ground' }),
-  Object.freeze({ id: 't_stone_wood_v01', file: 't_stone_wood_v01.png', group: 'transition', observedOrientation: 'horizontal' }),
-  Object.freeze({ id: 't_stone_wood_h01', file: 't_stone_wood_h01.png', group: 'transition', observedOrientation: 'diagonal' }),
-  Object.freeze({ id: 't_stone_wood_c01', file: 't_stone_wood_c01.png', group: 'transition', observedOrientation: 'vertical' })
+  Object.freeze({ id: 't_stone_wood_v01', file: 't_stone_wood_v01.png', group: 'transition', observedOrientation: 'horizontal' })
 ]);
 
 // Where each transition may legally be used in the CURRENT rain-port world layout.
@@ -492,10 +457,10 @@ const S2_GROUND_KIT_PLACEMENT = Object.freeze({
   't_stone_wood_c01': Object.freeze({ role: 'vertical', use: 'none in this world layout', state: 'SKIPPED_NO_VALID_CORNER' })
 });
 
-const S2_GROUND_KIT_BASE = 'art/s2/';
+const S2_GROUND_KIT_BASE = 'assets/img/rain-port/s2-production/';
 // A/B-only source of the same ten slots in WebP. Still a candidate set: nothing here
 // promotes it to a production asset and no production path may read it.
-const S2_GROUND_KIT_WEBP_BASE = 'scratch/s2-kit-webp-opt-r1/candidates/';
+const S2_GROUND_KIT_WEBP_BASE = 'assets/img/rain-port/s2-production/';
 const S2_GROUND_KIT_CACHE = {
   enabled: false, webp: false, started: false, loaded: false, loadError: null,
   items: [], stone: [], wood: [],
@@ -587,10 +552,7 @@ if (typeof window !== "undefined") {
     })),
     placement: S2_GROUND_KIT_PLACEMENT
   });
-  if (S2_GROUND_KIT_CACHE.enabled) {
-    // Only the strict dev gate starts this loader; without it no kit image is requested.
-    loadS2GroundKit();
-  }
+  // Stage2 assets start on stage entry, not on cover or overworld (mobile bandwidth).
 }
 
 if (typeof window !== "undefined") {
@@ -1645,15 +1607,15 @@ const RAIN_PORT_SURFACE_CANDIDATE_ASSETS = Object.freeze({
 // north cliff silhouette) stays exclusive to that older gate, so the kit never downloads
 // three images it does not paint.
 const RAIN_PORT_COAST_KIT_ASSETS = Object.freeze({
-  coastSea: "art/stage2-rain-port/production-s2-nano-20261020/environment/surface_sea_canonical.webp",
-  coastCliff: "art/stage2-rain-port/production-s2-nano-20261020/environment/cliff_north_rock.webp"
+  coastSea: "assets/img/rain-port/s2-production/environment/surface_sea_canonical.webp",
+  coastCliff: "assets/img/rain-port/s2-production/environment/cliff_north_rock.webp"
 });
 const COAST_KIT_ROLES = new Set(Object.keys(RAIN_PORT_COAST_KIT_ASSETS));
 const portCatalog = () => ({
   ...RAIN_PORT_ASSETS,
   ...RAIN_PORT_FISH,
   ...RAIN_PORT_GROUND,
-  ...RAIN_PORT_CANDIDATE_ASSETS,
+  ...(isPortArtCandidateEnabled() ? RAIN_PORT_CANDIDATE_ASSETS : {}),
   ...(isPortSurfaceCandidateEnabled() ? RAIN_PORT_SURFACE_CANDIDATE_ASSETS : {}),
   ...(window.isS2GroundKitEnabled?.() ? RAIN_PORT_COAST_KIT_ASSETS : {})
 });
@@ -1930,12 +1892,14 @@ function loadStageAssets(stageId) {
   }
 
   if (stageId === "rain-port") {
+    // Begin the shipped lightweight WebP terrain only when stage two is requested.
+    if (window.isS2GroundKitEnabled?.()) void window.loadS2GroundKit?.();
     if (typeof window !== "undefined" && window.refreshPortArt) window.refreshPortArt();
-    if (!status.missing.includes("mountain_cliff")) status.missing.push("mountain_cliff"); // WAITING_ART: 北側阻擋背景山壁圖
-    if (!window.PORT_ART?.fishWorkshop?.naturalWidth && !status.missing.includes("port_fish_workshop_candidate")) {
+    if (!isS2GroundKitEnabled() && !status.missing.includes("mountain_cliff")) status.missing.push("mountain_cliff");
+    if (isPortArtCandidateEnabled() && !window.PORT_ART?.fishWorkshop?.naturalWidth && !status.missing.includes("port_fish_workshop_candidate")) {
       status.missing.push("port_fish_workshop_candidate");
     }
-    if (!window.PORT_ART?.weatheredWarehouse?.naturalWidth && !status.missing.includes("port_weathered_warehouse_candidate")) {
+    if (isPortArtCandidateEnabled() && !window.PORT_ART?.weatheredWarehouse?.naturalWidth && !status.missing.includes("port_weathered_warehouse_candidate")) {
       status.missing.push("port_weathered_warehouse_candidate");
     }
     if (isPortSurfaceCandidateEnabled()) {

@@ -1,0 +1,126 @@
+{
+  "mode": "public S2 lightweight production",
+  "sources_preserved": true,
+  "files": [
+    {
+      "file": "assets/img/rain-port/s2-production/g_stone_01.webp",
+      "bytes": 511976,
+      "sha256": "2baa4406b6331754d99938a0896e2fbe230a222bb05896ee658589f5cc980c7e",
+      "source": "scratch/s2-kit-webp-opt-r1/candidates/g_stone_01.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/g_stone_02.webp",
+      "bytes": 492192,
+      "sha256": "e9df01a0974d5b96f1dbe7f827ac540e371b27e0655941c0c6491e6440912557",
+      "source": "scratch/s2-kit-webp-opt-r1/candidates/g_stone_02.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/g_stone_03.webp",
+      "bytes": 529378,
+      "sha256": "0b587a3d25a405f31d62ccf9c438d6c02717795224fa4a55e75631ad1873aad6",
+      "source": "scratch/s2-kit-webp-opt-r1/candidates/g_stone_03.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/g_stone_04.webp",
+      "bytes": 490756,
+      "sha256": "3ae81461a455831dcb123baa46891952a1265c07f5be1a8a8fb78e7361eee37b",
+      "source": "scratch/s2-kit-webp-opt-r1/candidates/g_stone_04.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/g_wood_01.webp",
+      "bytes": 464156,
+      "sha256": "05b9ff8a48fd4b747338a69a5fba5900406457d034ef269d6b2857b380535929",
+      "source": "scratch/s2-kit-webp-opt-r1/candidates/g_wood_01.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/g_wood_02.webp",
+      "bytes": 477160,
+      "sha256": "1153d849555f5e73b85f03e37d9acdf33d53e44a5e6ae9ec301846ea7c56978b",
+      "source": "scratch/s2-kit-webp-opt-r1/candidates/g_wood_02.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/g_wood_03.webp",
+      "bytes": 482280,
+      "sha256": "b79e3d29141af77f71cbf9695bdba5bc63291bdb68168146da0cd5e71ed34948",
+      "source": "scratch/s2-kit-webp-opt-r1/candidates/g_wood_03.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/t_stone_wood_v01.webp",
+      "bytes": 572832,
+      "sha256": "e615a98837b3da05824231529ba9198038bdbcc54dd11bcd4275bf1ecaf2c041",
+      "source": "scratch/s2-kit-webp-opt-r1/candidates/t_stone_wood_v01.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/buildings/building_port_warehouse.webp",
+      "bytes": 65262,
+      "sha256": "1e83357f6bf26854332a487b28a894a6a4fc16097e10656fe5ea955826256b0a",
+      "source": "art/stage2-rain-port/production-s2-nano-20261020/buildings/building_port_warehouse.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/buildings/building_fish_workshop.webp",
+      "bytes": 65522,
+      "sha256": "56f7f15d39016a1922f8eac073e4944fe9c4b2420790797260ed6d6a7fd161fd",
+      "source": "art/stage2-rain-port/production-s2-nano-20261020/buildings/building_fish_workshop.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/buildings/building_port_tavern.webp",
+      "bytes": 63062,
+      "sha256": "e5ddd1a4333d6da24ea9df5635cd12a04c57ee68d3b9f79be47fa4686e5e26e6",
+      "source": "art/stage2-rain-port/production-s2-nano-20261020/buildings/building_port_tavern.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/buildings/building_wharf_shop.webp",
+      "bytes": 65544,
+      "sha256": "eb226e478044fdcc7f1c4e9581673cd6fe50c5ac1c5b539b17d4c4ff54fd20d0",
+      "source": "art/stage2-rain-port/production-s2-nano-20261020/buildings/building_wharf_shop.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/buildings/building_port_teahouse.webp",
+      "bytes": 61370,
+      "sha256": "932e0915ed44514f3ba4a2580a09c6a18de23356ddff8f957e28507f8ef8e045",
+      "source": "art/stage2-rain-port/production-s2-nano-20261020/buildings/building_port_teahouse.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/props/prop_anchor_gear.webp",
+      "bytes": 10206,
+      "sha256": "2b727209c7b2e2ee8790a4c344c55ab4b4fda59f6e2c886f73b3951060750c22",
+      "source": "art/stage2-rain-port/production-s2-nano-20261020/props/prop_anchor_gear.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/props/prop_cargo_crates.webp",
+      "bytes": 14942,
+      "sha256": "756a67c6a1cfe2058ccc47e868d45ec363fb3b7138b2c36ce0aa45ae53116974",
+      "source": "art/stage2-rain-port/production-s2-nano-20261020/props/prop_cargo_crates.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/props/prop_mooring_post.webp",
+      "bytes": 9086,
+      "sha256": "098c34e503d55111c2fbed1b4798ba9376f26eb11408664e5576aa46c7e36aae",
+      "source": "art/stage2-rain-port/production-s2-nano-20261020/props/prop_mooring_post.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/props/prop_port_boat.webp",
+      "bytes": 13212,
+      "sha256": "9796f43b2eacb6a0ebbc434aa792fc4199a72e6f20ee980ea3f6ddfb32ef996b",
+      "source": "art/stage2-rain-port/production-s2-nano-20261020/props/prop_port_boat.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/props/prop_port_lighthouse.webp",
+      "bytes": 19636,
+      "sha256": "43f976b353456a7801425474b7bf76a50a79d9ff02250f0ff633c3fba7a7b151",
+      "source": "art/stage2-rain-port/production-s2-nano-20261020/props/prop_port_lighthouse.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/environment/surface_sea_canonical.webp",
+      "bytes": 107660,
+      "sha256": "0bd211fd1ffecce020fc2683f452faae358d2dbf5fb3ba67b33caef2134cba98",
+      "source": "art/stage2-rain-port/production-s2-nano-20261020/environment/surface_sea_canonical.webp"
+    },
+    {
+      "file": "assets/img/rain-port/s2-production/environment/cliff_north_rock.webp",
+      "bytes": 86146,
+      "sha256": "22f3455c7b8fcfa4d7a4919de892d59777108f516d04cac92c6ff5acb3546cff",
+      "source": "art/stage2-rain-port/production-s2-nano-20261020/environment/cliff_north_rock.webp"
+    }
+  ]
+}

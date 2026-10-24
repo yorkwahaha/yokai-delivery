@@ -1,0 +1,301 @@
+{
+  "schema_version": "1.0-s2-public-webp",
+  "stage_id": "rain-port",
+  "source_manifest": "production-s2-nano-20261020/asset-manifest.json",
+  "asset_review": "2026-10-24 user requested S2 public map/scenery update, retained original sources",
+  "tiles": {
+    "usable_runtime_tiles": {
+      "stoneVariants": [
+        {
+          "id": "g_stone_01",
+          "path": "assets/img/rain-port/s2-production/g_stone_01.webp",
+          "path_webp": "assets/img/rain-port/s2-production/g_stone_01.webp",
+          "status": "USER_SELECTED_LIGHTWEIGHT"
+        }
+      ],
+      "woodVariants": [
+        {
+          "id": "g_wood_01",
+          "path": "assets/img/rain-port/s2-production/g_wood_01.webp",
+          "path_webp": "assets/img/rain-port/s2-production/g_wood_01.webp",
+          "status": "USER_SELECTED_LIGHTWEIGHT"
+        }
+      ],
+      "transitions": {
+        "h": [
+          {
+            "id": "t_stone_wood_v01",
+            "path": "assets/img/rain-port/s2-production/t_stone_wood_v01.webp",
+            "path_webp": "assets/img/rain-port/s2-production/t_stone_wood_v01.webp",
+            "status": "USER_SELECTED_LIGHTWEIGHT"
+          }
+        ],
+        "v": []
+      }
+    }
+  },
+  "buildings": [
+    {
+      "id": "building_port_warehouse",
+      "name": "港口風化大倉庫",
+      "path": "assets/img/rain-port/s2-production/buildings/building_port_warehouse.webp",
+      "path_webp": "assets/img/rain-port/s2-production/buildings/building_port_warehouse.webp",
+      "source_raw": "art/stage2-rain-port/scene/H_port_warehouse_nano_nb21_v1.png",
+      "source_raw_sha256": "65f8c0a78376ed5393d26784be71c5d0b6e8da594814344500f2aeef7bd14ea9",
+      "width": 490,
+      "height": 460,
+      "footAnchor": {
+        "x": 245,
+        "y": 460
+      },
+      "displaySize": {
+        "width": 490,
+        "height": 460
+      },
+      "status": "ART_CANDIDATE",
+      "provenance_type": "NANO_SOURCE",
+      "is_new_nano_redraw": true,
+      "sha256_png": "39030cfd8c8a42d355f43541abae64b647a62df54c26bc8a85ef96783f1e8f7d",
+      "sha256_webp": "1e83357f6bf26854332a487b28a894a6a4fc16097e10656fe5ea955826256b0a"
+    },
+    {
+      "id": "building_fish_workshop",
+      "name": "港町海產魚行魚舖",
+      "path": "assets/img/rain-port/s2-production/buildings/building_fish_workshop.webp",
+      "path_webp": "assets/img/rain-port/s2-production/buildings/building_fish_workshop.webp",
+      "source_raw": "art/stage2-rain-port/scene/H_fishmonger_nano_nb21_v1.png",
+      "source_raw_sha256": "b71e4a67721127492b3642c7c64e26cece7f9cd1a3872d585f6cce9b7cd56785",
+      "width": 456,
+      "height": 440,
+      "footAnchor": {
+        "x": 228,
+        "y": 440
+      },
+      "displaySize": {
+        "width": 456,
+        "height": 440
+      },
+      "status": "ART_CANDIDATE",
+      "provenance_type": "NANO_SOURCE",
+      "is_new_nano_redraw": true,
+      "sha256_png": "47f8b830deafd8149b9d2351782d1df9e849bc5095d10bb13ba3a83d22a2b0d2",
+      "sha256_webp": "56f7f15d39016a1922f8eac073e4944fe9c4b2420790797260ed6d6a7fd161fd"
+    },
+    {
+      "id": "building_port_tavern",
+      "name": "港町海潮酒肆",
+      "path": "assets/img/rain-port/s2-production/buildings/building_port_tavern.webp",
+      "path_webp": "assets/img/rain-port/s2-production/buildings/building_port_tavern.webp",
+      "source_raw": "art/stage2-rain-port/scene/H_port_tavern_nano_nb21_v1.png",
+      "source_raw_sha256": "c9dc20ff9e92cf204ab9b03e2074069c8ebb3a6fef31fa7942176908b366bbd5",
+      "width": 411,
+      "height": 440,
+      "footAnchor": {
+        "x": 205,
+        "y": 440
+      },
+      "displaySize": {
+        "width": 411,
+        "height": 440
+      },
+      "status": "ART_CANDIDATE",
+      "provenance_type": "NANO_SOURCE",
+      "is_new_nano_redraw": true,
+      "sha256_png": "25cb5803b39aac5519ac45fa9db77506ac355534b3b9c43a7e5be5137ff7a418",
+      "sha256_webp": "e5ddd1a4333d6da24ea9df5635cd12a04c57ee68d3b9f79be47fa4686e5e26e6"
+    },
+    {
+      "id": "building_wharf_shop",
+      "name": "碼頭乾貨雜糧商屋",
+      "path": "assets/img/rain-port/s2-production/buildings/building_wharf_shop.webp",
+      "path_webp": "assets/img/rain-port/s2-production/buildings/building_wharf_shop.webp",
+      "source_raw": "art/stage2-rain-port/scene/H_wharf_shop_nano_nb21_v1.png",
+      "source_raw_sha256": "d323dd5e22b6b955a6747a1a24e488a4ae20b0c57081a6f10b58f7301b774d8f",
+      "width": 435,
+      "height": 440,
+      "footAnchor": {
+        "x": 217,
+        "y": 440
+      },
+      "displaySize": {
+        "width": 435,
+        "height": 440
+      },
+      "status": "ART_CANDIDATE",
+      "provenance_type": "NANO_SOURCE",
+      "is_new_nano_redraw": true,
+      "sha256_png": "c2c7ddb7586dff6cd4f12e6241a2b282423f30c8eacc3d70e11f328e22d8e8ed",
+      "sha256_webp": "eb226e478044fdcc7f1c4e9581673cd6fe50c5ac1c5b539b17d4c4ff54fd20d0"
+    },
+    {
+      "id": "building_port_teahouse",
+      "name": "港町泊船番所茶屋",
+      "path": "assets/img/rain-port/s2-production/buildings/building_port_teahouse.webp",
+      "path_webp": "assets/img/rain-port/s2-production/buildings/building_port_teahouse.webp",
+      "source_raw": "art/stage2-rain-port/scene/H_port_teahouse_nano_nb21_v1.png",
+      "source_raw_sha256": "8f33d723e870f3c727b7c5136f07f8530a16cbe5d725e12418f83e843cd56259",
+      "width": 430,
+      "height": 480,
+      "footAnchor": {
+        "x": 215,
+        "y": 480
+      },
+      "displaySize": {
+        "width": 430,
+        "height": 480
+      },
+      "status": "ART_CANDIDATE",
+      "provenance_type": "NANO_SOURCE",
+      "is_new_nano_redraw": true,
+      "sha256_png": "c2a882955cd4aad88fb6d31d0ad2ecfd2b36b85f3ec58307cdc01727a66a9ef5",
+      "sha256_webp": "932e0915ed44514f3ba4a2580a09c6a18de23356ddff8f957e28507f8ef8e045"
+    }
+  ],
+  "props": [
+    {
+      "id": "prop_anchor_gear",
+      "name": "港口鐵錨與絞盤齒輪",
+      "path": "assets/img/rain-port/s2-production/props/prop_anchor_gear.webp",
+      "path_webp": "assets/img/rain-port/s2-production/props/prop_anchor_gear.webp",
+      "source_raw": "art/stage2-rain-port/scene/O_prop_anchor_gear_nano_nb21_v1.png",
+      "source_raw_sha256": "dba213c5766656c33141b51f9e67b404af6c8860acbc24906f8258b6b3406952",
+      "width": 146,
+      "height": 160,
+      "footAnchor": {
+        "x": 73,
+        "y": 160
+      },
+      "displaySize": {
+        "width": 146,
+        "height": 160
+      },
+      "status": "ART_CANDIDATE",
+      "provenance_type": "NANO_SOURCE",
+      "is_new_nano_redraw": true,
+      "sha256_png": "64801472fc0c42627f0ec4140f98f429ef239eeba923d72d099769585b8be6b4",
+      "sha256_webp": "2b727209c7b2e2ee8790a4c344c55ab4b4fda59f6e2c886f73b3951060750c22"
+    },
+    {
+      "id": "prop_cargo_crates",
+      "name": "碼頭堆疊貨物木箱",
+      "path": "assets/img/rain-port/s2-production/props/prop_cargo_crates.webp",
+      "path_webp": "assets/img/rain-port/s2-production/props/prop_cargo_crates.webp",
+      "source_raw": "art/stage2-rain-port/scene/O_prop_cargo_crates_nano_nb21_v1.png",
+      "source_raw_sha256": "e362bb2b46abeb3d9b032cc217207baa70a0b35f36934a1a9caa664cfd7139dc",
+      "width": 177,
+      "height": 180,
+      "footAnchor": {
+        "x": 88,
+        "y": 180
+      },
+      "displaySize": {
+        "width": 177,
+        "height": 180
+      },
+      "status": "ART_CANDIDATE",
+      "provenance_type": "NANO_SOURCE",
+      "is_new_nano_redraw": true,
+      "sha256_png": "ddee803816c22580c0cd1be4b795528c6afef8196c59fda893c63e5cc8f9c4c5",
+      "sha256_webp": "756a67c6a1cfe2058ccc47e868d45ec363fb3b7138b2c36ce0aa45ae53116974"
+    },
+    {
+      "id": "prop_mooring_post",
+      "name": "港埠繫船木樁",
+      "path": "assets/img/rain-port/s2-production/props/prop_mooring_post.webp",
+      "path_webp": "assets/img/rain-port/s2-production/props/prop_mooring_post.webp",
+      "source_raw": "art/stage2-rain-port/scene/O_prop_mooring_post_nano_nb21_v1.png",
+      "source_raw_sha256": "a74154bed0c848d7fdab5b3c2786b98e74737e64a0c8ea013df181868ff39eae",
+      "width": 121,
+      "height": 180,
+      "footAnchor": {
+        "x": 60,
+        "y": 180
+      },
+      "displaySize": {
+        "width": 121,
+        "height": 180
+      },
+      "status": "ART_CANDIDATE",
+      "provenance_type": "NANO_SOURCE",
+      "is_new_nano_redraw": true,
+      "sha256_png": "17c9b094ad5227583ac2610b24781af2eb1267c7b5fd1ad528cdadc5362033e4",
+      "sha256_webp": "098c34e503d55111c2fbed1b4798ba9376f26eb11408664e5576aa46c7e36aae"
+    },
+    {
+      "id": "prop_port_boat",
+      "name": "港口繫泊木舟",
+      "path": "assets/img/rain-port/s2-production/props/prop_port_boat.webp",
+      "path_webp": "assets/img/rain-port/s2-production/props/prop_port_boat.webp",
+      "source_raw": "art/stage2-rain-port/scene/O_prop_port_boat_nano_nb21_v1.png",
+      "source_raw_sha256": "2141d9608493c7dc6701361d3455f308b7bcc4e125a7ef220923571d4afd816f",
+      "width": 268,
+      "height": 160,
+      "footAnchor": {
+        "x": 134,
+        "y": 160
+      },
+      "displaySize": {
+        "width": 268,
+        "height": 160
+      },
+      "status": "ART_CANDIDATE",
+      "provenance_type": "NANO_SOURCE",
+      "is_new_nano_redraw": true,
+      "sha256_png": "d611f0a5f1976aea42e21b73794f797e4682b6d39d09fb476f06dc719934cc31",
+      "sha256_webp": "9796f43b2eacb6a0ebbc434aa792fc4199a72e6f20ee980ea3f6ddfb32ef996b"
+    },
+    {
+      "id": "prop_port_lighthouse",
+      "name": "港口常夜石燈台",
+      "path": "assets/img/rain-port/s2-production/props/prop_port_lighthouse.webp",
+      "path_webp": "assets/img/rain-port/s2-production/props/prop_port_lighthouse.webp",
+      "source_raw": "art/stage2-rain-port/scene/O_prop_port_lighthouse_nano_nb21_v1.png",
+      "source_raw_sha256": "888514f3431b9ce2652c1e8f9badce8a7bc4a1f6f12cf198cd7ec2c26c4846ca",
+      "width": 209,
+      "height": 320,
+      "footAnchor": {
+        "x": 104,
+        "y": 320
+      },
+      "displaySize": {
+        "width": 209,
+        "height": 320
+      },
+      "status": "ART_CANDIDATE",
+      "provenance_type": "NANO_SOURCE",
+      "is_new_nano_redraw": true,
+      "sha256_png": "a6a26b90c3a0fba8cc9eadc76707241ae80a5f084730e8e74aabaf8a75c3910c",
+      "sha256_webp": "43f976b353456a7801425474b7bf76a50a79d9ff02250f0ff633c3fba7a7b151"
+    }
+  ],
+  "environment": [
+    {
+      "id": "surface_sea_canonical",
+      "name": "港口深水海面無縫地表",
+      "path": "assets/img/rain-port/s2-production/environment/surface_sea_canonical.webp",
+      "path_webp": "assets/img/rain-port/s2-production/environment/surface_sea_canonical.webp",
+      "source_raw": "art/stage2-rain-port/scene/G_port_sea_surface_nano_nb21_v1.png",
+      "width": 512,
+      "height": 512,
+      "status": "ART_CANDIDATE",
+      "provenance_type": "NANO_SOURCE",
+      "is_new_nano_redraw": true
+    },
+    {
+      "id": "cliff_north_rock",
+      "name": "北側礁石海蝕斷崖",
+      "path": "assets/img/rain-port/s2-production/environment/cliff_north_rock.webp",
+      "path_webp": "assets/img/rain-port/s2-production/environment/cliff_north_rock.webp",
+      "source_raw": "art/stage2-rain-port/scene/O_port_north_cliff_nano_nb21_v1.png",
+      "width": 568,
+      "height": 512,
+      "footAnchor": {
+        "x": 284,
+        "y": 512
+      },
+      "status": "ART_CANDIDATE",
+      "provenance_type": "NANO_SOURCE",
+      "is_new_nano_redraw": true
+    }
+  ]
+}
