@@ -187,17 +187,18 @@ function pageStatusY(box, index) {
   return box.yPager + Math.max(0, (box.touch - gap) / 2) + gap * index;
 }
 
-function writeCard(ctx, hooks, lines, x, y, w, h) {
-  const left = Math.min(62 * h / 85, w * 0.27);
-  const right = Math.min(58 * h / 85, w * 0.27);
-  const top = y + h * (12 / 85);
-  const bottom = y + h * (61 / 85);
+function writeCard(ctx, hooks, lines, x, y, w, h, locked = false) {
+  const panel = !!hooks.drawCardPanel;
+  const left = panel ? 18 : Math.min(62 * h / 85, w * 0.27);
+  const right = panel ? 18 : Math.min(58 * h / 85, w * 0.27);
+  const top = panel ? y + 18 : y + h * (12 / 85);
+  const bottom = panel ? y + h - 18 : y + h * (61 / 85);
   const band = Math.max(1, bottom - top);
   const step = band / lines.length;
   const size = Math.max(12, Math.min(18, Math.floor(step * 0.72)));
   const textW = Math.max(1, w - left - right - 8);
   lines.forEach((text, index) => {
-    ink(ctx, hooks, size, text, x + left + (w - left - right) / 2, top + step * (index + 0.78), textW);
+    ink(ctx, hooks, size, text, x + left + (w - left - right) / 2, top + step * (index + 0.78), textW, locked ? "#fff0cf" : INK);
   });
 }
 
@@ -209,28 +210,34 @@ function draw(ctx, cards, state, hooks, viewport, catalogs) {
   const x0 = box.left + box.gap;
   const stageLabel = filterLabel("stage", view.filter, catalogs);
   const packLabel = filterLabel("pack", view.filter, catalogs);
+  const pagerW = Math.min(box.half, 140);
   const buttons = [
     button("filter-stage", x0, box.yFilters, box.half, box.touch, { label: stageLabel }),
     button("filter-pack", x0 + box.half + box.gap, box.yFilters, box.half, box.touch, { label: packLabel }),
-    button("prev", x0, box.yPager, Math.min(box.half, 140), box.touch, { disabled: view.page <= 0 }),
-    button("next", x0 + Math.min(box.half, 140) + box.gap, box.yPager, Math.min(box.half, 140), box.touch, { disabled: view.page >= view.pageCount - 1 }),
-    button("back", x0, box.yBack, box.half, box.touch),
-    button("replay", x0 + box.half + box.gap, box.yBack, box.half, box.touch, { disabled: true, reason: "audio-frozen" })
+    button("prev", x0, box.yPager, pagerW, box.touch, { disabled: view.page <= 0 }),
+    button("next", x0 + pagerW + box.gap, box.yPager, pagerW, box.touch, { disabled: view.page >= view.pageCount - 1 }),
+    button("back", x0, box.yBack, box.half, box.touch, { label: "返回" }),
+    button("replay", x0 + box.half + box.gap, box.yBack, box.half, box.touch, { disabled: true, reason: "audio-frozen", label: "再聽" })
   ];
   if (hooks && hooks.drawWoodTag) {
     hooks.drawWoodTag(ctx, buttons[0]);
     hooks.drawWoodTag(ctx, buttons[1]);
   }
   if (hooks && hooks.drawButton) {
-    hooks.drawButton(ctx, buttons[2], "上一頁", { disabled: buttons[2].disabled });
-    hooks.drawButton(ctx, buttons[3], "下一頁", { disabled: buttons[3].disabled });
-    hooks.drawButton(ctx, buttons[4], "返回", { disabled: false });
-    hooks.drawButton(ctx, buttons[5], "再聽", { disabled: true });
+    hooks.drawButton(ctx, buttons[2], "上一頁", { disabled: buttons[2].disabled, focus: state && state.focus === "prev" });
+    hooks.drawButton(ctx, buttons[3], "下一頁", { disabled: buttons[3].disabled, focus: state && state.focus === "next" });
+    hooks.drawButton(ctx, buttons[4], "返回", { disabled: false, focus: state && state.focus === "back" });
+    hooks.drawButton(ctx, buttons[5], "再聽", { disabled: true, focus: state && state.focus === "replay" });
   }
   ctx.save();
   ctx.textAlign = "center";
   ink(ctx, hooks, 15, stageLabel, buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h * 0.65, buttons[0].w - 12);
   ink(ctx, hooks, 15, packLabel, buttons[1].x + buttons[1].w / 2, buttons[1].y + buttons[1].h * 0.65, buttons[1].w - 12);
+  const pageIndicator = `${view.page + 1} / ${Math.max(1, view.pageCount)}`;
+  const pageIndicatorX = x0 + pagerW * 2 + box.gap + 36;
+  if (pageIndicatorX + 30 < x0 + box.inner * 0.70) {
+    ink(ctx, hooks, 14, pageIndicator, pageIndicatorX, box.yPager + box.touch * 0.62, 60, PAGE_INK);
+  }
   if (state && state.packLine) {
     ink(ctx, hooks, 13, state.packLine, x0 + box.inner * 0.72, pageStatusY(box, 0), Math.max(1, box.inner * 0.34), PAGE_INK);
   }
@@ -245,11 +252,28 @@ function draw(ctx, cards, state, hooks, viewport, catalogs) {
     const plate = button("card:" + card.key, x, y, box.cardW, box.cardH, { disabled: card.reveal !== "open" });
     if (plate.y + plate.h > box.yBack - 4) return;
     buttons.push(plate);
-    if (hasPaper && hooks.drawRibbonSlices) hooks.drawRibbonSlices(ctx, paper, x, y, box.cardW, box.cardH);
+    if (hooks.drawCardPanel) hooks.drawCardPanel(ctx, plate);
+    else if (hasPaper && hooks.drawRibbonSlices) hooks.drawRibbonSlices(ctx, paper, x, y, box.cardW, box.cardH);
+    if (card.reveal !== "open") {
+      if (typeof ctx.fillRect === "function") {
+        ctx.save();
+        ctx.fillStyle = "rgba(10, 16, 28, 0.42)";
+        ctx.fillRect(x + 2, y + 2, box.cardW - 4, box.cardH - 4);
+        ctx.restore();
+      }
+    } else {
+      if (typeof ctx.strokeRect === "function") {
+        ctx.save();
+        ctx.strokeStyle = "rgba(220, 185, 115, 0.30)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + 1, y + 1, box.cardW - 2, box.cardH - 2);
+        ctx.restore();
+      }
+    }
     const lines = card.reveal !== "open"
       ? ["鎖", card.progress]
       : [card.jp || "", card.zh || "", card.kana || "", "4/4"];
-    writeCard(ctx, hooks, lines, x, y, box.cardW, box.cardH);
+    writeCard(ctx, hooks, lines, x, y, box.cardW, box.cardH, card.reveal !== "open");
   });
   ctx.restore();
   return { status: STATUS, buttons, cards: view.cards, view: { page: view.page, pageCount: view.pageCount, total: view.total } };

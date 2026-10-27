@@ -1,0 +1,2153 @@
+{
+  "schema_version": "1.1-r12-unified",
+  "updated": "2026-10-26",
+  "authority": "docs/STAGE_PATHS.json",
+  "description": "Authoritative runtime art manifest for Yokai Delivery Stage 1 and Stage 2 unified art pipeline. Preserves source review status while defining authoritative runtime selection.",
+  "stages": {
+    "night-town": {
+      "order": 1,
+      "id": "night-town",
+      "name": "夜行町",
+      "status": "APPROVED",
+      "default_runtime": "assets/img/scenery/",
+      "requires_dev_flags": false,
+      "notes": "Stage 1 uses canonical scenery assets; candidate triptych is reference only.",
+      "assets": {
+        "ground": {
+          "id": "ground",
+          "category": "ground",
+          "path": "assets/img/scenery/ground.webp",
+          "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
+          "bytes": 131198,
+          "source_status": "RUNTIME_ACTIVE",
+          "runtime_status": "APPROVED_RUNTIME",
+          "status": "APPROVED"
+        },
+        "ground_dirt": {
+          "id": "ground_dirt",
+          "category": "ground",
+          "path": "assets/img/scenery/ground_dirt.webp",
+          "sha256": "d8a5a5d885cff6c64f7912a5c8e58498acb2111ba59b9ab99592ed6f0407eb45",
+          "bytes": 134446,
+          "source_status": "RUNTIME_ACTIVE",
+          "runtime_status": "APPROVED_RUNTIME",
+          "status": "APPROVED"
+        },
+        "house_shop": {
+          "id": "house_shop",
+          "category": "buildings",
+          "path": "assets/img/scenery/house_shop.webp",
+          "sha256": "dd584fee0c1cb0cb94718ad477428b62a5a6e6e26f89b7e4b7570f743424840e",
+          "bytes": 60570,
+          "source_status": "RUNTIME_ACTIVE",
+          "runtime_status": "APPROVED_RUNTIME",
+          "status": "APPROVED"
+        },
+        "house_shrine": {
+          "id": "house_shrine",
+          "category": "buildings",
+          "path": "assets/img/scenery/house_shrine.webp",
+          "sha256": "3698802dfa7d8e4092b08a65e38b7dc69a0e89628089487ef91a3979574dc30f",
+          "bytes": 58326,
+          "source_status": "RUNTIME_ACTIVE",
+          "runtime_status": "APPROVED_RUNTIME",
+          "status": "APPROVED"
+        },
+        "house_tavern": {
+          "id": "house_tavern",
+          "category": "buildings",
+          "path": "assets/img/scenery/house_tavern.webp",
+          "sha256": "81e3465f890cd7b3fb1b6afc4a25e35608ae481252edb6254ecf8d24c2848259",
+          "bytes": 68148,
+          "source_status": "RUNTIME_ACTIVE",
+          "runtime_status": "APPROVED_RUNTIME",
+          "status": "APPROVED"
+        },
+        "prop_lantern": {
+          "id": "prop_lantern",
+          "category": "props",
+          "path": "assets/img/scenery/prop_lantern.webp",
+          "sha256": "f68b511b421fd7be0aaa7df57504e9dc502cd0f87566e0e31c8ddee661a2c992",
+          "bytes": 32570,
+          "source_status": "RUNTIME_ACTIVE",
+          "runtime_status": "APPROVED_RUNTIME",
+          "status": "APPROVED"
+        },
+        "prop_sakura": {
+          "id": "prop_sakura",
+          "category": "props",
+          "path": "assets/img/scenery/prop_sakura.webp",
+          "sha256": "3e12eec863b60d3322dbcbd5b49a60eb85b4867a6ca7f35126a9273b4de98519",
+          "bytes": 66220,
+          "source_status": "RUNTIME_ACTIVE",
+          "runtime_status": "APPROVED_RUNTIME",
+          "status": "APPROVED"
+        },
+        "prop_torii": {
+          "id": "prop_torii",
+          "category": "props",
+          "path": "assets/img/scenery/prop_torii.webp",
+          "sha256": "1aa6ac94059c85aaeee685dbac2761868cfd09143e25704fd279e7ce72c5aedd",
+          "bytes": 47486,
+          "source_status": "RUNTIME_ACTIVE",
+          "runtime_status": "APPROVED_RUNTIME",
+          "status": "APPROVED"
+        }
+      }
+    },
+    "rain-port": {
+      "order": 2,
+      "id": "rain-port",
+      "name": "雨夜港町",
+      "status": "APPROVED",
+      "default_runtime": "assets/img/rain-port/s2-production/",
+      "requires_dev_flags": false,
+      "dev_diagnostic_override": "dev=1&s2legacy=1",
+      "source_manifest": "assets/img/rain-port/s2-production/asset-manifest.json",
+      "provenance_note": "2026-10-24 user requested S2 public map/scenery update; retains original sources without claiming unapproved ART_PASS.",
+      "tiles": {
+        "stoneVariants": [
+          {
+            "id": "g_stone_01",
+            "category": "ground",
+            "path": "assets/img/rain-port/s2-production/g_stone_01.webp",
+            "sha256": "2baa4406b6331754d99938a0896e2fbe230a222bb05896ee658589f5cc980c7e",
+            "bytes": 511976,
+            "source_status": "USER_SELECTED_LIGHTWEIGHT",
+            "runtime_status": "APPROVED_RUNTIME",
+            "status": "APPROVED"
+          },
+          {
+            "id": "g_stone_02",
+            "category": "ground",
+            "path": "assets/img/rain-port/s2-production/g_stone_02.webp",
+            "sha256": "e9df01a0974d5b96f1dbe7f827ac540e371b27e0655941c0c6491e6440912557",
+            "bytes": 492192,
+            "source_status": "USER_SELECTED_LIGHTWEIGHT",
+            "runtime_status": "APPROVED_RUNTIME",
+            "status": "APPROVED"
+          },
+          {
+            "id": "g_stone_03",
+            "category": "ground",
+            "path": "assets/img/rain-port/s2-production/g_stone_03.webp",
+            "sha256": "0b587a3d25a405f31d62ccf9c438d6c02717795224fa4a55e75631ad1873aad6",
+            "bytes": 529378,
+            "source_status": "USER_SELECTED_LIGHTWEIGHT",
+            "runtime_status": "APPROVED_RUNTIME",
+            "status": "APPROVED"
+          },
+          {
+            "id": "g_stone_04",
+            "category": "ground",
+            "path": "assets/img/rain-port/s2-production/g_stone_04.webp",
+            "sha256": "3ae81461a455831dcb123baa46891952a1265c07f5be1a8a8fb78e7361eee37b",
+            "bytes": 490756,
+            "source_status": "USER_SELECTED_LIGHTWEIGHT",
+            "runtime_status": "APPROVED_RUNTIME",
+            "status": "APPROVED"
+          }
+        ],
+        "woodVariants": [
+          {
+            "id": "g_wood_01",
+            "category": "ground",
+            "path": "assets/img/rain-port/s2-production/g_wood_01.webp",
+            "sha256": "05b9ff8a48fd4b747338a69a5fba5900406457d034ef269d6b2857b380535929",
+            "bytes": 464156,
+            "source_status": "USER_SELECTED_LIGHTWEIGHT",
+            "runtime_status": "APPROVED_RUNTIME",
+            "status": "APPROVED"
+          },
+          {
+            "id": "g_wood_02",
+            "category": "ground",
+            "path": "assets/img/rain-port/s2-production/g_wood_02.webp",
+            "sha256": "1153d849555f5e73b85f03e37d9acdf33d53e44a5e6ae9ec301846ea7c56978b",
+            "bytes": 477160,
+            "source_status": "USER_SELECTED_LIGHTWEIGHT",
+            "runtime_status": "APPROVED_RUNTIME",
+            "status": "APPROVED"
+          },
+          {
+            "id": "g_wood_03",
+            "category": "ground",
+            "path": "assets/img/rain-port/s2-production/g_wood_03.webp",
+            "sha256": "b79e3d29141af77f71cbf9695bdba5bc63291bdb68168146da0cd5e71ed34948",
+            "bytes": 482280,
+            "source_status": "USER_SELECTED_LIGHTWEIGHT",
+            "runtime_status": "APPROVED_RUNTIME",
+            "status": "APPROVED"
+          }
+        ],
+        "transitions": {
+          "h": [
+            {
+              "id": "t_stone_wood_v01",
+              "category": "ground",
+              "path": "assets/img/rain-port/s2-production/t_stone_wood_v01.webp",
+              "sha256": "e615a98837b3da05824231529ba9198038bdbcc54dd11bcd4275bf1ecaf2c041",
+              "bytes": 572832,
+              "source_status": "USER_SELECTED_LIGHTWEIGHT",
+              "runtime_status": "APPROVED_RUNTIME",
+              "status": "APPROVED",
+              "orientation": "horizontal"
+            }
+          ],
+          "v": []
+        }
+      },
+      "buildings": [
+        {
+          "id": "building_port_warehouse",
+          "name": "港口風化大倉庫",
+          "category": "buildings",
+          "path": "assets/img/rain-port/s2-production/buildings/building_port_warehouse.webp",
+          "source_raw": "art/stage2-rain-port/scene/H_port_warehouse_nano_nb21_v1.png",
+          "source_raw_sha256": "65f8c0a78376ed5393d26784be71c5d0b6e8da594814344500f2aeef7bd14ea9",
+          "sha256": "1e83357f6bf26854332a487b28a894a6a4fc16097e10656fe5ea955826256b0a",
+          "bytes": 65262,
+          "width": 490,
+          "height": 460,
+          "footAnchor": {
+            "x": 245,
+            "y": 460
+          },
+          "displaySize": {
+            "width": 490,
+            "height": 460
+          },
+          "source_status": "ART_CANDIDATE",
+          "runtime_status": "USER_SELECTED_RUNTIME",
+          "status": "APPROVED_RUNTIME"
+        },
+        {
+          "id": "building_fish_workshop",
+          "name": "港町海產魚行魚舖",
+          "category": "buildings",
+          "path": "assets/img/rain-port/s2-production/buildings/building_fish_workshop.webp",
+          "source_raw": "art/stage2-rain-port/scene/H_fishmonger_nano_nb21_v1.png",
+          "source_raw_sha256": "b71e4a67721127492b3642c7c64e26cece7f9cd1a3872d585f6cce9b7cd56785",
+          "sha256": "56f7f15d39016a1922f8eac073e4944fe9c4b2420790797260ed6d6a7fd161fd",
+          "bytes": 65522,
+          "width": 456,
+          "height": 440,
+          "footAnchor": {
+            "x": 228,
+            "y": 440
+          },
+          "displaySize": {
+            "width": 456,
+            "height": 440
+          },
+          "source_status": "ART_CANDIDATE",
+          "runtime_status": "USER_SELECTED_RUNTIME",
+          "status": "APPROVED_RUNTIME"
+        },
+        {
+          "id": "building_port_tavern",
+          "name": "港町海潮酒肆",
+          "category": "buildings",
+          "path": "assets/img/rain-port/s2-production/buildings/building_port_tavern.webp",
+          "source_raw": "art/stage2-rain-port/scene/H_port_tavern_nano_nb21_v1.png",
+          "source_raw_sha256": "c9dc20ff9e92cf204ab9b03e2074069c8ebb3a6fef31fa7942176908b366bbd5",
+          "sha256": "e5ddd1a4333d6da24ea9df5635cd12a04c57ee68d3b9f79be47fa4686e5e26e6",
+          "bytes": 63062,
+          "width": 411,
+          "height": 440,
+          "footAnchor": {
+            "x": 205,
+            "y": 440
+          },
+          "displaySize": {
+            "width": 411,
+            "height": 440
+          },
+          "source_status": "ART_CANDIDATE",
+          "runtime_status": "USER_SELECTED_RUNTIME",
+          "status": "APPROVED_RUNTIME"
+        },
+        {
+          "id": "building_wharf_shop",
+          "name": "碼頭乾貨雜糧商屋",
+          "category": "buildings",
+          "path": "assets/img/rain-port/s2-production/buildings/building_wharf_shop.webp",
+          "source_raw": "art/stage2-rain-port/scene/H_wharf_shop_nano_nb21_v1.png",
+          "source_raw_sha256": "d323dd5e22b6b955a6747a1a24e488a4ae20b0c57081a6f10b58f7301b774d8f",
+          "sha256": "eb226e478044fdcc7f1c4e9581673cd6fe50c5ac1c5b539b17d4c4ff54fd20d0",
+          "bytes": 65544,
+          "width": 435,
+          "height": 440,
+          "footAnchor": {
+            "x": 217,
+            "y": 440
+          },
+          "displaySize": {
+            "width": 435,
+            "height": 440
+          },
+          "source_status": "ART_CANDIDATE",
+          "runtime_status": "USER_SELECTED_RUNTIME",
+          "status": "APPROVED_RUNTIME"
+        },
+        {
+          "id": "building_port_teahouse",
+          "name": "港町泊船番所茶屋",
+          "category": "buildings",
+          "path": "assets/img/rain-port/s2-production/buildings/building_port_teahouse.webp",
+          "source_raw": "art/stage2-rain-port/scene/H_port_teahouse_nano_nb21_v1.png",
+          "source_raw_sha256": "8f33d723e870f3c727b7c5136f07f8530a16cbe5d725e12418f83e843cd56259",
+          "sha256": "932e0915ed44514f3ba4a2580a09c6a18de23356ddff8f957e28507f8ef8e045",
+          "bytes": 61370,
+          "width": 430,
+          "height": 480,
+          "footAnchor": {
+            "x": 215,
+            "y": 480
+          },
+          "displaySize": {
+            "width": 430,
+            "height": 480
+          },
+          "source_status": "ART_CANDIDATE",
+          "runtime_status": "USER_SELECTED_RUNTIME",
+          "status": "APPROVED_RUNTIME"
+        }
+      ],
+      "props": [
+        {
+          "id": "prop_anchor_gear",
+          "name": "港口鐵錨與絞盤齒輪",
+          "category": "props",
+          "path": "assets/img/rain-port/s2-production/props/prop_anchor_gear.webp",
+          "source_raw": "art/stage2-rain-port/scene/O_prop_anchor_gear_nano_nb21_v1.png",
+          "source_raw_sha256": "dba213c5766656c33141b51f9e67b404af6c8860acbc24906f8258b6b3406952",
+          "sha256": "2b727209c7b2e2ee8790a4c344c55ab4b4fda59f6e2c886f73b3951060750c22",
+          "bytes": 10206,
+          "width": 146,
+          "height": 160,
+          "footAnchor": {
+            "x": 73,
+            "y": 160
+          },
+          "displaySize": {
+            "width": 146,
+            "height": 160
+          },
+          "source_status": "ART_CANDIDATE",
+          "runtime_status": "USER_SELECTED_RUNTIME",
+          "status": "APPROVED_RUNTIME"
+        },
+        {
+          "id": "prop_cargo_crates",
+          "name": "碼頭堆疊貨物木箱",
+          "category": "props",
+          "path": "assets/img/rain-port/s2-production/props/prop_cargo_crates.webp",
+          "source_raw": "art/stage2-rain-port/scene/O_prop_cargo_crates_nano_nb21_v1.png",
+          "source_raw_sha256": "e362bb2b46abeb3d9b032cc217207baa70a0b35f36934a1a9caa664cfd7139dc",
+          "sha256": "756a67c6a1cfe2058ccc47e868d45ec363fb3b7138b2c36ce0aa45ae53116974",
+          "bytes": 14942,
+          "width": 177,
+          "height": 180,
+          "footAnchor": {
+            "x": 88,
+            "y": 180
+          },
+          "displaySize": {
+            "width": 177,
+            "height": 180
+          },
+          "source_status": "ART_CANDIDATE",
+          "runtime_status": "USER_SELECTED_RUNTIME",
+          "status": "APPROVED_RUNTIME"
+        },
+        {
+          "id": "prop_mooring_post",
+          "name": "港埠繫船木樁",
+          "category": "props",
+          "path": "assets/img/rain-port/s2-production/props/prop_mooring_post.webp",
+          "source_raw": "art/stage2-rain-port/scene/O_prop_mooring_post_nano_nb21_v1.png",
+          "source_raw_sha256": "a74154bed0c848d7fdab5b3c2786b98e74737e64a0c8ea013df181868ff39eae",
+          "sha256": "098c34e503d55111c2fbed1b4798ba9376f26eb11408664e5576aa46c7e36aae",
+          "bytes": 9086,
+          "width": 121,
+          "height": 180,
+          "footAnchor": {
+            "x": 60,
+            "y": 180
+          },
+          "displaySize": {
+            "width": 121,
+            "height": 180
+          },
+          "source_status": "ART_CANDIDATE",
+          "runtime_status": "USER_SELECTED_RUNTIME",
+          "status": "APPROVED_RUNTIME"
+        },
+        {
+          "id": "prop_port_boat",
+          "name": "港口繫泊木舟",
+          "category": "props",
+          "path": "assets/img/rain-port/s2-production/props/prop_port_boat.webp",
+          "source_raw": "art/stage2-rain-port/scene/O_prop_port_boat_nano_nb21_v1.png",
+          "source_raw_sha256": "2141d9608493c7dc6701361d3455f308b7bcc4e125a7ef220923571d4afd816f",
+          "sha256": "9796f43b2eacb6a0ebbc434aa792fc4199a72e6f20ee980ea3f6ddfb32ef996b",
+          "bytes": 13212,
+          "width": 268,
+          "height": 160,
+          "footAnchor": {
+            "x": 134,
+            "y": 160
+          },
+          "displaySize": {
+            "width": 268,
+            "height": 160
+          },
+          "source_status": "ART_CANDIDATE",
+          "runtime_status": "USER_SELECTED_RUNTIME",
+          "status": "APPROVED_RUNTIME"
+        },
+        {
+          "id": "prop_port_lighthouse",
+          "name": "港口常夜石燈台",
+          "category": "props",
+          "path": "assets/img/rain-port/s2-production/props/prop_port_lighthouse.webp",
+          "source_raw": "art/stage2-rain-port/scene/O_prop_port_lighthouse_nano_nb21_v1.png",
+          "source_raw_sha256": "888514f3431b9ce2652c1e8f9badce8a7bc4a1f6f12cf198cd7ec2c26c4846ca",
+          "sha256": "43f976b353456a7801425474b7bf76a50a79d9ff02250f0ff633c3fba7a7b151",
+          "bytes": 19636,
+          "width": 209,
+          "height": 320,
+          "footAnchor": {
+            "x": 104,
+            "y": 320
+          },
+          "displaySize": {
+            "width": 209,
+            "height": 320
+          },
+          "source_status": "ART_CANDIDATE",
+          "runtime_status": "USER_SELECTED_RUNTIME",
+          "status": "APPROVED_RUNTIME"
+        }
+      ],
+      "environment": [
+        {
+          "id": "surface_sea_canonical",
+          "name": "港口深水海面無縫地表",
+          "category": "environment",
+          "path": "assets/img/rain-port/s2-production/environment/surface_sea_canonical.webp",
+          "source_raw": "art/stage2-rain-port/scene/G_port_sea_surface_nano_nb21_v1.png",
+          "sha256": "0bd211fd1ffecce020fc2683f452faae358d2dbf5fb3ba67b33caef2134cba98",
+          "bytes": 107660,
+          "width": 512,
+          "height": 512,
+          "source_status": "ART_CANDIDATE",
+          "runtime_status": "USER_SELECTED_RUNTIME",
+          "status": "APPROVED_RUNTIME"
+        },
+        {
+          "id": "cliff_north_rock",
+          "name": "北側礁石海蝕斷崖",
+          "category": "environment",
+          "path": "assets/img/rain-port/s2-production/environment/cliff_north_rock.webp",
+          "source_raw": "art/stage2-rain-port/scene/O_port_north_cliff_nano_nb21_v1.png",
+          "sha256": "22f3455c7b8fcfa4d7a4919de892d59777108f516d04cac92c6ff5acb3546cff",
+          "bytes": 86146,
+          "width": 568,
+          "height": 512,
+          "footAnchor": {
+            "x": 284,
+            "y": 512
+          },
+          "source_status": "ART_CANDIDATE",
+          "runtime_status": "USER_SELECTED_RUNTIME",
+          "status": "APPROVED_RUNTIME"
+        }
+      ]
+    },
+    "sakura-pass": {
+      "order": 3,
+      "id": "sakura-pass",
+      "name": "妖櫻山道",
+      "status": "BLOCKED",
+      "art_status": "STYLE_REFERENCE_ONLY",
+      "reason": "Old source images purged; actual kept image paths are in art/stageN-ID/manifest.json; stage3 10/24 new candidate unapproved",
+      "runtime_directory": null,
+      "fallback_stage": "night-town",
+      "fallback_assets": {
+        "ground": "assets/img/scenery/ground_dirt.webp",
+        "house": "assets/img/scenery/house_shrine.webp",
+        "prop": "assets/img/scenery/prop_sakura.webp"
+      }
+    }
+  },
+  "boss_water_hazards": {
+    "tide": {
+      "id": "tide",
+      "name": "潮汐浪帶",
+      "path": "assets/img/vfx/boss-water-r8/tide_v03.webp",
+      "sha256": "db54ef1e0896d7a60cbec43239ac7ef910dc2d1f11c7dbd4200d5742489a899b",
+      "bytes": 713252,
+      "width": 1254,
+      "height": 1254,
+      "source_status": "ART_CANDIDATE",
+      "runtime_status": "BLOCKED",
+      "status": "BLOCKED",
+      "review_status": "ART_CANDIDATE",
+      "dev_gate": "dev=1&bossart=1",
+      "auto_pass": false,
+      "limitations": [
+        "VISIBLE_MARGIN_2PX",
+        "CORRIDOR_25PX_ALPHA0",
+        "LOW_ALPHA_FRINGE_178PX",
+        "USER_ART_REVIEW_PENDING"
+      ]
+    },
+    "tidalFan": {
+      "id": "tidalFan",
+      "name": "潮汐扇面",
+      "path": "assets/img/vfx/boss-water-r8/tidalFan_v01.webp",
+      "sha256": "05f063ac4ff595de1f5f1b50cebaa8614f23cd522145161fb5087175820819c0",
+      "bytes": 1371806,
+      "width": 1254,
+      "height": 1254,
+      "source_status": "ART_CANDIDATE",
+      "runtime_status": "BLOCKED",
+      "status": "BLOCKED",
+      "review_status": "ART_CANDIDATE",
+      "dev_gate": "dev=1&bossart=1",
+      "auto_pass": false,
+      "limitations": [
+        "VISIBLE_MARGIN_7PX",
+        "SOURCE_160DEG_VS_HITBOX_120DEG",
+        "EDGE_TOUCHES_LEFT_RIGHT_BOTTOM",
+        "USER_ART_REVIEW_PENDING"
+      ]
+    },
+    "rainVortex": {
+      "id": "rainVortex",
+      "name": "雨夜渦流",
+      "path": "assets/img/vfx/boss-water-r8/rainVortex_v01.webp",
+      "sha256": "f3c65902f3f8f1e3e73345262d8e5ba9ce45d9900d9b501b8756a0416f294981",
+      "bytes": 1476550,
+      "width": 1254,
+      "height": 1254,
+      "source_status": "ART_CANDIDATE",
+      "runtime_status": "BLOCKED",
+      "status": "BLOCKED",
+      "review_status": "ART_CANDIDATE",
+      "dev_gate": "dev=1&bossart=1",
+      "auto_pass": false,
+      "limitations": [
+        "VISIBLE_MARGIN_27PX",
+        "COMBINED_GROUND_AND_COLUMN",
+        "TEST_PLAN_PENDING_PERSPECTIVE",
+        "USER_ART_REVIEW_PENDING"
+      ]
+    }
+  },
+  "shared_skills": {
+    "katana": {
+      "id": "katana",
+      "name": "妖刀斬",
+      "status": "APPROVED",
+      "runtime_status": "APPROVED_RUNTIME",
+      "levels": {
+        "1": {
+          "id": "katana_l1",
+          "path": "assets/img/vfx/raster/katana_l1.webp",
+          "bytes": 83558,
+          "sha256": "2adb6d972b804cda6f5fa67d39cf2e20eda78035b62d24a92bceef481b820f35",
+          "status": "APPROVED"
+        },
+        "2": {
+          "id": "katana_l2",
+          "path": "assets/img/vfx/raster/katana_l2.webp",
+          "bytes": 210694,
+          "sha256": "a3c52be3ea7c7c2e421cb8634a780ea6939da8e48cf96320b1771e9be2e75ff9",
+          "status": "APPROVED"
+        },
+        "3": {
+          "id": "katana_l3",
+          "path": "assets/img/vfx/raster/katana_l3.webp",
+          "bytes": 328194,
+          "sha256": "e82548cd4cfc7c4a8df501655db9508cb144724950df8b9c5bdf04bb1d732444",
+          "status": "APPROVED"
+        },
+        "4": {
+          "id": "katana_l4",
+          "path": "assets/img/vfx/raster/katana_l4.webp",
+          "bytes": 378998,
+          "sha256": "4dafc2ffbc65dc621507ebc65a574f1125aa44e936f56fad366227ea1dcf9e01",
+          "status": "APPROVED"
+        },
+        "5": {
+          "id": "katana_l5",
+          "path": "assets/img/vfx/raster/katana_l5.webp",
+          "bytes": 366896,
+          "sha256": "7c4373899db1ea53eea9eec1147726abbdbf4069ed57c7124becbdb4a0712a6d",
+          "status": "APPROVED"
+        }
+      }
+    },
+    "fire": {
+      "id": "fire",
+      "name": "狐火",
+      "status": "APPROVED",
+      "runtime_status": "APPROVED_RUNTIME",
+      "variants": {
+        "orbit": {
+          "1": {
+            "id": "fire_orbit_l1",
+            "path": "assets/img/vfx/raster/fire_orbit_l1.webp",
+            "bytes": 35726,
+            "sha256": "d805c9ede255f5f0575ad65539ba60404564d24683c863e097ad7785f3132e57",
+            "status": "APPROVED"
+          },
+          "2": {
+            "id": "fire_orbit_l2",
+            "path": "assets/img/vfx/raster/fire_orbit_l2.webp",
+            "bytes": 41910,
+            "sha256": "b852233f32429648488b60738edb1557861010d02e47b95016a2402a25fcf582",
+            "status": "APPROVED"
+          },
+          "3": {
+            "id": "fire_orbit_l3",
+            "path": "assets/img/vfx/raster/fire_orbit_l3.webp",
+            "bytes": 50920,
+            "sha256": "32db0a5b1020bb0ad014ad792e6fdda9cec81b21708e8b70dc7ad9761d238b1e",
+            "status": "APPROVED"
+          },
+          "4": {
+            "id": "fire_orbit_l4",
+            "path": "assets/img/vfx/raster/fire_orbit_l4.webp",
+            "bytes": 61758,
+            "sha256": "65c8f606172335e278a2f22a705a23edadbd7481bbc15541c657928d95e543b3",
+            "status": "APPROVED"
+          },
+          "5": {
+            "id": "fire_orbit_l5",
+            "path": "assets/img/vfx/raster/fire_orbit_l5.webp",
+            "bytes": 76798,
+            "sha256": "a31eb875e4ccca1e009191c6eea58c63bfa90011e6e3c9e809a26bb21aa7dde5",
+            "status": "APPROVED"
+          }
+        },
+        "attack": {
+          "1": {
+            "id": "fire_attack_l1",
+            "path": "assets/img/vfx/raster/fire_attack_l1.webp",
+            "bytes": 34056,
+            "sha256": "9783eae4a973375612ba72195c1041caaf20728e3fe8409f7fd5a394dfd7f14d",
+            "status": "APPROVED"
+          },
+          "2": {
+            "id": "fire_attack_l2",
+            "path": "assets/img/vfx/raster/fire_attack_l2.webp",
+            "bytes": 49108,
+            "sha256": "0415e95744896c146f360297e00158ae1fc808327e6a7075ac3cae0f004954ec",
+            "status": "APPROVED"
+          },
+          "3": {
+            "id": "fire_attack_l3",
+            "path": "assets/img/vfx/raster/fire_attack_l3.webp",
+            "bytes": 61362,
+            "sha256": "4ac3a54ca8cb487b3535fd25e62e87fae73d8ab48c81f26548ba4886f6fdf6f0",
+            "status": "APPROVED"
+          },
+          "4": {
+            "id": "fire_attack_l4",
+            "path": "assets/img/vfx/raster/fire_attack_l4.webp",
+            "bytes": 63018,
+            "sha256": "4c9f17a2cca840faafa7e323434e9f2fd009d67b3a54d80f923aabb411393d4c",
+            "status": "APPROVED"
+          },
+          "5": {
+            "id": "fire_attack_l5",
+            "path": "assets/img/vfx/raster/fire_attack_l5.webp",
+            "bytes": 59204,
+            "sha256": "1ff6f01ea10515ced7fa2fc18dcc5dd92b8571d5f70fbc85b18d5d1352f35889",
+            "status": "APPROVED"
+          }
+        },
+        "dragon": {
+          "fire_dragon_l5": {
+            "id": "fire_dragon_l5",
+            "path": "assets/img/vfx/raster/fire_dragon_l5.webp",
+            "bytes": 295146,
+            "sha256": "6eea4b5fad59d305c0d34f95ab9c5f5a1cbc5b1717abeedbd53b57ab35175404",
+            "status": "APPROVED"
+          },
+          "dragon_fireball_l5": {
+            "id": "dragon_fireball_l5",
+            "path": "assets/img/vfx/raster/dragon_fireball_l5.webp",
+            "bytes": 82970,
+            "sha256": "f24c5e271300bd8b0985eebccd594614d0bc24bd76e531c5e84b54c816272755",
+            "status": "APPROVED"
+          },
+          "dragon_burning_ground_l5": {
+            "id": "dragon_burning_ground_l5",
+            "path": "assets/img/vfx/raster/dragon_burning_ground_l5.webp",
+            "bytes": 153894,
+            "sha256": "30b6e87d4c99fcf2c0cd5d6b5e5d0bd18a7c3042ac4293229dd9c148eb2614b8",
+            "status": "APPROVED"
+          }
+        }
+      }
+    },
+    "barrier": {
+      "id": "barrier",
+      "name": "淨化靈陣",
+      "status": "APPROVED",
+      "runtime_status": "APPROVED_RUNTIME",
+      "tiers": {
+        "core_main": {
+          "id": "barrier_core_main",
+          "path": "assets/img/vfx/purification_array_vfx.webp",
+          "bytes": 946922,
+          "sha256": "aaeb3bab81a05959f286208d73856262efa7ad0164a87549c289acfcfed9a6fb",
+          "status": "APPROVED"
+        },
+        "core_lv5": {
+          "id": "barrier_core_lv5",
+          "path": "assets/img/vfx/purification_array_lv5_vfx.webp",
+          "bytes": 950112,
+          "sha256": "553e62736558cfae575d2cd0fe4cfd0f1a26cf9a924a501badd624ad429d324a",
+          "status": "APPROVED"
+        }
+      }
+    },
+    "thunder": {
+      "id": "thunder",
+      "name": "天狐雷",
+      "status": "APPROVED",
+      "runtime_status": "APPROVED_RUNTIME",
+      "raster": {
+        "cloud": {
+          "id": "thunder_cloud",
+          "path": "assets/img/vfx/thunder_cloud_vfx.webp",
+          "bytes": 524068,
+          "sha256": "e11db1aec9283eef3b8a751bf3a20d63e5a39abd973a590ad08037af40e1d470",
+          "status": "APPROVED"
+        },
+        "mark": {
+          "id": "thunder_sigil",
+          "path": "assets/img/vfx/thunder_sigil_vfx.webp",
+          "bytes": 1136634,
+          "sha256": "8cc869f0a5262f65166fd39f4d129cc697e52eea72fb2f5190c39aebb76831d9",
+          "status": "APPROVED"
+        },
+        "strike": {
+          "id": "thunder_strike",
+          "path": "assets/img/vfx/thunder_strike_vfx.webp",
+          "bytes": 620730,
+          "sha256": "8ad3e633b2c11d9f073b41879cdfa2a584fd30e05d4d8c71c8d091bf6c1eda9a",
+          "status": "APPROVED"
+        },
+        "max": {
+          "id": "thunder_strike_lv5",
+          "path": "assets/img/vfx/thunder_strike_lv5_vfx.webp",
+          "bytes": 717622,
+          "sha256": "263c536e0247d035b8fe70dc0be82c0ae019053c4c06c6321de8e4ce8c65bd60",
+          "status": "APPROVED"
+        }
+      }
+    },
+    "boom": {
+      "id": "boom",
+      "name": "陰陽符爆",
+      "status": "APPROVED",
+      "runtime_status": "APPROVED_RUNTIME",
+      "raster": {
+        "main": {
+          "id": "ofuda_projectile",
+          "path": "assets/img/vfx/ofuda_projectile.webp",
+          "bytes": 758248,
+          "sha256": "7f035137496f42c41068502c6ef2378d0a248bb856b5248a374fdaf60f93db6b",
+          "status": "APPROVED"
+        },
+        "hit": {
+          "id": "ofuda_hit_burst",
+          "path": "assets/img/vfx/ofuda_hit_burst.webp",
+          "bytes": 436390,
+          "sha256": "d8143bbd7eb795060cb6591ae1c9195324fee5a60c35146d182a8c334e0119c5",
+          "status": "APPROVED"
+        },
+        "max": {
+          "id": "ofuda_max_burst",
+          "path": "assets/img/vfx/ofuda_max_burst.webp",
+          "bytes": 718202,
+          "sha256": "a75503f6ef432d206345b87b077007454a4fd87713345b2b54031b73b9111fe3",
+          "status": "APPROVED"
+        }
+      }
+    },
+    "needle": {
+      "id": "needle",
+      "name": "破魔針",
+      "status": "APPROVED",
+      "runtime_status": "APPROVED_RUNTIME",
+      "raster": {
+        "main": {
+          "id": "needle",
+          "path": "assets/img/vfx/raster/needle.webp",
+          "bytes": 4198,
+          "sha256": "a1c7fe09d51df02e892d868089437503b224b0e248e8f25233a8e2603489ca4c",
+          "status": "APPROVED"
+        }
+      }
+    }
+  },
+  "shared_actors": {
+    "player": {
+      "status": "APPROVED",
+      "runtime_status": "APPROVED_RUNTIME",
+      "actions": {
+        "idle_atlas": {"id": "player_idle_atlas", "path": "assets/img/player-actions/idle.webp", "bytes": 316326, "sha256": "d7973a9fba7a45ac4fe366565069ec0ab03ead9fb5fafee93c6b576f25feb665", "frames": 8, "cell_size": [640, 640], "status": "RUNTIME_ACTIVE", "source_status": "USER_PLAYTEST_PENDING"},
+        "walk_atlas": {"id": "player_walk_atlas", "path": "assets/img/player-actions/walk.webp", "bytes": 384180, "sha256": "2e0308cefd9315aeffe835d53695cb2d07202942bfc8e431acc38c52f5e3b854", "frames": 8, "cell_size": [640, 640], "status": "RUNTIME_ACTIVE", "source_status": "USER_PLAYTEST_PENDING"},
+        "run_atlas": {"id": "player_run_atlas", "path": "assets/img/player-actions/run.webp", "bytes": 466386, "sha256": "06d4372826a95f064dac64b65a357e4c5ff18c1a46c39aad7f2ba2c562056c33", "frames": 10, "cell_size": [640, 640], "status": "RUNTIME_ACTIVE", "source_status": "USER_PLAYTEST_PENDING"},
+        "attack_atlas": {"id": "player_attack_atlas", "path": "assets/img/player-actions/attack.webp", "bytes": 440860, "sha256": "719eef9202432ce08723d0734b0b7c70e05bd1a95c2cc40db377bdd024472eef", "frames": 8, "cell_size": [640, 640], "status": "RUNTIME_ACTIVE", "source_status": "USER_PLAYTEST_PENDING"},
+        "base": {
+          "id": "player",
+          "path": "assets/img/player.webp",
+          "bytes": 65606,
+          "sha256": "3a1385a0baf403b70f7cf9cdc2b83faf26a39e0bf0f2bde7445e81403fd53951",
+          "status": "APPROVED"
+        },
+        "idle_v2": {
+          "id": "player_idle_v2",
+          "path": "assets/img/player_idle_v2.webp",
+          "bytes": 122904,
+          "sha256": "9d48b4b0325c6692cf85ca579e23220d365a3101042a152647a4f1c479147b05",
+          "status": "APPROVED"
+        },
+        "walk_left_v2": {
+          "id": "player_walk_left_v2",
+          "path": "assets/img/player_walk_left_v2.webp",
+          "bytes": 141614,
+          "sha256": "d6d245c675f0eeb3dc47d012cf28a36fe21f1dbe63cee92658b5cc264205c25d",
+          "status": "APPROVED"
+        },
+        "walk_right_v2": {
+          "id": "player_walk_right_v2",
+          "path": "assets/img/player_walk_right_v2.webp",
+          "bytes": 128194,
+          "sha256": "a83bc66c1e86a3cdfd5b6c423b220c2438220d1da800c8a7bb89fef477d89202",
+          "status": "APPROVED"
+        },
+        "dash_v2": {
+          "id": "player_dash_v2",
+          "path": "assets/img/player_dash_v2.webp",
+          "bytes": 110710,
+          "sha256": "4e3092b7b34817ed83b24a42c88916c9bb77bfca421f91d0350ac3adeb9ef073",
+          "status": "APPROVED"
+        },
+        "hurt_v2": {
+          "id": "player_hurt_v2",
+          "path": "assets/img/player_hurt_v2.webp",
+          "bytes": 120970,
+          "sha256": "5b6e5893de9b94f73238bcc9ef7790add37fdcb2a865c3add4816016f2addf23",
+          "status": "APPROVED"
+        },
+        "attack_v2": {
+          "id": "player_attack_v2",
+          "path": "assets/img/player_attack_v2.webp",
+          "bytes": 158356,
+          "sha256": "804a0b570fb9d03c7dab8d266392222d8f378c714081fdc8f106879b91b874bd",
+          "status": "APPROVED"
+        },
+        "rest_v1": {
+          "id": "player_rest_v1",
+          "path": "assets/img/player_rest_v1.webp",
+          "bytes": 229076,
+          "sha256": "2dcec0c2c5c8f8f4f35eea46e6463d5dc19c0dc9fa047f54ae05ace8fdeca9c5",
+          "status": "APPROVED"
+        },
+        "win_v1": {
+          "id": "player_win_v1",
+          "path": "assets/img/player_win_v1.webp",
+          "bytes": 204736,
+          "sha256": "61b3e33373004750fcbe1a2d0b1049ea5e4eb967be3f2b996fbc157a8432cca9",
+          "status": "APPROVED"
+        },
+        "kneel_v1": {
+          "id": "player_kneel_v1",
+          "path": "assets/img/player_kneel_v1.webp",
+          "bytes": 221572,
+          "sha256": "4a0ba200641076a0237305a1d53bde5b43b5e249dd59b634bcb5fac796f8a511",
+          "status": "APPROVED"
+        }
+      }
+    },
+    "enemies": {
+      "night-town": {
+        "ghost": {
+          "idle": {
+            "path": "assets/img/yokai/ghost.webp",
+            "bytes": 8516,
+            "sha256": "49d30a9aa837b6d3335221ea3fb1e8e81f33e0d063eaafec567aa3a7e8d12235"
+          },
+          "attack": {
+            "path": "assets/img/yokai/ghost_motion_v1.webp",
+            "bytes": 45124,
+            "sha256": "5fde819a21b89a073dc845efeb84a3ff51a7420be2efcf010dd9e51435535c50"
+          },
+          "status": "APPROVED"
+        },
+        "runner": {
+          "idle": {
+            "path": "assets/img/yokai/runner.webp",
+            "bytes": 9072,
+            "sha256": "8e47a64c084f1888efb68f8e34bcd6cbdf42016afcdf0df736e58d13db47a90f"
+          },
+          "attack": {
+            "path": "assets/img/yokai/runner_motion_v1.webp",
+            "bytes": 51882,
+            "sha256": "ea46f2ede417a6c8de6802ba446d979a3e019e2e04bbec16af8fead1c53b2e39"
+          },
+          "status": "APPROVED"
+        },
+        "tank": {
+          "idle": {
+            "path": "assets/img/yokai/tank.webp",
+            "bytes": 28602,
+            "sha256": "f5ffe33776f3131d61bb4f2ac2deb412a8c204ef86f0204be40a9442ad996ddb"
+          },
+          "attack": {
+            "path": "assets/img/yokai/tank_motion_v1.webp",
+            "bytes": 98396,
+            "sha256": "24aeaba98e685e4619487a2c29c0eb45c9907d9c5c11f95c768550660705ecf6"
+          },
+          "status": "APPROVED"
+        },
+        "shooter": {
+          "idle": {
+            "path": "assets/img/yokai/shooter.webp",
+            "bytes": 10916,
+            "sha256": "21015debd37b7e11a42b47c3c53bc5f1a55d17412a5bff5a763be1ad7c920c58"
+          },
+          "attack": {
+            "path": "assets/img/yokai/shooter_motion_v1.webp",
+            "bytes": 38660,
+            "sha256": "5d69f8be15c9192459b6d2babfe7131c043c7999e304b9350fd1bee01dab5327"
+          },
+          "status": "APPROVED"
+        },
+        "mis": {
+          "idle": {
+            "path": "assets/img/yokai/mis.webp",
+            "bytes": 30940,
+            "sha256": "0941497239d28e03955d60ad5a6c85a9a58b8e422177601b30e0537e562e9248"
+          },
+          "attack": {
+            "path": "assets/img/yokai/mis_motion_v1.webp",
+            "bytes": 66554,
+            "sha256": "1626818c4719020895c78ee9e7f0a9d7f663f4f4f4034b2563b134535d42f8a5"
+          },
+          "status": "APPROVED"
+        },
+        "boss": {
+          "idle": {
+            "path": "assets/img/yokai/boss.webp",
+            "bytes": 21754,
+            "sha256": "84fc3b5ddf955fb6f088fa27adc3f82cb4d1073dd8b4a713121e8c3dfb692531"
+          },
+          "attack": {
+            "path": "assets/img/yokai/boss_motion_v1.webp",
+            "bytes": 85644,
+            "sha256": "3c1b6df7dfa25e714e33410f98fac5b8ca5c157a6a99f050a9355d40e7a9bbef"
+          },
+          "status": "APPROVED"
+        }
+      },
+      "rain-port": {
+        "shiome": {
+          "idle": {
+            "path": "assets/img/rain-port/enemies/minion_shiome_idle.webp",
+            "bytes": 37608,
+            "sha256": "ff9442bcd0850b79848d20b426d5be2a70f2cbd29ae64d13d76cf74a3b357bbe"
+          },
+          "attack": {
+            "path": "assets/img/rain-port/enemies/minion_shiome_attack.webp",
+            "bytes": 58596,
+            "sha256": "e7a5d9d6980f6851ea78d66ba49ce68efca59ac7cfc862f7f42718c6f6cc6551"
+          },
+          "status": "APPROVED"
+        },
+        "boss_ikari_umibozu": {
+          "idle": {
+            "path": "assets/img/rain-port/enemies/boss_ikari_umibozu_idle.webp",
+            "bytes": 123806,
+            "sha256": "5a90500d7b5528ec19d08726ca6e67b1f432e1ef9a5f8573e57d453e6c651d29"
+          },
+          "attack": {
+            "path": "assets/img/rain-port/enemies/boss_ikari_umibozu_attack.webp",
+            "bytes": 119126,
+            "sha256": "6abeef6cbd3c6cb1585b193375b9159d2b1888b5e270007cc0f83b3fde8e162c"
+          },
+          "status": "APPROVED"
+        }
+      }
+    }
+  },
+  "shared_hud": {
+    "core": {
+      "hud_lantern_oil": {
+        "id": "hud_lantern_oil",
+        "path": "assets/img/ui/hud_lantern_oil.webp",
+        "bytes": 45018,
+        "sha256": "4b48391cd3977db47e95a17ac58a145b4a15fb132448ae5883d2ebd97f580cb0",
+        "status": "APPROVED"
+      },
+      "hud_radar_frame": {
+        "id": "hud_radar_frame",
+        "path": "assets/img/ui/hud_radar_frame.webp",
+        "bytes": 77452,
+        "sha256": "d8b04fca6187f7bef61e764aa29c39d9d7723710750e2f6cc04c08206a6c94ff",
+        "status": "APPROVED"
+      },
+      "hud_omamori_hint_listen": {
+        "id": "hud_omamori_hint_listen",
+        "path": "assets/img/ui/hud_omamori_hint_listen.webp",
+        "bytes": 43880,
+        "sha256": "b910d29ef4210e0fd29e1ac0e8212a6774472692d78dd1aecd0720af57b4cb9a",
+        "status": "APPROVED"
+      },
+      "hud_skill_fan": {
+        "id": "hud_skill_fan",
+        "path": "assets/img/ui/hud_skill_fan.webp",
+        "bytes": 67808,
+        "sha256": "c38ac7ec94714dd28fd5ad848f6feba395cf87270d8a18134b4a9b2b6699ffbf",
+        "status": "APPROVED"
+      }
+    },
+    "illustrated": {
+      "button_primary": {
+        "id": "button_primary",
+        "path": "assets/img/ui/illustrated/button_primary.webp",
+        "bytes": 6952,
+        "sha256": "d793eb710115d0d0ef742ea71e50c8c734a8bf66684ff700fc75cf97481aed91",
+        "status": "APPROVED"
+      },
+      "button_secondary": {
+        "id": "button_secondary",
+        "path": "assets/img/ui/illustrated/button_secondary.webp",
+        "bytes": 8506,
+        "sha256": "0e5c4d8a8f651f7b5235c44fe691153a3cc0f673752481f8180b8770202a97d3",
+        "status": "APPROVED"
+      },
+      "button_danger": {
+        "id": "button_danger",
+        "path": "assets/img/ui/illustrated/button_danger.webp",
+        "bytes": 7780,
+        "sha256": "f718a91dbcbbc11b05d3d7aef5661825848fca88e3d1a3bbc1d89f72c08d26d1",
+        "status": "APPROVED"
+      },
+      "pause_panel": {
+        "id": "pause_panel",
+        "path": "assets/img/ui/illustrated/pause_panel.webp",
+        "bytes": 30140,
+        "sha256": "da0da663e132ae89ec4cde3a3d6726b11ab1cb4981115e2899bef9ce56848e4b",
+        "status": "APPROVED"
+      },
+      "result_panel": {
+        "id": "result_panel",
+        "path": "assets/img/ui/illustrated/result_panel.webp",
+        "bytes": 38316,
+        "sha256": "48d7e7c46010a6f38d38b086a87c6e26d0f4092e42faa8ee34295123885cdb60",
+        "status": "APPROVED"
+      },
+      "title_tag": {
+        "id": "title_tag",
+        "path": "assets/img/ui/illustrated/title_tag.webp",
+        "bytes": 8298,
+        "sha256": "cc5b01601f3d9ec7a36b6730f9298cc7edfc7076c5848dc4306648561c3db0f6",
+        "status": "APPROVED"
+      },
+      "awaken_seal": {
+        "id": "awaken_seal",
+        "path": "assets/img/ui/awaken_seal.svg",
+        "bytes": 712,
+        "sha256": "b5dcbc2ac7abc0e73b18d659640feafda676724a1021598398334e50ba1f14a4",
+        "status": "APPROVED"
+      }
+    },
+    "omamori": {
+      "power": {
+        "id": "hud_omamori_power",
+        "charmId": "power",
+        "path": "assets/img/ui/charm-passive/hud_omamori_power.webp",
+        "bytes": 81462,
+        "sha256": "c186e05d4f4c3b4602453daf2a11c1dc49743c7ad2941be3133a02f5bd8cc4da",
+        "status": "APPROVED"
+      },
+      "step": {
+        "id": "hud_omamori_step",
+        "charmId": "step",
+        "path": "assets/img/ui/charm-passive/hud_omamori_step.webp",
+        "bytes": 81530,
+        "sha256": "fc3423616103a365a67438eae6537334a451355558f63b134cfc276699cc748f",
+        "status": "APPROVED"
+      },
+      "gather": {
+        "id": "hud_omamori_gather",
+        "charmId": "gather",
+        "path": "assets/img/ui/charm-passive/hud_omamori_gather.webp",
+        "bytes": 55966,
+        "sha256": "4a14d872ae2665ac2b9cf795cda68947a19ca4c2b63521028eddf34d9c77e69d",
+        "status": "APPROVED"
+      },
+      "cadence": {
+        "id": "hud_omamori_cadence",
+        "charmId": "cadence",
+        "path": "assets/img/ui/charm-passive/hud_omamori_cadence.webp",
+        "bytes": 50572,
+        "sha256": "01c60044549cf63aa28205af6d32991569587897358271c7da9fb6d3eac678a3",
+        "status": "APPROVED"
+      },
+      "reach": {
+        "id": "hud_omamori_reach",
+        "charmId": "reach",
+        "path": "assets/img/ui/charm-passive/hud_omamori_reach.webp",
+        "bytes": 93692,
+        "sha256": "fbd28129166dcd8de15eb5ec1e309a88829292fca8c9b0f26fead5ea66c2af2a",
+        "status": "APPROVED"
+      },
+      "guard": {
+        "id": "hud_omamori_guard",
+        "charmId": "guard",
+        "path": "assets/img/ui/charm-passive/hud_omamori_guard.webp",
+        "bytes": 88598,
+        "sha256": "f25927cbf07244cae79007eef75cc4f12bdeb93c7ede7c95a27eda9e638884c9",
+        "status": "APPROVED"
+      }
+    },
+    "passives": {
+      "shield": {
+        "id": "hud_passive_shield",
+        "passiveId": "shield",
+        "path": "assets/img/ui/passive/hud_passive_shield.webp",
+        "bytes": 118332,
+        "sha256": "04e6dae778f292f453ce128b2542936258bcf712b6f57416ffb43d8bf5d0b149",
+        "status": "APPROVED"
+      },
+      "dmg": {
+        "id": "hud_passive_dmg",
+        "passiveId": "dmg",
+        "path": "assets/img/ui/passive/hud_passive_dmg.webp",
+        "bytes": 48184,
+        "sha256": "2201806162a463981a902f8068a80f4fb9b338b6a45ca0427a8481809a68abac",
+        "status": "APPROVED"
+      },
+      "rate": {
+        "id": "hud_passive_rate",
+        "passiveId": "rate",
+        "path": "assets/img/ui/passive/hud_passive_rate.webp",
+        "bytes": 80184,
+        "sha256": "ebd498ba5846cf8e6868d0a41e1daa3b274c39c81162cb2de2f850965c54d2f1",
+        "status": "APPROVED"
+      },
+      "crit": {
+        "id": "hud_passive_crit",
+        "passiveId": "crit",
+        "path": "assets/img/ui/passive/hud_passive_crit.webp",
+        "bytes": 51980,
+        "sha256": "c0d4012a2aa5c177cc9babcf8f05e184cb1ff17267e86093b749558cc75f2c15",
+        "status": "APPROVED"
+      },
+      "spd": {
+        "id": "hud_passive_spd",
+        "passiveId": "spd",
+        "path": "assets/img/ui/passive/hud_passive_spd.webp",
+        "bytes": 131062,
+        "sha256": "1844b414090d000858a57e6e8cdf540f6786ce831ac44dea1c2f219f52045469",
+        "status": "APPROVED"
+      },
+      "dash": {
+        "id": "hud_passive_dash",
+        "passiveId": "dash",
+        "path": "assets/img/ui/passive/hud_passive_dash.webp",
+        "bytes": 93932,
+        "sha256": "686592b1ef5023e34533753427939869bf5b85bed62c7c831d555f38267f20bf",
+        "status": "APPROVED"
+      },
+      "oil_max": {
+        "id": "hud_passive_oil_max",
+        "passiveId": "oil_max",
+        "path": "assets/img/ui/passive/hud_passive_oil_max.webp",
+        "bytes": 65876,
+        "sha256": "58e0eb9bbf54bec4ea81ef0152508127bfc483e812dfeaf75e3628c9e8123c37",
+        "status": "APPROVED"
+      },
+      "mag": {
+        "id": "hud_passive_mag",
+        "passiveId": "mag",
+        "path": "assets/img/ui/passive/hud_passive_mag.webp",
+        "bytes": 35358,
+        "sha256": "0d0806dac59d021ce640880e04817bfe0cf56a317586e7332e45ea2d913cf17f",
+        "status": "APPROVED"
+      }
+    }
+  },
+  "fusion_candidates": {
+    "fusion_inkblade": {
+      "id": "fusion_inkblade",
+      "name": "奧義・墨焰斬",
+      "parents": [
+        "katana",
+        "fire"
+      ],
+      "status": "BLOCKED",
+      "art_status": "ART_CANDIDATE",
+      "review_status": "APPROVAL_PENDING",
+      "auto_pass": false,
+      "requires_dev_flags": true,
+      "dev_flags": "dev=1&stage=rain-port&fusioncandidate=1&fusionart=banana",
+      "fallback": "procedural_vector_emblem",
+      "phases": {
+        "main": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_inkblade/main_alpha_candidate_v01.webp",
+          "bytes": 212012,
+          "sha256": "1ecb4a7573470359c010555db215dd017f0aebe4954340b9915534bffd8a6f14",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            0,
+            37,
+            1264,
+            848
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "hit": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_inkblade/hit_alpha_candidate_v01.webp",
+          "bytes": 391832,
+          "sha256": "677f9fe9bc0f6b28a2ff9f136efb4a3bec353741dd25d47d27236abdb226a9ca",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            253,
+            120,
+            994,
+            747
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "ground": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_inkblade/ground_alpha_candidate_v01.webp",
+          "bytes": 180422,
+          "sha256": "5fc1abda8fe7a335b136f9c0f3e076b8356d5d3c2c4cd2550d04e008757eefdd",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            78,
+            310,
+            1177,
+            562
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "icon": {
+          "alias_of": "main",
+          "candidate_source": null,
+          "runtime_url": null,
+          "status": "DEV_ICON_FALLBACK_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        }
+      }
+    },
+    "fusion_slashwheel": {
+      "id": "fusion_slashwheel",
+      "name": "奧義・斬界輪",
+      "parents": [
+        "katana",
+        "barrier"
+      ],
+      "status": "BLOCKED",
+      "art_status": "ART_CANDIDATE",
+      "review_status": "APPROVAL_PENDING",
+      "auto_pass": false,
+      "requires_dev_flags": true,
+      "dev_flags": "dev=1&stage=rain-port&fusioncandidate=1&fusionart=banana",
+      "fallback": "procedural_vector_emblem",
+      "phases": {
+        "main": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+          "bytes": 436830,
+          "sha256": "912268eeebf114b4f5622d6deef2818e7a0c99abc9004cd9d53dfbd382673c38",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            201,
+            63,
+            1072,
+            779
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "hit": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+          "bytes": 436830,
+          "sha256": "912268eeebf114b4f5622d6deef2818e7a0c99abc9004cd9d53dfbd382673c38",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            201,
+            63,
+            1072,
+            779
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "ground": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+          "bytes": 436830,
+          "sha256": "912268eeebf114b4f5622d6deef2818e7a0c99abc9004cd9d53dfbd382673c38",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            201,
+            63,
+            1072,
+            779
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "icon": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+          "bytes": 436830,
+          "sha256": "912268eeebf114b4f5622d6deef2818e7a0c99abc9004cd9d53dfbd382673c38",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            504,
+            296,
+            760,
+            552
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        }
+      }
+    },
+    "fusion_foxiai": {
+      "id": "fusion_foxiai",
+      "name": "奧義・雷狐居合",
+      "parents": [
+        "katana",
+        "thunder"
+      ],
+      "status": "BLOCKED",
+      "art_status": "ART_CANDIDATE",
+      "review_status": "APPROVAL_PENDING",
+      "auto_pass": false,
+      "requires_dev_flags": true,
+      "dev_flags": "dev=1&stage=rain-port&fusioncandidate=1&fusionart=banana",
+      "fallback": "procedural_vector_emblem",
+      "phases": {
+        "main": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_foxiai/main_alpha_candidate_v02.webp",
+          "bytes": 294262,
+          "sha256": "9e84e1dd4e24dde5a99b7e4fd454fe871ffd770ceefba05aa3bf7ca1a5599d38",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            92,
+            141,
+            1208,
+            726
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "hit": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_foxiai/hit_alpha_candidate_v01.webp",
+          "bytes": 125116,
+          "sha256": "f55f0aa2fa501fc3bb400ce71a6ade585de83f3141b8239438d8746059f72365",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            308,
+            160,
+            953,
+            694
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "ground": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_foxiai/ground_alpha_candidate_v01.webp",
+          "bytes": 75160,
+          "sha256": "2cab06fa5fe89caa477028320dffde6774dacc27e51f3d11317780169fea253a",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            60,
+            352,
+            1160,
+            494
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "icon": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_foxiai/icon_alpha_candidate_v01.webp",
+          "bytes": 198186,
+          "sha256": "a5c3b7648ed1fae307d1098241bea4be1cb71c76b8b009b23de16ddbbb6b3320",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            334,
+            134,
+            918,
+            720
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        }
+      }
+    },
+    "fusion_exorcistblade": {
+      "id": "fusion_exorcistblade",
+      "name": "奧義・退魔符刃",
+      "parents": [
+        "katana",
+        "boom"
+      ],
+      "status": "BLOCKED",
+      "art_status": "ART_CANDIDATE",
+      "review_status": "APPROVAL_PENDING",
+      "auto_pass": false,
+      "requires_dev_flags": true,
+      "dev_flags": "dev=1&stage=rain-port&fusioncandidate=1&fusionart=banana",
+      "fallback": "procedural_vector_emblem",
+      "phases": {
+        "main": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_exorcistblade/main_alpha_candidate_v02.webp",
+          "bytes": 302992,
+          "sha256": "7d634b81af6f066de5412c2f1cf264efdd3b1dc885d152a4925307f5bda01dbd",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            139,
+            166,
+            1181,
+            640
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "hit": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_exorcistblade/hit_alpha_candidate_v01.webp",
+          "bytes": 414256,
+          "sha256": "5f676cf6c71300431618dbb8671026e54384d0f47a1731fb7165dd7b4d4b4238",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            227,
+            116,
+            1042,
+            734
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "ground": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_exorcistblade/ground_alpha_candidate_v01.webp",
+          "bytes": 447908,
+          "sha256": "cbaf8b871aea41cef38e8fe3499756a783f7c4dbbde2d27b8cbf57e990f1bfaa",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            40,
+            132,
+            1202,
+            694
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "icon": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_exorcistblade/icon_alpha_candidate_v01.webp",
+          "bytes": 266658,
+          "sha256": "c1865f590b7dd1c25fa15cb450c24a7d61073ed29f56c9d0020a910e62f8e020",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            367,
+            158,
+            891,
+            693
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        }
+      }
+    },
+    "fusion_foxfirebarrier": {
+      "id": "fusion_foxfirebarrier",
+      "name": "奧義・妖火結界",
+      "parents": [
+        "fire",
+        "barrier"
+      ],
+      "status": "BLOCKED",
+      "art_status": "ART_CANDIDATE",
+      "review_status": "APPROVAL_PENDING",
+      "auto_pass": false,
+      "requires_dev_flags": true,
+      "dev_flags": "dev=1&stage=rain-port&fusioncandidate=1&fusionart=banana",
+      "fallback": "procedural_vector_emblem",
+      "phases": {
+        "main": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_foxfirebarrier/main_alpha_candidate_v02.webp",
+          "bytes": 359246,
+          "sha256": "cda1c296ebe4cb5abf93945cf2aba8df9a0ce75c8609b4e0bd015baa5105bc92",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            186,
+            109,
+            1066,
+            699
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "hit": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_foxfirebarrier/hit_alpha_candidate_v01.webp",
+          "bytes": 402772,
+          "sha256": "6b20717830c80bfbccd0538523c36aa6efa50d52ab4e54628cde139bd717d43b",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            302,
+            137,
+            980,
+            706
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "ground": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_foxfirebarrier/ground_alpha_candidate_v01.webp",
+          "bytes": 264716,
+          "sha256": "ddfbcc43e47499bca05d80d8ddae9f25e0d218f6c4db281a9fc3c1886c1ce9c6",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            131,
+            188,
+            1129,
+            670
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "icon": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_foxfirebarrier/icon_alpha_candidate_v01.webp",
+          "bytes": 302426,
+          "sha256": "6dfd62ab2f2d37cde977d745ddd6b5796af041c8cda909a74ecee4750ee36920",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            334,
+            108,
+            932,
+            740
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        }
+      }
+    },
+    "fusion_foxthunderlantern": {
+      "id": "fusion_foxthunderlantern",
+      "name": "奧義・狐雷天燈",
+      "parents": [
+        "fire",
+        "thunder"
+      ],
+      "status": "BLOCKED",
+      "art_status": "ART_CANDIDATE",
+      "review_status": "APPROVAL_PENDING",
+      "auto_pass": false,
+      "requires_dev_flags": true,
+      "dev_flags": "dev=1&stage=rain-port&fusioncandidate=1&fusionart=banana",
+      "fallback": "procedural_vector_emblem",
+      "phases": {
+        "main": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+          "bytes": 430698,
+          "sha256": "34e3f654ce0a3de8c088d80b47d1e14011f8e660158b04b8d764480d792937fe",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            264,
+            32,
+            1100,
+            796
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "hit": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+          "bytes": 430698,
+          "sha256": "34e3f654ce0a3de8c088d80b47d1e14011f8e660158b04b8d764480d792937fe",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            264,
+            32,
+            1100,
+            796
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "ground": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+          "bytes": 430698,
+          "sha256": "34e3f654ce0a3de8c088d80b47d1e14011f8e660158b04b8d764480d792937fe",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            264,
+            32,
+            1100,
+            796
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "icon": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+          "bytes": 430698,
+          "sha256": "34e3f654ce0a3de8c088d80b47d1e14011f8e660158b04b8d764480d792937fe",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            504,
+            296,
+            760,
+            552
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        }
+      }
+    },
+    "fusion_flamefestival": {
+      "id": "fusion_flamefestival",
+      "name": "奧義・炎符祭",
+      "parents": [
+        "fire",
+        "boom"
+      ],
+      "status": "BLOCKED",
+      "art_status": "ART_CANDIDATE",
+      "review_status": "APPROVAL_PENDING",
+      "auto_pass": false,
+      "requires_dev_flags": true,
+      "dev_flags": "dev=1&stage=rain-port&fusioncandidate=1&fusionart=banana",
+      "fallback": "procedural_vector_emblem",
+      "phases": {
+        "main": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+          "bytes": 802622,
+          "sha256": "68bfe9465b52fd5ff5cea0ac1a088c05d1afe82e458bfa7fc746b08a33d696c8",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            125,
+            34,
+            1164,
+            810
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "hit": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+          "bytes": 802622,
+          "sha256": "68bfe9465b52fd5ff5cea0ac1a088c05d1afe82e458bfa7fc746b08a33d696c8",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            125,
+            34,
+            1164,
+            810
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "ground": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+          "bytes": 802622,
+          "sha256": "68bfe9465b52fd5ff5cea0ac1a088c05d1afe82e458bfa7fc746b08a33d696c8",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            125,
+            34,
+            1164,
+            810
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "icon": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+          "bytes": 802622,
+          "sha256": "68bfe9465b52fd5ff5cea0ac1a088c05d1afe82e458bfa7fc746b08a33d696c8",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            504,
+            296,
+            760,
+            552
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        }
+      }
+    },
+    "fusion_thundercircle": {
+      "id": "fusion_thundercircle",
+      "name": "奧義・雷陣封界",
+      "parents": [
+        "barrier",
+        "thunder"
+      ],
+      "status": "BLOCKED",
+      "art_status": "ART_CANDIDATE",
+      "review_status": "APPROVAL_PENDING",
+      "auto_pass": false,
+      "requires_dev_flags": true,
+      "dev_flags": "dev=1&stage=rain-port&fusioncandidate=1&fusionart=banana",
+      "fallback": "procedural_vector_emblem",
+      "phases": {
+        "main": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+          "bytes": 781858,
+          "sha256": "8ac610ce2c92d71512e2f5cd4f4bee1cf8c398e9852ceed8a9ea5b4913987999",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            68,
+            82,
+            1197,
+            797
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "hit": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+          "bytes": 781858,
+          "sha256": "8ac610ce2c92d71512e2f5cd4f4bee1cf8c398e9852ceed8a9ea5b4913987999",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            68,
+            82,
+            1197,
+            797
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "ground": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+          "bytes": 781858,
+          "sha256": "8ac610ce2c92d71512e2f5cd4f4bee1cf8c398e9852ceed8a9ea5b4913987999",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            68,
+            82,
+            1197,
+            797
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "icon": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+          "bytes": 781858,
+          "sha256": "8ac610ce2c92d71512e2f5cd4f4bee1cf8c398e9852ceed8a9ea5b4913987999",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            504,
+            296,
+            760,
+            552
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        }
+      }
+    },
+    "fusion_exorcistseal": {
+      "id": "fusion_exorcistseal",
+      "name": "奧義・退魔封陣",
+      "parents": [
+        "barrier",
+        "boom"
+      ],
+      "status": "BLOCKED",
+      "art_status": "ART_CANDIDATE",
+      "review_status": "APPROVAL_PENDING",
+      "auto_pass": false,
+      "requires_dev_flags": true,
+      "dev_flags": "dev=1&stage=rain-port&fusioncandidate=1&fusionart=banana",
+      "fallback": "procedural_vector_emblem",
+      "phases": {
+        "main": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_exorcistseal/main_alpha_candidate_v02.webp",
+          "bytes": 995860,
+          "sha256": "95fc2373e064b8924b6fb10de62b17aaa83a2fedf1503370fb40741752550ff4",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            68,
+            45,
+            1194,
+            804
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "hit": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_exorcistseal/hit_alpha_candidate_v01.webp",
+          "bytes": 636220,
+          "sha256": "9f8fd2fbe6770f23e9f9de7fbb139475026f5bff7a4d32024e1e21e42cc3fa12",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            138,
+            55,
+            1146,
+            793
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "ground": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_exorcistseal/ground_alpha_candidate_v01.webp",
+          "bytes": 723426,
+          "sha256": "ce1ad08ec8a60ccde92f3fe98a736971b42d46a684ab5b5a13147a60833a9d3d",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            72,
+            128,
+            1176,
+            760
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "icon": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_exorcistseal/icon_alpha_candidate_v01.webp",
+          "bytes": 361012,
+          "sha256": "cd36d26c4545dc6d3d890b72e1ebf209bf21db61bba09ecb499076a790620c64",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            274,
+            136,
+            971,
+            720
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        }
+      }
+    },
+    "fusion_thundertalisman": {
+      "id": "fusion_thundertalisman",
+      "name": "奧義・雷符神罰",
+      "parents": [
+        "thunder",
+        "boom"
+      ],
+      "status": "BLOCKED",
+      "art_status": "ART_CANDIDATE",
+      "review_status": "APPROVAL_PENDING",
+      "auto_pass": false,
+      "requires_dev_flags": true,
+      "dev_flags": "dev=1&stage=rain-port&fusioncandidate=1&fusionart=banana",
+      "fallback": "procedural_vector_emblem",
+      "phases": {
+        "main": {
+          "alias_of": null,
+          "candidate_source": "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+          "bytes": 411420,
+          "sha256": "d703e9980f9f96728e1671549d4d3690c4fc81bfe1db9e842ad30604d1c2f390",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            288,
+            1,
+            1023,
+            798
+          ],
+          "runtime_url": null,
+          "status": "ART_CANDIDATE",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "hit": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+          "bytes": 411420,
+          "sha256": "d703e9980f9f96728e1671549d4d3690c4fc81bfe1db9e842ad30604d1c2f390",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            288,
+            1,
+            1023,
+            798
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "ground": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+          "bytes": 411420,
+          "sha256": "d703e9980f9f96728e1671549d4d3690c4fc81bfe1db9e842ad30604d1c2f390",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            288,
+            1,
+            1023,
+            798
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        },
+        "icon": {
+          "alias_of": "main",
+          "candidate_source": "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+          "bytes": 411420,
+          "sha256": "d703e9980f9f96728e1671549d4d3690c4fc81bfe1db9e842ad30604d1c2f390",
+          "size": [
+            1264,
+            848
+          ],
+          "bbox": [
+            504,
+            296,
+            760,
+            552
+          ],
+          "runtime_url": null,
+          "status": "CANDIDATE_ALIAS_MAIN",
+          "approval_status": "APPROVAL_PENDING",
+          "blocked": true
+        }
+      }
+    }
+  }
+}

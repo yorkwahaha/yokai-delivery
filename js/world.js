@@ -299,17 +299,21 @@
           const hy = hashCoords(cx * 5 + 3, cy * 7 + 1, seed ^ 0xc0ffee);
           const localX = 260 + (hx % 380);
           const localY = 210 + (hy % 180);
+          const houseY = baseY + localY * spacingScaleY;
           const word = packWords[hashCoords(cx, cy, seed) % packWords.length];
           houses.push({
             id: `${stage.id}:${cx},${cy}:0`,
             phase: (hashCoords(cx * 11, cy * 17, seed) % 10000) / 997,
             chunkKey: key,
             x: baseX + localX,
-            y: baseY + localY * spacingScaleY,
+            y: houseY,
+            footY: houseY + 48,
             dx: baseX + localX,
-            dy: baseY + localY * spacingScaleY + 60,
+            dy: houseY + 60,
             color: pack.color,
-            bType: "shrine_pavilion",
+            // Stage3 has five art variants but retains the same pickup/answer geometry.
+            bType: ["shrine_pavilion", "s3_tea_house", "s3_mountain_house",
+                    "s3_storehouse", "s3_worship_hall"][hashCoords(cx, cy, seed ^ 0x31a) % 5],
             district: pack.name,
             packId: pack.id,
             word
@@ -374,6 +378,7 @@
             chunkKey: key,
             x: hx,
             y: py,
+            footY: py + 48,
             dx: hx,
             dy: py + 60,
             color: pack.color,
@@ -439,14 +444,16 @@
           const word = words[wi++];
           const phaseHash = hashCoords(cx * 11 + slot, cy * 17 + slot, seed);
           const id = `${stage.id}:${cx},${cy}:${slot}`;
+          const houseY = baseY + position[1] * spacingScaleY;
           houses.push({
             id,
             phase: (phaseHash % 10000) / 997,
             chunkKey: key,
             x: baseX + position[0],
-            y: baseY + position[1] * spacingScaleY,
+            y: houseY,
+            footY: houseY + 48,
             dx: baseX + position[0],
-            dy: baseY + position[1] * spacingScaleY + 60,
+            dy: houseY + 60,
             color: pack.color,
             bType: isRainPort
               ? (mod(cx + slot, 2) === 0 ? "port_warehouse" : "port_fishmonger")
@@ -473,7 +480,11 @@
         floorColor: pack.floorColor,
         theme: pack.theme,
         houses,
-        lamps: stage.id === "rain-port" ? [] : [{ x: baseX + chunkWidth / 2 + 62, y: baseY + (chunkHeight / 2 - 62 * spacingScaleY) }],
+        lamps: stage.id === "rain-port" ? [] : [{
+          x: baseX + chunkWidth / 2 + 62,
+          y: baseY + (chunkHeight / 2 - 62 * spacingScaleY),
+          ...(stage.id === "night-town" ? { collidable: false } : {})
+        }],
         decor: {
           torii: stage.id === "rain-port" ? false : stage.id === "sakura-pass" ? false : mod(cx, 3) === 1 && mod(cy, 2) === 0,
           sakuraTrees: stage.id === "rain-port" ? [] : pack.theme === "sakura"
@@ -483,14 +494,19 @@
               ]
             : [],
           // 只在雨夜港町加視覺道具，不新增碰撞，也不改夜行町的房子與道路。
+          // 明確禁用石燈籠/提燈/灯籠 等關鍵字，僅保留碼頭貨堆/船錨/繫船柱/船燈。
           port: stage.id === "rain-port" ? {
             shore: mod(cy, 2) === 1,
-            bounds: bounds, // 同一組戰鬥帶數值供 AGY renderer 消費
-            // 碼頭小物：既有 PORT_ART 真圖（crate 貨堆 / anchor 船錨 / mooring 繫船柱），
-            // 由 hash 決定數量與位置，只落在碼頭線附近且不壓住答題墊。
-            props: portPropsFor(cx, cy)
+            bounds: bounds,
+            props: portPropsFor(cx, cy).filter(p => !/lantern|lamp|toro|beacon|stone_lantern/i.test(p.kind))
           } : null,
-          // 約每五個區塊一棵，腳點在北緣，避開房屋本體與南側答題墊。
+          // These are non-colliding illustrated scene props, not procedural shapes.
+          stage3Props: stage.id === "sakura-pass" ? [
+            {kind: ["stoneLantern", "torii", "marker"][hashCoords(cx, cy, seed ^ 17)%3],
+              x: baseX + 140, y: baseY + 290 * spacingScaleY},
+            {kind: ["mossRocks", "fence", "stoneLantern"][hashCoords(cx, cy, seed ^ 25)%3],
+              x: baseX + 770, y: baseY + 425 * spacingScaleY}
+          ] : [],
           ancientSakura: stage.id === "sakura-pass" && mod(cx * 2 + cy * 3, 5) === 0
             ? [{ x: baseX + 450, y: baseY + 72 * spacingScaleY }]
             : []

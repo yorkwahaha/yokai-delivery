@@ -67,16 +67,51 @@ window.SKILLFX = (() => {
     const image = window.ofudaRasterArt?.(p.ofudaImpact);
     if (!image) return false;
     const age = Math.max(0,p.max-p.life),max = p.ofudaImpact==="max";
-    const emerge = Math.min(1,age/.065);
-    const fade = Math.min(1,p.life/(max?.19:.14));
-    const width = (max?240:[126,136,148,160][Math.min(3,p.rank-1)])
-      *(.73+.27*(1-Math.pow(1-emerge,3)));
-    const paint = () => drawImageArt(ctx,image,{
-      x:p.x,y:p.y-(max?40:28),w:width,
-      ang:motion()?Math.sin(age*6)*.035:0,a:emerge*fade
+    let emerge;
+    if (max) {
+      if (age < 0.12) {
+        const t = age / 0.12;
+        emerge = 0.1 + 1.1 * (1 - Math.pow(1 - t, 3));
+      } else if (age < 0.30) {
+        const t = (age - 0.12) / 0.18;
+        emerge = 1.2 - 0.2 * (t * t * (3 - 2 * t));
+      } else {
+        emerge = 1.0;
+      }
+    } else {
+      const t = Math.min(1, age / 0.065);
+      emerge = 0.73 + 0.27 * (1 - Math.pow(1 - t, 3));
+    }
+    const fade = Math.min(1, p.life / (max ? 0.19 : 0.14));
+    const baseWidth = max ? 240 : [126, 136, 148, 160][Math.min(3, p.rank - 1)];
+    const width = baseWidth * emerge;
+    let jitterX = 0, jitterY = 0;
+    if (max && age > 0.30 && motion()) {
+      const tailAge = Math.min(1, (age - 0.30) / 0.10);
+      const amp = (1 - tailAge) * 6;
+      jitterX = (Math.random() - 0.5) * 2 * amp;
+      jitterY = (Math.random() - 0.5) * 2 * amp;
+    }
+    const alphaEmerge = max ? 0.7 + 0.3 * Math.min(1, age / 0.04) : Math.min(1, age / 0.065);
+    let ang = 0;
+    if (motion()) {
+      if (max && age > 0.30) {
+        const tailAge = Math.min(1, (age - 0.30) / 0.10);
+        ang = Math.sin(age * 6) * 0.035 * (1 - tailAge);
+      } else {
+        ang = Math.sin(age * 6) * 0.035;
+      }
+    }
+    const anchorX = p.x;
+    const anchorY = p.y;
+    const paint = () => drawImageArt(ctx, image, {
+      x: anchorX + jitterX,
+      y: anchorY - (max ? 40 : 28) + jitterY,
+      w: width,
+      ang: ang,
+      a: alphaEmerge * fade
     });
-    // Impact paintings are vertical sprites. Camera pitch acts only on the anchor.
-    if(window.VIEWPORT?.upright) window.VIEWPORT.upright(ctx,p.x,p.y,paint);
+    if (window.VIEWPORT?.upright) window.VIEWPORT.upright(ctx,p.x,p.y,paint);
     else paint();
     return true;
   }

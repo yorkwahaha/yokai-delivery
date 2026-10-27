@@ -57,7 +57,7 @@ window.RENDERER = (() => {
     player_dash_v1:[[101,22,1412,963,768]],player_win_v1:[[111,32,910,1462,512]],player_kneel_v1:[[159,87,953,1161,612]],
     ghost_motion_v1:[[247,50,550,742,443.5],[1032,148,690,660,1330.5]],
     runner_motion_v1:[[26,198,820,492,443.5],[904,239,848,442,1330.5]],
-    boss_motion_v1:[[16,42,871,778,443.5],[887,36,882,781,1330.5]],
+    boss_motion_v1:[[16,42,871,778,443.5],[800,36,969,781,1330.5]],
     mis_motion_v1:[[240,13,526,850,443.5],[1045,35,604,828,1330.5]],
     tank_motion_v1:[[28,30,859,809,443.5],[887,103,863,735,1330.5]],
     shooter_motion_v1:[[161,140,515,627,443.5],[1042,152,625,623,1330.5]],
@@ -251,7 +251,7 @@ window.RENDERER = (() => {
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
   function triggerHitStop(duration = 0.04) {
-    if (allowsMotion()) hitStop = duration;
+    if (allowsMotion()) hitStop = Math.max(hitStop, Math.min(0.06, Math.max(0, duration)));
   }
 
   function triggerShake(intensity = 8) {
@@ -360,7 +360,9 @@ window.RENDERER = (() => {
     if (currentStageId() === "rain-port" && (
       image === window.ART?.prop_lantern ||
       image === window.ART?.prop_port_lighthouse ||
-      image === window.PORT_ART?.beacon
+      image === window.PORT_ART?.beacon ||
+      image === window.ART?.stone_lantern ||
+      image === window.PORT_ART?.stone_lantern
     )) return false;
     return drawStyledSceneryImage(ctx,image,x,y,w,h,alpha);
   }
@@ -470,30 +472,53 @@ window.RENDERER = (() => {
     }
     c.restore();
   }
-  // 同一材質只鋪一張能自接的 var1。compat 母圖/變體/交界圖未接入。
-  // 世界 X 的一條 512 磚。tx 3 是 1536–2048，跨在 chunk 1800 中間，不是 chunk 邊界。
-  const SAKURA_SEAM_TX = 3;
-  function sakuraTileRole(tx) {
-    const col = Math.floor(Number(tx) || 0);
-    if (col < SAKURA_SEAM_TX) return "dirt";
-    if (col === SAKURA_SEAM_TX) return "transH";
-    return "steps";
+  // A single illustrated dirt texture fills Stage3; all stone steps are independent
+  // transparent image decals, laid out in world coordinates (no geometric VFX art).
+  const SAKURA_PATH_ROLES = Object.freeze([
+    "stoneStraight", "stoneLeft", "stoneRight", "stoneBroken", "stoneSparse", "stoneMixed"
+  ]);
+  function sakuraPathHash(x, y) {
+    let v = Math.imul((x | 0) ^ 0x9e3779b9, 0x85ebca6b);
+    v ^= Math.imul((y | 0) ^ 0x7f4a7c15, 0xc2b2ae35);
+    v = Math.imul(v ^ (v >>> 16), 0x7feb352d);
+    return (v ^ (v >>> 15)) >>> 0;
   }
-  function sakuraArtReady() {
-    const art = window.SAKURA_ART || {};
-    return !!(art.dirt?.naturalWidth && art.transH?.naturalWidth && art.steps?.naturalWidth);
+  function paintSakuraPathDecals(c, left, top, right, bottom) {
+    const arts = window.SAKURA_ART || {};
+    if (!SAKURA_PATH_ROLES.some(role => arts[role]?.naturalWidth)) return;
+    const spanX = 900, spanY = 174;
+    const c0 = Math.floor((left - 240) / spanX), c1 = Math.ceil((right + 240) / spanX);
+    const y0 = Math.floor((top - 250) / spanY), y1 = Math.ceil((bottom + 250) / spanY);
+    for (let lane = c0; lane <= c1; lane++) {
+      for (let row = y0; row <= y1; row++) {
+        const noise = sakuraPathHash(lane, row);
+        const bend = Math.sin(row * 0.73 + lane * 0.46) * 56
+          + Math.sin(row * 0.27 + lane * 1.31) * 31;
+        const x = lane * spanX + 450 + bend;
+        const y = row * spanY + 86 + ((noise >>> 16) % 35) - 17;
+        // Natural broken/overgrown patches interrupt every long stone run.
+        const preferred = ((noise >>> 5) % 11 < 3) ? 3 + (noise % 3) : noise % 3;
+        const role = SAKURA_PATH_ROLES[preferred];
+        const img = arts[role]?.naturalWidth ? arts[role]
+          : SAKURA_PATH_ROLES.map(k => arts[k]).find(a => a?.naturalWidth);
+        if (!img) continue;
+        const width = 170 + ((noise >>> 11) % 25);
+        const height = width * img.naturalHeight / img.naturalWidth;
+        c.drawImage(img, x - width / 2, y - height / 2, width, height);
+      }
+    }
   }
   // S2 Nano Production Art: Direct loading of new Nano Banana 2.1 images from scene directory
-  // These are 2K (2048x2048) images that need to be tiled at 512 for seamless rendering
+  // The retained Stage2 1254px PNG originals are referenced only by local DEV comparison.
   const S2_NANO_PATHS = {
-    stone: "art/stage2-rain-port/scene/G_ground_stone_nano_nb21_v1.png",
-    stoneVar1: "art/stage2-rain-port/scene/G_ground_stone_var1_nano_nb21_v1.png",
-    wood: "art/stage2-rain-port/scene/G_ground_wood_dock_nano_nb21_v1.png",
-    woodVar1: "art/stage2-rain-port/scene/G_ground_wood_dock_var1_nano_nb21_v1.png",
-    transH: "art/stage2-rain-port/scene/G_trans_stone_wood_h_nano_nb21_v1.png",
-    transV: "art/stage2-rain-port/scene/G_trans_stone_wood_v_nano_nb21_v1.png",
-    warehouse: "art/stage2-rain-port/scene/H_port_warehouse_nano_nb21_v1.png",
-    fishmonger: "art/stage2-rain-port/scene/H_fishmonger_nano_nb21_v1.png"
+    stone: "art/stage2-rain-port/scene/g_stone_01.png",
+    stoneVar1: "art/stage2-rain-port/scene/g_stone_02.png",
+    wood: "art/stage2-rain-port/scene/g_wood_01.png",
+    woodVar1: "art/stage2-rain-port/scene/g_wood_02.png",
+    transH: "art/stage2-rain-port/scene/t_stone_wood_v01.png",
+    transV: "art/stage2-rain-port/scene/t_stone_wood_v01.png",
+    warehouse: "art/stage2-rain-port/scene/H_warehouse_01.png",
+    fishmonger: "art/stage2-rain-port/scene/H_fishworkshop_01.png"
   };
   const S2_NANO_CACHE = {
     stone: null, stoneVar1: null, wood: null, woodVar1: null,
@@ -937,18 +962,10 @@ window.RENDERER = (() => {
         if (stoneBottom > stoneTop && stoneSrc) {
           c.save();
           c.beginPath(); c.rect(rl, stoneTop, rr - rl, stoneBottom - stoneTop); c.clip();
-          tileImage(c, stoneSrc, rl, stoneTop, rr, stoneBottom, tScale);
+          // Painted once globally after the chunk loop to avoid vertical clip seams.
 
           // 消除地板直線切邊：於石板頂端 (minY) 鋪設柔和暗霧過渡，平滑融入北側山崖基座
-          if (stoneTop <= minY + 2) {
-            const edgeH = Math.min(28, stoneBottom - stoneTop);
-            const edgeGrad = c.createLinearGradient(0, minY, 0, minY + edgeH);
-            edgeGrad.addColorStop(0, "rgba(8, 12, 26, 0.78)");
-            edgeGrad.addColorStop(0.4, "rgba(8, 12, 26, 0.35)");
-            edgeGrad.addColorStop(1, "rgba(8, 12, 26, 0)");
-            c.fillStyle = edgeGrad;
-            c.fillRect(rl, minY, rr - rl, edgeH);
-          }
+// North edge gradient is applied globally below.
           c.restore();
 
           if (surfaceCand && window.PORT_ART?.stoneReflection?.naturalWidth) {
@@ -972,7 +989,7 @@ window.RENDERER = (() => {
         if (woodBottom > woodTop && woodSrc) {
           c.save();
           c.beginPath(); c.rect(rl, woodTop, rr - rl, woodBottom - woodTop); c.clip();
-          tileImage(c, woodSrc, rl, woodTop, rr, woodBottom, tScale);
+          // Painted once globally after the chunk loop to avoid vertical clip seams.
           c.restore();
         }
       }
@@ -1004,6 +1021,33 @@ window.RENDERER = (() => {
         }
         c.restore();
       }
+    }
+
+    // Once, in a single WORLD-ALIGNED pass, paint the two continuous walkable
+    // bands. Repeated per-chunk clipping exposed a 1px dark vertical boundary
+    // (especially at non-integer camera/tilt scales). Same approved art/picker.
+    const groundLeft = left, groundRight = left + width;
+    const paintWholeBand = (tile, bandTop, bandBottom) => {
+      const y0 = Math.max(top, bandTop), y1 = Math.min(top + height, bandBottom);
+      if (!tile || y1 <= y0) return;
+      c.save();
+      c.beginPath(); c.rect(groundLeft, y0, width, y1 - y0); c.clip();
+      tileImage(c, tile, groundLeft, y0, groundRight, y1, tScale);
+      c.restore();
+    };
+    paintWholeBand(kitStonePick || stoneTile, minY, dockSeamY);
+    paintWholeBand(kitWoodPick || woodTile, dockSeamY, maxY);
+    // Draw the north edge only once as well; never once per chunk.
+    if ((kitStonePick || stoneTile) && minY < top + height && minY + 28 > top) {
+      c.save();
+      const edgeH = 28;
+      const edgeGrad = c.createLinearGradient(0, minY, 0, minY + edgeH);
+      edgeGrad.addColorStop(0, "rgba(8, 12, 26, 0.78)");
+      edgeGrad.addColorStop(0.4, "rgba(8, 12, 26, 0.35)");
+      edgeGrad.addColorStop(1, "rgba(8, 12, 26, 0)");
+      c.fillStyle = edgeGrad;
+      c.fillRect(left, minY, width, edgeH);
+      c.restore();
     }
 
     // 3b. 南側真海面 (y > maxY)：整條可見南帶以同一張真海圖鋪滿，不留純黑、不壓進中央戰鬥帶
@@ -1149,13 +1193,15 @@ window.RENDERER = (() => {
     }
 
     // Render props (south side, near maxY and beyond) - distribute along dock/sea edge
-    if (props.length > 0) {
+    // 過濾掉石燈籠/提燈/灯籠/beacon/stone_lantern/toro/lighthouse 等關鍵字；僅保留碼頭貨堆/船錨/繫船柱/船燈
+    const validProps = props.filter(p => !/lantern|lamp|toro|beacon|stone_lantern|lighthouse/i.test(p.id || ""));
+    if (validProps.length > 0) {
       const stride = 285;
       const first = Math.floor((viewLeft - 170) / stride);
       const last = Math.ceil((viewRight + 170) / stride);
       for (let slot = first; slot <= last; slot++) {
-        const index = ((slot % props.length) + props.length) % props.length;
-        const prop = props[index];
+        const index = ((slot % validProps.length) + validProps.length) % validProps.length;
+        const prop = validProps[index];
         if (!prop?._loaded || !prop._img?.naturalWidth) continue;
         const px = slot * stride + 105;
         const isBoat = /boat/.test(prop.id || "");
@@ -1430,8 +1476,11 @@ window.RENDERER = (() => {
     c.save();c.beginPath();c.rect(left,top,width,height);c.clip();
     // 1024 原稿仍建對齊用 atlas（驗收讀 putImageData）。畫面上只貼原圖，不抽 512 變體。
     if (stageId !== "rain-port") {
-      if (groundImg && groundImg.naturalWidth === 1024 && groundImg.naturalHeight === 1024) groundAtlasFor(groundImg);
-      tileImage(c, groundImg, left, top, left + width, top + height);
+      const surface = stageId === "sakura-pass"
+        ? (window.SAKURA_ART?.dirt?.naturalWidth ? window.SAKURA_ART.dirt : groundImg)
+        : groundImg;
+      if (surface && surface.naturalWidth === 1024 && surface.naturalHeight === 1024) groundAtlasFor(surface);
+      tileImage(c, surface, left, top, left + width, top + height);
     }
     if (stageId === "rain-port") {
       const stoneTile = portGroundPick("stone")();
@@ -1458,8 +1507,8 @@ window.RENDERER = (() => {
         paintPortTransitionSeams(c, chunks, region);
       }
     }
-    if (stageId === "sakura-pass" && sakuraArtReady()) {
-      tileImage(c, tx => window.SAKURA_ART[sakuraTileRole(tx)], left, top, left + width, top + height);
+    if (stageId === "sakura-pass") {
+      paintSakuraPathDecals(c, left, top, left + width, top + height);
     }
     // Stage8 preview: overlay extracted items on approved fallback ground (DEV-ONLY, ?dev=1&stage8preview=1)
     // Source: irregular 1448x1086 sprite sheet -> pre-extracted items in art/stage8-yomi/sliced/
@@ -1523,7 +1572,7 @@ window.RENDERER = (() => {
         }).join("|") + `|bounds:${boundsStamp}|s2:${s2Stamp}|kit:${kitStamp}`
       : "";
     const sakuraStamp = stageId === "sakura-pass"
-      ? ["dirt", "transH", "steps"].map(role => {
+      ? ["dirt", ...SAKURA_PATH_ROLES].map(role => {
           const img = window.SAKURA_ART?.[role];
           return `${img?.currentSrc || img?.src || ""}:${img?.naturalWidth || 0}`;
         }).join("|")
@@ -1597,7 +1646,8 @@ window.RENDERER = (() => {
     }
   }
   function drawPortProp(p, viewerY = null) {
-    if (p.kind === "lamp" || p.kind === "lantern" || p.kind === "prop_lantern" || p.kind === "beacon") return;
+    // 雨港嚴禁石燈籠/提燈/灯籠/beacon/stone_lantern/toro 等關鍵字道具；僅保留碼頭貨堆/船錨/繫船柱/船燈
+    if (/lantern|lamp|toro|beacon|stone_lantern/i.test(p.kind)) return;
     if (p.kind === "mooring") {
       const portBounds = getPortBounds(window.WORLD_STATE?.chunks);
       if (portBounds && p.y < portBounds.maxY - 40) return;
@@ -1641,25 +1691,35 @@ window.RENDERER = (() => {
   // All ground-contact shadows are rendered BEFORE the upright projection.
   // Their height is flattened by the world camera's current tilt, continuously.
   function drawLampShadow(l) {
+    // 雨港無石燈籠/提燈/灯籠，直接返回
     if (currentStageId() === "rain-port") return;
     ctx.save();ctx.fillStyle="rgba(17,14,17,0.42)";
     ctx.beginPath();ctx.ellipse(l.x,l.y+8,16,6,0,0,6.28);ctx.fill();
     ctx.restore();
   }
   function drawHouseShadow(h) {
+    // Subtle contact shadow only - no large floating ellipse.
+    // Keep material's baked-in shadows; add only a thin grounding line at building base.
     const bw = h.bType === "port_fishmonger" ? 201 : h.bType === "port_warehouse" ? 187 : h.bType === "house_tavern" ? 175 : h.bType === "house_shrine" ? 158 : h.bType === "house_shop" ? 166 : 0;
-    const rx = bw > 0 ? Math.round(bw * 0.44) : 58;
-    const ry = bw > 0 ? 16 : 14;
-    ctx.save();ctx.fillStyle="rgba(17,14,17,0.48)";
-    ctx.beginPath();ctx.ellipse(h.x,h.y+46,rx,ry,0,0,6.28);ctx.fill();
+    if (bw === 0) return;
+    const rx = Math.round(bw * 0.35);
+    const ry = 6;
+    ctx.save();
+    ctx.fillStyle = "rgba(16, 14, 17, 0.18)";
+    ctx.beginPath();
+    ctx.ellipse(h.x, h.y + 48, rx, ry, 0, 0, 6.283);
+    ctx.fill();
     ctx.restore();
   }
-  function drawPlayerShadow(P, elapsed, moveDir = {x:0,y:0}) {
+  function drawPlayerShadow(P, elapsed, moveDir = {x:0,y:0}, moveSpeed = 230) {
     const moving=Math.hypot(moveDir.x||0,moveDir.y||0)>0.1 && allowsMotion();
-    const bob=moving?Math.abs(Math.sin(elapsed*12))*1.5:0;
-    const size=1-bob/18;
-    ctx.save();ctx.fillStyle="rgba(0,0,0,0.39)";
-    ctx.beginPath();ctx.ellipse(P.x,P.y+22,28*size,11*size,0,0,6.28);ctx.fill();
+    const speedScale = Math.max(0.8, Math.min(2.0, (moveSpeed || 230) / 230));
+    const strideFreq = 12 * speedScale;
+    const bob=moving?Math.abs(Math.sin(elapsed*strideFreq))*1.5:0;
+    const spritecook = !!window.SPRITECOOK_DEV?.ready?.(moving ? "run" : "idle");
+    const size=spritecook ? 1 : 1-bob/18;
+    ctx.save();ctx.fillStyle=spritecook ? "rgba(0,0,0,0.32)" : "rgba(0,0,0,0.39)";
+    ctx.beginPath();ctx.ellipse(P.x,P.y+(spritecook?2:22),spritecook?22:28*size,spritecook?7:11*size,0,0,6.28);ctx.fill();
     ctx.restore();
   }
   function drawMonsterShadow(e) {
@@ -1669,11 +1729,38 @@ window.RENDERER = (() => {
     ctx.restore();
   }
 
+  // Third-stage optional illustrated props are depth-sorted like actors.
+  function drawSakuraProp(prop, viewerY = null) {
+    const img = window.SAKURA_ART?.[prop.kind];
+    if (!img?.naturalWidth) return;
+    const widths = {stoneLantern: 55, torii: 142, fence: 118, marker: 60, mossRocks: 98};
+    const bw = widths[prop.kind] || 84;
+    const depth = sceneryDepth(prop.y, viewerY);
+    const w = bw * depth.scale;
+    const h = w * (img.naturalHeight / img.naturalWidth);
+    ctx.save();
+    ctx.fillStyle = "rgba(25,21,18,0.24)";
+    ctx.beginPath();ctx.ellipse(prop.x, prop.y, w * 0.24, 9, 0, 0, 6.28);ctx.fill();
+    ctx.restore();
+    window.VIEWPORT?.upright?.(ctx, prop.x, prop.y, () => {
+      drawStyledSceneryImage(ctx, img, prop.x - w / 2, prop.y - h, w, h, 1, prop.kind, depth.blur);
+    });
+  }
+
   // 繪製高精緻度日式町屋店鋪（真實店鋪 Sprite + 障子金光 + 和風招牌）
   function drawHouse(h, viewerY = null) {
     ctx.save();
-    if (h.bType === "shrine_pavilion") {
-      const img = window.SAKURA_ART?.pavilion;
+    if (h.bType === "shrine_pavilion" || h.bType?.startsWith("s3_")) {
+      const variants = {
+        shrine_pavilion: ["pavilion", "神社"],
+        s3_tea_house: ["teaHouse", "山道茶屋"],
+        s3_mountain_house: ["mountainHouse", "山宿"],
+        s3_storehouse: ["storehouse", "山倉"],
+        s3_worship_hall: ["worshipHall", "拜殿"]
+      };
+      const [role, title] = variants[h.bType] || variants.shrine_pavilion;
+      const img = window.SAKURA_ART?.[role]?.naturalWidth
+        ? window.SAKURA_ART[role] : window.SAKURA_ART?.pavilion;
       const signY = h.y + 36;
       ctx.textAlign = "center";
       ctx.font = UI.readableFont(21, "400").replace(
@@ -1686,16 +1773,16 @@ window.RENDERER = (() => {
         const bh0 = bw0 * (img.naturalHeight / img.naturalWidth);
         const bw = bw0 * depth.scale;
         const bh = bh0 * depth.scale;
-        const top = (h.y + 48) - bh * (430 / 440);
+        const top = (h.y + 48) - bh;
         drawStyledSceneryImage(ctx, img, h.x - bw / 2, top, bw, bh, 1, h.bType, depth.blur);
         ctx.fillStyle = "#e3d0a8";
         ctx.strokeStyle = "#e3d0a8";
         ctx.lineWidth = 0.7;
-        ctx.strokeText("神社", h.x, signY + 23, 124);
-        ctx.fillText("神社", h.x, signY + 23, 124);
+        ctx.strokeText(title, h.x, signY + 23, 124);
+        ctx.fillText(title, h.x, signY + 23, 124);
       } else {
         ctx.fillStyle = "#e3d0a8";
-        ctx.fillText(window.SAKURA_ART_STATUS?.pavilion === "error" ? "神社圖載入失敗" : "神社圖載入中", h.x, signY + 23, 124);
+        ctx.fillText(title + "（候選圖待匯入）", h.x, signY + 23, 180);
       }
       ctx.restore();
       return;
@@ -1807,13 +1894,17 @@ window.RENDERER = (() => {
   }
 
   // 繪製主角（高解析度 Chibi + 步伐彈跳 + 衝刺殘影）
-  function drawPlayer(P, isDashing, inv, elapsed, moveDir, shield = 0, isSlashing = false, isHurt = false) {
+  function drawPlayer(P, isDashing, inv, elapsed, moveDir, shield = 0, isSlashing = false, isHurt = false, moveSpeed = 230) {
     ctx.save();
     const isMoving = Math.hypot(moveDir.x, moveDir.y) > 0.1;
     const motion = allowsMotion();
     if (!motion) ghostTrails = [];
     // 1. 步伐彈跳物理 (Procedural Spring Step Bob)
-    const walkBob = isMoving && motion && !isHurt ? Math.abs(Math.sin(elapsed * 12)) * 1.5 : 0;
+    const atlasKind = isHurt || isDashing ? null : isSlashing ? "attack" : isMoving ? "run" : "idle";
+    const spriteAtlasReady = !!(atlasKind && window.SPRITECOOK_DEV?.ready?.(atlasKind));
+    const speedScale = Math.max(0.8, Math.min(2.0, (moveSpeed || 230) / 230));
+    const strideFreq = 12 * speedScale;
+    const walkBob = spriteAtlasReady ? 0 : isMoving && motion && !isHurt ? Math.abs(Math.sin(elapsed * strideFreq)) * 1.5 : 0;
 
     // 2. 彈性骨骼與次級動態 (Squash & Stretch, Lean Tilt, Secondary Inertial Shear)
     let squash = 1, stretch = 1, leanAng = 0, shearX = 0;
@@ -1824,9 +1915,9 @@ window.RENDERER = (() => {
         stretch = 0.88;
         leanAng = 0.16;
         shearX = -0.10;
-      } else if (isMoving) {
+      } else if (isMoving && !spriteAtlasReady) {
         // 跑步步伐有機彈性：著地與起跳交替起伏
-        const stridePhase = Math.sin(elapsed * 12);
+        const stridePhase = Math.sin(elapsed * strideFreq);
         squash = 1.0 + stridePhase * 0.018;
         stretch = 1.0 - stridePhase * 0.015;
         // 跑步身體微前傾
@@ -1919,7 +2010,15 @@ window.RENDERER = (() => {
       ctx.globalAlpha = 0.4;
     }
 
-    if (pImg) {
+    const devSprites = window.SPRITECOOK_DEV;
+    const devKind = atlasKind;
+    const devFrame = devSprites?.frame(devKind, elapsed, motion, moveSpeed);
+    if (devFrame) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(devFrame.image, devFrame.index*640, 0, 640, 640, -poseHeight/2, -poseHeight + devFrame.footPad*poseHeight/640, poseHeight, poseHeight);
+      if (devKind === "attack") devSprites.drawSlash(ctx, devFrame.index);
+    } else if (pImg) {
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
       drawFrame(ctx,pImg,pKey,0,0,20,poseHeight);
@@ -1985,6 +2084,11 @@ window.RENDERER = (() => {
       drawUmibozuWaterBase(ctx, elapsed, spec.scale, !!e.walking);
     }
 
+    // Local contact recoil; water base, shadows and telegraphs keep their real position.
+    if (motion && e.type !== "boss" && e.hitReactT > 0) {
+      const phase = Math.max(0, Math.min(1, e.hitReactT / 0.14));
+      ctx.translate((e.hitReactDir || 1) * 8 * Math.sin(Math.PI * phase), 0);
+    }
     ctx.scale(dir * nativeFacing, 1);
 
     // Bounded 軟骨：呼吸/行走時的 squash/stretch/lean/shear（不只全身位移漂浮）
@@ -2086,6 +2190,8 @@ window.RENDERER = (() => {
   function drawMonster(e, P, elapsed) {
     if (e.type === "shiome" || e.umibozu) {
       drawStage2Actor(e, P, elapsed);
+      // All rain-port bosses use this renderer; gatekeepers still need their
+      // quiz shield, while drawBossSeal() itself handles shield=false.
       if (e.umibozu && !e.dying) drawBossSeal(e, elapsed);
       return;
     }
@@ -2147,7 +2253,10 @@ window.RENDERER = (() => {
     }
 
     // Enemy contact shadow is rendered separately in world floor space.
-    ctx.translate(e.x, e.y + bob);
+    // Visual-only recoil without moving collisions or world-space sort points.
+    const recoilPhase = motion ? Math.max(0, Math.min(1, (e.hitReactT || 0) / 0.14)) : 0;
+    const recoilX = isBoss ? 0 : (e.hitReactDir || 1) * 9 * Math.sin(Math.PI * recoilPhase);
+    ctx.translate(e.x + recoilX, e.y + bob);
     ctx.scale(scaleX * sX, sY);
     if (tilt !== 0) ctx.rotate(tilt);
 
@@ -2751,9 +2860,9 @@ window.RENDERER = (() => {
     ctx.restore();
   }
 
-  // 雨港 tidalFan / rainVortex。DEV 候選且水紋 drawImage 成功才是 IMAGE。
+  // 雨港 tidalFan / rainVortex。D3 原 gate：DEV 候選且水紋 drawImage 成功才是 IMAGE。
   // 正常頁、缺圖、載入中都回舊安全幾何，handled=true，分類 LEGACY_SAFETY_FALLBACK。
-  // slam / charge / ring / tide 仍回 false，交給 game 的 C3 fallback。
+  // 四標準 kind 另走 dev=1&bossart=1 跨關 gate；缺圖／gate 關／未知 kind 回 false 交 game C3。
   let bossHazardPass = "UNHANDLED";
 
   function bossHazardImageDev() {
@@ -2784,57 +2893,316 @@ window.RENDERER = (() => {
     c.restore();
   }
 
-  function paintTidalFan(c, img, h, phase, elapsed, motion) {
-    const start0 = Number.isFinite(h.startAngle) ? h.startAngle : (h.angle || 0) - Math.PI / 3;
-    const end0 = Number.isFinite(h.endAngle) ? h.endAngle : (h.angle || 0) + Math.PI / 3;
-    const coreR = h.r > 0 ? h.r : 200;
-    const pad = Math.PI / 12;
-    const reach = coreR + 30;
-    const start = start0 - pad;
-    const end = end0 + pad;
-    let base = motion ? 0.5 + 0.16 * Math.sin((Number(elapsed) || 0) * 7) : 0.66;
-    let hot = base;
-    let sweep = null;
-    if (phase === "active") {
-      const dur = h.duration > 0 ? h.duration : 0.15;
-      const u = Math.min(1, Math.max(0, (Number(h.t) || 0) / dur));
-      sweep = start0 + (end0 - start0) * u;
-      base = 0.42;
-      hot = u < 0.5 ? 0.72 : 0.92;
-    } else if (phase === "recovery") {
-      const dur = h.duration > 0 ? h.duration : 1.35;
-      base = 0.36 * Math.max(0, 1 - (Number(h.t) || 0) / dur);
-      hot = base;
+  // BOSS-IMAGE-PROD-R2：跨關 DEV 圖片候選。
+  // 四標準 kind 缺圖／gate 關／未知 kind 一律 false 交 game C3；
+  // fan/vortex 仍走原 D3 ripple gate，維持 LEGACY_SAFETY_FALLBACK。
+  // BOSS 危險圖片渲染接口：
+  // - defs=BOSS_HAZARD_ART：危險圖片定義（slam/charge/ring/tide）
+  // - 圖片=BOSS_HAZARD_ART_IMG：渲染用的圖片實例
+  // - gate=isBossHazardArtEnabled dev=1&bossart=1：僅在 URL 參數 dev=1&bossart=1 時啟用
+  function bossHazardArt(kind) {
+    if (kind !== "slam" && kind !== "charge" && kind !== "ring" && kind !== "tide" && kind !== "tidalFan" && kind !== "rainVortex") return null;
+    if (typeof window === "undefined" || window.isBossHazardArtEnabled?.() !== true) return null;
+    const image = window.BOSS_HAZARD_ART_IMG?.[kind];
+    const def = window.BOSS_HAZARD_ART?.[kind];
+    if (!image || !def || !(image.naturalWidth > 0) || !(image.naturalHeight > 0)) return null;
+    return { image, bbox: def.bbox, def };
+  }
+
+  function bossPhaseAlpha(h, elapsed, motion) {
+    const u = Math.max(0, Math.min(1, (Number(h.t) || 0) / (h.duration > 0 ? h.duration : 1)));
+    if (h.phase === "recovery") return 0.36 * (1 - u);
+    if (h.phase === "active") return 0.9;
+    return motion ? 0.58 + 0.1 * Math.sin((Number(elapsed) || 0) * 7) : 0.68;
+  }
+
+  // 只裁 alpha bbox；旋轉時繞目標框中心，讓圖案跟著真危險幾何。
+  function bossImageBox(c, art, x, y, w, h, angle = 0) {
+    const [l, t, r, b] = art.bbox || [];
+    const sw = r - l, sh = b - t;
+    if (!(sw > 0 && sh > 0 && w > 0 && h > 0)) return 0;
+    c.save();
+    if (angle) {
+      c.translate(x + w / 2, y + h / 2);
+      c.rotate(angle);
+      c.drawImage(art.image, l, t, sw, sh, -w / 2, -h / 2, w, h);
+    } else {
+      c.drawImage(art.image, l, t, sw, sh, x, y, w, h);
     }
-    if (!(base > 0.02)) return 0;
-    let n = 0;
-    const sector = (a0, a1, alpha) => {
-      c.save();
+    c.restore();
+    return 1;
+  }
+
+  // slam：真危險圓 h.r；圖片只在水紋 bbox 內，不外擴 r+30。
+  function paintSlam(c, art, h) {
+    const r = h.r > 0 ? h.r : 150;
+    c.beginPath();
+    c.arc(h.x, h.y, r, 0, Math.PI * 2);
+    c.clip();
+    return bossImageBox(c, art, h.x - r, h.y - r, r * 2, r * 2);
+  }
+
+  // charge：預告 403x104 朝向帶＋端點；active/recovery 只跟真 owner。
+  function paintCharge(c, art, h, owner) {
+    const r = h.r > 0 ? h.r : 52;
+    const angle = Number.isFinite(h.angle) ? h.angle : 0;
+    if ((h.phase || "telegraph") !== "telegraph") {
+      // 不可用 h.x/h.y 冒充真 Boss；缺 owner 由 handler 回 false。
+      if (!owner || !Number.isFinite(owner.x) || !Number.isFinite(owner.y)) return 0;
       c.beginPath();
-      c.moveTo(h.x, h.y);
-      c.arc(h.x, h.y, reach, a0, a1);
-      c.closePath();
+      c.arc(owner.x, owner.y, r, 0, Math.PI * 2);
       c.clip();
-      drawRippleCircle(c, img, h.x, h.y, reach * 2, alpha);
-      c.restore();
-      c.save();
-      c.globalAlpha = Math.min(0.85, alpha);
-      c.strokeStyle = "rgba(210, 244, 255, 0.95)";
-      c.lineWidth = 1.5;
-      c.beginPath();
-      c.moveTo(h.x, h.y);
-      c.arc(h.x, h.y, reach, a0, a1);
-      c.closePath();
-      c.stroke();
-      c.restore();
-      n += 1;
-    };
-    sector(start, end, base);
-    if (sweep != null) sector(sweep - pad, sweep + pad, hot);
+      return bossImageBox(c, art, owner.x - r, owner.y - r, r * 2, r * 2, angle - Math.PI / 4);
+    }
+    const length = 620 * 0.65; // 403 world units, 與 BOSS_AI active travel 同長
+    c.translate(h.x, h.y);
+    c.rotate(angle);
+    c.beginPath();
+    c.moveTo(0, -r);
+    c.lineTo(length, -r);
+    c.arc(length, 0, r, -Math.PI / 2, Math.PI / 2);
+    c.lineTo(0, r);
+    c.arc(0, 0, r, Math.PI / 2, Math.PI * 1.5);
+    c.closePath();
+    c.clip();
+    let n = 0;
+    for (let x = -r; x < length + r; x += r * 1.75) {
+      n += bossImageBox(c, art, x, -r, r * 2, r * 2, -Math.PI / 4);
+    }
+    // 端點：同一主圖，依 h.angle 對齊，畫在完整 403 路徑尾端。
+    n += bossImageBox(c, art, length - r, -r, r * 2, r * 2, -Math.PI / 4);
     return n;
   }
 
-  function paintRainVortex(c, img, h, phase, elapsed, motion) {
+  // ring：精確 prevR-28..h.r+28 帶；gap 與內洞由 clip 留空，不用時間重推半徑。
+  function paintRing(c, art, h) {
+    const current = h.r > 0 ? h.r : 80;
+    const previous = Number.isFinite(h.prevR) && h.prevR > 0 ? h.prevR : current;
+    const inner = Math.max(0, previous - 28);
+    const outer = current + 28;
+    if (!(outer > inner)) return -1;
+    const gap = Number.isFinite(h.gapAngle) ? h.gapAngle : 0;
+    const gapWidth = Number.isFinite(h.gapWidth) && h.gapWidth > 0
+      ? Math.min(h.gapWidth, Math.PI * 2)
+      : Math.PI / 2;
+    if (gapWidth >= Math.PI * 2 - 1e-6) return -1;
+    const a0 = gap + gapWidth / 2;
+    const a1 = gap + Math.PI * 2 - gapWidth / 2;
+    c.beginPath();
+    c.arc(h.x, h.y, outer, a0, a1);
+    c.lineTo(h.x + Math.cos(a1) * inner, h.y + Math.sin(a1) * inner);
+    c.arc(h.x, h.y, inner, a1, a0, true);
+    c.closePath();
+    c.clip();
+    // 單向月牙不可只貼一張：同圖多方向旋轉，讓危險環周界都有主圖。
+    let n = 0;
+    for (let i = 0; i < 6; i++) {
+      n += bossImageBox(c, art, h.x - outer, h.y - outer, outer * 2, outer * 2, i * Math.PI / 3);
+    }
+    return n;
+  }
+
+  // tide：h.progress 真波前 ±60；lateral 兩段危險區排除 safeOffset±safeWidth/2。
+  function bossVisibleLateral(c, h, cos, sin) {
+    if (c.canvas && typeof c.getTransform === "function") {
+      const m = c.getTransform(), det = m.a * m.d - m.b * m.c;
+      if (Number.isFinite(det) && Math.abs(det) > 1e-12) {
+        const values = [];
+        for (const [px, py] of [[0, 0], [c.canvas.width, 0], [0, c.canvas.height], [c.canvas.width, c.canvas.height]]) {
+          const wx = (m.d * (px - m.e) - m.c * (py - m.f)) / det;
+          const wy = (-m.b * (px - m.e) + m.a * (py - m.f)) / det;
+          values.push(-sin * (wx - h.x) + cos * (wy - h.y));
+        }
+        return [Math.floor(Math.min(...values)) - 2, Math.ceil(Math.max(...values)) + 2];
+      }
+    }
+    const span = Math.max(1400, c.canvas?.width || 1600, c.canvas?.height || 900);
+    return [-span, span];
+  }
+
+  function paintTide(c, art, h) {
+    const angle = Number.isFinite(h.angle) ? h.angle : 0;
+    const cos = Math.cos(angle), sin = Math.sin(angle);
+    const lateral = bossVisibleLateral(c, h, cos, sin);
+    const progress = Number.isFinite(h.progress) ? h.progress : -280;
+    const offset = Number.isFinite(h.safeOffset) ? h.safeOffset : 0;
+    const half = (h.safeWidth > 0 ? h.safeWidth : 130) / 2; // 65
+    const safeLeft = offset - half;
+    const safeRight = offset + half;
+    
+    // 兩側危險帶（世界座標 lateral 軸）
+    const strips = [
+      [lateral[0], Math.min(lateral[1], safeLeft)],   // 左危險帶
+      [Math.max(lateral[0], safeRight), lateral[1]]   // 右危險帶
+    ];
+    if (!strips.some(([lo, hi]) => hi > lo)) return -1;
+    
+    // 源圖裁切參數（1254 寬）
+    const SRC_W = art.image.naturalWidth || 1254;
+    const SRC_H = art.image.naturalHeight || 1254;
+    const LEFT_BANK_SX = 0, LEFT_BANK_EX = 559, LEFT_BANK_SW = 560;
+    const RIGHT_BANK_SX = 737, RIGHT_BANK_EX = 1254, RIGHT_BANK_SW = 517;
+    const BANK_SY = 117, BANK_SH = 944; // 從 alpha_bbox [0,117,1254,1061]
+    
+    c.translate(h.x, h.y);
+    c.rotate(angle);
+    c.beginPath();
+    for (const [lo, hi] of strips) {
+      if (!(hi > lo)) continue;
+      c.moveTo(progress - 60, lo);
+      c.lineTo(progress + 60, lo);
+      c.lineTo(progress + 60, hi);
+      c.lineTo(progress - 60, hi);
+      c.closePath();
+    }
+    c.clip();
+    
+    let n = 0;
+    const waveHeight = 120; // 世界單位：波前厚度 120 (±60)
+    const tileH = 256; // 世界單位每 tile 高度，對應源圖 944px 高度的重複鋪設
+    
+    for (const [lo, hi] of strips) {
+      if (!(hi > lo)) continue;
+      const isLeftBank = hi <= safeLeft; // 完全在安全通道左側
+      const isRightBank = lo >= safeRight; // 完全在安全通道右側
+      if (!isLeftBank && !isRightBank) continue; // 橫跨安全通道的不畫（clip 已排除）
+      
+      const bankSx = isLeftBank ? LEFT_BANK_SX : RIGHT_BANK_SX;
+      const bankSw = isLeftBank ? LEFT_BANK_SW : RIGHT_BANK_SW;
+      
+      // 世界座標下的 lateral 範圍對應源圖的寬度比例
+      const worldWidth = hi - lo;
+      const scaleX = worldWidth / bankSw; // 世界單位/源圖像素
+      
+      for (let wy = lo; wy < hi; wy += tileH) {
+        const tileWorldH = Math.min(tileH, hi - wy);
+        // 源圖 Y 方向循環：源圖高 944px 對應世界 tileH
+        const sy = BANK_SY + ((wy - lo) % BANK_SH);
+        const sh = Math.min(BANK_SH - (sy - BANK_SY), BANK_SH * tileWorldH / tileH);
+        
+        // 畫單個 tile
+        c.drawImage(
+          art.image,
+          bankSx, sy, bankSw, sh,
+          progress - 60, wy, waveHeight, tileWorldH
+        );
+        n++;
+      }
+    }
+    return n;
+  }
+
+  function paintTidalFan(c, artOrImg, h, phase, elapsed, motion) {
+    // 支援兩種呼叫：(c, art, h, phase, elapsed, motion) 或 (c, img, h, phase, elapsed, motion)
+    const art = artOrImg.image ? artOrImg : { image: artOrImg, bbox: null };
+    // 源圖：tidalFan_v01.png 1254x1254，apex(617,1117) reach 971px，源圖跨角 160度
+    // 判定：120度 (±PI/3)。需以 Canvas clip 裁切至判定角度，防止視覺超出傷害區。
+    const img = art.image;
+    const bbox = art.bbox || [12, 164, 1247, 1118]; // visible bbox from QA
+    const sw = bbox[2] - bbox[0];
+    const sh = bbox[3] - bbox[1];
+    const centerX = h.x;
+    const centerY = h.y;
+    const coreR = h.r > 0 ? h.r : 200; // 判定半徑 200，active 觸及 230
+    const reach = coreR + 30; // 視覺延伸到 230
+    
+    // 判定角度範圍：120度 = 2*PI/3
+    const startAngle = Number.isFinite(h.startAngle) ? h.startAngle : (h.angle || 0) - Math.PI / 3;
+    const endAngle = Number.isFinite(h.endAngle) ? h.endAngle : (h.angle || 0) + Math.PI / 3;
+    const fanSpan = endAngle - startAngle; // 應為 2*PI/3
+    
+    // 源圖錨點：apex 在 (617, 1117)，圖片中心約 (627, 627)
+    // 繪製時以 apex 為旋轉中心，向外扇展
+    const apexX = 617 - bbox[0]; // 相對 bbox 左上角
+    const apexY = 1117 - bbox[1];
+    const srcCenterX = sw / 2;
+    const srcCenterY = sh / 2;
+    
+    // 源圖內建中心線角度（apex 指向圖片中心）：用於對齊到判定扇區中心線
+    const thetaSrc = Math.atan2(srcCenterY - apexY, srcCenterX - apexX);
+    // 判定扇區中心線在 startAngle 旋轉後的座標系中的角度
+    const hitboxCenterAngle = fanSpan / 2;
+    // 對齊旋轉角：讓源圖中心線落在判定扇區中心線
+    const alignAngle = hitboxCenterAngle - thetaSrc;
+    
+    let baseAlpha = motion ? 0.5 + 0.16 * Math.sin((Number(elapsed) || 0) * 7) : 0.66;
+    let hotAlpha = baseAlpha;
+    let sweepAngle = null;
+    
+    if (phase === "active") {
+      const dur = h.duration > 0 ? h.duration : 0.15;
+      const u = Math.min(1, Math.max(0, (Number(h.t) || 0) / dur));
+      sweepAngle = startAngle + fanSpan * u; // 掃過 120度
+      baseAlpha = 0.42;
+      hotAlpha = u < 0.5 ? 0.72 : 0.92;
+    } else if (phase === "recovery") {
+      const dur = h.duration > 0 ? h.duration : 1.35;
+      baseAlpha = 0.36 * Math.max(0, 1 - (Number(h.t) || 0) / dur);
+      hotAlpha = baseAlpha;
+    }
+    if (!(baseAlpha > 0.02)) return 0;
+    
+    let n = 0;
+    
+    // 繪製扇面：將源圖按判定角度裁切並縮放到 reach
+    // 關鍵：源圖方向固定（rotate startAngle + alignAngle），裁切區域在 aligned 座標系中變化
+    // aligned 座標系 = 世界座標系旋轉 -(startAngle + alignAngle)
+    // hitbox 在 aligned 座標系中為 [-alignAngle, fanSpan - alignAngle]
+    // sweep 區間 [sweepStart, sweepEnd] 在 aligned 座標系中為 [sweepStart - startAngle - alignAngle, sweepEnd - startAngle - alignAngle]
+    const drawSector = (a0, a1, alpha) => {
+      c.save();
+      c.translate(centerX, centerY);
+      // 固定旋轉：讓源圖中心線對齊判定扇區中心線（固定為 startAngle + alignAngle）
+      c.rotate(startAngle + alignAngle);
+      // 裁切路徑：在 aligned 座標系中
+      const localStart = a0 - startAngle - alignAngle;
+      const localEnd = a1 - startAngle - alignAngle;
+      c.beginPath();
+      c.moveTo(0, 0);
+      c.arc(0, 0, reach, localStart, localEnd);
+      c.closePath();
+      c.clip();
+      
+      // 繪製源圖：以 apex 對齊原點，縮放使 reach 對應源圖 reach (971px)
+      const scale = reach / 971; // 源圖 reach 971px -> 世界 reach
+      const drawW = sw * scale;
+      const drawH = sh * scale;
+      // apex 在源圖中的位置，繪製時對齊到 (0,0)
+      const dx = -apexX * scale;
+      const dy = -apexY * scale;
+      
+      c.globalAlpha = alpha;
+      c.drawImage(img, bbox[0], bbox[1], sw, sh, dx, dy, drawW, drawH);
+      c.restore();
+      n++;
+    };
+    
+    // 基礎扇面：完整 hitbox 範圍 [startAngle, endAngle]
+    drawSector(startAngle, endAngle, baseAlpha);
+    // Active 階段：高亮掃過弧，裁切到 sweep 範圍與 hitbox 的交集
+    if (sweepAngle != null) {
+      const pad = Math.PI / 12; // 15度 高亮寬度
+      const sweepStart = Math.max(startAngle, sweepAngle - pad);
+      const sweepEnd = Math.min(endAngle, sweepAngle + pad);
+      if (sweepEnd > sweepStart) {
+        drawSector(sweepStart, sweepEnd, hotAlpha);
+      }
+    }
+    return n;
+  }
+
+  function paintRainVortex(c, artOrImg, h, phase, elapsed, motion) {
+    // 支援兩種呼叫：(c, art, h, phase, elapsed, motion) 或 (c, img, h, phase, elapsed, motion)
+    const art = artOrImg.image ? artOrImg : { image: artOrImg, bbox: null };
+    // 源圖：rainVortex_v01.png 1254x1254，整圖包含地面漩渦(下半) + 水柱(上半)
+    // 需分層：地面足跡受世界 tilt 投影（由主渲染循環統一處理），水柱 billboard 直立不受透視
+    // 中心質心 (632.7, 780.8)，判定半徑 48(active) / 28(telegraph)
+    // TECH_LIMITATIONS: 無可靠語義分界將源圖乾淨分層；目前以 sh*0.55 估算，Clip 外仍有不透明像素
+    const img = art.image;
+    const bbox = art.bbox || [37, 39, 1226, 1227];
+    const sw = bbox[2] - bbox[0];
+    const sh = bbox[3] - bbox[1];
+    
     const list = Array.isArray(h.vortexes) && h.vortexes.length
       ? h.vortexes
       : [{ x: h.x, y: h.y, r: h.r || 32 }];
@@ -2844,20 +3212,73 @@ window.RENDERER = (() => {
     if (phase === "active") alpha = u < 0.5 ? 0.55 : 0.9;
     else if (phase === "recovery") alpha = 0.36 * Math.max(0, 1 - u);
     if (!(alpha > 0.02)) return 0;
+    
+    // 源圖分層估算：下半部(地面漩渦)約佔 45%，上半部(水柱)約佔 55%
+    // 此為近似切分，無保證語義邊界；Clip 外仍有洩漏 → TECH_LIMITATIONS
+    const GROUND_SY = Math.floor(sh * 0.55);
+    const GROUND_SH = sh - GROUND_SY;
+    const COLUMN_SY = 0;
+    const COLUMN_SH = GROUND_SY;
+    
     let n = 0;
     for (const v of list) {
       if (!v || !Number.isFinite(v.x) || !Number.isFinite(v.y)) continue;
-      const hitR = (Number(v.r) > 0 ? Number(v.r) : 32) + 20;
-      drawRippleCircle(c, img, v.x, v.y, hitR * 2, alpha);
+      const hitR = (Number(v.r) > 0 ? Number(v.r) : 32) + 16;
+      const visualR = hitR * 1.2;
+      
       c.save();
-      c.globalAlpha = Math.min(0.9, alpha);
-      c.strokeStyle = "rgba(210, 244, 255, 0.95)";
-      c.lineWidth = 1.5;
+      c.translate(v.x, v.y);
+      
+      // === 層 1：地面漩渦足跡 (世界 tilt 由主渲染循環統一處理，此處不再重複 scale) ===
+      if (GROUND_SH > 0) {
+        c.save();
+        c.beginPath();
+        c.arc(0, 0, visualR, 0, Math.PI * 2);
+        c.clip();
+        c.globalAlpha = alpha;
+        const scale = visualR * 2 / sw;
+        const drawW = sw * scale;
+        const drawH = GROUND_SH * scale;
+        // 地面層錨點：底部中心，向上延伸
+        c.drawImage(img, bbox[0], bbox[1] + GROUND_SY, sw, GROUND_SH, -drawW/2, -drawH, drawW, drawH);
+        c.restore();
+        n++;
+      }
+      
+      // === 層 2：水柱 (billboard 直立，反世界 tilt 保持垂直) ===
+      if (COLUMN_SH > 0) {
+        c.save();
+        // Billboard 直立：反世界 tilt (scale(1, 1/tiltK()))
+        const tilt = typeof window !== "undefined" && window.VIEWPORT?.tiltScale ? window.VIEWPORT.tiltScale() : 1;
+        if (tilt !== 1) {
+          c.scale(1, 1 / tilt);
+        }
+        c.beginPath();
+        // 水柱較窄，使用完整 visualR 而非 0.7，避免截頂
+        c.arc(0, 0, visualR, 0, Math.PI * 2);
+        c.clip();
+        c.globalAlpha = alpha * 0.9;
+        const scale = visualR * 1.4 / sw;
+        const drawW = sw * scale;
+        const drawH = COLUMN_SH * scale;
+        // 水柱錨點：底部中心，向上延伸
+        c.drawImage(img, bbox[0], bbox[1] + COLUMN_SY, sw, COLUMN_SH, -drawW/2, -drawH, drawW, drawH);
+        c.restore();
+        n++;
+      }
+      
+      // === Telegraph/Active/Recovery 視覺回饋：邊緣高亮圓環 ===
+      c.save();
+      c.globalAlpha = Math.min(0.8, alpha);
+      c.strokeStyle = phase === "active" ? "rgba(210, 244, 255, 0.95)" : "rgba(140, 220, 255, 0.7)";
+      c.lineWidth = phase === "active" ? 2.5 : 1.5;
       c.beginPath();
-      c.arc(v.x, v.y, hitR, 0, Math.PI * 2);
+      c.arc(0, 0, hitR, 0, Math.PI * 2);
       c.stroke();
       c.restore();
-      n += 1;
+      
+      c.restore();
+      n++;
     }
     return n;
   }
@@ -3033,7 +3454,7 @@ window.RENDERER = (() => {
     c.restore();
   }
 
-  function drawPortBossHazard(targetCtx, h, elapsed = 0) {
+  function drawPortBossHazard(targetCtx, h, elapsed = 0, owner = null) {
     if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) {
       bossHazardPass = "UNHANDLED";
       return false;
@@ -3044,35 +3465,107 @@ window.RENDERER = (() => {
       return false;
     }
     const kind = h.kind || "";
+    const isStandardKind = kind === "slam" || kind === "charge" || kind === "ring" || kind === "tide";
     const fan = kind === "tidalFan" || kind === "tidal_surge" || kind === "tide_fan";
     const vortex = kind === "rainVortex" || kind === "whirlpool_spout" || kind === "vortex";
-    if (!fan && !vortex) {
-      bossHazardPass = "UNHANDLED";
-      return false;
-    }
-    if (bossHazardImageDev()) {
-      const img = bossHazardRipple();
-      if (img) {
-        const phase = h.phase || "telegraph";
-        const motion = allowsMotion();
-        let drew = 0;
-        c.save();
-        try {
-          drew = fan
-            ? paintTidalFan(c, img, h, phase, elapsed, motion)
-            : paintRainVortex(c, img, h, phase, elapsed, motion);
-        } finally {
-          c.restore();
+    const isWaterFanVortex = fan || vortex;
+
+    // 四標準 kind 走獨立 Boss 圖片 gate (dev=1&bossart=1)；未知 kind、gate 關、缺圖都 false 交 game C3。
+    if (isStandardKind) {
+      const painterMap = { slam: paintSlam, charge: paintCharge, ring: paintRing, tide: paintTide };
+      const painter = painterMap[kind];
+      const art = bossHazardArt(kind);
+      if (!painter || !art) {
+        bossHazardPass = "UNHANDLED";
+        return false;
+      }
+      const phase = h.phase || "telegraph";
+      if (!["telegraph", "active", "recovery"].includes(phase)
+          || (kind === "charge" && phase !== "telegraph"
+            && (!owner || !Number.isFinite(owner.x) || !Number.isFinite(owner.y)))) {
+        bossHazardPass = "UNHANDLED";
+        return false;
+      }
+      const alpha = bossPhaseAlpha(h, elapsed, allowsMotion());
+      // recovery 淡出完成是真 IMAGE_NOT_DRAWN，不可再閃回 game 舊幾何。
+      if (phase === "recovery" && alpha <= 0) {
+        bossHazardPass = "IMAGE_NOT_DRAWN";
+        return true;
+      }
+      let drew = 0;
+      c.save();
+      try {
+        c.globalAlpha *= alpha;
+        if (kind === "charge" && phase !== "telegraph") {
+          drew = painter(c, art, h, owner);
+        } else {
+          drew = painter(c, art, h, phase, elapsed, allowsMotion());
         }
-        if (drew > 0) {
-          bossHazardPass = "IMAGE";
-          return true;
+      } finally {
+        c.restore();
+      }
+      bossHazardPass = drew > 0 ? "IMAGE" : drew < 0 ? "IMAGE_NOT_DRAWN" : "UNHANDLED";
+      return drew !== 0;
+    }
+
+    // tidalFan / rainVortex：優先走 bossart gate (dev=1&bossart=1) 用專屬圖 (tidalFan_v01/rainVortex_v01)；
+    // bossart gate 關時退回 fusion gate 用 ripple；缺圖或兩 gate 關走 TECH_SAFETY_ONLY 幾何，絕不 invisible。
+    if (isWaterFanVortex) {
+      const bossartOn = typeof window !== "undefined" && window.isBossHazardArtEnabled?.() === true;
+      if (bossartOn) {
+        const art = bossHazardArt(kind);
+        if (art) {
+          const phase = h.phase || "telegraph";
+          const motion = allowsMotion();
+          const alpha = bossPhaseAlpha(h, elapsed, motion);
+          if (phase === "recovery" && alpha <= 0) {
+            bossHazardPass = "IMAGE_NOT_DRAWN";
+            return true;
+          }
+          let drew = 0;
+          c.save();
+          try {
+            c.globalAlpha *= alpha;
+            drew = fan
+              ? paintTidalFan(c, art, h, phase, elapsed, motion)
+              : paintRainVortex(c, art, h, phase, elapsed, motion);
+          } finally {
+            c.restore();
+          }
+          bossHazardPass = drew > 0 ? "IMAGE" : drew < 0 ? "IMAGE_NOT_DRAWN" : "UNHANDLED";
+          return drew !== 0;
         }
       }
+      // bossart gate 關：退回 fusion gate (dev=1&bossart=1 同義) 用 ripple
+      if (bossHazardImageDev()) {
+        const img = bossHazardRipple();
+        if (img) {
+          const phase = h.phase || "telegraph";
+          const motion = allowsMotion();
+          let drew = 0;
+          c.save();
+          try {
+            drew = fan
+              ? paintTidalFan(c, img, h, phase, elapsed, motion)
+              : paintRainVortex(c, img, h, phase, elapsed, motion);
+          } finally {
+            c.restore();
+          }
+          if (drew > 0) {
+            bossHazardPass = "IMAGE";
+            return true;
+          }
+        }
+      }
+      // TECH_SAFETY_ONLY：缺圖或兩 gate 關都走幾何 fallback，保留可見警示
+      paintLegacyPortHazard(c, h, elapsed || 0);
+      bossHazardPass = "TECH_SAFETY_ONLY";
+      return true;
     }
-    paintLegacyPortHazard(c, h, elapsed || 0);
-    bossHazardPass = "LEGACY_SAFETY_FALLBACK";
-    return true;
+
+    // 未知 kind
+    bossHazardPass = "UNHANDLED";
+    return false;
   }
 
   // =========================================================================
@@ -3158,8 +3651,8 @@ window.RENDERER = (() => {
   // M2-FUSION-ART-BIND-R1：十招真圖 phase 綁定層（DEV-ONLY 嚴格模式）
   //
   // 生效門檻（assets.js 唯一真實來源）：window.isFusionArtBindEnabled() === true
-  //   ⇔ ?dev=1&stage=rain-port&fusioncandidate=1&fusionart=banana
-  // 其他任何情況（正常模式／無 dev／錯 stage／無 fusioncandidate／非 banana）
+  //   ⇔ dev=1 (all stages), except fusionart=legacy/gpt or mismatched explicit candidate flags
+  // 正式模式（無 dev）一律不載入未核准候選圖；開發測試不依賴 stageId。
   // 這一層完全不畫、不載，既有程序幾何與正式資產路徑完全不變。
   //
   // phase 位置規則：
@@ -3171,15 +3664,15 @@ window.RENDERER = (() => {
   // 所有候選圖皆為 ART_CANDIDATE / WAITING_ART，只在 dev 門檻內使用，
   // 不覆蓋 assets/img/ 正式資產、不搬移原檔。
   // =========================================================================
-  function fusionBindEnabled() {
+  function fusionBindEnabled(kind = null) {
     return typeof window !== "undefined"
       && typeof window.isFusionArtBindEnabled === "function"
-      && window.isFusionArtBindEnabled() === true;
+      && window.isFusionArtBindEnabled(kind) === true;
   }
 
   // 取某招某 phase 的真圖（未就緒回 null，不丟錯、不阻塞）
   function fusionBindArt(kind, phase) {
-    if (!fusionBindEnabled()) return null;
+    if (!fusionBindEnabled(kind)) return null;
     if (typeof window.getFusionPhaseArt !== "function") return null;
     const img = window.getFusionPhaseArt(kind, phase);
     return img && img.naturalWidth > 0 ? img : null;
@@ -3219,7 +3712,9 @@ window.RENDERER = (() => {
     const dx = opt.centerX ? -targetW * 0.5 : 0;
     const dy = -targetH * anchorY;
     c.save();
-    c.globalAlpha = Math.max(0, Math.min(1, opt.alpha == null ? 1 : opt.alpha));
+    c.globalAlpha *= Math.max(0, Math.min(1, opt.alpha == null ? 1 : opt.alpha));
+    if (opt.filter) c.filter = opt.filter;
+    if (opt.composite) c.globalCompositeOperation = opt.composite;
     c.translate(opt.x, opt.y);
     if (opt.line && opt.line.hilt && opt.line.tip) {
       const sw = src.sw || 1;
@@ -3260,8 +3755,8 @@ window.RENDERER = (() => {
 
   // 真圖 phase 綁定層：回傳 true 表示此招的視覺已由真圖接管
   function drawFusionBindLayers(c, effect, is2D, tilt, motion, elapsed) {
-    if (!fusionBindEnabled()) return false;
     const kind = effect.kind;
+    if (!fusionBindEnabled(kind)) return false;
     const phase = effect.phase || "active";
     const progress = Number.isFinite(effect.progress) ? Math.max(0, Math.min(1, effect.progress)) : 0;
     const x = Number.isFinite(effect.x) ? effect.x : 0;
@@ -3270,12 +3765,13 @@ window.RENDERER = (() => {
     const radius = Number.isFinite(effect.radius) ? effect.radius : 200;
     const burnAge = Number.isFinite(effect.burnAge) ? effect.burnAge : 0;
 
-    // 階段包絡：warn 呼吸、active 由 progress 起伏、fade 收斂
+    // 亮度包絡由招式生命週期決定：預警即顯圖，active 保持明亮，最後 20% 再淡出。
+    // 避免 sin(progress*PI) 在施法初期幾乎不可見、進入 fade 又立刻消失。
     const env = phase === "warn"
-      ? (0.30 + 0.25 * Math.sin(elapsed * 10))
+      ? 0.68 + 0.06 * Math.sin(elapsed * 8)
       : phase === "active"
-        ? Math.min(1, Math.sin(progress * Math.PI) * 1.25)
-        : Math.max(0, 1 - progress);
+        ? 0.96
+        : Math.max(0, Math.min(0.96, 0.96 * (1 - progress) / 0.2));
 
     // 距離上一次脈衝的時間（用於 hit phase 的閃光包絡）
     const pulseFlash = (interval) => {
@@ -3292,7 +3788,7 @@ window.RENDERER = (() => {
       const icon = fusionBindArt(kind, "icon");
       if (!icon) return;
       const def = fusionBindDef(kind, "icon");
-      if (!def || def.fallback) return; // DEV_ICON_FALLBACK 不畫，避免主圖縮圖雜訊
+      if (!def || def.fallback || def.file === fusionBindDef(kind, "main")?.file) return;
       fusionBindUpright(c, ix, iy, () => {
         drawFusionBindImage(c, icon, {
           kind, phase: "icon", x: ix, y: iy, width: 30, alpha: alpha * 0.9, centerX: true, anchorY: 0.5
@@ -3300,8 +3796,12 @@ window.RENDERER = (() => {
       });
     };
     const main = fusionBindArt(kind, "main");
-    const hit = fusionBindArt(kind, "hit");
-    const ground = fusionBindArt(kind, "ground");
+    // A pending/failed main image must NOT silently suppress all existing fallback FX.
+    if (!main) return false;
+    const mainFile = fusionBindDef(kind, "main")?.file;
+    // 主圖裁切不是獨立 hit/ground 圖，不重複蓋三次冒充完整 phase。
+    const hit = fusionBindDef(kind, "hit")?.file === mainFile ? null : fusionBindArt(kind, "hit");
+    const ground = fusionBindDef(kind, "ground")?.file === mainFile ? null : fusionBindArt(kind, "ground");
 
     const paintKind = () => {
 
@@ -3314,7 +3814,7 @@ window.RENDERER = (() => {
           : Math.max(0, 1 - progress) * Math.max(0, 1 - burnAge / (burnDuration || 0.8));
         fusionBindUpright(c, x, y, () => {
           drawFusionBindImage(c, ground, {
-            kind, phase: "ground", x, y, width: radius * 2.0, alpha: env * scorch * 0.95,
+            kind, phase: "ground", x, y, width: radius * 1.55, alpha: env * scorch * 0.16,
             rotate: angle, centerX: true, anchorY: 0.5
           });
         });
@@ -3322,7 +3822,7 @@ window.RENDERER = (() => {
       if (main) {
         fusionBindUpright(c, x, y, () => {
           drawFusionBindImage(c, main, {
-            kind, phase: "main", x, y, width: radius * 1.35, alpha: env,
+            kind, phase: "main", x, y, width: radius * 0.94, alpha: env * (burnAge < 0.22 ? 0.96 : burnAge < 0.42 ? 0.78 : 0.48), filter: "brightness(1.42) saturate(1.20)",
             rotate: angle, flipX: true, anchorY: 0.5
           });
         });
@@ -3332,7 +3832,7 @@ window.RENDERER = (() => {
         const hy = y + Math.sin(angle) * radius * 0.55;
         fusionBindUpright(c, hx, hy, () => {
           drawFusionBindImage(c, hit, {
-            kind, phase: "hit", x: hx, y: hy, width: radius * 0.85, alpha: env * 0.95, centerX: true, anchorY: 0.5
+            kind, phase: "hit", x: hx, y: hy, width: radius * 0.54, alpha: env * 0.40, centerX: true, anchorY: 0.5
           });
         });
       }
@@ -3349,7 +3849,7 @@ window.RENDERER = (() => {
           fusionBindUpright(c, pt.x, pt.y, () => {
             drawFusionBindImage(c, ground, {
               kind, phase: "ground", x: pt.x, y: pt.y, width: pt.r * 1.8,
-              alpha: env * 0.45, centerX: true, anchorY: 0.5
+              alpha: env * 0.70, centerX: true, anchorY: 0.5
             });
           });
         }
@@ -3357,7 +3857,7 @@ window.RENDERER = (() => {
           fusionBindUpright(c, pt.x, pt.y, () => {
             drawFusionBindImage(c, hit, {
               kind, phase: "hit", x: pt.x, y: pt.y, width: pt.r * 1.4,
-              alpha: env * 0.7, centerX: true, anchorY: 0.5
+              alpha: env * 0.9, centerX: true, anchorY: 0.5
             });
           });
         }
@@ -3507,7 +4007,7 @@ window.RENDERER = (() => {
           fusionBindUpright(c, pt.x, pt.y, () => {
             drawFusionBindImage(c, ground, {
               kind, phase: "ground", x: pt.x, y: pt.y, width: pt.r * 1.8,
-              alpha: env * 0.45, centerX: true, anchorY: 0.5
+              alpha: env * 0.70, centerX: true, anchorY: 0.5
             });
           });
         }
@@ -3515,7 +4015,7 @@ window.RENDERER = (() => {
           fusionBindUpright(c, pt.x, pt.y, () => {
             drawFusionBindImage(c, hit, {
               kind, phase: "hit", x: pt.x, y: pt.y, width: pt.r * 1.4,
-              alpha: env * 0.7, centerX: true, anchorY: 0.5
+              alpha: env * 0.9, centerX: true, anchorY: 0.5
             });
           });
         }
@@ -3529,8 +4029,8 @@ window.RENDERER = (() => {
           const ly = Number.isFinite(ln.y) ? ln.y : y;
           fusionBindUpright(c, lx, ly, () => {
             drawFusionBindImage(c, main, {
-              kind, phase: "main", x: lx, y: ly, width: 96,
-              alpha: (ln.struck ? env * 0.35 : env), centerX: true, anchorY: 0.5
+              kind, phase: "main", x: lx, y: ly, width: 132,
+              alpha: env * (ln.struck ? 0.90 : 1), filter: "brightness(1.3) saturate(1.2)", centerX: true, anchorY: 0.5
             });
           });
         }
@@ -3548,7 +4048,7 @@ window.RENDERER = (() => {
           fusionBindUpright(c, pt.x, pt.y, () => {
             drawFusionBindImage(c, ground, {
               kind, phase: "ground", x: pt.x, y: pt.y, width: pt.r * 1.8,
-              alpha: env * 0.45, centerX: true, anchorY: 0.5
+              alpha: env * 0.70, centerX: true, anchorY: 0.5
             });
           });
         }
@@ -3556,7 +4056,7 @@ window.RENDERER = (() => {
           fusionBindUpright(c, pt.x, pt.y, () => {
             drawFusionBindImage(c, hit, {
               kind, phase: "hit", x: pt.x, y: pt.y, width: pt.r * 1.4,
-              alpha: env * 0.7, centerX: true, anchorY: 0.5
+              alpha: env * 0.9, centerX: true, anchorY: 0.5
             });
           });
         }
@@ -3585,14 +4085,42 @@ window.RENDERER = (() => {
       return true;
     }
 
-    // ---- #8 雷陣封界：同一張 R4 陣圖。active 主圖<=.25、地<=.12、落雷短閃<=.35。 ----
-    // 預警小於 active；落雷只畫在 strikes 的 0.28s 窗，不常駐蓋住施法者。
+    // ---- #8 雷陣封界：明亮印紋作主圖，落雷單獨用現有 thunder 真圖。
+    // 早期 A/B 值 0.25~0.48 在場景過於模糊，預設改為高對比；legacy 仍可用網址切回。
     if (kind === "fusion_thundercircle") {
-      const fieldW = radius * 1.44;
+      const fieldW = radius * 1.50;
+
+      // 判定可視性強度選項 (全域變數或 URL 參數)：
+      // 預設為 Option A (0.48)；支援 Option B (0.58) 與 Baseline (0.25)
+      let tcMode = "A";
+      if (typeof window !== "undefined") {
+        if (window.__thundercircleVisibilityOption === "B" || window.__thundercircleVisibilityOption === "high") {
+          tcMode = "B";
+        } else if (window.__thundercircleVisibilityOption === "baseline" || window.__thundercircleVisibilityOption === "0.25") {
+          tcMode = "baseline";
+        } else if (typeof URLSearchParams !== "undefined" && window.location && window.location.search) {
+          try {
+            const sp = new URLSearchParams(window.location.search);
+            const tcParam = sp.get("tc_opt") || sp.get("thundercircle_alpha");
+            if (tcParam === "B" || tcParam === "high" || tcParam === "0.58") tcMode = "B";
+            else if (tcParam === "baseline" || tcParam === "0.25") tcMode = "baseline";
+          } catch {}
+        }
+      }
+
       if (ground) {
-        const groundAlpha = phase === "active" ? Math.min(env * 0.45, 0.12)
-          : phase === "warn" ? Math.min(env * 0.16, 0.08)
-          : Math.min(env * 0.12, 0.06);
+        const groundAlpha = tcMode === "B"
+          ? (phase === "active" ? Math.min(env * 0.55, 0.24)
+            : phase === "warn" ? Math.min(env * 0.18, 0.12)
+            : Math.min(env * 0.15, 0.08))
+          : tcMode === "baseline"
+            ? (phase === "active" ? Math.min(env * 0.45, 0.12)
+              : phase === "warn" ? Math.min(env * 0.16, 0.08)
+              : Math.min(env * 0.12, 0.06))
+            : (phase === "active" ? Math.min(env * 0.46, 0.36)
+              : phase === "warn" ? Math.min(env * 0.38, 0.26)
+              : Math.min(env * 0.42, 0.30));
+
         fusionBindUpright(c, x, y, () => {
           drawFusionBindImage(c, ground, {
             kind, phase: "ground", x, y, width: phase === "warn" ? radius * 1.05 : fieldW,
@@ -3601,13 +4129,22 @@ window.RENDERER = (() => {
         });
       }
       if (main) {
-        const sealAlpha = phase === "active" ? Math.min(env * 0.95, 0.25)
-          : phase === "warn" ? Math.min(env * 0.18, 0.10)
-          : Math.min(env * 0.25, 0.12);
+        const sealAlpha = tcMode === "B"
+          ? (phase === "active" ? Math.min(env * 0.95, 0.58)
+            : phase === "warn" ? Math.min(env * 0.24, 0.18)
+            : Math.min(env * 0.30, 0.22))
+          : tcMode === "baseline"
+            ? (phase === "active" ? Math.min(env * 0.95, 0.25)
+              : phase === "warn" ? Math.min(env * 0.18, 0.10)
+              : Math.min(env * 0.25, 0.12))
+            : (phase === "active" ? Math.min(env * 0.96, 0.88)
+              : phase === "warn" ? Math.min(env * 0.90, 0.56)
+              : Math.min(env * 0.90, 0.77));
+
         fusionBindUpright(c, x, y, () => {
           drawFusionBindImage(c, main, {
-            kind, phase: "main", x, y, width: phase === "warn" ? radius * 1.35 : radius * 2.0,
-            alpha: sealAlpha, centerX: true, anchorY: 0.5
+            kind, phase: "main", x, y, width: phase === "warn" ? radius * 1.50 : radius * 1.80,
+            alpha: sealAlpha, filter: "brightness(1.55) saturate(1.35)", composite: "screen", centerX: true, anchorY: 0.5
           });
         });
       }
@@ -3623,6 +4160,23 @@ window.RENDERER = (() => {
               kind, phase: "hit", x: s.x, y: s.y, width: sr * 1.6,
               alpha: bolt, centerX: true, anchorY: 0.5
             });
+          });
+        }
+      }
+      // 命中點用既有天狐雷圖；此圖的保護機制不依賴候選 hit 是否獨立出圖。
+      const strikeImg = window.thunderRasterArt?.("strike") || window.skillVfxArt?.("thunder", 3);
+      if (strikeImg?.naturalWidth && Array.isArray(effect.strikes)) {
+        for (const strike of effect.strikes) {
+          if (!strike.triggered || !Number.isFinite(strike.x) || !Number.isFinite(strike.y)) continue;
+          const age = -Number(strike.delay);
+          if (age < 0 || age > 0.34) continue;
+          const w = 132, h = w * strikeImg.naturalHeight / strikeImg.naturalWidth;
+          fusionBindUpright(c, strike.x, strike.y, () => {
+            c.save();
+            c.globalAlpha *= Math.max(0, 1 - age / 0.34);
+            c.filter = "brightness(1.35) saturate(1.2)";
+            c.drawImage(strikeImg, strike.x - w / 2, strike.y - h * 0.82, w, h);
+            c.restore();
           });
         }
       }
@@ -3659,48 +4213,67 @@ window.RENDERER = (() => {
       return true;
     }
 
-    // ---- #10 雷符神罰：施放點雷符 + 每張符落點 ----
+    // ---- #10 雷符神罰：單一主爆炸 + 既有雷擊圖逐敵 ----
     if (kind === "fusion_thundertalisman") {
-      // DEV reuse phases: only existing main-image crops; no new source artwork.
-      const reusePoints = (Array.isArray(effect.talismans) ? effect.talismans : []).filter(t => t && t.struck).map(t => ({ x: Number.isFinite(t.x) ? t.x : x, y: Number.isFinite(t.y) ? t.y : y, r: effect.strikeRadius || 70 }));
-      for (const pt of reusePoints) {
-        if (ground) {
-          fusionBindUpright(c, pt.x, pt.y, () => {
-            drawFusionBindImage(c, ground, {
-              kind, phase: "ground", x: pt.x, y: pt.y, width: pt.r * 1.8,
-              alpha: env * 0.45, centerX: true, anchorY: 0.5
-            });
-          });
+      const burnAge = Number.isFinite(effect.burnAge) ? effect.burnAge : 0;
+      const strikeRadius = Number.isFinite(effect.strikeRadius) ? effect.strikeRadius : 70;
+      const mainExplosionDuration = 0.30;
+      const explosionAge = burnAge - (effect.hitEvents?.[0]?.at ?? effect.firstHitAt ?? 0.36);
+
+      // Main explosion: one controlled burst at center (x, y)
+      // 0.15-0.25s: scale overshoot -> subtle jitter -> fade out
+      if (main && phase !== "warn" && explosionAge >= 0 && explosionAge <= mainExplosionDuration) {
+        const t = explosionAge / mainExplosionDuration;
+        let scale = 1;
+        let alpha = 1;
+        let jitterX = 0;
+        let jitterY = 0;
+        if (t < 0.5) {
+          const u = t / 0.5;
+          scale = 0.3 + 1.2 * u * u * (3 - 2 * u);
+          alpha = 0.9 * (1 - u * 0.3);
+        } else {
+          const u = (t - 0.5) / 0.5;
+          scale = 1.5 - 0.5 * u;
+          alpha = 0.6 * (1 - u);
+          const jitterAmount = 4 * (1 - u);
+          jitterX = (Math.sin(burnAge * 60) * jitterAmount);
+          jitterY = (Math.cos(burnAge * 47) * jitterAmount);
         }
-        if (hit && phase !== "warn") {
-          fusionBindUpright(c, pt.x, pt.y, () => {
-            drawFusionBindImage(c, hit, {
-              kind, phase: "hit", x: pt.x, y: pt.y, width: pt.r * 1.4,
-              alpha: env * 0.7, centerX: true, anchorY: 0.5
-            });
+        fusionBindUpright(c, x + jitterX, y + jitterY, () => {
+          drawFusionBindImage(c, main, {
+            kind, phase: "main", x: x + jitterX, y: y + jitterY,
+            width: radius * 1.2 * scale, alpha: env * alpha, centerX: true, anchorY: 0.5
           });
+        });
+      }
+
+      // Per-hit secondary lightning using existing thunder_strike image
+      if (phase !== "warn") {
+        const thunderImg = (typeof window !== "undefined" && window.thunderRasterArt)
+          ? window.thunderRasterArt("strike")
+          : (typeof window !== "undefined" ? window.ART?.thunder_raster_strike : null);
+        if (thunderImg && thunderImg.naturalWidth) {
+          const events = Array.isArray(effect.hitEvents) ? effect.hitEvents : [];
+          for (const t of events) {
+            if (!t || !Number.isFinite(t.at)) continue;
+            const tx = Number.isFinite(t.x) ? t.x : x;
+            const ty = Number.isFinite(t.y) ? t.y : y;
+            const hitAge = burnAge - t.at;
+            if (hitAge < 0 || hitAge > 0.25) continue;
+            const hitAlpha = Math.max(0, 1 - hitAge / 0.25);
+            fusionBindUpright(c, tx, ty, () => {
+              c.save();
+              c.globalAlpha = env * hitAlpha * 0.85;
+              const w = strikeRadius * 1.4;
+              const h = w * (thunderImg.naturalHeight / thunderImg.naturalWidth);
+              c.drawImage(thunderImg, tx - w / 2, ty - h / 2, w, h);
+              c.restore();
+            });
+          }
         }
       }
 
-      if (main) {
-        fusionBindUpright(c, x, y, () => {
-          drawFusionBindImage(c, main, {
-            kind, phase: "main", x, y, width: radius * 1.2, alpha: env * 0.9, centerX: true, anchorY: 0.5
-          });
-        });
-        const talismans = Array.isArray(effect.talismans) ? effect.talismans : [];
-        for (const t of talismans) {
-          if (!t || !t.struck) continue;
-          const tx = Number.isFinite(t.x) ? t.x : x;
-          const ty = Number.isFinite(t.y) ? t.y : y;
-          const strike = Number.isFinite(effect.strikeRadius) ? effect.strikeRadius : 70;
-          fusionBindUpright(c, tx, ty, () => {
-            drawFusionBindImage(c, main, {
-              kind, phase: "main", x: tx, y: ty, width: strike * 1.9, alpha: env * 0.8, centerX: true, anchorY: 0.5
-            });
-          });
-        }
-      }
       drawIcon(x - 96, y - 104, env);
       return true;
     }
@@ -3711,25 +4284,7 @@ window.RENDERER = (() => {
     const painted = paintKind();
     if (!painted) return false;
 
-    // DEV 標示：目前此招實際綁到哪些 phase（不是 metadata 宣稱，是實際存在的檔案）
-    const meta = typeof window !== "undefined" && window.FUSION_VFX_METADATA ? window.FUSION_VFX_METADATA[kind] : null;
-    const bound = ["main", "hit", "ground", "icon"].filter((ph) => {
-      const def = fusionBindDef(kind, ph);
-      return !!def && !def.fallback;
-    });
-    const missing = ["main", "hit", "ground", "icon"].filter((ph) => !bound.includes(ph));
-    c.save();
-    c.font = "11px sans-serif";
-    c.textAlign = "center";
-    c.fillStyle = `rgba(255, 215, 0, ${0.9 * Math.max(0.35, env)})`;
-    fusionBindUpright(c, x, y + radius * 0.58, () => {
-      c.fillText(
-        `[FUSION BIND: ${meta ? meta.name : kind} ${bound.join("+")}${missing.length ? " / " + missing.join("・") + " WAITING_ART" : ""}]`,
-        x,
-        y + radius * 0.58
-      );
-    });
-    c.restore();
+    // 詳細載入狀態可在 console 查 window.getFusionArtBindReport()；戰鬥畫布不放診斷字。
     return true;
   }
 
@@ -3742,7 +4297,7 @@ window.RENDERER = (() => {
     c.save();
 
     // M2-FUSION-ART-BIND-R1：bind 模式下真圖 ground phase 取代這段程序焦痕。
-    const bindOwnsGround = fusionBindEnabled();
+    const bindOwnsGround = fusionBindEnabled("fusion_inkblade") && !!fusionBindArt("fusion_inkblade", "main");
 
     // 1. 地面焦墨與狐火裂隙 (Ground Scorch Layer - 2.5D tilt 扁平投影)
     // warn 階段不畫地面焦痕；active 隨進度刻印；fade 隨 burnAge / progress 淡出
@@ -3866,7 +4421,7 @@ window.RENDERER = (() => {
 
       // M2-FUSION-ART-BIND-R1：bind 模式下主體刀光改由真圖 main/hit phase 畫
       // （真圖層已先畫，legacy 這段只保留 warn 預警扇與提示，不再重疊程序刀弧）。
-      if (fusionBindEnabled()) {
+      if (bindOwnsGround) {
         c.restore();
         return;
       }
@@ -4283,7 +4838,6 @@ window.RENDERER = (() => {
         c.font = "11px sans-serif";
         c.fillStyle = `rgba(140, 200, 255, ${alpha * 0.85})`;
         c.textAlign = "center";
-        c.fillText("[FUSION TECH: 雷狐居合 WAITING_ART]", r * 0.5, -12);
         c.restore();
       }
     }
@@ -4378,7 +4932,6 @@ window.RENDERER = (() => {
         c.font = "11px sans-serif";
         c.fillStyle = `rgba(255, 200, 80, ${alpha * 0.85})`;
         c.textAlign = "center";
-        c.fillText("[FUSION TECH: 退魔符刃 WAITING_ART]", r * 0.5, -12);
         c.restore();
       }
     }
@@ -4461,7 +5014,6 @@ window.RENDERER = (() => {
       c.font = "11px sans-serif";
       c.fillStyle = `rgba(255, 120, 70, ${alpha * 0.85})`;
       c.textAlign = "center";
-      c.fillText("[FUSION TECH: 妖火結界 WAITING_ART]", 0, -r - 10);
       c.restore();
     }
 
@@ -4560,7 +5112,6 @@ window.RENDERER = (() => {
       c.font = "11px sans-serif";
       c.fillStyle = `rgba(255, 200, 60, ${alpha * 0.85})`;
       c.textAlign = "center";
-      c.fillText("[FUSION TECH: 退魔封陣 WAITING_ART]", 0, -r - 10);
       c.restore();
     }
 
@@ -4616,7 +5167,6 @@ window.RENDERER = (() => {
       c.fillStyle = `rgba(255, 240, 180, ${alpha * 0.8})`;
       c.font = "11px sans-serif";
       c.textAlign = "center";
-      c.fillText(`[FUSION TECH: 斬界輪 ${bindNote}]`, 0, -(r || 320) - 12);
     }
 
     if (kind === "fusion_foxthunderlantern") {
@@ -4644,7 +5194,6 @@ window.RENDERER = (() => {
       c.fillStyle = `rgba(255, 240, 180, ${alpha * 0.8})`;
       c.font = "11px sans-serif";
       c.textAlign = "center";
-      c.fillText(`[FUSION TECH: 狐雷天燈 ${bindNote}]`, 0, -(effect.strikeRadius || 64) - 22);
     }
 
     if (kind === "fusion_flamefestival") {
@@ -4677,7 +5226,6 @@ window.RENDERER = (() => {
       c.fillStyle = `rgba(255, 240, 180, ${alpha * 0.8})`;
       c.font = "11px sans-serif";
       c.textAlign = "center";
-      c.fillText(`[FUSION TECH: 炎符祭 ${bindNote}]`, 0, -(effect.landRadius || 62) - 18);
     }
 
     if (kind === "fusion_thundertalisman") {
@@ -4707,9 +5255,39 @@ window.RENDERER = (() => {
       c.fillStyle = `rgba(200, 240, 255, ${alpha * 0.8})`;
       c.font = "11px sans-serif";
       c.textAlign = "center";
-      c.fillText(`[FUSION TECH: 雷符神罰 ${bindNote}]`, 0, -(effect.strikeRadius || 70) - 20);
     }
 
+    c.restore();
+    return true;
+  }
+
+  // 既有核准靈陣 + 妖刀真圖重組；專用輪刃圖仍待重繪，不使用正視候選輪。
+  function drawFusionSlashwheel(c, effect, motion, elapsed) {
+    const base = window.barrierCoreArt?.(3);
+    const blade = window.skillVfxArt?.("katana", 5);
+    const progress = Math.max(0, Math.min(1, effect.progress || 0));
+    const fade = effect.phase === "fade" ? Math.max(0, (1 - progress) / 0.2) : 1;
+    const r = 142 * (0.72 + 0.28 * Math.min(1, progress * 5));
+    c.save();
+    c.translate(effect.x || 0, (effect.y || 0) + 20);
+    // 呼叫端是地面投影，保留 tilt=.60，不以 upright 抵消成正面圓環。
+    if (base?.naturalWidth) {
+      c.save(); c.globalAlpha *= fade * 0.72;
+      c.rotate(motion ? elapsed * 0.35 : 0);
+      c.drawImage(base, -r, -r, r * 2, r * 2); c.restore();
+    }
+    if (blade?.naturalWidth) {
+      c.save();
+      c.beginPath(); c.arc(0, 0, r + 16, 0, Math.PI * 2);
+      c.arc(0, 0, r - 15, 0, Math.PI * 2, true); c.clip("evenodd");
+      for (let i = 0; i < 6; i++) {
+        c.save(); c.rotate((motion ? elapsed * 8 : 0) + i * Math.PI / 3);
+        c.globalAlpha *= fade * (0.76 + 0.12 * Math.sin(elapsed * 20 + i));
+        c.drawImage(blade, -r - 14, -r - 14, (r + 14) * 2, (r + 14) * 2);
+        c.restore();
+      }
+      c.restore();
+    }
     c.restore();
     return true;
   }
@@ -4747,7 +5325,9 @@ window.RENDERER = (() => {
 
     // M2-FUSION-ART-BIND-R1：真圖 phase 綁定層（僅嚴格 dev 門檻生效）。
     // 綁定層先畫真圖（ground → hit → main），下面的 legacy 程序幾何只留機制指示。
-    drawFusionBindLayers(c, effect, is2D, tilt, motion, elapsed);
+    if (kind === "fusion_slashwheel") return drawFusionSlashwheel(c, effect, motion, elapsed);
+    // 任一 phase 真圖未就緒不影響其他 phase；不得再把 legacy 幾何整套疊回真圖上。
+    if (drawFusionBindLayers(c, effect, is2D, tilt, motion, elapsed)) return true;
 
     if (kind === "fusion_inkblade") {
       const angle = Number.isFinite(effect.angle) ? effect.angle : 0;
@@ -4828,6 +5408,7 @@ window.RENDERER = (() => {
     drawPlayerShadow,
     drawMonsterShadow,
     drawDecorActor,
+    drawSakuraProp,
     drawPortProp,
     getPortBounds,
     paintPortBoundedTerrain,

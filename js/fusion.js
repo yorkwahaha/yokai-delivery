@@ -205,12 +205,12 @@
   let fusionState = {
     state: FUSION_STATE.DISABLED,
     pendingRecipe: null,             // 待融合的配方 ID
-    consumedParents: [],             // 已消耗的父技能 ID
-    fusedWeapon: null,               // 已融合的新武器 ID
+    consumedParents: [],             // 所有融合消耗的父技能 ID（累積）
+    fusedWeapons: [],                // 已融合的新武器 ID 列表
     talismanDropped: false,          // 本局是否已拾取/持有繪馬
     talismanEligible: false,         // 是否具備資格
     talismanEligibleSince: 0,        // 資格產生時間
-    sourceMutationIds: [],           // 吸收的父技變異快照
+    sourceMutationIds: [],           // 吸收的父技變異快照（最近一次融合）
     pendingCompensation: false,      // 是否有待領取的免費非變異強化補償
     runEpoch: 0,                     // 本局唯一標識（防止陳舊交易）
     revision: 0,                     // 狀態修訂號（供 UI 同步）
@@ -248,12 +248,9 @@
     );
   }
 
-  // 開發旗標與關卡嚴格檢查
+  // Fusion gameplay is shared across normal and dev entries. Unreviewed art remains dev-only.
   function isFusionEnabled() {
-    if (!gameBridge) return false;
-    const env = typeof gameBridge.getEnv === "function" ? gameBridge.getEnv() : null;
-    if (!env) return false;
-    const search = env.search != null ? env.search : ((typeof window !== "undefined" && window.location?.search) || "");
+    const search = gameBridge ? (gameBridge.getEnv?.()?.search || "") : ((typeof window !== "undefined" && window.location?.search) || "");
     let params;
     try {
       const searchStr = typeof search === "string" ? (search.startsWith("?") ? search.slice(1) : search) : "";
@@ -261,9 +258,9 @@
     } catch (_) {
       return false;
     }
-    const hasDev = params.get("dev") === "1";
-    const hasCandidate = params.get("fusioncandidate") === "1" || params.get("fusion") === "1";
-    return hasDev && hasCandidate && env.stageId === "rain-port" && !!env.isRainPortNormal;
+    // Keep an explicit local opt-out for testing; no developer flag is required to play.
+    if (params.get("nofusion") === "1") return false;
+    return true;
   }
 
   // 綁定 game.js 橋接器
@@ -284,12 +281,9 @@
     return true;
   }
 
-  // 檢查是否符合融合條件：兩個 Lv5 主動技能
+  // 檢查是否符合融合條件：兩個 Lv5 主動技能，且未被先前融合消耗
   function checkFusionEligibility() {
     if (!isFusionEnabled()) return { ok: false, reason: "not_enabled" };
-    if (fusionState.state === FUSION_STATE.FUSED) {
-      return { ok: false, reason: "already_fused" };
-    }
     if (!gameBridge || typeof gameBridge.getBuildState !== "function") {
       return { ok: false, reason: "no_bridge" };
     }
@@ -297,26 +291,35 @@
     const build = gameBridge.getBuildState();
     const wl = build?.WL || {};
 
-    // 取得所有達到 Lv5 的技能
-    const lv5Skills = Object.keys(wl).filter(k => wl[k] === 5);
+    // 取得所有達到 Lv5 的技能（排除已被融合消耗的）
+    const consumedSet = new Set(fusionState.consumedParents);
+    const lv5Skills = Object.keys(wl).filter(k => wl[k] === 5 && !consumedSet.has(k));
     if (lv5Skills.length < 2) {
-      return { ok: false, reason: "need_two_lv5", lv5Count: lv5Skills.length };
+      return { ok: false, reason: "need_two_lv5", lv5Count: lv5Skills.length, consumed: [...consumedSet] };
     }
 
     // 檢查是否有符合「已實作且啟用」配方的組合；未實作 meta 不得吞資格。
-    const candidates = [];
+    // 且父技能都未被消耗
+    // 收集所有符合條件的配方，再按 FUSION_RECIPES 定義順序排序，保證一致性
+    const candidateSet = new Set();
     for (let i = 0; i < lv5Skills.length; i++) {
       for (let j = i + 1; j < lv5Skills.length; j++) {
         const recipe = findRecipeForSkills(lv5Skills[i], lv5Skills[j]);
-        if (recipe && recipe.implemented && recipe.enabled && !candidates.includes(recipe.id)) {
-          candidates.push(recipe.id);
+        if (recipe && recipe.implemented && recipe.enabled) {
+          if (!recipe.parents.some(p => consumedSet.has(p))) {
+            candidateSet.add(recipe.id);
+          }
         }
       }
     }
 
-    if (candidates.length === 0) {
-      return { ok: false, reason: "no_implemented_recipe", lv5Skills };
+    if (candidateSet.size === 0) {
+      return { ok: false, reason: "no_implemented_recipe", lv5Skills, consumed: [...consumedSet] };
     }
+
+    // 按 FUSION_RECIPES 定義順序排序，確保與 getEligibleRecipes 一致
+    const recipeOrder = Object.keys(FUSION_RECIPES);
+    const candidates = [...candidateSet].sort((a, b) => recipeOrder.indexOf(a) - recipeOrder.indexOf(b));
 
     return { ok: true, candidates };
   }
@@ -324,16 +327,16 @@
   // Boss 擊殺事件監聽
   function onBossDeath(boss) {
     if (!isFusionEnabled()) return false;
-    // 每局限掉落一次資格
-    if (fusionState.talismanEligible || fusionState.talismanDropped || fusionState.state === FUSION_STATE.FUSED) {
+    // 只有在未持有繪馬且未具備資格時才能獲得新資格
+    if (fusionState.talismanEligible || fusionState.talismanDropped) {
       return false;
     }
 
     const env = gameBridge?.getEnv?.() || {};
     const elapsed = Number(env.elapsed || 0);
 
-    // 必須 >= 360 秒（6 分鐘）
-    if (elapsed < 360) {
+    // 解鎖門檻：首隻 Boss 擊殺即可，不受 6 分鐘硬限制
+    if (elapsed < 60) {
       return false;
     }
 
@@ -359,13 +362,12 @@
     }
   }
 
-  // 技能升級事件監聽（供待領資格補發）
+  // 技能升級事件監聽（供待領資格補發或雙 Lv5 齊備時自動啟動繪馬）
   function onWeaponLevelUp() {
     if (!isFusionEnabled()) return false;
-    if (fusionState.state !== FUSION_STATE.PENDING_TALISMAN) return false;
-
     const eligible = checkFusionEligibility();
     if (eligible.ok) {
+      fusionState.talismanEligible = true;
       fusionState.pendingRecipe = eligible.candidates[0];
       fusionState.selectedRecipeId = eligible.candidates[0];
       fusionState.state = FUSION_STATE.GROUND;
@@ -395,7 +397,7 @@
     return recipe.parents.every(p => (wl[p] || 0) >= 5);
   }
 
-  // 開啟融合確認面板
+  // 開啟融合確認面板（原生：需 TALISMAN_HELD 或 GROUND）
   function openFusionConfirm(recipeId) {
     if (fusionState.state !== FUSION_STATE.TALISMAN_HELD && fusionState.state !== FUSION_STATE.GROUND) {
       return false;
@@ -486,11 +488,6 @@
       return { ok: false, reason: "stale_revision" };
     }
 
-    // 驗證尚未融合
-    if (fusionState.fusedWeapon !== null || fusionState.state === FUSION_STATE.FUSED) {
-      return { ok: false, reason: "already_fused" };
-    }
-
     const targetId = recipeId || fusionState.selectedRecipeId || fusionState.pendingRecipe;
     const recipe = FUSION_RECIPES[targetId];
     if (!recipe) {
@@ -507,7 +504,11 @@
     const build = gameBridge.getBuildState();
     const wl = build?.WL || {};
 
-    // 雙重檢查：父技能仍在 Lv5，配方仍屬當前合法 eligible
+    // 雙重檢查：父技能仍在 Lv5，且未被先前融合消耗
+    const consumedSet = new Set(fusionState.consumedParents);
+    if (recipe.parents.some(p => consumedSet.has(p))) {
+      return { ok: false, reason: "parent_already_consumed", parent: recipe.parents.find(p => consumedSet.has(p)) };
+    }
     if (!isRecipeLegalForBuild(recipe, build)) {
       const parent = recipe.parents.find(p => (wl[p] || 0) < 5);
       return { ok: false, reason: "parent_not_lv5", parent, level: wl[parent] };
@@ -519,6 +520,11 @@
       : Object.keys(wl).filter(k => (wl[k] || 0) > 0).length;
     if (ownedCount < 2) {
       return { ok: false, reason: "not_enough_slots" };
+    }
+
+    // 檢查配方是否已融合過（防止重複配方）
+    if (fusionState.fusedWeapons.includes(recipe.id)) {
+      return { ok: false, reason: "recipe_already_fused", recipeId: recipe.id };
     }
 
     // 進入執行態
@@ -553,18 +559,22 @@
       return { ok: false, reason: commitResult?.error || "commit_failed" };
     }
 
-    // 成功完成
-    fusionState.fusedWeapon = recipe.id;
-    fusionState.consumedParents = [...recipe.parents];
+    // 成功完成：記錄融合武器與消耗的父技能，重置狀態允許下一次融合
+    fusionState.fusedWeapons.push(recipe.id);
+    fusionState.consumedParents.push(...recipe.parents);
     fusionState.sourceMutationIds = [...sourceMutationIds];
     fusionState.pendingCompensation = grantCompensation;
-    fusionState.state = FUSION_STATE.FUSED;
+    // 重置為 IDLE，允許下一輪繪馬掉落與融合
+    fusionState.state = FUSION_STATE.IDLE;
+    fusionState.talismanDropped = false;
+    fusionState.talismanEligible = false;
     fusionState.pendingRecipe = null;
     fusionState.revision++;
 
     return {
       ok: true,
       fusedWeapon: recipe.id,
+      fusedWeapons: [...fusionState.fusedWeapons],
       releasedSlots: 1,
       grantCompensation,
       sourceMutationIds: [...sourceMutationIds]
@@ -594,7 +604,8 @@
       isEnabled: isEn,
       pendingRecipe: fusionState.pendingRecipe,
       consumedParents: [...fusionState.consumedParents],
-      fusedWeapon: fusionState.fusedWeapon,
+      fusedWeapon: fusionState.fusedWeapons[fusionState.fusedWeapons.length - 1] || null, // 向後相容：最近一次融合的武器
+      fusedWeapons: [...fusionState.fusedWeapons],
       talismanDropped: fusionState.talismanDropped,
       talismanEligible: fusionState.talismanEligible,
       talismanEligibleSince: fusionState.talismanEligibleSince,
@@ -671,7 +682,7 @@
       slotAfter,
       sourceMutationIds,
       compensationText,
-      ruleText: "每局限融合 1 次 · 稍後再議不扣繪馬 · 兩母技融合後自此退場",
+      ruleText: "每局可多次融合 · 稍後再議不扣繪馬 · 兩母技融合後自此退場 · 重複配方與重複母技禁止",
       // 供 UI 選單的所有合法、已實作且雙父技 Lv5 配方
       eligibleRecipes,
       selectedRecipeId: eligibleIds.has(recipe.id) ? recipe.id : (eligible[0]?.id || recipe.id)
@@ -688,7 +699,7 @@
       state: isFusionEnabled() ? FUSION_STATE.IDLE : FUSION_STATE.DISABLED,
       pendingRecipe: null,
       consumedParents: [],
-      fusedWeapon: null,
+      fusedWeapons: [],
       talismanDropped: false,
       talismanEligible: false,
       talismanEligibleSince: 0,
@@ -728,7 +739,7 @@
     // 常數
     RECIPES: FUSION_RECIPES,
     STATES: FUSION_STATE,
-    MAX_FUSIONS_PER_RUN: 1
+    MAX_FUSIONS_PER_RUN: 3
   });
 
   // 掛載到全域環境

@@ -10,6 +10,12 @@
     return CFG.resolveMobDifficultyProfile(stage);
   }
   let STAGE = window.CONTENT.getStage("night-town");
+  if (typeof window !== "undefined") {
+    window.__ACTIVE_STAGE = STAGE.id;
+    if (typeof window.STAGE_ART_RESOLVER !== "undefined" && typeof window.STAGE_ART_RESOLVER.setActiveStage === "function") {
+      window.STAGE_ART_RESOLVER.setActiveStage(STAGE.id);
+    }
+  }
   let MOB_DIFFICULTY = mobDifficultyForStage(STAGE);
   let STAGE_PACING = STAGE.pacing || {};
   let STAGE_VISUAL = STAGE.visual || {};
@@ -98,18 +104,35 @@
   // 寧可維持原委託也不會發一張同屋／過近的取貨。
   function rerollPickupsTooCloseTo(referenceX, minCols = 3, minDx = 700, maxDx = 3600) {
     if (STAGE.id !== "rain-port" || referenceX === null || referenceX === undefined) return;
-    const busyFrom = new Set();
-    if (job && job.from) busyFrom.add(job.from.id);
-    if (inter && inter.from) busyFrom.add(inter.from.id);
+    const heldFrom = new Set();
+    if (job?.from?.id != null) heldFrom.add(job.from.id);
+    if (inter?.from?.id != null) heldFrom.add(inter.from.id);
+    // Reserve every pending pickup BEFORE any reroll. Keep counts so releasing
+    // one order never makes another order's original house appear available.
+    const reserved = new Map();
+    const reserve = id => {
+      if (id != null) reserved.set(id, (reserved.get(id) || 0) + 1);
+    };
+    const release = id => {
+      if (id == null) return;
+      const remaining = (reserved.get(id) || 0) - 1;
+      if (remaining > 0) reserved.set(id, remaining);
+      else reserved.delete(id);
+    };
+    for (const o of orders) reserve(o?.from?.id);
+    for (const id of heldFrom) reserve(id);
     const colsBetween = (a, b) => houseColumnsBetween(a, b);
     for (const o of orders) {
-      if (!o || !o.from) continue;
-      if (busyFrom.has(o.from.id)) continue;              // 手上／正在互動的委託不動
-      if (colsBetween(o.from.x, referenceX) >= minCols) continue;
+      if (!o?.from) continue;
+      const oldId = o.from.id;
+      if (heldFrom.has(oldId)) continue; // 手上／正在互動的委託不動
+      const duplicate = (reserved.get(oldId) || 0) > 1;
+      if (!duplicate && colsBetween(o.from.x, referenceX) >= minCols) continue;
+      release(oldId); // Temporarily release ONLY this order, not other reservations.
       const cands = houses.filter(h => {
-        if (!h || h.id === o.from.id) return false;
-        if (o.to && h.id === o.to.id) return false;        // 取貨屋不得就是自己的送達屋
-        if (busyFrom.has(h.id)) return false;
+        if (!h || h.id === oldId) return false;
+        if (o.to && h.id === o.to.id) return false;
+        if ((reserved.get(h.id) || 0) > 0) return false;
         const dx = Math.abs(h.x - referenceX);
         if (dx < minDx || dx > maxDx) return false;
         // 重選後仍要守住原本的送達距離（取貨屋與送達屋不得貼在一起）
@@ -117,15 +140,15 @@
         return colsBetween(h.x, referenceX) >= minCols;
       });
       if (!cands.length) {
-        // 找不到同時滿足「離剛送達點 >=3 屋列」與「離自己送達屋 >=700px」的取貨屋：
-        // 寧可撤掉這張尚未取貨的委託（下一個 frame 會依新規則補發一張），也不要讓玩家
-        // 接下來走到同屋／鄰屋／2 屋列的取貨點。
+        // No legal, unused house: cancel this pending order rather than
+        // emit a duplicate pickup. makeOrder() can replace it next frame.
         orders = orders.filter(x => x !== o);
         continue;
       }
       const sameWord = cands.filter(h => o.word && h.word && h.word.jp === o.word.jp);
       const next = sameWord.length ? sameWord : cands;
       o.from = next[Math.floor(Math.random() * next.length)];
+      reserve(o.from.id); // Next order must exclude the newly selected house.
     }
   }
 
@@ -190,10 +213,8 @@
   const ansPos = h => window.WORLD.answerPositions(h);
   // 僅場景答案使用較自然的筆文字體。字型已在 index.html 子集載入，
   // Noto 完整字面備援；不修改 HUD、教學和圖鑑的字體。
-  const sceneAnswerFont = size => UI.readableFont(size, "400").replace(
-    "'Noto Sans JP', 'Microsoft JhengHei', sans-serif",
-    "'Yuji Syuku', 'Kaisei Decol', 'Noto Sans JP', serif"
-  );
+  // 結界題目假名統一使用完整的 Noto Sans JP 日文字體，消除 fallback font 混入與字距不一致
+  const sceneAnswerFont = size => UI.floorAnswerFont ? UI.floorAnswerFont(size) : UI.answerFont(size, "400");
   const getWordDistrictWords = word => window.CONTENT.getSiblingWords(word);
   const writtenLength = text => Array.from(String(text || "").normalize("NFC")).length;
   const kanaScript = text => {
@@ -244,7 +265,7 @@
   const artPending = () => state === 'overworld' ? window.MAP_ART_READY === false
     : ['play','pause','levelup'].includes(state) && window.ART_READY === false;
   let quitConfirm = false;
-  let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "";
+  let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "", pausePage = "main";
   let levelupFocus = 0, gpLevelupDir = "";
   let gpFusionDir = 0;
   let charmSwapIndex = 0, gpCharmDir = 0;
@@ -261,7 +282,7 @@
     if (menuFocusState !== state) { menuFocus = 0; menuFocusState = state; }
     if (quitConfirm) return UI.EXIT_BTNS;
     if (state === "menu") return UI.MENU_BTNS;
-    if (state === "pause") return UI.PAUSE_BTNS;
+    if (state === "pause") return UI.pauseButtons(pausePage);
     if (state === "won") {
       const btns = typeof UI.endScreenButtons === "function" ? UI.endScreenButtons(state) : null;
       if (Array.isArray(btns) && btns.length) return btns;
@@ -302,6 +323,10 @@
     else if (id === "world" && state === "pause") { quitConfirm = true; quitTarget = "world"; menuFocus = 0; }
     else if (id === "world") enterOverworld(false);
     else if (id === "resume") togglePause();
+    else if (id === "settings" || id === "pause-back") {
+      pausePage = id === "settings" ? "settings" : "main";
+      menuFocus = 0;
+    }
     else if (id === "mute") AUDIO.toggleMute();
     else if (id === "controls") controlsButton.click();
     else if (id === "tutorial") showTutorial('pickup', true);
@@ -334,7 +359,7 @@
   let pendingDepart = false;
   let overworldNoticeT = 0;
   let gpOverworldDir = "";
-  let elapsed = 0, warnDawnT = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;
+  let elapsed = 0, animElapsed = 0, warnDawnT = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;
   let lastDeliveryX = null;
   let orders = [], job = null, enemies = [], enemyBullets = [], gems = [], texts = [], rings = [], misses = [];
   let deliveryEventSeq = 0;
@@ -358,7 +383,7 @@
   const FADE_TIME = 0.45;
   let lastScreen = "menu", fadeT = 0, runSummary = null;
   let learningStart = {};
-  let seals = 0, sealsEarned = 0, study = null;
+  let seals = 0, sealsEarned = 0, sealsSpent = 0, study = null;
   let recallIndependent = 0, recallAssisted = 0;
   const recallSources = { delivery: { independent: 0, assisted: 0 }, boss: { independent: 0, assisted: 0 } };
   const READ_DWELL = 0.65;
@@ -386,13 +411,19 @@
     else { recallIndependent++; recallSources[kind].independent++; }
   }
   function grantSeal() {
-    if (delivered > 0 && delivered % CFG.AWAKEN_EVERY === 0 && sealsEarned < CFG.AWAKEN_MAX) { seals++; sealsEarned++; }
+    if (delivered > 0 && delivered % CFG.AWAKEN_EVERY === 0) {
+      sealsEarned++;
+      // Current held seals = earned - spent; no cap on earned, cap on held is implicit via spending
+      seals = sealsEarned - sealsSpent;
+    }
   }
   function awakeningState() {
     const every = CFG.AWAKEN_EVERY;
+    const maxEarned = CFG.AWAKEN_MAX;
     return {
-      seals, earned: sealsEarned,
-      nextIn: sealsEarned >= CFG.AWAKEN_MAX ? 0 : every - (delivered % every),
+      seals, earned: sealsEarned, spent: sealsSpent,
+      nextIn: every - (delivered % every),
+      maxEarned,
       awakened: Object.values(WL).filter(v => v >= 5).length
     };
   }
@@ -405,7 +436,8 @@
     const role = ["mid", "mid", "gate", "final"][index] || "mid";
     let hp = CFG.BOSS_HP_BASE[index];
     if (STAGE && STAGE.id === "night-town" && typeof hp === "number") {
-      hp = role === "final" ? Math.round(hp * 0.65) : Math.round(hp * 0.5);
+      // 第三王沒有答題護盾，不能跟前兩王一律減半；825 HP 仍低於尾王 910 HP。
+      hp = Math.round(hp * (role === "final" ? 0.65 : role === "gate" ? 0.75 : 0.5));
     }
     return {
       hp,
@@ -464,8 +496,9 @@
 
   function checkVictoryCondition() {
     if (!finalBossDefeated) return false;
+    // 尾王死後立即達成勝利，不需等到 10:00
     if (STAGE && STAGE.id === "night-town") {
-      return elapsed >= DAWN;
+      return true;
     }
     return delivered >= GOAL_DELIVERIES;
   }
@@ -484,6 +517,7 @@
   function selectCodex(id) {
     codexFocus = id;
     if(id==='cards'||id==='words'){
+      UI.selectSecretDetail?.(null);
       codexTab=id;
       codexPage=0;
       if(id==='words') codexFilter={by:'all',id:null};
@@ -495,6 +529,8 @@
       else if(id==='back') state=codexBack;
       return;
     }
+    if (codexTab === 'cards' && id.startsWith('secret:')) { UI.selectSecretDetail?.(id.slice(7)); codexFocus = 'secret-back'; return; }
+    if (id === 'secret-back') { UI.selectSecretDetail?.(null); codexFocus = 'cards'; return; }
     if(id==='prev'||id==='next')turnCodexPage(id==='prev'?-1:1);
     else if(id==='back')state=codexBack;
   }
@@ -540,6 +576,12 @@
 
   function configureStage(stageId = "night-town") {
     STAGE = window.CONTENT.getStage(stageId);
+    if (typeof window !== "undefined") {
+      window.__ACTIVE_STAGE = STAGE.id;
+      if (typeof window.STAGE_ART_RESOLVER !== "undefined" && typeof window.STAGE_ART_RESOLVER.setActiveStage === "function") {
+        window.STAGE_ART_RESOLVER.setActiveStage(STAGE.id);
+      }
+    }
     MOB_DIFFICULTY = mobDifficultyForStage(STAGE);
     STAGE_PACING = STAGE.pacing || {};
     STAGE_VISUAL = STAGE.visual || {};
@@ -585,7 +627,7 @@
     runBounds = snapshot.bounds;
     // 燈籠腳底 solid：腳點在 l.y+8，寬 44，供碰撞/避障/no-spawn 使用
     // 不新增燈籠、不改圖，只用既有 WORLD lamps 列表
-    const lampSolids = LAMPS.map(l => ({
+    const lampSolids = LAMPS.filter(l => l.collidable !== false).map(l => ({
       x0: l.x - 22,
       x1: l.x + 22,
       y0: l.y + 8 - 22,
@@ -610,7 +652,8 @@
   let buildDuos = [];
   let fusionToken = null;
   let fusionFocus = 0;
-  let fusionEffects = [];
+  let fusionEffects = []; fusionEffects._idCounter = 0;
+  fusionEffects._idCounter = 0;
   let fusionStats = { casts: 0, directDmg: 0, scorchDmg: 0, byKind: {} };
   let pendingFusionCompensation = false;
   let isFreeCompensationChoice = false;
@@ -820,6 +863,9 @@
   };
 
   const DUO_CONFIG = {
+    // Legacy DUO resonance skills (Lv3-based) — quarantined from normal level-up pool per R9 rules.
+    // New rule: all true fusion/奧義 require 2 parents Lv5 + valid ema + dedicated fusion menu.
+    // These four legacy duos are preserved for code guard/compatibility but MUST NOT appear in standard pool.
     duo_thundercircle: {
       id: "duo_thundercircle",
       skillIds: ["barrier", "thunder"],
@@ -832,7 +878,7 @@
       afterText: "墨紋衝擊",
       requirementText: "持有淨化靈陣 Lv3+ 與 天狐雷 Lv3+",
       limitText: "每局限選一次（不占主動、御守、變異槽位；不重新落雷、不聚怪）",
-      inPool: true
+      inPool: false
     },
     duo_inkfire: {
       id: "duo_inkfire",
@@ -846,7 +892,7 @@
       afterText: "留墨焰",
       requirementText: "持有退魔妖刀 Lv3+ 與 狐火炎 Lv3+",
       limitText: "每局限選一次（不占主動、御守、變異槽位；每次攻擊有觸發上限、無再派生）",
-      inPool: true
+      inPool: false
     },
     duo_frostseal: {
       id: "duo_frostseal",
@@ -860,7 +906,7 @@
       afterText: "寒封",
       requirementText: "持有天狐靈針 Lv3+ 與 陰陽符 Lv3+",
       limitText: "每局限選一次（不占主動、御守、變異槽位；不重置冰封、Boss受限）",
-      inPool: true
+      inPool: false
     },
     duo_cinderseal: {
       id: "duo_cinderseal",
@@ -874,7 +920,7 @@
       afterText: "留餘燼",
       requirementText: "持有狐火炎 Lv3+ 與 陰陽符 Lv3+",
       limitText: "每局限選一次（不占主動、御守、變異槽位；每次引爆限一處、無再派生）",
-      inPool: true
+      inPool: false
     }
   };
 
@@ -936,9 +982,9 @@
   const CHARM_SLOT_MAX = 3;
   const CHARM_DROP_CAP = 24;
   const CHARM_DROP_LIFE = 45;
-  const CHARM_DROP_PICKUP = 28;
-  const CHARM_NORMAL_CHANCE = 0.015;
-  const CHARM_ELITE_CHANCE = 0.02;
+  const CHARM_DROP_PICKUP = 42;
+  const CHARM_NORMAL_CHANCE = 0.008;
+  const CHARM_ELITE_CHANCE = 0.008;
   const CHARM_DROP_ART = "hud_omamori_hint_listen";
 
   function addCharm(id) {
@@ -991,12 +1037,23 @@
 
   function charmDropChance(e) {
     if (!e || e.type === "boss" || e.type === "mis") return 0;
+    // DEV-ONLY: 供使用者自行驗證御守拾取與 3-slot 替換流程；正式環境嚴格維持 0.008
+    if (typeof window !== "undefined" && /(?:^|[?&])dev=1(?=[&#]|$)/.test(window.location?.search || "") &&
+        (window.DEV_FORCE_CHARM || /(?:^|[?&])force_charm=1(?=[&#]|$)/.test(window.location?.search || ""))) {
+      return 1.0;
+    }
     if (e.elite === true || e.rank === "elite" || e.type === "tank") return CHARM_ELITE_CHANCE;
     return CHARM_NORMAL_CHANCE;
   }
 
   function charmDropArt() {
-    const art = window.ART && window.ART[CHARM_DROP_ART];
+    const resolver = typeof window !== "undefined" ? window.STAGE_ART_RESOLVER : null;
+    let meta = null;
+    if (resolver && typeof resolver.getSharedArt === "function") {
+      meta = resolver.getSharedArt("hud", CHARM_DROP_ART);
+      if (!meta || meta.status !== "APPROVED") return null;
+    }
+    const art = window.ART && window.ART[meta?.id || CHARM_DROP_ART];
     if (!art || !art.complete || !(art.naturalWidth > 0) || !(art.naturalHeight > 0)) return null;
     return art;
   }
@@ -1025,11 +1082,30 @@
 
   function paintCharmDrop(d) {
     const art = charmDropArt();
-    if (!art || !d) return false;
+    if (!d) return false;
     const w = 40;
-    const h = w * art.naturalHeight / art.naturalWidth;
+    const h = (art && art.naturalHeight) ? (w * art.naturalHeight / art.naturalWidth) : 48;
     upright(d.x, d.y, () => {
-      ctx.drawImage(art, d.x - w / 2, d.y - h, w, h);
+      // 落地御守專用金芒光環，即便在暗處街道亦清晰可辨
+      FX.glow?.(ctx, d.x, d.y - h / 2, 28, "#fadb5f", 0.45);
+      if (art && art.naturalWidth > 0) {
+        ctx.drawImage(art, d.x - w / 2, d.y - h, w, h);
+      } else {
+        // 御守錦囊繪製（紅錦囊 + 金邊紋）
+        ctx.save();
+        ctx.fillStyle = "#c82d33";
+        ctx.beginPath();
+        ctx.roundRect(d.x - 14, d.y - 36, 28, 36, [4, 4, 2, 2]);
+        ctx.fill();
+        ctx.strokeStyle = "#ffd166";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 13px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("守", d.x, d.y - 14);
+        ctx.restore();
+      }
     });
     return true;
   }
@@ -1622,8 +1698,9 @@
       const reachMult = getEffectiveReachMultiplier(buildState);
       const baseReach = 280;
       const reach = Math.round(baseReach * reachMult);
-      const cooldown = 1.2;
-      const slashDmg = Number((baseDmg * 10.5).toFixed(2));
+      // Lv5 妖刀＋狐火的融合不應比原妖刀明顯變慢或變弱。
+      const cooldown = 0.70;
+      const slashDmg = Number((baseDmg * 6.5).toFixed(2));
       const mutations = (buildState && Array.isArray(buildState.mutations))
         ? buildState.mutations
         : buildMutations;
@@ -1641,7 +1718,7 @@
         cooldown,
         slashDmg,
         arc: 2.0, // 114.6度扇形 (2.0 rad)
-        maxTargets: 6,
+        maxTargets: 7,
         scorchDuration: 2.5,
         scorchRadius: 80,
         critChance,
@@ -1765,7 +1842,7 @@
         skillId: "fusion_slashwheel",
         level: 1,
         isAwakened: true,
-        cooldown: 2.0,
+        cooldown: 1.65,
         expandTime: 0.45,
         radius: Math.round(320 * reachMult),
         bands: [
@@ -1789,14 +1866,14 @@
         skillId: "fusion_foxthunderlantern",
         level: 1,
         isAwakened: true,
-        cooldown: 2.4,
-        count: 3,
-        lockRange: Math.round(360 * reachMult),
-        strikeRadius: 64,
-        warn: 0.5,
-        damage: Number((baseDmg * 8.5).toFixed(2)),
-        maxTargets: 3,
-        splashScale: 0.5,
+        cooldown: 1.65,
+        count: 4,
+        lockRange: Math.round(390 * reachMult),
+        strikeRadius: 82,
+        warn: 0.12,
+        damage: Number((baseDmg * 12).toFixed(2)),
+        maxTargets: 4,
+        splashScale: 0.65,
         critChance: Math.min(0.5, 0.2 + critLvl * 0.15),
         critMult: 1.8,
         source: "fusion",
@@ -1833,12 +1910,16 @@
       };
     }
     // 融合武器：雷符神罰（天狐雷＋陰陽符）
+    // 新機制：一個主 AOE 爆炸（五枚雷符落定各自判定），每個被命中的敵人額外再受一次「既有天狐雷判定」傷害
     if (skillId === "fusion_thundertalisman") {
       const baseDmg = getEffectiveDmg(buildState);
       const reachMult = getEffectiveReachMultiplier(buildState);
       const critLvl = typeof options.critLvl === "number"
         ? options.critLvl
         : (buildState?.passives?.crit ?? b.crit ?? 0);
+      // 計算「既有天狐雷」單次傷害：覺醒等級用 8.0 倍率
+      const thunderMult = 8.0;
+      const thunderDamage = Number((thunderMult * baseDmg).toFixed(4));
       return {
         skillId: "fusion_thundertalisman",
         level: 1,
@@ -1848,11 +1929,12 @@
         range: Math.round(300 * reachMult),
         strikeRadius: 70,
         warn: 0.36,
-        damage: Number((baseDmg * 6.5).toFixed(2)),
+        damage: Number((baseDmg * 6.5).toFixed(2)), // 主爆炸傷害
         maxTargets: 4,
-        chainRadius: 130,
-        chainScale: 0.5,
-        chainMax: 1,
+        // 新：每名命中敵人額外承受一次天狐雷傷害（去重、Boss倍率、不無限連鎖）
+        thunderTickDamage: thunderDamage,
+        thunderTickRadius: Math.round(450 * reachMult), // 天狐雷覺醒半徑
+        thunderTickBossScale: 0.5, // Boss 承受天狐雷傷害的倍率
         critChance: Math.min(0.5, 0.2 + critLvl * 0.15),
         critMult: 1.8,
         source: "fusion",
@@ -1864,12 +1946,12 @@
       const isAwakened = true;
       const baseDmg = getEffectiveDmg(buildState);
       const reachMult = getEffectiveReachMultiplier(buildState);
-      const cooldown = 2.2;
-      const radius = Math.round(240 * getEffectiveReachMultiplier(buildState));
-      const pulseInterval = 0.8;
-      const pulseCount = 5;
-      const pulseDamage = baseDmg * 2.0;
-      const pulseRadius = 90;
+      const cooldown = 1.65;
+      const radius = Math.round(265 * getEffectiveReachMultiplier(buildState));
+      const pulseInterval = 0.42;
+      const pulseCount = 4;
+      const pulseDamage = baseDmg * 4.0;
+      const pulseRadius = 104;
       const critLvl = typeof options.critLvl === "number"
         ? options.critLvl
         : (buildState?.passives?.crit ?? b.crit ?? 0);
@@ -1884,7 +1966,7 @@
         pulseCount,
         pulseDamage,
         pulseRadius,
-        pulseWarning: 0.6, // 預警時間
+        pulseWarning: 0.12, // 首波雷擊同步視覺，避免原本 0.5 + 0.6 秒的空窗
         critChance,
         critMult: 1.8,
         source: "fusion",
@@ -2079,7 +2161,7 @@ if (isRainPort) {
       const colsBetween = (a, b) => houseColumnsBetween(a, b);
 
       // 第一優先：按中間屋數篩選（硬性門檻）；同屋/同列因屋列數為 0 自然被排除
-      let reachable = houses.filter(h => colsBetween(h.x, referenceX) >= minBetweenHouses);
+      let reachable = openHouses.filter(h => colsBetween(h.x, referenceX) >= minBetweenHouses);
       // 第二優先：在達到最少屋數的基礎上，偏好目標屋數範圍
       const preferred = reachable.filter(h => colsBetween(h.x, referenceX) >= targetBetweenHouses && colsBetween(h.x, referenceX) <= 8);
       // 第三優先：像素距離輔助篩選（避免過遠導致跨太多 chunk）
@@ -2088,11 +2170,12 @@ if (isRainPort) {
         return dx >= minH && dx <= maxH;
       });
       // 兜底：即使放寬像素距離，也必須守住同一條硬門檻（>=3 屋列，避免同屋/鄰屋/2 屋列）
-      const fallback = houses.filter(h => {
+      const fallback = openHouses.filter(h => {
         const dx = Math.abs(h.x - referenceX);
         return dx >= 700 && dx <= 3600 && colsBetween(h.x, referenceX) >= minBetweenHouses;
       });
-      const pool = pixelFiltered.length ? pixelFiltered : (reachable.length ? reachable : fallback);
+      // Never prefer unlimited-distance matches over a bounded fallback.
+      const pool = pixelFiltered.length ? pixelFiltered : fallback;
 
       if (!pool.length) return;
 
@@ -2103,8 +2186,8 @@ if (isRainPort) {
 
       // 送達點：遠離取件點（3~8屋跨度，常見 4~7）
       const minH2 = 900, maxH2 = 3200, comMinH2 = 1200, comMaxH2 = 2800;
-      const reachable2 = houses.filter(h => h !== from && Math.abs(h.x - from.x) >= minH && Math.abs(h.x - from.x) <= maxH);
-      const pool2 = reachable2.length ? reachable2 : houses.filter(h => h !== from && Math.abs(h.x - from.x) >= 700 && Math.abs(h.x - from.x) <= 3600);
+      const reachable2 = houses.filter(h => h !== from && Math.abs(h.x - from.x) >= minH2 && Math.abs(h.x - from.x) <= maxH2 && colsBetween(h.x, from.x) >= minBetweenHouses);
+      const pool2 = reachable2.length ? reachable2 : houses.filter(h => h !== from && Math.abs(h.x - from.x) >= 700 && Math.abs(h.x - from.x) <= 3600 && colsBetween(h.x, from.x) >= minBetweenHouses);
       if (!pool2.length) return;
       const far2 = pool2.filter(h => Math.abs(h.x - from.x) >= comMinH2);
       const near2 = pool2.filter(h => Math.abs(h.x - from.x) < comMinH2);
@@ -2151,12 +2234,14 @@ if (isRainPort) {
   function togglePause() {
     if (state === "play") {
       state = "pause";
+      pausePage = "main";
       AUDIO.stopSpeech();
       RENDERER.clearShake();
       keys.clear(); heldCodes.clear();
       joy = null;
       window.dispatchEvent(new Event('gamepause'));
     } else if (state === "pause" && !isPortrait() && !document.hidden) {
+      if (pausePage !== "main") { pausePage = "main"; menuFocus = 0; return; }
       state = "play";
       AUDIO.setSuspended(false);
       last = performance.now();
@@ -2252,7 +2337,8 @@ if (isRainPort) {
 
         // 2. 裝備融合武器 (Lv1 完成態)
         WL[tx.fusionWeaponId] = 1;
-        wT[tx.fusionWeaponId] = 0.2;
+        wT[tx.fusionWeaponId] = 0.32;
+        window.prefetchFusionArt?.(tx.fusionWeaponId);
         wMax[tx.fusionWeaponId] = tx.recipe?.cooldown || 1.8;
         buildRevision++;
 
@@ -2350,13 +2436,14 @@ if (isRainPort) {
     // 融合系統重置與橋接更新
     fusionToken = null;
     fusionFocus = 0;
-    fusionEffects = [];
+    fusionEffects = []; fusionEffects._idCounter = 0;
     fusionStats = { casts: 0, directDmg: 0, scorchDmg: 0, byKind: {} };
     pendingFusionCompensation = false;
     isFreeCompensationChoice = false;
     fusionOpenedEpoch = 0;
     fusionOpenedRevision = 0;
-    initFusionBridge();
+    window.devSpawnCharm = (charmId = "charm_power") => spawnCharmDrop(P.x + 40, P.y, charmId);
+  initFusionBridge();
     if (window.FUSION && typeof window.FUSION.reset === "function") {
       window.FUSION.reset();
     }
@@ -2364,13 +2451,13 @@ if (isRainPort) {
     fAng = 0; fireEmitT = 0; fireSfxT = 0; fireAttackT = 0;
     wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0; wT.katana = 0.3;
     for (const id of Object.keys(wT)) if (id.startsWith("fusion_")) wT[id] = 0;
-    elapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
+    elapsed = 0; animElapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
     lastMutationOfferLevel = -100;
     orders = []; job = null; inter = null; enemies = []; gems = []; texts = []; rings = []; misses = [];
     // 重新開局／切關：上次送達點不得跨局殘留，否則新一局的第一張取貨會拿舊局的位置當基準。
     lastDeliveryX = null;
     learningStart = Object.fromEntries(Object.entries(STORE.data.m).map(([jp,m])=>[jp,{ok:m.ok,ng:m.ng,box:m.box}]));
-    seals = 0; sealsEarned = 0; recallIndependent = 0; recallAssisted = 0;
+    seals = 0; sealsEarned = 0; sealsSpent = 0; recallIndependent = 0; recallAssisted = 0;
     recallSources.delivery.independent = recallSources.delivery.assisted = 0;
     recallSources.boss.independent = recallSources.boss.assisted = 0;
     study = typeof STORE.createStudySession === "function" ? STORE.createStudySession(ALL) : null;
@@ -2440,7 +2527,10 @@ if (isRainPort) {
       const applyWeaponEffect = () => {
         if (!checkWeaponEligibility()) return false;
         consumed = true;
-        if (nextLvl === 5) seals--;
+        if (nextLvl === 5) {
+          seals--;
+          sealsSpent++;
+        }
         WL[k] = nextLvl;
         window.useSkillArt?.(k, WL[k]);
         if (k === "katana") { wT.katana = 0; atkT = 0; }
@@ -2473,6 +2563,9 @@ if (isRainPort) {
     };
     const wc = shuffle(eligibleWeaponKeys).map(k => weaponCard(k, WL[k] + 1));
     const awakenCard = awakenKeys.length ? weaponCard(shuffle(awakenKeys)[0], 5) : null;
+
+    // 奧義由獨立融合儀式視窗選擇；一般修行三選一永不塞入融合卡。
+    const fc = [];
 
     const pc = shuffle(UP.filter(u => !u.ok || u.ok())).map(u => {
       let consumed = false;
@@ -2734,7 +2827,7 @@ if (isRainPort) {
 
     let result = [];
     if (awakenCard) {
-      const restPool = shuffle([...wc.slice(0, 2), ...cc.slice(0, 2), ...dc.slice(0, 2), ...pc.slice(0, 2)]);
+      const restPool = shuffle([...fc, ...wc.slice(0, 2), ...cc.slice(0, 2), ...dc.slice(0, 2), ...pc.slice(0, 2)]);
       const rest = restPool.slice(0, 2);
       if (mc.length > 0) {
         if (rest.length >= 2) rest[1] = mc[0];
@@ -2753,6 +2846,7 @@ if (isRainPort) {
       result = result.slice(0, 3);
     } else {
       const pool = [];
+      if (fc.length > 0) pool.push(...fc);
       if (wc.length > 0) pool.push(...wc.slice(0, 2));
       if (cc.length > 0) pool.push(...cc.slice(0, 2));
       if (dc.length > 0) pool.push(...dc.slice(0, 2));
@@ -2770,6 +2864,11 @@ if (isRainPort) {
           result.push(cc[0]);
         }
       }
+    }
+    if (fc.length && !result.some(card => card.type === "fusion")) {
+      const replaceIndex = result.findIndex(card => card !== awakenCard && card.type !== "mutation");
+      if (replaceIndex >= 0) result[replaceIndex] = fc[0];
+      else if (result.length < 3) result.push(fc[0]);
     }
     return result;
   }
@@ -2838,6 +2937,8 @@ if (isRainPort) {
       level++;
     }
     buildRevision++;
+    // 融合卡只開確認面板，不能被一般升級收尾立刻蓋回 play。
+    if (state === "fusion") return { ok: true, revision: buildRevision, level, id: choice.id };
     state = "play";
     P.inv = 0.6;
     say(`獲得：${choice.n}`, P.x, P.y - 45, "#ffe9a0");
@@ -2903,7 +3004,7 @@ if (isRainPort) {
     if (!j || !Array.isArray(j.ans)) return;
     const w = j.ans[i];
     const pos = ansPos(j.to)[i];
-    if (w == null || (j.wrongPaid && w !== j.word)) return;
+    if (w == null || j.wrong?.includes(i)) return;
     if (j.assisted) markBossAssisted(j.word);
 
     if (w === j.word) {
@@ -2948,18 +3049,19 @@ if (isRainPort) {
       if (checkVictoryCondition()) startVictorySequence();
     } else {
       j.wrongPaid = true;
+      (j.wrong ||= []).push(i);
       j.assisted = true;
       j.hold = 0;
-      j.showMeaningT = 4;
       failed++;
-      oil = Math.max(0, oil - 6);
+      const penalty = Math.max(3, Math.round(maxOil * 0.05)); // 5% max HP (oil)
+      oil = Math.max(0, oil - penalty);
       misses.push(j.word);
       STORE.rec(j.word.jp, false);
       study?.mistake?.(j.word, elapsed);
-      say(`${j.word.jp}＝${j.word.zh}・記住後再送，燈油 -6`, pos.x, pos.y - 36, "#ff8f8f");
+      // 不洩露當題正解，高對比提示
+      say(`答錯了，請再試一次（燈油 −${penalty}）`, pos.x, pos.y - 36, "#ffffff");
       AUDIO.deliverWrong();
       HAPTICS.deliverWrong();
-      AUDIO.speak(j.word.jp);
       if (oil <= 0) { oil = 0; loseRun(); }
     }
   }
@@ -3004,7 +3106,9 @@ if (isRainPort) {
     return false;
   }
 
-  function hurt(e, dmg, isCrit = false, fromShatter = false) {
+  // Coalesce a full sweep of enemies into one tactile hit cue.
+  let lastBladeImpactAt = -Infinity;
+  function hurt(e, dmg, isCrit = false, fromShatter = false, impactType = "") {
     if (e.hp <= 0) return;
     if (e.shield) {
       e.flash = 0.08;
@@ -3017,14 +3121,32 @@ if (isRainPort) {
     e.hp -= dmg;
     if (e.hp <= 0) tryRollCharmDrop(e);
     e.flash = 0.12;
-    HAPTICS.hit(isCrit);
-    burst(e.x, e.y, "#ffe6aa", 4);
-    RENDERER.spawnDamageNumber(dmg, e.x, e.y - 25, isCrit, isCrit ? "#ffcc00" : "#ffffff");
-
-    if (isCrit) {
-      RENDERER.triggerHitStop(0.04);
-      RENDERER.triggerShake(5);
+    const bladeHit = impactType === "blade" && !fromShatter;
+    const bladeCue = bladeHit && (elapsed < lastBladeImpactAt || elapsed - lastBladeImpactAt >= 0.105);
+    if (bladeHit) {
+      // Only the sprite recoils; physics, hitboxes and Boss ground warnings remain fixed.
+      if (e.type !== "boss") {
+        e.hitReactT = 0.14;
+        e.hitReactDir = Math.sign(e.x - P.x) || 1;
+      }
+      if (bladeCue) {
+        lastBladeImpactAt = elapsed;
+        const heavy = isCrit || e.type === "boss";
+        RENDERER.triggerHitStop(isCrit ? 0.05 : heavy ? 0.042 : 0.025);
+        HAPTICS.hit(isCrit);
+        AUDIO.impact?.(isCrit ? "crit" : heavy ? "heavy" : "normal");
+        // Small local contact flash/flecks only; no full-screen whiteout.
+        FX.burst(e.x, e.y - 17, isCrit ? "#ffe4a0" : "#e8efff",
+          isCrit ? 7 : 4, { speed: 130, life: 0.14, size: 5 });
+      }
+    } else {
+      HAPTICS.hit(isCrit);
+      burst(e.x, e.y, "#ffe6aa", 4);
+      if (isCrit) {
+        RENDERER.triggerHitStop(0.05);
+      }
     }
+    RENDERER.spawnDamageNumber(dmg, e.x, e.y - 25, isCrit, isCrit ? "#ffcc00" : "#ffffff");
 
     if (e.hp > 0) return;
     e.freezeT = 0; delete e.shatterVolley; e.frostHits = 0;
@@ -3149,7 +3271,7 @@ if (isRainPort) {
     inter = null;
     enemyBullets = [];
     winds = []; ghosts = []; proj = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; dragonShots = []; dragonScorches = []; splitblasts = []; duoShockwaves = []; inkfireMarks = [];
-    fusionEffects = [];
+    fusionEffects = []; fusionEffects._idCounter = 0;
     AUDIO.fadeOutMusic(700);
     window.dispatchEvent(new Event('gamepause'));
   }
@@ -3180,7 +3302,7 @@ if (isRainPort) {
     victorySeq = { t: 0, bossX: p.x, bossY: p.y, boss, blastT: 0, blasts: 0, bossGone: !boss, ignited: false, fireT: 0 };
     state = "victory";
     winds = []; ghosts = []; proj = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; dragonShots = []; dragonScorches = []; splitblasts = []; duoShockwaves = []; inkfireMarks = [];
-    fusionEffects = [];
+    fusionEffects = []; fusionEffects._idCounter = 0;
     gems = [];
     keys.clear(); heldCodes.clear();
     joy = null;
@@ -3505,27 +3627,27 @@ if (isRainPort) {
       AUDIO.breakShield();
       HAPTICS.shield();
     } else {
-      if (!bs.wrongPaid) {
-        bs.wrongPaid = true;
-        misses.push(bs.word);
-        STORE.rec(bs.word.jp, false);
-        study?.mistake?.(bs.word, elapsed);
-        oil -= 6;
-      }
+      const penalty = Math.max(3, Math.round(maxOil * 0.05));
+      // lock 與 wrong 已擋掉重複選項；讀題時 elapsed 暫停，不能再拿它當扣血時鐘。
+      bs.wrongPaid = true;
+      misses.push(bs.word);
+      STORE.rec(bs.word.jp, false);
+      study?.mistake?.(bs.word, elapsed);
+      oil = Math.max(0, oil - penalty);
       bossQ.wasAssisted = true;
       bs.wasAssisted = true;
       if (job?.word.jp === bs.word.jp) job.assisted = true;
       AUDIO.deliverWrong();
       HAPTICS.deliverWrong();
-      AUDIO.speak(bs.word.jp);
-      say(`${bs.word.jp}＝${bs.word.zh}・同一題再答`, P.x, P.y - 50, "#ff8f8f");
+      // 不洩露當題正解，高對比提示
+      say(`答錯了，請再試一次（燈油 −${penalty}）`, P.x, P.y - 50, "#ffffff");
       if (oil <= 0) {
         oil = 0;
         loseRun();
         return;
       }
       bossQ.wrong.push(i);
-      bossQ.lock = 0.3;
+      bossQ.lock = 0.5;
     }
   }
 
@@ -3772,9 +3894,9 @@ if (isRainPort) {
     fusionOpenedEpoch = s.runEpoch;
     fusionOpenedRevision = s.revision;
   }
-  function openFusionPanel() {
+  function openFusionPanel(recipeId) {
     if (!window.FUSION || typeof window.FUSION.openFusionConfirm !== "function") return false;
-    if (!window.FUSION.openFusionConfirm()) return false;
+    if (!window.FUSION.openFusionConfirm(recipeId)) return false;
     state = "fusion";
     const buttons = fusionLayoutButtons();
     // 多配方時焦點落在第一張合武卡，避免 Enter/A 永遠直接確認第一張。
@@ -3899,7 +4021,8 @@ if (isRainPort) {
         wT.katana = atkT = 0.1;
       } else {
         wT.katana = atkT = wMax.katana = spec.cooldown;
-        playerAttackPoseT = 0.16;
+        playerAttackPoseT = Math.max(playerAttackPoseT, 0.56);
+          window.SPRITECOOK_DEV?.restartAttack?.();
         const swingReach = spec.swingReach;
         RENDERER.addSlashArc(P.x, P.y, swingReach, faceAng, 2.2, SKILLFX.tier(WL.katana));
         SKILLFX.play("katana", "swing", WL.katana, { x: P.x, y: P.y, ang: faceAng, reach: swingReach });
@@ -3919,7 +4042,7 @@ if (isRainPort) {
                 const wasBurned = !!(e.fireBurnEnds && e.fireBurnEnds > elapsed);
                 const hpBefore = e.hp;
                 const crit = rollCrit(spec);
-                hurt(e, spec.slashDmg * crit.mult, crit.isCrit);
+                hurt(e, spec.slashDmg * crit.mult, crit.isCrit, false, "blade");
                 SKILLFX.play("katana", "hit", WL.katana, { x: e.x, y: e.y, ang: faceAng, crit: crit.isCrit });
                 if (spec.hasDuoInkfire && !qualifyingInkfireHit && wasBurned && e.hp < hpBefore && !e.shield && !e.vanish && !e.done) {
                   qualifyingInkfireHit = { x: e.x, y: e.y, baseDmg: spec.slashDmg };
@@ -4012,7 +4135,7 @@ if (isRainPort) {
         if (wave.mainHits) wave.mainHits.add(e);
         const pierceScale = hitIndex < 3 ? 1 : (wave.pierceScale || 0.75);
         const crit = rollCrit(wave.attackSnapshot || wave);
-        hurt(e, wave.dmg * pierceScale * crit.mult, crit.isCrit);
+        hurt(e, wave.dmg * pierceScale * crit.mult, crit.isCrit, false, "blade");
         SKILLFX.play("katana", "hit", 5, { x: e.x, y: e.y, ang: wave.ang, crit: crit.isCrit });
         if (wave.attackSnapshot?.hasDuoInkfire && !wave.inkfireUsed && wasBurned && e.hp < hpBefore && !e.shield && !e.vanish && !e.done) {
           wave.inkfireUsed = true;
@@ -4059,7 +4182,7 @@ if (isRainPort) {
                     ? Number((baseSlash * 0.40).toFixed(2))
                     : cc.dmg;
                   const crit = rollCrit(cc.attackSnapshot || cc);
-                  hurt(e, finalDmg * crit.mult, crit.isCrit);
+                  hurt(e, finalDmg * crit.mult, crit.isCrit, false, "blade");
                   SKILLFX.play("katana", "hit", cc.level, { x: e.x, y: e.y, ang: cc.crossAng, crit: crit.isCrit });
                 }
               }
@@ -4093,7 +4216,8 @@ if (isRainPort) {
         } else {
           wT.fusion_inkblade = wMax.fusion_inkblade = spec.cooldown || 1.2;
           fusionRecordCast("fusion_inkblade");
-          playerAttackPoseT = 0.2;
+          playerAttackPoseT = Math.max(playerAttackPoseT, 0.56);
+          window.SPRITECOOK_DEV?.restartAttack?.();
           const crit = rollCrit(spec);
           let hitCount = 0;
           for (const e of enemies) {
@@ -4103,7 +4227,7 @@ if (isRainPort) {
               if (diff <= (spec.arc || 2.0) / 2) {
                 hitCount++;
                 const hitDmg = spec.slashDmg * crit.mult;
-                hurt(e, hitDmg, crit.isCrit);
+                hurt(e, hitDmg, crit.isCrit, false, "blade");
                 fusionRecordDamage("fusion_inkblade", hitDmg);
                 SKILLFX.play("katana", "hit", 5, { x: e.x, y: e.y, ang: faceAng, crit: crit.isCrit });
               }
@@ -4123,7 +4247,7 @@ if (isRainPort) {
               burnDuration: spec.scorchDuration || 2.5,
               burnAge: 0,
               life: 0.8,
-              scorchDmg: Number((spec.slashDmg * 0.22).toFixed(2)),
+              scorchDmg: Number((spec.slashDmg * 0.12).toFixed(2)),
               tick: 0
             });
           }
@@ -4143,7 +4267,8 @@ if (isRainPort) {
           wT.fusion_foxiai = 0.12;
         } else {
           wT.fusion_foxiai = wMax.fusion_foxiai = spec.cooldown;
-          playerAttackPoseT = 0.18;
+          playerAttackPoseT = Math.max(playerAttackPoseT, 0.56);
+          window.SPRITECOOK_DEV?.restartAttack?.();
           fusionRecordCast("fusion_foxiai");
           fusionEffects.push({
             kind: "fusion_foxiai",
@@ -4182,13 +4307,14 @@ if (isRainPort) {
           wT.fusion_exorcistblade = 0.12;
         } else {
           wT.fusion_exorcistblade = wMax.fusion_exorcistblade = spec.cooldown;
-          playerAttackPoseT = 0.18;
+          playerAttackPoseT = Math.max(playerAttackPoseT, 0.56);
+          window.SPRITECOOK_DEV?.restartAttack?.();
           fusionRecordCast("fusion_exorcistblade");
           const crit = rollCrit(spec);
           const marks = [];
           for (const e of targets) {
             const hitDmg = spec.slashDmg * crit.mult;
-            hurt(e, hitDmg, crit.isCrit);
+            hurt(e, hitDmg, crit.isCrit, false, "blade");
             fusionRecordDamage("fusion_exorcistblade", hitDmg);
             SKILLFX.play("katana", "hit", 5, { x: e.x, y: e.y, ang: faceAng, crit: crit.isCrit });
             marks.push({
@@ -4233,7 +4359,8 @@ if (isRainPort) {
           wT.fusion_foxfirebarrier = 0.15;
         } else {
           wT.fusion_foxfirebarrier = wMax.fusion_foxfirebarrier = spec.cooldown;
-          playerAttackPoseT = 0.16;
+          playerAttackPoseT = Math.max(playerAttackPoseT, 0.56);
+          window.SPRITECOOK_DEV?.restartAttack?.();
           fusionRecordCast("fusion_foxfirebarrier");
           fusionEffects.push({
             kind: "fusion_foxfirebarrier",
@@ -4277,7 +4404,8 @@ if (isRainPort) {
           const tx = P.x + Math.cos(faceAng) * spec.castRange;
           const ty = P.y + Math.sin(faceAng) * spec.castRange;
           wT.fusion_exorcistseal = wMax.fusion_exorcistseal = spec.cooldown;
-          playerAttackPoseT = 0.18;
+          playerAttackPoseT = Math.max(playerAttackPoseT, 0.56);
+          window.SPRITECOOK_DEV?.restartAttack?.();
           fusionRecordCast("fusion_exorcistseal");
           fusionEffects.push({
             kind: "fusion_exorcistseal",
@@ -4316,7 +4444,8 @@ if (isRainPort) {
           wT.fusion_slashwheel = 0.12;
         } else {
           wT.fusion_slashwheel = wMax.fusion_slashwheel = spec.cooldown;
-          playerAttackPoseT = 0.18;
+          playerAttackPoseT = Math.max(playerAttackPoseT, 0.56);
+          window.SPRITECOOK_DEV?.restartAttack?.();
           fusionRecordCast("fusion_slashwheel");
           fusionEffects.push({
             kind: "fusion_slashwheel",
@@ -4329,7 +4458,7 @@ if (isRainPort) {
             progress: 0,
             seed: Math.random() * 100,
             warn: 0.18,
-            life: (spec.expandTime || 0.45) + 0.5,
+            life: (spec.expandTime || 0.45) + 0.8,
             burnAge: 0,
             expandTime: spec.expandTime || 0.45,
             currentRadius: 0,
@@ -4356,7 +4485,8 @@ if (isRainPort) {
           wT.fusion_foxthunderlantern = 0.12;
         } else {
           wT.fusion_foxthunderlantern = wMax.fusion_foxthunderlantern = spec.cooldown;
-          playerAttackPoseT = 0.18;
+          playerAttackPoseT = Math.max(playerAttackPoseT, 0.56);
+          window.SPRITECOOK_DEV?.restartAttack?.();
           fusionRecordCast("fusion_foxthunderlantern");
           const lanterns = [];
           const count = spec.count || 3;
@@ -4372,7 +4502,7 @@ if (isRainPort) {
               fromY: sy,
               targetX: t ? t.x : P.x + Math.cos(sa) * 200,
               targetY: t ? t.y : P.y + Math.sin(sa) * 200,
-              delay: (spec.warn || 0.5) + i * 0.1,
+              delay: (spec.warn ?? 0.12) + i * 0.06,
               struck: false,
               hitSet: new Set()
             });
@@ -4387,8 +4517,8 @@ if (isRainPort) {
             spread: 0,
             progress: 0,
             seed: Math.random() * 100,
-            warn: spec.warn || 0.5,
-            life: (spec.warn || 0.5) + 0.8,
+            warn: spec.warn ?? 0.12,
+            life: (spec.warn ?? 0.12) + 1.05,
             burnAge: 0,
             lanterns,
             strikeRadius: spec.strikeRadius || 64,
@@ -4398,7 +4528,7 @@ if (isRainPort) {
             critChance: spec.critChance,
             critMult: spec.critMult
           });
-          AUDIO.thunder(5);
+          // Thunder SFX is triggered at the first actual lantern strike, not before the image.
         }
       }
     }
@@ -4414,7 +4544,8 @@ if (isRainPort) {
           wT.fusion_flamefestival = 0.12;
         } else {
           wT.fusion_flamefestival = wMax.fusion_flamefestival = spec.cooldown;
-          playerAttackPoseT = 0.18;
+          playerAttackPoseT = Math.max(playerAttackPoseT, 0.56);
+          window.SPRITECOOK_DEV?.restartAttack?.();
           fusionRecordCast("fusion_flamefestival");
           const count = spec.count || 4;
           const talismans = [];
@@ -4475,7 +4606,8 @@ if (isRainPort) {
           wT.fusion_thundercircle = 0.15;
         } else {
           wT.fusion_thundercircle = wMax.fusion_thundercircle = spec.cooldown;
-          playerAttackPoseT = 0.16;
+          playerAttackPoseT = Math.max(playerAttackPoseT, 0.56);
+          window.SPRITECOOK_DEV?.restartAttack?.();
           fusionRecordCast("fusion_thundercircle");
           fusionEffects.push({
             kind: "fusion_thundercircle",
@@ -4487,12 +4619,12 @@ if (isRainPort) {
             spread: 0,
             progress: 0,
             seed: Math.random() * 100,
-            warn: 0.5,
-            life: (spec.pulseCount - 1) * spec.pulseInterval + spec.pulseWarning + 0.8,
+            warn: 0.12,
+            life: 0.12 + (spec.pulseCount - 1) * spec.pulseInterval + spec.pulseWarning + 0.65,
             burnAge: 0,
             pulses: spec.pulseCount,
             pulseInterval: spec.pulseInterval,
-            nextPulse: 0.5,
+            nextPulse: 0.12,
             pulseIndex: 0,
             pulseDamage: spec.pulseDamage,
             pulseRadius: spec.pulseRadius,
@@ -4501,7 +4633,7 @@ if (isRainPort) {
             critChance: spec.critChance,
             critMult: spec.critMult
           });
-          AUDIO.thunder(5);
+          // Thunder SFX is triggered on the first pulse's impact, after the image appears.
         }
       }
     }
@@ -4517,7 +4649,8 @@ if (isRainPort) {
           wT.fusion_thundertalisman = 0.12;
         } else {
           wT.fusion_thundertalisman = wMax.fusion_thundertalisman = spec.cooldown;
-          playerAttackPoseT = 0.18;
+          playerAttackPoseT = Math.max(playerAttackPoseT, 0.56);
+          window.SPRITECOOK_DEV?.restartAttack?.();
           fusionRecordCast("fusion_thundertalisman");
           const count = spec.count || 5;
           const talismans = [];
@@ -4555,9 +4688,14 @@ if (isRainPort) {
             warnStrike: spec.warn || 0.36,
             damage: spec.damage,
             maxTargets: spec.maxTargets || 4,
-            chainRadius: spec.chainRadius || 130,
-            chainScale: spec.chainScale || 0.5,
-            chainMax: spec.chainMax || 1,
+            // 新：天狐雷額外判定參數
+            thunderTickDamage: spec.thunderTickDamage,
+            thunderTickRadius: spec.thunderTickRadius,
+            thunderTickBossScale: spec.thunderTickBossScale,
+            // 舊鏈欄位保留為 0（相容 renderer，不再使用）
+            chainRadius: 0,
+            chainScale: 0,
+            chainMax: 0,
             critChance: spec.critChance,
             critMult: spec.critMult
           });
@@ -5473,10 +5611,24 @@ if (isRainPort) {
 
   function mobPacing(atElapsed, power) {
     const cappedElapsed = Math.min(atElapsed, DAWN);
+    let interval = CFG.spawnInterval(cappedElapsed * MOB_DIFFICULTY.timeScale) * SPAWN_INTERVAL_SCALE * MOB_DIFFICULTY.intervalScale;
+    let count = Math.max(1, CFG.spawnCount(cappedElapsed) + SPAWN_COUNT_BONUS);
+
+    // S1 Normal：前一分鐘持續生成威脅，之後逐步接近第二關的密度。
+    if (STAGE.id === "night-town" && STAGE_PACING.mobDifficulty !== "hard" && cappedElapsed < 150) {
+      if (cappedElapsed < 90) {
+        interval = 1.5 - 0.42 * clamp(cappedElapsed / 90, 0, 1);
+        count = 1;
+      } else {
+        interval = 2.16 + (interval - 2.16) * ((cappedElapsed - 90) / 60);
+        count = 2;
+      }
+    }
+
     return {
       tier: CFG.enemyTier(Math.min(atElapsed, CFG.RUN_SECONDS) * MOB_DIFFICULTY.timeScale, power * MOB_DIFFICULTY.powerScale),
-      interval: CFG.spawnInterval(cappedElapsed * MOB_DIFFICULTY.timeScale) * SPAWN_INTERVAL_SCALE * MOB_DIFFICULTY.intervalScale,
-      count: Math.max(1, CFG.spawnCount(cappedElapsed) + SPAWN_COUNT_BONUS)
+      interval,
+      count
     };
   }
 
@@ -5526,6 +5678,7 @@ function spawnEnemy(tier, rad, ang, ring) {
 
   function update(dt, hitStopped = false) {
     if (state !== "play" || artPending()) return;
+    animElapsed += dt;
     if (isPortrait()) { suspend(); return; }
     checkTutorial();
     if (tutorial) return;
@@ -5536,9 +5689,45 @@ function spawnEnemy(tier, rad, ang, ring) {
       if (dist(P, e) < 380) quizNear = e;
       else if (e.quizEntered) e.quizClosed = true;
     }
-    if (quizNear) quizNear.quizEntered = true;
-    if (job && !job.readClosed && dist(P, job.to) < 220) job.reading = true;
-    if (job?.reading && dist(P, job.to) >= 270) { job.reading = false; job.readClosed = true; }
+    if (quizNear) {
+      quizNear.quizEntered = true;
+      if (STAGE.id === "night-town") {
+        quizNear.barrierTimer = (quizNear.barrierTimer ?? 10) - dt;
+        if (quizNear.barrierTimer <= 0) {
+          quizNear.barrierTimer = 0;
+          quizNear.quizClosed = true;
+          quizNear = null;
+        }
+      }
+    }
+    if (job && !job.readClosed && dist(P, job.to) < 220) {
+      if (!job.reading) {
+        job.reading = true;
+        job.barrierTimer = 10.0; // 10 秒結界倒數
+      }
+    }
+    if (job?.reading) {
+      if (dist(P, job.to) >= 270) {
+        job.reading = false;
+        job.readClosed = true;
+        job.barrierTimer = null;
+      } else {
+        job.barrierTimer = (job.barrierTimer ?? 10.0) - dt;
+        if (job.barrierTimer <= 0) {
+          // 10 秒到期必須結束暫停，扣除 5% max HP 並恢復戰鬥
+          job.barrierTimer = null;
+          job.reading = false;
+          job.readClosed = true;
+          failed++;
+          const penalty = Math.max(3, Math.round(maxOil * 0.05));
+          oil = Math.max(0, oil - penalty);
+          say("結界消散・答題逾時", P.x, P.y - 45, "#ff4d4d");
+          AUDIO.deliverWrong();
+          HAPTICS.deliverWrong();
+          if (oil <= 0) { oil = 0; loseRun(); return; }
+        }
+      }
+    }
     const safeRead = !!(job?.reading || quizNear);
     if (!safeRead) {
       elapsed += dt;
@@ -5679,6 +5868,20 @@ function spawnEnemy(tier, rad, ang, ring) {
       }
     }
 
+    // 關卡逾 12:00 (720秒) 且尾王尚存活時，開始緩慢回血 (1.5% maxHP/s，不超 max，死亡即停止回血)
+    if (STAGE.id === "night-town" && elapsed >= 720 && !finalBossDefeated) {
+      const liveBoss = enemies.find(e => e.type === "boss" && e.final && e.hp > 0);
+      if (liveBoss) {
+        const heal = (liveBoss.max || 1000) * 0.015 * dt;
+        liveBoss.hp = Math.min(liveBoss.max, liveBoss.hp + heal);
+        liveBoss.healPulseT = (liveBoss.healPulseT || 0) + dt;
+        if (liveBoss.healPulseT >= 1.5) {
+          liveBoss.healPulseT = 0;
+          say("妖力湧溢・狂暴回血", liveBoss.x, liveBoss.y - 70, "#ff4d4d");
+        }
+      }
+    }
+
     // 百鬼夜行：一次音效，保留 2.4 秒準備時間。
     if (surgeWarningT > 0) {
       surgeWarningT -= dt;
@@ -5711,6 +5914,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     for (const e of enemies) {
       if (e.hp <= 0) continue;
       e.flash = Math.max(0, e.flash - dt);
+      e.hitReactT = Math.max(0, (e.hitReactT || 0) - dt);
       e.attackT = Math.max(0, (e.attackT || 0) - dt);
       const knocked = moveKnockback(e, dt);
       if (e.freezeT > 0) {
@@ -5737,15 +5941,25 @@ function spawnEnemy(tier, rad, ang, ring) {
       }
       let hazardHit = null;
       if (e.type === "boss" && window.BOSS_AI?.step) {
+        let ringActiveR = null;
+        const h = e.hazard;
+        if (h && h.kind === "ring" && h.phase === "active" && dt > 0 && !(surgeWarningT > 0) && !e.shield) {
+          ringActiveR = h.r;
+          h.prevR = ringActiveR;
+        }
         const stepped = window.BOSS_AI.step(e, P, dt, {
           blocked: (x, y, r = 32) => blocked(x, y, r),
           stageId: STAGE.id,
           paused: surgeWarningT > 0
         });
         if (stepped?.hit) hazardHit = stepped.hit;
-        if (e.final && STAGE.id === "rain-port") {
-          const tideOn = e.hazard && e.hazard.kind === "tide" && (e.hazard.phase === "telegraph" || e.hazard.phase === "active");
-          const nextPose = tideOn ? "attack" : "idle";
+        if (ringActiveR !== null && e.hazard === h && h.kind === "ring" && (h.phase === "active" || h.phase === "recovery")) {
+          h.prevR = ringActiveR;
+        }
+        if (e.umibozu && STAGE.id === "rain-port") {
+          const offensiveHazard = e.hazard && ["telegraph", "active"].includes(e.hazard.phase)
+            && ["tide", "slam", "charge", "tidalFan", "rainVortex"].includes(e.hazard.kind);
+          const nextPose = offensiveHazard ? "attack" : "idle";
           if (e.pose !== nextPose) e.pose = nextPose;
         }
       }
@@ -5912,7 +6126,9 @@ function spawnEnemy(tier, rad, ang, ring) {
           role: plan.role,
           gatekeeper: plan.role === "gate",
           final: plan.role === "final",
-          umibozu: plan.role === "final" && STAGE.id === "rain-port",
+          // All rain-port bosses share the same harbor sprite pipeline; AI, HP
+          // and boss-stage progression remain untouched.
+          umibozu: STAGE.id === "rain-port",
           pose: "idle",
           title: bossTitle,
           bossIndex: bossStage,
@@ -5943,7 +6159,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     const bs = enemies.find(e => e.type === "boss" && e.shield);
     if (bs && dist(P, bs) < 380) {
       if (!bs.quiz) {
-        const needsIntro = bs.introduced === false && !!bs.word;
+        const needsIntro = STAGE.id !== "night-town" && bs.introduced === false && !!bs.word;
         if (needsIntro) {
           say(`${bs.word.jp}＝${bs.word.zh}`, bs.x, bs.y - 78, "#9be7ff");
           AUDIO.speak(bs.word.jp);
@@ -5956,6 +6172,7 @@ function spawnEnemy(tier, rad, ang, ring) {
       }
       bossQ = bs.quiz;
       bossQ.reading = quizNear === bs;
+      bossQ.barrierTimer = bs.barrierTimer;
       bossQ.lock = Math.max(0, bossQ.lock - dt);
     } else {
       bossQ = null;
@@ -6041,7 +6258,7 @@ function spawnEnemy(tier, rad, ang, ring) {
         const ps = ansPos(job.to);
         let nd = 38;
         ps.slice(0,job.ans.length).forEach((p, i) => {
-          if (job.eliminatedIdx === i) return;
+          if (job.eliminatedIdx === i || job.wrong?.includes(i)) return;
           const d = dist(P, p);
           if (d < nd) { nd = d; idx = i; }
         });
@@ -6085,7 +6302,7 @@ function spawnEnemy(tier, rad, ang, ring) {
       fx.progress = Math.min(1, fx.burnAge / (fx.life || 0.8));
       const warn = Number(fx.warn) || 0;
       if (fx.burnAge < warn) fx.phase = "warn";
-      else if (fx.kind === "fusion_inkblade") fx.phase = fx.progress >= 0.5 ? "fade" : "active";
+      else if (fx.kind === "fusion_inkblade") fx.phase = fx.progress >= 0.8 ? "fade" : "active";
       else fx.phase = fx.progress >= 0.8 ? "fade" : "active";
 
       // 地面焦墨短灼燒判定 (短灼燒，同目標 CD，目標上限)
@@ -6231,6 +6448,8 @@ function spawnEnemy(tier, rad, ang, ring) {
           ln.y = ln.fromY + (ln.targetY - ln.fromY) * tr;
           if (ln.struck || (fx.burnAge || 0) < ln.delay) continue;
           ln.struck = true;
+          ln.struckAt = fx.burnAge;
+          if (!fx.audioPlayed) { AUDIO.thunder(5); fx.audioPlayed = true; }
           const crit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
           const targets = enemies
             .filter(e => fusionTargetEligible(e) && dist(e, ln) <= (fx.strikeRadius || 64))
@@ -6332,6 +6551,7 @@ function spawnEnemy(tier, rad, ang, ring) {
           s.delay -= dt;
           if (s.triggered || s.delay > 0) continue;
           s.triggered = true;
+          if (!fx.audioPlayed) { AUDIO.thunder(5); fx.audioPlayed = true; }
           const crit = rollCrit({ critChance: s.critChance, critMult: s.critMult });
           let hits = 0;
           for (const e of enemies) {
@@ -6348,47 +6568,90 @@ function spawnEnemy(tier, rad, ang, ring) {
         }
       }
 
-      // 雷符神罰：五符落定、預警落雷；每個命中最多單次連鎖，不二次派生。
+      // 雷符神罰：單一主範圍爆炸 + 每名真命中敵人一次額外天狐雷（去重、Boss倍率、跨幀去重、真HP）
+      // 設計：主爆炸在 fx.firstHitAt 觸發（首個 talisman delay + warnStrike），渲染器依此時間播主圖。
+      // hitEvents 記錄每個真命中敵人的世界座標與判定時間，供渲染器在對應時刻畫天狐雷。
       if (fx.kind === "fusion_thundertalisman" && Array.isArray(fx.talismans)) {
-        for (const t of fx.talismans) {
-          const tr = Math.min(1, (fx.burnAge || 0) / Math.max(0.001, t.delay || 0.001));
-          t.x = t.fromX + (t.targetX - t.fromX) * tr;
-          t.y = t.fromY + (t.targetY - t.fromY) * tr;
-          if (t.struck || (fx.burnAge || 0) < t.delay + (fx.warnStrike || 0.36)) continue;
-          t.struck = true;
-          const crit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
+        const now = fx.burnAge || 0;
+        const firstTalismanDelay = Math.min(...fx.talismans.map(t => t.delay || 0));
+        const firstHitAt = firstTalismanDelay + (fx.warnStrike || 0.36); // 首次可能命中時間
+        
+        // 初始化 hitEvents 與跨幀去重集合
+        if (!fx.hitEvents) fx.hitEvents = [];
+        if (!fx.hitEnemyIds) fx.hitEnemyIds = new Set();
+        if (!fx.mainExplosionTriggered) fx.mainExplosionTriggered = false;
+
+        // 主爆炸觸發：在 firstHitAt 時刻（只觸發一次）
+        if (!fx.mainExplosionTriggered && now >= firstHitAt) {
+          fx.mainExplosionTriggered = true;
+          fx.firstHitAt = firstHitAt; // 供渲染器讀取
+          
+          // 主爆炸中心：施法點（玩家位置），而非符目標平均
+          // 符從玩家飛出，主爆炸在施法點產生，覆蓋前方扇形區域
+          fx.mainExplosionCenter = { x: fx.x, y: fx.y };
+
+          // 判定主爆炸範圍內的敵人（單次判定，跨幀去重）
+          // 半徑放大以覆蓋符飛行扇形區域（符飛行 140-190px）
+          const strikeRadius = Math.max(fx.strikeRadius || 70, 200);
           const hits = enemies
-            .filter(e => fusionTargetEligible(e) && dist(e, t) <= (fx.strikeRadius || 70))
-            .sort((a, b) => dist(a, t) - dist(b, t))
+            .filter(e => fusionTargetEligible(e) && dist(e, { x: fx.x, y: fx.y }) <= strikeRadius)
+            .sort((a, b) => dist(a, { x: fx.x, y: fx.y }) - dist(b, { x: fx.x, y: fx.y }))
             .slice(0, fx.maxTargets || 4);
-          const chained = new Set();
+
+          const crit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
           for (const e of hits) {
-            if (t.hitSet.has(e)) continue;
-            t.hitSet.add(e);
+            const enemyId = e.id || (e._id = ++fusionEffects._idCounter || 1);
+            if (fx.hitEnemyIds.has(enemyId)) continue;
+            fx.hitEnemyIds.add(enemyId);
+
+            // 主爆炸傷害
             const dmg = fx.damage * crit.mult;
             hurt(e, dmg, crit.isCrit);
             fusionRecordDamage("fusion_thundertalisman", dmg);
             SKILLFX.play("thunder", "hit", 5, { x: e.x, y: e.y, crit: crit.isCrit });
-            if (chained.size >= (fx.chainMax || 1)) continue;
-            let best = null, bestD = Infinity;
-            for (const other of enemies) {
-              if (!fusionTargetEligible(other) || other === e || t.hitSet.has(other) || chained.has(other)) continue;
-              const d2 = dist(other, e);
-              if (d2 > (fx.chainRadius || 130) || d2 >= bestD) continue;
-              best = other;
-              bestD = d2;
-            }
-            if (best) {
-              chained.add(best);
-              t.hitSet.add(best);
-              const chainDmg = fx.damage * (fx.chainScale || 0.5) * crit.mult;
-              hurt(best, chainDmg, crit.isCrit);
-              fusionRecordDamage("fusion_thundertalisman", chainDmg);
-              fx.arcs.push({ x1: e.x, y1: e.y, x2: best.x, y2: best.y });
-              SKILLFX.play("thunder", "hit", 5, { x: best.x, y: best.y, crit: crit.isCrit });
+
+            // 記錄命中事件：世界座標 + 判定時間（相對 fx 啟動）
+            fx.hitEvents.push({
+              enemyId,
+              x: e.x,
+              y: e.y,
+              at: now, // 判定時間
+              isBoss: e.type === "boss",
+              mainDmg: dmg
+            });
+          }
+          if (hits.length) RENDERER.triggerShake(3);
+        }
+
+        // 額外天狐雷：對每個 hitEvents 中的敵人，在判定時間點各發一次（跨幀去重已由 hitEnemyIds 保證）
+        if (fx.thunderTickDamage && fx.hitEvents.length > 0) {
+          for (const evt of fx.hitEvents) {
+            // 只在判定幀附近處理一次（避免重複扣血）
+            if (evt.processed) continue;
+            if (now >= evt.at && now < evt.at + 0.05) { // 50ms 窗口
+              evt.processed = true;
+              const e = enemies.find(en => (en.id || en._id) === evt.enemyId);
+              if (!e || e.hp <= 0) continue;
+              
+              const bossScale = e.type === "boss" ? (fx.thunderTickBossScale ?? 0.5) : 1.0;
+              const thunderCrit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
+              const tickDmg = fx.thunderTickDamage * bossScale * thunderCrit.mult;
+              hurt(e, tickDmg, thunderCrit.isCrit);
+              fusionRecordDamage("fusion_thundertalisman", tickDmg);
+              SKILLFX.play("thunder", "hit", 5, { x: e.x, y: e.y, crit: thunderCrit.isCrit });
+              
+              // 補充事件資訊供渲染器
+              evt.thunderDmg = tickDmg;
+              evt.thunderAt = now;
             }
           }
-          if (hits.length) RENDERER.triggerShake(2);
+        }
+
+        // 更新 talisman 位置動畫（視覺用，不參與判定）
+        for (const t of fx.talismans) {
+          const tr = Math.min(1, now / Math.max(0.001, t.delay || 0.001));
+          t.x = t.fromX + (t.targetX - t.fromX) * tr;
+          t.y = t.fromY + (t.targetY - t.fromY) * tr;
         }
       }
     }
@@ -6396,6 +6659,8 @@ function spawnEnemy(tier, rad, ang, ring) {
       const ttl = fx.kind === "fusion_inkblade" ? (fx.burnDuration || 2.5) : (fx.life || 0.8);
       return fx.burnAge < ttl;
     });
+    // 保留 _idCounter 供敵人去重使用（filter 會建立新陣列）
+    if (!fusionEffects._idCounter) fusionEffects._idCounter = 0;
 
     // 融合繪馬地面互動檢查
     if (fusionToken && window.FUSION && typeof window.FUSION.getState === "function") {
@@ -6552,12 +6817,12 @@ function spawnEnemy(tier, rad, ang, ring) {
     ctx.restore();
   }
 
-  function drawBossHazard(h) {
+  function drawBossHazard(h, owner) {
     if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) return;
 
-    // 沿用 RENDERER.drawBossHazard(ctx, h, elapsed)。strict true 才表示真圖已畫出。
+    // 第四參數傳真 Boss；舊三參數 handler 相容，strict true 才略過 fallback。
     const portDraw = RENDERER && RENDERER.drawBossHazard;
-    if (typeof portDraw === "function" && portDraw(ctx, h, elapsed) === true) return;
+    if (typeof portDraw === "function" && portDraw(ctx, h, elapsed, owner) === true) return;
 
     ctx.save();
     ctx.globalAlpha = h.phase === "recovery" ? 0.28 : 0.72;
@@ -6675,7 +6940,7 @@ function spawnEnemy(tier, rad, ang, ring) {
       // 連續雙環：白色光芯、青色暈光與寬柔光束，沒有枝狀邊線。
       {
         ctx.save();
-        const alpha = job.sanctuaryT > 0 ? 0.85 : 0.55;
+        const alpha = job.reading && job.barrierTimer != null ? 0.15 : (job.sanctuaryT > 0 ? 0.85 : 0.55);
         const cy = job.to.y + 70;
         const gy = 1 / tiltK();
         ctx.globalCompositeOperation='lighter';
@@ -6694,6 +6959,49 @@ function spawnEnemy(tier, rad, ang, ring) {
             ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x-7,y);ctx.lineTo(x-18,y-h);ctx.lineTo(x+18,y-h);ctx.lineTo(x+7,y);ctx.closePath();ctx.fill();
           });
         }
+        ctx.restore();
+      }
+
+      // 同一藍色結界圈順時針逐漸失去光芒，不另畫黃色計時器。
+      if (job && job.reading && job.barrierTimer != null) {
+        const timerFraction = Math.max(0, Math.min(1, job.barrierTimer / 10.0));
+        const barrierR = 245, barrierY = job.to.y + 70, barrierRy = 165 / tiltK();
+        ctx.save();
+        // 藍圈邊緣向上升起，錯開生命週期；只作既有結界的輔助粒子。
+        for (let pi = 0; pi < 72; pi++) {
+          const pAngle = (pi / 72) * 6.283;
+          // 藍圈暗下來的順時針扇區不再閃粒子。
+          const ringPos = (((pAngle + Math.PI / 2) % 6.283) + 6.283) % 6.283 / 6.283;
+          if (ringPos < 1 - timerFraction) continue;
+          const age = (animElapsed * 0.6 + pi * 0.618) % 1;
+          const px = job.to.x + Math.cos(pAngle) * barrierR;
+          const py = barrierY + Math.sin(pAngle) * barrierRy;
+          upright(px, py, () => {
+            const drift = Math.sin(pi * 2.1 + age * 4) * age * 16;
+            const rise = age * (42 + pi % 5 * 9);
+            const blink = 0.55 + 0.45 * Math.sin(animElapsed * 9 + pi * 1.7);
+            ctx.fillStyle = `rgba(145,240,255,${Math.sin(age * Math.PI) * blink * 0.85})`;
+            ctx.beginPath();ctx.arc(px + drift, py - rise, 1.5 + pi % 3 * 0.55, 0, 6.283);ctx.fill();
+          });
+        }
+        // 沿用外層同一藍色光環的位置，從正上方順時針逐步熄滅。
+        ctx.globalCompositeOperation = "lighter";
+        ctx.strokeStyle = "rgba(105, 225, 255, 0.85)";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.ellipse(job.to.x, barrierY, barrierR, barrierRy, 0, -Math.PI/2 + 6.283 * (1-timerFraction), -Math.PI/2 + 6.283);
+        ctx.stroke();
+        ctx.globalCompositeOperation = "source-over";
+
+        // 10 秒醒目倒數
+        const secs = Math.ceil(job.barrierTimer);
+        ctx.textAlign = "center";
+        ctx.font = "600 17px 'Kaisei Decol', 'Noto Serif JP', serif";
+        ctx.strokeStyle = "#112d3a";
+        ctx.lineWidth = 3.5;
+        ctx.strokeText(`結界  ${secs}秒`, job.to.x, barrierY - 120);
+        ctx.fillStyle = "#b4f3ff";
+        ctx.fillText(`結界  ${secs}秒`, job.to.x, barrierY - 120);
         ctx.restore();
       }
 
@@ -6890,14 +7198,20 @@ function spawnEnemy(tier, rad, ang, ring) {
       const age=zone.maxLife-zone.life,fade=Math.max(0,Math.min(0.84,zone.life/1.0,age/0.30));
       const pulse=animateGroundHeat?1+Math.sin(age*7.5)*0.024:1;
       const gy=1/tiltK();
-      const w=zone.r*2.1*pulse,h=zone.r*1.23*gy*(animateGroundHeat?1+Math.sin(age*6.2)*0.02:1);
+      const w=zone.r*2.1*pulse,h=zone.r*1.23*(animateGroundHeat?1+Math.sin(age*6.2)*0.02:1);
       ctx.save();ctx.globalAlpha=fade;
-      const art=window.ART?.dragon_burning_ground_l5;
+      let art = null;
+      const res = typeof window !== "undefined" ? window.STAGE_ART_RESOLVER : null;
+      if (res && typeof res.getSharedArt === "function") {
+        const meta = res.getSharedArt("skills", "fire", "dragon_burning_ground_l5");
+        if (meta && meta.status === "APPROVED") {
+          art = window.ART && (window.ART[meta.id] || window.ART.dragon_burning_ground_l5);
+        }
+      } else {
+        art = window.ART?.dragon_burning_ground_l5;
+      }
       if(art?.naturalWidth>0){
         ctx.drawImage(art,zone.x-w/2+(animateGroundHeat?Math.sin(age*3.5)*2:0),zone.y-h/2,w,h);
-      }else{
-        ctx.fillStyle='rgba(185,53,17,0.38)';
-        ctx.beginPath();ctx.ellipse(zone.x,zone.y,zone.r,zone.r*0.53*gy,0,0,6.283);ctx.fill();
       }
       // Ink-like secondary motion without a costly whole-screen distortion shader.
       for(let i=0;i<(animateGroundHeat?6:0);i++){
@@ -6914,35 +7228,44 @@ function spawnEnemy(tier, rad, ang, ring) {
       ctx.restore();
     }
     SKILLFX.drawArtFx?.(ctx, true);
+    // 所有融合主圖先於怪物及 Boss 警示繪製，避免自己的奧義遮住敵人和危險範圍。
+    for (const fx of fusionEffects) {
+      RENDERER.drawFusionFx?.(ctx, fx, visualElapsed);
+    }
 
     for (const e of enemies) if (e.hp > 0 && e.hazard && nearView(e.hazard.x, e.hazard.y, 480)) {
       if (e.hazard.kind === "shiome") drawShiomeWave(e.hazard);
-      else drawBossHazard(e.hazard);
+      else drawBossHazard(e.hazard, e);
     }
 
+    // 獨立於 safeRead 的角色動畫時鐘，確保世界暫停時角色仍能流暢邁步／衝刺
+    const pAnimElapsed = typeof animElapsed === "number" ? animElapsed : elapsed;
     // 7. 依腳底地面接觸點排序；北側角色被屋頂遮住，南側角色在屋前。
     const movement = move();
     const actors = [
       ...houses.filter(houseSeen).map(h => ({ house: h, y: h.y + 48 })),
       ...enemies.filter(e => nearView(e.x, e.y)).map(e => ({ enemy: e, y: e.y + (e.type === "boss" ? 44 : e.type === "mis" ? 27 : 19) })),
       ...LAMPS.filter(l => nearView(l.x, l.y)).map(l => ({ lamp: l, y: l.y + 8 })),
-      { player: P, y: P.y + 20 },
+      { player: P, y: P.y },
       // Single continuous scenery pass at EVERY tilt. No cached↔live toggle.
       ...activeChunks.flatMap(chunk => [
         ...(STAGE.id === "sakura-pass" || !chunk.decor?.torii ? [] : [{torii:chunk,y:chunk.y+chunk.h/2+36}]),
         ...(STAGE.id === "sakura-pass" ? [] : (chunk.decor?.sakuraTrees||[])).map(tree=>({tree,y:tree.y})),
         ...(chunk.decor?.ancientSakura || []).map(tree => ({ ancient: tree, y: tree.y })),
+        ...((STAGE.id === "sakura-pass" && chunk.decor?.stage3Props) || []).map(prop => ({ sakuraProp: prop, y: prop.y })),
         ...((STAGE.id === "rain-port" && chunk.decor?.port?.props) || []).map(prop => ({ port: prop, y: prop.y }))
       ]).filter(actor => actor.torii
         ? nearView(actor.torii.x+actor.torii.w/2,actor.y,140)
         : actor.ancient ? houseSeen(actor.ancient)
         : actor.port ? nearView(actor.port.x, actor.port.y, 160)
+        : actor.sakuraProp ? nearView(actor.sakuraProp.x, actor.sakuraProp.y, 160)
         : nearView(actor.tree.x,actor.tree.y,140))
     ];
     actors.sort((a, b) => a.y - b.y);
     for (const actor of actors) {
       if (actor.torii || actor.tree || actor.ancient) RENDERER.drawDecorActor?.(actor,P.y);
       else if (actor.port) RENDERER.drawPortProp?.(actor.port, P.y);
+      else if (actor.sakuraProp) RENDERER.drawSakuraProp?.(actor.sakuraProp, P.y);
       else if (actor.house) {
         RENDERER.drawHouseShadow?.(actor.house);
         upright(actor.house.x,actor.house.y+46,()=>RENDERER.drawHouse(actor.house,P.y));
@@ -6976,59 +7299,41 @@ function spawnEnemy(tier, rad, ang, ring) {
           }
         });
 } else if (actor.player) {
-        // 玩家：有狐火時在狐火分層中繪製，這裡跳過
-        if (!(WL.fire > 0)) {
-          const movement = move();
-          RENDERER.drawPlayerShadow?.(P, elapsed, movement);
-          upright(P.x, P.y, () => drawCargo());
-          upright(P.x, P.y, () => RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, movement, b.shield || 0, playerAttackPoseT > 0, playerHurtPoseT > 0));
+        // Draw player AND its orbit flames at the player's actual ground-contact Y
+        // in the actor depth-sort pass. Previously, when fire was equipped,
+        // the player was painted AFTER every building, floating in front of roofs.
+        const effSpeed = getEffectiveMoveSpeed();
+        const frontFireballs = [];
+        RENDERER.drawPlayerShadow?.(P, pAnimElapsed, movement, effSpeed);
+
+        if (WL.fire > 0) {
+          const fireSpec = resolveAttackSpec("fire", WL.fire, getBuildState());
+          const count = fireSpec.count;
+          const rx = fireSpec.rx, ry = fireSpec.ry;
+          const awaySlots = new Set(ghosts.filter(p => p.fireAttack && p.life > 0 && p.level === WL.fire).map(p => p.slot));
+          for (let i = 0; i < count; i++) {
+            if (awaySlots.has(i)) continue;
+            const a = fAng + (i * 6.283) / count;
+            const fx = P.x + Math.cos(a) * rx;
+            const fy = P.y + Math.sin(a) * ry;
+            const fireData = { x: fx, y: fy, ang: a, origin: P, orbitR: rx, orbitRy: ry, rx, ry, time: elapsed + i * 0.2, orbit: true };
+            // Larger world Y is nearer to the camera (not farther).
+            if (fy < P.y) upright(fx, fy, () => SKILLFX.paint(ctx, "fire", WL.fire, fireData));
+            else frontFireballs.push({ fx, fy, fireData });
+          }
+        }
+
+        upright(P.x, P.y, () => drawCargo());
+        upright(P.x, P.y, () => RENDERER.drawPlayer(P, dashT > 0, P.inv, pAnimElapsed, movement, b.shield || 0, playerAttackPoseT > 0, playerHurtPoseT > 0, effSpeed));
+        for (const fb of frontFireballs) {
+          upright(fb.fx, fb.fy, () => SKILLFX.paint(ctx, "fire", WL.fire, fb.fireData));
         }
       }
     }
 
-    // 8. 武器彈幕（飛行或黏在目標身上的符咒）
+    // 8. Weapon projectiles (after depth-sorted actors).
     for (const q of proj) upright(q.x,q.y,()=>
       SKILLFX.paint(ctx, "boom", q.level??WL.boom, { x: q.x, y: q.y, spin: elapsed * (q.stuck ? 4 : 16), age:q.t, life:q.stuck ? 1 : q.life, exitAlpha:1 }));
-
-// Lv1–3 僅環繞、Lv4 三火脫離追擊；MAX 六火常駐並召喚黑龍。
-    if (WL.fire > 0) {
-      const fireSpec = resolveAttackSpec("fire", WL.fire, getBuildState());
-      const count = fireSpec.count;
-      const rx = fireSpec.rx, ry = fireSpec.ry;
-      const awaySlots = new Set(ghosts.filter(p=>p.fireAttack&&p.life>0&&p.level===WL.fire).map(p=>p.slot));
-
-      // 2.5D 狐火 orbit 上下遮擋：根據世界 Y 分前/後層
-      // 後半（fy > P.y，遠離攝影機）先畫在玩家之前；前半（fy <= P.y，靠近攝影機）畫在玩家之後
-      const backFireballs = [];
-      const frontFireballs = [];
-      for (let i = 0; i < count; i++) {
-        if (awaySlots.has(i)) continue;
-        const a = fAng + (i * 6.283) / count;
-        const fx = P.x + Math.cos(a) * rx;
-        const fy = P.y + Math.sin(a) * ry;
-        const fireData = { x: fx, y: fy, ang: a, origin: P, orbitR: rx, orbitRy: ry, rx, ry, time: elapsed + i * 0.2, orbit: true };
-        if (fy > P.y) {
-          backFireballs.push({ fx, fy, fireData });
-        } else {
-          frontFireballs.push({ fx, fy, fireData });
-        }
-      }
-
-      // 先畫後層火球（fy > P.y，遠離攝影機）
-      for (const fb of backFireballs) {
-        upright(fb.fx, fb.fy, () => SKILLFX.paint(ctx, "fire", WL.fire, fb.fireData));
-      }
-
-      // 貨物在直立角色後方
-      upright(P.x, P.y, () => drawCargo());
-      // 玩家（只畫一次，在兩層火球之間）
-      upright(P.x, P.y, () => RENDERER.drawPlayer(P, dashT > 0, P.inv, elapsed, movement, b.shield || 0, playerAttackPoseT > 0, playerHurtPoseT > 0));
-
-      // 再畫前層火球（fy <= P.y，靠近攝影機）
-      for (const fb of frontFireballs) {
-        upright(fb.fx, fb.fy, () => SKILLFX.paint(ctx, "fire", WL.fire, fb.fireData));
-      }
-    }
 
     // 12.5 破魔靈針彈幕
     for(const p of ghosts)if(!p.dragon)
@@ -7162,7 +7467,7 @@ function spawnEnemy(tier, rad, ang, ring) {
         ctx.font=job.rev?UI.readableFont(31,'700'):sceneAnswerFont(33);
         const ready=job.rev || UI.answerFontReady(text,31,'700');
         if(ready){
-          ctx.fillStyle=job.eliminatedIdx===i?'#888899':'#161224';
+          ctx.fillStyle=job.eliminatedIdx===i || job.wrong?.includes(i)?'#888899':'#161224';
           const maxPadW = 190;
           if (UI.fitText) {
             UI.fitText(ctx, text, p.x, y, maxPadW, {
@@ -7177,7 +7482,7 @@ function spawnEnemy(tier, rad, ang, ring) {
             ctx.fillText(text,p.x,y);
           }
         }
-        if(meaning){ctx.font=UI.readableFont(13,'bold');ctx.fillStyle='#d84315';ctx.strokeText(`【${job.ans[i].zh}】`,p.x,p.y+19);ctx.fillText(`【${job.ans[i].zh}】`,p.x,p.y+19);}
+        // 答錯時不標注當題中文釋義以防洩題
         ctx.restore();
       });ctx.restore();
     }
@@ -7265,41 +7570,21 @@ function spawnEnemy(tier, rad, ang, ring) {
       if(!nearView(shot.x,shot.y,120))continue;
       upright(shot.x,shot.y,()=>{
       ctx.save();ctx.translate(shot.x,shot.y);ctx.rotate(shot.ang);
-      // Bounded woodblock-ink comet tail and warm aura. Draw only while a
-      // shot is alive; no particles accumulate in long-running sessions.
-      const age=shot.maxLife-shot.life,anim=liveMotion()!==0;
-      const shimmer=anim?Math.sin(age*24)*0.045:0;
-      ctx.fillStyle='rgba(242,84,26,0.16)';
-      ctx.beginPath();ctx.ellipse(-11,0,86+shimmer*100,60+shimmer*80,0,0,6.283);ctx.fill();
-      ctx.fillStyle='rgba(255,180,64,0.18)';
-      ctx.beginPath();ctx.ellipse(-3,0,65,42,0,0,6.283);ctx.fill();
-      for(let i=0;i<(anim?10:4);i++){
-        const back=48+i*13+(anim?(age*82+i*7)%22:0);
-        const sideways=Math.sin(i*2.5+(anim?age*12:0))*(9+i*2.9);
-        const alpha=(0.36+(i%3)*0.16)*(1-i/15);
-        ctx.globalAlpha=alpha;
-        ctx.strokeStyle=i%3===0?'#ffe0a0':i%3===1?'#ff9d38':'#da4b1f';
-        ctx.lineWidth=3.8-i*0.2;
-        ctx.beginPath();
-        ctx.moveTo(-back+17,sideways-4);
-        ctx.quadraticCurveTo(-back+6,sideways-13,-back-9,sideways+4);
-        ctx.stroke();
-        ctx.fillStyle=i%2?'#ffd478':'#f47e35';
-        ctx.beginPath();ctx.arc(-back-5,sideways+7,2.5-i*0.12,0,6.283);ctx.fill();
+      // 飛行火球以核准 raster 為主體，不繪製橘圓、虛線或弧線替身。
+      let art = null;
+      const res = typeof window !== "undefined" ? window.STAGE_ART_RESOLVER : null;
+      if (res && typeof res.getSharedArt === "function") {
+        const meta = res.getSharedArt("skills", "fire", "dragon_fireball_l5");
+        if (meta && meta.status === "APPROVED") {
+          art = window.ART && (window.ART[meta.id] || window.ART.dragon_fireball_l5);
+        }
+      } else {
+        art = window.ART?.dragon_fireball_l5;
       }
-      ctx.globalAlpha=1;
-      const art=window.ART?.dragon_fireball_l5;
       if(art?.naturalWidth>0){
         ctx.drawImage(art,-72,-72,144,144);
-      }else{
-        ctx.fillStyle='#f6aa45';ctx.strokeStyle='#572720';ctx.lineWidth=3;
-        ctx.beginPath();ctx.arc(0,0,35,0,6.283);ctx.fill();ctx.stroke();
       }
-      // A short golden brush-flash keeps the ball distinct from blue katana arcs.
-      ctx.globalAlpha=anim?0.64+Math.sin(age*22)*0.08:0.60;
-      ctx.strokeStyle='#ffe9a1';ctx.lineWidth=3.5;
-      ctx.beginPath();ctx.arc(0,0,57,-0.78,0.55);ctx.stroke();
-      ctx.globalAlpha=1;      ctx.restore();
+      ctx.restore();
       });
     }
     RENDERER.drawSlashArcs();
@@ -7376,10 +7661,7 @@ function spawnEnemy(tier, rad, ang, ring) {
       }
     }
 
-    // 繪製融合特效 (奧義・墨焰斬 / 雷紋陣)
-    for (const fx of fusionEffects) {
-      RENDERER.drawFusionFx?.(ctx, fx, elapsed);
-    }
+    // 融合圖已在地面層繪製，這裡不重畫，讓怪物／玩家／Boss 警示始終在上方。
     ctx.restore();
 
     // 破曉後若配達已完成（第一關破曉即可），使用與送貨金箭頭不同的赤色雙箭頭追蹤最終大妖鬼。
@@ -7423,6 +7705,7 @@ function spawnEnemy(tier, rad, ang, ring) {
   }
 
   function turnCodexPage(delta) {
+    UI.selectSecretDetail?.(null);
     const next = UI.codexButtons(codexTab,codexPage,codexWords().length).find(b=>b.id==='next');
     if(delta>0&&next.disabled)return;
     const lastPage = codexTab==='cards'?Math.ceil(UI.CARD_LIST.length/UI.codexRows())-1:Math.max(0,Math.ceil(codexWords().length/15)-1);
@@ -7655,10 +7938,11 @@ function spawnEnemy(tier, rad, ang, ring) {
   function hitLevelUpCard(p) {
     if (!p) return -1;
     const { card } = levelUpLayout();
+    const cards = typeof UI.levelUpLayout === "function" ? UI.levelUpLayout(choices.length)?.cards : null;
     const count = choices.length;
     for (let i = 0; i < count; i++) {
-      const rowY = card.y + i * (card.h + card.gap);
-      if (p.x >= card.x && p.x <= card.x + card.w && p.y >= rowY && p.y <= rowY + card.h) {
+      const rect = cards?.[i] || {x:card.x,y:card.y+i*(card.h+card.gap),w:card.w,h:card.h};
+      if (p.x >= rect.x && p.x <= rect.x + rect.w && p.y >= rect.y && p.y <= rect.y + rect.h) {
         return i;
       }
     }
@@ -7715,10 +7999,10 @@ function spawnEnemy(tier, rad, ang, ring) {
     if (state === "pause") {
       const btnW = UI.PAUSE_BTN_W || 280, btnH = UI.PAUSE_BTN_H || 44;
       const bx = W / 2 - btnW / 2;
-      for (const btn of UI.pauseButtons?.() || UI.PAUSE_BTNS) {
+      for (const btn of UI.pauseButtons(pausePage)) {
         const x=btn.x ?? bx, w=btn.w ?? btnW, h=btn.h ?? btnH;
         if (hitButton(p, {x, y:btn.y, w, h})) {
-          menuFocus = (UI.pauseButtons?.() || UI.PAUSE_BTNS).findIndex(b=>b.id===btn.id);
+          menuFocus = UI.pauseButtons(pausePage).findIndex(b=>b.id===btn.id);
           activateWithFeedback(btn.id);
           return;
         }
@@ -7852,7 +8136,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     }
     if(e.pointerType === 'mouse'){
       const available = quitConfirm ? UI.EXIT_BTNS
-        : state === "pause" ? UI.pauseButtons?.()
+        : state === "pause" ? UI.pauseButtons(pausePage)
         : ["menu","won","lost"].includes(state) ? menuButtons() : null;
       const over = available?.find(b=>hitButton(pp(e),b));
       UI.setButtonHover?.(over?.id || null);
@@ -7911,7 +8195,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     tutorial = null; bossQ = null; job = null; inter = null;
     orders = []; enemies = []; gems = []; texts = []; rings = [];
     proj = []; needles = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; splitblasts = []; duoShockwaves = []; inkfireMarks = []; enemyBullets = [];
-    fusionEffects = [];
+    fusionEffects = []; fusionEffects._idCounter = 0;
     victorySeq = null; lampSeq = null; finalBossEnt = null;
     FX.reset(); SKILLFX.reset(); RENDERER.clearShake();
     AUDIO.setSuspended(false);
@@ -8150,23 +8434,14 @@ function spawnEnemy(tier, rad, ang, ring) {
         }
         if (state === 'play') UI.drawButton(ctx, btnView,
           (window.VIEWPORT?.tiltTargetScale?.() ?? tiltK()) === 1 ? '2.5D' : '2D', {size: 13, quiet: true, scrollText: false});
-        if (state === "play" && window.FUSION && typeof window.FUSION.getState === "function" && window.FUSION.getState().state === "held") {
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(btnFusionHeld.x, btnFusionHeld.y, btnFusionHeld.r, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(220, 160, 60, 0.92)";
-          ctx.fill();
-          ctx.lineWidth = 3;
-          ctx.strokeStyle = "#4a2a10";
-          ctx.stroke();
-          ctx.fillStyle = "#3a1505";
-          ctx.font = "bold 15px sans-serif";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText("奧義", btnFusionHeld.x, btnFusionHeld.y - 7);
-          ctx.font = "bold 11px sans-serif";
-          ctx.fillText("重開", btnFusionHeld.x, btnFusionHeld.y + 10);
-          ctx.restore();
+        if (state === "play" && window.FUSION?.getState?.().state === "held") {
+          const tag = UI.FUSION_REOPEN_BTN;
+          if (tag) {
+            btnFusionHeld.x = tag.x + tag.w / 2;
+            btnFusionHeld.y = tag.y + tag.h / 2;
+            btnFusionHeld.r = Math.min(24, tag.h / 2);
+          }
+          UI.drawFusionReopenButton?.(ctx);
         }
         if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
         if (state === "play") drawDragonHudOverlay(frameShakeOffset);
@@ -8189,7 +8464,7 @@ function spawnEnemy(tier, rad, ang, ring) {
           if (Array.isArray(swapHits)) charmSwapHits = swapHits;
         }
         if (state === "pause") {
-          UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false, quitConfirm ? 0 : menuFocus);
+          UI.drawPauseMenu(ctx, AUDIO.isMuted ? AUDIO.isMuted() : false, quitConfirm ? 0 : menuFocus, pausePage);
           if (quitConfirm) UI.drawExitConfirm(ctx, menuFocus, quitTarget);
         }
         if (state === "won" || state === "lost") UI.drawEndScreen(ctx, state, score, delivered, failed, misses, menuFocus, { ...runSummary, won: state === "won", time: now / 1000 });

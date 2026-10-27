@@ -7,6 +7,15 @@
   if (requestedHud === 'classic' || requestedHud === 'diegetic') window.UI_THEME = requestedHud;
   if (window.UI_THEME !== 'classic' && window.UI_THEME !== 'diegetic') window.UI_THEME = hasLocation ? 'diegetic' : 'classic';
 }
+// R18-U1：乾淨橫向和風卷軸「審閱模式」總開關（OpenCode p8 候選，正式模式預設關閉）。
+// ?u1scroll=1 或 hash #u1scroll 開啟；正式網站不帶參數時，三選單渲染與 R17 43fb 基線完全一致。
+{
+  const hasLocU1 = typeof location !== 'undefined';
+  const u1Param = hasLocU1 ? new URLSearchParams(location.search).get('u1scroll') : null;
+  const u1Hash = hasLocU1 ? String(location.hash || '') : '';
+  if (u1Param === '1' || u1Param === '0') window.U1_EMAKI_PREVIEW = u1Param === '1';
+  else if (/u1(?:scroll|-preview)/.test(u1Hash)) window.U1_EMAKI_PREVIEW = true;
+}
 window.UI = (() => {
   const screenBounds = () => window.VIEWPORT?.bounds() || {left:0,top:0,right:900,bottom:600,width:900,height:600};
   // 暫時停用尚未素材化的 diegetic 假繪馬／假扇子；保留程式以便日後換正式素材再開。
@@ -19,94 +28,80 @@ window.UI = (() => {
   const viewScale = () => { const s = window.VIEWPORT?.get?.().scale; return s > 0 ? s : 1; };
   const cssPx = css => Math.max(1, Math.ceil(css / viewScale()));
   const MIN_TOUCH_CSS = 44, MIN_LABEL_CSS = 14;
-  // ---- 融合候選素材映射 (DEV 模式使用) ----
-  const FUSION_CANDIDATES = {
-    fusion_exorcistblade:    { main: "fusion_exorcistblade/main_alpha_candidate_v02.webp", icon: "fusion_exorcistblade/icon_alpha_candidate_v01.webp" },
-    fusion_exorcistseal:     { main: "fusion_exorcistseal/main_alpha_candidate_v02.webp", icon: "fusion_exorcistseal/icon_alpha_candidate_v01.webp" },
-    fusion_flamefestival:    { main: "fusion_flamefestival/main_alpha_candidate_v02.webp", icon: null },
-    fusion_foxfirebarrier:   { main: "fusion_foxfirebarrier/main_alpha_candidate_v02.webp", icon: "fusion_foxfirebarrier/icon_alpha_candidate_v01.webp" },
-    fusion_foxiai:           { main: "fusion_foxiai/main_alpha_candidate_v02.webp", icon: "fusion_foxiai/icon_alpha_candidate_v01.webp" },
-    fusion_foxthunderlantern:{ main: "fusion_foxthunderlantern/main_alpha_candidate_v02.webp", icon: null },
-    fusion_inkblade:         { main: "fusion_inkblade/main_alpha_candidate_v01.webp", icon: null },
-    fusion_slashwheel:       { main: "fusion_slashwheel/main_alpha_candidate_v02.webp", icon: null },
-    fusion_thundercircle:    { main: "fusion_thundercircle/main_alpha_candidate_v02.webp", icon: null },
-    fusion_thundertalisman:  { main: "fusion_thundertalisman/main_alpha_candidate_v02.webp", icon: null },
-  };
-
-  const FUSION_CANDIDATE_IMAGES = Object.create(null);
-  let __fusionAssetsLoaded = false;
-  // 候選主圖閘門：僅本機 DEV 頁（?dev=1 且 loopback，與 game.js 同一判定）呈現 ART_CANDIDATE 候選圖；
-  // window.DEV 為舊寫法相容（專案實際上沒有設定點），正式頁一律不載入、不顯示候選圖。
-  function fusionArtOn() {
-    if (window.DEV) return true;
-    try {
-      if (window.DEV_MODE && typeof window.DEV_MODE.isDevMode === "function" && window.DEV_MODE.isDevMode(location)) return true;
-    } catch { /* 無 DEV_MODE 物件時維持家紋回落 */ }
+  // ---- 融合素材共用存取（與 renderer.js 一致，委派至 assets.js 唯一真實來源） ----
+  // 生效門檻由 assets.js 的 isFusionArtBindEnabled() 控制；
+  // 取圖透過共用 getFusionPhaseArt(kind, phase)；
+  // 元資料定義透過 getFusionArtBindDef(kind, phase)；
+  // UI 不自建 Image cache、不硬碼候選路徑、不另設獨立 dev gate。
+  function isUiFusionArtEnabled() {
+    if (typeof window !== "undefined") {
+      if (typeof window.isFusionArtBindEnabled === "function") {
+        return window.isFusionArtBindEnabled() === true;
+      }
+      if (window.DEV) return true;
+      try {
+        if (window.DEV_MODE && typeof window.DEV_MODE.isDevMode === "function" && window.DEV_MODE.isDevMode(location)) return true;
+      } catch {}
+    }
     return false;
   }
-  function ensureFusionAssets() {
-    if (__fusionAssetsLoaded || !fusionArtOn()) return;
-    __fusionAssetsLoaded = true;
-    loadFusionAssets();
-  }
-  function loadFusionAssets() {
-    if (typeof window.Image !== "function") return;
-    for (const [id, assets] of Object.entries(FUSION_CANDIDATES)) {
-      if (assets.main) {
-        const img = new window.Image();
-        img.src = `art/fusion/candidates/${assets.main}`;
-        FUSION_CANDIDATE_IMAGES[id + '_main'] = img;
+
+  function getUiFusionArt(id, phase) {
+    if (!isUiFusionArtEnabled()) return null;
+    if (typeof window !== "undefined") {
+      if (typeof window.getFusionPhaseArt === "function") {
+        const img = window.getFusionPhaseArt(id, phase);
+        if (img && img.naturalWidth > 0) return img;
       }
-      if (assets.icon) {
-        const img = new window.Image();
-        img.src = `art/fusion/candidates/${assets.icon}`;
-        FUSION_CANDIDATE_IMAGES[id + '_icon'] = img;
+      // 相容既有單元測試 sandbox 注入之 FUSION_CANDIDATE_IMAGES
+      const candImages = (typeof FUSION_CANDIDATE_IMAGES !== "undefined" ? FUSION_CANDIDATE_IMAGES : null) || window.FUSION_CANDIDATE_IMAGES;
+      if (candImages) {
+        const img = candImages[id + "_" + phase];
+        if (img && img.naturalWidth > 0) return img;
+        if (phase === "icon") {
+          const fallback = candImages[id + "_main"];
+          if (fallback && fallback.naturalWidth > 0) return fallback;
+        }
       }
     }
+    return null;
   }
-  ensureFusionAssets();
 
   function drawFusionIcon(ctx, id, x, y, r) {
-    if (!fusionArtOn()) {
-      drawEmblem(ctx, id, x, y, r);
-      return;
-    }
-    ensureFusionAssets();
-    const asset = FUSION_CANDIDATES[id];
-    if (!asset) {
-      drawEmblem(ctx, id, x, y, r);
-      return;
-    }
-    const iconImg = FUSION_CANDIDATE_IMAGES[id + '_icon'];
-    const mainImg = FUSION_CANDIDATE_IMAGES[id + '_main'];
-
-    ctx.save();
-    // 繪製底色圓環確保對比度
-    ctx.fillStyle = "rgba(0,0,0,0.3)";
-    ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
+    const iconImg = getUiFusionArt(id, "icon");
+    const mainImg = iconImg ? null : getUiFusionArt(id, "main");
 
     if (iconImg && iconImg.naturalWidth) {
+      ctx.save();
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
       const size = r * 2;
       ctx.drawImage(iconImg, x - r, y - r, size, size);
-    } else if (mainImg && mainImg.naturalWidth) {
+      ctx.restore();
+      return;
+    }
+    if (mainImg && mainImg.naturalWidth) {
+      ctx.save();
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
       const size = r * 2;
       const iw = mainImg.naturalWidth, ih = mainImg.naturalHeight;
-      // 裁切中心正方形作為縮圖 (fallback)
       const cropS = Math.min(iw, ih);
       const cx = (iw - cropS) / 2, cy = (ih - cropS) / 2;
       ctx.drawImage(mainImg, cx, cy, cropS, cropS, x - r, y - r, size, size);
-    } else {
-      drawEmblem(ctx, id, x, y, r);
+      ctx.restore();
+      return;
     }
-    ctx.restore();
+    // 未啟用候選或圖片未就緒：使用正規家紋向量圖回落，不產生程序假美術
+    drawEmblem(ctx, id, x, y, r);
   }
 
-  function getFusionAsset(id, type = 'main') {
-    if (fusionArtOn() && FUSION_CANDIDATES[id]) {
-      ensureFusionAssets();
-      const asset = FUSION_CANDIDATES[id];
-      const path = type === 'icon' && asset.icon ? asset.icon : asset.main;
-      return `art/fusion/candidates/${path}`;
+  function getFusionAsset(id, type = "main") {
+    if (typeof window !== "undefined" && typeof window.getFusionArtBindDef === "function") {
+      if (isUiFusionArtEnabled()) {
+        const def = window.getFusionArtBindDef(id, type);
+        return def ? def.file : null;
+      }
     }
     return null;
   }
@@ -153,7 +148,9 @@ window.UI = (() => {
     katana: "#c46b51", barrier: "#7faab1", fire: "#d49459", boom: "#a18aac", thunder: "#cfb577", needle: "#8ab4b1",
     fusion_inkblade: "#d05638", fusion_thundercircle: "#5aa8b8",
     fusion_foxiai: "#e0b34e", fusion_exorcistblade: "#c9553f",
-    fusion_foxfirebarrier: "#d98a4e", fusion_exorcistseal: "#b18a5a"
+    fusion_foxfirebarrier: "#d98a4e", fusion_exorcistseal: "#b18a5a",
+    fusion_flamefestival: "#d85c38", fusion_foxthunderlantern: "#e2a848",
+    fusion_slashwheel: "#b56358", fusion_thundertalisman: "#889ac2"
   };
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
   const calm = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
@@ -248,6 +245,45 @@ window.UI = (() => {
       img.src = `assets/img/ui/passive/hud_passive_${id}.webp`;
     }
   }
+
+  // ── R18-UI：三選單（技能升級／融合技／御守替換）共用「橫向卷軸」與卡片 raster 圖 ──
+  // 候選捲軸底圖僅在明確注入 window.__UI_SCROLL_BG_SRC 時載入（人審核准前的評審／預覽用），
+  // 正式站不注入即維持既有已核可素材行為，不偷換未核圖。
+  const illustratedSkills = Object.create(null);
+  const SKILL_RASTER_FILES = Object.freeze({
+    katana: "assets/img/vfx/raster/katana_l1.webp",
+    fire: "assets/img/vfx/raster/fire_attack_l1.webp",
+    barrier: "assets/img/vfx/purification_array_vfx.webp",
+    boom: "assets/img/vfx/ofuda_projectile.webp",
+    thunder: "assets/img/vfx/thunder_strike_vfx.webp",
+    needle: "assets/img/vfx/raster/needle.webp",
+  });
+  // The same manifest determines gameplay and UI skill art. Static paths above
+  // are only a fallback before the manifest becomes available/offline.
+  function skillCardRasterPath(id) {
+    const phase = id === "fire" ? "attack" : id === "thunder" ? "strike" : "main";
+    return window.sharedSkillRuntimePath?.(id, phase, 1) || SKILL_RASTER_FILES[id];
+  }
+  function loadSharedSkillCardArt() {
+    if (typeof window.Image !== "function") return;
+    for (const id of Object.keys(SKILL_RASTER_FILES)) {
+      const img = new window.Image();
+      img.onload = () => { illustratedSkills[id] = img; };
+      img.onerror = () => { /* 失敗時回退既有 emblem */ };
+      img.src = skillCardRasterPath(id) + "?v=20261027-unified-skill1";
+    }
+  }
+  if (typeof window.loadRuntimeArtManifest === "function") {
+    window.loadRuntimeArtManifest().then(loadSharedSkillCardArt, loadSharedSkillCardArt);
+  } else loadSharedSkillCardArt();
+  const scrollCandidateArt = Object.create(null);
+  if (typeof window.Image === "function" && typeof window.__UI_SCROLL_BG_SRC === "string" && window.__UI_SCROLL_BG_SRC) {
+    const cand = new window.Image();
+    cand.decoding = "async";
+    cand.onload = () => { scrollCandidateArt.scrollBg = cand; };
+    cand.onerror = () => { /* 未核准候選載入失敗時回退既有已核可素材 */ };
+    cand.src = window.__UI_SCROLL_BG_SRC;
+  }
   function drawWashiSlices(ctx, image, x, y, w, h, cropX, cropY, padX, padY) {
     const iw = image.naturalWidth, ih = image.naturalHeight;
     const sw = [cropX, iw - cropX * 2, cropX], sh = [cropY, ih - cropY * 2, cropY];
@@ -282,6 +318,67 @@ window.UI = (() => {
     ctx.lineTo(x+w,y+c);ctx.lineTo(x+w,y+h-c);
     ctx.lineTo(x+w-c,y+h);ctx.lineTo(x+c,y+h);
     ctx.lineTo(x,y+h-c);ctx.lineTo(x,y+c);ctx.closePath();
+  }
+  // R9 Item 2: 奧義重開小和風木牌（避開任務/方向 HUD，安全區錨定，支援觸控、手把、鍵盤）
+  const FUSION_REOPEN_BTN = { id: "fusion-reopen", x: 740, y: 76, w: 142, h: 43 };
+  // R10 Hitbox: 監聽 pointerdown，讓點擊/觸控右上奧義重開木牌真正觸發 KeyF 打開融合確認視窗
+  if (typeof window !== "undefined" && typeof window.addEventListener === "function" && !window.__r10ReopenPointerHooked) {
+    window.__r10ReopenPointerHooked = true;
+    window.addEventListener("pointerdown", (e) => {
+      if (!window.FUSION || typeof window.FUSION.getState !== "function") return;
+      const fState = window.FUSION.getState();
+      if (fState.state !== "held") return;
+
+      const btn = FUSION_REOPEN_BTN;
+      if (!btn) return;
+
+      const cv = document.querySelector("canvas");
+      if (!cv) return;
+
+      const r = cv.getBoundingClientRect();
+      const v = window.VIEWPORT?.get() || { width: 900, height: 600, offsetX: 0, offsetY: 0 };
+      const scale = v.scale || 1;
+      const px = (e.clientX - r.left) * v.width / r.width - v.offsetX;
+      const py = (e.clientY - r.top) * v.height / r.height - v.offsetY;
+
+      const minimum = 44 / scale;
+      const padX = Math.max(0, (minimum - btn.w) / 2);
+      const padY = Math.max(0, (minimum - btn.h) / 2);
+
+      if (px >= btn.x - padX && px <= btn.x + btn.w + padX &&
+          py >= btn.y - padY && py <= btn.y + btn.h + padY) {
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+        const keyEvt = typeof KeyboardEvent !== "undefined" ? new KeyboardEvent("keydown", { code: "KeyF", bubbles: true }) : { type: "keydown", code: "KeyF", bubbles: true };
+            window.dispatchEvent(keyEvt);
+      }
+    }, true);
+  }
+  function drawFusionReopenButton(ctx, opts = {}) {
+    const btn = opts.btn || FUSION_REOPEN_BTN;
+    const tone = opts.tone || "normal";
+    const focused = !!opts.focused;
+    const { x, y, w, h } = btn;
+    ctx.save();
+    drawWoodTag(ctx, { x, y, w, h }, "primary", false, false);
+    ctx.fillStyle = "rgba(21, 33, 47, 0.94)";
+    ctx.beginPath();ctx.roundRect(x+6,y+5,w-12,h-10,5);ctx.fill();
+    ctx.strokeStyle = "#ffe3a8";ctx.lineWidth=1.6;ctx.stroke();
+    if (focused) {
+      ctx.lineWidth = 2.4;
+      ctx.strokeStyle = "rgba(255, 226, 150, 0.95)";
+      ctx.beginPath();
+      ctx.roundRect(x - 2, y - 2, w + 4, h + 4, 6);
+      ctx.stroke();
+    }
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = readableFont(16, "900");
+    ctx.lineWidth=3;ctx.strokeStyle="#10131c";
+    ctx.strokeText("開啟奧義選單", x+w/2, y+h/2+1);
+    ctx.fillStyle = "#fff1cf";
+    ctx.fillText("開啟奧義選單", x+w/2, y+h/2+1);
+    ctx.restore();
   }
   function drawWoodTag(ctx,b,tone="normal",disabled=false,quiet=false) {
     const tagArt = illustratedArt[tone === "primary" ? "primary" : tone === "danger" ? "danger" : "neutral"];
@@ -337,12 +434,23 @@ window.UI = (() => {
   }
 
   // 和紙旅帳／告示板：素材正常時使用墨染和紙貼圖，程式木框只作備援。
-  function drawWashiBoard(ctx,x,y,w,h,ledger=false) {
+  // R9: 重構為乾淨厚和紙/木板既有 approved 圖層不拉伸/以九宮切片保留比例，消除「花底變形」。
+  function drawWashiBoard(ctx,x,y,w,h,ledger=false,theme=null) {
     const art = illustratedArt[ledger ? "ledger" : "notice"];
     if (art?.naturalWidth) {
       ctx.save();
-      if (ledger) drawWashiSlices(ctx,art,x,y,w,h,54,51,54,51);
-      else drawWashiSlices(ctx,art,x,y,w,h,40,50,40,50);
+      const padX = ledger ? 54 : 40, padY = ledger ? 51 : 50;
+      drawWashiSlices(ctx, art, x, y, w, h, padX, padY, padX, padY);
+      // 中央內容區覆蓋一層厚實乾淨的和紙底，避免底圖花紋在不同寬高比例下拉伸變形
+      const cx = x + padX, cy = y + padY, cw = w - padX * 2, ch = h - padY * 2;
+      if (cw > 0 && ch > 0) {
+        if (theme === "dark" || (!theme && ledger && h > 480)) {
+          ctx.fillStyle = "rgba(20, 16, 22, 0.94)";
+        } else {
+          ctx.fillStyle = "rgba(244, 236, 222, 0.96)";
+        }
+        ctx.fillRect(cx, cy, cw, ch);
+      }
       ctx.restore();
       return;
     }
@@ -398,6 +506,167 @@ window.UI = (() => {
     ctx.strokeStyle="rgba(170,85,65,.35)";
     ctx.beginPath();ctx.moveTo(w-37,h-36);ctx.lineTo(w-25,h-36);
     ctx.moveTo(w-31,h-42);ctx.lineTo(w-31,h-29);ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── R18-U1 乾淨橫向和風卷軸（僅 u1scroll 審閱模式）────────────────────────────
+  // 底圖規格是「卷首／卷尾左右端固定、中段米色和紙可橫向延展」的三切片 raster WebP。
+  // 候選檔人審核准前不落 assets/img/、不接 assets.js／runtime-art-manifest；
+  // 本函式只有在候選圖真的存在並載入成功時才畫得出來，否則回報 false，
+  // 呼叫端沿用 R17 既有 drawWashiBoard／drawRitualCard 底材，不冒充「已正式替換」。
+  const U1_SCROLL = {
+    enabled: () => typeof window !== "undefined" && window.U1_EMAKI_PREVIEW === true,
+    CANDIDATE_PATH: "scratch/r18-ui-scroll-opencode/candidate/ui_scroll_emaki_horizontal.webp",
+    CROP_SPEC: "scratch/r18-ui-scroll-opencode/CROP_SPEC.md",
+    SLICE_SPEC: { leftFixedRatio: 0.20, rightFixedRatio: 0.20 },
+    _art: undefined,
+    image() {
+      if (U1_SCROLL._art !== undefined) return U1_SCROLL._art;
+      if (typeof Image === "undefined") { U1_SCROLL._art = null; return null; }
+      const img = new Image();
+      img.onload = () => {};
+      img.onerror = () => {};   // 無候選圖＝維持既有底材，不傷正式模式
+      img.src = U1_SCROLL.CANDIDATE_PATH;
+      U1_SCROLL._art = img;
+      return img;
+    }
+  };
+  function drawEmakiScroll(ctx, x, y, w, h) {
+    if (typeof ctx?.drawImage !== "function" || !(w > 8 && h > 8)) return false;
+    const img = U1_SCROLL.image();
+    if (!img || !img.complete || img.naturalWidth <= 10 || img.naturalHeight <= 10) return false;
+    const nw = img.naturalWidth, nh = img.naturalHeight;
+    const capW = Math.max(1, Math.round(nw * U1_SCROLL.SLICE_SPEC.leftFixedRatio));
+    const rightW = Math.max(1, Math.round(nw * U1_SCROLL.SLICE_SPEC.rightFixedRatio));
+    const midW = Math.max(1, nw - capW - rightW);
+    const drawW = Math.round(w * (capW / nw));
+    const drawRight = Math.round(w * (rightW / nw));
+    const midDrawW = w - drawW - drawRight;
+    if (drawW <= 0 || drawRight <= 0 || midDrawW <= 0) return false;
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(img, 0, 0, capW, nh, x, y, drawW, h);                 // 卷首（含上下木軸起端）
+    ctx.drawImage(img, capW, 0, midW, nh, x + drawW, y, midDrawW, h);   // 中段：橫向延展，不重複花面
+    ctx.drawImage(img, capW + midW, 0, rightW, nh, x + drawW + midDrawW, y, drawRight, h); // 卷尾
+    ctx.restore();
+    return true;
+  }
+  // 三選單共用：審閱模式下用卷軸底圖，失敗／未啟用時退回 R17 和紙帳板。
+  function emakiBoard(ctx, x, y, w, h, fallback) {
+    if (U1_SCROLL.enabled() && drawEmakiScroll(ctx, x, y, w, h)) return true;
+    if (fallback) fallback();
+    return false;
+  }
+
+  // ── R18-UI 三選單共用：橫向卷軸面板（左右木軸、和紙中段、3-slice 保角飾比例）──
+  // 第一層：注入的人審候選 WebP（art/ui-scroll-proposal/，未核准不會出現在正式站）；
+  // 第二層：既有已核可素材組合（result_panel 和紙中段＋其左右框木條作物當木軸）；
+  // 全部為真 raster 圖片作物，沒有 SVG／程式幾何替代。熱區與版面幾何不因本函式改變。
+  function drawScrollBoard(ctx, x, y, w, h) {
+    const cand = scrollCandidateArt.scrollBg;
+    if (cand?.naturalWidth && cand.naturalHeight) {
+      // 候選 3-slice：左右木軸（各 cand 寬 12.5%）固定端飾比例，中段和紙延展。
+      const iw = cand.naturalWidth, ih = cand.naturalHeight;
+      const sliceW = Math.round(iw * 0.125);
+      const dl = Math.min(Math.round(sliceW * h / ih), Math.round(Math.min(w * 0.3, Math.max(14, h * 0.16))));
+      const dr = dl;
+      ctx.drawImage(cand, 0, 0, sliceW, ih, x, y, dl, h);
+      ctx.drawImage(cand, sliceW, 0, iw - sliceW * 2, ih, x + dl, y, w - dl - dr, h);
+      ctx.drawImage(cand, iw - sliceW, 0, sliceW, ih, x + w - dr, y, dr, h);
+      return;
+    }
+    // 回退一：由已核可 result_panel 組出同語彙橫向卷軸（和紙中段 9-slice＋左右框木條作物當木軸）。
+    const art = illustratedArt.notice || illustratedArt.ledger;
+    if (art?.naturalWidth && art.naturalHeight) {
+      const iw = art.naturalWidth, ih = art.naturalHeight;
+      // 中段和紙：沿用既有 9-slice（內框 crop 保住角飾），先畫滿全板。
+      drawWashiSlices(ctx, art, x, y, w, h, 40, 42, Math.min(30, w * .09), Math.min(26, h * .2));
+      // 木軸：取原畫左右框實心木條（587x323 原座標 crop），畫在板左／右端。
+      const dw = Math.max(10, Math.round(Math.min(160, Math.min(h * 0.14, w * 0.14))));
+      ctx.drawImage(art, 2, 14, 21, 295, x, y, dw, h);
+      ctx.drawImage(art, iw - 24, 210, 21, 95, x + w - dw, y, dw, h);
+      return;
+    }
+    drawWashiBoard(ctx, x, y, w, h, true);
+  }
+  // 三選單卡片共用 raster 圖：御守（charm-passive）、被動（passive）、技能／融合母技（vfx raster）。
+  // 技能圖以中央正方形 crop 呈現（cover），不是整張拉伸；缺圖時回退既有 emblem。
+  function drawScrollCardArt(ctx, key, cx, cy, r, opts = {}) {
+    let image = null;
+    if (typeof key === "string" && key.startsWith("charm_")) image = illustratedCharms[key.slice("charm_".length)];
+    else if (illustratedPassives[key]) image = illustratedPassives[key];
+    else if (illustratedSkills[key]) image = illustratedSkills[key];
+    if (!image?.naturalWidth) return false;
+    const R = Math.max(2, r);
+    ctx.save();
+    if (opts.background !== false) {
+      ctx.fillStyle = opts.dark ? "rgba(17,13,15,.35)" : "rgba(61,44,33,.16)";
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.fill();
+    }
+    const iw = image.naturalWidth, ih = image.naturalHeight;
+    const side = Math.min(iw, ih);
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.clip();
+    ctx.drawImage(image, (iw - side) / 2, (ih - side) / 2, side, side, cx - R, cy - R, R * 2, R * 2);
+    ctx.restore();
+    return true;
+  }
+
+  // 技能/融合/御守三種抉擇面板共用和風設計語彙：核准 WebP 作主體。
+  const RITUAL_COLORS = Object.freeze({
+    ink: "#17232c", gold: "#e9c887", paper: "#f6eddb",
+    ochre: "#a44939", text: "#34291f", pale: "#fff0cf"
+  });
+  function drawRitualHeader(ctx, x, y, w, h, title, subtitle = "", seal = "", compact = false) {
+    if (!(w > 0 && h > 0)) return;
+    ctx.save();
+    const art = illustratedArt.title;
+    if (art?.naturalWidth) drawRibbonSlices(ctx, art, x, y, w, h);
+    ctx.fillStyle = "rgba(19,32,42,.91)";
+    ctx.beginPath(); ctx.roundRect(x + 2, y + 1, w - 4, h - 2, Math.min(7, h * .24)); ctx.fill();
+    ctx.strokeStyle = "rgba(220,183,115,.72)";
+    ctx.lineWidth = Math.max(1, h * .035); ctx.stroke();
+    const tall = h >= (compact ? 46 : 32);
+    const sealSpace = seal && h >= 35 ? Math.min(h + 4, 44) : 0;
+    const centerX = x + (w - sealSpace) / 2;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillStyle = RITUAL_COLORS.pale;
+    ctx.font = readableFont(h < 30 ? 15 : compact ? 16 : 19, "900");
+    fitText(ctx, title, centerX, y + h * (tall && subtitle ? .35 : .52), w - sealSpace - 22, {minSize:10,minCss:12});
+    if (tall && subtitle) {
+      ctx.font = readableFont(compact ? 9 : 10, "700");
+      ctx.fillStyle = "#ead8b5";
+      fitText(ctx, subtitle, centerX, y + h * .76, w - sealSpace - 22, {minSize:8,minCss:9});
+    }
+    if (sealSpace) drawFusionSealStamp(ctx, x + w - sealSpace * .55, y + h / 2, Math.min(11, h * .22), seal);
+    ctx.restore();
+  }
+  function drawRitualCard(ctx, x, y, w, h, {selected = false, focused = false, dark = false} = {}) {
+    if (!(w > 4 && h > 4)) return;
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, 6); ctx.clip();
+    const texture = illustratedArt.notice;
+    if (texture?.naturalWidth) {
+      ctx.globalAlpha = dark ? .23 : .42;
+      drawWashiSlices(ctx, texture, x, y, w, h, 40, 42, Math.min(25,w*.12), Math.min(20,h*.2));
+      ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = dark
+      ? selected ? "rgba(24,34,40,.93)" : "rgba(21,28,34,.92)"
+      : selected ? "rgba(252,239,213,.88)" : "rgba(249,243,230,.83)";
+    ctx.fillRect(x, y, w, h);
+    ctx.restore();
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, 6);
+    ctx.strokeStyle = selected ? "#c89553" : dark ? "rgba(214,181,129,.64)" : "rgba(113,77,55,.60)";
+    ctx.lineWidth = selected ? 2.3 : 1.15; ctx.stroke();
+    if (selected) {
+      ctx.fillStyle = RITUAL_COLORS.ochre;
+      ctx.fillRect(x + 3, y + 5, Math.min(4, w*.02), Math.max(0,h - 10));
+    }
+    if (focused) {
+      ctx.beginPath(); ctx.roundRect(x - 2, y - 2, w + 4, h + 4, 8);
+      ctx.lineWidth = 2.1; ctx.strokeStyle = RITUAL_COLORS.gold; ctx.stroke();
+    }
     ctx.restore();
   }
 
@@ -1114,31 +1383,28 @@ window.UI = (() => {
     const b = screenBounds();
     const midX = (b.left + b.right) / 2;
     const midY = (b.top + b.bottom) / 2;
-    const panelW = cssPx(468), panelH = cssPx(384);
+    const s = viewScale();
+    const cssH = b.height * s;
+    const isCompact = cssH < 440 || b.height < 440;
+    const maxPanelCssW = isCompact ? 560 : 600;
+    const maxPanelCssH = isCompact ? 330 : 420;
+    const panelW = Math.min(cssPx(maxPanelCssW), b.width - cssPx(16));
+    const panelH = Math.min(cssPx(maxPanelCssH), b.height - cssPx(12));
     const x = Math.max(b.left + cssPx(8), midX - panelW / 2);
-    const y = Math.max(b.top + cssPx(8), midY - panelH / 2);
+    const y = Math.max(b.top + cssPx(6), midY - panelH / 2);
     const hitRects = [];
 
     ctx.save();
     fillScreen(ctx);
-    ctx.globalAlpha = 0.7;
-    ctx.fillStyle = "rgba(0,0,0,0.65)";
+    ctx.globalAlpha = 0.75;
+    ctx.fillStyle = "rgba(0,0,0,0.72)";
     ctx.fillRect(0, 0, b.width, b.height);
     ctx.globalAlpha = 1;
 
-    drawWashiBoard(ctx, x, y, panelW, panelH, true);
+    drawScrollBoard(ctx, x, y, panelW, panelH);
 
-    const innerX = x + cssPx(26), innerW = panelW - cssPx(52);
-
-    // 1) 標題＋副標
-    ctx.textAlign = 'center';
-    ctx.fillStyle = "#3e281c";
-    ctx.font = readableFont(26, 'bold');
-    ctx.fillText("御守替換", midX, y + cssPx(42));
-    const pMeta0 = pending && (window.UI_CHARM_META || {})[pending.id] || null;
-    ctx.font = readableFont(13, '700');
-    ctx.fillStyle = "rgba(62, 40, 28, .82)";
-    fitText(ctx, `拾獲新御守「${pMeta0?.ja || pending.name || "?"}」・選擇所要替換的守，或按「放棄」`, midX, y + cssPx(66), innerW, { minSize: 8, minCss: 8 });
+    const innerX = x + cssPx(isCompact ? 16 : 24);
+    const innerW = panelW - cssPx(isCompact ? 32 : 48);
 
     const charmEffects = {
       charm_power: l => `傷害係數 +${(l * 0.20).toFixed(2)}`,
@@ -1158,121 +1424,160 @@ window.UI = (() => {
       charm_guard: { ja: "紙甲守", s: "每層受擊燈油損失 -10%（不含答題）" },
       ...(window.UI_CHARM_META || {}),
     };
-    const pMeta = charmMeta[pending.id] || { ja: pending.name || "新御守", s: "新御守" };
+    const pendingKey = pending.id?.startsWith("charm_") ? pending.id : `charm_${pending.id}`;
+    const pMeta = charmMeta[pending.id] || charmMeta[pendingKey] || { ja: pending.name || "新御守", s: "新拾獲御守效果" };
+    const pEffectFn = charmEffects[pending.id] || charmEffects[pendingKey];
+    const pEffectStr = pEffectFn ? pEffectFn(pending.level || 1) : pMeta.s;
 
-    // 2) 新御守展示：圖示＋名稱＋核心效果
-    const showY = y + cssPx(82), showH = cssPx(86);
-    ctx.fillStyle = "rgba(30, 21, 17, .55)";
-    ctx.beginPath(); ctx.roundRect(innerX, showY, innerW, showH, 8); ctx.fill();
-    ctx.strokeStyle = "rgba(230, 198, 110, .55)"; ctx.lineWidth = cssPx(1.2); ctx.stroke();
+    // 1) 三選單共用的木版題簽（標題與副標於下方一次繪製）。
+
+    // 遮蓋舊標題文字，改用三面板共用的木版奧義題簽；
+    // 不挪動以下卡片、按鈕或交換熱區。
+    drawRitualHeader(ctx, innerX, y + cssPx(isCompact ? 8 : 9), innerW,
+      cssPx(isCompact ? 35 : 45), "御守替換・擇契",
+      isCompact ? "" : "新守入匣・擇一舊守交換，亦可放棄", "守", isCompact);
+
+    // 2) 新御守展示：圖示放大 1.2x~1.4x，名稱、效果、說明分三行清楚呈現
+    const showY = y + cssPx(isCompact ? 46 : 60);
+    const showH = cssPx(isCompact ? 64 : 78);
+    drawRitualCard(ctx, innerX, showY, innerW, showH, { dark: true, selected: true });
     {
       const pendingId = String(pending.id || "").replace("charm_", "");
       const art = illustratedCharms[pendingId];
-      const artH = showH - cssPx(14);
-      const showArtX = innerX + cssPx(12);
+      const artH = showH - cssPx(isCompact ? 8 : 10);
+      const artW = Math.min(cssPx(isCompact ? 56 : 62), artH * (art && art.naturalWidth && art.naturalHeight ? (art.naturalWidth / art.naturalHeight) : 0.9));
+      const showArtX = innerX + cssPx(isCompact ? 10 : 12);
       if (art && art.naturalWidth) {
-        const artW = Math.min(cssPx(46), artH * (art.naturalWidth / art.naturalHeight));
         ctx.drawImage(art, showArtX, showY + (showH - artH) / 2, artW, artH);
       } else {
-        ctx.fillStyle = "rgba(20,14,12,.66)";
-        ctx.beginPath(); ctx.arc(showArtX + cssPx(23), showY + showH / 2, cssPx(21), 0, 6.283); ctx.fill();
-        ctx.strokeStyle = "rgba(230,198,141,.55)"; ctx.stroke();
+        ctx.fillStyle = "rgba(20, 14, 12, .75)";
+        ctx.beginPath(); ctx.roundRect(showArtX, showY + (showH - artH) / 2, artW, artH, 6); ctx.fill();
+        ctx.strokeStyle = "rgba(230, 198, 141, .6)"; ctx.lineWidth = cssPx(1.2); ctx.stroke();
         ctx.fillStyle = "#e9c97e";
-        ctx.font = readableFont(16, '900');
-        ctx.fillText("新", showArtX + cssPx(23), showY + showH / 2 + cssPx(5));
+        ctx.font = readableFont(isCompact ? 15 : 17, '900');
+        ctx.textAlign = 'center';
+        ctx.fillText("新", showArtX + artW / 2, showY + showH / 2 + cssPx(isCompact ? 5 : 6));
       }
-      const tx = showArtX + cssPx(64);
+
+      const tx = showArtX + artW + cssPx(isCompact ? 10 : 12);
+      const tw = innerW - (tx - innerX) - cssPx(isCompact ? 8 : 10);
       ctx.textAlign = 'left';
-      ctx.fillStyle = "#f6e3bd";
-      ctx.font = readableFont(17, '900');
-      ctx.fillText(`${pMeta.ja}・新守`, tx, showY + cssPx(30));
-      ctx.font = readableFont(12, '600');
-      ctx.fillStyle = "rgba(240, 230, 210, .9)";
-      fitText(ctx, pMeta.s, tx, showY + cssPx(52), innerW - cssPx(76), { minSize: 9, minCss: 11 });
-      ctx.font = readableFont(10, '800');
-      ctx.fillStyle = "#e9c97e";
-      ctx.fillText("將占據下方任一既有守的槽位", tx, showY + showH - cssPx(10));
+
+      // 行 1: 名稱（明確標註新守）
+      const nameY = showY + cssPx(isCompact ? 18 : 22);
+      ctx.fillStyle = "#fff1d9";
+      ctx.font = readableFont(isCompact ? 14 : 16, '900');
+      ctx.fillText(`${pMeta.ja}・新守`, tx, nameY);
+
+      // 行 2: 核心效果（亮金高對比，避免壓框吃底）
+      const effY = showY + cssPx(isCompact ? 35 : 44);
+      ctx.fillStyle = "#ffd54f";
+      ctx.font = readableFont(isCompact ? 11 : 12, '700');
+      fitText(ctx, pMeta.s || pEffectStr, tx, effY, tw, { minSize: 8, minCss: 9 });
+
+      // 行 3: 操作指引
+      const noteY = showY + cssPx(isCompact ? 52 : 64);
+      ctx.fillStyle = "rgba(235, 220, 195, .8)";
+      ctx.font = readableFont(isCompact ? 10 : 11, '600');
+      fitText(ctx, "拾獲新御守「" + pMeta.ja + "」・替換下方一守", tx, noteY, tw, { minSize: 7, minCss: 7 });
     }
 
-    // 3) 既有三守槽位：圖示/名稱/Lv/核心效果 對齊排版
-    const slotW = cssPx(124), slotH = cssPx(96), gap = cssPx(16);
-    const slotStartX = midX - (slotW * 3 + gap * 2) / 2;
-    const slotY = y + cssPx(196);
+    // 3) 既有三守槽位：擴大寬高、獨立卡片、高對比文字與自動換行
+    const gap = cssPx(isCompact ? 8 : 12);
+    const slotW = Math.floor((innerW - gap * 2) / 3);
+    const slotH = cssPx(isCompact ? 108 : 132);
+    const slotStartX = innerX;
+    const slotY = showY + showH + cssPx(isCompact ? 8 : 10);
 
     for (let i = 0; i < 3; i++) {
       const charm = charms[i];
       const sx = slotStartX + i * (slotW + gap);
       const isSelected = i === selectedIndex;
 
-      const meta = charm ? (charmMeta[charm.id] || { ja: charm.name || "御守" }) : null;
-      const effect = charm && charmEffects[charm.id] ? charmEffects[charm.id](charm.level) : "";
+      const cKey = charm ? (charm.id?.startsWith("charm_") ? charm.id : `charm_${charm.id}`) : null;
+      const meta = charm ? (charmMeta[charm.id] || charmMeta[cKey] || { ja: charm.name || "御守", s: "" }) : null;
+      const effectFn = charm ? (charmEffects[charm.id] || charmEffects[cKey]) : null;
+      const effect = charm && effectFn ? effectFn(charm.level) : (charm ? meta.s : "");
       const label = charm ? `${meta.ja} Lv${charm.level}` : "空白槽";
 
-      // 上半：核准御守圖示（缺圖才回落深底）
+      // 共通秘卷深墨卡框；點擊區仍保留原 swap_i 矩形。
+      drawRitualCard(ctx, sx, slotY, slotW, slotH, { dark: true, selected: isSelected });
+
+      // 上半：御守圖示
+      const artZoneH = slotH * 0.44;
       const charmId = charm ? charm.id.replace("charm_", "") : null;
       const omamoriArt = charmId ? illustratedCharms[charmId] : null;
-      const artZoneH = slotH * 0.56;
-      if (omamoriArt) {
-        const artH = (artZoneH - cssPx(6)) * 0.92;
+      if (omamoriArt && omamoriArt.naturalWidth) {
+        const artH = (artZoneH - cssPx(6)) * 0.95;
         const artW = artH * (omamoriArt.naturalWidth / omamoriArt.naturalHeight);
         ctx.drawImage(omamoriArt, sx + (slotW - artW) / 2, slotY + cssPx(3) + (artZoneH - cssPx(6) - artH) / 2, artW, artH);
       } else {
-        ctx.fillStyle = "rgba(0,0,0,0.4)";
-        ctx.beginPath(); ctx.roundRect(sx + cssPx(4), slotY + cssPx(3), slotW - cssPx(8), artZoneH - cssPx(6), 4); ctx.fill();
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.beginPath(); ctx.roundRect(sx + cssPx(4), slotY + cssPx(4), slotW - cssPx(8), artZoneH - cssPx(6), 4); ctx.fill();
         if (!charm) {
-          ctx.strokeStyle = "rgba(255,255,255,0.16)";
-          ctx.strokeRect(sx + cssPx(8), slotY + cssPx(7), slotW - cssPx(16), artZoneH - cssPx(14));
+          ctx.strokeStyle = "rgba(255,255,255,0.18)";
+          ctx.strokeRect(sx + cssPx(8), slotY + cssPx(8), slotW - cssPx(16), artZoneH - cssPx(14));
         }
       }
 
-      // 下半：名稱Lv 與核心效果（深色底帶，避免亮圖吃字）
-      const bandY = slotY + artZoneH + cssPx(2);
-      const bandH = slotH - artZoneH - cssPx(3);
-      ctx.fillStyle = isSelected ? "rgba(58,42,30,.95)" : "rgba(28,20,17,.92)";
-      ctx.beginPath(); ctx.roundRect(sx + cssPx(2), bandY, slotW - cssPx(4), bandH, 4); ctx.fill();
+      // 下半：名稱、等級、核心效果（深色底帶、高對比白字與金字）
+      const bandY = slotY + artZoneH;
+      const bandH = slotH - artZoneH;
+      ctx.fillStyle = isSelected ? "rgba(56, 38, 26, .98)" : "rgba(24, 18, 15, .95)";
+      ctx.beginPath(); ctx.roundRect(sx + cssPx(2), bandY, slotW - cssPx(4), bandH - cssPx(2), 4); ctx.fill();
       if (isSelected) {
-        ctx.strokeStyle = "#e6bd6a"; ctx.lineWidth = cssPx(1.6);
-        ctx.beginPath(); ctx.roundRect(sx + cssPx(2), bandY, slotW - cssPx(4), bandH, 4); ctx.stroke();
+        ctx.strokeStyle = "#e6bd6a"; ctx.lineWidth = cssPx(1.4);
+        ctx.stroke();
       }
 
       ctx.textAlign = 'center';
+
+      // 1) 名稱與等級（居中排版）
+      const nameY = bandY + bandH * 0.44;
       ctx.font = readableFont(12, 'bold');
       ctx.fillStyle = isSelected ? "#ffe6a8" : "#fff1d9";
-      ctx.fillText(label, sx + slotW / 2, bandY + bandH * 0.42, slotW - cssPx(10));
+      fitText(ctx, label, sx + slotW / 2, nameY, slotW - cssPx(8), { minSize: 8, minCss: 8 });
 
-      if (charm && effect) {
-        ctx.font = readableFont(10, '700');
-        ctx.fillStyle = isSelected ? "#f5cf83" : "#e2cfa2";
-        ctx.fillText(effect, sx + slotW / 2, bandY + bandH * 0.8, Math.min(slotW - cssPx(10), cssPx(106)));
+      // 2) 核心效果（居下排版）
+      const effY = bandY + bandH * 0.82;
+      ctx.font = readableFont(10, '700');
+      ctx.fillStyle = isSelected ? "#ffd54f" : "#e2cfa2";
+      const effLimitW = Math.min(slotW - cssPx(10), cssPx(106));
+      if (effect) {
+        ctx.fillText(effect, sx + slotW / 2, effY, effLimitW);
+      } else if (!charm) {
+        ctx.fillText("尚無御守", sx + slotW / 2, effY, effLimitW);
       }
 
-      // 槽位框＋選中金框由 drawButton 與 focus 呈現，hitbox 與舊契約一致
+      // 3) 徽章：僅在選中態繪製於名稱上方
+      if (isSelected) {
+        const nameSize = fontPx(readableFont(12, 'bold'));
+        const nameTop = nameY - nameSize * 0.8;
+        const badgeSize = fontPx(readableFont(10, '900'));
+        const badgeY = Math.min(bandY + badgeSize * 0.8, nameTop - 1) - badgeSize * 0.2;
+        ctx.fillStyle = "#a84537";
+        ctx.font = readableFont(10, '900');
+        ctx.fillText("替換此守", sx + slotW / 2, badgeY, Math.max(8, slotW - cssPx(8)));
+      }
+
+      // 按鈕交互與熱區登記
       drawButton(ctx, { id: `swap_${i}`, x: sx, y: slotY, w: slotW, h: slotH }, "", {
         tone: isSelected ? 'primary' : 'normal',
         focus: isSelected,
         transparent: true,
-        fillAlpha: 0.16
+        fillAlpha: 0.08
       });
-      if (isSelected) {
-        const nameSize = fontPx(readableFont(12, 'bold'));
-        const nameTop = bandY + bandH * 0.42 - nameSize * 0.8;
-        const badgeSize = fontPx(readableFont(10, '900'));
-        const badgeY = Math.min(bandY, nameTop - 1) - badgeSize * 0.2;
-        ctx.fillStyle = "#a84537";
-        ctx.font = readableFont(10, '900');
-        ctx.textAlign = 'center';
-        ctx.fillText("替換此守", sx + slotW / 2, badgeY, Math.max(8, slotW - cssPx(8)));
-      }
 
       hitRects.push({ id: `swap_${i}`, x: sx, y: slotY, w: slotW, h: slotH });
     }
 
-    // 4) 放棄鈕：明確字級、左右留白，錨定在槽位列正下方（任何視口皆不遮槽、不出畫面）。
-    const discW = cssPx(160), discH = cssPx(46);
+    // 4) 放棄鈕：明確字級與對齊，保證熱區高寬 >= 44 px 且留在世界與面板內
+    const discW = cssPx(isCompact ? 150 : 170);
+    const discH = Math.max(44, cssPx(46));
     const discX = midX - discW / 2;
     const discY = Math.min(
-      Math.max(slotY + slotH + cssPx(12), y + panelH - cssPx(58)),
-      Math.max(b.bottom - discH - cssPx(4), slotY + slotH + cssPx(12))
+      slotY + slotH + cssPx(isCompact ? 6 : 10),
+      Math.max(slotY + slotH + cssPx(6), b.bottom - discH - cssPx(4))
     );
     drawButton(ctx, { id: 'swap_discard', x: discX, y: discY, w: discW, h: discH }, "放棄", { tone: 'danger' });
     hitRects.push({ id: 'swap_discard', x: discX, y: discY, w: discW, h: discH });
@@ -1598,6 +1903,126 @@ window.UI = (() => {
     ctx.restore();
   }
 
+  // ---- HoloCure 摺扇技能格 (4 主動武器格 + 1 未解鎖鎖頭槽) ----
+  let __activeFanSlots = [null, null, null, null];
+
+  function resetFanSlots() {
+    __activeFanSlots = [null, null, null, null];
+    return __activeFanSlots;
+  }
+
+  function isFusionSkill(id) {
+    if (!id || typeof id !== "string") return false;
+    return id.indexOf("fusion_") === 0 || !!FUSION_UI_META[id];
+  }
+
+  function getFusionSkillParents(id) {
+    if (!id) return [];
+    if (FUSION_UI_META[id]?.parents) return FUSION_UI_META[id].parents;
+    if (typeof window !== "undefined" && window.FUSION?.RECIPES?.[id]?.parents) {
+      return window.FUSION.RECIPES[id].parents;
+    }
+    return [];
+  }
+
+  function drawFusionParentBadges(ctx, id, cx, cy, r) {
+    const parents = getFusionSkillParents(id);
+    if (!parents || parents.length < 2) return;
+
+    const badgeR = Math.max(3.2, r * 0.28);
+    const offsetDist = r * 0.72;
+    // 兩枚母技小符號置於融合球下方兩側（細節裝飾，不額外占球）
+    const angles = [Math.PI * 0.65, Math.PI * 0.35];
+
+    ctx.save();
+    for (let i = 0; i < 2; i++) {
+      const p = parents[i];
+      if (!p) continue;
+      const bx = cx + Math.cos(angles[i]) * offsetDist;
+      const by = cy + Math.sin(angles[i]) * offsetDist;
+
+      ctx.beginPath();
+      ctx.arc(bx, by, badgeR + 0.8, 0, 6.283);
+      ctx.fillStyle = "rgba(10, 8, 18, 0.92)";
+      ctx.fill();
+      ctx.strokeStyle = WEAPON_TONE[p] || "#e8c36a";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      drawEmblem(ctx, p, bx, by, badgeR * 0.75);
+    }
+    ctx.restore();
+  }
+
+  function resolveFanSlots(WL, WI, previousSlots) {
+    if (!WL || typeof WL !== "object") return [null, null, null, null];
+
+    const activeKeys = Object.keys(WL).filter(k => (WL[k] || 0) > 0 && (!WI || !WI[k] || WI[k].type === "active" || isFusionSkill(k)));
+    const activeSet = new Set(activeKeys);
+    const activeFusions = activeKeys.filter(isFusionSkill);
+
+    let slots;
+    if (Array.isArray(previousSlots) && previousSlots.length === 4) {
+      slots = [...previousSlots];
+    } else {
+      slots = [...__activeFanSlots];
+    }
+
+    // 1. 若有剛融合的武器，在上一輪槽位中尋找母技：融合球占其中一格，另一格清空釋出
+    for (const f of activeFusions) {
+      if (slots.includes(f)) continue; // 已排入
+      const parents = getFusionSkillParents(f);
+      if (parents.length >= 2) {
+        const idx0 = slots.indexOf(parents[0]);
+        const idx1 = slots.indexOf(parents[1]);
+        if (idx0 !== -1 && idx1 !== -1) {
+          const keepIdx = Math.min(idx0, idx1);
+          const freeIdx = Math.max(idx0, idx1);
+          slots[keepIdx] = f;
+          slots[freeIdx] = null; // 釋出另一母技格
+        } else if (idx0 !== -1) {
+          slots[idx0] = f;
+        } else if (idx1 !== -1) {
+          slots[idx1] = f;
+        }
+      }
+    }
+
+    // 2. 清除已不在 activeSet 中的失效技能（例如被融合退場之母技）
+    for (let i = 0; i < 4; i++) {
+      const k = slots[i];
+      if (k && !activeSet.has(k)) {
+        slots[i] = null;
+      }
+    }
+
+    // 3. 處理尚未入槽的融合技能（如冷啟動、母技先前不在 slots 內）
+    for (const f of activeFusions) {
+      if (!slots.includes(f)) {
+        const emptyIdx = slots.indexOf(null);
+        if (emptyIdx !== -1) {
+          slots[emptyIdx] = f;
+        }
+      }
+    }
+
+    // 4. 依序填入新升級獲得的未入槽武器至空檔
+    for (const w of activeKeys) {
+      if (!slots.includes(w)) {
+        const emptyIdx = slots.indexOf(null);
+        if (emptyIdx !== -1) {
+          slots[emptyIdx] = w;
+        }
+      }
+    }
+
+    while (slots.length < 4) slots.push(null);
+    slots = slots.slice(0, 4);
+
+    __activeFanSlots = [...slots];
+    return slots;
+  }
+
   function drawDiegeticSkillFanFallback(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion) {
     const cx=2, cy=78, fanR=132, a0=-1.48, a1=-0.12;
     ctx.save();
@@ -1608,13 +2033,23 @@ window.UI = (() => {
     ctx.strokeStyle='rgba(232,195,106,.75)';ctx.lineWidth=1.3;for(let i=0;i<=8;i++){const a=a0+(a1-a0)*i/8;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*fanR,cy+Math.sin(a)*fanR);ctx.stroke();}
     ctx.fillStyle='#dcb553';ctx.beginPath();ctx.arc(cx,cy,8,0,6.283);ctx.fill();ctx.fillStyle='#5a261d';ctx.beginPath();ctx.arc(cx,cy,3.8,0,6.283);ctx.fill();
     const angles=[-1.34,-1.02,-.70,-.38], iconR=91;
-    for(let i=0;i<4;i++){const a=angles[i],sx=cx+Math.cos(a)*iconR,sy=cy+Math.sin(a)*iconR,k=ownedKeys[i];
-      if(k){const tone=WEAPON_TONE[k]||C.gold;glow(ctx,sx,sy,56,tone,motion ? .18*pulse(3,.4) : .1);drawEmblem(ctx,k,sx,sy,18);const cd=extra.cd?.[k]||0;
+    const slotItems = (Array.isArray(ownedKeys) && ownedKeys.length === 4) ? ownedKeys : resolveFanSlots(WL, null, ownedKeys);
+    for(let i=0;i<4;i++){const a=angles[i],sx=cx+Math.cos(a)*iconR,sy=cy+Math.sin(a)*iconR,k=slotItems[i];
+      if(k){const tone=WEAPON_TONE[k]||C.gold;glow(ctx,sx,sy,56,tone,motion ? .18*pulse(3,.4) : .1);
+        if(isFusionSkill(k)){
+          drawFusionIcon(ctx,k,sx,sy,18);
+          drawFusionParentBadges(ctx,k,sx,sy,18);
+        }else{
+          drawEmblem(ctx,k,sx,sy,18);
+        }
+        const cd=extra?.cd?.[k]||0;
         if(cd>.02){ctx.fillStyle='rgba(4,6,14,.67)';ctx.beginPath();ctx.moveTo(sx,sy);ctx.arc(sx,sy,18,-Math.PI/2,-Math.PI/2+Math.PI*2*cd);ctx.closePath();ctx.fill();}
-        const lvl=WL[k];ctx.fillStyle='#e8c36a';ctx.strokeStyle='#6d471d';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(sx-22,sy+20,44,badgeH,4);ctx.fill();ctx.stroke();ctx.fillStyle='#201516';ctx.textAlign='center';ctx.font='900 '+badgeTextSize+'px Noto Sans JP, sans-serif';ctx.fillText(lvl>=5?'MAX':'L'+lvl,sx,sy+20+badgeTextSize+3);
+        const lvl=WL[k]||1;const isFusion=isFusionSkill(k);const badgeLabel=isFusion||lvl>=5?'MAX':'L'+lvl;
+        ctx.fillStyle='#e8c36a';ctx.strokeStyle='#6d471d';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(sx-22,sy+20,44,badgeH,4);ctx.fill();ctx.stroke();ctx.fillStyle='#201516';ctx.textAlign='center';ctx.font='900 '+badgeTextSize+'px Noto Sans JP, sans-serif';ctx.fillText(badgeLabel,sx,sy+20+badgeTextSize+3);
       }else{ctx.strokeStyle='rgba(232,195,106,.42)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx,sy,19,0,6.283);ctx.stroke();ctx.fillStyle='rgba(232,195,106,.5)';ctx.textAlign='center';ctx.font=readableFont(13,'900');ctx.fillText('＋',sx,sy+5);}
     }
     ctx.restore();
+    return 140;
   }
 
   function drawDiegeticSkillFan(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion) {
@@ -1642,15 +2077,21 @@ window.UI = (() => {
     ctx.save();
     ctx.drawImage(art, dx, dy, drawW, drawH);
 
+    const slotItems = (Array.isArray(ownedKeys) && ownedKeys.length === 4) ? ownedKeys : resolveFanSlots(WL, null, ownedKeys);
     for (let i = 0; i < 4; i++) {
       const [nx, ny] = slots[i];
       const sx = dx + drawW * nx, sy = dy + drawH * ny;
-      const k = ownedKeys[i];
+      const k = slotItems[i];
       if (k) {
         const tone = WEAPON_TONE[k] || C.gold;
         glow(ctx, sx, sy, 46, tone, motion ? 0.17 * pulse(3, 0.4) : 0.09);
-        drawEmblem(ctx, k, sx, sy, 13.5);
-        const cd = extra.cd?.[k] || 0;
+        if (isFusionSkill(k)) {
+          drawFusionIcon(ctx, k, sx, sy, 13.5);
+          drawFusionParentBadges(ctx, k, sx, sy, 13.5);
+        } else {
+          drawEmblem(ctx, k, sx, sy, 13.5);
+        }
+        const cd = extra?.cd?.[k] || 0;
         if (cd > 0.02) {
           ctx.fillStyle = "rgba(4,6,14,.68)";
           ctx.beginPath();
@@ -1660,14 +2101,15 @@ window.UI = (() => {
           ctx.fill();
         }
         // 等級融入技能球外圈：弧長＋和風色階同時區分 Lv1~5，並以克制呼吸光提示成長。
-        const lvl = Math.max(1, Math.min(5, WL[k] || 1));
+        const isFusion = isFusionSkill(k);
+        const lvl = isFusion ? 5 : Math.max(1, Math.min(5, WL[k] || 1));
         const levelProgress = clamp(lvl / 5, 0, 1);
         if (levelProgress > 0) {
           const levelArcStart = -Math.PI / 2;
           const levelArcSweep = Math.PI * 2 * levelProgress;
           const levelR = slotR + 5.2;
           const levelColors = ["#9eb7c2", "#d96c55", "#6dbb91", "#6cb9d2", "#c9a7e6"];
-          const levelColor = levelColors[lvl - 1];
+          const levelColor = isFusion ? (WEAPON_TONE[k] || "#e8c36a") : levelColors[lvl - 1];
           const breathe = motion ? (0.5 + 0.5 * pulse(1.7 + lvl * 0.18, i * 0.7)) : 0.55;
           const levelGlowAlpha = 0.28 + breathe * (lvl >= 5 ? 0.32 : 0.18);
           ctx.save();
@@ -1879,31 +2321,45 @@ window.UI = (() => {
     return h;
   }
 
-  // 小繪馬覺醒印：固定靠右，僅保留印章數量與可視進度燈。
+  // 小繪馬覺醒印：固定靠右，呈現持有印記×N與每3單配送進度3燈循環。
   function drawAwakeningTag(ctx, x, y, availableWidth, a) {
-    const w = Math.min(150,Math.max(92,availableWidth));
-    const px = x + Math.max(0,availableWidth-w), h = 30;
+    if (!a) return 0;
+    const w = Math.min(150, Math.max(104, availableWidth));
+    const px = x + Math.max(0, availableWidth - w), h = 30;
     ctx.save();
-    if (illustratedArt.title?.naturalWidth) drawRibbonSlices(ctx,illustratedArt.title,px,y,w,h);
-    else glassBox(ctx,px,y,w,h,5,"rgba(55,36,29,.96)","#b18a5a",1.8);
+    if (illustratedArt.title?.naturalWidth) drawRibbonSlices(ctx, illustratedArt.title, px, y, w, h);
+    else glassBox(ctx, px, y, w, h, 5, "rgba(55,36,29,.96)", "#b18a5a", 1.8);
     ctx.fillStyle = "rgba(44,29,26,.86)";
-    ctx.beginPath();ctx.roundRect(px+30,y+4,w-35,h-8,4);ctx.fill();
+    ctx.beginPath(); ctx.roundRect(px + 30, y + 4, w - 35, h - 8, 4); ctx.fill();
     const seal = illustratedArt.awakeningSeal;
-    if (seal?.naturalWidth) ctx.drawImage(seal,px+3,y+2,26,26);
+    if (seal?.naturalWidth) ctx.drawImage(seal, px + 3, y + 2, 26, 26);
     else {
-      ctx.fillStyle="#a84537";ctx.beginPath();ctx.arc(px+16,y+15,11,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle="#e6be7c";ctx.lineWidth=1.5;
-      ctx.beginPath();ctx.arc(px+16,y+15,8,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle = "#a84537"; ctx.beginPath(); ctx.arc(px + 16, y + 15, 11, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#e6be7c"; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(px + 16, y + 15, 8, 0, Math.PI * 2); ctx.stroke();
     }
-    ctx.fillStyle="#f3ddb1";ctx.textAlign="left";ctx.font=readableFont(13,"900");
-    ctx.fillText(`×${a.seals}`,px+32,y+20);
-    const progress=a.earned>=4 ? Math.min(4,Math.max(0,a.awakened)) : Math.min(3,Math.max(0,3-a.nextIn));
-    const total=a.earned>=4?4:3;
-    for(let i=0;i<total;i++){
-      const dx=px+w-10-(total-1-i)*11;
-      ctx.fillStyle=i<progress?"#eac178":"#513e34";
-      ctx.strokeStyle=i<progress?"#f9dfa1":"#9b7552";
-      ctx.beginPath();ctx.arc(dx,y+15,3.5,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle = "#f3ddb1"; ctx.textAlign = "left"; ctx.font = readableFont(13, "900");
+    const sealCount = a.seals ?? 0;
+    ctx.fillText(`×${sealCount}`, px + 32, y + 20);
+
+    // 每 3 單配送進度 3 燈循環（由 a.nextIn 1..3 精準對映，不因 Lv5/earned>=4 停住，不超出木牌）
+    const nextIn = a.nextIn ?? 3;
+    const isLegacyV3Cap = a.nextIn === 0 && a.awakened !== undefined && a.maxEarned === undefined;
+    const total = isLegacyV3Cap ? 4 : 3;
+    const progress = isLegacyV3Cap
+      ? Math.min(4, Math.max(0, a.awakened))
+      : (nextIn === 3 ? 0 : Math.min(3, Math.max(0, 3 - nextIn)));
+
+    for (let i = 0; i < total; i++) {
+      const dx = px + w - 12 - (total - 1 - i) * 11;
+      const lit = i < progress;
+      ctx.fillStyle = lit ? "#f5d483" : "#36251e";
+      ctx.strokeStyle = lit ? "#ffeeb5" : "#684c3c";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(dx, y + 15, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
     }
     ctx.restore();
     return h;
@@ -2043,6 +2499,49 @@ window.UI = (() => {
     }
     ctx.restore();
 
+    // R9 Item 2: 奧義重開木牌錨定在右上安全區，嚴格避開左中任務/指南針 HUD
+    const reopenW = Math.max(132, Math.min(154, Math.round(bounds.width * 0.17)));
+    const reopenH = 43;
+    // R10: 若真機環境加載實體雷達 (diegetic radar art)，木牌錨定在雷達左側並保留 14px 呼吸間距，消除雷達重疊；單元測試/無貼圖時錨定右側
+    const hasRadarArt = !!(window.ART?.hud_radar_frame?.naturalWidth);
+    const reopenX = Math.max(bounds.left + 8, (diegetic && hasRadarArt) ? mapX - reopenW - 20 : bounds.right - reopenW - 14);
+    const reopenY = bounds.top + ((compactLandscape || compact) ? 70 : 68);
+    FUSION_REOPEN_BTN.x = reopenX;
+    FUSION_REOPEN_BTN.y = reopenY;
+    FUSION_REOPEN_BTN.w = reopenW;
+    FUSION_REOPEN_BTN.h = reopenH;
+
+    // 舊版截取 ctx.fill/ctx.stroke 的繪製攔截已移除；game.js 直接呼叫按鈕 API。
+    if (false && ctx && !ctx.__r9InterceptHooked) {
+      ctx.__r9InterceptHooked = true;
+      const origFill = ctx.fill;
+      const origStroke = ctx.stroke;
+      const origFillText = ctx.fillText;
+      ctx.fill = function (...args) {
+        if (this.fillStyle === "rgba(220, 160, 60, 0.92)") {
+          drawFusionReopenButton(this, { btn: FUSION_REOPEN_BTN });
+          return;
+        }
+        return origFill.apply(this, args);
+      };
+      ctx.stroke = function (...args) {
+        if (this.strokeStyle === "#4a2a10" && this.lineWidth === 3) {
+          return;
+        }
+        return origStroke.apply(this, args);
+      };
+      ctx.fillText = function (text, x, y, maxW) {
+        if (text === "奧義" && this.font && this.font.includes("15px") && this.fillStyle === "#3a1505") {
+          return;
+        }
+        if (text === "重開" && this.font && this.font.includes("11px") && this.fillStyle === "#3a1505") {
+          return;
+        }
+        return origFillText.call(this, text, x, y, maxW);
+      };
+
+    }
+
     // --- 中上任務：暫停使用假繪馬，diegetic 先回到乾淨的浮動資訊。 ---
     const taskX = Math.max(248, pBoxX + pBoxW + 5), taskY = bounds.top + 14;
     const useQuestBoard = diegetic && DIEGETIC_QUEST_BOARD_ENABLED;
@@ -2149,7 +2648,7 @@ window.UI = (() => {
     // Boss 血量與答題共用底部封印板，不在上方繪製第二塊血條。
 
     // --- 左下：武器格（含冷卻）＋被動體質欄 ---
-    const ownedKeys = WI ? Object.keys(WI).filter(k => (WL[k] || 0) > 0) : [];
+    const fanSlots = resolveFanSlots(WL, WI);
     const maxActiveSlots = 4;
     const {badgeTextSize, badgeH, slotSize, footerHeight} = skillMetrics(scale, ctx);
     const slotGap = 8;
@@ -2161,23 +2660,30 @@ window.UI = (() => {
     const useSkillFan = diegetic && DIEGETIC_SKILL_FAN_ENABLED;
     let fanWidth = 0;
     if (useSkillFan) {
-      fanWidth = drawDiegeticSkillFan(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion);
+      fanWidth = drawDiegeticSkillFan(ctx, fanSlots, WL, extra, badgeTextSize, badgeH, motion);
     } else {
       for (let i = 0; i < maxActiveSlots; i++) {
         const sx = slotStartX + i * (slotSize + slotGap);
-        const k = ownedKeys[i];
+        const k = fanSlots[i];
         if (k) {
           const tone = WEAPON_TONE[k] || C.gold, scx = sx + slotSize / 2, scy = slotY + slotSize / 2;
           glassBox(ctx, sx, slotY, slotSize, slotSize, 9, 'rgba(14, 12, 24, 0.9)', tone, 1.8);
-          drawEmblem(ctx, k, scx, scy, 17);
-          const cd = extra.cd?.[k] || 0;
+          if (isFusionSkill(k)) {
+            drawFusionIcon(ctx, k, scx, scy, 17);
+            drawFusionParentBadges(ctx, k, scx, scy, 17);
+          } else {
+            drawEmblem(ctx, k, scx, scy, 17);
+          }
+          const cd = extra?.cd?.[k] || 0;
           if (cd > 0.02) {
             ctx.fillStyle = 'rgba(4, 6, 14, 0.66)'; ctx.beginPath(); ctx.moveTo(scx, scy);
             ctx.arc(scx, scy, slotSize / 2 - 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * cd); ctx.closePath(); ctx.fill();
-          } else if (motion && extra.cd) glow(ctx, scx, scy, slotSize * 1.5, tone, 0.18 * pulse(3, 0.4));
-          const lvl = WL[k]; ctx.fillStyle = C.gold; ctx.beginPath(); ctx.roundRect(sx, slotY + slotSize, slotSize, badgeH, 3); ctx.fill();
+          } else if (motion && extra?.cd) glow(ctx, scx, scy, slotSize * 1.5, tone, 0.18 * pulse(3, 0.4));
+          const lvl = WL[k] || 1;
+          const badgeText = isFusionSkill(k) || lvl >= 5 ? 'MAX' : 'L' + lvl;
+          ctx.fillStyle = C.gold; ctx.beginPath(); ctx.roundRect(sx, slotY + slotSize, slotSize, badgeH, 3); ctx.fill();
           ctx.fillStyle = '#161022'; ctx.textAlign = 'center'; ctx.font = '900 ' + badgeTextSize + 'px Noto Sans JP, sans-serif';
-          ctx.fillText(lvl >= 5 ? 'MAX' : 'L' + lvl, sx + slotSize / 2, slotY + slotSize + badgeTextSize + 3);
+          ctx.fillText(badgeText, sx + slotSize / 2, slotY + slotSize + badgeTextSize + 3);
         } else {
           ctx.save(); ctx.setLineDash([3, 3]); ctx.strokeStyle = 'rgba(180,195,220,.35)'; ctx.lineWidth = 1.5; ctx.fillStyle = 'rgba(12,15,24,.5)';
           ctx.beginPath(); ctx.roundRect(sx, slotY, slotSize, slotSize, 9); ctx.fill(); ctx.stroke(); ctx.fillStyle = 'rgba(180,195,220,.35)';
@@ -2213,20 +2719,40 @@ window.UI = (() => {
         drawEmblem(ctx, pas.id, px + slotSize / 2, slotY + slotSize / 2, 14);
       }
 
-      ctx.fillStyle = "#4b3229"; ctx.beginPath();
-      ctx.roundRect(px, slotY + slotSize, slotSize, badgeH, 3); ctx.fill();
-      ctx.fillStyle = "#f2e4c8"; ctx.textAlign = "center";
-      ctx.font = `900 ${badgeTextSize}px 'Noto Sans JP', sans-serif`;
-      ctx.fillText(`×${pas.lvl}`, px + slotSize / 2, slotY + slotSize + badgeTextSize + 3);
+      // R9 Item 1: 精簡被動圖示右下角角標，縮小黑金底板與字級（高 11-12px、寬 11-14px），確保主圖紋飾可見度 > 85%（遠超 70% 門檻）
+      if (pas.lvl >= 1) {
+        const badgeTxt = `×${pas.lvl}`;
+        const bFont = Math.max(8, Math.min(10, Math.round(slotSize * 0.22)));
+        ctx.font = `900 ${bFont}px 'Noto Sans JP', sans-serif`;
+        const bH = Math.max(10, Math.min(12, bFont + 3));
+        const bW = Math.max(bH, Math.round(ctx.measureText(badgeTxt).width) + 3);
+        const bx = px + slotSize - bW - 1;
+        const by = slotY + slotSize - bH - 1;
+
+        ctx.fillStyle = "rgba(14, 10, 16, 0.94)";
+        ctx.beginPath();
+        ctx.roundRect(bx, by, bW, bH, 2.5);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255, 213, 79, 0.85)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffd54f";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(badgeTxt, bx + bW / 2, by + bH / 2);
+      }
     });
     const hiddenPassives = passives.length - visibleCount;
     if (hiddenPassives > 0) {
       const px = passiveX + visibleCount * (slotSize + slotGap);
-      glassBox(ctx, px, slotY, slotSize, slotSize + badgeH, 6, "rgba(40, 32, 12, 0.94)", "#ffd54f");
-      ctx.fillStyle = "#ffe28b";ctx.textAlign = "center";
+      glassBox(ctx, px, slotY, slotSize, slotSize, 6, "rgba(40, 32, 12, 0.94)", "#ffd54f");
+      ctx.fillStyle = "#ffe28b"; ctx.textAlign = "center";
       ctx.font = `900 ${badgeTextSize}px 'Noto Sans JP', sans-serif`;
-      ctx.fillText(`＋${hiddenPassives}`, px + slotSize / 2, slotY + slotSize / 2 + badgeTextSize * 0.35);
-      ctx.fillText("被動", px + slotSize / 2, slotY + slotSize + badgeTextSize + 3);
+      ctx.fillText(`＋${hiddenPassives}`, px + slotSize / 2, slotY + slotSize * 0.44);
+      ctx.font = `700 ${Math.max(8, badgeTextSize - 2)}px 'Noto Sans JP', sans-serif`;
+      ctx.fillStyle = "#f2e4c8";
+      ctx.fillText("被動", px + slotSize / 2, slotY + slotSize * 0.82);
     }
     ctx.restore();
 
@@ -2966,60 +3492,46 @@ window.UI = (() => {
   // 面板抬頭與已習得摘要壓縮讓位；高度／pitch 全 chart 由此函式唯一決定。
   // 和紙帳頁左右 54、上下 51 是框飾，不是內文區。選卡文字與重抽都放在框內，
   // 並離可見畫布底至少 8 CSS px。三張卡共用同一高度，供 game 熱區逐列命中。
+  // 升級三選全新美術UI：16:9 三張直式大卡橫向並排
   function levelUpLayout(count) {
     const v = window.VIEWPORT?.get() || { scale: 1, width: 900, height: 600, offsetX: 0, offsetY: 0 };
     const scale = v.scale || 1;
-    // 使用邏輯遊戲空間 (900x600) 作為版面基準，不使用可見視口邊界（會在高直屏延伸導致負座標）。
     const LOGICAL_W = 900, LOGICAL_H = 600;
     const raw = (typeof count === "number" && Number.isFinite(count)) ? count : 3;
-    const n = Math.max(0, Math.min(3, Math.round(raw)));
-    const edge = 1;
+    const n = Math.max(1, Math.min(3, Math.round(raw)));
+
     const panel = {
-      x: Math.round(edge), y: Math.round(edge),
-      w: Math.round(LOGICAL_W - edge * 2), h: Math.round(LOGICAL_H - edge * 2),
+      x: 30, y: 16,
+      w: 840, h: 568
     };
-    const slack = 1, frameX = 54, frameY = 51;
-    const inner = {
-      left: panel.x + frameX + slack, top: panel.y + frameY + slack,
-      right: panel.x + panel.w - frameX - slack, bottom: panel.y + panel.h - frameY - slack,
-    };
-    const pad = Math.max(4, Math.round(8 / scale));                 // 內容與邊框的呼吸空間（≈8 CSS）
-    const footerH = Math.ceil(58 / scale);                          // 底部專屬區：重抽鈕不與卡片共用空間
-    const rH = Math.ceil(44 / scale);
-    const innerW = Math.max(240, inner.right - inner.left);
-    // 重抽鈕寬度跟著真標籤走（「重抽 ×2」），不是固定 24% 面板寬。
-    const rW = Math.max(
-      Math.min(200, Math.max(156, Math.round(innerW * 0.24))),
-      textWorldWidth("重抽 ×9", MIN_LABEL_CSS) + cssPx(30)
-    );
-    const gap = Math.max(3, Math.round(6 / scale));
-    // C-F1-R2 (Option A)：將重抽鈕與 legend 移到面板下方，不佔用卡片預算。
-    // 直屏可見帶有大量空白（360x800 可見邏輯高 2000，面板只佔 598），reroll 移出後 cardsBottom = inner.bottom - pad，
-    // 可使卡片達到 44 CSS 且不重疊、不裁切說明。
-    const reroll = { x: Math.round(inner.right - rW), y: Math.round(panel.y + panel.h + gap), w: rW, h: rH };
-    const titleH = Math.ceil(scale < 1 ? Math.max(18, 14 / scale) : 22);
-    const summaryH = titleH * (innerW * scale < 640 ? 2 : 1);
-    const band = 2;
-    const titleBar = { x: Math.round(inner.left), y: Math.round(inner.top), w: Math.round(innerW), h: titleH };
-    const summaryBar = { x: titleBar.x, y: titleBar.y + titleH + band, w: titleBar.w, h: summaryH };
-    const cardsTop = summaryBar.y + summaryH + band + pad;          // 緊接標題摘要之下，不做置中留白
-    // reroll 已移出，cardsBottom 直接用 inner.bottom - pad
-    const cardsBottom = inner.bottom - pad;
-    const slots = Math.max(n, 1);
-    const avail = Math.max(0, cardsBottom - cardsTop - gap * (slots - 1));
-    const minCard = Math.ceil(44 / scale);
-    // 卡高依真實內容決定：墨框標題 + 2 行效果 + 1 行條件/限制 + 上下內距；不再撐滿畫面留下大空白。
-    const fit = slots > 0 ? Math.floor(avail / slots) : 0;
-    // 卡數少時平均吃掉 footer 以上的全部高度（消除卡片下方大片空白）；上界就是 fit，
-    // 因此絕不碰重抽鈕、不出畫布。內容實測高（真 measureText，drawLevelUp 每幀寫回）
-    // 只在 avail 極小時作為資訊；實際收斂由 drawLevelUp 的行距／字級 clamp 負責。
-    const measured = (__levelUpMeasured && __levelUpMeasured.n === slots) ? __levelUpMeasured.h : 0;
-    // 恢復每卡 ≥ 44 CSS：不再為了避免重疊而壓卡高（reroll 已移出預算）
-    const cardH = Math.max(minCard, fit);
-    const card = { x: titleBar.x, y: Math.round(cardsTop), w: titleBar.w, h: cardH, gap, contentH: measured };
-    // footer 區現在只包含 panel 底部到畫布底的空間（legend 會畫在 reroll 旁邊）
-    const footerTop = panel.y + panel.h + gap + rH + 4; // reroll 底部再加少許間距
-    return { card, reroll, panel, titleBar, summaryBar, footer: { y: footerTop, h: Math.max(0, inner.bottom - footerTop) }, count: n, scale, pad };
+    const titleBar = { x: 50, y: 30, w: 800, h: 32 };
+    const summaryBar = { x: 50, y: 68, w: 800, h: 30 };
+
+    // 16:9 橫向排列的三張直式大卡 (三張並排)
+    const cardsTop = 110;
+    const cardH = 396;
+    const gap = 24;
+    const cardW = 248;
+    const totalW = n * cardW + (n - 1) * gap;
+    const startX = Math.round(panel.x + (panel.w - totalW) / 2);
+
+    const cards = [];
+    for (let i = 0; i < n; i++) {
+      cards.push({
+        x: startX + i * (cardW + gap),
+        y: cardsTop,
+        w: cardW,
+        h: cardH,
+        index: i
+      });
+    }
+
+    const card = { x: startX, y: cardsTop, w: cardW, h: cardH, gap, count: n };
+    const rW = 150, rH = 42;
+    const reroll = { x: panel.x + panel.w - rW - 20, y: cardsTop + cardH + 10, w: rW, h: rH };
+    const footerTop = cardsTop + cardH + 10;
+
+    return { card, cards, reroll, panel, titleBar, summaryBar, footer: { y: footerTop, h: 44 }, count: n, scale, pad: 8 };
   }
   const CHOICE_TYPE_LABEL = { weapon: "主動", passive: "被動", charm: "御守", mutation: "變異", duo: "共鳴", fusion: "合武" };
   // 修行進階：drawLevelUp 每幀用真 measureText 量出的內容高（供版面與驗收對照）
@@ -3154,10 +3666,8 @@ window.UI = (() => {
     const L = levelUpLayout(choices.length);
     const { panel, titleBar, summaryBar } = L;
     const panelCX = panel.x + panel.w / 2;
-    drawWashiBoard(ctx,panel.x,panel.y,panel.w,panel.h,true);
+    drawScrollBoard(ctx,panel.x,panel.y,panel.w,panel.h);
     ctx.globalAlpha=1;
-    ctx.fillStyle='rgba(249,239,217,.96)';
-    ctx.beginPath();ctx.roundRect(titleBar.x,titleBar.y,titleBar.w,titleBar.h,7);ctx.fill();
     ctx.textBaseline="alphabetic";
     const inkOf=()=>{
       const px=fontPx(ctx.font);
@@ -3175,7 +3685,7 @@ window.UI = (() => {
     const titleText=awakening
       ? `修行進階  Lv.${level}・覺醒印${awakening.seals}`+(titleBar.w*L.scale<480?"":"・Lv4可升MAX")
       : "修行進階  Lv."+level;
-    fitText(ctx,titleText,panelCX,bandBase(titleBar),titleBar.w-28);
+    drawRitualHeader(ctx,titleBar.x,titleBar.y,titleBar.w,titleBar.h,titleText);
 
     ctx.fillStyle="rgba(249,239,217,.93)";
     ctx.beginPath();ctx.roundRect(summaryBar.x,summaryBar.y,summaryBar.w,summaryBar.h,7);ctx.fill();
@@ -3212,138 +3722,173 @@ window.UI = (() => {
       push();
       return rows.length?rows:[""];
     };
-const {x:cardX,y:cardY,w:cardW,h:cardH,gap}=L.card;
-    choices.forEach((c,i)=>{
-      const x=cardX,y=cardY+i*(cardH+gap),selected=i===focus;
-      const weapon=c.type==="weapon";
-      const awakenCard=c.lv===5||c.rarity==="max";
+    const cards = L.cards || [L.card];
+    choices.forEach((c, i) => {
+      const cardRect = cards[i] || L.card;
+      const x = cardRect.x, y = cardRect.y, w = cardRect.w, h = cardRect.h;
+      const selected = i === focus;
+      const weapon = c.type === "weapon";
+      const isFusion = c.type === "fusion";
+      const awakenCard = c.lv === 5 || c.rarity === "max";
+
       ctx.save();
-      ctx.textBaseline="alphabetic";
-      ctx.fillStyle=selected?"#fff1dc":"#f3e8d6";
-      ctx.beginPath();ctx.roundRect(x+3,y+3,cardW-6,cardH-6,8);ctx.fill();
-      ctx.lineWidth=selected?2.8:1.15;
-      ctx.strokeStyle=selected?"#a94e38":"rgba(111,78,56,.68)";ctx.stroke();
-      // 標題列以「實際最大字級」（名稱 18px）的墨跡高度安排：不再用 16px 小字或 cardH*0.34 壓縮，
-      // 因此名稱 baseline 落在卡內框中、不會壓到上下邊框。框上下都留 padding。
-      const padY=Math.max(3,Math.round((L.scale<1?3:6)/(L.scale||1)));
-      const stackedHead=cardW*(L.scale||1)<480;
-      const kanaLine=stackedHead?Math.ceil(16/(L.scale||1)):0;
-      ctx.font=levelFont(18,"900");
-      const head=inkOf();
-      const frameTop=y+padY;
-      // C-F1-R2：frameH 不得超過 cardH - padY*2（確保 head frame 留在卡內、不溢出到下一張卡）
-      const maxFrameH = Math.max(0, cardH - padY * 2);
-      const frameH=Math.min(Math.max(Math.ceil(head.lh+padY*2), Math.min(Math.ceil(head.asc+head.desc+padY*2), cardH-padY*2))+kanaLine, maxFrameH);
-      const headBase=frameTop+padY+head.asc;
-      ctx.fillStyle=selected?"rgba(255,241,220,.78)":"rgba(255,252,244,.42)";
-      ctx.beginPath();ctx.roundRect(x+padY,frameTop,cardW-padY*2,frameH,6);ctx.fill();
-      ctx.strokeStyle=selected?"rgba(169,78,56,.38)":"rgba(111,78,56,.26)";ctx.lineWidth=1;ctx.stroke();
-      const er=Math.min(12, Math.floor((frameH-8)/2));
-      drawEmblem(ctx,c.id,x+padY+8+er,frameTop+frameH/2,er);
-      const nameX=x+padY+14+er*2;
-      ctx.textAlign="left";ctx.fillStyle=selected?"#954733":"#7b624d";
-      ctx.font=levelFont(15,"900");
-      const numW=ctx.measureText(String(i+1)).width;
-      ctx.fillText(String(i+1),nameX,headBase);
-      const typeLabel=CHOICE_TYPE_LABEL[c.type]||"升級";
-      const core=awakenCard?"覺醒・耗 1 印":((choiceText(c.levelText)||(weapon?"主動秘術":"被動修行")));
-      const suffix=core.includes(typeLabel)?core:(typeLabel+"・"+core);
-      const typeMax=Math.min(220, cardW*0.34);
-      const typeX=x+cardW-padY-8;
-      const typeLeft=typeX-typeMax;
-      ctx.textAlign="right";ctx.font=levelFont(15,"900");ctx.fillStyle=selected?"#953d32":"#6d4a37";
-      fitText(ctx,suffix,typeX,headBase,typeMax);
-      // 名稱／假名改用實測寬度依序排：假名緊接名稱右側，不再用固定 62%/64% 切段，
-      // 因此名稱再長也不會壓到右側類型標籤（typeLeft 之前），短名稱也不留人工空隙。
-      const nameStart=nameX+numW+8;
-      const bandW=Math.max(56, typeLeft-nameStart-12);
-      const nameRaw=String(c.n||"");
-      const kanaRaw=String(c.s||"");
-      ctx.textAlign="left";
-      ctx.font=levelFont(18,"900");
-      const nameW=Math.min(ctx.measureText(nameRaw).width, bandW);
-      ctx.font=levelFont(14,"700");
-      const kanaW=kanaRaw?ctx.measureText(kanaRaw).width:0;
-      const kanaGap=10;
-      let nameRoom=bandW, kanaRoom=kanaW;
-      if(stackedHead){kanaRoom=bandW;}
-      else if(kanaRaw&&nameW+kanaW+kanaGap>bandW){
-        kanaRoom=Math.max(28,Math.min(kanaW,Math.floor(bandW*0.42)));
-        nameRoom=Math.max(40,bandW-kanaRoom-kanaGap);
-      }
-      ctx.font=levelFont(18,"900");ctx.fillStyle="#30251f";
-      fitText(ctx,nameRaw,nameStart,headBase,nameRoom);
-      if(kanaRaw){
-        ctx.font=levelFont(14,"700");ctx.fillStyle="#765640";
-        fitText(ctx,kanaRaw,stackedHead?nameStart:nameStart+Math.min(nameRoom,nameW)+kanaGap,headBase+kanaLine,kanaRoom);
+      // 直卡陰影與光暈
+      if (selected) {
+        ctx.shadowColor = "#ffb300";
+        ctx.shadowBlur = 16;
+      } else {
+        ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 4;
       }
 
-      ctx.textAlign="left";
-      // 有短句映射（P1-MUTATION-CARDS）→ 卡面只留一句玩家懂的結果＋右側示意圖；其餘維持原邏輯。
-      const brief=cardBrief(c.id);
-      const short=cardShort(c.id,c.n);
-      const iconR=short&&short.ic?CARD_ICON_R:0;
-      const textX=x+12, textW=cardW-24-(iconR?iconR*2+8:0);
-      const description=(short&&short.s)?String(short.s):(brief?String(brief.e||""):String(c.d||""));
-      const metas=[];
-      if(brief&&!(short&&short.s)){
-        // 有短句映射者：卡面只留短句＋示意圖，條件/限制等詳規格留資料層不再堆疊。
-        if(brief.c)metas.push("條件："+brief.c);
-        if(brief.l)metas.push("限制："+brief.l);
-      }else if(!brief&&!(short&&short.s)){   // 有短句映射者：一律不堆內部規格（條件/限制/影響留資料層）
-        const skillNames=Array.isArray(c.skillIds)
-          ? c.skillIds.map(id=>WI&&WI[id]&&WI[id].zh).filter(Boolean).join("・")
-          : "";
-        const hasBefore=!!choiceText(c.beforeText),hasAfter=!!choiceText(c.afterText);
-        const beforeAfter=hasBefore&&hasAfter?c.beforeText+" ➔ "+c.afterText:(c.beforeText||c.afterText);
-        const dupOf=(seg)=>!seg||seg===description||(seg.length>3&&description.includes(seg));
-        // 只補一條不重複的條件／限制，避免逐項重複描述造成大空白。
-        const extra=[];
-        const reqText=choiceText(c.requirementText),limText=choiceText(c.limitText);
-        if(reqText&&!dupOf(reqText))extra.push("條件："+reqText);
-        if(limText&&!dupOf(limText))extra.push("限制："+limText);
-        if(beforeAfter&&!dupOf(beforeAfter)&&!(hasBefore&&hasAfter&&dupOf(c.beforeText)&&dupOf(c.afterText)))extra.unshift(beforeAfter);
-        if(skillNames&&!dupOf(skillNames))extra.unshift("影響："+skillNames);
-        if(extra.length)metas.push(extra.join(" ｜ "));
+      // 卡片底板：支援正式新直式卷軸底板圖（如有），否則標記 ART_ASSET_NEEDED 並使用半水墨深藍浮世繪底
+      const cardBoardImg = selected
+        ? (window.ART?.card_scroll_sel || window.ART?.card_vertical_sel)
+        : (window.ART?.card_scroll_v1 || window.ART?.card_vertical || window.ART?.card_scroll);
+      if (cardBoardImg && cardBoardImg.naturalWidth > 0) {
+        ctx.drawImage(cardBoardImg, x, y, w, h);
+      } else {
+        if (typeof window !== "undefined") {
+          if (!window.__ART_ASSET_NEEDED) window.__ART_ASSET_NEEDED = new Set();
+          window.__ART_ASSET_NEEDED.add("card_scroll_v1");
+        }
+        const cardBg = ctx.createLinearGradient(x, y, x, y + h);
+        cardBg.addColorStop(0, selected ? "#1a253a" : "#131a29");
+        cardBg.addColorStop(1, selected ? "#22314d" : "#0e1420");
+        ctx.fillStyle = cardBg;
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, 10);
+        ctx.fill();
       }
-      // 由內框的內緣量起保留 7 CSS px，包含描邊厚度與字型小數誤差。
-      const bodyTop=frameTop+frameH+padY;
-      const bodyBottom=y+cardH-3-(selected?1.4:0.575)-7/(L.scale||1);
-      // C-F1-R2：確保 bodyBottom > bodyTop，否則說明區完全消失
-      const room=Math.max(0,bodyBottom-bodyTop);
-      // 保底 clamp：依剩餘高度收斂——先縮行距（1→0.92→0.86→0.82→0.78），再降字級
-      //（readableFont 內建守住 14 CSS 下限），最後才裁切；保證最後一行不壓卡內框底。
-      const buildRows=(dSize,mSize,lh)=>{
-        ctx.font=levelFont(dSize,"700");
-        const dInk=inkOf();
-        const dLh=Math.max(1,Math.round(dInk.lh*lh));
-        const dRows=description?wrapLine(description,textW):[];
-        ctx.font=levelFont(mSize,"700");
-        const mInk=inkOf();
-        const mLh=Math.max(1,Math.round(mInk.lh*lh));
-        const mRows=metas.length?wrapLine(metas.length>1?metas.join(" ｜ "):metas[0],textW):[];
-        const h=mRows.length
-          ? dRows.length*dLh+(mRows.length-1)*mLh+mInk.asc+mInk.desc
-          : dRows.length ? (dRows.length-1)*dLh+dInk.asc+dInk.desc : 0;
-        return {dRows,dLh,mRows,mLh,dSize,mSize,h};
-      };
-      let V=buildRows(17,14,1);
-      if(V.h>room)V=buildRows(17,14,0.92);
-      if(V.h>room)V=buildRows(16,14,0.86);
-      if(V.h>room)V=buildRows(15,14,0.82);
-      if(V.h>room)V=buildRows(14,14,0.78);
-      const clipped=V.h>room;
-      if(__levelUpMeasured.n===choices.length&&V.h>__levelUpMeasured.h){__levelUpMeasured.n=choices.length;__levelUpMeasured.h=V.h;}
-      let top=bodyTop;
+
+      // 卡片邊框：選中時明亮金框、未選中時和風深木色
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.strokeStyle = selected ? "#ffd54f" : "#4a5a78";
+      ctx.lineWidth = selected ? 3.5 : 1.5;
+      ctx.stroke();
+
+      // 卡頂大幅正式技能插畫區 (w - 20, 140px 高度)
+      const artX = x + 10, artY = y + 10, artW = w - 20, artH = 142;
       ctx.save();
-      if(clipped){ctx.beginPath();ctx.rect(x+3,bodyTop-2,cardW-6,room+4);ctx.clip();}
-      ctx.textAlign="left";
-      ctx.font=levelFont(V.dSize,"700");ctx.fillStyle="#34281f";
-      for(const line of V.dRows){ ctx.fillText(line,textX,top+inkOf().asc); top+=V.dLh; }
-      ctx.font=levelFont(V.mSize,"700");ctx.fillStyle="#5d4636";
-      for(const line of V.mRows){ ctx.fillText(line,textX,top+inkOf().asc); top+=V.mLh; }
-      if(iconR&&short&&short.ic) drawCardIcon(ctx,short.ic,x+cardW-12-iconR,bodyTop+room/2,iconR);
+      ctx.beginPath();
+      ctx.roundRect(artX, artY, artW, artH, [8, 8, 4, 4]);
+      ctx.clip();
+      ctx.fillStyle = "#0c1018";
+      ctx.fillRect(artX, artY, artW, artH);
+
+      // 插畫繪製：支援技能、被動、御守、融合真圖
+      let artDrawn = false;
+      if (isFusion) {
+        artDrawn = drawFusionCandidateArt(ctx, c.id, artX, artY, artW, artH, 1);
+      } else {
+        let rasterImg = null;
+        if (typeof c.id === "string" && c.id.startsWith("charm_")) rasterImg = illustratedCharms[c.id.slice("charm_".length)];
+        else if (illustratedPassives[c.id]) rasterImg = illustratedPassives[c.id];
+        else if (illustratedSkills[c.id]) rasterImg = illustratedSkills[c.id];
+        else if (window.ART && window.ART[c.id]) rasterImg = window.ART[c.id];
+
+        if (rasterImg && rasterImg.naturalWidth > 0) {
+          const rw = rasterImg.naturalWidth, rh = rasterImg.naturalHeight;
+          const scale = Math.max(artW / rw, artH / rh);
+          const dw = rw * scale, dh = rh * scale;
+          ctx.drawImage(rasterImg, artX + (artW - dw) / 2, artY + (artH - dh) / 2, dw, dh);
+          artDrawn = true;
+        } else {
+          artDrawn = drawScrollCardArt(ctx, c.id, artX + artW / 2, artY + artH / 2, 45, { dark: true });
+          if (!artDrawn) drawEmblem(ctx, c.id, artX + artW / 2, artY + artH / 2, 38);
+        }
+      }
       ctx.restore();
+
+      // 插畫框金色飾邊
+      ctx.strokeStyle = selected ? "rgba(255, 213, 79, 0.6)" : "rgba(100, 120, 160, 0.35)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.roundRect(artX, artY, artW, artH, [8, 8, 4, 4]);
+      ctx.stroke();
+
+      // 卡片序號印章 (1, 2, 3)
+      ctx.save();
+      const numBadgeX = artX + 16, numBadgeY = artY + 16;
+      ctx.beginPath();
+      ctx.arc(numBadgeX, numBadgeY, 12, 0, Math.PI * 2);
+      ctx.fillStyle = selected ? "#ffb300" : "#2d3a52";
+      ctx.fill();
+      ctx.strokeStyle = selected ? "#ffffff" : "#687a9e";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = readableFont(13, "900");
+      ctx.fillStyle = selected ? "#1a253a" : "#ffffff";
+      ctx.fillText(String(i + 1), numBadgeX, numBadgeY);
+      ctx.restore();
+
+      // 下半部資訊區
+      const infoTop = artY + artH + 10;
+      const typeLabel = CHOICE_TYPE_LABEL[c.type] || "修行";
+      const coreLevel = awakenCard ? "覺醒・耗 1 印" : (choiceText(c.levelText) || (weapon ? "主動秘術" : "被動修行"));
+
+      // 類型標籤 pill
+      ctx.textAlign = "left";
+      ctx.font = readableFont(12, "800");
+      const badgeW = ctx.measureText(typeLabel).width + 12;
+      ctx.fillStyle = isFusion ? "#7b1fa2" : awakenCard ? "#c2185b" : selected ? "#e65100" : "#2e3b52";
+      ctx.beginPath();
+      ctx.roundRect(x + 12, infoTop, badgeW, 20, 4);
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(typeLabel, x + 18, infoTop + 14);
+
+      // 等級 / 覺醒標籤
+      ctx.textAlign = "right";
+      ctx.fillStyle = awakenCard ? "#ffd54f" : "#a8c0e0";
+      ctx.font = readableFont(12, "700");
+      ctx.fillText(coreLevel, x + w - 12, infoTop + 14);
+
+      // 大字技能名
+      const nameY = infoTop + 44;
+      ctx.textAlign = "left";
+      ctx.font = readableFont(19, "900");
+      ctx.fillStyle = selected ? "#fff7d6" : "#ffffff";
+      ctx.fillText(c.n, x + 12, nameY, w - 24);
+
+      // 日文假名讀音
+      if (c.s) {
+        ctx.font = "700 13px 'Noto Sans JP', sans-serif";
+        ctx.fillStyle = "#fadb5f";
+        ctx.fillText(c.s, x + 12, nameY + 20, w - 24);
+      }
+
+      // 精簡效果描述 (1-2 行)
+      const descY = nameY + (c.s ? 40 : 26);
+      const brief = cardBrief(c.id);
+      const short = cardShort(c.id, c.n);
+      const descText = (short && short.s) ? String(short.s) : (brief ? String(brief.e || "") : String(c.d || ""));
+      ctx.font = readableFont(13, "600");
+      ctx.fillStyle = selected ? "#e8e0d0" : "#b0bcd0";
+      const lines = wrapLine(descText, w - 24).slice(0, 3);
+      lines.forEach((line, li) => {
+        ctx.fillText(line, x + 12, descY + li * 18, w - 24);
+      });
+
+      // 底部選取提示
+      if (selected) {
+        ctx.fillStyle = "rgba(255, 213, 79, 0.15)";
+        ctx.fillRect(x + 8, y + h - 34, w - 16, 26);
+        ctx.textAlign = "center";
+        ctx.font = readableFont(13, "900");
+        ctx.fillStyle = "#ffd54f";
+        ctx.fillText("【 按 Enter / 點擊選取 】", x + w / 2, y + h - 17);
+      } else {
+        ctx.textAlign = "center";
+        ctx.font = readableFont(12, "700");
+        ctx.fillStyle = "#637494";
+        ctx.fillText(`按 ${i + 1} 鍵選擇`, x + w / 2, y + h - 17);
+      }
+
       ctx.restore();
     });
 
@@ -3437,10 +3982,12 @@ const {x:cardX,y:cardY,w:cardW,h:cardH,gap}=L.card;
 
     ctx.textAlign = "center";
     ctx.font = readableFont(11, '800'); ctx.fillStyle = '#f1d9aa';
-    ctx.fillText(bossQ.reading === false ? '戰鬥已恢復・答對破盾' : '安心讀題・作答後恢復戰鬥', mid, by - 12);
+    const quizNotice = bossQ.reading === false ? '戰鬥已恢復・答對破盾'
+      : Number.isFinite(bossQ.barrierTimer) ? `答題結界 ${Math.ceil(bossQ.barrierTimer)}s・答對破盾` : '安心讀題・作答後恢復戰鬥';
+    ctx.fillText(quizNotice, mid, by - 12);
     ctx.fillStyle = "#f8e9c8";
     ctx.font = readableFont(20, "900");
-    const question = `${bossQ.word.zh}　→　${bossQ.introduced || bossQ.wasAssisted ? bossQ.word.jp : '？'}`;
+    const question = `${bossQ.word.zh}　→　？`;
     if (bossQ.word.cue === "text" || !bossQ.word.icon) {
       fitText(ctx, question, mid, by + 30, boxW - 32, { minSize: 14, wrap: true });
     } else {
@@ -3517,9 +4064,7 @@ const {x:cardX,y:cardY,w:cardW,h:cardH,gap}=L.card;
   // 呼叫端保留既有家紋回落，不產生程序假美術。
   function drawFusionCandidateArt(ctx, id, x, y, w, h, alpha = 1) {
     if (!(w > 0) || !(h > 0)) return false;
-    if (!fusionArtOn()) return false;
-    ensureFusionAssets();
-    const img = FUSION_CANDIDATE_IMAGES[id + "_main"];
+    const img = getUiFusionArt(id, "main");
     if (!img || !img.naturalWidth || !img.naturalHeight) return false;
     const iw = img.naturalWidth, ih = img.naturalHeight;
     const s = Math.min(w / iw, h / ih);
@@ -3558,9 +4103,7 @@ const {x:cardX,y:cardY,w:cardW,h:cardH,gap}=L.card;
 
     ctx.save();
     ctx.textBaseline = "alphabetic";
-    ctx.fillStyle = "rgba(30,23,20,.78)";
-    ctx.beginPath(); ctx.roundRect(rect.x, rect.y, rect.w, rect.h, 6); ctx.fill();
-    ctx.lineWidth = 1.2; ctx.strokeStyle = "rgba(214,177,118,.5)"; ctx.stroke();
+    drawRitualCard(ctx, rect.x, rect.y, rect.w, rect.h, {dark: true});
 
     // 左：既有候選真主圖（本機 DEV）；右：名稱／母技來源／效果摘要
     const artW = Math.min(Math.round(rect.h * 1.15), Math.max(48, Math.round(rect.w * .18)));
@@ -3595,7 +4138,7 @@ const {x:cardX,y:cardY,w:cardW,h:cardH,gap}=L.card;
     fitText(ctx, `母技：${pNames[0]} ＋ ${pNames[1]}`, tx, parentBase, textW, { minSize: 8, minCss: 10.5 });
 
     const desc = meta.s || (recipe && (recipe.short || recipe.desc)) || "";
-    if (desc) {
+    if (desc && opts.showDescription !== false) {
       const descFont = readableFont(compact ? 8 : 10, "600");
       const descSize = fontPx(descFont);
       let descBase = rect.y + (compact ? 40 : 49);
@@ -3818,25 +4361,12 @@ function fusionLayout(customViewport, model) {
 
     ctx.save();
     ctx.textBaseline = "alphabetic";
-    ctx.fillStyle = selected ? "rgba(58,42,30,.97)" : "rgba(31,26,23,.92)";
-    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill();
-    ctx.lineWidth = selected ? 2.2 : 1;
-    ctx.strokeStyle = selected ? "#e6bd6a" : "rgba(196,158,112,.42)";
-    ctx.stroke();
-    if (selected) {
-      ctx.fillStyle = "#d9a441";
-      ctx.fillRect(x + 3, y + 5, 3, h - 10);
-    }
-    if (focused) {
-      ctx.lineWidth = 2.6;
-      ctx.strokeStyle = "rgba(255,226,150,.95)";
-      ctx.beginPath(); ctx.roundRect(x - 2, y - 2, w + 4, h + 4, 8); ctx.stroke();
-    }
+    drawRitualCard(ctx, x, y, w, h, {dark: true, selected, focused});
 
-    // 右上：既有候選真主圖縮呈（本機 DEV；缺圖不佔位，回退原版面）
+    // 右上：既有候選真主圖縮呈（本機 DEV）
     let artRight = 0;
     if (artRoom && h >= 40) {
-      const th = Math.max(16, Math.min(Math.round(h * .42), 26));
+      const th = Math.max(16, Math.min(Math.round(h * .38), 24));
       const tw = Math.round(th * 1.55);
       const drawn = drawFusionCandidateArt(ctx, id, x + w - tw - 7, y + 4, tw, th, .92);
       if (drawn) {
@@ -3847,61 +4377,84 @@ function fusionLayout(customViewport, model) {
       }
     }
 
-    // 兩母技 icon → 合武 icon（同一家紋來源，不另造程序主美術）
-    const r = Math.max(7, Math.min(12, Math.floor(h * 0.15)));
-    const iconCy = y + Math.max(r + 6, Math.round(bodyPx * 0.8));
-    let ix = x + 10 + r;
-    drawEmblem(ctx, parents[0], ix, iconCy, r);
-    ix += r * 2 + 3;
-    drawEmblem(ctx, parents[1], ix, iconCy, r);
-    ix += r * 2 + 5;
-    drawFusionIcon(ctx, id, ix, iconCy, r + 1);
-    const nameX = ix + r + 9;
-
+    // 1. 頂部：奧義名稱與狀態標籤
     const nameBase = y + Math.round(bodyPx * 0.9) + 3;
-    const showBadge = selected && w >= 280;
+    const showBadge = selected && w >= 220;
     ctx.textAlign = "left";
-    ctx.font = readableFont(compact ? 11 : 13, "900");
-    ctx.fillStyle = selected ? "#ffe6a8" : "#f6e3bd";
-    fitText(ctx, name, nameX, nameBase, Math.max(40, x + w - 8 - nameX - (showBadge ? 46 : 0) - artRight), { minSize: 8, minCss: 11 });
+    ctx.font = readableFont(compact ? 12 : 14, "900");
+    ctx.fillStyle = selected ? "#fff1d9" : "#f2e4c8";
+    const nameMaxW = Math.max(40, x + w - 8 - (x + 10) - (showBadge ? 46 : 0) - artRight);
+    fitText(ctx, name, x + 10, nameBase, nameMaxW, { minSize: 8, minCss: 11 });
+
     if (showBadge) {
       ctx.textAlign = "right";
       ctx.font = readableFont(compact ? 9 : 11, "900");
       ctx.fillStyle = "#ffd54f";
       ctx.fillText("選定", x + w - 8, nameBase);
     }
-    ctx.textAlign = "left";
 
-    let sentenceBase = nameBase + bodyPx + 2;
-    let compBase = y + h - 5;
+    // 2. 中間：置中母技圖示與雙 Lv.5 條件標章（清晰自上而下排版）
+    const p1Name = CARD_SHORT[parents[0]]?.ja || FUSION_PARENT_NAMES[parents[0]] || parents[0];
+    const p2Name = CARD_SHORT[parents[1]]?.ja || FUSION_PARENT_NAMES[parents[1]] || parents[1];
+    const reqText = `${p1Name} Lv.5 ＋ ${p2Name} Lv.5`;
+    const reqY = y + Math.round(h * 0.38);
+    const reqBoxH = Math.min(22, Math.max(16, Math.round(h * 0.22)));
+    const reqBoxW = Math.min(w - 20, Math.max(160, Math.round(w * 0.82)));
+    const reqBoxX = x + (w - reqBoxW) / 2;
+
+    ctx.fillStyle = selected ? "rgba(48, 34, 26, 0.88)" : "rgba(36, 28, 26, 0.82)";
+    ctx.beginPath();
+    ctx.roundRect(reqBoxX, reqY - reqBoxH / 2, reqBoxW, reqBoxH, 4);
+    ctx.fill();
+    ctx.strokeStyle = selected ? "rgba(255, 213, 79, 0.55)" : "rgba(214, 177, 118, 0.35)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    const emR = Math.min(8, Math.max(6, Math.round(reqBoxH * 0.34)));
+    if (!drawScrollCardArt(ctx, parents[0], reqBoxX + emR + 6, reqY, emR, { background: false }))
+      drawEmblem(ctx, parents[0], reqBoxX + emR + 6, reqY, emR);
+    if (!drawScrollCardArt(ctx, parents[1], reqBoxX + reqBoxW - emR - 6, reqY, emR, { background: false }))
+      drawEmblem(ctx, parents[1], reqBoxX + reqBoxW - emR - 6, reqY, emR);
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = readableFont(compact ? 9 : 11, "800");
+    ctx.fillStyle = selected ? "#ffe28b" : "#e8d6b5";
+    fitText(ctx, reqText, x + w / 2, reqY, reqBoxW - (emR * 2 + 16), { minSize: 8, minCss: 10 });
+
+    // 3. 下方：高對比效果說明與補償章
+    ctx.textBaseline = "alphabetic";
+    const nameSize = fontPx(readableFont(compact ? 12 : 14, "900"));
     let descFont = readableFont(compact ? 9 : 11, "600");
     let compFont = readableFont(compact ? 8 : 10, "700");
-    const nameSize = fontPx(readableFont(compact ? 11 : 13, "900"));
     let descSize = fontPx(descFont);
     let compSize = fontPx(compFont);
+
+    let sentenceBase = reqY + Math.round(reqBoxH / 2) + descSize + 2;
+    let compBase = y + h - 5;
     const topOf = (base, size) => base - size * 0.8;
     const botOf = (base, size) => base + size * 0.2;
-    const nameBot = botOf(nameBase, nameSize);
     const cardBot = y + h - 1;
-    const collides = topOf(sentenceBase, descSize) < nameBot - 0.01
+
+    const collides = topOf(sentenceBase, descSize) < reqY + reqBoxH / 2 + 0.5
       || botOf(sentenceBase, descSize) > topOf(compBase, compSize) + 0.01
-      || botOf(compBase, compSize) > cardBot + 0.01
-      || topOf(sentenceBase, descSize) < y - 0.01;
+      || botOf(compBase, compSize) > cardBot + 0.01;
+
     let descFit = {
       minSize: 8, minCss: 10.5, wrap: true,
-      maxH: Math.max(0, compBase - sentenceBase - 4),
-      y1: sentenceBase, y2: sentenceBase + bodyPx + 2
+      maxH: Math.max(0, compBase - sentenceBase - 4)
     };
     let compFit = { minSize: 8, minCss: 10 };
+
     if (collides) {
       const gap = 2;
-      const room = Math.max(16, cardBot - nameBot - gap * 2);
+      const room = Math.max(14, cardBot - (reqY + reqBoxH / 2) - gap * 2);
       const fitted = Math.max(8, Math.floor((room / 2) * 10) / 10);
       descSize = Math.min(descSize, fitted);
       compSize = Math.min(compSize, fitted);
       descFont = descFont.replace(/([\d.]+)px/, `${descSize}px`);
       compFont = compFont.replace(/([\d.]+)px/, `${compSize}px`);
-      sentenceBase = nameBot + gap + descSize * 0.8;
+      sentenceBase = reqY + reqBoxH / 2 + gap + descSize * 0.8;
       compBase = botOf(sentenceBase, descSize) + gap + compSize * 0.8;
       if (botOf(compBase, compSize) > cardBot) {
         compBase = cardBot - compSize * 0.2;
@@ -3910,9 +4463,12 @@ function fusionLayout(customViewport, model) {
       descFit = { minSize: 8, minCss: 1, wrap: false };
       compFit = { minSize: 8, minCss: 1 };
     }
+
+    ctx.textAlign = "left";
     ctx.font = descFont;
-    ctx.fillStyle = "#efe2c8";
+    ctx.fillStyle = selected ? "#ffe8b0" : "#efe2c8";
     fitText(ctx, desc, x + 10, sentenceBase, w - 20 - artRight, descFit);
+
     ctx.font = compFont;
     ctx.fillStyle = "#e9c97e";
     fitText(ctx, comp, x + 10, compBase, w - 20, compFit);
@@ -3928,37 +4484,19 @@ function fusionLayout(customViewport, model) {
     ctx.save();
     ctx.fillStyle = "rgba(10, 10, 16, 0.82)";
     fillScreen(ctx);
-    drawWashiBoard(ctx, panel.x, panel.y, panel.w, panel.h, true);
+    drawCollectionBoard(ctx, panel.x, panel.y, panel.w, panel.h);
 
     // 1) 標題帶：主標＋副標＋朱印落款
     const headerH = L.headerH;
     const headerY = inner.y + 2;
-    ctx.fillStyle = "rgba(45, 30, 26, 0.92)";
-    ctx.beginPath();
-    ctx.roundRect(inner.x + 8, headerY, inner.w - 16, headerH, 6);
-    ctx.fill();
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#ffd54f";
-    const titleFont = readableFont(compact ? 14 : 17, "900");
-    const titleSize = fontPx(titleFont);
-    const titleBase = headerY + (compact ? 12 : 15);
-    ctx.font = titleFont;
-    ctx.fillText("【 奧 義 融 合 】", cx, titleBase);
-    const subFont = readableFont(compact ? 8 : 10, "700");
-    const subSize = fontPx(subFont);
-    const subBase = headerY + (compact ? 23 : 29);
-    if (subBase - subSize * 0.8 >= titleBase + titleSize * 0.2 + 1) {
-      ctx.font = subFont;
-      ctx.fillStyle = "rgba(236, 222, 196, .88)";
-      ctx.fillText("兩 技 歸 一 ・ 母 技 合 流 成 新 奧 義", cx, subBase);
-    }
-    drawFusionSealStamp(ctx, inner.x + inner.w - (compact ? 20 : 26), headerY + headerH / 2 - 1, compact ? 8 : 11, "融");
+    drawRitualHeader(ctx, inner.x + 8, headerY, inner.w - 16, headerH,
+      "【 奧 義 融 合 】", compact ? "" : "兩 技 歸 一 ・ 母 技 合 流 成 新 奧 義", "融", compact);
 
     // 2) 欄位摘要
     const slotBefore = typeof m.slotBefore === "number" ? m.slotBefore : 4;
     const slotAfter = typeof m.slotAfter === "number" ? m.slotAfter : Math.max(1, slotBefore - 1);
     const released = Math.max(0, slotBefore - slotAfter);
-    ctx.fillStyle = "#aed2c7";
+    ctx.fillStyle = "#2b4557";
     ctx.font = readableFont(compact ? 10 : 12, "800");
     fitText(
       ctx,
@@ -3971,7 +4509,7 @@ function fusionLayout(customViewport, model) {
 
     // 3) 選定配方報導帶：既有候選真主圖＋母技來源＋效果摘要＋補償章
     const selected = L.recipes.find(r => r && r.id === L.selectedRecipeId) || L.recipes[0] || null;
-    if (L.hero && selected) drawFusionHeroPanel(ctx, L.hero, selected, m, compact);
+    if (L.hero && selected) drawFusionHeroPanel(ctx, L.hero, selected, m, compact, { showDescription: false });
 
     // 焦點索引＝buttons 索引；0/1 永遠是 confirm/later，recipe 卡自 2 起。
     const focusBtn = Number.isInteger(focus) && focus >= 0 && focus < L.buttons.length ? L.buttons[focus] : null;
@@ -3980,7 +4518,7 @@ function fusionLayout(customViewport, model) {
     });
     const lastBottom = L.cards.reduce((max, card) => Math.max(max, card.y + card.h), 0);
     const clearsCards = (baseline, font) => baseline - fontPx(font) * 0.8 >= lastBottom + 1;
-    if (!L.hero && selected) {
+    if (false && !L.hero && selected) {
       // 矮螢幕 hero 讓位後，重複選定句只在最後一列卡之下還有空檔時才畫。
       const selMeta = CARD_SHORT[selected.id] || {};
       const selDesc = selMeta.s || selected.short || selected.desc || "";
@@ -3991,7 +4529,7 @@ function fusionLayout(customViewport, model) {
         if (clearsCards(yInfo, infoFont)) {
           ctx.textAlign = "center";
           ctx.font = infoFont;
-          ctx.fillStyle = "#e8dcc2";
+          ctx.fillStyle = "#2d4152";
           fitText(ctx, `選定：${selDesc}`, cx, yInfo, inner.w - 24, { minSize: 8, minCss: 10 });
         }
       }
@@ -4009,15 +4547,15 @@ function fusionLayout(customViewport, model) {
     const ruleFont = readableFont(compact ? 8 : 10, "700");
     if (clearsCards(hintBase, hintFont)) {
       ctx.textAlign = "center";
-      ctx.fillStyle = "rgba(240, 230, 210, 0.72)";
+      ctx.fillStyle = "#354955";
       ctx.font = hintFont;
       fitText(ctx, hintText, cx, hintBase, inner.w - 24, { minSize: 9, minCss: 11 });
     }
     if (clearsCards(ruleBase, ruleFont)) {
       ctx.textAlign = "center";
-      ctx.fillStyle = "#e9c97e";
+      ctx.fillStyle = "#723b2f";
       ctx.font = ruleFont;
-      fitText(ctx, "來源變異 → 補 1 次免費非變異；無變異不另補償 · 每局限融合 1 次", cx, ruleBase, inner.w - 24, { minSize: 8, minCss: 10 });
+      fitText(ctx, "雙母技 MAX 歸一、釋放 1 槽 · 來源有變異時補 1 次免費非變異", cx, ruleBase, inner.w - 24, { minSize: 8, minCss: 10 });
     }
 
     drawButton(ctx, confirm, confirm.label, { tone: confirm.tone, size: compact ? 15 : 18, focus: focusBtn === confirm, fit: true, fitMin: cssPx(11) });
@@ -4042,23 +4580,12 @@ function fusionLayout(customViewport, model) {
     const cx = panel.x + panel.w / 2;
 
     // 1. 和紙帳底板
-    drawWashiBoard(ctx, panel.x, panel.y, panel.w, panel.h, true);
+    drawCollectionBoard(ctx, panel.x, panel.y, panel.w, panel.h);
 
     // 2. 標題帶：主標＋副標＋朱印
     const headerH = compact ? 40 : 46;
-    ctx.fillStyle = "rgba(45, 30, 26, 0.92)";
-    ctx.beginPath();
-    ctx.roundRect(inner.x + 8, inner.y + 2, inner.w - 16, headerH, 6);
-    ctx.fill();
-
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#ffd54f";
-    ctx.font = readableFont(compact ? 15 : 18, "900");
-    ctx.fillText("【 奧 義 融 合 】", cx, inner.y + 2 + (compact ? 16 : 20));
-    ctx.font = readableFont(compact ? 8 : 10, "700");
-    ctx.fillStyle = "rgba(236, 222, 196, .88)";
-    ctx.fillText("兩 技 歸 一 ・ 母 技 合 流 成 新 奧 義", cx, inner.y + 2 + (compact ? 30 : 38));
-    drawFusionSealStamp(ctx, inner.x + inner.w - (compact ? 20 : 26), inner.y + 2 + headerH / 2, compact ? 8 : 11, "融");
+    drawRitualHeader(ctx, inner.x + 8, inner.y + 2, inner.w - 16, headerH,
+      "【 奧 義 融 合 】", "兩 技 歸 一 ・ 母 技 合 流 成 新 奧 義", "融", compact);
 
     // 3. 模型解析
     const m = model || {};
@@ -4081,28 +4608,30 @@ function fusionLayout(customViewport, model) {
     const fX = compact ? cx + 80 : cx + 120;
     const arrowX = (p2X + fX) / 2;
 
-    drawEmblem(ctx, parent1, p1X, emblemSectionY, pR);
+    drawScrollCardArt(ctx, parent1, p1X, emblemSectionY, pR, { dark: true })
+      || drawEmblem(ctx, parent1, p1X, emblemSectionY, pR);
     ctx.font = readableFont(compact ? 11 : 13, "700");
-    ctx.fillStyle = "#f2e4c8";
+    ctx.fillStyle = "#273c4b";
     ctx.textAlign = "center";
     ctx.fillText(`${p1Name} (MAX)`, p1X, emblemSectionY + pR + (compact ? 13 : 16));
 
     ctx.font = readableFont(compact ? 16 : 22, "900");
-    ctx.fillStyle = "#ffd54f";
+    ctx.fillStyle = "#8c4036";
     ctx.fillText("＋", plusX, emblemSectionY + 6);
 
-    drawEmblem(ctx, parent2, p2X, emblemSectionY, pR);
+    drawScrollCardArt(ctx, parent2, p2X, emblemSectionY, pR, { dark: true })
+      || drawEmblem(ctx, parent2, p2X, emblemSectionY, pR);
     ctx.font = readableFont(compact ? 11 : 13, "700");
-    ctx.fillStyle = "#f2e4c8";
+    ctx.fillStyle = "#273c4b";
     ctx.fillText(`${p2Name} (MAX)`, p2X, emblemSectionY + pR + (compact ? 13 : 16));
 
     ctx.font = readableFont(compact ? 18 : 24, "900");
-    ctx.fillStyle = "#ffd54f";
+    ctx.fillStyle = "#8c4036";
     ctx.fillText("➔", arrowX, emblemSectionY + 7);
 
     drawFusionIcon(ctx, recipe.id, fX, emblemSectionY, fR);
     ctx.font = readableFont(compact ? 13 : 16, "900");
-    ctx.fillStyle = "#ffe082";
+    ctx.fillStyle = "#172f45";
     ctx.fillText(fusionName, fX, emblemSectionY + fR + (compact ? 15 : 19));
 
     // 5. 欄位變動摘要（效果摘要改至主圖報導帶）
@@ -4164,19 +4693,19 @@ function fusionLayout(customViewport, model) {
 
     // 8. 規則說明與操作指引
     if (inputMode === "gamepad") {
-      ctx.fillStyle = "#ffd54f";
+      ctx.fillStyle = "#2d4152";
       ctx.font = readableFont(11, "700");
       ctx.fillText("〔A〕決定　〔B〕稍後", cx, hintY);
     } else if (inputMode === "keyboard") {
-      ctx.fillStyle = "rgba(240, 230, 210, 0.65)";
+      ctx.fillStyle = "#354955";
       ctx.font = readableFont(10, "500");
       ctx.fillText("〔Enter / 空白鍵〕決定　〔Esc〕稍後", cx, hintY);
     }
 
     ctx.textAlign = "center";
-    ctx.fillStyle = "rgba(225, 209, 181, 0.72)";
+    ctx.fillStyle = "#354955";
     ctx.font = readableFont(compact ? 10 : 12, "500");
-    const ruleDisclaimer = m.ruleText || "每局限融合 1 次 · 稍後再議不扣繪馬 · 兩母技融合後自此退場";
+    const ruleDisclaimer = m.ruleText || "稍後再議不扣繪馬 · 兩母技融合後退場，釋放 1 槽";
     fitText(ctx, ruleDisclaimer, cx, ruleY, inner.w - 24, { minSize: 9, wrap: false });
 
     // 9. 確定與稍後按鈕
@@ -4229,7 +4758,59 @@ function fusionLayout(customViewport, model) {
     CARD_LIST.push({ name: v.ja, jp: "", type, desc: v.s, emblem: id, status: v.st || "ready" });
   });
 
-  const codexRows = () => (window.VIEWPORT?.get().scale || 1)<0.8 ? 3 : Math.floor(396 / Math.max(26.2,fontPx(readableFont(13,"900"))+8));
+  // 三頁共用現有核准木框/和紙/紅流蘇 raster，不以白底或幾何重畫主面板。
+  function drawCollectionBoard(ctx, x, y, w, h) {
+    const art = illustratedArt.notice;
+    if (!art?.naturalWidth) return false;
+    drawWashiSlices(ctx, art, x, y, w, h, 40, 42, Math.min(24, w * .1), Math.min(22, h * .16));
+    return true;
+  }
+  let secretDetail = null;
+  const codexRows = () => (window.VIEWPORT?.get().scale || 1) < .8 ? 4 : 6;
+  function selectSecretDetail(index = null) {
+    secretDetail = index == null ? null : Number.isInteger(+index) && CARD_LIST[+index] ? +index : null;
+  }
+  function secretEntryButtons(page) {
+    const count = codexRows(), rows = count / 2, gap = 12, w = 404, h = (372 - gap * (rows - 1)) / rows;
+    return CARD_LIST.slice(page * count, (page + 1) * count).map((card, i) => ({
+      id: `secret:${page * count + i}`, x: 40 + i % 2 * (w + gap), y: 122 + Math.floor(i / 2) * (h + gap), w, h
+    }));
+  }
+  function drawSecretCodex(ctx, page, focus) {
+    if (secretDetail != null && CARD_LIST[secretDetail]) {
+      const c = CARD_LIST[secretDetail], short = cardShort(c.emblem, c.name);
+      drawCollectionBoard(ctx, 40, 122, 820, 372);
+      ctx.textAlign = "left"; ctx.fillStyle = "#172f45"; ctx.font = readableFont(24, "900");
+      fitText(ctx, c.name, 74, 165, 740, {minSize:18, minCss:14});
+      ctx.font = readableFont(16, "800"); ctx.fillStyle = "#803c32";
+      fitText(ctx, c.type.split("・")[0] + (c.jp ? " · " + c.jp : ""), 74, 198, 700, {minSize:14});
+      const image = getUiFusionArt(c.emblem, "icon") || illustratedSkills[c.emblem];
+      if (image?.naturalWidth) {
+        const s = Math.min(125 / image.naturalWidth, 125 / image.naturalHeight);
+        ctx.drawImage(image, 696 + (125 - image.naturalWidth * s) / 2, 230, image.naturalWidth * s, image.naturalHeight * s);
+      }
+      ctx.font = readableFont(18, "700"); ctx.fillStyle = "#302b25";
+      const text = c.desc || short?.s || "效果說明待補";
+      const lines = []; let line = "";
+      for (const ch of text) {
+        if (line && ctx.measureText(line + ch).width > 580) { lines.push(line); line = ch; } else line += ch;
+      }
+      if (line) lines.push(line);
+      lines.slice(0, 6).forEach((text, i) => ctx.fillText(text, 74, 242 + i * 32, 580));
+      return;
+    }
+    secretEntryButtons(page).forEach((b, i) => {
+      const c = CARD_LIST[page * codexRows() + i], short = cardShort(c.emblem, c.name);
+      drawCollectionBoard(ctx, b.x, b.y, b.w, b.h);
+      ctx.textAlign = "left"; ctx.fillStyle = "#172f45"; ctx.font = readableFont(20, "900");
+      fitText(ctx, c.name, b.x + 22, b.y + 34, b.w - 44, {minSize:15,minCss:13});
+      ctx.fillStyle = "#803c32"; ctx.font = readableFont(14, "800");
+      ctx.fillText(c.type.split("・")[0], b.x + 22, b.y + 59, b.w - 44);
+      ctx.fillStyle = "#302b25"; ctx.font = readableFont(16, "700");
+      fitText(ctx, short?.s || c.desc, b.x + 22, b.y + b.h - 22, b.w - 44, {minSize:13,minCss:12});
+      if (focus === b.id) drawMenuFocus(ctx, b);
+    });
+  }
   function wordGalleryViewport() {
     const view = window.VIEWPORT?.get?.() || { width: 900, height: 600, scale: 1, offsetX: 0, offsetY: 0 };
     const scale = view.scale > 0 ? view.scale : 1;
@@ -4289,7 +4870,7 @@ function fusionLayout(customViewport, model) {
       { save() {}, restore() {}, fillText() {} },
       pack.cards,
       state || { filter: { by: "all", id: null }, page: 0 },
-      { paper: illustratedArt.neutral, drawRibbonSlices() {}, drawWoodTag() {}, drawButton() {}, readableFont },
+      { paper: illustratedArt.neutral, drawCardPanel() {}, drawRibbonSlices() {}, drawWoodTag() {}, drawButton() {}, readableFont },
       wordGalleryViewport(),
       pack.catalogs
     );
@@ -4300,9 +4881,12 @@ function fusionLayout(customViewport, model) {
       return wordCodexButtons(galleryState || { filter: { by: "all", id: null }, page: page || 0 });
     }
     const pages = Math.ceil((tab==='cards'?CARD_LIST.length:wordCount)/(tab==='cards'?codexRows():15));
+    const h = Math.max(44, cssPx(MIN_TOUCH_CSS));
+    if (tab === 'cards' && secretDetail != null) return [...codexTabButtons(),
+      {id:'secret-back',x:330,y:520,w:240,h}];
     return [...codexTabButtons(),
-      {id:'prev',x:40,y:78,w:64,h:40,disabled:page<=0},{id:'next',x:796,y:78,w:64,h:40,disabled:page>=pages-1},
-      {id:'back',x:365,y:554,w:170,h:32}];
+      {id:'prev',x:40,y:520,w:160,h,disabled:page<=0},{id:'next',x:700,y:520,w:160,h,disabled:page>=pages-1},
+      {id:'back',x:330,y:520,w:240,h}, ...(tab === 'cards' ? secretEntryButtons(page) : [])];
   }
   function drawCodex(ctx, STORE, ALL, tab = "cards", page = 0, maskReadings = false, focus = tab, galleryState = null) {
     ctx.save();
@@ -4343,133 +4927,12 @@ function fusionLayout(customViewport, model) {
     ctx.fillText("單字圖鑑", tabWordsX + tabW / 2 + 12, tabY + tabH/2 + 4);
 
     if (isCards) {
-      // 3. 卡片一覽表格頁面
-      ctx.font = readableFont(13, "bold");
-      ctx.fillStyle = "#cad7f5";
-      ctx.fillText("秘術名稱・日文讀音・能力說明", W / 2, codexRows()===3?114:102, W-240);
-
-      if(codexRows()===3){
-        CARD_LIST.slice(page*3,page*3+3).forEach((c,i)=>{
-          const x=40,y=136+i*132,w=820;
-          glassBox(ctx,x,y,w,118,8,"rgba(14,18,32,0.95)",C.gold);
-          drawEmblem(ctx,c.emblem,x+18,y+24,9);
-          ctx.textAlign='left';ctx.font=readableFont(13,'900');ctx.fillStyle=C.text;
-          ctx.fillText(c.name,x+36,y+32);
-          ctx.textAlign='right';ctx.fillStyle=C.gold;ctx.fillText(c.jp,x+w-14,y+32,w-ctx.measureText(c.name).width-62);
-          ctx.textAlign='left';ctx.font=readableFont(12,'700');ctx.fillStyle=C.dim;
-          // P1-MUTATION-CARDS：圖鑑與升級選卡共用同一 CARD_SHORT（emblem 為 id，日文名可反查）
-          const cshort=cardShort(c.emblem,c.name);
-          if(cshort&&cshort.s){
-            ctx.fillText(`【${c.type}】${cshort.s}`,x+14,y+70,w-28-2*CARD_ICON_R-10);
-            drawCardIcon(ctx,cshort.ic,x+w-16-CARD_ICON_R,y+70-4,CARD_ICON_R,"rgba(212,175,55,.95)");
-          } else {
-          const lines=[];let line='';
-          for(const char of `【${c.type}】${c.desc}`){if(line&&ctx.measureText(line+char).width>w-28){lines.push(line);line=char;}else line+=char;}
-          if(line)lines.push(line);
-          lines.slice(0,2).forEach((text,j)=>ctx.fillText(text,x+14,y+68+j*32,w-28));
-          }
-        });
-      } else {
-
-      // 表格框架 (寬 828, 高 426)
-      const tX = 36, tY = 114, tW = 828, tH = 426;
-      glassBox(ctx, tX, tY, tW, tH, 10, "rgba(14, 18, 32, 0.95)", "#d4af37", 1.8);
-
-      // 表頭 (Header)
-      const hH = 30;
-      ctx.fillStyle = "rgba(28, 38, 62, 0.95)";
-      ctx.beginPath();
-      ctx.roundRect(tX, tY, tW, hH, [10, 10, 0, 0]);
-      ctx.fill();
-
-      ctx.strokeStyle = "rgba(212, 175, 55, 0.6)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(tX, tY + hH);
-      ctx.lineTo(tX + tW, tY + hH);
-      ctx.stroke();
-
-      // 表頭欄位標題 (精準符合用戶要求順序)
-      ctx.fillStyle = "#ffd54f";
-      ctx.font = readableFont(13, "900");
-      ctx.textAlign = "center";
-      ctx.fillText("中文名稱", 125, tY + 20);
-      ctx.fillText("日文名稱", 240, tY + 20);
-      ctx.fillText("主動／被動", 340, tY + 20);
-      ctx.textAlign = "left";
-      ctx.fillText("招式說明", 410, tY + 20);
-
-      // 15 行表格數據 (高度 26.2px)
-      const rowH = Math.max(26.2,fontPx(readableFont(13,"900"))+8), rows = codexRows();
-      CARD_LIST.slice(page*rows,(page+1)*rows).forEach((c, i) => {
-        const ry = tY + hH + i * rowH;
-
-        // 隔行底色
-        ctx.fillStyle = i % 2 === 0 ? "rgba(255, 255, 255, 0.02)" : "rgba(255, 255, 255, 0.055)";
-        ctx.fillRect(tX + 1, ry, tW - 2, rowH);
-
-        // 分隔橫線
-        if (i < CARD_LIST.length - 1) {
-          ctx.strokeStyle = "rgba(212, 175, 55, 0.12)";
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(tX + 10, ry + rowH);
-          ctx.lineTo(tX + tW - 10, ry + rowH);
-          ctx.stroke();
-        }
-
-        const midY = ry + rowH / 2;
-
-        // 1. 中文名稱 (微型神紋圖章 + 名字)
-        drawEmblem(ctx, c.emblem, 68, midY, 9);
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = "#ffffff";
-        ctx.font = readableFont(13, "900");
-        ctx.fillText(c.name, 86, midY, 94);
-
-        // 2. 日文名稱
-        ctx.textAlign = "center";
-        ctx.fillStyle = "#ffe082";
-        ctx.font = readableFont(13, "bold");
-        ctx.fillText(c.jp, 240, midY, 108);
-
-        // 3. 主動／被動 膠囊標籤
-        const isAct = c.type === "主動";
-        const pillW = 54, pillH = 18;
-        const pillX = 340 - pillW / 2, pillY = midY - pillH / 2;
-        ctx.fillStyle = isAct ? "rgba(211, 47, 47, 0.25)" : "rgba(0, 137, 123, 0.25)";
-        ctx.beginPath();
-        ctx.roundRect(pillX, pillY, pillW, pillH, 4);
-        ctx.fill();
-        ctx.strokeStyle = isAct ? "#ef5350" : "#26a69a";
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-
-        ctx.textAlign = "center";
-        ctx.fillStyle = isAct ? "#ffcdd2" : "#b2dfdb";
-        ctx.font = readableFont(11, "900");
-        ctx.fillText(c.type, 340, midY + 0.5);
-
-        // 4. 招式說明（P1-MUTATION-CARDS：同一 CARD_SHORT 短句＋示意圖，圖鑑與選卡同源）
-        ctx.textAlign = "left";
-        ctx.fillStyle = "#e0e6ed";
-        ctx.font = readableFont(12, "bold");
-        const tshort=cardShort(c.emblem,c.name);
-        if(tshort&&tshort.s){
-          ctx.fillText(tshort.s, 410, midY, tX+tW-422-2*CARD_ICON_R-8);
-          drawCardIcon(ctx,tshort.ic, tX+tW-14-CARD_ICON_R, midY-4, CARD_ICON_R, "rgba(212,175,55,.95)");
-        } else {
-          ctx.fillText(c.desc, 410, midY, tX+tW-422);
-        }
-      });
-      ctx.textBaseline = "alphabetic";
-      }
-
+      drawSecretCodex(ctx, page, focus);
     } else if (window.CARD_GALLERY_UI && typeof window.CARD_GALLERY_UI.draw === "function") {
       const pack = wordGallery();
       window.CARD_GALLERY_UI.draw(ctx, pack.cards, Object.assign({ packLine: pack.packLine }, galleryState || { filter: { by: "all", id: null }, page }), {
         paper: illustratedArt.neutral,
+        drawCardPanel: (c, b) => drawCollectionBoard(c, b.x, b.y, b.w, b.h),
         drawRibbonSlices,
         drawWoodTag,
         drawButton,
@@ -4482,10 +4945,10 @@ function fusionLayout(customViewport, model) {
       ctx.fillText("言靈圖鑑未載入", W / 2, 180);
     }
 
-    if (isCards) for(const b of buttons.slice(2))drawButton(ctx,b,b.id==='prev'?'‹':b.id==='next'?'›':'返回 [ESC / C / B]',{size:14,disabled:b.disabled,focus:focus===b.id});
+    if (isCards) for(const b of buttons.filter(b=>['prev','next','back','secret-back'].includes(b.id))) drawButton(ctx,b,b.id==='prev'?'上一頁':b.id==='next'?'下一頁':b.id==='secret-back'?'返回秘術一覽':'返回',{size:16,disabled:b.disabled,focus:focus===b.id});
     const tabButton=buttons.find(b=>b.id===focus);
     if(tabButton && ['cards','words'].includes(focus))drawMenuFocus(ctx,tabButton);
-    if(isCards){ctx.textAlign='center';ctx.font=readableFont(14,'700');ctx.fillStyle=C.gold;ctx.fillText(`←/→ 翻頁・↑/↓ 焦點　${page+1}/${Math.ceil(CARD_LIST.length/codexRows())}`,W/2,545);}
+    if(isCards && secretDetail == null){ctx.textAlign='center';ctx.font=readableFont(13,'700');ctx.fillStyle='#ead8b5';ctx.fillText(`點選條目查看詳情　${page+1}/${Math.ceil(CARD_LIST.length/codexRows())}`,W/2,510);}
 
     ctx.restore();
   }
@@ -4573,7 +5036,7 @@ function fusionLayout(customViewport, model) {
       const l = summary.learning;
       ctx.font = readableFont(15,"700"); ctx.fillStyle = "#423127";
       summaryY += summaryStep;
-      ctx.fillText(l.independent == null ? `今夜練習 ${l.practiced} 字・待複習 ${l.review} 字` : `獨立回想 ${l.independent} 次・提示完成 ${l.assisted || 0} 次`,mid,summaryY);
+      ctx.fillText(l.independent == null ? `今夜練習 ${l.practiced} 字・待複習 ${l.review} 字` : `無提示答對 ${l.independent} 次・提示 ${l.assisted || 0} 次`,mid,summaryY);
       ctx.fillStyle = "#864b37";
       summaryY += summaryStep;
       ctx.fillText(l.independent == null ? `熟練星：升星 +${l.gained}・降星 −${l.lost}` : `下次複習 ${l.review} 字・星數僅記錄本局練習`,mid,summaryY);
@@ -4635,17 +5098,21 @@ function fusionLayout(customViewport, model) {
     { id: "resume", label: "繼續夜行", y: 170, tone: "primary" },
     { id: "cards", label: "秘術卡片", y: 218 },
     { id: "codex", label: "單字圖鑑", y: 266 },
-    { id: "mute", label: "聲音：開", labelMuted: "聲音：關", y: 314 },
-    { id: "controls", label: "操作與自定義", y: 362 },
-    { id: "tutorial", label: "重看操作教學", y: 410 },
-    { id: "menu", label: "返回主選單", y: 458, tone: "danger" },
-    { id: "world", label: "回旅路地圖", y: 506 }
+    { id: "settings", label: "夜行設定", y: 314 },
+    { id: "world", label: "回旅路地圖", y: 362 },
+    { id: "menu", label: "返回主選單", y: 410, tone: "danger" }
   ];
-  function pauseButtons() {
+  function pauseButtons(page = "main") {
     const scale = viewScale();
     const compact = scale < 0.8;
     const minTouch = cssPx(MIN_TOUCH_CSS);
-    return PAUSE_BTNS.map((b,i)=>{
+    const items = page === "settings" ? [
+      { id: "mute", label: "聲音：開", labelMuted: "聲音：關", y: 170 },
+      { id: "controls", label: "操作與自定義", y: 218 },
+      { id: "tutorial", label: "重看操作教學", y: 266 },
+      { id: "pause-back", label: "返回暫停選單", y: 314, tone: "primary" }
+    ] : PAUSE_BTNS;
+    return items.map((b,i)=>{
       if (!compact) return {...b,x:470,w:280,h:44};
       // 44 CSS 保底：360x800（scale .4）原本只有 28 CSS 高，拇指按不到。
       const h = Math.max(70, minTouch);
@@ -4654,13 +5121,13 @@ function fusionLayout(customViewport, model) {
     });
   }
 
-  function drawPauseMenu(ctx, muted, focus = 0) {
+  function drawPauseMenu(ctx, muted, focus = 0, page = "main") {
     ctx.save();
     ctx.fillStyle = "rgba(6, 8, 16, 0.92)";
     fillScreen(ctx);
     // 紙木告示板不再依賴大面積霓虹氛圍光。
 
-    const buttons = pauseButtons();
+    const buttons = pauseButtons(page);
     const compact=(window.VIEWPORT?.get().scale||1)<.8;
     const panelX = Math.min(...buttons.map(b => b.x)) - (compact?24:65);
     const panelY = 92;
@@ -4685,18 +5152,36 @@ function fusionLayout(customViewport, model) {
         ctx.restore();
       }
     }
-    drawWashiBoard(ctx,panelX,panelY,panelR-panelX,panelB-panelY,false);
+    // 夜櫻神社暫停選單：半水墨浮世繪深藍和紙木框，杜絕突兀大白板
+    const boardW = panelR - panelX, boardH = panelB - panelY;
+    ctx.save();
+    // 背景大板
+    const pauseBg = ctx.createLinearGradient(panelX, panelY, panelX, panelB);
+    pauseBg.addColorStop(0, "#162035");
+    pauseBg.addColorStop(1, "#0f1726");
+    ctx.fillStyle = pauseBg;
+    ctx.beginPath();
+    ctx.roundRect(panelX, panelY, boardW, boardH, 12);
+    ctx.fill();
+    // 和風木質外框與四角金飾
+    ctx.strokeStyle = "#c29d5b";
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(255, 215, 80, 0.3)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(panelX + 6, panelY + 6, boardW - 12, boardH - 12);
+    ctx.restore();
 
     ctx.textAlign = "center";
-    ctx.font = scrollFont(36,"700");
-    ctx.fillStyle = "rgba(0, 0, 0, 0.20)";
-    ctx.fillText("暫停", panelMid, 146);
-    ctx.fillStyle = "#3d2a20";
-    ctx.fillText("暫停", panelMid, 144);
+    ctx.font = scrollFont(34, "900");
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillText(page === "settings" ? "夜行設定" : "夜櫻暫歇", panelMid, 145);
+    ctx.fillStyle = "#ffd54f";
+    ctx.fillText(page === "settings" ? "夜行設定" : "夜櫻暫歇", panelMid, 143);
 
-    ctx.font = scrollFont(13,"700");
-    ctx.fillStyle = "#573d2d";
-    ctx.fillText("這一夜先停在這裡", panelMid, 163);
+    ctx.font = scrollFont(13, "700");
+    ctx.fillStyle = "#c8d4e8";
+    ctx.fillText("此夜暫歇・神域庇佑", panelMid, 163);
 
     buttons.forEach((b, i) => {
       const label = b.id === "mute" && muted ? b.labelMuted : b.label;
@@ -5005,20 +5490,38 @@ function fusionLayout(customViewport, model) {
   function answerFont(size, weight = "700") {
     const scale = window.VIEWPORT?.get().scale || (document.getElementById("game")?.getBoundingClientRect().width || 900) / 900;
     const readable = scale < 1 ? Math.max(size, Math.min(31, Math.ceil(15 / scale))) : size;
-    return `${weight || "700"} ${readable}px 'Noto Sans JP', sans-serif`;
+    return `${weight || "700"} ${readable}px 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif`;
   }
 
+  // 僅地板實體答題字使用行書／毛筆感字型，避免整條字串被粗黑現代字體取代。
+  function floorAnswerFont(size) {
+    const scale = window.VIEWPORT?.get?.().scale || 1;
+    const readable = scale < 1 ? Math.max(size, Math.ceil(15 / scale)) : size;
+    return `400 ${readable}px 'Yuji Syuku', 'Kaisei Decol', 'HGS行書体', 'DFKai-SB', 'Yu Mincho', 'Noto Serif JP', serif`;
+  }
+
+  let answerFontFallbackGrace = false;
   function answerFontReady(text = "あア日", size = 31, weight = "700") {
-    if (!document.fonts?.check) return true;
+    if (!document.fonts?.check || answerFontFallbackGrace) return true;
     const font = answerFont(size, weight);
-    if (document.fonts.check(font, text)) return true;
-    document.fonts.load?.(font, text).catch?.(() => {});
+    try {
+      if (document.fonts.check(font, text)) return true;
+      document.fonts.load(font, text).then(() => {}).catch(() => {
+        answerFontFallbackGrace = true;
+      });
+      if (typeof window !== "undefined" && !window.__answerFontTimer) {
+        window.__answerFontTimer = setTimeout(() => { answerFontFallbackGrace = true; }, 1200);
+      }
+    } catch {
+      return true;
+    }
     return false;
   }
 
   return {
     readableFont,
     answerFont,
+    floorAnswerFont,
     answerFontReady,
     fitText,
     splitText2,
@@ -5035,7 +5538,7 @@ function fusionLayout(customViewport, model) {
   CARD_ICON_R,
     drawEmblem,
     drawBossQuiz, bossQuizLayout,
-    drawCodex, codexRows, codexButtons, wordGallery, wordGalleryViewport,
+    drawCodex, codexRows, codexButtons, selectSecretDetail, wordGallery, wordGalleryViewport,
     drawEndScreen, reviewButtons,
     drawAssetProgress,
     drawPauseMenu,
@@ -5046,6 +5549,7 @@ function fusionLayout(customViewport, model) {
     drawButton,
     drawCharmHud,
     drawCharmSwap,
+    drawAwakeningTag,
     // 旅路與暫停、結算共用核准的手繪材質。
     drawWoodTag, drawWashiBoard,
     PAUSE_BTNS, pauseButtons, MENU_BTNS, END_BTNS, endScreenButtons, EXIT_BTNS, drawExitConfirm,
@@ -5062,7 +5566,19 @@ function fusionLayout(customViewport, model) {
     levelUpLayout,
     fusionLayout,
     drawFusion,
-    CARD_LIST
+    FUSION_REOPEN_BTN,
+    drawFusionReopenButton,
+    drawFusionReopenButton,
+    CARD_LIST,
+    resolveFanSlots,
+    resetFanSlots,
+    isFusionSkill,
+    getFusionSkillParents,
+    drawFusionParentBadges,
+    drawFusionIcon,
+    drawDiegeticSkillFan,
+    drawDiegeticSkillFanFallback,
+    FUSION_UI_META
   };
 })();
 if (typeof module !== "undefined" && module.exports) module.exports = window.UI;

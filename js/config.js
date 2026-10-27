@@ -20,9 +20,9 @@
   const MOB_DIFFICULTY_PROFILES = Object.freeze({
     hard: Object.freeze({ hpScale: 1, speedScale: 1, timeScale: 1, powerScale: 1,
       intervalScale: 1, cap: 95, surgeCountScale: 1, surgePacingScale: 1, capSurges: false, xpNeedScale: 1 }),
-    // Stage 1 (night-town) Normal：依凍結快照精確還原
-    normal: Object.freeze({ hpScale: 0.55, speedScale: 0.75, timeScale: 0.25, powerScale: 0,
-      intervalScale: 1.3, cap: 45, surgeCountScale: 0.4, surgePacingScale: 2.5, capSurges: true, xpNeedScale: 0.65 }),
+    // 第一關以第二關為基底，怪稍弱而玩家升級較慢；不再使用0.25倍怪物成長時間。
+    normal: Object.freeze({ hpScale: 0.86, speedScale: 0.92, timeScale: 0.9, powerScale: 0.85,
+      intervalScale: 1, cap: 80, surgeCountScale: 0.85, surgePacingScale: 1.15, capSurges: false, xpNeedScale: 0.9 }),
     // Stage 2 (rain-port) Normal：怪物 HP/速度/生成/成長採 Hard 基底；玩家 XP 校準為 80%
     rainPortNormal: Object.freeze({ hpScale: 1, speedScale: 1, timeScale: 1, powerScale: 1,
       intervalScale: 1, cap: 95, surgeCountScale: 1, surgePacingScale: 1, capSurges: false, xpNeedScale: 0.8 }),
@@ -56,7 +56,7 @@
     RUN_SECONDS,
     GOAL_DELIVERIES: 6,
     BOSS_TIMES: [180, 360, 480, 540],
-    BOSS_HP_BASE: [300, 650, 120, 1400],
+    BOSS_HP_BASE: [300, 650, 1100, 1400],
     BOSS_OIL_REWARD: [35, 35, 20, 35],
     DELIVERY_XP: 26,
     AWAKEN_EVERY: 3,

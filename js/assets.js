@@ -43,13 +43,7 @@ const HUD_ASSET_NAMES = ["hud_lantern_oil", "hud_radar_frame", "hud_omamori_hint
 // 每關包含：地面、場景/建築/裝飾/地標、專屬敵人 idle/attack、Boss idle/attack
 // 缺圖時回落現役共用資產，標記 WAITING_ART；未核准候選不接 production
 // DEV-ONLY: Stage8 preview toggle - enabled via ?dev=1&stage8preview=1 or window.STAGE8_PREVIEW = true
-const STAGE8_PREVIEW_ENABLED = (() => {
-  if (typeof window !== "undefined" && window.STAGE8_PREVIEW === true) return true;
-  try {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("stage8preview") === "1" && params.get("dev") === "1";
-  } catch { return false; }
-})();
+const STAGE8_PREVIEW_ENABLED = false; // Old Stage8 image previews purged; new art must be reviewed first.
 
 // Stage8 preview asset keys (ONLY clean isolated props from connected-component extraction)
 // Ground tiles and path tiles DISABLED - they were rectangular artifacts
@@ -81,14 +75,7 @@ if (typeof window !== "undefined") {
 
 // DEV-ONLY: Stage2 Rain-Port candidate building preview toggle
 // Strictly requires URL query: dev=1 && portartcandidate=1
-const isPortArtCandidateEnabled = () => {
-  try {
-    const raw = String(typeof window !== "undefined" && window.location?.search || "");
-    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
-    const hasCandidate = /(?:^|[?&])portartcandidate=1(?=[&#]|$)/.test(raw);
-    return hasDev && hasCandidate;
-  } catch { return false; }
-};
+const isPortArtCandidateEnabled = () => false; // Retired 2026-10-24 rejected candidate art URLs.
 
 const PORT_CANDIDATE_KEYS = Object.freeze({
   fishWorkshop: "port_fish_workshop_candidate",
@@ -137,14 +124,7 @@ const PORT_CANDIDATE_METADATA = Object.freeze({
 
 // DEV-ONLY: Stage2 Rain-Port candidate surface (V3 stone & harbor sea) preview toggle
 // Strictly requires URL query: dev=1 && (portsurfacecandidate=1 || surfacecandidate=1)
-const isPortSurfaceCandidateEnabled = () => {
-  try {
-    const raw = String(typeof window !== "undefined" && window.location?.search || "");
-    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
-    const hasCandidate = /(?:^|[?&])(?:portsurfacecandidate|surfacecandidate)=1(?=[&#]|$)/.test(raw);
-    return hasDev && hasCandidate;
-  } catch { return false; }
-};
+const isPortSurfaceCandidateEnabled = () => false; // Retired 2026-10-24 rejected candidate art URLs.
 
 const PORT_SURFACE_CANDIDATE_METADATA = Object.freeze({
   stoneV3: Object.freeze({
@@ -210,23 +190,69 @@ if (typeof window !== "undefined") {
   window.PORT_SURFACE_CANDIDATE_METADATA = PORT_SURFACE_CANDIDATE_METADATA;
 }
 
-// Stage2 published Nano scenery and buildings. These are loaded lazily only when the player
-// enters rain-port. s2legacy=1 is a developer escape hatch to compare the old renderer.
+// DEV-ONLY: Stage2 Rain-Port S2 Production Art integration toggle
+// Strictly requires URL query: dev=1 && stage=rain-port && s2artprod=1
 const isS2ArtProdEnabled = () => {
-  try { return !/(?:^|[?&])s2legacy=1(?=[&#]|$)/.test(String(window.location?.search || "")); }
-  catch { return true; }
+  try {
+    const raw = String(typeof window !== "undefined" && window.location?.search || "");
+    const hasDev = typeof window !== "undefined" && window.DEV_MODE?.isDevMode?.(window.location) === true;
+    const isLegacy = hasDev && /(?:^|[?&])s2legacy=1(?=[&#]|$)/.test(raw);
+    if (isLegacy) return false;
+    let stage = "";
+    if (typeof STAGE_ART_RESOLVER !== "undefined" && typeof STAGE_ART_RESOLVER.getCurrentStage === "function") {
+      stage = STAGE_ART_RESOLVER.getCurrentStage();
+    } else if (typeof window !== "undefined") {
+      stage = window.__ACTIVE_STAGE || window.__CURRENT_STAGE || window.STAGE?.id || "";
+    }
+    // Active runtime stage wins over the initial URL and test flags.
+    // Never leak the port terrain/buildings into a stage selected via the map.
+    return stage === "rain-port";
+  } catch { return false; }
 };
+
+// 共通技能/HUD 的 manifest 不得被 S2 場景旗標擋住，S1 也使用同一來源。
+let runtimeManifestPromise = null;
+window.loadRuntimeArtManifest = () => {
+  if (!runtimeManifestPromise) runtimeManifestPromise = fetch('assets/img/runtime-art-manifest.json?v=20261027-unified2')
+    .then(res => { if (!res.ok) throw Error(`MANIFEST_HTTP_${res.status}`); return res.json(); })
+    .then(manifest => { window.__RUNTIME_MANIFEST = manifest; return manifest; })
+    .catch(error => {
+      console.error('[Assets] Shared manifest:', error.message);
+      // Network error must not poison this tab for the remainder of the session.
+      runtimeManifestPromise = null;
+      return null;
+    });
+  return runtimeManifestPromise;
+};
+window.loadRuntimeArtManifest();
+
+// S2 場景仍獨立按原入口載入，只共用上面的 manifest 請求。
 async function loadS2ArtProdManifest() {
   if (!isS2ArtProdEnabled()) return null;
-  const nanoManifestUrl = 'assets/img/rain-port/s2-production/asset-manifest.json?v=20261024-s2-release1';
+  // Unified runtime art manifest serves as authoritative single data source
+  const unifiedManifestUrl = 'assets/img/runtime-art-manifest.json?v=20261027-unified2';
+
   try {
-    const res = await fetch(nanoManifestUrl);
-    if (!res.ok) throw new Error(`MANIFEST_HTTP_${res.status}`);
-    const manifest = await res.json();
-    manifest._sourceUrl = nanoManifestUrl;
-    return manifest;
+    const manifest = await window.loadRuntimeArtManifest();
+    if (!manifest) throw Error('MANIFEST_UNAVAILABLE');
+    manifest._sourceUrl = unifiedManifestUrl;
+    if (typeof window !== "undefined") {
+      window.__RUNTIME_MANIFEST = manifest;
+    }
+    if (typeof STAGE_ART_RESOLVER !== "undefined" && typeof STAGE_ART_RESOLVER.setManifestData === "function") {
+      STAGE_ART_RESOLVER.setManifestData(manifest);
+    }
+    const s2Stage = manifest.stages?.['rain-port'] || manifest;
+    return {
+      ...s2Stage,
+      _sourceUrl: unifiedManifestUrl,
+      tiles: s2Stage.tiles || {},
+      buildings: s2Stage.buildings || [],
+      props: s2Stage.props || [],
+      environment: s2Stage.environment || []
+    };
   } catch (e) {
-    console.error('[S2-ART] Published S2 manifest failed:', e.message);
+    console.error('[S2-ART] Failed to fetch Nano manifest:', e.message);
     return null;
   }
 }
@@ -242,132 +268,236 @@ const S2_ART_PROD_CACHE = {
   loadError: null
 };
 
+let s2ArtProdLoadingPromise = null;
+
 async function loadS2ArtProdAssets() {
-  if (!isS2ArtProdEnabled() || S2_ART_PROD_CACHE.loaded) return;
-  const manifest = await loadS2ArtProdManifest();
-  if (!manifest) {
-    S2_ART_PROD_CACHE.loadError = 'MANIFEST_FETCH_FAILED';
-    console.error('[S2-ART] Failed to fetch asset-manifest.json');
-    return;
-  }
+  if (!isS2ArtProdEnabled()) return;
+  if (S2_ART_PROD_CACHE.loaded && !S2_ART_PROD_CACHE.loadError) return;
+  if (s2ArtProdLoadingPromise) return s2ArtProdLoadingPromise;
 
-  // Support both v1.3.0-nano (usable_runtime_tiles) and legacy v1.2/v1.0
-  const runtimeTiles = manifest.tiles?.usable_runtime_tiles || manifest.tiles || {};
-  const stoneVariants = Array.isArray(runtimeTiles.stoneVariants) ? runtimeTiles.stoneVariants : [];
-  const woodVariants = Array.isArray(runtimeTiles.woodVariants) ? runtimeTiles.woodVariants : [];
-  const transitions = runtimeTiles.transitions || {};
-  S2_ART_PROD_CACHE.manifest = manifest;
-  S2_ART_PROD_CACHE.tiles = { stoneVariants, woodVariants, transitions: {
-    h: Array.isArray(transitions.h) ? transitions.h : [],
-    v: Array.isArray(transitions.v) ? transitions.v : []
-  } };
-  S2_ART_PROD_CACHE.buildings = Array.isArray(manifest.buildings) ? manifest.buildings : [];
-  S2_ART_PROD_CACHE.props = Array.isArray(manifest.props) ? manifest.props : [];
-  S2_ART_PROD_CACHE.environment = Array.isArray(manifest.environment) ? manifest.environment : [];
-  if (!stoneVariants.length || !woodVariants.length) {
-    S2_ART_PROD_CACHE.loadError = 'INVALID_MANIFEST_NO_RUNTIME_TILES';
-    console.error('[S2-ART] Missing usable stone/wood runtime tiles');
-    return;
-  }
+  s2ArtProdLoadingPromise = (async () => {
+    try {
+      const manifest = await loadS2ArtProdManifest();
+      if (!manifest) {
+        S2_ART_PROD_CACHE.loadError = 'MANIFEST_FETCH_FAILED';
+        console.error('[S2-ART] Failed to fetch asset-manifest.json');
+        return;
+      }
 
-  // Load all tile images (prefer WebP, fallback to PNG)
-  const loadImage = (urlWebp, urlPng) => new Promise((resolve) => {
-    const img = new Image();
-    img.decoding = "async";
-    img.onload = () => resolve({ img, ok: true });
-    img.onerror = () => {
-      const img2 = new Image();
-      img2.decoding = "async";
-      img2.onload = () => resolve({ img: img2, ok: true });
-      img2.onerror = () => resolve({ img: null, ok: false });
-      img2.src = urlPng;
-    };
-    img.src = urlWebp;
-  });
+      // Support both v1.3.0-nano (usable_runtime_tiles) and legacy v1.2/v1.0
+      const runtimeTiles = manifest.tiles?.usable_runtime_tiles || manifest.tiles || {};
+      const stoneVariants = Array.isArray(runtimeTiles.stoneVariants) ? runtimeTiles.stoneVariants : [];
+      const woodVariants = Array.isArray(runtimeTiles.woodVariants) ? runtimeTiles.woodVariants : [];
+      const transitions = runtimeTiles.transitions || {};
+      S2_ART_PROD_CACHE.manifest = manifest;
+      S2_ART_PROD_CACHE.tiles = { stoneVariants, woodVariants, transitions: {
+        h: Array.isArray(transitions.h) ? transitions.h : [],
+        v: Array.isArray(transitions.v) ? transitions.v : []
+      } };
+      S2_ART_PROD_CACHE.buildings = Array.isArray(manifest.buildings) ? manifest.buildings : [];
+      S2_ART_PROD_CACHE.props = Array.isArray(manifest.props) ? manifest.props : [];
+      S2_ART_PROD_CACHE.environment = Array.isArray(manifest.environment) ? manifest.environment : [];
+      if (!stoneVariants.length || !woodVariants.length) {
+        S2_ART_PROD_CACHE.loadError = 'INVALID_MANIFEST_NO_RUNTIME_TILES';
+        console.error('[S2-ART] Missing usable stone/wood runtime tiles');
+        return;
+      }
 
-  let anyLoaded = false;
-  // Load stone variants
-  for (const tile of S2_ART_PROD_CACHE.tiles.stoneVariants) {
-    if (tile.path_webp && tile.path) {
-      const result = await loadImage(tile.path_webp, tile.path);
-      tile._img = result.img;
-      tile._loaded = result.ok;
-      if (result.ok) anyLoaded = true;
-    }
-  }
-  // Load wood variants
-  for (const tile of S2_ART_PROD_CACHE.tiles.woodVariants) {
-    if (tile.path_webp && tile.path) {
-      const result = await loadImage(tile.path_webp, tile.path);
-      tile._img = result.img;
-      tile._loaded = result.ok;
-      if (result.ok) anyLoaded = true;
-    }
-  }
-  // Load transitions H
-  for (const tile of S2_ART_PROD_CACHE.tiles.transitions.h) {
-    if (tile.path_webp && tile.path) {
-      const result = await loadImage(tile.path_webp, tile.path);
-      tile._img = result.img;
-      tile._loaded = result.ok;
-      if (result.ok) anyLoaded = true;
-    }
-  }
-  // Load transitions V
-  for (const tile of S2_ART_PROD_CACHE.tiles.transitions.v) {
-    if (tile.path_webp && tile.path) {
-      const result = await loadImage(tile.path_webp, tile.path);
-      tile._img = result.img;
-      tile._loaded = result.ok;
-      if (result.ok) anyLoaded = true;
-    }
-  }
-  // Load buildings
-  for (const bld of S2_ART_PROD_CACHE.buildings) {
-    if (bld.path_webp && bld.path) {
-      const result = await loadImage(bld.path_webp, bld.path);
-      bld._img = result.img;
-      bld._loaded = result.ok;
-      if (result.ok) anyLoaded = true;
-    }
-  }
-  // Load props
-  for (const prop of S2_ART_PROD_CACHE.props) {
-    if (prop.path_webp && prop.path) {
-      const result = await loadImage(prop.path_webp, prop.path);
-      prop._img = result.img;
-      prop._loaded = result.ok;
-      if (result.ok) anyLoaded = true;
-    }
-  }
-  // Load environment (sea, cliff)
-  for (const env of S2_ART_PROD_CACHE.environment) {
-    if (env.path_webp && env.path) {
-      const result = await loadImage(env.path_webp, env.path);
-      env._img = result.img;
-      env._loaded = result.ok;
-      if (result.ok) anyLoaded = true;
-    }
-  }
+      // Load all tile images (prefer WebP, fallback to PNG)
+      const loadImage = (urlWebp, urlPng) => new Promise((resolve) => {
+        if (!urlWebp && !urlPng) return resolve({ img: null, ok: false });
+        const img = new Image();
+        img.decoding = "async";
+        img.onload = () => resolve({ img, ok: true });
+        img.onerror = () => {
+          if (!urlPng || urlPng === urlWebp) return resolve({ img: null, ok: false });
+          const img2 = new Image();
+          img2.decoding = "async";
+          img2.onload = () => resolve({ img: img2, ok: true });
+          img2.onerror = () => resolve({ img: null, ok: false });
+          img2.src = urlPng;
+        };
+        img.src = urlWebp || urlPng;
+      });
 
-  S2_ART_PROD_CACHE.loaded = true;
-  if (!anyLoaded) {
-    S2_ART_PROD_CACHE.loadError = 'NO_TILES_LOADED';
-    console.error('[S2-ART] No tiles loaded successfully');
-  } else {
-    console.log('[S2-ART] Assets loaded:', {
-      stone: S2_ART_PROD_CACHE.tiles.stoneVariants.filter(t => t._loaded).length,
-      wood: S2_ART_PROD_CACHE.tiles.woodVariants.filter(t => t._loaded).length,
-      transH: S2_ART_PROD_CACHE.tiles.transitions.h.filter(t => t._loaded).length,
-      transV: S2_ART_PROD_CACHE.tiles.transitions.v.filter(t => t._loaded).length,
-      buildings: S2_ART_PROD_CACHE.buildings.filter(b => b._loaded).length,
-      props: S2_ART_PROD_CACHE.props.filter(p => p._loaded).length
-    });
-  }
+      let anyLoaded = false;
+      // Load stone variants
+      for (const tile of S2_ART_PROD_CACHE.tiles.stoneVariants) {
+        const srcWebp = tile.path_webp || (tile.path && tile.path.endsWith('.webp') ? tile.path : null) || tile.path;
+        const srcPng = tile.path_png || (tile.path && tile.path.endsWith('.png') ? tile.path : null);
+        if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (srcWebp || srcPng) {
+          const result = await loadImage(srcWebp, srcPng);
+          tile._img = result.img;
+          tile._loaded = result.ok;
+          if (result.ok) anyLoaded = true;
+        }
+      }
+      // Load wood variants
+      for (const tile of S2_ART_PROD_CACHE.tiles.woodVariants) {
+        const srcWebp = tile.path_webp || (tile.path && tile.path.endsWith('.webp') ? tile.path : null) || tile.path;
+        const srcPng = tile.path_png || (tile.path && tile.path.endsWith('.png') ? tile.path : null);
+        if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (srcWebp || srcPng) {
+          const result = await loadImage(srcWebp, srcPng);
+          tile._img = result.img;
+          tile._loaded = result.ok;
+          if (result.ok) anyLoaded = true;
+        }
+      }
+      // Load transitions H
+      for (const tile of S2_ART_PROD_CACHE.tiles.transitions.h) {
+        const srcWebp = tile.path_webp || (tile.path && tile.path.endsWith('.webp') ? tile.path : null) || tile.path;
+        const srcPng = tile.path_png || (tile.path && tile.path.endsWith('.png') ? tile.path : null);
+        if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (srcWebp || srcPng) {
+          const result = await loadImage(srcWebp, srcPng);
+          tile._img = result.img;
+          tile._loaded = result.ok;
+          if (result.ok) anyLoaded = true;
+        }
+      }
+      // Load transitions V
+      for (const tile of S2_ART_PROD_CACHE.tiles.transitions.v) {
+        const srcWebp = tile.path_webp || (tile.path && tile.path.endsWith('.webp') ? tile.path : null) || tile.path;
+        const srcPng = tile.path_png || (tile.path && tile.path.endsWith('.png') ? tile.path : null);
+        if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (srcWebp || srcPng) {
+          const result = await loadImage(srcWebp, srcPng);
+          tile._img = result.img;
+          tile._loaded = result.ok;
+          if (result.ok) anyLoaded = true;
+        }
+      }
+      // Load buildings
+      for (const bld of S2_ART_PROD_CACHE.buildings) {
+        const srcWebp = bld.path_webp || (bld.path && bld.path.endsWith('.webp') ? bld.path : null) || bld.path;
+        const srcPng = bld.path_png || (bld.path && bld.path.endsWith('.png') ? bld.path : null);
+        if (bld._loaded && bld._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (srcWebp || srcPng) {
+          const result = await loadImage(srcWebp, srcPng);
+          bld._img = result.img;
+          bld._loaded = result.ok;
+          if (result.ok) {
+            anyLoaded = true;
+            if (typeof window !== "undefined" && window.PORT_ART) {
+              if (bld.id === 'building_port_warehouse') {
+                window.PORT_ART.warehouse = result.img;
+                window.PORT_ART.weatheredWarehouse = result.img;
+                if (window.PORT_ART_STATUS) {
+                  window.PORT_ART_STATUS.warehouse = "ready";
+                  window.PORT_ART_STATUS.weatheredWarehouse = "ready";
+                }
+              } else if (bld.id === 'building_fish_workshop') {
+                window.PORT_ART.fishmonger = result.img;
+                window.PORT_ART.fishWorkshop = result.img;
+                if (window.PORT_ART_STATUS) {
+                  window.PORT_ART_STATUS.fishmonger = "ready";
+                  window.PORT_ART_STATUS.fishWorkshop = "ready";
+                }
+              } else if (bld.id === 'building_port_tavern') {
+                window.PORT_ART.portTavern = result.img;
+                if (window.PORT_ART_STATUS) window.PORT_ART_STATUS.portTavern = "ready";
+              } else if (bld.id === 'building_wharf_shop') {
+                window.PORT_ART.wharfShop = result.img;
+                if (window.PORT_ART_STATUS) window.PORT_ART_STATUS.wharfShop = "ready";
+              } else if (bld.id === 'building_port_teahouse') {
+                window.PORT_ART.portTeahouse = result.img;
+                if (window.PORT_ART_STATUS) window.PORT_ART_STATUS.portTeahouse = "ready";
+              }
+            }
+          }
+        }
+      }
+      // Load props
+      for (const prop of S2_ART_PROD_CACHE.props) {
+        const srcWebp = prop.path_webp || (prop.path && prop.path.endsWith('.webp') ? prop.path : null) || prop.path;
+        const srcPng = prop.path_png || (prop.path && prop.path.endsWith('.png') ? prop.path : null);
+        if (prop._loaded && prop._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (srcWebp || srcPng) {
+          const result = await loadImage(srcWebp, srcPng);
+          prop._img = result.img;
+          prop._loaded = result.ok;
+          if (result.ok) {
+            anyLoaded = true;
+            if (typeof window !== "undefined" && window.PORT_ART) {
+              if (prop.id === 'prop_anchor_gear') {
+                window.PORT_ART.anchor = result.img;
+                if (window.PORT_ART_STATUS) window.PORT_ART_STATUS.anchor = "ready";
+              } else if (prop.id === 'prop_cargo_crates') {
+                window.PORT_ART.crate = result.img;
+                if (window.PORT_ART_STATUS) window.PORT_ART_STATUS.crate = "ready";
+              } else if (prop.id === 'prop_mooring_post') {
+                window.PORT_ART.mooring = result.img;
+                if (window.PORT_ART_STATUS) window.PORT_ART_STATUS.mooring = "ready";
+              } else if (prop.id === 'prop_port_boat') {
+                window.PORT_ART.boat = result.img;
+                if (window.PORT_ART_STATUS) window.PORT_ART_STATUS.boat = "ready";
+              } else if (prop.id === 'prop_port_lighthouse') {
+                window.PORT_ART.lighthouse = result.img;
+                if (window.PORT_ART_STATUS) window.PORT_ART_STATUS.lighthouse = "ready";
+              }
+            }
+          }
+        }
+      }
+      // Load environment (sea, cliff)
+      for (const env of S2_ART_PROD_CACHE.environment) {
+        const srcWebp = env.path_webp || (env.path && env.path.endsWith('.webp') ? env.path : null) || env.path;
+        const srcPng = env.path_png || (env.path && env.path.endsWith('.png') ? env.path : null);
+        if (env._loaded && env._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (srcWebp || srcPng) {
+          const result = await loadImage(srcWebp, srcPng);
+          env._img = result.img;
+          env._loaded = result.ok;
+          if (result.ok) {
+            anyLoaded = true;
+            if (typeof window !== "undefined" && window.PORT_ART) {
+              if (env.id === 'surface_sea_canonical') {
+                window.PORT_ART.coastSea = result.img;
+                if (window.PORT_ART_STATUS) window.PORT_ART_STATUS.coastSea = "ready";
+              } else if (env.id === 'cliff_north_rock') {
+                window.PORT_ART.coastCliff = result.img;
+                if (window.PORT_ART_STATUS) window.PORT_ART_STATUS.coastCliff = "ready";
+              }
+            }
+          }
+        }
+      }
+
+      const allParts = [
+        ...S2_ART_PROD_CACHE.tiles.stoneVariants, ...S2_ART_PROD_CACHE.tiles.woodVariants,
+        ...S2_ART_PROD_CACHE.tiles.transitions.h, ...S2_ART_PROD_CACHE.tiles.transitions.v,
+        ...S2_ART_PROD_CACHE.buildings, ...S2_ART_PROD_CACHE.props, ...S2_ART_PROD_CACHE.environment
+      ];
+      const missingParts = allParts.filter(entry => !entry._loaded || !entry._img?.naturalWidth);
+      S2_ART_PROD_CACHE.loaded = allParts.some(entry => entry._loaded && entry._img?.naturalWidth);
+      S2_ART_PROD_CACHE.loadError = missingParts.length ? 'PARTIAL_ASSETS_MISSING_' + missingParts.length : null;
+      try { window.RENDERER?.invalidateGroundCache?.(); } catch {}
+      if (!S2_ART_PROD_CACHE.loaded) {
+        S2_ART_PROD_CACHE.loadError = 'NO_TILES_LOADED';
+        console.error('[S2-ART] No tiles loaded successfully');
+      } else {
+        console.log('[S2-ART] Assets loaded:', {
+          stone: S2_ART_PROD_CACHE.tiles.stoneVariants.filter(t => t._loaded).length,
+          wood: S2_ART_PROD_CACHE.tiles.woodVariants.filter(t => t._loaded).length,
+          transH: S2_ART_PROD_CACHE.tiles.transitions.h.filter(t => t._loaded).length,
+          transV: S2_ART_PROD_CACHE.tiles.transitions.v.filter(t => t._loaded).length,
+          buildings: S2_ART_PROD_CACHE.buildings.filter(b => b._loaded).length,
+          props: S2_ART_PROD_CACHE.props.filter(p => p._loaded).length
+        });
+      }
+    } finally {
+      s2ArtProdLoadingPromise = null;
+    }
+  })();
+
+  return s2ArtProdLoadingPromise;
 }
 
 // Reset S2 cache when leaving rain-port or restarting
 function resetS2ArtProdCache() {
+  s2ArtProdLoadingPromise = null;
   S2_ART_PROD_CACHE.tiles = { stoneVariants: [], woodVariants: [], transitions: { h: [], v: [] } };
   S2_ART_PROD_CACHE.buildings = [];
   S2_ART_PROD_CACHE.props = [];
@@ -425,12 +555,33 @@ function getS2Environment() {
   return env.length ? env : null;
 }
 
-// Published S2 lightweight ground selection. Always WebP for normal play; s2legacy=1
-// is a developer-only opt-out, never an additional production asset download.
+// DEV-ONLY: Stage2 selected source kit in art/stage2-rain-port/scene/ (4 stone + 3 wood + 1 transition)
+// Strictly requires URL query: dev=1 && stage=rain-port && s2ground=kit
+// Isolated from the older s2artprod / portsurfacecandidate gates: those keep their own art.
 const isS2GroundKitEnabled = () => {
-  try { return !/(?:^|[?&])s2legacy=1(?=[&#]|$)/.test(String(window.location?.search || "")); }
-  catch { return true; }
+  try {
+    const raw = String(typeof window !== "undefined" && window.location?.search || "");
+    const hasDev = typeof window !== "undefined" && window.DEV_MODE?.isDevMode?.(window.location) === true;
+    const isLegacy = hasDev && /(?:^|[?&])s2legacy=1(?=[&#]|$)/.test(raw);
+    if (isLegacy) return false;
+    let stage = "";
+    if (typeof STAGE_ART_RESOLVER !== "undefined" && typeof STAGE_ART_RESOLVER.getCurrentStage === "function") {
+      stage = STAGE_ART_RESOLVER.getCurrentStage();
+    } else if (typeof window !== "undefined") {
+      stage = window.__ACTIVE_STAGE || window.__CURRENT_STAGE || window.STAGE?.id || "";
+    }
+    // Unapproved ground-kit sources live in ignored art/ and must NEVER be
+    // requested by a normal player. The published scene uses S2 production WebP.
+    return hasDev && stage === "rain-port" && /(?:^|[?&])s2ground=kit(?=[&#]|$)/.test(raw);
+  } catch { return false; }
 };
+
+// DEV-ONLY A/B: WebP candidate variant of the SAME eight selected ground-kit slots.
+// Strictly requires URL query: dev=1 && stage=rain-port && s2ground=kit && s2webp=1
+// Without s2webp=1 the PNG sources in art/stage2-rain-port/scene/ are loaded exactly as before, so the
+// existing kit URL keeps its bytes and the two variants are never mixed in one page.
+// These WebP files are ART_CANDIDATE / WAITING_USER_REVIEW and live outside the
+// production asset tree; this switch exists only for the local A/B comparison.
 const isS2GroundKitWebPEnabled = () => true;
 
 // Observed orientation is taken from the IMAGES, not from the file-name letters:
@@ -448,7 +599,7 @@ const S2_GROUND_KIT_SPECS = Object.freeze([
   Object.freeze({ id: 't_stone_wood_v01', file: 't_stone_wood_v01.png', group: 'transition', observedOrientation: 'horizontal' })
 ]);
 
-// Where each transition may legally be used in the CURRENT rain-port world layout.
+// Where the retained transition is used in the CURRENT rain-port world layout.
 // The world has one full-width horizontal stone/wood seam (dockSeamY). It has no diagonal
 // stone/wood junction and no stone/wood corner, so those two are never forced into the scene.
 const S2_GROUND_KIT_PLACEMENT = Object.freeze({
@@ -457,6 +608,8 @@ const S2_GROUND_KIT_PLACEMENT = Object.freeze({
   't_stone_wood_c01': Object.freeze({ role: 'vertical', use: 'none in this world layout', state: 'SKIPPED_NO_VALID_CORNER' })
 });
 
+// Source reference: art/stage2-rain-port/manifest-dev-runtime.json
+// const S2_GROUND_KIT_BASE = 'art/stage2-rain-port/scene/';
 const S2_GROUND_KIT_BASE = 'assets/img/rain-port/s2-production/';
 // A/B-only source of the same ten slots in WebP. Still a candidate set: nothing here
 // promotes it to a production asset and no production path may read it.
@@ -470,6 +623,7 @@ const S2_GROUND_KIT_CACHE = {
 
 async function loadS2GroundKit() {
   const cache = S2_GROUND_KIT_CACHE;
+  cache.enabled = isS2GroundKitEnabled();
   if (!cache.enabled || cache.started) return cache;
   cache.started = true;
   cache.startedAt = Date.now();
@@ -552,13 +706,17 @@ if (typeof window !== "undefined") {
     })),
     placement: S2_GROUND_KIT_PLACEMENT
   });
-  // Stage2 assets start on stage entry, not on cover or overworld (mobile bandwidth).
+  if (S2_GROUND_KIT_CACHE.enabled) {
+    // Only the strict dev gate starts this loader; without it no kit image is requested.
+    loadS2GroundKit();
+  }
 }
 
 if (typeof window !== "undefined") {
   window.isS2ArtProdEnabled = isS2ArtProdEnabled;
   window.S2_ART_PROD_ENABLED = isS2ArtProdEnabled();
   window.loadS2ArtProdAssets = loadS2ArtProdAssets;
+  window.loadS2ArtProdManifest = loadS2ArtProdManifest;
   window.resetS2ArtProdCache = resetS2ArtProdCache;
   window.getS2StoneTiles = getS2StoneTiles;
   window.getS2WoodTiles = getS2WoodTiles;
@@ -573,10 +731,13 @@ if (typeof window !== "undefined") {
 // DEV-ONLY: Fusion Collab Candidate preview toggle (墨焰斬、雷紋陣原型)
 // Strictly requires URL query: dev=1 && (fusioncandidate=1 || fusion=1) or window.FUSION_CANDIDATE_ENABLED = true
 const isFusionCandidateEnabled = () => {
-  if (typeof window !== "undefined" && window.FUSION_CANDIDATE_ENABLED === true) return true;
+  // Candidate art is local-only, using the same guard as dev save isolation.
+  const safeDev = typeof window !== "undefined" && window.DEV_MODE?.isDevMode?.(window.location) === true;
+  if (!safeDev) return false;
+  if (window.FUSION_CANDIDATE_ENABLED === true) return true;
   try {
     const raw = String(typeof window !== "undefined" && window.location?.search || "");
-    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
+    const hasDev = window.DEV_MODE?.isDevMode?.(window.location) === true;
     const hasCandidate = /(?:^|[?&])(?:fusioncandidate|fusion)=1(?=[&#]|$)/.test(raw);
     return hasDev && hasCandidate;
   } catch { return false; }
@@ -641,7 +802,7 @@ const FUSION_VFX_METADATA = Object.freeze({
     name: "墨焰斬",
     parents: Object.freeze(["katana", "fire"]),
     candidateAssetKey: "fusion_inkblade_arc",
-    file: "art/fusion/candidates/fusion_inkblade/main_alpha_candidate_v01.webp",
+    file: "assets/img/vfx/fusion/inkblade_main.webp",
     status: "WAITING_ART",
     fallback: "procedural_ukiyoe_ink"
   }),
@@ -752,19 +913,19 @@ const FUSION_VFX_METADATA = Object.freeze({
 const FUSION_ART_BIND_SOURCES = Object.freeze({
   fusion_inkblade: Object.freeze({
     main: Object.freeze({
-      file: "art/fusion/candidates/fusion_inkblade/main_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/inkblade_main.webp",
       sha256: "1ecb4a7573470359c010555db215dd017f0aebe4954340b9915534bffd8a6f14",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([0, 37, 1264, 848])
     }),
     hit: Object.freeze({
-      file: "art/fusion/candidates/fusion_inkblade/hit_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/inkblade_hit.webp",
       sha256: "677f9fe9bc0f6b28a2ff9f136efb4a3bec353741dd25d47d27236abdb226a9ca",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([253, 120, 994, 747])
     }),
     ground: Object.freeze({
-      file: "art/fusion/candidates/fusion_inkblade/ground_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/inkblade_ground.webp",
       sha256: "5fc1abda8fe7a335b136f9c0f3e076b8356d5d3c2c4cd2550d04e008757eefdd",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([78, 310, 1177, 562])
@@ -1009,17 +1170,20 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
 
 const FUSION_ART_BIND_PHASES = Object.freeze(["main", "hit", "ground", "icon"]);
 
-// 嚴格 dev-only 門檻：dev=1 && stage=rain-port && fusioncandidate=1 && fusionart=banana
-// 與既有 isFusionCandidateEnabled() 分開：單獨 set window.FUSION_CANDIDATE_ENABLED=true
-// 不得讓這套候選資產生效。
-const isFusionArtBindEnabled = () => {
+// 融合候選圖僅供 dev 預覽，不應因關卡不同而有不同啟用條件。
+// 共用同一組 phase 來源；正式模式維持既有核准素材與 fallback。
+const isFusionArtBindEnabled = (kind = null) => {
+  // Inkblade has a published runtime raster; all other candidate art stays dev-only.
+  if (kind === "fusion_inkblade") return true;
   try {
     const raw = String(typeof window !== "undefined" && window.location?.search || "");
-    const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
-    const hasStage = /(?:^|[?&])stage=rain-port(?=[&#]|$)/.test(raw);
+    const hasDev = window.DEV_MODE?.isDevMode?.(window.location) === true;
     const hasCandidate = /(?:^|[?&])(?:fusioncandidate|fusion)=1(?=[&#]|$)/.test(raw);
     const hasBanana = /(?:^|[?&])fusionart=banana(?=[&#]|$)/i.test(raw);
-    return hasDev && hasStage && hasCandidate && hasBanana;
+    const explicitOtherStyle = /(?:^|[?&])fusionart=(?:legacy|gpt)(?=[&#]|$)/i.test(raw);
+    // Stage 1's previous dev default now applies to ALL stages.
+    // Explicit fusioncandidate=1 still requires fusionart=banana.
+    return hasDev && !explicitOtherStyle && (!hasCandidate || hasBanana);
   } catch { return false; }
 };
 
@@ -1050,7 +1214,7 @@ function getFusionArtBindDef(kind, phase) {
 // 載入單一 phase 圖（缺檔 → status missing，不崩潰；重複呼叫不會重複請求）
 function loadFusionPhaseArt(kind, phase, forceRetry = false) {
   if (typeof window === "undefined") return null;
-  if (!isFusionArtBindEnabled()) return null;
+  if (!isFusionArtBindEnabled(kind)) return null;
   if (!kind || !FUSION_ART_BIND_PHASES.includes(phase)) return null;
   const def = getFusionArtBindDef(kind, phase);
   if (!def) return null;
@@ -1081,14 +1245,20 @@ function loadFusionPhaseArt(kind, phase, forceRetry = false) {
     store.status[kind][phase] = "missing";
   };
   if (!store.requests.includes(def.file)) store.requests.push(def.file);
-  img.src = def.file + "?v=dev-bind-r1";
+  img.src = def.file + "?v=20261027-fusionvisible1";
   return null;
+}
+
+// Only prime the selected fusion's actual image phases when acquired; do not preload all ten recipes.
+function prefetchFusionArt(kind) {
+  if (!isFusionArtBindEnabled(kind) || !FUSION_ART_BIND_SOURCES[kind]) return;
+  for (const phase of ["main", "hit", "ground"]) loadFusionPhaseArt(kind, phase);
 }
 
 // 取圖：已就緒回傳 Image，否則觸發載入並回 null（不阻塞、不丟錯）
 function getFusionPhaseArt(kind, phase) {
   if (typeof window === "undefined") return null;
-  if (!isFusionArtBindEnabled()) return null;
+  if (!isFusionArtBindEnabled(kind)) return null;
   const img = window.FUSION_ART_BIND?.images?.[kind]?.[phase];
   if (img && img.naturalWidth > 0) return img;
   loadFusionPhaseArt(kind, phase);
@@ -1117,7 +1287,11 @@ function getFusionArtBindReport() {
       phases[phase] = {
         file: def ? def.file : null,
         sha256: def ? def.sha256 : null,
-        exists: !!def,
+        defined: !!def,
+        exists: status === "ready" || status === "ready_fallback",
+        approval: "ART_CANDIDATE",
+        aliasOf: phase !== "main" && def?.file === table.main?.file ? "main" : null,
+        needsPhaseArt: phase !== "main" && (!def || def.fallback || def.file === table.main?.file),
         fallback: !!(def && def.fallback),
         status,
         naturalWidth: window.FUSION_ART_BIND?.images?.[kind]?.[phase]?.naturalWidth || 0,
@@ -1155,6 +1329,7 @@ if (typeof window !== "undefined") {
   window.FUSION_ART_BIND_PHASES = FUSION_ART_BIND_PHASES;
   window.FUSION_ART_BIND = window.FUSION_ART_BIND || FUSION_ART_BIND;
   window.loadFusionPhaseArt = loadFusionPhaseArt;
+  window.prefetchFusionArt = prefetchFusionArt;
   window.getFusionPhaseArt = getFusionPhaseArt;
   window.loadFusionArtBind = loadFusionArtBind;
   window.getFusionArtBindDef = getFusionArtBindDef;
@@ -1193,8 +1368,8 @@ const STAGE_ASSET_SLOTS = Object.freeze({
   "sakura-pass": Object.freeze({
     map: "map_sakura_pass_v1",
     ground: "ground_dirt",
-    scene: ["shrine_pavilion", "landmark_corrupted_sakura"],
-    trans: ["ground_trans_dirt_to_steps_h", "ground_sakura_steps"],
+    scene: ["house_shrine", "prop_sakura"],
+    trans: [],
     enemy: {
       ghost: { idle: "ghost", attack: "ghost_motion_v1" },
       runner: { idle: "runner", attack: "runner_motion_v1" },
@@ -1276,6 +1451,502 @@ const STAGE_ASSET_SLOTS = Object.freeze({
   })
 });
 if (typeof window !== "undefined") window.STAGE_ASSET_SLOTS = STAGE_ASSET_SLOTS;
+
+// ============================================================================
+// STAGE_ART_RESOLVER — Authoritative single-source stage art resolver contract
+// Authority: docs/STAGE_PATHS.json, assets/img/runtime-art-manifest.json
+// ============================================================================
+const STAGE_ART_RESOLVER = Object.freeze({
+  manifestUrl: "assets/img/runtime-art-manifest.json",
+  approvedStages: Object.freeze(["night-town", "rain-port"]),
+  setManifestData(data) {
+    if (typeof window !== "undefined") window.__RUNTIME_MANIFEST = data;
+  },
+
+  getManifestData() {
+    if (typeof window !== "undefined" && window.__RUNTIME_MANIFEST) {
+      return window.__RUNTIME_MANIFEST;
+    }
+    if (typeof require === "function") {
+      try {
+        const fsMod = require("node:fs");
+        const pathMod = require("node:path");
+        const p = pathMod.resolve(process.cwd(), "assets/img/runtime-art-manifest.json");
+        if (fsMod.existsSync(p)) {
+          const parsed = JSON.parse(fsMod.readFileSync(p, "utf8"));
+          if (typeof window !== "undefined") window.__RUNTIME_MANIFEST = parsed;
+          return parsed;
+        }
+      } catch {}
+    }
+    return null;
+  },
+
+  _findInManifest(stageId, key) {
+    const manifest = this.getManifestData();
+    if (!manifest || !manifest.stages) return null;
+    const stage = manifest.stages[stageId];
+    if (!stage) return null;
+
+    if (stage.assets && stage.assets[key]) {
+      return stage.assets[key];
+    }
+    if (stage.tiles) {
+      if (Array.isArray(stage.tiles.stoneVariants)) {
+        const item = stage.tiles.stoneVariants.find(x => x.id === key);
+        if (item) return item;
+      }
+      if (Array.isArray(stage.tiles.woodVariants)) {
+        const item = stage.tiles.woodVariants.find(x => x.id === key);
+        if (item) return item;
+      }
+      if (stage.tiles.transitions) {
+        if (Array.isArray(stage.tiles.transitions.h)) {
+          const item = stage.tiles.transitions.h.find(x => x.id === key);
+          if (item) return item;
+        }
+        if (Array.isArray(stage.tiles.transitions.v)) {
+          const item = stage.tiles.transitions.v.find(x => x.id === key);
+          if (item) return item;
+        }
+      }
+    }
+    if (Array.isArray(stage.buildings)) {
+      const item = stage.buildings.find(x => x.id === key);
+      if (item) return item;
+    }
+    if (Array.isArray(stage.props)) {
+      const item = stage.props.find(x => x.id === key);
+      if (item) return item;
+    }
+    if (Array.isArray(stage.environment)) {
+      const item = stage.environment.find(x => x.id === key);
+      if (item) return item;
+    }
+    return null;
+  },
+
+  setActiveStage(stageId) {
+    if (stageId) {
+      if (typeof currentActiveStage !== "undefined") currentActiveStage = stageId;
+      if (typeof window !== "undefined") window.__ACTIVE_STAGE = stageId;
+    }
+  },
+
+  getCurrentStage() {
+    if (typeof window !== "undefined") {
+      if (window.__ACTIVE_STAGE) return window.__ACTIVE_STAGE;
+      if (window.STAGE?.id) return window.STAGE.id;
+      if (window.__CURRENT_STAGE) return window.__CURRENT_STAGE;
+      // Before game initialization, honor the requested starting stage only.
+      const raw = String(window.location?.search || "");
+      const match = raw.match(/(?:^|[?&])stage=([^&#]+)/);
+      if (match) return decodeURIComponent(match[1]);
+    }
+    return (typeof currentActiveStage !== "undefined" ? currentActiveStage : "night-town");
+  },
+
+  isStageApproved(stageId) {
+    return stageId === "night-town" || stageId === "rain-port";
+  },
+
+  getStageStatus(stageId) {
+    const sId = stageId || this.getCurrentStage();
+    if (sId === "night-town") {
+      return Object.freeze({
+        stageId: "night-town",
+        status: "APPROVED",
+        requiresDevFlags: false,
+        source: "assets/img/scenery/",
+        artStatus: "APPROVED",
+        autoPass: true
+      });
+    }
+    if (sId === "rain-port") {
+      const raw = typeof window !== "undefined" ? String(window.location?.search || "") : "";
+      const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
+      const isLegacy = hasDev && /(?:^|[?&])s2legacy=1(?=[&#]|$)/.test(raw);
+      return Object.freeze({
+        stageId: "rain-port",
+        status: "APPROVED",
+        requiresDevFlags: false,
+        source: isLegacy ? "assets/img/rain-port/" : "assets/img/rain-port/s2-production/",
+        artStatus: isLegacy ? "LEGACY_FALLBACK" : "APPROVED",
+        s2ArtProdEnabled: isS2ArtProdEnabled(),
+        s2GroundKitEnabled: isS2GroundKitEnabled(),
+        autoPass: !isLegacy
+      });
+    }
+    if (sId === "sakura-pass") {
+      return Object.freeze({
+        stageId: "sakura-pass",
+        status: "BLOCKED",
+        requiresDevFlags: false,
+        source: null,
+        artStatus: "STYLE_REFERENCE_ONLY",
+        reason: "Assets purged 2026-10-24; new candidate awaiting approval; runtime unestablished",
+        fallbackStage: "night-town",
+        autoPass: false
+      });
+    }
+    return Object.freeze({
+      stageId: sId,
+      status: "BLOCKED",
+      requiresDevFlags: false,
+      source: null,
+      artStatus: "REFERENCE_ONLY_RESET_20261024",
+      reason: "Stage art unestablished or purged",
+      fallbackStage: "night-town",
+      autoPass: false
+    });
+  },
+
+  resolveBossHazardArt(kind) {
+    const isWater = kind === "tide" || kind === "tidalFan" || kind === "rainVortex";
+    const devGateActive = isBossHazardArtEnabled();
+    const def = BOSS_HAZARD_ART_DEFS[kind] || null;
+    if (isWater) {
+      return Object.freeze({
+        kind,
+        status: devGateActive ? "DEV_CANDIDATE" : "BLOCKED",
+        artStatus: "ART_CANDIDATE",
+        blocked: !devGateActive,
+        source: devGateActive ? (def?.source || null) : null,
+        autoPass: false,
+        reviewPending: true,
+        limitations: def?.limitations || [],
+        img: devGateActive ? (window.BOSS_HAZARD_ART_IMG?.[kind] || null) : null
+      });
+    }
+    return Object.freeze({
+      kind,
+      status: devGateActive ? "DEV_CANDIDATE" : "DEFAULT_VFX",
+      artStatus: def?.status || "DEFAULT_VFX",
+      blocked: false,
+      source: def?.source || null,
+      autoPass: false,
+      img: window.BOSS_HAZARD_ART_IMG?.[kind] || null
+    });
+  },
+
+  resolveStageArt(stageId, category, key) {
+    const sId = stageId || this.getCurrentStage();
+    if (sId === "night-town") {
+      const entry = this._findInManifest("night-town", key);
+      if (!entry) {
+        return Object.freeze({
+          stageId: "night-town",
+          key,
+          category: category || "unknown",
+          path: null,
+          status: "MISSING",
+          artStatus: "KEY_NOT_IN_MANIFEST",
+          isFallback: false,
+          error: `Asset ${key} not in night-town manifest`
+        });
+      }
+      return Object.freeze({
+        stageId: "night-town",
+        key,
+        category: category || entry.category || "scenery",
+        path: entry.path,
+        status: entry.status || "APPROVED",
+        sourceStatus: entry.source_status || "RUNTIME_ACTIVE",
+        runtimeStatus: entry.runtime_status || "APPROVED_RUNTIME",
+        isFallback: false
+      });
+    }
+    if (sId === "rain-port") {
+      const raw = typeof window !== "undefined" ? String(window.location?.search || "") : "";
+      const hasDev = /(?:^|[?&])dev=1(?=[&#]|$)/.test(raw);
+      const isLegacy = hasDev && /(?:^|[?&])s2legacy=1(?=[&#]|$)/.test(raw);
+      if (isLegacy) {
+        return Object.freeze({
+          stageId: "rain-port",
+          key,
+          category: category || "legacy",
+          path: `assets/img/rain-port/${key}.webp?v=20261013-rain-port2`,
+          status: "LEGACY_FALLBACK",
+          isFallback: true
+        });
+      }
+      // Query authoritative manifest directly
+      const entry = this._findInManifest("rain-port", key);
+      if (!entry) {
+        return Object.freeze({
+          stageId: "rain-port",
+          key,
+          category: category || "unknown",
+          path: null,
+          status: "MISSING",
+          artStatus: "KEY_NOT_IN_MANIFEST",
+          isFallback: false,
+          error: `Asset ${key} not in rain-port manifest`
+        });
+      }
+      return Object.freeze({
+        stageId: "rain-port",
+        key,
+        category: category || entry.category,
+        path: entry.path,
+        status: entry.status === "APPROVED_RUNTIME" ? "APPROVED" : (entry.status || "APPROVED"),
+        sourceStatus: entry.source_status,
+        runtimeStatus: entry.runtime_status,
+        isFallback: false
+      });
+    }
+    if (sId === "sakura-pass") {
+      return Object.freeze({
+        stageId: "sakura-pass",
+        key,
+        category: category || "placeholder",
+        path: `assets/img/scenery/${key === "ground" ? "ground_dirt" : key}.webp`,
+        status: "BLOCKED",
+        artStatus: "STYLE_REFERENCE_ONLY",
+        reason: "Assets purged 2026-10-24; new candidate awaiting approval; runtime unestablished",
+        isFallback: true,
+        fallbackStage: "night-town"
+      });
+    }
+    return Object.freeze({
+      stageId: sId,
+      key,
+      category: category || "unknown",
+      path: null,
+      status: "BLOCKED",
+      artStatus: "REFERENCE_ONLY_RESET_20261024",
+      isFallback: true,
+      fallbackStage: "night-town"
+    });
+  },
+
+  resolveSharedArt(category, key, subKey) {
+    const manifest = this.getManifestData();
+    const cat = String(category || "").toLowerCase();
+
+    // 1. Shared Skills
+    if (cat === "skill" || cat === "skills" || cat === "shared_skills") {
+      const skills = manifest?.shared_skills;
+      if (!skills) {
+        return Object.freeze({ category: "skills", key, path: null, status: "MANIFEST_UNAVAILABLE", isFallback: false });
+      }
+      const skill = skills[key];
+      if (!skill) {
+        return Object.freeze({ category: "skills", key, path: null, status: "MISSING", artStatus: "KEY_NOT_IN_MANIFEST", isFallback: false, error: `Skill ${key} not in shared manifest` });
+      }
+      let item = null;
+      if (skill.levels && subKey && skill.levels[String(subKey)]) {
+        item = skill.levels[String(subKey)];
+      } else if (skill.variants) {
+        if (typeof subKey === "string" && skill.variants[subKey]) {
+          item = skill.variants[subKey];
+        } else {
+          for (const vGroup of Object.values(skill.variants)) {
+            if (vGroup[subKey]) { item = vGroup[subKey]; break; }
+          }
+        }
+      } else if (skill.tiers && subKey && skill.tiers[subKey]) {
+        item = skill.tiers[subKey];
+      } else if (skill.raster && subKey && skill.raster[subKey]) {
+        item = skill.raster[subKey];
+      } else if (skill.raster && !subKey && skill.raster.main) {
+        item = skill.raster.main;
+      } else if (!subKey && skill.levels && skill.levels["1"]) {
+        item = skill.levels["1"];
+      }
+      if (item) {
+        return Object.freeze({
+          category: "skills",
+          skillId: key,
+          subKey: subKey || null,
+          id: item.id || key,
+          path: item.path,
+          bytes: item.bytes,
+          sha256: item.sha256,
+          status: item.status || "APPROVED",
+          runtimeStatus: "APPROVED_RUNTIME",
+          isFallback: false
+        });
+      }
+      return Object.freeze({
+        category: "skills",
+        skillId: key,
+        subKey,
+        path: null,
+        status: "MISSING_VARIANT",
+        error: `Variant ${subKey} for skill ${key} not found in manifest`
+      });
+    }
+
+    // 2. Shared Actors
+    if (cat === "actor" || cat === "actors" || cat === "shared_actors" || cat === "player" || cat === "enemy" || cat === "enemies") {
+      const actors = manifest?.shared_actors;
+      if (!actors) return Object.freeze({ category: "actors", key, path: null, status: "MANIFEST_UNAVAILABLE" });
+
+      if (cat === "player" || key === "player") {
+        const pActions = actors.player?.actions || {};
+        const actKey = (cat === "player" ? key : subKey) || "base";
+        const entry = pActions[actKey] || (actKey === "player" ? pActions.base : null);
+        if (entry) {
+          return Object.freeze({
+            category: "actors",
+            subCategory: "player",
+            action: actKey,
+            id: entry.id,
+            path: entry.path,
+            bytes: entry.bytes,
+            sha256: entry.sha256,
+            status: entry.status || "APPROVED",
+            runtimeStatus: "APPROVED_RUNTIME",
+            isFallback: false
+          });
+        }
+        return Object.freeze({ category: "actors", subCategory: "player", action: actKey, path: null, status: "MISSING", error: `Player action ${actKey} not in manifest` });
+      }
+
+      if (cat === "enemy" || cat === "enemies" || key === "enemies") {
+        const stageId = (cat === "enemy" || cat === "enemies") ? key : (subKey || "night-town");
+        const enemyType = subKey || key;
+        const eGroup = actors.enemies?.[stageId] || {};
+        if (typeof enemyType === "string" && eGroup[enemyType]) {
+          const entry = eGroup[enemyType];
+          return Object.freeze({
+            category: "actors",
+            subCategory: "enemies",
+            stageId,
+            enemyType,
+            idle: entry.idle,
+            attack: entry.attack,
+            status: entry.status || "APPROVED",
+            runtimeStatus: "APPROVED_RUNTIME",
+            isFallback: false
+          });
+        }
+        return Object.freeze({ category: "actors", subCategory: "enemies", stageId, enemyType, path: null, status: "MISSING", error: `Enemy ${enemyType} for ${stageId} not in manifest` });
+      }
+    }
+
+    // 3. Shared HUD
+    if (cat === "hud" || cat === "ui" || cat === "shared_hud") {
+      const hud = manifest?.shared_hud;
+      if (!hud) return Object.freeze({ category: "hud", key, path: null, status: "MANIFEST_UNAVAILABLE" });
+
+      let entry = null;
+      let subCat = "core";
+      if (subKey && hud[key] && hud[key][subKey]) {
+        entry = hud[key][subKey];
+        subCat = key;
+      } else {
+        for (const [sec, items] of Object.entries(hud)) {
+          if (items[key]) {
+            entry = items[key];
+            subCat = sec;
+            break;
+          }
+          for (const it of Object.values(items)) {
+            if (it && (it.id === key || it.charmId === key || it.passiveId === key)) {
+              entry = it;
+              subCat = sec;
+              break;
+            }
+          }
+          if (entry) break;
+        }
+      }
+      if (entry) {
+        return Object.freeze({
+          category: "hud",
+          subCategory: subCat,
+          key: subKey || key,
+          id: entry.id || key,
+          path: entry.path,
+          bytes: entry.bytes,
+          sha256: entry.sha256,
+          status: entry.status || "APPROVED",
+          runtimeStatus: "APPROVED_RUNTIME",
+          isFallback: false
+        });
+      }
+      return Object.freeze({ category: "hud", key, path: null, status: "MISSING", error: `HUD asset ${key} not in manifest` });
+    }
+
+    // 4. Fusion Candidates
+    if (cat === "fusion" || cat === "fusion_candidates") {
+      const fusions = manifest?.fusion_candidates;
+      if (!fusions) return Object.freeze({ category: "fusion", key, path: null, status: "MANIFEST_UNAVAILABLE" });
+      const fDef = fusions[key];
+      if (!fDef) {
+        return Object.freeze({ category: "fusion", recipeId: key, path: null, status: "MISSING", error: `Fusion ${key} not in manifest` });
+      }
+      const phase = subKey || "main";
+      const pEntry = fDef.phases?.[phase];
+      const isDevActive = typeof isFusionArtBindEnabled === "function" ? isFusionArtBindEnabled() : false;
+
+      if (!pEntry) {
+        return Object.freeze({
+          category: "fusion",
+          recipeId: key,
+          phase,
+          path: null,
+          status: "MISSING_PHASE",
+          blocked: true,
+          fallback: fDef.fallback || "procedural_vector_emblem"
+        });
+      }
+
+      if (isDevActive) {
+        return Object.freeze({
+          category: "fusion",
+          recipeId: key,
+          phase,
+          name: fDef.name,
+          parents: fDef.parents,
+          aliasOf: pEntry.alias_of || null,
+          candidateSource: pEntry.candidate_source,
+          bytes: pEntry.bytes,
+          sha256: pEntry.sha256,
+          size: pEntry.size,
+          bbox: pEntry.bbox,
+          path: null,
+          status: "DEV_CANDIDATE",
+          artStatus: "ART_CANDIDATE",
+          reviewStatus: "APPROVAL_PENDING",
+          blocked: false,
+          fallback: fDef.fallback || "procedural_vector_emblem"
+        });
+      }
+
+      return Object.freeze({
+        category: "fusion",
+        recipeId: key,
+        phase,
+        name: fDef.name,
+        parents: fDef.parents,
+        aliasOf: pEntry.alias_of || null,
+        candidateSource: null,
+        path: null,
+        status: "BLOCKED",
+        artStatus: "ART_CANDIDATE",
+        reviewStatus: "APPROVAL_PENDING",
+        blocked: true,
+        reason: "Fusion art is unapproved candidate; formal runtime URL not established",
+        fallback: fDef.fallback || "procedural_vector_emblem"
+      });
+    }
+
+    return Object.freeze({ category, key, path: null, status: "UNKNOWN_CATEGORY", isFallback: false });
+  },
+
+  getSharedArt(category, key, subKey) {
+    return this.resolveSharedArt(category, key, subKey);
+  }
+
+});
+
+if (typeof window !== "undefined") {
+  window.STAGE_ART_RESOLVER = STAGE_ART_RESOLVER;
+}
+
 
 // 追蹤各關 WAITING_ART 狀態（供外部查詢）
 window.STAGE_ART_STATUS = {};
@@ -1363,6 +2034,23 @@ function loadHudArt(key) {
   };
   img.src = `assets/img/ui/${key}.webp?v=20261010-loading3`;
 }
+// One manifest resolver for BOTH combat renderers and UI cards.
+window.sharedSkillRuntimePath = (id, phase = "main", level = 1) => {
+  const skill = window.__RUNTIME_MANIFEST?.shared_skills?.[id];
+  if (!skill) return null;
+  const lv = String(Math.max(1, Math.min(5, Math.floor(level) || 1)));
+  if (id === "katana") return skill.levels?.[lv]?.path || null;
+  if (id === "fire") {
+    const variant = skill.variants?.[phase];
+    // Dragon phase uses a named Lv5 record unlike orbit/attack numeric tiers.
+    const entry = variant?.[lv] || (phase === "dragon" && lv === "5" ? variant?.fire_dragon_l5 : null);
+    return entry?.path || null;
+  }
+  if (id === "barrier") return skill.tiers?.[phase === "max" ? "core_lv5" : "core_main"]?.path || null;
+  if (id === "boom" || id === "thunder" || id === "needle")
+    return skill.raster?.[phase]?.path || null;
+  return null;
+};
 const SKILL_LEVEL_FILES = Object.freeze({
   katana: Object.freeze(["katana_l1", "katana_l2", "katana_l3", "katana_l4", "katana_l5"]),
   barrier: Object.freeze(Array(5).fill("barrier_ground_45")),
@@ -1393,9 +2081,17 @@ function loadSkillImage(key, file, version) {
   img.fetchPriority = "high";
   img.decoding = "async";
   img.onload = () => { ART[key] = img; skillLevelLoads.set(key, "ready"); markSettled(key); };
-  img.onerror = () => { skillLevelLoads.set(key, "missing"); markSettled(key, true); };
+  img.onerror = () => {
+    skillLevelLoads.set(key, "missing"); markSettled(key, true);
+    console.warn('[Assets] Skill raster unavailable:', key, img.src);
+  };
   skillLevelLoads.set(key, "loading");
-  img.src = "assets/img/vfx/raster/" + file + ".webp?v=" + version;
+  const katana = /^katana_l([1-5])$/.exec(file);
+  const fire = /^fire_(orbit|attack|dragon)_l([1-5])$/.exec(file);
+  const canonical = katana ? window.sharedSkillRuntimePath("katana", "main", Number(katana[1]))
+    : fire ? window.sharedSkillRuntimePath("fire", fire[1], Number(fire[2]))
+    : file === "needle" ? window.sharedSkillRuntimePath("needle", "main", 1) : null;
+  img.src = (canonical || "assets/img/vfx/raster/" + file + ".webp") + "?v=" + version;
   return null;
 }
 window.skillVfxArt = (id, level) => loadSkillImage(window.skillVfxKey(id, level), window.skillVfxFile(id, level), "20261007-skilltiers1");
@@ -1439,7 +2135,8 @@ function requestBarrierRaster(key) {
     }
   };
   img.onerror = () => console.warn("[Assets] Barrier image unavailable; retaining fallback:", key);
-  img.src = BARRIER_RASTER_FILES[key];
+  const phase = key === "barrier_core_lv5" ? "max" : "main";
+  img.src = (window.sharedSkillRuntimePath("barrier", phase) || BARRIER_RASTER_FILES[key]) + "?v=20261027-unified-skill1";
   return null;
 }
 // Lv5 requests its own artwork and can use the normal image until it is ready.
@@ -1486,7 +2183,7 @@ window.ofudaRasterArt = kind => {
     }
   };
   img.onerror = () => console.warn("[Assets] Ofuda image unavailable, retaining legacy art:", kind);
-  img.src = path;
+  img.src = (window.sharedSkillRuntimePath("boom", kind) || path) + "?v=20261027-unified-skill1";
   return null;
 };
 
@@ -1523,7 +2220,7 @@ window.thunderRasterArt=kind=>{
   }catch(e){console.warn("[Assets] Thunder raster rejected; fallback:",kind,e.message);}
  };
  img.onerror=()=>console.warn("[Assets] Thunder raster missing; fallback:",kind);
- img.src="assets/img/vfx/"+file+"?v=20261012-thunder-raster1";
+ img.src=(window.sharedSkillRuntimePath("thunder", kind) || "assets/img/vfx/"+file)+"?v=20261027-unified-skill1";
  return null;
 };
 
@@ -1563,6 +2260,102 @@ window.useSkillArt = (id, level) => {
 // （art/stage2-rain-port/scene/）。O_prop_anchor_gear 與現役 prop_anchor_gear.webp 位元組不同，URL 不改。
 // 核准 v2 runtime 是 ground_stone_wood_transition_v2.webp，位元組與
 // art/stage2-rain-port/scene/G_stone_wood_transition_v2.webp 相同，不覆蓋舊過渡圖。
+// BOSS-IMAGE-PROD-R2：跨關 Boss hazard 圖片技術候選。
+// 獨立 DEV gate：dev=1 && bossart=1；不借用 rain-port / fusion 的 gate。
+// 全部來源皆為既有手繪 raster 的 ART_CANDIDATE；未經使用者 ART_PASS 不得升正式。
+// BOSS 危險圖片契約：
+// - defs=BOSS_HAZARD_ART：危險圖片定義（slam/charge/ring/tide）
+// - 圖片=BOSS_HAZARD_ART_IMG：渲染用的圖片實例
+// - gate=isBossHazardArtEnabled dev=1&bossart=1：僅在 URL 參數 dev=1&bossart=1 時啟用
+window.BOSS_HAZARD_ART_IMG = {};
+window.BOSS_HAZARD_ART_STATUS = {};
+const BOSS_HAZARD_ART_DEFS = Object.freeze({
+  slam: Object.freeze({
+    source: "assets/img/vfx/raster/dragon_burning_ground_l5.webp",
+    bbox: Object.freeze([10, 53, 631, 583]),
+    width: 640, height: 640,
+    status: "ART_CANDIDATE",
+    note: "火裂地；slam 主體候選"
+  }),
+  charge: Object.freeze({
+    source: "assets/img/vfx/raster/dragon_fireball_l5.webp",
+    bbox: Object.freeze([18, 77, 498, 445]),
+    width: 512, height: 512,
+    status: "ART_CANDIDATE",
+    note: "火球尾流；charge 方向帶候選"
+  }),
+  ring: Object.freeze({
+    source: "assets/img/vfx/raster/katana_l5.webp",
+    bbox: Object.freeze([21, 117, 1250, 1131]),
+    width: 1254, height: 1254,
+    status: "ART_CANDIDATE",
+    note: "金墨月牙；ring 帶內多向旋轉複用，避免單向只覆蓋右側"
+  }),
+  tide: Object.freeze({
+    source: "assets/img/vfx/boss-water-r8/tide_v03.webp",
+    bbox: Object.freeze([0, 117, 1254, 1061]),
+    width: 1254, height: 1254,
+    sha256: "97d3ad48024a8cc5485a0b247eedb760bb2abc29aad304ab963498c160bf4cc4",
+    provenance: "assets/img/vfx/boss-water-r8/tide_v03.png",
+    status: "ART_CANDIDATE",
+    note: "潮汐浪帶；Two-Bank裁切 left[0..559] right[737..1254]，中央25px α=0走廊非動態safeOffset依據",
+    limitations: ["VISIBLE_MARGIN_2PX", "CORRIDOR_25PX_ALPHA0", "LOW_ALPHA_FRINGE_178PX", "USER_ART_REVIEW_PENDING"]
+  }),
+  tidalFan: Object.freeze({
+    source: "assets/img/vfx/boss-water-r8/tidalFan_v01.webp",
+    bbox: Object.freeze([12, 164, 1247, 1118]),
+    width: 1254, height: 1254,
+    sha256: "b887523723d213d465ebdd2d01bde84f925e0635e7939b996c5248a5fd47317f",
+    provenance: "assets/img/vfx/boss-water-r8/tidalFan_v01.png",
+    status: "ART_CANDIDATE",
+    note: "潮汐扇面；源圖160度需裁切至判定120度(±PI/3)，apex(617,1117) reach 971px",
+    limitations: ["VISIBLE_MARGIN_7PX", "SOURCE_160DEG_VS_HITBOX_120DEG", "EDGE_TOUCHES_LEFT_RIGHT_BOTTOM", "USER_ART_REVIEW_PENDING"]
+  }),
+  rainVortex: Object.freeze({
+    source: "assets/img/vfx/boss-water-r8/rainVortex_v01.webp",
+    bbox: Object.freeze([37, 39, 1226, 1227]),
+    width: 1254, height: 1254,
+    sha256: "bc950af55b0b3ab4cef25d961f61da3ba9ee1520b2a8b3696c105b2e7bd5fe12",
+    provenance: "assets/img/vfx/boss-water-r8/rainVortex_v01.png",
+    status: "ART_CANDIDATE",
+    note: "雨夜渦流；地面漩渦需tilt=0.60投影、水柱billboard直立，整圖含地面+水柱需分層",
+    limitations: ["VISIBLE_MARGIN_27PX", "COMBINED_GROUND_AND_COLUMN", "TEST_PLAN_PENDING_PERSPECTIVE", "USER_ART_REVIEW_PENDING"]
+  })
+});
+window.BOSS_HAZARD_ART = BOSS_HAZARD_ART_DEFS;
+window.BOSS_HAZARD_ART_MISSING = Object.freeze({
+  // tide, tidalFan, rainVortex now have DEV candidates in boss-water-r8/
+  // Status: ART_CANDIDATE with TECH_LIMITATIONS, USER_ART_REVIEW_PENDING
+});
+const isBossHazardArtEnabled = () => {
+  const search = typeof window !== "undefined" && window.location
+    ? String(window.location.search || "")
+    : "";
+  return typeof window !== "undefined" && window.DEV_MODE?.isDevMode?.(window.location) === true
+    && /(?:^|[?&])bossart=1(?=[&#]|$)/.test(search);
+};
+window.isBossHazardArtEnabled = isBossHazardArtEnabled;
+window.BOSS_HAZARD_ART_ENABLED = isBossHazardArtEnabled();
+const bossHazardArtRequested = new Set();
+function loadBossHazardArt() {
+  if (!isBossHazardArtEnabled() || typeof Image !== "function") return;
+  for (const [kind, def] of Object.entries(BOSS_HAZARD_ART_DEFS)) {
+    if (bossHazardArtRequested.has(kind)) continue;
+    bossHazardArtRequested.add(kind);
+    window.BOSS_HAZARD_ART_STATUS[kind] = "loading";
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = () => {
+      window.BOSS_HAZARD_ART_IMG[kind] = img;
+      window.BOSS_HAZARD_ART_STATUS[kind] = "ready";
+    };
+    img.onerror = () => { window.BOSS_HAZARD_ART_STATUS[kind] = "error"; };
+    img.src = `${def.source}?v=20261024-bossart2`;
+  }
+}
+window.refreshBossHazardArt = loadBossHazardArt;
+if (isBossHazardArtEnabled()) loadBossHazardArt();
+
 window.PORT_ART = {};
 window.PORT_ART_STATUS = {};
 const RAIN_PORT_ASSETS = Object.freeze({
@@ -1713,18 +2506,40 @@ if (typeof window !== "undefined") {
   });
 }
 
-// 妖櫻山道只在進關時載三張地面。直向過渡未核准，不在這張表。
-// Canonical：art/stage3-sakura-pass/scene/ 的 G_mountain_dirt、G_trans_dirt_to_steps_h、G_sakura_steps。loader URL 不變。
+// Stage 3 terrain uses ONE dirt base + independent transparent stone-path sprites.
+// Stone paths are scene decals: never repeat a complete masonry texture as ground.
+// Candidates remain local-preview only until art sign-off / runtime import.
 window.SAKURA_ART = {};
 window.SAKURA_ART_STATUS = {};
 const SAKURA_GROUND_ASSETS = Object.freeze({
-  dirt: "assets/img/sakura-pass/ground_mountain_dirt.webp",
-  transH: "assets/img/sakura-pass/ground_trans_dirt_to_steps_h.webp",
-  steps: "assets/img/sakura-pass/ground_sakura_steps.webp"
+  dirt: "assets/img/sakura-pass/s3_dirt.webp",
+  stoneStraight: "assets/img/sakura-pass/s3_stone_straight.webp",
+  stoneLeft: "assets/img/sakura-pass/s3_stone_left.webp",
+  stoneRight: "assets/img/sakura-pass/s3_stone_right.webp",
+  stoneBroken: "assets/img/sakura-pass/s3_stone_broken.webp",
+  stoneSparse: "assets/img/sakura-pass/s3_stone_sparse.webp",
+  stoneMixed: "assets/img/sakura-pass/s3_stone_mixed.webp"
 });
+// Never attempt unapproved/absent candidates on a normal game entry.
+window.isSakuraCandidateEnabled = () => {
+  if (!window.DEV_MODE?.isDevMode?.(window.location)) return false;
+  return new URLSearchParams(window.location?.search || "").get("s3art") === "1";
+};
 const sakuraRequested = new Set();
 window.refreshSakuraArt = () => {
   if (typeof Image !== "function") return;
+  if (!window.isSakuraCandidateEnabled()) {
+    if (!sakuraRequested.has("dirt")) {
+      sakuraRequested.add("dirt");
+      const fallback = new Image();
+      fallback.onload = () => {
+        window.SAKURA_ART.dirt = fallback;
+        window.SAKURA_ART_STATUS.dirt = "fallback_stage1_dirt";
+      };
+      fallback.src = "assets/img/scenery/ground_dirt.webp";
+    }
+    return;
+  }
   for (const role of Object.keys(SAKURA_GROUND_ASSETS)) {
     const url = SAKURA_GROUND_ASSETS[role];
     if (sakuraRequested.has(role)) continue;
@@ -1737,18 +2552,49 @@ window.refreshSakuraArt = () => {
       window.SAKURA_ART[role] = img;
       window.SAKURA_ART_STATUS[role] = "ready";
     };
-    img.onerror = () => { window.SAKURA_ART_STATUS[role] = "error"; };
-    img.src = `${url}?v=20261014-sakura-ground1`;
+    img.onerror = () => {
+      window.SAKURA_ART_STATUS[role] = "candidate_not_imported";
+      if (role !== "dirt") return; // no fake stone ground from another stage
+      const fallback = new Image();
+      fallback.onload = () => {
+        window.SAKURA_ART.dirt = fallback;
+        window.SAKURA_ART_STATUS.dirt = "fallback_stage1_dirt";
+      };
+      fallback.src = "assets/img/scenery/ground_dirt.webp";
+    };
+    img.src = `${url}?v=20261027-s3-decal1`;
   }
 };
-// Canonical：H_shrine_pavilion、O_corrupted_sakura。loader URL 仍是 shrine_pavilion 與 landmark_corrupted_sakura。
+// Candidate scenery names are shared by all Stage3 consumers, but missing candidates
+// keep existing approved placeholder scenery (no unreviewed image is published).
 const SAKURA_SCENE_ASSETS = Object.freeze({
-  pavilion: "assets/img/sakura-pass/shrine_pavilion.webp",
-  ancientSakura: "assets/img/sakura-pass/landmark_corrupted_sakura.webp"
+  pavilion: "assets/img/sakura-pass/s3_shrine_hall.webp",
+  teaHouse: "assets/img/sakura-pass/s3_tea_house.webp",
+  mountainHouse: "assets/img/sakura-pass/s3_mountain_house.webp",
+  storehouse: "assets/img/sakura-pass/s3_storage_hut.webp",
+  worshipHall: "assets/img/sakura-pass/s3_worship_hall.webp",
+  stoneLantern: "assets/img/sakura-pass/s3_stone_lantern.webp",
+  torii: "assets/img/sakura-pass/s3_torii_large.webp",
+  fence: "assets/img/sakura-pass/s3_wood_fence.webp",
+  marker: "assets/img/sakura-pass/s3_stone_marker.webp",
+  mossRocks: "assets/img/sakura-pass/s3_moss_rocks.webp",
+  ancientSakura: "assets/img/scenery/prop_sakura.webp"
 });
 const sakuraSceneRequested = new Set();
 window.refreshSakuraScene = () => {
   if (typeof Image !== "function") return;
+  if (!window.isSakuraCandidateEnabled()) {
+    if (!sakuraSceneRequested.has("pavilion")) {
+      sakuraSceneRequested.add("pavilion");
+      const fallback = new Image();
+      fallback.onload = () => {
+        window.SAKURA_ART.pavilion = fallback;
+        window.SAKURA_ART_STATUS.pavilion = "fallback_stage1_pavilion";
+      };
+      fallback.src = "assets/img/scenery/house_shrine.webp";
+    }
+    return;
+  }
   for (const role of Object.keys(SAKURA_SCENE_ASSETS)) {
     const url = SAKURA_SCENE_ASSETS[role];
     if (sakuraSceneRequested.has(role)) continue;
@@ -1761,8 +2607,17 @@ window.refreshSakuraScene = () => {
       window.SAKURA_ART[role] = img;
       window.SAKURA_ART_STATUS[role] = "ready";
     };
-    img.onerror = () => { window.SAKURA_ART_STATUS[role] = "error"; };
-    img.src = `${url}?v=20261014-sakura-scene1`;
+    img.onerror = () => {
+      window.SAKURA_ART_STATUS[role] = "candidate_not_imported";
+      if (role !== "pavilion") return;
+      const fallback = new Image();
+      fallback.onload = () => {
+        window.SAKURA_ART.pavilion = fallback;
+        window.SAKURA_ART_STATUS.pavilion = "fallback_stage1_pavilion";
+      };
+      fallback.src = "assets/img/scenery/house_shrine.webp";
+    };
+    img.src = `${url}?v=20261027-s3-buildings1`;
   }
 };
 
@@ -1786,10 +2641,20 @@ window.loadStageMapArt = (stageId) => {
   // 由 loadStageAssets 統一處理 map 載入與 fallback，避免重複請求與漏掉 fallback
   loadStageAssets(stageId);
 };
+window.loadStageAssets = loadStageAssets;
 
 // 載入特定關卡的場景、轉場、專屬敵人/Boss 資產
 // 缺圖回落現役共用資產，標記 WAITING_ART；不阻塞遊戲進場
 function loadStageAssets(stageId) {
+  // Shared player action and skill art never originate from a stage-specific directory.
+  window.SPRITECOOK_DEV?.load?.();
+  // Fusion previews load their phases only when shown/cast, avoiding 40 initial image requests.
+  if (stageId) {
+    if (typeof window !== "undefined") window.__ACTIVE_STAGE = stageId;
+    if (typeof STAGE_ART_RESOLVER !== "undefined" && STAGE_ART_RESOLVER.setActiveStage) {
+      STAGE_ART_RESOLVER.setActiveStage(stageId);
+    }
+  }
   const slots = STAGE_ASSET_SLOTS[stageId];
   if (!slots) return;
 
@@ -1892,15 +2757,18 @@ function loadStageAssets(stageId) {
   }
 
   if (stageId === "rain-port") {
-    // Begin the shipped lightweight WebP terrain only when stage two is requested.
+    if (typeof window !== "undefined" && window.isS2ArtProdEnabled?.() && window.loadS2ArtProdAssets) void window.loadS2ArtProdAssets();
     if (window.isS2GroundKitEnabled?.()) void window.loadS2GroundKit?.();
     if (typeof window !== "undefined" && window.refreshPortArt) window.refreshPortArt();
-    if (!isS2GroundKitEnabled() && !status.missing.includes("mountain_cliff")) status.missing.push("mountain_cliff");
-    if (isPortArtCandidateEnabled() && !window.PORT_ART?.fishWorkshop?.naturalWidth && !status.missing.includes("port_fish_workshop_candidate")) {
-      status.missing.push("port_fish_workshop_candidate");
-    }
-    if (isPortArtCandidateEnabled() && !window.PORT_ART?.weatheredWarehouse?.naturalWidth && !status.missing.includes("port_weathered_warehouse_candidate")) {
-      status.missing.push("port_weathered_warehouse_candidate");
+    // The approved production manifest already contains cliff_north_rock.
+    // Do not unconditionally report the old mountain_cliff as missing.
+    if (isPortArtCandidateEnabled()) {
+      if (!window.PORT_ART?.fishWorkshop?.naturalWidth && !status.missing.includes("port_fish_workshop_candidate")) {
+        status.missing.push("port_fish_workshop_candidate");
+      }
+      if (!window.PORT_ART?.weatheredWarehouse?.naturalWidth && !status.missing.includes("port_weathered_warehouse_candidate")) {
+        status.missing.push("port_weathered_warehouse_candidate");
+      }
     }
     if (isPortSurfaceCandidateEnabled()) {
       if (!window.PORT_ART?.stoneV3?.naturalWidth && !status.missing.includes("ground_stone_nano_v3_seamless")) {
@@ -1914,10 +2782,6 @@ function loadStageAssets(stageId) {
       loadFusionCandidateArt();
       if (!status.missing.includes("fusion_inkblade_arc")) status.missing.push("fusion_inkblade_arc");
       if (!status.missing.includes("fusion_thundercircle_mark")) status.missing.push("fusion_thundercircle_mark");
-    }
-    // M2-FUSION-ART-BIND-R1：十招真圖 phase 綁定（僅嚴格 dev 門檻生效）
-    if (isFusionArtBindEnabled()) {
-      loadFusionArtBind();
     }
   }
 
@@ -2125,6 +2989,7 @@ let mapPlayerRequested = false;
 window.loadMapPlayerArt = () => {
   if (mapPlayerRequested) return;
   mapPlayerRequested = true;
+  window.SPRITECOOK_DEV?.load?.();
   PLAYER_ACTION_ART.slice(0,3).forEach(key=>loadArt(key,"low"));
 };
 function preloadCoreArt() {
@@ -2135,6 +3000,7 @@ function preloadCoreArt() {
   window.skillVfxArt("katana", 1);
 }
 window.loadGameArt = () => {
+  window.SPRITECOOK_DEV?.load?.();
   gameArtStarted = true;
   activeSkillArt.clear();activeSkillArt.set('katana',['katana_l1']);
   progressNames = gameAssetNames();

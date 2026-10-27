@@ -515,7 +515,10 @@
     // Both walk sprites face right (they are alternating foot poses, not directions).
     // Mirror locally for leftward hops; preserves pivot, size and animation frame timing.
     if (state.facing === -1) ctx.scale(-1, 1);
-    if (img && img.complete && img.naturalWidth) {
+    const spritecookWalk = walking && motion ? root.SPRITECOOK_DEV?.frame("walk",elapsed,motion) : null;
+    if (spritecookWalk) {
+      ctx.drawImage(spritecookWalk.image,spritecookWalk.index*640,0,640,640,-54,-96,108,108);
+    } else if (img && img.complete && img.naturalWidth) {
       const h = 108;
       const w = h * img.naturalWidth / img.naturalHeight;
       ctx.shadowColor = "rgba(0,0,0,0.45)";

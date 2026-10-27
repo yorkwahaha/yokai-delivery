@@ -624,6 +624,8 @@ window.AUDIO = (() => {
     });
   }
 
+  // One cached contact-noise buffer; no extra media files or network requests.
+  let impactNoise = null, lastImpactAudioAt = -10;
   // 5. 戰鬥打擊音效
   const api = {
     bossDeath() {
@@ -770,6 +772,44 @@ window.AUDIO = (() => {
       gain.connect(output(ac));
       osc.start(now);
       osc.stop(now + 0.14);
+    },
+
+    // A short crisp contact and subdued bass thump distinct from the swing.
+    // Limited to one voice per 90ms even if many opponents were hit together.
+    impact(tier = "normal") {
+      const ac = getCtx();
+      if (!ac || muted || suspended) return;
+      const now = ac.currentTime;
+      if (now < lastImpactAudioAt + 0.09) return;
+      lastImpactAudioAt = now;
+      try {
+        const strong = tier === "crit" || tier === "heavy";
+        const bus = output(ac);
+        const low = ac.createOscillator(), body = ac.createGain();
+        low.type = "sine";
+        low.frequency.setValueAtTime(strong ? 165 : 205, now);
+        low.frequency.exponentialRampToValueAtTime(strong ? 59 : 83, now + (strong ? 0.16 : 0.11));
+        body.gain.setValueAtTime(strong ? 0.19 : 0.12, now);
+        body.gain.exponentialRampToValueAtTime(0.001, now + (strong ? 0.17 : 0.12));
+        low.connect(body); body.connect(bus);
+        low.start(now); low.stop(now + (strong ? 0.18 : 0.13));
+
+        if (!impactNoise || impactNoise.sampleRate !== ac.sampleRate) {
+          const frames = Math.ceil(ac.sampleRate * 0.07);
+          impactNoise = ac.createBuffer(1, frames, ac.sampleRate);
+          const samples = impactNoise.getChannelData(0);
+          for (let i = 0; i < frames; i++) samples[i] = Math.random() * 2 - 1;
+        }
+        const attack = ac.createBufferSource(), filter = ac.createBiquadFilter(), bright = ac.createGain();
+        attack.buffer = impactNoise;
+        filter.type = "bandpass";
+        filter.frequency.value = tier === "crit" ? 3400 : 2050;
+        filter.Q.value = 0.9;
+        bright.gain.setValueAtTime(strong ? 0.17 : 0.11, now);
+        bright.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+        attack.connect(filter); filter.connect(bright); bright.connect(bus);
+        attack.start(now); attack.stop(now + 0.065);
+      } catch (_) { /* Unsupported audio device: visual hit feedback still works. */ }
     },
 
     // 符咒發射（既有上升音）。爆炸另走 ofudaBurst，不共用這段。
