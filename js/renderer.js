@@ -866,6 +866,9 @@ window.RENDERER = (() => {
       ? kit.transitions.horizontal : null;
     // S2 Nano 512px 原稿鋪成 256 世界像素：單塊石板約角色半身，不是等身巨石。
     const tScale = kitEnabled ? s2KitScale() : (s2Enabled ? 0.5 : 1);
+    // 512px approved mud/slab tile already matches first-stage world scale;
+    // only the 1254px harbor docks should be scaled down to half size.
+    const stoneScale = (s2Enabled && stoneTile?.naturalWidth <= 600 && !kitEnabled) ? 1 : tScale;
     const seamImg = (surfaceCand && window.PORT_ART?.stoneWoodTransition?.naturalWidth)
       ? window.PORT_ART.stoneWoodTransition
       : window.PORT_ART?.[PORT_V2_ROLE];
@@ -1027,15 +1030,15 @@ window.RENDERER = (() => {
     // bands. Repeated per-chunk clipping exposed a 1px dark vertical boundary
     // (especially at non-integer camera/tilt scales). Same approved art/picker.
     const groundLeft = left, groundRight = left + width;
-    const paintWholeBand = (tile, bandTop, bandBottom) => {
+    const paintWholeBand = (tile, bandTop, bandBottom, scale = tScale) => {
       const y0 = Math.max(top, bandTop), y1 = Math.min(top + height, bandBottom);
       if (!tile || y1 <= y0) return;
       c.save();
       c.beginPath(); c.rect(groundLeft, y0, width, y1 - y0); c.clip();
-      tileImage(c, tile, groundLeft, y0, groundRight, y1, tScale);
+      tileImage(c, tile, groundLeft, y0, groundRight, y1, scale);
       c.restore();
     };
-    paintWholeBand(kitStonePick || stoneTile, minY, dockSeamY);
+    paintWholeBand(kitStonePick || stoneTile, minY, dockSeamY, stoneScale);
     paintWholeBand(kitWoodPick || woodTile, dockSeamY, maxY);
     // Draw the north edge only once as well; never once per chunk.
     if ((kitStonePick || stoneTile) && minY < top + height && minY + 28 > top) {

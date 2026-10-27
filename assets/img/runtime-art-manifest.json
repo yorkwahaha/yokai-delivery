@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1-r12-unified",
-  "updated": "2026-10-26",
+  "updated": "2026-10-27",
   "authority": "docs/STAGE_PATHS.json",
   "description": "Authoritative runtime art manifest for Yokai Delivery Stage 1 and Stage 2 unified art pipeline. Preserves source review status while defining authoritative runtime selection.",
   "stages": {
@@ -110,40 +110,40 @@
           {
             "id": "g_stone_01",
             "category": "ground",
-            "path": "assets/img/rain-port/s2-production/g_stone_01.webp",
-            "sha256": "2baa4406b6331754d99938a0896e2fbe230a222bb05896ee658589f5cc980c7e",
-            "bytes": 511976,
-            "source_status": "USER_SELECTED_LIGHTWEIGHT",
+            "path": "assets/img/rain-port/s2-production/ground_mud_slab.webp",
+            "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
+            "bytes": 131198,
+            "source_status": "REUSED_APPROVED_MUD_SLAB_REPLACES_REJECTED_COBBLE",
             "runtime_status": "APPROVED_RUNTIME",
             "status": "APPROVED"
           },
           {
             "id": "g_stone_02",
             "category": "ground",
-            "path": "assets/img/rain-port/s2-production/g_stone_02.webp",
-            "sha256": "e9df01a0974d5b96f1dbe7f827ac540e371b27e0655941c0c6491e6440912557",
-            "bytes": 492192,
-            "source_status": "USER_SELECTED_LIGHTWEIGHT",
+            "path": "assets/img/rain-port/s2-production/ground_mud_slab.webp",
+            "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
+            "bytes": 131198,
+            "source_status": "REUSED_APPROVED_MUD_SLAB_REPLACES_REJECTED_COBBLE",
             "runtime_status": "APPROVED_RUNTIME",
             "status": "APPROVED"
           },
           {
             "id": "g_stone_03",
             "category": "ground",
-            "path": "assets/img/rain-port/s2-production/g_stone_03.webp",
-            "sha256": "0b587a3d25a405f31d62ccf9c438d6c02717795224fa4a55e75631ad1873aad6",
-            "bytes": 529378,
-            "source_status": "USER_SELECTED_LIGHTWEIGHT",
+            "path": "assets/img/rain-port/s2-production/ground_mud_slab.webp",
+            "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
+            "bytes": 131198,
+            "source_status": "REUSED_APPROVED_MUD_SLAB_REPLACES_REJECTED_COBBLE",
             "runtime_status": "APPROVED_RUNTIME",
             "status": "APPROVED"
           },
           {
             "id": "g_stone_04",
             "category": "ground",
-            "path": "assets/img/rain-port/s2-production/g_stone_04.webp",
-            "sha256": "3ae81461a455831dcb123baa46891952a1265c07f5be1a8a8fb78e7361eee37b",
-            "bytes": 490756,
-            "source_status": "USER_SELECTED_LIGHTWEIGHT",
+            "path": "assets/img/rain-port/s2-production/ground_mud_slab.webp",
+            "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
+            "bytes": 131198,
+            "source_status": "REUSED_APPROVED_MUD_SLAB_REPLACES_REJECTED_COBBLE",
             "runtime_status": "APPROVED_RUNTIME",
             "status": "APPROVED"
           }
@@ -804,10 +804,58 @@
       "status": "APPROVED",
       "runtime_status": "APPROVED_RUNTIME",
       "actions": {
-        "idle_atlas": {"id": "player_idle_atlas", "path": "assets/img/player-actions/idle.webp", "bytes": 316326, "sha256": "d7973a9fba7a45ac4fe366565069ec0ab03ead9fb5fafee93c6b576f25feb665", "frames": 8, "cell_size": [640, 640], "status": "RUNTIME_ACTIVE", "source_status": "USER_PLAYTEST_PENDING"},
-        "walk_atlas": {"id": "player_walk_atlas", "path": "assets/img/player-actions/walk.webp", "bytes": 384180, "sha256": "2e0308cefd9315aeffe835d53695cb2d07202942bfc8e431acc38c52f5e3b854", "frames": 8, "cell_size": [640, 640], "status": "RUNTIME_ACTIVE", "source_status": "USER_PLAYTEST_PENDING"},
-        "run_atlas": {"id": "player_run_atlas", "path": "assets/img/player-actions/run.webp", "bytes": 466386, "sha256": "06d4372826a95f064dac64b65a357e4c5ff18c1a46c39aad7f2ba2c562056c33", "frames": 10, "cell_size": [640, 640], "status": "RUNTIME_ACTIVE", "source_status": "USER_PLAYTEST_PENDING"},
-        "attack_atlas": {"id": "player_attack_atlas", "path": "assets/img/player-actions/attack.webp", "bytes": 440860, "sha256": "719eef9202432ce08723d0734b0b7c70e05bd1a95c2cc40db377bdd024472eef", "frames": 8, "cell_size": [640, 640], "status": "RUNTIME_ACTIVE", "source_status": "USER_PLAYTEST_PENDING"},
+        "idle_atlas": {
+          "id": "player_idle_atlas",
+          "path": "assets/img/player-actions/idle.webp",
+          "bytes": 316326,
+          "sha256": "d7973a9fba7a45ac4fe366565069ec0ab03ead9fb5fafee93c6b576f25feb665",
+          "frames": 8,
+          "cell_size": [
+            640,
+            640
+          ],
+          "status": "RUNTIME_ACTIVE",
+          "source_status": "USER_PLAYTEST_PENDING"
+        },
+        "walk_atlas": {
+          "id": "player_walk_atlas",
+          "path": "assets/img/player-actions/walk.webp",
+          "bytes": 384180,
+          "sha256": "2e0308cefd9315aeffe835d53695cb2d07202942bfc8e431acc38c52f5e3b854",
+          "frames": 8,
+          "cell_size": [
+            640,
+            640
+          ],
+          "status": "RUNTIME_ACTIVE",
+          "source_status": "USER_PLAYTEST_PENDING"
+        },
+        "run_atlas": {
+          "id": "player_run_atlas",
+          "path": "assets/img/player-actions/run.webp",
+          "bytes": 466386,
+          "sha256": "06d4372826a95f064dac64b65a357e4c5ff18c1a46c39aad7f2ba2c562056c33",
+          "frames": 10,
+          "cell_size": [
+            640,
+            640
+          ],
+          "status": "RUNTIME_ACTIVE",
+          "source_status": "USER_PLAYTEST_PENDING"
+        },
+        "attack_atlas": {
+          "id": "player_attack_atlas",
+          "path": "assets/img/player-actions/attack.webp",
+          "bytes": 440860,
+          "sha256": "719eef9202432ce08723d0734b0b7c70e05bd1a95c2cc40db377bdd024472eef",
+          "frames": 8,
+          "cell_size": [
+            640,
+            640
+          ],
+          "status": "RUNTIME_ACTIVE",
+          "source_status": "USER_PLAYTEST_PENDING"
+        },
         "base": {
           "id": "player",
           "path": "assets/img/player.webp",

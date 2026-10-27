@@ -213,7 +213,7 @@ const isS2ArtProdEnabled = () => {
 // 共通技能/HUD 的 manifest 不得被 S2 場景旗標擋住，S1 也使用同一來源。
 let runtimeManifestPromise = null;
 window.loadRuntimeArtManifest = () => {
-  if (!runtimeManifestPromise) runtimeManifestPromise = fetch('assets/img/runtime-art-manifest.json?v=20261027-unified2')
+  if (!runtimeManifestPromise) runtimeManifestPromise = fetch('assets/img/runtime-art-manifest.json?v=20261027-s2-mud-slab2')
     .then(res => { if (!res.ok) throw Error(`MANIFEST_HTTP_${res.status}`); return res.json(); })
     .then(manifest => { window.__RUNTIME_MANIFEST = manifest; return manifest; })
     .catch(error => {
@@ -230,7 +230,7 @@ window.loadRuntimeArtManifest();
 async function loadS2ArtProdManifest() {
   if (!isS2ArtProdEnabled()) return null;
   // Unified runtime art manifest serves as authoritative single data source
-  const unifiedManifestUrl = 'assets/img/runtime-art-manifest.json?v=20261027-unified2';
+  const unifiedManifestUrl = 'assets/img/runtime-art-manifest.json?v=20261027-s2-mud-slab2';
 
   try {
     const manifest = await window.loadRuntimeArtManifest();
@@ -811,7 +811,7 @@ const FUSION_VFX_METADATA = Object.freeze({
     name: "斬界輪",
     parents: Object.freeze(["katana", "barrier"]),
     candidateAssetKey: "fusion_slashwheel_arc",
-    file: "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+    file: "assets/img/vfx/fusion/recipes/fusion_slashwheel/main_alpha_candidate_v02.webp",
     status: "WAITING_IMPLEMENTATION",
     fallback: "none"
   }),
@@ -820,7 +820,7 @@ const FUSION_VFX_METADATA = Object.freeze({
     name: "雷狐居合",
     parents: Object.freeze(["katana", "thunder"]),
     candidateAssetKey: "fusion_foxiai_arc",
-    file: "art/fusion/candidates/fusion_foxiai/main_alpha_candidate_v02.webp",
+    file: "assets/img/vfx/fusion/recipes/fusion_foxiai/main_alpha_candidate_v02.webp",
     status: "ART_CANDIDATE",
     fallback: "tech_placeholder"
   }),
@@ -829,7 +829,7 @@ const FUSION_VFX_METADATA = Object.freeze({
     name: "退魔符刃",
     parents: Object.freeze(["katana", "boom"]),
     candidateAssetKey: "fusion_exorcistblade_arc",
-    file: "art/fusion/candidates/fusion_exorcistblade/main_alpha_candidate_v02.webp",
+    file: "assets/img/vfx/fusion/recipes/fusion_exorcistblade/main_alpha_candidate_v02.webp",
     status: "ART_CANDIDATE",
     fallback: "tech_placeholder"
   }),
@@ -838,7 +838,7 @@ const FUSION_VFX_METADATA = Object.freeze({
     name: "妖火結界",
     parents: Object.freeze(["fire", "barrier"]),
     candidateAssetKey: "fusion_foxfirebarrier_ward",
-    file: "art/fusion/candidates/fusion_foxfirebarrier/main_alpha_candidate_v02.webp",
+    file: "assets/img/vfx/fusion/recipes/fusion_foxfirebarrier/main_alpha_candidate_v02.webp",
     status: "ART_CANDIDATE",
     fallback: "tech_placeholder"
   }),
@@ -847,7 +847,7 @@ const FUSION_VFX_METADATA = Object.freeze({
     name: "狐雷天燈",
     parents: Object.freeze(["fire", "thunder"]),
     candidateAssetKey: "fusion_foxthunderlantern_sigil",
-    file: "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+    file: "assets/img/vfx/fusion/recipes/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
     status: "WAITING_IMPLEMENTATION",
     fallback: "none"
   }),
@@ -856,7 +856,7 @@ const FUSION_VFX_METADATA = Object.freeze({
     name: "炎符祭",
     parents: Object.freeze(["fire", "boom"]),
     candidateAssetKey: "fusion_flamefestival_fire",
-    file: "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+    file: "assets/img/vfx/fusion/recipes/fusion_flamefestival/main_alpha_candidate_v02.webp",
     status: "WAITING_IMPLEMENTATION",
     fallback: "none"
   }),
@@ -865,7 +865,7 @@ const FUSION_VFX_METADATA = Object.freeze({
     name: "雷陣封界",
     parents: Object.freeze(["barrier", "thunder"]),
     candidateAssetKey: "fusion_thundercircle_mark",
-    file: "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+    file: "assets/img/vfx/fusion/recipes/fusion_thundercircle/main_alpha_candidate_v02.webp",
     status: "WAITING_ART",
     fallback: "procedural_thunder_seal"
   }),
@@ -874,7 +874,7 @@ const FUSION_VFX_METADATA = Object.freeze({
     name: "退魔封陣",
     parents: Object.freeze(["barrier", "boom"]),
     candidateAssetKey: "fusion_exorcistseal_array",
-    file: "art/fusion/candidates/fusion_exorcistseal/main_alpha_candidate_v02.webp",
+    file: "assets/img/vfx/fusion/recipes/fusion_exorcistseal/main_alpha_candidate_v02.webp",
     status: "ART_CANDIDATE",
     fallback: "tech_placeholder"
   }),
@@ -883,7 +883,7 @@ const FUSION_VFX_METADATA = Object.freeze({
     name: "雷符神罰",
     parents: Object.freeze(["thunder", "boom"]),
     candidateAssetKey: "fusion_thundertalisman_strike",
-    file: "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+    file: "assets/img/vfx/fusion/recipes/fusion_thundertalisman/main_alpha_candidate_v02.webp",
     status: "WAITING_IMPLEMENTATION",
     fallback: "none"
   })
@@ -934,25 +934,25 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
   }),
   fusion_slashwheel: Object.freeze({
     main: Object.freeze({
-      file: "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_slashwheel/main_alpha_candidate_v02.webp",
       sha256: "912268eeebf114b4f5622d6deef2818e7a0c99abc9004cd9d53dfbd382673c38",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([201, 63, 1072, 779])
     }),
     hit: Object.freeze({
-      file: "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_slashwheel/main_alpha_candidate_v02.webp",
       sha256: "912268eeebf114b4f5622d6deef2818e7a0c99abc9004cd9d53dfbd382673c38",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([201, 63, 1072, 779])
     }),
     ground: Object.freeze({
-      file: "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_slashwheel/main_alpha_candidate_v02.webp",
       sha256: "912268eeebf114b4f5622d6deef2818e7a0c99abc9004cd9d53dfbd382673c38",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([201, 63, 1072, 779])
     }),
     icon: Object.freeze({
-      file: "art/fusion/candidates/fusion_slashwheel/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_slashwheel/main_alpha_candidate_v02.webp",
       sha256: "912268eeebf114b4f5622d6deef2818e7a0c99abc9004cd9d53dfbd382673c38",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([504, 296, 760, 552])
@@ -960,25 +960,25 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
   }),
   fusion_foxiai: Object.freeze({
     main: Object.freeze({
-      file: "art/fusion/candidates/fusion_foxiai/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_foxiai/main_alpha_candidate_v02.webp",
       sha256: "9e84e1dd4e24dde5a99b7e4fd454fe871ffd770ceefba05aa3bf7ca1a5599d38",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([92, 141, 1208, 726])
     }),
     hit: Object.freeze({
-      file: "art/fusion/candidates/fusion_foxiai/hit_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_foxiai/hit_alpha_candidate_v01.webp",
       sha256: "f55f0aa2fa501fc3bb400ce71a6ade585de83f3141b8239438d8746059f72365",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([308, 160, 953, 694])
     }),
     ground: Object.freeze({
-      file: "art/fusion/candidates/fusion_foxiai/ground_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_foxiai/ground_alpha_candidate_v01.webp",
       sha256: "2cab06fa5fe89caa477028320dffde6774dacc27e51f3d11317780169fea253a",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([60, 352, 1160, 494])
     }),
     icon: Object.freeze({
-      file: "art/fusion/candidates/fusion_foxiai/icon_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_foxiai/icon_alpha_candidate_v01.webp",
       sha256: "a5c3b7648ed1fae307d1098241bea4be1cb71c76b8b009b23de16ddbbb6b3320",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([334, 134, 918, 720])
@@ -986,25 +986,25 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
   }),
   fusion_exorcistblade: Object.freeze({
     main: Object.freeze({
-      file: "art/fusion/candidates/fusion_exorcistblade/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_exorcistblade/main_alpha_candidate_v02.webp",
       sha256: "7d634b81af6f066de5412c2f1cf264efdd3b1dc885d152a4925307f5bda01dbd",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([139, 166, 1181, 640])
     }),
     hit: Object.freeze({
-      file: "art/fusion/candidates/fusion_exorcistblade/hit_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_exorcistblade/hit_alpha_candidate_v01.webp",
       sha256: "5f676cf6c71300431618dbb8671026e54384d0f47a1731fb7165dd7b4d4b4238",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([227, 116, 1042, 734])
     }),
     ground: Object.freeze({
-      file: "art/fusion/candidates/fusion_exorcistblade/ground_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_exorcistblade/ground_alpha_candidate_v01.webp",
       sha256: "cbaf8b871aea41cef38e8fe3499756a783f7c4dbbde2d27b8cbf57e990f1bfaa",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([40, 132, 1202, 694])
     }),
     icon: Object.freeze({
-      file: "art/fusion/candidates/fusion_exorcistblade/icon_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_exorcistblade/icon_alpha_candidate_v01.webp",
       sha256: "c1865f590b7dd1c25fa15cb450c24a7d61073ed29f56c9d0020a910e62f8e020",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([367, 158, 891, 693])
@@ -1012,25 +1012,25 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
   }),
   fusion_foxfirebarrier: Object.freeze({
     main: Object.freeze({
-      file: "art/fusion/candidates/fusion_foxfirebarrier/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_foxfirebarrier/main_alpha_candidate_v02.webp",
       sha256: "cda1c296ebe4cb5abf93945cf2aba8df9a0ce75c8609b4e0bd015baa5105bc92",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([186, 109, 1066, 699])
     }),
     hit: Object.freeze({
-      file: "art/fusion/candidates/fusion_foxfirebarrier/hit_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_foxfirebarrier/hit_alpha_candidate_v01.webp",
       sha256: "6b20717830c80bfbccd0538523c36aa6efa50d52ab4e54628cde139bd717d43b",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([302, 137, 980, 706])
     }),
     ground: Object.freeze({
-      file: "art/fusion/candidates/fusion_foxfirebarrier/ground_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_foxfirebarrier/ground_alpha_candidate_v01.webp",
       sha256: "ddfbcc43e47499bca05d80d8ddae9f25e0d218f6c4db281a9fc3c1886c1ce9c6",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([131, 188, 1129, 670])
     }),
     icon: Object.freeze({
-      file: "art/fusion/candidates/fusion_foxfirebarrier/icon_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_foxfirebarrier/icon_alpha_candidate_v01.webp",
       sha256: "6dfd62ab2f2d37cde977d745ddd6b5796af041c8cda909a74ecee4750ee36920",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([334, 108, 932, 740])
@@ -1038,25 +1038,25 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
   }),
   fusion_foxthunderlantern: Object.freeze({
     main: Object.freeze({
-      file: "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
       sha256: "34e3f654ce0a3de8c088d80b47d1e14011f8e660158b04b8d764480d792937fe",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([264, 32, 1100, 796])
     }),
     hit: Object.freeze({
-      file: "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
       sha256: "34e3f654ce0a3de8c088d80b47d1e14011f8e660158b04b8d764480d792937fe",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([264, 32, 1100, 796])
     }),
     ground: Object.freeze({
-      file: "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
       sha256: "34e3f654ce0a3de8c088d80b47d1e14011f8e660158b04b8d764480d792937fe",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([264, 32, 1100, 796])
     }),
     icon: Object.freeze({
-      file: "art/fusion/candidates/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_foxthunderlantern/main_alpha_candidate_v02.webp",
       sha256: "34e3f654ce0a3de8c088d80b47d1e14011f8e660158b04b8d764480d792937fe",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([504, 296, 760, 552])
@@ -1064,25 +1064,25 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
   }),
   fusion_flamefestival: Object.freeze({
     main: Object.freeze({
-      file: "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_flamefestival/main_alpha_candidate_v02.webp",
       sha256: "68bfe9465b52fd5ff5cea0ac1a088c05d1afe82e458bfa7fc746b08a33d696c8",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([125, 34, 1164, 810])
     }),
     hit: Object.freeze({
-      file: "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_flamefestival/main_alpha_candidate_v02.webp",
       sha256: "68bfe9465b52fd5ff5cea0ac1a088c05d1afe82e458bfa7fc746b08a33d696c8",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([125, 34, 1164, 810])
     }),
     ground: Object.freeze({
-      file: "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_flamefestival/main_alpha_candidate_v02.webp",
       sha256: "68bfe9465b52fd5ff5cea0ac1a088c05d1afe82e458bfa7fc746b08a33d696c8",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([125, 34, 1164, 810])
     }),
     icon: Object.freeze({
-      file: "art/fusion/candidates/fusion_flamefestival/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_flamefestival/main_alpha_candidate_v02.webp",
       sha256: "68bfe9465b52fd5ff5cea0ac1a088c05d1afe82e458bfa7fc746b08a33d696c8",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([504, 296, 760, 552])
@@ -1090,25 +1090,25 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
   }),
   fusion_thundercircle: Object.freeze({
     main: Object.freeze({
-      file: "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_thundercircle/main_alpha_candidate_v02.webp",
       sha256: "8ac610ce2c92d71512e2f5cd4f4bee1cf8c398e9852ceed8a9ea5b4913987999",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([68, 82, 1197, 797])
     }),
     hit: Object.freeze({
-      file: "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_thundercircle/main_alpha_candidate_v02.webp",
       sha256: "8ac610ce2c92d71512e2f5cd4f4bee1cf8c398e9852ceed8a9ea5b4913987999",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([68, 82, 1197, 797])
     }),
     ground: Object.freeze({
-      file: "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_thundercircle/main_alpha_candidate_v02.webp",
       sha256: "8ac610ce2c92d71512e2f5cd4f4bee1cf8c398e9852ceed8a9ea5b4913987999",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([68, 82, 1197, 797])
     }),
     icon: Object.freeze({
-      file: "art/fusion/candidates/fusion_thundercircle/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_thundercircle/main_alpha_candidate_v02.webp",
       sha256: "8ac610ce2c92d71512e2f5cd4f4bee1cf8c398e9852ceed8a9ea5b4913987999",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([504, 296, 760, 552])
@@ -1116,25 +1116,25 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
   }),
   fusion_exorcistseal: Object.freeze({
     main: Object.freeze({
-      file: "art/fusion/candidates/fusion_exorcistseal/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_exorcistseal/main_alpha_candidate_v02.webp",
       sha256: "95fc2373e064b8924b6fb10de62b17aaa83a2fedf1503370fb40741752550ff4",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([68, 45, 1194, 804])
     }),
     hit: Object.freeze({
-      file: "art/fusion/candidates/fusion_exorcistseal/hit_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_exorcistseal/hit_alpha_candidate_v01.webp",
       sha256: "9f8fd2fbe6770f23e9f9de7fbb139475026f5bff7a4d32024e1e21e42cc3fa12",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([138, 55, 1146, 793])
     }),
     ground: Object.freeze({
-      file: "art/fusion/candidates/fusion_exorcistseal/ground_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_exorcistseal/ground_alpha_candidate_v01.webp",
       sha256: "ce1ad08ec8a60ccde92f3fe98a736971b42d46a684ab5b5a13147a60833a9d3d",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([72, 128, 1176, 760])
     }),
     icon: Object.freeze({
-      file: "art/fusion/candidates/fusion_exorcistseal/icon_alpha_candidate_v01.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_exorcistseal/icon_alpha_candidate_v01.webp",
       sha256: "cd36d26c4545dc6d3d890b72e1ebf209bf21db61bba09ecb499076a790620c64",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([274, 136, 971, 720])
@@ -1142,25 +1142,25 @@ const FUSION_ART_BIND_SOURCES = Object.freeze({
   }),
   fusion_thundertalisman: Object.freeze({
     main: Object.freeze({
-      file: "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_thundertalisman/main_alpha_candidate_v02.webp",
       sha256: "d703e9980f9f96728e1671549d4d3690c4fc81bfe1db9e842ad30604d1c2f390",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([288, 1, 1023, 798])
     }),
     hit: Object.freeze({
-      file: "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_thundertalisman/main_alpha_candidate_v02.webp",
       sha256: "d703e9980f9f96728e1671549d4d3690c4fc81bfe1db9e842ad30604d1c2f390",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([288, 1, 1023, 798])
     }),
     ground: Object.freeze({
-      file: "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_thundertalisman/main_alpha_candidate_v02.webp",
       sha256: "d703e9980f9f96728e1671549d4d3690c4fc81bfe1db9e842ad30604d1c2f390",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([288, 1, 1023, 798])
     }),
     icon: Object.freeze({
-      file: "art/fusion/candidates/fusion_thundertalisman/main_alpha_candidate_v02.webp",
+      file: "assets/img/vfx/fusion/recipes/fusion_thundertalisman/main_alpha_candidate_v02.webp",
       sha256: "d703e9980f9f96728e1671549d4d3690c4fc81bfe1db9e842ad30604d1c2f390",
       size: Object.freeze([1264, 848]),
       bbox: Object.freeze([504, 296, 760, 552])
@@ -1173,8 +1173,8 @@ const FUSION_ART_BIND_PHASES = Object.freeze(["main", "hit", "ground", "icon"]);
 // 融合候選圖僅供 dev 預覽，不應因關卡不同而有不同啟用條件。
 // 共用同一組 phase 來源；正式模式維持既有核准素材與 fallback。
 const isFusionArtBindEnabled = (kind = null) => {
-  // Inkblade has a published runtime raster; all other candidate art stays dev-only.
-  if (kind === "fusion_inkblade") return true;
+  // Ten fusion recipes share stage-independent packaged WebP sources.
+  if (kind == null || FUSION_ART_BIND_SOURCES[kind]) return true;
   try {
     const raw = String(typeof window !== "undefined" && window.location?.search || "");
     const hasDev = window.DEV_MODE?.isDevMode?.(window.location) === true;
@@ -1245,7 +1245,7 @@ function loadFusionPhaseArt(kind, phase, forceRetry = false) {
     store.status[kind][phase] = "missing";
   };
   if (!store.requests.includes(def.file)) store.requests.push(def.file);
-  img.src = def.file + "?v=20261027-fusionvisible1";
+  img.src = def.file + "?v=20261027-runtimefusion2";
   return null;
 }
 
@@ -1268,7 +1268,8 @@ function getFusionPhaseArt(kind, phase) {
 // 一次載入十招全部 phase（缺檔者標 missing／absent，不影響其他 phase）
 function loadFusionArtBind(forceRetry = false) {
   if (typeof window === "undefined") return;
-  if (!isFusionArtBindEnabled()) return;
+  // Defer all-asset diagnostic reload; individual fusions prefetch on acquire.
+  if (!forceRetry) return;
   for (const kind of Object.keys(FUSION_ART_BIND_SOURCES)) {
     for (const phase of FUSION_ART_BIND_PHASES) {
       loadFusionPhaseArt(kind, phase, forceRetry);
@@ -1301,7 +1302,7 @@ function getFusionArtBindReport() {
     kinds[kind] = phases;
   }
   return {
-    enabled: isFusionArtBindEnabled(),
+    enabled: Object.keys(FUSION_ART_BIND_SOURCES).every(kind => isFusionArtBindEnabled(kind)),
     requests: (window.FUSION_ART_BIND?.requests || []).slice(),
     kinds
   };
@@ -1324,7 +1325,7 @@ if (typeof window !== "undefined") {
   };
   // M2-FUSION-ART-BIND-R1
   window.isFusionArtBindEnabled = isFusionArtBindEnabled;
-  window.FUSION_ART_BIND_ENABLED = isFusionArtBindEnabled();
+  window.FUSION_ART_BIND_ENABLED = Object.keys(FUSION_ART_BIND_SOURCES).every(kind => isFusionArtBindEnabled(kind));
   window.FUSION_ART_BIND_SOURCES = FUSION_ART_BIND_SOURCES;
   window.FUSION_ART_BIND_PHASES = FUSION_ART_BIND_PHASES;
   window.FUSION_ART_BIND = window.FUSION_ART_BIND || FUSION_ART_BIND;
@@ -2331,8 +2332,11 @@ const isBossHazardArtEnabled = () => {
   const search = typeof window !== "undefined" && window.location
     ? String(window.location.search || "")
     : "";
-  return typeof window !== "undefined" && window.DEV_MODE?.isDevMode?.(window.location) === true
-    && /(?:^|[?&])bossart=1(?=[&#]|$)/.test(search);
+  // Prefer shipped PNG/WebP boss spells in normal play, all stages.
+  // Local bossart=0 remains a diagnostic-only legacy comparison.
+  const disableForLocalDebug = window.DEV_MODE?.isDevMode?.(window.location) === true
+    && /(?:^|[?&])bossart=0(?=[&#]|$)/.test(search);
+  return !disableForLocalDebug;
 };
 window.isBossHazardArtEnabled = isBossHazardArtEnabled;
 window.BOSS_HAZARD_ART_ENABLED = isBossHazardArtEnabled();
@@ -2350,7 +2354,7 @@ function loadBossHazardArt() {
       window.BOSS_HAZARD_ART_STATUS[kind] = "ready";
     };
     img.onerror = () => { window.BOSS_HAZARD_ART_STATUS[kind] = "error"; };
-    img.src = `${def.source}?v=20261024-bossart2`;
+    img.src = `${def.source}?v=20261027-runtimeboss2`;
   }
 }
 window.refreshBossHazardArt = loadBossHazardArt;
