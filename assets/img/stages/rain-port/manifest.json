@@ -2,58 +2,10 @@
   "schema": 1,
   "stage": "rain-port",
   "status": "APPROVED_RUNTIME",
-  "count": 17,
+  "count": 20,
   "notes": "Only runtime-manifest approved selection. Not all s2-production variants are approved.",
   "source_manifest": "assets/img/runtime-art-manifest.json",
   "assets": [
-    {
-      "path": "assets/img/stages/rain-port/tiles/rain-port__ground-mud-slab.webp",
-      "original_path": "assets/img/rain-port/s2-production/ground_mud_slab.webp",
-      "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
-      "runtime_status": "APPROVED_RUNTIME",
-      "source_status": "REUSED_APPROVED_MUD_SLAB_REPLACES_REJECTED_COBBLE",
-      "category": "tiles"
-    },
-    {
-      "path": "assets/img/stages/rain-port/tiles/rain-port__g-wood-01.webp",
-      "original_path": "assets/img/rain-port/s2-production/g_wood_01.webp",
-      "sha256": "05b9ff8a48fd4b747338a69a5fba5900406457d034ef269d6b2857b380535929",
-      "runtime_status": "APPROVED_RUNTIME",
-      "source_status": "USER_SELECTED_LIGHTWEIGHT",
-      "category": "tiles"
-    },
-    {
-      "path": "assets/img/stages/rain-port/tiles/rain-port__g-wood-02.webp",
-      "original_path": "assets/img/rain-port/s2-production/g_wood_02.webp",
-      "sha256": "1153d849555f5e73b85f03e37d9acdf33d53e44a5e6ae9ec301846ea7c56978b",
-      "runtime_status": "APPROVED_RUNTIME",
-      "source_status": "USER_SELECTED_LIGHTWEIGHT",
-      "category": "tiles"
-    },
-    {
-      "path": "assets/img/stages/rain-port/tiles/rain-port__g-wood-03.webp",
-      "original_path": "assets/img/rain-port/s2-production/g_wood_03.webp",
-      "sha256": "b79e3d29141af77f71cbf9695bdba5bc63291bdb68168146da0cd5e71ed34948",
-      "runtime_status": "APPROVED_RUNTIME",
-      "source_status": "USER_SELECTED_LIGHTWEIGHT",
-      "category": "tiles"
-    },
-    {
-      "path": "assets/img/stages/rain-port/tiles/rain-port__t-stone-wood.webp",
-      "original_path": "assets/img/rain-port/s2-production/t_stone_wood_v01.webp",
-      "sha256": "e615a98837b3da05824231529ba9198038bdbcc54dd11bcd4275bf1ecaf2c041",
-      "runtime_status": "APPROVED_RUNTIME",
-      "source_status": "USER_SELECTED_LIGHTWEIGHT",
-      "category": "tiles"
-    },
-    {
-      "path": "assets/img/stages/rain-port/objects/rain-port__building-port-warehouse.webp",
-      "original_path": "assets/img/rain-port/s2-production/buildings/building_port_warehouse.webp",
-      "sha256": "1e83357f6bf26854332a487b28a894a6a4fc16097e10656fe5ea955826256b0a",
-      "runtime_status": "USER_SELECTED_RUNTIME",
-      "source_status": "ART_CANDIDATE",
-      "category": "objects"
-    },
     {
       "path": "assets/img/stages/rain-port/objects/rain-port__building-fish-workshop.webp",
       "original_path": "assets/img/rain-port/s2-production/buildings/building_fish_workshop.webp",
@@ -71,17 +23,25 @@
       "category": "objects"
     },
     {
-      "path": "assets/img/stages/rain-port/objects/rain-port__building-wharf-shop.webp",
-      "original_path": "assets/img/rain-port/s2-production/buildings/building_wharf_shop.webp",
-      "sha256": "eb226e478044fdcc7f1c4e9581673cd6fe50c5ac1c5b539b17d4c4ff54fd20d0",
+      "path": "assets/img/stages/rain-port/objects/rain-port__building-port-teahouse.webp",
+      "original_path": "assets/img/rain-port/s2-production/buildings/building_port_teahouse.webp",
+      "sha256": "932e0915ed44514f3ba4a2580a09c6a18de23356ddff8f957e28507f8ef8e045",
       "runtime_status": "USER_SELECTED_RUNTIME",
       "source_status": "ART_CANDIDATE",
       "category": "objects"
     },
     {
-      "path": "assets/img/stages/rain-port/objects/rain-port__building-port-teahouse.webp",
-      "original_path": "assets/img/rain-port/s2-production/buildings/building_port_teahouse.webp",
-      "sha256": "932e0915ed44514f3ba4a2580a09c6a18de23356ddff8f957e28507f8ef8e045",
+      "path": "assets/img/stages/rain-port/objects/rain-port__building-port-warehouse.webp",
+      "original_path": "assets/img/rain-port/s2-production/buildings/building_port_warehouse.webp",
+      "sha256": "1e83357f6bf26854332a487b28a894a6a4fc16097e10656fe5ea955826256b0a",
+      "runtime_status": "USER_SELECTED_RUNTIME",
+      "source_status": "ART_CANDIDATE",
+      "category": "objects"
+    },
+    {
+      "path": "assets/img/stages/rain-port/objects/rain-port__building-wharf-shop.webp",
+      "original_path": "assets/img/rain-port/s2-production/buildings/building_wharf_shop.webp",
+      "sha256": "eb226e478044fdcc7f1c4e9581673cd6fe50c5ac1c5b539b17d4c4ff54fd20d0",
       "runtime_status": "USER_SELECTED_RUNTIME",
       "source_status": "ART_CANDIDATE",
       "category": "objects"
@@ -127,6 +87,14 @@
       "category": "props"
     },
     {
+      "path": "assets/img/stages/rain-port/scene/rain-port__cliff-north-rock.webp",
+      "original_path": "assets/img/rain-port/s2-production/environment/cliff_north_rock.webp",
+      "sha256": "22f3455c7b8fcfa4d7a4919de892d59777108f516d04cac92c6ff5acb3546cff",
+      "runtime_status": "USER_SELECTED_RUNTIME",
+      "source_status": "ART_CANDIDATE",
+      "category": "scene"
+    },
+    {
       "path": "assets/img/stages/rain-port/scene/rain-port__surface-sea-canonical.webp",
       "original_path": "assets/img/rain-port/s2-production/environment/surface_sea_canonical.webp",
       "sha256": "0bd211fd1ffecce020fc2683f452faae358d2dbf5fb3ba67b33caef2134cba98",
@@ -135,12 +103,68 @@
       "category": "scene"
     },
     {
-      "path": "assets/img/stages/rain-port/scene/rain-port__cliff-north-rock.webp",
-      "original_path": "assets/img/rain-port/s2-production/environment/cliff_north_rock.webp",
-      "sha256": "22f3455c7b8fcfa4d7a4919de892d59777108f516d04cac92c6ff5acb3546cff",
-      "runtime_status": "USER_SELECTED_RUNTIME",
-      "source_status": "ART_CANDIDATE",
-      "category": "scene"
+      "path": "assets/img/stages/rain-port/tiles/rain-port__g-stone-01.webp",
+      "original_path": "assets/img/rain-port/s2-production/g_stone_01.webp",
+      "sha256": "2baa4406b6331754d99938a0896e2fbe230a222bb05896ee658589f5cc980c7e",
+      "runtime_status": "APPROVED_RUNTIME",
+      "source_status": "USER_SELECTED_LIGHTWEIGHT",
+      "category": "tiles"
+    },
+    {
+      "path": "assets/img/stages/rain-port/tiles/rain-port__g-stone-02.webp",
+      "original_path": "assets/img/rain-port/s2-production/g_stone_02.webp",
+      "sha256": "e9df01a0974d5b96f1dbe7f827ac540e371b27e0655941c0c6491e6440912557",
+      "runtime_status": "APPROVED_RUNTIME",
+      "source_status": "USER_SELECTED_LIGHTWEIGHT",
+      "category": "tiles"
+    },
+    {
+      "path": "assets/img/stages/rain-port/tiles/rain-port__g-stone-03.webp",
+      "original_path": "assets/img/rain-port/s2-production/g_stone_03.webp",
+      "sha256": "0b587a3d25a405f31d62ccf9c438d6c02717795224fa4a55e75631ad1873aad6",
+      "runtime_status": "APPROVED_RUNTIME",
+      "source_status": "USER_SELECTED_LIGHTWEIGHT",
+      "category": "tiles"
+    },
+    {
+      "path": "assets/img/stages/rain-port/tiles/rain-port__g-stone-04.webp",
+      "original_path": "assets/img/rain-port/s2-production/g_stone_04.webp",
+      "sha256": "3ae81461a455831dcb123baa46891952a1265c07f5be1a8a8fb78e7361eee37b",
+      "runtime_status": "APPROVED_RUNTIME",
+      "source_status": "USER_SELECTED_LIGHTWEIGHT",
+      "category": "tiles"
+    },
+    {
+      "path": "assets/img/stages/rain-port/tiles/rain-port__g-wood-01.webp",
+      "original_path": "assets/img/rain-port/s2-production/g_wood_01.webp",
+      "sha256": "05b9ff8a48fd4b747338a69a5fba5900406457d034ef269d6b2857b380535929",
+      "runtime_status": "APPROVED_RUNTIME",
+      "source_status": "USER_SELECTED_LIGHTWEIGHT",
+      "category": "tiles"
+    },
+    {
+      "path": "assets/img/stages/rain-port/tiles/rain-port__g-wood-02.webp",
+      "original_path": "assets/img/rain-port/s2-production/g_wood_02.webp",
+      "sha256": "1153d849555f5e73b85f03e37d9acdf33d53e44a5e6ae9ec301846ea7c56978b",
+      "runtime_status": "APPROVED_RUNTIME",
+      "source_status": "USER_SELECTED_LIGHTWEIGHT",
+      "category": "tiles"
+    },
+    {
+      "path": "assets/img/stages/rain-port/tiles/rain-port__g-wood-03.webp",
+      "original_path": "assets/img/rain-port/s2-production/g_wood_03.webp",
+      "sha256": "b79e3d29141af77f71cbf9695bdba5bc63291bdb68168146da0cd5e71ed34948",
+      "runtime_status": "APPROVED_RUNTIME",
+      "source_status": "USER_SELECTED_LIGHTWEIGHT",
+      "category": "tiles"
+    },
+    {
+      "path": "assets/img/stages/rain-port/tiles/rain-port__t-stone-wood.webp",
+      "original_path": "assets/img/rain-port/s2-production/t_stone_wood_v01.webp",
+      "sha256": "e615a98837b3da05824231529ba9198038bdbcc54dd11bcd4275bf1ecaf2c041",
+      "runtime_status": "APPROVED_RUNTIME",
+      "source_status": "USER_SELECTED_LIGHTWEIGHT",
+      "category": "tiles"
     }
   ]
 }

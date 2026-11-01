@@ -16,12 +16,12 @@ vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'js/asset-paths.js'), 'utf8')
 const routes = sandbox.window.ASSET_PATHS;
 const hash = rel => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, rel))).digest('hex');
 
-test('STAGE2 以實際 runtime 核准清單為準：17 個場景檔、20 個使用位置，且原檔與正式 SHA256 一致',()=>{
+test('STAGE2 以實際 runtime 核准清單為準：20 個場景檔、20 個使用位置，且原檔與正式 SHA256 一致',()=>{
   const stage = runtime.stages['rain-port'];
   assert.equal(stage.status, 'APPROVED');
   assert.equal(stage.default_runtime, 'assets/img/stages/rain-port/');
   assert.equal(canonicalStage.status, 'APPROVED_RUNTIME');
-  assert.equal(canonicalStage.count, 17);
+  assert.equal(canonicalStage.count, 20);
   const selected=[];
   function walk(v) {
     if(Array.isArray(v)){ for(const x of v)walk(x);return; }
@@ -38,10 +38,10 @@ test('STAGE2 以實際 runtime 核准清單為準：17 個場景檔、20 個使�
   }
   walk(stage);
   assert.equal(selected.length,20);
-  assert.equal(new Set(selected.map(x=>x.path)).size,17);
-  assert.equal(canonicalStage.assets.length,17);
-  assert.equal(new Set(canonicalStage.assets.map(x=>x.path)).size,17);
-  assert.ok(stage.tiles.stoneVariants.every(x=>x.path.endsWith('rain-port__ground-mud-slab.webp')));
+  assert.equal(new Set(selected.map(x=>x.path)).size,20);
+  assert.equal(canonicalStage.assets.length,20);
+  assert.equal(new Set(canonicalStage.assets.map(x=>x.path)).size,20);
+  assert.ok(stage.tiles.stoneVariants.every(x=>/rain-port__g-stone-0[1-4]\.webp$/.test(x.path)));
 });
 
 test('STAGE2 四張敵人動作圖有明確使用者核准紀錄，錨點、檔案和 fallback 仍完整',()=>{
@@ -59,16 +59,17 @@ test('STAGE2 四張敵人動作圖有明確使用者核准紀錄，錨點、檔�
   assert.ok(js.includes('img.__stage2LegacyAttempted'));
 });
 
-test('STAGE2 替換掉的四張石地主變體與尚未批准的水王特效不得進正式遊戲',()=>{
+test('STAGE2 新核准的四張石地主變體正式接入，未核准的水王特效仍不得進正式遊戲',()=>{
   for(let i=1;i<=4;i++){
     const stem='g_stone_0'+i;
     const source='assets/img/rain-port/s2-production/'+stem+'.webp';
     const rejected='assets/img/stages/rain-port/tiles/rain-port__g-stone-0'+i+'.webp';
     const archived='art/stage2-rain-port/archive/replaced-stone-copies-20261031/rain-port__g-stone-0'+i+'.webp';
     assert.ok(fs.existsSync(path.join(ROOT,source)));
-    assert.equal(fs.existsSync(path.join(ROOT,rejected)),false);
-    assert.equal(hash(source),hash(archived));
-    assert.equal(routes.resolve(source),source);
+    assert.equal(fs.existsSync(path.join(ROOT,rejected)),true);
+    assert.equal(hash(source),hash(rejected));
+    if(fs.existsSync(path.join(ROOT,archived))) assert.equal(hash(source),hash(archived));
+    assert.equal(routes.resolve(source),rejected);
   }
   const hazards=runtime.boss_water_hazards;
   assert.equal(Object.keys(hazards).length,3);
@@ -79,7 +80,7 @@ test('STAGE2 替換掉的四張石地主變體與尚未批准的水王特效不�
   }
   const active=registry.aliases.filter(x=>x.route&&
     (x.source.includes('/rain-port/s2-production/')||x.source.includes('/rain-port/enemies/')));
-  assert.equal(active.length,21);
+  assert.equal(active.length,24);
   for(const entry of active){
     assert.equal(routes.resolve(entry.source),entry.canonical);
   }

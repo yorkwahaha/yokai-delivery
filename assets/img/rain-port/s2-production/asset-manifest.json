@@ -11,6 +11,24 @@
           "path": "assets/img/rain-port/s2-production/g_stone_01.webp",
           "path_webp": "assets/img/rain-port/s2-production/g_stone_01.webp",
           "status": "USER_SELECTED_LIGHTWEIGHT"
+        },
+        {
+          "id": "g_stone_02",
+          "path": "assets/img/rain-port/s2-production/g_stone_02.webp",
+          "path_webp": "assets/img/rain-port/s2-production/g_stone_02.webp",
+          "status": "USER_SELECTED_LIGHTWEIGHT"
+        },
+        {
+          "id": "g_stone_03",
+          "path": "assets/img/rain-port/s2-production/g_stone_03.webp",
+          "path_webp": "assets/img/rain-port/s2-production/g_stone_03.webp",
+          "status": "USER_SELECTED_LIGHTWEIGHT"
+        },
+        {
+          "id": "g_stone_04",
+          "path": "assets/img/rain-port/s2-production/g_stone_04.webp",
+          "path_webp": "assets/img/rain-port/s2-production/g_stone_04.webp",
+          "status": "USER_SELECTED_LIGHTWEIGHT"
         }
       ],
       "woodVariants": [

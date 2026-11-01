@@ -18,10 +18,22 @@ window.AUDIO = (() => {
   let musicShouldPlay = false;
   let bossMusic = false, bossMix = 0;
   const bgmAttempts = new WeakSet();
+  const bgmRetryAt = new WeakMap();
   function playMusic(audio, retry = false) {
-    if (!audio || !audio.paused || (!retry && bgmAttempts.has(audio))) return;
+    if (!audio || !audio.paused || (!retry && bgmAttempts.has(audio)) ||
+        (!retry && (bgmRetryAt.get(audio) || 0) > Date.now())) return;
     bgmAttempts.add(audio);
-    audio.play().catch(() => {});
+    // iPad/Safari can reject while the boss MP3 is still waiting for data.
+    // A failed attempt must never poison this track for the entire session.
+    try {
+      Promise.resolve(audio.play()).catch(() => {
+        bgmAttempts.delete(audio);
+        bgmRetryAt.set(audio, Date.now() + 1200);
+      });
+    } catch {
+      bgmAttempts.delete(audio);
+      bgmRetryAt.set(audio, Date.now() + 1200);
+    }
   }
   const BGM_NORMAL_VOLUME = 0.27;
   const BGM_DUCK_VOLUME = 0.10;
@@ -1113,7 +1125,17 @@ window.AUDIO = (() => {
       playHyoshigi(0.22);
     },
 
-    // Only the final boss' broken seal changes the music; audio is not fetched on entry.
+    // The final boss music is 3.6MB. Prepare it on boss appearance instead
+    // of starting the network request after the player breaks the seal.
+    prepareBossMusic() {
+      const boss = window.BOSS_BGM;
+      if (!boss) return;
+      if (boss.preload !== "auto") {
+        boss.preload = "auto";
+        try { boss.load(); } catch {}
+      }
+    },
+    // Only the final boss' broken seal changes the music.
     startBossMusic() {
       if (bossMusic) return;
       bossMusic = true; bossMix = 0;
@@ -1175,7 +1197,10 @@ window.AUDIO = (() => {
         }
         playMusic(boss);
         if (bossMix < 1 && window.BGM) playMusic(window.BGM);
-        bossMix = Math.min(1, bossMix + Math.max(0, dt) / 1.1);
+        // Never fade the normal BGM to silence before the new track actually
+        // starts and has decoded enough data for audible playback.
+        const bossAudible = !boss.paused && boss.readyState >= 2;
+        if (bossAudible) bossMix = Math.min(1, bossMix + Math.max(0, dt) / 1.1);
         boss.volume = musicVolume() * bossMix;
         if (window.BGM) {
           window.BGM.volume = musicVolume() * (1 - bossMix);

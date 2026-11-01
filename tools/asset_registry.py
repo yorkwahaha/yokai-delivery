@@ -32,7 +32,7 @@ def stage2_approved_sources():
   elif isinstance(obj,list):
    for value in obj:scan(value)
  scan(stage)
- assert len(selected)==17,('Unexpected S2 runtime approval count',len(selected))
+ assert len(selected)==20,('Unexpected S2 runtime approval count',len(selected))
  enemy=json.loads((ROOT/'assets/img/rain-port/enemies/runtime-manifest-20261014.json').read_text(encoding='utf8'))
  assert enemy['status']=='USER_APPROVED_FOR_RUNTIME'
  assert len(enemy['runtime_sprites'])==4
@@ -41,7 +41,7 @@ def stage2_approved_sources():
   assert source.startswith('assets/img/rain-port/enemies/')
   assert digest(ROOT/source)==record['sha256'],source
   selected[source]=record['sha256']
- assert len(selected)==21
+ assert len(selected)==24
  return selected
 
 def plan():
@@ -84,10 +84,7 @@ def plan():
       'assets/img/ui/hud/ui__'+name[4:].replace('_','-')+'.webp','ui')
  base=ROOT/'assets/img/rain-port/s2-production'
  for f in sorted(base.rglob('*.webp')):
-  # All four cobblestone variants were superseded by approved ground_mud_slab;
-  # keep original source bytes for development/history, never publish these.
-  if f.stem in {'g_stone_01','g_stone_02','g_stone_03','g_stone_04'}:
-   continue
+  # B17: user-selected irregular dark stone slabs, distinct from archived pebble ground.
   a=f.relative_to(base).parts
   kind='objects' if a[0]=='buildings' else 'props' if a[0]=='props' else 'scene' if a[0]=='environment' else 'tiles'
   add(f.relative_to(ROOT).as_posix(),

@@ -325,6 +325,34 @@
       "sha256": "0bd211fd1ffecce020fc2683f452faae358d2dbf5fb3ba67b33caef2134cba98"
     },
     {
+      "source": "assets/img/rain-port/s2-production/g_stone_01.webp",
+      "canonical": "assets/img/stages/rain-port/tiles/rain-port__g-stone-01.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "2baa4406b6331754d99938a0896e2fbe230a222bb05896ee658589f5cc980c7e"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/g_stone_02.webp",
+      "canonical": "assets/img/stages/rain-port/tiles/rain-port__g-stone-02.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "e9df01a0974d5b96f1dbe7f827ac540e371b27e0655941c0c6491e6440912557"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/g_stone_03.webp",
+      "canonical": "assets/img/stages/rain-port/tiles/rain-port__g-stone-03.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "0b587a3d25a405f31d62ccf9c438d6c02717795224fa4a55e75631ad1873aad6"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/g_stone_04.webp",
+      "canonical": "assets/img/stages/rain-port/tiles/rain-port__g-stone-04.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "3ae81461a455831dcb123baa46891952a1265c07f5be1a8a8fb78e7361eee37b"
+    },
+    {
       "source": "assets/img/rain-port/s2-production/g_wood_01.webp",
       "canonical": "assets/img/stages/rain-port/tiles/rain-port__g-wood-01.webp",
       "category": "stage",
@@ -349,7 +377,7 @@
       "source": "assets/img/rain-port/s2-production/ground_mud_slab.webp",
       "canonical": "assets/img/stages/rain-port/tiles/rain-port__ground-mud-slab.webp",
       "category": "stage",
-      "route": true,
+      "route": false,
       "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea"
     },
     {

@@ -44,5 +44,5 @@ test('B15 skill offer does not paint old icon/card while a released illustration
  assert.match(ui,/const waitingForFormal = formalSkillIds\.has\(c\.id\) && !formalSkillFailed\.has\(c\.id\)/);
  assert.match(ui,/if \(waitingForFormal\) \{/);
  assert.match(ui,/const cardBoardImg = formalCard \? formalCardImage : null/);
- assert.match(read('index.html'),/20261101-imagefix2/);
+ assert.match(read('index.html'),/20261101-s2b17/);
 });

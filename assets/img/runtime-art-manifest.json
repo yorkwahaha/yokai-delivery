@@ -110,46 +110,46 @@
           {
             "id": "g_stone_01",
             "category": "ground",
-            "path": "assets/img/stages/rain-port/tiles/rain-port__ground-mud-slab.webp",
-            "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
-            "bytes": 131198,
-            "source_status": "REUSED_APPROVED_MUD_SLAB_REPLACES_REJECTED_COBBLE",
+            "path": "assets/img/stages/rain-port/tiles/rain-port__g-stone-01.webp",
+            "sha256": "2baa4406b6331754d99938a0896e2fbe230a222bb05896ee658589f5cc980c7e",
+            "bytes": 511976,
+            "source_status": "USER_SELECTED_LIGHTWEIGHT",
             "runtime_status": "APPROVED_RUNTIME",
             "status": "APPROVED",
-            "legacy_source_path": "assets/img/rain-port/s2-production/ground_mud_slab.webp"
+            "legacy_source_path": "assets/img/rain-port/s2-production/g_stone_01.webp"
           },
           {
             "id": "g_stone_02",
             "category": "ground",
-            "path": "assets/img/stages/rain-port/tiles/rain-port__ground-mud-slab.webp",
-            "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
-            "bytes": 131198,
-            "source_status": "REUSED_APPROVED_MUD_SLAB_REPLACES_REJECTED_COBBLE",
+            "path": "assets/img/stages/rain-port/tiles/rain-port__g-stone-02.webp",
+            "sha256": "e9df01a0974d5b96f1dbe7f827ac540e371b27e0655941c0c6491e6440912557",
+            "bytes": 492192,
+            "source_status": "USER_SELECTED_LIGHTWEIGHT",
             "runtime_status": "APPROVED_RUNTIME",
             "status": "APPROVED",
-            "legacy_source_path": "assets/img/rain-port/s2-production/ground_mud_slab.webp"
+            "legacy_source_path": "assets/img/rain-port/s2-production/g_stone_02.webp"
           },
           {
             "id": "g_stone_03",
             "category": "ground",
-            "path": "assets/img/stages/rain-port/tiles/rain-port__ground-mud-slab.webp",
-            "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
-            "bytes": 131198,
-            "source_status": "REUSED_APPROVED_MUD_SLAB_REPLACES_REJECTED_COBBLE",
+            "path": "assets/img/stages/rain-port/tiles/rain-port__g-stone-03.webp",
+            "sha256": "0b587a3d25a405f31d62ccf9c438d6c02717795224fa4a55e75631ad1873aad6",
+            "bytes": 529378,
+            "source_status": "USER_SELECTED_LIGHTWEIGHT",
             "runtime_status": "APPROVED_RUNTIME",
             "status": "APPROVED",
-            "legacy_source_path": "assets/img/rain-port/s2-production/ground_mud_slab.webp"
+            "legacy_source_path": "assets/img/rain-port/s2-production/g_stone_03.webp"
           },
           {
             "id": "g_stone_04",
             "category": "ground",
-            "path": "assets/img/stages/rain-port/tiles/rain-port__ground-mud-slab.webp",
-            "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
-            "bytes": 131198,
-            "source_status": "REUSED_APPROVED_MUD_SLAB_REPLACES_REJECTED_COBBLE",
+            "path": "assets/img/stages/rain-port/tiles/rain-port__g-stone-04.webp",
+            "sha256": "3ae81461a455831dcb123baa46891952a1265c07f5be1a8a8fb78e7361eee37b",
+            "bytes": 490756,
+            "source_status": "USER_SELECTED_LIGHTWEIGHT",
             "runtime_status": "APPROVED_RUNTIME",
             "status": "APPROVED",
-            "legacy_source_path": "assets/img/rain-port/s2-production/ground_mud_slab.webp"
+            "legacy_source_path": "assets/img/rain-port/s2-production/g_stone_04.webp"
           }
         ],
         "woodVariants": [

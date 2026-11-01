@@ -1,3 +1,11 @@
+## 2026-11-01 B17｜S2 不規則石板正式接線與舊鵝卵石封存
+
+- 使用者確認最新 S2 資料包 assets/img/rain-port/s2-production/。較大解析度複核確認 g_stone_01～04.webp 是冷色不規則石塊／板石，已按使用者指定升為 APPROVED_RUNTIME；來源檔保留，正式複本遷入 assets/img/stages/rain-port/tiles/rain-port__g-stone-01～04.webp。
+- 舊的 assets/img/rain-port/ground_stone.webp、ground_stone_var1.webp、ground_stone_var2.webp 已封存到 art/stage2-rain-port/archive/legacy-pebble-ground-20261101/；舊版程式路徑已改指最新正式圖與正式接縫，避免錯誤回退。
+- runtime-art-manifest、s2-production 資產清單、工具註冊表與正式來源 SHA 已統一，不再把 Stage1 的 scenery/ground.webp 當成 S2 石地。
+- S2 Boss 三張水系圖仍為候選，未擅自啟用。本次一起釋出 B16 多輸入提示、R3 視角、靈針文案、自帶日文字體與 Boss BGM 退回修復。
+- 本次只從獨立乾淨發佈工作樹選擇已確認改動，保護主工作樹其他未提交內容。
+
 # Yokai Delivery — Roadmap／跨對話持續交接
 
 ### 2026-11-01｜B15 正式站圖片不同步與「舊圖先閃現」修補

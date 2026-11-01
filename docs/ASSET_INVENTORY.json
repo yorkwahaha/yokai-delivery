@@ -3,14 +3,14 @@
   "updated": "2026-10-31",
   "notes": "Unmigrated paths are inventoried, not approved for new usage; never delete without reference audit.",
   "totals": {
-    "files": 890,
+    "files": 891,
     "by_status": {
-      "legacy_unmigrated": 348,
+      "legacy_unmigrated": 341,
       "legacy_review_required": 58,
-      "canonical": 201,
+      "canonical": 205,
       "trial_pending_review": 136,
-      "legacy_alias_active": 96,
-      "legacy_source_pending_renderer": 51
+      "legacy_alias_active": 99,
+      "legacy_source_pending_renderer": 52
     }
   },
   "files": [
@@ -705,24 +705,6 @@
       "sha256": "ff9442bcd0850b79848d20b426d5be2a70f2cbd29ae64d13d76cf74a3b357bbe"
     },
     {
-      "path": "assets/img/rain-port/ground_stone.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 121944,
-      "sha256": "ceca034d36049b004867cd693ed9b1fd080ed4d8060f039c5fc6917729e07e4e"
-    },
-    {
-      "path": "assets/img/rain-port/ground_stone_var1.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 108230,
-      "sha256": "0c5058ad1846b41a23daa221cd8e52903a3fbf7aadc5148391e6b72cf7d3f9cc"
-    },
-    {
-      "path": "assets/img/rain-port/ground_stone_var2.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 119258,
-      "sha256": "73142b26bf4039a05586c92f12a91a2eaa12f101da2a6a69b31e2fab0105c808"
-    },
-    {
       "path": "assets/img/rain-port/ground_stone_wood_transition_v2.webp",
       "status": "legacy_review_required",
       "bytes": 90730,
@@ -844,25 +826,25 @@
     },
     {
       "path": "assets/img/rain-port/s2-production/g_stone_01.webp",
-      "status": "legacy_unmigrated",
+      "status": "legacy_alias_active",
       "bytes": 511976,
       "sha256": "2baa4406b6331754d99938a0896e2fbe230a222bb05896ee658589f5cc980c7e"
     },
     {
       "path": "assets/img/rain-port/s2-production/g_stone_02.webp",
-      "status": "legacy_unmigrated",
+      "status": "legacy_alias_active",
       "bytes": 492192,
       "sha256": "e9df01a0974d5b96f1dbe7f827ac540e371b27e0655941c0c6491e6440912557"
     },
     {
       "path": "assets/img/rain-port/s2-production/g_stone_03.webp",
-      "status": "legacy_unmigrated",
+      "status": "legacy_alias_active",
       "bytes": 529378,
       "sha256": "0b587a3d25a405f31d62ccf9c438d6c02717795224fa4a55e75631ad1873aad6"
     },
     {
       "path": "assets/img/rain-port/s2-production/g_stone_04.webp",
-      "status": "legacy_unmigrated",
+      "status": "legacy_alias_active",
       "bytes": 490756,
       "sha256": "3ae81461a455831dcb123baa46891952a1265c07f5be1a8a8fb78e7361eee37b"
     },
@@ -886,7 +868,7 @@
     },
     {
       "path": "assets/img/rain-port/s2-production/ground_mud_slab.webp",
-      "status": "legacy_alias_active",
+      "status": "legacy_source_pending_renderer",
       "bytes": 131198,
       "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea"
     },
@@ -1411,6 +1393,30 @@
       "status": "canonical",
       "bytes": 107660,
       "sha256": "0bd211fd1ffecce020fc2683f452faae358d2dbf5fb3ba67b33caef2134cba98"
+    },
+    {
+      "path": "assets/img/stages/rain-port/tiles/rain-port__g-stone-01.webp",
+      "status": "canonical",
+      "bytes": 511976,
+      "sha256": "2baa4406b6331754d99938a0896e2fbe230a222bb05896ee658589f5cc980c7e"
+    },
+    {
+      "path": "assets/img/stages/rain-port/tiles/rain-port__g-stone-02.webp",
+      "status": "canonical",
+      "bytes": 492192,
+      "sha256": "e9df01a0974d5b96f1dbe7f827ac540e371b27e0655941c0c6491e6440912557"
+    },
+    {
+      "path": "assets/img/stages/rain-port/tiles/rain-port__g-stone-03.webp",
+      "status": "canonical",
+      "bytes": 529378,
+      "sha256": "0b587a3d25a405f31d62ccf9c438d6c02717795224fa4a55e75631ad1873aad6"
+    },
+    {
+      "path": "assets/img/stages/rain-port/tiles/rain-port__g-stone-04.webp",
+      "status": "canonical",
+      "bytes": 490756,
+      "sha256": "3ae81461a455831dcb123baa46891952a1265c07f5be1a8a8fb78e7361eee37b"
     },
     {
       "path": "assets/img/stages/rain-port/tiles/rain-port__g-wood-01.webp",

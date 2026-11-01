@@ -811,7 +811,7 @@
       s: "ひょうはくふうれい",
       cat: "【 靈針變異 】",
       levelText: "◆ 靈針變異",
-      d: "靈針命中累積寒冷並短暫冰封，Boss 具備 2 秒抗性期；僅限靈針",
+      d: "靈針命中使小怪冰凍 0.5 秒；Boss 每累積 3 次命中冰凍 0.15 秒，並有 2 秒免疫期",
       requirementText: "持有天狐靈針；同類效果只能歸屬一招",
       limitText: "同類變異靈針或陰陽符擇一；每技能最多 2 種變異",
       inPool: true
@@ -825,7 +825,7 @@
       s: "ひょうはくふうれい",
       cat: "【 陰陽符變異 】",
       levelText: "◆ 陰陽符變異",
-      d: "陰陽符主爆命中累積寒冷並短暫冰封，次爆不累積寒冷；僅限陰陽符",
+      d: "陰陽符主爆使小怪冰凍 0.5 秒；Boss 每 3 次主爆命中冰凍 0.15 秒，次爆不觸發",
       requirementText: "持有陰陽符；同類效果只能歸屬一招",
       limitText: "同類變異靈針或陰陽符擇一；每技能最多 2 種變異",
       inPool: true
@@ -3750,6 +3750,9 @@ if (isRainPort) {
       else if (justPressed(3) && bossQ.ans.length > 2) answerBoss(2);
     }
 
+    // R3 (standard Gamepad button 11): switch 2D / 2.5D in active play.
+    if (state === "play" && justPressed(11)) toggleViewMode();
+
     // Start 鍵 (Button 9): 暫停開關
     if (justPressed(9)) {
       if (state === "play" || state === "pause") togglePause();
@@ -6372,7 +6375,7 @@ function spawnEnemy(tier, rad, ang, ring) {
           attackCd: 1.2,
           introduced
         });
-        if (plan.role === "final") { finalBossWaitT = 0; finalBossHintT = 0; }
+        if (plan.role === "final") { finalBossWaitT = 0; finalBossHintT = 0; AUDIO.prepareBossMusic?.(); }
         bossStage++;
         const nextBossAt = BOSS_TIMES[bossStage];
         bossT = nextBossAt == null ? Number.POSITIVE_INFINITY : Math.max(0, nextBossAt - elapsed);
@@ -8855,7 +8858,7 @@ function spawnEnemy(tier, rad, ang, ring) {
           });
         }
         if (state === 'play') UI.drawViewMedallion(ctx, btnView,
-          (window.VIEWPORT?.tiltTargetScale?.() ?? tiltK()) !== 1);
+          (window.VIEWPORT?.tiltTargetScale?.() ?? tiltK()) !== 1, inputMode);
         if (state === "play" && window.FUSION?.getState?.().state === "held") {
           const tag = UI.FUSION_REOPEN_BTN;
           if (tag) {

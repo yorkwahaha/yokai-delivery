@@ -433,7 +433,7 @@ window.RENDERER = (() => {
       const cx=chunk.x+chunk.w/2,y=chunk.y+105;
       window.VIEWPORT.upright(ctx,cx,y,()=>{
         ctx.save();ctx.textAlign="center";
-        ctx.font="900 38px 'Kaisei Decol', 'Noto Sans JP', serif";
+        ctx.font="900 38px 'Kaisei Decol', 'Yokai Noto JP', 'Noto Sans JP', serif";
         ctx.fillStyle="rgba(255,230,180,0.18)";ctx.fillText(chunk.name,cx,y);
         ctx.font="bold 15px 'Zen Maru Gothic', sans-serif";
         ctx.fillStyle="rgba(255,230,180,0.14)";ctx.fillText(`— ${chunk.sub || ""} —`,cx,y+24);
@@ -1785,8 +1785,8 @@ window.RENDERER = (() => {
       const signY = h.y + 36;
       ctx.textAlign = "center";
       ctx.font = UI.readableFont(21, "400").replace(
-        "'Noto Sans JP', 'Microsoft JhengHei', sans-serif",
-        "'Yuji Syuku', 'Kaisei Decol', 'Noto Sans JP', serif"
+        "'Yokai Noto JP', 'Noto Sans JP', 'Microsoft JhengHei', sans-serif",
+        "'Yuji Syuku', 'Kaisei Decol', 'Yokai Noto JP', 'Noto Sans JP', serif"
       );
       if (img?.naturalWidth) {
         const depth = sceneryDepth(h.y, viewerY);
@@ -1891,8 +1891,8 @@ window.RENDERER = (() => {
     // 町屋招牌用和風筆文字體；保留厚實暗底與暖色字，避免 20px 時過細。
     const uiReadableFont = (typeof UI !== "undefined" ? UI : window.UI)?.readableFont;
     ctx.font = (uiReadableFont ? uiReadableFont(21, "400") : "21px serif").replace(
-      "'Noto Sans JP', 'Microsoft JhengHei', sans-serif",
-      "'Yuji Syuku', 'Kaisei Decol', 'Noto Sans JP', serif"
+      "'Yokai Noto JP', 'Noto Sans JP', 'Microsoft JhengHei', sans-serif",
+      "'Yuji Syuku', 'Kaisei Decol', 'Yokai Noto JP', 'Noto Sans JP', serif"
     );
     ctx.strokeStyle = "#e3d0a8";
     ctx.lineWidth = 0.7;
@@ -2611,7 +2611,7 @@ window.RENDERER = (() => {
         // 不改數值傷害、Boss label 的繪法與更新頻率。
         ctx.save();
         const fontSize=Math.max(15,Math.round(17*d.scale));
-        ctx.font=`900 ${fontSize}px 'Noto Sans JP','Zen Maru Gothic',sans-serif`;
+        ctx.font=`900 ${fontSize}px 'Yokai Noto JP', 'Noto Sans JP','Zen Maru Gothic',sans-serif`;
         const halfW=clamp(ctx.measureText(message).width/2+17,60,215);
         const cy=d.y-8,h=32,tip=8,px=d.x;
         ctx.fillStyle="rgba(33,24,25,.90)";

@@ -116,7 +116,7 @@ window.UI = (() => {
     }
     if (__measureCtx && typeof __measureCtx.measureText === "function") {
       try {
-        __measureCtx.font = `${weight} ${size}px 'Noto Sans JP', sans-serif`;
+        __measureCtx.font = `${weight} ${size}px 'Yokai Noto JP', 'Noto Sans JP', sans-serif`;
         const w = __measureCtx.measureText(str).width;
         if (w > 0) return Math.ceil(w);
       } catch { /* 量不到就退回估算，不讓版面函式拋錯 */ }
@@ -939,13 +939,21 @@ window.UI = (() => {
     ctx.restore();
   }
 
-  function drawViewMedallion(ctx,b,flat=false){
+  function drawViewMedallion(ctx,b,flat=false,inputMode="keyboard"){
     const img=b12Art[flat?"view_flat_medallion":"camera_medallion"];
     ctx.save();
     if(img?.naturalWidth){
       const size=Math.min(b.w,b.h);
       ctx.drawImage(img,b.x+(b.w-size)/2,b.y+(b.h-size)/2,size,size);
     } else drawButton(ctx,b,"視角",{size:12,quiet:true,scrollText:false});
+    // A small unframed R3 hint appears only when the gamepad is the active device.
+    if (inputMode === "gamepad") {
+      ctx.font = "800 11px 'Yokai Noto JP', sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+      ctx.lineWidth = 2.5; ctx.strokeStyle = "rgba(18,31,44,.9)";
+      ctx.strokeText("R3",b.x+b.w/2,b.y+b.h-1);
+      ctx.fillStyle = "#fff0cd";ctx.fillText("R3",b.x+b.w/2,b.y+b.h-1);
+    }
     ctx.restore();
   }
 
@@ -1382,7 +1390,7 @@ window.UI = (() => {
     const valueSize = Math.max(assetW * 0.10, 11 / Math.max(0.01, viewportScale));
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `900 ${valueSize}px 'Noto Sans JP', 'Microsoft JhengHei', sans-serif`;
+    ctx.font = `900 ${valueSize}px 'Yokai Noto JP', 'Noto Sans JP', 'Microsoft JhengHei', sans-serif`;
     ctx.lineWidth = Math.max(1.2, valueSize * 0.09);
     ctx.strokeStyle = "rgba(255,238,190,.82)";
     ctx.fillStyle = lowOil ? "#7a2c24" : "#4a2a1d";
@@ -2632,7 +2640,6 @@ window.UI = (() => {
 
     }
 
-
     // --- 中上任務：暫停使用假繪馬，diegetic 先回到乾淨的浮動資訊。 ---
     const taskX = Math.max(248, pBoxX + pBoxW + 5), taskY = bounds.top + 14;
     const useQuestBoard = diegetic && DIEGETIC_QUEST_BOARD_ENABLED;
@@ -2681,7 +2688,7 @@ window.UI = (() => {
       const bossPulse = motion ? 0.65 + 0.35 * Math.sin(time * 4) : 0.85;
       ctx.textAlign = "center";
       ctx.fillStyle = `rgba(255, 138, 154, ${0.7 + bossPulse * 0.3})`;
-      ctx.font = "900 22px 'Noto Sans JP', sans-serif";
+      ctx.font = "900 22px 'Yokai Noto JP', 'Noto Sans JP', sans-serif";
       const huntTitle = (extra && extra.bossTitle) ? `擊敗${extra.bossTitle}` : "擊敗大妖";
       inkText(ctx, huntTitle, taskX + taskW / 2, taskY + 32);
       drawCompass(ctx, taskX + taskW / 2 - 84, taskY + 26, extra.bossAngle, { color: "#ff3b4f", count: 2, size: 1.2 });
@@ -2820,9 +2827,9 @@ window.UI = (() => {
       const px = passiveX + visibleCount * (slotSize + slotGap);
       glassBox(ctx, px, slotY, slotSize, slotSize, 6, "rgba(40, 32, 12, 0.94)", "#ffd54f");
       ctx.fillStyle = "#ffe28b"; ctx.textAlign = "center";
-      ctx.font = `900 ${badgeTextSize}px 'Noto Sans JP', sans-serif`;
+      ctx.font = `900 ${badgeTextSize}px 'Yokai Noto JP', 'Noto Sans JP', sans-serif`;
       ctx.fillText(`＋${hiddenPassives}`, px + slotSize / 2, slotY + slotSize * 0.44);
-      ctx.font = `700 ${Math.max(8, badgeTextSize - 2)}px 'Noto Sans JP', sans-serif`;
+      ctx.font = `700 ${Math.max(8, badgeTextSize - 2)}px 'Yokai Noto JP', 'Noto Sans JP', sans-serif`;
       ctx.fillStyle = "#f2e4c8";
       ctx.fillText("被動", px + slotSize / 2, slotY + slotSize * 0.82);
     }
@@ -3667,8 +3674,8 @@ window.UI = (() => {
     mut_seek:      { ja: "靈針・引魂追跡", s: "只有靈針能轉向追蹤妖怪。", ic: "seek" },
     mut_boom_seek: { ja: "陰陽符・引魂追跡", s: "只有陰陽符能轉向追蹤妖怪。", ic: "seek" },
     mut_boom_fan:  { ja: "陰陽符・千本散射", s: "只有陰陽符發數增加，整輪傷害 +20%。", ic: "fan" },
-    mut_frost:     { ja: "靈針・冰魄封靈", s: "只有靈針命中能累積寒冷。", ic: "frost" },
-    mut_boom_frost:{ ja: "陰陽符・冰魄封靈", s: "只有符咒主爆能累積寒冷。", ic: "frost" },
+    mut_frost:     { ja: "靈針・冰魄封靈", s: "靈針命中：小怪冰凍 0.5 秒；Boss 累積 3 次命中後冰凍 0.15 秒，2 秒內免疫。", ic: "frost" },
+    mut_boom_frost:{ ja: "陰陽符・冰魄封靈", s: "陰陽符主爆：小怪冰凍 0.5 秒；Boss 累積 3 次命中後冰凍 0.15 秒。", ic: "frost" },
     mut_pierce:    { ja: "靈針・穿透增額",   s: "能貫穿更多敵人，後面幾隻額外受傷。",       ic: "pierce" },
     mut_crosscut:  { ja: "妖刀・十字交斬",   s: "主斬後追加交叉斬，原敵也能再受傷。",       ic: "crosscut" },
     mut_branch:    { ja: "天狐雷・連鎖分歧", s: "主雷命中後再分出一道小雷。",             ic: "branch" },
@@ -3980,7 +3987,7 @@ window.UI = (() => {
 
       // 日文假名讀音
       if (c.s) {
-        ctx.font = "700 13px 'Noto Sans JP', sans-serif";
+        ctx.font = "700 13px 'Yokai Noto JP', 'Noto Sans JP', sans-serif";
         ctx.fillStyle = formalCard ? "#f3c164" : "#fadb5f";
         ctx.fillText(c.s, x + 18, nameY + 21, w - 36);
       }
@@ -4004,12 +4011,12 @@ window.UI = (() => {
         ctx.textAlign = "center";
         ctx.font = readableFont(13, "900");
         ctx.fillStyle = "#ffd54f";
-        ctx.fillText("【 按 Enter / 點擊選取 】", x + w / 2, y + h - 17);
+        ctx.fillText(inputMode === "gamepad" ? "【 按 A 選取 】" : inputMode === "touch" ? "【 點擊選取 】" : "【 按 Enter 選取 】", x + w / 2, y + h - 17);
       } else {
         ctx.textAlign = "center";
         ctx.font = readableFont(12, "700");
         ctx.fillStyle = formalCard ? "#bda982" : "#637494";
-        ctx.fillText(`按 ${i + 1} 鍵選擇`, x + w / 2, y + h - 17);
+        ctx.fillText(inputMode === "gamepad" ? "十字鍵／搖桿選擇" : inputMode === "touch" ? "點擊選取" : `按 ${i + 1} 鍵選擇`, x + w / 2, y + h - 17);
       }
 
       ctx.restore();
@@ -4017,7 +4024,7 @@ window.UI = (() => {
 
     ctx.textBaseline="alphabetic";
     ctx.textAlign="left";ctx.font=levelFont(14,"800");ctx.fillStyle="#47352a";
-    const legend=inputMode==="gamepad"?"十字鍵／左搖桿 選卡 · A 確認 · Y 重抽"
+    const legend=inputMode==="gamepad"?"十字鍵／左搖桿 選卡 · A 選取 · Y 重抽"
       :inputMode==="touch"?"點選技能 · 可按右側重抽"
       :(L.card.w*L.scale<480?"↑↓ 選卡 · Enter 確認 · R 重抽":"↑↓ 選卡 · Enter 確認 · 1／2／3 直選 · R 重抽");
     const legendM=inkOf();
@@ -4038,11 +4045,11 @@ window.UI = (() => {
       }
       ctx.font = levelFont(19,"900"); ctx.textAlign="center"; ctx.textBaseline="middle";
       ctx.fillStyle = rerolls > 0 ? "#fff1cf" : "#5c5650";
-      ctx.fillText(`重抽 ×${rerolls}`,L.reroll.x+L.reroll.w/2,L.reroll.y+L.reroll.h/2+1);
+      ctx.fillText(`${inputMode === "gamepad" ? "Y " : ""}重抽 ×${rerolls}`,L.reroll.x+L.reroll.w/2,L.reroll.y+L.reroll.h/2+1);
       ctx.restore();
     } else {
       fitText(ctx,legend,L.card.x+8,legendBase,Math.max(80,L.reroll.x-L.card.x-16));
-      drawButton(ctx,{...L.reroll,id:"reroll"},"重抽 ×"+rerolls,{tone:"normal",size:Math.max(16,Math.ceil(14/L.scale)),icon:"cards",disabled:rerolls<=0,fit:true,fitMin:cssPx(11)});
+      drawButton(ctx,{...L.reroll,id:"reroll"},(inputMode === "gamepad" ? "Y 重抽 ×" : "重抽 ×")+rerolls,{tone:"normal",size:Math.max(16,Math.ceil(14/L.scale)),icon:"cards",disabled:rerolls<=0,fit:true,fitMin:cssPx(11)});
     }
     ctx.restore();
     ctx.restore();
@@ -4053,7 +4060,7 @@ window.UI = (() => {
     const badgeTextSize = Math.max(11, Math.ceil(14 / (scale * 1.2))), badgeH = badgeTextSize + 8;
     let labelWidth = badgeTextSize * 3;
     if (ctx) {
-      ctx.save();ctx.font = `900 ${badgeTextSize}px 'Noto Sans JP', sans-serif`;
+      ctx.save();ctx.font = `900 ${badgeTextSize}px 'Yokai Noto JP', 'Noto Sans JP', sans-serif`;
       labelWidth = Math.max(ctx.measureText("MAX").width, ctx.measureText("被動").width);
       ctx.restore();
     }
@@ -5167,7 +5174,7 @@ function fusionLayout(customViewport, model) {
 
     // 送達／誤配：用文字最清楚，只排成一行，不分格。
     const statY = cardY + 230;
-    ctx.font = "900 24px 'Zen Maru Gothic', 'Noto Sans JP', sans-serif";
+    ctx.font = "900 24px 'Zen Maru Gothic', 'Yokai Noto JP', 'Noto Sans JP', sans-serif";
     const stats = [
       [`送達  ${delivered} 件`, "#3c3026"],
       [`誤配  ${failed} 件`, failed > 0 ? "#814e3c" : "#887160"]
@@ -5620,26 +5627,28 @@ function fusionLayout(customViewport, model) {
 
   function titleFont(size) {
     const scale = window.VIEWPORT?.get().scale || 1;
-    return readableFont(Math.max(size, Math.ceil(18 / scale)), "700").replace("'Noto Sans JP'", "'Kaisei Decol'");
+    return readableFont(Math.max(size, Math.ceil(18 / scale)), "700").replace("'Yokai Noto JP', 'Noto Sans JP'", "'Kaisei Decol'");
   }
 
   function readableFont(size, weight = "700") {
     const scale = window.VIEWPORT?.get().scale || (document.getElementById("game")?.getBoundingClientRect().width || 900) / 900;
     const readable = scale < 1 ? Math.max(size, Math.min(28, Math.ceil(14 / scale))) : size;
-    return `${weight || "700"} ${readable}px 'Noto Sans JP', 'Microsoft JhengHei', sans-serif`;
+    return `${weight || "700"} ${readable}px 'Yokai Noto JP', 'Noto Sans JP', 'Microsoft JhengHei', sans-serif`;
   }
 
   function answerFont(size, weight = "700") {
     const scale = window.VIEWPORT?.get().scale || (document.getElementById("game")?.getBoundingClientRect().width || 900) / 900;
     const readable = scale < 1 ? Math.max(size, Math.min(31, Math.ceil(15 / scale))) : size;
-    return `${weight || "700"} ${readable}px 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif`;
+    return `${weight || "700"} ${readable}px 'Yokai Noto JP', 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif`;
   }
 
   // 僅地板實體答題字使用行書／毛筆感字型，避免整條字串被粗黑現代字體取代。
   function floorAnswerFont(size) {
     const scale = window.VIEWPORT?.get?.().scale || 1;
     const readable = scale < 1 ? Math.max(size, Math.ceil(15 / scale)) : size;
-    return `400 ${readable}px 'Yuji Syuku', 'Kaisei Decol', 'HGS行書体', 'DFKai-SB', 'Yu Mincho', 'Noto Serif JP', serif`;
+    // Keep a single locally hosted Japanese glyph set for the whole word.
+    // The old brush-font stack split hiragana / katakana across iPad system fonts.
+    return `700 ${readable}px 'Yokai Noto JP', 'Noto Sans JP', sans-serif`;
   }
 
   let answerFontFallbackGrace = false;

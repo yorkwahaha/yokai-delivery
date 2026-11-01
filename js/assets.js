@@ -213,7 +213,7 @@ const isS2ArtProdEnabled = () => {
 // 共通技能/HUD 的 manifest 不得被 S2 場景旗標擋住，S1 也使用同一來源。
 let runtimeManifestPromise = null;
 window.loadRuntimeArtManifest = () => {
-  if (!runtimeManifestPromise) runtimeManifestPromise = fetch('assets/img/runtime-art-manifest.json?v=20261031-stage2-canonical1')
+  if (!runtimeManifestPromise) runtimeManifestPromise = fetch('assets/img/runtime-art-manifest.json?v=20261101-s2-stone1')
     .then(res => { if (!res.ok) throw Error(`MANIFEST_HTTP_${res.status}`); return res.json(); })
     .then(manifest => { window.__RUNTIME_MANIFEST = manifest; return manifest; })
     .catch(error => {
@@ -230,7 +230,7 @@ window.loadRuntimeArtManifest();
 async function loadS2ArtProdManifest() {
   if (!isS2ArtProdEnabled()) return null;
   // Unified runtime art manifest serves as authoritative single data source
-  const unifiedManifestUrl = 'assets/img/runtime-art-manifest.json?v=20261031-stage2-canonical1';
+  const unifiedManifestUrl = 'assets/img/runtime-art-manifest.json?v=20261101-s2-stone1';
 
   try {
     const manifest = await window.loadRuntimeArtManifest();
@@ -2399,7 +2399,7 @@ if (isBossHazardArtEnabled()) loadBossHazardArt();
 window.PORT_ART = {};
 window.PORT_ART_STATUS = {};
 const RAIN_PORT_ASSETS = Object.freeze({
-  stone: "assets/img/rain-port/ground_stone.webp",
+  stone: "assets/img/stages/rain-port/tiles/rain-port__g-stone-01.webp",
   dock: "assets/img/rain-port/ground_wood_dock.webp",
   warehouse: "assets/img/rain-port/port_warehouse.webp",
   mooring: "assets/img/rain-port/prop_mooring_post.webp",
@@ -2413,13 +2413,13 @@ const RAIN_PORT_FISH = Object.freeze({
   fishmonger: "assets/img/rain-port/port_fishmonger.webp"
 });
 const RAIN_PORT_GROUND = Object.freeze({
-  stoneVar1: "assets/img/rain-port/ground_stone_var1.webp",
-  stoneVar2: "assets/img/rain-port/ground_stone_var2.webp",
+  stoneVar1: "assets/img/stages/rain-port/tiles/rain-port__g-stone-02.webp",
+  stoneVar2: "assets/img/stages/rain-port/tiles/rain-port__g-stone-03.webp",
   woodVar1: "assets/img/rain-port/ground_wood_dock_var1.webp",
   woodVar2: "assets/img/rain-port/ground_wood_dock_var2.webp",
-  transH: "assets/img/rain-port/ground_trans_stone_wood_h.webp",
-  transV: "assets/img/rain-port/ground_trans_stone_wood_v.webp",
-  stoneWoodV2: "assets/img/rain-port/ground_stone_wood_transition_v2.webp"
+  transH: "assets/img/stages/rain-port/tiles/rain-port__t-stone-wood.webp",
+  transV: "assets/img/stages/rain-port/tiles/rain-port__t-stone-wood.webp",
+  stoneWoodV2: "assets/img/stages/rain-port/tiles/rain-port__t-stone-wood.webp"
 });
 const RAIN_PORT_CANDIDATE_ASSETS = Object.freeze({
   fishWorkshop: "assets/img/rain-port/port_fish_workshop_cutout_candidate.png",
@@ -2494,7 +2494,7 @@ function loadPortSprites(roles) {
       }
     };
     const routed = window.ASSET_PATHS?.resolve(url) || url;
-    img.src = `${routed}?v=20261031-stage2-approved-routes1`;
+    img.src = `${routed}?v=20261101-s2-stone1`;
   }
 }
 window.PORT_ENEMIES = {};
@@ -2539,7 +2539,7 @@ function loadPortEnemies() {
       }
     };
     const routed = window.ASSET_PATHS?.resolve(url) || url;
-    img.src = `${routed}?v=20261031-stage2-approved-routes1`;
+    img.src = `${routed}?v=20261101-s2-stone1`;
   }
 }
 window.refreshPortArt = (force = false) => {
