@@ -18,7 +18,7 @@ test('B6 night-town charge doubles physical speed and expands length/width with 
  for(let i=0;i<10;i++){boss.step(e,p,.05,opts);lastX=e.x;}
  assert.ok(lastX>=600,'visible dash must move 2x the former speed');
  assert.match(renderer,/charge_aura/);
- assert.match(renderer,/b3ComfyLocalTrial\(\)/);
+ assert.match(renderer,/releasedNightBossArt\(\)/);
  const img=fs.readFileSync(path.join(root,'assets/img/vfx/boss-night-town/charge_aura.webp'));
  assert.equal(img.toString('ascii',0,4),'RIFF');
 });

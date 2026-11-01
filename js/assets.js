@@ -321,7 +321,25 @@ async function loadS2ArtProdAssets() {
         next();
       });
 
-      let anyLoaded = false;
+      // B15: the actual base floor is a high-priority dependency. Load both
+      // canonical approved floor textures in PARALLEL before secondary art.
+      // Do not paint a legacy tile first and then replace it mid-game.
+      const baseStone = stoneVariants.find(t => t.id === 'g_stone_01' || t.id === 'tile_stone_canonical' || t.id === 'tile_stone_base');
+      const baseWood = woodVariants.find(t => t.id === 'g_wood_01' || t.id === 'tile_wood_dock_canonical' || t.id === 'tile_wood_dock_base');
+      const primeBase = async tile => {
+        if (!tile) return false;
+        const srcWebp = tile.path_webp || tile.path;
+        const result = await loadImage(srcWebp, tile.path_png, tile.legacy_source_path || tile.legacy_path_webp);
+        tile._img = result.img;
+        tile._loaded = result.ok;
+        return result.ok;
+      };
+      const baseLoaded = await Promise.all([primeBase(baseStone), primeBase(baseWood)]);
+      if (baseLoaded.every(Boolean)) {
+        S2_ART_PROD_CACHE.loaded = true;
+        try { window.RENDERER?.invalidateGroundCache?.(); } catch {}
+      }
+      let anyLoaded = baseLoaded.some(Boolean);
       // Load stone variants
       for (const tile of S2_ART_PROD_CACHE.tiles.stoneVariants) {
         const srcWebp = tile.path_webp || (tile.path && tile.path.endsWith('.webp') ? tile.path : null) || tile.path;

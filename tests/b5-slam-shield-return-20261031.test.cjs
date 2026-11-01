@@ -34,14 +34,14 @@ test('B5 needle return leaves after at least 2/3 visible edge, flies curved boom
  assert.equal(nd.life,0,'returns terminate at player, no indefinite bullets');
  assert.match(game,/ang:nd.hasReturn \? nd.launchAng : Math.atan2\(nd.vy,nd.vx\)/);
 });
-test('B5 new octagonal shield is real WebP with local-only candidate routing; break has scatter effect',()=>{
+test('B5 new octagonal shield is real WebP with reviewed published-art routing; break has scatter effect',()=>{
  for (const name of ['ward_bagua_full','ward_bagua_break']) {
    const bytes=fs.readFileSync(path.join(root,'assets/img/vfx/shield',name+'.webp'));
    assert.equal(bytes.toString('ascii',0,4),'RIFF');
    assert.equal(bytes.toString('ascii',8,12),'WEBP');
    assert.ok(renderer.includes(name));
  }
- assert.match(renderer,/b3ComfyLocalTrial\(\)/);
+ assert.match(renderer,/releasedNightBossArt\(\)/);
  assert.match(renderer,/ctx.scale\(flipX, 1\)/);
  assert.match(renderer,/crackAge/);
 });

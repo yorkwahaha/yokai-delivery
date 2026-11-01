@@ -226,7 +226,7 @@ window.UI = (() => {
     img.decoding="async";
     img.onload=()=>{ illustratedCharmCards[key]=img; };
     img.onerror=()=>{ charmCardRequested.delete(key); };
-    img.src=b8LocalArtTrial
+    img.src=releasedUiArt
       ? `assets/img/ui/charm-passive/b9/charm_card_${key}.webp?v=20261101-b9`
       : `assets/img/ui/charm-passive/b7/charm_card_${key}.webp?v=20261031-b7`;
   }
@@ -241,6 +241,8 @@ window.UI = (() => {
   // No procedural drawing may stand in for the painted seal-break key art.
   let paintedBossSealBreak = null;
   const b8LocalArtTrial = /^(localhost|127[.]0[.]0[.]1|192[.]168[.])/.test(window.location?.hostname || "");
+  // B15: these reviewed UI/charms/passives are published assets, not dev candidates.
+  const releasedUiArt = true;
   // B14 approved ink warning: a single hand-painted transparent WebP
   // including all four Chinese characters; NOT a gameplay screenshot.
   let b14SurgeBrush = null;
@@ -253,14 +255,14 @@ window.UI = (() => {
   // B13 ComfyUI: entirely new matching painted menu/paper/button art.
   // No recycled B12 gray overlay or mismatched glossy wooden buttons.
   const b13Art=Object.create(null);
-  if(typeof window.Image==="function" && b8LocalArtTrial){
+  if(typeof window.Image==="function" && releasedUiArt){
     for(const name of ["menu_board","menu_button","menu_button_danger","surge_warning"]){
       const img=new window.Image();img.decoding="async";
       img.onload=()=>{b13Art[name]=img;};
       img.src="assets/img/ui/b13/"+name+".webp?v=20261101-b13";
     }
   }
-  if(typeof window.Image==="function" && b8LocalArtTrial){
+  if(typeof window.Image==="function" && releasedUiArt){
     for(const name of ["surge_warning","modal_board","pause_medallion",
       "camera_medallion","view_flat_medallion"]){
       const img=new window.Image();img.decoding="async";
@@ -270,7 +272,7 @@ window.UI = (() => {
   }
 
 
-  if(typeof window.Image === "function" && b8LocalArtTrial){
+  if(typeof window.Image === "function" && releasedUiArt){
     const img=new window.Image();img.decoding="async";
     img.onload=()=>{paintedBossSealBreak=img;};
     img.src="assets/img/vfx/boss-night-town/seal_break_painted.webp?v=20261101-b8";
@@ -303,14 +305,14 @@ window.UI = (() => {
     for (const id of ["power", "step", "gather", "cadence", "reach", "guard"]) {
       const img = new window.Image();
       img.onload = () => { illustratedCharms[id] = img; };
-      img.src = b8LocalArtTrial
+      img.src = releasedUiArt
         ? `assets/img/ui/charm-passive/b11/omamori_${id}.webp?v=20261101-b10`
         : `assets/img/ui/charm-passive/b7/omamori_${id}.webp?v=20261031-b7`;
     }
     for (const id of ["shield", "dmg", "rate", "crit", "spd", "dash", "oil_max", "mag", "oil_heal"]) {
       const img = new window.Image();
       img.onload = () => { illustratedPassives[id] = img; };
-      img.src = b8LocalArtTrial
+      img.src = releasedUiArt
         ? `assets/img/ui/b13/passive_${id}.webp?v=20261101-b9`
         : `assets/img/ui/passive/warm/hud_passive_${id}.webp?v=20261031-washi-gold1`;
     }
@@ -333,7 +335,7 @@ window.UI = (() => {
   }
   // B11: separate illustrated BLANK gameplay layers, all game data is dynamic.
   const charmScreenArt = {feature:null,hud:null,cards:Object.create(null)};
-  if(b8LocalArtTrial && typeof window.Image==="function"){
+  if(releasedUiArt && typeof window.Image==="function"){
     for(const key of ["feature","hud","card_power","card_step","card_gather",
                       "card_cadence","card_reach","card_guard"]){
       const img=new window.Image();img.decoding="async";
@@ -348,6 +350,7 @@ window.UI = (() => {
   const formalSkillIllustrations = Object.create(null);
   const formalSkillRequests = new Set();
   const formalSkillRetryAt = Object.create(null);
+  const formalSkillFailed = new Set();
   const formalSkillIds = new Set(["katana","fire","barrier","thunder","boom","needle",
     "shield","dmg","rate","crit","spd","dash","oil_max","oil_heal","mag",
     "mut_return","mut_pulse","mut_seek","mut_frost","mut_pierce",
@@ -360,8 +363,8 @@ window.UI = (() => {
     formalSkillRequests.add(id);
     const image = new window.Image();
     image.decoding = "async";
-    image.onload = () => { formalSkillIllustrations[id] = image; };
-    image.onerror = () => { formalSkillRequests.delete(id); formalSkillRetryAt[id] = Date.now() + 4000; };
+    image.onload = () => { formalSkillIllustrations[id] = image; formalSkillFailed.delete(id); };
+    image.onerror = () => { formalSkillRequests.delete(id); formalSkillFailed.add(id); formalSkillRetryAt[id] = Date.now() + 4000; };
     image.src = `assets/img/ui/upgrade/illustrations/${id}.webp?v=20261029-review-art3`;
   }
   const illustratedSkills = Object.create(null);
@@ -686,6 +689,15 @@ window.UI = (() => {
       // Only the unillustrated center strips extend across landscape viewports.
       const scale = Math.min(w / board.naturalWidth, h / board.naturalHeight);
       drawWashiSlices(ctx, board, x, y, w, h, 180, 128, 180 * scale, 128 * scale);
+      return;
+    }
+    if (useFormalUpgradeArt) {
+      // B15: while the painted board is downloading, never reveal the previous
+      // generation's scroll; a matching neutral paper underlay is stable.
+      ctx.save();
+      ctx.fillStyle = "#f2e7ca";
+      ctx.fillRect(x, y, w, h);
+      ctx.restore();
       return;
     }
     const cand = scrollCandidateArt.scrollBg;
@@ -2789,7 +2801,8 @@ window.UI = (() => {
         const ratio=Math.min(artW/art.naturalWidth,slotSize/art.naturalHeight);
         const iw=art.naturalWidth*ratio,ih=art.naturalHeight*ratio;
         ctx.drawImage(art,px+(artW-iw)/2,slotY+(slotSize-ih)/2,iw,ih);
-      }else drawEmblem(ctx,pas.id,px+artW/2,slotY+slotSize/2,12);
+      } // B15: keep the paper slot neutral while its approved ink icon loads,
+        // instead of flashing the old geometric emblem for a few frames.
       const cap=maxStacks[pas.id]||3,lit=Math.min(cap,Math.max(0,pas.lvl));
       const segGap=1.5,segH=(slotSize-(cap-1)*segGap)/cap,barX=px+artW+3;
       for(let seg=0;seg<cap;seg++){
@@ -3833,9 +3846,8 @@ window.UI = (() => {
       // 卡片底板：支援正式新直式卷軸底板圖（如有），否則標記 ART_ASSET_NEEDED 並使用半水墨深藍浮世繪底
       const formalCardImage = formalUpgradeArt.card_dark?.naturalWidth ? formalUpgradeArt.card_dark : formalUpgradeArt.card;
       const formalCard = !!formalCardImage?.naturalWidth;
-      const cardBoardImg = formalCard ? formalCardImage : (selected
-        ? (window.ART?.card_scroll_sel || window.ART?.card_vertical_sel)
-        : (window.ART?.card_scroll_v1 || window.ART?.card_vertical || window.ART?.card_scroll));
+      // No mixed-generation base frame while the published card image is loading.
+      const cardBoardImg = formalCard ? formalCardImage : null;
       if (cardBoardImg && cardBoardImg.naturalWidth > 0) {
         ctx.drawImage(cardBoardImg, x, y, w, h);
       } else {
@@ -3889,13 +3901,22 @@ window.UI = (() => {
         else if (illustratedSkills[c.id]) rasterImg = illustratedSkills[c.id];
         else if (window.ART && window.ART[c.id]) rasterImg = window.ART[c.id];
 
-        rasterImg = formalSkillIllustrations[c.id] || rasterImg;
+        // B15: Never show the previous-generation icon while a released
+        // illustration is still downloading, then abruptly swap it in.
+        // Only use the old fallback after a genuine network failure.
+        const waitingForFormal = formalSkillIds.has(c.id) && !formalSkillFailed.has(c.id);
+        rasterImg = waitingForFormal ? (formalSkillIllustrations[c.id] || null)
+          : (formalSkillIllustrations[c.id] || rasterImg);
         if (rasterImg && rasterImg.naturalWidth > 0) {
           const rw = rasterImg.naturalWidth, rh = rasterImg.naturalHeight;
           const scale = formalSkillIllustrations[c.id]
             ? Math.max(artW / rw, artH / rh) : Math.min(artW / rw, artH / rh);
           const dw = rw * scale, dh = rh * scale;
           ctx.drawImage(rasterImg, artX + (artW - dw) / 2, artY + (artH - dh) / 2, dw, dh);
+          artDrawn = true;
+        } else if (waitingForFormal) {
+          // Card's painted background remains visible until the real icon is ready.
+          // No interim legacy emblem, avoiding the one-frame old/new flash.
           artDrawn = true;
         } else {
           artDrawn = drawScrollCardArt(ctx, c.id, artX + artW / 2, artY + artH / 2, 45, { dark: true });

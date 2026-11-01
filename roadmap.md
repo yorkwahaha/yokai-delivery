@@ -1,5 +1,14 @@
 # Yokai Delivery — Roadmap／跨對話持續交接
 
+### 2026-11-01｜B15 正式站圖片不同步與「舊圖先閃現」修補
+
+- 公開站原本受 `localhost/192.168.*` 本機條件限制，仍顯示舊版被動／護符／選單、第一關 Boss 砸地／護盾／衝刺；現將**已核准、已部署** B11/B13 介面及 Boss 圖正式打通，不開放未核准第二關水王圖及融合候選。
+- 第一關 Boss 砸地新版預警與碎裂圖、衝刺軌道提前預載；新素材下載中不先回退前代砸地圖。
+- 第二關正式 manifest 使用 `g_stone_01`、`g_wood_01`、`t_stone_wood_v01`，但原 renderer 只識別 `tile_stone_canonical` 等舊 ID，造成正式圖片存在卻持續使用舊版地板／接縫；已修正為實際正式 ID。基本石地／木地並行優先載入、必要時先保留中性底色，不再閃現舊地板或舊接縫。
+- 技能卡、被動 HUD 對新版插圖的等待期不再先繪製上代 icon；實際網路失敗時仍可按原安全備援流程。更換 `index.html` 全部腳本 cache key `20261101-imagefix2`。
+- `tests/b15-production-art-mapping-20261101.test.cjs` 新增 5 項；本輪 81/81 相關測試通過；`asset_registry --check` 890/147；不需要修改遊戲平衡及融合門禁。
+
+
 ### 2026-11-01｜B14 百鬼夜行透明毛筆警示（已接遊戲；本機待玩家試玩確認）
 
 - **唯一現役警示圖**：使用本機 ComfyUI/Qwen Image 2.1 生成全新無花、無花瓣、無方框的紅黑不規則乾筆畫，將四字**「百鬼夜行」以金色毛筆字直接繪在同一張圖**；再去除淺色底成真正 RGBA 透明 WebP：`assets/img/ui/b14/surge_brush.webp`（1462×450，字形原比例、左右僅加透明留白，沒有橫向壓扁）。原始圖 `art/night-town/b14-comfy/surge_source.png`，透明圖 QA `art/night-town/b14-comfy/surge_transparency_qa.png`，生圖／去背腳本 `tools/b14_surge_brush.py`。B12/B13 舊警示素材保留但不在現役警示裡呼叫。

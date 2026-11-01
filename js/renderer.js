@@ -586,7 +586,7 @@ window.RENDERER = (() => {
     // Priority 2: Manifest usable_runtime_tiles
     const tiles = window.getS2StoneTiles?.();
     if (!tiles?.length) return null;
-    const baseTile = tiles.find(t => (t.id === "tile_stone_canonical" || t.id === "tile_stone_base") && t._loaded && t._img?.naturalWidth);
+    const baseTile = tiles.find(t => (t.id === "g_stone_01" || t.id === "tile_stone_canonical" || t.id === "tile_stone_base") && t._loaded && t._img?.naturalWidth);
     if (baseTile) return () => baseTile._img;
     return null;
   }
@@ -594,7 +594,7 @@ window.RENDERER = (() => {
     // Raw Nano wood is retained as evidence, never tiled directly.
     const tiles = window.getS2WoodTiles?.();
     if (!tiles?.length) return null;
-    const baseTile = tiles.find(t => (t.id === "tile_wood_dock_canonical" || t.id === "tile_wood_dock_base") && t._loaded && t._img?.naturalWidth);
+    const baseTile = tiles.find(t => (t.id === "g_wood_01" || t.id === "tile_wood_dock_canonical" || t.id === "tile_wood_dock_base") && t._loaded && t._img?.naturalWidth);
     if (baseTile) return () => baseTile._img;
     return null;
   }
@@ -602,7 +602,10 @@ window.RENDERER = (() => {
     // Use true postprocessed shoreline transition only.
     const tiles = window.getS2TransitionsH?.();
     if (!tiles?.length) return null;
-    const approved = tiles.find(t => t.id === "tile_trans_stone_wood_h_canonical" && t.provenance_type === "NANO_SOURCE" && t._loaded && t._img?.naturalWidth);
+    // Actual published manifest names the approved shoreline seam t_stone_wood_v01.
+    const approved = tiles.find(t => (t.id === "t_stone_wood_v01" ||
+      (t.id === "tile_trans_stone_wood_h_canonical" && t.provenance_type === "NANO_SOURCE"))
+      && t._loaded && t._img?.naturalWidth);
     if (approved) return () => approved._img;
     const refined = tiles.find(t => t.id === "tile_trans_stone_wood_h_refined" && t._loaded && t._img?.naturalWidth);
     if (refined) return () => refined._img;
@@ -704,6 +707,7 @@ window.RENDERER = (() => {
           const woodPick = s2WoodTilePick();
           if (woodPick) return woodPick();
         }
+        if (s2Enabled) return null; // Approved S2 image still loading: never flash legacy wood.
         if (art.woodVar1?.naturalWidth) return art.woodVar1;
         return art.dock?.naturalWidth ? art.dock : null;
       }
@@ -714,6 +718,7 @@ window.RENDERER = (() => {
       if (surfaceCand && art.stoneV3?.naturalWidth) {
         return art.stoneV3;
       }
+      if (s2Enabled) return null; // Approved S2 image still loading: never flash legacy stone.
       if (art.stoneVar1?.naturalWidth) return art.stoneVar1;
       return art.stone?.naturalWidth ? art.stone : null;
     };
@@ -783,6 +788,7 @@ window.RENDERER = (() => {
     c.restore();
   }
   function paintPortTransitionSeams(c, chunks, region) {
+    if (window.isS2ArtProdEnabled?.()) return; // B15: never mix old seams into approved ground.
     const img = window.PORT_ART?.[PORT_V2_ROLE];
     if (!img?.naturalWidth || !img?.naturalHeight) return;
     const pad = PORT_SEAM_SH;
@@ -874,9 +880,9 @@ window.RENDERER = (() => {
     // 512px approved mud/slab tile already matches first-stage world scale;
     // only the 1254px harbor docks should be scaled down to half size.
     const stoneScale = (s2Enabled && stoneTile?.naturalWidth <= 600 && !kitEnabled) ? 1 : tScale;
-    const seamImg = (surfaceCand && window.PORT_ART?.stoneWoodTransition?.naturalWidth)
+    const seamImg = s2Enabled ? null : ((surfaceCand && window.PORT_ART?.stoneWoodTransition?.naturalWidth)
       ? window.PORT_ART.stoneWoodTransition
-      : window.PORT_ART?.[PORT_V2_ROLE];
+      : window.PORT_ART?.[PORT_V2_ROLE]);
     // S2 transitions (horizontal for stone-wood seam, vertical for chunk boundaries)
     // For the ground kit the horizontal seam uses t_stone_wood_v01.png (OBSERVED horizontal:
     // stone top / wood bottom). t_stone_wood_h01 (diagonal) and t_stone_wood_c01 (vertical
@@ -1911,6 +1917,8 @@ window.RENDERER = (() => {
   // ComfyUI-generated raster candidates are for LOCAL in-game review only;
   // ordinary published builds retain their previously approved raster art.
   const b3ComfyLocalTrial = () => { const host = window.location?.hostname || ""; return host === "localhost" || host === "127.0.0.1" || host.startsWith("192.168."); };
+  // B15: explicitly reviewed night-town shield and Boss VFX have been published.
+  const releasedNightBossArt = () => true;
 
   // First-party ink-and-ofuda ward: no reused JPAPP / western heraldic shield.
   const shieldArt = { full: null, crack: null };
@@ -1918,7 +1926,7 @@ window.RENDERER = (() => {
   function shieldSprite(kind) {
     if (!shieldArt[kind]) {
       const img = new Image();
-      img.src = b3ComfyLocalTrial()
+      img.src = releasedNightBossArt()
         ? (kind === "crack" ? "assets/img/vfx/shield/ward_bagua_break.webp?v=20261031-b5" : "assets/img/vfx/shield/ward_bagua_full.webp?v=20261031-b5")
         : (kind === "crack" ? "assets/img/vfx/shield/guard_crack.png" : "assets/img/vfx/shield/guard_full.png");
       shieldArt[kind] = img;
@@ -2359,7 +2367,7 @@ window.RENDERER = (() => {
 
     // The charge aura is a locally reviewed ComfyUI raster behind the Boss,
     // never a replacement drawn with canvas geometry.
-    if (isBoss && currentStageId() === "night-town" && b3ComfyLocalTrial()
+    if (isBoss && currentStageId() === "night-town" && releasedNightBossArt()
         && e.hazard?.kind === "charge" && e.hazard.phase !== "recovery") {
       const aura = nightBossSpellImage("charge_aura");
       if (aura) {
@@ -3589,21 +3597,26 @@ window.RENDERER = (() => {
       // charge_aligned image which itself contained DOUBLE competing lanes.
       // Local/LAN art gate only; preserve deployed production baseline.
       const rasterKind=kind==="charge"
-        ? (b3ComfyLocalTrial()?"charge_single_b13":"charge_aligned")
+        ? (releasedNightBossArt()?"charge_single_b13":"charge_aligned")
         : kind;
-      const revision=kind==="charge"&&b3ComfyLocalTrial()?"b13-single1":"20261031-charge-path1";
+      const revision=kind==="charge"&&releasedNightBossArt()?"b13-single1":"20261031-charge-path1";
       img.src="assets/img/vfx/boss-night-town/"+rasterKind+".webp?v="+revision;
     }
     return nightBossSpellImages[kind]?.naturalWidth ? nightBossSpellImages[kind] : null;
+  }
+  // Preload the exact production hazard frames to avoid a one-frame old art flash.
+  if (typeof Image === "function") {
+    for (const kind of ["slam_earth_warning", "slam_earth_impact", "charge", "ring"]) nightBossSpellImage(kind);
   }
   function drawNightBossImage(c,h,elapsed) {
     const kind = h.kind || "";
     if (kind === "slam") {
       const r = h.r || 150;
       // Real ComfyUI images, separate tell/impact art for local visual review.
-      const trial = b3ComfyLocalTrial() ? nightBossSpellImage(
+      const trial = releasedNightBossArt() ? nightBossSpellImage(
         h.phase === "telegraph" ? "slam_earth_warning" : "slam_earth_impact") : null;
-      const raster = trial || nightBossSpellImage("slam");
+      // Released first-stage slam never falls back to the superseded painting while loading.
+      const raster = releasedNightBossArt() ? trial : nightBossSpellImage("slam");
       if (raster) {
         c.save();
         const phase = h.phase || "telegraph";
