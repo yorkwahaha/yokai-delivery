@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 
 function fixture(withBoss=true) {
-  const create = () => ({ paused: true, volume: .27, currentTime: 0, loop: true,
+  const create = () => ({ paused: true, volume: .27, currentTime: 0, loop: true, readyState: 2,
     attempts: 0, pause() {this.paused=true;}, play() {this.paused=false;this.attempts++;return Promise.resolve();} });
   const bgm=create(),map=create(),boss=withBoss?create():null;
   const env={window:{BGM:bgm,MAP_BGM:map,BOSS_BGM:boss},Audio:class {},console,setTimeout,clearTimeout};

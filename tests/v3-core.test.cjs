@@ -1,6 +1,6 @@
-// V3 核心行為 RED（最小可放行集合）。
-// 範圍：配送 XP、覺醒印 gate、提示成本、錯答保留、陣／雷／火上限、模組 API。
-// 讀的是「目前 working tree」——這些規格尚未實作，因此本檔應為 RED。
+// V3 核心行為回歸（以目前遊戲採用的設定與玩家流程為準）。
+// 範圍：配送 XP、覺醒印 gate、提示停用、錯答保留、陣／雷／火上限、模組 API。
+// 讀的是目前 working tree；歷史 V3 提示與覺醒印舊數值不再當現行契約。
 // 校準（da98b4b 舊行為）請見 tests/v3-baseline.test.cjs。
 //
 // 本檔只針對 V3 明確寫下的數值與行為，不推測未寫明的數值。
@@ -44,11 +44,11 @@ test('V3: 取貨不給 XP，經驗只來自配送與擊殺', () => {
   assert.equal(g.snapshot().xp, before, '取貨不得給經驗');
 });
 
-test('V3: 每 3 筆成功配送得 1 枚覺醒印，上限 4、不跨局', () => {
+test('V3: 每 3 筆成功配送得 1 枚覺醒印，累積數不封頂、不跨局', () => {
   const g = g0();
   const v3 = g.v3();
   assert.ok(v3.sealCount !== undefined, '缺少覺醒印計數（V3 未實作）');
-  assert.equal(v3.sealMax, 4, '覺醒印上限應為 4');
+  assert.equal(v3.sealMax, 4, '配置中的歷史顯示值維持 4，不代表實際累積上限');
 
   for (let i = 0; i < 3; i++) deliverOnceControlled(g);
   assert.equal(g.v3().sealCount, 1, '3 筆配送應得第 1 枚印');
@@ -56,14 +56,14 @@ test('V3: 每 3 筆成功配送得 1 枚覺醒印，上限 4、不跨局', () =>
   assert.equal(g.v3().sealCount, 2, '6 筆配送應得第 2 枚印');
 
   for (let i = 0; i < 12; i++) deliverOnceControlled(g);
-  assert.equal(g.v3().sealCount, 4, '印不得超過 4 枚');
+  assert.equal(g.v3().sealCount, 6, '18 筆完成配送應累積 6 枚印；現行不設累積上限');
 });
 
-test('V3: 提示協助的配送同樣計入覺醒印與 26 XP', () => {
+test('V3: 聽音提示停用後，正常配送仍計入覺醒印與 26 XP', () => {
   const g = g0();
   for (let i = 0; i < 3; i++) {
     if (!g.prepareOrder()) { assert.fail('無法建立第 ' + (i + 1) + ' 張委託'); }
-    g.triggerHint();                       // 第一段提示（V3 應為免費）
+    assert.equal(g.triggerHint(), false, '已停用的提示不可影響正常配送');
     g.atAnswer();
     for (let k = 0; k < 60 && g.snapshot().job; k++) g.update(0.05);
     g.resolveLevelUps(40);
@@ -72,6 +72,28 @@ test('V3: 提示協助的配送同樣計入覺醒印與 26 XP', () => {
   assert.equal(g.snapshot().delivered, 3, '三筆皆應送達');
   assert.equal(g.snapshot().xp, 78, `3 筆 × 26 XP，實際 ${g.snapshot().xp}`);
   assert.equal(g.v3().sealCount, 1, '提示配送也應給印');
+});
+
+test('V3: 真的答錯後原單補送三次，仍得 78 XP 與 1 枚印，但不加熟練星', () => {
+  const g = g0();
+  for (let i = 0; i < 3; i++) {
+    assert.ok(g.prepareOrder(), '應能建立配送單');
+    const j = g.snapshot().job;
+    const wrong = j.ans.findIndex(w => w !== j.word);
+    assert.ok(wrong >= 0);
+    g.resolve(wrong);
+    assert.ok(g.snapshot().job?.assisted, '錯答後原單必須保留協助標記');
+    const before = g.env.STORE.get(j.word.jp).box;
+    g.atAnswer();
+    for (let k = 0; k < 60 && g.snapshot().job; k++) g.update(0.05);
+    assert.ok(!g.snapshot().job, '同一張單應成功補送');
+    assert.equal(g.env.STORE.get(j.word.jp).box, before, '補送不應加熟練星');
+    g.resolveLevelUps(40);
+    g.setState('play');
+  }
+  assert.equal(g.snapshot().delivered, 3);
+  assert.equal(g.snapshot().xp, 78);
+  assert.equal(g.v3().sealCount, 1);
 });
 
 test('V3: 擊殺 Boss、取貨、誤配妖都不給覺醒印', () => {
@@ -125,38 +147,38 @@ test('V3: 選擇 Lv5 會消耗一枚覺醒印', () => {
 
 // ---------- B. 提示與錯答 ----------
 
-test('V3: 第一段提示免費（舊規格扣 3 油）', () => {
+test('V3: 停用聽音提示後，呼叫舊提示介面不扣油也不標記協助', () => {
   const g = g0();
   g.prepareOrder();
   g.setOil(80);
-  g.triggerHint();
+  assert.equal(g.triggerHint(), false, '停用提示的 API 應回傳 false');
   assert.ok(Math.abs(g.snapshot().oil - 80) < 0.5,
-    `V3 第一段提示應免費，實際 ${g.snapshot().oil.toFixed(2)}`);
-  assert.ok(g.snapshot().job.assisted, '仍須標記 assisted（不加熟練）');
+    `停用提示不能扣油，實際 ${g.snapshot().oil.toFixed(2)}`);
+  assert.ok(!g.snapshot().job.assisted, '未發生協助，不應標記 assisted');
 });
 
-test('V3: 第二段提示仍扣 4 油', () => {
+test('V3: 停用聽音提示後，重複呼叫也不扣油', () => {
   const g = g0();
   g.prepareOrder();
   g.setOil(80);
-  g.triggerHint();          // 第一段：免費
-  assert.ok(Math.abs(g.snapshot().oil - 80) < 0.5, 'V3 第一段應免費');
-  g.update(0.6);            // 等 hintT 冷卻過去，第二段才可用
+  assert.equal(g.triggerHint(), false);
+  assert.ok(Math.abs(g.snapshot().oil - 80) < 0.5, '停用的首次呼叫不得扣油');
+  g.update(0.6);
   const before = g.snapshot().oil;
-  g.triggerHint();          // 第二段：-4
+  assert.equal(g.triggerHint(), false);
   const drop = before - g.snapshot().oil;
-  // triggerHint 本身不推進時間，所以 drop 應精確為 4（不含自然耗油）。
-  assert.ok(Math.abs(drop - 4) < 1e-6, `第二段應扣 4 油，實際 ${drop.toFixed(3)}`);
+  assert.ok(Math.abs(drop) < 1e-6, `重複呼叫不應扣油，實際 ${drop.toFixed(3)}`);
 });
 
-test('V3: 錯答只扣 6 油（舊規格 8）', () => {
+test('V3: 錯答扣最大油量的 5%（最低 3 油）', () => {
   const g = g0();
   g.prepareOrder();
   g.setOil(80);
   const wrongIdx = g.snapshot().job.ans.findIndex(w => w !== g.snapshot().job.word);
   g.resolve(wrongIdx);
-  assert.ok(Math.abs((80 - g.snapshot().oil) - 6) < 1e-9,
-    `V3 錯答扣 6 油，實際 ${(80 - g.snapshot().oil).toFixed(2)}`);
+  const penalty = Math.max(3, Math.round(g.maxOilNow() * 0.05));
+  assert.ok(Math.abs((80 - g.snapshot().oil) - penalty) < 1e-9,
+    `V3 錯答應扣 ${penalty} 油，實際 ${(80 - g.snapshot().oil).toFixed(2)}`);
 });
 
 test('V3: 錯答不再額外生成誤配妖，且保留原單可補送', () => {
@@ -179,7 +201,9 @@ test('V3: 錯答後補送仍給 XP 與印，但標記 assisted 不加熟練', ()
   g.resolve(wrongIdx);
   const boxAfterWrong = g.env.STORE.get(word.jp).box;
 
-  g.prepareOrder();          // 保留單可再取
+  // 錯答後同一張配送單並未消失；直接對原 job 重試。
+  // prepareOrder() 是測試用新單建立器，會強制把原 job 清空，不能用它模擬重試。
+  assert.ok(g.snapshot().job?.assisted, '答錯後原單必須標記為 assisted');
   g.atAnswer();
   for (let i = 0; i < 60; i++) g.update(0.05);
   assert.equal(g.snapshot().delivered, 1, '補送應完成');

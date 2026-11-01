@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 
-function loadAssets() {
+function loadAssets({ now = () => Date.now() } = {}) {
   const images = [], tracks = [];
   class Image { constructor() { images.push(this); } }
   class Audio {
@@ -12,11 +12,33 @@ function loadAssets() {
   }
   // Browser runtime manifest request is asynchronous; mock network transport in Node VM.
   const fetch = async () => ({ ok: true, json: async () => ({}) });
-  const env = { Image, Audio, console, fetch };
+  const Clock = class extends Date { static now() { return now(); } };
+  const env = { Image, Audio, console, fetch, Date: Clock };
   env.window = env;
   vm.runInNewContext(fs.readFileSync('js/assets.js', 'utf8'), env);
   return { env, images, tracks };
 }
+
+test('a failed core WebP and PNG can be explicitly requested again after cooldown', () => {
+  let clock = 1000;
+  const { env, images } = loadAssets({ now: () => clock });
+  env.loadGameArt();
+  const ghost = images.find(i => i.src.includes('/ghost.webp'));
+  assert.ok(ghost);
+  ghost.onerror();
+  assert.ok(ghost.src.includes('/ghost.png'));
+  ghost.onerror();
+  assert.ok(env.ART_PROGRESS.failed >= 1);
+  const before = images.filter(i => i.src.includes('/ghost.webp')).length;
+  env.loadGameArt();
+  assert.equal(images.filter(i => i.src.includes('/ghost.webp')).length, before, 'no retry storm');
+  clock += 6000;
+  env.loadGameArt();
+  const tries = images.filter(i => i.src.includes('/ghost.webp'));
+  assert.equal(tries.length, before + 1);
+  tries.at(-1).onload();
+  assert.ok(env.ART.ghost, 'retry recovers the missing sprite');
+});
 
 test('initial katana raster is required before core readiness, without any old skill downloads',()=>{
   const {env,images}=loadAssets();env.loadGameArt();

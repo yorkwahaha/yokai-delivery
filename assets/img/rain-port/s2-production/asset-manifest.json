@@ -74,7 +74,7 @@
       "provenance_type": "NANO_SOURCE",
       "is_new_nano_redraw": true,
       "sha256_png": "39030cfd8c8a42d355f43541abae64b647a62df54c26bc8a85ef96783f1e8f7d",
-      "sha256_webp": "1e83357f6bf26854332a487b28a894a6a4fc16097e10656fe5ea955826256b0a"
+      "sha256_webp": "62c0613796dda9bbbd3f57ede80c312ca983f8d9526f5401adaca19ee1a1c02a"
     },
     {
       "id": "building_fish_workshop",
@@ -97,7 +97,7 @@
       "provenance_type": "NANO_SOURCE",
       "is_new_nano_redraw": true,
       "sha256_png": "47f8b830deafd8149b9d2351782d1df9e849bc5095d10bb13ba3a83d22a2b0d2",
-      "sha256_webp": "56f7f15d39016a1922f8eac073e4944fe9c4b2420790797260ed6d6a7fd161fd"
+      "sha256_webp": "930a02b22c4534f985f2cee38e550824007885d7687d36d0d506565e11d33ae7"
     },
     {
       "id": "building_port_tavern",
@@ -120,7 +120,7 @@
       "provenance_type": "NANO_SOURCE",
       "is_new_nano_redraw": true,
       "sha256_png": "25cb5803b39aac5519ac45fa9db77506ac355534b3b9c43a7e5be5137ff7a418",
-      "sha256_webp": "e5ddd1a4333d6da24ea9df5635cd12a04c57ee68d3b9f79be47fa4686e5e26e6"
+      "sha256_webp": "ffff6257a39e91cdfb699c12bb95b929e3b5790e42606d239eae51924a6254ad"
     },
     {
       "id": "building_wharf_shop",
@@ -166,7 +166,7 @@
       "provenance_type": "NANO_SOURCE",
       "is_new_nano_redraw": true,
       "sha256_png": "c2a882955cd4aad88fb6d31d0ad2ecfd2b36b85f3ec58307cdc01727a66a9ef5",
-      "sha256_webp": "932e0915ed44514f3ba4a2580a09c6a18de23356ddff8f957e28507f8ef8e045"
+      "sha256_webp": "e49b4306fa73c59fbf9501e84dab37335446848f448d7663496187995e28c755"
     }
   ],
   "props": [
@@ -191,7 +191,7 @@
       "provenance_type": "NANO_SOURCE",
       "is_new_nano_redraw": true,
       "sha256_png": "64801472fc0c42627f0ec4140f98f429ef239eeba923d72d099769585b8be6b4",
-      "sha256_webp": "2b727209c7b2e2ee8790a4c344c55ab4b4fda59f6e2c886f73b3951060750c22"
+      "sha256_webp": "08e9c1f476a9842a32cf8c13875ec9e86b830bf5c6d6b4397c0056a3f30f0644"
     },
     {
       "id": "prop_cargo_crates",
@@ -237,7 +237,7 @@
       "provenance_type": "NANO_SOURCE",
       "is_new_nano_redraw": true,
       "sha256_png": "17c9b094ad5227583ac2610b24781af2eb1267c7b5fd1ad528cdadc5362033e4",
-      "sha256_webp": "098c34e503d55111c2fbed1b4798ba9376f26eb11408664e5576aa46c7e36aae"
+      "sha256_webp": "086ef5b1a93e463046993141e24c6b966fd7335c841565300b6b7c5b77f96d53"
     },
     {
       "id": "prop_port_boat",

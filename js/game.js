@@ -228,9 +228,8 @@
     return dx * dx + dy * dy <= 1;
   }
 
-  // 僅場景答案使用較自然的筆文字體。字型已在 index.html 子集載入，
-  // Noto 完整字面備援；不修改 HUD、教學和圖鑑的字體。
-  // 結界題目假名統一使用完整的 Noto Sans JP 日文字體，消除 fallback font 混入與字距不一致
+  // 書法字體由 index.html 本地 Yuji Syuku 子集提供；Noto Sans JP
+  // 仍是跨平台缺字備援，並讓所有答案假名使用同一字型。
   const sceneAnswerFont = size => UI.floorAnswerFont ? UI.floorAnswerFont(size) : UI.answerFont(size, "400");
   const getWordDistrictWords = word => window.CONTENT.getSiblingWords(word);
   const writtenLength = text => Array.from(String(text || "").normalize("NFC")).length;
@@ -495,6 +494,7 @@
   let playerAttackPoseT = 0, playerHurtPoseT = 0; // 視覺專用計時，不影響武器冷卻／碰撞
   let dashDir = { x: 1, y: 0 };
   let choices = [], levelupCooldown = 0, joy = null, touch = window.matchMedia?.("(pointer: coarse)")?.matches || false, inter = null, cargo = { x: 0, y: 0 }, pTrail = [], last = performance.now();
+  let simulationCarry = 0;
   const btnE = { x: 810, y: 420, r: 38 }, btnD = { x: 810, y: 530, r: 46 };
   const btnFusionHeld = { id: 'fusion-reopen', x: 810, y: 310, r: 36 };
   const btnPause = { x: W - 52, y: 14, w: 38, h: 52 };
@@ -2235,7 +2235,7 @@
     fire:["一顆狐火環繞護身，僅接觸周遭妖怪","兩顆狐火環繞護身，不主動飛出","三顆狐火環繞護身，不主動飛出","三顆護火，其中一顆離體追敵後回歸","覺醒・墨焰黑龍：三顆護火，每 7.2 秒一條黑龍（露臉 1.5 秒＋退場後 5 秒）；不再離體。每次三球、五秒焦土最多三處"],
     boom:["單符黏附後延遲爆炸；本體全傷，周圍濺射並震退","一次擲出 2 枚符咒","三符齊射，冷卻縮短","四符齊射，爆炸範圍加大","覺醒・兩儀延爆：兩枚符咒，爆炸範圍最大"],
     thunder:["190 範圍內攻擊最近 1 隻，傷害 2 倍係數","270 範圍內同時攻擊 2 隻，傷害 3 倍係數","350 範圍內同時攻擊 3 隻，傷害 4.5 倍係數，不依生命秒殺","450 範圍內鎖定 3 個威脅，固定 6 倍係數","覺醒・建御雷神破界天罰：450 範圍內三朵雷雲，每朵半徑 90、8 倍係數"],
-    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階八方輪射","覺醒・八方輪射：依序順時針每 0.10 秒一枚，追蹤與冰封須另選變異"],
+    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階八方輪射","覺醒・八方輪射：依序順時針每 0.05 秒一枚，追蹤與冰封須另選變異"],
     // 融合武器升級描述（Lv1 即完成形，描述供圖鑑/確認畫面）
     fusion_inkblade:["融合・墨焰斬：大型扇形墨焰斬，命中留下短暫地面灼燒；妖刀與狐火共鳴覺醒","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・墨焰斬：扇形 114.6°、半徑 280、地面灼燒 2.5 秒、冷卻 1.2 秒、直接斬擊與地面焦痕雙段傷害"],
     fusion_thundercircle:["融合・雷陣封界：大型陣域脈衝定點引雷，在陣域內有節奏地多次擊中並可閃避警示","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・雷陣封界：陣域半徑 240、脈衝間隔 0.8 秒、落雷預警 0.6 秒、命中去重 0.3 秒"],
@@ -2500,6 +2500,7 @@ if (isRainPort) {
       state = "play";
       AUDIO.setSuspended(false);
       last = performance.now();
+      simulationCarry = 0;
     }
   }
 
@@ -2895,8 +2896,9 @@ if (isRainPort) {
     // 原共享變異若兩招都持有，選到此類別就同時出現「靈針」和「陰陽符」
     // 兩張專屬卡讓玩家自行選擇歸屬；選一張後另一張整局不可再取得。
     const otherUpgradeAvailable = !!awakenCard || wc.length > 0 || pc.length > 0;
-    const mutationOfferReady = otherUpgradeAvailable && eligibleMutationKeys.length > 0
-      && level - lastMutationOfferLevel >= 3 && Math.random() < 0.25;
+    // If mutations are the sole remaining upgrades, do not apply the usual rarity gate.
+    const mutationOfferReady = eligibleMutationKeys.length > 0
+      && (!otherUpgradeAvailable || (level - lastMutationOfferLevel >= 3 && Math.random() < 0.25));
     let mc = [];
     if (mutationOfferReady) {
       const chosen = pick(eligibleMutationKeys);
@@ -3750,7 +3752,8 @@ if (isRainPort) {
       else if (justPressed(3) && bossQ.ans.length > 2) answerBoss(2);
     }
 
-    // R3 (standard Gamepad button 11): switch 2D / 2.5D in active play.
+    // R3 右搖桿按下 (standard Gamepad button 11): 切換 2D / 2.5D。
+    // 只在遊戲進行中觸發，不與 Y 重抽、A 確認或 Start 暫停衝突。
     if (state === "play" && justPressed(11)) toggleViewMode();
 
     // Start 鍵 (Button 9): 暫停開關
@@ -3852,7 +3855,7 @@ if (isRainPort) {
       bs.wasAssisted = true;
       if (job?.word.jp === bs.word.jp) job.assisted = true;
       // 舊招式立即停止，不讓被詛咒時仍有自動武器、範圍傷害或殘留火球。
-      proj = []; needles = []; winds = []; ghosts = []; crosscuts = [];
+      proj = []; needles = []; needleQueued = []; winds = []; ghosts = []; crosscuts = [];
       dragonShots = []; dragonScorches = []; barrierPulses = []; sacredSanctuary = null;
       splitblasts = []; duoShockwaves = []; inkfireMarks = [];
       fusionEffects = []; fusionEffects._idCounter = 0;
@@ -4168,7 +4171,16 @@ if (isRainPort) {
     return false;
   }
 
+  // An attack tick may resolve many skill specs. Snapshot owned skills/passives
+  // lazily once per combat tick instead of rebuilding its arrays for each cast.
+  // Never reuse it across ticks: upgrades, mutation choices and test bridges
+  // may change the build before the following weapons() call.
+  let combatBuildSnapshot = null;
+  function combatBuildState() {
+    return combatBuildSnapshot || (combatBuildSnapshot = getBuildState());
+  }
   function weapons(dt) {
+    combatBuildSnapshot = null;
     // 0. 墨焰斬延遲墨焰痕佇列（上限 16，延遲 0.12 秒，出生幀 dt 不扣，在妖刀攻擊前推進）
     if (inkfireMarks.length > 0) {
       for (const im of inkfireMarks) {
@@ -4198,7 +4210,7 @@ if (isRainPort) {
     wT.katana = (wT.katana ?? atkT) - dt;
     atkT = wT.katana;
     if (WL.katana > 0 && wT.katana <= 0) {
-      const spec = resolveAttackSpec("katana", WL.katana, getBuildState(), { faceAng: P.faceAng || 0 });
+      const spec = resolveAttackSpec("katana", WL.katana, combatBuildState(), { faceAng: P.faceAng || 0 });
       const reach = spec.reach;
       const faceAng = P.faceAng || 0;
       let hasEnemyInArc = false;
@@ -4393,7 +4405,7 @@ if (isRainPort) {
     if (WL.fusion_inkblade > 0) {
       wT.fusion_inkblade = (wT.fusion_inkblade ?? 0) - dt;
       if (wT.fusion_inkblade <= 0) {
-        const spec = resolveAttackSpec("fusion_inkblade", WL.fusion_inkblade, getBuildState(), { faceAng: P.faceAng || 0 });
+        const spec = resolveAttackSpec("fusion_inkblade", WL.fusion_inkblade, combatBuildState(), { faceAng: P.faceAng || 0 });
         const reach = spec.reach || 280;
         const faceAng = P.faceAng || 0;
         let hasEnemyInArc = false;
@@ -4456,7 +4468,7 @@ if (isRainPort) {
     if (WL.fusion_foxiai > 0) {
       wT.fusion_foxiai = (wT.fusion_foxiai ?? 0) - dt;
       if (wT.fusion_foxiai <= 0) {
-        const spec = resolveAttackSpec("fusion_foxiai", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const spec = resolveAttackSpec("fusion_foxiai", 1, combatBuildState(), { faceAng: P.faceAng || 0 });
         const faceAng = P.faceAng || 0;
         const preTargets = fusionLineTargets(P.x, P.y, faceAng, spec.reach, spec.hitWidth, spec.maxTargets);
         if (!preTargets.length || fusionEffects.length >= FUSION_FX_MAX) {
@@ -4496,7 +4508,7 @@ if (isRainPort) {
     if (WL.fusion_exorcistblade > 0) {
       wT.fusion_exorcistblade = (wT.fusion_exorcistblade ?? 0) - dt;
       if (wT.fusion_exorcistblade <= 0) {
-        const spec = resolveAttackSpec("fusion_exorcistblade", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const spec = resolveAttackSpec("fusion_exorcistblade", 1, combatBuildState(), { faceAng: P.faceAng || 0 });
         const faceAng = P.faceAng || 0;
         const targets = fusionArcTargets(P.x, P.y, faceAng, spec.reach, spec.arc, spec.maxTargets);
         if (!targets.length || fusionEffects.length >= FUSION_FX_MAX) {
@@ -4549,7 +4561,7 @@ if (isRainPort) {
     if (WL.fusion_foxfirebarrier > 0) {
       wT.fusion_foxfirebarrier = (wT.fusion_foxfirebarrier ?? 0) - dt;
       if (wT.fusion_foxfirebarrier <= 0) {
-        const spec = resolveAttackSpec("fusion_foxfirebarrier", 1, getBuildState());
+        const spec = resolveAttackSpec("fusion_foxfirebarrier", 1, combatBuildState());
         const activeField = fusionEffects.some(fx => fx.kind === "fusion_foxfirebarrier");
         if (activeField || fusionEffects.length >= FUSION_FX_MAX) {
           wT.fusion_foxfirebarrier = 0.15;
@@ -4591,7 +4603,7 @@ if (isRainPort) {
     if (WL.fusion_exorcistseal > 0) {
       wT.fusion_exorcistseal = (wT.fusion_exorcistseal ?? 0) - dt;
       if (wT.fusion_exorcistseal <= 0) {
-        const spec = resolveAttackSpec("fusion_exorcistseal", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const spec = resolveAttackSpec("fusion_exorcistseal", 1, combatBuildState(), { faceAng: P.faceAng || 0 });
         const activeSeals = fusionEffects.filter(fx => fx.kind === "fusion_exorcistseal").length;
         if (activeSeals >= 2 || fusionEffects.length >= FUSION_FX_MAX) {
           wT.fusion_exorcistseal = 0.2;
@@ -4634,7 +4646,7 @@ if (isRainPort) {
     if (WL.fusion_slashwheel > 0) {
       wT.fusion_slashwheel = (wT.fusion_slashwheel ?? 0) - dt;
       if (wT.fusion_slashwheel <= 0) {
-        const spec = resolveAttackSpec("fusion_slashwheel", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const spec = resolveAttackSpec("fusion_slashwheel", 1, combatBuildState(), { faceAng: P.faceAng || 0 });
         const near = enemies.some(e => e.hp > 0 && !e.vanish && !e.done && dist(P, e) <= spec.radius);
         if (!near || fusionEffects.length >= FUSION_FX_MAX) {
           wT.fusion_slashwheel = 0.12;
@@ -4671,7 +4683,7 @@ if (isRainPort) {
     if (WL.fusion_foxthunderlantern > 0) {
       wT.fusion_foxthunderlantern = (wT.fusion_foxthunderlantern ?? 0) - dt;
       if (wT.fusion_foxthunderlantern <= 0) {
-        const spec = resolveAttackSpec("fusion_foxthunderlantern", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const spec = resolveAttackSpec("fusion_foxthunderlantern", 1, combatBuildState(), { faceAng: P.faceAng || 0 });
         const faceAng = P.faceAng || 0;
         const targets = enemies
           .filter(e => fusionTargetEligible(e) && dist(P, e) <= spec.lockRange)
@@ -4733,7 +4745,7 @@ if (isRainPort) {
     if (WL.fusion_flamefestival > 0) {
       wT.fusion_flamefestival = (wT.fusion_flamefestival ?? 0) - dt;
       if (wT.fusion_flamefestival <= 0) {
-        const spec = resolveAttackSpec("fusion_flamefestival", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const spec = resolveAttackSpec("fusion_flamefestival", 1, combatBuildState(), { faceAng: P.faceAng || 0 });
         const faceAng = P.faceAng || 0;
         const near = enemies.some(e => e.hp > 0 && !e.vanish && !e.done && dist(P, e) <= spec.range);
         if (!near || fusionEffects.length >= FUSION_FX_MAX) {
@@ -4795,7 +4807,7 @@ if (isRainPort) {
     if (WL.fusion_thundercircle > 0) {
       wT.fusion_thundercircle = (wT.fusion_thundercircle ?? 0) - dt;
       if (wT.fusion_thundercircle <= 0) {
-        const spec = resolveAttackSpec("fusion_thundercircle", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const spec = resolveAttackSpec("fusion_thundercircle", 1, combatBuildState(), { faceAng: P.faceAng || 0 });
         const active = fusionEffects.filter(fx => fx.kind === "fusion_thundercircle").length;
         const near = enemies.some(e => e.hp > 0 && !e.vanish && !e.done && dist(P, e) <= spec.radius);
         if (active >= 1 || !near || fusionEffects.length >= FUSION_FX_MAX) {
@@ -4838,7 +4850,7 @@ if (isRainPort) {
     if (WL.fusion_thundertalisman > 0) {
       wT.fusion_thundertalisman = (wT.fusion_thundertalisman ?? 0) - dt;
       if (wT.fusion_thundertalisman <= 0) {
-        const spec = resolveAttackSpec("fusion_thundertalisman", 1, getBuildState(), { faceAng: P.faceAng || 0 });
+        const spec = resolveAttackSpec("fusion_thundertalisman", 1, combatBuildState(), { faceAng: P.faceAng || 0 });
         const faceAng = P.faceAng || 0;
         const near = enemies.some(e => e.hp > 0 && !e.vanish && !e.done && dist(P, e) <= spec.range);
         if (!near || fusionEffects.length >= FUSION_FX_MAX) {
@@ -4904,7 +4916,7 @@ if (isRainPort) {
     if (WL.barrier > 0) {
       wT.barrier -= dt;
       if (wT.barrier <= 0) {
-        const spec = resolveAttackSpec("barrier", WL.barrier, getBuildState());
+        const spec = resolveAttackSpec("barrier", WL.barrier, combatBuildState());
         wT.barrier = wMax.barrier = spec.cooldown;
         const r = spec.radius;
         if (spec.isAwakened && spec.sanctuary) {
@@ -4988,7 +5000,7 @@ if (isRainPort) {
     if (WL.needle > 0) {
       wT.needle -= dt;
       if (wT.needle <= 0 && needleQueued.length === 0) {
-        const spec = resolveAttackSpec("needle", WL.needle, getBuildState());
+        const spec = resolveAttackSpec("needle", WL.needle, combatBuildState());
         wT.needle = wMax.needle = spec.cooldown;
         const count = spec.count;
         const moveDir = move();
@@ -5105,7 +5117,7 @@ if (isRainPort) {
     // The volley itself is never counted as cooldown. The 1s timer begins
     // only once its final (eighth) projectile has actually been emitted.
     if (hadNeedleVolley && needleQueued.length === 0) {
-      const spec = resolveAttackSpec("needle", WL.needle, getBuildState());
+      const spec = resolveAttackSpec("needle", WL.needle, combatBuildState());
       wT.needle = wMax.needle = spec.cooldown;
     }
 
@@ -5228,7 +5240,7 @@ if (isRainPort) {
         if (!t) {
           wT.boom = 0.15;
         } else {
-          const spec = resolveAttackSpec("boom", WL.boom, getBuildState());
+          const spec = resolveAttackSpec("boom", WL.boom, combatBuildState());
           wT.boom = wMax.boom = spec.cooldown;
           const count = spec.count;
           const baseAng = Math.atan2(t.y - P.y, t.x - P.x);
@@ -5377,7 +5389,7 @@ if (isRainPort) {
     if (WL.fire > 0) {
       fireSfxT = Math.max(0, fireSfxT - dt);
       let fireHit = false;
-      const fireSpec = resolveAttackSpec("fire", WL.fire, getBuildState());
+      const fireSpec = resolveAttackSpec("fire", WL.fire, combatBuildState());
       fAng += dt * fireSpec.angularSpeed;
       const emitEmber = (fireEmitT -= dt) <= 0;
       if (emitEmber) fireEmitT = 0.05;
@@ -5449,7 +5461,7 @@ if (isRainPort) {
         if (n > bestN) { target = e; bestN = n; }
       }
       if(wT.fire<=0 && target && !ghosts.some(g=>g.dragon&&g.life>0)){
-        const dragonSpec = resolveAttackSpec("fire", 5, getBuildState());
+        const dragonSpec = resolveAttackSpec("fire", 5, combatBuildState());
         wT.fire=wMax.fire=dragonSpec.cooldown;
         const cam=RENDERER.getCam(),view=worldViewBounds();
         const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
@@ -5488,7 +5500,9 @@ if (isRainPort) {
       if(!spirit.dragon&&(spirit.trail-=dt)<=0){spirit.trail=0.05;SKILLFX.play("fire","ghostTrail",spirit.level??5,spirit);}
       if(spirit.dragon){
         if(!spirit.shot && spirit.age>=0.60){
-          const target=(spirit.target?.hp>0&&!spirit.target.shield?spirit.target:null) || enemies.filter(e=>e.hp>0&&!e.shield).sort((a,b)=>dist(spirit,a)-dist(spirit,b))[0] ||
+          const target=(spirit.target?.hp>0&&!spirit.target.shield?spirit.target:null)
+            || window.COMBAT_TARGETING?.nearest(enemies, spirit, e => e.hp > 0 && !e.shield)
+            || enemies.filter(e=>e.hp>0&&!e.shield).sort((a,b)=>dist(spirit,a)-dist(spirit,b))[0] ||
             {x:spirit.x+Math.cos(spirit.ang)*440,y:spirit.y+Math.sin(spirit.ang)*440};
           const cam=RENDERER.getCam(), view=worldViewBounds();
           const left=cam.x+view.left+30,right=cam.x+view.right-30,top=cam.y+view.top+30,bottom=cam.y+view.bottom-30;
@@ -5660,7 +5674,7 @@ if (isRainPort) {
     if (WL.thunder > 0) {
       wT.thunder -= dt;
       if (wT.thunder <= 0) {
-        const spec = resolveAttackSpec("thunder", WL.thunder, getBuildState());
+        const spec = resolveAttackSpec("thunder", WL.thunder, combatBuildState());
         const radius = spec.radius;
         const candidates = enemies.filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done && dist(P, e) <= radius);
         if (!candidates.length) {
@@ -5676,7 +5690,7 @@ if (isRainPort) {
           const primaryTargets = [];
 
           // Duo 雷紋陣陣內快照
-          const currentBuild = getBuildState();
+          const currentBuild = combatBuildState();
           const duos = currentBuild.duos;
           const barrierLvl = WL.barrier || (currentBuild.activeSkills?.includes("barrier") ? 3 : 0);
           const hasDuoThundercircle = duos.includes("duo_thundercircle") && barrierLvl >= 1;
@@ -6375,7 +6389,10 @@ function spawnEnemy(tier, rad, ang, ring) {
           attackCd: 1.2,
           introduced
         });
-        if (plan.role === "final") { finalBossWaitT = 0; finalBossHintT = 0; AUDIO.prepareBossMusic?.(); }
+        if (plan.role === "final") {
+          finalBossWaitT = 0; finalBossHintT = 0;
+          AUDIO.prepareBossMusic?.();
+        }
         bossStage++;
         const nextBossAt = BOSS_TIMES[bossStage];
         bossT = nextBossAt == null ? Number.POSITIVE_INFINITY : Math.max(0, nextBossAt - elapsed);
@@ -6819,7 +6836,7 @@ function spawnEnemy(tier, rad, ang, ring) {
         const now = fx.burnAge || 0;
         const firstTalismanDelay = Math.min(...fx.talismans.map(t => t.delay || 0));
         const firstHitAt = firstTalismanDelay + (fx.warnStrike || 0.36); // 首次可能命中時間
-        
+
         // 初始化 hitEvents 與跨幀去重集合
         if (!fx.hitEvents) fx.hitEvents = [];
         if (!fx.hitEnemyIds) fx.hitEnemyIds = new Set();
@@ -6829,7 +6846,7 @@ function spawnEnemy(tier, rad, ang, ring) {
         if (!fx.mainExplosionTriggered && now >= firstHitAt) {
           fx.mainExplosionTriggered = true;
           fx.firstHitAt = firstHitAt; // 供渲染器讀取
-          
+
           // 主爆炸中心：施法點（玩家位置），而非符目標平均
           // 符從玩家飛出，主爆炸在施法點產生，覆蓋前方扇形區域
           fx.mainExplosionCenter = { x: fx.x, y: fx.y };
@@ -6876,14 +6893,14 @@ function spawnEnemy(tier, rad, ang, ring) {
               evt.processed = true;
               const e = enemies.find(en => (en.id || en._id) === evt.enemyId);
               if (!e || e.hp <= 0) continue;
-              
+
               const bossScale = e.type === "boss" ? (fx.thunderTickBossScale ?? 0.5) : 1.0;
               const thunderCrit = rollCrit({ critChance: fx.critChance, critMult: fx.critMult });
               const tickDmg = fx.thunderTickDamage * bossScale * thunderCrit.mult;
               hurt(e, tickDmg, thunderCrit.isCrit);
               fusionRecordDamage("fusion_thundertalisman", tickDmg);
               SKILLFX.play("thunder", "hit", 5, { x: e.x, y: e.y, crit: thunderCrit.isCrit });
-              
+
               // 補充事件資訊供渲染器
               evt.thunderDmg = tickDmg;
               evt.thunderAt = now;
@@ -7133,10 +7150,12 @@ function spawnEnemy(tier, rad, ang, ring) {
       ctx.strokeStyle = h.phase === "telegraph" ? "rgba(80,150,200,0.4)" : "rgba(30,110,170,0.75)";
       ctx.lineWidth = 120;
       ctx.beginPath();
-      ctx.moveTo(wx - sin * (off - 460), wy + cos * (off - 460));
+      // Collision spans the entire lateral band; keep the fallback hazard visible across the viewport.
+      const lateralReach = Math.max(2400, Math.hypot(W, H) * 4);
+      ctx.moveTo(wx - sin * (off - lateralReach), wy + cos * (off - lateralReach));
       ctx.lineTo(wx - sin * (off - gap), wy + cos * (off - gap));
       ctx.moveTo(wx - sin * (off + gap), wy + cos * (off + gap));
-      ctx.lineTo(wx - sin * (off + 460), wy + cos * (off + 460));
+      ctx.lineTo(wx - sin * (off + lateralReach), wy + cos * (off + lateralReach));
       ctx.stroke();
     }
     ctx.restore();
@@ -7234,7 +7253,9 @@ function spawnEnemy(tier, rad, ang, ring) {
       }
       ctx.restore();
     }
-    RENDERER.drawDistrictLabels?.(activeChunks);
+    // Hide decorative repeated district names on the rain-port sea;
+    // building nameplates and delivery captions remain intact.
+    if (STAGE.id !== "rain-port") RENDERER.drawDistrictLabels?.(activeChunks);
 
     // 2. 地面高空流雲投影視差層 (Far Sky Cloud Shadows, 0.20x)
     RENDERER.drawGroundParallax?.(visualElapsed, DAWN, cam);
@@ -7290,49 +7311,6 @@ function spawnEnemy(tier, rad, ang, ring) {
         ctx.strokeStyle = "rgba(232, 254, 255, 0.92)";
         ctx.lineWidth = 2.5;
         ctx.beginPath();ctx.ellipse(job.to.x, barrierY, barrierR, barrierRy, 0, startA, endA);ctx.stroke();
-        ctx.globalCompositeOperation = "source-over";
-
-        // 10 秒醒目倒數
-        const secs = Math.ceil(job.barrierTimer);
-        ctx.textAlign = "center";
-        ctx.font = "600 17px 'Kaisei Decol', 'Noto Serif JP', serif";
-        ctx.strokeStyle = "#112d3a";
-        ctx.lineWidth = 3.5;
-        ctx.strokeText(`結界  ${secs}秒`, job.to.x, barrierY - 120);
-        ctx.fillStyle = "#b4f3ff";
-        ctx.fillText(`結界  ${secs}秒`, job.to.x, barrierY - 120);
-        ctx.restore();
-      }
-
-      // 同一藍色結界圈順時針逐漸失去光芒，不另畫黃色計時器。
-      if (job && job.reading && job.barrierTimer != null) {
-        const timerFraction = Math.max(0, Math.min(1, job.barrierTimer / 10.0));
-        const barrierR = 245, barrierY = job.to.y + 70, barrierRy = 165 / tiltK();
-        ctx.save();
-        // 藍圈邊緣向上升起，錯開生命週期；只作既有結界的輔助粒子。
-        for (let pi = 0; pi < 72; pi++) {
-          const pAngle = (pi / 72) * 6.283;
-          // 藍圈暗下來的順時針扇區不再閃粒子。
-          const ringPos = (((pAngle + Math.PI / 2) % 6.283) + 6.283) % 6.283 / 6.283;
-          if (ringPos < 1 - timerFraction) continue;
-          const age = (animElapsed * 0.6 + pi * 0.618) % 1;
-          const px = job.to.x + Math.cos(pAngle) * barrierR;
-          const py = barrierY + Math.sin(pAngle) * barrierRy;
-          upright(px, py, () => {
-            const drift = Math.sin(pi * 2.1 + age * 4) * age * 16;
-            const rise = age * (42 + pi % 5 * 9);
-            const blink = 0.55 + 0.45 * Math.sin(animElapsed * 9 + pi * 1.7);
-            ctx.fillStyle = `rgba(145,240,255,${Math.sin(age * Math.PI) * blink * 0.85})`;
-            ctx.beginPath();ctx.arc(px + drift, py - rise, 1.5 + pi % 3 * 0.55, 0, 6.283);ctx.fill();
-          });
-        }
-        // 沿用外層同一藍色光環的位置，從正上方順時針逐步熄滅。
-        ctx.globalCompositeOperation = "lighter";
-        ctx.strokeStyle = "rgba(105, 225, 255, 0.85)";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.ellipse(job.to.x, barrierY, barrierR, barrierRy, 0, -Math.PI/2 + 6.283 * (1-timerFraction), -Math.PI/2 + 6.283);
-        ctx.stroke();
         ctx.globalCompositeOperation = "source-over";
 
         // 10 秒醒目倒數
@@ -7582,6 +7560,38 @@ function spawnEnemy(tier, rad, ang, ring) {
 
     // 獨立於 safeRead 的角色動畫時鐘，確保世界暫停時角色仍能流暢邁步／衝刺
     const pAnimElapsed = typeof animElapsed === "number" ? animElapsed : elapsed;
+    // B18: floor answers draw below the depth-sorted actor and cargo layer.
+    // They still use the same screen-upright baseline and answer coordinates.
+    if(job && dist(P,job.to)<330) {
+      ctx.save();ctx.textAlign='center';
+      ansPos(job.to).slice(0,job.ans.length).forEach((p,i)=>{
+        ctx.save();uprightHere(p.x,p.y);
+        const meaning=job.showMeaningT>0 && job.ans[i]===job.word;
+        ctx.strokeStyle='#fff4dd';ctx.lineWidth=2.5;
+        const text=job.rev?job.ans[i].zh:job.ans[i].jp, y=p.y+(meaning?0:8);
+        ctx.font=job.rev?UI.readableFont(31,'700'):sceneAnswerFont(33);
+        const ready=job.rev || UI.answerFontReady(text,31,'700');
+        if(ready){
+          ctx.fillStyle=job.eliminatedIdx===i || job.wrong?.includes(i)?'#888899':'#161224';
+          const maxPadW = 190;
+          if (UI.fitText) {
+            UI.fitText(ctx, text, p.x, y, maxPadW, {
+              minSize: 18,
+              wrap: true,
+              stroke: true,
+              y1: meaning ? p.y - 7 : p.y - 1,
+              y2: meaning ? p.y + 7 : p.y + 15
+            });
+          } else {
+            ctx.strokeText(text,p.x,y);
+            ctx.fillText(text,p.x,y);
+          }
+        }
+        // 答錯時不標注當題中文釋義以防洩題
+        ctx.restore();
+      });ctx.restore();
+    }
+
     // 7. 依腳底地面接觸點排序；北側角色被屋頂遮住，南側角色在屋前。
     const movement = move();
     const actors = [
@@ -7851,37 +7861,6 @@ function spawnEnemy(tier, rad, ang, ring) {
         ctx.restore();
       }
     });
-
-    // 答案文字置頂；圓墊仍在地面，鄰屋屋頂不能遮住選項。
-    if(job && dist(P,job.to)<330) {
-      ctx.save();ctx.textAlign='center';
-      ansPos(job.to).slice(0,job.ans.length).forEach((p,i)=>{
-        ctx.save();uprightHere(p.x,p.y);
-        const meaning=job.showMeaningT>0 && job.ans[i]===job.word;
-        ctx.strokeStyle='#fff4dd';ctx.lineWidth=2.5;
-        const text=job.rev?job.ans[i].zh:job.ans[i].jp, y=p.y+(meaning?0:8);
-        ctx.font=job.rev?UI.readableFont(31,'700'):sceneAnswerFont(33);
-        const ready=job.rev || UI.answerFontReady(text,31,'700');
-        if(ready){
-          ctx.fillStyle=job.eliminatedIdx===i || job.wrong?.includes(i)?'#888899':'#161224';
-          const maxPadW = 190;
-          if (UI.fitText) {
-            UI.fitText(ctx, text, p.x, y, maxPadW, {
-              minSize: 18,
-              wrap: true,
-              stroke: true,
-              y1: meaning ? p.y - 7 : p.y - 1,
-              y2: meaning ? p.y + 7 : p.y + 15
-            });
-          } else {
-            ctx.strokeText(text,p.x,y);
-            ctx.fillText(text,p.x,y);
-          }
-        }
-        // 答錯時不標注當題中文釋義以防洩題
-        ctx.restore();
-      });ctx.restore();
-    }
 
     // 15.5 委託氣泡與接案標籤（最上層繪製，確保永不被建築、角色、怪物或陰影遮擋）
     for (const o of orders) {
@@ -8517,8 +8496,6 @@ function spawnEnemy(tier, rad, ang, ring) {
       interact();
     } else if (hit(p, btnD)) {
       dash();
-    } else if (false && job && UI.HINT_BTN && hitButton(p, UI.HINT_BTN)) {
-      // Retired hint area now displays equipped talismans.
     } else if ((e.pointerType === "mouse" || (p.x < W / 2 && p.y > 80)) && !joy) {
       joy = { id: e.pointerId, x: p.x, y: p.y, dx: 0, dy: 0 };
     }
@@ -8648,7 +8625,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
     const bossTitle = huntTarget?.title || story?.bossTitle || "大妖";
     return {
-      time, cd, houses, cam: RENDERER.getCam(),
+      time, cd, inputMode, houses, cam: RENDERER.getCam(),
       curseSeconds: bossCurseRemaining,
       stageId: STAGE.id,
       bossTitle,
@@ -8668,7 +8645,10 @@ function spawnEnemy(tier, rad, ang, ring) {
 
   function runFrame(now) {
     menuButtons();
-    const dt = Math.max(0, Math.min((now - last) / 1000, 0.05));
+    // Render/UI remains clamped; game simulation catches up through bounded
+    // <=50ms substeps instead of losing half the time on 10 FPS devices.
+    const wallDt = Math.max(0, Math.min((now - last) / 1000, 0.2));
+    const dt = Math.min(wallDt, 0.05);
     last = now;
     rainLoad = dt > 0.034 ? Math.min(2.2, rainLoad + 0.35) : Math.max(1, rainLoad - 0.12);
     const previousTilt = tiltK();
@@ -8714,15 +8694,27 @@ function spawnEnemy(tier, rad, ang, ring) {
       const phase = window.FUSION && typeof window.FUSION.getState === "function" ? window.FUSION.getState().state : "";
       if (phase !== "confirming") state = "play";
     }
+    // Never transfer accumulated play time across menus, pause or reading panels.
+    if (state !== "play") simulationCarry = 0;
     if (state === "play") {
-      update(dt, hitStopped);
+      simulationCarry = Math.min(0.2, simulationCarry + wallDt);
+      for (let stepIndex = 0; stepIndex < 4 && simulationCarry > 0.000001; stepIndex++) {
+        const stepDt = Math.min(0.05, simulationCarry);
+        update(stepDt, hitStopped);
+        simulationCarry = Math.max(0, simulationCarry - stepDt);
+        if (state !== "play") { simulationCarry = 0; break; }
+      }
     } else if (state === "levelup" || state === "fusion") {
+      simulationCarry = 0;
       // 升級選卡與融合確認期間凍結燈油消耗與遊戲時間，給予玩家安心閱讀與思考時間
     } else if (state === "lampout") {
+      simulationCarry = 0;
       updateLampSequence(dt);
     } else if (state === "victory") {
+      simulationCarry = 0;
       updateVictorySequence(dt);
     } else if (state === "overworld") {
+      simulationCarry = 0;
       window.OVERWORLD.update(overworld, dt);
       if (overworldNoticeT > 0) overworldNoticeT = Math.max(0, overworldNoticeT - dt);
     if (overworldExitArmT > 0) overworldExitArmT = Math.max(0, overworldExitArmT - dt);
@@ -8767,7 +8759,8 @@ function spawnEnemy(tier, rad, ang, ring) {
     btnView.y = btnPause.y + btnPause.h + 12;
     btnD.x = bounds.right - btnD.r * 3;
     btnD.y = bounds.bottom - btnD.r - 24;
-    btnE.x = btnD.x;
+    btnE.r = btnD.r;
+    btnE.x = Math.min(bounds.right - btnE.r - 8, btnD.x + 22);
     btnE.y = btnD.y - 110;
     btnFusionHeld.x = btnE.x;
     btnFusionHeld.y = btnE.y - 85;

@@ -576,6 +576,7 @@
   const STAGES = Object.freeze({
     "night-town": Object.freeze({
       id: "night-town",
+      releaseStatus: "public",
       name: "夜行町",
       sub: "よるのはいそう",
       description: "第一夜的城鎮配送。以町屋生活用品、文具與常用實物學習日語。",
@@ -610,6 +611,7 @@
     }),
     "rain-port": Object.freeze({
       id: "rain-port",
+      releaseStatus: "playtest",
       name: "雨夜港町",
       sub: "あめよのみなと",
       description: "雨與海霧籠罩的漁港。配送魚、蝦、蟹、海藻與常見海鮮料理。",
@@ -651,6 +653,7 @@
     }),
     "sakura-pass": Object.freeze({
       id: "sakura-pass",
+      releaseStatus: "development",
       name: "妖櫻山道",
       sub: "ようざくらさんどう",
       description: "沿山而上的妖櫻古道。以花草、茶亭用品與神社小物進行配送。",
@@ -690,6 +693,7 @@
     }),
     "bamboo-maze": Object.freeze({
       id: "bamboo-maze",
+      releaseStatus: "development",
       name: "竹影迷宮",
       sub: "たけかげめいろ",
       description: "青綠竹林中的迷蹤。採集竹筍、蔬菜與山村常見食材。",
@@ -729,6 +733,7 @@
     }),
     "hyakki-kyoto": Object.freeze({
       id: "hyakki-kyoto",
+      releaseStatus: "development",
       name: "百鬼京都",
       sub: "ひゃっききょうと",
       description: "百鬼夜行的京都古都。配送市集食材、和菓子與常見料理。",
@@ -768,6 +773,7 @@
     }),
     "snow-temple": Object.freeze({
       id: "snow-temple",
+      releaseStatus: "development",
       name: "雪燈山寺",
       sub: "せつとうさんじ",
       description: "雪山古寺中的修行路。配送冬季衣物、禦寒用品與熱食。",
@@ -808,6 +814,7 @@
     }),
     "spirit-ferry": Object.freeze({
       id: "spirit-ferry",
+      releaseStatus: "development",
       name: "幽世渡口",
       sub: "かくりよわたし",
       description: "幽世渡船頭的彼岸前哨。配送旅人行李、信件與隨身用品。",
@@ -847,6 +854,7 @@
     }),
     "yomi": Object.freeze({
       id: "yomi",
+      releaseStatus: "development",
       name: "黃泉境",
       sub: "よみのさかい",
       description: "旅路深處的終局妖城。全關綜合複習與言靈交還的第八夜終極配送。",

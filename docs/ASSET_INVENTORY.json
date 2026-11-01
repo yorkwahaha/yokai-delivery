@@ -3,11 +3,11 @@
   "updated": "2026-10-31",
   "notes": "Unmigrated paths are inventoried, not approved for new usage; never delete without reference audit.",
   "totals": {
-    "files": 891,
+    "files": 855,
     "by_status": {
-      "legacy_unmigrated": 341,
-      "legacy_review_required": 58,
-      "canonical": 205,
+      "legacy_unmigrated": 300,
+      "legacy_review_required": 61,
+      "canonical": 207,
       "trial_pending_review": 136,
       "legacy_alias_active": 99,
       "legacy_source_pending_renderer": 52
@@ -785,26 +785,26 @@
     {
       "path": "assets/img/rain-port/s2-production/buildings/building_fish_workshop.webp",
       "status": "legacy_alias_active",
-      "bytes": 65522,
-      "sha256": "56f7f15d39016a1922f8eac073e4944fe9c4b2420790797260ed6d6a7fd161fd"
+      "bytes": 42076,
+      "sha256": "930a02b22c4534f985f2cee38e550824007885d7687d36d0d506565e11d33ae7"
     },
     {
       "path": "assets/img/rain-port/s2-production/buildings/building_port_tavern.webp",
       "status": "legacy_alias_active",
-      "bytes": 63062,
-      "sha256": "e5ddd1a4333d6da24ea9df5635cd12a04c57ee68d3b9f79be47fa4686e5e26e6"
+      "bytes": 40000,
+      "sha256": "ffff6257a39e91cdfb699c12bb95b929e3b5790e42606d239eae51924a6254ad"
     },
     {
       "path": "assets/img/rain-port/s2-production/buildings/building_port_teahouse.webp",
       "status": "legacy_alias_active",
-      "bytes": 61370,
-      "sha256": "932e0915ed44514f3ba4a2580a09c6a18de23356ddff8f957e28507f8ef8e045"
+      "bytes": 38376,
+      "sha256": "e49b4306fa73c59fbf9501e84dab37335446848f448d7663496187995e28c755"
     },
     {
       "path": "assets/img/rain-port/s2-production/buildings/building_port_warehouse.webp",
       "status": "legacy_alias_active",
-      "bytes": 65262,
-      "sha256": "1e83357f6bf26854332a487b28a894a6a4fc16097e10656fe5ea955826256b0a"
+      "bytes": 38898,
+      "sha256": "62c0613796dda9bbbd3f57ede80c312ca983f8d9526f5401adaca19ee1a1c02a"
     },
     {
       "path": "assets/img/rain-port/s2-production/buildings/building_wharf_shop.webp",
@@ -875,8 +875,8 @@
     {
       "path": "assets/img/rain-port/s2-production/props/prop_anchor_gear.webp",
       "status": "legacy_alias_active",
-      "bytes": 10206,
-      "sha256": "2b727209c7b2e2ee8790a4c344c55ab4b4fda59f6e2c886f73b3951060750c22"
+      "bytes": 8776,
+      "sha256": "08e9c1f476a9842a32cf8c13875ec9e86b830bf5c6d6b4397c0056a3f30f0644"
     },
     {
       "path": "assets/img/rain-port/s2-production/props/prop_cargo_crates.webp",
@@ -887,8 +887,8 @@
     {
       "path": "assets/img/rain-port/s2-production/props/prop_mooring_post.webp",
       "status": "legacy_alias_active",
-      "bytes": 9086,
-      "sha256": "098c34e503d55111c2fbed1b4798ba9376f26eb11408664e5576aa46c7e36aae"
+      "bytes": 7382,
+      "sha256": "086ef5b1a93e463046993141e24c6b966fd7335c841565300b6b7c5b77f96d53"
     },
     {
       "path": "assets/img/rain-port/s2-production/props/prop_port_boat.webp",
@@ -937,36 +937,6 @@
       "status": "legacy_review_required",
       "bytes": 158100,
       "sha256": "ef83e70b99321550fbb24c57f69afcec8be6dd76ad625888f558779eb3683a03"
-    },
-    {
-      "path": "assets/img/sakura-pass/ground_mountain_dirt.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 163666,
-      "sha256": "882135a378a7d9c889953fb5f4d0837d4ae87b8607bae776a5bef489edf86765"
-    },
-    {
-      "path": "assets/img/sakura-pass/ground_sakura_steps.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 139996,
-      "sha256": "6935c527db400bb57cf70038d5555d2f063bafb84091fa7df167459914568a6b"
-    },
-    {
-      "path": "assets/img/sakura-pass/ground_trans_dirt_to_steps_h.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 147424,
-      "sha256": "262462da95d8172e888fd191c265b6ec3492702dd3291606f3ea25a2ad73195c"
-    },
-    {
-      "path": "assets/img/sakura-pass/landmark_corrupted_sakura.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 138578,
-      "sha256": "7dd88ec8213577690972f2e6dbd4670ad703562a1a52f024d723db0cd799c7d2"
-    },
-    {
-      "path": "assets/img/sakura-pass/shrine_pavilion.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 82218,
-      "sha256": "835fe17a73cf1af48bc2fc25cdf9cd7b155c7248423dc81075f079bfd869b22e"
     },
     {
       "path": "assets/img/scenery/ground.webp",
@@ -1325,26 +1295,26 @@
     {
       "path": "assets/img/stages/rain-port/objects/rain-port__building-fish-workshop.webp",
       "status": "canonical",
-      "bytes": 65522,
-      "sha256": "56f7f15d39016a1922f8eac073e4944fe9c4b2420790797260ed6d6a7fd161fd"
+      "bytes": 42076,
+      "sha256": "930a02b22c4534f985f2cee38e550824007885d7687d36d0d506565e11d33ae7"
     },
     {
       "path": "assets/img/stages/rain-port/objects/rain-port__building-port-tavern.webp",
       "status": "canonical",
-      "bytes": 63062,
-      "sha256": "e5ddd1a4333d6da24ea9df5635cd12a04c57ee68d3b9f79be47fa4686e5e26e6"
+      "bytes": 40000,
+      "sha256": "ffff6257a39e91cdfb699c12bb95b929e3b5790e42606d239eae51924a6254ad"
     },
     {
       "path": "assets/img/stages/rain-port/objects/rain-port__building-port-teahouse.webp",
       "status": "canonical",
-      "bytes": 61370,
-      "sha256": "932e0915ed44514f3ba4a2580a09c6a18de23356ddff8f957e28507f8ef8e045"
+      "bytes": 38376,
+      "sha256": "e49b4306fa73c59fbf9501e84dab37335446848f448d7663496187995e28c755"
     },
     {
       "path": "assets/img/stages/rain-port/objects/rain-port__building-port-warehouse.webp",
       "status": "canonical",
-      "bytes": 65262,
-      "sha256": "1e83357f6bf26854332a487b28a894a6a4fc16097e10656fe5ea955826256b0a"
+      "bytes": 38898,
+      "sha256": "62c0613796dda9bbbd3f57ede80c312ca983f8d9526f5401adaca19ee1a1c02a"
     },
     {
       "path": "assets/img/stages/rain-port/objects/rain-port__building-wharf-shop.webp",
@@ -1355,8 +1325,8 @@
     {
       "path": "assets/img/stages/rain-port/props/rain-port__prop-anchor-gear.webp",
       "status": "canonical",
-      "bytes": 10206,
-      "sha256": "2b727209c7b2e2ee8790a4c344c55ab4b4fda59f6e2c886f73b3951060750c22"
+      "bytes": 8776,
+      "sha256": "08e9c1f476a9842a32cf8c13875ec9e86b830bf5c6d6b4397c0056a3f30f0644"
     },
     {
       "path": "assets/img/stages/rain-port/props/rain-port__prop-cargo-crates.webp",
@@ -1367,8 +1337,8 @@
     {
       "path": "assets/img/stages/rain-port/props/rain-port__prop-mooring-post.webp",
       "status": "canonical",
-      "bytes": 9086,
-      "sha256": "098c34e503d55111c2fbed1b4798ba9376f26eb11408664e5576aa46c7e36aae"
+      "bytes": 7382,
+      "sha256": "086ef5b1a93e463046993141e24c6b966fd7335c841565300b6b7c5b77f96d53"
     },
     {
       "path": "assets/img/stages/rain-port/props/rain-port__prop-port-boat.webp",
@@ -1475,8 +1445,8 @@
     {
       "path": "assets/img/ui/awaken_seal.svg",
       "status": "legacy_unmigrated",
-      "bytes": 719,
-      "sha256": "7853c94fa10a7aff8232d9799b310872b9ba7e7007f8fab172640940904ccdb8"
+      "bytes": 712,
+      "sha256": "b5dcbc2ac7abc0e73b18d659640feafda676724a1021598398334e50ba1f14a4"
     },
     {
       "path": "assets/img/ui/b12/camera_medallion.webp",
@@ -2081,8 +2051,8 @@
     {
       "path": "assets/img/ui/dash_medallion_b7.webp",
       "status": "trial_pending_review",
-      "bytes": 33998,
-      "sha256": "c3806b96ee8f619d737d30671d378a4c0b1367eb2a850a9db70cb1ee88cb61bd"
+      "bytes": 21584,
+      "sha256": "e3c742ad4ca539389b8d6d3bc95f82a8bad9a4c26981bfba70394a6de10b2bac"
     },
     {
       "path": "assets/img/ui/hud/ui__lantern-oil.webp",
@@ -2715,16 +2685,34 @@
       "sha256": "53c38a4c22696f621cbe1e429d99a037b3f394b9463ec8ec57af26650ba0ed6b"
     },
     {
+      "path": "assets/img/vfx/boss-water-r8/rainVortex_v01.png",
+      "status": "legacy_review_required",
+      "bytes": 2268298,
+      "sha256": "bc950af55b0b3ab4cef25d961f61da3ba9ee1520b2a8b3696c105b2e7bd5fe12"
+    },
+    {
       "path": "assets/img/vfx/boss-water-r8/rainVortex_v01.webp",
       "status": "legacy_source_pending_renderer",
       "bytes": 1476550,
       "sha256": "f3c65902f3f8f1e3e73345262d8e5ba9ce45d9900d9b501b8756a0416f294981"
     },
     {
+      "path": "assets/img/vfx/boss-water-r8/tidalFan_v01.png",
+      "status": "legacy_review_required",
+      "bytes": 2096626,
+      "sha256": "b887523723d213d465ebdd2d01bde84f925e0635e7939b996c5248a5fd47317f"
+    },
+    {
       "path": "assets/img/vfx/boss-water-r8/tidalFan_v01.webp",
       "status": "legacy_source_pending_renderer",
       "bytes": 1371806,
       "sha256": "05f063ac4ff595de1f5f1b50cebaa8614f23cd522145161fb5087175820819c0"
+    },
+    {
+      "path": "assets/img/vfx/boss-water-r8/tide_v03.png",
+      "status": "legacy_review_required",
+      "bytes": 1043163,
+      "sha256": "97d3ad48024a8cc5485a0b247eedb760bb2abc29aad304ab963498c160bf4cc4"
     },
     {
       "path": "assets/img/vfx/boss-water-r8/tide_v03.webp",
@@ -3195,6 +3183,30 @@
       "sha256": "e5559f401a6bf88e8df68e667729437c41371d969a59cdd632fc00dcf5ac42a4"
     },
     {
+      "path": "assets/img/vfx/shield/guard_crack.png",
+      "status": "legacy_unmigrated",
+      "bytes": 592408,
+      "sha256": "eb974e4e05912964484b6682674541fb585912656e455ab799194142a5aea01c"
+    },
+    {
+      "path": "assets/img/vfx/shield/guard_full.png",
+      "status": "legacy_unmigrated",
+      "bytes": 457313,
+      "sha256": "78e1577bf60bb0bfc29cd2d8b37bf10ef8347bd984535dc8ffbe2ad97ff53f4e"
+    },
+    {
+      "path": "assets/img/vfx/shield/ofuda_ward_crack.svg",
+      "status": "canonical",
+      "bytes": 2966,
+      "sha256": "aeb81528595e73ad93da73f650b8c9e253d8e9ba726c1820d6c63022f2161e08"
+    },
+    {
+      "path": "assets/img/vfx/shield/ofuda_ward_full.svg",
+      "status": "canonical",
+      "bytes": 4216,
+      "sha256": "84856ab034bb224e9deaa12551e11b53b310e127d3ab05781d64910e3a45d1f5"
+    },
+    {
       "path": "assets/img/vfx/shield/ward_bagua_break.webp",
       "status": "trial_pending_review",
       "bytes": 167122,
@@ -3415,234 +3427,6 @@
       "status": "legacy_unmigrated",
       "bytes": 1404294,
       "sha256": "273b7d12a3b88849b19959e1b3fc0373792aaf31f0d469a75608df623dcf5c70"
-    },
-    {
-      "path": "assets/img/words/ame.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1776,
-      "sha256": "be349c25af012a6564c0374aa7afc9f3aff9a9821010291a8db3d3b3cabd0bb9"
-    },
-    {
-      "path": "assets/img/words/eki.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3056,
-      "sha256": "315d022b76f93c0339097d225842339d4e6cd734c25af37abfc156ccdd343681"
-    },
-    {
-      "path": "assets/img/words/fune.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4500,
-      "sha256": "b6190a775e00e2c21d84854526fb34aa632a4c30def5184d82c8508d01ed81c1"
-    },
-    {
-      "path": "assets/img/words/hashi.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3604,
-      "sha256": "7e650b7fa6042f61a336dcdf80eb97cae71256d8dce7f12f54e3cbc00414023c"
-    },
-    {
-      "path": "assets/img/words/hashiru.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2764,
-      "sha256": "3715c90bc5868166621b365eb66ebef5d4b77dce2efd8ac55ccf070db9fccf5b"
-    },
-    {
-      "path": "assets/img/words/hikouki.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4050,
-      "sha256": "16c2604cd12508ceacc8d29ec605ffa33e6a288bda6fc97fdced5e4f308c9549"
-    },
-    {
-      "path": "assets/img/words/hito.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1842,
-      "sha256": "c1012e9e023f56bfacdcb702774d370309712b560cab14b3e0d1a673206f034e"
-    },
-    {
-      "path": "assets/img/words/hon.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1772,
-      "sha256": "8cfffd6431fa7a01a1ddc21cf4b4024ae69d5244f97c242b11a78d9af35ee384"
-    },
-    {
-      "path": "assets/img/words/hoshi.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 6556,
-      "sha256": "7b2fd1706c6f5886cbe6e7c205ed75e43109e79b02bb53098b04631d1fa00a37"
-    },
-    {
-      "path": "assets/img/words/ie.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1800,
-      "sha256": "e10beedce6017f46614d2064b1c5d39ad66b12f892ca2e2a91f5334ea9b13b44"
-    },
-    {
-      "path": "assets/img/words/inu.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 6872,
-      "sha256": "3a440c40491166133375d39b409ac77a7e26b683b6bf04f60ba94968a953ad3f"
-    },
-    {
-      "path": "assets/img/words/isu.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2054,
-      "sha256": "af92d63c9f70becb374fe4996da3e29a00c95d4d8d12962d4e208a3a0658a310"
-    },
-    {
-      "path": "assets/img/words/kaeru.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 6782,
-      "sha256": "fa27d3c4103c1c5c1acc4a1019bbed287ba2a7a027cc82979ef4fe4f08ae8245"
-    },
-    {
-      "path": "assets/img/words/kame.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 5290,
-      "sha256": "ddf12b45c678b017bbb6165baba2f6b9b407074d1acb2a9b24728f15b4b8ca5b"
-    },
-    {
-      "path": "assets/img/words/kaminari.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3930,
-      "sha256": "88723e215cbef8ff58a4069aa47f5ba64159361ed640ba7e494e90f399bc06b2"
-    },
-    {
-      "path": "assets/img/words/kasa.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4088,
-      "sha256": "4061659d31589a7a4c12e02ee4984c893d4f8ef0b22bdf6ee6ffca11289ca2ca"
-    },
-    {
-      "path": "assets/img/words/kawa.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3526,
-      "sha256": "813a4b86048796cc829019ddcaeae76a9259c79c1024ef5ccef4db65c0bac9d3"
-    },
-    {
-      "path": "assets/img/words/kouen.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3210,
-      "sha256": "a30097accd4c7f52c1798f4201292eff0e4e10a67d69447dad52af4c43d0f540"
-    },
-    {
-      "path": "assets/img/words/kuruma.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4186,
-      "sha256": "fc9f989e93289e8b4d5bfb8611b4d4a9c5fe752c03a8df20ec0e8ef0de990774"
-    },
-    {
-      "path": "assets/img/words/mado.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1798,
-      "sha256": "b4535a4c00da2e554503601a7b643894d083ded4061ff6f7ad7a3b8aead5525c"
-    },
-    {
-      "path": "assets/img/words/neko.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1774,
-      "sha256": "8a559a6d9ee2c6051f2c2ead1bbc70180948ef572cc9160bdd26d6d5deb77404"
-    },
-    {
-      "path": "assets/img/words/neru.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2236,
-      "sha256": "80696a9888a75dbf6c468d12be6ba4d2e4f22bd9b174145d4725a3fc8d6ad950"
-    },
-    {
-      "path": "assets/img/words/nomu.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2976,
-      "sha256": "70da4ad76555ecd0ec948cc0b2bf73b85d4c6e68c0faadef51980c160159a85f"
-    },
-    {
-      "path": "assets/img/words/ocha.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2768,
-      "sha256": "6d73407dbc114a24fc8fb7f0bfed88c927575db339a46a822f7c345eee47dbe5"
-    },
-    {
-      "path": "assets/img/words/onigiri.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2972,
-      "sha256": "46da0689c3ce4298120ce299afd225fc6dc2e763d2753799d8a4bbe6146513ce"
-    },
-    {
-      "path": "assets/img/words/pan.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2502,
-      "sha256": "da11417a86170d5b4f3c5dce2aac0913db584a33873bc1e85bb14f986740383a"
-    },
-    {
-      "path": "assets/img/words/ramen.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4060,
-      "sha256": "8cc4ea3bb41c69e37ecbe72b91976e0d8fc0b69d909bcad0a0b7b19a67cc71d4"
-    },
-    {
-      "path": "assets/img/words/ringo.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4194,
-      "sha256": "7feaf100c14903d01b1395d6a6271ca2da17963602ee54c4c85b92744f6e6a1a"
-    },
-    {
-      "path": "assets/img/words/sakana.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 8588,
-      "sha256": "1efbd64d8e7ff4394c666cbd10872c077402df00db6e8cb053a60aa3cfb7e00a"
-    },
-    {
-      "path": "assets/img/words/sakura.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1758,
-      "sha256": "4bae3ef9173fd4ff58f96a3b83cc8ba4dc9ec01a636f8985e676d50f1f8f178d"
-    },
-    {
-      "path": "assets/img/words/taberu.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3522,
-      "sha256": "f414cc616856d244e8b551e82aa12543f7b8b5e387d5f7d63c94181dbfb7d881"
-    },
-    {
-      "path": "assets/img/words/tako.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 7688,
-      "sha256": "020e2e58a27df227aaf42dff9b0043b73e1d4c7e59e885a5d96f0956f15dd00a"
-    },
-    {
-      "path": "assets/img/words/tori.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 5814,
-      "sha256": "506848f188caea73cb772dad212bf6aefc588c4338ceeb65e243fbf4f167752e"
-    },
-    {
-      "path": "assets/img/words/tsuki.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4830,
-      "sha256": "371fb602ba9a1f0a116488388d1b7de75fad2e383bcd480b2fb802ecc0ebee76"
-    },
-    {
-      "path": "assets/img/words/tsukue.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1996,
-      "sha256": "2c2c6388c3deb7cc3dd4573bcbb52250539bf6ebb15199f76f4a5bd7ead6a40b"
-    },
-    {
-      "path": "assets/img/words/usagi.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 5656,
-      "sha256": "0a42103ca5e8e0ecbcabd6224f57f92949d302874093b83ebf265e7805b29e78"
-    },
-    {
-      "path": "assets/img/words/yama.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3932,
-      "sha256": "2b4864d6bf59ddbb83537adae57650081f4892857e007b17472edf8a5c503ea1"
-    },
-    {
-      "path": "assets/img/words/yuki.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 5040,
-      "sha256": "17586d51115c76b0f32eb3512ed615a7bdccc290ca9ae8e122a28f6222bb8b13"
     },
     {
       "path": "assets/img/yokai/boss.webp",

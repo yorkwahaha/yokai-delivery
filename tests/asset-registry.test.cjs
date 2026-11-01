@@ -24,7 +24,7 @@ test('ASSET-REGISTRY 全遊戲正式類別與關卡 ID 已鎖定，禁止候選�
  assert.ok(registry.templates.enemy_sfx);
  assert.ok(registry.templates.voice);
  assert.equal(registry.stage_ids.length,8);
- assert.equal(registry.aliases.length,141);
+ assert.equal(registry.aliases.length,151);
  assert.equal(inventory.totals.files,inventory.files.length);
  const paths=new Set();
  for(const item of registry.aliases){
@@ -34,9 +34,9 @@ test('ASSET-REGISTRY 全遊戲正式類別與關卡 ID 已鎖定，禁止候選�
   assert.match(item.sha256,/^[0-9a-f]{64}$/);
  }
 });
-test('ASSET-REGISTRY 141 份來源與正式檔雜湊相同，96 筆經審核路由作 live alias',()=>{
+test('ASSET-REGISTRY 151 份來源與正式檔雜湊相同，99 筆經審核路由作 live alias',()=>{
  const refs=Object.entries(routes.aliases);
- assert.equal(refs.length,96);
+ assert.equal(refs.length,99);
  for(const entry of registry.aliases){
   const old=fs.readFileSync(path.join(ROOT,entry.source));
   const result=fs.readFileSync(path.join(ROOT,entry.canonical));
@@ -62,8 +62,10 @@ test('ASSET-REGISTRY 新規範已與 runtime 載入器接線，未許可的素�
  assert.equal(routes.resolve('assets/img/scenery/ground.webp'),'assets/img/stages/night-town/tiles/night-town__ground.webp');
  assert.equal(routes.resolve('assets/audio/sfx/fire-lv5.mp3'),'assets/audio/sfx/skills/fire/fire__cast__lv05.mp3');
  assert.equal(routes.resolve('assets/img/ui/hud_skill_fan.webp'),'assets/img/ui/hud/ui__skill-fan.webp');
+ assert.equal(routes.resolve('assets/img/rain-port/s2-production/g_stone_01.webp'),
+   'assets/img/stages/rain-port/tiles/rain-port__g-stone-01.webp','approved Stage2 stones must use canonical paths');
  assert.equal(routes.resolve('assets/img/rain-port/s2-production/ground_mud_slab.webp'),
-   'assets/img/stages/rain-port/tiles/rain-port__ground-mud-slab.webp','approved Stage2 must resolve to canonical ground');
+   'assets/img/rain-port/s2-production/ground_mud_slab.webp','non-selected legacy floor must not be promoted');
 });
 test('ASSET-REGISTRY 只允許已盤點影音，不可誤刪舊音檔或新增匿名候選到正式根目錄',()=>{
  const scan=cp.spawnSync('python',['tools/asset_registry.py','--check'],{cwd:ROOT,encoding:'utf8',timeout:45000});

@@ -46,6 +46,8 @@
 - **2026-10-31 第二關正式接入**：依較新的 `assets/img/runtime-art-manifest.json` 選用清單，核對 SHA256 後，將 **17 張正式場景（泥地、木地、接縫、5 建築、5 道具、2 海岸）與 4 張已核准敵人／Boss 本體圖** 正式接上統一路由；保留舊圖作載入後備。四張遭泥土版取代的石地副本隔離至 `art/stage2-rain-port/archive/replaced-stone-copies-20261031/`。**Boss 水系特效 3 張仍為 BLOCKED，不在本次核准名單**。詳細 [第二關整理收據](STAGE2_APPROVED_MEDIA_MIGRATION_20261031.md)。
 - 整理後共 **141 筆正式路徑映射，其中 96 筆已生效**（前輪 75 ＋ 第二關 21）。不覆寫、不刪除任何原始素材；另仍有 root 玩家圖、部分 UI 變體、SVG、舊 word 圖音等列入 inventory，標為 legacy 或 review-required。**未經語意核對的圖沒有擅自重新命名或宣稱已正式接入**。尤其存在於 `assets/` 的歷史候選，不可當成已批准素材。
 
+**2026-11-01 更新（以上 10/31 數量保留作歷史紀錄）：** 依現行第二關 Runtime Manifest，正式清單包含 **20 張場景圖（含新核准石板 `g_stone_01–04`）與 4 張敵人圖**。重新產生 Registry 與唯一 alias resolver 後，現況為 **151 筆映射、99 筆生效別名、855 個盤點媒體檔**。四張新石板補入相容 alias；不在 Runtime 核准選用清單的 `ground_mud_slab` 不再強制別名改接，原圖及正式副本仍保留。先前已刪除的三張舊 `ground_stone` 路徑從盤點移除，但未再對硬碟作任何刪除。另依使用者指示，以檔案最後修改時間選定的雨港四建物、兩道具最新版，已同步到正式路徑；被取代版保留在 `art/stage2-rain-port/archive/mtime-selection-20261101-six-pairs/`。未經審核的其他 UI 圖仍按原試用狀態盤點，不因同步清冊自動升格。
+
 `js/asset-paths.js` 是**由 Python 腳本生成**的路由表，正式程式的 `js/assets.js` 會在 BGM、SFX、第一關場景、第一關敵人、技能 raster VFX、HUD 的主要載入處使用，沒有匹配時原網址保持不變。音訊無法載入依原遊戲音效後備處理；宅配詞音仍使用 `js/delivery-media.js` 和 Google 日語 TTS 後備。
 
 ## 日後修改的唯一流程

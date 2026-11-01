@@ -269,15 +269,18 @@ const S2_ART_PROD_CACHE = {
 };
 
 let s2ArtProdLoadingPromise = null;
+let s2ArtProdGeneration = 0;
 
 async function loadS2ArtProdAssets() {
   if (!isS2ArtProdEnabled()) return;
   if (S2_ART_PROD_CACHE.loaded && !S2_ART_PROD_CACHE.loadError) return;
   if (s2ArtProdLoadingPromise) return s2ArtProdLoadingPromise;
 
+  const generation = s2ArtProdGeneration;
   s2ArtProdLoadingPromise = (async () => {
     try {
       const manifest = await loadS2ArtProdManifest();
+      if (generation !== s2ArtProdGeneration) return;
       if (!manifest) {
         S2_ART_PROD_CACHE.loadError = 'MANIFEST_FETCH_FAILED';
         console.error('[S2-ART] Failed to fetch asset-manifest.json');
@@ -319,6 +322,10 @@ async function loadS2ArtProdAssets() {
           img.src = attempts[index++];
         };
         next();
+      }).then(result => {
+        // Never let an image from a cancelled stage generation write to shared state.
+        if (generation !== s2ArtProdGeneration) throw new Error('S2_LOAD_CANCELLED');
+        return result;
       });
 
       // B15: the actual base floor is a high-priority dependency. Load both
@@ -506,8 +513,13 @@ async function loadS2ArtProdAssets() {
           props: S2_ART_PROD_CACHE.props.filter(p => p._loaded).length
         });
       }
+    } catch (error) {
+      if (generation === s2ArtProdGeneration) {
+        S2_ART_PROD_CACHE.loadError = 'S2_LOAD_EXCEPTION';
+        console.error('[S2-ART] Load failed:', error);
+      }
     } finally {
-      s2ArtProdLoadingPromise = null;
+      if (generation === s2ArtProdGeneration) s2ArtProdLoadingPromise = null;
     }
   })();
 
@@ -516,10 +528,12 @@ async function loadS2ArtProdAssets() {
 
 // Reset S2 cache when leaving rain-port or restarting
 function resetS2ArtProdCache() {
+  s2ArtProdGeneration++;
   s2ArtProdLoadingPromise = null;
   S2_ART_PROD_CACHE.tiles = { stoneVariants: [], woodVariants: [], transitions: { h: [], v: [] } };
   S2_ART_PROD_CACHE.buildings = [];
   S2_ART_PROD_CACHE.props = [];
+  S2_ART_PROD_CACHE.environment = [];
   S2_ART_PROD_CACHE.manifest = null;
   S2_ART_PROD_CACHE.loaded = false;
   S2_ART_PROD_CACHE.loadError = null;
@@ -1381,9 +1395,10 @@ const STAGE_ASSET_SLOTS = Object.freeze({
   }),
   "rain-port": Object.freeze({
     map: "map_rain_port_v1",
-    ground: "ground_stone",
+    // Approved stone tiles are exclusively supplied by the S2 production manifest.
+    ground: null,
     scene: ["port_warehouse", "prop_mooring_post", "prop_port_lighthouse", "prop_cargo_crates", "prop_port_boat", "prop_anchor_gear", "vfx_rain_splash_ripple"],
-    trans: ["ground_stone_wood_transition_v2", "ground_trans_stone_wood_h", "ground_trans_stone_wood_v", "ground_stone_var1", "ground_stone_var2", "ground_wood_dock_var1", "ground_wood_dock_var2"],
+    trans: ["ground_stone_wood_transition_v2", "ground_trans_stone_wood_h", "ground_trans_stone_wood_v", "ground_wood_dock_var1", "ground_wood_dock_var2"],
     enemy: {
       ghost: { idle: "ghost", attack: "ghost_motion_v1" },
       runner: { idle: "runner", attack: "runner_motion_v1" },
@@ -1981,6 +1996,8 @@ if (typeof window !== "undefined") {
 window.STAGE_ART_STATUS = {};
 
 const requestedArt = new Set(), settledArt = new Set(), failedArt = new Set();
+const artRetryAfter = new Map();
+const ART_RETRY_DELAY_MS = 5000;
 let gameArtStarted = false, mapArtStarted = false, coreArtStarted = false;
 let progressNames = ["cover"], backgroundKey = null;
 const activeSkillArt = new Map([["katana", ["katana_l1"]]]);
@@ -1988,7 +2005,12 @@ const gameAssetNames = () => ["cover", ...CORE_ASSET_NAMES, ...HUD_ASSET_NAMES, 
 const backgroundNames = GAME_ASSET_NAMES.filter(key => !CORE_ASSET_NAMES.includes(key));
 const requestArt = key => {
   if (requestedArt.has(key)) return false;
+  if ((artRetryAfter.get(key) || 0) > Date.now()) return false;
   requestedArt.add(key);
+  if (failedArt.delete(key)) {
+    settledArt.delete(key);
+    updateReadiness();
+  }
   return true;
 };
 const updateReadiness = () => {
@@ -2005,6 +2027,11 @@ const markSettled = (key, failed = false) => {
   updateReadiness();
   loadBackgroundArt();
 };
+const markFailedForRetry = key => {
+  markSettled(key, true);
+  artRetryAfter.set(key, Date.now() + ART_RETRY_DELAY_MS);
+  requestedArt.delete(key);
+};
 
 function loadArt(n, priority = "high") {
   if (!requestArt(n)) return;
@@ -2019,13 +2046,13 @@ function loadArt(n, priority = "high") {
   img.onerror = () => {
     if (n === "overworld_approved_v2") {
       console.warn("[Assets] 新旅路地圖無法下載，使用舊版地圖備援。");
-      markSettled(n, true);
+      markFailedForRetry(n);
       loadArt("overworld_ukiyoe_v3", "low");
       return;
     }
     img.onerror = () => {
       console.warn(`[Assets] 圖片 ${n} 載入失敗，將使用程式繪製備援。`);
-      markSettled(n, true);
+      markFailedForRetry(n);
     };
     img.src = `assets/img/${n}.${n === "cover" ? "jpg" : "png"}`;
   };
@@ -2059,7 +2086,7 @@ function loadHudArt(key) {
   img.decoding = 'async';
   img.onload = () => { ART[key] = img; markSettled(key); };
   img.onerror = () => {
-    img.onerror = () => { console.warn(`[Assets] ${key} 載入失敗。`); markSettled(key, true); };
+    img.onerror = () => { console.warn(`[Assets] ${key} 載入失敗。`); markFailedForRetry(key); };
     img.src = `assets/img/ui/${key}.png`;
   };
   const hudPath = `assets/img/ui/${key}.webp?v=20261010-loading3`;
@@ -2754,13 +2781,14 @@ function loadStageAssets(stageId) {
     );
     const isScene = SCENERY_ASSET_KEYS.has(key);
     const isYokai = YOKAI_ASSET_KEYS.has(key);
-    img.src = isPort
+    const rawUrl = isPort
       ? `assets/img/rain-port/${key}.webp?v=20261013-rain-port2`
       : isScene
         ? `assets/img/scenery/${key}.webp?v=20261010-loading3`
         : isYokai
           ? `assets/img/yokai/${key}.webp?v=20261010-loading2`
           : `assets/img/${key}.webp?v=20261010-loading2`;
+    img.src = window.ASSET_PATHS?.resolve(rawUrl) || rawUrl;
     return false;
   };
 
@@ -3059,7 +3087,13 @@ window.loadMapPlayerArt = () => {
   PLAYER_ACTION_ART.slice(0,3).forEach(key=>loadArt(key,"low"));
 };
 function preloadCoreArt() {
-  if (coreArtStarted) return;
+  if (coreArtStarted) {
+    // Re-entering a stage retries only previously failed core assets, with a
+    // cooldown; successful assets are never re-downloaded.
+    for (const key of CORE_ASSET_NAMES) if (failedArt.has(key)) loadArt(key);
+    for (const key of HUD_ASSET_NAMES) if (failedArt.has(key)) loadHudArt(key);
+    return;
+  }
   coreArtStarted = true;
   HUD_ASSET_NAMES.forEach(loadHudArt);
   CORE_ASSET_NAMES.forEach(key=>loadArt(key));

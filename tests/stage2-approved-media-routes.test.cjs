@@ -80,6 +80,8 @@ test('STAGE2 新核准的四張石地主變體正式接入，未核准的水王�
   }
   const active=registry.aliases.filter(x=>x.route&&
     (x.source.includes('/rain-port/s2-production/')||x.source.includes('/rain-port/enemies/')));
+  // The three deleted legacy floor slots are not approved runtime aliases.
+  // Twenty approved scenes plus four enemy motion assets; archived mud is not in the active set.
   assert.equal(active.length,24);
   for(const entry of active){
     assert.equal(routes.resolve(entry.source),entry.canonical);

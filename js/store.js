@@ -31,10 +31,50 @@
   const entries = v => Object.entries(isRecord(v) ? v : {});
   const count = (v, fallback = 0) => typeof v === "number" && Number.isFinite(v)
     ? Math.min(Number.MAX_SAFE_INTEGER, Math.max(0, Math.floor(v))) : fallback;
+  // Independent per-tab journals prevent a stale tab from destroying another's progress.
+  // The legacy v1 snapshot remains as a migration base and K remains a readable projection.
+  const JOURNAL_BASE = K + ":journal-base";
+  const JOURNAL_PREFIX = K + ":journal:";
+  const journalSupported = typeof localStorage.key === "function"
+    && typeof localStorage.length === "number";
+  const tabId = root.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}-${Math.random()}`;
+  // A journal is split into immutable, small per-tab segments. Never delete
+  // someone else's segment: a suspended tab may still have unsaved events.
+  const JOURNAL_SEGMENT_MAX = 256;
+  let journalSegment = 0;
+  let journalKey = JOURNAL_PREFIX + tabId + ":" + journalSegment;
+  const ownEvents = [];
+  let eventSequence = 0;
+  let journalSignatures = new Map();
+  let journalNeedsRefresh = false;
+  // Compact tuple format reduces localStorage usage without discarding
+  // the event order required by recall/box calculations. Legacy object
+  // journals remain readable.
+  const encodeEvent = e => [e.type, e.at, e.seq, e.jp || e.stageId || null,
+    e.correct === true ? 1 : 0, e.score ?? 0, e.deliveries ?? 0, e.won === true ? 1 : 0];
+  const decodeEvent = (item, key) => {
+    if (isRecord(item)) return item;
+    if (!Array.isArray(item) || typeof item[0] !== "string") return null;
+    const [type, at, seq, name, correct, score, deliveries, won] = item;
+    const event = { type, at, seq, tab: key.slice(JOURNAL_PREFIX.length).split(":")[0] };
+    if (type === "rec" || type === "assisted" || type === "recall") {
+      event.jp = name; event.correct = correct === 1;
+    } else {
+      event.stageId = name; event.score = score; event.deliveries = deliveries; event.won = won === 1;
+    }
+    return event;
+  };
+  if (journalSupported) {
+    try {
+      if (localStorage.getItem(JOURNAL_BASE) === null) {
+        localStorage.setItem(JOURNAL_BASE, localStorage.getItem(K) || JSON.stringify(fresh()));
+      }
+    } catch {}
+  }
   const d = fresh();
   let raw = {};
   try {
-    const r = JSON.parse(localStorage.getItem(K));
+    const r = JSON.parse((journalSupported && localStorage.getItem(JOURNAL_BASE)) || localStorage.getItem(K));
     if (isRecord(r)) raw = r;
   } catch {}
 
@@ -62,11 +102,117 @@
     };
   }
 
+  const initialState = JSON.stringify(d);
+  const applyJournalEvent = event => {
+    if (!isRecord(event)) return;
+    const id = typeof event.stageId === "string" ? event.stageId : null;
+    const jp = typeof event.jp === "string" ? event.jp : null;
+    if (event.type === "rec" && jp) {
+      const m = get(jp);
+      if (event.correct) {
+        m.ok = count(m.ok + 1);
+        m.box = Math.min(4, m.box + 1);
+        m.lastSeen = count(event.at);
+        m.missBoost = 1;
+      } else {
+        m.ng = count(m.ng + 1);
+        m.box = Math.max(0, m.box - 1);
+        m.missBoost = 2.5;
+      }
+    } else if ((event.type === "assisted" || event.type === "recall") && jp) {
+      const m = get(jp);
+      m.ok = count(m.ok + 1);
+      m.lastSeen = count(event.at);
+      if (event.type === "recall") m.missBoost = 1;
+    } else if (event.type === "complete" && id) {
+      d.progress.completed[id] = true;
+      d.progress.unlocked[id] = true;
+      if (NEXT_STAGE[id]) d.progress.unlocked[NEXT_STAGE[id]] = true;
+    } else if (event.type === "start" && id) {
+      const stats = getStageStats(id);
+      stats.attempts = count(stats.attempts + 1);
+    } else if (event.type === "finish" && id) {
+      const score = count(event.score), deliveries = count(event.deliveries);
+      d.best = Math.max(d.best, score);
+      d.bestDel = Math.max(d.bestDel, deliveries);
+      const stats = getStageStats(id);
+      stats.bestScore = Math.max(stats.bestScore, score);
+      stats.bestDeliveries = Math.max(stats.bestDeliveries, deliveries);
+      if (event.won) {
+        stats.clears = count(stats.clears + 1);
+        d.progress.completed[id] = true;
+        d.progress.unlocked[id] = true;
+        if (NEXT_STAGE[id]) d.progress.unlocked[NEXT_STAGE[id]] = true;
+      }
+    }
+  };
+  const syncJournal = () => {
+    if (!journalSupported) return;
+    const signatures = new Map(), all = [];
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key?.startsWith(JOURNAL_PREFIX)) continue;
+        const value = localStorage.getItem(key);
+        signatures.set(key, value);
+        const events = JSON.parse(value);
+        if (Array.isArray(events)) {
+          for (const item of events) {
+            const event = decodeEvent(item, key);
+            if (event) all.push(event);
+          }
+        }
+      }
+    } catch { return; }
+    const changed = journalNeedsRefresh || signatures.size !== journalSignatures.size
+      || [...signatures].some(([key, value]) => journalSignatures.get(key) !== value);
+    if (!changed) return;
+    journalSignatures = signatures;
+    journalNeedsRefresh = false;
+    // A pending debounced answer is still part of this tab's state.
+    let persistedCount = 0;
+    try { persistedCount = JSON.parse(signatures.get(journalKey) || "[]").length; } catch {}
+    all.push(...ownEvents.slice(persistedCount));
+    all.sort((a, b) => (count(a.at) - count(b.at))
+      || String(a.tab || "").localeCompare(String(b.tab || ""))
+      || count(a.seq) - count(b.seq));
+    const base = JSON.parse(initialState);
+    d.m = Object.assign(Object.create(null), base.m);
+    d.best = base.best;
+    d.bestDel = base.bestDel;
+    d.progress = {
+      unlocked: Object.assign(Object.create(null), base.progress.unlocked),
+      completed: Object.assign(Object.create(null), base.progress.completed),
+      stages: Object.assign(Object.create(null), base.progress.stages)
+    };
+    for (const event of all) applyJournalEvent(event);
+  };
+  const record = (type, fields) => {
+    if (!journalSupported) return;
+    ownEvents.push({ type, ...fields, at: Date.now(), tab: tabId, seq: ++eventSequence });
+    journalNeedsRefresh = true;
+  };
+
   let saveFailed = false;
   let saveTimer = null;
   const save = () => {
     if (saveTimer !== null) { clearTimeout(saveTimer); saveTimer = null; }
-    try { localStorage.setItem(K, JSON.stringify(d)); saveFailed = false; }
+    try {
+      if (journalSupported) {
+        const payload = JSON.stringify(ownEvents.map(encodeEvent));
+        localStorage.setItem(journalKey, payload);
+        journalSignatures.set(journalKey, payload);
+        // Refresh the readable v1 snapshot from all committed journals, not
+        // from this tab's potentially older in-memory snapshot.
+        syncJournal();
+        if (ownEvents.length >= JOURNAL_SEGMENT_MAX) {
+          journalKey = JOURNAL_PREFIX + tabId + ":" + (++journalSegment);
+          ownEvents.length = 0;
+        }
+      }
+      localStorage.setItem(K, JSON.stringify(d));
+      saveFailed = false;
+    }
     catch { saveFailed = true; }
   };
   // 答題類高頻寫入改 500ms 去抖；關卡開始/結算仍立即寫。flush() 立刻寫出待存資料。
@@ -74,6 +220,7 @@
   const saveSoon = () => {
     // 沒有 pagehide/visibilitychange 可 flush 的環境（Node 測試等）維持同步寫入。
     if (!lifecycleFlush || typeof setTimeout !== "function") { save(); return; }
+    if (ownEvents.length >= JOURNAL_SEGMENT_MAX) { save(); return; }
     if (saveTimer !== null) return;
     saveTimer = setTimeout(() => { saveTimer = null; save(); }, 500);
     if (saveTimer && typeof saveTimer.unref === "function") saveTimer.unref();
@@ -82,6 +229,9 @@
     && typeof document !== "undefined" && !!document && typeof document.addEventListener === "function";
   if (lifecycleFlush) {
     root.addEventListener("pagehide", flush);
+    root.addEventListener("storage", event => {
+      if (event.key?.startsWith(JOURNAL_PREFIX)) syncJournal();
+    });
     document.addEventListener("visibilitychange", () => { if (document.hidden) flush(); });
   }
 
@@ -97,21 +247,24 @@
     });
   };
 
-  const isStageUnlocked = stageId => stageId === "night-town" || d.progress.unlocked[stageId] === true;
-  const isStageCompleted = stageId => d.progress.completed[stageId] === true;
+  const isStageUnlocked = stageId => { syncJournal(); return stageId === "night-town" || d.progress.unlocked[stageId] === true; };
+  const isStageCompleted = stageId => { syncJournal(); return d.progress.completed[stageId] === true; };
 
   function completeStage(stageId) {
     if (!stageId) return;
+    syncJournal();
     d.progress.completed[stageId] = true;
     d.progress.unlocked[stageId] = true;
     const next = NEXT_STAGE[stageId];
     if (next) d.progress.unlocked[next] = true;
+    record("complete", { stageId });
     save();
   }
 
   let runRecallSeen = Object.create(null);
 
   function rec(jp, c) {
+    syncJournal();
     const m = get(jp);
     if (c) {
       m.ok++;
@@ -123,19 +276,23 @@
       m.box = Math.max(0, m.box - 1);
       m.missBoost = 2.5;
     }
+    record("rec", { jp, correct: !!c });
     saveSoon();
   }
 
   function recAssisted(jp) {
+    syncJournal();
     const m = get(jp);
     m.ok++;
     m.lastSeen = Date.now();
+    record("assisted", { jp });
     saveSoon();
   }
 
   function recRecall(wordOrJp, nowMs = Date.now()) {
     const jp = typeof wordOrJp === "string" ? wordOrJp : wordOrJp?.jp;
     if (!jp) return;
+    syncJournal();
     const time = typeof nowMs === "number" && Number.isFinite(nowMs) ? nowMs : Date.now();
     const last = runRecallSeen[jp];
     if (last != null && (time - last) < 30000) {
@@ -143,6 +300,7 @@
       m.ok++;
       m.lastSeen = Date.now();
       m.missBoost = 1;
+      record("recall", { jp });
       saveSoon();
       return;
     }
@@ -151,6 +309,7 @@
   }
 
   function pickWord(all, rnd = Math.random) {
+    syncJournal();
     if (!all || all.length === 0) return null;
     const now = Date.now();
     const w = all.map(x => {
@@ -170,6 +329,7 @@
   }
 
   function createStudySession(pool, random = Math.random) {
+    syncJournal();
     const rawWords = Array.isArray(pool) ? pool.filter(w => w && w.jp) : [];
     const seenJp = new Set();
     const allWords = [];
@@ -245,15 +405,17 @@
     canSave: () => { flush(); return !saveFailed; },
     flush,
     data: d,
-    get,
-    getStageStats,
+    get: jp => { syncJournal(); return get(jp); },
+    getStageStats: id => { syncJournal(); return getStageStats(id); },
     isStageUnlocked,
     isStageCompleted,
     completeStage,
     startRun(stageId = "night-town") {
+      syncJournal();
       runRecallSeen = Object.create(null);
       const stats = getStageStats(stageId);
       stats.attempts = (stats.attempts || 0) + 1;
+      record("start", { stageId });
       save();
     },
     rec,
@@ -268,6 +430,7 @@
         score = stageId;
         stageId = "night-town";
       }
+      syncJournal();
       const s = count(Number(score));
       const n = count(Number(deliveries));
       if (s > d.best) d.best = s;
@@ -278,13 +441,16 @@
       if (n > (stats.bestDeliveries || 0)) stats.bestDeliveries = n;
       if (won) {
         stats.clears = (stats.clears || 0) + 1;
-        completeStage(stageId);
-      } else {
-        save();
+        d.progress.completed[stageId] = true;
+        d.progress.unlocked[stageId] = true;
+        if (NEXT_STAGE[stageId]) d.progress.unlocked[NEXT_STAGE[stageId]] = true;
       }
+      record("finish", { stageId, score: s, deliveries: n, won });
+      save();
     }
   };
 
+  syncJournal();
   root.STORE = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   return api;

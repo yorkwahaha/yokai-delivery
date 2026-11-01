@@ -116,7 +116,7 @@ window.UI = (() => {
     }
     if (__measureCtx && typeof __measureCtx.measureText === "function") {
       try {
-        __measureCtx.font = `${weight} ${size}px 'Yokai Noto JP', 'Noto Sans JP', sans-serif`;
+        __measureCtx.font = `${weight} ${size}px 'Yokai Brush JP', 'Yokai Noto JP', 'Noto Sans JP', sans-serif`;
         const w = __measureCtx.measureText(str).width;
         if (w > 0) return Math.ceil(w);
       } catch { /* 量不到就退回估算，不讓版面函式拋錯 */ }
@@ -240,7 +240,6 @@ window.UI = (() => {
   // Local art trial: composed from approved hand-painted talisman brushwork.
   // No procedural drawing may stand in for the painted seal-break key art.
   let paintedBossSealBreak = null;
-  const b8LocalArtTrial = /^(localhost|127[.]0[.]0[.]1|192[.]168[.])/.test(window.location?.hostname || "");
   // B15: these reviewed UI/charms/passives are published assets, not dev candidates.
   const releasedUiArt = true;
   // B14 approved ink warning: a single hand-painted transparent WebP
@@ -256,14 +255,14 @@ window.UI = (() => {
   // No recycled B12 gray overlay or mismatched glossy wooden buttons.
   const b13Art=Object.create(null);
   if(typeof window.Image==="function" && releasedUiArt){
-    for(const name of ["menu_board","menu_button","menu_button_danger","surge_warning"]){
+    for(const name of ["menu_board","menu_button","menu_button_danger"]){
       const img=new window.Image();img.decoding="async";
       img.onload=()=>{b13Art[name]=img;};
       img.src="assets/img/ui/b13/"+name+".webp?v=20261101-b13";
     }
   }
   if(typeof window.Image==="function" && releasedUiArt){
-    for(const name of ["surge_warning","modal_board","pause_medallion",
+    for(const name of ["pause_medallion",
       "camera_medallion","view_flat_medallion"]){
       const img=new window.Image();img.decoding="async";
       img.onload=()=>{b12Art[name]=img;};
@@ -1390,7 +1389,7 @@ window.UI = (() => {
     const valueSize = Math.max(assetW * 0.10, 11 / Math.max(0.01, viewportScale));
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `900 ${valueSize}px 'Yokai Noto JP', 'Noto Sans JP', 'Microsoft JhengHei', sans-serif`;
+    ctx.font = `900 ${valueSize}px 'Yokai Brush JP', 'Yokai Noto JP', 'Noto Sans JP', 'Microsoft JhengHei', serif`;
     ctx.lineWidth = Math.max(1.2, valueSize * 0.09);
     ctx.strokeStyle = "rgba(255,238,190,.82)";
     ctx.fillStyle = lowOil ? "#7a2c24" : "#4a2a1d";
@@ -2851,53 +2850,66 @@ window.UI = (() => {
       }
       const cdRatio = clamp(dashCd / Math.max(0.01, dashMax), 0, 1);
       const ready = cdRatio <= 0.001;
-      const ring = (btn, fill, stroke) => {
-        glow(ctx, btn.x, btn.y, btn.r * 3, stroke, ready ? 0.3 : 0.12);
-        ctx.fillStyle = fill;
-        ctx.beginPath(); ctx.arc(btn.x, btn.y, btn.r, 0, 6.28); ctx.fill();
-        ctx.strokeStyle = stroke; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(btn.x, btn.y, btn.r, 0, 6.28); ctx.stroke();
+      const activeMode = extra.inputMode || (touch ? "touch" : "keyboard");
+      // Both actions share exactly one painted medallion recipe: paper base,
+      // double gold rim, readable ink emblem and the same controller badge.
+      // Only the function symbol and cooldown differ.
+      const drawActionMedallion = (btn, kind) => {
+        const x = btn.x, y = btn.y, r = btn.r;
+        const isDash = kind === "dash";
+        ctx.save();
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.clip();
+        const board = formalUpgradeArt.card_dark;
+        if (board?.naturalWidth) {
+          ctx.drawImage(board, x - r, y - r, r * 2, r * 2);
+        } else {
+          ctx.fillStyle = "#182535"; ctx.fillRect(x-r, y-r, 2*r, 2*r);
+        }
+        if (isDash && illustratedArt.dashAction?.naturalWidth) {
+          const art = illustratedArt.dashAction;
+          const scale = Math.min(r * 1.46 / art.naturalWidth, r * 1.32 / art.naturalHeight);
+          const iw = art.naturalWidth * scale, ih = art.naturalHeight * scale;
+          ctx.drawImage(art, x - iw / 2, y - ih / 2 - 8, iw, ih);
+        } else {
+          // Compact ink-brush 取 character is clearer on small iPad screens
+          // than the OS-dependent parcel emoji.
+          ctx.textAlign = "center"; ctx.textBaseline = "middle";
+          ctx.font = readableFont(Math.round(r * .78), "700");
+          ctx.lineWidth = 2.6; ctx.strokeStyle = "#17212d";
+          ctx.strokeText(isDash ? "走" : "取", x, y - r * .17);
+          ctx.fillStyle = "#f6d894"; ctx.fillText(isDash ? "走" : "取", x, y - r * .17);
+        }
+        if (isDash && !ready) {
+          ctx.fillStyle = "rgba(12,19,31,.69)";
+          ctx.beginPath(); ctx.moveTo(x,y);
+          ctx.arc(x,y,r,-Math.PI/2,-Math.PI/2+Math.PI*2*cdRatio);
+          ctx.closePath(); ctx.fill();
+        }
+        ctx.restore();
+        ctx.save();
+        ctx.strokeStyle = (isDash && !ready) ? "#8a7463" : "#eac48d";
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(x,y,r-1.5,0,Math.PI*2); ctx.stroke();
+        ctx.strokeStyle = "rgba(247,218,164,.72)"; ctx.lineWidth=1;
+        ctx.beginPath();ctx.arc(x,y,r-6,0,Math.PI*2);ctx.stroke();
+        ctx.textAlign = "center";ctx.textBaseline = "alphabetic";
+        ctx.font = readableFont(14,"700");
+        ctx.lineWidth=3.6;ctx.strokeStyle="#211b25";ctx.fillStyle="#fff1d1";
+        const label = isDash ? (ready ? "衝刺" : dashCd.toFixed(1)+"s") : "取貨";
+        ctx.strokeText(label,x,y+r*.59,r*1.5);
+        ctx.fillText(label,x,y+r*.59,r*1.5);
+        if (activeMode === "gamepad") {
+          const key = isDash ? "B" : "A";
+          const badgeX = x + r*.74, badgeY = y-r*.70, badgeR = r*.27;
+          ctx.fillStyle = "#21354b"; ctx.strokeStyle = "#ebc98a"; ctx.lineWidth = 2;
+          ctx.beginPath();ctx.arc(badgeX,badgeY,badgeR,0,Math.PI*2);ctx.fill();ctx.stroke();
+          ctx.textBaseline="middle";ctx.font = "800 13px 'Yokai Noto JP', sans-serif";
+          ctx.fillStyle="#ffedc5";ctx.fillText(key,badgeX,badgeY+1);
+        }
+        ctx.restore();
       };
-      // Hand-painted dash medal reuses the approved skill-speed painting.
-      // Retire the modern translucent blue circular controller face.
-      const dx=btnD.x,dy=btnD.y,dr=btnD.r;
-      ctx.save();
-      ctx.beginPath();ctx.arc(dx,dy,dr,0,6.283);ctx.clip();
-      const paper=formalUpgradeArt.card_dark;
-      if(paper?.naturalWidth)ctx.drawImage(paper,dx-dr,dy-dr,dr*2,dr*2);
-      else {ctx.fillStyle="#28272b";ctx.fillRect(dx-dr,dy-dr,dr*2,dr*2);}
-      const action=illustratedArt.dashAction;
-      if(action?.naturalWidth) {
-        const scale=Math.min(dr*1.5/action.naturalWidth,dr*1.35/action.naturalHeight);
-        const iw=action.naturalWidth*scale,ih=action.naturalHeight*scale;
-        ctx.drawImage(action,dx-iw/2,dy-ih/2-8,iw,ih);
-      } else {
-        ctx.strokeStyle="#f8ddb2";ctx.fillStyle="#edd29c";
-        drawActionIcon(ctx,'dash',dx,dy-9,dr*.31);
-      }
-      if(!ready){
-        ctx.fillStyle="rgba(19,19,29,.70)";
-        ctx.beginPath();ctx.moveTo(dx,dy);
-        ctx.arc(dx,dy,dr,-Math.PI/2,-Math.PI/2+6.283*cdRatio);
-        ctx.closePath();ctx.fill();
-      }
-      ctx.restore();
-      ctx.strokeStyle=ready?"#eac48d":"#8a7463";
-      ctx.lineWidth=3;ctx.beginPath();ctx.arc(dx,dy,dr-1.5,0,6.283);ctx.stroke();
-      ctx.strokeStyle="rgba(247,218,164,.72)";ctx.lineWidth=1;
-      ctx.beginPath();ctx.arc(dx,dy,dr-6,0,6.283);ctx.stroke();
-      ctx.textAlign="center";ctx.font=readableFont(ready?13:16,"900");
-      ctx.lineWidth=4;ctx.strokeStyle="#211b25";ctx.fillStyle="#fff1d1";
-      const dashLabel=dashCd>0?`${dashCd.toFixed(1)}s`:"衝刺";
-      ctx.strokeText(dashLabel,dx,dy+dr*.58,dr*1.45);
-      ctx.fillText(dashLabel,dx,dy+dr*.58,dr*1.45);
-
-      if (inter) {
-        ring(btnE, "rgba(255, 210, 80, 0.88)", "#fff3c4");
-        ctx.fillStyle = ctx.strokeStyle = "#1e2436";
-        drawActionIcon(ctx, 'pickup', btnE.x, btnE.y - 10, 10);
-        ctx.fillText("取貨", btnE.x, btnE.y + 20);
-      }
+      drawActionMedallion(btnD,"dash");
+      if (inter) drawActionMedallion(btnE,"pickup");
 
       if (joy) {
         ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
@@ -5627,28 +5639,28 @@ function fusionLayout(customViewport, model) {
 
   function titleFont(size) {
     const scale = window.VIEWPORT?.get().scale || 1;
-    return readableFont(Math.max(size, Math.ceil(18 / scale)), "700").replace("'Yokai Noto JP', 'Noto Sans JP'", "'Kaisei Decol'");
+    return readableFont(Math.max(size, Math.ceil(18 / scale)), "700");
   }
 
   function readableFont(size, weight = "700") {
     const scale = window.VIEWPORT?.get().scale || (document.getElementById("game")?.getBoundingClientRect().width || 900) / 900;
     const readable = scale < 1 ? Math.max(size, Math.min(28, Math.ceil(14 / scale))) : size;
-    return `${weight || "700"} ${readable}px 'Yokai Noto JP', 'Noto Sans JP', 'Microsoft JhengHei', sans-serif`;
+    return `${weight || "700"} ${readable}px 'Yokai Brush JP', 'Yokai Noto JP', 'Noto Sans JP', 'Microsoft JhengHei', serif`;
   }
 
   function answerFont(size, weight = "700") {
     const scale = window.VIEWPORT?.get().scale || (document.getElementById("game")?.getBoundingClientRect().width || 900) / 900;
     const readable = scale < 1 ? Math.max(size, Math.min(31, Math.ceil(15 / scale))) : size;
-    return `${weight || "700"} ${readable}px 'Yokai Noto JP', 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif`;
+    return `${weight || "700"} ${readable}px 'Yokai Brush JP', 'Yokai Noto JP', 'Noto Sans JP', 'Yu Gothic', 'Meiryo', serif`;
   }
 
   // 僅地板實體答題字使用行書／毛筆感字型，避免整條字串被粗黑現代字體取代。
   function floorAnswerFont(size) {
     const scale = window.VIEWPORT?.get?.().scale || 1;
     const readable = scale < 1 ? Math.max(size, Math.ceil(15 / scale)) : size;
-    // Keep a single locally hosted Japanese glyph set for the whole word.
+    // Prefer a single locally hosted brush glyph set for the whole word.
     // The old brush-font stack split hiragana / katakana across iPad system fonts.
-    return `700 ${readable}px 'Yokai Noto JP', 'Noto Sans JP', sans-serif`;
+    return `700 ${readable}px 'Yokai Brush JP', 'Yokai Noto JP', 'Noto Sans JP', serif`;
   }
 
   let answerFontFallbackGrace = false;

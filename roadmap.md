@@ -1,3 +1,11 @@
+## 2026-11-01 B18｜iPad 觸控畫面：書法字體、答題層級與操作鈕（本機待實玩）
+
+- 跨平台字體由內建 Noto Sans JP 改為新打包 Yuji Syuku 手寫書法體（assets/fonts/YokaiYujiSyukuJP.woff2，919016 bytes；OFL-YujiSyuku.txt 授權保留），原本 Noto 子集仍留作缺字備援。UI 標籤、題目及答案優先由同一份內建筆字型繪製，不再依賴系統臨時替換字形。
+- 場景答案的可見日文字改在深度排序的玩家／貨物／建物之前先畫。答題墊位置、碰撞、答案驗證邏輯不變；貨物不再被前景答案文字蓋住。
+- 第二關雨夜港町關閉 drawDistrictLabels 的地名與副標文字（海面殘留淡字）；建築名稱與配送標籤保留。
+- 右側兩顆操作鈕統一為同一套深藍和紙圓形畫框、雙金環、相同字體與冷卻風格；取貨鈕與衝刺鈕半徑一致，取貨向右偏移 22px 並維持右側安全範圍。手把標準控制實測對應為 **A／Button0 取貨**、**B／Button1 衝刺**，相應字母僅手把模式顯示。
+- B18 專項檢查：tests/b18-ipad-calligraphy-action-20261101.test.cjs。尚待使用者在 iPad 真機評估字形、字的深度及兩按鈕效果；本輪未 commit/push/deploy，保留舊工作樹其他修改。
+
 ## 2026-11-01 B17｜S2 不規則石板正式接線與舊鵝卵石封存
 
 - 使用者確認最新 S2 資料包 assets/img/rain-port/s2-production/。較大解析度複核確認 g_stone_01～04.webp 是冷色不規則石塊／板石，已按使用者指定升為 APPROVED_RUNTIME；來源檔保留，正式複本遷入 assets/img/stages/rain-port/tiles/rain-port__g-stone-01～04.webp。
@@ -8,14 +16,17 @@
 
 # Yokai Delivery — Roadmap／跨對話持續交接
 
-### 2026-11-01｜B15 正式站圖片不同步與「舊圖先閃現」修補
+#\n## 2026-11-01 B16 實機回報七項：目前執行結果與未完成美術
 
-- 公開站原本受 `localhost/192.168.*` 本機條件限制，仍顯示舊版被動／護符／選單、第一關 Boss 砸地／護盾／衝刺；現將**已核准、已部署** B11/B13 介面及 Boss 圖正式打通，不開放未核准第二關水王圖及融合候選。
-- 第一關 Boss 砸地新版預警與碎裂圖、衝刺軌道提前預載；新素材下載中不先回退前代砸地圖。
-- 第二關正式 manifest 使用 `g_stone_01`、`g_wood_01`、`t_stone_wood_v01`，但原 renderer 只識別 `tile_stone_canonical` 等舊 ID，造成正式圖片存在卻持續使用舊版地板／接縫；已修正為實際正式 ID。基本石地／木地並行優先載入、必要時先保留中性底色，不再閃現舊地板或舊接縫。
-- 技能卡、被動 HUD 對新版插圖的等待期不再先繪製上代 icon；實際網路失敗時仍可按原安全備援流程。更換 `index.html` 全部腳本 cache key `20261101-imagefix2`。
-- `tests/b15-production-art-mapping-20261101.test.cjs` 新增 5 項；本輪 81/81 相關測試通過；`asset_registry --check` 890/147；不需要修改遊戲平衡及融合門禁。
+- 已實作：升級卡片與重抽提示改依最近使用的觸控／鍵盤／手把即時換文案；手把標準 R3 可切換 2D／2.5D，按鈕上手把模式顯示小「R3」。
+- 已實作：冰魄封靈說明依實際機制顯示「小怪命中冰凍 0.5 秒；Boss 累積 3 次命中冰凍 0.15 秒、2 秒免疫」。陰陽符對應文案同步明確化，不更改戰鬥數值。
+- 已實作：自帶 Noto Sans JP OFL 授權字體子集約 577 KB，統一問答文字與 UI 字體，移除地上字串 Yuji Syuku 混字 fallback。資產 `assets/fonts/YokaiNotoSansJP.woff2`、授權 `assets/fonts/OFL-NotoSansJP.txt`。
+- 已實作：終王登場先準備約 3.6 MB 的 BOSS.mp3；破封後只在 Boss 音軌真能播放且資料已就緒時才淡出關卡 BGM；play 拒絕時解開重試鎖，避免 iOS 靜音。
+- **尚未完成（真正素材阻塞）**：`assets/img/runtime-art-manifest.json` 的二關 4 張 stone 圖全部指向 `assets/img/stages/rain-port/tiles/rain-port__ground-mud-slab.webp`，與 `assets/img/scenery/ground.webp` 二進位完全相同。另有 `assets/img/rain-port/ground_stone_var1.webp` 與 `g_stone_01.webp` 等舊圖，但已視覺確認為「圓鵝卵石／圓石」而非使用者指定的不規則石塊，且後者已被正式審查淘汰。**禁止偷換成舊版或偷宣稱完成**；需產出並經使用者確認的新版非鵝卵石石塊地板後，再更新正式清單與接線。
+- **第二關 Boss 特效查核**：三張 `assets/img/vfx/boss-water-r8/{tide_v03,tidalFan_v01,rainVortex_v01}.webp` 均存在且有 dev-preview loader；`js/assets.js` 的 `isBossHazardArtEnabled` 僅允許本地 `dev=1&bossart=1`，正式模式仍停用，原因是 alpha 裁切、扇形 160° 與判定 120°、漩渦上下投影分層等限制仍標記 USER_ART_REVIEW_PENDING；不能標記為正式接線完成。待審核後再安全接入並試玩。
+- 測試：`tests/b16-device-font-boss-20261101.test.cjs` 包含新功能驗證與上述兩項明確 TODO。這輪 **不自動 commit / push / deploy**，保護現有工作樹。
 
+# Yokai Delivery — Roadmap／跨對話持續交接
 
 ### 2026-11-01｜B14 百鬼夜行透明毛筆警示（已接遊戲；本機待玩家試玩確認）
 
@@ -1729,3 +1740,11 @@ R5 回呼：AGY `85693` 曾過早送達，當時未收件；之後 AGY 已送「
 ## 歷史追溯（非現行指令）
 
 完整舊 roadmap 請按需用 `git show 54a4690:roadmap.md` 查看；舊 AGENTS 用 `git show 54a4690:AGENTS.md`。原文 commit／blob 已列於上表，不另建 archive。不得每輪掃描舊全文，亦不得恢復其中過期派工、模型路由、checkpoint 或發布指令；有用的已完成事實與尚未解決缺口已保留在本頁頂部。
+## 2026-11-01 Astra 稽核工程修復／本機試玩版
+
+- BUG、素材接線與測試基準：六組雨港新版建築／道具按最新修改時間同步正式路徑，舊圖封存在 `art/stage2-rain-port/archive/mtime-selection-20261101-six-pairs/`；四張新版石板納入唯一路由表，正式素材檢查為 855 files / 151 mappings / 99 active aliases。
+- PERF-003：戰鬥每次 `weapons(dt)` 呼叫僅建立一次配裝快照；抽出 `js/combat-targeting.js` 純函式，火龍取得最近敵人不再排序完整敵人陣列。不變更六技傷害、施放間隔與命中規則。
+- BUG-001 容量防護：本機跨分頁日誌改用縮短的 tuple 格式及每 256 筆分段，保留舊物件日誌相容；儲存額度不足時回報 `canSave() === false`，不得以未持久化的快照蓋過已確認進度。**日誌段仍不得在其他分頁可能讀取時逕自刪除**；長年大量存檔的安全壓縮／清理，須有跨分頁鎖定協議才可新增。
+- ARCH-002：`js/words.js` 的 `releaseStatus` 分別標為正式、試玩、開發中；不改 `implemented`、地圖可進入條件及既有存檔的解鎖順序，避免開發標籤意外封鎖進度。第三至八關美術仍不是正式核准。
+- 主要技術回歸：聚焦測試 103/103 PASS（包括既有 V3 核心、Boss、雨港載入、媒體快取、新增存檔壓力與容量測試），`python tools/asset_registry.py --check` PASS。上述是工程驗證，兩關完整畫面、音效與操作仍交由使用者實機試玩。
+

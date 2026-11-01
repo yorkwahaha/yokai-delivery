@@ -1916,7 +1916,6 @@ window.RENDERER = (() => {
 
   // ComfyUI-generated raster candidates are for LOCAL in-game review only;
   // ordinary published builds retain their previously approved raster art.
-  const b3ComfyLocalTrial = () => { const host = window.location?.hostname || ""; return host === "localhost" || host === "127.0.0.1" || host.startsWith("192.168."); };
   // B15: explicitly reviewed night-town shield and Boss VFX have been published.
   const releasedNightBossArt = () => true;
 

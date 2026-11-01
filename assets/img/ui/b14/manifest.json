@@ -1,0 +1,10 @@
+{
+  "status": "TRIAL_PENDING_USER_PLAYTEST",
+  "src": "B14 ComfyUI handwritten ink warning",
+  "source_raw": "G:\\ComfyUI_Output\\images\\Yokai_B14_surge_warning_00001.png",
+  "asset": "surge_brush.webp",
+  "transparency": true,
+  "flowers": false,
+  "duration_sec": 2.4,
+  "slide": "right-in then left-out"
+}

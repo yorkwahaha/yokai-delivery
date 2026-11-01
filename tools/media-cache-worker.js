@@ -24,7 +24,8 @@ async function serveMedia(event, path, revision) {
   if (!range) return cached;
   const match = /^bytes=(\d*)-(\d*)$/.exec(range);
   if (!match || (!match[1] && !match[2])) return fetch(event.request);
-  const bytes = await cached.arrayBuffer(), size = bytes.byteLength;
+  // Blob slicing avoids allocating a whole JavaScript ArrayBuffer per Safari Range probe.
+  const blob = await cached.blob(), size = blob.size;
   const start = match[1] ? Number(match[1]) : Math.max(0, size - Number(match[2]));
   const end = match[1] ? (match[2] ? Math.min(Number(match[2]), size - 1) : size - 1) : size - 1;
   if (start >= size || start > end) return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${size}` } });
@@ -32,7 +33,7 @@ async function serveMedia(event, path, revision) {
   headers.set('Content-Range', `bytes ${start}-${end}/${size}`);
   headers.set('Content-Length', String(end - start + 1));
   headers.set('Accept-Ranges', 'bytes');
-  return new Response(bytes.slice(start, end + 1), { status: 206, headers });
+  return new Response(blob.slice(start, end + 1), { status: 206, headers });
 }
 
 self.addEventListener('fetch', event => {

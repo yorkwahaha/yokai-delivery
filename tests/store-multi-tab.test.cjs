@@ -1,0 +1,112 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+
+const source = fs.readFileSync('js/store.js', 'utf8');
+
+function createStoreTabs(seed = {}, options = {}) {
+  const disk = new Map(Object.entries(seed));
+  let tabNumber = 0;
+  const open = () => {
+    const tab = ++tabNumber;
+    const localStorage = {
+      get length() { return disk.size; },
+      key(index) { return [...disk.keys()][index] ?? null; },
+      getItem(key) { return disk.get(key) ?? null; },
+      setItem(key, value) {
+        if (options.maxValueLength && String(value).length > options.maxValueLength) {
+          throw new Error('QuotaExceededError');
+        }
+        disk.set(key, String(value));
+      }
+    };
+    const window = { crypto: { randomUUID: () => 'tab-' + tab }, localStorage };
+    const ctx = { window, localStorage, Date, Math, console };
+    vm.runInNewContext(source, ctx, { filename: 'store.js' });
+    return window.STORE;
+  };
+  return { open, disk };
+}
+
+test('cross-tab rec cannot roll back completed stages or lose either answer', () => {
+  const { open } = createStoreTabs();
+  const a = open(), b = open();
+  a.completeStage('night-town');
+  b.rec('猫', true);
+  a.rec('犬', false);
+  b.finish('rain-port', 250, 3, true);
+  const reloaded = open();
+  assert.equal(reloaded.isStageCompleted('night-town'), true);
+  assert.equal(reloaded.isStageCompleted('rain-port'), true);
+  assert.equal(reloaded.isStageUnlocked('sakura-pass'), true);
+  assert.equal(reloaded.get('猫').ok, 1);
+  assert.equal(reloaded.get('犬').ng, 1);
+  assert.equal(reloaded.getStageStats('rain-port').clears, 1);
+});
+
+test('cross-tab interleaved attempts, assists and clear counts are not doubled', () => {
+  const { open } = createStoreTabs();
+  const a = open(), b = open();
+  a.startRun('night-town');
+  b.startRun('night-town');
+  a.recAssisted('猫');
+  b.rec('猫', true);
+  a.finish('night-town', 99, 2, true);
+  b.finish('night-town', 120, 3, true);
+  const c = open();
+  assert.equal(c.getStageStats('night-town').attempts, 2);
+  assert.equal(c.getStageStats('night-town').clears, 2);
+  assert.equal(c.get('猫').ok, 2);
+  assert.equal(c.data.best, 120);
+  assert.equal(c.data.bestDel, 3);
+});
+
+test('legacy v1 data remains as an immutable migration base', () => {
+  const prior = JSON.stringify({ best: 42, m: { '狐': { ok: 3, ng: 1, box: 2 } },
+    progress: { unlocked: { 'night-town': true }, completed: { 'night-town': true } } });
+  const { open } = createStoreTabs({ 'yokai-delivery-v1': prior });
+  const a = open(), b = open();
+  a.rec('狐', true);
+  b.rec('狐', false);
+  const c = open();
+  assert.equal(c.get('狐').ok, 4);
+  assert.equal(c.get('狐').ng, 2);
+  assert.equal(c.data.best, 42);
+  assert.equal(c.isStageCompleted('night-town'), true);
+});
+
+test('journals rotate into compact segments without losing cross-tab answer counts', () => {
+  const { open, disk } = createStoreTabs();
+  const a = open(), b = open();
+  for (let i = 0; i < 600; i++) a.rec('猫', true);
+  for (let i = 0; i < 80; i++) b.rec('犬', false);
+  const segments = [...disk.keys()].filter(key => key.startsWith('yokai-delivery-v1:journal:'));
+  assert.ok(segments.length >= 4, 'one tab should rotate into at least three segments');
+  for (const key of segments) {
+    const rows = JSON.parse(disk.get(key));
+    assert.ok(rows.length <= 256);
+    assert.ok(rows.every(Array.isArray), 'new journals use the compact tuple format');
+  }
+  const c = open();
+  assert.equal(c.get('猫').ok, 600);
+  assert.equal(c.get('犬').ng, 80);
+});
+
+test('storage quota rejection reports failure and never overwrites the last valid snapshot', () => {
+  const { open, disk } = createStoreTabs({}, { maxValueLength: 1100 });
+  const a = open();
+  a.completeStage('night-town');
+  assert.ok(disk.get('yokai-delivery-v1'), 'first clear must persist');
+  for (let i = 0; i < 100; i++) a.rec('あ', true);
+  assert.equal(a.canSave(), false, 'quota failure must be visible to the caller');
+  const lastValid = disk.get('yokai-delivery-v1');
+  const persisted = JSON.parse(lastValid).m['あ']?.ok || 0;
+  assert.ok(persisted > 0 && persisted < 100, 'some earlier events persisted before quota');
+  a.rec('あ', true);
+  assert.equal(disk.get('yokai-delivery-v1'), lastValid,
+    'failed journal write must never overwrite the last successful projection');
+  assert.equal(open().isStageCompleted('night-town'), true);
+  assert.equal(open().get('あ').ok, persisted, 'reload only returns truly persisted answers');
+});

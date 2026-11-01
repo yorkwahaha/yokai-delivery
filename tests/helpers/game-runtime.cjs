@@ -34,6 +34,11 @@ const MODULE_ORDER = [
   'words', 'world', 'store', 'config', 'viewport', 'controls',
   'overworld', 'fx', 'skillfx', 'evolutions'
 ];
+// Current game scripts must mirror the public index dependency order.
+// Keep the historic MODULE_ORDER unchanged for revision-pinned baseline tests.
+const CURRENT_MODULE_ORDER = [
+  'delivery-lexicon', 'delivery-media', ...MODULE_ORDER, 'combat-targeting'
+];
 
 // V3 新增模組：只在 working tree 載入。baseline revision 不讀它，
 // 否則基線校準會混入 V3 尚未存在的程式，等於把兩個時間點混為一談。
@@ -562,7 +567,7 @@ function loadGame(options = {}) {
   const events = {};
   const storage = new Map([['yokai-tutorial-v1', '"skip"']]);
   const env = {
-    console, Set, Map, Math: seededMath, Date, performance: { now: () => 0 },
+    console, Set, Map, Math: seededMath, Date, URLSearchParams, performance: { now: () => 0 },
     navigator: {}, requestAnimationFrame() {},
     localStorage: { getItem: k => storage.get(k) || null, setItem: (k, v) => storage.set(k, v) },
     document: {
@@ -590,9 +595,10 @@ const runSource = (c, source, name, revision, srcRoot) => {
 };
 
 const c = vm.createContext(env);
-  for (const name of MODULE_ORDER) runSource(c, reader(`${name}.js`), name, revision, srcRoot);
+  for (const name of (revision ? MODULE_ORDER : CURRENT_MODULE_ORDER))
+    runSource(c, reader(`${name}.js`), name, revision, srcRoot);
   if (!revision) {
-    for (const name of ["card-collection", "card-gallery-model", "card-gallery-ui"]) {
+    for (const name of ["card-collection", "card-delivery-bridge", "card-gallery-model", "card-gallery-ui"]) {
       const file = path.join(srcRoot, `${name}.js`);
       if (fs.existsSync(file)) runSource(c, fs.readFileSync(file, "utf8"), name, null, srcRoot);
     }
