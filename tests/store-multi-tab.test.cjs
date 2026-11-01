@@ -110,3 +110,41 @@ test('storage quota rejection reports failure and never overwrites the last vali
   assert.equal(open().isStageCompleted('night-town'), true);
   assert.equal(open().get('あ').ok, persisted, 'reload only returns truly persisted answers');
 });
+
+test('malformed segment is preserved but cannot block valid progress from other tabs', () => {
+  const bad = 'yokai-delivery-v1:journal:broken-tab:0';
+  const { open, disk } = createStoreTabs({ [bad]: '{not-json' });
+  const a = open();
+  a.completeStage('night-town');
+  a.rec('狐', true);
+  const b = open();
+  assert.equal(b.isStageCompleted('night-town'), true);
+  assert.equal(b.get('狐').ok, 1);
+  assert.equal(disk.get(bad), '{not-json', 'retain bad bytes for manual recovery');
+});
+
+test('unchanged journal reads skip repeated JSON parsing', () => {
+  const disk = new Map();
+  let parses = 0;
+  const localStorage = {
+    get length() { return disk.size; },
+    key(i) { return [...disk.keys()][i] ?? null; },
+    getItem(k) { return disk.get(k) ?? null; },
+    setItem(k,v) { disk.set(k, String(v)); }
+  };
+  const window = { crypto: { randomUUID: () => 'tracked-tab' }, localStorage };
+  const trackedJSON = {
+    parse(v) { parses++; return JSON.parse(v); },
+    stringify: JSON.stringify
+  };
+  vm.runInNewContext(source, { window, localStorage, JSON: trackedJSON, Date, Math, console }, { filename: 'store.js' });
+  const s = window.STORE;
+  s.rec('猫', true);
+  s.isStageUnlocked('night-town');
+  const baseline = parses;
+  for (let i = 0; i < 80; i++) {
+    assert.equal(s.isStageUnlocked('night-town'), true);
+    assert.equal(s.isStageCompleted('night-town'), false);
+  }
+  assert.equal(parses, baseline, 'unchanged storage must avoid JSON.parse');
+});

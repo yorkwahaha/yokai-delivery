@@ -2019,12 +2019,19 @@ const updateReadiness = () => {
   window.MAP_ART_READY = ["cover", ...OVERWORLD_MAP_ASSET_NAMES].every(key => settledArt.has(key));
   window.ART_READY = gameArtStarted && gameAssetNames().every(key=>settledArt.has(key));
 };
+// Dependent stage images may fail before their fallback image finishes.
+const stageArtFallbackWaiters = new Map();
 const markSettled = (key, failed = false) => {
   if (settledArt.has(key)) return;
   settledArt.add(key);
   if (failed) failedArt.add(key);
   if (key === backgroundKey) backgroundKey = null;
   updateReadiness();
+  const waiters = stageArtFallbackWaiters.get(key);
+  if (waiters) {
+    stageArtFallbackWaiters.delete(key);
+    for (const resolve of waiters) resolve();
+  }
   loadBackgroundArt();
 };
 const markFailedForRetry = key => {
@@ -2156,8 +2163,8 @@ function loadSkillImage(key, file, version) {
 window.skillVfxArt = (id, level) => loadSkillImage(window.skillVfxKey(id, level), window.skillVfxFile(id, level), "20261007-skilltiers1");
 // Barrier images remain on-demand: neither image belongs to first-screen assets.
 const BARRIER_RASTER_FILES = Object.freeze({
-  barrier_core_main: "assets/img/vfx/purification_array_vfx.webp?v=20261012-barrier-tiers1",
-  barrier_core_lv5: "assets/img/vfx/purification_array_lv5_vfx.webp?v=20261012-barrier-tiers1"
+  barrier_core_main: "assets/img/vfx/purification_array_vfx.webp",
+  barrier_core_lv5: "assets/img/vfx/purification_array_lv5_vfx.webp"
 });
 const BARRIER_ART_TIERS = Object.freeze([
   Object.freeze({artKey:"barrier_core_main",scale:0.72,alpha:0.30}),
@@ -2208,9 +2215,9 @@ window.barrierCoreArt = (level=1) => {
 
 // Lazy on-demand Ofuda art, independent of cover/map/first-play readiness.
 const OFUDA_RASTER_FILES = Object.freeze({
-  main: "assets/img/vfx/ofuda_projectile.webp?v=20261012-ofuda-raster1",
-  hit: "assets/img/vfx/ofuda_hit_burst.webp?v=20261012-ofuda-raster1",
-  max: "assets/img/vfx/ofuda_max_burst.webp?v=20261012-ofuda-raster1"
+  main: "assets/img/vfx/ofuda_projectile.webp",
+  hit: "assets/img/vfx/ofuda_hit_burst.webp",
+  max: "assets/img/vfx/ofuda_max_burst.webp"
 });
 const OFUDA_RASTER_KEYS = Object.freeze({
   main: "ofuda_raster_main", hit: "ofuda_raster_hit", max: "ofuda_raster_max"
@@ -2354,7 +2361,7 @@ const BOSS_HAZARD_ART_DEFS = Object.freeze({
     source: "assets/img/vfx/boss-water-r8/tide_v03.webp",
     bbox: Object.freeze([0, 117, 1254, 1061]),
     width: 1254, height: 1254,
-    sha256: "97d3ad48024a8cc5485a0b247eedb760bb2abc29aad304ab963498c160bf4cc4",
+    sha256: "db54ef1e0896d7a60cbec43239ac7ef910dc2d1f11c7dbd4200d5742489a899b",
     provenance: "assets/img/vfx/boss-water-r8/tide_v03.png",
     status: "ART_CANDIDATE",
     note: "潮汐浪帶；Two-Bank裁切 left[0..559] right[737..1254]，中央25px α=0走廊非動態safeOffset依據",
@@ -2364,7 +2371,7 @@ const BOSS_HAZARD_ART_DEFS = Object.freeze({
     source: "assets/img/vfx/boss-water-r8/tidalFan_v01.webp",
     bbox: Object.freeze([12, 164, 1247, 1118]),
     width: 1254, height: 1254,
-    sha256: "b887523723d213d465ebdd2d01bde84f925e0635e7939b996c5248a5fd47317f",
+    sha256: "05f063ac4ff595de1f5f1b50cebaa8614f23cd522145161fb5087175820819c0",
     provenance: "assets/img/vfx/boss-water-r8/tidalFan_v01.png",
     status: "ART_CANDIDATE",
     note: "潮汐扇面；源圖160度需裁切至判定120度(±PI/3)，apex(617,1117) reach 971px",
@@ -2374,7 +2381,7 @@ const BOSS_HAZARD_ART_DEFS = Object.freeze({
     source: "assets/img/vfx/boss-water-r8/rainVortex_v01.webp",
     bbox: Object.freeze([37, 39, 1226, 1227]),
     width: 1254, height: 1254,
-    sha256: "bc950af55b0b3ab4cef25d961f61da3ba9ee1520b2a8b3696c105b2e7bd5fe12",
+    sha256: "f3c65902f3f8f1e3e73345262d8e5ba9ce45d9900d9b501b8756a0416f294981",
     provenance: "assets/img/vfx/boss-water-r8/rainVortex_v01.png",
     status: "ART_CANDIDATE",
     note: "雨夜渦流；地面漩渦需tilt=0.60投影、水柱billboard直立，整圖含地面+水柱需分層",
@@ -2751,12 +2758,18 @@ function loadStageAssets(stageId) {
   const slots = STAGE_ASSET_SLOTS[stageId];
   if (!slots) return;
 
-  const status = { missing: [], loaded: [], fallback: [] };
+  const status = window.STAGE_ART_STATUS[stageId] ||
+    { missing: [], loaded: [], fallback: [] };
   window.STAGE_ART_STATUS[stageId] = status;
 
   // 輔助：嘗試載入，失敗則回落並標記
   const tryLoad = (key, fallbackKey = null, isCritical = false) => {
-    if (!key || requestedArt.has(key)) return true;
+    if (!key) return true;
+    if (requestedArt.has(key)) {
+      if (ART[key]?.naturalWidth > 0 && !status.loaded.includes(key)
+        && !status.fallback.some(item => item.key === key)) status.loaded.push(key);
+      return true;
+    }
     const img = new Image();
     img.fetchPriority = isCritical ? "high" : "low";
     img.decoding = "async";
@@ -2766,14 +2779,27 @@ function loadStageAssets(stageId) {
       status.loaded.push(key);
     };
     img.onerror = () => {
-      if (fallbackKey && ART[fallbackKey]?.naturalWidth > 0) {
-        ART[key] = ART[fallbackKey];
-        status.fallback.push({ key, fallback: fallbackKey });
+      const settleFallback = () => {
+        if (fallbackKey && ART[fallbackKey]?.naturalWidth > 0) {
+          ART[key] = ART[fallbackKey];
+          status.fallback.push({ key, fallback: fallbackKey });
+        } else {
+          status.missing.push(key);
+        }
         markSettled(key, true);
-      } else {
-        status.missing.push(key);
-        markSettled(key, true);
+      };
+      // If the fallback is still loading, wait for its actual settlement
+      // instead of prematurely declaring the primary missing.
+      if (fallbackKey && fallbackKey !== key && !settledArt.has(fallbackKey)) {
+        if (!requestedArt.has(fallbackKey)) tryLoad(fallbackKey);
+        if (requestedArt.has(fallbackKey) && !settledArt.has(fallbackKey)) {
+          const waiters = stageArtFallbackWaiters.get(fallbackKey) || [];
+          waiters.push(settleFallback);
+          stageArtFallbackWaiters.set(fallbackKey, waiters);
+          return;
+        }
       }
+      settleFallback();
     };
     requestedArt.add(key);
     const isPort = stageId === "rain-port" && (
@@ -2797,7 +2823,8 @@ function loadStageAssets(stageId) {
   if (mapKey) {
     // 若已請求且已完成，直接使用
     if (requestedArt.has(mapKey) && settledArt.has(mapKey)) {
-      status.loaded.push(mapKey);
+      if (ART[mapKey]?.naturalWidth > 0 && !status.loaded.includes(mapKey)
+        && !status.fallback.some(item => item.key === mapKey)) status.loaded.push(mapKey);
     } else if (!requestedArt.has(mapKey)) {
       // 首次請求：載入並設定 fallback
       const img = new Image();
@@ -2809,16 +2836,24 @@ function loadStageAssets(stageId) {
         status.loaded.push(mapKey);
       };
       img.onerror = () => {
-        // Map 不存在時，回落到 night-town（已存在）
         const fallbackMap = "map_night_town_v1";
-        if (ART[fallbackMap]?.naturalWidth > 0) {
-          ART[mapKey] = ART[fallbackMap];
-          status.fallback.push({ key: mapKey, fallback: fallbackMap });
+        const settleMap = () => {
+          if (ART[fallbackMap]?.naturalWidth > 0) {
+            ART[mapKey] = ART[fallbackMap];
+            status.fallback.push({ key: mapKey, fallback: fallbackMap });
+          } else status.missing.push(mapKey);
           markSettled(mapKey, true);
-        } else {
-          status.missing.push(mapKey);
-          markSettled(mapKey, true);
+        };
+        if (fallbackMap !== mapKey && !settledArt.has(fallbackMap)) {
+          if (!requestedArt.has(fallbackMap)) tryLoad(fallbackMap);
+          if (requestedArt.has(fallbackMap) && !settledArt.has(fallbackMap)) {
+            const waiters = stageArtFallbackWaiters.get(fallbackMap) || [];
+            waiters.push(settleMap);
+            stageArtFallbackWaiters.set(fallbackMap, waiters);
+            return;
+          }
         }
+        settleMap();
       };
       requestedArt.add(mapKey);
       img.src = `assets/img/${mapKey}.webp?v=20261010-loading3`;
@@ -3108,14 +3143,30 @@ window.loadGameArt = () => {
   updateReadiness();
   loadBackgroundArt();
 };
+let backgroundRetryTimer = null;
 function loadBackgroundArt() {
   if (!window.ART_READY || backgroundKey) return;
-  // 動作與結果圖不擋開局，仍有正式靜態角色；背景每次只下載一張。
-  while (backgroundNames.length && requestedArt.has(backgroundNames[0])) backgroundNames.shift();
-  if (backgroundNames.length) {
-    backgroundKey = backgroundNames.shift();
-    loadArt(backgroundKey, "low");
-    return;
+  // Don't lock the queue with a cooling-down request; try other art first.
+  const deferred = [];
+  while (backgroundNames.length) {
+    const key = backgroundNames.shift();
+    if (requestedArt.has(key)) continue;
+    if ((artRetryAfter.get(key) || 0) > Date.now()) {
+      deferred.push(key);
+      continue;
+    }
+    backgroundKey = key;
+    loadArt(key, "low");
+    break;
+  }
+  backgroundNames.push(...deferred);
+  if (!backgroundKey && backgroundNames.length && backgroundRetryTimer === null && typeof setTimeout === "function") {
+    const delay = Math.max(25, Math.min(...backgroundNames.map(k =>
+      Math.max(0, (artRetryAfter.get(k) || 0) - Date.now()))) + 10);
+    backgroundRetryTimer = setTimeout(() => {
+      backgroundRetryTimer = null;
+      loadBackgroundArt();
+    }, delay);
   }
 }
 

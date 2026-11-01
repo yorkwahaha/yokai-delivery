@@ -1006,7 +1006,7 @@ window.UI = (() => {
       listen: ['看圖聽音', 'listen', '取貨時會正常播放發音；記住包裹圖像，送貨時請自行判斷日語答案。原免費聽音提示已取消。'],
       delivery: ['配送答題墊', 'pickup', `收件處答題結界最多暫停 10 秒，逾時恢復戰鬥並扣最大燈油 5%。踩答案墊 0.65 秒或按確認鍵提交。${harbor ? '雨港須至少送達 6 件並擊敗終王才能通關。' : '夜行町終王擊敗後即可通關。'}`],
       dash: ['衝刺避險', 'dash', `移動中用${key('dash')}快速穿過危險；衝刺期間短暫無敵。右側衝刺鈕顯示冷卻秒數，恢復後才能再次使用。`],
-      boss: ['Boss 封印', 'listen', `靠近 Boss 按${key('boss')}選假名破印。${harbor ? '雨港封印讀題不限時，通關還須至少六件配送。' : '夜行町讀題有時限；12 分鐘後未擊敗的終王每秒回復 1.5% 血量。'}答錯禁攻擊：第一次 10 秒，再錯 30 秒；仍可移動，不扣燈油。`]
+      boss: ['Boss 封印', 'listen', `靠近 Boss 按${key('boss')}選假名破印。${harbor ? '雨港通關還須至少六件配送。' : '夜行町 12 分鐘後未擊敗的終王每秒回復 1.5% 血量。'}兩關封印讀題最多暫停 10 秒；答錯立即恢復戰鬥，禁攻擊第一次 10 秒、再錯 30 秒；仍可移動且燈油照常消耗。`]
     }[id];
   }
   // Shared monochrome operation symbols, independent of OS Emoji fonts.
@@ -1023,9 +1023,7 @@ window.UI = (() => {
     ctx.save(); ctx.translate(x,y); ctx.scale(r/10,r/10);
     ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.beginPath();
-    if (id === 'pickup') {
-      ctx.rect(-8,-6,16,14); ctx.moveTo(-8,-6);ctx.lineTo(0,-10);ctx.lineTo(8,-6);ctx.moveTo(0,-10);ctx.lineTo(0,8);ctx.moveTo(-8,-2);ctx.lineTo(8,-2);
-    } else if (id === 'listen') {
+    if (id === 'listen') {
       ctx.moveTo(-8,-3);ctx.lineTo(-4,-3);ctx.lineTo(1,-8);ctx.lineTo(1,8);ctx.lineTo(-4,3);ctx.lineTo(-8,3);ctx.closePath();
       ctx.moveTo(5,-5);ctx.quadraticCurveTo(10,0,5,5);
     } else if (id === 'hint') {
@@ -1626,9 +1624,8 @@ window.UI = (() => {
       }
     };
     ctx.save();
-    fillScreen(ctx);
     ctx.fillStyle='rgba(0,0,0,.78)';
-    ctx.fillRect(0,0,b.width,b.height);
+    fillScreen(ctx);
     drawScrollBoard(ctx,x,y,panelW,panelH,true);
     drawRitualHeader(ctx,innerX,y+padTop,innerW,titleH,
       '御守替換・擇契',compact?'':'新守入匣・選擇一枚舊守交換','守',compact);
@@ -5074,7 +5071,8 @@ function fusionLayout(customViewport, model) {
     fillScreen(ctx);
 
     const isCards = tab === "cards";
-    const buttons = codexButtons(tab, page, ALL.length, galleryState || { filter: { by: "all", id: null }, page });
+    const buttons = isCards ? codexButtons(tab, page, ALL.length, galleryState || { filter: { by: "all", id: null }, page })
+      : codexTabButtons().map(b => ({ ...b }));
 
     // 1. 頂部大標題
     ctx.textAlign = "center";
@@ -5110,7 +5108,7 @@ function fusionLayout(customViewport, model) {
       drawSecretCodex(ctx, page, focus);
     } else if (window.CARD_GALLERY_UI && typeof window.CARD_GALLERY_UI.draw === "function") {
       const pack = wordGallery();
-      window.CARD_GALLERY_UI.draw(ctx, pack.cards, Object.assign({ packLine: pack.packLine }, galleryState || { filter: { by: "all", id: null }, page }), {
+      const galleryDrawn = window.CARD_GALLERY_UI.draw(ctx, pack.cards, Object.assign({ packLine: pack.packLine }, galleryState || { filter: { by: "all", id: null }, page }), {
         paper: illustratedArt.neutral,
         drawCardPanel: (c, b) => drawCollectionBoard(c, b.x, b.y, b.w, b.h),
         drawRibbonSlices,
@@ -5118,6 +5116,7 @@ function fusionLayout(customViewport, model) {
         drawButton,
         readableFont
       }, wordGalleryViewport(), pack.catalogs);
+      buttons.push(...galleryDrawn.buttons.filter(b => !String(b.id).startsWith("card:")));
     } else {
       ctx.textAlign = "center";
       ctx.fillStyle = "#24180f";
@@ -5732,7 +5731,6 @@ function fusionLayout(customViewport, model) {
     fusionLayout,
     drawFusion,
     FUSION_REOPEN_BTN,
-    drawFusionReopenButton,
     drawFusionReopenButton,
     CARD_LIST,
     resolveFanSlots,

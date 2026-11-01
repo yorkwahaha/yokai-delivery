@@ -3281,7 +3281,7 @@ if (isRainPort) {
   let lastBladeImpactAt = -Infinity;
   function hurt(e, dmg, isCrit = false, fromShatter = false, impactType = "") {
     // Boss 封印反噬期間，即使有延遲傷害也不可造成任何玩家攻擊傷害。
-    if (e.hp <= 0 || bossCurseRemaining > 0) return;
+    if (state !== "play" || e.dying || e.hp <= 0 || bossCurseRemaining > 0) return;
     if (e.shield) {
       e.flash = 0.08;
       if (!e.shieldFeedbackUntil || elapsed >= e.shieldFeedbackUntil) {
@@ -3866,6 +3866,8 @@ if (isRainPort) {
       say(`封印反噬・禁攻擊 ${curseSeconds} 秒！`, P.x, P.y - 55, "#ffd4ef");
       bossQ.wrong.push(i);
       bossQ.lock = 0.5;
+      // Breaking the reading seal lets the 10/30-second curse run in combat.
+      bs.quizClosed = true;
     }
   }
 
@@ -5919,7 +5921,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     }
     if (quizNear) {
       quizNear.quizEntered = true;
-      if (STAGE.id === "night-town") {
+      {
         quizNear.barrierTimer = (quizNear.barrierTimer ?? 10) - dt;
         if (quizNear.barrierTimer <= 0) {
           quizNear.barrierTimer = 0;
@@ -6085,6 +6087,8 @@ function spawnEnemy(tier, rad, ang, ring) {
     if (!safeRead) {
     // 詛咒反噬：保留移動、閃避、受敵攻擊；全面封鎖自動攻擊與主動施法。
     if (bossCurseRemaining <= 0) weapons(dt);
+    // A finishing hit can switch to victory inside weapons; stop spawns/AI.
+    if (state !== "play") return;
 
     // 敵人生成強度計算：整段 10 分鐘平滑拉升，破曉後加班不再增加難度。
     const cappedElapsed = Math.min(elapsed, DAWN);
@@ -6349,8 +6353,16 @@ function spawnEnemy(tier, rad, ang, ring) {
         let introduced = true;
         if (plan.quiz) {
           const studied = study?.seenWords?.() || [];
-          if (studied.length) word = studied[studied.length - 1];
-          else { word = STORE.pick(bossPool); introduced = false; }
+          if (studied.length) {
+            // Keep the single-Boss latest-seen behavior, but two live
+            // shielded Bosses must not assign the same word.
+            const occupied = new Set(enemies.filter(e =>
+              e.type === "boss" && e.hp > 0 && e.shield && e.word).map(e => e.word.jp));
+            const alternatives = studied.filter(w => !occupied.has(w.jp));
+            word = (alternatives.length ? alternatives : studied).slice(-1)[0];
+            // If no distinct studied word exists, replay is assisted.
+            if (!alternatives.length && occupied.has(word.jp)) introduced = false;
+          } else { word = STORE.pick(bossPool); introduced = false; }
         }
         const harborBoss = STAGE_ENEMY.bossTheme === "harbor";
         const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
@@ -6460,6 +6472,9 @@ function spawnEnemy(tier, rad, ang, ring) {
     gems = gems.filter(g => !g.done);
     }
     updateCharmDrops(dt);
+    // Picking up a fourth charm opens a modal. Do not keep running the same
+    // combat frame and potentially overwrite that modal with a level-up.
+    if (state !== "play") return;
 
     // 配送取貨：靠近町屋即可出現裝置對應的取貨操作。
     inter = null;

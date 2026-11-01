@@ -324,7 +324,7 @@
         // 不再使用通用 HOUSE_LAYOUTS + SPOTS（舊座標對錯會讓左右雙屋疊在同高度）。
         // 房屋只住在 PORT_ROW 那一列 Y chunk：別列不生成，避免同 X 重複房屋。
         const plan = cy === PORT_ROW ? portHousePlan(cx) : [];
-        const wordOffset = packWords.length > 3 ? hashCoords(cx, PORT_ROW, seed) % packWords.length : 0;
+        const wordOffset = packWords.length > 1 ? hashCoords(cx, PORT_ROW, seed) % packWords.length : 0;
         // 先算好每棟的落點，再統一處理「北側背景屋淨空」與同 chunk 兩棟的高度差。
         const slots = [];
         for (let i = 0; i < plan.length; i++) {
@@ -391,55 +391,18 @@
       } else {
         const layout = HOUSE_LAYOUTS[hashCoords(cx, cy, seed ^ 0x5e1a0d) % HOUSE_LAYOUTS.length];
         const emptySlot = mod(cx + cy * 2 + 1, SPOTS.length);
-        const wordOffset = packWords.length > 3 ? hashCoords(cx, cy, seed) % packWords.length : 0;
+        const wordOffset = packWords.length > 1 ? hashCoords(cx, cy, seed) % packWords.length : 0;
         const words = [];
         for (let i = 0; i < Math.min(3, packWords.length); i++) {
           words.push(packWords[(wordOffset + i) % packWords.length]);
         }
         let wi = 0;
 
-        // rain-port：使用基於建築 footprint 的間距，避免重疊
-        const isRainPort = stage.id === "rain-port";
-        const buildingWidths = {
-          port_warehouse: 201,
-          port_fishmonger: 187,
-          house_shop: 166,
-          house_tavern: 175,
-          house_shrine: 158
-        };
-        const minGap = 24; // 建築間最小間隙
-
-        // 預計算每個 slot 的建築類型與寬度
-        const slotTypes = [];
+        // HOUSE_LAYOUTS place two houses north and one south. The SPOTS X
+        // coordinates are slot IDs, not actual house footprints; checking
+        // X overlap across rows previously dropped the third house.
         SPOTS.forEach((spot, slot) => {
-          if (slot === emptySlot) return;
-          const bType = isRainPort
-            ? (mod(cx + slot, 2) === 0 ? "port_warehouse" : "port_fishmonger")
-            : buildingType(pack.theme, slot);
-          slotTypes.push({ slot, bType, width: buildingWidths[bType] || 166 });
-        });
-
-        // 簡單的防重疊：若相鄰 slot 寬度總和超過可用空間，跳過較窄的那一棟
-        const usedSlots = new Set();
-        slotTypes.forEach((st, idx) => {
-          if (idx > 0) {
-            const prev = slotTypes[idx - 1];
-            const prevRight = SPOTS[prev.slot][0] + prev.width / 2;
-            const currLeft = SPOTS[st.slot][0] - st.width / 2;
-            if (currLeft - prevRight < minGap) {
-              // 空間不足，移除較窄的建築
-              if (st.width < prev.width) {
-                return; // 跳過這個 slot
-              } else {
-                usedSlots.delete(prev.slot); // 移除前一個
-              }
-            }
-          }
-          usedSlots.add(st.slot);
-        });
-
-        SPOTS.forEach((spot, slot) => {
-          if (slot === emptySlot || wi >= words.length || !usedSlots.has(slot)) return;
+          if (slot === emptySlot || wi >= words.length) return;
           const position = layout[wi];
           const word = words[wi++];
           const phaseHash = hashCoords(cx * 11 + slot, cy * 17 + slot, seed);
@@ -455,9 +418,7 @@
             dx: baseX + position[0],
             dy: houseY + 60,
             color: pack.color,
-            bType: isRainPort
-              ? (mod(cx + slot, 2) === 0 ? "port_warehouse" : "port_fishmonger")
-              : buildingType(pack.theme, slot),
+            bType: buildingType(pack.theme, slot),
             district: pack.name,
             packId: pack.id,
             word
@@ -554,23 +515,10 @@
       chunks.sort((a, b) => (a.cy - b.cy) || (a.cx - b.cx));
       let houses = chunks.flatMap(chunk => chunk.houses);
 
-      // rain-port：篩選/調整 houses，讓 dy 和 answerPositions 全在 minY+18..maxY-18
+      // Rain-port teaching houses already have y <= 570 and each answer
+      // pad stays in the 180..780 combat belt. Shifting only the unused dy
+      // field never moved a real answer pad; avoid copying every house/frame.
       if (bounds) {
-        const minDy = bounds.minY + 18;
-        const maxDy = bounds.maxY - 18;
-        houses = houses.map(h => {
-          const ans = answerPositions(h);
-          let dy = h.dy;
-          // 先嘗試調整 dy 到合法範圍
-          if (dy < minDy) dy = minDy;
-          if (dy > maxDy) dy = maxDy;
-          // 再確認 answerPositions 都在範圍內
-          const ansMinY = Math.min(...ans.map(a => a.y));
-          const ansMaxY = Math.max(...ans.map(a => a.y));
-          if (ansMinY < minDy) dy += (minDy - ansMinY);
-          if (ansMaxY > maxDy) dy -= (ansMaxY - maxDy);
-          return { ...h, dy: Math.max(minDy, Math.min(maxDy, dy)) };
-        });
         // rain-port：真正的世界座標 footprint 去重（取代舊的 50px 粗略分組）。
         // 舊分組會把相鄰的合法房子整個濾掉，讓沿途可配送點不足；
         // 現在只丟掉水平距離真的小於 footprint 間距的那一棟。

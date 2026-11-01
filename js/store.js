@@ -148,25 +148,34 @@
   };
   const syncJournal = () => {
     if (!journalSupported) return;
-    const signatures = new Map(), all = [];
+    const signatures = new Map();
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (!key?.startsWith(JOURNAL_PREFIX)) continue;
-        const value = localStorage.getItem(key);
-        signatures.set(key, value);
-        const events = JSON.parse(value);
-        if (Array.isArray(events)) {
-          for (const item of events) {
-            const event = decodeEvent(item, key);
-            if (event) all.push(event);
-          }
-        }
+        signatures.set(key, localStorage.getItem(key));
       }
     } catch { return; }
     const changed = journalNeedsRefresh || signatures.size !== journalSignatures.size
       || [...signatures].some(([key, value]) => journalSignatures.get(key) !== value);
+    // Hot read path (overworld nodes call this often): do not parse or replay
+    // any journal when the strings and this tab's pending events are unchanged.
     if (!changed) return;
+    const all = [];
+    for (const [key, value] of signatures) {
+      try {
+        const events = JSON.parse(value);
+        if (!Array.isArray(events)) continue;
+        for (const item of events) {
+          const event = decodeEvent(item, key);
+          if (event) all.push(event);
+        }
+      } catch {
+        // One damaged segment must not block progress from other tabs.
+        // Preserve its key and raw value for later diagnostics/recovery.
+        continue;
+      }
+    }
     journalSignatures = signatures;
     journalNeedsRefresh = false;
     // A pending debounced answer is still part of this tab's state.
