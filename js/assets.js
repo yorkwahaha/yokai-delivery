@@ -4,7 +4,7 @@ window.ART_READY = false;
 window.MAP_ART_READY = false;
 window.ART_PROGRESS = { settled: 0, total: 1, failed: 0 };
 // Bump when replacing audio assets so deployed browser caches fetch the new clips.
-window.audioAsset = path => `${path}?v=20261018-m11-voice`;
+window.audioAsset = path => `${window.ASSET_PATHS?.resolve(path) || path}?v=20261031-canonical-audio1`;
 
 const GAME_ASSET_NAMES = [
   "player", "player_walk1", "player_walk2",
@@ -213,7 +213,7 @@ const isS2ArtProdEnabled = () => {
 // 共通技能/HUD 的 manifest 不得被 S2 場景旗標擋住，S1 也使用同一來源。
 let runtimeManifestPromise = null;
 window.loadRuntimeArtManifest = () => {
-  if (!runtimeManifestPromise) runtimeManifestPromise = fetch('assets/img/runtime-art-manifest.json?v=20261027-s2-mud-slab2')
+  if (!runtimeManifestPromise) runtimeManifestPromise = fetch('assets/img/runtime-art-manifest.json?v=20261031-stage2-canonical1')
     .then(res => { if (!res.ok) throw Error(`MANIFEST_HTTP_${res.status}`); return res.json(); })
     .then(manifest => { window.__RUNTIME_MANIFEST = manifest; return manifest; })
     .catch(error => {
@@ -230,7 +230,7 @@ window.loadRuntimeArtManifest();
 async function loadS2ArtProdManifest() {
   if (!isS2ArtProdEnabled()) return null;
   // Unified runtime art manifest serves as authoritative single data source
-  const unifiedManifestUrl = 'assets/img/runtime-art-manifest.json?v=20261027-s2-mud-slab2';
+  const unifiedManifestUrl = 'assets/img/runtime-art-manifest.json?v=20261031-stage2-canonical1';
 
   try {
     const manifest = await window.loadRuntimeArtManifest();
@@ -303,21 +303,22 @@ async function loadS2ArtProdAssets() {
         return;
       }
 
-      // Load all tile images (prefer WebP, fallback to PNG)
-      const loadImage = (urlWebp, urlPng) => new Promise((resolve) => {
-        if (!urlWebp && !urlPng) return resolve({ img: null, ok: false });
-        const img = new Image();
-        img.decoding = "async";
-        img.onload = () => resolve({ img, ok: true });
-        img.onerror = () => {
-          if (!urlPng || urlPng === urlWebp) return resolve({ img: null, ok: false });
-          const img2 = new Image();
-          img2.decoding = "async";
-          img2.onload = () => resolve({ img: img2, ok: true });
-          img2.onerror = () => resolve({ img: null, ok: false });
-          img2.src = urlPng;
+      // Canonical selected WebP first; immutable approved legacy WebP is the
+      // first fallback. PNG is last resort. Never route an unapproved variant.
+      const loadImage = (urlWebp, urlPng, legacyWebp) => new Promise((resolve) => {
+        const canonicalUrl = window.ASSET_PATHS?.resolve(urlWebp) || urlWebp;
+        const attempts = [...new Set([canonicalUrl, legacyWebp, urlPng].filter(Boolean))];
+        if (!attempts.length) return resolve({ img: null, ok: false });
+        let index = 0;
+        const next = () => {
+          if (index >= attempts.length) return resolve({ img: null, ok: false });
+          const img = new Image();
+          img.decoding = "async";
+          img.onload = () => resolve({ img, ok: true });
+          img.onerror = next;
+          img.src = attempts[index++];
         };
-        img.src = urlWebp || urlPng;
+        next();
       });
 
       let anyLoaded = false;
@@ -327,7 +328,7 @@ async function loadS2ArtProdAssets() {
         const srcPng = tile.path_png || (tile.path && tile.path.endsWith('.png') ? tile.path : null);
         if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; continue; }
         if (srcWebp || srcPng) {
-          const result = await loadImage(srcWebp, srcPng);
+          const result = await loadImage(srcWebp, srcPng, tile.legacy_source_path || tile.legacy_path_webp);
           tile._img = result.img;
           tile._loaded = result.ok;
           if (result.ok) anyLoaded = true;
@@ -339,7 +340,7 @@ async function loadS2ArtProdAssets() {
         const srcPng = tile.path_png || (tile.path && tile.path.endsWith('.png') ? tile.path : null);
         if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; continue; }
         if (srcWebp || srcPng) {
-          const result = await loadImage(srcWebp, srcPng);
+          const result = await loadImage(srcWebp, srcPng, tile.legacy_source_path || tile.legacy_path_webp);
           tile._img = result.img;
           tile._loaded = result.ok;
           if (result.ok) anyLoaded = true;
@@ -351,7 +352,7 @@ async function loadS2ArtProdAssets() {
         const srcPng = tile.path_png || (tile.path && tile.path.endsWith('.png') ? tile.path : null);
         if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; continue; }
         if (srcWebp || srcPng) {
-          const result = await loadImage(srcWebp, srcPng);
+          const result = await loadImage(srcWebp, srcPng, tile.legacy_source_path || tile.legacy_path_webp);
           tile._img = result.img;
           tile._loaded = result.ok;
           if (result.ok) anyLoaded = true;
@@ -363,7 +364,7 @@ async function loadS2ArtProdAssets() {
         const srcPng = tile.path_png || (tile.path && tile.path.endsWith('.png') ? tile.path : null);
         if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; continue; }
         if (srcWebp || srcPng) {
-          const result = await loadImage(srcWebp, srcPng);
+          const result = await loadImage(srcWebp, srcPng, tile.legacy_source_path || tile.legacy_path_webp);
           tile._img = result.img;
           tile._loaded = result.ok;
           if (result.ok) anyLoaded = true;
@@ -375,7 +376,7 @@ async function loadS2ArtProdAssets() {
         const srcPng = bld.path_png || (bld.path && bld.path.endsWith('.png') ? bld.path : null);
         if (bld._loaded && bld._img?.naturalWidth) { anyLoaded = true; continue; }
         if (srcWebp || srcPng) {
-          const result = await loadImage(srcWebp, srcPng);
+          const result = await loadImage(srcWebp, srcPng, bld.legacy_source_path || bld.legacy_path_webp);
           bld._img = result.img;
           bld._loaded = result.ok;
           if (result.ok) {
@@ -415,7 +416,7 @@ async function loadS2ArtProdAssets() {
         const srcPng = prop.path_png || (prop.path && prop.path.endsWith('.png') ? prop.path : null);
         if (prop._loaded && prop._img?.naturalWidth) { anyLoaded = true; continue; }
         if (srcWebp || srcPng) {
-          const result = await loadImage(srcWebp, srcPng);
+          const result = await loadImage(srcWebp, srcPng, prop.legacy_source_path || prop.legacy_path_webp);
           prop._img = result.img;
           prop._loaded = result.ok;
           if (result.ok) {
@@ -447,7 +448,7 @@ async function loadS2ArtProdAssets() {
         const srcPng = env.path_png || (env.path && env.path.endsWith('.png') ? env.path : null);
         if (env._loaded && env._img?.naturalWidth) { anyLoaded = true; continue; }
         if (srcWebp || srcPng) {
-          const result = await loadImage(srcWebp, srcPng);
+          const result = await loadImage(srcWebp, srcPng, env.legacy_source_path || env.legacy_path_webp);
           env._img = result.img;
           env._loaded = result.ok;
           if (result.ok) {
@@ -634,15 +635,24 @@ async function loadS2GroundKit() {
   const base = webp ? S2_GROUND_KIT_WEBP_BASE : S2_GROUND_KIT_BASE;
   for (const spec of S2_GROUND_KIT_SPECS) {
     const requestedFile = webp ? spec.file.replace(/\.png$/, '.webp') : spec.file;
-    const url = base + requestedFile;
+    const legacyUrl = base + requestedFile;
+    // Only user-selected Stage2 media are routed; unapproved variants remain legacy/dev.
+    const url = window.ASSET_PATHS?.resolve(legacyUrl) || legacyUrl;
     cache.requests.push(url);
-    const item = { ...spec, requestedFile, url, _img: null, _loaded: false, _error: null, naturalWidth: 0, naturalHeight: 0 };
+    const item = { ...spec, requestedFile, url, legacyUrl, _img: null, _loaded: false, _error: null, naturalWidth: 0, naturalHeight: 0 };
     cache.items.push(item);
     const img = new Image();
     img.decoding = 'async';
     const ok = await new Promise((resolve) => {
       img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
+      img.onerror = () => {
+        if (url !== legacyUrl && !img.__stage2LegacyAttempted) {
+          img.__stage2LegacyAttempted = true;
+          img.src = legacyUrl;
+          return;
+        }
+        resolve(false);
+      };
       img.src = url;
     });
     item._img = ok ? img : null;
@@ -1571,7 +1581,7 @@ const STAGE_ART_RESOLVER = Object.freeze({
         stageId: "rain-port",
         status: "APPROVED",
         requiresDevFlags: false,
-        source: isLegacy ? "assets/img/rain-port/" : "assets/img/rain-port/s2-production/",
+        source: isLegacy ? "assets/img/rain-port/" : "assets/img/stages/rain-port/",
         artStatus: isLegacy ? "LEGACY_FALLBACK" : "APPROVED",
         s2ArtProdEnabled: isS2ArtProdEnabled(),
         s2GroundKitEnabled: isS2GroundKitEnabled(),
@@ -2001,11 +2011,12 @@ function loadArt(n, priority = "high") {
     };
     img.src = `assets/img/${n}.${n === "cover" ? "jpg" : "png"}`;
   };
-  img.src = SCENERY_ASSET_KEYS.has(n)
+  const originalArtPath = SCENERY_ASSET_KEYS.has(n)
     ? `assets/img/scenery/${n}.webp?v=20261010-loading3`
     : YOKAI_ASSET_KEYS.has(n)
     ? `assets/img/yokai/${n}.webp?v=20261010-loading2`
     : `assets/img/${n}.webp?v=${PLAYER_ACTION_ART.includes(n)?"20261011-character-v3":["cover","player_win_v1","player_kneel_v1"].includes(n)?"20261010-character-set1":n==="overworld_approved_v2"?"20261012-approved-v2-4k":n==="overworld_ukiyoe_v3"?"20261011-ukiyoe-v3":n.startsWith('map_')?"20261010-loading3":"20261010-loading2"}`;
+  img.src = window.ASSET_PATHS?.resolve(originalArtPath) || originalArtPath;
 }
 
 // 休息立繪只會在打開暫停選單時下載，不佔遊戲首屏載入預算。
@@ -2033,7 +2044,8 @@ function loadHudArt(key) {
     img.onerror = () => { console.warn(`[Assets] ${key} 載入失敗。`); markSettled(key, true); };
     img.src = `assets/img/ui/${key}.png`;
   };
-  img.src = `assets/img/ui/${key}.webp?v=20261010-loading3`;
+  const hudPath = `assets/img/ui/${key}.webp?v=20261010-loading3`;
+  img.src = window.ASSET_PATHS?.resolve(hudPath) || hudPath;
 }
 // One manifest resolver for BOTH combat renderers and UI cards.
 window.sharedSkillRuntimePath = (id, phase = "main", level = 1) => {
@@ -2092,7 +2104,8 @@ function loadSkillImage(key, file, version) {
   const canonical = katana ? window.sharedSkillRuntimePath("katana", "main", Number(katana[1]))
     : fire ? window.sharedSkillRuntimePath("fire", fire[1], Number(fire[2]))
     : file === "needle" ? window.sharedSkillRuntimePath("needle", "main", 1) : null;
-  img.src = (canonical || "assets/img/vfx/raster/" + file + ".webp") + "?v=" + version;
+  const skillPath = (canonical || "assets/img/vfx/raster/" + file + ".webp") + "?v=" + version;
+  img.src = window.ASSET_PATHS?.resolve(skillPath) || skillPath;
   return null;
 }
 window.skillVfxArt = (id, level) => loadSkillImage(window.skillVfxKey(id, level), window.skillVfxFile(id, level), "20261007-skilltiers1");
@@ -2272,18 +2285,18 @@ window.BOSS_HAZARD_ART_IMG = {};
 window.BOSS_HAZARD_ART_STATUS = {};
 const BOSS_HAZARD_ART_DEFS = Object.freeze({
   slam: Object.freeze({
-    source: "assets/img/vfx/raster/dragon_burning_ground_l5.webp",
-    bbox: Object.freeze([10, 53, 631, 583]),
-    width: 640, height: 640,
+    source: "assets/img/vfx/boss-water-r8/tide_v03.webp",
+    bbox: Object.freeze([0, 117, 1254, 1061]),
+    width: 1254, height: 1254,
     status: "ART_CANDIDATE",
-    note: "火裂地；slam 主體候選"
+    note: "雨港水妖地面潮浪；替換舊版玩家狐火地板候選"
   }),
   charge: Object.freeze({
-    source: "assets/img/vfx/raster/dragon_fireball_l5.webp",
-    bbox: Object.freeze([18, 77, 498, 445]),
-    width: 512, height: 512,
+    source: "assets/img/vfx/boss-water-r8/tidalFan_v01.webp",
+    bbox: Object.freeze([12, 164, 1247, 1118]),
+    width: 1254, height: 1254,
     status: "ART_CANDIDATE",
-    note: "火球尾流；charge 方向帶候選"
+    note: "雨港水妖潮汐衝刺；替換舊版玩家火球尾流候選"
   }),
   ring: Object.freeze({
     source: "assets/img/vfx/raster/katana_l5.webp",
@@ -2332,19 +2345,20 @@ const isBossHazardArtEnabled = () => {
   const search = typeof window !== "undefined" && window.location
     ? String(window.location.search || "")
     : "";
-  // Prefer shipped PNG/WebP boss spells in normal play, all stages.
-  // Local bossart=0 remains a diagnostic-only legacy comparison.
-  const disableForLocalDebug = window.DEV_MODE?.isDevMode?.(window.location) === true
-    && /(?:^|[?&])bossart=0(?=[&#]|$)/.test(search);
-  return !disableForLocalDebug;
+  // These raster spells are ART_CANDIDATE. Only explicit local dev preview may load them.
+  // Normal play must not prefetch or render unapproved water spells across stages.
+  return window.DEV_MODE?.isDevMode?.(window.location) === true
+    && /(?:^|[?&])bossart=1(?=[&#]|$)/.test(search);
 };
 window.isBossHazardArtEnabled = isBossHazardArtEnabled;
 window.BOSS_HAZARD_ART_ENABLED = isBossHazardArtEnabled();
 const bossHazardArtRequested = new Set();
+const bossHazardRetryAt = Object.create(null);
 function loadBossHazardArt() {
   if (!isBossHazardArtEnabled() || typeof Image !== "function") return;
+  const now = Date.now();
   for (const [kind, def] of Object.entries(BOSS_HAZARD_ART_DEFS)) {
-    if (bossHazardArtRequested.has(kind)) continue;
+    if (bossHazardArtRequested.has(kind) || (bossHazardRetryAt[kind] || 0) > now) continue;
     bossHazardArtRequested.add(kind);
     window.BOSS_HAZARD_ART_STATUS[kind] = "loading";
     const img = new Image();
@@ -2353,8 +2367,12 @@ function loadBossHazardArt() {
       window.BOSS_HAZARD_ART_IMG[kind] = img;
       window.BOSS_HAZARD_ART_STATUS[kind] = "ready";
     };
-    img.onerror = () => { window.BOSS_HAZARD_ART_STATUS[kind] = "error"; };
-    img.src = `${def.source}?v=20261027-runtimeboss2`;
+    img.onerror = () => {
+      window.BOSS_HAZARD_ART_STATUS[kind] = "error";
+      bossHazardArtRequested.delete(kind);
+      bossHazardRetryAt[kind] = Date.now() + 4000;
+    };
+    img.src = `${def.source}?v=20261029-harbor-water3`;
   }
 }
 window.refreshBossHazardArt = loadBossHazardArt;
@@ -2439,6 +2457,12 @@ function loadPortSprites(roles) {
       }
     };
     img.onerror = () => {
+      // Existing legacy copy remains usable if a canonical-path request fails.
+      if (routed !== url && !img.__stage2LegacyAttempted) {
+        img.__stage2LegacyAttempted = true;
+        img.src = `${url}?v=20261031-stage2-fallback1`;
+        return;
+      }
       window.PORT_ART_STATUS[role] = "error";
       if (role in RAIN_PORT_CANDIDATE_ASSETS) {
         window.PORT_ART_STATUS[role] = "missing";
@@ -2451,12 +2475,14 @@ function loadPortSprites(roles) {
         }
       }
     };
-    img.src = `${url}?v=20261019-candidate1`;
+    const routed = window.ASSET_PATHS?.resolve(url) || url;
+    img.src = `${routed}?v=20261031-stage2-approved-routes1`;
   }
 }
 window.PORT_ENEMIES = {};
 window.PORT_ENEMY_STATUS = {};
-// Canonical：art/stage2-rain-port/characters/ 的 E_shiome_idle、E_shiome_attack、B_ikari_idle、B_ikari_attack。runtime 檔名維持舊名。
+// Four player-approved Stage2 enemy frames. Old paths are preserved as fallback;
+// ASSET_PATHS resolves each identity into its canonical assets/img/enemies/... URL.
 const PORT_ENEMY_ASSETS = Object.freeze({
   shiomeIdle: "assets/img/rain-port/enemies/minion_shiome_idle.webp",
   shiomeAttack: "assets/img/rain-port/enemies/minion_shiome_attack.webp",
@@ -2464,6 +2490,7 @@ const PORT_ENEMY_ASSETS = Object.freeze({
   bossAttack: "assets/img/rain-port/enemies/boss_ikari_umibozu_attack.webp"
 });
 const portEnemyRequested = new Set();
+const portEnemyFailureCount = Object.create(null);
 function loadPortEnemies() {
   if (typeof Image !== "function") return;
   for (const role of Object.keys(PORT_ENEMY_ASSETS)) {
@@ -2477,14 +2504,31 @@ function loadPortEnemies() {
     img.onload = () => {
       window.PORT_ENEMIES[role] = img;
       window.PORT_ENEMY_STATUS[role] = "ready";
+      portEnemyFailureCount[role] = 0;
     };
-    img.onerror = () => { window.PORT_ENEMY_STATUS[role] = "error"; };
-    img.src = `${url}?v=20261014-stage2-enemies1`;
+    img.onerror = () => {
+      if (routed !== url && !img.__stage2LegacyAttempted) {
+        img.__stage2LegacyAttempted = true;
+        img.src = `${url}?v=20261031-stage2-fallback1`;
+        return;
+      }
+      window.PORT_ENEMY_STATUS[role] = "error";
+      portEnemyRequested.delete(role); // 短暫斷線不可永久封死下一次載入
+      const failures = (portEnemyFailureCount[role] || 0) + 1;
+      portEnemyFailureCount[role] = failures;
+      if (failures <= 3 && typeof setTimeout === "function") {
+        setTimeout(() => loadPortEnemies(), 1000 * Math.pow(2, failures - 1));
+      }
+    };
+    const routed = window.ASSET_PATHS?.resolve(url) || url;
+    img.src = `${routed}?v=20261031-stage2-approved-routes1`;
   }
 }
 window.refreshPortArt = (force = false) => {
   if (force) {
     portRequested.clear();
+    portEnemyRequested.clear();
+    for (const role of Object.keys(portEnemyFailureCount)) portEnemyFailureCount[role] = 0;
   }
   loadPortSprites(Object.keys(portCatalog()));
   loadPortEnemies();

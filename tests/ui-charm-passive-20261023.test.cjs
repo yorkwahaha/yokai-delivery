@@ -45,12 +45,13 @@ function loadRealUi(w,h) {
   const window = {
     VIEWPORT: {
       bounds: () => ({left:0,top:0,right:w,bottom:h,width:w,height:h}),
+      hudBounds: () => ({left:0,top:0,right:w,bottom:h,width:w,height:h}),
       get: () => ({scale:1})
     },
     FX: {glow(){}}
   };
   const source = fs.readFileSync(path.join(ROOT,'js/ui.js'),'utf8');
-  vm.runInNewContext(source,{window,location:{search:''},URLSearchParams,console,Date,Math},{filename:'js/ui.js',timeout:5000});
+  vm.runInNewContext(source,{window,document:{fonts:{check:()=>true}},location:{search:''},URLSearchParams,console,Date,Math},{filename:'js/ui.js',timeout:5000});
   assert.equal(typeof window.UI.drawCharmSwap,'function');
   return window.UI;
 }
@@ -77,7 +78,7 @@ for (const [w,h] of [[640,360],[844,390],[1280,720]]) {
     const painted=text.map(c=>c.value).join('|');
     for(const label of ['御守替換','風步守','力紋守 Lv1','遠霞守 Lv3','射程/爆炸半徑 +30%','有效攻速 +0.50','放棄'])
       assert.ok(painted.includes(label),'漏畫文字：'+label);
-    assert.ok(text.filter(c=>c.value.includes('射程/爆炸')).every(c=>c.maxWidth<=110),'效果字寬沒有限制');
+    assert.ok(text.filter(c=>c.value.includes('射程/爆炸')).every(c=>c.maxWidth<=hits[1].w-8),'效果字寬沒有限制');
   });
 }
 
@@ -85,4 +86,21 @@ test('空御守槽與未知御守不會拋 ReferenceError', () => {
   const ui=loadRealUi(844,390);
   const {ctx}=makeCanvas(844,390);
   assert.equal(ui.drawCharmSwap(ctx,{charms:[null,{id:'charm_unknown',name:'未知御守',level:1},null],pending:{id:'charm_guard',name:'紙甲守'}}).length,4);
+});
+
+test('Boss 題目實際繪製只顯示圖案＋問號，不洩漏中文答案', () => {
+  const ui=loadRealUi(900,600);
+  const {ctx,text}=makeCanvas(900,600);
+  const bossQ={
+    word:{jp:'かみ',zh:'紙',icon:'📄',cue:'art'},
+    ans:[{jp:'かみ'},{jp:'かぎ'},{jp:'こめ'}],
+    wrong:[],lock:0,barrierTimer:8
+  };
+  ui.drawBossQuiz(ctx,bossQ,'touch');
+  const values=text.map(t=>t.value);
+  assert.ok(values.includes('？'),'圖案問號必須出現');
+  assert.ok(values.some(t=>t.includes('かみ')),'日語選項必須顯示');
+  assert.ok(!values.some(t=>t.includes('紙')),'王題不能再顯示中文紙字');
+  const layout=ui.bossQuizLayout(3);
+  assert.ok(layout.options.every(o=>o.y>=layout.y+62),'選項不能覆蓋圖案題目');
 });

@@ -1,0 +1,1084 @@
+{
+  "schema": 1,
+  "updated": "2026-10-31",
+  "authority": "docs/ASSET_CONVENTIONS.md",
+  "stage_ids": [
+    "night-town",
+    "rain-port",
+    "sakura-pass",
+    "bamboo-maze",
+    "hyakki-kyoto",
+    "snow-temple",
+    "spirit-ferry",
+    "yomi"
+  ],
+  "templates": {
+    "stage_scene": "assets/img/stages/{stage}/scene/{stage}__{role}.webp",
+    "stage_tiles": "assets/img/stages/{stage}/tiles/{stage}__{role}.webp",
+    "stage_props": "assets/img/stages/{stage}/props/{stage}__{role}.webp",
+    "stage_objects": "assets/img/stages/{stage}/objects/{stage}__{role}.webp",
+    "enemy": "assets/img/enemies/{enemy}/{enemy}__{role}[__{state}][__fNN].webp",
+    "player": "assets/img/characters/{character}/{character}__{role}[__fNN].webp",
+    "skill_cards": "assets/img/skills/{skill}/cards/{skill}__card[__lvNN].webp",
+    "skill_icons": "assets/img/skills/{skill}/icons/{skill}__icon[__lvNN].webp",
+    "skill_vfx": "assets/img/vfx/skills/{skill}/{skill}__{role}[__lvNN][__fNN].webp",
+    "enemy_vfx": "assets/img/vfx/enemies/{effect}/{effect}__{role}[__fNN].webp",
+    "ui": "assets/img/ui/{area}/ui__{role}.webp",
+    "bgm": "assets/audio/bgm/{area}/{id}__{role}.mp3",
+    "skill_sfx": "assets/audio/sfx/skills/{skill}/{skill}__{role}[__lvNN].mp3",
+    "enemy_sfx": "assets/audio/sfx/enemies/{enemy}/{enemy}__{role}.mp3",
+    "system_sfx": "assets/audio/sfx/{area}/{id}__{role}.mp3",
+    "voice": "assets/audio/voice/{speaker}/{speaker}__{role}.mp3",
+    "delivery_image": "assets/img/delivery/{stage}/NN.webp",
+    "delivery_audio": "assets/audio/delivery/{stage}/NN.mp3"
+  },
+  "approvals": {
+    "delivery_img": [
+      "night-town"
+    ],
+    "delivery_audio": [
+      "night-town"
+    ],
+    "stage_2_existing_bundle": "assets/img/rain-port/s2-production/"
+  },
+  "trials": {
+    "delivery_img": [
+      "rain-port"
+    ],
+    "delivery_audio": [
+      "rain-port"
+    ]
+  },
+  "policy": "Stage2 delivery art/audio explicitly authorized for local playtest; not approved final. Source files retained.",
+  "aliases": [
+    {
+      "source": "assets/audio/BGM.mp3",
+      "canonical": "assets/audio/bgm/stages/night-town/night-town__battle.mp3",
+      "category": "bgm",
+      "route": true,
+      "sha256": "c81d5e33055b91659d27f33d8629a2c3dbe52fb3f9768dd1e3e7431af79d38a5"
+    },
+    {
+      "source": "assets/audio/BOSS.mp3",
+      "canonical": "assets/audio/bgm/boss/boss__encounter.mp3",
+      "category": "bgm",
+      "route": true,
+      "sha256": "4484fa39285e129bec497664d3b693c7c9d9cf8b71297f3f3e04d84d481518e5"
+    },
+    {
+      "source": "assets/audio/MAP.mp3",
+      "canonical": "assets/audio/bgm/menu/menu__journey.mp3",
+      "category": "bgm",
+      "route": true,
+      "sha256": "0eea8130856b234978f209078a3bc478e90ce71f2ea07c5ef65db83d23c7700f"
+    },
+    {
+      "source": "assets/audio/sfx/barrier-lv5.mp3",
+      "canonical": "assets/audio/sfx/skills/barrier/barrier__cast__lv05.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "f27e68a3f33a018fca657337f0923306e8f923ef5093e2c040a21cc0c338deff"
+    },
+    {
+      "source": "assets/audio/sfx/boom-lv1-4.mp3",
+      "canonical": "assets/audio/sfx/skills/boom/boom__cast__tier01-04.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "e05a292626b22fec4ffe3544a04b92e15015b1838ddb14ff1d1dabc61c85ecf5"
+    },
+    {
+      "source": "assets/audio/sfx/boom-lv5.mp3",
+      "canonical": "assets/audio/sfx/skills/boom/boom__cast__lv05.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "c6d24b7dda3d71ab62b0655a3e8fd14702fb49a4816c06d387cfbcc67e0c25ce"
+    },
+    {
+      "source": "assets/audio/sfx/boomerang.mp3",
+      "canonical": "assets/audio/sfx/skills/boomerang/boomerang__cast.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "7ddad536cff6562c772c3ede96a33d40f384bc05da046dbd37b37b6fd89c294a"
+    },
+    {
+      "source": "assets/audio/sfx/boss-death.mp3",
+      "canonical": "assets/audio/sfx/enemies/boss/boss__death.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "012d072512129e30251ab2a74bf40cab585444ff7f700df8706d136ff9eeaeba"
+    },
+    {
+      "source": "assets/audio/sfx/break-shield.mp3",
+      "canonical": "assets/audio/sfx/system/system__shield-break.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "7a50f1dfcd3826a15f1184379423ef7dc886a6e8250d031c4edbb58fdfb11865"
+    },
+    {
+      "source": "assets/audio/sfx/dash.mp3",
+      "canonical": "assets/audio/sfx/world/world__dash.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "0bdb1d5024a7e658e19a65084f2f7830d544c8bb2acbe7299b6f27e383e74e3e"
+    },
+    {
+      "source": "assets/audio/sfx/delivery-success.mp3",
+      "canonical": "assets/audio/sfx/ui/ui__delivery-success.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "583542e0d3fbb166bcd0b46ae3e5447a2ff6dbc96ac7e5c7a430d83630c4e4ea"
+    },
+    {
+      "source": "assets/audio/sfx/delivery-wrong.mp3",
+      "canonical": "assets/audio/sfx/ui/ui__delivery-wrong.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "e48d121e2a559f635da354b47935b8b15f205c96d8afd5544666f0379a61d8f2"
+    },
+    {
+      "source": "assets/audio/sfx/fanfare.mp3",
+      "canonical": "assets/audio/sfx/system/system__fanfare.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "d18df78fe96384a1c61fb9569d2108815d6c6ef420c8d39542af7c5a8dca58a3"
+    },
+    {
+      "source": "assets/audio/sfx/fire-lv1-4.mp3",
+      "canonical": "assets/audio/sfx/skills/fire/fire__cast__tier01-04.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "0a0c0187d9774bca5be08772972dd3d674bf7e81ffd1c55350375bdccef4211a"
+    },
+    {
+      "source": "assets/audio/sfx/fire-lv5-ball.mp3",
+      "canonical": "assets/audio/sfx/skills/fire/fire__ball__lv05.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "23ebed22c7cac6caba3c3867eb3ee5f3bd4a3660ad2369a1052df46f7f94f109"
+    },
+    {
+      "source": "assets/audio/sfx/fire-lv5-dragon.mp3",
+      "canonical": "assets/audio/sfx/skills/fire/fire__dragon__lv05.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "256d44c41f92271e426b544a1b3a76764d3ee52d7fcb0ed11930fe5d31d1cfae"
+    },
+    {
+      "source": "assets/audio/sfx/fire-lv5.mp3",
+      "canonical": "assets/audio/sfx/skills/fire/fire__cast__lv05.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "d7ba5247e5844f256488c302ec9e0acc16e4e34c4c1393d3c8bf7824cf295635"
+    },
+    {
+      "source": "assets/audio/sfx/katana-lv5.mp3",
+      "canonical": "assets/audio/sfx/skills/katana/katana__slash__lv05.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "20d8ab75bf3816fe5a75c6cbf1e7b8a34d9cb64a5c614e8fd7444d7104a2ca03"
+    },
+    {
+      "source": "assets/audio/sfx/level-up.mp3",
+      "canonical": "assets/audio/sfx/system/system__level-up.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "01dcbd0cf1626c7bb9b8f564cb93827b12cde55f77e30acf17292bf2bf30e4b5"
+    },
+    {
+      "source": "assets/audio/sfx/lose.mp3",
+      "canonical": "assets/audio/sfx/system/system__lose.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "017ad98e80d43b6813825334bd024ef6d034cc7ffaad2586a7840258ef3fd4a9"
+    },
+    {
+      "source": "assets/audio/sfx/needle.mp3",
+      "canonical": "assets/audio/sfx/skills/needle/needle__cast.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "f3751e565495a3f3b8c50be709f859c2acab3ebcc0e2bbd1df9f14eb73ba3ff7"
+    },
+    {
+      "source": "assets/audio/sfx/ofuda.mp3",
+      "canonical": "assets/audio/sfx/skills/ofuda/ofuda__cast.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "c108a5e07af378e2cc9811aa13bcd1755e51ab5713f300b6b36c523951a1e39a"
+    },
+    {
+      "source": "assets/audio/sfx/sanctuary.mp3",
+      "canonical": "assets/audio/sfx/skills/sanctuary/sanctuary__cast.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "59a0203368e0d20c681a05422f15406e62f543e229dd55c23bf56886de648297"
+    },
+    {
+      "source": "assets/audio/sfx/slash.mp3",
+      "canonical": "assets/audio/sfx/world/world__slash.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "b76390b7dedf7e67222d5fce94c897ab18f983a66f5ca3ec0fbdf74d1f3af2f2"
+    },
+    {
+      "source": "assets/audio/sfx/sword-slash5.mp3",
+      "canonical": "assets/audio/sfx/skills/katana/katana__slash__variation05.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "b7579170dd5d2f5186bd1703c6468111aeb97fc21af7f8adea6ebf5f1155f08e"
+    },
+    {
+      "source": "assets/audio/sfx/thunder-lv1-4.mp3",
+      "canonical": "assets/audio/sfx/skills/thunder/thunder__cast__tier01-04.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "c39bccbfc2ed2d36a4286d1731d8ab86b4858923085acc920c61d180725e5d63"
+    },
+    {
+      "source": "assets/audio/sfx/thunder-lv5.mp3",
+      "canonical": "assets/audio/sfx/skills/thunder/thunder__cast__lv05.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "a80a0406c95bcf72bffb569458765e964d6c0a2c120c7086bb991ce6d04f0d23"
+    },
+    {
+      "source": "assets/audio/sfx/warning-pulse.mp3",
+      "canonical": "assets/audio/sfx/system/system__warning-pulse.mp3",
+      "category": "sfx",
+      "route": true,
+      "sha256": "c68ef0d5ac9972c029feb624327b6da19084f2965223d108359cb183a00e585f"
+    },
+    {
+      "source": "assets/img/rain-port/enemies/boss_ikari_umibozu_attack.webp",
+      "canonical": "assets/img/enemies/boss-ikari-umibozu/boss-ikari-umibozu__sprite__attack.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "6abeef6cbd3c6cb1585b193375b9159d2b1888b5e270007cc0f83b3fde8e162c"
+    },
+    {
+      "source": "assets/img/rain-port/enemies/boss_ikari_umibozu_idle.webp",
+      "canonical": "assets/img/enemies/boss-ikari-umibozu/boss-ikari-umibozu__sprite__idle.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "5a90500d7b5528ec19d08726ca6e67b1f432e1ef9a5f8573e57d453e6c651d29"
+    },
+    {
+      "source": "assets/img/rain-port/enemies/minion_shiome_attack.webp",
+      "canonical": "assets/img/enemies/minion-shiome/minion-shiome__sprite__attack.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "e7a5d9d6980f6851ea78d66ba49ce68efca59ac7cfc862f7f42718c6f6cc6551"
+    },
+    {
+      "source": "assets/img/rain-port/enemies/minion_shiome_idle.webp",
+      "canonical": "assets/img/enemies/minion-shiome/minion-shiome__sprite__idle.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "ff9442bcd0850b79848d20b426d5be2a70f2cbd29ae64d13d76cf74a3b357bbe"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/buildings/building_fish_workshop.webp",
+      "canonical": "assets/img/stages/rain-port/objects/rain-port__building-fish-workshop.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "56f7f15d39016a1922f8eac073e4944fe9c4b2420790797260ed6d6a7fd161fd"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/buildings/building_port_tavern.webp",
+      "canonical": "assets/img/stages/rain-port/objects/rain-port__building-port-tavern.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "e5ddd1a4333d6da24ea9df5635cd12a04c57ee68d3b9f79be47fa4686e5e26e6"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/buildings/building_port_teahouse.webp",
+      "canonical": "assets/img/stages/rain-port/objects/rain-port__building-port-teahouse.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "932e0915ed44514f3ba4a2580a09c6a18de23356ddff8f957e28507f8ef8e045"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/buildings/building_port_warehouse.webp",
+      "canonical": "assets/img/stages/rain-port/objects/rain-port__building-port-warehouse.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "1e83357f6bf26854332a487b28a894a6a4fc16097e10656fe5ea955826256b0a"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/buildings/building_wharf_shop.webp",
+      "canonical": "assets/img/stages/rain-port/objects/rain-port__building-wharf-shop.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "eb226e478044fdcc7f1c4e9581673cd6fe50c5ac1c5b539b17d4c4ff54fd20d0"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/environment/cliff_north_rock.webp",
+      "canonical": "assets/img/stages/rain-port/scene/rain-port__cliff-north-rock.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "22f3455c7b8fcfa4d7a4919de892d59777108f516d04cac92c6ff5acb3546cff"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/environment/surface_sea_canonical.webp",
+      "canonical": "assets/img/stages/rain-port/scene/rain-port__surface-sea-canonical.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "0bd211fd1ffecce020fc2683f452faae358d2dbf5fb3ba67b33caef2134cba98"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/g_wood_01.webp",
+      "canonical": "assets/img/stages/rain-port/tiles/rain-port__g-wood-01.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "05b9ff8a48fd4b747338a69a5fba5900406457d034ef269d6b2857b380535929"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/g_wood_02.webp",
+      "canonical": "assets/img/stages/rain-port/tiles/rain-port__g-wood-02.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "1153d849555f5e73b85f03e37d9acdf33d53e44a5e6ae9ec301846ea7c56978b"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/g_wood_03.webp",
+      "canonical": "assets/img/stages/rain-port/tiles/rain-port__g-wood-03.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "b79e3d29141af77f71cbf9695bdba5bc63291bdb68168146da0cd5e71ed34948"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/ground_mud_slab.webp",
+      "canonical": "assets/img/stages/rain-port/tiles/rain-port__ground-mud-slab.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/props/prop_anchor_gear.webp",
+      "canonical": "assets/img/stages/rain-port/props/rain-port__prop-anchor-gear.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "2b727209c7b2e2ee8790a4c344c55ab4b4fda59f6e2c886f73b3951060750c22"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/props/prop_cargo_crates.webp",
+      "canonical": "assets/img/stages/rain-port/props/rain-port__prop-cargo-crates.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "756a67c6a1cfe2058ccc47e868d45ec363fb3b7138b2c36ce0aa45ae53116974"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/props/prop_mooring_post.webp",
+      "canonical": "assets/img/stages/rain-port/props/rain-port__prop-mooring-post.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "098c34e503d55111c2fbed1b4798ba9376f26eb11408664e5576aa46c7e36aae"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/props/prop_port_boat.webp",
+      "canonical": "assets/img/stages/rain-port/props/rain-port__prop-port-boat.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "9796f43b2eacb6a0ebbc434aa792fc4199a72e6f20ee980ea3f6ddfb32ef996b"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/props/prop_port_lighthouse.webp",
+      "canonical": "assets/img/stages/rain-port/props/rain-port__prop-port-lighthouse.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "43f976b353456a7801425474b7bf76a50a79d9ff02250f0ff633c3fba7a7b151"
+    },
+    {
+      "source": "assets/img/rain-port/s2-production/t_stone_wood_v01.webp",
+      "canonical": "assets/img/stages/rain-port/tiles/rain-port__t-stone-wood.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "e615a98837b3da05824231529ba9198038bdbcc54dd11bcd4275bf1ecaf2c041"
+    },
+    {
+      "source": "assets/img/scenery/ground.webp",
+      "canonical": "assets/img/stages/night-town/tiles/night-town__ground.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea"
+    },
+    {
+      "source": "assets/img/scenery/ground_dirt.webp",
+      "canonical": "assets/img/stages/night-town/tiles/night-town__ground-dirt.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "d8a5a5d885cff6c64f7912a5c8e58498acb2111ba59b9ab99592ed6f0407eb45"
+    },
+    {
+      "source": "assets/img/scenery/house_shop.webp",
+      "canonical": "assets/img/stages/night-town/scene/night-town__house-shop.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "dd584fee0c1cb0cb94718ad477428b62a5a6e6e26f89b7e4b7570f743424840e"
+    },
+    {
+      "source": "assets/img/scenery/house_shrine.webp",
+      "canonical": "assets/img/stages/night-town/scene/night-town__house-shrine.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "3698802dfa7d8e4092b08a65e38b7dc69a0e89628089487ef91a3979574dc30f"
+    },
+    {
+      "source": "assets/img/scenery/house_tavern.webp",
+      "canonical": "assets/img/stages/night-town/scene/night-town__house-tavern.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "81e3465f890cd7b3fb1b6afc4a25e35608ae481252edb6254ecf8d24c2848259"
+    },
+    {
+      "source": "assets/img/scenery/prop_lantern.webp",
+      "canonical": "assets/img/stages/night-town/props/night-town__lantern.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "f68b511b421fd7be0aaa7df57504e9dc502cd0f87566e0e31c8ddee661a2c992"
+    },
+    {
+      "source": "assets/img/scenery/prop_sakura.webp",
+      "canonical": "assets/img/stages/night-town/props/night-town__sakura.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "3e12eec863b60d3322dbcbd5b49a60eb85b4867a6ca7f35126a9273b4de98519"
+    },
+    {
+      "source": "assets/img/scenery/prop_torii.webp",
+      "canonical": "assets/img/stages/night-town/props/night-town__torii.webp",
+      "category": "stage",
+      "route": true,
+      "sha256": "1aa6ac94059c85aaeee685dbac2761868cfd09143e25704fd279e7ce72c5aedd"
+    },
+    {
+      "source": "assets/img/ui/choice-art/barrier.webp",
+      "canonical": "assets/img/skills/barrier/icons/barrier__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "667ed5aa87ce5799bd15914029791ab96c8124f4dac1157ca111e7b880617263"
+    },
+    {
+      "source": "assets/img/ui/choice-art/boom.webp",
+      "canonical": "assets/img/skills/boom/icons/boom__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "b2767982639bbf30b02c1ca2021aa9d70b3ba1dda5154b1bced0e64bbc5f930a"
+    },
+    {
+      "source": "assets/img/ui/choice-art/crit.webp",
+      "canonical": "assets/img/skills/crit/icons/crit__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "69ab9ad80dcc056a19cd84c1b4fbc63a1218ba74fc2da59b31274dae3ea4556a"
+    },
+    {
+      "source": "assets/img/ui/choice-art/dash.webp",
+      "canonical": "assets/img/skills/dash/icons/dash__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "ae8e182cf7928b28c52f9c54bf5e3b5577124e7f9cc48b6f55b1a170b807da6c"
+    },
+    {
+      "source": "assets/img/ui/choice-art/dmg.webp",
+      "canonical": "assets/img/skills/dmg/icons/dmg__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "de48a23ff0cf2d6fa390c5cbd5d7d5dd741c00cdb0bfe11a8e858786b2b54af1"
+    },
+    {
+      "source": "assets/img/ui/choice-art/fire.webp",
+      "canonical": "assets/img/skills/fire/icons/fire__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "eda0a97c710ab4abebf4d5638f960789eb186663ada354fe29d0405b071d0d16"
+    },
+    {
+      "source": "assets/img/ui/choice-art/katana.webp",
+      "canonical": "assets/img/skills/katana/icons/katana__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "66ff423167ee486a953e05bfc86f4fc3d21303c3a212d260954b2b39d35bfc78"
+    },
+    {
+      "source": "assets/img/ui/choice-art/mag.webp",
+      "canonical": "assets/img/skills/mag/icons/mag__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "6a1ed9bbc203e9b08fdf02d6a4af3b7b30daebf8d0c7fa677d4cdd4033be953a"
+    },
+    {
+      "source": "assets/img/ui/choice-art/needle.webp",
+      "canonical": "assets/img/skills/needle/icons/needle__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "4a2799bf99c6b727a3313ad8687dad9f97bb7d9b43089a07011280c57a1937be"
+    },
+    {
+      "source": "assets/img/ui/choice-art/oil_heal.webp",
+      "canonical": "assets/img/skills/oil-heal/icons/oil-heal__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "b26b656589376c49d6adfc3cd5f580d9f115f0d8d3fb9d2fd7643fbc57d38f6a"
+    },
+    {
+      "source": "assets/img/ui/choice-art/oil_max.webp",
+      "canonical": "assets/img/skills/oil-max/icons/oil-max__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "ce8db80149f86947f65bca1e2bfe5a43311933e9a68a0e928882ec084086c882"
+    },
+    {
+      "source": "assets/img/ui/choice-art/rate.webp",
+      "canonical": "assets/img/skills/rate/icons/rate__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "016ce0525343bb8fb998ffaf4a993ee2287f52b623e6802f4cccec6f6fdbe012"
+    },
+    {
+      "source": "assets/img/ui/choice-art/shield.webp",
+      "canonical": "assets/img/skills/shield/icons/shield__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "417457d512f2d4039c0b81743f24478cccd3fc9bc6da56f9a0a2d12f38a448b7"
+    },
+    {
+      "source": "assets/img/ui/choice-art/spd.webp",
+      "canonical": "assets/img/skills/spd/icons/spd__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "37112dda9740def9fe71cec06c8f17bf913883b13965ab8aa97c535f7636cd82"
+    },
+    {
+      "source": "assets/img/ui/choice-art/thunder.webp",
+      "canonical": "assets/img/skills/thunder/icons/thunder__icon.webp",
+      "category": "skill_icon",
+      "route": false,
+      "sha256": "e76805941f2f9ff2d7b5c68c05e39dcf295e483315bdd1103698507007a763f2"
+    },
+    {
+      "source": "assets/img/ui/hud_lantern_oil.webp",
+      "canonical": "assets/img/ui/hud/ui__lantern-oil.webp",
+      "category": "ui",
+      "route": true,
+      "sha256": "4b48391cd3977db47e95a17ac58a145b4a15fb132448ae5883d2ebd97f580cb0"
+    },
+    {
+      "source": "assets/img/ui/hud_omamori_hint_listen.webp",
+      "canonical": "assets/img/ui/hud/ui__omamori-hint-listen.webp",
+      "category": "ui",
+      "route": true,
+      "sha256": "b910d29ef4210e0fd29e1ac0e8212a6774472692d78dd1aecd0720af57b4cb9a"
+    },
+    {
+      "source": "assets/img/ui/hud_radar_frame.webp",
+      "canonical": "assets/img/ui/hud/ui__radar-frame.webp",
+      "category": "ui",
+      "route": true,
+      "sha256": "d8b04fca6187f7bef61e764aa29c39d9d7723710750e2f6cc04c08206a6c94ff"
+    },
+    {
+      "source": "assets/img/ui/hud_skill_fan.webp",
+      "canonical": "assets/img/ui/hud/ui__skill-fan.webp",
+      "category": "ui",
+      "route": true,
+      "sha256": "c38ac7ec94714dd28fd5ad848f6feba395cf87270d8a18134b4a9b2b6699ffbf"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/barrier.webp",
+      "canonical": "assets/img/skills/barrier/cards/barrier__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "1f3c965100222ef7b2ee1d31f896afbbcc208a46ff43a218c8d093507414f8cd"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/boom.webp",
+      "canonical": "assets/img/skills/boom/cards/boom__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "c70739db07f9aff8a67f3a7e3dd90ea4398d6df7c0d48eab75d7614510e7b138"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/crit.webp",
+      "canonical": "assets/img/skills/crit/cards/crit__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "2189759ed95438338b9846f70bc77fcd1b3bebd3ca77ca2b679a65e362abf4e6"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/dash.webp",
+      "canonical": "assets/img/skills/dash/cards/dash__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "ec17f73032e1eb1bc8659325068b9655f865e97faae86af7ee7306077cdf56ab"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/dmg.webp",
+      "canonical": "assets/img/skills/dmg/cards/dmg__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "3c2a8f6888033c4d2a505a040071aba0185d9c5dde260299f5a83ec66ca5a88b"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/fire.webp",
+      "canonical": "assets/img/skills/fire/cards/fire__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "2fff686a1828f613110946a40963c3e457cf308c02c5208d9422913e2cb4fa08"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/katana.webp",
+      "canonical": "assets/img/skills/katana/cards/katana__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "6a52e7b5c87d941e847a4f694ecd7d123284d238cb604cf44ed679a0e38aabea"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/mag.webp",
+      "canonical": "assets/img/skills/mag/cards/mag__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "7ef42978c0ad528df4c31e56e57389ba5276b24eea214900ddccd73a7ece27ae"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/mut_branch.webp",
+      "canonical": "assets/img/skills/mut-branch/cards/mut-branch__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "9a4376a1152eee75059505e32374a5b0afe74c885d65ca8b304a2f23088f137f"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/mut_crosscut.webp",
+      "canonical": "assets/img/skills/mut-crosscut/cards/mut-crosscut__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "79cf32737c65aaad4f2de5fb010a953c88874b891a965a9c9ca69248de335153"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/mut_fan.webp",
+      "canonical": "assets/img/skills/mut-fan/cards/mut-fan__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "bf10dc90fb695f7caf850d4d4d6a11d36c8ea875f30fc4fd6a0440f53699bf43"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/mut_frost.webp",
+      "canonical": "assets/img/skills/mut-frost/cards/mut-frost__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "d45b379cd292747f9469ff7bfabca537aaf630b0aa6edfdc10cd01b90ce9a118"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/mut_orbit.webp",
+      "canonical": "assets/img/skills/mut-orbit/cards/mut-orbit__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "5570e71ded8edab2969fba5e85afc00d727a0640f6b0d7b4a816d7968571462c"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/mut_pierce.webp",
+      "canonical": "assets/img/skills/mut-pierce/cards/mut-pierce__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "2e2b3d71838c97dfcb35eb92372dfafb51df4fda36898c574c0da5fec2c21122"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/mut_pulse.webp",
+      "canonical": "assets/img/skills/mut-pulse/cards/mut-pulse__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "a886d701e91981fa4192c4900e515a4f4d2ef84396cccefffab9bca97c39008f"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/mut_return.webp",
+      "canonical": "assets/img/skills/mut-return/cards/mut-return__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "adb5f314638cea2f2813e3d9965a5908d1882a786fe56a28459dc4b4d78d792f"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/mut_splitblast.webp",
+      "canonical": "assets/img/skills/mut-splitblast/cards/mut-splitblast__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "0b36512f0c46bea330dfcc0d87222b7b598964a120f722665c1ddec1ce024f0b"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/needle.webp",
+      "canonical": "assets/img/skills/needle/cards/needle__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "e6d0591e300bfc7ae0cb3e625430b5f84c8120660f9e63814b8cf55989246095"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/oil_heal.webp",
+      "canonical": "assets/img/skills/oil-heal/cards/oil-heal__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "e2736e5b6fd61855c0ca50f8a32b0727f9e903a4c58a421fbca6cfa84ec9e68e"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/oil_max.webp",
+      "canonical": "assets/img/skills/oil-max/cards/oil-max__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "22c9dbb7c79df41964b5a632d22b1995b8c21cb80ef0d1f7c4ee3911980a1930"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/rate.webp",
+      "canonical": "assets/img/skills/rate/cards/rate__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "e28d7d92b73c2b5138478cd7bda24063b8a2bd90bb1bf7888b46189c12cc4a11"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/shield.webp",
+      "canonical": "assets/img/skills/shield/cards/shield__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "b2097f12a4ba4031eae4034c193e5dda45c049117967a4483ea7b5d6bab63884"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/spd.webp",
+      "canonical": "assets/img/skills/spd/cards/spd__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "4b5bfca5266058619dc9a57600aa8d72dcf58fc5f169e76303b9ef6af3edffca"
+    },
+    {
+      "source": "assets/img/ui/upgrade/illustrations/thunder.webp",
+      "canonical": "assets/img/skills/thunder/cards/thunder__card.webp",
+      "category": "skill_card",
+      "route": false,
+      "sha256": "278061024113652ac94a941aa0d1e4cf26b7e2fbbd08ce221029e1983cd6b99d"
+    },
+    {
+      "source": "assets/img/vfx/boss-night-town/charge.webp",
+      "canonical": "assets/img/vfx/enemies/night-town-boss/night-town-boss__charge.webp",
+      "category": "enemy_vfx",
+      "route": false,
+      "sha256": "c71e5f66be7a06037086ce9d10c405e03ed3ca34f2063f67b030b2f1f11663c5"
+    },
+    {
+      "source": "assets/img/vfx/boss-night-town/charge_aligned.webp",
+      "canonical": "assets/img/vfx/enemies/night-town-boss/night-town-boss__charge-aligned.webp",
+      "category": "enemy_vfx",
+      "route": false,
+      "sha256": "5b8864f305c34d7a26d371b14a19e63eca580421669d8fade98ba5711b869e7e"
+    },
+    {
+      "source": "assets/img/vfx/boss-night-town/charge_aura.webp",
+      "canonical": "assets/img/vfx/enemies/night-town-boss/night-town-boss__charge-aura.webp",
+      "category": "enemy_vfx",
+      "route": false,
+      "sha256": "8b3dc94e6457331863eb5c832f7857ef27031e815717eea2f4aa3a1c58b83df5"
+    },
+    {
+      "source": "assets/img/vfx/boss-night-town/charge_single_b13.webp",
+      "canonical": "assets/img/vfx/enemies/night-town-boss/night-town-boss__charge-single-b13.webp",
+      "category": "enemy_vfx",
+      "route": false,
+      "sha256": "6e7830800563e0fabafae192c3bf8ef534eb291a6dd6aeb69fca79354ea49291"
+    },
+    {
+      "source": "assets/img/vfx/boss-night-town/ring.webp",
+      "canonical": "assets/img/vfx/enemies/night-town-boss/night-town-boss__ring.webp",
+      "category": "enemy_vfx",
+      "route": false,
+      "sha256": "111223f47ec648ab0634b369745182b0533bb2dd6928405f5ad34799b8985ff5"
+    },
+    {
+      "source": "assets/img/vfx/boss-night-town/seal_break_painted.webp",
+      "canonical": "assets/img/vfx/enemies/night-town-boss/night-town-boss__seal-break-painted.webp",
+      "category": "enemy_vfx",
+      "route": false,
+      "sha256": "bd81b262153cab09120d77afcaf192aac3eefafa3ac7b8473f47c43e76393aab"
+    },
+    {
+      "source": "assets/img/vfx/boss-night-town/slam.webp",
+      "canonical": "assets/img/vfx/enemies/night-town-boss/night-town-boss__slam.webp",
+      "category": "enemy_vfx",
+      "route": false,
+      "sha256": "91708ab6ddaa720f50bd19ef6d6085a44b150d81479e0830ca7d3e8eebe9bb66"
+    },
+    {
+      "source": "assets/img/vfx/boss-night-town/slam_earth_impact.webp",
+      "canonical": "assets/img/vfx/enemies/night-town-boss/night-town-boss__slam-earth-impact.webp",
+      "category": "enemy_vfx",
+      "route": false,
+      "sha256": "db29e7fe216435add44d703304498a75cd169652d34a5536f6b46e3f42cf6fa4"
+    },
+    {
+      "source": "assets/img/vfx/boss-night-town/slam_earth_warning.webp",
+      "canonical": "assets/img/vfx/enemies/night-town-boss/night-town-boss__slam-earth-warning.webp",
+      "category": "enemy_vfx",
+      "route": false,
+      "sha256": "53c38a4c22696f621cbe1e429d99a037b3f394b9463ec8ec57af26650ba0ed6b"
+    },
+    {
+      "source": "assets/img/vfx/boss-water-r8/rainVortex_v01.webp",
+      "canonical": "assets/img/vfx/enemies/ikari-umibozu/ikari-umibozu__rain-vortex.webp",
+      "category": "enemy_vfx",
+      "route": false,
+      "sha256": "f3c65902f3f8f1e3e73345262d8e5ba9ce45d9900d9b501b8756a0416f294981"
+    },
+    {
+      "source": "assets/img/vfx/boss-water-r8/tidalFan_v01.webp",
+      "canonical": "assets/img/vfx/enemies/ikari-umibozu/ikari-umibozu__tidal-fan.webp",
+      "category": "enemy_vfx",
+      "route": false,
+      "sha256": "05f063ac4ff595de1f5f1b50cebaa8614f23cd522145161fb5087175820819c0"
+    },
+    {
+      "source": "assets/img/vfx/boss-water-r8/tide_v03.webp",
+      "canonical": "assets/img/vfx/enemies/ikari-umibozu/ikari-umibozu__tide.webp",
+      "category": "enemy_vfx",
+      "route": false,
+      "sha256": "db54ef1e0896d7a60cbec43239ac7ef910dc2d1f11c7dbd4200d5742489a899b"
+    },
+    {
+      "source": "assets/img/vfx/raster/barrier_ground_45.webp",
+      "canonical": "assets/img/vfx/skills/barrier/barrier__ground-45.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "fdde6501d0e147a6b08aacaab223f288df3bf646cbfc3890d573d3a723c54f1b"
+    },
+    {
+      "source": "assets/img/vfx/raster/dragon_burning_ground_l5.webp",
+      "canonical": "assets/img/vfx/skills/fire/fire__dragon-burning-ground--lv05.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "30b6e87d4c99fcf2c0cd5d6b5e5d0bd18a7c3042ac4293229dd9c148eb2614b8"
+    },
+    {
+      "source": "assets/img/vfx/raster/dragon_fireball_l5.webp",
+      "canonical": "assets/img/vfx/skills/fire/fire__dragon-fireball--lv05.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "f24c5e271300bd8b0985eebccd594614d0bc24bd76e531c5e84b54c816272755"
+    },
+    {
+      "source": "assets/img/vfx/raster/fire_attack_l1.webp",
+      "canonical": "assets/img/vfx/skills/fire/fire__attack__lv01.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "9783eae4a973375612ba72195c1041caaf20728e3fe8409f7fd5a394dfd7f14d"
+    },
+    {
+      "source": "assets/img/vfx/raster/fire_attack_l2.webp",
+      "canonical": "assets/img/vfx/skills/fire/fire__attack__lv02.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "0415e95744896c146f360297e00158ae1fc808327e6a7075ac3cae0f004954ec"
+    },
+    {
+      "source": "assets/img/vfx/raster/fire_attack_l3.webp",
+      "canonical": "assets/img/vfx/skills/fire/fire__attack__lv03.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "4ac3a54ca8cb487b3535fd25e62e87fae73d8ab48c81f26548ba4886f6fdf6f0"
+    },
+    {
+      "source": "assets/img/vfx/raster/fire_attack_l4.webp",
+      "canonical": "assets/img/vfx/skills/fire/fire__attack__lv04.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "4c9f17a2cca840faafa7e323434e9f2fd009d67b3a54d80f923aabb411393d4c"
+    },
+    {
+      "source": "assets/img/vfx/raster/fire_attack_l5.webp",
+      "canonical": "assets/img/vfx/skills/fire/fire__attack__lv05.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "1ff6f01ea10515ced7fa2fc18dcc5dd92b8571d5f70fbc85b18d5d1352f35889"
+    },
+    {
+      "source": "assets/img/vfx/raster/fire_dragon_l5.webp",
+      "canonical": "assets/img/vfx/skills/fire/fire__dragon__lv05.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "6eea4b5fad59d305c0d34f95ab9c5f5a1cbc5b1717abeedbd53b57ab35175404"
+    },
+    {
+      "source": "assets/img/vfx/raster/fire_orbit_l1.webp",
+      "canonical": "assets/img/vfx/skills/fire/fire__orbit__lv01.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "d805c9ede255f5f0575ad65539ba60404564d24683c863e097ad7785f3132e57"
+    },
+    {
+      "source": "assets/img/vfx/raster/fire_orbit_l2.webp",
+      "canonical": "assets/img/vfx/skills/fire/fire__orbit__lv02.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "b852233f32429648488b60738edb1557861010d02e47b95016a2402a25fcf582"
+    },
+    {
+      "source": "assets/img/vfx/raster/fire_orbit_l3.webp",
+      "canonical": "assets/img/vfx/skills/fire/fire__orbit__lv03.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "32db0a5b1020bb0ad014ad792e6fdda9cec81b21708e8b70dc7ad9761d238b1e"
+    },
+    {
+      "source": "assets/img/vfx/raster/fire_orbit_l4.webp",
+      "canonical": "assets/img/vfx/skills/fire/fire__orbit__lv04.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "65c8f606172335e278a2f22a705a23edadbd7481bbc15541c657928d95e543b3"
+    },
+    {
+      "source": "assets/img/vfx/raster/fire_orbit_l5.webp",
+      "canonical": "assets/img/vfx/skills/fire/fire__orbit__lv05.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "a31eb875e4ccca1e009191c6eea58c63bfa90011e6e3c9e809a26bb21aa7dde5"
+    },
+    {
+      "source": "assets/img/vfx/raster/katana_l1.webp",
+      "canonical": "assets/img/vfx/skills/katana/katana__slash__lv01.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "2adb6d972b804cda6f5fa67d39cf2e20eda78035b62d24a92bceef481b820f35"
+    },
+    {
+      "source": "assets/img/vfx/raster/katana_l2.webp",
+      "canonical": "assets/img/vfx/skills/katana/katana__slash__lv02.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "a3c52be3ea7c7c2e421cb8634a780ea6939da8e48cf96320b1771e9be2e75ff9"
+    },
+    {
+      "source": "assets/img/vfx/raster/katana_l3.webp",
+      "canonical": "assets/img/vfx/skills/katana/katana__slash__lv03.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "e82548cd4cfc7c4a8df501655db9508cb144724950df8b9c5bdf04bb1d732444"
+    },
+    {
+      "source": "assets/img/vfx/raster/katana_l4.webp",
+      "canonical": "assets/img/vfx/skills/katana/katana__slash__lv04.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "4dafc2ffbc65dc621507ebc65a574f1125aa44e936f56fad366227ea1dcf9e01"
+    },
+    {
+      "source": "assets/img/vfx/raster/katana_l5.webp",
+      "canonical": "assets/img/vfx/skills/katana/katana__slash__lv05.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "7c4373899db1ea53eea9eec1147726abbdbf4069ed57c7124becbdb4a0712a6d"
+    },
+    {
+      "source": "assets/img/vfx/raster/needle.webp",
+      "canonical": "assets/img/vfx/skills/needle/needle__cast.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "a1c7fe09d51df02e892d868089437503b224b0e248e8f25233a8e2603489ca4c"
+    },
+    {
+      "source": "assets/img/vfx/raster/ofuda.webp",
+      "canonical": "assets/img/vfx/skills/ofuda/ofuda__cast.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "d03a42999f3006ba0d37f3179be00eef172f160e452abdb229434e6b259c7bc4"
+    },
+    {
+      "source": "assets/img/vfx/raster/thunder_cloud_45.webp",
+      "canonical": "assets/img/vfx/skills/thunder/thunder__cloud-45.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "2637d2b2b5a863206b3b094bf994cc76f85c8b0110a224fe200d96fb88579b75"
+    },
+    {
+      "source": "assets/img/vfx/raster/thunder_strike.webp",
+      "canonical": "assets/img/vfx/skills/thunder/thunder__strike.webp",
+      "category": "skill_vfx",
+      "route": true,
+      "sha256": "e5559f401a6bf88e8df68e667729437c41371d969a59cdd632fc00dcf5ac42a4"
+    },
+    {
+      "source": "assets/img/yokai/boss.webp",
+      "canonical": "assets/img/enemies/night-town-boss/night-town-boss__sprite__idle.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "84fc3b5ddf955fb6f088fa27adc3f82cb4d1073dd8b4a713121e8c3dfb692531"
+    },
+    {
+      "source": "assets/img/yokai/boss_motion_v1.webp",
+      "canonical": "assets/img/enemies/night-town-boss/night-town-boss__motion-sheet.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "3c1b6df7dfa25e714e33410f98fac5b8ca5c157a6a99f050a9355d40e7a9bbef"
+    },
+    {
+      "source": "assets/img/yokai/ghost.webp",
+      "canonical": "assets/img/enemies/ghost/ghost__sprite__idle.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "49d30a9aa837b6d3335221ea3fb1e8e81f33e0d063eaafec567aa3a7e8d12235"
+    },
+    {
+      "source": "assets/img/yokai/ghost_motion_v1.webp",
+      "canonical": "assets/img/enemies/ghost/ghost__motion-sheet.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "5fde819a21b89a073dc845efeb84a3ff51a7420be2efcf010dd9e51435535c50"
+    },
+    {
+      "source": "assets/img/yokai/mis.webp",
+      "canonical": "assets/img/enemies/mis/mis__sprite__idle.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "0941497239d28e03955d60ad5a6c85a9a58b8e422177601b30e0537e562e9248"
+    },
+    {
+      "source": "assets/img/yokai/mis_motion_v1.webp",
+      "canonical": "assets/img/enemies/mis/mis__motion-sheet.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "1626818c4719020895c78ee9e7f0a9d7f663f4f4f4034b2563b134535d42f8a5"
+    },
+    {
+      "source": "assets/img/yokai/runner.webp",
+      "canonical": "assets/img/enemies/runner/runner__sprite__idle.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "8e47a64c084f1888efb68f8e34bcd6cbdf42016afcdf0df736e58d13db47a90f"
+    },
+    {
+      "source": "assets/img/yokai/runner_motion_v1.webp",
+      "canonical": "assets/img/enemies/runner/runner__motion-sheet.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "ea46f2ede417a6c8de6802ba446d979a3e019e2e04bbec16af8fead1c53b2e39"
+    },
+    {
+      "source": "assets/img/yokai/shooter.webp",
+      "canonical": "assets/img/enemies/shooter/shooter__sprite__idle.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "21015debd37b7e11a42b47c3c53bc5f1a55d17412a5bff5a763be1ad7c920c58"
+    },
+    {
+      "source": "assets/img/yokai/shooter_motion_v1.webp",
+      "canonical": "assets/img/enemies/shooter/shooter__motion-sheet.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "5d69f8be15c9192459b6d2babfe7131c043c7999e304b9350fd1bee01dab5327"
+    },
+    {
+      "source": "assets/img/yokai/tank.webp",
+      "canonical": "assets/img/enemies/tank/tank__sprite__idle.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "f5ffe33776f3131d61bb4f2ac2deb412a8c204ef86f0204be40a9442ad996ddb"
+    },
+    {
+      "source": "assets/img/yokai/tank_motion_v1.webp",
+      "canonical": "assets/img/enemies/tank/tank__motion-sheet.webp",
+      "category": "enemy",
+      "route": true,
+      "sha256": "24aeaba98e685e4619487a2c29c0eb45c9907d9c5c11f95c768550660705ecf6"
+    }
+  ]
+}

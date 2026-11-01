@@ -1,0 +1,16 @@
+{
+  "source": "existing approved handpainted full-size passive illustrations",
+  "method": "recomposed 512 square washi with cleaned real painted illustrations",
+  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "ids": [
+    "shield",
+    "dmg",
+    "rate",
+    "crit",
+    "spd",
+    "dash",
+    "oil_max",
+    "mag",
+    "oil_heal"
+  ]
+}

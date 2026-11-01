@@ -1,0 +1,16 @@
+{
+  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "source": "B9 newly illustrated ComfyUI art, alpha-cropped and fitted without changing aspect ratio",
+  "size": [
+    320,
+    640
+  ],
+  "ids": [
+    "power",
+    "step",
+    "gather",
+    "cadence",
+    "reach",
+    "guard"
+  ]
+}

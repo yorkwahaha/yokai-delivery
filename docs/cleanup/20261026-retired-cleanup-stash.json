@@ -1,0 +1,8 @@
+{
+  "removed_path": ".cleanup-archive/2026-10-10",
+  "count": 355,
+  "bytes": 59576519,
+  "MB": 56.82,
+  "reason": "explicitly retired cleanup stash from 2026-10-10; original cleanup-manifest.json preserved",
+  "preserved_evidence": "artifacts/validation/cleanup-manifest.json"
+}

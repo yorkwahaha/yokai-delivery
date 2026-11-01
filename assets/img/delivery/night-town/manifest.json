@@ -1,0 +1,211 @@
+{
+  "stage": "night-town",
+  "status": "APPROVED_BY_USER",
+  "count": 20,
+  "review_version": "night-town v4 composite",
+  "items": [
+    {
+      "jp": "ほん",
+      "kanji": "本",
+      "zh": "書",
+      "file": "01.webp",
+      "source": "art/delivery-icons/night-town/01_ほん_candidate.webp",
+      "bytes": 8358,
+      "index": 1,
+      "sha256": "514eda5ed06f1fac2fcec162c8fa2df86b1e18c0edde522a2b7dc87348037f6a"
+    },
+    {
+      "jp": "しんぶん",
+      "kanji": "新聞",
+      "zh": "報紙",
+      "file": "02.webp",
+      "source": "art/delivery-icons/night-town/rerender-original-style-v4/selected/02_しんぶん_candidate.webp",
+      "bytes": 8326,
+      "index": 2,
+      "sha256": "18554413d72b46abb2db65d8a8f5d1523a8f94ef9fcf09a21c317aab14482585"
+    },
+    {
+      "jp": "とけい",
+      "kanji": "時計",
+      "zh": "時鐘",
+      "file": "03.webp",
+      "source": "art/delivery-icons/night-town/03_とけい_candidate.webp",
+      "bytes": 11368,
+      "index": 3,
+      "sha256": "cbf2e38d83eb092a90189af5166e7eeb6e8ecbf6f2bc0036f32ad5c2a4f4247e"
+    },
+    {
+      "jp": "かがみ",
+      "kanji": "鏡",
+      "zh": "鏡子",
+      "file": "04.webp",
+      "source": "art/delivery-icons/night-town/04_かがみ_candidate.webp",
+      "bytes": 8666,
+      "index": 4,
+      "sha256": "585291cd3740b8c0ee89e87bf245b99a055573532b784a6e5b151e6fe2fbfdba"
+    },
+    {
+      "jp": "かびん",
+      "kanji": "花瓶",
+      "zh": "花瓶",
+      "file": "05.webp",
+      "source": "art/delivery-icons/night-town/05_かびん_candidate.webp",
+      "bytes": 8912,
+      "index": 5,
+      "sha256": "c9270a64c304dac79f76003affffb8f4641383814e6a85dce5cdcc877c7e415f"
+    },
+    {
+      "jp": "はこ",
+      "kanji": "箱",
+      "zh": "箱子",
+      "file": "06.webp",
+      "source": "art/delivery-icons/night-town/06_はこ_candidate.webp",
+      "bytes": 8812,
+      "index": 6,
+      "sha256": "9dda9e22b90d4b2d298663153b15da353fe06c5112b5bbcd15271eddd1f21e8d"
+    },
+    {
+      "jp": "ふくろ",
+      "kanji": "袋",
+      "zh": "袋子",
+      "file": "07.webp",
+      "source": "art/delivery-icons/night-town/07_ふくろ_candidate.webp",
+      "bytes": 11074,
+      "index": 7,
+      "sha256": "6c5d841417c4c22b9f7ae5bb2d100b6fd33e1fab45b91db9173a9e9264861297"
+    },
+    {
+      "jp": "さら",
+      "kanji": "皿",
+      "zh": "盤子",
+      "file": "08.webp",
+      "source": "art/delivery-icons/night-town/08_さら_candidate.webp",
+      "bytes": 8606,
+      "index": 8,
+      "sha256": "17ce600a54cf54754ad738db34da4a4d47b42228ce1e7f8cb3736c3c11e57fc8"
+    },
+    {
+      "jp": "はし",
+      "kanji": "箸",
+      "zh": "筷子",
+      "file": "09.webp",
+      "source": "art/delivery-icons/night-town/09_はし_candidate.webp",
+      "bytes": 5244,
+      "index": 9,
+      "sha256": "28fdf8a7cb451c178727f678f5a886877429e68363e856d61be84beaaf506796"
+    },
+    {
+      "jp": "ちゃわん",
+      "kanji": "茶碗",
+      "zh": "飯碗",
+      "file": "10.webp",
+      "source": "art/delivery-icons/night-town/10_ちゃわん_candidate.webp",
+      "bytes": 7358,
+      "index": 10,
+      "sha256": "db80f662e4156913da0510ef55ef14152371c773765162324d89f9457e5680f7"
+    },
+    {
+      "jp": "コップ",
+      "kanji": "",
+      "zh": "杯子",
+      "file": "11.webp",
+      "source": "art/delivery-icons/night-town/11_コップ_candidate.webp",
+      "bytes": 5898,
+      "index": 11,
+      "sha256": "f09c91c1e6c7f0af74eafe384c0740db1d2a835e821c8fc8908e848e8f07361f"
+    },
+    {
+      "jp": "えんぴつ",
+      "kanji": "鉛筆",
+      "zh": "鉛筆",
+      "file": "12.webp",
+      "source": "art/delivery-icons/night-town/rerender-original-style-v3/12_えんぴつ_candidate.webp",
+      "bytes": 3974,
+      "index": 12,
+      "sha256": "93d9134edf84f1e7ee68ac4db655f4804b7268a0baaa067bcc77530cb8e805c5"
+    },
+    {
+      "jp": "けしゴム",
+      "kanji": "消しゴム",
+      "zh": "橡皮擦",
+      "file": "13.webp",
+      "source": "art/delivery-icons/night-town/rerender-original-style-v4/selected/13_けしゴム_candidate.webp",
+      "bytes": 3918,
+      "index": 13,
+      "sha256": "4a0d6a60c0e89569e63bd3b3fda802c3e629a040dcc31b35f123ca2014e90565"
+    },
+    {
+      "jp": "はさみ",
+      "kanji": "",
+      "zh": "剪刀",
+      "file": "14.webp",
+      "source": "art/delivery-icons/night-town/14_はさみ_candidate.webp",
+      "bytes": 7246,
+      "index": 14,
+      "sha256": "f76f3a4ba89b0a62e0d6f40708a5d2ebe0d5c3205df6973b8aa743be9d1980d4"
+    },
+    {
+      "jp": "じょうぎ",
+      "kanji": "定規",
+      "zh": "尺",
+      "file": "15.webp",
+      "source": "art/delivery-icons/night-town/rerender-original-style-v4/selected/15_じょうぎ_candidate.webp",
+      "bytes": 5222,
+      "index": 15,
+      "sha256": "e1ea046bfcc57fc76c96b28afda61d9deb3a4290e2c1f1d90deb1c30946fb134"
+    },
+    {
+      "jp": "かみ",
+      "kanji": "紙",
+      "zh": "紙",
+      "file": "16.webp",
+      "source": "art/delivery-icons/night-town/rerender-original-style-v4/selected/16_かみ_candidate.webp",
+      "bytes": 6306,
+      "index": 16,
+      "sha256": "bb12959c333f6b7a446bc763eddcd00dd26f7db6e189365d205b0d8c89b0f74b"
+    },
+    {
+      "jp": "ノート",
+      "kanji": "",
+      "zh": "筆記本",
+      "file": "17.webp",
+      "source": "art/delivery-icons/night-town/17_ノート_candidate.webp",
+      "bytes": 9262,
+      "index": 17,
+      "sha256": "ef33440a2a90a3a89ec8c15a5e468a215327966d0e1cdc58a276f0b599706c54"
+    },
+    {
+      "jp": "タオル",
+      "kanji": "",
+      "zh": "毛巾",
+      "file": "18.webp",
+      "source": "art/delivery-icons/night-town/18_タオル_candidate.webp",
+      "bytes": 7176,
+      "index": 18,
+      "sha256": "8a8c171cd4cc26e29a5c5036ea58956078721b888434a82a734770ce5a486515"
+    },
+    {
+      "jp": "はブラシ",
+      "kanji": "歯ブラシ",
+      "zh": "牙刷",
+      "file": "19.webp",
+      "source": "art/delivery-icons/night-town/rerender-original-style-v4/selected/19_はブラシ_candidate.webp",
+      "bytes": 5190,
+      "index": 19,
+      "sha256": "55422c3c4775466e2d48bbdb1d70b3a4d5eecf823b4dd0e55cb11eb29918250c"
+    },
+    {
+      "jp": "せっけん",
+      "kanji": "石鹸",
+      "zh": "肥皂",
+      "file": "20.webp",
+      "source": "art/delivery-icons/night-town/rerender-original-style-v4/selected/20_せっけん_candidate.webp",
+      "bytes": 6476,
+      "index": 20,
+      "sha256": "777e4bc4b086a9964672e0d5f39fb03eb27a650d870395eed2e86674a56a53ef"
+    }
+  ],
+  "schema": 1,
+  "kind": "image",
+  "format": "webp"
+}

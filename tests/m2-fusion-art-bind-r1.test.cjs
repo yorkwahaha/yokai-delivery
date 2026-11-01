@@ -458,7 +458,8 @@ test('C/D/E/F 真瀏覽器：負向四種零候選請求、正向十招真 drawI
       // ---------------- D. 負向入口四種 ----------------
       const negatives = [
         { id: 'no-dev', url: host + '/index.html?stage=rain-port&fusioncandidate=1&fusionart=banana' },
-        { id: 'wrong-stage', url: host + '/index.html?dev=1&stage=night-town&fusioncandidate=1&fusionart=banana' },
+        // 第一關 dev 模式現可檢視融合候選真圖；其他未開放關卡仍必須鎖住。
+        { id: 'wrong-stage', url: host + '/index.html?dev=1&stage=yomi&fusioncandidate=1&fusionart=banana' },
         { id: 'no-fusioncandidate', url: host + '/index.html?dev=1&stage=rain-port&fusionart=banana' },
         { id: 'not-banana', url: host + '/index.html?dev=1&stage=rain-port&fusioncandidate=1&fusionart=legacy' }
       ];

@@ -63,3 +63,15 @@ test('published worker content revisions match every local media file',()=>{
   }
   assert.ok(revisions['assets/img/ui/hud_skill_fan.webp']);
 });
+test('night-town approved A common-kanji audio and word icons are all in production cache revisions',()=>{
+  const source=fs.readFileSync('service-worker.js','utf8');
+  const revisions=vm.runInNewContext(source.slice(0,source.indexOf('const CACHE_NAME'))+'\nMEDIA_REVISIONS');
+  for(let i=1;i<=20;i++){
+    const index=String(i).padStart(2,'0');
+    for(const asset of ['assets/audio/delivery/night-town/'+index+'.mp3',
+                         'assets/img/delivery/night-town/'+index+'.webp']){
+      const hash=createHash('sha256').update(fs.readFileSync(asset)).digest('hex').slice(0,24);
+      assert.equal(revisions[asset],hash,'approved asset is missing or stale in SW: '+asset);
+    }
+  }
+});

@@ -1,0 +1,215 @@
+{
+  "schema": 1,
+  "stage": "night-town",
+  "status": "APPROVED_BY_USER",
+  "count": 20,
+  "format": "mp3",
+  "adopted_voice": "A",
+  "provider": "Fish Audio",
+  "voice_id": "97eda32449cf443bbc4b8782853ca554",
+  "model_used": "s2.1-pro-free",
+  "source_archive": "art/audio/fish-night-town/archive/legacy/a-kanji/",
+  "items": [
+    {
+      "index": 1,
+      "jp": "ほん",
+      "kanji": "本",
+      "zh": "書",
+      "file": "01.mp3",
+      "tts_text": "本",
+      "bytes": 7522,
+      "sha256": "d67dfdb0c398bf599f4d46ce7c52c702af57677a24c0b9255293b65108ac262e"
+    },
+    {
+      "index": 2,
+      "jp": "しんぶん",
+      "kanji": "新聞",
+      "zh": "報紙",
+      "file": "02.mp3",
+      "tts_text": "新聞",
+      "bytes": 14209,
+      "sha256": "996a98937ab744e74ec25a5ab57665ba4b0587038979d1031c8107ae79e144b9"
+    },
+    {
+      "index": 3,
+      "jp": "とけい",
+      "kanji": "時計",
+      "zh": "時鐘",
+      "file": "03.mp3",
+      "tts_text": "時計",
+      "bytes": 9194,
+      "sha256": "8627aa6d01f9d85bff6f9b8b35a3901a2dc903a3d3eeeedb8433845a488fb170"
+    },
+    {
+      "index": 4,
+      "jp": "かがみ",
+      "kanji": "鏡",
+      "zh": "鏡子",
+      "file": "04.mp3",
+      "tts_text": "鏡",
+      "bytes": 10030,
+      "sha256": "70df97ad706c0adc93945a1b33873cb27b4a5d9b7c31f6649c09b26f70301341"
+    },
+    {
+      "index": 5,
+      "jp": "かびん",
+      "kanji": "花瓶",
+      "zh": "花瓶",
+      "file": "05.mp3",
+      "tts_text": "花瓶",
+      "bytes": 9194,
+      "sha256": "b308a9bdd3925e101a6c608745504256dd6bcc320a2f383fd1daebd630352d9a"
+    },
+    {
+      "index": 6,
+      "jp": "はこ",
+      "kanji": "箱",
+      "zh": "箱子",
+      "file": "06.mp3",
+      "tts_text": "箱",
+      "bytes": 9194,
+      "sha256": "13d333517a5b96cbaed5d74f8c0218ed96f69f85f110cbba6088cd49e3db9213"
+    },
+    {
+      "index": 7,
+      "jp": "ふくろ",
+      "kanji": "袋",
+      "zh": "袋子",
+      "file": "07.mp3",
+      "tts_text": "袋",
+      "bytes": 11283,
+      "sha256": "cb9ea8747bdb41d633e121fda4fc788df46e2b1b6fbb19be5f3f869859401345"
+    },
+    {
+      "index": 8,
+      "jp": "さら",
+      "kanji": "皿",
+      "zh": "盤子",
+      "file": "08.mp3",
+      "tts_text": "皿",
+      "bytes": 10030,
+      "sha256": "57fd5ad283faa1e4d9134a2f60530003645459a2660aba7acb6ac8aaaf0566d5"
+    },
+    {
+      "index": 9,
+      "jp": "はし",
+      "kanji": "箸",
+      "zh": "筷子",
+      "file": "09.mp3",
+      "tts_text": "箸",
+      "bytes": 9194,
+      "sha256": "4e6ad8f4a8fc7101cfcaa81a18737ad00faa95f2ece765bed2a95cd1875ec2f3"
+    },
+    {
+      "index": 10,
+      "jp": "ちゃわん",
+      "kanji": "茶碗",
+      "zh": "飯碗",
+      "file": "10.mp3",
+      "tts_text": "茶碗",
+      "bytes": 10866,
+      "sha256": "8284a1e124f0c2f19039e28b0d973e063ca244b4844333fbe4e130bdd343d737"
+    },
+    {
+      "index": 11,
+      "jp": "コップ",
+      "kanji": "",
+      "zh": "杯子",
+      "file": "11.mp3",
+      "tts_text": "コップ",
+      "bytes": 12955,
+      "sha256": "6344ad599d71638a69bf4633d160958aabab84b386b221f1043934b02c0e13f7"
+    },
+    {
+      "index": 12,
+      "jp": "えんぴつ",
+      "kanji": "鉛筆",
+      "zh": "鉛筆",
+      "file": "12.mp3",
+      "tts_text": "鉛筆",
+      "bytes": 13791,
+      "sha256": "6d6947c00217d075b7e8983e562ac01000adbad0dcdd5ea432c09c557e53a937"
+    },
+    {
+      "index": 13,
+      "jp": "けしゴム",
+      "kanji": "消しゴム",
+      "zh": "橡皮擦",
+      "file": "13.mp3",
+      "tts_text": "消しゴム",
+      "bytes": 12119,
+      "sha256": "eecbf36c42dea9f8fc1b29ab4841b9d3221eb012c8dd41275527d14f16f77120"
+    },
+    {
+      "index": 14,
+      "jp": "はさみ",
+      "kanji": "",
+      "zh": "剪刀",
+      "file": "14.mp3",
+      "tts_text": "はさみ",
+      "bytes": 12955,
+      "sha256": "d34e098aae8751284f60841f5cf198f621d538f5be7f5bafb52bcc0b3302fc53"
+    },
+    {
+      "index": 15,
+      "jp": "じょうぎ",
+      "kanji": "定規",
+      "zh": "尺",
+      "file": "15.mp3",
+      "tts_text": "定規",
+      "bytes": 12119,
+      "sha256": "1b7d2d0dd0651c72e9c94a0519523d0b67eb1594755b93659b37af9487801179"
+    },
+    {
+      "index": 16,
+      "jp": "かみ",
+      "kanji": "紙",
+      "zh": "紙",
+      "file": "16.mp3",
+      "tts_text": "紙",
+      "bytes": 7522,
+      "sha256": "5b6e424dd45e7182b8cb8a098c6e62652dbc1816c25f0ae94c03c7870684876c"
+    },
+    {
+      "index": 17,
+      "jp": "ノート",
+      "kanji": "",
+      "zh": "筆記本",
+      "file": "17.mp3",
+      "tts_text": "ノート",
+      "bytes": 12955,
+      "sha256": "247c2b094a48cfcce7662bb1353ad43b4b842da554387620d37402d50c4e47c8"
+    },
+    {
+      "index": 18,
+      "jp": "タオル",
+      "kanji": "",
+      "zh": "毛巾",
+      "file": "18.mp3",
+      "tts_text": "タオル",
+      "bytes": 11283,
+      "sha256": "0d0747a0d495b65a7f35c8b8c647bbd1a60cbd3eb07f23f8646fd939462aac03"
+    },
+    {
+      "index": 19,
+      "jp": "はブラシ",
+      "kanji": "歯ブラシ",
+      "zh": "牙刷",
+      "file": "19.mp3",
+      "tts_text": "歯ブラシ",
+      "bytes": 12955,
+      "sha256": "4bb916ca932cbe36c36721c9bb46c5b365f29d6d32d123782ce768731d7f0b5e"
+    },
+    {
+      "index": 20,
+      "jp": "せっけん",
+      "kanji": "石鹸",
+      "zh": "肥皂",
+      "file": "20.mp3",
+      "tts_text": "せっけん",
+      "bytes": 14209,
+      "sha256": "e40a5f39d07bed9431a29bdaf824275507b59e588b374c187d5cf4f774ba2d98"
+    }
+  ],
+  "kind": "audio"
+}

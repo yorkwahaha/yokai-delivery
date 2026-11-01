@@ -1,13 +1,13 @@
-// AGY M1-B-R1: 天狐靈針（needle）三變異（mut_fan 散射 + mut_seek 追蹤 + mut_frost 冰封）真行為與邊界測試
+// 天狐靈針四選二／陰陽符獨立散射：已取消靈針千本散射的新版回歸測試
 //
 // 驗收標準：
-// 1. mut_fan 散射：發數增加、散射角擴大、單發傷害分配受限（bounded damage budget，非免費倍增總傷）。
+// 1. mut_fan 已取消：不可取得；歷史紀錄亦不加針、不加散射角或傷害。
 // 2. mut_seek 追蹤：具備轉向角速率平滑追蹤（turnRate * dt），不瞬移、射程限制、目標死亡/脫出後沿當前方向直行。
 // 3. mut_frost 冰封與 Boss 抗性：命中累積寒冷、普通怪達門檻短暫冰封；Boss 抗凍（更高門檻、極短冰封時效 0.15s 與 2.0s 免疫抗性窗口，不被永久失能）。
-// 4. 三變異疊加（fan + seek + frost）：同時生效、投射物與控制事件不重複複製。
+// 4. 追蹤與冰凍可組合，兩變異獨立生效，不重複投射。
 // 5. 投射物快照隔離：空中靈針之傷害、追蹤與變異快照不可被後續加點/加攻回溯改寫。
 // 6. 狀態機與生命週期：pause / levelup 靈針凍結不傷敵；lost / won 武器停更；start() 重開徹底重置變異與靈針。
-// 7. 六招無變異基線與 Lv5 覺醒保護：未加變異時全數值與行為嚴格符合 baseline。
+// 7. 六招基線與 Lv5 八方向依序發射、不自帶追蹤或冰凍的新版行為。
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -198,54 +198,20 @@ function loadGameSandbox(options = {}) {
 }
 
 // ── 1. mut_fan 散射：發數增加、散射角擴大與受控傷害預算 ────────
-test('M1-B-1 mut_fan: count increases, spread widens, and per-shot damage is bounded', () => {
-  const env = loadGameSandbox();
-  const probe = env.__agyProbe;
+test('M1-B-1 retired needle fan: no extra projectiles, damage or spread', () => {
+  const probe = loadGameSandbox().__agyProbe;
   probe.start('night-town');
-
-  const bsBase = probe.getBuildState();
-  const bsFan = { ...bsBase, mutations: ['mut_fan'] };
-
-  // 1. Lv1 規格比較
-  const specBaseLv1 = probe.resolveAttackSpec('needle', 1, bsBase);
-  const specFanLv1 = probe.resolveAttackSpec('needle', 1, bsFan);
-
-  assert.equal(specBaseLv1.count, 3, '無變異 Lv1 發數為 3');
-  assert.equal(specFanLv1.count, 6, 'mut_fan Lv1 發數增加至 6');
-  assert.equal(specFanLv1.fan, true, '必須標記 fan: true');
-  assert.ok(specFanLv1.spread > specBaseLv1.spread, 'mut_fan 散射角必須大於基礎散射角');
-  assert.equal(specFanLv1.spread, 0.45 + 0.35, '散射角應增加 0.35 rad');
-
-  // 單發傷害預算縮減檢驗
-  assert.equal(specFanLv1.perShotScale, 0.72, '單發傷害縮減比率應為 0.72');
-  assert.ok(specFanLv1.baseDamage < specBaseLv1.baseDamage, 'mut_fan 單發基礎傷害必須低於無變異單發');
-  assert.equal(specFanLv1.baseDamage, 1.512, '1.4 + 1 * 0.7 = 2.1; 2.1 * 0.72 = 1.512');
-  assert.ok(Math.abs(specFanLv1.damage - 1.512 * 1.2) < 0.001, '單發總傷應為 1.512 * b.dmg (1.2)');
-
-  // 總傷害預算受限檢驗：總傷害不可免費翻倍
-  const unbudgetedTotal = specFanLv1.count * specBaseLv1.damage; // 6 * 2.52 = 15.12
-  const actualTotal = specFanLv1.count * specFanLv1.damage;       // 6 * 1.8144 = 10.8864
-  assert.ok(actualTotal < unbudgetedTotal, '實際總傷預算必須受控，低於未折減總額');
-  assert.ok(actualTotal <= specBaseLv1.count * specBaseLv1.damage * 1.5, '總傷預算不超過基礎 1.5 倍');
-
-  // 2. Lv5 覺醒 + mut_fan 規格比較
-  const specBaseLv5 = probe.resolveAttackSpec('needle', 5, bsBase);
-  const specFanLv5 = probe.resolveAttackSpec('needle', 5, bsFan);
-  assert.equal(specBaseLv5.count, 8, '無變異 Lv5 預設 8 發');
-  assert.equal(specFanLv5.count, 11, 'mut_fan Lv5 增為 11 發');
-  assert.equal(specFanLv5.baseDamage, 3.528, '4.9 * 0.72 = 3.528');
-
-  // 3. 真武器投射消費驗證：weapons() 生成真實 needles
-  probe.getWL().needle = 1;
-  probe.addMutation('mut_fan');
-  probe.setWT('needle', 0);
-  probe.weapons(0.01);
-
-  const needles = probe.getNeedles();
-  assert.equal(needles.length, 6, '真 weapons() 必須發射 6 發靈針');
-  for (const nd of needles) {
-    assert.ok(Math.abs(nd.dmg - specFanLv1.damage) < 0.001, '每發靈針真實快照傷害必須受限');
-    assert.equal(nd.baseDmg, 1.512);
+  probe.getWL().needle = 5;
+  assert.equal(probe.addMutation('mut_fan'), false);
+  const baseline = probe.getBuildState();
+  const legacy = { ...baseline, mutations: ['mut_fan'] };
+  for (let level = 1; level <= 5; level++) {
+    const normal = probe.resolveAttackSpec('needle', level, baseline);
+    const retired = probe.resolveAttackSpec('needle', level, legacy);
+    assert.equal(retired.count, normal.count);
+    assert.equal(retired.spread, normal.spread);
+    assert.equal(retired.damage, normal.damage);
+    assert.equal(retired.fan, undefined);
   }
 });
 
@@ -374,55 +340,35 @@ test('M1-B-3 mut_frost: frost accumulation, mob freeze, and boss resistance (mic
 });
 
 // ── 4. 三變異疊加（mut_fan + mut_seek + mut_frost）同時生效與去重 ──
-test('M1-B-4 mut_fan + mut_seek + mut_frost: full synergy without duplicated projectiles or events', () => {
-  const env = loadGameSandbox();
-  const probe = env.__agyProbe;
+test('M1-B-4 mut_seek + mut_frost: two distinct abilities combine without duplicate shots', () => {
+  const probe = loadGameSandbox().__agyProbe;
   probe.start('night-town');
   probe.getWL().needle = 1;
-
-  probe.addMutation('mut_fan');
-  probe.addMutation('mut_seek');
-  probe.addMutation('mut_frost');
-
-  const bs = probe.getBuildState();
-  assert.deepEqual(Array.from(bs.mutations), ['mut_fan', 'mut_seek', 'mut_frost'], '三變異均登錄於 BuildState');
-
-  // 1. Lv1 三變異規格
-  const spec = probe.resolveAttackSpec('needle', 1, bs);
-  assert.equal(spec.count, 6, 'fan 增加至 6 發');
-  assert.equal(spec.tracking, true, 'seek 啟用追蹤');
-  assert.equal(spec.frost, true, 'frost 啟用冰封');
-  assert.equal(spec.baseDamage, 1.512, 'fan 限制每發傷害預算');
-  assert.equal(spec.source, 'mutation');
-
-  // 2. 實際發射與更新
-  probe.getWL().needle = 1;
-  const p = probe.getP();
-  p.x = 200; p.y = 200;
-
+  assert.equal(probe.addMutation('mut_seek'), true);
+  assert.equal(probe.addMutation('mut_frost'), true);
+  assert.equal(probe.addMutation('mut_fan'), false);
+  assert.deepEqual(Array.from(probe.getBuildState().mutations), ['mut_seek','mut_frost']);
+  const spec = probe.resolveAttackSpec('needle', 1, probe.getBuildState());
+  assert.equal(spec.count, 3);
+  assert.equal(spec.tracking, true);
+  assert.equal(spec.frost, true);
+  assert.equal(spec.baseDamage, 2.1);
+  const player = probe.getP();
+  player.x = 200; player.y = 200;
   const enemy = { x: 300, y: 220, hp: 500, maxHp: 500, type: 'mob' };
   probe.getEnemies().push(enemy);
-
   probe.setWT('needle', 0);
   probe.weapons(0.01);
-
   const needles = probe.getNeedles();
-  assert.equal(needles.length, 6, '真投射必須生成 6 發靈針');
-
+  assert.equal(needles.length, 3);
   for (const nd of needles) {
-    assert.equal(nd.tracking, true, '每發靈針均具備追蹤');
-    assert.equal(nd.frost, true, '每發靈針均具備冰封');
-    assert.ok(Math.abs(nd.dmg - spec.damage) < 0.001, '每發靈針均依受限傷害預算快照');
+    assert.equal(nd.tracking, true);
+    assert.equal(nd.frost, true);
+    assert.ok(Math.abs(nd.dmg - spec.damage) < 0.001);
   }
-
-  // 推進至擊中敵人
-  for (let i = 0; i < 20; i++) {
-    probe.weapons(0.02);
-    if (enemy.hp < 500) break;
-  }
-
-  assert.ok(enemy.hp < 500, '靈針追蹤並成功擊中敵人');
-  assert.ok(enemy.freezeT > 0 || enemy.freezeReady > 0, '敵人受到冰封或進入抗性狀態');
+  for (let i = 0; i < 20 && enemy.hp === 500; i++) probe.weapons(0.02);
+  assert.ok(enemy.hp < 500);
+  assert.ok(enemy.freezeT > 0 || enemy.freezeReady > 0);
 });
 
 // ── 5. 投射物快照隔離：空中靈針不受後續加點與屬性變更影響 ─────
@@ -432,12 +378,11 @@ test('M1-B-5 Projectile snapshot isolation: in-flight needles never mutated by s
   probe.start('night-town');
 
   probe.getWL().needle = 1;
-  probe.addMutation('mut_fan'); // 僅有 fan
   probe.setWT('needle', 0);
   probe.weapons(0.01);
 
   const wave1 = probe.getNeedles();
-  assert.equal(wave1.length, 6);
+  assert.equal(wave1.length, 3);
   const inFlightNeedle = wave1[0];
 
   const snapDmg = inFlightNeedle.dmg;
@@ -456,7 +401,7 @@ test('M1-B-5 Projectile snapshot isolation: in-flight needles never mutated by s
   assert.equal(inFlightNeedle.tracking, snapTracking, '空中靈針追蹤狀態不可回溯改寫');
   assert.equal(inFlightNeedle.frost, snapFrost, '空中靈針冰封狀態不可回溯改寫');
 
-  // 再發新針驗證：新發射的靈針採納最新三變異與新攻擊力
+  // 再發新針驗證：新發射的靈針採納最新兩變異與新攻擊力
   probe.setWT('needle', 0);
   probe.weapons(0.01);
 
@@ -474,13 +419,12 @@ test('M1-B-6 Lifecycle & state machine: freeze during pause/levelup, stop during
   probe.start('night-town');
 
   probe.getWL().needle = 1;
-  probe.addMutation('mut_fan');
   probe.addMutation('mut_seek');
   probe.setWT('needle', 0);
   probe.weapons(0.01);
 
   const needles = probe.getNeedles();
-  assert.equal(needles.length, 6);
+  assert.equal(needles.length, 3);
   const nd = needles[0];
   const origX = nd.x;
 
@@ -506,7 +450,7 @@ test('M1-B-6 Lifecycle & state machine: freeze during pause/levelup, stop during
   probe.setWT('needle', 0);
   probe.runFrame(0.05);
   probe.update(0.05);
-  assert.equal(probe.getNeedles().length, 6, 'lost 期間不產生新靈針');
+  assert.equal(probe.getNeedles().length, 3, 'lost 期間不產生新靈針');
 
   // 4. start() 重開新局：變異徹底清空、靈針陣列徹底清空、技能等級回歸
   probe.start('night-town');
@@ -516,57 +460,44 @@ test('M1-B-6 Lifecycle & state machine: freeze during pause/levelup, stop during
 });
 
 // ── 7. 六招無變異基線與 Lv5 覺醒保護 ──────────────────────────
-test('M1-B-7 Baseline skill preservation: unmutated needle and five other skills completely intact', () => {
-  const env = loadGameSandbox();
-  const probe = env.__agyProbe;
+test('M1-B-7 Baseline skill preservation: needle Lv5 is eight-direction staggered without seek/frost', () => {
+  const probe = loadGameSandbox().__agyProbe;
   probe.start('night-town');
-
   const bs = probe.getBuildState();
-  assert.deepEqual(Array.from(bs.mutations), [], '初始無變異');
-
-  // 1. 六招無變異 source: "base"
-  const SKILLS = ['katana', 'barrier', 'needle', 'boom', 'thunder', 'fire'];
-  for (const sk of SKILLS) {
-    for (let lvl = 1; lvl <= 5; lvl++) {
-      const s = probe.resolveAttackSpec(sk, lvl, bs);
-      assert.equal(s.source, 'base', `${sk} Lv${lvl} source 必須為 base`);
+  assert.deepEqual(Array.from(bs.mutations), []);
+  for (const skill of ['katana','barrier','needle','boom','thunder','fire']) {
+    for (let level = 1; level <= 5; level++) {
+      assert.equal(probe.resolveAttackSpec(skill, level, bs).source, 'base');
     }
   }
-
-  // 2. Needle Lv1–5 無變異完整數值驗證
-  const expectedNeedle = [
-    { lvl: 1, count: 3, spread: 0.45, dmg: 2.1, tracking: false, frost: false },
-    { lvl: 2, count: 5, spread: 0.45, dmg: 2.8, tracking: false, frost: false },
-    { lvl: 3, count: 7, spread: 0.45, dmg: 3.5, tracking: false, frost: false },
-    { lvl: 4, count: 8, spread: 0.65, dmg: 4.2, tracking: false, frost: false },
-    { lvl: 5, count: 8, spread: 1.35, dmg: 4.9, tracking: true, frost: true },
-  ];
-
-  for (const exp of expectedNeedle) {
-    const s = probe.resolveAttackSpec('needle', exp.lvl, bs);
-    assert.equal(s.count, exp.count, `Lv${exp.lvl} count 應為 ${exp.count}`);
-    assert.equal(s.spread, exp.spread, `Lv${exp.lvl} spread 應為 ${exp.spread}`);
-    assert.equal(s.tracking, exp.tracking, `Lv${exp.lvl} tracking 應為 ${exp.tracking}`);
-    assert.equal(s.frost, exp.frost, `Lv${exp.lvl} frost 應為 ${exp.frost}`);
-    assert.ok(Math.abs(s.baseDamage - exp.dmg) < 0.001, `Lv${exp.lvl} baseDamage 應為 ${exp.dmg}`);
+  const counts = [3, 5, 7, 8, 8];
+  const damage = [2.1, 2.8, 3.5, 4.2, 3.9];
+  for (let i = 0; i < 5; i++) {
+    const spec = probe.resolveAttackSpec('needle', i + 1, bs);
+    assert.equal(spec.count, counts[i]);
+    assert.equal(spec.baseDamage, damage[i]);
+    assert.equal(spec.tracking, false);
+    assert.equal(spec.frost, false);
   }
-
-  // 3. Lv5 覺醒靈暴生成 8 發追蹤冰針 (EVOLUTIONS.iceVolley)
   probe.getWL().needle = 5;
+  probe.getP().faceAng = 0;
   probe.setWT('needle', 0);
   probe.weapons(0.01);
-  const needlesLv5 = probe.getNeedles();
-  assert.equal(needlesLv5.length, 8, '無變異 Lv5 必定生成 8 發冰針');
-  assert.equal(needlesLv5[0].ice, true);
-  assert.equal(needlesLv5[0].curve, true);
-  assert.ok(needlesLv5[0].volley);
+  assert.equal(probe.getNeedles().length, 1, '同幀只出第一針');
+  for (let i = 0; i < 8; i++) probe.weapons(0.10);
+  const needles = probe.getNeedles();
+  assert.equal(needles.length, 8, '依序出滿八針');
+  assert.equal(needles[0].tracking, false);
+  assert.equal(needles[0].frost, false);
+  assert.equal(needles[0].ice, false);
 });
 
 // ── 8. M1-B-8 Needle 變異選項進池規格與 UI 欄位驗證 ────────────
 test('M1-B-8 Mutation cards appear in getEligibleChoices() with stable schema and UI fields when needle is owned', () => {
-  const env = loadGameSandbox();
+  const env = loadGameSandbox({ random: () => 0 });
   const probe = env.__agyProbe;
   probe.start('night-town');
+  probe.setLevel(10);
 
   // 1. needle 未持有時，絕不出靈針變異卡
   assert.equal(probe.getWL().needle, 0);
@@ -575,7 +506,7 @@ test('M1-B-8 Mutation cards appear in getEligibleChoices() with stable schema an
   assert.ok(choicesInitial.filter(c => c.type === 'mutation').every(c => c.skillId !== 'needle'), '未持有靈針時絕不可出現靈針變異卡');
 
   // 2. 持有靈針後，變異卡正常出現在三選一候選池中（預置 mut_crosscut 隔離妖刀變異）
-  probe.setBuildMutations(['mut_crosscut']);
+  probe.setBuildMutations(['mut_crosscut', 'mut_iaicharge']);
   probe.getWL().needle = 1;
   probe.setLevelupCooldown(0);
   const choicesWithNeedle = probe.getEligibleChoices();
@@ -584,7 +515,7 @@ test('M1-B-8 Mutation cards appear in getEligibleChoices() with stable schema an
 
   for (const c of mutCards) {
     assert.equal(c.type, 'mutation', 'type 必須為 mutation');
-    assert.ok(['mut_fan', 'mut_seek', 'mut_frost', 'mut_pierce', 'mut_return'].includes(c.id), 'id 必須為合法的靈針變異 ID');
+    assert.ok(['mut_seek', 'mut_frost', 'mut_pierce', 'mut_return'].includes(c.id), 'id 必須為合法的靈針變異 ID');
     assert.equal(c.choiceId, `mutation:needle:${c.id}`, 'choiceId 必須為穩定的 mutation:needle:<id> 格式');
     assert.equal(c.skillId, 'needle', 'skillId 必須為 needle');
     assert.deepEqual(Array.from(c.skillIds), ['needle'], 'skillIds 必須包含 needle');
@@ -604,9 +535,10 @@ test('M1-B-8 Mutation cards appear in getEligibleChoices() with stable schema an
 
 // ── 9. M1-B-9 真 applyChoice 選取變異卡並寫入 BuildState ──────
 test('M1-B-9 Real applyChoice consumes mutation choice, deducts XP, increments level, and writes to BuildState', () => {
-  const env = loadGameSandbox();
+  const env = loadGameSandbox({ random: () => 0 });
   const probe = env.__agyProbe;
   probe.start('night-town');
+  probe.setLevel(10);
 
   probe.getWL().needle = 1;
   probe.setXp(100);
@@ -644,9 +576,7 @@ test('M1-B-9 Real applyChoice consumes mutation choice, deducts XP, increments l
   probe.setWT('needle', 0);
   probe.weapons(0.01);
   const needles = probe.getNeedles();
-  if (mutId === 'mut_fan') {
-    assert.equal(needles.length, 6, '選取 mut_fan 後靈針發數立即增至 6');
-  } else if (mutId === 'mut_seek') {
+  if (mutId === 'mut_seek') {
     assert.equal(needles[0].tracking, true, '選取 mut_seek 後靈針立即具備追蹤');
   } else if (mutId === 'mut_frost') {
     assert.equal(needles[0].frost, true, '選取 mut_frost 後靈針立即具備冰封');
@@ -655,9 +585,10 @@ test('M1-B-9 Real applyChoice consumes mutation choice, deducts XP, increments l
 
 // ── 10. M1-B-10 負向防線：過期 revision、連按重複加入與非法 ID 拒絕 ──
 test('M1-B-10 Negative protections: stale revision, rapid double-click, and invalid choiceId rejected without deducting XP', () => {
-  const env = loadGameSandbox();
+  const env = loadGameSandbox({ random: () => 0 });
   const probe = env.__agyProbe;
   probe.start('night-town');
+  probe.setLevel(10);
 
   probe.getWL().needle = 1;
   probe.setXp(100);
@@ -699,92 +630,220 @@ test('M1-B-10 Negative protections: stale revision, rapid double-click, and inva
 });
 
 // ── 11. M1-B-11 變異上限（最多 3 種）與未持有靈針邊界保護 ────
-test('M1-B-11 Capacity limit (maximum 3 mutations) and unowned needle boundary', () => {
-  const env = loadGameSandbox();
-  const probe = env.__agyProbe;
+test('M1-B-11 Two mutation slots per owned skill and unowned needle boundary', () => {
+  const probe = loadGameSandbox({ random: () => 0 }).__agyProbe;
   probe.start('night-town');
-
   probe.getWL().needle = 1;
-  // 手動模擬已集滿 needle 3 種變異與 katana 變異
-  probe.setBuildMutations(['mut_fan', 'mut_seek', 'mut_frost', 'mut_crosscut']);
-  assert.equal(Array.from(probe.getBuildState().mutations).length, 4);
-
-  // 當變異全滿時，卡池中絕不再出現變異卡
+  probe.setLevel(10);
+  probe.setBuildMutations(['mut_seek','mut_frost','mut_crosscut','mut_iaicharge']);
+  assert.equal(probe.getBuildState().mutations.length, 4);
   const choicesFull = probe.getEligibleChoices();
-  assert.ok(choicesFull.length > 0);
-  assert.ok(choicesFull.every(c => c.type !== 'mutation'), '變異滿額後絕不再提供變異選項');
-
-  // 靈針若未持有 (WL.needle === 0)
+  assert.ok(choicesFull.every(c => c.type !== 'mutation'), '每技能兩格已滿不能再取得');
   probe.getWL().needle = 0;
   probe.setBuildMutations([]);
   const choicesUnowned = probe.getEligibleChoices();
-  assert.ok(choicesUnowned.filter(c => c.type === 'mutation').every(c => c.skillId !== 'needle'), '未持有靈針時絕不可提供靈針變異');
+  assert.ok(choicesUnowned.filter(c => c.type === 'mutation').every(c => c.skillId !== 'needle'));
 });
 
 // ── 12. M1-B-12 覺醒卡優先、重抽與極限全滿空池不軟鎖 ─────────
-test('M1-B-12 Awakening priority, reroll invalidation, and true empty pool without soft-lock', () => {
-  const env = loadGameSandbox();
-  const probe = env.__agyProbe;
+test('M1-B-12 Awakening priority, reroll invalidation and retired Duo cards excluded', () => {
+  const probe = loadGameSandbox({ random: () => 0 }).__agyProbe;
   probe.start('night-town');
-
-  // 1. 覺醒卡優先保障：當有武器 Lv4 且持有覺醒印時，Lv5 覺醒卡必定出現在三選一中
   probe.getWL().katana = 4;
   probe.getWL().needle = 1;
+  probe.setLevel(10);
   probe.setSeals(1);
   probe.setLevelupCooldown(0);
-  const choicesAwaken = probe.getEligibleChoices();
-  const hasAwaken = choicesAwaken.some(c => c.type === 'weapon' && c.lv === 5);
-  assert.ok(hasAwaken, '持有覺醒印時，Lv5 覺醒卡必定優先保障出現');
-
-  // 2. 重抽防線：重抽後舊 revision 變異卡即刻失效
+  assert.ok(probe.getEligibleChoices().some(c => c.type === 'weapon' && c.lv === 5));
   probe.setState('levelup');
   probe.setLevelupCooldown(0);
   probe.offerUp();
-  const revBeforeReroll = probe.getBuildRevision();
-  const oldMutCard = probe.getChoices().find(c => c.type === 'mutation');
-  assert.ok(oldMutCard);
-
+  const rev = probe.getBuildRevision();
+  const old = probe.getChoices()[0];
+  assert.ok(old);
   probe.setLevelupCooldown(0);
   probe.reroll();
   probe.setLevelupCooldown(0);
-  assert.ok(probe.getBuildRevision() > revBeforeReroll, 'reroll 必須推進 buildRevision');
-
-  const rejectStaleAfterReroll = probe.applyChoice(oldMutCard.choiceId, revBeforeReroll);
-  assert.equal(rejectStaleAfterReroll.ok, false);
-  assert.equal(rejectStaleAfterReroll.reason, 'stale_revision');
-
-  // 3. 極限全滿空池安全結算：4 武器全滿、被動全滿、變異全滿、御守全滿
+  assert.ok(probe.getBuildRevision() > rev);
+  const rejection = probe.applyChoice(old.choiceId, rev);
+  assert.equal(rejection.ok, false);
+  assert.equal(rejection.reason, 'stale_revision');
   const wl = probe.getWL();
-  wl.katana = 5;
-  wl.needle = 5;
-  wl.fire = 5;
-  wl.barrier = 5;
-  const b = probe.getB();
-  b.shield = 6; b.oilRegen = 0.12; b.heals = 3; b.dmgUp = 4; b.rate = 4; b.crit = 3; b.spd = 3; b.dash = 3; b.mag = 3;
-  probe.setBuildMutations(['mut_fan', 'mut_seek', 'mut_frost', 'mut_crosscut', 'mut_pulse', 'mut_orbit']);
-  probe.setBuildCharms(['charm_power', 'charm_step', 'charm_gather']);
-
-  // 反向驗證：持刀＋火且未取得合法 Duo 時，仍有 duo_inkfire 可選，應正常進入 levelup
+  wl.katana = 5; wl.needle = 5; wl.fire = 5; wl.barrier = 5;
   probe.setBuildDuos([]);
-  const preEligible = probe.getEligibleChoices();
-  assert.equal(preEligible.length, 1, '未取得合法 Duo 時有且僅有 1 個可選 Duo');
-  assert.equal(preEligible[0].choiceId, 'duo:duo_inkfire', '未取得合法 Duo 時必定出現 duo_inkfire');
-  probe.setState('play');
+  assert.ok(probe.getEligibleChoices().every(c => c.type !== 'duo'), '封存共鳴不可再進卡池');
+});
+
+// MUT-OWN: 原共享變異改為單一歸屬，兩技能同時持有時顯示兩張互斥候選。
+test('MUT-OWN-1 千本散射僅為陰陽符變異且不影響靈針', () => {
+  const env = loadGameSandbox({ random: () => 0 });
+  const probe = env.__agyProbe;
+  probe.start('night-town');
+  probe.getWL().needle = 1;
+  probe.getWL().boom = 1;
+  probe.setLevel(10);
+
   probe.offerUp();
+  const cards = probe.getChoices().filter(c => c.type === 'mutation');
+  assert.equal(cards.length, 1, '千本散射只能提供陰陽符版本');
+  const boomCard = cards[0];
+  assert.equal(boomCard.id, 'mut_boom_fan');
+  assert.equal(boomCard.skillId, 'boom');
+  assert.deepEqual(Array.from(boomCard.skillIds), ['boom']);
   probe.setLevelupCooldown(0);
-  assert.equal(probe.getState(), 'levelup', '存在合法未取得 Duo 時必須正常進入 levelup 供選卡');
+  assert.equal(probe.applyChoice(boomCard.choiceId, probe.getBuildRevision()).ok, true);
+  assert.equal(probe.addMutation('mut_fan'), false, '靈針散射不允許再取得');
+  assert.equal(probe.getBuildMutations().length, 1);
 
-  // 真正耗盡：學習該 4 主動下唯一合資格的 duo_inkfire（不塞無關的 duo_thundercircle / duo_frostseal / duo_cinderseal）
-  probe.setBuildDuos(['duo_inkfire']);
-  const eligible = probe.getEligibleChoices();
-  assert.equal(eligible.length, 0, '確認所持 4 主動之合資格 Duo 取得後，所有卡池真正完全耗盡');
+  const needle = probe.resolveAttackSpec('needle', 1, probe.getBuildState());
+  const boom = probe.resolveAttackSpec('boom', 1, probe.getBuildState());
+  assert.equal(needle.count, 3, '靈針不受陰陽符散射影響');
+  assert.equal(boom.count, 3, 'Lv1 陰陽符加發兩枚');
+});
 
-  probe.setState('play');
-  probe.setXp(50);
-  const lvlBefore = probe.getLevel();
-  probe.offerUp();
-  probe.setLevelupCooldown(0);
+test('MUT-OWN-2 追蹤和冰凍變異互斥，效果只在指定歸屬生效', () => {
+  const cases = [
+    { needle: 'mut_seek', boom: 'mut_boom_seek', check: (n, b) => [n.tracking, b.tracking] },
+    { needle: 'mut_frost', boom: 'mut_boom_frost', check: (n, b) => [n.frost, b.frost] }
+  ];
+  for (const item of cases) {
+    for (const owner of ['needle', 'boom']) {
+      const probe = loadGameSandbox().__agyProbe;
+      probe.start('night-town');
+      probe.getWL().needle = 1;
+      probe.getWL().boom = 1;
+      const ownId = item[owner];
+      const otherId = item[owner === 'needle' ? 'boom' : 'needle'];
+      assert.equal(probe.addMutation(ownId), true);
+      assert.equal(probe.addMutation(otherId), false);
+      const n = probe.resolveAttackSpec('needle', 1, probe.getBuildState());
+      const b = probe.resolveAttackSpec('boom', 1, probe.getBuildState());
+      const [nActive, bActive] = item.check(n, b);
+      assert.equal(!!nActive, owner === 'needle', item.needle);
+      assert.equal(!!bActive, owner === 'boom', item.boom);
+      probe.start('night-town');
+      probe.getWL().needle = 1;
+      probe.getWL().boom = 1;
+      assert.equal(probe.addMutation(otherId), true, '重開後應解除本局互斥');
+    }
+  }
+});
 
-  assert.equal(probe.getState(), 'play', '全滿極限空池必須安全切回 play，不軟鎖卡死');
-  assert.equal(probe.getLevel(), lvlBefore + 1, '空池時自動完成等級提升結算');
+test('MUT-OWN-3 每技能最多兩種變異且彼此獨立', () => {
+  const probe = loadGameSandbox().__agyProbe;
+  probe.start('night-town');
+  probe.getWL().needle = 1;
+  probe.getWL().boom = 1;
+  assert.equal(probe.addMutation('mut_boom_fan'), true);
+  assert.equal(probe.addMutation('mut_boom_seek'), true);
+  assert.equal(probe.addMutation('mut_boom_frost'), false, '陰陽符第三格不得取得');
+  assert.equal(probe.addMutation('mut_frost'), true);
+  assert.equal(probe.addMutation('mut_pierce'), true);
+  assert.equal(probe.addMutation('mut_return'), false, '靈針第三格不得取得');
+  assert.equal(probe.getBuildMutations().length, 4);
+});
+
+test('MUT-FOUR-1 六招至少四種變異、同招兩格上限', () => {
+  const idsBySkill = {
+    katana: ['mut_crosscut','mut_iaicharge','mut_armorbreak','mut_longblade'],
+    barrier: ['mut_pulse','mut_bindseal','mut_widecircle','mut_repulse'],
+    fire: ['mut_orbit','mut_rapidfire','mut_flamebind','mut_furyfire'],
+    thunder: ['mut_branch','mut_thunderfocus','mut_thunderstun','mut_thunderoverload'],
+    boom: ['mut_boom_fan','mut_boom_seek','mut_boom_frost','mut_splitblast'],
+    needle: ['mut_seek','mut_frost','mut_pierce','mut_return']
+  };
+  for (const [skill, ids] of Object.entries(idsBySkill)) {
+    const probe = loadGameSandbox().__agyProbe;
+    probe.start('night-town');
+    probe.getWL()[skill] = 1;
+    for (const id of ids) {
+      assert.equal(probe.addMutation(id), true, skill + ':' + id + ' must be offered');
+      assert.equal(probe.removeMutation(id), true);
+    }
+    assert.ok(ids.length >= 4);
+    assert.equal(probe.addMutation(ids[0]), true);
+    assert.equal(probe.addMutation(ids[1]), true);
+    assert.equal(probe.addMutation(ids[2]), false, skill + ' must reject third mutation');
+  }
+});
+
+test('MUT-FOUR-2 新變異改變六招戰鬥參數並有相應代價', () => {
+  const probe = loadGameSandbox().__agyProbe;
+  probe.start('night-town');
+  const spec = (skill, level, ids = []) =>
+    probe.resolveAttackSpec(skill, level, { ...probe.getBuildState(), mutations: ids });
+  let base = spec('katana', 3);
+  let changed = spec('katana', 3, ['mut_iaicharge']);
+  assert.ok(changed.slashDmg > base.slashDmg && changed.cooldown > base.cooldown);
+  changed = spec('katana', 3, ['mut_armorbreak']);
+  assert.equal(changed.armoredDamageMultiplier, 1.3);
+  assert.equal(changed.bossDamageMultiplier, 1.2);
+  assert.ok(spec('katana', 3, ['mut_longblade']).reach > base.reach);
+  assert.ok(spec('katana', 5, ['mut_longblade']).maxTravel > spec('katana', 5).maxTravel);
+
+  base = spec('barrier', 3);
+  changed = spec('barrier', 3, ['mut_bindseal']);
+  assert.ok(changed.slowDuration > 0);
+  changed = spec('barrier', 3, ['mut_widecircle']);
+  assert.ok(changed.radius > base.radius && changed.damage < base.damage);
+  assert.ok(spec('barrier', 1, ['mut_repulse']).knockback > 0);
+
+  base = spec('fire', 3);
+  changed = spec('fire', 3, ['mut_rapidfire']);
+  assert.ok(changed.angularSpeed > base.angularSpeed && changed.hitInterval < base.hitInterval);
+  assert.ok(spec('fire', 3, ['mut_flamebind']).slowDuration > 0);
+  assert.ok(spec('fire', 3, ['mut_furyfire']).contactDamage > base.contactDamage);
+  assert.ok(spec('fire', 5, ['mut_furyfire']).dragonScorchDmg > spec('fire', 5).dragonScorchDmg);
+
+  base = spec('thunder', 4);
+  changed = spec('thunder', 4, ['mut_thunderfocus']);
+  assert.ok(changed.damage > base.damage && changed.targetCount < base.targetCount);
+  assert.ok(spec('thunder', 4, ['mut_thunderstun']).slowDuration > 0);
+  changed = spec('thunder', 4, ['mut_thunderoverload']);
+  assert.ok(changed.damage > base.damage && changed.cooldown > base.cooldown);
+});
+
+test('MUT-FOUR-3 控場變異確實在戰鬥命中時生效', () => {
+  for (const skill of ['barrier', 'fire', 'thunder']) {
+    const probe = loadGameSandbox().__agyProbe;
+    probe.start('night-town');
+    probe.getWL()[skill] = 1;
+    const mutation = {
+      barrier: 'mut_bindseal', fire: 'mut_flamebind', thunder: 'mut_thunderstun'
+    }[skill];
+    assert.equal(probe.addMutation(mutation), true);
+    const player = probe.getP();
+    const e = { type: 'ghost', hp: 999, max: 999, speed: 55, slowT: 0,
+      x: player.x + (skill === 'fire' ? 98 : 65), y: player.y };
+    probe.getEnemies().push(e);
+    probe.setWT(skill, 0);
+    probe.weapons(0.01);
+    assert.ok(e.slowT > 0, skill + ' should slow enemy when hit');
+  }
+});
+
+test('MUT-REMOVE-FAN 靈針取消散射，Lv5仍固定八向八發；陰陽符版本保留', () => {
+  const probe = loadGameSandbox({ random: () => 0 }).__agyProbe;
+  probe.start('night-town');
+  probe.getWL().needle = 5;
+  probe.getWL().boom = 1;
+
+  assert.equal(probe.addMutation('mut_fan'), false, '舊靈針千本散射不可取得');
+  const baseBuild = probe.getBuildState();
+  const retiredBuild = { ...baseBuild, mutations: ['mut_fan'] };
+  for (const lv of [1, 2, 3, 4, 5]) {
+    const current = probe.resolveAttackSpec('needle', lv, baseBuild);
+    const old = probe.resolveAttackSpec('needle', lv, retiredBuild);
+    assert.equal(current.count, [3, 5, 7, 8, 8][lv - 1]);
+    assert.equal(old.count, current.count, '舊紀錄中的取消變異不可加發數');
+    assert.equal(old.spread, current.spread, '舊變異不可加散射角');
+    assert.equal(old.damage, current.damage, '舊變異不可改傷害');
+    assert.equal(old.fan, undefined);
+  }
+  assert.equal(probe.resolveAttackSpec('needle', 5, baseBuild).volleyInterval, 0.1);
+  assert.equal(probe.addMutation('mut_boom_fan'), true, '陰陽符千本散射仍可取得');
+  assert.equal(probe.resolveAttackSpec('boom', 1, probe.getBuildState()).count, 3);
+  assert.equal(probe.resolveAttackSpec('needle', 5, probe.getBuildState()).count, 8);
+  const eligible = probe.getEligibleChoices().filter(c => c.type === 'mutation');
+  assert.ok(eligible.every(c => c.id !== 'mut_fan'), '選卡池中不能再出現靈針千本散射');
 });

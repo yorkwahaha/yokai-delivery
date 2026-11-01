@@ -17,6 +17,9 @@
     }
   }
   let MOB_DIFFICULTY = mobDifficultyForStage(STAGE);
+  // 唯一 Normal 判斷：直接使用 config.js 已解析的關卡難度檔，避免各功能自行猜模式。
+  const isRainPortNormalMode = () => STAGE.id === "rain-port" && MOB_DIFFICULTY === CFG.MOB_DIFFICULTY_PROFILES.rainPortNormal;
+  const isNightTownNormalMode = () => STAGE.id === "night-town" && MOB_DIFFICULTY === CFG.MOB_DIFFICULTY_PROFILES.normal;
   let STAGE_PACING = STAGE.pacing || {};
   let STAGE_VISUAL = STAGE.visual || {};
   let STAGE_ENEMY = STAGE.enemy || {};
@@ -135,8 +138,9 @@
         if ((reserved.get(h.id) || 0) > 0) return false;
         const dx = Math.abs(h.x - referenceX);
         if (dx < minDx || dx > maxDx) return false;
-        // 重選後仍要守住原本的送達距離（取貨屋與送達屋不得貼在一起）
-        if (o.to && Math.abs(h.x - o.to.x) < minDx) return false;
+        // 重選完整重驗原配送路線：目的地距離上下限及至少三列中間屋都不能破壞。
+        if (o.to && (Math.abs(h.x - o.to.x) < minDx ||
+            Math.abs(h.x - o.to.x) > 3600 || colsBetween(h.x, o.to.x) < 3)) return false;
         return colsBetween(h.x, referenceX) >= minCols;
       });
       if (!cands.length) {
@@ -211,6 +215,19 @@
     return true;
   }
   const ansPos = h => window.WORLD.answerPositions(h);
+  // Delivery reading is bounded by the same ellipse as the visible blue barrier.
+  // Ground coordinates already go through tiltWorld(), so compensate its Y
+  // compression exactly once here. Do not compare against the house sprite origin.
+  function deliveryBarrierContains(point, house, padding = 0) {
+    if (!point || !house) return false;
+    const rx = 245 + padding;
+    const ry = 165 / tiltK() + padding;
+    if (rx <= 0 || ry <= 0) return false;
+    const dx = (point.x - house.x) / rx;
+    const dy = (point.y - (house.y + 70)) / ry;
+    return dx * dx + dy * dy <= 1;
+  }
+
   // 僅場景答案使用較自然的筆文字體。字型已在 index.html 子集載入，
   // Noto 完整字面備援；不修改 HUD、教學和圖鑑的字體。
   // 結界題目假名統一使用完整的 Noto Sans JP 日文字體，消除 fallback font 混入與字距不一致
@@ -259,7 +276,7 @@
 
   // ---------- 遊戲狀態 ----------
   const P = { x: START.x, y: START.y, inv: 0, faceAng: 0, faceX: 1 };
-  const b = { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0 };
+  const b = { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, shieldPicks: 0, spd: 0 };
   const keys = new Set(), heldCodes = new Set();
   let state = "menu";
   const artPending = () => state === 'overworld' ? window.MAP_ART_READY === false
@@ -273,7 +290,10 @@
   let quitTarget = "home";
   function activateWithFeedback(id) {
     if (pendingMenuActivation || ((state === "won" || state === "lost") && endCooldown > 0)) return;
-    if (id === 'start' || id === 'world') AUDIO.prepareMusic?.('overworld');
+    // "world" from an active paused run opens a confirmation dialog first.
+    // Do not pre-play MAP_BGM until the user has really confirmed leaving.
+    if (id === 'start' || (id === 'world' && state !== 'pause'))
+      AUDIO.prepareMusic?.('overworld');
     else if (id === 'restart') AUDIO.prepareMusic?.('play');
     UI.pressButton?.(id);
     pendingMenuActivation = { id, state, quitConfirm, remaining: 0.12 };
@@ -330,7 +350,12 @@
     else if (id === "mute") AUDIO.toggleMute();
     else if (id === "controls") controlsButton.click();
     else if (id === "tutorial") showTutorial('pickup', true);
-    else if (id === "exit-cancel") { quitConfirm = false; quitTarget = "home"; menuFocus = 0; }
+    else if (id === "exit-cancel") {
+      // Discard a stale preloaded map track if this menu was entered after a
+      // prepared transition. Keep the current level/Boss BGM running.
+      AUDIO.dropPrepared?.();
+      quitConfirm = false; quitTarget = "home"; menuFocus = 0;
+    }
     else if (id === "exit-confirm") {
       const toWorld = quitTarget === "world";
       quitTarget = "home";
@@ -502,7 +527,7 @@
     }
     return delivered >= GOAL_DELIVERIES;
   }
-  let ended = false, bossQ = null, bossSealBreak = null, codexBack = "menu", codexTab = "cards", codexPage = 0;
+  let ended = false, bossQ = null, bossSealBreak = null, bossCurseRemaining = 0, codexBack = "menu", codexTab = "cards", codexPage = 0;
   let codexFocus = 'cards', codexFilter = { by: "all", id: null };
   function wordCodexState() {
     return { filter: codexFilter, page: codexPage };
@@ -537,13 +562,19 @@
   let worldSyncSignature = "";
 
   // Only operation guidance: never reads the current word or mutates answer assistance.
-  const tutorialIds = ['pickup', 'listen', 'delivery', 'dash', 'boss'];
+  const tutorialIds = ['pickup', 'delivery', 'dash', 'boss'];
+  const tutorialKey = (id, stageId = STAGE.id) =>
+    id === 'delivery' || id === 'boss' ? `${stageId}:${id}` : id;
+  const tutorialKeys = new Set(tutorialIds.flatMap(id =>
+    [id, ...Object.keys(window.CONTENT.STAGES).map(stageId => tutorialKey(id, stageId))]));
   let tutorial = null, tutorialSeen = new Set(), tutorialSkipped = false;
   let inputMode = touch ? 'touch' : 'keyboard';
   try {
     const saved = JSON.parse(localStorage.getItem('yokai-tutorial-v1'));
     tutorialSkipped = saved === 'skip';
-    if (Array.isArray(saved)) tutorialSeen = new Set(saved.filter(id => tutorialIds.includes(id)));
+    // 舊版未分關的讀題紀錄保留給夜行町；雨港首次仍需交代不同規則。
+    if (Array.isArray(saved)) tutorialSeen = new Set(saved.filter(id => tutorialKeys.has(id))
+      .map(id => tutorialIds.includes(id) ? tutorialKey(id, 'night-town') : id));
   } catch {}
   function showTutorial(id, replay = false) {
     tutorial = { id, replay, focus: 0 };
@@ -555,7 +586,7 @@
       const next = tutorialIds[tutorialIds.indexOf(tutorial.id) + 1];
       if (!skip && next) { showTutorial(next, true); return; }
     } else {
-      tutorialSeen.add(tutorial.id);
+      tutorialSeen.add(tutorialKey(tutorial.id));
       if (skip) tutorialSkipped = true;
       try { localStorage.setItem('yokai-tutorial-v1', JSON.stringify(tutorialSkipped ? 'skip' : [...tutorialSeen])); } catch {}
     }
@@ -564,10 +595,10 @@
   }
   function checkTutorial() {
     if (tutorialSkipped || tutorial) return;
-    const id = bossQ && !tutorialSeen.has('boss') ? 'boss' : job && dist(P, job.to) < 230 && tutorialSeen.has('listen') && !tutorialSeen.has('delivery') ? 'delivery'
-      : job && !tutorialSeen.has('listen') ? 'listen' : elapsed >= 12 && !tutorialSeen.has('dash') ? 'dash'
+    const id = bossQ && !tutorialSeen.has(tutorialKey('boss')) ? 'boss' : job && dist(P, job.to) < 230 && !tutorialSeen.has(tutorialKey('delivery')) ? 'delivery'
+      : elapsed >= 12 && !tutorialSeen.has('dash') ? 'dash'
       : !job && !tutorialSeen.has('pickup') ? 'pickup' : null;
-    if (id && !tutorialSeen.has(id)) showTutorial(id);
+    if (id && !tutorialSeen.has(tutorialKey(id))) showTutorial(id);
   }
 
   function replaceList(target, source) {
@@ -730,43 +761,73 @@
   };
 
   const MUTATION_CONFIG = {
-    mut_fan: {
-      id: "mut_fan",
-      skillId: "needle",
-      skillIds: ["needle", "boom"],
-      n: "千本散射",
+    mut_boom_fan: {
+      id: "mut_boom_fan",
+      skillId: "boom",
+      skillIds: ["boom"],
+      n: "陰陽符・千本散射",
       s: "さんしゃ",
-      cat: "【 共享變異 】",
-      levelText: "◆ 共享變異",
-      d: "多角度散射、發數增加；整輪名目總傷害提高 20%（單發按發數分配）",
-      requirementText: "持有天狐靈針或陰陽符（取得其他適用技能後沿用）",
-      limitText: "每種限選一次（每技能最多 3 種變異，取得其他適用技能後沿用）",
+      cat: "【 陰陽符變異 】",
+      levelText: "◆ 陰陽符變異",
+      d: "陰陽符增加 2 枚、最多 6 枚，總傷害預算提高 20% 並分攤單符；僅限陰陽符",
+      requirementText: "持有陰陽符",
+      limitText: "每種限選一次；每技能最多 2 種變異",
       inPool: true
     },
     mut_seek: {
       id: "mut_seek",
       skillId: "needle",
-      skillIds: ["needle", "boom"],
-      n: "引魂追跡",
+      skillIds: ["needle"],
+      family: "seek",
+      n: "靈針・引魂追跡",
       s: "ついせき",
-      cat: "【 共享變異 】",
-      levelText: "◆ 共享變異",
-      d: "靈針與未黏附陰陽符具備轉向角速率平滑追蹤妖怪，失去目標後沿當前方向直行（非瞬移）",
-      requirementText: "持有天狐靈針或陰陽符（取得其他適用技能後沿用）",
-      limitText: "每種限選一次（每技能最多 3 種變異，取得其他適用技能後沿用）",
+      cat: "【 靈針變異 】",
+      levelText: "◆ 靈針變異",
+      d: "靈針飛行中平滑轉向追蹤妖怪，失去目標後沿當前方向直行；僅限靈針",
+      requirementText: "持有天狐靈針；同類效果只能歸屬一招",
+      limitText: "同類變異靈針或陰陽符擇一；每技能最多 2 種變異",
+      inPool: true
+    },
+    mut_boom_seek: {
+      id: "mut_boom_seek",
+      skillId: "boom",
+      skillIds: ["boom"],
+      family: "seek",
+      n: "陰陽符・引魂追跡",
+      s: "ついせき",
+      cat: "【 陰陽符變異 】",
+      levelText: "◆ 陰陽符變異",
+      d: "未黏附陰陽符平滑轉向追蹤妖怪，失去目標後繼續直行；僅限陰陽符",
+      requirementText: "持有陰陽符；同類效果只能歸屬一招",
+      limitText: "同類變異靈針或陰陽符擇一；每技能最多 2 種變異",
       inPool: true
     },
     mut_frost: {
       id: "mut_frost",
       skillId: "needle",
-      skillIds: ["needle", "boom"],
-      n: "冰魄封靈",
+      skillIds: ["needle"],
+      family: "frost",
+      n: "靈針・冰魄封靈",
       s: "ひょうはくふうれい",
-      cat: "【 共享變異 】",
-      levelText: "◆ 共享變異",
-      d: "靈針命中與陰陽符主爆累積寒冷並短暫冰封；Boss 具備高寒冷門檻與 2.0 秒抗性免疫期（不被永久失能）",
-      requirementText: "持有天狐靈針或陰陽符（取得其他適用技能後沿用）",
-      limitText: "每種限選一次（每技能最多 3 種變異，取得其他適用技能後沿用）",
+      cat: "【 靈針變異 】",
+      levelText: "◆ 靈針變異",
+      d: "靈針命中累積寒冷並短暫冰封，Boss 具備 2 秒抗性期；僅限靈針",
+      requirementText: "持有天狐靈針；同類效果只能歸屬一招",
+      limitText: "同類變異靈針或陰陽符擇一；每技能最多 2 種變異",
+      inPool: true
+    },
+    mut_boom_frost: {
+      id: "mut_boom_frost",
+      skillId: "boom",
+      skillIds: ["boom"],
+      family: "frost",
+      n: "陰陽符・冰魄封靈",
+      s: "ひょうはくふうれい",
+      cat: "【 陰陽符變異 】",
+      levelText: "◆ 陰陽符變異",
+      d: "陰陽符主爆命中累積寒冷並短暫冰封，次爆不累積寒冷；僅限陰陽符",
+      requirementText: "持有陰陽符；同類效果只能歸屬一招",
+      limitText: "同類變異靈針或陰陽符擇一；每技能最多 2 種變異",
       inPool: true
     },
     mut_pierce: {
@@ -779,7 +840,7 @@
       levelText: "◆ 靈針變異",
       d: "保持既有穿透；第 2、第 3 隻命中獨敵各增加該針生成時 15% 傷害（總增額至多 30%），不額外投射，同敵去重",
       requirementText: "持有天狐靈針",
-      limitText: "每種限選一次（每技能最多 3 種變異）",
+      limitText: "每種限選一次（每技能最多 2 種變異）",
       inPool: true
     },
     mut_return: {
@@ -792,7 +853,7 @@
       levelText: "◆ 靈針變異",
       d: "靈針單次折返，回程可對原目標額外命中一次，造成原傷害35%，不重複冰封",
       requirementText: "持有天狐靈針",
-      limitText: "每種限選一次（每技能最多 3 種變異）",
+      limitText: "每種限選一次（每技能最多 2 種變異）",
       inPool: true
     },
     mut_crosscut: {
@@ -805,7 +866,7 @@
       levelText: "◆ 妖刀變異",
       d: "主斬後延遲施展一次有限側向交叉斬；共用攻擊預算與傷害上界，Lv5 風刃不重複派生",
       requirementText: "持有退魔妖刀",
-      limitText: "每種限選一次（每技能最多 3 種變異）",
+      limitText: "每種限選一次（每技能最多 2 種變異）",
       inPool: true
     },
     mut_pulse: {
@@ -818,7 +879,7 @@
       levelText: "◆ 靈陣變異",
       d: "靈陣保持原半徑，兩次脈衝各65%原傷害，完整命中總傷增加30%",
       requirementText: "持有淨化靈陣",
-      limitText: "每種限選一次（每技能最多 3 種變異）",
+      limitText: "每種限選一次（每技能最多 2 種變異）",
       inPool: true
     },
     mut_branch: {
@@ -831,7 +892,7 @@
       levelText: "◆ 天狐雷變異",
       d: "主雷命中後分出至多 1 道次級雷擊，傷害為當次主雷 25%；次級不得再分支，不以生命百分比計傷",
       requirementText: "持有天狐雷",
-      limitText: "每種限選一次（每技能最多 3 種變異）",
+      limitText: "每種限選一次（每技能最多 2 種變異）",
       inPool: true
     },
     mut_orbit: {
@@ -844,7 +905,7 @@
       levelText: "◆ 狐火變異",
       d: "狐火改為偏心橢圓軌道（rx=126, ry=78），接觸傷害+20%，Lv5黑龍傷害+15%，火球數不變",
       requirementText: "持有狐火",
-      limitText: "每種限選一次（每技能最多 3 種變異）",
+      limitText: "每種限選一次（每技能最多 2 種變異）",
       inPool: true
     },
     mut_splitblast: {
@@ -857,7 +918,139 @@
       levelText: "◆ 陰陽符變異",
       d: "主爆後原爆心延遲 0.18 秒產生一次小型次爆（半徑 55%）；對原直擊目標取主爆全傷 25%，其餘取濺射傷 25%，無擊退、不再次派生",
       requirementText: "持有陰陽符",
-      limitText: "每種限選一次（每技能最多 3 種變異）",
+      limitText: "每種限選一次（每技能最多 2 種變異）",
+      inPool: true
+    },
+    mut_iaicharge: {
+      id: "mut_iaicharge",
+      skillId: "katana",
+      skillIds: ["katana"],
+      n: "妖刀・蓄力居合", s: "ためいあい",
+      cat: "【 妖刀變異 】", levelText: "◆ 妖刀變異",
+      d: "斬擊及Lv5風刃傷害提高24%，但每次揮刀冷卻增加0.16秒",
+      requirementText: "持有退魔妖刀",
+      limitText: "每種限選一次；每技能最多2種變異",
+      inPool: true
+    },
+    mut_armorbreak: {
+      id: "mut_armorbreak",
+      skillId: "katana",
+      skillIds: ["katana"],
+      n: "妖刀・破甲斬", s: "はこうざん",
+      cat: "【 妖刀變異 】", levelText: "◆ 妖刀變異",
+      d: "對坦克敵人傷害+30%、對Boss傷害+20%，普通敵人不變",
+      requirementText: "持有退魔妖刀",
+      limitText: "每種限選一次；每技能最多2種變異",
+      inPool: true
+    },
+    mut_longblade: {
+      id: "mut_longblade",
+      skillId: "katana",
+      skillIds: ["katana"],
+      n: "妖刀・長風刃", s: "ちょうふうじん",
+      cat: "【 妖刀變異 】", levelText: "◆ 妖刀變異",
+      d: "Lv1～4斬擊距離+23%；Lv5風刃飛行距離+25%",
+      requirementText: "持有退魔妖刀",
+      limitText: "每種限選一次；每技能最多2種變異",
+      inPool: true
+    },
+    mut_bindseal: {
+      id: "mut_bindseal",
+      skillId: "barrier",
+      skillIds: ["barrier"],
+      n: "靈陣・縛足靈紋", s: "ばくそくれいもん",
+      cat: "【 靈陣變異 】", levelText: "◆ 靈陣變異",
+      d: "靈陣命中的普通敵人移動遲滯0.72秒；Boss不受影響",
+      requirementText: "持有淨化靈陣",
+      limitText: "每種限選一次；每技能最多2種變異",
+      inPool: true
+    },
+    mut_widecircle: {
+      id: "mut_widecircle",
+      skillId: "barrier",
+      skillIds: ["barrier"],
+      n: "靈陣・廣域護陣", s: "こういきごじん",
+      cat: "【 靈陣變異 】", levelText: "◆ 靈陣變異",
+      d: "靈陣半徑+22%，每次脈衝傷害減少12%；Lv5庇護區同步放大",
+      requirementText: "持有淨化靈陣",
+      limitText: "每種限選一次；每技能最多2種變異",
+      inPool: true
+    },
+    mut_repulse: {
+      id: "mut_repulse",
+      skillId: "barrier",
+      skillIds: ["barrier"],
+      n: "靈陣・反震退魔", s: "はんしんたいま",
+      cat: "【 靈陣變異 】", levelText: "◆ 靈陣變異",
+      d: "擊退強度提升60%；Lv1～3也可擊退一般妖怪，Boss免疫",
+      requirementText: "持有淨化靈陣",
+      limitText: "每種限選一次；每技能最多2種變異",
+      inPool: true
+    },
+    mut_rapidfire: {
+      id: "mut_rapidfire",
+      skillId: "fire",
+      skillIds: ["fire"],
+      n: "狐火・疾旋輪舞", s: "しっせんりんぶ",
+      cat: "【 狐火變異 】", levelText: "◆ 狐火變異",
+      d: "環繞速度+40%，碰觸同一敵人的最短間隔縮短15%",
+      requirementText: "持有狐火",
+      limitText: "每種限選一次；每技能最多2種變異",
+      inPool: true
+    },
+    mut_flamebind: {
+      id: "mut_flamebind",
+      skillId: "fire",
+      skillIds: ["fire"],
+      n: "狐火・纏足焰", s: "てんそくえん",
+      cat: "【 狐火變異 】", levelText: "◆ 狐火變異",
+      d: "環繞狐火接觸命中使普通妖怪遲滯0.65秒，Boss不受影響",
+      requirementText: "持有狐火",
+      limitText: "每種限選一次；每技能最多2種變異",
+      inPool: true
+    },
+    mut_furyfire: {
+      id: "mut_furyfire",
+      skillId: "fire",
+      skillIds: ["fire"],
+      n: "狐火・熾焰強化", s: "しえんきょうか",
+      cat: "【 狐火變異 】", levelText: "◆ 狐火變異",
+      d: "環繞接觸傷害+25%；Lv5黑龍焦土傷害+15%",
+      requirementText: "持有狐火",
+      limitText: "每種限選一次；每技能最多2種變異",
+      inPool: true
+    },
+    mut_thunderfocus: {
+      id: "mut_thunderfocus",
+      skillId: "thunder",
+      skillIds: ["thunder"],
+      n: "天狐雷・雷印聚焦", s: "らいいんしゅうしょう",
+      cat: "【 天狐雷變異 】", levelText: "◆ 天狐雷變異",
+      d: "優先鎖定Boss與坦克，目標數少1（最少1），每道主雷傷害+30%",
+      requirementText: "持有天狐雷",
+      limitText: "每種限選一次；每技能最多2種變異",
+      inPool: true
+    },
+    mut_thunderstun: {
+      id: "mut_thunderstun",
+      skillId: "thunder",
+      skillIds: ["thunder"],
+      n: "天狐雷・雷痺", s: "らいひ",
+      cat: "【 天狐雷變異 】", levelText: "◆ 天狐雷變異",
+      d: "主雷命中使普通妖怪遲滯0.55秒；Boss僅0.18秒",
+      requirementText: "持有天狐雷",
+      limitText: "每種限選一次；每技能最多2種變異",
+      inPool: true
+    },
+    mut_thunderoverload: {
+      id: "mut_thunderoverload",
+      skillId: "thunder",
+      skillIds: ["thunder"],
+      n: "天狐雷・過載天罰", s: "かさいてんばつ",
+      cat: "【 天狐雷變異 】", levelText: "◆ 天狐雷變異",
+      d: "每道主雷傷害+35%，但施放冷卻增加25%",
+      requirementText: "持有天狐雷",
+      limitText: "每種限選一次；每技能最多2種變異",
       inPool: true
     }
   };
@@ -944,24 +1137,31 @@
     return false;
   }
 
+  // 每個技能只有兩個變異槽；原共享變異以 family 排斥另一種技能的同名效果。
+  const MUTATION_SLOTS_PER_SKILL = 2;
   function getSkillMutations(skillId, list = buildMutations) {
     if (!Array.isArray(list)) return [];
     return list.filter(id => {
       const cfg = MUTATION_CONFIG[id];
-      if (!cfg) return false;
-      if (Array.isArray(cfg.skillIds)) return cfg.skillIds.includes(skillId);
-      return cfg.skillId === skillId;
+      return !!cfg && cfg.skillId === skillId;
     });
   }
 
-  function addMutation(id) {
+  function isMutationFamilyTaken(id, list = buildMutations) {
+    const family = MUTATION_CONFIG[id]?.family;
+    return !!family && list.some(other => MUTATION_CONFIG[other]?.family === family);
+  }
+
+  function canAddMutation(id, list = buildMutations) {
     const cfg = MUTATION_CONFIG[id];
-    if (!cfg || !cfg.inPool) return false;
-    if (buildMutations.includes(id)) return false;
-    const applicable = Array.isArray(cfg.skillIds) ? cfg.skillIds : [cfg.skillId];
-    const owned = applicable.filter(s => (WL[s] || 0) > 0);
-    if (owned.length === 0) return false;
-    if (owned.some(s => getSkillMutations(s).length >= 3)) return false;
+    if (!cfg?.inPool || !Array.isArray(list) || list.includes(id)) return false;
+    if (isMutationFamilyTaken(id, list)) return false;
+    return (WL[cfg.skillId] || 0) > 0
+      && getSkillMutations(cfg.skillId, list).length < MUTATION_SLOTS_PER_SKILL;
+  }
+
+  function addMutation(id) {
+    if (!canAddMutation(id)) return false;
     buildMutations.push(id);
     buildRevision++;
     return true;
@@ -1081,15 +1281,27 @@
   }
 
   function paintCharmDrop(d) {
-    const art = charmDropArt();
     if (!d) return false;
-    const w = 40;
-    const h = (art && art.naturalHeight) ? (w * art.naturalHeight / art.naturalWidth) : 48;
+    // Ground drop and swap selection share the very same colored Omamori art.
+    const art = UI.charmArtFor?.(d.charmId) || charmDropArt();
+    const glowColors = {
+      charm_power:"#ec6948", charm_step:"#5bc8a2",
+      charm_gather:"#e6ce63", charm_cadence:"#c087ee",
+      charm_reach:"#9daff3", charm_guard:"#9bdca4"
+    };
+    // B10 normalized omamori art has large visible silhouette. The map item
+    // uses a gentle 1.2x increase while preserving the original aspect ratio.
+    const h = 64;
+    // World sprites are displayed upright; use intrinsic aspect ratio so
+    // the glyph and tassel are not horizontally stretched in 2D or 2.5D.
+    const w = art?.naturalWidth && art?.naturalHeight
+      ? h * art.naturalWidth / art.naturalHeight : 32;
+    const hover = 5 + Math.sin(elapsed * 3.2 + d.id * 1.7) * 4.5;
     upright(d.x, d.y, () => {
       // 落地御守專用金芒光環，即便在暗處街道亦清晰可辨
-      FX.glow?.(ctx, d.x, d.y - h / 2, 28, "#fadb5f", 0.45);
+      FX.glow?.(ctx, d.x, d.y - h / 2 - hover, 39, glowColors[d.charmId] || "#fadb5f", 0.84);
       if (art && art.naturalWidth > 0) {
-        ctx.drawImage(art, d.x - w / 2, d.y - h, w, h);
+        ctx.drawImage(art, d.x - w / 2, d.y - h - hover, w, h);
       } else {
         // 御守錦囊繪製（紅錦囊 + 金邊紋）
         ctx.save();
@@ -1203,11 +1415,13 @@
       const result = acceptCharm(d.charmId);
       if (result === "swap") {
         d.done = true;
+        AUDIO.charmPickup?.();
         openCharmSwap(d.charmId);
         continue;
       }
       if (result !== "invalid") {
         d.done = true;
+        AUDIO.charmPickup?.();
         HAPTICS.pickup?.();
       }
     }
@@ -1236,7 +1450,7 @@
   function getEffectiveMagnetRadius(buildState = null) {
     const gatherBonus = charmLevelOf("charm_gather", buildState) * 75;
     // 第二關 Normal 可移動中拾取經驗，不影響第一關或原 Hard。
-    const portNormalBonus = STAGE.id === "rain-port" && STAGE.pacing?.mobDifficulty !== "hard" ? 70 : 0;
+    const portNormalBonus = isRainPortNormalMode() ? 70 : 0;
     return magnetRadius(b.mag) + portNormalBonus + gatherBonus;
   }
 
@@ -1285,17 +1499,18 @@
     const reachMult = getEffectiveReachMultiplier(buildState);
     if (skillId === "katana") {
       const baseReach = 145 + (level - 1) * 16;
-      const reach = level === 5 ? baseReach : Math.round(baseReach * reachMult);
-      const swingReach = level === 5 ? 720 : reach * 0.85;
-      const cooldown = Math.max(0.6, 0.72 - baseRate * 0.13);
-      const slashDmg = baseDmg + (level - 1) * 0.8;
-      const windDmg = (baseDmg + 3.2) * 1.15;
-      const mutations = (buildState && Array.isArray(buildState.mutations))
-        ? buildState.mutations
-        : buildMutations;
+      const mutations = (buildState && Array.isArray(buildState.mutations)) ? buildState.mutations : buildMutations;
+      const hasCharge = mutations.includes("mut_iaicharge");
+      const hasBreak = mutations.includes("mut_armorbreak");
+      const hasLongblade = mutations.includes("mut_longblade");
+      const reach = level === 5 ? baseReach : Math.round(baseReach * reachMult * (hasLongblade ? 1.23 : 1));
+      const swingReach = level === 5 ? (hasLongblade ? 900 : 720) : reach * 0.85;
+      const cooldown = Math.max(0.6, 0.72 - baseRate * 0.13) + (hasCharge ? 0.16 : 0);
+      const slashDmg = (baseDmg + (level - 1) * 0.8) * (hasCharge ? 1.24 : 1);
+      const windDmg = (baseDmg + 3.2) * 1.15 * (hasCharge ? 1.24 : 1);
       const hasCrosscut = mutations.includes("mut_crosscut");
       const crosscutDmg = Number((slashDmg * 0.60).toFixed(2));
-      const crosscutReach = level === 5 ? 220 : Math.round(reach * 0.90);
+      const crosscutReach = level === 5 ? (hasLongblade ? 270 : 220) : Math.round(reach * 0.90);
       const duos = (buildState && Array.isArray(buildState.duos))
         ? buildState.duos
         : (buildDuos || []);
@@ -1314,12 +1529,15 @@
         cooldown,
         slashDmg,
         windDmg,
-        maxTravel: 720,
+        maxTravel: hasLongblade ? 900 : 720,
         pierceLimit: 6,
         pierceScaleAfterThree: 0.75,
-        source: hasCrosscut ? "mutation" : (hasDuoInkfire ? "duo" : "base"),
+        source: (hasCrosscut || hasCharge || hasBreak || hasLongblade) ? "mutation" : (hasDuoInkfire ? "duo" : "base"),
         derivationDepth: 0,
         hasCrosscut,
+        hasCharge, hasBreak, hasLongblade,
+        armoredDamageMultiplier: hasBreak ? 1.30 : 1,
+        bossDamageMultiplier: hasBreak ? 1.20 : 1,
         crosscutDelay: 0.16,
         crosscutDmg,
         crosscutReach,
@@ -1334,46 +1552,51 @@
     }
     if (skillId === "needle") {
       const isAwakened = level === 5;
-      const needleFloor = isAwakened ? 0.65 : 0.45;
-      const cooldown = Math.max(needleFloor, 1.25 - level * 0.16 - baseRate * 0.1);
+      const needleFloor = 0.45;
+      // Lv5: eight shots over 0.4s, THEN a full 1.0s base cooldown.
+      // Charm cadence still applies to the cooldown, not the firing interval.
+      const cooldown = isAwakened ? Math.max(0.45, 1.0 - baseRate * 0.1)
+        : Math.max(needleFloor, 1.25 - level * 0.16 - baseRate * 0.1);
       const rawCount = window.EVOLUTIONS?.needleCount ? window.EVOLUTIONS.needleCount(level) : [3, 5, 7, 8, 8][Math.max(0, Math.min(4, level - 1))];
       const speed = 640;
       const rawSpread = isAwakened ? 1.35 : (level === 4 ? 0.65 : 0.45);
       const rawLife = isAwakened ? 0.95 : 0.65;
       const life = Number((rawLife * reachMult).toFixed(4));
       const range = Math.round(440 * reachMult);
-      const rawBaseDamage = isAwakened ? 4.9 : (1.4 + level * 0.7);
+      const rawBaseDamage = isAwakened ? 3.9 : (1.4 + level * 0.7);
 
       const mutations = (buildState && Array.isArray(buildState.mutations))
         ? buildState.mutations
         : (buildMutations || []);
-      const hasFan = mutations.includes("mut_fan");
       const hasSeek = mutations.includes("mut_seek");
       const hasFrost = mutations.includes("mut_frost");
       const hasPierce = mutations.includes("mut_pierce");
       const hasReturn = mutations.includes("mut_return");
 
-      const count = hasFan ? rawCount + 3 : rawCount;
-      const spread = hasFan ? rawSpread + 0.35 : rawSpread;
-      const perShotScale = hasFan ? Number(((rawCount * 1.20) / count).toFixed(4)) : 1.0;
-      const baseDamage = Number((rawBaseDamage * perShotScale).toFixed(4));
+      const count = rawCount;
+      const spread = rawSpread;
+      const baseDamage = Number(rawBaseDamage.toFixed(4));
       const damage = baseDamage * baseDmg;
 
-      const tracking = isAwakened || hasSeek;
-      const turnRate = tracking ? (isAwakened ? 4.8 : 4.2) : 0;
+      const tracking = hasSeek;
+      const turnRate = hasSeek ? (isAwakened ? 4.8 : 4.2) : 0;
       const seekRange = Math.round(480 * reachMult);
-      const frost = isAwakened || hasFrost;
+      const frost = hasFrost;
 
       const pierceBonusScale = hasPierce ? 0.15 : 0;
       const maxPierceBonusHits = hasPierce ? 2 : 0;
       const pierceBonusMax = hasPierce ? 0.30 : 0;
 
-      const returnDistance = hasReturn ? Math.min(220, Number((speed * life * 0.40).toFixed(2))) : 0;
+      // Direction-specific viewport edge distance is resolved per fired needle.
+      // This is the minimum reference for UI/spec consumers (old 220px removed).
+      const returnDistance = hasReturn ? Math.round(W * 0.5 * 0.72) : 0;
 
       const spec = {
         skillId: "needle",
         level,
         isAwakened,
+        radialVolley: isAwakened,
+        volleyInterval: isAwakened ? 0.05 : 0,
         source: mutations.length > 0 ? "mutation" : "base",
         count,
         speed,
@@ -1394,15 +1617,6 @@
         derivation: "none"
       };
 
-      if (hasFan) {
-        spec.fan = true;
-        spec.perShotScale = perShotScale;
-        spec.damageBudget = {
-          baseNominal: rawCount * rawBaseDamage * baseDmg,
-          totalNominal: count * damage,
-          perShotScale
-        };
-      }
       if (hasSeek) {
         spec.seek = true;
         spec.turnRate = turnRate;
@@ -1442,24 +1656,27 @@
         ? buildState.mutations
         : buildMutations;
       const hasPulse = mutations.includes("mut_pulse");
+      const hasBind = mutations.includes("mut_bindseal");
+      const hasWide = mutations.includes("mut_widecircle");
+      const hasRepulse = mutations.includes("mut_repulse");
       const pulseCount = hasPulse ? 2 : 1;
       const pulseDelay = 0.18;
       const pulseScale = hasPulse ? 0.65 : 1.0;
-      const radius = baseRadius;
-      const damage = Number((baseDamage * pulseScale).toFixed(4));
+      const radius = Math.round(baseRadius * (hasWide ? 1.22 : 1));
+      const damage = Number((baseDamage * pulseScale * (hasWide ? 0.88 : 1)).toFixed(4));
       const fullKnockback = level >= 4 ? 50 + level * 10 : 0;
-      const knockback = hasPulse ? Math.round(fullKnockback * 0.50) : fullKnockback;
+      const knockback = Math.round((hasPulse ? fullKnockback * 0.50 : fullKnockback) * (hasRepulse ? 1.6 : 1)) || (hasRepulse ? 42 : 0);
       const critLvl = typeof options.critLvl === "number"
         ? options.critLvl
         : (buildState?.passives?.crit ?? b.crit ?? 0);
       const critChance = Math.min(0.5, 0.15 + critLvl * 0.10);
-      const sanctuary = isAwakened ? { duration: 1.8, radius: 220 } : null;
+      const sanctuary = isAwakened ? { duration: 1.8, radius } : null;
 
       return {
         skillId: "barrier",
         level,
         isAwakened,
-        source: hasPulse ? "mutation" : "base",
+        source: (hasPulse || hasBind || hasWide || hasRepulse) ? "mutation" : "base",
         derivationDepth: 0,
         cooldown,
         baseRadius,
@@ -1467,6 +1684,8 @@
         baseDamage,
         damage,
         hasPulse,
+        hasBind, hasWide, hasRepulse,
+        slowDuration: hasBind ? 0.72 : 0,
         pulseCount,
         pulseDelay,
         pulseScale,
@@ -1481,23 +1700,26 @@
     }
     if (skillId === "thunder") {
       const isAwakened = level === 5;
-      const cooldown = isAwakened
+      const baseCooldown = isAwakened
         ? 2.4
         : level === 4
           ? 2.0
           : Math.max(2.0, Number((2.6 - level * 0.35).toFixed(2)));
+      const mutations = (buildState && Array.isArray(buildState.mutations)) ? buildState.mutations : buildMutations;
+      const hasFocus = mutations.includes("mut_thunderfocus");
+      const hasStun = mutations.includes("mut_thunderstun");
+      const hasOverload = mutations.includes("mut_thunderoverload");
+      const cooldown = Number((baseCooldown * (hasOverload ? 1.25 : 1)).toFixed(4));
       const mult = level === 1 ? 2.0 : level === 2 ? 3.0 : level === 3 ? 4.5 : level === 4 ? 6.0 : 8.0;
       const baseDmg = getEffectiveDmg(buildState);
       const reachMult = getEffectiveReachMultiplier(buildState);
       const rawRadius = level >= 4 ? 450 : (110 + Math.min(level, 3) * 80);
       const radius = Math.round(rawRadius * reachMult);
-      const targetCount = level === 4 ? 3 : (level === 5 ? 3 : level);
-      const damage = Number((mult * baseDmg).toFixed(4));
+      const rawTargetCount = level === 4 ? 3 : (level === 5 ? 3 : level);
+      const targetCount = Math.max(1, rawTargetCount - (hasFocus ? 1 : 0));
+      const damage = Number((mult * baseDmg * (hasFocus ? 1.30 : 1) * (hasOverload ? 1.35 : 1)).toFixed(4));
       const cloudRadius = 90;
 
-      const mutations = (buildState && Array.isArray(buildState.mutations))
-        ? buildState.mutations
-        : buildMutations;
       const hasBranch = mutations.includes("mut_branch");
       const branchCount = hasBranch ? 1 : 0;
       const branchScale = 0.25;
@@ -1518,7 +1740,7 @@
         skillId: "thunder",
         level,
         isAwakened,
-        source: hasBranch ? "mutation" : (hasDuoThundercircle ? "duo" : "base"),
+        source: (hasBranch || hasFocus || hasStun || hasOverload) ? "mutation" : (hasDuoThundercircle ? "duo" : "base"),
         derivationDepth: 0,
         cooldown,
         mult,
@@ -1526,7 +1748,9 @@
         damage,
         radius,
         targetCount,
-        hasBranch,
+        hasBranch, hasFocus, hasStun, hasOverload,
+        slowDuration: hasStun ? 0.55 : 0,
+        bossSlowDuration: hasStun ? 0.18 : 0,
         branchCount,
         branchScale,
         branchDamage,
@@ -1546,18 +1770,21 @@
         ? buildState.mutations
         : buildMutations;
       const hasOrbit = mutations.includes("mut_orbit");
+      const hasRapid = mutations.includes("mut_rapidfire");
+      const hasFlamebind = mutations.includes("mut_flamebind");
+      const hasFury = mutations.includes("mut_furyfire");
       const rx = hasOrbit ? 126 : 98;
       const ry = hasOrbit ? 78 : 98;
-      const angularSpeed = 2.8;
-      const hitInterval = 0.42;
-      const contactDamage = Number(((1.2 + level * 0.6) * baseDmg * (hasOrbit ? 1.20 : 1)).toFixed(4));
+      const angularSpeed = 2.8 * (hasRapid ? 1.40 : 1);
+      const hitInterval = 0.42 * (hasRapid ? 0.85 : 1);
+      const contactDamage = Number(((1.2 + level * 0.6) * baseDmg * (hasOrbit ? 1.20 : 1) * (hasFury ? 1.25 : 1)).toFixed(4));
       const attackCount = window.EVOLUTIONS?.fireAttackCount ? window.EVOLUTIONS.fireAttackCount(level) : [0, 0, 0, 1, 0][Math.max(0, Math.min(4, level - 1))];
       const spiritDamage = Number(((2.1 + (level || 1) * 0.9) * baseDmg).toFixed(4));
       const spiritCooldown = window.EVOLUTIONS?.fireAttackCooldown ? window.EVOLUTIONS.fireAttackCooldown(level) : [2.5, 2.2, 1.9, 1.55, 1.05][Math.max(0, Math.min(4, level - 1))];
       const cooldown = isAwakened ? 7.2 : spiritCooldown;
       const dragonDirectDmg = Number((12 * baseDmg * (hasOrbit ? 1.15 : 1)).toFixed(4));
       const dragonSplashDmg = Number((4 * baseDmg * (hasOrbit ? 1.15 : 1)).toFixed(4));
-      const dragonScorchDmg = Number((1.8 * baseDmg * (hasOrbit ? 1.15 : 1)).toFixed(4));
+      const dragonScorchDmg = Number((1.8 * baseDmg * (hasOrbit ? 1.15 : 1) * (hasFury ? 1.15 : 1)).toFixed(4));
       const scorchDuration = 5;
       const scorchRadius = 140;
 
@@ -1571,10 +1798,11 @@
         skillId: "fire",
         level,
         isAwakened,
-        source: hasOrbit ? "mutation" : ((hasDuoInkfire || hasDuoCinderseal) ? "duo" : "base"),
+        source: (hasOrbit || hasRapid || hasFlamebind || hasFury) ? "mutation" : ((hasDuoInkfire || hasDuoCinderseal) ? "duo" : "base"),
         derivationDepth: 0,
         count,
-        hasOrbit,
+        hasOrbit, hasRapid, hasFlamebind, hasFury,
+        slowDuration: hasFlamebind ? 0.65 : 0,
         hasDuoInkfire,
         hasDuoCinderseal,
         rx,
@@ -1612,10 +1840,10 @@
       const mutations = (buildState && Array.isArray(buildState.mutations))
         ? buildState.mutations
         : (buildMutations || []);
-      const hasFan = mutations.includes("mut_fan");
+      const hasFan = mutations.includes("mut_boom_fan");
       const hasSplitblast = mutations.includes("mut_splitblast");
-      const hasSeek = mutations.includes("mut_seek");
-      const hasFrost = mutations.includes("mut_frost");
+      const hasSeek = mutations.includes("mut_boom_seek");
+      const hasFrost = mutations.includes("mut_boom_frost");
       const tracking = hasSeek;
       const turnRate = hasSeek ? 4.2 : 0;
       const seekRange = Math.round(480 * reachMult);
@@ -2007,7 +2235,7 @@
     fire:["一顆狐火環繞護身，僅接觸周遭妖怪","兩顆狐火環繞護身，不主動飛出","三顆狐火環繞護身，不主動飛出","三顆護火，其中一顆離體追敵後回歸","覺醒・墨焰黑龍：三顆護火，每 7.2 秒一條黑龍（露臉 1.5 秒＋退場後 5 秒）；不再離體。每次三球、五秒焦土最多三處"],
     boom:["單符黏附後延遲爆炸；本體全傷，周圍濺射並震退","一次擲出 2 枚符咒","三符齊射，冷卻縮短","四符齊射，爆炸範圍加大","覺醒・兩儀延爆：兩枚符咒，爆炸範圍最大"],
     thunder:["190 範圍內攻擊最近 1 隻，傷害 2 倍係數","270 範圍內同時攻擊 2 隻，傷害 3 倍係數","350 範圍內同時攻擊 3 隻，傷害 4.5 倍係數，不依生命秒殺","450 範圍內鎖定 3 個威脅，固定 6 倍係數","覺醒・建御雷神破界天罰：450 範圍內三朵雷雲，每朵半徑 90、8 倍係數"],
-    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階弧線射出","覺醒・九尾極寒靈暴：八發追蹤冰針，單層殉爆最多再命中 3 隻，不連鎖"],
+    needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階八方輪射","覺醒・八方輪射：依序順時針每 0.10 秒一枚，追蹤與冰封須另選變異"],
     // 融合武器升級描述（Lv1 即完成形，描述供圖鑑/確認畫面）
     fusion_inkblade:["融合・墨焰斬：大型扇形墨焰斬，命中留下短暫地面灼燒；妖刀與狐火共鳴覺醒","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・墨焰斬：扇形 114.6°、半徑 280、地面灼燒 2.5 秒、冷卻 1.2 秒、直接斬擊與地面焦痕雙段傷害"],
     fusion_thundercircle:["融合・雷陣封界：大型陣域脈衝定點引雷，在陣域內有節奏地多次擊中並可閃避警示","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・雷陣封界：陣域半徑 240、脈衝間隔 0.8 秒、落雷預警 0.6 秒、命中去重 0.3 秒"],
@@ -2021,12 +2249,13 @@
     fusion_thundertalisman:["融合・雷符神罰：五枚雷符落定引雷連鎖","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・雷符神罰：五符各一擊、單次連鎖、Boss 不受控"],
   };
 
-  let proj = [], needles = [], winds = [], ghosts = [], dragonShots = [], dragonScorches = [], crosscuts = [], barrierPulses = [], sacredSanctuary = null, splitblasts = [], duoShockwaves = [], inkfireMarks = [], surgeT = SURGE_FIRST, fAng = 0, fireEmitT = 0, fireSfxT = 0, fireAttackT = 0;
+  let proj = [], needles = [], needleQueued = [], winds = [], ghosts = [], dragonShots = [], dragonScorches = [], crosscuts = [], barrierPulses = [], sacredSanctuary = null, splitblasts = [], duoShockwaves = [], inkfireMarks = [], surgeT = SURGE_FIRST, fAng = 0, fireEmitT = 0, fireSfxT = 0, fireAttackT = 0;
+  let boomLv5BurstFx = []; // temporary secondary sparks/smoke around painted Lv5 boom art
   let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1;
   const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0, fire: 0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 };
 
   const UP = [
-    { id: "shield", n: "金剛結界", s: "けっかい", cat: "防禦生存", d: "召喚金剛勾玉護盾，抵擋 2 次受傷（可疊加）", f: () => { b.shield = Math.min(6, (b.shield || 0) + 2); }, ok: () => (b.shield || 0) < 6 },
+    { id: "shield", n: "金剛結界", s: "けっかい", cat: "防禦生存", d: "召喚金剛勾玉護盾，獲得 2 次抵擋（最多取得 3 層）", f: () => { b.shield = Math.min(6, (b.shield || 0) + 2); b.shieldPicks = (b.shieldPicks || 0) + 1; }, ok: () => (b.shieldPicks || 0) < 3 },
     { id: "oil_max", n: "長明燈油", s: "あぶら", cat: "血厚續航", d: "燈油上限 +30 並補充 30 點，常駐每秒回油 +0.06（上限 2 層）", f: () => { maxOil += 30; oil = Math.min(maxOil, oil + 30); b.oilRegen = Math.min(0.12, (b.oilRegen || 0) + 0.06); }, ok: () => (b.oilRegen || 0) < 0.12 },
     { id: "oil_heal", n: "添燈香油", s: "かいふく", cat: "緊急急救", d: "恢復 50% 燈油，並震退周圍妖怪（每場最多 3 次）", f: () => {
       b.heals = (b.heals || 0) + 1;
@@ -2049,6 +2278,20 @@
     { id: "dash", n: "縮地瞬步", s: "ダッシュ", cat: "神速機動", d: "衝刺冷卻大幅縮短，衝刺附加無敵突進", f: () => { b.dash++; }, ok: () => b.dash < 3 },
     { id: "mag", n: "招財勾玉", s: "じしゃく", cat: "輔助資源", d: "靈玉吸取範圍 +80", f: () => { b.mag++; }, ok: () => b.mag < 3 }
   ];
+  // Explicit stacking specification shared by the upgrade pool and its cards.
+  const PASSIVE_MAX_STACKS = Object.freeze({
+    shield:3, oil_max:2, oil_heal:3, dmg:4, rate:4,
+    crit:3, spd:3, dash:3, mag:3
+  });
+  const passiveStackCount = id => {
+    switch(id) {
+      case "shield": return b.shieldPicks || 0;
+      case "oil_max": return Math.round((b.oilRegen || 0) / 0.06);
+      case "oil_heal": return b.heals || 0;
+      case "dmg": return b.dmgUp || 0;
+      default: return b[id] || 0;
+    }
+  };
 
   // Stop concurrent injury warnings becoming two ghosted copies at the same location.
   const say = (v, x, y, c = "#fff") => {
@@ -2059,6 +2302,14 @@
       t.y -= 22 / tiltK();
     }
     texts.push({ v, x, y, c, life: injury ? 1.12 : 1.8, injury });
+  };
+  // 配達資訊整合成一張多行木札，不讓獎勵／故事文字疊在同一水平線。
+  const sayDelivery = (lines, x, y) => {
+    const content = lines.filter(Boolean).map(String);
+    if (!content.length) return;
+    const overlapping = texts.filter(t => t.delivery && t.life > 0 && Math.abs(t.x - x) < 240).length;
+    texts.push({ delivery: true, lines: content, x, y: y - overlapping * 82 / tiltK(),
+      c: "#fff2c2", life: 4.2, maxLife: 4.2 });
   };
   const burst = (x, y, c, n = 16) => FX.burst(x, y, c, n);
 
@@ -2097,8 +2348,12 @@
     const orderCap = CFG.orderSlots(elapsed, delivered);
     if (orders.length >= orderCap) return;
     const busy = new Set(orders.map(o => o.from.id));
+    // 雨港相鄰屋列約 700px：三列間隔至少需要約 2800px，不能先裁到 1400/2200。
+    // 開局直接從已載入的 3600px 屋列選符合硬性門檻的取件點。
     const nearbyHouses = houses.filter(h => dist(P, h) < 1400);
-    const candidateHouses = nearbyHouses.length >= 4 ? nearbyHouses : houses.filter(h => dist(P, h) < 2200);
+    const candidateHouses = STAGE.id === "rain-port"
+      ? houses.filter(h => dist(P, h) <= 3600)
+      : nearbyHouses.length >= 4 ? nearbyHouses : houses.filter(h => dist(P, h) < 2200);
     if (!candidateHouses.length) return;
 
     // 1. 場上活著的誤配妖所代表的詞（妖還在時以戰鬥擊殺複習為主，不發重複委託避免照名牌選答案）
@@ -2314,7 +2569,7 @@ if (isRainPort) {
     window.FUSION.bindGame({
       getEnv: () => ({
         stageId: STAGE?.id || "night-town",
-        isRainPortNormal: STAGE?.id === "rain-port" && (STAGE?.pacing?.mobDifficulty !== "hard"),
+        isRainPortNormal: isRainPortNormalMode(),
         elapsed: typeof elapsed === "number" ? elapsed : 0,
         gameState: state,
         search: (typeof location !== "undefined" && location.search) || ""
@@ -2426,7 +2681,7 @@ if (isRainPort) {
     tutorial = null;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     Object.assign(P, { x: START.x, y: START.y, inv: 1.2, faceAng: 0, faceX: 1 });
-    Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, spd: 0, crit: 0, oilRegen: 0, dmgUp: 0, heals: 0 });
+    Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, shieldPicks: 0, spd: 0, crit: 0, oilRegen: 0, dmgUp: 0, heals: 0 });
     Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 });
     buildRevision++;
     buildMutations = [];
@@ -2447,7 +2702,8 @@ if (isRainPort) {
     if (window.FUSION && typeof window.FUSION.reset === "function") {
       window.FUSION.reset();
     }
-    proj = []; needles = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; splitblasts = []; duoShockwaves = []; inkfireMarks = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1;
+    boomLv5BurstFx = [];
+    proj = []; needles = []; needleQueued = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; splitblasts = []; duoShockwaves = []; inkfireMarks = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1;
     fAng = 0; fireEmitT = 0; fireSfxT = 0; fireAttackT = 0;
     wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0; wT.katana = 0.3;
     for (const id of Object.keys(wT)) if (id.startsWith("fusion_")) wT[id] = 0;
@@ -2465,7 +2721,7 @@ if (isRainPort) {
     SKILLFX.reset();
     rerolls = 2; titleCardT = 3; runSummary = null;
     bossStage = 0; bossT = BOSS_TIMES[0]; finalBossDefeated = false; finalBossWaitT = 0; finalBossHintT = 0; finalBossPos = null; finalBossEnt = null; victorySeq = null; lampSeq = null;
-    ended = false; bossQ = null; bossSealBreak = null; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0; lanternHitT = 0; playerAttackPoseT = playerHurtPoseT = 0;
+    ended = false; bossQ = null; bossSealBreak = null; bossCurseRemaining = 0; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0; lanternHitT = 0; playerAttackPoseT = playerHurtPoseT = 0;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     pTrail = [];
     for (let i = 0; i <= 24; i++) {
@@ -2567,12 +2823,14 @@ if (isRainPort) {
     // 奧義由獨立融合儀式視窗選擇；一般修行三選一永不塞入融合卡。
     const fc = [];
 
-    const pc = shuffle(UP.filter(u => !u.ok || u.ok())).map(u => {
+    const pc = shuffle(UP.filter(u => passiveStackCount(u.id) < PASSIVE_MAX_STACKS[u.id] && (!u.ok || u.ok()))).map(u => {
       let consumed = false;
       const choiceId = `passive:${u.id}`;
+      const stacks = passiveStackCount(u.id);
+      const maxStacks = PASSIVE_MAX_STACKS[u.id];
       const checkPassiveEligibility = () => {
         if (consumed || scopeRevision !== buildRevision) return false;
-        return !u.ok || u.ok();
+        return passiveStackCount(u.id) < maxStacks && (!u.ok || u.ok());
       };
       const applyPassiveEffect = () => {
         if (!checkPassiveEligibility()) return false;
@@ -2587,150 +2845,67 @@ if (isRainPort) {
         n: u.n,
         s: u.s,
         cat: `【 ${u.cat} 】`,
-        levelText: "◆ 體質修行",
+        levelText: `◆ 第 ${stacks+1} / ${maxStacks} 層`,
+        currentStacks: stacks,
+        maxStacks,
         rarity: "passive",
-        d: u.d,
+        d: `${u.d}（目前 ${stacks} / ${maxStacks} 層）`,
         revision: scopeRevision,
         ok: checkPassiveEligibility,
         f: applyPassiveEffect
       };
     });
 
-    // 變異選項：每技能最多 3 個變異；若為免費非變異補償選擇 (isFreeCompensationChoice)，則變異不進池
-    const eligibleMutationKeys = isFreeCompensationChoice ? [] : Object.keys(MUTATION_CONFIG).filter(mutId => {
-      const cfg = MUTATION_CONFIG[mutId];
-      if (!cfg || !cfg.inPool) return false;
-      if (buildMutations.includes(mutId)) return false;
-      const applicable = Array.isArray(cfg.skillIds) ? cfg.skillIds : [cfg.skillId];
-      const owned = applicable.filter(s => (WL[s] || 0) > 0);
-      if (owned.length === 0) return false;
-      return owned.every(s => getSkillMutations(s).length < 3);
-    });
+    // 變異每技能最多兩格；同一 family 只給靈針或陰陽符其中一招。
+    const eligibleMutationKeys = isFreeCompensationChoice ? [] :
+      Object.keys(MUTATION_CONFIG).filter(mutId => canAddMutation(mutId));
 
     const mutationCard = (mutId) => {
       let consumed = false;
       const meta = MUTATION_CONFIG[mutId];
       const skillId = meta.skillId;
       const choiceId = `mutation:${skillId}:${mutId}`;
-      const applicable = Array.isArray(meta.skillIds) ? meta.skillIds : [skillId];
-      const owned = applicable.filter(s => (WL[s] || 0) > 0);
-
-      let cardName = meta.n;
-      let cardCat = meta.cat;
-      let cardLevelText = meta.levelText;
-      let cardReq = meta.requirementText;
-      let cardDesc = meta.d;
-
-      if (mutId === "mut_fan") {
-        const hasNeedle = owned.includes("needle");
-        const hasBoom = owned.includes("boom");
-        if (hasNeedle && !hasBoom) {
-          cardName = "靈針・千本散射";
-          cardCat = "【 靈針變異 】";
-          cardLevelText = "◆ 靈針變異";
-          cardReq = "持有天狐靈針（取得陰陽符後亦適用）";
-          cardDesc = "朝向多角度散射，發數增加且散射角擴大；單發傷害分配受限（每次施放總傷害預算上限控管）";
-        } else if (!hasNeedle && hasBoom) {
-          cardName = "陰陽符・千本散射";
-          cardCat = "【 陰陽符變異 】";
-          cardLevelText = "◆ 陰陽符變異";
-          cardReq = "持有陰陽符（取得天狐靈針後亦適用）";
-          cardDesc = "朝向多角度散射，陰陽符發數增加（+2、最多 6 發）；每符傷害按發數比例分攤，保持每次施放總傷害預算上限";
-        } else if (hasNeedle && hasBoom) {
-          cardName = "千本散射";
-          cardCat = "【 共享變異 】";
-          cardLevelText = "◆ 共享變異";
-          cardReq = "持有天狐靈針或陰陽符（同時生效，後續取得亦適用）";
-          cardDesc = "朝向多角度散射，靈針與陰陽符發數增加；單發傷害按發數比例分攤，共享每次施放總傷害預算控管";
-        }
-      } else if (mutId === "mut_seek") {
-        const hasNeedle = owned.includes("needle");
-        const hasBoom = owned.includes("boom");
-        if (hasNeedle && !hasBoom) {
-          cardName = "靈針・引魂追跡";
-          cardCat = "【 靈針變異 】";
-          cardLevelText = "◆ 靈針變異";
-          cardReq = "持有天狐靈針（取得陰陽符後亦適用）";
-          cardDesc = "靈針具備轉向角速率平滑追蹤妖怪，失去目標後沿當前方向直行（非瞬移）";
-        } else if (!hasNeedle && hasBoom) {
-          cardName = "陰陽符・引魂追跡";
-          cardCat = "【 陰陽符變異 】";
-          cardLevelText = "◆ 陰陽符變異";
-          cardReq = "持有陰陽符（取得天狐靈針後亦適用）";
-          cardDesc = "未黏附陰陽符具備轉向角速率平滑追蹤妖怪，失去目標後沿當前方向直行（非瞬移）";
-        } else if (hasNeedle && hasBoom) {
-          cardName = "引魂追跡";
-          cardCat = "【 共享變異 】";
-          cardLevelText = "◆ 共享變異";
-          cardReq = "持有天狐靈針或陰陽符（同時生效，後續取得亦適用）";
-          cardDesc = "靈針與未黏附陰陽符具備轉向角速率平滑追蹤妖怪，失去目標後沿當前方向直行（非瞬移）";
-        }
-      } else if (mutId === "mut_frost") {
-        const hasNeedle = owned.includes("needle");
-        const hasBoom = owned.includes("boom");
-        if (hasNeedle && !hasBoom) {
-          cardName = "靈針・冰魄封靈";
-          cardCat = "【 靈針變異 】";
-          cardLevelText = "◆ 靈針變異";
-          cardReq = "持有天狐靈針（取得陰陽符後亦適用）";
-          cardDesc = "命中累積寒冷並短暫冰封；Boss 具備高寒冷門檻與 2.0 秒抗性免疫期（不被永久失能）";
-        } else if (!hasNeedle && hasBoom) {
-          cardName = "陰陽符・冰魄封靈";
-          cardCat = "【 陰陽符變異 】";
-          cardLevelText = "◆ 陰陽符變異";
-          cardReq = "持有陰陽符（取得天狐靈針後亦適用）";
-          cardDesc = "主爆命中累積寒冷並短暫冰封（次爆不累寒）；Boss 具備高寒冷門檻與 2.0 秒抗性免疫期（不被永久失能）";
-        } else if (hasNeedle && hasBoom) {
-          cardName = "冰魄封靈";
-          cardCat = "【 共享變異 】";
-          cardLevelText = "◆ 共享變異";
-          cardReq = "持有天狐靈針或陰陽符（同時生效，後續取得亦適用）";
-          cardDesc = "靈針命中與陰陽符主爆累積寒冷並短暫冰封；Boss 具備高寒冷門檻與 2.0 秒抗性免疫期（不被永久失能）";
-        }
-      }
-
-      const checkMutationEligibility = () => {
-        if (consumed || scopeRevision !== buildRevision) return false;
-        if (!meta || !meta.inPool) return false;
-        if (buildMutations.includes(mutId)) return false;
-        const currentOwned = applicable.filter(s => (WL[s] || 0) > 0);
-        if (currentOwned.length === 0) return false;
-        return currentOwned.every(s => getSkillMutations(s).length < 3);
-      };
-
-      const applyMutationEffect = () => {
-        if (!checkMutationEligibility()) return false;
-        consumed = true;
-        buildMutations.push(mutId);
-        return true;
-      };
-
+      const checkMutationEligibility = () =>
+        !consumed && scopeRevision === buildRevision && canAddMutation(mutId);
       return {
         id: mutId,
         choiceId,
         type: "mutation",
-        skillId: owned.length === 1 ? owned[0] : skillId,
-        skillIds: owned.length > 0 ? [...owned] : [...applicable],
-        n: cardName,
+        skillId,
+        skillIds: [skillId],
+        n: meta.n,
         s: meta.s,
-        cat: cardCat,
-        levelText: cardLevelText,
+        cat: meta.cat,
+        levelText: meta.levelText,
         rarity: "mutation",
-        d: cardDesc,
-        requirementText: cardReq,
+        d: meta.d,
+        requirementText: meta.requirementText,
         limitText: meta.limitText,
         revision: scopeRevision,
         ok: checkMutationEligibility,
-        f: applyMutationEffect
+        f: () => {
+          if (!checkMutationEligibility()) return false;
+          consumed = true;
+          buildMutations.push(mutId);
+          return true;
+        }
       };
     };
 
-    // 25%機率提供最多1張變異，若已出現則接下來至少隔3級才會再出。
-    // cc 與 dc 在下方才宣告，這裡不可前置讀取（會踩 TDZ）；
-    // 只就已宣告的 awakenCard / wc / pc 判斷。
+    // 原共享變異若兩招都持有，選到此類別就同時出現「靈針」和「陰陽符」
+    // 兩張專屬卡讓玩家自行選擇歸屬；選一張後另一張整局不可再取得。
     const otherUpgradeAvailable = !!awakenCard || wc.length > 0 || pc.length > 0;
-    const mutationOfferReady = otherUpgradeAvailable && eligibleMutationKeys.length > 0 && level - lastMutationOfferLevel >= 3 && Math.random() < 0.25;
-    const mc = mutationOfferReady ? [mutationCard(pick(eligibleMutationKeys))] : [];
+    const mutationOfferReady = otherUpgradeAvailable && eligibleMutationKeys.length > 0
+      && level - lastMutationOfferLevel >= 3 && Math.random() < 0.25;
+    let mc = [];
+    if (mutationOfferReady) {
+      const chosen = pick(eligibleMutationKeys);
+      const family = MUTATION_CONFIG[chosen]?.family;
+      const choices = family
+        ? eligibleMutationKeys.filter(id => MUTATION_CONFIG[id]?.family === family)
+        : [chosen];
+      mc = choices.slice(0, 2).map(mutationCard);
+    }
 
     // 六種 charm_* 只從地面拾取，升級卡池固定為空。
     const eligibleCharmKeys = [];
@@ -2828,11 +3003,9 @@ if (isRainPort) {
     let result = [];
     if (awakenCard) {
       const restPool = shuffle([...fc, ...wc.slice(0, 2), ...cc.slice(0, 2), ...dc.slice(0, 2), ...pc.slice(0, 2)]);
-      const rest = restPool.slice(0, 2);
-      if (mc.length > 0) {
-        if (rest.length >= 2) rest[1] = mc[0];
-        else rest.push(mc[0]);
-      }
+      const rest = mc.length > 0
+        ? [...restPool.slice(0, Math.max(0, 2 - mc.length)), ...mc.slice(0, 2)]
+        : restPool.slice(0, 2);
       if (cc.length > 0 && !rest.some(card => card.type === "charm")) {
         const nonMutIdx = rest.findIndex(c => c.type !== "mutation");
         if (nonMutIdx >= 0) {
@@ -2851,11 +3024,10 @@ if (isRainPort) {
       if (cc.length > 0) pool.push(...cc.slice(0, 2));
       if (dc.length > 0) pool.push(...dc.slice(0, 2));
       if (pc.length > 0) pool.push(...pc.slice(0, 2));
-      result = shuffle(pool).slice(0, 3);
-      if (mc.length > 0) {
-        if (result.length >= 3) result[2] = mc[0];
-        else result.push(mc[0]);
-      }
+      const baseChoices = shuffle(pool).slice(0, 3);
+      result = mc.length > 0
+        ? [...baseChoices.slice(0, Math.max(0, 3 - mc.length)), ...mc.slice(0, 2)]
+        : baseChoices;
       if (cc.length > 0 && !result.some(card => card.type === "charm")) {
         const nonMutIdx = result.findIndex(c => c.type !== "mutation");
         if (nonMutIdx >= 0) {
@@ -2944,7 +3116,7 @@ if (isRainPort) {
     say(`獲得：${choice.n}`, P.x, P.y - 45, "#ffe9a0");
     if (choice.lv === 5) {
       say(`${choice.n}・覺醒！`, P.x, P.y - 75, "#b8f2df");
-      AUDIO.fanfare();
+      AUDIO.skillLv5?.();
     }
     FX.levelUp(P.x, P.y);
     return { ok: true, revision: buildRevision, level, id: choice.id };
@@ -3019,20 +3191,16 @@ if (isRainPort) {
         noteSuccess("delivery", true);
         oil = Math.min(maxOil, oil + 12);
         score += 25;
-        say(`${w.jp}＝${w.zh} 輔助送達！`, pos.x, pos.y - 35, "#fff0a6");
-        say("燈油 +12 點（神助）", pos.x, pos.y - 12, "#ffd27a");
+        sayDelivery([`${w.jp}＝${w.zh} 輔助送達！`], pos.x, pos.y - 45);
       } else {
         rememberWord(j.word.jp, false);
         noteSuccess("delivery", false);
         const gain = 10;
         oil = Math.min(maxOil, oil + 18 + gain);
         score += 50;
-        say(`${w.jp}＝${w.zh} 配達完遂！`, pos.x, pos.y - 35, "#fff0a6");
-        say(`燈油 +${18 + gain} 點`, pos.x, pos.y - 12, "#ffd27a");
         const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
-        if (story && story.delivery && (delivered === 1 || delivered % 3 === 0)) {
-          say(story.delivery, pos.x, pos.y - 56, "#d2f0ff");
-        }
+        // 單字與配達結果即可，刪除不影響遊戲體驗的重複敘事文案。
+        sayDelivery([`${w.jp}＝${w.zh} 配達完遂！`], pos.x, pos.y - 45);
       }
       xp += CFG.DELIVERY_XP;
       if (STAGE.id === "rain-port") {
@@ -3072,6 +3240,7 @@ if (isRainPort) {
     if (b.shield > 0) {
       b.shield--;
       P.inv = 0.85;
+      RENDERER.triggerShieldHit?.();
       RENDERER.triggerShake(6);
       burst(P.x, P.y, "#ffe28b", 22);
       say(`護盾抵擋！剩餘 ${b.shield}`, P.x, P.y - 45, "#ffe28b");
@@ -3109,7 +3278,8 @@ if (isRainPort) {
   // Coalesce a full sweep of enemies into one tactile hit cue.
   let lastBladeImpactAt = -Infinity;
   function hurt(e, dmg, isCrit = false, fromShatter = false, impactType = "") {
-    if (e.hp <= 0) return;
+    // Boss 封印反噬期間，即使有延遲傷害也不可造成任何玩家攻擊傷害。
+    if (e.hp <= 0 || bossCurseRemaining > 0) return;
     if (e.shield) {
       e.flash = 0.08;
       if (!e.shieldFeedbackUntil || elapsed >= e.shieldFeedbackUntil) {
@@ -3149,6 +3319,9 @@ if (isRainPort) {
     RENDERER.spawnDamageNumber(dmg, e.x, e.y - 25, isCrit, isCrit ? "#ffcc00" : "#ffffff");
 
     if (e.hp > 0) return;
+    // 必須先保存『死亡當刻仍冰凍』的碎裂資格，不能在後面的碎裂處理前清空。
+    const deathShatter = e.shatterVolley;
+    const frozenAtDeath = e.freezeT > 0 && (e.freezeEnds == null || elapsed < e.freezeEnds);
     e.freezeT = 0; delete e.shatterVolley; e.frostHits = 0;
 
     // 怪物擊敗
@@ -3184,15 +3357,14 @@ if (isRainPort) {
 
     const gemCount = 1;
     // 第二關 Normal 只有普通小怪改為 3 XP；Boss 與誤配妖仍為原數值。
-    const gemValue = STAGE.id === "rain-port" && STAGE.pacing?.mobDifficulty !== "hard" && e.type !== "boss" && !isMis ? 3 : 2;
+    const gemValue = isRainPortNormalMode() && e.type !== "boss" && !isMis ? 3 : 2;
     for (let i = 0; i < gemCount; i++) {
       dropGem(e.x + (Math.random() - 0.5) * 28, e.y + (Math.random() - 0.5) * 28, gemValue);
     }
     FX.death(e.x, e.y, isMis ? "#c98cff" : "#bce9ff", e.type === "boss");
 
     // 冰晶碎裂：同一 volley 只爆一次，最多再命中 3 隻，不凍結、不遞迴。
-    if (e.shatterVolley && !(e.freezeT > 0 && (e.freezeEnds == null || elapsed < e.freezeEnds))) delete e.shatterVolley;
-    const volley = e.shatterVolley;
+    const volley = frozenAtDeath ? deathShatter : null;
     if (!fromShatter && volley && !volley.used) {
       volley.used = true;
       burst(e.x, e.y, "#bdf4ff", 14);
@@ -3289,7 +3461,8 @@ if (isRainPort) {
   }
 
   // 收尾演出時間軸（秒）：小怪定格、Boss 邊抖邊連環爆炸 → 最後大爆 → 小怪原地燃燒消失 → 曙光 → 曙光亮起 2 秒後結算。
-  const VICTORY = { explode: 1.6, ignite: 2.0, burn: 1.0, dawn: 3.0, dawnFade: 1.2, settle: 5.0 };
+  // Boss 先約 5.2 秒連續崩解，殘敵淡出約 1.6 秒，全部消失後再自由喘息 6 秒。
+  const VICTORY = { explode: 5.2, ignite: 5.5, burn: 1.6, dawn: 7.1, dawnFade: 1.7, settle: 13.1 };
   const victoryDawn = () => victorySeq ? Math.max(0, Math.min(1, (victorySeq.t - VICTORY.dawn) / VICTORY.dawnFade)) : 0;
 
   function startVictorySequence() {
@@ -3301,11 +3474,10 @@ if (isRainPort) {
     if (boss) enemies.push(boss);
     victorySeq = { t: 0, bossX: p.x, bossY: p.y, boss, blastT: 0, blasts: 0, bossGone: !boss, ignited: false, fireT: 0 };
     state = "victory";
-    winds = []; ghosts = []; proj = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; dragonShots = []; dragonScorches = []; splitblasts = []; duoShockwaves = []; inkfireMarks = [];
-    fusionEffects = []; fusionEffects._idCounter = 0;
+    // 停止下一次施法與所有自動攻擊排程，但保留已經飛出去的招式短暫收尾。
+    dashT = 0; playerAttackPoseT = 0;
+    keys.delete("dash");
     gems = [];
-    keys.clear(); heldCodes.clear();
-    joy = null;
     bossQ = null;
     job = null;
     orders = [];
@@ -3313,7 +3485,6 @@ if (isRainPort) {
     enemyBullets = [];
     RENDERER.clearShake(); // 演出期間不震動整個畫面，只有 Boss 自己抖
     AUDIO.thunder();
-    window.dispatchEvent(new Event('gamepause'));
   }
 
   function updateVictorySequence(dt) {
@@ -3321,15 +3492,52 @@ if (isRainPort) {
     if (!v) return;
     v.t += dt;
     const t = v.t;
+    // Boss 長篇崩解與其後 6 秒喘息期間，玩家仍可自由移動，鏡頭照常追隨。
+    animElapsed += dt;
+    const m = move();
+    if (Math.hypot(m.x, m.y) > 0.05) P.faceAng = Math.atan2(m.y, m.x);
+    const sp = getEffectiveMoveSpeed();
+    const steps = Math.max(1, Math.ceil(sp * dt / 9));
+    for (let i = 0; i < steps; i++) {
+      const nx = P.x + m.x * sp * dt / steps;
+      const ny = P.y + m.y * sp * dt / steps;
+      if (!blocked(nx, P.y)) P.x = nx;
+      if (!blocked(P.x, ny)) P.y = ny;
+    }
+    syncWorld();
+    const targetCamX = P.x - W / 2;
+    const targetCamY = P.y - H / (2 * tiltK());
+    const cam = RENDERER.getCam();
+    RENDERER.setCam(cam.x + (targetCamX - cam.x) * Math.min(1, dt * 9),
+      cam.y + (targetCamY - cam.y) * Math.min(1, dt * 9));
+    // 既有彈道自然飛走並淡出，1.5 秒後回收，且不執行 weapons()。
+    if (t < 1.5) {
+      for (const group of [winds, ghosts, proj, needles, crosscuts, dragonShots, splitblasts]) {
+        for (const fx of group) {
+          if (Number.isFinite(fx.vx)) fx.x += fx.vx * dt;
+          if (Number.isFinite(fx.vy)) fx.y += fx.vy * dt;
+          if (Number.isFinite(fx.life)) fx.life = Math.max(0, fx.life - dt);
+        }
+      }
+    } else if (!v.attackFxCleared) {
+      winds = []; ghosts = []; proj = []; needles = []; crosscuts = []; barrierPulses = [];
+      sacredSanctuary = null; dragonShots = []; dragonScorches = []; splitblasts = [];
+      duoShockwaves = []; inkfireMarks = []; fusionEffects = []; fusionEffects._idCounter = 0;
+      v.attackFxCleared = true;
+    }
+    SKILLFX.update(dt);
+
 
     if (!v.bossGone) {
       if (t < VICTORY.explode) {
-        v.boss.x = v.bossX + (Math.random() - 0.5) * 9;
-        v.boss.y = v.bossY + (Math.random() - 0.5) * 5;
-        v.boss.flash = Math.random() < 0.4 ? 0.1 : 0;
+        const rupture = Math.min(1, t / VICTORY.explode);
+        v.boss.x = v.bossX + (Math.random() - 0.5) * (5 + rupture * 25);
+        v.boss.y = v.bossY + (Math.random() - 0.5) * (4 + rupture * 18);
+        v.boss.flash = Math.random() < (0.22 + rupture * 0.55) ? 0.14 : 0;
+        v.boss.vanish = t > VICTORY.explode - 1.1 ? Math.max(0.04, (VICTORY.explode-t)/1.1) : 1;
         v.blastT -= dt;
         if (v.blastT <= 0) {
-          v.blastT = 0.13;
+          v.blastT = Math.max(0.075, 0.22 - rupture * 0.14);
           const bx = v.bossX + (Math.random() - 0.5) * 90, by = v.bossY - 25 + (Math.random() - 0.5) * 80;
           burst(bx, by, Math.random() < 0.5 ? "#ffb74d" : "#ff5252", 14);
           rings.push({ x: bx, y: by, life: 0.35, maxL: 0.35, maxR: 70, color: "#ffcc80" });
@@ -3522,10 +3730,7 @@ if (isRainPort) {
       else if (state === "play") dash();
     }
 
-    // X 鍵 (Button 2): 提示
-    if (justPressed(2)) {
-      if (state === "play" && job) triggerHint();
-    }
+    // X no longer unlocks a free answer/replay; the charm HUD is display only.
 
     // 手把重開奧義確認面試：Y 鍵 (Button 3) 或 X 鍵 (Button 2 且無委託提示時)
     if (state === "play" && window.FUSION && typeof window.FUSION.getState === "function") {
@@ -3603,8 +3808,12 @@ if (isRainPort) {
 
   function answerBoss(i) {
     if (state !== "play") return;
-    const bs = enemies.find(e => e.type === "boss" && e.shield);
-    if (!bossQ || bossQ.lock > 0 || !bs) return;
+    if (!bossQ || bossQ.lock > 0) return;
+    // Match the submitted quiz to its owning Boss. The word/proximity fallback
+    // preserves support for the older isolated quiz fixtures without a .quiz link.
+    const bs = enemies.find(e => e.type === "boss" && e.shield && e.hp > 0 && e.quiz === bossQ)
+      || enemies.find(e => e.type === "boss" && e.shield && e.hp > 0 && e.word === bossQ.word && dist(P, e) < 380);
+    if (!bs) return;
     if (i < 0 || i >= bossQ.ans.length) return;
     if (bossQ.wrong.includes(i)) return;
     const ok = bossQ.ans[i] === bs.word;
@@ -3627,25 +3836,28 @@ if (isRainPort) {
       AUDIO.breakShield();
       HAPTICS.shield();
     } else {
-      const penalty = Math.max(3, Math.round(maxOil * 0.05));
-      // lock 與 wrong 已擋掉重複選項；讀題時 elapsed 暫停，不能再拿它當扣血時鐘。
+      // 每次 Boss 封印各自計算答錯次數；首次反噬 10 秒，再錯 30 秒。
+      // 詛咒只在能戰鬥的遊戲時間倒數，讀題暫停不會白白消耗懲罰。
+      const strike = bossQ.wrong.length + 1;
+      const curseSeconds = strike === 1 ? 10 : 30;
+      bossCurseRemaining = Math.max(bossCurseRemaining, curseSeconds);
       bs.wrongPaid = true;
       misses.push(bs.word);
       STORE.rec(bs.word.jp, false);
       study?.mistake?.(bs.word, elapsed);
-      oil = Math.max(0, oil - penalty);
       bossQ.wasAssisted = true;
       bs.wasAssisted = true;
       if (job?.word.jp === bs.word.jp) job.assisted = true;
+      // 舊招式立即停止，不讓被詛咒時仍有自動武器、範圍傷害或殘留火球。
+      proj = []; needles = []; winds = []; ghosts = []; crosscuts = [];
+      dragonShots = []; dragonScorches = []; barrierPulses = []; sacredSanctuary = null;
+      splitblasts = []; duoShockwaves = []; inkfireMarks = [];
+      fusionEffects = []; fusionEffects._idCounter = 0;
+      fireAttackT = 0; playerAttackPoseT = 0;
+      SKILLFX.reset();
       AUDIO.deliverWrong();
       HAPTICS.deliverWrong();
-      // 不洩露當題正解，高對比提示
-      say(`答錯了，請再試一次（燈油 −${penalty}）`, P.x, P.y - 50, "#ffffff");
-      if (oil <= 0) {
-        oil = 0;
-        loseRun();
-        return;
-      }
+      say(`封印反噬・禁攻擊 ${curseSeconds} 秒！`, P.x, P.y - 55, "#ffd4ef");
       bossQ.wrong.push(i);
       bossQ.lock = 0.5;
     }
@@ -3656,31 +3868,8 @@ if (isRainPort) {
     if (bs) bs.wasAssisted = true;
   }
 
-  function triggerHint() {
-    if (state !== "play" || !job || hintT > 0) return;
-    if (!job.hintStage) job.hintStage = 0;
-    if (job.hintStage === 0) {
-      job.hintStage = 1;
-      hintT = 0.5;
-      job.assisted = true;
-      AUDIO.speak(job.word.jp);
-      const wrongIndices = job.ans.map((w, idx) => w !== job.word ? idx : -1).filter(idx => idx >= 0);
-      if (wrongIndices.length > 0) {
-        job.eliminatedIdx = pick(wrongIndices);
-      }
-      say("天狐靈音：聆聽發音，排除一項！", P.x, P.y - 45, "#80deea");
-      AUDIO.pickup();
-    } else if (job.hintStage === 1 && oil > 4) {
-      oil -= 4;
-      job.hintStage = 2;
-      job.assisted = true;
-      job.showMeaningT = 4.0;
-      hintT = 4.0;
-      say(`破幻神符：${job.word.jp} 意為「${job.word.zh}」（燈油 -4）`, P.x, P.y - 45, "#ffd54f");
-      AUDIO.pickup();
-    }
-    if (job.assisted) markBossAssisted(job.word);
-  }
+  // Compatibility with the internal test bridge; every listening hint is disabled.
+  function triggerHint() { return false; }
 
   // R5 實測候選，尚未定案。延遲另一候選是 2 秒，只改 BOOM_FUSE。
   const BOOM_FUSE = 1.5;
@@ -3705,6 +3894,10 @@ if (isRainPort) {
     const primary = q.target;
     const primaryLive = !!(primary && primary.hp > 0 && enemies.includes(primary));
     SKILLFX.play("boom", "hit", rank, { x: q.x, y: q.y, r: radius, target: primaryLive ? primary : null, evolved: rank === 5 });
+    if (rank === 5) {
+      if (boomLv5BurstFx.length >= 16) boomLv5BurstFx.shift();
+      boomLv5BurstFx.push({ x:q.x, y:q.y, radius, life:.78, maxLife:.78 });
+    }
     if (typeof AUDIO.ofudaBurst === "function") AUDIO.ofudaBurst(rank);
     RENDERER.triggerShake(rank === 5 ? 5 : 3);
     let harmed = false;
@@ -4007,7 +4200,7 @@ if (isRainPort) {
       const faceAng = P.faceAng || 0;
       let hasEnemyInArc = false;
       for (const e of enemies) {
-        if (e.hp > 0 && dist(P, e) <= (spec.isAwakened ? 560 : reach)) {
+        if (e.hp > 0 && dist(P, e) <= (spec.isAwakened ? (spec.hasLongblade ? 680 : 560) : reach)) {
           const eang = Math.atan2(e.y - P.y, e.x - P.x);
           let diff = Math.abs(eang - faceAng);
           while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
@@ -4042,7 +4235,7 @@ if (isRainPort) {
                 const wasBurned = !!(e.fireBurnEnds && e.fireBurnEnds > elapsed);
                 const hpBefore = e.hp;
                 const crit = rollCrit(spec);
-                hurt(e, spec.slashDmg * crit.mult, crit.isCrit, false, "blade");
+                hurt(e, spec.slashDmg * (e.type === "boss" ? spec.bossDamageMultiplier : e.type === "tank" ? spec.armoredDamageMultiplier : 1) * crit.mult, crit.isCrit, false, "blade");
                 SKILLFX.play("katana", "hit", WL.katana, { x: e.x, y: e.y, ang: faceAng, crit: crit.isCrit });
                 if (spec.hasDuoInkfire && !qualifyingInkfireHit && wasBurned && e.hp < hpBefore && !e.shield && !e.vanish && !e.done) {
                   qualifyingInkfireHit = { x: e.x, y: e.y, baseDmg: spec.slashDmg };
@@ -4135,7 +4328,7 @@ if (isRainPort) {
         if (wave.mainHits) wave.mainHits.add(e);
         const pierceScale = hitIndex < 3 ? 1 : (wave.pierceScale || 0.75);
         const crit = rollCrit(wave.attackSnapshot || wave);
-        hurt(e, wave.dmg * pierceScale * crit.mult, crit.isCrit, false, "blade");
+        hurt(e, wave.dmg * pierceScale * (e.type === "boss" ? (wave.attackSnapshot?.bossDamageMultiplier || 1) : e.type === "tank" ? (wave.attackSnapshot?.armoredDamageMultiplier || 1) : 1) * crit.mult, crit.isCrit, false, "blade");
         SKILLFX.play("katana", "hit", 5, { x: e.x, y: e.y, ang: wave.ang, crit: crit.isCrit });
         if (wave.attackSnapshot?.hasDuoInkfire && !wave.inkfireUsed && wasBurned && e.hp < hpBefore && !e.shield && !e.vanish && !e.done) {
           wave.inkfireUsed = true;
@@ -4182,7 +4375,7 @@ if (isRainPort) {
                     ? Number((baseSlash * 0.40).toFixed(2))
                     : cc.dmg;
                   const crit = rollCrit(cc.attackSnapshot || cc);
-                  hurt(e, finalDmg * crit.mult, crit.isCrit, false, "blade");
+                  hurt(e, finalDmg * (e.type === "boss" ? (cc.attackSnapshot?.bossDamageMultiplier || 1) : e.type === "tank" ? (cc.attackSnapshot?.armoredDamageMultiplier || 1) : 1) * crit.mult, crit.isCrit, false, "blade");
                   SKILLFX.play("katana", "hit", cc.level, { x: e.x, y: e.y, ang: cc.crossAng, crit: crit.isCrit });
                 }
               }
@@ -4721,6 +4914,7 @@ if (isRainPort) {
             hitAny = true;
             const crit = rollCrit(spec);
             hurt(e, spec.damage * crit.mult, crit.isCrit);
+            if (e.hp > 0 && e.type !== "boss" && spec.slowDuration > 0) e.slowT = Math.max(e.slowT || 0, spec.slowDuration);
             if (spec.knockback > 0 && e.type !== "boss") knockback(e, spec.knockback);
             burst(e.x, e.y, "#ffe082", 6);
           }
@@ -4762,6 +4956,7 @@ if (isRainPort) {
                 hitAny = true;
                 const crit = rollCrit(bp.attackSnapshot || bp);
                 hurt(e, bp.damage * crit.mult, crit.isCrit);
+                if (e.hp > 0 && e.type !== "boss" && bp.attackSnapshot?.slowDuration > 0) e.slowT = Math.max(e.slowT || 0, bp.attackSnapshot.slowDuration);
                 if (bp.knockback > 0 && e.type !== "boss") knockback(e, bp.knockback, bp);
                 burst(e.x, e.y, "#ffe082", 6);
               }
@@ -4777,16 +4972,27 @@ if (isRainPort) {
       sacredSanctuary.life -= dt;
     }
 
+    // 2/3 of the visible distance from the character toward the viewport edge
+    // along EACH needle heading. Respect world camera zoom and ground tilt.
+    const needleReturnTravel = angle => {
+      const zoom = Math.max(0.25, window.VIEWPORT?.worldZoom?.() || 1);
+      const edgeX = (W * 0.5 / zoom) / Math.max(0.0001, Math.abs(Math.cos(angle)));
+      const edgeY = (H * 0.5 / (zoom * tiltK())) / Math.max(0.0001, Math.abs(Math.sin(angle)));
+      return Math.max(120, Math.min(1100, Math.min(edgeX, edgeY) * 0.72));
+    };
+
     // 3. 天狐靈針 (Needles) - 面朝方向多發穿甲破魔靈針
     if (WL.needle > 0) {
       wT.needle -= dt;
-      if (wT.needle <= 0) {
+      if (wT.needle <= 0 && needleQueued.length === 0) {
         const spec = resolveAttackSpec("needle", WL.needle, getBuildState());
         wT.needle = wMax.needle = spec.cooldown;
         const count = spec.count;
         const moveDir = move();
         let shootAng = 0;
-        if (Math.hypot(moveDir.x, moveDir.y) > 0.1) {
+        if (spec.isAwakened) {
+          shootAng = P.faceAng || 0;
+        } else if (Math.hypot(moveDir.x, moveDir.y) > 0.1) {
           shootAng = Math.atan2(moveDir.y, moveDir.x);
         } else {
           let near = null, nd = 450;
@@ -4798,74 +5004,14 @@ if (isRainPort) {
         }
 
         if (spec.isAwakened) {
-          const volley = EVOLUTIONS.iceVolley(P, enemies, shootAng);
-          for (const nd of volley) {
-            nd.dmg = spec.damage; // 快照傷害，飛行途中不回寫
-            nd.baseDmg = spec.baseDamage;
-            nd.speed = spec.speed;
-            nd.range = spec.range;
-            nd.attackSnapshot = spec;
-            nd.tracking = spec.tracking;
-            nd.turnRate = spec.turnRate || 4.8;
-            nd.seekRange = spec.seekRange || 480;
-            nd.frost = spec.frost;
-            nd.hasPierce = spec.hasPierce || false;
-            nd.pierceBonusScale = spec.pierceBonusScale || 0;
-            nd.maxPierceBonusHits = spec.maxPierceBonusHits || 0;
-            nd.pierceBonusMax = spec.pierceBonusMax || 0;
-            nd.pierceHits = 0;
-            nd.pierceBonusCount = 0;
-            nd.pierceBonusScaleTotal = 0;
-            nd.originX = nd.originX ?? P.x;
-            nd.originY = nd.originY ?? P.y;
-            nd.hasReturn = spec.hasReturn || false;
-            nd.returnDistance = spec.returnDistance || 0;
-            nd.distanceTraveled = 0;
-            nd.returned = false;
-            nd.returning = false;
-            needles.push(nd);
-          }
-          if (spec.fan) {
-            const extraCount = spec.count - 8;
-            const sharedVolley = volley[0]?.volley || { used: false, hits: new Set() };
-            for (let i = 0; i < extraCount; i++) {
-              const a = shootAng + ((i % 2 === 0 ? 1 : -1) * (0.85 + Math.floor(i / 2) * 0.35));
-              needles.push({
-                x: P.x, y: P.y,
-                originX: P.x, originY: P.y,
-                vx: Math.cos(a) * spec.speed, vy: Math.sin(a) * spec.speed,
-                life: spec.life,
-                level: spec.level,
-                curve: false, launchAng: a, ang: a, age: 0,
-                aimX: P.x + Math.cos(a) * spec.range, aimY: P.y + Math.sin(a) * spec.range,
-                dmg: spec.damage,
-                baseDmg: spec.baseDamage,
-                speed: spec.speed,
-                range: spec.range,
-                hits: new Set(),
-                trail: 0,
-                ice: true,
-                frost: true,
-                tracking: spec.tracking,
-                turnRate: spec.turnRate || 4.8,
-                seekRange: spec.seekRange || 480,
-                target: null,
-                attackSnapshot: spec,
-                volley: sharedVolley,
-                hasPierce: spec.hasPierce || false,
-                pierceBonusScale: spec.pierceBonusScale || 0,
-                maxPierceBonusHits: spec.maxPierceBonusHits || 0,
-                pierceBonusMax: spec.pierceBonusMax || 0,
-                pierceHits: 0,
-                pierceBonusCount: 0,
-                pierceBonusScaleTotal: 0,
-                hasReturn: spec.hasReturn || false,
-                returnDistance: spec.returnDistance || 0,
-                distanceTraveled: 0,
-                returned: false,
-                returning: false
-              });
-            }
+          // Lv5 八方向順時針，每 0.05 秒一針；最後一針後才起算冷卻。
+          const volley = spec.frost ? { used: false, hits: new Set() } : null;
+          for (let i = 0; i < count; i++) {
+            needleQueued.push({
+              wait: (i + 1) * spec.volleyInterval,
+              angle: shootAng + i * Math.PI * 2 / count,
+              spec, volley
+            });
           }
         } else {
           const spread = spec.spread;
@@ -4875,7 +5021,7 @@ if (isRainPort) {
               x: P.x, y: P.y,
               originX: P.x, originY: P.y,
               vx: Math.cos(a) * spec.speed, vy: Math.sin(a) * spec.speed,
-              life: spec.life,
+              life: spec.hasReturn ? Math.max(spec.life, needleReturnTravel(a) / spec.speed * 2.5 + 0.28) : spec.life,
               level: spec.level,
               curve: false, launchAng: a, ang: a, age: 0,
               aimX: P.x + Math.cos(shootAng) * spec.range, aimY: P.y + Math.sin(shootAng) * spec.range,
@@ -4900,16 +5046,64 @@ if (isRainPort) {
               pierceBonusCount: 0,
               pierceBonusScaleTotal: 0,
               hasReturn: spec.hasReturn || false,
-              returnDistance: spec.returnDistance || 0,
+              returnDistance: spec.hasReturn ? needleReturnTravel(a) : 0,
               distanceTraveled: 0,
               returned: false,
               returning: false
             });
           }
         }
-        SKILLFX.play("needle", "fire", spec.level, { x: P.x + Math.cos(shootAng) * 28, y: P.y + Math.sin(shootAng) * 28 });
-        AUDIO.needle(spec.level);
+        if (!spec.isAwakened) SKILLFX.play("needle", "fire", spec.level, { x: P.x + Math.cos(shootAng) * 28, y: P.y + Math.sin(shootAng) * 28 });
+        if (!spec.isAwakened) AUDIO.needle(spec.level);
       }
+    }
+
+    // Lv5 每枚按順時針排程到點才出針；變異和傷害沿用施放時快照。
+    const hadNeedleVolley = needleQueued.length > 0;
+    for (const queued of needleQueued) {
+      queued.wait -= dt;
+      // Tolerate floating point slivers (0.15 - 0.05*3) so shots land
+      // exactly on each 0.05s boundary, not one frame late.
+      if (queued.wait > 0.000001) continue;
+      const spec = queued.spec, a = queued.angle;
+      // Back-mounted spirit needles: 60 upright pixels above the feet.
+      // World Y is tilt-projected, so this stays behind the upper torso.
+      const originX = P.x - Math.cos(P.faceAng || 0) * 16;
+      const originY = P.y - 60 / tiltK();
+      needles.push({
+        x: originX, y: originY, originX, originY,
+        vx: Math.cos(a) * spec.speed, vy: Math.sin(a) * spec.speed,
+        life: spec.hasReturn ? Math.max(spec.life, needleReturnTravel(a) / spec.speed * 2.5 + 0.28) : spec.life,
+        level: spec.level, curve: false,
+        launchAng: a, ang: a, age: 0,
+        aimX: originX + Math.cos(a) * spec.range,
+        aimY: originY + Math.sin(a) * spec.range,
+        dmg: spec.damage, baseDmg: spec.baseDamage, speed: spec.speed,
+        range: spec.range, hits: new Set(), trail: 0,
+        ice: spec.frost, frost: spec.frost,
+        tracking: spec.tracking, turnRate: spec.turnRate || 4.8,
+        seekRange: spec.seekRange || 480, target: null,
+        attackSnapshot: spec, volley: queued.volley,
+        hasPierce: spec.hasPierce || false,
+        pierceBonusScale: spec.pierceBonusScale || 0,
+        maxPierceBonusHits: spec.maxPierceBonusHits || 0,
+        pierceBonusMax: spec.pierceBonusMax || 0,
+        pierceHits: 0, pierceBonusCount: 0, pierceBonusScaleTotal: 0,
+        hasReturn: spec.hasReturn || false,
+        returnDistance: spec.hasReturn ? needleReturnTravel(a) : 0,
+        distanceTraveled: 0, returned: false, returning: false
+      });
+      SKILLFX.play("needle", "fire", spec.level, {
+        x: originX + Math.cos(a) * 20, y: originY + Math.sin(a) * 20
+      });
+      AUDIO.needle(spec.level); // Sound on EACH individual released shot.
+    }
+    needleQueued = needleQueued.filter(q => q.wait > 0.000001);
+    // The volley itself is never counted as cooldown. The 1s timer begins
+    // only once its final (eighth) projectile has actually been emitted.
+    if (hadNeedleVolley && needleQueued.length === 0) {
+      const spec = resolveAttackSpec("needle", WL.needle, getBuildState());
+      wT.needle = wMax.needle = spec.cooldown;
     }
 
     for (const nd of needles) {
@@ -4945,7 +5139,19 @@ if (isRainPort) {
         }
       }
       const prevX = nd.x, prevY = nd.y;
-      if (!EVOLUTIONS.move(nd, dt, nd.curve ? blocked : null, 6)) continue;
+      if (nd.returning) {
+        // One wide, smooth boomerang arc back to the cast origin: the needle
+        // keeps its original visible orientation (only flight path bends).
+        nd.returnElapsed = (nd.returnElapsed || 0) + dt;
+        const progress = Math.min(1, nd.returnElapsed / nd.returnDuration);
+        const bulge = Math.sin(progress * Math.PI) * nd.returnArc;
+        const px = -Math.sin(nd.launchAng), py = Math.cos(nd.launchAng);
+        nd.x = nd.returnStartX + (nd.originX - nd.returnStartX) * progress + px * bulge;
+        nd.y = nd.returnStartY + (nd.originY - nd.returnStartY) * progress + py * bulge;
+        nd.vx = (nd.x - prevX) / Math.max(.001, dt);
+        nd.vy = (nd.y - prevY) / Math.max(.001, dt);
+        nd.life -= dt;
+      } else if (!EVOLUTIONS.move(nd, dt, nd.curve ? blocked : null, 6)) continue;
       const stepDist = Math.hypot(nd.x - prevX, nd.y - prevY);
 
       if (nd.hasReturn && !nd.returned) {
@@ -4957,18 +5163,15 @@ if (isRainPort) {
           nd.curved = true;
           nd.curveDone = true;
           nd.tracking = false;
-          const retAng = Math.atan2(nd.originY - nd.y, nd.originX - nd.x);
-          nd.ang = retAng;
-          const spd = nd.speed || 640;
-          nd.vx = Math.cos(retAng) * spd;
-          nd.vy = Math.sin(retAng) * spd;
+          nd.returnStartX = nd.x;
+          nd.returnStartY = nd.y;
+          nd.returnElapsed = 0;
+          nd.returnDuration = Math.max(0.40, nd.returnDistance * 1.22 / (nd.speed || 640));
+          // Handedness alternates with launch angle, not with player facing.
+          nd.returnArc = Math.max(54, Math.min(145, nd.returnDistance * 0.27)) * (Math.sin(nd.launchAng * 2.7) >= 0 ? 1 : -1);
         }
       } else if (nd.returning) {
-        const dOrigin = Math.hypot(nd.x - nd.originX, nd.y - nd.originY);
-        const pastOrigin = ((nd.x - nd.originX) * nd.vx + (nd.y - nd.originY) * nd.vy) >= 0;
-        if (dOrigin <= Math.max(20, stepDist * 1.1) || pastOrigin) {
-          nd.life = 0;
-        }
+        if (nd.returnElapsed >= nd.returnDuration) nd.life = 0;
       }
       if ((nd.trail -= dt) <= 0) {
         nd.trail = 0.03;
@@ -5165,6 +5368,7 @@ if (isRainPort) {
       if (q.life <= 0) q.done = true;
     }
     proj = proj.filter(q => !q.done);
+    boomLv5BurstFx = boomLv5BurstFx.filter(fx => (fx.life -= dt) > 0);
 
     // 5. 狐火環繞 + 脫離追擊
     if (WL.fire > 0) {
@@ -5190,6 +5394,7 @@ if (isRainPort) {
             hurt(e, fireSpec.contactDamage);
             if (e.hp < hpBefore) {
               fireHit = true;
+              if (e.hp > 0 && e.type !== "boss" && fireSpec.slowDuration > 0) e.slowT = Math.max(e.slowT || 0, fireSpec.slowDuration);
               if ((fireSpec.hasDuoInkfire || fireSpec.hasDuoCinderseal) && e.hp > 0 && !e.shield && !e.vanish && !e.done) {
                 e.fireBurnEnds = elapsed + 1.0;
               }
@@ -5458,8 +5663,10 @@ if (isRainPort) {
         if (!candidates.length) {
           wT.thunder = 0.2;
         } else {
-          const threat = e => e.type === "boss" ? 0 : (e.type === "shooter" || e.type === "shiome") ? 1 : e.type === "tank" ? 2 : 3;
-          candidates.sort((a, b) => spec.level >= 4 ? (threat(a) - threat(b) || dist(P, a) - dist(P, b)) : dist(P, a) - dist(P, b));
+          const threat = e => spec.hasFocus
+            ? (e.type === "boss" ? 0 : e.type === "tank" ? 1 : 2)
+            : (e.type === "boss" ? 0 : (e.type === "shooter" || e.type === "shiome") ? 1 : e.type === "tank" ? 2 : 3);
+          candidates.sort((a, b) => (spec.level >= 4 || spec.hasFocus) ? (threat(a) - threat(b) || dist(P, a) - dist(P, b)) : dist(P, a) - dist(P, b));
           wT.thunder = wMax.thunder = spec.cooldown;
           const crit = rollCrit(spec);
           const struck = new Set();
@@ -5487,6 +5694,7 @@ if (isRainPort) {
                 primaryTargets.push(e);
                 const hpBefore = e.hp;
                 hurt(e, spec.damage * crit.mult, crit.isCrit);
+                if (e.hp > 0 && spec.hasStun) e.slowT = Math.max(e.slowT || 0, e.type === "boss" ? spec.bossSlowDuration : spec.slowDuration);
                 e.flash = 0.22;
                 if (!qualifyingHitPoint && hasDuoThundercircle && hpBefore > e.hp && dist(e, circleCenter) <= barrierRadius && !e.vanish && !e.done) {
                   qualifyingHitPoint = { x: e.x, y: e.y };
@@ -5502,6 +5710,7 @@ if (isRainPort) {
               SKILLFX.play("thunder", "strike", spec.level, { x: e.x, y: e.y, r: radius });
               const hpBefore = e.hp;
               hurt(e, spec.damage * crit.mult, crit.isCrit);
+              if (e.hp > 0 && spec.hasStun) e.slowT = Math.max(e.slowT || 0, e.type === "boss" ? spec.bossSlowDuration : spec.slowDuration);
               if (!qualifyingHitPoint && hasDuoThundercircle && hpBefore > e.hp && dist(e, circleCenter) <= barrierRadius && !e.vanish && !e.done) {
                 qualifyingHitPoint = { x: e.x, y: e.y };
               }
@@ -5615,7 +5824,7 @@ if (isRainPort) {
     let count = Math.max(1, CFG.spawnCount(cappedElapsed) + SPAWN_COUNT_BONUS);
 
     // S1 Normal：前一分鐘持續生成威脅，之後逐步接近第二關的密度。
-    if (STAGE.id === "night-town" && STAGE_PACING.mobDifficulty !== "hard" && cappedElapsed < 150) {
+    if (isNightTownNormalMode() && cappedElapsed < 150) {
       if (cappedElapsed < 90) {
         interval = 1.5 - 0.42 * clamp(cappedElapsed / 90, 0, 1);
         count = 1;
@@ -5646,7 +5855,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     let t = { type: "ghost", hp: 2.0 * tier, speed: (52 + speedRamp * 0.9) * stageSpeed };
 
     // rain-port Normal：移除真正燈籠怪 (shooter) 的 spawn 與發彈，保留低 HP 海妖 (shiome) 作為唯一遠程
-    const isRainPortNormal = STAGE.id === "rain-port" && (STAGE.pacing?.mobDifficulty !== "hard");
+    const isRainPortNormal = isRainPortNormalMode();
 
     if (isRainPortNormal) {
       // Stage2 Normal：無燈籠怪 (shooter)，以海妖 (shiome) 擔任唯一遠程
@@ -5684,10 +5893,12 @@ function spawnEnemy(tier, rad, ang, ring) {
     if (tutorial) return;
 
     let quizNear = null;
+    let quizNearDistance = 380;
     for (const e of enemies) {
       if (e.type !== "boss" || !e.shield || e.hp <= 0 || e.quizClosed) continue;
-      if (dist(P, e) < 380) quizNear = e;
-      else if (e.quizEntered) e.quizClosed = true;
+      const d = dist(P, e);
+      if (d < quizNearDistance) { quizNear = e; quizNearDistance = d; }
+      else if (d >= 380 && e.quizEntered) e.quizClosed = true;
     }
     if (quizNear) {
       quizNear.quizEntered = true;
@@ -5700,14 +5911,14 @@ function spawnEnemy(tier, rad, ang, ring) {
         }
       }
     }
-    if (job && !job.readClosed && dist(P, job.to) < 220) {
+    if (job && !job.readClosed && deliveryBarrierContains(P, job.to)) {
       if (!job.reading) {
         job.reading = true;
         job.barrierTimer = 10.0; // 10 秒結界倒數
       }
     }
     if (job?.reading) {
-      if (dist(P, job.to) >= 270) {
+      if (!deliveryBarrierContains(P, job.to, 14)) {
         job.reading = false;
         job.readClosed = true;
         job.barrierTimer = null;
@@ -5729,6 +5940,8 @@ function spawnEnemy(tier, rad, ang, ring) {
       }
     }
     const safeRead = !!(job?.reading || quizNear);
+    // 只有戰場正常推進時才倒數；Boss 答題暫停、交貨答題期間不抵銷反噬。
+    if (!safeRead && bossCurseRemaining > 0) bossCurseRemaining = Math.max(0, bossCurseRemaining - dt);
     if (!safeRead) {
       elapsed += dt;
       bossT -= dt;
@@ -5769,7 +5982,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     SKILLFX.update(dt);
 
     for (const t of texts) {
-      t.y -= 32 / tiltK() * dt;
+      t.y -= (t.delivery ? 12 : 32) / tiltK() * dt;
       t.life -= dt;
     }
     texts = texts.filter(t => t.life > 0);
@@ -5784,9 +5997,12 @@ function spawnEnemy(tier, rad, ang, ring) {
       if (expired) say("委託逾期", P.x, P.y - 45, "#ff8f8f");
       orderT -= dt;
       const desiredOrders = CFG.orderSlots(elapsed, delivered);
-      if (orderT <= 0 || orders.length < desiredOrders) {
+      // 空欄優先補單，但失敗只每隔約 2.5 秒重試，不要無候選時每幀重算。
+      if (orders.length < desiredOrders && orderT > 1) orderT = 1;
+      if (orderT <= 0) {
+        const beforeCount = orders.length;
         makeOrder();
-        orderT = 7 + Math.random() * 3;
+        orderT = orders.length > beforeCount ? 7 + Math.random() * 3 : 2.5;
       }
     }
 
@@ -5850,8 +6066,8 @@ function spawnEnemy(tier, rad, ang, ring) {
     }
 
     if (!safeRead) {
-    // 武器運算
-    weapons(dt);
+    // 詛咒反噬：保留移動、閃避、受敵攻擊；全面封鎖自動攻擊與主動施法。
+    if (bossCurseRemaining <= 0) weapons(dt);
 
     // 敵人生成強度計算：整段 10 分鐘平滑拉升，破曉後加班不再增加難度。
     const cappedElapsed = Math.min(elapsed, DAWN);
@@ -5910,7 +6126,7 @@ function spawnEnemy(tier, rad, ang, ring) {
 
     if (!safeRead) {
     // 敵人邏輯與傷害碰撞（衝撞扣燈油；若有護盾則扣護盾）
-    const isRainPortNormal = STAGE.id === "rain-port" && (STAGE.pacing?.mobDifficulty !== "hard");
+    const isRainPortNormal = isRainPortNormalMode();
     for (const e of enemies) {
       if (e.hp <= 0) continue;
       e.flash = Math.max(0, e.flash - dt);
@@ -5947,12 +6163,19 @@ function spawnEnemy(tier, rad, ang, ring) {
           ringActiveR = h.r;
           h.prevR = ringActiveR;
         }
+        const slamWasWarning = h?.kind === "slam" && h.phase === "telegraph";
         const stepped = window.BOSS_AI.step(e, P, dt, {
           blocked: (x, y, r = 32) => blocked(x, y, r),
           stageId: STAGE.id,
+          // Boss sprite footY=44 is upright screen-space; world Y is tilt-scaled.
+          bossVisualFootOffsetY: STAGE.id === 'night-town' ? 44 / tiltK() : 0,
           paused: surgeWarningT > 0
         });
         if (stepped?.hit) hazardHit = stepped.hit;
+        // One impact cue exactly at the telegraph -> active boundary, not every frame.
+        if (STAGE.id === "night-town" && slamWasWarning && e.hazard === h && h.phase === "active") {
+          AUDIO.bossSlamImpact?.();
+        }
         if (ringActiveR !== null && e.hazard === h && h.kind === "ring" && (h.phase === "active" || h.phase === "recovery")) {
           h.prevR = ringActiveR;
         }
@@ -6061,9 +6284,12 @@ function spawnEnemy(tier, rad, ang, ring) {
 
     // 敵人幽冥妖火彈更新
     for (const eb of enemyBullets) {
+      // 消彈／到期先於移動與傷害，不能等迴圈結束才移除而多打一次。
+      if (eb.life <= 0) continue;
+      eb.life -= dt;
+      if (eb.life <= 0) continue;
       eb.x += eb.vx * dt;
       eb.y += eb.vy * dt;
-      eb.life -= dt;
       if (blocked(eb.x, eb.y, 8)) { eb.life = 0; continue; }
       if (dist(P, eb) < 20) {
         eb.life = 0;
@@ -6112,12 +6338,15 @@ function spawnEnemy(tier, rad, ang, ring) {
         const harborBoss = STAGE_ENEMY.bossTheme === "harbor";
         const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
         const bossTitle = story?.bossTitle || (harborBoss ? "港霧大妖" : "大妖鬼");
-        const isRainPortNormal = STAGE.id === "rain-port" && (STAGE.pacing?.mobDifficulty !== "hard");
+        const isRainPortNormal = isRainPortNormalMode();
         // rain-port Normal：前三王恢復高難度且第三王承接尾王強度；Hard本身完全不變。
         const harborNormalBossHps = [300, 650, 900, 1400];
-        const bossHp = isRainPortNormal && typeof plan.hp === "number"
+        const baseBossHp = isRainPortNormal && typeof plan.hp === "number"
           ? (harborNormalBossHps[bossStage] ?? plan.hp)
           : plan.hp;
+        // 敵人設定的 Boss HP 倍率正式接入；目前兩關均為 1，數值不變。
+        const bossHp = typeof baseBossHp === "number"
+          ? Math.max(1, Math.round(baseBossHp * (STAGE_ENEMY.bossHpScale || 1))) : baseBossHp;
         enemies.push({
           ...position,
           type: "boss",
@@ -6151,15 +6380,27 @@ function spawnEnemy(tier, rad, ang, ring) {
           ? (story?.bossIntro || `${bossTitle}出現！`)
           : `${bossTitle}出現！`;
         say(spawnSay, P.x, P.y - 75, "#ff8f8f");
-        AUDIO.thunder();
+        // 登場只播放提示文字；移除與受擊/雷擊容易混淆的合成聲。
       }
     }
     }
 
-    const bs = enemies.find(e => e.type === "boss" && e.shield);
-    if (bs && dist(P, bs) < 380) {
+    // Resolve the visible quiz against the nearby Boss, not the first shielded
+    // Boss in the entity list (an earlier Boss may still be alive off-screen).
+    let bs = quizNear;
+    if (!bs) {
+      // After a reading barrier expires, answering is still allowed in combat.
+      let closest = 380;
+      for (const e of enemies) {
+        if (e.type !== "boss" || !e.shield || e.hp <= 0) continue;
+        const d = dist(P, e);
+        if (d < closest) { bs = e; closest = d; }
+      }
+    }
+    if (bs) {
       if (!bs.quiz) {
-        const needsIntro = STAGE.id !== "night-town" && bs.introduced === false && !!bs.word;
+        // 兩關都不能突然要求完全沒接觸過的詞：空已學詞庫時先唸音與顯示翻譯。
+        const needsIntro = bs.introduced === false && !!bs.word;
         if (needsIntro) {
           say(`${bs.word.jp}＝${bs.word.zh}`, bs.x, bs.y - 78, "#9be7ff");
           AUDIO.speak(bs.word.jp);
@@ -6217,8 +6458,8 @@ function spawnEnemy(tier, rad, ang, ring) {
       job.lock = Math.max(0, job.lock - dt);
       const toDist = dist(P, job.to);
 
-      // 進入外移後的答題區時激發結界。
-      if (toDist < 220 && !job.sanctuaryTriggered) {
+      // Sanctuary burst uses the same center/radius as the blue reading barrier.
+      if (deliveryBarrierContains(P, job.to) && !job.sanctuaryTriggered) {
         job.sanctuaryTriggered = true;
         job.sanctuaryT = 2.8;
         AUDIO.sanctuary();
@@ -6297,7 +6538,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     // 融合特效時序推進、命中判定與地面短灼燒傷害
     // 題板／讀題 safeRead 期間與武器、敵人同步凍結，避免合技在答題時繼續扣血。
     for (const fx of fusionEffects) {
-      if (safeRead) break;
+      if (safeRead || bossCurseRemaining > 0) break;
       fx.burnAge += dt;
       fx.progress = Math.min(1, fx.burnAge / (fx.life || 0.8));
       const warn = Number(fx.warn) || 0;
@@ -6799,7 +7040,25 @@ function spawnEnemy(tier, rad, ang, ring) {
     const cyPos = cargo.y + Math.sin(elapsed * 5) * 3 * liveMotion();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    UI.drawWordCue(ctx, job.word, cargo.x, cyPos + 1, job.word.cue === "emoji" ? 40 : 28);
+    // Cargo must be recognizable while running: double the actual art size
+    // (42 -> 84), not its hit area or delivery collision radius.
+    // A small soft backing separates narrow silhouettes like pencils from dirt.
+    const artCargo = job.word.cue === "art";
+    const cargoSize = artCargo ? 84 : (job.word.cue === "text" ? 48 : 70);
+    if (artCargo) {
+      ctx.save();
+      const aura = ctx.createRadialGradient(cargo.x,cyPos,8,cargo.x,cyPos,53);
+      aura.addColorStop(0,"rgba(255,247,213,.48)");
+      aura.addColorStop(.68,"rgba(255,237,195,.20)");
+      aura.addColorStop(1,"rgba(255,237,195,0)");
+      ctx.fillStyle=aura;ctx.beginPath();ctx.arc(cargo.x,cyPos,53,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+    ctx.save();
+    ctx.shadowColor="rgba(24,20,15,.88)";
+    ctx.shadowBlur=8;
+    UI.drawWordCue(ctx, job.word, cargo.x, cyPos + 1, cargoSize);
+    ctx.restore();
     ctx.restore();
   }
 
@@ -6824,18 +7083,20 @@ function spawnEnemy(tier, rad, ang, ring) {
     const portDraw = RENDERER && RENDERER.drawBossHazard;
     if (typeof portDraw === "function" && portDraw(ctx, h, elapsed, owner) === true) return;
 
+    // 專屬水系圖片尚在下載／暫時失敗時也只用潮流色備援，不可再冒出玩家狐火。
+    const harborWaterBoss = typeof STAGE !== "undefined" && STAGE?.id === "rain-port";
     ctx.save();
     ctx.globalAlpha = h.phase === "recovery" ? 0.28 : 0.72;
     if (h.kind === "slam") {
       const r = h.r || 150;
-      ctx.fillStyle = "rgba(255,65,35,0.18)";
-      ctx.strokeStyle = "#ffbd72";
+      ctx.fillStyle = harborWaterBoss ? "rgba(30,119,179,0.22)" : "rgba(255,65,35,0.18)";
+      ctx.strokeStyle = harborWaterBoss ? "#9be7ff" : "#ffbd72";
       ctx.lineWidth = 3;
       ctx.beginPath(); ctx.arc(h.x, h.y, r, 0, 6.283); ctx.fill(); ctx.stroke();
     } else if (h.kind === "charge") {
       const ang = h.angle || 0;
       const len = 620 * 0.65;
-      ctx.strokeStyle = "rgba(255,120,50,0.45)";
+      ctx.strokeStyle = harborWaterBoss ? "rgba(45,158,214,0.55)" : "rgba(255,120,50,0.45)";
       ctx.lineWidth = 104;
       ctx.lineCap = "butt";
       ctx.beginPath();
@@ -6879,6 +7140,57 @@ function spawnEnemy(tier, rad, ang, ring) {
   }
 
   let frameShakeOffset = {x:0,y:0};
+  // 配送答題專用結界：固定在送達地面圈，不是「淨化靈陣」的戰鬥技能。
+  // 在世界地面層渲染，光霧隨 animElapsed 持續噴湧；妖怪/角色與選項仍在上方。
+  function drawDeliverySanctuaryMist(deliveryJob, timerFraction) {
+    const k = tiltK();
+    const centerX = deliveryJob.to.x, centerY = deliveryJob.to.y + 70;
+    const motionScale = liveMotion() ? 1 : 0;
+    const glow = 0.78 + Math.max(0, Math.min(1, timerFraction)) * 0.22;
+    const n = motionScale ? 30 : 22;
+    const t = animElapsed;
+    for (let i = 0; i < n; i++) {
+      const a = i * Math.PI * 2 / n;
+      // 與倒數環相同的上方起點／順時針熄滅方向。
+      const ringPos = ((a + Math.PI / 2) % (Math.PI * 2)) / (Math.PI * 2);
+      if (ringPos < 1 - timerFraction) continue;
+      const px = centerX + Math.cos(a) * 240;
+      const py = centerY + Math.sin(a) * 161 / k;
+      const phase = (t * 0.33 + i * 0.37) % 1;
+      const drift = motionScale ? Math.sin(t * 2.1 + i * 1.6) * (8 + phase * 11) : 0;
+      const rise = motionScale ? phase * 82 : 28;
+      const width = 32 + i % 5 * 5;
+      const opacity = glow * (motionScale ? Math.sin(Math.PI * phase) * 0.24 + 0.12 : 0.22);
+      upright(px,py,()=>{
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        // 羽化煙體而非硬邊三角柱：每股薄霧上下舒展，頂端自然消散。
+        ctx.translate(px + drift, py - rise - 35);
+        ctx.scale(1, 1.85 + i % 3 * 0.23);
+        const mist = ctx.createRadialGradient(0,0,2,0,0,width);
+        mist.addColorStop(0, `rgba(178,247,255,${opacity})`);
+        mist.addColorStop(.42, `rgba(80,193,247,${opacity * 0.6})`);
+        mist.addColorStop(1, "rgba(49,145,223,0)");
+        ctx.fillStyle = mist;
+        ctx.beginPath();ctx.arc(0,0,width,0,6.283);ctx.fill();
+        ctx.restore();
+      });
+      // 每隔數道霧柱附一縷光絲，向上噴出的速度感比原本亮點明顯。
+      if(i % 3 === 0) upright(px,py,()=>{
+        const up = (motionScale ? 66 + phase * 54 : 76);
+        ctx.save();ctx.globalCompositeOperation = "lighter";
+        const ray = ctx.createLinearGradient(px,py-up,px,py);
+        ray.addColorStop(0,"rgba(186,245,255,0)");
+        ray.addColorStop(.65,`rgba(112,221,255,${glow*.18})`);
+        ray.addColorStop(1,`rgba(205,250,255,${glow*.40})`);
+        ctx.strokeStyle=ray;ctx.lineWidth=4 + i % 3;
+        ctx.beginPath();ctx.moveTo(px,py);
+        ctx.quadraticCurveTo(px + Math.sin(t*2+i)*13,py-up*.6,px + Math.cos(i)*12,py-up);ctx.stroke();
+        ctx.restore();
+      });
+    }
+  }
+
   function drawWorld() {
     const cam = RENDERER.getCam();
     const shakeOffset = frameShakeOffset;
@@ -6937,28 +7249,55 @@ function spawnEnemy(tier, rad, ang, ring) {
 
     // 5. 送達判定圈 (和風結界魔法陣 + 退魔結界視覺)
     if (job && dist(P, job.to) < 330) {
-      // 連續雙環：白色光芯、青色暈光與寬柔光束，沒有枝狀邊線。
-      {
+      // 移除送達點常駐的淡藍雙環，只留下答題時順時針熄滅的藍色主結界。
+      // 同一藍色結界圈順時針逐漸失去光芒，不另畫黃色計時器。
+      if (job && job.reading && job.barrierTimer != null) {
+        const timerFraction = Math.max(0, Math.min(1, job.barrierTimer / 10.0));
+        const barrierR = 245, barrierY = job.to.y + 70, barrierRy = 165 / tiltK();
         ctx.save();
-        const alpha = job.reading && job.barrierTimer != null ? 0.15 : (job.sanctuaryT > 0 ? 0.85 : 0.55);
-        const cy = job.to.y + 70;
-        const gy = 1 / tiltK();
-        ctx.globalCompositeOperation='lighter';
-        for(const [width,a,color] of [[28,0.035,'80,200,255'],[16,0.07,'90,215,255'],[7,0.3,'110,235,255'],[2.3,0.95,'220,255,255']]) {
-          ctx.lineWidth=width;ctx.strokeStyle=`rgba(${color},${alpha*a})`;
-          ctx.beginPath();ctx.ellipse(job.to.x,cy,245,165*gy,0,0,6.283);ctx.stroke();
-        }
-        ctx.lineWidth=1.5;ctx.strokeStyle=`rgba(160,245,255,${alpha*0.7})`;
-        ctx.beginPath();ctx.ellipse(job.to.x,cy,228,153*gy,0,0,6.283);ctx.stroke();
-        for(let k=0;k<8;k++) {
-          const a=k*6.283/8, x=job.to.x+Math.cos(a)*238, y=cy+Math.sin(a)*160*gy;
-          const h=42+(liveMotion()?Math.sin(elapsed*1.5+k)*8:0);
-          upright(x,y,()=>{
-            const g=ctx.createLinearGradient(x,y-h,x,y);
-            g.addColorStop(0,'rgba(80,210,255,0)');g.addColorStop(1,`rgba(100,235,255,${alpha*0.13})`);
-            ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x-7,y);ctx.lineTo(x-18,y-h);ctx.lineTo(x+18,y-h);ctx.lineTo(x+7,y);ctx.closePath();ctx.fill();
+        drawDeliverySanctuaryMist(job, timerFraction);
+        // 藍圈邊緣向上升起，錯開生命週期；只作既有結界的輔助粒子。
+        for (let pi = 0; pi < 72; pi++) {
+          const pAngle = (pi / 72) * 6.283;
+          // 藍圈暗下來的順時針扇區不再閃粒子。
+          const ringPos = (((pAngle + Math.PI / 2) % 6.283) + 6.283) % 6.283 / 6.283;
+          if (ringPos < 1 - timerFraction) continue;
+          const age = (animElapsed * 0.6 + pi * 0.618) % 1;
+          const px = job.to.x + Math.cos(pAngle) * barrierR;
+          const py = barrierY + Math.sin(pAngle) * barrierRy;
+          upright(px, py, () => {
+            const drift = Math.sin(pi * 2.1 + age * 4) * age * 16;
+            const rise = age * (42 + pi % 5 * 9);
+            const blink = 0.55 + 0.45 * Math.sin(animElapsed * 9 + pi * 1.7);
+            ctx.fillStyle = `rgba(145,240,255,${Math.sin(age * Math.PI) * blink * 0.85})`;
+            ctx.beginPath();ctx.arc(px + drift, py - rise, 1.5 + pi % 3 * 0.55, 0, 6.283);ctx.fill();
           });
         }
+        // 沿用外層同一藍色光環的位置，從正上方順時針逐步熄滅。
+        ctx.globalCompositeOperation = "lighter";
+        const startA = -Math.PI / 2 + Math.PI * 2 * (1 - timerFraction);
+        const endA = -Math.PI / 2 + Math.PI * 2;
+        // 尚未熄滅的一段採寬高亮厚帶 + 柔和光暈，時間消逝一眼可見。
+        ctx.strokeStyle = "rgba(54, 153, 219, 0.48)";
+        ctx.lineWidth = 22;
+        ctx.beginPath();ctx.ellipse(job.to.x, barrierY, barrierR, barrierRy, 0, startA, endA);ctx.stroke();
+        ctx.strokeStyle = "rgba(121, 232, 255, 0.94)";
+        ctx.lineWidth = 10;
+        ctx.beginPath();ctx.ellipse(job.to.x, barrierY, barrierR, barrierRy, 0, startA, endA);ctx.stroke();
+        ctx.strokeStyle = "rgba(232, 254, 255, 0.92)";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();ctx.ellipse(job.to.x, barrierY, barrierR, barrierRy, 0, startA, endA);ctx.stroke();
+        ctx.globalCompositeOperation = "source-over";
+
+        // 10 秒醒目倒數
+        const secs = Math.ceil(job.barrierTimer);
+        ctx.textAlign = "center";
+        ctx.font = "600 17px 'Kaisei Decol', 'Noto Serif JP', serif";
+        ctx.strokeStyle = "#112d3a";
+        ctx.lineWidth = 3.5;
+        ctx.strokeText(`結界  ${secs}秒`, job.to.x, barrierY - 120);
+        ctx.fillStyle = "#b4f3ff";
+        ctx.fillText(`結界  ${secs}秒`, job.to.x, barrierY - 120);
         ctx.restore();
       }
 
@@ -7306,7 +7645,7 @@ function spawnEnemy(tier, rad, ang, ring) {
         const frontFireballs = [];
         RENDERER.drawPlayerShadow?.(P, pAnimElapsed, movement, effSpeed);
 
-        if (WL.fire > 0) {
+        if (WL.fire > 0 && bossCurseRemaining <= 0 && state !== "victory") {
           const fireSpec = resolveAttackSpec("fire", WL.fire, getBuildState());
           const count = fireSpec.count;
           const rx = fireSpec.rx, ry = fireSpec.ry;
@@ -7334,13 +7673,41 @@ function spawnEnemy(tier, rad, ang, ring) {
     // 8. Weapon projectiles (after depth-sorted actors).
     for (const q of proj) upright(q.x,q.y,()=>
       SKILLFX.paint(ctx, "boom", q.level??WL.boom, { x: q.x, y: q.y, spin: elapsed * (q.stuck ? 4 : 16), age:q.t, life:q.stuck ? 1 : q.life, exitAlpha:1 }));
+    // Lv5 burst art stays the main VFX. These sparks and smoke are only a
+    // fleeting secondary motion layer, just like the approved Boss slam.
+    for (const fx of boomLv5BurstFx) {
+      upright(fx.x,fx.y,()=>{
+        const t=1-fx.life/fx.maxLife,fade=Math.max(0,1-t);
+        ctx.save();
+        for(let i=0;i<17;i++){
+          const a=i*2.3999632+.38;
+          const jump=fx.radius*(.12+(i%5)*.06)*t*1.8;
+          const px=fx.x+Math.cos(a)*jump;
+          const py=fx.y+Math.sin(a)*jump*.58-60*4*t*(1-t);
+          const radius=(2.3+i%4*.8)*fade;
+          ctx.globalAlpha=fade*(i%3===0?.94:.72);
+          ctx.fillStyle=i%3===0?"#ffe8a4":i%3===1?"#ff9c44":"#f4562f";
+          ctx.beginPath();ctx.arc(px,py,Math.max(.25,radius),0,6.283);ctx.fill();
+        }
+        for(let i=0;i<5;i++){
+          const a=(i+.2)*6.283/5;
+          const px=fx.x+Math.cos(a)*fx.radius*.30*t;
+          const py=fx.y+Math.sin(a)*fx.radius*.20*t-32*t;
+          ctx.globalAlpha=.23*fade;
+          ctx.fillStyle=i%2?"#82766f":"#b9a99d";
+          ctx.beginPath();ctx.ellipse(px,py,10+22*t,6+14*t,a,0,6.283);ctx.fill();
+        }
+        ctx.restore();
+      });
+    }
+
 
     // 12.5 破魔靈針彈幕
     for(const p of ghosts)if(!p.dragon)
       upright(p.x,p.y,()=>SKILLFX.paint(ctx,"ghost",p.level??5,p));
     for (const nd of needles)
       upright(nd.x,nd.y,()=>SKILLFX.paint(ctx,"needle",nd.level??WL.needle,
-        { x:nd.x,y:nd.y,ang:Math.atan2(nd.vy,nd.vx) }));
+        { x:nd.x,y:nd.y,ang:nd.hasReturn ? nd.launchAng : Math.atan2(nd.vy,nd.vx) }));
 
     // 13. 斬擊弧與結界擊中環 — impact rings belong to the ground plane.
     for (const r of rings) {
@@ -7367,6 +7734,32 @@ function spawnEnemy(tier, rad, ang, ring) {
 
     // 14. 飄字：受傷提示用墨邊。淡粉 Boss 出場台詞加黑墨描邊與局部暗底，避免被雨港深淺背景吃掉。
     for (const t of texts) {
+      if (t.delivery) {
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, t.life / 0.55);
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        uprightHere(t.x, t.y);
+        const lines = t.lines || [];
+        const lineH = 25;
+        const cardH = lines.length * lineH + 22;
+        let cardW = 180;
+        for (let i = 0; i < lines.length; i++) {
+          ctx.font = UI.readableFont(i === 0 ? 19 : 16, "900");
+          cardW = Math.max(cardW, ctx.measureText(lines[i]).width + 34);
+        }
+        cardW = Math.min(cardW, 480);
+        const topY = t.y - cardH;
+        ctx.fillStyle = "rgba(15, 20, 31, 0.88)";
+        ctx.beginPath(); ctx.roundRect(t.x - cardW / 2, topY, cardW, cardH, 10); ctx.fill();
+        ctx.strokeStyle = "rgba(236, 202, 128, 0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
+        for (let i = 0; i < lines.length; i++) {
+          ctx.font = UI.readableFont(i === 0 ? 19 : 16, "900");
+          ctx.fillStyle = i === 0 ? "#fff1c5" : i === 1 ? "#ffda83" : "#d0efff";
+          ctx.fillText(lines[i], t.x, topY + 22 + i * lineH, cardW - 22);
+        }
+        ctx.restore();
+        continue;
+      }
       const injury = typeof t.v === "string" && /^(受創|妖火灼身)/.test(t.v);
       const bossLine = !injury && typeof t.v === "string" && /浪潮將吞噬|出現！/.test(t.v);
       ctx.save();
@@ -7513,7 +7906,8 @@ function spawnEnemy(tier, rad, ang, ring) {
       ctx.fillStyle = "#1e1824";
       ctx.font = UI.readableFont(14, "900");
       // 委託送什麼東西一句話就好，送往哪裡不需要顯示。
-      ctx.fillText(`${o.word.icon}  ${o.word.zh}`, h.x, floatY + 23);
+      UI.drawWordCue(ctx, o.word, h.x - 52, floatY + 23, 28);
+      ctx.fillText(o.word.zh, h.x + 12, floatY + 23);
 
       // 剩餘時間條 (金黃至火紅)
       ctx.fillStyle = isTarget ? "#ff8833" : "#ffa726";
@@ -7619,7 +8013,7 @@ function spawnEnemy(tier, rad, ang, ring) {
           ctx.fillStyle = "#fff0cb";
           ctx.font = UI.readableFont(16, "900");
           ctx.textAlign = "center";
-          ctx.fillText("砸地！離開紅圈", h.x, h.y + 8);
+          if (h.phase === "telegraph") ctx.fillText("地裂！快閃開！", h.x, h.y + 8);
         });
       } else if (h.kind === "tide" && h.phase === "telegraph") {
         const ang = h.angle || 0, cos = Math.cos(ang), sin = Math.sin(ang);
@@ -7848,6 +8242,12 @@ function spawnEnemy(tier, rad, ang, ring) {
       else if (e.key === "Enter" || action === "interact" || action === "dash") { e.preventDefault(); confirmOverworld(); }
       return;
     }
+    if (state === "victory") {
+      if (["u", "d", "l", "r"].includes(action)) {
+        e.preventDefault(); heldCodes.add(e.code); keys.add(action);
+      }
+      return;
+    }
     if (state !== "play") return;
     if (e.code === 'KeyF' && !e.repeat && window.FUSION && typeof window.FUSION.getState === "function") {
       const fState = window.FUSION.getState();
@@ -7863,7 +8263,7 @@ function spawnEnemy(tier, rad, ang, ring) {
       if (idx >= 0 && idx < bossQ.ans.length) answerBoss(idx);
     }
     else if ((action === "hint") && job) {
-      triggerHint();
+      // Hint shortcut intentionally disabled; no free listening.
     } else if (["u", "d", "l", "r", "dash"].includes(action)) {
       e.preventDefault();
       heldCodes.add(e.code);
@@ -8088,6 +8488,12 @@ function spawnEnemy(tier, rad, ang, ring) {
       }
       return;
     }
+    if (state === "victory") {
+      if (!joy && (e.pointerType !== "mouse" || (p.x < W / 2 && p.y > 80))) {
+        joy = { id: e.pointerId, x: p.x, y: p.y, dx: 0, dy: 0 };
+      }
+      return;
+    }
     if (bossQ && !job?.reading) {
       const layout = UI.bossQuizLayout(bossQ.ans.length);
       for (let i = 0; i < layout.options.length; i++) {
@@ -8108,8 +8514,8 @@ function spawnEnemy(tier, rad, ang, ring) {
       interact();
     } else if (hit(p, btnD)) {
       dash();
-    } else if (job && UI.HINT_BTN && hitButton(p, UI.HINT_BTN)) {
-      triggerHint();
+    } else if (false && job && UI.HINT_BTN && hitButton(p, UI.HINT_BTN)) {
+      // Retired hint area now displays equipped talismans.
     } else if ((e.pointerType === "mouse" || (p.x < W / 2 && p.y > 80)) && !joy) {
       joy = { id: e.pointerId, x: p.x, y: p.y, dx: 0, dy: 0 };
     }
@@ -8240,6 +8646,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     const bossTitle = huntTarget?.title || story?.bossTitle || "大妖";
     return {
       time, cd, houses, cam: RENDERER.getCam(),
+      curseSeconds: bossCurseRemaining,
       stageId: STAGE.id,
       bossTitle,
       lanternHit: clamp(lanternHitT / 0.42, 0, 1),
@@ -8410,6 +8817,21 @@ function spawnEnemy(tier, rad, ang, ring) {
           job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, GOAL_DELIVERIES,
           dashCd, dashMax, bossHunt, hudExtra(now / 1000)
         );
+        // 反噬狀態常駐醒目提示：不扣油但禁止所有攻擊，明確顯示剩餘秒數。
+        if (bossCurseRemaining > 0) {
+          ctx.save();
+          const label = `封印反噬・禁攻擊  ${Math.ceil(bossCurseRemaining)} 秒`;
+          ctx.font = UI.readableFont(19, "900");
+          const bw = Math.min(W - 22, Math.max(210, ctx.measureText(label).width + 38));
+          const bx = W / 2 - bw / 2, by = 65;
+          ctx.fillStyle = "rgba(37, 13, 40, 0.92)";
+          ctx.beginPath();ctx.roundRect(bx, by, bw, 41, 9);ctx.fill();
+          ctx.strokeStyle = "#e2a6dd";ctx.lineWidth = 1.8;
+          ctx.beginPath();ctx.roundRect(bx + 0.8, by + 0.8, bw - 1.6, 39.4, 9);ctx.stroke();
+          ctx.textAlign = "center";ctx.textBaseline = "middle";ctx.fillStyle = "#fff0fd";
+          ctx.fillText(label, W / 2, by + 21, bw - 22);
+          ctx.restore();
+        }
         // 第2～8關：破曉且終王已倒，仍須送滿委託；常駐提示剩餘件數（勝利規則不變）。
         if (state === "play" && STAGE.id !== "night-town" && elapsed >= DAWN && finalBossDefeated && delivered < GOAL_DELIVERIES) {
           ctx.save();
@@ -8432,8 +8854,8 @@ function spawnEnemy(tier, rad, ang, ring) {
             inputMode
           });
         }
-        if (state === 'play') UI.drawButton(ctx, btnView,
-          (window.VIEWPORT?.tiltTargetScale?.() ?? tiltK()) === 1 ? '2.5D' : '2D', {size: 13, quiet: true, scrollText: false});
+        if (state === 'play') UI.drawViewMedallion(ctx, btnView,
+          (window.VIEWPORT?.tiltTargetScale?.() ?? tiltK()) !== 1);
         if (state === "play" && window.FUSION?.getState?.().state === "held") {
           const tag = UI.FUSION_REOPEN_BTN;
           if (tag) {
@@ -8508,6 +8930,123 @@ function spawnEnemy(tier, rad, ang, ring) {
         if (document.documentElement && document.documentElement.dataset) {
           document.documentElement.dataset.devStage = STAGE.id;
         }
+      }
+    });
+  }
+
+  // Fusion Lab — explicitly local dev-only. It never ships a test hook on the public host.
+  // Parent fusion-lab.html calls this bridge inside the real game iframe.
+  const fusionLabAvailable = () => window.DEV_MODE?.isDevMode?.(location) === true
+    && new URLSearchParams(location.search).get("fusionlab") === "1";
+
+  if (fusionLabAvailable()) {
+    const baseSkills = ["katana", "fire", "barrier", "thunder", "boom"];
+    const allowedStages = ["night-town", "rain-port"];
+    let labStarted = false;
+
+    function labBegin(stageId = STAGE.id) {
+      const chosen = allowedStages.includes(stageId) ? stageId : "rain-port";
+      if (!labStarted || STAGE.id !== chosen || (state !== "play" && state !== "levelup")) {
+        start(chosen);
+      }
+      labStarted = true;
+      state = "play";
+      tutorial = null;
+      tutorialSkipped = true;
+      AUDIO.setSuspended?.(false);
+      return chosen;
+    }
+
+    function labCleanBuild() {
+      // Clear lingering missiles, auras and burn zones before changing loadout.
+      for (const id of Object.keys(WL)) WL[id] = 0;
+      for (const id of Object.keys(wT)) wT[id] = 0.16;
+      buildRevision++;
+      buildMutations = [];
+      buildDuos = [];
+      fusionToken = null;
+      fusionFocus = 0;
+      fusionEffects = []; fusionEffects._idCounter = 0;
+      fusionStats = { casts: 0, directDmg: 0, scorchDmg: 0, byKind: {} };
+      pendingFusionCompensation = false;
+      winds = []; crosscuts = []; ghosts = []; dragonShots = []; dragonScorches = [];
+      barrierPulses = []; sacredSanctuary = null; proj = []; needles = [];
+      splitblasts = []; duoShockwaves = []; inkfireMarks = [];
+      atkT = 0.16;
+      playerAttackPoseT = 0;
+      window.FUSION?.reset?.();
+    }
+
+    const labSnapshot = () => ({
+      stage: STAGE.id,
+      state,
+      levels: Object.fromEntries([...baseSkills].map(k => [k, WL[k] || 0])),
+      fused: Object.keys(WL).filter(k => k.startsWith("fusion_") && WL[k] > 0),
+      fusionState: window.FUSION?.getState?.().state || "missing"
+    });
+
+    window.DEV_FUSION_LAB = Object.freeze({
+      snapshot: labSnapshot,
+      start(stageId) {
+        if (!fusionLabAvailable()) return { ok: false, reason: "restricted" };
+        labBegin(stageId);
+        labCleanBuild();
+        WL.katana = 1;
+        window.useSkillArt?.("katana", 1);
+        return { ok: true, ...labSnapshot() };
+      },
+      reset() {
+        if (!fusionLabAvailable()) return { ok: false, reason: "restricted" };
+        labBegin();
+        labCleanBuild();
+        WL.katana = 1;
+        window.useSkillArt?.("katana", 1);
+        return { ok: true, ...labSnapshot() };
+      },
+      setBaseLv5(skillId, enabled) {
+        if (!fusionLabAvailable()) return { ok: false, reason: "restricted" };
+        if (!baseSkills.includes(skillId)) return { ok: false, reason: "invalid_skill" };
+        labBegin();
+        // A consumed parent cannot be restored atop an existing fusion;
+        // start a fresh build instead to avoid mutually invalid active skills.
+        if (Object.keys(WL).some(k => k.startsWith("fusion_") && WL[k] > 0)) labCleanBuild();
+        WL[skillId] = enabled ? 5 : 0;
+        buildRevision++;
+        wT[skillId] = 0.1;
+        if (enabled) {
+          window.useSkillArt?.(skillId, 5);
+          if (skillId === "fire") AUDIO.preloadDragon?.();
+        }
+        // The tester's manual Lv5 toggles do not automatically fuse.
+        // When both parents are ready, the normal fusion menu can still be used.
+        return { ok: true, ...labSnapshot() };
+      },
+      equip(recipeId) {
+        if (!fusionLabAvailable()) return { ok: false, reason: "restricted" };
+        const recipe = window.FUSION?.RECIPES?.[recipeId];
+        if (!recipe || !recipe.enabled || !recipe.implemented) return { ok: false, reason: "invalid_recipe" };
+        labBegin();
+        labCleanBuild();
+        for (const id of recipe.parents) {
+          WL[id] = 5;
+          wT[id] = 0.12;
+          window.useSkillArt?.(id, 5);
+        }
+        buildRevision++;
+        // Exercise the actual unlock -> talisman -> confirm -> atomic commit path.
+        const eligible = window.FUSION.onWeaponLevelUp();
+        if (!eligible) return { ok: false, reason: "eligibility_failed", ...labSnapshot() };
+        if (!window.FUSION.pickupTalisman()) return { ok: false, reason: "pickup_failed", ...labSnapshot() };
+        if (!window.FUSION.openFusionConfirm(recipeId)) return { ok: false, reason: "confirm_failed", ...labSnapshot() };
+        const result = window.FUSION.executeFusion(recipeId);
+        if (!result?.ok) {
+          window.FUSION.cancelFusion?.();
+          return { ok: false, reason: result?.reason || "transaction_failed", ...labSnapshot() };
+        }
+        fusionToken = null;
+        fusionFocus = 0;
+        state = "play";
+        return { ok: true, ...labSnapshot() };
       }
     });
   }

@@ -258,9 +258,11 @@
     } catch (_) {
       return false;
     }
-    // Keep an explicit local opt-out for testing; no developer flag is required to play.
-    if (params.get("nofusion") === "1") return false;
-    return true;
+    // Fusion is postponed from normal play, including ?dev=1 stage previews.
+    // Only the local, isolated Fusion Lab may exercise the existing recipe code.
+    const local = typeof window !== "undefined" && window.DEV_MODE?.isDevMode?.(window.location) === true;
+    return local && params.get("fusionlab") === "1" && params.get("dev") === "1"
+      && params.get("nofusion") !== "1";
   }
 
   // 綁定 game.js 橋接器

@@ -1,0 +1,20 @@
+{
+  "source": "1024px hand-painted project originals; cleaned and recomposed at high resolution",
+  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "symbols": {
+    "power": "力",
+    "step": "速",
+    "gather": "吸",
+    "cadence": "疾",
+    "reach": "遠",
+    "guard": "守"
+  },
+  "portrait_size": [
+    512,
+    768
+  ],
+  "card_size": [
+    900,
+    810
+  ]
+}

@@ -1,0 +1,232 @@
+{
+  "schema": 1,
+  "stage": "rain-port",
+  "kind": "image",
+  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "count": 20,
+  "format": "webp",
+  "source_style": "sumi-e ukiyo-e translucent wash",
+  "note": "12 selected v3 candidates + 8 preserved v2; game integration for user visual review, not approved final yet",
+  "items": [
+    {
+      "index": 1,
+      "jp": "さかな",
+      "kanji": "魚",
+      "zh": "魚",
+      "file": "01.webp",
+      "sha256": "5df14dd9c23f813a27beb5e73bcd1cd87cbe1f1971a99b30c6c3789586213fef",
+      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/01_さかな_candidate.webp",
+      "source_sha256": "5df14dd9c23f813a27beb5e73bcd1cd87cbe1f1971a99b30c6c3789586213fef",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 2,
+      "jp": "さけ",
+      "kanji": "鮭",
+      "zh": "鮭魚",
+      "file": "02.webp",
+      "sha256": "883aedf0b4249c9ecda46838a997e4d635c1aaa82ec73f479cdcc88825901382",
+      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/02_さけ_candidate.webp",
+      "source_sha256": "883aedf0b4249c9ecda46838a997e4d635c1aaa82ec73f479cdcc88825901382",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 3,
+      "jp": "まぐろ",
+      "kanji": "鮪",
+      "zh": "鮪魚",
+      "file": "03.webp",
+      "sha256": "f8000a8ac8a7b34e38d3bc0e9c196df0ea601c4f088ee129bf00042f8b46cbec",
+      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/03_まぐろ_candidate.webp",
+      "source_sha256": "f8000a8ac8a7b34e38d3bc0e9c196df0ea601c4f088ee129bf00042f8b46cbec",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 4,
+      "jp": "さば",
+      "kanji": "鯖",
+      "zh": "鯖魚",
+      "file": "04.webp",
+      "sha256": "9e9f1926d78a18b91206d7baaeb373d8c8d168eb14449e91e2f59fd07a17d973",
+      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/04_さば_candidate.webp",
+      "source_sha256": "9e9f1926d78a18b91206d7baaeb373d8c8d168eb14449e91e2f59fd07a17d973",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 5,
+      "jp": "たい",
+      "kanji": "鯛",
+      "zh": "鯛魚",
+      "file": "05.webp",
+      "sha256": "383d22d00c6b1c555e1d002376a271a6806ea5573a32637ddcc1c75eb8a417d6",
+      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/05_たい_candidate.webp",
+      "source_sha256": "383d22d00c6b1c555e1d002376a271a6806ea5573a32637ddcc1c75eb8a417d6",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 6,
+      "jp": "うなぎ",
+      "kanji": "鰻",
+      "zh": "鰻魚",
+      "file": "06.webp",
+      "sha256": "501108780de27617bfa7921ed0912a9b5f19db867f2c76c58392decdbcacb600",
+      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/06_うなぎ_candidate.webp",
+      "source_sha256": "501108780de27617bfa7921ed0912a9b5f19db867f2c76c58392decdbcacb600",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 7,
+      "jp": "たこ",
+      "kanji": "蛸",
+      "zh": "章魚",
+      "file": "07.webp",
+      "sha256": "7a5c26a4ed13ba8ca8f1e0617c8bfa3a3067cb0354d9b747133869e35e558cdf",
+      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/07_たこ_candidate.webp",
+      "source_sha256": "7a5c26a4ed13ba8ca8f1e0617c8bfa3a3067cb0354d9b747133869e35e558cdf",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 8,
+      "jp": "いか",
+      "kanji": "烏賊",
+      "zh": "魷魚",
+      "file": "08.webp",
+      "sha256": "d15ade03e2c575a83c58fd2f4052896c23e8e441c4e246a41d71d97f48b2126b",
+      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/08_いか_candidate.webp",
+      "source_sha256": "d15ade03e2c575a83c58fd2f4052896c23e8e441c4e246a41d71d97f48b2126b",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 9,
+      "jp": "えび",
+      "kanji": "海老",
+      "zh": "蝦子",
+      "file": "09.webp",
+      "sha256": "453b6bfba79f7ea5edd42605fe33a3aceab9117dab31343016e1b187f5e45d4d",
+      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/09_えび_candidate.webp",
+      "source_sha256": "453b6bfba79f7ea5edd42605fe33a3aceab9117dab31343016e1b187f5e45d4d",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 10,
+      "jp": "かに",
+      "kanji": "蟹",
+      "zh": "螃蟹",
+      "file": "10.webp",
+      "sha256": "a085c269ab9274ec701730cda40e9d810d7f30191b132d04666091e0305b148b",
+      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/10_かに_candidate.webp",
+      "source_sha256": "a085c269ab9274ec701730cda40e9d810d7f30191b132d04666091e0305b148b",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 11,
+      "jp": "かい",
+      "kanji": "貝",
+      "zh": "貝類",
+      "file": "11.webp",
+      "sha256": "869040953dc53b3ff6a2826e588c7e2e1d601719813ec01dad355eee80cd43d4",
+      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/11_かい_candidate.webp",
+      "source_sha256": "869040953dc53b3ff6a2826e588c7e2e1d601719813ec01dad355eee80cd43d4",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 12,
+      "jp": "のり",
+      "kanji": "海苔",
+      "zh": "海苔",
+      "file": "12.webp",
+      "sha256": "2d9100ec8d14fc9373bc75908915a8018e5ff8cf5eafc1b6f3da7caa67f86357",
+      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/12_のり_candidate.webp",
+      "source_sha256": "2d9100ec8d14fc9373bc75908915a8018e5ff8cf5eafc1b6f3da7caa67f86357",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 13,
+      "jp": "こんぶ",
+      "kanji": "昆布",
+      "zh": "昆布",
+      "file": "13.webp",
+      "sha256": "4b68427dc5349e8c252304ce17f539f1e2c6e7dbfce92c8366ee0aa2f263fa2e",
+      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/13_こんぶ_candidate.webp",
+      "source_sha256": "4b68427dc5349e8c252304ce17f539f1e2c6e7dbfce92c8366ee0aa2f263fa2e",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 14,
+      "jp": "わかめ",
+      "kanji": "",
+      "zh": "海帶芽",
+      "file": "14.webp",
+      "sha256": "4fe6686ab4d1d6d2b2015fbf86e529031cd31c61bf5d37a3bce9dd0a860097b5",
+      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/14_わかめ_candidate.webp",
+      "source_sha256": "4fe6686ab4d1d6d2b2015fbf86e529031cd31c61bf5d37a3bce9dd0a860097b5",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 15,
+      "jp": "すし",
+      "kanji": "寿司",
+      "zh": "壽司",
+      "file": "15.webp",
+      "sha256": "f39c898d2919908e5c02cfa24372430f550923ae7183b3fe0689ac4f2052d77c",
+      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/15_すし_candidate.webp",
+      "source_sha256": "f39c898d2919908e5c02cfa24372430f550923ae7183b3fe0689ac4f2052d77c",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 16,
+      "jp": "さしみ",
+      "kanji": "刺身",
+      "zh": "生魚片",
+      "file": "16.webp",
+      "sha256": "dea6e449c307211d80e3b0c72a86074ee88781902b0b7c0ce36e7a48919c289c",
+      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/16_さしみ_candidate.webp",
+      "source_sha256": "dea6e449c307211d80e3b0c72a86074ee88781902b0b7c0ce36e7a48919c289c",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 17,
+      "jp": "やきざかな",
+      "kanji": "焼き魚",
+      "zh": "烤魚",
+      "file": "17.webp",
+      "sha256": "898f5d693e8eb32f3e442ef2073692c3e7325add8dca99bacd2ed4ec5152a63f",
+      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/17_やきざかな_candidate.webp",
+      "source_sha256": "898f5d693e8eb32f3e442ef2073692c3e7325add8dca99bacd2ed4ec5152a63f",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 18,
+      "jp": "おにぎり",
+      "kanji": "",
+      "zh": "飯糰",
+      "file": "18.webp",
+      "sha256": "c7f1872555cc4eb957da6e88b8a76dcd0a5cf293102f3ec0eac13b562cbacf91",
+      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/18_おにぎり_candidate.webp",
+      "source_sha256": "c7f1872555cc4eb957da6e88b8a76dcd0a5cf293102f3ec0eac13b562cbacf91",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 19,
+      "jp": "みそしる",
+      "kanji": "味噌汁",
+      "zh": "味噌湯",
+      "file": "19.webp",
+      "sha256": "5fb19685b9d634f48a3868b6ba108de07b9038f5a288552ce194a60672cb1098",
+      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/19_みそしる_candidate.webp",
+      "source_sha256": "5fb19685b9d634f48a3868b6ba108de07b9038f5a288552ce194a60672cb1098",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "index": 20,
+      "jp": "てんぷら",
+      "kanji": "天ぷら",
+      "zh": "天婦羅",
+      "file": "20.webp",
+      "sha256": "eccc42f839c55ec33cf21188b805c99cf7ae700103ee4f845b9ddfabc4983772",
+      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/20_てんぷら_candidate.webp",
+      "source_sha256": "eccc42f839c55ec33cf21188b805c99cf7ae700103ee4f845b9ddfabc4983772",
+      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    }
+  ]
+}

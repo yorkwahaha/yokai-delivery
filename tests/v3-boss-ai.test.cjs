@@ -66,8 +66,8 @@ test('V3 Boss AI: ring has a real gap and hits an unsafe swept annulus only once
   const hits=run(unsafe,q,2).filter(r=>r.hit);assert.equal(hits.length,1);
 });
 test('V3 Boss AI: tide is exclusive to the port and keeps a safe lane',()=>{
-  const e=fresh(3,true),p=player();const kinds=[];let tide;
-  for(let i=0;i<6;i++){AI.start(e,p,'rain-port');kinds.push(e.hazard.kind);if(e.hazard.kind==='tide'){tide=e;break;}run(e,{x:1000,y:1000},3);}
+  const e=fresh(3,true),p=player();e.stageId='rain-port';const kinds=[];let tide;
+  for(let i=0;i<6;i++){AI.start(e,p);kinds.push(e.hazard.kind);if(e.hazard.kind==='tide'){tide=e;break;}run(e,{x:1000,y:1000},3);}
   assert.ok(tide,'port boss must offer a tide');const h=tide.hazard;
   assert.ok(h.safeWidth>=90);const a=h.angle;
   const safe={x:h.x-Math.sin(a)*h.safeOffset,y:h.y+Math.cos(a)*h.safeOffset};

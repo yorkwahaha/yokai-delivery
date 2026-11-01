@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-26",
+  "note": "Only first original stage concept per Stage3–8; not runtime approved. This is not a wholesale merge of obsolete trials.",
+  "saved": [
+    {
+      "source": "yokai-delivery-archive-20261023/art/stage3-sakura-pass/scene/G_floor_triptych_candidate_nb21_v1.png",
+      "canonical": "docs/archive/2026-10/original-stage-concepts/stage3_floor_first_design_20261020.png",
+      "sha256": "b169155df07d4f2f88c2d12fe33b7c26e724f17a50dd056d57ae9d5f588a8761",
+      "bytes": 7806109,
+      "role": "ORIGINAL_UNAPPROVED_CONCEPT_DO_NOT_DEPLOY"
+    },
+    {
+      "source": "yokai-delivery-archive-20261023/art/stage4-bamboo-maze/scene/G_floor_triptych_candidate_nb21_v1.png",
+      "canonical": "docs/archive/2026-10/original-stage-concepts/stage4_floor_first_design_20261020.png",
+      "sha256": "a48c6fba243c18659c49a66ffead563dfea5e791e2bec02116b692f64117a715",
+      "bytes": 7434929,
+      "role": "ORIGINAL_UNAPPROVED_CONCEPT_DO_NOT_DEPLOY"
+    },
+    {
+      "source": "yokai-delivery-archive-20261023/art/stage5-hyakki-kyoto/scene/G_floor_triptych_candidate_nb21_v1.png",
+      "canonical": "docs/archive/2026-10/original-stage-concepts/stage5_floor_first_design_20261020.png",
+      "sha256": "2f997e5934d77ab68b15459922250e30a1adb86c12eaace95e548f077fe8111a",
+      "bytes": 7260519,
+      "role": "ORIGINAL_UNAPPROVED_CONCEPT_DO_NOT_DEPLOY"
+    },
+    {
+      "source": "yokai-delivery-archive-20261023/art/stage6-snow-temple/scene/G_floor_triptych_candidate_nb21_v1.png",
+      "canonical": "docs/archive/2026-10/original-stage-concepts/stage6_floor_first_design_20261020.png",
+      "sha256": "caf62d4fb49873d4e4d78f7d738f351682648e78e66dc2e9f97f55d7df5e95cd",
+      "bytes": 7846195,
+      "role": "ORIGINAL_UNAPPROVED_CONCEPT_DO_NOT_DEPLOY"
+    },
+    {
+      "source": "yokai-delivery-archive-20261023/art/stage7-spirit-ferry/scene/G_floor_triptych_candidate_nb21_v1.png",
+      "canonical": "docs/archive/2026-10/original-stage-concepts/stage7_floor_first_design_20261020.png",
+      "sha256": "c52e6bee5d4a0228f7f29db6f90f7a2d58b9ee376b5df9b62ee31e07f525111e",
+      "bytes": 7371351,
+      "role": "ORIGINAL_UNAPPROVED_CONCEPT_DO_NOT_DEPLOY"
+    },
+    {
+      "source": "yokai-delivery-archive-20261023/art/stage8-yomi/scene/G_floor_triptych_candidate_nb21_v1.png",
+      "canonical": "docs/archive/2026-10/original-stage-concepts/stage8_floor_first_design_20261020.png",
+      "sha256": "bfedfa4a75f442f9f0dd11e1a7cf5930806c67255a070f1de52e78ff079f785a",
+      "bytes": 6250686,
+      "role": "ORIGINAL_UNAPPROVED_CONCEPT_DO_NOT_DEPLOY"
+    },
+    {
+      "source": "yokai-delivery-archive-20261023/kirigane-core.md",
+      "canonical": "docs/archive/2026-10/kirigane-core.md",
+      "sha256": "c4f3cfefb0a62fe67f250e4263937324f16710353cdb29e29b1b04a9bd074fe6",
+      "bytes": 575809,
+      "role": "HISTORICAL_DOCUMENT"
+    },
+    {
+      "source": "yokai-delivery-archive-20261023/kirigane-evidence.md",
+      "canonical": "docs/archive/2026-10/kirigane-evidence.md",
+      "sha256": "60a8ea67a581e535bbce00c4726304ef145db4d02639fd4df40752145d8468b4",
+      "bytes": 615735,
+      "role": "HISTORICAL_DOCUMENT"
+    }
+  ],
+  "count": 8,
+  "total_mb": 43.07
+}

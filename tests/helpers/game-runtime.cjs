@@ -320,6 +320,7 @@ const FIXTURE = `window.fixture = {
   moveBoss: distance => { const bs=enemies.find(e=>e.type==='boss'); Object.assign(bs,{x:P.x+distance,y:P.y,speed:0,wob:0,flash:0}); },
   matchBossToJob: () => { const bs=enemies.find(e=>e.type==='boss'); bs.word=job.word; bossQ=mkQ(bs); bossQ.lock=0; },
   setWeaponRank: (id,rank) => { WL[id]=rank; wT[id]=Infinity; },
+  setBuildMutations: ids => { buildMutations = [...ids]; buildRevision++; },
     // 讓已持有的武器立刻可用（wT[id]=0），用於測試實際施放而非被 Infinity 冷卻擋住。
     armWeapons: () => { for(const k of Object.keys(WL)) if (WL[k]>0) wT[k]=0; },
     addEnemyBullets: count => { for(let i=0;i<count;i++) enemyBullets.push({x:P.x+120+ (i%3)*8,y:P.y-20+Math.floor(i/3)*10,vx:0,vy:0,life:5,maxLife:5}); },
@@ -335,6 +336,7 @@ const FIXTURE = `window.fixture = {
     solids.splice(0,solids.length,...walls.map(s=>({x0:P.x+s.x0,x1:P.x+s.x1,y0:P.y+s.y0,y1:P.y+s.y1})));
   },
   tune: id => UP.find(u=>u.id===id),
+  eligibleChoices: () => getEligibleChoices(),
   maxOutUpgrades: () => { Object.keys(WL).forEach(k=>WL[k]=['katana','barrier','needle','fire'].includes(k)?5:0);
     for(const u of UP) while(!u.ok || u.ok()) u.f(); },
   runSummary: () => runSummary,

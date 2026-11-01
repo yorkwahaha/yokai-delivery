@@ -1,5 +1,549 @@
 # Yokai Delivery — Roadmap／跨對話持續交接
 
+### 2026-11-01｜B14 百鬼夜行透明毛筆警示（已接遊戲；本機待玩家試玩確認）
+
+- **唯一現役警示圖**：使用本機 ComfyUI/Qwen Image 2.1 生成全新無花、無花瓣、無方框的紅黑不規則乾筆畫，將四字**「百鬼夜行」以金色毛筆字直接繪在同一張圖**；再去除淺色底成真正 RGBA 透明 WebP：`assets/img/ui/b14/surge_brush.webp`（1462×450，字形原比例、左右僅加透明留白，沒有橫向壓扁）。原始圖 `art/night-town/b14-comfy/surge_source.png`，透明圖 QA `art/night-town/b14-comfy/surge_transparency_qa.png`，生圖／去背腳本 `tools/b14_surge_brush.py`。B12/B13 舊警示素材保留但不在現役警示裡呼叫。
+- **實際接線／右進左出**：`js/ui.js` 載入單張 B14 透明圖，`UI.drawSurgeWarning(ctx,surgeWarningT)` 使用既有**2.4 秒遊戲警告計時**：0–0.36 秒從畫面右側快速 ease-out + 淡入；0.36–1.47 秒在畫面上方置中保持閱讀；1.47–2.4 秒往左滑出同時淡出。只有一張圖，沒有 `fillText` 或舊版方框；略帶柔和陰影保護對比，尺寸按 `screenBounds()` 在手機與桌面縮放；**不影響怪物出現時刻、BGM、攻擊判定**。
+- **真 Canvas QA**：用 `tests/visual/b14_surge_animation.html` 在 Chrome 載入真正 `js/ui.js`，三張不同時間點截圖 `art/night-town/b14_{entry,hold,exit}_runtime.png`。針對右進／置中／左出與 alpha 漸變的 `tests/b14-surge-motion-20261101.test.cjs` **3/3 PASS**；合併 B3–B13／音樂回歸 **103/103 PASS**；`node --check js/ui.js`、`asset_registry --check` **854 files／147 routes PASS**；本機 `http://127.0.0.1:8080/assets/img/ui/b14/surge_brush.webp` 回傳 200，四角透明度皆 0。未 commit/push/deploy。玩家仍需實機視覺驗收。
+
+
+
+### 2026-11-01｜B13 第一關實機返修：單一衝刺路徑、音樂導航、真手繪新選單
+
+- **第一關 Boss 衝刺**：發現 B12 `charge_aligned.webp` 素材本身就有兩條互疊預警，renderer 還另外疊程式白線＋7 組箭頭。已清除 `drawNightBossImage(charge)` 的額外 stroke/arrow/rect/clip 路徑，改讀本機 ComfyUI Qwen Image 2.1 新生成的一條**直向水平且只含單一通道**之完整墨繪 `assets/img/vfx/boss-night-town/charge_single_b13.webp`（原 1024×217、去紙底變 WebP 透明），金色箭頭在圖裡。使用同一份 `h.x/h.y/h.angle/h.length/h.r` 與 Boss AI 真實碰撞；不另算第二端點／不改傷害／不改速度。B13 現只對 localhost/127.0.0.1/192.168.* 開放，原 B12 image 保留。源圖 `art/night-town/b13-comfy/charge_clean_raw.png`，處理程式 `tools/b13_charge_art.py`。
+- **BGM bug**：根因 `js/game.js activateWithFeedback` 對暫停選單「world」提前呼叫 `AUDIO.prepareMusic('overworld')`，令 `js/audio.js` 還在遊戲內時播放地圖音軌。現只允許真正離開前的非 pause 場景預載；在「exit-cancel」額外 `AUDIO.dropPrepared?.()` 防止留下 map BGM。確認離開後才依既有 `enterOverworld(false)` 播放旅路地圖。B13 單元測試實際執行 pause/won/menu 不同狀態，確認暫停世界選項**不**預載 map track，結算「world」才預載。Boss 破封 BGM 較低音量的主動切換邏輯未修改。
+- **暫停／放棄重繪**：新 Qwen Image 2.1 生成三份同一套純手繪和紙／墨山素材 `assets/img/ui/b13/{menu_board,menu_button,menu_button_danger}.webp`，沒有 B12 舊灰色大矩形／舊版按鈕。`js/ui.js drawPauseMenu`、`drawExitConfirm` 都以新 board 九宮切片繪製，所有按鈕採相同系列三切片，不拉扁兩側裝飾；文字動態繪製維持原功能、點擊 hitbox／鍵盤／手把不動。已實際 Chrome 從 `tests/visual/b12_actual_ui.html` 載入真正 `js/ui.js`，產生本機內部 QA 截圖 `art/night-town/b13_{pause,quit,surge}.png`。
+- **百鬼夜行**：Qwen Image 2.1 已**直接在木牌裡手繪「百鬼夜行」四字**，不是 PIL/CSS/Canvas 後製疊字；新 `assets/img/ui/b13/surge_warning.webp` 載入後真遊戲一次 drawImage。B12 舊字圖保留作載入失敗後備。
+- **清楚 HUD**：`drawOrderList` 右側貨物名字與剩餘秒數保留，加強深色描邊／陰影以防被背景吃掉；被動卡原本 B12 素材邊緣灰色底紋改為 B13 九張統一柔和米黃宣紙 `assets/img/ui/b13/passive_{id}.webp`（保存原繪物件），分段亮燈由 7–8px 縮至最多 5.5px，黃光 `rgba(255,232,68)` 呼吸 2.4rad/s，真實最大 2/3/4 層不動。其餘相關 B12 設定保留。
+- **限本機試玩、尚待玩家審核**：`tests/b13-boss-audio-ui-20261101.test.cjs` 新 6 項專案回歸＋原 B3～B12/音樂回歸；新藝術先 `trial_pending_review` 登錄清冊。保留原始工作樹，**不要 commit/push/deploy，不動融合系統**。
+
+
+### 2026-11-01｜B12：七項實機 UI 統一化（本機已接入；等待玩家實機驗收）
+- 圖一百鬼夜行：`tools/b12_comfy_art.py` 使用本機 Qwen Image 2.1/ComfyUI 真正生成一幅木牌插畫並在圖片內烘焙固定四字「百鬼夜行」；遊戲 `UI.drawSurgeWarning` 播放單張 `assets/img/ui/b12/surge_warning.webp`，不再畫程式玻璃框／重複 Canvas 文字；保留紅色邊緣危機光。
+- 圖二地面御守：`js/game.js paintCharmDrop` 依真圖 `naturalWidth/naturalHeight` 自動計算顯示寬度，不再用 42×64 將 320×640 的護符非等比拉寬。原 2.5D upright、漂浮與彩光保持。
+- 圖三 Boss：`UI.drawBossBar` 去掉 `card_dark` 大面板、金框、底色、名稱及重複狀態文字，只保留 6px 紅色血量線。
+- 圖四 Lv5 長風刃：**檢證仍有效，不移除**。`derive...` 中 Lv5 `hasLongblade` 配出 `maxTravel:900`（無變異720），風刃真正生成使用 `spec.maxTravel` 並用該值決定飛行終點／敵人判定。Lv1–4 斬擊距離 +23%、Lv5 風刃 +25%。不用額外調數值。
+- 圖五左下被動：由本機 ComfyUI 生成九件水墨／和風飾品（水墨護鏡／刀柄／鈴／眼形護飾／草履／扇／油壺／勾玉／藥葫蘆），`assets/img/ui/b12/passive_{id}.webp`，米黃和紙。HUD 移除 `×1／×2...`，每個被動右側改完整高度分段燈：`oil_max`2 格、`dmg/rate`4 格、其餘包括 `oil_heal`3 格；護符 HUD 取消 ×數字，改色光強度與每層一顆小金珠。
+- 右上固定按鈕：製作 `assets/img/ui/b12/{pause_medallion,camera_medallion,view_flat_medallion}.webp`，`game.js` 原 pause／view 熱區完全保留；視角以相機 pictogram 表達而非現代 2D 文字按鈕。
+- 圖六／七：暫停、設定、退出本局確認統一使用 `assets/img/ui/b12/modal_board.webp` 的素材，暫停面板九宮切片不拉扁畫框，移除程序式純色底框；既有按鈕功能與 hitbox 未動。
+- 內部實際 Chromium 瀏覽器 Canvas 渲染：`tests/visual/b12_actual_ui.html`；已在 900×600 實際執行五種 UI 狀態並存 QA 截圖 `art/night-town/b12_{pause,quit,surge,boss,hud}.png`；這些是程序真畫面，不是展示設計圖。聚焦測試 **93/93 PASS**，`asset_registry --check` **838 files / 146 routes PASS**。B12 僅本機／LAN 進入美術審核，尚未完成玩家真機實測，未 commit/push/deploy。
+
+
+
+### 2026-11-01｜B11 真正遊戲畫面實作：去黑框、六色御守卡片、動態 UI（本機試玩待玩家美術驗收）
+
+- **不是另一張設計稿**：直接修改 `js/ui.js` 的 `drawCharmSwap` / `drawCharmHud`；遊戲仍即時畫御守、名稱、等級、效果、選取金光與替換／放棄可點熱區，沒有把整張 mockup 嵌成不可操作圖片。
+- **根治黑框**：移除整片暗色 `card_dark` + `rgba(9,19,35,.45)` 遮色、下方 `rgba(9,21,38,.92)` 黑底，以及燈籠旁三格黑色漆板。新增八張**純裝飾無字**真 WebP 素材 `assets/img/ui/charm-passive/b11/`：六色 `card_{power,step,gather,cadence,reach,guard}.webp`、`feature.webp`、`hud_wisps.webp`，帶和風金邊、櫻花、波浪與傳統紋樣。UI `charmScreenArt` 載入後成為真正可操作卡的底圖；只有這些裝飾為 raster，所有動態資料在上層。
+- **修復字超圓孔**：從 B9 原始 ComfyUI 御守圖集（尚未在字中疊錯字的源頭）重新裁切六款 320×640 御守，於中心印記內重畫合適尺寸、清楚易認的單一中文字（力／速／吸／疾／遠／守），新 `b11/omamori_{id}.webp`。不破壞原始 B9/B10，地上掉落、持有三符、替換大圖統一從 `illustratedCharms` 讀 B11。
+- **排版**：上半新守大型介紹 banner 採 navy 手繪素材，下方三張「每款對應不同色織紋」大卡；降低黑色遮蓋，選取金光僅局部；放棄鈕底部安全間距由13→32 CSS px。燈籠右側去整條背景與逐格黑框，改以真御守＋輕淡色光＋和風飄雲裝飾。滿三級與數字仍動態。
+- **實際畫面驗證**：`tests/visual/b11_charm_live_ui.html` 直接透過 Chrome `http://127.0.0.1:8080/` 載入真正 `js/ui.js` 和素材，headless 實際截到桌機 1280×720 及手機橫向 640×360 的真遊戲 UI Canvas，存於 `art/night-town/b11_ui_runtime_test.png` / `b11_ui_runtime_compact.png` 供內部 QA；這不是向使用者展示的設計稿。聚焦加 B11 **84/84 PASS**，asset_registry **823 files／146 mappings PASS**。玩家需實際玩一次確認美術／手感；不 commit / push / deploy、不動融合、不採用可愛版被動 icon。
+
+
+
+### 2026-11-01｜B10 已核准設計方向實作：六御守／完整換守畫面／燈籠 HUD（本機待實測）
+**產品審核決策：四張新設計稿中的御守主圖、整套替換選單、HUD＋掉落物三張可以照做；第二張 Q 版被動九 Icon 不採用。** 目前保留 B9 非 Q 版被動 Icon，不得把被否決的圖集接入。上一輪聊天生圖無法用 MCP host refs 直接匯入，此版依已核准的設計方向實作，**非宣稱逐像素使用該聊天圖檔**。
+- **源頭修正御守比例**：B9 512×768 透明圖原可見像素只佔寬約 167–173、高約 420，導致 UI 長期呈現小圖。六款裁掉透明邊並按等比例放大，輸出 `assets/img/ui/charm-passive/b10/omamori_{power,step,gather,cadence,reach,guard}.webp`（320×640、可見寬約 223–235、高約 565），不拉扁，原 B9/B7 全保留；本機 localhost/127.0.0.1/192.168.* 走 B10，正式線上仍保留 B7 待玩家核准。
+- **替換選單全新排版**：`js/ui.js drawCharmSwap` 完整重寫，以正式手繪卷軸框＋墨藍漆板拼裝，中央寬面板（寬上限1010、高上限650）依視口自適應；上方新獲御守是獨立**大圖＋名稱＋核心效果＋指示**區，下方三張縱向大卡各自用正確等比真圖＋獨立漆色文字帶，帶等級／效果／選中金光，底部「放棄」按鈕獨立。**絕不把 B9 橫向介紹圖整張縮放成縱卡而壓扁**；四個原有觸控熱區與選擇／放棄邏輯不變。畫面支援 640×360、844×390、1280×720；去掉舊標題/文字相互遮擋。
+- **燈籠 HUD**：`drawCharmHud` 真正改成由燈籠右緣幾何算出 x，預留 24 CSS px 間距而不再與燈油窗重疊；最多 3 枚一列獨立直掛在漆板上，真圖放大、彩光對應六色、Lv 疊層醒目。用 B10 同來源圖片，未復活免費聽音按鈕。
+- **掉落物**：`paintCharmDrop` 基礎圖 36×54 → **42×64**，維持自然小幅漂浮與分類彩光半徑39；共用 B10 真圖（裁切後更鮮明）。不變碰撞與拾取規則。
+- **測試**：`tests/b10-charm-ui-20261101.test.cjs` 直接執行三種螢幕 UI，使用自然像素比例320:640 mock 圖檢查新獲/三舊守 **4 張絕不拉扁**、三枚 HUD 不疊燈籠、交換熱區留在畫面內、維持拒用 Q 版被動。B7/B9 歷史測試依最新合法版面尺寸更新（舊110px卡片效果字限制已不適用）。待玩家實機視覺驗收。
+**禁止自行 commit／push／deploy；融合擱置，前兩關既有核心不動。**
+
+
+
+### 2026-11-01｜B9 正式新繪被動／御守本機試玩，貨物圖兩倍（待玩家驗收）
+
+- **新繪被動九張**：不再將技能卡裁切去背充當被動 Logo。本機 ComfyUI Qwen Image2.1 以明確 3×3 簡明符號設計重新生成；已拆成九張獨立 512×512 WebP 在 `assets/img/ui/passive/b9/hud_passive_{shield,dmg,rate,crit,spd,dash,oil_max,mag,oil_heal}.webp`。每款只有簡潔大主體，米白底、統一深色細框；來源完整圖集 `art/night-town/b9-local-art/passives_atlas.png`。
+- **新繪六御守**：同樣由本機 ComfyUI 重新生成絲織彩色御守，選出紅力／青速／黃吸／紫疾／藍遠／綠守，精確漢字由本機繁中字型清楚標示（不是信任模型猜字），每款共用高解析 512×768 透明本體與 900×810 介紹卡，位於 `assets/img/ui/charm-passive/b9/`；原圖 `art/night-town/b9-local-art/omamori_atlas.png`、`omamori_map.json`，地上物件、燈籠旁 HUD 與御守替換卡完全共用同源。獨立低成本、保護舊 B7 素材。**僅本機** `localhost/127.0.0.1/192.168.*` 載入 B9，其他環境仍走 B7；待玩家親自視覺核准。
+- **貨物加大兩倍**：`js/game.js drawCargo` 將實際手繪貨物圖從 42 → **84** world px，另有柔光底墊、深色陰影強調細長鉛筆等物品；不調整配送碰撞與選擇熱區。取貨／地圖的中文題目流程不變。
+- **檢查**：測試 `tests/b9-art-and-cargo-20261101.test.cjs` 驗九主動被動圖、六御守大小圖、B9 候選路徑、貨物尺寸。B6-B9 相關回歸 22/22 PASS，`asset_registry.py --check` 803 files／146 mappings PASS，本機 Python server 的首頁、兩支 JavaScript 與三張代表性 B9 WebP HTTP 200。未 commit／push／deploy、保留 B8 舊稿與擱置的融合系統。**需玩家正式試玩與美術審核**。
+
+
+
+### 2026-11-01｜B8 本機試玩修正：護符可見度、被動 MAX 疊層、統一米白圖示、Boss 手繪破封
+
+**完成工程接線，USER_PLAYTEST_PENDING，無 commit／push／deploy。**
+- 地面御守從 30×45 增加到 **36×54（1.2 倍）**，浮動改 5±4.5 世界像素、彩色外光半徑由 19→34、強度 0.36→0.82。燈籠旁最多三枚持有御守由 39×48 擴至 **49×62**，間距 5→7，增加各種顏色對應的淡光暈、放大 Lv 疊層字。
+- **被動不是全都三層：**`修羅破軍(dmg)` 與 `神樂疾奏(rate)` 各四層、`長明燈油(oil_max)` 兩層；`金剛結界(shield)`、`添燈香油(oil_heal)`、`心眼一閃(crit)`、`神足草履(spd)`、`縮地瞬步(dash)`、`招財勾玉(mag)` 三層。`PASSIVE_MAX_STACKS` 與 `passiveStackCount` 為同一來源；升級卡明列「第 x / MAX 層」及目前數／上限，達 MAX 即不進池，即使持有舊卡也 `ok()=false`。`shieldPicks` 現以**累積取得層數**計算而非被怪打掉的護盾餘量，防止無限抽取。HUD 修羅破軍疊層改用 `b.dmgUp`（每層+0.30），修正舊版除以 0.35 造成誤報層數。
+- 九張被動圖示以既有高解析真正手繪的 `assets/img/ui/upgrade/illustrations/` 為圖案來源，重新清理黑底重組統一 **512×512 米白和紙＋墨金邊框**，新試玩 raster `assets/img/ui/passive/washi-v2/hud_passive_{shield,dmg,rate,crit,spd,dash,oil_max,mag,oil_heal}.webp`。**不是九次全新 ComfyUI**；本機 127.0.0.1/localhost/192.168.* 預覽，線上仍保留 warm 版；試玩需人審。
+- **Boss 正確答題後破封**：不再以 Canvas 寫假三角裂片。單張透明高解析真正手繪源圖重組的破符圖 `assets/img/vfx/boss-night-town/seal_break_painted.webp`，由原 `assets/img/ui/upgrade/illustrations/boom.webp` 中的手繪朱符裂開／偏移／飄碎而成；`UI.drawBossQuiz` 在 `breakFade` 期間只 `drawImage` 縮放淡出新 raster，血條保持原位；本機候選，素材來源清單 `art/night-town/b8-passive-and-seal/source-manifest.json`，**未經玩家審圖不轉正式站**。
+- **驗證**：新 `tests/b8-passive-caps-and-seal-20261101.test.cjs` 使用真遊戲 `UP` 與升級候選，確認 9 種上限、MAX 過濾、完成畫稿接線；B8+B7+B6 18/18 PASS、B5/B3/Boss/UI 另一組 25/25 PASS；`tools/asset_registry.py --check` 782 files、146 mappings PASS。視覺位置、美術質感與實機 Boss 流程仍待本人試玩。
+
+
+
+### 2026-10-31｜B7 玩家第五輪實機回饋：六護符真卡片／HUD／縮地鈕／地面接縫／取消免費聽音
+
+本批**本機試玩待玩家驗收**；無 commit / push / deploy，融合仍無限期擱置。
+
+- **六護符尺寸正規化**：將專案原有 1024 手繪源圖重新取色去背、輪廓裁切，生成六套固定 **512×768** 透明圖 `assets/img/ui/charm-passive/b7/omamori_{power,step,gather,cadence,reach,guard}.webp`。不再把原本各異的長寬比直接放大。六種落地御守固定**寬30、高45** world px；以 drop id 為相位、每秒 3.2rad 的 2.5px 上下浮動；保留碰撞位置。
+- **御守介紹卡**：為每款護符做**各自的 900×810 高解析圖卡** `.../b7/charm_card_{id}.webp`，沿用已核准的技能升級卡 raster 底稿、搭配大張清潔御守圖及清晰「**力／速／吸／疾／遠／守**」單字識別。替換選單按需下載持有及新獲的圖卡（不一次下載全部六張），動態繪出精確等級／技能數值／可點熱區；新獲展示卡增高至 101px、持有卡增高至 151px，行動版採 compact 72／115px，選中提示移到右上避免遮住左上文字印章。六張 *B7 圖卡是原有手繪真圖與正式手繪 UI 素材重新合成、不是新六次 Comfy 生圖*；原預計六次 Comfy 生圖因服務佇列阻塞未產出，不要聲稱該部分完成。
+- **HUD 布局**：撤下右上舊「招靈守　遠霞守　力紋守」文字列，以 `UI.drawCharmHud` 在左側燈籠**旁邊垂直展示最多三張小御守**，用與地面和介紹卡同源的透明圖，Lv2/3 可用 x2/x3 顯示，避免壓住右方雷達。
+- **免費聽一次正式取消**：`js/game.js` 提示執行被移除（內部 test bridge `triggerHint(){return false}` 是無作用的相容入口）、鍵盤/手把/滑鼠均無法啟動；`js/ui.js` 不再畫「免費」御守／提示鈕，取消該教學引導；空位改顯示持有三御守。正常取貨時原日文發音不受影響。
+- **衝刺按鈕**：本機 ComfyUI Qwen Image2.1 真實生圖 `assets/img/ui/dash_medallion_b7.webp`，已去除純白背景方塊，改畫印金墨色手繪衝刺勳章＋淡金圓環與秒數，取消現代藍色玻璃圓鈕。原稿 `art/night-town/b7-dash-review/original.png`。此素材尚須玩家實機美術核准。
+- **地圖黑線防護**：`js/renderer.js` 地面 cache 重用在左右上下分條繪製時額外重繪 **2 實體 pixel 的接縫重疊**，避免重取整產生可見 1px 黑線。此為 code fix，須持續平移相機實測；不能聲稱根因已完全驗證。
+- **QA**：新增 `tests/b7-omamori-and-ui-20261031.test.cjs` 7 項；B3/B5/B6/御守/單字/王 AI 合併 **64/64 PASS**，B7 檔案確認 portrait 512×768 透明角、card 900×810、dash 512×512 透明角。素材清冊工具最後成功 `--check`（當輪檔案數依實際結果）。未做 Chrome 真人操作測試。
+
+
+
+### 2026-10-31｜B6 玩家第四輪實機回饋：Boss 衝刺／鏡面盾／圖片記憶題／御守統一／Lv5 音效／符爆動態
+
+**已直接實作，本機試玩待玩家最終美術／節奏審核；未提交、未推送、未部署。**
+
+1. **Boss night-town charge**：`js/boss-ai.js` 夜行町衝刺速度從 620→1240 world/s，理論最遠從 403→868，命中半徑 52→76（廊道寬 104→152），前方阻擋仍共同截短預警與真實位移；其他關卡保留舊值。`js/renderer.js` 額外以**本機 ComfyUI Qwen Image2.1 真實繪圖** `assets/img/vfx/boss-night-town/charge_aura.webp`（原始圖/seed/manifest `art/night-town/b6-charge-aura/`）在 Boss 身後顯示深紫紅鬥氣與殘影，僅 localhost/127.0.0.1/192.168.* 本機試玩，狀態 `IN_GAME_TRIAL_PENDING_USER_REVIEW`，未獲核准不得提升正式線上圖片。
+2. **盾牌鏡面閃光**：`js/renderer.js` 每 2 秒短暫出現的八角盾不透明度上限從 0.80 提升到 0.98、顯示時長從 280→340ms；每次顯示從左向右一束窄白青鏡面反光，仍正向抵消角色鏡射，保留受擊破片。
+3. **Boss 題目畫面**：`js/ui.js` 答題板、三個選項、下方 Boss HP 底板一起改用正式技能升級頁同套實際手繪 `formalUpgradeArt.card_dark/card`；版面增加圖片列高度、以中心對齊 `DELIVERY_ICON_ART.imageFor(word)` 的**實際物品圖片 + ？**；完全移除 Boss 題面中文名稱（缺圖時僅 icon／空方框、不顯示答案），日文選項與答錯鎖定規則原封不動。
+4. **御守替換與落地識別**：六張現有御守 WebP 的不透明灰方底已移除，並裁切成能放大的透明素材 `assets/img/ui/charm-passive/clean/hud_omamori_{power,step,gather,cadence,reach,guard}.webp`，原圖保留；`UI.charmArtFor()` 提供**同一張**圖給地上掉落與御守替換選單，顏色／圖案必然對齊。交換卡上半圖區從 44%→61%，標題字級增加並維持小螢幕熱區與三槽；選取標籤移離文字，放棄鈕變大；地上掉落改 50px 主圖，按御守類別添識別光暈。
+5. **音效**：已驗證用戶提供 `assets/audio/sfx/skilllv5.mp3` 檔存在，取得任一 Lv5 主動技能時改由 `AUDIO.skillLv5()` 播放，**勝利仍使用 `fanfare.mp3`**；御守撿拾/進入替換時加 `AUDIO.charmPickup()`，預留 `assets/audio/sfx/charm-pickup.mp3`，目前該檔不存在時使用拾取合成音，不預載缺檔。
+6. **Lv5 陰陽符**：保留原 `SKILLFX.play("boom","hit",5,...)` 真圖，新增短暫 0.78s 有上限的煙霧圈與飛散火星次級動畫（最多 16 組），只適用 Lv5；並隨遊戲重新開始重置。
+
+**局部驗證**：`tests/b6-night-town-polish-20261031.test.cjs` 新增六項；`tests/ui-charm-passive-20261023.test.cjs` 增加真正執行 Boss 圖像式題目的實際繪圖 stub 測試。合併 B3-B6／核心局部測試 **57/57 PASS**。素材清冊更新到 **795 檔／145 映射**，不動融合與第二關核心。
+
+
+
+### 2026-10-31｜B5 玩家第三輪實機回饋：砸地爆裂定位／新護罩／靈針迴力鏢（本機試玩待驗）
+
+- **第一關 Boss 砸地**：`js/renderer.js` 用同一警告圈地面基準 `groundBottom` 對齊新爆裂真圖的可見下緣，針對爆裂素材下方視覺重心多出 `impactLift` 上移校正，不再爆裂圖整塊偏低。命中後附加短促膨脹（`popScale`）、0.72 秒飛石抛物線與收束淡出（主體始終用 ComfyUI 生成的真實 raster，Canvas 只畫次級碎石）。不改 Boss AI 砸地半徑／傷害／警告時長。真音效路徑：`assets/audio/sfx/boss-slam-impact.mp3`，由 `js/audio.js` 的 `AUDIO.bossSlamImpact()` 調用；**檔案暫不存在，待玩家自行補入**，目前以簡短低音太鼓代替、不在進關時預載不存在的 MP3。只在預警正式切換命中的瞬間播放一次。
+- **護罩重新繪製**：用本機 ComfyUI Qwen Image 2.1 重生更單純的**藍青色八角形護罩**＋淡陰陽／八卦符號，無文字、沒有繁複花紋，碎裂版外框崩開；來源及 seed 留 `art/night-town/b5-shield-bagua-review/`；本機試玩接 `assets/img/vfx/shield/ward_bagua_{full,break}.webp`，增加破盾 620ms 往外飛散的菱形碎片與快速撐開。仍是 `IN_GAME_TRIAL_PENDING_USER_REVIEW`，線上正式站不直接使用未審圖，原 `ward_spirit_*` 保留。
+- **靈針回旋折返變異**：移除原 220px 折返上限，依每支射向、實際世界縮放與傾斜，計算從角色到可視畫面邊緣的至少 72% 位置才折返；回程是帶明顯橫向彎曲的迴力鏢路徑，原射向 `launchAng` 固定繪製針體不自轉，仍允許原目標額外命中一次 35% 傷害、不重複冰凍。伸長這種變異投射物的生命期以走完來回，非變異的基本靈針速度與射程不變。
+- **驗證**：新增 `tests/b5-slam-shield-return-20261031.test.cjs` 驗真實 projectile 回程偏移、護罩 WebP、砸地圖片／音效接點；舊 B3 美術驗證更新為新八角護罩。B5＋B3＋六招／Boss／單字與御守相關聚焦測試 50/50 PASS，三支 JS 語法檢查通過；素材 `tools/asset_registry.py --check` 785 files、144 mappings PASS。整體仍 **USER_PLAYTEST_PENDING**；未 commit、push、deploy、不動融合與第二關。
+
+
+
+### 2026-10-31｜B4 玩家最新五項實機修復（本機試玩，未部署）
+
+**本輪已實作**：
+1. `js/game.js` 天狐靈針 Lv5：從角色背後 `P.y-60/tiltK()` 的上半身位置順時針射 8 方位；0.05 秒各 1 發（0.40 秒全射），待第 8 發生成後才重置 1.0 秒基礎冷卻，御守有效攻速仍可縮減冷卻但不能壓縮發射間隔。每針出針皆呼叫 `AUDIO.needle()`。修正浮點邊界造成同針重複射出的問題；Lv1／基本技 `frost=false`，只有選 `mut_frost` 變異才冰凍。
+2. `js/ui.js` 被動技能原本深灰底 WebP 改成 **8 張暖金和紙底**，新圖 `assets/img/ui/passive/warm/`，原 normalized 圖保留；已獲得技能不再像封印。
+3. 御守替換頁使用與正式技能升級一致的 `formalUpgradeArt.board_v3` 卷軸真圖及 `card_dark/card` raster 卡片底圖，保留新守描述、三個持有槽、選中／捨棄、觸控熱區與小橫屏佈局，UI 文字重新對比調整；仍待使用者實機審美確認。
+4. 真正以 **本機 ComfyUI Qwen Image 2.1** 生成 `ward_full`、`ward_crack`、`slam_warning`、`slam_impact` 四張圖，原始生成檔／seed／job 留在 `art/night-town/b3-comfy-20261031/`；試玩 WebP 路徑：`assets/img/vfx/shield/ward_spirit_{full,crack}.webp`、`assets/img/vfx/boss-night-town/slam_earth_{warning,impact}.webp`。**無文字、無 SVG、無程序地裂正式顯示**；盾牌額外反向抵消角色 flip，維持文字／紋路朝向不鏡射。以上圖標為 `IN_GAME_TRIAL_PENDING_USER_REVIEW`，僅 localhost／127.0.0.1／192.168.* 本機預覽讀新圖；未核准不會被線上正式站默默使用。刪除舊 `drawNightSlamEarth` 程序畫法，原源圖保留，下載尚未完成時採安全備援。
+5. 衝刺終點：`js/boss-ai.js` charge 起點／終點／物理移動共用 `h.angle` 和 `h.length`，前方有建築物時先以 8px 步長預估可達長度，衝刺最多走到該位置；`js/renderer.js` 將原本內部斜 45° 的既有正式筆觸圖片轉正成獨立 raster `charge_aligned.webp`，繪製時精準依 `h.length` 縮放且在 h.x/h.y 腳點出發，避免只修起點但終點仍歪。
+
+**規範**：`AGENTS.md` 已新增「核心美術必須真圖片，Canvas／SVG 不可算正式完稿」最高優先要求；四張未核試玩 Comfy 圖按 `trial_pending_review` 登記，暖金圖與既有斜筆觸轉正圖按 canonical 登記，保留來源及舊圖，不打破現有 asset registry。
+
+**圖檔驗證補充**：Comfy 靈障已二次去除內部不透明白底，兩張 WebP 中心 alpha=0，角色不會被白紙遮擋。正式資產檔名遵循穩定功能名（`ward_spirit_*`、`slam_earth_*`），模型與候選標籤只存在 `art/` 來源及審核 manifest，不出現在正式路徑。`tools/asset_registry.py --check` 為 783 檔／144 映射；焦點 Node 測試 47/47 PASS。
+
+**局部驗證**：`tests/b3-needle-charge-20261031.test.cjs` 新增精確輪射／基本 Lv1 不冰／撞牆終點三項，`tests/b3-night-town-visual-feedback-20261031.test.cjs` 更新真圖接線與非鏡射驗證。六招、Boss AI／封印、第一關圖音、御守 UI 和錯詞複習局部 Node 測試後續結果見本輪報告。**USER_PLAYTEST_PENDING**；不代表新圖已獲美術批准。未修改融合，未 commit／push／deploy。
+
+
+
+### 2026-10-31｜B3 第一關玩家五項實測回饋：本機修正完成、待再試玩
+
+1. `js/ui.js` 已移除「安心讀題・離開恢復」冗餘提示，結界暫停行為保留。
+2. 夜行町 Boss 衝刺：`js/renderer.js` 取消原本多轉的 +45°，特效沿物理 `h.angle`、403px 距離及 `2×h.r` 危險走廊裁圖；`js/boss-ai.js`＋`js/game.js` 只針對夜行町將真衝刺預警與命中中心從 Boss 角色座標補到立繪腳點（footY=44 畫面 px，轉為世界 Y=44/tiltK），兩者共用同角度與同一腳點；其他關卡碰撞座標不動，真機仍需檢視美術感受。
+3. 夜行町 Boss 砸地提示改「地裂！快閃開！」（只在預警期顯示）；原紅圈改 `drawNightSlamEarth()` 地面龜裂、石塊分段邊界、命中飛石，仍由 Boss AI 真 hazard 控制原傷害、半徑、時序；其他關卡不動。
+4. 配送答題結界加入 `deliveryBarrierContains()`：以實際可見藍圈圓心 (to.x,to.y+70)、半徑 X=245、Y=165/tiltK() 判斷進入/展開，離開額外 14px 防抖。上、下、左、右共 8 組內外判定通過。
+5. 新繪第一方和風護盾 `assets/img/vfx/shield/ofuda_ward_full.svg` 與 `ofuda_ward_crack.svg`，青白靈障、和紙御札／墨字，已由 renderer 改接替原 JPAPP 的西式盾牌圖；保留原本 2 秒閃現、最大 80% 不透明度、受擊碎裂 620ms。舊 PNG 未刪。新圖列入 `docs/ASSET_INVENTORY.json`，`tools/asset_registry.py` 認定 canonical 正式路徑。
+
+**驗證**：新增 `tests/b3-night-town-visual-feedback-20261031.test.cjs` 六項聚焦測試（新增衝刺腳點／碰撞同位與非第一關零偏移），連同 B3 六招／雙 Boss／Boss AI／第一關圖音／御守 UI／錯詞複習／配送資產聯測 44/44 PASS；三支 JS node --check 通過，兩張 SVG XML 驗證通過，asset_registry --check PASS 765 files / 141 aliases。另擴大試跑兩個舊測試出現 9 紅：barrier-raster 缺新版 fetch VM mock，boss-telegraph-delegate-r1 仍要求舊函式 `drawBossHazard(h)` 與三參數委派。未為測試翻綠修改正式玩法。
+
+**交付**：USER_PLAYTEST_PENDING；Python 8080 本機頁面強制刷新看結果，實測衝刺／地裂／結界方位／盾牌美術。未 commit、push、deploy；融合與六招傷害數值不動。
+
+
+
+### 2026-10-31｜B3 第一關工程修復：雙 Boss 封印題目錯位（本機未部署）
+
+**已確認且修好**：`js/game.js` 原以 `enemies.find(e => e.type==="boss"&&e.shield)` 取場上第一隻護盾 Boss，若先前一隻還活著且遠離玩家，玩家接近下一隻可能沒有封印選項；即使有題目，答案也可能解除另一隻的盾。現在讀題先選可讀範圍的**最近 Boss**，原讀題結界已過期時仍可近距離答題；`answerBoss` 用 **Boss 自身 quiz 物件對應**，只解正確對象的封印，保留舊隔離探針的同詞/近距離備援。單 Boss 正常路徑不變。
+
+**證據**：新增 `tests/b3-night-town-boss-quiz.test.cjs`，修前雙 Boss 測試 **FAIL（靠近第二隻卻無題）**、單 Boss PASS；修後三案（遠處舊王、一般單王、同畫面雙王選最近者）**3/3 PASS**。連同 `tests/v3-boss-ai.test.cjs`（11）、`tests/delivery-v3.test.cjs`（7）合計 **21/21 PASS**。舊大批 M1/V3 紅測含 5.75 秒收尾／600 秒天亮／靈針 Lv5 舊覺醒名／錯答固定扣6油等歷史契約差異，**不可按舊斷言倒改正式玩法**；獨立 `agy-m1-contract` 靜態名稱案 **5/6 PASS**，紅案是舊靈針名稱。除本次有重現證據的 Bug 外，不擅改平衡／Boss HP。
+
+**B3 六招與媒體補驗（新增）**：建立 `tests/b3-night-town-six-skills.test.cjs` 兩案；普通升級池只有六種基礎主動技能、無融合/舊 Duo、四個主動技能槽守門、重開局重置基礎與融合殘值均 **2/2 PASS**。連同上述 Boss 及 delivery Node 測試 **23/23 PASS**。另跑第一關 `night-town-approved-fish`、`ui-charm-passive-20261023`、`v3-study-session` 三檔 **15/15 PASS**（正式單字圖音／御守 UI / 錯詞抽取），目前本輪聚焦測試合計 **38/38 PASS**，**不代表完整局已可宣布驗收**。
+
+**剩餘**：第一關自然取件→配送→Boss→結算／重玩、全部六招完整實戰、御守與裝置排版須使用者試玩，狀態 **USER_PLAYTEST_PENDING**；下一步針對玩家重現問題直接修。未調整融合、未改素材音訊、未 commit／push／deploy。
+
+
+
+## ★ 2026-10-31｜最新玩法決策：融合暫停，六招主動技能完成前兩關（高於下方歷史工單）
+
+**使用者明確決定：融合系統整體暫時擱置，未來重新審視設計。** 夜行町與雨夜港町的現階段可玩／驗收範圍，僅包含六種既有主動技能：妖刀斬（katana）、淨化靈陣（barrier）、狐火炎（fire）、陰陽符（boom）、天狐雷（thunder）、天狐靈針（needle）。「六招」指**技能池**，每局原有**最多 4 個主動技能槽**照舊；Lv1–5、覺醒、被動和御守正常維持，不擴槽、不增加融合替換。禁止將融合啟用、十配方／繪馬／融合 UI 美術驗收列作第一二關完工障礙或主線工單，也不因舊融合紅測停止正常六招開發。
+
+**程式核對**：`js/fusion.js` 一般模式門禁關閉（僅本機 `dev=1&fusionlab=1` 隔離測試），`js/game.js` 普通升級池以 `fusion_` 前綴排除所有融合技能；目前**不需要修改六招正式玩法程式**。融合 registry、原碼、素材及既有測試保留供日後設計重審，**不刪、不重新開放、不擅自改平衡**。
+
+**優先順序**：①夜行町六招／配送／Boss／御守／結算及重玩可玩 → ②雨夜港町正式接圖／泥地、碼頭、怪物、水妖 Boss、詞圖音／完整局 → ③桌機與行動裝置核對、兩關實機驗收 → ④清理與後續關卡；融合研究獨立延期。嚴守玩家本人實際試玩、dirty 工作樹保護及未授權不得提交部署。以下舊工單提到「十融合必修」「融合 P1」均被本節覆蓋。
+
+
+
+### 2026-10-26｜測試職責最新變更：玩家自己測，Agent 只寫與修
+
+最新使用者指示：AGY 負責第一、二關持續實作與必要輕量技術自檢，Codex 按需技術協助；**取消 Agent 預設的 Chrome/Playwright 操作遊戲、自然送貨長跑、20 配送、Boss 自動長局與八格人造玩家驗收**。美術觀感、手感、難度、整關流程由使用者透過可玩 dev 入口親自測，提出問題後由 AGY 直接修改。只有使用者另行明確要求，才讓 Agent 自己跑實機或自動流程。Node/語法/資源路徑等短檢可做，但不可宣稱等於真遊玩 PASS。交付狀態標記 USER_PLAYTEST_PENDING，等使用者回饋再迭代；舊 R21 QA harness 不是下一步要反覆修的主線。
+
+
+### 2026-10-26｜雙 Agent 開發模式正式接管（下方 R12～R21 是歷史）
+
+**固定 AGY 主力開發 + Codex 按需總監／驗收，最多2席；Cursor／Grok Build 僅為 AGY 額度不足時擇一替補。** OpenCode／Kilo 停派；舊多 Agent 單檔交權與頻繁 QA 任務規則取消。正式規範見 AGENTS.md 頂端，最新精簡交接詳 docs/agent-handoff.md 頂端。
+
+**兩階段任務（已按 2026-10-31 六招定案修訂）**：先完成第一關 night-town 正常送貨→作答→完整 Boss→**六招主動技能／升級覺醒／御守**→結算重玩；再完成第二關 rain-port 的場景／圖片／配送／水妖 Boss 與完整局。R20 成功進場取件但送貨0；R21 兩輪是 harness timeout，沒有證實生產問題。歷史七條404尚無真URL；S2自然完整局、Boss 招式、正式圖音核准及裝置驗收仍未完。**融合已另行擱置，不列雙關 Gate**。直接修到玩家可玩，不再無止盡修舊自動導航 harness。
+
+**清理保護**：暫不刪 scratch/test-results/tests/tools，先做來源／引用／是否可重建盤點。現有 dirty、HEAD a4aaa94、發布0e5875d/e0278e5與9455保留；沒有使用者另行授權不提交、不部署、不付費生圖或執行破壞性git。
+
+---
+
+
+### 2026-10-26｜R21收R20真失敗／只讀合法街道路線QA
+
+**F1–F4未全過，不宣完成。** R20原收據exit1／RESULTS overallPass=false、S1自然取件但**配送0**、**7條404**、Boss NOT_RUN；S2未啟動。root核七JS served/body/current SHA與原PNG均吻合，保留原失敗；原目錄未見獨立raw/exit檔、404亦無URL，不補造原始紀錄、不推成7種圖片。直走被solid擋住／步數耗盡只證當次導引失敗，**不接受為production不可玩定論**，R18 UI icon僅候選對照待真URL分類。
+
+| 現行owner／唯一寫權 | 實際狀態 | 下一Gate |
+|---|---|---|
+| AGY p3：**只scratch/r21-stage1-route-qa-agy/** | 主管R21-F3原票已讀回、**working596**，root未重派；全部prod/tests/原R20/素材唯讀 | S1純鍵盤沿合法街道繞solid→取件→答題→delivered≥1，收真Chrome圖/原404 URL/raw/exit/served與前後SHA/停筆；成功後才S2同格一案，不擴20單/Boss/8格 |
+| Kilo p7：無新票／保留F2 checkpoint | idle588/upstream timeout，不盲retry；舊兩VM失敗不等真runtime | 可用免費cloud須先實證，CF無餘額reset證明仍禁派，禁paid/認證/本地GPU爭用 |
+| p8舊session：**blocked593不重派** | UI BA268690…只U1 TEXT_SCOPED；本輪無production writer | 新raster/人審/融合御守全改/真Chrome仍未驗，不另起同檔writer |
+
+[R21台帳／F3 blocker](scratch/r12-director/r21/ASSIGNMENT_LEDGER.md)／[階段交卷](scratch/r12-director/r21/PHASE_REPORT.md)。停筆後root才核路線與版本，判單樣本成功、harness導引問題或真不可達；若404 URL確實取得，可另開一張唯讀來源分類票，不能先泛改world/game/UI。正式8格**NOT_RUN／guard2**；S3 ASSET_IMPORT_BLOCKED、Boss ART_CANDIDATE/USER_ART_REVIEW_PENDING、S2 source seam ART_FIX/mountain WAITING_ART保留。保護9455/dirty/發布0e5875d/e0278e5，禁Git add/commit/push/deploy/reset/clean/pull/checkout/paid/keys/音訊/廣域kill；R1–R3/Stage3+不做。下方R20及更早為歷史，不再授權舊票。
+
+### 2026-10-26｜R20正式接力：R19判定窄收，兩關真局/runtime原票進行
+
+**最新UI收件：U1 TEXT_SCOPED**。主管以相容本地別名`qwen3.8-agent:27b`乾淨CLI代行原UI唯一writer，**舊p8 blocked session不再派工**。receipt已核，UI SHA **6e3742c3…→ba2686902695a93e70ac59ed549065a7284443063b0f84aa3e97f011f16f0f30**；root將兩處微改反向還原，完整SHA精確回6e3742c3…，確認僅drawLevelUp：說明最多兩行、去卡面重複metas，資料/遊戲邏輯不變。root node語法exit0；主管三測試12/12 PASS列入紀錄，本次未重跑Chrome。新卷軸raster/人審、融合與御守全改/真互動仍未完成，非ART_PASS。AGY仍QA中等停筆，UI新SHA須納入其served/前後比對，混版不能宣PASS；Kilo timeout不盲retry。F1–F4優先、R1–R3不上，**guard2／正式8格NOT_RUN**不變。以下blocked敘述為舊session歷史。
+
+**最新增量**：p3正在執行Stage1原票Chrome探針；p7已idle588/upstream timeout，不再prompt retry，留下兩案失敗的VM探針（API對接錯），無真Chrome圖/完整raw exit/交卷，不當PLAYABLE或production故障。p8仍blocked586/小probe未通，寫權保留；正式8格guard2不放行。下表為原票啟動過程，最新狀態見R20台帳。
+
+| owner／本輪唯一寫權 | 實際收件／狀態 | 下一Gate |
+|---|---|---|
+| Codex總監：roadmap＋scratch/r12-director | **R19實檔8cd1c425…、原24項判定測試root24/24 exit0、三反例全拒收、語法0／guard2**；原writer停筆關閉 | 僅NODE_PREDICATE_PASS_SCOPED，正式8格**NOT_RUN**；不刪8檔契約/假fetch NT manifest過門 |
+| AGY p3：只scratch/r20-stage12-gameplay-agy | **working584**，主管原票已讀回/實際工具，兩關配送/Boss自然短局一關一案 | 真raw/exit/圖/served SHA/前後SHA/停筆；未觸發Boss/20配送仍NOT_RUN，無production權 |
+| Kilo p7：只scratch/r20-fusion-runtime-kilo | **working585**，主管原票已讀回/實讀game/fusion，有界真runtime | 雙Lv5→確認→父替換/停攻→新招作用/傷害/HUD，SOURCE_PATH不等PLAYABLE；無production權 |
+| OpenCode乾淨CLI代行原UI票：ui.js＋scratch/r20-scroll-ui-opencode | 舊p8 blocked不重派；主管相容別名qwen3.8-agent:27b已做微改。現UI **ba268690…**，root完整前後SHA/微diff/語法0已核；主管三測試12/12 | 只收**U1 TEXT_SCOPED**。不授第二UI writer；新raster/人審/融合御守全改/真Chrome待驗，不能把模型相容或文字測試當ART_PASS |
+
+[R20現行台帳](scratch/r12-director/r20/ASSIGNMENT_LEDGER.md)／[階段交卷與甘特實績](scratch/r12-director/r20/PHASE_REPORT.md)。主管三原票未重派；F1–F4仍PARTIAL/NOT_VERIFIED，runner_ready=false/freeze=null，**不放正式八格**。9455/dirty/a4aaa94/發布0e5875d與e0278e5/key/音訊受保護，無Git add/commit/push/deploy/reset/clean/pull、paid或廣域kill。新玩法R1–R3及Stage3+不做，Boss/新卷軸人審、source seam/mountain/實機缺口保留。下方R18–R19為歷史過程，寫權以上述R20與OWNERS_CURRENT為準。
+
+### 2026-10-26｜R18總監啟動與首輪交卷（F1–F4尚未完成）
+
+**最新收件／已接R19**：R18B idle568停筆後，root獨立收**一格雨港1366×768／actual .60／六body SHA／真屋招牌與PNG／三null拒收，exit0**，只ONE_CELL。其錯canvas反例仍過，未批准為final8 authority；已交AGY **R19 working571，只scratch/r19-final8-predicate-agy** 修R16新QA副本與負例，原QA/prod全唯讀，不開正式8格。UI最新idle570/選模無交卷，CF耗盡仍禁用/付費，保留暫停寫權；Kilo565來源有限收，不派九招重寫。下一Gate是R19候選raw/exit/SHA/停筆後獨立審，F1–F4與新主圖人審/自然局/實機等仍未完成。下方為本輪原票過程，現權看OWNERS_CURRENT。
+
+**最新接力**：AGY原R18 done566/原exit0，但三案actualTilt=null仍PASS→root拒收測量，已撤assets production寫權，**R18B working567只scratch/r18b-consumer-measurement-agy**：真getter/strict負例＋只一雨港1366×768/.60；其餘NOT_RUN，不升八格。Kilo最後done565只有限靜態收件，殘留無handler誤註由root反證覆蓋，不派重寫；OpenCode done561仍待provider/部分UI交卷，寫權保留暫停。下表為原票過程，最新owner依OWNERS_CURRENT。
+
+| 原票／唯一writer | 實際狀態／本輪收件 | 下一Gate／限制 |
+|---|---|---|
+| **F1 AGY p3：assets.js＋scratch/r18-s2-consumer-agy** | 主管原票已開始working552，非重派。前R17C idle549有停筆收據，assets9adeaf22已核；兩雨港案各六真body SHA/5建物decode/錯誤與同幀載入字0，PNG已見倉庫，收窄修復證據 | NT對照未請求manifest，原「每導航六檔」不全成立，root嚴格exit1；新R18首run.exit1保留，不能冒F1全PASS。原票補case分級/正常consumer證據，非根因不改，需他檔先停筆交權 |
+| **U1 OpenCode p8：ui.js＋scratch/r18-ui-scroll-opencode** | CF明報每日10,000免費neurons耗盡，root中止retry→done553；後Free Personal/OpenCode曾working555並改UI，現done561/model picker無作者收據，**PROVIDER_CHECKPOINT_REQUIRED**。UI6e3742c3 node語法0 | 不盲重送/換未證模型/付款或認證；寫權保留暫停不搶檔。舊result_panel紙木裁切調亮只算排版fixture，非新卷軸主圖；三圖短文案/三面板一致/9-slice/44px/三尺寸真互動與新raster人審未收 |
+| **F2 Kilo p7：只scratch/r18-f2-readonly-kilo** | 原票實讀後done558、首補正done563；root核到「九招無consumer／三Boss只幾何」誤判，有真timer/FX/傷害及bossImageBox反證。原稿保留，最後有界來源補正working564 | **不據誤報派重寫九招／Boss泛票**；只核SOURCE_PATH_EXISTS，無真Chrome/自然Boss/融合交易仍NOT_RUN；舊PLAN不算當次採樣before，活動UI/assets不升同版PASS |
+| F3 場景／配送與F4最終放行 | PARTIAL／NOT_VERIFIED／正式八格NOT_RUN。R16 runner5ab三反例仍REJECTED；PLAN WAITING_R18_CONSUMER_UI_AND_RUNNER_FIX，authors_stopped=false、runner_ready=false、freeze=null；本輪實際guard2 | 先收三席原始raw/exit/圖/前後SHA與停筆，再只派一個最小根因退修；自然局/兩關各20配送/六技能十融合/完整HUD與實機仍待。候選U1可平行，不提前實作三委託×三路線 |
+
+[現行派工台帳與甘特實績](scratch/r12-director/r18/ASSIGNMENT_LEDGER.md)／[R18階段交卷](scratch/r12-director/r18/PHASE_REPORT.md)／[UI provider checkpoint](scratch/r12-director/r18/UI_PROVIDER_CHECKPOINT.md)。主管原三票均曾實際開始，不把現時idle/done或程式存在當完成。source seam ART_FIX、mountain_cliff WAITING_ART、Boss候選人審與S3 ASSET_IMPORT_BLOCKED保留。HEAD a4aaa94、接管tracked dirty140/staged0；保護9455/0e5875d/e0278e5/key/音訊，無Git add/commit/push/deploy/reset/clean/pull。下方清理/企劃與R17紀錄保留為歷史，不代表本輪Gate通過。
+
+### 2026-10-26｜唯一專案目錄／過期資料清理完成（HOUSEKEEPING PASS，不等於 F1-F4 放行）
+
+- **唯一可修改專案** `I:/Projects/yokai-delivery`；`*-backup-20261023`、`*-archive-20261023` 已刪；`*-release-s2-20261024` 透過 `git worktree remove` 移除，Git 原發布分支／commit `release/s2-assets-20261024`／`0e5875d` 保留；本機 `master` 仍 a4aaa94 且有大量 dirty，**未合併 Git 分支、未提交／部署**。
+- 72 個 10/26 前的自動 Chrome 測試 profile（3,673.46 MiB）與更舊 10/10 退役 stash（56.82 MiB）已移除；原 10/23 備份 17,766.89 MiB、歸檔 939.21 MiB 與發布 worktree 約99.39 MiB 亦已移除。**容量為原檔案總和，不代表磁碟淨增加量**。
+- 另對有 `Local State` 的過期測試 Chrome profile **僅刪 Cache 等可重新生成快取**，新增回收 2,586 個目錄、30,735 個檔案／3,292.57 MiB，當日 QA 及其畫面／收據保留；詳 cleanup receipt。
+- 原始 Stage3–8 第一版地板構想六張（43.07 MiB，尚未核准正式使用）保留在 `docs/archive/2026-10/original-stage-concepts/`；歷史程式、工具與文件縮成 `.cleanup-archive/legacy-source-recovery-20261023.zip`（3.5 MiB、SHA已驗）；音訊與目前正式資產保持。
+- **已查實第二關正式 22 個 s2-production runtime 檔與 Git 發布分支逐 blob 22/22 一致**；`js/ui.js`、`game.js`、`assets.js`、`renderer.js` Node 語法均過，Git 衝突0。清理後 R17C assets consumer 與 QA 仍應照既有 Gate 繼續。
+- [完整清理收據與保留／未清事項](docs/cleanup/20261026-CONSOLIDATION.md)；追溯型 QA、未驗美術與 `scratch` 其他收據並未粗暴整包刪除，Agent 不應做全目錄掃描。此段僅清理成果；下方 R17 工作現況不因清理通過而變成完成。
+
+### 2026-10-26｜R17獨立收件→R17C單檔接力（兩關尚未完成）
+
+| Phase／owner | 本輪真證據 | 現行缺口／下一票 |
+|---|---|---|
+| F1 素材／Codex收件 | R16B五檔body SHA/磁碟零漂移；POST_REVIEW354重算一致、分類測試10/10 exit0 | 48unknown＝雨港32筆/17路徑＋封面/地圖16筆/4路徑，不等draw。API21loaded/0fallback不能證畫面ready |
+| F1 雨港／AGY R17B done540 | 兩格每導航六body SHA/PNG相符；同代canonical cache→main 225/262tiles；舊石木189只在未blit cache，不派地板修 | ripple每同幀main26，缺核准替代；兩案各2筆S2-ART console錯，root重驗**exit1**。原作者exit0保留，PNG仍「港圖載入中」，不收視覺ready |
+| **F1 R17C／AGY p3 working541** | **已真派，唯一js/assets.js＋scratch/r17c-s2-assets-consumer-agy**；已見讀工單/查assets與manifest | 查loader/getS2Buildings/唯一resolver共因、必要最小修；其他JS/manifest/tests唯讀。需要他檔先checkpoint停筆，不跨寫；收三聚焦Chrome/真建物draw/實際fillText/新SHA後再獨立驗 |
+| F3 UI43fb／無writer | root獨立19/19 exit0、六受控PNG逐張審/SHA尺寸相符；舊9e91基線失效 | 真交易/全HUD/21私cache/手機實機未驗；外部作者明示停筆ack待確認，非美術核准 |
+| F4 最終八格／Codex守門 | R16 runner5ab語法0/原17負例過；root再證無效cache/缺tilt/八重複C1仍誤收，**REJECTED** | 正式8格**NOT_RUN**。PLAN WAITING_R17C_ASSETS_AND_RUNNER_FIX，authors_stopped=false、runner_ready=false、freeze=null；新guard實際exit2。QA副本精準修復排R17C停筆後 |
+| 素材／玩法門檻 | source seam仍ART_FIX、mountain_cliff WAITING_ART；Boss三水圖仍ART_CANDIDATE/USER_ART_REVIEW_PENDING | 自然Boss/20配送/6技能10融合/兩尺寸2D+.60與人審未齊；S3核准泥地/透明石板新圖0＝ASSET_IMPORT_BLOCKED |
+
+現行寫權與下批：[OWNERS_CURRENT](scratch/r12-director/OWNERS_CURRENT.md)、[NEXT_BATCH](scratch/r12-director/NEXT_BATCH.md)、[STATUS](scratch/r12-director/STATUS.md)；獨立原始收件：[R17 ACCEPTANCE](scratch/r12-director/r17/ACCEPTANCE.md)。正常入口仍為 http://127.0.0.1:9455/main/index.html，僅有受控入口/位移與上述窄證，不宣整體可玩驗收完成。Kilo timeout不retry、GLM未證額度reset不派；保護9455/dirty/正式站，無stage/commit/push/deploy。下方新玩法企劃與既有紀錄原文保留，DOCUMENTATION_ONLY不等工程已完成。
+
+### 2026-10-26｜新方向正式入企劃：委託 × 局內路線 Roguelite（DOCUMENTATION_ONLY）
+
+**使用者最新優先級：先讓夜行町、雨夜港町兩關達真可玩（Boss 六招、十融合、六基礎技能與場景／配送／UI 正常）→ 再新捲軸式三選單底圖 → 最後開關前委託與局內路線事件。** 兩層玩法採「普通配送／妖怪委託／神社納品」×「挑戰妖怪／造訪商人／前往神社」九格不同報酬；本輪只更新文件，**新 gameplay 0 實作、未派工程、無 commit/push/deploy**。
+
+| 階段 | 本輪狀態 | 交付／下一道守門 |
+|---|---|---|
+| **D0** 企劃與甘特 | **DESIGN_GATE PASS（文件限定）** | [本輪 D0 交卷報告](docs/delivery-reports/D0-20261026.md)／[詳細三委託×三路線系統表](docs/COMMISSION_ROUTE_ROGUELITE.md)／[階段甘特、Gate 與報告格式](docs/STAGED_DELIVERY_GANTT.md)；[官方企劃](docs/GAME_DESIGN_MASTER.md)、[製作計畫](docs/PRODUCTION_PLAN.md) 已同步 |
+| **F1** 前兩關資產同源 | PARTIAL／待收 | 正常入口真圖片來源→解碼→game/renderer/UI 真 draw，一份同版 SHA；候選隔離與雨港地板來源接縫 |
+| **F2** Boss／融合／基礎技能 | PARTIAL／NOT_VERIFIED | Boss 六種三相＋命中/動作、人審；十融合雙 Lv5→替換→傷害→HUD／正式圖片；六技能 Lv1–5 |
+| **F3** 第一、二關可玩內容 | PARTIAL／NOT_VERIFIED | 場景、屋海碼頭、影子與角色動畫、配送取送池／至少各20單及 UI／BGM 回歸 |
+| **F4** 最終跨關卡 QA | NOT_RUN | 固定八格 2關×2尺寸×2D/.60，兩關正常自然長局、結算／重玩；不能拿 runner 負例或受控投影當過關 |
+| **U1** 新三選單正式底圖 | WAITING_USER_ART_REVIEW | 第二張捲軸感候選方向，重畫乾淨、可九宮切片的底圖；不能把完整概念圖直接拉伸 |
+| **R1→R3** 雙層 Roguelite | DESIGNED_ONLY | 三委託 MVP→三途中路線 MVP→九格獎勵／Stage2 共用；前兩關 F4 通過後才實作 |
+| **E** Stage3–8／發布 | WAITING | 新美術逐關核准並接線；發布需另獲使用者明確核准 |
+
+**每個階段都要交一張正式階段報告**（可見結果、精準驗收、版本SHA、未完成與下一owner），避免長任務只說 working 或測試局部 PASS。2026-10-26 原有 R12–R16 進度在下方保留為真實證據；本新節是規劃優先級，**不覆寫原收據的 PASS/NOT_RUN 或 owner**。
+
+### 2026-10-26｜R15收件→R16有界接力（R12單一素材主線）
+
+| Phase／唯一owner | 實際進度／寫權 | 驗收／未完成 |
+|---|---|---|
+| P0 Codex＋獨立QA | 已讀規範、存接管SHA、立resolver合約與分關矩陣；獨立34列consumer audit已收 | S2 22檔/20WebP來源SHA/bytes齊、4 actor runtime對核准source；assets審查中漂移，非固定版Chrome PASS |
+| P1-F1 checkpoint／P2-B5 | p3 done493，assets b1b0d8b2…／manifest8ea3e523…已停，root核SHA；作者Node41/41與HTTP9點報過 | shared metadata/resolver已改，未等於consumer/真decode/draw全接。融合候選runtime_url=null，不升正式 |
+| P2-Boss B2c→交叉QA 已收 | p3用固定B5+B2c真Chrome六案6/6、exit0；alpha>32為9251–35146、扇外0，五檔base=served=after一致 | [受控fan收據](scratch/r12-fan-crossqa-agy/RECEIPT.md)與raw已收；只收可見/裁切scope，非自然Boss/人審，vortex仍待 |
+| P2-Game consumer QA 已收阻礙 | game停1f77b09c…；作者5/5僅fixture/HTTP，p7交叉QA缺CFG/真game環境且collector有HTTP error硬PASS，已拒收並checkpoint | BLOCKED／NOT_VERIFIED；是QA harness阻礙，不推斷production壞，不以隔離VM或HTTP冒真caller已驗 |
+| R15 Vortex獨立QA已收 | renderer efbb0bf8…固定；AGY12案raw/exit0/五檔served＋image hash齊，root重算12/12：ground1/.60，column1 | 僅TECH_PROJECTION_PASS_SCOPED；sh*.55切分/候選人審保留，非自然Boss或ART_PASS |
+| P2-UI／場景 | B3 ui9e91ae…停、作者Node25/25；四格融合圖0仍NOT_RUN。S2真接縫02→01已證source edge風險 | 接縫該處無額外gap/crop/flip，不讓renderer盲修；UI其餘21私cache待後票，B4 mock bridge不當真交易證明 |
+| R15 runner獨立審查 | 44ae66f1…/834行已審；Kilo與root均REJECTED；root另證原聚合式可讓缺served/404/未驗移動假PASS | [R15 root review](scratch/r12-director/final8/R15_ROOT_RUNNER_REVIEW.md)：origin、私有P、HTTP完整性/cache仍阻塞，不解除guard |
+| R16A已收，R16B續交AGY | QA副本停8c6e1103…，17負例exit0/guard2；正常原UI兩關desktop/.60真進場位移80.5/184.2px、五檔同版與2PNG已收 | 只ENTRY_MOVEMENT_SCOPED；原collector exit1按URL含candidate誤報，不能算確證leak或整體PASS。雨港仍載入中，不收全ready |
+| R16 Kilo upstream阻礙 | Nemotron idle timeout，正常UI scope只有目錄/0檔，未有QA證據 | root存checkpoint、不retry/不切付費或未證GLM；已把兩案交可用AGY新r16-normal-ui-consumer-agy，原票停止 |
+| R16B下一有界票已派 | p3 done532後新working533，僅自家QA：同步已證正常入口至final8副本、依path＋provenance修候選分類、雨港20秒ready單案 | 不第三次泛跑兩關、不改prod/PLAN、不改舊exit1；原八格仍NOT_RUN，guard exit2 |
+
+- 可追蹤收件：[R12 STATUS](scratch/r12-director/STATUS.md)、[Phase矩陣](scratch/r12-director/ACCEPTANCE_MATRIX.md)、[resolver合約](scratch/r12-director/RESOLVER_CONTRACT.md)、[獨立34列audit](scratch/r12-independent-qa/RECEIPT.md)。選圖依實際核准／既有公開選用provenance，不以mtime或source候選標籤擅升ART_PASS；單selector保留相容API，不再平行loader／多套新版旗標。
+- **Laguna已收範圍**：真AUDIO VM/stub軌道4/4作者exit0（非實機，原R10test未改，levelup不duck）；後續F1遭cooling未修改。詳[最新owner狀態](scratch/r12-director/STATUS.md)與[分關/共享素材索引](scratch/r12-director/INVENTORY_INDEX.md)。Cloudflare/GLM仍停派，不切付費或操作帳號。
+- **Laguna最新更正**：F1只讀後路由credentials冷卻、重試8次，root已checkpoint/雙ESC並撤其production權，沒有F1修改；只保留先前音訊fixture收件。assets已交回AGY，請以上表／STATUS最新段為準，勿自動恢復或切付費。
+- **現權以[OWNERS_CURRENT](scratch/r12-director/OWNERS_CURRENT.md)為準**：所有prod/tests凍結，p3僅新QA副本、p7僅正常入口QA自家scratch；root僅文件／獨立review／守門。PLAN WAITING_R16_RUNNER_FIX_AND_NORMAL_UI、freeze=null/runner_ready=false、guard新exit2；正式八格未跑。過08:00未核Cloudflare額度實證，GLM不派。
+- S3新泥地／透明石板仍ASSET_IMPORT_BLOCKED；既有布局6/6不升真接圖。Stage1概念triptych僅參考，沒有核准新圖時保留已選舊圖並明列。
+- **S3接續條件**：前兩關若完工僅剩實機，可先接第三關地板；目前B5／Boss／最終Chrome仍有缺口，素材刷新新圖0，未交production地板寫權，不代用舊參考圖。
+- Cloudflare最後使用者報-180；8點前p8不派，到8點後仍須確認餘額重置才恢復。禁付費API／MiniMax／失敗Kiro／本地Ollama、未批准生圖、廣域kill Node、任何Git破壞／stage／提交／部署。保護9455有聲、0e5875d/e0278e5及巨大dirty。以下為歷史，不覆蓋R12唯一寫權；本輪持續分批，不以文件或working當完成。
+
+> **2026-10-26｜R11 最後GLM批次（最新）**：使用者前餘額1386；GLM Default分兩個新對話：R11-A雨港取貨→送達兩池都須至少3屋列，普通900–3200px、fallback700–3600px（估416.40 Neurons）；R11-B新增對應靜態合約測試，6/6 exit0（估1140.20 Neurons）。兩票估1556.60，可能已超出前餘額，**不再派GLM，實際額度以Cloudflare控制台為準**。20次真配送仍BEHAVIOR_PENDING；R10音訊測試因setMocks未定義且Kilo逾時未結案，S3素材匯入與Boss水圖人審仍待完成。無commit/push/deploy。詳 scratch/r11-glm-delivery/R11_RECEIPT.md。
+
+> **R10 緊急更正／2026-10-26（覆蓋下方舊狀態）**：上級查實p8 GLM Default共11請求、輸入230505／輸出10211，估算1639.46 Neurons，超出預定200–400；已雙ESC中斷、done436，撤回production寫權，今天不得再派Cloudflare。上次使用者確認3031，若無其他活動約剩1392，僅估算非即時餘額。音訊測試exit1是`ReferenceError: setMocks is not defined @207`，未證production BGM故障。Kilo p7已完成renderer作者收據38/38＋9/9＋5/5，現獨占R10B音訊測試修正／必要audio.js窄修；AGY p3續真Chrome UI。Codex僅記錄，未重測／改JS／重派／輪詢，完成即停。
+
+### 2026-10-26｜R10 四席實際工作／最新收件
+
+**已完成／已收**：R9 Core 15/15；R9 UI桌機／手機畫面、R9.4獨立UI測試4/4與手機木牌y78／桌機y76。R9.2雨港五張真Chrome收件：港口石燈台0 draw、合法海事物件與前後景PASS；JSON舊434計數是HUD油燈，收據§4已分清。S3布局fixture6/6僅資料層，未接圖。
+
+| R10唯一作者 | 寫權／真工作 | 新收件狀態 |
+|---|---|---|
+| Codex p1 | 僅roadmap＋scratch/r10-director，整理狀態／決策／收件 | [STATUS](scratch/r10-director/STATUS.md)，不改JS／跑測試／重派 |
+| AGY p3 | 真重疊才修ui.js；scratch/r10-ui | working434；手機實際HUD木牌／hitbox／minimap與桌機QA，receipt待收 |
+| Kilo p7 | renderer.js或renderer.test.cjs窄修；scratch/r10-renderer | 新receipt判STALE_TEST_FIXTURE，僅修test；作者報38/38＋9/9＋5/5、exit0，renderer SHA仍ABC2D8BB…，root未重跑 |
+| OpenCode p8 | audio.js真AUDIO＋stub軌道BGM duck回歸，必要才修 | working433，GLM已實際讀檔回應；動態測試／receipt待收，不先宣聽感PASS |
+
+**未完成**：R10真遊戲UI重疊／BGM收件；S3核准透明石板＋泥地尚未匯入＝ASSET_IMPORT_BLOCKED。**使用者決策**：Boss三水圖仍TECH_LIMITATIONS／USER_ART_REVIEW_PENDING，及UI候選審美；S3可信素材匯入後才能另派DEV接線，不拿舊圖／幾何替代。
+
+**模型更正**：舊R9.1 p4 Cloudflare Qwen阻塞僅歷史；目前p8 GLM-4.7 Flash Default可用。Cloudflare餘額3031是使用者上次確認、不是即時，不自動切模型／帳號；MiniMax M3.1 Flash永久不建議／調用。
+
+9455有聲DEV／新S2 WebP／dirty樹與正式e0278e5保留；無stage／提交／部署，禁止破壞Git／廣域kill Node／碰S3 pending或付費生圖。Codex有限收件、不無限輪詢；以下均為歷史階段，不覆蓋R10寫權與可用模型。
+
+### 2026-10-25｜R9.1 真Chrome整合QA／Cloudflare設定阻塞
+
+- **AGY p3**：現票續作、production全部唯讀，只寫scratch/playtest-r9-integration-visual/，收新版S2三座標前後景／奧義／UI真Chrome receipt與同版SHA；尚未新驗收，不重派。
+- **p4暫停**：Cloudflare Qwen新session 2訊息即provider.no-route／缺accountId或baseURL，無成功調用；不得重試／探認證／切付費或Kiro。須使用者自行透過OpenCode可信`/connect > Cloudflare Workers AI`設定Account ID＋API token後才可恢復。MiniMax M3.1 Flash永久不建議／調用。
+- **Kilo p7待命**：場景9/9是Node證據，僅AGY真Chrome證實house/player排序錯後才另派最小場景修正；現無active production writer，不碰game/UI。
+- [R9.1 STATUS](scratch/r9.1-director/STATUS.md)。9455有聲／新S2／dirty樹與線上e0278e5不動；Codex本次僅短文件收件後停筆，不親測／輪詢／重派／提交部署。以下R9及更舊為歷史。
+
+### 2026-10-25｜R9 最新寫權移交／額度限制 — 總監短收件
+
+| Owner | 唯一production範圍 | 待收 |
+|---|---|---|
+| p4 OpenCode | 無；原core已done並交權 | Free每日額度全盡，暫停派工；依使用者預計10/26 08:00台灣重置，恢復前不轉模型／重試429／付費 |
+| p3 AGY | game.js＋fusion.js；原ui.js已停筆 | UI收據4/4、SHA75d9…依交接保留。新core票診斷legacy-duo fixture與真bug，收RECEIPT；禁止再寫ui |
+| p7 Kilo | world.js＋renderer.js＋assets.js | 原場景票續作；交接報聚焦9/9，仍缺Chrome三座標與場景收據，不碰game/UI |
+
+- [R9 STATUS](scratch/playtest-r9-director/STATUS.md)：上級獨立legacy-duo測試exit1，僅weaponChoices>0 fixture失敗；六招Lv1與四主動槽／分型關係待AGY釐清，不先判production缺陷或全PASS。config.js未交權；game/fusion現由AGY唯一落筆。
+- **模型決策更正**：MiniMax M3.1 Flash依使用者確認全面付費，永久不建議／不調用；撤回舊候選A/B建議。OpenCode凍結，不切模型／帳號／付費。新需求須先確認AGY core與Kilo場景兩writer均停筆，再另派單一owner。9455有聲／新S2／dirty樹及正式站保留，WAITING_ART_REVIEW；Codex只更新文件後待命，不親測／重派／輪詢。以下R8及更舊為歷史。
+
+### 2026-10-25｜R8 最後缺口 — 三席執行中／總監超輕量收件
+
+| Owner | 唯一production範圍 | 待收重點 |
+|---|---|---|
+| p4 OpenCode | game.js＋fusion.js | 第二繪馬／不同母技真雙融合、第一招續攻與父停攻、真HP/HUD；雷符單cast跨幀去重與真hitEvents，保留4+5／非DEV守門 |
+| p3 AGY | ui.js | 印記持有與配送三燈循環分開，12單後／花費補回／重開不鎖；兩作者停筆同SHA後獨立QA |
+| p7 Kilo | renderer.js＋assets.js、DEV boss-water-r8素材 | 現有三候選DEV接入、Two-Bank/clip對hitbox、雷符依真hitEvents同步，不改boss-ai.js |
+
+- [R8 STATUS](scratch/playtest-r8-director/STATUS.md)：一次定向盤點未見R8三席精簡checkpoint，待收不補造；不重派、不輪詢。R7 source字串通過不升真雙融合／傷害PASS，工單記錄舊測試仍exit1。
+- **更正**：tide_v03／tidalFan_v01／rainVortex_v01已在scratch/boss-water-art-r1/candidates，TECH_LIMITATIONS／USER_ART_REVIEW_PENDING；僅DEV候選，不是缺圖或正式ART_PASS。9455有聲DEV／新S2 WebP／dirty樹保留，無提交部署權；root只作本次文件收件後待命。以下R7與更舊狀態屬歷史。
+
+### 2026-10-25｜R7 使用者試玩修正 — 三席已派，總監輕量收件
+
+| Owner | 唯一production寫權／原票 | 收件門檻 |
+|---|---|---|
+| p3 AGY | ui.js；1御守面板／3層數角標／7結算文字 | 真桌機／手機／矮高不裁切、可讀bounds，文字依實際統計語意 |
+| p4 OpenCode | game.js／fusion.js／config.js；2掉率／4符印與同局多融合／5雷擊傷害 | 新session已投入；真第二次合法融合＋舊融合續攻＋父停攻／HUD補槽；掉率含elite實際決策，source檢查不冒功能PASS |
+| p7 Kilo | renderer.js／assets.js；5視覺／6建築影／8Boss真圖 | visible已查圖，list idle為偵測差異不重啟；一主爆炸＋既有雷圖、真執行影路徑、DEV bossart真draw；缺圖明列 |
+
+- [R7 checkpoint](scratch/playtest-r7-director/CHECKPOINT.md)／[唯一FX合約](scratch/playtest-r7-director/FX_CONTRACT.md)。skillfx暫不交權；三席沿原票，不重派。grantSeal上限與FUSED硬鎖仍屬待修，不能稱現版本已多融合。working不是完成，USER_ART_REVIEW_PENDING。
+- 合約通知p4已送達；p7單次回agent_prompt_stalled，送達UNKNOWN，不盲重試／重啟，原票繼續；詳checkpoint。
+- 9455有聲preview與dirty樹保留，無stage／提交／部署；Codex不親改JS、不跑長測試、不輪詢，補本次收件後待命。下列R5額度／凍結文字僅歷史，不覆蓋本次R7明確授權。
+
+> **2026-10-25｜配額停筆待命**：依使用者最新指示，Codex停止分析／驗證／輪詢；R5餘項已由AGY現票在自家scratch承接，不打斷或重派。OpenCode／Kilo凍結，核心不交叉寫；S3純布局已交、缺核准新圖。接手看 [FIVE_HOUR_QUOTA_HANDOFF](scratch/fusion-director-r5-20261025/FIVE_HOUR_QUOTA_HANDOFF.md)，以下進度不是完整驗收或即時探針。
+
+### 2026-10-25｜YOKAI-R5 FINAL-INTEGRATION DIRECTOR — 新票監工中
+
+| 唯一 Owner | 已實查進度 | 收件門檻／限制 |
+|---|---|---|
+| p3 AGY／雷陣可讀性已停筆→獨立唯讀 QA | renderer固定6ab03962；修正同幀六圖已核像素差／畫面內；root獨立Node聚焦6/6、exit0，九招fixture各非零draw | USER_ART_REVIEW_PENDING。兩原writer停筆後另票working341，只寫scratch/fusion-final-qa-r5：診斷退魔封陣單案＋剩餘本機入口／Stage2只讀差異，不改production |
+| p4 OpenCode／九招戰鬥 | 三批已跑，8/9作者分項通過；退魔封陣cast1但hit0/dmg0，不收PASS。core未改 | 當日Free limit已用盡；root存checkpoint／六SHA後esc，done340，不retry／切付費。真HUD4→3→補4已看；HP與融合傷害分項，不能混歸因 |
+| p7 Kilo | idle seq320，Gateway 要求登入／註冊 | 凍結不投票、不登入／切付費；獨立 QA 待兩作者停筆後另派 |
+
+- **接管基準**：[R5 收件](scratch/fusion-director-r5-20261025/QA_RECEIPT.md)、BASELINE.json。HEAD a4aaa94／本地 origin0e5875d、stage 空；9500 PID36720 既有 preview 保留。R4 為17新主圖技術收件＋1 R3引用＋2低alpha待審，不重做墨焰斬舊驗收。
+- **同版守門**：p3 改 renderer 期間六 SHA 可漂移，p4 中途結果只收 checkpoint；兩席停筆固定最終版後才獨立核收。root 只寫 roadmap 與 R5 scratch，不搶 production writer。禁止廣域 kill Node、Git 破壞／提交／部署、音訊/env/key、GPU／付費生圖、Stage3／BOSS新水圖。
+
+### S3 新票待排｜R5 停筆後交權，不搶現有 writer
+
+- **素材 QA owner**：獨立席 `/root/s3_art_inventory`；只讀盤點實體並寫 `scratch/s3road-art-qa-20261025/`。本票 scene 範圍為 `art/stage3-sakura-pass/scene/`（以 STAGE_PATHS 實際路徑為準），目前不改圖／manifest；不碰 AGY renderer／R5 檔。待 R5 收件節點再實作。
+- **新收件**：[S3 QA_RECEIPT](scratch/s3road-art-qa-20261025/QA_RECEIPT.md)與純資料fixture已收：2048 signed rows之固定seed、正反／亂序／回走、鄰段接點、含路寬左右界及穩定破損／埋土／長草，聚焦Node 6/6、exit0。只屬LAYOUT_FIXTURE_TESTED；tilt .60僅資料契約，artKey仍PENDING，未載圖／接遊戲。
+- **已核准方向**：無縫純泥地＋透明破損石板蜿蜒路段、埋土長草、低碎石密度；粗墨／大片塗抹／水墨微Q。縱向無限、左右有限，world 固定 seed／回走一致／tilt .60。可先交純布局與 QA 契約，不能當真圖接線成功。
+- **阻礙／後續守門**：素材owner已證本次核准純泥地＋透明路段未入庫；現存僅STYLE_REFERENCE_ONLY舊圖，**BLOCKED_ASSET_IMPORT**。Windows import曾遭host provenance拒絕，不繞過、不拿舊參考圖冒充。兩R5 writer已停筆，准同owner只補scratch純布局fixture／QA，不交production接入權。assets／renderer／其他production JS待真圖入庫核對後另派單一DEV writer；只走 `?dev=1&stage=sakura-pass&s3road=1`，正式模式不得下載新圖。不上線、不提交。
+
+### 2026-10-25｜YOKAI-DIRECTOR-R4 — 恢復監工／十招與gate唯讀QA
+
+| 唯一Owner／任務 | 即時增量 | 驗收／限制 |
+|---|---|---|
+| p3 AGY／十招桌機＋手機模擬矩陣 | done seq316；20列：17新主圖來源／可見幀技術收件＋1墨焰斬desktop R3引用＋2低alpha待人審 | 19個新case皆有來源匹配真draw；root實看19張固定版。雷陣封界原碼alpha上限.25，畫面很淡，非全PASS；分層總draw數不等於逐幀畫面內可見數，詳MAIN_DRAW_MATRIX |
+| p7 Kilo／gate與拒絕條件 | done seq320；原gate Chrome3/3、交易fixture8/8；新Chrome補件v2 exit0：4+5拒、confirm後4+5／5+4拒且WL未消耗 | 非DEV仍僅menu、Hard NOT_RUN，保留未驗；commit callback次數未觀測。FINAL_SUPPLEMENT已收，隨後Gateway要求登入／註冊，已checkpoint停retry；未證core缺陷，不放寬gate |
+| p4 OpenCode／僅短狀態與收件 | idle seq292；一次短請求已有模型文字、未見429，原core唯一寫權保留 | 只收當下可回應，收件確認仍不完整；不盲retry／換provider，只有新QA證明實缺才派唯一core修復 |
+
+- **R3成果保留、不重做**：skillfx v3 e296a2de之22/22＋ofuda7/7＋受控Chrome15/15；07:20 AGY墨焰斬受控同版交易/HUD4→3→補4、同窗傷害12.6/hit1、原母技停攻3.2秒／第三靈陣cast2、世界main/ground/hit各52次。game4108為融合火花，不是母技殘攻；仍僅單配方受控證據。
+- **收件／守門**：[R4 QA_RECEIPT](scratch/fusion-director-r4-20261025/QA_RECEIPT.md)、[主圖分型矩陣](scratch/fusion-director-r4-20261025/MAIN_DRAW_MATRIX.md)保存固定raw／圖／來源限制；root只寫本roadmap與R4 scratch。六核心SHA與接管同、stage空；healthz/ping200僅探針。已有本機DEV受控交易／真draw驗證，**十招自然局可玩／手機實機／完整美術驗收／部署仍未成立**。
+- **後續**：待新精準QA再決定core fix；assets/renderer與Stage2新版測試worktree整合未開票。禁止廣域kill Node、reset/clean/pull/stage/commit/push/deploy、讀env/key/音訊、GPU／付費生圖、Stage3新美術／BOSS水圖。
+
+### 2026-10-25｜YOKAI-FUSION-DIRECTOR-R3 — 續票監工／待真交易與Chrome驗收
+
+| 原票／唯一Owner | 最新核收增量 | 仍缺／下一步 |
+|---|---|---|
+| BOOM-LV5-MOTION-R2／p7 Kilo | v3停筆SHA `e296a2de…`；root核Node **22/22＋ofuda7/7**及AGY受控Chrome **15/15**，已實看真圖多幀／.60父層抵消／motion-off | **收受控動效範圍**；13件幀組已入本輪scratch，非自然局命中／實機／人審；skillfx維持停筆 |
+| FUSION-FLOW-R2／p4 OpenCode | 兩個gate繞過已核撤回；自家probe接線修正中。06:41 provider429先存checkpoint止retry；原UI窗口後**單次恢復仍429，已取消，done seq275** | **WAITING_P4_PROVIDER**，原票/session/唯一寫權保留；不再自動retry／切provider。AGY已有單配方真交易／補槽證據，p4作者核對與剩餘停攻/扣血未完成 |
+| FUSION-VISUAL-INDEPENDENT-QA-R2／p3 AGY | **working seq272**；已收受控真commit／真HUD **4→3**／原升級補回4。最後前置先見自然敵後融合，ghost HP **3→-9.6**／inkbladeHits1，六SHA同 | 收融合命中/HP觀察；精確來源差、同窗母技停spawn/hit＋第三技真cast正向控制、排除HUD的世界成功draw與10招仍待核。不得空陣列/WL2當通過；p4限流，下一批不開 |
+
+- **收件／限制**：[R3 QA_RECEIPT](scratch/fusion-director-r3-20261025/QA_RECEIPT.md)保留退件與raw來源。root只寫本roadmap與自家scratch；p7唯一skillfx、p4唯一game/fusion、p3只寫自家scratch。**已觀察本機DEV基礎流程，完整融合可玩仍未確認；作者done不等於驗收完成。**
+- **健康／保護**：獨立healthz、ping HTTP200，20128 listener PID30576；只證探針。HEAD a4aaa94／origin0e5875d、behind1、stage空，dirty與使用者提醒之線上e0278e5保留；禁reset/clean/force pull/stage/commit/push/deploy。再禁廣域kill Node，只停確認自家PID；provider錯先checkpoint，不盲retry。音訊/env/key／第三關／BOSS新水圖／付費API／GPU不碰。
+- **下一批守門**：p7停筆＋p4有效真trace＋AGY真game證據三門未齊，assets/renderer DEV binding繼續封鎖；尚未部署。
+
+### 2026-10-25｜YOKAI-FUSION-DIRECTOR-R2 — 本輪最高優先／三票續工、固定版收件前不開下一批
+
+- **05:07:57+08:00 收件狀態**：p4 **working seq239**、p3 **working seq230**；p7仍退shell、待使用者手動恢復原session。AGY兩自家harness讀前guard已落檔，靜態核對到audio/SW stub，未收guarded新run；p4正在修自家probe接線與獨立埠，尚無新runtime PASS／停筆版。六production SHA仍同接管、stage空，Omni末次healthz200。**WAITING_USER_P7_RECOVERY／WAITING_FIXED_RUNTIME_RECEIPTS**；完整命令exit／觀測SHA／缺口見收件§8，禁止宣三票完成或開下一批。
+- **獨立收件退件**：AGY新圖實看仍被教學modal遮住，harness覆寫drawHud/WL、METRICS手造4→3→4，僅 **FIXTURE_ONLY**；已要求真交易、不蓋HUD。p4新版Chrome三核心欄null／page eval錯、terminal **EXIT=1**，BOSS probe無其假設API，退修自家harness；STATUS把Node VM9/9稱Chrome／完整無bug不收。9500待驗入口已HTTP核對served game/fusion SHA相符，但尚未收主選單→戰鬥→移動→攻擊，**不可宣可玩**。詳收件§7。
+- **恢復後最新狀態**：OmniRoute沿既有應用啟動方式恢復，獨立healthz/ping **HTTP200 116/24ms**；p4原model重回 **working seq239**並明示會保存事故checkpoint。p7原session啟動3種方法均遭Herdr shell注入損壞，未恢復；已請使用者手動清空p7後執行原session，總監不再盲試。AGY仍working，但自家server缺/js/audio.js讀前stub，已退回補guard；舊decode只列離屏draw觀察。root獨立Node中斷版 **19/16/3、exit1、首尾SHA一致**，不是停筆驗收；Lv1–4早期曲線、motion-off位置jitter、角度衰退與upright anchor待原p7修/證。詳收件§6。
+- **最新 checkpoint／程序被越界中止**：root真讀p4 visible發現其執行 `taskkill /F /IM node.exe 2>$null; sleep -Seconds 3; netstat -ano | findstr :9465`，輸出7個Node PID被終止；隨後p1/p7消失於agent list、pane退回PowerShell。root已esc p4（真exit0）並送緊急禁止廣域kill、保存原錯誤/exit/PID、只識別自家server的指令（真exit0）。正以**原session／原model**恢復p7，不改帳號配額。此為實際協作事故，不能冒稱路由不穩或三人仍working；中斷中的run不收PASS，當前固定版收件仍等待。
+- **授權與唯一 writer**：使用者明確續派本輪三票，覆蓋舊凍結中本票範圍；root僅寫本 roadmap 與 [QA_RECEIPT](scratch/fusion-director-r2-20261025/QA_RECEIPT.md)，不搶 production/test writer。Herdr 實查 p7 Kilo **working seq228**、p4 OpenCode **working seq229**、p3 AGY **working seq230**；終端已見 p7 真 skillfx patch、p4 真 probe/harness、p3 已讀 R2 並查 assets。補充邊界三則 prompt 各真 exit0；送達/working 不是驗收。
+
+| 優先票／唯一 Owner | 可寫範圍／目標 | 必須收件、未通過即保留缺口 |
+|---|---|---|
+| BOOM-LV5-MOTION-R2／w2:p7 Kilo | `js/skillfx.js`、`tests/boom-lv5-motion-20261025.test.cjs`、自家 `scratch/boom-lv5-motion-r2/`；真 `ofuda_max_burst` 0–.2s scale .15→1.08→1，其後 .08–.15s 位置±3–6px／角度±1.5–2.5°衰退 | 真數值 RED→Node→guarded Chrome多幀、motion-off／其他技保護、原始log／每條exit／正式停筆SHA。接管時已修改，不能倒填修改前RED；R1獨立數值RED可引用但須標歷史 |
+| FUSION-FLOW-R2／w2:p4 OpenCode | 唯 `js/game.js`＋`js/fusion.js`、既有 fusion-replace 本票 tests／自家scratch；真4+5/5+4拒、5+5成功、母技停止spawn/hit/殘FX、新合技獨立攻擊、釋一slot再填 | 真DEV選擇→confirm→消耗→tick／扣血 Chrome；source guard 不是修復，R1 5/9不是PASS。舊Chrome report實為9465 EADDRINUSE，先辨server/root、不重啟他人程序；跨skillfx先提合約，由p7唯一落筆 |
+| FUSION-VISUAL-INDEPENDENT-QA-R2／w2:p3 AGY | 只寫 `scratch/fusion-visual-qa-r2/`／自家QA tests；**不得再改ui.js或其他production** | 真game 10融合逐項URL／decode／成功draw／404、1366×768與844×390、HoloCure fan兩球→一球／空槽再填；真入口→戰鬥→移動→攻擊。p4 flow、p7固定版後獨立驗；preview／14/14／HTTP200不得替代真遊戲 |
+
+- **版本／起點**：HEAD `a4aaa94cedf27407325cae11b05244f2c3a9c0df`、本地 origin/master `0e5875d50684e21a6739b944ecd0625c38b1f541`，落後1、stage空、dirty保留。六檔接管SHA見收件；當時skillfx已為 `359dfaa4…`，只屬修改中快照，**非作者停筆固定版**。R1 Node18/20 exit1、p4 5/9 exit1與真扇子待驗保留，不升綠。
+- **健康／checkpoint**：本輪 `20128/healthz` HTTP200 45ms、`/api/health/ping` HTTP200 33ms，只證探針；路由出錯先保存原錯誤／命令exit／當前SHA checkpoint，不盲重試、不切已廢棄Kiro provider／付費API、不改帳號配額。
+- **下一批嚴格序列**：三票固定版真收件後才考慮 p2 另獨占 assets/renderer 的融合候選DEV binding；須 p7 skillfx 完工＋p4 game穩定＋AGY明列缺口。BOSS水圖工程另票，現不可重疊；第三關不處理。新候選不得入正式站。
+- **保護與結果分級**：禁 reset/clean/pull/checkout/stage/commit/push/deploy、讀 KEY/.env/音檔、改音訊/TTS/BGM/認證、GPU/付費生圖。root不親寫JS；只讀核對raw／SHA／命令與獨立收件。當前 **WAITING_FIXED_SHA_AND_RUNTIME_EVIDENCE**；本輪未收功能PASS、未確認新入口可玩、未部署。下方R1與舊票皆為歷史，不能恢復舊寫權。
+
+### 2026-10-25｜YOKAI-FUSION-DIRECTOR-R1／融合替換・扇子釋槽・Lv5符咒動效三票監督
+
+- **本輪唯一任務／寫權**：使用者已派三票，root只監工、路由/跨票合約、獨立新QA與本roadmap唯一writer；**不修改fusion/game/ui/renderer/assets**，不重派重疊writer。啟動實查 **w2:p4 working seq185、w2:p3 seq186、w2:p2 seq187** 且UI可見新票；root補充皆送達，不以working或送達當完成。下方BOSS水圖/Stage3/舊票不是本輪工作，不動其素材。
+- **版本保護**：HEAD `a4aaa94cedf27407325cae11b05244f2c3a9c0df`、本地origin/master `0e5875d50684e21a6739b944ecd0625c38b1f541`，dirty與線上受保護、stage空；禁reset/clean/pull/checkout/stage/commit/push/deploy。音訊/KEY/env/付費API/GPU不碰，QA讀前guard，不能靠靜音冒充未讀音檔。
+
+| 原票／Owner | 唯一可寫／實際進度 | 阻礙與下一個明確handoff |
+|---|---|---|
+| **FUSION-REPLACE-R1／w2:p4 OpenCode** | `js/fusion.js`＋`js/game.js`；原票test/scratch `scratch/fusion-replace-r1/`。模型kr/qwen3-coder-next Omni high。已讀guard並測Node，新增diag；暫未見兩production檔新修。曾因probe.commitTransaction/resolveAttackSpec不存在exit1，屬harness待修 | 使用者已指出>=5、parent_not_lv5、WL父0等既有，不能複製條件當修復。作者[初稿STATUS](scratch/fusion-replace-r1/STATUS-20261024.md)以舊9/9/source推「所有核心正確、無繞過」，且fusion SHA填renderer假設值，root已 **RETURN_DIAG_INCOMPLETE**：改真SHA/日期，追真DEV快捷→confirm→消耗→雙父原spawn/tick/持續FX停止、新合技攻擊、其他技能保留。不能等user再給已足夠的repro要求；若反駁須真consumer證據。停筆固定版後root收 |
+| **FUSION-FAN-HUD-R1／w2:p3 AGY** | 唯 `js/ui.js`，自有 `tests/fusion-fan-hud-20261025.test.cjs`／`scratch/fusion-hud-r1/`。Gemini3.8Flash High；持續查全部HUD/扇子入口，ui已出現新dirty | 必須與p4對齊WL父0、新fusion>0、ownedActiveCount、cooldown/slot ViewModel；兩舊icon真合成一球且釋一槽，新武器可填，非覆蓋圖遮住兩球。至少四優先技＋墨焰斬、1366/844真Canvas/spy與DEV真圖成功draw。完成停筆＋SHA＋真exit/raw/多幀才收，現仍 **WAITING_AUTHOR_EVIDENCE** |
+| **BOOM-LV5-AND-FUSION-VFX-R1／w2:p2 Kilo** | 唯 `js/renderer.js`＋`js/assets.js`，自有test/scratch `scratch/boom-fusion-art-r1/`。Nemotron3Ultra free。已定位真圖、建立source測試、交 [BOOM_LV5_PATCH_PROPOSAL](scratch/boom-fusion-art-r1/BOOM_LV5_PATCH_PROPOSAL.md)；renderer/assets尚無新修改 | 高度吻合截圖描述之圖為 `assets/img/vfx/ofuda_max_burst.webp`；正常真圖ready路徑實際由 **js/skillfx.js:drawOfudaImpact** 畫，優先於legacy explosion。此檔未在三票寫權，**BLOCKED_FILE_SCOPE**：只讀與scratch最小patch提案，不越改、不在錯fallback交差。現11個字串測試不可稱新曲線PASS；root已反駁數學錯誤。後續若明確追加寫權，仍由原p2單writer處理真源；當前其餘art存在/gate/draw查核續作 |
+
+- **原有條件已獨立讀證**：fusion.js eligible/isRecipeLegalForBuild均父>=5；execute有parent_not_lv5；game commit在交易前拒<5、交易後WL父0/wT999999，並清部分投射陣列。這些是起點，不是本輪修復成果。SKILLFX私有artFx只有全reset，若真殘FX須跨檔接口，p4/p2先文字協調最小提案，不全reset擦掉第三技能、不跨writer。
+- **新獨立QA入口與完整矩陣**：[QA_MATRIX](scratch/fusion-director-r1-20261025/QA_MATRIX.md)、[起點SHA](scratch/fusion-director-r1-20261025/BASELINE.json)、[Node基線版本/exit](scratch/fusion-director-r1-20261025/BASELINE_RUN.json)。矩陣逐項列4+5/5+4拒、5+5能合、雙父停spawn/殘FX/新合技扣血、HUD兩球折一球釋槽再填、真圖gate/load/選圖/成功draw、爆炸0/.1/.2/.3秒、2D/.60與1366/844、GIF或原多幀。固定五檔SHA首尾一致才收，漂移標MIXED_VERSION；Node/受控Chrome/自然局/人審/實機/部署分開。
+- **真源與獨立RED（不是Chrome）**：root實看ofuda_max_burst圖為金紅符咒環，與使用者文字描述高度吻合；原截圖未經MCP傳遞，不宣像素同圖已核。程式鏈為assets.ofudaRasterArt(max)→game SKILLFX.play(boom,hit,5)→skillfx pushArt(ofudaImpact=max)→drawOfudaImpact；真圖ready時先return，不到yinBody/explosion fallback。`js/skillfx.js`觀察SHA `ee2968cb71d47ae525d0a89f58cdf7a831f0e6d151a177cd1cef1f6e6b756086`、圖SHA `a75503f6ef432d206345b87b077007454a4fd87713345b2b54031b73b9111fe3`。
+- **數值基線與可重現命令**：`node --require ./tools/director-audio-freeze.cjs scratch/fusion-director-r1-20261025/ofuda-scale-baseline.cjs` **真exit1**，資料 [JSON](scratch/fusion-director-r1-20261025/ofuda-scale-baseline.json)／stderr／exit.txt；Node VM執行完整assets/fx/skillfx真消費端，但image readiness/Canvas為test doubles，**不是Chrome像素證據**。0/.1/.2/.3秒相對240寬之scale為 **.73/1/1/1**，0-.2密集取樣最大1，未達1.08；位置亦固定，原角度sin不等於位置抖動。p2測試標題雖寫.15→1.08→1，卻assert舊`.73+.27…`（值域.73..1），root拒以其綠燈交差。提案須修正後尾段指age .2後再 .08-.15s振幅遞減，非age .08-.15s透明脈衝，不另改傷害/音效。
+- **既有精準回歸起點仍RED**：root直接跑 `node --require ./tools/director-audio-freeze.cjs --test --test-reporter=spec tests/opencode-m2-fusion-runtime.test.cjs tests/opencode-m2-fusion-ui.test.cjs tests/ofuda-raster.test.cjs` **20案／18PASS／2FAIL／真exit1**；[log](scratch/fusion-director-r1-20261025/existing-focused-baseline.log)及stderr完整留存。失敗為runtime registry/eligibility與multi eligible選擇（含actual slashwheel vs expected inkblade），尚未定因、不改oracle洗綠。該次六檔（含唯讀skillfx）首尾SHA全一致，這是本輪dirty起點，不是clean HEAD/線上基線，不是新修復驗收；全量npm RED不擴跑。
+- **當前handoff／未完**：① p4續真flow根因與runtime矩陣，p3與其同步UI合約；不得用「source正確」直接否定使用者體驗。② p2先把true-source最小patch/完整數值RED留scratch，skillfx寫權需另明確分配，當前不越改。③ 三票停筆固定同版SHA後，root只讀獨立Chrome驗新DEV可玩入口、真click/移動/新融合攻擊、slot與0/.1/.2/.3秒多幀；server沿既有guarded preview，HTTP200不算可玩。現在 **未收功能PASS、DEV入口未獨立驗證、GIF/多幀待交**，不冒稱三件已修、候選真圖不升正式。
+- **最新已寫檔／有限收件**：p3已新增ui差異（觀察SHA `7aff5a69e663b2ef34a6d76351946843545b6ced77d24721787d6fa9e811a26f`），root `node --check js/ui.js` exit0、diff-check0；另直接guarded跑 `tests/fusion-fan-hud-20261025.test.cjs` **10/10 exit0**，見 [觀察記錄](scratch/fusion-director-r1-20261025/hud-working-observation.json)／log，UI首尾穩定但仍屬working-version Node/spy，不是整合PASS。作者 `hud_fan_preview.png` root實看只有754×426頁首與Canvas上部，扇子未入鏡，已 **RETURN_SCREENSHOT_NOT_SHOWING_FAN**，要求實際desktop/844 viewport＋完整扇子多幀；standalone preview不冒認真game DEV入口。
+- **core與VFX最新handoff**：p4已交 [10/25 STATUS](scratch/fusion-replace-r1/STATUS-20261025.md)，正式停筆而保留game writer，fusion/game仍與起點SHA相同；只收既有guard/Node診斷，文件宣稱「無bug、9/9完整驗證」**不作完整flow收件**，新tests仍5/9／4個harness失敗，Chrome/DEV/持續FX待驗。p2已修正收件口徑，不再將11個source斷言稱新曲線PASS，產出真 [最小patch檔](scratch/boom-fusion-art-r1/boom-lv5-patch.js)與更新提案，未套production。root已向使用者提出是否僅追加原p2對skillfx.js的Lv5真圖動畫寫權；**答案未到＝PENDING_SCOPE_DECISION，不自動授權**。其他HUD/core QA不因這一待決停下，原三writer不變。
+- **接續派工已送達**：原p4維持production停筆、同票轉QA-only，先沿既有guarded preview真index DEV入口完成單一5+5確認前後之非空trace，再擴4+5/5+4/多視口；不再用source9/9重複結案、不用standalone fixture冒認game。p3繼續原UI票補完整扇子截圖，working版只記觀察、同版SHA停筆後root才總驗。p2留原VFX票等待單檔scope回答，未授權前不套skillfx patch；本輪root未修改任何production JS，roadmap差異檢查exit0、stage空、無部署。
+
+### 2026-10-24｜BOSS-WATER-ART-R1／內建ImageGen三招實產・ART_CANDIDATE待驗
+
+- **唯一規格／授權**：[ART_BRIEF](scratch/boss-water-art-r1/ART_BRIEF.md)＋[MANIFEST](scratch/boss-water-art-r1/MANIFEST.json)，另讀Stage2 manifest與ART_STYLE。使用者本輪特准內建ImageGen；root已確認面板 `image_gen.imagegen` 真可用，**實際獨立生成3圖＋潮汐2次針對性編輯，共5次內建呼叫**，無外部付費API/Nano/KEY/env/本機GPU。本工具未回報模型版本、quota扣用或金額，actual_usd=null＝未知，**不稱免費或費用0**。本輪不是BLOCKED_GENERATION。
+- **實產／可重現證據**：[GENERATION_RECEIPT](scratch/boss-water-art-r1/GENERATION_RECEIPT.md)、[三份原prompt](scratch/boss-water-art-r1/PROMPTS.json)、[兩次潮汐edit](scratch/boss-water-art-r1/TIDE_V03_PROMPT.txt)、[生成metadata](scratch/boss-water-art-r1/GENERATION_METADATA.json)。`python scratch/boss-water-art-r1/inspect_candidates.py` 真exit0：五份copy與工具原始PNG逐檔SHA完全一致；未用Python畫圖／縮放／補透明／改pixels。MANIFEST逐張列原始source path、原prompt/edit chain、尺寸、alpha/bbox、SHA與未知費用。原稿留工具生成目錄，專案copy全在candidates，tide v01/v02留史不選。
+
+| 新水圖／本輪選定檔 | 真值／SHA256 | Art／Tech／限制 |
+|---|---|---|
+| [tide_v03.png](scratch/boss-water-art-r1/candidates/tide_v03.png) | **1254×1254 RGBA**；`97d3ad48024a8cc5485a0b247eedb760bb2abc29aad304ab963498c160bf4cc4`；全透76.82% | **ART_CANDIDATE／TECH_PASS_SOURCE_ONLY**。alpha0中央帶僅25px，alpha≤16低透明帶178px，兩者不可混稱安全通道。visible邊距2px仍緊；烙死缺口與動態safeOffset存在風險，**TECH_LANE/MARGIN_PENDING** |
+| [tidalFan_v01.png](scratch/boss-water-art-r1/candidates/tidalFan_v01.png) | **1254×1254 RGBA**；`b887523723d213d465ebdd2d01bde84f925e0635e7939b996c5248a5fd47317f`；全透55.85% | **ART_CANDIDATE／TECH_PASS_SOURCE_ONLY**。獨立向外扇面水刃，visible邊距7px；120°／原點／暗場可辨及投影仍待獨立QA，**MARGIN/GEOMETRY_PENDING** |
+| [rainVortex_v01.png](scratch/boss-water-art-r1/candidates/rainVortex_v01.png) | **1254×1254 RGBA**；`bc950af55b0b3ab4cef25d961f61da3ba9ee1520b2a8b3696c105b2e7bd5fe12`；全透47.50% | **ART_CANDIDATE／TECH_PASS_SOURCE_ONLY**。地面旋捲＋水柱，visible邊距27px；接地／縮放／多渦旋與tilt仍待獨立QA，**MARGIN/PROJECTION_PENDING** |
+
+- **source TECH_PASS 的精確作用域**：只涵PNG完整解碼、雙軸≥1024、RGBA、真alpha 0–255、source-copy SHA。root已實看五次輸出，選定三圖皆無字／角色／海報／實心背景，為灰藍靛青白浪之水墨／木版候選；**不是USER_ART_PASS、不是runtime TECH_PASS、不是自然局/實機PASS**。低alpha fringe不能只靠bbox判所有可見主體裁切；三圖未達要求的寬鬆留白，保留技術警告，不造綠。
+
+| BOSS六招／目前實際consumer | 現行圖片與DEV門檻 | 狀態／缺圖與後續 |
+|---|---|---|
+| slam | 借 `dragon_burning_ground_l5.webp`；**dev=1&bossart=1** | 既有 **ART_CANDIDATE**，不是水系專圖；既有受控TECH證據不擴為人審，本輪p2續審適配性 |
+| charge | 借 `dragon_fireball_l5.webp`；**dev=1&bossart=1** | 既有 **ART_CANDIDATE**，火球借圖／三相辨識待圖審，未宣正式圖 |
+| ring | 借 `katana_l5.webp`；**dev=1&bossart=1** | 既有 **ART_CANDIDATE**。root獨立Node結構9/9 exit0；作者停筆後最新raw四組frames全空且摘要SHA不符，**R3_RETURN_REQUIRED／WAITING_PAUSED_RUNTIME**，不收runtime TECH_PASS、不釋game權 |
+| tide | 現仍借 `katana_l5.webp`；**dev=1&bossart=1** | 舊圖候選consumer不變；專屬 **tide_v03 已產但未接**，不是已可用水牆。lane/bank-crop/clip需新DEV票與真hitbox驗證，非缺圖解決即runtime完成 |
+| tidalFan | 舊D3獨立DEV gate；128px舊ripple／legacy安全fallback | 專屬 **tidalFan_v01 已產未接**；現行仍是舊水紋／fallback，不算專屬IMAGE_PASS；幾何/三相缺口待預研與QA |
+| rainVortex | 舊D3獨立DEV gate；128px舊ripple／legacy安全fallback | 專屬 **rainVortex_v01 已產未接**；多渦旋半徑與地面/水柱拆層待驗，現行仍fallback級別 |
+
+- **單writer與讀圖分工**：root唯一候選PNG／MANIFEST／GENERATION_METADATA／roadmap writer；p2只寫 [QA_REPORT](scratch/boss-water-art-r1/QA_REPORT.md)、metadata.json及QA contact sheet；p3只寫 [INTEGRATION_PLAN](scratch/boss-water-art-r1/INTEGRATION_PLAN.md)／ASSET_SLOT_TABLE.json，不接線。兩席已收選定三SHA與版本更正；其v01 tide舊量測不得套v03。p2舊報alpha range1–255與zero fraction>0矛盾已要求改正，沒vision須WAITING_VISION、不能由bbox判ART_FAIL/PASS。p3已指出烙死通道與真safeOffset衝突，預研可評估左右bank真圖crop/clip，**未授權改JS**。
+- **ring監督仍續**：p4目前 `kr/qwen3-coder-next Omni high`，保留唯一game writer，正續BOSS-RING-R3-RECEIPT-FINISH；不打斷工作。已要求完成最新raw／test／engine固定SHA與正式停筆，再由root獨立QA；不能將時間早於raw的SUMMARY-FINAL、AI-level pause或Node結構9/9冒充全部runtime通過。p2原REGRESSION-P0P1的RETURN_REQUIRED／BASELINE_NOT_READY保留，不因轉圖QA洗綠；Git整合／御守／融合自然局下一批仍待命。
+- **邊界／下一handoff**：本輪無任何與美術無關production修改；候選未搬進art/stage2或assets/img，未開DEV/正式gate。待p2/p3完成**同SHA**圖像QA與預研，root逐項收件、人審後，才另派唯一assets/renderer DEV writer；game須等p4正式停筆。HEAD仍a4aaa94、dirty保留，禁stage/commit/push/deploy/reset/clean/強制pull，音訊/TTS/BGM/KEY/env/GPU凍結。未宣全量npm PASS、未部署。
+- **同版水圖QA／預研已收，品質未放行**：p2 done seq179、p3 done seq180，兩報皆已匹配selected三SHA。p2已改正alpha真值、將8%/100px歸屬PROMPTS而非冒引ART_BRIEF，移除「像素alpha決定AI傷害」說法並保留 **TECH_RETURN／WAITING_VISION**；root已實看圖但不代使用者ART_PASS。p3已撤回由整sprite bbox推論ground投影PASS與多渦旋疊圖無縫PASS，降為 **TEST_PLAN_PENDING**，未來assets/renderer須root另派，p4只獨占game。其扇角量測為預研風險，anchor/alpha取樣方法與真120°consumer仍需另驗。MANIFEST已記 `qa_status=TECH_RETURN_LIMITATIONS_WAITING_USER_ART_REVIEW`、art_pass=false、runtime_qa_pending=true；素材製作交付已完成，通道／留白／投影與人審不冒稱完成。
+- **ring停筆獨立QA／真退件**：p4曾顯示kiro/qwen quota exhausted／cached retry，root嘗試取消該retry；其後UI又進入真Chrome run，故不把取消動作當停筆。最終作者聲明正式停筆、Herdr **done seq181** 後，root核最新raw SHA `aa7b00f06a4d4087397978f6f20ebf7e5dcc5c9d58e39b2836f30dfae947a112`：4組viewport/tilt各 **frames=[]**，gap僅空hit陣列無有效frame觀測；errors0／fixedSHAtrue不能證consumer執行。SUMMARY-FINAL仍引舊 `0beacc42…` 並稱各4steps，**RETURN_REQUIRED_EMPTY_FRAMES_AND_STALE_SUMMARY_SHA**。已保存 [原始空trace快照](scratch/boss-water-art-r1/ring-raw-emptyframes-AA7B00F0.json)及 [root收件](scratch/boss-water-art-r1/RING_QA_RECEIPT.json)；root `node --require ./tools/director-audio-freeze.cjs --test --test-reporter=spec tests/boss-ring-sweep-20261024.test.cjs` 真9/9 exit0只收結構。原p4已收到退原票：空trace必exit1，補真steps/draw/pixel/gap calls再同步摘要；quota若仍阻塞須checkpoint，不能盲重試或切付費。game寫權維持p4，無新writer／無runtime PASS。
+
+### 2026-10-24｜YOKAI-DIRECTOR-CONTINUE-R2／三票已續工・非美術工程監督
+
+- **本輪授權／起點**：使用者已新派以下三票，不等 S3 人審；AGENTS/docs 舊 cleanup freeze 僅在本輪非美術工程範圍解除。root 唯一 `roadmap.md` writer，只監督、路由協調與獨立收件，不接 production 寫權、不重派重疊票、不打斷長時間 work。實查 **p4 working seq143、p2 working seq144、p3 working seq145**，三席 UI 皆見新票；working／prompt送達不是完成。
+- **版本保護**：現查 HEAD `a4aaa94cedf27407325cae11b05244f2c3a9c0df`、本地 `origin/master` ref `0e5875d50684e21a6739b944ecd0625c38b1f541`，stage空；全部dirty保留。本輪無 fetch/pull/reset/clean/checkout/stage/commit/push/deploy。來源路徑仍以 `docs/STAGE_PATHS.json` 為準，S3新圖不改／不重生，不因人審未完成停非美術工程。
+
+| 票／唯一 owner | Scope／已觀察增量 | Blocking／收件 gate／下一個 handoff |
+|---|---|---|
+| **BOSS-RING-VALIDATION-R3／w2:p4 OpenCode** | 唯一 `js/game.js` writer＋`tests/boss-ring-sweep-20261024.test.cjs`／自有 harness；證據預定 `scratch/boss-ring-sweep-bridge-r3/`。Step-5 Preview Omni high，接管UI82.3K／41% context；尚未見R3新目錄或新focused檔 | 前輪真Chrome僅初測，不能沿用作R3 PASS。補2D/.60 ×1366×768/844×390、真gap的AI hit＋pixel負向、paused/shield真runtime、before/after及可維護node:test；交命令/真exit/raw/各SHA，正式停筆後root獨立驗，**此之前game不釋權**。跨檔真Bug記阻塞，不越寫assets/renderer/boss-ai/UI |
+| **REGRESSION-P0P1-REPAIR／w2:p2 Kilo** | 只寫 `tests/stage3-shrine-buildings.test.cjs`、`tests/system-delivery-distance-r1-distance.test.cjs`、`tests/thunder-raster.test.cjs` 與 `scratch/regression-repair-20261024/`。Nemotron3Ultra free／Kilo Gateway high；最近UI211.9K／21%，續工seq148。三份scratch候選已出現，正式Stage3測試已有diff，另外兩檔尚同起點SHA；root觀察版Stage3 **3/3 exit0**，不是整票收件 | 保留原14案10PASS/4FAIL證據；依新Stage3退役契約／真配送consumer／雷術行為修測試，禁止刪案、放寬oracle或隱藏真Bug。已排隊提醒Stage3須補S1 fallback／未審候選隔離，雷術寬regex不能代替三目標／傷害行為。直接guarded node精準子集，附原基線對照、三test與四JS首尾SHA、exit/raw；p4漂移標MIXED_VERSION。production缺陷只記阻塞。可信基線收妥後才進下一批安全分支整合準備 |
+| **ART-ROOT-ARCHIVE-R2／w2:p3 AGY** | 歸檔非核心六目錄並修引用；Gemini3.8Flash High，context/剩餘額度未顯示。已交 [MIGRATION_MANIFEST](scratch/art-root-hygiene-r2-20261024/MIGRATION_MANIFEST.json)／[SUMMARY](scratch/art-root-hygiene-r2-20261024/SUMMARY.md)。root持有移前85檔／21,276,260 bytes快照，獨立核 **85/85目的SHA吻合／85個old不存在／old與new各85唯一且完整覆蓋快照**，收 **MIGRATION_BYTES_MATCH_SCOPED** | 引用與scope尚待結案。root核Preview HTML **24個本次遷移目錄的src/href全存在、無舊URL**；五支被改Python工具僅AST syntax檢查通過，未執行生圖工具。報告自列修改受保護Stage1 metadata JSON，與「八關原封不動」矛盾，已要求只處理可證自身變更或明列SCOPE_EXCEPTION，不覆寫dirty。原failed run／metadata引用改寫／六根目錄與8個空目錄差異須保留。保護fusion/audio/media-source-backup/vfx/stage1~3/stage_asset_production_v1，不擴票 |
+
+- **前輪固定證據已讀，限定沿用**：[ring RUN-LOG](scratch/boss-ring-sweep-bridge-r1/RUN-LOG-20261024.md) 記前輪真consumer Chrome命令exit0；root本輪只核[raw](scratch/boss-ring-sweep-bridge-r1/ring-consumer-chrome-report.json)可解析、game SHA匹配、2 cases、errors0/pageErrors0/外部阻斷3筆，**未重跑Chrome、不收R3 PASS**。舊regex harness exit1是失效harness，語義複刻只診斷。p2 [前輪RECEIPT](scratch/regression-triage-20261024/RECEIPT.md)及三raw、p3 [前輪audit](scratch/art-root-hygiene-20261024/ROOT_FOLDER_AUDIT.md) 的METADATA_MATCH_SCOPED保留，與本票repair/archive完成度分開。
+- **當前SHA觀察基線**：game `3443e5b5f3205bf33ec402842730bb2332460d337a39549ecadebea737633b8b`；assets `e9b1a30cc71a973557fc64719a567a051d4ea5d8bed2ae2e017883cc86665409`；renderer `f71cf8aadceecbf6b8304854e8c8852e9ad69258406c8d652ad5d8e7e0bd53c6`；ui `19baabef234839039b2de7e3fda7c795c57dfcb516b1ba1a6c418c364800b14a`。三test起點SHA依序 stage3 `eecc32969ea903f412cbbd89cc00b48cd2ac3807d4b1f2723b3485e383826442`、delivery `bf952a630d9dbd9f884c94cc9a912af0d3d47b2cf6c0b9db588ae1a6950bc1c1`、thunder `08e983afc3a19db3d9a16ce8ff13245e33cf38d5ec15ae49ffdf3b989000b823`。這是觀察快照，不是writer停筆固定版。
+- **新寫入／獨立精準檢查**：`scratch/regression-repair-20261024/` 已有同名三test候選；正式 `tests/stage3-shrine-buildings.test.cjs` 觀察版SHA為 `552ef4912bc90bb3c09d804d753beb4a1d3c1f224befc69b2a7962bf7d7f6996`。root執行 `node --require ./tools/director-audio-freeze.cjs --test --test-reporter=spec tests/stage3-shrine-buildings.test.cjs`，**3 tests／3 pass／0 fail／真exit0**，該test首尾SHA一致；僅收觀察版smoke，不等於新fallback/候選隔離gate、三檔repair或整庫PASS。stage3 draft仍有mock來源註解需釐清，收件提醒已排隊，不中斷作者。最後觀察game SHA仍3443e5b5…；新R3 focused檔、R3 summary/raw與歸檔R2 manifest/summary尚待作者交付，未釋game寫權。
+- **持續寫入增量／尚未停筆**：p2已明確改fixture標籤並續加fallback案例，正式Stage3／delivery兩test有diff；最近SHA分別 `3641dcabef9e116e05a19105b4ba8b43929ba8c971bcaa23df5e80f05ce0ba07`／`a5e019a2ae0b969c57779adcfb305391c2c7ed04ea6b5e9040e9fe2397b1435f`，thunder仍08e983af…，**不把前一SHA的3/3套到修改後版本**。p3四支指定batch/preview工具已修改，五個archive目的目錄已出現，六原來源目錄仍合85檔；UI見 `execute_r2_migration.py` 執行failed，不能稱全無變動或遷移完成。已排隊要求原命令／exit／stderr與逐筆DONE/BLOCKED/FAILED；不打斷目前work、不原樣盲重試，不擅自還原dirty。
+- **p3後續獨立核收／歷史觀察已前進**：上段85來源仍在是failed run當時快照；隨後六根目錄皆移除，85目的SHA與root「移前」快照一致，並不額外證明本輪開始前metadata未改。已核同名85唯一old/new與完整覆蓋；Preview HTML驗證以**精確目錄path component**限定本票24連結、missing0/old URL0，**不宣全HTML零失效**（歷史失效連結未納本票）。五支Python（四原定＋build-rework-comparison）僅 `ast.parse`，兩次命令exit0，無pycache／未執行工具。p3已收到Stage1 JSON scope矛盾與原failed run補正要求，未全票PASS，仍待正式停筆。
+- **清理契約獨立補驗**：root直接執行 `node --require ./tools/director-audio-freeze.cjs --test --test-reporter=spec tests/stage-art-reset-20261024.test.cjs`，**5/5／真exit0**，test SHA `bd995103a11d1430ff4f3ae991cb35240b8e93d3a8756252de0aaba1dedf292d`；僅證這五個清理／fallback路徑契約，不能替代p2新增測試行為或p3 scope審查。補驗後game/assets/renderer/ui四SHA仍與本輪起點一致。root本輪只寫本R2交接段，`git diff --check -- roadmap.md` exit0、stage仍空，未部署。
+- **p2正式收件退回／不可沿15/15宣稱**：作者已交 [REPAIR_RECEIPT](scratch/regression-repair-20261024/REPAIR_RECEIPT.md) 宣稱15/15及exit0；root獨立讀diff發現兩配送真behavior案例被改成 `console.log('BEHAVIOR_PENDING')`＋source regex，雷術同樣改弱regex卻仍被runner算PASS，Stage3 fallback只 `doesNotThrow`。故 **RETURN_REQUIRED／BASELINE_NOT_READY**，不收作者綠燈、不啟動Git整合。已續派原p2恢復原behavior oracle、修inline harness與真consumer、補raw；暫做不到須runner明列skip/todo或保留RED並誠實阻塞，不能藉此結案；仍只三test/scratch，不新增game writer。
+- **p3 scope補正可核部分**：作者已補 [SUMMARY](scratch/art-root-hygiene-r2-20261024/SUMMARY.md) 的SCOPE_EXCEPTION_REVERT_LOG；Stage1 JSON只撤回自身prompt_file修改，root當前核SHA `a70d2f0ef06454168b6de2e19d24b8d2a3e9e52a42c7a2288b42793b1dcf8595`、798bytes，與作者列改前值一致（root未持有其改前副本，不能額外獨立保證歷史bytes）。已區分6根目錄與review含2子目錄合8空目錄，保留failed run診斷。Stage1 metadata因此仍指舊Prompt路徑，此未改引用須在後續核准metadata專票處理，不偷偷擴Stage1 scope。85目的與24遷移HTML引用仍為本輪已核範圍，不稱所有歷史引用無失效。
+- **本輪看板最新判定／handoff**：p3已正式停筆，root回覆收 **TECH_MIGRATION_PASS_SCOPED／SCOPE_EXCEPTION_REVERT_RECORDED**，僅含85檔搬移、24遷移引用與上述限定檢查；p3維持停筆、不擴Stage1 metadata。p2退修後續原票，**RETURN_REQUIRED／BASELINE_NOT_READY**，可信基線未恢復，Git整合票仍待命。p4仍R3原票working，未交新固定版或R3正式raw，**R3_RECEIPT_PENDING／game唯一寫權不釋出**。root只更新本R2頂部段落，無新production/美術/音訊/KEY/部署操作。
+- **錯誤與限制**：p3 UI見兩次Python one-liner失敗，隨後改 `check_refs.py` 腳本續查；錯誤全文／exit待作者raw，不能將已續工誤報quota阻塞。三席未見本輪quota錯誤，剩餘配額未知，不改全域設定／付費路由。全量npm test維持已知RED，本輪不重跑全庫，無新產品PASS。禁止音訊／KEY/env／GPU本機推理／付費生圖／SW變更。
+- **下一批待命，尚未派／無新寫權**：① p4正式停筆＋固定SHA＋R3證據獨立收件後，才另准BOSS自然局驗證；受控fixture不可稱自然局。② p2可信測試基線恢復後，先設計保護dirty的單writer分支整合 `0e5875d`，未另授權不stage/commit/push/deploy、不碰主樹重置。③ 固定整合版後排御守掉落→拾取→替換／放棄真頁QA，再排融合雙Lv5→Boss繪馬→融合自然局；實機與人審另列。p3遷移驗收後停筆，不自行擴核心原稿歸檔。
+
+### 2026-10-24｜YOKAI-RESUME DIRECTOR 最新交接／非美術工程復工・w2 三票續行
+
+- **現行授權優先**：使用者於本輪明確解除大掃除的**非美術工程凍結**；AGENTS／docs 舊 freeze 與下方 w1 舊派工不能阻止本輪復工，也不能當作新寫權。第三關新美術仍待人審，只保留使用者已核准來源與 10/24 新候選，禁止重生／還原已退役舊圖。Codex 只派工、監督、獨立收件，為 `roadmap.md` 唯一 writer，不代寫 production。
+- **現查版本／保護**：HEAD `a4aaa94cedf27407325cae11b05244f2c3a9c0df`；本地 `origin/master` ref `0e5875d50684e21a6739b944ecd0625c38b1f541`，使用者交接該版已發布 S2，本輪未重新核線上部署。暫存區空、主樹大量 dirty／刪除／未追蹤，全部保留；禁止 reset／clean／checkout／force-pull／stage／commit／push／deploy。下方「與 origin 同步」等舊快照不代表現在。
+
+| 範圍 | 現在可確認的完整程度 | 尚缺／驗收界線 |
+|---|---|---|
+| S1 夜行町 | 正式版既有關卡；runtime `assets/img/scenery/`，來源 `art/stage1-night-town/` | 已發布不代表此次 dirty 全量回歸通過；M1 整合／自然局／實機不可補記 PASS |
+| S2 雨夜港町 | 使用者交接正式版 `0e5875d` 已發布，runtime `assets/img/rain-port/s2-production/`；本機原稿統一 `art/stage2-rain-port/{scene,characters}/`，DEV 用 `manifest-dev-runtime.json` | 本機與 release 分岔；不得覆寫 dirty 或因本機缺包重生另一套圖。後續另排單 writer 安全整合，未授權發布 |
+| S3 妖櫻山道 | 10/24 新候選及 manifest 所列核准來源／少量參考；舊 runtime 五圖刪除為本機清理紀錄 | **WAITING_USER_ART_REVIEW**；借用 S1 fallback 不算 S3 美術完成，不接未審候選到正式版 |
+| S4 竹影／S5 京都／S6 雪寺／S7 渡口／S8 黃泉 | `docs/STAGE_PATHS.json` 為唯一路徑；原稿剩少量 STYLE_REFERENCE_ONLY，S7 清理紀錄無原稿圖 | **WAITING_ART**；不是正式關卡資產完成，不恢復舊批次目錄或舊圖 |
+| 融合系統 | 舊 R4 十招／兩鏡頭／78 phase 的 **TECH_PASS_SCOPED** 有 [獨立摘要](scratch/codex-fusion-independent-final-20261023/SUMMARY.md)；40 槽原生 24，另 15 main 複用＋1 icon fallback | 尚缺 **16 原生圖位**；自然雙 Lv5→Boss 繪馬→融合、實機、人審待驗。當前 assets／renderer／game／ui SHA 已不同於該摘要，不把舊 PASS 套到現版 |
+| 御守 | [CORE-R3](scratch/m2-omamori-core-r3/SUMMARY.md) 有六種、三槽、各 Lv3、地面掉落、第四種替換／放棄與作者 Node 5/5；HUD／替換 UI 舊 scoped 收件保留 | 六種共用一張主圖；現版真頁掉落→拾取→替換／放棄、卡池排除、窄橫與輸入整合需固定版重驗；不宣整體 M1 PASS |
+| BOSS | 四種 hazard 圖片 consumer 舊受控證據保留；ring 曾有 r60 真受傷20而像素 alpha0 反例 | **RING_RETURN／p4 窄修中**；舊15/15不足以覆蓋傷害／視覺對齊，修後先固定 SHA 再獨立驗，不稱全面圖片化已完成 |
+| 資產與清理 | [清理報告](docs/CLEANUP_REPORT_20261024.md) 記錄關卡路徑、423 項媒體及局部專項通過；各 stage manifest 為存在來源依據 | 整庫 `npm test` **RED / exit1** 尚未逐案定因；art 根層用途／唯一備份待 p3 盤點。檔數／可解碼／consumer 存在均不等於 ART_PASS |
+
+| 原票／唯一 owner | 寫入白名單與已查進度 | 必須收件／限制 |
+|---|---|---|
+| BOSS RING／`w2:p4 OpenCode` | **唯一 `js/game.js` writer**＋原票 focused test／自有 scratch；起點 seq116，續工 seq130。可見 `nvidia/stepfun-ai/step-5-preview Omni high`、最近54.2K／27% context；[STATUS](scratch/boss-ring-sweep-bridge-r1/STATUS-20261024.md) 已落檔，僅 **CHECKPOINT_ONLY**，作者自報本輪尚未改 game | 先修失效的focused harness，再判是否需改game；必須正式停筆＋game／test SHA256＋命令、exit、raw，真 AI r60／連續 step／各負向後再獨立驗。STATUS末段將step1 prevR寫80已退回，應取該step真起始r（約102.857），不得改oracle造綠。未停筆固定前不釋權 |
+| 回歸 RED 溯源／`w2:p2 Kilo` | 只寫 `scratch/regression-triage-20261024/`；起點 seq117，補正續工 seq137。Nemotron 3 Ultra **free**／Kilo Gateway high，最近151.4K／15% context；[RECEIPT](scratch/regression-triage-20261024/RECEIPT.md)＋三raw已落並獨立核對，收 **THREE_FILE_RED_REPRODUCED_SCOPED** | **整體溯源未結**。兩份舊分類報告尚須與較新receipt同步，missing-loader與thunder不得沿舊定因；只准補文件後停筆、不再跑測試。其餘NOT_REPRODUCED_BASELINE，p4固定後才另准獨立ring QA，不改production／tests |
+| art 根目錄 hygiene／`w2:p3 AGY` | 只寫 `scratch/art-root-hygiene-20261024/`；補正後 **done seq131／正式停筆**。Gemini 3.8 Flash High／Google AI Pro，context／剩餘額度未顯示 | **AUDIT_RECEIVED／METADATA_MATCH_SCOPED**：報告＋PLAN已收，root獨立12/12檔數／bytes一致、JSON可解析、execution=false／實際搬刪0；fusion有本機consumer。只准保留與後續遷移評估，無搬刪授權，非ART_PASS；曾越界另記下方 |
+
+- **接管證據與模型限制**：上述三席皆已讀回 UI，接管補充 prompt 均回 `agent_prompted`，p2／p3 補充顯示 queued；只代表送達／排隊，不代表完成。未見當前 quota 錯誤，剩餘配額未知，不沿用舊模型／舊額度推定可用性。working 時長歷史讀取報 `agent_not_idle`，已改 visible 讀回，未打斷工作或盲目重試。不探 KEY／env、不改全域路由或付費切換。
+- **本輪監督／初步收件增量**：p4 有界等待 `herdr agent wait w2:p4 --timeout 45000` exit1／timeout，尚無新 focused／停筆 SHA；總監已中斷當前廣讀推理並要求四行 checkpoint，保留原席與 game 寫權，`done seq127` 為中斷後狀態，**不是完成證據**。p3 已交 [ROOT_FOLDER_AUDIT](scratch/art-root-hygiene-20261024/ROOT_FOLDER_AUDIT.md)／[SAFE_MOVE_PLAN](scratch/art-root-hygiene-20261024/SAFE_MOVE_PLAN.json)，root 獨立 metadata 重算 **12/12 檔數與 bytes 一致、命令 exit0**，JSON 可解析、本票10項＋另2項範圍外，fusion 的 assets／renderer 直接引用成立；僅收 **METADATA_MATCH_SCOPED**，線上實際 fallback／唯一母帶斷言與廣域搜尋指令已要求縮限補正，尚未准搬刪。原清單口稱11項但逐名只有10，現場另有 `stage_asset_production_v1`／`vfx`，不硬湊數字。
+- **已發生的邊界問題**：p3 自報本輪曾計算音訊 SHA（屬內容讀取，不能用未播放替代未讀）、另自行啟動全庫 `npm test`；總監已要求停止，讀回其只終止自有 `task-79`。後續限 metadata／指定引用盤點，保留違規紀錄，不宣稱本輪全歷史零音訊讀取；此事不等於已改動音訊。未以該全庫測試作驗收。
+- **ring 獨立重現／模型工具限制**：root 以 `node --require ./tools/director-audio-freeze.cjs scratch/boss-ring-sweep-bridge-r1/verify-ring-bridge.cjs` 重跑，**真 exit1**；原 AI 有推進，抽取 consumer 卻兩步 r 固定80、`ringActiveR=undefined`，故舊 harness 未有效執行 bridge，**不能直接把此 RED 判產品缺陷或沿舊摘要 PASS**。p4 已收到先修 focused harness／再判 production 的要求；其路由曾將兩個 JSON 串接使 tool parse error（該次未執行），之後修正命令真執行。四行 checkpoint 又 done seq129 卻無可見正文，已改請寫原票 STATUS，尚待落檔，不假稱 quota 已耗盡或路由整體不可用。重跑首尾四檔 SHA 與接管相同，game `3443e5b5f3205bf33ec402842730bb2332460d337a39549ecadebea737633b8b`，僅觀測快照，未收作者停筆固定版。
+- **清理 RED 待驗分類／初稿退修**：清理報告僅證整庫 RED，尚未證「全由清理造成」或「全部既存」。p2 初稿 [BASELINE_MATRIX](scratch/regression-triage-20261024/BASELINE_MATRIX.md) 含違禁 stash／checkout 建議、找不到的清理報告 XP 引文、未證既存／清理因果與計數錯誤，總監已明確 **RETURN_REQUIRED**，禁止執行該建議；本輪觀測未見其執行，不能把初稿當收件。只准 `git show` 固定 SHA 至自有 scratch 的最小隔離依賴或明列 NOT_REPRODUCED_BASELINE；M1／難度／UI／BOSS 委派／SHA／舊映射待 raw、exit 與逐案證據，不為造綠擴修或刪測試。
+- **三檔 RED 獨立重現**：root 各別執行 `node --require ./tools/director-audio-freeze.cjs --test --test-reporter=spec <test>`：`tests/stage3-shrine-buildings.test.cjs` **3案／2 PASS／1 FAIL**（已退役 `shrine_pavilion.webp` 的 ENOENT）、`tests/system-delivery-distance-r1-distance.test.cjs` **4案／2 PASS／2 FAIL**（缺 `kilo-m2-port-normal.test.cjs` loader，消失時間未證）、`tests/thunder-raster.test.cjs` **7案／6 PASS／1 FAIL**（source pattern不符，產品／契約判定待驗）；合 **14案／10 PASS／4 FAIL**，**每條真 exit1**，不是整庫計數。p2 曾錯用 `npm test -- --require ... 單檔`，仍展開package全庫glob，總監已中斷其工具執行（seq136），該run不收focused／guard有效證據；已改要求直接node、各檔redirect原始log、真exit及首尾SHA存自有scratch，再交RECEIPT，不得合成raw。禁止恢復已退役S3舊圖。
+- **p2 raw 收件補充**：`scratch/regression-triage-20261024/{stage3-shrine-raw,delivery-distance-raw,thunder-raster-raw}.log` 已實際存在，root逐份核3/2/1、4/2/2、7/6/1（total/pass/fail）與獨立重跑相同；RECEIPT列每條exit1與首尾四SHA，當前SHA仍匹配。只收三檔失敗可重現，S3屬退役契約衝突、loader／thunder均UNKNOWN；舊矩陣未同步前以較新RECEIPT及本段為準，沒有全量baseline／全庫PASS。p2已收到只補文件後停筆指令。
+- **下一階段順序／保留 owner**：① p4 原票修復、停筆固定 SHA，總監核收後才釋放 game；② p2 先收 RED 分類，p4 固定後由 p2 以唯讀 game＋自有 scratch 做 ring 獨立受影響重驗，未固定前不開交疊修票；③ p3 原票完成後只補其盤點反例／遷移前置，不執行搬刪；④ 依 RED 證據優先派清理新增真缺陷，再排御守／融合受影響整合與 S2 分岔整合，逐檔另立唯一 writer。人審未過的 S3–S8 美術不入正式版。
+- **共同禁區／結果分級**：禁止 paid generation／任何新生圖、KEY／env／音訊／TTS／BGM／GPU Ollama，本輪不修改 SW／素材。非美術工程可續，媒體快取或程式修改仍須另 QA。本輪已收 p3 metadata／p2三檔RED重現；p4仍在原票，若用fixture複製bridge語義只能列診斷，不能替代真game consumer驗收／固定版PASS／寫權釋放，已明確通知作者。總監只改本頂部交接，四檔production SHA仍與接管起點相同；文件 `git diff --check -- roadmap.md`、game語法exit0，整庫RED／自然局／實機／人審缺口保留；**未收新的產品PASS、未部署**。下方全部保留為歷史證據，不恢復已撤寫權。
+
+### 2026-10-24｜S3-GROUND-REDRAW-R1 並行已派／獨立 SEAM QA 已開工（不占 BOSS writer）
+
+- **最新授權與 owner**：使用者已直接派 `w1:p2 Kilo` 製作第三關妖櫻山道新地板，root 讀回 p2 working seq35、正讀 Stage3 素材 manifest，已補送本票邊界；只可新增 `art/stage3-sakura-pass/scene/redraw_r1/**` 原圖候選與 manifest，先比母圖、先一張泥地。此明確路徑覆蓋本票舊短名建議；不搬刪或覆蓋任何舊圖／原 manifest／dirty。
+- **獨立 QA 已改派免費路由實做**：原 `/root/s3_seam_qa` 啟動即遭 Codex usage limit，未產驗收，未重試該額度；root 新建同 workspace `w1:p5`，以 Kilo Gateway 明示 `NVIDIA Nemotron 3 Ultra (free)` 啟動 `s3-seam-qa`，讀回 working seq52，唯一新增 `scratch/s3-ground-qa-r1/**`。先準備舊圖 baseline／harness，再按新候選固定 SHA 收件。需原圖／新圖同尺度對照、真 3×3／6×6、左右上下接縫及色差、角點／亮暗週期、混鋪與 2D／.60。只有一候選時不能用旋轉複製假稱不同變體；缺真變體列 WAITING_VARIANTS。離線 QA 投影不稱真遊戲 consumer，反例固定版本 RETURN，不修改候選。
+- **生成／美術門**：只准既有已核免費生圖路由；無可用路由明報 `BLOCKED_GENERATION`、原錯誤與最小一張報價，不能付費呼叫／讀 KEY 或試配額，不能由程序幾何或裁改舊圖造假新候選。無 Nano 付費／本機 Ollama／ComfyUI GPU。新圖保持 ART_CANDIDATE，接縫技術／人審分列，不以檔案或測試數冒稱 ART_PASS。
+- **BOSS 並行保護**：實查 HEAD 仍 `a4aaa94`、stage 空；p3 working seq26 為 `js/assets.js`＋`js/renderer.js` 唯一 writer，p4 working seq34 為 BOSS 獨立 QA。p3 未正式停筆、固定 SHA 並釋出寫權前，**S3 嚴禁接入兩 JS**；後續即使 DEV 也須 root 協調單 writer，未審候選不得升正式。root 唯一 roadmap writer，持續 BOSS 收件，不另占 p3／p4 做地板。
+- **當前證據／未完**：首張原圖已生成、由 p2 原樣匯入並正式停筆，尚無新候選接縫／風格 PASS；p5 舊圖 PRECHECK 已交，新候選固定版 QA 續作中。全部變更本機；禁 stage／commit／push／deploy／reset／clean／checkout／刪任何 dirty／未追蹤，音訊／TTS／BGM／KEY／env／SW 保護不變。
+- **首張原圖已真生成／交 p2 匯入、p5 獨立驗**：root 依 imagegen skill 用內建 `image_gen` 成功生成一張原始不透明泥地；不是 Nano Banana／CLI／外部付費 API，未讀 KEY／使用本機 GPU。原始檔留 `$CODEX_HOME/generated_images/01a16a5d-31f4-73c1-b479-c1752386aacd/exec-5d2ac663-cb18-439d-bb0f-2e80d45ae1b2.png`；工具未回報模型版本／計費，不虛寫成本0或某模型。root 實測 **1254×1254、alpha255全不透明、SHA `abbc82fe8b3ea5612e7eafe68d8f847affc61d526e53a6402776067f569fc8aa`、灰階均值88.81/255**（比提示目標140偏暗，待完整 QA，不PASS）。已真 prompt p2 原樣匯入 `redraw_r1/g_dirt_01.png`、記原文 prompt／來源／SHA；p5 接新候選固定版。只此一張，原圖／舊素材保留，尚未人審／接 JS。
+- **BOSS 日額度切換仍續工**：p3／p4 Direct DeepSeek Free 同見 `You've used today's free messages`，未升級或盲重試該額度。總監將同席改為目錄中明示 `:free` 的 North／Laguna Omni 雲路由新 session，讀回 p3 working seq56、p4 working seq57；唯一 writer／QA 邊界不變。Herdr quota 後殘留 blocked 偵測但實際 UI 為空白新 session，確認無 approval 對話後才 raw pane 送工，沒有代答未知權限問題。
+- **來源固定／首張品質 RETURN 前置**：p2 [GENERATION_RECORD](art/stage3-sakura-pass/scene/redraw_r1/GENERATION_RECORD.md)／manifest 已記實際 prompt 與原始來源，[g_dirt_01.png](art/stage3-sakura-pass/scene/redraw_r1/g_dirt_01.png) SHA 與 root 原始檔相同，原尺寸1254、不透明，未 resize／改色／縫補。灰階34.8%／HSV S21.7%偏離55%／<15%目標，root 不收美術通過；p5 需完整新圖3×3／6×6與混鋪反例，不能只沿舊 WAITING_CANDIDATE 報告結案。
+- **外部狀態漂移（不納本輪成果）**：root 後續觀測本機 HEAD 仍 a4aaa94、stage 空，但本地 `origin/master` ref 已為 `0e5875d`（Stage2 publish 題名）；本輪未 fetch／pull／提交／部署。原起點14個未追蹤 thumb 的抽查兩檔已不在原位，來源未證，不自行歸因或補刪；保留特殊尾反引號測試檔。p3 另產生根目錄 `test_boss_hazard_art.js` 靜態 script，未納提交／不當功能驗收，保留不刪。
+
+### 2026-10-24｜BOSS 幾何圖全面圖片化 R1 — 已實際派工／待收件（本輪僅本機）
+
+- **新保護基線**：root 實查 `master` HEAD `a4aaa94cedf27407325cae11b05244f2c3a9c0df`、與 origin/master 同步、stage 空；Pages run `40050415783 success` 為使用者交接，本輪未重新查遠端。上一輪已提交部署，不沿用下方舊「尚未部署」快照描述現在。本輪禁止 stage／commit／push／deploy／reset／clean／checkout，保留全部 dirty、未追蹤 JPEG thumb 與特殊檔，修改待使用者試玩／批准。
+- **實際派工證據**：先 `herdr agent list` 確認 root `w1:p1`、OpenCode `w1:p3`／`w1:p4`、Kilo `w1:p2`；三份明確 prompt 已送達，隨後讀回 p3 working seq12、p4 working seq13、p2 working seq14。working 僅代表開工，不是完成或驗收；Codex 只調度／QA／收件，唯一 roadmap writer，不長時間親寫 production。
+
+| 票／Owner | 原定義與寫入白名單 | 收件 gate／證據位置 |
+|---|---|---|
+| BOSS-IMAGE-PROD-R1／p3 OpenCode | 唯一 `js/assets.js`＋`js/renderer.js` writer，自有 `scratch/boss-image-prod-r1/`；`js/game.js` 跨檔必須先停交總監另派。替換 `slam`／`charge`／`ring`／`tide` 舊幾何，逐種預告→打擊→收招，圖片為主體；複用現有 PNG/WebP，不以 SVG／Canvas 幾何冒充圖片 | 正式停筆、固定 SHA、集中 focused tests；逐種逐相區分 IMAGE／保護 fallback／缺件；2D／tilt=.60、桌機／844×390、真傷害投影對齊、地面鏡頭與安全區。交 `STATUS.md`／`SUMMARY.md`，p4 獨立驗後才收 |
+| BOSS-IMAGE-QA-R1／p4 OpenCode | 獨立 QA，只可新增 `tests/boss-image-qa-r1*.test.cjs` 與 `scratch/boss-image-qa-r1/`；不改 production／既有 tests。先準備 baseline／harness，再驗 p3 固定版 | 真 Canvas Chrome 成功 `drawImage` 來源、像素／時序、真 AI／傷害幾何、安全外點、四種×三相×兩鏡頭×兩視口與負向；保護 D1／D2／B／C／C4。另報 npm test V3 針殉爆／XP 舊預期是否 a4aaa94 基線，不擴修；交 `SUMMARY.md`／`BASELINE_V3.md` 與 raw／log／screenshots |
+| BOSS-IMAGE-ART-AUDIT-R1／p2 Kilo | 只讀美術庫／JS，只寫 `scratch/boss-image-art-audit-r1/` 報告與 contact sheet；不搬刪或覆蓋素材 | 優先交 `ASSET_RECOMMENDATIONS.md` 供 p3；來源／SHA／alpha／bbox／解析度／核准依據與透明缺圖需求。`tidalFan`／`rainVortex` 正式模式門檻獨立判定；候選不冒稱 ART_PASS |
+
+- **起點／既有成果保護**：已讀 [D4 FINAL](scratch/fusion-vfx-polish-grok-d4/FINAL.md) 與 [CHECK_D3_R3](scratch/codex-polish-independent-20261023/d3-r3/CHECK_D3_R3.md)。起點 SHA256：assets `342d89f9134fcc027c8bfadab72bbc971cb82287f466141ae961f05f04a8dd48`；renderer `1cb198d9156155d6dcc44b7b111331125bce257537523cde17874a23aba97eb0`；game `bc0e70af9dfd84b4a6a1addfb9ced3870fb16f77182a30291d0a119160c1e18c`；ui `19baabef234839039b2de7e3fda7c795c57dfcb516b1ba1a6c418c364800b14a`；dev-mode `a1cae5ad1c2e331504fa498957bf4e4673d2d312dd40cadfa19ccd5692fb7451`。D1／D2／B／C 已收範圍沿用，不重做。
+- **明確未完與安全門**：四種原 handler 回 false 走 game 舊幾何；潮扇／渦流原為 DEV-only IMAGE、128px 水紋仍 ART_CANDIDATE。缺核准來源／品質不足保留明確候選 gate 並列需求，不能冒稱正式完成；缺圖保護 fallback 不能算 IMAGE。技術接線、受控 Chrome、自然局、實機及 USER_ART_REVIEW 分開。
+- **執行邊界**：音訊／TTS／BGM／KEY／env／SW／圖示凍結，Node 讀前 guard、Chrome 音訊與外部聲音 API 讀前 stub；無付費 Nano Banana／其他生成 API。禁本機 Ollama 推理或占用 ComfyUI GPU；provider 限額不盲重試，立即診斷並換現有可用免費雲路由，不改全域設定。
+- **charge 真座標接口窄票已收**：p3 查明 hazard 起點不能推導撞牆後真 Boss 位置，依規停跨檔；另派唯一 `/root/boss_owner_bridge` 寫 `js/game.js`，四行替換將真 owner 以第四可選參數傳 renderer，不改 AI／傷害／hazard 資料，現正式停筆釋放 game 寫權。[SUMMARY](scratch/boss-owner-bridge-r1/SUMMARY.md) 固定 game SHA `bf61a67f98373d6cf5a3a3c9de166d25f0fb1e377383e6f6f57db848d6a5d8ad`；guarded 語法／owner 動態檢查／diff check exit0、C2 2/2。舊 C3 五案固定搜尋三參數簽章，抽取階段全失敗，raw 保留，不能稱 suite PASS；p4 須新增四參數與原負向集中驗證。root 已獨立核四行 diff 與報告，圖片／Chrome gate 尚未收。
+- **退修／路由增量**：p3 R1/R2 中間版因 ring 缺口／tide 安全通道未實作、charge 缺 owner 仍畫、半徑外擴與錯誤 fallback 退回；root 再查出 fan/vortex fallback 呼叫遭誤刪，已要求恢復。checkpoint 將 128px 水紋誤寫 ART_PASS 亦退回，不能作核准證據。p3 原 Qwen 路由兩輪未落實關鍵修正，總監中斷該回合後保留同席唯一 writer，切直接 DeepSeek V4.1 Flash Free Personal/OpenCode 新 session 修 R2；p4 原 Omni DSML 工具名不匹配已改同直接免費雲路由並實際執行測試。p2 Nemotron 原長 context compaction 已中斷，改 Kilo Gateway 標明 free 路由新 session；美術初稿混入 ringo 詞彙圖／缺實測 metadata 退回，不能推斷全庫無可複用圖。p2 曾目錄級搜尋 `js/`，違反讀前凍結範圍，已明確禁止並限檔；不聲稱本輪全歷史零音訊路徑掃讀。無付費生成／本機推理／提交部署。
+- **素材有限收件**：p2 已交 [metadata](scratch/boss-image-art-audit-r1/metadata.json)／[contact sheet](scratch/boss-image-art-audit-r1/contact_boss_vfx_20261024.png)／[來源報告](scratch/boss-image-art-audit-r1/ASSET_RECOMMENDATIONS.md)。root 以 Pillow＋SHA 獨立逐檔核 **14/14** 原始尺寸／alpha>16 bbox／完整 SHA 一致，並實看 8 格 contact；只收 `SOURCE_METADATA_PASS_SCOPED`。火裂地 640、火焰 512、斬擊 1254px 可作新 Boss 用途候選；128px 水紋品質不足仍待補。原用途核准未查為 UNKNOWN，新用途不因現役路徑自動 ART_PASS。[PROMPTS](scratch/boss-image-art-audit-r1/PROMPTS.md) 尚有 upright／固定缺口與時間三相定義未完全一致，只作待校稿草案，不授權生成。沒有證明全庫無可複用圖，也沒有付費執行或正式接圖。
+- **V3 附票只報告已收**：root 查 [BASELINE_V3](scratch/boss-image-qa-r1/BASELINE_V3.md) 與 raw，針殉爆舊斷言於 a4aaa94 重現；精確 XP 兩案 `v3-growth-accounting:21`／`v3-growth-curve:41` 在 a4aaa94 同為 **20 vs 舊預期23**，兩檔 8 案 6 PASS／2 FAIL、exit1，是既有 RED，未擴修。guarded 全量中間版 1128／989 PASS／139 FAIL 包含凍結 guard 拒讀工件，不能稱產品回歸 GREEN。p4 早期 baseline copy 曾複製 SW，已更正「全輪 SW 未讀」不實範圍；後續 Chrome 必須讀前 stub。baseline 封存、未刪；p4 context79% 已保存報告與 harness，新 session 只接主 Chrome／集中 tests，不再跑附票。
+- **真 Chrome／集中 tests 增量，尚非整票 PASS**：root 實跑 p4 集中 suite **15/15 exit0**；執行既有 p4 server／probe 並新增自有 `scratch/director-boss-image-qa-r2/verify.cjs`，完成四 kind×三相×2D/.60×1366／844 的16案＋開闊區8案，共72張原圖；[原版raw](scratch/director-boss-image-qa-r2/report.json)／[開闊區raw](scratch/director-boss-image-qa-r2/open-arena/report.json) 首尾五 SHA 固定、真 owner 一致、程序主體0、page/server errors0，四真導航gate負向候選query請求0，缺圖／缺owner／unknown／fade尾分類符合。首版房屋遮玩家 fixture 留史，開闊區補圖可辨玩家；ring 邊界3×3探針有變化，但新增缺口內側兩探針均0，不能把邊界raw洗掉。North credential cooldown 已停重試，p3套語「all requirements／production-ready」未收，root 以實測等級取代。
+- **RING-SWEEP 真缺陷／新 game 唯一 writer 已派**：[ring-sweep-red](scratch/director-boss-image-qa-r2/ring-sweep-red.json) 真 AI dt=.05 從r80→102.857且覆寫prevR，半徑60點命中20、真Canvas該點alpha0（renderer內界74.857）。此為傷害／視覺真反例，不能因15/15或圖片consumer全有而PASS。已新增同workspace `boss-ring-runtime / w1:p6 Kilo Gateway free`，僅獨占 `js/game.js`＋自有scratch窄修上一step半徑供render、下一step恢復AI原語義；不改boss-ai／assets／renderer／音訊。p3兩檔固定 assets `fd23280e6419678aab484269137ea7b61ac31db5f30b0f86b10a1da86cb8be87`、renderer `460cd177dc35a10b02923ee5f1f3ee617922adce49fc95cff51b15e50a838acc`；game尚為bf61a67f…的反例版，修後需新SHA／focused負向／真頁補驗。S3仍不接JS。
+
 ### 2026-10-23 / UI+FUSION+BOSS polish round — 即時收件看板（本機 dirty；非部署）
 
 | 票 | 目前可證狀態 | 單檔 writer／驗收依據 |

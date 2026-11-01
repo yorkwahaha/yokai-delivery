@@ -1,0 +1,9 @@
+{
+  "target": "I:\\Projects\\yokai-delivery-backup-20261023",
+  "result": "DELETED",
+  "removed_mb_estimate": 17766.89,
+  "preserved_source_archive_sha256": "20eadcbc71582065d811cce40ebc50107322df214dd7f9deeab4b2314670202b",
+  "preserved_original_concept_count": 6,
+  "seconds": 38.6,
+  "note": "Old non-git 20261023 backup removed; archived original designs and cold source recovery retained in canonical main root. No Git source in active primary changed."
+}

@@ -20,11 +20,11 @@ test('V3 growth holds opening requirements through Lv20 and grows by 12 XP per l
 test('V3 growth budgets four MAX plus six or eight passive choices',()=>{
   // Starter katana1 makes four MAX require nineteen weapon choices.
   assert.equal(spent(19),1436);assert.equal(spent(25),2156);assert.equal(spent(27),2492);
-  // normal 每級分別四捨五入，不是把 hard 總和乘0.75後再四捨五入。
-  assert.equal(spent(19,.75),1082);assert.equal(spent(25,.75),1625);assert.equal(spent(27,.75),1878);
+  // 現行 night-town normal XP 需求為 hard 之 90%，且逐級四捨五入。
+  assert.equal(spent(19,.9),1293);assert.equal(spent(25,.9),1941);assert.equal(spent(27,.9),2244);
 });
 for(const expected of [
-  {profile:'normal',scale:.75,total:1625,next:122},
+  {profile:'normal',scale:.9,total:1941,next:146},
   {profile:'hard',scale:1,total:2156,next:162}
 ])test(`V3 growth ${expected.profile} actual twenty-five choices spend ${expected.total} XP and reach level26`,()=>{
   const g=loadGame({seed:11});

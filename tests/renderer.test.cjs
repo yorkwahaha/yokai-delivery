@@ -70,13 +70,26 @@ test('actor shadows are world-space floor marks, never warped with upright sprit
   r.env.RENDERER.drawPlayer({x:460,y:240,faceX:1},false,0,0,{x:0,y:0});
   assert.equal(ellipses.length,1,'upright courier sprite does not repaint floor shadow');
   ellipses.length=0;
-  r.env.RENDERER.drawHouseShadow({x:400,y:240});
-  assert.deepEqual(ellipses[0].slice(0,4),[400,286,58,14]);
+  r.env.RENDERER.drawHouseShadow({x:400,y:240,bType:"house_shop"});
+  assert.deepEqual(ellipses[0].slice(0,4),[400,288,58,6]);
   ellipses.length=0;
   r.env.RENDERER.drawMonsterShadow({type:'ghost',x:100,y:200});
   assert.deepEqual(ellipses[0].slice(0,4),[100,218.7,22,8.8]);
 });
 
+
+test('SpriteCook contact shadow aligns with feet without changing production',()=>{
+  const r=loadRenderer(900,600),ellipses=[];
+  const P={x:460,y:240};
+  r.main.ctx.ellipse=(...args)=>ellipses.push(args);
+  r.env.RENDERER.drawPlayerShadow(P,0,{x:0,y:0});
+  assert.equal(ellipses.at(-1)[1],262);
+  r.env.SPRITECOOK_DEV={enabled:true};
+  r.env.RENDERER.drawPlayerShadow(P,0,{x:0,y:0});
+  assert.equal(ellipses.at(-1)[1],242);
+  assert.equal(ellipses.at(-1)[2],22);
+  assert.equal(ellipses.at(-1)[3],7);
+});
 
 test('Boss world sprite keeps its seal ring but does not draw a duplicate local HP bar', () => {
   const r = loadRenderer(900,600);

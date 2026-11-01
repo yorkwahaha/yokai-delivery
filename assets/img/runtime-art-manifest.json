@@ -100,7 +100,7 @@
       "id": "rain-port",
       "name": "雨夜港町",
       "status": "APPROVED",
-      "default_runtime": "assets/img/rain-port/s2-production/",
+      "default_runtime": "assets/img/stages/rain-port/",
       "requires_dev_flags": false,
       "dev_diagnostic_override": "dev=1&s2legacy=1",
       "source_manifest": "assets/img/rain-port/s2-production/asset-manifest.json",
@@ -110,74 +110,81 @@
           {
             "id": "g_stone_01",
             "category": "ground",
-            "path": "assets/img/rain-port/s2-production/ground_mud_slab.webp",
+            "path": "assets/img/stages/rain-port/tiles/rain-port__ground-mud-slab.webp",
             "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
             "bytes": 131198,
             "source_status": "REUSED_APPROVED_MUD_SLAB_REPLACES_REJECTED_COBBLE",
             "runtime_status": "APPROVED_RUNTIME",
-            "status": "APPROVED"
+            "status": "APPROVED",
+            "legacy_source_path": "assets/img/rain-port/s2-production/ground_mud_slab.webp"
           },
           {
             "id": "g_stone_02",
             "category": "ground",
-            "path": "assets/img/rain-port/s2-production/ground_mud_slab.webp",
+            "path": "assets/img/stages/rain-port/tiles/rain-port__ground-mud-slab.webp",
             "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
             "bytes": 131198,
             "source_status": "REUSED_APPROVED_MUD_SLAB_REPLACES_REJECTED_COBBLE",
             "runtime_status": "APPROVED_RUNTIME",
-            "status": "APPROVED"
+            "status": "APPROVED",
+            "legacy_source_path": "assets/img/rain-port/s2-production/ground_mud_slab.webp"
           },
           {
             "id": "g_stone_03",
             "category": "ground",
-            "path": "assets/img/rain-port/s2-production/ground_mud_slab.webp",
+            "path": "assets/img/stages/rain-port/tiles/rain-port__ground-mud-slab.webp",
             "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
             "bytes": 131198,
             "source_status": "REUSED_APPROVED_MUD_SLAB_REPLACES_REJECTED_COBBLE",
             "runtime_status": "APPROVED_RUNTIME",
-            "status": "APPROVED"
+            "status": "APPROVED",
+            "legacy_source_path": "assets/img/rain-port/s2-production/ground_mud_slab.webp"
           },
           {
             "id": "g_stone_04",
             "category": "ground",
-            "path": "assets/img/rain-port/s2-production/ground_mud_slab.webp",
+            "path": "assets/img/stages/rain-port/tiles/rain-port__ground-mud-slab.webp",
             "sha256": "4bf18cb0c29a256947d3008e23b44c61642181fc1b7cae328ba46cd7983e15ea",
             "bytes": 131198,
             "source_status": "REUSED_APPROVED_MUD_SLAB_REPLACES_REJECTED_COBBLE",
             "runtime_status": "APPROVED_RUNTIME",
-            "status": "APPROVED"
+            "status": "APPROVED",
+            "legacy_source_path": "assets/img/rain-port/s2-production/ground_mud_slab.webp"
           }
         ],
         "woodVariants": [
           {
             "id": "g_wood_01",
             "category": "ground",
-            "path": "assets/img/rain-port/s2-production/g_wood_01.webp",
+            "path": "assets/img/stages/rain-port/tiles/rain-port__g-wood-01.webp",
             "sha256": "05b9ff8a48fd4b747338a69a5fba5900406457d034ef269d6b2857b380535929",
             "bytes": 464156,
             "source_status": "USER_SELECTED_LIGHTWEIGHT",
             "runtime_status": "APPROVED_RUNTIME",
-            "status": "APPROVED"
+            "status": "APPROVED",
+            "legacy_source_path": "assets/img/rain-port/s2-production/g_wood_01.webp"
           },
           {
             "id": "g_wood_02",
             "category": "ground",
-            "path": "assets/img/rain-port/s2-production/g_wood_02.webp",
+            "path": "assets/img/stages/rain-port/tiles/rain-port__g-wood-02.webp",
             "sha256": "1153d849555f5e73b85f03e37d9acdf33d53e44a5e6ae9ec301846ea7c56978b",
             "bytes": 477160,
             "source_status": "USER_SELECTED_LIGHTWEIGHT",
             "runtime_status": "APPROVED_RUNTIME",
-            "status": "APPROVED"
+            "status": "APPROVED",
+            "legacy_source_path": "assets/img/rain-port/s2-production/g_wood_02.webp"
           },
           {
             "id": "g_wood_03",
             "category": "ground",
-            "path": "assets/img/rain-port/s2-production/g_wood_03.webp",
+            "path": "assets/img/stages/rain-port/tiles/rain-port__g-wood-03.webp",
             "sha256": "b79e3d29141af77f71cbf9695bdba5bc63291bdb68168146da0cd5e71ed34948",
             "bytes": 482280,
             "source_status": "USER_SELECTED_LIGHTWEIGHT",
             "runtime_status": "APPROVED_RUNTIME",
-            "status": "APPROVED"
+            "status": "APPROVED",
+            "legacy_source_path": "assets/img/rain-port/s2-production/g_wood_03.webp"
           }
         ],
         "transitions": {
@@ -185,13 +192,14 @@
             {
               "id": "t_stone_wood_v01",
               "category": "ground",
-              "path": "assets/img/rain-port/s2-production/t_stone_wood_v01.webp",
+              "path": "assets/img/stages/rain-port/tiles/rain-port__t-stone-wood.webp",
               "sha256": "e615a98837b3da05824231529ba9198038bdbcc54dd11bcd4275bf1ecaf2c041",
               "bytes": 572832,
               "source_status": "USER_SELECTED_LIGHTWEIGHT",
               "runtime_status": "APPROVED_RUNTIME",
               "status": "APPROVED",
-              "orientation": "horizontal"
+              "orientation": "horizontal",
+              "legacy_source_path": "assets/img/rain-port/s2-production/t_stone_wood_v01.webp"
             }
           ],
           "v": []
@@ -202,7 +210,7 @@
           "id": "building_port_warehouse",
           "name": "港口風化大倉庫",
           "category": "buildings",
-          "path": "assets/img/rain-port/s2-production/buildings/building_port_warehouse.webp",
+          "path": "assets/img/stages/rain-port/objects/rain-port__building-port-warehouse.webp",
           "source_raw": "art/stage2-rain-port/scene/H_port_warehouse_nano_nb21_v1.png",
           "source_raw_sha256": "65f8c0a78376ed5393d26784be71c5d0b6e8da594814344500f2aeef7bd14ea9",
           "sha256": "1e83357f6bf26854332a487b28a894a6a4fc16097e10656fe5ea955826256b0a",
@@ -219,13 +227,14 @@
           },
           "source_status": "ART_CANDIDATE",
           "runtime_status": "USER_SELECTED_RUNTIME",
-          "status": "APPROVED_RUNTIME"
+          "status": "APPROVED_RUNTIME",
+          "legacy_source_path": "assets/img/rain-port/s2-production/buildings/building_port_warehouse.webp"
         },
         {
           "id": "building_fish_workshop",
           "name": "港町海產魚行魚舖",
           "category": "buildings",
-          "path": "assets/img/rain-port/s2-production/buildings/building_fish_workshop.webp",
+          "path": "assets/img/stages/rain-port/objects/rain-port__building-fish-workshop.webp",
           "source_raw": "art/stage2-rain-port/scene/H_fishmonger_nano_nb21_v1.png",
           "source_raw_sha256": "b71e4a67721127492b3642c7c64e26cece7f9cd1a3872d585f6cce9b7cd56785",
           "sha256": "56f7f15d39016a1922f8eac073e4944fe9c4b2420790797260ed6d6a7fd161fd",
@@ -242,13 +251,14 @@
           },
           "source_status": "ART_CANDIDATE",
           "runtime_status": "USER_SELECTED_RUNTIME",
-          "status": "APPROVED_RUNTIME"
+          "status": "APPROVED_RUNTIME",
+          "legacy_source_path": "assets/img/rain-port/s2-production/buildings/building_fish_workshop.webp"
         },
         {
           "id": "building_port_tavern",
           "name": "港町海潮酒肆",
           "category": "buildings",
-          "path": "assets/img/rain-port/s2-production/buildings/building_port_tavern.webp",
+          "path": "assets/img/stages/rain-port/objects/rain-port__building-port-tavern.webp",
           "source_raw": "art/stage2-rain-port/scene/H_port_tavern_nano_nb21_v1.png",
           "source_raw_sha256": "c9dc20ff9e92cf204ab9b03e2074069c8ebb3a6fef31fa7942176908b366bbd5",
           "sha256": "e5ddd1a4333d6da24ea9df5635cd12a04c57ee68d3b9f79be47fa4686e5e26e6",
@@ -265,13 +275,14 @@
           },
           "source_status": "ART_CANDIDATE",
           "runtime_status": "USER_SELECTED_RUNTIME",
-          "status": "APPROVED_RUNTIME"
+          "status": "APPROVED_RUNTIME",
+          "legacy_source_path": "assets/img/rain-port/s2-production/buildings/building_port_tavern.webp"
         },
         {
           "id": "building_wharf_shop",
           "name": "碼頭乾貨雜糧商屋",
           "category": "buildings",
-          "path": "assets/img/rain-port/s2-production/buildings/building_wharf_shop.webp",
+          "path": "assets/img/stages/rain-port/objects/rain-port__building-wharf-shop.webp",
           "source_raw": "art/stage2-rain-port/scene/H_wharf_shop_nano_nb21_v1.png",
           "source_raw_sha256": "d323dd5e22b6b955a6747a1a24e488a4ae20b0c57081a6f10b58f7301b774d8f",
           "sha256": "eb226e478044fdcc7f1c4e9581673cd6fe50c5ac1c5b539b17d4c4ff54fd20d0",
@@ -288,13 +299,14 @@
           },
           "source_status": "ART_CANDIDATE",
           "runtime_status": "USER_SELECTED_RUNTIME",
-          "status": "APPROVED_RUNTIME"
+          "status": "APPROVED_RUNTIME",
+          "legacy_source_path": "assets/img/rain-port/s2-production/buildings/building_wharf_shop.webp"
         },
         {
           "id": "building_port_teahouse",
           "name": "港町泊船番所茶屋",
           "category": "buildings",
-          "path": "assets/img/rain-port/s2-production/buildings/building_port_teahouse.webp",
+          "path": "assets/img/stages/rain-port/objects/rain-port__building-port-teahouse.webp",
           "source_raw": "art/stage2-rain-port/scene/H_port_teahouse_nano_nb21_v1.png",
           "source_raw_sha256": "8f33d723e870f3c727b7c5136f07f8530a16cbe5d725e12418f83e843cd56259",
           "sha256": "932e0915ed44514f3ba4a2580a09c6a18de23356ddff8f957e28507f8ef8e045",
@@ -311,7 +323,8 @@
           },
           "source_status": "ART_CANDIDATE",
           "runtime_status": "USER_SELECTED_RUNTIME",
-          "status": "APPROVED_RUNTIME"
+          "status": "APPROVED_RUNTIME",
+          "legacy_source_path": "assets/img/rain-port/s2-production/buildings/building_port_teahouse.webp"
         }
       ],
       "props": [
@@ -319,7 +332,7 @@
           "id": "prop_anchor_gear",
           "name": "港口鐵錨與絞盤齒輪",
           "category": "props",
-          "path": "assets/img/rain-port/s2-production/props/prop_anchor_gear.webp",
+          "path": "assets/img/stages/rain-port/props/rain-port__prop-anchor-gear.webp",
           "source_raw": "art/stage2-rain-port/scene/O_prop_anchor_gear_nano_nb21_v1.png",
           "source_raw_sha256": "dba213c5766656c33141b51f9e67b404af6c8860acbc24906f8258b6b3406952",
           "sha256": "2b727209c7b2e2ee8790a4c344c55ab4b4fda59f6e2c886f73b3951060750c22",
@@ -336,13 +349,14 @@
           },
           "source_status": "ART_CANDIDATE",
           "runtime_status": "USER_SELECTED_RUNTIME",
-          "status": "APPROVED_RUNTIME"
+          "status": "APPROVED_RUNTIME",
+          "legacy_source_path": "assets/img/rain-port/s2-production/props/prop_anchor_gear.webp"
         },
         {
           "id": "prop_cargo_crates",
           "name": "碼頭堆疊貨物木箱",
           "category": "props",
-          "path": "assets/img/rain-port/s2-production/props/prop_cargo_crates.webp",
+          "path": "assets/img/stages/rain-port/props/rain-port__prop-cargo-crates.webp",
           "source_raw": "art/stage2-rain-port/scene/O_prop_cargo_crates_nano_nb21_v1.png",
           "source_raw_sha256": "e362bb2b46abeb3d9b032cc217207baa70a0b35f36934a1a9caa664cfd7139dc",
           "sha256": "756a67c6a1cfe2058ccc47e868d45ec363fb3b7138b2c36ce0aa45ae53116974",
@@ -359,13 +373,14 @@
           },
           "source_status": "ART_CANDIDATE",
           "runtime_status": "USER_SELECTED_RUNTIME",
-          "status": "APPROVED_RUNTIME"
+          "status": "APPROVED_RUNTIME",
+          "legacy_source_path": "assets/img/rain-port/s2-production/props/prop_cargo_crates.webp"
         },
         {
           "id": "prop_mooring_post",
           "name": "港埠繫船木樁",
           "category": "props",
-          "path": "assets/img/rain-port/s2-production/props/prop_mooring_post.webp",
+          "path": "assets/img/stages/rain-port/props/rain-port__prop-mooring-post.webp",
           "source_raw": "art/stage2-rain-port/scene/O_prop_mooring_post_nano_nb21_v1.png",
           "source_raw_sha256": "a74154bed0c848d7fdab5b3c2786b98e74737e64a0c8ea013df181868ff39eae",
           "sha256": "098c34e503d55111c2fbed1b4798ba9376f26eb11408664e5576aa46c7e36aae",
@@ -382,13 +397,14 @@
           },
           "source_status": "ART_CANDIDATE",
           "runtime_status": "USER_SELECTED_RUNTIME",
-          "status": "APPROVED_RUNTIME"
+          "status": "APPROVED_RUNTIME",
+          "legacy_source_path": "assets/img/rain-port/s2-production/props/prop_mooring_post.webp"
         },
         {
           "id": "prop_port_boat",
           "name": "港口繫泊木舟",
           "category": "props",
-          "path": "assets/img/rain-port/s2-production/props/prop_port_boat.webp",
+          "path": "assets/img/stages/rain-port/props/rain-port__prop-port-boat.webp",
           "source_raw": "art/stage2-rain-port/scene/O_prop_port_boat_nano_nb21_v1.png",
           "source_raw_sha256": "2141d9608493c7dc6701361d3455f308b7bcc4e125a7ef220923571d4afd816f",
           "sha256": "9796f43b2eacb6a0ebbc434aa792fc4199a72e6f20ee980ea3f6ddfb32ef996b",
@@ -405,13 +421,14 @@
           },
           "source_status": "ART_CANDIDATE",
           "runtime_status": "USER_SELECTED_RUNTIME",
-          "status": "APPROVED_RUNTIME"
+          "status": "APPROVED_RUNTIME",
+          "legacy_source_path": "assets/img/rain-port/s2-production/props/prop_port_boat.webp"
         },
         {
           "id": "prop_port_lighthouse",
           "name": "港口常夜石燈台",
           "category": "props",
-          "path": "assets/img/rain-port/s2-production/props/prop_port_lighthouse.webp",
+          "path": "assets/img/stages/rain-port/props/rain-port__prop-port-lighthouse.webp",
           "source_raw": "art/stage2-rain-port/scene/O_prop_port_lighthouse_nano_nb21_v1.png",
           "source_raw_sha256": "888514f3431b9ce2652c1e8f9badce8a7bc4a1f6f12cf198cd7ec2c26c4846ca",
           "sha256": "43f976b353456a7801425474b7bf76a50a79d9ff02250f0ff633c3fba7a7b151",
@@ -428,7 +445,8 @@
           },
           "source_status": "ART_CANDIDATE",
           "runtime_status": "USER_SELECTED_RUNTIME",
-          "status": "APPROVED_RUNTIME"
+          "status": "APPROVED_RUNTIME",
+          "legacy_source_path": "assets/img/rain-port/s2-production/props/prop_port_lighthouse.webp"
         }
       ],
       "environment": [
@@ -436,7 +454,7 @@
           "id": "surface_sea_canonical",
           "name": "港口深水海面無縫地表",
           "category": "environment",
-          "path": "assets/img/rain-port/s2-production/environment/surface_sea_canonical.webp",
+          "path": "assets/img/stages/rain-port/scene/rain-port__surface-sea-canonical.webp",
           "source_raw": "art/stage2-rain-port/scene/G_port_sea_surface_nano_nb21_v1.png",
           "sha256": "0bd211fd1ffecce020fc2683f452faae358d2dbf5fb3ba67b33caef2134cba98",
           "bytes": 107660,
@@ -444,13 +462,14 @@
           "height": 512,
           "source_status": "ART_CANDIDATE",
           "runtime_status": "USER_SELECTED_RUNTIME",
-          "status": "APPROVED_RUNTIME"
+          "status": "APPROVED_RUNTIME",
+          "legacy_source_path": "assets/img/rain-port/s2-production/environment/surface_sea_canonical.webp"
         },
         {
           "id": "cliff_north_rock",
           "name": "北側礁石海蝕斷崖",
           "category": "environment",
-          "path": "assets/img/rain-port/s2-production/environment/cliff_north_rock.webp",
+          "path": "assets/img/stages/rain-port/scene/rain-port__cliff-north-rock.webp",
           "source_raw": "art/stage2-rain-port/scene/O_port_north_cliff_nano_nb21_v1.png",
           "sha256": "22f3455c7b8fcfa4d7a4919de892d59777108f516d04cac92c6ff5acb3546cff",
           "bytes": 86146,
@@ -462,9 +481,12 @@
           },
           "source_status": "ART_CANDIDATE",
           "runtime_status": "USER_SELECTED_RUNTIME",
-          "status": "APPROVED_RUNTIME"
+          "status": "APPROVED_RUNTIME",
+          "legacy_source_path": "assets/img/rain-port/s2-production/environment/cliff_north_rock.webp"
         }
-      ]
+      ],
+      "legacy_default_runtime": "assets/img/rain-port/s2-production/",
+      "canonical_selection_notice": "Only the 17 USER_SELECTED_RUNTIME/APPROVED_RUNTIME unique files are canonical; unapproved source art and boss hazards remain pending."
     },
     "sakura-pass": {
       "order": 3,

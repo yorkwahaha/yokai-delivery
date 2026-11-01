@@ -3,7 +3,7 @@
 // 真機實證（WinTemp 臨時注入腳本，已刪）：
 //   平板 tilt0.6 padjob-1194x834（パン/ひと/みぎ 三墊清晰無重疊無 HUD 遮擋）
 //   桌機 tilt1.0 padjob-1280x800-r0-has5（プレゼント/こんにちは/おんなのこ）
-//   → art/stage1-night-town/Preview_pad5_muse.png
+//   → docs/archive/2026-10/visual-evidence/Preview_pad5_muse.png
 // 目視結論：三墊皆單行等比、字形端正；墊圈小於字寬屬既有置頂設計（game.js 註記），
 // 相鄰墊字距充足、無 HUD 重疊 → 無真缺陷，js/ui.js 零修改。
 

@@ -379,8 +379,8 @@ window.RENDERER = (() => {
       const img=window.ART?.prop_torii;
       if (!img?.naturalWidth) return;
       const cx=chunk.x+chunk.w/2,cy=chunk.y+chunk.h/2,tw=150;
-      const depthFactor = viewerY == null ? 1 : (1 + tiltFactor * (0.08 - clamp((viewerY - (cy + 36)) / 700, -0.3, 0.6) * 0.18));
-      const th=Math.round(tw*(img.naturalHeight/img.naturalWidth)*depthFactor);
+      // 神社鳥居屬直立硬體，不因距離或 2.5D tilt 拉高／壓扁。
+      const th=Math.round(tw*(img.naturalHeight/img.naturalWidth));
       // Gate feet touch at cx±50, cy+36: use restrained contact shadows,
       // not the old huge 90×24 oval (which looked detached in overhead view).
       ctx.save();
@@ -448,8 +448,11 @@ window.RENDERER = (() => {
   function tileImage(c, imgOrPick, left, top, right, bottom, scale = 1) {
     const pick = typeof imgOrPick === "function" ? imgOrPick : () => imgOrPick;
     const sample = pick(0, 0);
-    if (!sample?.naturalWidth || !sample?.naturalHeight || right - left < 1 || bottom - top < 1) return;
-    const tw = sample.naturalWidth * scale, th = sample.naturalHeight * scale;
+    // Accept both Image and offscreen Canvas (night-town's seam-locked atlas).
+    const sw = sample?.naturalWidth || sample?.width;
+    const sh = sample?.naturalHeight || sample?.height;
+    if (!sw || !sh || right - left < 1 || bottom - top < 1) return;
+    const tw = sw * scale, th = sh * scale;
     const xform = c.getTransform?.() || { a: 1, d: 1, e: 0, f: 0 };
     const s = xform.a || 1;
     const e = xform.e || 0, f = xform.f || 0;
@@ -460,13 +463,15 @@ window.RENDERER = (() => {
     c.imageSmoothingEnabled = false;
     for (let ty = y0; ty < y1; ty++) for (let tx = x0; tx < x1; tx++) {
       const img = pick(tx, ty);
-      if (!img?.naturalWidth) continue;
+      const imgW = img?.naturalWidth || img?.width;
+      const imgH = img?.naturalHeight || img?.height;
+      if (!imgW || !imgH) continue;
       const dx0 = Math.round(tx * tw * s + e);
       const dy0 = Math.round(ty * th * s + f);
       const dx1 = Math.round((tx + 1) * tw * s + e);
       const dy1 = Math.round((ty + 1) * th * s + f);
       if (dx1 > dx0 && dy1 > dy0) {
-        c.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, dx0, dy0, dx1 - dx0, dy1 - dy0);
+        c.drawImage(img, 0, 0, imgW, imgH, dx0, dy0, dx1 - dx0, dy1 - dy0);
         if (img && img.__s2KitId) kitNoteDraw(img.__s2KitId);   // counted only on a REAL paint
       }
     }
@@ -1482,8 +1487,11 @@ window.RENDERER = (() => {
       const surface = stageId === "sakura-pass"
         ? (window.SAKURA_ART?.dirt?.naturalWidth ? window.SAKURA_ART.dirt : groundImg)
         : groundImg;
-      if (surface && surface.naturalWidth === 1024 && surface.naturalHeight === 1024) groundAtlasFor(surface);
-      tileImage(c, surface, left, top, left + width, top + height);
+      // Night-town's hand-painted source is not edge-periodic. Use the existing
+      // feathered atlas for the actual floor draw instead of only caching it.
+      const groundSurface = stageId === "night-town" && surface?.naturalWidth === 1024 && surface?.naturalHeight === 1024
+        ? (groundAtlasFor(surface) || surface) : surface;
+      tileImage(c, groundSurface, left, top, left + width, top + height);
     }
     if (stageId === "rain-port") {
       const stoneTile = portGroundPick("stone")();
@@ -1622,11 +1630,15 @@ window.RENDERER = (() => {
       };
       if (scrollReuse) {
         const oldRight=cached.left+cached.width, oldBottom=cached.top+cached.height;
-        if(left<cached.left)paint(left,top,cached.left,bottom);
-        if(right>oldRight)paint(oldRight,top,right,bottom);
+        // Scroll reuse may round its copied canvas edge by one device pixel.
+        // Repaint a tiny shared strip across OLD and NEW cache territory, so
+        // no 1px black vertical/horizontal hairline survives at the boundary.
+        const seamBleed = 2 / Math.max(0.01, pixelScale);
+        if(left<cached.left)paint(left,top,Math.min(right,cached.left+seamBleed),bottom);
+        if(right>oldRight)paint(Math.max(left,oldRight-seamBleed),top,right,bottom);
         const overlapLeft=Math.max(left,cached.left), overlapRight=Math.min(right,oldRight);
-        if(top<cached.top)paint(overlapLeft,top,overlapRight,cached.top);
-        if(bottom>oldBottom)paint(overlapLeft,oldBottom,overlapRight,bottom);
+        if(top<cached.top)paint(overlapLeft,top,overlapRight,Math.min(bottom,cached.top+seamBleed));
+        if(bottom>oldBottom)paint(overlapLeft,Math.max(top,oldBottom-seamBleed),overlapRight,bottom);
       } else {
         paint(left,top,right,bottom);
       }
@@ -1896,6 +1908,26 @@ window.RENDERER = (() => {
     ctx.restore();
   }
 
+  // ComfyUI-generated raster candidates are for LOCAL in-game review only;
+  // ordinary published builds retain their previously approved raster art.
+  const b3ComfyLocalTrial = () => { const host = window.location?.hostname || ""; return host === "localhost" || host === "127.0.0.1" || host.startsWith("192.168."); };
+
+  // First-party ink-and-ofuda ward: no reused JPAPP / western heraldic shield.
+  const shieldArt = { full: null, crack: null };
+  let shieldCrackUntil = 0;
+  function shieldSprite(kind) {
+    if (!shieldArt[kind]) {
+      const img = new Image();
+      img.src = b3ComfyLocalTrial()
+        ? (kind === "crack" ? "assets/img/vfx/shield/ward_bagua_break.webp?v=20261031-b5" : "assets/img/vfx/shield/ward_bagua_full.webp?v=20261031-b5")
+        : (kind === "crack" ? "assets/img/vfx/shield/guard_crack.png" : "assets/img/vfx/shield/guard_full.png");
+      shieldArt[kind] = img;
+    }
+    return shieldArt[kind]?.naturalWidth ? shieldArt[kind] : null;
+  }
+  const shieldClock = () => typeof performance !== "undefined" && typeof performance.now === "function" ? performance.now() : Date.now();
+  function triggerShieldHit() { shieldCrackUntil = shieldClock() + 620; }
+
   // 繪製主角（高解析度 Chibi + 步伐彈跳 + 衝刺殘影）
   function drawPlayer(P, isDashing, inv, elapsed, moveDir, shield = 0, isSlashing = false, isHurt = false, moveSpeed = 230) {
     ctx.save();
@@ -1983,31 +2015,6 @@ window.RENDERER = (() => {
     if (leanAng !== 0) ctx.rotate(leanAng);
     if (shearX !== 0) ctx.transform(1, 0, shearX, 1, 0, 0);
 
-    // 金剛結界護盾環繞（若 shield > 0）
-    if (shield > 0) {
-      ctx.save();
-      const rot = motion ? elapsed * 1.6 : 0.4;
-      const sr = 42;
-      ctx.strokeStyle = "rgba(255, 220, 80, 0.85)";
-      ctx.lineWidth = 2.5;
-      ctx.setLineDash([9, 6]);
-      ctx.beginPath();
-      ctx.arc(0, -22, sr, rot, rot + 6.283);
-      ctx.stroke();
-
-      // 金黃金剛勾玉護盾珠
-      for (let s = 0; s < shield; s++) {
-        const sa = rot + s * (6.283 / shield);
-        const sx = Math.cos(sa) * sr;
-        const sy = -22 + Math.sin(sa) * (sr * 0.7);
-        ctx.fillStyle = "#ffe28b";
-        ctx.beginPath();
-        ctx.arc(sx, sy, 6, 0, 6.28);
-        ctx.fill();
-      }
-      ctx.restore();
-    }
-
     // 受擊閃爍
     if (inv > 0 && Math.floor(elapsed * 24) % 2 === 0) {
       ctx.globalAlpha = 0.4;
@@ -2030,6 +2037,67 @@ window.RENDERER = (() => {
       ctx.beginPath();
       ctx.arc(0, -18, 20, 0, 6.28);
       ctx.fill();
+    }
+
+    // 護盾在角色圖像上層：平時每兩秒快速鏡面閃過（最大 80% 不透明度），非長駐。
+    // 被盾擋下攻擊時優先呈現破碎圖，即使那次消耗了最後一層盾也會顯示。
+    const cracking = shieldClock() < shieldCrackUntil;
+    if (shield > 0 || cracking) {
+      const blinkT = shieldClock() % 2000;
+      const blinkAlpha = blinkT < 340
+        ? 0.98 * Math.max(0, Math.min(1, blinkT / 55, (340 - blinkT) / 95))
+        : 0;
+      const alpha = cracking ? 0.9 : blinkAlpha;
+      // 即使這幀不顯示也預載素材，確保下一次提示能立即浮現。
+      const image = shieldSprite(cracking ? "crack" : "full");
+      if (image && alpha > 0) {
+        ctx.save();
+        const crackAge = Math.max(0, 1 - (shieldCrackUntil - shieldClock()) / 620);
+        ctx.globalAlpha = cracking ? alpha * Math.max(.25, 1 - crackAge*.66) : alpha;
+        // Counteract the player's facing flip so the Bagua stays upright.
+        ctx.scale(flipX, 1);
+        const grow = cracking && allowsMotion() ? 1 + .15 * Math.sin(Math.min(1,crackAge*2)*Math.PI/2) : 1;
+        ctx.drawImage(image, -79*grow, -151*grow, 158*grow, 169*grow);
+        if (!cracking && blinkT < 340 && allowsMotion()) {
+          // A mirror reflection sweeps LEFT to RIGHT across the octagonal
+          // force field once on each 2s reveal. It is UI light, not sprite art.
+          const sweep = -100 + (blinkT / 340) * 200;
+          ctx.save();
+          ctx.beginPath();
+          const sides=8, cx=0, cy=-69, rx=77, ry=84;
+          for(let i=0;i<sides;i++){
+            const a=-Math.PI/2+i*2*Math.PI/sides;
+            const px=cx+Math.cos(a)*rx,py=cy+Math.sin(a)*ry;
+            if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+          }
+          ctx.closePath();ctx.clip();
+          const sheen=ctx.createLinearGradient(sweep-26,0,sweep+24,0);
+          sheen.addColorStop(0,"rgba(255,255,255,0)");
+          sheen.addColorStop(.45,"rgba(229,251,255,.34)");
+          sheen.addColorStop(.56,"rgba(255,255,255,.80)");
+          sheen.addColorStop(1,"rgba(255,255,255,0)");
+          ctx.transform(1,0,-.18,1,0,0);
+          ctx.fillStyle=sheen;ctx.fillRect(-104,-169,208,190);
+          ctx.restore();
+        }
+
+        if (cracking && allowsMotion()) {
+          // Larger outward-flying glass-like shards emphasize a broken ward.
+          for (let i = 0; i < 12; i++) {
+            const a = i * Math.PI * 2 / 12 - .6;
+            const travel = (14 + i%4*6) + 88*crackAge;
+            const x = Math.cos(a)*travel, y = -83 + Math.sin(a)*travel*.85;
+            const size = 5 + i%3*3;
+            ctx.save();ctx.translate(x,y);ctx.rotate(a + crackAge*2.4);
+            ctx.globalAlpha *= Math.max(0,1-crackAge*.88);
+            ctx.fillStyle = i%2 ? "#64e6ff" : "#d2f8ff";
+            ctx.beginPath();ctx.moveTo(0,-size);ctx.lineTo(size*.65,0);
+            ctx.lineTo(0,size*.8);ctx.lineTo(-size*.45,0);ctx.closePath();ctx.fill();
+            ctx.restore();
+          }
+        }
+        ctx.restore();
+      }
     }
 
     ctx.restore();
@@ -2286,6 +2354,30 @@ window.RENDERER = (() => {
       sprite = window.ART[fallbackKey] || window.ART.ghost;
       if (fallbackKey !== "ghost" && (!sprite || !sprite.naturalWidth)) {
         sprite = window.ART.ghost;
+      }
+    }
+
+    // The charge aura is a locally reviewed ComfyUI raster behind the Boss,
+    // never a replacement drawn with canvas geometry.
+    if (isBoss && currentStageId() === "night-town" && b3ComfyLocalTrial()
+        && e.hazard?.kind === "charge" && e.hazard.phase !== "recovery") {
+      const aura = nightBossSpellImage("charge_aura");
+      if (aura) {
+        const charging = e.hazard.phase === "active";
+        const pulse = motion ? 1 + Math.sin(elapsed * 25) * 0.075 : 1;
+        ctx.save();
+        ctx.globalAlpha *= charging ? .86 : .54;
+        ctx.globalCompositeOperation = "lighter";
+        ctx.drawImage(aura, -110*pulse, -194*pulse, 220*pulse, 224*pulse);
+        if (charging && motion) {
+          const a = e.hazard.angle || 0;
+          for (let i=1;i<=3;i++) {
+            ctx.globalAlpha *= .52;
+            ctx.drawImage(aura,-110*pulse-Math.cos(a)*i*23,
+              -194*pulse-Math.sin(a)*i*23,220*pulse,224*pulse);
+          }
+        }
+        ctx.restore();
       }
     }
 
@@ -2904,11 +2996,18 @@ window.RENDERER = (() => {
   // - 圖片=BOSS_HAZARD_ART_IMG：渲染用的圖片實例
   // - gate=isBossHazardArtEnabled dev=1&bossart=1：僅在 URL 參數 dev=1&bossart=1 時啟用
   function bossHazardArt(kind) {
-    if (kind !== "slam" && kind !== "charge" && kind !== "ring" && kind !== "tide" && kind !== "tidalFan" && kind !== "rainVortex") return null;
+    // Older boss AI variants use aliases. Normalize before image lookup.
+    const canonical = ({ tidal_surge: "tidalFan", tide_fan: "tidalFan",
+      whirlpool_spout: "rainVortex", vortex: "rainVortex" })[kind] || kind;
+    if (!["slam","charge","ring","tide","tidalFan","rainVortex"].includes(canonical)) return null;
     if (typeof window === "undefined" || window.isBossHazardArtEnabled?.() !== true) return null;
-    const image = window.BOSS_HAZARD_ART_IMG?.[kind];
-    const def = window.BOSS_HAZARD_ART?.[kind];
-    if (!image || !def || !(image.naturalWidth > 0) || !(image.naturalHeight > 0)) return null;
+    const image = window.BOSS_HAZARD_ART_IMG?.[canonical];
+    const def = window.BOSS_HAZARD_ART?.[canonical];
+    if (!image || !def || !(image.naturalWidth > 0) || !(image.naturalHeight > 0)) {
+      // Keep safe telegraphs visible; retry failed image loads on later frames.
+      window.refreshBossHazardArt?.();
+      return null;
+    }
     return { image, bbox: def.bbox, def };
   }
 
@@ -3224,9 +3323,13 @@ window.RENDERER = (() => {
     const COLUMN_SH = GROUND_SY;
     
     let n = 0;
-    for (const v of list) {
+    for (let i = 0; i < list.length; i++) {
+      const v = list[i];
       if (!v || !Number.isFinite(v.x) || !Number.isFinite(v.y)) continue;
       const hitR = (Number(v.r) > 0 ? Number(v.r) : 32) + 16;
+      // 每根柱各用 Boss AI 的錯峰進度，未輪到的柱只能留下地面預警。
+      const fall = Number.isFinite(v.fallProgress) ? v.fallProgress :
+        Math.max(0, Math.min(1, (u - (0.5 + i * 0.5 / list.length)) / (0.5 / list.length)));
       const visualR = hitR * 1.2;
       
       c.save();
@@ -3249,7 +3352,7 @@ window.RENDERER = (() => {
       }
       
       // === 層 2：水柱 (billboard 直立，反世界 tilt 保持垂直) ===
-      if (COLUMN_SH > 0) {
+      if (COLUMN_SH > 0 && (phase !== "active" || (fall > 0 && fall < 1))) {
         c.save();
         // Billboard 直立：反世界 tilt (scale(1, 1/tiltK()))
         const tilt = typeof window !== "undefined" && window.VIEWPORT?.tiltScale ? window.VIEWPORT.tiltScale() : 1;
@@ -3260,7 +3363,7 @@ window.RENDERER = (() => {
         // 水柱較窄，使用完整 visualR 而非 0.7，避免截頂
         c.arc(0, 0, visualR, 0, Math.PI * 2);
         c.clip();
-        c.globalAlpha = alpha * 0.9;
+        c.globalAlpha = alpha * 0.9 * (phase === "active" ? Math.sin(Math.PI * fall) : 1);
         const scale = visualR * 1.4 / sw;
         const drawW = sw * scale;
         const drawH = COLUMN_SH * scale;
@@ -3411,7 +3514,12 @@ window.RENDERER = (() => {
         c.restore();
       } else if (phase === "active") {
         const u = Math.min(1, (h.t || 0) / (h.duration || 0.55));
-        const riseCurve = Math.sin(u * Math.PI);
+        const n = Math.max(1, vortexes.length);
+        const index = vortexes.indexOf(v);
+        const fall = Number.isFinite(v.fallProgress) ? v.fallProgress :
+          Math.max(0, Math.min(1, (u - (0.5 + index * 0.5 / n)) / (0.5 / n)));
+        const riseCurve = Math.sin(fall * Math.PI);
+        if (!(riseCurve > 0)) continue;
         const colHeight = (130 + vr * 1.2) * riseCurve;
         const colWidth = vr * (1.1 + 0.3 * (1 - riseCurve));
         c.save();
@@ -3457,6 +3565,205 @@ window.RENDERER = (() => {
     c.restore();
   }
 
+  // Boss 專屬妖氣畫法：紫黑鬼瘴／緋紅符痕，完全不消費玩家狐火、妖刀或火球圖。
+  // 警示位置與半徑仍採 Boss AI 真實 hazard，保留閃避可讀性。
+  // 第一關 Boss 三種攻擊使用各自獨立的 WebP 主美術，絕不再借玩家狐火／妖刀。
+  const nightBossSpellImages = Object.create(null);
+  const nightBossRetryAt = Object.create(null);
+  const nightBossFailures = Object.create(null);
+  function nightBossSpellImage(kind) {
+    if (!nightBossSpellImages[kind]) {
+      if (typeof Image !== "function" || Date.now() < (nightBossRetryAt[kind] || 0)) return null;
+      const img = new Image();
+      nightBossSpellImages[kind] = img;
+      img.decoding = "async";
+      img.onload = () => { nightBossFailures[kind] = 0; nightBossRetryAt[kind] = 0; };
+      img.onerror = () => {
+        if (nightBossSpellImages[kind] !== img) return;
+        nightBossSpellImages[kind] = null;
+        const fails = (nightBossFailures[kind] || 0) + 1;
+        nightBossFailures[kind] = fails;
+        nightBossRetryAt[kind] = Date.now() + Math.min(20000, 1000 * Math.pow(2, Math.min(fails, 5)));
+      };
+      // B13: one ComfyUI-painted single horizontal lane replaces the old
+      // charge_aligned image which itself contained DOUBLE competing lanes.
+      // Local/LAN art gate only; preserve deployed production baseline.
+      const rasterKind=kind==="charge"
+        ? (b3ComfyLocalTrial()?"charge_single_b13":"charge_aligned")
+        : kind;
+      const revision=kind==="charge"&&b3ComfyLocalTrial()?"b13-single1":"20261031-charge-path1";
+      img.src="assets/img/vfx/boss-night-town/"+rasterKind+".webp?v="+revision;
+    }
+    return nightBossSpellImages[kind]?.naturalWidth ? nightBossSpellImages[kind] : null;
+  }
+  function drawNightBossImage(c,h,elapsed) {
+    const kind = h.kind || "";
+    if (kind === "slam") {
+      const r = h.r || 150;
+      // Real ComfyUI images, separate tell/impact art for local visual review.
+      const trial = b3ComfyLocalTrial() ? nightBossSpellImage(
+        h.phase === "telegraph" ? "slam_earth_warning" : "slam_earth_impact") : null;
+      const raster = trial || nightBossSpellImage("slam");
+      if (raster) {
+        c.save();
+        const phase = h.phase || "telegraph";
+        const warning = phase === "telegraph";
+        // The hand-painted impact has more ink mass near its lower edge.
+        // Lift that art slightly so its VISIBLE bottom lands on the warning
+        // ring bottom; pin scaling to the same foot baseline (no y drift).
+        const groundBottom = h.y + r * 1.16;
+        const impactLift = warning ? 0 : r * 0.15;
+        const age = phase === "active" ? (h.t || 0) : 0.15 + (h.t || 0);
+        const burst = Math.min(1, age / 0.46);
+        const popScale = warning || !allowsMotion() ? 1 : .86 + .18 * Math.sin(Math.min(1, age / .24) * Math.PI / 2);
+        const fade = phase === "recovery" ? Math.max(0, 1 - (h.t || 0) / Math.max(.01, Math.min(.70, h.duration || 1))) : 1;
+        const imgW = r * 2.32 * popScale, imgH = r * 2.32 * popScale;
+        c.globalAlpha *= fade;
+        c.drawImage(raster, h.x - imgW * .5,
+          groundBottom - impactLift - imgH * .92, imgW, imgH);
+        if (!warning && trial && allowsMotion() && age < .72) {
+          // Supporting physical rock fragments, never procedural substitute
+          // for the actual painted impact image.
+          const t = Math.min(1, age / .72);
+          for (let i = 0; i < 15; i++) {
+            const a = i * 2.39996 + .33;
+            const travel = r * (.24 + (i % 5) * .11) * (t * 1.5);
+            const arcHeight = r * (.72 + (i % 4) * .13) * 4 * t * (1-t);
+            const px = h.x + Math.cos(a) * travel;
+            const py = h.y + Math.sin(a) * travel * .52 - arcHeight;
+            const sz = (3.4 + (i % 4) * 2.1) * (1 - t*.45);
+            c.save(); c.translate(px, py); c.rotate(a + t * 2.3);
+            c.globalAlpha *= Math.min(1, (1-t)*2);
+            c.fillStyle = i % 3 === 0 ? "#d4b181" : i % 3 === 1 ? "#6e4b35" : "#a5734c";
+            c.strokeStyle = "rgba(41,31,29,.65)"; c.lineWidth = 1;
+            c.beginPath();c.moveTo(-sz,-sz*.6);c.lineTo(sz*.25,-sz);
+            c.lineTo(sz,sz*.45);c.lineTo(-sz*.6,sz);c.closePath();c.fill();c.stroke();
+            c.restore();
+          }
+        }
+        c.restore();
+        bossHazardPass = trial ? "BOSS_NIGHT_COMFY_TRIAL" : "BOSS_NIGHT_APPROVED_RASTER";
+        return true;
+      }
+      // Only while the raster is loading: keep the area visible for safety.
+      return drawBossOwnHazard(c, h, elapsed);
+    }
+    const art = nightBossSpellImage(kind);
+    if (!art) {
+      // 首次下載前僅以明確預警為臨時備援；圖一就緒即完全切換到正式素材。
+      bossHazardPass = "BOSS_NIGHT_ART_LOADING";
+      return drawBossOwnHazard(c,h,elapsed);
+    }
+    const phase=h.phase||"telegraph";
+    const fade = phase==="recovery"
+      ? Math.max(0,1-Math.max(0,h.t||0)/Math.max(.01,h.duration||.45))
+      : 1;
+    const pulse = phase==="active" ? .94 : .61 + (allowsMotion()?Math.sin(elapsed*8)*.09:0);
+    c.save();c.globalAlpha*=Math.max(0,fade)*pulse;
+    if (kind==="ring") {
+      const r=h.r||150;
+      c.translate(h.x,h.y);c.rotate((h.gapAngle||0)-Math.PI/2);
+      c.drawImage(art,-r*1.35,-r*1.11,r*2.7,r*2.22);
+    } else if (kind==="charge") {
+      // The painted charge_aligned.webp already carries its own directional
+      // brush marks and luminous border. Do not overlay Canvas arrows,
+      // centerline, or a second rectangle (the former looked like 2 paths).
+      // One transform shares the exact AI hazard origin, angle, length, width.
+      const len=Number.isFinite(h.length)?Math.max(0,h.length):620*.65;
+      const width=Math.max(1,(h.r||52)*2);
+      if(len>0){
+        c.translate(h.x,h.y);c.rotate(h.angle||0);
+        c.drawImage(art,0,-width/2,len,width);
+      }
+    }
+    c.restore();
+    bossHazardPass = "BOSS_NIGHT_IMAGE";
+    return true;
+  }
+
+  function drawBossOwnHazard(c,h,elapsed) {
+    const kind=h.kind;
+    const phase=h.phase || "telegraph";
+    const age=(h.t||0);
+    const active=phase==="active";
+    const dying=phase==="recovery";
+    const fade=dying?Math.max(0,1-age/Math.max(.01,h.duration||.6)):1;
+    const pulse=0.85+0.15*Math.sin(elapsed*11);
+    c.save();
+    c.globalAlpha*=fade*(active?.93:.65)*pulse;
+    c.lineCap="round";c.lineJoin="round";
+    const vivid=active?"#f391a8":"#c06caa",dark="#231124";
+    const ink=(x,y,r,seed,ang,scale=1)=>{
+      c.save();c.translate(x,y);c.rotate(ang);c.scale(scale,scale);
+      const g=c.createRadialGradient(0,0,2,0,0,r);
+      g.addColorStop(0,"rgba(25,9,28,.57)");
+      g.addColorStop(.55,"rgba(100,36,80,.34)");
+      g.addColorStop(1,"rgba(100,36,80,0)");
+      c.fillStyle=g;c.beginPath();c.arc(0,0,r,0,Math.PI*2);c.fill();
+      c.strokeStyle=seed%3===0?vivid:dark;c.lineWidth=seed%3===0?3:5;
+      c.beginPath();c.moveTo(-r*.7,r*.11);
+      c.bezierCurveTo(-r*.3,-r*.28,r*.22,-r*.24,r*.75,-r*.52);
+      c.stroke();c.restore();
+    };
+    if(kind==="slam"){
+      const r=h.r||150;
+      c.save();c.translate(h.x,h.y);c.scale(1,.72);
+      const g=c.createRadialGradient(0,0,0,0,0,r);
+      g.addColorStop(0,active?"rgba(91,20,47,.46)":"rgba(56,19,48,.20)");
+      g.addColorStop(.82,"rgba(69,21,57,.19)");
+      g.addColorStop(1,"rgba(11,6,22,0)");
+      c.fillStyle=g;c.beginPath();c.arc(0,0,r,0,6.283);c.fill();
+      c.strokeStyle=vivid;c.lineWidth=active?5:3;
+      c.beginPath();c.arc(0,0,r,0,6.283);c.stroke();c.restore();
+      for(let i=0;i<16;i++){
+        const a=i*6.283/16;
+        ink(h.x+Math.cos(a)*r*.87,h.y+Math.sin(a)*r*.62,
+          active?24:16,i,a+(Math.sin(elapsed*4+i)*.25),.85);
+      }
+      if(active)for(let i=0;i<8;i++){
+        const a=i*6.283/8+elapsed*.35;
+        c.strokeStyle=i%2?vivid:"#e2a2c4";c.lineWidth=i%2?3:1.5;
+        c.beginPath();c.moveTo(h.x+Math.cos(a)*9,h.y+Math.sin(a)*8);
+        c.lineTo(h.x+Math.cos(a+.1)*r*.72,h.y+Math.sin(a+.1)*r*.52);c.stroke();
+      }
+    }else if(kind==="ring"){
+      const r=h.r||80,gap=h.gapAngle||0,half=(h.gapWidth||Math.PI/2)/2;
+      const from=gap+half,to=gap+6.283-half;
+      c.save();c.translate(h.x,h.y);c.scale(1,.78);
+      c.lineWidth=active?27:21;c.strokeStyle=active?"rgba(148,41,83,.52)":"rgba(86,39,84,.36)";
+      c.beginPath();c.arc(0,0,r,from,to);c.stroke();
+      c.strokeStyle=vivid;c.lineWidth=active?4:2.5;
+      c.beginPath();c.arc(0,0,r,from,to);c.stroke();c.restore();
+      for(let i=0;i<18;i++){
+        const a=from+(to-from)*(i+.5)/18;
+        ink(h.x+Math.cos(a)*r,h.y+Math.sin(a)*r*.78,active?20:14,i,a+1.5,.8);
+      }
+    }else if(kind==="charge"){
+      const a=h.angle||0,len=620*.65;
+      const ux=Math.cos(a),uy=Math.sin(a),nx=-uy,ny=ux;
+      c.save();
+      c.strokeStyle=active?"rgba(136,33,92,.61)":"rgba(82,33,80,.35)";
+      c.lineWidth=104;c.beginPath();c.moveTo(h.x,h.y);
+      c.lineTo(h.x+ux*len,h.y+uy*len);c.stroke();
+      for(let j=-3;j<=3;j++){
+        c.beginPath();
+        for(let i=0;i<=8;i++){
+          const t=i/8,off=j*14+Math.sin(i*1.93+j*2.9+elapsed*4)*8;
+          const px=h.x+ux*len*t+nx*off,py=h.y+uy*len*t+ny*off;
+          if(!i)c.moveTo(px,py);else c.lineTo(px,py);
+        }
+        c.strokeStyle=j%2===0?vivid:dark;c.lineWidth=j===0?5:2.5;c.stroke();
+      }
+      c.restore();
+      for(let i=1;i<9;i++){
+        const t=i/9,off=Math.sin(i*2.7+elapsed*3)*31;
+        ink(h.x+ux*len*t+nx*off,h.y+uy*len*t+ny*off,active?22:15,i,a,1);
+      }
+    }
+    c.restore();
+    return true;
+  }
+
   function drawPortBossHazard(targetCtx, h, elapsed = 0, owner = null) {
     if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) {
       bossHazardPass = "UNHANDLED";
@@ -3472,6 +3779,12 @@ window.RENDERER = (() => {
     const fan = kind === "tidalFan" || kind === "tidal_surge" || kind === "tide_fan";
     const vortex = kind === "rainVortex" || kind === "whirlpool_spout" || kind === "vortex";
     const isWaterFanVortex = fan || vortex;
+
+    // 舊版 slam/charge/ring 重用了玩家狐火、火球及妖刀素材。
+    // 第一關改走 Boss 專屬紫黑鬼瘴特效，其餘關保留既有候選圖審核流程。
+    if (currentStageId() === "night-town" && (kind === "slam" || kind === "charge" || kind === "ring")) {
+      return drawNightBossImage(c,h,elapsed);
+    }
 
     // 四標準 kind 走獨立 Boss 圖片 gate (dev=1&bossart=1)；未知 kind、gate 關、缺圖都 false 交 game C3。
     if (isStandardKind) {
@@ -5393,6 +5706,7 @@ window.RENDERER = (() => {
     triggerShake,
     clearShake,
     spawnDamageNumber,
+    triggerShieldHit,
     addSlashArc,
     updateEffects,
     drawGround,

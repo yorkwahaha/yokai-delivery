@@ -2,7 +2,7 @@
 // 勝敗/再戰結算狀態×文案×按鈕一致性 focused 驗收（本階段唯一）。
 // game 側只傳 'won'/'lost'（game.js:4001），觸控判定走 UI.END_BTNS/reviewButtons 同源；
 // 手機映射為均勻 0.65（game.js:3942 setTransform），邏輯高 600 內即全可見。
-// 真機證據：Preview_settle_muse.png（lost 手機三鈕在框可點）；won 同幾何。
+// 真機證據：docs/archive/2026-10/visual-evidence/Preview_settle_muse.png（lost 手機三鈕在框可點）；won 同幾何。
 
 const test = require("node:test");
 const assert = require("node:assert/strict");

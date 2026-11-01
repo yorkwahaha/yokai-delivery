@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "enemy_id": "minion-shiome",
+  "stage": "rain-port",
+  "status": "USER_APPROVED_FOR_RUNTIME",
+  "count": 2,
+  "original_manifest": "assets/img/rain-port/enemies/runtime-manifest-20261014.json",
+  "sprites": [
+    {
+      "slot": "minion_shiome_idle",
+      "file": "assets/img/enemies/minion-shiome/minion-shiome__sprite__idle.webp",
+      "legacy_file": "assets/img/rain-port/enemies/minion_shiome_idle.webp",
+      "sha256": "ff9442bcd0850b79848d20b426d5be2a70f2cbd29ae64d13d76cf74a3b357bbe",
+      "runtime_anchor": {
+        "x": 125,
+        "y": 205,
+        "type": "foot_ground_anchor"
+      }
+    },
+    {
+      "slot": "minion_shiome_attack",
+      "file": "assets/img/enemies/minion-shiome/minion-shiome__sprite__attack.webp",
+      "legacy_file": "assets/img/rain-port/enemies/minion_shiome_attack.webp",
+      "sha256": "e7a5d9d6980f6851ea78d66ba49ce68efca59ac7cfc862f7f42718c6f6cc6551",
+      "runtime_anchor": {
+        "x": 125,
+        "y": 205,
+        "type": "foot_ground_anchor"
+      }
+    }
+  ]
+}

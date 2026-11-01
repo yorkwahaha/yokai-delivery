@@ -163,10 +163,29 @@ test('alpha and lifetimes fade instead of hard cutoff',()=>{
   advanceFX(h.env,.4);draws.length=0;h.env.SKILLFX.drawArtFx(ctx,false);
   assert.equal(draws.length,0);
 });
-test('game keeps thunder targeting, Lv5 three-anchors and existing damage path',()=>{
-  const game=fs.readFileSync('js/game.js','utf8');
-  assert.match(game,/const anchors = candidates\.slice\(0, 3\)/);
-  assert.match(game,/dist\(e, anchor\) <= 90/);
-  assert.match(game,/hurt\(e, 8 \* b\.dmg \* crit\.mult, crit\.isCrit\)/);
-  assert.match(game,/SKILLFX\.play\("thunder", "strike", rank, \{ x: e\.x, y: e\.y, r: radius \}\)/);
+test('thunder Lv5 targeting behavior: up to 3 anchors, storm+strike per anchor, damage per target', () => {
+  // BEHAVIOR_PENDING: This test requires full game harness to verify:
+  // - targetCount == 3 at Lv5
+  // - each anchor gets unique storm+strike pair
+  // - damage applied per target (spec.damage * crit.mult)
+  // - hit detection uses spec.cloudRadius
+  // - no duplicate targets (struck Set)
+  // - RENDERER.triggerShake(8) called
+  // Current skillfx harness cannot drive real game.js thunder execution.
+  // Keep as placeholder; real verification needs game.js integration test.
+
+  const gameSrc = fs.readFileSync('js/game.js', 'utf8');
+
+  // Static source assertions (weaker than behavioral but document intent)
+  assert.match(gameSrc, /candidates\.slice\(0, spec\.targetCount\)/, 'Lv5 anchor selection via slice(0, targetCount)');
+  assert.match(gameSrc, /spec\.targetCount.*3|targetCount.*=.*3/, 'Lv5 targetCount should be 3');
+  assert.match(gameSrc, /SKILLFX\.play\("thunder", "storm", 5/, 'Lv5 plays storm per anchor');
+  assert.match(gameSrc, /SKILLFX\.play\("thunder", "strike", 5.*stormChild: true/, 'Lv5 plays strike with stormChild per anchor');
+  assert.match(gameSrc, /hurt\(e, spec\.damage \* crit\.mult, crit\.isCrit\)/, 'Lv5 applies damage per target');
+  assert.match(gameSrc, /dist\(e, anchor\) <= spec\.cloudRadius/, 'Lv5 hit detection uses cloudRadius');
+  assert.match(gameSrc, /struck\.has\(e\)/, 'Lv5 prevents duplicate targets via struck Set');
+  assert.match(gameSrc, /RENDERER\.triggerShake\(8\)/, 'Lv5 triggers screen shake');
+
+  // Mark as PENDING behavioral verification
+  console.log('BEHAVIOR_PENDING: thunder Lv5 behavioral verification requires full game.js integration test');
 });

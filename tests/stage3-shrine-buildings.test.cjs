@@ -12,11 +12,8 @@ const CONTENT = require("../js/words.js");
 const WORLD = require("../js/world.js");
 const hash = buf => createHash("sha256").update(buf).digest("hex");
 
-const files = {
-  pavilion: ["assets/img/sakura-pass/shrine_pavilion.webp", "art/stage3-sakura-pass/scene/H_shrine_pavilion.webp"],
-  ancient: ["assets/img/sakura-pass/landmark_corrupted_sakura.webp", "art/stage3-sakura-pass/scene/O_corrupted_sakura.webp"]
-};
-
+// Stage 3 art manifest (post-cleanup): REFERENCE_ONLY_AWAITING_NEW_ART, source_deleted_20261024
+// Runtime WebP files were deliberately purged; test against new contract:
 function renderer() {
   const images = [];
   const gradient = { addColorStop() {} };
@@ -48,18 +45,7 @@ function renderer() {
   return { env: context, images, shop };
 }
 
-test("scene webps are exact copies and listed in the media revisions", () => {
-  const sw = fs.readFileSync(path.join(ROOT, "service-worker.js"), "utf8");
-  for (const [runtime, source] of Object.values(files)) {
-    const a = fs.readFileSync(path.join(ROOT, runtime));
-    const b = fs.readFileSync(path.join(ROOT, source));
-    const digest = hash(a);
-    assert.equal(digest, hash(b));
-    assert.ok(sw.includes(`"${runtime}": "${digest.slice(0, 24)}"`));
-  }
-});
-
-test("only sakura-pass uses the pavilion, and ancient trees stay sparse and off the pads", () => {
+test("sakura-pass world uses shrine pavilion houses and sparse ancient trees", () => {
   const pass = WORLD.createStageWorld(CONTENT.getStage("sakura-pass"), CONTENT);
   const town = WORLD.createStageWorld(CONTENT.getStage("night-town"), CONTENT);
   const port = WORLD.createStageWorld(CONTENT.getStage("rain-port"), CONTENT);
@@ -93,8 +79,9 @@ test("only sakura-pass uses the pavilion, and ancient trees stay sparse and off 
 
 test("the pavilion and ancient sakura draw their own images and never a town house", () => {
   const r = renderer();
-  const pavilion = { naturalWidth: 470, naturalHeight: 440, src: files.pavilion[0] };
-  const ancient = { naturalWidth: 460, naturalHeight: 460, src: files.ancient[0] };
+  // Unit fixture mocks (not deleted sources): correct dimensions for drawHouse/drawDecorActor
+  const pavilion = { naturalWidth: 470, naturalHeight: 440, src: "test-fixture:pavilion" };
+  const ancient = { naturalWidth: 460, naturalHeight: 460, src: "test-fixture:ancient" };
   r.env.SAKURA_ART.pavilion = pavilion;
   r.env.RENDERER.drawHouse({ x: 400, y: 300, bType: "shrine_pavilion" }, 300);
   const drawn = r.images.filter(call => call[0] === pavilion);
@@ -117,4 +104,37 @@ test("the pavilion and ancient sakura draw their own images and never a town hou
   r.images.length = 0;
   r.env.RENDERER.drawHouse({ x: 20, y: 20, bType: "house_shop" }, 20);
   assert.equal(r.images.at(-1)[0], r.shop);
+});
+
+test("Stage 3 art manifest reflects reference-only status and deleted runtime sources", () => {
+  const manifestPath = path.join(ROOT, "art", "stage3-sakura-pass", "manifest.json");
+  assert.ok(fs.existsSync(manifestPath), "manifest must exist");
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  assert.equal(manifest.stage_id, "sakura-pass");
+  assert.equal(manifest.status, "REFERENCE_ONLY_AWAITING_NEW_ART");
+  assert.equal(manifest.source_deleted_20261024, true);
+  assert.equal(manifest.runtime_replacement_pending, true);
+  // Reference images exist in art/ (not runtime assets/img/)
+  for (const ref of manifest.references) {
+    const refPath = path.join(ROOT, ref.path);
+    assert.ok(fs.existsSync(refPath), `reference ${ref.path} must exist`);
+    assert.equal(ref.approval, "NOT_PRODUCTION_APPROVED");
+  }
+  // Runtime WebP files were purged - confirm they don't exist
+  const purged = [
+    "assets/img/sakura-pass/shrine_pavilion.webp",
+    "assets/img/sakura-pass/landmark_corrupted_sakura.webp"
+  ];
+  for (const f of purged) {
+    assert.equal(fs.existsSync(path.join(ROOT, f)), false, `${f} should be purged`);
+  }
+});
+
+test("S1 fallback ground works when SAKURA_ART is absent (no Stage 3 runtime assets)", () => {
+  const r = renderer();
+  // Do not set SAKURA_ART.pavilion/.steps/.transH
+  // Should not throw; falls back to S1 ground_dirt via renderer's safe ground logic
+  assert.doesNotThrow(() => {
+    r.env.RENDERER.drawGround(0.1, 600, [], "ground_dirt", "sakura-pass");
+  }, "fallback to S1 ground_dirt must not throw");
 });

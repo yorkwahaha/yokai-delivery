@@ -136,10 +136,11 @@ function storageErrorOf(error) {
 function defaultPacks() {
   if (typeof module === "object" && module.exports) {
     const content = require("./words.js");
-    return Object.values(content.WORD_PACKS || {});
+    return content.DELIVERY_PACK_IDS?.length ? content.DELIVERY_PACK_IDS.map(id => content.WORD_PACKS[id]) : Object.values(content.WORD_PACKS || {});
   }
   const content = globalThis.CONTENT;
-  return content && content.WORD_PACKS ? Object.values(content.WORD_PACKS) : [];
+  if (!content || !content.WORD_PACKS) return [];
+  return content.DELIVERY_PACK_IDS?.length ? content.DELIVERY_PACK_IDS.map(id => content.WORD_PACKS[id]) : Object.values(content.WORD_PACKS);
 }
 
 function freshAwards(catalog, owned, marks) {

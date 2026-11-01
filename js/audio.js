@@ -197,8 +197,12 @@ window.AUDIO = (() => {
     deliverWrong: "assets/audio/sfx/delivery-wrong.mp3",
     breakShield: "assets/audio/sfx/break-shield.mp3",
     levelUp: "assets/audio/sfx/level-up.mp3",
+    skillLv5: "assets/audio/sfx/skilllv5.mp3",
+    charmPickup: "assets/audio/sfx/charm-pickup.mp3",
     warningPulse: "assets/audio/sfx/warning-pulse.mp3",
     bossDeath: "assets/audio/sfx/boss-death.mp3",
+    // Reserved for the player-supplied slam burst clip; no dummy MP3 required.
+    bossSlamImpact: "assets/audio/sfx/boss-slam-impact.mp3",
     fanfare: "assets/audio/sfx/fanfare.mp3",
     lose: "assets/audio/sfx/lose.mp3"
   };
@@ -208,7 +212,7 @@ window.AUDIO = (() => {
     dash: 0.68, barrier: 0.72, needle: 0.62, hurt: 0.72,
     gem: 0.42, pickup: 0.62, sanctuary: 0.74, deliverSuccess: 0.78,
     deliverWrong: 0.72, breakShield: 0.82, levelUp: 0.76, warningPulse: 0.78,
-    bossDeath: 0.78, fanfare: 0.75, lose: 0.7
+    bossDeath: 0.78, bossSlamImpact: 0.85, skillLv5: 0.88, charmPickup: 0.70, fanfare: 0.75, lose: 0.7
   };
   // 預留兩組素材；沒有檔案時退回目前音效，不需放空白 MP3。
   const RANKED_SFX = {slash:'katana',barrier:'barrier',needle:'needle',boomerang:'boom',fireball:'fire',thunder:'thunder'};
@@ -472,6 +476,16 @@ window.AUDIO = (() => {
     wordClips[file] = audio;
     return audio;
   }
+  // Fish Audio 試音另存，不覆寫既有錄音；兩組聲線各自快取音檔。
+  function ensureFishClip(path) {
+    if (!path) return null;
+    const key = "fish:" + path;
+    if (wordClips[key]) return wordClips[key];
+    const audio = new Audio(window.audioAsset?.(path) || path);
+    audio.preload = "none";
+    wordClips[key] = audio;
+    return audio;
+  }
 
   function stopWord(restoreMusic = true) {
     ++wordSpeechNonce;
@@ -705,9 +719,18 @@ window.AUDIO = (() => {
       if (!Array.isArray(words) || words.length > 40) return;
       // Lv5 dragon clips load at first use, never with the initial vocabulary.
       const standardSfx=Object.entries(SFX_FILES)
-        .filter(([key])=>!['fireDragon','fireDragonBall','fireGround'].includes(key))
+        // This player-supplied file isn't available yet; load only on slam.
+        .filter(([key])=>!['fireDragon','fireDragonBall','fireGround','bossSlamImpact','charmPickup'].includes(key))
         .map(([,file])=>file);
-      const paths = [...words.map(w=>WORD_FILES[w.jp]).filter(Boolean).map(file=>`assets/audio/words/${file}.mp3`),...new Set(standardSfx)];
+      const paths = [
+        ...words.map(w => {
+          if (window.DELIVERY_FISH_AUDIO?.forceJapaneseTTS?.(w.jp)) return null;
+          const fishPath = window.DELIVERY_FISH_AUDIO?.pathFor?.(w.jp);
+          const file = WORD_FILES[w.jp];
+          return fishPath || (file ? `assets/audio/words/${file}.mp3` : null);
+        }).filter(Boolean),
+        ...new Set(standardSfx)
+      ];
       let next = 0;
       const worker = async()=>{while(next<paths.length){const path=paths[next++];try {await loadBuffer(path,ac);}catch(e){}}};
       for(let i=0;i<4;i++) worker();
@@ -974,11 +997,15 @@ window.AUDIO = (() => {
       playHyoshigi(0.18);
     },
 
-    // 日語單字：有對應 MP3 就只播檔案。解碼或播放失敗才改走 ja-JP，兩者不會同時出聲。
+    // 第一關：Fish Audio 兩組聲線（query fishVoice=a/b/google 切換）；檔案失敗退回 Google 日語／系統日語 TTS。
+    // 其他關卡保留舊 MP3，若無檔案或失敗也走日語 TTS。
     speak(text) {
       if (muted || suspended) return;
+      const forceGoogle = window.DELIVERY_FISH_AUDIO?.forceJapaneseTTS?.(text) || false;
+      const fishPath = !forceGoogle ? window.DELIVERY_FISH_AUDIO?.pathFor?.(text) : null;
       const file = WORD_FILES[text];
-      const audio = ensureWordClip(file);
+      const path = forceGoogle ? null : fishPath || (file ? `assets/audio/words/${file}.mp3` : null);
+      const audio = fishPath ? ensureFishClip(fishPath) : (forceGoogle ? null : ensureWordClip(file));
       const sayFallback = nonce => {
         if (nonce !== wordSpeechNonce) return;
         if (wordClip) {
@@ -993,6 +1020,12 @@ window.AUDIO = (() => {
         const u = new SpeechSynthesisUtterance(text);
         u.lang = "ja-JP";
         u.rate = 0.92;
+        // Chrome 有 Google 日本語聲線時優先使用，否則使用瀏覽器提供的日語聲線。
+        try {
+          const japanese = (window.speechSynthesis.getVoices?.() || [])
+            .filter(voice => /^ja(?:-|_|$)/i.test(voice.lang || ""));
+          u.voice = japanese.find(voice => /google/i.test(voice.name || "")) || japanese[0] || null;
+        } catch (_) {}
         u.onend = () => endWordSpeech(nonce);
         u.onerror = () => endWordSpeech(nonce);
         window.speechSynthesis.speak(u);
@@ -1019,7 +1052,7 @@ window.AUDIO = (() => {
             if (result && typeof result.catch === "function") result.catch(() => failToSpeech());
           } catch (e) { failToSpeech(); }
         };
-        if (playBuffer(`assets/audio/words/${file}.mp3`,1,{
+        if (playBuffer(path,1,{
           speech:true,
           isCurrent:()=>nonce===wordSpeechNonce,
           onstart:source=>{wordSource=source;},
@@ -1203,6 +1236,10 @@ window.AUDIO = (() => {
   api.fireDragon=()=>api.fireball(1);
   api.fireDragonBall=()=>api.fireball(1);
   api.fireGround=()=>api.fireball(1);
+  api.skillLv5=()=>api.levelUp();
+  api.charmPickup=()=>api.pickup();
+  // Future real impact MP3 overrides this temporary low taiko fallback.
+  api.bossSlamImpact=()=>playTaiko(66,0.22);
   const ofudaLaunchFallback = api.boomerang;
   const ofudaBurstFallback = api.ofudaBurst;
   // 對外 API 保持不變；只替 SFX 方法加上一層「MP3 優先、合成音 fallback」。

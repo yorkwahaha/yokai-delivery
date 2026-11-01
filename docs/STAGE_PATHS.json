@@ -1,0 +1,199 @@
+{
+  "schema_version": "1.0",
+  "updated": "2026-10-26-single-worktree-consolidation",
+  "authority": "docs/PROJECT_FILE_MAP.md",
+  "naming_policy": "ONE ART SOURCE: art/stageN-ID/{scene,characters}; no art/sN",
+  "developer_worktree": "I:/Projects/yokai-delivery",
+  "developer_head_observed": "a4aaa94",
+  "published_head": "0e5875d50684e21a6739b944ecd0625c38b1f541",
+  "published_worktree": null,
+  "published_git_ref": "refs/heads/release/s2-assets-20261024",
+  "published_restore_note": "Clean release worktree retired after preserving published commit/branch; restore only through git worktree add when explicitly needed. Never overwrite the active dirty worktree.",
+  "public_stages": {
+    "night-town": "assets/img/scenery/",
+    "rain-port": "assets/img/rain-port/s2-production/",
+    "sakura-pass": "assets/img/sakura-pass/",
+    "bamboo-maze": null,
+    "hyakki-kyoto": null,
+    "snow-temple": null,
+    "spirit-ferry": null,
+    "yomi": null
+  },
+  "stages": [
+    {
+      "order": 1,
+      "id": "night-town",
+      "name": "夜行町",
+      "art": "art/stage1-night-town/",
+      "source_scene": "art/stage1-night-town/scene/",
+      "source_characters": null,
+      "runtime": "assets/img/scenery/",
+      "notes": "stage1 historically shares scenery directory"
+    },
+    {
+      "order": 2,
+      "id": "rain-port",
+      "name": "雨夜港町",
+      "art": "art/stage2-rain-port/",
+      "source_scene": "art/stage2-rain-port/scene/",
+      "source_characters": "art/stage2-rain-port/characters/",
+      "runtime": "assets/img/rain-port/",
+      "live_runtime_bundle": "assets/img/rain-port/s2-production/",
+      "local_legacy_devgate": null,
+      "nano_history": null,
+      "notes": "8 ground PNG and 12 Nano scenery PNG/WebP cutouts now in scene/; characters/ contains 8 approved images",
+      "selected_source": "art/stage2-rain-port/scene/",
+      "dev_manifest": "art/stage2-rain-port/manifest-dev-runtime.json"
+    },
+    {
+      "order": 3,
+      "id": "sakura-pass",
+      "name": "妖櫻山道",
+      "art": "art/stage3-sakura-pass/",
+      "source_scene": "art/stage3-sakura-pass/scene/",
+      "source_characters": "art/stage3-sakura-pass/characters/",
+      "runtime": "assets/img/sakura-pass/",
+      "notes": "Old source images purged; actual kept image paths are in art/stageN-ID/manifest.json; stage3 10/24 new candidate unapproved",
+      "art_status": "REFERENCE_ONLY_RESET_20261024"
+    },
+    {
+      "order": 4,
+      "id": "bamboo-maze",
+      "name": "竹影迷宮",
+      "art": "art/stage4-bamboo-maze/",
+      "source_scene": "art/stage4-bamboo-maze/scene/",
+      "source_characters": "art/stage4-bamboo-maze/characters/",
+      "runtime": "assets/img/bamboo-maze/",
+      "runtime_state": "not established/verify before use",
+      "art_status": "REFERENCE_ONLY_RESET_20261024",
+      "notes": "Old source images purged; actual kept image paths are in art/stageN-ID/manifest.json; stage3 10/24 new candidate unapproved"
+    },
+    {
+      "order": 5,
+      "id": "hyakki-kyoto",
+      "name": "百鬼京都",
+      "art": "art/stage5-hyakki-kyoto/",
+      "source_scene": "art/stage5-hyakki-kyoto/scene/",
+      "source_characters": "art/stage5-hyakki-kyoto/characters/",
+      "runtime": "assets/img/hyakki-kyoto/",
+      "runtime_state": "not established/verify before use",
+      "art_status": "REFERENCE_ONLY_RESET_20261024",
+      "notes": "Old source images purged; actual kept image paths are in art/stageN-ID/manifest.json; stage3 10/24 new candidate unapproved"
+    },
+    {
+      "order": 6,
+      "id": "snow-temple",
+      "name": "雪燈山寺",
+      "art": "art/stage6-snow-temple/",
+      "source_scene": "art/stage6-snow-temple/scene/",
+      "source_characters": "art/stage6-snow-temple/characters/",
+      "runtime": "assets/img/snow-temple/",
+      "runtime_state": "not established/verify before use",
+      "art_status": "REFERENCE_ONLY_RESET_20261024",
+      "notes": "Old source images purged; actual kept image paths are in art/stageN-ID/manifest.json; stage3 10/24 new candidate unapproved"
+    },
+    {
+      "order": 7,
+      "id": "spirit-ferry",
+      "name": "幽世渡口",
+      "art": "art/stage7-spirit-ferry/",
+      "source_scene": "art/stage7-spirit-ferry/scene/",
+      "source_characters": "art/stage7-spirit-ferry/characters/",
+      "runtime": "assets/img/spirit-ferry/",
+      "runtime_state": "not established/verify before use",
+      "art_status": "REFERENCE_ONLY_RESET_20261024",
+      "notes": "Old source images purged; actual kept image paths are in art/stageN-ID/manifest.json; stage3 10/24 new candidate unapproved"
+    },
+    {
+      "order": 8,
+      "id": "yomi",
+      "name": "黃泉境",
+      "art": "art/stage8-yomi/",
+      "source_scene": "art/stage8-yomi/scene/",
+      "source_characters": "art/stage8-yomi/characters/",
+      "runtime": "assets/img/yomi/",
+      "runtime_state": "not established/verify before use",
+      "art_status": "REFERENCE_ONLY_RESET_20261024",
+      "notes": "Old source images purged; actual kept image paths are in art/stageN-ID/manifest.json; stage3 10/24 new candidate unapproved"
+    }
+  ],
+  "shared": {
+    "overworld": "assets/img/overworld_approved_v2.webp",
+    "stage2_map_thumbnail": "assets/img/map_rain_port_v1.webp",
+    "runtime_shared": [
+      "assets/img/ui/",
+      "assets/img/vfx/",
+      "assets/img/words/",
+      "assets/img/yokai/"
+    ],
+    "audio": "assets/audio/"
+  },
+  "historical_compatibility": [
+    "art/archive/2026-10-24/legacy-material (metadata only)",
+    "assets/img/rain-port/s2-production (public runtime)"
+  ],
+  "operations_gate": {
+    "keep_all_legacy_consumers_until_mapped": true,
+    "preserve_dirty_worktree": true,
+    "preserve_paid_originals": true,
+    "no_commit_or_deploy": true
+  },
+  "delivery_word_media": {
+    "updated": "2026-10-30",
+    "scope": "delivery vocabulary word icons and spoken clips only (not scenery, bosses, BGM or skill SFX)",
+    "authority": "docs/DELIVERY_MEDIA_PATHS.md",
+    "runtime_router": "js/delivery-media.js",
+    "image_template": "assets/img/delivery/{stage-id}/{index:02}.webp",
+    "audio_template": "assets/audio/delivery/{stage-id}/{index:02}.mp3",
+    "manifest_template": "assets/{img-or-audio}/delivery/{stage-id}/manifest.json",
+    "approved_image_stages": [
+      "night-town"
+    ],
+    "approved_audio_stages": [
+      "night-town"
+    ],
+    "candidate_images": "art/delivery-icons/{stage-id}/",
+    "legacy_audio_archive": "art/audio/fish-night-town/archive/legacy/",
+    "index_source": "js/delivery-lexicon.js:stages[].words[0..19]",
+    "stage8_behavior": "reuse original stage word assets; do not duplicate all 140",
+    "trial_image_stages": [
+      "rain-port"
+    ],
+    "trial_audio_stages": [
+      "rain-port"
+    ],
+    "rain_port_trial_receipt": "docs/RAIN_PORT_DELIVERY_TRIAL_20261031.md"
+  },
+  "global_media": {
+    "authority": "docs/ASSET_CONVENTIONS.md",
+    "registry": "docs/ASSET_REGISTRY.json",
+    "inventory": "docs/ASSET_INVENTORY.json",
+    "generator": "tools/asset_registry.py",
+    "runtime_alias": "js/asset-paths.js",
+    "notes": "preapproved alias only; grandfathered legacy files are not automatically approved"
+  },
+  "stage2_approved_media": {
+    "status": "USER_PLAYTEST_PENDING",
+    "receipt": "docs/STAGE2_APPROVED_MEDIA_MIGRATION_20261031.md",
+    "approved_stage_files": 17,
+    "approved_runtime_placements": 20,
+    "approved_enemies": 4,
+    "blocked_water_boss_vfx": 3,
+    "runtime_manifest": "assets/img/runtime-art-manifest.json",
+    "enemy_manifest": "assets/img/rain-port/enemies/runtime-manifest-20261014.json",
+    "canonical_stage_dir": "assets/img/stages/rain-port/",
+    "canonical_enemy_dir": "assets/img/enemies/",
+    "legacy_sources_retained": true
+  },
+  "stage2_delivery_trial": {
+    "stage": "rain-port",
+    "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+    "words": 20,
+    "images": 20,
+    "audio": 20,
+    "voice": "Fish Audio A",
+    "model": "s2.1-pro-free",
+    "review": "art/delivery-icons/rain-port/preview.html",
+    "approved_final": false
+  }
+}

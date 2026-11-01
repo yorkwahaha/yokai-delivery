@@ -6,7 +6,7 @@
 - 八關共用同一套：**半水墨 × 半浮世繪 × 強墨線 × 和紙木版印痕 × 克制色彩**；場景可有濕潤、霧氣、幽異感，但不能變成照片寫實、3D擬真、現代向量或兒童超Q。
 - 遊戲 Canvas2D，現有偽 2.5D `tilt=0.60`，可切 2D。**0.60 是引擎投影參數，不等於要求生圖固定 45° 俯角**；「Hades 式鏡頭感」是整體最終畫面觀感，不能預先把地板變形成斜視場景又再投影一次。
 - **Stage2 stone_v3**（深藍濕石板、自然不規則石形、粗墨縫）作**畫風和石板語言參考**，**不是直接作無限平鋪的已合格母版**；此前 stone_v2 鵝卵石感、stone_v3 強透視／接縫重複、Method-B ART_FAIL 均不能冒稱成功。
-- 原先 ChatGPT 第一批八張三聯地板是 **A 組喜歡的候選**、第二批四張 **淘汰**；Nano Banana 2.1 的八張三聯 **B 組為候選**。不得將三聯概念圖等同可用 tile，不得虛構 A/B 最終主畫師已定案。正式生圖費用須獨立核准，不借用 fusion 或 Stage2 既有預算。
+- 原先 ChatGPT 第一批八張三聯地板是 **A 組喜歡的候選**、第二批四張 **淘汰**；Nano Banana 2.1 的八張三聯 **B 組為候選**。不得將三聯概念圖等同可用 tile，不得虛構 A/B 最終主畫師已定案。過去模型和費用資料僅保留作候選來源紀錄，不再作為新圖的生成流程或預算限制。
 - 怪物先以另張被偏好的**微Q約2.5–3頭身**候選參照，場景優先、怪物暫緩。沒有正式人審，不更新到 production。
 
 ## 2. 地面（G/T/D）的視角與拼接
@@ -36,13 +36,13 @@
 4. **接線與遊戲** `RUNTIME_QA`：2D/.60、真跑動、Y-sort、HUD 不擋、記憶體／載入；需另授權改 runtime。僅 dev 接入也不等於正式核准。
 5. **發布**：不因本規格自動觸發 commit／push／deploy，不碰音訊、TTS、BGM、KEY、環境私密資料。
 
-## 6. 新圖檔命名與路徑（立即適用於**往後新候選**）
-- **最短路徑**：`art/s1/` 至 `art/s8/`，新候選 PNG、審圖 P 圖與一份 `manifest.json` 直接放在 stage 短資料夾，**不再增設 batch/date/model/review/candidates/... 深層目錄**。
-- **簡短清楚**：`g_stone_01.png`、`g_wood_01.png`、`t_stone_wood_h01.png`、`d_moss_01.png`、`h_warehouse_01.png`、`o_crate_01.png`、`e_ghost_idle_01.png`、`b_oni_atk_01.png`、`p_stone_6x6.png`。每類用途見 `art/README.md`。版本數字短而可查；不把日期、`nano_nb21`、`candidate`、長長的 stage name 寫進檔名。
-- 檔名建議盡量 ≤28 個 ASCII 字元；`snake_case`。同名不覆寫，不隨便改名；`_01` → `_02` 才是下一候選，來源、provider、batch、日期、hash、審核狀態放**manifest**。
-- `art/stage2-rain-port/scene/G_...png` 等**舊路徑全部保持原樣**，禁止因本規範批次重命名／移走正在被 runtime、測試、文件、manifest 引用的檔；新短路徑屬後續素材生產入口，不是立即整庫遷移。
-- `art/sN/` 只存新候選，**不代表目前 game asset resolver 已支援該路徑**。日後人審核准後，另有獨立導入票做顯式映射到現有 loader/manifest。
-- 不要依檔名推定 ART_PASS；除本文件外閱讀 `docs/ART_PROMPTS.md`、`docs/ART_STAGES.md`、`docs/ART_CLEANUP.md`。
+## 6. 新圖檔命名與路徑（2026-10-24 使用者新決定覆蓋 10/21 art/s1～art/s8 建議）
+- **比照第一關**：正式唯一美術來源是 `art/stage1-night-town/scene/`。其他七關都在既有 `art/stageN-<stage-id>/` 下，用相同的 `scene/`、`characters/`（有角色才建立）與少量根層 `Preview_*.png`、manifest、README，不再開第二套 `art/s3/`～`art/s8/`。
+- 完整八關來源與正式 runtime / DEV 影像位置比對，見 **`docs/PROJECT_FILE_MAP.md`**；此文件是 Agent 找圖、搬檔、盤點的單一目錄入口。
+- 新候選的檔名簡短，延續既有 `G_ / T_ / H_ / O_`（`scene/`）、`E_ / B_`（`characters/`）語言，例如 `G_stone_01.png`、`T_stone_wood_01.png`、`H_warehouse_01.png`。模型、日期、費用、prompt、來源 SHA、審核狀態放關卡 manifest，不在檔名或新增資料夾名稱上堆版本。
+- **相容性警告**：舊 `art/s2/` 被本機 DEV loader 引用、`art/stage2-rain-port/production-s2-nano-20261020/` 有既存 manifest/消費者，已發布新版素材在 `assets/img/rain-port/s2-production/`。未逐一修正 consumer、測試、文檔與媒體快取前**不得直接移動、刪除、改名**。避免重新產生 404。
+- `art/stage2-rain-port/scene/G_...png` 等歷史圖保持原樣直到明確遷移；不因本規範批次重新命名或宣稱原稿已核准。退件／QA 以可還原 `art/archive/` / `scratch/` 分類、逐檔 SHA 留底。
+- `art/` 是來源圖，不代表網站會讀取。只有人工核准和 runtime QA 完成的壓縮圖才由明確映射載入 `assets/img/`；仍須獨立授權 Git 發布。
 
 ## 7. 參考的優先次序
 1. 使用者最新實際審圖／指示及當次 `roadmap.md` 頂部。

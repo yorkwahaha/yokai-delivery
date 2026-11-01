@@ -79,8 +79,8 @@ window.SKILLFX = (() => {
         emerge = 1.0;
       }
     } else {
-      const t = Math.min(1, age / 0.065);
-      emerge = 0.73 + 0.27 * (1 - Math.pow(1 - t, 3));
+      const t = Math.min(1, age / 0.15);
+      emerge = 0.14 + 0.98 * (1 - Math.pow(1 - t, 3));
     }
     const fade = Math.min(1, p.life / (max ? 0.19 : 0.14));
     const baseWidth = max ? 240 : [126, 136, 148, 160][Math.min(3, p.rank - 1)];
@@ -176,6 +176,31 @@ window.SKILLFX = (() => {
     for(const p of cover) drawEntry(p);
   }
 
+  // 符咒真圖保留美術主體，但讓每個階級的命中都真正向外炸開。
+  function ofudaBlast({x,y},rank) {
+    if (![x,y].every(Number.isFinite)) return;
+    const radius=[65,80,105,130,180][rank-1];
+    emit('glow','#fff5cb',{x,y,life:.18,s0:28,s1:radius*1.45,
+      a:.76,blend:'lighter'});
+    emit('edge','#fff1c9',{x,y,life:.30,s0:12,s1:radius*1.85,
+      a:.8,ground:true,sy:groundSquash(),ease:true,blend:'lighter'});
+    emit('edge','#ca3d47',{x,y,life:.44,delay:motion()?.045:0,
+      s0:24,s1:radius*2.15,a:.62,ground:true,sy:groundSquash(),ease:true});
+    const n=count(10+rank*5);
+    for(let i=0;i<n;i++){
+      const a=i*6.2831853/n+rnd(-.16,.16);
+      const v=rnd(radius*1.25,radius*2.45);
+      emit(i%3===0?'seal':'shard',i%4===0?'#f7ebcc':i%2?'#db5050':'#29202b',{
+        x,y:y-15,life:rnd(.29,.50),delay:motion()?rnd(0,.055):0,
+        vx:Math.cos(a)*v,vy:Math.sin(a)*v*.76-38,drag:2.1,
+        rot:a,vr:i%2?3:-3,s0:rnd(10,17)+rank*1.5,s1:2,a:.94
+      });
+      if(i%3===0) emit('stroke','#ffe7a6',{x,y:y-12,rot:a,
+        life:.22,s0:radius*.58,s1:4,a:.75,
+        vx:Math.cos(a)*v*.28,vy:Math.sin(a)*v*.28});
+    }
+  }
+
   function define(id,events) { skills[id] = events; }
   function play(id,event,level,params={}) {
     const rank=tierOf(level),fn=skills[id]?.[event];if(!fn)return;
@@ -191,9 +216,8 @@ window.SKILLFX = (() => {
         // Raster is the impact itself; retain the existing burn side effect.
         if(rank!==5) ignite(params.target,rank===1?1.2:2,Math.min(rank,2));
         pushArt(null,{x:params.x,y:params.y,rank,ofudaImpact:kind,ground:false,
-          life:rank===5?.52:.38});
-        chips(params.x,params.y,rank===5?'#d95656':'#d0b392',
-          rank===5?7:3,{speed:rank===5?170:110,size:rank===5?9:6,life:.22});
+          life:rank===5?.52:.43});
+        ofudaBlast(params,rank);
         return;
       }
       if(rank===5){explosion(params);accent(id,event,rank,params);return;}

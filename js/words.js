@@ -492,6 +492,37 @@
     }
   ];
 
+  // 7 關正式宅配物件詞，保留舊 pack/word IDs 供舊存檔與舊錄音相容。
+  const DELIVERY_STAGE_ROWS = root.DELIVERY_LEXICON?.stages || [];
+  const DELIVERY_PACKS_BY_STAGE = Object.create(null);
+  const DELIVERY_PACK_IDS = [];
+  // 保留原關卡使用的 pack 數量，不因詞庫更新改變每區生成的宅配屋數。
+  const DELIVERY_GROUP_COUNT = Object.freeze({
+    "night-town": 6, "rain-port": 6, "sakura-pass": 5, "bamboo-maze": 4,
+    "hyakki-kyoto": 5, "snow-temple": 3, "spirit-ferry": 3
+  });
+  for (const stage of DELIVERY_STAGE_ROWS) {
+    const ids = [];
+    const groups = DELIVERY_GROUP_COUNT[stage.id] || 4;
+    for (let group = 0; group < groups; group++) {
+      const packId = "delivery-" + stage.id + "-" + (group + 1);
+      const start = Math.floor(group * stage.words.length / groups);
+      const end = Math.floor((group + 1) * stage.words.length / groups);
+      const entries = stage.words.slice(start, end).map(w => [
+        w.jp, w.zh, w.emoji, "", w.jp + " を とどけます", w.jp, w.kanji, "名詞", "art"
+      ]);
+      RAW_PACKS.push({
+        id: packId, name: stage.name + "・" + stage.topic,
+        sub: stage.topic, color: "#72634d", floorColor: "#484338",
+        theme: stage.id === "night-town" ? ["market","stone","park","tavern","market","stone"][group] : stage.theme, words: entries
+      });
+      ids.push(packId);
+      DELIVERY_PACK_IDS.push(packId);
+    }
+    DELIVERY_PACKS_BY_STAGE[stage.id] = Object.freeze(ids);
+  }
+  const deliveryPacks = (stage, fallback) => DELIVERY_PACKS_BY_STAGE[stage] || fallback;
+
   const WORD_PACKS = Object.fromEntries(RAW_PACKS.map(pack => {
     const words = pack.words.map((entry, index) => {
       const [jp, zh, icon, romaji, example, kana, kanji, pos, cue] = entry;
@@ -547,10 +578,10 @@
       id: "night-town",
       name: "夜行町",
       sub: "よるのはいそう",
-      description: "第一夜的城鎮配送。人物、動物、住家用品與市町場所。",
+      description: "第一夜的城鎮配送。以町屋生活用品、文具與常用實物學習日語。",
       visual: Object.freeze({ ground: "ground_dirt", petals: 17, fireflies: 30, fog: 0 }),
       implemented: true,
-      wordPacks: NIGHT_TOWN_PACKS,
+      wordPacks: deliveryPacks("night-town", NIGHT_TOWN_PACKS),
       start: Object.freeze({ x: 1350, y: 900 }),
       world: Object.freeze({
         chunkWidth: 900,
@@ -581,10 +612,10 @@
       id: "rain-port",
       name: "雨夜港町",
       sub: "あめよのみなと",
-      description: "雨與海霧籠罩的港町。以天候、方位與交通詞彙進行第二夜配送。",
+      description: "雨與海霧籠罩的漁港。配送魚、蝦、蟹、海藻與常見海鮮料理。",
       implemented: true,
       unlockedByDefault: false,
-      wordPacks: Object.freeze(["rain-weather", "port-directions", "port", "beach", "port-spatial", "port-transit"]),
+      wordPacks: deliveryPacks("rain-port", Object.freeze(["rain-weather", "port-directions", "port", "beach", "port-spatial", "port-transit"])),
       start: Object.freeze({ x: 1350, y: 900 }),
       world: Object.freeze({
         chunkWidth: 900,
@@ -622,10 +653,10 @@
       id: "sakura-pass",
       name: "妖櫻山道",
       sub: "ようざくらさんどう",
-      description: "沿山而上的妖櫻古道。自然、四季、時間與日期的第三夜配送。",
+      description: "沿山而上的妖櫻古道。以花草、茶亭用品與神社小物進行配送。",
       implemented: true,
       unlockedByDefault: false,
-      wordPacks: Object.freeze(["sakura", "nightsky", "nature-seasons", "time-calendar", "time-units"]),
+      wordPacks: deliveryPacks("sakura-pass", Object.freeze(["sakura", "nightsky", "nature-seasons", "time-calendar", "time-units"])),
       start: Object.freeze({ x: 1350, y: 900 }),
       world: Object.freeze({
         chunkWidth: 900,
@@ -661,10 +692,10 @@
       id: "bamboo-maze",
       name: "竹影迷宮",
       sub: "たけかげめいろ",
-      description: "青綠竹林中的迷蹤。顏色、大小形態與數量詞彙的第四夜配送。",
+      description: "青綠竹林中的迷蹤。採集竹筍、蔬菜與山村常見食材。",
       implemented: true,
       unlockedByDefault: false,
-      wordPacks: Object.freeze(["bamboo-colors", "bamboo-scales", "bamboo-states", "bamboo-numbers"]),
+      wordPacks: deliveryPacks("bamboo-maze", Object.freeze(["bamboo-colors", "bamboo-scales", "bamboo-states", "bamboo-numbers"])),
       start: Object.freeze({ x: 1350, y: 900 }),
       world: Object.freeze({
         chunkWidth: 900,
@@ -700,10 +731,10 @@
       id: "hyakki-kyoto",
       name: "百鬼京都",
       sub: "ひゃっききょうと",
-      description: "百鬼夜行的古都。食物、飲料、餐食與市集購物的第五夜配送。",
+      description: "百鬼夜行的京都古都。配送市集食材、和菓子與常見料理。",
       implemented: true,
       unlockedByDefault: false,
-      wordPacks: Object.freeze(["sweets", "tavern", "kyoto-staples", "kyoto-dishes", "kyoto-shopping"]),
+      wordPacks: deliveryPacks("hyakki-kyoto", Object.freeze(["sweets", "tavern", "kyoto-staples", "kyoto-dishes", "kyoto-shopping"])),
       start: Object.freeze({ x: 1350, y: 900 }),
       world: Object.freeze({
         chunkWidth: 900,
@@ -739,10 +770,10 @@
       id: "snow-temple",
       name: "雪燈山寺",
       sub: "せつとうさんじ",
-      description: "雪山古寺中的修行路。身體部位、移動動詞與日常動作的第六夜配送。",
+      description: "雪山古寺中的修行路。配送冬季衣物、禦寒用品與熱食。",
       implemented: true,
       unlockedByDefault: false,
-      wordPacks: Object.freeze(["temple-body", "temple-movement", "temple-actions"]),
+      wordPacks: deliveryPacks("snow-temple", Object.freeze(["temple-body", "temple-movement", "temple-actions"])),
       start: Object.freeze({ x: 1350, y: 900 }),
       world: Object.freeze({
         chunkWidth: 900,
@@ -779,10 +810,10 @@
       id: "spirit-ferry",
       name: "幽世渡口",
       sub: "かくりよわたし",
-      description: "幽世渡船頭的彼岸前哨。感受、心態與人物常用會話的第七夜配送。",
+      description: "幽世渡船頭的彼岸前哨。配送旅人行李、信件與隨身用品。",
       implemented: true,
       unlockedByDefault: false,
-      wordPacks: Object.freeze(["ferry-feelings", "ferry-states", "ferry-phrases"]),
+      wordPacks: deliveryPacks("spirit-ferry", Object.freeze(["ferry-feelings", "ferry-states", "ferry-phrases"])),
       start: Object.freeze({ x: 1350, y: 900 }),
       world: Object.freeze({
         chunkWidth: 900,
@@ -821,7 +852,8 @@
       description: "旅路深處的終局妖城。全關綜合複習與言靈交還的第八夜終極配送。",
       implemented: true,
       unlockedByDefault: false,
-      wordPacks: Object.freeze([...PACK_ORDER]),
+      wordPacks: Object.freeze(DELIVERY_PACK_IDS.length ? [...DELIVERY_PACK_IDS] : [...PACK_ORDER]),
+      reviewPriority: Object.freeze(root.DELIVERY_LEXICON?.reviewPriority || []),
       start: Object.freeze({ x: 1350, y: 900 }),
       world: Object.freeze({
         chunkWidth: 900,
@@ -900,6 +932,11 @@
         out.push(word);
       }
     }
+    // 第八關仍保留全部單字總複習，但優先列出 20 個代表物件供貨物學習。
+    if (stage.id === "yomi" && stage.reviewPriority?.length) {
+      const ranks = new Map(stage.reviewPriority.map((jp, i) => [jp, i]));
+      out.sort((a, b) => (ranks.get(a.jp) ?? 999) - (ranks.get(b.jp) ?? 999));
+    }
     return out;
   }
 
@@ -937,7 +974,8 @@
     }
     const seen = new Set();
     const out = [];
-    for (const pack of Object.values(WORD_PACKS)) {
+    const activePacks = DELIVERY_PACK_IDS.length ? DELIVERY_PACK_IDS.map(id => WORD_PACKS[id]) : Object.values(WORD_PACKS);
+    for (const pack of activePacks) {
       for (const word of pack.words) {
         if (seen.has(word.jp)) continue;
         seen.add(word.jp);
@@ -948,7 +986,9 @@
   }
 
   function getAnswerCandidates() {
-    return [...getAllWords(), ...ANSWER_DECOYS];
+    const words = getAllWords();
+    const present = new Set(words.map(w => w.jp));
+    return [...words, ...ANSWER_DECOYS.filter(w => !present.has(w.jp))];
   }
 
   const api = Object.freeze({
@@ -961,7 +1001,8 @@
     getStageWords,
     getSiblingWords,
     getAllWords,
-    getAnswerCandidates
+    getAnswerCandidates,
+    DELIVERY_PACK_IDS
   });
 
   root.CONTENT = api;

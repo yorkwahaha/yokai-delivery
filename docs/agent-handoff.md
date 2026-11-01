@@ -1,5 +1,118 @@
 # Agent 跨對話接手與協同運作手冊 (agent-handoff.md)
 
+### 2026-11-01｜B14 最新實際遊戲改動：百鬼夜行右進左出
+
+依使用者認可的視覺：金色毛筆「百鬼夜行」直接融合於深酒紅／黑墨的不規則橫刷，**完全無花、無硬框、去背**。現役圖為 `assets/img/ui/b14/surge_brush.webp`（RGBA 1462×450，透明留白用以保留字的原寬高比），由 `tools/b14_surge_brush.py` 用本機 Qwen Image 2.1 生圖＋去背。現役繪製位於 `js/ui.js drawSurgeWarning`，只 draw B14 圖，2.4 秒原計時內**右側快速淡入 0.36 秒／中間停留到 1.47 秒／向左滑出淡出至 2.4 秒**；若尚未載入不再閃回 B12/B13 舊木牌。碰撞／生成時機不動。已用 Chrome 真實 UI 程式 Canvas 截圖 `art/night-town/b14_{entry,hold,exit}_runtime.png`；`tests/b14-surge-motion-20261101.test.cjs` 新 3 項、總共 103/103 相關回歸通過，素材註冊 854／147，實際 HTTP 200，透明四角 0。**尚待玩家試玩，無 commit/push/deploy，融合不動。**
+
+
+
+### 2026-11-01｜B13 最新最高優先決策（實作／試玩）
+
+使用者不滿 B12 衝刺雙線與程式箭頭、B12 系統選單重用灰底舊圖與混搭按鈕、百鬼夜行題字後製、HUD 黃燈太厚、取消離開後錯播旅路地圖 BGM。B13 已直接改本機：`js/renderer.js drawNightBossImage(charge)` **只 draw 一張 B13 新 ComfyUI 畫的直線單通道 `assets/img/vfx/boss-night-town/charge_single_b13.webp`**，使用 Boss AI `h.x/y/angle/length/r`；取消全部追加的 stroke/7 組箭頭；本機／LAN gate。`js/game.js activateWithFeedback` 不再在 `state==='pause'` 點 world 時預載地圖音樂，`exit-cancel` 清 stale prepared track。`js/ui.js` B13 ComfyUI 專門產生 `assets/img/ui/b13/menu_board.webp`、`menu_button.webp`、`menu_button_danger.webp` 共同畫風，用九宮／三切片接到真暫停與放棄確認；`surge_warning.webp` 百鬼夜行四字由 Qwen 生圖當場畫上去。`passive_*.webp` B13 去灰底統一宣紙，燈條更窄發亮呼吸，右側貨單保留名字加描邊陰影。製圖程式 `tools/b13_generate_ui.py`、`tools/b13_charge_art.py`，內部 Chrome 畫面 `art/night-town/b13_pause.png`/`b13_quit.png`/`b13_surge.png`。新 B13 regression `tests/b13-boss-audio-ui-20261101.test.cjs`；最終請實機 BGM、Boss 軌跡、UI 視覺驗收。B12 資產不刪，工作樹已 dirty，不得 commit/push/deploy；融合持續擱置。
+
+
+### 2026-11-01｜B12 正式程式接入（非設計稿）
+七張玩家實機回饋對應：固定的「百鬼夜行」B12 ComfyUI 木牌圖含內嵌四字；地面護符真實寬高比；Boss 僅細紅血條；長風刃 Lv5 +25% 風刃距離其實已在 `js/game.js` 生效，不要砍；九張 ComfyUI 水墨被動飾品改 B12 路徑、被動右側 2/3/4 真上限燈條、護符層數改光與金珠；右上暫停與攝影機視角實體 medallion；暫停與退出確認共用真正圖檔 `modal_board.webp`。檔案 `assets/img/ui/b12/`、執行碼 `js/ui.js`/`js/game.js`、製圖程式 `tools/b12_comfy_art.py`；這輪新 `tests/b12-ui-consistency-20261101.test.cjs` 9 項＋舊聚焦共 93/93 PASS；本機瀏覽器五種 UI 真正繪製 screenshot `art/night-town/b12_*.png`，素材清冊 838/146 PASS。本機與LAN試玩，保留舊資產及 dirty tree，不 commit/deploy，不動融合。
+
+
+
+### 2026-11-01｜B11 最新實際遊戲 UI（不是圖片設計稿）
+
+已直接重寫 `js/ui.js` 畫面：移除御守替換卡片深黑遮層、三張卡依種類從 `assets/img/ui/charm-passive/b11/card_{id}.webp` 載入不同和風織紋手繪質感背景，頂部專屬 `feature.webp`、HUD `hud_wisps.webp`；**裝飾素材無字無固定御守，所有文字、效果數值、真御守、選擇、放棄均在 Canvas 實際遊戲運作時生成**。六張 `b11/omamori_{id}.webp` 由原本 B9 完整繪製圖集重新裁圖，中文字重寫並置中印記，沒有使用 B10 溢出的符號；地上/HUD/替換選單同源。燈籠右側移除黑框，每張真御守在柔光與淡雲上直接顯示。已用 Chrome 真正載入 8080 上 js/ui.js 畫出 1280×720／640×360（內部 QA 截圖在 `art/night-town/b11_ui_runtime_*.png`），B11 新測試＋舊 B3–B10 聚焦 **84/84 PASS**，asset check **823／146**。尚需玩家遊戲內驗收，不 commit/push/deploy，融合擱置。
+
+
+
+### 2026-11-01｜B10 本機可試：三張設計稿採用，Q 版 icon 否決
+使用者核准【精緻六御守、換守選單完整版型、燈籠旁／地圖掉落御守】三個方向；明確否決 Q 版被動九 Icon，維持 B9 和風簡潔圖。B9 御守其實可見寬僅170／畫布512，B10 改用等比剪裁後 320×640 透明圖，內容可見寬約230、絕不拉扁：`assets/img/ui/charm-passive/b10/`。選單 `UI.drawCharmSwap` 已真正整段替換為大上方新守＋三大直式舊守＋獨立放棄鈕；使用正式手繪漆板、所有文字另分安全區；HUD `drawCharmHud` 在燈籠右緣外用三個有色漆板掛大圖；地上圖 42×64、39彩光。B10 只本機，原始 b9 圖與歷史 b7 圖保留。需真人看外觀和操作，不自動部署／commit；融合仍擱置。聊天中核准圖無法原檔直接匯入本機，實作是按核准設計方向重製，不是同一張設計圖。測試見 `tests/b10-charm-ui-20261101.test.cjs`。
+
+
+
+### 2026-11-01｜B9 新生成美術已實際接線（可用本機 8080 試玩）
+本機 ComfyUI Qwen Image2.1 **重新繪製**真正獨立的九款清楚被動圖；位於 `assets/img/ui/passive/b9/`；六款詳細彩色御守新繪本體＋專屬介紹卡位於 `assets/img/ui/charm-passive/b9/`。圖集與 ID/色碼映射記錄在 `art/night-town/b9-local-art/`；若 ChatGPT image_gen 的聊天圖集不能被 MCP 匯入，使用者實際本機預覽的是以相同設計方向由本機 ComfyUI 生成的素材，切勿宣稱是同一張圖。B9 僅 local host 通過 `b8LocalArtTrial` 接入，正式環境保留 B7 舊圖待批准。貨物由42→84並有淡光墊／陰影，可改善細鉛筆低辨識度。B9 新增4個測試，B6-B9 22/22 PASS，asset check 803/146 PASS，HTTP 8080 代表性資產讀取 200。保留現場 dirty 工作樹、不 commit/push/deploy、融合擱置，需本人試玩核准。
+
+
+
+### 2026-11-01｜B8 最新規格：護符、被動層數、手繪破封
+
+夜行町 B8 已編輯：地上御守放大1.2倍(36×54)、浮動 5±4.5px、外光34/0.82；燈籠旁持有三護符49×62加彩光。被動層數不是都3：修羅破軍/神樂疾奏4，長明燈油2，其他6種3；`PASSIVE_MAX_STACKS` 和 `passiveStackCount` 驗 MAX 不能再進池，金剛結界現在由累積 `b.shieldPicks` 記層數（不隨消耗重開），HUD 修羅破軍層數用每次 +0.30 的 `b.dmgUp`。九張被動圖統一512米白紙底＋真手繪來源 `assets/img/ui/passive/washi-v2/`；Boss 解封不畫 Canvas 假碎片，改單張真人手繪源圖重組 raster `assets/img/vfx/boss-night-town/seal_break_painted.webp` 並淡出。本機候選只在 localhost/127.0.0.1/192.168.* 載入，需人審，不代表 ComfyUI 重新生圖。B8/B7/B6 18/18 PASS，B5/B3/Boss/UI 25/25 PASS；資產清冊782／146。未提交/推送/部署，勿碰融合。
+
+
+
+### 2026-10-31｜B7 最新第五輪御守 UI 整理
+
+六款護符重新由既有 1024px 手繪源圖做高解析去背、歸一 512×768，**不是六次 Comfy 新圖**；各自另做 900×810 和正式技能卡相同底稿的彩色介紹卡（力／速／吸／疾／遠／守）在 `assets/img/ui/charm-passive/b7/`。地上掉落統一寬30高45，微浮動。畫面右上護符文字列已換成左側燈籠旁垂直三小圖（同源圖）；原免費聽音/提示 UI、鍵盤/手把/點擊執行皆取消；`triggerHint()` 只為測試橋相容回傳 false。衝刺按鈕現在以**本機 Comfy 生成的手繪衝刺徽章** `assets/img/ui/dash_medallion_b7.webp` 取代藍色玻璃圓。地面快取 scrollReuse 左右上下補畫 2 physical pixel 抗黑線。B7+核心 **64/64 PASS**；美術及接縫待本人實機驗收，不 commit/push/deploy，不碰融合。
+
+
+
+### 2026-10-31｜B6 最新夜行町七項回饋（本機試玩）
+
+夜行町 Boss charge 速度 620→1240、最大 403→868、半徑 52→76，仍先預估撞牆與共享預警終點；本機 ComfyUI 新深紫紅鬥氣 `assets/img/vfx/boss-night-town/charge_aura.webp`，候選圖未經使用者核准不得部署。盾牌不透明度峰值 .98，每 2s 的 340ms 顯示時從左向右滑過白青鏡面反光。Boss 答題板＋下方 HP 共用正式技能升級的 raster 卡片美術，題幹改「真正物品圖＋？」而非中文，日文三選不變。六張御守去灰底並裁透明，選單大圖與怪物掉落由 `UI.charmArtFor` 同源，掉落尺寸 50px 與分類光暈；替換選單圖區提升到 61%，文字與按鈕層次重整。`assets/audio/sfx/skilllv5.mp3` 已存在，Lv5 覺醒用專用 `AUDIO.skillLv5()`（過關仍 fanfare），御守撿拾預留 `assets/audio/sfx/charm-pickup.mp3`（未提供，用既有拾取合成音備援）。Lv5 陰陽符真圖外增限時 0.78s 火星和煙塵。B3–B6 局部 **57/57 PASS**，素材清冊 **795／145**，待本人實機試畫面／手感，不 commit/push/deploy，不碰融合。
+
+
+
+### 2026-10-31｜B5 最新實機修正：爆裂／護罩／靈針回旋折返
+
+夜行町 Boss 砸地爆裂圖以警告圈 `groundBottom` 對準、主繪圖往上校正（`impactLift`）、短時間膨脹及飛散小石塊；只在警告轉命中當下呼叫 `AUDIO.bossSlamImpact()`，之後把用戶提供的檔案放 `assets/audio/sfx/boss-slam-impact.mp3` 即可覆寫太鼓備援（檔案目前尚未提供）。新護盾用**本機 ComfyUI** 生成簡潔八角藍色防護罩／八卦淡紋和強烈破碎圖，接本機 `assets/img/vfx/shield/ward_bagua_{full,break}.webp`，來源 `art/night-town/b5-shield-bagua-review/`，圖待使用者核准，線上仍不啟用未審圖片。靈針 `mut_return` 折返從原 220px 改成依射向到可視邊緣 72%，回程走側向弧線且針身畫面方向固定不轉。聚焦測試 B5＋B3＋六招／Boss／單字與御守 50/50 PASS；三支 JS 語法檢查通過，asset registry 785／144 PASS，等待本人實機體感。沒有提交部署。
+
+
+
+### 2026-10-31｜B4 最新玩家五項回饋（覆蓋舊 SVG／Canvas 決策）
+
+已改：needle Lv5 背部升高、8×0.05s 各針與各針音效、0.4 秒輪射後 1s CD；基本 needle 不冰，僅 mut_frost 可冰。被動 HUD 使用新 8 張暖金底 WebP；御守替換復用正式升級介面 `board_v3/card_dark` 真圖。新盾牌全／裂與石王 slam 預警／爆裂均由**本機 ComfyUI QwenImage21 真生圖**，來源 `art/night-town/b3-comfy-20261031/`；本機 `localhost/127.0.0.1/192.168.*` 試玩接 `assets/img/vfx/shield/ward_spirit_{full,crack}.webp` 及 `assets/img/vfx/boss-night-town/slam_earth_{warning,impact}.webp`，標 `IN_GAME_TRIAL_PENDING_USER_REVIEW`，線上不得擅升核准。原 SVG／Canvas 正式路徑已撤，盾牌 counter-flip 不鏡射。Boss 衝刺採 AI 可達終點 h.length 與 `charge_aligned.webp` 轉正真圖，實際衝撞及預警同軌。AGENTS.md 新增正式圖像必為生成 raster 的明文規則。**下一步玩家本人審圖、試玩靈針／衝刺／御守；未提交部署**。
+
+
+
+### 2026-10-31｜B3 五項截圖修正接續
+
+已直修：刪除「安心讀題・離開恢復」；夜行町 Boss 衝刺刪多餘 45° 轉角、圖裁至物理走廊，且 boss-ai/game 同步把衝刺預警與命中校正到角色腳點 44/tiltK（只限夜行町）；地裂預警換土石裂紋＋飛石和「地裂！快閃開！」；配送結界觸發／離開基於畫面相同橢圓 (to.x,to.y+70), rx245, ry165/tiltK，退出容差14；新第一方和風符術盾牌 `assets/img/vfx/shield/ofuda_ward_full.svg` / `ofuda_ward_crack.svg` 已接上，原 PNG 保留不再引用。新 6 項＋周邊 Node 局部共 44/44 PASS、asset_registry 765/141 PASS。舊 9 紅來自 fetch mock/舊函式簽名，不倒改。等待使用者再試玩感受與美術，不提交部署、不碰融合。
+
+
+
+### B3 實作進度｜2026-10-31（新增，優先於下方舊缺陷）
+
+已在 `js/game.js` 修正**多個護盾 Boss 同場時封印題目綁錯對象**：近端 Boss 優先、雙 Boss 的回答按 `e.quiz===bossQ` 解正確盾；新增 `tests/b3-night-town-boss-quiz.test.cjs`。修前遠端舊 Boss 擋掉新 Boss 題目，重現 1 FAIL；修後新三案 3 PASS，連同 Boss AI / delivery focused **21/21 PASS**。未調整六招平衡／融合／任何媒體；未提交部署。舊 M1 測試的 600 秒過關、五秒勝利、靈針 Lv5 舊名稱、錯答固定油量等不等於正式回歸錯誤。**玩家正常兩關完整試玩與美術審核仍待完成**。
+
+追加 `tests/b3-night-town-six-skills.test.cjs`：普通池僅六招、四槽限制和重開重設 **2/2 PASS**；B3+Boss AI+詞圖路由 **23/23 PASS**，第一關圖音、御守 UI、錯詞複習補檢 **15/15 PASS**（選定局部 **38/38 PASS**）。仍需玩家第一關完整自然流程回饋，不自行跑 Chrome 長流程或宣告完成。
+
+
+
+## ★ 2026-10-31｜使用者最新決策／六招前兩關主線
+
+融合功能**暫時封存**，未來才重新審視設計。現階段前兩關僅有六招主動技能：`katana`（妖刀斬）、`barrier`（淨化靈陣）、`fire`（狐火炎）、`boom`（陰陽符）、`thunder`（天狐雷）、`needle`（天狐靈針）；保留每局**最多四個裝備槽**、正常等級／覺醒／被動／御守。融合 10 配方、繪馬與融合 UI／VFX 不屬第一二關 Gate、不派新開發；現存 `dev=1&fusionlab=1` 僅供未來隔離保存，**不可帶入一般遊戲**，不刪原碼和資產。
+
+本次工序從 B1（已完成 8 檔 56/56 聚焦 Node 測試）直接轉向第一關正常六招／配送／Boss／結算及重玩，接第二關正式素材、水王和 20 詞圖音的玩家驗收；**由玩家本人親玩，Node PASS 不等同完整局 PASS**。下方 10/26 交接卡所有「十融合必修」描述一律視為歷史，不得拿來恢復派工。
+
+
+
+## ★ 使用者親自試玩：AGY/Codex 立即遵守（2026-10-26 最新覆蓋）
+
+使用者明確取消所有預設由 Agent 操作遊戲的任務。**AGY 只負責寫／改／接圖，Codex 按需解技術問題；不再用 Chrome/Playwright/自動按鍵跑送貨、Boss 長局、20配送或八格視口。** 只在使用者另外明確要求時才讓 Agent 親自操作。允許 node --check／局部單元測試／短資產路徑檢查等輕量工程自檢，不能把這類測試說成遊玩驗收。
+
+原 R20/R21 的 QA harness 卡住、反覆修改自動腳本不再是主線。原 R21 測試結果留歷史，不必再修多輪自動行走腳本。AGY 從當前未提交程式及既有缺口**轉回修產品**，交付一個可直接打開的本機 dev URL、變更摘要與要使用者親自驗的最少步驟；再依使用者回饋迭代。**未經使用者實際確認的畫面／手感／可玩完成度，標 USER_PLAYTEST_PENDING。** 不能自行 git commit/push/deploy，保護原資料。
+
+---
+
+## ★ 2026-10-26 雙 Agent 重啟交接卡（本段最新，下文皆為歷史）
+
+**新規則**：固定 AGY 主力實作與 Codex 按需審查，最多兩席。AGY 額度不足才由 Cursor／Grok Build 擇一替換；OpenCode、Kilo 暫停所有新工作。最高優先規則見 AGENTS.md。舊 R12～R21 單檔寫權已被新規則取代，不需繼續每檔重新申請；Codex 不和 AGY 同檔改動。
+
+**停工快照**：Codex w2:p1 idle598，AGY w2:p3 idle599，Kilo w2:p7 idle588，OpenCode w2:p8 原 blocked 已清除其舊會話、停止派工。HEAD a4aaa94cedf27407325cae11b05244f2c3a9c0df；大量舊未提交變更必須保留，不切工作樹、不合併發布版或清檔。本次交接沒有修改生產 JS、素材或已發布的網站。
+
+**AGY 下一個可玩任務：先夜行町**。R20 證據 scratch/r20-stage12-gameplay-agy/RECEIPT.md：正常 menu→map→night-town、玩家移動與陰影、走到屋門口按 E 取件都成功，直線導航被 house solid 擋住導致沒有送達。這不代表正常玩家真的無法繞路。R21 證據 scratch/r21-stage1-route-qa-agy/RECEIPT.md：新繞路 QA 第一次在進互動範圍前 KeyE，第二次在 menu→map 轉換 timeout，兩案皆 HARNESS_EXCEPTION／NOT_RUN，非已知產品故障。請自行使用正常實玩／既有正確入口定位真正可重現問題；必要時只修一次真 harness 錯誤，不再陷入一串 QA 反覆返工。優先完成真取件→答題送達第一筆，再連續完成自然一局、Boss 封印、六基礎主動技能與 Lv5 覺醒、御守、UI／BGM、結算與重玩（融合延期，不列 Gate），交可玩的測試入口。
+
+**第二關雨夜港町**：共用第一關正式遊玩系統後接 rain-port；特別處理港區地板、海面／碼頭、建築布局與遮擋、真圖片載入（source→decode→Canvas draw）、敵人、Boss 三相、配送／字池與結算。第二關22個 runtime 文件已存在，但不代表真完整可玩。歷史雨港場景接縫 ART_FIX、山壁 WAITING_ART、Boss候選 USER_ART_REVIEW_PENDING 要保留；未經核准不得硬升正式圖。
+
+**測試現況**：R19 判定 24/24 是 Node 級通過，正式八格仍 NOT_RUN／guard2；R20 Kilo 兩融合 VM 案因錯 API 接線失敗，不能斷言產品融合壞掉。R20 新技能卡短說明改為最多2行，獨立12/12小型測試通過；新卷軸圖片、融合御守 UI 統一和人審未完。歷史七條 console 404 不含 URL，待日常測試記錄真 URL，再按源頭修復，不派單獨 Agent 永久追蹤腳本。
+
+**Codex 任務**：只確認最新安全狀態和 AGY 的階段目標，必要時解卡；第一關可玩時審第一關，第二關可玩時審兩關完整整合。精簡更新 roadmap 頂端即可，不再大量製造 scratch/rNN 文檔或令 AGY 每換檔停筆。
+
+**待清理盤點，不是刪除清單**：scratch 第一層177子資料夾／160檔，test-results 1／1，tests 2／150，tools 2／65。新制度優先讓遊戲可玩；之後分類找出過期測試輸出、舊 Chrome profile、重複結果，再核引用／保留／清除。不可直接刪正式素材、真 QA 證據、正式測試或被引用的工具。
+
+**保護**：未核准不得 git add/commit/push/deploy/reset/clean/checkout/pull、付費生圖、動鑰匙／音訊。維持 9455 和已發布版 0e5875d／e0278e5。第三關以後及三委託／三路線新系統延後。
+
+---
+
+
 ## 2026-10-15 03:26 最新執行／人審更新
 
 使用者明確命令繼續派工；實查357 dirty，全部保護。Stage2石木過渡v2 USER_APPROVED（非整關／部署），Stage1切鏡 USER_REPORTED_VISUAL_OK（非跨設備FPS）；Stage3拒巨石庭院＋神社候選貼花／構圖／預覽，現役神樂殿／古櫻／三地面保留；Stage4拒黑暗竹泥／巨大落葉／組合預覽，其他怪物母版未判定保留。AGY獨占整理，不由Codex/Grok代做。
@@ -10,7 +123,7 @@ Herdr已真派：AGY w7:p4 working30 M15-01，獨占art候選移轉／metadata�
 
 ## 2026-10-15 01:51 明確復工（最高現行）
 
-使用者解除停工並授權 Codex w7:p1 持續總監派工／驗收。現場 w7:p3 獨立 Grok Build Grok4.7 High 優先 coding，w7:p2 Kiro Sonnet4.5 High 獨立 QA，w7:p4 AGY Gemini3.8 Flash High 隔離規格；唯一票源為 [Project master](roadmap-execution-board-20261014.md) E15 區。Cursor 全面禁用、Space／Muse 待額度；Grok 真 rate limit 才交接給已確認模型／路由的 Kilo Gateway NVIDIA Nemotron3 Ultra Free。
+使用者解除停工並授權 Codex w7:p1 持續總監派工／驗收。現場 w7:p3 獨立 Grok Build Grok4.7 High 優先 coding，w7:p2 Kiro Sonnet4.5 High 獨立 QA，w7:p4 AGY Gemini3.8 Flash High 隔離規格；唯一票源為 [Project master](archive/2026-10/roadmap-execution-board-20261014.md) E15 區。Cursor 全面禁用、Space／Muse 待額度；Grok 真 rate limit 才交接給已確認模型／路由的 Kilo Gateway NVIDIA Nemotron3 Ultra Free。
 
 實查350 dirty。E22-05 已在停工前完成且獨立contrast15 PASS，現役兩檔 SHA 與 e22-codex-c4-focused-qa 報告一致；舊看板 working680 已過時，不重做。C4 core24／C3 scoped9 可按快照復用，P0 NOT_REPRODUCED／真機人審OPEN。首輪 E15-01 Grok 修 R16 三處 harness 根因、E15-02 Kiro 新獨立 C5 tests、E15-03 AGY 唯讀候選盤點。音訊／TTS／BGM／KEY 不讀不執行不改，不接未批准圖，不 commit／push／deploy／reset／clean／checkout，不宣稱跨重啟常駐。
 
@@ -52,7 +165,7 @@ R16 C4為12RED/2PASS未實作基線，不是C3 FAIL。契約已定 applied:true/
 
 ## 2026-10-14 17:04 起 Codex 執行總監／現行 owner
 
-使用者授權 Codex 自主連續調度與最終檢验，取代08:14待命策略。唯一操作狀態見 [執行看板](roadmap-execution-board-20261014.md)；下方為保留的歷史快照，不可拿舊 PASS 覆蓋最新拒收。
+使用者授權 Codex 自主連續調度與最終檢验，取代08:14待命策略。唯一操作狀態見 [執行看板](archive/2026-10/roadmap-execution-board-20261014.md)；下方為保留的歷史快照，不可拿舊 PASS 覆蓋最新拒收。
 
 | Agent／實查 pane | 現行範圍 | 真實派工證據 |
 |---|---|---|

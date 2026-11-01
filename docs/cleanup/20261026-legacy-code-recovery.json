@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-26",
+  "source_dirs": [
+    "I:\\Projects\\yokai-delivery-backup-20261023",
+    "I:\\Projects\\yokai-delivery-archive-20261023"
+  ],
+  "zip": ".cleanup-archive/legacy-source-recovery-20261023.zip",
+  "sha256": "20eadcbc71582065d811cce40ebc50107322df214dd7f9deeab4b2314670202b",
+  "files": 498,
+  "source_uncompressed_MB": 10.67,
+  "archive_MB": 3.5,
+  "notes": "Cold recovery of source/docs/tests/tools only; excludes media, QA browser profiles, scratch, artifacts, secrets by extension. Current primary source unaffected; originals saved separately."
+}

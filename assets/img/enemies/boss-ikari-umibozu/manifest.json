@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "enemy_id": "boss-ikari-umibozu",
+  "stage": "rain-port",
+  "status": "USER_APPROVED_FOR_RUNTIME",
+  "count": 2,
+  "original_manifest": "assets/img/rain-port/enemies/runtime-manifest-20261014.json",
+  "sprites": [
+    {
+      "slot": "boss_ikari_umibozu_idle",
+      "file": "assets/img/enemies/boss-ikari-umibozu/boss-ikari-umibozu__sprite__idle.webp",
+      "legacy_file": "assets/img/rain-port/enemies/boss_ikari_umibozu_idle.webp",
+      "sha256": "5a90500d7b5528ec19d08726ca6e67b1f432e1ef9a5f8573e57d453e6c651d29",
+      "runtime_anchor": {
+        "x": 175,
+        "y": 320,
+        "type": "water_baseline_anchor"
+      }
+    },
+    {
+      "slot": "boss_ikari_umibozu_attack",
+      "file": "assets/img/enemies/boss-ikari-umibozu/boss-ikari-umibozu__sprite__attack.webp",
+      "legacy_file": "assets/img/rain-port/enemies/boss_ikari_umibozu_attack.webp",
+      "sha256": "6abeef6cbd3c6cb1585b193375b9159d2b1888b5e270007cc0f83b3fde8e162c",
+      "runtime_anchor": {
+        "x": 175,
+        "y": 320,
+        "type": "water_baseline_anchor"
+      }
+    }
+  ]
+}

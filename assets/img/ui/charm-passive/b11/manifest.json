@@ -1,0 +1,15 @@
+{
+  "status": "LOCAL_TRIAL_PENDING_USER_ART_REVIEW",
+  "note": "Actual gameplay blank background raster assets, runtime draws all charms/text/selection; no baked mockup",
+  "card_ids": [
+    "power",
+    "step",
+    "gather",
+    "cadence",
+    "reach",
+    "guard"
+  ],
+  "feature": "feature.webp",
+  "hud": "hud_wisps.webp",
+  "content": "no text; dynamic game UI overlays"
+}

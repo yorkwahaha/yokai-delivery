@@ -34,7 +34,7 @@
 
   function getBossTheme(e) {
     // 優先從 STAGE_ENEMY.bossTheme 取得，其次從 e.bossTheme（相容舊碼）
-    const stageEnemy = window.STAGE_ENEMY;
+    const stageEnemy = root.STAGE_ENEMY;
     return (stageEnemy && stageEnemy.bossTheme) || e.bossTheme || 'town';
   }
 
@@ -42,7 +42,7 @@
     const theme = getBossTheme(e);
     const pool = BOSS_THEME_POOLS[theme] || BOSS_THEME_POOLS.town;
     // 雨港專屬：以 stageId 判定，僅 rain-port 啟用 tidalFan/rainVortex
-    const stageId = (window.STAGE && window.STAGE.id) || (e && e.stageId) || '';
+    const stageId = (root.STAGE && root.STAGE.id) || (e && e.stageId) || '';
     const isRainPort = stageId === 'rain-port';
     const rainPortPool = isRainPort ? BOSS_THEME_POOLS['rain-port'] : null;
     const effectivePool = rainPortPool || pool;
@@ -72,23 +72,48 @@
     return pool[step % pool.length];
   }
 
-  function start(e, player) {
+  function start(e, player, options = {}) {
     if (!e || (e.hp || 0) <= 0 || e.hazard || e.shield) return false;
 
     const kind = nextAttackKind(e);
     const p = player || { x: 0, y: 0 };
-    const angle = Math.atan2(p.y - e.y, p.x - e.x);
+    // Night-town Boss is drawn with its contact feet 44 upright pixels below
+    // e.y. Its charge hazard and hit sweep must share the projected foot point.
+    // Other stages and isolated AI tests keep their existing zero offset.
+    const footOffsetY = kind === 'charge' && options.stageId === 'night-town'
+      ? Math.max(0, Number(options.bossVisualFootOffsetY) || 0) : 0;
+    const angle = Math.atan2(p.y - e.y - footOffsetY, p.x - e.x);
 
     if (kind === 'charge') {
+      // Compute one physical path shared by the preview endpoint and the dash.
+      // Clip to buildings up-front so a blocked dash never previews past a wall.
+      const chargeSpeed = options.stageId === 'night-town' ? 1240 : 620;
+      const maxTravel = chargeSpeed * (options.stageId === 'night-town' ? 0.70 : 0.65);
+      let reachable = maxTravel;
+      if (options.stageId === 'night-town' && typeof options.blocked === 'function') {
+        const cos = Math.cos(angle), sin = Math.sin(angle);
+        const traceStep = 8;
+        for (let d = traceStep; d <= maxTravel + traceStep; d += traceStep) {
+          const trial = Math.min(d, maxTravel);
+          if (options.blocked(e.x + cos * trial, e.y + sin * trial)) {
+            reachable = Math.max(0, trial - traceStep); break;
+          }
+          if (trial >= maxTravel) break;
+        }
+      }
       e.hazard = {
         kind: 'charge',
         phase: 'telegraph',
         t: 0,
         duration: 1.0,
         x: e.x,
-        y: e.y,
+        y: e.y + footOffsetY,
         angle,
-        r: 52,
+        footOffsetY,
+        length: reachable,
+        travelled: 0,
+        speed: chargeSpeed,
+        r: options.stageId === 'night-town' ? 76 : 52,
         hit: false
       };
     } else if (kind === 'ring') {
@@ -207,7 +232,7 @@
     let started = false;
     const p = player || { x: 0, y: 0 };
     if (!e.hazard && (e.attackCd || 0) <= 0 && dist(e, p) < 340) {
-      started = start(e, p);
+      started = start(e, p, options);
     }
 
     if (!e.hazard) {
@@ -217,6 +242,7 @@
     const h = e.hazard;
     let hit = null;
     let finished = false;
+    const previousT = h.t;
     h.t += dt;
 
     if (h.phase === 'telegraph') {
@@ -225,9 +251,10 @@
       if (h.t >= h.duration) {
         h.phase = 'active';
         h.t = 0;
-        if (h.kind === 'charge') h.duration = 0.65;
+        if (h.kind === 'charge') h.duration = options.stageId === 'night-town' ? 0.70 : 0.65;
         else if (h.kind === 'ring') { h.duration = 0.7; h.r = 80; h.prevR = 80; }
         else if (h.kind === 'tide') { h.duration = 1.0; h.progress = -280; }
+        else if (h.kind === 'rainVortex') { h.duration = 0.90; }
         else { h.duration = 0.15; }
       }
       return { hit: null, started, finished: false };
@@ -248,7 +275,9 @@
           h.duration = 1.35;
         }
       } else if (h.kind === 'charge') {
-        const totalTravel = 620 * dt;
+        const speed = Number.isFinite(h.speed) ? h.speed : 620;
+        const limit = Number.isFinite(h.length) ? h.length : speed * h.duration;
+        const totalTravel = Math.min(speed * dt, Math.max(0, limit - (h.travelled || 0)));
         const steps = Math.max(1, Math.ceil(totalTravel / 10));
         const stepDist = totalTravel / steps;
         const cos = Math.cos(h.angle), sin = Math.sin(h.angle);
@@ -263,14 +292,16 @@
           }
           e.x = nx;
           e.y = ny;
+          h.travelled = (h.travelled || 0) + stepDist;
         }
 
-        if (!h.hit && dist(e, p) <= h.r) {
+        const contactY = e.y + (h.footOffsetY || 0);
+        if (!h.hit && dist({ x: e.x, y: contactY }, p) <= h.r) {
           h.hit = true;
-          hit = { damage: 18, kind: 'charge', x: e.x, y: e.y };
+          hit = { damage: 18, kind: 'charge', x: e.x, y: contactY };
         }
 
-        if (wallHit || h.t >= h.duration) {
+        if (wallHit || (h.travelled || 0) >= limit - 0.01 || h.t >= h.duration) {
           h.phase = 'recovery';
           h.t = 0;
           h.duration = 1.35;
@@ -330,9 +361,21 @@
         const dx = p.x - h.x, dy = p.y - h.y;
         const distToCenter = Math.hypot(dx, dy);
         const angleToPlayer = Math.atan2(dy, dx);
-        const angleDiff = Math.abs(normalizeAngle(angleToPlayer - sweepAngle));
+        // 前幀到本幀掃過的整段扇面都需要判定，否則低 FPS 可直接跳過玩家。
+        const prevU = Math.min(1, previousT / h.duration);
+        const prevAngle = h.startAngle + (h.endAngle - h.startAngle) * prevU;
+        const travel = normalizeAngle(sweepAngle - prevAngle);
+        const relative = normalizeAngle(angleToPlayer - prevAngle);
+        const halfWidth = Math.PI / 12;
+        const inSweptFan = travel >= 0
+          ? relative >= -halfWidth && relative <= travel + halfWidth
+          : relative <= halfWidth && relative >= travel - halfWidth;
+        // 掃掠厚度不可超出 renderer 裁切的整體預警扇面。
+        const centerAngle = (h.startAngle + h.endAngle) / 2;
+        const inFan = Math.abs(normalizeAngle(angleToPlayer - centerAngle))
+          <= Math.abs(h.endAngle - h.startAngle) / 2 + 1e-9;
 
-        if (distToCenter <= fanR + 30 && angleDiff <= Math.PI / 12 && !h.hit) {
+        if (distToCenter <= fanR + 30 && inFan && inSweptFan && !h.hit) {
           h.hit = true;
           hit = { damage: 18, kind: 'tidalFan', x: p.x, y: p.y };
         }
@@ -346,17 +389,18 @@
         // 雨夜渦流/水柱：預警後多水柱交錯落下
         const u = Math.min(1, h.t / h.duration);
 
-        if (u < 0.5) {
-          // 預警階段：只顯示落點標記
-        } else {
-          // 落下階段：水柱逐個激活
-          const fallProgress = (u - 0.5) * 2;
-          for (const v of h.vortexes) {
-            const vDist = dist(p, v);
-            if (vDist <= v.r + 20 && !v.hit) {
-              v.hit = true;
-              hit = { damage: 16, kind: 'rainVortex', x: v.x, y: v.y };
-            }
+        // 後半段按水柱序號錯峰落下；每根各自有進度，單幀最多判一次命中。
+        const vortices = h.vortexes || [];
+        const windowSize = 0.5 / Math.max(1, vortices.length);
+        for (let i = 0; i < vortices.length; i++) {
+          const v = vortices[i];
+          const activation = 0.5 + i * windowSize;
+          v.fallProgress = Math.max(0, Math.min(1, (u - activation) / windowSize));
+          // 與水柱 renderer 的可見期間一致；落下前及消退後都不能傷人。
+          if (!(v.fallProgress > 0 && v.fallProgress < 1) || v.hit || hit) continue;
+          if (dist(p, v) <= v.r + 20) {
+            v.hit = true;
+            hit = { damage: 16, kind: 'rainVortex', x: v.x, y: v.y };
           }
         }
 
