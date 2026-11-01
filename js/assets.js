@@ -2045,9 +2045,21 @@ function loadArt(n, priority = "high") {
   const img = new Image();
   img.fetchPriority = priority;
   img.decoding = "async";
+  // Only required scene/map/skill imagery gets a timeout.
+  const essential = gameAssetNames().includes(n) || OVERWORLD_MAP_ASSET_NAMES.includes(n);
+  let timeoutId = null;
+  const stopTimeout = () => {
+    if (timeoutId !== null && typeof clearTimeout === "function") clearTimeout(timeoutId);
+    timeoutId = null;
+  };
   img.onload = () => {
+    stopTimeout();
     ART[n] = img;
-    markSettled(n);
+    // Accept late approved art even if loading timed out earlier.
+    failedArt.delete(n);
+    artRetryAfter.delete(n);
+    if (settledArt.has(n)) updateReadiness();
+    else markSettled(n);
     if (n === "cover" && !gameArtStarted && !mapArtStarted) window.loadMapArt();
   };
   img.onerror = () => {
@@ -2059,10 +2071,20 @@ function loadArt(n, priority = "high") {
     }
     img.onerror = () => {
       console.warn(`[Assets] 圖片 ${n} 載入失敗，將使用程式繪製備援。`);
+      stopTimeout();
       markFailedForRetry(n);
     };
     img.src = `assets/img/${n}.${n === "cover" ? "jpg" : "png"}`;
   };
+  if (essential && typeof setTimeout === "function") {
+    timeoutId = setTimeout(() => {
+      timeoutId = null;
+      if (!settledArt.has(n)) {
+        console.warn("[Assets] Essential image timed out: " + n);
+        markFailedForRetry(n);
+      }
+    }, 10000);
+  }
   const originalArtPath = SCENERY_ASSET_KEYS.has(n)
     ? `assets/img/scenery/${n}.webp?v=20261010-loading3`
     : YOKAI_ASSET_KEYS.has(n)
@@ -2091,12 +2113,23 @@ function loadHudArt(key) {
   const img = new Image();
   img.fetchPriority = 'high';
   img.decoding = 'async';
-  img.onload = () => { ART[key] = img; markSettled(key); };
-  img.onerror = () => {
-    img.onerror = () => { console.warn(`[Assets] ${key} 載入失敗。`); markFailedForRetry(key); };
-    img.src = `assets/img/ui/${key}.png`;
+  const timer = typeof setTimeout === 'function'
+    ? setTimeout(() => { if (!settledArt.has(key)) markFailedForRetry(key); }, 10000) : null;
+  const stop = () => { if (timer !== null && typeof clearTimeout === 'function') clearTimeout(timer); };
+  img.onload = () => {
+    stop(); ART[key] = img;
+    failedArt.delete(key); artRetryAfter.delete(key);
+    if (settledArt.has(key)) updateReadiness(); else markSettled(key);
   };
-  const hudPath = `assets/img/ui/${key}.webp?v=20261010-loading3`;
+  img.onerror = () => {
+    img.onerror = () => {
+      stop();
+      console.warn('[Assets] HUD unavailable: ' + key);
+      markFailedForRetry(key);
+    };
+    img.src = 'assets/img/ui/' + key + '.png';
+  };
+  const hudPath = 'assets/img/ui/' + key + '.webp?v=20261010-loading3';
   img.src = window.ASSET_PATHS?.resolve(hudPath) || hudPath;
 }
 // One manifest resolver for BOTH combat renderers and UI cards.
@@ -2145,9 +2178,20 @@ function loadSkillImage(key, file, version) {
   const img = new Image();
   img.fetchPriority = "high";
   img.decoding = "async";
-  img.onload = () => { ART[key] = img; skillLevelLoads.set(key, "ready"); markSettled(key); };
+  const timer = typeof setTimeout === "function" ? setTimeout(() => {
+    if (!settledArt.has(key)) {
+      skillLevelLoads.set(key, "missing");
+      markFailedForRetry(key);
+    }
+  }, 10000) : null;
+  const stop = () => { if (timer !== null && typeof clearTimeout === "function") clearTimeout(timer); };
+  img.onload = () => {
+    stop(); ART[key] = img; skillLevelLoads.set(key, "ready");
+    failedArt.delete(key); artRetryAfter.delete(key);
+    if (settledArt.has(key)) updateReadiness(); else markSettled(key);
+  };
   img.onerror = () => {
-    skillLevelLoads.set(key, "missing"); markSettled(key, true);
+    stop(); skillLevelLoads.set(key, "missing"); markSettled(key, true);
     console.warn('[Assets] Skill raster unavailable:', key, img.src);
   };
   skillLevelLoads.set(key, "loading");

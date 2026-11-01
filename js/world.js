@@ -324,7 +324,10 @@
         // 不再使用通用 HOUSE_LAYOUTS + SPOTS（舊座標對錯會讓左右雙屋疊在同高度）。
         // 房屋只住在 PORT_ROW 那一列 Y chunk：別列不生成，避免同 X 重複房屋。
         const plan = cy === PORT_ROW ? portHousePlan(cx) : [];
-        const wordOffset = packWords.length > 1 ? hashCoords(cx, PORT_ROW, seed) % packWords.length : 0;
+        // Cycle within each pack appearance instead of using correlated
+        // hash modulo 3, which could hide a teaching word for many chunks.
+        const packCycle = Math.floor((cx + layoutOffset) / packIds.length);
+        const wordOffset = ((packCycle % packWords.length) + packWords.length) % packWords.length;
         // 先算好每棟的落點，再統一處理「北側背景屋淨空」與同 chunk 兩棟的高度差。
         const slots = [];
         for (let i = 0; i < plan.length; i++) {

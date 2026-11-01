@@ -1,3 +1,16 @@
+## 2026-11-02 第三輪雙 Agent 稽核：正式版修復候選（待部署／玩家實玩）
+
+- 基準：GitHub Pages \`origin/master\` 的 \`68e32e8\`。在既有 dirty 工作樹上修改，不重置／不批次清理；正式部署使用獨立 Git index。
+- **P0 雨港配送**：\`makeOrder\` 及 \`rerollPickupsTooCloseTo\` 可查詢 \`WORLD_STATE.getChunk\` 的未顯示鄰近屋，不再只看 5 個活躍 X chunk，原有硬性 ≥3 屋列／距離上限保留；既定取送屋由 \`syncWorld\` pin。受控連續六筆配送回歸通過。自動補單維持每隔數秒的既有設計，不能要求同一幀補齊。
+- **P1 添燈香油**：\`hurt\` 在合法 \`levelup\` 選卡內仍可造成傷害，勝利分身等終局態繼續免傷。若升級被動擊殺尾王，選卡結束後補做勝利切換。
+- **Boss 反噬**：期間另一隻封印 Boss 不能凍結反噬倒數，也不能在禁攻期間繼續提交封印答案；現有 \`bossQ = bs.quiz\` 已會逐幀切換目標，不做重複重構。
+- **正式版 JS 快取**：\`index.html\` 的 game/world/assets/store/ui 五個 script URL 統一更新查詢版本 \`20261102-r3\`，防止瀏覽器拿舊腳本混版；不重建媒體 SW 快取。
+- **P1 卡住 Loading**：必要核心圖、HUD、啟動武器圖及地圖素材 10 秒逾時結算並保留晚到回填；非必要場景不加入 \`ART_READY\`。
+- **局部問題**：雨港單字依詞包出現週期輪替，鄰近 23 chunk 覆蓋 20/20；靈針 Lv5 連射期間不提前扣冷卻；遊戲結束／幀錯誤時清理飛針與佇列；命中停頓不把同一個布林值套用全部低幀率子步。終王勝利後不產生額外無法吸收的尾端 2XP 珠。
+- **稽核修正**：第三輪報告把 \`houseColumnsBetween\` 說成只數活躍 houses，實際已跨所有真 chunk；御守和 XP 也不是同一個掉落迴圈，\`updateCharmDrops\` 後已存在狀態早退，且 \`offerUp\` 在 \`state=play\` 的每個 update 尾部判斷。沒有為報告誤述增設重複守衛。
+- **未改**：存檔世代壓縮／壞段資料救援（高風險）；天狐雷三雲傷害疊加和陰陽符貼身集火（技能平衡待玩家確認）；雨港多層天氣效能（需實機量測）；水王三張未核准美術仍 BLOCKED；\`game.js\` 未拆。正式人工兩關實玩仍為 USER_PLAYTEST_PENDING。
+- 新增 \`tests/third-audit-regressions-20261102.test.cjs\`；不把過期 UI 斷言失敗視為本輪產品回歸。
+
 ## 2026-11-01 第二輪 Gemini 4 Argon／Grok 4.7 實修（正式版待實機驗收）
 
 - **P0 房屋與詞覆蓋**：`js/world.js` 的夜行町三角式 `HOUSE_LAYOUTS` 不再使用跨列的 `SPOTS` X 重疊判斷；每個 chunk 恢復三間屋。雨港仍維持一至兩間屋。兩關所有三詞 pack 也進行 `hashCoords` 輪替，避免第 3 詞永遠沒掛屋。正式詞庫實測 20/20、20/20 均有對應屋，新增 `tests/second-audit-regressions.test.cjs`。

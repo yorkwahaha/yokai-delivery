@@ -102,6 +102,25 @@
     return xs.size;
   }
 
+  // Rain-port uses one Y row and only five *visible* X chunks. For long
+  // deliveries sample the deterministic nearby chunks, even if not rendered.
+  // Order endpoints stay pinned by syncWorld() after an order is accepted.
+  function portHousesNear(...centers) {
+    if (STAGE.id !== "rain-port" || !WORLD_STATE) return houses;
+    const found = new Map();
+    const width = WORLD_STATE.chunkWidth;
+    for (const center of centers) {
+      if (!Number.isFinite(center)) continue;
+      for (let cx = Math.floor((center - 3600) / width);
+           cx <= Math.floor((center + 3600) / width); cx++) {
+        for (const h of WORLD_STATE.getChunk(cx, 0).houses) {
+          if (Math.abs(h.x - center) <= 3600) found.set(h.id, h);
+        }
+      }
+    }
+    return [...found.values()];
+  }
+
   // 配送完成後的狀態生命週期：把仍待取貨、但取貨點離「剛送達點」太近的委託就地重選取貨屋。
   // 只動尚未被玩家取貨的委託（不在手上、也不是當下互動中的那一張）；重選不到就保留原委託，
   // 寧可維持原委託也不會發一張同屋／過近的取貨。
@@ -132,7 +151,7 @@
       const duplicate = (reserved.get(oldId) || 0) > 1;
       if (!duplicate && colsBetween(o.from.x, referenceX) >= minCols) continue;
       release(oldId); // Temporarily release ONLY this order, not other reservations.
-      const cands = houses.filter(h => {
+      const cands = portHousesNear(referenceX, o.to?.x).filter(h => {
         if (!h || h.id === oldId) return false;
         if (o.to && h.id === o.to.id) return false;
         if ((reserved.get(h.id) || 0) > 0) return false;
@@ -2352,7 +2371,7 @@
     // 開局直接從已載入的 3600px 屋列選符合硬性門檻的取件點。
     const nearbyHouses = houses.filter(h => dist(P, h) < 1400);
     const candidateHouses = STAGE.id === "rain-port"
-      ? houses.filter(h => dist(P, h) <= 3600)
+      ? portHousesNear(P.x, lastDeliveryX)
       : nearbyHouses.length >= 4 ? nearbyHouses : houses.filter(h => dist(P, h) < 2200);
     if (!candidateHouses.length) return;
 
@@ -2441,8 +2460,9 @@ if (isRainPort) {
 
       // 送達點：遠離取件點（3~8屋跨度，常見 4~7）
       const minH2 = 900, maxH2 = 3200, comMinH2 = 1200, comMaxH2 = 2800;
-      const reachable2 = houses.filter(h => h !== from && Math.abs(h.x - from.x) >= minH2 && Math.abs(h.x - from.x) <= maxH2 && colsBetween(h.x, from.x) >= minBetweenHouses);
-      const pool2 = reachable2.length ? reachable2 : houses.filter(h => h !== from && Math.abs(h.x - from.x) >= 700 && Math.abs(h.x - from.x) <= 3600 && colsBetween(h.x, from.x) >= minBetweenHouses);
+      const destinationHouses = portHousesNear(from.x);
+      const reachable2 = destinationHouses.filter(h => h.id !== from.id && Math.abs(h.x - from.x) >= minH2 && Math.abs(h.x - from.x) <= maxH2 && colsBetween(h.x, from.x) >= minBetweenHouses);
+      const pool2 = reachable2.length ? reachable2 : destinationHouses.filter(h => h.id !== from.id && Math.abs(h.x - from.x) >= 700 && Math.abs(h.x - from.x) <= 3600 && colsBetween(h.x, from.x) >= minBetweenHouses);
       if (!pool2.length) return;
       const far2 = pool2.filter(h => Math.abs(h.x - from.x) >= comMinH2);
       const near2 = pool2.filter(h => Math.abs(h.x - from.x) < comMinH2);
@@ -3121,6 +3141,9 @@ if (isRainPort) {
       AUDIO.skillLv5?.();
     }
     FX.levelUp(P.x, P.y);
+    // A level-up passive can defeat the final Boss before this modal closes.
+    // Its death cannot start victory while state is still "levelup".
+    if (checkVictoryCondition()) startVictorySequence();
     return { ok: true, revision: buildRevision, level, id: choice.id };
   }
 
@@ -3281,7 +3304,7 @@ if (isRainPort) {
   let lastBladeImpactAt = -Infinity;
   function hurt(e, dmg, isCrit = false, fromShatter = false, impactType = "") {
     // Boss 封印反噬期間，即使有延遲傷害也不可造成任何玩家攻擊傷害。
-    if (state !== "play" || e.dying || e.hp <= 0 || bossCurseRemaining > 0) return;
+    if ((state !== "play" && state !== "levelup") || e.dying || e.hp <= 0 || bossCurseRemaining > 0) return;
     if (e.shield) {
       e.flash = 0.08;
       if (!e.shieldFeedbackUntil || elapsed >= e.shieldFeedbackUntil) {
@@ -3360,7 +3383,7 @@ if (isRainPort) {
     const gemCount = 1;
     // 第二關 Normal 只有普通小怪改為 3 XP；Boss 與誤配妖仍為原數值。
     const gemValue = isRainPortNormalMode() && e.type !== "boss" && !isMis ? 3 : 2;
-    for (let i = 0; i < gemCount; i++) {
+    if (state === "play") for (let i = 0; i < gemCount; i++) {
       dropGem(e.x + (Math.random() - 0.5) * 28, e.y + (Math.random() - 0.5) * 28, gemValue);
     }
     FX.death(e.x, e.y, isMis ? "#c98cff" : "#bce9ff", e.type === "boss");
@@ -3444,7 +3467,7 @@ if (isRainPort) {
     job = null;
     inter = null;
     enemyBullets = [];
-    winds = []; ghosts = []; proj = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; dragonShots = []; dragonScorches = []; splitblasts = []; duoShockwaves = []; inkfireMarks = [];
+    winds = []; ghosts = []; proj = []; needles = []; needleQueued = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; dragonShots = []; dragonScorches = []; splitblasts = []; duoShockwaves = []; inkfireMarks = [];
     fusionEffects = []; fusionEffects._idCounter = 0;
     AUDIO.fadeOutMusic(700);
     window.dispatchEvent(new Event('gamepause'));
@@ -3480,6 +3503,7 @@ if (isRainPort) {
     dashT = 0; playerAttackPoseT = 0;
     keys.delete("dash");
     gems = [];
+    needles = []; needleQueued = [];
     bossQ = null;
     job = null;
     orders = [];
@@ -3814,7 +3838,7 @@ if (isRainPort) {
 
   function answerBoss(i) {
     if (state !== "play") return;
-    if (!bossQ || bossQ.lock > 0) return;
+    if (!bossQ || bossQ.lock > 0 || bossCurseRemaining > 0) return;
     // Match the submitted quiz to its owning Boss. The word/proximity fallback
     // preserves support for the older isolated quiz fixtures without a .quiz link.
     const bs = enemies.find(e => e.type === "boss" && e.shield && e.hp > 0 && e.quiz === bossQ)
@@ -5000,7 +5024,7 @@ if (isRainPort) {
 
     // 3. 天狐靈針 (Needles) - 面朝方向多發穿甲破魔靈針
     if (WL.needle > 0) {
-      wT.needle -= dt;
+      if (!needleQueued.length) wT.needle -= dt;
       if (wT.needle <= 0 && needleQueued.length === 0) {
         const spec = resolveAttackSpec("needle", WL.needle, combatBuildState());
         wT.needle = wMax.needle = spec.cooldown;
@@ -5958,6 +5982,8 @@ function spawnEnemy(tier, rad, ang, ring) {
         }
       }
     }
+    // Another sealed Boss must not pause a wrong-answer curse.
+    if (bossCurseRemaining > 0) quizNear = null;
     const safeRead = !!(job?.reading || quizNear);
     // 只有戰場正常推進時才倒數；Boss 答題暫停、交貨答題期間不抵銷反噬。
     if (!safeRead && bossCurseRemaining > 0) bossCurseRemaining = Math.max(0, bossCurseRemaining - dt);
@@ -8595,7 +8621,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     tutorial = null; bossQ = null; job = null; inter = null;
     orders = []; enemies = []; gems = []; texts = []; rings = [];
-    proj = []; needles = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; splitblasts = []; duoShockwaves = []; inkfireMarks = []; enemyBullets = [];
+    proj = []; needles = []; needleQueued = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; splitblasts = []; duoShockwaves = []; inkfireMarks = []; enemyBullets = [];
     fusionEffects = []; fusionEffects._idCounter = 0;
     victorySeq = null; lampSeq = null; finalBossEnt = null;
     FX.reset(); SKILLFX.reset(); RENDERER.clearShake();
@@ -8715,7 +8741,7 @@ function spawnEnemy(tier, rad, ang, ring) {
       simulationCarry = Math.min(0.2, simulationCarry + wallDt);
       for (let stepIndex = 0; stepIndex < 4 && simulationCarry > 0.000001; stepIndex++) {
         const stepDt = Math.min(0.05, simulationCarry);
-        update(stepDt, hitStopped);
+        update(stepDt, hitStopped && stepIndex === 0);
         simulationCarry = Math.max(0, simulationCarry - stepDt);
         if (state !== "play") { simulationCarry = 0; break; }
       }
