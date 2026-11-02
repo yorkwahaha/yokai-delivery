@@ -265,6 +265,7 @@ const S2_ART_PROD_CACHE = {
   environment: [],
   manifest: null,
   loaded: false,
+  finished: false,
   loadError: null
 };
 
@@ -277,6 +278,7 @@ async function loadS2ArtProdAssets() {
   if (s2ArtProdLoadingPromise) return s2ArtProdLoadingPromise;
 
   const generation = s2ArtProdGeneration;
+  S2_ART_PROD_CACHE.finished = false;
   s2ArtProdLoadingPromise = (async () => {
     try {
       const manifest = await loadS2ArtProdManifest();
@@ -317,8 +319,21 @@ async function loadS2ArtProdAssets() {
           if (index >= attempts.length) return resolve({ img: null, ok: false });
           const img = new Image();
           img.decoding = "async";
-          img.onload = () => resolve({ img, ok: true });
-          img.onerror = next;
+          let done = false;
+          const timer = typeof setTimeout === "function" ? setTimeout(() => {
+            if (done) return;
+            done = true;
+            next();
+          }, 9000) : null;
+          const finish = success => {
+            if (done) return;
+            done = true;
+            if (timer !== null && typeof clearTimeout === "function") clearTimeout(timer);
+            if (success) resolve({ img, ok: true });
+            else next();
+          };
+          img.onload = () => finish(true);
+          img.onerror = () => finish(false);
           img.src = attempts[index++];
         };
         next();
@@ -342,64 +357,73 @@ async function loadS2ArtProdAssets() {
         return result.ok;
       };
       const baseLoaded = await Promise.all([primeBase(baseStone), primeBase(baseWood)]);
+      // Do not reveal the approved scene piece-by-piece while other assets
+      // are still downloading. Reveal it atomically after the full batch.
       if (baseLoaded.every(Boolean)) {
-        S2_ART_PROD_CACHE.loaded = true;
         try { window.RENDERER?.invalidateGroundCache?.(); } catch {}
       }
       let anyLoaded = baseLoaded.some(Boolean);
+      // Bound concurrent decoding/network requests; a serial waterfall
+      // can visibly replace many buildings one by one on mobile.
+      const loadGroup = async (items, visitor) => {
+        let next = 0;
+        await Promise.all(Array.from({length:Math.min(8,items.length)},async()=>{
+          while(next<items.length) await visitor(items[next++]);
+        }));
+      };
       // Load stone variants
-      for (const tile of S2_ART_PROD_CACHE.tiles.stoneVariants) {
+      await loadGroup(S2_ART_PROD_CACHE.tiles.stoneVariants, async tile => {
         const srcWebp = tile.path_webp || (tile.path && tile.path.endsWith('.webp') ? tile.path : null) || tile.path;
         const srcPng = tile.path_png || (tile.path && tile.path.endsWith('.png') ? tile.path : null);
-        if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; return; }
         if (srcWebp || srcPng) {
           const result = await loadImage(srcWebp, srcPng, tile.legacy_source_path || tile.legacy_path_webp);
           tile._img = result.img;
           tile._loaded = result.ok;
           if (result.ok) anyLoaded = true;
         }
-      }
+      });
       // Load wood variants
-      for (const tile of S2_ART_PROD_CACHE.tiles.woodVariants) {
+      await loadGroup(S2_ART_PROD_CACHE.tiles.woodVariants, async tile => {
         const srcWebp = tile.path_webp || (tile.path && tile.path.endsWith('.webp') ? tile.path : null) || tile.path;
         const srcPng = tile.path_png || (tile.path && tile.path.endsWith('.png') ? tile.path : null);
-        if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; return; }
         if (srcWebp || srcPng) {
           const result = await loadImage(srcWebp, srcPng, tile.legacy_source_path || tile.legacy_path_webp);
           tile._img = result.img;
           tile._loaded = result.ok;
           if (result.ok) anyLoaded = true;
         }
-      }
+      });
       // Load transitions H
-      for (const tile of S2_ART_PROD_CACHE.tiles.transitions.h) {
+      await loadGroup(S2_ART_PROD_CACHE.tiles.transitions.h, async tile => {
         const srcWebp = tile.path_webp || (tile.path && tile.path.endsWith('.webp') ? tile.path : null) || tile.path;
         const srcPng = tile.path_png || (tile.path && tile.path.endsWith('.png') ? tile.path : null);
-        if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; return; }
         if (srcWebp || srcPng) {
           const result = await loadImage(srcWebp, srcPng, tile.legacy_source_path || tile.legacy_path_webp);
           tile._img = result.img;
           tile._loaded = result.ok;
           if (result.ok) anyLoaded = true;
         }
-      }
+      });
       // Load transitions V
-      for (const tile of S2_ART_PROD_CACHE.tiles.transitions.v) {
+      await loadGroup(S2_ART_PROD_CACHE.tiles.transitions.v, async tile => {
         const srcWebp = tile.path_webp || (tile.path && tile.path.endsWith('.webp') ? tile.path : null) || tile.path;
         const srcPng = tile.path_png || (tile.path && tile.path.endsWith('.png') ? tile.path : null);
-        if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (tile._loaded && tile._img?.naturalWidth) { anyLoaded = true; return; }
         if (srcWebp || srcPng) {
           const result = await loadImage(srcWebp, srcPng, tile.legacy_source_path || tile.legacy_path_webp);
           tile._img = result.img;
           tile._loaded = result.ok;
           if (result.ok) anyLoaded = true;
         }
-      }
+      });
       // Load buildings
-      for (const bld of S2_ART_PROD_CACHE.buildings) {
+      await loadGroup(S2_ART_PROD_CACHE.buildings, async bld => {
         const srcWebp = bld.path_webp || (bld.path && bld.path.endsWith('.webp') ? bld.path : null) || bld.path;
         const srcPng = bld.path_png || (bld.path && bld.path.endsWith('.png') ? bld.path : null);
-        if (bld._loaded && bld._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (bld._loaded && bld._img?.naturalWidth) { anyLoaded = true; return; }
         if (srcWebp || srcPng) {
           const result = await loadImage(srcWebp, srcPng, bld.legacy_source_path || bld.legacy_path_webp);
           bld._img = result.img;
@@ -434,12 +458,12 @@ async function loadS2ArtProdAssets() {
             }
           }
         }
-      }
+      });
       // Load props
-      for (const prop of S2_ART_PROD_CACHE.props) {
+      await loadGroup(S2_ART_PROD_CACHE.props, async prop => {
         const srcWebp = prop.path_webp || (prop.path && prop.path.endsWith('.webp') ? prop.path : null) || prop.path;
         const srcPng = prop.path_png || (prop.path && prop.path.endsWith('.png') ? prop.path : null);
-        if (prop._loaded && prop._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (prop._loaded && prop._img?.naturalWidth) { anyLoaded = true; return; }
         if (srcWebp || srcPng) {
           const result = await loadImage(srcWebp, srcPng, prop.legacy_source_path || prop.legacy_path_webp);
           prop._img = result.img;
@@ -466,12 +490,12 @@ async function loadS2ArtProdAssets() {
             }
           }
         }
-      }
+      });
       // Load environment (sea, cliff)
-      for (const env of S2_ART_PROD_CACHE.environment) {
+      await loadGroup(S2_ART_PROD_CACHE.environment, async env => {
         const srcWebp = env.path_webp || (env.path && env.path.endsWith('.webp') ? env.path : null) || env.path;
         const srcPng = env.path_png || (env.path && env.path.endsWith('.png') ? env.path : null);
-        if (env._loaded && env._img?.naturalWidth) { anyLoaded = true; continue; }
+        if (env._loaded && env._img?.naturalWidth) { anyLoaded = true; return; }
         if (srcWebp || srcPng) {
           const result = await loadImage(srcWebp, srcPng, env.legacy_source_path || env.legacy_path_webp);
           env._img = result.img;
@@ -489,7 +513,7 @@ async function loadS2ArtProdAssets() {
             }
           }
         }
-      }
+      });
 
       const allParts = [
         ...S2_ART_PROD_CACHE.tiles.stoneVariants, ...S2_ART_PROD_CACHE.tiles.woodVariants,
@@ -519,7 +543,10 @@ async function loadS2ArtProdAssets() {
         console.error('[S2-ART] Load failed:', error);
       }
     } finally {
-      if (generation === s2ArtProdGeneration) s2ArtProdLoadingPromise = null;
+      if (generation === s2ArtProdGeneration) {
+        S2_ART_PROD_CACHE.finished = true;
+        s2ArtProdLoadingPromise = null;
+      }
     }
   })();
 
@@ -536,6 +563,7 @@ function resetS2ArtProdCache() {
   S2_ART_PROD_CACHE.environment = [];
   S2_ART_PROD_CACHE.manifest = null;
   S2_ART_PROD_CACHE.loaded = false;
+  S2_ART_PROD_CACHE.finished = false;
   S2_ART_PROD_CACHE.loadError = null;
 }
 
@@ -1652,7 +1680,7 @@ const STAGE_ART_RESOLVER = Object.freeze({
     if (isWater) {
       return Object.freeze({
         kind,
-        status: devGateActive ? "DEV_CANDIDATE" : "BLOCKED",
+        status: devGateActive ? (window.__ACTIVE_STAGE === "rain-port" ? "PLAYTEST_CANDIDATE" : "DEV_CANDIDATE") : "BLOCKED",
         artStatus: "ART_CANDIDATE",
         blocked: !devGateActive,
         source: devGateActive ? (def?.source || null) : null,
@@ -2441,10 +2469,12 @@ const isBossHazardArtEnabled = () => {
   const search = typeof window !== "undefined" && window.location
     ? String(window.location.search || "")
     : "";
-  // These raster spells are ART_CANDIDATE. Only explicit local dev preview may load them.
-  // Normal play must not prefetch or render unapproved water spells across stages.
-  return window.DEV_MODE?.isDevMode?.(window.location) === true
+  // These are still ART_CANDIDATE, but the owner requested runtime playtest
+  // of the three water spells in rain-port. Other stages never prefetch them.
+  const developerPreview = window.DEV_MODE?.isDevMode?.(window.location) === true
     && /(?:^|[?&])bossart=1(?=[&#]|$)/.test(search);
+  // Owner requested stage-2 water spells in normal play for visual evaluation.
+  return developerPreview || window.__ACTIVE_STAGE === "rain-port";
 };
 window.isBossHazardArtEnabled = isBossHazardArtEnabled;
 window.BOSS_HAZARD_ART_ENABLED = isBossHazardArtEnabled();
@@ -2454,6 +2484,8 @@ function loadBossHazardArt() {
   if (!isBossHazardArtEnabled() || typeof Image !== "function") return;
   const now = Date.now();
   for (const [kind, def] of Object.entries(BOSS_HAZARD_ART_DEFS)) {
+    if (window.__ACTIVE_STAGE === "rain-port" && !["tide","tidalFan","rainVortex"].includes(kind)
+        && !window.DEV_MODE?.isDevMode?.(window.location)) continue;
     if (bossHazardArtRequested.has(kind) || (bossHazardRetryAt[kind] || 0) > now) continue;
     bossHazardArtRequested.add(kind);
     window.BOSS_HAZARD_ART_STATUS[kind] = "loading";
@@ -2933,6 +2965,8 @@ function loadStageAssets(stageId) {
     if (typeof window !== "undefined" && window.isS2ArtProdEnabled?.() && window.loadS2ArtProdAssets) void window.loadS2ArtProdAssets();
     if (window.isS2GroundKitEnabled?.()) void window.loadS2GroundKit?.();
     if (typeof window !== "undefined" && window.refreshPortArt) window.refreshPortArt();
+    // Stage-only water Boss VFX; ordinary stage1 never requests these candidates.
+    window.refreshBossHazardArt?.();
     // The approved production manifest already contains cliff_north_rock.
     // Do not unconditionally report the old mountain_cliff as missing.
     if (isPortArtCandidateEnabled()) {

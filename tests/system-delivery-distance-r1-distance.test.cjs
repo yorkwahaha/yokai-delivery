@@ -252,7 +252,7 @@ test('DELIVERY-DISTANCE-R1: 20 real rain-port deliveries keep every next pickup 
   const src = fs.readFileSync(path.join(ROOT, 'js', 'game.js'), 'utf8');
   assert.match(src, /rerollPickupsTooCloseTo/, 'rerollPickupsTooCloseTo function must exist');
   assert.match(src, /colsBetween\(.*>=.*minBetweenHouses/, 'pickup distance check uses house columns');
-  assert.match(src, /const minBetweenHouses = 3;/, 'hard minimum 3 house columns');
+  assert.match(src, /const minBetweenHouses = 1;/, 'minimum one intervening house');
 });
 
 test('DELIVERY-DISTANCE-R1: a restart or a stage switch must not carry the last delivery position over', () => {
@@ -264,15 +264,15 @@ test('DELIVERY-DISTANCE-R1: a restart or a stage switch must not carry the last 
   assert.match(src, /lastDeliveryX\s*=\s*null/, 'lastDeliveryX must be cleared on restart');
 });
 
-test('DELIVERY-DISTANCE-R1: the rain-port fallback pool may never emit a sub-3-column pickup', () => {
+test('DELIVERY-DISTANCE-R1: the rain-port fallback pool may never emit a zero-column pickup', () => {
   // The rule must hold on every branch, not only on the preferred one: check the production
-  // source keeps the fallback floor at the same hard minimum (3 house columns) as the primary filter.
+  // source keeps the fallback floor at the same minimum (1 intervening house) as the primary filter.
   const src = fs.readFileSync(path.join(ROOT, 'js', 'game.js'), 'utf8');
-  assert.match(src, /const minBetweenHouses = 3;/, 'hard minimum must stay at 3 house columns');
-  const fallback = /const fallback = houses\.filter\(h => \{[\s\S]{0,400}?\}\);/.exec(src);
+  assert.match(src, /const minBetweenHouses = 1;/, 'hard minimum must stay at 3 house columns');
+  const fallback = /const fallback = openHouses\.filter\(h => \{[\s\S]{0,400}?\}\);/.exec(src);
   assert.ok(fallback, 'fallback pool must exist');
   assert.match(fallback[0], /colsBetween\(h\.x, referenceX\) >= minBetweenHouses/,
-    'the fallback pool must use the same >= 3 column floor as the primary filter');
+    'the fallback pool must use the same >= 1 intervening column floor as the primary filter');
   assert.doesNotMatch(fallback[0], /countHousesBetween/,
     'the fallback pool must not use the loaded-chunk-only counter');
 });
@@ -283,24 +283,24 @@ test('DELIVERY-DISTANCE-R1: js/game.js carries no debug-only production hook', (
   assert.doesNotMatch(src, /__testProbe/, 'production must not reference window.__testProbe');
 });
 
-test('DELIVERY-DISTANCE-R1: the primary reachable2 filter uses 900-3200 range with house-column spacing', () => {
+test('DELIVERY-DISTANCE-R1: the primary reachable2 filter uses 480-1650 range with house-column spacing', () => {
   // 驗證醉前往貨的 primary filter (reachable2) 使用正確的近遠中距離策略 (R11-B)
   const src = fs.readFileSync(path.join(ROOT, 'js', 'game.js'), 'utf8');
-  const reachable2 = /const reachable2 = houses\.filter\(h => h !== from && Math\.abs\(h\.x - from\.x\) >= minH2 && Math\.abs\(h\.x - from\.x\) <= maxH2 && colsBetween\(h\.x, from\.x\) >= minBetweenHouses\);/.exec(src);
+  const reachable2 = /const reachable2 = destinationHouses\.filter\(h => h.id !== from.id && Math\.abs\(h\.x - from\.x\) >= minH2 && Math\.abs\(h\.x - from\.x\) <= maxH2 && colsBetween\(h\.x, from\.x\) >= minBetweenHouses\);/.exec(src);
   assert.ok(reachable2, 'reachable2 pool must exist in production');
   // 验证reachable2使用变量minH2/maxH2（而非硬编码七百），且二者在同一行可用
-  assert.match(reachable2[0], /\>=\s*minH2/, 'reachable2 uses minH2 (900) min (normal candidate)');
-  assert.match(reachable2[0], /\<=\s*maxH2/, 'reachable2 uses maxH2 (3200) max (normal candidate)');
-  assert.match(reachable2[0], /colsBetween\(h\.x, from\.x\)\s*>=\s*minBetweenHouses/, 'reachable2 respects house-column spacing (>= 3) to prevent near-distance delivery regression');
+  assert.match(reachable2[0], /\>=\s*minH2/, 'reachable2 uses minH2 (480) min (normal candidate)');
+  assert.match(reachable2[0], /\<=\s*maxH2/, 'reachable2 uses maxH2 (1650) max (normal candidate)');
+  assert.match(reachable2[0], /colsBetween\(h\.x, from\.x\)\s*>=\s*minBetweenHouses/, 'reachable2 respects house-column spacing ( >= 1) to prevent near-distance delivery regression');
 });
 
-test('DELIVERY-DISTANCE-R1: the fallback pool2 filter uses 700-3600 range with same house-column spacing', () => {
+test('DELIVERY-DISTANCE-R1: the fallback pool2 filter uses 470-1750 range with same house-column spacing', () => {
   // 驗證 fallback filter (pool2) 仍然使用距離約束 + 屋列分隔，防止近距送貨回歸
   const src = fs.readFileSync(path.join(ROOT, 'js', 'game.js'), 'utf8');
-  const pool2 = /const pool2 = reachable2\.length \? reachable2 : houses\.filter\(h => h !== from && Math\.abs\(h\.x - from\.x\) >= 700 && Math\.abs\(h\.x - from\.x\) <= 3600 && colsBetween\(h\.x, from\.x\) >= minBetweenHouses\);/.exec(src);
+  const pool2 = /const pool2 = reachable2\.length \? reachable2 : destinationHouses\.filter\(h => h.id !== from.id && Math\.abs\(h\.x - from\.x\) >= 470 && Math\.abs\(h\.x - from\.x\) <= 1750 && colsBetween\(h\.x, from\.x\) >= minBetweenHouses\);/.exec(src);
   assert.ok(pool2, 'fallback pool2 must exist');
-  assert.match(pool2[0], />=\s*700/, 'fallback uses a softer 700 min (wider search)');
-  assert.match(pool2[0], /<=\s*3600/, 'fallback uses a softer 3600 max (wider search)');
-  assert.match(pool2[0], /colsBetween\(h\.x, from\.x\)\s*>=\s*minBetweenHouses/, 'fallback uses the same hard >= 3 column floor to prevent near-distance regression');
+  assert.match(pool2[0], />=\s*470/, 'fallback uses a softer 470 min (wider search)');
+  assert.match(pool2[0], /<=\s*1750/, 'fallback uses a softer 1750 max (wider search)');
+  assert.match(pool2[0], /colsBetween\(h\.x, from\.x\)\s*>=\s*minBetweenHouses/, 'fallback uses the same hard one intervening column floor to prevent near-distance regression');
   assert.doesNotMatch(pool2[0], /countHousesBetween/, 'fallback must not use loaded-chunk-only counter (ensures column-based rule)');
 });

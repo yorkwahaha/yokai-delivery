@@ -124,7 +124,7 @@
   // 配送完成後的狀態生命週期：把仍待取貨、但取貨點離「剛送達點」太近的委託就地重選取貨屋。
   // 只動尚未被玩家取貨的委託（不在手上、也不是當下互動中的那一張）；重選不到就保留原委託，
   // 寧可維持原委託也不會發一張同屋／過近的取貨。
-  function rerollPickupsTooCloseTo(referenceX, minCols = 3, minDx = 700, maxDx = 3600) {
+  function rerollPickupsTooCloseTo(referenceX, minCols = 1, minDx = 470, maxDx = 1700) {
     if (STAGE.id !== "rain-port" || referenceX === null || referenceX === undefined) return;
     const heldFrom = new Set();
     if (job?.from?.id != null) heldFrom.add(job.from.id);
@@ -157,9 +157,9 @@
         if ((reserved.get(h.id) || 0) > 0) return false;
         const dx = Math.abs(h.x - referenceX);
         if (dx < minDx || dx > maxDx) return false;
-        // 重選完整重驗原配送路線：目的地距離上下限及至少三列中間屋都不能破壞。
+        // 重選完整重驗路線：符合新版距離與至少一列中間屋。
         if (o.to && (Math.abs(h.x - o.to.x) < minDx ||
-            Math.abs(h.x - o.to.x) > 3600 || colsBetween(h.x, o.to.x) < 3)) return false;
+            Math.abs(h.x - o.to.x) > 1700 || colsBetween(h.x, o.to.x) < 1)) return false;
         return colsBetween(h.x, referenceX) >= minCols;
       });
       if (!cands.length) {
@@ -298,7 +298,10 @@
   const keys = new Set(), heldCodes = new Set();
   let state = "menu";
   const artPending = () => state === 'overworld' ? window.MAP_ART_READY === false
-    : ['play','pause','levelup'].includes(state) && window.ART_READY === false;
+    : ['play','pause','levelup'].includes(state) &&
+      (window.ART_READY === false ||
+        (STAGE.id === "rain-port" && window.isS2ArtProdEnabled?.() === true
+          && window.S2_ART_PROD_CACHE?.finished !== true));
   let quitConfirm = false;
   let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "", pausePage = "main";
   let levelupFocus = 0, gpLevelupDir = "";
@@ -1299,44 +1302,33 @@
     return spawnCharmDrop(e.x, e.y, charmId);
   }
 
+  // Floor pickup = luminous color orb; worn Omamori remains on the HUD.
   function paintCharmDrop(d) {
     if (!d) return false;
-    // Ground drop and swap selection share the very same colored Omamori art.
-    const art = UI.charmArtFor?.(d.charmId) || charmDropArt();
-    const glowColors = {
-      charm_power:"#ec6948", charm_step:"#5bc8a2",
-      charm_gather:"#e6ce63", charm_cadence:"#c087ee",
-      charm_reach:"#9daff3", charm_guard:"#9bdca4"
+    const colors = {
+      charm_power:"#ff604e", charm_step:"#55eac1",
+      charm_gather:"#ffdf60", charm_cadence:"#c28aff",
+      charm_reach:"#7dafff", charm_guard:"#9de5a9"
     };
-    // B10 normalized omamori art has large visible silhouette. The map item
-    // uses a gentle 1.2x increase while preserving the original aspect ratio.
-    const h = 64;
-    // World sprites are displayed upright; use intrinsic aspect ratio so
-    // the glyph and tassel are not horizontally stretched in 2D or 2.5D.
-    const w = art?.naturalWidth && art?.naturalHeight
-      ? h * art.naturalWidth / art.naturalHeight : 32;
-    const hover = 5 + Math.sin(elapsed * 3.2 + d.id * 1.7) * 4.5;
+    const color = colors[d.charmId] || "#ffe1a0";
+    const pulse = 1 + Math.sin(animElapsed * 5 + d.id) * .14;
+    const r = 14 * pulse;
+    const hover = 35 + Math.sin(animElapsed * 3.2 + d.id) * 6;
     upright(d.x, d.y, () => {
-      // 落地御守專用金芒光環，即便在暗處街道亦清晰可辨
-      FX.glow?.(ctx, d.x, d.y - h / 2 - hover, 39, glowColors[d.charmId] || "#fadb5f", 0.84);
-      if (art && art.naturalWidth > 0) {
-        ctx.drawImage(art, d.x - w / 2, d.y - h - hover, w, h);
-      } else {
-        // 御守錦囊繪製（紅錦囊 + 金邊紋）
-        ctx.save();
-        ctx.fillStyle = "#c82d33";
-        ctx.beginPath();
-        ctx.roundRect(d.x - 14, d.y - 36, 28, 36, [4, 4, 2, 2]);
-        ctx.fill();
-        ctx.strokeStyle = "#ffd166";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        ctx.fillStyle = "#fff";
-        ctx.font = "bold 13px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("守", d.x, d.y - 14);
-        ctx.restore();
-      }
+      ctx.save();
+      const cx = d.x, cy = d.y - hover;
+      ctx.shadowColor = color; ctx.shadowBlur = 24;
+      const halo = ctx.createRadialGradient(cx,cy,2,cx,cy,r*2.6);
+      halo.addColorStop(0,"rgba(255,255,255,.95)");
+      halo.addColorStop(.18,color);
+      halo.addColorStop(.48,color+"99");
+      halo.addColorStop(1,"rgba(10,10,25,0)");
+      ctx.fillStyle=halo;ctx.beginPath();
+      ctx.arc(cx,cy,r*2.6,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=8;
+      ctx.fillStyle="#fff8e7";
+      ctx.beginPath();ctx.arc(cx-r*.24,cy-r*.24,r*.27,0,Math.PI*2);ctx.fill();
+      ctx.restore();
     });
     return true;
   }
@@ -2415,19 +2407,19 @@
     const openHouses = candidateHouses.filter(h => !busy.has(h.id));
     const matching = openHouses.filter(h => h.word && h.word.jp === chosenWord.jp);
 
-    // rain-port：大幅拉長取件→送達水平距離（3~8棟房屋跨度，常見 4~7）
-    // 房屋間距約 300~400px，目標水平跨度 900~3200px（常見 1200~2800）
-    // 送達→下一取貨也拉開（3~6屋），遠近交錯、跨chunk不丟目標
+    // rain-port playtest: shorten port deliveries close to first-stage travel;
+    // keep at least one intervening house, avoid trivial same-house errands.
+    // Orders retain cross-chunk pinning and reliable follow-up generation.
     const isRainPort = STAGE.id === "rain-port";
     let from = null;
 
 if (isRainPort) {
       // rain-port：取件點根據上次送達位置選擇（遠離上次送達點，3~8屋跨度，常見 4~7）
       const referenceX = lastDeliveryX !== null ? lastDeliveryX : P.x;
-      const minH = 900, maxH = 3200, comMinH = 1200, comMaxH = 2800;
-      // 最少中間屋數：3棟（硬性門檻），目標 4 棟
-      const minBetweenHouses = 3;
-      const targetBetweenHouses = 4;
+      const minH = 480, maxH = 1650, comMinH = 700, comMaxH = 1450;
+      // 最少中間屋數：1棟（硬性門檻），目標 2 棟
+      const minBetweenHouses = 1;
+      const targetBetweenHouses = 2;
 
       // 屋列口徑：已批准為「沿途所有真 chunk 的房屋、50px X 列去重、兩端不計」。
       // 原本只用「目前已載入 chunk」的 houses 計數，會漏算中間未載入的屋列，
@@ -2443,10 +2435,10 @@ if (isRainPort) {
         const dx = Math.abs(h.x - referenceX);
         return dx >= minH && dx <= maxH;
       });
-      // 兜底：即使放寬像素距離，也必須守住同一條硬門檻（>=3 屋列，避免同屋/鄰屋/2 屋列）
+      // 兜底：即使放寬像素距離，也必須至少隔開一間屋。
       const fallback = openHouses.filter(h => {
         const dx = Math.abs(h.x - referenceX);
-        return dx >= 700 && dx <= 3600 && colsBetween(h.x, referenceX) >= minBetweenHouses;
+        return dx >= 470 && dx <= 1750 && colsBetween(h.x, referenceX) >= minBetweenHouses;
       });
       // Never prefer unlimited-distance matches over a bounded fallback.
       const pool = pixelFiltered.length ? pixelFiltered : fallback;
@@ -2458,11 +2450,11 @@ if (isRainPort) {
       from = pick(matchingFrom.length ? matchingFrom : pool);
       if (!from) return;
 
-      // 送達點：遠離取件點（3~8屋跨度，常見 4~7）
-      const minH2 = 900, maxH2 = 3200, comMinH2 = 1200, comMaxH2 = 2800;
+      // 送達點：優先一至兩棟隔間距，降低前期跑圖時間。
+      const minH2 = 480, maxH2 = 1650, comMinH2 = 700, comMaxH2 = 1450;
       const destinationHouses = portHousesNear(from.x);
       const reachable2 = destinationHouses.filter(h => h.id !== from.id && Math.abs(h.x - from.x) >= minH2 && Math.abs(h.x - from.x) <= maxH2 && colsBetween(h.x, from.x) >= minBetweenHouses);
-      const pool2 = reachable2.length ? reachable2 : destinationHouses.filter(h => h.id !== from.id && Math.abs(h.x - from.x) >= 700 && Math.abs(h.x - from.x) <= 3600 && colsBetween(h.x, from.x) >= minBetweenHouses);
+      const pool2 = reachable2.length ? reachable2 : destinationHouses.filter(h => h.id !== from.id && Math.abs(h.x - from.x) >= 470 && Math.abs(h.x - from.x) <= 1750 && colsBetween(h.x, from.x) >= minBetweenHouses);
       if (!pool2.length) return;
       const far2 = pool2.filter(h => Math.abs(h.x - from.x) >= comMinH2);
       const near2 = pool2.filter(h => Math.abs(h.x - from.x) < comMinH2);
@@ -6131,11 +6123,12 @@ function spawnEnemy(tier, rad, ang, ring) {
       }
     }
 
-    // 關卡逾 12:00 (720秒) 且尾王尚存活時，開始緩慢回血 (1.5% maxHP/s，不超 max，死亡即停止回血)
+    // After 12:00 keep a modest 0.4% maxHP/s regen (was 1.5%);
+    // a skill-focused build should win without grinding to Lv49.
     if (STAGE.id === "night-town" && elapsed >= 720 && !finalBossDefeated) {
       const liveBoss = enemies.find(e => e.type === "boss" && e.final && e.hp > 0);
       if (liveBoss) {
-        const heal = (liveBoss.max || 1000) * 0.015 * dt;
+        const heal = (liveBoss.max || 1000) * 0.004 * dt;
         liveBoss.hp = Math.min(liveBoss.max, liveBoss.hp + heal);
         liveBoss.healPulseT = (liveBoss.healPulseT || 0) + dt;
         if (liveBoss.healPulseT >= 1.5) {
@@ -8812,6 +8805,11 @@ function spawnEnemy(tier, rad, ang, ring) {
       if (cover) ctx.drawImage(cover,area.left,area.top,area.width,area.height);
       ctx.fillStyle = 'rgba(8,12,26,0.88)'; ctx.fillRect(area.left,area.top,area.width,area.height);
       UI.drawAssetProgress?.(ctx,true);
+      if (STAGE.id === "rain-port" && window.S2_ART_PROD_CACHE?.finished !== true) {
+        ctx.textAlign="center";ctx.fillStyle="#ffebca";
+        ctx.font="bold 18px sans-serif";
+        ctx.fillText("正在準備雨港正式場景…", (area.left+area.right)/2, area.bottom-68);
+      }
       ctx.restore();
     } else if (state === "menu") {
       UI.drawMainMenu(ctx, STORE, now / 1000, menuFocus);
@@ -8905,9 +8903,12 @@ function spawnEnemy(tier, rad, ang, ring) {
         if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
         if (state === "play") drawDragonHudOverlay(frameShakeOffset);
         if (titleCardT > 0 && state === "play") UI.drawTitleCard(ctx, STAGE, stageChapter(), titleCardT);
-        const activeBoss = enemies.find(e => e.type === "boss" && e.hp > 0) || null;
-        const sealFade = bossSealBreak?.boss === activeBoss ? Math.max(0,1-(performance.now()-bossSealBreak.at)/850) : 0;
-        if (bossQ || activeBoss) UI.drawBossQuiz(ctx,bossQ,inputMode,activeBoss,sealFade);
+        // Preserve boss spawn order, even if an earlier Boss remains alive.
+        const liveBosses = enemies.filter(e => e.type === "boss" && e.hp > 0 && !e.dying)
+          .sort((a,b) => (a.bossIndex ?? 0) - (b.bossIndex ?? 0));
+        const sealFade = bossSealBreak?.boss && liveBosses.includes(bossSealBreak.boss)
+          ? Math.max(0,1-(performance.now()-bossSealBreak.at)/850) : 0;
+        if (bossQ || liveBosses.length) UI.drawBossQuiz(ctx,bossQ,inputMode,liveBosses,sealFade);
         if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000, levelupFocus, inputMode, awakeningState());
         if (state === "fusion" && window.FUSION && typeof UI.drawFusion === "function") {
           const model = window.FUSION.getViewModel ? window.FUSION.getViewModel() : {};

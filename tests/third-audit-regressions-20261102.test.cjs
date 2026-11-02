@@ -72,8 +72,10 @@ test('Boss wrong answer resumes elapsed clock even when a second sealed Boss is 
 
 test('index refreshes the five changed JavaScript assets',()=>{
  const html=fs.readFileSync('index.html','utf8');
- for(const key of ['game','world','assets','store','ui'])
+ for(const key of ['world','store'])
    assert.match(html,new RegExp('js/'+key+'\\.js\\?v=20261102-r3'),key);
+ for(const key of ['game','assets','ui'])
+   assert.match(html,new RegExp('js/'+key+'\\.js\\?v=20261102-playtest-ui4'),key);
 });
 
 test('core image that never answers eventually releases ART_READY',()=>{

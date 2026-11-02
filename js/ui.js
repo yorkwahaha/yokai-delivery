@@ -1483,65 +1483,50 @@ window.UI = (() => {
   // B10 approved lantern-side HUD: an independent lacquered hanging rack
   // outside the lantern image, with three large colored charms, never on glass.
   function drawCharmHud(ctx, { charms = [], maxSlots = 3 }) {
-    const b=screenBounds();
-    const lanternArt=window.ART?.hud_lantern_oil;
-    const compactLandscape=(window.innerHeight||600)<=500 &&
-      (window.innerWidth||900)>(window.innerHeight||600)*1.55;
-    const lanternH=compactLandscape?190:168;
-    const lanternW=lanternH*(lanternArt?.naturalWidth && lanternArt?.naturalHeight
-      ? lanternArt.naturalWidth/lanternArt.naturalHeight : .75);
-    const lanternRight=b.left+14+lanternW;
-    const tileW=Math.min(cssPx(76),Math.max(cssPx(50),b.width*.12));
-    const tileH=Math.min(cssPx(92),Math.max(cssPx(68),b.height*.21));
-    const gap=cssPx(6);
-    const x=Math.min(b.right-tileW-cssPx(8),
-      Math.max(lanternRight+cssPx(24),b.left+cssPx(205)));
-    const y=b.top+cssPx(14);
-    const hitRects=[];
+    if (!charms.length) return [];
+    const b=screenBounds(), scale=window.VIEWPORT?.get()?.scale||1;
+    // Equipped items are UI: a compact labeled bar at the TOP CENTER,
+    // not hanging loose beside the lantern like uncollected floor sprites.
+    const slot=Math.max(29,Math.min(36,Math.round(35/Math.max(.85,scale))));
+    const gap=7, pad=13, head=18;
+    const count=Math.min(3,maxSlots);
+    const panelW=pad*2+count*slot+(count-1)*gap;
+    const panelH=pad*2+head+slot+3;
+    const x=clamp((b.left+b.right-panelW)/2,b.left+195,b.right-panelW-12);
+    const y=b.top+8;
     ctx.save();
-    // Individually suspended sprites beside the lantern: NO black rack.
-    if(charmScreenArt.hud?.naturalWidth)
-      ctx.drawImage(charmScreenArt.hud,x-cssPx(8),y,
-        tileW+cssPx(16),tileH*3+gap*2);
-    for(let i=0;i<Math.min(3,maxSlots);i++){
-      const item=charms[i],yy=y+i*(tileH+gap);
-      if(!item)continue;
-      const key=String(item.id||'').replace(/^charm_/,'');
-      const art=illustratedCharms[key],accent=CHARM_PRESENTATION[key]?.color||'#edd5a5';
-      ctx.save();
-      ctx.globalAlpha=.28;
-      const light=ctx.createRadialGradient(x+tileW*.5,yy+tileH*.48,
-        2,x+tileW*.5,yy+tileH*.48,tileW*.62);
-      light.addColorStop(0,accent);light.addColorStop(1,'rgba(255,240,200,0)');
-      ctx.fillStyle=light;ctx.beginPath();
-      ctx.ellipse(x+tileW*.5,yy+tileH*.5,tileW*.5,tileH*.41,0,0,Math.PI*2);ctx.fill();
-      ctx.restore();
+    ctx.shadowColor="rgba(0,0,0,.85)";ctx.shadowBlur=14;
+    ctx.fillStyle="rgba(17,20,37,.91)";
+    ctx.strokeStyle="#d4ac6a";ctx.lineWidth=2;
+    ctx.beginPath();ctx.roundRect(x,y,panelW,panelH,8);ctx.fill();ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.font=readableFont(12,"900");ctx.textAlign="center";
+    ctx.fillStyle="#f5d6a0";
+    ctx.fillText("裝備御守",x+panelW/2,y+head+2);
+    for(let i=0;i<count;i++){
+      const xx=x+pad+i*(slot+gap), yy=y+pad+head;
+      const item=charms[i],key=String(item?.id||"").replace(/^charm_/,"");
+      const art=illustratedCharms[key],accent=CHARM_PRESENTATION[key]?.color||"#d8ae77";
+      ctx.fillStyle="rgba(32,37,59,.95)";ctx.strokeStyle="rgba(198,164,106,.85)";
+      ctx.lineWidth=1.3;ctx.beginPath();ctx.roundRect(xx,yy,slot,slot,5);
+      ctx.fill();ctx.stroke();
+      if(!item) continue;
       if(art?.naturalWidth && art.naturalHeight){
-        const boxW=tileW*.88,boxH=tileH*.92;
-        const ratio=Math.min(boxW/art.naturalWidth,boxH/art.naturalHeight);
-        const iw=art.naturalWidth*ratio,ih=art.naturalHeight*ratio;
-        ctx.save();ctx.shadowColor=accent;ctx.shadowBlur=cssPx(8+Math.max(1,item.level||1)*5);
-        ctx.drawImage(art,x+(tileW-iw)/2,yy+(tileH-ih)/2,iw,ih);
-        ctx.restore();
+        const ratio=Math.min((slot-8)/art.naturalWidth,(slot-7)/art.naturalHeight);
+        const ww=art.naturalWidth*ratio,hh=art.naturalHeight*ratio;
+        ctx.drawImage(art,xx+(slot-ww)/2,yy+(slot-hh)/2,ww,hh);
       } else {
-        ctx.fillStyle=accent;ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.font=readableFont(20,'900');
-        ctx.fillText(CHARM_PRESENTATION[key]?.glyph||'守',x+tileW/2,yy+tileH/2);
+        ctx.fillStyle=accent;ctx.font=readableFont(20,"900");
+        ctx.fillText(CHARM_PRESENTATION[key]?.glyph||"守",xx+slot/2,yy+slot*.75);
       }
-      // No xN wording. Light intensity and tiny beads represent stack count.
-      const rank=Math.max(1,Math.min(3,item.level||1));
-      ctx.save();
-      for(let n=0;n<rank;n++){
-        const bx=x+tileW/2+(n-(rank-1)/2)*cssPx(9);
-        const by=yy+tileH-cssPx(4);
-        ctx.fillStyle="#ffe2a7";ctx.shadowColor=accent;
-        ctx.shadowBlur=cssPx(3+rank*3);
-        ctx.beginPath();ctx.arc(bx,by,cssPx(2),0,6.283);ctx.fill();
+      const level=Math.max(1,Math.min(3,item.level||1));
+      for(let n=0;n<level;n++){
+        ctx.fillStyle="#ffe6aa";ctx.beginPath();
+        ctx.arc(xx+slot/2+(n-(level-1)/2)*8,yy+slot-3,2,0,6.283);ctx.fill();
       }
-      ctx.restore();
     }
     ctx.restore();
-    return hitRects;
+    return [];
   }
 
   // B10 approved layout: full-width lacquered feature banner, three portrait
@@ -2405,20 +2390,36 @@ window.UI = (() => {
     }
   }
 
-  // 王戰血條：獨立置中、低矮橫向長條；避免大片木框擋住戰場。
-  // B12: a single unframed red HP line, no boss name or boxed backdrop.
-  function drawBossBar(ctx,x,y,w,boss,scale,time) {
+  // Each live Boss gets a distinct dark lacquer nameplate + gold frame,
+  // preserving chronological spawn order in the HUD.
+  function drawBossBar(ctx,x,y,w,boss,scale,time,index=0,rowH=34) {
     const hp=clamp(boss.hp/Math.max(1,boss.max),0,1);
-    const h=Math.max(6,Math.ceil(6/Math.max(.3,scale)));
-    if(hp<=0)return h;
+    if(hp<=0)return rowH;
+    const final=!!boss.final;
+    const inset=10;
     ctx.save();
-    const grad=ctx.createLinearGradient(x,y,x+w*hp,y);
-    grad.addColorStop(0,"#b62b35");grad.addColorStop(.55,"#d74545");
-    grad.addColorStop(1,"#ee6358");
-    ctx.fillStyle=grad;
-    ctx.fillRect(x,y+4,w*hp,h);
+    ctx.shadowColor="rgba(0,0,0,.94)";ctx.shadowBlur=13;
+    ctx.fillStyle="rgba(12,16,28,.96)";
+    ctx.strokeStyle=final?"#f0c17c":"#ab875c";ctx.lineWidth=1.7;
+    ctx.beginPath();ctx.roundRect(x,y,w,rowH-2,5);ctx.fill();ctx.stroke();
+    ctx.shadowBlur=0;
+    const tag=final?"終王":("第"+(Number.isInteger(boss.bossIndex)?boss.bossIndex+1:index+1)+"王");
+    ctx.font=readableFont(11,"900");ctx.textAlign="left";
+    ctx.fillStyle="#f4dfb6";ctx.shadowColor="#000";ctx.shadowBlur=3;
+    ctx.fillText(tag+"  "+(boss.title||"大妖"),x+inset,y+12,w*.70);
+    ctx.textAlign="right";ctx.fillStyle="#fff2d4";
+    ctx.fillText(Math.ceil(hp*100)+"%",x+w-inset,y+12);
+    ctx.shadowBlur=0;
+    const fillY=y+17, fillH=Math.max(6,rowH-23);
+    ctx.fillStyle="#282832";ctx.fillRect(x+inset,fillY,w-inset*2,fillH);
+    const grad=ctx.createLinearGradient(x,fillY,x,fillY+fillH);
+    grad.addColorStop(0,final?"#ff9b70":"#f56e65");
+    grad.addColorStop(1,final?"#ab283f":"#9f2038");
+    ctx.fillStyle=grad;ctx.fillRect(x+inset,fillY,(w-inset*2)*hp,fillH);
+    ctx.strokeStyle="#21131a";ctx.lineWidth=1.5;
+    ctx.strokeRect(x+inset,fillY,w-inset*2,fillH);
     ctx.restore();
-    return h+4;
+    return rowH;
   }
 
   // 小繪馬覺醒印：固定靠右，呈現持有印記×N與每3單配送進度3燈循環。
@@ -4077,7 +4078,7 @@ window.UI = (() => {
     return {badgeTextSize, badgeH, slotSize, footerHeight:(slotSize + badgeH) * 1.2};
   }
 
-  function bossQuizLayout(n) {
+  function bossQuizLayout(n, bossCount = 1) {
     const bounds = window.VIEWPORT?.hudBounds() || screenBounds();
     const scale = window.VIEWPORT?.get().scale || (document.getElementById('game')?.getBoundingClientRect().width || 900)/900;
     // 縮短／搬移 Boss HP 條與答題板：保留被動技全數可見，血條垂直浮於底部被動欄上方。
@@ -4089,27 +4090,26 @@ window.UI = (() => {
     const optH = Math.max(44, Math.ceil(44 / scale)), h = optH + 72;
     const center = (bounds.left + bounds.right) / 2;
     const x = clamp(center - w / 2, left, right - w);
-    const bossBarH = fontPx(readableFont(13)) + Math.max(11, Math.ceil(10 / scale)) + 16;
-    const gapToBar = 10;
-    const bottomInset = bounds.height <= 480 ? 114 : 118;
-    const y = bounds.bottom - bottomInset - bossBarH - gapToBar - h;
+    const rowH = bounds.height < 480 ? 27 : 34;
+    const bossBarH = Math.max(1,bossCount) * rowH;
+    const gapToBar = 9;
+    const bottomInset = bounds.height <= 480 ? 104 : 112;
+    const y = Math.max(bounds.top+62,bounds.bottom-bottomInset-bossBarH-gapToBar-h);
     const startX = x + (w - n * optW - (n - 1) * gap) / 2;
-    return {x,y,w,h,bar:{x,y:y+h+gapToBar,w,h:bossBarH},
+    return {x,y,w,h,bar:{x,y:y+h+gapToBar,w,h:bossBarH,rowH},
       options:Array.from({length:n},(_,i)=>({x:startX+i*(optW+gap),y:y+62,w:optW,h:optH}))};
   }
 
   function drawBossQuiz(ctx, bossQ, mode = 'keyboard', boss = null, breakFade = 0) {
     if (!bossQ && !boss) return;
     ctx.save();
-    const layout = bossQuizLayout(bossQ?.ans.length || 3);
+    const bosses=Array.isArray(boss) ? boss.filter(b=>b && b.hp>0) : boss && boss.hp>0 ? [boss] : [];
+    const layout = bossQuizLayout(bossQ?.ans.length || 3,bosses.length);
     const {x:bx,y:by,w:boxW,h:boxH} = layout;
     const mid = bx+boxW/2;
-
-    // 王戰血條只在這裡畫一次；答題板在上、血條在下，不再彼此壓住。
-    if (boss) {
-      const scale = window.VIEWPORT?.get().scale || 1;
-      drawBossBar(ctx,layout.bar.x,layout.bar.y,layout.bar.w,boss,scale,Date.now()/1000);
-    }
+    const scale = window.VIEWPORT?.get().scale || 1;
+    bosses.forEach((b,i)=>drawBossBar(ctx,layout.bar.x,
+      layout.bar.y+i*layout.bar.rowH,layout.bar.w,b,scale,Date.now()/1000,i,layout.bar.rowH));
     if (!bossQ) {
       if (breakFade > 0 && !calm() && paintedBossSealBreak?.naturalWidth) {
         // A SINGLE finished painted raster replaces the old Canvas geometry.
