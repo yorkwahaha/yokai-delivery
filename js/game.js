@@ -6225,6 +6225,17 @@ function spawnEnemy(tier, rad, ang, ring) {
         if (STAGE.id === "night-town" && slamWasWarning && e.hazard === h && h.phase === "active") {
           AUDIO.bossSlamImpact?.();
         }
+        if (STAGE.id === "rain-port") {
+          // Boss AI owns the telegraph/active phases. Only sound on the
+          // hazard object being created or changing phase, never per frame.
+          if (e.hazard?.kind === "slam" && e.hazard !== h
+              && e.hazard.phase === "telegraph") {
+            AUDIO.rainPortWaterSlamWarn?.();
+          }
+          if (slamWasWarning && e.hazard === h && h.phase === "active") {
+            AUDIO.rainPortWaterSlamImpact?.();
+          }
+        }
         if (ringActiveR !== null && e.hazard === h && h.kind === "ring" && (h.phase === "active" || h.phase === "recovery")) {
           h.prevR = ringActiveR;
         }

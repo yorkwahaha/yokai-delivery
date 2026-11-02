@@ -215,6 +215,9 @@ window.AUDIO = (() => {
     bossDeath: "assets/audio/sfx/boss-death.mp3",
     // Reserved for the player-supplied slam burst clip; no dummy MP3 required.
     bossSlamImpact: "assets/audio/sfx/boss-slam-impact.mp3",
+    // Future rain-port recordings: drop the named OGG files here later.
+    rainPortWaterSlamWarn: "assets/audio/sfx/boss/rain_port_water_slam_warn.ogg",
+    rainPortWaterSlamImpact: "assets/audio/sfx/boss/rain_port_water_slam_impact.ogg",
     fanfare: "assets/audio/sfx/fanfare.mp3",
     lose: "assets/audio/sfx/lose.mp3"
   };
@@ -224,7 +227,9 @@ window.AUDIO = (() => {
     dash: 0.68, barrier: 0.72, needle: 0.62, hurt: 0.72,
     gem: 0.42, pickup: 0.62, sanctuary: 0.74, deliverSuccess: 0.78,
     deliverWrong: 0.72, breakShield: 0.82, levelUp: 0.76, warningPulse: 0.78,
-    bossDeath: 0.78, bossSlamImpact: 0.85, skillLv5: 0.88, charmPickup: 0.70, fanfare: 0.75, lose: 0.7
+    bossDeath: 0.78, bossSlamImpact: 0.85,
+    rainPortWaterSlamWarn: 0.66, rainPortWaterSlamImpact: 0.86,
+    skillLv5: 0.88, charmPickup: 0.70, fanfare: 0.75, lose: 0.7
   };
   // 預留兩組素材；沒有檔案時退回目前音效，不需放空白 MP3。
   const RANKED_SFX = {slash:'katana',barrier:'barrier',needle:'needle',boomerang:'boom',fireball:'fire',thunder:'thunder'};
@@ -251,7 +256,15 @@ window.AUDIO = (() => {
       rate:1,
       onstart:source=>replaceSfx(name,source),
       onended:source=>{ if (sfxVoices.get(name)===source) sfxVoices.delete(name); },
-      onerror:()=>playExternalSfx(name,fallback,args,false)
+      onerror:()=>{
+        // Future water SFX files are intentionally absent until supplied.
+        // Remember the failed lookup and fall back to synthesis only once;
+        // do not retry the same 404 via HTMLAudio on every Boss attack.
+        if (name === "rainPortWaterSlamWarn" || name === "rainPortWaterSlamImpact") {
+          unavailableSfx.add(name);
+          if (!muted && !suspended) fallback(...args);
+        } else playExternalSfx(name,fallback,args,false);
+      }
     })) return;
     if (!src || unavailableSfx.has(name)) {
       fallback(...args);
@@ -732,7 +745,8 @@ window.AUDIO = (() => {
       // Lv5 dragon clips load at first use, never with the initial vocabulary.
       const standardSfx=Object.entries(SFX_FILES)
         // This player-supplied file isn't available yet; load only on slam.
-        .filter(([key])=>!['fireDragon','fireDragonBall','fireGround','bossSlamImpact','charmPickup'].includes(key))
+        .filter(([key])=>!['fireDragon','fireDragonBall','fireGround','bossSlamImpact','charmPickup',
+          'rainPortWaterSlamWarn','rainPortWaterSlamImpact'].includes(key))
         .map(([,file])=>file);
       const paths = [
         ...words.map(w => {
@@ -1265,6 +1279,9 @@ window.AUDIO = (() => {
   api.charmPickup=()=>api.pickup();
   // Future real impact MP3 overrides this temporary low taiko fallback.
   api.bossSlamImpact=()=>playTaiko(66,0.22);
+  // Both remain playable before the user supplies the OGG files.
+  api.rainPortWaterSlamWarn=()=>{playTaiko(92,0.12);playSuzu(1150,0.10);};
+  api.rainPortWaterSlamImpact=()=>{playTaiko(62,0.27);playSuzu(660,0.12);};
   const ofudaLaunchFallback = api.boomerang;
   const ofudaBurstFallback = api.ofudaBurst;
   // 對外 API 保持不變；只替 SFX 方法加上一層「MP3 優先、合成音 fallback」。

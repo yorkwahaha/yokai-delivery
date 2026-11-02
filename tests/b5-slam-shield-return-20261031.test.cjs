@@ -34,7 +34,7 @@ test('B5 needle return leaves after at least 2/3 visible edge, flies curved boom
  assert.equal(nd.life,0,'returns terminate at player, no indefinite bullets');
  assert.match(game,/ang:nd.hasReturn \? nd.launchAng : Math.atan2\(nd.vy,nd.vx\)/);
 });
-test('B5 new octagonal shield is real WebP with reviewed published-art routing; break has scatter effect',()=>{
+test('B5 new octagonal shield is real WebP with local-only candidate routing; break has scatter effect',()=>{
  for (const name of ['ward_bagua_full','ward_bagua_break']) {
    const bytes=fs.readFileSync(path.join(root,'assets/img/vfx/shield',name+'.webp'));
    assert.equal(bytes.toString('ascii',0,4),'RIFF');
@@ -53,5 +53,5 @@ test('B5 slam uses bottom-aligned painted image, timed debris, one impact SFX ro
  assert.match(game,/slamWasWarning && e.hazard === h && h.phase === "active"/);
  assert.match(game,/AUDIO.bossSlamImpact\?\.\(\)/);
  assert.match(audio,/bossSlamImpact: "assets\/audio\/sfx\/boss-slam-impact.mp3"/);
- assert.match(audio,/\['fireDragon','fireDragonBall','fireGround','bossSlamImpact','charmPickup'\]/);
+ assert.match(audio,/\['fireDragon','fireDragonBall','fireGround','bossSlamImpact','charmPickup'/);
 });

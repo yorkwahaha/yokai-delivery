@@ -3788,32 +3788,41 @@ window.RENDERER = (() => {
     if(alpha<.02)return true;
     const image=window.BOSS_HAZARD_ART_IMG?.rainVortex;
     const hasArt=image?.naturalWidth>0 && image?.naturalHeight>0;
-    c.save();c.globalAlpha*=alpha;
+    c.save();
     if(phase==="telegraph"){
-      // Strong warning with true water texture, clipped to the actual hit
-      // radius, plus a legible turquoise edge and directional foam.
+      // The targeting circle stays translucent without washing out the art.
+      // Keep each visual's alpha separate; drawing inside this clip must
+      // never inherit the warning circle's lower opacity.
       c.beginPath();c.arc(h.x,h.y,r,0,Math.PI*2);c.clip();
-      c.fillStyle="rgba(4,55,86,.37)";
+      c.fillStyle="rgba(4,55,86,.12)";
       c.beginPath();c.arc(h.x,h.y,r,0,Math.PI*2);c.fill();
       if(hasArt){
         const iy=Math.floor(image.naturalHeight*.55);
-        c.globalAlpha*=.74;
+        c.save();
+        c.globalAlpha=1;
+        c.shadowBlur=0;
         c.drawImage(image,0,iy,image.naturalWidth,image.naturalHeight-iy,
           h.x-r,h.y-r*.64,r*2,r*1.28);
-        c.globalAlpha/= .74;
+        c.restore();
       }
-      c.strokeStyle="#9aeffe";c.shadowColor="#3bd6fc";c.shadowBlur=15;
-      c.lineWidth=6;c.beginPath();c.arc(h.x,h.y,r-4,0,Math.PI*2);c.stroke();
-      c.strokeStyle="#0a5c8d";c.lineWidth=3;
+      c.strokeStyle="rgba(154,239,254,.48)";
+      c.shadowColor="rgba(59,214,252,.42)";c.shadowBlur=10;
+      c.lineWidth=5;c.beginPath();c.arc(h.x,h.y,r-4,0,Math.PI*2);c.stroke();
+      c.strokeStyle="rgba(10,92,141,.42)";c.lineWidth=2.5;
       c.beginPath();c.arc(h.x,h.y,r-13,0,Math.PI*2);c.stroke();
     }else{
-      // Genuine water-column raster as the impact artwork; use a ground
-      // footprint, not a generic solid circular flood fill.
+      // Full-opacity water-column artwork during impact. Only the actual
+      // recovery phase fades out after the hit, not the artwork by default.
       if(hasArt){
         const size=r*2.45;
+        c.save();
+        c.globalAlpha=recovering?alpha:1;
+        c.shadowBlur=0;
         c.drawImage(image,h.x-size/2,h.y-size*.81,size,size);
+        c.restore();
       }
-      c.strokeStyle="rgba(164,241,255,.80)";c.lineWidth=5;
+      c.globalAlpha=recovering?alpha*.50:.50;
+      c.strokeStyle="rgba(164,241,255,.82)";c.lineWidth=5;
       c.shadowColor="#5ddaff";c.shadowBlur=12;
       c.beginPath();c.ellipse(h.x,h.y,r*.9,r*.52,0,0,Math.PI*2);c.stroke();
     }

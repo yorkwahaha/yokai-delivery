@@ -1,3 +1,11 @@
+## 2026-11-02 雨港水王圓形地板技：透明度與預留音效
+
+- 使用原有 \`rainVortex_v01.webp\`：預警藍色底圈 alpha 由 0.37 降至 0.12，外圈亮藍描邊降至 0.48、內圈 0.42；圖片取消原額外 0.74 倍淡化，預警／命中圖片以完整不透明度繪製，只保留 recovery 末段既定淡出；技傷害／半徑／時序不變。
+- 水王專用聲音路徑：\`assets/audio/sfx/boss/rain_port_water_slam_warn.ogg\`（預警開始）、\`assets/audio/sfx/boss/rain_port_water_slam_impact.ogg\`（命中開始）。Boss AI 階段轉換處**各播一次**，不在每幀 renderer 播；夜行町 Boss 的 \`bossSlamImpact\` 不變。
+- 使用既有 \`AUDIO\` 合成音作暫時 fallback；正式音檔尚不存在，缺檔只會在首次觸發時嘗試且記為 unavailable，不會造成 JS 例外或開局預載。玩家日後補上述 OGG 名稱後，重開正式版即可使用。
+- 新增 \`tests/water-slam-alpha-sfx-20261102.test.cjs\`，測預警底圈透明度、圖片不透明、recovery 淡出、聲音路徑、單次事件與 JS query。
+- 本輪為局部修復，**尚未進行 game.js 高耦合重構**。後續若採低風險純函式拆分，須獨立提交且比對行為一致。
+
 ## 2026-11-02 第一、二關正式版試玩回饋（二輪）— 待真機驗收
 
 - 夜行町建築：`js/world.js` 的夜行町詞包長期只映射出 `house_shop`、`house_tavern`；納入現有已發布 `house_shrine` 約 1/5 變體。沒有生成新房圖，既有詞包、屋坐標與讀題不變。
