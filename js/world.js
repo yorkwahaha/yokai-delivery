@@ -421,7 +421,11 @@
             dx: baseX + position[0],
             dy: houseY + 60,
             color: pack.color,
-            bType: buildingType(pack.theme, slot),
+            // Night-town already ships three reviewed house illustrations.
+            // Its single pack theme selected only shop/tavern; include the
+            // existing shrine as a modest third visual variant (no word change).
+            bType: stage.id === "night-town" && phaseHash % 5 === 0
+              ? "house_shrine" : buildingType(pack.theme, slot),
             district: pack.name,
             packId: pack.id,
             word
@@ -537,9 +541,12 @@
       }
 
       const solids = houses.map(h => ({
-        x0: h.x - 48,
-        x1: h.x + 48,
-        y0: h.y - 25,
+        // Official rain-port façades are 145-165 world units wide.
+        // Keep their solid footprint within the rendered foundations,
+        // instead of letting the courier visibly enter the picture edge.
+        x0: h.x - (stage.id === "rain-port" ? 64 : 48),
+        x1: h.x + (stage.id === "rain-port" ? 64 : 48),
+        y0: h.y - (stage.id === "rain-port" ? 48 : 25),
         y1: h.y + 45,
         chunkKey: h.chunkKey
       }));

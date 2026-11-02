@@ -1723,10 +1723,10 @@ window.RENDERER = (() => {
     // Keep material's baked-in shadows; add only a thin grounding line at building base.
     const bw = h.bType === "port_fishmonger" ? 201 : h.bType === "port_warehouse" ? 187 : h.bType === "house_tavern" ? 175 : h.bType === "house_shrine" ? 158 : h.bType === "house_shop" ? 166 : 0;
     if (bw === 0) return;
-    const rx = Math.round(bw * 0.35);
-    const ry = 6;
+    const rx = Math.round(bw * 0.42);
+    const ry = 12;
     ctx.save();
-    ctx.fillStyle = "rgba(16, 14, 17, 0.18)";
+    ctx.fillStyle = "rgba(12, 15, 21, 0.38)";
     ctx.beginPath();
     ctx.ellipse(h.x, h.y + 48, rx, ry, 0, 0, 6.283);
     ctx.fill();
@@ -3776,6 +3776,52 @@ window.RENDERER = (() => {
     return true;
   }
 
+  // Rain-port circular strike uses the actual sea-vortex sprite for a
+  // separate ground-warning phase and a tall foam explosion on impact.
+  // Stage-1 purple telegraph art is intentionally not reused here.
+  function paintHarborWaterSlam(c, h, elapsed) {
+    const r = Math.max(24,h.r || 150);
+    const phase=h.phase || "telegraph";
+    const recovering=phase==="recovery";
+    const progress=Math.max(0,Math.min(1,(h.t||0)/Math.max(.1,h.duration||1)));
+    const alpha=recovering ? Math.max(0,1-progress) : 1;
+    if(alpha<.02)return true;
+    const image=window.BOSS_HAZARD_ART_IMG?.rainVortex;
+    const hasArt=image?.naturalWidth>0 && image?.naturalHeight>0;
+    c.save();c.globalAlpha*=alpha;
+    if(phase==="telegraph"){
+      // Strong warning with true water texture, clipped to the actual hit
+      // radius, plus a legible turquoise edge and directional foam.
+      c.beginPath();c.arc(h.x,h.y,r,0,Math.PI*2);c.clip();
+      c.fillStyle="rgba(4,55,86,.37)";
+      c.beginPath();c.arc(h.x,h.y,r,0,Math.PI*2);c.fill();
+      if(hasArt){
+        const iy=Math.floor(image.naturalHeight*.55);
+        c.globalAlpha*=.74;
+        c.drawImage(image,0,iy,image.naturalWidth,image.naturalHeight-iy,
+          h.x-r,h.y-r*.64,r*2,r*1.28);
+        c.globalAlpha/= .74;
+      }
+      c.strokeStyle="#9aeffe";c.shadowColor="#3bd6fc";c.shadowBlur=15;
+      c.lineWidth=6;c.beginPath();c.arc(h.x,h.y,r-4,0,Math.PI*2);c.stroke();
+      c.strokeStyle="#0a5c8d";c.lineWidth=3;
+      c.beginPath();c.arc(h.x,h.y,r-13,0,Math.PI*2);c.stroke();
+    }else{
+      // Genuine water-column raster as the impact artwork; use a ground
+      // footprint, not a generic solid circular flood fill.
+      if(hasArt){
+        const size=r*2.45;
+        c.drawImage(image,h.x-size/2,h.y-size*.81,size,size);
+      }
+      c.strokeStyle="rgba(164,241,255,.80)";c.lineWidth=5;
+      c.shadowColor="#5ddaff";c.shadowBlur=12;
+      c.beginPath();c.ellipse(h.x,h.y,r*.9,r*.52,0,0,Math.PI*2);c.stroke();
+    }
+    c.restore();
+    bossHazardPass=hasArt?"IMAGE":"WATER_WARNING_FALLBACK";
+    return true;
+  }
+
   function drawPortBossHazard(targetCtx, h, elapsed = 0, owner = null) {
     if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) {
       bossHazardPass = "UNHANDLED";
@@ -3798,7 +3844,10 @@ window.RENDERER = (() => {
       return drawNightBossImage(c,h,elapsed);
     }
 
-    // 四標準 kind 走獨立 Boss 圖片 gate (dev=1&bossart=1)；未知 kind、gate 關、缺圖都 false 交 game C3。
+    if (currentStageId() === "rain-port" && kind === "slam") {
+      return paintHarborWaterSlam(c,h,elapsed);
+    }
+    // Other standard hazard kinds retain their geometry-matched raster gate.
     if (isStandardKind) {
       const painterMap = { slam: paintSlam, charge: paintCharge, ring: paintRing, tide: paintTide };
       const painter = painterMap[kind];

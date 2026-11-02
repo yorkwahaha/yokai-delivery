@@ -6123,17 +6123,26 @@ function spawnEnemy(tier, rad, ang, ring) {
       }
     }
 
-    // After 12:00 keep a modest 0.4% maxHP/s regen (was 1.5%);
-    // a skill-focused build should win without grinding to Lv49.
-    if (STAGE.id === "night-town" && elapsed >= 720 && !finalBossDefeated) {
-      const liveBoss = enemies.find(e => e.type === "boss" && e.final && e.hp > 0);
+    // Night-town final Boss: two phases measured from its actual appearance.
+    // +0.5%/s after 2 minutes, +1%/s after 4 minutes; cumulative actual
+    // restoration stops at 200% of starting HP. Health never exceeds maxHP.
+    if (STAGE.id === "night-town" && !finalBossDefeated) {
+      const liveBoss = enemies.find(e => e.type === "boss" && e.final && e.hp > 0 && !e.dying);
       if (liveBoss) {
-        const heal = (liveBoss.max || 1000) * 0.004 * dt;
-        liveBoss.hp = Math.min(liveBoss.max, liveBoss.hp + heal);
-        liveBoss.healPulseT = (liveBoss.healPulseT || 0) + dt;
-        if (liveBoss.healPulseT >= 1.5) {
-          liveBoss.healPulseT = 0;
-          say("妖力湧溢・狂暴回血", liveBoss.x, liveBoss.y - 70, "#ff4d4d");
+        const bossAge = elapsed - (liveBoss.appearedAt ?? DAWN);
+        const regenRate = bossAge >= 240 ? 0.01 : bossAge >= 120 ? 0.005 : 0;
+        const cap = liveBoss.max * 2;
+        const already = liveBoss.regenRestored || 0;
+        if (regenRate > 0 && already < cap && liveBoss.hp < liveBoss.max) {
+          const healed = Math.min(liveBoss.max * regenRate * dt,
+            cap - already, liveBoss.max - liveBoss.hp);
+          liveBoss.hp += healed;
+          liveBoss.regenRestored = already + healed;
+          liveBoss.healPulseT = (liveBoss.healPulseT || 0) + dt;
+          if (liveBoss.healPulseT >= 2) {
+            liveBoss.healPulseT = 0;
+            say("妖力再生", liveBoss.x, liveBoss.y - 70, "#ff9f9f");
+          }
         }
       }
     }
@@ -6409,6 +6418,8 @@ function spawnEnemy(tier, rad, ang, ring) {
           pose: "idle",
           title: bossTitle,
           bossIndex: bossStage,
+          appearedAt: elapsed,
+          regenRestored: 0,
           stageId: STAGE.id,
           bossTheme: STAGE_ENEMY.bossTheme,
           oilReward: plan.oil,
@@ -8511,7 +8522,11 @@ function spawnEnemy(tier, rad, ang, ring) {
       return;
     }
     if (bossQ && !job?.reading) {
-      const layout = UI.bossQuizLayout(bossQ.ans.length);
+      // Use the same Boss count as drawBossQuiz: stacked bars shift the
+      // answer board upward, and touch hitboxes must follow exactly.
+      const visibleBosses = enemies.filter(e =>
+        e.type === "boss" && e.hp > 0 && !e.dying).length;
+      const layout = UI.bossQuizLayout(bossQ.ans.length, visibleBosses);
       for (let i = 0; i < layout.options.length; i++) {
         const option = layout.options[i];
         if (p.x >= option.x && p.x <= option.x+option.w && p.y >= option.y && p.y <= option.y+option.h) {

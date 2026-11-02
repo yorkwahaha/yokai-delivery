@@ -1484,46 +1484,35 @@ window.UI = (() => {
   // outside the lantern image, with three large colored charms, never on glass.
   function drawCharmHud(ctx, { charms = [], maxSlots = 3 }) {
     if (!charms.length) return [];
-    const b=screenBounds(), scale=window.VIEWPORT?.get()?.scale||1;
-    // Equipped items are UI: a compact labeled bar at the TOP CENTER,
-    // not hanging loose beside the lantern like uncollected floor sprites.
-    const slot=Math.max(29,Math.min(36,Math.round(35/Math.max(.85,scale))));
-    const gap=7, pad=13, head=18;
-    const count=Math.min(3,maxSlots);
-    const panelW=pad*2+count*slot+(count-1)*gap;
-    const panelH=pad*2+head+slot+3;
-    const x=clamp((b.left+b.right-panelW)/2,b.left+195,b.right-panelW-12);
-    const y=b.top+8;
+    const b = screenBounds();
+    // HoloCure-style: worn items live near the upper-left resource HUD.
+    // No backing plate, empty-slot boxes or centered banner.
+    const n=Math.min(3,maxSlots), slot=32, gap=9;
+    const x=b.left+32, y=Math.min(b.bottom-155,b.top+258);
     ctx.save();
-    ctx.shadowColor="rgba(0,0,0,.85)";ctx.shadowBlur=14;
-    ctx.fillStyle="rgba(17,20,37,.91)";
-    ctx.strokeStyle="#d4ac6a";ctx.lineWidth=2;
-    ctx.beginPath();ctx.roundRect(x,y,panelW,panelH,8);ctx.fill();ctx.stroke();
-    ctx.shadowBlur=0;
-    ctx.font=readableFont(12,"900");ctx.textAlign="center";
-    ctx.fillStyle="#f5d6a0";
-    ctx.fillText("裝備御守",x+panelW/2,y+head+2);
-    for(let i=0;i<count;i++){
-      const xx=x+pad+i*(slot+gap), yy=y+pad+head;
-      const item=charms[i],key=String(item?.id||"").replace(/^charm_/,"");
-      const art=illustratedCharms[key],accent=CHARM_PRESENTATION[key]?.color||"#d8ae77";
-      ctx.fillStyle="rgba(32,37,59,.95)";ctx.strokeStyle="rgba(198,164,106,.85)";
-      ctx.lineWidth=1.3;ctx.beginPath();ctx.roundRect(xx,yy,slot,slot,5);
-      ctx.fill();ctx.stroke();
-      if(!item) continue;
+    for(let i=0;i<n;i++){
+      const item=charms[i]; if(!item)continue;
+      const key=String(item.id||"").replace(/^charm_/,"");
+      const art=illustratedCharms[key],accent=CHARM_PRESENTATION[key]?.color||"#e2bc87";
+      const xx=x+i*(slot+gap);
       if(art?.naturalWidth && art.naturalHeight){
-        const ratio=Math.min((slot-8)/art.naturalWidth,(slot-7)/art.naturalHeight);
+        const ratio=Math.min(slot/art.naturalWidth,(slot+4)/art.naturalHeight);
         const ww=art.naturalWidth*ratio,hh=art.naturalHeight*ratio;
-        ctx.drawImage(art,xx+(slot-ww)/2,yy+(slot-hh)/2,ww,hh);
-      } else {
+        ctx.save();ctx.shadowColor="rgba(0,0,0,.85)";ctx.shadowBlur=7;
+        ctx.drawImage(art,xx+(slot-ww)/2,y+(slot+4-hh)/2,ww,hh);
+        ctx.restore();
+      }else{
         ctx.fillStyle=accent;ctx.font=readableFont(20,"900");
-        ctx.fillText(CHARM_PRESENTATION[key]?.glyph||"守",xx+slot/2,yy+slot*.75);
+        ctx.textAlign="center";ctx.shadowColor="#0b0e16";ctx.shadowBlur=5;
+        ctx.fillText(CHARM_PRESENTATION[key]?.glyph||"守",xx+slot/2,y+24);
       }
       const level=Math.max(1,Math.min(3,item.level||1));
-      for(let n=0;n<level;n++){
-        ctx.fillStyle="#ffe6aa";ctx.beginPath();
-        ctx.arc(xx+slot/2+(n-(level-1)/2)*8,yy+slot-3,2,0,6.283);ctx.fill();
+      ctx.shadowBlur=4;ctx.shadowColor="#17111b";
+      for(let k=0;k<level;k++){
+        ctx.fillStyle="#ffe4a1";ctx.beginPath();
+        ctx.arc(xx+slot/2+(k-(level-1)/2)*8,y+slot+5,2.4,0,6.283);ctx.fill();
       }
+      ctx.shadowBlur=0;
     }
     ctx.restore();
     return [];
@@ -2736,7 +2725,8 @@ window.UI = (() => {
     const {badgeTextSize, badgeH, slotSize, footerHeight} = skillMetrics(scale, ctx);
     const slotGap = 8;
     ctx.save();
-    ctx.translate(bounds.left + 18, bounds.bottom - footerHeight - 12);
+    // Drop the fan and passive inventory closer to the bottom safe boundary.
+    ctx.translate(bounds.left + 18, bounds.bottom - footerHeight + 1);
     ctx.scale(1.2, 1.2);
     const slotStartX = 0, slotY = 0;
 
@@ -2796,21 +2786,24 @@ window.UI = (() => {
       dash:3,oil_max:2,mag:3,oil_heal:3};
     passives.slice(0, visibleCount).forEach((pas,pIdx)=>{
       const px=passiveX+pIdx*(slotSize+slotGap);
-      const barW=Math.max(3.5,Math.min(5.5,slotSize*.065)),artW=slotSize-barW-3;
+      // Passive portraits 13% smaller, while keeping their slot positions stable.
+      const iconSize=slotSize*.87;
+      const margin=(slotSize-iconSize)/2;
+      const barW=Math.max(3.5,Math.min(5.5,iconSize*.065)),artW=iconSize-barW-3;
       ctx.save();
       ctx.fillStyle="#e5d5ae";
-      ctx.beginPath();ctx.roundRect(px,slotY,artW,slotSize,6);ctx.fill();
+      ctx.beginPath();ctx.roundRect(px+margin,slotY+margin,artW,iconSize,6);ctx.fill();
       const art=illustratedPassives[pas.id];
       if(art?.naturalWidth){
-        const ratio=Math.min(artW/art.naturalWidth,slotSize/art.naturalHeight);
+        const ratio=Math.min(artW/art.naturalWidth,iconSize/art.naturalHeight);
         const iw=art.naturalWidth*ratio,ih=art.naturalHeight*ratio;
-        ctx.drawImage(art,px+(artW-iw)/2,slotY+(slotSize-ih)/2,iw,ih);
+        ctx.drawImage(art,px+margin+(artW-iw)/2,slotY+margin+(iconSize-ih)/2,iw,ih);
       } // B15: keep the paper slot neutral while its approved ink icon loads,
         // instead of flashing the old geometric emblem for a few frames.
       const cap=maxStacks[pas.id]||3,lit=Math.min(cap,Math.max(0,pas.lvl));
-      const segGap=1.5,segH=(slotSize-(cap-1)*segGap)/cap,barX=px+artW+3;
+      const segGap=1.5,segH=(iconSize-(cap-1)*segGap)/cap,barX=px+margin+artW+3;
       for(let seg=0;seg<cap;seg++){
-        const sy=slotY+slotSize-(seg+1)*segH-seg*segGap;
+        const sy=slotY+margin+iconSize-(seg+1)*segH-seg*segGap;
         const breathing=.80+.20*Math.sin(Date.now()/1000*2.4+pIdx*.73);
         ctx.fillStyle=seg<lit?("rgba(255,232,68,"+breathing+")"):"rgba(118,96,52,.23)";
         if(seg<lit){ctx.shadowColor="#fff481";ctx.shadowBlur=8;}
