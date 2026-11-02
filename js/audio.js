@@ -19,6 +19,7 @@ window.AUDIO = (() => {
   let bossMusic = false, bossMix = 0;
   const bgmAttempts = new WeakSet();
   const bgmRetryAt = new WeakMap();
+  let musicBlockedByPolicy = false;
   function playMusic(audio, retry = false) {
     if (!audio || !audio.paused || (!retry && bgmAttempts.has(audio)) ||
         (!retry && (bgmRetryAt.get(audio) || 0) > Date.now())) return;
@@ -26,7 +27,10 @@ window.AUDIO = (() => {
     // iPad/Safari can reject while the boss MP3 is still waiting for data.
     // A failed attempt must never poison this track for the entire session.
     try {
-      Promise.resolve(audio.play()).catch(() => {
+      Promise.resolve(audio.play()).then(() => {
+        musicBlockedByPolicy = false;
+      }).catch(error => {
+        if (error?.name === "NotAllowedError") musicBlockedByPolicy = true;
         bgmAttempts.delete(audio);
         bgmRetryAt.set(audio, Date.now() + 1200);
       });
@@ -729,6 +733,24 @@ window.AUDIO = (() => {
       if (musicShouldPlay && !muted && !suspended) playMusic(activeBgm, true);
       return ac;
     },
+    // Invoked only from player keyboard/touch/controller actions.
+    // A visible game that was muted by a blur/focus transition must not
+    // remain silent indefinitely; keep intentional mute and hidden-tab rules.
+    unlockFromInput() {
+      if (typeof document !== "undefined" && document.hidden) return false;
+      if (suspended) this.setSuspended(false);
+      if (muted) return false;
+      this.init();
+      const desired = activeBgm || preparedBgm || (musicShouldPlay ? window.BGM : null);
+      if (desired && desired.paused) {
+        bgmRetryAt.delete(desired);
+        bgmAttempts.delete(desired);
+        playMusic(desired, true);
+      }
+      return true;
+    },
+    needsAudioGesture: () => !muted && musicBlockedByPolicy,
+    isSuspended: () => suspended,
     prepareMusic(state) {
       if (muted || suspended) return;
       preparedBgm = state === 'overworld' ? (window.MAP_BGM || window.BGM) : window.BGM;

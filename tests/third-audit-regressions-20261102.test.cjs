@@ -74,15 +74,16 @@ test('index refreshes the five changed JavaScript assets',()=>{
  const html=fs.readFileSync('index.html','utf8');
  for(const key of ['store','assets'])
    assert.match(html,new RegExp('js/'+key+'\\.js\\?v='+ (key==='store'?'20261102-r3':'20261102-geometry-phase2')),key);
- for(const key of ['ui'])
-   assert.match(html,new RegExp('js/'+key+'\\.js\\?v=20261102-playtest-ui5'),key);
+ assert.ok(html.includes('js/ui.js?v=20261102-audio-pad-hotfix'));
  for(const key of ['renderer'])
    assert.match(html,new RegExp('js/'+key+'\\.js\\?v=20261102-water-slam-sfx'),key);
- assert.ok(html.includes('js/game.js?v=20261102-charm-phase3'));
+ assert.ok(html.includes('js/game.js?v=20261102-audio-pad-hotfix'));
  assert.match(html,/js\/game-quiz-logic\.js\?v=20261102-quiz-phase1/);
  assert.ok(html.includes('js/game-geometry.js?v=20261102-geometry-phase2'));
  assert.ok(html.includes('js/game-charm-math.js?v=20261102-charm-phase3'));
- for(const key of ['audio','world']) assert.ok(html.includes('js/'+key+'.js?v=20261102-charm-phase3'));
+ assert.ok(html.includes('js/audio.js?v=20261102-audio-pad-hotfix'));
+ assert.ok(html.includes('js/world.js?v=20261102-charm-phase3'));
+ assert.ok(html.includes('js/ui.js?v=20261102-audio-pad-hotfix'));
 });
 
 test('core image that never answers eventually releases ART_READY',()=>{

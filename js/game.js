@@ -2479,6 +2479,7 @@ if (isRainPort) {
   }
 
   function enterOverworld(reset = true) {
+    AUDIO.unlockFromInput?.();
     window.loadMapArt?.();
     // 有進度（曾離開地圖時記下節點）就從上次位置繼續；新玩家仍從起點 gate 開始。
     if (reset) overworld = window.OVERWORLD.createState(loadOverworldNode());
@@ -2630,6 +2631,7 @@ if (isRainPort) {
 
   function start(stageId = STAGE.id) {
     quitConfirm = false;
+    AUDIO.unlockFromInput?.();
     AUDIO.prepareMusic?.('play');
     AUDIO.restartMusic();
     window.loadGameArt?.();
@@ -3593,6 +3595,11 @@ if (isRainPort) {
       return;
     }
 
+    // Controller activity can resume a visible page after a transient blur,
+    // even if the player keeps moving instead of pressing the confirm button.
+    if (gp.buttons.some((button, i) => button.pressed && !gpPrevButtons[i])) {
+      AUDIO.unlockFromInput?.();
+    }
     if (CONTROLS.isOpen()) {
       CONTROLS.gamepad(gp, gpPrevButtons);
       gpPrevButtons = gp.buttons.map(b => b.pressed);
@@ -3689,7 +3696,17 @@ if (isRainPort) {
       const dir = Math.abs(ax) > Math.abs(ay) ? (ax > 0.55 ? 1 : ax < -0.55 ? -1 : 0) : (ay > 0.55 ? 1 : ay < -0.55 ? -1 : 0);
       if (dir && dir !== gpMenuDir) moveMenu(dir);
       gpMenuDir = dir;
-      if (justPressed(0)) { AUDIO.init(); activateWithFeedback(buttons[menuFocus].id); }
+      if (state === "menu" && justPressed(3)) {
+        AUDIO.toggleMute();
+        if (!AUDIO.isMuted()) AUDIO.unlockFromInput?.();
+      } else if (state === "menu" && justPressed(9)) {
+        // Standard controller Menu/Start always enters the journey map.
+        AUDIO.unlockFromInput?.();
+        activateWithFeedback("start");
+      } else if (justPressed(0)) {
+        AUDIO.unlockFromInput?.();
+        activateWithFeedback(buttons[menuFocus]?.id || "start");
+      }
       else if (justPressed(1) || justPressed(9)) { if (quitConfirm) activateMenu('exit-cancel'); else if (state === 'pause') togglePause(); else if (state === 'won') activateMenu('world'); else if (state === 'lost') activateMenu('menu'); }
       else if (justPressed(8) && !quitConfirm) activateMenu('codex');
       gpPrevButtons = gp.buttons.map(b => b.pressed);
@@ -3699,7 +3716,7 @@ if (isRainPort) {
 
     // A 鍵 (Button 0)：遊戲中互動（升級選卡已在上方獨立處理）
     if (justPressed(0)) {
-      AUDIO.init();
+      AUDIO.unlockFromInput?.();
       if (state === "overworld") confirmOverworld();
       else if (state === "play" && inter) interact();
     }
@@ -8118,7 +8135,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     if (artPending()) return;
     if (CONTROLS.isOpen()) return;
     if (e.target?.closest?.('button, input, select, textarea, dialog')) return;
-    if (!e.repeat && state === "play") AUDIO.init();
+    if (!e.repeat) AUDIO.unlockFromInput?.();
     const action = CONTROLS.action(e.code);
     inputMode = 'keyboard';
     if (tutorial) {
@@ -8290,6 +8307,9 @@ function spawnEnemy(tier, rad, ang, ring) {
   };
   addEventListener("blur", suspend);
   addEventListener("focus", wakeAudio);
+  addEventListener("gamepadconnected", () => {
+    if (state === "menu") inputMode = "gamepad";
+  });
   document.addEventListener("visibilitychange", () => { if (document.hidden) suspend(); else wakeAudio(); });
 
   const pp = e => {
@@ -8362,7 +8382,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     e.preventDefault();
     if (frameError) { recoverFrameError(); return; }
     if (disabledWordReplay(e)) return;
-    AUDIO.init();
+    AUDIO.unlockFromInput?.();
     if ((isPortrait() && state !== "overworld" && state !== "menu") || document.hidden) return;
     if (state === "overworld" && artPending()) noteLoadingGesture(e);
     if (artPending()) return;
@@ -8802,7 +8822,9 @@ function spawnEnemy(tier, rad, ang, ring) {
       }
       ctx.restore();
     } else if (state === "menu") {
-      UI.drawMainMenu(ctx, STORE, now / 1000, menuFocus);
+      UI.drawMainMenu(ctx, STORE, now / 1000, menuFocus, {
+        muted: AUDIO.isMuted?.(), audioBlocked: AUDIO.needsAudioGesture?.(), gamepad: inputMode === "gamepad"
+      });
     } else if (state === "overworld") {
       window.OVERWORLD.draw(ctx, overworld, now / 1000, overworldNoticeT);
       if (state === "overworld" && overworldExitArmT > 0) {

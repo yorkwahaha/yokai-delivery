@@ -1172,7 +1172,7 @@ window.UI = (() => {
     ctx.fillStyle = C.gold; ctx.fillRect(x-158,y+14,316*p.settled/p.total,5);
     ctx.restore();
   }
-  function drawMainMenu(ctx, STORE, elapsed, focus = 0) {
+  function drawMainMenu(ctx, STORE, elapsed, focus = 0, audioStatus = {}) {
     ctx.save();
     refreshMenuButtons();
     const motion = !calm();
@@ -1227,7 +1227,19 @@ window.UI = (() => {
       drawButton(ctx, bt, label, { size: 14, focus:MENU_BTNS[focus]?.id===bt.id, quiet:true, scrollText:true });
     }
     drawAssetProgress(ctx);
-
+    ctx.save();
+    ctx.font = readableFont(13, "bold");
+    ctx.textAlign = "center";
+    ctx.fillStyle = audioStatus.muted ? "#ffb4a4" : "#f6e2b4";
+    const hint = audioStatus.muted
+      ? "目前靜音｜手把 Y／鍵盤 M 可開啟聲音"
+      : audioStatus.audioBlocked
+        ? "瀏覽器封鎖音效｜請點一下畫面以啟用聲音"
+        : audioStatus.gamepad
+          ? "手把：Start 進入旅路｜十字鍵／左搖桿選擇・A 確認・Y 靜音"
+          : "手把：Start 進入旅路・A 確認｜鍵盤 Enter 進入";
+    ctx.fillText(hint, W / 2, Math.min(H - 16, 595), 860);
+    ctx.restore();
     ctx.restore();
   }
 
