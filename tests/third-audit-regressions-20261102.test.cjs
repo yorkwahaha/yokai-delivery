@@ -76,8 +76,10 @@ test('index refreshes the five changed JavaScript assets',()=>{
    assert.match(html,new RegExp('js/'+key+'\\.js\\?v='+ (key==='store'?'20261102-r3':'20261102-playtest-ui4')),key);
  for(const key of ['world','ui'])
    assert.match(html,new RegExp('js/'+key+'\\.js\\?v=20261102-playtest-ui5'),key);
- for(const key of ['renderer','game','audio'])
+ for(const key of ['renderer','audio'])
    assert.match(html,new RegExp('js/'+key+'\\.js\\?v=20261102-water-slam-sfx'),key);
+ assert.match(html,/js\/game\.js\?v=20261102-quiz-phase1/);
+ assert.match(html,/js\/game-quiz-logic\.js\?v=20261102-quiz-phase1/);
 });
 
 test('core image that never answers eventually releases ART_READY',()=>{

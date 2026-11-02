@@ -251,45 +251,15 @@
   // 仍是跨平台缺字備援，並讓所有答案假名使用同一字型。
   const sceneAnswerFont = size => UI.floorAnswerFont ? UI.floorAnswerFont(size) : UI.answerFont(size, "400");
   const getWordDistrictWords = word => window.CONTENT.getSiblingWords(word);
-  const writtenLength = text => Array.from(String(text || "").normalize("NFC")).length;
-  const kanaScript = text => {
-    const chars = Array.from(String(text || ""));
-    if (chars.length && chars.every(ch => /[ぁ-ゖー]/u.test(ch))) return "hiragana";
-    if (chars.length && chars.every(ch => /[ァ-ヺー]/u.test(ch))) return "katakana";
-    return "mixed";
-  };
+  // Phase 1 extraction: gameplay state and RNG remain owned by game.js;
+  // this thin adapter passes the exact same candidate sources and shuffle.
   function answerChoices(word) {
-    const seen = new Set([word.jp]), distractors = [];
-    const targetLength = writtenLength(word.jp);
-    const targetScript = kanaScript(word.jp);
-    const source = [
-      ...getWordDistrictWords(word),
-      ...ALL,
-      ...(window.CONTENT.getAnswerCandidates?.() || window.CONTENT.getAllWords())
-    ];
-    const candidates = shuffle(source).filter(w => w && !seen.has(w.jp) && writtenLength(w.jp) === targetLength);
-    const take = pool => {
-      const w = pool.find(candidate => !seen.has(candidate.jp));
-      if (!w) return false;
-      seen.add(w.jp);
-      distractors.push(w);
-      return true;
-    };
-
-    // 優先保留一個同文字系的近似項，再混入另一文字系，避免字數或平／片假名成為答案提示。
-    if (targetScript === "hiragana" || targetScript === "katakana") {
-      take(candidates.filter(w => kanaScript(w.jp) === targetScript));
-      take(candidates.filter(w => {
-        const script = kanaScript(w.jp);
-        return script !== targetScript && (script === "hiragana" || script === "katakana");
-      }));
-    }
-    while (distractors.length < 2 && take(candidates)) {}
-    if (distractors.length < 2) {
-      // 未來詞包缺少同長度詞時仍使用真實且不重複的詞，不中斷當局。
-      while (distractors.length < 2 && take(shuffle(source).filter(w => w && w.jp))) {}
-    }
-    return shuffle([word, ...distractors]);
+    return window.GAME_QUIZ_LOGIC.answerChoices(word, {
+      districtWords: getWordDistrictWords(word),
+      allWords: ALL,
+      extraWords: window.CONTENT.getAnswerCandidates?.() || window.CONTENT.getAllWords(),
+      shuffle
+    });
   }
 
   // ---------- 遊戲狀態 ----------

@@ -74,6 +74,8 @@ test('water Boss phase-triggered sounds are one-shot; night-town keeps its own i
 });
 
 test('release cache keys changed for exactly the modified JavaScript files',()=>{
-  for(const name of ['game','renderer','audio'])
+  for(const name of ['renderer','audio'])
     assert.ok(html.includes('js/'+name+'.js?v=20261102-water-slam-sfx'));
+  assert.ok(html.includes('js/game.js?v=20261102-quiz-phase1'));
+  assert.ok(html.includes('js/game-quiz-logic.js?v=20261102-quiz-phase1'));
 });

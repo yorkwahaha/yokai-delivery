@@ -1,3 +1,11 @@
+## 2026-11-02 JS 模組化第一批：日文題目選項純函式
+
+- 正式版 \`c140f71\` 水王半透明警告／獨立 SFX 已上線並核對檔案 SHA。這輪開始第一個低風險獨立拆分，不混入新的遊戲難度、美術或存檔規則修改。
+- 新增 \`js/game-quiz-logic.js\`（\`window.GAME_QUIZ_LOGIC\`），從 \`game.js\` 抽離 \`writtenLength\`、\`kanaScript\` 和 \`answerChoices\` 核心邏輯。主遊戲保留很薄的 \`answerChoices(word)\` 介面，僅傳入原有詞包資料與原本 shuffle 函式；隨機消耗次序、同字數與假名混合優先順序保留。
+- \`index.html\` 於 \`game.js\` 之前載入新模組，\`game.js\` 和新檔帶相同 \`?v=20261102-quiz-phase1\`；正式 Node VM 測試工作環境與 \`input-runtime\` 依賴清單同步新增。
+- 新增四項純函式測試 \`tests/game-quiz-logic-phase1.test.cjs\`；既有 \`input-runtime\` 三項答題行為 test-name-pattern 成功；其他涵蓋 Boss、音效與雨港相關的選定測試通過。
+- 尚不搬移 \`hurt()\`、\`weapons()\`、Boss AI、勝敗結算或存檔，保留延期融合 gate。第二批需在此批正式版驗證後才考慮逐步擴大。
+
 ## 2026-11-02 雨港水王圓形地板技：透明度與預留音效
 
 - 使用原有 \`rainVortex_v01.webp\`：預警藍色底圈 alpha 由 0.37 降至 0.12，外圈亮藍描邊降至 0.48、內圈 0.42；圖片取消原額外 0.74 倍淡化，預警／命中圖片以完整不透明度繪製，只保留 recovery 末段既定淡出；技傷害／半徑／時序不變。
