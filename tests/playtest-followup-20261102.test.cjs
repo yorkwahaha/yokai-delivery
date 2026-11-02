@@ -35,7 +35,7 @@ test('final Boss regenerates 0 before 2m, 0.5% 2m, 1% 4m and only 200% total',()
 test('multi-Boss click hitboxes receive same live bossCount as UI renderer',()=>{
  assert.match(game,/UI\.bossQuizLayout\(bossQ\.ans\.length, visibleBosses\)/);
  assert.match(game,/const visibleBosses = enemies\.filter\(e =>/);
- assert.match(game,/UI\.drawBossQuiz\(ctx,bossQ,inputMode,liveBosses,sealFade\)/);
+ assert.match(game,/UI\.drawBossQuiz\(ctx,job\?\.reading \? null : bossQ,inputMode,liveBosses,sealFade\)/);
  assert.match(ui,/bossQuizLayout\(bossQ\?\.ans\.length \|\| 3,bosses\.length\)/);
  const starts=ui.indexOf('function bossQuizLayout(');
  const ends=ui.indexOf('function drawBossQuiz(',starts);
@@ -55,7 +55,7 @@ test('first-stage includes the already-shipped shrine as a third building varian
 });
 
 test('rain-port foundations and collisions share visible floor footprint',()=>{
- assert.match(world,/stage\.id === "rain-port" \? 64 : 48/);
+ assert.match(world,/h\.bType === "port_fishmonger" \? 100\.5/);
  assert.match(renderer,/ctx\.ellipse\(h\.x, h\.y \+ 48, rx, ry/);
  assert.match(renderer,/rgba\(12, 15, 21, 0\.38\)/);
 });

@@ -1406,10 +1406,7 @@
   }
 
   function charmGuardOilLoss(amount) {
-    const lv = charmLevelOf("charm_guard");
-    if (lv <= 0) return amount;
-    const mul = 1 - 0.10 * lv;
-    return Math.min(amount, Math.max(Number.MIN_VALUE, parseFloat((amount * mul).toPrecision(12))));
+    return window.GAME_CHARM_MATH.guardOilLoss(amount, charmLevelOf("charm_guard"));
   }
 
   function getEffectiveDmg(buildState = null) {
@@ -6193,11 +6190,13 @@ function spawnEnemy(tier, rad, ang, ring) {
         if (STAGE.id === "rain-port") {
           // Boss AI owns the telegraph/active phases. Only sound on the
           // hazard object being created or changing phase, never per frame.
-          if (e.hazard?.kind === "slam" && e.hazard !== h
-              && e.hazard.phase === "telegraph") {
-            AUDIO.rainPortWaterSlamWarn?.();
-          }
-          if (slamWasWarning && e.hazard === h && h.phase === "active") {
+          // A large frame can start a slam and advance it straight to active
+          // before rendering any telegraph frame. The Boss AI started flag
+          // preserves both one-shot sound events, even across a long frame.
+          const newSlam = stepped?.started && e.hazard?.kind === "slam";
+          if (newSlam) AUDIO.rainPortWaterSlamWarn?.();
+          if ((slamWasWarning && e.hazard === h && h.phase === "active")
+              || (newSlam && e.hazard.phase === "active")) {
             AUDIO.rainPortWaterSlamImpact?.();
           }
         }
@@ -8899,7 +8898,10 @@ function spawnEnemy(tier, rad, ang, ring) {
           .sort((a,b) => (a.bossIndex ?? 0) - (b.bossIndex ?? 0));
         const sealFade = bossSealBreak?.boss && liveBosses.includes(bossSealBreak.boss)
           ? Math.max(0,1-(performance.now()-bossSealBreak.at)/850) : 0;
-        if (bossQ || liveBosses.length) UI.drawBossQuiz(ctx,bossQ,inputMode,liveBosses,sealFade);
+        // During delivery reading only the Boss HP bars remain. Boss quiz
+        // answers are intentionally disabled there, so do not draw inert
+        // clickable-looking options over the active delivery answer panel.
+        if (bossQ || liveBosses.length) UI.drawBossQuiz(ctx,job?.reading ? null : bossQ,inputMode,liveBosses,sealFade);
         if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000, levelupFocus, inputMode, awakeningState());
         if (state === "fusion" && window.FUSION && typeof UI.drawFusion === "function") {
           const model = window.FUSION.getViewModel ? window.FUSION.getViewModel() : {};

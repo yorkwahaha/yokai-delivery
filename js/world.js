@@ -544,8 +544,10 @@
         // Official rain-port façades are 145-165 world units wide.
         // Keep their solid footprint within the rendered foundations,
         // instead of letting the courier visibly enter the picture edge.
-        x0: h.x - (stage.id === "rain-port" ? 64 : 48),
-        x1: h.x + (stage.id === "rain-port" ? 64 : 48),
+        x0: h.x - (stage.id === "rain-port"
+          ? (h.bType === "port_fishmonger" ? 100.5 : h.bType === "port_warehouse" ? 93.5 : 64) : 48),
+        x1: h.x + (stage.id === "rain-port"
+          ? (h.bType === "port_fishmonger" ? 100.5 : h.bType === "port_warehouse" ? 93.5 : 64) : 48),
         y0: h.y - (stage.id === "rain-port" ? 48 : 25),
         y1: h.y + 45,
         chunkKey: h.chunkKey

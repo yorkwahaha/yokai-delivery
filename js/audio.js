@@ -293,7 +293,13 @@ window.AUDIO = (() => {
       if (fellBack || muted || suspended) return;
       // 背景取消不補播；政策拒絕改走已解鎖合成器，但不把 MP3 標成壞檔。
       if (reason?.name === "AbortError") return;
-      if (reason?.name === "NotSupportedError" || [3, 4].includes(audio.error?.code)) unavailableSfx.add(name);
+      // Two future water cues are intentionally optional. Even browsers
+      // without WebAudio (whose HTMLAudio 404s can report network code 2)
+      // must avoid fetching the same missing OGG on every ground slam.
+      if (name === "rainPortWaterSlamWarn" || name === "rainPortWaterSlamImpact"
+          || reason?.name === "NotSupportedError" || [3, 4].includes(audio.error?.code)) {
+        unavailableSfx.add(name);
+      }
       fellBack = true;
       audio.pause();
       fallback(...args);

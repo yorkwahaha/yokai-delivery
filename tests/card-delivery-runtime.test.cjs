@@ -134,6 +134,7 @@ function loadGame(options = {}) {
   };
   vm.runInContext(read("js/game-quiz-logic.js"), context, { filename: "js/game-quiz-logic.js" });
   vm.runInContext(read("js/game-geometry.js"), context, { filename: "js/game-geometry.js" });
+    vm.runInContext(read("js/game-charm-math.js"), context, { filename: "js/game-charm-math.js" });
   const source = read("js/game.js");
   const end = source.lastIndexOf("})();");
   const hook = `window.fixture = {

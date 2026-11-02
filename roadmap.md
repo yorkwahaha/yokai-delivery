@@ -1,3 +1,15 @@
+## 2026-11-02 Grok 4.7 遺留 P2 四項修復及 JS 第三批純函式拆分
+
+- 正式版基準 `66bec020`；本機原有 624 項未提交工作保留，不將封存素材或其它歷史差異推送。
+- **水王跨幀音效**：雨港新生 `slam` 採 `BOSS_AI.step().started` 判斷；首次幀若直接進 active，警告與命中都播放一次；正常 50ms 預警／進入 active 各一次。第一關維持獨立 `bossSlamImpact`，不改 Boss AI 主邏輯。
+- **配送答題疊板**：`job.reading` 時傳 `null` 給 `UI.drawBossQuiz` 的問答部分；保留 Boss 血條、封印崩解，不顯示不能互動的 Boss 答案卡。結束配送讀題後恢復原 Boss 卡與點擊座標。
+- **雨港碰撞**：魚舖世界圖寬 201，倉庫世界圖寬 187，對應 solid 水平半寬改 100.5／93.5（舊版共 64）；維持世界 Y 範圍與答題墊，避免進入外立面。
+- **缺水招音效**：沒有 WebAudio 的 HTMLAudio 若回報 error code 2，也會對僅兩個可選水王 OGG 記錄 unavailable；後續只使用合成音備援而不再請求，保留日後補檔後重新整理就能讀到 OGG。
+- **JS 第三批**：僅將數值純函式 `guardOilLoss(amount, level)` 從 `game.js` 拆成 `js/game-charm-math.js`，主檔仍使用既有 `charmLevelOf("charm_guard")`，扣油、武器與勝敗狀態未拆。保持 Math 的 `toPrecision(12)`、`Number.MIN_VALUE` 與原先負荷的完全同值結果。
+- 更新 `index.html` 的 `audio/world/game` JS 版本與新模組載入順序；現行 VM fixture 同步載入 math，歷史固定版測試不受新依賴影響。
+- **測試**：新增 `tests/phase3-grok-audit-20261102.test.cjs`，覆蓋直接跑 1.2s／0.05s 遊戲沙箱的音效、HTMLAudio 缺 OGG 的 404 記錄、兩種房寬碰撞、答題重疊與御守數值等價。選定 144 項整合測試通過，完整歷史 `input-runtime` 仍有舊規格失敗，不宣稱全庫全綠。
+- 下一步：確認正式版試玩無新回歸後，才進一步挑選無副作用的輔助函式做下一批拆分，不碰 `hurt`、`weapons`、`update`、Boss AI、Journal 存檔或融合。
+
 ## 2026-11-02 Grok 4.7 定向稽核修復與 JS 模組化第二批
 
 - **正式版基準**：`origin/master` `b7b3296`。本機 HEAD 落後且仍有 600+ 個未提交或清理差異；正式提交僅加入本輪挑選檔案。
