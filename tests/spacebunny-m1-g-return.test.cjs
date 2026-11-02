@@ -104,6 +104,9 @@ function boot(seed, opts = {}) {
   const realUI = c.UI;
   c.UI = new Proxy(Object.assign({}, realUI, { readableFont: () => "20px sans-serif" }),
     { get: (o, k) => (o[k] !== undefined ? o[k] : (() => null)) });
+  for (const name of ["game-quiz-logic.js","game-geometry.js"]) {
+    vm.runInContext(read(name), c, { filename: path.join(ROOT, "js", name) });
+  }
   let rawGame = read("game.js");
   // 負向對照開關（僅記憶體改動，絕不寫檔）：SQU_OMIT_CLEANUP=mutations,charms,duos
   // 只移除 js/game.js 的 start() 清理區塊該行（宣告處保留），用來證明該行是承重守衛。

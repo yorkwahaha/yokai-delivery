@@ -132,6 +132,8 @@ function loadGame(options = {}) {
     chooseCalls += 1;
     return originalChoose.apply(this, args);
   };
+  vm.runInContext(read("js/game-quiz-logic.js"), context, { filename: "js/game-quiz-logic.js" });
+  vm.runInContext(read("js/game-geometry.js"), context, { filename: "js/game-geometry.js" });
   const source = read("js/game.js");
   const end = source.lastIndexOf("})();");
   const hook = `window.fixture = {

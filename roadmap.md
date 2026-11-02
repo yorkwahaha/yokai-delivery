@@ -1,3 +1,14 @@
+## 2026-11-02 Grok 4.7 定向稽核修復與 JS 模組化第二批
+
+- **正式版基準**：`origin/master` `b7b3296`。本機 HEAD 落後且仍有 600+ 個未提交或清理差異；正式提交僅加入本輪挑選檔案。
+- **雙王封印 P1**：Boss 反噬剩餘大於 0 時，尚未破盾的其他 Boss 暫不開啟／遞減 `barrierTimer`，也不進行 `quizEntered`／超出距離關閉流程；反噬的正常戰鬥 elapsed 仍照走。反噬結束後再啟用原本 10 秒安全讀題。
+- **雨港 Loading P1**：統一 `runtime-art-manifest.json` 請求加入 10 秒 Promise.race 逾時、AbortController 可用時取消；逾時傳回既有 `MANIFEST_FETCH_FAILED`／`MANIFEST_UNAVAILABLE` 路徑讓 stage2 場景批次 `finally` 放行畫面；可在後續進關重試，不刪除已成功媒體。
+- **Node VM 測試**：修補現行正式版的 `game.js` 沙箱，於主遊戲前載入 `game-quiz-logic.js` 和新 `game-geometry.js`；保留明確指向歷史提交的舊 `MODULE_ORDER`。部分測試檔在本機被先前清理移除，已以 Git 原始內容做增補並保留在正式提交，未長期恢復到本機工作樹。
+- **JS 第二批（低風險）**：新增 `js/game-geometry.js`，僅抽離 `deliveryBarrierContains(point,house,tilt,padding)` 的純橢圓包含計算；原本 `game.js` wrapper 仍傳 `tiltK()`，保留先檢查 null 再求 tilt 的呼叫順序。透過 `index.html` 在 `game.js` 前載入，兩支腳本與有變更的 `assets.js` 更新查詢參數 `20261102-geometry-phase2`。
+- **回歸**：新增 `tests/phase2-geometry-audit-20261102.test.cjs`；涵蓋兩王反噬、manifest 假請求永不 resolve、tilt 0.6/1、padding 0/14 的橢圓邊界，及腳本順序。第三輪測試與水王音效的快取鍵斷言同步更新。
+- **暫不處理**：Grok 第 4～7 項為低風險後續檢查，包括特大 dt 時水王提示音可能漏播、配送讀題與 Boss 題板重疊、雨港屋圖與碰撞邊緣差 12–19px、無 WebAudio 時缺 OGG 404 重試。這批只做前兩個 P1 + VM fixture + 單一純函式拆分，不改傷害、音效平衡或存檔／融合規則。
+- **驗收狀態**：專項測試與素材盤點通過才可提交部署；完整舊 `input-runtime` 有歷史玩法斷言失敗，不宣稱整個 repo 全綠。玩家實機遊玩仍待正式版驗收。
+
 ## 2026-11-02 JS 模組化第一批：日文題目選項純函式
 
 - 正式版 \`c140f71\` 水王半透明警告／獨立 SFX 已上線並核對檔案 SHA。這輪開始第一個低風險獨立拆分，不混入新的遊戲難度、美術或存檔規則修改。

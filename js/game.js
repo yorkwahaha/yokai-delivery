@@ -239,12 +239,7 @@
   // compression exactly once here. Do not compare against the house sprite origin.
   function deliveryBarrierContains(point, house, padding = 0) {
     if (!point || !house) return false;
-    const rx = 245 + padding;
-    const ry = 165 / tiltK() + padding;
-    if (rx <= 0 || ry <= 0) return false;
-    const dx = (point.x - house.x) / rx;
-    const dy = (point.y - (house.y + 70)) / ry;
-    return dx * dx + dy * dy <= 1;
+    return window.GAME_GEOMETRY.deliveryBarrierContains(point, house, tiltK(), padding);
   }
 
   // 書法字體由 index.html 本地 Yuji Syuku 子集提供；Noto Sans JP
@@ -5899,15 +5894,17 @@ function spawnEnemy(tier, rad, ang, ring) {
 
     let quizNear = null;
     let quizNearDistance = 380;
-    for (const e of enemies) {
-      if (e.type !== "boss" || !e.shield || e.hp <= 0 || e.quizClosed) continue;
-      const d = dist(P, e);
-      if (d < quizNearDistance) { quizNear = e; quizNearDistance = d; }
-      else if (d >= 380 && e.quizEntered) e.quizClosed = true;
-    }
-    if (quizNear) {
-      quizNear.quizEntered = true;
-      {
+    // Wrong-answer curse resumes combat but must NOT spend another sealed
+    // Boss's ten-second safety window while that shield is unanswerable.
+    if (bossCurseRemaining <= 0) {
+      for (const e of enemies) {
+        if (e.type !== "boss" || !e.shield || e.hp <= 0 || e.quizClosed) continue;
+        const d = dist(P, e);
+        if (d < quizNearDistance) { quizNear = e; quizNearDistance = d; }
+        else if (d >= 380 && e.quizEntered) e.quizClosed = true;
+      }
+      if (quizNear) {
+        quizNear.quizEntered = true;
         quizNear.barrierTimer = (quizNear.barrierTimer ?? 10) - dt;
         if (quizNear.barrierTimer <= 0) {
           quizNear.barrierTimer = 0;
@@ -5944,8 +5941,6 @@ function spawnEnemy(tier, rad, ang, ring) {
         }
       }
     }
-    // Another sealed Boss must not pause a wrong-answer curse.
-    if (bossCurseRemaining > 0) quizNear = null;
     const safeRead = !!(job?.reading || quizNear);
     // 只有戰場正常推進時才倒數；Boss 答題暫停、交貨答題期間不抵銷反噬。
     if (!safeRead && bossCurseRemaining > 0) bossCurseRemaining = Math.max(0, bossCurseRemaining - dt);

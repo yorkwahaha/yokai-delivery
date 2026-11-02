@@ -213,15 +213,31 @@ const isS2ArtProdEnabled = () => {
 // 共通技能/HUD 的 manifest 不得被 S2 場景旗標擋住，S1 也使用同一來源。
 let runtimeManifestPromise = null;
 window.loadRuntimeArtManifest = () => {
-  if (!runtimeManifestPromise) runtimeManifestPromise = fetch('assets/img/runtime-art-manifest.json?v=20261101-s2-stone1')
-    .then(res => { if (!res.ok) throw Error(`MANIFEST_HTTP_${res.status}`); return res.json(); })
-    .then(manifest => { window.__RUNTIME_MANIFEST = manifest; return manifest; })
-    .catch(error => {
-      console.error('[Assets] Shared manifest:', error.message);
-      // Network error must not poison this tab for the remainder of the session.
-      runtimeManifestPromise = null;
-      return null;
-    });
+  if (!runtimeManifestPromise) {
+    // A hung manifest request must not indefinitely block the S2 art screen.
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    let timeoutId = null;
+    const request = fetch('assets/img/runtime-art-manifest.json?v=20261101-s2-stone1',
+      controller ? { signal: controller.signal } : undefined)
+      .then(res => { if (!res.ok) throw Error("MANIFEST_HTTP_" + res.status); return res.json(); });
+    const timeout = typeof setTimeout === "function" ? new Promise((_, reject) => {
+      timeoutId = setTimeout(() => {
+        controller?.abort();
+        reject(Error("MANIFEST_FETCH_TIMEOUT"));
+      }, 10000);
+    }) : null;
+    runtimeManifestPromise = (timeout ? Promise.race([request, timeout]) : request)
+      .then(manifest => { window.__RUNTIME_MANIFEST = manifest; return manifest; })
+      .catch(error => {
+        console.error('[Assets] Shared manifest: MANIFEST_FETCH_FAILED', error.message);
+        // Allow a subsequent stage attempt to retry a failed manifest.
+        runtimeManifestPromise = null;
+        return null;
+      })
+      .finally(() => {
+        if (timeoutId !== null && typeof clearTimeout === "function") clearTimeout(timeoutId);
+      });
+  }
   return runtimeManifestPromise;
 };
 window.loadRuntimeArtManifest();
