@@ -1,3 +1,11 @@
+## 2026-11-04 Phase32–34｜妖刀第二刀、符咒附著、狐火索敵拆分
+
+- Phase32：將延遲交叉斬的射程與角差判定移到 GAME_COMBAT_MATH.crosscutContains；傷害、暴擊、命中集與音效仍留 game.js。18,000 組新舊幾何對照。
+- Phase33：將符咒投射物第一次碰觸敵人的選取移到 GAME_COMBAT_MATH.boomStickTarget，維持敵人陣列先到先得、Boss 54／小怪 32 的嚴格碰撞邊界。25,000 組 identity parity。
+- Phase34：將狐火接觸可命中判定及 Lv4 脫離追擊選敵移到 GAME_COMBAT_MATH.foxfireOrbitContact / foxfireLaunchTargets，維持無敵時間、護盾、520 嚴格界線和陣列順序。36,000 組 parity。
+- 不調整技能、時序、傷害、RNG、美術或音效；更新實際變更的 game-combat-math 與 game 快取版號。
+- 整批 npm test：951 項／950 通過／0 失敗／1 Stage2 Boss 美術 TODO；玩家試玩待最後一輪。
+
 ## 2026-11-04 Phase31｜妖刀 Lv5 飛行劍氣命中幾何判定拆分
 
 - 只將 `weapons()` 內飛行劍氣的前後方向、橫向寬度、原點射程與角差判定抽成 `GAME_COMBAT_MATH.katanaWaveContains(enemy,wave)`；穿透上限、命中順序、傷害、暴擊、音效及技能延遲仍在原處。

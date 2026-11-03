@@ -3042,11 +3042,7 @@ if (isRainPort) {
           AUDIO.slash(cc.level);
           for (const e of enemies) {
             if (e.hp > 0 && !cc.hits.has(e)) {
-              const ed = Math.hypot(e.x - cc.x, e.y - cc.y);
-              if (ed <= cc.reach) {
-                let diff = Math.abs(Math.atan2(e.y - cc.y, e.x - cc.x) - cc.crossAng);
-                while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
-                if (diff <= cc.arc) {
+              if (window.GAME_COMBAT_MATH.crosscutContains(e, cc)) {
                   cc.hits.add(e);
                   const isMainHit = cc.mainHits && cc.mainHits.has(e);
                   const baseSlash = cc.attackSnapshot ? cc.attackSnapshot.slashDmg : (cc.dmg / 0.60);
@@ -3056,7 +3052,6 @@ if (isRainPort) {
                   const crit = rollCrit(cc.attackSnapshot || cc);
                   hurt(e, finalDmg * (e.type === "boss" ? (cc.attackSnapshot?.bossDamageMultiplier || 1) : e.type === "tank" ? (cc.attackSnapshot?.armoredDamageMultiplier || 1) : 1) * crit.mult, crit.isCrit, false, "blade");
                   SKILLFX.play("katana", "hit", cc.level, { x: e.x, y: e.y, ang: cc.crossAng, crit: crit.isCrit });
-                }
               }
             }
           }
@@ -4019,9 +4014,9 @@ if (isRainPort) {
       q.y += q.vy * dt;
       q.life -= dt;
       if ((q.trail = (q.trail || 0) - dt) <= 0) { q.trail = 0.035; SKILLFX.play("boom", "trail", rank, { x: q.x, y: q.y }); }
-      let stuck = false;
-      for (const e of enemies) {
-        if (e.hp > 0 && Math.hypot(e.x - q.x, e.y - q.y) < (e.type === "boss" ? 54 : 32)) {
+      const stickTarget = window.GAME_COMBAT_MATH.boomStickTarget(enemies, q);
+      if (stickTarget) {
+          const e = stickTarget;
           q.stuck = true;
           q.target = e;
           q.seekTarget = null;
@@ -4030,11 +4025,8 @@ if (isRainPort) {
           q.y = e.y;
           q.vx = 0;
           q.vy = 0;
-          stuck = true;
-          break;
-        }
       }
-      if (stuck) continue;
+      if (stickTarget) continue;
       if (q.life <= 0) q.done = true;
     }
     proj = proj.filter(q => !q.done);
@@ -4058,7 +4050,7 @@ if (isRainPort) {
           SKILLFX.play("fire", "ember", WL.fire, { x: fx, y: fy, ang: a, vx:-Math.sin(a)*fireSpec.rx*fireSpec.angularSpeed, vy:Math.cos(a)*fireSpec.ry*fireSpec.angularSpeed });
         }
         for (const e of enemies) {
-          if (e.hp > 0 && !(e.ifr > elapsed) && Math.hypot(e.x - fx, e.y - fy) < (e.type === "boss" ? 54 : 30)) {
+          if (window.GAME_COMBAT_MATH.foxfireOrbitContact(e, fx, fy, elapsed)) {
             e.ifr = elapsed + fireSpec.hitInterval;
             const hpBefore = e.hp;
             hurt(e, fireSpec.contactDamage);
@@ -4077,7 +4069,7 @@ if (isRainPort) {
       // Lv1–3 僅維持環繞與接觸傷害；Lv4 才准許三顆脫離追擊。
       if(WL.fire===4){
         fireAttackT=Math.max(0,fireAttackT-dt);
-        const targets=enemies.filter(e=>e.hp>0&&!e.shield&&dist(P,e)<520);
+        const targets=window.GAME_COMBAT_MATH.foxfireLaunchTargets(enemies, P);
         if(fireAttackT<=0 && targets.length && !ghosts.some(p=>p.fireAttack&&p.life>0)){
           const n=Math.min(fireSpec.attackCount,count);
           for(let k=0;k<n;k++){

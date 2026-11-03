@@ -150,5 +150,33 @@ window.GAME_COMBAT_MATH = (() => {
     // Preserve original `if (ad > 1.22) continue` semantics, including NaN.
     return !(ad > 1.22);
   }
-  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets, dragonFireTarget, needleSeekTarget, katanaWaveContains });
+  // Phase32: delayed crosscut's radial cone. The caller remains responsible
+  // for hp, hit-set, critical rolls and damage. Preserve <= boundary and
+  // the exact original folded-angle arithmetic for finite gameplay angles.
+  function crosscutContains(enemy, crosscut) {
+    const ed = Math.hypot(enemy.x - crosscut.x, enemy.y - crosscut.y);
+    if (!(ed <= crosscut.reach)) return false;
+    let diff = Math.abs(Math.atan2(enemy.y - crosscut.y, enemy.x - crosscut.x) - crosscut.crossAng);
+    while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
+    return diff <= crosscut.arc;
+  }
+  // Phase33: boom projectile attaches to the first overlapping living enemy
+  // in existing source order, not the closest. The caller applies all state.
+  function boomStickTarget(enemies, projectile) {
+    for (const e of enemies) {
+      if (e.hp > 0 && Math.hypot(e.x - projectile.x, e.y - projectile.y) < (e.type === "boss" ? 54 : 32)) return e;
+    }
+    return null;
+  }
+  // Phase34: foxfire orbital contact and Lv4 detachment eligibility only.
+  // Cooldown, contact damage, burn/slow flags, RNG and movement remain in game.
+  function foxfireOrbitContact(enemy, x, y, elapsed) {
+    return enemy.hp > 0 && !(enemy.ifr > elapsed)
+      && Math.hypot(enemy.x - x, enemy.y - y) < (enemy.type === "boss" ? 54 : 30);
+  }
+  function foxfireLaunchTargets(enemies, player) {
+    return enemies.filter(e => e.hp > 0 && !e.shield
+      && Math.hypot(player.x - e.x, player.y - e.y) < 520);
+  }
+  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets, dragonFireTarget, needleSeekTarget, katanaWaveContains, crosscutContains, boomStickTarget, foxfireOrbitContact, foxfireLaunchTargets });
 })();
