@@ -58,6 +58,6 @@ test('Phase16 main game keeps live weather/stage and renderer context; HTML orde
  assert.match(game,/rainLoad, W, H,[\s\S]*?liveMotion, viewBounds, getRipple/);
  const html=fs.readFileSync('index.html','utf8');
  assert.ok(html.includes('js/game-weather.js?v=20261103-weather-phase16'));
- assert.ok(html.includes('js/game.js?v=20261103-blade-phase24'));
+ assert.ok(html.includes('js/game.js?v=20261103-thunder-phase25'));
  assert.ok(html.indexOf('js/game-weather.js')<html.indexOf('js/game.js'));
 });

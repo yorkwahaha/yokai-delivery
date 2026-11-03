@@ -1,3 +1,13 @@
+## 2026-11-03 JS 模組化 Phase 25 — 天狐雷群體索敵、穩定排序及目標上限
+
+- 從正式 origin/master \`7ebf909bcc523baa2bb04624b6967aa1ee818f92\` 建立隔離 Git worktree，原始本機 \`master a4aaa94\` 與既存未追蹤／未提交素材完全保留。
+- 將 \`weapons()\` 裡天狐雷的合法敵人過濾（HP／護盾／消失／已結束／射程）、Lv1–3 最近距離排序、Lv4–5 威脅順位與同距離穩定排序、\`targetCount\` 截取搬至既有 \`js/game-combat-math.js\` 的純函式 \`thunderTargetSelection(enemies, player, spec)\`。保留原生 \`Array.sort\` 的 comparator 與 \`slice\` 行為，不改邊界和相等時原敵人順序。
+- \`game.js\` 的 \`primaryTargets\` 仍專指「實際命中記錄」，新純函式輸出命名為 \`selectedTargets\`，避免陰影變數造成空打；Lv5 雷雲錨點和 Lv1–4 直接命中共用選擇結果。分支雷、連鎖傷害、暴擊 RNG、冷卻、特效與擊殺流程保持原位。
+- 先儲存原始演算法在 \`tests/fixtures/thunder-targets-original-phase25.js\`，再新增 \`tests/game-combat-thunder-targets-phase25-20261103.test.cjs\`：20,000 組固定種子多敵新舊比較、同距離排序／精確邊界／負數或非有限參數、凍結輸入無副作用，以及真正 VM 裡的 Lv1、Lv4、Lv5 出手、護盾／遠敵排除。
+- 新增 **7/7** 測試通過；Phase 1–25 核心選定測試 **154/154** 通過。擴大 44 檔 313 項戰鬥／系統回歸為 **302 通過、11 失敗**；另外建立未修改的 Phase 24 \`7ebf909\` 基準 worktree 重跑同樣 43 檔 306 項測試，結果 **295 通過、相同 11 項失敗**（Boss 繪圖委派 6、教學 2、舊 V3 契約 3），證明這 11 項不是 Phase 25 導致；基準驗證 worktree 已清除。不可將其宣稱全套測試全綠。
+- 正式 HTML 腳本快取鍵換成 \`combat-phase25\`／\`thunder-phase25\`，僅同步舊測試的版本字串斷言；未碰音訊、圖片及玩法其他區塊。最後仍須使用者一次整體實機驗收，Node 測試不視為實機通過。
+- 下一批可優先評估 \`weapons()\` 內群體爆炸／延遲攻擊採用「原陣列順序＋前三個」的純目標截取，或天狐雷分支目標距離排序；必須另存 golden、明確區分可抽離的純運算與會動狀態的攻擊流程。
+
 ## 2026-11-03 JS 模組化 Phase 24 — 妖刀索敵角度與命中扇形純函式
 
 - 基準為已提交 Phase 23 的 \`4018c43\`。從 \`weapons()\` 的妖刀「準備發動：範圍內有敵人」和「斬擊判定：目標在前方扇形內」**兩處重複距離 + 朝向計算**抽到既有 \`js/game-combat-math.js\` 的 \`bladeArcContains(player, enemy, reach, faceAng, arc)\`。保留原本所有 \`hp > 0\`、Lv5 例外、長刀射程、傷害倍率、技能特效、命中順序、單字／Boss 關聯、出刀冷卻和隨機數在 \`game.js\`。此批不新增小模組，不變更敵人狀態或卡牌。

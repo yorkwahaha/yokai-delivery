@@ -43,5 +43,19 @@ window.GAME_COMBAT_MATH = (() => {
     while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
     return diff <= arc;
   }
-  return Object.freeze({ bossBlueprint, critChance, bladeArcContains });
+  // Phase25: preserve thunder's exact filter, native stable-sort comparator
+  // and slice semantics. Damage, crit rolls and effect order remain in game.js.
+  function thunderTargetSelection(enemies, player, spec) {
+    const radius = spec.radius;
+    const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    const candidates = enemies.filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done && dist(player, e) <= radius);
+    if (candidates.length) {
+      const threat = e => spec.hasFocus
+        ? (e.type === "boss" ? 0 : e.type === "tank" ? 1 : 2)
+        : (e.type === "boss" ? 0 : (e.type === "shooter" || e.type === "shiome") ? 1 : e.type === "tank" ? 2 : 3);
+      candidates.sort((a, b) => (spec.level >= 4 || spec.hasFocus) ? (threat(a) - threat(b) || dist(player, a) - dist(player, b)) : dist(player, a) - dist(player, b));
+    }
+    return { candidates, primaryTargets: candidates.slice(0, spec.targetCount) };
+  }
+  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection });
 })();

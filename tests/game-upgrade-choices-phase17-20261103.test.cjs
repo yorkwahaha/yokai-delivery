@@ -75,7 +75,7 @@ test('Phase17 original priority leaves awakened and mutation cards eligible as b
 test('Phase17 script loaded before game after other pure helpers',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const helper='js/game-upgrade-choices.js?v=20261103-upgrade-phase17';
- const main='js/game.js?v=20261103-blade-phase24';
+ const main='js/game.js?v=20261103-thunder-phase25';
  assert.ok(html.includes(helper)&&html.includes(main));
  assert.ok(html.indexOf(helper)<html.indexOf(main));
  assert.ok(html.indexOf('js/game-weather.js')<html.indexOf(helper));

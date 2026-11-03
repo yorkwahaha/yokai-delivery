@@ -60,7 +60,7 @@ test('Phase11 pure build module has no storage/weapon mutation code',()=>{
 });
 test('Phase11 script revisions load build module before game, preserve other module versions',()=>{
  const html=fs.readFileSync('index.html','utf8');
- const build='js/game-build-rules.js?v=20261103-build-phase19',game='js/game.js?v=20261103-blade-phase24';
+ const build='js/game-build-rules.js?v=20261103-build-phase19',game='js/game.js?v=20261103-thunder-phase25';
  assert.ok(html.includes(build)&&html.includes(game));
  assert.ok(html.indexOf(build)<html.indexOf(game));
  assert.ok(html.includes('js/game-delivery-rules.js?v=20261103-delivery-phase21'));

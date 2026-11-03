@@ -4349,14 +4349,10 @@ if (isRainPort) {
       if (wT.thunder <= 0) {
         const spec = resolveAttackSpec("thunder", WL.thunder, combatBuildState());
         const radius = spec.radius;
-        const candidates = enemies.filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done && dist(P, e) <= radius);
+        const { candidates, primaryTargets: selectedTargets } = window.GAME_COMBAT_MATH.thunderTargetSelection(enemies, P, spec);
         if (!candidates.length) {
           wT.thunder = 0.2;
         } else {
-          const threat = e => spec.hasFocus
-            ? (e.type === "boss" ? 0 : e.type === "tank" ? 1 : 2)
-            : (e.type === "boss" ? 0 : (e.type === "shooter" || e.type === "shiome") ? 1 : e.type === "tank" ? 2 : 3);
-          candidates.sort((a, b) => (spec.level >= 4 || spec.hasFocus) ? (threat(a) - threat(b) || dist(P, a) - dist(P, b)) : dist(P, a) - dist(P, b));
           wT.thunder = wMax.thunder = spec.cooldown;
           const crit = rollCrit(spec);
           const struck = new Set();
@@ -4374,7 +4370,7 @@ if (isRainPort) {
           let qualifyingHitPoint = null;
 
           if (spec.level === 5) {
-            const anchors = candidates.slice(0, spec.targetCount);
+            const anchors = selectedTargets;
             anchors.forEach((anchor, i) => {
               const delay = 0.06 + i * 0.12;
               SKILLFX.play("thunder", "storm", 5, { x: anchor.x, y: anchor.y, r: spec.cloudRadius, delay });
@@ -4393,8 +4389,7 @@ if (isRainPort) {
             });
             RENDERER.triggerShake(8);
           } else {
-            const count = spec.targetCount;
-            for (const e of candidates.slice(0, count)) {
+            for (const e of selectedTargets) {
               struck.add(e);
               primaryTargets.push(e);
               SKILLFX.play("thunder", "strike", spec.level, { x: e.x, y: e.y, r: radius });
