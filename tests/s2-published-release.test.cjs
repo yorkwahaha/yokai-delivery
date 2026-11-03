@@ -46,10 +46,15 @@ test('normal play uses new S2 scene; s2legacy=1 is a deliberate opt-out',()=>{
   const kit=assets.slice(assets.indexOf('const isS2GroundKitEnabled'),assets.indexOf('// Observed orientation'));
   assert.ok(kit.includes('s2legacy=1')); assert.ok(kit.includes('=> true'));
 });
-test('Stage2 kit starts only on stage entry, never at the home/overworld screen',()=>{
+test('Stage2 candidate ground kit is gated to explicit local developer rain-port entry',()=>{
   assert.match(assets,/if \(window\.isS2GroundKitEnabled\?\.\(\)\) void window\.loadS2GroundKit\?\.\(\)/);
+  const gate=assets.slice(assets.indexOf('const isS2GroundKitEnabled'),assets.indexOf('const isS2GroundKitWebPEnabled'));
+  assert.match(gate,/return hasDev && stage === "rain-port" &&/);
+  assert.match(gate,/s2ground=kit/,'candidate art must be explicitly requested');
   const init=assets.slice(assets.indexOf('window.__S2_GROUND_KIT_EVIDENCE'),assets.indexOf('if (typeof window !== "undefined") {\n  window.isS2ArtProdEnabled'));
-  assert.doesNotMatch(init,/loadS2GroundKit\(\)/);
+  assert.match(init,/if \(S2_GROUND_KIT_CACHE\.enabled\) \{[\s\S]{0,250}loadS2GroundKit\(\)/,
+    'the optional dev preload is only reached through the strict gate');
+  assert.equal((init.match(/loadS2GroundKit\(\)/g)||[]).length,1);
 });
 test('new ocean and north rock use published WebP URLs',()=>{
   assert.match(assets,/assets\/img\/rain-port\/s2-production\/environment\/surface_sea_canonical\.webp/);
@@ -60,7 +65,11 @@ test('unnecessary source candidate requests cannot occur on normal stage2 entran
   assert.match(assets,/\.\.\.\(isPortArtCandidateEnabled\(\) \? RAIN_PORT_CANDIDATE_ASSETS : \{\}\)/);
 });
 test('JS cache key changed for new release; media cache contains new WebP references',()=>{
-  for(const name of ['assets','renderer','overworld','game'])assert.ok(html.includes('js/'+name+'.js?v=20261024-s2-release1'));
+  for(const name of ['assets','renderer','overworld','game']){
+    const match=html.match(new RegExp('js/'+name+'\\.js\\?v=([^"\\s]+)'));
+    assert.ok(match && /^2026\d{4}-[a-z0-9-]+$/.test(match[1]),name+' must have a valid version key');
+    assert.ok(!match[1].startsWith('20261024-s2-release1'),name+' must not retain the obsolete S2 release cache key');
+  }
   const sw=read('service-worker.js');
   assert.ok(sw.includes('s2-production/g_stone_01.webp'));
   assert.ok(sw.includes('s2-production/environment/surface_sea_canonical.webp'));

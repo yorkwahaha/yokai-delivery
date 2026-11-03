@@ -251,7 +251,8 @@ test('journey map reuses approved paper labels and controls, with the new courie
    assert.ok(calls.preload>=1,'optional courier download requested');
    assert.ok(calls.tags.length>1,'map title and stage labels reuse illustrated ribbons');
    assert.ok(calls.boards.length>=1,'selected-stage information is on illustrated washi board');
-   assert.deepEqual(calls.buttons.map(c=>c[2]),['← 首頁','◀','▶','出發'],'shared paper buttons include chapter browsing and stage entry');
+   assert.deepEqual(calls.buttons.map(c=>c[2]),['← 首頁','出發'],
+     'the approved freely draggable journey map keeps only Home and Enter; no obsolete browse arrows');
    delete global.ART.player_walk_left_v2;
    global.ART.player={complete:true,naturalWidth:216,naturalHeight:352};
    calls.images.length=0;

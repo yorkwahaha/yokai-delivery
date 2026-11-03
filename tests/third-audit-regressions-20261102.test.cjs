@@ -74,7 +74,7 @@ test('index refreshes the five changed JavaScript assets',()=>{
  const html=fs.readFileSync('index.html','utf8');
  for(const key of ['store','assets'])
    assert.match(html,new RegExp('js/'+key+'\\.js\\?v='+ (key==='store'?'20261102-r3':'20261102-geometry-phase2')),key);
- assert.ok(html.includes('js/ui.js?v=20261103-surge-brush-r2'));
+ assert.ok(html.includes('js/ui.js?v=20261103-hud-boss-layout-r1'));
  for(const key of ['renderer'])
    assert.match(html,new RegExp('js/'+key+'\\.js\\?v=20261102-water-slam-sfx'),key);
  assert.ok(html.includes('js/game.js?v=20261103-dragon-phase29'));
@@ -83,7 +83,7 @@ test('index refreshes the five changed JavaScript assets',()=>{
  assert.ok(html.includes('js/game-charm-math.js?v=20261103-charm-phase5'));
  assert.ok(html.includes('js/audio.js?v=20261102-audio-pad-hotfix'));
  assert.ok(html.includes('js/world.js?v=20261102-charm-phase3'));
- assert.ok(html.includes('js/ui.js?v=20261103-surge-brush-r2'));
+ assert.ok(html.includes('js/ui.js?v=20261103-hud-boss-layout-r1'));
 });
 
 test('core image that never answers eventually releases ART_READY',()=>{

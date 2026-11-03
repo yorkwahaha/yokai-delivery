@@ -117,7 +117,7 @@ test("1. 日語斷句 splitText2 與禁則處理（小假名/長音/標點絕不
   assert.equal(b2, "なのこ");
 });
 
-test("2. Boss 選項 5 假名詞（おんなのこ、じてんしゃ）採等比縮小單行呈現，字形不被壓扁", () => {
+test("2. Boss 選項 5 假名詞保留完整文字、至少 13px，窄版可安全折行但不可壓扁", () => {
   const { UI, context, traces } = loadUIEnv();
   const bossQ = {
     word: { zh: "女孩", jp: "おんなのこ", cue: "text" },
@@ -131,16 +131,24 @@ test("2. Boss 選項 5 假名詞（おんなのこ、じてんしゃ）採等比
 
   UI.drawBossQuiz(context, bossQ, "keyboard");
 
-  // 尋找 3 個選項的繪製紀錄
-  const optionFills = traces.filter(t => t.text.includes("おんなのこ") || t.text.includes("じてんしゃ") || t.text.includes("あたらしい"));
-  assert.equal(optionFills.length, 3, "應成功繪製 3 個選項");
-
-  for (const fill of optionFills) {
-    // 5 假名字級自 18px 等比縮至可讀區間（>= 13px）
-    assert.ok(fill.fontSize >= 13, `字級 ${fill.fontSize} 應高於可讀下限 13px`);
-    assert.ok(fill.fontSize <= 18, `字級 ${fill.fontSize} 不應超過原設 18px`);
-    // fillText 不得帶有會壓扁字體的 maxWidth
-    assert.ok(!fill.maxWidth || fill.maxWidth >= fill.fontSize * 5, "不應發生非等比壓扁");
+  // A wide-glyph synthetic font may need two lines inside a real 93px
+  // option panel. Check that all kana survive in 1-2 readable lines rather
+  // than expecting the full word to appear in a single fillText call.
+  const layout = UI.bossQuizLayout(3);
+  for (const [i,want] of bossQ.ans.entries()) {
+    const option=layout.options[i],center=option.x+option.w/2;
+    const fills=traces.filter(t=>t.type==="fill" && Math.abs(t.x-center)<.1 &&
+      t.y>=option.y && t.y<=option.y+option.h);
+    assert.ok(fills.length>=1 && fills.length<=2,
+      `第 ${i+1} 項應使用 1–2 行，實得 ${fills.length}`);
+    const joined=fills.map(t=>t.text).join("").replace(/^\d+\s*/,"");
+    assert.equal(joined,want.jp,"兩行合併後必須完整保留原日文");
+    for(const fill of fills) {
+      assert.ok(fill.fontSize>=13 && fill.fontSize<=18,
+        `字級 ${fill.fontSize} 應在 13–18px`);
+      assert.ok(!fill.maxWidth || fill.maxWidth>=fill.fontSize*5,
+        "不得用 Canvas maxWidth 對字體進行非等比壓扁");
+    }
   }
 });
 

@@ -72,7 +72,7 @@ test('future locked stages can be inspected via arrows without moving the actual
   }finally{delete global.STORE;}
 });
 
-test('page buttons, information board and launch action follow expanded viewport edges',()=>{
+test('information board and launch action follow expanded viewport edges without obsolete browse arrows',()=>{
   global.VIEWPORT={bounds:()=>({left:0,top:-700,right:900,bottom:1300,width:900,height:2000})};
   global.STORE={isStageCompleted:()=>false,isStageUnlocked:()=>true,getStageStats:()=>({bestScore:0})};
   const boards=[],buttons=[],g={addColorStop(){}};
@@ -89,7 +89,8 @@ test('page buttons, information board and launch action follow expanded viewport
     OW.draw(ctx,st,0);
     assert.ok(boards.some(b=>b.y===1184));
     assert.ok(buttons.some(x=>x.label==='出發'&&x.b.y===1212));
-    assert.deepEqual(buttons.filter(x=>x.label==='◀'||x.label==='▶').map(x=>x.b.y),[1104,1104]);
+    assert.deepEqual(buttons.filter(x=>x.label==='◀'||x.label==='▶'),[],
+      'journey map is freely draggable, so left/right browse arrows must not render');
   } finally {
     delete global.VIEWPORT;delete global.STORE;delete global.UI;
   }

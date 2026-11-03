@@ -32,6 +32,7 @@ function tracks() {
   const make = () => ({
     paused: true,
     volume: NORMAL_VOLUME,
+    readyState: 4, // emulate HTMLAudioElement with decoded data
     currentTime: 0,
     playCount: 0,
     play() { this.paused = false; this.playCount++; return Promise.resolve(); },
@@ -111,6 +112,23 @@ test("Boss 交叉淡出中開關融合面板不把音量打回 0，也不重播�
   assert.equal(boss.currentTime, 5);
   assert.ok(boss.volume > 0);
   assert.ok(boss.volume < NORMAL_VOLUME);
+});
+
+test("Boss track still loading keeps normal BGM audible until Boss audio decodes",()=>{
+  const {audio,bgm,boss}=tracks();
+  audio.updateBgm(.016,"play",50,600);
+  boss.readyState=1; // the Boss MP3 has not decoded enough data
+  audio.startBossMusic();
+  for(let i=0;i<4;i++)audio.updateBgm(.25,"play",100,600);
+  assert.equal(boss.volume,0,"do not make an undecoded Boss track audible");
+  assert.equal(bgm.paused,false,"old BGM must keep playing during download");
+  assert.equal(bgm.volume,NORMAL_VOLUME,
+    "never fade normal music to silence before the new track can play");
+  boss.readyState=4;
+  audio.updateBgm(.22,"play",100,600);
+  assert.ok(boss.volume>0,"fade in Boss BGM once decoded");
+  assert.ok(bgm.volume>0&&bgm.volume<NORMAL_VOLUME,
+    "the old BGM must fade out only after the Boss BGM becomes audible");
 });
 
 test("沒有音檔時，融合與換守面板仍推進程序 BGM，不會把循環停死", () => {

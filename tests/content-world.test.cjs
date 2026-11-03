@@ -87,7 +87,10 @@ test("rain-port is a separate playable stage with its own packs and weather tuni
   assert.equal(stage.pacing.goalDeliveries, 6);
   assert.deepEqual(stage.pacing.bossTimes, [180, 360, 480, 540]);
   const world = WORLD.createStageWorld(stage, CONTENT);
-  assert.equal(world.update(stage.start.x, stage.start.y).chunks.length, 25);
+  const active = world.update(stage.start.x, stage.start.y);
+  assert.equal(active.chunks.length, 15,
+    "rain-port streams only chunks intersecting its playable Y belt");
+  assert.ok(active.houses.length > 0, "a narrower belt still has deliverable houses");
 });
 
 test("initial 3x3 chunks preserve the district order", () => {
@@ -160,7 +163,17 @@ test("staggered houses leave room for all answer pads, even across chunk boundar
       chunks.push(world.getChunk(cx, cy));
     }
     const houses = chunks.flatMap(c => c.houses);
-    assert.ok(chunks.every(c => c.houses.length === 3));
+    if (stageId === "night-town") {
+      assert.ok(chunks.every(c => c.houses.length === 3));
+    } else {
+      // Rain-port changed from three houses per chunk to deterministic,
+      // sparse, horizontal shoreline houses. The neighboring Y rows are
+      // scenery only; never insert phantom delivery targets there.
+      assert.ok(chunks.every(c => c.cy === 0
+        ? c.houses.length >= 1 && c.houses.length <= 2
+        : c.houses.length === 0));
+      assert.equal(houses.length, 6, "five adjacent shoreline chunks retain six reachable destinations");
+    }
     for (const h of houses) {
       const pads = WORLD.answerPositions(h).map(p => [p.x,p.y]);
       for (const other of houses) {

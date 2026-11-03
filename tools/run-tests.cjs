@@ -14,7 +14,47 @@ const currentExact=new Set([
   'b14-surge-motion-20261101.test.cjs',
   'media-cache.test.cjs',
   'agy-m1-b.test.cjs',
-  'boom-lv5-motion-20261025.test.cjs'
+  'boom-lv5-motion-20261025.test.cjs',
+  // Independently verified 2026-11-03 against the live runtime/contracts.
+  // These historical files have meaningful, non-browser checks and pass
+  // without deleting or rewriting their assertions.
+  'controls.test.cjs',
+  'viewport.test.cjs',
+  'store-multi-tab.test.cjs',
+  'overworld-editor.test.cjs',
+  'overworld-facing.test.cjs',
+  'card-collection-c1c2.test.cjs',
+  'card-delivery-bridge.test.cjs',
+  'card-gallery-model.test.cjs',
+  'card-gallery-ui.test.cjs',
+  'card-rewards-runtime.test.cjs',
+  'audio-events.test.cjs',
+  'stage-release-status.test.cjs',
+  'stage2-approved-media-routes.test.cjs',
+  'stage2-nonmis-stuck-fallback.test.cjs',
+  'onmyo-vfx.test.cjs',
+  'font-subset.test.cjs',
+  'long-kana-display.test.cjs',
+  'r12-manifest-sentinel.test.cjs',
+  'r10-audio-bgm.test.cjs',
+  'r3-gamepause-wiring.test.cjs',
+  // Revalidated against the approved sparse rain-port layout, current
+  // delivery-card curriculum, and freely draggable world map (no arrows).
+  'content-world.test.cjs',
+  'card-gallery-runtime.test.cjs',
+  'overworld.test.cjs',
+  'overworld-eight-stage.test.cjs',
+  // Independent cross-review: preserve the approved S2 production asset
+  // manifest, responsive Boss questions, lantern-side charms and audio fades.
+  's2-published-release.test.cjs',
+  'muse-boss-phone-read.test.cjs',
+  'b10-charm-ui-20261101.test.cjs',
+  'audio-flow-polish-r1.test.cjs',
+  // Second independent review: current multi-Boss quiz, six-skill whitelist
+  // and compact horizontal UI each pass without changing their contracts.
+  'b3-night-town-boss-quiz.test.cjs',
+  'b3-night-town-six-skills.test.cjs',
+  'playtest-r8-ui.test.cjs'
 ]);
 for(const required of currentExact)if(!all.includes(required))
   throw Error('Current test missing: '+required);

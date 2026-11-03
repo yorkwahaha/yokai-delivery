@@ -35,7 +35,7 @@ test("same NFC spellings keep the higher mark and do not add", () => {
   assert.equal(both.marks["いぬ"], 3);
 });
 
-test("index loads the gallery after the card model and keeps a fresh p42 cache", () => {
+test("index loads the gallery after the card model and uses current revisioned script URLs", () => {
   const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
   const at = file => html.indexOf(`js/${file}.js?v=`);
   assert.ok(at("card-collection") < at("card-gallery-model"));
@@ -44,7 +44,9 @@ test("index loads the gallery after the card model and keeps a fresh p42 cache",
   for (const file of ["renderer", "ui", "card-collection", "card-gallery-model", "card-gallery-ui", "game"]) {
     const match = html.match(new RegExp(`src="js/${file}\\.js\\?v=([^"\\s]+)"`));
     assert.ok(match && match[1].length > 0, file);
-    assert.match(match[1], /^20261014-p42-c[34]/);
+    assert.match(match[1], /^2026\d{4}-[a-z0-9-]+$/);
+    assert.doesNotMatch(match[1], /^20261014-p42-c[34]/,
+      "a later release must not retain the old p42 cache revision");
   }
   assert.equal(html.includes("p42-camera-model.js"), false);
   assert.equal(html.includes("hd25d-fixture"), false);
@@ -54,19 +56,25 @@ test("the words page reads the delivery bag, not learning stars", () => {
   const game = loadGame();
   useDeliveryBag(game);
   game.start();
+  const initial = game.env.UI.wordGallery();
+  // The production 140-word delivery curriculum was replaced after C3.
+  // Derive the two keys from today's catalog rather than assuming the old
+  // neko/inu words are still present in the playable word list.
+  const [openKey, lockedKey] = initial.cards.slice(0, 2).map(card => card.key);
+  assert.ok(openKey && lockedKey && openKey !== lockedKey);
   game.env.localStorage.setItem("yokai-delivery-cards-v1", JSON.stringify({
-    v: 1, marks: { "ねこ": 4, "いぬ": 1 }, events: { "injected-c3": true }
+    v: 1, marks: { [openKey]: 4, [lockedKey]: 1 }, events: { "injected-c3": true }
   }));
-  game.env.STORE.data.m["ねこ"] = { ok: 0, ng: 0, box: 4 };
+  game.env.STORE.data.m[openKey] = { ok: 0, ng: 0, box: 4 };
   const official = game.env.UI.wordGallery();
   assert.equal(official.source.key, "yokai-delivery-cards-v1");
-  const neko = official.cards.find(card => card.key === "ねこ");
-  const inu = official.cards.find(card => card.key === "いぬ");
-  assert.equal(neko.reveal, "open");
-  assert.equal(neko.progress, "4/4");
-  assert.equal(inu.reveal, "locked");
-  assert.equal(inu.jp, null);
-  assert.equal(inu.progress, "1/4");
+  const opened = official.cards.find(card => card.key === openKey);
+  const locked = official.cards.find(card => card.key === lockedKey);
+  assert.equal(opened.reveal, "open");
+  assert.equal(opened.progress, "4/4");
+  assert.equal(locked.reveal, "locked");
+  assert.equal(locked.jp, null);
+  assert.equal(locked.progress, "1/4");
   const shared = official.cards.find(card => card.stages.length > 1);
   assert.equal(game.env.CARD_GALLERY_UI.visible(official.cards, { by: "stage", id: shared.stages[0] }).includes(shared), true);
   assert.equal(game.env.CARD_GALLERY_UI.visible(official.cards, { by: "stage", id: shared.stages[1] }).includes(shared), true);
@@ -88,9 +96,9 @@ test("the words page reads the delivery bag, not learning stars", () => {
   }, view, official.catalogs);
   assert.equal(stepped.page, 1);
   assert.equal(drawn.view.page, 0);
-  assert.equal(texts.includes("ねこ"), true);
+  assert.equal(texts.includes(openKey), true);
   assert.equal(texts.includes("4/4"), true);
-  assert.equal(texts.includes("いぬ"), false);
+  assert.equal(texts.includes(lockedKey), false);
   assert.equal(texts.includes("🐱"), false);
 
   const named = game.env.CARD_GALLERY_UI.reduce(
@@ -114,13 +122,13 @@ test("the words page reads the delivery bag, not learning stars", () => {
   assert.equal(labeled.buttons.find(button => button.id === "filter-stage").label.includes(stage.id), false);
 
   game.env.localStorage.setItem("yokai-delivery-dev-cards-v1", JSON.stringify({
-    v: 1, marks: { "ねこ": 0 }, events: {}
+    v: 1, marks: { [openKey]: 0 }, events: {}
   }));
   game.env.location.search = "?dev=1";
   const dev = game.env.UI.wordGallery();
   assert.equal(dev.source.key, "yokai-delivery-dev-cards-v1");
-  assert.equal(dev.cards.find(card => card.key === "ねこ").marks, 0);
-  assert.equal(dev.cards.find(card => card.key === "ねこ").reveal, "locked");
+  assert.equal(dev.cards.find(card => card.key === openKey).marks, 0);
+  assert.equal(dev.cards.find(card => card.key === openKey).reveal, "locked");
 });
 
 test("codex back returns to the screen that opened it and does not spend the run", () => {

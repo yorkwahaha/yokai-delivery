@@ -1,3 +1,21 @@
+## 2026-11-03 第二位獨立 Agent 檢查與現行回歸擴充
+
+- Herdr Grok 4.7 唯讀核對 `agy-m1-d`（42/88）和 `input-runtime`（103/161）失敗，無已驗證的新正式遊戲 P0/P1 Bug；逐項指出舊三變異、已退役共享 `mut_fan`、Duo 入池、付費提示、舊版答錯扣油、沒有 canvas `target` 的測試手勢，以及舊靈針折返距離的測試差異。兩支留在歷史集，不改正式數值湊綠燈。
+- `b3-night-town-boss-quiz` 3/3、`b3-night-town-six-skills` 2/2、`playtest-r8-ui` 3/3 重驗通過並納入 `npm test`；現行基準為 **85 檔 601 項**，剩餘 **130 檔歷史測試**。保留完整 `test:all`。
+
+## 2026-11-03 歷史測試整頓／跨 Agent 覆核補強
+
+- Herdr Antigravity 提出手機 Boss 題板寬度缺省、御守 HUD 蓋住油燈，以及 Boss BGM 未解碼靜音疑慮；逐項核對正式入口後，補上 HUD 邊界數值防護、提燈外側垂直御守列。**音訊疑慮不成立：當 Boss MP3 尚未 ready，原 BGM 音量維持正常**，只補測不改音訊引擎。
+- `muse-boss-phone-read` 1/1、`b10-charm-ui` 7/7、`audio-flow-polish-r1` 6/6、`s2-published-release` 10/10，四檔全數納入現行回歸。第二關開發素材載入仍必須符合明確 dev gate，沒有把未批准素材推上正式線。
+- `js/ui.js` 正式程式變更後，更新 `index.html` 的 UI module 快取版本及相關歷史斷言；現行維護基準由 78 檔 569 項擴張至 **82 檔 593 項**，其餘 **133 份**歷史檔依舊保留。Phase 30 仍暫停。
+
+## 2026-11-03 歷史測試整頓第二批／獨立雙 Agent 稽核
+
+- Herdr 的 Cursor（Grok 4.7）與 Antigravity 兩位 Agent 分別進行**唯讀**獨立審查，聚焦「legacy 失敗是否混入正式玩法 Bug」與「現行分流有否遺漏高價值測試」，查核期間禁止覆寫原始工作樹。
+- 抽查 44 份歷史測試，其中 20 份無須更改斷言已可通過，另 24 份仍待分流。已把前者重新納入 `npm test`，並針對 `card-gallery-runtime`、`content-world`、`overworld`、`overworld-eight-stage` 依正式字卡、雨港稀疏建築、自由拖動地圖修正舊斷言，四檔合計 39/39 通過。
+- 目前測試基準由 54 檔 407 項擴張為 **78 檔 569 項，569/569 通過**；其餘 **137 檔**保留在 `test:legacy`，`test:all` 仍會執行全部 215 檔，不以隱藏失敗冒稱全套全綠。完整分類與執行原則見 `docs/TEST_SUITE_STATUS.md`。
+- 本批不修改任何正式 `js/` 戰鬥邏輯、資產、關卡平衡或渲染。Phase 30 持續暫停，獨立稽核出現的真實 Bug 優先處理。
+
 ## 2026-11-03 媒體快取跨 Windows 工作樹換行修補
 
 - 正式 SVG `assets/img/ui/awaken_seal.svg` 的 Git blob 內容是 LF，原始主工作樹也保留 LF，但隔離工作樹在 Windows `core.autocrlf=true` 下將同一份 SVG 改為 CRLF。先前只依隔離工作樹檔案算快取雜湊導致 `service-worker.js` 的 SVG revision 與 GitHub Pages 實際發佈的 blob 不符，且原始 `npm test` 的快取一致性測試失敗。

@@ -1497,32 +1497,40 @@ window.UI = (() => {
   function drawCharmHud(ctx, { charms = [], maxSlots = 3 }) {
     if (!charms.length) return [];
     const b = screenBounds();
-    // HoloCure-style: worn items live near the upper-left resource HUD.
-    // No backing plate, empty-slot boxes or centered banner.
-    const n=Math.min(3,maxSlots), slot=32, gap=9;
-    const x=b.left+32, y=Math.min(b.bottom-155,b.top+258);
+    // Hang charms in a compact vertical rail to the RIGHT of the oil lantern,
+    // not on the lantern glass or across the left-side movement controls.
+    // Leave the center/top task panel unobstructed on narrow mobile viewports.
+    const n=Math.min(3,maxSlots), slot=32, gap=12;
+    const lanternArt=window.ART?.hud_lantern_oil;
+    const lanternAspect=lanternArt?.naturalWidth && lanternArt?.naturalHeight
+      ? lanternArt.naturalWidth/lanternArt.naturalHeight : 0.75;
+    // The lantern can grow to 190 in compact landscape; use that maximum
+    // even when viewport/world scaling differs from CSS pixel dimensions.
+    const lanternH=190;
+    const x=b.left+18+lanternH*lanternAspect+8;
+    const y=Math.min(b.top+34,b.bottom-(n-1)*(slot+gap)-slot-8);
     ctx.save();
     for(let i=0;i<n;i++){
       const item=charms[i]; if(!item)continue;
       const key=String(item.id||"").replace(/^charm_/,"");
       const art=illustratedCharms[key],accent=CHARM_PRESENTATION[key]?.color||"#e2bc87";
-      const xx=x+i*(slot+gap);
+      const xx=x, yy=y+i*(slot+gap);
       if(art?.naturalWidth && art.naturalHeight){
         const ratio=Math.min(slot/art.naturalWidth,(slot+4)/art.naturalHeight);
         const ww=art.naturalWidth*ratio,hh=art.naturalHeight*ratio;
         ctx.save();ctx.shadowColor="rgba(0,0,0,.85)";ctx.shadowBlur=7;
-        ctx.drawImage(art,xx+(slot-ww)/2,y+(slot+4-hh)/2,ww,hh);
+        ctx.drawImage(art,xx+(slot-ww)/2,yy+(slot+4-hh)/2,ww,hh);
         ctx.restore();
       }else{
         ctx.fillStyle=accent;ctx.font=readableFont(20,"900");
         ctx.textAlign="center";ctx.shadowColor="#0b0e16";ctx.shadowBlur=5;
-        ctx.fillText(CHARM_PRESENTATION[key]?.glyph||"守",xx+slot/2,y+24);
+        ctx.fillText(CHARM_PRESENTATION[key]?.glyph||"守",xx+slot/2,yy+24);
       }
       const level=Math.max(1,Math.min(3,item.level||1));
       ctx.shadowBlur=4;ctx.shadowColor="#17111b";
       for(let k=0;k<level;k++){
         ctx.fillStyle="#ffe4a1";ctx.beginPath();
-        ctx.arc(xx+slot/2+(k-(level-1)/2)*8,y+slot+5,2.4,0,6.283);ctx.fill();
+        ctx.arc(xx+slot/2+(k-(level-1)/2)*8,yy+slot+5,2.4,0,6.283);ctx.fill();
       }
       ctx.shadowBlur=0;
     }
@@ -4085,20 +4093,25 @@ window.UI = (() => {
 
   function bossQuizLayout(n, bossCount = 1) {
     const bounds = window.VIEWPORT?.hudBounds() || screenBounds();
+    // VIEWPORT.hudBounds() has width/height, but embedded/mobile HUD hosts
+    // may only supply edges. Derive the equivalent dimensions rather than
+    // accidentally selecting desktop sizing when width is undefined.
+    const width = Number.isFinite(bounds.width) ? bounds.width : bounds.right - bounds.left;
+    const height = Number.isFinite(bounds.height) ? bounds.height : bounds.bottom - bounds.top;
     const scale = window.VIEWPORT?.get().scale || (document.getElementById('game')?.getBoundingClientRect().width || 900)/900;
     // 縮短／搬移 Boss HP 條與答題板：保留被動技全數可見，血條垂直浮於底部被動欄上方。
-    const left = bounds.left + (bounds.width <= 1024 ? 260 : 282);
-    const right = bounds.right - (bounds.width <= 1024 ? 120 : 180);
-    const maxW = bounds.width <= 900 ? 320 : bounds.width <= 1024 ? 360 : 420;
+    const left = bounds.left + (width <= 1024 ? 260 : 282);
+    const right = bounds.right - (width <= 1024 ? 120 : 180);
+    const maxW = width <= 900 ? 320 : width <= 1024 ? 360 : 420;
     const w = Math.min(maxW, Math.max(1, right - left)), gap = n === 2 ? 18 : 10;
     const optW = Math.min(n === 2 ? 200 : 140, (w - 20 - (n - 1) * gap) / n);
     const optH = Math.max(44, Math.ceil(44 / scale)), h = optH + 72;
     const center = (bounds.left + bounds.right) / 2;
     const x = clamp(center - w / 2, left, right - w);
-    const rowH = bounds.height < 480 ? 27 : 34;
+    const rowH = height < 480 ? 27 : 34;
     const bossBarH = Math.max(1,bossCount) * rowH;
     const gapToBar = 9;
-    const bottomInset = bounds.height <= 480 ? 104 : 112;
+    const bottomInset = height <= 480 ? 104 : 112;
     const y = Math.max(bounds.top+62,bounds.bottom-bottomInset-bossBarH-gapToBar-h);
     const startX = x + (w - n * optW - (n - 1) * gap) / 2;
     return {x,y,w,h,bar:{x,y:y+h+gapToBar,w,h:bossBarH,rowH},
