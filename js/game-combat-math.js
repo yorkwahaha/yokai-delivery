@@ -178,5 +178,34 @@ window.GAME_COMBAT_MATH = (() => {
     return enemies.filter(e => e.hp > 0 && !e.shield
       && Math.hypot(player.x - e.x, player.y - e.y) < 520);
   }
-  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets, dragonFireTarget, needleSeekTarget, katanaWaveContains, crosscutContains, boomStickTarget, foxfireOrbitContact, foxfireLaunchTargets });
+  // Phase35: source-order nearest target for needle's idle auto-aim and
+  // boom's launch check. Strict < retains the FIRST target on equal distance.
+  // Do not filter shield / vanish / done here; original only checks HP.
+  function nearestLaunchTarget(enemies, player, maxRange) {
+    let nearest = maxRange, chosen = null;
+    for (const e of enemies) {
+      const d = Math.hypot(player.x - e.x, player.y - e.y);
+      if (e.hp > 0 && d < nearest) {
+        chosen = e;
+        nearest = d;
+      }
+    }
+    return chosen;
+  }
+  // Phase36: boom homing reacquisition uses <=, intentionally letting the
+  // LAST equal-distance enemy win (unlike the strict launch/needle helpers).
+  function boomHomingTarget(enemies, projectile) {
+    let nearest = projectile.seekRange, chosen = null;
+    for (const e of enemies) {
+      if (e.hp > 0 && !e.shield && !e.vanish && !e.done) {
+        const d = Math.hypot(projectile.x - e.x, projectile.y - e.y);
+        if (d <= nearest) {
+          nearest = d;
+          chosen = e;
+        }
+      }
+    }
+    return chosen;
+  }
+  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets, dragonFireTarget, needleSeekTarget, katanaWaveContains, crosscutContains, boomStickTarget, foxfireOrbitContact, foxfireLaunchTargets, nearestLaunchTarget, boomHomingTarget });
 })();

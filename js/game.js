@@ -3669,11 +3669,7 @@ if (isRainPort) {
         } else if (Math.hypot(moveDir.x, moveDir.y) > 0.1) {
           shootAng = Math.atan2(moveDir.y, moveDir.x);
         } else {
-          let near = null, nd = 450;
-          for (const e of enemies) {
-            const d = dist(P, e);
-            if (e.hp > 0 && d < nd) { near = e; nd = d; }
-          }
+          const near = window.GAME_COMBAT_MATH.nearestLaunchTarget(enemies, P, 450);
           shootAng = near ? Math.atan2(near.y - P.y, near.x - P.x) : P.faceAng;
         }
 
@@ -3882,11 +3878,7 @@ if (isRainPort) {
     if (WL.boom > 0) {
       wT.boom -= dt;
       if (wT.boom <= 0) {
-        let t = null, nd = 540;
-        for (const e of enemies) {
-          const d = dist(P, e);
-          if (e.hp > 0 && d < nd) { t = e; nd = d; }
-        }
+        const t = window.GAME_COMBAT_MATH.nearestLaunchTarget(enemies, P, 540);
         if (!t) {
           wT.boom = 0.15;
         } else {
@@ -3982,18 +3974,7 @@ if (isRainPort) {
         if (!q.seekTarget && q.retargetT <= 1e-4) {
           q.retargetT = 0.20;
           q.searchCount = (q.searchCount || 0) + 1;
-          let nearest = q.seekRange;
-          let chosen = null;
-          for (const e of enemies) {
-            if (e.hp > 0 && !e.shield && !e.vanish && !e.done) {
-              const d = dist(q, e);
-              if (d <= nearest) {
-                nearest = d;
-                chosen = e;
-              }
-            }
-          }
-          q.seekTarget = chosen;
+          q.seekTarget = window.GAME_COMBAT_MATH.boomHomingTarget(enemies, q);
         }
         if (q.seekTarget) {
           const curAng = (typeof q.ang === "number") ? q.ang : Math.atan2(q.vy, q.vx);

@@ -1,3 +1,11 @@
+## 2026-11-04 Phase35–36｜施放前索敵與符咒追蹤重鎖抽離
+
+- Phase35：靈針非移動時自動瞄準（450）與陰陽符施放（540）共用 `GAME_COMBAT_MATH.nearestLaunchTarget`，維持只檢查 HP、嚴格小於射程、同距離先到先得；30,000 組 seeded identity parity。
+- Phase36：投射符咒追蹤重鎖獨立為 `GAME_COMBAT_MATH.boomHomingTarget`，維持排除 shield/vanish/done、`<=` 射程和同距離**後到勝出**；30,000 組 seeded identity parity。
+- 不調整任何技能時序、傷害、音樂、美術、RNG 或整體主迴圈；快取版號僅跟隨 `game.js` 與 `game-combat-math.js` 的實際變更。
+- 正式回歸：`npm test` 152 檔、957 項、956 PASS、0 FAIL、1 個 Stage2 水妖美術 TODO；保留 71 個歷史歸檔檔案可選擇執行。
+- 此批已交由兩位獨立 Agent 做唯讀審查，審查結論以後續紀錄為準；玩家最終試玩尚未進行。
+
 ## 2026-11-04 Phase32–34｜妖刀第二刀、符咒附著、狐火索敵拆分
 
 - Phase32：將延遲交叉斬的射程與角差判定移到 GAME_COMBAT_MATH.crosscutContains；傷害、暴擊、命中集與音效仍留 game.js。18,000 組新舊幾何對照。
