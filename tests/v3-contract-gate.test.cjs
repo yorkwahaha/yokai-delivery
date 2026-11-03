@@ -17,15 +17,15 @@ test('V3 contract: common boss timeline and bounded overtime difficulty', () => 
 test('V3 contract: independent and assisted deliveries each grant 26 XP', () => {
   for(const assisted of [false,true]) {const g=fresh();deliver(g,assisted);assert.equal(g.currentXp(),26);assert.equal(g.snapshot().delivered,1);}
 });
-test('V3 contract: first hint is free and duplicate presses cannot reach paid hint', () => {
+test('current contract: deprecated listening hints do not change oil or answer assistance', () => {
   const g=fresh();g.prepareOrder();g.setOil(80);g.triggerHint();g.triggerHint();
-  assert.equal(g.snapshot().oil,80);assert.equal(g.snapshot().job.hintStage,1);assert.equal(g.snapshot().job.assisted,true);
+  assert.equal(g.snapshot().oil,80);assert.equal(g.snapshot().job.hintStage ?? 0,0);assert.equal(!!g.snapshot().job.assisted,false);
 });
-test('V3 contract: a wrong answer retains the job and charges six oil only once', () => {
+test('current contract: a wrong answer retains the job and charges 5% max oil once per choice', () => {
   const g=fresh();g.prepareOrder();g.setOil(80);const job=g.snapshot().job;
   const wrong=job.ans.findIndex(w=>w!==job.word);g.resolve(wrong);
-  assert.equal(g.snapshot().job,job);assert.equal(g.snapshot().oil,74);
-  g.resolve(wrong);assert.equal(g.snapshot().oil,74);
+  assert.equal(g.snapshot().job,job);assert.equal(g.snapshot().oil,75);
+  g.resolve(wrong);assert.equal(g.snapshot().oil,75);
   assert.equal(g.snapshot().enemies.filter(e=>e.type==='mis').length,0);
   g.resolve(job.ans.indexOf(job.word));assert.equal(g.snapshot().delivered,1);assert.equal(g.currentXp(),26);
   assert.equal(g.env.STORE.get(job.word.jp).box,0);
@@ -129,10 +129,13 @@ test('V3 contract: an awakened blade keeps its rear blind spot and cannot hit be
   assert.equal(beyond.hp,999,'movement overshoot must not extend the world range');
 });
 
-test('V3 contract: order creation respects a study session with no eligible word', () => {
+test('current contract: delivery card selection with no eligible word does not fall back to all vocabulary', () => {
   const g=loadGame({seed:7});
-  g.env.STORE.createStudySession=()=>({pick:()=>null,seen(){},seenWords:()=>[],mistake(){}});
-  g.start();g.makeOrder();
+  g.start();g.clearOrders();
+  let calls=0;
+  g.env.CARD_DELIVERY.choose=()=>{calls++;return null;};
+  g.makeOrder();
+  assert.equal(calls,1,'the new delivery-card provider decides eligibility');
   assert.equal(g.snapshot().orders.length,0,'no all-vocabulary fallback may bypass cooling or exclusions');
 });
 

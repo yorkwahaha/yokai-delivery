@@ -38,9 +38,17 @@ test('bridge code location in boss hazard handler', () => {
 });
 
 test('bridge post-rewrite uses ringActiveR variable', () => {
-  // Verify the post-rewrite uses the same ringActiveR captured before AI
-  const ringActiveRPattern = /let ringActiveR = null;[\s\S]{0,500}if \(ringActiveR !== null[\s\S]{0,500}h\.prevR = ringActiveR/;
-  assert.ok(ringActiveRPattern.test(gameSrc), 'ringActiveR not used in post-rewrite');
+  // The boss hazard handler gained one-shot sound and stage logic between
+  // capture and replay. Verify order within the same handler, not a 500-char
+  // window that can fail when unrelated statements are inserted.
+  const handler = gameSrc.indexOf('if (e.type === "boss" && window.BOSS_AI?.step)');
+  const capture = gameSrc.indexOf('let ringActiveR = null;', handler);
+  const step = gameSrc.indexOf('window.BOSS_AI.step(e, P, dt', capture);
+  const rewrite = gameSrc.indexOf('if (ringActiveR !== null', step);
+  const write = gameSrc.indexOf('h.prevR = ringActiveR;', rewrite);
+  const handlerEnd = gameSrc.indexOf('if (e.type === "shiome")', rewrite);
+  assert.ok(handler >= 0 && handler < capture && capture < step && step < rewrite &&
+    rewrite < write && write < handlerEnd, 'ringActiveR must be captured before AI and replayed after AI within the same boss handler');
 });
 
 test('bridge includes phase check for active or recovery', () => {

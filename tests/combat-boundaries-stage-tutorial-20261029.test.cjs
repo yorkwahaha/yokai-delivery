@@ -59,6 +59,8 @@ function tutorialRuntime(saved, stage='rain-port') {
     elapsed:0,P:{x:0,y:0},dist:(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),
     localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)}};
   vm.createContext(c);
+  // Phase20 moved persistence rules into an early-loaded production module.
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '../js/game-tutorial-rules.js'), 'utf8'), c);
   vm.runInContext(game.slice(tutorialStart,tutorialEnd) + '\nthis.currentTutorial=()=>tutorial;this.saved=()=>JSON.parse(localStorage.getItem("yokai-tutorial-v1"));',c);
   return c;
 }

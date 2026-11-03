@@ -1,3 +1,10 @@
+## 2026-11-03 測試與工作樹清理 — 首批基準修復
+
+- 正式提交 `3f96f1265527ada77ab9493418b9c32908f2c834` 的擴大回歸 49 檔原先 **328/339**、失敗 11 項。核對四組陳舊測試：Boss renderer 第四個 `owner` 參數及雨港專屬著色、Phase20 教學規則外移、舊提示功能停用與答錯依最大燈油 5% 扣款、新配送字卡選詞取代舊 study 池，以及 Boss ring 測試 500 字元視窗太短。只改 `tests/boss-telegraph-delegate-r1.test.cjs`、`tests/combat-boundaries-stage-tutorial-20261029.test.cjs`、`tests/boss-ring-sweep-20261024.test.cjs`、`tests/v3-contract-gate.test.cjs`；不改正式遊戲行為。增加雨港 fallback 與真 Boss owner 契約，新基準 **340/340** 全過。
+- 特別注意：完整歷史 `npm test` 涵蓋 **215 份 / 1,601 項**，在本批修補後另有約 **495–496 項舊測試失敗**（多為 2026-10 舊 VM harness 缺少新模組、已凍結/停用的 fusion 或早期 UI/美術方案、測試期望與新規格不一致）。這些**尚未全部鑑別或修復**；不能把選定 340 項全綠誤報為全部測試全綠，亦不得只靠移走紅燈測試掩蓋問題。後續需完整分群、逐一辨識現行正式合約與歷史參考驗收。
+- 本機原始 `I:\Projects\yokai-delivery` 原本仍停留 `a4aaa94`，約 650 條 Git status（展開為 1,159 筆 tracked/untracked 檔案）；分類為 52 個修改、444 個刪除、663 個未追蹤檔，其中 499 個未追蹤檔已與 origin/master 完全相同。已先於任何清理建立 `I:\Projects\_yokai-delivery-precleanup-20261103` 備份：205 份遠端不同／僅本地存在的檔案，約 55 MB，另保留完整 manifest、原始／遠端 commit 與刪除記錄；被 Git 忽略的個人美術原稿原則上不動。任何原始工作樹重置／同步必須先核對備份、遠端及安全條件；不得誤刪正式關卡圖片音檔。
+- 暫停新 Phase 30，優先釐清完整歷史測試、舊檔分類，以及安全收斂原始工作樹。
+
 ## 2026-11-03 Phase 24–29 雙 Agent 獨立審查後防禦性修補
 
 - Herdr Grok 4.7 與 Antigravity 均唯讀查核正式提交 `82d723e4b9fddbd7f683095c0050e1eba3b1596f`，沒有證實 Phase 24–29 純函式抽離引入 P0/P1 回歸。Grok 提出 P2：Phase14 測試名錯稱兩份 cache 版本相同；已修正敘述。

@@ -7,13 +7,13 @@ const fs = require("node:fs");
 
 function loadDraw() {
   const src = fs.readFileSync("js/game.js", "utf8");
-  const start = src.indexOf("  function drawBossHazard(h) {");
+  const start = src.indexOf("  function drawBossHazard(h, owner) {");
   const end = src.indexOf("  let frameShakeOffset");
   assert.ok(start > 0 && end > start, "drawBossHazard 必須留在 drawWorld 之前");
   const body = src.slice(start, end);
   assert.equal(body.includes("try {"), false, "委派失敗不得被吞掉");
-  assert.equal(body.includes("portDraw(ctx, h, elapsed) === true"), true);
-  return new Function("RENDERER", "ctx", "elapsed", `${body}\nreturn drawBossHazard;`);
+  assert.equal(body.includes("portDraw(ctx, h, elapsed, owner) === true"), true);
+  return new Function("RENDERER", "ctx", "elapsed", "STAGE", "W", "H", `${body}\nreturn drawBossHazard;`);
 }
 
 function mockCtx() {
@@ -37,25 +37,36 @@ function mockCtx() {
   return ctx;
 }
 
-function run(handler, hazard, elapsed = 4.5) {
+function run(handler, hazard, elapsed = 4.5, stageId = "night-town", owner = { type: "boss" }) {
   const ctx = mockCtx();
   const calls = [];
   const RENDERER = handler === "missing"
     ? {}
     : {
-        drawBossHazard(drawCtx, h, time) {
-          calls.push({ drawCtx, h, time });
+        drawBossHazard(drawCtx, h, time, owner) {
+          calls.push({ drawCtx, h, time, owner });
           if (handler === "throw") throw new Error("renderer-hazard");
           return handler;
         }
       };
-  const draw = loadDraw()(RENDERER, ctx, elapsed);
+  const draw = loadDraw()(RENDERER, ctx, elapsed, {id:stageId}, 1280, 720);
   let error = null;
-  try { draw(hazard); } catch (err) { error = err; }
+  try { draw(hazard, owner); } catch (err) { error = err; }
   return { ctx, calls, error };
 }
 
 const slam = { kind: "slam", x: 30, y: 40, r: 150, phase: "telegraph" };
+
+test("第四參數保留實際 Boss 身份，雨港 fallback 保留水系顏色", () => {
+  const owner = { type:"boss", id:"umibozu" };
+  const delegated = run(true, slam, 4.5, "rain-port", owner);
+  assert.equal(delegated.calls[0].owner, owner);
+  assert.equal(delegated.calls[0].drawCtx, delegated.ctx);
+  const fallback = run(false, slam, 4.5, "rain-port", owner);
+  assert.equal(fallback.calls[0].owner, owner);
+  assert.equal(fallback.ctx.ops.find(op=>Array.isArray(op)&&op[0]==="fill")[1], "rgba(30,119,179,0.22)");
+  assert.equal(fallback.ctx.ops.find(op=>Array.isArray(op)&&op[0]==="stroke")[1], "#9be7ff");
+});
 
 test("strict true 略過本地幾何，並原樣轉交 ctx、hazard、elapsed、phase", () => {
   for (const kind of ["slam", "charge", "ring", "tide", "tidalFan", "rainVortex"]) {
