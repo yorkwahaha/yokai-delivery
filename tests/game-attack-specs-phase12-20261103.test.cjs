@@ -75,7 +75,7 @@ test('Phase12 resolver does not call RNG or mutate game world',()=>{
 });
 test('Phase12 HTML loads attack module before game and preserves prior dependency cache keys',()=>{
  const html=fs.readFileSync('index.html','utf8');
- const script='js/game-attack-specs.js?v=20261103-attack-phase12',main='js/game.js?v=20261103-thunder-phase26';
+ const script='js/game-attack-specs.js?v=20261103-attack-phase12',main='js/game.js?v=20261103-aoe-phase27';
  assert.ok(html.includes(script)&&html.includes(main));
  assert.ok(html.indexOf(script)<html.indexOf(main));
  assert.ok(html.includes('js/game-build-rules.js?v=20261103-build-phase19'));

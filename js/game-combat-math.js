@@ -72,5 +72,13 @@ window.GAME_COMBAT_MATH = (() => {
     }
     return branchTarget;
   }
-  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget });
+  // Phase27: both delayed AoE queues select the first three eligible enemies
+  // in source array order, not the three closest enemies.
+  function unsortedAreaTargets(enemies, area) {
+    const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    return enemies
+      .filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done && dist(area, e) <= area.radius)
+      .slice(0, 3);
+  }
+  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets });
 })();

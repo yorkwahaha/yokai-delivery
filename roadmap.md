@@ -1,3 +1,11 @@
+## 2026-11-03 JS 模組化 Phase 27 — 延遲範圍傷害不排序前三目標
+
+- 由已上線正式版本 \`0e6c99dd7dcee31856ec31f99a9fdaa1f91ffe30\` 建立新的乾淨隔離 worktree；不更動原始 dirty 本機 \`master\`。
+- \`weapons()\` 的墨焰痕（\`inkfireMarks\`）與雷紋陣延遲衝擊（\`duoShockwaves\`）原本完全相同的「存活／非護盾／未消失／未完成、半徑內、依原敵人陣列順序取前三個」篩選，抽成既有 \`js/game-combat-math.js\` 的純函式 \`unsortedAreaTargets(enemies, area)\`。保持 \`<=\`、\`filter().slice(0,3)\`、敵人身份和原順序，**不以距離重新排序**；每個效果的計時、特效、均分傷害、命中後狀態再確認、死亡處理完全保留。
+- 將原兩套表達式存入 \`tests/fixtures/unsorted-area-targets-original-phase27.js\`；新增 \`tests/game-combat-area-targets-phase27-20261103.test.cjs\` 的 **5 項測試**：20,000 組固定種子新舊雙來源比對、距離邊界與排除旗標、原順序及無副作用、兩種延遲效果的真實遊戲 VM 三目標命中及均分傷害。
+- \`tests/helpers/game-runtime.cjs\` 僅加入不會出現在正式遊戲的測試沙箱注入入口 \`queueDelayedCombatHit\`，保留原生效果隊列測試能力，不修改正式 \`game.js\` 狀態機。新測 **5/5**、Phase 1–27 選定測試 **163/163** 通過；擴大 46 檔 **311/322** 通過，11 項失敗與 Phase 24–26 已確認的舊基準一致，沒有新增失敗。
+- \`index.html\` 兩項腳本快取版本改為 \`aoe-phase27\`／\`combat-phase27\`，相關測試的版本斷言同步更新。尚待使用者在完成所有適合的安全拆分後統一實機驗收；不宣稱完整舊測試全綠。
+
 ## 2026-11-03 JS 模組化 Phase 26 — 天狐雷分支落雷最近目標選取
 
 - 基於已部署的 Phase 25 \`59de4e22ac4bbed64ec9c343a6048973c13c106c\` 新建乾淨隔離 worktree，Phase 25 隔離副本已刪除，原始 dirty \`I:\Projects\yokai-delivery\` 未動。

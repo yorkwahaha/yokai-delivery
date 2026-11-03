@@ -339,6 +339,12 @@ const FIXTURE = `window.fixture = {
   setBuildMutations: ids => { buildMutations = [...ids]; buildRevision++; },
     // 讓已持有的武器立刻可用（wT[id]=0），用於測試實際施放而非被 Infinity 冷卻擋住。
     armWeapons: () => { for(const k of Object.keys(WL)) if (WL[k]>0) wT[k]=0; },
+    // Test sandbox only: schedule the two identical delayed AoE selection paths.
+    queueDelayedCombatHit: (kind, hit) => {
+      if (kind === 'inkfire') inkfireMarks.push({ ...hit });
+      else if (kind === 'duo') duoShockwaves.push({ ...hit });
+      else throw new Error('Unknown delayed combat kind: ' + kind);
+    },
     addEnemyBullets: count => { for(let i=0;i<count;i++) enemyBullets.push({x:P.x+120+ (i%3)*8,y:P.y-20+Math.floor(i/3)*10,vx:0,vy:0,life:5,maxLife:5}); },
     bar: () => ({ damage: b.dmg, rate: b.rate, crit: b.crit||0, spd: b.spd||0, oilRegen: b.oilRegen||0, dmgUp: b.dmgUp||0, shield: b.shield||0, dash: b.dash||0, mag: b.mag||0 }),
     barMax: () => ({ ...wMax }),

@@ -2872,9 +2872,7 @@ if (isRainPort) {
           im.triggered = true;
           SKILLFX.play("katana", "hit", 1, { x: im.x, y: im.y, inkfire: true });
           burst(im.x, im.y, "#ff3d00", 8);
-          const hitTargets = enemies
-            .filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done && dist(im, e) <= im.radius)
-            .slice(0, 3);
+          const hitTargets = window.GAME_COMBAT_MATH.unsortedAreaTargets(enemies, im);
           if (hitTargets.length > 0) {
             const damagePerTarget = im.damageBudget / hitTargets.length;
             for (const e of hitTargets) {
@@ -4326,9 +4324,7 @@ if (isRainPort) {
         if (sw.delay <= 0) {
           sw.triggered = true;
           SKILLFX.play("thunder", "strike", 1, { x: sw.x, y: sw.y, r: sw.radius, shockwave: true });
-          const hitTargets = enemies
-            .filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done && dist(sw, e) <= sw.radius)
-            .slice(0, 3);
+          const hitTargets = window.GAME_COMBAT_MATH.unsortedAreaTargets(enemies, sw);
           if (hitTargets.length > 0) {
             const damagePerTarget = sw.damageBudget / hitTargets.length;
             for (const e of hitTargets) {
