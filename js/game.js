@@ -5830,26 +5830,15 @@ if (isRainPort) {
   }
 
   function mobPacing(atElapsed, power) {
-    const cappedElapsed = Math.min(atElapsed, DAWN);
-    let interval = CFG.spawnInterval(cappedElapsed * MOB_DIFFICULTY.timeScale) * SPAWN_INTERVAL_SCALE * MOB_DIFFICULTY.intervalScale;
-    let count = Math.max(1, CFG.spawnCount(cappedElapsed) + SPAWN_COUNT_BONUS);
-
-    // S1 Normal：前一分鐘持續生成威脅，之後逐步接近第二關的密度。
-    if (isNightTownNormalMode() && cappedElapsed < 150) {
-      if (cappedElapsed < 90) {
-        interval = 1.5 - 0.42 * clamp(cappedElapsed / 90, 0, 1);
-        count = 1;
-      } else {
-        interval = 2.16 + (interval - 2.16) * ((cappedElapsed - 90) / 60);
-        count = 2;
-      }
-    }
-
-    return {
-      tier: CFG.enemyTier(Math.min(atElapsed, CFG.RUN_SECONDS) * MOB_DIFFICULTY.timeScale, power * MOB_DIFFICULTY.powerScale),
-      interval,
-      count
-    };
+    // The stage-specific parameters remain live inputs owned by game.js.
+    // No RNG, spawn state or enemy creation is moved into the pure pacing helper.
+    return window.GAME_SPAWN_MATH.mobPacing(atElapsed, power, {
+      dawn: DAWN, config: CFG, difficulty: MOB_DIFFICULTY,
+      spawnIntervalScale: SPAWN_INTERVAL_SCALE,
+      spawnCountBonus: SPAWN_COUNT_BONUS,
+      nightTownNormal: isNightTownNormalMode(),
+      clamp
+    });
   }
 
 function spawnEnemy(tier, rad, ang, ring) {

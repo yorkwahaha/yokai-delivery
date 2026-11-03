@@ -140,7 +140,7 @@ function loadGameSandbox(options = {}) {
     'boss-ai.js',
     'story-dialogue.js',
     'card-collection.js',
-    'card-delivery-bridge.js','game-quiz-logic.js','game-geometry.js','game-charm-math.js'
+    'card-delivery-bridge.js','game-quiz-logic.js','game-geometry.js','game-charm-math.js','game-spawn-math.js'
   ];
 
   for (const dep of deps) {

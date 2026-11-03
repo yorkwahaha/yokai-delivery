@@ -1,3 +1,10 @@
+## 2026-11-03 JS 模組化 Phase 7 — 敵人生成節奏純計算（連續自動驗證）
+
+- 原 \`mobPacing(atElapsed,power)\` 中的生成間隔、數量、級距與第一關 Normal 前 150 秒特別曲線完整搬到 \`js/game-spawn-math.js\` 的純函式；\`game.js\` 保留薄轉接並明確傳入目前 \`CFG/MOB_DIFFICULTY/DAWN\` 等設定。沒有搬敵人實際生成、AI、隨機數、世界狀態或戰鬥主迴圈。
+- 對照舊公式，在兩關／普通與較難設定下遍歷大量時間節點（特別是 90、150、600 秒）、敵人 power，逐值比較間隔/數量/tier 及 \`CFG\` 函式呼叫順序。
+- 新模組在 \`index.html\` 的 \`game.js\` 前載入，只更新 \`game.js\` cache key；現行 Node VM 測試加腳本，而歷史固定版本不變。本機仍在清理的舊測試保留原工作樹，遠端測試補新模組接線使用獨立暫存。
+- 選定整合測試 116/116 通過；既有 \`input-runtime\` 的「雨港 shooter 應有六隻」歷史斷言仍失敗（正式 rain-port Normal 已以 shiome 取代 shooter），不屬此批回歸。完成整個模組化前不要求使用者每批遊玩。
+
 ## 2026-11-03 JS 模組化 Phase 6 — 配送屋列純計算（連續自動驗證，不要求逐批試玩）
 
 - 根據 \`edc8926\` 正式版，將 \`houseColumnsBetween\` 的「嚴格先排除兩端 x 再以 50px 四捨五入去重」純計算搬至 \`GAME_GEOMETRY.countInteriorHouseColumns(houseXs,lo,hi)\`。真正 \`WORLD_STATE.getChunk\` 的 chunk 迴圈及快取仍留 \`game.js\`，避免變更世界生成與取件。

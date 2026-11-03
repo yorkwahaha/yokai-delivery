@@ -109,7 +109,7 @@ function loadGameSandbox() {
     SURGE_INTERVAL: 30,
   };
 
-  for (const mod of ['js/game-quiz-logic.js','js/game-geometry.js']) {
+  for (const mod of ['js/game-quiz-logic.js','js/game-geometry.js','js/game-charm-math.js','js/game-spawn-math.js']) {
     vm.runInNewContext(fs.readFileSync(path.join(ROOT, mod), 'utf8'), sb, { filename: mod });
   }
 
