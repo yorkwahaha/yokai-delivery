@@ -1,7 +1,6 @@
 'use strict';
-// BOOM-LV5-MOTION-R2 — boom Lv5 爆炸動作數值驗證（Node VM 真消費端）
-// Scope: js/skillfx.js drawOfudaImpact 只改 Lv5 max 分支
-// Numerical verification at t=0, .1, .2, .25, .3
+// BOOM-LV5-MOTION — live drawOfudaImpact timeline (current Nov-2026 art)
+// Numerical verification at t=0, .1, .2, .25, .3, .32
 // Regression: other Lv, audio, other FX
 // SHA tracking: skillfx.js + ofuda_max_burst.webp
 
@@ -45,9 +44,13 @@ function harness() {
     createRadialGradient() { return gradient; },
     createLinearGradient() { return gradient; }
   }, { get(target, key) { return key in target ? target[key] : noop; } });
-  const env = { Math, Date, Image: ImageMock, matchMedia: () => ({ matches: false }),
+  const deterministicMath=Object.create(Math); deterministicMath.random=()=>.9;
+  const env = { Math:deterministicMath, Date, Image: ImageMock, matchMedia: () => ({ matches: false }),
     document: { createElement: () => ({ getContext: () => canvasCtx }) },
-    console: { warn() {}, log() {} }, setTimeout() {} };
+    console: { warn() {}, log() {}, error() {} }, setTimeout() {},
+    // assets.js now requests its shared manifest on module load. It is not
+    // relevant to this already-mocked local raster motion test.
+    fetch: async () => ({ok:true, json:async()=>({})}) };
   env.window = env;
   env.VIEWPORT = { upright(ctx, x, y, paint) { uprights.push([x, y]); paint(); } };
   const cx = vm.createContext(env);
@@ -104,7 +107,8 @@ test('BOOM-LV5-R2: SHA256 recorded for traceability', () => {
   assert.equal(IMAGE_SHA.length, 64);
 });
 
-// -------- Test: scale curve 0.15 -> 1.08 -> 1.0 over 0.2s --------
+// -------- Test: current max animation rises 0.1 -> 1.2 at .12s,
+// then eases to 1.0 by .30s; no gameplay curve is changed here. --------
 test('BOOM-LV5-R2: scale curve at t=0 (age 0)', () => {
   const f = sampleAtAge(0);
   console.log('[t=0]', f);
@@ -113,28 +117,28 @@ test('BOOM-LV5-R2: scale curve at t=0 (age 0)', () => {
     `scale at t=0 must be ~0.15, got ${f.scaleRelativeTo240}`);
 });
 
-test('BOOM-LV5-R2: scale curve at t=0.1 (age 0.1) — near peak', () => {
+test('BOOM-LV5: scale at t=0.1 — near current 1.2x peak', () => {
   const f = sampleAtAge(0.1);
   console.log('[t=0.1]', f);
   assert.ok(f.scaleRelativeTo240 !== null, 'must draw at age 0.1');
-  assert.ok(f.scaleRelativeTo240 >= 1.00 && f.scaleRelativeTo240 <= 1.16,
-    `scale at t=0.1 must be ~1.08, got ${f.scaleRelativeTo240}`);
+  assert.ok(f.scaleRelativeTo240 >= 1.18 && f.scaleRelativeTo240 <= 1.21,
+    `scale at t=0.1 must be ~1.195, got ${f.scaleRelativeTo240}`);
 });
 
-test('BOOM-LV5-R2: scale curve at t=0.2 (age 0.2) — settle', () => {
+test('BOOM-LV5: scale at t=0.2 — easing down from 1.2x', () => {
   const f = sampleAtAge(0.2);
   console.log('[t=0.2]', f);
   assert.ok(f.scaleRelativeTo240 !== null, 'must draw at age 0.2');
-  assert.ok(f.scaleRelativeTo240 >= 0.98 && f.scaleRelativeTo240 <= 1.02,
-    `scale at t=0.2 must be ~1.0, got ${f.scaleRelativeTo240}`);
+  assert.ok(f.scaleRelativeTo240 >= 1.10 && f.scaleRelativeTo240 <= 1.13,
+    `scale at t=0.2 must be ~1.117, got ${f.scaleRelativeTo240}`);
 });
 
-test('BOOM-LV5-R2: scale curve at t=0.25 (age 0.25) — hold 1.0', () => {
+test('BOOM-LV5: scale at t=0.25 — final settling', () => {
   const f = sampleAtAge(0.25);
   console.log('[t=0.25]', f);
   assert.ok(f.scaleRelativeTo240 !== null, 'must draw at age 0.25');
-  assert.ok(f.scaleRelativeTo240 >= 0.98 && f.scaleRelativeTo240 <= 1.02,
-    `scale at t=0.25 must be ~1.0, got ${f.scaleRelativeTo240}`);
+  assert.ok(f.scaleRelativeTo240 >= 1.02 && f.scaleRelativeTo240 <= 1.05,
+    `scale at t=0.25 must be ~1.038, got ${f.scaleRelativeTo240}`);
 });
 
 test('BOOM-LV5-R2: scale curve at t=0.3 (age 0.3) — hold 1.0', () => {
@@ -145,7 +149,7 @@ test('BOOM-LV5-R2: scale curve at t=0.3 (age 0.3) — hold 1.0', () => {
     `scale at t=0.3 must be ~1.0, got ${f.scaleRelativeTo240}`);
 });
 
-// -------- Test: position jitter ONLY after 0.2s, decaying to 0 by ~0.35s --------
+// -------- Test: jitter begins strictly after .30s and fades by .40s --------
 test('BOOM-LV5-R2: position jitter at t=0.1 — NO jitter before 0.2s', () => {
   const f = sampleAtAge(0.1);
   const tx = f.translations[0]?.[0] ?? 100;
@@ -166,36 +170,39 @@ test('BOOM-LV5-R2: position jitter at t=0.2 — NO jitter at 0.2s boundary', () 
   assert.ok(dx < 0.5 && dy < 0.5, `no position jitter at 0.2s: dx=${dx}, dy=${dy}`);
 });
 
-test('BOOM-LV5-R2: position jitter at t=0.25 — jitter present ±3-6px', () => {
+test('BOOM-LV5: no position jitter before current .30s threshold', () => {
   const f = sampleAtAge(0.25);
   const tx = f.translations[0]?.[0] ?? 100;
   const ty = f.translations[0]?.[1] ?? 80;
   const dx = Math.abs(tx - 100);
   const dy = Math.abs(ty - 80);
   console.log('[t=0.25 jitter]', { dx, dy, translations: f.translations });
-  // Due to Math.random, single run may vary; we check it's non-zero
-  // In practice we'd run multiple times, but for CI we verify the mechanism exists
-  const hasJitter = dx > 0.1 || dy > 0.1;
-  assert.ok(hasJitter, `position jitter expected after 0.2s, got dx=${dx}, dy=${dy}`);
+  assert.ok(dx < 0.1 && dy < 0.1, `position jitter must wait until .30s, got dx=${dx}, dy=${dy}`);
 });
 
-test('BOOM-LV5-R2: position jitter at t=0.3 — jitter decaying', () => {
+test('BOOM-LV5: exactly .30s remains stable without position jitter', () => {
   const f = sampleAtAge(0.3);
   const tx = f.translations[0]?.[0] ?? 100;
   const ty = f.translations[0]?.[1] ?? 80;
   const dx = Math.abs(tx - 100);
   const dy = Math.abs(ty - 80);
   console.log('[t=0.3 jitter]', { dx, dy, translations: f.translations });
-  // At 0.3s (tailAge=0.67), amp ~ 2px, so jitter should be smaller
-  const hasJitter = dx > 0.1 || dy > 0.1;
-  assert.ok(hasJitter, `position jitter still present at 0.3s (decaying), dx=${dx}, dy=${dy}`);
+  assert.ok(dx < 0.1 && dy < 0.1, `position jitter begins after .30s, got dx=${dx}, dy=${dy}`);
 });
 
-// -------- Test: alpha = emerge * fade (no separate pulse) --------
-test('BOOM-LV5-R2: alpha at t=0 is 0 (fade=0)', () => {
+test('BOOM-LV5: deterministic position jitter appears after .30s', () => {
+  const f=sampleAtAge(.32);
+  const x=f.translations[0]?.[0] ?? 100;
+  const y=f.translations[0]?.[1] ?? 80;
+  assert.ok(Math.abs(x-100)>.1 || Math.abs(y-80)>.1,
+    `jitter starts after .30s: ${x},${y}`);
+});
+
+// -------- Test: current max starts at 70% opacity (not zero) --------
+test('BOOM-LV5: alpha at t=0 is 0.7 before full opacity', () => {
   const f = sampleAtAge(0);
   console.log('[t=0 alpha]', f.alpha);
-  assert.equal(f.alpha, 0, 'alpha at age 0 must be 0');
+  assert.equal(f.alpha, 0.7, 'current max burst starts visibly at 70% opacity');
 });
 
 test('BOOM-LV5-R2: alpha at t=0.1 is 1 (emerge~1, fade~1)', () => {
@@ -213,7 +220,7 @@ test('BOOM-LV5-R2: angle jitter at t=0.1', () => {
 });
 
 // -------- Regression: Lv1-4 unchanged --------
-test('BOOM-LV5-R2: Lv1-4 scale curve unchanged (regression)', () => {
+test('BOOM-LV5: Lv1–4 existing cubic scale peaks slightly above 1.0', () => {
   for (let rank = 1; rank <= 4; rank++) {
     const h = harness();
     h.env.ofudaRasterArt('hit');
@@ -225,11 +232,11 @@ test('BOOM-LV5-R2: Lv1-4 scale curve unchanged (regression)', () => {
     h.env.SKILLFX.drawArtFx(d.ctx, false);
     const drawn = d.draws.find(x => x.img === image);
     assert.ok(drawn, `Lv${rank} must draw`);
-    // Lv1-4 use old cubic ease-out from 0.73 to 1.0
-    // At age=0.1, emerge=min(1, 0.1/0.065)=1, width = base * (0.73+0.27*(1-0)) = base * 1.0
+    // Current normal rank animation also expands: at .1s
+    // 0.14 + 0.98 * (1 - (1 - .1/.15)^3) = 1.0837037.
     const expectedBase = [126, 136, 148, 160][rank - 1];
     const scale = drawn.w / expectedBase;
-    assert.ok(scale >= 0.95 && scale <= 1.05, `Lv${rank} scale at 0.1s must be ~1.0, got ${scale}`);
+    assert.ok(scale >= 1.07 && scale <= 1.10, `Lv${rank} scale at 0.1s must be ~1.084, got ${scale}`);
   }
 });
 

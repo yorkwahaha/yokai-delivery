@@ -59,7 +59,17 @@ function createSandbox() {
 
   const sandbox = vm.createContext(env);
   const readJs = f => fs.readFileSync(path.join(ROOT, 'js', f), 'utf8');
-  const deps = ['words.js','world.js','store.js','config.js','viewport.js','controls.js','overworld.js','fx.js','skillfx.js','evolutions.js','boss-ai.js','story-dialogue.js','card-collection.js','card-delivery-bridge.js'];
+  const deps = [
+    'delivery-lexicon.js','delivery-media.js',
+    'words.js','world.js','store.js','config.js','viewport.js',
+    'controls.js','overworld.js','fx.js','skillfx.js','evolutions.js',
+    'boss-ai.js','story-dialogue.js','card-collection.js','card-delivery-bridge.js',
+    'fusion.js','combat-targeting.js','game-quiz-logic.js','game-geometry.js',
+    'game-charm-math.js','game-spawn-math.js','game-build-rules.js',
+    'game-delivery-rules.js','game-attack-specs.js','game-catalog.js',
+    'game-combat-math.js','game-weather.js','game-upgrade-choices.js',
+    'game-run-summary.js','game-tutorial-rules.js'
+  ];
   for (const d of deps) vm.runInContext(readJs(d), sandbox, { filename: d });
   if (sandbox.CONTROLS) sandbox.CONTROLS.mount = () => {};
 

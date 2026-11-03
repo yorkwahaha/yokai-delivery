@@ -1,3 +1,10 @@
+## 2026-11-03 歷史測試整頓 — 建立明確現行／歷史驗證門禁
+
+- `tests/agy-m1-b.test.cjs` 補齊新模組載入、現行 Lv5 靈針 0.05 秒一發時序，**19/19** 通過；`tests/boom-lv5-motion-20261025.test.cjs` 補齊非網路 manifest mock 與目前 `skillfx` 的 0.12 秒峰值、0.30 秒位移抖動時序，**23/23** 通過。僅修現行規格的測試，不改技能。
+- `agy-m1-d/runtime/c/stage1-balance` 補齊遊戲模組的 VM harness，從啟動期 `tutorialIds` 錯誤轉為真實斷言，已辨識仍存在各 **46/88、7/14、4/11、4/9** 項舊規格／待鑑別失敗，保留於歷史集。對 `input-runtime` 做過的正式卡片橋載入實驗導致失敗數上升，已撤回、未納入本輪。
+- `package.json` 明確新增 **現行** `npm test`／`npm run test:current`、**完整歷史** `npm run test:all`、`npm run test:legacy` 與清單 `npm run test:list`。目前 **54 份現行 Node 測試 406/406 通過**；其餘 161 份舊測試仍保留，既有約 495 項歷史失敗尚未完全核清。分類依據、限制及後續提升條件見 `docs/TEST_SUITE_STATUS.md`，不可將 406/406 介紹成整個 215 份測試全綠。
+- **Phase 30 持續暫停**，未完成歷史問題分類與實機驗收前不啟動其他玩法任務。
+
 ## 2026-11-03 B14 警報毛筆素材正式更新
 
 - 使用者確認修改 `assets/img/ui/b14/surge_brush.webp`。之前清理時將原始修改版獨立備份為 `I:\Projects\_yokai-delivery-precleanup-20261103\post-cleanup-local-edits\assets\img\ui\b14\surge_brush.webp`，此批精確還原備份的 **190,846 bytes**（SHA256 `a4d9cb5df8e3e3df0f70c4b41513d02da0b9b53bafef792bbe17bb6f3a2e366e`）；不可用原先 167,156 bytes 的遠端舊圖覆蓋。

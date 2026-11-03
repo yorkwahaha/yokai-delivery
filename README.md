@@ -10,6 +10,7 @@
 - [第二關正式圖檔逐項核准與改接紀錄](docs/STAGE2_APPROVED_MEDIA_MIGRATION_20261031.md)
 - [第二關 20 個宅配單字圖／Fish A 試玩紀錄](docs/RAIN_PORT_DELIVERY_TRIAL_20261031.md)
 - [當前進度](roadmap.md)（只讀最新頂部）
+- [現行／歷史測試分流與執行說明](docs/TEST_SUITE_STATUS.md)（`npm test` 只驗證現行基準；`npm run test:all` 保留全部舊測試）
 - [關卡美術入口](art/README.md)
 - [遊戲企劃](docs/GAME_DESIGN_MASTER.md) ／ [製作計畫](docs/PRODUCTION_PLAN.md) ／ [美術規範](docs/ART_STYLE.md)
 

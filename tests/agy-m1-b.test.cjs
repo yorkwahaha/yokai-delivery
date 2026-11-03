@@ -105,6 +105,8 @@ function loadGameSandbox(options = {}) {
 
   // 逐檔明列安全路徑，嚴格排除 audio.js
   const deps = [
+    'delivery-lexicon.js',
+    'delivery-media.js',
     'words.js',
     'world.js',
     'store.js',
@@ -116,7 +118,26 @@ function loadGameSandbox(options = {}) {
     'skillfx.js',
     'evolutions.js',
     'boss-ai.js',
-    'ui.js'
+    'ui.js',
+    // Keep this historical mutation sandbox aligned with live game.js imports;
+    // otherwise every test fails in the initializer, not its needle contract.
+    'card-collection.js',
+    'card-delivery-bridge.js',
+    'fusion.js',
+    'combat-targeting.js',
+    'game-quiz-logic.js',
+    'game-geometry.js',
+    'game-charm-math.js',
+    'game-spawn-math.js',
+    'game-build-rules.js',
+    'game-delivery-rules.js',
+    'game-attack-specs.js',
+    'game-catalog.js',
+    'game-combat-math.js',
+    'game-weather.js',
+    'game-upgrade-choices.js',
+    'game-run-summary.js',
+    'game-tutorial-rules.js'
   ];
 
   for (const dep of deps) {
@@ -483,8 +504,10 @@ test('M1-B-7 Baseline skill preservation: needle Lv5 is eight-direction staggere
   probe.getP().faceAng = 0;
   probe.setWT('needle', 0);
   probe.weapons(0.01);
-  assert.equal(probe.getNeedles().length, 1, '同幀只出第一針');
-  for (let i = 0; i < 8; i++) probe.weapons(0.10);
+  assert.equal(probe.getNeedles().length, 0, 'Lv5 first needle is queued, not fired immediately');
+  probe.weapons(0.04);
+  assert.equal(probe.getNeedles().length, 1, 'first needle fires after 0.05 seconds');
+  for (let i = 0; i < 7; i++) probe.weapons(0.05);
   const needles = probe.getNeedles();
   assert.equal(needles.length, 8, '依序出滿八針');
   assert.equal(needles[0].tracking, false);
@@ -840,7 +863,8 @@ test('MUT-REMOVE-FAN 靈針取消散射，Lv5仍固定八向八發；陰陽符�
     assert.equal(old.damage, current.damage, '舊變異不可改傷害');
     assert.equal(old.fan, undefined);
   }
-  assert.equal(probe.resolveAttackSpec('needle', 5, baseBuild).volleyInterval, 0.1);
+  assert.equal(probe.resolveAttackSpec('needle', 5, baseBuild).volleyInterval, 0.05,
+    'the approved Lv5 volley fires eight directional needles at 0.05-second intervals');
   assert.equal(probe.addMutation('mut_boom_fan'), true, '陰陽符千本散射仍可取得');
   assert.equal(probe.resolveAttackSpec('boom', 1, probe.getBuildState()).count, 3);
   assert.equal(probe.resolveAttackSpec('needle', 5, probe.getBuildState()).count, 8);
