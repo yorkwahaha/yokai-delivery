@@ -51,7 +51,7 @@ function loadGame(firstRun = false, tutorialSaved = firstRun ? null : '"skip"') 
   env.window = env;
   env.window.dispatchEvent = () => {};
   const c = vm.createContext(env);
-  for (const name of ['words', 'world', 'store', 'config', 'viewport', 'controls', 'overworld', 'fx', 'skillfx', 'evolutions', 'boss-ai', 'game-quiz-logic', 'game-geometry', 'game-charm-math', 'game-spawn-math', 'game-build-rules', 'game-delivery-rules', 'game-attack-specs', 'game-catalog', 'game-combat-math', 'game-weather', 'game-upgrade-choices', 'game-run-summary', 'card-collection', 'card-gallery-model', 'card-gallery-ui']) vm.runInContext(fs.readFileSync(`js/${name}.js`, 'utf8'), c, {filename: require('node:path').resolve(`js/${name}.js`)});
+  for (const name of ['words', 'world', 'store', 'config', 'viewport', 'controls', 'overworld', 'fx', 'skillfx', 'evolutions', 'boss-ai', 'game-quiz-logic', 'game-geometry', 'game-charm-math', 'game-spawn-math', 'game-build-rules', 'game-delivery-rules', 'game-attack-specs', 'game-catalog', 'game-combat-math', 'game-weather', 'game-upgrade-choices', 'game-run-summary', 'game-tutorial-rules', 'card-collection', 'card-gallery-model', 'card-gallery-ui']) vm.runInContext(fs.readFileSync(`js/${name}.js`, 'utf8'), c, {filename: require('node:path').resolve(`js/${name}.js`)});
   c.CONTROLS.mount = () => {};
   const audioCalls = [];
   c.AUDIO = new Proxy({}, { get: (o, name) => () => audioCalls.push(name) });

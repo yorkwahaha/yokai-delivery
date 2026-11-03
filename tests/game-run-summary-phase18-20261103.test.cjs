@@ -79,7 +79,7 @@ test('Phase18 reports do not mutate live save state and return independent neste
 test('Phase18 scripts order and main wrappers preserve read-only live data ownership',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const mod='js/game-run-summary.js?v=20261103-summary-phase18';
- const main='js/game.js?v=20261103-build-phase19';
+ const main='js/game.js?v=20261103-tutorial-phase20';
  assert.ok(html.includes(mod)&&html.includes(main));
  assert.ok(html.indexOf(mod)<html.indexOf(main));
  assert.match(game,/GAME_RUN_SUMMARY\.learningSummary\(\s*STORE\.data\.m, learningStart/);

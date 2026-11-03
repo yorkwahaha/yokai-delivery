@@ -1,3 +1,10 @@
+## 2026-11-03 JS 模組化 Phase 20 — 教學鍵值與舊版紀錄轉換
+
+- 把新手教學四個類型的關卡鍵值 \`stage:delivery/stage:boss\`、合法紀錄集合生成，以及未帶關卡的舊紀錄轉成夜町紀錄的純計算抽至 \`js/game-tutorial-rules.js\`。真正 \`localStorage\` 讀寫、JSON parse、第一次教學出現、略過操作、按鍵與教學視窗仍由 \`game.js\` 管理。
+- 保存拆分前初始化原始碼 \`tests/fixtures/game-tutorial-original-phase20.js\`；逐案例對照多組 stage 字典與啟動關卡、空值／skip／正常與損壞 JSON、重複／未知／不同關卡紀錄，確認已看過的教學集合、跳過狀態與儲存讀取次數完全相同。
+- HTML 載 \`game-tutorial-rules.js\` 於 \`game.js\` 前並換 \`?v=20261103-tutorial-phase20\`；所有 VM 測試 loader 同步更新。
+- 選定整合測試 **166/166 全部通過**、JS 語法檢查及 Git 差異檢查通過。保留使用者全部拆分結束後一次實機驗收。
+
 ## 2026-11-03 JS 模組化 Phase 19 — 升級資格純規則集中管理
 
 - 從 \`game.js\` 的 \`getEligibleChoices()\` 搬出普通武器可學習池、Lv4 + 印記的覺醒池、以及 legacy Duo 的兩技 Lv3+ 與 \`inPool\` 條件，集中到已存在的 \`GAME_BUILD_RULES.weaponOfferKeys()/duoOfferKeys()\`；保留四槽上限、已被融合消耗技能排除、融合武器禁普通升級、既有 callback 查詢順序。

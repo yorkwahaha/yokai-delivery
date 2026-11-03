@@ -506,20 +506,23 @@
   let worldSyncSignature = "";
 
   // Only operation guidance: never reads the current word or mutates answer assistance.
-  const tutorialIds = ['pickup', 'delivery', 'dash', 'boss'];
+  const tutorialIds = window.GAME_TUTORIAL_RULES.tutorialIds();
   const tutorialKey = (id, stageId = STAGE.id) =>
-    id === 'delivery' || id === 'boss' ? `${stageId}:${id}` : id;
-  const tutorialKeys = new Set(tutorialIds.flatMap(id =>
-    [id, ...Object.keys(window.CONTENT.STAGES).map(stageId => tutorialKey(id, stageId))]));
+    window.GAME_TUTORIAL_RULES.tutorialKey(id, stageId);
+  const tutorialKeys = window.GAME_TUTORIAL_RULES.acceptedKeys(
+    tutorialIds, window.CONTENT.STAGES, tutorialKey
+  );
   let tutorial = null, tutorialSeen = new Set(), tutorialSkipped = false;
   let inputMode = touch ? 'touch' : 'keyboard';
   try {
     const saved = JSON.parse(localStorage.getItem('yokai-tutorial-v1'));
     tutorialSkipped = saved === 'skip';
-    // 舊版未分關的讀題紀錄保留給夜行町；雨港首次仍需交代不同規則。
-    if (Array.isArray(saved)) tutorialSeen = new Set(saved.filter(id => tutorialKeys.has(id))
-      .map(id => tutorialIds.includes(id) ? tutorialKey(id, 'night-town') : id));
+    // Keep legacy unscoped tutorial records mapped to night-town.
+    if (Array.isArray(saved)) tutorialSeen = window.GAME_TUTORIAL_RULES.seenFromSaved(
+      saved, tutorialIds, tutorialKeys, tutorialKey
+    );
   } catch {}
+
   function showTutorial(id, replay = false) {
     tutorial = { id, replay, focus: 0 };
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
