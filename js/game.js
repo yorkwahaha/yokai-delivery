@@ -4461,33 +4461,15 @@ function spawnEnemy(tier, rad, ang, ring) {
     checkTutorial();
     if (tutorial) return;
 
-    let quizNear = null;
-    let quizNearDistance = 380;
-    // Wrong-answer curse resumes combat but must NOT spend another sealed
-    // Boss's ten-second safety window while that shield is unanswerable.
-    if (bossCurseRemaining <= 0) {
-      for (const e of enemies) {
-        if (e.type !== "boss" || !e.shield || e.hp <= 0 || e.quizClosed) continue;
-        const d = dist(P, e);
-        if (d < quizNearDistance) { quizNear = e; quizNearDistance = d; }
-        else if (d >= 380 && e.quizEntered) e.quizClosed = true;
-      }
-      if (quizNear) {
-        quizNear.quizEntered = true;
-        quizNear.barrierTimer = (quizNear.barrierTimer ?? 10) - dt;
-        if (quizNear.barrierTimer <= 0) {
-          quizNear.barrierTimer = 0;
-          quizNear.quizClosed = true;
-          quizNear = null;
-        }
-      }
-    }
+    // Delivery owns the reading controls for this frame, including its entry
+    // and expiry frames. Never spend a hidden Boss's safety window at once.
     if (job && !job.readClosed && deliveryBarrierContains(P, job.to)) {
       if (!job.reading) {
         job.reading = true;
         job.barrierTimer = 10.0; // 10 秒結界倒數
       }
     }
+    const deliveryOwnsReadingFrame = !!job?.reading;
     if (job?.reading) {
       if (!deliveryBarrierContains(P, job.to, 14)) {
         job.reading = false;
@@ -4507,6 +4489,27 @@ function spawnEnemy(tier, rad, ang, ring) {
           AUDIO.deliverWrong();
           HAPTICS.deliverWrong();
           if (oil <= 0) { oil = 0; loseRun(); return; }
+        }
+      }
+    }
+    let quizNear = null;
+    let quizNearDistance = 380;
+    // Wrong-answer curse resumes combat but must NOT spend another sealed
+    // Boss's ten-second safety window while that shield is unanswerable.
+    if (bossCurseRemaining <= 0 && !deliveryOwnsReadingFrame) {
+      for (const e of enemies) {
+        if (e.type !== "boss" || !e.shield || e.hp <= 0 || e.quizClosed) continue;
+        const d = dist(P, e);
+        if (d < quizNearDistance) { quizNear = e; quizNearDistance = d; }
+        else if (d >= 380 && e.quizEntered) e.quizClosed = true;
+      }
+      if (quizNear) {
+        quizNear.quizEntered = true;
+        quizNear.barrierTimer = (quizNear.barrierTimer ?? 10) - dt;
+        if (quizNear.barrierTimer <= 0) {
+          quizNear.barrierTimer = 0;
+          quizNear.quizClosed = true;
+          quizNear = null;
         }
       }
     }
