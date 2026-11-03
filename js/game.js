@@ -444,35 +444,11 @@
     else STORE.rec(jp, true);
   }
   function bossBlueprint(index) {
-    const role = ["mid", "mid", "gate", "final"][index] || "mid";
-    let hp = CFG.BOSS_HP_BASE[index];
-    if (STAGE && STAGE.id === "night-town" && typeof hp === "number") {
-      // 第三王沒有答題護盾，不能跟前兩王一律減半；825 HP 仍低於尾王 910 HP。
-      hp = Math.round(hp * (role === "final" ? 0.65 : role === "gate" ? 0.75 : 0.5));
-    }
-    return {
-      hp,
-      oil: CFG.BOSS_OIL_REWARD[index],
-      quiz: role !== "gate",
-      role
-    };
+    return window.GAME_COMBAT_MATH.bossBlueprint(index, CFG.BOSS_HP_BASE, CFG.BOSS_OIL_REWARD, STAGE);
   }
   function rollCrit(base, step, critLvl = b.crit) {
-    let chance;
-    if (typeof base === "object" && base !== null) {
-      if (typeof base.critChance === "number") {
-        chance = base.critChance;
-      } else {
-        const lvl = typeof base.critLvl === "number" ? base.critLvl : (b.crit || 0);
-        const bVal = typeof step === "number" ? step : 0.2;
-        const sVal = typeof critLvl === "number" ? critLvl : 0.15;
-        chance = Math.min(0.5, bVal + lvl * sVal);
-      }
-    } else if (typeof step === "undefined") {
-      chance = Math.min(0.5, base || 0);
-    } else {
-      chance = Math.min(0.5, base + (critLvl || 0) * step);
-    }
+    // The single RNG call remains here, after calculating the exact chance.
+    const chance = window.GAME_COMBAT_MATH.critChance(base, step, critLvl, b.crit);
     const isCrit = Math.random() < chance;
     return { isCrit, mult: isCrit ? 1.8 : 1 };
   }

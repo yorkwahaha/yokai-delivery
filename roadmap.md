@@ -1,3 +1,11 @@
+## 2026-11-03 JS 模組化 Phase 14 — Boss 基本規格／暴擊機率純計算
+
+- 原 \`bossBlueprint(index)\` 及 \`rollCrit()\` 中機率計算搬往 \`js/game-combat-math.js\` 的純函式；\`game.js\` 保留 \`rollCrit\` 正式入口與唯一一次 \`Math.random()\` 抽取、結果倍數和所有傷害呼叫。Boss AI、生成時序與 HP 配置資料不變。
+- 新測試釘住第一關與雨港四隻 Boss 的角色、血量／護盾／獎勵，以及暴擊判斷所有物件／一般參數覆載、0／NaN／Infinity 邊界和「每呼叫只消耗一個隨機數」。
+- 新模組在 \`game.js\` 前載入，兩支 script 共用 \`?v=20261103-combat-phase14\`；現行 VM fixture 與固定歷史測試遠端版本同步加入載入，保護本機已清除的工作樹。
+- 自動整合測試 **143/143 全部通過**，並繼續保留最終整體實機驗收（不要求逐批試玩）。
+- 高風險 \`hurt()/weapons()/update()\` 本批完全未搬，後續須先界定持久狀態與時序依賴。
+
 ## 2026-11-03 JS 模組化 Phase 13 — 五份純靜態資料表獨立 catalog
 
 - 從 \`game.js\` 搬出約 461 行純資料至 \`js/game-catalog.js\`：\`CHARM_CONFIG\` (6)、\`MUTATION_CONFIG\` (24)、\`DUO_CONFIG\` (4)、\`WI\` (16)、\`WEAPON_UPGRADES\` (16)。原順序和內容不變；只將共享 holder \`GAME_CATALOG\` 冻結，對象本身仍可像原版使用。玩家持續變更的 \`WL\` 及升級、裝備、存檔不搬。
