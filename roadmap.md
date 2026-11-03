@@ -1,3 +1,11 @@
+## 2026-11-03 JS 模組化 Phase 12 — 716 行攻擊規格純計算完整抽離
+
+- 將 \`resolveAttackSpec(skillId, lvl, buildState, options)\` 原本約 716 行的數值與技能描述分支，以原內容完整搬至 \`js/game-attack-specs.js\`。主遊戲只保留呼叫入口，把 \`WL/W/b/buildMutations/buildDuos/getEffectiveRate/getEffectiveDmg/getEffectiveReachMultiplier/window.EVOLUTIONS\` 即時依賴明確傳入；不修改武器實際施放 \`weapons\`、扣血 \`hurt\`、遊戲 \`update\`、Boss AI、隨機數、存檔或融合是否啟用。
+- **拆之前**先從原版函式產生 \`tests/fixtures/attack-spec-golden-phase12-20261103.json\`，涵蓋 6 招主動、10 組歷史融合及未知技能，等級 1–5 與預設等級、缺失／完整進化函式、三種 build 與暴擊環境，共 **612 組** SHA-256 參考輸出；拆後全部逐組完全相同。
+- \`index.html\` 新模組置於 \`game.js\` 前，兩個新 JS 共用 \`?v=20261103-attack-phase12\`；現行 VM 測試依賴已補齊，歷史只釘舊版本的 \`MODULE_ORDER\` 不變。原本本機已清掉的測試只在發布 Git 的獨立暫存索引更新。
+- 選定整合 **135/135 通過**；這是迄今影響面最大的一批，最後仍需使用者於全部模組化完成後一次實機試玩，不以 Node 測試假稱完整體驗已驗收。
+- 下階段須重檢 \`weapons/update/drawWorld\` 等高耦合狀態迴圈；不可套用純函式抽離的低風險論證，必須有獨立行為基準／依賴圖才可搬動。
+
 ## 2026-11-03 JS 模組化 Phase 11 — 玩家 build 資料快照
 
 - 原 \`getBuildState()\` 輕量化為呼叫 \`GAME_BUILD_RULES.createBuildState(WI, WL, buildCharms, buildMutations, buildDuos, charmLevelOf)\`，保留目前玩家狀態讀取和資料生命週期於 \`game.js\`，只把建立 \`schemaVersion/activeSkills/WL/charms/charmLevels/mutations/duos\` 的新物件組裝搬入既有純規則模組。

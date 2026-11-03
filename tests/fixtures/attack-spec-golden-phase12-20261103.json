@@ -1,0 +1,4340 @@
+{
+  "description": "Phase 12 baseline from unchanged game.js at commit 41055b3",
+  "mutations": [
+    "mut_iaicharge",
+    "mut_armorbreak",
+    "mut_longblade",
+    "mut_crosscut",
+    "mut_seek",
+    "mut_frost",
+    "mut_pierce",
+    "mut_return",
+    "mut_pulse",
+    "mut_bindseal",
+    "mut_widecircle",
+    "mut_repulse",
+    "mut_thunderfocus",
+    "mut_thunderstun",
+    "mut_thunderoverload",
+    "mut_branch",
+    "mut_orbit",
+    "mut_rapidfire",
+    "mut_flamebind",
+    "mut_furyfire",
+    "mut_boom_fan",
+    "mut_splitblast",
+    "mut_boom_seek",
+    "mut_boom_frost"
+  ],
+  "duos": [
+    "duo_inkfire",
+    "duo_thundercircle",
+    "duo_cinderseal",
+    "duo_frostseal"
+  ],
+  "skills": [
+    "katana",
+    "barrier",
+    "fire",
+    "boom",
+    "thunder",
+    "needle",
+    "fusion_inkblade",
+    "fusion_foxiai",
+    "fusion_exorcistblade",
+    "fusion_foxfirebarrier",
+    "fusion_exorcistseal",
+    "fusion_thundercircle",
+    "fusion_slashwheel",
+    "fusion_foxthunderlantern",
+    "fusion_flamefestival",
+    "fusion_thundertalisman",
+    "unknown"
+  ],
+  "cases": [
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "katana",
+      "level": "default",
+      "hash": "3b919ecf4a3e0e73f024cfdfc06245e90c052d0a07512b58e8c631f97af4b3a8"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "katana",
+      "level": 1,
+      "hash": "3b919ecf4a3e0e73f024cfdfc06245e90c052d0a07512b58e8c631f97af4b3a8"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "katana",
+      "level": 2,
+      "hash": "1b441e96a4a0448e8df1f0543900cd2ff92d6b25a0de7537b593762d423290eb"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "katana",
+      "level": 3,
+      "hash": "a91459969cedc0cddd65f68a1d4f69baa868a357706553a087c1ca93c58709e5"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "katana",
+      "level": 4,
+      "hash": "ed45d92320dfc7258ebea59e479b84542d6c204c1195a34a4315751ab20aa392"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "katana",
+      "level": 5,
+      "hash": "17031c6ec756d53f6af0937b2ec241f44522b360bffe02d6126e3b5a3479d125"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "barrier",
+      "level": "default",
+      "hash": "3f39b0914d23dd7c0560839c537900372b0eaae4d19c139db027b050eb63557e"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "barrier",
+      "level": 1,
+      "hash": "9e5f0551e34b4277fc50145ed1fca57ee3c04d245f7d4a4395aa0c8a4954ff05"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "barrier",
+      "level": 2,
+      "hash": "3f39b0914d23dd7c0560839c537900372b0eaae4d19c139db027b050eb63557e"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "barrier",
+      "level": 3,
+      "hash": "198b81e1e5088a55d5b1b7f18c1b4bf393e4ef043b53920fb8fd7083a8da26e9"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "barrier",
+      "level": 4,
+      "hash": "c0864a7ec64f2326cdd6817f0404b595caf0af3ec4c45f4e0aa0f51466790502"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "barrier",
+      "level": 5,
+      "hash": "bba06a3b8ff6f1b0c9eb63bd0108bba20838dd2d609170e51295471be06f5b18"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fire",
+      "level": "default",
+      "hash": "dc64246b10cf55bfc424883e3d2b41b6e9d834947370ad8adb7c74082eae6dd1"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fire",
+      "level": 1,
+      "hash": "11bf484b6e9dc580e0c0ca4824cb79d0378090d1c6dd2f5bac478572de41ce24"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fire",
+      "level": 2,
+      "hash": "6bd054f7151d8afa5809c3dc057bb353bb830ddf4a298aa755b3c5e91864ab61"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fire",
+      "level": 3,
+      "hash": "dc64246b10cf55bfc424883e3d2b41b6e9d834947370ad8adb7c74082eae6dd1"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fire",
+      "level": 4,
+      "hash": "285d587d310f5e6ce3f7bbf2ad05a5022c778eff0be6dcb185b89e1d17ff8804"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fire",
+      "level": 5,
+      "hash": "79e45f71004ac18a0414d60cdfa912a2ef67a22d209f6e1e8b59465a9b746e6c"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "boom",
+      "level": "default",
+      "hash": "4a100f86b3dd5aef8b9ab8565ac1ab68102d1990a0388b8b5f17d609e21623bc"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "boom",
+      "level": 1,
+      "hash": "a38b0f8a95f4be3a7365122d500e55a273936333af0e81dfc70bc24edbae457b"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "boom",
+      "level": 2,
+      "hash": "7651b7ff94b1a88a4b9a7cd70dbeee05e96ed4cfe690e41a82e56f5ba9b73698"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "boom",
+      "level": 3,
+      "hash": "9defcadce6f0b77b66b59762039fe48cb892932796da0dfaee8ec34861314bfa"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "boom",
+      "level": 4,
+      "hash": "4a100f86b3dd5aef8b9ab8565ac1ab68102d1990a0388b8b5f17d609e21623bc"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "boom",
+      "level": 5,
+      "hash": "f53a6b85ae7c00f551d32ebb6655cebb2f301735e34c9b5ff138f34109ad7aab"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "thunder",
+      "level": "default",
+      "hash": "4501bb84ed61d87a5b1f70f0ea69a766d018e791120cd6189b699fafb0ac383f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "thunder",
+      "level": 1,
+      "hash": "4501bb84ed61d87a5b1f70f0ea69a766d018e791120cd6189b699fafb0ac383f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "thunder",
+      "level": 2,
+      "hash": "4489b3702f7f58e9aefdd11445a25f1a5cb962a88f3a5660b5a4326c37a3a289"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "thunder",
+      "level": 3,
+      "hash": "bc23ea71a1c9d016ff1103b6d7c847fca0135efba439d8a908243af29196a1d3"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "thunder",
+      "level": 4,
+      "hash": "07028ce6535426333b3f58c6603b33bdc4521a355a0222678631e297df9e6c07"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "thunder",
+      "level": 5,
+      "hash": "3666384202db4eedeefc818bf0e3d53fb0d66099a1b2ed7df9c92ab84f7974c7"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "needle",
+      "level": "default",
+      "hash": "ca03d1891996e70619a517efffc7c07cafea07e2290d2265d2f53c57c922c069"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "needle",
+      "level": 1,
+      "hash": "69134ab837f0b3cf0c92fc9e7ce04ecaf9b365fd8ec3353ae3d1096d198b8f29"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "needle",
+      "level": 2,
+      "hash": "ca03d1891996e70619a517efffc7c07cafea07e2290d2265d2f53c57c922c069"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "needle",
+      "level": 3,
+      "hash": "744cafc72a1b549adc0b36eba5043b6b5315338afcc8d4a6827f0b77752a4af4"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "needle",
+      "level": 4,
+      "hash": "e1424c47e7746defaf5896f70cb6a4344a29aa69933457245bbed3b8a21a0996"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "needle",
+      "level": 5,
+      "hash": "62e9eca7d09c878e306a853e173edc9f8304abba67be2ad88e37362b3e732394"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_inkblade",
+      "level": "default",
+      "hash": "a9ed46a690bffe51dfc8f8a64f0801a89fce395a74197501653719eccd42a45a"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_inkblade",
+      "level": 1,
+      "hash": "a9ed46a690bffe51dfc8f8a64f0801a89fce395a74197501653719eccd42a45a"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_inkblade",
+      "level": 2,
+      "hash": "a9ed46a690bffe51dfc8f8a64f0801a89fce395a74197501653719eccd42a45a"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_inkblade",
+      "level": 3,
+      "hash": "a9ed46a690bffe51dfc8f8a64f0801a89fce395a74197501653719eccd42a45a"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_inkblade",
+      "level": 4,
+      "hash": "a9ed46a690bffe51dfc8f8a64f0801a89fce395a74197501653719eccd42a45a"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_inkblade",
+      "level": 5,
+      "hash": "a9ed46a690bffe51dfc8f8a64f0801a89fce395a74197501653719eccd42a45a"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxiai",
+      "level": "default",
+      "hash": "a22374c303281c0e31a22e93cb43ac915a0b87e68ec1cae5c2a83b668809de01"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxiai",
+      "level": 1,
+      "hash": "a22374c303281c0e31a22e93cb43ac915a0b87e68ec1cae5c2a83b668809de01"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxiai",
+      "level": 2,
+      "hash": "a22374c303281c0e31a22e93cb43ac915a0b87e68ec1cae5c2a83b668809de01"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxiai",
+      "level": 3,
+      "hash": "a22374c303281c0e31a22e93cb43ac915a0b87e68ec1cae5c2a83b668809de01"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxiai",
+      "level": 4,
+      "hash": "a22374c303281c0e31a22e93cb43ac915a0b87e68ec1cae5c2a83b668809de01"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxiai",
+      "level": 5,
+      "hash": "a22374c303281c0e31a22e93cb43ac915a0b87e68ec1cae5c2a83b668809de01"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_exorcistblade",
+      "level": "default",
+      "hash": "a8387b679c9d41467532e91184560a8e4063d565cf9658d9025b945e4051f189"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_exorcistblade",
+      "level": 1,
+      "hash": "a8387b679c9d41467532e91184560a8e4063d565cf9658d9025b945e4051f189"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_exorcistblade",
+      "level": 2,
+      "hash": "a8387b679c9d41467532e91184560a8e4063d565cf9658d9025b945e4051f189"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_exorcistblade",
+      "level": 3,
+      "hash": "a8387b679c9d41467532e91184560a8e4063d565cf9658d9025b945e4051f189"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_exorcistblade",
+      "level": 4,
+      "hash": "a8387b679c9d41467532e91184560a8e4063d565cf9658d9025b945e4051f189"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_exorcistblade",
+      "level": 5,
+      "hash": "a8387b679c9d41467532e91184560a8e4063d565cf9658d9025b945e4051f189"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxfirebarrier",
+      "level": "default",
+      "hash": "4854cfbe94fae3ed58f664f1b91a71844938a509b101225c1f3b9b43a64846c2"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 1,
+      "hash": "4854cfbe94fae3ed58f664f1b91a71844938a509b101225c1f3b9b43a64846c2"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 2,
+      "hash": "4854cfbe94fae3ed58f664f1b91a71844938a509b101225c1f3b9b43a64846c2"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 3,
+      "hash": "4854cfbe94fae3ed58f664f1b91a71844938a509b101225c1f3b9b43a64846c2"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 4,
+      "hash": "4854cfbe94fae3ed58f664f1b91a71844938a509b101225c1f3b9b43a64846c2"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 5,
+      "hash": "4854cfbe94fae3ed58f664f1b91a71844938a509b101225c1f3b9b43a64846c2"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_exorcistseal",
+      "level": "default",
+      "hash": "313a1c3d058fe4e5c4a3fc6a05fb4c5c72389393722c7e619ac74de2a017eb82"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_exorcistseal",
+      "level": 1,
+      "hash": "313a1c3d058fe4e5c4a3fc6a05fb4c5c72389393722c7e619ac74de2a017eb82"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_exorcistseal",
+      "level": 2,
+      "hash": "313a1c3d058fe4e5c4a3fc6a05fb4c5c72389393722c7e619ac74de2a017eb82"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_exorcistseal",
+      "level": 3,
+      "hash": "313a1c3d058fe4e5c4a3fc6a05fb4c5c72389393722c7e619ac74de2a017eb82"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_exorcistseal",
+      "level": 4,
+      "hash": "313a1c3d058fe4e5c4a3fc6a05fb4c5c72389393722c7e619ac74de2a017eb82"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_exorcistseal",
+      "level": 5,
+      "hash": "313a1c3d058fe4e5c4a3fc6a05fb4c5c72389393722c7e619ac74de2a017eb82"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_thundercircle",
+      "level": "default",
+      "hash": "002c753e32687e6a7863e90d838c4759e0551e61a7ae026048368733974c2d35"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_thundercircle",
+      "level": 1,
+      "hash": "002c753e32687e6a7863e90d838c4759e0551e61a7ae026048368733974c2d35"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_thundercircle",
+      "level": 2,
+      "hash": "002c753e32687e6a7863e90d838c4759e0551e61a7ae026048368733974c2d35"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_thundercircle",
+      "level": 3,
+      "hash": "002c753e32687e6a7863e90d838c4759e0551e61a7ae026048368733974c2d35"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_thundercircle",
+      "level": 4,
+      "hash": "002c753e32687e6a7863e90d838c4759e0551e61a7ae026048368733974c2d35"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_thundercircle",
+      "level": 5,
+      "hash": "002c753e32687e6a7863e90d838c4759e0551e61a7ae026048368733974c2d35"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_slashwheel",
+      "level": "default",
+      "hash": "f05e15bc499df45667d9aea52e01734a8a681572c09353056c54c149d730d8c5"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_slashwheel",
+      "level": 1,
+      "hash": "f05e15bc499df45667d9aea52e01734a8a681572c09353056c54c149d730d8c5"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_slashwheel",
+      "level": 2,
+      "hash": "f05e15bc499df45667d9aea52e01734a8a681572c09353056c54c149d730d8c5"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_slashwheel",
+      "level": 3,
+      "hash": "f05e15bc499df45667d9aea52e01734a8a681572c09353056c54c149d730d8c5"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_slashwheel",
+      "level": 4,
+      "hash": "f05e15bc499df45667d9aea52e01734a8a681572c09353056c54c149d730d8c5"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_slashwheel",
+      "level": 5,
+      "hash": "f05e15bc499df45667d9aea52e01734a8a681572c09353056c54c149d730d8c5"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxthunderlantern",
+      "level": "default",
+      "hash": "a37ac4faa8aff646262253ea6363d78511a2853a9c0f7d1feedac5553801a80f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 1,
+      "hash": "a37ac4faa8aff646262253ea6363d78511a2853a9c0f7d1feedac5553801a80f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 2,
+      "hash": "a37ac4faa8aff646262253ea6363d78511a2853a9c0f7d1feedac5553801a80f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 3,
+      "hash": "a37ac4faa8aff646262253ea6363d78511a2853a9c0f7d1feedac5553801a80f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 4,
+      "hash": "a37ac4faa8aff646262253ea6363d78511a2853a9c0f7d1feedac5553801a80f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 5,
+      "hash": "a37ac4faa8aff646262253ea6363d78511a2853a9c0f7d1feedac5553801a80f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_flamefestival",
+      "level": "default",
+      "hash": "04c9a882be89fd8ed182f1cf675f2fb618d90efc8f561b7f9eeae4386434cc3f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_flamefestival",
+      "level": 1,
+      "hash": "04c9a882be89fd8ed182f1cf675f2fb618d90efc8f561b7f9eeae4386434cc3f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_flamefestival",
+      "level": 2,
+      "hash": "04c9a882be89fd8ed182f1cf675f2fb618d90efc8f561b7f9eeae4386434cc3f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_flamefestival",
+      "level": 3,
+      "hash": "04c9a882be89fd8ed182f1cf675f2fb618d90efc8f561b7f9eeae4386434cc3f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_flamefestival",
+      "level": 4,
+      "hash": "04c9a882be89fd8ed182f1cf675f2fb618d90efc8f561b7f9eeae4386434cc3f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_flamefestival",
+      "level": 5,
+      "hash": "04c9a882be89fd8ed182f1cf675f2fb618d90efc8f561b7f9eeae4386434cc3f"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_thundertalisman",
+      "level": "default",
+      "hash": "b3490507862c455993248abc95b16e136425eb48c06154ac0425fc3b0d1abe91"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_thundertalisman",
+      "level": 1,
+      "hash": "b3490507862c455993248abc95b16e136425eb48c06154ac0425fc3b0d1abe91"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_thundertalisman",
+      "level": 2,
+      "hash": "b3490507862c455993248abc95b16e136425eb48c06154ac0425fc3b0d1abe91"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_thundertalisman",
+      "level": 3,
+      "hash": "b3490507862c455993248abc95b16e136425eb48c06154ac0425fc3b0d1abe91"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_thundertalisman",
+      "level": 4,
+      "hash": "b3490507862c455993248abc95b16e136425eb48c06154ac0425fc3b0d1abe91"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "fusion_thundertalisman",
+      "level": 5,
+      "hash": "b3490507862c455993248abc95b16e136425eb48c06154ac0425fc3b0d1abe91"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "unknown",
+      "level": "default",
+      "hash": "673173ce45ca84c3e0190ea1a97f094e897e4f37e3370a1f231d770445bac14e"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "unknown",
+      "level": 1,
+      "hash": "673173ce45ca84c3e0190ea1a97f094e897e4f37e3370a1f231d770445bac14e"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "unknown",
+      "level": 2,
+      "hash": "8b22e06c8e22d2d97b302059bf7434b9cd59ad2f2c449ee5c5ca5f56d5c87766"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "unknown",
+      "level": 3,
+      "hash": "2ddc72efad81636b292b491371fd0bbce2545fa1aad2d8cb7f8ed641018a2f62"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "unknown",
+      "level": 4,
+      "hash": "b17cd346c492d3f0bcd01c8f4e828f79b221866e5e2af354ad84fc9a55cee1da"
+    },
+    {
+      "evo": false,
+      "variant": "default",
+      "skillId": "unknown",
+      "level": 5,
+      "hash": "597cb6ef4bdb85d578d1478f9ddd1daf3a731510042457f14bc311abd96a319d"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "katana",
+      "level": "default",
+      "hash": "118f421810109728d65e2a1ab91da4423a0d07f617090c328caea30f12a79756"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "katana",
+      "level": 1,
+      "hash": "118f421810109728d65e2a1ab91da4423a0d07f617090c328caea30f12a79756"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "katana",
+      "level": 2,
+      "hash": "4298d6ad3e8356af662e52d67cd84fef49a58db14f60102f46a8c4e432cad3c7"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "katana",
+      "level": 3,
+      "hash": "da4aa0d9e532c27363609ac4661b518a2da5777f7efab5448ad356cae31e94cc"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "katana",
+      "level": 4,
+      "hash": "064662ef31d9d5dc358ed8391e87a25c2fd9799d5d189c6cf9ed88669d2727b6"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "katana",
+      "level": 5,
+      "hash": "ebfd45f17594066de389790fd198088311eb035fbf0dccf0193e441ea5535936"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "barrier",
+      "level": "default",
+      "hash": "c45bcbec404cfa59cb12b0c0c1570dda33ed9fcfe28acfd080f7df0d00d69b89"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "barrier",
+      "level": 1,
+      "hash": "aff6495e230151606262f1c27e1f5397c80ac34066c8d2b73a4c3525049ecf5f"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "barrier",
+      "level": 2,
+      "hash": "c45bcbec404cfa59cb12b0c0c1570dda33ed9fcfe28acfd080f7df0d00d69b89"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "barrier",
+      "level": 3,
+      "hash": "a5b3d19cd65c63df17926a6c857948d50b65475a6faa259c098c86e0d9bc5e08"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "barrier",
+      "level": 4,
+      "hash": "c2066782c9896b1d7fa245c13417d20a3cdc71b5a584d7fcbf1262c0f95a5e6b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "barrier",
+      "level": 5,
+      "hash": "e8b761b0838acb3be0e399449222fe51dc20a89d67fb49f79a4028fa2e3746a8"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fire",
+      "level": "default",
+      "hash": "99e0a00f29d74de284a69cf0a8f57590a8ee225d95c90500d749c523a51d5e90"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fire",
+      "level": 1,
+      "hash": "3a55bc9c6b1ca4f559b7e9a80a87cf96a700b7b2ae3b19b5629467e41de73941"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fire",
+      "level": 2,
+      "hash": "b3d6d513d75bdc3c8f26010d9f5b198081d9b1c106bced337b6ab8186b4f6eb4"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fire",
+      "level": 3,
+      "hash": "99e0a00f29d74de284a69cf0a8f57590a8ee225d95c90500d749c523a51d5e90"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fire",
+      "level": 4,
+      "hash": "2c6aa22c52cb68525a85e099ce129d329e53eaa532c32e83e8e0dd72d1983975"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fire",
+      "level": 5,
+      "hash": "d98632484ac6f6c5f595a5bc99a0009c7a9099dd4c8d6d2ae2e209dcc2c1bac7"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "boom",
+      "level": "default",
+      "hash": "eebbfc503a52a4cd07146294522606f74031bc2366622abcb1f91bbcda51cfaf"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "boom",
+      "level": 1,
+      "hash": "4aa46c040e763e2b1acc17210330c4a98de469d54a3344a593c1e9df54cbf5e2"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "boom",
+      "level": 2,
+      "hash": "89b1f521cfa55dc095f1c256da3a6e05d4d388a09fe7680a2f0d4f56a844ec66"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "boom",
+      "level": 3,
+      "hash": "71c458cc38e7209b982846f83a2d5799ba955308f115332362dcff87afdc9d23"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "boom",
+      "level": 4,
+      "hash": "eebbfc503a52a4cd07146294522606f74031bc2366622abcb1f91bbcda51cfaf"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "boom",
+      "level": 5,
+      "hash": "99ab8e0a606a83737484128b02084ce947626dadc6b382c94fbcae849bb565b7"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "thunder",
+      "level": "default",
+      "hash": "3187cb436ab3f0e30205d2017e263d81f0bfa8b428af6a9bebee728b0843d3a4"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "thunder",
+      "level": 1,
+      "hash": "3187cb436ab3f0e30205d2017e263d81f0bfa8b428af6a9bebee728b0843d3a4"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "thunder",
+      "level": 2,
+      "hash": "907050255f54e4cfbb2d6ac32ea030e0c17cc85650e7be0654a985b23ec73296"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "thunder",
+      "level": 3,
+      "hash": "7da90272b110da783f5e1629786859ac6c01505935b514aeb4170453aad2990b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "thunder",
+      "level": 4,
+      "hash": "f8a0495c57155465c6860c7e17775da085e05570c0e0897a78bd193b784fc4c7"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "thunder",
+      "level": 5,
+      "hash": "fa998d3ce89bd4ae10229b7f7a33325822107d06f82426de7180607347fa0794"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "needle",
+      "level": "default",
+      "hash": "6b337e1c3f5e84935ffa84f4e1aab0ed6461431535f00b028feb237ec14567e3"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "needle",
+      "level": 1,
+      "hash": "26eceec4ee270cd13c9d1f1a74bad1c8f905d7efde4b2c7ef3b37c2ab80a4e2d"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "needle",
+      "level": 2,
+      "hash": "6b337e1c3f5e84935ffa84f4e1aab0ed6461431535f00b028feb237ec14567e3"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "needle",
+      "level": 3,
+      "hash": "c6419c7fff8e6c31aaf5ed72ab72a3aa9e4070b720505299b545c962bf34e372"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "needle",
+      "level": 4,
+      "hash": "723663857fb21123d4c7257d8992e7d129feca87d59c19f3c27ce8655413421b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "needle",
+      "level": 5,
+      "hash": "9f404aba38e38d0d763ef45bf205e3e0720510fa12624ea4cb3e5ddc2a8121a7"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_inkblade",
+      "level": "default",
+      "hash": "89d1cc7e7345dee0be69511f38038288b12d58bf368d4f533f367db66fd95155"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_inkblade",
+      "level": 1,
+      "hash": "89d1cc7e7345dee0be69511f38038288b12d58bf368d4f533f367db66fd95155"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_inkblade",
+      "level": 2,
+      "hash": "89d1cc7e7345dee0be69511f38038288b12d58bf368d4f533f367db66fd95155"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_inkblade",
+      "level": 3,
+      "hash": "89d1cc7e7345dee0be69511f38038288b12d58bf368d4f533f367db66fd95155"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_inkblade",
+      "level": 4,
+      "hash": "89d1cc7e7345dee0be69511f38038288b12d58bf368d4f533f367db66fd95155"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_inkblade",
+      "level": 5,
+      "hash": "89d1cc7e7345dee0be69511f38038288b12d58bf368d4f533f367db66fd95155"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxiai",
+      "level": "default",
+      "hash": "a793092e657a0c93cfe19ce22bc560560643a84d7dee2290aece3b8af84ec9a5"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxiai",
+      "level": 1,
+      "hash": "a793092e657a0c93cfe19ce22bc560560643a84d7dee2290aece3b8af84ec9a5"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxiai",
+      "level": 2,
+      "hash": "a793092e657a0c93cfe19ce22bc560560643a84d7dee2290aece3b8af84ec9a5"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxiai",
+      "level": 3,
+      "hash": "a793092e657a0c93cfe19ce22bc560560643a84d7dee2290aece3b8af84ec9a5"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxiai",
+      "level": 4,
+      "hash": "a793092e657a0c93cfe19ce22bc560560643a84d7dee2290aece3b8af84ec9a5"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxiai",
+      "level": 5,
+      "hash": "a793092e657a0c93cfe19ce22bc560560643a84d7dee2290aece3b8af84ec9a5"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_exorcistblade",
+      "level": "default",
+      "hash": "a300302cad31254674f161432253c25549cf601a582b9b6cf78270b1b153e238"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_exorcistblade",
+      "level": 1,
+      "hash": "a300302cad31254674f161432253c25549cf601a582b9b6cf78270b1b153e238"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_exorcistblade",
+      "level": 2,
+      "hash": "a300302cad31254674f161432253c25549cf601a582b9b6cf78270b1b153e238"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_exorcistblade",
+      "level": 3,
+      "hash": "a300302cad31254674f161432253c25549cf601a582b9b6cf78270b1b153e238"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_exorcistblade",
+      "level": 4,
+      "hash": "a300302cad31254674f161432253c25549cf601a582b9b6cf78270b1b153e238"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_exorcistblade",
+      "level": 5,
+      "hash": "a300302cad31254674f161432253c25549cf601a582b9b6cf78270b1b153e238"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxfirebarrier",
+      "level": "default",
+      "hash": "3f4c094ed9af3159534806a552f62f0913563c6d917123aa885bf90a38a3377c"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 1,
+      "hash": "3f4c094ed9af3159534806a552f62f0913563c6d917123aa885bf90a38a3377c"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 2,
+      "hash": "3f4c094ed9af3159534806a552f62f0913563c6d917123aa885bf90a38a3377c"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 3,
+      "hash": "3f4c094ed9af3159534806a552f62f0913563c6d917123aa885bf90a38a3377c"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 4,
+      "hash": "3f4c094ed9af3159534806a552f62f0913563c6d917123aa885bf90a38a3377c"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 5,
+      "hash": "3f4c094ed9af3159534806a552f62f0913563c6d917123aa885bf90a38a3377c"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_exorcistseal",
+      "level": "default",
+      "hash": "512f80e1b38dfc04b90a15418e9a2b4c7f818726b503d37e6edf79867627ebe4"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_exorcistseal",
+      "level": 1,
+      "hash": "512f80e1b38dfc04b90a15418e9a2b4c7f818726b503d37e6edf79867627ebe4"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_exorcistseal",
+      "level": 2,
+      "hash": "512f80e1b38dfc04b90a15418e9a2b4c7f818726b503d37e6edf79867627ebe4"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_exorcistseal",
+      "level": 3,
+      "hash": "512f80e1b38dfc04b90a15418e9a2b4c7f818726b503d37e6edf79867627ebe4"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_exorcistseal",
+      "level": 4,
+      "hash": "512f80e1b38dfc04b90a15418e9a2b4c7f818726b503d37e6edf79867627ebe4"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_exorcistseal",
+      "level": 5,
+      "hash": "512f80e1b38dfc04b90a15418e9a2b4c7f818726b503d37e6edf79867627ebe4"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_thundercircle",
+      "level": "default",
+      "hash": "7d28179f2382c923ca36d47845cbe18a7bd3987cd6aa1d2ecd186f0a361d68ba"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_thundercircle",
+      "level": 1,
+      "hash": "7d28179f2382c923ca36d47845cbe18a7bd3987cd6aa1d2ecd186f0a361d68ba"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_thundercircle",
+      "level": 2,
+      "hash": "7d28179f2382c923ca36d47845cbe18a7bd3987cd6aa1d2ecd186f0a361d68ba"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_thundercircle",
+      "level": 3,
+      "hash": "7d28179f2382c923ca36d47845cbe18a7bd3987cd6aa1d2ecd186f0a361d68ba"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_thundercircle",
+      "level": 4,
+      "hash": "7d28179f2382c923ca36d47845cbe18a7bd3987cd6aa1d2ecd186f0a361d68ba"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_thundercircle",
+      "level": 5,
+      "hash": "7d28179f2382c923ca36d47845cbe18a7bd3987cd6aa1d2ecd186f0a361d68ba"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_slashwheel",
+      "level": "default",
+      "hash": "4c91f57dcffb91a1da5ab80ea470bb82d0d98bfb37ed9345122abd2eb732281b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_slashwheel",
+      "level": 1,
+      "hash": "4c91f57dcffb91a1da5ab80ea470bb82d0d98bfb37ed9345122abd2eb732281b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_slashwheel",
+      "level": 2,
+      "hash": "4c91f57dcffb91a1da5ab80ea470bb82d0d98bfb37ed9345122abd2eb732281b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_slashwheel",
+      "level": 3,
+      "hash": "4c91f57dcffb91a1da5ab80ea470bb82d0d98bfb37ed9345122abd2eb732281b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_slashwheel",
+      "level": 4,
+      "hash": "4c91f57dcffb91a1da5ab80ea470bb82d0d98bfb37ed9345122abd2eb732281b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_slashwheel",
+      "level": 5,
+      "hash": "4c91f57dcffb91a1da5ab80ea470bb82d0d98bfb37ed9345122abd2eb732281b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxthunderlantern",
+      "level": "default",
+      "hash": "24a9959dd22e3cfdc2016108afe2b504a74f19934b1c10c6f618b0ce4ee5b59b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 1,
+      "hash": "24a9959dd22e3cfdc2016108afe2b504a74f19934b1c10c6f618b0ce4ee5b59b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 2,
+      "hash": "24a9959dd22e3cfdc2016108afe2b504a74f19934b1c10c6f618b0ce4ee5b59b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 3,
+      "hash": "24a9959dd22e3cfdc2016108afe2b504a74f19934b1c10c6f618b0ce4ee5b59b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 4,
+      "hash": "24a9959dd22e3cfdc2016108afe2b504a74f19934b1c10c6f618b0ce4ee5b59b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 5,
+      "hash": "24a9959dd22e3cfdc2016108afe2b504a74f19934b1c10c6f618b0ce4ee5b59b"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_flamefestival",
+      "level": "default",
+      "hash": "ac92918f4705db50efd2870128073857c45429179ccdf044184a6259309f5f82"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_flamefestival",
+      "level": 1,
+      "hash": "ac92918f4705db50efd2870128073857c45429179ccdf044184a6259309f5f82"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_flamefestival",
+      "level": 2,
+      "hash": "ac92918f4705db50efd2870128073857c45429179ccdf044184a6259309f5f82"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_flamefestival",
+      "level": 3,
+      "hash": "ac92918f4705db50efd2870128073857c45429179ccdf044184a6259309f5f82"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_flamefestival",
+      "level": 4,
+      "hash": "ac92918f4705db50efd2870128073857c45429179ccdf044184a6259309f5f82"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_flamefestival",
+      "level": 5,
+      "hash": "ac92918f4705db50efd2870128073857c45429179ccdf044184a6259309f5f82"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_thundertalisman",
+      "level": "default",
+      "hash": "39cb3bd2a69af78e4d8b2c12b3f4bd98477aaaecdabf88428104c088e2fc56c0"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_thundertalisman",
+      "level": 1,
+      "hash": "39cb3bd2a69af78e4d8b2c12b3f4bd98477aaaecdabf88428104c088e2fc56c0"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_thundertalisman",
+      "level": 2,
+      "hash": "39cb3bd2a69af78e4d8b2c12b3f4bd98477aaaecdabf88428104c088e2fc56c0"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_thundertalisman",
+      "level": 3,
+      "hash": "39cb3bd2a69af78e4d8b2c12b3f4bd98477aaaecdabf88428104c088e2fc56c0"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_thundertalisman",
+      "level": 4,
+      "hash": "39cb3bd2a69af78e4d8b2c12b3f4bd98477aaaecdabf88428104c088e2fc56c0"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "fusion_thundertalisman",
+      "level": 5,
+      "hash": "39cb3bd2a69af78e4d8b2c12b3f4bd98477aaaecdabf88428104c088e2fc56c0"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "unknown",
+      "level": "default",
+      "hash": "673173ce45ca84c3e0190ea1a97f094e897e4f37e3370a1f231d770445bac14e"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "unknown",
+      "level": 1,
+      "hash": "673173ce45ca84c3e0190ea1a97f094e897e4f37e3370a1f231d770445bac14e"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "unknown",
+      "level": 2,
+      "hash": "8b22e06c8e22d2d97b302059bf7434b9cd59ad2f2c449ee5c5ca5f56d5c87766"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "unknown",
+      "level": 3,
+      "hash": "2ddc72efad81636b292b491371fd0bbce2545fa1aad2d8cb7f8ed641018a2f62"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "unknown",
+      "level": 4,
+      "hash": "b17cd346c492d3f0bcd01c8f4e828f79b221866e5e2af354ad84fc9a55cee1da"
+    },
+    {
+      "evo": false,
+      "variant": "all",
+      "skillId": "unknown",
+      "level": 5,
+      "hash": "597cb6ef4bdb85d578d1478f9ddd1daf3a731510042457f14bc311abd96a319d"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "katana",
+      "level": "default",
+      "hash": "7862f9a03feed78909c985d3918acba8234aa40921309877d37097f3c0ea70b0"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "katana",
+      "level": 1,
+      "hash": "7862f9a03feed78909c985d3918acba8234aa40921309877d37097f3c0ea70b0"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "katana",
+      "level": 2,
+      "hash": "64e52f8647400dc1c0e67d3d5155d160f6fede6d2b4489573a605f6977b68f14"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "katana",
+      "level": 3,
+      "hash": "ab1ad5b49dcd0449d0831734d2c76ba9688442fabb1f729e657122a7977c1319"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "katana",
+      "level": 4,
+      "hash": "afa1928b3b135228d8a9edc988061131e7cdb50433f032bf4b424ac2e4aaf498"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "katana",
+      "level": 5,
+      "hash": "cf936aa04724fcd87dc8c1e78dfb237410ca2fdd4041f6b3ac05cb0ca7d2f2db"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "barrier",
+      "level": "default",
+      "hash": "08391d14c0d60c3fd4192babc3e6e8657e67c6a584522173cd3ae75d68115de2"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "barrier",
+      "level": 1,
+      "hash": "f3f73a92781b8b0f67ca2152b93095b1f32c8d004ffbfcd7abdd4eb7abeb1f0b"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "barrier",
+      "level": 2,
+      "hash": "08391d14c0d60c3fd4192babc3e6e8657e67c6a584522173cd3ae75d68115de2"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "barrier",
+      "level": 3,
+      "hash": "b37be324d81bd05d00e800c92b13c29cd7a0385df0d501c809273ff517603f12"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "barrier",
+      "level": 4,
+      "hash": "0650c3477d9323dbe08892bb6643b90420a52db61bc21ed5ce9fd1f8cbdb3ab2"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "barrier",
+      "level": 5,
+      "hash": "829716074adf1ce88079abf1774da5b8c0b79a0637eff5a9e18adac9ae5c9120"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fire",
+      "level": "default",
+      "hash": "f57715a444c6474f3ee22a0d206eb9feeedfc68e77b49125851a041a9a02b116"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fire",
+      "level": 1,
+      "hash": "03724b0fad07525ac0c440adaab43bbee41efb3fce6c38467af096809f6cbbe0"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fire",
+      "level": 2,
+      "hash": "c8acab0750eb2de992bf4b6d4277b23df04c4a0765123282d4519d9413be4647"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fire",
+      "level": 3,
+      "hash": "f57715a444c6474f3ee22a0d206eb9feeedfc68e77b49125851a041a9a02b116"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fire",
+      "level": 4,
+      "hash": "d4e0dcd58b16d54374cd6fb8fad1836bffd165b1fc564364fff028903217f43e"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fire",
+      "level": 5,
+      "hash": "30d956c38ea10b8ccd4187529a0c860faa9136c6963ce9d01dabc46392a8ae51"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "boom",
+      "level": "default",
+      "hash": "b324139932af4e8e43954305ea120a48deb0bd6a27a43f1c0f7bc1ba896d1b50"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "boom",
+      "level": 1,
+      "hash": "c8c1598c8be8b865f557542cb48bc22b7bde5299260766fc8dd38c573acea6bb"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "boom",
+      "level": 2,
+      "hash": "e9be0e821f259f104b141f5d4470ebf4677fd87828f8845911c1c36958d24752"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "boom",
+      "level": 3,
+      "hash": "7ee4706512a1edbd3c2c09c68b41aab2fae10154b56fc4ae804b99b011930a12"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "boom",
+      "level": 4,
+      "hash": "b324139932af4e8e43954305ea120a48deb0bd6a27a43f1c0f7bc1ba896d1b50"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "boom",
+      "level": 5,
+      "hash": "351c8f789baaa697d63cb0faf86e7d7daccca35cb3ebd740cc02a46b28eefcea"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "thunder",
+      "level": "default",
+      "hash": "abfac779c5591b914a0180c7c671761bd4eca37f1bdd04dad3ac9a8652326c12"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "thunder",
+      "level": 1,
+      "hash": "abfac779c5591b914a0180c7c671761bd4eca37f1bdd04dad3ac9a8652326c12"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "thunder",
+      "level": 2,
+      "hash": "69578665d9c593a4f7be5bedf239a22a313316aab8431ac2442f9a1a02a3c5b9"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "thunder",
+      "level": 3,
+      "hash": "dc1db79e5ef9c5033fba5687fa9563e1f3ac5396a8c489214d5bb19d9425795c"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "thunder",
+      "level": 4,
+      "hash": "35a05bb68d38599a2794161ef058ae329069bf04a801a22741c8c824acbcaa91"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "thunder",
+      "level": 5,
+      "hash": "349fd47d4615807911fb5e20641e43846b4557dcb1f3876c96bf8c8a75c473a1"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "needle",
+      "level": "default",
+      "hash": "0a41100e92d2c9b561c41db6a6e0d140834703210665a1816c4f95fe50348ce3"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "needle",
+      "level": 1,
+      "hash": "112bc7c73685f1ced0edf92f0b21347601800536c7eca141bb0cf30642012fdb"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "needle",
+      "level": 2,
+      "hash": "0a41100e92d2c9b561c41db6a6e0d140834703210665a1816c4f95fe50348ce3"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "needle",
+      "level": 3,
+      "hash": "b9d7de0a6ed298692804517d622b08884c4acb28fb4eed509c3aaf33a2b805ca"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "needle",
+      "level": 4,
+      "hash": "f7bde87b02fece18a5ed28f075a4745fb4ddda655c567db47ac233f5cb4ce81f"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "needle",
+      "level": 5,
+      "hash": "e9bdc73359a8b51f9b768d409a114b265b54f3870e5bcfb5958f5fcb2c04819d"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_inkblade",
+      "level": "default",
+      "hash": "e2b6ded1b697e590e0a9d304386d6d98e92f4166502ceca845e16810cc96e246"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_inkblade",
+      "level": 1,
+      "hash": "e2b6ded1b697e590e0a9d304386d6d98e92f4166502ceca845e16810cc96e246"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_inkblade",
+      "level": 2,
+      "hash": "e2b6ded1b697e590e0a9d304386d6d98e92f4166502ceca845e16810cc96e246"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_inkblade",
+      "level": 3,
+      "hash": "e2b6ded1b697e590e0a9d304386d6d98e92f4166502ceca845e16810cc96e246"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_inkblade",
+      "level": 4,
+      "hash": "e2b6ded1b697e590e0a9d304386d6d98e92f4166502ceca845e16810cc96e246"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_inkblade",
+      "level": 5,
+      "hash": "e2b6ded1b697e590e0a9d304386d6d98e92f4166502ceca845e16810cc96e246"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxiai",
+      "level": "default",
+      "hash": "7a6fbed7652f25da5d155183b011d966e2e0026a1c0a81ea7b800629a521afe3"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxiai",
+      "level": 1,
+      "hash": "7a6fbed7652f25da5d155183b011d966e2e0026a1c0a81ea7b800629a521afe3"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxiai",
+      "level": 2,
+      "hash": "7a6fbed7652f25da5d155183b011d966e2e0026a1c0a81ea7b800629a521afe3"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxiai",
+      "level": 3,
+      "hash": "7a6fbed7652f25da5d155183b011d966e2e0026a1c0a81ea7b800629a521afe3"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxiai",
+      "level": 4,
+      "hash": "7a6fbed7652f25da5d155183b011d966e2e0026a1c0a81ea7b800629a521afe3"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxiai",
+      "level": 5,
+      "hash": "7a6fbed7652f25da5d155183b011d966e2e0026a1c0a81ea7b800629a521afe3"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_exorcistblade",
+      "level": "default",
+      "hash": "9cc08f3151ef3351921957c2cb0fd2e606acc718e66ef62e9eabccc939778d2b"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_exorcistblade",
+      "level": 1,
+      "hash": "9cc08f3151ef3351921957c2cb0fd2e606acc718e66ef62e9eabccc939778d2b"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_exorcistblade",
+      "level": 2,
+      "hash": "9cc08f3151ef3351921957c2cb0fd2e606acc718e66ef62e9eabccc939778d2b"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_exorcistblade",
+      "level": 3,
+      "hash": "9cc08f3151ef3351921957c2cb0fd2e606acc718e66ef62e9eabccc939778d2b"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_exorcistblade",
+      "level": 4,
+      "hash": "9cc08f3151ef3351921957c2cb0fd2e606acc718e66ef62e9eabccc939778d2b"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_exorcistblade",
+      "level": 5,
+      "hash": "9cc08f3151ef3351921957c2cb0fd2e606acc718e66ef62e9eabccc939778d2b"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxfirebarrier",
+      "level": "default",
+      "hash": "d1863897774e4cb4a7bd30fb412043fd8ceccc3debbc486645ef09fe3e7d3cd0"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 1,
+      "hash": "d1863897774e4cb4a7bd30fb412043fd8ceccc3debbc486645ef09fe3e7d3cd0"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 2,
+      "hash": "d1863897774e4cb4a7bd30fb412043fd8ceccc3debbc486645ef09fe3e7d3cd0"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 3,
+      "hash": "d1863897774e4cb4a7bd30fb412043fd8ceccc3debbc486645ef09fe3e7d3cd0"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 4,
+      "hash": "d1863897774e4cb4a7bd30fb412043fd8ceccc3debbc486645ef09fe3e7d3cd0"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 5,
+      "hash": "d1863897774e4cb4a7bd30fb412043fd8ceccc3debbc486645ef09fe3e7d3cd0"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_exorcistseal",
+      "level": "default",
+      "hash": "b7df1eb0ea6cf6a63fcc87291e83fa09353c7d77c458d3f7270730fe34bd9c88"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_exorcistseal",
+      "level": 1,
+      "hash": "b7df1eb0ea6cf6a63fcc87291e83fa09353c7d77c458d3f7270730fe34bd9c88"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_exorcistseal",
+      "level": 2,
+      "hash": "b7df1eb0ea6cf6a63fcc87291e83fa09353c7d77c458d3f7270730fe34bd9c88"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_exorcistseal",
+      "level": 3,
+      "hash": "b7df1eb0ea6cf6a63fcc87291e83fa09353c7d77c458d3f7270730fe34bd9c88"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_exorcistseal",
+      "level": 4,
+      "hash": "b7df1eb0ea6cf6a63fcc87291e83fa09353c7d77c458d3f7270730fe34bd9c88"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_exorcistseal",
+      "level": 5,
+      "hash": "b7df1eb0ea6cf6a63fcc87291e83fa09353c7d77c458d3f7270730fe34bd9c88"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_thundercircle",
+      "level": "default",
+      "hash": "132d8c7baefcd5f12f07d5c6dc199be8d0c10cda92cb0c96c566b34b3088f288"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_thundercircle",
+      "level": 1,
+      "hash": "132d8c7baefcd5f12f07d5c6dc199be8d0c10cda92cb0c96c566b34b3088f288"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_thundercircle",
+      "level": 2,
+      "hash": "132d8c7baefcd5f12f07d5c6dc199be8d0c10cda92cb0c96c566b34b3088f288"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_thundercircle",
+      "level": 3,
+      "hash": "132d8c7baefcd5f12f07d5c6dc199be8d0c10cda92cb0c96c566b34b3088f288"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_thundercircle",
+      "level": 4,
+      "hash": "132d8c7baefcd5f12f07d5c6dc199be8d0c10cda92cb0c96c566b34b3088f288"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_thundercircle",
+      "level": 5,
+      "hash": "132d8c7baefcd5f12f07d5c6dc199be8d0c10cda92cb0c96c566b34b3088f288"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_slashwheel",
+      "level": "default",
+      "hash": "3883d190a7e7c4efd5cc2b792c4574f2dd0eb79570f215b60c505c13253325ca"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_slashwheel",
+      "level": 1,
+      "hash": "3883d190a7e7c4efd5cc2b792c4574f2dd0eb79570f215b60c505c13253325ca"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_slashwheel",
+      "level": 2,
+      "hash": "3883d190a7e7c4efd5cc2b792c4574f2dd0eb79570f215b60c505c13253325ca"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_slashwheel",
+      "level": 3,
+      "hash": "3883d190a7e7c4efd5cc2b792c4574f2dd0eb79570f215b60c505c13253325ca"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_slashwheel",
+      "level": 4,
+      "hash": "3883d190a7e7c4efd5cc2b792c4574f2dd0eb79570f215b60c505c13253325ca"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_slashwheel",
+      "level": 5,
+      "hash": "3883d190a7e7c4efd5cc2b792c4574f2dd0eb79570f215b60c505c13253325ca"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxthunderlantern",
+      "level": "default",
+      "hash": "e2f4bcddef6c90e31191e9c317e97eabb77656ef12aa353d685f3550f819991d"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 1,
+      "hash": "e2f4bcddef6c90e31191e9c317e97eabb77656ef12aa353d685f3550f819991d"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 2,
+      "hash": "e2f4bcddef6c90e31191e9c317e97eabb77656ef12aa353d685f3550f819991d"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 3,
+      "hash": "e2f4bcddef6c90e31191e9c317e97eabb77656ef12aa353d685f3550f819991d"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 4,
+      "hash": "e2f4bcddef6c90e31191e9c317e97eabb77656ef12aa353d685f3550f819991d"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 5,
+      "hash": "e2f4bcddef6c90e31191e9c317e97eabb77656ef12aa353d685f3550f819991d"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_flamefestival",
+      "level": "default",
+      "hash": "b37a5aa09034f37ce46ed14f831a3fd84d349dcd622542ae936b8e68f894d20c"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_flamefestival",
+      "level": 1,
+      "hash": "b37a5aa09034f37ce46ed14f831a3fd84d349dcd622542ae936b8e68f894d20c"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_flamefestival",
+      "level": 2,
+      "hash": "b37a5aa09034f37ce46ed14f831a3fd84d349dcd622542ae936b8e68f894d20c"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_flamefestival",
+      "level": 3,
+      "hash": "b37a5aa09034f37ce46ed14f831a3fd84d349dcd622542ae936b8e68f894d20c"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_flamefestival",
+      "level": 4,
+      "hash": "b37a5aa09034f37ce46ed14f831a3fd84d349dcd622542ae936b8e68f894d20c"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_flamefestival",
+      "level": 5,
+      "hash": "b37a5aa09034f37ce46ed14f831a3fd84d349dcd622542ae936b8e68f894d20c"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_thundertalisman",
+      "level": "default",
+      "hash": "197f21c06e565a68a0dd9e0e1ba81351c98df547d30a33d3a6411d63528bbdcd"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_thundertalisman",
+      "level": 1,
+      "hash": "197f21c06e565a68a0dd9e0e1ba81351c98df547d30a33d3a6411d63528bbdcd"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_thundertalisman",
+      "level": 2,
+      "hash": "197f21c06e565a68a0dd9e0e1ba81351c98df547d30a33d3a6411d63528bbdcd"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_thundertalisman",
+      "level": 3,
+      "hash": "197f21c06e565a68a0dd9e0e1ba81351c98df547d30a33d3a6411d63528bbdcd"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_thundertalisman",
+      "level": 4,
+      "hash": "197f21c06e565a68a0dd9e0e1ba81351c98df547d30a33d3a6411d63528bbdcd"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "fusion_thundertalisman",
+      "level": 5,
+      "hash": "197f21c06e565a68a0dd9e0e1ba81351c98df547d30a33d3a6411d63528bbdcd"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "unknown",
+      "level": "default",
+      "hash": "673173ce45ca84c3e0190ea1a97f094e897e4f37e3370a1f231d770445bac14e"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "unknown",
+      "level": 1,
+      "hash": "673173ce45ca84c3e0190ea1a97f094e897e4f37e3370a1f231d770445bac14e"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "unknown",
+      "level": 2,
+      "hash": "8b22e06c8e22d2d97b302059bf7434b9cd59ad2f2c449ee5c5ca5f56d5c87766"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "unknown",
+      "level": 3,
+      "hash": "2ddc72efad81636b292b491371fd0bbce2545fa1aad2d8cb7f8ed641018a2f62"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "unknown",
+      "level": 4,
+      "hash": "b17cd346c492d3f0bcd01c8f4e828f79b221866e5e2af354ad84fc9a55cee1da"
+    },
+    {
+      "evo": false,
+      "variant": "partial",
+      "skillId": "unknown",
+      "level": 5,
+      "hash": "597cb6ef4bdb85d578d1478f9ddd1daf3a731510042457f14bc311abd96a319d"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "katana",
+      "level": "default",
+      "hash": "3b919ecf4a3e0e73f024cfdfc06245e90c052d0a07512b58e8c631f97af4b3a8"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "katana",
+      "level": 1,
+      "hash": "3b919ecf4a3e0e73f024cfdfc06245e90c052d0a07512b58e8c631f97af4b3a8"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "katana",
+      "level": 2,
+      "hash": "1b441e96a4a0448e8df1f0543900cd2ff92d6b25a0de7537b593762d423290eb"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "katana",
+      "level": 3,
+      "hash": "a91459969cedc0cddd65f68a1d4f69baa868a357706553a087c1ca93c58709e5"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "katana",
+      "level": 4,
+      "hash": "ed45d92320dfc7258ebea59e479b84542d6c204c1195a34a4315751ab20aa392"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "katana",
+      "level": 5,
+      "hash": "17031c6ec756d53f6af0937b2ec241f44522b360bffe02d6126e3b5a3479d125"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "barrier",
+      "level": "default",
+      "hash": "3f39b0914d23dd7c0560839c537900372b0eaae4d19c139db027b050eb63557e"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "barrier",
+      "level": 1,
+      "hash": "9e5f0551e34b4277fc50145ed1fca57ee3c04d245f7d4a4395aa0c8a4954ff05"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "barrier",
+      "level": 2,
+      "hash": "3f39b0914d23dd7c0560839c537900372b0eaae4d19c139db027b050eb63557e"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "barrier",
+      "level": 3,
+      "hash": "198b81e1e5088a55d5b1b7f18c1b4bf393e4ef043b53920fb8fd7083a8da26e9"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "barrier",
+      "level": 4,
+      "hash": "c0864a7ec64f2326cdd6817f0404b595caf0af3ec4c45f4e0aa0f51466790502"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "barrier",
+      "level": 5,
+      "hash": "bba06a3b8ff6f1b0c9eb63bd0108bba20838dd2d609170e51295471be06f5b18"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fire",
+      "level": "default",
+      "hash": "dc64246b10cf55bfc424883e3d2b41b6e9d834947370ad8adb7c74082eae6dd1"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fire",
+      "level": 1,
+      "hash": "11bf484b6e9dc580e0c0ca4824cb79d0378090d1c6dd2f5bac478572de41ce24"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fire",
+      "level": 2,
+      "hash": "6bd054f7151d8afa5809c3dc057bb353bb830ddf4a298aa755b3c5e91864ab61"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fire",
+      "level": 3,
+      "hash": "dc64246b10cf55bfc424883e3d2b41b6e9d834947370ad8adb7c74082eae6dd1"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fire",
+      "level": 4,
+      "hash": "285d587d310f5e6ce3f7bbf2ad05a5022c778eff0be6dcb185b89e1d17ff8804"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fire",
+      "level": 5,
+      "hash": "79e45f71004ac18a0414d60cdfa912a2ef67a22d209f6e1e8b59465a9b746e6c"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "boom",
+      "level": "default",
+      "hash": "4a100f86b3dd5aef8b9ab8565ac1ab68102d1990a0388b8b5f17d609e21623bc"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "boom",
+      "level": 1,
+      "hash": "a38b0f8a95f4be3a7365122d500e55a273936333af0e81dfc70bc24edbae457b"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "boom",
+      "level": 2,
+      "hash": "7651b7ff94b1a88a4b9a7cd70dbeee05e96ed4cfe690e41a82e56f5ba9b73698"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "boom",
+      "level": 3,
+      "hash": "9defcadce6f0b77b66b59762039fe48cb892932796da0dfaee8ec34861314bfa"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "boom",
+      "level": 4,
+      "hash": "4a100f86b3dd5aef8b9ab8565ac1ab68102d1990a0388b8b5f17d609e21623bc"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "boom",
+      "level": 5,
+      "hash": "f53a6b85ae7c00f551d32ebb6655cebb2f301735e34c9b5ff138f34109ad7aab"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "thunder",
+      "level": "default",
+      "hash": "4501bb84ed61d87a5b1f70f0ea69a766d018e791120cd6189b699fafb0ac383f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "thunder",
+      "level": 1,
+      "hash": "4501bb84ed61d87a5b1f70f0ea69a766d018e791120cd6189b699fafb0ac383f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "thunder",
+      "level": 2,
+      "hash": "4489b3702f7f58e9aefdd11445a25f1a5cb962a88f3a5660b5a4326c37a3a289"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "thunder",
+      "level": 3,
+      "hash": "bc23ea71a1c9d016ff1103b6d7c847fca0135efba439d8a908243af29196a1d3"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "thunder",
+      "level": 4,
+      "hash": "07028ce6535426333b3f58c6603b33bdc4521a355a0222678631e297df9e6c07"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "thunder",
+      "level": 5,
+      "hash": "3666384202db4eedeefc818bf0e3d53fb0d66099a1b2ed7df9c92ab84f7974c7"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "needle",
+      "level": "default",
+      "hash": "ca03d1891996e70619a517efffc7c07cafea07e2290d2265d2f53c57c922c069"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "needle",
+      "level": 1,
+      "hash": "69134ab837f0b3cf0c92fc9e7ce04ecaf9b365fd8ec3353ae3d1096d198b8f29"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "needle",
+      "level": 2,
+      "hash": "ca03d1891996e70619a517efffc7c07cafea07e2290d2265d2f53c57c922c069"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "needle",
+      "level": 3,
+      "hash": "744cafc72a1b549adc0b36eba5043b6b5315338afcc8d4a6827f0b77752a4af4"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "needle",
+      "level": 4,
+      "hash": "e1424c47e7746defaf5896f70cb6a4344a29aa69933457245bbed3b8a21a0996"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "needle",
+      "level": 5,
+      "hash": "62e9eca7d09c878e306a853e173edc9f8304abba67be2ad88e37362b3e732394"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_inkblade",
+      "level": "default",
+      "hash": "a9ed46a690bffe51dfc8f8a64f0801a89fce395a74197501653719eccd42a45a"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_inkblade",
+      "level": 1,
+      "hash": "a9ed46a690bffe51dfc8f8a64f0801a89fce395a74197501653719eccd42a45a"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_inkblade",
+      "level": 2,
+      "hash": "a9ed46a690bffe51dfc8f8a64f0801a89fce395a74197501653719eccd42a45a"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_inkblade",
+      "level": 3,
+      "hash": "a9ed46a690bffe51dfc8f8a64f0801a89fce395a74197501653719eccd42a45a"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_inkblade",
+      "level": 4,
+      "hash": "a9ed46a690bffe51dfc8f8a64f0801a89fce395a74197501653719eccd42a45a"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_inkblade",
+      "level": 5,
+      "hash": "a9ed46a690bffe51dfc8f8a64f0801a89fce395a74197501653719eccd42a45a"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxiai",
+      "level": "default",
+      "hash": "a22374c303281c0e31a22e93cb43ac915a0b87e68ec1cae5c2a83b668809de01"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxiai",
+      "level": 1,
+      "hash": "a22374c303281c0e31a22e93cb43ac915a0b87e68ec1cae5c2a83b668809de01"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxiai",
+      "level": 2,
+      "hash": "a22374c303281c0e31a22e93cb43ac915a0b87e68ec1cae5c2a83b668809de01"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxiai",
+      "level": 3,
+      "hash": "a22374c303281c0e31a22e93cb43ac915a0b87e68ec1cae5c2a83b668809de01"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxiai",
+      "level": 4,
+      "hash": "a22374c303281c0e31a22e93cb43ac915a0b87e68ec1cae5c2a83b668809de01"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxiai",
+      "level": 5,
+      "hash": "a22374c303281c0e31a22e93cb43ac915a0b87e68ec1cae5c2a83b668809de01"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_exorcistblade",
+      "level": "default",
+      "hash": "a8387b679c9d41467532e91184560a8e4063d565cf9658d9025b945e4051f189"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_exorcistblade",
+      "level": 1,
+      "hash": "a8387b679c9d41467532e91184560a8e4063d565cf9658d9025b945e4051f189"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_exorcistblade",
+      "level": 2,
+      "hash": "a8387b679c9d41467532e91184560a8e4063d565cf9658d9025b945e4051f189"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_exorcistblade",
+      "level": 3,
+      "hash": "a8387b679c9d41467532e91184560a8e4063d565cf9658d9025b945e4051f189"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_exorcistblade",
+      "level": 4,
+      "hash": "a8387b679c9d41467532e91184560a8e4063d565cf9658d9025b945e4051f189"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_exorcistblade",
+      "level": 5,
+      "hash": "a8387b679c9d41467532e91184560a8e4063d565cf9658d9025b945e4051f189"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxfirebarrier",
+      "level": "default",
+      "hash": "4854cfbe94fae3ed58f664f1b91a71844938a509b101225c1f3b9b43a64846c2"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 1,
+      "hash": "4854cfbe94fae3ed58f664f1b91a71844938a509b101225c1f3b9b43a64846c2"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 2,
+      "hash": "4854cfbe94fae3ed58f664f1b91a71844938a509b101225c1f3b9b43a64846c2"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 3,
+      "hash": "4854cfbe94fae3ed58f664f1b91a71844938a509b101225c1f3b9b43a64846c2"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 4,
+      "hash": "4854cfbe94fae3ed58f664f1b91a71844938a509b101225c1f3b9b43a64846c2"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 5,
+      "hash": "4854cfbe94fae3ed58f664f1b91a71844938a509b101225c1f3b9b43a64846c2"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_exorcistseal",
+      "level": "default",
+      "hash": "313a1c3d058fe4e5c4a3fc6a05fb4c5c72389393722c7e619ac74de2a017eb82"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_exorcistseal",
+      "level": 1,
+      "hash": "313a1c3d058fe4e5c4a3fc6a05fb4c5c72389393722c7e619ac74de2a017eb82"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_exorcistseal",
+      "level": 2,
+      "hash": "313a1c3d058fe4e5c4a3fc6a05fb4c5c72389393722c7e619ac74de2a017eb82"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_exorcistseal",
+      "level": 3,
+      "hash": "313a1c3d058fe4e5c4a3fc6a05fb4c5c72389393722c7e619ac74de2a017eb82"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_exorcistseal",
+      "level": 4,
+      "hash": "313a1c3d058fe4e5c4a3fc6a05fb4c5c72389393722c7e619ac74de2a017eb82"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_exorcistseal",
+      "level": 5,
+      "hash": "313a1c3d058fe4e5c4a3fc6a05fb4c5c72389393722c7e619ac74de2a017eb82"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_thundercircle",
+      "level": "default",
+      "hash": "002c753e32687e6a7863e90d838c4759e0551e61a7ae026048368733974c2d35"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_thundercircle",
+      "level": 1,
+      "hash": "002c753e32687e6a7863e90d838c4759e0551e61a7ae026048368733974c2d35"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_thundercircle",
+      "level": 2,
+      "hash": "002c753e32687e6a7863e90d838c4759e0551e61a7ae026048368733974c2d35"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_thundercircle",
+      "level": 3,
+      "hash": "002c753e32687e6a7863e90d838c4759e0551e61a7ae026048368733974c2d35"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_thundercircle",
+      "level": 4,
+      "hash": "002c753e32687e6a7863e90d838c4759e0551e61a7ae026048368733974c2d35"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_thundercircle",
+      "level": 5,
+      "hash": "002c753e32687e6a7863e90d838c4759e0551e61a7ae026048368733974c2d35"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_slashwheel",
+      "level": "default",
+      "hash": "f05e15bc499df45667d9aea52e01734a8a681572c09353056c54c149d730d8c5"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_slashwheel",
+      "level": 1,
+      "hash": "f05e15bc499df45667d9aea52e01734a8a681572c09353056c54c149d730d8c5"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_slashwheel",
+      "level": 2,
+      "hash": "f05e15bc499df45667d9aea52e01734a8a681572c09353056c54c149d730d8c5"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_slashwheel",
+      "level": 3,
+      "hash": "f05e15bc499df45667d9aea52e01734a8a681572c09353056c54c149d730d8c5"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_slashwheel",
+      "level": 4,
+      "hash": "f05e15bc499df45667d9aea52e01734a8a681572c09353056c54c149d730d8c5"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_slashwheel",
+      "level": 5,
+      "hash": "f05e15bc499df45667d9aea52e01734a8a681572c09353056c54c149d730d8c5"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxthunderlantern",
+      "level": "default",
+      "hash": "a37ac4faa8aff646262253ea6363d78511a2853a9c0f7d1feedac5553801a80f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 1,
+      "hash": "a37ac4faa8aff646262253ea6363d78511a2853a9c0f7d1feedac5553801a80f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 2,
+      "hash": "a37ac4faa8aff646262253ea6363d78511a2853a9c0f7d1feedac5553801a80f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 3,
+      "hash": "a37ac4faa8aff646262253ea6363d78511a2853a9c0f7d1feedac5553801a80f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 4,
+      "hash": "a37ac4faa8aff646262253ea6363d78511a2853a9c0f7d1feedac5553801a80f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 5,
+      "hash": "a37ac4faa8aff646262253ea6363d78511a2853a9c0f7d1feedac5553801a80f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_flamefestival",
+      "level": "default",
+      "hash": "04c9a882be89fd8ed182f1cf675f2fb618d90efc8f561b7f9eeae4386434cc3f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_flamefestival",
+      "level": 1,
+      "hash": "04c9a882be89fd8ed182f1cf675f2fb618d90efc8f561b7f9eeae4386434cc3f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_flamefestival",
+      "level": 2,
+      "hash": "04c9a882be89fd8ed182f1cf675f2fb618d90efc8f561b7f9eeae4386434cc3f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_flamefestival",
+      "level": 3,
+      "hash": "04c9a882be89fd8ed182f1cf675f2fb618d90efc8f561b7f9eeae4386434cc3f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_flamefestival",
+      "level": 4,
+      "hash": "04c9a882be89fd8ed182f1cf675f2fb618d90efc8f561b7f9eeae4386434cc3f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_flamefestival",
+      "level": 5,
+      "hash": "04c9a882be89fd8ed182f1cf675f2fb618d90efc8f561b7f9eeae4386434cc3f"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_thundertalisman",
+      "level": "default",
+      "hash": "b3490507862c455993248abc95b16e136425eb48c06154ac0425fc3b0d1abe91"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_thundertalisman",
+      "level": 1,
+      "hash": "b3490507862c455993248abc95b16e136425eb48c06154ac0425fc3b0d1abe91"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_thundertalisman",
+      "level": 2,
+      "hash": "b3490507862c455993248abc95b16e136425eb48c06154ac0425fc3b0d1abe91"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_thundertalisman",
+      "level": 3,
+      "hash": "b3490507862c455993248abc95b16e136425eb48c06154ac0425fc3b0d1abe91"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_thundertalisman",
+      "level": 4,
+      "hash": "b3490507862c455993248abc95b16e136425eb48c06154ac0425fc3b0d1abe91"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "fusion_thundertalisman",
+      "level": 5,
+      "hash": "b3490507862c455993248abc95b16e136425eb48c06154ac0425fc3b0d1abe91"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "unknown",
+      "level": "default",
+      "hash": "673173ce45ca84c3e0190ea1a97f094e897e4f37e3370a1f231d770445bac14e"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "unknown",
+      "level": 1,
+      "hash": "673173ce45ca84c3e0190ea1a97f094e897e4f37e3370a1f231d770445bac14e"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "unknown",
+      "level": 2,
+      "hash": "8b22e06c8e22d2d97b302059bf7434b9cd59ad2f2c449ee5c5ca5f56d5c87766"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "unknown",
+      "level": 3,
+      "hash": "2ddc72efad81636b292b491371fd0bbce2545fa1aad2d8cb7f8ed641018a2f62"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "unknown",
+      "level": 4,
+      "hash": "b17cd346c492d3f0bcd01c8f4e828f79b221866e5e2af354ad84fc9a55cee1da"
+    },
+    {
+      "evo": true,
+      "variant": "default",
+      "skillId": "unknown",
+      "level": 5,
+      "hash": "597cb6ef4bdb85d578d1478f9ddd1daf3a731510042457f14bc311abd96a319d"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "katana",
+      "level": "default",
+      "hash": "118f421810109728d65e2a1ab91da4423a0d07f617090c328caea30f12a79756"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "katana",
+      "level": 1,
+      "hash": "118f421810109728d65e2a1ab91da4423a0d07f617090c328caea30f12a79756"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "katana",
+      "level": 2,
+      "hash": "4298d6ad3e8356af662e52d67cd84fef49a58db14f60102f46a8c4e432cad3c7"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "katana",
+      "level": 3,
+      "hash": "da4aa0d9e532c27363609ac4661b518a2da5777f7efab5448ad356cae31e94cc"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "katana",
+      "level": 4,
+      "hash": "064662ef31d9d5dc358ed8391e87a25c2fd9799d5d189c6cf9ed88669d2727b6"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "katana",
+      "level": 5,
+      "hash": "ebfd45f17594066de389790fd198088311eb035fbf0dccf0193e441ea5535936"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "barrier",
+      "level": "default",
+      "hash": "c45bcbec404cfa59cb12b0c0c1570dda33ed9fcfe28acfd080f7df0d00d69b89"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "barrier",
+      "level": 1,
+      "hash": "aff6495e230151606262f1c27e1f5397c80ac34066c8d2b73a4c3525049ecf5f"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "barrier",
+      "level": 2,
+      "hash": "c45bcbec404cfa59cb12b0c0c1570dda33ed9fcfe28acfd080f7df0d00d69b89"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "barrier",
+      "level": 3,
+      "hash": "a5b3d19cd65c63df17926a6c857948d50b65475a6faa259c098c86e0d9bc5e08"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "barrier",
+      "level": 4,
+      "hash": "c2066782c9896b1d7fa245c13417d20a3cdc71b5a584d7fcbf1262c0f95a5e6b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "barrier",
+      "level": 5,
+      "hash": "e8b761b0838acb3be0e399449222fe51dc20a89d67fb49f79a4028fa2e3746a8"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fire",
+      "level": "default",
+      "hash": "99e0a00f29d74de284a69cf0a8f57590a8ee225d95c90500d749c523a51d5e90"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fire",
+      "level": 1,
+      "hash": "3a55bc9c6b1ca4f559b7e9a80a87cf96a700b7b2ae3b19b5629467e41de73941"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fire",
+      "level": 2,
+      "hash": "b3d6d513d75bdc3c8f26010d9f5b198081d9b1c106bced337b6ab8186b4f6eb4"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fire",
+      "level": 3,
+      "hash": "99e0a00f29d74de284a69cf0a8f57590a8ee225d95c90500d749c523a51d5e90"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fire",
+      "level": 4,
+      "hash": "2c6aa22c52cb68525a85e099ce129d329e53eaa532c32e83e8e0dd72d1983975"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fire",
+      "level": 5,
+      "hash": "d98632484ac6f6c5f595a5bc99a0009c7a9099dd4c8d6d2ae2e209dcc2c1bac7"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "boom",
+      "level": "default",
+      "hash": "eebbfc503a52a4cd07146294522606f74031bc2366622abcb1f91bbcda51cfaf"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "boom",
+      "level": 1,
+      "hash": "4aa46c040e763e2b1acc17210330c4a98de469d54a3344a593c1e9df54cbf5e2"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "boom",
+      "level": 2,
+      "hash": "89b1f521cfa55dc095f1c256da3a6e05d4d388a09fe7680a2f0d4f56a844ec66"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "boom",
+      "level": 3,
+      "hash": "71c458cc38e7209b982846f83a2d5799ba955308f115332362dcff87afdc9d23"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "boom",
+      "level": 4,
+      "hash": "eebbfc503a52a4cd07146294522606f74031bc2366622abcb1f91bbcda51cfaf"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "boom",
+      "level": 5,
+      "hash": "99ab8e0a606a83737484128b02084ce947626dadc6b382c94fbcae849bb565b7"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "thunder",
+      "level": "default",
+      "hash": "3187cb436ab3f0e30205d2017e263d81f0bfa8b428af6a9bebee728b0843d3a4"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "thunder",
+      "level": 1,
+      "hash": "3187cb436ab3f0e30205d2017e263d81f0bfa8b428af6a9bebee728b0843d3a4"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "thunder",
+      "level": 2,
+      "hash": "907050255f54e4cfbb2d6ac32ea030e0c17cc85650e7be0654a985b23ec73296"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "thunder",
+      "level": 3,
+      "hash": "7da90272b110da783f5e1629786859ac6c01505935b514aeb4170453aad2990b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "thunder",
+      "level": 4,
+      "hash": "f8a0495c57155465c6860c7e17775da085e05570c0e0897a78bd193b784fc4c7"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "thunder",
+      "level": 5,
+      "hash": "fa998d3ce89bd4ae10229b7f7a33325822107d06f82426de7180607347fa0794"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "needle",
+      "level": "default",
+      "hash": "6b337e1c3f5e84935ffa84f4e1aab0ed6461431535f00b028feb237ec14567e3"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "needle",
+      "level": 1,
+      "hash": "26eceec4ee270cd13c9d1f1a74bad1c8f905d7efde4b2c7ef3b37c2ab80a4e2d"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "needle",
+      "level": 2,
+      "hash": "6b337e1c3f5e84935ffa84f4e1aab0ed6461431535f00b028feb237ec14567e3"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "needle",
+      "level": 3,
+      "hash": "c6419c7fff8e6c31aaf5ed72ab72a3aa9e4070b720505299b545c962bf34e372"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "needle",
+      "level": 4,
+      "hash": "723663857fb21123d4c7257d8992e7d129feca87d59c19f3c27ce8655413421b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "needle",
+      "level": 5,
+      "hash": "9f404aba38e38d0d763ef45bf205e3e0720510fa12624ea4cb3e5ddc2a8121a7"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_inkblade",
+      "level": "default",
+      "hash": "89d1cc7e7345dee0be69511f38038288b12d58bf368d4f533f367db66fd95155"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_inkblade",
+      "level": 1,
+      "hash": "89d1cc7e7345dee0be69511f38038288b12d58bf368d4f533f367db66fd95155"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_inkblade",
+      "level": 2,
+      "hash": "89d1cc7e7345dee0be69511f38038288b12d58bf368d4f533f367db66fd95155"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_inkblade",
+      "level": 3,
+      "hash": "89d1cc7e7345dee0be69511f38038288b12d58bf368d4f533f367db66fd95155"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_inkblade",
+      "level": 4,
+      "hash": "89d1cc7e7345dee0be69511f38038288b12d58bf368d4f533f367db66fd95155"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_inkblade",
+      "level": 5,
+      "hash": "89d1cc7e7345dee0be69511f38038288b12d58bf368d4f533f367db66fd95155"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxiai",
+      "level": "default",
+      "hash": "a793092e657a0c93cfe19ce22bc560560643a84d7dee2290aece3b8af84ec9a5"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxiai",
+      "level": 1,
+      "hash": "a793092e657a0c93cfe19ce22bc560560643a84d7dee2290aece3b8af84ec9a5"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxiai",
+      "level": 2,
+      "hash": "a793092e657a0c93cfe19ce22bc560560643a84d7dee2290aece3b8af84ec9a5"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxiai",
+      "level": 3,
+      "hash": "a793092e657a0c93cfe19ce22bc560560643a84d7dee2290aece3b8af84ec9a5"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxiai",
+      "level": 4,
+      "hash": "a793092e657a0c93cfe19ce22bc560560643a84d7dee2290aece3b8af84ec9a5"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxiai",
+      "level": 5,
+      "hash": "a793092e657a0c93cfe19ce22bc560560643a84d7dee2290aece3b8af84ec9a5"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_exorcistblade",
+      "level": "default",
+      "hash": "a300302cad31254674f161432253c25549cf601a582b9b6cf78270b1b153e238"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_exorcistblade",
+      "level": 1,
+      "hash": "a300302cad31254674f161432253c25549cf601a582b9b6cf78270b1b153e238"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_exorcistblade",
+      "level": 2,
+      "hash": "a300302cad31254674f161432253c25549cf601a582b9b6cf78270b1b153e238"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_exorcistblade",
+      "level": 3,
+      "hash": "a300302cad31254674f161432253c25549cf601a582b9b6cf78270b1b153e238"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_exorcistblade",
+      "level": 4,
+      "hash": "a300302cad31254674f161432253c25549cf601a582b9b6cf78270b1b153e238"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_exorcistblade",
+      "level": 5,
+      "hash": "a300302cad31254674f161432253c25549cf601a582b9b6cf78270b1b153e238"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxfirebarrier",
+      "level": "default",
+      "hash": "3f4c094ed9af3159534806a552f62f0913563c6d917123aa885bf90a38a3377c"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 1,
+      "hash": "3f4c094ed9af3159534806a552f62f0913563c6d917123aa885bf90a38a3377c"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 2,
+      "hash": "3f4c094ed9af3159534806a552f62f0913563c6d917123aa885bf90a38a3377c"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 3,
+      "hash": "3f4c094ed9af3159534806a552f62f0913563c6d917123aa885bf90a38a3377c"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 4,
+      "hash": "3f4c094ed9af3159534806a552f62f0913563c6d917123aa885bf90a38a3377c"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 5,
+      "hash": "3f4c094ed9af3159534806a552f62f0913563c6d917123aa885bf90a38a3377c"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_exorcistseal",
+      "level": "default",
+      "hash": "512f80e1b38dfc04b90a15418e9a2b4c7f818726b503d37e6edf79867627ebe4"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_exorcistseal",
+      "level": 1,
+      "hash": "512f80e1b38dfc04b90a15418e9a2b4c7f818726b503d37e6edf79867627ebe4"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_exorcistseal",
+      "level": 2,
+      "hash": "512f80e1b38dfc04b90a15418e9a2b4c7f818726b503d37e6edf79867627ebe4"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_exorcistseal",
+      "level": 3,
+      "hash": "512f80e1b38dfc04b90a15418e9a2b4c7f818726b503d37e6edf79867627ebe4"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_exorcistseal",
+      "level": 4,
+      "hash": "512f80e1b38dfc04b90a15418e9a2b4c7f818726b503d37e6edf79867627ebe4"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_exorcistseal",
+      "level": 5,
+      "hash": "512f80e1b38dfc04b90a15418e9a2b4c7f818726b503d37e6edf79867627ebe4"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_thundercircle",
+      "level": "default",
+      "hash": "7d28179f2382c923ca36d47845cbe18a7bd3987cd6aa1d2ecd186f0a361d68ba"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_thundercircle",
+      "level": 1,
+      "hash": "7d28179f2382c923ca36d47845cbe18a7bd3987cd6aa1d2ecd186f0a361d68ba"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_thundercircle",
+      "level": 2,
+      "hash": "7d28179f2382c923ca36d47845cbe18a7bd3987cd6aa1d2ecd186f0a361d68ba"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_thundercircle",
+      "level": 3,
+      "hash": "7d28179f2382c923ca36d47845cbe18a7bd3987cd6aa1d2ecd186f0a361d68ba"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_thundercircle",
+      "level": 4,
+      "hash": "7d28179f2382c923ca36d47845cbe18a7bd3987cd6aa1d2ecd186f0a361d68ba"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_thundercircle",
+      "level": 5,
+      "hash": "7d28179f2382c923ca36d47845cbe18a7bd3987cd6aa1d2ecd186f0a361d68ba"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_slashwheel",
+      "level": "default",
+      "hash": "4c91f57dcffb91a1da5ab80ea470bb82d0d98bfb37ed9345122abd2eb732281b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_slashwheel",
+      "level": 1,
+      "hash": "4c91f57dcffb91a1da5ab80ea470bb82d0d98bfb37ed9345122abd2eb732281b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_slashwheel",
+      "level": 2,
+      "hash": "4c91f57dcffb91a1da5ab80ea470bb82d0d98bfb37ed9345122abd2eb732281b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_slashwheel",
+      "level": 3,
+      "hash": "4c91f57dcffb91a1da5ab80ea470bb82d0d98bfb37ed9345122abd2eb732281b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_slashwheel",
+      "level": 4,
+      "hash": "4c91f57dcffb91a1da5ab80ea470bb82d0d98bfb37ed9345122abd2eb732281b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_slashwheel",
+      "level": 5,
+      "hash": "4c91f57dcffb91a1da5ab80ea470bb82d0d98bfb37ed9345122abd2eb732281b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxthunderlantern",
+      "level": "default",
+      "hash": "24a9959dd22e3cfdc2016108afe2b504a74f19934b1c10c6f618b0ce4ee5b59b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 1,
+      "hash": "24a9959dd22e3cfdc2016108afe2b504a74f19934b1c10c6f618b0ce4ee5b59b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 2,
+      "hash": "24a9959dd22e3cfdc2016108afe2b504a74f19934b1c10c6f618b0ce4ee5b59b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 3,
+      "hash": "24a9959dd22e3cfdc2016108afe2b504a74f19934b1c10c6f618b0ce4ee5b59b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 4,
+      "hash": "24a9959dd22e3cfdc2016108afe2b504a74f19934b1c10c6f618b0ce4ee5b59b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 5,
+      "hash": "24a9959dd22e3cfdc2016108afe2b504a74f19934b1c10c6f618b0ce4ee5b59b"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_flamefestival",
+      "level": "default",
+      "hash": "ac92918f4705db50efd2870128073857c45429179ccdf044184a6259309f5f82"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_flamefestival",
+      "level": 1,
+      "hash": "ac92918f4705db50efd2870128073857c45429179ccdf044184a6259309f5f82"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_flamefestival",
+      "level": 2,
+      "hash": "ac92918f4705db50efd2870128073857c45429179ccdf044184a6259309f5f82"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_flamefestival",
+      "level": 3,
+      "hash": "ac92918f4705db50efd2870128073857c45429179ccdf044184a6259309f5f82"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_flamefestival",
+      "level": 4,
+      "hash": "ac92918f4705db50efd2870128073857c45429179ccdf044184a6259309f5f82"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_flamefestival",
+      "level": 5,
+      "hash": "ac92918f4705db50efd2870128073857c45429179ccdf044184a6259309f5f82"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_thundertalisman",
+      "level": "default",
+      "hash": "39cb3bd2a69af78e4d8b2c12b3f4bd98477aaaecdabf88428104c088e2fc56c0"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_thundertalisman",
+      "level": 1,
+      "hash": "39cb3bd2a69af78e4d8b2c12b3f4bd98477aaaecdabf88428104c088e2fc56c0"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_thundertalisman",
+      "level": 2,
+      "hash": "39cb3bd2a69af78e4d8b2c12b3f4bd98477aaaecdabf88428104c088e2fc56c0"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_thundertalisman",
+      "level": 3,
+      "hash": "39cb3bd2a69af78e4d8b2c12b3f4bd98477aaaecdabf88428104c088e2fc56c0"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_thundertalisman",
+      "level": 4,
+      "hash": "39cb3bd2a69af78e4d8b2c12b3f4bd98477aaaecdabf88428104c088e2fc56c0"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "fusion_thundertalisman",
+      "level": 5,
+      "hash": "39cb3bd2a69af78e4d8b2c12b3f4bd98477aaaecdabf88428104c088e2fc56c0"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "unknown",
+      "level": "default",
+      "hash": "673173ce45ca84c3e0190ea1a97f094e897e4f37e3370a1f231d770445bac14e"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "unknown",
+      "level": 1,
+      "hash": "673173ce45ca84c3e0190ea1a97f094e897e4f37e3370a1f231d770445bac14e"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "unknown",
+      "level": 2,
+      "hash": "8b22e06c8e22d2d97b302059bf7434b9cd59ad2f2c449ee5c5ca5f56d5c87766"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "unknown",
+      "level": 3,
+      "hash": "2ddc72efad81636b292b491371fd0bbce2545fa1aad2d8cb7f8ed641018a2f62"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "unknown",
+      "level": 4,
+      "hash": "b17cd346c492d3f0bcd01c8f4e828f79b221866e5e2af354ad84fc9a55cee1da"
+    },
+    {
+      "evo": true,
+      "variant": "all",
+      "skillId": "unknown",
+      "level": 5,
+      "hash": "597cb6ef4bdb85d578d1478f9ddd1daf3a731510042457f14bc311abd96a319d"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "katana",
+      "level": "default",
+      "hash": "7862f9a03feed78909c985d3918acba8234aa40921309877d37097f3c0ea70b0"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "katana",
+      "level": 1,
+      "hash": "7862f9a03feed78909c985d3918acba8234aa40921309877d37097f3c0ea70b0"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "katana",
+      "level": 2,
+      "hash": "64e52f8647400dc1c0e67d3d5155d160f6fede6d2b4489573a605f6977b68f14"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "katana",
+      "level": 3,
+      "hash": "ab1ad5b49dcd0449d0831734d2c76ba9688442fabb1f729e657122a7977c1319"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "katana",
+      "level": 4,
+      "hash": "afa1928b3b135228d8a9edc988061131e7cdb50433f032bf4b424ac2e4aaf498"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "katana",
+      "level": 5,
+      "hash": "cf936aa04724fcd87dc8c1e78dfb237410ca2fdd4041f6b3ac05cb0ca7d2f2db"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "barrier",
+      "level": "default",
+      "hash": "08391d14c0d60c3fd4192babc3e6e8657e67c6a584522173cd3ae75d68115de2"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "barrier",
+      "level": 1,
+      "hash": "f3f73a92781b8b0f67ca2152b93095b1f32c8d004ffbfcd7abdd4eb7abeb1f0b"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "barrier",
+      "level": 2,
+      "hash": "08391d14c0d60c3fd4192babc3e6e8657e67c6a584522173cd3ae75d68115de2"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "barrier",
+      "level": 3,
+      "hash": "b37be324d81bd05d00e800c92b13c29cd7a0385df0d501c809273ff517603f12"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "barrier",
+      "level": 4,
+      "hash": "0650c3477d9323dbe08892bb6643b90420a52db61bc21ed5ce9fd1f8cbdb3ab2"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "barrier",
+      "level": 5,
+      "hash": "829716074adf1ce88079abf1774da5b8c0b79a0637eff5a9e18adac9ae5c9120"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fire",
+      "level": "default",
+      "hash": "f57715a444c6474f3ee22a0d206eb9feeedfc68e77b49125851a041a9a02b116"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fire",
+      "level": 1,
+      "hash": "03724b0fad07525ac0c440adaab43bbee41efb3fce6c38467af096809f6cbbe0"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fire",
+      "level": 2,
+      "hash": "c8acab0750eb2de992bf4b6d4277b23df04c4a0765123282d4519d9413be4647"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fire",
+      "level": 3,
+      "hash": "f57715a444c6474f3ee22a0d206eb9feeedfc68e77b49125851a041a9a02b116"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fire",
+      "level": 4,
+      "hash": "d4e0dcd58b16d54374cd6fb8fad1836bffd165b1fc564364fff028903217f43e"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fire",
+      "level": 5,
+      "hash": "30d956c38ea10b8ccd4187529a0c860faa9136c6963ce9d01dabc46392a8ae51"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "boom",
+      "level": "default",
+      "hash": "b324139932af4e8e43954305ea120a48deb0bd6a27a43f1c0f7bc1ba896d1b50"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "boom",
+      "level": 1,
+      "hash": "c8c1598c8be8b865f557542cb48bc22b7bde5299260766fc8dd38c573acea6bb"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "boom",
+      "level": 2,
+      "hash": "e9be0e821f259f104b141f5d4470ebf4677fd87828f8845911c1c36958d24752"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "boom",
+      "level": 3,
+      "hash": "7ee4706512a1edbd3c2c09c68b41aab2fae10154b56fc4ae804b99b011930a12"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "boom",
+      "level": 4,
+      "hash": "b324139932af4e8e43954305ea120a48deb0bd6a27a43f1c0f7bc1ba896d1b50"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "boom",
+      "level": 5,
+      "hash": "351c8f789baaa697d63cb0faf86e7d7daccca35cb3ebd740cc02a46b28eefcea"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "thunder",
+      "level": "default",
+      "hash": "abfac779c5591b914a0180c7c671761bd4eca37f1bdd04dad3ac9a8652326c12"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "thunder",
+      "level": 1,
+      "hash": "abfac779c5591b914a0180c7c671761bd4eca37f1bdd04dad3ac9a8652326c12"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "thunder",
+      "level": 2,
+      "hash": "69578665d9c593a4f7be5bedf239a22a313316aab8431ac2442f9a1a02a3c5b9"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "thunder",
+      "level": 3,
+      "hash": "dc1db79e5ef9c5033fba5687fa9563e1f3ac5396a8c489214d5bb19d9425795c"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "thunder",
+      "level": 4,
+      "hash": "35a05bb68d38599a2794161ef058ae329069bf04a801a22741c8c824acbcaa91"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "thunder",
+      "level": 5,
+      "hash": "349fd47d4615807911fb5e20641e43846b4557dcb1f3876c96bf8c8a75c473a1"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "needle",
+      "level": "default",
+      "hash": "0a41100e92d2c9b561c41db6a6e0d140834703210665a1816c4f95fe50348ce3"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "needle",
+      "level": 1,
+      "hash": "112bc7c73685f1ced0edf92f0b21347601800536c7eca141bb0cf30642012fdb"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "needle",
+      "level": 2,
+      "hash": "0a41100e92d2c9b561c41db6a6e0d140834703210665a1816c4f95fe50348ce3"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "needle",
+      "level": 3,
+      "hash": "b9d7de0a6ed298692804517d622b08884c4acb28fb4eed509c3aaf33a2b805ca"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "needle",
+      "level": 4,
+      "hash": "f7bde87b02fece18a5ed28f075a4745fb4ddda655c567db47ac233f5cb4ce81f"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "needle",
+      "level": 5,
+      "hash": "e9bdc73359a8b51f9b768d409a114b265b54f3870e5bcfb5958f5fcb2c04819d"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_inkblade",
+      "level": "default",
+      "hash": "e2b6ded1b697e590e0a9d304386d6d98e92f4166502ceca845e16810cc96e246"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_inkblade",
+      "level": 1,
+      "hash": "e2b6ded1b697e590e0a9d304386d6d98e92f4166502ceca845e16810cc96e246"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_inkblade",
+      "level": 2,
+      "hash": "e2b6ded1b697e590e0a9d304386d6d98e92f4166502ceca845e16810cc96e246"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_inkblade",
+      "level": 3,
+      "hash": "e2b6ded1b697e590e0a9d304386d6d98e92f4166502ceca845e16810cc96e246"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_inkblade",
+      "level": 4,
+      "hash": "e2b6ded1b697e590e0a9d304386d6d98e92f4166502ceca845e16810cc96e246"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_inkblade",
+      "level": 5,
+      "hash": "e2b6ded1b697e590e0a9d304386d6d98e92f4166502ceca845e16810cc96e246"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxiai",
+      "level": "default",
+      "hash": "7a6fbed7652f25da5d155183b011d966e2e0026a1c0a81ea7b800629a521afe3"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxiai",
+      "level": 1,
+      "hash": "7a6fbed7652f25da5d155183b011d966e2e0026a1c0a81ea7b800629a521afe3"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxiai",
+      "level": 2,
+      "hash": "7a6fbed7652f25da5d155183b011d966e2e0026a1c0a81ea7b800629a521afe3"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxiai",
+      "level": 3,
+      "hash": "7a6fbed7652f25da5d155183b011d966e2e0026a1c0a81ea7b800629a521afe3"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxiai",
+      "level": 4,
+      "hash": "7a6fbed7652f25da5d155183b011d966e2e0026a1c0a81ea7b800629a521afe3"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxiai",
+      "level": 5,
+      "hash": "7a6fbed7652f25da5d155183b011d966e2e0026a1c0a81ea7b800629a521afe3"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_exorcistblade",
+      "level": "default",
+      "hash": "9cc08f3151ef3351921957c2cb0fd2e606acc718e66ef62e9eabccc939778d2b"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_exorcistblade",
+      "level": 1,
+      "hash": "9cc08f3151ef3351921957c2cb0fd2e606acc718e66ef62e9eabccc939778d2b"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_exorcistblade",
+      "level": 2,
+      "hash": "9cc08f3151ef3351921957c2cb0fd2e606acc718e66ef62e9eabccc939778d2b"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_exorcistblade",
+      "level": 3,
+      "hash": "9cc08f3151ef3351921957c2cb0fd2e606acc718e66ef62e9eabccc939778d2b"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_exorcistblade",
+      "level": 4,
+      "hash": "9cc08f3151ef3351921957c2cb0fd2e606acc718e66ef62e9eabccc939778d2b"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_exorcistblade",
+      "level": 5,
+      "hash": "9cc08f3151ef3351921957c2cb0fd2e606acc718e66ef62e9eabccc939778d2b"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxfirebarrier",
+      "level": "default",
+      "hash": "d1863897774e4cb4a7bd30fb412043fd8ceccc3debbc486645ef09fe3e7d3cd0"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 1,
+      "hash": "d1863897774e4cb4a7bd30fb412043fd8ceccc3debbc486645ef09fe3e7d3cd0"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 2,
+      "hash": "d1863897774e4cb4a7bd30fb412043fd8ceccc3debbc486645ef09fe3e7d3cd0"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 3,
+      "hash": "d1863897774e4cb4a7bd30fb412043fd8ceccc3debbc486645ef09fe3e7d3cd0"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 4,
+      "hash": "d1863897774e4cb4a7bd30fb412043fd8ceccc3debbc486645ef09fe3e7d3cd0"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxfirebarrier",
+      "level": 5,
+      "hash": "d1863897774e4cb4a7bd30fb412043fd8ceccc3debbc486645ef09fe3e7d3cd0"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_exorcistseal",
+      "level": "default",
+      "hash": "b7df1eb0ea6cf6a63fcc87291e83fa09353c7d77c458d3f7270730fe34bd9c88"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_exorcistseal",
+      "level": 1,
+      "hash": "b7df1eb0ea6cf6a63fcc87291e83fa09353c7d77c458d3f7270730fe34bd9c88"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_exorcistseal",
+      "level": 2,
+      "hash": "b7df1eb0ea6cf6a63fcc87291e83fa09353c7d77c458d3f7270730fe34bd9c88"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_exorcistseal",
+      "level": 3,
+      "hash": "b7df1eb0ea6cf6a63fcc87291e83fa09353c7d77c458d3f7270730fe34bd9c88"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_exorcistseal",
+      "level": 4,
+      "hash": "b7df1eb0ea6cf6a63fcc87291e83fa09353c7d77c458d3f7270730fe34bd9c88"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_exorcistseal",
+      "level": 5,
+      "hash": "b7df1eb0ea6cf6a63fcc87291e83fa09353c7d77c458d3f7270730fe34bd9c88"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_thundercircle",
+      "level": "default",
+      "hash": "132d8c7baefcd5f12f07d5c6dc199be8d0c10cda92cb0c96c566b34b3088f288"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_thundercircle",
+      "level": 1,
+      "hash": "132d8c7baefcd5f12f07d5c6dc199be8d0c10cda92cb0c96c566b34b3088f288"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_thundercircle",
+      "level": 2,
+      "hash": "132d8c7baefcd5f12f07d5c6dc199be8d0c10cda92cb0c96c566b34b3088f288"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_thundercircle",
+      "level": 3,
+      "hash": "132d8c7baefcd5f12f07d5c6dc199be8d0c10cda92cb0c96c566b34b3088f288"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_thundercircle",
+      "level": 4,
+      "hash": "132d8c7baefcd5f12f07d5c6dc199be8d0c10cda92cb0c96c566b34b3088f288"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_thundercircle",
+      "level": 5,
+      "hash": "132d8c7baefcd5f12f07d5c6dc199be8d0c10cda92cb0c96c566b34b3088f288"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_slashwheel",
+      "level": "default",
+      "hash": "3883d190a7e7c4efd5cc2b792c4574f2dd0eb79570f215b60c505c13253325ca"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_slashwheel",
+      "level": 1,
+      "hash": "3883d190a7e7c4efd5cc2b792c4574f2dd0eb79570f215b60c505c13253325ca"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_slashwheel",
+      "level": 2,
+      "hash": "3883d190a7e7c4efd5cc2b792c4574f2dd0eb79570f215b60c505c13253325ca"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_slashwheel",
+      "level": 3,
+      "hash": "3883d190a7e7c4efd5cc2b792c4574f2dd0eb79570f215b60c505c13253325ca"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_slashwheel",
+      "level": 4,
+      "hash": "3883d190a7e7c4efd5cc2b792c4574f2dd0eb79570f215b60c505c13253325ca"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_slashwheel",
+      "level": 5,
+      "hash": "3883d190a7e7c4efd5cc2b792c4574f2dd0eb79570f215b60c505c13253325ca"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxthunderlantern",
+      "level": "default",
+      "hash": "e2f4bcddef6c90e31191e9c317e97eabb77656ef12aa353d685f3550f819991d"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 1,
+      "hash": "e2f4bcddef6c90e31191e9c317e97eabb77656ef12aa353d685f3550f819991d"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 2,
+      "hash": "e2f4bcddef6c90e31191e9c317e97eabb77656ef12aa353d685f3550f819991d"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 3,
+      "hash": "e2f4bcddef6c90e31191e9c317e97eabb77656ef12aa353d685f3550f819991d"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 4,
+      "hash": "e2f4bcddef6c90e31191e9c317e97eabb77656ef12aa353d685f3550f819991d"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_foxthunderlantern",
+      "level": 5,
+      "hash": "e2f4bcddef6c90e31191e9c317e97eabb77656ef12aa353d685f3550f819991d"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_flamefestival",
+      "level": "default",
+      "hash": "b37a5aa09034f37ce46ed14f831a3fd84d349dcd622542ae936b8e68f894d20c"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_flamefestival",
+      "level": 1,
+      "hash": "b37a5aa09034f37ce46ed14f831a3fd84d349dcd622542ae936b8e68f894d20c"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_flamefestival",
+      "level": 2,
+      "hash": "b37a5aa09034f37ce46ed14f831a3fd84d349dcd622542ae936b8e68f894d20c"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_flamefestival",
+      "level": 3,
+      "hash": "b37a5aa09034f37ce46ed14f831a3fd84d349dcd622542ae936b8e68f894d20c"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_flamefestival",
+      "level": 4,
+      "hash": "b37a5aa09034f37ce46ed14f831a3fd84d349dcd622542ae936b8e68f894d20c"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_flamefestival",
+      "level": 5,
+      "hash": "b37a5aa09034f37ce46ed14f831a3fd84d349dcd622542ae936b8e68f894d20c"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_thundertalisman",
+      "level": "default",
+      "hash": "197f21c06e565a68a0dd9e0e1ba81351c98df547d30a33d3a6411d63528bbdcd"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_thundertalisman",
+      "level": 1,
+      "hash": "197f21c06e565a68a0dd9e0e1ba81351c98df547d30a33d3a6411d63528bbdcd"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_thundertalisman",
+      "level": 2,
+      "hash": "197f21c06e565a68a0dd9e0e1ba81351c98df547d30a33d3a6411d63528bbdcd"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_thundertalisman",
+      "level": 3,
+      "hash": "197f21c06e565a68a0dd9e0e1ba81351c98df547d30a33d3a6411d63528bbdcd"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_thundertalisman",
+      "level": 4,
+      "hash": "197f21c06e565a68a0dd9e0e1ba81351c98df547d30a33d3a6411d63528bbdcd"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "fusion_thundertalisman",
+      "level": 5,
+      "hash": "197f21c06e565a68a0dd9e0e1ba81351c98df547d30a33d3a6411d63528bbdcd"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "unknown",
+      "level": "default",
+      "hash": "673173ce45ca84c3e0190ea1a97f094e897e4f37e3370a1f231d770445bac14e"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "unknown",
+      "level": 1,
+      "hash": "673173ce45ca84c3e0190ea1a97f094e897e4f37e3370a1f231d770445bac14e"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "unknown",
+      "level": 2,
+      "hash": "8b22e06c8e22d2d97b302059bf7434b9cd59ad2f2c449ee5c5ca5f56d5c87766"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "unknown",
+      "level": 3,
+      "hash": "2ddc72efad81636b292b491371fd0bbce2545fa1aad2d8cb7f8ed641018a2f62"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "unknown",
+      "level": 4,
+      "hash": "b17cd346c492d3f0bcd01c8f4e828f79b221866e5e2af354ad84fc9a55cee1da"
+    },
+    {
+      "evo": true,
+      "variant": "partial",
+      "skillId": "unknown",
+      "level": 5,
+      "hash": "597cb6ef4bdb85d578d1478f9ddd1daf3a731510042457f14bc311abd96a319d"
+    }
+  ]
+}
