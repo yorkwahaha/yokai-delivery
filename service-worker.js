@@ -512,7 +512,7 @@ const MEDIA_REVISIONS = {
   "assets/img/tank.webp": "fad88f4ddeae620e16d3220d",
   "assets/img/tank_motion_v1.png": "d7aadc6932d1d2f4bf64bacd",
   "assets/img/tank_motion_v1.webp": "c5491157893ccf8286f1abc7",
-  "assets/img/ui/awaken_seal.svg": "7853c94fa10a7aff8232d979",
+  "assets/img/ui/awaken_seal.svg": "b5dcbc2ac7abc0e73b18d659",
   "assets/img/ui/b12/camera_medallion.webp": "ee6ba7bbd069114847edd25b",
   "assets/img/ui/b12/modal_board.webp": "1d28c8f250452a5fa9a44631",
   "assets/img/ui/b12/passive_crit.webp": "69566e9ed6d320556a6c6a7f",

@@ -1,3 +1,9 @@
+## 2026-11-03 媒體快取跨 Windows 工作樹換行修補
+
+- 正式 SVG `assets/img/ui/awaken_seal.svg` 的 Git blob 內容是 LF，原始主工作樹也保留 LF，但隔離工作樹在 Windows `core.autocrlf=true` 下將同一份 SVG 改為 CRLF。先前只依隔離工作樹檔案算快取雜湊導致 `service-worker.js` 的 SVG revision 與 GitHub Pages 實際發佈的 blob 不符，且原始 `npm test` 的快取一致性測試失敗。
+- 現在 `tools/build-media-cache.cjs` 與 `tests/media-cache.test.cjs` 對文字 SVG 統一使用 Git 原始 LF 的位元組雜湊，WebP／PNG／MP3 繼續保留純位元組 hash；`service-worker.js` 將 `awaken_seal.svg` 修訂碼恢復成 Git 封存值 `b5dcbc2ac7abc0e73b18d659`，不改任何圖像內容。
+- 增加 CRLF／LF 兩種環境的回歸測試；本批需同時確認原始主工作樹與隔離工作樹的 `npm test` 才算完成。B14 `surge_brush.webp` 圖片版號與正式內容維持不變。
+
 ## 2026-11-03 歷史測試整頓 — 建立明確現行／歷史驗證門禁
 
 - `tests/agy-m1-b.test.cjs` 補齊新模組載入、現行 Lv5 靈針 0.05 秒一發時序，**19/19** 通過；`tests/boom-lv5-motion-20261025.test.cjs` 補齊非網路 manifest mock 與目前 `skillfx` 的 0.12 秒峰值、0.30 秒位移抖動時序，**23/23** 通過。僅修現行規格的測試，不改技能。

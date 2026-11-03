@@ -4,6 +4,12 @@ const vm = require('node:vm');
 const fs = require('node:fs');
 const { createHash } = require('node:crypto');
 const worker = fs.readFileSync('tools/media-cache-worker.js','utf8');
+// Match the canonical LF SVG bytes shipped from Git on both CRLF and LF
+// Windows checkouts; raster/audio remain byte-for-byte hashed.
+const canonicalMediaBytes = file => {
+  const b=fs.readFileSync(file);
+  return /\.svg$/i.test(file) ? Buffer.from(b.toString('utf8').replace(/\r\n/g,'\n')) : b;
+};
 
 function cacheFixture() {
   const entries=new Map(),requests=[];let downloads=0;
@@ -59,9 +65,19 @@ test('published worker content revisions match every local media file',()=>{
   const revisions=vm.runInNewContext(source.slice(0,source.indexOf('const CACHE_NAME'))+'\nMEDIA_REVISIONS');
   assert.ok(Object.keys(revisions).length>100);
   for(const [path,revision] of Object.entries(revisions)) {
-    assert.equal(createHash('sha256').update(fs.readFileSync(path)).digest('hex').slice(0,24),revision,path+' requires node tools/build-media-cache.cjs');
+    assert.equal(createHash('sha256').update(canonicalMediaBytes(path)).digest('hex').slice(0,24),revision,path+' requires node tools/build-media-cache.cjs');
   }
   assert.ok(revisions['assets/img/ui/hud_skill_fan.webp']);
+});
+test('tracked SVG revision stays identical on CRLF and LF Windows worktrees',()=>{
+  const svg='assets/img/ui/awaken_seal.svg';
+  const source=fs.readFileSync(svg,'utf8').replace(/\r\n/g,'\n');
+  const windows=source.replace(/\n/g,'\r\n');
+  const hash=b=>createHash('sha256').update(b).digest('hex').slice(0,24);
+  assert.equal(hash(Buffer.from(source)),hash(Buffer.from(windows.replace(/\r\n/g,'\n'))));
+  const workerSource=fs.readFileSync('service-worker.js','utf8');
+  const revisions=vm.runInNewContext(workerSource.slice(0,workerSource.indexOf('const CACHE_NAME'))+'\nMEDIA_REVISIONS');
+  assert.equal(revisions[svg],hash(Buffer.from(source)));
 });
 test('night-town approved A common-kanji audio and word icons are all in production cache revisions',()=>{
   const source=fs.readFileSync('service-worker.js','utf8');
