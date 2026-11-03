@@ -1,3 +1,10 @@
+## 2026-11-03 JS 模組化 Phase 9 — 怪物種類與屬性選擇純規則
+
+- \`spawnEnemy\` 仍由遊戲負責抽取相同的 \`Math.random()\`、\`spawnPosition\`、\`enemies.push\` 與 HP scaling；僅將原先選擇 ghost/runner/tank/shooter/shiome 的條件、原始 HP 與速度公式抽至 \`GAME_SPAWN_MATH.enemySpec(tier,r,options)\`。
+- 夜町與雨港 Normal／Hard 保留全部時間門檻 90/160/200 秒、射手概率、碰撞波 \`ring\`、shots 禁用、海妖姿態與 CD。未改技能／Boss AI／存檔／美術。
+- 新單元測試遍歷 2 個關卡、兩種 normal 分支、多種射手機率、shots/ring、臨界時間與 RNG 門檻，與舊程式逐值對比；模組不得呼叫 RNG 或寫入敵人陣列，script 快取鍵同步更新。
+- 選定 123/123 項整合測試通過。後續持續自動驗證並逐批提交，全部安全拆分結束再由使用者一次遊玩驗收。
+
 ## 2026-11-03 JS 模組化 Phase 8 — 變異資格純規則（連續自動驗證）
 
 - 基於 \`1333d07\` 正式版，將 \`getSkillMutations / isMutationFamilyTaken / canAddMutation\` 中無副作用的選擇規則抽出成 \`js/game-build-rules.js\`，保留 \`game.js\` 既有三個函式名稱、live \`buildMutations\` 預設參數和 \`MUTATION_CONFIG/WL/MUTATION_SLOTS_PER_SKILL\` 的實際來源。

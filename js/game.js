@@ -5839,40 +5839,13 @@ function spawnEnemy(tier, rad, ang, ring) {
     if (!position) return;
     const r = Math.random();
 
-    // 怪物速度曲線：封頂於 10 分鐘，破曉後加班不再增加怪物難度。
-    const cappedElapsed = Math.min(elapsed, DAWN);
-    const speedRamp = (cappedElapsed / DAWN) * 75 * MOB_DIFFICULTY.timeScale;
-    const stageSpeed = (STAGE_ENEMY.speedScale || 1) * MOB_DIFFICULTY.speedScale;
-    const shooterChance = STAGE_ENEMY.shooterChance ?? 0.14;
-    const canShoot = STAGE_ENEMY.shots !== false;
-    let t = { type: "ghost", hp: 2.0 * tier, speed: (52 + speedRamp * 0.9) * stageSpeed };
-
-    // rain-port Normal：移除真正燈籠怪 (shooter) 的 spawn 與發彈，保留低 HP 海妖 (shiome) 作為唯一遠程
-    const isRainPortNormal = isRainPortNormalMode();
-
-    if (isRainPortNormal) {
-      // Stage2 Normal：無燈籠怪 (shooter)，以海妖 (shiome) 擔任唯一遠程
-      // runner 90s+ (原 22%)、tank 200s+ (原 14%)、shiome 160s+ (取代 shooter)
-      if (cappedElapsed > 90 && r < 0.25) {
-        t = { type: "runner", hp: 1.5 * tier, speed: (110 + speedRamp * 1.1) * stageSpeed };
-      } else if (cappedElapsed > 200 && r < 0.40) {
-        t = { type: "tank", hp: 7.0 * tier, speed: (32 + speedRamp * 0.4) * stageSpeed };
-      } else if (cappedElapsed > 160 && r < (cappedElapsed > 200 ? 0.40 : 0.25) + shooterChance && !ring && canShoot) {
-        // 遠程敵人：由雨港原生海妖 (shiome) 擔任，低 HP < ghost (2.0)
-        t = { type: "shiome", hp: 0.7 * tier, speed: (46 + speedRamp * 0.7) * stageSpeed, pose: "idle" };
-      }
-    } else {
-      // 原有生成邏輯（hard 或其他關）
-      if (STAGE.id === "rain-port" && !ring && r >= 0.55 && r < 0.72) {
-        t = { type: "shiome", hp: 2.2 * tier, speed: (46 + speedRamp * 0.7) * stageSpeed, pose: "idle", shiomeCd: 0.8 };
-      } else if (cappedElapsed > 90 && r < 0.22) {
-        t = { type: "runner", hp: 1.5 * tier, speed: (110 + speedRamp * 1.1) * stageSpeed };
-      } else if (cappedElapsed > 200 && r < 0.36) {
-        t = { type: "tank", hp: 7.0 * tier, speed: (32 + speedRamp * 0.4) * stageSpeed };
-      } else if (cappedElapsed > 160 && r < (cappedElapsed > 200 ? 0.36 : 0.22) + shooterChance && !ring && canShoot) {
-        t = { type: "shooter", hp: tier, speed: (48 + speedRamp * 0.8) * stageSpeed };
-      }
-    }
+    // All RNG draws and world spawning stay here, in their original order.
+    // Only the deterministic archetype/stats selection is in the shared module.
+    const t = window.GAME_SPAWN_MATH.enemySpec(tier, r, {
+      elapsed, dawn: DAWN, difficulty: MOB_DIFFICULTY,
+      stageEnemy: STAGE_ENEMY, stageId: STAGE.id,
+      ring, rainPortNormal: isRainPortNormalMode()
+    });
 
     enemies.push({ ...position, flash: 0, wob: Math.random() * 6, slowT: 0, ...t,
       hp: Math.ceil(t.hp * MOB_DIFFICULTY.hpScale), max: Math.ceil(t.hp * MOB_DIFFICULTY.hpScale) });

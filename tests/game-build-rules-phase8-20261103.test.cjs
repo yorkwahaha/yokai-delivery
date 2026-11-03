@@ -80,8 +80,8 @@ test('Phase8 world-game wrapper accepts explicit list without changing input',()
 });
 test('Phase8 browser loads build predicates before game and keeps existing module versions',()=>{
  const html=fs.readFileSync('index.html','utf8');
- const script='js/game-build-rules.js?v=20261103-build-phase8',main='js/game.js?v=20261103-build-phase8';
+ const script='js/game-build-rules.js?v=20261103-build-phase8',main='js/game.js?v=20261103-spawn-phase9';
  assert.ok(html.includes(script)&&html.includes(main));
  assert.ok(html.indexOf(script)<html.indexOf(main));
- assert.ok(html.includes('js/game-spawn-math.js?v=20261103-spawn-phase7'));
+ assert.ok(html.includes('js/game-spawn-math.js?v=20261103-spawn-phase9'));
 });
