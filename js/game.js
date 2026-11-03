@@ -86,7 +86,7 @@
   // （例如端點 191→200、1610→1600 會被算成兩列），於是 2 屋列被當成 4 屋列。
   function houseColumnsBetween(x1, x2) {
     const lo = Math.min(x1, x2), hi = Math.max(x1, x2);
-    const xs = new Set();
+    const houseXs = [];
     if (!runBounds || !WORLD_STATE) return 0;
     const cx0 = Math.floor(lo / WORLD_STATE.chunkWidth), cx1 = Math.floor(hi / WORLD_STATE.chunkWidth);
     const cy0 = Math.floor(runBounds.minY / WORLD_STATE.chunkHeight), cy1 = Math.floor(runBounds.maxY / WORLD_STATE.chunkHeight);
@@ -94,12 +94,12 @@
       for (let cy = cy0; cy <= cy1; cy++) {
         const chunk = WORLD_STATE.getChunk(cx, cy);
         if (!chunk || !chunk.houses) continue;
-        for (const h of chunk.houses) {
-          if (h.x > lo && h.x < hi) xs.add(Math.round(h.x / 50) * 50);
-        }
+        for (const h of chunk.houses) houseXs.push(h.x);
       }
     }
-    return xs.size;
+    // Stage/chunk cache traversal stays in game.js; only interior filtering
+    // and 50px quantization/deduplication are delegated to the pure helper.
+    return window.GAME_GEOMETRY.countInteriorHouseColumns(houseXs, lo, hi);
   }
 
   // Rain-port uses one Y row and only five *visible* X chunks. For long

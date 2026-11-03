@@ -1,3 +1,9 @@
+## 2026-11-03 JS 模組化 Phase 6 — 配送屋列純計算（連續自動驗證，不要求逐批試玩）
+
+- 根據 \`edc8926\` 正式版，將 \`houseColumnsBetween\` 的「嚴格先排除兩端 x 再以 50px 四捨五入去重」純計算搬至 \`GAME_GEOMETRY.countInteriorHouseColumns(houseXs,lo,hi)\`。真正 \`WORLD_STATE.getChunk\` 的 chunk 迴圈及快取仍留 \`game.js\`，避免變更世界生成與取件。
+- 只更新 \`js/game.js\` 和 \`js/game-geometry.js\` 的載入版本 \`?v=20261103-geometry-phase6\`，原有 browser script 順序和其餘模組不動。
+- 測試新舊相同結果，含負座標、50px 邊界、端點等於房座標、複數 Y 層與跨 chunk 範圍。此批為自動技術驗收，最終玩家體驗留待連續拆分結束後整體試玩。
+
 ## 2026-11-03 JS 第五批：御守等級解析純函式（USER_PLAYTEST_PENDING）
 
 - 基準正式版 \`749af08\`；僅移動 \`charmLevelOf\` 純資料解析邏輯至既有 \`js/game-charm-math.js\`，主遊戲保留名稱及參數 \`charmLevelOf(id, buildState = null)\`，將目前 \`buildCharms\`、\`charmLevels\` 與 \`CHARM_MAX_LEVEL\` 明確傳入。模組不讀寫全局戰鬥狀態，不抽 \`hurt\`、\`weapons\`、\`update\`、Boss AI、存檔或融合。

@@ -10,5 +10,15 @@ window.GAME_GEOMETRY = (() => {
     const dy = (point.y - (house.y + 70)) / ry;
     return dx * dx + dy * dy <= 1;
   }
-  return Object.freeze({ deliveryBarrierContains });
+  // Strictly filter both endpoints before rounding. In particular, houses
+  // at x=191 and x=1610 must not leak into interior 50px columns.
+  function countInteriorHouseColumns(houseXs, x1, x2) {
+    const lo = Math.min(x1, x2), hi = Math.max(x1, x2);
+    const columns = new Set();
+    for (const x of houseXs) {
+      if (x > lo && x < hi) columns.add(Math.round(x / 50) * 50);
+    }
+    return columns.size;
+  }
+  return Object.freeze({ deliveryBarrierContains, countInteriorHouseColumns });
 })();
