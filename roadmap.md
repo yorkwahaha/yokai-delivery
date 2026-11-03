@@ -1,3 +1,10 @@
+## 2026-11-03 JS 模組化 Phase 16 — 雨／雪／霧顯示效果繪圖模組
+
+- 從 \`game.js\` 抽離雨場景／雪場景／夜港三層雨絲與地面漣漪／霧漸層的 \`drawStageWeather\` 和純 \`rainUnit\` hash，共約 111 行至 \`js/game-weather.js\`；\`game.js\` 保留 render 呼叫入口及即時場景資訊來源 \`ctx/STAGE_VISUAL/STAGE/rainLoad/W/H/liveMotion/viewBounds/getRipple\`，不搬動 fps 負載回饋值或 Canvas 繪圖狀態全局。
+- **拆分前**透過假 Canvas 依序記錄 48 個雨／雪／非天氣、港灣／夜町、動態效果開關、雨負載與霧量的所有繪圖函式與樣式設定，保存 \`tests/fixtures/game-weather-golden-phase16-20261103.json\` 的 SHA-256；拆後 48 組逐一完全一致。
+- HTML 於 \`game.js\` 前載新 script，並更新主檔 cache key；Node VM 測試載入同步補齊，歷史已清理的檔案使用 Git blob 暫存替換，不復原到本機工作樹。
+- 新舊函式、語法與 **150/150 選定整合測試通過**。正常玩家主迴圈、Boss 狀態、技能效果與已核准美術均未調整；最終一起實機驗收。
+
 ## 2026-11-03 JS 模組化 Phase 15 — 世界指標與輸入命中幾何
 
 - \`game.js\` 的 canvas 指標轉世界座標、圓形攻擊鈕、帶 44px 最低觸控範圍的矩形按鈕、升級卡候選矩形命中序號，搬到已存在的 \`GAME_GEOMETRY\` 純函式。主遊戲仍負責抓取 canvas rect、viewport、卡片排版及按鍵後的操作，僅將數值計算外移。

@@ -1,0 +1,434 @@
+[
+  {
+    "wet": "rain",
+    "stageId": "rain-port",
+    "motion": 0,
+    "load": 1,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "1b4331d36ca9361eca192b2672be06375ede96241cd8083c72f4fa4d32941c97"
+  },
+  {
+    "wet": "rain",
+    "stageId": "rain-port",
+    "motion": 0,
+    "load": 1,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "4db613def1ffe4d2fe23777e7afdb7f91cf92aa46cf26c1051b8101a31eb2fe2"
+  },
+  {
+    "wet": "rain",
+    "stageId": "rain-port",
+    "motion": 0,
+    "load": 2,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "ba9d14929c02100b3d7f3646b052c4f3eecd025d28f44b02229dc745eb63956a"
+  },
+  {
+    "wet": "rain",
+    "stageId": "rain-port",
+    "motion": 0,
+    "load": 2,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "86879de7b8e0ecbd922d79f0ace7ad081b83588b1271deb92416bc2d1a243a7d"
+  },
+  {
+    "wet": "rain",
+    "stageId": "rain-port",
+    "motion": 1,
+    "load": 1,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "2754b210f8fda876b74afd81d30ff3c64bbe1b961e30aa0ad9f39d1936405fa0"
+  },
+  {
+    "wet": "rain",
+    "stageId": "rain-port",
+    "motion": 1,
+    "load": 1,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "d043e5b2f993717eb6a329c6304da9869543a20b4e71843fc34b229b91d4e274"
+  },
+  {
+    "wet": "rain",
+    "stageId": "rain-port",
+    "motion": 1,
+    "load": 2,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "70f0a53a623811fcfd2afea7d5e0ce393ecfcfed8f4dd51680330e0c617643db"
+  },
+  {
+    "wet": "rain",
+    "stageId": "rain-port",
+    "motion": 1,
+    "load": 2,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "d0f166d8a9b440d0990befcf2aea0ee7fa1d091882c9592daa88b31c4ad2c383"
+  },
+  {
+    "wet": "rain",
+    "stageId": "night-town",
+    "motion": 0,
+    "load": 1,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "391ec31448956521a35e2df4b99be4569e7754c6c974d8786f13f21ac5f864f9"
+  },
+  {
+    "wet": "rain",
+    "stageId": "night-town",
+    "motion": 0,
+    "load": 1,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "173868533d0954355dbf1c5c00dd49513fe5b1ee9f8c0af9ec9f7c15be6361ff"
+  },
+  {
+    "wet": "rain",
+    "stageId": "night-town",
+    "motion": 0,
+    "load": 2,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "391ec31448956521a35e2df4b99be4569e7754c6c974d8786f13f21ac5f864f9"
+  },
+  {
+    "wet": "rain",
+    "stageId": "night-town",
+    "motion": 0,
+    "load": 2,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "173868533d0954355dbf1c5c00dd49513fe5b1ee9f8c0af9ec9f7c15be6361ff"
+  },
+  {
+    "wet": "rain",
+    "stageId": "night-town",
+    "motion": 1,
+    "load": 1,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "cdba038ca9b087ce40c864dc5b1a06f185e1bedc811e388c25daecdc59a8c408"
+  },
+  {
+    "wet": "rain",
+    "stageId": "night-town",
+    "motion": 1,
+    "load": 1,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "2eff08edbf68e091ede7e9448cbd633fc50f51b9b2899e6ff2f5b164a02936aa"
+  },
+  {
+    "wet": "rain",
+    "stageId": "night-town",
+    "motion": 1,
+    "load": 2,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "cdba038ca9b087ce40c864dc5b1a06f185e1bedc811e388c25daecdc59a8c408"
+  },
+  {
+    "wet": "rain",
+    "stageId": "night-town",
+    "motion": 1,
+    "load": 2,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "2eff08edbf68e091ede7e9448cbd633fc50f51b9b2899e6ff2f5b164a02936aa"
+  },
+  {
+    "wet": "snow",
+    "stageId": "rain-port",
+    "motion": 0,
+    "load": 1,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "dc62aabba5196565f413db101e303acf3a89b6dc16c137c11fe735afd5c2c027"
+  },
+  {
+    "wet": "snow",
+    "stageId": "rain-port",
+    "motion": 0,
+    "load": 1,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "55f149b1bb2073c788a0ead4624d4cf375ab6ef39c0c7d07d21066dc2c4af7bf"
+  },
+  {
+    "wet": "snow",
+    "stageId": "rain-port",
+    "motion": 0,
+    "load": 2,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "dc62aabba5196565f413db101e303acf3a89b6dc16c137c11fe735afd5c2c027"
+  },
+  {
+    "wet": "snow",
+    "stageId": "rain-port",
+    "motion": 0,
+    "load": 2,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "55f149b1bb2073c788a0ead4624d4cf375ab6ef39c0c7d07d21066dc2c4af7bf"
+  },
+  {
+    "wet": "snow",
+    "stageId": "rain-port",
+    "motion": 1,
+    "load": 1,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "d336b417672ac603828903c5faa0245f6aefd38ae1dadfa8138ecef8f0a23087"
+  },
+  {
+    "wet": "snow",
+    "stageId": "rain-port",
+    "motion": 1,
+    "load": 1,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "2acc1246d8cf57d11813920d29965cc135edd858d000de2f674576008f80acbe"
+  },
+  {
+    "wet": "snow",
+    "stageId": "rain-port",
+    "motion": 1,
+    "load": 2,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "d336b417672ac603828903c5faa0245f6aefd38ae1dadfa8138ecef8f0a23087"
+  },
+  {
+    "wet": "snow",
+    "stageId": "rain-port",
+    "motion": 1,
+    "load": 2,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "2acc1246d8cf57d11813920d29965cc135edd858d000de2f674576008f80acbe"
+  },
+  {
+    "wet": "snow",
+    "stageId": "night-town",
+    "motion": 0,
+    "load": 1,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "dc62aabba5196565f413db101e303acf3a89b6dc16c137c11fe735afd5c2c027"
+  },
+  {
+    "wet": "snow",
+    "stageId": "night-town",
+    "motion": 0,
+    "load": 1,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "6b3936cc1de576a2afe72780b3888a458c2f2806465100a25b68c846e4657cf3"
+  },
+  {
+    "wet": "snow",
+    "stageId": "night-town",
+    "motion": 0,
+    "load": 2,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "dc62aabba5196565f413db101e303acf3a89b6dc16c137c11fe735afd5c2c027"
+  },
+  {
+    "wet": "snow",
+    "stageId": "night-town",
+    "motion": 0,
+    "load": 2,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "6b3936cc1de576a2afe72780b3888a458c2f2806465100a25b68c846e4657cf3"
+  },
+  {
+    "wet": "snow",
+    "stageId": "night-town",
+    "motion": 1,
+    "load": 1,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "d336b417672ac603828903c5faa0245f6aefd38ae1dadfa8138ecef8f0a23087"
+  },
+  {
+    "wet": "snow",
+    "stageId": "night-town",
+    "motion": 1,
+    "load": 1,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "82e68ea040079202f90704f512442aeb08017b678da11b69d72a105295f2b1ee"
+  },
+  {
+    "wet": "snow",
+    "stageId": "night-town",
+    "motion": 1,
+    "load": 2,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "d336b417672ac603828903c5faa0245f6aefd38ae1dadfa8138ecef8f0a23087"
+  },
+  {
+    "wet": "snow",
+    "stageId": "night-town",
+    "motion": 1,
+    "load": 2,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "82e68ea040079202f90704f512442aeb08017b678da11b69d72a105295f2b1ee"
+  },
+  {
+    "wet": "none",
+    "stageId": "rain-port",
+    "motion": 0,
+    "load": 1,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "rain-port",
+    "motion": 0,
+    "load": 1,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "rain-port",
+    "motion": 0,
+    "load": 2,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "rain-port",
+    "motion": 0,
+    "load": 2,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "rain-port",
+    "motion": 1,
+    "load": 1,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "rain-port",
+    "motion": 1,
+    "load": 1,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "rain-port",
+    "motion": 1,
+    "load": 2,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "rain-port",
+    "motion": 1,
+    "load": 2,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "night-town",
+    "motion": 0,
+    "load": 1,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "night-town",
+    "motion": 0,
+    "load": 1,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "night-town",
+    "motion": 0,
+    "load": 2,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "night-town",
+    "motion": 0,
+    "load": 2,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "night-town",
+    "motion": 1,
+    "load": 1,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "night-town",
+    "motion": 1,
+    "load": 1,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "night-town",
+    "motion": 1,
+    "load": 2,
+    "fog": 0,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "wet": "none",
+    "stageId": "night-town",
+    "motion": 1,
+    "load": 2,
+    "fog": 0.3,
+    "t": 1.75,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  }
+]

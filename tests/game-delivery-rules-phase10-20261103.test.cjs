@@ -93,6 +93,6 @@ test('Phase10: all RNG and order mutation remain in game.js; module loaded befor
  assert.match(game,/orders\.push\(\{ from, to, word: chosenWord/);
  const html=fs.readFileSync('index.html','utf8');
  assert.ok(html.includes('js/game-delivery-rules.js?v=20261103-delivery-phase10'));
- assert.ok(html.includes('js/game.js?v=20261103-input-phase15'));
+ assert.ok(html.includes('js/game.js?v=20261103-weather-phase16'));
  assert.ok(html.indexOf('js/game-delivery-rules.js')<html.indexOf('js/game.js'));
 });
