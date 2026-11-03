@@ -97,7 +97,7 @@ test('phase 5: shared module stays frozen and retains prior stat helpers', () =>
 test('phase 5: browser loads shared module before game with matching cache revisions', () => {
   const html = fs.readFileSync('index.html', 'utf8');
   const mathPath = 'js/game-charm-math.js?v=20261103-charm-phase5';
-  const gamePath = 'js/game.js?v=20261103-weather-phase16';
+  const gamePath = 'js/game.js?v=20261103-upgrade-phase17';
   assert.ok(html.includes(mathPath) && html.includes(gamePath));
   assert.ok(html.indexOf(mathPath) < html.indexOf(gamePath));
   assert.ok(game.includes('window.GAME_CHARM_MATH.charmLevelOf('));

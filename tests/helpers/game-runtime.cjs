@@ -37,7 +37,7 @@ const MODULE_ORDER = [
 // Current game scripts must mirror the public index dependency order.
 // Keep the historic MODULE_ORDER unchanged for revision-pinned baseline tests.
 const CURRENT_MODULE_ORDER = [
-  'delivery-lexicon', 'delivery-media', ...MODULE_ORDER, 'combat-targeting', 'game-quiz-logic', 'game-geometry', 'game-charm-math', 'game-spawn-math', 'game-build-rules', 'game-delivery-rules', 'game-attack-specs', 'game-catalog', 'game-combat-math', 'game-weather'
+  'delivery-lexicon', 'delivery-media', ...MODULE_ORDER, 'combat-targeting', 'game-quiz-logic', 'game-geometry', 'game-charm-math', 'game-spawn-math', 'game-build-rules', 'game-delivery-rules', 'game-attack-specs', 'game-catalog', 'game-combat-math', 'game-weather', 'game-upgrade-choices'
 ];
 
 // V3 新增模組：只在 working tree 載入。baseline revision 不讀它，

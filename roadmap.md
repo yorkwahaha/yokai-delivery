@@ -1,3 +1,11 @@
+## 2026-11-03 JS 模組化 Phase 17 — 三選一升級卡池組合抽離
+
+- 基於已部署 Phase 16 的 \`1b600a1\` 正式版，在隔離的乾淨稀疏工作樹完成，不改本機仍在整理的大量資源和工作檔。
+- 將 \`getEligibleChoices()\` 最後約 43 行覺醒、共鳴、變異、御守、被動與武器卡的選項組合規則原文抽到 \`js/game-upgrade-choices.js\`。牌卡產生/資格、有效 revision/consumed 控制、真正升級與隨機洗牌函式仍由 \`game.js\` 持有；只傳入卡牌陣列與原 shuffle 回呼。
+- **先存拆分前原始函式**到 \`tests/fixtures/upgrade-choice-original-phase17.js\`，再遍歷不同卡池數量、是否有覺醒、三種固定洗牌種子，至少 4,374 組逐筆比較卡牌 ID 順序、原物件身分、隨機回呼呼叫順序與來源陣列未被改動。
+- HTML 新腳本置於 \`game.js\` 前，JS cache key 改為 \`?v=20261103-upgrade-phase17\`；所有 VM fixtures 載入清單同步更新。
+- 選定整合測試 **154/154 全部通過**，沒有修改 Boss AI、技能傷害、裝備持久狀態或真正升級操作。最終仍由使用者一次實機驗收，不逐批要求試玩。
+
 ## 2026-11-03 JS 模組化 Phase 16 — 雨／雪／霧顯示效果繪圖模組
 
 - 從 \`game.js\` 抽離雨場景／雪場景／夜港三層雨絲與地面漣漪／霧漸層的 \`drawStageWeather\` 和純 \`rainUnit\` hash，共約 111 行至 \`js/game-weather.js\`；\`game.js\` 保留 render 呼叫入口及即時場景資訊來源 \`ctx/STAGE_VISUAL/STAGE/rainLoad/W/H/liveMotion/viewBounds/getRipple\`，不搬動 fps 負載回饋值或 Canvas 繪圖狀態全局。
