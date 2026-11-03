@@ -146,6 +146,9 @@ window.GAME_COMBAT_MATH = (() => {
     const ox = enemy.x - wave.originX, oy = enemy.y - wave.originY;
     if (Math.hypot(ox, oy) > (wave.maxTravel || 720)) return false;
     let ad = Math.abs(Math.atan2(oy, ox) - wave.ang);
+    // Infinity never shrinks when subtracting 2π; reject extreme angles before
+    // folding. NaN intentionally falls through to the original !(ad > 1.22).
+    if (ad > Math.PI * 128) return false;
     while (ad > Math.PI) ad = Math.abs(ad - 2 * Math.PI);
     // Preserve original `if (ad > 1.22) continue` semantics, including NaN.
     return !(ad > 1.22);
@@ -157,6 +160,9 @@ window.GAME_COMBAT_MATH = (() => {
     const ed = Math.hypot(enemy.x - crosscut.x, enemy.y - crosscut.y);
     if (!(ed <= crosscut.reach)) return false;
     let diff = Math.abs(Math.atan2(enemy.y - crosscut.y, enemy.x - crosscut.x) - crosscut.crossAng);
+    // Prevent non-terminating Infinity subtraction without changing normal
+    // finite angles or crosscut's original NaN -> false comparison.
+    if (diff > Math.PI * 128) return false;
     while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
     return diff <= crosscut.arc;
   }
