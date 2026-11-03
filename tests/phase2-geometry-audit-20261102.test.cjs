@@ -87,5 +87,5 @@ test('current browser build loads geometry before game and updates assets revisi
  assert.ok(html.indexOf('js/game-quiz-logic.js')<html.indexOf('js/game-geometry.js'));
  assert.ok(html.indexOf('js/game-geometry.js')<html.indexOf('js/game.js'));
  assert.ok(html.includes('js/assets.js?v=20261102-geometry-phase2'));
- assert.ok(html.includes('js/game.js?v=20261102-audio-pad-hotfix'));
+ assert.ok(html.includes('js/game.js?v=20261103-charm-phase4'));
 });

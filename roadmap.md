@@ -1,3 +1,11 @@
+## 2026-11-03 JS 第四批：御守能力純計算整理（USER_PLAYTEST_PENDING）
+
+- 以最新已發布 \`a2ce694\` 為基準，僅針對 \`game.js\` 中 5 項純計算做低風險抽離，擴充已有的 \`js/game-charm-math.js\`；不新增重複的技能引擎，不碰更新主迴圈、扣血、武器傷害流程、Boss AI、存檔、融合與正式美術。
+- 搬移 \`effectiveDamage\`（攻擊力＋御守）、\`effectiveMoveSpeed\`（基礎速度＋草履＋御守）、\`effectiveMagnetRadius\`（磁吸半徑＋雨港 Normal＋御守）、\`effectiveRate\`（攻速＋御守）、\`effectiveReachMultiplier\`（技能範圍倍率），原先第 3 批 \`guardOilLoss\` 不變。
+- \`game.js\` 既有 \`getEffectiveDmg/getEffectiveMoveSpeed/getEffectiveMagnetRadius/getEffectiveRate/getEffectiveReachMultiplier\` 名稱保留，從現有 \`charmLevelOf\`、\`b\` 與 \`isRainPortNormalMode()\` 取得數字後才呼叫純計算模組。保留計算運算順序、預設值 \`b.dmg || 1\`、\`b.spd || 0\`、\`magnetRadius(b.mag)\`、加成係數及各種 buildState 行為。
+- \`index.html\` 僅更新 \`js/game-charm-math.js\` 和 \`js/game.js\` 的 \`?v=20261103-charm-phase4\`，維持 script 載入順序；原 VM \`CURRENT_MODULE_ORDER\` 已含共用模組，不須再改。另同步更新既有四項快取版本相關測試斷言。
+- 新測試 \`tests/game-charm-math-phase4-20261103.test.cjs\`：所有 5 個方法為純數值、模組 frozen、兩關情境、0–3 級御守、空／負值／NaN 值、明確 buildState 覆寫、腳本先後與兩支版本鍵；111/111 項選定回歸、3/3 項原有戰鬥／移動相關測試通過。未宣稱歷史完整測試全綠；需使用者實機驗收。
+
 ## 2026-11-02 正式版 Hotfix：音樂／音效全靜音與首頁手把入口
 
 - 使用者回報：進入遊戲後完全沒有 BGM／SFX；首頁不能只靠手把進入下一頁。正式版修補基準 `origin/master` `cc83246`，本機有 626 筆 dirty/untracked，發版只挑選這輪涉及的檔案。

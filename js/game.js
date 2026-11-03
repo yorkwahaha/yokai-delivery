@@ -1409,32 +1409,34 @@
     return window.GAME_CHARM_MATH.guardOilLoss(amount, charmLevelOf("charm_guard"));
   }
 
+  // Phase 4: keep run/build level lookups here. Only deterministic numeric
+  // transformations move into GAME_CHARM_MATH; no timing or balance changes.
   function getEffectiveDmg(buildState = null) {
-    const powerBonus = charmLevelOf("charm_power", buildState) * 0.20;
-    return (b.dmg || 1) + powerBonus;
+    const powerLevel = charmLevelOf("charm_power", buildState);
+    return window.GAME_CHARM_MATH.effectiveDamage(b.dmg, powerLevel);
   }
 
   function getEffectiveMoveSpeed(buildState = null) {
     // 神足草履只計 b.spd×35；風步守只計每級 +28。兩段相加，不把御守乘進草履層數。
-    const stepBonus = charmLevelOf("charm_step", buildState) * 28;
-    return 230 + (b.spd || 0) * 35 + stepBonus;
+    const stepLevel = charmLevelOf("charm_step", buildState);
+    return window.GAME_CHARM_MATH.effectiveMoveSpeed(b.spd, stepLevel);
   }
 
   function getEffectiveMagnetRadius(buildState = null) {
-    const gatherBonus = charmLevelOf("charm_gather", buildState) * 75;
+    const gatherLevel = charmLevelOf("charm_gather", buildState);
     // 第二關 Normal 可移動中拾取經驗，不影響第一關或原 Hard。
     const portNormalBonus = isRainPortNormalMode() ? 70 : 0;
-    return magnetRadius(b.mag) + portNormalBonus + gatherBonus;
+    return window.GAME_CHARM_MATH.effectiveMagnetRadius(magnetRadius(b.mag), portNormalBonus, gatherLevel);
   }
 
   function getEffectiveRate(buildState = null) {
-    const cadenceBonus = charmLevelOf("charm_cadence", buildState) * 0.25;
-    return (b.rate || 0) + cadenceBonus;
+    const cadenceLevel = charmLevelOf("charm_cadence", buildState);
+    return window.GAME_CHARM_MATH.effectiveRate(b.rate, cadenceLevel);
   }
 
   function getEffectiveReachMultiplier(buildState = null) {
-    const lv = charmLevelOf("charm_reach", buildState);
-    return lv > 0 ? 1 + 0.10 * lv : 1.0;
+    const level = charmLevelOf("charm_reach", buildState);
+    return window.GAME_CHARM_MATH.effectiveReachMultiplier(level);
   }
 
   function applyFrost(e, now, volley = null) {
