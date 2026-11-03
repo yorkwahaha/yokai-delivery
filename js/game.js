@@ -4403,15 +4403,7 @@ if (isRainPort) {
           }
 
           if (spec.hasBranch && spec.branchCount > 0 && primaryTargets.length > 0) {
-            let branchTarget = null;
-            for (const pt of primaryTargets) {
-              const subCandidates = enemies.filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done && !struck.has(e) && dist(pt, e) <= spec.branchRadius);
-              if (subCandidates.length > 0) {
-                subCandidates.sort((a, b) => dist(pt, a) - dist(pt, b));
-                branchTarget = subCandidates[0];
-                break;
-              }
-            }
+            const branchTarget = window.GAME_COMBAT_MATH.thunderBranchTarget(enemies, primaryTargets, struck, spec.branchRadius);
             if (branchTarget) {
               struck.add(branchTarget);
               SKILLFX.play("thunder", "strike", spec.level, { x: branchTarget.x, y: branchTarget.y, r: spec.branchRadius, branch: true });

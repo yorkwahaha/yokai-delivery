@@ -1,3 +1,11 @@
+## 2026-11-03 JS 模組化 Phase 26 — 天狐雷分支落雷最近目標選取
+
+- 基於已部署的 Phase 25 \`59de4e22ac4bbed64ec9c343a6048973c13c106c\` 新建乾淨隔離 worktree，Phase 25 隔離副本已刪除，原始 dirty \`I:\Projects\yokai-delivery\` 未動。
+- 將 \`weapons()\` 分支雷的「依照原命中順序找第一個有候選的主目標 → 排除已命中／死亡／護盾／消失／已結束 → 在分支射程內依實際距離穩定排序 → 取最近一隻」抽到既有 \`js/game-combat-math.js\` 純函式 \`thunderBranchTarget(enemies, primaryTargets, struck, branchRadius)\`。保留每個主目標的搜尋順序、同距離原陣列優先、\`<=\` 射程邊界與原先原生 sort；\`struck.add\`、傷害與 SFX 仍留在 \`game.js\`。
+- \`tests/fixtures/thunder-branch-original-phase26.js\` 保存 Phase25 原選取公式；新增 \`tests/game-combat-thunder-branch-phase26-20261103.test.cjs\` 四項：20,000 組固定亂數多敵比對、同距離／射程／已命中與排除條件、不可變輸入、真實遊戲 VM 的 \`mut_branch\` 命中序列。修正測試中一次同距離期待值錯誤，未改遊戲排序規則。
+- 新增 **4/4**，Phase1–26 核心選定測試 **158/158** 全過；擴大 45 檔 **306/317 通過**，其 11 項失敗與 Phase25 及修改前 Phase24 \`7ebf909\` 基準完全相同，未發現此批新增失敗。Node 語法與 Git diff check 須納入提交前驗證。
+- 更新正式 \`index.html\` 的 \`game.js\` 與 \`game-combat-math.js\` 快取版本為 \`thunder-phase26\`／\`combat-phase26\`，同步舊測試的版本斷言。最後整體試玩由使用者統一驗收；暫不拆 Boss AI、hurt、update、drawWorld 及非純狀態流程。
+
 ## 2026-11-03 JS 模組化 Phase 25 — 天狐雷群體索敵、穩定排序及目標上限
 
 - 從正式 origin/master \`7ebf909bcc523baa2bb04624b6967aa1ee818f92\` 建立隔離 Git worktree，原始本機 \`master a4aaa94\` 與既存未追蹤／未提交素材完全保留。
