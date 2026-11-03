@@ -4072,8 +4072,11 @@ if (isRainPort) {
     // MAX: 0.35s entry, 1.5s fully visible, 0.35s exit, then 5s offscreen.
     if(WL.fire===5){
       wT.fire=Math.max(0,wT.fire-dt);
-      const target = window.GAME_COMBAT_MATH.dragonFireTarget(enemies, P);
-      if(wT.fire<=0 && target && !ghosts.some(g=>g.dragon&&g.life>0)){
+      // Group search is quadratic; avoid running it every cooldown frame or
+      // while an existing dragon is still alive. Targeting itself is pure.
+      const canSummon = wT.fire<=0 && !ghosts.some(g=>g.dragon&&g.life>0);
+      const target = canSummon ? window.GAME_COMBAT_MATH.dragonFireTarget(enemies, P) : null;
+      if(target){
         const dragonSpec = resolveAttackSpec("fire", 5, combatBuildState());
         wT.fire=wMax.fire=dragonSpec.cooldown;
         const cam=RENDERER.getCam(),view=worldViewBounds();
