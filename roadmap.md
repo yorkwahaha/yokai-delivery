@@ -1,3 +1,13 @@
+## 2026-11-03 JS 核心拆分防護 Phase 22 — 真實 VM 端到端回歸
+
+- **先測試、後修復：** 新增真實雨港 \`runFrame → drawWorld()\` 多幀測試時，發現 Phase 16 天氣純函式抽離後，\`game.js\` 雨港地面水紋仍裸用 \`rainUnit(i, salt)\`，在雨港正式畫面可直接拋 \`ReferenceError\`。已於雨港繪製分支顯式取得 \`window.GAME_WEATHER.rainUnit\`；不改哈希公式、粒子分布、遊戲隨機數及 Boss 邏輯。新測試在修復前確實失敗，修復後通過。
+- 新增 \`tests/core-stateful-contracts-20261103.test.cjs\` **18 項**實際遊戲 VM 回歸，覆蓋：封印免傷／解除封印、暫停/融合/結算時不可傷害（保留升級頁特例）、擊殺只計一次、妖刀前後方及八種朝向、冷卻與無目標短重試、反噬禁攻／雙 Boss 讀題額度交接、暫停時間／油量、命中停頓仍推進時鐘、200ms 補幀等價和 10 秒卡頓最多補 0.2 秒、Canvas save/restore 平衡、雨港兩種視角與 Boss 題板繪製、手把 Start 邊緣觸發／音訊解鎖，以及天氣模組在遊戲主檔前載入。
+- \`tests/helpers/game-runtime.cjs\` 僅新增可觀測 battle/gamepad/timer 的**測試沙箱探針**，本機正式頁無新增任何 probe；所有玩家遊戲狀態仍受正式主程式管理。
+- \`index.html\` 將 \`game.js\` 快取版本更新為 \`?v=20261103-core-render-phase22\`，既有載入版本斷言同步更新。
+- 累積選定整合測試 **232/232 全過**，三份 JS 語法檢查與 \`git diff --check\` 通過；不等於完整舊 \`input-runtime\` 測試全綠。
+- **獨立基線素材債：** 在乾淨的遠端 Git 工作副本下，\`python tools/asset_registry.py --check\` 報 7 個登記但未被 Git 追蹤的舊候選 VFX：\`boss-water-r8\` 3 張與 \`shield\` 4 張，現行修復沒有改動這些圖片或登記表。後續應先確認候選/已審核地位再補資料或刪失效登記，禁止未經美術審核直接部署候選檔。
+- 本輪不搬移 \`hurt/weapons/update/drawWorld\` 等主戰鬥流程；下一階段應繼續增添多敵／多階段時序測試，之後才做受控大型區塊拆分，最後由使用者一次整體實機測試。
+
 ## 2026-11-03 P1 審查修復 Batch C — 雨港鏡頭、多王破盾與反噬題板
 
 - 正式站雨港的 2D 與 2.5D 鏡頭恢復跟隨玩家 Y，僅本機 \`DEV_MODE.isDevMode\` 且有 \`s2artprod=1\` 參數的美術實驗能套用額外偏移；原本已使用的雨港合法出生 Y=480 不再取決於美術載入旗標，防止產生帶外開局。

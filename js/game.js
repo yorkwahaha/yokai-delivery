@@ -5825,6 +5825,9 @@ function spawnEnemy(tier, rad, ang, ring) {
       ctx.save();
       ctx.lineWidth = 1.2;
       const groundRipple = window.PORT_ART?.ripple;
+      // Phase16 weather hash moved to GAME_WEATHER; do not use its former
+      // bare name or the rain-port frame will throw before the first paint.
+      const rainUnit = window.GAME_WEATHER.rainUnit;
       for (let i = 0; i < 14; i++) {
         const life = ((visualElapsed * motion * 0.65 + rainUnit(i, 11)) % 1);
         const x = cam.x + view.left + rainUnit(i, 12) * view.width;

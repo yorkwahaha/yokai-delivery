@@ -73,7 +73,7 @@ test('Phase19 excludes fusion weapons from ordinary level up and preserves origi
 test('Phase19 HTML keeps shared build rules before game with matching revisions',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const helper='js/game-build-rules.js?v=20261103-build-phase19';
- const main='js/game.js?v=20261103-p1-hotfix-c';
+ const main='js/game.js?v=20261103-core-render-phase22';
  assert.ok(html.includes(helper)&&html.includes(main));
  assert.ok(html.indexOf(helper)<html.indexOf(main));
  assert.ok(html.includes('js/game-run-summary.js?v=20261103-summary-phase18'));

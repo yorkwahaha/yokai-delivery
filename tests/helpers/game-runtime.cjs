@@ -58,6 +58,15 @@ const FIXTURE = `window.fixture = {
   setState: next => { state=next; ended=false; },
   setOil: value => { oil=value; },
   setElapsed: value => { elapsed=value; },
+  // Read-only probes for stateful combat/frame contracts; injected into the
+  // VM fixture, never shipped with production js/game.js.
+  combatPhase: () => ({
+    state, curse: bossCurseRemaining, sealBreakBoss: bossSealBreak?.boss || null,
+    simulationCarry, keyCount: keys.size, inputMode, gamepadButtons: [...gpPrevButtons],
+    weaponTimers: { ...wT }, selectedWeaponLevels: { ...WL }
+  }),
+  setCurseSeconds: seconds => { bossCurseRemaining=seconds; },
+  setFacingAngle: radians => { P.faceAng=radians; P.faceX=Math.cos(radians)>=0?1:-1; },
   setXp: value => { xp=value; },
   currentXp: () => xp,
   currentLevel: () => level,
