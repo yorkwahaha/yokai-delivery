@@ -1,3 +1,10 @@
+## 2026-11-03 工作樹同步完成／配送字卡測試補正
+
+- 原始主工作樹已在檢查 205 個備份檔逐檔 SHA256 與 safety branch `safety/precleanup-original-20261103` 後，安全對齊正式 `origin/master`，再依經過核准的 `git clean -n` 清單移出 26 個已備份本機暫存檔。原有 650 筆 Git status 全部清除，原始 `master` 潔淨。備份位於 `I:\Projects\_yokai-delivery-precleanup-20261103`（`manifest.json` + 205 檔）；本機原始 `art/`、Agent skills、7 個候選 VFX 圖、package-lock 與測試設定留在本機，未提升為正式發布資產。
+- 獨立核查完整歷史測試 215 檔／1,601 項中約 495–496 項失敗；Grok 確認如 agy-m1-b/d 的 107 個測試主要因過期 VM harness 未載入新模組而在啟動前失敗，舊融合與舊提示合約、過期美術時序亦有不合現行規格的斷言。這批後續必須分 active/legacy 並逐項核對，**不能稱為全套 `npm test` PASS**。
+- `tests/card-delivery-runtime.test.cjs` 修正「聽題提示被停用、不改學習盒等級；獨立配送成功才進學習盒」及「Boss 答題不增加配送字卡印記，但字卡先前已有印記不得強制歸零」兩項現行合約。保持正式遊戲程式不動。
+- 仍暫停 Phase 30。原始 Git workspace 清理完成不代表全部歷史測試已轉為現行測試。
+
 ## 2026-11-03 測試與工作樹清理 — 首批基準修復
 
 - 正式提交 `3f96f1265527ada77ab9493418b9c32908f2c834` 的擴大回歸 49 檔原先 **328/339**、失敗 11 項。核對四組陳舊測試：Boss renderer 第四個 `owner` 參數及雨港專屬著色、Phase20 教學規則外移、舊提示功能停用與答錯依最大燈油 5% 扣款、新配送字卡選詞取代舊 study 池，以及 Boss ring 測試 500 字元視窗太短。只改 `tests/boss-telegraph-delegate-r1.test.cjs`、`tests/combat-boundaries-stage-tutorial-20261029.test.cjs`、`tests/boss-ring-sweep-20261024.test.cjs`、`tests/v3-contract-gate.test.cjs`；不改正式遊戲行為。增加雨港 fallback 與真 Boss owner 契約，新基準 **340/340** 全過。

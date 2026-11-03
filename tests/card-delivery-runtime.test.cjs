@@ -376,13 +376,19 @@ test("hint listening and boss answers do not stamp a delivery mark", () => {
   game.triggerHint();
   assert.equal(game.markOf(job.word.jp), 0);
   assert.equal(game.state(), "play");
+  assert.equal(game.env.STORE.get(job.word.jp).box, before,
+    'disabled hint cannot advance the learning box');
   game.resolve(job.ans.indexOf(job.word));
   assert.equal(game.markOf(job.word.jp), 1);
-  assert.equal(game.env.STORE.get(job.word.jp).box, before);
+  assert.equal(game.env.STORE.get(job.word.jp).box, before + 1,
+    'independent delivery recall can advance the learning box');
   game.resetChooseCount();
-  const boss = game.prepareBoss(game.pool()[1]);
+  const bossWord = game.pool()[1];
+  const bossMarksBefore = game.markOf(bossWord.jp);
+  const boss = game.prepareBoss(bossWord);
   game.answerBoss(boss.ans.indexOf(boss.word));
-  assert.equal(game.markOf(boss.word.jp), 0);
+  assert.equal(game.markOf(boss.word.jp), bossMarksBefore,
+    'Boss quiz must not add delivery marks even if its word was delivered earlier');
   assert.equal(game.chooseCalls(), 0);
   assert.ok(game.env.STORE.get(boss.word.jp).ok >= 1);
 });
