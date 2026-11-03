@@ -32,5 +32,38 @@ window.GAME_BUILD_RULES = (() => {
       duos: [...duos]
     };
   }
-  return Object.freeze({ getSkillMutations, isMutationFamilyTaken, canAddMutation, createBuildState });
+  function weaponOfferKeys(weapons, levels, maxActive, seals, host) {
+    const owned = Object.keys(weapons).filter(k => (levels[k] || 0) > 0);
+    const canLearnNew = owned.length < maxActive;
+
+    // 武器選項：未滿 4 槽位可學新武器，已滿 4 槽位僅允許升級持有武器
+    const eligibleWeaponKeys = Object.keys(weapons).filter(k => {
+      if (k.startsWith("fusion_")) return false; // 融合武器不可由普通升級抽取
+      if (host.FUSION && typeof host.FUSION.isSkillConsumed === "function" && host.FUSION.isSkillConsumed(k)) return false;
+      if ((levels[k] || 0) >= 4) return false;
+      if (levels[k] === 0 && !canLearnNew) return false;
+      return true;
+    });
+    const awakenKeys = Object.keys(weapons).filter(k => {
+      if (k.startsWith("fusion_")) return false;
+      if (host.FUSION && typeof host.FUSION.isSkillConsumed === "function" && host.FUSION.isSkillConsumed(k)) return false;
+      return levels[k] === 4 && seals > 0;
+    });
+
+    return {eligibleWeaponKeys, awakenKeys};
+  }
+  function duoOfferKeys(duoConfig, ownedDuos, levels) {
+    const eligibleDuoKeys = Object.keys(duoConfig).filter(duoId => {
+      const cfg = duoConfig[duoId];
+      if (!cfg || !cfg.inPool) return false;
+      if (ownedDuos.includes(duoId)) return false;
+      return cfg.skillIds.every(s => (levels[s] || 0) >= 3);
+    });
+
+    return eligibleDuoKeys;
+  }
+  return Object.freeze({
+    getSkillMutations, isMutationFamilyTaken, canAddMutation,
+    createBuildState, weaponOfferKeys, duoOfferKeys
+  });
 })();

@@ -1,3 +1,10 @@
+## 2026-11-03 JS 模組化 Phase 19 — 升級資格純規則集中管理
+
+- 從 \`game.js\` 的 \`getEligibleChoices()\` 搬出普通武器可學習池、Lv4 + 印記的覺醒池、以及 legacy Duo 的兩技 Lv3+ 與 \`inPool\` 條件，集中到已存在的 \`GAME_BUILD_RULES.weaponOfferKeys()/duoOfferKeys()\`；保留四槽上限、已被融合消耗技能排除、融合武器禁普通升級、既有 callback 查詢順序。
+- 拆前原版規則保存 \`tests/fixtures/game-offer-rules-original-phase19.js\`，新版約 2,400 組武器等級、持有量、印記、融合消耗狀態的選項集合與 callback 呼叫順序逐筆比對，再以超過一千組 Duo 組合檢查已擁有／不入池／雙技等級。
+- 不修改卡牌 \`ok()/f()\`、升級時序、已選變異、Boss AI、使用者技能等級或存檔。僅改用 \`?v=20261103-build-phase19\` 的既有純規則與 \`game.js\`，沒有新增小模組。
+- 選定整合 **162/162** 通過，兩份 JS 語法、Git 差異檢查通過；使用者仍可等安全拆分結束後整體試玩。
+
 ## 2026-11-03 JS 模組化 Phase 18 — 學習成果及覺醒印記摘要
 
 - 把 \`learningSummary()\` 及 \`awakeningState()\` 中共約 29 行純資料彙整搬到 \`js/game-run-summary.js\`。正式入口與實際 \`STORE.data.m\`、本局起始熟練度、獨立／輔助回想計數、印記／技能等級等持久狀態均留 \`game.js\`，新模組只讀取傳入資料並建立新回傳物件。

@@ -61,7 +61,7 @@ test('Phase6 wrapper matches original chunk scanning, duplicate Y rows, negative
 test('Phase6 keeps world chunk cache access in main game and loads updated geometry before game',()=>{
  const html=fs.readFileSync('index.html','utf8');
  assert.ok(html.includes('js/game-geometry.js?v=20261103-input-phase15'));
- assert.ok(html.includes('js/game.js?v=20261103-summary-phase18'));
+ assert.ok(html.includes('js/game.js?v=20261103-build-phase19'));
  assert.ok(html.indexOf('js/game-geometry.js')<html.indexOf('js/game.js'));
  assert.match(game,/WORLD_STATE\.getChunk\(cx, cy\)/);
  assert.match(game,/GAME_GEOMETRY\.countInteriorHouseColumns\(houseXs, lo, hi\)/);
