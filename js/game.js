@@ -7043,17 +7043,11 @@ function spawnEnemy(tier, rad, ang, ring) {
   const pp = e => {
     const r = cv.getBoundingClientRect();
     const v = window.VIEWPORT?.get() || {width:W,height:H,offsetX:0,offsetY:0};
-    return {
-      x: (e.clientX - r.left) * v.width / r.width - v.offsetX,
-      y: (e.clientY - r.top) * v.height / r.height - v.offsetY
-    };
+    return window.GAME_GEOMETRY.pointerWorld(e, r, v);
   };
-  const hit = (p, bt) => Math.hypot(p.x - bt.x, p.y - bt.y) < bt.r + 10;
-  const hitButton = (p, bt) => {
-    const minimum = 44 / (window.VIEWPORT?.get().scale || 1);
-    const px = Math.max(0, (minimum - bt.w) / 2), py = Math.max(0, (minimum - bt.h) / 2);
-    return p.x >= bt.x - px && p.x <= bt.x + bt.w + px && p.y >= bt.y - py && p.y <= bt.y + bt.h + py;
-  };
+  const hit = (p, bt) => window.GAME_GEOMETRY.hitCircle(p, bt);
+  const hitButton = (p, bt) =>
+    window.GAME_GEOMETRY.hitButton(p, bt, window.VIEWPORT?.get().scale);
 
   function noteLoadingGesture(e) {
     if (state !== "overworld") return;
@@ -7089,14 +7083,7 @@ function spawnEnemy(tier, rad, ang, ring) {
     if (!p) return -1;
     const { card } = levelUpLayout();
     const cards = typeof UI.levelUpLayout === "function" ? UI.levelUpLayout(choices.length)?.cards : null;
-    const count = choices.length;
-    for (let i = 0; i < count; i++) {
-      const rect = cards?.[i] || {x:card.x,y:card.y+i*(card.h+card.gap),w:card.w,h:card.h};
-      if (p.x >= rect.x && p.x <= rect.x + rect.w && p.y >= rect.y && p.y <= rect.y + rect.h) {
-        return i;
-      }
-    }
-    return -1;
+    return window.GAME_GEOMETRY.levelUpCardIndex(p, cards, card, choices.length);
   }
 
   function hitLevelUpReroll(p) {

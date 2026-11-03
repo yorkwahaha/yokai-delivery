@@ -20,5 +20,35 @@ window.GAME_GEOMETRY = (() => {
     }
     return columns.size;
   }
-  return Object.freeze({ deliveryBarrierContains, countInteriorHouseColumns });
+  // All hit tests are in canvas/world coordinates. UI layout and actions
+  // stay owned by game.js; keep strict edges and minimum touch dimensions.
+  function pointerWorld(event, rect, viewport) {
+    return {
+      x: (event.clientX - rect.left) * viewport.width / rect.width - viewport.offsetX,
+      y: (event.clientY - rect.top) * viewport.height / rect.height - viewport.offsetY
+    };
+  }
+  function hitCircle(point, button) {
+    return Math.hypot(point.x - button.x, point.y - button.y) < button.r + 10;
+  }
+  function hitButton(point, button, scale) {
+    const minimum = 44 / (scale || 1);
+    const px = Math.max(0, (minimum - button.w) / 2), py = Math.max(0, (minimum - button.h) / 2);
+    return point.x >= button.x - px && point.x <= button.x + button.w + px &&
+      point.y >= button.y - py && point.y <= button.y + button.h + py;
+  }
+  function levelUpCardIndex(point, cards, card, count) {
+    for (let i = 0; i < count; i++) {
+      const rect = cards?.[i] || {x:card.x,y:card.y+i*(card.h+card.gap),w:card.w,h:card.h};
+      if (point.x >= rect.x && point.x <= rect.x + rect.w &&
+          point.y >= rect.y && point.y <= rect.y + rect.h) {
+        return i;
+      }
+    }
+    return -1;
+  }
+  return Object.freeze({
+    deliveryBarrierContains, countInteriorHouseColumns,
+    pointerWorld, hitCircle, hitButton, levelUpCardIndex
+  });
 })();

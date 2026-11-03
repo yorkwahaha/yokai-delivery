@@ -1,3 +1,9 @@
+## 2026-11-03 JS 模組化 Phase 15 — 世界指標與輸入命中幾何
+
+- \`game.js\` 的 canvas 指標轉世界座標、圓形攻擊鈕、帶 44px 最低觸控範圍的矩形按鈕、升級卡候選矩形命中序號，搬到已存在的 \`GAME_GEOMETRY\` 純函式。主遊戲仍負責抓取 canvas rect、viewport、卡片排版及按鍵後的操作，僅將數值計算外移。
+- 新測試涵蓋直向／橫向／縮放／位移畫面、圓形嚴格邊界、矩形邊界與 touch 最小尺寸、升級卡自訂座標與空卡備援，逐值與原版一致。
+- 只變動 \`game-geometry.js\` 與 \`game.js\` cache bust；既有 scripts、控制事件、音訊與 state machine 不搬動。選定回歸 **147/147 通過**，等待整體完成才一次實機驗收。
+
 ## 2026-11-03 JS 模組化 Phase 14 — Boss 基本規格／暴擊機率純計算
 
 - 原 \`bossBlueprint(index)\` 及 \`rollCrit()\` 中機率計算搬往 \`js/game-combat-math.js\` 的純函式；\`game.js\` 保留 \`rollCrit\` 正式入口與唯一一次 \`Math.random()\` 抽取、結果倍數和所有傷害呼叫。Boss AI、生成時序與 HP 配置資料不變。

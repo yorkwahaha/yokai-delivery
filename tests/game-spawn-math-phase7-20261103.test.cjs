@@ -79,8 +79,8 @@ test('Phase7: does not mutate caller stage inputs and supports out-of-band high 
 test('Phase7: browser loads spawn formula before game and preserves other module versions',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const spawn='js/game-spawn-math.js?v=20261103-spawn-phase9';
- const game='js/game.js?v=20261103-combat-phase14';
+ const game='js/game.js?v=20261103-input-phase15';
  assert.ok(html.includes(spawn)&&html.includes(game));
  assert.ok(html.indexOf(spawn)<html.indexOf(game));
- assert.ok(html.includes('js/game-geometry.js?v=20261103-geometry-phase6'));
+ assert.ok(html.includes('js/game-geometry.js?v=20261103-input-phase15'));
 });
