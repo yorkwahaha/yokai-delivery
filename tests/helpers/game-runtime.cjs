@@ -57,6 +57,7 @@ const FIXTURE = `window.fixture = {
   failCount: () => failed,
   setState: next => { state=next; ended=false; },
   setOil: value => { oil=value; },
+  setInvulnerability: value => { P.inv=value; },
   setElapsed: value => { elapsed=value; },
   // Read-only probes for stateful combat/frame contracts; injected into the
   // VM fixture, never shipped with production js/game.js.
@@ -327,6 +328,7 @@ const FIXTURE = `window.fixture = {
   clearEnemies: () => { enemies=enemies.filter(e=>e.type==='boss'); },
   stopSpawns: () => { spawnT=Infinity; surgeT=Infinity; },
   scheduleBoss: () => { bossT=0; },
+  forceBossSchedule: (index, timer=0) => { bossStage=index; bossT=timer; },
   advanceBossClock: offset => { elapsed=BOSS_TIMES[bossStage]+offset; bossT=-offset; },
   prepareBoss: word => { const bs={x:P.x+200,y:P.y,type:'boss',word:word||ALL[0],hp:999,max:999,shield:true,flash:0,wob:0,speed:0};
     enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
