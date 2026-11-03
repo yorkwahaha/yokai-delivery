@@ -1442,17 +1442,10 @@
   }
 
   function getBuildState() {
-    const activeSkills = Object.keys(WI).filter(k => (WL[k] || 0) > 0);
-    return {
-      schemaVersion: 1,
-      activeSkills,
-      WL: { ...WL },
-      ownedActiveCount: activeSkills.length,
-      charms: [...buildCharms],
-      charmLevels: Object.fromEntries(buildCharms.map(id => [id, charmLevelOf(id)])),
-      mutations: [...buildMutations],
-      duos: [...buildDuos]
-    };
+    // Only clone and organize the current build. Live state stays in game.js.
+    return window.GAME_BUILD_RULES.createBuildState(
+      WI, WL, buildCharms, buildMutations, buildDuos, charmLevelOf
+    );
   }
 
   function resolveAttackSpec(skillId, lvl, buildState, options = {}) {

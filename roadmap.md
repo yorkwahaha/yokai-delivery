@@ -1,3 +1,9 @@
+## 2026-11-03 JS 模組化 Phase 11 — 玩家 build 資料快照
+
+- 原 \`getBuildState()\` 輕量化為呼叫 \`GAME_BUILD_RULES.createBuildState(WI, WL, buildCharms, buildMutations, buildDuos, charmLevelOf)\`，保留目前玩家狀態讀取和資料生命週期於 \`game.js\`，只把建立 \`schemaVersion/activeSkills/WL/charms/charmLevels/mutations/duos\` 的新物件組裝搬入既有純規則模組。
+- \`Object.keys(WI)\` 順序、\`WL\` 快照、御守等級呼叫順序以及四個陣列/映射的獨立拷貝完全保留；不影響現有技能升級／裝備、存檔或隨機抽選。
+- 原公式逐值比對、修改快照不污染原生 live build 的測試通過，整合測試 131/131；只更換 \`game-build-rules.js\`／\`game.js\` cache key，持續連續測試提交而不要求每輪使用者試玩。
+
 ## 2026-11-03 JS 模組化 Phase 10 — 配送候選池資料篩選
 
 - 從 \`makeOrder()\` 提取雨港取件點、雨港送達點和夜町送達點的純候選池篩選函式至新 \`js/game-delivery-rules.js\`；保留 \`game.js\` 的言靈選擇、\`portHousesNear/houseColumnsBetween\`、\`pick\`/Math.random 抽取時機、委託建立與紀錄。

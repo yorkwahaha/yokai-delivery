@@ -19,5 +19,18 @@ window.GAME_BUILD_RULES = (() => {
     return (skillLevels[cfg.skillId] || 0) > 0
       && getSkillMutations(cfg.skillId, list, mutationConfig).length < slotsPerSkill;
   }
-  return Object.freeze({ getSkillMutations, isMutationFamilyTaken, canAddMutation });
+  function createBuildState(weapons, levels, charms, mutations, duos, charmLevelOf) {
+    const activeSkills = Object.keys(weapons).filter(k => (levels[k] || 0) > 0);
+    return {
+      schemaVersion: 1,
+      activeSkills,
+      WL: { ...levels },
+      ownedActiveCount: activeSkills.length,
+      charms: [...charms],
+      charmLevels: Object.fromEntries(charms.map(id => [id, charmLevelOf(id)])),
+      mutations: [...mutations],
+      duos: [...duos]
+    };
+  }
+  return Object.freeze({ getSkillMutations, isMutationFamilyTaken, canAddMutation, createBuildState });
 })();
