@@ -34,5 +34,14 @@ window.GAME_COMBAT_MATH = (() => {
     }
     return chance;
   }
-  return Object.freeze({ bossBlueprint, critChance });
+  // Phase24: original Katana distance + facing-cone test shared by
+  // the cast gate and the actual damage loop. Pure: no RNG, no mutations.
+  function bladeArcContains(player, enemy, reach, faceAng, arc) {
+    if (!(Math.hypot(player.x - enemy.x, player.y - enemy.y) <= reach)) return false;
+    const eang = Math.atan2(enemy.y - player.y, enemy.x - player.x);
+    let diff = Math.abs(eang - faceAng);
+    while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
+    return diff <= arc;
+  }
+  return Object.freeze({ bossBlueprint, critChance, bladeArcContains });
 })();

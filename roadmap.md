@@ -1,3 +1,11 @@
+## 2026-11-03 JS 模組化 Phase 24 — 妖刀索敵角度與命中扇形純函式
+
+- 基準為已提交 Phase 23 的 \`4018c43\`。從 \`weapons()\` 的妖刀「準備發動：範圍內有敵人」和「斬擊判定：目標在前方扇形內」**兩處重複距離 + 朝向計算**抽到既有 \`js/game-combat-math.js\` 的 \`bladeArcContains(player, enemy, reach, faceAng, arc)\`。保留原本所有 \`hp > 0\`、Lv5 例外、長刀射程、傷害倍率、技能特效、命中順序、單字／Boss 關聯、出刀冷卻和隨機數在 \`game.js\`。此批不新增小模組，不變更敵人狀態或卡牌。
+- 拆之前將原版公式保存成 \`tests/fixtures/katana-arc-original-phase24.js\`；新 \`tests/game-combat-blade-cone-phase24-20261103.test.cjs\` 比對**25,000 組有固定亂數種子的角度、距離、Lv1/Lv5 射程、Nan/Infinity/負射程、不同 arc**，以及多組精確射程／角度邊界。保留原先的 \`while(diff > Math.PI)\` 角度折返規則，不改善或更動非正規角度以免改動玩法。
+- \`index.html\` 將 \`game-combat-math.js\` 改為 \`?v=20261103-combat-phase24\`，\`game.js\` 改為 \`?v=20261103-blade-phase24\`，既有版本斷言同步更新。測試 VM 的模組載入順序保持不變，未修改 \`tests/helpers\` 這次已部署的狀態探針。
+- 新增 4 項純幾何測試，連同 Phase 23/22 多敵及戰鬥回歸 **253/253 全通過**，\`node --check\` 與 Git diff check 通過。未執行用戶最後實機驗收，亦不宣稱歷史全套 input-runtime 已全綠。
+- 下一步：針對 \`weapons()\` 的群體索敵限制與結算順序，保持單 writer、先 golden 再拆；\`hurt/update/drawWorld\` 大型狀態流程繼續維持原位，待專門事件序列保護足夠再考慮拆分。
+
 ## 2026-11-03 戰鬥核心安全拆分前置 Phase 23 — 多敵、跨階段事件序列
 
 - 固定從正式版 \`fc216c3\` 隔離工作副本出發，本批**不修改遊戲正式 JS**，僅新增 \`tests/core-multi-enemy-stage-phase23-20261103.test.cjs\`（**17 個真實執行 VM 行為測試**）及擴充測試用 \`tests/helpers/game-runtime.cjs\` 的無敵時間／Boss 排程探針。

@@ -2898,14 +2898,11 @@ if (isRainPort) {
       const faceAng = P.faceAng || 0;
       let hasEnemyInArc = false;
       for (const e of enemies) {
-        if (e.hp > 0 && dist(P, e) <= (spec.isAwakened ? (spec.hasLongblade ? 680 : 560) : reach)) {
-          const eang = Math.atan2(e.y - P.y, e.x - P.x);
-          let diff = Math.abs(eang - faceAng);
-          while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
-          if (diff <= spec.arc) {
-            hasEnemyInArc = true;
-            break;
-          }
+        if (e.hp > 0 && window.GAME_COMBAT_MATH.bladeArcContains(
+          P, e, spec.isAwakened ? (spec.hasLongblade ? 680 : 560) : reach, faceAng, spec.arc
+        )) {
+          hasEnemyInArc = true;
+          break;
         }
       }
       if (!hasEnemyInArc) {
@@ -2922,14 +2919,9 @@ if (isRainPort) {
         const mainHits = new Set();
         // 僅判定面朝方向前方扇形範圍 (角度差 <= spec.arc 弧度，約 140 度角)
         for (const e of enemies) {
-          if (e.hp > 0 && !spec.isAwakened) {
-            const ed = dist(P, e);
-            if (ed <= reach) {
-              const eang = Math.atan2(e.y - P.y, e.x - P.x);
-              let diff = Math.abs(eang - faceAng);
-              while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
-              if (diff <= spec.arc) {
-                mainHits.add(e);
+          if (e.hp > 0 && !spec.isAwakened &&
+              window.GAME_COMBAT_MATH.bladeArcContains(P, e, reach, faceAng, spec.arc)) {
+            mainHits.add(e);
                 const wasBurned = !!(e.fireBurnEnds && e.fireBurnEnds > elapsed);
                 const hpBefore = e.hp;
                 const crit = rollCrit(spec);
@@ -2938,8 +2930,6 @@ if (isRainPort) {
                 if (spec.hasDuoInkfire && !qualifyingInkfireHit && wasBurned && e.hp < hpBefore && !e.shield && !e.vanish && !e.done) {
                   qualifyingInkfireHit = { x: e.x, y: e.y, baseDmg: spec.slashDmg };
                 }
-              }
-            }
           }
         }
         if (qualifyingInkfireHit && inkfireMarks.length < 16) {

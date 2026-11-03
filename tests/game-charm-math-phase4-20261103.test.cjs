@@ -111,7 +111,7 @@ test('Phase 4: explicit buildState retains its own charm levels and original bas
 test('Phase 4: HTML loads updated charm math before game, without touching other script versions', () => {
   const html = fs.readFileSync('index.html', 'utf8');
   const math = 'js/game-charm-math.js?v=20261103-charm-phase5';
-  const game = 'js/game.js?v=20261103-core-render-phase22';
+  const game = 'js/game.js?v=20261103-blade-phase24';
   assert.ok(html.includes(math));
   assert.ok(html.includes(game));
   assert.ok(html.indexOf(math) < html.indexOf(game));
