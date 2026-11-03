@@ -1,3 +1,10 @@
+## 2026-11-03 JS 模組化 Phase 10 — 配送候選池資料篩選
+
+- 從 \`makeOrder()\` 提取雨港取件點、雨港送達點和夜町送達點的純候選池篩選函式至新 \`js/game-delivery-rules.js\`；保留 \`game.js\` 的言靈選擇、\`portHousesNear/houseColumnsBetween\`、\`pick\`/Math.random 抽取時機、委託建立與紀錄。
+- 完整保留 480–1650px、470–1750px、至少一列中間屋、preferred／fallback、near/far 分群及各自候選順序；未改跨 chunk 生成與保留已取貨狀態。
+- 新 VM 與歷史測試依賴補登，不覆蓋本機先前清理的檔案；\`index.html\` 在 \`game.js\` 前載模組並更換單一 \`game.js\` cache key。
+- 嚴格對比新舊結果與每次 \`colsBetween/dist\` callback 的呼叫順序，選定整合 127/127 通過（包含雨港連續六配送回歸）；最終由使用者一次正式版試玩確認。
+
 ## 2026-11-03 JS 模組化 Phase 9 — 怪物種類與屬性選擇純規則
 
 - \`spawnEnemy\` 仍由遊戲負責抽取相同的 \`Math.random()\`、\`spawnPosition\`、\`enemies.push\` 與 HP scaling；僅將原先選擇 ghost/runner/tank/shooter/shiome 的條件、原始 HP 與速度公式抽至 \`GAME_SPAWN_MATH.enemySpec(tier,r,options)\`。

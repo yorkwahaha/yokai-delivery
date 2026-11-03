@@ -2368,32 +2368,10 @@
 if (isRainPort) {
       // rain-port：取件點根據上次送達位置選擇（遠離上次送達點，3~8屋跨度，常見 4~7）
       const referenceX = lastDeliveryX !== null ? lastDeliveryX : P.x;
-      const minH = 480, maxH = 1650, comMinH = 700, comMaxH = 1450;
-      // 最少中間屋數：1棟（硬性門檻），目標 2 棟
-      const minBetweenHouses = 1;
-      const targetBetweenHouses = 2;
-
-      // 屋列口徑：已批准為「沿途所有真 chunk 的房屋、50px X 列去重、兩端不計」。
-      // 原本只用「目前已載入 chunk」的 houses 計數，會漏算中間未載入的屋列，
-      // 讓 2 屋列的取貨點被當成合格；這裡改用與驗收同一口徑的階段級屋列。
+      // Approved house-column semantics and pixel limits stay in the helper.
+      // The callback keeps chunk access in game.js, with no RNG in selection.
       const colsBetween = (a, b) => houseColumnsBetween(a, b);
-
-      // 第一優先：按中間屋數篩選（硬性門檻）；同屋/同列因屋列數為 0 自然被排除
-      let reachable = openHouses.filter(h => colsBetween(h.x, referenceX) >= minBetweenHouses);
-      // 第二優先：在達到最少屋數的基礎上，偏好目標屋數範圍
-      const preferred = reachable.filter(h => colsBetween(h.x, referenceX) >= targetBetweenHouses && colsBetween(h.x, referenceX) <= 8);
-      // 第三優先：像素距離輔助篩選（避免過遠導致跨太多 chunk）
-      const pixelFiltered = (preferred.length ? preferred : reachable).filter(h => {
-        const dx = Math.abs(h.x - referenceX);
-        return dx >= minH && dx <= maxH;
-      });
-      // 兜底：即使放寬像素距離，也必須至少隔開一間屋。
-      const fallback = openHouses.filter(h => {
-        const dx = Math.abs(h.x - referenceX);
-        return dx >= 470 && dx <= 1750 && colsBetween(h.x, referenceX) >= minBetweenHouses;
-      });
-      // Never prefer unlimited-distance matches over a bounded fallback.
-      const pool = pixelFiltered.length ? pixelFiltered : fallback;
+      const pool = window.GAME_DELIVERY_RULES.portPickupPool(openHouses, referenceX, colsBetween);
 
       if (!pool.length) return;
 
@@ -2403,13 +2381,10 @@ if (isRainPort) {
       if (!from) return;
 
       // 送達點：優先一至兩棟隔間距，降低前期跑圖時間。
-      const minH2 = 480, maxH2 = 1650, comMinH2 = 700, comMaxH2 = 1450;
       const destinationHouses = portHousesNear(from.x);
-      const reachable2 = destinationHouses.filter(h => h.id !== from.id && Math.abs(h.x - from.x) >= minH2 && Math.abs(h.x - from.x) <= maxH2 && colsBetween(h.x, from.x) >= minBetweenHouses);
-      const pool2 = reachable2.length ? reachable2 : destinationHouses.filter(h => h.id !== from.id && Math.abs(h.x - from.x) >= 470 && Math.abs(h.x - from.x) <= 1750 && colsBetween(h.x, from.x) >= minBetweenHouses);
+      const {pool: pool2, far: far2, near: near2} =
+        window.GAME_DELIVERY_RULES.portDestinationPools(destinationHouses, from, colsBetween);
       if (!pool2.length) return;
-      const far2 = pool2.filter(h => Math.abs(h.x - from.x) >= comMinH2);
-      const near2 = pool2.filter(h => Math.abs(h.x - from.x) < comMinH2);
       let to = null;
       // 降低近距離送達機率：15% -> 8%
       if (Math.random() < 0.08 && near2.length > 0) {
@@ -2431,13 +2406,8 @@ if (isRainPort) {
     if (!from2) return;
 
     // 最低合理分隔提升至 580px，合理上限 1250px，確保取件→送達平均路程明顯拉高且不致過度漂移
-    const reachable = houses.filter(h => h !== from2 && dist(h, from2) >= 580 && dist(h, from2) <= 1250);
-    const pool = reachable.length ? reachable : houses.filter(h => h !== from2 && dist(h, from2) >= 420 && dist(h, from2) <= 1600);
+    const {pool, far, near} = window.GAME_DELIVERY_RULES.townDestinationPools(houses, from2, dist);
     if (!pool.length) return;
-
-    // 分隔層級：中長程（850–1250px，約 70%）與近路捷徑（580–850px，約 30%）
-    const far = pool.filter(h => dist(h, from2) >= 850);
-    const near = pool.filter(h => dist(h, from2) < 850);
     let to = null;
     if (Math.random() < 0.30 && near.length > 0) {
       to = pick(near);
