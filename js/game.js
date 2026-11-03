@@ -3801,16 +3801,7 @@ if (isRainPort) {
             nd.retargetT = (nd.retargetT || 0) - dt;
             if (nd.retargetT <= 0) {
               nd.retargetT = 0.12;
-              let nearest = nd.seekRange || 480;
-              for (const e of enemies) {
-                if (e.hp > 0 && !nd.hits?.has(e)) {
-                  const d = dist(nd, e);
-                  if (d < nearest) {
-                    nearest = d;
-                    nd.target = e;
-                  }
-                }
-              }
+              nd.target = window.GAME_COMBAT_MATH.needleSeekTarget(enemies, nd);
             }
           }
           if (nd.target && nd.target.hp > 0) {

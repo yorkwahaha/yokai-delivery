@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl} = require('./helpers/script-url.cjs');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -73,7 +74,7 @@ test('Phase9 pure helper never mutates input or draws RNG',()=>{
 test('Phase9 HTML loads changed module before game, preserves enemy config source',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const spawn='js/game-spawn-math.js?v=20261103-spawn-phase9';
- const game='js/game.js?v=20261103-dragon-phase29';
+ const game=scriptUrl('game');
  assert.ok(html.includes(spawn)&&html.includes(game));
  assert.ok(html.indexOf(spawn)<html.indexOf(game));
  assert.ok(html.includes('js/game-build-rules.js?v=20261103-build-phase19'));

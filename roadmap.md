@@ -1,3 +1,11 @@
+## 2026-11-04 Phase30｜靈針追蹤目標選擇純函式化（可技術驗證，待使用者最終試玩）
+
+- 前置任務已完成：最初 130 份歷史測試逐檔跑完並分類，**59 份納入正式回歸、71 份保留明示歷史歸檔**；清冊 `docs/TEST_TRIAGE_20261104.json` 與 `docs/TEST_TRIAGE_20261104.md`，提交 `6e513a4`。71 份不是已修復或已全綠的宣稱。
+- Phase30 只從 `weapons()` 抽離 `GAME_COMBAT_MATH.needleSeekTarget(enemies, nd)`；嚴格小於射程、首次同距離勝出、HP 與已命中集合等判斷完全依原邏輯，**不變動 6 招技能威力、飛行／轉向、冷卻、隨機數與時序**。
+- 用凍結原版索敵函式做 20,000 組 seeded identity parity，比對範圍、同距離、NaN、空陣列與已命中目標；另跑現行 `mut_seek` 真 VM 射擊和 cache 版本檢查。HTML 只更新 `game.js` 與 `game-combat-math.js` 快取查詢。
+- 清理 25 份測試的舊 `game.js` 日期版號寫死問題，以共用 `scriptUrl()` 檢查真正 HTML 載入與版號格式，避免下一個 Phase 再重修同一批字串斷言。
+- **USER_PLAYTEST_PENDING**：此輪純重構測試通過不是遊戲手感或整局通關的真人驗收。
+
 ## 2026-11-03 第二位獨立 Agent 檢查與現行回歸擴充
 
 - Herdr Grok 4.7 唯讀核對 `agy-m1-d`（42/88）和 `input-runtime`（103/161）失敗，無已驗證的新正式遊戲 P0/P1 Bug；逐項指出舊三變異、已退役共享 `mut_fan`、Duo 入池、付費提示、舊版答錯扣油、沒有 canvas `target` 的測試手勢，以及舊靈針折返距離的測試差異。兩支留在歷史集，不改正式數值湊綠燈。

@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl} = require('./helpers/script-url.cjs');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
@@ -94,5 +95,5 @@ test('home menu shows gamepad controls plus mute or audio-block instructions',()
  assert.match(game,/AUDIO\.unlockFromInput\?\.\(\)/);
  assert.ok(html.includes('js/audio.js?v=20261102-audio-pad-hotfix'));
  assert.ok(html.includes('js/ui.js?v=20261103-hud-boss-layout-r1'));
- assert.ok(html.includes('js/game.js?v=20261103-dragon-phase29'));
+ assert.ok(html.includes(scriptUrl('game')));
 });

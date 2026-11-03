@@ -119,5 +119,23 @@ window.GAME_COMBAT_MATH = (() => {
     }
     return target;
   }
-  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets, dragonFireTarget });
+  // Phase30: needle's tracking mutation picks the nearest unhit living foe.
+  // The original strict < threshold gives the first enemy priority on ties.
+  // Do not filter shields/vanish/done here: preserve the exact shipped rule.
+  // Retarget cooldown, homing turn, projectile state and damage stay in game.
+  function needleSeekTarget(enemies, needle) {
+    let nearest = needle.seekRange || 480;
+    let chosen = null;
+    for (const e of enemies) {
+      if (e.hp > 0 && !needle.hits?.has(e)) {
+        const d = Math.hypot(needle.x - e.x, needle.y - e.y);
+        if (d < nearest) {
+          nearest = d;
+          chosen = e;
+        }
+      }
+    }
+    return chosen;
+  }
+  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets, dragonFireTarget, needleSeekTarget });
 })();

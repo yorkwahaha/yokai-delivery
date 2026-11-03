@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl} = require('./helpers/script-url.cjs');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -77,5 +78,5 @@ test('Audit P1-5 M key unmute calls gesture unlock while muting does not',()=>{
  assert.equal(env.AUDIO.muted,false);
  assert.equal(env.AUDIO.unlocks,1);
  const html=fs.readFileSync('index.html','utf8');
- assert.ok(html.includes('js/game.js?v=20261103-dragon-phase29'));
+ assert.ok(html.includes(scriptUrl('game')));
 });

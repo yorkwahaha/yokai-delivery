@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl} = require('./helpers/script-url.cjs');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -46,7 +47,7 @@ test('Phase13 original local registry identifiers still refer to catalog data wi
 test('Phase13 catalog loads before game with versioned HTML scripts',()=>{
   const html=fs.readFileSync('index.html','utf8');
   const catalogScript='js/game-catalog.js?v=20261103-catalog-phase13';
-  const gameScript='js/game.js?v=20261103-dragon-phase29';
+  const gameScript=scriptUrl('game');
   assert.ok(html.includes(catalogScript));
   assert.ok(html.includes(gameScript));
   assert.ok(html.indexOf(catalogScript)<html.indexOf(gameScript));

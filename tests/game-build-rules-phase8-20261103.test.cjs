@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl} = require('./helpers/script-url.cjs');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -80,7 +81,7 @@ test('Phase8 world-game wrapper accepts explicit list without changing input',()
 });
 test('Phase8 browser loads build predicates before game and keeps existing module versions',()=>{
  const html=fs.readFileSync('index.html','utf8');
- const script='js/game-build-rules.js?v=20261103-build-phase19',main='js/game.js?v=20261103-dragon-phase29';
+ const script='js/game-build-rules.js?v=20261103-build-phase19',main=scriptUrl('game');
  assert.ok(html.includes(script)&&html.includes(main));
  assert.ok(html.indexOf(script)<html.indexOf(main));
  assert.ok(html.includes('js/game-spawn-math.js?v=20261103-spawn-phase9'));

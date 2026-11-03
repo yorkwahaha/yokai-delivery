@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl} = require('./helpers/script-url.cjs');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const {loadGame}=require('./helpers/game-runtime.cjs');
@@ -206,7 +207,7 @@ test('drawWorld: rain-port frames and Boss bars preserve context save/restore at
 test('core rain module loads before the main game and has its seeded weather hash available',()=>{
  const fs=require('node:fs');
  const html=fs.readFileSync('index.html','utf8');
- assert.ok(html.includes('js/game.js?v=20261103-dragon-phase29'));
+ assert.ok(html.includes(scriptUrl('game')));
  assert.ok(html.indexOf('js/game-weather.js')>=0);
  assert.ok(html.indexOf('js/game-weather.js')<html.indexOf('js/game.js'));
  const weather=fs.readFileSync('js/game-weather.js','utf8');

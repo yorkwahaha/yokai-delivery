@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl} = require('./helpers/script-url.cjs');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -93,6 +94,6 @@ test('Phase10: all RNG and order mutation remain in game.js; module loaded befor
  assert.match(game,/orders\.push\(\{ from, to, word: chosenWord/);
  const html=fs.readFileSync('index.html','utf8');
  assert.ok(html.includes('js/game-delivery-rules.js?v=20261103-delivery-phase21'));
- assert.ok(html.includes('js/game.js?v=20261103-dragon-phase29'));
+ assert.ok(html.includes(scriptUrl('game')));
  assert.ok(html.indexOf('js/game-delivery-rules.js')<html.indexOf('js/game.js'));
 });

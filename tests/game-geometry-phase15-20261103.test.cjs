@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl} = require('./helpers/script-url.cjs');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -83,6 +84,6 @@ test('Phase15 game keeps viewport/UI layout calls; helper loaded before main gam
  assert.match(game,/GAME_GEOMETRY\.levelUpCardIndex\(p, cards, card, choices\.length\)/);
  const html=fs.readFileSync('index.html','utf8');
  assert.ok(html.includes('js/game-geometry.js?v=20261103-input-phase15'));
- assert.ok(html.includes('js/game.js?v=20261103-dragon-phase29'));
+ assert.ok(html.includes(scriptUrl('game')));
  assert.ok(html.indexOf('js/game-geometry.js')<html.indexOf('js/game.js'));
 });

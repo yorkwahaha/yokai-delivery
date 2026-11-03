@@ -27,7 +27,9 @@ test('original 130 historical files are individually classified with a grounded 
   assert.equal(records.filter(x=>x.disposition==='ACTIVE').length,59);
   assert.equal(records.filter(x=>x.disposition==='ARCHIVED').length,71);
   const {active,legacy}=lanes();
-  assert.equal(active.size,audit.final.active_files,'current lane count drift');
+  // The audit records the historical 130-file baseline, not a ceiling on
+  // future Phase30+ test additions to the current lane.
+  assert.ok(active.size>=audit.final.active_files,'current lane may grow after audit');
   assert.equal(legacy.size,audit.final.legacy_files,'archived lane count drift');
   for(const r of records){
     assert.ok(fs.existsSync(path.join(ROOT,'tests',r.file)),r.file+' may not be deleted');

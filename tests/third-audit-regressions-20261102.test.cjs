@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl} = require('./helpers/script-url.cjs');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -77,7 +78,7 @@ test('index refreshes the five changed JavaScript assets',()=>{
  assert.ok(html.includes('js/ui.js?v=20261103-hud-boss-layout-r1'));
  for(const key of ['renderer'])
    assert.match(html,new RegExp('js/'+key+'\\.js\\?v=20261102-water-slam-sfx'),key);
- assert.ok(html.includes('js/game.js?v=20261103-dragon-phase29'));
+ assert.ok(html.includes(scriptUrl('game')));
  assert.match(html,/js\/game-quiz-logic\.js\?v=20261102-quiz-phase1/);
  assert.ok(html.includes('js/game-geometry.js?v=20261103-input-phase15'));
  assert.ok(html.includes('js/game-charm-math.js?v=20261103-charm-phase5'));

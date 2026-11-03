@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl} = require('./helpers/script-url.cjs');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -82,8 +83,8 @@ test('Phase14 pure math module stays immutable and does not draw RNG or mutate c
 });
 test('Phase14 browser loads combat helper before main game with both phase-specific cache keys',()=>{
  const html=fs.readFileSync('index.html','utf8');
- const helper='js/game-combat-math.js?v=20261103-combat-auditfix';
- const main='js/game.js?v=20261103-dragon-phase29';
+ const helper=scriptUrl('game-combat-math');
+ const main=scriptUrl('game');
  assert.ok(html.includes(helper)&&html.includes(main));
  assert.ok(html.indexOf(helper)<html.indexOf(main));
  assert.ok(html.includes('js/game-catalog.js?v=20261103-catalog-phase13'));

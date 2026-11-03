@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl} = require('./helpers/script-url.cjs');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -68,7 +69,7 @@ test('Phase21 delivery rules stay side-effect free and are loaded before game',(
  assert.match(game,/GAME_DELIVERY_RULES\.fallbackWordPool\(\s*ALL, livingMisWords, activeOrderWords/);
  const html=fs.readFileSync('index.html','utf8');
  const helper='js/game-delivery-rules.js?v=20261103-delivery-phase21';
- const main='js/game.js?v=20261103-dragon-phase29';
+ const main=scriptUrl('game');
  assert.ok(html.includes(helper)&&html.includes(main));
  assert.ok(html.indexOf(helper)<html.indexOf(main));
 });

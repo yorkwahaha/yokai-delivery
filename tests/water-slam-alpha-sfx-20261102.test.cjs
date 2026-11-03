@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl} = require('./helpers/script-url.cjs');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -76,6 +77,6 @@ test('water Boss phase-triggered sounds are one-shot; night-town keeps its own i
 test('release cache keys changed for exactly the modified JavaScript files',()=>{
   assert.ok(html.includes('js/renderer.js?v=20261102-water-slam-sfx'));
   assert.ok(html.includes('js/audio.js?v=20261102-audio-pad-hotfix'));
-  assert.ok(html.includes('js/game.js?v=20261103-dragon-phase29'));
+  assert.ok(html.includes(scriptUrl('game')));
   assert.ok(html.includes('js/game-quiz-logic.js?v=20261102-quiz-phase1'));
 });

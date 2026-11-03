@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl} = require('./helpers/script-url.cjs');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -104,6 +105,6 @@ test('Audit P1-7 curse disables quiz option styling throughout the full penalty'
 test('Audit P1-6/7 game passes live curse counter and separate seal fade to UI',()=>{
  assert.match(game,/UI\.drawBossQuiz\(\s*ctx, job\?\.reading \? null : bossQ, inputMode, liveBosses, sealFade, bossCurseRemaining/);
  const html=fs.readFileSync('index.html','utf8');
- assert.ok(html.includes('js/game.js?v=20261103-dragon-phase29'));
+ assert.ok(html.includes(scriptUrl('game')));
  assert.ok(html.includes('js/ui.js?v=20261103-hud-boss-layout-r1'));
 });
