@@ -83,6 +83,6 @@ test('Phase15 game keeps viewport/UI layout calls; helper loaded before main gam
  assert.match(game,/GAME_GEOMETRY\.levelUpCardIndex\(p, cards, card, choices\.length\)/);
  const html=fs.readFileSync('index.html','utf8');
  assert.ok(html.includes('js/game-geometry.js?v=20261103-input-phase15'));
- assert.ok(html.includes('js/game.js?v=20261103-tutorial-phase20'));
+ assert.ok(html.includes('js/game.js?v=20261103-delivery-phase21'));
  assert.ok(html.indexOf('js/game-geometry.js')<html.indexOf('js/game.js'));
 });

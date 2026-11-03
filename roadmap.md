@@ -1,3 +1,11 @@
+## 2026-11-03 JS 模組化 Phase 21 — 配送單字排除、複習優先與備援池
+
+- 將 \`makeOrder()\` 的活躍誤配妖單字、待取／手持委託單字排除，缺漏單字複習優先池，以及找不到空閒候選時的二級／三級備援詞池改由既有的 \`GAME_DELIVERY_RULES\` 純函式計算。實際 \`STORE.get/pick\`、Study 選字、隨機抽取、卡牌選字與任務建立仍由 \`game.js\` 完成；新模組不新增任何亂數調用或儲存。
+- 拆前原始計算保存於 \`tests/fixtures/game-delivery-words-original-phase21.js\`；對照活／死誤配妖、其他怪、手持包裹、候選全額排除、空候選、缺漏複習與 \`STORE.get\` 查詢次數／順序，逐組確認和舊版相同。返回備援 \`ALL\` 的物件身分也維持。
+- 無新 JS 模組，只更新 \`game-delivery-rules.js\` 和 \`game.js\` cache key \`?v=20261103-delivery-phase21\`；選定 **170/170 項整合測試通過**，JS 語法及 diff 檢查通過。
+- **剩餘高耦合區段依賴盤點**：\`weapons()\` 約 1591 行，\`update()\` 約 1074 行，\`drawWorld()\` 約 858 行，\`pollGamepad()\` 約 217 行，\`getEligibleChoices()\` 約 239 行；此外 \`hurt()/makeOrder()/start()/runFrame()\` 等仍牽涉可變戰鬥狀態、重入、隨機序列、DOM 或 Canvas。後續只優先抽取可建立輸入輸出 golden 的純子計算；要搬動核心狀態迴圈前必須增添事件序列／畫面與實機回歸保護，避免「瘦檔案」造成玩法損壞。
+- 使用者希望所有可安全拆分的部分完成後再一次實機試玩；此批仍不要求逐批玩測。
+
 ## 2026-11-03 JS 模組化 Phase 20 — 教學鍵值與舊版紀錄轉換
 
 - 把新手教學四個類型的關卡鍵值 \`stage:delivery/stage:boss\`、合法紀錄集合生成，以及未帶關卡的舊紀錄轉成夜町紀錄的純計算抽至 \`js/game-tutorial-rules.js\`。真正 \`localStorage\` 讀寫、JSON parse、第一次教學出現、略過操作、按鍵與教學視窗仍由 \`game.js\` 管理。

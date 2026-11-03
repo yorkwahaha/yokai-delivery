@@ -1110,11 +1110,8 @@
     if (!candidateHouses.length) return;
 
     // 1. 場上活著的誤配妖所代表的詞（妖還在時以戰鬥擊殺複習為主，不發重複委託避免照名牌選答案）
-    const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
-
-    // 2. 當前委託欄與手上包裹已佔用的詞
-    const activeOrderWords = new Set(orders.map(o => o.word.jp));
-    if (job && job.word) activeOrderWords.add(job.word.jp);
+    const {livingMisWords, activeOrderWords} =
+      window.GAME_DELIVERY_RULES.excludedWordSets(enemies, orders, job);
 
     // 配送委託只看言靈圖鑑。Boss、護符聽題與熟練度仍走原來的 Study。
     let chosenWord = null;
@@ -1129,18 +1126,17 @@
       if (!picked || !picked.word) return;
       chosenWord = picked.word;
     } else {
-      const priorityMissed = ALL.filter(w => {
-        const m = STORE.get(w.jp);
-        return (m.missBoost || 1) > 1 && !livingMisWords.has(w.jp) && !activeOrderWords.has(w.jp);
-      });
+      const priorityMissed = window.GAME_DELIVERY_RULES.priorityMissedWords(
+        ALL, jp => STORE.get(jp), livingMisWords, activeOrderWords
+      );
       chosenWord = typeof study?.pick === "function" ? study.pick(elapsed, [...livingMisWords, ...activeOrderWords]) : null;
       if (study && typeof study.pick === "function" && !chosenWord) return;
       if (!chosenWord && priorityMissed.length > 0) {
         chosenWord = pick(priorityMissed);
       } else if (!chosenWord) {
-        let pool = ALL.filter(w => !livingMisWords.has(w.jp) && !activeOrderWords.has(w.jp));
-        if (pool.length === 0) pool = ALL.filter(w => !livingMisWords.has(w.jp));
-        if (pool.length === 0) pool = ALL;
+        const pool = window.GAME_DELIVERY_RULES.fallbackWordPool(
+          ALL, livingMisWords, activeOrderWords
+        );
         chosenWord = STORE.pick(pool);
       }
     }

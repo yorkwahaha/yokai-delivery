@@ -83,7 +83,7 @@ test('Phase14 pure math module stays immutable and does not draw RNG or mutate c
 test('Phase14 browser loads combat helper before main game at identical cache revision',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const helper='js/game-combat-math.js?v=20261103-combat-phase14';
- const main='js/game.js?v=20261103-tutorial-phase20';
+ const main='js/game.js?v=20261103-delivery-phase21';
  assert.ok(html.includes(helper)&&html.includes(main));
  assert.ok(html.indexOf(helper)<html.indexOf(main));
  assert.ok(html.includes('js/game-catalog.js?v=20261103-catalog-phase13'));

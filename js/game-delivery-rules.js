@@ -40,5 +40,28 @@ window.GAME_DELIVERY_RULES = (() => {
     return {pool, far, near};
   }
 
-  return Object.freeze({portPickupPool, portDestinationPools, townDestinationPools});
+  // Exclude words already represented by live misdelivery enemies, pending
+  // pickups and the currently held parcel. Never mutate the input arrays.
+  function excludedWordSets(enemies, orders, job) {
+    const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
+    const activeOrderWords = new Set(orders.map(o => o.word.jp));
+    if (job && job.word) activeOrderWords.add(job.word.jp);
+    return {livingMisWords, activeOrderWords};
+  }
+  function priorityMissedWords(all, lookup, livingMisWords, activeOrderWords) {
+    return all.filter(w => {
+      const m = lookup(w.jp);
+      return (m.missBoost || 1) > 1 && !livingMisWords.has(w.jp) && !activeOrderWords.has(w.jp);
+    });
+  }
+  function fallbackWordPool(all, livingMisWords, activeOrderWords) {
+    let pool = all.filter(w => !livingMisWords.has(w.jp) && !activeOrderWords.has(w.jp));
+    if (pool.length === 0) pool = all.filter(w => !livingMisWords.has(w.jp));
+    if (pool.length === 0) pool = all;
+    return pool;
+  }
+  return Object.freeze({
+    portPickupPool, portDestinationPools, townDestinationPools,
+    excludedWordSets, priorityMissedWords, fallbackWordPool
+  });
 })();
