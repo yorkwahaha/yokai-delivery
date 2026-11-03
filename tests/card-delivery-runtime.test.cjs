@@ -139,6 +139,7 @@ function loadGame(options = {}) {
   vm.runInContext(read("js/game-build-rules.js"), context, { filename: "js/game-build-rules.js" });
   vm.runInContext(read("js/game-delivery-rules.js"), context, { filename: "js/game-delivery-rules.js" });
   vm.runInContext(read("js/game-attack-specs.js"), context, { filename: "js/game-attack-specs.js" });
+  vm.runInContext(read("js/game-catalog.js"), context, { filename: "js/game-catalog.js" });
   const source = read("js/game.js");
   const end = source.lastIndexOf("})();");
   const hook = `window.fixture = {

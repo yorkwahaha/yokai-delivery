@@ -104,7 +104,7 @@ function boot(seed, opts = {}) {
   const realUI = c.UI;
   c.UI = new Proxy(Object.assign({}, realUI, { readableFont: () => "20px sans-serif" }),
     { get: (o, k) => (o[k] !== undefined ? o[k] : (() => null)) });
-  for (const name of ["game-quiz-logic.js","game-geometry.js","game-charm-math.js","game-spawn-math.js","game-build-rules.js","game-delivery-rules.js","game-attack-specs.js"]) {
+  for (const name of ["game-quiz-logic.js","game-geometry.js","game-charm-math.js","game-spawn-math.js","game-build-rules.js","game-delivery-rules.js","game-attack-specs.js","game-catalog.js"]) {
     vm.runInContext(read(name), c, { filename: path.join(ROOT, "js", name) });
   }
   let rawGame = read("game.js");

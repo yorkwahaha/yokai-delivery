@@ -1,3 +1,11 @@
+## 2026-11-03 JS 模組化 Phase 13 — 五份純靜態資料表獨立 catalog
+
+- 從 \`game.js\` 搬出約 461 行純資料至 \`js/game-catalog.js\`：\`CHARM_CONFIG\` (6)、\`MUTATION_CONFIG\` (24)、\`DUO_CONFIG\` (4)、\`WI\` (16)、\`WEAPON_UPGRADES\` (16)。原順序和內容不變；只將共享 holder \`GAME_CATALOG\` 冻結，對象本身仍可像原版使用。玩家持續變更的 \`WL\` 及升級、裝備、存檔不搬。
+- 拆分前保存每份 \`JSON.stringify\` SHA-256 / byteLength / key order 到 \`tests/fixtures/game-catalog-golden-phase13-20261103.json\`；拆後逐表全部一致，且原遊戲識別字仍指向相同內容。
+- HTML 在 \`game.js\` 前載新檔，\`game.js\` cache key 改 \`?v=20261103-catalog-phase13\`；現行 Node VM 載入清單同步更新，舊版固定測試從 Git 原始 blob 加入新路徑，不恢復或覆蓋本機已清掉的檔案。
+- 選定整合測試 **139/139 全部通過**；素材登記檢查 855 檔、151 aliases 通過。最後仍採使用者一次實機驗收，不要求逐批遊玩。
+- 後續高耦合 \`weapons()/update()/drawWorld()\` 不可當純計算抽離，先分段依賴與輸出基準；若不安全就只紀錄而不強搬。
+
 ## 2026-11-03 JS 模組化 Phase 12 — 716 行攻擊規格純計算完整抽離
 
 - 將 \`resolveAttackSpec(skillId, lvl, buildState, options)\` 原本約 716 行的數值與技能描述分支，以原內容完整搬至 \`js/game-attack-specs.js\`。主遊戲只保留呼叫入口，把 \`WL/W/b/buildMutations/buildDuos/getEffectiveRate/getEffectiveDmg/getEffectiveReachMultiplier/window.EVOLUTIONS\` 即時依賴明確傳入；不修改武器實際施放 \`weapons\`、扣血 \`hurt\`、遊戲 \`update\`、Boss AI、隨機數、存檔或融合是否啟用。

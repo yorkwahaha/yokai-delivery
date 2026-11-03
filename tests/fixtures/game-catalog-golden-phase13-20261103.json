@@ -1,0 +1,98 @@
+{
+  "CHARM_CONFIG": {
+    "hash": "a746f373d90d2b0893226b132dc1a2394aae5765e0315b7f673c46cc068a0e61",
+    "keys": [
+      "charm_power",
+      "charm_step",
+      "charm_gather",
+      "charm_cadence",
+      "charm_reach",
+      "charm_guard"
+    ],
+    "byteLength": 2362
+  },
+  "MUTATION_CONFIG": {
+    "hash": "10d007e7347464f63f451b194aa138d3c50df88bf35cdef2c0bd3a856c2509d8",
+    "keys": [
+      "mut_boom_fan",
+      "mut_seek",
+      "mut_boom_seek",
+      "mut_frost",
+      "mut_boom_frost",
+      "mut_pierce",
+      "mut_return",
+      "mut_crosscut",
+      "mut_pulse",
+      "mut_branch",
+      "mut_orbit",
+      "mut_splitblast",
+      "mut_iaicharge",
+      "mut_armorbreak",
+      "mut_longblade",
+      "mut_bindseal",
+      "mut_widecircle",
+      "mut_repulse",
+      "mut_rapidfire",
+      "mut_flamebind",
+      "mut_furyfire",
+      "mut_thunderfocus",
+      "mut_thunderstun",
+      "mut_thunderoverload"
+    ],
+    "byteLength": 9986
+  },
+  "DUO_CONFIG": {
+    "hash": "06822b2a2d67d2b9a5af8fbe4dee1b7b88e77021d62dced2cf82e46fe2452e6b",
+    "keys": [
+      "duo_thundercircle",
+      "duo_inkfire",
+      "duo_frostseal",
+      "duo_cinderseal"
+    ],
+    "byteLength": 2366
+  },
+  "WI": {
+    "hash": "cbdc12a38f8bfea54e91fb0c5f01d6f5441f9224496a2a99d0fa98540740b879",
+    "keys": [
+      "katana",
+      "barrier",
+      "fire",
+      "boom",
+      "thunder",
+      "needle",
+      "fusion_inkblade",
+      "fusion_foxiai",
+      "fusion_exorcistblade",
+      "fusion_foxfirebarrier",
+      "fusion_exorcistseal",
+      "fusion_thundercircle",
+      "fusion_slashwheel",
+      "fusion_foxthunderlantern",
+      "fusion_flamefestival",
+      "fusion_thundertalisman"
+    ],
+    "byteLength": 3436
+  },
+  "WEAPON_UPGRADES": {
+    "hash": "b6e8cb5c9a1aa438b1794cfb0a1e5c75c43a30c5d9e3ead424d0f52c276651f6",
+    "keys": [
+      "katana",
+      "barrier",
+      "fire",
+      "boom",
+      "thunder",
+      "needle",
+      "fusion_inkblade",
+      "fusion_thundercircle",
+      "fusion_foxiai",
+      "fusion_exorcistblade",
+      "fusion_foxfirebarrier",
+      "fusion_exorcistseal",
+      "fusion_slashwheel",
+      "fusion_foxthunderlantern",
+      "fusion_flamefestival",
+      "fusion_thundertalisman"
+    ],
+    "byteLength": 5274
+  }
+}
