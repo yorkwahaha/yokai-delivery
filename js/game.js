@@ -1209,17 +1209,12 @@
     if (state === "charmswap") state = "play";
   }
 
-  // 沒有 charmLevels 的舊 buildState 把已持有御守視為 Lv1，保住原本數值。
+  // Phase 5: keep the live run's charm ownership and level table in game.js.
+  // The shared helper only resolves a value, including legacy Lv1 fallback.
   function charmLevelOf(id, buildState = null) {
-    const charms = (buildState && Array.isArray(buildState.charms)) ? buildState.charms : buildCharms;
-    if (!charms.includes(id)) return 0;
-    const table = (buildState && buildState.charmLevels && typeof buildState.charmLevels === "object")
-      ? buildState.charmLevels
-      : (buildState ? null : charmLevels);
-    if (!table) return 1;
-    const raw = table[id];
-    const lv = Number.isFinite(raw) ? Math.floor(raw) : 1;
-    return Math.max(1, Math.min(CHARM_MAX_LEVEL, lv));
+    return window.GAME_CHARM_MATH.charmLevelOf(
+      id, buildState, buildCharms, charmLevels, CHARM_MAX_LEVEL
+    );
   }
 
   function charmDropChance(e) {

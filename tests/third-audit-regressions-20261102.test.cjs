@@ -77,10 +77,10 @@ test('index refreshes the five changed JavaScript assets',()=>{
  assert.ok(html.includes('js/ui.js?v=20261102-audio-pad-hotfix'));
  for(const key of ['renderer'])
    assert.match(html,new RegExp('js/'+key+'\\.js\\?v=20261102-water-slam-sfx'),key);
- assert.ok(html.includes('js/game.js?v=20261103-charm-phase4'));
+ assert.ok(html.includes('js/game.js?v=20261103-charm-phase5'));
  assert.match(html,/js\/game-quiz-logic\.js\?v=20261102-quiz-phase1/);
  assert.ok(html.includes('js/game-geometry.js?v=20261102-geometry-phase2'));
- assert.ok(html.includes('js/game-charm-math.js?v=20261103-charm-phase4'));
+ assert.ok(html.includes('js/game-charm-math.js?v=20261103-charm-phase5'));
  assert.ok(html.includes('js/audio.js?v=20261102-audio-pad-hotfix'));
  assert.ok(html.includes('js/world.js?v=20261102-charm-phase3'));
  assert.ok(html.includes('js/ui.js?v=20261102-audio-pad-hotfix'));

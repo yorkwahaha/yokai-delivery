@@ -1,3 +1,10 @@
+## 2026-11-03 JS 第五批：御守等級解析純函式（USER_PLAYTEST_PENDING）
+
+- 基準正式版 \`749af08\`；僅移動 \`charmLevelOf\` 純資料解析邏輯至既有 \`js/game-charm-math.js\`，主遊戲保留名稱及參數 \`charmLevelOf(id, buildState = null)\`，將目前 \`buildCharms\`、\`charmLevels\` 與 \`CHARM_MAX_LEVEL\` 明確傳入。模組不讀寫全局戰鬥狀態，不抽 \`hurt\`、\`weapons\`、\`update\`、Boss AI、存檔或融合。
+- 相容舊 buildState 無 \`charmLevels\` 時視為 Lv1，持有清單優先採有效陣列；未持有回傳 Lv0，存在無效或缺失等級回退 Lv1，有效數值依現行 maxLevel 限制，保留原本運算順序與型別判定。
+- 網頁只更新 \`game.js\` 與 \`game-charm-math.js\` 的 \`?v=20261103-charm-phase5\`，維持原 script 依賴先後；既有版本鍵測試同步更新，沒有更動其餘美術、聲音或玩法數值。
+- 新增 \`tests/game-charm-math-phase5-20261103.test.cjs\` 與拆分前舊函式逐值比較，涵蓋空舊資料、明確 buildState、NaN、Infinity、字串、負值、非整數等級和不同 maxLevel；本輪選定整合 115/115、既有戰鬥／移動相關 3/3 測試通過。這不代表完整歷史測試全綠，使用者仍需實機驗收。
+
 ## 2026-11-03 JS 第四批：御守能力純計算整理（USER_PLAYTEST_PENDING）
 
 - 以最新已發布 \`a2ce694\` 為基準，僅針對 \`game.js\` 中 5 項純計算做低風險抽離，擴充已有的 \`js/game-charm-math.js\`；不新增重複的技能引擎，不碰更新主迴圈、扣血、武器傷害流程、Boss AI、存檔、融合與正式美術。

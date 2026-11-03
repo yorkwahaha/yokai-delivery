@@ -57,7 +57,7 @@ test('Phase 4: five numeric functions are pure, frozen and explicit about their 
     assert.match(gameSource, new RegExp('GAME_CHARM_MATH\\.' + name + '\\('));
   }
   assert.equal(typeof api.guardOilLoss, 'function', 'prior Phase 3 function retained');
-  assert.doesNotMatch(mathSource, /Math\.random|document\.|localStorage|buildCharms|charmLevelOf\(/);
+  assert.doesNotMatch(mathSource, /Math\.random|document\.|localStorage/);
 });
 
 test('Phase 4: current-run values match exact old formulas across two stages and charm levels', () => {
@@ -110,8 +110,8 @@ test('Phase 4: explicit buildState retains its own charm levels and original bas
 
 test('Phase 4: HTML loads updated charm math before game, without touching other script versions', () => {
   const html = fs.readFileSync('index.html', 'utf8');
-  const math = 'js/game-charm-math.js?v=20261103-charm-phase4';
-  const game = 'js/game.js?v=20261103-charm-phase4';
+  const math = 'js/game-charm-math.js?v=20261103-charm-phase5';
+  const game = 'js/game.js?v=20261103-charm-phase5';
   assert.ok(html.includes(math));
   assert.ok(html.includes(game));
   assert.ok(html.indexOf(math) < html.indexOf(game));
