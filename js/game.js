@@ -753,7 +753,7 @@
   function charmDropChance(e) {
     if (!e || e.type === "boss" || e.type === "mis") return 0;
     // DEV-ONLY: 供使用者自行驗證御守拾取與 3-slot 替換流程；正式環境嚴格維持 0.008
-    if (typeof window !== "undefined" && /(?:^|[?&])dev=1(?=[&#]|$)/.test(window.location?.search || "") &&
+    if (typeof window !== "undefined" && window.DEV_MODE?.isDevMode?.(window.location) === true &&
         (window.DEV_FORCE_CHARM || /(?:^|[?&])force_charm=1(?=[&#]|$)/.test(window.location?.search || ""))) {
       return 1.0;
     }
@@ -6735,7 +6735,9 @@ function spawnEnemy(tier, rad, ang, ring) {
       return;
     }
     if (action === "mute") {
-      AUDIO.toggleMute();
+      const nowMuted = AUDIO.toggleMute();
+      // The M key is a user gesture: resume Web Audio/BGM after focus/blur.
+      if (!nowMuted) AUDIO.unlockFromInput?.();
       return;
     }
     if (state === "codex") {
@@ -6916,7 +6918,11 @@ function spawnEnemy(tier, rad, ang, ring) {
     if ((isPortrait() && state !== "overworld" && state !== "menu") || document.hidden) return;
     if (state === "overworld" && artPending()) noteLoadingGesture(e);
     if (artPending()) return;
-    cv.setPointerCapture(e.pointerId);
+    // The container also receives pointerdown on its letterbox area. Only
+    // the canvas hosts game controls; capturing a non-canvas pointer throws
+    // on some browsers and can abort the entire input handler.
+    if (e.target !== cv) return;
+    try { cv.setPointerCapture?.(e.pointerId); } catch {}
     touch = e.pointerType !== "mouse";
     inputMode = touch ? 'touch' : 'keyboard';
     if (tutorial) {

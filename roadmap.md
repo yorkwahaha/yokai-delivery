@@ -1,3 +1,10 @@
+## 2026-11-03 雙 Agent 交叉審查 P1 修復 Batch A — 開發參數、指標捕捉、音效解除靜音
+
+- 基準 \`1a809fd\`。正式站網址帶 \`?dev=1&force_charm=1\` 原本會讓御守必定掉落。現在 \`charmDropChance()\` 只在 \`DEV_MODE.isDevMode(window.location)\` 明確為 true（本機 loopback + dev=1）時啟用強制機率；正式版不受 query 與 window.DEV_FORCE_CHARM 影響。
+- \`game-container\` 接受的 letterbox 非 canvas 點擊不再觸發 \`cv.setPointerCapture\`；只允許真 canvas 事件進行遊戲輸入，capture 失敗也不讓 handler 例外中斷。
+- 鍵盤 M 解除靜音後走既有 \`AUDIO.unlockFromInput()\` 手勢恢復路徑，讓因分頁失焦而暫停的音樂重啟。
+- \`tests/audit-p1-prod-input-a-20261103.test.cjs\` 包含正式/本機網址與按鍵/觸控回歸。選定整合 **174/174 全通過**，此批獨立提交。
+
 ## 2026-11-03 JS 模組化 Phase 21 — 配送單字排除、複習優先與備援池
 
 - 將 \`makeOrder()\` 的活躍誤配妖單字、待取／手持委託單字排除，缺漏單字複習優先池，以及找不到空閒候選時的二級／三級備援詞池改由既有的 \`GAME_DELIVERY_RULES\` 純函式計算。實際 \`STORE.get/pick\`、Study 選字、隨機抽取、卡牌選字與任務建立仍由 \`game.js\` 完成；新模組不新增任何亂數調用或儲存。
