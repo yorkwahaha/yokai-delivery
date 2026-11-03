@@ -143,6 +143,7 @@ function loadGame(options = {}) {
   vm.runInContext(read("js/game-combat-math.js"), context, { filename: "js/game-combat-math.js" });
   vm.runInContext(read("js/game-weather.js"), context, { filename: "js/game-weather.js" });
   vm.runInContext(read("js/game-upgrade-choices.js"), context, { filename: "js/game-upgrade-choices.js" });
+  vm.runInContext(read("js/game-run-summary.js"), context, { filename: "js/game-run-summary.js" });
   const source = read("js/game.js");
   const end = source.lastIndexOf("})();");
   const hook = `window.fixture = {
