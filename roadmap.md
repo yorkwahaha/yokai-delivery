@@ -1,3 +1,11 @@
+## 2026-11-03 JS 模組化 Phase 28 — 餘燼爆炸目標篩選與黑龍焦土優先權
+
+- 從已部署的 Phase 27 `275a29605f45e5b930ba4b321722ac4355c29916` 建立獨立乾淨 worktree；不動原始本機 dirty `master`。
+- 將 `weapons()` 餘燼爆炸的「HP／護盾／消失／完成、`scorchReady > elapsed` 冷卻、存活且非餘燼之黑龍焦土覆蓋優先排除、餘燼半徑 `<=`、原敵人順序前三名」原樣抽成 `GAME_COMBAT_MATH.cinderScorchTargets(enemies, scorch, dragonScorches, elapsed)`。不修正邊界、排序或非有限值語義；不搬動出生幀、延遲、生命、SFX、傷害均分與命中狀態。
+- 保存原碼到 `tests/fixtures/cinder-scorch-targets-original-phase28.js`；增加 `tests/game-combat-cinder-scorch-phase28-20261103.test.cjs` **5 項**：20,000 固定種子新舊輸出和物件身份等價、冷卻與射程精確邊界、活龍優先／到期龍與餘燼不互斥、純函式守門、實際 `weapons()` VM 三敵均分及排除。測試沙箱僅加入 `queueDragonScorch` 注入入口，不改正式遊戲入口。
+- 正式 HTML 的 `game.js`／`game-combat-math.js` 快取版本改為 `cinder-phase28`／`combat-phase28`，同步相關舊測試斷言。本批技術驗證不能取代玩家實機試玩。
+- 新增測試 **5/5**、Phase1–28 核心選定測試 **168/168** 通過；擴大 47 檔 **316/327** 通過，原 Phase24–27 已知 11 項舊失敗未增加。五份相關 JavaScript 語法檢查、版本引用檢查通過；不將既有失敗誤報成全綠。
+
 ## 2026-11-03 JS 模組化 Phase 27 — 延遲範圍傷害不排序前三目標
 
 - 由已上線正式版本 \`0e6c99dd7dcee31856ec31f99a9fdaa1f91ffe30\` 建立新的乾淨隔離 worktree；不更動原始 dirty 本機 \`master\`。

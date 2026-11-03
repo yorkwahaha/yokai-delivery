@@ -80,5 +80,18 @@ window.GAME_COMBAT_MATH = (() => {
       .filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done && dist(area, e) <= area.radius)
       .slice(0, 3);
   }
-  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets });
+  // Phase28: preserve cinder's cooldown, living dragon-ground exclusion,
+  // and original first-three enemy order. Damage remains in game.js.
+  function cinderScorchTargets(enemies, scorch, dragonScorches, elapsed) {
+    return enemies
+      .filter(e => {
+        if (e.hp <= 0 || e.shield || e.vanish || e.done) return false;
+        if (e.scorchReady > elapsed) return false;
+        const coveredByDragon = dragonScorches.some(s => !s.isCinder && s.life > 0 && Math.hypot(e.x - s.x, e.y - s.y) <= s.r);
+        if (coveredByDragon) return false;
+        return Math.hypot(e.x - scorch.x, e.y - scorch.y) <= scorch.r;
+      })
+      .slice(0, 3);
+  }
+  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets });
 })();

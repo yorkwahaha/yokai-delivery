@@ -4278,15 +4278,7 @@ if (isRainPort) {
           scorch.ticked = true;
           SKILLFX.play("boom", "hit", 1, { x: scorch.x, y: scorch.y, r: scorch.r, cinder: true });
           burst(scorch.x, scorch.y, "#ff5722", 6);
-          const hitTargets = enemies
-            .filter(e => {
-              if (e.hp <= 0 || e.shield || e.vanish || e.done) return false;
-              if (e.scorchReady > elapsed) return false;
-              const coveredByDragon = dragonScorches.some(s => !s.isCinder && s.life > 0 && Math.hypot(e.x - s.x, e.y - s.y) <= s.r);
-              if (coveredByDragon) return false;
-              return Math.hypot(e.x - scorch.x, e.y - scorch.y) <= scorch.r;
-            })
-            .slice(0, 3);
+          const hitTargets = window.GAME_COMBAT_MATH.cinderScorchTargets(enemies, scorch, dragonScorches, elapsed);
           if (hitTargets.length > 0) {
             const damagePerTarget = scorch.damageBudget / hitTargets.length;
             for (const e of hitTargets) {

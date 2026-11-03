@@ -104,6 +104,6 @@ test('Audit P1-7 curse disables quiz option styling throughout the full penalty'
 test('Audit P1-6/7 game passes live curse counter and separate seal fade to UI',()=>{
  assert.match(game,/UI\.drawBossQuiz\(\s*ctx, job\?\.reading \? null : bossQ, inputMode, liveBosses, sealFade, bossCurseRemaining/);
  const html=fs.readFileSync('index.html','utf8');
- assert.ok(html.includes('js/game.js?v=20261103-aoe-phase27'));
+ assert.ok(html.includes('js/game.js?v=20261103-cinder-phase28'));
  assert.ok(html.includes('js/ui.js?v=20261103-p1-hotfix-c'));
 });

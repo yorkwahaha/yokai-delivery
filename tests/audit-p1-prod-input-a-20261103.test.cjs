@@ -77,5 +77,5 @@ test('Audit P1-5 M key unmute calls gesture unlock while muting does not',()=>{
  assert.equal(env.AUDIO.muted,false);
  assert.equal(env.AUDIO.unlocks,1);
  const html=fs.readFileSync('index.html','utf8');
- assert.ok(html.includes('js/game.js?v=20261103-aoe-phase27'));
+ assert.ok(html.includes('js/game.js?v=20261103-cinder-phase28'));
 });

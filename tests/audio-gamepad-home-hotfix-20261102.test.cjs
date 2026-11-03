@@ -94,5 +94,5 @@ test('home menu shows gamepad controls plus mute or audio-block instructions',()
  assert.match(game,/AUDIO\.unlockFromInput\?\.\(\)/);
  assert.ok(html.includes('js/audio.js?v=20261102-audio-pad-hotfix'));
  assert.ok(html.includes('js/ui.js?v=20261103-p1-hotfix-c'));
- assert.ok(html.includes('js/game.js?v=20261103-aoe-phase27'));
+ assert.ok(html.includes('js/game.js?v=20261103-cinder-phase28'));
 });
