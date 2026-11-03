@@ -1,3 +1,9 @@
+## 2026-11-03 B14 警報毛筆素材正式更新
+
+- 使用者確認修改 `assets/img/ui/b14/surge_brush.webp`。之前清理時將原始修改版獨立備份為 `I:\Projects\_yokai-delivery-precleanup-20261103\post-cleanup-local-edits\assets\img\ui\b14\surge_brush.webp`，此批精確還原備份的 **190,846 bytes**（SHA256 `a4d9cb5df8e3e3df0f70c4b41513d02da0b9b53bafef792bbe17bb6f3a2e366e`）；不可用原先 167,156 bytes 的遠端舊圖覆蓋。
+- 更新 `js/ui.js` 圖片 URL 版本、`index.html` 的 UI 模組版本與 `service-worker.js` 的媒體 SHA256 修訂碼，避免圖片被舊快取永久攔截；同步更新 UI cache 測試、B14 原圖精確 hash 及 service worker 對應 hash 斷言。未修改戰鬥邏輯、動畫時序、圖片裁切或關卡素材。
+- 同輪後續處理完整歷史測試中的過期 VM harness 與舊規格，Phase 30 暫不開啟。
+
 ## 2026-11-03 工作樹同步完成／配送字卡測試補正
 
 - 原始主工作樹已在檢查 205 個備份檔逐檔 SHA256 與 safety branch `safety/precleanup-original-20261103` 後，安全對齊正式 `origin/master`，再依經過核准的 `git clean -n` 清單移出 26 個已備份本機暫存檔。原有 650 筆 Git status 全部清除，原始 `master` 潔淨。備份位於 `I:\Projects\_yokai-delivery-precleanup-20261103`（`manifest.json` + 205 檔）；本機原始 `art/`、Agent skills、7 個候選 VFX 圖、package-lock 與測試設定留在本機，未提升為正式發布資產。

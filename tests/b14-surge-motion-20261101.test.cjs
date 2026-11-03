@@ -1,6 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const {createHash}=require('node:crypto');
 const root=path.resolve(__dirname,'..');
 const ui=fs.readFileSync(path.join(root,'js/ui.js'),'utf8');
 const begin=ui.indexOf('  function drawSurgeWarning(');
@@ -27,7 +28,15 @@ test('B14 has a real isolated transparent photo-sized WebP and one immutable tex
  assert.equal(src.toString('ascii',0,4),'RIFF');
  assert.equal(src.toString('ascii',8,12),'WEBP');
  assert.ok(src.length>20000,'nontrivial painted texture not placeholder');
- assert.match(ui,/assets\/img\/ui\/b14\/surge_brush\.webp\?v=20261101-b14/);
+ assert.match(ui,/assets\/img\/ui\/b14\/surge_brush\.webp\?v=20261103-surge-brush-r2/);
+ const hash=createHash('sha256').update(src).digest('hex');
+ assert.equal(hash,'a4d9cb5df8e3e3df0f70c4b41513d02da0b9b53bafef792bbe17bb6f3a2e366e',
+  'the verified user-edited WebP must be published unmodified');
+ const worker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
+ assert.ok(worker.includes('"assets/img/ui/b14/surge_brush.webp": "'+hash.slice(0,24)+'"'),
+  'the media service-worker revision must be refreshed with the new image bytes');
+ assert.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes('js/ui.js?v=20261103-surge-brush-r2'),
+  'the UI loader must refresh so cached clients request the updated artwork');
  assert.doesNotMatch(source,/fillText|strokeText|glassBox|b13Art|b12Art/);
  assert.match(source,/const art=b14SurgeBrush;/);
 });

@@ -248,7 +248,7 @@ window.UI = (() => {
   if(typeof window.Image==="function"){
     const img=new window.Image();img.decoding="async";
     img.onload=()=>{b14SurgeBrush=img;};
-    img.src="assets/img/ui/b14/surge_brush.webp?v=20261101-b14";
+    img.src="assets/img/ui/b14/surge_brush.webp?v=20261103-surge-brush-r2";
   }
   const b12Art = Object.create(null);
   // B13 ComfyUI: entirely new matching painted menu/paper/button art.

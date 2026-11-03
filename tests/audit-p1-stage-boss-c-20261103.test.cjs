@@ -105,5 +105,5 @@ test('Audit P1-6/7 game passes live curse counter and separate seal fade to UI',
  assert.match(game,/UI\.drawBossQuiz\(\s*ctx, job\?\.reading \? null : bossQ, inputMode, liveBosses, sealFade, bossCurseRemaining/);
  const html=fs.readFileSync('index.html','utf8');
  assert.ok(html.includes('js/game.js?v=20261103-dragon-phase29'));
- assert.ok(html.includes('js/ui.js?v=20261103-p1-hotfix-c'));
+ assert.ok(html.includes('js/ui.js?v=20261103-surge-brush-r2'));
 });
