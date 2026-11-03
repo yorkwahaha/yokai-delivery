@@ -2999,14 +2999,7 @@ if (isRainPort) {
       for (const e of enemies) {
         const pierceCap = wave.pierceLimit || 6;
         if (!(e.hp > 0) || wave.hits.size >= pierceCap || wave.hits.has(e)) continue;
-        const along = Math.abs((e.x - wave.x) * Math.cos(wave.ang) + (e.y - wave.y) * Math.sin(wave.ang));
-        const side = Math.abs(-(e.x - wave.x) * Math.sin(wave.ang) + (e.y - wave.y) * Math.cos(wave.ang));
-        if (along >= (e.type === 'boss' ? 95 : 75) || side >= 180 + (e.type === 'boss' ? 40 : 22)) continue;
-        const ox = e.x - wave.originX, oy = e.y - wave.originY;
-        if (Math.hypot(ox, oy) > (wave.maxTravel || 720)) continue;
-        let ad = Math.abs(Math.atan2(oy, ox) - wave.ang);
-        while (ad > Math.PI) ad = Math.abs(ad - 2 * Math.PI);
-        if (ad > 1.22) continue;
+        if (!window.GAME_COMBAT_MATH.katanaWaveContains(e, wave)) continue;
         const wasBurned = !!(e.fireBurnEnds && e.fireBurnEnds > elapsed);
         const hpBefore = e.hp;
         const hitIndex = wave.hits.size;

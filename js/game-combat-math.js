@@ -137,5 +137,18 @@ window.GAME_COMBAT_MATH = (() => {
     }
     return chosen;
   }
-  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets, dragonFireTarget, needleSeekTarget });
+  // Phase31: only Katana Lv5 flying-wave geometry. Pierce budget, shielding,
+  // crit/damage and contact state remain in the weapons() caller.
+  function katanaWaveContains(enemy, wave) {
+    const along = Math.abs((enemy.x - wave.x) * Math.cos(wave.ang) + (enemy.y - wave.y) * Math.sin(wave.ang));
+    const side = Math.abs(-(enemy.x - wave.x) * Math.sin(wave.ang) + (enemy.y - wave.y) * Math.cos(wave.ang));
+    if (along >= (enemy.type === 'boss' ? 95 : 75) || side >= 180 + (enemy.type === 'boss' ? 40 : 22)) return false;
+    const ox = enemy.x - wave.originX, oy = enemy.y - wave.originY;
+    if (Math.hypot(ox, oy) > (wave.maxTravel || 720)) return false;
+    let ad = Math.abs(Math.atan2(oy, ox) - wave.ang);
+    while (ad > Math.PI) ad = Math.abs(ad - 2 * Math.PI);
+    // Preserve original `if (ad > 1.22) continue` semantics, including NaN.
+    return !(ad > 1.22);
+  }
+  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets, dragonFireTarget, needleSeekTarget, katanaWaveContains });
 })();
