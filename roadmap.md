@@ -1,3 +1,9 @@
+## 2026-11-03 P1 審查修復 Batch B — 跨分頁配送印記
+
+- 以不可變、每次配送獨立存放的 browser localStorage 事件日誌取代「僅依賴整包 JSON」的寫入；保留原 JSON 作為相容投影與歷史進度基準。不同分頁即使覆寫投影，重播事件仍能還原每個詞的印記，同字不同事件也會累加。
+- 修復保留了成功增加印記、同一事件 ID 去重、四印上限、套卡需於成功配送才發獎及空間不足時不誤報寫入成功。簡化測試用 storage 不支援枚舉時，回退到存前重讀與本機尚未保存事件合併。
+- 新雙分頁 VM 測試驗證交錯更新、覆寫、跨分頁同字累加、套卡相容及失敗恢復。新版本 key 20261103-card-journal-p1b。
+
 ## 2026-11-03 雙 Agent 交叉審查 P1 修復 Batch A — 開發參數、指標捕捉、音效解除靜音
 
 - 基準 \`1a809fd\`。正式站網址帶 \`?dev=1&force_charm=1\` 原本會讓御守必定掉落。現在 \`charmDropChance()\` 只在 \`DEV_MODE.isDevMode(window.location)\` 明確為 true（本機 loopback + dev=1）時啟用強制機率；正式版不受 query 與 window.DEV_FORCE_CHARM 影響。

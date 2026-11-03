@@ -127,6 +127,62 @@ function heldFor(storage) {
   return held;
 }
 
+// Cross-tab card progress journal. The old single JSON card document remains
+// a readable projection; individual event keys are immutable so one tab's
+// stale projection cannot erase a delivery recorded by another tab.
+const pendingByStorage = new WeakMap();
+const journalAvailable = storage => typeof storage.key === "function" && typeof storage.length === "number";
+const journalBaseKey = key => key + ":journal-base";
+const journalEventPrefix = key => key + ":journal-event:";
+function pendingFor(storage, key) {
+  let entries = pendingByStorage.get(storage);
+  if (!entries) { entries = new Map(); pendingByStorage.set(storage, entries); }
+  if (!entries.has(key)) entries.set(key, new Map());
+  return entries.get(key);
+}
+function journalState(storage, key, catalog) {
+  if (!journalAvailable(storage)) return cachedState(storage, key);
+  const baseText = storage.getItem(journalBaseKey(key));
+  if (baseText === null) return cachedState(storage, key);
+  let baseline = null;
+  try { baseline = JSON.parse(baseText); } catch {}
+  let state = cards.migrate(baseline);
+  const prefix = journalEventPrefix(key), ids = [];
+  for (let i = 0; i < storage.length; i++) {
+    const name = storage.key(i);
+    if (typeof name === "string" && name.startsWith(prefix)) ids.push(name);
+  }
+  // Stable replay order. Delivery success increments commute and are capped
+  // at 4; the event ID still protects duplicate successes and failures.
+  ids.sort();
+  for (const id of ids) {
+    let event = null;
+    try { event = JSON.parse(storage.getItem(id) || "null"); } catch {}
+    const applied = cards.applyEvent(state, event);
+    if (!applied.applied) continue;
+    const owned = state.awards;
+    state = applied.state;
+    // Match the legacy contract: an already-full unawarded pack is claimed
+    // on the NEXT successful delivery, not simply when opening the gallery.
+    if (applied.reason === "success") {
+      const newAwards = freshAwards(catalog, owned, state.marks);
+      if (newAwards.length) {
+        const awards = Object.assign(Object.create(null), state.awards);
+        for (const packId of newAwards) awards[packId] = true;
+        state = Object.assign({}, state, { awards });
+      }
+    }
+  }
+  return state;
+}
+function ensureJournalBase(storage, key) {
+  const baseKey = journalBaseKey(key);
+  if (storage.getItem(baseKey) !== null) return;
+  const current = storage.getItem(key);
+  storage.setItem(baseKey, current === null
+    ? JSON.stringify({ v: 1, marks: {}, events: {}, awards: {} })
+    : current);
+}
 function storageErrorOf(error) {
   const name = error && typeof error.name === "string" && error.name ? error.name : "Error";
   const message = error && typeof error.message === "string" ? error.message.slice(0, 160) : "";
@@ -154,29 +210,58 @@ function freshAwards(catalog, owned, marks) {
 function openCards(storage, loc, packs) {
   const key = cardKey(loc);
   const held = heldFor(storage);
+  const pending = pendingFor(storage, key);
   const catalog = Array.isArray(packs) ? packs : defaultPacks();
-  let state = held.has(key)
-    ? copyState(held.get(key))
-    : cachedState(storage, key);
+  const refresh = () => {
+    let current = journalState(storage, key, catalog);
+    for (const event of pending.values()) {
+      const step = cards.applyEvent(current, event);
+      if (!step.applied) continue;
+      const owned = current.awards;
+      current = step.state;
+      if (step.reason === "success") {
+        const newAwards = freshAwards(catalog, owned, current.marks);
+        if (newAwards.length) {
+          const awards = Object.assign(Object.create(null), current.awards);
+          for (const id of newAwards) awards[id] = true;
+          current = Object.assign({}, current, { awards });
+        }
+      }
+    }
+    return copyState(current);
+  };
+  let state = refresh();
   return {
     key,
-    snapshot: () => state,
-    marks: jp => state.marks[cards.wordKey(jp)] || 0,
+    snapshot: () => { state = refresh(); return state; },
+    marks: jp => { state = refresh(); return state.marks[cards.wordKey(jp)] || 0; },
     record(event) {
+      state = refresh();
       const result = cards.applyEvent(state, event);
       if (!result.applied) return Object.assign({}, result, { persisted: null, storageError: null, newAwards: [] });
       const owned = state.awards;
-      state = copyState(Object.assign({}, state, result.state));
+      state = copyState(result.state);
       const newAwards = result.reason === "success" ? freshAwards(catalog, owned, state.marks) : [];
       if (newAwards.length) {
         const awards = Object.assign(Object.create(null), state.awards);
         for (const id of newAwards) awards[id] = true;
         state = copyState(Object.assign({}, state, { awards }));
       }
+      pending.set(event.id, { id: event.id, jp: event.jp, kind: event.kind, ok: event.ok });
       held.set(key, copyState(state));
       try {
+        if (journalAvailable(storage)) {
+          ensureJournalBase(storage, key);
+          for (const [id, item] of pending) {
+            storage.setItem(journalEventPrefix(key) + encodeURIComponent(id), JSON.stringify(item));
+          }
+          // Re-read every other tab's immutable events before projecting the
+          // visible document. A racing projection write is always recoverable.
+          state = refresh();
+        }
         const text = JSON.stringify(state);
         storage.setItem(key, text);
+        pending.clear();
         held.delete(key);
         rememberSaved(storage, key, text, state);
         return Object.assign({}, result, { persisted: true, storageError: null, newAwards });
@@ -185,6 +270,7 @@ function openCards(storage, loc, packs) {
       }
     },
     choose(words, exclude, rnd) {
+      state = refresh();
       return chooseDeliveryWord(words, state.marks, exclude, rnd);
     }
   };
