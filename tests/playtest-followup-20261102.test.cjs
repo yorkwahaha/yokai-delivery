@@ -35,7 +35,7 @@ test('final Boss regenerates 0 before 2m, 0.5% 2m, 1% 4m and only 200% total',()
 test('multi-Boss click hitboxes receive same live bossCount as UI renderer',()=>{
  assert.match(game,/UI\.bossQuizLayout\(bossQ\.ans\.length, visibleBosses\)/);
  assert.match(game,/const visibleBosses = enemies\.filter\(e =>/);
- assert.match(game,/UI\.drawBossQuiz\(ctx,job\?\.reading \? null : bossQ,inputMode,liveBosses,sealFade\)/);
+ assert.match(game,/UI\.drawBossQuiz\(\s*ctx,\s*job\?\.reading \? null : bossQ, inputMode, liveBosses, sealFade, bossCurseRemaining/);
  assert.match(ui,/bossQuizLayout\(bossQ\?\.ans\.length \|\| 3,bosses\.length\)/);
  const starts=ui.indexOf('function bossQuizLayout(');
  const ends=ui.indexOf('function drawBossQuiz(',starts);

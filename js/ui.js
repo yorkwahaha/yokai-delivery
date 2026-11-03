@@ -4105,7 +4105,7 @@ window.UI = (() => {
       options:Array.from({length:n},(_,i)=>({x:startX+i*(optW+gap),y:y+62,w:optW,h:optH}))};
   }
 
-  function drawBossQuiz(ctx, bossQ, mode = 'keyboard', boss = null, breakFade = 0) {
+  function drawBossQuiz(ctx, bossQ, mode = 'keyboard', boss = null, breakFade = 0, curseRemaining = 0) {
     if (!bossQ && !boss) return;
     ctx.save();
     const bosses=Array.isArray(boss) ? boss.filter(b=>b && b.hp>0) : boss && boss.hp>0 ? [boss] : [];
@@ -4115,10 +4115,10 @@ window.UI = (() => {
     const scale = window.VIEWPORT?.get().scale || 1;
     bosses.forEach((b,i)=>drawBossBar(ctx,layout.bar.x,
       layout.bar.y+i*layout.bar.rowH,layout.bar.w,b,scale,Date.now()/1000,i,layout.bar.rowH));
-    if (!bossQ) {
+    const drawSealBreakArt = () => {
       if (breakFade > 0 && !calm() && paintedBossSealBreak?.naturalWidth) {
-        // A SINGLE finished painted raster replaces the old Canvas geometry.
-        // Only scale and fade the real source, never construct fake seal shards.
+        // Keep the previous Boss's painted seal break visible even when
+        // a second Boss has already taken over the current quiz board.
         ctx.save();
         const progress=1-breakFade;
         const h=Math.min(boxH*1.7,boxW*.47);
@@ -4128,6 +4128,9 @@ window.UI = (() => {
         ctx.drawImage(paintedBossSealBreak,mid-w*scale/2,by+boxH*.36-h*scale/2-progress*12,w*scale,h*scale);
         ctx.restore();
       }
+    };
+    if (!bossQ) {
+      drawSealBreakArt();
       ctx.restore();
       return;
     }
@@ -4147,7 +4150,10 @@ window.UI = (() => {
     ctx.textAlign = "center";
     ctx.font = readableFont(11, '800'); ctx.fillStyle = '#f1d9aa';
     const curseHint = bossQ.wrong?.length ? '已受反噬｜再錯禁攻 30 秒' : '首次答錯禁攻 10 秒｜再錯 30 秒';
-    const quizNotice = Number.isFinite(bossQ.barrierTimer)
+    const quizLocked = bossQ.lock > 0 || curseRemaining > 0;
+    const quizNotice = curseRemaining > 0
+      ? "反噬禁攻 " + Math.ceil(curseRemaining) + "s・暫停作答"
+      : Number.isFinite(bossQ.barrierTimer)
       ? `封印 ${Math.ceil(bossQ.barrierTimer)}s・${curseHint}` : `封印問答・${curseHint}`;
     ctx.fillText(quizNotice, mid, by - 12, boxW - 12);
     // Testing memory of the actual picked-up object: the Boss no longer
@@ -4175,12 +4181,12 @@ window.UI = (() => {
       const slotArt=formalUpgradeArt.card_dark?.naturalWidth ? formalUpgradeArt.card_dark : formalUpgradeArt.card;
       if(slotArt?.naturalWidth)drawWashiSlices(ctx,slotArt,ox,oy,optW,optH,40,42,12,9);
       else {ctx.fillStyle="rgba(40,28,37,.95)";ctx.beginPath();ctx.roundRect(ox,oy,optW,optH,5);ctx.fill();}
-      ctx.fillStyle=wrong?"rgba(100,29,37,.60)":bossQ.lock>0?"rgba(20,25,34,.56)":"rgba(17,22,33,.40)";
+      ctx.fillStyle=wrong?"rgba(100,29,37,.60)":quizLocked?"rgba(20,25,34,.67)":"rgba(17,22,33,.40)";
       ctx.fillRect(ox+3,oy+3,optW-6,optH-6);
-      ctx.strokeStyle=wrong?"#d16d64":"#e4be83";
-      ctx.lineWidth=wrong?1.5:2;
+      ctx.strokeStyle=wrong?"#d16d64":quizLocked?"#817b71":"#e4be83";
+      ctx.lineWidth=wrong?1.5:quizLocked?1.2:2;
       ctx.beginPath();ctx.roundRect(ox+.75,oy+.75,optW-1.5,optH-1.5,5);ctx.stroke();
-      ctx.fillStyle = wrong ? "#edb3a5" : bossQ.lock > 0 ? "#a99c8e" : "#f5e7c6";
+      ctx.fillStyle = wrong ? "#edb3a5" : quizLocked ? "#a99c8e" : "#f5e7c6";
       const badge = mode === 'gamepad' ? ["LB", "RB", "Y"][i] : mode === 'touch' ? '' : i + 1;
       const answerText = `${wrong ? '× ' : badge ? badge + ' ' : ''}${w.jp}`;
       ctx.font = answerFont(18, "900");
@@ -4189,6 +4195,8 @@ window.UI = (() => {
       }
     });
 
+    // The previous Boss's 850ms break-seal art is a separate visual event.
+    drawSealBreakArt();
     ctx.restore();
   }
 

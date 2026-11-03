@@ -566,9 +566,9 @@
     STAGE_ENEMY = STAGE.enemy || {};
     const sourceStart = STAGE.start || { x: 1350, y: 900 };
     START = {x:sourceStart.x,y:sourceStart.y*worldSpacingScaleY()};
-    // The original rain-port start at y=900 is outside the 180..780 walkable belt.
-    // Correct only the opt-in S2 art test, without moving the deployed gameplay start.
-    if (STAGE.id === "rain-port" && window.isS2ArtProdEnabled?.()) START.y = 480;
+    // Rain-port's original start lies outside its playable 180..780 belt.
+    // Keep the in-bounds spawn independent from art-loading flags.
+    if (STAGE.id === "rain-port") START.y = 480;
     DAWN = STAGE_PACING.runSeconds || CFG.RUN_SECONDS;
     GOAL_DELIVERIES = STAGE_PACING.goalDeliveries || CFG.GOAL_DELIVERIES;
     BOSS_TIMES = STAGE_PACING.bossTimes || CFG.BOSS_TIMES;
@@ -5220,9 +5220,12 @@ function spawnEnemy(tier, rad, ang, ring) {
 
     // 鏡頭平滑追蹤
     const targetCamX = P.x - W / 2;
-    // dev=1&stage=rain-port&s2artprod=1 專用：2D 鏡頭中心往戰鬥帶中央（北建築～南海）靠攏 60%，
-    // 搭配 viewport.js 的 S2 dev zoom；tilt .60 的偏移隨 tilt 平滑歸零。非 dev S2 完全不變。
-    const s2Gain = (STAGE.id === "rain-port" && window.isS2ArtProdEnabled?.())
+    // Official rain-port 2D and 2.5D cameras both follow the player.
+    // Only explicit loopback art experiments retain the displaced preview.
+    const devS2Camera = STAGE.id === "rain-port" &&
+      window.DEV_MODE?.isDevMode?.(window.location) === true &&
+      /(?:^|[?&])s2artprod=1(?=[&#]|$)/.test(window.location?.search || "");
+    const s2Gain = devS2Camera
       ? Math.max(0, Math.min(1, (tiltK() - 0.6) / 0.4)) : 0;
     const camFocusY = P.y + (450 - P.y) * 0.6 * s2Gain;
     const targetCamY = camFocusY - H / (2 * tiltK());
@@ -7459,7 +7462,9 @@ function spawnEnemy(tier, rad, ang, ring) {
         // During delivery reading only the Boss HP bars remain. Boss quiz
         // answers are intentionally disabled there, so do not draw inert
         // clickable-looking options over the active delivery answer panel.
-        if (bossQ || liveBosses.length) UI.drawBossQuiz(ctx,job?.reading ? null : bossQ,inputMode,liveBosses,sealFade);
+        if (bossQ || liveBosses.length) UI.drawBossQuiz(
+          ctx, job?.reading ? null : bossQ, inputMode, liveBosses, sealFade, bossCurseRemaining
+        );
         if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000, levelupFocus, inputMode, awakeningState());
         if (state === "fusion" && window.FUSION && typeof UI.drawFusion === "function") {
           const model = window.FUSION.getViewModel ? window.FUSION.getViewModel() : {};

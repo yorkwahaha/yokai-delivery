@@ -44,7 +44,7 @@ test('rain-port collision half-width matches each rendered facade, without chang
 
 test('Boss answer cards are not rendered while a delivery reading blocks clicking',()=>{
  assert.match(gameSrc,/if \(bossQ && !job\?\.reading\)/);
- assert.ok(gameSrc.includes('UI.drawBossQuiz(ctx,job?.reading ? null : bossQ,inputMode,liveBosses,sealFade)'));
+ assert.match(gameSrc,/UI\.drawBossQuiz\(\s*ctx,\s*job\?\.reading \? null : bossQ, inputMode, liveBosses, sealFade, bossCurseRemaining/);
  assert.match(fs.readFileSync('js/ui.js','utf8'),/if \(!bossQ\) \{/);
 });
 

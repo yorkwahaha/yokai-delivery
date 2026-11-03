@@ -78,7 +78,7 @@ test('Phase20 pure module has no localStorage, write actions or external state m
 test('Phase20 tutorial helper loads before game at new HTML revision',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const helper='js/game-tutorial-rules.js?v=20261103-tutorial-phase20';
- const gameScript='js/game.js?v=20261103-p1-hotfix-a';
+ const gameScript='js/game.js?v=20261103-p1-hotfix-c';
  assert.ok(html.includes(helper)&&html.includes(gameScript));
  assert.ok(html.indexOf(helper)<html.indexOf(gameScript));
  assert.ok(html.includes('js/game-build-rules.js?v=20261103-build-phase19'));
