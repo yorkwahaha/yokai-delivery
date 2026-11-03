@@ -1127,24 +1127,17 @@
   // 每個技能只有兩個變異槽；原共享變異以 family 排斥另一種技能的同名效果。
   const MUTATION_SLOTS_PER_SKILL = 2;
   function getSkillMutations(skillId, list = buildMutations) {
-    if (!Array.isArray(list)) return [];
-    return list.filter(id => {
-      const cfg = MUTATION_CONFIG[id];
-      return !!cfg && cfg.skillId === skillId;
-    });
+    return window.GAME_BUILD_RULES.getSkillMutations(skillId, list, MUTATION_CONFIG);
   }
 
   function isMutationFamilyTaken(id, list = buildMutations) {
-    const family = MUTATION_CONFIG[id]?.family;
-    return !!family && list.some(other => MUTATION_CONFIG[other]?.family === family);
+    return window.GAME_BUILD_RULES.isMutationFamilyTaken(id, list, MUTATION_CONFIG);
   }
 
   function canAddMutation(id, list = buildMutations) {
-    const cfg = MUTATION_CONFIG[id];
-    if (!cfg?.inPool || !Array.isArray(list) || list.includes(id)) return false;
-    if (isMutationFamilyTaken(id, list)) return false;
-    return (WL[cfg.skillId] || 0) > 0
-      && getSkillMutations(cfg.skillId, list).length < MUTATION_SLOTS_PER_SKILL;
+    return window.GAME_BUILD_RULES.canAddMutation(
+      id, list, MUTATION_CONFIG, WL, MUTATION_SLOTS_PER_SKILL
+    );
   }
 
   function addMutation(id) {

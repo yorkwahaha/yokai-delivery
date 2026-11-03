@@ -1,3 +1,10 @@
+## 2026-11-03 JS 模組化 Phase 8 — 變異資格純規則（連續自動驗證）
+
+- 基於 \`1333d07\` 正式版，將 \`getSkillMutations / isMutationFamilyTaken / canAddMutation\` 中無副作用的選擇規則抽出成 \`js/game-build-rules.js\`，保留 \`game.js\` 既有三個函式名稱、live \`buildMutations\` 預設參數和 \`MUTATION_CONFIG/WL/MUTATION_SLOTS_PER_SKILL\` 的實際來源。
+- 新模組只讀傳入參數，不修改陣列或建構項目。原本 \`addMutation/removeMutation\` 以及增加 \`buildRevision\` 的主遊戲流程原封不動；不啟用已關閉的融合。
+- 現行 VM fixtures 新增依賴，仍屬於本機清理後不存在的歷史測試使用遠端原始內容編入暫存，不覆蓋本地檔案；HTML 只更新 \`game.js\` cache key，新模組先載入。
+- 原公式逐案例比較（不同技能級數、已選變異／衝突 family、槽位 1–3、無效資料、滿槽），選定 120/120 整合測試通過。仍保留最後一次實機試玩驗收，不要求使用者逐批審核。
+
 ## 2026-11-03 JS 模組化 Phase 7 — 敵人生成節奏純計算（連續自動驗證）
 
 - 原 \`mobPacing(atElapsed,power)\` 中的生成間隔、數量、級距與第一關 Normal 前 150 秒特別曲線完整搬到 \`js/game-spawn-math.js\` 的純函式；\`game.js\` 保留薄轉接並明確傳入目前 \`CFG/MOB_DIFFICULTY/DAWN\` 等設定。沒有搬敵人實際生成、AI、隨機數、世界狀態或戰鬥主迴圈。

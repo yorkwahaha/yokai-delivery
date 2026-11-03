@@ -136,6 +136,7 @@ function loadGame(options = {}) {
   vm.runInContext(read("js/game-geometry.js"), context, { filename: "js/game-geometry.js" });
     vm.runInContext(read("js/game-charm-math.js"), context, { filename: "js/game-charm-math.js" });
   vm.runInContext(read("js/game-spawn-math.js"), context, { filename: "js/game-spawn-math.js" });
+  vm.runInContext(read("js/game-build-rules.js"), context, { filename: "js/game-build-rules.js" });
   const source = read("js/game.js");
   const end = source.lastIndexOf("})();");
   const hook = `window.fixture = {
