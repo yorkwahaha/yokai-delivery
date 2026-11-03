@@ -9,7 +9,25 @@ JS=ROOT/'js/asset-paths.js'
 MEDIA={'.webp','.png','.jpg','.jpeg','.svg','.mp3','.ogg','.wav'}
 BAD=re.compile(r'(?:^|[_/.\\-])(candidate|trial|draft|new|final[0-9]*|seed[0-9]+|v[0-9]+|qwen|comfyui|nano)(?:[_/.\\-]|$)',re.I)
 STAGES=['night-town','rain-port','sakura-pass','bamboo-maze','hyakki-kyoto','snow-temple','spirit-ferry','yomi']
-def digest(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+# Seven historical locally reviewed image masters were inventoried while
+# ignored by Git. They may exist in the owner's original checkout, but not in
+# a clean clone / CI worktree. They are NOT shipped production dependencies.
+# Keep their recorded hashes, so present local copies are still audited.
+OPTIONAL_LOCAL_ONLY={
+ 'assets/img/vfx/boss-water-r8/rainVortex_v01.png',
+ 'assets/img/vfx/boss-water-r8/tidalFan_v01.png',
+ 'assets/img/vfx/boss-water-r8/tide_v03.png',
+ 'assets/img/vfx/shield/guard_crack.png',
+ 'assets/img/vfx/shield/guard_full.png',
+ 'assets/img/vfx/shield/ofuda_ward_crack.svg',
+ 'assets/img/vfx/shield/ofuda_ward_full.svg',
+}
+def digest(p):
+ data=p.read_bytes()
+ # Tracked SVG source blobs are LF; Windows autocrlf worktrees may hold CRLF.
+ # Match the canonical bytes used in the service-worker media revision check.
+ if p.suffix.lower()=='.svg':data=data.replace(b'\r\n',b'\n')
+ return hashlib.sha256(data).hexdigest()
 def stage2_approved_sources():
  """Only publish files explicitly selected by runtime or enemy manifests.
 
@@ -221,11 +239,15 @@ def check():
  assert JS.read_text(encoding='utf8')==runtime(entries),'stale JS resolver'
  old={e['path']:e['sha256'] for e in json.loads(INV.read_text(encoding='utf8'))['files']}
  now={e['path']:e['sha256'] for e in inventory(entries)['files']}
- assert not old.keys()-now.keys(),('disappeared',list(old.keys()-now.keys())[:12])
+ absent=old.keys()-now.keys()
+ assert absent <= OPTIONAL_LOCAL_ONLY,('disappeared',list(absent-OPTIONAL_LOCAL_ONLY)[:12])
+ assert not (OPTIONAL_LOCAL_ONLY & {e['source'] for e in entries}), 'local candidates must not be approved aliases'
+ assert not (OPTIONAL_LOCAL_ONLY & {e['canonical'] for e in entries}), 'local candidates must not be approved targets'
  assert not now.keys()-old.keys(),('new files not inventoried',list(now.keys()-old.keys())[:12])
- modified=[f for f in old if old[f]!=now[f]]
+ modified=[f for f in old if f in now and old[f]!=now[f]]
  assert not modified,('asset bytes changed without review: run --build only after approved change',modified[:12])
- print('PASS',len(now),'files',len(entries),'aliases/copies; no missing/modified/new unregistered media')
+ print('PASS',len(now),'files',len(entries),'aliases/copies;',len(absent),
+       'historical ignored local-only art sources absent; no missing shipped/modified/new unregistered media')
 def main():
  ap=argparse.ArgumentParser();group=ap.add_mutually_exclusive_group(required=True)
  for name in ['build','check','plan']:group.add_argument('--'+name,action='store_true')

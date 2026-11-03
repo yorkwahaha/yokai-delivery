@@ -16,7 +16,8 @@ function harness(withSkills=true){
       getImageData(){const data=new Uint8ClampedArray(16*16*4);
         for(let i=0;i<data.length;i+=4)data[i+3]=probeImage?.cornerAlpha??0;
         return {data};}
-    },{get(target,key){return key in target?target[key]:(key==='createRadialGradient'||key==='createLinearGradient'?()=>({addColorStop(){}}):()=>{});}})})},console:{warn(){},log(){}},setTimeout(){}};
+    },{get(target,key){return key in target?target[key]:(key==='createRadialGradient'||key==='createLinearGradient'?()=>({addColorStop(){}}):()=>{});}})})},console:{warn(){},log(){},error(){}},setTimeout(){},
+    fetch: async()=>({ok:true,json:async()=>({})})};
   env.window=env;
   const context=vm.createContext(env);
   vm.runInContext(fs.readFileSync('js/assets.js','utf8'),context,{filename:'js/assets.js'});

@@ -164,9 +164,9 @@ test('R10 Item 1: Diegetic Radar Mode - Reopen button is safely anchored to left
 });
 
 // ─────────────────────────────────────────────────────────────
-// Test 2: 無貼圖/單元測試模式下保持向後相容
+// Test 2: 無貼圖模式保持核准的現行安全區錨定；不強迫退回舊 R10 像素。
 // ─────────────────────────────────────────────────────────────
-test('R10 Item 2: Non-Diegetic/Unit-Test Mode - Backward compatibility preserved', () => {
+test('R10 Item 2: Non-Diegetic Mode - Approved right-aligned safe hitbox remains in bounds', () => {
   for (const [w, h] of [[1366, 768], [844, 390]]) {
     const { UI } = loadUiSandbox(w, h, { withRadarArt: false });
     const { ctx } = makeSpyCanvas(w, h);
@@ -181,8 +181,12 @@ test('R10 Item 2: Non-Diegetic/Unit-Test Mode - Backward compatibility preserved
     );
 
     const reopen = UI.FUSION_REOPEN_BTN;
-    assert.equal(reopen.y, w === 844 ? 78 : 76, '相容 Y 座標規範');
+    const compact = w === 844 && h === 390;
+    assert.equal(reopen.y, compact ? 70 : 68,
+      'layout preserves the current compact/desktop safe top inset');
     assert.equal(reopen.x, w - reopen.w - 14, '相容右側錨定規範');
+    assert.ok(reopen.y >= 60 && reopen.y + reopen.h < h,
+      'reopen touch target remains inside the visible screen');
   }
 });
 

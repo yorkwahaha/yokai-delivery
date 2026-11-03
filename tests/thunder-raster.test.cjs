@@ -27,7 +27,8 @@ function harness(){
   },{get(o,k){return k in o?o[k]:noop;}});
   const env={Math,Date,Image:ImageMock,
     document:{createElement:()=>({getContext:()=>canvas})},
-    console:{warn(){},log(){}},matchMedia:()=>({matches:false})};
+    console:{warn(){},log(){},error(){}},matchMedia:()=>({matches:false}),
+    fetch: async()=>({ok:true,json:async()=>({})})};
   env.window=env;env.VIEWPORT={upright(ctx,x,y,draw){uprights.push([x,y]);draw();}};
   const scope=vm.createContext(env);
   for(const f of ['js/assets.js','js/fx.js','js/skillfx.js'])
@@ -164,28 +165,30 @@ test('alpha and lifetimes fade instead of hard cutoff',()=>{
   assert.equal(draws.length,0);
 });
 test('thunder Lv5 targeting behavior: up to 3 anchors, storm+strike per anchor, damage per target', () => {
-  // BEHAVIOR_PENDING: This test requires full game harness to verify:
-  // - targetCount == 3 at Lv5
-  // - each anchor gets unique storm+strike pair
-  // - damage applied per target (spec.damage * crit.mult)
-  // - hit detection uses spec.cloudRadius
-  // - no duplicate targets (struck Set)
-  // - RENDERER.triggerShake(8) called
-  // Current skillfx harness cannot drive real game.js thunder execution.
-  // Keep as placeholder; real verification needs game.js integration test.
-
+  // Phase25 extracted target ordering into a pure consumer with full golden
+  // parity coverage. Verify its actual selection, then check the unchanged
+  // runtime still consumes that selection for each storm/strike.
+  const win={};const env={window:win};env.window=env;
+  vm.runInNewContext(fs.readFileSync('js/game-combat-math.js','utf8'),env);
+  const enemy=(id,x,type,extra={})=>({id,x,y:0,hp:10,type,...extra});
+  const enemies=[
+    enemy('ghost',20,'ghost'),enemy('boss',140,'boss'),
+    enemy('shield',8,'boss',{shield:true}),enemy('far',800,'boss'),
+    enemy('shiome',30,'shiome'),enemy('tank',55,'tank')
+  ];
+  const selected=env.GAME_COMBAT_MATH.thunderTargetSelection(
+    enemies,{x:0,y:0},{level:5,radius:450,targetCount:3,hasFocus:false});
+  assert.deepEqual(Array.from(selected.primaryTargets,e=>e.id),['boss','shiome','tank'],
+    'three unshielded in-range anchors preserve boss/shiome/tank priority');
   const gameSrc = fs.readFileSync('js/game.js', 'utf8');
-
-  // Static source assertions (weaker than behavioral but document intent)
-  assert.match(gameSrc, /candidates\.slice\(0, spec\.targetCount\)/, 'Lv5 anchor selection via slice(0, targetCount)');
-  assert.match(gameSrc, /spec\.targetCount.*3|targetCount.*=.*3/, 'Lv5 targetCount should be 3');
+  const specSrc=fs.readFileSync('js/game-attack-specs.js','utf8');
+  assert.match(specSrc,/level === 5 \? 3/,'current Lv5 base target count is three');
+  assert.match(gameSrc,/GAME_COMBAT_MATH\.thunderTargetSelection\(enemies, P, spec\)/);
+  assert.match(gameSrc,/const anchors = selectedTargets/);
   assert.match(gameSrc, /SKILLFX\.play\("thunder", "storm", 5/, 'Lv5 plays storm per anchor');
   assert.match(gameSrc, /SKILLFX\.play\("thunder", "strike", 5.*stormChild: true/, 'Lv5 plays strike with stormChild per anchor');
   assert.match(gameSrc, /hurt\(e, spec\.damage \* crit\.mult, crit\.isCrit\)/, 'Lv5 applies damage per target');
   assert.match(gameSrc, /dist\(e, anchor\) <= spec\.cloudRadius/, 'Lv5 hit detection uses cloudRadius');
   assert.match(gameSrc, /struck\.has\(e\)/, 'Lv5 prevents duplicate targets via struck Set');
   assert.match(gameSrc, /RENDERER\.triggerShake\(8\)/, 'Lv5 triggers screen shake');
-
-  // Mark as PENDING behavioral verification
-  console.log('BEHAVIOR_PENDING: thunder Lv5 behavioral verification requires full game.js integration test');
 });

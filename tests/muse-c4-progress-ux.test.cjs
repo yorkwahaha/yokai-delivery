@@ -77,7 +77,8 @@ test("3. 手機橫向實繪：進度字串完整無截字、開卡可點、鎖�
     ctx, cards,
     { filter: { by: "all", id: null }, page: 0, packLine },
     hooks,
-    { width: 844, height: 390, scale: 0.5, offsetX: 0, offsetY: 0 },
+    { width: 844/(390/600), height: 600, scale: 390/600,
+      offsetX: (844/(390/600)-900)/2, offsetY: 0 },
     catalogs
   );
   const texts = traces.map(t => t.text);

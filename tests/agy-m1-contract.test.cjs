@@ -124,29 +124,32 @@ test('M1-DATA-4 Three chapters progression, bossSeal, and nextStageId link chain
 });
 
 // ── 5. 靜態原始碼字串檢查：game.js 六招與 Lv5 覺醒名稱 ────────
-test('M1-DATA-5 Static source presence check for baseline six skills and awakened titles in game.js', () => {
+test('M1-DATA-5 Live catalog defines exactly the six baseline skills and awakened titles', () => {
   const BASELINE_SKILLS = Object.freeze({
     katana: { zh: '妖刀斬', awakenedName: '覺醒・斷空殘月斬' },
     barrier: { zh: '淨化靈陣', awakenedName: '覺醒・金剛退魔曼荼羅' },
     fire: { zh: '狐火炎', awakenedName: '覺醒・墨焰黑龍' },
     boom: { zh: '陰陽符', awakenedName: '覺醒・兩儀延爆' },
     thunder: { zh: '天狐雷', awakenedName: '覺醒・建御雷神破界天罰' },
-    needle: { zh: '天狐靈針', awakenedName: '覺醒・九尾極寒靈暴' }
+    needle: { zh: '天狐靈針', awakenedName: '覺醒・八方輪射' }
   });
 
-  const gameSrc = fs.readFileSync(path.join(__dirname, '../js/game.js'), 'utf-8');
+  // Phase 8 extraction moved the six skill metadata and upgrade texts to
+  // game-catalog.js. Requiring their literal source in game.js would reject
+  // the production modularization while missing actual catalog regressions.
+  const catalogSrc = fs.readFileSync(path.join(__dirname, '../js/game-catalog.js'), 'utf-8');
   for (const [id, meta] of Object.entries(BASELINE_SKILLS)) {
     assert.ok(
-      gameSrc.includes(`id: "${id}"`),
-      `js/game.js 原始碼必須包含基礎技能 id: ${id}`
+      catalogSrc.includes(`id: "${id}"`),
+      `js/game-catalog.js 必須包含基礎技能 id: ${id}`
     );
     assert.ok(
-      gameSrc.includes(meta.zh),
-      `js/game.js 原始碼必須包含技能繁中名稱: ${meta.zh}`
+      catalogSrc.includes(meta.zh),
+      `js/game-catalog.js 必須包含技能繁中名稱: ${meta.zh}`
     );
     assert.ok(
-      gameSrc.includes(meta.awakenedName),
-      `js/game.js 原始碼必須包含 Lv5 覺醒名稱: ${meta.awakenedName}`
+      catalogSrc.includes(meta.awakenedName),
+      `js/game-catalog.js 必須包含 Lv5 覺醒名稱: ${meta.awakenedName}`
     );
   }
 });

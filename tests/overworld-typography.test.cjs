@@ -32,11 +32,10 @@ test("journey board uses dark engraved ink on pale paper and shared Japanese hea
     assert.match(best.font,/Noto Sans JP/);
     assert.ok(strokes.some(x=>x.text==="最高 52,745 點"&&x.outline.includes("255,248,228")));
     assert.ok(gradients.some(x=>String(x[1]).includes("255,249,229,.72")),"paper center is lightly brightened");
-    assert.deepEqual(buttons.map(x=>x.label),["← 首頁","◀","▶","出發"]);
+    assert.deepEqual(buttons.map(x=>x.label),["← 首頁","出發"],
+      "approved draggable map has no old left/right browse arrows");
     assert.equal(buttons[0].options.mapTypography,"title","home uses Kaisei Decol like the placards");
-    assert.deepEqual(buttons.slice(1,3).map(x=>x.options.mapTypography),["body","body"]);
-    assert.ok(buttons.slice(1,3).every(x=>x.options.visualOffsetY===-4),"arrows rise within unchanged hitboxes");
-    assert.equal(buttons[3].options.mapTypography,true,"launch button retains map lettering");
+    assert.equal(buttons[1].options.mapTypography,true,"launch button retains map lettering");
     const wood=OW.NODES.find(n=>n.id==="night-town").labelPlacement;
     const kana=texts.find(x=>x.text==="よるのはいそう");
     assert.equal(label.y,wood.y+17,"place name rises two pixels");
@@ -48,7 +47,7 @@ test("journey board uses dark engraved ink on pale paper and shared Japanese hea
     for(const x of ["STORE","CONTENT","UI"])delete global[x];
   }
 });
-test("map bottom instruction rises four pixels without moving its wood board",()=>{
+test("draggable world map does not revive the old bottom keyboard instruction banner",()=>{
   const coords=[],boards=[],g={addColorStop(){}};
   const ctx=new Proxy({
     fillText:(text,x,y)=>coords.push({text,y}),
@@ -57,8 +56,12 @@ test("map bottom instruction rises four pixels without moving its wood board",()
   global.UI={drawWoodTag:(_ctx,plate)=>boards.push(plate),drawButton:()=>{}};
   try{
     OW.draw(ctx,OW.createState("gate"),0);
-    assert.equal(coords.find(x=>x.text.startsWith("方向鍵移動")).y,564);
-    assert.ok(boards.some(p=>p.y===546&&p.h===34));
+    assert.ok(!coords.some(x=>x.text.startsWith("方向鍵移動")),
+      "old 2-button browsing instructions were retired with free drag");
+    assert.ok(boards.some(p=>p.y===546&&p.h===34),
+      "the shared wood board can remain as decoration without outdated keyboard instructions");
+    assert.ok(coords.some(x=>x.text==="道をたどって、次の配達先へ"),
+      "the modern top-of-map route hint remains readable");
   }finally{delete global.UI;}
 });
 test("locked chapter still uses legible dark text and never becomes playable",()=>{

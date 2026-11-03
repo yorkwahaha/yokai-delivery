@@ -54,7 +54,76 @@ const currentExact=new Set([
   // and compact horizontal UI each pass without changing their contracts.
   'b3-night-town-boss-quiz.test.cjs',
   'b3-night-town-six-skills.test.cjs',
-  'playtest-r8-ui.test.cjs'
+  'playtest-r8-ui.test.cjs',
+  // Individually verified passing historic files; frozen snapshots stay archival.
+  'agy-m1-n3.test.cjs',
+  'agy-m1-n4.test.cjs',
+  'agy-m11-ui.test.cjs',
+  'audio-flow-polish-r1-boss-text.test.cjs',
+  'audit-regressions-20261101.test.cjs',
+  'audit-stage2-load-race.test.cjs',
+  'b15-production-art-mapping-20261101.test.cjs',
+  'b16-device-font-boss-20261101.test.cjs',
+  'b3-needle-charge-20261031.test.cjs',
+  'b3-night-town-visual-feedback-20261031.test.cjs',
+  'b5-slam-shield-return-20261031.test.cjs',
+  'dev-helper-occlusion-r1.test.cjs',
+  'director-audio-freeze.test.cjs',
+  'director-c3-visible-hitboxes.test.cjs',
+  'director-card-long-run.test.cjs',
+  'director-card-page-contrast.test.cjs',
+  'director-p42-ctm.test.cjs',
+  'kilo-b5-balance.test.cjs',
+  'kilo-m2-port-boundary.test.cjs',
+  'kilo-m2-stage2-renderer.test.cjs',
+  'muse-end-states.test.cjs',
+  'muse-pad5-combat.test.cjs',
+  'muse-settle-review.test.cjs',
+  'p42-camera-zoom-math.test.cjs',
+  'parallax-depth.test.cjs',
+  'phase3-grok-audit-20261102.test.cjs',
+  'playtest-r13-vfx.test.cjs',
+  'playtest-ui-balance-20261102.test.cjs',
+  'r12-fan-clip-bound-r12.test.cjs',
+  'second-audit-regressions.test.cjs',
+  'spacebunny-m1-f-r1.test.cjs',
+  'ui-charm-passive-20261023.test.cjs',
+  'v3-growth-curve.test.cjs',
+  'v3-study-session.test.cjs',
+  // Former raster fixtures now provide a fetch-stub for the production
+  // runtime manifest; renderer expectations target the approved shadow/ground.
+  'barrier-raster.test.cjs',
+  'ofuda-raster.test.cjs',
+  'thunder-raster.test.cjs',
+  'renderer.test.cjs',
+  // Revised source-location, approved Stage 3 sparse scenery, production
+  // asset bytes, camera and dev-gate contracts (no release gameplay change).
+  'agy-m1-contract.test.cjs',
+  'dev-stage-selector.test.cjs',
+  'stage3-house-density-depth.test.cjs',
+  'assets-loading.test.cjs',
+  'm15-port-transition.test.cjs',
+  'p42-camera-runtime.test.cjs',
+  'playtest-followup-20261102.test.cjs',
+  'agy-m2-stage2-facing.test.cjs',
+  'source-contracts.test.cjs',
+  'overworld-typography.test.cjs',
+  'muse-long-kana-visible.test.cjs',
+  'muse-c4-progress-ux.test.cjs',
+  // Safe registry scan now handles local ignored provenance and accepted
+  // image updates; current real-game Boss and routing contracts revalidated.
+  'asset-registry.test.cjs',
+  'codex-astar-audit-fixes-20261029.test.cjs',
+  'muse-s8-boss.test.cjs',
+  'b11-charm-actual-game-ui-20261101.test.cjs',
+  'b12-ui-consistency-20261101.test.cjs',
+  'b13-boss-audio-ui-20261101.test.cjs',
+  // Final focused review: current radar/reopen touch geometry, 4 phase-one
+  // gameplay invariants, and real 10s/30s Boss curse behaviour.
+  'r10-ui-hud-hitbox.test.cjs',
+  'phase1-fixes.test.cjs',
+  'playtest-r14-delivery-seal-curse.test.cjs',
+  'test-triage-audit-20261104.test.cjs'
 ]);
 for(const required of currentExact)if(!all.includes(required))
   throw Error('Current test missing: '+required);

@@ -137,9 +137,11 @@ test('approved pure environment map is a small WebP; old map loads only if it fa
   assert.ok(map,'approved image must be a required map request');
   assert.match(map.src,/v=20261012-approved-v2-4k/);
   assert.ok(fs.statSync('assets/img/overworld_approved_v2.webp').size<2500000, 'optimized 4K image should stay under 2.5 MB');
-  // The optional 4K source may be archived after optimization; only the shipped
-  // WebP must exist for the game to render and recover from network failures.
-  assert.ok(fs.statSync('artifacts/references/霧嵐之境_櫻花雪域幻境地圖.png').size>0);
+  // The source PNG was a temporary untracked review artifact; production
+  // must not require it. Validate the optimized published WebP instead.
+  assert.equal(fs.existsSync('assets/img/overworld_approved_v2.webp'),true);
+  assert.ok(!fs.readFileSync('js/assets.js','utf8').includes('artifacts/references/'),
+    'public loader must not rely on ignored review-only map sources');
   assert.equal(fs.readFileSync('assets/img/overworld_approved_v2.webp').toString('ascii',0,4),'RIFF');
   assert.ok(!images.some(i=>i.src.includes('/overworld_ukiyoe_v3.webp')),'no duplicate background download');
   map.onerror();

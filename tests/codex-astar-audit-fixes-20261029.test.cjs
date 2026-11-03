@@ -53,8 +53,12 @@ test('雨夜渦流多水柱在不同幀依序落下',()=>{
 });
 test('路線重選包含目的地上限/三列限制，圖鑑與教材說明一致',()=>{
   const game=source('js/game.js'),ui=source('js/ui.js');
-  assert.match(game,/Math\.abs\(h\.x - o\.to\.x\) > 3600/);
-  assert.match(game,/colsBetween\(h\.x, o\.to\.x\) < 3/);
+  // Phase 10 moved distance/pickup/route filtering into the pure delivery
+  // rules module, with shorter approved travel than the original 3600px cap.
+  const rules=source('js/game-delivery-rules.js');
+  assert.match(game,/GAME_DELIVERY_RULES\.portDestinationPools\(destinationHouses, from, colsBetween\)/);
+  assert.match(rules,/const minH2 = 480, maxH2 = 1650/);
+  assert.match(rules,/colsBetween\(h\.x, from\.x\) >= 1/);
   assert.match(game,/const needsIntro = bs\.introduced === false/);
   assert.match(ui,/有效頻率 \+0\.25/);
   assert.match(ui,/10 秒/);

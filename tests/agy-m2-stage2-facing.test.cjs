@@ -239,8 +239,8 @@ test('M2-HF-K-5: Shiome foot anchor and drawImage offsets remain locked to e.y a
   }
 });
 
-// ── 6. Boss (海坊主 / 近正面) 保留原處理 (nativeFacing = 1) ──
-test('M2-HF-K-6: Boss (Umibozu / frontal) preserves original handling with nativeFacing = 1', () => {
+// ── 6. Boss 使用核准的朝左原生素材 (nativeFacing = -1) ──
+test('M2-HF-K-6: Boss (Umibozu) honors its current left-facing native sprite orientation', () => {
   const { env, scales } = loadStage2RendererEnv(true);
   const renderer = env.window.RENDERER;
 
@@ -255,7 +255,7 @@ test('M2-HF-K-6: Boss (Umibozu / frontal) preserves original handling with nativ
   }, { x: 450, y: 300 }, 0);
 
   assert.equal(scales.length, 1);
-  assert.equal(scales[0][0], 1, 'Boss 近正面朝向保持 nativeFacing=1 (faceAng=0 時 scaleX=+1)');
+  assert.equal(scales[0][0], -1, 'nativeFacing=-1: faceAng=0 必須鏡像成朝右');
 
   // Boss faceAng = PI
   scales.length = 0;
@@ -268,5 +268,5 @@ test('M2-HF-K-6: Boss (Umibozu / frontal) preserves original handling with nativ
   }, { x: 450, y: 300 }, 0);
 
   assert.equal(scales.length, 1);
-  assert.equal(scales[0][0], -1, 'Boss faceAng=PI 時 scaleX=-1');
+  assert.equal(scales[0][0], 1, 'nativeFacing=-1: faceAng=PI 保留原始朝左');
 });

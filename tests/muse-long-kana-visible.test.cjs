@@ -123,7 +123,11 @@ test("3. 圖鑑手機版：篩選按鈕熱區可點、5 假名卡單行不溢出
   const cards = [
     { key: "onna", jp: "おんなのこ", zh: "女孩", kana: "おんなのこ", reveal: "open", progress: "4/4" }
   ];
-  const viewport = { width: 844, height: 390, scale: 0.5, offsetX: 0, offsetY: 0 };
+  // UI receives logical world bounds, not physical CSS pixels. In a
+  // 844×390 landscape view the 600-high canvas scales at 390/600.
+  const scale=390/600, logicalWidth=844/scale;
+  const viewport={width:logicalWidth,height:600,scale,
+    offsetX:(logicalWidth-900)/2,offsetY:0};
   const out = cardGallery.draw(ctx, cards, { filter: { by: "all", id: null }, page: 0 }, hooks, viewport, { stages: [], packs: [] });
   const stageBtn = out.buttons.find(b => b.id === "filter-stage");
   assert.ok(stageBtn, "應有 filter-stage 按鈕");

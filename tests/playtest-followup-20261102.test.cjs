@@ -62,7 +62,8 @@ test('rain-port foundations and collisions share visible floor footprint',()=>{
 
 test('HoloCure-like equipped charms avoid a top-center boxed plaque',()=>{
  const functionText=ui.slice(ui.indexOf('  function drawCharmHud('),ui.indexOf('  // B10 approved layout:',ui.indexOf('  function drawCharmHud(')));
- assert.match(functionText,/const x=b\.left\+32/);
+ assert.match(functionText,/const x=b\.left\+18\+lanternH\*lanternAspect\+8/,
+   'worn charms hang to the right of the oil lantern, not on its glass');
  assert.doesNotMatch(functionText,/roundRect|裝備御守|panelW/);
  assert.match(ui,/const iconSize=slotSize\*\.87/);
  assert.match(ui,/bounds\.bottom - footerHeight \+ 1/);

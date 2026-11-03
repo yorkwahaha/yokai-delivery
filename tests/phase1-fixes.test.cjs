@@ -19,7 +19,16 @@ function loadGameEnv() {
   };
   env.window = env;
   const c = vm.createContext(env);
-  for (const name of ['words', 'world', 'store', 'config', 'viewport', 'controls', 'overworld', 'fx', 'skillfx', 'evolutions', 'ui']) {
+  // Keep the isolated VM fixture aligned with the production dependency
+  // order. The 2023-era loader stopped before today's game modules existed.
+  for (const name of [
+    'delivery-lexicon','delivery-media','words','world','store','config',
+    'viewport','controls','overworld','fx','skillfx','evolutions',
+    'combat-targeting','game-quiz-logic','game-geometry','game-charm-math',
+    'game-spawn-math','game-build-rules','game-delivery-rules',
+    'game-attack-specs','game-catalog','game-combat-math','game-weather',
+    'game-upgrade-choices','game-run-summary','game-tutorial-rules','ui'
+  ]) {
     vm.runInContext(fs.readFileSync(`js/${name}.js`, 'utf8'), c);
   }
   c.CONTROLS.mount = () => {};

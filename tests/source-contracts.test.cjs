@@ -7,15 +7,16 @@ const ui = fs.readFileSync("js/ui.js", "utf8");
 const html = fs.readFileSync("index.html", "utf8");
 
 test("fire orbit render count matches combat count", () => {
-  const needle = "EVOLUTIONS.fireCount(WL.fire)";
+  // Both the combat and rendering paths now resolve the same fire spec.
+  const needle = "const count = fireSpec.count;";
   const escaped = needle.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
   assert.equal((game.match(new RegExp(escaped, "g")) || []).length, 2);
 });
 
 test("MAX katana wave crosses buildings and has a fixed world-distance limit", () => {
-  assert.match(game, /EVOLUTIONS\.move\(wave,dt,null,12\)/);
+  assert.match(game, /EVOLUTIONS\.move\(wave,\s*dt,\s*null,\s*12\)/);
   assert.ok(!game.includes("blockBlade"), "Lv5 katana should not collide with houses or walls");
-  assert.match(game, /maxTravel:720/);
+  assert.match(game, /const cap = wave\.maxTravel \|\| 720/);
 });
 
 test("independent boss controller loads before the real game runtime", () => {
@@ -25,14 +26,17 @@ test("independent boss controller loads before the real game runtime", () => {
 });
 
 test("horizontal level-up hitboxes and rendered rows share the same dimensions", () => {
-  assert.match(game, /cardW = 720, cardH = 108/);
-  assert.ok(ui.includes('LEVEL_CARD_LAYOUT = {x:90,y:176,w:720,h:108,gap:14}'));
+  assert.match(game,/UI\.levelUpLayout\(choices\.length\)\?\.cards/,
+    "pointer hitboxes must consume the same card rectangles as UI");
+  assert.match(ui,/const L = levelUpLayout\(choices\.length\)/,
+    "rendering must consume the shared level-up layout");
 });
 
-test("mobile hint has a visible exported hit target", () => {
-  assert.match(ui, /const HINT_BTN = \{ x: 532, y: 20, w: 78, h: 40 \}/);
-  assert.match(ui, /HINT_BTN,/);
-  assert.match(game, /UI\.HINT_BTN/);
+test("retired paid listening hints cannot be triggered via the mobile UI", () => {
+  assert.match(game,/function triggerHint\(\) \{ return false; \}/,
+    "all paid hint paths are disabled, including mobile pointer input");
+  assert.match(ui,/const HINT_BTN = \{ x: 532, y: 20, w: 78, h: 40 \}/,
+    "kept as an internal layout anchor only, not a paid hint action");
 });
 
 test("interface fonts keep one full Noto answer face plus subset decorative faces", () => {

@@ -47,10 +47,15 @@ function visibleAt(map, player, area, tilt) {
   });
 }
 
-test("sakura-pass keeps one shrine per chunk and other stages stay at three", () => {
+test("sakura-pass keeps one approved house variant per chunk, rain-port shoreline-only, standard stages three", () => {
   const pass = housesIn("sakura-pass");
   assert.ok(pass.chunks.every(chunk => chunk.houses.length === 1));
-  assert.ok(pass.houses.every(house => house.bType === "shrine_pavilion"));
+  const sakuraTypes=new Set(["shrine_pavilion","s3_tea_house","s3_mountain_house",
+    "s3_storehouse","s3_worship_hall"]);
+  assert.ok(pass.houses.every(house => sakuraTypes.has(house.bType)),
+    "Stage 3 approved house variants share the same one-house geometry");
+  assert.ok(new Set(pass.houses.map(h=>h.bType)).size>1,
+    "multiple approved Stage 3 house variants are actually reached");
   assert.equal(pass.houses.length, pass.chunks.length);
   assert.ok(pass.houses.length <= Math.ceil(pass.chunks.length * 3 / 2));
   assert.ok(pass.houses.length <= pass.chunks.length);
@@ -58,7 +63,12 @@ test("sakura-pass keeps one shrine per chunk and other stages stay at three", ()
     const sample = world(id);
     for (const [cx, cy] of [[0, 0], [1, 2], [-3, 4]]) {
       const chunk = sample.getChunk(cx, cy);
-      assert.equal(chunk.houses.length, 3, id);
+      if (id === "rain-port") {
+        assert.ok(cy===0
+          ? chunk.houses.length >= 1 && chunk.houses.length <= 2
+          : chunk.houses.length === 0,
+          "rain-port must never spawn phantom houses outside its shoreline row");
+      } else assert.equal(chunk.houses.length, 3, id);
       assert.ok(chunk.houses.every(house => house.bType !== "shrine_pavilion"));
     }
   }

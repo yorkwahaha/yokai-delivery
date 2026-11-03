@@ -82,7 +82,12 @@ function transitionDraws(r, transition) {
 
 test('runtime bytes match the approved v2 and the service worker revision', () => {
   assert.equal(sha(URL), SHA);
-  assert.equal(sha(SOURCE), SHA);
+  // SOURCE is an optional ignored review master, not a required checkout
+  // asset. The shipping runtime byte hash is the canonical contract.
+  const productionStatements=fs.readFileSync('js/assets.js','utf8')
+    .split(/\r?\n/).filter(line=>!line.trimStart().startsWith('//')).join('\n');
+  assert.ok(!productionStatements.includes(SOURCE),
+    'release loader must never fetch ignored authoring masters');
   const sw = fs.readFileSync('service-worker.js', 'utf8');
   assert.match(sw, new RegExp('"' + URL + '"\\s*:\\s*"' + SHA.slice(0, 24) + '"'));
 });

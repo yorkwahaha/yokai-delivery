@@ -22,7 +22,11 @@ function assets() {
   const images = [];
   class Image { constructor() { this.dataset = {}; images.push(this); } }
   class Audio { addEventListener() {} }
-  const env = { Image, Audio, console }; env.window = env;
+  // Production assets.js fetches the shared manifest during initialization.
+  // This test only needs the image lazy-loader's behavior; avoid failing
+  // before assertions because the legacy VM omitted browser fetch.
+  const env = { Image, Audio, console,
+    fetch: async()=>({ok:true,json:async()=>({})}) }; env.window = env;
   vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'js/assets.js'), 'utf8'), env, { filename: path.join(ROOT, 'js/assets.js') });
   return { env, images };
 }

@@ -30,10 +30,12 @@ test('B11 replaces opaque black card overlay with real dynamic illustrated card 
  assert.match(fn,/const label=item/);
  assert.match(fn,/hitRects\.push\(\{id:'swap_discard'/);
 });
-test('B11 lantern charms have no full-height black panel or individual rectangular plaques',()=>{
+test('B11 lantern-side charms use three individual illustrations with no opaque full-height panel',()=>{
  const fn=ui.slice(ui.indexOf('  function drawCharmHud('),ui.indexOf('  // B10 approved layout:',ui.indexOf('  function drawCharmHud(')));
- assert.match(fn,/charmScreenArt\.hud/);
- assert.match(fn,/ctx\.drawImage\(art,x\+\(tileW-iw\)\/2/);
+ assert.match(fn,/illustratedCharms\[key\]/);
+ assert.match(fn,/ctx\.drawImage\(art,xx\+\(slot-ww\)\/2/);
+ assert.match(fn,/const xx=x, yy=y\+i\*\(slot\+gap\)/,
+   'worn charms form an independent vertical rail outside the oil lantern');
  assert.doesNotMatch(fn,/rgba\(15,25,38,\.78\)/);
  assert.doesNotMatch(fn,/drawWashiSlices\(ctx,background/);
 });

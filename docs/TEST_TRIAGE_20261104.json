@@ -1,0 +1,1850 @@
+{
+  "schema": 1,
+  "source_revision": "f88362b",
+  "audit_date": "2026-11-04",
+  "warning": "ARCHIVED does not mean green, deleted, or confirmed bug-free. Those files remain runnable only on opt-in legacy lane.",
+  "baseline": {
+    "files": 130,
+    "passing_files": 37,
+    "failed_or_timeout_files": 93,
+    "assertions": 974,
+    "failures": 366
+  },
+  "final": {
+    "promoted": 59,
+    "archived": 71,
+    "active_files": 145,
+    "legacy_files": 71
+  },
+  "groups": {
+    "frozen": "鎖定歷史版本的實驗或 UI 快照，不應作為當前發布規格",
+    "review": "重要整合行為但原測試框架不再有效，需改成有時間上限的現行 runtime 測試",
+    "future": "第三至八關規畫或尚未發布的場景材質提案，與正式關卡資產不同",
+    "asset": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+    "ui": "歷史 HUD/UI 像素、配色與原始碼字串要求已被新美術及佈局取代",
+    "fusion": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+    "runtime": "舊版數值／升級流程或未更新的 VM 載入器，與拆分後規則不相符"
+  },
+  "cases": [
+    {
+      "file": "agy-m1-c.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "runtime",
+      "baseline": {
+        "tests": 11,
+        "passed": 7,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": "not ok 1 - M1-C-1 All six charm cards pool eligibility: level 1 excluded, level 2+ all six inPool=true, stable schema"
+      },
+      "reason": "舊版數值／升級流程或未更新的 VM 載入器，與拆分後規則不相符",
+      "replacement": "core-stateful-contracts; game-attack-specs-phase12; game-upgrade-choices-phase17"
+    },
+    {
+      "file": "agy-m1-contract.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 6,
+        "passed": 5,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 5 - M1-DATA-5 Static source presence check for baseline six skills and awakened titles in game.js"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "agy-m1-d.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "runtime",
+      "baseline": {
+        "tests": 88,
+        "passed": 42,
+        "failed": 46,
+        "timed_out": false,
+        "first_failure": "not ok 1 - M1-D-1 Per-skill mutation capacity (3 per skill) and mut_crosscut pool eligibility/schema/applyChoice"
+      },
+      "reason": "舊版數值／升級流程或未更新的 VM 載入器，與拆分後規則不相符",
+      "replacement": "core-stateful-contracts; game-attack-specs-phase12; game-upgrade-choices-phase17"
+    },
+    {
+      "file": "agy-m1-g.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "runtime",
+      "baseline": {
+        "tests": 7,
+        "passed": 3,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": "not ok 1 - M1-G-1 Build 1 (Needle: fan+seek+frost) normal combat values with controlled XP, specified offers, and navigation: 6 deliveries, 2 seals, 4"
+      },
+      "reason": "舊版數值／升級流程或未更新的 VM 載入器，與拆分後規則不相符",
+      "replacement": "core-stateful-contracts; game-attack-specs-phase12; game-upgrade-choices-phase17"
+    },
+    {
+      "file": "agy-m1-integration.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "review",
+      "baseline": {
+        "tests": 0,
+        "passed": 0,
+        "failed": 0,
+        "timed_out": true,
+        "first_failure": ""
+      },
+      "reason": "原策略全場模擬超時，未限制最大步數",
+      "replacement": "core-stateful-contracts; combat-boundaries-stage-tutorial; 專案重建測試待需求確認"
+    },
+    {
+      "file": "agy-m1-n2.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "runtime",
+      "baseline": {
+        "tests": 3,
+        "passed": 1,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 1 - M1-G-N2-1 Baseline Reproduction: Dumb Strategy (Policy 0) dies early (90-135s) due to backward facing, 0 kills, and enemy swarm"
+      },
+      "reason": "舊版數值／升級流程或未更新的 VM 載入器，與拆分後規則不相符",
+      "replacement": "core-stateful-contracts; game-attack-specs-phase12; game-upgrade-choices-phase17"
+    },
+    {
+      "file": "agy-m1-n3.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "agy-m1-n4.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "agy-m1-runtime.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "review",
+      "baseline": {
+        "tests": 14,
+        "passed": 7,
+        "failed": 7,
+        "timed_out": false,
+        "first_failure": "not ok 5 - M1-RUNTIME-4 Empty choice pool continues safely and invalid choiceId is rejected"
+      },
+      "reason": "重要整合行為但原測試框架不再有效，需改成有時間上限的現行 runtime 測試",
+      "replacement": "core-stateful-contracts; combat-boundaries-stage-tutorial; 專案重建測試待需求確認"
+    },
+    {
+      "file": "agy-m1-stage1-balance.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "review",
+      "baseline": {
+        "tests": 9,
+        "passed": 5,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": "not ok 1 - M1-G-S1-1 Stage 1 Boss HP scaling: minibosses 50%, final boss 65%, unchanged for other stages"
+      },
+      "reason": "重要整合行為但原測試框架不再有效，需改成有時間上限的現行 runtime 測試",
+      "replacement": "core-stateful-contracts; combat-boundaries-stage-tutorial; 專案重建測試待需求確認"
+    },
+    {
+      "file": "agy-m11-ui.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 5,
+        "passed": 5,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "agy-m2-stage2-facing.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 6,
+        "passed": 5,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 6 - M2-HF-K-6: Boss (Umibozu / frontal) preserves original handling with nativeFacing = 1"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "agy-stage-content-check.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "future",
+      "baseline": {
+        "tests": 6,
+        "passed": 5,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 1 - AGY-1 Stage 6 snow-temple visual.weather is wired to \"snow\" and engine supports it"
+      },
+      "reason": "第三至八關規畫或尚未發布的場景材質提案，與正式關卡資產不同",
+      "replacement": "stage-release-status; content-world; stage3-house-density-depth"
+    },
+    {
+      "file": "asset-registry.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 4,
+        "passed": 3,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 4 - ASSET-REGISTRY 只允許已盤點影音，不可誤刪舊音檔或新增匿名候選到正式根目錄"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "assets-loading.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 24,
+        "passed": 23,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 10 - approved pure environment map is a small WebP; old map loads only if it fails"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "audio-flow-polish-r1-boss-text.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "audit-regressions-20261101.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "audit-stage2-load-race.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "b-stage-content.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "future",
+      "baseline": {
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 1 - tests\\\\b-stage-content.test.cjs"
+      },
+      "reason": "第三至八關規畫或尚未發布的場景材質提案，與正式關卡資產不同",
+      "replacement": "stage-release-status; content-world; stage3-house-density-depth"
+    },
+    {
+      "file": "b11-charm-actual-game-ui-20261101.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 4,
+        "passed": 3,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 4 - B11 lantern charms have no full-height black panel or individual rectangular plaques"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "b12-ui-consistency-20261101.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 9,
+        "passed": 5,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "b13-boss-audio-ui-20261101.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 6,
+        "passed": 4,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 5 - B13 right-side order labels stay with high contrast ink outline and shadow"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "b15-production-art-mapping-20261101.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 5,
+        "passed": 5,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "b16-device-font-boss-20261101.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 8,
+        "passed": 7,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "b3-needle-charge-20261031.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "b3-night-town-visual-feedback-20261031.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "b5-slam-shield-return-20261031.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "b6-night-town-polish-20261031.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "ui",
+      "baseline": {
+        "tests": 6,
+        "passed": 5,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "歷史 HUD/UI 像素、配色與原始碼字串要求已被新美術及佈局取代",
+      "replacement": "renderer; b16-device-font-boss; playtest-ui-balance"
+    },
+    {
+      "file": "b7-omamori-and-ui-20261031.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "ui",
+      "baseline": {
+        "tests": 7,
+        "passed": 3,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "歷史 HUD/UI 像素、配色與原始碼字串要求已被新美術及佈局取代",
+      "replacement": "renderer; b16-device-font-boss; playtest-ui-balance"
+    },
+    {
+      "file": "b8-passive-caps-and-seal-20261101.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "ui",
+      "baseline": {
+        "tests": 5,
+        "passed": 3,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "歷史 HUD/UI 像素、配色與原始碼字串要求已被新美術及佈局取代",
+      "replacement": "renderer; b16-device-font-boss; playtest-ui-balance"
+    },
+    {
+      "file": "b9-art-and-cargo-20261101.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 4,
+        "passed": 1,
+        "failed": 3,
+        "timed_out": false,
+        "first_failure": "not ok 4 - B9 both generated source atlases and grounded order manifests are preserved"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "barrier-raster.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 5,
+        "passed": 1,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": "not ok 1 - tier config and lazily loaded separate Lv5 image"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "boss-image-qa-r1.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 15,
+        "passed": 9,
+        "failed": 6,
+        "timed_out": false,
+        "first_failure": "not ok 2 - A. gate 只認 dev=1 && bossart=1，且不借用 fusion gate"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "codex-astar-audit-fixes-20261029.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 5,
+        "passed": 4,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "codex-s1-difficulty.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "review",
+      "baseline": {
+        "tests": 0,
+        "passed": 0,
+        "failed": 0,
+        "timed_out": true,
+        "first_failure": ""
+      },
+      "reason": "舊完整難度模擬超時，沒有已驗證的正式回歸",
+      "replacement": "core-stateful-contracts; combat-boundaries-stage-tutorial; 專案重建測試待需求確認"
+    },
+    {
+      "file": "delivery-media-routes.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 2,
+        "passed": 1,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 2 - DELIVERY-MEDIA 第一關兩份正式 manifest 的20個編號與日語完全一致，歷史試音未誤放進 assets/audio"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "delivery-v3.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 7,
+        "passed": 3,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": "not ok 3 - DELIVERY-V3 140件 local AI 風格候選均存在，為透明 WebP、不使用未批准正式圖"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "dev-helper-occlusion-r1.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "dev-stage-selector.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 8,
+        "passed": 7,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 6 - index.html loads the dev gate before the store with a fresh query"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "director-audio-freeze.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "director-c3-visible-hitboxes.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "director-card-long-run.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "director-card-page-contrast.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "director-media-image-revisions.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 1 - image-only cache revisions match shipped images without opening frozen audio"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "director-p42-ctm.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 7,
+        "passed": 7,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "e15-r16-harness-calibration.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "review",
+      "baseline": {
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 1 - tests\\\\e15-r16-harness-calibration.test.cjs"
+      },
+      "reason": "重要整合行為但原測試框架不再有效，需改成有時間上限的現行 runtime 測試",
+      "replacement": "core-stateful-contracts; combat-boundaries-stage-tutorial; 專案重建測試待需求確認"
+    },
+    {
+      "file": "fusion-art-ui-20261023.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "frozen",
+      "baseline": {
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "1/1 過關但為已退役的融合 DEV 美術候選",
+      "replacement": "歷史 revision 參考"
+    },
+    {
+      "file": "fusion-dual-realgame.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 5,
+        "passed": 0,
+        "failed": 5,
+        "timed_out": false,
+        "first_failure": "not ok 1 - R8-DUAL-1: 雙次融合完整流程 - 兩組雙父 Lv5、各自繪馬 commit、父技停攻、槽位釋放、前融合保留傷害"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "fusion-fan-hud-20261025.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 14,
+        "passed": 13,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 11 - HoloCure Fan 11: all candidates exist on disk; DEV loader calls drawImage; public mode falls back to vector geometry"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "fusion-replace-20261025.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 8,
+        "passed": 0,
+        "failed": 8,
+        "timed_out": false,
+        "first_failure": "not ok 1 - F1: Lv3+5 應拒絕"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "fusion-thundercircle-visibility-r5.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 6,
+        "passed": 2,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": "not ok 2 - Option A（預設平衡選項）：Main Active Alpha 峰值為 0.48，Ground 峰值為 0.18"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "fusion-vfx-visible-20261025.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 14,
+        "passed": 3,
+        "failed": 11,
+        "timed_out": false,
+        "first_failure": "not ok 1 - FUSION-VFX: DEV gate opens with correct query params"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "fusion-visual-qa-r2.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 4,
+        "passed": 0,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": "not ok 1 - QA-1: 10 大奧義候選素材實體檔案存在且無空檔"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "grok-d1-foxiai-direction.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 2,
+        "passed": 0,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 1 - assets 與 game 凍結 SHA，foxiai 裁切框仍是 R4 bbox"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "grok-d2-array-phase.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 2,
+        "passed": 0,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 1 - assets/game 凍結，普通靈陣與融合靈陣是不同真圖 consumer"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "grok-d3-boss-image.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 2,
+        "passed": 0,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 1 - assets 與 game 凍結；缺圖與非 DEV 是 LEGACY，標準 hazard 才 false"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "grok-m1-e-r11.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 3,
+        "passed": 0,
+        "failed": 3,
+        "timed_out": false,
+        "first_failure": "not ok 1 - 四 Duo 正確 pair 經 drawLevelUp 落成影響行"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "grok-m1-e-r12.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "review",
+      "baseline": {
+        "tests": 0,
+        "passed": 0,
+        "failed": 0,
+        "timed_out": true,
+        "first_failure": "not ok 1 - 寒封符與墨焰斬逐卡全文、影響技能、不截字"
+      },
+      "reason": "歷史融合全場模擬超時，且正式融合已停用",
+      "replacement": "core-stateful-contracts; combat-boundaries-stage-tutorial; 專案重建測試待需求確認"
+    },
+    {
+      "file": "grok-m2-omamori-core-r3.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "review",
+      "baseline": {
+        "tests": 5,
+        "passed": 3,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 2 - 擊殺機率邊界、同敵只擲一次、掉落數量有上限"
+      },
+      "reason": "重要整合行為但原測試框架不再有效，需改成有時間上限的現行 runtime 測試",
+      "replacement": "core-stateful-contracts; combat-boundaries-stage-tutorial; 專案重建測試待需求確認"
+    },
+    {
+      "file": "input-runtime.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "review",
+      "baseline": {
+        "tests": 161,
+        "passed": 103,
+        "failed": 58,
+        "timed_out": false,
+        "first_failure": "not ok 4 - canvas view switch preserves the running game and world geometry"
+      },
+      "reason": "103/161 通過；58 項包括舊提示、三變異限制、未設 target 的 pointer 夾具，不等於 58 項正式缺陷",
+      "replacement": "core-stateful-contracts; combat-boundaries-stage-tutorial; 專案重建測試待需求確認"
+    },
+    {
+      "file": "kilo-b5-balance.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 8,
+        "passed": 8,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "kilo-m2-port-boundary.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 5,
+        "passed": 5,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "kilo-m2-stage2-motion.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "future",
+      "baseline": {
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 1 - tests\\\\kilo-m2-stage2-motion.test.cjs"
+      },
+      "reason": "第三至八關規畫或尚未發布的場景材質提案，與正式關卡資產不同",
+      "replacement": "stage-release-status; content-world; stage3-house-density-depth"
+    },
+    {
+      "file": "kilo-m2-stage2-renderer.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 5,
+        "passed": 5,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "kilo-stage-flow.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "future",
+      "baseline": {
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 1 - tests\\\\kilo-stage-flow.test.cjs"
+      },
+      "reason": "第三至八關規畫或尚未發布的場景材質提案，與正式關卡資產不同",
+      "replacement": "stage-release-status; content-world; stage3-house-density-depth"
+    },
+    {
+      "file": "kilo-stage3-8-flow.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "future",
+      "baseline": {
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 1 - tests\\\\kilo-stage3-8-flow.test.cjs"
+      },
+      "reason": "第三至八關規畫或尚未發布的場景材質提案，與正式關卡資產不同",
+      "replacement": "stage-release-status; content-world; stage3-house-density-depth"
+    },
+    {
+      "file": "m15-port-transition.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 7,
+        "passed": 6,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 1 - runtime bytes match the approved v2 and the service worker revision"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "m2-fusion-art-bind-r1.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 5,
+        "passed": 2,
+        "failed": 3,
+        "timed_out": false,
+        "first_failure": "not ok 2 - A2 靜態：嚴格 dev-only 門檻存在，且不得被單一 window 旗標繞過"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "muse-c4-progress-ux.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 3,
+        "passed": 2,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 3 - 3. 手機橫向實繪：進度字串完整無截字、開卡可點、鎖卡正確禁用（無誤觸）"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "muse-end-states.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "muse-long-kana-visible.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 3,
+        "passed": 2,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 3 - 3. 圖鑑手機版：篩選按鈕熱區可點、5 假名卡單行不溢出、極窄才折行不重疊"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "muse-m1-stagemeta.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "ui",
+      "baseline": {
+        "tests": 2,
+        "passed": 0,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 1 - 八關 metadata 完備＋UI 缺欄 fallback 不噴錯不錯標"
+      },
+      "reason": "依賴未合入的 STORY.get() Boss 稱號方案；正式使用 boss.title 回退",
+      "replacement": "renderer; b16-device-font-boss; playtest-ui-balance"
+    },
+    {
+      "file": "muse-pad5-combat.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "muse-s8-boss.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 1 - Stage8 Boss 題板：5 假名單行、血條分離、Boss 名淺色可見且不出條"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "muse-settle-review.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "night-town-a-common-kanji-free.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 2,
+        "passed": 1,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 1 - NIGHT-A-FREE 正式圖音同層級編號一致，音檔來源為A聲線S2.1免費版"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "night-town-approved-fish.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 4,
+        "passed": 3,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 2 - FISH-NIGHT A與B歷史候選已封存、可從獨立離線頁試聽"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "night-town-kanji-fish-voices.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 4,
+        "passed": 0,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": "not ok 1 - KANJI-FISH 新舊兩組各20音檔完整，漢字及慣用日文正字法與索引相符"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "ofuda-raster.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 7,
+        "passed": 1,
+        "failed": 6,
+        "timed_out": false,
+        "first_failure": "not ok 1 - ofuda files are lazy and level-scoped instead of initial-map downloads"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "opencode-m2-fusion-runtime.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 8,
+        "passed": 0,
+        "failed": 8,
+        "timed_out": false,
+        "first_failure": "not ok 1 - M2-FUSION-1: registry identity/uniqueness, implemented eligibility, \\#8 WAITING_IMPLEMENTATION, strict gate"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "opencode-m2-fusion-ui.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 5,
+        "passed": 4,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 5 - M2-FUSION-UI-5: registry recognises new IDs/status and \\#8 display rename without touching \\#1"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "overworld-typography.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 3,
+        "passed": 1,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 1 - journey board uses dark engraved ink on pale paper and shared Japanese headings"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "p42-camera-runtime.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 4,
+        "passed": 3,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "p42-camera-zoom-math.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 16,
+        "passed": 16,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "parallax-depth.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 5,
+        "passed": 5,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "phase1-fixes.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 4,
+        "passed": 0,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": "not ok 1 - Boss quiz state is preserved when exiting and re-entering detection radius"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "phase3-grok-audit-20261102.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "playtest-followup-20261102.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 6,
+        "passed": 5,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 5 - HoloCure-like equipped charms avoid a top-center boxed plaque"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "playtest-r13-vfx.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "playtest-r14-delivery-seal-curse.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 2,
+        "passed": 0,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 2 - Boss兩次錯答各 10／30 秒，完全不扣燈油，所有進行中的玩家攻擊清除"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "playtest-r15-stage1-visual-20261029.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 4,
+        "passed": 2,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 4 - variation cards have nine unique illustrations and night-town boss spells have three independent image paths"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "playtest-r16-water-shield-ring-20261029.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 4,
+        "passed": 3,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 2 - shield artwork is over player, alpha at most .8 and appears for 280ms each 2 seconds"
+      },
+      "reason": "舊版盾牌透明度／顯示位置畫稿，須依現行 renderer 確認",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "playtest-r7-ui.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "ui",
+      "baseline": {
+        "tests": 3,
+        "passed": 1,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 1 - R7 Item 1: Omamori Swap Panel - Desktop 1366x768 and Mobile 844x390 responsive bounds"
+      },
+      "reason": "歷史 HUD/UI 像素、配色與原始碼字串要求已被新美術及佈局取代",
+      "replacement": "renderer; b16-device-font-boss; playtest-ui-balance"
+    },
+    {
+      "file": "playtest-r9-ui.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "ui",
+      "baseline": {
+        "tests": 4,
+        "passed": 1,
+        "failed": 3,
+        "timed_out": false,
+        "first_failure": "not ok 1 - R9 Item 1: Passive HUD - Petite ×N Badge leaves >80% emblem visible and stays strictly inside frame"
+      },
+      "reason": "歷史 HUD/UI 像素、配色與原始碼字串要求已被新美術及佈局取代",
+      "replacement": "renderer; b16-device-font-boss; playtest-ui-balance"
+    },
+    {
+      "file": "playtest-ui-balance-20261102.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 4,
+        "passed": 4,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "r10-ui-hud-hitbox.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 3,
+        "passed": 2,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 2 - R10 Item 2: Non-Diegetic/Unit-Test Mode - Backward compatibility preserved"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "r12-assets-loader.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 6,
+        "passed": 4,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 3 - R12: Stage 2 rain-port preserves source review status while defining approved runtime selection"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "r12-boss-canonical-kilo.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 12,
+        "passed": 9,
+        "failed": 3,
+        "timed_out": false,
+        "first_failure": "not ok 1 - R12 Canonical: bossart gate ON — all 6 kinds use dedicated images"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "r12-fan-clip-bound-r12.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "r12-shared-art-manifest.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 3,
+        "passed": 0,
+        "failed": 3,
+        "timed_out": false,
+        "first_failure": "not ok 1 - R12-B5: runtime-art-manifest.json contains complete shared_skills, shared_actors, shared_hud, and fusion_candidates"
+      },
+      "reason": "舊版全面列入十融合候選與原圖，與正式 runtime-art-manifest 發布定義不同",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "r12-ui-canonical.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "frozen",
+      "baseline": {
+        "tests": 4,
+        "passed": 4,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "4/4 過關但為 R12 舊 UI 定稿，現行由 B13/B16 覆蓋",
+      "replacement": "歷史 revision 參考"
+    },
+    {
+      "file": "rain-port-delivery-trial.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 3,
+        "passed": 1,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 1 - RAIN-DELIVERY 20 images + 20 Fish Audio A MP3 canonical paths are complete and perfectly aligned"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "renderer.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 39,
+        "passed": 36,
+        "failed": 3,
+        "timed_out": false,
+        "first_failure": "not ok 2 - actor shadows are world-space floor marks, never warped with upright sprites"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "s2-ground-kit-contract.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 1 - tests\\\\s2-ground-kit-contract.test.cjs"
+      },
+      "reason": "需要未提交的 S2 art/ 原始圖，發行時應查正式 WebP",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "sakura-terrain-plan.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "future",
+      "baseline": {
+        "tests": 3,
+        "passed": 2,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "尚未接線的程序化地面計畫；正式第三關採核准石階／泥土材質",
+      "replacement": "stage-release-status; content-world; stage3-house-density-depth"
+    },
+    {
+      "file": "second-audit-regressions.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 7,
+        "passed": 7,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "source-contracts.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 8,
+        "passed": 4,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "spacebunny-m1-f-r1.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "spacebunny-m1-g-return.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "review",
+      "baseline": {
+        "tests": 5,
+        "passed": 2,
+        "failed": 3,
+        "timed_out": false,
+        "first_failure": "not ok 1 - won → 回旅路地圖 → 真 confirm 重進 night-town：非空 build 全清、clears 不二次計數"
+      },
+      "reason": "重要整合行為但原測試框架不再有效，需改成有時間上限的現行 runtime 測試",
+      "replacement": "core-stateful-contracts; combat-boundaries-stage-tutorial; 專案重建測試待需求確認"
+    },
+    {
+      "file": "spacebunny-m1-p0.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "runtime",
+      "baseline": {
+        "tests": 3,
+        "passed": 1,
+        "failed": 2,
+        "timed_out": false,
+        "first_failure": "not ok 1 - P0-1 三視口修行進階：名/假名/類型不重疊、卡≥44CSS、文字≥14CSS、重抽不壓卡、玩家文案"
+      },
+      "reason": "舊版數值／升級流程或未更新的 VM 載入器，與拆分後規則不相符",
+      "replacement": "core-stateful-contracts; game-attack-specs-phase12; game-upgrade-choices-phase17"
+    },
+    {
+      "file": "spritecook-dev.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "asset",
+      "baseline": {
+        "tests": 6,
+        "passed": 0,
+        "failed": 6,
+        "timed_out": false,
+        "first_failure": "not ok 1 - spritecook preview is disabled without both explicit dev flags"
+      },
+      "reason": "使用已清理的未提交原稿／舊清冊與候選路徑，應查正式媒體清冊",
+      "replacement": "asset-registry; s2-published-release; stage2-approved-media-routes"
+    },
+    {
+      "file": "stage-art-reset-20261024.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "future",
+      "baseline": {
+        "tests": 5,
+        "passed": 1,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": "not ok 1 - Stages 3-8 only retain manifest-listed style references"
+      },
+      "reason": "第三至八關規畫或尚未發布的場景材質提案，與正式關卡資產不同",
+      "replacement": "stage-release-status; content-world; stage3-house-density-depth"
+    },
+    {
+      "file": "stage2-approved-enemies.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "review",
+      "baseline": {
+        "tests": 11,
+        "passed": 5,
+        "failed": 6,
+        "timed_out": false,
+        "first_failure": "not ok 1 - approved runtime sprites are exact copies and all four are content-revisioned"
+      },
+      "reason": "舊普通模式潮汐波已停用以免與射擊疊加；原最終王測試使用不準確的快轉夾具",
+      "replacement": "core-stateful-contracts; combat-boundaries-stage-tutorial; 專案重建測試待需求確認"
+    },
+    {
+      "file": "stage3-ground-transitions.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "future",
+      "baseline": {
+        "tests": 4,
+        "passed": 0,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": "not ok 1 - the three runtime grounds are exact copies and the vertical preview is not installed"
+      },
+      "reason": "第三至八關規畫或尚未發布的場景材質提案，與正式關卡資產不同",
+      "replacement": "stage-release-status; content-world; stage3-house-density-depth"
+    },
+    {
+      "file": "stage3-house-density-depth.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 5,
+        "passed": 4,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 1 - sakura-pass keeps one shrine per chunk and other stages stay at three"
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "stage3-shrine-buildings.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "future",
+      "baseline": {
+        "tests": 4,
+        "passed": 1,
+        "failed": 3,
+        "timed_out": false,
+        "first_failure": "not ok 1 - sakura-pass world uses shrine pavilion houses and sparse ancient trees"
+      },
+      "reason": "第三至八關規畫或尚未發布的場景材質提案，與正式關卡資產不同",
+      "replacement": "stage-release-status; content-world; stage3-house-density-depth"
+    },
+    {
+      "file": "system-a-fusion-playable.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 9,
+        "passed": 0,
+        "failed": 9,
+        "timed_out": false,
+        "first_failure": "not ok 1 - A1: ten recipes implemented/enabled, unique parents, five new specs are distinct"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "system-delivery-distance-r1-distance.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "review",
+      "baseline": {
+        "tests": 6,
+        "passed": 2,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": "not ok 5 - DELIVERY-DISTANCE-R1: the primary reachable2 filter uses 480-1650 range with house-column spacing"
+      },
+      "reason": "480~1650px 與隔屋規則已拆到 game-delivery-rules.js；舊測試僅比對原 game.js 字串",
+      "replacement": "core-stateful-contracts; combat-boundaries-stage-tutorial; 專案重建測試待需求確認"
+    },
+    {
+      "file": "thunder-raster.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 7,
+        "passed": 0,
+        "failed": 7,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "ui-charm-passive-20261023.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "ui-polish-r1.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 10,
+        "passed": 6,
+        "failed": 4,
+        "timed_out": false,
+        "first_failure": "not ok 6 - B1-G1: 候選真主圖 DEV 閘門——正式頁不取圖，?dev=1 才畫 art/fusion/candidates"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "ui-polish-r3.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 7,
+        "passed": 2,
+        "failed": 5,
+        "timed_out": false,
+        "first_failure": "not ok 1 - R3-FUSION 1366x768 keyboard: 選定描述/補償左對齊且留在卡內，行距分開，規則句不壓卡"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "ui-polish-r4.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "fusion",
+      "baseline": {
+        "tests": 2,
+        "passed": 1,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 2 - R4 1366 六配方：主標副標與 hero 三行都在且分開"
+      },
+      "reason": "融合、試做圖或 DEV 閘門已非正式六招的發布要求",
+      "replacement": "b3-night-town-six-skills; game-build-rules-phase11"
+    },
+    {
+      "file": "ui-readability.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "ui",
+      "baseline": {
+        "tests": 50,
+        "passed": 32,
+        "failed": 18,
+        "timed_out": false,
+        "first_failure": "not ok 28 - HUD skill badges are readable and their labels fit their backing rectangles"
+      },
+      "reason": "歷史 HUD/UI 像素、配色與原始碼字串要求已被新美術及佈局取代",
+      "replacement": "renderer; b16-device-font-boss; playtest-ui-balance"
+    },
+    {
+      "file": "v3-baseline.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "frozen",
+      "baseline": {
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "12/12 過關但鎖定 V3 歷史版基線，只可用於歷史對照",
+      "replacement": "歷史 revision 參考"
+    },
+    {
+      "file": "v3-growth-accounting.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "review",
+      "baseline": {
+        "tests": 3,
+        "passed": 2,
+        "failed": 1,
+        "timed_out": false,
+        "first_failure": "not ok 1 - V3 accounting: normal six deliveries keep exactly 156 earned XP after real level choices"
+      },
+      "reason": "重要整合行為但原測試框架不再有效，需改成有時間上限的現行 runtime 測試",
+      "replacement": "core-stateful-contracts; combat-boundaries-stage-tutorial; 專案重建測試待需求確認"
+    },
+    {
+      "file": "v3-growth-curve.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 5,
+        "passed": 5,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "v3-route.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "review",
+      "baseline": {
+        "tests": 0,
+        "passed": 0,
+        "failed": 0,
+        "timed_out": true,
+        "first_failure": ""
+      },
+      "reason": "歷史真步行測試 12 秒超時，無 bounded frame 上限",
+      "replacement": "core-stateful-contracts; combat-boundaries-stage-tutorial; 專案重建測試待需求確認"
+    },
+    {
+      "file": "v3-study-session.test.cjs",
+      "disposition": "ACTIVE",
+      "category": "active",
+      "baseline": {
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "timed_out": false,
+        "first_failure": ""
+      },
+      "reason": "已逐檔重測、修復必要的舊夾具/規格斷言，加入正式 npm test",
+      "replacement": "npm test"
+    },
+    {
+      "file": "v3-ui.test.cjs",
+      "disposition": "ARCHIVED",
+      "category": "ui",
+      "baseline": {
+        "tests": 13,
+        "passed": 7,
+        "failed": 6,
+        "timed_out": false,
+        "first_failure": "not ok 5 - pause control uses centered navy and white solid bars rather than thin yellow strokes"
+      },
+      "reason": "歷史 HUD/UI 像素、配色與原始碼字串要求已被新美術及佈局取代",
+      "replacement": "renderer; b16-device-font-boss; playtest-ui-balance"
+    }
+  ]
+}

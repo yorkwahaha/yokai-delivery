@@ -21,7 +21,8 @@ function harness(){
   },{get(target,key){return key in target?target[key]:noop;}});
   const env={Math,Date,Image:ImageMock,matchMedia:()=>({matches:false}),
     document:{createElement:()=>({getContext:()=>canvasCtx})},
-    console:{warn(){},log(){}},setTimeout(){}};
+    console:{warn(){},log(){},error(){}},setTimeout(){},
+    fetch: async()=>({ok:true,json:async()=>({})})};
   env.window=env;
   env.VIEWPORT={upright(ctx,x,y,paint){uprights.push([x,y]);paint();}};
   const cx=vm.createContext(env);

@@ -22,16 +22,18 @@ test('B12 permanent yōkai surge warning uses illustrated baked-text raster not 
  assert.doesNotMatch(fn,/glassBox\(/);
  assert.match(fn,/if\(!art\?\.naturalWidth\)return/);
 });
-test('B12 held omamori proportions follow source naturalWidth/naturalHeight; no flattening',()=>{
- const fn=area(game,'  function paintCharmDrop(','  function charmViewList(');
- assert.match(fn,/h \* art\.naturalWidth \/ art\.naturalHeight/);
- assert.match(fn,/upright\(d\.x, d\.y/);
- assert.match(fn,/ctx\.drawImage\(art, d\.x - w \/ 2/);
+test('B12 held omamori rail preserves natural aspect ratio; no flattening',()=>{
+ const fn=area(ui,'  function drawCharmHud(','  // B10 approved layout:');
+ assert.match(fn,/art\?\.naturalWidth && art\.naturalHeight/);
+ assert.match(fn,/const ratio=Math\.min\(slot\/art\.naturalWidth,\(slot\+4\)\/art\.naturalHeight\)/);
+ assert.match(fn,/const ww=art\.naturalWidth\*ratio,hh=art\.naturalHeight\*ratio/);
 });
-test('B12 Boss HP is only a clean red strip without wrapper or second background',()=>{
+test('B12 Boss HP draws one named lacquer bar with a single actual health fill',()=>{
  const fn=area(ui,'  function drawBossBar(','  // 小繪馬覺醒印');
- assert.match(fn,/ctx\.fillRect\(x,y\+4,w\*hp,h\)/);
- assert.doesNotMatch(fn,/drawWashiSlices|roundRect|stroke|bossLabel|fillText|fillRect\(x\+3/);
+ assert.match(fn,/const fillY=y\+17, fillH=Math\.max\(6,rowH-23\)/);
+ assert.match(fn,/ctx\.fillRect\(x\+inset,fillY,\(w-inset\*2\)\*hp,fillH\)/);
+ assert.match(fn,/ctx\.fillText\(tag\+"  "\+\(boss\.title\|\|"大妖"\)/);
+ assert.doesNotMatch(fn,/drawWashiSlices\(/,'Boss HP bar has no second paper panel');
 });
 test('B12 true max passive stacks 2/3/4 are segment lights not multiplication badges',()=>{
  const fn=area(ui,'    const passives = [','    const hiddenPassives');
@@ -42,7 +44,7 @@ test('B12 true max passive stacks 2/3/4 are segment lights not multiplication ba
 });
 test('B12 carried charms represent levels as beads and halo, no xN text',()=>{
  const fn=area(ui,'  function drawCharmHud(','  // B10 approved layout:');
- assert.match(fn,/const rank=Math\.max\(1,Math\.min\(3,item\.level\|\|1\)\)/);
+ assert.match(fn,/const level=Math\.max\(1,Math\.min\(3,item\.level\|\|1\)\)/);
  assert.doesNotMatch(fn,/strokeText\('×'|fillText\('×'/);
 });
 test('B12 camera/pause UI has real fixed raster icons and same interactive controls',()=>{
@@ -63,7 +65,7 @@ test('B12 pause and abandon flows use consistent painted image boards and unchan
  assert.match(ui,/drawB13MenuButton\(ctx,b,label/);
 });
 test('B12 longblade remains meaningful after Lv5, 720 becomes 900 at runtime and projectile reads it',()=>{
- assert.match(game,/maxTravel: hasLongblade \? 900 : 720/);
+ assert.match(read('js/game-attack-specs.js'),/maxTravel: hasLongblade \? 900 : 720/);
  assert.match(game,/const cap = wave\.maxTravel \|\| 720/);
  assert.match(game,/traveled: 0, maxTravel: spec\.maxTravel/);
  assert.match(ui,/mut_longblade: \{ ja: "妖刀・長風刃"/);

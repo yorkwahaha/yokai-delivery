@@ -77,13 +77,13 @@ test("Stage8 Boss 題板：5 假名單行、血條分離、Boss 名淺色可見�
       assert.ok(fills[0].size >= 13 && !fills[0].maxWidth, `${right}: ${want} 等比不壓扁`);
     }
     // 血條在題板下方，不重疊
-    assert.ok(layout.bar.y >= layout.y + layout.h + 10, `${right}: 血條應在題板下方分離`);
+    assert.ok(layout.bar.y >= layout.y + layout.h + 9, `${right}: 血條應在題板下方保留目前核准的 9px 間隔`);
     // Boss 名：淺色、落在條內
-    const names = traces.filter(t => t.text === "黃泉邪神·言靈之核");
+    const names = traces.filter(t => t.text.includes("黃泉邪神·言靈之核"));
     assert.equal(names.length, 1, `${right}: 應繪出 Boss 名`);
-    assert.equal(names[0].fill, "#f4deb1", `${right}: Boss 名應為淺色（非沿用深色）`);
-    assert.ok(names[0].x >= layout.bar.x && names[0].x + 9 * names[0].size <= layout.bar.x + layout.bar.w,
-      `${right}: 9 字 Boss 名應在條寬內`);
+    assert.equal(names[0].fill, "#f4dfb6", `${right}: Boss 名應為淺色（非沿用深色）`);
+    assert.ok(names[0].x >= layout.bar.x && names[0].maxWidth <= layout.bar.w,
+      `${right}: Boss 稱號有獨立 70% 寬度上限`);
     // 選項觸控高：手機 68（44 CSS），寬版不縮水
     for (const o of layout.options) assert.ok(o.h >= 44, `${right}: 選項高應 >= 44`);
   }

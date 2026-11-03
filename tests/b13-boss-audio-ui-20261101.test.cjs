@@ -60,7 +60,7 @@ test('B13 no previous mismatched gray-overlaid panel or old button renderer in t
  assert.doesNotMatch(exit,/b12Art\.modal_board|drawButton\(ctx,b,i===/);
 });
 test('B13 right-side order labels stay with high contrast ink outline and shadow',()=>{
- const order=segment(ui,'  function drawOrderList(','  // 王戰血條');
+ const order=segment(ui,'  function drawOrderList(','  // Each live Boss gets');
  assert.match(order,/inkText\(ctx, o\.word\.zh/);
  assert.match(order,/ctx\.shadowBlur\s*=\s*6/);
  assert.match(order,/rgba\(15,9,23,\.92\)/);
@@ -68,7 +68,8 @@ test('B13 right-side order labels stay with high contrast ink outline and shadow
 test('B13 real 2/3/4 passive capacity light bar is narrow and softly glowing',()=>{
  const passive=segment(ui,'    const passives = [','    const hiddenPassives');
  assert.match(passive,/maxStacks=\{shield:3,dmg:4,rate:4,crit:3,spd:3/);
- assert.match(passive,/Math\.min\(5\.5,slotSize\*\.065\)/);
+ assert.match(passive,/Math\.min\(5\.5,iconSize\*\.065\)/,
+   'narrow passive stack segments scale with the approved icon, not the outer paper slot');
  assert.match(passive,/255,232,68/);
  assert.match(passive,/Date\.now\(\)\/1000\*2\.4/);
  const n=['shield','dmg','rate','crit','spd','dash','oil_max','mag','oil_heal'];

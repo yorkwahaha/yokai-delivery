@@ -125,7 +125,10 @@ test("index.html loads the dev gate before the store with a fresh query", () => 
   const storeScript = script("store");
   const gameScript = script("game");
   assert.ok(devScript.at < storeScript.at && storeScript.at < gameScript.at);
-  assert.match(gameScript.version, /^20261014-p42/);
+  assert.match(gameScript.version, /^20\d{6}-[a-z0-9-]+$/,
+    'release cache revision may advance into a new calendar year');
+  assert.doesNotMatch(gameScript.version, /^20261014-p42/,
+    "released game script must not retain the retired p42 preview cache key");
 });
 
 test("an unknown stage query does not enter on the first click", () => {

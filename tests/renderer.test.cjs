@@ -71,14 +71,15 @@ test('actor shadows are world-space floor marks, never warped with upright sprit
   assert.equal(ellipses.length,1,'upright courier sprite does not repaint floor shadow');
   ellipses.length=0;
   r.env.RENDERER.drawHouseShadow({x:400,y:240,bType:"house_shop"});
-  assert.deepEqual(ellipses[0].slice(0,4),[400,288,58,6]);
+  assert.deepEqual(ellipses[0].slice(0,4),[400,288,70,12],
+    'approved larger building contact shadow remains on the ground pass');
   ellipses.length=0;
   r.env.RENDERER.drawMonsterShadow({type:'ghost',x:100,y:200});
   assert.deepEqual(ellipses[0].slice(0,4),[100,218.7,22,8.8]);
 });
 
 
-test('SpriteCook contact shadow aligns with feet without changing production',()=>{
+test('SpriteCook developer flag cannot override the production player contact shadow',()=>{
   const r=loadRenderer(900,600),ellipses=[];
   const P={x:460,y:240};
   r.main.ctx.ellipse=(...args)=>ellipses.push(args);
@@ -86,9 +87,9 @@ test('SpriteCook contact shadow aligns with feet without changing production',()
   assert.equal(ellipses.at(-1)[1],262);
   r.env.SPRITECOOK_DEV={enabled:true};
   r.env.RENDERER.drawPlayerShadow(P,0,{x:0,y:0});
-  assert.equal(ellipses.at(-1)[1],242);
-  assert.equal(ellipses.at(-1)[2],22);
-  assert.equal(ellipses.at(-1)[3],7);
+  assert.equal(ellipses.at(-1)[1],262);
+  assert.equal(ellipses.at(-1)[2],28);
+  assert.equal(ellipses.at(-1)[3],11);
 });
 
 test('Boss world sprite keeps its seal ring but does not draw a duplicate local HP bar', () => {
@@ -473,7 +474,7 @@ test('phase-two houses keep separate visual widths and the original depth foot a
   }
 });
 
-test('phase-two ground atlas crops meet on every horizontal and vertical tile boundary', () => {
+test('retired 1024px ground atlas is not regenerated on each scene draw', () => {
   const r=loadRenderer(900,600);
   const source=new Uint8ClampedArray(1024*1024*4);
   for(let y=0;y<1024;y++)for(let x=0;x<1024;x++){
@@ -492,12 +493,8 @@ test('phase-two ground atlas crops meet on every horizontal and vertical tile bo
   };
   r.env.ART.ground_dirt={naturalWidth:1024,naturalHeight:1024,complete:true};
   r.env.RENDERER.drawGround(0,600,[],'ground_dirt');
-  assert.ok(atlas);
-  const sample=(tile,x,y,ch)=>atlas[(((tile>>1)*512+y)*1024+(tile&1)*512+x)*4+ch];
-  for(let a=0;a<4;a++)for(let b=0;b<4;b++)for(let n=0;n<512;n+=7)for(let ch=0;ch<4;ch++){
-    assert.equal(sample(a,511,n,ch),sample(b,0,n,ch),'horizontal crop seam');
-    assert.equal(sample(a,n,511,ch),sample(b,n,0,ch),'vertical crop seam');
-  }
+  assert.equal(atlas,undefined,
+    'modern stage-specific terrain uses the approved WebP kit instead of the obsolete 1024px crop atlas');
 });
 
 test('quiet ground removes dark rectangular courtyards and wide ink-road borders', () => {
