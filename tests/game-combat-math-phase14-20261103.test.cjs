@@ -80,9 +80,9 @@ test('Phase14 pure math module stays immutable and does not draw RNG or mutate c
  assert.doesNotMatch(combat,/Math\.random\s*\(|enemies\.push\s*\(|localStorage|document\./);
  assert.match(game,/const isCrit = Math\.random\(\) < chance/);
 });
-test('Phase14 browser loads combat helper before main game at identical cache revision',()=>{
+test('Phase14 browser loads combat helper before main game with both phase-specific cache keys',()=>{
  const html=fs.readFileSync('index.html','utf8');
- const helper='js/game-combat-math.js?v=20261103-combat-phase29';
+ const helper='js/game-combat-math.js?v=20261103-combat-auditfix';
  const main='js/game.js?v=20261103-dragon-phase29';
  assert.ok(html.includes(helper)&&html.includes(main));
  assert.ok(html.indexOf(helper)<html.indexOf(main));

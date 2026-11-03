@@ -1,3 +1,12 @@
+## 2026-11-03 Phase 24–29 雙 Agent 獨立審查後防禦性修補
+
+- Herdr Grok 4.7 與 Antigravity 均唯讀查核正式提交 `82d723e4b9fddbd7f683095c0050e1eba3b1596f`，沒有證實 Phase 24–29 純函式抽離引入 P0/P1 回歸。Grok 提出 P2：Phase14 測試名錯稱兩份 cache 版本相同；已修正敘述。
+- Antigravity 指出角度 `Infinity` 會讓原 `while (diff > Math.PI)` 進入無限迴圈；原版本就存在，仍需防禦。現在 `bladeArcContains` 與 `dragonFireTarget` 對非有限或遠離遊戲 `atan2` 角度範圍的異常差值安全回傳 false，合法角度的舊折返運算維持不變。
+- `dragonFireTarget` 原本僅過濾死亡／護盾，未排除 `vanish` 或 `done` 仍保有 HP 的敵人；添加前方與後援池的相同排除條件。這是保守的舊規則改善，並非已證實正常戰鬥會發生的 P1 回歸；不改射程包含邊界、群聚排序、召喚／傷害／RNG。
+- 保留原 API `primaryTargets` 鍵名以免破壞相依呼叫；黑龍前方與後援池的 90／560 不對稱是歷史既有規則，本輪不改；內部 `dragonScorches` 陣列和 `struck` Set 都由正式流程提供，沒有證實 null 輸入，因此不加會掩蓋程式契約錯誤的 fallback。
+- 增加 `tests/game-combat-audit-hardening-20261103.test.cjs` 測試異常角度、黑龍前後方排除、真實 VM 等情境；正式頁只更新有實際修改的 `game-combat-math.js` 快取鍵至 `20261103-combat-auditfix`。原始 dirty 工作樹未動；舊有 11 項廣泛回歸失敗不併入本批修復，另案核對。
+- 新增防禦性回歸 **6/6**、合併 Phase 1–29 核心 **180/180** 通過；擴大 49 檔 **328/339** 通過，仍只有原先 11 項已知舊失敗，沒有本輪新增失敗。原版可達玩家角度由 `atan2` 產生；新異常角度防護限於非有限或遠超正常角度的輸入，不更動合法角度。
+
 ## 2026-11-03 JS 模組化 Phase 29 — Lv5 黑龍前方索敵與群聚優先選取
 
 - 從 Phase 28 已部署提交 `bda8f98586f9de1fad7d5f9da897821d19f2675c` 建立新乾淨隔離 worktree，不更動原始 dirty 工作樹。

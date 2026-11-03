@@ -40,6 +40,9 @@ window.GAME_COMBAT_MATH = (() => {
     if (!(Math.hypot(player.x - enemy.x, player.y - enemy.y) <= reach)) return false;
     const eang = Math.atan2(enemy.y - player.y, enemy.x - player.x);
     let diff = Math.abs(eang - faceAng);
+    // Normal facing comes from atan2; reject abnormal angles that could make
+    // this original subtraction loop non-terminating or prohibitively long.
+    if (!Number.isFinite(diff) || diff > Math.PI * 128) return false;
     while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
     return diff <= arc;
   }
@@ -99,14 +102,15 @@ window.GAME_COMBAT_MATH = (() => {
     const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
     const face = player.faceAng || 0;
     const ahead = enemies.filter(e => {
-      if (e.hp <= 0 || e.shield) return false;
+      if (e.hp <= 0 || e.shield || e.vanish || e.done) return false;
       const d = dist(player, e);
       if (d < 90 || d > 560) return false;
       let diff = Math.abs(Math.atan2(e.y - player.y, e.x - player.x) - face);
+      if (!Number.isFinite(diff) || diff > Math.PI * 128) return false;
       while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
       return diff <= 1.15;
     });
-    const pool = ahead.length ? ahead : enemies.filter(e => e.hp > 0 && !e.shield && dist(player, e) > 90 && dist(player, e) < 560);
+    const pool = ahead.length ? ahead : enemies.filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done && dist(player, e) > 90 && dist(player, e) < 560);
     let target = null, bestN = -1;
     for (const e of pool) {
       let n = 0;
