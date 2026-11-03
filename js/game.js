@@ -4115,22 +4115,7 @@ if (isRainPort) {
     // MAX: 0.35s entry, 1.5s fully visible, 0.35s exit, then 5s offscreen.
     if(WL.fire===5){
       wT.fire=Math.max(0,wT.fire-dt);
-      const face = P.faceAng || 0;
-      const ahead = enemies.filter(e => {
-        if (e.hp <= 0 || e.shield) return false;
-        const d = dist(P, e);
-        if (d < 90 || d > 560) return false;
-        let diff = Math.abs(Math.atan2(e.y - P.y, e.x - P.x) - face);
-        while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
-        return diff <= 1.15;
-      });
-      const pool = ahead.length ? ahead : enemies.filter(e => e.hp > 0 && !e.shield && dist(P, e) > 90 && dist(P, e) < 560);
-      let target = null, bestN = -1;
-      for (const e of pool) {
-        let n = 0;
-        for (const o of pool) if (dist(o, e) < 140) n++;
-        if (n > bestN) { target = e; bestN = n; }
-      }
+      const target = window.GAME_COMBAT_MATH.dragonFireTarget(enemies, P);
       if(wT.fire<=0 && target && !ghosts.some(g=>g.dragon&&g.life>0)){
         const dragonSpec = resolveAttackSpec("fire", 5, combatBuildState());
         wT.fire=wMax.fire=dragonSpec.cooldown;

@@ -1,3 +1,11 @@
+## 2026-11-03 JS 模組化 Phase 29 — Lv5 黑龍前方索敵與群聚優先選取
+
+- 從 Phase 28 已部署提交 `bda8f98586f9de1fad7d5f9da897821d19f2675c` 建立新乾淨隔離 worktree，不更動原始 dirty 工作樹。
+- `weapons()` 的 Lv5 黑龍索敵改呼叫既有純計算模組 `GAME_COMBAT_MATH.dragonFireTarget(enemies, P)`，保持「原 HP／護盾檢查 → 朝向角度折返 → 前方 1.15 弧度角、90 與 560 包含邊界 → 若前方有敵只從前方選，否則備援距離嚴格大於 90、小於 560 → 140 內鄰居數最多者、同數依原敵人順序」完全等價。不可改動這些不一致邊界為一致規則；不改黑龍冷卻、召喚、飛行路徑、隨機火球落點、SFX 和傷害。
+- `tests/fixtures/dragon-fire-target-original-phase29.js` 保留 Phase 28 原始公式，`tests/game-combat-dragon-target-phase29-20261103.test.cjs` 新增 **6 項測試**：20,000 組固定種子雙版本與物件身份比對、前方群聚與同數原順序、射程含／不含邊界、真實遊戲 VM 前方密集敵群以及後方備援兩次黑龍召喚、技能／RNG 守門。測試 fixture 僅新增 `dragonTargetIds` 讀取入口，不改遊戲正式狀態。
+- `index.html` 的正式 `game.js`／`game-combat-math.js` 快取版本改為 `dragon-phase29`／`combat-phase29`，同步舊測試載入斷言。
+- 新增測試 **6/6**，Phase 1–29 核心回歸 **174/174** 通過；擴大 48 檔 **322/333** 通過，原有 11 項舊失敗未增加。維持統一玩家實機驗收，未宣稱既有全部測試通過。
+
 ## 2026-11-03 JS 模組化 Phase 28 — 餘燼爆炸目標篩選與黑龍焦土優先權
 
 - 從已部署的 Phase 27 `275a29605f45e5b930ba4b321722ac4355c29916` 建立獨立乾淨 worktree；不動原始本機 dirty `master`。

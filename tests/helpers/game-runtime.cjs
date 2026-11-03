@@ -347,6 +347,8 @@ const FIXTURE = `window.fixture = {
     },
     // VM-only ground-zone injection for testing original weapons() events.
     queueDragonScorch: zone => { dragonScorches.push({ ...zone }); },
+    // VM-only observation: selected target of the real Lv5 dragon summon.
+    dragonTargetIds: () => ghosts.filter(g => g.dragon).map(g => g.target?.id),
     addEnemyBullets: count => { for(let i=0;i<count;i++) enemyBullets.push({x:P.x+120+ (i%3)*8,y:P.y-20+Math.floor(i/3)*10,vx:0,vy:0,life:5,maxLife:5}); },
     bar: () => ({ damage: b.dmg, rate: b.rate, crit: b.crit||0, spd: b.spd||0, oilRegen: b.oilRegen||0, dmgUp: b.dmgUp||0, shield: b.shield||0, dash: b.dash||0, mag: b.mag||0 }),
     barMax: () => ({ ...wMax }),

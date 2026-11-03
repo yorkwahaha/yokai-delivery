@@ -93,5 +93,27 @@ window.GAME_COMBAT_MATH = (() => {
       })
       .slice(0, 3);
   }
-  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets });
+  // Phase29: Lv5 dragon favors the forward cone, then picks the first
+  // densest cluster, preserving strict fallback bounds and enemy order.
+  function dragonFireTarget(enemies, player) {
+    const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    const face = player.faceAng || 0;
+    const ahead = enemies.filter(e => {
+      if (e.hp <= 0 || e.shield) return false;
+      const d = dist(player, e);
+      if (d < 90 || d > 560) return false;
+      let diff = Math.abs(Math.atan2(e.y - player.y, e.x - player.x) - face);
+      while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
+      return diff <= 1.15;
+    });
+    const pool = ahead.length ? ahead : enemies.filter(e => e.hp > 0 && !e.shield && dist(player, e) > 90 && dist(player, e) < 560);
+    let target = null, bestN = -1;
+    for (const e of pool) {
+      let n = 0;
+      for (const o of pool) if (dist(o, e) < 140) n++;
+      if (n > bestN) { target = e; bestN = n; }
+    }
+    return target;
+  }
+  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets, dragonFireTarget });
 })();
