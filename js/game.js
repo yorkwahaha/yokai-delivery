@@ -4497,9 +4497,12 @@ function spawnEnemy(tier, rad, ang, ring) {
     }
     let quizNear = null;
     let quizNearDistance = 380;
-    // Wrong-answer curse resumes combat but must NOT spend another sealed
-    // Boss's ten-second safety window while that shield is unanswerable.
-    if (bossCurseRemaining <= 0 && !deliveryOwnsReadingFrame) {
+    // Boss protection is determined from the *current* reading owner, not
+    // the frame-start snapshot. Delivery may expire or be exited this tick:
+    // a nearby readable Boss must protect that handoff tick, while its own
+    // countdown must not spend time already charged to delivery.
+    // During an active wrong-answer curse, Boss reading stays unavailable.
+    if (bossCurseRemaining <= 0 && !job?.reading) {
       for (const e of enemies) {
         if (e.type !== "boss" || !e.shield || e.hp <= 0 || e.quizClosed) continue;
         const d = dist(P, e);
@@ -4508,8 +4511,10 @@ function spawnEnemy(tier, rad, ang, ring) {
       }
       if (quizNear) {
         quizNear.quizEntered = true;
-        quizNear.barrierTimer = (quizNear.barrierTimer ?? 10) - dt;
-        if (quizNear.barrierTimer <= 0) {
+        if (!deliveryOwnsReadingFrame) {
+          quizNear.barrierTimer = (quizNear.barrierTimer ?? 10) - dt;
+        }
+        if ((quizNear.barrierTimer ?? 10) <= 0) {
           quizNear.barrierTimer = 0;
           quizNear.quizClosed = true;
           quizNear = null;

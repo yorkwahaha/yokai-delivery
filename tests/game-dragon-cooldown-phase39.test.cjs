@@ -24,8 +24,20 @@ test('Phase39: eligible cast picks same target, then active dragon prevents repe
   g.weapons(.05);
   assert.equal(searches(),1);
   assert.deepEqual(Array.from(g.dragonTargetIds()),['front']);
+  // Force cooldown to zero while the original dragon is still alive:
+  // this isolates the existing-dragon guard from the cooldown guard.
+  g.armWeapons();
+  assert.equal(g.weaponTimers().fire,0);
+  const before=g.snapshot().ghosts.filter(sp=>sp.dragon&&sp.life>0).length;
+  assert.ok(before>0);
   for(let i=0;i<5;i++)g.weapons(.05);
-  assert.equal(searches(),1);
+  assert.equal(searches(),1,'live dragon alone must suppress target search');
+  assert.equal(g.snapshot().ghosts.filter(sp=>sp.dragon&&sp.life>0).length,before);
+  g.snapshot().ghosts.length=0;
+  g.armWeapons();
+  g.weapons(.05);
+  assert.equal(searches(),2,'search resumes once the live dragon is cleared');
+  assert.equal(g.snapshot().ghosts.filter(sp=>sp.dragon&&sp.life>0).length,1);
 });
 test('Phase39: cooldown still suppresses search if an existing dragon has exited',()=>{
   const {g,searches}=fixture();
