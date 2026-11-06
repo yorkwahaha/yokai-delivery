@@ -73,8 +73,8 @@ test('Boss wrong answer resumes elapsed clock even when a second sealed Boss is 
 
 test('index refreshes the five changed JavaScript assets',()=>{
  const html=fs.readFileSync('index.html','utf8');
- for(const key of ['store','assets'])
-   assert.match(html,new RegExp('js/'+key+'\\.js\\?v='+ (key==='store'?'20261102-r3':'20261102-geometry-phase2')),key);
+ assert.ok(html.includes(scriptUrl('store')));
+ assert.match(html,/js\/assets\.js\?v=20261102-geometry-phase2/);
  assert.ok(html.includes('js/ui.js?v=20261103-hud-boss-layout-r1'));
  for(const key of ['renderer'])
    assert.match(html,new RegExp('js/'+key+'\\.js\\?v=20261102-water-slam-sfx'),key);

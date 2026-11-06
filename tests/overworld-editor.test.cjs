@@ -1,5 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const saved=require('../js/overworld-layout.js');
+const path=require('node:path');
 function load(layout){
   const browser={OVERWORLD_LAYOUT:layout};
   vm.runInNewContext(fs.readFileSync('js/overworld.js','utf8'),{window:browser,console},{filename:'js/overworld.js'});
@@ -41,4 +42,33 @@ test('background scaling/translation comes from editor config without changing w
   const hit=images.find(x=>x[0]===image&&x.length===5);
   assert.deepEqual(Array.from(hit).slice(1),[180,110,1890,Math.round(1890*941/1672)]);
   assert.equal(root.OVERWORLD.MAP_W,3000);assert.equal(root.OVERWORLD.MAP_H,2200);
+});
+
+test('local tools reject unexpected hosts, internal files and invalid request targets',async()=>{
+  for(const [file,port] of [['serve-tilt.cjs',8788],['map-editor-server.cjs',8766]]){
+    let handle;
+    const dirname=path.resolve('tools');
+    const testFs={
+      ...fs,
+      readFile(file,done){fs.stat(file,(error,stat)=>done(error||(!stat.isFile()?Error():null),Buffer.alloc(0)));},
+      createReadStream(){return {on(){return this;},pipe(response){response.end();}};}
+    };
+    vm.runInNewContext(fs.readFileSync(path.join(dirname,file),'utf8'),{
+      __dirname:dirname,URL,console,process:{env:{},argv:[],platform:process.platform},
+      require(name){
+        if(name==='node:fs')return testFs;
+        if(name==='node:http')return {createServer(listener){handle=listener;return {listen(){},on(){}};}};
+        return require(name);
+      }
+    });
+    const head=(url,host='localhost:'+port)=>new Promise(resolve=>{
+      const res={writeHead(status){this.status=status;return this;},end(){resolve(this.status);}};
+      handle({url,method:'HEAD',headers:{host}},res);
+    });
+    assert.equal(await head('/'),200,file);
+    assert.equal(await head('/','untrusted.example:'+port),403,file);
+    assert.equal(await head('/.git/HEAD'),403,file);
+    assert.equal(await head('/README.md'),403,file);
+    assert.equal(await head('http://['),400,file);
+  }
 });

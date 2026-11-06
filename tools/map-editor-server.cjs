@@ -2,8 +2,10 @@
 // Yokai Delivery local-only visual map editor. No npm packages, no remote binding, no deployment.
 "use strict";
 const fs=require("node:fs"),path=require("node:path"),http=require("node:http"),cp=require("node:child_process");
-const ROOT=path.resolve(__dirname,".."),LAYOUT=path.join(ROOT,"js","overworld-layout.js");
+const ROOT=fs.realpathSync(path.resolve(__dirname,"..")),LAYOUT=path.join(ROOT,"js","overworld-layout.js");
 const PORT=Number(process.env.MAP_EDITOR_PORT||8766);
+const base=new URL("http://127.0.0.1:"+PORT);
+const allowedHosts=PORT===80?["127.0.0.1","localhost"]:[base.host,"localhost:"+PORT];
 const IDS=["gate","night-town","cross-west","rain-port","port-rise","sakura-pass","cross-east","bamboo-maze","bamboo-exit","hyakki-kyoto","lookout","snow-temple","snow-pass","spirit-ferry","yomi-ford","yomi-ascent","yomi"];
 const STAGES=new Set(["night-town","rain-port","sakura-pass","bamboo-maze","hyakki-kyoto","snow-temple","spirit-ferry","yomi"]);
 const types={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".webp":"image/webp",".png":"image/png",".jpg":"image/jpeg",".css":"text/css",".json":"application/json"};
@@ -43,12 +45,17 @@ function serialize(data){
 }
 function reply(res,code,value){res.writeHead(code,{"content-type":"application/json; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"}).end(JSON.stringify(value));}
 const server=http.createServer((req,res)=>{
-  const url=new URL(req.url||"/","http://127.0.0.1:"+PORT);
+  const host=req.headers.host?.toLowerCase();
+  if(!allowedHosts.includes(host))return reply(res,403,{error:"forbidden"});
+  let url;
+  try{url=new URL(req.url,base);}catch{return reply(res,400,{error:"invalid URL"});}
+  if(!req.url.startsWith("/")||req.url.startsWith("//")||url.origin!==base.origin)
+    return reply(res,400,{error:"invalid URL"});
   if(url.pathname==="/api/layout"){
     if(req.method==="GET"){try{return reply(res,200,current());}catch(e){return reply(res,500,{error:e.message});}}
     if(req.method!=="POST")return reply(res,405,{error:"method not allowed"});
     const origin=req.headers.origin;
-    if(origin && origin!=="http://127.0.0.1:"+PORT)return reply(res,403,{error:"只允許本機編輯器儲存"});
+    if(origin && origin!=="http://"+host)return reply(res,403,{error:"只允許本機編輯器儲存"});
     if(req.headers["content-type"]?.split(";")[0]!=="application/json")return reply(res,415,{error:"必須傳送 JSON"});
     let buf="",tooLarge=false;
     req.on("data",chunk=>{buf+=chunk;if(buf.length>75000){tooLarge=true;req.destroy();}});
@@ -65,12 +72,20 @@ const server=http.createServer((req,res)=>{
   let name;
   try {name=decodeURIComponent(url.pathname); }catch{return reply(res,400,{error:"invalid path"});}
   if(name==="/")name="/editor/overworld.html";
+  const publicPath=name==="/editor/overworld.html"||name==="/editor/overworld-editor.js"
+    ||name==="/js/overworld-layout.js"||name==="/js/overworld.js"||name.startsWith("/assets/img/");
+  if(!publicPath||/[\\:\x00]/.test(name)||name.split("/").some(part=>part.startsWith(".")))
+    return reply(res,403,{error:"forbidden"});
   const file=path.resolve(ROOT,"."+name);
   if(!file.startsWith(ROOT+path.sep))return reply(res,403,{error:"forbidden"});
-  fs.readFile(file,(err,bytes)=>{
-    if(err)return reply(res,404,{error:"not found"});
-    res.writeHead(200,{"content-type":types[path.extname(file)]||"application/octet-stream","cache-control":"no-store","x-content-type-options":"nosniff"});
-    if(req.method==="HEAD")res.end();else res.end(bytes);
+  fs.realpath(file,(error,real)=>{
+    if(error)return reply(res,404,{error:"not found"});
+    if(path.relative(file,real)!=="")return reply(res,403,{error:"forbidden"});
+    fs.readFile(file,(err,bytes)=>{
+      if(err)return reply(res,404,{error:"not found"});
+      res.writeHead(200,{"content-type":types[path.extname(file)]||"application/octet-stream","cache-control":"no-store","x-content-type-options":"nosniff"});
+      if(req.method==="HEAD")res.end();else res.end(bytes);
+    });
   });
 });
 server.listen(PORT,"127.0.0.1",()=>{

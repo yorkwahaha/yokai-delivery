@@ -3,6 +3,7 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
+const {scriptUrl}=require('./helpers/script-url.cjs');
 const cardsText=fs.readFileSync('js/card-collection.js','utf8');
 const bridgeText=fs.readFileSync('js/card-delivery-bridge.js','utf8');
 const loc={hostname:'yorkwahaha.github.io',search:''};
@@ -96,5 +97,5 @@ test('Audit P1-2 falls back to before-write storage refresh in basic legacy stor
 });
 
 test('Audit P1-2 browser cache key for card journal',()=>{
- assert.ok(fs.readFileSync('index.html','utf8').includes('js/card-delivery-bridge.js?v=20261103-card-journal-p1b'));
+ assert.ok(scriptUrl('card-delivery-bridge'));
 });

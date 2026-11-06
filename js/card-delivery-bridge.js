@@ -57,12 +57,14 @@ function chooseDeliveryWord(words, marks, exclude, rnd) {
 
 // 正式 makeOrder 用這個入口。印記從目前存檔讀，不接收 study.pick 或 missBoost。
 function choose(words, exclude, rnd) {
-  const storage = typeof localStorage !== "undefined" ? localStorage : null;
+  let storage;
+  try { storage = localStorage; } catch {}
   const loc = typeof location !== "undefined" ? location : {};
   if (!storage || typeof storage.getItem !== "function") {
     return chooseDeliveryWord(words, {}, exclude, rnd);
   }
-  return openCards(storage, loc).choose(words, exclude, rnd);
+  try { return openCards(storage, loc).choose(words, exclude, rnd); }
+  catch { return chooseDeliveryWord(words, {}, exclude, rnd); }
 }
 
 function readRaw(storage, key) {

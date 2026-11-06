@@ -35,8 +35,13 @@
   // The legacy v1 snapshot remains as a migration base and K remains a readable projection.
   const JOURNAL_BASE = K + ":journal-base";
   const JOURNAL_PREFIX = K + ":journal:";
-  const journalSupported = typeof localStorage.key === "function"
-    && typeof localStorage.length === "number";
+  let storage = null, journalSupported = false;
+  try {
+    storage = localStorage;
+    journalSupported = typeof storage.key === "function" && typeof storage.length === "number";
+  } catch {
+    storage = null;
+  }
   const tabId = root.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}-${Math.random()}`;
   // A journal is split into immutable, small per-tab segments. Never delete
   // someone else's segment: a suspended tab may still have unsaved events.
@@ -64,45 +69,65 @@
     }
     return event;
   };
-  if (journalSupported) {
+  const decodeBaseline = text => {
+    const state = fresh();
+    let raw = {};
     try {
-      if (localStorage.getItem(JOURNAL_BASE) === null) {
-        localStorage.setItem(JOURNAL_BASE, localStorage.getItem(K) || JSON.stringify(fresh()));
-      }
+      const saved = JSON.parse(text);
+      if (isRecord(saved)) raw = saved;
     } catch {}
-  }
-  const d = fresh();
-  let raw = {};
-  try {
-    const r = JSON.parse((journalSupported && localStorage.getItem(JOURNAL_BASE)) || localStorage.getItem(K));
-    if (isRecord(r)) raw = r;
-  } catch {}
-
-  d.best = count(raw.best);
-  d.bestDel = count(raw.bestDel);
-  for (const [jp, m] of entries(raw.m)) {
-    if (!isRecord(m)) continue;
-    d.m[jp] = {
-      ok: count(m.ok), ng: count(m.ng), box: Math.min(4, count(m.box)),
-      lastSeen: Math.min(Date.now(), count(m.lastSeen)),
-      missBoost: Math.max(1, Math.min(2.5, typeof m.missBoost === "number" && Number.isFinite(m.missBoost) ? m.missBoost : 1))
-    };
-  }
-  const progress = isRecord(raw.progress) ? raw.progress : {};
-  for (const key of ["unlocked", "completed"]) {
-    for (const [id, value] of entries(progress[key])) {
-      if (value === true) d.progress[key][id] = true;
+    state.best = count(raw.best);
+    state.bestDel = count(raw.bestDel);
+    for (const [jp, m] of entries(raw.m)) {
+      if (!isRecord(m)) continue;
+      state.m[jp] = {
+        ok: count(m.ok), ng: count(m.ng), box: Math.min(4, count(m.box)),
+        lastSeen: Math.min(Date.now(), count(m.lastSeen)),
+        missBoost: Math.max(1, Math.min(2.5, typeof m.missBoost === "number" && Number.isFinite(m.missBoost) ? m.missBoost : 1))
+      };
     }
-  }
-  for (const [id, stats] of entries(progress.stages)) {
-    if (!isRecord(stats)) continue;
-    d.progress.stages[id] = {
-      bestScore: count(stats.bestScore), bestDeliveries: count(stats.bestDeliveries),
-      clears: count(stats.clears), attempts: count(stats.attempts)
-    };
+    const progress = isRecord(raw.progress) ? raw.progress : {};
+    for (const key of ["unlocked", "completed"]) {
+      for (const [id, value] of entries(progress[key])) {
+        if (value === true) state.progress[key][id] = true;
+      }
+    }
+    for (const [id, stats] of entries(progress.stages)) {
+      if (!isRecord(stats)) continue;
+      state.progress.stages[id] = {
+        bestScore: count(stats.bestScore), bestDeliveries: count(stats.bestDeliveries),
+        clears: count(stats.clears), attempts: count(stats.attempts)
+      };
+    }
+    return state;
+  };
+  let baselineText;
+  try {
+    baselineText = (journalSupported ? storage.getItem(JOURNAL_BASE) : null) ?? storage?.getItem(K);
+  } catch {}
+  const d = decodeBaseline(baselineText);
+  let initialState = JSON.stringify(d);
+  const ensureJournalBase = () => {
+    let text = storage.getItem(JOURNAL_BASE);
+    if (text === null) {
+      const legacy = storage.getItem(K) || JSON.stringify(fresh());
+      // A different tab may have created the base while we read the projection.
+      text = storage.getItem(JOURNAL_BASE);
+      if (text === null) {
+        storage.setItem(JOURNAL_BASE, legacy);
+        text = legacy;
+      }
+    }
+    if (text !== baselineText) {
+      baselineText = text;
+      initialState = JSON.stringify(decodeBaseline(text));
+      journalNeedsRefresh = true;
+    }
+  };
+  if (journalSupported) {
+    try { ensureJournalBase(); } catch {}
   }
 
-  const initialState = JSON.stringify(d);
   const applyJournalEvent = event => {
     if (!isRecord(event)) return;
     const id = typeof event.stageId === "string" ? event.stageId : null;
@@ -150,10 +175,10 @@
     if (!journalSupported) return;
     const signatures = new Map();
     try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
+      for (let i = 0; i < storage.length; i++) {
+        const key = storage.key(i);
         if (!key?.startsWith(JOURNAL_PREFIX)) continue;
-        signatures.set(key, localStorage.getItem(key));
+        signatures.set(key, storage.getItem(key));
       }
     } catch { return; }
     const changed = journalNeedsRefresh || signatures.size !== journalSignatures.size
@@ -202,15 +227,21 @@
     journalNeedsRefresh = true;
   };
 
-  let saveFailed = false;
+  let saveFailed = !storage;
+  let savePending = false;
   let saveTimer = null;
   const save = () => {
     if (saveTimer !== null) { clearTimeout(saveTimer); saveTimer = null; }
+    savePending = true;
     try {
       if (journalSupported) {
-        const payload = JSON.stringify(ownEvents.map(encodeEvent));
-        localStorage.setItem(journalKey, payload);
-        journalSignatures.set(journalKey, payload);
+        // The projection must never be written before its immutable migration base.
+        ensureJournalBase();
+        if (ownEvents.length) {
+          const payload = JSON.stringify(ownEvents.map(encodeEvent));
+          storage.setItem(journalKey, payload);
+          journalSignatures.set(journalKey, payload);
+        }
         // Refresh the readable v1 snapshot from all committed journals, not
         // from this tab's potentially older in-memory snapshot.
         syncJournal();
@@ -219,14 +250,16 @@
           ownEvents.length = 0;
         }
       }
-      localStorage.setItem(K, JSON.stringify(d));
+      storage.setItem(K, JSON.stringify(d));
       saveFailed = false;
+      savePending = false;
     }
     catch { saveFailed = true; }
   };
   // 答題類高頻寫入改 500ms 去抖；關卡開始/結算仍立即寫。flush() 立刻寫出待存資料。
-  const flush = () => { if (saveTimer !== null) save(); };
+  const flush = () => { if (savePending) save(); };
   const saveSoon = () => {
+    savePending = true;
     // 沒有 pagehide/visibilitychange 可 flush 的環境（Node 測試等）維持同步寫入。
     if (!lifecycleFlush || typeof setTimeout !== "function") { save(); return; }
     if (ownEvents.length >= JOURNAL_SEGMENT_MAX) { save(); return; }
@@ -411,7 +444,7 @@
   }
 
   const api = {
-    canSave: () => { flush(); return !saveFailed; },
+    canSave: () => !saveFailed,
     flush,
     data: d,
     get: jp => { syncJournal(); return get(jp); },

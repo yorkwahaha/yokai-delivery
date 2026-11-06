@@ -14,9 +14,12 @@ function createStoreTabs(seed = {}, options = {}) {
     const localStorage = {
       get length() { return disk.size; },
       key(index) { return [...disk.keys()][index] ?? null; },
-      getItem(key) { return disk.get(key) ?? null; },
+      getItem(key) {
+        if (options.rejectRead?.(key)) throw new Error('Storage unavailable');
+        return disk.get(key) ?? null;
+      },
       setItem(key, value) {
-        if (options.maxValueLength && String(value).length > options.maxValueLength) {
+        if (options.reject?.(key) || (options.maxValueLength && String(value).length > options.maxValueLength)) {
           throw new Error('QuotaExceededError');
         }
         disk.set(key, String(value));
@@ -24,11 +27,81 @@ function createStoreTabs(seed = {}, options = {}) {
     };
     const window = { crypto: { randomUUID: () => 'tab-' + tab }, localStorage };
     const ctx = { window, localStorage, Date, Math, console };
+    if (options.lifecycle) Object.assign(ctx, options.lifecycle(window));
     vm.runInNewContext(source, ctx, { filename: 'store.js' });
     return window.STORE;
   };
   return { open, disk };
 }
+
+test('storage access denied still exposes an in-memory game store', () => {
+  const window = {};
+  const ctx = vm.createContext({ window, DOMException });
+  vm.runInContext(`let localStorage = new Proxy({}, {
+    get() { throw new DOMException('Storage denied', 'SecurityError'); }
+  });`, ctx);
+  vm.runInContext(source, ctx);
+  const store = window.STORE;
+  assert.equal(store.canSave(), false);
+  store.rec('猫', true);
+  assert.equal(store.get('猫').ok, 1);
+  assert.equal(store.isStageUnlocked('night-town'), true);
+});
+
+test('a failed migration base write cannot make the legacy projection a replay base', () => {
+  const key = 'yokai-delivery-v1';
+  let blocked = true;
+  const { open, disk } = createStoreTabs({ [key]: JSON.stringify({ m: { '猫': { ok: 3 } } }) }, {
+    reject: key => blocked && key.endsWith(':journal-base')
+  });
+  const first = open();
+  first.rec('猫', true);
+  assert.equal(first.canSave(), false);
+  assert.equal(JSON.parse(disk.get(key)).m['猫'].ok, 3);
+  blocked = false;
+  first.flush();
+  assert.equal(first.canSave(), true);
+  assert.equal(open().get('猫').ok, 4);
+});
+
+test('render status preserves debounce and pagehide retries a failed save', () => {
+  let blocked = false, timer, pagehide;
+  const { open, disk } = createStoreTabs({}, {
+    reject: () => blocked,
+    lifecycle(window) {
+      window.addEventListener = (name, listener) => { if (name === 'pagehide') pagehide = listener; };
+      return {
+        document: { addEventListener() {} },
+        setTimeout(listener) { timer = listener; return 1; },
+        clearTimeout() { timer = null; }
+      };
+    }
+  });
+  const first = open();
+  first.rec('猫', true);
+  assert.equal(first.canSave(), true);
+  assert.equal(disk.has('yokai-delivery-v1'), false);
+  blocked = true;
+  timer();
+  assert.equal(first.canSave(), false);
+  blocked = false;
+  pagehide();
+  assert.equal(first.canSave(), true);
+  assert.equal(open().get('猫').ok, 1);
+});
+
+test('a transient startup read failure preserves the existing legacy snapshot', () => {
+  const key = 'yokai-delivery-v1';
+  let blocked = true;
+  const { open } = createStoreTabs({ [key]: JSON.stringify({ m: { '猫': { ok: 3 } } }) }, {
+    rejectRead: () => blocked
+  });
+  const first = open();
+  blocked = false;
+  first.rec('猫', true);
+  assert.equal(first.get('猫').ok, 4);
+  assert.equal(open().get('猫').ok, 4);
+});
 
 test('cross-tab rec cannot roll back completed stages or lose either answer', () => {
   const { open } = createStoreTabs();

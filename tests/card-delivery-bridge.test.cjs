@@ -5,6 +5,18 @@ const assert = require("node:assert/strict");
 const bridge = require("../js/card-delivery-bridge.js");
 const cards = require("../js/card-collection.js");
 
+test("delivery draw works when reading the browser storage property is denied", () => {
+  const vm = require("node:vm");
+  const fs = require("node:fs");
+  const denied = vm.createContext({ CARD_COLLECTION: cards });
+  vm.runInContext(`Object.defineProperty(globalThis, "localStorage", {
+    get() { throw new Error("Storage denied"); }
+  });`, denied);
+  vm.runInContext(fs.readFileSync(require.resolve("../js/card-delivery-bridge.js"), "utf8"), denied);
+  const pool = words(2);
+  assert.equal(denied.CARD_DELIVERY.choose(pool, [], () => 0).word, pool[0]);
+});
+
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-6, `${actual} !~ ${expected}`);
 
 function words(n) {
