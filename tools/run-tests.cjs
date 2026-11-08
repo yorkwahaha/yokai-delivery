@@ -11,6 +11,10 @@ const all=fs.readdirSync(path.join(ROOT,'tests'))
 const currentPrefix=/^(game-.*phase\d+|game-combat-audit-hardening|core-(multi-enemy-stage|stateful-contracts)|audit-p1-|audio-gamepad-home-hotfix|phase2-geometry-audit|third-audit-regressions|water-slam-alpha-sfx|combat-targeting|combat-boundaries-stage-tutorial|boom-behavior|boss-(music|telegraph-delegate|ring-sweep)|evolutions|fx\.|skillfx\.|game-balance|progression|v3-boss-ai|v3-core|v3-contract-gate)/;
 const currentExact=new Set([
   'card-delivery-runtime.test.cjs',
+  'phase42-raster-redoil-boss-sfx.test.cjs',
+  // Phase42 approved calligraphy and Lv5 sanctuary: visual-only contract tests.
+  'game-sanctuary-arc.test.cjs',
+  'game-ui-washi-redesign.test.cjs',
   'b14-surge-motion-20261101.test.cjs',
   'media-cache.test.cjs',
   'agy-m1-b.test.cjs',

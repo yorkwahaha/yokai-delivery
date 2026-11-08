@@ -47,14 +47,15 @@ test('B13 actual fully painted title and fresh menu board + two matching button 
  assert.match(ui,/const art=b14SurgeBrush/);
  assert.match(ui,/drawB13MenuButton\(ctx,b,label/);
  assert.match(ui,/drawRibbonSlices\(ctx,img,b\.x,b\.y,b\.w,b\.h/);
- assert.match(ui,/drawWashiSlices\(ctx,b13Art\.menu_board/);
+ assert.match(ui,/function drawPausePaper\(/);
+ assert.match(ui,/ctx\.drawImage\(art,x,y,w,h\)/);
 });
 test('B13 no previous mismatched gray-overlaid panel or old button renderer in two modals',()=>{
  const pause=segment(ui,'  function drawPauseMenu(','  // 8. 百鬼夜行');
  const exit=segment(ui,'  function drawExitConfirm(','  const controlLabel = ');
- assert.match(pause,/b13Art\.menu_board/);
+ assert.match(pause,/drawPausePaper\(ctx,panelX,panelY,boardW,boardH,compact\?"exit":"pause"\)/);
  assert.match(pause,/drawB13MenuButton/);
- assert.match(exit,/b13Art\.menu_board/);
+ assert.match(exit,/drawPausePaper\(ctx,146,132,608,310,"exit"\)/);
  assert.match(exit,/drawB13MenuButton/);
  assert.doesNotMatch(pause,/b12Art\.modal_board|drawButton\(ctx, b, label/);
  assert.doesNotMatch(exit,/b12Art\.modal_board|drawButton\(ctx,b,i===/);

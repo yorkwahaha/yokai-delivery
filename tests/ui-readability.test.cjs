@@ -89,6 +89,31 @@ test('settlement paints the character last and separates best record from delive
   assert.ok(stat.y-best.y>=40);
 });
 
+test('settlement uses OFL MoonStars calligraphy for Chinese and all numerals',()=>{
+  const r=loadUI(900,true),records=[];
+  r.context.fillText=(value,x,y)=>records.push({value:String(value),font:r.context.font,x,y});
+  r.UI.drawEndScreen(r.context,'lost',22710,29,0,[],0,{
+    newBest:true,elapsedSeconds:587,
+    learning:{independent:32,assisted:0,review:0}
+  });
+  const markers=['燈油已盡','22,710','新紀錄！','送達  29 件',
+    '誤配  0 件','本局  09:47'];
+  for(const label of markers){
+    const rendered=records.find(t=>t.value===label);
+    assert.ok(rendered,'end screen must render '+label);
+    assert.match(rendered.font,/Yokai Trial MoonStars Kai T/,
+      label+' should use the same calligraphic face including digits');
+    assert.doesNotMatch(rendered.font,/Zen Maru Gothic/);
+  }
+  const learning=records.find(t=>t.value.includes('無提示答對 32 次'));
+  assert.ok(learning);
+  assert.match(learning.font,/Yokai Trial MoonStars Kai T/);
+  const buttons=records.filter(t=>/重新開始|回旅路地圖|回首頁/.test(t.value));
+  assert.ok(buttons.length>0);
+  assert.ok(buttons.every(t=>t.font.includes('MoonStars Kai T')),
+    'result screen buttons should not revert to rounded UI typography');
+});
+
 test('surge warning has just one short label',()=>{
   const r=loadUI(900);r.UI.drawSurgeWarning(r.context,1.2);
   assert.deepEqual([...new Set(r.texts.map(t=>t.value))],['百鬼夜行']);

@@ -207,6 +207,20 @@ def inventory(entries):
    elif path in ('assets/img/vfx/shield/ward_spirit_full.webp','assets/img/vfx/shield/ward_spirit_crack.webp','assets/img/vfx/shield/ward_bagua_full.webp','assets/img/vfx/shield/ward_bagua_break.webp','assets/img/vfx/boss-night-town/slam_earth_warning.webp','assets/img/vfx/boss-night-town/slam_earth_impact.webp','assets/img/vfx/boss-night-town/charge_aura.webp','assets/img/vfx/boss-night-town/charge_single_b13.webp'):status='trial_pending_review'
    elif path.startswith(('assets/img/ui/passive/warm/','assets/img/ui/charm-passive/clean/')) or path == 'assets/img/vfx/boss-night-town/charge_aligned.webp':status='canonical'
    elif path in dest or path.startswith(('assets/img/delivery/','assets/audio/delivery/')) or path in ('assets/img/vfx/shield/ofuda_ward_full.svg','assets/img/vfx/shield/ofuda_ward_crack.svg'):status='canonical'
+   elif path in {
+    'assets/img/ui/menu/pause__board.webp',
+    'assets/img/ui/menu/exit__board.webp',
+    'assets/img/ui/buttons/menu__button.webp',
+    'assets/img/ui/buttons/menu__button__hover.webp',
+    'assets/img/ui/buttons/menu__button__danger.webp',
+    'assets/img/ui/buttons/menu__button__danger-hover.webp',
+    'assets/img/ui/buttons/menu__button__disabled.webp',
+   }:
+    # Approved visual concept, local runtime trial until player accepts it in-game.
+    status='trial_pending_review'
+   elif re.fullmatch(r'assets/img/skills/[a-z0-9-]+/cards/[a-z0-9-]+__art\.webp',path) or path=='assets/img/ui/menu/ui__upgrade-card-frame.png':
+    # Phase 42 raster card-center art: local user playtest, not shipped approval.
+    status='trial_pending_review'
    elif BAD.search(path):status='legacy_review_required'
    else:status='legacy_unmigrated'
    items.append(dict(path=path,status=status,bytes=f.stat().st_size,sha256=digest(f)))

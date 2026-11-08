@@ -58,10 +58,10 @@ test('B12 camera/pause UI has real fixed raster icons and same interactive contr
  assert.match(ui,/drawViewMedallion,/);
  assert.match(ui,/ctx\.drawImage\(pauseIcon/);
 });
-test('B12 pause and abandon flows use consistent painted image boards and unchanged buttons',()=>{
- assert.match(ui,/b13Art\.menu_board/);
+test('B12 pause and abandon flows use consistent illustrated washi boards and unchanged buttons',()=>{
+ assert.match(ui,/function drawPausePaper\(/);
  assert.match(ui,/EXIT_BTNS\.forEach/);
- assert.match(ui,/drawWashiSlices\(ctx,b13Art\.menu_board/);
+ assert.match(ui,/ctx\.drawImage\(art,x,y,w,h\)/);
  assert.match(ui,/drawB13MenuButton\(ctx,b,label/);
 });
 test('B12 longblade remains meaningful after Lv5, 720 becomes 900 at runtime and projectile reads it',()=>{

@@ -31,6 +31,91 @@
       font-weight: 100 900;
       font-display: swap;
     }
+    /* Phase42 local-only font trial: subset Web Fonts for Traditional Chinese.
+       OFL licensing/source details: assets/fonts/PHASE42_TRIAL_FONT_SOURCES.md.
+       Load only when selected; do not preload these three optional fonts. */
+    @font-face {
+      font-family: 'Yokai Trial Bakudai TC';
+      src: url('assets/fonts/YokaiTrialBakudaiTC.woff2?v=20261106b') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Yokai Trial Masa TC';
+      src: url('assets/fonts/YokaiTrialMasaTC.woff2?v=20261106b') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Yokai Trial WenKai TC';
+      src: url('assets/fonts/YokaiTrialWenKaiTC.woff2?v=20261106b') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    /* Official Moon Stars Kai T (Traditional) v1.105.
+       Phase42 trial only, source/license noted in assets/fonts/. */
+    @font-face {
+      font-family: 'Yokai Trial MoonStars Kai T';
+      src: url('assets/fonts/YokaiTrialMoonStarsKaiT-Regular.woff2?v=20261106') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Yokai Trial MoonStars Kai T Bold';
+      src: url('assets/fonts/YokaiTrialMoonStarsKaiT-Bold.woff2?v=20261106') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    /* OFL Xuandong is a style-only trial: many Traditional glyphs are absent. */
+    @font-face {
+      font-family: 'Yokai Trial Xuandong';
+      src: url('assets/fonts/YokaiTrialXuandong.woff2?v=20261107') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    /* Local-only Phase42 comparisons; respective licenses are in assets/fonts. */
+    @font-face {
+      font-family: 'Yokai Trial HanWang YanKai';
+      src: url('assets/fonts/YokaiTrialHanWangYanKai.woff2?v=20261107') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Yokai Trial cwTeX QKaiZH';
+      src: url('assets/fonts/YokaiTrialCwTeXQKaiZH.woff2?v=20261107') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Yokai Trial ChillKai Big5';
+      src: url('assets/fonts/YokaiTrialChillKaiBig5.woff2?v=20261107') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    /* iFontCloud commercial fonts: local-only references.
+       No font bytes are bundled; the user must install a licensed trial. */
+    @font-face {
+      font-family: 'Yokai Local Arphic Sun';
+      src: local('AR DCSunSiHaiKaiB5'), local('文鼎DC孫四海楷書');
+      font-style: normal;
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: 'Yokai Local Arphic Mao';
+      src: local('AR MaoKaiB5 BD'), local('AR MaoKaiB5'),
+           local('文鼎毛楷_B');
+      font-style: normal;
+      font-weight: 400;
+    }
 
     * {
       box-sizing: border-box;
@@ -147,13 +232,14 @@
   <script src="js/asset-paths.js?v=20261101-audit"></script>
   <script src="js/assets.js?v=20261102-geometry-phase2"></script>
   <script src="js/delivery-fish-audio.js?v=20261101-s2b17"></script>
-  <script src="js/audio.js?v=20261102-audio-pad-hotfix"></script>
+  <script src="js/audio.js?v=20261107-final-boss-mp3-only"></script>
   <script src="js/haptics.js?v=20261101-s2b17"></script>
   <script src="js/spritecook-dev.js?v=20261101-s2b17"></script>
   <script src="js/renderer.js?v=20261102-water-slam-sfx"></script>
   <script src="js/fx.js?v=20261101-s2b17"></script>
   <script src="js/skillfx.js?v=20261101-s2b17"></script>
-  <script src="js/ui.js?v=20261103-hud-boss-layout-r1"></script>
+  <script src="js/ui.js?v=20261107-approved-system-ui-r1"></script>
+  <script src="js/ui-upgrade-trial.js?v=20261107-details-raster-v4"></script>
   <script src="js/overworld-layout.js?v=20261101-s2b17"></script>
   <script src="js/overworld.js?v=20261101-s2b17"></script>
   <script src="js/evolutions.js?v=20261101-s2b17"></script>
@@ -178,7 +264,8 @@
   <script src="js/game-upgrade-choices.js?v=20261103-upgrade-phase17"></script>
   <script src="js/game-run-summary.js?v=20261103-summary-phase18"></script>
   <script src="js/game-tutorial-rules.js?v=20261103-tutorial-phase20"></script>
-  <script src="js/game.js?v=20261104-reading-handoff-phase41"></script>
+  <script src="js/game-sanctuary-arc.js?v=20261107-lv5-dome-gradient"></script>
+  <script src="js/game.js?v=20261107-final-boss-arc-overlay"></script>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' }).catch(() => {});
 </script>

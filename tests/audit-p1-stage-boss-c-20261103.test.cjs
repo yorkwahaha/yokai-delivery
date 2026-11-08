@@ -106,5 +106,6 @@ test('Audit P1-6/7 game passes live curse counter and separate seal fade to UI',
  assert.match(game,/UI\.drawBossQuiz\(\s*ctx, job\?\.reading \? null : bossQ, inputMode, liveBosses, sealFade, bossCurseRemaining/);
  const html=fs.readFileSync('index.html','utf8');
  assert.ok(html.includes(scriptUrl('game')));
- assert.ok(html.includes('js/ui.js?v=20261103-hud-boss-layout-r1'));
+ assert.ok(html.includes(scriptUrl('ui')));
+ assert.match(scriptUrl('ui'),/approved-system-ui/);
 });

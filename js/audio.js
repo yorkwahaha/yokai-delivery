@@ -217,6 +217,9 @@ window.AUDIO = (() => {
     charmPickup: "assets/audio/sfx/charm-pickup.mp3",
     warningPulse: "assets/audio/sfx/warning-pulse.mp3",
     bossDeath: "assets/audio/sfx/boss-death.mp3",
+    // Dedicated final Boss explosion. User drops this MP3 into the path;
+    // failure is SILENT (never synthesized) until the real file exists.
+    finalBossDeath: "assets/audio/sfx/final-boss-death.mp3",
     // Reserved for the player-supplied slam burst clip; no dummy MP3 required.
     bossSlamImpact: "assets/audio/sfx/boss-slam-impact.mp3",
     // Future rain-port recordings: drop the named OGG files here later.
@@ -231,7 +234,7 @@ window.AUDIO = (() => {
     dash: 0.68, barrier: 0.72, needle: 0.62, hurt: 0.72,
     gem: 0.42, pickup: 0.62, sanctuary: 0.74, deliverSuccess: 0.78,
     deliverWrong: 0.72, breakShield: 0.82, levelUp: 0.76, warningPulse: 0.78,
-    bossDeath: 0.78, bossSlamImpact: 0.85,
+    bossDeath: 0.78, finalBossDeath: 0.9, bossSlamImpact: 0.85,
     rainPortWaterSlamWarn: 0.66, rainPortWaterSlamImpact: 0.86,
     skillLv5: 0.88, charmPickup: 0.70, fanfare: 0.75, lose: 0.7
   };
@@ -682,6 +685,10 @@ window.AUDIO = (() => {
       playHyoshigi(0.18);
       [520, 390, 260].forEach((freq, i) => scheduleNote(() => playSuzu(freq, 0.1), i * 140));
     },
+    finalBossDeath() {
+      // Intentionally empty when the authored MP3 has not yet been supplied.
+      // No taiko, noise burst or oscillator may replace the requested sound.
+    },
     fanfare() {
       [261.63, 329.63, 392, 523.25].forEach((freq, i) => scheduleNote(() => playShamisen(freq, 0.5, 0.12), i * 180));
       scheduleNote(() => playSuzu(1046.5, 0.12), 600);
@@ -773,7 +780,7 @@ window.AUDIO = (() => {
       // Lv5 dragon clips load at first use, never with the initial vocabulary.
       const standardSfx=Object.entries(SFX_FILES)
         // This player-supplied file isn't available yet; load only on slam.
-        .filter(([key])=>!['fireDragon','fireDragonBall','fireGround','bossSlamImpact','charmPickup',
+        .filter(([key])=>!['fireDragon','fireDragonBall','fireGround','bossSlamImpact','charmPickup','finalBossDeath',
           'rainPortWaterSlamWarn','rainPortWaterSlamImpact'].includes(key))
         .map(([,file])=>file);
       const paths = [

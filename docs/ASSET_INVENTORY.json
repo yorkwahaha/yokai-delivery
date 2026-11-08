@@ -1,14 +1,14 @@
 {
   "schema": 1,
-  "updated": "2026-11-04",
-  "notes": "Updated approved Nov 3 surge brush hash, 43 tracked word/Stage 3 illustrations, and retained 7 ignored local-only reviews; missing local sources are optional in clean worktrees, but modified media is not.",
+  "updated": "2026-10-31",
+  "notes": "Unmigrated paths are inventoried, not approved for new usage; never delete without reference audit.",
   "totals": {
-    "files": 898,
+    "files": 952,
     "by_status": {
-      "legacy_unmigrated": 343,
-      "legacy_review_required": 61,
+      "legacy_unmigrated": 349,
+      "legacy_review_required": 62,
       "canonical": 207,
-      "trial_pending_review": 136,
+      "trial_pending_review": 183,
       "legacy_alias_active": 99,
       "legacy_source_pending_renderer": 52
     }
@@ -939,6 +939,36 @@
       "sha256": "ef83e70b99321550fbb24c57f69afcec8be6dd76ad625888f558779eb3683a03"
     },
     {
+      "path": "assets/img/sakura-pass/ground_mountain_dirt.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 163666,
+      "sha256": "882135a378a7d9c889953fb5f4d0837d4ae87b8607bae776a5bef489edf86765"
+    },
+    {
+      "path": "assets/img/sakura-pass/ground_sakura_steps.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 139996,
+      "sha256": "6935c527db400bb57cf70038d5555d2f063bafb84091fa7df167459914568a6b"
+    },
+    {
+      "path": "assets/img/sakura-pass/ground_trans_dirt_to_steps_h.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 147424,
+      "sha256": "262462da95d8172e888fd191c265b6ec3492702dd3291606f3ea25a2ad73195c"
+    },
+    {
+      "path": "assets/img/sakura-pass/landmark_corrupted_sakura.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 138578,
+      "sha256": "7dd88ec8213577690972f2e6dbd4670ad703562a1a52f024d723db0cd799c7d2"
+    },
+    {
+      "path": "assets/img/sakura-pass/shrine_pavilion.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 82218,
+      "sha256": "835fe17a73cf1af48bc2fc25cdf9cd7b155c7248423dc81075f079bfd869b22e"
+    },
+    {
       "path": "assets/img/scenery/ground.webp",
       "status": "legacy_alias_active",
       "bytes": 131198,
@@ -1011,6 +1041,12 @@
       "sha256": "1fb630e40036235b84eb2193a55097480dbd97214959a3d74a195e52f165ef5e"
     },
     {
+      "path": "assets/img/skills/barrier/cards/barrier__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 373422,
+      "sha256": "116f94cf7c403f64a416e73ebf1b5262577cf83dad2555f5733d4da6c3e1f5ef"
+    },
+    {
       "path": "assets/img/skills/barrier/cards/barrier__card.webp",
       "status": "canonical",
       "bytes": 168666,
@@ -1021,6 +1057,12 @@
       "status": "canonical",
       "bytes": 22874,
       "sha256": "667ed5aa87ce5799bd15914029791ab96c8124f4dac1157ca111e7b880617263"
+    },
+    {
+      "path": "assets/img/skills/boom/cards/boom__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 429762,
+      "sha256": "ce132e731d42a2dde79eb284fe04878c928a714e67fbd1b0b76e369a83e671d0"
     },
     {
       "path": "assets/img/skills/boom/cards/boom__card.webp",
@@ -1035,6 +1077,12 @@
       "sha256": "b2767982639bbf30b02c1ca2021aa9d70b3ba1dda5154b1bced0e64bbc5f930a"
     },
     {
+      "path": "assets/img/skills/crit/cards/crit__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 255404,
+      "sha256": "7071814ec2814ad12694c899b16a00b50fb981cb0d0c80c168949912f291f1ba"
+    },
+    {
       "path": "assets/img/skills/crit/cards/crit__card.webp",
       "status": "canonical",
       "bytes": 136210,
@@ -1045,6 +1093,12 @@
       "status": "canonical",
       "bytes": 19858,
       "sha256": "69ab9ad80dcc056a19cd84c1b4fbc63a1218ba74fc2da59b31274dae3ea4556a"
+    },
+    {
+      "path": "assets/img/skills/dash/cards/dash__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 282130,
+      "sha256": "bdc30ffd0b91ad9791d978b1746caa6599ff8f5f68324ed3fca72a1620b0082c"
     },
     {
       "path": "assets/img/skills/dash/cards/dash__card.webp",
@@ -1059,6 +1113,12 @@
       "sha256": "ae8e182cf7928b28c52f9c54bf5e3b5577124e7f9cc48b6f55b1a170b807da6c"
     },
     {
+      "path": "assets/img/skills/dmg/cards/dmg__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 263288,
+      "sha256": "b235df9061ca364634a7568053285f975a8b61c17f93ad2e8ce6de0f8039ddb1"
+    },
+    {
       "path": "assets/img/skills/dmg/cards/dmg__card.webp",
       "status": "canonical",
       "bytes": 154990,
@@ -1069,6 +1129,12 @@
       "status": "canonical",
       "bytes": 11252,
       "sha256": "de48a23ff0cf2d6fa390c5cbd5d7d5dd741c00cdb0bfe11a8e858786b2b54af1"
+    },
+    {
+      "path": "assets/img/skills/fire/cards/fire__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 355972,
+      "sha256": "9fe68af99ed161b5ff4be82a4b976c98f62e2bcb4acbb52f5d34abef57687ef4"
     },
     {
       "path": "assets/img/skills/fire/cards/fire__card.webp",
@@ -1083,6 +1149,12 @@
       "sha256": "eda0a97c710ab4abebf4d5638f960789eb186663ada354fe29d0405b071d0d16"
     },
     {
+      "path": "assets/img/skills/katana/cards/katana__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 411116,
+      "sha256": "0e556290823081d147aab37637ffb9c417a8e92fe79899e6b4d2543f527eaef8"
+    },
+    {
       "path": "assets/img/skills/katana/cards/katana__card.webp",
       "status": "canonical",
       "bytes": 124598,
@@ -1093,6 +1165,12 @@
       "status": "canonical",
       "bytes": 5666,
       "sha256": "66ff423167ee486a953e05bfc86f4fc3d21303c3a212d260954b2b39d35bfc78"
+    },
+    {
+      "path": "assets/img/skills/mag/cards/mag__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 276064,
+      "sha256": "2be57b2f4082d25fa32897f07d61c954d2bae2bda7eb076c352514fdd2d2dbbd"
     },
     {
       "path": "assets/img/skills/mag/cards/mag__card.webp",
@@ -1107,10 +1185,52 @@
       "sha256": "6a1ed9bbc203e9b08fdf02d6a4af3b7b30daebf8d0c7fa677d4cdd4033be953a"
     },
     {
+      "path": "assets/img/skills/mut-armorbreak/cards/mut-armorbreak__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 333676,
+      "sha256": "44eb9eea6a9bc64192cdc9818f1dad7a2caae36f213559180aeacbeb65cc92ac"
+    },
+    {
+      "path": "assets/img/skills/mut-bindseal/cards/mut-bindseal__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 280636,
+      "sha256": "e414b0bdd5e144e994b3381f36674d93e74a1b90644b4b637feb2bd262b1a5f2"
+    },
+    {
+      "path": "assets/img/skills/mut-boom-fan/cards/mut-boom-fan__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 247262,
+      "sha256": "8b47c9ddaf80ac7fde6aa1bc6e6e840ef635a3bb56d6e4e4951cb69fad8580e6"
+    },
+    {
+      "path": "assets/img/skills/mut-boom-frost/cards/mut-boom-frost__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 342154,
+      "sha256": "144b8b8232c739b693392fdfbfdb3b1767ba410170e4bb55dbdf0cf01ef0143f"
+    },
+    {
+      "path": "assets/img/skills/mut-boom-seek/cards/mut-boom-seek__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 280046,
+      "sha256": "14fb614e2499cf1e1522a19d4d8888857bb6d080512485def6a7c527929242fd"
+    },
+    {
+      "path": "assets/img/skills/mut-branch/cards/mut-branch__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 276704,
+      "sha256": "08bdeb2362e924137688cf06f26508529e0d494d4ec7b029b9b3f77023456061"
+    },
+    {
       "path": "assets/img/skills/mut-branch/cards/mut-branch__card.webp",
       "status": "canonical",
       "bytes": 132088,
       "sha256": "9a4376a1152eee75059505e32374a5b0afe74c885d65ca8b304a2f23088f137f"
+    },
+    {
+      "path": "assets/img/skills/mut-crosscut/cards/mut-crosscut__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 265084,
+      "sha256": "c5b09820b394ea0e92ee15f14a2b247be5c7b9895a5f9c4eb4c12cc05fc2b53f"
     },
     {
       "path": "assets/img/skills/mut-crosscut/cards/mut-crosscut__card.webp",
@@ -1125,10 +1245,46 @@
       "sha256": "bf10dc90fb695f7caf850d4d4d6a11d36c8ea875f30fc4fd6a0440f53699bf43"
     },
     {
+      "path": "assets/img/skills/mut-flamebind/cards/mut-flamebind__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 256320,
+      "sha256": "90fad8af24dc18cf25777fc37575526682d3abf3b6c9cf7420cd43a9bbe78fe3"
+    },
+    {
+      "path": "assets/img/skills/mut-frost/cards/mut-frost__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 270500,
+      "sha256": "8ace5a1add638cc8c8824260b20435e69890335662b5452178be65c5f30faf48"
+    },
+    {
       "path": "assets/img/skills/mut-frost/cards/mut-frost__card.webp",
       "status": "canonical",
       "bytes": 109496,
       "sha256": "d45b379cd292747f9469ff7bfabca537aaf630b0aa6edfdc10cd01b90ce9a118"
+    },
+    {
+      "path": "assets/img/skills/mut-furyfire/cards/mut-furyfire__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 308286,
+      "sha256": "79b20b3f6641a6f42749417626ccce924f9f563f9d3efa5684a9cf454193283a"
+    },
+    {
+      "path": "assets/img/skills/mut-iaicharge/cards/mut-iaicharge__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 322738,
+      "sha256": "b68b83548edfdd8e32a75f6b07c246ad96b19ac01fbfb8a7d556d1554f52bdac"
+    },
+    {
+      "path": "assets/img/skills/mut-longblade/cards/mut-longblade__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 269970,
+      "sha256": "a0262650dbfb90ce8339af0daaa85786c8f6d8fc3d322672e2cf871b09721b8d"
+    },
+    {
+      "path": "assets/img/skills/mut-orbit/cards/mut-orbit__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 232476,
+      "sha256": "faf7c8e81949d3cdf87c237177965c3724a1d716d0c6ca12d4eae1089c77ea40"
     },
     {
       "path": "assets/img/skills/mut-orbit/cards/mut-orbit__card.webp",
@@ -1137,10 +1293,22 @@
       "sha256": "5570e71ded8edab2969fba5e85afc00d727a0640f6b0d7b4a816d7968571462c"
     },
     {
+      "path": "assets/img/skills/mut-pierce/cards/mut-pierce__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 263672,
+      "sha256": "acf9d6544bfe351e1443d57812e00e5e67e14001314308275753567c8e6ad36c"
+    },
+    {
       "path": "assets/img/skills/mut-pierce/cards/mut-pierce__card.webp",
       "status": "canonical",
       "bytes": 105314,
       "sha256": "2e2b3d71838c97dfcb35eb92372dfafb51df4fda36898c574c0da5fec2c21122"
+    },
+    {
+      "path": "assets/img/skills/mut-pulse/cards/mut-pulse__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 289242,
+      "sha256": "566c3a5abb2bf6fbaed758e22f86f37cfd86a60ce0010c28c7aecb349b36c6ca"
     },
     {
       "path": "assets/img/skills/mut-pulse/cards/mut-pulse__card.webp",
@@ -1149,16 +1317,76 @@
       "sha256": "a886d701e91981fa4192c4900e515a4f4d2ef84396cccefffab9bca97c39008f"
     },
     {
+      "path": "assets/img/skills/mut-rapidfire/cards/mut-rapidfire__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 231096,
+      "sha256": "0d86192754fc5f7353849f74d913f0f3e70db55239e8a5d59c35e32cb32dc856"
+    },
+    {
+      "path": "assets/img/skills/mut-repulse/cards/mut-repulse__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 249628,
+      "sha256": "e2130068faf52fd32c218e649085eac8a9a052cc7612d4b310b5f216ea4f1618"
+    },
+    {
+      "path": "assets/img/skills/mut-return/cards/mut-return__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 210088,
+      "sha256": "92d91ba4f13702f1f6c1001b820ac0ce49eaa591da8bfaf5c47b4332f59c8944"
+    },
+    {
       "path": "assets/img/skills/mut-return/cards/mut-return__card.webp",
       "status": "canonical",
       "bytes": 108442,
       "sha256": "adb5f314638cea2f2813e3d9965a5908d1882a786fe56a28459dc4b4d78d792f"
     },
     {
+      "path": "assets/img/skills/mut-seek/cards/mut-seek__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 250078,
+      "sha256": "114696829005cfa01631fe982abca5aa201d8ed463aab9637de98f962bae919d"
+    },
+    {
+      "path": "assets/img/skills/mut-splitblast/cards/mut-splitblast__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 267456,
+      "sha256": "8612dbdfc946d04ee0a0c65b7b22286217d57275bcd75fbfe967cbbe4140fbb5"
+    },
+    {
       "path": "assets/img/skills/mut-splitblast/cards/mut-splitblast__card.webp",
       "status": "canonical",
       "bytes": 92018,
       "sha256": "0b36512f0c46bea330dfcc0d87222b7b598964a120f722665c1ddec1ce024f0b"
+    },
+    {
+      "path": "assets/img/skills/mut-thunderfocus/cards/mut-thunderfocus__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 276008,
+      "sha256": "d2f2b44f6d7c9c7699b561c8763f53106e39252c67b82e1f2e10950c037bd0d3"
+    },
+    {
+      "path": "assets/img/skills/mut-thunderoverload/cards/mut-thunderoverload__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 259988,
+      "sha256": "10acf98786785fa81398d2abd02f9d76012e15c622cd7727de7cb960a4d3bae6"
+    },
+    {
+      "path": "assets/img/skills/mut-thunderstun/cards/mut-thunderstun__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 241934,
+      "sha256": "4e46a2949ab5c5b5a31b0c16a67522ee60a6d60c00931913624bd47d3bdd7b1a"
+    },
+    {
+      "path": "assets/img/skills/mut-widecircle/cards/mut-widecircle__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 270502,
+      "sha256": "073663083de13b026f6e532e3e69cedd85fdb8e5cae29a97d30ab97f9736d01a"
+    },
+    {
+      "path": "assets/img/skills/needle/cards/needle__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 321070,
+      "sha256": "9d6bfe3108d59b5c4e780212e1b6e5cd472790dc01877e8a319877171ff2e624"
     },
     {
       "path": "assets/img/skills/needle/cards/needle__card.webp",
@@ -1173,6 +1401,12 @@
       "sha256": "4a2799bf99c6b727a3313ad8687dad9f97bb7d9b43089a07011280c57a1937be"
     },
     {
+      "path": "assets/img/skills/oil-heal/cards/oil-heal__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 256422,
+      "sha256": "4e8983c4dcd1107b099ad53e4db6b2eab5c215442e9189fe3f735f349495ae5d"
+    },
+    {
       "path": "assets/img/skills/oil-heal/cards/oil-heal__card.webp",
       "status": "canonical",
       "bytes": 138084,
@@ -1183,6 +1417,12 @@
       "status": "canonical",
       "bytes": 10544,
       "sha256": "b26b656589376c49d6adfc3cd5f580d9f115f0d8d3fb9d2fd7643fbc57d38f6a"
+    },
+    {
+      "path": "assets/img/skills/oil-max/cards/oil-max__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 262410,
+      "sha256": "9ebfef8f9866076ad9e3bdfd069e84fa147dce3598ab63c7538be216632eb89b"
     },
     {
       "path": "assets/img/skills/oil-max/cards/oil-max__card.webp",
@@ -1197,6 +1437,12 @@
       "sha256": "ce8db80149f86947f65bca1e2bfe5a43311933e9a68a0e928882ec084086c882"
     },
     {
+      "path": "assets/img/skills/rate/cards/rate__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 279056,
+      "sha256": "50e62b70fa584c9a8f920be218073835b5c3ee9fbbfc2f215f8ef3cc6d7f6914"
+    },
+    {
       "path": "assets/img/skills/rate/cards/rate__card.webp",
       "status": "canonical",
       "bytes": 156678,
@@ -1207,6 +1453,12 @@
       "status": "canonical",
       "bytes": 23858,
       "sha256": "016ce0525343bb8fb998ffaf4a993ee2287f52b623e6802f4cccec6f6fdbe012"
+    },
+    {
+      "path": "assets/img/skills/shield/cards/shield__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 270286,
+      "sha256": "1d205103879a7dcded2067f7f11276e79197f7011e5ad2b104c338dade9901e2"
     },
     {
       "path": "assets/img/skills/shield/cards/shield__card.webp",
@@ -1221,6 +1473,12 @@
       "sha256": "417457d512f2d4039c0b81743f24478cccd3fc9bc6da56f9a0a2d12f38a448b7"
     },
     {
+      "path": "assets/img/skills/spd/cards/spd__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 286774,
+      "sha256": "a5001eabdb127ae4a84d051eda6f4e531222914d71f50c8c4097336d90c5e0af"
+    },
+    {
       "path": "assets/img/skills/spd/cards/spd__card.webp",
       "status": "canonical",
       "bytes": 129590,
@@ -1231,6 +1489,12 @@
       "status": "canonical",
       "bytes": 33174,
       "sha256": "37112dda9740def9fe71cec06c8f17bf913883b13965ab8aa97c535f7636cd82"
+    },
+    {
+      "path": "assets/img/skills/thunder/cards/thunder__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 351772,
+      "sha256": "eed19e824a98b79093c57c226bd6a055d001bdbb1844bc142b34a18a11553831"
     },
     {
       "path": "assets/img/skills/thunder/cards/thunder__card.webp",
@@ -1445,7 +1709,7 @@
     {
       "path": "assets/img/ui/awaken_seal.svg",
       "status": "legacy_unmigrated",
-      "bytes": 719,
+      "bytes": 712,
       "sha256": "b5dcbc2ac7abc0e73b18d659640feafda676724a1021598398334e50ba1f14a4"
     },
     {
@@ -1621,6 +1885,36 @@
       "status": "trial_pending_review",
       "bytes": 190846,
       "sha256": "a4d9cb5df8e3e3df0f70c4b41513d02da0b9b53bafef792bbe17bb6f3a2e366e"
+    },
+    {
+      "path": "assets/img/ui/buttons/menu__button.webp",
+      "status": "trial_pending_review",
+      "bytes": 8702,
+      "sha256": "e8ee190aa23fb9a147dc171fec01d2fc0dd0d7b85fc245803cb4b4f981b7ddf2"
+    },
+    {
+      "path": "assets/img/ui/buttons/menu__button__danger-hover.webp",
+      "status": "trial_pending_review",
+      "bytes": 9254,
+      "sha256": "e5a6d6a9414b60efe85d31844f30d7364b05da533fcd7598729aab54074d3427"
+    },
+    {
+      "path": "assets/img/ui/buttons/menu__button__danger.webp",
+      "status": "trial_pending_review",
+      "bytes": 8666,
+      "sha256": "abdce83112856843046e3d299b6121c980e0620f9170228128efd71fc95baf42"
+    },
+    {
+      "path": "assets/img/ui/buttons/menu__button__disabled.webp",
+      "status": "trial_pending_review",
+      "bytes": 5278,
+      "sha256": "3df471dc258d6695668f4b7bb3bc96125c69f1f035b0b74e39f602c2729fa8ba"
+    },
+    {
+      "path": "assets/img/ui/buttons/menu__button__hover.webp",
+      "status": "trial_pending_review",
+      "bytes": 8840,
+      "sha256": "eb393e72dd8854392417ef57e136dfa1e908cc58f7b468d4368c4ef513e9bff2"
     },
     {
       "path": "assets/img/ui/charm-passive/b10/omamori_cadence.webp",
@@ -2163,6 +2457,24 @@
       "sha256": "cc5b01601f3d9ec7a36b6730f9298cc7edfc7076c5848dc4306648561c3db0f6"
     },
     {
+      "path": "assets/img/ui/menu/exit__board.webp",
+      "status": "trial_pending_review",
+      "bytes": 138224,
+      "sha256": "9a87c07105cb670b766f211eca47f1eed5126970554bec8df7192b0148eb328e"
+    },
+    {
+      "path": "assets/img/ui/menu/pause__board.webp",
+      "status": "trial_pending_review",
+      "bytes": 175526,
+      "sha256": "1fcb5e09c51dfa53c444af8f2b8482d087c4acce3fd3d4a18049b1758f9963f3"
+    },
+    {
+      "path": "assets/img/ui/menu/ui__upgrade-card-frame.png",
+      "status": "trial_pending_review",
+      "bytes": 2076381,
+      "sha256": "6ff48188b13f3aef404998caf7834361fbd359626a4da053d8a01813fd9028d8"
+    },
+    {
       "path": "assets/img/ui/passive/b9/hud_passive_crit.webp",
       "status": "trial_pending_review",
       "bytes": 26242,
@@ -2413,6 +2725,42 @@
       "status": "trial_pending_review",
       "bytes": 104928,
       "sha256": "2a23b732bdb42ce6b7f8fa156a25352501892eeab9f327c7544c6d26f0aa75aa"
+    },
+    {
+      "path": "assets/img/ui/phase42/button_danger.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 54814,
+      "sha256": "b3eddb46b1471a982617ed298c8eff55b4ea0192ed288ac67296d626f12513d1"
+    },
+    {
+      "path": "assets/img/ui/phase42/button_normal.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 77500,
+      "sha256": "ecf45de6c822788c3d66cdc9576709f92fbcb0ab9b18ec382577f04f9d7f2b56"
+    },
+    {
+      "path": "assets/img/ui/phase42/detail_board.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 51506,
+      "sha256": "e941a06c22a51ac6ea2c431fe8c4708971ad6cbdfb9750e947740a811a7ffd90"
+    },
+    {
+      "path": "assets/img/ui/phase42/exit_board.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 120262,
+      "sha256": "268ac91f7d8639ee20d182f1469d199a3476aaac66b040b9425b82438a196756"
+    },
+    {
+      "path": "assets/img/ui/phase42/pause_board.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 114442,
+      "sha256": "4332cec6e270bdcbb78300dbfaafa79ec9b65b54b4fc8c10681b05217ee54f24"
+    },
+    {
+      "path": "assets/img/ui/phase42/title_plaque.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 20498,
+      "sha256": "e67ee801947e73897abd0a112d7665dd2abc6d75f7fcfc0e24fb45ab0aefda21"
     },
     {
       "path": "assets/img/ui/upgrade/board.webp",
@@ -3429,6 +3777,234 @@
       "sha256": "273b7d12a3b88849b19959e1b3fc0373792aaf31f0d469a75608df623dcf5c70"
     },
     {
+      "path": "assets/img/words/ame.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 1776,
+      "sha256": "be349c25af012a6564c0374aa7afc9f3aff9a9821010291a8db3d3b3cabd0bb9"
+    },
+    {
+      "path": "assets/img/words/eki.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 3056,
+      "sha256": "315d022b76f93c0339097d225842339d4e6cd734c25af37abfc156ccdd343681"
+    },
+    {
+      "path": "assets/img/words/fune.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 4500,
+      "sha256": "b6190a775e00e2c21d84854526fb34aa632a4c30def5184d82c8508d01ed81c1"
+    },
+    {
+      "path": "assets/img/words/hashi.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 3604,
+      "sha256": "7e650b7fa6042f61a336dcdf80eb97cae71256d8dce7f12f54e3cbc00414023c"
+    },
+    {
+      "path": "assets/img/words/hashiru.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 2764,
+      "sha256": "3715c90bc5868166621b365eb66ebef5d4b77dce2efd8ac55ccf070db9fccf5b"
+    },
+    {
+      "path": "assets/img/words/hikouki.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 4050,
+      "sha256": "16c2604cd12508ceacc8d29ec605ffa33e6a288bda6fc97fdced5e4f308c9549"
+    },
+    {
+      "path": "assets/img/words/hito.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 1842,
+      "sha256": "c1012e9e023f56bfacdcb702774d370309712b560cab14b3e0d1a673206f034e"
+    },
+    {
+      "path": "assets/img/words/hon.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 1772,
+      "sha256": "8cfffd6431fa7a01a1ddc21cf4b4024ae69d5244f97c242b11a78d9af35ee384"
+    },
+    {
+      "path": "assets/img/words/hoshi.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 6556,
+      "sha256": "7b2fd1706c6f5886cbe6e7c205ed75e43109e79b02bb53098b04631d1fa00a37"
+    },
+    {
+      "path": "assets/img/words/ie.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 1800,
+      "sha256": "e10beedce6017f46614d2064b1c5d39ad66b12f892ca2e2a91f5334ea9b13b44"
+    },
+    {
+      "path": "assets/img/words/inu.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 6872,
+      "sha256": "3a440c40491166133375d39b409ac77a7e26b683b6bf04f60ba94968a953ad3f"
+    },
+    {
+      "path": "assets/img/words/isu.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 2054,
+      "sha256": "af92d63c9f70becb374fe4996da3e29a00c95d4d8d12962d4e208a3a0658a310"
+    },
+    {
+      "path": "assets/img/words/kaeru.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 6782,
+      "sha256": "fa27d3c4103c1c5c1acc4a1019bbed287ba2a7a027cc82979ef4fe4f08ae8245"
+    },
+    {
+      "path": "assets/img/words/kame.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 5290,
+      "sha256": "ddf12b45c678b017bbb6165baba2f6b9b407074d1acb2a9b24728f15b4b8ca5b"
+    },
+    {
+      "path": "assets/img/words/kaminari.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 3930,
+      "sha256": "88723e215cbef8ff58a4069aa47f5ba64159361ed640ba7e494e90f399bc06b2"
+    },
+    {
+      "path": "assets/img/words/kasa.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 4088,
+      "sha256": "4061659d31589a7a4c12e02ee4984c893d4f8ef0b22bdf6ee6ffca11289ca2ca"
+    },
+    {
+      "path": "assets/img/words/kawa.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 3526,
+      "sha256": "813a4b86048796cc829019ddcaeae76a9259c79c1024ef5ccef4db65c0bac9d3"
+    },
+    {
+      "path": "assets/img/words/kouen.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 3210,
+      "sha256": "a30097accd4c7f52c1798f4201292eff0e4e10a67d69447dad52af4c43d0f540"
+    },
+    {
+      "path": "assets/img/words/kuruma.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 4186,
+      "sha256": "fc9f989e93289e8b4d5bfb8611b4d4a9c5fe752c03a8df20ec0e8ef0de990774"
+    },
+    {
+      "path": "assets/img/words/mado.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 1798,
+      "sha256": "b4535a4c00da2e554503601a7b643894d083ded4061ff6f7ad7a3b8aead5525c"
+    },
+    {
+      "path": "assets/img/words/neko.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 1774,
+      "sha256": "8a559a6d9ee2c6051f2c2ead1bbc70180948ef572cc9160bdd26d6d5deb77404"
+    },
+    {
+      "path": "assets/img/words/neru.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 2236,
+      "sha256": "80696a9888a75dbf6c468d12be6ba4d2e4f22bd9b174145d4725a3fc8d6ad950"
+    },
+    {
+      "path": "assets/img/words/nomu.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 2976,
+      "sha256": "70da4ad76555ecd0ec948cc0b2bf73b85d4c6e68c0faadef51980c160159a85f"
+    },
+    {
+      "path": "assets/img/words/ocha.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 2768,
+      "sha256": "6d73407dbc114a24fc8fb7f0bfed88c927575db339a46a822f7c345eee47dbe5"
+    },
+    {
+      "path": "assets/img/words/onigiri.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 2972,
+      "sha256": "46da0689c3ce4298120ce299afd225fc6dc2e763d2753799d8a4bbe6146513ce"
+    },
+    {
+      "path": "assets/img/words/pan.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 2502,
+      "sha256": "da11417a86170d5b4f3c5dce2aac0913db584a33873bc1e85bb14f986740383a"
+    },
+    {
+      "path": "assets/img/words/ramen.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 4060,
+      "sha256": "8cc4ea3bb41c69e37ecbe72b91976e0d8fc0b69d909bcad0a0b7b19a67cc71d4"
+    },
+    {
+      "path": "assets/img/words/ringo.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 4194,
+      "sha256": "7feaf100c14903d01b1395d6a6271ca2da17963602ee54c4c85b92744f6e6a1a"
+    },
+    {
+      "path": "assets/img/words/sakana.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 8588,
+      "sha256": "1efbd64d8e7ff4394c666cbd10872c077402df00db6e8cb053a60aa3cfb7e00a"
+    },
+    {
+      "path": "assets/img/words/sakura.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 1758,
+      "sha256": "4bae3ef9173fd4ff58f96a3b83cc8ba4dc9ec01a636f8985e676d50f1f8f178d"
+    },
+    {
+      "path": "assets/img/words/taberu.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 3522,
+      "sha256": "f414cc616856d244e8b551e82aa12543f7b8b5e387d5f7d63c94181dbfb7d881"
+    },
+    {
+      "path": "assets/img/words/tako.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 7688,
+      "sha256": "020e2e58a27df227aaf42dff9b0043b73e1d4c7e59e885a5d96f0956f15dd00a"
+    },
+    {
+      "path": "assets/img/words/tori.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 5814,
+      "sha256": "506848f188caea73cb772dad212bf6aefc588c4338ceeb65e243fbf4f167752e"
+    },
+    {
+      "path": "assets/img/words/tsuki.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 4830,
+      "sha256": "371fb602ba9a1f0a116488388d1b7de75fad2e383bcd480b2fb802ecc0ebee76"
+    },
+    {
+      "path": "assets/img/words/tsukue.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 1996,
+      "sha256": "2c2c6388c3deb7cc3dd4573bcbb52250539bf6ebb15199f76f4a5bd7ead6a40b"
+    },
+    {
+      "path": "assets/img/words/usagi.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 5656,
+      "sha256": "0a42103ca5e8e0ecbcabd6224f57f92949d302874093b83ebf265e7805b29e78"
+    },
+    {
+      "path": "assets/img/words/yama.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 3932,
+      "sha256": "2b4864d6bf59ddbb83537adae57650081f4892857e007b17472edf8a5c503ea1"
+    },
+    {
+      "path": "assets/img/words/yuki.webp",
+      "status": "legacy_unmigrated",
+      "bytes": 5040,
+      "sha256": "17586d51115c76b0f32eb3512ed615a7bdccc290ca9ae8e122a28f6222bb8b13"
+    },
+    {
       "path": "assets/img/yokai/boss.webp",
       "status": "legacy_alias_active",
       "bytes": 21754,
@@ -3853,6 +4429,12 @@
       "status": "legacy_alias_active",
       "bytes": 101804,
       "sha256": "d18df78fe96384a1c61fb9569d2108815d6c6ef420c8d39542af7c5a8dca58a3"
+    },
+    {
+      "path": "assets/audio/sfx/final-boss-death.mp3",
+      "status": "legacy_review_required",
+      "bytes": 29362,
+      "sha256": "42a56449ca89b651e97e3b326865739656f71a65d3d840474b2c1346d5bacd7b"
     },
     {
       "path": "assets/audio/sfx/fire-lv1-4.mp3",
@@ -5143,264 +5725,6 @@
       "status": "legacy_unmigrated",
       "bytes": 14924,
       "sha256": "bde2c2921a49e12627e9daacedacc63dcd79b58f35f028dda3ec19b20246766a"
-    },
-    {
-      "path": "assets/img/sakura-pass/ground_mountain_dirt.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 163666,
-      "sha256": "882135a378a7d9c889953fb5f4d0837d4ae87b8607bae776a5bef489edf86765"
-    },
-    {
-      "path": "assets/img/sakura-pass/ground_sakura_steps.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 139996,
-      "sha256": "6935c527db400bb57cf70038d5555d2f063bafb84091fa7df167459914568a6b"
-    },
-    {
-      "path": "assets/img/sakura-pass/ground_trans_dirt_to_steps_h.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 147424,
-      "sha256": "262462da95d8172e888fd191c265b6ec3492702dd3291606f3ea25a2ad73195c"
-    },
-    {
-      "path": "assets/img/sakura-pass/landmark_corrupted_sakura.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 138578,
-      "sha256": "7dd88ec8213577690972f2e6dbd4670ad703562a1a52f024d723db0cd799c7d2"
-    },
-    {
-      "path": "assets/img/sakura-pass/shrine_pavilion.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 82218,
-      "sha256": "835fe17a73cf1af48bc2fc25cdf9cd7b155c7248423dc81075f079bfd869b22e"
-    },
-    {
-      "path": "assets/img/words/ame.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1776,
-      "sha256": "be349c25af012a6564c0374aa7afc9f3aff9a9821010291a8db3d3b3cabd0bb9"
-    },
-    {
-      "path": "assets/img/words/eki.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3056,
-      "sha256": "315d022b76f93c0339097d225842339d4e6cd734c25af37abfc156ccdd343681"
-    },
-    {
-      "path": "assets/img/words/fune.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4500,
-      "sha256": "b6190a775e00e2c21d84854526fb34aa632a4c30def5184d82c8508d01ed81c1"
-    },
-    {
-      "path": "assets/img/words/hashi.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3604,
-      "sha256": "7e650b7fa6042f61a336dcdf80eb97cae71256d8dce7f12f54e3cbc00414023c"
-    },
-    {
-      "path": "assets/img/words/hashiru.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2764,
-      "sha256": "3715c90bc5868166621b365eb66ebef5d4b77dce2efd8ac55ccf070db9fccf5b"
-    },
-    {
-      "path": "assets/img/words/hikouki.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4050,
-      "sha256": "16c2604cd12508ceacc8d29ec605ffa33e6a288bda6fc97fdced5e4f308c9549"
-    },
-    {
-      "path": "assets/img/words/hito.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1842,
-      "sha256": "c1012e9e023f56bfacdcb702774d370309712b560cab14b3e0d1a673206f034e"
-    },
-    {
-      "path": "assets/img/words/hon.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1772,
-      "sha256": "8cfffd6431fa7a01a1ddc21cf4b4024ae69d5244f97c242b11a78d9af35ee384"
-    },
-    {
-      "path": "assets/img/words/hoshi.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 6556,
-      "sha256": "7b2fd1706c6f5886cbe6e7c205ed75e43109e79b02bb53098b04631d1fa00a37"
-    },
-    {
-      "path": "assets/img/words/ie.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1800,
-      "sha256": "e10beedce6017f46614d2064b1c5d39ad66b12f892ca2e2a91f5334ea9b13b44"
-    },
-    {
-      "path": "assets/img/words/inu.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 6872,
-      "sha256": "3a440c40491166133375d39b409ac77a7e26b683b6bf04f60ba94968a953ad3f"
-    },
-    {
-      "path": "assets/img/words/isu.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2054,
-      "sha256": "af92d63c9f70becb374fe4996da3e29a00c95d4d8d12962d4e208a3a0658a310"
-    },
-    {
-      "path": "assets/img/words/kaeru.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 6782,
-      "sha256": "fa27d3c4103c1c5c1acc4a1019bbed287ba2a7a027cc82979ef4fe4f08ae8245"
-    },
-    {
-      "path": "assets/img/words/kame.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 5290,
-      "sha256": "ddf12b45c678b017bbb6165baba2f6b9b407074d1acb2a9b24728f15b4b8ca5b"
-    },
-    {
-      "path": "assets/img/words/kaminari.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3930,
-      "sha256": "88723e215cbef8ff58a4069aa47f5ba64159361ed640ba7e494e90f399bc06b2"
-    },
-    {
-      "path": "assets/img/words/kasa.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4088,
-      "sha256": "4061659d31589a7a4c12e02ee4984c893d4f8ef0b22bdf6ee6ffca11289ca2ca"
-    },
-    {
-      "path": "assets/img/words/kawa.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3526,
-      "sha256": "813a4b86048796cc829019ddcaeae76a9259c79c1024ef5ccef4db65c0bac9d3"
-    },
-    {
-      "path": "assets/img/words/kouen.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3210,
-      "sha256": "a30097accd4c7f52c1798f4201292eff0e4e10a67d69447dad52af4c43d0f540"
-    },
-    {
-      "path": "assets/img/words/kuruma.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4186,
-      "sha256": "fc9f989e93289e8b4d5bfb8611b4d4a9c5fe752c03a8df20ec0e8ef0de990774"
-    },
-    {
-      "path": "assets/img/words/mado.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1798,
-      "sha256": "b4535a4c00da2e554503601a7b643894d083ded4061ff6f7ad7a3b8aead5525c"
-    },
-    {
-      "path": "assets/img/words/neko.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1774,
-      "sha256": "8a559a6d9ee2c6051f2c2ead1bbc70180948ef572cc9160bdd26d6d5deb77404"
-    },
-    {
-      "path": "assets/img/words/neru.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2236,
-      "sha256": "80696a9888a75dbf6c468d12be6ba4d2e4f22bd9b174145d4725a3fc8d6ad950"
-    },
-    {
-      "path": "assets/img/words/nomu.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2976,
-      "sha256": "70da4ad76555ecd0ec948cc0b2bf73b85d4c6e68c0faadef51980c160159a85f"
-    },
-    {
-      "path": "assets/img/words/ocha.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2768,
-      "sha256": "6d73407dbc114a24fc8fb7f0bfed88c927575db339a46a822f7c345eee47dbe5"
-    },
-    {
-      "path": "assets/img/words/onigiri.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2972,
-      "sha256": "46da0689c3ce4298120ce299afd225fc6dc2e763d2753799d8a4bbe6146513ce"
-    },
-    {
-      "path": "assets/img/words/pan.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 2502,
-      "sha256": "da11417a86170d5b4f3c5dce2aac0913db584a33873bc1e85bb14f986740383a"
-    },
-    {
-      "path": "assets/img/words/ramen.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4060,
-      "sha256": "8cc4ea3bb41c69e37ecbe72b91976e0d8fc0b69d909bcad0a0b7b19a67cc71d4"
-    },
-    {
-      "path": "assets/img/words/ringo.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4194,
-      "sha256": "7feaf100c14903d01b1395d6a6271ca2da17963602ee54c4c85b92744f6e6a1a"
-    },
-    {
-      "path": "assets/img/words/sakana.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 8588,
-      "sha256": "1efbd64d8e7ff4394c666cbd10872c077402df00db6e8cb053a60aa3cfb7e00a"
-    },
-    {
-      "path": "assets/img/words/sakura.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1758,
-      "sha256": "4bae3ef9173fd4ff58f96a3b83cc8ba4dc9ec01a636f8985e676d50f1f8f178d"
-    },
-    {
-      "path": "assets/img/words/taberu.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3522,
-      "sha256": "f414cc616856d244e8b551e82aa12543f7b8b5e387d5f7d63c94181dbfb7d881"
-    },
-    {
-      "path": "assets/img/words/tako.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 7688,
-      "sha256": "020e2e58a27df227aaf42dff9b0043b73e1d4c7e59e885a5d96f0956f15dd00a"
-    },
-    {
-      "path": "assets/img/words/tori.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 5814,
-      "sha256": "506848f188caea73cb772dad212bf6aefc588c4338ceeb65e243fbf4f167752e"
-    },
-    {
-      "path": "assets/img/words/tsuki.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 4830,
-      "sha256": "371fb602ba9a1f0a116488388d1b7de75fad2e383bcd480b2fb802ecc0ebee76"
-    },
-    {
-      "path": "assets/img/words/tsukue.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 1996,
-      "sha256": "2c2c6388c3deb7cc3dd4573bcbb52250539bf6ebb15199f76f4a5bd7ead6a40b"
-    },
-    {
-      "path": "assets/img/words/usagi.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 5656,
-      "sha256": "0a42103ca5e8e0ecbcabd6224f57f92949d302874093b83ebf265e7805b29e78"
-    },
-    {
-      "path": "assets/img/words/yama.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 3932,
-      "sha256": "2b4864d6bf59ddbb83537adae57650081f4892857e007b17472edf8a5c503ea1"
-    },
-    {
-      "path": "assets/img/words/yuki.webp",
-      "status": "legacy_unmigrated",
-      "bytes": 5040,
-      "sha256": "17586d51115c76b0f32eb3512ed615a7bdccc290ca9ae8e122a28f6222bb8b13"
     }
   ]
 }

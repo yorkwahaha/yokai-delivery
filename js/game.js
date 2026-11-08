@@ -270,6 +270,7 @@
   let quitConfirm = false;
   let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "", pausePage = "main";
   let levelupFocus = 0, gpLevelupDir = "";
+  let levelupTouchPreview = -1;
   let gpFusionDir = 0;
   let charmSwapIndex = 0, gpCharmDir = 0;
   let pendingMenuActivation = null;
@@ -1731,7 +1732,8 @@ if (isRainPort) {
       return;
     }
     state = "levelup";
-    levelupFocus = 0;
+    levelupFocus = UI.upgradeTrialEnabled?.() && choices.length === 3 ? 1 : 0;
+    levelupTouchPreview = -1;
     gpLevelupDir = "";
     levelupCooldown = 0.4;
     keys.clear(); heldCodes.clear();
@@ -1996,7 +1998,10 @@ if (isRainPort) {
     score += isMis ? 0 : e.type === "boss" ? 400 : 15;
 
     if (e.type === "boss") {
-      AUDIO.bossDeath();
+      // Final Boss is a dedicated recording supplied by the artist:
+      // no WebAudio synthetic explosion fallback under any circumstance.
+      if(e.final)AUDIO.finalBossDeath?.();
+      else AUDIO.bossDeath();
       HAPTICS.bossDefeat();
       if (e.final) {
         finalBossDefeated = true;
@@ -3579,7 +3584,7 @@ if (isRainPort) {
         wT.barrier = wMax.barrier = spec.cooldown;
         const r = spec.radius;
         if (spec.isAwakened && spec.sanctuary) {
-          sacredSanctuary = { x: P.x, y: P.y, r: spec.sanctuary.radius, life: spec.sanctuary.duration, maxLife: spec.sanctuary.duration };
+          sacredSanctuary = { x: P.x, y: P.y, r: spec.sanctuary.radius, life: spec.sanctuary.duration, maxLife: spec.sanctuary.duration, level: spec.level };
         }
         SKILLFX.play("barrier", "cast", spec.level, { x: P.x, y: P.y, r });
         let hitAny = false;
@@ -6052,6 +6057,8 @@ function spawnEnemy(tier, rad, ang, ring) {
       ctx.restore();
     }
     SKILLFX.drawArtFx?.(ctx, true);
+    // The sanctuary ground mandala stays below actors. Its transparent canopy
+    // is composited later ABOVE the courier, after the night lighting pass.
     // 所有融合主圖先於怪物及 Boss 警示繪製，避免自己的奧義遮住敵人和危險範圍。
     for (const fx of fusionEffects) {
       RENDERER.drawFusionFx?.(ctx, fx, visualElapsed);
@@ -6441,6 +6448,9 @@ function spawnEnemy(tier, rad, ang, ring) {
     tiltWorld(cam,shakeOffset);
     FX.draw(ctx, cam, view);
     SKILLFX.drawArtFx?.(ctx, false);
+    if(sacredSanctuary?.life>0)
+      upright(sacredSanctuary.x,sacredSanctuary.y,()=>
+        window.YOKAI_SANCTUARY_ARC?.draw(ctx,sacredSanctuary,visualElapsed,tiltK()));
     // 妖刀手繪刀氣屬於自發光前景：夜色遮罩後再合成，保持浮世繪青白與金色筆觸。
     for(const p of winds)
       upright(p.x,p.y,()=>SKILLFX.paint(ctx,"wind",5,p));
@@ -6601,7 +6611,15 @@ function spawnEnemy(tier, rad, ang, ring) {
     if ((isPortrait() && state !== "overworld" && state !== "menu") || document.hidden) return;
     if (artPending()) return;
     if (CONTROLS.isOpen()) return;
-    if (e.target?.closest?.('button, input, select, textarea, dialog')) return;
+    if (e.target?.closest?.('button, input, select, textarea, dialog')) {
+      // The local Phase42 ZIP import button can retain DOM focus after the
+      // file dialog closes. Keep real form fields isolated, but let a movement
+      // key reclaim the canvas if that single helper button held the focus.
+      if (e.target?.id === "upgrade-art-picker-trigger" &&
+          ["KeyW","KeyA","KeyS","KeyD"].includes(e.code)) {
+        cv.focus?.({preventScroll:true});
+      } else return;
+    }
     if (!e.repeat) AUDIO.unlockFromInput?.();
     const action = CONTROLS.action(e.code);
     inputMode = 'keyboard';
@@ -6764,9 +6782,13 @@ function spawnEnemy(tier, rad, ang, ring) {
     heldCodes.delete(e.code);
     if (action && ![...heldCodes].some(code => CONTROLS.action(code) === action)) keys.delete(action);
   });
+  let pausedByUpgradePicker = false;
   const suspend = () => {
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
-    if (state === "play") togglePause();
+    if (state === "play") {
+      pausedByUpgradePicker=window.__YOKAI_UPGRADE_PICKER_OPEN===true;
+      togglePause();
+    }
     AUDIO.setSuspended(true);
   };
   const wakeAudio = () => {
@@ -6776,6 +6798,14 @@ function spawnEnemy(tier, rad, ang, ring) {
   };
   addEventListener("blur", suspend);
   addEventListener("focus", wakeAudio);
+  addEventListener("yokai-upgrade-picker-close",()=>{
+    // Only undo the *automatic* pause caused by this file picker; never undo
+    // a pause that the player entered intentionally before opening the picker.
+    if(pausedByUpgradePicker && state==="pause" && !document.hidden && !isPortrait())
+      togglePause();
+    pausedByUpgradePicker=false;
+    wakeAudio();
+  });
   addEventListener("gamepadconnected", () => {
     if (state === "menu") inputMode = "gamepad";
   });
@@ -6949,6 +6979,12 @@ function spawnEnemy(tier, rad, ang, ring) {
     if (state === "levelup") {
       const hitIndex = hitLevelUpCard(p);
       if (hitIndex >= 0) {
+        // Trial touch: first tap previews the choice; second tap selects it.
+        if (UI.upgradeTrialEnabled?.() && e.pointerType === "touch" && levelupTouchPreview !== hitIndex) {
+          levelupTouchPreview = hitIndex;
+          levelupFocus = hitIndex;
+          return;
+        }
         levelupFocus = hitIndex;
         pickUp(hitIndex);
         return;
