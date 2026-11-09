@@ -29,7 +29,7 @@ function loadUI({resultTrial=false}={}) {
       for (const ch of String(t)) w += ch.codePointAt(0) < 256 ? s * 0.55 : s * 1.0;
       return { width: w, actualBoundingBoxAscent: s * 0.76, actualBoundingBoxDescent: s * 0.12 };
     },
-    fillText(t, x, y) { traces.push({ text: String(t), x, y }); },
+    fillText(t, x, y) { traces.push({ text: String(t), x, y, font:this.font }); },
     strokeText() {}
   }, { get: (o, k) => (k in o ? o[k] : () => {}) });
   const env = {
@@ -124,6 +124,12 @@ test("無字結算底板試用：勝敗共用圖片、文字與按鈕動態排�
     assert.equal(UI.endScreenButtons(state).length,expectedButtons);
     assert.ok(traces.some(t=>t.text===(state==="won"?"夜已破曉":"燈油已盡")));
     assert.ok(traces.some(t=>t.text==="99,610"));
+    assert.equal(traces.find(t=>t.text==="99,610")?.x,550,'score shares the data content column');
+    for(const [word,x] of [["送達",380],["誤配",550],["本局",720]]){
+      const stat=traces.find(t=>t.text.startsWith(word));
+      assert.equal(stat?.x,x,'stable result stat column: '+word);
+      assert.ok(stat?.font.includes("MoonStars Kai T Bold"),'result stat uses bundled brush-kai: '+word);
+    }
     assert.ok(traces.some(t=>t.text.includes("20:50")));
     assert.ok(traces.some(t=>t.text.includes("夜行賞金")));
     assert.ok(Math.max(...UI.endScreenButtons(state).map(b=>b.y+b.h))<=600);

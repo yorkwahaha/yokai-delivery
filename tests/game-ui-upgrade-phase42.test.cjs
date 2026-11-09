@@ -101,6 +101,23 @@ test('bottom explanation follows focus, without mixing other options',()=>{
  b.UI.drawLevelUp(b.ctx,5,cards,{}, {},2,0,2,'touch',{seals:2});
  assert.ok(!b.traces.some(t=>t.text.includes('覺醒印')),'retired seal HUD must stay hidden');
 });
+test('long skill effects wrap completely inside the approved detail parchment',()=>{
+ const a=trial();
+ const full='妖刀／天雷暴擊率 +15%，結界 +10%（機率上限 50%，倍率 1.8）（目前 0 / 3 層）';
+ const picked={id:'crit',type:'passive',n:'心眼一閃',d:full,
+   levelText:'第 1 / 3 層',requirementText:'持有退魔妖刀',
+   limitText:'每種限選一次；每技能最多 2 種變異'};
+ a.UI.drawLevelUp(a.ctx,3,[picked],{},{},2,0,0,'keyboard');
+ const d=a.UI.levelUpLayout(1).details;
+ const lines=a.traces.filter(t=>t.x===d.x+280 &&
+   t.y>=d.y+50&&t.y<d.y+112).map(t=>t.text);
+ assert.equal(lines.join('').replace(/\s+/g,''),full.replace(/\s+/g,''),
+  'full selected skill effect must remain visible, without truncation');
+ assert.ok(lines.length<=3,'effect does not overrun the bottom border');
+ assert.ok(!lines.some(t=>t.includes('…')||t.endsWith('...')));
+ assert.ok(a.traces.some(t=>t.text==='心眼一閃'&&t.x===d.x+57),
+  'skill name avoids the painted lower-left cherry blossoms');
+});
 test('empty choices render a stable message without a phantom card',()=>{
  const a=trial();
  a.UI.drawLevelUp(a.ctx,4,[],{},{},0,0,0,'keyboard');

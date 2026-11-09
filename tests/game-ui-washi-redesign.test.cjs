@@ -11,7 +11,7 @@ function scene({approved=true,blank=false}={}){
   const ctx=new Proxy({
     font:'400 18px serif',
     fillText(text,x,y,maxWidth){labels.push({text:String(text),font:this.font,x,y,maxWidth});},
-    drawImage(img,...args){images.push({src:img.src,args});},
+    drawImage(img,...args){images.push({src:img.src,args,shadowBlur:this.shadowBlur||0});},
     stroke(){strokes.push({width:this.lineWidth,color:this.strokeStyle});},
     measureText(text){return {width:Array.from(String(text)).length*14,
       actualBoundingBoxAscent:14,actualBoundingBoxDescent:4};},
@@ -38,25 +38,30 @@ function scene({approved=true,blank=false}={}){
 test('pause uses the whole clean blank parchment with live text and no baked old panel',()=>{
  const s=scene();
  s.UI.drawPauseMenu(s.ctx,false,0);
- const boards=s.images.filter(v=>v.src?.includes('phase42/pause_board.webp'));
+ const boards=s.images.filter(v=>v.src?.includes('menu/pause__approved.webp'));
  assert.equal(boards.length,1,'one complete uncut portrait board');
  assert.equal(boards[0].args.length,4,'render full sprite with no source cropping rectangle');
  assert.equal(s.images.some(v=>v.src?.includes('menu/pause__board.webp')),false,'never render the obsolete lettered pause frame');
  assert.ok(s.labels.some(v=>v.text==='繼續夜行'),'buttons keep dynamic text');
  assert.ok(s.labels.some(v=>v.text==='夜櫻暫歇'),'title is drawn over blank plate');
  assert.equal(s.images.some(v=>v.src?.includes('menu__button__hover.webp')),false,'no extra stretched hover card');
- assert.ok(s.images.some(v=>v.src?.includes('phase42/button_normal.webp')),'raster buttons still painted');
+ assert.ok(s.images.some(v=>v.src?.includes('menu/result__button.webp')),'sixth option is an independent approved danger button');
+ assert.equal(s.images.filter(v=>v.src?.includes('menu/approved__button_normal.webp')).length,5,
+  'all five slots reuse the same real painted normal button for uniform text alignment');
+ assert.ok(s.images.some(v=>v.src?.includes('menu/approved__button_normal.webp')&&v.shadowBlur>=20),
+  'selected slot glows from the painted button itself');
  const rows=s.UI.pauseButtons('main');
  assert.equal(rows.length,6);
  for(let i=1;i<rows.length;i++)assert.ok(rows[i].y>=rows[i-1].y+rows[i-1].h);
 });
 
-test('missing new art falls back to the original dynamic board and text',()=>{
+test('missing new art never resurrects old pause or beige button paintings',()=>{
  const s=scene({approved:false});
  s.UI.drawPauseMenu(s.ctx,false,0);
- assert.equal(s.images.filter(v=>v.src?.includes('phase42/pause_board.webp')).length,1);
+ assert.equal(s.images.filter(v=>v.src?.includes('phase42/pause_board.webp')).length,0);
+ assert.equal(s.images.filter(v=>v.src?.includes('menu/pause__board.webp')).length,0);
  assert.ok(s.labels.some(v=>v.text==='夜櫻暫歇'));
- assert.ok(s.images.some(v=>v.src?.includes('phase42/button_normal.webp')));
+ assert.equal(s.images.some(v=>v.src?.includes('phase42/button_normal.webp')),false);
 });
 
 test('two-column mobile pause uses the complete wide frame without stretching portrait trim',()=>{
@@ -66,7 +71,7 @@ test('two-column mobile pause uses the complete wide frame without stretching po
    bounds:()=>({left:0,top:0,right:900,bottom:600,width:900,height:600})
  };
  s.UI.drawPauseMenu(s.ctx,false,0);
- const frames=s.images.filter(v=>v.src?.includes('phase42/exit_board.webp'));
+ const frames=s.images.filter(v=>v.src?.includes('menu/result__board.webp'));
  assert.equal(frames.length,1);
  assert.equal(frames[0].args.length,4);
  assert.ok(frames[0].args[2]>frames[0].args[3],'compact board has landscape geometry');
@@ -76,10 +81,10 @@ test('two-column mobile pause uses the complete wide frame without stretching po
 test('exit confirmation shares the same raster components and brush lettering',()=>{
  const s=scene();
  s.UI.drawExitConfirm(s.ctx,0,'world');
- const boards=s.images.filter(v=>v.src?.includes('phase42/exit_board.webp'));
+ const boards=s.images.filter(v=>v.src?.includes('menu/result__board.webp'));
  assert.equal(boards.length,1,'exit must use a separate full wide frame');
  assert.equal(boards[0].args.length,4,'wide panel must not draw a cropped source');
- assert.ok(s.images.some(v=>v.src?.includes('phase42/button_danger.webp')));
+ assert.ok(s.images.some(v=>v.src?.includes('menu/result__button.webp')));
  for(const part of ['是否放棄本局？','尚未結算的戰果將隨夜色散去。','繼續本局','放棄並回地圖']){
    assert.ok(s.labels.some(v=>v.text===part&&v.font.includes('MoonStars Kai T')),
      part+' must retain calligraphic typography');
@@ -93,7 +98,8 @@ test('approved home confirmation paints a complete illustration and halo without
  assert.equal(boards.length,1);
  assert.equal(boards[0].args.length,4);
  assert.equal(s.images.some(v=>v.src?.includes('menu__button__danger-hover.webp')),false);
- assert.ok(s.strokes.some(v=>v.width===2),'focus glow stays inside painted face');
+ assert.ok(s.images.some(v=>v.src?.includes('menu/result__button.webp')&&v.shadowBlur>=20),
+  'focus glows from the real button sprite, without a rectangular outline');
  assert.equal(s.labels.some(v=>v.text==='是否放棄本局？'),false);
  assert.equal(s.labels.some(v=>v.text==='放棄並回首頁'),false);
 });
@@ -107,12 +113,19 @@ test('new blank landscape art supports live text for either exit target and both
   assert.equal(frames[0].args.length,4);
   assert.ok(s.labels.some(v=>v.text==='是否放棄本局？'));
   assert.ok(s.labels.some(v=>v.text=== (target==='home'?'放棄並回首頁':'放棄並回地圖')));
-  assert.ok(s.strokes.some(v=>v.width===2),'focus inset rather than oversize');
+  assert.ok(s.images.some(v=>v.src?.includes('menu/result__button.webp')&&v.shadowBlur>=20),
+   'selected danger button uses a painted silhouette glow');
+  const labels=s.labels.filter(v=>v.text==='繼續本局'||v.text.startsWith('放棄並回'));
+  assert.equal(labels.length,2);
+  assert.ok(Math.abs(labels[0].y-labels[1].y)<.1,'both button labels share one visual baseline');
+  assert.equal(labels[0].x,s.UI.EXIT_BTNS[0].x+s.UI.EXIT_BTNS[0].w/2);
+  assert.equal(labels[1].x,s.UI.EXIT_BTNS[1].x+s.UI.EXIT_BTNS[1].w/2);
+  assert.equal(s.labels.some(v=>/一旦|這趟/.test(v.text)),false,'unsupported Hanzi removed');
  }
 });
 test('upgraded card detail panel uses its own high-resolution decorated raster plaque',()=>{
  const code=fs.readFileSync('js/ui-upgrade-trial.js','utf8');
- assert.ok(code.includes('assets/img/ui/phase42/detail_board.webp'));
+ assert.ok(code.includes('assets/img/ui/upgrade/approved_details_blank.webp'));
  assert.ok(code.includes('術式效果'));
  assert.doesNotMatch(code,/fontPicker|readPreviewZip|upgrade-art-picker-trigger/);
 });

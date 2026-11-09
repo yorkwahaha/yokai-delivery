@@ -3,12 +3,12 @@
   "updated": "2026-11-09",
   "notes": "Unmigrated paths are inventoried, not approved for new usage; never delete without reference audit.",
   "totals": {
-    "files": 956,
+    "files": 960,
     "by_status": {
       "legacy_unmigrated": 349,
       "legacy_review_required": 62,
       "canonical": 207,
-      "trial_pending_review": 187,
+      "trial_pending_review": 191,
       "legacy_alias_active": 99,
       "legacy_source_pending_renderer": 52
     }
@@ -5749,6 +5749,30 @@
       "status": "legacy_unmigrated",
       "bytes": 14924,
       "sha256": "bde2c2921a49e12627e9daacedacc63dcd79b58f35f028dda3ec19b20246766a"
+    },
+    {
+      "path": "assets/img/ui/menu/approved__button_normal.webp",
+      "status": "trial_pending_review",
+      "bytes": 18956,
+      "sha256": "62f59cf4983aefc759efd6e404a4c5eebaf8871a49a800c2867be5d3c976fc6d"
+    },
+    {
+      "path": "assets/img/ui/menu/pause__approved.webp",
+      "status": "trial_pending_review",
+      "bytes": 577600,
+      "sha256": "0f90b70fda139da2acfb848462e841aeb4048f0370c0b525f9c16c438798a0a4"
+    },
+    {
+      "path": "assets/img/ui/upgrade/approved_details_blank.webp",
+      "status": "trial_pending_review",
+      "bytes": 25620,
+      "sha256": "69d1dd8747ce7923b8a02e8ced30e9d915f67447175bf11d77abe4acdc088e60"
+    },
+    {
+      "path": "assets/img/ui/upgrade/approved_title_clean.webp",
+      "status": "trial_pending_review",
+      "bytes": 14082,
+      "sha256": "b2551b847c05e4dec9a54284aeb4c5a292140c723ef4beb71988110889b248b7"
     }
   ]
 }

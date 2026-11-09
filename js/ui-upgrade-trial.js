@@ -132,6 +132,37 @@
       ctx.fillText(value,x,y+i*lineHeight,width);
     }
   };
+  // Selected skill details must show the FULL description, never add "..."
+  // after an arbitrary two-line cutoff. Reflow every CJK character and word
+  // into the real paper area; shrink gracefully only when required.
+  const paragraphFit=(ctx,value,x,y,width,rows=3,initial=18,minSize=11,color="#362016",lineHeight=18)=>{
+    const tokens=String(value??"").match(/[A-Za-z0-9.+%×/→−]+|\s+|./gu)||[];
+    let lines=[],size=initial;
+    for(;size>=minSize;size--){
+      ctx.font=textFont(size,"body");tracking(ctx,.2);
+      lines=[];let line="";
+      for(const token of tokens){
+        if(!token.trim()&&!line)continue;
+        if(line&&ctx.measureText(line+token).width>width){
+          lines.push(line.trim());line="";
+        }
+        if(ctx.measureText(token).width>width){
+          for(const ch of Array.from(token)){
+            if(line&&ctx.measureText(line+ch).width>width){
+              lines.push(line.trim());line="";
+            }
+            line+=ch;
+          }
+        }else line+=token;
+      }
+      if(line.trim())lines.push(line.trim());
+      if(lines.length<=rows)break;
+    }
+    ctx.font=textFont(Math.max(minSize,size),"body");tracking(ctx,.2);
+    ctx.textAlign="left";ctx.textBaseline="alphabetic";ctx.fillStyle=color;
+    lines.forEach((line,i)=>ctx.fillText(line,x,y+i*lineHeight,width));
+    return {lines,size:Math.max(minSize,size)};
+  };
   UI.levelUpLayout=(count=3)=>{
     const n=Math.max(0,Math.min(3,Math.round(Number.isFinite(count)?count:3)));
     const scale=window.VIEWPORT?.get?.().scale||1;
@@ -142,10 +173,10 @@
     return {
       trial:true,scale,count:n,pad:8,cards,card:{x,y,w,h,gap,count:n},
       panel:{x:26,y:20,w:848,h:557},
-      titleBar:{x:280,y:22,w:340,h:76},
+      titleBar:{x:254,y:15,w:392,h:84},
       summaryBar:{x:240,y:102,w:420,h:27},
-      details:{x:130,y:390,w:640,h:103},
-      reroll:{x:345,y:Math.min(514,587-bh),w:210,h:bh},
+      details:{x:123,y:385,w:654,h:124},
+      reroll:{x:345,y:Math.min(525,587-bh),w:210,h:bh},
       footer:{y:510,h:66}
     };
   };
@@ -168,10 +199,10 @@
     const t=L.titleBar;
     // High-resolution approved plate may be swapped without altering the
     // geometry/text layer. Existing plaque remains a safe raster fallback.
-    const approvedTitle=image("assets/img/ui/upgrade/approved_title.webp");
-    const titleArt=approvedTitle||
-      image("assets/img/ui/phase42/title_plaque.webp");
-    if(titleArt)ctx.drawImage(titleArt,t.x-5,t.y-3,t.w+10,t.h+7);
+    // Original crop contained the mockup's dark rectangular screenshot background.
+    const approvedTitle=image("assets/img/ui/upgrade/approved_title_clean.webp");
+    const titleArt=approvedTitle;
+    if(titleArt)ctx.drawImage(titleArt,t.x,t.y,t.w,t.h);
     else{
       const plume=ctx.createLinearGradient(0,t.y,0,t.y+t.h);
       plume.addColorStop(0,"#363147");plume.addColorStop(1,"#121523");
@@ -314,10 +345,10 @@
   }
   function drawDetails(ctx,L,c){
     const d=L.details;
-    // Use the actual shipped wide formal parchment; the previously preferred
-    // approved_details.webp path does not exist in this project.
-    const approved=image("assets/img/ui/phase42/detail_board.webp?v=20261109-details-wrap-r2");
-    const paper=approved||image("assets/img/ui/illustrated/result_panel.webp");
+    // Real gilded frame extracted from the user-approved design; its demo
+    // text was replaced with blank washi, while actual copy is dynamic.
+    const approved=image("assets/img/ui/upgrade/approved_details_blank.webp");
+    const paper=approved;
     if(approved){
       ctx.save();
       ctx.shadowColor="rgba(0,0,0,.50)";ctx.shadowBlur=12;
@@ -350,33 +381,38 @@
       write(ctx,"選定技能",d.x+26,d.y+24,205,14,"left",muted);
       write(ctx,"術式效果",d.x+259,d.y+24,d.w-285,14,"left",muted);
     }
-    write(ctx,c.n||"",d.x+27,d.y+60,221,25,"left",ink);
+    // The lower-left blossoms cover the first 48px of the parchment.
+    write(ctx,c.n||"",d.x+57,d.y+67,189,24,"left",ink);
     // Dark ink rather than background-colored pale brown; never let the
     // dynamic level transition vanish into the lower parchment floral art.
-    write(ctx,c.levelText||(c.lv?"Lv."+c.lv:""),d.x+27,d.y+88,220,18,"left",muted);
+    write(ctx,c.levelText||(c.lv?"Lv."+c.lv:""),d.x+57,d.y+103,186,17,"left",muted);
     ctx.strokeStyle="rgba(119,75,46,.40)";ctx.lineWidth=1.1;
     ctx.beginPath();ctx.moveTo(d.x+260,d.y+14);ctx.lineTo(d.x+260,d.y+d.h-14);ctx.stroke();
     const brief=UI.cardShort?.(c.id,c.n);
     const desc=brief?.s||c.d||"技能效果";
     const x=d.x+280,w=d.w-310;
-    const bodySize=Math.min(19,Math.max(17,Math.ceil(12/Math.max(.55,L.scale))));
-    paragraph(ctx,desc,x,d.y+55,w,c.requirementText||c.limitText?1:2,bodySize,
-      ink,19);
     const note=[c.requirementText,c.limitText].filter(Boolean).join(" · ");
-    if(note)paragraph(ctx,note,x,d.y+89,w,1,13,muted,17);
+    paragraphFit(ctx,desc,x,d.y+56,w,note?3:4,19,11,ink,note?17:18);
+    if(note)paragraphFit(ctx,note,x,d.y+113,w,1,13,10,muted,16);
   }
   function drawReroll(ctx,L,amount,mode){
     const r=L.reroll;
-    const bg=image(amount>0?"assets/img/ui/upgrade/approved_reroll.webp":"")||
+    const formal=image("assets/img/ui/menu/result__button.webp");
+    const bg=formal||image(amount>0?"assets/img/ui/upgrade/approved_reroll.webp":"")||
       image("assets/img/ui/upgrade/reroll_"+(amount>0?"normal":"disabled")+".webp");
     if(bg){
-      const side=Math.round(bg.naturalWidth*.18);
-      const dest=Math.min(r.w*.25,side*r.h/bg.naturalHeight);
-      ctx.drawImage(bg,0,0,side,bg.naturalHeight,r.x,r.y,dest,r.h);
-      ctx.drawImage(bg,side,0,bg.naturalWidth-2*side,bg.naturalHeight,
-        r.x+dest,r.y,r.w-2*dest,r.h);
-      ctx.drawImage(bg,bg.naturalWidth-side,0,side,bg.naturalHeight,
-        r.x+r.w-dest,r.y,dest,r.h);
+      if(formal){
+        ctx.save();if(!amount)ctx.globalAlpha=.67;
+        ctx.drawImage(formal,r.x,r.y,r.w,r.h);ctx.restore();
+      }else{
+        const side=Math.round(bg.naturalWidth*.18);
+        const dest=Math.min(r.w*.25,side*r.h/bg.naturalHeight);
+        ctx.drawImage(bg,0,0,side,bg.naturalHeight,r.x,r.y,dest,r.h);
+        ctx.drawImage(bg,side,0,bg.naturalWidth-2*side,bg.naturalHeight,
+          r.x+dest,r.y,r.w-2*dest,r.h);
+        ctx.drawImage(bg,bg.naturalWidth-side,0,side,bg.naturalHeight,
+          r.x+r.w-dest,r.y,dest,r.h);
+      }
     }else{
       paint(ctx,r.x,r.y,r.w,r.h,amount>0?"#863a34":"#47434c",12);
       ctx.strokeStyle=palette.gold;ctx.lineWidth=2;round(ctx,r.x,r.y,r.w,r.h,12);ctx.stroke();
@@ -395,6 +431,10 @@
     if(selectedFont)void document.fonts.load(`400 24px "${selectedFont}"`,'能力提升 選卡 靈針 長明燈油').catch(()=>{});
   }
   image(framePath);
+  // Preload approved full-raster layers before the first upgrade offer.
+  for(const path of ["assets/img/ui/upgrade/approved_title_clean.webp",
+    "assets/img/ui/upgrade/approved_details_blank.webp",
+    "assets/img/ui/menu/result__button.webp"])image(path);
 
   UI.drawLevelUp=(ctx,level,choices,WL,WI,rerolls=0,time=0,focus=0,mode="keyboard",awakening=null)=>{
     const L=UI.levelUpLayout(choices.length),i=Math.max(0,Math.min(choices.length-1,focus));
