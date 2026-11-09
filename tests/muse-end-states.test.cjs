@@ -10,8 +10,9 @@ const vm = require("node:vm");
 const fs = require("node:fs");
 const path = require("node:path");
 
-function loadUI() {
+function loadUI({resultTrial=false}={}) {
   const traces = [];
+  const images = [];
   const ctx = new Proxy({
     font: "700 15px sans-serif",
     fillStyle: "#000", strokeStyle: "#000",
@@ -20,7 +21,7 @@ function loadUI() {
     save() {}, restore() {}, beginPath() {}, fill() {}, stroke() {},
     fillRect() {}, translate() {}, scale() {}, arc() {}, ellipse() {}, moveTo() {}, lineTo() {}, closePath() {},
     createLinearGradient() { return { addColorStop() {} }; },
-    drawImage() {},
+    drawImage(img, ...args) { images.push({src:img?.src,args}); },
     measureText(t) {
       const m = String(this.font).match(/([\d.]+)px/);
       const s = m ? Number(m[1]) : 15;
@@ -49,8 +50,21 @@ function loadUI() {
     URLSearchParams,
     Date: { now: () => 99000 }
   };
+  if(resultTrial){
+    env.window.Image=class {
+      set src(value){
+        this._src=value;
+        if(value.includes("/result__")){
+          this.naturalWidth=value.includes("__button")?670:1583;
+          this.naturalHeight=value.includes("__button")?138:850;
+          this.onload?.();
+        }
+      }
+      get src(){return this._src;}
+    };
+  }
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../js/ui.js"), "utf8"), env);
-  return { UI: env.window.UI, ctx, traces };
+  return { UI: env.window.UI, ctx, traces, images };
 }
 
 test("勝敗結算：標題/三鈕/回顧列與狀態一致，且全在手機映射可視內", () => {
@@ -69,10 +83,10 @@ test("勝敗結算：標題/三鈕/回顧列與狀態一致，且全在手機映
     }
     // lost 有誤配才列回顧；won 無誤配不列回顧
     if (state === "lost") {
-      assert.ok(texts.some(t => t.includes("今夜記錯的字")), `${state} 有誤配應列回顧頭`);
+      assert.ok(texts.some(t => t.includes("遺落的言靈")), `${state} 有誤配應列言靈回顧`);
       assert.ok(texts.includes("おんなのこ（女孩）"), `${state} 回顧詞條應完整（fit 縮字不斷字）`);
     } else {
-      assert.ok(!texts.some(t => t.includes("今夜記錯的字")), `${state} 勝利無誤配不應出現回顧頭`);
+      assert.ok(!texts.some(t => t.includes("遺落的言靈")), `${state} 勝利無誤配不應出現回顧頭`);
     }
     // 幾何：按鈕底緣在邏輯 600 內（手機均勻 0.65 即全可見）
     const buttons = state === "won" ? UI.endScreenButtons("won") : UI.END_BTNS;
@@ -89,5 +103,29 @@ test("勝敗結算：標題/三鈕/回顧列與狀態一致，且全在手機映
   UI.drawEndScreen(ctx, "won", 2000, 6, 0, [], 0, { time: 99, clearText: "全配送達成・天晴" });
   const texts = traces.map(t => t.text);
   assert.ok(texts.includes("全配送達成・天晴"), "勝利無誤配應顯示 clearText");
-  assert.ok(!texts.some(t => t.includes("今夜記錯的字")), "無誤配不應出現回顧頭");
+  assert.ok(!texts.some(t => t.includes("遺落的言靈")), "無誤配不應出現回顧頭");
+  assert.ok(!texts.some(t=>/無提示答對|提示 \d+ 次|下次複習|星數僅記錄|今夜練習/.test(t)),"結算面板不可顯示學習報表文案");
+});
+
+test("無字結算底板試用：勝敗共用圖片、文字與按鈕動態排版且點擊區一致",()=>{
+  const {UI,ctx,traces,images}=loadUI({resultTrial:true});
+  const misses=[{jp:"ねこ",zh:"貓"}];
+  for(const [state,expectedButtons] of [["won",1],["lost",3]]){
+    traces.length=0;images.length=0;
+    UI.drawEndScreen(ctx,state,99610,36,1,misses,0,{
+      elapsedSeconds:1250,coinsEarned:100,coinsHeld:500,
+      clearText:"夜行町的言靈恢復安寧。"
+    });
+    const srcs=images.map(i=>i.src||"");
+    assert.equal(srcs.filter(s=>s.includes("result__board.webp")).length,1,
+      "whole painterly result board rendered once without nine slicing");
+    assert.equal(srcs.filter(s=>s.includes("result__button.webp")).length,expectedButtons,
+      "every action gets one independent painted button");
+    assert.equal(UI.endScreenButtons(state).length,expectedButtons);
+    assert.ok(traces.some(t=>t.text===(state==="won"?"夜已破曉":"燈油已盡")));
+    assert.ok(traces.some(t=>t.text==="99,610"));
+    assert.ok(traces.some(t=>t.text.includes("20:50")));
+    assert.ok(traces.some(t=>t.text.includes("夜行賞金")));
+    assert.ok(Math.max(...UI.endScreenButtons(state).map(b=>b.y+b.h))<=600);
+  }
 });

@@ -371,7 +371,7 @@
   let pendingDepart = false;
   let overworldNoticeT = 0;
   let gpOverworldDir = "";
-  let elapsed = 0, animElapsed = 0, warnDawnT = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0;
+  let elapsed = 0, animElapsed = 0, warnDawnT = 0, oil = 100, maxOil = 100, level = 1, xp = 0, score = 0, delivered = 0, failed = 0, runCoins = 0;
   let lastDeliveryX = null;
   let orders = [], job = null, enemies = [], enemyBullets = [], gems = [], texts = [], rings = [], misses = [];
   let deliveryEventSeq = 0;
@@ -409,11 +409,7 @@
     else { recallIndependent++; recallSources[kind].independent++; }
   }
   function grantSeal() {
-    if (delivered > 0 && delivered % CFG.AWAKEN_EVERY === 0) {
-      sealsEarned++;
-      // Current held seals = earned - spent; no cap on earned, cap on held is implicit via spending
-      seals = sealsEarned - sealsSpent;
-    }
+    // Retire delivery-for-seal. Retain counters/data for fusion-only future.
   }
   function awakeningState() {
     return window.GAME_RUN_SUMMARY.awakeningState(
@@ -1431,7 +1427,7 @@ if (isRainPort) {
     fAng = 0; fireEmitT = 0; fireSfxT = 0; fireAttackT = 0;
     wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0; wT.katana = 0.3;
     for (const id of Object.keys(wT)) if (id.startsWith("fusion_")) wT[id] = 0;
-    elapsed = 0; animElapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0;
+    elapsed = 0; animElapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0; runCoins = 0;
     lastMutationOfferLevel = -100;
     orders = []; job = null; inter = null; enemies = []; gems = []; texts = []; rings = []; misses = [];
     // 重新開局／切關：上次送達點不得跨局殘留，否則新一局的第一張取貨會拿舊局的位置當基準。
@@ -1486,7 +1482,7 @@ if (isRainPort) {
 
       const checkWeaponEligibility = () => {
         if (consumed || scopeRevision !== buildRevision) return false;
-        if (nextLvl === 5) return seals > 0 && WL[k] === 4;
+        if (nextLvl === 5) return WL[k] === 4;
         if (WL[k] === 0) return Object.keys(WI).filter(key => (WL[key] || 0) > 0).length < MAX_ACTIVE_WEAPONS;
         return (WL[k] || 0) + 1 === nextLvl && nextLvl <= 5;
       };
@@ -1494,10 +1490,6 @@ if (isRainPort) {
       const applyWeaponEffect = () => {
         if (!checkWeaponEligibility()) return false;
         consumed = true;
-        if (nextLvl === 5) {
-          seals--;
-          sealsSpent++;
-        }
         WL[k] = nextLvl;
         window.useSkillArt?.(k, WL[k]);
         if (k === "katana") { wT.katana = 0; atkT = 0; }
@@ -1522,7 +1514,7 @@ if (isRainPort) {
         levelText: isNew ? "★ 新解鎖" : nextLvl === 5 ? "Lv5 覺醒" : `◆ 等級 ${WL[k]} ➔ ${nextLvl}`,
         rarity: isNew ? "new" : nextLvl >= 5 ? "max" : "up",
         lv: nextLvl,
-        d: nextLvl === 5 ? `${descText}（覺醒・耗 1 印）` : descText,
+        d: descText,
         revision: scopeRevision,
         ok: checkWeaponEligibility,
         f: applyWeaponEffect
@@ -1707,7 +1699,28 @@ if (isRainPort) {
 
     const dc = shuffle(eligibleDuoKeys).map(id => duoCard(id));
 
-    return window.GAME_UPGRADE_CHOICES.assemble(awakenCard, fc, wc, cc, dc, pc, mc, shuffle);
+    const offered = window.GAME_UPGRADE_CHOICES.assemble(awakenCard, fc, wc, cc, dc, pc, mc, shuffle);
+    if (offered.length || isFreeCompensationChoice) return offered;
+    // Post-cap coins, not passive-cap bypasses. Future permanent shop can
+    // spend this balance; the current game only awards and saves it.
+    const award = 100;
+    let consumed = false;
+    return [{
+      id: "night_coins", choiceId: "coins:postcap", type: "coins",
+      n: `夜行賞金 +${award}`, s: "夜行金幣",
+      cat: "【 夜行賞金 】", levelText: "永久累積",
+      d: "秘術修行已臻圓滿。領取夜行賞金，供日後商店使用。",
+      rarity: "reward", revision: scopeRevision,
+      ok: () => !consumed && scopeRevision === buildRevision,
+      f: () => {
+        if (consumed || scopeRevision !== buildRevision) return false;
+        const earned = STORE.awardCoins?.(award) || 0;
+        if (earned !== award) return false;
+        consumed = true;
+        runCoins += earned;
+        return true;
+      }
+    }];
   }
 
   function offerUp() {
@@ -1798,6 +1811,7 @@ if (isRainPort) {
 
   function reroll() {
     if (state !== "levelup" || levelupCooldown > 0) return;
+    if (choices.length === 1 && choices[0]?.type === "coins") return;
     if (isFreeCompensationChoice) {
       offerUp();
       return;
@@ -1885,21 +1899,21 @@ if (isRainPort) {
       HAPTICS.deliverSuccess();
       if (checkVictoryCondition()) startVictorySequence();
     } else {
-      j.wrongPaid = true;
-      (j.wrong ||= []).push(i);
-      j.assisted = true;
-      j.hold = 0;
+      // No retry after a wrong answer. This parcel is lost and receives no
+      // delivery credit, oil refill, XP or collection mark.
+      job = null;
+      inter = null;
+      nameT = 0;
       failed++;
-      const penalty = Math.max(3, Math.round(maxOil * 0.05)); // 5% max HP (oil)
-      oil = Math.max(0, oil - penalty);
       misses.push(j.word);
       STORE.rec(j.word.jp, false);
       study?.mistake?.(j.word, elapsed);
-      // 不洩露當題正解，高對比提示
-      say(`答錯了，請再試一次（燈油 −${penalty}）`, pos.x, pos.y - 36, "#ffffff");
+      // Three nearby normal enemies form an ambush. Boss seal quiz is separate.
+      const angle = Math.random() * Math.PI * 2;
+      for (let n = 0; n < 3; n++) spawnEnemy(1, 185 + n * 24, angle + n * Math.PI * 2 / 3, false, true);
+      say("委託失敗・妖怪來襲！", pos.x, pos.y - 36, "#fff1d5");
       AUDIO.deliverWrong();
       HAPTICS.deliverWrong();
-      if (oil <= 0) { oil = 0; loseRun(); }
     }
   }
 
@@ -2157,7 +2171,7 @@ if (isRainPort) {
     inter = null;
     enemyBullets = [];
     RENDERER.clearShake(); // 演出期間不震動整個畫面，只有 Boss 自己抖
-    AUDIO.thunder();
+    // Final-Boss explosions use only the dedicated recording.
   }
 
   function updateVictorySequence(dt) {
@@ -2214,7 +2228,10 @@ if (isRainPort) {
           const bx = v.bossX + (Math.random() - 0.5) * 90, by = v.bossY - 25 + (Math.random() - 0.5) * 80;
           burst(bx, by, Math.random() < 0.5 ? "#ffb74d" : "#ff5252", 14);
           rings.push({ x: bx, y: by, life: 0.35, maxL: 0.35, maxR: 70, color: "#ffcc80" });
-          if (v.blasts++ % 3 === 0) AUDIO.breakShield();
+          v.blasts++;
+          // One authored burst for every visible rupture, quieter while
+          // overlapping. The single final detonation plays at full level.
+          AUDIO.finalBossDeath?.(0.38);
         }
       } else {
         v.bossGone = true;
@@ -2223,7 +2240,7 @@ if (isRainPort) {
         burst(v.bossX, v.bossY, "#ff5252", 60);
         rings.push({ x: v.bossX, y: v.bossY, life: 0.8, maxL: 0.8, maxR: 240, color: "#fff3b0" });
         rings.push({ x: v.bossX, y: v.bossY, life: 0.55, maxL: 0.55, maxR: 150, color: "#ff8a65" });
-        AUDIO.thunder();
+        AUDIO.finalBossDeath?.();
       }
     }
 
@@ -2237,7 +2254,7 @@ if (isRainPort) {
         e.vanish = 1 - k;
         if (emit) burst(e.x + (Math.random() - 0.5) * 22, e.y - 8 - Math.random() * 22, Math.random() < 0.5 ? "#ff8a3d" : "#ffd54f", 3);
       }
-      if (!v.ignited) { v.ignited = true; AUDIO.breakShield(); }
+      if (!v.ignited) { v.ignited = true; }
       if (k >= 1) enemies = [];
     }
 
@@ -2569,7 +2586,7 @@ if (isRainPort) {
   const BOOM_FUSE = 1.5;
   const BOOM_SPLASH = 0.2;
   const BOOM_KNOCK = 72;
-  const BOOM_RADIUS = [78, 92, 108, 122, 135];
+  const BOOM_RADIUS = [78, 92, 108, 122, 153];
   const boomRadius = rank => Math.round(BOOM_RADIUS[Math.max(0, Math.min(4, (rank | 0) - 1))] * getEffectiveReachMultiplier());
   const boomFullDamage = rank => (1.5 + rank * 0.7) * getEffectiveDmg();
   function boomTargetLive(q) {
@@ -2583,7 +2600,7 @@ if (isRainPort) {
     const rank = q.level ?? WL.boom;
     const radius = q.radius ?? boomRadius(rank);
     const full = q.damage ?? boomFullDamage(rank);
-    const splash = q.splashDamage ?? Number((full * BOOM_SPLASH).toFixed(4));
+    const splash = q.splashDamage ?? Number((full * (rank === 5 ? 1 : BOOM_SPLASH)).toFixed(4));
     const knock = q.knockback ?? BOOM_KNOCK;
     const primary = q.target;
     const primaryLive = !!(primary && primary.hp > 0 && enemies.includes(primary));
@@ -2641,8 +2658,14 @@ if (isRainPort) {
         }
       }
     }
-    for (const e of enemies) {
-      if (e === primary || e.hp <= 0 || dist(e, q) > radius) continue;
+    // Lv1-4 only splash the two closest neighbors of the stuck target.
+    // Lv5 is a true large AoE: every enemy inside the painted blast takes
+    // the same damage as the primary target, with no extra target cap.
+    const splashTargets = enemies
+      .filter(e => e !== primary && e.hp > 0 && dist(e, q) <= radius)
+      .sort((a, b) => dist(a, q) - dist(b, q));
+    if (rank !== 5) splashTargets.length = Math.min(2, splashTargets.length);
+    for (const e of splashTargets) {
       const eCold = !e.shield && !e.vanish && !e.done && ((e.frostHits > 0) || (e.freezeEnds && e.freezeEnds > elapsed));
       const eBurned = !e.shield && !e.vanish && !e.done && !!(e.fireBurnEnds && e.fireBurnEnds > elapsed);
       const before = e.hp;
@@ -2958,12 +2981,15 @@ if (isRainPort) {
           inkfireUsed: false
         });
         if (spec.hasCrosscut && crosscuts.length < 4) {
-          const crossAng = faceAng + (spec.crosscutAngleOffset || (Math.PI * 0.42));
+          // Two cuts face the same target; the second painted edge flips
+          // vertically rather than rotating sideways across the character.
+          const crossAng = faceAng;
           crosscuts.push({
             x: P.x,
             y: P.y,
             faceAng,
             crossAng,
+            flipY: true,
             delay: spec.crosscutDelay || 0.16,
             reach: spec.crosscutReach,
             arc: spec.crosscutArc || 1.15,
@@ -3008,11 +3034,14 @@ if (isRainPort) {
         const wasBurned = !!(e.fireBurnEnds && e.fireBurnEnds > elapsed);
         const hpBefore = e.hp;
         const hitIndex = wave.hits.size;
+        const alreadyHitByFirst = !!wave.crosscutSecondary && !!wave.mainHits?.has(e);
         wave.hits.add(e);
         if (wave.mainHits) wave.mainHits.add(e);
         const pierceScale = hitIndex < 3 ? 1 : (wave.pierceScale || 0.75);
         const crit = rollCrit(wave.attackSnapshot || wave);
-        hurt(e, wave.dmg * pierceScale * (e.type === "boss" ? (wave.attackSnapshot?.bossDamageMultiplier || 1) : e.type === "tank" ? (wave.attackSnapshot?.armoredDamageMultiplier || 1) : 1) * crit.mult, crit.isCrit, false, "blade");
+        const damage = alreadyHitByFirst
+          ? Number(((wave.attackSnapshot?.slashDmg || 0) * 0.40).toFixed(2)) : wave.dmg;
+        hurt(e, damage * pierceScale * (e.type === "boss" ? (wave.attackSnapshot?.bossDamageMultiplier || 1) : e.type === "tank" ? (wave.attackSnapshot?.armoredDamageMultiplier || 1) : 1) * crit.mult, crit.isCrit, false, "blade");
         SKILLFX.play("katana", "hit", 5, { x: e.x, y: e.y, ang: wave.ang, crit: crit.isCrit });
         if (wave.attackSnapshot?.hasDuoInkfire && !wave.inkfireUsed && wasBurned && e.hp < hpBefore && !e.shield && !e.vanish && !e.done) {
           wave.inkfireUsed = true;
@@ -3042,10 +3071,26 @@ if (isRainPort) {
         if (cc.delay <= 0 && !cc.triggered) {
           cc.triggered = true;
           const tier = SKILLFX.tier(cc.level);
-          RENDERER.addSlashArc(cc.x, cc.y, cc.reach, cc.crossAng, 2.0, tier);
-          SKILLFX.play("katana", "swing", cc.level, { x: cc.x, y: cc.y, ang: cc.crossAng, reach: cc.reach });
+          if(cc.level===5 && winds.length<8){
+            // Lv5 second cut is a real outgoing projectile, not an idle
+            // crescent flashing at the courier's feet.
+            const spec=cc.attackSnapshot;
+            winds.push({
+              x:cc.x,y:cc.y,originX:cc.x,originY:cc.y,
+              vx:Math.cos(cc.faceAng)*1680,vy:Math.sin(cc.faceAng)*1680,
+              ang:cc.faceAng,flipY:true,size:360,life:1.2,
+              hits:new Set(),dmg:cc.dmg,traveled:0,
+              maxTravel:spec.maxTravel,pierceLimit:spec.pierceLimit,
+              pierceScale:spec.pierceScaleAfterThree,attackSnapshot:spec,
+              critLvl:cc.critLvl,critChance:cc.critChance,
+              mainHits:cc.mainHits,crosscutSecondary:true,inkfireUsed:false
+            });
+          }else if(cc.level!==5){
+            RENDERER.addSlashArc(cc.x, cc.y, cc.reach, cc.crossAng, 2.0, tier, true);
+            SKILLFX.play("katana", "swing", cc.level, { x: cc.x, y: cc.y, ang: cc.crossAng, reach: cc.reach });
+          }
           AUDIO.slash(cc.level);
-          for (const e of enemies) {
+          if(cc.level!==5)for (const e of enemies) {
             if (e.hp > 0 && !cc.hits.has(e)) {
               if (window.GAME_COMBAT_MATH.crosscutContains(e, cc)) {
                   cc.hits.add(e);
@@ -3806,8 +3851,7 @@ if (isRainPort) {
       }
       const prevX = nd.x, prevY = nd.y;
       if (nd.returning) {
-        // One wide, smooth boomerang arc back to the cast origin: the needle
-        // keeps its original visible orientation (only flight path bends).
+        // On the boomerang arc the needle tip follows the moving tangent.
         nd.returnElapsed = (nd.returnElapsed || 0) + dt;
         const progress = Math.min(1, nd.returnElapsed / nd.returnDuration);
         const bulge = Math.sin(progress * Math.PI) * nd.returnArc;
@@ -3816,6 +3860,7 @@ if (isRainPort) {
         nd.y = nd.returnStartY + (nd.originY - nd.returnStartY) * progress + py * bulge;
         nd.vx = (nd.x - prevX) / Math.max(.001, dt);
         nd.vy = (nd.y - prevY) / Math.max(.001, dt);
+        if(Math.hypot(nd.vx,nd.vy)>0.01)nd.ang=Math.atan2(nd.vy,nd.vx);
         nd.life -= dt;
       } else if (!EVOLUTIONS.move(nd, dt, nd.curve ? blocked : null, 6)) continue;
       const stepDist = Math.hypot(nd.x - prevX, nd.y - prevY);
@@ -4088,7 +4133,10 @@ if (isRainPort) {
         const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
         // 黑龍在原版尺寸上放大 1.5 倍，仍維持左右側入場。
         const face=target.x>=P.x?1:-1,size=clamp(view.width*0.66,450,1020);
-        const endX=face>0?left+size*0.08:right-size*0.08;
+        // Count the visible bounds of the centered dragon raster, not merely
+        // its anchor: no more than 22% of the camera width enters the screen.
+        const visibleW=Math.min(size*0.4,view.width*0.22);
+        const endX=face>0?left-size/2+visibleW:right+size/2-visibleW;
         const startX=face>0?left-size*0.8:right+size*0.8;
         const y=clamp(P.y-90,top+view.height*0.27,bottom-view.height*0.23);
         const summoned=EVOLUTIONS.dragon(P,face>0?0:Math.PI,Math.random()*6.283,{startX,endX,y,size});
@@ -4111,7 +4159,8 @@ if (isRainPort) {
           const cam=RENDERER.getCam(),view=worldViewBounds(),side=spirit.faceX,size=spirit.size;
           const left=cam.x+view.left,right=cam.x+view.right,top=cam.y+view.top,bottom=cam.y+view.bottom;
           spirit.entry.startX=side>0?left-size*0.8:right+size*0.8;
-          spirit.entry.endX=side>0?left+size*0.08:right-size*0.08;
+          const visibleW=Math.min(size*0.4,view.width*0.22);
+          spirit.entry.endX=side>0?left-size/2+visibleW:right+size/2-visibleW;
           spirit.entry.y=clamp(P.y-90,top+view.height*0.27,bottom-view.height*0.23);
         }
         if(!EVOLUTIONS.dragonStep(spirit,dt,P,blocked))continue;
@@ -4445,8 +4494,8 @@ if (isRainPort) {
     });
   }
 
-function spawnEnemy(tier, rad, ang, ring) {
-    const position = spawnPosition(spawnRadius(rad), ang ?? Math.random() * 6.283, 26);
+function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
+    const position = spawnPosition(closeAmbush ? rad : spawnRadius(rad), ang ?? Math.random() * 6.283, 26);
     if (!position) return;
     const r = Math.random();
 
@@ -6231,7 +6280,7 @@ function spawnEnemy(tier, rad, ang, ring) {
       upright(p.x,p.y,()=>SKILLFX.paint(ctx,"ghost",p.level??5,p));
     for (const nd of needles)
       upright(nd.x,nd.y,()=>SKILLFX.paint(ctx,"needle",nd.level??WL.needle,
-        { x:nd.x,y:nd.y,ang:nd.hasReturn ? nd.launchAng : Math.atan2(nd.vy,nd.vx) }));
+        { x:nd.x,y:nd.y,ang:nd.ang ?? Math.atan2(nd.vy,nd.vx) }));
 
     // 13. 斬擊弧與結界擊中環 — impact rings belong to the ground plane.
     for (const r of rings) {
@@ -6380,8 +6429,8 @@ function spawnEnemy(tier, rad, ang, ring) {
       const isTarget = (inter === o);
 
       ctx.save();uprightHere(h.x,h.y+46);
-      // 繪卷底框（寬度足 196px，確保圖標與文字完整展示不被遮擋截斷）
-      const bw = 196, bh = 42;
+      // Enlarge cargo picture (e.g. pencil) and center it with the word.
+      const bw = 196, bh = 58;
       const bx = h.x - bw / 2;
       ctx.fillStyle = isTarget ? "#fffdf5" : "#f7f0df";
       ctx.beginPath();
@@ -6395,29 +6444,33 @@ function spawnEnemy(tier, rad, ang, ring) {
       ctx.fillStyle = isTarget ? "#ff8833" : "#c29d5b";
       ctx.fillRect(bx, floatY, bw, 3.5);
 
-      ctx.textAlign = "center";
+      ctx.textAlign = "left";
       ctx.fillStyle = "#1e1824";
-      ctx.font = UI.readableFont(14, "900");
-      // 委託送什麼東西一句話就好，送往哪裡不需要顯示。
-      UI.drawWordCue(ctx, o.word, h.x - 52, floatY + 23, 28);
-      ctx.fillText(o.word.zh, h.x + 12, floatY + 23);
+      ctx.font = UI.readableFont(18, "900");
+      const cargoSize = 43, label = String(o.word?.zh || "？");
+      const labelWidth = Math.min(120, ctx.measureText(label).width);
+      const gap = 5, groupWidth = cargoSize + gap + labelWidth;
+      const startX = h.x - groupWidth / 2;
+      UI.drawWordCue(ctx, o.word, startX + cargoSize / 2, floatY + 25, cargoSize);
+      ctx.textBaseline = "middle";
+      ctx.fillText(label, startX + cargoSize + gap, floatY + 25, 120);
 
       // 剩餘時間條 (金黃至火紅)
       ctx.fillStyle = isTarget ? "#ff8833" : "#ffa726";
-      ctx.fillRect(h.x - 76, floatY + 34, (152 * o.life) / 110, 3);
+      ctx.fillRect(h.x - 76, floatY + 51, (152 * o.life) / 110, 3);
       ctx.restore();
 
       // 靠近町屋時顯示最短操作標籤；觸控版不出現鍵盤字樣。
       if (isTarget) {
         ctx.save();uprightHere(h.x,h.y+46);
-        const tagY = floatY + 48;
+        const tagY = floatY + 65;
         // 連接木札與按鍵標籤的雙金繩
         ctx.strokeStyle = "#d4af37";
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(h.x - 26, floatY + 42);
+        ctx.moveTo(h.x - 26, floatY + 58);
         ctx.lineTo(h.x - 26, tagY);
-        ctx.moveTo(h.x + 26, floatY + 42);
+        ctx.moveTo(h.x + 26, floatY + 58);
         ctx.lineTo(h.x + 26, tagY);
         ctx.stroke();
 
@@ -7174,7 +7227,7 @@ function spawnEnemy(tier, rad, ang, ring) {
       guideAngle: guideTarget ? Math.atan2(guideTarget.y - P.y, guideTarget.x - P.x) : null,
       bossAngle: huntTarget ? Math.atan2(huntTarget.y - P.y, huntTarget.x - P.x) : null,
       boss: enemies.find(e => e.type === "boss" && e.hp > 0) || null,
-      awakening: awakeningState(),
+      awakening: null, // hide retired seal HUD
       reading: {
         active: !!(job?.reading || bossQ?.reading),
         kind: job?.reading ? "delivery" : "boss",
@@ -7271,6 +7324,8 @@ function spawnEnemy(tier, rad, ang, ring) {
         prevBest,
         newBest: score > prevBest,
         elapsedSeconds: elapsed,
+        coinsEarned: runCoins,
+        coinsHeld: STORE.coinBalance?.() || 0,
         goal: GOAL_DELIVERIES,
         stageName: STAGE.name,
         learning: learningSummary(),
@@ -7422,7 +7477,7 @@ function spawnEnemy(tier, rad, ang, ring) {
         if (bossQ || liveBosses.length) UI.drawBossQuiz(
           ctx, job?.reading ? null : bossQ, inputMode, liveBosses, sealFade, bossCurseRemaining
         );
-        if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000, levelupFocus, inputMode, awakeningState());
+        if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000, levelupFocus, inputMode, null);
         if (state === "fusion" && window.FUSION && typeof UI.drawFusion === "function") {
           const model = window.FUSION.getViewModel ? window.FUSION.getViewModel() : {};
           UI.drawFusion(ctx, model, fusionFocus, inputMode);

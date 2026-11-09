@@ -5,13 +5,13 @@ window.GAME_COMBAT_MATH = (() => {
     const role = ["mid", "mid", "gate", "final"][index] || "mid";
     let hp = bossHpBase[index];
     if (stage && stage.id === "night-town" && typeof hp === "number") {
-      // Third Boss has no quiz barrier; preserve 0.75 scaling.
+      // Third Boss keeps historical HP scaling but requires its reading seal.
       hp = Math.round(hp * (role === "final" ? 0.65 : role === "gate" ? 0.75 : 0.5));
     }
     return {
       hp,
       oil: bossOilReward[index],
-      quiz: role !== "gate",
+      quiz: true,
       role
     };
   }

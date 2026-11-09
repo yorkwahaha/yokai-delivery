@@ -336,6 +336,15 @@ const FIXTURE = `window.fixture = {
   moveBoss: distance => { const bs=enemies.find(e=>e.type==='boss'); Object.assign(bs,{x:P.x+distance,y:P.y,speed:0,wob:0,flash:0}); },
   matchBossToJob: () => { const bs=enemies.find(e=>e.type==='boss'); bs.word=job.word; bossQ=mkQ(bs); bossQ.lock=0; },
   setWeaponRank: (id,rank) => { WL[id]=rank; wT[id]=Infinity; },
+  forcePostCapForTest: () => {
+    // Test-only saturated build; no changes to production passive limits.
+    for(const id of Object.keys(WL))WL[id]=['katana','boom','fire','needle'].includes(id)?5:0;
+    Object.assign(b,{shieldPicks:3,oilRegen:.12,heals:3,dmgUp:4,rate:4,crit:3,spd:3,dash:3,mag:3});
+    buildMutations=Object.keys(MUTATION_CONFIG);
+    buildDuos=Object.keys(DUO_CONFIG);
+    buildRevision++;
+  },
+  rerollUpgradeForTest: () => reroll(),
   setBuildMutations: ids => { buildMutations = [...ids]; buildRevision++; },
     // 讓已持有的武器立刻可用（wT[id]=0），用於測試實際施放而非被 Infinity 冷卻擋住。
     armWeapons: () => { for(const k of Object.keys(WL)) if (WL[k]>0) wT[k]=0; },

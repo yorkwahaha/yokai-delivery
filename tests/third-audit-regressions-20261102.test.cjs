@@ -77,14 +77,14 @@ test('index refreshes the five changed JavaScript assets',()=>{
  assert.match(html,/js\/assets\.js\?v=20261102-geometry-phase2/);
  assert.ok(html.includes(scriptUrl('ui')));
  for(const key of ['renderer'])
-   assert.match(html,new RegExp('js/'+key+'\\.js\\?v=20261102-water-slam-sfx'),key);
+   assert.ok(html.includes(scriptUrl(key)),key);
  assert.ok(html.includes(scriptUrl('game')));
  assert.match(html,/js\/game-quiz-logic\.js\?v=20261102-quiz-phase1/);
  assert.ok(html.includes('js/game-geometry.js?v=20261103-input-phase15'));
  assert.ok(html.includes('js/game-charm-math.js?v=20261103-charm-phase5'));
- assert.ok(html.includes('js/audio.js?v=20261107-final-boss-mp3-only'));
+ assert.ok(html.includes(scriptUrl('audio')));
  assert.ok(html.includes('js/world.js?v=20261102-charm-phase3'));
- assert.match(scriptUrl('ui'),/approved-system-ui/);
+ assert.match(scriptUrl('ui'),/pause-focus/);
 });
 
 test('core image that never answers eventually releases ART_READY',()=>{

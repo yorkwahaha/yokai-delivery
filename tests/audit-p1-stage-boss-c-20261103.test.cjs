@@ -107,5 +107,5 @@ test('Audit P1-6/7 game passes live curse counter and separate seal fade to UI',
  const html=fs.readFileSync('index.html','utf8');
  assert.ok(html.includes(scriptUrl('game')));
  assert.ok(html.includes(scriptUrl('ui')));
- assert.match(scriptUrl('ui'),/approved-system-ui/);
+ assert.match(scriptUrl('ui'),/pause-focus/);
 });

@@ -119,6 +119,22 @@ test('cross-tab rec cannot roll back completed stages or lose either answer', ()
   assert.equal(reloaded.getStageStats('rain-port').clears, 1);
 });
 
+test('late-game coin awards persist and merge across tabs without duplicate replay', () => {
+  const key='yokai-delivery-v1';
+  const {open,disk}=createStoreTabs({
+    [key]: JSON.stringify({m:{},best:120,bestDel:4,coins:50})
+  });
+  const a=open(),b=open();
+  assert.equal(a.coinBalance(),50);
+  assert.equal(a.awardCoins(100),100);
+  assert.equal(b.awardCoins(200),200);
+  assert.equal(a.coinBalance(),350);
+  b.rec('猫',true);
+  assert.equal(open().coinBalance(),350);
+  assert.equal(JSON.parse(disk.get(key)).coins,350);
+  assert.equal(open().get('猫').ok,1);
+});
+
 test('cross-tab interleaved attempts, assists and clear counts are not doubled', () => {
   const { open } = createStoreTabs();
   const a = open(), b = open();

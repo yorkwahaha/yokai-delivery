@@ -77,5 +77,5 @@ test('Phase9 HTML loads changed module before game, preserves enemy config sourc
  const game=scriptUrl('game');
  assert.ok(html.includes(spawn)&&html.includes(game));
  assert.ok(html.indexOf(spawn)<html.indexOf(game));
- assert.ok(html.includes('js/game-build-rules.js?v=20261103-build-phase19'));
+ assert.ok(html.includes('js/game-build-rules.js?v=20261109-seal-free-lv5-r1'));
 });

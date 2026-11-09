@@ -35,7 +35,7 @@ test('B14 has a real isolated transparent photo-sized WebP and one immutable tex
  const worker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
  assert.ok(worker.includes('"assets/img/ui/b14/surge_brush.webp": "'+hash.slice(0,24)+'"'),
   'the media service-worker revision must be refreshed with the new image bytes');
- assert.match(fs.readFileSync(path.join(root,'index.html'),'utf8'),/js\/ui\.js\?v=20261107-approved-system-ui-r1/,
+ assert.match(fs.readFileSync(path.join(root,'index.html'),'utf8'),/js\/ui\.js\?v=20261109-panels-cargo-r1/,
   'the UI loader must refresh so cached clients request the updated artwork');
  assert.doesNotMatch(source,/fillText|strokeText|glassBox|b13Art|b12Art/);
  assert.match(source,/const art=b14SurgeBrush;/);

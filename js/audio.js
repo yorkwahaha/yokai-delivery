@@ -1332,6 +1332,26 @@ window.AUDIO = (() => {
       return playExternalSfx(name, fallback, args);
     };
   });
+  // A final-Boss collapse is a string of overlapping explosions, not a
+  // single voice. Ordinary SFX intentionally replace their previous voice;
+  // this one uses independent buffer sources (or HTMLAudio instances).
+  function finalBossHtmlVoice(volume) {
+    let voice;
+    try { voice=new Audio(window.audioAsset?.(SFX_FILES.finalBossDeath)||SFX_FILES.finalBossDeath); }
+    catch { return; }
+    voice.volume=volume*(wordDucking ? 0.3 : 1);
+    activeSfx.add(voice);
+    const done=()=>activeSfx.delete(voice);
+    voice.addEventListener('ended',done,{once:true});
+    voice.addEventListener('error',done,{once:true});
+    try { const result=voice.play(); result?.catch?.(done); } catch { done(); }
+  }
+  api.finalBossDeath=(volumeScale=1)=>{
+    if(muted||suspended)return;
+    const volume=(SFX_VOLUME.finalBossDeath??.9)*Math.max(0,Math.min(1,Number(volumeScale)||0));
+    if(!playBuffer(SFX_FILES.finalBossDeath,volume,{onerror:()=>finalBossHtmlVoice(volume)}))
+      finalBossHtmlVoice(volume);
+  };
 
   // Prepare three Lv5 cues only after the player acquires the dragon skill.
   api.preloadDragon=()=>{

@@ -15,6 +15,7 @@ const currentExact=new Set([
   // Phase42 approved calligraphy and Lv5 sanctuary: visual-only contract tests.
   'game-sanctuary-arc.test.cjs',
   'game-ui-washi-redesign.test.cjs',
+  'game-student-playtest-fixes-20261108.test.cjs',
   'b14-surge-motion-20261101.test.cjs',
   'media-cache.test.cjs',
   'agy-m1-b.test.cjs',

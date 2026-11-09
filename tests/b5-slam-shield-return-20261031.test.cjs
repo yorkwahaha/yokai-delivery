@@ -7,7 +7,7 @@ const game=fs.readFileSync(path.join(root,'js/game.js'),'utf8');
 const renderer=fs.readFileSync(path.join(root,'js/renderer.js'),'utf8');
 const audio=fs.readFileSync(path.join(root,'js/audio.js'),'utf8');
 
-test('B5 needle return leaves after at least 2/3 visible edge, flies curved boomerang path and keeps its sprite angle',()=>{
+test('B5 needle return curves at least 2/3 of the screen and rotates its tip along the return tangent',()=>{
  const g=loadGame({seed:37});g.start();g.stopSpawns();
  g.combatScene('needle',[],[],1);g.setBuildMutations(['mut_return']);
  let nd=null, takeoff=null, deviation=0, sawReturn=false, sampled=0;
@@ -16,6 +16,11 @@ test('B5 needle return leaves after at least 2/3 visible edge, flies curved boom
    if(!nd)nd=g.snapshot().needles[0];
    if(!nd)continue;
    if(nd.returning){
+     if(nd.returnElapsed>0){
+       const tangent=Math.atan2(nd.vy,nd.vx);
+       const error=Math.atan2(Math.sin(nd.ang-tangent),Math.cos(nd.ang-tangent));
+       assert.ok(Math.abs(error)<0.001,'needle tip must track instantaneous flight direction');
+     }
      if(!takeoff)takeoff={x:nd.returnStartX,y:nd.returnStartY};
      sawReturn=true;
      const dX=takeoff.x-nd.originX,dY=takeoff.y-nd.originY;
@@ -32,7 +37,7 @@ test('B5 needle return leaves after at least 2/3 visible edge, flies curved boom
  assert.ok(sawReturn && sampled>4,'return arc had time to fly visibly');
  assert.ok(deviation>40,'return path must bend significantly, not retrace outbound straight path');
  assert.equal(nd.life,0,'returns terminate at player, no indefinite bullets');
- assert.match(game,/ang:nd.hasReturn \? nd.launchAng : Math.atan2\(nd.vy,nd.vx\)/);
+ assert.match(game,/ang:nd\.ang \?\? Math\.atan2\(nd\.vy,nd\.vx\)/);
 });
 test('B5 new octagonal shield is real WebP with local-only candidate routing; break has scatter effect',()=>{
  for (const name of ['ward_bagua_full','ward_bagua_break']) {

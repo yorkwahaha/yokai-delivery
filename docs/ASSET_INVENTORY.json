@@ -1,14 +1,14 @@
 {
   "schema": 1,
-  "updated": "2026-10-31",
+  "updated": "2026-11-09",
   "notes": "Unmigrated paths are inventoried, not approved for new usage; never delete without reference audit.",
   "totals": {
-    "files": 952,
+    "files": 956,
     "by_status": {
       "legacy_unmigrated": 349,
       "legacy_review_required": 62,
       "canonical": 207,
-      "trial_pending_review": 183,
+      "trial_pending_review": 187,
       "legacy_alias_active": 99,
       "legacy_source_pending_renderer": 52
     }
@@ -2457,6 +2457,12 @@
       "sha256": "cc5b01601f3d9ec7a36b6730f9298cc7edfc7076c5848dc4306648561c3db0f6"
     },
     {
+      "path": "assets/img/ui/menu/exit__blank.png",
+      "status": "trial_pending_review",
+      "bytes": 2893755,
+      "sha256": "3fdd164a79eee1f6500154fd8147dbd81f0d94a2f9df618f34c4b842f2c5d0fd"
+    },
+    {
       "path": "assets/img/ui/menu/exit__board.webp",
       "status": "trial_pending_review",
       "bytes": 138224,
@@ -2467,6 +2473,18 @@
       "status": "trial_pending_review",
       "bytes": 175526,
       "sha256": "1fcb5e09c51dfa53c444af8f2b8482d087c4acce3fd3d4a18049b1758f9963f3"
+    },
+    {
+      "path": "assets/img/ui/menu/result__board.webp",
+      "status": "trial_pending_review",
+      "bytes": 330224,
+      "sha256": "b3f3b14cc10cbde5a4aeacb256380b551ed593ab41525ebfb4208fb7b40bcd11"
+    },
+    {
+      "path": "assets/img/ui/menu/result__button.webp",
+      "status": "trial_pending_review",
+      "bytes": 19582,
+      "sha256": "444cd69401c45076cf8e9676f5c09eff092875fc39bc62048d93072347a94c27"
     },
     {
       "path": "assets/img/ui/menu/ui__upgrade-card-frame.png",
@@ -2761,6 +2779,12 @@
       "status": "legacy_unmigrated",
       "bytes": 20498,
       "sha256": "e67ee801947e73897abd0a112d7665dd2abc6d75f7fcfc0e24fb45ab0aefda21"
+    },
+    {
+      "path": "assets/img/ui/upgrade/approved_title.webp",
+      "status": "trial_pending_review",
+      "bytes": 16556,
+      "sha256": "c528dbdc4a2fdabdb97cbe54416450514352ca4578146355f5d5ac963f224a69"
     },
     {
       "path": "assets/img/ui/upgrade/board.webp",
@@ -3353,8 +3377,8 @@
     {
       "path": "assets/img/vfx/ofuda_max_burst.webp",
       "status": "legacy_unmigrated",
-      "bytes": 718202,
-      "sha256": "a75503f6ef432d206345b87b077007454a4fd87713345b2b54031b73b9111fe3"
+      "bytes": 593714,
+      "sha256": "504bf93c072f0c548329133dc0921fdeed5996858ee16fde2f2a04afa0048347"
     },
     {
       "path": "assets/img/vfx/ofuda_projectile.png",

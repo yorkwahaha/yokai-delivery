@@ -85,7 +85,7 @@ test('Lv1–Lv5 upright flying talismans use main image and small rank increment
   assert.ok(draws[0].alpha<.26,'returning boomerang fades near its owner');
 });
 
-test('Lv1-Lv4 use regular upright hit and Lv5 uses larger MAX hit',()=>{
+test('Lv1-Lv4 use opaque regular impact; Lv5 burst is visibly 97% opaque',()=>{
   const {env,named,ready,uprights}=harness();
   env.ofudaRasterArt('hit');env.ofudaRasterArt('max');
   const normal=named('ofuda_hit_burst'),max=named('ofuda_max_burst');
@@ -93,7 +93,7 @@ test('Lv1-Lv4 use regular upright hit and Lv5 uses larger MAX hit',()=>{
   const {ctx,draws}=drawHarness();
   for(let rank=1;rank<=5;rank++){
     env.SKILLFX.reset();env.FX.reset();draws.length=0;uprights.length=0;
-    env.SKILLFX.play('boom','hit',rank,{x:140,y:160,r:135,target:{hp:99}});
+    env.SKILLFX.play('boom','hit',rank,{x:140,y:160,r:rank===5?153:135,target:{hp:99}});
     env.SKILLFX.update(.10);
     env.SKILLFX.drawArtFx(ctx,true);
     assert.equal(draws.length,0,'impact is not the flattened ground pass');
@@ -102,8 +102,9 @@ test('Lv1-Lv4 use regular upright hit and Lv5 uses larger MAX hit',()=>{
     assert.ok(drawn,'correct impact art for rank '+rank);
     assert.equal(uprights.length,1,'viewport upright conversion');
     assert.deepEqual(uprights[0],[140,160]);
-    assert.ok(drawn.alpha>.95,'main impact is visible');
-    if(rank===5)assert.ok(drawn.w>200,'MAX impact visibly larger');
+    if(rank===5)assert.ok(drawn.alpha>.86 && drawn.alpha<=.98,'Lv5 peak uses 97% opacity');
+    else assert.ok(drawn.alpha>.95,'regular impact remains readable');
+    if(rank===5)assert.ok(drawn.w>250 && drawn.w<400,'MAX impact scales from new 306px AoE');
     else assert.ok(drawn.w<180,'normal impact stays smaller');
   }
 });

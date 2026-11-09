@@ -82,5 +82,5 @@ test('Phase20 tutorial helper loads before game at new HTML revision',()=>{
  const gameScript=scriptUrl('game');
  assert.ok(html.includes(helper)&&html.includes(gameScript));
  assert.ok(html.indexOf(helper)<html.indexOf(gameScript));
- assert.ok(html.includes('js/game-build-rules.js?v=20261103-build-phase19'));
+ assert.ok(html.includes('js/game-build-rules.js?v=20261109-seal-free-lv5-r1'));
 });

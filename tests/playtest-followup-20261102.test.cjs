@@ -75,5 +75,5 @@ test('water Boss circular slam uses water artwork in warning and impact',()=>{
  assert.match(renderer,/if\(phase==="telegraph"\)/);
  assert.match(renderer,/if \(currentStageId\(\) === "rain-port" && kind === "slam"\)/);
  assert.match(renderer,/return paintHarborWaterSlam\(c,h,elapsed\)/);
- assert.match(html,/js\/renderer\.js\?v=20261102-water-slam-sfx/);
+ assert.match(html,/js\/renderer\.js\?v=20261108-crosscut-visual-r1/);
 });

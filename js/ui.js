@@ -215,6 +215,21 @@ window.UI = (() => {
   }
   // 核准美術圖檔：不再使用程式生成的和紙作主底板。
   const illustratedArt = Object.create(null);
+  // November result trial: the painted board and blank button are separate
+  // transparent raster layers. No player portrait or labels are baked in.
+  // Keep the existing screen as a fallback until both images are available.
+  const resultTrialArt = Object.create(null);
+  if (typeof window.Image === "function") {
+    for (const key of ["board", "button"]) {
+      const img = new window.Image();
+      img.decoding = "async";
+      img.onload = () => { resultTrialArt[key] = img; };
+      img.onerror = () => { /* retain the previous results board */ };
+      img.src = `assets/img/ui/menu/result__${key}.webp?v=20261109-result-panel-trial-r1`;
+    }
+  }
+  const hasResultTrialArt = () =>
+    !!(resultTrialArt.board?.naturalWidth && resultTrialArt.button?.naturalWidth);
   const illustratedCharms = Object.create(null);
   const illustratedCharmCards=Object.create(null);
   const charmCardRequested=new Set();
@@ -265,11 +280,11 @@ window.UI = (() => {
     for(const key of ["button_normal","button_danger","pause_board","exit_board","title_plaque"]){
       const img=new window.Image();img.decoding="async";
       img.onload=()=>{phase42MenuArt[key]=img;};
-      img.src="assets/img/ui/phase42/"+key+".webp?v=20261107-whole-frame2";
+      img.src="assets/img/ui/phase42/"+key+".webp?v=20261109-ui-restyle-r3";
     }
     for(const [key,src] of Object.entries({
-      pause:"assets/img/ui/menu/pause__board.webp",
       exit:"assets/img/ui/menu/exit__board.webp",
+      exitBlank:"assets/img/ui/menu/exit__blank.png?v=20261109-exit-dynamic-r2",
       hover:"assets/img/ui/buttons/menu__button__hover.webp",
       dangerHover:"assets/img/ui/buttons/menu__button__danger-hover.webp"
     })){
@@ -1007,9 +1022,10 @@ window.UI = (() => {
   // The pause and exit boards are individually assembled, complete RGBA
   // pictures with their own uninterrupted wooden frames. Draw once, whole.
   // Slicing the old background 3x3 broke its floral/wood border mid-stroke.
-  // Student-release font is OFL-licensed. HanWang remains a local-only trial
-  // until its public distribution/source obligations have been reviewed.
-  const pauseInkFace="'Yokai Trial MoonStars Kai T','DFKai-SB','BiauKai',serif";
+  // Locally honor the approved HanWang YanKai; public builds stay on the
+  // OFL fallback until GPL source/distribution compliance is resolved.
+  const localCalligraphy=/^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)$/.test(String(window.location?.hostname||""));
+  const pauseInkFace=(localCalligraphy?"'Yokai Trial HanWang YanKai',":"")+"'Yokai Trial MoonStars Kai T','DFKai-SB','標楷體','BiauKai',serif";
   const pauseInkFont=size=>`400 ${size}px ${pauseInkFace}`;
   function drawPausePaper(ctx,x,y,w,h,kind="pause"){
     const approved=phase42MenuArt[kind==="exit"?"exit_board":"pause_board"];
@@ -1037,30 +1053,61 @@ window.UI = (() => {
     ctx.fillStyle="#fff0d0";
     ctx.fillText(title,cx,y+29,width-28);
   }
+  // The approved full-frame paintings already contain their button lettering.
+  // Drawing a second button bitmap or a second text layer would shift the
+  // glyphs and cover hand-painted edges (most visibly "回旅路地圖").
+  function drawApprovedMenuFocus(ctx,b,danger=false){
+    if(!b)return;
+    // Keep focus inside the approved button, not outside its painted frame.
+    const x=b.x+5,y=b.y+6,w=b.w-10,h=b.h-12;
+    ctx.save();
+    ctx.shadowColor=danger?"#ff8060":"#ffda80";
+    ctx.shadowBlur=9;
+    ctx.strokeStyle=danger?"#ffbf91":"#fff0b0";
+    ctx.lineWidth=2;
+    ctx.beginPath();ctx.roundRect(x,y,w,h,10);ctx.stroke();
+    ctx.restore();
+  }
 
   function drawExitConfirm(ctx, focus = 0, target = 'home') {
     const toWorld = target === 'world';
     ctx.save();
     ctx.fillStyle = 'rgba(6,8,18,0.84)';fillScreen(ctx);
+    if(approvedSystemArt.exitBlank?.naturalWidth){
+      // The new approved landscape plate contains NO text. Never stretch
+      // slices of the roof; all labels are real game text for home and map.
+      ctx.drawImage(approvedSystemArt.exitBlank,90,105,720,360);
+      ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.fillStyle="#4c2831";ctx.font=pauseInkFont(30);
+      ctx.fillText("是否放棄本局？",450,213,480);
+      ctx.fillStyle="#453026";ctx.font=pauseInkFont(20);
+      ctx.fillText("一旦離開，這趟夜行便就此落幕。",450,274,615);
+      ctx.font=pauseInkFont(17);ctx.fillStyle="#744e38";
+      ctx.fillText("尚未結算的戰果將隨夜色散去。",450,314,570);
+      const labelYs=363;
+      ctx.textAlign="center";ctx.font=pauseInkFont(20);
+      ctx.fillStyle="#fff3dc";
+      ctx.fillText("繼續本局",315,labelYs,178);
+      ctx.fillText(toWorld?"放棄並回地圖":"放棄並回首頁",585,labelYs,181);
+      const glowBox=focus===1
+        ?{x:477,y:342,w:216,h:47}
+        :{x:207,y:342,w:216,h:47};
+      drawApprovedMenuFocus(ctx,glowBox,focus===1);
+      ctx.restore();return;
+    }
     if(!toWorld && approvedSystemArt.exit?.naturalWidth){
       // Approved artwork says "回首頁"; map return remains dynamic.
       ctx.drawImage(approvedSystemArt.exit,100,114,700,323);
       const b=focus===1?{x:461,y:324,w:217,h:70}:{x:224,y:324,w:214,h:70};
-      const painted=approvedSystemArt[focus===1?"dangerHover":"hover"];
-      if(painted?.naturalWidth){
-        ctx.drawImage(painted,b.x,b.y,b.w,b.h);
-        ctx.font=pauseInkFont(18);ctx.textAlign="center";ctx.textBaseline="middle";
-        ctx.fillStyle=focus===1?"#fff0d9":"#4b2b29";
-        ctx.fillText(focus===1?"放棄並回首頁":"繼續遊戲",b.x+b.w/2,b.y+b.h/2+2,b.w-30);
-      }
+      drawApprovedMenuFocus(ctx,b,focus===1);
       ctx.restore();return;
     }
     drawPausePaper(ctx,146,132,608,310,"exit");
     drawPauseHeading(ctx,"是否放棄本局？",450,156,284);
     ctx.textAlign = 'center';ctx.fillStyle = '#4e3529';ctx.font = pauseInkFont(18);
-    ctx.fillText(toWorld?'將返回旅路地圖，本局未結算的成績不會記錄。':'將返回首頁，本局未結算的成績不會記錄。',450,262,498);
+    ctx.fillText("一旦離開，這趟夜行便就此落幕。",450,262,498);
     ctx.fillStyle="#85533d";ctx.font=pauseInkFont(16);
-    ctx.fillText('已儲存的單字學習紀錄會保留。',450,295,480);
+    ctx.fillText("尚未結算的戰果將隨夜色散去。",450,295,480);
     EXIT_BTNS.forEach((b,i)=>drawB13MenuButton(ctx,b,
       i===0?'繼續本局':(toWorld?'放棄並回地圖':'放棄並回首頁'),
       {tone:i===0?'normal':'danger',focus:i===focus,size:18,fontFace:pauseInkFace}));
@@ -1176,6 +1223,20 @@ window.UI = (() => {
     const right = left + (v.width || 900), bottom = top + (v.height || 600);
     const base = END_BTNS.filter(b => state !== "won" || b.id === "world");
     if (!base.length) return [];
+    if (hasResultTrialArt()) {
+      // One hand-painted blank button is reused for each real action.
+      // Painting and hit-testing always use this same geometry.
+      const minH = Math.max(54, cssPx(MIN_TOUCH_CSS));
+      const y = Math.min(476, bottom - minH - cssPx(12));
+      const geometry = state === "won"
+        ? [{ id:"world", x:325, w:250 }]
+        : [{ id:"restart", x:97, w:220 }, { id:"world", x:340, w:220 },
+           { id:"menu", x:583, w:220 }];
+      return geometry.map(b => ({
+        ...b, y, h:minH,
+        cssW:Math.round(b.w*scale), cssH:Math.round(minH*scale)
+      }));
+    }
     const gap = cssPx(10), edge = cssPx(12);
     const minW = cssPx(MIN_TOUCH_CSS), minH = cssPx(MIN_TOUCH_CSS);
     const h = Math.max(minH, cssPx(48)); // 確保按鈕高度至少 48 CSS
@@ -1228,7 +1289,10 @@ window.UI = (() => {
   const END_BTN_LABEL = { restart: "再踏夜行", world: "回旅路地圖", menu: "回到首頁" };
   function reviewButtons(misses = []) {
     return [...new Map(misses.map(w => [w.jp, w])).values()].slice(0, 3).map((word, i) => ({
-      id: `review-${i}`, word, x: 305 + i * 174, y: 428, w: 164, h: 44
+      id: `review-${i}`, word,
+      x: hasResultTrialArt() ? 194 + i * 176 : 305 + i * 174,
+      y: hasResultTrialArt() ? 382 : 428,
+      w: 164, h: 44
     }));
   }
 
@@ -1289,7 +1353,8 @@ window.UI = (() => {
     ctx.fillStyle = "#ffe28b";
     ctx.fillText("百鬼橫行之夜・單字配達物語", W / 2, 440);
 
-    drawButton(ctx, {...MENU_START_BTN,id:"start"}, "旅路地圖", { tone: "primary", size: 22, focus:focus===0, scrollText:true });
+    drawB13MenuButton(ctx,{...MENU_START_BTN,id:"start"},"旅路地圖",
+      {tone:"danger",size:22,focus:focus===0,fontFace:pauseInkFace});
 
     ctx.fillStyle = C.dim;
     ctx.font = readableFont(13, "bold");
@@ -1297,7 +1362,8 @@ window.UI = (() => {
 
     for (const bt of MENU_BTNS.slice(1)) {
       const label = bt.id === "controls" ? "操作與自定義" : bt.id === "cards" ? "卡片一覽" : "單字圖鑑";
-      drawButton(ctx, bt, label, { size: 14, focus:MENU_BTNS[focus]?.id===bt.id, quiet:true, scrollText:true });
+      drawB13MenuButton(ctx,bt,label,
+        {tone:"normal",size:14,focus:MENU_BTNS[focus]?.id===bt.id,fontFace:pauseInkFace});
     }
     drawAssetProgress(ctx);
     ctx.save();
@@ -1492,25 +1558,29 @@ window.UI = (() => {
     ctx.lineWidth = Math.max(1, 1.1 * scale);
     ctx.strokeStyle = urgent ? "#ffd0a3" : "#ffe1a0";
     ctx.fillStyle = urgent ? "#c85f3d" : "#b9783f";
+    const halfHeight = s * 0.57735, edgeHeight = s * 1.1547;
+    const yTop = -halfHeight - edgeHeight / 2;
+    const yMiddle = yTop + halfHeight;
+    const yBottom = yMiddle + edgeHeight;
     ctx.beginPath();
-    ctx.moveTo(-s, -s * 0.35);
-    ctx.lineTo(0, -s * 0.92);
-    ctx.lineTo(s, -s * 0.35);
-    ctx.lineTo(s, s * 0.72);
-    ctx.lineTo(0, s * 1.08);
-    ctx.lineTo(-s, s * 0.72);
+    ctx.moveTo(0, yTop);
+    ctx.lineTo(s, yMiddle);
+    ctx.lineTo(s, yBottom);
+    ctx.lineTo(0, yBottom + halfHeight);
+    ctx.lineTo(-s, yBottom);
+    ctx.lineTo(-s, yMiddle);
     ctx.closePath();
     ctx.fill(); ctx.stroke();
     ctx.fillStyle = urgent ? "#f3b56b" : "#e7b86d";
     ctx.beginPath();
-    ctx.moveTo(-s, -s * 0.35);
-    ctx.lineTo(0, -s * 0.92);
-    ctx.lineTo(s, -s * 0.35);
-    ctx.lineTo(0, s * 0.18);
+    ctx.moveTo(0, yTop);
+    ctx.lineTo(s, yMiddle);
+    ctx.lineTo(0, yMiddle + halfHeight);
+    ctx.lineTo(-s, yMiddle);
     ctx.closePath();
     ctx.fill();
     ctx.strokeStyle = "rgba(255,240,190,.68)";
-    ctx.beginPath(); ctx.moveTo(0, -s * 0.92); ctx.lineTo(0, s * 1.02); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, yMiddle + halfHeight); ctx.lineTo(0, yBottom + halfHeight); ctx.stroke();
     ctx.restore();
   }
 
@@ -2891,19 +2961,21 @@ window.UI = (() => {
       { id: "oil_heal", lvl: b.heals || 0, active: (b.heals || 0) > 0 }
     ].filter(p => p.active);
 
-    const passiveX = useSkillFan ? fanWidth + 12 : maxActiveSlots * (slotSize + slotGap) + 8;
+    // The passive strip is supplementary HUD, not a second row of skill cards.
+    const passiveX = useSkillFan ? fanWidth + 8 : maxActiveSlots * (slotSize + slotGap) + 6;
     const available = (bounds.width - 18 - 180) / 1.2;
-    const passiveSlots = Math.max(1, Math.floor((available - passiveX + slotGap) / (slotSize + slotGap)));
-    const visibleCount = passives.length <= passiveSlots ? passives.length : passiveSlots - 1;
+    const passiveStep = Math.max(22, slotSize * .79);
+    const passiveSlots = Math.max(1, Math.floor((available - passiveX + passiveStep - slotSize*.72) / passiveStep));
+    const visibleCount = passives.length <= passiveSlots ? passives.length : Math.max(0,passiveSlots - 1);
     // Use the REAL per-passive cap: some have 2, some 3, others 4.
     const maxStacks={shield:3,dmg:4,rate:4,crit:3,spd:3,
       dash:3,oil_max:2,mag:3,oil_heal:3};
     passives.slice(0, visibleCount).forEach((pas,pIdx)=>{
-      const px=passiveX+pIdx*(slotSize+slotGap);
-      // Passive portraits 13% smaller, while keeping their slot positions stable.
-      const iconSize=slotSize*.87;
+      const px=passiveX+pIdx*passiveStep;
+      // Compact paper portraits, keeping the visible per-rank golden pips.
+      const iconSize=slotSize*.72;
       const margin=(slotSize-iconSize)/2;
-      const barW=Math.max(3.5,Math.min(5.5,iconSize*.065)),artW=iconSize-barW-3;
+      const barW=Math.max(2.8,Math.min(4.5,iconSize*.065)),artW=iconSize-barW-2;
       ctx.save();
       ctx.fillStyle="#e5d5ae";
       ctx.beginPath();ctx.roundRect(px+margin,slotY+margin,artW,iconSize,6);ctx.fill();
@@ -2915,12 +2987,12 @@ window.UI = (() => {
       } // B15: keep the paper slot neutral while its approved ink icon loads,
         // instead of flashing the old geometric emblem for a few frames.
       const cap=maxStacks[pas.id]||3,lit=Math.min(cap,Math.max(0,pas.lvl));
-      const segGap=1.5,segH=(iconSize-(cap-1)*segGap)/cap,barX=px+margin+artW+3;
+      const segGap=1,segH=(iconSize-(cap-1)*segGap)/cap,barX=px+margin+artW+2;
       for(let seg=0;seg<cap;seg++){
         const sy=slotY+margin+iconSize-(seg+1)*segH-seg*segGap;
         const breathing=.80+.20*Math.sin(Date.now()/1000*2.4+pIdx*.73);
         ctx.fillStyle=seg<lit?("rgba(255,232,68,"+breathing+")"):"rgba(118,96,52,.23)";
-        if(seg<lit){ctx.shadowColor="#fff481";ctx.shadowBlur=8;}
+        if(seg<lit){ctx.shadowColor="#fff481";ctx.shadowBlur=4;}
         ctx.beginPath();ctx.roundRect(barX,sy,barW,segH,1.5);ctx.fill();
         ctx.shadowBlur=0;
       }
@@ -2928,14 +3000,14 @@ window.UI = (() => {
     });
     const hiddenPassives = passives.length - visibleCount;
     if (hiddenPassives > 0) {
-      const px = passiveX + visibleCount * (slotSize + slotGap);
-      glassBox(ctx, px, slotY, slotSize, slotSize, 6, "rgba(40, 32, 12, 0.94)", "#ffd54f");
+      const px = passiveX + visibleCount * passiveStep;
+      glassBox(ctx, px, slotY+slotSize*.14, slotSize*.72, slotSize*.72, 6, "rgba(40, 32, 12, 0.94)", "#ffd54f");
       ctx.fillStyle = "#ffe28b"; ctx.textAlign = "center";
       ctx.font = `900 ${badgeTextSize}px 'Yokai Noto JP', 'Noto Sans JP', sans-serif`;
-      ctx.fillText(`＋${hiddenPassives}`, px + slotSize / 2, slotY + slotSize * 0.44);
+      ctx.fillText(`＋${hiddenPassives}`, px + slotSize*.36, slotY + slotSize * 0.43);
       ctx.font = `700 ${Math.max(8, badgeTextSize - 2)}px 'Yokai Noto JP', 'Noto Sans JP', sans-serif`;
       ctx.fillStyle = "#f2e4c8";
-      ctx.fillText("被動", px + slotSize / 2, slotY + slotSize * 0.82);
+      ctx.fillText("被動", px + slotSize*.36, slotY + slotSize * 0.69);
     }
     ctx.restore();
 
@@ -4076,7 +4148,7 @@ window.UI = (() => {
       // 下半部資訊區
       const infoTop = formalCard ? y + Math.round(h * .45) : artY + artH + 10;
       const typeLabel = CHOICE_TYPE_LABEL[c.type] || "修行";
-      const coreLevel = awakenCard ? "覺醒・耗 1 印" : (choiceText(c.levelText) || (weapon ? "主動秘術" : "被動修行"));
+      const coreLevel = choiceText(c.levelText) || (weapon ? "主動秘術" : "被動修行");
 
       // 類型標籤 pill
       ctx.textAlign = "left";
@@ -5253,6 +5325,101 @@ function fusionLayout(customViewport, model) {
   }
 
 
+  // Result-panel trial uses the approved complete raster without slicing its
+  // shrine roof, lanterns, cherry blossom corners, or the separate button.
+  // The same blank art is used for BOTH outcomes. All wording, score,
+  // portrait, focus and hit areas are still produced dynamically.
+  function drawResultTrial(ctx,state,score,delivered,failed,misses,focus,summary,resultFont){
+    const isWon=state==="won",mid=W/2;
+    const panel={x:39,y:16,w:822,h:443};
+    const board=resultTrialArt.board,buttonArt=resultTrialArt.button;
+    ctx.drawImage(board,panel.x,panel.y,panel.w,panel.h);
+
+    // Outcome-specific character is deliberately a separate layer, never
+    // present inside the shared art. Skip it if its real sprite is not ready.
+    const courierKey=isWon?"player_win_v1":"player_kneel_v1";
+    const courier=window.ART?.[courierKey];
+    if(courier?.naturalWidth && courier?.naturalHeight){
+      // Allow the win portrait to crop at the boots; central score remains free.
+      const ph=Math.min(isWon?455:355,screenBounds().height*(isWon?.78:.64));
+      const pw=ph*courier.naturalWidth/courier.naturalHeight;
+      ctx.save();
+      ctx.globalAlpha=.98;
+      ctx.drawImage(courier,Math.max(screenBounds().left-9,-24),480-ph,pw,ph);
+      ctx.restore();
+    }
+
+    ctx.textAlign="center";
+    ctx.textBaseline="alphabetic";
+    ctx.font=resultFont(32);
+    ctx.lineWidth=2.4;
+    ctx.strokeStyle="rgba(38,17,25,.75)";
+    ctx.fillStyle="#fff1cf";
+    const title=isWon?"夜已破曉":"燈油已盡";
+    if(ctx.strokeText)ctx.strokeText(title,mid,104,350);
+    ctx.fillText(title,mid,104,350);
+
+    ctx.font=resultFont(60);
+    ctx.fillStyle="#392922";
+    ctx.fillText(Number(score||0).toLocaleString(),mid,206,465);
+    if(summary.newBest || summary.prevBest>0){
+      ctx.font=resultFont(18);
+      ctx.fillStyle=summary.newBest?"#9e3f30":"#795544";
+      ctx.fillText(summary.newBest?"新紀錄！":`最高 ${summary.prevBest.toLocaleString()}`,mid,233,480);
+    }
+    const totalSec=Number(summary.elapsedSeconds);
+    const clock=Number.isFinite(totalSec)&&totalSec>=0
+      ? `${String(Math.floor(totalSec/60)).padStart(2,"0")}:${String(Math.floor(totalSec%60)).padStart(2,"0")}`
+      : "--:--";
+    ctx.font=resultFont(22);
+    ctx.fillStyle="#453126";
+    ctx.fillText(`送達 ${delivered} 件`,300,277,150);
+    ctx.fillText(`誤配 ${failed} 件`,mid,277,150);
+    ctx.fillText(`本局 ${clock}`,600,277,150);
+    if(summary.coinsEarned>0){
+      ctx.font=resultFont(18);
+      ctx.fillStyle="#945028";
+      ctx.fillText(`夜行賞金 +${summary.coinsEarned}　・　持有 ${summary.coinsHeld||0} 金幣`,mid,318,500);
+    }
+
+    const reviewWords=[...new Map((misses||[]).map(w=>[w.jp,w])).values()].slice(0,3);
+    if(!isWon && reviewWords.length){
+      ctx.font=resultFont(16);
+      ctx.fillStyle="#653a32";
+      ctx.fillText("遺落的言靈",mid,356);
+      reviewButtons(reviewWords).forEach((b,i)=>
+        drawButton(ctx,b,`${b.word.jp}（${b.word.zh}）`,
+          {size:15,quiet:true,focus:focus===3+i,fit:true,fontFace:resultFont(15).replace(/^400 [^ ]+ /,"")}));
+    }else if(isWon && summary.clearText){
+      ctx.font=resultFont(18);
+      ctx.fillStyle="#5b4233";
+      ctx.fillText(summary.clearText,mid,356,570);
+    }
+
+    // Use the same REAL painted blank button for all available choices.
+    // The screen has one action in victory, three in defeat; never stretch
+    // one large pre-painted button across three independently clickable spots.
+    endScreenButtons(state).forEach((b,i)=>{
+      const bh=Math.min(56,b.w*buttonArt.naturalHeight/buttonArt.naturalWidth);
+      const by=b.y+(b.h-bh)/2;
+      ctx.save();
+      if(i===focus || buttonFeedback.hoverId===b.id){
+        ctx.shadowColor="#ffe08e";
+        ctx.shadowBlur=17;
+      }
+      ctx.drawImage(buttonArt,b.x,by,b.w,bh);
+      ctx.restore();
+      ctx.font=resultFont(19);
+      ctx.fillStyle="#fff0d5";
+      ctx.textBaseline="middle";
+      ctx.shadowColor="rgba(48,17,20,.75)";
+      ctx.shadowBlur=3;
+      ctx.fillText(END_BTN_LABEL[b.id]||b.id,b.x+b.w/2,b.y+b.h/2+1,b.w-34);
+      ctx.shadowBlur=0;
+    });
+    ctx.textBaseline="alphabetic";
+  }
+
   // 6. 結算：勝利是破曉暖光，失敗是冷色月光；只留標題、分數、送達／誤配文字與記錯的字。
   function drawEndScreen(ctx, state, score, delivered, failed, misses, focus = 0, summary = {}) {
     ctx.save();
@@ -5276,10 +5443,19 @@ function fusionLayout(customViewport, model) {
         ctx.fill();
       });
     }
+    if(hasResultTrialArt()){
+      drawResultTrial(ctx,state,score,delivered,failed,misses,focus,summary,resultFont);
+      ctx.restore();
+      return;
+    }
 
     const cardX = 210, cardY = 54, cardW = 652, cardH = 430;
     const mid = cardX + cardW / 2;
-    drawWashiBoard(ctx,cardX,cardY,cardW,cardH,true);
+    // Keep the hand-painted result paper visible: drawWashiBoard formerly
+    // hid its center beneath an oversized opaque beige rectangle.
+    const resultPaper=illustratedArt.ledger;
+    if(resultPaper?.naturalWidth)drawWashiSlices(ctx,resultPaper,cardX,cardY,cardW,cardH,54,51,54,51);
+    else drawWashiBoard(ctx,cardX,cardY,cardW,cardH,true);
     // 朱紅題籤以手繪底圖呈現，標題文字仍由程式渲染。
     drawWoodTag(ctx,{x:mid-139,y:cardY+12,w:278,h:58},"primary");
     ctx.textAlign = "center";
@@ -5344,16 +5520,14 @@ function fusionLayout(customViewport, model) {
     });
     ctx.textAlign = "center";
 
+    // Preserve learning data in STORE, not in the cinematic results overlay.
     const summaryStep=34;
-    let summaryY = statY;
-    if (summary.learning) {
-      const l = summary.learning;
-      ctx.font = resultFont(17); ctx.fillStyle = "#423127";
+    let summaryY = statY + 20;
+    if (summary.coinsEarned > 0) {
       summaryY += summaryStep;
-      ctx.fillText(l.independent == null ? `今夜練習 ${l.practiced} 字・待複習 ${l.review} 字` : `無提示答對 ${l.independent} 次・提示 ${l.assisted || 0} 次`,mid,summaryY);
-      ctx.fillStyle = "#864b37";
-      summaryY += summaryStep;
-      ctx.fillText(l.independent == null ? `熟練星：升星 +${l.gained}・降星 −${l.lost}` : `下次複習 ${l.review} 字・星數僅記錄本局練習`,mid,summaryY);
+      ctx.font = resultFont(19);
+      ctx.fillStyle = "#885125";
+      ctx.fillText(`夜行賞金 +${summary.coinsEarned}　・　持有 ${summary.coinsHeld||0} 金幣`,mid,summaryY);
     }
     const reviewWords = [...new Map((misses || []).map(w => [w.jp, w])).values()];
     const reviewList = reviewWords.slice(0, 3);
@@ -5361,13 +5535,13 @@ function fusionLayout(customViewport, model) {
     if (!isWon && reviewList.length > 0) {
       ctx.fillStyle = "#854b40";
       summaryY += summaryStep;
-      ctx.fillText(`今夜記錯的字：共 ${reviewWords.length} 字・可選三詞回聽`, mid, summaryY);
+      ctx.fillText("遺落的言靈・輕觸可重聽", mid, summaryY);
       ctx.font = resultFont(17);
       ctx.fillStyle = "#382d27";
       reviewButtons(reviewList).forEach((button, i) => drawButton(ctx, button,
         `${button.word.jp}（${button.word.zh}）`, {size:16, quiet:true, focus:focus===3+i, fit:true,fontFace:resultFace}));
     } else if (isWon && summary.clearText) {
-      summaryY += summaryStep;
+      summaryY = Math.max(summaryY+summaryStep,cardY+305);
       ctx.font = resultFont(16);
       ctx.fillStyle = "#5c4030";
       ctx.fillText(summary.clearText, mid, summaryY);
@@ -5377,7 +5551,7 @@ function fusionLayout(customViewport, model) {
     // 勝利只有「回旅路地圖」一顆且不畫任何 review 可點鈕；失敗保留三顆主按鈕＋原有 review。
     endScreenButtons(state).forEach((btn, i) => {
       drawButton(ctx, btn, END_BTN_LABEL[btn.id] || btn.id,
-        { tone: i === 0 ? "primary" : "quiet", size: 18, focus: focus === i, fontFace: resultFace, visualOffsetY: -5, fit: true, fitMin: cssPx(11) });
+        { tone: i === 0 ? "primary" : "normal", size: 19, focus: focus === i, fontFace: resultFace, fit: true, fitMin: cssPx(11) });
     });
 
     // 最後繪製特寫，提燈與角色輪廓可跨過資訊卡邊框。
@@ -5426,10 +5600,7 @@ function fusionLayout(customViewport, model) {
       { id: "tutorial", label: "重看操作教學", y: 266 },
       { id: "pause-back", label: "返回暫停選單", y: 314, tone: "primary" }
     ] : PAUSE_BTNS;
-    if(page==="main" && !compact && approvedSystemArt.pause?.naturalWidth){
-      // Artwork's six illustrated button row centers.
-      return items.map((b,i)=>({...b,x:535,y:202+i*43.3,w:202,h:43}));
-    }
+    // The old pause__board.webp baked labels/edges; never use its hot spots.
     return items.map((b,i)=>{
       if (!compact) return {...b,x:470,w:280,h:44};
       // 44 CSS 保底：360x800（scale .4）原本只有 28 CSS 高，拇指按不到。
@@ -5472,28 +5643,15 @@ function fusionLayout(customViewport, model) {
         ctx.restore();
       }
     }
-    if(page==="main" && !compact && approvedSystemArt.pause?.naturalWidth){
-      // Never nine-slice roof/lanterns or repaint the baked static labels.
-      ctx.drawImage(approvedSystemArt.pause,427,15,405,570);
-      const b=buttons[focus],painted=approvedSystemArt[b?.tone==="danger"?"dangerHover":"hover"];
-      if(b && painted?.naturalWidth){
-        ctx.drawImage(painted,b.x-5,b.y-3,b.w+10,b.h+6);
-        ctx.textAlign="center";ctx.textBaseline="middle";
-        ctx.font=pauseInkFont(19);ctx.fillStyle=b.tone==="danger"?"#fff0da":"#4b302d";
-        ctx.fillText(b.label,b.x+b.w/2,b.y+b.h/2+1,b.w-22);
-      }
-      ctx.restore();return;
-    }
-    // Use one real hand-painted Japanese board instead of a rectangle with
-    // programmatic geometric gold strokes and a mismatched black background.
-    const boardW=panelR-panelX,boardH=panelB-panelY;
-    // The two-column compact menu is wide; use the complete landscape frame.
-    // Stretching the portrait pause painting across both columns would
-    // distort its border and reintroduce the clipped-looking edge.
-    drawPausePaper(ctx,panelX,panelY,boardW,boardH,compact?"exit":"pause");
+    // Draw the blank parchment whole at its native aspect ratio. Do not
+    // rescale or show the old pre-lettered, visibly cut pause picture.
+    const board=compact
+      ?{x:42,y:88,w:816,h:421,kind:"exit"}
+      :{x:407,y:42,w:452,h:492,kind:"pause"};
+    drawPausePaper(ctx,board.x,board.y,board.w,board.h,board.kind);
 
     ctx.textAlign = "center";
-    drawPauseHeading(ctx,page === "settings" ? "夜行設定" : "夜櫻暫歇",panelMid,105,250);
+    drawPauseHeading(ctx,page === "settings" ? "夜行設定" : "夜櫻暫歇",compact?450:635,compact?112:99,250);
 
     buttons.forEach((b, i) => {
       const label = b.id === "mute" && muted ? b.labelMuted : b.label;
@@ -5503,7 +5661,7 @@ function fusionLayout(customViewport, model) {
 
     ctx.fillStyle = "#624633";
     ctx.font = pauseInkFont(13);
-    ctx.fillText("上下選擇 · Enter／A 確認 · Esc／B 繼續", panelMid, panelB - 30);
+    ctx.fillText("上下選擇 · Enter／A 確認 · Esc／B 繼續", compact?450:635, compact?476:508);
 
     ctx.restore();
   }

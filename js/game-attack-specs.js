@@ -71,7 +71,11 @@ window.GAME_ATTACK_SPECS = (() => {
         : Math.max(needleFloor, 1.25 - level * 0.16 - baseRate * 0.1);
       const rawCount = EVOLUTIONS?.needleCount ? EVOLUTIONS.needleCount(level) : [3, 5, 7, 8, 8][Math.max(0, Math.min(4, level - 1))];
       const speed = 640;
-      const rawSpread = isAwakened ? 1.35 : (level === 4 ? 0.65 : 0.45);
+      // Lv3: 90-degree fan; Lv4: 120-degree fan.
+      // Lv5 uses eight evenly spaced 360-degree headings in game.js.
+      const rawSpread = isAwakened ? Math.PI * 2
+        : level === 4 ? Math.PI * 2 / 3
+        : level === 3 ? Math.PI / 2 : 0.45;
       const rawLife = isAwakened ? 0.95 : 0.65;
       const life = Number((rawLife * reachMult).toFixed(4));
       const range = Math.round(440 * reachMult);
@@ -156,10 +160,13 @@ window.GAME_ATTACK_SPECS = (() => {
     if (skillId === "barrier") {
       const isAwakened = level === 5;
       const cooldown = isAwakened
-        ? 3.2
+        // Awakened casts must not become slower than Lv4, and cadence
+        // charms / passive rate must remain effective after awakening.
+        ? Math.max(1.2, 1.5 - baseRate * 0.2)
         : Math.max(1.2, 3.2 - level * 0.42 - baseRate * 0.2);
       const baseRadius = isAwakened
-        ? 220
+        // Use the same reach scaling as Lv1-4 so Lv5 never shrinks on upgrade.
+        ? Math.round(290 * reachMult)
         : Math.round((140 + level * 28) * reachMult);
       const baseDamage = isAwakened
         ? (2.0 + level * 1.1) * baseDmg * 0.5
@@ -341,11 +348,13 @@ window.GAME_ATTACK_SPECS = (() => {
       const life = 1.4;
       const fuse = 1.5;
       const spread = level >= 4 ? 0.28 : 0.32;
-      const baseRadius = [78, 92, 108, 122, 135][Math.max(0, Math.min(4, level - 1))];
+      // The original 610px Lv5 diameter blocked too much of the game.
+      // Half the blast diameter, preserving full AoE damage for every target.
+      const baseRadius = [78, 92, 108, 122, 153][Math.max(0, Math.min(4, level - 1))];
       const radius = Math.round(baseRadius * reachMult);
       const rawDamage = 1.5 + level * 0.7;
       const baseDamage = Number((rawDamage * baseDmg).toFixed(4));
-      const splashScale = 0.20;
+      const splashScale = isAwakened ? 1.0 : 0.20;
       const baseSplashDamage = Number((baseDamage * splashScale).toFixed(4));
       const knockback = 72;
 

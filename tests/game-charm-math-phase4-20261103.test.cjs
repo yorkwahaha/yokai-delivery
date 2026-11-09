@@ -117,5 +117,5 @@ test('Phase 4: HTML loads updated charm math before game, without touching other
   assert.ok(html.includes(game));
   assert.ok(html.indexOf(math) < html.indexOf(game));
   assert.ok(html.includes('js/game-geometry.js?v=20261103-input-phase15'));
-  assert.ok(html.includes('js/audio.js?v=20261107-final-boss-mp3-only'));
+  assert.ok(html.includes(scriptUrl('audio')));
 });

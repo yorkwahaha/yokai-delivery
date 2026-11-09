@@ -48,6 +48,19 @@ test('approved shared-frame cards work across preview and regular hosts',()=>{
  const x=trial('?upgradeUI=0');
  assert.notEqual(x.UI.drawLevelUp,x.prevDraw);
 });
+test('only Lv5 weapon cards receive the brief mirror sweep',()=>{
+ const paint=(level,time)=>{
+  const a=trial();let gradients=0;
+  a.ctx.createLinearGradient=()=>{gradients++;return {addColorStop(){}};};
+  a.UI.drawLevelUp(a.ctx,5,[{
+   id:'katana',type:'weapon',n:'妖刀',lv:level,
+   levelText:level===5?'Lv5 覺醒':'等級 3 ➔ 4',d:'刀光前進'
+  }],{},{},1,time,0,'keyboard');
+  return gradients;
+ };
+ assert.ok(paint(5,.41)>paint(4,.41),'Lv5 gets an additional mirror gradient');
+ assert.equal(paint(5,1.4),paint(4,1.4),'sweep is brief, not permanently bright');
+});
 test('regular game draws new cards, not a ZIP-only preview',()=>{
  const normal=trial('', '127.0.0.1');
  assert.notEqual(normal.UI.drawLevelUp,normal.prevDraw);
@@ -86,7 +99,7 @@ test('bottom explanation follows focus, without mixing other options',()=>{
  assert.ok(!other.some(t=>t.includes('狐火環繞')));
  assert.ok(other.some(t=>t.includes('輕觸預覽')));
  b.UI.drawLevelUp(b.ctx,5,cards,{}, {},2,0,2,'touch',{seals:2});
- assert.ok(b.traces.some(t=>t.text.includes('覺醒印 2')));
+ assert.ok(!b.traces.some(t=>t.text.includes('覺醒印')),'retired seal HUD must stay hidden');
 });
 test('empty choices render a stable message without a phantom card',()=>{
  const a=trial();
@@ -117,9 +130,9 @@ test('normal game has no manual ZIP importer, font picker or debug calibration b
  assert.equal(ui.upgradeTrialEnabled(),true);
 });
 
-test('Phase42 defaults to OFL MoonStars and keeps local-only comparison overrides',()=>{
+test('Phase42 uses HanWang locally, DFKai-SB publicly, and preserves local comparisons',()=>{
  const samples=[
-   ['?upgradeUI=1','Yokai Trial MoonStars Kai T'],
+   ['?upgradeUI=1','Yokai Trial HanWang YanKai'],
    ['?upgradeUI=1&upgradeFont=kai','DFKai-SB'],
    ['?upgradeUI=1&upgradeFont=yuji','Yokai Brush JP'],
    ['?upgradeUI=1&upgradeFont=readable','sans-serif'],
@@ -151,6 +164,9 @@ test('Phase42 defaults to OFL MoonStars and keeps local-only comparison override
  }
  for(const localName of ['Yokai Local Arphic Sun','Yokai Local Arphic Mao'])
    assert.ok(html.includes(localName),'commercial font can only reference the local installation');
+ const production=trial('?upgradeUI=1','example.com');
+ production.UI.drawLevelUp(production.ctx,4,cards,{}, {},0,0,0,'keyboard');
+ assert.ok(production.traces.some(t=>t.text==='能力提升'&&t.font.includes('DFKai-SB')));
  for(const name of ['arphicsun','arphicmao']){
    const x=trial('?upgradeUI=1&upgradeFont='+name);
    x.UI.drawLevelUp(x.ctx,4,cards,{}, {},0,0,0,'keyboard');

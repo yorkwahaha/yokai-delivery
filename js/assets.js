@@ -2337,7 +2337,8 @@ window.ofudaRasterArt = kind => {
     }
   };
   img.onerror = () => console.warn("[Assets] Ofuda image unavailable, retaining legacy art:", kind);
-  img.src = (window.sharedSkillRuntimePath("boom", kind) || path) + "?v=20261027-unified-skill1";
+  img.src = (window.sharedSkillRuntimePath("boom", kind) || path)
+    + (kind==="max" ? "?v=20261109-inkburst-r1" : "?v=20261027-unified-skill1");
   return null;
 };
 

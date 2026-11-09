@@ -20,6 +20,24 @@ test('B3 level-one basic needle carries no frost payload without mutation',()=>{
  const darts=g.snapshot().needles;
  assert.ok(darts.length>0);assert.ok(darts.every(n=>!n.frost&&!n.ice));
 });
+test('needle Lv3 spreads 90 degrees, Lv4 spreads 120 degrees, Lv5 eight directions cover 360 degrees',()=>{
+ const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-8,`angle ${actual} expected ${expected}`);
+ for(const [level,expectedSpread,count] of [[3,Math.PI/2,7],[4,Math.PI*2/3,8]]){
+  const g=loadGame({seed:92});g.start();g.stopSpawns();
+  g.combatScene('needle',[],[],level);g.setFacingAngle(0);g.update(.05);
+  const headings=g.snapshot().needles.map(n=>n.launchAng).sort((a,b)=>a-b);
+  assert.equal(headings.length,count);
+  close(headings[headings.length-1]-headings[0],expectedSpread);
+  close(headings[0],-expectedSpread/2);
+  close(headings[headings.length-1],expectedSpread/2);
+ }
+ const g=loadGame({seed:93});g.start();g.stopSpawns();
+ g.combatScene('needle',[],[],5);g.setFacingAngle(0);
+ for(let i=0;i<8;i++)g.update(.05);
+ const headings=g.snapshot().needles.map(n=>((n.launchAng%(Math.PI*2))+Math.PI*2)%(Math.PI*2)).sort((a,b)=>a-b);
+ assert.equal(headings.length,8);
+ for(let i=0;i<8;i++)close(headings[i],i*Math.PI/4);
+});
 test('B3 charge warning endpoint is actual wall-clipped travel endpoint and hit trajectory',()=>{
  const e={x:0,y:0,hp:300,max:300,bossIndex:1,shield:false,_attackStep:1,attackCd:0};
  const p={x:200,y:44};

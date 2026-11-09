@@ -22,7 +22,7 @@ function weapons() {
  'fusion_foxthunderlantern','fusion_flamefestival','fusion_thundertalisman']
  .map(id=>[id,{id}]));
 }
-test('Phase19 weapon eligibility keeps exact order and fusion callbacks across 1500+ configurations',()=>{
+test('Lv5 enters ordinary upgrade pool regardless of seals across 1500+ configurations',()=>{
  const inventory=weapons(),keys=Object.keys(inventory);
  let compared=0;
  for(const cap of [0,1,4,6])for(const seals of [-1,0,1,3])for(const noFusion of [false,true]){
@@ -32,11 +32,15 @@ test('Phase19 weapon eligibility keeps exact order and fusion callbacks across 1
    const consumed=new Set(keys.filter(()=>rand()<.28));
    const logs=[[],[]];
    const hosts=logs.map(log=>noFusion?{}:{FUSION:{isSkillConsumed(id){log.push(id);return consumed.has(id);}}});
-   const prev=env.originalWeapon(inventory,levels,cap,seals,hosts[0]);
    const next=rules.weaponOfferKeys(inventory,levels,cap,seals,hosts[1]);
-   assert.equal(JSON.stringify(next),JSON.stringify(prev),
-    JSON.stringify({cap,seals,noFusion,seed}));
-   assert.equal(JSON.stringify(logs[1]),JSON.stringify(logs[0]),'fusion callback order changed');
+   const owned=keys.filter(k=>(levels[k]||0)>0).length;
+   const expected=keys.filter(k=>!k.startsWith('fusion_') &&
+     (noFusion||!consumed.has(k)) && (levels[k]||0)<5 &&
+     ((levels[k]||0)>0||owned<cap));
+   assert.deepEqual(Array.from(next.eligibleWeaponKeys),expected,
+     JSON.stringify({cap,seals,noFusion,seed}));
+   assert.deepEqual(Array.from(next.awakenKeys),[],'seal-based Lv5 pool must stay off');
+   assert.ok(logs[1].every(k=>!k.startsWith('fusion_')));
    compared++;
   }
  }
@@ -65,7 +69,10 @@ test('Phase19 excludes fusion weapons from ordinary level up and preserves origi
  const list=rules.weaponOfferKeys(weapons(),{katana:4,fire:0,barrier:0,boom:0,thunder:0,needle:0},4,2,{});
  assert.ok(!list.eligibleWeaponKeys.some(id=>id.startsWith('fusion_')));
  assert.ok(!list.awakenKeys.some(id=>id.startsWith('fusion_')));
- assert.ok(list.awakenKeys.includes('katana'));
+ assert.ok(list.eligibleWeaponKeys.includes('katana'));
+ assert.equal(list.awakenKeys.length,0);
+ assert.match(game,/if \(nextLvl === 5\) return WL\[k\] === 4/);
+ assert.doesNotMatch(game,/seals--|sealsSpent\+\+/);
  assert.ok(Object.isFrozen(rules));
  assert.doesNotMatch(moduleText,/Math\.random\s*\(|buildRevision\+\+|localStorage/);
  assert.match(game,/GAME_BUILD_RULES\.weaponOfferKeys\(\s*WI, WL, MAX_ACTIVE_WEAPONS, seals, window/);
@@ -73,7 +80,7 @@ test('Phase19 excludes fusion weapons from ordinary level up and preserves origi
 });
 test('Phase19 HTML keeps shared build rules before game with matching revisions',()=>{
  const html=fs.readFileSync('index.html','utf8');
- const helper='js/game-build-rules.js?v=20261103-build-phase19';
+ const helper='js/game-build-rules.js?v=20261109-seal-free-lv5-r1';
  const main=scriptUrl('game');
  assert.ok(html.includes(helper)&&html.includes(main));
  assert.ok(html.indexOf(helper)<html.indexOf(main));

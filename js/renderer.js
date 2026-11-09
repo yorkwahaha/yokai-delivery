@@ -283,8 +283,8 @@ window.RENDERER = (() => {
   }
 
   // tier 1–3 對應妖刀斬 Lv1–2／Lv3–4／Lv5：刀芒厚度、亮度與火星數量逐級加強。
-  function addSlashArc(x, y, radius, angle, spread = 2.2, tier = 3) {
-    slashArcs.push({ x, y, radius, angle, spread, tier, life: 0.2, maxLife: 0.2 });
+  function addSlashArc(x, y, radius, angle, spread = 2.2, tier = 3, flipY = false) {
+    slashArcs.push({ x, y, radius, angle, spread, tier, flipY, life: 0.2, maxLife: 0.2 });
   }
 
   function updateEffects(dt) {
@@ -2662,6 +2662,7 @@ window.RENDERER = (() => {
     ctx.save();
     ctx.translate(s.x, s.y);
     ctx.rotate(s.angle + sweep);
+    if(s.flipY)ctx.scale(1,-1);
     if (rank >= 3) {
       ctx.save();
       ctx.globalAlpha = alpha * (rank === 5 ? 0.22 : 0.13);
@@ -2694,6 +2695,7 @@ window.RENDERER = (() => {
       ctx.save();
       ctx.translate(s.x, s.y);
       ctx.rotate(s.angle);
+      if(s.flipY)ctx.scale(1,-1);
 
       // 1. 三日月流光刀芒多邊形 (Crescent Blade Polygon - 刀背厚、刀尖刀尾銳利如針)
       const steps = 28;

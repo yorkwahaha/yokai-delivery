@@ -20,6 +20,7 @@
     m: Object.create(null),
     best: 0,
     bestDel: 0,
+    coins: 0,
     progress: {
       unlocked: Object.assign(Object.create(null), { "night-town": true }),
       completed: Object.create(null),
@@ -78,6 +79,7 @@
     } catch {}
     state.best = count(raw.best);
     state.bestDel = count(raw.bestDel);
+    state.coins = count(raw.coins);
     for (const [jp, m] of entries(raw.m)) {
       if (!isRecord(m)) continue;
       state.m[jp] = {
@@ -149,6 +151,10 @@
       m.ok = count(m.ok + 1);
       m.lastSeen = count(event.at);
       if (event.type === "recall") m.missBoost = 1;
+    } else if (event.type === "coins") {
+      // Additive reward in the existing multi-tab journal; never overwrite a
+      // different tab's currency from a stale localStorage snapshot.
+      d.coins = count(d.coins + count(event.score));
     } else if (event.type === "complete" && id) {
       d.progress.completed[id] = true;
       d.progress.unlocked[id] = true;
@@ -214,6 +220,7 @@
     d.m = Object.assign(Object.create(null), base.m);
     d.best = base.best;
     d.bestDel = base.bestDel;
+    d.coins = base.coins;
     d.progress = {
       unlocked: Object.assign(Object.create(null), base.progress.unlocked),
       completed: Object.assign(Object.create(null), base.progress.completed),
@@ -447,6 +454,16 @@
     canSave: () => !saveFailed,
     flush,
     data: d,
+    coinBalance: () => { syncJournal(); return d.coins; },
+    awardCoins(amount) {
+      const earned = Math.min(10000, count(amount));
+      if (!earned) return 0;
+      syncJournal();
+      d.coins = count(d.coins + earned);
+      record("coins", { score: earned });
+      save();
+      return earned;
+    },
     get: jp => { syncJournal(); return get(jp); },
     getStageStats: id => { syncJournal(); return getStageStats(id); },
     isStageUnlocked,

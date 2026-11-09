@@ -39,13 +39,16 @@ function setup(stage='night-town',defaultCrit=1){
  vm.runInNewContext(game.slice(a,b)+'\nthis.wrap={bossBlueprint,rollCrit};',env);
  return env;
 }
-test('Phase14 Boss blueprint role, HP and oil unchanged at every boss index',()=>{
+test('Boss blueprint preserves HP/role/oil while restoring the third Boss reading seal',()=>{
  for(const stage of ['night-town','rain-port',null]){
   const env=setup(stage);
   for(const i of [-1,0,1,2,3,4,8]){
    const old=originalBoss(i,env.CFG.BOSS_HP_BASE,env.CFG.BOSS_OIL_REWARD,env.STAGE);
    const fresh=env.wrap.bossBlueprint(i);
-   assert.equal(JSON.stringify(fresh),JSON.stringify(old),JSON.stringify({stage,i}));
+   assert.equal(fresh.hp,old.hp,JSON.stringify({stage,i,field:'hp'}));
+   assert.equal(fresh.oil,old.oil,JSON.stringify({stage,i,field:'oil'}));
+   assert.equal(fresh.role,old.role,JSON.stringify({stage,i,field:'role'}));
+   assert.equal(fresh.quiz,true,'all four Bosses, including gate/third, require a quiz');
   }
  }
 });

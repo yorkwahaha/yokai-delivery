@@ -40,14 +40,15 @@ window.GAME_BUILD_RULES = (() => {
     const eligibleWeaponKeys = Object.keys(weapons).filter(k => {
       if (k.startsWith("fusion_")) return false; // 融合武器不可由普通升級抽取
       if (host.FUSION && typeof host.FUSION.isSkillConsumed === "function" && host.FUSION.isSkillConsumed(k)) return false;
-      if ((levels[k] || 0) >= 4) return false;
+      if ((levels[k] || 0) >= 5) return false;
       if (levels[k] === 0 && !canLearnNew) return false;
       return true;
     });
     const awakenKeys = Object.keys(weapons).filter(k => {
       if (k.startsWith("fusion_")) return false;
       if (host.FUSION && typeof host.FUSION.isSkillConsumed === "function" && host.FUSION.isSkillConsumed(k)) return false;
-      return levels[k] === 4 && seals > 0;
+      // Ordinary Lv5 is now available in eligibleWeaponKeys. No seal cost.
+      return false;
     });
 
     return {eligibleWeaponKeys, awakenKeys};

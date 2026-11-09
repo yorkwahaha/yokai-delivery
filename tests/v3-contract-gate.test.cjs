@@ -21,22 +21,30 @@ test('current contract: deprecated listening hints do not change oil or answer a
   const g=fresh();g.prepareOrder();g.setOil(80);g.triggerHint();g.triggerHint();
   assert.equal(g.snapshot().oil,80);assert.equal(g.snapshot().job.hintStage ?? 0,0);assert.equal(!!g.snapshot().job.assisted,false);
 });
-test('current contract: a wrong answer retains the job and charges 5% max oil once per choice', () => {
+test('current contract: wrong delivery fails immediately, grants no refill, and summons a nearby ambush', () => {
   const g=fresh();g.prepareOrder();g.setOil(80);const job=g.snapshot().job;
-  const wrong=job.ans.findIndex(w=>w!==job.word);g.resolve(wrong);
-  assert.equal(g.snapshot().job,job);assert.equal(g.snapshot().oil,75);
-  g.resolve(wrong);assert.equal(g.snapshot().oil,75);
-  assert.equal(g.snapshot().enemies.filter(e=>e.type==='mis').length,0);
-  g.resolve(job.ans.indexOf(job.word));assert.equal(g.snapshot().delivered,1);assert.equal(g.currentXp(),26);
+  const wrong=job.ans.findIndex(w=>w!==job.word);
+  const beforeEnemies=g.snapshot().enemies.length;
+  g.resolve(wrong);
+  assert.equal(g.snapshot().job,null);
+  assert.equal(g.snapshot().oil,80);
+  assert.equal(g.snapshot().failed,1);
+  assert.equal(g.snapshot().enemies.length,beforeEnemies+3);
+  g.resolve(wrong);assert.equal(g.snapshot().failed,1);
+  assert.equal(g.snapshot().delivered,0);
+  assert.equal(g.currentXp(),0);
   assert.equal(g.env.STORE.get(job.word.jp).box,0);
 });
-test('V3 contract: Lv4 cannot awaken before deliveries, three deliveries unlock a saved seal', () => {
-  const g=fresh();g.setWeaponRank('katana',4);g.offerUp();
-  assert.ok(!g.weaponChoices().some(c=>c.lv===5),'no awakening without a seal');
-  for(let i=0;i<3;i++)deliver(g,true);
-  g.offerUp();const max=g.weaponChoices().find(c=>c.id==='katana'&&c.lv===5);
-  assert.ok(max,'eligible offer guarantees an awakening card');max.f();assert.equal(g.weaponLevels().katana,5);
-  g.setWeaponRank('needle',4);g.offerUp();assert.ok(!g.weaponChoices().some(c=>c.lv===5),'spent seal is unavailable');
+test('current contract: ordinary Lv5 cards need no delivery seals', () => {
+  const g=fresh();g.setWeaponRank('katana',4);
+  let max=null;
+  for(let tries=0;tries<24 && !max;tries++){
+    g.offerUp();
+    max=g.weaponChoices().find(c=>c.id==='katana'&&c.lv===5);
+  }
+  assert.ok(max,'Lv5 may appear in the normal upgrade pool without seals');
+  assert.equal(max.f(),true);
+  assert.equal(g.weaponLevels().katana,5);
 });
 test('V3 contract: damage passive stops at four increments of 0.30', () => {
   const g=fresh(),u=g.tune('dmg');for(let i=0;i<4;i++)u.f();

@@ -83,7 +83,10 @@ window.SKILLFX = (() => {
       emerge = 0.14 + 0.98 * (1 - Math.pow(1 - t, 3));
     }
     const fade = Math.min(1, p.life / (max ? 0.19 : 0.14));
-    const baseWidth = max ? 240 : [126, 136, 148, 160][Math.min(3, p.rank - 1)];
+    // Preserve Lv1-4 and the two-beat animation. The smaller Lv5 image
+    // matches its effective blast diameter and stays semi-transparent.
+    const baseWidth = max ? ((p.r > 140) ? p.r * 2 : 240)
+      : [126, 136, 148, 160][Math.min(3, p.rank - 1)];
     const width = baseWidth * emerge;
     let jitterX = 0, jitterY = 0;
     if (max && age > 0.30 && motion()) {
@@ -109,7 +112,8 @@ window.SKILLFX = (() => {
       y: anchorY - (max ? 40 : 28) + jitterY,
       w: width,
       ang: ang,
-      a: alphaEmerge * fade
+      // The smaller Lv5 burst peaks at 97% opacity; entrance/fade remains.
+      a: alphaEmerge * fade * (max ? 0.97 : 1)
     });
     if (window.VIEWPORT?.upright) window.VIEWPORT.upright(ctx,p.x,p.y,paint);
     else paint();
@@ -177,9 +181,10 @@ window.SKILLFX = (() => {
   }
 
   // 符咒真圖保留美術主體，但讓每個階級的命中都真正向外炸開。
-  function ofudaBlast({x,y},rank) {
+  function ofudaBlast({x,y,r},rank) {
     if (![x,y].every(Number.isFinite)) return;
-    const radius=[65,80,105,130,180][rank-1];
+    // Secondary sparks/shockwave must grow with the actual AoE, too.
+    const radius=Number.isFinite(r) && r>0 ? r : [78,92,108,122,305][rank-1];
     emit('glow','#fff5cb',{x,y,life:.18,s0:28,s1:radius*1.45,
       a:.76,blend:'lighter'});
     emit('edge','#fff1c9',{x,y,life:.30,s0:12,s1:radius*1.85,
@@ -215,7 +220,7 @@ window.SKILLFX = (() => {
       if(window.ofudaRasterArt?.(kind)){
         // Raster is the impact itself; retain the existing burn side effect.
         if(rank!==5) ignite(params.target,rank===1?1.2:2,Math.min(rank,2));
-        pushArt(null,{x:params.x,y:params.y,rank,ofudaImpact:kind,ground:false,
+        pushArt(null,{x:params.x,y:params.y,r:params.r,rank,ofudaImpact:kind,ground:false,
           life:rank===5?.52:.43});
         ofudaBlast(params,rank);
         return;
@@ -769,13 +774,14 @@ window.SKILLFX = (() => {
   define('ghost',{body:(ctx,t,p)=>p.dragon?dragonBody(ctx,p):p.fireAttack?fireAttackBody(ctx,p):ghostBody(ctx,p)});
   define('wind',{
     trail(){},
-    body(ctx,t,{x,y,ang,size=360}){
+    body(ctx,t,{x,y,ang,size=360,flipY=false}){
       const ranked=rankedArt('katana',5);
       const art=ranked || window.ART?.katana_wave_ukiyoe;
       if(art && art.naturalWidth>0 && art.naturalHeight>0){
         const h=size,w=h*art.naturalWidth/art.naturalHeight;
         // 新五階圖資產本身已按正確飛行方向繪製；舊單圖備援才需要鏡射。
         ctx.save();ctx.translate(x,y);ctx.rotate(ang);
+        if(flipY)ctx.scale(1,-1);
         if(!ranked)ctx.scale(-1,1);
         if(motion()){
           ctx.globalAlpha=0.08;
@@ -786,7 +792,9 @@ window.SKILLFX = (() => {
         ctx.restore();
         return;
       }
-      ctx.save();ctx.globalAlpha=0.8;ctx.translate(x,y);ctx.rotate(ang);ctx.scale(-1,1);
+      ctx.save();ctx.globalAlpha=0.8;ctx.translate(x,y);ctx.rotate(ang);
+      if(flipY)ctx.scale(1,-1);
+      ctx.scale(-1,1);
       const h=size/2,r=size/Math.sqrt(2),cx=-r/Math.sqrt(2);
       // 1. 深墨影底襯 (Deep Ink Shadow Backing)
       ctx.strokeStyle='rgba(12,18,28,0.95)';ctx.lineWidth=20;

@@ -51,5 +51,5 @@ test('Phase13 catalog loads before game with versioned HTML scripts',()=>{
   assert.ok(html.includes(catalogScript));
   assert.ok(html.includes(gameScript));
   assert.ok(html.indexOf(catalogScript)<html.indexOf(gameScript));
-  assert.ok(html.includes('js/game-attack-specs.js?v=20261103-attack-phase12'));
+  assert.ok(html.includes('js/game-attack-specs.js?v=20261109-ofuda-range-r3'));
 });

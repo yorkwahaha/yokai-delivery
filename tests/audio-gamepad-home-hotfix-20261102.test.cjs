@@ -93,8 +93,9 @@ test('home menu shows gamepad controls plus mute or audio-block instructions',()
  assert.ok(ui.includes('瀏覽器封鎖音效'));
  assert.match(game,/state === "menu" && justPressed\(9\)/);
  assert.match(game,/AUDIO\.unlockFromInput\?\.\(\)/);
- assert.ok(html.includes('js/audio.js?v=20261107-final-boss-mp3-only'));
+ assert.ok(html.includes(scriptUrl('audio')));
+ assert.match(scriptUrl('audio'),/final-boss-volley/);
  assert.ok(html.includes(scriptUrl('ui')));
- assert.match(scriptUrl('ui'),/approved-system-ui/);
+ assert.match(scriptUrl('ui'),/pause-focus/);
  assert.ok(html.includes(scriptUrl('game')));
 });

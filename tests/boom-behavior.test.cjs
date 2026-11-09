@@ -59,9 +59,33 @@ test('actual game restart clears launched boom projectiles',()=>{
   assert.ok(g.snapshot().proj.length);g.start();
   assert.equal(g.snapshot().proj.length,0);
 });
-test('real boom cast uses five approved radii',()=>{
-  for(const [i,r] of [78,92,108,122,135].entries()){
+test('real boom cast retains Lv1-4 radii and halves Lv5 blast diameter',()=>{
+  for(const [i,r] of [78,92,108,122,153].entries()){
     const g=launch([{dx:100,hp:100,max:100}],i+1);
     assert.equal(g.snapshot().proj[0].radius,r);
   }
+});
+
+test('Lv1-4 talisman blast damages at most two nearest neighbors',()=>{
+  const g=launch([100,130,160,190,290,410].map(dx=>({dx,hp:100,max:100,speed:0})),4);
+  const projectiles=g.snapshot().proj, enemies=g.snapshot().enemies;
+  const q=projectiles[0];q.stuck=true;q.target=enemies[0];
+  q.x=enemies[0].x;q.y=enemies[0].y;q.fuse=.01;
+  projectiles.splice(1);g.setWeaponRank('boom',0);g.weapons(.04);
+  close(enemies[0].hp,100-q.damage);
+  close(enemies[1].hp,100-q.splashDamage);
+  close(enemies[2].hp,100-q.splashDamage);
+  for(const e of enemies.slice(3))close(e.hp,100);
+});
+
+test('Lv5 explosion damages every enemy in the 153px AoE for full direct damage',()=>{
+  const g=launch([100,130,160,190,290,410].map(dx=>({dx,hp:100,max:100,speed:0})),5);
+  const projectiles=g.snapshot().proj, enemies=g.snapshot().enemies;
+  const q=projectiles[0];q.stuck=true;q.target=enemies[0];
+  q.x=enemies[0].x;q.y=enemies[0].y;q.fuse=.01;
+  projectiles.splice(1);g.setWeaponRank('boom',0);g.weapons(.04);
+  assert.equal(q.radius,153);
+  assert.equal(q.splashDamage,q.damage);
+  for(const e of enemies.slice(0,4))close(e.hp,100-q.damage);
+  for(const e of enemies.slice(4))close(e.hp,100);
 });

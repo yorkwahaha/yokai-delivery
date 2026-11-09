@@ -10,18 +10,18 @@
   // The Japanese Yuji Syuku face lacks several Taiwan Traditional Chinese glyphs.
   // DFKai-SB is present on Windows; keep a Japanese brush face for kana fallback.
   const fontFamilies={
-    kai:"'DFKai-SB','BiauKai','Yokai Brush JP','Noto Serif TC',serif",
+    kai:"'DFKai-SB','標楷體','BiauKai','Yokai Trial MoonStars Kai T','Noto Serif TC',serif",
     yuji:"'Yokai Brush JP','DFKai-SB','BiauKai','Noto Serif TC',serif",
     readable:"'Yokai Noto JP','Noto Sans JP','Microsoft JhengHei',sans-serif",
     bakudai:"'Yokai Trial Bakudai TC','DFKai-SB',serif",
     masa:"'Yokai Trial Masa TC','DFKai-SB',serif",
     wenkai:"'Yokai Trial WenKai TC','DFKai-SB',serif",
-    moonstars:"'Yokai Trial MoonStars Kai T','DFKai-SB',serif",
+    moonstars:"'Yokai Trial MoonStars Kai T','DFKai-SB','標楷體','BiauKai',serif",
     moonstarsbold:"'Yokai Trial MoonStars Kai T Bold','DFKai-SB',serif",
     xuandong:"'Yokai Trial Xuandong','DFKai-SB',serif",
     arphicsun:"'Yokai Local Arphic Sun','DFKai-SB',serif",
     arphicmao:"'Yokai Local Arphic Mao','DFKai-SB',serif",
-    hanyan:"'Yokai Trial HanWang YanKai','DFKai-SB',serif",
+    hanyan:"'Yokai Trial HanWang YanKai','DFKai-SB','標楷體','BiauKai',serif",
     cwtexkai:"'Yokai Trial cwTeX QKaiZH','DFKai-SB',serif",
     chillkai:"'Yokai Trial ChillKai Big5','DFKai-SB',serif"
   };
@@ -41,11 +41,12 @@
     arphicsun:"Yokai Local Arphic Sun",
     arphicmao:"Yokai Local Arphic Mao"
   };
-  // Student release defaults to OFL MoonStars.  Experimental fonts such as
-  // HanWang remain local-only until public distribution rights are reviewed.
+  // The approved HanWang trial is available on the user's local development
+  // machine. Do not make its GPL subset part of a public release without
+  // reviewing source-distribution obligations. Public clients use DFKai-SB.
   const requested=params.get("upgradeFont");
   const fontMode=local&&Object.hasOwn(fontFamilies,requested)&&
-    !Object.hasOwn(licensedLocalFonts,requested)?requested:"moonstars";
+    !Object.hasOwn(licensedLocalFonts,requested)?requested:(local?"hanyan":"kai");
   const textFont=(size,role="label")=>fontMode==="readable"
     ?UI.readableFont(size,role==="body"?"700":"900")
     :`400 ${size}px ${fontFamilies[fontMode]}`;
@@ -141,10 +142,10 @@
     return {
       trial:true,scale,count:n,pad:8,cards,card:{x,y,w,h,gap,count:n},
       panel:{x:26,y:20,w:848,h:557},
-      titleBar:{x:312,y:30,w:276,h:64},
+      titleBar:{x:280,y:22,w:340,h:76},
       summaryBar:{x:240,y:102,w:420,h:27},
-      details:{x:158,y:400,w:584,h:94},
-      reroll:{x:350,y:Math.min(510,587-bh),w:200,h:bh},
+      details:{x:130,y:390,w:640,h:103},
+      reroll:{x:345,y:Math.min(514,587-bh),w:210,h:bh},
       footer:{y:510,h:66}
     };
   };
@@ -165,7 +166,11 @@
       round(ctx,p.x+9,p.y+9,p.w-18,p.h-18,17);ctx.stroke();
     }
     const t=L.titleBar;
-    const titleArt=image("assets/img/ui/phase42/title_plaque.webp");
+    // High-resolution approved plate may be swapped without altering the
+    // geometry/text layer. Existing plaque remains a safe raster fallback.
+    const approvedTitle=image("assets/img/ui/upgrade/approved_title.webp");
+    const titleArt=approvedTitle||
+      image("assets/img/ui/phase42/title_plaque.webp");
     if(titleArt)ctx.drawImage(titleArt,t.x-5,t.y-3,t.w+10,t.h+7);
     else{
       const plume=ctx.createLinearGradient(0,t.y,0,t.y+t.h);
@@ -173,15 +178,17 @@
       paint(ctx,t.x,t.y,t.w,t.h,plume,15);
       ctx.strokeStyle=palette.light;ctx.lineWidth=2;round(ctx,t.x,t.y,t.w,t.h,15);ctx.stroke();
     }
-    write(ctx,"能力提升",450,t.y+t.h/2+2,240,38,"center",palette.light);
-    const summary=awakening ? "選擇一項技能 ・ 覺醒印 "+awakening.seals : "選擇一項技能";
+    // Figure-2 approved title crop already contains the gold calligraphy.
+    // The older blank plaque still needs its dynamic text fallback.
+    if(!approvedTitle)write(ctx,"能力提升",450,t.y+t.h/2+2,240,38,"center",palette.light);
+    const summary="選擇一項技能";
     write(ctx,summary,450,115,430,20);
   }
   const formalArt=new Set(["katana","fire","needle","barrier","boom","thunder",
     "shield","dmg","rate","crit","spd","dash","oil_max","oil_heal","mag",
     "mut_return","mut_pulse","mut_seek","mut_frost","mut_pierce",
     "mut_crosscut","mut_branch","mut_orbit","mut_splitblast"]);
-  function drawChoice(ctx,c,r,focused,num){
+  function drawChoice(ctx,c,r,focused,num,time=0){
     ctx.save();ctx.shadowColor=focused?"#f6bd58":"rgba(0,0,0,.65)";
     ctx.shadowBlur=focused?22:7;
     const shared=sharedCards.has(c.id);
@@ -191,7 +198,20 @@
     const full=shared?null:image(fullSrc);
     const cardClass=skillClasses[c.id] ||
       (passiveCards.has(c.id)?"被動":mutationCards.has(c.id)?"變異":"修行");
-    if(shared && frame && center){
+    if(c.type==="coins"){
+      // Post-cap reward is currency, not an uncapped passive. Reuse the
+      // approved card base and lettering, without fake pictorial artwork.
+      const board=image("assets/img/ui/upgrade/card_dark.webp");
+      if(board)ctx.drawImage(board,r.x,r.y,r.w,r.h);
+      else paint(ctx,r.x,r.y,r.w,r.h,"#1c2436",10);
+      if(frame)ctx.drawImage(frame,r.x,r.y,r.w,r.h);
+      ctx.shadowBlur=0;
+      write(ctx,"夜行賞金",r.x+r.w/2,r.y+r.h*.28,r.w-24,20,"center",palette.light);
+      write(ctx,"金幣",r.x+r.w/2,r.y+r.h*.49,r.w-20,36,"center",palette.paper);
+      write(ctx,"+100",r.x+r.w/2,r.y+r.h*.65,r.w-20,30,"center",palette.light);
+      write(ctx,"永久留存",r.x+r.w/2,r.y+r.h*.86,r.w-24,16,"center",palette.dim);
+    }
+    else if(shared && frame && center){
       // Exact same approved raster frame for all 39; image sits beneath it.
       // Crop only the illustration opening specified by the approved manifest.
       const sx=r.w/1024,sy=r.h/1536,a=artworkBox;
@@ -262,6 +282,28 @@
       write(ctx,type,r.x+r.w/2,r.y+219,r.w-24,16,"center",palette.light);
     }
     ctx.restore();
+    if(c.type==="weapon" && c.lv===5 && typeof ctx.createLinearGradient==="function"){
+      // Short mirror sweep over the Lv5 artwork, preserving the approved card.
+      // It repeats every 4.8s, never as a permanent opaque overlay.
+      const phase=((Number(time)||0)%4.8+4.8)%4.8;
+      if(phase<.82){
+        const a={x:r.x+r.w*.11,y:r.y+r.h*.15,w:r.w*.78,h:r.h*.61};
+        const sweep=a.x-75+(a.w+150)*(phase/.82);
+        ctx.save();
+        ctx.beginPath();ctx.rect(a.x,a.y,a.w,a.h);ctx.clip();
+        ctx.globalCompositeOperation="screen";
+        const mirror=ctx.createLinearGradient(sweep-57,a.y,sweep+57,a.y+a.h);
+        mirror.addColorStop(0,"rgba(255,247,211,0)");
+        mirror.addColorStop(.39,"rgba(255,247,211,0)");
+        mirror.addColorStop(.49,"rgba(255,248,221,.64)");
+        mirror.addColorStop(.55,"rgba(255,255,255,.84)");
+        mirror.addColorStop(.65,"rgba(255,235,156,0)");
+        mirror.addColorStop(1,"rgba(255,235,156,0)");
+        ctx.fillStyle=mirror;
+        ctx.fillRect(a.x,a.y,a.w,a.h);
+        ctx.restore();
+      }
+    }
     if(focused){
       ctx.save();ctx.shadowColor="#f3af39";ctx.shadowBlur=15;
       ctx.strokeStyle=palette.light;ctx.lineWidth=3;
@@ -272,9 +314,9 @@
   }
   function drawDetails(ctx,L,c){
     const d=L.details;
-    // The approved illustrated result-paper is sliced, not stretched:
-    // parchment and painted corner ink now replace the old navy rectangle.
-    const approved=image("assets/img/ui/phase42/detail_board.webp");
+    // Use the actual shipped wide formal parchment; the previously preferred
+    // approved_details.webp path does not exist in this project.
+    const approved=image("assets/img/ui/phase42/detail_board.webp?v=20261109-details-wrap-r2");
     const paper=approved||image("assets/img/ui/illustrated/result_panel.webp");
     if(approved){
       ctx.save();
@@ -296,34 +338,37 @@
           dstX[col],dstY[row],dstW[col],dstH[row]);
       ctx.restore();
     }else paint(ctx,d.x,d.y,d.w,d.h,"rgba(243,228,200,.98)",9);
-    const ink="#4d3227",muted="#86563b";
+    const ink="#362016",muted="#45271d";
     if(!c){write(ctx,"目前沒有可選技能",450,d.y+d.h/2,300,22,"center",ink);return;}
     const tag=image("assets/img/ui/phase42/title_plaque.webp");
     if(tag){
-      ctx.drawImage(tag,d.x+25,d.y+7,104,22);
-      ctx.drawImage(tag,d.x+258,d.y+7,111,22);
-      write(ctx,"選定技能",d.x+77,d.y+18,93,13,"center",palette.light);
-      write(ctx,"術式效果",d.x+313,d.y+18,103,13,"center",palette.light);
+      ctx.drawImage(tag,d.x+23,d.y+7,132,27);
+      ctx.drawImage(tag,d.x+276,d.y+7,136,27);
+      write(ctx,"選定技能",d.x+89,d.y+21,110,15,"center",palette.light);
+      write(ctx,"術式效果",d.x+344,d.y+21,114,15,"center",palette.light);
     } else {
       write(ctx,"選定技能",d.x+26,d.y+24,205,14,"left",muted);
       write(ctx,"術式效果",d.x+259,d.y+24,d.w-285,14,"left",muted);
     }
-    write(ctx,c.n||"",d.x+26,d.y+51,205,25,"left",ink);
-    write(ctx,c.levelText||(c.lv?"Lv."+c.lv:""),d.x+26,d.y+77,205,16,"left",muted);
+    write(ctx,c.n||"",d.x+27,d.y+60,221,25,"left",ink);
+    // Dark ink rather than background-colored pale brown; never let the
+    // dynamic level transition vanish into the lower parchment floral art.
+    write(ctx,c.levelText||(c.lv?"Lv."+c.lv:""),d.x+27,d.y+88,220,18,"left",muted);
     ctx.strokeStyle="rgba(119,75,46,.40)";ctx.lineWidth=1.1;
-    ctx.beginPath();ctx.moveTo(d.x+239,d.y+15);ctx.lineTo(d.x+239,d.y+d.h-17);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(d.x+260,d.y+14);ctx.lineTo(d.x+260,d.y+d.h-14);ctx.stroke();
     const brief=UI.cardShort?.(c.id,c.n);
     const desc=brief?.s||c.d||"技能效果";
-    const x=d.x+259,w=d.w-285;
+    const x=d.x+280,w=d.w-310;
     const bodySize=Math.min(19,Math.max(17,Math.ceil(12/Math.max(.55,L.scale))));
-    paragraph(ctx,desc,x,d.y+51,w,c.requirementText||c.limitText?2:3,bodySize,
-      ink,20);
+    paragraph(ctx,desc,x,d.y+55,w,c.requirementText||c.limitText?1:2,bodySize,
+      ink,19);
     const note=[c.requirementText,c.limitText].filter(Boolean).join(" · ");
-    if(note)paragraph(ctx,note,x,d.y+87,w,1,14,muted);
+    if(note)paragraph(ctx,note,x,d.y+89,w,1,13,muted,17);
   }
   function drawReroll(ctx,L,amount,mode){
     const r=L.reroll;
-    const bg=image("assets/img/ui/upgrade/reroll_"+(amount>0?"normal":"disabled")+".webp");
+    const bg=image(amount>0?"assets/img/ui/upgrade/approved_reroll.webp":"")||
+      image("assets/img/ui/upgrade/reroll_"+(amount>0?"normal":"disabled")+".webp");
     if(bg){
       const side=Math.round(bg.naturalWidth*.18);
       const dest=Math.min(r.w*.25,side*r.h/bg.naturalHeight);
@@ -346,7 +391,8 @@
   // Browser/game now loads approved raster paths directly. No ZIP picker,
   // font dropdown or calibration badge is needed in normal play.
   if(typeof document!=="undefined" && document.fonts?.load) {
-    void document.fonts.load('400 24px "Yokai Trial MoonStars Kai T"','能力提升 選卡 靈針 長明燈油').catch(()=>{});
+    const selectedFont=trialWebFonts[fontMode];
+    if(selectedFont)void document.fonts.load(`400 24px "${selectedFont}"`,'能力提升 選卡 靈針 長明燈油').catch(()=>{});
   }
   image(framePath);
 
@@ -354,9 +400,11 @@
     const L=UI.levelUpLayout(choices.length),i=Math.max(0,Math.min(choices.length-1,focus));
     ctx.save();
     backdrop(ctx,L,awakening);
-    L.cards.forEach((r,k)=>drawChoice(ctx,choices[k],r,k===i,k+1));
+    L.cards.forEach((r,k)=>drawChoice(ctx,choices[k],r,k===i,k+1,time));
     drawDetails(ctx,L,choices[i]||null);
-    drawReroll(ctx,L,rerolls,mode);
+    if(choices.length===1 && choices[0]?.type==="coins"){
+      write(ctx,"金幣可留存至下次夜行",450,541,420,19,"center",palette.light);
+    } else drawReroll(ctx,L,rerolls,mode);
     ctx.restore();
   };
 })();
