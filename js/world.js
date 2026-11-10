@@ -541,6 +541,8 @@
       }
 
       const solids = houses.map(h => ({
+        // Share this exact collision footprint with pickup interaction.
+        houseId: h.id,
         // Official rain-port façades are 145-165 world units wide.
         // Keep their solid footprint within the rendered foundations,
         // instead of letting the courier visibly enter the picture edge.

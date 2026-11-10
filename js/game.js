@@ -462,10 +462,8 @@
 
   function checkVictoryCondition() {
     if (!finalBossDefeated) return false;
-    // 尾王死後立即達成勝利，不需等到 10:00
-    if (STAGE && STAGE.id === "night-town") {
-      return true;
-    }
+    // Defeating the final Boss alone is not a completed delivery run.
+    // Both stages require their configured delivery goal.
     return delivered >= GOAL_DELIVERIES;
   }
   let ended = false, bossQ = null, bossSealBreak = null, bossCurseRemaining = 0, codexBack = "menu", codexTab = "cards", codexPage = 0;
@@ -1001,6 +999,7 @@
 
   let proj = [], needles = [], needleQueued = [], winds = [], ghosts = [], dragonShots = [], dragonScorches = [], crosscuts = [], barrierPulses = [], sacredSanctuary = null, splitblasts = [], duoShockwaves = [], inkfireMarks = [], surgeT = SURGE_FIRST, fAng = 0, fireEmitT = 0, fireSfxT = 0, fireAttackT = 0;
   let boomLv5BurstFx = []; // temporary secondary sparks/smoke around painted Lv5 boom art
+  let boomSecondSide = 1; // alternate off-center talismans; preserve a straight shot
   let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1;
   const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0, fire: 0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 };
 
@@ -1015,7 +1014,7 @@
         if (e.hp <= 0) continue;
         const ed = dist(P, e);
         if (ed > 210) continue;
-        hurt(e, 3.2 * b.dmg);
+        hurt(e, 3.2 * getEffectiveDmg());
         knockback(e, 90);
       }
       burst(P.x, P.y, "#a5d6a7", 30);
@@ -1423,6 +1422,7 @@ if (isRainPort) {
       window.FUSION.reset();
     }
     boomLv5BurstFx = [];
+    boomSecondSide = 1;
     proj = []; needles = []; needleQueued = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; splitblasts = []; duoShockwaves = []; inkfireMarks = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1;
     fAng = 0; fireEmitT = 0; fireSfxT = 0; fireAttackT = 0;
     wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0; wT.katana = 0.3;
@@ -1526,7 +1526,9 @@ if (isRainPort) {
     // 奧義由獨立融合儀式視窗選擇；一般修行三選一永不塞入融合卡。
     const fc = [];
 
-    const pc = shuffle(UP.filter(u => passiveStackCount(u.id) < PASSIVE_MAX_STACKS[u.id] && (!u.ok || u.ok()))).map(u => {
+    const critUseful = ["katana", "barrier", "thunder"].some(id => (WL[id] || 0) > 0);
+    const pc = shuffle(UP.filter(u => (u.id !== "crit" || critUseful) &&
+      passiveStackCount(u.id) < PASSIVE_MAX_STACKS[u.id] && (!u.ok || u.ok()))).map(u => {
       let consumed = false;
       const choiceId = `passive:${u.id}`;
       const stacks = passiveStackCount(u.id);
@@ -1727,7 +1729,6 @@ if (isRainPort) {
     if (state !== "play" && state !== "levelup") return;
     buildRevision++;
     choices = getEligibleChoices();
-    if (choices.some(choice => choice.type === "mutation")) lastMutationOfferLevel = level;
 
     for (const choice of choices) if (choice.type === 'weapon') window.prepareSkillArt?.(choice.id, choice.lv);
     if (!choices.length) {
@@ -1780,6 +1781,9 @@ if (isRainPort) {
     if (applied === false) {
       return { ok: false, reason: "ineligible" };
     }
+    // Commit rarity only after selecting from the FINAL offer. Rerolling a
+    // mutation offer must not immediately make another offer ineligible.
+    if (choices.some(card => card.type === "mutation")) lastMutationOfferLevel = level;
     if (isFreeCompensationChoice) {
       isFreeCompensationChoice = false;
       pendingFusionCompensation = false;
@@ -2061,7 +2065,7 @@ if (isRainPort) {
         if (volley.hits.has(foe) || dist(e, foe) >= 105) continue;
         volley.hits.add(foe);
         extra++;
-        hurt(foe, 2.5 * b.dmg, false, true);
+        hurt(foe, 2.5 * getEffectiveDmg(), false, true);
       }
     }
 
@@ -2924,8 +2928,8 @@ if (isRainPort) {
       const faceAng = P.faceAng || 0;
       let hasEnemyInArc = false;
       for (const e of enemies) {
-        if (e.hp > 0 && window.GAME_COMBAT_MATH.bladeArcContains(
-          P, e, spec.isAwakened ? (spec.hasLongblade ? 680 : 560) : reach, faceAng, spec.arc
+        if (e.hp > 0 && !e.shield && !e.vanish && !e.done && window.GAME_COMBAT_MATH.bladeArcContains(
+          P, e, spec.isAwakened ? spec.maxTravel : reach, faceAng, spec.arc
         )) {
           hasEnemyInArc = true;
           break;
@@ -3029,7 +3033,7 @@ if (isRainPort) {
       }
       for (const e of enemies) {
         const pierceCap = wave.pierceLimit || 6;
-        if (!(e.hp > 0) || wave.hits.size >= pierceCap || wave.hits.has(e)) continue;
+        if (!(e.hp > 0) || e.shield || e.vanish || e.done || wave.hits.size >= pierceCap || wave.hits.has(e)) continue;
         if (!window.GAME_COMBAT_MATH.katanaWaveContains(e, wave)) continue;
         const wasBurned = !!(e.fireBurnEnds && e.fireBurnEnds > elapsed);
         const hpBefore = e.hp;
@@ -3059,9 +3063,10 @@ if (isRainPort) {
           }
         }
       }
-      const cam = RENDERER.getCam(), view = worldViewBounds(), margin = wave.size * 0.62;
-      const left = cam.x + view.left, right = cam.x + view.right, top = cam.y + view.top, bottom = cam.y + view.bottom;
-      if (wave.x < left - margin || wave.x > right + margin || wave.y < top - margin || wave.y > bottom + margin || wave.traveled >= wave.maxTravel) wave.life = 0;
+      // A long-range wind can leave the current camera while still having a
+      // valid target in its advertised range. Rendering may cull off-screen
+      // pixels, but combat flight must stop only at its world-distance cap.
+      if (wave.traveled >= cap) wave.life = 0;
     }
     winds = winds.filter(p => p.life > 0);
 
@@ -3735,6 +3740,7 @@ if (isRainPort) {
           }
         } else {
           const spread = spec.spread;
+          const volley = spec.frost ? { used: false, hits: new Set() } : null;
           for (let i = 0; i < count; i++) {
             const a = shootAng + (i - (count - 1) / 2) * (spread / Math.max(1, count - 1));
             needles.push({
@@ -3753,6 +3759,7 @@ if (isRainPort) {
               trail: 0,
               ice: spec.frost || false,
               frost: spec.frost || false,
+              volley,
               tracking: spec.tracking || false,
               turnRate: spec.turnRate || 4.2,
               seekRange: spec.seekRange || 480,
@@ -3773,7 +3780,7 @@ if (isRainPort) {
             });
           }
         }
-        if (!spec.isAwakened) SKILLFX.play("needle", "fire", spec.level, { x: P.x + Math.cos(shootAng) * 28, y: P.y + Math.sin(shootAng) * 28 });
+        if (!spec.isAwakened) SKILLFX.play("needle", "fire", spec.level, { x: P.x + Math.cos(shootAng) * 28, y: P.y + Math.sin(shootAng) * 28, frost: spec.frost });
         if (!spec.isAwakened) AUDIO.needle(spec.level);
       }
     }
@@ -3814,7 +3821,7 @@ if (isRainPort) {
         distanceTraveled: 0, returned: false, returning: false
       });
       SKILLFX.play("needle", "fire", spec.level, {
-        x: originX + Math.cos(a) * 20, y: originY + Math.sin(a) * 20
+        x: originX + Math.cos(a) * 20, y: originY + Math.sin(a) * 20, frost: spec.frost
       });
       AUDIO.needle(spec.level); // Sound on EACH individual released shot.
     }
@@ -3830,7 +3837,8 @@ if (isRainPort) {
       if (!nd.returning) {
         EVOLUTIONS.curve(nd, dt);
         if (nd.tracking && (!nd.curve || nd.curved || nd.curveDone)) {
-          if (!nd.target || nd.target.hp <= 0 || dist(nd, nd.target) > (nd.seekRange || 480)) {
+          if (!nd.target || nd.target.hp <= 0 || nd.target.shield || nd.target.vanish || nd.target.done ||
+              dist(nd, nd.target) > (nd.seekRange || 480)) {
             nd.target = null;
             nd.retargetT = (nd.retargetT || 0) - dt;
             if (nd.retargetT <= 0) {
@@ -3838,7 +3846,7 @@ if (isRainPort) {
               nd.target = window.GAME_COMBAT_MATH.needleSeekTarget(enemies, nd);
             }
           }
-          if (nd.target && nd.target.hp > 0) {
+          if (nd.target && nd.target.hp > 0 && !nd.target.shield && !nd.target.vanish && !nd.target.done) {
             const targetAng = Math.atan2(nd.target.y - nd.y, nd.target.x - nd.x);
             const diff = Math.atan2(Math.sin(targetAng - nd.ang), Math.cos(targetAng - nd.ang));
             const maxTurn = (nd.turnRate || 4.2) * dt;
@@ -3886,7 +3894,7 @@ if (isRainPort) {
       }
       if ((nd.trail -= dt) <= 0) {
         nd.trail = 0.03;
-        SKILLFX.play("needle", "trail", nd.level ?? WL.needle, { x: nd.x, y: nd.y, ang: Math.atan2(nd.vy, nd.vx) });
+        SKILLFX.play("needle", "trail", nd.level ?? WL.needle, { x: nd.x, y: nd.y, ang: Math.atan2(nd.vy, nd.vx), frost: nd.frost });
       }
       for (const e of enemies) {
         const returnBonusHit = nd.hasReturn && nd.returning && nd.hits?.has(e) && !nd.returnBonusHits?.has(e);
@@ -3918,7 +3926,7 @@ if (isRainPort) {
           }
           hurt(e, dmg);
           if (!returnBonusHit && (nd.frost || nd.ice)) applyFrost(e, elapsed, nd.volley || null);
-          SKILLFX.play("needle", "hit", nd.level ?? WL.needle, { x: nd.x, y: nd.y });
+          SKILLFX.play("needle", "hit", nd.level ?? WL.needle, { x: nd.x, y: nd.y, frost: nd.frost });
         }
       }
     }
@@ -3937,8 +3945,15 @@ if (isRainPort) {
           const count = spec.count;
           const baseAng = Math.atan2(t.y - P.y, t.x - P.x);
           const castState = { frostsealUsed: false, cinderUsed: false };
+          const castSide = boomSecondSide;
+          if (count % 2 === 0) boomSecondSide = -boomSecondSide;
           for (let i = 0; i < count; i++) {
-            const a = baseAng + (i - (count - 1) / 2) * spec.spread;
+            // Even volleys used to straddle the aim line. Keep a central
+            // talisman; alternate the extra left/right spread each cast.
+            const offset = count % 2 === 0
+              ? (i - (count - 2) / 2) * castSide
+              : i - (count - 1) / 2;
+            const a = baseAng + offset * spec.spread;
             proj.push({
               x: P.x, y: P.y,
               vx: Math.cos(a) * spec.speed,
@@ -4535,11 +4550,16 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       } else {
         job.barrierTimer = (job.barrierTimer ?? 10.0) - dt;
         if (job.barrierTimer <= 0) {
-          // 10 秒到期必須結束暫停，扣除 5% max HP 並恢復戰鬥
-          job.barrierTimer = null;
-          job.reading = false;
-          job.readClosed = true;
+          // Timeout settles this parcel ONCE: never leave a delivery
+          // interactable that can later be scored again.
+          const expiredJob = job;
+          job = null;
+          inter = null;
+          nameT = 0;
           failed++;
+          misses.push(expiredJob.word);
+          STORE.rec(expiredJob.word.jp, false);
+          study?.mistake?.(expiredJob.word, elapsed);
           const penalty = Math.max(3, Math.round(maxOil * 0.05));
           oil = Math.max(0, oil - penalty);
           say("結界消散・答題逾時", P.x, P.y - 45, "#ff4d4d");
@@ -4593,7 +4613,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         const need = Math.max(0, GOAL_DELIVERIES - delivered);
         const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
         const bTitle = story?.bossTitle || "大妖";
-        const prompt = !finalBossDefeated ? `擊敗${bTitle}` : (STAGE.id === "night-town" ? "破曉已至" : `還差 ${need} 件委託`);
+        const prompt = !finalBossDefeated ? `擊敗${bTitle}` : (need > 0 ? `還差 ${need} 件委託` : "破曉已至");
         say(prompt, P.x, P.y - 75, "#ffb3ba");
       }
     }
@@ -4606,11 +4626,13 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     // 命中停頓只凍結戰鬥動作；夜行時鐘、Boss 排程與耗油照常前進。
     if (hitStopped && !safeRead) return;
 
-    P.inv = Math.max(0, P.inv - dt);
+    // Reading suspends combat time; it must not recharge dash for free or
+    // silently consume the player's remaining damage immunity.
+    if (!safeRead) P.inv = Math.max(0, P.inv - dt);
     playerAttackPoseT = Math.max(0, playerAttackPoseT - dt);
     playerHurtPoseT = Math.max(0, playerHurtPoseT - dt);
     dashT = Math.max(0, dashT - dt);
-    dashCd = Math.max(0, dashCd - dt);
+    if (!safeRead) dashCd = Math.max(0, dashCd - dt);
     hintT = Math.max(0, hintT - dt);
     nameT = Math.max(0, nameT - dt);
 
@@ -5118,14 +5140,18 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     // combat frame and potentially overwrite that modal with a level-up.
     if (state !== "play") return;
 
-    // 配送取貨：靠近町屋即可出現裝置對應的取貨操作。
+    // Pickup must use the SAME footprint that stops the courier, not the
+    // obsolete 96px-wide approximation (rain-port houses reach ±100.5px).
     inter = null;
     if (!job) {
-      let nd = 46;
+      let nd = 44;
       for (const o of orders) {
         const h = o.from;
-        const cx = clamp(P.x, h.x - 48, h.x + 48);
-        const cy = clamp(P.y, h.y - 25, h.y + 45);
+        const solid = solids.find(s => s.houseId === h.id);
+        // Fallback keeps compatibility with old/stage fixtures without
+        // changing the actual collidable rain-port footprint.
+        const cx = clamp(P.x, solid?.x0 ?? h.x-48, solid?.x1 ?? h.x+48);
+        const cy = clamp(P.y, solid?.y0 ?? h.y-25, solid?.y1 ?? h.y+45);
         const d = Math.hypot(P.x - cx, P.y - cy);
         if (d < nd) { nd = d; inter = o; }
       }
@@ -6280,7 +6306,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       upright(p.x,p.y,()=>SKILLFX.paint(ctx,"ghost",p.level??5,p));
     for (const nd of needles)
       upright(nd.x,nd.y,()=>SKILLFX.paint(ctx,"needle",nd.level??WL.needle,
-        { x:nd.x,y:nd.y,ang:nd.ang ?? Math.atan2(nd.vy,nd.vx) }));
+        { x:nd.x,y:nd.y,ang:nd.ang ?? Math.atan2(nd.vy,nd.vx),frost:!!nd.frost }));
 
     // 13. 斬擊弧與結界擊中環 — impact rings belong to the ground plane.
     for (const r of rings) {
@@ -6369,38 +6395,11 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.restore();
     }
 
-    // 15. 浮動傷害數字
-    RENDERER.drawDamageNumbers();
+    // 15. 浮動傷害數字 — 延後到所有發光特效之上繪製，避免符咒爆炸蓋字。
 
     // 配送導引標記在建築與角色之上，避免被深度排序遮住。
     houses.forEach(h => {
-      const hasOrder = orders.some(o => o.from === h);
       const isDestination = job && job.to === h;
-
-
-      // 若有待接委託：升起顯眼的金色導引光柱與包裹圖標
-      if (hasOrder) {
-        const floatY = h.y - 75 + Math.sin(elapsed * 4 + h.phase) * 4 * liveMotion();
-        ctx.save();uprightHere(h.x,h.y+46);
-        const beam = ctx.createLinearGradient(0, floatY - 24, 0, h.y - 8);
-        beam.addColorStop(0, "rgba(255, 215, 80, 0.45)");
-        beam.addColorStop(1, "rgba(255, 215, 80, 0)");
-        ctx.fillStyle = beam;
-        ctx.fillRect(h.x - 10, floatY - 24, 20, h.y - floatY + 16);
-
-        ctx.fillStyle = "#ffd54f";
-        ctx.beginPath();
-        ctx.arc(h.x, floatY, 13, 0, 6.28);
-        ctx.fill();
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        ctx.textAlign = "center";
-        ctx.font = UI.readableFont(14, "");
-        UI.drawActionIcon(ctx,'pickup',h.x,floatY-3,13);
-        ctx.restore();
-      }
 
       // 若為送貨目的地：升起靈光鳥居標記
       if (isDestination) {
@@ -6429,7 +6428,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       const isTarget = (inter === o);
 
       ctx.save();uprightHere(h.x,h.y+46);
-      // Enlarge cargo picture (e.g. pencil) and center it with the word.
+      // Restore the word's own cargo illustration INSIDE the bubble, alongside
+      // its Chinese name. Only the redundant yellow marker below is removed.
       const bw = 196, bh = 58;
       const bx = h.x - bw / 2;
       ctx.fillStyle = isTarget ? "#fffdf5" : "#f7f0df";
@@ -6606,9 +6606,15 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
 
     // 融合圖已在地面層繪製，這裡不重畫，讓怪物／玩家／Boss 警示始終在上方。
     ctx.restore();
+    // Final world-space text pass: ofuda impact pictures must sit BELOW
+    // floating damage digits, including those painted after the night mask.
+    ctx.save();
+    tiltWorld(cam,shakeOffset);
+    RENDERER.drawDamageNumbers();
+    ctx.restore();
 
-    // 破曉後若配達已完成（第一關破曉即可），使用與送貨金箭頭不同的赤色雙箭頭追蹤最終大妖鬼。
-    const bossHunt = elapsed >= DAWN && (STAGE.id === "night-town" || delivered >= GOAL_DELIVERIES) && !finalBossDefeated;
+    // All stages keep delivery guidance until the required orders are done.
+    const bossHunt = elapsed >= DAWN && delivered >= GOAL_DELIVERIES && !finalBossDefeated;
     const bossTarget = bossHunt ? enemies.find(e => e.type === "boss" && e.final && e.hp > 0) : null;
     if (bossTarget) {
       const huntScreen = window.VIEWPORT?.worldToScreen
@@ -7213,7 +7219,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if (WL.katana > 0) cd.katana = clamp((atkT - 0.1) / Math.max(0.01, wMax.katana - 0.1), 0, 1);
     for (const k of ["barrier", "needle", "boom", "thunder", ...(WL.fire===5?["fire"]:[])]) if (WL[k] > 0) cd[k] = clamp(wT[k] / wMax[k], 0, 1);
     const guideTarget = job ? job.to : orders.reduce((n, o) => (!n || dist(P, o.from) < dist(P, n) ? o.from : n), null);
-    const bossHunting = elapsed >= DAWN && (STAGE.id === "night-town" || delivered >= GOAL_DELIVERIES) && !finalBossDefeated;
+    const bossHunting = elapsed >= DAWN && delivered >= GOAL_DELIVERIES && !finalBossDefeated;
     const huntTarget = bossHunting ? enemies.find(e => e.type === "boss" && e.final && e.hp > 0) : null;
     const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
     const bossTitle = huntTarget?.title || story?.bossTitle || "大妖";
@@ -7223,7 +7229,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       stageId: STAGE.id,
       bossTitle,
       lanternHit: clamp(lanternHitT / 0.42, 0, 1),
-      // 固定在任務區旋轉的方向箭頭：送貨／取貨目標（金），破曉後的大妖（赤雙箭頭）。
+      // 固定在任務區旋轉的方向箭頭：未完成配送時繼續顯示金色目標，配送達標再顯示赤色 Boss。
       guideAngle: guideTarget ? Math.atan2(guideTarget.y - P.y, guideTarget.x - P.x) : null,
       bossAngle: huntTarget ? Math.atan2(huntTarget.y - P.y, huntTarget.x - P.x) : null,
       boss: enemies.find(e => e.type === "boss" && e.hp > 0) || null,
@@ -7409,7 +7415,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         }
       } else {
         const dashMax = Math.max(0.6, 1.8 - b.dash * 0.38);
-        const bossHunt = elapsed >= DAWN && (STAGE.id === "night-town" || delivered >= GOAL_DELIVERIES) && !finalBossDefeated;
+        const bossHunt = elapsed >= DAWN && delivered >= GOAL_DELIVERIES && !finalBossDefeated;
         UI.drawHud(
           ctx, P, oil, maxOil, elapsed, DAWN, delivered, failed, score, level, xp, xpNeed(),
           job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, GOAL_DELIVERIES,
@@ -7430,8 +7436,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
           ctx.fillText(label, W / 2, by + 21, bw - 22);
           ctx.restore();
         }
-        // 第2～8關：破曉且終王已倒，仍須送滿委託；常駐提示剩餘件數（勝利規則不變）。
-        if (state === "play" && STAGE.id !== "night-town" && elapsed >= DAWN && finalBossDefeated && delivered < GOAL_DELIVERIES) {
+        // Every stage: defeating the final Boss before completing deliveries
+        // must leave a visible remaining-order reminder.
+        if (state === "play" && elapsed >= DAWN && finalBossDefeated && delivered < GOAL_DELIVERIES) {
           ctx.save();
           const msg = `破曉已至・還差 ${GOAL_DELIVERIES - delivered} 件委託`;
           ctx.font = "bold 18px sans-serif";

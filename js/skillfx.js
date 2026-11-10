@@ -29,6 +29,15 @@ window.SKILLFX = (() => {
     if(img)return drawImageArt(ctx,img,o);
     return legacyKey ? drawArt(ctx,legacyKey,o) : false;
   }
+  // Neutralize the approved cyan raster per draw until mut_frost is owned.
+  // Canvas filter preserves ink/shading and never mutates the source sprite.
+  function drawNeedleRankedArt(ctx,rank,o,legacyKey) {
+    ctx.save();
+    if(!o.frost) ctx.filter="grayscale(0.82) saturate(0.46) brightness(1.17)";
+    const painted=drawRankedArt(ctx,"needle",rank,o,legacyKey);
+    ctx.restore();
+    return painted;
+  }
   function rankedKey(id,rank,legacyKey) {
     const img=rankedArt(id,rank),key=window.skillVfxKey?.(id,rank);
     return img && key ? key : legacyKey;
@@ -244,14 +253,14 @@ window.SKILLFX = (() => {
     if(id==='boom'&&rank===5){yinBody(ctx,params,rank);return;}
     if(!skills[id]?.body)return;
     if(!['needle','boom','fire'].includes(id)){skills[id].body(ctx,rank,params,rank);return;}
-    const {x,y}=params,color=id==='needle'?'#7ed9ed':id==='boom'?'#ed8d4d':'#ffb464';
+    const {x,y}=params,color=id==='needle'?(params.frost?'#7ed9ed':'#d9e7f0'):id==='boom'?'#ed8d4d':'#ffb464';
     FX.glow(ctx,x,y,(id==='needle'?[22,26,30,34,38]:[30,40,50,64,82])[rank-1],color,[0.15,0.18,0.2,0.23,0.28][rank-1]);
     // 程序化備援仍維持三段；body 額外拿完整 rank，五階點陣圖不再被壓成 Lv3。
     skills[id].body(ctx,Math.min(rank,3),params,rank);
     if(id==='fire'&&params.orbit)return;
     if(rank>=4){
       ctx.save();ctx.translate(x,y);ctx.rotate(params.ang??params.spin??0);
-      ctx.strokeStyle=id==='needle'?'#c2f4ff':'#ffd996';ctx.lineWidth=rank===5?2.6:1.6;
+      ctx.strokeStyle=id==='needle'?(params.frost?'#c2f4ff':'#e8edf1'):'#ffd996';ctx.lineWidth=rank===5?2.6:1.6;
       ctx.beginPath();ctx.moveTo(-25,-7);ctx.lineTo(-12,-4);ctx.moveTo(-25,7);ctx.lineTo(-12,4);ctx.stroke();
       if(rank===5){ctx.fillStyle='#f4edc8';ctx.beginPath();ctx.moveTo(19,0);ctx.lineTo(4,-5);ctx.lineTo(-2,0);ctx.lineTo(4,5);ctx.closePath();ctx.fill();}
       ctx.restore();
@@ -259,19 +268,19 @@ window.SKILLFX = (() => {
   }
 
   const tones={katana:'#eecb8e',barrier:'#ecda91',needle:'#8dddff',boom:'#f29c62',fire:'#ffb865',thunder:'#d8d0ff'};
-  function iceNeedle(ctx,{x,y,ang=0},rank=5){
-    if(drawRankedArt(ctx,'needle',rank,{x,y,w:116,ang},'needle_ice_ukiyoe'))return;
+  function iceNeedle(ctx,{x,y,ang=0,frost=false},rank=5){
+    if(drawNeedleRankedArt(ctx,rank,{x,y,w:116,ang,frost},'needle_ice_ukiyoe'))return;
     ctx.save();ctx.translate(x,y);ctx.rotate(ang);
-    FX.glow(ctx,0,0,56,'#7ed9ed',0.26);
+    FX.glow(ctx,0,0,56,frost?'#7ed9ed':'#dce6ef',0.26);
     // 1. 冰魄神槍主晶體 (Prismatic Glacial Lance Core)
-    ctx.fillStyle='#1e7ca6';ctx.strokeStyle='#ffffff';ctx.lineWidth=2.2;
+    ctx.fillStyle=frost?'#1e7ca6':'#8eabbc';ctx.strokeStyle='#ffffff';ctx.lineWidth=2.2;
     ctx.beginPath();ctx.moveTo(38,0);ctx.lineTo(-8,-12);ctx.lineTo(-26,0);ctx.lineTo(-8,12);ctx.closePath();ctx.fill();ctx.stroke();
     // 2. 鑽石折射冰刃 (Faceted Crystalline Blades)
-    ctx.fillStyle='#5cd9f8';ctx.beginPath();ctx.moveTo(38,0);ctx.lineTo(-8,-12);ctx.lineTo(-2,0);ctx.closePath();ctx.fill();
-    ctx.fillStyle='#b8f4ff';ctx.beginPath();ctx.moveTo(38,0);ctx.lineTo(-2,0);ctx.lineTo(-8,12);ctx.closePath();ctx.fill();
+    ctx.fillStyle=frost?'#5cd9f8':'#cedfe8';ctx.beginPath();ctx.moveTo(38,0);ctx.lineTo(-8,-12);ctx.lineTo(-2,0);ctx.closePath();ctx.fill();
+    ctx.fillStyle=frost?'#b8f4ff':'#eff6f9';ctx.beginPath();ctx.moveTo(38,0);ctx.lineTo(-2,0);ctx.lineTo(-8,12);ctx.closePath();ctx.fill();
     ctx.fillStyle='#ffffff';ctx.beginPath();ctx.moveTo(38,0);ctx.lineTo(8,-4);ctx.lineTo(8,4);ctx.closePath();ctx.fill();
     // 3. 雙側展翼冰稜 (Lateral Frost Wings)
-    ctx.strokeStyle='#a6f2ff';ctx.lineWidth=2;
+    ctx.strokeStyle=frost?'#a6f2ff':'#e2eaf1';ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(-6,-10);ctx.lineTo(-20,-20);ctx.lineTo(-12,-6);
     ctx.moveTo(-6,10);ctx.lineTo(-20,20);ctx.lineTo(-12,6);ctx.stroke();
     // 4. 核心雪晶符印 (Snowflake Core Inscription)
@@ -317,14 +326,15 @@ window.SKILLFX = (() => {
     const trailing=['trail','ember','ghostTrail'].includes(event);
     if(trailing&&rank<4)return;
     const {x,y}=p,size=trailing?[0,0,0,20,30][rank-1]:[40,54,70,90,124][rank-1];
-    emit('glow',tones[id],{x,y,life:trailing?0.14:0.2,s0:size,s1:size*1.1,a:trailing?0.12:[0.16,0.18,0.2,0.24,0.28][rank-1],blend:'lighter',ground:id==='barrier',sy:id==='barrier'?SQ:1});
+    const tone=id==='needle'&&!p.frost?'#d9e7f0':tones[id];
+    emit('glow',tone,{x,y,life:trailing?0.14:0.2,s0:size,s1:size*1.1,a:trailing?0.12:[0.16,0.18,0.2,0.24,0.28][rank-1],blend:'lighter',ground:id==='barrier',sy:id==='barrier'?SQ:1});
     if(trailing){
-      emit('stroke',event==='ghostTrail'?'#b1ecdf':tones[id],{x,y,rot:p.ang||0,life:0.12,s0:rank===4?16:28,s1:6,a:rank===4?0.4:0.6});
+      emit('stroke',event==='ghostTrail'?'#b1ecdf':tone,{x,y,rot:p.ang||0,life:0.12,s0:rank===4?16:28,s1:6,a:rank===4?0.4:0.6});
       return;
     }
     if(rank>=4){
-      chips(x,y,tones[id],trailing?rank-2:rank===4?5:14,{size:rank===4?10:15,speed:rank===4?170:280,life:0.3});
-      if(!trailing)emit('edge',tones[id],{x,y,life:0.3,s0:rank===4?30:45,s1:rank===4?92:148,a:0.48,ground:true,sy:SQ});
+      chips(x,y,tone,trailing?rank-2:rank===4?5:14,{size:rank===4?10:15,speed:rank===4?170:280,life:0.3});
+      if(!trailing)emit('edge',tone,{x,y,life:0.3,s0:rank===4?30:45,s1:rank===4?92:148,a:0.48,ground:true,sy:SQ});
     }
     if(id==='barrier'&&event==='cast'&&rank===5){
       for(let i=0;i<8;i++){
@@ -489,26 +499,26 @@ window.SKILLFX = (() => {
 
   // 靈針：冷色單線 → 雙羽 → 三叉針；尾跡是短線，避免多發彈幕堆成藍色霧團。
   define("needle",{
-    fire(t,{x,y}) { chips(x,y,'#7ec9d8',T(t,2,4,6),{speed:90,size:T(t,5,7,9),life:0.16}); },
-    trail(t,{x,y,ang}) {
+    fire(t,{x,y,frost=false}) { chips(x,y,frost?'#7ec9d8':'#dbe8f0',T(t,2,4,6),{speed:90,size:T(t,5,7,9),life:0.16}); },
+    trail(t,{x,y,ang,frost=false}) {
       for(let i=0;i<t;i++){
         const offset=(i-(t-1)/2)*T(t,0,3,4);
-        emit('stroke',i===1?'#d7e8df':'#77bac9',{x:x-Math.sin(ang)*offset,y:y+Math.cos(ang)*offset,
+        emit('stroke',frost?(i===1?'#d7e8df':'#77bac9'):(i===1?'#f4f6f8':'#c6dbe9'),{x:x-Math.sin(ang)*offset,y:y+Math.cos(ang)*offset,
           rot:ang,life:T(t,0.1,0.14,0.18),s0:T(t,16,23,30),s1:5,sx:1.5,a:T(t,0.42,0.5,0.6)});
       }
     },
-    hit(t,{x,y}) {
-      cut(x,y,Math.PI/4,T(t,14,22,34),0,'#cbe7ea');
-      if(t>1)cut(x,y,-Math.PI/4,T(t,0,18,30),0.03,'#7ec9d8');
-      if(t===3)cut(x,y,0,40,0.06,'#cbe7ea');
-      chips(x,y,'#77c2d5',T(t,2,4,7),{speed:T(t,90,130,180),size:T(t,5,7,9),life:0.22});
+    hit(t,{x,y,frost=false}) {
+      cut(x,y,Math.PI/4,T(t,14,22,34),0,frost?'#cbe7ea':'#e8f0f5');
+      if(t>1)cut(x,y,-Math.PI/4,T(t,0,18,30),0.03,frost?'#7ec9d8':'#c3dbe8');
+      if(t===3)cut(x,y,0,40,0.06,frost?'#cbe7ea':'#e8f0f5');
+      chips(x,y,frost?'#77c2d5':'#d6e5ee',T(t,2,4,7),{speed:T(t,90,130,180),size:T(t,5,7,9),life:0.22});
     },
-    body(ctx,t,{x,y,ang},rank=t) {
-      if(drawRankedArt(ctx,'needle',rank,{x,y,w:[48,60,76,92,108][rank-1],ang},'needle_hama_ukiyoe'))return;
+    body(ctx,t,{x,y,ang,frost=false},rank=t) {
+      if(drawNeedleRankedArt(ctx,rank,{x,y,w:[48,60,76,92,108][rank-1],ang,frost},'needle_hama_ukiyoe'))return;
       ctx.save();ctx.translate(x,y);ctx.rotate(ang);
       const len=T(t,16,22,30);
-      ctx.fillStyle='#b9e2e4';ctx.beginPath();ctx.moveTo(len/2,0);ctx.lineTo(-len/2,-2);ctx.lineTo(-len/3,0);ctx.lineTo(-len/2,2);ctx.closePath();ctx.fill();
-      if(t>=2){ctx.strokeStyle='#70bdcf';ctx.lineWidth=1.4;for(const side of [-1,1]){ctx.beginPath();ctx.moveTo(-len/2,side*4);ctx.lineTo(len/3,side*2);ctx.stroke();}}
+      ctx.fillStyle=frost?'#b9e2e4':'#e0e9ee';ctx.beginPath();ctx.moveTo(len/2,0);ctx.lineTo(-len/2,-2);ctx.lineTo(-len/3,0);ctx.lineTo(-len/2,2);ctx.closePath();ctx.fill();
+      if(t>=2){ctx.strokeStyle=frost?'#70bdcf':'#bbcfdc';ctx.lineWidth=1.4;for(const side of [-1,1]){ctx.beginPath();ctx.moveTo(-len/2,side*4);ctx.lineTo(len/3,side*2);ctx.stroke();}}
       if(t===3){ctx.fillStyle='#efe8cc';ctx.fillRect(-8,-1,17,2);ctx.fillRect(-12,-5,4,2);ctx.fillRect(-12,3,4,2);}
       ctx.restore();
     }

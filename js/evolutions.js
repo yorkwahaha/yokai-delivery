@@ -138,9 +138,10 @@
 
   function seek(p,dt,enemies) {
     p.age=(p.age||0)+dt;
-    if(!p.target || p.target.hp<=0 || !enemies.includes(p.target) || Math.hypot(p.target.x-p.x,p.target.y-p.y)>650){
+    if(!p.target || p.target.hp<=0 || p.target.shield || p.target.vanish || p.target.done ||
+       !enemies.includes(p.target) || Math.hypot(p.target.x-p.x,p.target.y-p.y)>650){
       p.target=null;let nearest=650;
-      for(const e of enemies){const d=Math.hypot(e.x-p.x,e.y-p.y);if(e.hp>0&&d<nearest){nearest=d;p.target=e;}}
+      for(const e of enemies){const d=Math.hypot(e.x-p.x,e.y-p.y);if(e.hp>0&&!e.shield&&!e.vanish&&!e.done&&d<nearest){nearest=d;p.target=e;}}
     }
     if(p.target){
       const aim=Math.atan2(p.target.y-p.y,p.target.x-p.x);

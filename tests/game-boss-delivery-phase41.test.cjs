@@ -34,8 +34,7 @@ for (const stage of ['night-town', 'rain-port']) {
     const elapsed = before.elapsed, oil = before.oil;
     g.update(0.05);
     const after = g.snapshot();
-    assert.equal(after.job.reading, false);
-    assert.equal(after.job.readClosed, true);
+    assert.equal(after.job, null, 'expired parcel must be settled and removed once');
     assert.equal(after.failed, before.failed + 1);
     assert.equal(after.elapsed, elapsed, 'Boss must protect expiry handoff frame');
     assert.equal(after.oil, oil - 5, 'only the delivery expiry penalty applies');
@@ -63,7 +62,7 @@ for (const stage of ['night-town', 'rain-port']) {
     frozenBullet(g);
     g.update(0.05);
     const after = g.snapshot();
-    assert.equal(after.job.reading, false);
+    assert.equal(after.job, null);
     assert.equal(after.elapsed, before.elapsed + 0.05);
     assert.ok(after.oil < before.oil - 5, 'unprotected player takes bullet damage');
     assert.equal(after.enemyBullets.length, 0);
@@ -91,7 +90,7 @@ for (const stage of ['night-town', 'rain-port']) {
     frozenBullet(g);
     g.update(0.05);
     const after = g.snapshot();
-    assert.equal(after.job.reading, false);
+    assert.equal(after.job, null);
     assert.equal(after.elapsed, before.elapsed + 0.05);
     assert.ok(after.oil < before.oil - 5);
     assert.equal(after.enemyBullets.length, 0);

@@ -11,8 +11,9 @@ const old=context.original;
 const current=()=>context.window.GAME_COMBAT_MATH.needleSeekTarget;
 function rng(seed){let x=seed>>>0;return ()=>{x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296;};}
 function parity(enemies,needle){
-  assert.strictEqual(current()(enemies,needle),old(enemies,needle),
-    'target identity (not merely equal coordinates) must match pre-extraction');
+  const eligible=enemies.filter(e=>!e.shield&&!e.vanish&&!e.done);
+  assert.strictEqual(current()(enemies,needle),old(eligible,needle),
+    'eligible target identity (not merely equal coordinates) must match');
 }
 
 test('Phase30 20,000 seeded needles preserve exact nearest eligible target',()=>{
@@ -56,14 +57,14 @@ test('Phase30 strict range boundary, first-equal-distance tie, hits and null beh
   for(const limit of [undefined,0,NaN,-1,Infinity])parity(enemies,{...needle,seekRange:limit});
 });
 
-test('Phase30 retains old hp-only eligibility; leaves enemy and projectile state immutable',()=>{
+test('Phase30 rejects shielded/retiring foes; leaves enemy and projectile state immutable',()=>{
   const shield=Object.freeze({id:'shield',x:8,y:0,hp:1,shield:true,vanish:true,done:true});
   const normal=Object.freeze({id:'normal',x:20,y:0,hp:1});
   const enemies=Object.freeze([shield,normal]);
   const needle=Object.freeze({x:0,y:0,seekRange:100,hits:new Set()});
   parity(enemies,needle);
-  assert.strictEqual(current()(enemies,needle),shield,
-    'do not silently change shipped eligibility within a pure-extraction phase');
+  assert.strictEqual(current()(enemies,needle),normal,
+    'sealed or departing foes cannot consume seeker target selection');
   assert.equal(needle.hits.size,0);
   assert.ok(Object.isFrozen(context.window.GAME_COMBAT_MATH));
 });

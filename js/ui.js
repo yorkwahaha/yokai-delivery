@@ -1004,18 +1004,120 @@ window.UI = (() => {
 
   // Center actual painted ink instead of the em-square: brush glyphs have
   // varying ascents, so the old middle baseline looked vertically uneven.
-  function drawPaintedButtonLabel(ctx,label,cx,cy,maxWidth){
+  function paintedInkBaseline(ctx,label,cy){
+    // CRITICAL: Canvas TextMetrics ascent/descent are relative to the
+    // CURRENT textBaseline. Previously callers measured with 'middle' but
+    // drew with 'alphabetic', causing a baseline-dependent offset on every
+    // result score/stat and on some menu button labels.
+    const previousBaseline=ctx.textBaseline;
+    ctx.textBaseline="alphabetic";
     const bounds=ctx.measureText(label);
+    ctx.textBaseline=previousBaseline;
     const asc=bounds?.actualBoundingBoxAscent,des=bounds?.actualBoundingBoxDescent;
     const ink=Number.isFinite(asc)&&Number.isFinite(des)&&asc>0;
-    ctx.textBaseline=ink?"alphabetic":"middle";
-    const y=ink?cy+(asc-des)/2:cy;
+    return {baseline:ink?"alphabetic":"middle",y:ink?cy+(asc-des)/2:cy};
+  }
+  function drawPaintedButtonLabel(ctx,label,cx,cy,maxWidth,offsetY=0){
+    // All callers supply the CENTER of the painted button, including the
+    // detached 2x off-screen canvas used for result-action rasters. That
+    // canvas defaults to textAlign="start" (unlike the main game canvas),
+    // which previously rendered result labels starting at the center and
+    // made BOTH the single victory action and all three defeat actions
+    // appear shifted to the right. Do not inherit the caller's alignment.
+    ctx.save();
+    ctx.textAlign="center";
+    const {baseline,y}=paintedInkBaseline(ctx,label,cy+offsetY);
+    ctx.textBaseline=baseline;
     ctx.strokeText?.(label,cx,y,maxWidth);
     ctx.fillText(label,cx,y,maxWidth);
+    ctx.restore();
+  }
+  function drawCenteredResultInk(ctx,label,cx,cy,maxWidth,stroke=false){
+    const {baseline,y}=paintedInkBaseline(ctx,label,cy);
+    ctx.save();
+    ctx.textAlign="center";ctx.textBaseline=baseline;
+    if(stroke)ctx.strokeText?.(label,cx,y,maxWidth);
+    ctx.fillText(label,cx,y,maxWidth);
+    ctx.restore();
+  }
+  // Travel-map HUD reuses the SAME approved red/gold raster and calligraphy
+  // as the results screen. The free-drag map, stage art, route and hitboxes
+  // remain separate from these presentation-only plaques.
+  function drawMapPlaque(ctx,b,label="",{size=18,focus=false}={}){
+    const img=resultTrialArt.button || approvedSystemArt.shrineButtonDanger;
+    if(!img?.naturalWidth){
+      if(label) drawButton(ctx,b,label,{tone:"primary",size,scrollText:true});
+      else drawWoodTag(ctx,b,"primary");
+      return false;
+    }
+    const fitH=Math.min(b.h,b.w*img.naturalHeight/img.naturalWidth);
+    const yy=b.y+(b.h-fitH)/2;
+    ctx.save();
+    if(focus){ctx.shadowColor="rgba(255,215,112,.90)";ctx.shadowBlur=16;}
+    ctx.drawImage(img,b.x,yy,b.w,fitH);
+    ctx.restore();
+    if(label){
+      ctx.save();
+      ctx.font=`400 ${size}px ${pauseInkFace}`;
+      ctx.fillStyle="#fff0d5";
+      ctx.strokeStyle="rgba(57,20,31,.8)";
+      ctx.lineWidth=1.35;
+      drawPaintedButtonLabel(ctx,label,b.x+b.w/2,b.y+b.h/2,b.w-24,-1);
+      ctx.restore();
+    }
+    return true;
+  }
+  // A title needs a separate two-line layout, not action-button text metrics.
+  function drawMapHeader(ctx,b,title,subtitle){
+    if(!drawMapPlaque(ctx,b))return false;
+    const cx=b.x+b.w/2;
+    ctx.save();
+    ctx.font=`400 22px ${pauseInkFace}`;
+    ctx.fillStyle="#fff0d5";ctx.strokeStyle="rgba(43,17,30,.85)";
+    ctx.lineWidth=1.25;
+    drawPaintedButtonLabel(ctx,title,cx,b.y+b.h*.39,b.w-92);
+    ctx.font=`400 11px ${pauseInkFace}`;
+    ctx.lineWidth=.9;
+    drawPaintedButtonLabel(ctx,subtitle,cx,b.y+b.h*.65,b.w-92);
+    ctx.restore();
+    return true;
+  }
+  // Stage information gets its own parchment ledger. Never reuse a
+  // one-line red action button for a multi-line data panel.
+  function drawMapInfoPanel(ctx,b){
+    const art=illustratedArt.ledger;
+    if(!art?.naturalWidth){
+      drawWashiBoard(ctx,b.x,b.y,b.w,b.h,true);
+      return false;
+    }
+    ctx.save();
+    drawWashiSlices(ctx,art,b.x,b.y,b.w,b.h,90,62,33,26);
+    ctx.restore();
+    return true;
+  }
+  // Fixed wording is rasterized once ONTO its approved painting at 2x
+  // resolution, never re-positioned character by character every frame.
+  // The original approved PNG/WebP stays immutable. Different screen states
+  // get separate cached pictures; hitboxes remain their original rectangles.
+  const fixedUiRasterCache=new Map();
+  function fixedUiRaster(key,w,h,paint){
+    if(typeof document==="undefined" || !document.createElement || !document.fonts?.check)return null;
+    const fontName=localCalligraphy?"Yokai UI HanWang YanKai":"Yokai Trial MoonStars Kai T";
+    if(!document.fonts.check(`400 24px "${fontName}"`))return null;
+    if(fixedUiRasterCache.has(key))return fixedUiRasterCache.get(key);
+    const canvas=document.createElement("canvas");
+    if(!canvas?.getContext)return null;
+    canvas.width=Math.round(w*2);canvas.height=Math.round(h*2);
+    const g=canvas.getContext("2d");
+    if(!g)return null;
+    g.scale(2,2);
+    paint(g);
+    fixedUiRasterCache.set(key,canvas);
+    return canvas;
   }
   // Whole raster shrine buttons. Focus glows from their silhouette, not
   // from an independently positioned gold rectangle.
-  function drawB13MenuButton(ctx,b,label,{tone="normal",focus=false,size=17,fontFace=null}={}){
+  function drawB13MenuButton(ctx,b,label,{tone="normal",focus=false,size=17,fontFace=null,labelNudgeY=0}={}){
     const img=approvedSystemArt[tone==="danger"?"shrineButtonDanger":"shrineButtonNormal"];
     if(!img?.naturalWidth){
       // Never resurrect the old beige buttons while the new sprite loads.
@@ -1027,7 +1129,7 @@ window.UI = (() => {
       ctx.fillStyle="#fff1df";
       ctx.strokeStyle="rgba(37,14,35,.88)";
       ctx.lineWidth=2;
-      drawPaintedButtonLabel(ctx,label,b.x+b.w/2,b.y+b.h/2,b.w-22);
+      drawPaintedButtonLabel(ctx,label,b.x+b.w/2,b.y+b.h/2,b.w-22,labelNudgeY);
       ctx.restore();return;
     }
     ctx.save();
@@ -1041,24 +1143,26 @@ window.UI = (() => {
     ctx.textAlign="center";
     ctx.lineWidth=2.1;ctx.strokeStyle="rgba(37,14,35,.88)";
     ctx.fillStyle="#fff4d6";
-    drawPaintedButtonLabel(ctx,label,b.x+b.w/2,b.y+b.h/2,Math.max(10,b.w-24));
+    drawPaintedButtonLabel(ctx,label,b.x+b.w/2,b.y+b.h/2,Math.max(10,b.w-24),labelNudgeY);
     ctx.restore();
   }
 
   // The pause and exit boards are individually assembled, complete RGBA
   // pictures with their own uninterrupted wooden frames. Draw once, whole.
   // Slicing the old background 3x3 broke its floral/wood border mid-stroke.
-  // Locally honor the approved HanWang YanKai; public builds stay on the
-  // OFL fallback until GPL source/distribution compliance is resolved.
+  // Use the expanded GPL HanWang subset on local QA sites. Its source
+  // notice is bundled; public delivery keeps the OFL fallback pending the
+  // font-distribution review. Pause and results use the SAME selected face.
   const localCalligraphy=/^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)$/.test(String(window.location?.hostname||""));
-  const pauseInkFace=(localCalligraphy?"'Yokai Trial HanWang YanKai',":"")+"'Yokai Trial MoonStars Kai T','DFKai-SB','標楷體','BiauKai',serif";
+  const pauseInkFace=(localCalligraphy?"'Yokai UI HanWang YanKai',":"")+
+    "'Yokai Trial MoonStars Kai T','DFKai-SB','標楷體','BiauKai',serif";
   const pauseInkFont=size=>`400 ${size}px ${pauseInkFace}`;
-  // Result scenes may appear long after the first loading screen. Request
-  // the bundled OFL brush-kai bold face at UI startup so scores/Chinese ink
-  // do not spend their first drawn frames in a generic browser fallback.
+  // Warm up glyphs used by results and pause so the first painted frame
+  // matches later frames after Web font loading.
   if(typeof document!=="undefined" && document.fonts?.load){
-    void document.fonts.load('400 25px "Yokai Trial MoonStars Kai T Bold"',
-      '夜已破曉燈油盡送達誤配本局新紀錄0123456789').catch(()=>{});
+    const face=localCalligraphy?"Yokai UI HanWang YanKai":"Yokai Trial MoonStars Kai T";
+    void document.fonts.load(`400 25px "${face}"`,
+      '夜已破曉燈油盡送達誤配本局新紀錄繼續夜行秘術卡片單字圖鑑夜行設定回旅路地圖0123456789').catch(()=>{});
   }
   function drawPausePaper(ctx,x,y,w,h,kind="pause"){
     // Compact landscape uses the approved ornate shrine, not the cut paper.
@@ -1110,9 +1214,23 @@ window.UI = (() => {
       ctx.fillText("離開後，這場夜行就此落幕。",450,274,615);
       ctx.font=pauseInkFont(17);ctx.fillStyle="#744e38";
       ctx.fillText("尚未結算的戰果將隨夜色散去。",450,314,570);
-      EXIT_BTNS.forEach((b,i)=>drawB13MenuButton(ctx,b,
-        i===0?"繼續本局":toWorld?"放棄並回地圖":"放棄並回首頁",
-        {tone:i===0?"normal":"danger",focus:i===focus,size:20,fontFace:pauseInkFace}));
+      // exit__blank.png ALREADY contains the complete violet/red gilt
+      // buttons. Drawing drawB13MenuButton here painted a SECOND smaller
+      // button over each slot, hiding the approved ornamentation.
+      EXIT_BTNS.forEach((b,i)=>{
+        const label=i===0?"繼續本局":toWorld?"放棄並回地圖":"放棄並回首頁";
+        ctx.save();
+        ctx.font=pauseInkFont(21);
+        ctx.fillStyle="#fff3df";
+        ctx.strokeStyle="rgba(56,21,34,.82)";
+        ctx.lineWidth=1.5;
+        if(i===focus){
+          ctx.shadowColor="rgba(255,224,132,.85)";
+          ctx.shadowBlur=9; // Ink focus only; no additional frame bitmap.
+        }
+        drawPaintedButtonLabel(ctx,label,b.x+b.w/2,b.y+b.h/2,b.w-48,-5);
+        ctx.restore();
+      });
       ctx.restore();return;
     }
     if(!toWorld && approvedSystemArt.exit?.naturalWidth){
@@ -3864,7 +3982,7 @@ window.UI = (() => {
     charm_cadence:{ e: "每層有效頻率 +0.25（非固定減 0.25 秒）", c: "御守未滿 3 款", l: "" },
     charm_reach:  { e: "每層射程與爆炸半徑 +10%", c: "御守未滿 3 款", l: "" },
     charm_guard:  { e: "每層燈油損失 -10%", c: "御守未滿 3 款", l: "" },
-    mut_crosscut: { e: "主斬後追加一次交叉斬（60% 刀傷）；Lv5 風刃不追加", c: "持有退魔妖刀", l: "不可重複取得；每技能最多 2 種變異" },
+    mut_crosscut: { e: "主斬後追加第二刀（60% 刀傷）；Lv5 追加反面風刃", c: "持有退魔妖刀", l: "不可重複取得；每技能最多 2 種變異" },
     mut_boom_fan: { e: "陰陽符增加 2 發，整輪傷害預算 +20%", c: "持有陰陽符", l: "每技能最多 2 格" },
     // ── 共鳴奧義（不占主動、御守、變異槽位；一局只能取得一次，但效果仍可每次攻擊／每次施放觸發）──
     duo_inkfire:     { e: "妖刀命中灼燒目標追加墨焰痕：每次攻擊最多 3 敵各一次，共 20% 刀傷", c: "退魔妖刀 Lv3＋狐火炎 Lv3", l: "不可重複取得；每次攻擊有觸發上限" },
@@ -5349,14 +5467,55 @@ function fusionLayout(customViewport, model) {
   // shrine roof, lanterns, cherry blossom corners, or the separate button.
   // The same blank art is used for BOTH outcomes. All wording, score,
   // portrait, focus and hit areas are still produced dynamically.
+  // Single shared result grid for victory AND defeat. Fixed headings are
+  // composited into the result board; only the corresponding values change.
+  // This prevents different-length "送達 0 件" / "本局 02:17" strings from
+  // making three hard-coded text centers *look* like crooked columns.
+  const RESULT_GRID = Object.freeze({
+    // Center the results on the painted shrine, NOT on the right half of
+    // the screen. The courier sits outside the data columns; the old
+    // center=535 pushed the score right of the wooden title and made the
+    // last time value touch the frame's right ornament.
+    center:450,
+    scoreY:205,
+    bestY:246,
+    statY:286,
+    // The fixed ink labels and changing values have different measured widths.
+    // Keep them as two independent anchors on ONE shared baseline per cell,
+    // not an entire varying-width phrase centered at a single x.
+    headingOffsetX:-39,
+    valueOffsetX:38,
+    columns:Object.freeze([
+      {name:"送達",x:310},
+      {name:"誤配",x:450},
+      {name:"本局",x:590}
+    ]),
+    coinsY:321,
+    detailY:349
+  });
   function drawResultTrial(ctx,state,score,delivered,failed,misses,focus,summary,resultFont){
     const isWon=state==="won",mid=W/2;
-    // Center the score/statistics in the unoccluded right-hand parchment,
-    // keeping the approved plaque title centered on the actual wooden crest.
-    const contentCenter=550;
+    // Both outcomes use the painted board's visual center. The courier
+    // portrait lives at the left edge, outside this centered statistics grid.
+    const contentCenter=RESULT_GRID.center;
     const panel={x:39,y:16,w:822,h:443};
     const board=resultTrialArt.board,buttonArt=resultTrialArt.button;
-    ctx.drawImage(board,panel.x,panel.y,panel.w,panel.h);
+    const title=isWon?"夜已破曉":"燈油已盡";
+    function paintFixedResultLabels(g,dx=0,dy=0){
+      g.font=resultFont(19);
+      g.lineWidth=.6;g.strokeStyle="rgba(251,235,210,.8)";
+      g.fillStyle="#5b4033";
+      for(const col of RESULT_GRID.columns)
+        drawCenteredResultInk(g,col.name,col.x+RESULT_GRID.headingOffsetX-dx,RESULT_GRID.statY-dy,70,true);
+    }
+    const bakedBoard=fixedUiRaster("result-board-"+state,panel.w,panel.h,g=>{
+      g.drawImage(board,0,0,panel.w,panel.h);
+      g.font=resultFont(30);g.fillStyle="#fff1cf";
+      g.strokeStyle="rgba(38,17,25,.75)";g.lineWidth=2;
+      drawCenteredResultInk(g,title,mid-panel.x,89-panel.y,350,true);
+      paintFixedResultLabels(g,panel.x,panel.y);
+    });
+    ctx.drawImage(bakedBoard||board,panel.x,panel.y,panel.w,panel.h);
 
     // Outcome-specific character is deliberately a separate layer, never
     // present inside the shared art. Skip it if its real sprite is not ready.
@@ -5374,54 +5533,54 @@ function fusionLayout(customViewport, model) {
     }
 
     ctx.textAlign="center";
-    ctx.textBaseline="alphabetic";
-    ctx.font=resultFont(32);
-    ctx.lineWidth=2.4;
-    ctx.strokeStyle="rgba(38,17,25,.75)";
-    ctx.fillStyle="#fff1cf";
-    const title=isWon?"夜已破曉":"燈油已盡";
-    if(ctx.strokeText)ctx.strokeText(title,mid,104,350);
-    ctx.fillText(title,mid,104,350);
+    ctx.textBaseline="middle";
+    if(!bakedBoard){
+      ctx.font=resultFont(30);
+      ctx.lineWidth=2;ctx.strokeStyle="rgba(38,17,25,.75)";
+      ctx.fillStyle="#fff1cf";
+      drawCenteredResultInk(ctx,title,mid,89,350,true);
+      paintFixedResultLabels(ctx);
+    }
 
-    ctx.font=resultFont(60);
+    // Actual dynamic text shares one grid across victory and defeat. Score
+    // and numbers are each independently ink-centered inside their column.
+    ctx.font=resultFont(52);
     ctx.fillStyle="#392922";
-    ctx.fillText(Number(score||0).toLocaleString(),contentCenter,206,405);
+    drawCenteredResultInk(ctx,Number(score||0).toLocaleString(),contentCenter,RESULT_GRID.scoreY,390);
     if(summary.newBest || summary.prevBest>0){
-      ctx.font=resultFont(18);
+      ctx.font=resultFont(17);
       ctx.fillStyle=summary.newBest?"#9e3f30":"#795544";
-      ctx.fillText(summary.newBest?"新紀錄！":`最高 ${summary.prevBest.toLocaleString()}`,contentCenter,233,405);
+      drawCenteredResultInk(ctx,summary.newBest?"新紀錄！":`最高 ${summary.prevBest.toLocaleString()}`,contentCenter,RESULT_GRID.bestY,390);
     }
     const totalSec=Number(summary.elapsedSeconds);
     const clock=Number.isFinite(totalSec)&&totalSec>=0
       ? `${String(Math.floor(totalSec/60)).padStart(2,"0")}:${String(Math.floor(totalSec%60)).padStart(2,"0")}`
       : "--:--";
-    // Use the same bundled brush-kai family for glyphs AND numbers instead
-    // of a synthetic weight on an unrelated font (the previous screenshot).
-    ctx.font=resultFont(23);
-    ctx.lineWidth=0.85;ctx.strokeStyle="#fbebd2";
+    // Values occupy the right half of each stable cell. A long time string
+    // cannot drag the labels sideways or collide with the gilt right frame.
+    ctx.font=resultFont(22);
     ctx.fillStyle="#2e1e21";
-    for(const [label,x] of [[`送達 ${delivered} 件`,380],[`誤配 ${failed} 件`,550],[`本局 ${clock}`,720]]){
-      ctx.strokeText?.(label,x,279,160);
-      ctx.fillText(label,x,279,160);
-    }
+    const statValues=[`${delivered} 件`,`${failed} 件`,clock];
+    RESULT_GRID.columns.forEach((col,i)=>
+      drawCenteredResultInk(ctx,statValues[i],col.x+RESULT_GRID.valueOffsetX,RESULT_GRID.statY,107));
     if(summary.coinsEarned>0){
-      ctx.font=resultFont(18);
+      ctx.font=resultFont(16);
       ctx.fillStyle="#945028";
-      ctx.fillText(`夜行賞金 +${summary.coinsEarned}　・　持有 ${summary.coinsHeld||0} 金幣`,contentCenter,318,475);
+      drawCenteredResultInk(ctx,`夜行賞金 +${summary.coinsEarned}　・　持有 ${summary.coinsHeld||0} 金幣`,contentCenter,RESULT_GRID.coinsY,420);
     }
 
     const reviewWords=[...new Map((misses||[]).map(w=>[w.jp,w])).values()].slice(0,3);
     if(!isWon && reviewWords.length){
       ctx.font=resultFont(16);
       ctx.fillStyle="#653a32";
-      ctx.fillText("遺落的言靈",contentCenter,356);
+      drawCenteredResultInk(ctx,"遺落的言靈",contentCenter,RESULT_GRID.detailY,410);
       reviewButtons(reviewWords).forEach((b,i)=>
         drawButton(ctx,b,`${b.word.jp}（${b.word.zh}）`,
           {size:15,quiet:true,focus:focus===3+i,fit:true,fontFace:resultFont(15).replace(/^400 [^ ]+ /,"")}));
     }else if(isWon && summary.clearText){
-      ctx.font=resultFont(18);
+      ctx.font=resultFont(16);
       ctx.fillStyle="#5b4233";
-      ctx.fillText(summary.clearText,contentCenter,356,480);
+      drawCenteredResultInk(ctx,summary.clearText,contentCenter,RESULT_GRID.detailY,430);
     }
 
     // Use the same REAL painted blank button for all available choices.
@@ -5430,22 +5589,27 @@ function fusionLayout(customViewport, model) {
     endScreenButtons(state).forEach((b,i)=>{
       const bh=Math.min(56,b.w*buttonArt.naturalHeight/buttonArt.naturalWidth);
       const by=b.y+(b.h-bh)/2;
+      const label=END_BTN_LABEL[b.id]||b.id;
+      const bakedButton=fixedUiRaster(`result-action-${b.id}-${b.w}-${b.h}`,b.w,b.h,g=>{
+        g.drawImage(buttonArt,0,(b.h-bh)/2,b.w,bh);
+        g.font=resultFont(19);g.fillStyle="#fff0d5";
+        g.strokeStyle="rgba(48,17,20,.75)";g.lineWidth=1.6;
+        drawPaintedButtonLabel(g,label,b.w/2,b.h/2,b.w-34,-1);
+      });
       ctx.save();
       if(i===focus || buttonFeedback.hoverId===b.id){
         ctx.shadowColor="#ffe08e";
         ctx.shadowBlur=17;
       }
-      ctx.drawImage(buttonArt,b.x,by,b.w,bh);
+      if(bakedButton)ctx.drawImage(bakedButton,b.x,b.y,b.w,b.h);
+      else ctx.drawImage(buttonArt,b.x,by,b.w,bh);
       ctx.restore();
-      ctx.font=resultFont(19);
-      ctx.fillStyle="#fff0d5";
-      ctx.textBaseline="middle";
-      ctx.shadowColor="rgba(48,17,20,.75)";
-      ctx.shadowBlur=3;
-      ctx.fillText(END_BTN_LABEL[b.id]||b.id,b.x+b.w/2,b.y+b.h/2+1,b.w-34);
-      ctx.shadowBlur=0;
+      if(!bakedButton){
+        ctx.font=resultFont(19);ctx.fillStyle="#fff0d5";
+        ctx.strokeStyle="rgba(48,17,20,.75)";ctx.lineWidth=1.6;
+        drawCenteredResultInk(ctx,label,b.x+b.w/2,b.y+b.h/2-1,b.w-34,true);
+      }
     });
-    ctx.textBaseline="alphabetic";
   }
 
   // 6. 結算：勝利是破曉暖光，失敗是冷色月光；只留標題、分數、送達／誤配文字與記錯的字。
@@ -5455,7 +5619,7 @@ function fusionLayout(customViewport, model) {
     const time = summary.time ?? Date.now() / 1000;
     // One brush-kai face for the entire result sheet, INCLUDING numbers and
     // small labels. Avoid the former Zen Maru Gothic / sans-serif mix.
-    const resultFace="'Yokai Trial MoonStars Kai T Bold','Yokai Trial MoonStars Kai T','DFKai-SB','標楷體','BiauKai',serif";
+    const resultFace=pauseInkFace;
     const resultFont=size=>`400 ${size}px ${resultFace}`;
 
     ctx.fillStyle = "rgba(6, 8, 18, 0.8)";
@@ -5644,6 +5808,72 @@ function fusionLayout(customViewport, model) {
     });
   }
 
+  // The approved tall board ALREADY contains five complete purple gilt slots.
+  // Compose its fixed wording into ONE cached raster rather than drawing a
+  // second (smaller) raster button on top of every painted slot.
+  const PAUSE_APPROVED_RECT={x:482,y:15,w:342,h:513};
+  // Relative to the approved painted plaques, visual ink was sitting low.
+  // These are artwork-alignment offsets, not changes to click/touch hitboxes.
+  const PAUSE_HEADING_INK_Y=105;
+  const PAUSE_SLOT_INK_NUDGE_Y=-1;
+  const PAUSE_FOOTER_INK_NUDGE_Y=1;
+  function paintApprovedPauseSlotText(g,buttons,muted,focus,page,ox=0,oy=0){
+    g.textAlign="center";
+    g.fillStyle="#fff0cb";g.strokeStyle="rgba(49,20,36,.55)";
+    g.font=pauseInkFont(26);g.lineWidth=1;
+    drawPaintedButtonLabel(g,page==="settings"?"夜行設定":"夜櫻暫歇",653-ox,PAUSE_HEADING_INK_Y-oy,248);
+    buttons.forEach((b,i)=>{
+      if(page==="main"&&b.id==="menu")return; // Red footer button is separate.
+      const label=b.id==="mute"&&muted?b.labelMuted:b.label;
+      g.save();
+      if(i===focus){
+        g.shadowColor="rgba(255,221,139,.82)";
+        g.shadowBlur=9; // A soft ink glow, not another button frame.
+      }
+      g.font=pauseInkFont(20);
+      g.fillStyle="#fff4d6";
+      g.strokeStyle="rgba(37,14,35,.78)";g.lineWidth=1.7;
+      drawPaintedButtonLabel(g,label,b.x+b.w/2-ox,b.y+b.h/2-oy,Math.max(10,b.w-22),PAUSE_SLOT_INK_NUDGE_Y);
+      g.restore();
+    });
+  }
+  function approvedPauseComposite(buttons,muted,focus,page){
+    if(!approvedSystemArt.pauseApproved?.naturalWidth)return null;
+    const r=PAUSE_APPROVED_RECT;
+    const key=`pause-approved-${page}-${muted?1:0}-${focus}`;
+    return fixedUiRaster(key,r.w,r.h,g=>{
+      g.drawImage(approvedSystemArt.pauseApproved,0,0,r.w,r.h);
+      paintApprovedPauseSlotText(g,buttons,muted,focus,page,r.x,r.y);
+    });
+  }
+  function drawApprovedPauseFooter(ctx,b,focused){
+    const img=approvedSystemArt.shrineButtonDanger;
+    const faceH=img?.naturalWidth
+      ? Math.min(b.h,b.w*img.naturalHeight/img.naturalWidth) : b.h;
+    const faceY=(b.h-faceH)/2;
+    const raster=img?.naturalWidth
+      ? fixedUiRaster("pause-footer-return-r2",b.w,b.h,g=>{
+          g.drawImage(img,0,faceY,b.w,faceH);
+          g.font=`400 19px ${pauseInkFace}`;
+          g.fillStyle="#fff4d6";
+          g.strokeStyle="rgba(37,14,35,.88)";
+          g.lineWidth=2.1;
+          drawPaintedButtonLabel(g,b.label,b.w/2,b.h/2,b.w-24,PAUSE_FOOTER_INK_NUDGE_Y);
+        }) : null;
+    if(!raster){
+      drawB13MenuButton(ctx,b,b.label,{tone:"danger",focus:focused,
+        size:19,fontFace:pauseInkFace,labelNudgeY:PAUSE_FOOTER_INK_NUDGE_Y});
+      return;
+    }
+    ctx.save();
+    if(focused){
+      ctx.shadowColor="rgba(255,220,117,.98)";
+      ctx.shadowBlur=24;
+    }
+    ctx.drawImage(raster,b.x,b.y,b.w,b.h);
+    ctx.restore();
+  }
+
   function drawPauseMenu(ctx, muted, focus = 0, page = "main") {
     ctx.save();
     ctx.fillStyle = "rgba(6, 8, 16, 0.92)";
@@ -5678,30 +5908,23 @@ function fusionLayout(customViewport, model) {
       }
     }
     if(!compact){
-      // Do not replace approved FIVE-slot painting with a stretched legacy
-      // parchment. All text/focus remain dynamic and hitboxes match.
-      if(approvedSystemArt.pauseApproved?.naturalWidth)
-        ctx.drawImage(approvedSystemArt.pauseApproved,482,15,342,513);
+      const r=PAUSE_APPROVED_RECT;
+      const combined=approvedPauseComposite(buttons,muted,focus,page);
+      if(combined)ctx.drawImage(combined,r.x,r.y,r.w,r.h);
       else{
-        ctx.fillStyle="rgba(25,18,37,.94)";
-        ctx.fillRect(482,15,342,513);
-      }
-      ctx.textAlign="center";ctx.textBaseline="middle";
-      ctx.font=pauseInkFont(30);ctx.fillStyle="#fff0cb";
-      ctx.lineWidth=2;ctx.strokeStyle="rgba(49,20,36,.85)";
-      const heading=page==="settings"?"夜行設定":"夜櫻暫歇";
-      ctx.strokeText(heading,653,109,248);
-      ctx.fillText(heading,653,109,248);
-      buttons.forEach((b,i)=>{
-        const label=b.id==="mute"&&muted?b.labelMuted:b.label;
-        if((page==="main"&&b.id==="menu") || !approvedSystemArt.pauseApproved?.naturalWidth){
-          drawB13MenuButton(ctx,b,label,{tone:b.tone==="danger"?"danger":"normal",focus:focus===i,
-            size:19,fontFace:pauseInkFace});
-        }else{
-          drawB13MenuButton(ctx,b,label,{tone:"normal",focus:focus===i,
-            size:20,fontFace:pauseInkFace});
+        if(approvedSystemArt.pauseApproved?.naturalWidth)
+          ctx.drawImage(approvedSystemArt.pauseApproved,r.x,r.y,r.w,r.h);
+        else{
+          ctx.fillStyle="rgba(25,18,37,.94)";
+          ctx.fillRect(r.x,r.y,r.w,r.h);
         }
-      });
+        paintApprovedPauseSlotText(ctx,buttons,muted,focus,page);
+      }
+      // The red return action has its own separate approved raster and hitbox.
+      if(page==="main"){
+        const b=buttons.find(b=>b.id==="menu");
+        if(b)drawApprovedPauseFooter(ctx,b,buttons[focus]?.id===b.id);
+      }
       ctx.restore();return;
     }
     // Draw the blank parchment whole at its native aspect ratio. Do not
@@ -5725,7 +5948,7 @@ function fusionLayout(customViewport, model) {
     buttons.forEach((b, i) => {
       const label = b.id === "mute" && muted ? b.labelMuted : b.label;
       drawB13MenuButton(ctx,b,label,{tone:b.tone==="danger"?"danger":"normal",
-        size:b.tone==="primary"?20:18,focus:i===focus,fontFace:pauseInkFace});
+        size:b.tone==="primary"?20:18,focus:i===focus,fontFace:pauseInkFace,labelNudgeY:4});
     });
 
     ctx.fillStyle = "#624633";
@@ -6086,8 +6309,10 @@ function fusionLayout(customViewport, model) {
     drawCharmSwap,
     charmArtFor: id => illustratedCharms[String(id || '').replace(/^charm_/, '')] || null,
     drawAwakeningTag,
-    // 旅路與暫停、結算共用核准的手繪材質。
-    drawWoodTag, drawWashiBoard,
+    // 旅路直接共用核准的水墨紅金牌匾、字型與按鈕圖層。
+    drawWoodTag, drawWashiBoard, drawMapPlaque, drawMapHeader, drawMapInfoPanel,
+    mapPlaqueReady:()=>!!(resultTrialArt.button?.naturalWidth||approvedSystemArt.shrineButtonDanger?.naturalWidth),
+    mapInkFont:(px)=>`400 ${px}px ${pauseInkFace}`,
     PAUSE_BTNS, pauseButtons, MENU_BTNS, END_BTNS, endScreenButtons, EXIT_BTNS, drawExitConfirm,
     refreshMenuButtons,
     PAUSE_BTN_W: 280,

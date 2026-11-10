@@ -83,12 +83,15 @@ test('information board and launch action follow expanded viewport edges without
   };
   const ctx=new Proxy({createLinearGradient:()=>g,createRadialGradient:()=>g},{get:(obj,key)=>obj[key]||(()=>{})});
   try {
-    assert.equal(OW.enterButton().y,1212);
+    assert.equal(OW.enterButton().y,1218);
+    assert.equal(OW.enterButton().h,56);
+    assert.equal(OW.enterButton().w,160,
+      'the approved red-gold embark plaque is wider without moving its clickable bounds elsewhere');
     assert.equal(OW.browseButtons()[0].y,1104);
     const st=OW.createState('night-town');
     OW.draw(ctx,st,0);
     assert.ok(boards.some(b=>b.y===1184));
-    assert.ok(buttons.some(x=>x.label==='出發'&&x.b.y===1212));
+    assert.ok(buttons.some(x=>x.label==='出發'&&x.b.y===OW.enterButton().y));
     assert.deepEqual(buttons.filter(x=>x.label==='◀'||x.label==='▶'),[],
       'journey map is freely draggable, so left/right browse arrows must not render');
   } finally {

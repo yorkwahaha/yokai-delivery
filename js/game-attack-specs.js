@@ -15,8 +15,9 @@ window.GAME_ATTACK_SPECS = (() => {
       const hasCharge = mutations.includes("mut_iaicharge");
       const hasBreak = mutations.includes("mut_armorbreak");
       const hasLongblade = mutations.includes("mut_longblade");
-      const reach = level === 5 ? baseReach : Math.round(baseReach * reachMult * (hasLongblade ? 1.23 : 1));
-      const swingReach = level === 5 ? (hasLongblade ? 900 : 720) : reach * 0.85;
+      const reach = Math.round(baseReach * reachMult * (hasLongblade && level !== 5 ? 1.23 : 1));
+      const maxTravel = Math.round((hasLongblade ? 900 : 720) * reachMult);
+      const swingReach = level === 5 ? maxTravel : reach * 0.85;
       const cooldown = Math.max(0.6, 0.72 - baseRate * 0.13) + (hasCharge ? 0.16 : 0);
       const slashDmg = (baseDmg + (level - 1) * 0.8) * (hasCharge ? 1.24 : 1);
       const windDmg = (baseDmg + 3.2) * 1.15 * (hasCharge ? 1.24 : 1);
@@ -41,7 +42,7 @@ window.GAME_ATTACK_SPECS = (() => {
         cooldown,
         slashDmg,
         windDmg,
-        maxTravel: hasLongblade ? 900 : 720,
+        maxTravel,
         pierceLimit: 6,
         pierceScaleAfterThree: 0.75,
         source: (hasCrosscut || hasCharge || hasBreak || hasLongblade) ? "mutation" : (hasDuoInkfire ? "duo" : "base"),
@@ -79,7 +80,9 @@ window.GAME_ATTACK_SPECS = (() => {
       const rawLife = isAwakened ? 0.95 : 0.65;
       const life = Number((rawLife * reachMult).toFixed(4));
       const range = Math.round(440 * reachMult);
-      const rawBaseDamage = isAwakened ? 3.9 : (1.4 + level * 0.7);
+      // Radial coverage remains a trade-off, but per-needle damage should
+      // not drop relative to Lv4.
+      const rawBaseDamage = isAwakened ? 4.8 : (1.4 + level * 0.7);
 
       const mutations = (buildState && Array.isArray(buildState.mutations))
         ? buildState.mutations

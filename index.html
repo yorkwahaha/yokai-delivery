@@ -87,6 +87,15 @@
       font-weight: 400;
       font-display: swap;
     }
+    /* Game UI subset: includes result/pause lettering and the full victory
+       narrative. GPL-2.0 attribution and source are kept under assets/fonts. */
+    @font-face {
+      font-family: 'Yokai UI HanWang YanKai';
+      src: url('assets/fonts/YokaiUIHanWangYanKai.woff2?v=20261110-result-pause') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
     @font-face {
       font-family: 'Yokai Trial cwTeX QKaiZH';
       src: url('assets/fonts/YokaiTrialCwTeXQKaiZH.woff2?v=20261107') format('woff2');
@@ -222,7 +231,7 @@
   <script src="js/delivery-lexicon.js?v=20261101-s2b17"></script>
   <script src="js/delivery-media.js?v=20261101-s2b17"></script>
   <script src="js/words.js?v=20261101-audit"></script>
-  <script src="js/world.js?v=20261102-charm-phase3"></script>
+  <script src="js/world.js?v=20261110-house-pickup-solid-r1"></script>
   <script src="js/dev-mode.js?v=20261101-s2b17"></script>
   <script src="js/delivery-icon-art.js?v=20261101-s2b17"></script>
   <script src="js/store.js?v=20261109-persistent-coins-r1"></script>
@@ -238,10 +247,10 @@
   <script src="js/renderer.js?v=20261108-crosscut-visual-r1"></script>
   <script src="js/fx.js?v=20261101-s2b17"></script>
   <script src="js/skillfx.js?v=20261109-ofuda-alpha97-r1"></script>
-  <script src="js/ui.js?v=20261110-button-ink-glow-result-r5"></script>
+  <script src="js/ui.js?v=20261110-map-header-info-exit-r12"></script>
   <script src="js/ui-upgrade-trial.js?v=20261110-full-details-r5"></script>
   <script src="js/overworld-layout.js?v=20261101-s2b17"></script>
-  <script src="js/overworld.js?v=20261101-s2b17"></script>
+  <script src="js/overworld.js?v=20261110-map-header-info-r2"></script>
   <script src="js/evolutions.js?v=20261101-s2b17"></script>
   <script src="js/boss-ai.js?v=20261101-s2b17"></script>
   <script src="js/story-dialogue.js?v=20261101-s2b17"></script>
@@ -265,7 +274,7 @@
   <script src="js/game-run-summary.js?v=20261103-summary-phase18"></script>
   <script src="js/game-tutorial-rules.js?v=20261103-tutorial-phase20"></script>
   <script src="js/game-sanctuary-arc.js?v=20261107-lv5-dome-gradient"></script>
-  <script src="js/game.js?v=20261109-delivery-ambush-coins-r3"></script>
+  <script src="js/game.js?v=20261110-pickup-beam-removed-r5"></script>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' }).catch(() => {});
 </script>

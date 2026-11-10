@@ -40,7 +40,8 @@ for (const stage of ['night-town', 'rain-port']) {
     const original = g.snapshot();
     const boss = original.enemies.find(e => e.type === 'boss');
     Object.assign(boss, { final: true, hp: 1, shield: false, oilReward: 35, speed: 0 });
-    if (stage === 'rain-port') g.meetDeliveryGoal();
+    // All stages now require both the delivery quota and the final Boss.
+    g.meetDeliveryGoal();
     g.hurt(boss, 100);
     const victory = g.snapshot();
     assert.equal(victory.state, 'victory');

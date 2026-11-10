@@ -44,10 +44,12 @@ test('real boom explosion cannot fire twice on later ticks',()=>{
   assert.equal(g.snapshot().proj.includes(q),false);
   assert.equal(q.target.hp,hp,'further weapon ticks must not damage twice');
 });
-test('real boom does no damage through a Boss shield',()=>{
-  const g=launch([{dx:100,type:'boss',shield:true,hp:500,max:500,speed:0}]);
-  const q=stick(g),boss=q.target;g.weapons(1.6);
-  assert.equal(q.exploded,true);assert.equal(boss.hp,500);
+test('real boom does not launch toward a shield-only Boss or damage its seal',()=>{
+  const g=loadGame({seed:11});g.start();g.stopSpawns();
+  g.combatScene('boom',[{dx:100,type:'boss',shield:true,hp:500,max:500,speed:0}],[],1);
+  g.weapons(.05);
+  assert.equal(g.snapshot().proj.length,0,'shielded Boss must not be the launch target');
+  assert.equal(g.snapshot().enemies[0].hp,500);
 });
 test('real boom explodes early and clears when attached target dies',()=>{
   const g=launch([{dx:100,hp:100,max:100}]),q=stick(g);

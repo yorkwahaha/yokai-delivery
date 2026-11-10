@@ -10,7 +10,7 @@ function scene({approved=true,blank=false}={}){
   const images=[],labels=[],strokes=[],gradient={addColorStop(){}};
   const ctx=new Proxy({
     font:'400 18px serif',
-    fillText(text,x,y,maxWidth){labels.push({text:String(text),font:this.font,x,y,maxWidth});},
+    fillText(text,x,y,maxWidth){labels.push({text:String(text),font:this.font,x,y,maxWidth,shadowBlur:this.shadowBlur||0,align:this.textAlign});},
     drawImage(img,...args){images.push({src:img.src,args,shadowBlur:this.shadowBlur||0});},
     stroke(){strokes.push({width:this.lineWidth,color:this.strokeStyle});},
     measureText(text){return {width:Array.from(String(text)).length*14,
@@ -35,21 +35,19 @@ function scene({approved=true,blank=false}={}){
   return {UI:win.UI,ctx,images,labels,strokes,win};
 }
 
-test('pause uses the whole clean blank parchment with live text and no baked old panel',()=>{
+test('pause uses one approved five-slot board without duplicate painted buttons',()=>{
  const s=scene();
  s.UI.drawPauseMenu(s.ctx,false,0);
  const boards=s.images.filter(v=>v.src?.includes('menu/pause__approved.webp'));
  assert.equal(boards.length,1,'one complete uncut portrait board');
  assert.equal(boards[0].args.length,4,'render full sprite with no source cropping rectangle');
  assert.equal(s.images.some(v=>v.src?.includes('menu/pause__board.webp')),false,'never render the obsolete lettered pause frame');
- assert.ok(s.labels.some(v=>v.text==='繼續夜行'),'buttons keep dynamic text');
- assert.ok(s.labels.some(v=>v.text==='夜櫻暫歇'),'title is drawn over blank plate');
+ assert.ok(s.labels.some(v=>v.text==='繼續夜行'),'no-canvas fallback still labels the built-in slot');
+ assert.ok(s.labels.some(v=>v.text==='夜櫻暫歇'),'fallback retains the reduced title');
  assert.equal(s.images.some(v=>v.src?.includes('menu__button__hover.webp')),false,'no extra stretched hover card');
  assert.ok(s.images.some(v=>v.src?.includes('menu/result__button.webp')),'sixth option is an independent approved danger button');
- assert.equal(s.images.filter(v=>v.src?.includes('menu/approved__button_normal.webp')).length,5,
-  'all five slots reuse the same real painted normal button for uniform text alignment');
- assert.ok(s.images.some(v=>v.src?.includes('menu/approved__button_normal.webp')&&v.shadowBlur>=20),
-  'selected slot glows from the painted button itself');
+ assert.equal(s.images.filter(v=>v.src?.includes('menu/approved__button_normal.webp')).length,0,
+  'five normal slots are already painted into the board, never render smaller buttons over them');
  const rows=s.UI.pauseButtons('main');
  assert.equal(rows.length,6);
  for(let i=1;i<rows.length;i++)assert.ok(rows[i].y>=rows[i-1].y+rows[i-1].h);
@@ -113,15 +111,40 @@ test('new blank landscape art supports live text for either exit target and both
   assert.equal(frames[0].args.length,4);
   assert.ok(s.labels.some(v=>v.text==='是否放棄本局？'));
   assert.ok(s.labels.some(v=>v.text=== (target==='home'?'放棄並回首頁':'放棄並回地圖')));
-  assert.ok(s.images.some(v=>v.src?.includes('menu/result__button.webp')&&v.shadowBlur>=20),
-   'selected danger button uses a painted silhouette glow');
+  assert.equal(s.images.filter(v=>v.src?.includes('menu/result__button.webp')).length,0,
+   'exit__blank already has both button frames; never stack another button over them');
+  assert.ok(s.labels.some(v=>v.text===(target==='home'?'放棄並回首頁':'放棄並回地圖')&&v.shadowBlur>=8),
+   'selected action glows around its ink only; preserve the single approved painted button frame');
   const labels=s.labels.filter(v=>v.text==='繼續本局'||v.text.startsWith('放棄並回'));
   assert.equal(labels.length,2);
   assert.ok(Math.abs(labels[0].y-labels[1].y)<.1,'both button labels share one visual baseline');
+  assert.equal(labels[0].y,381,
+    'button ink baseline moved three world pixels upward inside the baked button frames');
   assert.equal(labels[0].x,s.UI.EXIT_BTNS[0].x+s.UI.EXIT_BTNS[0].w/2);
   assert.equal(labels[1].x,s.UI.EXIT_BTNS[1].x+s.UI.EXIT_BTNS[1].w/2);
+  assert.ok(labels.every(v=>v.align==='center'),'both labels center on their already painted button slots');
   assert.equal(s.labels.some(v=>/一旦|這趟/.test(v.text)),false,'unsupported Hanzi removed');
  }
+});
+test('map two-line header and stage ledger use separate, properly padded painted assets',()=>{
+ const s=scene();
+ const header={x:242,y:4,w:416,h:96};
+ s.UI.drawMapHeader(s.ctx,header,'妖怪快遞社・旅路圖','道をたどって、次の配達先へ');
+ assert.equal(s.images.filter(v=>v.src?.includes('result__button.webp')).length,1,
+  'the header has one red-gold painted plaque');
+ const headings=s.labels.filter(v=>v.text.includes('旅路圖')||v.text.includes('道をたどって'));
+ assert.equal(headings.length,2);
+ for(const line of headings){
+   assert.equal(line.x,450);
+   assert.ok(line.y>header.y+20 && line.y<header.y+header.h-16,
+     'header ink remains inside the painted red inset: '+line.text);
+ }
+ const n=s.images.length;
+ s.UI.drawMapInfoPanel(s.ctx,{x:231,y:454,w:438,h:128});
+ const infoArt=s.images.slice(n);
+ assert.equal(infoArt.length,9,'image-backed nine-slice stage ledger preserves artwork corners');
+ assert.ok(infoArt.every(v=>v.src?.includes('illustrated/result_panel.webp')),
+  'stage information uses the dedicated painted parchment, never a red action button');
 });
 test('upgraded card detail panel uses its own high-resolution decorated raster plaque',()=>{
  const code=fs.readFileSync('js/ui-upgrade-trial.js','utf8');

@@ -492,7 +492,7 @@ test('M1-B-7 Baseline skill preservation: needle Lv5 is eight-direction staggere
     }
   }
   const counts = [3, 5, 7, 8, 8];
-  const damage = [2.1, 2.8, 3.5, 4.2, 3.9];
+  const damage = [2.1, 2.8, 3.5, 4.2, 4.8];
   for (let i = 0; i < 5; i++) {
     const spec = probe.resolveAttackSpec('needle', i + 1, bs);
     assert.equal(spec.count, counts[i]);
@@ -669,15 +669,21 @@ test('M1-B-11 Two mutation slots per owned skill and unowned needle boundary', (
 });
 
 // ── 12. M1-B-12 覺醒卡優先、重抽與極限全滿空池不軟鎖 ─────────
-test('M1-B-12 Awakening priority, reroll invalidation and retired Duo cards excluded', () => {
-  const probe = loadGameSandbox({ random: () => 0 }).__agyProbe;
+test('M1-B-12 Lv5 eligibility, reroll invalidation and retired Duo cards excluded', () => {
+  const env = loadGameSandbox({ random: () => 0 });
+  const probe = env.__agyProbe;
   probe.start('night-town');
   probe.getWL().katana = 4;
   probe.getWL().needle = 1;
   probe.setLevel(10);
   probe.setSeals(1);
   probe.setLevelupCooldown(0);
-  assert.ok(probe.getEligibleChoices().some(c => c.type === 'weapon' && c.lv === 5));
+  // Ordinary Lv5 is now in the normal weapon pool, not a seal-gated
+  // guaranteed awakening card; a single three-card roll need not show it.
+  const offers = env.GAME_BUILD_RULES.weaponOfferKeys(
+    probe.getWI(), probe.getWL(), 4, probe.getSeals(), env);
+  assert.ok(offers.eligibleWeaponKeys.includes('katana'));
+  assert.equal(offers.awakenKeys.length, 0);
   probe.setState('levelup');
   probe.setLevelupCooldown(0);
   probe.offerUp();

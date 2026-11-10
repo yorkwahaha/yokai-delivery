@@ -65,7 +65,7 @@ test('B12 pause and abandon flows use consistent illustrated washi boards and un
  assert.match(ui,/drawB13MenuButton\(ctx,b,label/);
 });
 test('B12 longblade remains meaningful after Lv5, 720 becomes 900 at runtime and projectile reads it',()=>{
- assert.match(read('js/game-attack-specs.js'),/maxTravel: hasLongblade \? 900 : 720/);
+ assert.match(read('js/game-attack-specs.js'),/const maxTravel = Math.round\(\(hasLongblade \? 900 : 720\) \* reachMult\)/);
  assert.match(game,/const cap = wave\.maxTravel \|\| 720/);
  assert.match(game,/traveled: 0, maxTravel: spec\.maxTravel/);
  assert.match(ui,/mut_longblade: \{ ja: "妖刀・長風刃"/);

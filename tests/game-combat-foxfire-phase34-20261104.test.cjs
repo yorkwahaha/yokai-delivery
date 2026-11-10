@@ -10,7 +10,7 @@ function beforeContact(e,x,y,elapsed){
 }
 function beforeLaunch(enemies,P){
   const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-  return enemies.filter(e=>e.hp>0&&!e.shield&&dist(P,e)<520);
+  return enemies.filter(e=>e.hp>0&&!e.shield&&!e.vanish&&!e.done&&dist(P,e)<520);
 }
 function rand(seed){let n=seed>>>0;return()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};}
 test('Phase34 18,000 foxfire contact cases preserve invulnerability and hit distances',()=>{

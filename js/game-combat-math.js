@@ -121,13 +121,13 @@ window.GAME_COMBAT_MATH = (() => {
   }
   // Phase30: needle's tracking mutation picks the nearest unhit living foe.
   // The original strict < threshold gives the first enemy priority on ties.
-  // Do not filter shields/vanish/done here: preserve the exact shipped rule.
+  // Do not waste tracking time on shielded or departing enemies.
   // Retarget cooldown, homing turn, projectile state and damage stay in game.
   function needleSeekTarget(enemies, needle) {
     let nearest = needle.seekRange || 480;
     let chosen = null;
     for (const e of enemies) {
-      if (e.hp > 0 && !needle.hits?.has(e)) {
+      if (e.hp > 0 && !e.shield && !e.vanish && !e.done && !needle.hits?.has(e)) {
         const d = Math.hypot(needle.x - e.x, needle.y - e.y);
         if (d < nearest) {
           nearest = d;
@@ -170,7 +170,8 @@ window.GAME_COMBAT_MATH = (() => {
   // in existing source order, not the closest. The caller applies all state.
   function boomStickTarget(enemies, projectile) {
     for (const e of enemies) {
-      if (e.hp > 0 && Math.hypot(e.x - projectile.x, e.y - projectile.y) < (e.type === "boss" ? 54 : 32)) return e;
+      if (e.hp > 0 && !e.shield && !e.vanish && !e.done &&
+          Math.hypot(e.x - projectile.x, e.y - projectile.y) < (e.type === "boss" ? 54 : 32)) return e;
     }
     return null;
   }
@@ -181,17 +182,17 @@ window.GAME_COMBAT_MATH = (() => {
       && Math.hypot(enemy.x - x, enemy.y - y) < (enemy.type === "boss" ? 54 : 30);
   }
   function foxfireLaunchTargets(enemies, player) {
-    return enemies.filter(e => e.hp > 0 && !e.shield
+    return enemies.filter(e => e.hp > 0 && !e.shield && !e.vanish && !e.done
       && Math.hypot(player.x - e.x, player.y - e.y) < 520);
   }
   // Phase35: source-order nearest target for needle's idle auto-aim and
   // boom's launch check. Strict < retains the FIRST target on equal distance.
-  // Do not filter shield / vanish / done here; original only checks HP.
+  // Shielded/retiring targets cannot receive launch damage.
   function nearestLaunchTarget(enemies, player, maxRange) {
     let nearest = maxRange, chosen = null;
     for (const e of enemies) {
       const d = Math.hypot(player.x - e.x, player.y - e.y);
-      if (e.hp > 0 && d < nearest) {
+      if (e.hp > 0 && !e.shield && !e.vanish && !e.done && d < nearest) {
         chosen = e;
         nearest = d;
       }

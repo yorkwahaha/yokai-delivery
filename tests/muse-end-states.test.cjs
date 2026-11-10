@@ -27,13 +27,22 @@ function loadUI({resultTrial=false}={}) {
       const s = m ? Number(m[1]) : 15;
       let w = 0;
       for (const ch of String(t)) w += ch.codePointAt(0) < 256 ? s * 0.55 : s * 1.0;
-      return { width: w, actualBoundingBoxAscent: s * 0.76, actualBoundingBoxDescent: s * 0.12 };
+      // Real Canvas measures ink ascent/descent relative to textBaseline.
+      // Simulate that distinction so a middle-measure/alphabetic-draw bug
+      // cannot pass these result layout regressions again.
+      const baselineShift=this.textBaseline==="middle"?s*0.3:0;
+      return {
+        width: w,
+        actualBoundingBoxAscent: s * 0.76 - baselineShift,
+        actualBoundingBoxDescent: s * 0.12 + baselineShift
+      };
     },
     fillText(t, x, y) { traces.push({ text: String(t), x, y, font:this.font }); },
     strokeText() {}
   }, { get: (o, k) => (k in o ? o[k] : () => {}) });
   const env = {
     window: {
+      location: {hostname: "127.0.0.1", search: ""},
       VIEWPORT: {
         bounds: () => ({ left: -199, top: 0, right: 1099, bottom: 600, width: 1298, height: 600 }),
         hudBounds: () => ({ left: -168, top: 30, right: 1068, bottom: 569, width: 1236, height: 538 }),
@@ -124,12 +133,21 @@ test("無字結算底板試用：勝敗共用圖片、文字與按鈕動態排�
     assert.equal(UI.endScreenButtons(state).length,expectedButtons);
     assert.ok(traces.some(t=>t.text===(state==="won"?"夜已破曉":"燈油已盡")));
     assert.ok(traces.some(t=>t.text==="99,610"));
-    assert.equal(traces.find(t=>t.text==="99,610")?.x,550,'score shares the data content column');
-    for(const [word,x] of [["送達",380],["誤配",550],["本局",720]]){
-      const stat=traces.find(t=>t.text.startsWith(word));
-      assert.equal(stat?.x,x,'stable result stat column: '+word);
-      assert.ok(stat?.font.includes("MoonStars Kai T Bold"),'result stat uses bundled brush-kai: '+word);
+    assert.equal(traces.find(t=>t.text==="99,610")?.x,450,
+      'score aligns with painted title and actual board center, not the character-avoiding offset');
+    for(const [word,value,x] of [["送達","36 件",310],["誤配","1 件",450],["本局","20:50",590]]){
+      const heading=traces.find(t=>t.text===word);
+      assert.equal(heading?.x,x-39,'fixed grid heading anchor: '+word);
+      const stat=traces.find(t=>t.text===value);
+      assert.equal(stat?.x,x+38,'dynamic grid value anchor: '+word);
+      assert.ok(stat?.font.includes("Yokai UI HanWang YanKai"),'local result stat uses the complete HanWang font: '+word);
+      assert.ok(Math.abs(stat?.y - (286 + (22 * 0.76 - 22 * 0.12) / 2)) < 1,
+        'result stat ink shares one consistent baseline: '+word);
     }
+    const rightTime=traces.find(t=>t.text==="20:50");
+    const timeWidth=ctx.measureText("20:50").width;
+    assert.ok(rightTime.x+timeWidth/2<=700,
+      'longest result value stays inside the painted right-hand parchment margin');
     assert.ok(traces.some(t=>t.text.includes("20:50")));
     assert.ok(traces.some(t=>t.text.includes("夜行賞金")));
     assert.ok(Math.max(...UI.endScreenButtons(state).map(b=>b.y+b.h))<=600);

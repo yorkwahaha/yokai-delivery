@@ -33,16 +33,16 @@
   });
 
   function getBossTheme(e) {
-    // 優先從 STAGE_ENEMY.bossTheme 取得，其次從 e.bossTheme（相容舊碼）
-    const stageEnemy = root.STAGE_ENEMY;
-    return (stageEnemy && stageEnemy.bossTheme) || e.bossTheme || 'town';
+    // Stage data is closed over inside game.js, not on window.
+    // Each boss carries its own theme; never consult stale globals.
+    return e?.bossTheme || 'town';
   }
 
   function getAttackPool(e) {
     const theme = getBossTheme(e);
     const pool = BOSS_THEME_POOLS[theme] || BOSS_THEME_POOLS.town;
     // 雨港專屬：以 stageId 判定，僅 rain-port 啟用 tidalFan/rainVortex
-    const stageId = (root.STAGE && root.STAGE.id) || (e && e.stageId) || '';
+    const stageId = e?.stageId || '';
     const isRainPort = stageId === 'rain-port';
     const rainPortPool = isRainPort ? BOSS_THEME_POOLS['rain-port'] : null;
     const effectivePool = rainPortPool || pool;

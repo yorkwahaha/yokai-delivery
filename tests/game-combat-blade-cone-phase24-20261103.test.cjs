@@ -56,7 +56,7 @@ test('Phase24 pure geometry does not mutate input, use Math.random, or access ga
 test('Phase24 both sword cast and damage phases route through the identical helper',()=>{
  const matches=game.match(/GAME_COMBAT_MATH\.bladeArcContains\(/g)||[];
  assert.equal(matches.length,2);
- assert.ok(game.includes('spec.isAwakened ? (spec.hasLongblade ? 680 : 560) : reach'));
+ assert.ok(game.includes('spec.isAwakened ? spec.maxTravel : reach'));
  assert.ok(game.includes('P, e, reach, faceAng, spec.arc'));
  const html=fs.readFileSync('index.html','utf8');
  assert.ok(html.indexOf('game-combat-math.js')>=0);

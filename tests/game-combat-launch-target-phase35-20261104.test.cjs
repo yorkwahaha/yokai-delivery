@@ -9,7 +9,7 @@ function original(enemies,P,maxRange){
   let near=null,nd=maxRange;
   for(const e of enemies){
     const d=Math.hypot(P.x-e.x,P.y-e.y);
-    if(e.hp>0&&d<nd){near=e;nd=d;}
+    if(e.hp>0&&!e.shield&&!e.vanish&&!e.done&&d<nd){near=e;nd=d;}
   }
   return near;
 }
@@ -27,12 +27,12 @@ test('Phase35 30,000 seeded idle needle/boom launch selections preserve identity
     assert.strictEqual(target(enemies,P,threshold),original(enemies,P,threshold),'seed '+i);
   }
 });
-test('Phase35 first equal-distance wins, strict 450/540 boundaries, HP-only eligibility',()=>{
+test('Phase35 first equal-distance wins, strict 450/540 boundaries, valid targets only',()=>{
   const P={x:0,y:0};
   const a={id:'at450',x:450,y:0,hp:5};
   const b={id:'first',x:100,y:0,hp:5,shield:true,vanish:true,done:true};
   const c={id:'same-distance',x:-100,y:0,hp:5};
-  assert.strictEqual(target([a,b,c],P,450),b);
+  assert.strictEqual(target([a,b,c],P,450),c);
   assert.strictEqual(target([a],P,450),null);
   assert.strictEqual(target([{id:'near540',x:539.99,y:0,hp:1}],P,540)?.id,'near540');
   assert.strictEqual(target([{id:'at540',x:540,y:0,hp:1}],P,540),null);

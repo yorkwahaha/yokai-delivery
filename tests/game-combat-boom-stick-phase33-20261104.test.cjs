@@ -7,7 +7,7 @@ vm.runInNewContext(fs.readFileSync('js/game-combat-math.js','utf8'),context);
 const target=context.window.GAME_COMBAT_MATH.boomStickTarget;
 function original(enemies,q){
   for(const e of enemies){
-    if(e.hp>0&&Math.hypot(e.x-q.x,e.y-q.y)<(e.type==='boss'?54:32))return e;
+    if(e.hp>0&&!e.shield&&!e.vanish&&!e.done&&Math.hypot(e.x-q.x,e.y-q.y)<(e.type==='boss'?54:32))return e;
   }
   return null;
 }

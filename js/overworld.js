@@ -2,10 +2,11 @@
 (() => {
   const root = typeof window !== "undefined" ? window : globalThis;
   const readableFont = (size, weight = "700") => root.UI?.readableFont ? root.UI.readableFont(size, weight) : `${weight} ${size}px sans-serif`;
-  // 旅路專用字體：木牌/標題用和風明朝，資訊正文用穩定無襯線。
-  // 以既有 readableFont 取得小畫面的可讀像素，不增加一套字型下載。
+  // Prefer the approved painted-screen brush face when present. Keep the
+  // original readable font path for older builds and isolated test fixtures.
   const mapFont = (size, heading = false) => {
     const px = Number(readableFont(size, heading ? "700" : "800").match(/([\d.]+)px/)?.[1]) || size;
+    if(root.UI?.mapInkFont)return root.UI.mapInkFont(px);
     return heading
       ? `700 ${px}px 'Kaisei Decol', 'Noto Serif TC', 'PMingLiU', serif`
       : `800 ${px}px 'Noto Sans JP', 'Microsoft JhengHei', sans-serif`;
@@ -16,7 +17,7 @@
   });
   function drawMapText(ctx, value, x, y, {size=14,heading=false,light=false,maxWidth}={}) {
     ctx.save();
-    ctx.textAlign="center";
+    ctx.textAlign="center";ctx.textBaseline="alphabetic";
     ctx.font=mapFont(size,heading);
     ctx.lineJoin="round";
     ctx.lineWidth=light ? 2.4 : 1.5;
@@ -34,12 +35,12 @@
   const MAP_H = 2200;
   const VIEW_W = 900;
   const VIEW_H = 600;
-  const BACK_BTN = Object.freeze({ x: 18, y: 18, w: 104, h: 40 });
+  const BACK_BTN = Object.freeze({ x: 18, y: 18, w: 122, h: 42 });
   const backButton = () => ({...BACK_BTN,x:BACK_BTN.x+(root.VIEWPORT?.bounds().left || 0),y:BACK_BTN.y+(root.VIEWPORT?.bounds().top || 0)});
-  const ENTER_BTN = Object.freeze({ x: 768, y: 512, w: 112, h: 62 });
+  const ENTER_BTN = Object.freeze({ x: 716, y: 518, w: 160, h: 56 });
   const enterButton = () => {
     const area = root.VIEWPORT?.bounds() || {right:VIEW_W,bottom:VIEW_H};
-    return {...ENTER_BTN,x:area.right-132,y:area.bottom-88};
+    return {...ENTER_BTN,x:area.right-184,y:area.bottom-82};
   };
   const BROWSE_BTN = Object.freeze({w:54,h:52});
   const browseButtons = () => {
@@ -663,7 +664,9 @@
     drawMiniPlayer(ctx, state, elapsed);
     ctx.restore();
 
-    // 旅路固定 UI 沿用暫停與結算的紙札素材，不覆蓋現代黑卡。
+    // Use the same approved burgundy/gold button painting as the
+    // pause/results UI. World art, route and stage interactions stay intact.
+    const modernPlates=!!root.UI?.mapPlaqueReady?.() && typeof root.UI?.drawMapPlaque==="function";
     const titleFont = mapFont(Math.max(24, Math.ceil(18 / (root.VIEWPORT?.get?.().scale || 1))),true);
     const subtitleFont = mapFont(12);
     const titleSize = Number(titleFont.match(/([\d.]+)px/)[1]), subtitleSize = Number(subtitleFont.match(/([\d.]+)px/)[1]);
@@ -672,57 +675,78 @@
     const fade=ctx.createLinearGradient(0,area.top,0,area.top+105);
     fade.addColorStop(0,"rgba(21,17,21,.58)");fade.addColorStop(1,"rgba(21,17,21,0)");
     ctx.fillStyle=fade;ctx.fillRect(area.left,area.top,area.width,105);
-    const titlePlate={x:VIEW_W/2-191,y:area.top-1,w:382,h:Math.max(75,subtitleY-area.top+19)};
-    root.UI?.drawWoodTag?.(ctx,titlePlate,"primary");
+    // Red-gold HEADER: two fixed lines, measured against the painted center.
+    // Previously the title and subtitle were positioned independently of the
+    // short single-line button artwork and escaped above/below its gold rim.
+    const titlePlate=modernPlates
+      ?{x:VIEW_W/2-208,y:area.top+4,w:416,h:96}
+      :{x:VIEW_W/2-191,y:area.top-1,w:382,h:Math.max(75,subtitleY-area.top+19)};
+    if(modernPlates && typeof root.UI.drawMapHeader==="function")
+      root.UI.drawMapHeader(ctx,titlePlate,"妖怪快遞社・旅路圖","道をたどって、次の配達先へ");
+    else {
+      root.UI?.drawWoodTag?.(ctx,titlePlate,"primary");
+      drawMapText(ctx,"妖怪快遞社・旅路圖",VIEW_W/2,titleY-4,{size:titleSize,heading:true,light:true,maxWidth:330});
+      drawMapText(ctx,"道をたどって、次の配達先へ",VIEW_W/2,subtitleY-4,{size:subtitleSize,light:true,maxWidth:330});
+    }
     const back = backButton();
-    drawMapText(ctx,"妖怪快遞社・旅路圖",VIEW_W/2,titleY-4,{size:titleSize,heading:true,light:true,maxWidth:330});
-    drawMapText(ctx,"道をたどって、次の配達先へ",VIEW_W/2,subtitleY-4,{size:subtitleSize,light:true,maxWidth:330});
 
-    if (root.UI?.drawButton) root.UI.drawButton(ctx,{...back,id:"map-home"},"← 首頁",{size:14,quiet:true,scrollText:true,mapTypography:"title"});
+    if(modernPlates)root.UI.drawMapPlaque(ctx,{...back,id:"map-home"},"← 首頁",{size:16});
+    else if (root.UI?.drawButton) root.UI.drawButton(ctx,{...back,id:"map-home"},"← 首頁",{size:14,quiet:true,scrollText:true,mapTypography:"title"});
     else {ctx.fillStyle="#eed6ae";ctx.fillRect(back.x,back.y,back.w,back.h);drawMapText(ctx,"← 首頁",back.x+back.w/2,back.y+24,{size:14,heading:true,maxWidth:back.w-12});}
 
     // 左右切換鈕已退場，改由自由拖曳平移與點選節點移動代替
     const here = selectedNode(state);
     if (here.type === "stage" && !isMoving(state)) {
       const canEnter = isEnterable(here);
-      const panelW = 380, panelH = 100, px = VIEW_W / 2 - panelW / 2, py = area.bottom - 116;
-      if(root.UI?.drawWashiBoard)root.UI.drawWashiBoard(ctx,px,py,panelW,panelH,true);
+      // The painted information ledger is a separate FOUR-SIDED parchment
+      // with enough interior height for all three lines. Action buttons
+      // remain the narrow red lacquer plaques at the right.
+      const infoPlate=modernPlates && typeof root.UI.drawMapInfoPanel==="function";
+      const panelW=infoPlate?438:380, panelH=infoPlate?128:100;
+      const px=VIEW_W/2-panelW/2,py=area.bottom-(infoPlate?146:116);
+      if(infoPlate)root.UI.drawMapInfoPanel(ctx,{x:px,y:py,w:panelW,h:panelH});
+      else if(root.UI?.drawWashiBoard)root.UI.drawWashiBoard(ctx,px,py,panelW,panelH,true);
       else{ctx.fillStyle="#eed6ae";ctx.beginPath();ctx.roundRect(px,py,panelW,panelH,8);ctx.fill();}
-      // 讓中心紙面略微明亮，保留木框與花紋，避免一般 UI 白字浮在插畫上。
+      // Only the old washi-board fallback needs a paper-brightening overlay.
       const cx=px+panelW/2,cy=py+panelH/2;
-      const paper=ctx.createRadialGradient(cx,cy,18,cx,cy,166);
-      paper.addColorStop(0,"rgba(255,249,229,.72)");
-      paper.addColorStop(.66,"rgba(254,246,221,.48)");
-      paper.addColorStop(1,"rgba(254,246,221,0)");
-      ctx.fillStyle=paper;
-      ctx.fillRect(px+35,py+9,panelW-70,panelH-18);
+      if(!infoPlate){
+        const paper=ctx.createRadialGradient(cx,cy,18,cx,cy,166);
+        paper.addColorStop(0,"rgba(255,249,229,.72)");
+        paper.addColorStop(.66,"rgba(254,246,221,.48)");
+        paper.addColorStop(1,"rgba(254,246,221,0)");
+        ctx.fillStyle=paper;
+        ctx.fillRect(px+35,py+9,panelW-70,panelH-18);
+      }
       const completed = !!root.STORE?.isStageCompleted?.(here.stageId);
       const chapter = STAGE_NODES.findIndex(n=>n.id===here.id)+1;
-      drawMapText(ctx,`${chapter}/8　${here.label}${completed?'・配達済':''}`,cx,py+28,{size:19,heading:true,maxWidth:panelW-105});
+      drawMapText(ctx,`${chapter}/8　${here.label}${completed?'・配達済':''}`,cx,py+(infoPlate?46:28),{size:infoPlate?17:19,heading:true,light:false,maxWidth:panelW-72});
       const best = root.STORE?.getStageStats?.(here.stageId)?.bestScore || 0;
       const atStage = !state.inspectId || state.inspectId === state.currentId;
       const progress=canEnter ? (best ? `最高 ${best.toLocaleString()} 點` : "尚無配達紀錄")
         : (root.CONTENT?.getStage?.(here.stageId)?.implemented ? "尚未解鎖" : "封印中・後續開放");
-      drawMapText(ctx,progress,cx,py+55,{size:13,maxWidth:panelW-112});
-      if(canEnter)drawMapText(ctx,atStage?"配達開始　Enter / A":"前往這一關・沿路移動",cx,py+81,{size:12,maxWidth:panelW-112});
+      drawMapText(ctx,progress,cx,py+(infoPlate?73:54),{size:infoPlate?14:13,light:false,maxWidth:panelW-92});
+      if(canEnter)drawMapText(ctx,atStage?"配達開始　Enter / A":"前往這一關・沿路移動",cx,py+(infoPlate?96:76),{size:12,light:false,maxWidth:panelW-106});
 
       if (canEnter) {
         const enter = enterButton(), title = atStage ? "出發" : "前往";
-        if(root.UI?.drawButton)root.UI.drawButton(ctx,{...enter,id:"map-enter"},title,{tone:"primary",size:18,scrollText:true,focus:true,mapTypography:true});
+        if(modernPlates)root.UI.drawMapPlaque(ctx,{...enter,id:"map-enter"},title,{size:20,focus:true});
+        else if(root.UI?.drawButton)root.UI.drawButton(ctx,{...enter,id:"map-enter"},title,{tone:"primary",size:18,scrollText:true,focus:true,mapTypography:true});
         else {ctx.fillStyle="#9c4535";ctx.fillRect(enter.x,enter.y,enter.w,enter.h);
           ctx.fillStyle="#fff2c6";ctx.font=readableFont(15,"900");ctx.fillText(title,enter.x+enter.w/2,enter.y+37);}
       }
     } else {
       ctx.textAlign = "center";
-      if(root.UI?.drawWoodTag)root.UI.drawWoodTag(ctx,{x:VIEW_W/2-180,y:area.bottom-54,w:360,h:34},"normal",false,true);
+      if(modernPlates)root.UI.drawMapPlaque(ctx,{x:VIEW_W/2-180,y:area.bottom-60,w:360,h:44});
+      else if(root.UI?.drawWoodTag)root.UI.drawWoodTag(ctx,{x:VIEW_W/2-180,y:area.bottom-54,w:360,h:34},"normal",false,true);
       else{ctx.fillStyle="#eed6ae";ctx.fillRect(VIEW_W/2-180,area.bottom-54,360,34);}
-      drawMapText(ctx,"拖曳平移地圖・點擊木牌或節點選關",VIEW_W/2,area.bottom-36,{size:12,maxWidth:318});
+      drawMapText(ctx,"拖曳平移地圖・點擊木牌或節點選關",VIEW_W/2,area.bottom-36,{size:12,light:modernPlates,maxWidth:318});
     }
 
     if (noticeT > 0) {
       const a = Math.min(1, noticeT * 2);
       ctx.globalAlpha=a;
-      if(root.UI?.drawWoodTag)root.UI.drawWoodTag(ctx,{x:VIEW_W/2-150,y:area.top+92,w:300,h:48},"danger");
+      if(modernPlates)root.UI.drawMapPlaque(ctx,{x:VIEW_W/2-150,y:area.top+92,w:300,h:48});
+      else if(root.UI?.drawWoodTag)root.UI.drawWoodTag(ctx,{x:VIEW_W/2-150,y:area.top+92,w:300,h:48},"danger");
       else{ctx.fillStyle="#7b3935";ctx.fillRect(VIEW_W/2-150,area.top+92,300,48);}
       drawMapText(ctx,"未開放或尚未解鎖",VIEW_W/2,area.top+122,{size:15,heading:true,light:true,maxWidth:245});
     }
