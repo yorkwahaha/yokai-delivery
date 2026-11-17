@@ -1,19 +1,1813 @@
 {
   "schema": 1,
-  "updated": "2026-11-09",
+  "updated": "2026-11-16",
   "notes": "Unmigrated paths are inventoried, not approved for new usage; never delete without reference audit.",
   "totals": {
-    "files": 960,
+    "files": 1043,
     "by_status": {
-      "legacy_unmigrated": 349,
-      "legacy_review_required": 62,
-      "canonical": 207,
-      "trial_pending_review": 191,
       "legacy_alias_active": 99,
+      "canonical": 207,
+      "trial_pending_review": 270,
+      "legacy_unmigrated": 353,
+      "legacy_review_required": 62,
       "legacy_source_pending_renderer": 52
     }
   },
   "files": [
+    {
+      "path": "assets/audio/BGM.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 4521169,
+      "sha256": "c81d5e33055b91659d27f33d8629a2c3dbe52fb3f9768dd1e3e7431af79d38a5"
+    },
+    {
+      "path": "assets/audio/BOSS.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 3604901,
+      "sha256": "4484fa39285e129bec497664d3b693c7c9d9cf8b71297f3f3e04d84d481518e5"
+    },
+    {
+      "path": "assets/audio/MAP.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 2035220,
+      "sha256": "0eea8130856b234978f209078a3bc478e90ce71f2ea07c5ef65db83d23c7700f"
+    },
+    {
+      "path": "assets/audio/bgm/boss/boss__encounter.mp3",
+      "status": "canonical",
+      "bytes": 3604901,
+      "sha256": "4484fa39285e129bec497664d3b693c7c9d9cf8b71297f3f3e04d84d481518e5"
+    },
+    {
+      "path": "assets/audio/bgm/menu/menu__journey.mp3",
+      "status": "canonical",
+      "bytes": 2035220,
+      "sha256": "0eea8130856b234978f209078a3bc478e90ce71f2ea07c5ef65db83d23c7700f"
+    },
+    {
+      "path": "assets/audio/bgm/stages/night-town/night-town__battle.mp3",
+      "status": "canonical",
+      "bytes": 4521169,
+      "sha256": "c81d5e33055b91659d27f33d8629a2c3dbe52fb3f9768dd1e3e7431af79d38a5"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/01.mp3",
+      "status": "canonical",
+      "bytes": 7522,
+      "sha256": "d67dfdb0c398bf599f4d46ce7c52c702af57677a24c0b9255293b65108ac262e"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/02.mp3",
+      "status": "canonical",
+      "bytes": 14209,
+      "sha256": "996a98937ab744e74ec25a5ab57665ba4b0587038979d1031c8107ae79e144b9"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/03.mp3",
+      "status": "canonical",
+      "bytes": 9194,
+      "sha256": "8627aa6d01f9d85bff6f9b8b35a3901a2dc903a3d3eeeedb8433845a488fb170"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/04.mp3",
+      "status": "canonical",
+      "bytes": 10030,
+      "sha256": "70df97ad706c0adc93945a1b33873cb27b4a5d9b7c31f6649c09b26f70301341"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/05.mp3",
+      "status": "canonical",
+      "bytes": 9194,
+      "sha256": "b308a9bdd3925e101a6c608745504256dd6bcc320a2f383fd1daebd630352d9a"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/06.mp3",
+      "status": "canonical",
+      "bytes": 9194,
+      "sha256": "13d333517a5b96cbaed5d74f8c0218ed96f69f85f110cbba6088cd49e3db9213"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/07.mp3",
+      "status": "canonical",
+      "bytes": 11283,
+      "sha256": "cb9ea8747bdb41d633e121fda4fc788df46e2b1b6fbb19be5f3f869859401345"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/08.mp3",
+      "status": "canonical",
+      "bytes": 10030,
+      "sha256": "57fd5ad283faa1e4d9134a2f60530003645459a2660aba7acb6ac8aaaf0566d5"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/09.mp3",
+      "status": "canonical",
+      "bytes": 9194,
+      "sha256": "4e6ad8f4a8fc7101cfcaa81a18737ad00faa95f2ece765bed2a95cd1875ec2f3"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/10.mp3",
+      "status": "canonical",
+      "bytes": 10866,
+      "sha256": "8284a1e124f0c2f19039e28b0d973e063ca244b4844333fbe4e130bdd343d737"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/11.mp3",
+      "status": "canonical",
+      "bytes": 12955,
+      "sha256": "6344ad599d71638a69bf4633d160958aabab84b386b221f1043934b02c0e13f7"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/12.mp3",
+      "status": "canonical",
+      "bytes": 13791,
+      "sha256": "6d6947c00217d075b7e8983e562ac01000adbad0dcdd5ea432c09c557e53a937"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/13.mp3",
+      "status": "canonical",
+      "bytes": 12119,
+      "sha256": "eecbf36c42dea9f8fc1b29ab4841b9d3221eb012c8dd41275527d14f16f77120"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/14.mp3",
+      "status": "canonical",
+      "bytes": 12955,
+      "sha256": "d34e098aae8751284f60841f5cf198f621d538f5be7f5bafb52bcc0b3302fc53"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/15.mp3",
+      "status": "canonical",
+      "bytes": 12119,
+      "sha256": "1b7d2d0dd0651c72e9c94a0519523d0b67eb1594755b93659b37af9487801179"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/16.mp3",
+      "status": "canonical",
+      "bytes": 7522,
+      "sha256": "5b6e424dd45e7182b8cb8a098c6e62652dbc1816c25f0ae94c03c7870684876c"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/17.mp3",
+      "status": "canonical",
+      "bytes": 12955,
+      "sha256": "247c2b094a48cfcce7662bb1353ad43b4b842da554387620d37402d50c4e47c8"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/18.mp3",
+      "status": "canonical",
+      "bytes": 11283,
+      "sha256": "0d0747a0d495b65a7f35c8b8c647bbd1a60cbd3eb07f23f8646fd939462aac03"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/19.mp3",
+      "status": "canonical",
+      "bytes": 12955,
+      "sha256": "4bb916ca932cbe36c36721c9bb46c5b365f29d6d32d123782ce768731d7f0b5e"
+    },
+    {
+      "path": "assets/audio/delivery/night-town/20.mp3",
+      "status": "canonical",
+      "bytes": 14209,
+      "sha256": "e40a5f39d07bed9431a29bdaf824275507b59e588b374c187d5cf4f774ba2d98"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/01.mp3",
+      "status": "trial_pending_review",
+      "bytes": 12119,
+      "sha256": "d7d045094867c1cb275269491c7f27edc8ed7bf9f44d85df4b707ea2903762c0"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/02.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10866,
+      "sha256": "929b28ff998b2f578102da35f68c203c0e8394eb31c61166eeacdb8fb0886e42"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/03.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10866,
+      "sha256": "077d4f15085c0fee90b2233f961f3d6226b8caee3c4a651869d6b810f6d741ee"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/04.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10030,
+      "sha256": "3ea482a615574649d7c3015f5f101683c2d3e1455809566eb7525821c94e86f7"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/05.mp3",
+      "status": "trial_pending_review",
+      "bytes": 7522,
+      "sha256": "843e0b84e269238d7c07e9ec5f986efa2c08f5ebd0ff8b5c9fd53dfb0d889064"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/06.mp3",
+      "status": "trial_pending_review",
+      "bytes": 11283,
+      "sha256": "a6694a4dad8548964da9a7ae1aad4246772b82796eabcbb906b5465ed719574a"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/07.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10030,
+      "sha256": "4ae517c1bc1d35b882455474d3425eae8d9dcd43be40914cd4a9b4d38b6a6f92"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/08.mp3",
+      "status": "trial_pending_review",
+      "bytes": 9194,
+      "sha256": "86203b727075207cab0b3fcdaf58757a0309131fb149b7f0b2fa140170cc3b96"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/09.mp3",
+      "status": "trial_pending_review",
+      "bytes": 9194,
+      "sha256": "0fd41f71e62c17c89f05542efdd0747a158d30ea2b183a2afd157ad0a9ae9058"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/10.mp3",
+      "status": "trial_pending_review",
+      "bytes": 9194,
+      "sha256": "7861c0c9be6b6941d481a832e80bd9d8144a0b425c59dacb7af94e4f0d568ce9"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/11.mp3",
+      "status": "trial_pending_review",
+      "bytes": 7522,
+      "sha256": "f62659b9f8ddc8a0fd69910ac0f415f3fc8b3beb81f426038b5e4ae4cb664261"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/12.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10866,
+      "sha256": "1c40feec9da170478eb9f321806a0d9fa93e82cb0bb4082ac46264ada8047f28"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/13.mp3",
+      "status": "trial_pending_review",
+      "bytes": 9194,
+      "sha256": "dfb907d975e7385a823937f4e873e97b80445ac9ba572ee23b33b11125c44bb6"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/14.mp3",
+      "status": "trial_pending_review",
+      "bytes": 12119,
+      "sha256": "dbd6131abc6851e089b2380e354d99f5f819b61358d36626423637b91973f62b"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/15.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10030,
+      "sha256": "795daaef8d810c4af7093de043108087c8af0f3182e50ac2ca99ecee10ea3395"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/16.mp3",
+      "status": "trial_pending_review",
+      "bytes": 12955,
+      "sha256": "3fc91446decca047209c98881c52bdbdc6eccf50a493aa6ee3562c90ec077b60"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/17.mp3",
+      "status": "trial_pending_review",
+      "bytes": 17553,
+      "sha256": "25468ab23fb6d8e9e95061f72e45d6a6b7a118c47bccbd686588f764dc8c1605"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/18.mp3",
+      "status": "trial_pending_review",
+      "bytes": 12119,
+      "sha256": "005c651cf2b16d98736117353017486b8dd20a902ed7df5239e778bb14cb37b0"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/19.mp3",
+      "status": "trial_pending_review",
+      "bytes": 15045,
+      "sha256": "fa7f359a49813b548e4b515cf603d854686fedf1bb160022beb3f818eddeced4"
+    },
+    {
+      "path": "assets/audio/delivery/rain-port/20.mp3",
+      "status": "trial_pending_review",
+      "bytes": 14209,
+      "sha256": "f47aa8aa1fd81f912b770728f82e049f160bb2cd76e6b71d23776eee40e1dc39"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/01.mp3",
+      "status": "trial_pending_review",
+      "bytes": 12119,
+      "sha256": "bb23e3f7d21d2520666276eab094d052665a4c59729b046cf9bdedf4c23082f6"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/02.mp3",
+      "status": "trial_pending_review",
+      "bytes": 9194,
+      "sha256": "7d12708e41b054a69008e634d8895cc8022896552f5d0202950c748298625ea8"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/03.mp3",
+      "status": "trial_pending_review",
+      "bytes": 7522,
+      "sha256": "ef6a4b7ff7272d4a1c6d4c1303c614dc192f46ef67ee0745e6161335f0a81287"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/04.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10030,
+      "sha256": "5e68d7390d8c1001461bc44c4ec8ec47f01115723fd26dc7a7e512a28645c6f1"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/05.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10030,
+      "sha256": "975f7018e718f07cca62af837d67a4dfa2dfb434dee37c9085ab57fecbf69934"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/06.mp3",
+      "status": "trial_pending_review",
+      "bytes": 8358,
+      "sha256": "b7e776fe6003402bb685a86d607c6b7c71bd5471d5783e9bb85acca2ba9c23a5"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/07.mp3",
+      "status": "trial_pending_review",
+      "bytes": 7522,
+      "sha256": "7b73b10660a6ad85429dbd7618e823ed505aba5f61140ce3e4268d7d84da9cb0"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/08.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10030,
+      "sha256": "2b0a1eb22ae942f2fc1e4056f2fa44e41c0a5d2093557a43849d151bc071ad84"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/09.mp3",
+      "status": "trial_pending_review",
+      "bytes": 12119,
+      "sha256": "8ec31c2151039cf7b536966bb8722585c62cb7f30fdbd79c7bf406e8254ad6ae"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/10.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10030,
+      "sha256": "ffe3b12937648d7458c4a289b15a164a846f6d9ed6f23cba0d65f61a66e14545"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/11.mp3",
+      "status": "trial_pending_review",
+      "bytes": 12119,
+      "sha256": "71311c98498cd46343603e8c1fe79f3fc97ea477fa7efdc6cb9b8aadecd26e33"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/12.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10030,
+      "sha256": "fe14850d1ee380aa984639ae86dea75d5960074ed2da861253743d713e41ad4a"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/13.mp3",
+      "status": "trial_pending_review",
+      "bytes": 9194,
+      "sha256": "66502fb2debad5e94e40e7a687d592511856e577f588f67ad9dd096d23150849"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/14.mp3",
+      "status": "trial_pending_review",
+      "bytes": 12955,
+      "sha256": "3901fbc48ef913f31609421c6458b6b1876b2a0a9ec8ff3e0731fcb440e5155b"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/15.mp3",
+      "status": "trial_pending_review",
+      "bytes": 9194,
+      "sha256": "0b34d39b0fe17a011e681e5c2cee0bf7c30d8eaa1bf9d16467e67f18157fd405"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/16.mp3",
+      "status": "trial_pending_review",
+      "bytes": 11283,
+      "sha256": "7b1d1517b6adfddb87a6427531ef84db9c57b76a97c7cbac35d6d0b7a7eb95b5"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/17.mp3",
+      "status": "trial_pending_review",
+      "bytes": 9194,
+      "sha256": "8ffa68f0a61d11f674f2fb568585c12c87075596df51fd163a8ef92d577e825b"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/18.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10866,
+      "sha256": "f96de94d805c80e4921696881e465604e4dcb55ab4899ac3e891acf953b624e2"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/19.mp3",
+      "status": "trial_pending_review",
+      "bytes": 9194,
+      "sha256": "dabaabaa0f04dee099640baa4eda9673ba4f8f6d8a638269967edc01bd872fb7"
+    },
+    {
+      "path": "assets/audio/delivery/sakura-pass/20.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10866,
+      "sha256": "87a31b6d66ceb35184ab69014fa688e59ebf51ba742b69bc05ba5131ffb9f43b"
+    },
+    {
+      "path": "assets/audio/sfx/barrier-lv5.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 29301,
+      "sha256": "f27e68a3f33a018fca657337f0923306e8f923ef5093e2c040a21cc0c338deff"
+    },
+    {
+      "path": "assets/audio/sfx/boom-lv1-4.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 82353,
+      "sha256": "e05a292626b22fec4ffe3544a04b92e15015b1838ddb14ff1d1dabc61c85ecf5"
+    },
+    {
+      "path": "assets/audio/sfx/boom-lv5.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 81644,
+      "sha256": "c6d24b7dda3d71ab62b0655a3e8fd14702fb49a4816c06d387cfbcc67e0c25ce"
+    },
+    {
+      "path": "assets/audio/sfx/boomerang.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 4223,
+      "sha256": "7ddad536cff6562c772c3ede96a33d40f384bc05da046dbd37b37b6fd89c294a"
+    },
+    {
+      "path": "assets/audio/sfx/boss-death.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 52641,
+      "sha256": "012d072512129e30251ab2a74bf40cab585444ff7f700df8706d136ff9eeaeba"
+    },
+    {
+      "path": "assets/audio/sfx/boss-slam-impact.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 137088,
+      "sha256": "d1cce96561699734a68acb931c204d928c44b75bf57bdd804017a21283e4251d"
+    },
+    {
+      "path": "assets/audio/sfx/break-shield.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 34525,
+      "sha256": "7a50f1dfcd3826a15f1184379423ef7dc886a6e8250d031c4edbb58fdfb11865"
+    },
+    {
+      "path": "assets/audio/sfx/charm-pickup.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 34480,
+      "sha256": "e23bc610a40309d6d1862ce5270763e288e8b61056679eaf2521193b8b7f3f6b"
+    },
+    {
+      "path": "assets/audio/sfx/dash.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 26166,
+      "sha256": "0bdb1d5024a7e658e19a65084f2f7830d544c8bb2acbe7299b6f27e383e74e3e"
+    },
+    {
+      "path": "assets/audio/sfx/delivery-success.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 21644,
+      "sha256": "583542e0d3fbb166bcd0b46ae3e5447a2ff6dbc96ac7e5c7a430d83630c4e4ea"
+    },
+    {
+      "path": "assets/audio/sfx/delivery-wrong.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 22509,
+      "sha256": "e48d121e2a559f635da354b47935b8b15f205c96d8afd5544666f0379a61d8f2"
+    },
+    {
+      "path": "assets/audio/sfx/enemies/boss/boss__death.mp3",
+      "status": "canonical",
+      "bytes": 52641,
+      "sha256": "012d072512129e30251ab2a74bf40cab585444ff7f700df8706d136ff9eeaeba"
+    },
+    {
+      "path": "assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__fan-sweep.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 138242,
+      "sha256": "4a02855e1b7631d54fd2a8aaae6f22d52a6d8ce238eb60bab7c62cc784fc5689"
+    },
+    {
+      "path": "assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__fan-warn.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 72194,
+      "sha256": "7bda92f6c78a7b307f9e615d93c5ce22bc283b0f54f90eb82acfc315f82fdc0f"
+    },
+    {
+      "path": "assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__vortex-pillar.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 88322,
+      "sha256": "ba8412aba254da5f044db8d8f49e5bed7fff639e892a024fb2f7c64463f4b8a1"
+    },
+    {
+      "path": "assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__vortex-warn.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 55006,
+      "sha256": "68ff4caa70e45fb05321ec92e2c58dfd6bef00df9bab87752308cf3e580c5fed"
+    },
+    {
+      "path": "assets/audio/sfx/fanfare.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 101804,
+      "sha256": "d18df78fe96384a1c61fb9569d2108815d6c6ef420c8d39542af7c5a8dca58a3"
+    },
+    {
+      "path": "assets/audio/sfx/final-boss-death.mp3",
+      "status": "legacy_review_required",
+      "bytes": 29362,
+      "sha256": "42a56449ca89b651e97e3b326865739656f71a65d3d840474b2c1346d5bacd7b"
+    },
+    {
+      "path": "assets/audio/sfx/fire-lv1-4.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 25449,
+      "sha256": "0a0c0187d9774bca5be08772972dd3d674bf7e81ffd1c55350375bdccef4211a"
+    },
+    {
+      "path": "assets/audio/sfx/fire-lv5-ball.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 25141,
+      "sha256": "23ebed22c7cac6caba3c3867eb3ee5f3bd4a3660ad2369a1052df46f7f94f109"
+    },
+    {
+      "path": "assets/audio/sfx/fire-lv5-dragon.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 31381,
+      "sha256": "256d44c41f92271e426b544a1b3a76764d3ee52d7fcb0ed11930fe5d31d1cfae"
+    },
+    {
+      "path": "assets/audio/sfx/fire-lv5.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 64102,
+      "sha256": "d7ba5247e5844f256488c302ec9e0acc16e4e34c4c1393d3c8bf7824cf295635"
+    },
+    {
+      "path": "assets/audio/sfx/katana-lv5.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 21315,
+      "sha256": "20d8ab75bf3816fe5a75c6cbf1e7b8a34d9cb64a5c614e8fd7444d7104a2ca03"
+    },
+    {
+      "path": "assets/audio/sfx/level-up.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 32204,
+      "sha256": "01dcbd0cf1626c7bb9b8f564cb93827b12cde55f77e30acf17292bf2bf30e4b5"
+    },
+    {
+      "path": "assets/audio/sfx/lose.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 103244,
+      "sha256": "017ad98e80d43b6813825334bd024ef6d034cc7ffaad2586a7840258ef3fd4a9"
+    },
+    {
+      "path": "assets/audio/sfx/needle.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 13627,
+      "sha256": "f3751e565495a3f3b8c50be709f859c2acab3ebcc0e2bbd1df9f14eb73ba3ff7"
+    },
+    {
+      "path": "assets/audio/sfx/ofuda.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 9403,
+      "sha256": "c108a5e07af378e2cc9811aa13bcd1755e51ab5713f300b6b36c523951a1e39a"
+    },
+    {
+      "path": "assets/audio/sfx/sanctuary.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 28256,
+      "sha256": "59a0203368e0d20c681a05422f15406e62f543e229dd55c23bf56886de648297"
+    },
+    {
+      "path": "assets/audio/sfx/skilllv5.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 55168,
+      "sha256": "730fbca572253e62aa8608b04051502b433d1290d1b1d3e001fbb4ba73ad7650"
+    },
+    {
+      "path": "assets/audio/sfx/skills/barrier/barrier__cast__lv05.mp3",
+      "status": "canonical",
+      "bytes": 29301,
+      "sha256": "f27e68a3f33a018fca657337f0923306e8f923ef5093e2c040a21cc0c338deff"
+    },
+    {
+      "path": "assets/audio/sfx/skills/boom/boom__cast__lv05.mp3",
+      "status": "canonical",
+      "bytes": 81644,
+      "sha256": "c6d24b7dda3d71ab62b0655a3e8fd14702fb49a4816c06d387cfbcc67e0c25ce"
+    },
+    {
+      "path": "assets/audio/sfx/skills/boom/boom__cast__tier01-04.mp3",
+      "status": "canonical",
+      "bytes": 82353,
+      "sha256": "e05a292626b22fec4ffe3544a04b92e15015b1838ddb14ff1d1dabc61c85ecf5"
+    },
+    {
+      "path": "assets/audio/sfx/skills/boomerang/boomerang__cast.mp3",
+      "status": "canonical",
+      "bytes": 4223,
+      "sha256": "7ddad536cff6562c772c3ede96a33d40f384bc05da046dbd37b37b6fd89c294a"
+    },
+    {
+      "path": "assets/audio/sfx/skills/fire/fire__ball__lv05.mp3",
+      "status": "canonical",
+      "bytes": 25141,
+      "sha256": "23ebed22c7cac6caba3c3867eb3ee5f3bd4a3660ad2369a1052df46f7f94f109"
+    },
+    {
+      "path": "assets/audio/sfx/skills/fire/fire__cast__lv05.mp3",
+      "status": "canonical",
+      "bytes": 64102,
+      "sha256": "d7ba5247e5844f256488c302ec9e0acc16e4e34c4c1393d3c8bf7824cf295635"
+    },
+    {
+      "path": "assets/audio/sfx/skills/fire/fire__cast__tier01-04.mp3",
+      "status": "canonical",
+      "bytes": 25449,
+      "sha256": "0a0c0187d9774bca5be08772972dd3d674bf7e81ffd1c55350375bdccef4211a"
+    },
+    {
+      "path": "assets/audio/sfx/skills/fire/fire__dragon__lv05.mp3",
+      "status": "canonical",
+      "bytes": 31381,
+      "sha256": "256d44c41f92271e426b544a1b3a76764d3ee52d7fcb0ed11930fe5d31d1cfae"
+    },
+    {
+      "path": "assets/audio/sfx/skills/katana/katana__slash__lv05.mp3",
+      "status": "canonical",
+      "bytes": 21315,
+      "sha256": "20d8ab75bf3816fe5a75c6cbf1e7b8a34d9cb64a5c614e8fd7444d7104a2ca03"
+    },
+    {
+      "path": "assets/audio/sfx/skills/katana/katana__slash__variation05.mp3",
+      "status": "canonical",
+      "bytes": 65088,
+      "sha256": "b7579170dd5d2f5186bd1703c6468111aeb97fc21af7f8adea6ebf5f1155f08e"
+    },
+    {
+      "path": "assets/audio/sfx/skills/needle/needle__cast.mp3",
+      "status": "canonical",
+      "bytes": 13627,
+      "sha256": "f3751e565495a3f3b8c50be709f859c2acab3ebcc0e2bbd1df9f14eb73ba3ff7"
+    },
+    {
+      "path": "assets/audio/sfx/skills/ofuda/ofuda__cast.mp3",
+      "status": "canonical",
+      "bytes": 9403,
+      "sha256": "c108a5e07af378e2cc9811aa13bcd1755e51ab5713f300b6b36c523951a1e39a"
+    },
+    {
+      "path": "assets/audio/sfx/skills/sanctuary/sanctuary__cast.mp3",
+      "status": "canonical",
+      "bytes": 28256,
+      "sha256": "59a0203368e0d20c681a05422f15406e62f543e229dd55c23bf56886de648297"
+    },
+    {
+      "path": "assets/audio/sfx/skills/thunder/thunder__cast__lv05.mp3",
+      "status": "canonical",
+      "bytes": 50101,
+      "sha256": "a80a0406c95bcf72bffb569458765e964d6c0a2c120c7086bb991ce6d04f0d23"
+    },
+    {
+      "path": "assets/audio/sfx/skills/thunder/thunder__cast__tier01-04.mp3",
+      "status": "canonical",
+      "bytes": 23874,
+      "sha256": "c39bccbfc2ed2d36a4286d1731d8ab86b4858923085acc920c61d180725e5d63"
+    },
+    {
+      "path": "assets/audio/sfx/slash.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 13627,
+      "sha256": "b76390b7dedf7e67222d5fce94c897ab18f983a66f5ca3ec0fbdf74d1f3af2f2"
+    },
+    {
+      "path": "assets/audio/sfx/sword-slash5.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 65088,
+      "sha256": "b7579170dd5d2f5186bd1703c6468111aeb97fc21af7f8adea6ebf5f1155f08e"
+    },
+    {
+      "path": "assets/audio/sfx/system/system__fanfare.mp3",
+      "status": "canonical",
+      "bytes": 101804,
+      "sha256": "d18df78fe96384a1c61fb9569d2108815d6c6ef420c8d39542af7c5a8dca58a3"
+    },
+    {
+      "path": "assets/audio/sfx/system/system__level-up.mp3",
+      "status": "canonical",
+      "bytes": 32204,
+      "sha256": "01dcbd0cf1626c7bb9b8f564cb93827b12cde55f77e30acf17292bf2bf30e4b5"
+    },
+    {
+      "path": "assets/audio/sfx/system/system__lose.mp3",
+      "status": "canonical",
+      "bytes": 103244,
+      "sha256": "017ad98e80d43b6813825334bd024ef6d034cc7ffaad2586a7840258ef3fd4a9"
+    },
+    {
+      "path": "assets/audio/sfx/system/system__shield-break.mp3",
+      "status": "canonical",
+      "bytes": 34525,
+      "sha256": "7a50f1dfcd3826a15f1184379423ef7dc886a6e8250d031c4edbb58fdfb11865"
+    },
+    {
+      "path": "assets/audio/sfx/system/system__warning-pulse.mp3",
+      "status": "canonical",
+      "bytes": 29823,
+      "sha256": "c68ef0d5ac9972c029feb624327b6da19084f2965223d108359cb183a00e585f"
+    },
+    {
+      "path": "assets/audio/sfx/thunder-lv1-4.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 23874,
+      "sha256": "c39bccbfc2ed2d36a4286d1731d8ab86b4858923085acc920c61d180725e5d63"
+    },
+    {
+      "path": "assets/audio/sfx/thunder-lv5.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 50101,
+      "sha256": "a80a0406c95bcf72bffb569458765e964d6c0a2c120c7086bb991ce6d04f0d23"
+    },
+    {
+      "path": "assets/audio/sfx/ui/ui__delivery-success.mp3",
+      "status": "canonical",
+      "bytes": 21644,
+      "sha256": "583542e0d3fbb166bcd0b46ae3e5447a2ff6dbc96ac7e5c7a430d83630c4e4ea"
+    },
+    {
+      "path": "assets/audio/sfx/ui/ui__delivery-wrong.mp3",
+      "status": "canonical",
+      "bytes": 22509,
+      "sha256": "e48d121e2a559f635da354b47935b8b15f205c96d8afd5544666f0379a61d8f2"
+    },
+    {
+      "path": "assets/audio/sfx/warning-pulse.mp3",
+      "status": "legacy_alias_active",
+      "bytes": 29823,
+      "sha256": "c68ef0d5ac9972c029feb624327b6da19084f2965223d108359cb183a00e585f"
+    },
+    {
+      "path": "assets/audio/sfx/world/world__dash.mp3",
+      "status": "canonical",
+      "bytes": 26166,
+      "sha256": "0bdb1d5024a7e658e19a65084f2f7830d544c8bb2acbe7299b6f27e383e74e3e"
+    },
+    {
+      "path": "assets/audio/sfx/world/world__slash.mp3",
+      "status": "canonical",
+      "bytes": 13627,
+      "sha256": "b76390b7dedf7e67222d5fce94c897ab18f983a66f5ca3ec0fbdf74d1f3af2f2"
+    },
+    {
+      "path": "assets/audio/words/aka.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "3acdcd9507969962cc18348f7384f98d365d3177811867e928ed41248094ec3f"
+    },
+    {
+      "path": "assets/audio/words/aki.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13244,
+      "sha256": "aa7c412ec120d34021bc72ad75470cea01bc125813de7d40a433c9b9aac27029"
+    },
+    {
+      "path": "assets/audio/words/ame.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 11804,
+      "sha256": "bea707ffc1ceb511538c73b0bbbb1bd96889ae29babb93f2a3e07e9e22338386"
+    },
+    {
+      "path": "assets/audio/words/ao.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "a24e0d77363af09383ead36c7684ea4a2a518da4b888be18b79b989be97f9aa8"
+    },
+    {
+      "path": "assets/audio/words/arigatou.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 15644,
+      "sha256": "3a763430b33b366fbbee7e89c487569b9da3529471b266a9cd7ecb87c1813f20"
+    },
+    {
+      "path": "assets/audio/words/arigatō.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 15644,
+      "sha256": "3a763430b33b366fbbee7e89c487569b9da3529471b266a9cd7ecb87c1813f20"
+    },
+    {
+      "path": "assets/audio/words/aruku.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13964,
+      "sha256": "5418a43c26541d4b49bc3e2b1d3ac93a4ac4aa169ed1c9cc9ebf5616435bca55"
+    },
+    {
+      "path": "assets/audio/words/asa.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "60b40a7ee047d17d6c784d9d24b3d1bd76bcd790aa1013e89af89fc190c4476a"
+    },
+    {
+      "path": "assets/audio/words/ashi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13724,
+      "sha256": "f19482512831ffd11b9e87b4e34326f5eab0dbc067edf9f634a51701d71d3cef"
+    },
+    {
+      "path": "assets/audio/words/ashita.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13964,
+      "sha256": "4cbfbbceddfa18878f0d4631bf84c4b1893bdd0905381f06790a448ba7683c27"
+    },
+    {
+      "path": "assets/audio/words/atama.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13724,
+      "sha256": "c06a82a06e9b70154e218b1eb89e307bfe3c3e8c8f49d93b34317630412b90bd"
+    },
+    {
+      "path": "assets/audio/words/atarashii.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 16364,
+      "sha256": "43d3a508872a36031dcd69a2799bae6c656205157550a1d6e1d98204ccd0954b"
+    },
+    {
+      "path": "assets/audio/words/atatakai.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 16124,
+      "sha256": "0f307c11fc91f71ee6fe59a9dd652954c746be179902f37f56a9afe5d6fec2ec"
+    },
+    {
+      "path": "assets/audio/words/atsui.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13724,
+      "sha256": "e5bb60d84ed303290cfe28d3ef468f2694c871498b0a32d4a15673a71876dd5f"
+    },
+    {
+      "path": "assets/audio/words/chawan.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "15916b9f6ce9fdefe2eebf0bf562e4ac211e84b4eb50a14417d21b10c040e13b"
+    },
+    {
+      "path": "assets/audio/words/chiisai.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14924,
+      "sha256": "d041b4a247fcf93092e195b2bf513ef296ae506028fdbac66fba47dea9c747cc"
+    },
+    {
+      "path": "assets/audio/words/chikaku.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14444,
+      "sha256": "766bc300408b7e783327510cd846a592c2953f0de000fb1cca82f1de0e0bd8b5"
+    },
+    {
+      "path": "assets/audio/words/denki.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 29501,
+      "sha256": "98d424278386214923cfc746951c4b65b06258d8b0261d1fe1dccd60fabae429"
+    },
+    {
+      "path": "assets/audio/words/densha.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14444,
+      "sha256": "538bb48c896ff855ade73336ec107c73175fd22ff5768d3c75d4906284e587c4"
+    },
+    {
+      "path": "assets/audio/words/deru.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "8c4b8fcb5823422ba74f476155a4c8c33c47893d2a9dc0c453c39fd228ace810"
+    },
+    {
+      "path": "assets/audio/words/eki.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 25881,
+      "sha256": "6adafcfaf32086a30b692a35a3642dd8ec198cb6cdc058438747ec12042fa655"
+    },
+    {
+      "path": "assets/audio/words/ekiin.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13964,
+      "sha256": "447251bac1c9a08a222a4540a033e32754194a14c7dff537de3bed28448b997c"
+    },
+    {
+      "path": "assets/audio/words/en.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 11564,
+      "sha256": "243d52b8c55258157710fd9344ada33adfee932d63c3960cc48a68fb9d474618"
+    },
+    {
+      "path": "assets/audio/words/fune.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 8492,
+      "sha256": "0c9e757fb67cdc070d428296b094f185c4f10f9e460b7e0ddb3af7fb0f7addd5"
+    },
+    {
+      "path": "assets/audio/words/furui.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13244,
+      "sha256": "f6ab4f2e31fc249e5a3d15906a0b0b7364c69ee8b09949144f6754c2f0ad94e1"
+    },
+    {
+      "path": "assets/audio/words/futatsu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14444,
+      "sha256": "df18c654cd4bb26fc1547271b4a059bba6630581c2b0d29b1257558fcddcbe08"
+    },
+    {
+      "path": "assets/audio/words/fuyu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12284,
+      "sha256": "13251e71fb9630442edb323a964b186b17a4155d93f519f397651402cdf04fd0"
+    },
+    {
+      "path": "assets/audio/words/gakkou.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 30896,
+      "sha256": "fbee281b45694965b5f62a67904b3211f1779f511130a7b4d5b76cc404ba0027"
+    },
+    {
+      "path": "assets/audio/words/gakkō.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14924,
+      "sha256": "254a49751ffb0779489a43c05035b99f07a0ed04282e0cb584f5ed5680364470"
+    },
+    {
+      "path": "assets/audio/words/gohan.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "b7cd42b48fa3d2e6449c477a5b59bf6edb098c08455acb4ae5fb10ad92fdb14f"
+    },
+    {
+      "path": "assets/audio/words/ha.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 11084,
+      "sha256": "3d1801ee902aff93f6627517b787bc857bc4f799b85328637b0aae052eaf5ed7"
+    },
+    {
+      "path": "assets/audio/words/hai.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12284,
+      "sha256": "a1330a8a267a5b9b70be4cfb6b603b5382ccd3a241faf50ace45f0eab06034ed"
+    },
+    {
+      "path": "assets/audio/words/hairu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "f3ad17e8494e466afe64f2791ac9c1e8c1d4481f35652a827c613349ed819d50"
+    },
+    {
+      "path": "assets/audio/words/hana.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 9668,
+      "sha256": "9663af3b03de512e415674c4dda7ed17c002d8fc5cabff149bbc6f99bbf1e566"
+    },
+    {
+      "path": "assets/audio/words/haru.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "c108483ca5b07a999aef148b4283de51bb038bbdfd7586a33b5dfac57769fb45"
+    },
+    {
+      "path": "assets/audio/words/hashi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 24627,
+      "sha256": "7dd9a70b5d93f7b70c7cd8d503b8a2be93cf549e3283b3b2f0f71894c1a41f22"
+    },
+    {
+      "path": "assets/audio/words/hashiru.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13964,
+      "sha256": "dd78adb99ec3b8aa3cab62bbc93b074fa68896a575ec5a1343db3b8030ebda82"
+    },
+    {
+      "path": "assets/audio/words/heta.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "7b48754ac21fa7456725f61b94fdd45bb0a1413540884d6c1b271fd6a9d6d83a"
+    },
+    {
+      "path": "assets/audio/words/heya.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 23232,
+      "sha256": "1d3564af77b037ef9039c9e7a2c2225bdaaa48ce03dcdd7e3d86e35994a63341"
+    },
+    {
+      "path": "assets/audio/words/hidari.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 9140,
+      "sha256": "de77f3f66d7ee9eb8d1a1e364a6d058ad2cc936371c3482fc3877c109b994811"
+    },
+    {
+      "path": "assets/audio/words/hikouki.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12404,
+      "sha256": "b2b4f38e7889ba91b3d3d00c7e1b522a2b1156eb2f6bfeb7bf23812d7aef685b"
+    },
+    {
+      "path": "assets/audio/words/hikui.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13244,
+      "sha256": "d1ea073117df208cc7b1d45837520224f490796b7b2d08cd86d833ad4513677c"
+    },
+    {
+      "path": "assets/audio/words/hiru.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "32a17c73760717bb3e850f67de9139cd3b16518e5964d49159abbc44f060e9f9"
+    },
+    {
+      "path": "assets/audio/words/hito.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 24000,
+      "sha256": "b0ad6fb0332becb4e8be51d1631b8dede212997e3881e625c3bee8361866c0ac"
+    },
+    {
+      "path": "assets/audio/words/hitotsu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14444,
+      "sha256": "26335b8c204f1e0e6ef2afe5be8ab151e533aa8db4c55cb97704092df78b11c3"
+    },
+    {
+      "path": "assets/audio/words/hon.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 23373,
+      "sha256": "294e4d1ea916e838248b923f90cab4945c5e04d6e7eb8fe9c9dae0b7b785a914"
+    },
+    {
+      "path": "assets/audio/words/hoshi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 9236,
+      "sha256": "7614216c7ca769c4e4bfff8e64cf4b667eba0615603b2680fcf04d33196c54d2"
+    },
+    {
+      "path": "assets/audio/words/ichinichi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 15884,
+      "sha256": "4b290451ab9deff9a247f41b398febcf2377d95eb3a5780efa7279d241595d87"
+    },
+    {
+      "path": "assets/audio/words/ie.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 22605,
+      "sha256": "ad453d6471e4f5b446cc603d941cac7721b43a8ee75d68e5fa1f83e5d8b4eaad"
+    },
+    {
+      "path": "assets/audio/words/ii.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12284,
+      "sha256": "797624307fb5043959b2baf9a6290b0a8d5d805645d854e5ef55ba8bae6bf4fd"
+    },
+    {
+      "path": "assets/audio/words/iie.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "aaefe7ced5616a94097cfe86a63c19f4f61069c3d0860e3efc44ba1840665b87"
+    },
+    {
+      "path": "assets/audio/words/iku.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12764,
+      "sha256": "f538e8bd8a8d9f6d5dd71e9bda614ab39cfbe05e32386fa1ca0d837dc33bf12b"
+    },
+    {
+      "path": "assets/audio/words/ima.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12044,
+      "sha256": "acab6d0e4527095ab3caf438b4851e006d88e8cbfd4c9575b22c9e96f1dc1e0c"
+    },
+    {
+      "path": "assets/audio/words/inu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 22605,
+      "sha256": "5848bfd3ee83474046f3ae3f1fcebb8da5d750532633294a206d059cb9d29fb0"
+    },
+    {
+      "path": "assets/audio/words/isu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 25740,
+      "sha256": "78f06babb88cf288fb03c2c059d3187ed7f9af724bad2c346663be88dfbabe8b"
+    },
+    {
+      "path": "assets/audio/words/iu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12044,
+      "sha256": "9de3adeeb3eecab1d6e100dd93412c410450db8ea4ccda44e71b7e6d44d7468d"
+    },
+    {
+      "path": "assets/audio/words/jikan.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "e6eddbd41cbc7b20830b9a064c30e0b1bad4edf1c424b44e18ad567a4c823ab1"
+    },
+    {
+      "path": "assets/audio/words/jitensha.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 15644,
+      "sha256": "35d3673c9bddcfb7fd0d97d0e384cfb341fc2db5e21b4cfc73cd91d005f61695"
+    },
+    {
+      "path": "assets/audio/words/jouzu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14204,
+      "sha256": "d97c5479dc29e6dc8f97a032bc23727b0283deea645957b6e5190848f4f7e3cd"
+    },
+    {
+      "path": "assets/audio/words/jōzu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14204,
+      "sha256": "d97c5479dc29e6dc8f97a032bc23727b0283deea645957b6e5190848f4f7e3cd"
+    },
+    {
+      "path": "assets/audio/words/kaeru.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 26508,
+      "sha256": "892de59844694a4e6523f24c1a9c3a5022cba835cab32258a741c26b6641ab4c"
+    },
+    {
+      "path": "assets/audio/words/kaimono.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14684,
+      "sha256": "d493ef0853a9cde63cbbbafe6b69537a5f6e098bd5ef64eee66cf463af6799d1"
+    },
+    {
+      "path": "assets/audio/words/kame.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 24627,
+      "sha256": "587e3a0181a3fc45367c3aa6fd90e9a32e646289b10fe4b66f6d7860c5feba8e"
+    },
+    {
+      "path": "assets/audio/words/kaminari.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 10916,
+      "sha256": "10728f3bf80185a9847de2fc6a8c6298f5048330c81ca76dd0c03483dc7342a8"
+    },
+    {
+      "path": "assets/audio/words/kanashii.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 15404,
+      "sha256": "f887beedc614b32bf5c3ee07bcd9aa6ac437b2d598e71de9efca71c6c4d47ee5"
+    },
+    {
+      "path": "assets/audio/words/karada.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13724,
+      "sha256": "392b8032e58fc4667c9fc5a64f0ad5a5eeb9e96526fb724acf252eed915194cc"
+    },
+    {
+      "path": "assets/audio/words/kasa.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 24627,
+      "sha256": "d48b5a3684235be840cbecc118a16f8a4c9936878e28b7ec74c19055a9120088"
+    },
+    {
+      "path": "assets/audio/words/kawa.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13004,
+      "sha256": "103363514fcdc4f8fb117aabb5f6f088dacff8f018e85e600d125e735016794d"
+    },
+    {
+      "path": "assets/audio/words/kaze.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 8420,
+      "sha256": "cadb6f49008ec35e4e01e701f68a4aee1352ba096000be6bcaca16881b4ddda4"
+    },
+    {
+      "path": "assets/audio/words/kazoku.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 28874,
+      "sha256": "6a7bc2c7ad2808d7937233d6b51b385416d28bb5ec2ee8f0dc4f175ecfb850ae"
+    },
+    {
+      "path": "assets/audio/words/keeki.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12788,
+      "sha256": "8c799cfb8d5ffc9386b77f7ca4be7e5f182e742564eb76de484c4b933232006c"
+    },
+    {
+      "path": "assets/audio/words/kiiro.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13244,
+      "sha256": "c81ef4bb1abcdf3acc7ad87add6597fcd54a8fc030532d3907595baf46e5a824"
+    },
+    {
+      "path": "assets/audio/words/kiku.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12764,
+      "sha256": "b1a0eaded4f8555804a5e4f25bb0ecb5ab5f1af334d099cd5b7c3c2f64746822"
+    },
+    {
+      "path": "assets/audio/words/kinou.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "03e4c6f99ed510195c6c10497520572b1de602b946fe5aadd7c2f06b1a8e875d"
+    },
+    {
+      "path": "assets/audio/words/kinō.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "03e4c6f99ed510195c6c10497520572b1de602b946fe5aadd7c2f06b1a8e875d"
+    },
+    {
+      "path": "assets/audio/words/kirai.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "9c509be54acd786586d70e52b2384fdfddcd3b78800ad7a7b0c8ba0da7a84da6"
+    },
+    {
+      "path": "assets/audio/words/kiri.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 8300,
+      "sha256": "1a54bcc1d70f193bf8eb25eec969aaf95fa9e8f8e760514c5249c7019fb84a83"
+    },
+    {
+      "path": "assets/audio/words/kita.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 11036,
+      "sha256": "99efe79b40d658fc5537686078bbb7f03bfd05d8e9a1145db026c20fcc8937bb"
+    },
+    {
+      "path": "assets/audio/words/kodomo.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 27621,
+      "sha256": "a35a2db3d6457056d3df1592060f5ca87b58b4598f799c3d5a788211f6650a56"
+    },
+    {
+      "path": "assets/audio/words/konbanwa.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 16124,
+      "sha256": "a9fa4897849fe29a4f0c1d9201a97336ffeb0b77126cf461396d49768dc86345"
+    },
+    {
+      "path": "assets/audio/words/konnichiwa.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 16604,
+      "sha256": "4a797026c61ba3081f0a44d3eedada8ff17e513b2b00f677fee1d6c645cf1105"
+    },
+    {
+      "path": "assets/audio/words/kouen.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 25881,
+      "sha256": "fdc810bcc95680e47b3d9d3d6b0ee0cea6da0654e5155fa1122a9897b50086eb"
+    },
+    {
+      "path": "assets/audio/words/kuchi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "4e5994c82d934a7eaae7b77e3fb6de249bcd4553aafb079459aec76d55fe2008"
+    },
+    {
+      "path": "assets/audio/words/kudamono.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14684,
+      "sha256": "5740e0db505c64b85f9f1251e0bc34cfe3c910c8a952f42f09a1cc1a0ca8c2cc"
+    },
+    {
+      "path": "assets/audio/words/kumo.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 7868,
+      "sha256": "c82ba6729c07e993468b69d7dc40e157ae54fa7bc9f5474fe27398eec65db087"
+    },
+    {
+      "path": "assets/audio/words/kuro.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12284,
+      "sha256": "d3bfe0b5d2fc962808ceb5abaa512ef377bc15ff289676a78b484f17dd53f152"
+    },
+    {
+      "path": "assets/audio/words/kuru.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12764,
+      "sha256": "e40e39a6ed2e2525f0020948036f482416f4336d9059eafe9ae2de2b8f6766d9"
+    },
+    {
+      "path": "assets/audio/words/kuruma.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 11132,
+      "sha256": "10c37a6756e523a7f0fa319c6cabfc1e05754f38e5bd022607c66e6f06ba378e"
+    },
+    {
+      "path": "assets/audio/words/kyou.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "7ad6c049fe265bc5999019af82e42dd3e4874c86bb78167a01858cf0cdf02826"
+    },
+    {
+      "path": "assets/audio/words/kyō.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "7ad6c049fe265bc5999019af82e42dd3e4874c86bb78167a01858cf0cdf02826"
+    },
+    {
+      "path": "assets/audio/words/kōen.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13964,
+      "sha256": "d6e6699959515e5f8b07abdc61bf7d2d43a1d20a23ea0efac4980ac9b0e91ffe"
+    },
+    {
+      "path": "assets/audio/words/machi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 25254,
+      "sha256": "e1f103a732dad8a5a9540d1faafae1095846ac49541c21cd6597545440f0402f"
+    },
+    {
+      "path": "assets/audio/words/mado.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 25740,
+      "sha256": "cd08b07bda14c1c4a77f9f19cd8e2f902c1fce46024688bfb6330dc52ac1eced"
+    },
+    {
+      "path": "assets/audio/words/mae.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 8468,
+      "sha256": "fd81f184ec9785f2c3875cdad910fb0273405b01aeb75e55435bbadd2cb081b6"
+    },
+    {
+      "path": "assets/audio/words/matsu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "27bf460f309b8bb709ceeba7cffbfa7274175a8af790cdce545a5280ca94a92a"
+    },
+    {
+      "path": "assets/audio/words/me.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 11084,
+      "sha256": "4210d8b98bedb6a64b3a16d99fdbba9e2f91a7fa02fb512c24b9ca6f306c32a0"
+    },
+    {
+      "path": "assets/audio/words/michi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 25254,
+      "sha256": "945eb365019a099505900ac7cb53885a94fac7904a2d748893aff050f4f009bb"
+    },
+    {
+      "path": "assets/audio/words/midori.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "73c2523a3bcb675fa33a0c7b3f06a34aebf01c3e1a7aa1fbc816f494e7273279"
+    },
+    {
+      "path": "assets/audio/words/migi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 9812,
+      "sha256": "3c412df175111fc993e76af69d3e9c3d02e948963fb393c6639886c713214982"
+    },
+    {
+      "path": "assets/audio/words/mijikai.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14924,
+      "sha256": "34f38e0c38a398c18aab0c8e24b19e73978584f5d8bfe13c1ffb9a4072f5208f"
+    },
+    {
+      "path": "assets/audio/words/mimi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12764,
+      "sha256": "f50c8b00923550c47e6dd67e2c4d6c16ae6ddd7428db422396783edba1058a4c"
+    },
+    {
+      "path": "assets/audio/words/minami.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 10244,
+      "sha256": "cc1bc8ed7044f056f5e6615134604bdf11fbad9bc7414c8e06d162213ed51555"
+    },
+    {
+      "path": "assets/audio/words/miru.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12284,
+      "sha256": "18434383a6d958964f6b68c7316a329461df1af372436d6e84f2188a869ed246"
+    },
+    {
+      "path": "assets/audio/words/mise.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12764,
+      "sha256": "aa433d0e516493abdd050913d9d015cc1a92fec321f8fe08b82ec7b04f2163fd"
+    },
+    {
+      "path": "assets/audio/words/mittsu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14444,
+      "sha256": "b34179ff0b63d42a1d497d64b7f1128039b86c68d5c4cce5fa93bd108669b86c"
+    },
+    {
+      "path": "assets/audio/words/mizu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12764,
+      "sha256": "a7b1d6549cb618db3ac780ae58f34b2a2d31ba8fa822769ef29f657c5320d4c7"
+    },
+    {
+      "path": "assets/audio/words/modoru.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13724,
+      "sha256": "a7c6154c7d8426b6d1b0069134747e08b6d1bd8878527076fd813b99fe1d454b"
+    },
+    {
+      "path": "assets/audio/words/mori.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "54fb18863b1bf8bb50cd0d1d7d9e1eb390a388333ff68300f1aaff08b780b008"
+    },
+    {
+      "path": "assets/audio/words/nagai.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13724,
+      "sha256": "e3642421649216a9a8097d914bc06f3eb80fea36b2508ea673809c086cd92ef4"
+    },
+    {
+      "path": "assets/audio/words/naka.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12764,
+      "sha256": "2d796b5316987926d007f5fd74e6f17f3fe21f287f124ac6a22d3713f35f212a"
+    },
+    {
+      "path": "assets/audio/words/natsu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "c1418a0d93accb6f1cdce15dbbc791b3caf7f400a2209ae0aeabd13d2d6cad7d"
+    },
+    {
+      "path": "assets/audio/words/nedan.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13004,
+      "sha256": "341f5cdafd20d053dbba79572c692d6daf37559ba2c6f72a83544669ecc31085"
+    },
+    {
+      "path": "assets/audio/words/neko.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 25881,
+      "sha256": "d877bdf2bb72bc3e4f3c8b6e8a3f055ed4fc89f4849f9955a802e3604e061ae6"
+    },
+    {
+      "path": "assets/audio/words/neru.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "48a5e5821fb2e43758b7457e44cdbc11e347ca2989256b802de834d1eb286fcb"
+    },
+    {
+      "path": "assets/audio/words/nigiyaka.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14684,
+      "sha256": "e539ada8829718b8c5312712aa97d07a99bdc216e3d61bc6930bfa2f687620fe"
+    },
+    {
+      "path": "assets/audio/words/niji.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 9572,
+      "sha256": "de8c5f1ef1193a8377fac1f016d5bd4f66ee0915d9dfe93b8586734f49b39e4d"
+    },
+    {
+      "path": "assets/audio/words/niku.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12764,
+      "sha256": "51e530f616e08db95714b0c25c9793cde74e4c68eb2e6ab8b2ffeeae69d860fb"
+    },
+    {
+      "path": "assets/audio/words/niwa.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 26367,
+      "sha256": "07fba60d79f798491e330f4f09647cfdf0d3ee7c3c0f6f40577077511606c9b0"
+    },
+    {
+      "path": "assets/audio/words/nomu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "19758b4bf06feee245ab2e093b94841a669c6f823dbf3b3d871329fbf49f5da1"
+    },
+    {
+      "path": "assets/audio/words/ocha.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 9308,
+      "sha256": "8539696c17b885e7630392790fdea8aec68ef500d33a91789809ee1a6a445e96"
+    },
+    {
+      "path": "assets/audio/words/ohayou.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14684,
+      "sha256": "5b95eaf8f244f03dc332e7c1a808a19dcfbdcebf16a6a1651f2f7ac0e1447fc7"
+    },
+    {
+      "path": "assets/audio/words/ohayō.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14684,
+      "sha256": "5b95eaf8f244f03dc332e7c1a808a19dcfbdcebf16a6a1651f2f7ac0e1447fc7"
+    },
+    {
+      "path": "assets/audio/words/okane.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13724,
+      "sha256": "5497ee4529e901ae8bdb90a21f12000c79152839643b9d5bee00166301d5f0e9"
+    },
+    {
+      "path": "assets/audio/words/okiru.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "d95a2e4639b52c13e1d5feb51992f3cd0664148a9c958d65986f67a7055d6862"
+    },
+    {
+      "path": "assets/audio/words/onigiri.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12332,
+      "sha256": "3ca52803435e8b43759b72b1a21163e16923f0dcd650d58540bbf003fede3dd4"
+    },
+    {
+      "path": "assets/audio/words/onnanoko.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 33263,
+      "sha256": "e9a9abf31e1b3602941d2f15d2782b4feed611488ad6ce4f82b0320476d41c6d"
+    },
+    {
+      "path": "assets/audio/words/ooi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12764,
+      "sha256": "3c7cd844ba8a9773dbb390709effb978f32cedcaa0fe4d22a8f3d9c4052d353b"
+    },
+    {
+      "path": "assets/audio/words/ookii.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14924,
+      "sha256": "bde2c2921a49e12627e9daacedacc63dcd79b58f35f028dda3ec19b20246766a"
+    },
+    {
+      "path": "assets/audio/words/otokonoko.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 33890,
+      "sha256": "74148a4b2c1f2d1ea27bcb6189cc4c64578b9617095c1a7b7bbec92ff3047a45"
+    },
+    {
+      "path": "assets/audio/words/pan.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 8852,
+      "sha256": "17d27b8c181a60b2b77aa3eefb2671abc1e4087478b0098ffa7650ed6a1e6e4b"
+    },
+    {
+      "path": "assets/audio/words/pun.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "717f59b6bbf4e1c35a19c59adfde58d4fb08b4b8fbc87be9529dffa7ae270c3d"
+    },
+    {
+      "path": "assets/audio/words/ramen.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 11852,
+      "sha256": "fc7e885119687da59d01bbef80b981d010a410558847d71796d7dcd097cf7baa"
+    },
+    {
+      "path": "assets/audio/words/ringo.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 9620,
+      "sha256": "e841a71225cc377ee74143add1685b3ced46801c5bb1f66a6c7e5b939590216c"
+    },
+    {
+      "path": "assets/audio/words/sakana.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12500,
+      "sha256": "3e3b057e9477cfaba6793843c42f2d7162e029e296d7659d2f6cb832bbab1f47"
+    },
+    {
+      "path": "assets/audio/words/sake.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "bcc97a952e24cb478e7ee82301776f891566103598f29b816a90045cf9e3212b"
+    },
+    {
+      "path": "assets/audio/words/sakura.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 9596,
+      "sha256": "1d7171d228f7887f9befd0228d99d5a5d601d49a11a1e0f9dcb06a8d3c0e7cd5"
+    },
+    {
+      "path": "assets/audio/words/samui.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13724,
+      "sha256": "3b176af8538bc0077a8bfe752b6f0a960c54efdd746a043118a492d9834a3b2e"
+    },
+    {
+      "path": "assets/audio/words/sara.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12284,
+      "sha256": "d5a8502aa8c3d68655a8a17b607aff49e791ae753d4956066f2ce67a6e961c5f"
+    },
+    {
+      "path": "assets/audio/words/sayounara.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 16124,
+      "sha256": "fe08bd5d8c99d3c5011c607a57b4caba2e6905626146d0dc7c1dad911a924cbb"
+    },
+    {
+      "path": "assets/audio/words/sayōnara.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 16124,
+      "sha256": "fe08bd5d8c99d3c5011c607a57b4caba2e6905626146d0dc7c1dad911a924cbb"
+    },
+    {
+      "path": "assets/audio/words/shiro.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12764,
+      "sha256": "eaf9410512b2d5c3a385f531dcac3963d86d403f1e360fd5cd91de3db29d97f5"
+    },
+    {
+      "path": "assets/audio/words/shita.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12524,
+      "sha256": "15ff22e023b1a9b1a91688879c837e14e1d33cd1c2a4d3c00ce254d0da1d1bd7"
+    },
+    {
+      "path": "assets/audio/words/shizuka.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14444,
+      "sha256": "f5a9fc1dbdfe1f9f344fb594411740b55e557a681c8a65987c7df412ceb98e80"
+    },
+    {
+      "path": "assets/audio/words/soto.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12764,
+      "sha256": "ccd9bf7209910bf0d774733df1a74b43662ca451bae3692563155a3cf19fab69"
+    },
+    {
+      "path": "assets/audio/words/suki.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "c08ff3cdf808f35528ee041cffec77029fd0fd1aa305ac8111727a53564cb208"
+    },
+    {
+      "path": "assets/audio/words/sukoshi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 15164,
+      "sha256": "3f1751261239db8ebe93f8d737832fa3a27f2be190c9699f27356175f468b0ad"
+    },
+    {
+      "path": "assets/audio/words/sukunai.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14684,
+      "sha256": "e8a908e3ddd4bf11516071f2413a812f1b6b8f16a458159f00a23edb8451deeb"
+    },
+    {
+      "path": "assets/audio/words/sumimasen.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 16364,
+      "sha256": "ef34198611978665d990f4176676a49bedd58712f01a6afc117898962bece5fa"
+    },
+    {
+      "path": "assets/audio/words/sushi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13964,
+      "sha256": "693065c07f0bcde89d965ebb8cec6a7973729e63a1b9e14a16a91d49a50a1034"
+    },
+    {
+      "path": "assets/audio/words/suzushii.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 15644,
+      "sha256": "ac271a22fececb5ed1cdd5a54c52e0a7c1b2911b81d10ed7833f603d847f50ac"
+    },
+    {
+      "path": "assets/audio/words/taberu.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13724,
+      "sha256": "f8127b0218d8f3c9c672f8ab6d57ddbf13f3094f9b9aa436704d274023e17ddc"
+    },
+    {
+      "path": "assets/audio/words/takai.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13484,
+      "sha256": "8c4e57e1d7df23f41c9a60bdd74ca184362831d2688e442fab9e61d17c099010"
+    },
+    {
+      "path": "assets/audio/words/tako.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 8540,
+      "sha256": "f31ed73a70486c68ad2b1d2cdb4e69baf8a4fdabb9d88b6d62e0482bfaeb0793"
+    },
+    {
+      "path": "assets/audio/words/takusan.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14204,
+      "sha256": "1df90d1cb4bbd858dd1654bc316545c80ef4255e840157ea9bb707985d025840"
+    },
+    {
+      "path": "assets/audio/words/tamago.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13964,
+      "sha256": "d2cc6147c1839f3af52fea29fa8dfbe807fcecb9db5122c7adbfcdab924ffe5a"
+    },
+    {
+      "path": "assets/audio/words/tanoshii.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 15164,
+      "sha256": "ba38671db54d7995aa29bf652f78ba1f6eddd4e890f8da419e1bc4d44ff8bc00"
+    },
+    {
+      "path": "assets/audio/words/te.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 11084,
+      "sha256": "d3fb76394be0ec4c72312526768b9ecb615670f8beeec70f938ab69d735688f6"
+    },
+    {
+      "path": "assets/audio/words/tomaru.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13724,
+      "sha256": "e28d77b16ef9642efc731e8f5c5fe471bb88412a32ed48a2fec8e52c72b89dad"
+    },
+    {
+      "path": "assets/audio/words/tomodachi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 32636,
+      "sha256": "f1c47e182e8de3d83530d1e00888316554976715e0d46ab5336b2d655b52d980"
+    },
+    {
+      "path": "assets/audio/words/tooku.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13724,
+      "sha256": "abb10e38a56b601dbc995a6ac10ffc5e2d35e2c530291e01d7d0d93cd1ef4081"
+    },
+    {
+      "path": "assets/audio/words/tori.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 22119,
+      "sha256": "7bff6514a642fa5dbcde94b1f691eac3d4ac786566d8cdeb555e8c86b76076bc"
+    },
+    {
+      "path": "assets/audio/words/tsuki.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 9380,
+      "sha256": "c724209a765ec9589c964303ba03ff19919ad25faf5c8e7f57f47b8baeafb1ea"
+    },
+    {
+      "path": "assets/audio/words/tsukue.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 27621,
+      "sha256": "cbc487cff73f1b36edd78b89783e826782bbf3cea2022d8eda59a6582b439fe7"
+    },
+    {
+      "path": "assets/audio/words/tōku.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13724,
+      "sha256": "abb10e38a56b601dbc995a6ac10ffc5e2d35e2c530291e01d7d0d93cd1ef4081"
+    },
+    {
+      "path": "assets/audio/words/ue.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12044,
+      "sha256": "7eb12afb5504f1a33b69fb2efe09e3a3405621df128a9b9b8ae0b427d42dae76"
+    },
+    {
+      "path": "assets/audio/words/umi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 8852,
+      "sha256": "da09f87cf69baec5cabb1750657f0cda9f2cafd8b8d59c955acd80cc1bf8f89b"
+    },
+    {
+      "path": "assets/audio/words/ureshii.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14684,
+      "sha256": "f2caa0d023fb9bb370243c10ecee7e6b8f028622463717b131bdd2b461c48c01"
+    },
+    {
+      "path": "assets/audio/words/usagi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 25254,
+      "sha256": "fe1fe8da2e7ca559c0a69908a37550653b412daff1d29c19cb6fd6976ce15dea"
+    },
+    {
+      "path": "assets/audio/words/ushiro.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 10004,
+      "sha256": "00c8b2617cef7dc106274428096c0adc4607dc283c074e270cb3be2ea9f6b0e3"
+    },
+    {
+      "path": "assets/audio/words/yama.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 8324,
+      "sha256": "5af697c41fe08db43cdb877582f796ea25735315c2dc915fc71d6770962ef363"
+    },
+    {
+      "path": "assets/audio/words/yasai.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 13964,
+      "sha256": "072ac3f0e96d857adecebbd3c9989e56e570ed3658058b6fe9e010fc16b99414"
+    },
+    {
+      "path": "assets/audio/words/yoru.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12764,
+      "sha256": "522e31aef7dd21ab0ff4cd289eeb8e9558efc4b9f2001b436b07eb37bc36ed09"
+    },
+    {
+      "path": "assets/audio/words/yuki.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 10076,
+      "sha256": "838b8b2f327a76e06a45fe62e87a4d8f321488693410f1f47f1611e28e8a2d4e"
+    },
+    {
+      "path": "assets/audio/words/ōi.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 12764,
+      "sha256": "3c7cd844ba8a9773dbb390709effb978f32cedcaa0fe4d22a8f3d9c4052d353b"
+    },
+    {
+      "path": "assets/audio/words/ōkii.mp3",
+      "status": "legacy_unmigrated",
+      "bytes": 14924,
+      "sha256": "bde2c2921a49e12627e9daacedacc63dcd79b58f35f028dda3ec19b20246766a"
+    },
     {
       "path": "assets/img/boss.png",
       "status": "legacy_unmigrated",
@@ -291,6 +2085,138 @@
       "sha256": "eccc42f839c55ec33cf21188b805c99cf7ae700103ee4f845b9ddfabc4983772"
     },
     {
+      "path": "assets/img/delivery/sakura-pass/01.webp",
+      "status": "trial_pending_review",
+      "bytes": 14738,
+      "sha256": "8a1e15568acf4f646b26329923dbf2ff80cdf73fbf9d935897ad810807042e19"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/02.webp",
+      "status": "trial_pending_review",
+      "bytes": 9636,
+      "sha256": "792819be45507438e5caf2cf3f67b02d0484c2c11138c33c4ec736147272255a"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/03.webp",
+      "status": "trial_pending_review",
+      "bytes": 10172,
+      "sha256": "4c294bb5c1209baf245bd04fba6ca0e30fbfb906fa525dce97e71750f19f7cca"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/04.webp",
+      "status": "trial_pending_review",
+      "bytes": 14146,
+      "sha256": "bf4b36a7af135084152b349c6e310348b09cc47884c89f2e2fe9813051d49699"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/05.webp",
+      "status": "trial_pending_review",
+      "bytes": 13900,
+      "sha256": "b3c2fbb878d961bd644c00818ad01b48ed834778d2045ca509ccadcd82791372"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/06.webp",
+      "status": "trial_pending_review",
+      "bytes": 5614,
+      "sha256": "58598f509c56ee3c9fd9dd2769d337efa013869bcab36c9cca7dbe2dab86f2c1"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/07.webp",
+      "status": "trial_pending_review",
+      "bytes": 19380,
+      "sha256": "20055776f70c26870d959e249605952023bfc359a522850622cdfcb78cae117d"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/08.webp",
+      "status": "trial_pending_review",
+      "bytes": 10688,
+      "sha256": "ecdd595ccf5871653b4c326a34b88fb4d52213662455cd14ef8ac8c4fc961809"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/09.webp",
+      "status": "trial_pending_review",
+      "bytes": 16986,
+      "sha256": "ae7e3aa7aa6671a086e9d3e77df98c2b50270b779d6430d5db5f5b235a4abaf8"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/10.webp",
+      "status": "trial_pending_review",
+      "bytes": 8394,
+      "sha256": "b15b318e20bb21317ca03971c4ef8014bdf3193fefd12f86e68541cda328f9ad"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/11.webp",
+      "status": "trial_pending_review",
+      "bytes": 8094,
+      "sha256": "8ce8d76eea80e852c3921df2c748cc468e9580cc2f05b936b59a454795f7093f"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/12.webp",
+      "status": "trial_pending_review",
+      "bytes": 8410,
+      "sha256": "26d3ee836bacefcecb91a622088d34d6d28204d04a0a6100c4eb56f78a3e1a4e"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/13.webp",
+      "status": "trial_pending_review",
+      "bytes": 8564,
+      "sha256": "ab21d02a7706269a701038513b7b8e239b49d8cac45aa8be5226f9255c9d783d"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/14.webp",
+      "status": "trial_pending_review",
+      "bytes": 7130,
+      "sha256": "4b0a66d3b48f669b73c904f5cb8f16aa239c1e155d42cff1d8735a5f05a03b03"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/15.webp",
+      "status": "trial_pending_review",
+      "bytes": 6264,
+      "sha256": "a684272ec46f97026d6b183fb095614f4387bec736799b0edc9824f4a3e5a4b0"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/16.webp",
+      "status": "trial_pending_review",
+      "bytes": 18444,
+      "sha256": "ab648ea35a7f29fa5361a99b5301144c2877d074e7aaac163875853371ba9500"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/17.webp",
+      "status": "trial_pending_review",
+      "bytes": 18972,
+      "sha256": "e6251aaa173f05b67b35fef8e0809029ed31a6fe9cb0199b862e6e57dba4675d"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/18.webp",
+      "status": "trial_pending_review",
+      "bytes": 13418,
+      "sha256": "c925a90616565d167de137764f03cffa86b00fd64b7317dda6efc3b766e27d53"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/19.webp",
+      "status": "trial_pending_review",
+      "bytes": 8986,
+      "sha256": "6d1922f19aaf03e5f0f760bc34ec67b8e7ea96073c1287bade6c87a07d7cc6ba"
+    },
+    {
+      "path": "assets/img/delivery/sakura-pass/20.webp",
+      "status": "trial_pending_review",
+      "bytes": 20374,
+      "sha256": "df48d56262c9c16fecb1076d7bc373b7b0d17950f9300a5e9ce6f6cd837d7c74"
+    },
+    {
+      "path": "assets/img/enemies/ancient-sakura-guardian/ancient-sakura-guardian__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 79996,
+      "sha256": "6d17a6a8a68a42766ddd584061b24225b9e968424b17fbef695f3280f24d7ffd"
+    },
+    {
+      "path": "assets/img/enemies/ancient-sakura-guardian/ancient-sakura-guardian__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 82826,
+      "sha256": "fe17f0d616cdfdc135eb862b94e2f1940646d68230fb62fbea5df36bc186ef39"
+    },
+    {
       "path": "assets/img/enemies/boss-ikari-umibozu/boss-ikari-umibozu__sprite__attack.webp",
       "status": "canonical",
       "bytes": 119126,
@@ -313,6 +2239,18 @@
       "status": "canonical",
       "bytes": 8516,
       "sha256": "49d30a9aa837b6d3335221ea3fb1e8e81f33e0d063eaafec567aa3a7e8d12235"
+    },
+    {
+      "path": "assets/img/enemies/hanakage-fox/hanakage-fox__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 51474,
+      "sha256": "7358eb00d924c29402bafeaad4a08eaac00deaf825f9216cd9f0aeb7d07e2e33"
+    },
+    {
+      "path": "assets/img/enemies/hanakage-fox/hanakage-fox__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 51734,
+      "sha256": "ca536368b8d017b138267dab9e2dbfa96927c8734e75253a36550bc7aefe76cd"
     },
     {
       "path": "assets/img/enemies/minion-shiome/minion-shiome__sprite__attack.webp",
@@ -339,6 +2277,30 @@
       "sha256": "0941497239d28e03955d60ad5a6c85a9a58b8e422177601b30e0537e562e9248"
     },
     {
+      "path": "assets/img/enemies/moss-tanuki/moss-tanuki__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 102610,
+      "sha256": "c54b3d761d1369fa869a26a6a0f95869ceec2ba08dbd90368b4770048ddd0002"
+    },
+    {
+      "path": "assets/img/enemies/moss-tanuki/moss-tanuki__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 95468,
+      "sha256": "1aa4f0529b0b42fa64896de960f58019b7f52135ac6b8e2aae14b72a67341baf"
+    },
+    {
+      "path": "assets/img/enemies/night-sakura-princess/night-sakura-princess__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 81076,
+      "sha256": "2c3daccdecbc3c2391820ff1813293730813d9f1934af2ba3fd20c7eacc78133"
+    },
+    {
+      "path": "assets/img/enemies/night-sakura-princess/night-sakura-princess__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 69664,
+      "sha256": "b92316d4056f9ed4ac2a26bca7ded0877c7f93acefbeba3d1072294b6fac8fce"
+    },
+    {
       "path": "assets/img/enemies/night-town-boss/night-town-boss__motion-sheet.webp",
       "status": "canonical",
       "bytes": 85644,
@@ -349,6 +2311,18 @@
       "status": "canonical",
       "bytes": 21754,
       "sha256": "84fc3b5ddf955fb6f088fa27adc3f82cb4d1073dd8b4a713121e8c3dfb692531"
+    },
+    {
+      "path": "assets/img/enemies/paper-umbrella-spirit/paper-umbrella-spirit__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 46646,
+      "sha256": "27fe47a77ca8a973f9d691ff83c682e1bc41f5d90a0b8ed003923700560d9eae"
+    },
+    {
+      "path": "assets/img/enemies/paper-umbrella-spirit/paper-umbrella-spirit__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 46738,
+      "sha256": "57a31bc105de10264780c7938a636dd527a98e2b3fb6272f8c7eba81c0fc482c"
     },
     {
       "path": "assets/img/enemies/runner/runner__motion-sheet.webp",
@@ -363,6 +2337,30 @@
       "sha256": "8e47a64c084f1888efb68f8e34bcd6cbdf42016afcdf0df736e58d13db47a90f"
     },
     {
+      "path": "assets/img/enemies/sakura-kodama/sakura-kodama__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 45714,
+      "sha256": "2c910c6de99f6641efc976eb74ac1e240b15f070b69296fdf4eba8d711913a09"
+    },
+    {
+      "path": "assets/img/enemies/sakura-kodama/sakura-kodama__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 43728,
+      "sha256": "53c82c8943895157101665bcbaf6ce99993cdc8cac9c6054bc51696877b23663"
+    },
+    {
+      "path": "assets/img/enemies/sakura-tengu/sakura-tengu__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 68228,
+      "sha256": "e2c451f2b3933c0ec5312edfe823ca948fc1c23305d7c3af45902772861a5e79"
+    },
+    {
+      "path": "assets/img/enemies/sakura-tengu/sakura-tengu__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 56518,
+      "sha256": "3bd68b6484dbe96abe64cb3dcbde2b12d84f7bab09766eb40995624ca6e6aeb5"
+    },
+    {
       "path": "assets/img/enemies/shooter/shooter__motion-sheet.webp",
       "status": "canonical",
       "bytes": 38660,
@@ -373,6 +2371,18 @@
       "status": "canonical",
       "bytes": 10916,
       "sha256": "21015debd37b7e11a42b47c3c53bc5f1a55d17412a5bff5a763be1ad7c920c58"
+    },
+    {
+      "path": "assets/img/enemies/stone-lantern-kid/stone-lantern-kid__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 73754,
+      "sha256": "96186fb89408413149ff913bc716c36956d5f6423f44ecbb7dd628cc3f66d97c"
+    },
+    {
+      "path": "assets/img/enemies/stone-lantern-kid/stone-lantern-kid__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 67950,
+      "sha256": "91e76f234316019c218dbf38dda46d660533b21d2b2f872c9e08adf2318f07f9"
     },
     {
       "path": "assets/img/enemies/tank/tank__motion-sheet.webp",
@@ -1683,6 +3693,114 @@
       "sha256": "e615a98837b3da05824231529ba9198038bdbcc54dd11bcd4275bf1ecaf2c041"
     },
     {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__ancient-sakura.webp",
+      "status": "trial_pending_review",
+      "bytes": 270372,
+      "sha256": "05666d9a4ac1a0f2b44750be2825c1088838f45b6a1e65403d5f82c122d3f760"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-left.webp",
+      "status": "trial_pending_review",
+      "bytes": 259862,
+      "sha256": "9e7cb96693909ac0eae6d4391e48f25f7464debcba2afd59dc5b672564ea6ffa"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-right.webp",
+      "status": "trial_pending_review",
+      "bytes": 255656,
+      "sha256": "2261560ca500a4dd56314b0f5f5b5d718aff9bb187c1d4d1db59e34b19c7f2fb"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__moss-rocks.webp",
+      "status": "trial_pending_review",
+      "bytes": 84802,
+      "sha256": "e9d35f8aec4a45c873eadfdc5ad6b8f809f5ecd7ae5accb0a9f773bbe97dfc9c"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__stone-lantern.webp",
+      "status": "trial_pending_review",
+      "bytes": 69188,
+      "sha256": "5110ca29050cb65a1f9050140e1cc64a0d347cb6bd28f22aaa5cedbe379c0f4b"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__stone-marker.webp",
+      "status": "trial_pending_review",
+      "bytes": 71878,
+      "sha256": "3b1bf97ea158e30b45dafd2dc880ff3d9473918cc2bc772fc1afac419d1c236a"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__torii.webp",
+      "status": "trial_pending_review",
+      "bytes": 90702,
+      "sha256": "092193f07831b0ad0ecae6953d573beb041f0c18e7836496cb10714c96619134"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__wood-fence.webp",
+      "status": "trial_pending_review",
+      "bytes": 49436,
+      "sha256": "50c15b7739f2626c615be43f4bfec34a8f4bd3a76a94135eeeebfc6150a45159"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__mountain-house.webp",
+      "status": "trial_pending_review",
+      "bytes": 232508,
+      "sha256": "356cec1f09cf8716b563972d6716dfec6afbfbeb36f50986df49a49a7837abab"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__shrine-pavilion.webp",
+      "status": "trial_pending_review",
+      "bytes": 266982,
+      "sha256": "a6eb1c4f21a9c1be595b46867c1e1167e5d5965bbdc525df72a99c8c993b554b"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__storehouse.webp",
+      "status": "trial_pending_review",
+      "bytes": 284616,
+      "sha256": "97b131f4a47bb4172c9f55dd7f4ec888ae42c75a98dde9539d598c6c83bb6667"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__tea-house.webp",
+      "status": "trial_pending_review",
+      "bytes": 263198,
+      "sha256": "00b531bb01fa7095b96b7d81219cb39d94e7de6d6191fa38179dba2d24ce3a46"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__worship-hall.webp",
+      "status": "trial_pending_review",
+      "bytes": 238228,
+      "sha256": "bebd033b5926928936c74fc316668058e6b89902071e6cfc0a2265324da05e5a"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__ground-dirt.webp",
+      "status": "trial_pending_review",
+      "bytes": 1959884,
+      "sha256": "717e505719336ed666bd13f7e79a12c9de7fd0b4be32801bf5431fea10dc9e79"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-broken.webp",
+      "status": "trial_pending_review",
+      "bytes": 1269672,
+      "sha256": "780e77c7335f71280ea5e4254c751cb8d6083351a42abf39ac81c29c04903b68"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-left.webp",
+      "status": "trial_pending_review",
+      "bytes": 1354864,
+      "sha256": "236c5dcad766f3990f6147044d50e97abf9e5bef70dd66ab225ca50f55601ce7"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-right.webp",
+      "status": "trial_pending_review",
+      "bytes": 1543528,
+      "sha256": "01e7c39283feded821aef8de4ca0e205979cd318ed2a0b70fd9c813396d9a8b4"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-straight.webp",
+      "status": "trial_pending_review",
+      "bytes": 1390376,
+      "sha256": "4ff3b37128e7086377c1baf6196431f12b9ae5573aa49351f46ef86d0e7c1fee"
+    },
+    {
       "path": "assets/img/tank.png",
       "status": "legacy_unmigrated",
       "bytes": 156507,
@@ -2457,6 +4575,12 @@
       "sha256": "cc5b01601f3d9ec7a36b6730f9298cc7edfc7076c5848dc4306648561c3db0f6"
     },
     {
+      "path": "assets/img/ui/menu/approved__button_normal.webp",
+      "status": "trial_pending_review",
+      "bytes": 18956,
+      "sha256": "62f59cf4983aefc759efd6e404a4c5eebaf8871a49a800c2867be5d3c976fc6d"
+    },
+    {
       "path": "assets/img/ui/menu/exit__blank.png",
       "status": "trial_pending_review",
       "bytes": 2893755,
@@ -2467,6 +4591,12 @@
       "status": "trial_pending_review",
       "bytes": 138224,
       "sha256": "9a87c07105cb670b766f211eca47f1eed5126970554bec8df7192b0148eb328e"
+    },
+    {
+      "path": "assets/img/ui/menu/pause__approved.webp",
+      "status": "trial_pending_review",
+      "bytes": 577600,
+      "sha256": "0f90b70fda139da2acfb848462e841aeb4048f0370c0b525f9c16c438798a0a4"
     },
     {
       "path": "assets/img/ui/menu/pause__board.webp",
@@ -2781,10 +4911,22 @@
       "sha256": "e67ee801947e73897abd0a112d7665dd2abc6d75f7fcfc0e24fb45ab0aefda21"
     },
     {
+      "path": "assets/img/ui/upgrade/approved_details_blank.webp",
+      "status": "trial_pending_review",
+      "bytes": 25620,
+      "sha256": "69d1dd8747ce7923b8a02e8ced30e9d915f67447175bf11d77abe4acdc088e60"
+    },
+    {
       "path": "assets/img/ui/upgrade/approved_title.webp",
       "status": "trial_pending_review",
       "bytes": 16556,
       "sha256": "c528dbdc4a2fdabdb97cbe54416450514352ca4578146355f5d5ac963f224a69"
+    },
+    {
+      "path": "assets/img/ui/upgrade/approved_title_clean.webp",
+      "status": "trial_pending_review",
+      "bytes": 14082,
+      "sha256": "b2551b847c05e4dec9a54284aeb4c5a292140c723ef4beb71988110889b248b7"
     },
     {
       "path": "assets/img/ui/upgrade/board.webp",
@@ -4101,1678 +6243,34 @@
       "sha256": "24aeaba98e685e4619487a2c29c0eb45c9907d9c5c11f95c768550660705ecf6"
     },
     {
-      "path": "assets/audio/bgm/boss/boss__encounter.mp3",
-      "status": "canonical",
-      "bytes": 3604901,
-      "sha256": "4484fa39285e129bec497664d3b693c7c9d9cf8b71297f3f3e04d84d481518e5"
-    },
-    {
-      "path": "assets/audio/bgm/menu/menu__journey.mp3",
-      "status": "canonical",
-      "bytes": 2035220,
-      "sha256": "0eea8130856b234978f209078a3bc478e90ce71f2ea07c5ef65db83d23c7700f"
-    },
-    {
-      "path": "assets/audio/bgm/stages/night-town/night-town__battle.mp3",
-      "status": "canonical",
-      "bytes": 4521169,
-      "sha256": "c81d5e33055b91659d27f33d8629a2c3dbe52fb3f9768dd1e3e7431af79d38a5"
-    },
-    {
-      "path": "assets/audio/BGM.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 4521169,
-      "sha256": "c81d5e33055b91659d27f33d8629a2c3dbe52fb3f9768dd1e3e7431af79d38a5"
-    },
-    {
-      "path": "assets/audio/BOSS.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 3604901,
-      "sha256": "4484fa39285e129bec497664d3b693c7c9d9cf8b71297f3f3e04d84d481518e5"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/01.mp3",
-      "status": "canonical",
-      "bytes": 7522,
-      "sha256": "d67dfdb0c398bf599f4d46ce7c52c702af57677a24c0b9255293b65108ac262e"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/02.mp3",
-      "status": "canonical",
-      "bytes": 14209,
-      "sha256": "996a98937ab744e74ec25a5ab57665ba4b0587038979d1031c8107ae79e144b9"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/03.mp3",
-      "status": "canonical",
-      "bytes": 9194,
-      "sha256": "8627aa6d01f9d85bff6f9b8b35a3901a2dc903a3d3eeeedb8433845a488fb170"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/04.mp3",
-      "status": "canonical",
-      "bytes": 10030,
-      "sha256": "70df97ad706c0adc93945a1b33873cb27b4a5d9b7c31f6649c09b26f70301341"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/05.mp3",
-      "status": "canonical",
-      "bytes": 9194,
-      "sha256": "b308a9bdd3925e101a6c608745504256dd6bcc320a2f383fd1daebd630352d9a"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/06.mp3",
-      "status": "canonical",
-      "bytes": 9194,
-      "sha256": "13d333517a5b96cbaed5d74f8c0218ed96f69f85f110cbba6088cd49e3db9213"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/07.mp3",
-      "status": "canonical",
-      "bytes": 11283,
-      "sha256": "cb9ea8747bdb41d633e121fda4fc788df46e2b1b6fbb19be5f3f869859401345"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/08.mp3",
-      "status": "canonical",
-      "bytes": 10030,
-      "sha256": "57fd5ad283faa1e4d9134a2f60530003645459a2660aba7acb6ac8aaaf0566d5"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/09.mp3",
-      "status": "canonical",
-      "bytes": 9194,
-      "sha256": "4e6ad8f4a8fc7101cfcaa81a18737ad00faa95f2ece765bed2a95cd1875ec2f3"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/10.mp3",
-      "status": "canonical",
-      "bytes": 10866,
-      "sha256": "8284a1e124f0c2f19039e28b0d973e063ca244b4844333fbe4e130bdd343d737"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/11.mp3",
-      "status": "canonical",
-      "bytes": 12955,
-      "sha256": "6344ad599d71638a69bf4633d160958aabab84b386b221f1043934b02c0e13f7"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/12.mp3",
-      "status": "canonical",
-      "bytes": 13791,
-      "sha256": "6d6947c00217d075b7e8983e562ac01000adbad0dcdd5ea432c09c557e53a937"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/13.mp3",
-      "status": "canonical",
-      "bytes": 12119,
-      "sha256": "eecbf36c42dea9f8fc1b29ab4841b9d3221eb012c8dd41275527d14f16f77120"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/14.mp3",
-      "status": "canonical",
-      "bytes": 12955,
-      "sha256": "d34e098aae8751284f60841f5cf198f621d538f5be7f5bafb52bcc0b3302fc53"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/15.mp3",
-      "status": "canonical",
-      "bytes": 12119,
-      "sha256": "1b7d2d0dd0651c72e9c94a0519523d0b67eb1594755b93659b37af9487801179"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/16.mp3",
-      "status": "canonical",
-      "bytes": 7522,
-      "sha256": "5b6e424dd45e7182b8cb8a098c6e62652dbc1816c25f0ae94c03c7870684876c"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/17.mp3",
-      "status": "canonical",
-      "bytes": 12955,
-      "sha256": "247c2b094a48cfcce7662bb1353ad43b4b842da554387620d37402d50c4e47c8"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/18.mp3",
-      "status": "canonical",
-      "bytes": 11283,
-      "sha256": "0d0747a0d495b65a7f35c8b8c647bbd1a60cbd3eb07f23f8646fd939462aac03"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/19.mp3",
-      "status": "canonical",
-      "bytes": 12955,
-      "sha256": "4bb916ca932cbe36c36721c9bb46c5b365f29d6d32d123782ce768731d7f0b5e"
-    },
-    {
-      "path": "assets/audio/delivery/night-town/20.mp3",
-      "status": "canonical",
-      "bytes": 14209,
-      "sha256": "e40a5f39d07bed9431a29bdaf824275507b59e588b374c187d5cf4f774ba2d98"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/01.mp3",
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-spreading.webp",
       "status": "trial_pending_review",
-      "bytes": 12119,
-      "sha256": "d7d045094867c1cb275269491c7f27edc8ed7bf9f44d85df4b707ea2903762c0"
+      "bytes": 187240,
+      "sha256": "e9c003ffe5c2ad10e90c230b7d496ae9a2238f96b13b5bc1f657a529fb8a0259"
     },
     {
-      "path": "assets/audio/delivery/rain-port/02.mp3",
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-slender.webp",
       "status": "trial_pending_review",
-      "bytes": 10866,
-      "sha256": "929b28ff998b2f578102da35f68c203c0e8394eb31c61166eeacdb8fb0886e42"
+      "bytes": 206762,
+      "sha256": "697f7fc7bff6e4c12ce04aca3436a0f545aee51c246131453c0658195ca5ae9a"
     },
     {
-      "path": "assets/audio/delivery/rain-port/03.mp3",
+      "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__wind-blade.webp",
       "status": "trial_pending_review",
-      "bytes": 10866,
-      "sha256": "077d4f15085c0fee90b2233f961f3d6226b8caee3c4a651869d6b810f6d741ee"
+      "bytes": 103012,
+      "sha256": "19ef62b597dcf63fec290677ae43494f68d3b34393b51b3390bd3a52a17841b2"
     },
     {
-      "path": "assets/audio/delivery/rain-port/04.mp3",
+      "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__root-bloom.webp",
       "status": "trial_pending_review",
-      "bytes": 10030,
-      "sha256": "3ea482a615574649d7c3015f5f101683c2d3e1455809566eb7525821c94e86f7"
+      "bytes": 262326,
+      "sha256": "8a9cf18d4d552c54ce642eb136fe4cec6cfff8d6519bb6819b1bfe664e85eba7"
     },
     {
-      "path": "assets/audio/delivery/rain-port/05.mp3",
+      "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__earth-break.webp",
       "status": "trial_pending_review",
-      "bytes": 7522,
-      "sha256": "843e0b84e269238d7c07e9ec5f986efa2c08f5ebd0ff8b5c9fd53dfb0d889064"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/06.mp3",
-      "status": "trial_pending_review",
-      "bytes": 11283,
-      "sha256": "a6694a4dad8548964da9a7ae1aad4246772b82796eabcbb906b5465ed719574a"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/07.mp3",
-      "status": "trial_pending_review",
-      "bytes": 10030,
-      "sha256": "4ae517c1bc1d35b882455474d3425eae8d9dcd43be40914cd4a9b4d38b6a6f92"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/08.mp3",
-      "status": "trial_pending_review",
-      "bytes": 9194,
-      "sha256": "86203b727075207cab0b3fcdaf58757a0309131fb149b7f0b2fa140170cc3b96"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/09.mp3",
-      "status": "trial_pending_review",
-      "bytes": 9194,
-      "sha256": "0fd41f71e62c17c89f05542efdd0747a158d30ea2b183a2afd157ad0a9ae9058"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/10.mp3",
-      "status": "trial_pending_review",
-      "bytes": 9194,
-      "sha256": "7861c0c9be6b6941d481a832e80bd9d8144a0b425c59dacb7af94e4f0d568ce9"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/11.mp3",
-      "status": "trial_pending_review",
-      "bytes": 7522,
-      "sha256": "f62659b9f8ddc8a0fd69910ac0f415f3fc8b3beb81f426038b5e4ae4cb664261"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/12.mp3",
-      "status": "trial_pending_review",
-      "bytes": 10866,
-      "sha256": "1c40feec9da170478eb9f321806a0d9fa93e82cb0bb4082ac46264ada8047f28"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/13.mp3",
-      "status": "trial_pending_review",
-      "bytes": 9194,
-      "sha256": "dfb907d975e7385a823937f4e873e97b80445ac9ba572ee23b33b11125c44bb6"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/14.mp3",
-      "status": "trial_pending_review",
-      "bytes": 12119,
-      "sha256": "dbd6131abc6851e089b2380e354d99f5f819b61358d36626423637b91973f62b"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/15.mp3",
-      "status": "trial_pending_review",
-      "bytes": 10030,
-      "sha256": "795daaef8d810c4af7093de043108087c8af0f3182e50ac2ca99ecee10ea3395"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/16.mp3",
-      "status": "trial_pending_review",
-      "bytes": 12955,
-      "sha256": "3fc91446decca047209c98881c52bdbdc6eccf50a493aa6ee3562c90ec077b60"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/17.mp3",
-      "status": "trial_pending_review",
-      "bytes": 17553,
-      "sha256": "25468ab23fb6d8e9e95061f72e45d6a6b7a118c47bccbd686588f764dc8c1605"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/18.mp3",
-      "status": "trial_pending_review",
-      "bytes": 12119,
-      "sha256": "005c651cf2b16d98736117353017486b8dd20a902ed7df5239e778bb14cb37b0"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/19.mp3",
-      "status": "trial_pending_review",
-      "bytes": 15045,
-      "sha256": "fa7f359a49813b548e4b515cf603d854686fedf1bb160022beb3f818eddeced4"
-    },
-    {
-      "path": "assets/audio/delivery/rain-port/20.mp3",
-      "status": "trial_pending_review",
-      "bytes": 14209,
-      "sha256": "f47aa8aa1fd81f912b770728f82e049f160bb2cd76e6b71d23776eee40e1dc39"
-    },
-    {
-      "path": "assets/audio/MAP.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 2035220,
-      "sha256": "0eea8130856b234978f209078a3bc478e90ce71f2ea07c5ef65db83d23c7700f"
-    },
-    {
-      "path": "assets/audio/sfx/barrier-lv5.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 29301,
-      "sha256": "f27e68a3f33a018fca657337f0923306e8f923ef5093e2c040a21cc0c338deff"
-    },
-    {
-      "path": "assets/audio/sfx/boom-lv1-4.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 82353,
-      "sha256": "e05a292626b22fec4ffe3544a04b92e15015b1838ddb14ff1d1dabc61c85ecf5"
-    },
-    {
-      "path": "assets/audio/sfx/boom-lv5.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 81644,
-      "sha256": "c6d24b7dda3d71ab62b0655a3e8fd14702fb49a4816c06d387cfbcc67e0c25ce"
-    },
-    {
-      "path": "assets/audio/sfx/boomerang.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 4223,
-      "sha256": "7ddad536cff6562c772c3ede96a33d40f384bc05da046dbd37b37b6fd89c294a"
-    },
-    {
-      "path": "assets/audio/sfx/boss-death.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 52641,
-      "sha256": "012d072512129e30251ab2a74bf40cab585444ff7f700df8706d136ff9eeaeba"
-    },
-    {
-      "path": "assets/audio/sfx/boss-slam-impact.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 137088,
-      "sha256": "d1cce96561699734a68acb931c204d928c44b75bf57bdd804017a21283e4251d"
-    },
-    {
-      "path": "assets/audio/sfx/break-shield.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 34525,
-      "sha256": "7a50f1dfcd3826a15f1184379423ef7dc886a6e8250d031c4edbb58fdfb11865"
-    },
-    {
-      "path": "assets/audio/sfx/charm-pickup.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 34480,
-      "sha256": "e23bc610a40309d6d1862ce5270763e288e8b61056679eaf2521193b8b7f3f6b"
-    },
-    {
-      "path": "assets/audio/sfx/dash.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 26166,
-      "sha256": "0bdb1d5024a7e658e19a65084f2f7830d544c8bb2acbe7299b6f27e383e74e3e"
-    },
-    {
-      "path": "assets/audio/sfx/delivery-success.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 21644,
-      "sha256": "583542e0d3fbb166bcd0b46ae3e5447a2ff6dbc96ac7e5c7a430d83630c4e4ea"
-    },
-    {
-      "path": "assets/audio/sfx/delivery-wrong.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 22509,
-      "sha256": "e48d121e2a559f635da354b47935b8b15f205c96d8afd5544666f0379a61d8f2"
-    },
-    {
-      "path": "assets/audio/sfx/enemies/boss/boss__death.mp3",
-      "status": "canonical",
-      "bytes": 52641,
-      "sha256": "012d072512129e30251ab2a74bf40cab585444ff7f700df8706d136ff9eeaeba"
-    },
-    {
-      "path": "assets/audio/sfx/fanfare.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 101804,
-      "sha256": "d18df78fe96384a1c61fb9569d2108815d6c6ef420c8d39542af7c5a8dca58a3"
-    },
-    {
-      "path": "assets/audio/sfx/final-boss-death.mp3",
-      "status": "legacy_review_required",
-      "bytes": 29362,
-      "sha256": "42a56449ca89b651e97e3b326865739656f71a65d3d840474b2c1346d5bacd7b"
-    },
-    {
-      "path": "assets/audio/sfx/fire-lv1-4.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 25449,
-      "sha256": "0a0c0187d9774bca5be08772972dd3d674bf7e81ffd1c55350375bdccef4211a"
-    },
-    {
-      "path": "assets/audio/sfx/fire-lv5-ball.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 25141,
-      "sha256": "23ebed22c7cac6caba3c3867eb3ee5f3bd4a3660ad2369a1052df46f7f94f109"
-    },
-    {
-      "path": "assets/audio/sfx/fire-lv5-dragon.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 31381,
-      "sha256": "256d44c41f92271e426b544a1b3a76764d3ee52d7fcb0ed11930fe5d31d1cfae"
-    },
-    {
-      "path": "assets/audio/sfx/fire-lv5.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 64102,
-      "sha256": "d7ba5247e5844f256488c302ec9e0acc16e4e34c4c1393d3c8bf7824cf295635"
-    },
-    {
-      "path": "assets/audio/sfx/katana-lv5.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 21315,
-      "sha256": "20d8ab75bf3816fe5a75c6cbf1e7b8a34d9cb64a5c614e8fd7444d7104a2ca03"
-    },
-    {
-      "path": "assets/audio/sfx/level-up.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 32204,
-      "sha256": "01dcbd0cf1626c7bb9b8f564cb93827b12cde55f77e30acf17292bf2bf30e4b5"
-    },
-    {
-      "path": "assets/audio/sfx/lose.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 103244,
-      "sha256": "017ad98e80d43b6813825334bd024ef6d034cc7ffaad2586a7840258ef3fd4a9"
-    },
-    {
-      "path": "assets/audio/sfx/needle.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 13627,
-      "sha256": "f3751e565495a3f3b8c50be709f859c2acab3ebcc0e2bbd1df9f14eb73ba3ff7"
-    },
-    {
-      "path": "assets/audio/sfx/ofuda.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 9403,
-      "sha256": "c108a5e07af378e2cc9811aa13bcd1755e51ab5713f300b6b36c523951a1e39a"
-    },
-    {
-      "path": "assets/audio/sfx/sanctuary.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 28256,
-      "sha256": "59a0203368e0d20c681a05422f15406e62f543e229dd55c23bf56886de648297"
-    },
-    {
-      "path": "assets/audio/sfx/skilllv5.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 55168,
-      "sha256": "730fbca572253e62aa8608b04051502b433d1290d1b1d3e001fbb4ba73ad7650"
-    },
-    {
-      "path": "assets/audio/sfx/skills/barrier/barrier__cast__lv05.mp3",
-      "status": "canonical",
-      "bytes": 29301,
-      "sha256": "f27e68a3f33a018fca657337f0923306e8f923ef5093e2c040a21cc0c338deff"
-    },
-    {
-      "path": "assets/audio/sfx/skills/boom/boom__cast__lv05.mp3",
-      "status": "canonical",
-      "bytes": 81644,
-      "sha256": "c6d24b7dda3d71ab62b0655a3e8fd14702fb49a4816c06d387cfbcc67e0c25ce"
-    },
-    {
-      "path": "assets/audio/sfx/skills/boom/boom__cast__tier01-04.mp3",
-      "status": "canonical",
-      "bytes": 82353,
-      "sha256": "e05a292626b22fec4ffe3544a04b92e15015b1838ddb14ff1d1dabc61c85ecf5"
-    },
-    {
-      "path": "assets/audio/sfx/skills/boomerang/boomerang__cast.mp3",
-      "status": "canonical",
-      "bytes": 4223,
-      "sha256": "7ddad536cff6562c772c3ede96a33d40f384bc05da046dbd37b37b6fd89c294a"
-    },
-    {
-      "path": "assets/audio/sfx/skills/fire/fire__ball__lv05.mp3",
-      "status": "canonical",
-      "bytes": 25141,
-      "sha256": "23ebed22c7cac6caba3c3867eb3ee5f3bd4a3660ad2369a1052df46f7f94f109"
-    },
-    {
-      "path": "assets/audio/sfx/skills/fire/fire__cast__lv05.mp3",
-      "status": "canonical",
-      "bytes": 64102,
-      "sha256": "d7ba5247e5844f256488c302ec9e0acc16e4e34c4c1393d3c8bf7824cf295635"
-    },
-    {
-      "path": "assets/audio/sfx/skills/fire/fire__cast__tier01-04.mp3",
-      "status": "canonical",
-      "bytes": 25449,
-      "sha256": "0a0c0187d9774bca5be08772972dd3d674bf7e81ffd1c55350375bdccef4211a"
-    },
-    {
-      "path": "assets/audio/sfx/skills/fire/fire__dragon__lv05.mp3",
-      "status": "canonical",
-      "bytes": 31381,
-      "sha256": "256d44c41f92271e426b544a1b3a76764d3ee52d7fcb0ed11930fe5d31d1cfae"
-    },
-    {
-      "path": "assets/audio/sfx/skills/katana/katana__slash__lv05.mp3",
-      "status": "canonical",
-      "bytes": 21315,
-      "sha256": "20d8ab75bf3816fe5a75c6cbf1e7b8a34d9cb64a5c614e8fd7444d7104a2ca03"
-    },
-    {
-      "path": "assets/audio/sfx/skills/katana/katana__slash__variation05.mp3",
-      "status": "canonical",
-      "bytes": 65088,
-      "sha256": "b7579170dd5d2f5186bd1703c6468111aeb97fc21af7f8adea6ebf5f1155f08e"
-    },
-    {
-      "path": "assets/audio/sfx/skills/needle/needle__cast.mp3",
-      "status": "canonical",
-      "bytes": 13627,
-      "sha256": "f3751e565495a3f3b8c50be709f859c2acab3ebcc0e2bbd1df9f14eb73ba3ff7"
-    },
-    {
-      "path": "assets/audio/sfx/skills/ofuda/ofuda__cast.mp3",
-      "status": "canonical",
-      "bytes": 9403,
-      "sha256": "c108a5e07af378e2cc9811aa13bcd1755e51ab5713f300b6b36c523951a1e39a"
-    },
-    {
-      "path": "assets/audio/sfx/skills/sanctuary/sanctuary__cast.mp3",
-      "status": "canonical",
-      "bytes": 28256,
-      "sha256": "59a0203368e0d20c681a05422f15406e62f543e229dd55c23bf56886de648297"
-    },
-    {
-      "path": "assets/audio/sfx/skills/thunder/thunder__cast__lv05.mp3",
-      "status": "canonical",
-      "bytes": 50101,
-      "sha256": "a80a0406c95bcf72bffb569458765e964d6c0a2c120c7086bb991ce6d04f0d23"
-    },
-    {
-      "path": "assets/audio/sfx/skills/thunder/thunder__cast__tier01-04.mp3",
-      "status": "canonical",
-      "bytes": 23874,
-      "sha256": "c39bccbfc2ed2d36a4286d1731d8ab86b4858923085acc920c61d180725e5d63"
-    },
-    {
-      "path": "assets/audio/sfx/slash.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 13627,
-      "sha256": "b76390b7dedf7e67222d5fce94c897ab18f983a66f5ca3ec0fbdf74d1f3af2f2"
-    },
-    {
-      "path": "assets/audio/sfx/sword-slash5.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 65088,
-      "sha256": "b7579170dd5d2f5186bd1703c6468111aeb97fc21af7f8adea6ebf5f1155f08e"
-    },
-    {
-      "path": "assets/audio/sfx/system/system__fanfare.mp3",
-      "status": "canonical",
-      "bytes": 101804,
-      "sha256": "d18df78fe96384a1c61fb9569d2108815d6c6ef420c8d39542af7c5a8dca58a3"
-    },
-    {
-      "path": "assets/audio/sfx/system/system__level-up.mp3",
-      "status": "canonical",
-      "bytes": 32204,
-      "sha256": "01dcbd0cf1626c7bb9b8f564cb93827b12cde55f77e30acf17292bf2bf30e4b5"
-    },
-    {
-      "path": "assets/audio/sfx/system/system__lose.mp3",
-      "status": "canonical",
-      "bytes": 103244,
-      "sha256": "017ad98e80d43b6813825334bd024ef6d034cc7ffaad2586a7840258ef3fd4a9"
-    },
-    {
-      "path": "assets/audio/sfx/system/system__shield-break.mp3",
-      "status": "canonical",
-      "bytes": 34525,
-      "sha256": "7a50f1dfcd3826a15f1184379423ef7dc886a6e8250d031c4edbb58fdfb11865"
-    },
-    {
-      "path": "assets/audio/sfx/system/system__warning-pulse.mp3",
-      "status": "canonical",
-      "bytes": 29823,
-      "sha256": "c68ef0d5ac9972c029feb624327b6da19084f2965223d108359cb183a00e585f"
-    },
-    {
-      "path": "assets/audio/sfx/thunder-lv1-4.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 23874,
-      "sha256": "c39bccbfc2ed2d36a4286d1731d8ab86b4858923085acc920c61d180725e5d63"
-    },
-    {
-      "path": "assets/audio/sfx/thunder-lv5.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 50101,
-      "sha256": "a80a0406c95bcf72bffb569458765e964d6c0a2c120c7086bb991ce6d04f0d23"
-    },
-    {
-      "path": "assets/audio/sfx/ui/ui__delivery-success.mp3",
-      "status": "canonical",
-      "bytes": 21644,
-      "sha256": "583542e0d3fbb166bcd0b46ae3e5447a2ff6dbc96ac7e5c7a430d83630c4e4ea"
-    },
-    {
-      "path": "assets/audio/sfx/ui/ui__delivery-wrong.mp3",
-      "status": "canonical",
-      "bytes": 22509,
-      "sha256": "e48d121e2a559f635da354b47935b8b15f205c96d8afd5544666f0379a61d8f2"
-    },
-    {
-      "path": "assets/audio/sfx/warning-pulse.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 29823,
-      "sha256": "c68ef0d5ac9972c029feb624327b6da19084f2965223d108359cb183a00e585f"
-    },
-    {
-      "path": "assets/audio/sfx/world/world__dash.mp3",
-      "status": "canonical",
-      "bytes": 26166,
-      "sha256": "0bdb1d5024a7e658e19a65084f2f7830d544c8bb2acbe7299b6f27e383e74e3e"
-    },
-    {
-      "path": "assets/audio/sfx/world/world__slash.mp3",
-      "status": "canonical",
-      "bytes": 13627,
-      "sha256": "b76390b7dedf7e67222d5fce94c897ab18f983a66f5ca3ec0fbdf74d1f3af2f2"
-    },
-    {
-      "path": "assets/audio/words/aka.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "3acdcd9507969962cc18348f7384f98d365d3177811867e928ed41248094ec3f"
-    },
-    {
-      "path": "assets/audio/words/aki.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13244,
-      "sha256": "aa7c412ec120d34021bc72ad75470cea01bc125813de7d40a433c9b9aac27029"
-    },
-    {
-      "path": "assets/audio/words/ame.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 11804,
-      "sha256": "bea707ffc1ceb511538c73b0bbbb1bd96889ae29babb93f2a3e07e9e22338386"
-    },
-    {
-      "path": "assets/audio/words/ao.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "a24e0d77363af09383ead36c7684ea4a2a518da4b888be18b79b989be97f9aa8"
-    },
-    {
-      "path": "assets/audio/words/arigatou.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 15644,
-      "sha256": "3a763430b33b366fbbee7e89c487569b9da3529471b266a9cd7ecb87c1813f20"
-    },
-    {
-      "path": "assets/audio/words/arigatō.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 15644,
-      "sha256": "3a763430b33b366fbbee7e89c487569b9da3529471b266a9cd7ecb87c1813f20"
-    },
-    {
-      "path": "assets/audio/words/aruku.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13964,
-      "sha256": "5418a43c26541d4b49bc3e2b1d3ac93a4ac4aa169ed1c9cc9ebf5616435bca55"
-    },
-    {
-      "path": "assets/audio/words/asa.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "60b40a7ee047d17d6c784d9d24b3d1bd76bcd790aa1013e89af89fc190c4476a"
-    },
-    {
-      "path": "assets/audio/words/ashi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13724,
-      "sha256": "f19482512831ffd11b9e87b4e34326f5eab0dbc067edf9f634a51701d71d3cef"
-    },
-    {
-      "path": "assets/audio/words/ashita.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13964,
-      "sha256": "4cbfbbceddfa18878f0d4631bf84c4b1893bdd0905381f06790a448ba7683c27"
-    },
-    {
-      "path": "assets/audio/words/atama.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13724,
-      "sha256": "c06a82a06e9b70154e218b1eb89e307bfe3c3e8c8f49d93b34317630412b90bd"
-    },
-    {
-      "path": "assets/audio/words/atarashii.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 16364,
-      "sha256": "43d3a508872a36031dcd69a2799bae6c656205157550a1d6e1d98204ccd0954b"
-    },
-    {
-      "path": "assets/audio/words/atatakai.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 16124,
-      "sha256": "0f307c11fc91f71ee6fe59a9dd652954c746be179902f37f56a9afe5d6fec2ec"
-    },
-    {
-      "path": "assets/audio/words/atsui.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13724,
-      "sha256": "e5bb60d84ed303290cfe28d3ef468f2694c871498b0a32d4a15673a71876dd5f"
-    },
-    {
-      "path": "assets/audio/words/chawan.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "15916b9f6ce9fdefe2eebf0bf562e4ac211e84b4eb50a14417d21b10c040e13b"
-    },
-    {
-      "path": "assets/audio/words/chiisai.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14924,
-      "sha256": "d041b4a247fcf93092e195b2bf513ef296ae506028fdbac66fba47dea9c747cc"
-    },
-    {
-      "path": "assets/audio/words/chikaku.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14444,
-      "sha256": "766bc300408b7e783327510cd846a592c2953f0de000fb1cca82f1de0e0bd8b5"
-    },
-    {
-      "path": "assets/audio/words/denki.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 29501,
-      "sha256": "98d424278386214923cfc746951c4b65b06258d8b0261d1fe1dccd60fabae429"
-    },
-    {
-      "path": "assets/audio/words/densha.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14444,
-      "sha256": "538bb48c896ff855ade73336ec107c73175fd22ff5768d3c75d4906284e587c4"
-    },
-    {
-      "path": "assets/audio/words/deru.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "8c4b8fcb5823422ba74f476155a4c8c33c47893d2a9dc0c453c39fd228ace810"
-    },
-    {
-      "path": "assets/audio/words/eki.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 25881,
-      "sha256": "6adafcfaf32086a30b692a35a3642dd8ec198cb6cdc058438747ec12042fa655"
-    },
-    {
-      "path": "assets/audio/words/ekiin.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13964,
-      "sha256": "447251bac1c9a08a222a4540a033e32754194a14c7dff537de3bed28448b997c"
-    },
-    {
-      "path": "assets/audio/words/en.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 11564,
-      "sha256": "243d52b8c55258157710fd9344ada33adfee932d63c3960cc48a68fb9d474618"
-    },
-    {
-      "path": "assets/audio/words/fune.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 8492,
-      "sha256": "0c9e757fb67cdc070d428296b094f185c4f10f9e460b7e0ddb3af7fb0f7addd5"
-    },
-    {
-      "path": "assets/audio/words/furui.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13244,
-      "sha256": "f6ab4f2e31fc249e5a3d15906a0b0b7364c69ee8b09949144f6754c2f0ad94e1"
-    },
-    {
-      "path": "assets/audio/words/futatsu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14444,
-      "sha256": "df18c654cd4bb26fc1547271b4a059bba6630581c2b0d29b1257558fcddcbe08"
-    },
-    {
-      "path": "assets/audio/words/fuyu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12284,
-      "sha256": "13251e71fb9630442edb323a964b186b17a4155d93f519f397651402cdf04fd0"
-    },
-    {
-      "path": "assets/audio/words/gakkou.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 30896,
-      "sha256": "fbee281b45694965b5f62a67904b3211f1779f511130a7b4d5b76cc404ba0027"
-    },
-    {
-      "path": "assets/audio/words/gakkō.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14924,
-      "sha256": "254a49751ffb0779489a43c05035b99f07a0ed04282e0cb584f5ed5680364470"
-    },
-    {
-      "path": "assets/audio/words/gohan.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "b7cd42b48fa3d2e6449c477a5b59bf6edb098c08455acb4ae5fb10ad92fdb14f"
-    },
-    {
-      "path": "assets/audio/words/ha.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 11084,
-      "sha256": "3d1801ee902aff93f6627517b787bc857bc4f799b85328637b0aae052eaf5ed7"
-    },
-    {
-      "path": "assets/audio/words/hai.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12284,
-      "sha256": "a1330a8a267a5b9b70be4cfb6b603b5382ccd3a241faf50ace45f0eab06034ed"
-    },
-    {
-      "path": "assets/audio/words/hairu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "f3ad17e8494e466afe64f2791ac9c1e8c1d4481f35652a827c613349ed819d50"
-    },
-    {
-      "path": "assets/audio/words/hana.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 9668,
-      "sha256": "9663af3b03de512e415674c4dda7ed17c002d8fc5cabff149bbc6f99bbf1e566"
-    },
-    {
-      "path": "assets/audio/words/haru.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "c108483ca5b07a999aef148b4283de51bb038bbdfd7586a33b5dfac57769fb45"
-    },
-    {
-      "path": "assets/audio/words/hashi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 24627,
-      "sha256": "7dd9a70b5d93f7b70c7cd8d503b8a2be93cf549e3283b3b2f0f71894c1a41f22"
-    },
-    {
-      "path": "assets/audio/words/hashiru.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13964,
-      "sha256": "dd78adb99ec3b8aa3cab62bbc93b074fa68896a575ec5a1343db3b8030ebda82"
-    },
-    {
-      "path": "assets/audio/words/heta.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "7b48754ac21fa7456725f61b94fdd45bb0a1413540884d6c1b271fd6a9d6d83a"
-    },
-    {
-      "path": "assets/audio/words/heya.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 23232,
-      "sha256": "1d3564af77b037ef9039c9e7a2c2225bdaaa48ce03dcdd7e3d86e35994a63341"
-    },
-    {
-      "path": "assets/audio/words/hidari.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 9140,
-      "sha256": "de77f3f66d7ee9eb8d1a1e364a6d058ad2cc936371c3482fc3877c109b994811"
-    },
-    {
-      "path": "assets/audio/words/hikouki.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12404,
-      "sha256": "b2b4f38e7889ba91b3d3d00c7e1b522a2b1156eb2f6bfeb7bf23812d7aef685b"
-    },
-    {
-      "path": "assets/audio/words/hikui.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13244,
-      "sha256": "d1ea073117df208cc7b1d45837520224f490796b7b2d08cd86d833ad4513677c"
-    },
-    {
-      "path": "assets/audio/words/hiru.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "32a17c73760717bb3e850f67de9139cd3b16518e5964d49159abbc44f060e9f9"
-    },
-    {
-      "path": "assets/audio/words/hito.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 24000,
-      "sha256": "b0ad6fb0332becb4e8be51d1631b8dede212997e3881e625c3bee8361866c0ac"
-    },
-    {
-      "path": "assets/audio/words/hitotsu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14444,
-      "sha256": "26335b8c204f1e0e6ef2afe5be8ab151e533aa8db4c55cb97704092df78b11c3"
-    },
-    {
-      "path": "assets/audio/words/hon.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 23373,
-      "sha256": "294e4d1ea916e838248b923f90cab4945c5e04d6e7eb8fe9c9dae0b7b785a914"
-    },
-    {
-      "path": "assets/audio/words/hoshi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 9236,
-      "sha256": "7614216c7ca769c4e4bfff8e64cf4b667eba0615603b2680fcf04d33196c54d2"
-    },
-    {
-      "path": "assets/audio/words/ichinichi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 15884,
-      "sha256": "4b290451ab9deff9a247f41b398febcf2377d95eb3a5780efa7279d241595d87"
-    },
-    {
-      "path": "assets/audio/words/ie.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 22605,
-      "sha256": "ad453d6471e4f5b446cc603d941cac7721b43a8ee75d68e5fa1f83e5d8b4eaad"
-    },
-    {
-      "path": "assets/audio/words/ii.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12284,
-      "sha256": "797624307fb5043959b2baf9a6290b0a8d5d805645d854e5ef55ba8bae6bf4fd"
-    },
-    {
-      "path": "assets/audio/words/iie.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "aaefe7ced5616a94097cfe86a63c19f4f61069c3d0860e3efc44ba1840665b87"
-    },
-    {
-      "path": "assets/audio/words/iku.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12764,
-      "sha256": "f538e8bd8a8d9f6d5dd71e9bda614ab39cfbe05e32386fa1ca0d837dc33bf12b"
-    },
-    {
-      "path": "assets/audio/words/ima.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12044,
-      "sha256": "acab6d0e4527095ab3caf438b4851e006d88e8cbfd4c9575b22c9e96f1dc1e0c"
-    },
-    {
-      "path": "assets/audio/words/inu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 22605,
-      "sha256": "5848bfd3ee83474046f3ae3f1fcebb8da5d750532633294a206d059cb9d29fb0"
-    },
-    {
-      "path": "assets/audio/words/isu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 25740,
-      "sha256": "78f06babb88cf288fb03c2c059d3187ed7f9af724bad2c346663be88dfbabe8b"
-    },
-    {
-      "path": "assets/audio/words/iu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12044,
-      "sha256": "9de3adeeb3eecab1d6e100dd93412c410450db8ea4ccda44e71b7e6d44d7468d"
-    },
-    {
-      "path": "assets/audio/words/jikan.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "e6eddbd41cbc7b20830b9a064c30e0b1bad4edf1c424b44e18ad567a4c823ab1"
-    },
-    {
-      "path": "assets/audio/words/jitensha.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 15644,
-      "sha256": "35d3673c9bddcfb7fd0d97d0e384cfb341fc2db5e21b4cfc73cd91d005f61695"
-    },
-    {
-      "path": "assets/audio/words/jouzu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14204,
-      "sha256": "d97c5479dc29e6dc8f97a032bc23727b0283deea645957b6e5190848f4f7e3cd"
-    },
-    {
-      "path": "assets/audio/words/jōzu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14204,
-      "sha256": "d97c5479dc29e6dc8f97a032bc23727b0283deea645957b6e5190848f4f7e3cd"
-    },
-    {
-      "path": "assets/audio/words/kaeru.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 26508,
-      "sha256": "892de59844694a4e6523f24c1a9c3a5022cba835cab32258a741c26b6641ab4c"
-    },
-    {
-      "path": "assets/audio/words/kaimono.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14684,
-      "sha256": "d493ef0853a9cde63cbbbafe6b69537a5f6e098bd5ef64eee66cf463af6799d1"
-    },
-    {
-      "path": "assets/audio/words/kame.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 24627,
-      "sha256": "587e3a0181a3fc45367c3aa6fd90e9a32e646289b10fe4b66f6d7860c5feba8e"
-    },
-    {
-      "path": "assets/audio/words/kaminari.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 10916,
-      "sha256": "10728f3bf80185a9847de2fc6a8c6298f5048330c81ca76dd0c03483dc7342a8"
-    },
-    {
-      "path": "assets/audio/words/kanashii.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 15404,
-      "sha256": "f887beedc614b32bf5c3ee07bcd9aa6ac437b2d598e71de9efca71c6c4d47ee5"
-    },
-    {
-      "path": "assets/audio/words/karada.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13724,
-      "sha256": "392b8032e58fc4667c9fc5a64f0ad5a5eeb9e96526fb724acf252eed915194cc"
-    },
-    {
-      "path": "assets/audio/words/kasa.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 24627,
-      "sha256": "d48b5a3684235be840cbecc118a16f8a4c9936878e28b7ec74c19055a9120088"
-    },
-    {
-      "path": "assets/audio/words/kawa.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13004,
-      "sha256": "103363514fcdc4f8fb117aabb5f6f088dacff8f018e85e600d125e735016794d"
-    },
-    {
-      "path": "assets/audio/words/kaze.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 8420,
-      "sha256": "cadb6f49008ec35e4e01e701f68a4aee1352ba096000be6bcaca16881b4ddda4"
-    },
-    {
-      "path": "assets/audio/words/kazoku.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 28874,
-      "sha256": "6a7bc2c7ad2808d7937233d6b51b385416d28bb5ec2ee8f0dc4f175ecfb850ae"
-    },
-    {
-      "path": "assets/audio/words/keeki.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12788,
-      "sha256": "8c799cfb8d5ffc9386b77f7ca4be7e5f182e742564eb76de484c4b933232006c"
-    },
-    {
-      "path": "assets/audio/words/kiiro.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13244,
-      "sha256": "c81ef4bb1abcdf3acc7ad87add6597fcd54a8fc030532d3907595baf46e5a824"
-    },
-    {
-      "path": "assets/audio/words/kiku.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12764,
-      "sha256": "b1a0eaded4f8555804a5e4f25bb0ecb5ab5f1af334d099cd5b7c3c2f64746822"
-    },
-    {
-      "path": "assets/audio/words/kinou.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "03e4c6f99ed510195c6c10497520572b1de602b946fe5aadd7c2f06b1a8e875d"
-    },
-    {
-      "path": "assets/audio/words/kinō.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "03e4c6f99ed510195c6c10497520572b1de602b946fe5aadd7c2f06b1a8e875d"
-    },
-    {
-      "path": "assets/audio/words/kirai.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "9c509be54acd786586d70e52b2384fdfddcd3b78800ad7a7b0c8ba0da7a84da6"
-    },
-    {
-      "path": "assets/audio/words/kiri.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 8300,
-      "sha256": "1a54bcc1d70f193bf8eb25eec969aaf95fa9e8f8e760514c5249c7019fb84a83"
-    },
-    {
-      "path": "assets/audio/words/kita.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 11036,
-      "sha256": "99efe79b40d658fc5537686078bbb7f03bfd05d8e9a1145db026c20fcc8937bb"
-    },
-    {
-      "path": "assets/audio/words/kodomo.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 27621,
-      "sha256": "a35a2db3d6457056d3df1592060f5ca87b58b4598f799c3d5a788211f6650a56"
-    },
-    {
-      "path": "assets/audio/words/konbanwa.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 16124,
-      "sha256": "a9fa4897849fe29a4f0c1d9201a97336ffeb0b77126cf461396d49768dc86345"
-    },
-    {
-      "path": "assets/audio/words/konnichiwa.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 16604,
-      "sha256": "4a797026c61ba3081f0a44d3eedada8ff17e513b2b00f677fee1d6c645cf1105"
-    },
-    {
-      "path": "assets/audio/words/kouen.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 25881,
-      "sha256": "fdc810bcc95680e47b3d9d3d6b0ee0cea6da0654e5155fa1122a9897b50086eb"
-    },
-    {
-      "path": "assets/audio/words/kuchi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "4e5994c82d934a7eaae7b77e3fb6de249bcd4553aafb079459aec76d55fe2008"
-    },
-    {
-      "path": "assets/audio/words/kudamono.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14684,
-      "sha256": "5740e0db505c64b85f9f1251e0bc34cfe3c910c8a952f42f09a1cc1a0ca8c2cc"
-    },
-    {
-      "path": "assets/audio/words/kumo.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 7868,
-      "sha256": "c82ba6729c07e993468b69d7dc40e157ae54fa7bc9f5474fe27398eec65db087"
-    },
-    {
-      "path": "assets/audio/words/kuro.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12284,
-      "sha256": "d3bfe0b5d2fc962808ceb5abaa512ef377bc15ff289676a78b484f17dd53f152"
-    },
-    {
-      "path": "assets/audio/words/kuru.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12764,
-      "sha256": "e40e39a6ed2e2525f0020948036f482416f4336d9059eafe9ae2de2b8f6766d9"
-    },
-    {
-      "path": "assets/audio/words/kuruma.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 11132,
-      "sha256": "10c37a6756e523a7f0fa319c6cabfc1e05754f38e5bd022607c66e6f06ba378e"
-    },
-    {
-      "path": "assets/audio/words/kyou.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "7ad6c049fe265bc5999019af82e42dd3e4874c86bb78167a01858cf0cdf02826"
-    },
-    {
-      "path": "assets/audio/words/kyō.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "7ad6c049fe265bc5999019af82e42dd3e4874c86bb78167a01858cf0cdf02826"
-    },
-    {
-      "path": "assets/audio/words/kōen.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13964,
-      "sha256": "d6e6699959515e5f8b07abdc61bf7d2d43a1d20a23ea0efac4980ac9b0e91ffe"
-    },
-    {
-      "path": "assets/audio/words/machi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 25254,
-      "sha256": "e1f103a732dad8a5a9540d1faafae1095846ac49541c21cd6597545440f0402f"
-    },
-    {
-      "path": "assets/audio/words/mado.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 25740,
-      "sha256": "cd08b07bda14c1c4a77f9f19cd8e2f902c1fce46024688bfb6330dc52ac1eced"
-    },
-    {
-      "path": "assets/audio/words/mae.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 8468,
-      "sha256": "fd81f184ec9785f2c3875cdad910fb0273405b01aeb75e55435bbadd2cb081b6"
-    },
-    {
-      "path": "assets/audio/words/matsu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "27bf460f309b8bb709ceeba7cffbfa7274175a8af790cdce545a5280ca94a92a"
-    },
-    {
-      "path": "assets/audio/words/me.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 11084,
-      "sha256": "4210d8b98bedb6a64b3a16d99fdbba9e2f91a7fa02fb512c24b9ca6f306c32a0"
-    },
-    {
-      "path": "assets/audio/words/michi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 25254,
-      "sha256": "945eb365019a099505900ac7cb53885a94fac7904a2d748893aff050f4f009bb"
-    },
-    {
-      "path": "assets/audio/words/midori.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "73c2523a3bcb675fa33a0c7b3f06a34aebf01c3e1a7aa1fbc816f494e7273279"
-    },
-    {
-      "path": "assets/audio/words/migi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 9812,
-      "sha256": "3c412df175111fc993e76af69d3e9c3d02e948963fb393c6639886c713214982"
-    },
-    {
-      "path": "assets/audio/words/mijikai.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14924,
-      "sha256": "34f38e0c38a398c18aab0c8e24b19e73978584f5d8bfe13c1ffb9a4072f5208f"
-    },
-    {
-      "path": "assets/audio/words/mimi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12764,
-      "sha256": "f50c8b00923550c47e6dd67e2c4d6c16ae6ddd7428db422396783edba1058a4c"
-    },
-    {
-      "path": "assets/audio/words/minami.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 10244,
-      "sha256": "cc1bc8ed7044f056f5e6615134604bdf11fbad9bc7414c8e06d162213ed51555"
-    },
-    {
-      "path": "assets/audio/words/miru.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12284,
-      "sha256": "18434383a6d958964f6b68c7316a329461df1af372436d6e84f2188a869ed246"
-    },
-    {
-      "path": "assets/audio/words/mise.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12764,
-      "sha256": "aa433d0e516493abdd050913d9d015cc1a92fec321f8fe08b82ec7b04f2163fd"
-    },
-    {
-      "path": "assets/audio/words/mittsu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14444,
-      "sha256": "b34179ff0b63d42a1d497d64b7f1128039b86c68d5c4cce5fa93bd108669b86c"
-    },
-    {
-      "path": "assets/audio/words/mizu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12764,
-      "sha256": "a7b1d6549cb618db3ac780ae58f34b2a2d31ba8fa822769ef29f657c5320d4c7"
-    },
-    {
-      "path": "assets/audio/words/modoru.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13724,
-      "sha256": "a7c6154c7d8426b6d1b0069134747e08b6d1bd8878527076fd813b99fe1d454b"
-    },
-    {
-      "path": "assets/audio/words/mori.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "54fb18863b1bf8bb50cd0d1d7d9e1eb390a388333ff68300f1aaff08b780b008"
-    },
-    {
-      "path": "assets/audio/words/nagai.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13724,
-      "sha256": "e3642421649216a9a8097d914bc06f3eb80fea36b2508ea673809c086cd92ef4"
-    },
-    {
-      "path": "assets/audio/words/naka.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12764,
-      "sha256": "2d796b5316987926d007f5fd74e6f17f3fe21f287f124ac6a22d3713f35f212a"
-    },
-    {
-      "path": "assets/audio/words/natsu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "c1418a0d93accb6f1cdce15dbbc791b3caf7f400a2209ae0aeabd13d2d6cad7d"
-    },
-    {
-      "path": "assets/audio/words/nedan.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13004,
-      "sha256": "341f5cdafd20d053dbba79572c692d6daf37559ba2c6f72a83544669ecc31085"
-    },
-    {
-      "path": "assets/audio/words/neko.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 25881,
-      "sha256": "d877bdf2bb72bc3e4f3c8b6e8a3f055ed4fc89f4849f9955a802e3604e061ae6"
-    },
-    {
-      "path": "assets/audio/words/neru.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "48a5e5821fb2e43758b7457e44cdbc11e347ca2989256b802de834d1eb286fcb"
-    },
-    {
-      "path": "assets/audio/words/nigiyaka.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14684,
-      "sha256": "e539ada8829718b8c5312712aa97d07a99bdc216e3d61bc6930bfa2f687620fe"
-    },
-    {
-      "path": "assets/audio/words/niji.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 9572,
-      "sha256": "de8c5f1ef1193a8377fac1f016d5bd4f66ee0915d9dfe93b8586734f49b39e4d"
-    },
-    {
-      "path": "assets/audio/words/niku.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12764,
-      "sha256": "51e530f616e08db95714b0c25c9793cde74e4c68eb2e6ab8b2ffeeae69d860fb"
-    },
-    {
-      "path": "assets/audio/words/niwa.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 26367,
-      "sha256": "07fba60d79f798491e330f4f09647cfdf0d3ee7c3c0f6f40577077511606c9b0"
-    },
-    {
-      "path": "assets/audio/words/nomu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "19758b4bf06feee245ab2e093b94841a669c6f823dbf3b3d871329fbf49f5da1"
-    },
-    {
-      "path": "assets/audio/words/ocha.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 9308,
-      "sha256": "8539696c17b885e7630392790fdea8aec68ef500d33a91789809ee1a6a445e96"
-    },
-    {
-      "path": "assets/audio/words/ohayou.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14684,
-      "sha256": "5b95eaf8f244f03dc332e7c1a808a19dcfbdcebf16a6a1651f2f7ac0e1447fc7"
-    },
-    {
-      "path": "assets/audio/words/ohayō.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14684,
-      "sha256": "5b95eaf8f244f03dc332e7c1a808a19dcfbdcebf16a6a1651f2f7ac0e1447fc7"
-    },
-    {
-      "path": "assets/audio/words/okane.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13724,
-      "sha256": "5497ee4529e901ae8bdb90a21f12000c79152839643b9d5bee00166301d5f0e9"
-    },
-    {
-      "path": "assets/audio/words/okiru.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "d95a2e4639b52c13e1d5feb51992f3cd0664148a9c958d65986f67a7055d6862"
-    },
-    {
-      "path": "assets/audio/words/onigiri.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12332,
-      "sha256": "3ca52803435e8b43759b72b1a21163e16923f0dcd650d58540bbf003fede3dd4"
-    },
-    {
-      "path": "assets/audio/words/onnanoko.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 33263,
-      "sha256": "e9a9abf31e1b3602941d2f15d2782b4feed611488ad6ce4f82b0320476d41c6d"
-    },
-    {
-      "path": "assets/audio/words/ooi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12764,
-      "sha256": "3c7cd844ba8a9773dbb390709effb978f32cedcaa0fe4d22a8f3d9c4052d353b"
-    },
-    {
-      "path": "assets/audio/words/ookii.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14924,
-      "sha256": "bde2c2921a49e12627e9daacedacc63dcd79b58f35f028dda3ec19b20246766a"
-    },
-    {
-      "path": "assets/audio/words/otokonoko.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 33890,
-      "sha256": "74148a4b2c1f2d1ea27bcb6189cc4c64578b9617095c1a7b7bbec92ff3047a45"
-    },
-    {
-      "path": "assets/audio/words/pan.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 8852,
-      "sha256": "17d27b8c181a60b2b77aa3eefb2671abc1e4087478b0098ffa7650ed6a1e6e4b"
-    },
-    {
-      "path": "assets/audio/words/pun.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "717f59b6bbf4e1c35a19c59adfde58d4fb08b4b8fbc87be9529dffa7ae270c3d"
-    },
-    {
-      "path": "assets/audio/words/ramen.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 11852,
-      "sha256": "fc7e885119687da59d01bbef80b981d010a410558847d71796d7dcd097cf7baa"
-    },
-    {
-      "path": "assets/audio/words/ringo.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 9620,
-      "sha256": "e841a71225cc377ee74143add1685b3ced46801c5bb1f66a6c7e5b939590216c"
-    },
-    {
-      "path": "assets/audio/words/sakana.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12500,
-      "sha256": "3e3b057e9477cfaba6793843c42f2d7162e029e296d7659d2f6cb832bbab1f47"
-    },
-    {
-      "path": "assets/audio/words/sake.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "bcc97a952e24cb478e7ee82301776f891566103598f29b816a90045cf9e3212b"
-    },
-    {
-      "path": "assets/audio/words/sakura.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 9596,
-      "sha256": "1d7171d228f7887f9befd0228d99d5a5d601d49a11a1e0f9dcb06a8d3c0e7cd5"
-    },
-    {
-      "path": "assets/audio/words/samui.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13724,
-      "sha256": "3b176af8538bc0077a8bfe752b6f0a960c54efdd746a043118a492d9834a3b2e"
-    },
-    {
-      "path": "assets/audio/words/sara.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12284,
-      "sha256": "d5a8502aa8c3d68655a8a17b607aff49e791ae753d4956066f2ce67a6e961c5f"
-    },
-    {
-      "path": "assets/audio/words/sayounara.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 16124,
-      "sha256": "fe08bd5d8c99d3c5011c607a57b4caba2e6905626146d0dc7c1dad911a924cbb"
-    },
-    {
-      "path": "assets/audio/words/sayōnara.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 16124,
-      "sha256": "fe08bd5d8c99d3c5011c607a57b4caba2e6905626146d0dc7c1dad911a924cbb"
-    },
-    {
-      "path": "assets/audio/words/shiro.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12764,
-      "sha256": "eaf9410512b2d5c3a385f531dcac3963d86d403f1e360fd5cd91de3db29d97f5"
-    },
-    {
-      "path": "assets/audio/words/shita.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12524,
-      "sha256": "15ff22e023b1a9b1a91688879c837e14e1d33cd1c2a4d3c00ce254d0da1d1bd7"
-    },
-    {
-      "path": "assets/audio/words/shizuka.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14444,
-      "sha256": "f5a9fc1dbdfe1f9f344fb594411740b55e557a681c8a65987c7df412ceb98e80"
-    },
-    {
-      "path": "assets/audio/words/soto.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12764,
-      "sha256": "ccd9bf7209910bf0d774733df1a74b43662ca451bae3692563155a3cf19fab69"
-    },
-    {
-      "path": "assets/audio/words/suki.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "c08ff3cdf808f35528ee041cffec77029fd0fd1aa305ac8111727a53564cb208"
-    },
-    {
-      "path": "assets/audio/words/sukoshi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 15164,
-      "sha256": "3f1751261239db8ebe93f8d737832fa3a27f2be190c9699f27356175f468b0ad"
-    },
-    {
-      "path": "assets/audio/words/sukunai.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14684,
-      "sha256": "e8a908e3ddd4bf11516071f2413a812f1b6b8f16a458159f00a23edb8451deeb"
-    },
-    {
-      "path": "assets/audio/words/sumimasen.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 16364,
-      "sha256": "ef34198611978665d990f4176676a49bedd58712f01a6afc117898962bece5fa"
-    },
-    {
-      "path": "assets/audio/words/sushi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13964,
-      "sha256": "693065c07f0bcde89d965ebb8cec6a7973729e63a1b9e14a16a91d49a50a1034"
-    },
-    {
-      "path": "assets/audio/words/suzushii.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 15644,
-      "sha256": "ac271a22fececb5ed1cdd5a54c52e0a7c1b2911b81d10ed7833f603d847f50ac"
-    },
-    {
-      "path": "assets/audio/words/taberu.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13724,
-      "sha256": "f8127b0218d8f3c9c672f8ab6d57ddbf13f3094f9b9aa436704d274023e17ddc"
-    },
-    {
-      "path": "assets/audio/words/takai.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13484,
-      "sha256": "8c4e57e1d7df23f41c9a60bdd74ca184362831d2688e442fab9e61d17c099010"
-    },
-    {
-      "path": "assets/audio/words/tako.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 8540,
-      "sha256": "f31ed73a70486c68ad2b1d2cdb4e69baf8a4fdabb9d88b6d62e0482bfaeb0793"
-    },
-    {
-      "path": "assets/audio/words/takusan.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14204,
-      "sha256": "1df90d1cb4bbd858dd1654bc316545c80ef4255e840157ea9bb707985d025840"
-    },
-    {
-      "path": "assets/audio/words/tamago.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13964,
-      "sha256": "d2cc6147c1839f3af52fea29fa8dfbe807fcecb9db5122c7adbfcdab924ffe5a"
-    },
-    {
-      "path": "assets/audio/words/tanoshii.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 15164,
-      "sha256": "ba38671db54d7995aa29bf652f78ba1f6eddd4e890f8da419e1bc4d44ff8bc00"
-    },
-    {
-      "path": "assets/audio/words/te.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 11084,
-      "sha256": "d3fb76394be0ec4c72312526768b9ecb615670f8beeec70f938ab69d735688f6"
-    },
-    {
-      "path": "assets/audio/words/tomaru.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13724,
-      "sha256": "e28d77b16ef9642efc731e8f5c5fe471bb88412a32ed48a2fec8e52c72b89dad"
-    },
-    {
-      "path": "assets/audio/words/tomodachi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 32636,
-      "sha256": "f1c47e182e8de3d83530d1e00888316554976715e0d46ab5336b2d655b52d980"
-    },
-    {
-      "path": "assets/audio/words/tooku.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13724,
-      "sha256": "abb10e38a56b601dbc995a6ac10ffc5e2d35e2c530291e01d7d0d93cd1ef4081"
-    },
-    {
-      "path": "assets/audio/words/tori.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 22119,
-      "sha256": "7bff6514a642fa5dbcde94b1f691eac3d4ac786566d8cdeb555e8c86b76076bc"
-    },
-    {
-      "path": "assets/audio/words/tsuki.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 9380,
-      "sha256": "c724209a765ec9589c964303ba03ff19919ad25faf5c8e7f57f47b8baeafb1ea"
-    },
-    {
-      "path": "assets/audio/words/tsukue.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 27621,
-      "sha256": "cbc487cff73f1b36edd78b89783e826782bbf3cea2022d8eda59a6582b439fe7"
-    },
-    {
-      "path": "assets/audio/words/tōku.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13724,
-      "sha256": "abb10e38a56b601dbc995a6ac10ffc5e2d35e2c530291e01d7d0d93cd1ef4081"
-    },
-    {
-      "path": "assets/audio/words/ue.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12044,
-      "sha256": "7eb12afb5504f1a33b69fb2efe09e3a3405621df128a9b9b8ae0b427d42dae76"
-    },
-    {
-      "path": "assets/audio/words/umi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 8852,
-      "sha256": "da09f87cf69baec5cabb1750657f0cda9f2cafd8b8d59c955acd80cc1bf8f89b"
-    },
-    {
-      "path": "assets/audio/words/ureshii.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14684,
-      "sha256": "f2caa0d023fb9bb370243c10ecee7e6b8f028622463717b131bdd2b461c48c01"
-    },
-    {
-      "path": "assets/audio/words/usagi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 25254,
-      "sha256": "fe1fe8da2e7ca559c0a69908a37550653b412daff1d29c19cb6fd6976ce15dea"
-    },
-    {
-      "path": "assets/audio/words/ushiro.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 10004,
-      "sha256": "00c8b2617cef7dc106274428096c0adc4607dc283c074e270cb3be2ea9f6b0e3"
-    },
-    {
-      "path": "assets/audio/words/yama.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 8324,
-      "sha256": "5af697c41fe08db43cdb877582f796ea25735315c2dc915fc71d6770962ef363"
-    },
-    {
-      "path": "assets/audio/words/yasai.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 13964,
-      "sha256": "072ac3f0e96d857adecebbd3c9989e56e570ed3658058b6fe9e010fc16b99414"
-    },
-    {
-      "path": "assets/audio/words/yoru.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12764,
-      "sha256": "522e31aef7dd21ab0ff4cd289eeb8e9558efc4b9f2001b436b07eb37bc36ed09"
-    },
-    {
-      "path": "assets/audio/words/yuki.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 10076,
-      "sha256": "838b8b2f327a76e06a45fe62e87a4d8f321488693410f1f47f1611e28e8a2d4e"
-    },
-    {
-      "path": "assets/audio/words/ōi.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 12764,
-      "sha256": "3c7cd844ba8a9773dbb390709effb978f32cedcaa0fe4d22a8f3d9c4052d353b"
-    },
-    {
-      "path": "assets/audio/words/ōkii.mp3",
-      "status": "legacy_unmigrated",
-      "bytes": 14924,
-      "sha256": "bde2c2921a49e12627e9daacedacc63dcd79b58f35f028dda3ec19b20246766a"
-    },
-    {
-      "path": "assets/img/ui/menu/approved__button_normal.webp",
-      "status": "trial_pending_review",
-      "bytes": 18956,
-      "sha256": "62f59cf4983aefc759efd6e404a4c5eebaf8871a49a800c2867be5d3c976fc6d"
-    },
-    {
-      "path": "assets/img/ui/menu/pause__approved.webp",
-      "status": "trial_pending_review",
-      "bytes": 577600,
-      "sha256": "0f90b70fda139da2acfb848462e841aeb4048f0370c0b525f9c16c438798a0a4"
-    },
-    {
-      "path": "assets/img/ui/upgrade/approved_details_blank.webp",
-      "status": "trial_pending_review",
-      "bytes": 25620,
-      "sha256": "69d1dd8747ce7923b8a02e8ced30e9d915f67447175bf11d77abe4acdc088e60"
-    },
-    {
-      "path": "assets/img/ui/upgrade/approved_title_clean.webp",
-      "status": "trial_pending_review",
-      "bytes": 14082,
-      "sha256": "b2551b847c05e4dec9a54284aeb4c5a292140c723ef4beb71988110889b248b7"
+      "bytes": 212206,
+      "sha256": "72f6e1f2e9390bb03d9899296cc7dbd9c6a9095d0fc731d296a047988c4432a3"
     }
   ]
 }

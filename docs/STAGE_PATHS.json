@@ -139,7 +139,7 @@
     "no_commit_or_deploy": true
   },
   "delivery_word_media": {
-    "updated": "2026-10-30",
+    "updated": "2026-11-16",
     "scope": "delivery vocabulary word icons and spoken clips only (not scenery, bosses, BGM or skill SFX)",
     "authority": "docs/DELIVERY_MEDIA_PATHS.md",
     "runtime_router": "js/delivery-media.js",
@@ -157,12 +157,15 @@
     "index_source": "js/delivery-lexicon.js:stages[].words[0..19]",
     "stage8_behavior": "reuse original stage word assets; do not duplicate all 140",
     "trial_image_stages": [
-      "rain-port"
+      "rain-port",
+      "sakura-pass"
     ],
     "trial_audio_stages": [
-      "rain-port"
+      "rain-port",
+      "sakura-pass"
     ],
-    "rain_port_trial_receipt": "docs/RAIN_PORT_DELIVERY_TRIAL_20261031.md"
+    "rain_port_trial_receipt": "docs/RAIN_PORT_DELIVERY_TRIAL_20261031.md",
+    "sakura_pass_trial_receipt": "docs/SAKURA_PASS_DELIVERY_TRIAL_20261116.md"
   },
   "global_media": {
     "authority": "docs/ASSET_CONVENTIONS.md",

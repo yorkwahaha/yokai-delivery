@@ -32,6 +32,15 @@ window.RENDERER = (() => {
     if (currentStageId() === "rain-port" && (e.type === "shiome" || e.umibozu)) {
       return null;
     }
+    if (currentStageId() === "sakura-pass" && window.isSakuraCandidateEnabled?.()) {
+      const ids = {runner:"hanakage-fox",tank:"moss-tanuki",shooter:"stone-lantern-kid",mis:"paper-umbrella-spirit",boss:"sakura-tengu"};
+      if (!e.sakuraArtId) e.sakuraArtId = ids[e.type] || (e.wob > Math.PI ? "paper-umbrella-spirit" : "sakura-kodama");
+      const key = window.SAKURA_ART_DATA?.characters[e.sakuraArtId]?.[spriteType]?.key;
+      if (key && window.ART[key]?.naturalWidth) {
+        e.artStatus = "ART_CANDIDATE_USER_REVIEW_PENDING";
+        return key;
+      }
+    }
     const slots = window.STAGE_ASSET_SLOTS?.[currentStageId()];
     if (!slots?.enemy) return null;
     const enemyType = e.type === "boss" ? "boss" : e.type;
@@ -70,9 +79,14 @@ window.RENDERER = (() => {
     ...Object.fromEntries(['ghost','runner','boss','mis','tank','shooter'].map(k=>[k+'_motion_v1',[1774,887]])),
     map_night_town_v1:[1774,887],map_rain_port_v1:[1774,887]
   };
+  // Published night-town idle canvas sizes. Stage3 uses their visible areas as
+  // its size reference; its square padded source canvases are not actor sizes.
+  const NIGHT_MONSTER_SOURCE_SIZE = {
+    ghost:[149,208], runner:[227,157], tank:[280,328], shooter:[199,199], mis:[191,331]
+  };
   function drawFrame(c, image, key, index, x, y, height) {
-    const frames = FRAME_BOUNDS[key] || [[0,0,image.naturalWidth,image.naturalHeight,image.naturalWidth/2]];
-    const r = frames[index] || frames[0], scale = height / frames[0][3];
+    const frames = image.sakuraFrame ? [image.sakuraFrame] : FRAME_BOUNDS[key] || [[0,0,image.naturalWidth,image.naturalHeight,image.naturalWidth/2]];
+    const r = frames[index] || frames[0], scale = height / (image.sakuraBaseHeight || frames[0][3]);
     const source = FRAME_SOURCE_SIZE[key], rx = source ? image.naturalWidth/source[0] : 1, ry = source ? image.naturalHeight/source[1] : 1;
     const box = {sx:r[0]*rx,sy:r[1]*ry,sw:r[2]*rx,sh:r[3]*ry,dx:x+(r[0]-r[4])*scale,dy:y-r[3]*scale,dw:r[2]*scale,dh:r[3]*scale};
     c.drawImage(image,box.sx,box.sy,box.sw,box.sh,box.dx,box.dy,box.dw,box.dh);
@@ -367,6 +381,49 @@ window.RENDERER = (() => {
     return drawStyledSceneryImage(ctx,image,x,y,w,h,alpha);
   }
 
+  // Visual woodland outside the existing 900..1800 mountain walls. Global rows
+  // keep the same trees on return; the physical world and delivery pads stay put.
+  function sakuraForestActors(view, cam = { x: camX, y: camY }) {
+    if (currentStageId() !== "sakura-pass") return [];
+    if (!window.SAKURA_ART?.forestLeft?.naturalWidth || !window.SAKURA_ART?.forestRight?.naturalWidth) return [];
+    const spacing = window.VIEWPORT?.spacingScaleY?.() || 1, pitch = 210 * spacing;
+    const roles = ["forestLeft", "forestRight", "forestSpreading", "forestSlender"];
+    // Independent world-cell channels, including negative rows; never frame RNG.
+    const unit = (col, row, salt) => {
+      let h = Math.imul(col, 374761393) ^ Math.imul(row, 668265263) ^ Math.imul(salt, 1442695041);
+      h = Math.imul(h ^ (h >>> 13), 1274126177);
+      return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+    };
+    const canopyHeight = Math.max(...roles.map(role => {
+      const img = window.SAKURA_ART?.[role], rect = img?.sakuraSourceRect;
+      return rect ? rect.sh / rect.sw : img?.naturalWidth ? img.naturalHeight / img.naturalWidth : 1;
+    })) * 490;
+    const left = cam.x + view.left, right = cam.x + view.right;
+    const top = cam.y + view.top, bottom = cam.y + view.bottom;
+    const actors = [];
+    for (let side = 0; side < 2; side++) {
+      const edge = side ? 1905 : 795, sign = side ? 1 : -1;
+      const columns = Math.max(1, Math.ceil(((side ? right - edge : edge - left) + 320) / 230) + 1);
+      for (let col = 0; col < columns; col++) {
+        // A foreground crown can enter the screen while its roots are below it.
+        for (let row = Math.floor((top - pitch) / pitch); row <= Math.ceil((bottom + canopyHeight / tiltK() + pitch) / pitch); row++) {
+          const cell = col + side * 101;
+          const width = 350 + unit(cell, row, 1) * 140;
+          const rawX = edge + sign * col * 230 + (unit(cell, row, 2) - .5) * 150;
+          // Leave doorways/answer pads clear of the inward-most crown edge.
+          const x = side ? Math.max(1660 + width / 2, rawX) : Math.min(1040 - width / 2, rawX);
+          if (x + 270 < left || x - 270 > right) continue;
+          const y = (row + (unit(cell, row, 3) - .5) * .84) * pitch;
+          const picked = roles[Math.floor(unit(cell, row, 4) * roles.length)];
+          const role = window.SAKURA_ART?.[picked]?.naturalWidth ? picked : side ? "forestRight" : "forestLeft";
+          actors.push({ forest: { x, y, role, width, flip: unit(cell, row, 5) < .5,
+            lean: (unit(cell, row, 6) - .5) * .07 }, y });
+        }
+      }
+    }
+    return actors;
+  }
+
   // Scenery uses one continuous actor path at EVERY angle (including 2D).
   // Contact shadows are painted on the floor before the upright sprites.
   function drawDecorActor(actor, viewerY = null) {
@@ -375,7 +432,19 @@ window.RENDERER = (() => {
     const tiltFactor = clamp((1 - tilt) / 0.4, 0, 1);
     const atmosphericDepth = y => viewerY == null ? 0 :
       clamp((viewerY-y-290)/650,0,1)*tiltFactor*1.65;
-    if (chunk) {
+    if (actor.forest) {
+      const tree = actor.forest, img = window.SAKURA_ART?.[tree.role];
+      if (!img?.naturalWidth) return;
+      const rect = img.sakuraSourceRect;
+      const w = tree.width, h = w * (rect ? rect.sh / rect.sw : img.naturalHeight / img.naturalWidth);
+      window.VIEWPORT.upright(ctx, tree.x, tree.y, () => {
+        ctx.save();ctx.translate(tree.x, tree.y);
+        if (tree.flip) ctx.scale(-1, 1);
+        ctx.rotate(tree.lean || 0);
+        drawStyledSceneryImage(ctx, img, -w / 2, -h, w, h, 1, "forest", 0, rect);
+        ctx.restore();
+      });
+    } else if (chunk) {
       const img=window.ART?.prop_torii;
       if (!img?.naturalWidth) return;
       const cx=chunk.x+chunk.w/2,cy=chunk.y+chunk.h/2,tw=150;
@@ -420,11 +489,12 @@ window.RENDERER = (() => {
       ctx.restore();
       const depth = sceneryDepth(tree.y, viewerY);
       const dw = bw * depth.scale;
-      const dh = dw * (img.naturalHeight / img.naturalWidth);
-      const scaledTop = tree.y - dh * (445 / 460);
+      const rect = img.sakuraSourceRect;
+      const dh = dw * (rect ? rect.sh / rect.sw : img.naturalHeight / img.naturalWidth);
+      const scaledTop = tree.y - dh;
       window.VIEWPORT.upright(ctx, tree.x, tree.y, () => {
         drawStyledSceneryImage(ctx, img, tree.x - dw / 2, scaledTop, dw, dh, 1, "ancient-sakura",
-          depth.blur);
+          depth.blur, img.sakuraSourceRect);
       });
     }
   }
@@ -480,37 +550,27 @@ window.RENDERER = (() => {
   // A single illustrated dirt texture fills Stage3; all stone steps are independent
   // transparent image decals, laid out in world coordinates (no geometric VFX art).
   const SAKURA_PATH_ROLES = Object.freeze([
-    "stoneStraight", "stoneLeft", "stoneRight", "stoneBroken", "stoneSparse", "stoneMixed"
+    "stoneStraight", "stoneLeft", "stoneRight", "stoneBroken"
   ]);
-  function sakuraPathHash(x, y) {
-    let v = Math.imul((x | 0) ^ 0x9e3779b9, 0x85ebca6b);
-    v ^= Math.imul((y | 0) ^ 0x7f4a7c15, 0xc2b2ae35);
-    v = Math.imul(v ^ (v >>> 16), 0x7feb352d);
-    return (v ^ (v >>> 15)) >>> 0;
-  }
   function paintSakuraPathDecals(c, left, top, right, bottom) {
     const arts = window.SAKURA_ART || {};
     if (!SAKURA_PATH_ROLES.some(role => arts[role]?.naturalWidth)) return;
-    const spanX = 900, spanY = 174;
-    const c0 = Math.floor((left - 240) / spanX), c1 = Math.ceil((right + 240) / spanX);
-    const y0 = Math.floor((top - 250) / spanY), y1 = Math.ceil((bottom + 250) / spanY);
-    for (let lane = c0; lane <= c1; lane++) {
-      for (let row = y0; row <= y1; row++) {
-        const noise = sakuraPathHash(lane, row);
-        const bend = Math.sin(row * 0.73 + lane * 0.46) * 56
-          + Math.sin(row * 0.27 + lane * 1.31) * 31;
-        const x = lane * spanX + 450 + bend;
-        const y = row * spanY + 86 + ((noise >>> 16) % 35) - 17;
-        // Natural broken/overgrown patches interrupt every long stone run.
-        const preferred = ((noise >>> 5) % 11 < 3) ? 3 + (noise % 3) : noise % 3;
-        const role = SAKURA_PATH_ROLES[preferred];
-        const img = arts[role]?.naturalWidth ? arts[role]
-          : SAKURA_PATH_ROLES.map(k => arts[k]).find(a => a?.naturalWidth);
-        if (!img) continue;
-        const width = 170 + ((noise >>> 11) % 25);
-        const height = width * img.naturalHeight / img.naturalWidth;
-        c.drawImage(img, x - width / 2, y - height / 2, width, height);
-      }
+    const spacing = window.VIEWPORT?.spacingScaleY?.() || 1;
+    // These are full 1024x1536 single-file paths, not 512px stone clusters.
+    // Repeat ONE column of long segments; short 174px spacing stacked whole
+    // strips on top of each other and would turn them into a broad stone floor.
+    const spanY = 620 * spacing;
+    const y0 = Math.floor((top - 700 * spacing) / spanY), y1 = Math.ceil(bottom / spanY);
+    for (let row = y0; row <= y1; row++) {
+      const role = SAKURA_PATH_ROLES[((row % SAKURA_PATH_ROLES.length) + SAKURA_PATH_ROLES.length) % SAKURA_PATH_ROLES.length];
+      const img = arts[role]?.naturalWidth ? arts[role]
+        : SAKURA_PATH_ROLES.map(k => arts[k]).find(a => a?.naturalWidth);
+      if (!img) continue;
+      const y = row * spanY;
+      const x = window.WORLD.sakuraPathCenter(y + spanY / 2, spacing);
+      const width = 440;
+      const height = width * img.naturalHeight / img.naturalWidth * spacing;
+      c.drawImage(img, x - width / 2, y, width, height);
     }
   }
   // S2 Nano Production Art: Direct loading of new Nano Banana 2.1 images from scene directory
@@ -1491,7 +1551,7 @@ window.RENDERER = (() => {
     // 1024 原稿仍建對齊用 atlas（驗收讀 putImageData）。畫面上只貼原圖，不抽 512 變體。
     if (stageId !== "rain-port") {
       const surface = stageId === "sakura-pass"
-        ? (window.SAKURA_ART?.dirt?.naturalWidth ? window.SAKURA_ART.dirt : groundImg)
+        ? window.SAKURA_ART?.dirt
         : groundImg;
       // Night-town's hand-painted source is not edge-periodic. Use the existing
       // feathered atlas for the actual floor draw instead of only caching it.
@@ -1526,6 +1586,12 @@ window.RENDERER = (() => {
     }
     if (stageId === "sakura-pass") {
       paintSakuraPathDecals(c, left, top, left + width, top + height);
+      // Keep the safety limit visible only while the real forest art is absent.
+      if (!window.SAKURA_ART?.forestLeft?.naturalWidth || !window.SAKURA_ART?.forestRight?.naturalWidth) {
+        c.fillStyle = "rgba(8,10,16,0.78)";
+        if (left < 900) c.fillRect(left, top, Math.min(width, 900 - left), height);
+        if (left + width > 1800) c.fillRect(Math.max(left, 1800), top, left + width - Math.max(left, 1800), height);
+      }
     }
     // Stage8 preview: overlay extracted items on approved fallback ground (DEV-ONLY, ?dev=1&stage8preview=1)
     // Source: irregular 1448x1086 sprite sheet -> pre-extracted items in art/stage8-yomi/sliced/
@@ -1589,7 +1655,7 @@ window.RENDERER = (() => {
         }).join("|") + `|bounds:${boundsStamp}|s2:${s2Stamp}|kit:${kitStamp}`
       : "";
     const sakuraStamp = stageId === "sakura-pass"
-      ? ["dirt", ...SAKURA_PATH_ROLES].map(role => {
+      ? ["dirt", ...SAKURA_PATH_ROLES, "forestLeft", "forestRight"].map(role => {
           const img = window.SAKURA_ART?.[role];
           return `${img?.currentSrc || img?.src || ""}:${img?.naturalWidth || 0}`;
         }).join("|")
@@ -1743,10 +1809,16 @@ window.RENDERER = (() => {
     ctx.beginPath();ctx.ellipse(P.x,P.y+(spritecook?2:22),spritecook?22:28*size,spritecook?7:11*size,0,0,6.28);ctx.fill();
     ctx.restore();
   }
+  function monsterFootOffset(e) {
+    return e.type === "boss" ? 44 : e.type === "mis" ? 27 : 19;
+  }
   function drawMonsterShadow(e) {
     const radius=e.type==="boss"?52:e.type==="mis"?32:22;
+    // Sprites stand upright, so their foot offset is not flattened by tilt.
+    // Convert that offset back to floor space; the ellipse itself stays flat.
+    const foot = e.type === "shiome" || e.umibozu ? radius * .85 : monsterFootOffset(e) / tiltK();
     ctx.save();ctx.fillStyle="rgba(32,26,31,0.33)";
-    ctx.beginPath();ctx.ellipse(e.x,e.y+radius*0.85,radius,radius*0.4,0,0,6.28);ctx.fill();
+    ctx.beginPath();ctx.ellipse(e.x,e.y+foot,radius,radius*0.4,0,0,6.28);ctx.fill();
     ctx.restore();
   }
 
@@ -1758,13 +1830,14 @@ window.RENDERER = (() => {
     const bw = widths[prop.kind] || 84;
     const depth = sceneryDepth(prop.y, viewerY);
     const w = bw * depth.scale;
-    const h = w * (img.naturalHeight / img.naturalWidth);
+    const rect = img.sakuraSourceRect;
+    const h = w * (rect ? rect.sh / rect.sw : img.naturalHeight / img.naturalWidth);
     ctx.save();
     ctx.fillStyle = "rgba(25,21,18,0.24)";
     ctx.beginPath();ctx.ellipse(prop.x, prop.y, w * 0.24, 9, 0, 0, 6.28);ctx.fill();
     ctx.restore();
     window.VIEWPORT?.upright?.(ctx, prop.x, prop.y, () => {
-      drawStyledSceneryImage(ctx, img, prop.x - w / 2, prop.y - h, w, h, 1, prop.kind, depth.blur);
+      drawStyledSceneryImage(ctx, img, prop.x - w / 2, prop.y - h, w, h, 1, prop.kind, depth.blur, img.sakuraSourceRect);
     });
   }
 
@@ -1790,12 +1863,17 @@ window.RENDERER = (() => {
       );
       if (img?.naturalWidth) {
         const depth = sceneryDepth(h.y, viewerY);
-        const bw0 = 210;
-        const bh0 = bw0 * (img.naturalHeight / img.naturalWidth);
+        const rect = img.sakuraSourceRect;
+        const aspect = rect ? rect.sh / rect.sw : img.naturalHeight / img.naturalWidth;
+        // Night-town shop width 166; its tallest ordinary house is about 175.
+        // Fit tall mountain houses too, keeping each illustration's proportions.
+        const bw0 = Math.min(166, 175 / aspect);
+        const tiltFactor = clamp((1 - tiltK()) / 0.4, 0, 1);
+        const bh0 = bw0 * aspect * (1 + tiltFactor * 0.06);
         const bw = bw0 * depth.scale;
         const bh = bh0 * depth.scale;
         const top = (h.y + 48) - bh;
-        drawStyledSceneryImage(ctx, img, h.x - bw / 2, top, bw, bh, 1, h.bType, depth.blur);
+        drawStyledSceneryImage(ctx, img, h.x - bw / 2, top, bw, bh, 1, h.bType, depth.blur, img.sakuraSourceRect);
         ctx.fillStyle = "#e3d0a8";
         ctx.strokeStyle = "#e3d0a8";
         ctx.lineWidth = 0.7;
@@ -2143,7 +2221,8 @@ window.RENDERER = (() => {
   function drawStage2Actor(e, P, elapsed) {
     const spec = e.type === "shiome"
       ? { idle: "shiomeIdle", attack: "shiomeAttack", w: 250, h: 220, ax: 125, ay: 205, scale: 0.48, nativeFacing: -1 }
-      : { idle: "bossIdle", attack: "bossAttack", w: 350, h: 330, ax: 175, ay: 320, scale: 0.55, nativeFacing: -1 };
+      : { idle: "bossIdle", attack: "bossAttack", w: 350, h: 330, ax: 175, ay: 320,
+          scale: e.final ? 0.67 : 0.60, nativeFacing: -1 };
     const key = (!e.shield && e.pose === "attack") ? spec.attack : spec.idle;
     const img = window.PORT_ENEMIES?.[key];
     const motion = allowsMotion();
@@ -2341,7 +2420,8 @@ window.RENDERER = (() => {
     // 取得當前關卡對應的 sprite（優先 STAGE_ASSET_SLOTS，缺圖回落通用）
     const idleKey = getStageSpriteKey(e, "idle");
     const attackKey = getStageSpriteKey(e, "attack");
-    const useAttack = !e.shield && e.pose === "attack";
+    const useAttack = !e.shield && (e.pose === "attack" ||
+      (currentStageId() === "sakura-pass" && window.isSakuraCandidateEnabled?.() && (e.attackT > 0 || e.hazard?.phase === "active")));
     const spriteKey = useAttack && attackKey ? attackKey : idleKey;
 
     let sprite = spriteKey ? window.ART[spriteKey] : null;
@@ -2388,20 +2468,32 @@ window.RENDERER = (() => {
       }
     }
 
+    let spriteTop = 0;
     if (sprite) {
       const aspect = (sprite.naturalWidth && sprite.naturalHeight) ? (sprite.naturalHeight / sprite.naturalWidth) : 1;
-      const actualH = sw * aspect;
       const kind = isBoss ? "boss" : isMis ? "mis" : ["runner","tank","shooter"].includes(e.type) ? e.type : "ghost";
-      let artKey = kind, artIndex = 0;
-      if (!window.ART[kind] && sprite === window.ART.ghost) artKey = 'ghost';
-      const atlas = window.ART[`${kind}_motion_v1`];
+      let actualH = sw * aspect;
+      if (!isBoss && sprite.sakuraFrame && currentStageId() === "sakura-pass") {
+        const source = NIGHT_MONSTER_SOURCE_SIZE[kind], reference = FRAME_BOUNDS[kind][0];
+        const idle = window.SAKURA_ART_DATA?.characters[e.sakuraArtId]?.idle?.frame || sprite.sakuraFrame;
+        const referenceH = sw * source[1] / source[0];
+        const referenceArea = referenceH * referenceH * reference[2] / reference[3];
+        // Equal visible idle area to the same S1 enemy role; attack frames keep
+        // the shared source scale and foot pivot, including weapon extensions.
+        actualH = (sprite.sakuraBaseHeight || idle[3]) * Math.sqrt(referenceArea / (idle[2] * idle[3]));
+      }
+        let artKey = spriteKey && sprite === window.ART[spriteKey] ? spriteKey : kind, artIndex = 0;
+        if (!window.ART[kind] && sprite === window.ART.ghost) artKey = 'ghost';
+        // Generic motion atlases must never replace a stage-specific sprite.
+        const atlas = sprite === window.ART[kind] ? window.ART[`${kind}_motion_v1`] : null;
       if (atlas && !e.dying && !e.burning && !e.revealT) {
         if (e.attackT > 0) { sprite = atlas; artKey = `${kind}_motion_v1`; artIndex = 1; }
         else if (e.walking && allowsMotion() && Math.floor(elapsed*6+(e.wob||0))%2) { sprite = atlas; artKey = `${kind}_motion_v1`; }
       }
       // 腳底對齊深度排序與接地陰影基準點 (Boss 44, Mis 27, 一般怪 19)，消除素材懸空與遮擋穿透
-      const footY = isBoss ? 44 : isMis ? 27 : 19;
+      const footY = monsterFootOffset(e);
       const box = drawFrame(ctx,sprite,artKey,artIndex,0,footY,actualH);
+      spriteTop = box.dy;
       if (e.flash > 0) {
         let masks = hitSilhouettes.get(sprite);
         if (!masks) { masks = new Map(); hitSilhouettes.set(sprite,masks); }
@@ -2438,25 +2530,88 @@ window.RENDERER = (() => {
       ctx.font = UI.readableFont(20, "700");
       const bw = ctx.measureText(badgeText).width + 46;
       const badgeY = e.y - 108;
+      const badgeTop = currentStageId() === "sakura-pass" && sprite?.sakuraFrame
+        ? Math.min(badgeY, e.y + spriteTop - 40) : badgeY;
       ctx.fillStyle = "rgba(35, 14, 52, 0.88)";
       ctx.beginPath();
-      ctx.roundRect(e.x - bw / 2, badgeY, bw, 32, 6);
+      ctx.roundRect(e.x - bw / 2, badgeTop, bw, 32, 6);
       ctx.fill();
       ctx.strokeStyle = "#e1bee7";
       ctx.lineWidth = 1.4;
       ctx.stroke();
 
-      if (typeof UI.drawWordCue === "function") UI.drawWordCue(ctx, e.w, e.x - bw / 2 + 22, badgeY + 16, 22);
+      if (typeof UI.drawWordCue === "function") UI.drawWordCue(ctx, e.w, e.x - bw / 2 + 22, badgeTop + 16, 22);
       ctx.fillStyle = "#f5d4ff";
       ctx.textAlign = "center";
-      ctx.fillText(badgeText, e.x + 12, badgeY + 23);
+      ctx.fillText(badgeText, e.x + 12, badgeTop + 23);
       ctx.restore();
     }
   }
 
   // 提亮琉璃核心與金邊：小量固定輪廓光代替昂貴的逐珠模糊濾鏡。
+  // On touch devices 100s of XP crystals can each incur ~12 vector draws every
+  // frame. Bake the *same* hand-authored crystal into two tiny 2x canvases.
+  // The world-position, hover, silhouette and pickup radius stay unchanged.
+  const GEM_TILE_SIZE = 48;
+  const gemTiles = new Map();
+  // Decide once, not on every crystal frame: matchMedia itself can be costly.
+  const useGemTiles = !!(window.matchMedia?.("(pointer: coarse)")?.matches ||
+    (window.navigator?.maxTouchPoints || 0) > 0);
+  function paintGemFace(c, radius, gleam) {
+    c.strokeStyle = `rgba(145,239,234,${(0.24 * gleam).toFixed(3)})`;
+    c.lineWidth = 4;
+    c.beginPath();c.ellipse(0,0,radius+4,(radius+4)*.86,0,0,Math.PI*2);c.stroke();
+    c.strokeStyle = `rgba(244,210,139,${(0.72 + 0.2 * gleam).toFixed(3)})`;
+    c.lineWidth = 1.9;
+    c.beginPath();c.ellipse(0,0,radius+2,(radius+2)*.86,0,0,Math.PI*2);c.stroke();
+    c.fillStyle = "#81dce2";
+    c.strokeStyle = "#33424a";
+    c.lineWidth = 1.6;
+    c.lineJoin = "round";
+    c.beginPath();c.moveTo(0,-radius);c.lineTo(radius*.72,-radius*.35);
+    c.lineTo(radius*.72,radius*.42);c.lineTo(0,radius);
+    c.lineTo(-radius*.72,radius*.42);c.lineTo(-radius*.72,-radius*.35);
+    c.closePath();c.fill();c.stroke();
+    c.fillStyle = "#e9ffff";
+    c.beginPath();c.moveTo(0,-radius*.7);c.lineTo(radius*.35,-radius*.18);
+    c.lineTo(0,radius*.36);c.lineTo(-radius*.35,-radius*.18);
+    c.closePath();c.fill();
+    c.fillStyle = "rgba(255,255,242,.88)";
+    c.beginPath();c.ellipse(-radius*.3,-radius*.35,1.6,2.7,-.35,0,Math.PI*2);c.fill();
+    c.strokeStyle = "#497987";c.lineWidth = 1.1;
+    c.beginPath();c.moveTo(0,radius*.36);c.lineTo(0,radius*.79);c.stroke();
+  }
+  function gemTile(large) {
+    if (gemTiles.has(large)) return gemTiles.get(large);
+    if (typeof document?.createElement !== "function") return null;
+    const radius = large ? 11 : 9;
+    const make = () => {
+      const tile = document.createElement("canvas");
+      tile.width = tile.height = GEM_TILE_SIZE * 2;
+      const c = tile.getContext("2d");
+      if (!c) return null;
+      c.scale(2,2);c.translate(GEM_TILE_SIZE/2,GEM_TILE_SIZE/2);
+      return {tile,c};
+    };
+    const body = make(), shadow = make();
+    if (!body || !shadow) return null;
+    paintGemFace(body.c,radius,.9);
+    shadow.c.fillStyle = "rgba(31,26,32,.34)";
+    shadow.c.beginPath();
+    shadow.c.ellipse(0,radius*.75,radius*.86,3,0,0,Math.PI*2);
+    shadow.c.fill();
+    const result = {body:body.tile,shadow:shadow.tile};
+    gemTiles.set(large,result);
+    return result;
+  }
   function drawGemShadow(g) {
-    const radius = g.v > 2 ? 11 : 9;
+    const large = g.v > 2;
+    const cached = useGemTiles ? gemTile(large) : null;
+    if (cached) {
+      ctx.drawImage(cached.shadow,g.x-GEM_TILE_SIZE/2,g.y-GEM_TILE_SIZE/2,GEM_TILE_SIZE,GEM_TILE_SIZE);
+      return;
+    }
+    const radius = large ? 11 : 9;
     ctx.save();ctx.fillStyle="rgba(31,26,32,.34)";
     ctx.beginPath();ctx.ellipse(g.x,g.y+radius*.75,radius*.86,3,0,0,Math.PI*2);ctx.fill();
     ctx.restore();
@@ -2465,30 +2620,15 @@ window.RENDERER = (() => {
     const large = g.v > 2, radius = large ? 11 : 9;
     const rise = allowsMotion() ? Math.sin(elapsed * 4 + g.x * .07) * 1.7 : 0;
     const gleam = allowsMotion() ? 0.78 + 0.22 * Math.sin(elapsed * 3.5 + g.x * .035) : 0.9;
+    const cached = useGemTiles ? gemTile(large) : null;
     ctx.save();
-    ctx.translate(g.x, g.y - rise);
-    ctx.strokeStyle = `rgba(145,239,234,${(0.24 * gleam).toFixed(3)})`;
-    ctx.lineWidth = 4;
-    ctx.beginPath();ctx.ellipse(0,0,radius+4,(radius+4)*.86,0,0,Math.PI*2);ctx.stroke();
-    ctx.strokeStyle = `rgba(244,210,139,${(0.72 + 0.2 * gleam).toFixed(3)})`;
-    ctx.lineWidth = 1.9;
-    ctx.beginPath();ctx.ellipse(0,0,radius+2,(radius+2)*.86,0,0,Math.PI*2);ctx.stroke();
-    ctx.fillStyle = "#81dce2";
-    ctx.strokeStyle = "#33424a";
-    ctx.lineWidth = 1.6;
-    ctx.lineJoin = "round";
-    ctx.beginPath();ctx.moveTo(0,-radius);ctx.lineTo(radius*.72,-radius*.35);
-    ctx.lineTo(radius*.72,radius*.42);ctx.lineTo(0,radius);
-    ctx.lineTo(-radius*.72,radius*.42);ctx.lineTo(-radius*.72,-radius*.35);
-    ctx.closePath();ctx.fill();ctx.stroke();
-    ctx.fillStyle = "#e9ffff";
-    ctx.beginPath();ctx.moveTo(0,-radius*.7);ctx.lineTo(radius*.35,-radius*.18);
-    ctx.lineTo(0,radius*.36);ctx.lineTo(-radius*.35,-radius*.18);
-    ctx.closePath();ctx.fill();
-    ctx.fillStyle = "rgba(255,255,242,.88)";
-    ctx.beginPath();ctx.ellipse(-radius*.3,-radius*.35,1.6,2.7,-.35,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle = "#497987";ctx.lineWidth = 1.1;
-    ctx.beginPath();ctx.moveTo(0,radius*.36);ctx.lineTo(0,radius*.79);ctx.stroke();
+    if (cached) {
+      ctx.globalAlpha *= 0.92 + 0.08 * gleam;
+      ctx.drawImage(cached.body,g.x-GEM_TILE_SIZE/2,g.y-rise-GEM_TILE_SIZE/2,GEM_TILE_SIZE,GEM_TILE_SIZE);
+    } else {
+      ctx.translate(g.x, g.y - rise);
+      paintGemFace(ctx,radius,gleam);
+    }
     ctx.restore();
   }
 
@@ -3148,12 +3288,10 @@ window.RENDERER = (() => {
     ];
     if (!strips.some(([lo, hi]) => hi > lo)) return -1;
     
-    // 源圖裁切參數（1254 寬）
-    const SRC_W = art.image.naturalWidth || 1254;
-    const SRC_H = art.image.naturalHeight || 1254;
-    const LEFT_BANK_SX = 0, LEFT_BANK_EX = 559, LEFT_BANK_SW = 560;
-    const RIGHT_BANK_SX = 737, RIGHT_BANK_EX = 1254, RIGHT_BANK_SW = 517;
-    const BANK_SY = 117, BANK_SH = 944; // 從 alpha_bbox [0,117,1254,1061]
+    // Two independently painted banks created mismatched wave language.
+    // Reuse ONE raster for both sides, mirror one in the lateral axis and
+    // draw its entire natural-alpha silhouette once (no 256-unit tile seam).
+    const BANK_SX = 0, BANK_SW = 560, BANK_SY = 117, BANK_SH = 944;
     
     c.translate(h.x, h.y);
     c.rotate(angle);
@@ -3169,55 +3307,152 @@ window.RENDERER = (() => {
     c.clip();
     
     let n = 0;
-    const waveHeight = 120; // 世界單位：波前厚度 120 (±60)
-    const tileH = 256; // 世界單位每 tile 高度，對應源圖 944px 高度的重複鋪設
+    const waveHeight = 120; // 真實命中波前仍是 ±60
     
     for (const [lo, hi] of strips) {
       if (!(hi > lo)) continue;
-      const isLeftBank = hi <= safeLeft; // 完全在安全通道左側
-      const isRightBank = lo >= safeRight; // 完全在安全通道右側
-      if (!isLeftBank && !isRightBank) continue; // 橫跨安全通道的不畫（clip 已排除）
-      
-      const bankSx = isLeftBank ? LEFT_BANK_SX : RIGHT_BANK_SX;
-      const bankSw = isLeftBank ? LEFT_BANK_SW : RIGHT_BANK_SW;
-      
-      // 世界座標下的 lateral 範圍對應源圖的寬度比例
-      const worldWidth = hi - lo;
-      const scaleX = worldWidth / bankSw; // 世界單位/源圖像素
-      
-      for (let wy = lo; wy < hi; wy += tileH) {
-        const tileWorldH = Math.min(tileH, hi - wy);
-        // 源圖 Y 方向循環：源圖高 944px 對應世界 tileH
-        const sy = BANK_SY + ((wy - lo) % BANK_SH);
-        const sh = Math.min(BANK_SH - (sy - BANK_SY), BANK_SH * tileWorldH / tileH);
-        
-        // 畫單個 tile
-        c.drawImage(
-          art.image,
-          bankSx, sy, bankSw, sh,
-          progress - 60, wy, waveHeight, tileWorldH
-        );
-        n++;
+      const isRightBank = lo >= safeRight;
+      c.save();
+      if (isRightBank) {
+        // Flip along the hitbox lateral axis, so BOTH natural-alpha inner
+        // wave edges recede toward the corridor instead of being cut flat.
+        c.translate(0, lo + hi);
+        c.scale(1, -1);
       }
+      c.drawImage(art.image, BANK_SX, BANK_SY, BANK_SW, BANK_SH,
+        progress - 60, lo, waveHeight, hi - lo);
+      c.restore();
+      n++;
     }
     return n;
+  }
+
+  // Rain-port alert safety overlay. This SECOND pass is intentionally called
+  // after the sanctuary canopy in game.js, keeping warnings readable even
+  // when the player's large floral shield is active. Hitboxes remain in AI.
+  function drawPortBossTelegraphOverlay(c, h, elapsed = 0) {
+    if (currentStageId() !== "rain-port" || h?.phase !== "telegraph") return false;
+    const kind=h.kind;
+    if (!["tidalFan","rainVortex","tide"].includes(kind)) return false;
+    const pulse=allowsMotion()? .82+.16*Math.sin((Number(elapsed)||0)*10):.95;
+    const ripple=bossHazardRipple();
+    c.save();
+    c.globalCompositeOperation="screen";
+    c.shadowColor="#fff0a2";
+    c.shadowBlur=14;
+    const outline=draw=>{
+      c.save();
+      c.lineCap="round";c.lineJoin="round";
+      c.strokeStyle="rgba(18,12,37,.86)";c.lineWidth=13;draw();
+      c.strokeStyle="rgba(255,243,174,"+pulse+")";c.lineWidth=6;draw();
+      c.restore();
+    };
+    if(kind==="tidalFan"){
+      const r=(h.r||225)+30;
+      const a=h.startAngle??h.angle-Math.PI/3;
+      const b=h.endAngle??h.angle+Math.PI/3;
+      if(ripple){
+        c.save();c.beginPath();c.moveTo(h.x,h.y);c.arc(h.x,h.y,r,a,b);c.closePath();c.clip();
+        c.filter="brightness(2.1) saturate(1.7)";
+        drawRippleCircle(c,ripple,h.x,h.y,r*2,.85);
+        c.restore();
+      }
+      outline(()=>{
+        c.beginPath();c.moveTo(h.x,h.y);
+        c.lineTo(h.x+Math.cos(a)*r,h.y+Math.sin(a)*r);
+        c.arc(h.x,h.y,r,a,b);
+        c.closePath();c.stroke();
+      });
+    }else if(kind==="rainVortex"){
+      for(const v of (h.vortexes||[])){
+        const r=(v.r||32)+20;
+        if(ripple){
+          c.save();c.filter="brightness(2.2)";
+          drawRippleCircle(c,ripple,v.x,v.y,r*2.1,.92);c.restore();
+        }
+        outline(()=>{c.beginPath();c.arc(v.x,v.y,r,0,Math.PI*2);c.stroke();});
+      }
+    }else if(kind==="tide"){
+      const a=Number.isFinite(h.angle)?h.angle:0;
+      const safe=h.safeOffset||0,half=(h.safeWidth||130)/2;
+      c.translate(h.x,h.y);c.rotate(a);
+      // Two very bright boundary rails mark the FAIR safe corridor.
+      for(const y of [safe-half,safe+half]){
+        outline(()=>{
+          c.beginPath();c.moveTo(-280,y);c.lineTo(280,y);c.stroke();
+        });
+      }
+    }
+    c.restore();
+    return true;
+  }
+
+  // The actual tide hit band remains 120 world units wide. The painted wall
+  // is a vertical billboard anchored at that hit band (a 4.5x-tall tsunami),
+  // never a secretly enlarged collision box. Only render during active tide.
+  function drawPortTsunamiCrest(c,h,upright) {
+    if (currentStageId()!=="rain-port"||h?.kind!=="tide"||h.phase!=="active"
+      ||typeof upright!=="function")return false;
+    const img=window.BOSS_HAZARD_ART_IMG?.tide;
+    if(!(img?.naturalWidth>0))return false;
+    const a=Number.isFinite(h.angle)?h.angle:0,cos=Math.cos(a),sin=Math.sin(a);
+    const progress=Number(h.progress)||0,safe=Number(h.safeOffset)||0;
+    const half=(Number(h.safeWidth)||130)/2;
+    const width=520,height=120*4.5;
+    const u=Math.min(1,Math.max(0,(h.t||0)/Math.max(.1,h.duration||1)));
+    const emerge=Math.min(1,u/.22);
+    // Place each image's native transparent edge OUTSIDE the safe channel,
+    // instead of slicing the old pictures at 57% through a visible crest.
+    const sideMargin=12, overlap=.90;
+    const nearLeft=safe-half-sideMargin-width/2;
+    const nearRight=safe+half+sideMargin+width/2;
+    const offsets=[nearLeft-width*overlap,nearLeft,
+                   nearRight,nearRight+width*overlap];
+    for(let i=0;i<offsets.length;i++){
+      const lateral=offsets[i],x=h.x+cos*progress-sin*lateral;
+      const y=h.y+sin*progress+cos*lateral;
+      const left=i<2;
+      const sx=0, sw=560; // shared artwork for matching left/right waves
+      c.save();
+      // The giant upright billboards must NOT paint over the safe corridor.
+      // Clip in the same world-space lateral coordinate used by BOSS_AI,
+      // before upright() temporarily cancels the 2.5D tilt.
+      c.translate(h.x,h.y);c.rotate(a);
+      c.beginPath();
+      if(left)c.rect(-2500,-2500,5000,2500+safe-half);
+      else c.rect(-2500,safe+half,5000,2500-safe-half);
+      c.clip();
+      c.rotate(-a);c.translate(-h.x,-h.y);
+      upright(x,y,()=>{
+        c.save();
+        c.globalAlpha=.94*emerge;
+        c.translate(x,y);
+        if(!left)c.scale(-1,1);
+        c.drawImage(img,sx,117,sw,944,-width/2,-height*emerge+30,
+          width,height*emerge);
+        c.restore();
+      });
+      c.restore();
+    }
+    return true;
   }
 
   function paintTidalFan(c, artOrImg, h, phase, elapsed, motion) {
     // 支援兩種呼叫：(c, art, h, phase, elapsed, motion) 或 (c, img, h, phase, elapsed, motion)
     const art = artOrImg.image ? artOrImg : { image: artOrImg, bbox: null };
     // 源圖：tidalFan_v01.png 1254x1254，apex(617,1117) reach 971px，源圖跨角 160度
-    // 判定：120度 (±PI/3)。需以 Canvas clip 裁切至判定角度，防止視覺超出傷害區。
+    // Hit sector stays 120 degrees, while the Boss AI now doubles its
+    // radial reach. Both painting and warning use the SAME h.r + 30 bound.
     const img = art.image;
     const bbox = art.bbox || [12, 164, 1247, 1118]; // visible bbox from QA
     const sw = bbox[2] - bbox[0];
     const sh = bbox[3] - bbox[1];
     const centerX = h.x;
     const centerY = h.y;
-    const coreR = h.r > 0 ? h.r : 200; // 判定半徑 200，active 觸及 230
-    const reach = coreR + 30; // 視覺延伸到 230
+    const coreR = h.r > 0 ? h.r : 225;
+    const reach = coreR + 30;
     
-    // 判定角度範圍：120度 = 2*PI/3
+    // Fan angle remains 120 degrees; its safe rear arc must remain intact.
     const startAngle = Number.isFinite(h.startAngle) ? h.startAngle : (h.angle || 0) - Math.PI / 3;
     const endAngle = Number.isFinite(h.endAngle) ? h.endAngle : (h.angle || 0) + Math.PI / 3;
     const fanSpan = endAngle - startAngle; // 應為 2*PI/3
@@ -3243,9 +3478,10 @@ window.RENDERER = (() => {
     if (phase === "active") {
       const dur = h.duration > 0 ? h.duration : 0.15;
       const u = Math.min(1, Math.max(0, (Number(h.t) || 0) / dur));
-      sweepAngle = startAngle + fanSpan * u; // 掃過 120度
-      baseAlpha = 0.42;
-      hotAlpha = u < 0.5 ? 0.72 : 0.92;
+      sweepAngle = startAngle + fanSpan * (h.sweepReverse ? 1-u : u);
+      // A readable rising white-water crest instead of the former faint fan.
+      baseAlpha = 0.66;
+      hotAlpha = u < 0.5 ? 0.90 : 1.0;
     } else if (phase === "recovery") {
       const dur = h.duration > 0 ? h.duration : 1.35;
       baseAlpha = 0.36 * Math.max(0, 1 - (Number(h.t) || 0) / dur);
@@ -3260,7 +3496,7 @@ window.RENDERER = (() => {
     // aligned 座標系 = 世界座標系旋轉 -(startAngle + alignAngle)
     // hitbox 在 aligned 座標系中為 [-alignAngle, fanSpan - alignAngle]
     // sweep 區間 [sweepStart, sweepEnd] 在 aligned 座標系中為 [sweepStart - startAngle - alignAngle, sweepEnd - startAngle - alignAngle]
-    const drawSector = (a0, a1, alpha) => {
+    const drawSector = (a0, a1, alpha, bright = false) => {
       c.save();
       c.translate(centerX, centerY);
       // 固定旋轉：讓源圖中心線對齊判定扇區中心線（固定為 startAngle + alignAngle）
@@ -3283,6 +3519,7 @@ window.RENDERER = (() => {
       const dy = -apexY * scale;
       
       c.globalAlpha = alpha;
+      if (bright) c.globalCompositeOperation = "screen";
       c.drawImage(img, bbox[0], bbox[1], sw, sh, dx, dy, drawW, drawH);
       c.restore();
       n++;
@@ -3296,7 +3533,7 @@ window.RENDERER = (() => {
       const sweepStart = Math.max(startAngle, sweepAngle - pad);
       const sweepEnd = Math.min(endAngle, sweepAngle + pad);
       if (sweepEnd > sweepStart) {
-        drawSector(sweepStart, sweepEnd, hotAlpha);
+        drawSector(sweepStart, sweepEnd, hotAlpha, true);
       }
     }
     return n;
@@ -3320,7 +3557,7 @@ window.RENDERER = (() => {
     const dur = h.duration > 0 ? h.duration : (phase === "recovery" ? 1.35 : 0.15);
     const u = Math.min(1, Math.max(0, (Number(h.t) || 0) / dur));
     let alpha = motion ? 0.62 + 0.08 * Math.sin((Number(elapsed) || 0) * 7) : 0.7;
-    if (phase === "active") alpha = u < 0.5 ? 0.55 : 0.9;
+    if (phase === "active") alpha = 1;
     else if (phase === "recovery") alpha = 0.36 * Math.max(0, 1 - u);
     if (!(alpha > 0.02)) return 0;
     
@@ -3335,7 +3572,7 @@ window.RENDERER = (() => {
     for (let i = 0; i < list.length; i++) {
       const v = list[i];
       if (!v || !Number.isFinite(v.x) || !Number.isFinite(v.y)) continue;
-      const hitR = (Number(v.r) > 0 ? Number(v.r) : 32) + 16;
+      const hitR = (Number(v.r) > 0 ? Number(v.r) : 32) + 20;
       // 每根柱各用 Boss AI 的錯峰進度，未輪到的柱只能留下地面預警。
       const fall = Number.isFinite(v.fallProgress) ? v.fallProgress :
         Math.max(0, Math.min(1, (u - (0.5 + i * 0.5 / list.length)) / (0.5 / list.length)));
@@ -3361,30 +3598,46 @@ window.RENDERER = (() => {
       }
       
       // === 層 2：水柱 (billboard 直立，反世界 tilt 保持垂直) ===
-      if (COLUMN_SH > 0 && (phase !== "active" || (fall > 0 && fall < 1))) {
+      if (COLUMN_SH > 0 && phase === "active" && fall > 0 && fall < 1) {
         c.save();
-        // Billboard 直立：反世界 tilt (scale(1, 1/tiltK()))
+        // Solid 3x-height water geyser: the base stays at the actual warning
+        // position, and only its upper billboard extends beyond the hitbox.
+        // The original small low-alpha pillar looked like a floor fountain.
         const tilt = typeof window !== "undefined" && window.VIEWPORT?.tiltScale ? window.VIEWPORT.tiltScale() : 1;
         if (tilt !== 1) {
           c.scale(1, 1 / tilt);
         }
-        c.beginPath();
-        // 水柱較窄，使用完整 visualR 而非 0.7，避免截頂
-        c.arc(0, 0, visualR, 0, Math.PI * 2);
-        c.clip();
-        c.globalAlpha = alpha * 0.9 * (phase === "active" ? Math.sin(Math.PI * fall) : 1);
-        const scale = visualR * 1.4 / sw;
-        const drawW = sw * scale;
-        const drawH = COLUMN_SH * scale;
-        // 水柱錨點：底部中心，向上延伸
-        c.drawImage(img, bbox[0], bbox[1] + COLUMN_SY, sw, COLUMN_SH, -drawW/2, -drawH, drawW, drawH);
+        const surge = Math.min(1, fall / 0.36);
+        const burst = 1 - Math.pow(1 - surge, 3); // explosive ground-up ascent
+        const retreat = fall > 0.83 ? 1 - (fall - 0.83) / 0.17 * 0.20 : 1;
+        const columnW = visualR * (2.05 + burst * 0.55);
+        const columnH = Math.max(350, visualR * 5.7) * (0.12 + 0.88 * burst) * retreat;
+        // Fill its pale interior by overpainting the same raster with normal
+        // source-over; avoid half-transparent/screen-blended water columns.
+        c.globalCompositeOperation = "source-over";
+        c.globalAlpha = 1;
+        c.drawImage(img, bbox[0], bbox[1] + COLUMN_SY, sw, COLUMN_SH,
+          -columnW / 2, -columnH, columnW, columnH);
+        c.drawImage(img, bbox[0], bbox[1] + COLUMN_SY, sw, COLUMN_SH,
+          -columnW / 2, -columnH, columnW, columnH);
+        // The lighter spray shoots UP from the crater during the rise,
+        // rather than appearing as one static enlarged PNG.
+        if (burst > 0.1) {
+          const spray = Math.min(1, (fall - 0.05) / 0.45);
+          const sprayW = columnW * 0.90;
+          const sprayH = columnH * (0.78 + 0.12 * Math.sin((Number(elapsed) || 0) * 12 + i));
+          c.globalAlpha = 1;
+          c.drawImage(img, bbox[0], bbox[1] + COLUMN_SY, sw, COLUMN_SH,
+            -sprayW / 2 + Math.sin(i * 2.4 + fall * 5) * 16 * spray,
+            -sprayH - burst * 62, sprayW, sprayH);
+        }
         c.restore();
         n++;
       }
       
       // === Telegraph/Active/Recovery 視覺回饋：邊緣高亮圓環 ===
       c.save();
-      c.globalAlpha = Math.min(0.8, alpha);
+      c.globalAlpha = phase === "active" ? 1 : Math.min(0.8, alpha);
       c.strokeStyle = phase === "active" ? "rgba(210, 244, 255, 0.95)" : "rgba(140, 220, 255, 0.7)";
       c.lineWidth = phase === "active" ? 2.5 : 1.5;
       c.beginPath();
@@ -3833,6 +4086,95 @@ window.RENDERER = (() => {
     return true;
   }
 
+  function drawSakuraBossTelegraphOverlay(c,h) {
+    const warning=h.phase==='telegraph';
+    if(!warning && !(h.kind==='sakuraBloom' && h.phase==='active'))return false;
+    const outline=paint=>{
+      c.fillStyle='rgba(76,9,35,.24)';c.fill();
+      c.strokeStyle='#211018';c.lineWidth=12;paint();
+      c.strokeStyle='#fff0c7';c.lineWidth=5;paint();
+    };
+    c.save();c.globalCompositeOperation='source-over';c.globalAlpha=1;
+    c.setLineDash([]);c.lineJoin='round';c.shadowBlur=0;
+    if(h.kind==='sakuraRush' && warning){
+      c.translate(h.x,h.y);c.rotate(h.angle);
+      c.beginPath();c.rect(0,-h.r,h.length,h.r*2);outline(()=>c.stroke());
+    }else if(h.kind==='sakuraFan' && warning){
+      for(const shot of h.shots || []){
+        c.save();c.translate(h.x,h.y);c.rotate(shot.angle);
+        c.beginPath();c.rect(0,-h.r,shot.limit ?? h.reach,h.r*2);outline(()=>c.stroke());c.restore();
+      }
+    }else if(h.kind==='sakuraBloom'){
+      for(const mark of h.marks || []){
+        if(!warning && h.t>=mark.delay)continue;
+        c.beginPath();c.arc(mark.x,mark.y,h.r,0,Math.PI*2);outline(()=>c.stroke());
+      }
+    }
+    c.restore();return true;
+  }
+
+  function drawSakuraBossHazard(c, h, owner) {
+    if (!['sakuraRush','sakuraFan','sakuraBloom'].includes(h.kind)) return false;
+    const wind = window.SAKURA_ART?.windBlade, roots = window.SAKURA_ART?.rootBloom;
+    const ready = (h.kind === 'sakuraBloom' ? roots : wind)?.naturalWidth > 0;
+    bossHazardPass = ready ? 'SAKURA_CANDIDATE_RASTER' : 'TECH_SAFETY_ONLY';
+    const phase=h.phase==='recovery' && h.endingFrame ? 'active' : h.phase;
+    if (phase === 'recovery') return true;
+    const raster = (img,x,y,width,angle=0,alpha=1,bottom=false) => {
+      if (!img?.naturalWidth) return;
+      const rect=img.sakuraSourceRect;
+      const height=width*(rect ? rect.sh/rect.sw : img.naturalHeight/img.naturalWidth);
+      c.save();c.globalAlpha*=alpha;c.translate(x,y);c.rotate(angle);
+      if(rect)c.drawImage(img,rect.sx,rect.sy,rect.sw,rect.sh,-width/2,bottom?-height:-height/2,width,height);
+      else c.drawImage(img,-width/2,bottom?-height:-height/2,width,height);
+      c.restore();
+    };
+    c.save();
+    c.strokeStyle='#ffd4b4';c.lineWidth=2;c.setLineDash([8,6]);
+    if (h.kind==='sakuraRush') {
+      if(phase==='telegraph') {
+        c.save();c.translate(h.x,h.y);c.rotate(h.angle);
+        c.strokeRect(0,-h.r,h.length,h.r*2);
+        c.restore();
+        for(let d=28;d<h.length;d+=80)raster(wind,h.x+Math.cos(h.angle)*d,h.y+Math.sin(h.angle)*d,68,h.angle,.48);
+      } else if(owner) {
+        for(let i=2;i>=0;i--) {
+          const trail=Math.min(h.travelled || 0,i*32);
+          raster(wind,owner.x-Math.cos(h.angle)*trail,owner.y+(h.footOffsetY || 0)-Math.sin(h.angle)*trail,116,h.angle,1-i*.25);
+        }
+        if(!ready){c.beginPath();c.arc(owner.x,owner.y+(h.footOffsetY || 0),h.r,0,Math.PI*2);c.stroke();}
+      }
+    } else if(h.kind==='sakuraFan') {
+      for(const shot of h.shots || []) {
+        if(phase==='telegraph') {
+          const reach=shot.limit ?? h.reach;
+          c.beginPath();c.moveTo(h.x,h.y);c.lineTo(h.x+Math.cos(shot.angle)*reach,h.y+Math.sin(shot.angle)*reach);c.stroke();
+          for(const u of [.35,.72])raster(wind,h.x+Math.cos(shot.angle)*reach*u,h.y+Math.sin(shot.angle)*reach*u,58,shot.angle,.38);
+        } else if(!shot.dead) {
+          raster(wind,shot.x,shot.y,78,shot.angle);
+          // Safety outline remains if a candidate fails to load.
+          if(!wind?.naturalWidth){c.beginPath();c.arc(shot.x,shot.y,h.r,0,Math.PI*2);c.stroke();}
+        }
+      }
+    } else {
+      for(const mark of h.marks || []) {
+        const age=phase==='active' ? ((h.activeTime ?? h.t)-mark.delay)/h.pulseDuration : -1;
+        if(age>=1 && !mark.visibleActive)continue;
+        const active=age>=0;
+        c.save();
+        c.setLineDash(active ? [] : [8,6]);
+        c.beginPath();c.arc(mark.x,mark.y,h.r,0,Math.PI*2);c.stroke();
+        const width=h.r*(active ? 2.25*1.5 : 1.15);
+        const pop=Math.min(.85,Math.max(.03,age));
+        const fade=active ? Math.min(1,pop*8)*Math.min(1,(1-pop)*5) : .26;
+        if(active)raster(window.SAKURA_ART?.earthBreak,mark.x,mark.y,h.r*3.4*(.55+pop*.65),0,1-pop*.65);
+        window.VIEWPORT.upright(c,mark.x,mark.y,()=>raster(roots,mark.x,mark.y+h.r*.30,width,0,fade,true));
+        c.restore();
+      }
+    }
+    c.restore();drawSakuraBossTelegraphOverlay(c,h);return true;
+  }
+
   function drawPortBossHazard(targetCtx, h, elapsed = 0, owner = null) {
     if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) {
       bossHazardPass = "UNHANDLED";
@@ -3848,6 +4190,12 @@ window.RENDERER = (() => {
     const fan = kind === "tidalFan" || kind === "tidal_surge" || kind === "tide_fan";
     const vortex = kind === "rainVortex" || kind === "whirlpool_spout" || kind === "vortex";
     const isWaterFanVortex = fan || vortex;
+    // Stage3 has no approved boss VFX. Use the game's explicitly labelled
+    // TECH_SAFETY_ONLY collision warning, never player skill/Stage1 art.
+    if (currentStageId() === "sakura-pass") {
+      bossHazardPass = "TECH_SAFETY_ONLY";
+      return drawSakuraBossHazard(c,h,owner);
+    }
 
     // 舊版 slam/charge/ring 重用了玩家狐火、火球及妖刀素材。
     // 第一關改走 Boss 專屬紫黑鬼瘴特效，其餘關保留既有候選圖審核流程。
@@ -5797,6 +6145,7 @@ window.RENDERER = (() => {
     drawPlayerShadow,
     drawMonsterShadow,
     drawDecorActor,
+    sakuraForestActors,
     drawSakuraProp,
     drawPortProp,
     getPortBounds,
@@ -5810,6 +6159,8 @@ window.RENDERER = (() => {
     drawStage2Actor,
     drawUmibozuWaterBase,
     drawBossHazard: drawPortBossHazard,
+    drawPortBossTelegraphOverlay,
+    drawPortTsunamiCrest,
     bossHazardPass: () => bossHazardPass,
     drawPortBossHazard,
     isOrbitBack,

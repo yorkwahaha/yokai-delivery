@@ -12,11 +12,11 @@
     image: new Set(["night-town"]),
     audio: new Set(["night-town"])
   });
-  // Stage2 is playable for review, but the user has NOT approved the final art/voice yet.
-  // Keep review status separate from production approval.
+  // Stages 2/3 are playable for review, but NOT approved as final art/voice.
+  // Keep trial status separate from production approval.
   const trial = Object.freeze({
-    image: new Set(["rain-port"]),
-    audio: new Set(["rain-port"])
+    image: new Set(["rain-port", "sakura-pass"]),
+    audio: new Set(["rain-port", "sakura-pass"])
   });
   const wordIndex = new Map();
   for (const stage of (root.DELIVERY_LEXICON?.stages || []).slice(0, 7)) {

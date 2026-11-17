@@ -200,6 +200,7 @@
     // rain-port：直接用 runBounds 做半徑判 Y，涵蓋任意 X（真無限 X）
     if (runBounds) {
       if (y - r < runBounds.minY || y + r > runBounds.maxY) return true;
+      if (x - r < runBounds.minX || x + r > runBounds.maxX) return true;
     }
     return solids.some(s => Math.hypot(x - clamp(x, s.x0, s.x1), y - clamp(y, s.y0, s.y1)) < r);
   };
@@ -430,12 +431,18 @@
     const isCrit = Math.random() < chance;
     return { isCrit, mult: isCrit ? 1.8 : 1 };
   }
-  const wMax = { katana: 0.72, barrier: 3, needle: 1, boom: 2, thunder: 2.6, fire: 1.1, fusion_inkblade: 1.8, fusion_foxiai: 1.6, fusion_exorcistblade: 1.7, fusion_foxfirebarrier: 2.5, fusion_exorcistseal: 2.0, fusion_thundercircle: 2.2, fusion_slashwheel: 2.0, fusion_foxthunderlantern: 2.4, fusion_flamefestival: 2.2, fusion_thundertalisman: 2.4 };
+  const wMax = { katana: 0.72, barrier: 3, needle: 1, boom: 2, thunder: 2.6, fire: 1.1, ink_trail: .95, seal_nail:5.3, fusion_inkblade: 1.8, fusion_foxiai: 1.6, fusion_exorcistblade: 1.7, fusion_foxfirebarrier: 2.5, fusion_exorcistseal: 2.0, fusion_thundercircle: 2.2, fusion_slashwheel: 2.0, fusion_foxthunderlantern: 2.4, fusion_flamefestival: 2.2, fusion_thundertalisman: 2.4 };
   let orderT = 0, spawnT = 0, atkT = 0, dashT = 0, dashCd = 0, hintT = 0, nameT = 0, endCooldown = 0, lanternHitT = 0;
   let playerAttackPoseT = 0, playerHurtPoseT = 0; // 視覺專用計時，不影響武器冷卻／碰撞
   let dashDir = { x: 1, y: 0 };
   let choices = [], levelupCooldown = 0, joy = null, touch = window.matchMedia?.("(pointer: coarse)")?.matches || false, inter = null, cargo = { x: 0, y: 0 }, pTrail = [], last = performance.now();
   let simulationCarry = 0;
+  // Opt-in iPad/LAN diagnostics. Never enabled in normal play, and no samples
+  // persist across runs or leave the device. Open the local URL with ?perf=1.
+  const PERF_DEBUG = /^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)$/.test(window.location?.hostname || "") &&
+    new URLSearchParams(window.location?.search || "").get("perf") === "1";
+  let perfStart = 0, perfFrames = 0, perfSimMs = 0, perfDrawMs = 0;
+  let perfText = "FPS -- | simulation --ms | render --ms";
   const btnE = { x: 810, y: 420, r: 38 }, btnD = { x: 810, y: 530, r: 46 };
   const btnFusionHeld = { id: 'fusion-reopen', x: 810, y: 310, r: 36 };
   const btnPause = { x: W - 52, y: 14, w: 38, h: 52 };
@@ -554,6 +561,7 @@
       if (typeof window.STAGE_ART_RESOLVER !== "undefined" && typeof window.STAGE_ART_RESOLVER.setActiveStage === "function") {
         window.STAGE_ART_RESOLVER.setActiveStage(STAGE.id);
       }
+      if (STAGE.id === "rain-port") window.refreshBossHazardArt?.();
     }
     MOB_DIFFICULTY = mobDifficultyForStage(STAGE);
     STAGE_PACING = STAGE.pacing || {};
@@ -613,7 +621,7 @@
     // 不再用巨寬 solid 偽裝無限 X；blocked 直接用 runBounds 做半徑判 Y
     worldSyncSignature = signature;
   }
-  const WL = { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 };
+  const WL = { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0, ink_trail: 0, seal_nail:0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 };
   let buildRevision = 1;
   let buildMutations = [];
   let buildCharms = [];
@@ -998,10 +1006,15 @@
   const WEAPON_UPGRADES = window.GAME_CATALOG.WEAPON_UPGRADES;
 
   let proj = [], needles = [], needleQueued = [], winds = [], ghosts = [], dragonShots = [], dragonScorches = [], crosscuts = [], barrierPulses = [], sacredSanctuary = null, splitblasts = [], duoShockwaves = [], inkfireMarks = [], surgeT = SURGE_FIRST, fAng = 0, fireEmitT = 0, fireSfxT = 0, fireAttackT = 0;
+  const inkTrail = window.GAME_VIOLET_SCENT.create();
+  const inkTrailArt = window.GAME_VIOLET_SCENT.loadCandidateArt();
+  const sealNail = window.GAME_SEAL_NAIL.create();
+  const sealNailArt = window.GAME_SEAL_NAIL.loadCandidateArt();
+  let runIntroOffered = false;
   let boomLv5BurstFx = []; // temporary secondary sparks/smoke around painted Lv5 boom art
   let boomSecondSide = 1; // alternate off-center talismans; preserve a straight shot
   let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1;
-  const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0, fire: 0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 };
+  const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0, fire: 0, ink_trail: 0, seal_nail:0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 };
 
   const UP = [
     { id: "shield", n: "金剛結界", s: "けっかい", cat: "防禦生存", d: "召喚金剛勾玉護盾，獲得 2 次抵擋（最多取得 3 層）", f: () => { b.shield = Math.min(6, (b.shield || 0) + 2); b.shieldPicks = (b.shieldPicks || 0) + 1; }, ok: () => (b.shieldPicks || 0) < 3 },
@@ -1182,7 +1195,9 @@ if (isRainPort) {
     }
 
     // 非 rain-port：原有邏輯
-    const openHouses2 = candidateHouses.filter(h => !busy.has(h.id));
+    const availableHouses = candidateHouses.filter(h => !busy.has(h.id));
+    const openHouses2 = STAGE.id === "sakura-pass"
+      ? window.GAME_DELIVERY_RULES.sakuraPickupPool(availableHouses, P, dist) : availableHouses;
     const matching2 = openHouses2.filter(h => h.word && h.word.jp === chosenWord.jp);
     const from2 = pick(matching2.length ? matching2 : openHouses2);
     if (!from2) return;
@@ -1383,6 +1398,8 @@ if (isRainPort) {
       window.resetS2ArtProdCache?.();
     }
     configureStage(stageId);
+    rainCycle.reset();
+    weatherClock = 0;
     if (STAGE.id === "rain-port") {
       window.refreshPortArt?.();
       // Load S2 production art assets if dev flag is enabled
@@ -1401,7 +1418,9 @@ if (isRainPort) {
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     Object.assign(P, { x: START.x, y: START.y, inv: 1.2, faceAng: 0, faceX: 1 });
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, shieldPicks: 0, spd: 0, crit: 0, oilRegen: 0, dmgUp: 0, heals: 0 });
-    Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 });
+    Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0, ink_trail: 0, seal_nail:0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 });
+    inkTrail.reset(); sealNail.reset();
+    runIntroOffered = false;
     buildRevision++;
     buildMutations = [];
     resetCharmRun();
@@ -1425,7 +1444,7 @@ if (isRainPort) {
     boomSecondSide = 1;
     proj = []; needles = []; needleQueued = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; splitblasts = []; duoShockwaves = []; inkfireMarks = []; enemyBullets = []; surgeT = SURGE_FIRST; surgeWarningT = 0; surgePendingCount = 0; surgePendingTier = 1;
     fAng = 0; fireEmitT = 0; fireSfxT = 0; fireAttackT = 0;
-    wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0; wT.katana = 0.3;
+    wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0; wT.katana = 0.3; wT.ink_trail = 0; wT.seal_nail = 0;
     for (const id of Object.keys(wT)) if (id.startsWith("fusion_")) wT[id] = 0;
     elapsed = 0; animElapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0; runCoins = 0;
     lastMutationOfferLevel = -100;
@@ -1455,7 +1474,8 @@ if (isRainPort) {
     // rain-port：開局將 P.y 夾在戰鬥帶內（安全半徑 18）
     if (runBounds) {
       const safeR = 18;
-      P.y = Math.max(runBounds.minY + safeR, Math.min(runBounds.maxY - safeR, P.y));
+      if (Number.isFinite(runBounds.minY)) P.y = Math.max(runBounds.minY + safeR, Math.min(runBounds.maxY - safeR, P.y));
+      if (Number.isFinite(runBounds.minX)) P.x = Math.max(runBounds.minX + safeR, Math.min(runBounds.maxX - safeR, P.x));
       // 同步 cargo y
       cargo.y = P.y + 10;
     }
@@ -1482,6 +1502,7 @@ if (isRainPort) {
 
       const checkWeaponEligibility = () => {
         if (consumed || scopeRevision !== buildRevision) return false;
+        if ((k === "ink_trail" || k === "seal_nail") && WL[k] === 0 && !STORE.isActiveSkillUnlocked(k)) return false;
         if (nextLvl === 5) return WL[k] === 4;
         if (WL[k] === 0) return Object.keys(WI).filter(key => (WL[key] || 0) > 0).length < MAX_ACTIVE_WEAPONS;
         return (WL[k] || 0) + 1 === nextLvl && nextLvl <= 5;
@@ -1491,6 +1512,16 @@ if (isRainPort) {
         if (!checkWeaponEligibility()) return false;
         consumed = true;
         WL[k] = nextLvl;
+        if (k === "ink_trail") {
+          wT.ink_trail = 0;
+          wMax.ink_trail = window.GAME_VIOLET_SCENT.spec(nextLvl).interval;
+          STORE.markSkillExperienced?.("ink_trail");
+        }
+        if (k === "seal_nail") {
+          wT.seal_nail = 0;
+          wMax.seal_nail = window.GAME_SEAL_NAIL.spec(nextLvl).cooldown;
+          STORE.markSkillExperienced?.("seal_nail");
+        }
         window.useSkillArt?.(k, WL[k]);
         if (k === "katana") { wT.katana = 0; atkT = 0; }
         if (k === "boom") wT.boom = 0;
@@ -1520,7 +1551,11 @@ if (isRainPort) {
         f: applyWeaponEffect
       };
     };
-    const wc = shuffle(eligibleWeaponKeys).map(k => weaponCard(k, WL[k] + 1));
+    // Unowned skills lead early picks. Repeated same-skill upgrades taper from
+    // Lv2→3 and Lv3→4 onward, then recover as other equipped ranks catch up.
+    const wc = window.GAME_UPGRADE_CHOICES.orderWeapons(
+      eligibleWeaponKeys, WL, MAX_ACTIVE_WEAPONS, Math.random
+    ).map(k => weaponCard(k, WL[k] + 1));
     const awakenCard = awakenKeys.length ? weaponCard(shuffle(awakenKeys)[0], 5) : null;
 
     // 奧義由獨立融合儀式視窗選擇；一般修行三選一永不塞入融合卡。
@@ -1702,7 +1737,27 @@ if (isRainPort) {
     const dc = shuffle(eligibleDuoKeys).map(id => duoCard(id));
 
     const offered = window.GAME_UPGRADE_CHOICES.assemble(awakenCard, fc, wc, cc, dc, pc, mc, shuffle);
-    if (offered.length || isFreeCompensationChoice) return offered;
+    // One introduction on the first eligible normal upgrade of this run.
+    // Rerolling refuses it; a later run may introduce it again.
+    const slotFree = Object.keys(WI).filter(k => (WL[k] || 0) > 0).length < MAX_ACTIVE_WEAPONS;
+    const pendingIntro = STORE.pendingSkillIntroduction?.();
+    const intro = !isFreeCompensationChoice && slotFree && !runIntroOffered && pendingIntro
+      ? wc.find(c => c.id === pendingIntro && WL[pendingIntro] === 0) : null;
+    // The old Stage-2 "always show one owned upgrade" rule accidentally
+    // guaranteed Katana every level when it was the only equipped skill,
+    // defeating rank-aware odds. Keep that catch-up guarantee only AFTER all
+    // four active slots have been filled; before that, favor introductions.
+    const owned = !isFreeCompensationChoice && !slotFree &&
+      STORE.isActiveSkillUnlocked("ink_trail")
+      ? wc.find(c => (WL[c.id] || 0) > 0 && c !== intro) : null;
+    if (intro) {
+      runIntroOffered = true;
+      STORE.rotateSkillIntroduction?.(pendingIntro);
+    }
+    const guaranteed = window.GAME_UPGRADE_CHOICES.withGuarantees(
+      offered, [intro, owned], [...wc, ...pc], mc.length === 2
+    );
+    if (guaranteed.length || isFreeCompensationChoice) return guaranteed;
     // Post-cap coins, not passive-cap bypasses. Future permanent shop can
     // spend this balance; the current game only awards and saves it.
     const award = 100;
@@ -1996,14 +2051,21 @@ if (isRainPort) {
         FX.burst(e.x, e.y - 17, isCrit ? "#ffe4a0" : "#e8efff",
           isCrit ? 7 : 4, { speed: 130, life: 0.14, size: 5 });
       }
-    } else {
+    } else if(impactType!=="ink_poison") {
       HAPTICS.hit(isCrit);
       burst(e.x, e.y, "#ffe6aa", 4);
       if (isCrit) {
         RENDERER.triggerHitStop(0.05);
       }
     }
-    RENDERER.spawnDamageNumber(dmg, e.x, e.y - 25, isCrit, isCrit ? "#ffcc00" : "#ffffff");
+    // At 80 enemies, periodic poison must not trigger per-tick vibration,
+    // particles and hundreds of floating damage labels on an iPad.
+    if(impactType!=="ink_poison" ||
+       !(e.poisonTextT>elapsed)){
+      RENDERER.spawnDamageNumber(dmg, e.x, e.y - 25, isCrit,
+        impactType==="ink_poison"?"#c99eea":isCrit?"#ffcc00":"#ffffff");
+      if(impactType==="ink_poison")e.poisonTextT=elapsed+1.0;
+    }
 
     if (e.hp > 0) return;
     // 必須先保存『死亡當刻仍冰凍』的碎裂資格，不能在後面的碎裂處理前清空。
@@ -2047,7 +2109,8 @@ if (isRainPort) {
 
     const gemCount = 1;
     // 第二關 Normal 只有普通小怪改為 3 XP；Boss 與誤配妖仍為原數值。
-    const gemValue = isRainPortNormalMode() && e.type !== "boss" && !isMis ? 3 : 2;
+    const normalXp = isRainPortNormalMode() || (STAGE.id === "sakura-pass" && MOB_DIFFICULTY === CFG.MOB_DIFFICULTY_PROFILES.sakuraNormal);
+    const gemValue = normalXp && e.type !== "boss" && !isMis ? 3 : 2;
     if (state === "play") for (let i = 0; i < gemCount; i++) {
       dropGem(e.x + (Math.random() - 0.5) * 28, e.y + (Math.random() - 0.5) * 28, gemValue);
     }
@@ -2124,6 +2187,7 @@ if (isRainPort) {
       return;
     }
     dismissCombatModals();
+    inkTrail.reset(); sealNail.reset();
     state = "lampout";
     lampSeq = { t: 0 };
     keys.clear(); heldCodes.clear();
@@ -2163,6 +2227,7 @@ if (isRainPort) {
     enemies = enemies.filter(e => e.type !== "boss");
     if (boss) enemies.push(boss);
     victorySeq = { t: 0, bossX: p.x, bossY: p.y, boss, blastT: 0, blasts: 0, bossGone: !boss, ignited: false, fireT: 0 };
+    inkTrail.reset(); sealNail.reset();
     state = "victory";
     // 停止下一次施法與所有自動攻擊排程，但保留已經飛出去的招式短暫收尾。
     dashT = 0; playerAttackPoseT = 0;
@@ -2894,8 +2959,36 @@ if (isRainPort) {
   function combatBuildState() {
     return combatBuildSnapshot || (combatBuildSnapshot = getBuildState());
   }
-  function weapons(dt) {
+  function weapons(dt, movement = null) {
     combatBuildSnapshot = null;
+    if (WL.ink_trail > 0) {
+      inkTrail.tick({dt,level:WL.ink_trail,start:movement?.start,end:movement?.end,
+        dashing:movement?.dashing ?? false,enemies,mutations:combatBuildState().mutations,
+        effectiveDamage:getEffectiveDmg(combatBuildState()),
+        hit:(enemy,damage)=>hurt(enemy,damage,false,false,"ink_poison"),
+        onEvent:kind=>{
+          if(kind==="drop")AUDIO.inkTrailDrop?.();
+          else if(kind==="hit")AUDIO.inkTrailHit?.();
+          else if(kind==="awaken")AUDIO.inkTrailAwaken?.();
+          else if(kind==="echo")AUDIO.inkTrailEcho?.();
+          else if(kind==="confuse")AUDIO.inkTrailAwaken?.();
+        }});
+      wMax.ink_trail = window.GAME_VIOLET_SCENT.spec(WL.ink_trail).interval;
+      wT.ink_trail = inkTrail.snapshot(WL.ink_trail).depositCooldown;
+    }
+    if (WL.seal_nail > 0) {
+      sealNail.tick({dt,level:WL.seal_nail,start:movement?.start,end:movement?.end,
+        dashing:movement?.dashing ?? false,enemies,
+        effectiveDamage:getEffectiveDmg(combatBuildState()),
+        hit:(enemy,damage)=>hurt(enemy,damage,false,false,"seal_nail"),
+        onEvent:kind=>{
+          if(kind==="drop")AUDIO.sealNailDrop?.();
+          else if(kind==="burst")AUDIO.sealNailBurst?.();
+          else if(kind==="second")AUDIO.sealNailAwaken?.();
+        }});
+      wMax.seal_nail=window.GAME_SEAL_NAIL.spec(WL.seal_nail).cooldown;
+      wT.seal_nail=sealNail.snapshot(WL.seal_nail).cooldown;
+    }
     // 0. 墨焰斬延遲墨焰痕佇列（上限 16，延遲 0.12 秒，出生幀 dt 不扣，在妖刀攻擊前推進）
     if (inkfireMarks.length > 0) {
       for (const im of inkfireMarks) {
@@ -2928,6 +3021,15 @@ if (isRainPort) {
       const faceAng = P.faceAng || 0;
       let hasEnemyInArc = false;
       for (const e of enemies) {
+        // Lv5 is a straight wind blade. A wide cone may include targets
+        // outside its actual horizontal corridor and waste an entire cast.
+        if (spec.isAwakened) {
+          const dx=e.x-P.x,dy=e.y-P.y;
+          const along=dx*Math.cos(faceAng)+dy*Math.sin(faceAng);
+          const side=Math.abs(-dx*Math.sin(faceAng)+dy*Math.cos(faceAng));
+          if (along < 0 || along > spec.maxTravel ||
+              side >= 180 + (e.type === "boss" ? 40 : 22)) continue;
+        }
         if (e.hp > 0 && !e.shield && !e.vanish && !e.done && window.GAME_COMBAT_MATH.bladeArcContains(
           P, e, spec.isAwakened ? spec.maxTravel : reach, faceAng, spec.arc
         )) {
@@ -3096,7 +3198,7 @@ if (isRainPort) {
           }
           AUDIO.slash(cc.level);
           if(cc.level!==5)for (const e of enemies) {
-            if (e.hp > 0 && !cc.hits.has(e)) {
+            if (e.hp > 0 && !e.shield && !e.vanish && !e.done && !cc.hits.has(e)) {
               if (window.GAME_COMBAT_MATH.crosscutContains(e, cc)) {
                   cc.hits.add(e);
                   const isMainHit = cc.mainHits && cc.mainHits.has(e);
@@ -3639,7 +3741,7 @@ if (isRainPort) {
         SKILLFX.play("barrier", "cast", spec.level, { x: P.x, y: P.y, r });
         let hitAny = false;
         for (const e of enemies) {
-          if (e.hp > 0 && dist(P, e) <= r) {
+            if (e.hp > 0 && !e.shield && !e.vanish && !e.done && dist(P, e) <= r) {
             hitAny = true;
             const crit = rollCrit(spec);
             hurt(e, spec.damage * crit.mult, crit.isCrit);
@@ -3679,7 +3781,7 @@ if (isRainPort) {
           AUDIO.barrier(bp.level);
           let hitAny = false;
           for (const e of enemies) {
-            if (e.hp > 0 && !bp.hits.has(e)) {
+            if (e.hp > 0 && !e.shield && !e.vanish && !e.done && !bp.hits.has(e)) {
               if (Math.hypot(e.x - bp.x, e.y - bp.y) <= bp.radius) {
                 bp.hits.add(e);
                 hitAny = true;
@@ -3794,11 +3896,13 @@ if (isRainPort) {
       if (queued.wait > 0.000001) continue;
       const spec = queued.spec, a = queued.angle;
       // Back-mounted spirit needles: 60 upright pixels above the feet.
-      // World Y is tilt-projected, so this stays behind the upper torso.
-      const originX = P.x - Math.cos(P.faceAng || 0) * 16;
-      const originY = P.y - 60 / tiltK();
-      needles.push({
-        x: originX, y: originY, originX, originY,
+       // Combat stays on the ground plane. The back-mounted visual launch
+       // lifts only the artwork, avoiding a 100px miss at tilt=0.6.
+       const originX = P.x - Math.cos(P.faceAng || 0) * 16;
+       const originY = P.y;
+       const visualLift = 60 / tiltK();
+       needles.push({
+         x: originX, y: originY, originX, originY, visualLift, visualAge:0,
         vx: Math.cos(a) * spec.speed, vy: Math.sin(a) * spec.speed,
         life: spec.hasReturn ? Math.max(spec.life, needleReturnTravel(a) / spec.speed * 2.5 + 0.28) : spec.life,
         level: spec.level, curve: false,
@@ -3821,7 +3925,7 @@ if (isRainPort) {
         distanceTraveled: 0, returned: false, returning: false
       });
       SKILLFX.play("needle", "fire", spec.level, {
-        x: originX + Math.cos(a) * 20, y: originY + Math.sin(a) * 20, frost: spec.frost
+         x: originX + Math.cos(a) * 20, y: originY - visualLift + Math.sin(a) * 20, frost: spec.frost
       });
       AUDIO.needle(spec.level); // Sound on EACH individual released shot.
     }
@@ -3834,6 +3938,11 @@ if (isRainPort) {
     }
 
     for (const nd of needles) {
+      nd.visualAge = (nd.visualAge || 0) + dt;
+      // The needle departs from the courier's back and settles into its
+      // ground-plane collision path over the first 0.18 seconds of flight.
+      nd.visualOffsetY = (nd.visualLift || 0) *
+        Math.max(0, 1 - nd.visualAge / 0.18);
       if (!nd.returning) {
         EVOLUTIONS.curve(nd, dt);
         if (nd.tracking && (!nd.curve || nd.curved || nd.curveDone)) {
@@ -3894,7 +4003,7 @@ if (isRainPort) {
       }
       if ((nd.trail -= dt) <= 0) {
         nd.trail = 0.03;
-        SKILLFX.play("needle", "trail", nd.level ?? WL.needle, { x: nd.x, y: nd.y, ang: Math.atan2(nd.vy, nd.vx), frost: nd.frost });
+        SKILLFX.play("needle", "trail", nd.level ?? WL.needle, { x: nd.x, y: nd.y - (nd.visualOffsetY || 0), ang: Math.atan2(nd.vy, nd.vx), frost: nd.frost });
       }
       for (const e of enemies) {
         const returnBonusHit = nd.hasReturn && nd.returning && nd.hits?.has(e) && !nd.returnBonusHits?.has(e);
@@ -4510,6 +4619,7 @@ if (isRainPort) {
   }
 
 function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
+    if (STAGE.id === "sakura-pass" && enemies.filter(e => e.hp > 0 && e.type !== "boss").length >= MOB_DIFFICULTY.cap) return;
     const position = spawnPosition(closeAmbush ? rad : spawnRadius(rad), ang ?? Math.random() * 6.283, 26);
     if (!position) return;
     const r = Math.random();
@@ -4523,6 +4633,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     });
 
     enemies.push({ ...position, flash: 0, wob: Math.random() * 6, slowT: 0, ...t,
+      ...(STAGE.id === "sakura-pass" ? { artStatus: "TEMP_FALLBACK", stageId: STAGE.id } : {}),
       hp: Math.ceil(t.hp * MOB_DIFFICULTY.hpScale), max: Math.ceil(t.hp * MOB_DIFFICULTY.hpScale) });
   }
 
@@ -4581,7 +4692,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         if (e.type !== "boss" || !e.shield || e.hp <= 0 || e.quizClosed) continue;
         const d = dist(P, e);
         if (d < quizNearDistance) { quizNear = e; quizNearDistance = d; }
-        else if (d >= 380 && e.quizEntered) e.quizClosed = true;
+        // Leaving the reading radius preserves unused time. The countdown
+        // resumes on re-entry and still closes permanently when exhausted.
       }
       if (quizNear) {
         quizNear.quizEntered = true;
@@ -4596,6 +4708,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       }
     }
     const safeRead = !!(job?.reading || quizNear);
+    // Clear pending traps during reading/curse; none can hit when the modal ends.
+    if (safeRead || bossCurseRemaining > 0) { inkTrail.suspend(); sealNail.suspend(); }
     // 只有戰場正常推進時才倒數；Boss 答題暫停、交貨答題期間不抵銷反噬。
     if (!safeRead && bossCurseRemaining > 0) bossCurseRemaining = Math.max(0, bossCurseRemaining - dt);
     if (!safeRead) {
@@ -4631,6 +4745,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if (!safeRead) P.inv = Math.max(0, P.inv - dt);
     playerAttackPoseT = Math.max(0, playerAttackPoseT - dt);
     playerHurtPoseT = Math.max(0, playerHurtPoseT - dt);
+    const dashActiveAtFrameStart = dashT > 0;
     dashT = Math.max(0, dashT - dt);
     if (!safeRead) dashCd = Math.max(0, dashCd - dt);
     hintT = Math.max(0, hintT - dt);
@@ -4665,6 +4780,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     }
 
     // 玩家位移（基礎速度微調較慢，可藉由卡片提升）
+    const inkMoveStart = { x:P.x, y:P.y };
+    const inkWasDashing = dashActiveAtFrameStart;
     const m = dashT > 0 ? dashDir : move();
     if (Math.hypot(m.x, m.y) > 0.05) {
       P.faceAng = Math.atan2(m.y, m.x);
@@ -4725,7 +4842,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
 
     if (!safeRead) {
     // 詛咒反噬：保留移動、閃避、受敵攻擊；全面封鎖自動攻擊與主動施法。
-    if (bossCurseRemaining <= 0) weapons(dt);
+    if (bossCurseRemaining <= 0)
+      weapons(dt, {start:inkMoveStart,end:{x:P.x,y:P.y},dashing:inkWasDashing});
     // A finishing hit can switch to victory inside weapons; stop spawns/AI.
     if (state !== "play") return;
 
@@ -4802,6 +4920,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       e.flash = Math.max(0, e.flash - dt);
       e.hitReactT = Math.max(0, (e.hitReactT || 0) - dt);
       e.attackT = Math.max(0, (e.attackT || 0) - dt);
+      const confuseAim=window.GAME_CONFUSION.step(e,dt,enemies,P);
       const knocked = moveKnockback(e, dt);
       if (e.freezeT > 0) {
         e.freezeT = Math.max(0, e.freezeEnds == null ? e.freezeT - dt : e.freezeEnds - elapsed);
@@ -4826,6 +4945,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         curSpd *= (e.frostsealSlowMult || 1.0);
       }
       let hazardHit = null;
+      let harborSidestep = false;
       if (e.type === "boss" && window.BOSS_AI?.step) {
         let ringActiveR = null;
         const h = e.hazard;
@@ -4834,14 +4954,39 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
           h.prevR = ringActiveR;
         }
         const slamWasWarning = h?.kind === "slam" && h.phase === "telegraph";
+        const oldPhase=h?.phase,oldFanPass=h?.sweepPass;
         const stepped = window.BOSS_AI.step(e, P, dt, {
           blocked: (x, y, r = 32) => blocked(x, y, r),
           stageId: STAGE.id,
           // Boss sprite footY=44 is upright screen-space; world Y is tilt-scaled.
-          bossVisualFootOffsetY: STAGE.id === 'night-town' ? 44 / tiltK() : 0,
-          paused: surgeWarningT > 0
+          bossVisualFootOffsetY: STAGE.id === 'night-town' || STAGE.id === 'sakura-pass' ? 44 / tiltK() : 0,
+          speed: curSpd,
+          bounds: runBounds,
+          paused: surgeWarningT > 0 || (STAGE.id === 'sakura-pass' && (knocked || revealing))
         });
         if (stepped?.hit) hazardHit = stepped.hit;
+        if(STAGE.id==='sakura-pass'){
+          const soundHazard=e.hazard;
+          if(stepped?.started && soundHazard){
+            if(soundHazard.kind==='sakuraRush')AUDIO.sakuraRushWarn?.();
+            if(soundHazard.kind==='sakuraFan')AUDIO.sakuraFanWarn?.();
+            if(soundHazard.kind==='sakuraBloom')AUDIO.sakuraBloomWarn?.();
+          }
+          if(soundHazard && ((soundHazard===h && oldPhase==='telegraph') || stepped?.started) && soundHazard.phase==='active'){
+            if(soundHazard.kind==='sakuraRush')AUDIO.sakuraRushCast?.();
+            if(soundHazard.kind==='sakuraFan')AUDIO.sakuraFanCast?.();
+          }
+          if(soundHazard?.kind==='sakuraBloom' && (soundHazard.phase==='active' || soundHazard.endingFrame)){
+            for(const mark of soundHazard.marks || [])if(mark.visibleActive && !mark.soundTriggered){
+              mark.soundTriggered=true;AUDIO.sakuraBloomImpact?.();
+            }
+          }
+        }
+        if (STAGE.id === "rain-port" && stepped?.started && e.hazard?.ultimate) {
+          // Final half-HP technique, using the existing short in-world
+          // calligraphy text layer; no new UI surface or audio asset.
+          say("潮界封鎖・逆浪返潮", e.x, e.y - 125, "#b9ebff");
+        }
         // One impact cue exactly at the telegraph -> active boundary, not every frame.
         if (STAGE.id === "night-town" && slamWasWarning && e.hazard === h && h.phase === "active") {
           AUDIO.bossSlamImpact?.();
@@ -4858,6 +5003,28 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
               || (newSlam && e.hazard.phase === "active")) {
             AUDIO.rainPortWaterSlamImpact?.();
           }
+          const soundHazard=e.hazard;
+          if(stepped?.started && soundHazard){
+            if(soundHazard.kind==="tide")AUDIO.rainPortTideWarn?.();
+            if(soundHazard.kind==="tidalFan")AUDIO.rainPortFanWarn?.();
+            if(soundHazard.kind==="rainVortex")AUDIO.rainPortVortexWarn?.();
+          }
+          if(soundHazard && soundHazard===h){
+            if(oldPhase==="telegraph" && h.phase==="active"){
+              if(h.kind==="tide")AUDIO.rainPortTideImpact?.();
+              if(h.kind==="tidalFan")AUDIO.rainPortFanSweep?.();
+            }
+            if(h.kind==="tidalFan" && oldFanPass===1 && h.sweepPass===2)
+              AUDIO.rainPortFanWarn?.();
+            if(h.kind==="rainVortex" && h.phase==="active"){
+              for(const vortex of h.vortexes||[]){
+                if(vortex.fallProgress>0 && vortex.fallProgress<1 && !vortex.soundTriggered){
+                  vortex.soundTriggered=true;
+                  AUDIO.rainPortVortexPillar?.();
+                }
+              }
+            }
+          }
         }
         if (ringActiveR !== null && e.hazard === h && h.kind === "ring" && (h.phase === "active" || h.phase === "recovery")) {
           h.prevR = ringActiveR;
@@ -4869,6 +5036,14 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
           if (e.pose !== nextPose) e.pose = nextPose;
         }
       }
+      // Stage-specific footwork between spells; Night Town keeps head-on pursuit.
+      if (e.type === "boss" && (e.umibozu || STAGE.id === "sakura-pass") && !knocked && !revealing &&
+          !e.hazard && !e.shield && !(surgeWarningT > 0)) {
+        harborSidestep = window.BOSS_AI?.footwork?.(e, P, dt, {
+          blocked: (x, y) => blocked(x, y, 24),
+          speed: curSpd
+        }) === true;
+      }
       if (e.type === "shiome") {
         if (!isRainPortNormal) {
           const waveHit = updateShiome(e, dt);
@@ -4878,9 +5053,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
           e.pose = (e.attackT > 0) ? "attack" : "idle";
         }
       }
-      const dx = P.x - e.x, dy = P.y - e.y;
+      const dx = confuseAim.x - e.x, dy = confuseAim.y - e.y;
       const d = Math.hypot(dx, dy) || 1;
-      const bossBusy = e.type === "boss" && !!e.hazard;
+      const bossBusy = e.type === "boss" && (!!e.hazard || harborSidestep);
       const shiomeHold = e.type === "shiome" && e.hazard && e.hazard.phase !== "recover";
 
       // 所有怪物逼近玩家（加入建築物碰撞障礙滑移）
@@ -4921,9 +5096,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       } else if (e.type !== "mis") {
         e.stuckT = 0;
       }
-      e.walking = !knocked && !revealing && (e.x !== oldX || e.y !== oldY);
+      e.walking = !knocked && !revealing && (e.x !== oldX || e.y !== oldY || harborSidestep);
       // 真移動方向記錄：移動時更新 faceAng，停止/凍結/暫停/擊退/揭露不轉向
-      if (e.walking) {
+      if (e.walking && (e.x !== oldX || e.y !== oldY)) {
         e.faceAng = Math.atan2(e.y - oldY, e.x - oldX);
       }
       if (e.type === "mis") {
@@ -4952,15 +5127,28 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
             x: e.x, y: e.y,
             vx: (dx / d) * bulletSpeed,
             vy: (dy / d) * bulletSpeed,
-            life: 2.6
+            life: 2.6,
+            ...(confuseAim!==P?{target:confuseAim}:null)
           });
         }
       }
 
       const hitRadius = (e.type === "boss" ? 52 : e.type === "tank" ? 34 : e.type === "mis" ? 32 : 25);
-      if (!revealing && (hazardHit || (!bossBusy && Math.hypot(P.x - e.x, P.y - e.y) < hitRadius))) {
+      if(confuseAim!==P && e.type!=="boss" && e.confusedT>0 &&
+          Math.hypot(confuseAim.x-e.x,confuseAim.y-e.y)<hitRadius+12 &&
+          (e.confuseStrikeCd||0)<=0 && confuseAim.hp>0) {
+        e.confuseStrikeCd=.9;
+        e.attackT=.24;
+        hurt(confuseAim,e.type==="tank"?10:5,false,false,"ink_confusion");
+      }
+      e.confuseStrikeCd=Math.max(0,(e.confuseStrikeCd||0)-dt);
+      if (!revealing && (hazardHit || (confuseAim===P && !bossBusy && Math.hypot(P.x - e.x, P.y - e.y) < hitRadius))) {
         e.attackT = 0.24;
-        const dmg = hazardHit ? hazardHit.damage : (e.type === "tank" ? 18 : 10);
+        // Capped +10% applies only to signposted Boss water spells in rain-port.
+        const heavyWater=STAGE.id==="rain-port" && e.type==="boss"
+          && hazardHit && rainCycle.snapshot().heavy;
+        const dmg=hazardHit ? hazardHit.damage*(heavyWater?1.10:1)
+          : (e.type==="tank"?18:10);
         if (hurtPlayer(dmg)) return;
       }
     }
@@ -4974,7 +5162,13 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       eb.x += eb.vx * dt;
       eb.y += eb.vy * dt;
       if (blocked(eb.x, eb.y, 8)) { eb.life = 0; continue; }
-      if (dist(P, eb) < 20) {
+      if(eb.target){
+        if(eb.target.hp<=0||eb.target.dying){eb.life=0;continue;}
+        if(Math.hypot(eb.target.x-eb.x,eb.target.y-eb.y)<20){
+          eb.life=0;
+          hurt(eb.target,5,false,false,"ink_confusion");
+        }
+      } else if (dist(P, eb) < 20) {
         eb.life = 0;
         if (hurtPlayer(8, "妖火灼身・燈油 −8")) return;
       }
@@ -5055,11 +5249,15 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
           appearedAt: elapsed,
           regenRestored: 0,
           stageId: STAGE.id,
+          ...(STAGE.id === "sakura-pass" ? { artStatus: "TEMP_FALLBACK" } : {}),
           bossTheme: STAGE_ENEMY.bossTheme,
           oilReward: plan.oil,
           hp: bossHp,
           max: bossHp,
-          speed: plan.role === "gate" ? 70 : plan.role === "final" ? 46 : 58,
+          speed: STAGE.id === "rain-port"
+            ? (plan.role === "final" ? 112 : plan.role === "gate" ? 105 : 98)
+            : STAGE.id === "sakura-pass" ? (window.SAKURA_BOSS_AI?.walkSpeed(bossStage) || 130)
+            : (plan.role === "gate" ? 70 : plan.role === "final" ? 46 : 58),
           flash: 0,
           wob: 0,
           attackCd: 1.2,
@@ -5134,8 +5332,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       }
     }
     gems = gems.filter(g => !g.done);
-    }
+    // Read-time suspension must also freeze dropped charms and swap UI.
     updateCharmDrops(dt);
+    }
     // Picking up a fourth charm opens a modal. Do not keep running the same
     // combat frame and potentially overwrite that modal with a level-up.
     if (state !== "play") return;
@@ -5230,7 +5429,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     const curCam = RENDERER.getCam();
     // rain-port：鏡頭 Y 夾在戰鬥帶中心 ± 視野一半
     let clampedCamY = targetCamY;
-    if (runBounds) {
+    if (runBounds && Number.isFinite(runBounds.minY)) {
       const halfViewH = H / (2 * tiltK());
       const minCamY = runBounds.minY - halfViewH;
       const maxCamY = runBounds.maxY - halfViewH;
@@ -5622,10 +5821,13 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
   }
 
   let rainLoad = 1;
+  const rainCycle=window.GAME_WEATHER.createRainCycle();
+  let weatherClock=0;
   function drawStageWeather(t) {
     return window.GAME_WEATHER.drawStageWeather(t, {
       ctx, STAGE_VISUAL, STAGE, rainLoad, W, H,
-      liveMotion, viewBounds, getRipple: () => window.PORT_ART?.ripple
+      liveMotion, viewBounds, getRipple: () => window.PORT_ART?.ripple,
+      rainStrength: STAGE.id==="rain-port"?rainCycle.snapshot().strength:undefined
     });
   }
 
@@ -5696,9 +5898,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.beginPath(); ctx.arc(h.x, h.y, r, 0, 6.283); ctx.fill(); ctx.stroke();
     } else if (h.kind === "charge") {
       const ang = h.angle || 0;
-      const len = 620 * 0.65;
+      const len = Number.isFinite(h.length) ? h.length : 620 * 0.65;
       ctx.strokeStyle = harborWaterBoss ? "rgba(45,158,214,0.55)" : "rgba(255,120,50,0.45)";
-      ctx.lineWidth = 104;
+      ctx.lineWidth = (h.r || 52) * 2;
       ctx.lineCap = "butt";
       ctx.beginPath();
       ctx.moveTo(h.x, h.y);
@@ -5712,6 +5914,39 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.beginPath();
       ctx.arc(h.x, h.y, h.r || 80, gap + half, gap + Math.PI * 2 - half);
       ctx.stroke();
+      if (STAGE.id === "sakura-pass" && h.phase === "telegraph") {
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(h.x, h.y, 400, gap + half, gap + Math.PI * 2 - half);
+        ctx.stroke();
+      }
+    } else if (h.kind === "tidalFan") {
+      // Safety-only outline when the approved water artwork is unavailable.
+      const start = Number.isFinite(h.startAngle) ? h.startAngle : (h.angle || 0) - Math.PI / 3;
+      const end = Number.isFinite(h.endAngle) ? h.endAngle : (h.angle || 0) + Math.PI / 3;
+      const reach = (h.r || 225) + 30;
+      ctx.fillStyle = "rgba(35,119,178,0.16)";
+      ctx.strokeStyle = "#a7edff";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(h.x, h.y);
+      ctx.arc(h.x, h.y, reach, start, end);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else if (h.kind === "rainVortex") {
+      // Preserve actual collision boundaries while the raster columns load.
+      for (const v of h.vortexes || []) {
+        if (!Number.isFinite(v.x) || !Number.isFinite(v.y)) continue;
+        if (h.phase === "recovery") continue;
+        ctx.fillStyle = "rgba(35,119,178,0.16)";
+        ctx.strokeStyle = "#a7edff";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(v.x, v.y, (v.r || 32) + 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
     } else if (h.kind === "tide") {
       const ang = h.angle || 0;
       const cos = Math.cos(ang), sin = Math.sin(ang);
@@ -5738,6 +5973,12 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.moveTo(wx - sin * (off + gap), wy + cos * (off + gap));
       ctx.lineTo(wx - sin * (off + lateralReach), wy + cos * (off + lateralReach));
       ctx.stroke();
+    }
+    if (STAGE.id === "sakura-pass" && h.phase === "telegraph") {
+      ctx.textAlign = "center";
+      ctx.font = UI.readableFont(15, "900");
+      ctx.fillStyle = "#ffe4d4";
+      ctx.fillText("危險範圍・特效待審", h.x, h.y - 24);
     }
     ctx.restore();
   }
@@ -5804,6 +6045,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       : state === "victory"
         ? DAWN * (0.92 + 0.08 * dawnBlend)
         : elapsed;
+    // Visual dawn time freezes in the victory sequence; weather time does not.
+    const rainVisualTime=STAGE.id==="rain-port"?weatherClock:visualElapsed;
 
     ctx.save();
     tiltWorld(cam,shakeOffset);
@@ -5826,8 +6069,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       // Phase16 weather hash moved to GAME_WEATHER; do not use its former
       // bare name or the rain-port frame will throw before the first paint.
       const rainUnit = window.GAME_WEATHER.rainUnit;
-      for (let i = 0; i < 14; i++) {
-        const life = ((visualElapsed * motion * 0.65 + rainUnit(i, 11)) % 1);
+      const groundRainRipples=Math.round(14*Math.max(.57,
+        Math.min(1.8,rainCycle.snapshot().strength)));
+      for (let i = 0; i < groundRainRipples; i++) {
+        const life = ((rainVisualTime * motion * 0.65 + rainUnit(i, 11)) % 1);
         const x = cam.x + view.left + rainUnit(i, 12) * view.width;
         const y = cam.y + view.top + rainUnit(i, 13) * view.height;
         if (!groundRipple?.naturalWidth) continue;
@@ -5845,7 +6090,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     RENDERER.drawGroundParallax?.(visualElapsed, DAWN, cam);
 
     // 天氣效果（雨/雪）畫在地面與視差層之後、燈籠與角色之前，避免遮擋遊戲元素
-    drawStageWeather(visualElapsed);
+    drawStageWeather(rainVisualTime);
 
     // 3. 街角石燈。畫在角色之前，腳底對齊燈位；圖還沒載入時退回提燈符號。
     LAMPS.forEach(l => {
@@ -6094,6 +6339,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       }
     }
     FX.drawGround(ctx, cam, view);
+    // Draw only approved raster images at ground depth below all danger warnings,
+    // pickup labels, delivery text, cargo, and on-screen controls.
+    inkTrail.paint(ctx, inkTrailArt, job?.reading ? .12 : 1);
+    sealNail.paint(ctx, sealNailArt, job?.reading ? .12 : 1);
     // Lit ground occupies a flattened perspective plane beneath every actor.
     // Animated molten patch: slow breathing, flickering ink strokes and drifting embers.
     const animateGroundHeat=liveMotion()!==0;
@@ -6139,7 +6388,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       RENDERER.drawFusionFx?.(ctx, fx, visualElapsed);
     }
 
-    for (const e of enemies) if (e.hp > 0 && e.hazard && nearView(e.hazard.x, e.hazard.y, 480)) {
+    for (const e of enemies) if (e.hp > 0 && e.hazard &&
+        nearView(e.hazard.x, e.hazard.y, Math.max(480, e.hazard.reach || 0, e.hazard.length || 0, (e.hazard.r || 0) + 110))) {
+      // Sakura warnings/impacts are painted once above the sanctuary canopy.
+      if(STAGE.id==='sakura-pass' && e.hazard.sakura)continue;
       if (e.hazard.kind === "shiome") drawShiomeWave(e.hazard);
       else drawBossHazard(e.hazard, e);
     }
@@ -6181,6 +6433,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     // 7. 依腳底地面接觸點排序；北側角色被屋頂遮住，南側角色在屋前。
     const movement = move();
     const actors = [
+      ...(STAGE.id === "sakura-pass" ? RENDERER.sakuraForestActors?.(view, cam) || [] : []),
       ...houses.filter(houseSeen).map(h => ({ house: h, y: h.y + 48 })),
       ...enemies.filter(e => nearView(e.x, e.y)).map(e => ({ enemy: e, y: e.y + (e.type === "boss" ? 44 : e.type === "mis" ? 27 : 19) })),
       ...LAMPS.filter(l => nearView(l.x, l.y)).map(l => ({ lamp: l, y: l.y + 8 })),
@@ -6201,7 +6454,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     ];
     actors.sort((a, b) => a.y - b.y);
     for (const actor of actors) {
-      if (actor.torii || actor.tree || actor.ancient) RENDERER.drawDecorActor?.(actor,P.y);
+      if (actor.torii || actor.tree || actor.ancient || actor.forest) RENDERER.drawDecorActor?.(actor,P.y);
       else if (actor.port) RENDERER.drawPortProp?.(actor.port, P.y);
       else if (actor.sakuraProp) RENDERER.drawSakuraProp?.(actor.sakuraProp, P.y);
       else if (actor.house) {
@@ -6304,9 +6557,11 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     // 12.5 破魔靈針彈幕
     for(const p of ghosts)if(!p.dragon)
       upright(p.x,p.y,()=>SKILLFX.paint(ctx,"ghost",p.level??5,p));
-    for (const nd of needles)
-      upright(nd.x,nd.y,()=>SKILLFX.paint(ctx,"needle",nd.level??WL.needle,
-        { x:nd.x,y:nd.y,ang:nd.ang ?? Math.atan2(nd.vy,nd.vx),frost:!!nd.frost }));
+    for (const nd of needles) {
+      const drawY = nd.y - (nd.visualOffsetY || 0);
+      upright(nd.x,drawY,()=>SKILLFX.paint(ctx,"needle",nd.level??WL.needle,
+        { x:nd.x,y:drawY,ang:nd.ang ?? Math.atan2(nd.vy,nd.vx),frost:!!nd.frost }));
+    }
 
     // 13. 斬擊弧與結界擊中環 — impact rings belong to the ground plane.
     for (const r of rings) {
@@ -6504,6 +6759,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if(sacredSanctuary?.life>0)
       upright(sacredSanctuary.x,sacredSanctuary.y,()=>
         window.YOKAI_SANCTUARY_ARC?.draw(ctx,sacredSanctuary,visualElapsed,tiltK()));
+    // Purple flames must follow the damaged monster ABOVE the ground,
+    // night lighting and the player's sanctuary canopy.
+    inkTrail.paintEnemyImpacts(ctx, inkTrailArt, (x,y,paint)=>upright(x,y,paint));
     // 妖刀手繪刀氣屬於自發光前景：夜色遮罩後再合成，保持浮世繪青白與金色筆觸。
     for(const p of winds)
       upright(p.x,p.y,()=>SKILLFX.paint(ctx,"wind",5,p));
@@ -6531,6 +6789,24 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       });
     }
     RENDERER.drawSlashArcs();
+    // Rain-port warning edges are deliberately re-composited above the
+    // sanctuary canopy, but below delivery captions and fixed HUD.
+    if (STAGE.id === "rain-port") {
+      for (const e of enemies) {
+        const h=e.hazard;
+        if (!(e.hp>0 && h) || !nearView(h.x,h.y,Math.max(620,(h.r||0)+110)))continue;
+        if(h.phase==="active" && h.kind==="tide")
+          RENDERER.drawPortTsunamiCrest?.(ctx,h,(x,y,paint)=>upright(x,y,paint));
+        if(h.phase==="telegraph")
+          RENDERER.drawPortBossTelegraphOverlay?.(ctx,h,visualElapsed);
+      }
+    }
+    if(STAGE.id==='sakura-pass'){
+      for(const e of enemies){
+        const h=e.hazard;
+        if(e.hp>0 && h?.sakura && nearView(h.x,h.y,Math.max(620,h.reach || 0,h.length || 0)))drawBossHazard(h,e);
+      }
+    }
     ctx.restore();
     FX.drawFlash(ctx, viewBounds());
 
@@ -6655,6 +6931,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
 
   function turnCodexPage(delta) {
     UI.selectSecretDetail?.(null);
+    if (codexTab === 'words' && window.CARD_GALLERY_UI?.reduce) {
+      applyWordCodex({type:'page',delta});
+      return;
+    }
     const next = UI.codexButtons(codexTab,codexPage,codexWords().length).find(b=>b.id==='next');
     if(delta>0&&next.disabled)return;
     const lastPage = codexTab==='cards'?Math.ceil(UI.CARD_LIST.length/UI.codexRows())-1:Math.max(0,Math.ceil(codexWords().length/15)-1);
@@ -6823,7 +7103,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     }
     if (e.code === 'KeyV' && !action && !e.repeat) { e.preventDefault(); toggleViewMode(); return; }
     if (action === "interact") interact();
-    else if (bossQ && !job?.reading && !e.repeat && "123".includes(e.key)) {
+    else if (bossQ && !job?.reading && !e.repeat && e.key.length === 1 && "123".includes(e.key)) {
       const idx = +e.key - 1;
       if (idx >= 0 && idx < bossQ.ans.length) answerBoss(idx);
     }
@@ -7172,6 +7452,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
   let frameError = false;
   function recoverFrameError() {
     frameError = false;
+    inkTrail.reset(); sealNail.reset();
     state = "menu";
     menuFocus = 0;
     menuFocusState = "menu";
@@ -7217,7 +7498,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
   function hudExtra(time) {
     const cd = {};
     if (WL.katana > 0) cd.katana = clamp((atkT - 0.1) / Math.max(0.01, wMax.katana - 0.1), 0, 1);
-    for (const k of ["barrier", "needle", "boom", "thunder", ...(WL.fire===5?["fire"]:[])]) if (WL[k] > 0) cd[k] = clamp(wT[k] / wMax[k], 0, 1);
+    for (const k of ["barrier", "needle", "boom", "thunder", "ink_trail", "seal_nail", ...(WL.fire===5?["fire"]:[])]) if (WL[k] > 0 && wMax[k] > 0) cd[k] = clamp(wT[k] / wMax[k], 0, 1);
     const guideTarget = job ? job.to : orders.reduce((n, o) => (!n || dist(P, o.from) < dist(P, n) ? o.from : n), null);
     const bossHunting = elapsed >= DAWN && delivered >= GOAL_DELIVERIES && !finalBossDefeated;
     const huntTarget = bossHunting ? enemies.find(e => e.type === "boss" && e.final && e.hp > 0) : null;
@@ -7244,6 +7525,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
 
   function runFrame(now) {
     menuButtons();
+    const perfFrameStart = PERF_DEBUG ? performance.now() : 0;
     // Render/UI remains clamped; game simulation catches up through bounded
     // <=50ms substeps instead of losing half the time on 10 FPS devices.
     const wallDt = Math.max(0, Math.min((now - last) / 1000, 0.2));
@@ -7318,6 +7600,19 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       if (overworldNoticeT > 0) overworldNoticeT = Math.max(0, overworldNoticeT - dt);
     if (overworldExitArmT > 0) overworldExitArmT = Math.max(0, overworldExitArmT - dt);
     }
+    // Noncombat rain carries on after the final Boss dies. It stops only when
+    // leaving the run, pausing, or opening a reading/upgrade overlay.
+    if (STAGE.id === "rain-port" && (state === "play" || state === "victory") &&
+        !tutorial && !job?.reading && !bossQ?.reading) {
+      const before=rainCycle.snapshot().level;
+      const after=rainCycle.tick(wallDt);
+      weatherClock+=wallDt;
+      if(state==="play" && after.level!==before && after.heavy){
+        AUDIO.rainPortHeavyRain?.();
+        say("暴雨・海妖水術增幅 10%",P.x,P.y-100,"#d9f3ff");
+      }
+    }
+    const perfAfterSim = PERF_DEBUG ? performance.now() : 0;
     AUDIO.updateBgm(dt, tutorial ? 'pause' : state, state === "overworld" ? 0 : elapsed, DAWN);
 
     if ((state === "won" || state === "lost") && !ended) {
@@ -7349,6 +7644,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if (screen !== lastScreen) { lastScreen = screen; fadeT = FADE_TIME; }
     fadeT = Math.max(0, fadeT - dt);
 
+    const perfBeforeDraw = PERF_DEBUG ? performance.now() : 0;
     const v = window.VIEWPORT?.get() || {offsetX:0,offsetY:0};
     const pixelScale = (v.scale || 1) * RENDERER.getDpr();
     ctx.setTransform(pixelScale, 0, 0, pixelScale, v.offsetX * pixelScale, v.offsetY * pixelScale);
@@ -7421,6 +7717,24 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
           job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, GOAL_DELIVERIES,
           dashCd, dashMax, bossHunt, hudExtra(now / 1000)
         );
+        if (STAGE.id === "sakura-pass") {
+          ctx.save(); ctx.textAlign = "center";
+          ctx.font = UI.readableFont(14, "700");
+          ctx.fillStyle = "#ffe4d4"; ctx.shadowColor = "#101019"; ctx.shadowBlur = 5;
+          ctx.fillText("工程試玩・新美術待驗收／Boss 特效待審", W / 2, 142, W - 32);
+          ctx.restore();
+        }
+        const deliveryReminderVisible = state === "play" && elapsed >= DAWN
+          && finalBossDefeated && delivered < GOAL_DELIVERIES;
+        if(STAGE.id==="rain-port" && state==="play" && rainCycle.snapshot().heavy){
+          ctx.save();
+          ctx.textAlign="center";ctx.textBaseline="middle";
+          ctx.font=UI.readableFont(17,"900");
+          ctx.fillStyle="#e7f8ff";ctx.shadowColor="#103854";ctx.shadowBlur=7;
+          const rainBannerY = deliveryReminderVisible ? (bossCurseRemaining > 0 ? 188 : 168) : 144;
+          ctx.fillText("暴雨・海妖水術傷害 +10%",W/2,rainBannerY,Math.max(160,W-30));
+          ctx.restore();
+        }
         // 反噬狀態常駐醒目提示：不扣油但禁止所有攻擊，明確顯示剩餘秒數。
         if (bossCurseRemaining > 0) {
           ctx.save();
@@ -7438,7 +7752,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         }
         // Every stage: defeating the final Boss before completing deliveries
         // must leave a visible remaining-order reminder.
-        if (state === "play" && elapsed >= DAWN && finalBossDefeated && delivered < GOAL_DELIVERIES) {
+        if (deliveryReminderVisible) {
           ctx.save();
           const msg = `破曉已至・還差 ${GOAL_DELIVERIES - delivered} 件委託`;
           ctx.font = "bold 18px sans-serif";
@@ -7446,9 +7760,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
           ctx.textBaseline = "middle";
           const tw = ctx.measureText(msg).width + 32;
           ctx.fillStyle = "rgba(20, 10, 14, 0.78)";
-          ctx.fillRect(W / 2 - tw / 2, 96, tw, 32);
+          const reminderY = bossCurseRemaining > 0 ? 112 : 96;
+          ctx.fillRect(W / 2 - tw / 2, reminderY, tw, 32);
           ctx.fillStyle = "#ffd8a0";
-          ctx.fillText(msg, W / 2, 112);
+          ctx.fillText(msg, W / 2, reminderY + 16);
           ctx.restore();
         }
         if (typeof UI.drawCharmHud === "function") {
@@ -7524,6 +7839,32 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.fillStyle = "#32151d";ctx.fillRect(area.left, area.bottom - 34, area.width, 34);
       ctx.fillStyle = "#ffcfb4";ctx.textAlign = "center";ctx.font = UI.readableFont(14, "bold");
       ctx.fillText("本機無法儲存進度，重新整理會遺失未儲存紀錄。", (area.left + area.right) / 2, area.bottom - 11);
+      ctx.restore();
+    }
+    if (PERF_DEBUG && screen === "run") {
+      if (!perfStart) perfStart = now;
+      perfFrames++;
+      perfSimMs += perfAfterSim - perfFrameStart;
+      perfDrawMs += performance.now() - perfBeforeDraw;
+      if (now - perfStart >= 900) {
+        const seconds = (now - perfStart) / 1000;
+        perfText = `FPS ${Math.round(perfFrames / seconds)} | sim ${(perfSimMs / perfFrames).toFixed(1)}ms | draw ${(perfDrawMs / perfFrames).toFixed(1)}ms`;
+        perfStart = now; perfFrames = 0; perfSimMs = 0; perfDrawMs = 0;
+      }
+      // Count is deliberately sampled once at paint time: no extra enemy
+      // searches, no browser console logging and no FPS polling timer.
+      const area = window.VIEWPORT?.hudBounds?.() || viewBounds();
+      ctx.save();
+      ctx.setTransform(pixelScale, 0, 0, pixelScale, v.offsetX * pixelScale, v.offsetY * pixelScale);
+      ctx.fillStyle = "rgba(15,24,35,.89)";
+      ctx.fillRect(area.left + 10, area.top + 106, 324, 48);
+      ctx.fillStyle = "#f1f8ff";
+      ctx.font = "bold 14px monospace";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText(perfText, area.left + 16, area.top + 112);
+      ctx.fillText(`enemy ${enemies.length} | XP gems ${gems.length} | time ${Math.round(elapsed)}s`,
+        area.left + 16, area.top + 133);
       ctx.restore();
     }
 

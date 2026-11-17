@@ -27,6 +27,9 @@
     // Only the shared delivery-media registry can authorize a production art path.
     const approved = root.DELIVERY_MEDIA?.pathFor?.("image", entry?.stage, entry?.index);
     if (approved) return approved;
+    // If Stage3 assets are not yet approved/trial-enabled, do not silently
+    // reuse the unrelated legacy cherry-blossom icon for generic flowers.
+    if (entry?.stage === "sakura-pass") return null;
     if (devEnabled()) {
       if (entry) {
         const latest = (entry.stage === "night-town" && REPAINTED_NIGHT.has(word.jp)) ||

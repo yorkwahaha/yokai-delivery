@@ -1,0 +1,1056 @@
+{
+  "stage": "sakura-pass",
+  "updated": "2026-11-16",
+  "scope": "User requested these five exact images for local Stage3 scene correction; no deployment.",
+  "assets": [
+    {
+      "role": "dirt",
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__ground-dirt.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__ground-dirt.png",
+      "original_attachment": "E:\\Downloads\\image-gen-1(20261024-195404).png",
+      "source_sha256": "f4210e152fabd6d11f2a3d438ffb79ae639b8ef5230ded32651e8340481a840e",
+      "sha256": "717e505719336ed666bd13f7e79a12c9de7fd0b4be32801bf5431fea10dc9e79",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "visual_status": "USER_SELECTED_PREVIOUSLY_APPROVED_20261116",
+      "runtime_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "processing": "lossless WebP encoding only; no resize, crop or alpha replacement"
+    },
+    {
+      "role": "stoneStraight",
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-straight.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__stone-path-straight.png",
+      "original_attachment": "E:\\Downloads\\image-gen-1(20261025-033148).png",
+      "source_sha256": "373a524b7a5684d2fcc8b86e950a905e73f4e1dd82a8a3d273157866a87cfca4",
+      "sha256": "4ff3b37128e7086377c1baf6196431f12b9ae5573aa49351f46ef86d0e7c1fee",
+      "size": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "visual_status": "USER_SELECTED_PREVIOUSLY_APPROVED_20261116",
+      "runtime_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "processing": "lossless WebP encoding only; no resize, crop or alpha replacement"
+    },
+    {
+      "role": "stoneLeft",
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-left.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__stone-path-left.png",
+      "original_attachment": "E:\\Downloads\\image-gen-2(20261025-033151).png",
+      "source_sha256": "fd4454a44e993660da92071eaeedfa3c6afa4a7912f480fb4cece45895b5950e",
+      "sha256": "236c5dcad766f3990f6147044d50e97abf9e5bef70dd66ab225ca50f55601ce7",
+      "size": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "visual_status": "USER_SELECTED_PREVIOUSLY_APPROVED_20261116",
+      "runtime_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "processing": "lossless WebP encoding only; no resize, crop or alpha replacement"
+    },
+    {
+      "role": "stoneRight",
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-right.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__stone-path-right.png",
+      "original_attachment": "E:\\Downloads\\image-gen-4(20261025-033158).png",
+      "source_sha256": "746d020cea5fc7e19538c88305fa5a42a1d2209ee9f8b0c79b87681ff85ecba7",
+      "sha256": "01e7c39283feded821aef8de4ca0e205979cd318ed2a0b70fd9c813396d9a8b4",
+      "size": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "visual_status": "USER_SELECTED_PREVIOUSLY_APPROVED_20261116",
+      "runtime_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "processing": "lossless WebP encoding only; no resize, crop or alpha replacement"
+    },
+    {
+      "role": "stoneBroken",
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-broken.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__stone-path-broken.png",
+      "original_attachment": "E:\\Downloads\\image-gen-3(20261025-033154).png",
+      "source_sha256": "52a3b4a8678aede7bf72f4b70ee2324e748c53bf244ad5edbdbd0bf93e7100d4",
+      "sha256": "780e77c7335f71280ea5e4254c751cb8d6083351a42abf39ac81c29c04903b68",
+      "size": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "visual_status": "USER_SELECTED_PREVIOUSLY_APPROVED_20261116",
+      "runtime_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "processing": "lossless WebP encoding only; no resize, crop or alpha replacement"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__shrine-pavilion.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__shrine-redraw.png",
+      "sha256": "a6eb1c4f21a9c1be595b46867c1e1167e5d5965bbdc525df72a99c8c993b554b",
+      "source_sha256": "7277a7bbf0e49416a06f28580f4eb334cba3f7973caabc2f2029a9bc5048b79b",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "shrine",
+      "role": "pavilion",
+      "category": "scene",
+      "size": [
+        768,
+        767
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 719
+      },
+      "source_crop": [
+        45,
+        46,
+        1211,
+        1211
+      ],
+      "label": "神社重繪"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__mountain-house.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__mountain-house.png",
+      "sha256": "356cec1f09cf8716b563972d6716dfec6afbfbeb36f50986df49a49a7837abab",
+      "source_sha256": "e7007e86775324116aaaa3a28fe63f6cefa2b54c696fe04dc839211da65757e4",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "mountain-house",
+      "role": "mountainHouse",
+      "category": "scene",
+      "size": [
+        661,
+        768
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 613,
+        "sh": 720
+      },
+      "source_crop": [
+        121,
+        34,
+        1133,
+        1223
+      ],
+      "label": "山宿"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__tea-house.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__tea-house.png",
+      "sha256": "00b531bb01fa7095b96b7d81219cb39d94e7de6d6191fa38179dba2d24ce3a46",
+      "source_sha256": "5c42d70919d941e404dbbf9258d9d48e5319fe6d364f4541be791c40c78f890f",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "tea-house",
+      "role": "teaHouse",
+      "category": "scene",
+      "size": [
+        768,
+        729
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 681
+      },
+      "source_crop": [
+        53,
+        110,
+        1197,
+        1192
+      ],
+      "label": "山道茶屋"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__worship-hall.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__worship-hall.png",
+      "sha256": "bebd033b5926928936c74fc316668058e6b89902071e6cfc0a2265324da05e5a",
+      "source_sha256": "432428b49e5dfca7f2a6193146d4f945cea6cdb3ac6d5568abcb961c760fd79a",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "worship-hall",
+      "role": "worshipHall",
+      "category": "scene",
+      "size": [
+        768,
+        720
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 672
+      },
+      "source_crop": [
+        38,
+        97,
+        1219,
+        1200
+      ],
+      "label": "拜殿"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__storehouse.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__storehouse.png",
+      "sha256": "97b131f4a47bb4172c9f55dd7f4ec888ae42c75a98dde9539d598c6c83bb6667",
+      "source_sha256": "5d407c9565cc212600130e44fdae42faf84a1af16f4f10e691d5bc267c14296b",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "storehouse",
+      "role": "storehouse",
+      "category": "scene",
+      "size": [
+        768,
+        741
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 693
+      },
+      "source_crop": [
+        59,
+        113,
+        1195,
+        1206
+      ],
+      "label": "山倉"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__stone-lantern.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__stone-lantern.png",
+      "sha256": "5110ca29050cb65a1f9050140e1cc64a0d347cb6bd28f22aaa5cedbe379c0f4b",
+      "source_sha256": "553d044219a746a15c5b1a2da4b74163f9dadc34f8fb4cf1f918d72ed5d42a18",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "stone-lantern",
+      "role": "stoneLantern",
+      "category": "props",
+      "size": [
+        345,
+        512
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 297,
+        "sh": 464
+      },
+      "source_crop": [
+        267,
+        53,
+        987,
+        1178
+      ],
+      "label": "古石燈"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__torii.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__torii.png",
+      "sha256": "092193f07831b0ad0ecae6953d573beb041f0c18e7836496cb10714c96619134",
+      "source_sha256": "16ee63b918d0882f916f98a2b623e08a09706cf72a091098e5485505b56801b9",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "torii",
+      "role": "torii",
+      "category": "props",
+      "size": [
+        487,
+        512
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 439,
+        "sh": 464
+      },
+      "source_crop": [
+        81,
+        54,
+        1170,
+        1205
+      ],
+      "label": "山道鳥居"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__wood-fence.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__wood-fence.png",
+      "sha256": "50c15b7739f2626c615be43f4bfec34a8f4bd3a76a94135eeeebfc6150a45159",
+      "source_sha256": "32446cf054c15d66d0609c9fe84b0f36df53ca884d4bb8691f9df20e1dd750cf",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "wood-fence",
+      "role": "fence",
+      "category": "props",
+      "size": [
+        512,
+        254
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 464,
+        "sh": 206
+      },
+      "source_crop": [
+        55,
+        96,
+        1697,
+        824
+      ],
+      "label": "木柵"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__stone-marker.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__stone-marker.png",
+      "sha256": "3b1bf97ea158e30b45dafd2dc880ff3d9473918cc2bc772fc1afac419d1c236a",
+      "source_sha256": "fa50397dff271116bca00ab43673106bf511cfdd0a90c0b244e5b6b4212257b8",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "stone-marker",
+      "role": "marker",
+      "category": "props",
+      "size": [
+        358,
+        512
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 310,
+        "sh": 464
+      },
+      "source_crop": [
+        234,
+        74,
+        988,
+        1204
+      ],
+      "label": "山道石標"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__ancient-sakura.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__ancient-sakura.png",
+      "sha256": "05666d9a4ac1a0f2b44750be2825c1088838f45b6a1e65403d5f82c122d3f760",
+      "source_sha256": "d5375c6d38d9ef43c0a80c91b08f9f29a4098013fabdfba149228aa743b48a8a",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "ancient-sakura",
+      "role": "ancientSakura",
+      "category": "props",
+      "size": [
+        768,
+        732
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 684
+      },
+      "source_crop": [
+        53,
+        91,
+        1205,
+        1186
+      ],
+      "label": "古櫻樹"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__moss-rocks.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__moss-rocks.png",
+      "sha256": "e9d35f8aec4a45c873eadfdc5ad6b8f809f5ecd7ae5accb0a9f773bbe97dfc9c",
+      "source_sha256": "c15a24adfb08248227600d9e8e046a707f4f671f800edd9106c21705cfdb0376",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "moss-rocks",
+      "role": "mossRocks",
+      "category": "props",
+      "size": [
+        512,
+        417
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 464,
+        "sh": 369
+      },
+      "source_crop": [
+        119,
+        268,
+        1128,
+        1070
+      ],
+      "label": "苔石"
+    },
+    {
+      "path": "assets/img/enemies/sakura-kodama/sakura-kodama__sprite__idle.webp",
+      "source": "art/stage3-sakura-pass/characters/sakura-kodama__poses.png",
+      "sha256": "53c82c8943895157101665bcbaf6ce99993cdc8cac9c6054bc51696877b23663",
+      "source_sha256": "b2d02b95cf0d534266c119bf980db5583c51c13f95483349b9b5430af245db43",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "sakura-kodama",
+      "role": "idle",
+      "category": "enemy",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        156,
+        204,
+        214,
+        284,
+        256
+      ],
+      "base_height": 284,
+      "source_crop": [
+        141,
+        70,
+        708,
+        822
+      ],
+      "source_split": 766,
+      "label": "落櫻小鬼"
+    },
+    {
+      "path": "assets/img/enemies/sakura-kodama/sakura-kodama__sprite__attack.webp",
+      "source": "art/stage3-sakura-pass/characters/sakura-kodama__poses.png",
+      "sha256": "2c910c6de99f6641efc976eb74ac1e240b15f070b69296fdf4eba8d711913a09",
+      "source_sha256": "b2d02b95cf0d534266c119bf980db5583c51c13f95483349b9b5430af245db43",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "sakura-kodama",
+      "role": "attack",
+      "category": "enemy",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        150,
+        226,
+        330,
+        262,
+        256
+      ],
+      "base_height": 284,
+      "source_crop": [
+        58,
+        123,
+        932,
+        818
+      ],
+      "source_split": 766,
+      "label": "落櫻小鬼"
+    },
+    {
+      "path": "assets/img/enemies/hanakage-fox/hanakage-fox__sprite__idle.webp",
+      "source": "art/stage3-sakura-pass/characters/hanakage-fox__poses.png",
+      "sha256": "ca536368b8d017b138267dab9e2dbfa96927c8734e75253a36550bc7aefe76cd",
+      "source_sha256": "35fb45b87ac21e0bf02b84ee6890308e6340b89844fb269b1a52b03fc82c97ab",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "hanakage-fox",
+      "role": "idle",
+      "category": "enemy",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        69,
+        178,
+        321,
+        310,
+        256
+      ],
+      "base_height": 310,
+      "source_crop": [
+        82,
+        114,
+        757,
+        767
+      ],
+      "source_split": 849,
+      "label": "花影狐"
+    },
+    {
+      "path": "assets/img/enemies/hanakage-fox/hanakage-fox__sprite__attack.webp",
+      "source": "art/stage3-sakura-pass/characters/hanakage-fox__poses.png",
+      "sha256": "7358eb00d924c29402bafeaad4a08eaac00deaf825f9216cd9f0aeb7d07e2e33",
+      "source_sha256": "35fb45b87ac21e0bf02b84ee6890308e6340b89844fb269b1a52b03fc82c97ab",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "hanakage-fox",
+      "role": "attack",
+      "category": "enemy",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        32,
+        184,
+        333,
+        304,
+        256
+      ],
+      "base_height": 310,
+      "source_crop": [
+        92,
+        115,
+        794,
+        756
+      ],
+      "source_split": 849,
+      "label": "花影狐"
+    },
+    {
+      "path": "assets/img/enemies/stone-lantern-kid/stone-lantern-kid__sprite__idle.webp",
+      "source": "art/stage3-sakura-pass/characters/stone-lantern-kid__poses.png",
+      "sha256": "91e76f234316019c218dbf38dda46d660533b21d2b2f872c9e08adf2318f07f9",
+      "source_sha256": "b421dc8f20e691c8ef6e9ab62640ccf8069b183479b32ad5ad07337ebcef0941",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "stone-lantern-kid",
+      "role": "idle",
+      "category": "enemy",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        103,
+        24,
+        292,
+        464,
+        256
+      ],
+      "base_height": 464,
+      "source_crop": [
+        193,
+        26,
+        709,
+        846
+      ],
+      "source_split": 876,
+      "label": "石燈童"
+    },
+    {
+      "path": "assets/img/enemies/stone-lantern-kid/stone-lantern-kid__sprite__attack.webp",
+      "source": "art/stage3-sakura-pass/characters/stone-lantern-kid__poses.png",
+      "sha256": "96186fb89408413149ff913bc716c36956d5f6423f44ecbb7dd628cc3f66d97c",
+      "source_sha256": "b421dc8f20e691c8ef6e9ab62640ccf8069b183479b32ad5ad07337ebcef0941",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "stone-lantern-kid",
+      "role": "attack",
+      "category": "enemy",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        116,
+        40,
+        329,
+        448,
+        256
+      ],
+      "base_height": 464,
+      "source_crop": [
+        168,
+        50,
+        749,
+        842
+      ],
+      "source_split": 876,
+      "label": "石燈童"
+    },
+    {
+      "path": "assets/img/enemies/moss-tanuki/moss-tanuki__sprite__idle.webp",
+      "source": "art/stage3-sakura-pass/characters/moss-tanuki__poses.png",
+      "sha256": "1aa4f0529b0b42fa64896de960f58019b7f52135ac6b8e2aae14b72a67341baf",
+      "source_sha256": "5813e965bbf78da2c655c8dbed5f11fb4658a7cfd3a98a117fe37828adac6991",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "moss-tanuki",
+      "role": "idle",
+      "category": "enemy",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        62,
+        49,
+        363,
+        439,
+        256
+      ],
+      "base_height": 439,
+      "source_crop": [
+        153,
+        97,
+        754,
+        823
+      ],
+      "source_split": 853,
+      "label": "苔甲狸"
+    },
+    {
+      "path": "assets/img/enemies/moss-tanuki/moss-tanuki__sprite__attack.webp",
+      "source": "art/stage3-sakura-pass/characters/moss-tanuki__poses.png",
+      "sha256": "c54b3d761d1369fa869a26a6a0f95869ceec2ba08dbd90368b4770048ddd0002",
+      "source_sha256": "5813e965bbf78da2c655c8dbed5f11fb4658a7cfd3a98a117fe37828adac6991",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "moss-tanuki",
+      "role": "attack",
+      "category": "enemy",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        32,
+        61,
+        437,
+        427,
+        256
+      ],
+      "base_height": 439,
+      "source_crop": [
+        99,
+        115,
+        821,
+        821
+      ],
+      "source_split": 853,
+      "label": "苔甲狸"
+    },
+    {
+      "path": "assets/img/enemies/sakura-tengu/sakura-tengu__sprite__idle.webp",
+      "source": "art/stage3-sakura-pass/characters/sakura-tengu__poses.png",
+      "sha256": "3bd68b6484dbe96abe64cb3dcbde2b12d84f7bab09766eb40995624ca6e6aeb5",
+      "source_sha256": "ca96ff14a85da9d6951368986fb7137719ec17a8578450a67b6b345fd883bc4d",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "sakura-tengu",
+      "role": "idle",
+      "category": "boss",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        105,
+        149,
+        317,
+        339,
+        256
+      ],
+      "base_height": 339,
+      "source_crop": [
+        119,
+        47,
+        832,
+        808
+      ],
+      "source_split": 863,
+      "label": "櫻嶺天狗"
+    },
+    {
+      "path": "assets/img/enemies/sakura-tengu/sakura-tengu__sprite__attack.webp",
+      "source": "art/stage3-sakura-pass/characters/sakura-tengu__poses.png",
+      "sha256": "e2c451f2b3933c0ec5312edfe823ca948fc1c23305d7c3af45902772861a5e79",
+      "source_sha256": "ca96ff14a85da9d6951368986fb7137719ec17a8578450a67b6b345fd883bc4d",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "sakura-tengu",
+      "role": "attack",
+      "category": "boss",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        98,
+        170,
+        382,
+        318,
+        256
+      ],
+      "base_height": 339,
+      "source_crop": [
+        32,
+        91,
+        890,
+        806
+      ],
+      "source_split": 863,
+      "label": "櫻嶺天狗"
+    },
+    {
+      "path": "assets/img/enemies/paper-umbrella-spirit/paper-umbrella-spirit__sprite__idle.webp",
+      "source": "art/stage3-sakura-pass/characters/paper-umbrella-spirit__poses.png",
+      "sha256": "57a31bc105de10264780c7938a636dd527a98e2b3fb6272f8c7eba81c0fc482c",
+      "source_sha256": "94aab8b11c1d243ee3def3e19e37d028ca93a64b7aecab4cb26df0687b513433",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "paper-umbrella-spirit",
+      "role": "idle",
+      "category": "enemy",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        127,
+        168,
+        271,
+        320,
+        256
+      ],
+      "base_height": 320,
+      "source_crop": [
+        103,
+        46,
+        758,
+        819
+      ],
+      "source_split": 848,
+      "label": "紙傘靈"
+    },
+    {
+      "path": "assets/img/enemies/paper-umbrella-spirit/paper-umbrella-spirit__sprite__attack.webp",
+      "source": "art/stage3-sakura-pass/characters/paper-umbrella-spirit__poses.png",
+      "sha256": "27fe47a77ca8a973f9d691ff83c682e1bc41f5d90a0b8ed003923700560d9eae",
+      "source_sha256": "94aab8b11c1d243ee3def3e19e37d028ca93a64b7aecab4cb26df0687b513433",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "paper-umbrella-spirit",
+      "role": "attack",
+      "category": "enemy",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        147,
+        193,
+        333,
+        295,
+        256
+      ],
+      "base_height": 320,
+      "source_crop": [
+        91,
+        101,
+        897,
+        813
+      ],
+      "source_split": 848,
+      "label": "紙傘靈"
+    },
+    {
+      "path": "assets/img/enemies/night-sakura-princess/night-sakura-princess__sprite__idle.webp",
+      "source": "art/stage3-sakura-pass/characters/night-sakura-princess__poses.png",
+      "sha256": "b92316d4056f9ed4ac2a26bca7ded0877c7f93acefbeba3d1072294b6fac8fce",
+      "source_sha256": "a63e9e6e637e19572413b5e3b97453b0431b813548c1eb2844763927b7981706",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "night-sakura-princess",
+      "role": "idle",
+      "category": "boss",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        114,
+        111,
+        324,
+        377,
+        256
+      ],
+      "base_height": 377,
+      "source_crop": [
+        73,
+        43,
+        760,
+        843
+      ],
+      "source_split": 816,
+      "label": "夜櫻鬼姬"
+    },
+    {
+      "path": "assets/img/enemies/night-sakura-princess/night-sakura-princess__sprite__attack.webp",
+      "source": "art/stage3-sakura-pass/characters/night-sakura-princess__poses.png",
+      "sha256": "2c3daccdecbc3c2391820ff1813293730813d9f1934af2ba3fd20c7eacc78133",
+      "source_sha256": "a63e9e6e637e19572413b5e3b97453b0431b813548c1eb2844763927b7981706",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "night-sakura-princess",
+      "role": "attack",
+      "category": "boss",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        72,
+        155,
+        408,
+        333,
+        256
+      ],
+      "base_height": 377,
+      "source_crop": [
+        56,
+        117,
+        923,
+        825
+      ],
+      "source_split": 816,
+      "label": "夜櫻鬼姬"
+    },
+    {
+      "path": "assets/img/enemies/ancient-sakura-guardian/ancient-sakura-guardian__sprite__idle.webp",
+      "source": "art/stage3-sakura-pass/characters/ancient-sakura-guardian__poses.png",
+      "sha256": "fe17f0d616cdfdc135eb862b94e2f1940646d68230fb62fbea5df36bc186ef39",
+      "source_sha256": "1cc12057711dbb7e8af15052b997f70a79ce5fd81201e1544f088964bdfb45fd",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "ancient-sakura-guardian",
+      "role": "idle",
+      "category": "boss",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        97,
+        161,
+        326,
+        327,
+        256
+      ],
+      "base_height": 327,
+      "source_crop": [
+        54,
+        70,
+        797,
+        814
+      ],
+      "source_split": 848,
+      "label": "千年櫻守"
+    },
+    {
+      "path": "assets/img/enemies/ancient-sakura-guardian/ancient-sakura-guardian__sprite__attack.webp",
+      "source": "art/stage3-sakura-pass/characters/ancient-sakura-guardian__poses.png",
+      "sha256": "6d17a6a8a68a42766ddd584061b24225b9e968424b17fbef695f3280f24d7ffd",
+      "source_sha256": "1cc12057711dbb7e8af15052b997f70a79ce5fd81201e1544f088964bdfb45fd",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "ancient-sakura-guardian",
+      "role": "attack",
+      "category": "boss",
+      "size": [
+        512,
+        512
+      ],
+      "frame": [
+        111,
+        179,
+        369,
+        309,
+        256
+      ],
+      "base_height": 327,
+      "source_crop": [
+        52,
+        103,
+        893,
+        806
+      ],
+      "source_split": 848,
+      "label": "千年櫻守"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-left.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__forest-left.png",
+      "sha256": "9e7cb96693909ac0eae6d4391e48f25f7464debcba2afd59dc5b672564ea6ffa",
+      "source_sha256": "b7c1a0c5c1cafec220cf121d4ff4a92d2a8498796dde0aa014d1c1f7241b9103",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "forest-left",
+      "role": "forestLeft",
+      "category": "forest",
+      "size": [
+        768,
+        717
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 669
+      },
+      "source_crop": [
+        11,
+        50,
+        1246,
+        1197
+      ],
+      "label": "左側櫻花樹群"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-right.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__forest-right.png",
+      "sha256": "2261560ca500a4dd56314b0f5f5b5d718aff9bb187c1d4d1db59e34b19c7f2fb",
+      "source_sha256": "e51e09ef08d6eb919df481e47094e55a10e606e35401d66e892cd003f9ad437b",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "forest-right",
+      "role": "forestRight",
+      "category": "forest",
+      "size": [
+        768,
+        683
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 635
+      },
+      "source_crop": [
+        8,
+        83,
+        1247,
+        1175
+      ],
+      "label": "右側櫻花樹群"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-spreading.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__forest-spreading.png",
+      "sha256": "e9c003ffe5c2ad10e90c230b7d496ae9a2238f96b13b5bc1f657a529fb8a0259",
+      "source_sha256": "45cda1388ea0505a7f5e4ac1f44e6c4ef781d1595188d6cb2c3e5463ae07e250",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "forest-spreading",
+      "role": "forestSpreading",
+      "category": "forest",
+      "size": [
+        768,
+        445
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 397
+      },
+      "source_crop": [
+        11,
+        269,
+        1239,
+        946
+      ],
+      "label": "低矮橫展櫻樹群"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-slender.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__forest-slender.png",
+      "sha256": "697f7fc7bff6e4c12ce04aca3436a0f545aee51c246131453c0658195ca5ae9a",
+      "source_sha256": "3df0ddb69c5946d368cab209530337e380cee684c3f15772b7bf4d3f252e9429",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "forest-slender",
+      "role": "forestSlender",
+      "category": "forest",
+      "size": [
+        653,
+        768
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 605,
+        "sh": 720
+      },
+      "source_crop": [
+        115,
+        43,
+        1141,
+        1265
+      ],
+      "label": "高挑疏枝櫻樹群"
+    },
+    {
+      "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__wind-blade.webp",
+      "source": "art/stage3-sakura-pass/characters/sakura-tengu__wind-blade.png",
+      "sha256": "19ef62b597dcf63fec290677ae43494f68d3b34393b51b3390bd3a52a17841b2",
+      "source_sha256": "00620d7ff95eb1984d607cba585813d5b602b67307c0306fe4bd0e0aa26e4db7",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "wind-blade",
+      "role": "windBlade",
+      "category": "boss_vfx",
+      "size": [
+        768,
+        347
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 299
+      },
+      "source_crop": [
+        128,
+        145,
+        1694,
+        796
+      ],
+      "label": "天狗疾風羽刃"
+    },
+    {
+      "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__root-bloom.webp",
+      "source": "art/stage3-sakura-pass/characters/sakura-tengu__root-bloom.png",
+      "sha256": "8a9cf18d4d552c54ce642eb136fe4cec6cfff8d6519bb6819b1bfe664e85eba7",
+      "source_sha256": "c3dbf3c56ca02d1d0986d5c887da9dc883360f0b02db75a7f5f1bc408127958d",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "root-bloom",
+      "role": "rootBloom",
+      "category": "boss_vfx",
+      "size": [
+        768,
+        693
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 645
+      },
+      "source_crop": [
+        37,
+        106,
+        1212,
+        1158
+      ],
+      "label": "妖櫻根脈爆發"
+    },
+    {
+      "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__earth-break.webp",
+      "source": "art/stage3-sakura-pass/characters/sakura-tengu__earth-break.png",
+      "sha256": "72f6e1f2e9390bb03d9899296cc7dbd9c6a9095d0fc731d296a047988c4432a3",
+      "source_sha256": "231fefaecc1e63fd66aeab8eafd71e05ca51c4d68ed41726bea59cd2c9c28a33",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "earth-break",
+      "role": "earthBreak",
+      "category": "boss_vfx",
+      "size": [
+        768,
+        522
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 474
+      },
+      "source_crop": [
+        31,
+        301,
+        1220,
+        1083
+      ],
+      "label": "櫻根破土碎石與塵霧"
+    }
+  ],
+  "art_batch": "docs/STAGE3_ART_BATCH_20261116.json",
+  "forest_batch": "docs/STAGE3_FOREST_20261116.json",
+  "boss_vfx_batch": "docs/STAGE3_BOSS_VFX_20261116.json"
+}

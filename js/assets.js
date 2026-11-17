@@ -1454,9 +1454,9 @@ const STAGE_ASSET_SLOTS = Object.freeze({
     }
   }),
   "sakura-pass": Object.freeze({
-    map: "map_sakura_pass_v1",
-    ground: "ground_dirt",
-    scene: ["house_shrine", "prop_sakura"],
+    map: null, // no Stage1 map presented as Stage3
+    ground: null,
+    scene: [],
     trans: [],
     enemy: {
       ghost: { idle: "ghost", attack: "ghost_motion_v1" },
@@ -1668,12 +1668,13 @@ const STAGE_ART_RESOLVER = Object.freeze({
     if (sId === "sakura-pass") {
       return Object.freeze({
         stageId: "sakura-pass",
-        status: "BLOCKED",
+        status: "PLAYTEST",
         requiresDevFlags: false,
         source: null,
-        artStatus: "STYLE_REFERENCE_ONLY",
-        reason: "Assets purged 2026-10-24; new candidate awaiting approval; runtime unestablished",
-        fallbackStage: "night-town",
+        artStatus: "ART_CANDIDATE_USER_REVIEW_PENDING",
+        engineStatus: "PUBLIC_PLAYTEST",
+        reason: "Stage3 publicly testable; scenery, characters and Boss VFX pending player art review",
+        fallbackStage: null,
         autoPass: false
       });
     }
@@ -1784,16 +1785,20 @@ const STAGE_ART_RESOLVER = Object.freeze({
       });
     }
     if (sId === "sakura-pass") {
+      const role = ({ground: "dirt", ground_dirt: "dirt", ground_mountain_dirt: "dirt",
+        shrine_pavilion: "pavilion", landmark_corrupted_sakura: "ancientSakura"})[key] || key;
+      const candidate = window.isSakuraCandidateEnabled?.()
+        ? (SAKURA_GROUND_ASSETS[role] || SAKURA_SCENE_ASSETS[role] || null) : null;
       return Object.freeze({
         stageId: "sakura-pass",
         key,
-        category: category || "placeholder",
-        path: `assets/img/scenery/${key === "ground" ? "ground_dirt" : key}.webp`,
-        status: "BLOCKED",
-        artStatus: "STYLE_REFERENCE_ONLY",
-        reason: "Assets purged 2026-10-24; new candidate awaiting approval; runtime unestablished",
-        isFallback: true,
-        fallbackStage: "night-town"
+        category: category || "candidate",
+        path: candidate,
+        status: candidate ? "ART_CANDIDATE_USER_REVIEW_PENDING" : "BLOCKED",
+        artStatus: "ART_CANDIDATE_USER_REVIEW_PENDING",
+        reason: "Local review only; absent roles stay unrequested",
+        isFallback: false,
+        fallbackStage: null
       });
     }
     return Object.freeze({
@@ -2517,7 +2522,7 @@ function loadBossHazardArt() {
       bossHazardArtRequested.delete(kind);
       bossHazardRetryAt[kind] = Date.now() + 4000;
     };
-    img.src = `${def.source}?v=20261029-harbor-water3`;
+    img.src = `${def.source}?v=20261115-harbor-fan-r2`;
   }
 }
 window.refreshBossHazardArt = loadBossHazardArt;
@@ -2705,36 +2710,25 @@ if (typeof window !== "undefined") {
 window.SAKURA_ART = {};
 window.SAKURA_ART_STATUS = {};
 const SAKURA_GROUND_ASSETS = Object.freeze({
-  dirt: "assets/img/sakura-pass/s3_dirt.webp",
-  stoneStraight: "assets/img/sakura-pass/s3_stone_straight.webp",
-  stoneLeft: "assets/img/sakura-pass/s3_stone_left.webp",
-  stoneRight: "assets/img/sakura-pass/s3_stone_right.webp",
-  stoneBroken: "assets/img/sakura-pass/s3_stone_broken.webp",
-  stoneSparse: "assets/img/sakura-pass/s3_stone_sparse.webp",
-  stoneMixed: "assets/img/sakura-pass/s3_stone_mixed.webp"
+  dirt: "assets/img/stages/sakura-pass/tiles/sakura-pass__ground-dirt.webp",
+  stoneStraight: "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-straight.webp",
+  stoneLeft: "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-left.webp",
+  stoneRight: "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-right.webp",
+  stoneBroken: "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-broken.webp",
+  stoneSparse: null, stoneMixed: null
 });
-// Never attempt unapproved/absent candidates on a normal game entry.
+// Stage3 art may be served publicly after the 2026-11-17 release authorization.
 window.isSakuraCandidateEnabled = () => {
-  if (!window.DEV_MODE?.isDevMode?.(window.location)) return false;
-  return new URLSearchParams(window.location?.search || "").get("s3art") === "1";
+  const params = new URLSearchParams(window.location?.search || "");
+  return params.get("s3art") !== "0";
 };
 const sakuraRequested = new Set();
 window.refreshSakuraArt = () => {
   if (typeof Image !== "function") return;
-  if (!window.isSakuraCandidateEnabled()) {
-    if (!sakuraRequested.has("dirt")) {
-      sakuraRequested.add("dirt");
-      const fallback = new Image();
-      fallback.onload = () => {
-        window.SAKURA_ART.dirt = fallback;
-        window.SAKURA_ART_STATUS.dirt = "fallback_stage1_dirt";
-      };
-      fallback.src = "assets/img/scenery/ground_dirt.webp";
-    }
-    return;
-  }
+  if (!window.isSakuraCandidateEnabled()) return;
   for (const role of Object.keys(SAKURA_GROUND_ASSETS)) {
     const url = SAKURA_GROUND_ASSETS[role];
+    if (!url) { window.SAKURA_ART_STATUS[role] = "ASSET_PENDING"; continue; }
     if (sakuraRequested.has(role)) continue;
     sakuraRequested.add(role);
     window.SAKURA_ART_STATUS[role] = "loading";
@@ -2743,53 +2737,48 @@ window.refreshSakuraArt = () => {
     img.decoding = "async";
     img.onload = () => {
       window.SAKURA_ART[role] = img;
-      window.SAKURA_ART_STATUS[role] = "ready";
+      window.SAKURA_ART_STATUS[role] = "ART_CANDIDATE_USER_REVIEW_PENDING";
     };
     img.onerror = () => {
       window.SAKURA_ART_STATUS[role] = "candidate_not_imported";
-      if (role !== "dirt") return; // no fake stone ground from another stage
-      const fallback = new Image();
-      fallback.onload = () => {
-        window.SAKURA_ART.dirt = fallback;
-        window.SAKURA_ART_STATUS.dirt = "fallback_stage1_dirt";
-      };
-      fallback.src = "assets/img/scenery/ground_dirt.webp";
     };
-    img.src = `${url}?v=20261027-s3-decal1`;
+    img.src = `${url}?v=20261116-s3-art-batch-r1`;
   }
 };
-// Candidate scenery names are shared by all Stage3 consumers, but missing candidates
-// keep existing approved placeholder scenery (no unreviewed image is published).
-const SAKURA_SCENE_ASSETS = Object.freeze({
-  pavilion: "assets/img/sakura-pass/s3_shrine_hall.webp",
-  teaHouse: "assets/img/sakura-pass/s3_tea_house.webp",
-  mountainHouse: "assets/img/sakura-pass/s3_mountain_house.webp",
-  storehouse: "assets/img/sakura-pass/s3_storage_hut.webp",
-  worshipHall: "assets/img/sakura-pass/s3_worship_hall.webp",
-  stoneLantern: "assets/img/sakura-pass/s3_stone_lantern.webp",
-  torii: "assets/img/sakura-pass/s3_torii_large.webp",
-  fence: "assets/img/sakura-pass/s3_wood_fence.webp",
-  marker: "assets/img/sakura-pass/s3_stone_marker.webp",
-  mossRocks: "assets/img/sakura-pass/s3_moss_rocks.webp",
-  ancientSakura: "assets/img/scenery/prop_sakura.webp"
-});
+// Candidate scenery roles are shared by all Stage3 consumers. Missing roles
+// stay empty; the renderer labels its temporary pavilion reuse inside the trial.
+const SAKURA_SCENE_ASSETS = Object.freeze(Object.fromEntries(
+  Object.entries({ ...window.SAKURA_ART_DATA?.scene, ...window.SAKURA_ART_DATA?.forest, ...window.SAKURA_ART_DATA?.bossVfx }).map(([role, data]) => [role, data.path])
+));
 const sakuraSceneRequested = new Set();
-window.refreshSakuraScene = () => {
-  if (typeof Image !== "function") return;
-  if (!window.isSakuraCandidateEnabled()) {
-    if (!sakuraSceneRequested.has("pavilion")) {
-      sakuraSceneRequested.add("pavilion");
-      const fallback = new Image();
-      fallback.onload = () => {
-        window.SAKURA_ART.pavilion = fallback;
-        window.SAKURA_ART_STATUS.pavilion = "fallback_stage1_pavilion";
+const sakuraCharacterRequested = new Set();
+window.refreshSakuraCharacters = () => {
+  if (typeof Image !== "function" || !window.isSakuraCandidateEnabled()) return;
+  for (const poses of Object.values(window.SAKURA_ART_DATA?.characters || {})) {
+    for (const data of Object.values(poses)) {
+      if (sakuraCharacterRequested.has(data.key)) continue;
+      sakuraCharacterRequested.add(data.key);
+      window.SAKURA_ART_STATUS[data.key] = "loading";
+      const img = new Image();
+      img.decoding = "async";
+      img.onload = () => {
+        img.sakuraFrame = data.frame;
+        img.sakuraBaseHeight = data.baseHeight;
+        ART[data.key] = img;
+        window.SAKURA_ART_STATUS[data.key] = "ART_CANDIDATE_USER_REVIEW_PENDING";
       };
-      fallback.src = "assets/img/scenery/house_shrine.webp";
+      img.onerror = () => { window.SAKURA_ART_STATUS[data.key] = "candidate_not_imported"; };
+      img.src = data.path + "?v=20261116-s3-art-batch-r1";
     }
-    return;
   }
+};
+window.refreshSakuraScene = () => {
+  window.refreshSakuraCharacters();
+  if (typeof Image !== "function") return;
+  if (!window.isSakuraCandidateEnabled()) return;
   for (const role of Object.keys(SAKURA_SCENE_ASSETS)) {
     const url = SAKURA_SCENE_ASSETS[role];
+    if (!url) { window.SAKURA_ART_STATUS[role] = "ASSET_PENDING"; continue; }
     if (sakuraSceneRequested.has(role)) continue;
     sakuraSceneRequested.add(role);
     window.SAKURA_ART_STATUS[role] = "loading";
@@ -2797,20 +2786,14 @@ window.refreshSakuraScene = () => {
     if (img.dataset) img.dataset.url = url;
     img.decoding = "async";
     img.onload = () => {
+      img.sakuraSourceRect = (window.SAKURA_ART_DATA?.scene[role] || window.SAKURA_ART_DATA?.forest?.[role] || window.SAKURA_ART_DATA?.bossVfx?.[role])?.rect;
       window.SAKURA_ART[role] = img;
-      window.SAKURA_ART_STATUS[role] = "ready";
+      window.SAKURA_ART_STATUS[role] = "ART_CANDIDATE_USER_REVIEW_PENDING";
     };
     img.onerror = () => {
       window.SAKURA_ART_STATUS[role] = "candidate_not_imported";
-      if (role !== "pavilion") return;
-      const fallback = new Image();
-      fallback.onload = () => {
-        window.SAKURA_ART.pavilion = fallback;
-        window.SAKURA_ART_STATUS.pavilion = "fallback_stage1_pavilion";
-      };
-      fallback.src = "assets/img/scenery/house_shrine.webp";
     };
-    img.src = `${url}?v=20261027-s3-buildings1`;
+    img.src = `${url}?v=20261116-s3-art-batch-r1`;
   }
 };
 
@@ -2847,6 +2830,9 @@ function loadStageAssets(stageId) {
     if (typeof STAGE_ART_RESOLVER !== "undefined" && STAGE_ART_RESOLVER.setActiveStage) {
       STAGE_ART_RESOLVER.setActiveStage(stageId);
     }
+    // Boss hazard images must start loading on stage entry, not only on the
+    // first dangerous cast (when the old water-ring fallback appears).
+    if (stageId === "rain-port") loadBossHazardArt();
   }
   const slots = STAGE_ASSET_SLOTS[stageId];
   if (!slots) return;

@@ -298,6 +298,53 @@
 
   const isStageUnlocked = stageId => { syncJournal(); return stageId === "night-town" || d.progress.unlocked[stageId] === true; };
   const isStageCompleted = stageId => { syncJournal(); return d.progress.completed[stageId] === true; };
+  function isActiveSkillUnlocked(skillId) {
+    const stageId = ({ink_trail:"night-town",seal_nail:"rain-port"})[skillId];
+    if (!stageId) return false;
+    // Explicit ephemeral Stage3 DEV preview; never alters official clears or
+    // grants a persistent entitlement merely by selecting a stage.
+    if(skillId==="seal_nail" && root.DEV_MODE?.isDevMode?.(root.location) &&
+        root.DEV_MODE?.isSakuraPlaytest?.(root.location) &&
+        /(?:^|[?&])sealTrial=1(?:&|$)/.test(String(root.location?.search||"")))return true;
+    // Preserve both old legacy clear-count records and the modern completed map.
+    // The entire STORE is isolated to its official/DEV key at initialization.
+    return isStageCompleted(stageId) || getStageStats(stageId).clears > 0;
+  }
+  // This is presentation history, NOT a duplicate unlock flag. Entitlement is
+  // derived only from the official stage-completion record above. The key uses
+  // K, so DEV / Fusion Lab test storage cannot modify the official history.
+  const INTRO_KEY = K + ":skill-introductions-v1";
+  const experiencedInMemory = Object.create(null);
+  let nextIntroductionInMemory = null;
+  function experiencedSkills() {
+    let saved = {};
+    try { saved = JSON.parse(storage?.getItem(INTRO_KEY) || "{}"); } catch {}
+    return saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
+  }
+  function hasExperiencedSkill(id) {
+    return experiencedInMemory[id] === true || experiencedSkills()[id] === true;
+  }
+  function markSkillExperienced(id) {
+    if (id !== "ink_trail" && id !== "seal_nail") return false;
+    experiencedInMemory[id] = true;
+    try { storage?.setItem(INTRO_KEY, JSON.stringify({...experiencedSkills(), [id]:true})); } catch {}
+    return true;
+  }
+  function pendingSkillIntroduction() {
+    // Backward-compatible: older clears grant eligibility without replay.
+    // First offer is stage-ordered; declined offers rotate to the end.
+    const pending=["ink_trail","seal_nail"].filter(id=>isActiveSkillUnlocked(id)&&!hasExperiencedSkill(id));
+    const preferred=nextIntroductionInMemory||experiencedSkills().nextIntroduction;
+    return pending.includes(preferred)?preferred:(pending[0]||null);
+  }
+  function rotateSkillIntroduction(id) {
+    const pending=["ink_trail","seal_nail"].filter(k=>isActiveSkillUnlocked(k)&&!hasExperiencedSkill(k));
+    if(!pending.includes(id))return false;
+    const next=pending.find(k=>k!==id)||id;
+    nextIntroductionInMemory=next;
+    try {storage?.setItem(INTRO_KEY,JSON.stringify({...experiencedSkills(),nextIntroduction:next}));} catch {}
+    return true;
+  }
 
   function completeStage(stageId) {
     if (!stageId) return;
@@ -468,6 +515,11 @@
     getStageStats: id => { syncJournal(); return getStageStats(id); },
     isStageUnlocked,
     isStageCompleted,
+    isActiveSkillUnlocked,
+    pendingSkillIntroduction,
+    rotateSkillIntroduction,
+    markSkillExperienced,
+    hasExperiencedSkill,
     completeStage,
     startRun(stageId = "night-town") {
       syncJournal();

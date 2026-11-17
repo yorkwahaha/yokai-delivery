@@ -39,6 +39,11 @@ window.GAME_BUILD_RULES = (() => {
     // 武器選項：未滿 4 槽位可學新武器，已滿 4 槽位僅允許升級持有武器
     const eligibleWeaponKeys = Object.keys(weapons).filter(k => {
       if (k.startsWith("fusion_")) return false; // 融合武器不可由普通升級抽取
+      // Permanent entitlement comes from the official stage-clear STORE record;
+      // a DEV stage selection or Fusion Lab preview is not a clear.
+      if ((k === "ink_trail" || k === "seal_nail") && (levels[k] || 0) === 0 &&
+          !(host.STORE?.isActiveSkillUnlocked?.(k)
+            ?? host.STORE?.isStageCompleted?.(k === "ink_trail" ? "night-town" : "rain-port"))) return false;
       if (host.FUSION && typeof host.FUSION.isSkillConsumed === "function" && host.FUSION.isSkillConsumed(k)) return false;
       if ((levels[k] || 0) >= 5) return false;
       if (levels[k] === 0 && !canLearnNew) return false;

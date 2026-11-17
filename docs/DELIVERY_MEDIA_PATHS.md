@@ -32,7 +32,7 @@ assets/
 |---|---|---|---|
 | 1 夜行町 | `night-town` | ✅ 20 張核准 | ✅ 20 段核准（Fish A） |
 | 2 雨夜港町 | `rain-port` | 20 張已接本機試玩，待審 | 20 段 Fish A 已接本機試玩，待聽 |
-| 3 妖櫻山道 | `sakura-pass` | 待審候選 | 待審 |
+| 3 妖櫻山道 | `sakura-pass` | 20 張已接本機試玩，待審 | 20 段 Fish A 已接本機試玩，待聽 |
 | 4 竹影迷宮 | `bamboo-maze` | 待審候選 | 待審 |
 | 5 百鬼京都 | `hyakki-kyoto` | 待審候選 | 待審 |
 | 6 雪燈山寺 | `snow-temple` | 待審候選 | 待審 |
@@ -43,6 +43,7 @@ assets/
 - 圖：`assets/img/delivery/night-town/01.webp` ～ `20.webp`
 - 音：`assets/audio/delivery/night-town/01.mp3` ～ `20.mp3`
 - 第二關（本機試玩待審）：`assets/img/delivery/rain-port/01.webp` ～ `20.webp`，`assets/audio/delivery/rain-port/01.mp3` ～ `20.mp3`；[審核紀錄](RAIN_PORT_DELIVERY_TRIAL_20261031.md)。
+- 第三關（本機試玩待審）：`assets/img/delivery/sakura-pass/01.webp` ～ `20.webp`，`assets/audio/delivery/sakura-pass/01.mp3` ～ `20.mp3`；[審核紀錄](SAKURA_PASS_DELIVERY_TRIAL_20261116.md)。
 - `js/delivery-media.js` 是前端**唯一**用來核准及產生正式單字素材路徑的路由；`js/delivery-icon-art.js`（圖片）與 `js/delivery-fish-audio.js`／`js/audio.js`（語音）皆使用它。
 - 語音無法載入時維持 `ja-JP` TTS 後備，Chrome 有 Google 日本語聲線時優先。
 - 使用者核准的第一關語音：Fish Audio A 聲線 `97eda32449cf443bbc4b8782853ca554`、`s2.1-pro-free`、常用漢字優先，`はさみ`／`せっけん` 保留假名，無 pitch 標記。聲線及模型**只寫在 manifest，不會寫在正式 URL**。

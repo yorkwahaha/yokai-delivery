@@ -9,6 +9,18 @@ window.GAME_ATTACK_SPECS = (() => {
     const baseRate = getEffectiveRate(buildState);
     const baseDmg = getEffectiveDmg(buildState);
     const reachMult = getEffectiveReachMultiplier(buildState);
+    if (skillId === "ink_trail") {
+      // Only damage and the power charm apply. Cadence/reach/crit are explicitly
+      // excluded: deployment has a hard minimum time and real movement distance.
+      return { skillId, ...window.GAME_VIOLET_SCENT.spec(level, baseDmg,
+          buildState?.mutations || buildMutations || []),
+        isAwakened: level === 5, source: "base", derivationDepth: 0,
+        cadenceEligible: false, reachEligible: false, critEligible: false };
+    }
+    if (skillId === "seal_nail") {
+      return {skillId,...window.GAME_SEAL_NAIL.spec(level,baseDmg),
+        isAwakened:level===5,source:"base",derivationDepth:0};
+    }
     if (skillId === "katana") {
       const baseReach = 145 + (level - 1) * 16;
       const mutations = (buildState && Array.isArray(buildState.mutations)) ? buildState.mutations : buildMutations;
@@ -18,7 +30,7 @@ window.GAME_ATTACK_SPECS = (() => {
       const reach = Math.round(baseReach * reachMult * (hasLongblade && level !== 5 ? 1.23 : 1));
       const maxTravel = Math.round((hasLongblade ? 900 : 720) * reachMult);
       const swingReach = level === 5 ? maxTravel : reach * 0.85;
-      const cooldown = Math.max(0.6, 0.72 - baseRate * 0.13) + (hasCharge ? 0.16 : 0);
+      const cooldown = Math.max(0.6, 0.72 - baseRate * 0.13) + (hasCharge ? 0.08 : 0);
       const slashDmg = (baseDmg + (level - 1) * 0.8) * (hasCharge ? 1.24 : 1);
       const windDmg = (baseDmg + 3.2) * 1.15 * (hasCharge ? 1.24 : 1);
       const hasCrosscut = mutations.includes("mut_crosscut");
@@ -357,6 +369,9 @@ window.GAME_ATTACK_SPECS = (() => {
       const radius = Math.round(baseRadius * reachMult);
       const rawDamage = 1.5 + level * 0.7;
       const baseDamage = Number((rawDamage * baseDmg).toFixed(4));
+      // Lv5 restores its Boss / primary-target value without inflating the
+      // all-target 100% splash budget that defines its area-control role.
+      const directDamage = isAwakened ? Number((baseDamage * 1.6).toFixed(4)) : baseDamage;
       const splashScale = isAwakened ? 1.0 : 0.20;
       const baseSplashDamage = Number((baseDamage * splashScale).toFixed(4));
       const knockback = 72;
@@ -376,7 +391,7 @@ window.GAME_ATTACK_SPECS = (() => {
       const bossFrostThreshold = 3;
 
       const count = hasFan ? Math.min(6, baseCount + 2) : baseCount;
-      const damage = hasFan ? ((baseDamage * baseCount * 1.20) / count) : baseDamage;
+      const damage = hasFan ? ((directDamage * baseCount * 1.20) / count) : directDamage;
       const splashDamage = hasFan ? ((baseSplashDamage * baseCount * 1.20) / count) : baseSplashDamage;
 
       const splitblastDelay = 0.18;

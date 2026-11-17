@@ -16,16 +16,22 @@
   }
 
   // 單一小怪難度來源：game.js 以 CFG.resolveMobDifficultyProfile(STAGE) 取同一凍結物件。
-  // hard 保留既有曲線；night-town 預設 normal；rain-port 預設 rainPortNormal；其餘關卡 hard。
+  // hard 保留既有曲線；前三關各有 normal 基線，其餘關卡 hard。
   const MOB_DIFFICULTY_PROFILES = Object.freeze({
     hard: Object.freeze({ hpScale: 1, speedScale: 1, timeScale: 1, powerScale: 1,
       intervalScale: 1, cap: 95, surgeCountScale: 1, surgePacingScale: 1, capSurges: false, xpNeedScale: 1 }),
     // 第一關以第二關為基底，怪稍弱而玩家升級較慢；不再使用0.25倍怪物成長時間。
     normal: Object.freeze({ hpScale: 0.86, speedScale: 0.92, timeScale: 0.9, powerScale: 0.85,
       intervalScale: 1, cap: 80, surgeCountScale: 0.85, surgePacingScale: 1.15, capSurges: false, xpNeedScale: 0.9 }),
-    // Stage 2 (rain-port) Normal：怪物 HP/速度/生成/成長採 Hard 基底；玩家 XP 校準為 80%
+    // Stage 2 (rain-port) Normal keeps 3 XP per ordinary mob and a
+    // wider pickup magnet, but must NOT also discount level-up costs.
+    // Raise its XP threshold to 105% to target Lv25-30 near the 8-minute mark.
     rainPortNormal: Object.freeze({ hpScale: 1, speedScale: 1, timeScale: 1, powerScale: 1,
-      intervalScale: 1, cap: 95, surgeCountScale: 1, surgePacingScale: 1, capSurges: false, xpNeedScale: 0.8 }),
+      intervalScale: 1, cap: 95, surgeCountScale: 1, surgePacingScale: 1, capSurges: false, xpNeedScale: 1.05 }),
+    // Stage3 review baseline: slightly tougher mobs, bounded surge population.
+    // Player difficulty/feel still requires a real run on desktop and iPad.
+    sakuraNormal: Object.freeze({ hpScale: 1.08, speedScale: 1, timeScale: 1, powerScale: 1,
+      intervalScale: 1, cap: 80, surgeCountScale: 0.85, surgePacingScale: 1.1, capSurges: true, xpNeedScale: 1.05 }),
     // rain-port Hard 快照（改前保存，供回溯/對比）——保留既有 stage 參數與生成權重
     "rain-port-hard-snapshot": Object.freeze({
       hpScale: 1, speedScale: 1, timeScale: 1, powerScale: 1,
@@ -48,6 +54,9 @@
     }
     if (id === "rain-port") {
       return mode === "hard" ? MOB_DIFFICULTY_PROFILES.hard : MOB_DIFFICULTY_PROFILES.rainPortNormal;
+    }
+    if (id === "sakura-pass") {
+      return mode === "hard" ? MOB_DIFFICULTY_PROFILES.hard : MOB_DIFFICULTY_PROFILES.sakuraNormal;
     }
     return MOB_DIFFICULTY_PROFILES.hard;
   }

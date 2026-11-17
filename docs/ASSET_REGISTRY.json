@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-31",
+  "updated": "2026-11-16",
   "authority": "docs/ASSET_CONVENTIONS.md",
   "stage_ids": [
     "night-town",
@@ -43,13 +43,20 @@
   },
   "trials": {
     "delivery_img": [
-      "rain-port"
+      "rain-port",
+      "sakura-pass"
     ],
     "delivery_audio": [
-      "rain-port"
-    ]
+      "rain-port",
+      "sakura-pass"
+    ],
+    "stage_scene": {
+      "sakura-pass": "assets/img/stages/sakura-pass/manifest.json"
+    },
+    "stage3_character_manifest": "art/stage3-sakura-pass/characters/manifest.json",
+    "stage3_boss_sfx_manifest": "assets/audio/sfx/enemies/sakura-tengu/manifest.json"
   },
-  "policy": "Stage2 delivery art/audio explicitly authorized for local playtest; not approved final. Source files retained.",
+  "policy": "Stage2 and Stage3 delivery art/audio explicitly authorized for local playtest; not approved final. Source files retained.",
   "aliases": [
     {
       "source": "assets/audio/BGM.mp3",

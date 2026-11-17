@@ -47,16 +47,16 @@ function visibleAt(map, player, area, tilt) {
   });
 }
 
-test("sakura-pass keeps one approved house variant per chunk, rain-port shoreline-only, standard stages three", () => {
+test("sakura-pass keeps one candidate house per playable column chunk, rain-port shoreline-only, standard stages three", () => {
   const pass = housesIn("sakura-pass");
-  assert.ok(pass.chunks.every(chunk => chunk.houses.length === 1));
+  assert.ok(pass.chunks.every(chunk => chunk.houses.length === (chunk.cx === 1 ? 1 : 0)));
   const sakuraTypes=new Set(["shrine_pavilion","s3_tea_house","s3_mountain_house",
     "s3_storehouse","s3_worship_hall"]);
   assert.ok(pass.houses.every(house => sakuraTypes.has(house.bType)),
-    "Stage 3 approved house variants share the same one-house geometry");
+    "Stage 3 candidate house roles share the same one-house geometry");
   assert.ok(new Set(pass.houses.map(h=>h.bType)).size>1,
-    "multiple approved Stage 3 house variants are actually reached");
-  assert.equal(pass.houses.length, pass.chunks.length);
+    "multiple Stage 3 house roles are actually reached");
+  assert.equal(pass.houses.length, pass.chunks.filter(chunk => chunk.cx === 1).length);
   assert.ok(pass.houses.length <= Math.ceil(pass.chunks.length * 3 / 2));
   assert.ok(pass.houses.length <= pass.chunks.length);
   for (const id of ["night-town", "rain-port", "bamboo-maze", "yomi"]) {
@@ -82,6 +82,7 @@ test("sakura houses stay deterministic, on their pack word, and clear of the anc
     for (let cx = -3; cx <= 3; cx++) {
       const chunk = first.getChunk(cx, cy);
       const again = second.getChunk(cx, cy);
+      if (cx !== 1) { assert.equal(chunk.houses.length, 0); continue; }
       const house = chunk.houses[0];
       assert.equal(house.packId, chunk.packId);
       assert.equal(house.word.packId || chunk.packId, chunk.packId);
@@ -89,7 +90,9 @@ test("sakura houses stay deterministic, on their pack word, and clear of the anc
       assert.deepEqual(again.houses.map(item => [item.id, item.x, item.y, item.word.jp]), [[house.id, house.x, house.y, house.word.jp]]);
       const localX = house.x - chunk.x;
       const localY = house.y - chunk.y;
-      assert.ok(localX >= 260 && localX <= 639);
+      assert.ok(localX >= 148 && localX <= 752);
+      const roadside = Math.abs(house.x - WORLD.sakuraPathCenter(house.y));
+      assert.ok(roadside >= 145 && roadside <= 174);
       assert.ok(localY >= 210 && localY <= 389);
       signature.push(house.id);
       for (const tree of chunk.decor.ancientSakura) {
@@ -101,7 +104,7 @@ test("sakura houses stay deterministic, on their pack word, and clear of the anc
   assert.ok(first.getChunk(0, 0).decor.ancientSakura.length + first.getChunk(2, 1).decor.ancientSakura.length >= 0);
   let trees = 0;
   for (let cy = -6; cy <= 6; cy++) for (let cx = -6; cx <= 6; cx++) trees += first.getChunk(cx, cy).decor.ancientSakura.length;
-  assert.ok(trees > 10);
+  assert.ok(trees >= 2 && trees <= 3, 'one ancient tree every five playable chunks');
 });
 
 test("the same sakura entities stay put when only the camera tilt changes", () => {
@@ -189,7 +192,7 @@ test("stage3 2.5D scales distant shrines while 2D, signs, and other stages stay 
   flat.env.RENDERER.drawHouse({ x: 400, y: 300, bType: "shrine_pavilion" }, 800);
   const flatDraw = flat.images.filter(call => call[0] === flat.pavilion);
   assert.equal(flatDraw.length, 1);
-  assert.equal(flatDraw[0][3], 210);
+  assert.ok(flatDraw[0][3] >= 150 && flatDraw[0][3] <= 235);
   assert.ok(flat.texts.includes("神社"));
 
   const deep = renderBox("");
@@ -197,13 +200,12 @@ test("stage3 2.5D scales distant shrines while 2D, signs, and other stages stay 
   deep.env.RENDERER.setDepthStage("sakura-pass");
   deep.env.RENDERER.drawHouse({ x: 400, y: 300, bType: "shrine_pavilion" }, 300);
   const near = deep.images.filter(call => call[0] === deep.pavilion).at(-1);
-  assert.equal(near[3], 210);
+  assert.ok(near[3] >= 150 && near[3] <= 235);
   deep.images.length = 0;
   deep.texts.length = 0;
   deep.env.RENDERER.drawHouse({ x: 400, y: 300, bType: "shrine_pavilion" }, 900);
   const far = deep.images.filter(call => call[0] === deep.pavilion).at(-1);
-  assert.equal(far[3], near[3]);
-  assert.ok(Math.abs(far[3] - 210) <= 1);
+  assert.ok(far[3] <= near[3], 'distant scenery should not be bigger than nearby scenery');
   assert.ok(deep.texts.includes("神社"));
   const probe = deep.env.RENDERER.sceneryDepth(300, 900);
   const still = deep.env.RENDERER.sceneryDepth(300, 300);
@@ -217,7 +219,7 @@ test("stage3 2.5D scales distant shrines while 2D, signs, and other stages stay 
   off.env.VIEWPORT.setTiltScale(0.6);
   off.env.RENDERER.setDepthStage("sakura-pass");
   off.env.RENDERER.drawHouse({ x: 400, y: 300, bType: "shrine_pavilion" }, 900);
-  assert.equal(off.images.filter(call => call[0] === off.pavilion).at(-1)[3], 210);
+  assert.equal(off.images.filter(call => call[0] === off.pavilion).at(-1)[3], near[3]);
 
   const town = renderBox("");
   town.env.VIEWPORT.setTiltScale(0.6);

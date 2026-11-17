@@ -6,8 +6,42 @@ window.GAME_WEATHER = (() => {
     h ^= h >>> 13;
     return (h >>> 0) / 4294967296;
   }
+  // Stage-2 rain evolves independently from combat. Victory keeps it moving;
+  // pause, upgrade and reading panels do not accumulate hidden weather time.
+  const RAIN_PHASES = Object.freeze([
+    {level:"medium",seconds:19,strength:1},
+    {level:"light",seconds:16,strength:.57},
+    {level:"medium",seconds:13,strength:1},
+    {level:"heavy",seconds:11,strength:1.80},
+    {level:"medium",seconds:18,strength:1},
+    {level:"light",seconds:14,strength:.57},
+    {level:"medium",seconds:12,strength:1},
+    {level:"heavy",seconds:9,strength:1.80}
+  ]);
+  function createRainCycle() {
+    let index=0, age=0, from=1;
+    const snapshot=()=>{
+      const phase=RAIN_PHASES[index];
+      const blend=Math.min(1,age/2.8);
+      const eased=blend*blend*(3-2*blend);
+      return {level:phase.level,strength:from+(phase.strength-from)*eased,
+        heavy:phase.level==="heavy",phaseAge:age};
+    };
+    function reset(){index=0;age=0;from=1;return snapshot();}
+    function tick(seconds=0){
+      if(!(seconds>0)||!Number.isFinite(seconds))return snapshot();
+      age+=Math.min(seconds,.2);
+      while(age>=RAIN_PHASES[index].seconds){
+        age-=RAIN_PHASES[index].seconds;
+        from=RAIN_PHASES[index].strength;
+        index=(index+1)%RAIN_PHASES.length;
+      }
+      return snapshot();
+    }
+    return Object.freeze({tick,reset,snapshot});
+  }
   function drawStageWeather(t, {ctx, STAGE_VISUAL, STAGE, rainLoad, W, H,
-    liveMotion, viewBounds, getRipple}) {
+    liveMotion, viewBounds, getRipple, rainStrength}) {
     if (STAGE_VISUAL.weather !== "rain" && STAGE_VISUAL.weather !== "snow") return;
     if (!liveMotion()) t = 0;
     const intensity = Math.max(0.4, STAGE_VISUAL.rainIntensity || 1);
@@ -34,7 +68,8 @@ window.GAME_WEATHER = (() => {
       if (STAGE.id === "rain-port") {
         const cover = Math.min(1, area.width * area.height / (W * H));
         const budget = rainLoad > 1.4 ? 0.55 : 1;
-        const rainMul = 2;
+        // Absence of strength preserves the previous medium-rain draw trace.
+        const rainMul = 2 * (Number.isFinite(rainStrength) ? Math.max(.45,Math.min(1.85,rainStrength)) : 1);
         const bands = [
           { n: Math.max(10, Math.round(12 * rainMul * cover * budget)), speed: 78, len: 8, slant: 0.16, width: 1, alpha: 0.14 },
           { n: Math.max(8, Math.round(10 * rainMul * cover * budget)), speed: 150, len: 16, slant: 0.18, width: 1.25, alpha: 0.34 },
@@ -60,7 +95,9 @@ window.GAME_WEATHER = (() => {
           }
         }
         const ripple = getRipple();
-        for (let i = 0; i < 12; i++) {
+        const splashCount = Number.isFinite(rainStrength)
+          ? Math.round(12 * Math.max(.57, Math.min(1.8, rainStrength))) : 12;
+        for (let i = 0; i < splashCount; i++) {
           const life = (t * 0.8 + rainUnit(i, 8)) % 1;
           const x = area.left + rainUnit(i, 9) * area.width;
           const y = area.top + rainUnit(i, 6) * area.height;
@@ -114,5 +151,5 @@ window.GAME_WEATHER = (() => {
     ctx.restore();
   }
 
-  return Object.freeze({drawStageWeather, rainUnit});
+  return Object.freeze({drawStageWeather, rainUnit, createRainCycle});
 })();

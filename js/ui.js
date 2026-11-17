@@ -1262,9 +1262,9 @@ window.UI = (() => {
     return {
       pickup: ['取貨', 'pickup', `移動：${key('move')}。沿包裹標記靠近委託房屋，再用${key('interact')}取貨。攻擊會自動發動。`],
       listen: ['看圖聽音', 'listen', '取貨時會正常播放發音；記住包裹圖像，送貨時請自行判斷日語答案。原免費聽音提示已取消。'],
-      delivery: ['配送答題墊', 'pickup', `收件處答題結界最多暫停 10 秒，逾時恢復戰鬥並扣最大燈油 5%。踩答案墊 0.65 秒或按確認鍵提交。${harbor ? '雨港須至少送達 6 件並擊敗終王才能通關。' : '夜行町終王擊敗後即可通關。'}`],
+      delivery: ['配送答題墊', 'pickup', `收件處答題結界最多暫停 10 秒，逾時恢復戰鬥並扣最大燈油 5%。踩答案墊 0.65 秒提交。兩關皆須送達至少 6 件並擊敗終王才能通關。`],
       dash: ['衝刺避險', 'dash', `移動中用${key('dash')}快速穿過危險；衝刺期間短暫無敵。右側衝刺鈕顯示冷卻秒數，恢復後才能再次使用。`],
-      boss: ['Boss 封印', 'listen', `靠近 Boss 按${key('boss')}選假名破印。${harbor ? '雨港通關還須至少六件配送。' : '夜行町 12 分鐘後未擊敗的終王每秒回復 1.5% 血量。'}兩關封印讀題最多暫停 10 秒；答錯立即恢復戰鬥，禁攻擊第一次 10 秒、再錯 30 秒；仍可移動且燈油照常消耗。`]
+      boss: ['Boss 封印', 'listen', `靠近 Boss 按${key('boss')}選假名破印。${harbor ? '雨港通關還須至少六件配送。' : '夜行町終王出場後存活滿 2 分鐘每秒回復 0.5% 血量，滿 4 分鐘後為 1%。'}兩關封印讀題最多暫停 10 秒；答錯立即恢復戰鬥，禁攻擊第一次 10 秒、再錯 30 秒；仍可移動且燈油照常消耗。`]
     }[id];
   }
   // Shared monochrome operation symbols, independent of OS Emoji fonts.
@@ -2651,6 +2651,20 @@ window.UI = (() => {
     if (maxWidth) ctx.fillText(text, x, y, maxWidth); else ctx.fillText(text, x, y);
   }
 
+  function bossHuntTitleLayout(ctx, title, width) {
+    const stacked = width < 280;
+    const maxWidth = Math.max(40, width - (stacked ? 16 : 128));
+    const font = size => `900 ${size}px 'Yokai Noto JP', 'Noto Sans JP', sans-serif`;
+    ctx.font=font(22);
+    const natural=ctx.measureText(title).width;
+    const fontSize=Math.max(14,Math.min(22,22*maxWidth/Math.max(1,natural)));
+    ctx.font=font(fontSize);
+    const textWidth=Math.min(maxWidth,ctx.measureText(title).width);
+    const arrowOffset=textWidth/2+36;
+    return {maxWidth,textWidth,fontSize,arrowY:stacked?64:26,
+      arrowOffsets:stacked ? width<132 ? [0] : [-28,28] : [-arrowOffset,arrowOffset]};
+  }
+
   // 固定位置的方向羅盤：箭頭原地轉向目標，不再貼著畫面邊緣跑。count=2 為 Boss 用的雙箭頭。
   function drawCompass(ctx, x, y, angle, { color = "#ffd152", count = 1, size = 1 } = {}) {
     if (angle == null) return;
@@ -2951,7 +2965,7 @@ window.UI = (() => {
     // --- 中上任務：暫停使用假繪馬，diegetic 先回到乾淨的浮動資訊。 ---
     const taskX = Math.max(248, pBoxX + pBoxW + 5), taskY = bounds.top + 14;
     const useQuestBoard = diegetic && DIEGETIC_QUEST_BOARD_ENABLED;
-    const taskW = Math.min(370, sBoxX - taskX - 15), taskH = useQuestBoard ? 68 : 52;
+    const taskW = Math.min(370, sBoxX - taskX - 15), taskH = bossHunt && taskW<280 ? 94 : useQuestBoard ? 68 : 52;
     if (useQuestBoard) drawDiegeticQuestBoard(ctx, taskX, taskY - 5, taskW, taskH + 5);
     let omamoriEntryProgress = 1;
     if (diegetic && job && !bossHunt) {
@@ -2996,11 +3010,11 @@ window.UI = (() => {
       const bossPulse = motion ? 0.65 + 0.35 * Math.sin(time * 4) : 0.85;
       ctx.textAlign = "center";
       ctx.fillStyle = `rgba(255, 138, 154, ${0.7 + bossPulse * 0.3})`;
-      ctx.font = "900 22px 'Yokai Noto JP', 'Noto Sans JP', sans-serif";
       const huntTitle = (extra && extra.bossTitle) ? `擊敗${extra.bossTitle}` : "擊敗大妖";
-      inkText(ctx, huntTitle, taskX + taskW / 2, taskY + 32);
-      drawCompass(ctx, taskX + taskW / 2 - 84, taskY + 26, extra.bossAngle, { color: "#ff3b4f", count: 2, size: 1.2 });
-      drawCompass(ctx, taskX + taskW / 2 + 84, taskY + 26, extra.bossAngle, { color: "#ff3b4f", count: 2, size: 1.2 });
+      const huntLayout=bossHuntTitleLayout(ctx,huntTitle,taskW);
+      inkText(ctx, huntTitle, taskX + taskW / 2, taskY + 32,huntLayout.maxWidth);
+      for(const offset of huntLayout.arrowOffsets)
+        drawCompass(ctx, taskX + taskW / 2 + offset, taskY + huntLayout.arrowY, extra.bossAngle, { color: "#ff3b4f", count: 2, size: 1.2 });
     } else if (job) {
       if (!diegetic) {
         const remaining = Math.round(Math.hypot(P.x - job.to.x, P.y - job.to.y) / 10) * 10;
@@ -3966,10 +3980,10 @@ window.UI = (() => {
   // 未登錄的卡不做字串替換、不截斷、不縮字級：直接顯示遊戲原文，並在下方只補一條不重複的條件/限制行。
   const CARD_BRIEF = {
     // ── 體質修行（被動）──
-    oil_max:   { e: "燈油上限 +30、立刻回 30；每秒耗油 −0.06", c: "", l: "最多 2 層" },
+    oil_max:   { e: "燈油上限 +30、立刻回 30；每秒額外回油 +0.06", c: "", l: "最多 2 層" },
     oil_heal:  { e: "回 50% 燈油並震退周圍妖怪", c: "", l: "每場最多 3 次" },
     shield:    { e: "護盾擋 2 次受傷", c: "", l: "最多疊 6 次" },
-    dmg:       { e: "基礎傷害加成 +30%", c: "", l: "最多 4 層" },
+    dmg:       { e: "基礎傷害係數 +0.30（加算）", c: "", l: "最多 4 層" },
     rate:      { e: "妖刀、結界、靈針冷卻縮短", c: "", l: "最多 4 層" },
     crit:      { e: "妖刀／天雷爆擊率 +15%、結界 +10%", c: "", l: "爆擊率上限 50%、倍率 1.8" },
     spd:       { e: "移動速度 +15%", c: "", l: "最多 3 層" },
@@ -4003,14 +4017,14 @@ window.UI = (() => {
     mut_boom_fan:  { ja: "陰陽符・千本散射", s: "只有陰陽符發數增加，整輪傷害 +20%。", ic: "fan" },
     mut_frost:     { ja: "靈針・冰魄封靈", s: "靈針命中：小怪冰凍 0.5 秒；Boss 累積 3 次命中後冰凍 0.15 秒，2 秒內免疫。", ic: "frost" },
     mut_boom_frost:{ ja: "陰陽符・冰魄封靈", s: "陰陽符主爆：小怪冰凍 0.5 秒；Boss 累積 3 次命中後冰凍 0.15 秒。", ic: "frost" },
-    mut_pierce:    { ja: "靈針・穿透增額",   s: "能貫穿更多敵人，後面幾隻額外受傷。",       ic: "pierce" },
+    mut_pierce:    { ja: "靈針・穿透增額",   s: "穿透數不變；第 2、3 隻命中敵人各額外受 15% 傷害。", ic: "pierce" },
     mut_crosscut:  { ja: "妖刀・十字交斬",   s: "主斬後追加交叉斬，原敵也能再受傷。",       ic: "crosscut" },
     mut_branch:    { ja: "天狐雷・連鎖分歧", s: "主雷命中後再分出一道小雷。",             ic: "branch" },
     mut_orbit:     { ja: "狐火・偏心輪道",   s: "狐火橢圓繞行，接觸傷害提高 20%。",               ic: "orbit" },
     mut_splitblast:{ ja: "陰陽符・餘燼爆散", s: "主爆後原地再炸一次小爆。",               ic: "splitblast" },
-    mut_iaicharge: { ja: "妖刀・蓄力居合", s: "刀傷與風刃 +24%，出刀冷卻 +0.16 秒。", ic: "cadence" },
+    mut_iaicharge: { ja: "妖刀・蓄力居合", s: "刀傷與風刃 +24%，出刀冷卻 +0.08 秒。", ic: "cadence" },
     mut_armorbreak: { ja: "妖刀・破甲斬", s: "對坦克傷害 +30%，對 Boss +20%。", ic: "pierce" },
-    mut_longblade: { ja: "妖刀・長風刃", s: "斬擊距離 +23%，Lv5 風刃距離 +25%。", ic: "reach" },
+    mut_longblade: { ja: "妖刀・長風刃", s: "Lv1～4 斬擊距離 +23%；Lv5 風刃距離 +25%。", ic: "reach" },
     mut_bindseal: { ja: "靈陣・縛足靈紋", s: "靈陣命中的小怪遲滯 0.72 秒。", ic: "frost" },
     mut_widecircle: { ja: "靈陣・廣域護陣", s: "靈陣半徑 +22%，傷害 −12%。", ic: "pulse" },
     mut_repulse: { ja: "靈陣・反震退魔", s: "擊退強度 +60%，低等也能擊退。", ic: "branch" },
@@ -5229,8 +5243,8 @@ function fusionLayout(customViewport, model) {
   const CARD_LIST = [
     // 主動秘術 (Active Weapons)
     { name: "妖刀斬", jp: "かたな", type: "主動", desc: "揮出凌厲新月刀芒，斬裂前方扇形妖怪", emblem: "katana" },
-    { name: "淨化靈陣", jp: "じょうか", type: "主動", desc: "Lv4 解圍；MAX 範圍縮為 220、每 3.2 秒脈衝，留下 1.8 秒固定慢場，不回油", emblem: "barrier" },
-    { name: "狐火炎", jp: "きつねび", type: "主動", desc: "三階起三團護火；Lv4 一火追擊，MAX 每六秒召龍，焦土最多兩處且不疊傷", emblem: "fire" },
+    { name: "淨化靈陣", jp: "じょうか", type: "主動", desc: "Lv4 解圍；MAX 基礎半徑 290、每 1.5 秒脈衝，附帶緩速，不回油", emblem: "barrier" },
+    { name: "狐火炎", jp: "きつねび", type: "主動", desc: "三階起三團護火；Lv4 一火追擊，MAX 每 7.2 秒召龍，焦土最多三處", emblem: "fire" },
     { name: "陰陽符", jp: "おふだ", type: "主動", desc: "命中後黏在妖怪身上，延遲爆炸並向周圍濺射", emblem: "boom" },
     { name: "天狐雷", jp: "いかずち", type: "主動", desc: "固定傷害優先打近身威脅；Lv4 三目標，MAX 三朵雷雲，同波同敵只中一次", emblem: "thunder" },
     { name: "天狐靈針", jp: "せんぼん", type: "主動", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪", emblem: "needle" },
@@ -6150,7 +6164,7 @@ function fusionLayout(customViewport, model) {
       const scale = size / Math.max(w, h);
       const dw = w * scale, dh = h * scale;
       ctx.drawImage(cargoImage, x - dw / 2, y - dh / 2, dw, dh);
-    } else if (!word || word.cue === "text" || !word.icon) {
+    } else if (!word || word.cue === "text" || !word.icon || /^delivery-sakura-pass-/.test(word.packId || "")) {
       ctx.font = readableFont(Math.min(size, 18), "900");
       fitText(ctx, word?.zh || "？", x, y, size * 2);
     } else if (["ame", "kaze", "kumo", "kiri", "kaminari", "yuki"].includes(word.cue)) {

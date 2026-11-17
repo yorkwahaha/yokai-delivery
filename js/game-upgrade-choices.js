@@ -1,5 +1,46 @@
 // Phase17: original three-card upgrade pool assembly; RNG source and card callbacks stay in game.js.
 window.GAME_UPGRADE_CHOICES = (() => {
+  // Rank-aware, soft catch-up weights. A newly available active skill should
+  // be much easier to SEE than the 3rd/4th/5th level of an already-owned one.
+  // No Lv5 hard lock: once all four slots are filled, ranking is relative to
+  // the least-developed equipped skill; if ranks converge, odds equalize.
+  const EARLY_RANK_WEIGHTS = Object.freeze([2.4, 1, 0.48, 0.21, 0.09]);
+  const EQUIPPED_GAP_WEIGHTS = Object.freeze([1, 0.5, 0.22, 0.09, 0.04]);
+  function weaponOfferWeight(skillId, levels, maxActive = 4) {
+    const current = Math.max(0, Math.min(5, Number(levels?.[skillId]) || 0));
+    if (current >= 5) return 0;
+    const owned = Object.values(levels || {}).filter(v => Number(v) > 0).map(Number);
+    if (owned.length < maxActive) return EARLY_RANK_WEIGHTS[current];
+    if (current === 0) return 0;
+    const weakest = Math.min(...owned);
+    const gap = Math.max(0, Math.min(4, current - weakest));
+    return EQUIPPED_GAP_WEIGHTS[gap];
+  }
+  // Weighted random permutation without replacement. The existing Phase17
+  // 3-card assembler still owns category ratios, mutation pairing and rerolls.
+  // RNG is injected by game.js, so the module is side-effect-free and testable.
+  function orderWeapons(keys, levels, maxActive, random) {
+    const pending = [...keys];
+    const output = [];
+    while (pending.length > 0) {
+      const weights = pending.map(key => weaponOfferWeight(key, levels, maxActive));
+      const total = weights.reduce((sum, weight) => sum + weight, 0);
+      if (!(total > 0)) {
+        output.push(...pending);
+        break;
+      }
+      const u = Math.max(0, Math.min(1 - Number.EPSILON,
+        typeof random === "function" ? random() : 0.5));
+      let ticket = u * total;
+      let chosen = weights.length - 1;
+      for (let i = 0; i < weights.length; i++) {
+        ticket -= weights[i];
+        if (ticket < 0) { chosen = i; break; }
+      }
+      output.push(pending.splice(chosen, 1)[0]);
+    }
+    return output;
+  }
 function assemble(awakenCard, fc, wc, cc, dc, pc, mc, shuffle) {
     let result = [];
     if (awakenCard) {
@@ -45,5 +86,30 @@ function assemble(awakenCard, fc, wc, cc, dc, pc, mc, shuffle) {
     }
     return result;
 }
-  return Object.freeze({ assemble });
+  // Optional guarantees only. The baseline assemble() (and its RNG/order)
+  // remains unchanged for all existing six-skill and mutation scenarios.
+  function withGuarantees(offered, forced, fallback, pairedMutations = false) {
+    const priority = forced.filter(Boolean);
+    if (!priority.length) return offered;
+    const unique = new Set(priority.map(c => c.choiceId));
+    const hasPairConflict = pairedMutations && priority.length > 1;
+    const candidates = [...offered, ...fallback].filter(c =>
+      c && !unique.has(c.choiceId) && !(hasPairConflict && c.type === "mutation"));
+    const result = [...priority];
+    for (const c of candidates) {
+      if (result.length >= 3) break;
+      if (result.some(p => p.choiceId === c.choiceId)) continue;
+      if (c.type === "mutation" && pairedMutations) {
+        const pair = candidates.filter(x => x.type === "mutation");
+        if (pair.length > 1) {
+          if (result.length > 1) continue; // never split two mutually exclusive cards
+          for (const item of pair.slice(0,2)) result.push(item);
+          break;
+        }
+      }
+      result.push(c);
+    }
+    return result.slice(0,3);
+  }
+  return Object.freeze({ assemble, withGuarantees, weaponOfferWeight, orderWeapons });
 })();

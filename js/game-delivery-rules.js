@@ -40,6 +40,11 @@ window.GAME_DELIVERY_RULES = (() => {
     return {pool, far, near};
   }
 
+  function sakuraPickupPool(houses, player, dist) {
+    const near = houses.filter(h => dist(h, player) <= 900);
+    return near.length ? near : houses.filter(h => dist(h, player) <= 1500);
+  }
+
   // Exclude words already represented by live misdelivery enemies, pending
   // pickups and the currently held parcel. Never mutate the input arrays.
   function excludedWordSets(enemies, orders, job) {
@@ -61,7 +66,7 @@ window.GAME_DELIVERY_RULES = (() => {
     return pool;
   }
   return Object.freeze({
-    portPickupPool, portDestinationPools, townDestinationPools,
+    portPickupPool, portDestinationPools, townDestinationPools, sakuraPickupPool,
     excludedWordSets, priorityMissedWords, fallbackWordPool
   });
 })();

@@ -53,23 +53,42 @@
   const approvedActive=new Set(["katana","fire","needle","barrier","boom","thunder"]);
   const passiveCards=new Set(["shield","oil_max","oil_heal","dmg","rate","crit","spd","dash","mag"]);
   const mutationCards=new Set([
+    "mut_ink_bloom","mut_ink_razor","mut_ink_linger","mut_ink_echo",
     "mut_boom_fan","mut_seek","mut_boom_seek","mut_frost","mut_boom_frost",
     "mut_pierce","mut_return","mut_crosscut","mut_pulse","mut_branch",
     "mut_orbit","mut_splitblast","mut_iaicharge","mut_armorbreak","mut_longblade",
     "mut_bindseal","mut_widecircle","mut_repulse","mut_rapidfire","mut_flamebind",
     "mut_furyfire","mut_thunderfocus","mut_thunderstun","mut_thunderoverload"
   ]);
-  const sharedCards=new Set([...approvedActive,...passiveCards,...mutationCards]);
+  // 墨跡・步痕的插畫尚在玩家視覺驗收階段：只在本機/LAN 進行 Phase42 共用框試看。
+  // 正式站未核准前仍使用原本的備援卡片，不宣告為已核准第 40 張。
+  const inkTrailLocalPreview=local && params.get("inkart")!=="off";
+  const newSkillLocalPreview=local && params.get("newskillart")!=="off";
+  const pendingSkillCards=["mut_ink_bloom","mut_ink_razor","mut_ink_linger","mut_ink_echo","seal_nail"];
+  // These four newly drawn mutation candidates are NOT among the 39
+  // user-approved Phase42 centers. Keep them local-only until art review.
+  const approvedSharedCards=new Set([...approvedActive,...passiveCards,
+    ...[...mutationCards].filter(id=>!id.startsWith("mut_ink_"))]);
+  const sharedCards=new Set([...approvedSharedCards,
+    ...(inkTrailLocalPreview?["ink_trail"]:[]),
+    ...(newSkillLocalPreview?pendingSkillCards:[])]);
   const framePath="assets/img/ui/menu/ui__upgrade-card-frame.png";
   const centerPath=id=>{
+    if(id==="ink_trail"&&inkTrailLocalPreview)
+      return "art/skills/ink-trail/ink-trail__art-candidate-20261111.webp?v=ink-preview-20261111";
+    if(id==="seal_nail"&&newSkillLocalPreview)
+      return "art/skills/seal-nail/seal-nail__art-candidate-20261117.webp?v=trial-1";
+    if(id.startsWith("mut_ink_")&&newSkillLocalPreview)
+      return "art/skills/ink-trail/cards/"+id.replace(/_/g,"-")+"__art-candidate-20261117.webp?v=trial-1";
     const slug=String(id).replace(/_/g,"-");
     return "assets/img/skills/"+slug+"/cards/"+slug+"__art.webp";
   };
   const artworkBox={x:102,y:65,w:820,h:1230,clipX:112,clipY:216,clipW:802,clipH:868};
   const titlePoint={x:512,y:1158},classPoint={x:512,y:1341};
-  const skillClasses={katana:"斬擊",fire:"火焰",needle:"穿刺",barrier:"陣法",boom:"符咒",thunder:"雷擊"};
+  const skillClasses={katana:"斬擊",fire:"火焰",needle:"穿刺",barrier:"陣法",boom:"符咒",thunder:"雷擊",
+    ink_trail:"紫藤毒香",seal_nail:"離位爆破"};
   window.__YOKAI_UPGRADE_PHASE42={framePath,centerPath,artworkBox,titlePoint,classPoint,
-    sharedCardIds:[...sharedCards]};
+    sharedCardIds:[...approvedSharedCards]};
   UI.upgradeTrialEnabled=()=>true;
   const image=(src)=>{
     if(!src || typeof window.Image!=="function")return null;
@@ -398,7 +417,7 @@
   function drawReroll(ctx,L,amount,mode){
     const r=L.reroll;
     const formal=image("assets/img/ui/menu/result__button.webp");
-    const bg=formal||image(amount>0?"assets/img/ui/upgrade/approved_reroll.webp":"")||
+    const bg=formal||
       image("assets/img/ui/upgrade/reroll_"+(amount>0?"normal":"disabled")+".webp");
     if(bg){
       if(formal){

@@ -52,6 +52,12 @@
     return "house_shop";
   }
 
+  // A continuous world-space centreline, shared with raster decal placement.
+  function sakuraPathCenter(y, spacingScaleY = 1) {
+    const logicalY = y / spacingScaleY;
+    return 1350 + Math.sin(logicalY / 700) * 85 + Math.sin(logicalY / 1700) * 35;
+  }
+
   function createStageWorld(stage, content, options = {}) {
     if (!stage || !content) throw new Error("createStageWorld requires stage and content");
 
@@ -68,9 +74,11 @@
     const packIds = (stage.wordPacks || []).filter(id => content.getPack(id));
     if (packIds.length === 0) throw new Error("stage has no usable word packs");
 
-    // rain-port 戰鬥帶：約 600px，minY..maxY（其他關為 null）
+    // S2 restricts Y; S3 restricts X. Unbounded axes are absent, never zero.
     const isRainPort = stage.id === "rain-port";
-    const bounds = isRainPort ? { minY: 180, maxY: 780 } : null;
+    const isSakura = stage.id === "sakura-pass";
+    const bounds = isRainPort ? { minY: 180, maxY: 780 }
+      : isSakura ? { minX: 900, maxX: 1800 } : null;
     // rain-port：限制 Y chunk 範圍（只在戰鬥帶內生成 house/answerPositions）
     const rainPortChunkMinY = isRainPort ? Math.floor(bounds.minY / chunkHeight) : null;
     const rainPortChunkMaxY = isRainPort ? Math.ceil(bounds.maxY / chunkHeight) : null;
@@ -260,8 +268,8 @@
       const cached = cache.get(key);
       if (cached) return cached;
 
-      // rain-port：跳過超出戰鬥帶的 Y chunk（不生成 house/answerPositions）
-      if (isRainPort && (cy < rainPortChunkMinY || cy > rainPortChunkMaxY)) {
+      // Outside the playable S2 belt / S3 column, never generate delivery stops.
+      if ((isRainPort && (cy < rainPortChunkMinY || cy > rainPortChunkMaxY)) || (isSakura && cx !== 1)) {
         // 只回傳空 chunk 結構（無 houses、無 decor、無 lamps），供地形渲染用
         const emptyChunk = {
           key,
@@ -293,13 +301,15 @@
       const packWords = pack.words || [];
       const houses = [];
       if (stage.id === "sakura-pass") {
-        // 原每塊 3 間。山道只留 1 間，並縮在區塊中段，避免鏡頭邊緣同時掃到鄰塊。
+        // One stop per vertical chunk, alternating along the shared winding lane.
         if (packWords.length) {
           const hx = hashCoords(cx, cy, seed ^ 0x51a7c3);
           const hy = hashCoords(cx * 5 + 3, cy * 7 + 1, seed ^ 0xc0ffee);
-          const localX = 260 + (hx % 380);
           const localY = 210 + (hy % 180);
           const houseY = baseY + localY * spacingScaleY;
+          // Alternating roadside stops leave the middle lane open for combat.
+          const localX = sakuraPathCenter(houseY, spacingScaleY) - baseX +
+            (mod(cy, 2) ? -1 : 1) * (145 + hx % 30);
           const word = packWords[hashCoords(cx, cy, seed) % packWords.length];
           houses.push({
             id: `${stage.id}:${cx},${cy}:0`,
@@ -448,7 +458,7 @@
         floorColor: pack.floorColor,
         theme: pack.theme,
         houses,
-        lamps: stage.id === "rain-port" ? [] : [{
+        lamps: stage.id === "rain-port" || isSakura ? [] : [{
           x: baseX + chunkWidth / 2 + 62,
           y: baseY + (chunkHeight / 2 - 62 * spacingScaleY),
           ...(stage.id === "night-town" ? { collidable: false } : {})
@@ -493,13 +503,13 @@
       // rain-port：只保留戰鬥帶內的 Y chunk
       let minCy = centerY - activeRadius;
       let maxCy = centerY + activeRadius;
-      if (bounds) {
+      if (isRainPort) {
         minCy = Math.max(minCy, rainPortChunkMinY);
         maxCy = Math.min(maxCy, rainPortChunkMaxY);
       }
 
       for (let cy = minCy; cy <= maxCy; cy++) {
-        for (let cx = centerX - activeRadius; cx <= centerX + activeRadius; cx++) {
+        for (let cx = isSakura ? 1 : centerX - activeRadius; cx <= (isSakura ? 1 : centerX + activeRadius); cx++) {
           desired.add(chunkKey(cx, cy));
         }
       }
@@ -525,7 +535,7 @@
       // Rain-port teaching houses already have y <= 570 and each answer
       // pad stays in the 180..780 combat belt. Shifting only the unused dy
       // field never moved a real answer pad; avoid copying every house/frame.
-      if (bounds) {
+      if (isRainPort) {
         // rain-port：真正的世界座標 footprint 去重（取代舊的 50px 粗略分組）。
         // 舊分組會把相鄰的合法房子整個濾掉，讓沿途可配送點不足；
         // 現在只丟掉水平距離真的小於 footprint 間距的那一棟。
@@ -547,9 +557,9 @@
         // Keep their solid footprint within the rendered foundations,
         // instead of letting the courier visibly enter the picture edge.
         x0: h.x - (stage.id === "rain-port"
-          ? (h.bType === "port_fishmonger" ? 100.5 : h.bType === "port_warehouse" ? 93.5 : 64) : 48),
+          ? (h.bType === "port_fishmonger" ? 100.5 : h.bType === "port_warehouse" ? 93.5 : 64) : isSakura ? 88 : 48),
         x1: h.x + (stage.id === "rain-port"
-          ? (h.bType === "port_fishmonger" ? 100.5 : h.bType === "port_warehouse" ? 93.5 : 64) : 48),
+          ? (h.bType === "port_fishmonger" ? 100.5 : h.bType === "port_warehouse" ? 93.5 : 64) : isSakura ? 88 : 48),
         y0: h.y - (stage.id === "rain-port" ? 48 : 25),
         y1: h.y + 45,
         chunkKey: h.chunkKey
@@ -578,7 +588,7 @@
     };
   }
 
-  const api = { SPOTS, HOUSE_LAYOUTS, answerPositions, mod, hashCoords, chunkKey, parseChunkKey, createStageWorld };
+  const api = { SPOTS, HOUSE_LAYOUTS, answerPositions, mod, hashCoords, chunkKey, parseChunkKey, createStageWorld, sakuraPathCenter };
   root.WORLD = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })();

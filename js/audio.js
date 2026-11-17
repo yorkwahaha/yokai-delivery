@@ -225,6 +225,26 @@ window.AUDIO = (() => {
     // Future rain-port recordings: drop the named OGG files here later.
     rainPortWaterSlamWarn: "assets/audio/sfx/boss/rain_port_water_slam_warn.ogg",
     rainPortWaterSlamImpact: "assets/audio/sfx/boss/rain_port_water_slam_impact.ogg",
+    inkTrailDrop: "assets/audio/sfx/skills/ink-trail/ink-trail__drop.mp3",
+    inkTrailHit: "assets/audio/sfx/skills/ink-trail/ink-trail__hit.mp3",
+    inkTrailAwaken: "assets/audio/sfx/skills/ink-trail/ink-trail__awaken__lv05.mp3",
+    inkTrailEcho: "assets/audio/sfx/skills/ink-trail/ink-trail__echo.mp3",
+    sealNailDrop: "assets/audio/sfx/skills/seal-nail/seal-nail__drop.mp3",
+    sealNailBurst: "assets/audio/sfx/skills/seal-nail/seal-nail__burst.mp3",
+    sealNailAwaken: "assets/audio/sfx/skills/seal-nail/seal-nail__awaken__lv05.mp3",
+    rainPortTideWarn: "assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__tsunami-warn.mp3",
+    rainPortTideImpact: "assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__tsunami-impact.mp3",
+    rainPortFanWarn: "assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__fan-warn.mp3",
+    rainPortFanSweep: "assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__fan-sweep.mp3",
+    rainPortVortexWarn: "assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__vortex-warn.mp3",
+    rainPortVortexPillar: "assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__vortex-pillar.mp3",
+    rainPortHeavyRain: "assets/audio/sfx/world/rain-port__heavy-rain.mp3",
+    sakuraRushWarn: "assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__rush-warn.mp3",
+    sakuraRushCast: "assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__rush-cast.mp3",
+    sakuraFanWarn: "assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__feather-warn.mp3",
+    sakuraFanCast: "assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__feather-cast.mp3",
+    sakuraBloomWarn: "assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__root-warn.mp3",
+    sakuraBloomImpact: "assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__root-impact.mp3",
     fanfare: "assets/audio/sfx/fanfare.mp3",
     lose: "assets/audio/sfx/lose.mp3"
   };
@@ -236,10 +256,21 @@ window.AUDIO = (() => {
     deliverWrong: 0.72, breakShield: 0.82, levelUp: 0.76, warningPulse: 0.78,
     bossDeath: 0.78, finalBossDeath: 0.9, bossSlamImpact: 0.85,
     rainPortWaterSlamWarn: 0.66, rainPortWaterSlamImpact: 0.86,
+    inkTrailDrop: .28, inkTrailHit: .58, inkTrailAwaken: .85,
+    inkTrailEcho: .48, sealNailDrop: .34, sealNailBurst: .72, sealNailAwaken: .84,
+    rainPortTideWarn: .60, rainPortTideImpact: .85, rainPortFanWarn: .55,
+    rainPortFanSweep: .73, rainPortVortexWarn: .62, rainPortVortexPillar: .78,
+    rainPortHeavyRain: .45,
+    sakuraRushWarn:.62,sakuraRushCast:.80,sakuraFanWarn:.58,
+    sakuraFanCast:.74,sakuraBloomWarn:.62,sakuraBloomImpact:.82,
     skillLv5: 0.88, charmPickup: 0.70, fanfare: 0.75, lose: 0.7
   };
   // 預留兩組素材；沒有檔案時退回目前音效，不需放空白 MP3。
   const RANKED_SFX = {slash:'katana',barrier:'barrier',needle:'needle',boomerang:'boom',fireball:'fire',thunder:'thunder'};
+  // These four files have not been supplied. Keep the final paths registered
+  // so placing a licensed MP3 at the reserved path enables it after reload,
+  // but never preload known-missing assets at game start.
+  const unprovidedRankedSfx = new Set(['slashBase','barrierBase','needleBase','needleMax']);
   for(const [name,id] of Object.entries(RANKED_SFX)) for(const rank of ['Base','Max']) {
     if(name==='fireball' && rank==='Max')continue;
     const key=name+rank;
@@ -250,6 +281,17 @@ window.AUDIO = (() => {
   SFX_FILES.fireDragonBall='assets/audio/sfx/fire-lv5-ball.mp3';
   SFX_FILES.fireGround='assets/audio/sfx/fire-lv5.mp3';
   SFX_VOLUME.fireDragon=.78;SFX_VOLUME.fireDragonBall=.68;SFX_VOLUME.fireGround=.54;
+  // Files are placeholders, not synthesized sounds. A missing cue fails once
+  // and remains silent; no fallback taiko, placeholder waveform or repeat 404.
+  const SILENT_OPTIONAL_SFX = new Set([
+    'inkTrailDrop','inkTrailHit','inkTrailAwaken',
+    'inkTrailEcho','sealNailDrop','sealNailBurst','sealNailAwaken',
+    'rainPortWaterSlamWarn','rainPortWaterSlamImpact',
+    'rainPortTideWarn','rainPortTideImpact','rainPortFanWarn',
+    'rainPortFanSweep','rainPortVortexWarn','rainPortVortexPillar',
+    'rainPortHeavyRain',
+    'sakuraRushWarn','sakuraRushCast','sakuraFanWarn','sakuraFanCast','sakuraBloomWarn','sakuraBloomImpact'
+  ]);
   const unavailableSfx = new Set();
   const activeSfx = new Set();
 
@@ -267,14 +309,14 @@ window.AUDIO = (() => {
         // Future water SFX files are intentionally absent until supplied.
         // Remember the failed lookup and fall back to synthesis only once;
         // do not retry the same 404 via HTMLAudio on every Boss attack.
-        if (name === "rainPortWaterSlamWarn" || name === "rainPortWaterSlamImpact") {
+        if (SILENT_OPTIONAL_SFX.has(name) || unprovidedRankedSfx.has(name)) {
           unavailableSfx.add(name);
-          if (!muted && !suspended) fallback(...args);
+          if (!SILENT_OPTIONAL_SFX.has(name)) fallback(...args);
         } else playExternalSfx(name,fallback,args,false);
       }
     })) return;
     if (!src || unavailableSfx.has(name)) {
-      fallback(...args);
+      if (!SILENT_OPTIONAL_SFX.has(name)) fallback(...args);
       return;
     }
 
@@ -283,7 +325,7 @@ window.AUDIO = (() => {
       audio = new Audio(window.audioAsset?.(src) || src);
     } catch (e) {
       unavailableSfx.add(name);
-      fallback(...args);
+      if (!SILENT_OPTIONAL_SFX.has(name)) fallback(...args);
       return;
     }
 
@@ -303,13 +345,13 @@ window.AUDIO = (() => {
       // Two future water cues are intentionally optional. Even browsers
       // without WebAudio (whose HTMLAudio 404s can report network code 2)
       // must avoid fetching the same missing OGG on every ground slam.
-      if (name === "rainPortWaterSlamWarn" || name === "rainPortWaterSlamImpact"
+      if (SILENT_OPTIONAL_SFX.has(name) || unprovidedRankedSfx.has(name)
           || reason?.name === "NotSupportedError" || [3, 4].includes(audio.error?.code)) {
         unavailableSfx.add(name);
       }
       fellBack = true;
       audio.pause();
-      fallback(...args);
+      if (!SILENT_OPTIONAL_SFX.has(name)) fallback(...args);
     };
     audio.addEventListener("ended", cleanup, { once: true });
     audio.addEventListener("error", useFallback, { once: true });
@@ -781,7 +823,7 @@ window.AUDIO = (() => {
       const standardSfx=Object.entries(SFX_FILES)
         // This player-supplied file isn't available yet; load only on slam.
         .filter(([key])=>!['fireDragon','fireDragonBall','fireGround','bossSlamImpact','charmPickup','finalBossDeath',
-          'rainPortWaterSlamWarn','rainPortWaterSlamImpact'].includes(key))
+          ...SILENT_OPTIONAL_SFX,...unprovidedRankedSfx].includes(key))
         .map(([,file])=>file);
       const paths = [
         ...words.map(w => {
@@ -1314,9 +1356,8 @@ window.AUDIO = (() => {
   api.charmPickup=()=>api.pickup();
   // Future real impact MP3 overrides this temporary low taiko fallback.
   api.bossSlamImpact=()=>playTaiko(66,0.22);
-  // Both remain playable before the user supplies the OGG files.
-  api.rainPortWaterSlamWarn=()=>{playTaiko(92,0.12);playSuzu(1150,0.10);};
-  api.rainPortWaterSlamImpact=()=>{playTaiko(62,0.27);playSuzu(660,0.12);};
+  // User-supplied files only. Absence of a file must remain completely silent.
+  for (const key of SILENT_OPTIONAL_SFX) api[key]=()=>{};
   const ofudaLaunchFallback = api.boomerang;
   const ofudaBurstFallback = api.ofudaBurst;
   // 對外 API 保持不變；只替 SFX 方法加上一層「MP3 優先、合成音 fallback」。

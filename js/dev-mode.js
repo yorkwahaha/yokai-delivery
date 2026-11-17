@@ -20,7 +20,19 @@ function searchParams(loc) {
 }
 
 function isDevMode(loc) {
-  return isLoopback(loc) && searchParams(loc).get("dev") === "1";
+  return (isLoopback(loc) || isSakuraPlaytest(loc)) && searchParams(loc).get("dev") === "1";
+}
+
+// Explicit Stage3 review on a home LAN also uses the isolated DEV save.
+// Public hosts cannot enable the unfinished stage or its candidate media.
+function isSakuraPlaytest(loc) {
+  const host = hostnameOf(loc);
+  const parts = host.split(".").map(Number);
+  const ipv4 = /^\d+\.\d+\.\d+\.\d+$/.test(host) && parts.every(n => n >= 0 && n <= 255);
+  const privateHost = ipv4 && (parts[0] === 10 ||
+    (parts[0] === 192 && parts[1] === 168) ||
+    (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31));
+  return (isLoopback(loc) || privateHost) && searchParams(loc).get("s3play") === "1";
 }
 
 function sessionKey(loc) {
@@ -170,6 +182,7 @@ const api = {
   NOTE,
   isLoopback,
   isDevMode,
+  isSakuraPlaytest,
   sessionKey,
   acceptStage,
   requestedStage,

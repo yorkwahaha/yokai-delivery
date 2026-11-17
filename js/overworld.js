@@ -6,7 +6,10 @@
   // original readable font path for older builds and isolated test fixtures.
   const mapFont = (size, heading = false) => {
     const px = Number(readableFont(size, heading ? "700" : "800").match(/([\d.]+)px/)?.[1]) || size;
-    if(root.UI?.mapInkFont)return root.UI.mapInkFont(px);
+    if (typeof root.UI?.mapInkFont === "function") {
+      const painted = root.UI.mapInkFont(px);
+      if (typeof painted === "string" && /[\d.]+px/.test(painted)) return painted;
+    }
     return heading
       ? `700 ${px}px 'Kaisei Decol', 'Noto Serif TC', 'PMingLiU', serif`
       : `800 ${px}px 'Noto Sans JP', 'Microsoft JhengHei', sans-serif`;
@@ -669,7 +672,8 @@
     const modernPlates=!!root.UI?.mapPlaqueReady?.() && typeof root.UI?.drawMapPlaque==="function";
     const titleFont = mapFont(Math.max(24, Math.ceil(18 / (root.VIEWPORT?.get?.().scale || 1))),true);
     const subtitleFont = mapFont(12);
-    const titleSize = Number(titleFont.match(/([\d.]+)px/)[1]), subtitleSize = Number(subtitleFont.match(/([\d.]+)px/)[1]);
+    const titleSize = Number(titleFont.match(/([\d.]+)px/)?.[1]) || 24;
+    const subtitleSize = Number(subtitleFont.match(/([\d.]+)px/)?.[1]) || 12;
     const titleY = area.top+Math.max(32,titleSize);
     const subtitleY = titleY+Math.max(21,(titleSize+subtitleSize)/2+4);
     const fade=ctx.createLinearGradient(0,area.top,0,area.top+105);
