@@ -184,8 +184,11 @@ def registry(entries):
    stage_ids=STAGES,templates=templates,
    approvals={'delivery_img':['night-town'],'delivery_audio':['night-town'],
               'stage_2_existing_bundle':'assets/img/rain-port/s2-production/'},
-   trials={'delivery_img':['rain-port'],'delivery_audio':['rain-port']},
-   policy='Stage2 delivery art/audio explicitly authorized for local playtest; not approved final. Source files retained.',
+   trials={'delivery_img':['rain-port','sakura-pass'],'delivery_audio':['rain-port','sakura-pass'],
+           'stage_scene':{'sakura-pass':'assets/img/stages/sakura-pass/manifest.json'},
+           'stage3_character_manifest':'art/stage3-sakura-pass/characters/manifest.json',
+           'stage3_boss_sfx_manifest':'assets/audio/sfx/enemies/sakura-tengu/manifest.json'},
+   policy='Stage2 and Stage3 delivery art/audio explicitly authorized for local playtest; not approved final. Source files retained.',
    aliases=entries)
 def runtime(entries):
  pairs={e['source']:e['canonical'] for e in entries if e['route']}
@@ -203,7 +206,7 @@ def inventory(entries):
    if not f.is_file() or f.suffix.lower() not in MEDIA:continue
    path=f.relative_to(ROOT).as_posix();e=src.get(path)
    if e:status='legacy_alias_active' if e['route'] else 'legacy_source_pending_renderer'
-   elif path.startswith(('assets/img/delivery/rain-port/','assets/audio/delivery/rain-port/','assets/img/ui/charm-passive/b7/','assets/img/ui/charm-passive/b9/','assets/img/ui/charm-passive/b10/','assets/img/ui/charm-passive/b11/','assets/img/ui/b12/','assets/img/ui/b13/','assets/img/ui/b14/','assets/img/ui/passive/b9/','assets/img/ui/passive/washi-v2/')) or path in ('assets/img/ui/dash_medallion_b7.webp','assets/img/vfx/boss-night-town/seal_break_painted.webp'):status='trial_pending_review'
+   elif path.startswith(('assets/img/vfx/enemies/sakura-tengu/','assets/audio/sfx/enemies/sakura-tengu/','assets/img/vfx/skills/violet-scent/','assets/img/vfx/skills/seal-nail/')) or path.startswith(tuple('assets/img/enemies/'+i+'/' for i in ('sakura-kodama','hanakage-fox','moss-tanuki','stone-lantern-kid','paper-umbrella-spirit','sakura-tengu','ancient-sakura-guardian','night-sakura-princess'))) or path.startswith(('assets/img/stages/sakura-pass/','assets/img/delivery/rain-port/','assets/audio/delivery/rain-port/','assets/img/delivery/sakura-pass/','assets/audio/delivery/sakura-pass/','assets/img/ui/charm-passive/b7/','assets/img/ui/charm-passive/b9/','assets/img/ui/charm-passive/b10/','assets/img/ui/charm-passive/b11/','assets/img/ui/b12/','assets/img/ui/b13/','assets/img/ui/b14/','assets/img/ui/passive/b9/','assets/img/ui/passive/washi-v2/')) or path in ('assets/img/ui/dash_medallion_b7.webp','assets/img/vfx/boss-night-town/seal_break_painted.webp'):status='trial_pending_review'
    elif path in ('assets/img/vfx/shield/ward_spirit_full.webp','assets/img/vfx/shield/ward_spirit_crack.webp','assets/img/vfx/shield/ward_bagua_full.webp','assets/img/vfx/shield/ward_bagua_break.webp','assets/img/vfx/boss-night-town/slam_earth_warning.webp','assets/img/vfx/boss-night-town/slam_earth_impact.webp','assets/img/vfx/boss-night-town/charge_aura.webp','assets/img/vfx/boss-night-town/charge_single_b13.webp'):status='trial_pending_review'
    elif path.startswith(('assets/img/ui/passive/warm/','assets/img/ui/charm-passive/clean/')) or path == 'assets/img/vfx/boss-night-town/charge_aligned.webp':status='canonical'
    elif path in dest or path.startswith(('assets/img/delivery/','assets/audio/delivery/')) or path in ('assets/img/vfx/shield/ofuda_ward_full.svg','assets/img/vfx/shield/ofuda_ward_crack.svg'):status='canonical'

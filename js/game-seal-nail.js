@@ -8,7 +8,6 @@ window.GAME_SEAL_NAIL = (() => {
     {factor:8.4, cooldown:4.2, radius:148, distance:155, life:5.5},
     {factor:10.0,cooldown:3.9, radius:160, distance:145, life:6.0}
   ]);
-  const LOCAL_HOST=/^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)$/;
   const eligible=e=>!!e&&e.hp>0&&!e.dying&&!e.shield&&!e.vanish&&!e.done&&!e.invulnerable&&!e.untargetable;
   function spec(level,damage=1){
     const cfg=TIERS[Math.max(0,Math.min(4,(level|0)-1))];
@@ -17,11 +16,11 @@ window.GAME_SEAL_NAIL = (() => {
       cadenceEligible:false,reachEligible:false,critEligible:false};
   }
   function loadCandidateArt(){
-    if(!LOCAL_HOST.test(String(window.location?.hostname||""))||typeof window.Image!=="function")return {};
+    if(typeof window.Image!=="function")return {};
     const art={};
     for(const role of ["pin","burst","break"]){
       const img=new window.Image();img.decoding="async";
-      img.src="art/skills/seal-nail/seal-nail__"+role+"-candidate-20261117.webp";
+      img.src="assets/img/vfx/skills/seal-nail/seal-nail__"+role+".webp?v=seal-nail-public-2";
       art[role]=img;
     }
     return art;

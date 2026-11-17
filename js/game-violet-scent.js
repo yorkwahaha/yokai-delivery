@@ -1,4 +1,4 @@
-// 第七招：墨跡・紫藤毒香。連續走動殘留毒香，而非觸碰即炸的一次性陷阱。
+// 第七招：紫藤毒香。連續走動留下粉紫煙霧，與封印釘的爆破陷阱不同。
 // Only weapons(dt) advances poison and trail; raster-only visual effects.
 window.GAME_VIOLET_SCENT = (() => {
   const TIERS = Object.freeze([
@@ -9,7 +9,6 @@ window.GAME_VIOLET_SCENT = (() => {
     {max:14,distance:45, interval:.20, radius:72, life:6.0, factor:3.2}
   ]);
   const TICK=.5, MAX_DOT_STEPS=2, MAX_VISUALS=12, BOSS_MULTIPLIER=.35;
-  const LOCAL_HOST=/^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)$/;
   const eligible=e=>e&&e.hp>0&&!e.dying&&!e.shield&&!e.vanish&&!e.done&&!e.invulnerable&&!e.untargetable;
   function spec(level,damage=1,mutations=[]){
     const lvl=Math.max(1,Math.min(5,Number(level)||1));
@@ -24,16 +23,17 @@ window.GAME_VIOLET_SCENT = (() => {
       cadenceEligible:false,reachEligible:false,critEligible:false};
   }
   function loadCandidateArt(){
-    if(!LOCAL_HOST.test(String(window.location?.hostname||""))||typeof window.Image!=="function")return {};
-    const art={},base="art/skills/ink-trail/";
-    // Old, user-unapproved painted wisps are temporary. Never use footprint
-    // sprites, attack slash art, circles, or Canvas geometry for poison clouds.
+    if(typeof window.Image!=="function")return {};
+    const art={},base="assets/img/vfx/skills/violet-scent/";
+    // Shipped painted smoke rasters are temporary until dedicated art is approved.
+    // Never use footprint sprites, seals, burst arcs or geometric placeholders.
     for(const [key,file] of Object.entries({
-      mist:"ink-trail__fade-candidate-20261111-v2.webp",
-      smoke:"ink-trail__burn-candidate-20261111-v3.webp"
+      mist:"violet-scent__cloud.webp",
+      smoke:"violet-scent__poison.webp",
+      confuse:"violet-scent__confuse.webp"
     })){
       const img=new window.Image();img.decoding="async";
-      img.src=base+file+"?v=violet-scent-preview-1";art[key]=img;
+      img.src=base+file+"?v=violet-scent-public-2";art[key]=img;
     }
     return art;
   }
@@ -108,6 +108,12 @@ window.GAME_VIOLET_SCENT = (() => {
         if(visible++>=MAX_VISUALS)break;
         visuals.push({target:enemy,life:.18,max:.18});
       }
+      if(visible<MAX_VISUALS)for(const enemy of enemies){
+        if(visible>=MAX_VISUALS)break;
+        if(enemy.confusedT>0&&!infections.has(enemy)&&eligible(enemy)){
+          visuals.push({target:enemy,life:.18,max:.18});visible++;
+        }
+      }
       if(visuals.length>MAX_VISUALS)visuals=visuals.slice(-MAX_VISUALS);
     }
     function paint(ctx,art={},fade=1){
@@ -116,7 +122,7 @@ window.GAME_VIOLET_SCENT = (() => {
       for(const c of clouds){
         const age=c.maxLife-c.life,w=c.radius*2.35,h=c.radius*1.42;
         ctx.save();
-        ctx.globalAlpha*=fade*Math.min(.68,c.life/.75)*Math.min(1,age/.25);
+        ctx.globalAlpha*=fade*Math.min(.86,c.life/.75)*Math.min(1,age/.25);
         ctx.translate(c.x+Math.sin(age*2.8)*4,c.y-Math.sin(age*2.2)*6);
         ctx.rotate(c.angle*.15+Math.sin(age*1.5)*.08);
         ctx.drawImage(img,-w/2,-h/2,w,h);
@@ -124,16 +130,23 @@ window.GAME_VIOLET_SCENT = (() => {
       }
     }
     function paintEnemyImpacts(ctx,art={},upright=(_x,_y,draw)=>draw()){
-      const img=art.smoke?.naturalWidth>0?art.smoke:null;
-      if(!img)return;
+      const poison=art.smoke?.naturalWidth>0?art.smoke:null;
+      const confused=art.confuse?.naturalWidth>0?art.confuse:null;
+      if(!poison&&!confused)return;
       const drawn=new Set();
       for(const v of visuals){
         const e=v.target;
         if(!eligible(e)||drawn.has(e))continue;
         drawn.add(e);
         upright(e.x,e.y,()=>{
-          ctx.save();ctx.globalAlpha*=e.confusedT>0?.58:.27;
-          ctx.drawImage(img,e.x-39,e.y-79,78,88);ctx.restore();
+          ctx.save();
+          if(poison){ctx.globalAlpha*=.35;ctx.drawImage(poison,e.x-42,e.y-80,84,92);}
+          if(e.confusedT>0&&confused){
+            ctx.globalAlpha=.78*Math.min(1,e.confusedT/.4);
+            const t=e.confusedT*4.5,dx=Math.sin(t)*7;
+            ctx.drawImage(confused,e.x-47+dx,e.y-108,84,83);
+          }
+          ctx.restore();
         });
       }
     }
