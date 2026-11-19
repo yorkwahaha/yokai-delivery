@@ -48,6 +48,55 @@ test('storage access denied still exposes an in-memory game store', () => {
   assert.equal(store.isStageUnlocked('night-town'), true);
 });
 
+test('quota recovery seals bounded segments and retries only the unsaved suffix', () => {
+  const key = 'yokai-delivery-v1';
+  let blockAll = true, blockSecond = false;
+  const { open, disk } = createStoreTabs({}, {
+    reject: name => name.startsWith(key + ':journal:') &&
+      (blockAll || (blockSecond && name.endsWith(':1')))
+  });
+  const a = open();
+  for (let i = 0; i < 520; i++) a.rec('猫', true);
+  assert.equal(a.canSave(), false);
+  blockAll = false;
+  blockSecond = true;
+  a.flush();
+  assert.equal(a.canSave(), false);
+  assert.equal(open().get('猫').ok, 256);
+  assert.equal(a.get('猫').ok, 520);
+  blockSecond = false;
+  a.flush();
+  assert.equal(a.canSave(), true);
+  assert.equal(open().get('猫').ok, 520);
+  const chunks = [...disk].filter(([name]) => name.startsWith(key + ':journal:'));
+  assert.deepEqual(chunks.map(([, value]) => JSON.parse(value).length), [256, 256, 8]);
+});
+
+test('a checkpoint published during enumeration does not expose a half-read state', () => {
+  const key = 'yokai-delivery-v1';
+  const baseKey = key + ':journal-base';
+  let advance = false;
+  const { open, disk } = createStoreTabs({ [key]: JSON.stringify({ m: { '猫': { ok: 2 } } }) }, {
+    rejectRead(name) {
+      if (advance && name.startsWith(key + ':journal:')) {
+        advance = false;
+        disk.set(baseKey, disk.get(key));
+        disk.delete(name);
+      }
+      return false;
+    }
+  });
+  const a = open();
+  a.rec('猫', true);
+  const b = open();
+  assert.equal(b.get('猫').ok, 3);
+  advance = true;
+  assert.equal(b.get('猫').ok, 3);
+  assert.equal(b.get('猫').ok, 3);
+  b.rec('猫', true);
+  assert.equal(open().get('猫').ok, 4);
+});
+
 test('a failed migration base write cannot make the legacy projection a replay base', () => {
   const key = 'yokai-delivery-v1';
   let blocked = true;
@@ -236,4 +285,48 @@ test('unchanged journal reads skip repeated JSON parsing', () => {
     assert.equal(s.isStageCompleted('night-town'), false);
   }
   assert.equal(parses, baseline, 'unchanged storage must avoid JSON.parse');
+});
+test('adding one answer does not reparse other unchanged journal segments',()=>{
+  const disk=new Map();
+  let parses=0;
+  const storage={
+    get length(){return disk.size;},
+    key:i=>[...disk.keys()][i]??null,
+    getItem:k=>disk.get(k)??null,
+    setItem:(k,v)=>disk.set(k,String(v))
+  };
+  const window={crypto:{randomUUID:()=>"cache-tab"},localStorage:storage};
+  const json={parse(value){parses++;return JSON.parse(value);},stringify:JSON.stringify};
+  vm.runInNewContext(source,{window,localStorage:storage,JSON:json,Date,Math,console});
+  const store=window.STORE;
+  for(let i=0;i<560;i++)store.rec('鳥',true);
+  store.isStageUnlocked('night-town');
+  const before=parses;
+  store.rec('猫',true);
+  const extra=parses-before;
+  assert.ok(extra<=5,`new write should parse only active journal, got ${extra}`);
+  assert.equal(store.get('鳥').ok,560);
+  assert.equal(store.get('猫').ok,1);
+});
+test('an open tab reloads a newer migration base before replaying removed segments',()=>{
+  const key='yokai-delivery-v1';
+  const baseKey=key+':journal-base';
+  const oldKey=key+':journal:old:0';
+  const start={m:{鳥:{ok:2,ng:0,box:2,lastSeen:0,missBoost:1}},
+    best:0,bestDel:0,coins:0,progress:{unlocked:{"night-town":true},completed:{},stages:{}}};
+  const {open,disk}=createStoreTabs({
+    [baseKey]:JSON.stringify(start),
+    [oldKey]:JSON.stringify([['rec',Date.now(),1,'鳥',1,0,0,0]])
+  });
+  const tab=open();
+  assert.equal(tab.get('鳥').ok,3);
+  const next=structuredClone(start);
+  next.m['鳥'].ok=3;
+  next.m['鳥'].box=3;
+  disk.set(baseKey,JSON.stringify(next));
+  disk.delete(oldKey);
+  assert.equal(tab.get('鳥').ok,3,'must not forget folded journal after external checkpoint');
+  tab.rec('猫',true);
+  assert.equal(open().get('鳥').ok,3);
+  assert.equal(open().get('猫').ok,1);
 });

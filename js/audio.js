@@ -722,6 +722,16 @@ window.AUDIO = (() => {
   let impactNoise = null, lastImpactAudioAt = -10;
   // 5. 戰鬥打擊音效
   const api = {
+    playOptionalCue(name, path, volume) {
+      // These cue paths are reserved for local recordings. The classroom
+      // release should neither request missing MP3s nor synthesize substitutes.
+      if (!window.DEV_MODE?.isLoopback?.(window.location)) return;
+      if (!path || !/^(shikigami|bamboo|kyoto)[A-Z_]/.test(name)) return;
+      SFX_FILES[name] ??= path;
+      SFX_VOLUME[name] = volume;
+      SILENT_OPTIONAL_SFX.add(name);
+      playExternalSfx(name, () => {}, []);
+    },
     bossDeath() {
       playTaiko(48, 0.3);
       playHyoshigi(0.18);

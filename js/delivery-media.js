@@ -1,5 +1,5 @@
 // Delivery media single source of truth: stages, per-word indexes, and approved production paths.
-// Only approved media is routed to assets/. Art candidates and TTS trials live under art/.
+// Artwork and audio have independent approval and preview routes.
 (() => {
   const root = typeof window !== "undefined" ? window : globalThis;
   const kinds = Object.freeze({
@@ -9,14 +9,12 @@
   const stageIds = Object.freeze((root.DELIVERY_LEXICON?.stages || []).slice(0, 7).map(stage => stage.id));
   // Different approval dates for image and audio are supported; do not implicitly publish candidate media.
   const approved = Object.freeze({
-    image: new Set(["night-town"]),
+    image: new Set(["night-town", "rain-port", "sakura-pass", "bamboo-maze"]),
     audio: new Set(["night-town"])
   });
-  // Stages 2/3 are playable for review, but NOT approved as final art/voice.
-  // Keep trial status separate from production approval.
   const trial = Object.freeze({
-    image: new Set(["rain-port", "sakura-pass"]),
-    audio: new Set(["rain-port", "sakura-pass"])
+    image: new Set(),
+    audio: new Set(["rain-port", "sakura-pass", "bamboo-maze"])
   });
   const wordIndex = new Map();
   for (const stage of (root.DELIVERY_LEXICON?.stages || []).slice(0, 7)) {
@@ -27,6 +25,8 @@
     const def = kinds[kind];
     if (!def || !stageIds.includes(stage) || !(approved[kind].has(stage) || trial[kind].has(stage))
       || !Number.isInteger(index) || index < 1 || index > 20) return null;
+    if (stage === "bamboo-maze" && root.CONTENT?.getStage?.(stage)?.mapReleased !== true
+      && !root.DEV_MODE?.isStageLab?.(root.location)) return null;
     return "assets/" + def.folder + "/delivery/" + stage + "/" + indexName(index) + "." + def.ext;
   }
   const entryFor = jp => wordIndex.get(jp) || null;

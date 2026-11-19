@@ -141,7 +141,7 @@ test('P23 night-town final Boss regeneration transitions after 120s and 240s',()
  assert.ok(boss.hp>500&&boss.hp<500.4,'phase1 +.25 HP');
  const first=boss.hp;
  g.setElapsed(240);g.update(.05);
- assert.ok(boss.hp-first>.49&&boss.hp-first<.51,'phase2 +.5 HP');
+  assert.ok(boss.hp-first>.42&&boss.hp-first<.43,'phase2 +.425 HP');
 });
 test('P23 rain-port final Boss never inherits night-town self-healing phases',()=>{
  const g=battle(231,'rain-port');

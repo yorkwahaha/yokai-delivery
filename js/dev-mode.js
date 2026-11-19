@@ -23,6 +23,25 @@ function isDevMode(loc) {
   return (isLoopback(loc) || isSakuraPlaytest(loc)) && searchParams(loc).get("dev") === "1";
 }
 
+function isShikigamiTrial(loc) {
+  if (!isLoopback(loc)) return false;
+  const params = searchParams(loc);
+  return params.get("dev") === "1" && params.get("fusionlab") !== "1" &&
+    (params.get("shikigami") === "1" || params.get("stageLab") === "1");
+}
+
+function isStageLab(loc) {
+  if (!isLoopback(loc)) return false;
+  const params = searchParams(loc);
+  return params.get("dev") === "1" && params.get("stageLab") === "1" && params.get("fusionlab") !== "1";
+}
+
+function isFusionLab(loc) {
+  if (!isLoopback(loc)) return false;
+  const params = searchParams(loc);
+  return params.get("dev") === "1" && params.get("fusionlab") === "1" && params.get("nofusion") !== "1";
+}
+
 // Explicit Stage3 review on a home LAN also uses the isolated DEV save.
 // Public hosts cannot enable the unfinished stage or its candidate media.
 function isSakuraPlaytest(loc) {
@@ -33,6 +52,15 @@ function isSakuraPlaytest(loc) {
     (parts[0] === 192 && parts[1] === 168) ||
     (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31));
   return (isLoopback(loc) || privateHost) && searchParams(loc).get("s3play") === "1";
+}
+
+function isBambooEnabled(loc) {
+  return globalThis.CONTENT?.getStage?.("bamboo-maze")?.mapReleased === true || isStageLab(loc);
+}
+
+function isShikigamiEnabled(loc) {
+  return isShikigamiTrial(loc) || (!isFusionLab(loc) &&
+    globalThis.CONTENT?.getStage?.("bamboo-maze")?.mapReleased === true);
 }
 
 function sessionKey(loc) {
@@ -182,7 +210,12 @@ const api = {
   NOTE,
   isLoopback,
   isDevMode,
+  isShikigamiTrial,
+  isStageLab,
+  isFusionLab,
   isSakuraPlaytest,
+  isBambooEnabled,
+  isShikigamiEnabled,
   sessionKey,
   acceptStage,
   requestedStage,

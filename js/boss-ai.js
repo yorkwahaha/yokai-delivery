@@ -56,6 +56,7 @@
   }
 
   function getAttackPool(e) {
+    if (e.trialBoss?.attacks) return e.trialBoss.attacks;
     const theme = getBossTheme(e);
     const pool = BOSS_THEME_POOLS[theme] || BOSS_THEME_POOLS.town;
     // 雨港專屬：以 stageId 判定，僅 rain-port 啟用 tidalFan/rainVortex
@@ -127,6 +128,8 @@
   function start(e, player, options = {}) {
     if (!e || (e.hp || 0) <= 0 || e.hazard || e.shield) return false;
     if ((e.stageId === 'sakura-pass' || options.stageId === 'sakura-pass') && sakuraAI) return sakuraAI.start(e,player,options);
+    if (root.BAMBOO_COMBAT?.isBamboo(e, options)) return root.BAMBOO_COMBAT.start(e, player, options);
+    if (root.KYOTO_PROCESSION?.isKyoto(e, options)) return root.KYOTO_PROCESSION.startBoss(e, player);
 
     const kind = nextAttackKind(e);
     const p = player || { x: 0, y: 0 };
@@ -276,6 +279,8 @@
 
   function step(e, player, dt, options = {}) {
     if ((e?.stageId === 'sakura-pass' || options.stageId === 'sakura-pass') && sakuraAI) return sakuraAI.step(e,player,dt,options);
+    if (root.BAMBOO_COMBAT?.isBamboo(e, options)) return root.BAMBOO_COMBAT.step(e, player, dt, options);
+    if (root.KYOTO_PROCESSION?.isKyoto(e, options)) return root.KYOTO_PROCESSION.stepBoss(e, player, dt, options);
     if (!e || (e.hp || 0) <= 0) {
       if (e && e.hazard) {
         delete e.hazard;

@@ -1,0 +1,254 @@
+{
+  "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+  "enabledOn": [
+    "public classroom playtest",
+    "loopback"
+  ],
+  "tool": "ChatGPT ImageGen",
+  "frame": [
+    0,
+    0,
+    640,
+    480,
+    320
+  ],
+  "sources": {
+    "stone-lion": {
+      "path": "art/stage1-night-town/characters/boss-roster/stone-lion__poses.png",
+      "sha256": "d41c9a7b2ba650f67a54db3fcae6d6292ef981c62280a42edfce7bbde9530535",
+      "prompt": "A square TRUE TRANSPARENT RGBA sprite sheet for an original Japanese yokai game's boss. EXACTLY TWO WIDELY SEPARATED sprites side by side in equally sized left and right halves, left neutral idle and right attack pose, same character matching color, outfit, identity, same HEIGHT and 3/4 front-right facing direction. Feet grounded and visible, fit both full figures inside margins (at least 8% inner alpha gutter and outer margin), useful imagined camera pitched 20 degrees downward. At rest visibly formidable, attack pose expressive but fully contained horizontally. Strong readable compact silhouette at 100px game scale. Japanese hand-inked ukiyo-e and washi watercolor, bold dry black/sepia contours with subtle grain, atmospheric natural pigments, slightly exaggerated big hands and mask but dramatic fantasy silhouette. Vary distinct value zones with no bright graphic outline. Isolated cutouts, no floor, border, fake checkerboard, words, silhouette shadow, particles, smoke screen or VFX. Every pose face and weapon inside its half. Creature design and scene palette: First boss of the lantern-lit Edo night town. An intimidating broad stone komainu lion guardian standing on all fours, slate gray and green body, huge curling stone mane, narrow amber eyes, thick planted paws, a single crimson shrine rope with one aged bronze bell and pale gold accents. Crouching 3/4, pointing head to the right. The second pose lunges forward with forepaw raised, stronger head tilt, still same paws and low wide body. Lion-like clear head and canine hind legs, chunky chipped carved muscles, no samurai clothes."
+    },
+    "lantern-monk": {
+      "path": "art/stage1-night-town/characters/boss-roster/lantern-monk__poses.png",
+      "sha256": "d50ab9aeb0fef9b2586686998d4da5e7fcff758913c13c095a1813ecca376793",
+      "prompt": "A square TRUE TRANSPARENT RGBA sprite sheet for an original Japanese yokai game's boss. EXACTLY TWO WIDELY SEPARATED sprites side by side in equally sized left and right halves, left neutral idle and right attack pose, same character matching color, outfit, identity, same HEIGHT and 3/4 front-right facing direction. Feet grounded and visible, fit both full figures inside margins (at least 8% inner alpha gutter and outer margin), useful imagined camera pitched 20 degrees downward. At rest visibly formidable, attack pose expressive but fully contained horizontally. Strong readable compact silhouette at 100px game scale. Japanese hand-inked ukiyo-e and washi watercolor, bold dry black/sepia contours with subtle grain, atmospheric natural pigments, slightly exaggerated big hands and mask but dramatic fantasy silhouette. Vary distinct value zones with no bright graphic outline. Isolated cutouts, no floor, border, fake checkerboard, words, silhouette shadow, particles, smoke screen or VFX. Every pose face and weapon inside its half. Creature design and scene palette: Second boss of the nocturnal Edo shopping district. Tall floating lantern priest yokai with a single ochre octagonal paper lantern for a large face (slit eyes), worn deep indigo monk robes, small crimson sutra papers on the rope belt, long black sleeve folds and one raised bronze ringed staff pointed diagonally upward. The body is contained and tapered to a clearly centered lower base, sandals just above implied floor. The second pose twists to the right in an overhead swing of the same staff with lamp-glow face but no visible extra VFX. No iron oni mask, this is clearly a lantern-headed monk specter."
+    },
+    "tide-crab": {
+      "path": "art/stage2-rain-port/characters/boss-roster/tide-crab__poses.png",
+      "sha256": "a798f2f7919054c694b7630f3b1206c15662456ec18b3c6f2d323c4394566910",
+      "prompt": "A square TRUE TRANSPARENT RGBA sprite sheet for an original Japanese yokai game's boss. EXACTLY TWO WIDELY SEPARATED sprites side by side in equally sized left and right halves, left neutral idle and right attack pose, same character matching color, outfit, identity, same HEIGHT and 3/4 front-right facing direction. Feet grounded and visible, fit both full figures inside margins (at least 8% inner alpha gutter and outer margin), useful imagined camera pitched 20 degrees downward. At rest visibly formidable, attack pose expressive but fully contained horizontally. Strong readable compact silhouette at 100px game scale. Japanese hand-inked ukiyo-e and washi watercolor, bold dry black/sepia contours with subtle grain, atmospheric natural pigments, slightly exaggerated big hands and mask but dramatic fantasy silhouette. Vary distinct value zones with no bright graphic outline. Isolated cutouts, no floor, border, fake checkerboard, words, silhouette shadow, particles, smoke screen or VFX. Every pose face and weapon inside its half. Creature design and scene palette: First boss of a rainy Japanese fishing port. An enormous broad ghost crab shogun: solid crustacean animal silhouette, layered wet rust-red carapace armor in dull cinnabar, smoky turquoise patina, woven cord, two mismatched huge claws and four visible shell legs per side, narrow glowing yellow eyes, a broken rope draped over shell. Low, crablike and heavy, quadruped profile centered. Facing three quarter front-right. In second pose a huge left pincer sweeps sideways with one planted foot center, but all silhouette remains in cell. Distinct animal shape, no character riding it, no anchor."
+    },
+    "shipwreck-princess": {
+      "path": "art/stage2-rain-port/characters/boss-roster/shipwreck-princess__poses.png",
+      "sha256": "2fe83aa7f6cce0fb5a2b752e4fe2577825adca22bb730f5a65af07e02b216dd3",
+      "prompt": "A square TRUE TRANSPARENT RGBA sprite sheet for an original Japanese yokai game's boss. EXACTLY TWO WIDELY SEPARATED sprites side by side in equally sized left and right halves, left neutral idle and right attack pose, same character matching color, outfit, identity, same HEIGHT and 3/4 front-right facing direction. Feet grounded and visible, fit both full figures inside margins (at least 8% inner alpha gutter and outer margin), useful imagined camera pitched 20 degrees downward. At rest visibly formidable, attack pose expressive but fully contained horizontally. Strong readable compact silhouette at 100px game scale. Japanese hand-inked ukiyo-e and washi watercolor, bold dry black/sepia contours with subtle grain, atmospheric natural pigments, slightly exaggerated big hands and mask but dramatic fantasy silhouette. Vary distinct value zones with no bright graphic outline. Isolated cutouts, no floor, border, fake checkerboard, words, silhouette shadow, particles, smoke screen or VFX. Every pose face and weapon inside its half. Creature design and scene palette: Second boss in rainy fishing port. Tall ghost princess made of soaked faded jade, seafoam green, off-white fabric and deep blue-black ink. Thin Japanese mariner's kimono with torn sleeves resembling a ship's sail, wet winding black hair, stern porcelain face, old brass knot clasp, one compact weathered ship bell held on a short sea-green cord. Torn lower garment narrows to an easily anchored wispy bottom, no ocean or wave base. Facing 3/4 towards the right. Left pose raises the bell close to chest. Right pose lunges with sleeve forward and strikes with the same small bell. Her cold jade color and elegant tall profile distinct from a crab warrior or sea giant."
+    },
+    "bamboo-boar": {
+      "path": "art/stage4-bamboo-maze/characters/boss-roster/bamboo-boar__poses.png",
+      "sha256": "97c20750e44453f50843f4eb547d6b3d6c70ac870c5a90133f98804b832261cc",
+      "prompt": "A square TRUE TRANSPARENT RGBA sprite sheet for an original Japanese yokai game's boss. EXACTLY TWO WIDELY SEPARATED sprites side by side in equally sized left and right halves, left neutral idle and right attack pose, same character matching color, outfit, identity, same HEIGHT and 3/4 front-right facing direction. Feet grounded and visible, fit both full figures inside margins (at least 8% inner alpha gutter and outer margin), useful imagined camera pitched 20 degrees downward. At rest visibly formidable, attack pose expressive but fully contained horizontally. Strong readable compact silhouette at 100px game scale. Japanese hand-inked ukiyo-e and washi watercolor, bold dry black/sepia contours with subtle grain, atmospheric natural pigments, slightly exaggerated big hands and mask but dramatic fantasy silhouette. Vary distinct value zones with no bright graphic outline. Isolated cutouts, no floor, border, fake checkerboard, words, silhouette shadow, particles, smoke screen or VFX. Every pose face and weapon inside its half. Creature design and scene palette: First boss in the moonlit bamboo forest maze. A giant heavy wild boar yokai on four legs, three-quarter facing right, huge ochre ivory curved tusks, coarse brown-black bristles, curved laminated bamboo armor strapped with rope to back and forehead, torn forest olive ribbon. Broad squat animal silhouette with strong feet touching ground, yellow amber eye. The right pose is a stomping lunge with the head lowered and one front leg braced forward. No humanoid, bamboo trunks or green floor, no sticks that might be read as background."
+    },
+    "ink-bamboo-witch": {
+      "path": "art/stage4-bamboo-maze/characters/boss-roster/ink-bamboo-witch__poses.png",
+      "sha256": "8f32079f10da29d7aadbc82a8767bd832e1adaa5138bb3c9aacd35e2db59216a",
+      "prompt": "A square TRUE TRANSPARENT RGBA sprite sheet for an original Japanese yokai game's boss. EXACTLY TWO WIDELY SEPARATED sprites side by side in equally sized left and right halves, left neutral idle and right attack pose, same character matching color, outfit, identity, same HEIGHT and 3/4 front-right facing direction. Feet grounded and visible, fit both full figures inside margins (at least 8% inner alpha gutter and outer margin), useful imagined camera pitched 20 degrees downward. At rest visibly formidable, attack pose expressive but fully contained horizontally. Strong readable compact silhouette at 100px game scale. Japanese hand-inked ukiyo-e and washi watercolor, bold dry black/sepia contours with subtle grain, atmospheric natural pigments, slightly exaggerated big hands and mask but dramatic fantasy silhouette. Vary distinct value zones with no bright graphic outline. Isolated cutouts, no floor, border, fake checkerboard, words, silhouette shadow, particles, smoke screen or VFX. Every pose face and weapon inside its half. Creature design and scene palette: Second boss in the moonlit bamboo maze. An elegant dangerous witch yokai with tall layered dark jade-and-cream robes woven of pointed bamboo leaves, long tied charcoal hair, expressive human-like face with mint eyes and ink mask streaks, a single large open fan of black bamboo lacquered ribs with an ivory-and-teal paper edge. In idle pose, fan held immediately to one side; in attack pose, sweeping it in a crouched diagonal across the body while the leaves flare. Same face, stance anchor and identity in both. Use moonstone white and muted rich teal on dark olive, distinctive tall humanoid silhouette, no staff and no full face mask."
+    },
+    "night-town-oni": {
+      "path": "art/stage1-night-town/characters/boss-roster/night-town-oni__poses.png",
+      "sha256": "88f096922227a70fc3d64b4dd482bd1e14aeab185f0fbc61be738e0a4fa5cd48",
+      "prompt": "Redraw the attached reference's SAME boss as two new sprites for the same original Japanese Yokai game. Reference 1 is identity/gear only (its background and dark palette are obsolete). Preserve the recognizable elder powerful red oni, two tall dark horns, flowing straw-pale wild mane, chunky dark Edo lamellar armor, one massive old iron kanabo and muscular long arms. Give him more clearly delineated warm washi watercolor, hand-hewn heavy sepia outlines, distinct rust-red skin, purple-brown armor, aged ochre cord, matte hand-colored Japanese woodblock print colors, slightly exaggerated game silhouette. Not a different character. Output exactly two widely separated fully transparent isolated full-body poses in equal-width left and right halves (same facing 3/4 front towards right, same feet visible and scale). Left: idle leaning forward with club held across legs as reference. Right: aggressive forward swing where club is cocked to the right in a compressed stance with weapon fully contained. Crop no body parts, leave broad transparent margins and clear gutter. Entire canvas PNG transparency. Fit natural posture from mildly elevated angle, thick simple lines read at 120px, no scenery, no rectangular background, no lettering, no sparks.",
+      "references": [
+        "assets/img/enemies/night-town-boss/night-town-boss__sprite__idle.webp"
+      ]
+    },
+    "harbor-umibozu": {
+      "path": "art/stage2-rain-port/characters/boss-roster/harbor-umibozu__storm-poses.png",
+      "sha256": "1cc0af692de9d0f09293377233acc228bed55bc02907797a79590a77738d569d",
+      "prompt": "Repaint the harbor final boss for the same original Japanese yokai game. Image 1 is the original identity and imposing asymmetrical silhouette: gigantic Umibozu sea wraith, bald shadowed blue human-like head, fierce sunken muted amber eyes, long heavily muscled upper-body anatomy, oversized single weathered iron ship anchor and heavy links, tapering storm-wave lower body. Image 2 (armored crab) is the target for hand-painted in-game detail, natural Japanese pigment colors and ink marks. Image 3 is the previous too rounded chibi repaint; carry forward only the desaturated rain-port mineral palette and paper grain. Definitely mature and intimidating, 7–8-head upper-body human proportions impression, small head relative to broad shoulders, long forearms, angular angled brow with a dark eye socket and tiny eyes, broken rough overlapping wave crests with ivory tips. No rounded cookie edges or cute expression. Dense tapered black and sepia brush outlines, blue-grey and slate shadows, subtle tarnished cyan and burnt umber on the iron anchor, coarse washi grain within shapes, picked cold moonlit edge highlights, restrained crisp contrast and active negative space, Japanese sumi-e meets hand-painted ukioye. Keep balanced detail with the crab boss rather than photorealism. Purpose: 2 interchangeable full-body game sprites on a WIDE horizontal sheet, separated cleanly by at least 100px of zero alpha. Use true transparent RGBA. Left half: heavy anchored ready stance, slight lean, one hand holding the colossal full anchor resting up behind ONE shoulder, loose hand visibly claw-like. Right half: imminent sweeping anchor strike, arms weighted and extended, tense side incline, still same face and sizes. 3/4 front facing right, posed for a 2.5D top-down adventure, lower wave base solidly planted, same grounded baseline and character scale. Keep anchor fully inside its cell and preserve at least 5% transparent outer margin. No background, floor tile, horizon, matte, legend, text, lighting aura or additional battlefield effects. The two clean silhouettes must read strongly at 170 pixels tall.",
+      "references": [
+        "assets/img/enemies/boss-ikari-umibozu/boss-ikari-umibozu__sprite__idle.webp",
+        "assets/img/enemies/tide-crab/tide-crab__sprite__idle.webp",
+        "art/stage2-rain-port/characters/boss-roster/harbor-umibozu__rounded-idle.webp"
+      ],
+      "previous": {
+        "path": "art/stage2-rain-port/characters/boss-roster/harbor-umibozu__poses.png",
+        "sha256": "c723f314f03974fc9b3b7c0935f4656231ce8daa701093b8e479d0d41b6bb5b6",
+        "prompt": "Redraw the SAME boss from image 1 (identity reference) to match the ink line weight and painted material of images 2–4 (style references only, do not draw those minions). He is the harbor fog Umibozu: large shoulder silhouette, bald rain-blue yokai with two luminous ochre eyes and a simple flattened face, enormous single patina-rust ship anchor on thick hemp rope, curling wave tail in subdued indigo, smoky slate blue and cream crests in architectural woodblock shape. Match the coarse black outline, paper grain, charcoal texture, flat warm greys, oatmeal linen, wood-grain and rusted boat metal of the three new sprites. Bigger and more intimidating than those creatures, consistent slightly rounded anatomy. Lose the glossy high contrast and thin wispy filigree of original, use dry pigment watercolor and broad clean shapes. True TRANSPARENT RGBA two-pose square sprite atlas, exactly two bare, centered full-body poses placed left and right in equally sized halves with broad alpha gutters. Left idle with anchor over right shoulder, anchored vertical center of wave tail. Right attacks with one-handed anchor sweep, same width and height bounds, same 3/4 front-right orientation. In both sprites whole anchor plus wave-tail fits with >8% transparent margin. Only the characters, no ground planes, art labels, or letters. Clear readable at 120px.",
+        "references": [
+          "assets/img/enemies/boss-ikari-umibozu/boss-ikari-umibozu__sprite__idle.webp",
+          "assets/img/enemies/wet-net-imp/wet-net-imp__sprite__idle.webp",
+          "assets/img/enemies/tidal-jar-kid/tidal-jar-kid__sprite__idle.webp",
+          "assets/img/enemies/anchor-shell-turtle/anchor-shell-turtle__sprite__idle.webp"
+        ]
+      }
+    }
+  },
+  "assets": [
+    {
+      "path": "assets/img/enemies/stone-lion/stone-lion__sprite__idle.webp",
+      "source": "stone-lion",
+      "pose": "idle",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "7af22b0ad1f8878469324f865e5ed84960a92e7b168010d0176d3e2eb467f762",
+      "visibleHeight": 390
+    },
+    {
+      "path": "assets/img/enemies/stone-lion/stone-lion__sprite__attack.webp",
+      "source": "stone-lion",
+      "pose": "attack",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "8394b99d3b306501ea90b685c65a8d7c7d71248cd3c685457c62d60fe0cf2cf1",
+      "visibleHeight": 416
+    },
+    {
+      "path": "assets/img/enemies/lantern-monk/lantern-monk__sprite__idle.webp",
+      "source": "lantern-monk",
+      "pose": "idle",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "a85e3a37d6330300db1d38680abf8733f5fc088e1936c58c55841a867f9fc08c",
+      "visibleHeight": 390
+    },
+    {
+      "path": "assets/img/enemies/lantern-monk/lantern-monk__sprite__attack.webp",
+      "source": "lantern-monk",
+      "pose": "attack",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "bbd5051ef5e38f7a5581acd2658b36a6989022adfcb26f690854a913a1c8362a",
+      "visibleHeight": 413
+    },
+    {
+      "path": "assets/img/enemies/tide-crab/tide-crab__sprite__idle.webp",
+      "source": "tide-crab",
+      "pose": "idle",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "efb21b5adc129bc509ce66c12280ffc3b4abb3ec7d4c53a88687f2ee9dd8f949",
+      "visibleHeight": 385
+    },
+    {
+      "path": "assets/img/enemies/tide-crab/tide-crab__sprite__attack.webp",
+      "source": "tide-crab",
+      "pose": "attack",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "8b88cd2eae6863840e05eff0d0cedafaa32577789892dc1d270330492e2ffbba",
+      "visibleHeight": 406
+    },
+    {
+      "path": "assets/img/enemies/shipwreck-princess/shipwreck-princess__sprite__idle.webp",
+      "source": "shipwreck-princess",
+      "pose": "idle",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "27aa434e4eaec485b36d55cc6035cc106895199b6205788249de5b56fe9acbca",
+      "visibleHeight": 389
+    },
+    {
+      "path": "assets/img/enemies/shipwreck-princess/shipwreck-princess__sprite__attack.webp",
+      "source": "shipwreck-princess",
+      "pose": "attack",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "a7c64de3f695b5856b4f32b45ddf3788aa65cd374717945367e30c4825b41980",
+      "visibleHeight": 359
+    },
+    {
+      "path": "assets/img/enemies/bamboo-boar/bamboo-boar__sprite__idle.webp",
+      "source": "bamboo-boar",
+      "pose": "idle",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "4e54f18c57d70258010688ddd237d7799c3186b75ac1e069ab955ba891859c7d",
+      "visibleHeight": 389
+    },
+    {
+      "path": "assets/img/enemies/bamboo-boar/bamboo-boar__sprite__attack.webp",
+      "source": "bamboo-boar",
+      "pose": "attack",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "b3cca70c178802cfaea9d3cf1416d736b9f8ac7b26e81eaa5e4269c5ca55502f",
+      "visibleHeight": 376
+    },
+    {
+      "path": "assets/img/enemies/ink-bamboo-witch/ink-bamboo-witch__sprite__idle.webp",
+      "source": "ink-bamboo-witch",
+      "pose": "idle",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "44d158890b279d0792fdd71c4982c992a68e42ad815b8cbcffc0f46592a97ce5",
+      "visibleHeight": 390
+    },
+    {
+      "path": "assets/img/enemies/ink-bamboo-witch/ink-bamboo-witch__sprite__attack.webp",
+      "source": "ink-bamboo-witch",
+      "pose": "attack",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "077ba1c39bb51ed5c457e06be7d61878322d9dcc321f40210824b3fe04717b61",
+      "visibleHeight": 345
+    },
+    {
+      "path": "assets/img/enemies/night-town-oni/night-town-oni__sprite__idle.webp",
+      "source": "night-town-oni",
+      "pose": "idle",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "8bd4e97a553e20301b18b64546d808b39168d2b922ba4e15d20895a6f53ec6f9",
+      "visibleHeight": 390
+    },
+    {
+      "path": "assets/img/enemies/night-town-oni/night-town-oni__sprite__attack.webp",
+      "source": "night-town-oni",
+      "pose": "attack",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "cc111a9d0a481d2ac6b50b55445885c133acf123527811584d9dd01cfc83a5b7",
+      "visibleHeight": 365
+    },
+    {
+      "path": "assets/img/enemies/harbor-umibozu/harbor-umibozu__sprite__idle.webp",
+      "source": "harbor-umibozu",
+      "pose": "idle",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "2818a4c2dd38a1fd9258aa733736edf327755a20e06bf140372ed21e4f88e77a",
+      "visibleHeight": 371
+    },
+    {
+      "path": "assets/img/enemies/harbor-umibozu/harbor-umibozu__sprite__attack.webp",
+      "source": "harbor-umibozu",
+      "pose": "attack",
+      "size": [
+        640,
+        512
+      ],
+      "sha256": "8388687277c08977b428f6b60a0a1c4f1efc054562790dfceaf3f558247a3419",
+      "visibleHeight": 345
+    }
+  ]
+}

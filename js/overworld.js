@@ -164,15 +164,21 @@
     return false;
   }
 
+  function isStageAvailable(stage) {
+    return stage?.mapReleased === true || (stage?.id === "bamboo-maze" &&
+      root.DEV_MODE?.isStageLab?.(root.location) === true);
+  }
+
   function isEnterable(node) {
     if (!node || node.type !== "stage") return false;
     const stage = root.CONTENT && root.CONTENT.getStage ? root.CONTENT.getStage(node.stageId) : null;
     // Guard new placeholders: getStage() falls back to night-town for unknown IDs.
     const implemented = node.enterable !== false && stage?.id === node.stageId && stage.implemented === true;
+    const released = isStageAvailable(stage);
     const unlocked = root.STORE && typeof root.STORE.isStageUnlocked === "function"
       ? root.STORE.isStageUnlocked(node.stageId)
       : stage?.unlockedByDefault !== false;
-    return implemented && unlocked && isNodeAccessible(node);
+    return implemented && released && unlocked && isNodeAccessible(node);
   }
 
   function findPath(fromId, targetId) {
@@ -727,7 +733,9 @@
       const best = root.STORE?.getStageStats?.(here.stageId)?.bestScore || 0;
       const atStage = !state.inspectId || state.inspectId === state.currentId;
       const progress=canEnter ? (best ? `最高 ${best.toLocaleString()} 點` : "尚無配達紀錄")
-        : (root.CONTENT?.getStage?.(here.stageId)?.implemented ? "尚未解鎖" : "封印中・後續開放");
+        : (!isStageAvailable(root.CONTENT?.getStage?.(here.stageId))
+          ? "封印中・後續開放"
+          : (root.CONTENT?.getStage?.(here.stageId)?.implemented ? "尚未解鎖" : "封印中・後續開放"));
       drawMapText(ctx,progress,cx,py+(infoPlate?73:54),{size:infoPlate?14:13,light:false,maxWidth:panelW-92});
       if(canEnter)drawMapText(ctx,atStage?"配達開始　Enter / A":"前往這一關・沿路移動",cx,py+(infoPlate?96:76),{size:12,light:false,maxWidth:panelW-106});
 
@@ -778,7 +786,7 @@
     currentNode,
     isMoving,
     isNodeAccessible,
-    isEnterable,
+    isEnterable, isStageAvailable,
     findPath,
     move,
     moveTo,

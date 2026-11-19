@@ -36,13 +36,18 @@ test('current contract: wrong delivery fails immediately, grants no refill, and 
   assert.equal(g.env.STORE.get(job.word.jp).box,0);
 });
 test('current contract: ordinary Lv5 cards need no delivery seals', () => {
-  const g=fresh();g.setWeaponRank('katana',4);
+  const g=fresh();
+  // With four evenly levelled equipped skills, catch-up ranking stops heavily
+  // suppressing Lv5. Repeated random UI draws are not an eligibility test.
+  for(const id of ['katana','fire','boom','barrier'])g.setWeaponRank(id,4);
+  const weight=g.env.GAME_UPGRADE_CHOICES.weaponOfferWeight('katana',g.weaponLevels(),4);
+  assert.ok(weight>0,'Lv5 must have nonzero legal offer weight without a seal');
   let max=null;
-  for(let tries=0;tries<24 && !max;tries++){
+  for(let tries=0;tries<24&&!max;tries++) {
     g.offerUp();
     max=g.weaponChoices().find(c=>c.id==='katana'&&c.lv===5);
   }
-  assert.ok(max,'Lv5 may appear in the normal upgrade pool without seals');
+  assert.ok(max,'Lv5 must remain eligible without an awakening seal');
   assert.equal(max.f(),true);
   assert.equal(g.weaponLevels().katana,5);
 });
@@ -119,13 +124,13 @@ test('V3 contract: a scheduled boss reviews a word actually picked up this run',
   }
 });
 
-test('V3 contract: leaving a boss quiz consumes its one safe-reading entry', () => {
+test('current contract: leaving a boss reading radius preserves unused safety time', () => {
   const g=fresh();g.prepareBoss();g.update(.05);
   const frozen=g.snapshot().elapsed;g.update(.1);assert.equal(g.snapshot().elapsed,frozen);
   g.moveBoss(500);g.update(.1);const resumed=g.snapshot().elapsed;
   assert.ok(resumed>frozen);
   g.moveBoss(100);g.update(.1);
-  assert.ok(g.snapshot().elapsed>resumed,'reentry must not repeatedly freeze combat');
+  assert.equal(g.snapshot().elapsed,resumed,'reentry resumes the same remaining reading window');
 });
 
 test('V3 contract: an awakened blade keeps its rear blind spot and cannot hit beyond 720', () => {

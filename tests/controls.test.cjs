@@ -57,7 +57,7 @@ test('gamepad can navigate presets and leave the native controls dialog',()=>{
 });
 test('display labels track presets, custom bindings and saved controls',()=>{
  const c=controls(); assert.equal(c.label('dash'),'空白鍵');
- c.preset('left');assert.equal(c.label('interact'),'U');assert.equal(c.label('hint'),'O');
+ c.preset('left');assert.equal(c.label('interact'),'U');assert.equal(c.action('KeyO'),undefined);assert.equal(c.bind('hint','KeyO'),false);
  c.bind('interact','KeyT');assert.equal(c.label('interact'),'T');
 });
 

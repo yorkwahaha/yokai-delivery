@@ -28,6 +28,7 @@ function mockCtx() {
     save() { ops.push("save"); },
     restore() { ops.push("restore"); },
     beginPath() { ops.push("begin"); },
+    closePath() { ops.push("close"); },
     arc(x, y, r) { ops.push(["arc", x, y, r, ctx.strokeStyle, ctx.fillStyle, ctx.lineWidth, ctx.globalAlpha]); },
     stroke() { ops.push(["stroke", ctx.strokeStyle, ctx.lineWidth, ctx.globalAlpha]); },
     fill() { ops.push(["fill", ctx.fillStyle, ctx.globalAlpha]); },
@@ -124,9 +125,10 @@ test("recovery 相位與 charge、ring、tide 的本地 fallback 仍在", () => 
   assert.deepEqual(strokes, ["rgba(150,230,255,0.55)", "rgba(80,150,200,0.4)"]);
 });
 
-test("雨港 tidalFan 與 rainVortex 走同一 ctx/h/elapsed 契約，false 不畫標準圓", () => {
+test("雨港 tidalFan 與 rainVortex 維持委派契約，只有圖片缺失時顯示安全預警邊界", () => {
   for (const kind of ["tidalFan", "rainVortex"]) {
-    const hazard = { kind, x: 70, y: 80, phase: "active", r: 210 };
+    const hazard = { kind, x: 70, y: 80, phase: "active", r: 210,
+      vortexes: [{x:77,y:88,r:32}] };
     const handled = run(true, hazard, 2.5);
     assert.equal(handled.calls[0].h, hazard);
     assert.equal(handled.calls[0].h.phase, "active");
@@ -135,7 +137,9 @@ test("雨港 tidalFan 與 rainVortex 走同一 ctx/h/elapsed 契約，false 不�
 
     const fallback = run(false, hazard, 2.5);
     assert.equal(fallback.calls[0].time, 2.5);
-    assert.equal(fallback.ctx.ops.find(op => Array.isArray(op) && op[0] === "arc"), undefined);
+    const arc = fallback.ctx.ops.find(op => Array.isArray(op) && op[0] === "arc");
+    assert.ok(arc, kind + " must show a minimal safety outline without approved raster");
+    assert.deepEqual(arc.slice(1,4), kind === "tidalFan" ? [70,80,240] : [77,88,52]);
     assert.ok(fallback.ctx.ops.includes("save"));
   }
 });

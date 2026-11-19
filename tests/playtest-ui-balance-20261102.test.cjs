@@ -52,9 +52,9 @@ test('candidate water Boss effects load for stage2 playtest only; stage1 gate re
  env.window=env;
  vm.runInNewContext(fs.readFileSync('js/assets.js','utf8'),env);
  assert.equal(env.isBossHazardArtEnabled(),false);
- env.__ACTIVE_STAGE='rain-port';
+ // Enter via the real stage loader rather than requesting Boss art manually.
+ env.loadStageAssets('rain-port');
  assert.equal(env.isBossHazardArtEnabled(),true);
- env.refreshBossHazardArt();
  const src=images.map(i=>i.src).filter(s=>s?.includes('boss-water-r8/'));
  assert.equal(src.length,3);
  for(const file of ['tide_v03.webp','tidalFan_v01.webp','rainVortex_v01.webp'])

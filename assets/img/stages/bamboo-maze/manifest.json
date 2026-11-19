@@ -1,0 +1,547 @@
+{
+  "stage": "bamboo-maze",
+  "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+  "gate": "Clear Sakura Pass to enter Bamboo Maze",
+  "generator": "OpenAI built-in ImageGen",
+  "assets": [
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-fence.webp",
+      "source": "art/stage4-bamboo-maze/scene/bamboo-maze__bamboo-fence.webp",
+      "role": "decoration",
+      "sha256": "815f0ff5b7d482803ce57f1769fd42728b4e3c1e477edcffdb37209b837fdc86",
+      "size": [
+        424,
+        305
+      ],
+      "pivotRatio": [
+        0.5,
+        0.96
+      ]
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-stand-low.webp",
+      "source": "art/stage4-bamboo-maze/scene/bamboo-maze__bamboo-stand-low.webp",
+      "role": "obstacle",
+      "sha256": "1e4495490341385fc8f4d7fae3d5ec0acf97db683d1781789a82ef7e7d715013",
+      "size": [
+        544,
+        383
+      ],
+      "pivotRatio": [
+        0.5,
+        0.96
+      ],
+      "active": false
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-stand.webp",
+      "source": "art/stage4-bamboo-maze/scene/bamboo-maze__bamboo-stand.webp",
+      "role": "obstacle",
+      "sha256": "4cd861e49da9046b86b7a8a0f08b4e0391a94ec7d782400190da0424ec8367d9",
+      "size": [
+        500,
+        547
+      ],
+      "pivotRatio": [
+        0.5,
+        0.96
+      ],
+      "active": false
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/tiles/bamboo-maze__ground.webp",
+      "source": "art/stage4-bamboo-maze/scene/bamboo-maze__ground.webp",
+      "role": "repeatable-surface",
+      "sha256": "6e8a1e8ca48e6a3121bcc07c7c5279fb8fc9f796b1ad41c666ecddc16b700499",
+      "size": [
+        768,
+        768
+      ],
+      "active": false
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__moss-rocks.webp",
+      "source": "art/stage4-bamboo-maze/scene/bamboo-maze__moss-rocks.webp",
+      "role": "decoration",
+      "sha256": "cc0184349abcbcfb087ee794700bf4424b2daf5552bfa8a32c776aa4266babc3",
+      "size": [
+        505,
+        305
+      ],
+      "pivotRatio": [
+        0.5,
+        0.96
+      ]
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/scene/bamboo-maze__produce-house.webp",
+      "source": "art/stage4-bamboo-maze/scene/bamboo-maze__produce-house.webp",
+      "role": "delivery-building",
+      "sha256": "4469fbd0a7ba0211e68cbe4087a6fbbe0f7feda533a042719e8b43125f45f119",
+      "size": [
+        557,
+        592
+      ],
+      "pivotRatio": [
+        0.5,
+        0.96
+      ]
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__shoot-baskets.webp",
+      "source": "art/stage4-bamboo-maze/scene/bamboo-maze__shoot-baskets.webp",
+      "role": "decoration",
+      "sha256": "1f8546b7fa1d110ef0dd01e9963d98e7498a937adeef1dde45904a9eb18f6c29",
+      "size": [
+        422,
+        399
+      ],
+      "pivotRatio": [
+        0.5,
+        0.96
+      ]
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__stone-lantern.webp",
+      "source": "art/stage4-bamboo-maze/scene/bamboo-maze__stone-lantern.webp",
+      "role": "decoration",
+      "sha256": "57eca1464cadef313a06ab9095c4639a9fc397bf09de1e7ce7086a83215262c7",
+      "size": [
+        285,
+        437
+      ],
+      "pivotRatio": [
+        0.5,
+        0.96
+      ]
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/tiles/bamboo-maze__stone-path.webp",
+      "source": "art/stage4-bamboo-maze/scene/bamboo-maze__stone-path.webp",
+      "role": "repeatable-surface",
+      "sha256": "6de7114845c2ae66d945b993dbe83e1155131c08b5c5c3d602d27c4ada182db7",
+      "size": [
+        768,
+        768
+      ],
+      "active": false
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/scene/bamboo-maze__tea-house.webp",
+      "source": "art/stage4-bamboo-maze/scene/bamboo-maze__tea-house.webp",
+      "role": "delivery-building",
+      "sha256": "bb8ba57dd85bae48e952ba648a6eca1d9d2a9b1323e1cccff78f7ee74cdfc79f",
+      "size": [
+        592,
+        453
+      ],
+      "pivotRatio": [
+        0.5,
+        0.96
+      ]
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__idle.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-shoot/bamboo-shoot__sprite__idle.webp",
+      "role": "enemies",
+      "sha256": "0bbf4695bdf614901d32998fa97e3e08808e6b57af6d6b02eaf4896a50c1ac89",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "idle"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__windup.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-shoot/bamboo-shoot__sprite__windup.webp",
+      "role": "enemies",
+      "sha256": "06515c76e947092616d87aa5ab97308eef1cb48c5005ffa2dcec6c8399ff19ae",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "windup"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__rush.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-shoot/bamboo-shoot__sprite__rush.webp",
+      "role": "enemies",
+      "sha256": "81c4b9291ace3cffe86c65a9d0c22f0cb2855e78235db224512e746f269e2924",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "rush"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__recover.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-shoot/bamboo-shoot__sprite__recover.webp",
+      "role": "enemies",
+      "sha256": "9968da5827d69e9b22c5fc547830012a86626dbc787b553130a3e1bef502215d",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "recover"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__walk__f01.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-shoot/bamboo-shoot__sprite__walk__f01.webp",
+      "role": "enemies",
+      "sha256": "6ae27fb5a6922cdc404611944d49a0e34247ee42d39ac54f1150e40316d25e85",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "walk"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__walk__f02.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-shoot/bamboo-shoot__sprite__walk__f02.webp",
+      "role": "enemies",
+      "sha256": "1a61ae34665152f7f301446328ac1e2dea79efdc39d3a8746ed56bfe8aa1a5b7",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "walk"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__walk__f03.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-shoot/bamboo-shoot__sprite__walk__f03.webp",
+      "role": "enemies",
+      "sha256": "a1ce3c55d4597230c4caf29f08f79094218c950cc4cbc027567d13896c067692",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "walk"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__walk__f04.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-shoot/bamboo-shoot__sprite__walk__f04.webp",
+      "role": "enemies",
+      "sha256": "577923f788d1923765301d9c9e8dee325ec6b01a993d4812bf3eed8e0cdd11a4",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "walk"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-hat-imp/bamboo-hat-imp__sprite__idle.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-hat-imp/bamboo-hat-imp__sprite__idle.webp",
+      "role": "enemies",
+      "sha256": "6e73debc1f44a6437f5dc17dbba3c00542de21175808d374755757b34d551898",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "idle"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-hat-imp/bamboo-hat-imp__sprite__attack.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-hat-imp/bamboo-hat-imp__sprite__attack.webp",
+      "role": "enemies",
+      "sha256": "a7937f85931c0ddbb4da68f81643a2435e109f7dbae598f2bbd392eec4beda61",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "attack"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-basket-crab/bamboo-basket-crab__sprite__idle.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-basket-crab/bamboo-basket-crab__sprite__idle.webp",
+      "role": "enemies",
+      "sha256": "7596a9e00c1841f916e1bc586971784f22dd493ce3fa98896d39d5095f24c393",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "idle"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-basket-crab/bamboo-basket-crab__sprite__attack.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-basket-crab/bamboo-basket-crab__sprite__attack.webp",
+      "role": "enemies",
+      "sha256": "1ffe9443c0d5db170ec38e80315bf427fbf024c01b0cbe5dedec02f06e57c19f",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "attack"
+    },
+    {
+      "path": "assets/img/enemies/reed-whistle-weasel/reed-whistle-weasel__sprite__idle.webp",
+      "source": "art/stage4-bamboo-maze/characters/reed-whistle-weasel/reed-whistle-weasel__sprite__idle.webp",
+      "role": "enemies",
+      "sha256": "74670cf1939d232a3f45522f61effcd482780e788f91158f5d72f3fdc131fbf2",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "idle"
+    },
+    {
+      "path": "assets/img/enemies/reed-whistle-weasel/reed-whistle-weasel__sprite__attack.webp",
+      "source": "art/stage4-bamboo-maze/characters/reed-whistle-weasel/reed-whistle-weasel__sprite__attack.webp",
+      "role": "enemies",
+      "sha256": "56a7cd253bd245d1d07a59548e80b4726075d7e4ca9190dd1423653a99d30a02",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "attack"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-warden/bamboo-warden__sprite__idle.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-warden/bamboo-warden__sprite__idle.webp",
+      "role": "enemies",
+      "sha256": "abfab199d7bb0306fcc1ca8e1520c18bfe7cbaf4f632051fa4c3e7ec7e924624",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "idle"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-warden/bamboo-warden__sprite__sealed.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-warden/bamboo-warden__sprite__sealed.webp",
+      "role": "enemies",
+      "sha256": "2a2609b33187d098dd51b6aaea9c10f5a32030c96b764581427901b2ff36aa84",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "sealed"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-warden/bamboo-warden__sprite__cut.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-warden/bamboo-warden__sprite__cut.webp",
+      "role": "enemies",
+      "sha256": "d8558a133148b0b2557900942280edb06a640712815a0c8dc2903ea3917a263b",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "cut"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-warden/bamboo-warden__sprite__shoots.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-warden/bamboo-warden__sprite__shoots.webp",
+      "role": "enemies",
+      "sha256": "e9c11c81fae6ae778318da3a95cb6e6092aea1e4b774ea50308cab20026cd415",
+      "size": [
+        512,
+        512
+      ],
+      "pivotPx": [
+        256,
+        472
+      ],
+      "pose": "shoots"
+    },
+    {
+      "path": "assets/img/vfx/enemies/bamboo-cut/bamboo-cut__warning.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-cut/bamboo-cut__warning.webp",
+      "role": "effects",
+      "sha256": "8c259173f548df6f0351922d03492aabda5ab58ecef07d0ba34d3037d70f964f",
+      "size": [
+        656,
+        107
+      ],
+      "pivotRatio": [
+        0.5,
+        0.5
+      ],
+      "pose": "warning"
+    },
+    {
+      "path": "assets/img/vfx/enemies/bamboo-cut/bamboo-cut__impact.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-cut/bamboo-cut__impact.webp",
+      "role": "effects",
+      "sha256": "958d10654eda3225baab1624f56ad961bf560cfc87da918214e8bc61bda7fb5b",
+      "size": [
+        656,
+        138
+      ],
+      "pivotRatio": [
+        0.5,
+        0.5
+      ],
+      "pose": "impact"
+    },
+    {
+      "path": "assets/img/vfx/enemies/bamboo-shoots/bamboo-shoots__warning.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-shoots/bamboo-shoots__warning.webp",
+      "role": "effects",
+      "sha256": "b8dc2eb8b7e660d1ba6171cf352ea9662138acdf68ff9b86aba92e56217536a8",
+      "size": [
+        543,
+        536
+      ],
+      "pivotRatio": [
+        0.5,
+        0.5
+      ],
+      "pose": "warning"
+    },
+    {
+      "path": "assets/img/vfx/enemies/bamboo-shoots/bamboo-shoots__impact.webp",
+      "source": "art/stage4-bamboo-maze/characters/bamboo-shoots/bamboo-shoots__impact.webp",
+      "role": "effects",
+      "sha256": "b712bdcd13d527684440f56b44e65dd8c765e42246860a385fa0f24af865390a",
+      "size": [
+        520,
+        536
+      ],
+      "pivotRatio": [
+        0.5,
+        0.94
+      ],
+      "pose": "impact"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/tiles/bamboo-maze__forest-duff.webp",
+      "source": "art/stage4-bamboo-maze/scene/sources/bamboo-grove-forest-duff.png",
+      "role": "repeatable-surface",
+      "sha256": "4471801257226753ef8fc6bdcd05b2746f3ea6afc6b5571f27bc327fc1a63f78",
+      "sourceSha256": "124858374f6c1e6335d8fd537cea3e52f2d07e5b58887b606cce809b4931497c",
+      "size": [
+        768,
+        768
+      ],
+      "generator": "OpenAI built-in ImageGen"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/tiles/bamboo-maze__earth-track.webp",
+      "source": "art/stage4-bamboo-maze/scene/sources/bamboo-grove-earth-track.png",
+      "role": "repeatable-surface",
+      "sha256": "5a12631b6a12d93ddcceb3dfce0e9c194f20c28e35319df2c7762bd519a8943c",
+      "sourceSha256": "515d7850f0764834edba206c46d15afe512a5f9cbfde1560d08344e6842db67e",
+      "size": [
+        768,
+        768
+      ],
+      "generator": "OpenAI built-in ImageGen"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-column.webp",
+      "source": "art/stage4-bamboo-maze/scene/sources/bamboo-grove-bamboo-column.png",
+      "role": "obstacle",
+      "sha256": "3c86c468c5c8f0eafdcc3f3d2b254d71ecc45fe02c9dfcce47b619c2ee7af1b5",
+      "sourceSha256": "16ea2b8ce8b3d5053aaf548bba096d14b6fc57e3f48a407abe67138079572269",
+      "size": [
+        337,
+        962
+      ],
+      "generator": "OpenAI built-in ImageGen",
+      "pivotRatio": [
+        0.5,
+        0.96
+      ]
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-thicket.webp",
+      "source": "art/stage4-bamboo-maze/scene/sources/bamboo-grove-bamboo-thicket.png",
+      "role": "obstacle",
+      "sha256": "739ce414a90b56a082966e75039554e6978e02f293db5da250125687af1a9d79",
+      "sourceSha256": "09cacf9116562ee79c16e68a2f1219fde33485cc7d6da5fb7a56273c65664e26",
+      "size": [
+        444,
+        944
+      ],
+      "generator": "OpenAI built-in ImageGen",
+      "pivotRatio": [
+        0.5,
+        0.96
+      ]
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-fork.webp",
+      "source": "art/stage4-bamboo-maze/scene/sources/bamboo-grove-bamboo-fork.png",
+      "role": "obstacle",
+      "sha256": "1ab88e549a48ddf0b7ff9ac5949417449ed94e003dff5ec3c13e37391fc44193",
+      "sourceSha256": "affeb80965dfd8d60c3e994c4c0544de7f6073d489e276effc6b1fcb2738de6f",
+      "size": [
+        391,
+        962
+      ],
+      "generator": "OpenAI built-in ImageGen",
+      "pivotRatio": [
+        0.5,
+        0.96
+      ]
+    }
+  ],
+  "grove_prompts": "art/stage4-bamboo-maze/scene/bamboo-grove-prompts.json"
+}

@@ -2,12 +2,19 @@
   "schema": 1,
   "stage": "sakura-pass",
   "kind": "image",
-  "version": "20261116-final-word-set",
-  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "status": "APPROVED_BY_USER",
+  "version": "20261119-word-redraw",
   "count": 20,
   "format": "webp",
-  "source_style": "original Stage1/2 sumi-e ukiyo-e washi Qwen Image21 prompt",
-  "note": "14 original images retained by JP key; six new objects and corrected circular uchiwa generated in local ComfyUI; all require visual approval",
+  "size": [
+    256,
+    256
+  ],
+  "source_style": "Japanese sumi-e ukiyo-e with washi texture",
+  "generation_model": "OpenAI built-in ImageGen",
+  "style_reference": "art/delivery-icons/bamboo-maze/words-20261119/04.webp",
+  "candidate_manifest": "art/delivery-icons/sakura-pass/words-20261119/manifest.json",
+  "previous_manifest": "art/delivery-icons/sakura-pass/words-20261119/previous-manifest.json",
   "items": [
     {
       "index": 1,
@@ -15,11 +22,14 @@
       "kanji": "桜",
       "zh": "櫻花",
       "file": "01.webp",
-      "sha256": "8a1e15568acf4f646b26329923dbf2ff80cdf73fbf9d935897ad810807042e19",
-      "source": "art/delivery-icons/sakura-pass/selected/01.webp",
-      "source_sha256": "8a1e15568acf4f646b26329923dbf2ff80cdf73fbf9d935897ad810807042e19",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "reindexed-original"
+      "bytes": 50744,
+      "sha256": "3d1e04de60fb57e77dff9f0b494a52e770b51ba720e5d2e79955c229711c0412",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/01.webp",
+      "source_sha256": "3d1e04de60fb57e77dff9f0b494a52e770b51ba720e5d2e79955c229711c0412",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/01-cherry-blossoms.png",
+      "original_source_sha256": "dc6d9046e161bacfbe768a22f59b849a2effb74b202a765feb8c5a0ceaf56dee",
+      "previous_sha256": "8a1e15568acf4f646b26329923dbf2ff80cdf73fbf9d935897ad810807042e19"
     },
     {
       "index": 2,
@@ -27,11 +37,14 @@
       "kanji": "花",
       "zh": "花",
       "file": "02.webp",
-      "sha256": "792819be45507438e5caf2cf3f67b02d0484c2c11138c33c4ec736147272255a",
-      "source": "art/delivery-icons/sakura-pass/selected/02.webp",
-      "source_sha256": "792819be45507438e5caf2cf3f67b02d0484c2c11138c33c4ec736147272255a",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "reindexed-original"
+      "bytes": 48968,
+      "sha256": "2634ba9fd970d089bf1201dd318b70cd770c0b8ab82979d2ef5bc42993ef8ed6",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/02.webp",
+      "source_sha256": "2634ba9fd970d089bf1201dd318b70cd770c0b8ab82979d2ef5bc42993ef8ed6",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/02-flower.png",
+      "original_source_sha256": "20f4f4d2fe6c31b64c79c811415f307a2edc10c54c735ba2f2c8a903ef437963",
+      "previous_sha256": "792819be45507438e5caf2cf3f67b02d0484c2c11138c33c4ec736147272255a"
     },
     {
       "index": 3,
@@ -39,11 +52,14 @@
       "kanji": "葉",
       "zh": "葉子",
       "file": "03.webp",
-      "sha256": "4c294bb5c1209baf245bd04fba6ca0e30fbfb906fa525dce97e71750f19f7cca",
-      "source": "art/delivery-icons/sakura-pass/selected/04.webp",
-      "source_sha256": "4c294bb5c1209baf245bd04fba6ca0e30fbfb906fa525dce97e71750f19f7cca",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "reindexed-original"
+      "bytes": 50910,
+      "sha256": "a82c82509034019d9d45cda0f73f0bb944261bfe0dd35dacf67ae9a18c832767",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/03.webp",
+      "source_sha256": "a82c82509034019d9d45cda0f73f0bb944261bfe0dd35dacf67ae9a18c832767",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/03-leaf.png",
+      "original_source_sha256": "6f4dd1d3b7b51b3528b665eabdc5cd2c6c76266dd821d244718fabaaace6738d",
+      "previous_sha256": "4c294bb5c1209baf245bd04fba6ca0e30fbfb906fa525dce97e71750f19f7cca"
     },
     {
       "index": 4,
@@ -51,11 +67,14 @@
       "kanji": "枝",
       "zh": "樹枝",
       "file": "04.webp",
-      "sha256": "bf4b36a7af135084152b349c6e310348b09cc47884c89f2e2fe9813051d49699",
-      "source": "art/delivery-icons/sakura-pass/selected/05.webp",
-      "source_sha256": "bf4b36a7af135084152b349c6e310348b09cc47884c89f2e2fe9813051d49699",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "reindexed-original"
+      "bytes": 26534,
+      "sha256": "5ebc24b38d30bd925c8b47dbd26e7802bc3a597e42e6d82366f58b8a421184e2",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/04.webp",
+      "source_sha256": "5ebc24b38d30bd925c8b47dbd26e7802bc3a597e42e6d82366f58b8a421184e2",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/04-branch.png",
+      "original_source_sha256": "58e2d087fc85a9a245f04d56ea63487fae92cb24ff3397771762b9fa926745df",
+      "previous_sha256": "bf4b36a7af135084152b349c6e310348b09cc47884c89f2e2fe9813051d49699"
     },
     {
       "index": 5,
@@ -63,11 +82,14 @@
       "kanji": "草",
       "zh": "草",
       "file": "05.webp",
-      "sha256": "b3c2fbb878d961bd644c00818ad01b48ed834778d2045ca509ccadcd82791372",
-      "source": "art/delivery-icons/sakura-pass/selected/06.webp",
-      "source_sha256": "b3c2fbb878d961bd644c00818ad01b48ed834778d2045ca509ccadcd82791372",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "reindexed-original"
+      "bytes": 35118,
+      "sha256": "266587fd181d16ed154969742d94069e09a43c9d1d12748f317b6f43fbc358af",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/05.webp",
+      "source_sha256": "266587fd181d16ed154969742d94069e09a43c9d1d12748f317b6f43fbc358af",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/05-grass.png",
+      "original_source_sha256": "8d60656355b39cf8f90f1ff3c20353996059fb3dac5e3c34a63397611db1e21e",
+      "previous_sha256": "b3c2fbb878d961bd644c00818ad01b48ed834778d2045ca509ccadcd82791372"
     },
     {
       "index": 6,
@@ -75,11 +97,14 @@
       "kanji": "種",
       "zh": "種子",
       "file": "06.webp",
-      "sha256": "58598f509c56ee3c9fd9dd2769d337efa013869bcab36c9cca7dbe2dab86f2c1",
-      "source": "art/delivery-icons/sakura-pass/selected/07.webp",
-      "source_sha256": "58598f509c56ee3c9fd9dd2769d337efa013869bcab36c9cca7dbe2dab86f2c1",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "reindexed-original"
+      "bytes": 43936,
+      "sha256": "1db65e759fadcef73c7d6508ffb62103778fdf874bcdddd9b12ebeb60becbe03",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/06.webp",
+      "source_sha256": "1db65e759fadcef73c7d6508ffb62103778fdf874bcdddd9b12ebeb60becbe03",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/06-seeds.png",
+      "original_source_sha256": "88443fe27be393dd329b54be29dc506afcff28b6498f89a3c1f20c94485b9c72",
+      "previous_sha256": "58598f509c56ee3c9fd9dd2769d337efa013869bcab36c9cca7dbe2dab86f2c1"
     },
     {
       "index": 7,
@@ -87,11 +112,14 @@
       "kanji": "木",
       "zh": "樹／木",
       "file": "07.webp",
-      "sha256": "20055776f70c26870d959e249605952023bfc359a522850622cdfcb78cae117d",
-      "source": "art/delivery-icons/sakura-pass/alpha-cleanup-20261116/07_き_candidate.webp",
-      "source_sha256": "20055776f70c26870d959e249605952023bfc359a522850622cdfcb78cae117d",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "alpha-cleanup"
+      "bytes": 49232,
+      "sha256": "31f0119962155a4cafe78bd5563f66c419cc49a82cb8129f1d311b33d4a8495e",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/07.webp",
+      "source_sha256": "31f0119962155a4cafe78bd5563f66c419cc49a82cb8129f1d311b33d4a8495e",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/07-tree.png",
+      "original_source_sha256": "d8ed3c8b4dcf9071fcc4525f59cbf5301c49d4ebfd25434b76360d3129193894",
+      "previous_sha256": "20055776f70c26870d959e249605952023bfc359a522850622cdfcb78cae117d"
     },
     {
       "index": 8,
@@ -99,11 +127,14 @@
       "kanji": "石",
       "zh": "石頭",
       "file": "08.webp",
-      "sha256": "ecdd595ccf5871653b4c326a34b88fb4d52213662455cd14ef8ac8c4fc961809",
-      "source": "art/delivery-icons/sakura-pass/selected/10.webp",
-      "source_sha256": "ecdd595ccf5871653b4c326a34b88fb4d52213662455cd14ef8ac8c4fc961809",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "reindexed-original"
+      "bytes": 32852,
+      "sha256": "38dd1b49f79de0a6a43ce28a743c024e1599eef27ed04452c09406ac07641907",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/08.webp",
+      "source_sha256": "38dd1b49f79de0a6a43ce28a743c024e1599eef27ed04452c09406ac07641907",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/08-stone-v2.png",
+      "original_source_sha256": "5493e36e484464ce947bbc9953a466c9c31088e0da6c5643fd501f03a56b5a13",
+      "previous_sha256": "ecdd595ccf5871653b4c326a34b88fb4d52213662455cd14ef8ac8c4fc961809"
     },
     {
       "index": 9,
@@ -111,11 +142,14 @@
       "kanji": "蛙",
       "zh": "青蛙",
       "file": "09.webp",
-      "sha256": "ae7e3aa7aa6671a086e9d3e77df98c2b50270b779d6430d5db5f5b235a4abaf8",
-      "source": "art/delivery-icons/sakura-pass/rewritten-20261116/かえる_candidate.webp",
-      "source_sha256": "ae7e3aa7aa6671a086e9d3e77df98c2b50270b779d6430d5db5f5b235a4abaf8",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "redrawn"
+      "bytes": 50412,
+      "sha256": "3970a4dbde2fa9dfac9cd3de425ef60dff351a1e18ed5e4396f7628a28fe70e5",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/09.webp",
+      "source_sha256": "3970a4dbde2fa9dfac9cd3de425ef60dff351a1e18ed5e4396f7628a28fe70e5",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/09-frog.png",
+      "original_source_sha256": "e778a9c28ff939810d4c7e4f0dbf2dc78d680d2fbf0bbb7bfb8231e59353fae6",
+      "previous_sha256": "ae7e3aa7aa6671a086e9d3e77df98c2b50270b779d6430d5db5f5b235a4abaf8"
     },
     {
       "index": 10,
@@ -123,11 +157,14 @@
       "kanji": "鈴",
       "zh": "鈴鐺",
       "file": "10.webp",
-      "sha256": "b15b318e20bb21317ca03971c4ef8014bdf3193fefd12f86e68541cda328f9ad",
-      "source": "art/delivery-icons/sakura-pass/selected/11.webp",
-      "source_sha256": "b15b318e20bb21317ca03971c4ef8014bdf3193fefd12f86e68541cda328f9ad",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "reindexed-original"
+      "bytes": 38728,
+      "sha256": "233e26b53cb2f257ae3d7b9fdac0255426e58a07cc4f235f793e6298b0ea14d3",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/10.webp",
+      "source_sha256": "233e26b53cb2f257ae3d7b9fdac0255426e58a07cc4f235f793e6298b0ea14d3",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/10-bell.png",
+      "original_source_sha256": "e82f1b56ba542508a7126be0ce03b7381c5c735db4b40b970d1ffd354573bcfe",
+      "previous_sha256": "b15b318e20bb21317ca03971c4ef8014bdf3193fefd12f86e68541cda328f9ad"
     },
     {
       "index": 11,
@@ -135,11 +172,14 @@
       "kanji": "お守り",
       "zh": "御守",
       "file": "11.webp",
-      "sha256": "8ce8d76eea80e852c3921df2c748cc468e9580cc2f05b936b59a454795f7093f",
-      "source": "art/delivery-icons/sakura-pass/selected/12.webp",
-      "source_sha256": "8ce8d76eea80e852c3921df2c748cc468e9580cc2f05b936b59a454795f7093f",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "reindexed-original"
+      "bytes": 37046,
+      "sha256": "18af90d49d907ba2cbfa2f36171ad7e110fbe7c3cc8e84eed8f9663ca66367bd",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/11.webp",
+      "source_sha256": "18af90d49d907ba2cbfa2f36171ad7e110fbe7c3cc8e84eed8f9663ca66367bd",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/11-omamori.png",
+      "original_source_sha256": "90c01e179a5d511208b5621fe0b575ebafd726d2c46c7f8306711007b4a45b58",
+      "previous_sha256": "8ce8d76eea80e852c3921df2c748cc468e9580cc2f05b936b59a454795f7093f"
     },
     {
       "index": 12,
@@ -147,11 +187,14 @@
       "kanji": "靴",
       "zh": "鞋子",
       "file": "12.webp",
-      "sha256": "26d3ee836bacefcecb91a622088d34d6d28204d04a0a6100c4eb56f78a3e1a4e",
-      "source": "art/delivery-icons/sakura-pass/selected/13.webp",
-      "source_sha256": "26d3ee836bacefcecb91a622088d34d6d28204d04a0a6100c4eb56f78a3e1a4e",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "reindexed-original"
+      "bytes": 41994,
+      "sha256": "8df7ccb6d26b14af5dade4f6f7dfb4b2d5e89b2ff71927e7700a3ce3919da98d",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/12.webp",
+      "source_sha256": "8df7ccb6d26b14af5dade4f6f7dfb4b2d5e89b2ff71927e7700a3ce3919da98d",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/12-shoes.png",
+      "original_source_sha256": "8827eada6062fd9368ea84ad251cf8c8c4f53adce2bbf7bde250238f04993e3a",
+      "previous_sha256": "26d3ee836bacefcecb91a622088d34d6d28204d04a0a6100c4eb56f78a3e1a4e"
     },
     {
       "index": 13,
@@ -159,11 +202,14 @@
       "kanji": "傘",
       "zh": "雨傘",
       "file": "13.webp",
-      "sha256": "ab21d02a7706269a701038513b7b8e239b49d8cac45aa8be5226f9255c9d783d",
-      "source": "art/delivery-icons/sakura-pass/selected/14.webp",
-      "source_sha256": "ab21d02a7706269a701038513b7b8e239b49d8cac45aa8be5226f9255c9d783d",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "reindexed-original"
+      "bytes": 37604,
+      "sha256": "a6073d7afc3737c990bc735eea6c5898836ba55837f12546056a7949b8c2fa39",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/13.webp",
+      "source_sha256": "a6073d7afc3737c990bc735eea6c5898836ba55837f12546056a7949b8c2fa39",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/13-umbrella.png",
+      "original_source_sha256": "63a4fc467bbefcb890428cb0262eaeece79510b0bd915a566312365493f35f5b",
+      "previous_sha256": "ab21d02a7706269a701038513b7b8e239b49d8cac45aa8be5226f9255c9d783d"
     },
     {
       "index": 14,
@@ -171,11 +217,14 @@
       "kanji": "団子",
       "zh": "糰子",
       "file": "14.webp",
-      "sha256": "4b0a66d3b48f669b73c904f5cb8f16aa239c1e155d42cff1d8735a5f05a03b03",
-      "source": "art/delivery-icons/sakura-pass/selected/15.webp",
-      "source_sha256": "4b0a66d3b48f669b73c904f5cb8f16aa239c1e155d42cff1d8735a5f05a03b03",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "reindexed-original"
+      "bytes": 26686,
+      "sha256": "f0bfab41a2fc94ded1e23ac6768c6f54a5ac739a1d62661c5393f5f9e6619d97",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/14.webp",
+      "source_sha256": "f0bfab41a2fc94ded1e23ac6768c6f54a5ac739a1d62661c5393f5f9e6619d97",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/14-dango.png",
+      "original_source_sha256": "c2bc83d447b47dfc53c8927bcace8f5a322fa9ca843155efe86677696f504cd6",
+      "previous_sha256": "4b0a66d3b48f669b73c904f5cb8f16aa239c1e155d42cff1d8735a5f05a03b03"
     },
     {
       "index": 15,
@@ -183,11 +232,14 @@
       "kanji": "お茶",
       "zh": "茶",
       "file": "15.webp",
-      "sha256": "a684272ec46f97026d6b183fb095614f4387bec736799b0edc9824f4a3e5a4b0",
-      "source": "art/delivery-icons/sakura-pass/selected/16.webp",
-      "source_sha256": "a684272ec46f97026d6b183fb095614f4387bec736799b0edc9824f4a3e5a4b0",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "reindexed-original"
+      "bytes": 50062,
+      "sha256": "76e3c3e26d63170eed05258a5bf651266d4cd6764e76ff1fa8e2ebe4d437dc11",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/15.webp",
+      "source_sha256": "76e3c3e26d63170eed05258a5bf651266d4cd6764e76ff1fa8e2ebe4d437dc11",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/15-green-tea.png",
+      "original_source_sha256": "bfc69f50eee9253e07be536636ced64d51c1ab9089415aa7dca66531280eb81c",
+      "previous_sha256": "a684272ec46f97026d6b183fb095614f4387bec736799b0edc9824f4a3e5a4b0"
     },
     {
       "index": 16,
@@ -195,11 +247,14 @@
       "kanji": "",
       "zh": "團扇",
       "file": "16.webp",
-      "sha256": "ab648ea35a7f29fa5361a99b5301144c2877d074e7aaac163875853371ba9500",
-      "source": "art/delivery-icons/sakura-pass/rewritten-20261116/うちわ_candidate.webp",
-      "source_sha256": "ab648ea35a7f29fa5361a99b5301144c2877d074e7aaac163875853371ba9500",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "redrawn"
+      "bytes": 35474,
+      "sha256": "246169cd4ca884d99badcc596e87039048428391f457063a0e8a4dece8616873",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/16.webp",
+      "source_sha256": "246169cd4ca884d99badcc596e87039048428391f457063a0e8a4dece8616873",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/16-round-fan.png",
+      "original_source_sha256": "8c27f6ad92c2d34c2bc2e178095fbae77ce0ec5dea2bed7d5db7cda54f8d9b90",
+      "previous_sha256": "ab648ea35a7f29fa5361a99b5301144c2877d074e7aaac163875853371ba9500"
     },
     {
       "index": 17,
@@ -207,11 +262,14 @@
       "kanji": "",
       "zh": "螞蟻",
       "file": "17.webp",
-      "sha256": "e6251aaa173f05b67b35fef8e0809029ed31a6fe9cb0199b862e6e57dba4675d",
-      "source": "art/delivery-icons/sakura-pass/alpha-cleanup-20261116/17_あり_candidate.webp",
-      "source_sha256": "e6251aaa173f05b67b35fef8e0809029ed31a6fe9cb0199b862e6e57dba4675d",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "alpha-cleanup"
+      "bytes": 27196,
+      "sha256": "d754a06a513d9aa81c547e66e3fe5aa7faaed9a772534355cea5c74feee12b5f",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/17.webp",
+      "source_sha256": "d754a06a513d9aa81c547e66e3fe5aa7faaed9a772534355cea5c74feee12b5f",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/17-ant.png",
+      "original_source_sha256": "ce0614061448f9167bf1056a0dec7e6638f85cb9610d8d1cbabf55a88eb0871e",
+      "previous_sha256": "e6251aaa173f05b67b35fef8e0809029ed31a6fe9cb0199b862e6e57dba4675d"
     },
     {
       "index": 18,
@@ -219,11 +277,14 @@
       "kanji": "",
       "zh": "掃帚",
       "file": "18.webp",
-      "sha256": "c925a90616565d167de137764f03cffa86b00fd64b7317dda6efc3b766e27d53",
-      "source": "art/delivery-icons/sakura-pass/rewritten-20261116/ほうき_candidate.webp",
-      "source_sha256": "c925a90616565d167de137764f03cffa86b00fd64b7317dda6efc3b766e27d53",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "redrawn"
+      "bytes": 24074,
+      "sha256": "ab7f8a2d68743ef3bbe2b1f198d088c528a56484c1eca7ab8bbc4e51b0470931",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/18.webp",
+      "source_sha256": "ab7f8a2d68743ef3bbe2b1f198d088c528a56484c1eca7ab8bbc4e51b0470931",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/18-broom.png",
+      "original_source_sha256": "c29e1718f653964b11dc449ea91a2c693838f9f2e3aaa9632d9e20be29e6e818",
+      "previous_sha256": "c925a90616565d167de137764f03cffa86b00fd64b7317dda6efc3b766e27d53"
     },
     {
       "index": 19,
@@ -231,11 +292,14 @@
       "kanji": "笛",
       "zh": "笛子",
       "file": "19.webp",
-      "sha256": "6d1922f19aaf03e5f0f760bc34ec67b8e7ea96073c1287bade6c87a07d7cc6ba",
-      "source": "art/delivery-icons/sakura-pass/refined-20261116/ふえ_candidate.webp",
-      "source_sha256": "6d1922f19aaf03e5f0f760bc34ec67b8e7ea96073c1287bade6c87a07d7cc6ba",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "redrawn"
+      "bytes": 15842,
+      "sha256": "c5ded2431be7c68ed99bebd4676c6cad95cc4e804eff04a2becc3ec6b745529f",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/19.webp",
+      "source_sha256": "c5ded2431be7c68ed99bebd4676c6cad95cc4e804eff04a2becc3ec6b745529f",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/19-bamboo-flute.png",
+      "original_source_sha256": "2edc06a1c69f70e0a599ff9fe40f164953a42090a682d3f8bb8c00542479457e",
+      "previous_sha256": "6d1922f19aaf03e5f0f760bc34ec67b8e7ea96073c1287bade6c87a07d7cc6ba"
     },
     {
       "index": 20,
@@ -243,11 +307,14 @@
       "kanji": "薬",
       "zh": "藥",
       "file": "20.webp",
-      "sha256": "df48d56262c9c16fecb1076d7bc373b7b0d17950f9300a5e9ce6f6cd837d7c74",
-      "source": "art/delivery-icons/sakura-pass/refined-medicine-v3-20261116/くすり_candidate.webp",
-      "source_sha256": "df48d56262c9c16fecb1076d7bc373b7b0d17950f9300a5e9ce6f6cd837d7c74",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
-      "handling": "redrawn"
+      "bytes": 43992,
+      "sha256": "f452ea14749d664ea60f80cd6f1f0d167ff33c821ebef5240cdd43f5f72ad093",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/sakura-pass/words-20261119/20.webp",
+      "source_sha256": "f452ea14749d664ea60f80cd6f1f0d167ff33c821ebef5240cdd43f5f72ad093",
+      "original_source": "art/delivery-icons/sakura-pass/words-20261119/sources/20-medicine.png",
+      "original_source_sha256": "6a6ddb96caf9fda5675d6777f128560a0e4706c0eaf65aedf8e58278d0295e1c",
+      "previous_sha256": "df48d56262c9c16fecb1076d7bc373b7b0d17950f9300a5e9ce6f6cd837d7c74"
     }
   ]
 }

@@ -13,7 +13,8 @@ test('all stage HUD/hunt paths retain delivery guidance until quota, including n
     assert.match(condition, /delivered >= GOAL_DELIVERIES/);
     assert.doesNotMatch(condition, /STAGE\.id/);
   }
-  assert.match(src, /if \(state === "play" && elapsed >= DAWN && finalBossDefeated && delivered < GOAL_DELIVERIES\)/);
+  assert.match(src, /const deliveryReminderVisible = state === "play" && elapsed >= DAWN\s*&& finalBossDefeated && delivered < GOAL_DELIVERIES/);
+  assert.match(src, /if \(deliveryReminderVisible\)/);
 });
 
 test('Lv5 katana reaches off-screen foes within its real maxTravel (normal and longblade)', () => {

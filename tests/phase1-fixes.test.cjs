@@ -25,7 +25,7 @@ function loadGameEnv() {
     'delivery-lexicon','delivery-media','words','world','store','config',
     'viewport','controls','overworld','fx','skillfx','evolutions',
     'combat-targeting','game-quiz-logic','game-geometry','game-charm-math',
-    'game-spawn-math','game-build-rules','game-delivery-rules',
+    'game-spawn-math','game-build-rules','game-delivery-rules','game-ink-trail','game-violet-scent','game-confusion','game-seal-nail',
     'game-attack-specs','game-catalog','game-combat-math','game-weather',
     'game-upgrade-choices','game-run-summary','game-tutorial-rules','ui'
   ]) {

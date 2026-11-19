@@ -43,7 +43,7 @@
       }
     } else if (kind === 'sakuraFan') {
       const count = rage ? 7 : 5, spread = rage ? 1 : .9;
-      h.r = 17;h.reach = 540;h.speed = (rage ? 370 : 330) * 1.5;
+      h.r = 17;h.reach = 540;h.speed = (rage ? 555 : 495) * 1.75;
       h.activeDuration = h.reach/h.speed;
       h.shots = Array.from({length:count},(_,i)=>({
         x:h.x,y:h.y,angle:angle-spread+i*spread*2/(count-1),travelled:0,dead:false

@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-function loadRenderer(width, height, dpr = 1, CanvasContext) {
+function loadRenderer(width, height, dpr = 1, CanvasContext, coarse = false) {
   const canvases = [], texts = [], images = [];
   const gradient = { addColorStop() {} };
   function canvas() {
@@ -20,7 +20,7 @@ function loadRenderer(width, height, dpr = 1, CanvasContext) {
   }
   const main = canvas();
   const env = {innerWidth:width, innerHeight:height, devicePixelRatio:dpr,
-    matchMedia:()=>({matches:false,addEventListener:(type,fn)=>{env.motionChange=fn;}}), document:{createElement:canvas}, ART:{}, UI:{readableFont: () => '20px sans-serif'}, CanvasRenderingContext2D:CanvasContext};
+    matchMedia:query=>({matches:coarse && query==='(pointer: coarse)',addEventListener:(type,fn)=>{if(query.includes('reduced-motion'))env.motionChange=fn;}}), document:{createElement:canvas}, ART:{}, UI:{readableFont: () => '20px sans-serif'}, CanvasRenderingContext2D:CanvasContext};
   env.window=env;
   const context=vm.createContext(env);
   for (const name of ['viewport','renderer']) vm.runInContext(fs.readFileSync(`js/${name}.js`,'utf8'),context);
@@ -75,7 +75,8 @@ test('actor shadows are world-space floor marks, never warped with upright sprit
     'approved larger building contact shadow remains on the ground pass');
   ellipses.length=0;
   r.env.RENDERER.drawMonsterShadow({type:'ghost',x:100,y:200});
-  assert.deepEqual(ellipses[0].slice(0,4),[100,218.7,22,8.8]);
+  assert.deepEqual(ellipses[0].slice(0,4),[100,200+19/.6,22,8.8],
+    'floor shadow reaches the existing upright foot offset');
 });
 
 
@@ -425,6 +426,22 @@ test('spirit gems render as inked faceted talismans and honor reduced motion',()
   assert.ok(colors.includes('rgba(255,255,242,.88)'),'small highlight attracts pickup');
   r.env.motionChange({matches:true});
   assert.doesNotThrow(()=>r.env.RENDERER.drawSpiritGem({x:120,y:180,v:2},1));
+});
+
+test('touch renderer paints 120 gems using four cached tiny raster tiles, not vector outlines',()=>{
+  const r=loadRenderer(900,600,2,undefined,true);
+  const before=r.canvases.length, imagesBefore=r.images.length;
+  for(let i=0;i<120;i++){
+    const g={x:110+i,y:150,v:i%2===0?3:2};
+    r.env.RENDERER.drawGemShadow(g);
+    r.env.RENDERER.drawSpiritGem(g,i*.05);
+  }
+  assert.equal(r.canvases.length,before+4,
+    'one body/shadow raster pair per tier, with no per-gem canvas allocations');
+  const draws=r.images.slice(imagesBefore);
+  assert.equal(draws.length,240);
+  assert.ok(draws.every(d=>r.canvases.includes(d[0])));
+  assert.ok(draws.every(d=>d[3]===48&&d[4]===48));
 });
 
 test('night midtones stay readable and warm light stays on the lamps', () => {

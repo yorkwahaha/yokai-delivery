@@ -45,9 +45,12 @@ function vortexHit(t) {
   return BOSS_AI.step({hp:100,x:0,y:0,hazard},{x:0,y:0},.05).hit;
 }
 test('水柱只在自身顯示期間傷人，未落下及已消退均無傷害', () => {
-  assert.equal(vortexHit(.30),null);
+  // Updated November rain-port choreography: first pillar begins at 22%,
+  // then subsequent pillars begin one stagger-window apart.
+  assert.equal(vortexHit(.10),null);
   assert.equal(vortexHit(.60),null);
-  assert.equal(vortexHit(.45)?.damage,16);
+  assert.equal(vortexHit(.30)?.damage,16);
+  assert.equal(vortexHit(.45),null);
 });
 
 const tutorialStart = game.indexOf('  const tutorialIds =');

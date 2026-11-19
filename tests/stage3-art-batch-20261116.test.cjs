@@ -7,7 +7,7 @@ const crypto=require('node:crypto');
 const manifest=JSON.parse(fs.readFileSync('assets/img/stages/sakura-pass/manifest.json','utf8'));
 const dataEnv={window:{}};vm.runInNewContext(fs.readFileSync('js/sakura-art-data.js','utf8'),dataEnv);
 const data=dataEnv.window.SAKURA_ART_DATA;
-test('19 original designs produce 27 registered candidate rasters; accepted floor bytes match',()=>{
+test('19 original designs produce 27 runtime rasters; all 39 selected file hashes match',()=>{
  const batch=JSON.parse(fs.readFileSync('docs/STAGE3_ART_BATCH_20261116.json','utf8'));
  const inventory=JSON.parse(fs.readFileSync('docs/ASSET_INVENTORY.json','utf8'));
  assert.equal(batch.assets.length,19);assert.equal(batch.runtime_count,27);
@@ -18,8 +18,10 @@ test('19 original designs produce 27 registered candidate rasters; accepted floo
  for(const a of manifest.assets){
   const hash=crypto.createHash('sha256').update(fs.readFileSync(a.path)).digest('hex');
   assert.equal(hash,a.sha256,a.path);
-  assert.equal(inventory.files.find(x=>x.path===a.path).sha256,hash);
-  if(a.category) assert.equal(a.status,'ART_CANDIDATE_USER_REVIEW_PENDING');
+  const record=inventory.files.find(x=>x.path===a.path);
+  assert.equal(record.sha256,hash);
+  assert.equal(record.status,'canonical');
+  assert.equal(a.status,'USER_SELECTED_RUNTIME');
  }
  for(const a of batch.assets)assert.ok(fs.existsSync(a.source));
 });

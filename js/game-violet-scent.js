@@ -9,31 +9,40 @@ window.GAME_VIOLET_SCENT = (() => {
     {max:14,distance:45, interval:.20, radius:72, life:6.0, factor:3.2}
   ]);
   const TICK=.5, MAX_DOT_STEPS=2, MAX_VISUALS=12, BOSS_MULTIPLIER=.35;
+  const CONFUSION_IMMUNITY=7;
   const eligible=e=>e&&e.hp>0&&!e.dying&&!e.shield&&!e.vanish&&!e.done&&!e.invulnerable&&!e.untargetable;
   function spec(level,damage=1,mutations=[]){
     const lvl=Math.max(1,Math.min(5,Number(level)||1));
     const base=TIERS[lvl-1],mods=new Set(mutations);
-    return {...base,level:lvl,interval:base.interval,damage:base.factor*damage,
+    // Long-night scent must actually persist under continuous movement:
+    // the previous fixed cloud cap evicted a 7.8s Lv5 cloud after ~2.8s.
+    // Space the linger clouds farther apart and bound the extra cloud count.
+    const linger=mods.has("mut_ink_linger");
+    const max=base.max+(linger?4:0);
+    const life=base.life+(linger?1.8:0);
+    const interval=linger?Math.max(base.interval,life/max):base.interval;
+    return {...base,level:lvl,max,interval,damage:base.factor*damage,
       dps:base.factor*damage*(mods.has("mut_ink_razor")?1.25:1),
-      radius:base.radius*(mods.has("mut_ink_bloom")?1.25:1),
-      life:base.life+(mods.has("mut_ink_linger")?1.8:0),
+      radius:base.radius*(mods.has("mut_ink_bloom")?1.25:1)*(linger?1.10:1),
+      life,
       poisonLife:2.0+(mods.has("mut_ink_echo")?1.6:0),
       confusionDuration:lvl===5?2.5+(mods.has("mut_ink_echo")?.5:0):0,
-      confusionImmunity:7.0,bossMultiplier:BOSS_MULTIPLIER,
+      confusionImmunity:CONFUSION_IMMUNITY,bossMultiplier:BOSS_MULTIPLIER,
       cadenceEligible:false,reachEligible:false,critEligible:false};
   }
   function loadCandidateArt(){
     if(typeof window.Image!=="function")return {};
-    const art={},base="assets/img/vfx/skills/violet-scent/";
-    // Shipped painted smoke rasters are temporary until dedicated art is approved.
-    // Never use footprint sprites, seals, burst arcs or geometric placeholders.
-    for(const [key,file] of Object.entries({
-      mist:"violet-scent__cloud.webp",
-      smoke:"violet-scent__poison.webp",
-      confuse:"violet-scent__confuse.webp"
-    })){
+    const art={painted:true};
+    const path=role=>"assets/img/vfx/skills/violet-scent/violet-scent__"+role+".webp";
+    const legacy={mist:"cloud",smoke:"poison",confuse:"confuse"};
+    const roles={mist:"incense__f01",mistAlt:"incense__f02",smoke:"wisp",confuse:"spirals",
+      awake:"butterfly-trail__f01",awakeAlt:"butterfly-trail__f02",butterflies:"bewildered"};
+    for(const [key,role] of Object.entries(roles)){
       const img=new window.Image();img.decoding="async";
-      img.src=base+file+"?v=violet-scent-public-2";art[key]=img;
+      if(legacy[key]){
+        img.onerror=()=>{img.onerror=null;img.src=path(legacy[key])+"?v=violet-scent-public-2";};
+      }
+      img.src=path(role);art[key]=img;
     }
     return art;
   }
@@ -58,7 +67,8 @@ window.GAME_VIOLET_SCENT = (() => {
           if(travel>=cfg.distance&&since>=cfg.interval){
             const back=Math.min(.75,25/Math.max(.01,moved));
             const x=end.x-dx*back,y=end.y-dy*back;
-            clouds.push({x,y,life:cfg.life,maxLife:cfg.life,radius:cfg.radius,angle:Math.atan2(dy,dx)});
+            clouds.push({x,y,life:cfg.life,maxLife:cfg.life,radius:cfg.radius,
+              angle:Math.atan2(dy,dx),alternate:!clouds.at(-1)?.alternate,awakened:cfg.level===5});
             if(clouds.length>cfg.max)clouds.shift();
             travel=0;since=0;onEvent?.("drop");
           }
@@ -117,21 +127,38 @@ window.GAME_VIOLET_SCENT = (() => {
       if(visuals.length>MAX_VISUALS)visuals=visuals.slice(-MAX_VISUALS);
     }
     function paint(ctx,art={},fade=1){
-      const img=art.mist?.naturalWidth>0?art.mist:null;
-      if(!img)return;
+      const main=art.mist?.naturalWidth>0?art.mist:null;
+      const alternate=art.mistAlt?.naturalWidth>0?art.mistAlt:null;
+      const awake=art.awake?.naturalWidth>0?art.awake:null;
+      const awakeAlt=art.awakeAlt?.naturalWidth>0?art.awakeAlt:null;
+      if(!main&&!alternate&&!awake&&!awakeAlt)return;
       for(const c of clouds){
-        const age=c.maxLife-c.life,w=c.radius*2.35,h=c.radius*1.42;
+        const awakened=c.awakened&&(c.alternate?awakeAlt||awake:awake||awakeAlt);
+        const img=awakened||(c.alternate?alternate:main)||main||alternate;
+        if(!img)continue;
+        const age=c.maxLife-c.life;
+        const spread = art.painted ? .9 + .16 * Math.min(1, age / 1.3) : 1;
+        const w = c.radius * (art.painted ? 2.66 : 2.35) * spread;
+        const h = c.radius * (art.painted ? 1.74 : 1.42) * spread;
         ctx.save();
-        ctx.globalAlpha*=fade*Math.min(.86,c.life/.75)*Math.min(1,age/.25);
-        ctx.translate(c.x+Math.sin(age*2.8)*4,c.y-Math.sin(age*2.2)*6);
-        ctx.rotate(c.angle*.15+Math.sin(age*1.5)*.08);
+        const opacity = awakened ? .87 : art.painted ? .72 : .86;
+        ctx.globalAlpha *= fade * Math.min(opacity, c.life / .75)
+          * Math.min(1, age / (art.painted ? .15 : .25));
+        if(art.painted){
+          ctx.translate(c.x,c.y);
+          ctx.rotate(c.angle+Math.sin(age*2)*.07);
+        }else{
+          ctx.translate(c.x+Math.sin(age*2.8)*4,c.y-Math.sin(age*2.2)*6);
+          ctx.rotate(c.angle*.15+Math.sin(age*1.5)*.08);
+        }
         ctx.drawImage(img,-w/2,-h/2,w,h);
         ctx.restore();
       }
     }
     function paintEnemyImpacts(ctx,art={},upright=(_x,_y,draw)=>draw()){
       const poison=art.smoke?.naturalWidth>0?art.smoke:null;
-      const confused=art.confuse?.naturalWidth>0?art.confuse:null;
+      const butterflies=art.butterflies?.naturalWidth>0?art.butterflies:null;
+      const confused=butterflies||(art.confuse?.naturalWidth>0?art.confuse:null);
       if(!poison&&!confused)return;
       const drawn=new Set();
       for(const v of visuals){
@@ -140,11 +167,20 @@ window.GAME_VIOLET_SCENT = (() => {
         drawn.add(e);
         upright(e.x,e.y,()=>{
           ctx.save();
-          if(poison){ctx.globalAlpha*=.35;ctx.drawImage(poison,e.x-42,e.y-80,84,92);}
-          if(e.confusedT>0&&confused){
+          if(poison&&(!art.painted||infections.has(e))){
+            ctx.globalAlpha *= art.painted ? .56 : .35;
+            if(art.painted)ctx.drawImage(poison,e.x+6,e.y-55,25,59);
+            else ctx.drawImage(poison,e.x-42,e.y-80,84,92);
+          }
+          if(e.confusedT>0&&confused&&e.type!=="boss"){
             ctx.globalAlpha=.78*Math.min(1,e.confusedT/.4);
             const t=e.confusedT*4.5,dx=Math.sin(t)*7;
-            ctx.drawImage(confused,e.x-47+dx,e.y-108,84,83);
+            if(butterflies){
+              const age=Math.max(0,CONFUSION_IMMUNITY-(e.confuseImmuneT||0));
+              const size=58+Math.max(0,1-age/.25)*19;
+              ctx.drawImage(butterflies,e.x-size/2+dx,e.y-112+Math.cos(t)*4,size,size);
+            }else if(art.painted)ctx.drawImage(confused,e.x-20+dx,e.y-102,40,47);
+            else ctx.drawImage(confused,e.x-47+dx,e.y-108,84,83);
           }
           ctx.restore();
         });

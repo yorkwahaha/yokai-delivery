@@ -37,12 +37,12 @@ const MODULE_ORDER = [
 // Current game scripts must mirror the public index dependency order.
 // Keep the historic MODULE_ORDER unchanged for revision-pinned baseline tests.
 const CURRENT_MODULE_ORDER = [
-  'delivery-lexicon', 'delivery-media', ...MODULE_ORDER, 'combat-targeting', 'game-quiz-logic', 'game-geometry', 'game-charm-math', 'game-spawn-math', 'game-build-rules', 'game-delivery-rules', 'game-attack-specs', 'game-catalog', 'game-combat-math', 'game-weather', 'game-upgrade-choices', 'game-run-summary', 'game-tutorial-rules'
+  'delivery-lexicon', 'delivery-media', ...MODULE_ORDER, 'combat-targeting', 'game-quiz-logic', 'game-geometry', 'game-charm-math', 'game-spawn-math', 'game-build-rules', 'game-delivery-rules', 'game-ink-trail', 'game-violet-scent', 'game-confusion', 'game-attack-specs', 'game-catalog', 'game-combat-math', 'game-weather', 'game-upgrade-choices', 'game-run-summary', 'game-tutorial-rules'
 ];
 
 // V3 新增模組：只在 working tree 載入。baseline revision 不讀它，
 // 否則基線校準會混入 V3 尚未存在的程式，等於把兩個時間點混為一談。
-const V3_ONLY_MODULES = ['boss-ai'];
+const V3_ONLY_MODULES = ['game-seal-nail','boss-roster-trial','boss-sakura','boss-ai'];
 
 // 注入 game.js 的 fixture。snapshot 以 typeof 守衛讀取 V3 新狀態；
 // 現行 da98b4b 下這些欄位為 undefined，測試會如實看到「未實作」。
@@ -336,6 +336,24 @@ const FIXTURE = `window.fixture = {
   moveBoss: distance => { const bs=enemies.find(e=>e.type==='boss'); Object.assign(bs,{x:P.x+distance,y:P.y,speed:0,wob:0,flash:0}); },
   matchBossToJob: () => { const bs=enemies.find(e=>e.type==='boss'); bs.word=job.word; bossQ=mkQ(bs); bossQ.lock=0; },
   setWeaponRank: (id,rank) => { WL[id]=rank; wT[id]=Infinity; },
+  worldSolids: () => solids,
+  spotBlocked: (x, y, r) => blocked(x, y, r),
+  leaveStage: () => enterOverworld(),
+  winStage: () => startVictorySequence(),
+  upgradeInput: () => ({ focus: levelupFocus, mode: inputMode }),
+  unlockUpgradeInput: () => { levelupCooldown = 0; },
+  limitChoices: n => { choices = choices.slice(0, n); levelupFocus = 0; },
+  hitUpgradeCard: p => hitLevelUpCard(p),
+  hitUpgradeReroll: p => hitLevelUpReroll(p),
+  pollGamepad: () => pollGamepad(),
+  toggleView: () => toggleViewMode(),
+  companion: () => typeof shikigami === 'undefined' ? null : shikigami?.snapshot() ?? null,
+  addMob: fields => {
+    const e = { x: P.x, y: P.y, hp: 500, max: 500, speed: 0, flash: 0, wob: 0,
+      slowT: 0, type: 'grunt', ...fields };
+    enemies.push(e);
+    return e;
+  },
   forcePostCapForTest: () => {
     // Test-only saturated build; no changes to production passive limits.
     for(const id of Object.keys(WL))WL[id]=['katana','boom','fire','needle'].includes(id)?5:0;
@@ -590,8 +608,9 @@ function loadGame(options = {}) {
     createLinearGradient: () => gradient, createRadialGradient: () => gradient
   }, { get: (o, k) => o[k] || (() => {}) });
 
+  const canvasEvents = {};
   const canvas = {
-    addEventListener() {}, setPointerCapture() {},
+    addEventListener(name, handler) { canvasEvents[name] = handler; }, setPointerCapture() {},
     getBoundingClientRect: () => ({ left: 0, top: 0, width: 900, height: 600 })
   };
   const events = {};
@@ -599,6 +618,7 @@ function loadGame(options = {}) {
   const env = {
     console, Set, Map, Math: seededMath, Date, URLSearchParams, performance: { now: () => 0 },
     navigator: {}, requestAnimationFrame() {},
+    location: options.location,
     localStorage: { getItem: k => storage.get(k) || null, setItem: (k, v) => storage.set(k, v) },
     document: {
       hidden: false, getElementById: id => id === 'controls-open' ? { click() {} } : canvas,
@@ -625,6 +645,10 @@ const runSource = (c, source, name, revision, srcRoot) => {
 };
 
 const c = vm.createContext(env);
+  if (!revision && options.location) {
+    runSource(c, reader('dev-mode.js'), 'dev-mode', null, srcRoot);
+    c.DEV_MODE.mountDevPanel = () => {};
+  }
   for (const name of (revision ? MODULE_ORDER : CURRENT_MODULE_ORDER))
     runSource(c, reader(`${name}.js`), name, revision, srcRoot);
   if (!revision) {
@@ -632,7 +656,12 @@ const c = vm.createContext(env);
       const file = path.join(srcRoot, `${name}.js`);
       if (fs.existsSync(file)) runSource(c, fs.readFileSync(file, "utf8"), name, null, srcRoot);
     }
-    for (const name of V3_ONLY_MODULES) {
+    const modules = [...V3_ONLY_MODULES];
+    if (options.fusionLab) modules.push('fusion');
+    if (c.DEV_MODE?.isShikigamiEnabled?.(c.location)) modules.push('game-shikigami');
+    if (c.DEV_MODE?.isBambooEnabled?.(c.location)) modules.push('stage-route-layouts', 'bamboo-combat');
+    if (c.DEV_MODE?.isStageLab?.(c.location)) modules.push('kyoto-procession');
+    for (const name of modules) {
       // 注意副檔名：V3_ONLY_MODULES 存的是 'boss-ai'，檔名是 'boss-ai.js'。
       const file = path.join(srcRoot, `${name}.js`);
       if (fs.existsSync(file)) runSource(c, fs.readFileSync(file, 'utf8'), name, null, srcRoot);
@@ -675,6 +704,7 @@ const c = vm.createContext(env);
     HINT_BTN: { x: 532, y: 20, w: 78, h: 40 },
     readableFont: () => '20px sans-serif'
   }, { get: (o, k) => o[k] || (() => {}) });
+  if (options.phase42 && !revision) runSource(c, reader('ui-upgrade-trial.js'), 'ui-upgrade-trial', null, srcRoot);
 
   const source = reader('game.js');
   const end = source.lastIndexOf('})();');
@@ -685,6 +715,9 @@ const c = vm.createContext(env);
   fixture.env = c;
   fixture.audioCalls = audioCalls;
   fixture.events = events;
+  fixture.tapCanvas = (point, pointerType = 'touch') => canvasEvents.pointerdown({
+    target: canvas, clientX: point.x, clientY: point.y, pointerType, pointerId: 1, button: 0, preventDefault() {}
+  });
   fixture.seed = seed;
   fixture.skillFxLog = skillFxLog;
   fixture.slashLog = slashLog;

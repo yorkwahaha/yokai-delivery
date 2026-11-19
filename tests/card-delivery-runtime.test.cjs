@@ -138,6 +138,10 @@ function loadGame(options = {}) {
   vm.runInContext(read("js/game-spawn-math.js"), context, { filename: "js/game-spawn-math.js" });
   vm.runInContext(read("js/game-build-rules.js"), context, { filename: "js/game-build-rules.js" });
   vm.runInContext(read("js/game-delivery-rules.js"), context, { filename: "js/game-delivery-rules.js" });
+  vm.runInContext(read("js/game-ink-trail.js"), context, { filename: "js/game-ink-trail.js" });
+  vm.runInContext(read("js/game-violet-scent.js"), context, { filename: "js/game-violet-scent.js" });
+  vm.runInContext(read("js/game-confusion.js"), context, { filename: "js/game-confusion.js" });
+  vm.runInContext(read("js/game-seal-nail.js"), context, { filename: "js/game-seal-nail.js" });
   vm.runInContext(read("js/game-attack-specs.js"), context, { filename: "js/game-attack-specs.js" });
   vm.runInContext(read("js/game-catalog.js"), context, { filename: "js/game-catalog.js" });
   vm.runInContext(read("js/game-combat-math.js"), context, { filename: "js/game-combat-math.js" });
@@ -348,7 +352,7 @@ test("independent success stamps once and does not copy learning box into the ca
   assert.equal(game.learningDoc("yokai-delivery-v1").marks, undefined);
 });
 
-test("failure adds no mark and the later assisted success of that delivery adds one", () => {
+test("failed delivery does not earn a mark; a later successful order earns one", () => {
   const game = boot();
   game.useRandom(0);
   game.start("night-town");
@@ -360,10 +364,15 @@ test("failure adds no mark and the later assisted success of that delivery adds 
   assert.equal(game.cardDoc(), null);
   assert.equal(game.env.STORE.get(job.word.jp).missBoost, 2.5);
   assert.equal(game.env.STORE.get(job.word.jp).ng, 1);
+  // Under the immediate-failure contract, the failed job has closed.
   game.resolve(job.ans.indexOf(job.word));
-  assert.equal(game.markOf(job.word.jp), 1);
+  assert.equal(game.markOf(job.word.jp), 0);
+  game.clearOrders();
+  const later = game.prepareOrder();
+  game.resolve(later.ans.indexOf(later.word));
+  assert.equal(game.markOf(later.word.jp), 1);
   assert.equal(Object.keys(game.cardDoc().events).length, 1);
-  assert.equal(game.env.STORE.get(job.word.jp).missBoost, 2.5);
+  assert.equal(game.env.STORE.get(job.word.jp).ng >= 1,true);
 });
 
 test("hint listening and boss answers do not stamp a delivery mark", () => {

@@ -12,12 +12,12 @@ const stage=LEX.stages.find(x=>x.id==='rain-port');
 const readJSON=file=>JSON.parse(fs.readFileSync(path.join(ROOT,file),'utf8'));
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 
-test('RAIN-DELIVERY 20 images + 20 Fish Audio A MP3 canonical paths are complete and perfectly aligned',()=>{
- const im=readJSON('assets/img/delivery/rain-port/manifest.json');
+test('RAIN-DELIVERY archived 20 original images and 20 current Fish Audio A MP3 remain aligned',()=>{
+ const im=readJSON('art/delivery-icons/rain-port/words-20261119/previous-manifest.json');
  const au=readJSON('assets/audio/delivery/rain-port/manifest.json');
  const voice=readJSON('art/audio/fish-rain-port/a-common-ja/manifest.json');
  assert.equal(stage.words.length,20);
- assert.equal(im.status,'IN_GAME_TRIAL_PENDING_USER_REVIEW');
+ assert.equal(im.status,'APPROVED_BY_USER');
  assert.equal(au.status,'IN_GAME_TRIAL_PENDING_USER_REVIEW');
  assert.equal(au.voice_id,'97eda32449cf443bbc4b8782853ca554');
  assert.equal(au.model_used,'s2.1-pro-free');
@@ -30,9 +30,9 @@ test('RAIN-DELIVERY 20 images + 20 Fish Audio A MP3 canonical paths are complete
   const pic=im.items[i],aud=au.items[i];
   assert.equal(pic.jp,w.jp);assert.equal(aud.jp,w.jp);
   assert.equal(pic.file,num+'.webp');assert.equal(aud.file,num+'.mp3');
-  assert.equal(pic.art_status,'IN_GAME_TRIAL_PENDING_USER_REVIEW');
+  assert.equal(pic.art_status,'APPROVED_BY_USER');
   assert.ok(pic.source.includes(v3.has(j)?'rerender-original-style-v3':'rerender-qwen-v2'));
-  assert.equal(sha(fs.readFileSync(path.join(ROOT,'assets/img/delivery/rain-port',pic.file))),pic.sha256);
+  assert.equal(sha(fs.readFileSync(path.join(ROOT,pic.source))),pic.sha256);
   const bytes=fs.readFileSync(path.join(ROOT,'assets/audio/delivery/rain-port',aud.file));
   assert.equal(sha(bytes),aud.sha256);
   assert.ok(bytes.length>1200);
@@ -57,8 +57,9 @@ test('RAIN-DELIVERY game image/audio route is canonical and supports Google Japa
  for(const script of ['js/delivery-media.js','js/delivery-icon-art.js','js/delivery-fish-audio.js','js/audio.js']){
   vm.runInNewContext(fs.readFileSync(path.join(ROOT,script),'utf8'),ctx,{filename:script});
  }
- assert.equal(window.DELIVERY_MEDIA.isApproved('image','rain-port'),false);
- assert.equal(window.DELIVERY_MEDIA.isTrial('image','rain-port'),true);
+ assert.equal(window.DELIVERY_MEDIA.isApproved('image','rain-port'),true);
+ assert.equal(window.DELIVERY_MEDIA.isTrial('image','rain-port'),false);
+ assert.equal(window.DELIVERY_MEDIA.isTrial('audio','rain-port'),true);
  assert.equal(window.DELIVERY_MEDIA.pathForWord('image','さけ'),'assets/img/delivery/rain-port/02.webp');
  assert.equal(window.DELIVERY_ICON_ART.pathFor({jp:'さけ',packId:'delivery-rain-port-2'}),'assets/img/delivery/rain-port/02.webp');
  assert.equal(window.DELIVERY_FISH_AUDIO.pathFor('さけ'),'assets/audio/delivery/rain-port/02.mp3');
@@ -68,8 +69,8 @@ test('RAIN-DELIVERY game image/audio route is canonical and supports Google Japa
  assert.equal(voices.at(-1).text,'さけ');
  assert.equal(voices.at(-1).lang,'ja-JP');
  assert.equal(voices.at(-1).voice.name,'Google 日本語');
- assert.equal(window.DELIVERY_MEDIA.pathForWord('image','さくら'),null);
- assert.equal(window.DELIVERY_MEDIA.pathForWord('audio','さくら'),null);
+ assert.equal(window.DELIVERY_MEDIA.pathForWord('image','さくら'),'assets/img/delivery/sakura-pass/01.webp');
+ assert.equal(window.DELIVERY_MEDIA.pathForWord('audio','さくら'),'assets/audio/delivery/sakura-pass/01.mp3');
 });
 
 test('RAIN-DELIVERY preview page JavaScript parses; image inputs are already-generated source candidates, not assumed approved',()=>{

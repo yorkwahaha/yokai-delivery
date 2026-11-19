@@ -25,8 +25,9 @@ function trial(search='?upgradeUI=1',hostname='localhost'){
     readableFont:(n,weight='700')=>weight+' '+n+'px sans-serif',
     cardShort:()=>null
   };
-  const env={window:{UI,VIEWPORT:{get:()=>({scale:.65})}},
-    location:{search,hostname},URLSearchParams,console};
+  const location={search,hostname};
+  const env={window:{UI,location,VIEWPORT:{get:()=>({scale:.65})}},
+    location,DEV_MODE:require('../js/dev-mode.js'),URLSearchParams,console};
   vm.runInNewContext(script,env,{timeout:1000});
   return {UI,ctx,traces,prevLayout,prevDraw,env};
 }
@@ -35,6 +36,31 @@ const cards=[
   {id:'fire',type:'weapon',n:'狐火',d:'狐火環繞，灼燒附近妖怪，提升傷害和持續時間',levelText:'Lv.3 → Lv.4'},
   {id:'boom',type:'weapon',n:'陰陽符',d:'符紙貼附並爆炸',levelText:'新解鎖'}
 ];
+
+test('式神中心圖缺檔時仍畫共用框、名稱與描述', () => {
+  const view = trial('?dev=1&shikigami=1');
+  const artPath = 'assets/img/skills/shikigami/cards/shikigami__art.webp';
+  const requests = [];
+  view.env.window.Image = class {
+    set src(value) {
+      requests.push(value);
+      this.url = value;
+      if (value === artPath) { this.onerror(); return; }
+      this.naturalWidth = 1024;
+      this.naturalHeight = 1536;
+      this.onload();
+    }
+  };
+  view.UI.drawLevelUp(view.ctx, 2, [{
+    id: 'shikigami', type: 'weapon', n: '式神・召喚',
+    d: '召喚夥伴追擊附近妖怪', artPath
+  }], {}, {}, 0, 0, 0, 'keyboard');
+  assert.ok(requests.includes(artPath));
+  assert.ok(view.traces.some(t => t.image === 'assets/img/ui/menu/ui__upgrade-card-frame.png'));
+  assert.ok(view.traces.some(t => t.text === '式神・召喚'));
+  assert.ok(view.traces.some(t => t.text === '召喚夥伴追擊附近妖怪'));
+  assert.ok(!view.traces.some(t => t.image === artPath || t.text === '卡片素材載入中'));
+});
 
 test('approved Phase42 cards now replace the regular renderer without opt-in',()=>{
  const x=trial('?mode=normal');
@@ -262,7 +288,7 @@ test('Phase42 maps all 45 skills to distinct shared-frame center paths',()=>{
     'assets/img/skills/katana/cards/katana__art.webp');
 });
 
-test('violet fragrance skill uses the shared frame and real picture on local and public hosts',()=>{
+test('violet fragrance and seal nail share the new main art on public and local hosts',()=>{
   const local=trial('', 'localhost');
   class Img{
     naturalWidth=1024;naturalHeight=1536;
@@ -270,17 +296,22 @@ test('violet fragrance skill uses the shared frame and real picture on local and
   }
   local.env.window.Image=Img;
   local.UI.drawLevelUp(local.ctx,2,[{id:'ink_trail',type:'weapon',
-    n:'紫藤毒香',lv:1,d:'移動留下粉紫色毒霧'}],{}, {},0,0,0,'keyboard');
+    n:'紫藤毒香',lv:1,d:'移動留下粉紫色毒霧'},
+    {id:'seal_nail',type:'weapon',n:'距爆・封印釘',lv:1,d:'走遠後蓄爆'}],{}, {},0,0,0,'keyboard');
   const cfg=local.env.window.__YOKAI_UPGRADE_PHASE42;
   const candidate=cfg.centerPath('ink_trail');
-  assert.equal(candidate,'assets/img/skills/ink-trail/cards/ink-trail__art.webp');
+  assert.equal(candidate,'assets/img/skills/ink-trail/cards/ink-trail__art__incense.webp');
   assert.equal(cfg.sharedCardIds.length,45);
-  assert.equal(local.traces.filter(t=>t.image===cfg.framePath).length,1);
+  assert.equal(local.traces.filter(t=>t.image===cfg.framePath).length,2);
   assert.equal(local.traces.filter(t=>t.image===candidate).length,1);
+  assert.equal(local.traces.filter(t=>t.image==='assets/img/skills/seal-nail/cards/seal-nail__art__ritual.webp').length,1);
+  assert.equal(cfg.centerPath('needle'),'assets/img/skills/needle/cards/needle__art.webp');
   assert.ok(local.traces.some(t=>t.text==='粉紫毒霧'));
   const publicHost=trial('','example.com');
   assert.equal(publicHost.env.window.__YOKAI_UPGRADE_PHASE42.sharedCardIds.length,45);
   assert.equal(publicHost.env.window.__YOKAI_UPGRADE_PHASE42.centerPath('ink_trail'),candidate);
+  assert.equal(publicHost.env.window.__YOKAI_UPGRADE_PHASE42.centerPath('seal_nail'),
+    'assets/img/skills/seal-nail/cards/seal-nail__art__ritual.webp');
   assert.equal(publicHost.env.window.__YOKAI_UPGRADE_PHASE42.centerPath('mut_ink_bloom'),
     'assets/img/skills/mut-ink-bloom/cards/mut-ink-bloom__art.webp');
 });

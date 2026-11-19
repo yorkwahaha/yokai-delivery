@@ -3,12 +3,12 @@
   "updated": "2026-10-31",
   "notes": "Unmigrated paths are inventoried, not approved for new usage; never delete without reference audit.",
   "totals": {
-    "files": 1055,
+    "files": 1185,
     "by_status": {
       "legacy_unmigrated": 361,
       "legacy_review_required": 62,
-      "canonical": 207,
-      "trial_pending_review": 274,
+      "trial_pending_review": 295,
+      "canonical": 316,
       "legacy_alias_active": 99,
       "legacy_source_pending_renderer": 52
     }
@@ -39,6 +39,60 @@
       "sha256": "4fc3763d236ee06281f5ae8e42c2af63352d5f97a36f4741e2c61f71b272546d"
     },
     {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-attack__f01.webp",
+      "status": "trial_pending_review",
+      "bytes": 43330,
+      "sha256": "1ac2886a0c8244a061971a9301562d1ebd6fa54288d5194ffefcaf3cbe2e09a3"
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-attack__f02.webp",
+      "status": "trial_pending_review",
+      "bytes": 40760,
+      "sha256": "656054a406b154d3edd87b0595e7715a5af826b04a24ac27d1f8430191189da9"
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-attack__f03.webp",
+      "status": "trial_pending_review",
+      "bytes": 41134,
+      "sha256": "ffbf3158f2bd7ba07ba84fa60c1eade18d005e799c2c11b98e49cab61ca034fb"
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-attack__f04.webp",
+      "status": "trial_pending_review",
+      "bytes": 44412,
+      "sha256": "164d54ba06648baac7a190a76ea7f446e8b062ec6d5373d8a80f9578ef3ced3d"
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-idle__f01.webp",
+      "status": "trial_pending_review",
+      "bytes": 44434,
+      "sha256": "c427d1dac4d243c10d21e433fc707cf33d6c36522cc4ba7c5ca0142a2dded07a"
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-run__f01.webp",
+      "status": "trial_pending_review",
+      "bytes": 42248,
+      "sha256": "4e9d41a0b0703238e23741b3cfee36bdde949d0895d4657a7caa8c9a23b64a35"
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-run__f02.webp",
+      "status": "trial_pending_review",
+      "bytes": 39114,
+      "sha256": "256317a1983af190d1647d673cbc38b2bed91b21643a521011e01b799c159a05"
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-run__f03.webp",
+      "status": "trial_pending_review",
+      "bytes": 43046,
+      "sha256": "4080851c5f86bc65ed8f85c61cf57ac994a8b84fb3d08895c666bfe41148d967"
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-run__f04.webp",
+      "status": "trial_pending_review",
+      "bytes": 40344,
+      "sha256": "f71600b6a57eacc659fcd706243a5a420b4a3a28bef6632daba481a4e6dec566"
+    },
+    {
       "path": "assets/img/cover.jpg",
       "status": "legacy_unmigrated",
       "bytes": 1118670,
@@ -51,376 +105,616 @@
       "sha256": "af807c3e29426fe5494e7fbc34f63a77795a66f4dbd2e479b4830fec3d52e183"
     },
     {
+      "path": "assets/img/delivery/bamboo-maze/01.webp",
+      "status": "canonical",
+      "bytes": 38124,
+      "sha256": "3afcd0237704fabe78358c0ba68dd8eccf15b643c1cc60ef0e4d9a693553c409"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/02.webp",
+      "status": "canonical",
+      "bytes": 35092,
+      "sha256": "1cc6f19f653b28ce4f16bfff00c93c48eebf2debf624caea9c854c498682a60a"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/03.webp",
+      "status": "canonical",
+      "bytes": 44122,
+      "sha256": "3e064078c2947be02b1dc217667becd6bc18573d811a02072e241f59c6d573b7"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/04.webp",
+      "status": "canonical",
+      "bytes": 46320,
+      "sha256": "ce21d4ba16e9327023b54fd5932d5f586d7e099e22908de3e9da7a5cea6f3a83"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/05.webp",
+      "status": "canonical",
+      "bytes": 22224,
+      "sha256": "391f5369ee7745dc82f8744fb79d90f35d5970e3d3e0ee15d9252f5028ffc250"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/06.webp",
+      "status": "canonical",
+      "bytes": 28790,
+      "sha256": "e58b8302d4f0f27f0348aae2836b1778a006b546ea4ba0451808d5ba2ee73bef"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/07.webp",
+      "status": "canonical",
+      "bytes": 47850,
+      "sha256": "dfe305e96561daee0588a9ec0a2f7ea8304731538362c960b4eb22eda0286600"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/08.webp",
+      "status": "canonical",
+      "bytes": 43698,
+      "sha256": "8cc2b30e5493ac92e3814eb989851393e72413e379741ff8ed06d4ab403f1689"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/09.webp",
+      "status": "canonical",
+      "bytes": 45554,
+      "sha256": "c316393b89b04ae10fce247031da5cf3fe19eed47551162c96e9f1f3e34e6e52"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/10.webp",
+      "status": "canonical",
+      "bytes": 25424,
+      "sha256": "3cc93ba908e61ee7afdaa0dada6a7728e150f344d480bc85b071cd0404646d05"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/11.webp",
+      "status": "canonical",
+      "bytes": 38584,
+      "sha256": "7b1270d36ce1528502f5f8c8d45709be773ca0639dd03e75ce4886a744182e5c"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/12.webp",
+      "status": "canonical",
+      "bytes": 22418,
+      "sha256": "444aea62a966115aaa5248cd6bb8c86074270dada16275291bab864dfe52bb64"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/13.webp",
+      "status": "canonical",
+      "bytes": 56196,
+      "sha256": "03b9c827bccb2243001518244585f271fe01cc9d390252d2600e731cc9bc4fd1"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/14.webp",
+      "status": "canonical",
+      "bytes": 61540,
+      "sha256": "5dfbeb9c62871ab30b2328728484a978f0ad6b9f254eb00853d1ef0be0b30cc8"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/15.webp",
+      "status": "canonical",
+      "bytes": 33872,
+      "sha256": "f8e765faba0b1d84838ddd702bae8252ff26832c40e02778924fdca5e2f71f8b"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/16.webp",
+      "status": "canonical",
+      "bytes": 49022,
+      "sha256": "5330dfdaac5c12be33f7b4ffb45ade86f7da69348416fc5b110274b8949d7a78"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/17.webp",
+      "status": "canonical",
+      "bytes": 50194,
+      "sha256": "663debe81c0ff8fc4c587533890ffb8acd186d0f78cdaea87b7285a59999a988"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/18.webp",
+      "status": "canonical",
+      "bytes": 43530,
+      "sha256": "c87e2988b520c7bf189efdf1ecd22e719ade95b9b70493fccf1ca99d2362abe9"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/19.webp",
+      "status": "canonical",
+      "bytes": 40032,
+      "sha256": "e360633e9b7ac866899bf03cdb40d17672e3e8af481425617e30175ae59b3e15"
+    },
+    {
+      "path": "assets/img/delivery/bamboo-maze/20.webp",
+      "status": "canonical",
+      "bytes": 39210,
+      "sha256": "222d8951109a57f8e8f526928908e7dff81232c6a42fef02c876a08aef78903f"
+    },
+    {
       "path": "assets/img/delivery/night-town/01.webp",
       "status": "canonical",
-      "bytes": 8358,
-      "sha256": "514eda5ed06f1fac2fcec162c8fa2df86b1e18c0edde522a2b7dc87348037f6a"
+      "bytes": 55958,
+      "sha256": "1c159ae7be88e04ef8235a7ef40fe64efb468d86bd416c3dbd2e3c6b178b2166"
     },
     {
       "path": "assets/img/delivery/night-town/02.webp",
       "status": "canonical",
-      "bytes": 8326,
-      "sha256": "18554413d72b46abb2db65d8a8f5d1523a8f94ef9fcf09a21c317aab14482585"
+      "bytes": 37020,
+      "sha256": "92388f3af97972e11ba80cf47123c1155188846ab75482506b1a999fcf38a575"
     },
     {
       "path": "assets/img/delivery/night-town/03.webp",
       "status": "canonical",
-      "bytes": 11368,
-      "sha256": "cbf2e38d83eb092a90189af5166e7eeb6e8ecbf6f2bc0036f32ad5c2a4f4247e"
+      "bytes": 55464,
+      "sha256": "3efd7f46aad27ceb19bcb20f48f6b35e0f44b148a6e4b68342782274c0def7a6"
     },
     {
       "path": "assets/img/delivery/night-town/04.webp",
       "status": "canonical",
-      "bytes": 8666,
-      "sha256": "585291cd3740b8c0ee89e87bf245b99a055573532b784a6e5b151e6fe2fbfdba"
+      "bytes": 33792,
+      "sha256": "a80f5bac708668c715937f704d6c0306efd2637b46f13677f84df31a0082f213"
     },
     {
       "path": "assets/img/delivery/night-town/05.webp",
       "status": "canonical",
-      "bytes": 8912,
-      "sha256": "c9270a64c304dac79f76003affffb8f4641383814e6a85dce5cdcc877c7e415f"
+      "bytes": 30952,
+      "sha256": "7ef23b6c09386d543d9be3ca612a30edbd3c66df7333b50249596e0b756c8330"
     },
     {
       "path": "assets/img/delivery/night-town/06.webp",
       "status": "canonical",
-      "bytes": 8812,
-      "sha256": "9dda9e22b90d4b2d298663153b15da353fe06c5112b5bbcd15271eddd1f21e8d"
+      "bytes": 41912,
+      "sha256": "b861569946ab3574824654296b9a4bfd4fc27a5b851c2dc6a8869a41a4086d78"
     },
     {
       "path": "assets/img/delivery/night-town/07.webp",
       "status": "canonical",
-      "bytes": 11074,
-      "sha256": "6c5d841417c4c22b9f7ae5bb2d100b6fd33e1fab45b91db9173a9e9264861297"
+      "bytes": 39966,
+      "sha256": "4b8c45f86942f83c62493b63392d9d7ade803910039dee1093c86bc9abd6b879"
     },
     {
       "path": "assets/img/delivery/night-town/08.webp",
       "status": "canonical",
-      "bytes": 8606,
-      "sha256": "17ce600a54cf54754ad738db34da4a4d47b42228ce1e7f8cb3736c3c11e57fc8"
+      "bytes": 40886,
+      "sha256": "2e5963186aa543e2cc2fc5de3ee5ff1a4b411525468e16dfb3813b52aec7ba3c"
     },
     {
       "path": "assets/img/delivery/night-town/09.webp",
       "status": "canonical",
-      "bytes": 5244,
-      "sha256": "28fdf8a7cb451c178727f678f5a886877429e68363e856d61be84beaaf506796"
+      "bytes": 22420,
+      "sha256": "066ceb199bbbac279f415e3c4bf7919d30d7e98d70e6ba6429fd195b9759cd1f"
     },
     {
       "path": "assets/img/delivery/night-town/10.webp",
       "status": "canonical",
-      "bytes": 7358,
-      "sha256": "db80f662e4156913da0510ef55ef14152371c773765162324d89f9457e5680f7"
+      "bytes": 52650,
+      "sha256": "c1207d9ceded9de77eb57841fa3c008844e6671879da4600e693df0436efe278"
     },
     {
       "path": "assets/img/delivery/night-town/11.webp",
       "status": "canonical",
-      "bytes": 5898,
-      "sha256": "f09c91c1e6c7f0af74eafe384c0740db1d2a835e821c8fc8908e848e8f07361f"
+      "bytes": 45068,
+      "sha256": "b0022ae10ac25de5aa67e0d6c2236c49d34e341020ab6abb46f694ac7ff4c8d6"
     },
     {
       "path": "assets/img/delivery/night-town/12.webp",
       "status": "canonical",
-      "bytes": 3974,
-      "sha256": "93d9134edf84f1e7ee68ac4db655f4804b7268a0baaa067bcc77530cb8e805c5"
+      "bytes": 21076,
+      "sha256": "dd7bdb2929a7cec5f51946cb9f4a0c509087a1e5730e8a58302e080eacb94862"
     },
     {
       "path": "assets/img/delivery/night-town/13.webp",
       "status": "canonical",
-      "bytes": 3918,
-      "sha256": "4a0d6a60c0e89569e63bd3b3fda802c3e629a040dcc31b35f123ca2014e90565"
+      "bytes": 37472,
+      "sha256": "ac07369d64c500fe0440b43d4c6d32b03310f3ebd26e93924e215fd088b539b4"
     },
     {
       "path": "assets/img/delivery/night-town/14.webp",
       "status": "canonical",
-      "bytes": 7246,
-      "sha256": "f76f3a4ba89b0a62e0d6f40708a5d2ebe0d5c3205df6973b8aa743be9d1980d4"
+      "bytes": 31924,
+      "sha256": "a328b8c12d03e9e9e937a39b298f914c5e499e6470f161d43d34f87231471b34"
     },
     {
       "path": "assets/img/delivery/night-town/15.webp",
       "status": "canonical",
-      "bytes": 5222,
-      "sha256": "e1ea046bfcc57fc76c96b28afda61d9deb3a4290e2c1f1d90deb1c30946fb134"
+      "bytes": 23112,
+      "sha256": "3ae90a21b328b7e7f72373864ac5091834690c3919b26709cd0e3d7949045af1"
     },
     {
       "path": "assets/img/delivery/night-town/16.webp",
       "status": "canonical",
-      "bytes": 6306,
-      "sha256": "bb12959c333f6b7a446bc763eddcd00dd26f7db6e189365d205b0d8c89b0f74b"
+      "bytes": 35140,
+      "sha256": "bfb10a41daafa778b1d13858fa34392c5322b85421756724a8dfa01bf94bcc8f"
     },
     {
       "path": "assets/img/delivery/night-town/17.webp",
       "status": "canonical",
-      "bytes": 9262,
-      "sha256": "ef33440a2a90a3a89ec8c15a5e468a215327966d0e1cdc58a276f0b599706c54"
+      "bytes": 35532,
+      "sha256": "d41a9bc3267db800167dd590338a8cb400866f521a7ef55b5f44babbdd71ef79"
     },
     {
       "path": "assets/img/delivery/night-town/18.webp",
       "status": "canonical",
-      "bytes": 7176,
-      "sha256": "8a8c171cd4cc26e29a5c5036ea58956078721b888434a82a734770ce5a486515"
+      "bytes": 43210,
+      "sha256": "3cedc7a08838612db7749f9082b4c5bbd5139f79c689b950a398b87ed64f9d34"
     },
     {
       "path": "assets/img/delivery/night-town/19.webp",
       "status": "canonical",
-      "bytes": 5190,
-      "sha256": "55422c3c4775466e2d48bbdb1d70b3a4d5eecf823b4dd0e55cb11eb29918250c"
+      "bytes": 15592,
+      "sha256": "ab1bf356f3338a8cb50bac2e5cbdf54e42f73946277c12b67c737b492c9eb608"
     },
     {
       "path": "assets/img/delivery/night-town/20.webp",
       "status": "canonical",
-      "bytes": 6476,
-      "sha256": "777e4bc4b086a9964672e0d5f39fb03eb27a650d870395eed2e86674a56a53ef"
+      "bytes": 40026,
+      "sha256": "57a9991e1f150d40d30343ad0fa8d3b7cdca3f15c503e641a6b9f51b99247b3f"
     },
     {
       "path": "assets/img/delivery/rain-port/01.webp",
-      "status": "trial_pending_review",
-      "bytes": 5696,
-      "sha256": "5df14dd9c23f813a27beb5e73bcd1cd87cbe1f1971a99b30c6c3789586213fef"
+      "status": "canonical",
+      "bytes": 27300,
+      "sha256": "80a6576ee38a310778908d32446023a0a857d1782281ad1c3ca15096788232ac"
     },
     {
       "path": "assets/img/delivery/rain-port/02.webp",
-      "status": "trial_pending_review",
-      "bytes": 7336,
-      "sha256": "883aedf0b4249c9ecda46838a997e4d635c1aaa82ec73f479cdcc88825901382"
+      "status": "canonical",
+      "bytes": 45052,
+      "sha256": "89e423096c4aa4bc06ad4c466d0b7d5967e7b7c0525e6994b3967476af6c2132"
     },
     {
       "path": "assets/img/delivery/rain-port/03.webp",
-      "status": "trial_pending_review",
-      "bytes": 9042,
-      "sha256": "f8000a8ac8a7b34e38d3bc0e9c196df0ea601c4f088ee129bf00042f8b46cbec"
+      "status": "canonical",
+      "bytes": 24034,
+      "sha256": "039dcb119eba03e8401e425c458315f7cf60de54d91bb585e86f5bffcd1a5772"
     },
     {
       "path": "assets/img/delivery/rain-port/04.webp",
-      "status": "trial_pending_review",
-      "bytes": 6510,
-      "sha256": "9e9f1926d78a18b91206d7baaeb373d8c8d168eb14449e91e2f59fd07a17d973"
+      "status": "canonical",
+      "bytes": 22514,
+      "sha256": "0ed1745113cc0ff3d8c04d5f7248733010fcc5f23a95aaf0bedcc84c9abb075b"
     },
     {
       "path": "assets/img/delivery/rain-port/05.webp",
-      "status": "trial_pending_review",
-      "bytes": 9244,
-      "sha256": "383d22d00c6b1c555e1d002376a271a6806ea5573a32637ddcc1c75eb8a417d6"
+      "status": "canonical",
+      "bytes": 39200,
+      "sha256": "fbe5ca8696d50dacac24bed29638ec7d852adf54440981aab401a9c10cc75901"
     },
     {
       "path": "assets/img/delivery/rain-port/06.webp",
-      "status": "trial_pending_review",
-      "bytes": 8100,
-      "sha256": "501108780de27617bfa7921ed0912a9b5f19db867f2c76c58392decdbcacb600"
+      "status": "canonical",
+      "bytes": 40650,
+      "sha256": "8c23705aefeaa6838b5f4e262e20ff8660cb0e5f921ca5d436df9f6bbd7ece4f"
     },
     {
       "path": "assets/img/delivery/rain-port/07.webp",
-      "status": "trial_pending_review",
-      "bytes": 13046,
-      "sha256": "7a5c26a4ed13ba8ca8f1e0617c8bfa3a3067cb0354d9b747133869e35e558cdf"
+      "status": "canonical",
+      "bytes": 55904,
+      "sha256": "38462fadfaadf4a74644156d3589763f8912e2e1f9e697227bf13121ee750663"
     },
     {
       "path": "assets/img/delivery/rain-port/08.webp",
-      "status": "trial_pending_review",
-      "bytes": 9972,
-      "sha256": "d15ade03e2c575a83c58fd2f4052896c23e8e441c4e246a41d71d97f48b2126b"
+      "status": "canonical",
+      "bytes": 30326,
+      "sha256": "ffc6a96bdfd15265de03a09b197f66d06728cbf4809a44d30c024f9a3fa8905f"
     },
     {
       "path": "assets/img/delivery/rain-port/09.webp",
-      "status": "trial_pending_review",
-      "bytes": 8040,
-      "sha256": "453b6bfba79f7ea5edd42605fe33a3aceab9117dab31343016e1b187f5e45d4d"
+      "status": "canonical",
+      "bytes": 48966,
+      "sha256": "719058a4f69c3844e4edad465e30426d3fa230f6aaa611e3beec74e61e5baf1f"
     },
     {
       "path": "assets/img/delivery/rain-port/10.webp",
-      "status": "trial_pending_review",
-      "bytes": 13434,
-      "sha256": "a085c269ab9274ec701730cda40e9d810d7f30191b132d04666091e0305b148b"
+      "status": "canonical",
+      "bytes": 41956,
+      "sha256": "94c8b9efdbc846aa691f22ce241a65ef44a3ba28b54510d7e903d2fdac06a872"
     },
     {
       "path": "assets/img/delivery/rain-port/11.webp",
-      "status": "trial_pending_review",
-      "bytes": 7118,
-      "sha256": "869040953dc53b3ff6a2826e588c7e2e1d601719813ec01dad355eee80cd43d4"
+      "status": "canonical",
+      "bytes": 51176,
+      "sha256": "7c49e7e8b541bd0227e8fbe4bfe10866ec1a42083ca3e42083365de0c073f0cf"
     },
     {
       "path": "assets/img/delivery/rain-port/12.webp",
-      "status": "trial_pending_review",
-      "bytes": 9500,
-      "sha256": "2d9100ec8d14fc9373bc75908915a8018e5ff8cf5eafc1b6f3da7caa67f86357"
+      "status": "canonical",
+      "bytes": 44946,
+      "sha256": "f14806b90acf0354a33491fe9a97790905e167af2955d5e82fa2c348ae210bd8"
     },
     {
       "path": "assets/img/delivery/rain-port/13.webp",
-      "status": "trial_pending_review",
-      "bytes": 8194,
-      "sha256": "4b68427dc5349e8c252304ce17f539f1e2c6e7dbfce92c8366ee0aa2f263fa2e"
+      "status": "canonical",
+      "bytes": 33550,
+      "sha256": "dedce53861941093bf1ad974fd2ad2da634f43470d45d7f0d8d6664cb843a779"
     },
     {
       "path": "assets/img/delivery/rain-port/14.webp",
-      "status": "trial_pending_review",
-      "bytes": 9580,
-      "sha256": "4fe6686ab4d1d6d2b2015fbf86e529031cd31c61bf5d37a3bce9dd0a860097b5"
+      "status": "canonical",
+      "bytes": 47052,
+      "sha256": "15e06006b7ecf562183b90196c6bf78ef7babde134d415b2fb6746b78dbb19c8"
     },
     {
       "path": "assets/img/delivery/rain-port/15.webp",
-      "status": "trial_pending_review",
-      "bytes": 8384,
-      "sha256": "f39c898d2919908e5c02cfa24372430f550923ae7183b3fe0689ac4f2052d77c"
+      "status": "canonical",
+      "bytes": 41602,
+      "sha256": "1c2be29b5324dc0183f956f5a12606c855fb4fd174cdee867c29f5bc3670f6f0"
     },
     {
       "path": "assets/img/delivery/rain-port/16.webp",
-      "status": "trial_pending_review",
-      "bytes": 9236,
-      "sha256": "dea6e449c307211d80e3b0c72a86074ee88781902b0b7c0ce36e7a48919c289c"
+      "status": "canonical",
+      "bytes": 46008,
+      "sha256": "c6c36ad6cf089eb51fccf63b623beffedcace0408b3af2a42844664f16da5f01"
     },
     {
       "path": "assets/img/delivery/rain-port/17.webp",
-      "status": "trial_pending_review",
-      "bytes": 12482,
-      "sha256": "898f5d693e8eb32f3e442ef2073692c3e7325add8dca99bacd2ed4ec5152a63f"
+      "status": "canonical",
+      "bytes": 26730,
+      "sha256": "e88ee08077d1c4464204006d262ef71197199a894be7183be20551428241c0d2"
     },
     {
       "path": "assets/img/delivery/rain-port/18.webp",
-      "status": "trial_pending_review",
-      "bytes": 7400,
-      "sha256": "c7f1872555cc4eb957da6e88b8a76dcd0a5cf293102f3ec0eac13b562cbacf91"
+      "status": "canonical",
+      "bytes": 51002,
+      "sha256": "e919f55fc13f3b0790667ca915cb8151d9824d5c2aab3dfdfba351965dfd007e"
     },
     {
       "path": "assets/img/delivery/rain-port/19.webp",
-      "status": "trial_pending_review",
-      "bytes": 7200,
-      "sha256": "5fb19685b9d634f48a3868b6ba108de07b9038f5a288552ce194a60672cb1098"
+      "status": "canonical",
+      "bytes": 53560,
+      "sha256": "be2a44764d2ee9144e8d3bf59893e06e276b285a4bc1fb864c35dd67491e4dda"
     },
     {
       "path": "assets/img/delivery/rain-port/20.webp",
-      "status": "trial_pending_review",
-      "bytes": 12316,
-      "sha256": "eccc42f839c55ec33cf21188b805c99cf7ae700103ee4f845b9ddfabc4983772"
+      "status": "canonical",
+      "bytes": 44146,
+      "sha256": "56422328b791299223d60449b3f2f3ebc4443f0e92b0aaa71bc9157956cf6759"
     },
     {
       "path": "assets/img/delivery/sakura-pass/01.webp",
-      "status": "trial_pending_review",
-      "bytes": 14738,
-      "sha256": "8a1e15568acf4f646b26329923dbf2ff80cdf73fbf9d935897ad810807042e19"
+      "status": "canonical",
+      "bytes": 50744,
+      "sha256": "3d1e04de60fb57e77dff9f0b494a52e770b51ba720e5d2e79955c229711c0412"
     },
     {
       "path": "assets/img/delivery/sakura-pass/02.webp",
-      "status": "trial_pending_review",
-      "bytes": 9636,
-      "sha256": "792819be45507438e5caf2cf3f67b02d0484c2c11138c33c4ec736147272255a"
+      "status": "canonical",
+      "bytes": 48968,
+      "sha256": "2634ba9fd970d089bf1201dd318b70cd770c0b8ab82979d2ef5bc42993ef8ed6"
     },
     {
       "path": "assets/img/delivery/sakura-pass/03.webp",
-      "status": "trial_pending_review",
-      "bytes": 10172,
-      "sha256": "4c294bb5c1209baf245bd04fba6ca0e30fbfb906fa525dce97e71750f19f7cca"
+      "status": "canonical",
+      "bytes": 50910,
+      "sha256": "a82c82509034019d9d45cda0f73f0bb944261bfe0dd35dacf67ae9a18c832767"
     },
     {
       "path": "assets/img/delivery/sakura-pass/04.webp",
-      "status": "trial_pending_review",
-      "bytes": 14146,
-      "sha256": "bf4b36a7af135084152b349c6e310348b09cc47884c89f2e2fe9813051d49699"
+      "status": "canonical",
+      "bytes": 26534,
+      "sha256": "5ebc24b38d30bd925c8b47dbd26e7802bc3a597e42e6d82366f58b8a421184e2"
     },
     {
       "path": "assets/img/delivery/sakura-pass/05.webp",
-      "status": "trial_pending_review",
-      "bytes": 13900,
-      "sha256": "b3c2fbb878d961bd644c00818ad01b48ed834778d2045ca509ccadcd82791372"
+      "status": "canonical",
+      "bytes": 35118,
+      "sha256": "266587fd181d16ed154969742d94069e09a43c9d1d12748f317b6f43fbc358af"
     },
     {
       "path": "assets/img/delivery/sakura-pass/06.webp",
-      "status": "trial_pending_review",
-      "bytes": 5614,
-      "sha256": "58598f509c56ee3c9fd9dd2769d337efa013869bcab36c9cca7dbe2dab86f2c1"
+      "status": "canonical",
+      "bytes": 43936,
+      "sha256": "1db65e759fadcef73c7d6508ffb62103778fdf874bcdddd9b12ebeb60becbe03"
     },
     {
       "path": "assets/img/delivery/sakura-pass/07.webp",
-      "status": "trial_pending_review",
-      "bytes": 19380,
-      "sha256": "20055776f70c26870d959e249605952023bfc359a522850622cdfcb78cae117d"
+      "status": "canonical",
+      "bytes": 49232,
+      "sha256": "31f0119962155a4cafe78bd5563f66c419cc49a82cb8129f1d311b33d4a8495e"
     },
     {
       "path": "assets/img/delivery/sakura-pass/08.webp",
-      "status": "trial_pending_review",
-      "bytes": 10688,
-      "sha256": "ecdd595ccf5871653b4c326a34b88fb4d52213662455cd14ef8ac8c4fc961809"
+      "status": "canonical",
+      "bytes": 32852,
+      "sha256": "38dd1b49f79de0a6a43ce28a743c024e1599eef27ed04452c09406ac07641907"
     },
     {
       "path": "assets/img/delivery/sakura-pass/09.webp",
-      "status": "trial_pending_review",
-      "bytes": 16986,
-      "sha256": "ae7e3aa7aa6671a086e9d3e77df98c2b50270b779d6430d5db5f5b235a4abaf8"
+      "status": "canonical",
+      "bytes": 50412,
+      "sha256": "3970a4dbde2fa9dfac9cd3de425ef60dff351a1e18ed5e4396f7628a28fe70e5"
     },
     {
       "path": "assets/img/delivery/sakura-pass/10.webp",
-      "status": "trial_pending_review",
-      "bytes": 8394,
-      "sha256": "b15b318e20bb21317ca03971c4ef8014bdf3193fefd12f86e68541cda328f9ad"
+      "status": "canonical",
+      "bytes": 38728,
+      "sha256": "233e26b53cb2f257ae3d7b9fdac0255426e58a07cc4f235f793e6298b0ea14d3"
     },
     {
       "path": "assets/img/delivery/sakura-pass/11.webp",
-      "status": "trial_pending_review",
-      "bytes": 8094,
-      "sha256": "8ce8d76eea80e852c3921df2c748cc468e9580cc2f05b936b59a454795f7093f"
+      "status": "canonical",
+      "bytes": 37046,
+      "sha256": "18af90d49d907ba2cbfa2f36171ad7e110fbe7c3cc8e84eed8f9663ca66367bd"
     },
     {
       "path": "assets/img/delivery/sakura-pass/12.webp",
-      "status": "trial_pending_review",
-      "bytes": 8410,
-      "sha256": "26d3ee836bacefcecb91a622088d34d6d28204d04a0a6100c4eb56f78a3e1a4e"
+      "status": "canonical",
+      "bytes": 41994,
+      "sha256": "8df7ccb6d26b14af5dade4f6f7dfb4b2d5e89b2ff71927e7700a3ce3919da98d"
     },
     {
       "path": "assets/img/delivery/sakura-pass/13.webp",
-      "status": "trial_pending_review",
-      "bytes": 8564,
-      "sha256": "ab21d02a7706269a701038513b7b8e239b49d8cac45aa8be5226f9255c9d783d"
+      "status": "canonical",
+      "bytes": 37604,
+      "sha256": "a6073d7afc3737c990bc735eea6c5898836ba55837f12546056a7949b8c2fa39"
     },
     {
       "path": "assets/img/delivery/sakura-pass/14.webp",
-      "status": "trial_pending_review",
-      "bytes": 7130,
-      "sha256": "4b0a66d3b48f669b73c904f5cb8f16aa239c1e155d42cff1d8735a5f05a03b03"
+      "status": "canonical",
+      "bytes": 26686,
+      "sha256": "f0bfab41a2fc94ded1e23ac6768c6f54a5ac739a1d62661c5393f5f9e6619d97"
     },
     {
       "path": "assets/img/delivery/sakura-pass/15.webp",
-      "status": "trial_pending_review",
-      "bytes": 6264,
-      "sha256": "a684272ec46f97026d6b183fb095614f4387bec736799b0edc9824f4a3e5a4b0"
+      "status": "canonical",
+      "bytes": 50062,
+      "sha256": "76e3c3e26d63170eed05258a5bf651266d4cd6764e76ff1fa8e2ebe4d437dc11"
     },
     {
       "path": "assets/img/delivery/sakura-pass/16.webp",
-      "status": "trial_pending_review",
-      "bytes": 18444,
-      "sha256": "ab648ea35a7f29fa5361a99b5301144c2877d074e7aaac163875853371ba9500"
+      "status": "canonical",
+      "bytes": 35474,
+      "sha256": "246169cd4ca884d99badcc596e87039048428391f457063a0e8a4dece8616873"
     },
     {
       "path": "assets/img/delivery/sakura-pass/17.webp",
-      "status": "trial_pending_review",
-      "bytes": 18972,
-      "sha256": "e6251aaa173f05b67b35fef8e0809029ed31a6fe9cb0199b862e6e57dba4675d"
+      "status": "canonical",
+      "bytes": 27196,
+      "sha256": "d754a06a513d9aa81c547e66e3fe5aa7faaed9a772534355cea5c74feee12b5f"
     },
     {
       "path": "assets/img/delivery/sakura-pass/18.webp",
-      "status": "trial_pending_review",
-      "bytes": 13418,
-      "sha256": "c925a90616565d167de137764f03cffa86b00fd64b7317dda6efc3b766e27d53"
+      "status": "canonical",
+      "bytes": 24074,
+      "sha256": "ab7f8a2d68743ef3bbe2b1f198d088c528a56484c1eca7ab8bbc4e51b0470931"
     },
     {
       "path": "assets/img/delivery/sakura-pass/19.webp",
-      "status": "trial_pending_review",
-      "bytes": 8986,
-      "sha256": "6d1922f19aaf03e5f0f760bc34ec67b8e7ea96073c1287bade6c87a07d7cc6ba"
+      "status": "canonical",
+      "bytes": 15842,
+      "sha256": "c5ded2431be7c68ed99bebd4676c6cad95cc4e804eff04a2becc3ec6b745529f"
     },
     {
       "path": "assets/img/delivery/sakura-pass/20.webp",
-      "status": "trial_pending_review",
-      "bytes": 20374,
-      "sha256": "df48d56262c9c16fecb1076d7bc373b7b0d17950f9300a5e9ce6f6cd837d7c74"
+      "status": "canonical",
+      "bytes": 43992,
+      "sha256": "f452ea14749d664ea60f80cd6f1f0d167ff33c821ebef5240cdd43f5f72ad093"
+    },
+    {
+      "path": "assets/img/enemies/anchor-shell-turtle/anchor-shell-turtle__sprite__attack.webp",
+      "status": "canonical",
+      "bytes": 60906,
+      "sha256": "c530e599f410164573730e8b25ebb814a692b6048775a3fd692acb02f8e7248b"
+    },
+    {
+      "path": "assets/img/enemies/anchor-shell-turtle/anchor-shell-turtle__sprite__idle.webp",
+      "status": "canonical",
+      "bytes": 68098,
+      "sha256": "0e4315700a5cb9374b7809ebb19520f7d1e03c6bc96e819ce6c61b34d9c86627"
     },
     {
       "path": "assets/img/enemies/ancient-sakura-guardian/ancient-sakura-guardian__sprite__attack.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 79996,
       "sha256": "6d17a6a8a68a42766ddd584061b24225b9e968424b17fbef695f3280f24d7ffd"
     },
     {
       "path": "assets/img/enemies/ancient-sakura-guardian/ancient-sakura-guardian__sprite__idle.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 82826,
       "sha256": "fe17f0d616cdfdc135eb862b94e2f1940646d68230fb62fbea5df36bc186ef39"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-basket-crab/bamboo-basket-crab__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 64564,
+      "sha256": "1ffe9443c0d5db170ec38e80315bf427fbf024c01b0cbe5dedec02f06e57c19f"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-basket-crab/bamboo-basket-crab__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 64418,
+      "sha256": "7596a9e00c1841f916e1bc586971784f22dd493ce3fa98896d39d5095f24c393"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-boar/bamboo-boar__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 70536,
+      "sha256": "b3cca70c178802cfaea9d3cf1416d736b9f8ac7b26e81eaa5e4269c5ca55502f"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-boar/bamboo-boar__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 70030,
+      "sha256": "4e54f18c57d70258010688ddd237d7799c3186b75ac1e069ab955ba891859c7d"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-hat-imp/bamboo-hat-imp__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 56560,
+      "sha256": "a7937f85931c0ddbb4da68f81643a2435e109f7dbae598f2bbd392eec4beda61"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-hat-imp/bamboo-hat-imp__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 49692,
+      "sha256": "6e73debc1f44a6437f5dc17dbba3c00542de21175808d374755757b34d551898"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 50238,
+      "sha256": "0bbf4695bdf614901d32998fa97e3e08808e6b57af6d6b02eaf4896a50c1ac89"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__recover.webp",
+      "status": "trial_pending_review",
+      "bytes": 50228,
+      "sha256": "9968da5827d69e9b22c5fc547830012a86626dbc787b553130a3e1bef502215d"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__rush.webp",
+      "status": "trial_pending_review",
+      "bytes": 51780,
+      "sha256": "81c4b9291ace3cffe86c65a9d0c22f0cb2855e78235db224512e746f269e2924"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__walk__f01.webp",
+      "status": "trial_pending_review",
+      "bytes": 44892,
+      "sha256": "6ae27fb5a6922cdc404611944d49a0e34247ee42d39ac54f1150e40316d25e85"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__walk__f02.webp",
+      "status": "trial_pending_review",
+      "bytes": 41988,
+      "sha256": "1a61ae34665152f7f301446328ac1e2dea79efdc39d3a8746ed56bfe8aa1a5b7"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__walk__f03.webp",
+      "status": "trial_pending_review",
+      "bytes": 43968,
+      "sha256": "a1ce3c55d4597230c4caf29f08f79094218c950cc4cbc027567d13896c067692"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__walk__f04.webp",
+      "status": "trial_pending_review",
+      "bytes": 41870,
+      "sha256": "577923f788d1923765301d9c9e8dee325ec6b01a993d4812bf3eed8e0cdd11a4"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-shoot/bamboo-shoot__sprite__windup.webp",
+      "status": "trial_pending_review",
+      "bytes": 47250,
+      "sha256": "06515c76e947092616d87aa5ab97308eef1cb48c5005ffa2dcec6c8399ff19ae"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-warden/bamboo-warden__sprite__cut.webp",
+      "status": "trial_pending_review",
+      "bytes": 52742,
+      "sha256": "d8558a133148b0b2557900942280edb06a640712815a0c8dc2903ea3917a263b"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-warden/bamboo-warden__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 52624,
+      "sha256": "abfab199d7bb0306fcc1ca8e1520c18bfe7cbaf4f632051fa4c3e7ec7e924624"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-warden/bamboo-warden__sprite__sealed.webp",
+      "status": "trial_pending_review",
+      "bytes": 49270,
+      "sha256": "2a2609b33187d098dd51b6aaea9c10f5a32030c96b764581427901b2ff36aa84"
+    },
+    {
+      "path": "assets/img/enemies/bamboo-warden/bamboo-warden__sprite__shoots.webp",
+      "status": "trial_pending_review",
+      "bytes": 47960,
+      "sha256": "e9c11c81fae6ae778318da3a95cb6e6092aea1e4b774ea50308cab20026cd415"
     },
     {
       "path": "assets/img/enemies/boss-ikari-umibozu/boss-ikari-umibozu__sprite__attack.webp",
@@ -433,6 +727,30 @@
       "status": "canonical",
       "bytes": 123806,
       "sha256": "5a90500d7b5528ec19d08726ca6e67b1f432e1ef9a5f8573e57d453e6c651d29"
+    },
+    {
+      "path": "assets/img/enemies/flying-fish-kid/flying-fish-kid__sprite__attack.webp",
+      "status": "canonical",
+      "bytes": 45594,
+      "sha256": "35f02c9bd25d7a1e1cbee20e6ff8597375e9c099882e3ed8126720b014d24328"
+    },
+    {
+      "path": "assets/img/enemies/flying-fish-kid/flying-fish-kid__sprite__idle.webp",
+      "status": "canonical",
+      "bytes": 53654,
+      "sha256": "90a6a00b20344c861ab176374b36eb778d06161354effa05b1289c2f6b47d4a6"
+    },
+    {
+      "path": "assets/img/enemies/flying-fish-kid/flying-fish-kid__sprite__run__f01.webp",
+      "status": "canonical",
+      "bytes": 57542,
+      "sha256": "d4988f4476e0b3b800f52c7ab2999252d0ed8f9271b0de549ee3d5c93774815e"
+    },
+    {
+      "path": "assets/img/enemies/flying-fish-kid/flying-fish-kid__sprite__run__f02.webp",
+      "status": "canonical",
+      "bytes": 50196,
+      "sha256": "bacb9e91a197ab325924c3567c2f689332c35d1ef2b625feb7a5619651af24f3"
     },
     {
       "path": "assets/img/enemies/ghost/ghost__motion-sheet.webp",
@@ -448,15 +766,51 @@
     },
     {
       "path": "assets/img/enemies/hanakage-fox/hanakage-fox__sprite__attack.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 51474,
       "sha256": "7358eb00d924c29402bafeaad4a08eaac00deaf825f9216cd9f0aeb7d07e2e33"
     },
     {
       "path": "assets/img/enemies/hanakage-fox/hanakage-fox__sprite__idle.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 51734,
       "sha256": "ca536368b8d017b138267dab9e2dbfa96927c8734e75253a36550bc7aefe76cd"
+    },
+    {
+      "path": "assets/img/enemies/harbor-umibozu/harbor-umibozu__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 71466,
+      "sha256": "8388687277c08977b428f6b60a0a1c4f1efc054562790dfceaf3f558247a3419"
+    },
+    {
+      "path": "assets/img/enemies/harbor-umibozu/harbor-umibozu__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 64144,
+      "sha256": "2818a4c2dd38a1fd9258aa733736edf327755a20e06bf140372ed21e4f88e77a"
+    },
+    {
+      "path": "assets/img/enemies/ink-bamboo-witch/ink-bamboo-witch__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 47450,
+      "sha256": "077ba1c39bb51ed5c457e06be7d61878322d9dcc321f40210824b3fe04717b61"
+    },
+    {
+      "path": "assets/img/enemies/ink-bamboo-witch/ink-bamboo-witch__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 40260,
+      "sha256": "44d158890b279d0792fdd71c4982c992a68e42ad815b8cbcffc0f46592a97ce5"
+    },
+    {
+      "path": "assets/img/enemies/lantern-monk/lantern-monk__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 42270,
+      "sha256": "bbd5051ef5e38f7a5581acd2658b36a6989022adfcb26f690854a913a1c8362a"
+    },
+    {
+      "path": "assets/img/enemies/lantern-monk/lantern-monk__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 38766,
+      "sha256": "a85e3a37d6330300db1d38680abf8733f5fc088e1936c58c55841a867f9fc08c"
     },
     {
       "path": "assets/img/enemies/minion-shiome/minion-shiome__sprite__attack.webp",
@@ -484,25 +838,25 @@
     },
     {
       "path": "assets/img/enemies/moss-tanuki/moss-tanuki__sprite__attack.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 102610,
       "sha256": "c54b3d761d1369fa869a26a6a0f95869ceec2ba08dbd90368b4770048ddd0002"
     },
     {
       "path": "assets/img/enemies/moss-tanuki/moss-tanuki__sprite__idle.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 95468,
       "sha256": "1aa4f0529b0b42fa64896de960f58019b7f52135ac6b8e2aae14b72a67341baf"
     },
     {
       "path": "assets/img/enemies/night-sakura-princess/night-sakura-princess__sprite__attack.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 81076,
       "sha256": "2c3daccdecbc3c2391820ff1813293730813d9f1934af2ba3fd20c7eacc78133"
     },
     {
       "path": "assets/img/enemies/night-sakura-princess/night-sakura-princess__sprite__idle.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 69664,
       "sha256": "b92316d4056f9ed4ac2a26bca7ded0877c7f93acefbeba3d1072294b6fac8fce"
     },
@@ -519,16 +873,40 @@
       "sha256": "84fc3b5ddf955fb6f088fa27adc3f82cb4d1073dd8b4a713121e8c3dfb692531"
     },
     {
-      "path": "assets/img/enemies/paper-umbrella-spirit/paper-umbrella-spirit__sprite__attack.webp",
+      "path": "assets/img/enemies/night-town-oni/night-town-oni__sprite__attack.webp",
       "status": "trial_pending_review",
+      "bytes": 53370,
+      "sha256": "cc111a9d0a481d2ac6b50b55445885c133acf123527811584d9dd01cfc83a5b7"
+    },
+    {
+      "path": "assets/img/enemies/night-town-oni/night-town-oni__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 50608,
+      "sha256": "8bd4e97a553e20301b18b64546d808b39168d2b922ba4e15d20895a6f53ec6f9"
+    },
+    {
+      "path": "assets/img/enemies/paper-umbrella-spirit/paper-umbrella-spirit__sprite__attack.webp",
+      "status": "canonical",
       "bytes": 46646,
       "sha256": "27fe47a77ca8a973f9d691ff83c682e1bc41f5d90a0b8ed003923700560d9eae"
     },
     {
       "path": "assets/img/enemies/paper-umbrella-spirit/paper-umbrella-spirit__sprite__idle.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 46738,
       "sha256": "57a31bc105de10264780c7938a636dd527a98e2b3fb6272f8c7eba81c0fc482c"
+    },
+    {
+      "path": "assets/img/enemies/reed-whistle-weasel/reed-whistle-weasel__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 61592,
+      "sha256": "56a7cd253bd245d1d07a59548e80b4726075d7e4ca9190dd1423653a99d30a02"
+    },
+    {
+      "path": "assets/img/enemies/reed-whistle-weasel/reed-whistle-weasel__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 57752,
+      "sha256": "74670cf1939d232a3f45522f61effcd482780e788f91158f5d72f3fdc131fbf2"
     },
     {
       "path": "assets/img/enemies/runner/runner__motion-sheet.webp",
@@ -544,27 +922,39 @@
     },
     {
       "path": "assets/img/enemies/sakura-kodama/sakura-kodama__sprite__attack.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 45714,
       "sha256": "2c910c6de99f6641efc976eb74ac1e240b15f070b69296fdf4eba8d711913a09"
     },
     {
       "path": "assets/img/enemies/sakura-kodama/sakura-kodama__sprite__idle.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 43728,
       "sha256": "53c82c8943895157101665bcbaf6ce99993cdc8cac9c6054bc51696877b23663"
     },
     {
       "path": "assets/img/enemies/sakura-tengu/sakura-tengu__sprite__attack.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 68228,
       "sha256": "e2c451f2b3933c0ec5312edfe823ca948fc1c23305d7c3af45902772861a5e79"
     },
     {
       "path": "assets/img/enemies/sakura-tengu/sakura-tengu__sprite__idle.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 56518,
       "sha256": "3bd68b6484dbe96abe64cb3dcbde2b12d84f7bab09766eb40995624ca6e6aeb5"
+    },
+    {
+      "path": "assets/img/enemies/shipwreck-princess/shipwreck-princess__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 45364,
+      "sha256": "a7c64de3f695b5856b4f32b45ddf3788aa65cd374717945367e30c4825b41980"
+    },
+    {
+      "path": "assets/img/enemies/shipwreck-princess/shipwreck-princess__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 32112,
+      "sha256": "27aa434e4eaec485b36d55cc6035cc106895199b6205788249de5b56fe9acbca"
     },
     {
       "path": "assets/img/enemies/shooter/shooter__motion-sheet.webp",
@@ -580,15 +970,27 @@
     },
     {
       "path": "assets/img/enemies/stone-lantern-kid/stone-lantern-kid__sprite__attack.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 73754,
       "sha256": "96186fb89408413149ff913bc716c36956d5f6423f44ecbb7dd628cc3f66d97c"
     },
     {
       "path": "assets/img/enemies/stone-lantern-kid/stone-lantern-kid__sprite__idle.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 67950,
       "sha256": "91e76f234316019c218dbf38dda46d660533b21d2b2f872c9e08adf2318f07f9"
+    },
+    {
+      "path": "assets/img/enemies/stone-lion/stone-lion__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 72762,
+      "sha256": "8394b99d3b306501ea90b685c65a8d7c7d71248cd3c685457c62d60fe0cf2cf1"
+    },
+    {
+      "path": "assets/img/enemies/stone-lion/stone-lion__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 69490,
+      "sha256": "7af22b0ad1f8878469324f865e5ed84960a92e7b168010d0176d3e2eb467f762"
     },
     {
       "path": "assets/img/enemies/tank/tank__motion-sheet.webp",
@@ -601,6 +1003,42 @@
       "status": "canonical",
       "bytes": 28602,
       "sha256": "f5ffe33776f3131d61bb4f2ac2deb412a8c204ef86f0204be40a9442ad996ddb"
+    },
+    {
+      "path": "assets/img/enemies/tidal-jar-kid/tidal-jar-kid__sprite__attack.webp",
+      "status": "canonical",
+      "bytes": 59860,
+      "sha256": "f25b1667c6af8bc51f93289007478faf2dd2d5ea69313b92120d6b0fb9665562"
+    },
+    {
+      "path": "assets/img/enemies/tidal-jar-kid/tidal-jar-kid__sprite__idle.webp",
+      "status": "canonical",
+      "bytes": 58268,
+      "sha256": "83037174ed2bc6b10fc989bed521207438f5535d1ec2ace2cfd5e8e7736b582c"
+    },
+    {
+      "path": "assets/img/enemies/tide-crab/tide-crab__sprite__attack.webp",
+      "status": "trial_pending_review",
+      "bytes": 89860,
+      "sha256": "8b88cd2eae6863840e05eff0d0cedafaa32577789892dc1d270330492e2ffbba"
+    },
+    {
+      "path": "assets/img/enemies/tide-crab/tide-crab__sprite__idle.webp",
+      "status": "trial_pending_review",
+      "bytes": 84078,
+      "sha256": "efb21b5adc129bc509ce66c12280ffc3b4abb3ec7d4c53a88687f2ee9dd8f949"
+    },
+    {
+      "path": "assets/img/enemies/wet-net-imp/wet-net-imp__sprite__attack.webp",
+      "status": "canonical",
+      "bytes": 56152,
+      "sha256": "168b0a79d2c41d86fb9347e7cab4e17758974cb6dd3b55be9c7a89c1f05e1999"
+    },
+    {
+      "path": "assets/img/enemies/wet-net-imp/wet-net-imp__sprite__idle.webp",
+      "status": "canonical",
+      "bytes": 51558,
+      "sha256": "bd8c251980d31daffb4d2aec27c5e7a6d296b8925e70a60b74cf5681236ca0fa"
     },
     {
       "path": "assets/img/ghost.png",
@@ -1371,6 +1809,12 @@
       "sha256": "f6631047e013d5060bd407f1365755940be4c29f06e0d14737d9a8f3c33d753b"
     },
     {
+      "path": "assets/img/skills/ink-trail/cards/ink-trail__art__incense.webp",
+      "status": "trial_pending_review",
+      "bytes": 410584,
+      "sha256": "f47a5fcac423629793b0e69a550bc6c80563e597309d5b48f3b803b29244edf7"
+    },
+    {
       "path": "assets/img/skills/katana/cards/katana__art.webp",
       "status": "trial_pending_review",
       "bytes": 411116,
@@ -1499,26 +1943,26 @@
     {
       "path": "assets/img/skills/mut-ink-bloom/cards/mut-ink-bloom__art.webp",
       "status": "trial_pending_review",
-      "bytes": 147842,
-      "sha256": "d7faedcca7f01e342c56b5776ac37298e070bcb70cc87a8a5c9f73a660a11518"
+      "bytes": 333408,
+      "sha256": "67dba797ce2c3afa5dfac680185b00082d2e525909f09de1a1f83f19663f4a29"
     },
     {
       "path": "assets/img/skills/mut-ink-echo/cards/mut-ink-echo__art.webp",
       "status": "trial_pending_review",
-      "bytes": 90576,
-      "sha256": "c5996dc8572b8b237eb914e92f87c1543c1c102dfdd486f030e071ebd3d1eca9"
+      "bytes": 357690,
+      "sha256": "a806aceac255513284e37909a4740aed305bd51276014cf72695eb288a2217b7"
     },
     {
       "path": "assets/img/skills/mut-ink-linger/cards/mut-ink-linger__art.webp",
       "status": "trial_pending_review",
-      "bytes": 113112,
-      "sha256": "7dcf18e5e56b58f307e50920237da4a79bbd1b0299183c0dc8315bb7260207f1"
+      "bytes": 373176,
+      "sha256": "3c78064ae865a786c0ad65aadbdc2ae9da6a9444d3f8bfb92bff8868c51b2e32"
     },
     {
       "path": "assets/img/skills/mut-ink-razor/cards/mut-ink-razor__art.webp",
       "status": "trial_pending_review",
-      "bytes": 82680,
-      "sha256": "831db15a5fee623b4b760fe5d1d711b4e782c916a9a98cde7748b3dcc2201397"
+      "bytes": 364428,
+      "sha256": "c975a278b5d598749662561b8df8af5c200abac455e880fb47223c499bee0b10"
     },
     {
       "path": "assets/img/skills/mut-longblade/cards/mut-longblade__art.webp",
@@ -1635,6 +2079,12 @@
       "sha256": "9d6bfe3108d59b5c4e780212e1b6e5cd472790dc01877e8a319877171ff2e624"
     },
     {
+      "path": "assets/img/skills/needle/cards/needle__art__moonlit.webp",
+      "status": "trial_pending_review",
+      "bytes": 406278,
+      "sha256": "a693e0663abb92b8a581eb43dc569f67f679336699759d8b092920b6ded9db14"
+    },
+    {
       "path": "assets/img/skills/needle/cards/needle__card.webp",
       "status": "canonical",
       "bytes": 131606,
@@ -1707,6 +2157,12 @@
       "sha256": "b3c78e54ae0ac26354677d51e4573b712a73bb6b2922442e7e074b9bf0127123"
     },
     {
+      "path": "assets/img/skills/seal-nail/cards/seal-nail__art__ritual.webp",
+      "status": "trial_pending_review",
+      "bytes": 436412,
+      "sha256": "a8e1a5a365f888dd2faaa26acc2334801b59514a48b08fb639b4d8de6d6ef123"
+    },
+    {
       "path": "assets/img/skills/shield/cards/shield__art.webp",
       "status": "trial_pending_review",
       "bytes": 270286,
@@ -1759,6 +2215,96 @@
       "status": "canonical",
       "bytes": 13756,
       "sha256": "e76805941f2f9ff2d7b5c68c05e39dcf295e483315bdd1103698507007a763f2"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-column.webp",
+      "status": "trial_pending_review",
+      "bytes": 131130,
+      "sha256": "3c86c468c5c8f0eafdcc3f3d2b254d71ecc45fe02c9dfcce47b619c2ee7af1b5"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-fence.webp",
+      "status": "trial_pending_review",
+      "bytes": 43900,
+      "sha256": "815f0ff5b7d482803ce57f1769fd42728b4e3c1e477edcffdb37209b837fdc86"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-fork.webp",
+      "status": "trial_pending_review",
+      "bytes": 124482,
+      "sha256": "1ab88e549a48ddf0b7ff9ac5949417449ed94e003dff5ec3c13e37391fc44193"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-stand-low.webp",
+      "status": "trial_pending_review",
+      "bytes": 93544,
+      "sha256": "1e4495490341385fc8f4d7fae3d5ec0acf97db683d1781789a82ef7e7d715013"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-stand.webp",
+      "status": "trial_pending_review",
+      "bytes": 114076,
+      "sha256": "4cd861e49da9046b86b7a8a0f08b4e0391a94ec7d782400190da0424ec8367d9"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-thicket.webp",
+      "status": "trial_pending_review",
+      "bytes": 187070,
+      "sha256": "739ce414a90b56a082966e75039554e6978e02f293db5da250125687af1a9d79"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__moss-rocks.webp",
+      "status": "trial_pending_review",
+      "bytes": 55248,
+      "sha256": "cc0184349abcbcfb087ee794700bf4424b2daf5552bfa8a32c776aa4266babc3"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__shoot-baskets.webp",
+      "status": "trial_pending_review",
+      "bytes": 64872,
+      "sha256": "1f8546b7fa1d110ef0dd01e9963d98e7498a937adeef1dde45904a9eb18f6c29"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/props/bamboo-maze__stone-lantern.webp",
+      "status": "trial_pending_review",
+      "bytes": 38464,
+      "sha256": "57eca1464cadef313a06ab9095c4639a9fc397bf09de1e7ce7086a83215262c7"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/scene/bamboo-maze__produce-house.webp",
+      "status": "trial_pending_review",
+      "bytes": 105600,
+      "sha256": "4469fbd0a7ba0211e68cbe4087a6fbbe0f7feda533a042719e8b43125f45f119"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/scene/bamboo-maze__tea-house.webp",
+      "status": "trial_pending_review",
+      "bytes": 105912,
+      "sha256": "bb8ba57dd85bae48e952ba648a6eca1d9d2a9b1323e1cccff78f7ee74cdfc79f"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/tiles/bamboo-maze__earth-track.webp",
+      "status": "trial_pending_review",
+      "bytes": 81800,
+      "sha256": "5a12631b6a12d93ddcceb3dfce0e9c194f20c28e35319df2c7762bd519a8943c"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/tiles/bamboo-maze__forest-duff.webp",
+      "status": "trial_pending_review",
+      "bytes": 106132,
+      "sha256": "4471801257226753ef8fc6bdcd05b2746f3ea6afc6b5571f27bc327fc1a63f78"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/tiles/bamboo-maze__ground.webp",
+      "status": "trial_pending_review",
+      "bytes": 114674,
+      "sha256": "6e8a1e8ca48e6a3121bcc07c7c5279fb8fc9f796b1ad41c666ecddc16b700499"
+    },
+    {
+      "path": "assets/img/stages/bamboo-maze/tiles/bamboo-maze__stone-path.webp",
+      "status": "trial_pending_review",
+      "bytes": 153132,
+      "sha256": "6de7114845c2ae66d945b993dbe83e1155131c08b5c5c3d602d27c4ada182db7"
     },
     {
       "path": "assets/img/stages/night-town/props/night-town__lantern.webp",
@@ -1936,121 +2482,121 @@
     },
     {
       "path": "assets/img/stages/sakura-pass/props/sakura-pass__ancient-sakura.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 270372,
       "sha256": "05666d9a4ac1a0f2b44750be2825c1088838f45b6a1e65403d5f82c122d3f760"
     },
     {
       "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-left.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 259862,
       "sha256": "9e7cb96693909ac0eae6d4391e48f25f7464debcba2afd59dc5b672564ea6ffa"
     },
     {
       "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-right.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 255656,
       "sha256": "2261560ca500a4dd56314b0f5f5b5d718aff9bb187c1d4d1db59e34b19c7f2fb"
     },
     {
       "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-slender.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 206762,
       "sha256": "697f7fc7bff6e4c12ce04aca3436a0f545aee51c246131453c0658195ca5ae9a"
     },
     {
       "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-spreading.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 187240,
       "sha256": "e9c003ffe5c2ad10e90c230b7d496ae9a2238f96b13b5bc1f657a529fb8a0259"
     },
     {
       "path": "assets/img/stages/sakura-pass/props/sakura-pass__moss-rocks.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 84802,
       "sha256": "e9d35f8aec4a45c873eadfdc5ad6b8f809f5ecd7ae5accb0a9f773bbe97dfc9c"
     },
     {
       "path": "assets/img/stages/sakura-pass/props/sakura-pass__stone-lantern.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 69188,
       "sha256": "5110ca29050cb65a1f9050140e1cc64a0d347cb6bd28f22aaa5cedbe379c0f4b"
     },
     {
       "path": "assets/img/stages/sakura-pass/props/sakura-pass__stone-marker.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 71878,
       "sha256": "3b1bf97ea158e30b45dafd2dc880ff3d9473918cc2bc772fc1afac419d1c236a"
     },
     {
       "path": "assets/img/stages/sakura-pass/props/sakura-pass__torii.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 90702,
       "sha256": "092193f07831b0ad0ecae6953d573beb041f0c18e7836496cb10714c96619134"
     },
     {
       "path": "assets/img/stages/sakura-pass/props/sakura-pass__wood-fence.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 49436,
       "sha256": "50c15b7739f2626c615be43f4bfec34a8f4bd3a76a94135eeeebfc6150a45159"
     },
     {
       "path": "assets/img/stages/sakura-pass/scene/sakura-pass__mountain-house.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 232508,
       "sha256": "356cec1f09cf8716b563972d6716dfec6afbfbeb36f50986df49a49a7837abab"
     },
     {
       "path": "assets/img/stages/sakura-pass/scene/sakura-pass__shrine-pavilion.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 266982,
       "sha256": "a6eb1c4f21a9c1be595b46867c1e1167e5d5965bbdc525df72a99c8c993b554b"
     },
     {
       "path": "assets/img/stages/sakura-pass/scene/sakura-pass__storehouse.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 284616,
       "sha256": "97b131f4a47bb4172c9f55dd7f4ec888ae42c75a98dde9539d598c6c83bb6667"
     },
     {
       "path": "assets/img/stages/sakura-pass/scene/sakura-pass__tea-house.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 263198,
       "sha256": "00b531bb01fa7095b96b7d81219cb39d94e7de6d6191fa38179dba2d24ce3a46"
     },
     {
       "path": "assets/img/stages/sakura-pass/scene/sakura-pass__worship-hall.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 238228,
       "sha256": "bebd033b5926928936c74fc316668058e6b89902071e6cfc0a2265324da05e5a"
     },
     {
       "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__ground-dirt.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 1959884,
       "sha256": "717e505719336ed666bd13f7e79a12c9de7fd0b4be32801bf5431fea10dc9e79"
     },
     {
       "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-broken.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 1269672,
       "sha256": "780e77c7335f71280ea5e4254c751cb8d6083351a42abf39ac81c29c04903b68"
     },
     {
       "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-left.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 1354864,
       "sha256": "236c5dcad766f3990f6147044d50e97abf9e5bef70dd66ab225ca50f55601ce7"
     },
     {
       "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-right.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 1543528,
       "sha256": "01e7c39283feded821aef8de4ca0e205979cd318ed2a0b70fd9c813396d9a8b4"
     },
     {
       "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-straight.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 1390376,
       "sha256": "4ff3b37128e7086377c1baf6196431f12b9ae5573aa49351f46ef86d0e7c1fee"
     },
@@ -3489,6 +4035,30 @@
       "sha256": "db54ef1e0896d7a60cbec43239ac7ef910dc2d1f11c7dbd4200d5742489a899b"
     },
     {
+      "path": "assets/img/vfx/enemies/bamboo-cut/bamboo-cut__impact.webp",
+      "status": "trial_pending_review",
+      "bytes": 40102,
+      "sha256": "958d10654eda3225baab1624f56ad961bf560cfc87da918214e8bc61bda7fb5b"
+    },
+    {
+      "path": "assets/img/vfx/enemies/bamboo-cut/bamboo-cut__warning.webp",
+      "status": "trial_pending_review",
+      "bytes": 29158,
+      "sha256": "8c259173f548df6f0351922d03492aabda5ab58ecef07d0ba34d3037d70f964f"
+    },
+    {
+      "path": "assets/img/vfx/enemies/bamboo-shoots/bamboo-shoots__impact.webp",
+      "status": "trial_pending_review",
+      "bytes": 89846,
+      "sha256": "b712bdcd13d527684440f56b44e65dd8c765e42246860a385fa0f24af865390a"
+    },
+    {
+      "path": "assets/img/vfx/enemies/bamboo-shoots/bamboo-shoots__warning.webp",
+      "status": "trial_pending_review",
+      "bytes": 56398,
+      "sha256": "b8dc2eb8b7e660d1ba6171cf352ea9662138acdf68ff9b86aba92e56217536a8"
+    },
+    {
       "path": "assets/img/vfx/enemies/ikari-umibozu/ikari-umibozu__rain-vortex.webp",
       "status": "canonical",
       "bytes": 1476550,
@@ -3573,20 +4143,26 @@
       "sha256": "91708ab6ddaa720f50bd19ef6d6085a44b150d81479e0830ca7d3e8eebe9bb66"
     },
     {
-      "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__earth-break.webp",
+      "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__bloom-warning.webp",
       "status": "trial_pending_review",
+      "bytes": 108818,
+      "sha256": "b6b634d36c257b99550ab36223138d9923a304b409b0f460c2cefd99cc1352a3"
+    },
+    {
+      "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__earth-break.webp",
+      "status": "canonical",
       "bytes": 212206,
       "sha256": "72f6e1f2e9390bb03d9899296cc7dbd9c6a9095d0fc731d296a047988c4432a3"
     },
     {
       "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__root-bloom.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 262326,
       "sha256": "8a9cf18d4d552c54ce642eb136fe4cec6cfff8d6519bb6819b1bfe664e85eba7"
     },
     {
       "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__wind-blade.webp",
-      "status": "trial_pending_review",
+      "status": "canonical",
       "bytes": 103012,
       "sha256": "19ef62b597dcf63fec290677ae43494f68d3b34393b51b3390bd3a52a17841b2"
     },
@@ -4155,10 +4731,52 @@
       "sha256": "a38945edceab8b3f40df0530935fc956130e5ba1f128a190dac27539b05daf8e"
     },
     {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__fallout.webp",
+      "status": "trial_pending_review",
+      "bytes": 26766,
+      "sha256": "511b897fba560dbcab415e8aa6ecd808b60047ce85d8cb7ad3c8af4dc4d34592"
+    },
+    {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__ofuda.webp",
+      "status": "trial_pending_review",
+      "bytes": 25168,
+      "sha256": "cd5053ec97d0ccc167281ea849065345c116e665f4c52f4ee19ef3dc376bb855"
+    },
+    {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__pillar.webp",
+      "status": "trial_pending_review",
+      "bytes": 52514,
+      "sha256": "8a7197351a7be6d137060387acf9f846e0bb689bb98150f81ee5a19337135799"
+    },
+    {
       "path": "assets/img/vfx/skills/seal-nail/seal-nail__pin.webp",
       "status": "trial_pending_review",
       "bytes": 11304,
       "sha256": "2f051922093c16878398819ac337b4e2e86c3919c7099aa09aa78d2408271c26"
+    },
+    {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__rupture.webp",
+      "status": "trial_pending_review",
+      "bytes": 109544,
+      "sha256": "67e07b02c203bb6e976aaa8d5658b58e0d73870e2cc5d99a1626266796c23696"
+    },
+    {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__shards.webp",
+      "status": "trial_pending_review",
+      "bytes": 32022,
+      "sha256": "6312ece01eb042cd9298886a2b38a3fccd33653598a1eecc3442ef59115c5a7d"
+    },
+    {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__shockwave.webp",
+      "status": "trial_pending_review",
+      "bytes": 76724,
+      "sha256": "20f3fd31d6a991995da742085c5f32c8a3cac7251f2684ac5e2a29c8cdbc4a79"
+    },
+    {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__ward-ring.webp",
+      "status": "trial_pending_review",
+      "bytes": 32304,
+      "sha256": "5c92477e7c7f8dfb1dfd19cb8aebddc96e90258b85391942fa8f208d3fd5df96"
     },
     {
       "path": "assets/img/vfx/skills/thunder/thunder__cloud-45.webp",
@@ -4173,6 +4791,24 @@
       "sha256": "e5559f401a6bf88e8df68e667729437c41371d969a59cdd632fc00dcf5ac42a4"
     },
     {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__bewildered.webp",
+      "status": "trial_pending_review",
+      "bytes": 17678,
+      "sha256": "5baa45bddc03385226922c88e7231bec580f431d72d65aed2dcec5fd094bf3ae"
+    },
+    {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__butterfly-trail__f01.webp",
+      "status": "trial_pending_review",
+      "bytes": 31386,
+      "sha256": "f46cd15b712dbef477234cd8b0d5a801f220025f996ae7afa29183207c8b7f4e"
+    },
+    {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__butterfly-trail__f02.webp",
+      "status": "trial_pending_review",
+      "bytes": 31280,
+      "sha256": "549d4b21a744df11b264c66ecc31eac9fa3b81592d62529ed57951438f30b5fb"
+    },
+    {
       "path": "assets/img/vfx/skills/violet-scent/violet-scent__cloud.webp",
       "status": "trial_pending_review",
       "bytes": 55350,
@@ -4185,10 +4821,34 @@
       "sha256": "f6c7f6e660af0d1f445c01b3a46a53ce4a8d64d81c0f6fd9a1cf0d811dc670e0"
     },
     {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__incense__f01.webp",
+      "status": "trial_pending_review",
+      "bytes": 29386,
+      "sha256": "657ce829961941cc1b5fbeff24e29f89f75539f55bc8f56b76cf22249559655e"
+    },
+    {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__incense__f02.webp",
+      "status": "trial_pending_review",
+      "bytes": 29216,
+      "sha256": "69f055338d5b1080301848679ccb55c2c8a0598ddf47c3878da4ac4b5b55dbd9"
+    },
+    {
       "path": "assets/img/vfx/skills/violet-scent/violet-scent__poison.webp",
       "status": "trial_pending_review",
       "bytes": 74490,
       "sha256": "f4e1c643f00328bf2586300e5dbf8bee09ccf5570dd454ebed09ac7135a5b3df"
+    },
+    {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__spirals.webp",
+      "status": "trial_pending_review",
+      "bytes": 21304,
+      "sha256": "fd11a80492a73a7e2170e11cbfdb6736efc748ab445b9f35ad0116ae66228c05"
+    },
+    {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__wisp.webp",
+      "status": "trial_pending_review",
+      "bytes": 12170,
+      "sha256": "39f2a8ab1afd2d3848b1defcec2188b90a033464ff609a0ff94018fa7a7fb969"
     },
     {
       "path": "assets/img/vfx/thunder_cloud_vfx.png",
@@ -4579,6 +5239,126 @@
       "status": "legacy_alias_active",
       "bytes": 3604901,
       "sha256": "4484fa39285e129bec497664d3b693c7c9d9cf8b71297f3f3e04d84d481518e5"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/01.mp3",
+      "status": "trial_pending_review",
+      "bytes": 9194,
+      "sha256": "ef82dff6de5a38b5d8c84eb95d5459bc6724b9975755d2910d0f666becf302e1"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/02.mp3",
+      "status": "trial_pending_review",
+      "bytes": 14209,
+      "sha256": "b0232dad3c0ab280ade0914d878a73e712afae695279f4e5534a9f490b109f94"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/03.mp3",
+      "status": "trial_pending_review",
+      "bytes": 12955,
+      "sha256": "ee364cc15cf7ebace7cd38169290e21a57274c30a6a123562021504b5bfa8113"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/04.mp3",
+      "status": "trial_pending_review",
+      "bytes": 15045,
+      "sha256": "69609ae99daf767276ea231c7e5869916e73e8c4c867ae9583e207363496bc1b"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/05.mp3",
+      "status": "trial_pending_review",
+      "bytes": 13791,
+      "sha256": "3f8e3882c8fcd8df357074825e3775bc7a8e3cf3f9305366aa6c329486a21227"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/06.mp3",
+      "status": "trial_pending_review",
+      "bytes": 14209,
+      "sha256": "2784bb3912ebafa9fdecf15ad63a1daa30c610292f6d4a3d2afa557c6c4936c3"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/07.mp3",
+      "status": "trial_pending_review",
+      "bytes": 14209,
+      "sha256": "a94e19b2c8be44c776998972664a0d71a29aefb09da99f2b6c450569277da950"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/08.mp3",
+      "status": "trial_pending_review",
+      "bytes": 15881,
+      "sha256": "2dd3b98f61287304224e4e5c918c7dd2e3fbf9327925e4fcc0e80106729f6d9e"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/09.mp3",
+      "status": "trial_pending_review",
+      "bytes": 13791,
+      "sha256": "1fe1103506990a7cf953676028c96ac672fbf611af663822941c9b6f42713d43"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/10.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10030,
+      "sha256": "13d674419f6930b9bcc073c98d8903512ef98373da229c84868ffd3470394c71"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/11.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10866,
+      "sha256": "31b592e4d3d536334b07e254c7eaf687ef686889bacf1ae45215318638fefb29"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/12.mp3",
+      "status": "trial_pending_review",
+      "bytes": 11283,
+      "sha256": "e44b4b172b4ff0a0ee912b08bb6aeb255f6c15fb1d9cc023970dea32bf5d717a"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/13.mp3",
+      "status": "trial_pending_review",
+      "bytes": 10866,
+      "sha256": "1f63d124d5228f076e0a19a14e0fb485c18dcddd34397b201e6ed0b9c8df9401"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/14.mp3",
+      "status": "trial_pending_review",
+      "bytes": 12955,
+      "sha256": "d01c5f7f882f376abab508d09186953716f36e1c03bc4e87923945b5bb291e07"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/15.mp3",
+      "status": "trial_pending_review",
+      "bytes": 12119,
+      "sha256": "c9323add98c4508b61c3f8367cbc4b46fa179d1860540ed4e26a597636f35314"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/16.mp3",
+      "status": "trial_pending_review",
+      "bytes": 16717,
+      "sha256": "e5cd1a1137710852b9f4398f63a00b7fb7e88979e3a9eb3c89b2b96ac4a2bdf7"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/17.mp3",
+      "status": "trial_pending_review",
+      "bytes": 11283,
+      "sha256": "b34c2f460a220a4952e9ceba62b9c241702c335d51791ebb470ec5eedd8bcff1"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/18.mp3",
+      "status": "trial_pending_review",
+      "bytes": 12955,
+      "sha256": "ac1cdc80f633f79086972a64dabb92d8e3141c0f675e5c554ed9024832d8725a"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/19.mp3",
+      "status": "trial_pending_review",
+      "bytes": 17971,
+      "sha256": "3fc2e835c211dd301ecb7606da3fb713ded33612abf96bc2982b54e37d45ba43"
+    },
+    {
+      "path": "assets/audio/delivery/bamboo-maze/20.mp3",
+      "status": "trial_pending_review",
+      "bytes": 12955,
+      "sha256": "51e0f3ff572306118ef2f3b55a73ab82b9f85cc8a9084a236f0cb6f5fea7ecb0"
     },
     {
       "path": "assets/audio/delivery/night-town/01.mp3",

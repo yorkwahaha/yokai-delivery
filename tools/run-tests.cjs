@@ -8,8 +8,31 @@ const cp=require('node:child_process');
 const ROOT=path.resolve(__dirname,'..');
 const all=fs.readdirSync(path.join(ROOT,'tests'))
   .filter(f=>f.endsWith('.test.cjs')).sort();
+const frozenHistorical=new Set([
+  'agy-m1-runtime.test.cjs',
+  'agy-m1-n4.test.cjs',
+  'game-attack-specs-phase12-20261103.test.cjs',
+  'game-catalog-phase13-20261103.test.cjs'
+]);
+// Frozen source hashes and pre-2026-11 game-timeline assumptions belong in
+// the legacy/all lane. Original assertions remain runnable for audit.
+
 const currentPrefix=/^(game-.*phase\d+|game-combat-audit-hardening|core-(multi-enemy-stage|stateful-contracts)|audit-p1-|audio-gamepad-home-hotfix|phase2-geometry-audit|third-audit-regressions|water-slam-alpha-sfx|combat-targeting|combat-boundaries-stage-tutorial|boom-behavior|boss-(music|telegraph-delegate|ring-sweep)|evolutions|fx\.|skillfx\.|game-balance|progression|v3-boss-ai|v3-core|v3-contract-gate)/;
 const currentExact=new Set([
+  'game-violet-scent-20261117.test.cjs',
+  'game-shikigami-candidate-20261119.test.cjs',
+  'game-shikigami-runtime-20261119.test.cjs',
+  'stage4-bamboo-maze-20261119.test.cjs',
+  'stage5-hyakki-kyoto-20261119.test.cjs',
+  'fusion-lab-isolation-20261119.test.cjs',
+  'phase42-upgrade-input-20261119.test.cjs',
+  'game-ui-upgrade-phase42.test.cjs',
+  'stage3-engine-20261116.test.cjs',
+  'stage23-production-art.test.cjs',
+  'delivery-media-runtime-20261119.test.cjs',
+  'stage3-art-batch-20261116.test.cjs',
+  'stage3-boss-behavior-20261116.test.cjs',
+  'stage3-boss-polish-20261116.test.cjs',
   'card-delivery-runtime.test.cjs',
   // 2026-11-10 review: delivered/quota gates, offscreen sword travel,
   // mutation reroll, frost volley and current cadence specifications.
@@ -140,7 +163,7 @@ const currentExact=new Set([
 for(const required of currentExact)if(!all.includes(required))
   throw Error('Current test missing: '+required);
 
-const current=all.filter(f=>currentPrefix.test(f)||currentExact.has(f));
+const current=all.filter(f=>!frozenHistorical.has(f)&&(currentPrefix.test(f)||currentExact.has(f)));
 const currentSet=new Set(current);
 const legacy=all.filter(f=>!currentSet.has(f));
 const mode=process.argv[2]||'current';

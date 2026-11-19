@@ -46,10 +46,10 @@ test('Phase13 original local registry identifiers still refer to catalog data wi
 });
 test('Phase13 catalog loads before game with versioned HTML scripts',()=>{
   const html=fs.readFileSync('index.html','utf8');
-  const catalogScript='js/game-catalog.js?v=20261103-catalog-phase13';
+  const catalogScript=scriptUrl('game-catalog');
   const gameScript=scriptUrl('game');
   assert.ok(html.includes(catalogScript));
   assert.ok(html.includes(gameScript));
   assert.ok(html.indexOf(catalogScript)<html.indexOf(gameScript));
-  assert.ok(html.includes('js/game-attack-specs.js?v=20261109-ofuda-range-r3'));
+  assert.ok(html.includes(scriptUrl('game-attack-specs')));
 });

@@ -90,5 +90,5 @@ test('Phase14 browser loads combat helper before main game with both phase-speci
  const main=scriptUrl('game');
  assert.ok(html.includes(helper)&&html.includes(main));
  assert.ok(html.indexOf(helper)<html.indexOf(main));
- assert.ok(html.includes('js/game-catalog.js?v=20261103-catalog-phase13'));
+ assert.ok(html.includes(scriptUrl('game-catalog')));
 });

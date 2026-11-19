@@ -6,11 +6,14 @@ const { loadGame } = require('./helpers/game-runtime.cjs');
 
 const SIX = ['katana', 'barrier', 'fire', 'boom', 'thunder', 'needle'];
 
-test('B3 normal upgrade pool contains only the six base active skills, no fusion or retired duos', () => {
+test('B3 first-stage active pool offers only six starters before post-clear skills unlock', () => {
   const g = loadGame({ seed: 51 });
   g.start();
   const levels = g.weaponLevels();
-  assert.deepEqual(Object.keys(levels).filter(id => !id.startsWith('fusion_')).sort(), [...SIX].sort());
+  // The seventh and eighth skill IDs are globally registered, not yet unlocked.
+  assert.deepEqual(Object.keys(levels).filter(id => !id.startsWith('fusion_') && !['ink_trail','seal_nail'].includes(id)).sort(), [...SIX].sort());
+  assert.equal(levels.ink_trail,0);
+  assert.equal(levels.seal_nail,0);
   assert.equal(levels.katana, 1);
   for (const id of SIX.slice(1)) assert.equal(levels[id], 0);
   for (const [id, level] of Object.entries(levels)) if (id.startsWith('fusion_')) assert.equal(level, 0);

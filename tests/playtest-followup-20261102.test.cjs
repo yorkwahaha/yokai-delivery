@@ -9,7 +9,7 @@ const world=fs.readFileSync('js/world.js','utf8');
 const renderer=fs.readFileSync('js/renderer.js','utf8');
 const html=fs.readFileSync('index.html','utf8');
 
-test('final Boss regenerates 0 before 2m, 0.5% 2m, 1% 4m and only 200% total',()=>{
+test('final Boss regenerates 0 before 2m, 0.5% 2m, 0.85% 4m and only 200% total',()=>{
  const start=game.indexOf('    // Night-town final Boss: two phases');
  const end=game.indexOf('\n    // 百鬼夜行：',start);
  assert.ok(start>0 && end>start);
@@ -25,7 +25,7 @@ test('final Boss regenerates 0 before 2m, 0.5% 2m, 1% 4m and only 200% total',()
  assert.equal(run(119).hp,400);
  assert.equal(run(120).hp,405);
  assert.equal(run(239).hp,405);
- assert.equal(run(240).hp,410);
+ assert.equal(run(240).hp,408.5);
  const cap=run(300,1998,400,1);
  assert.equal(cap.hp,402);
  assert.equal(cap.regenRestored,2000);

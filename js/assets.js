@@ -1423,6 +1423,21 @@ if (typeof window !== "undefined") {
   window.getFusionArtBindReport = getFusionArtBindReport;
 }
 
+// Canonical rain-port rasters share a 512px canvas and a ground anchor at
+// (256, 472). Keep each monster's review scale constant across its poses.
+const PORT_MOB_IMAGES = new Map();
+function portMobSlots(id, visibleHeight, idleHeight, walking = false) {
+  const poses = { idle: "idle", attack: "attack" };
+  if (walking) Object.assign(poses, { walkA: "run__f01", walkB: "run__f02" });
+  return Object.fromEntries(Object.entries(poses).map(([role, pose]) => {
+    const key = `${id}__sprite__${pose}`;
+    PORT_MOB_IMAGES.set(key, {
+      url: `assets/img/enemies/${id}/${key}.webp?v=20261119-stage23-art`,
+      height: visibleHeight * 472 / idleHeight
+    });
+    return [role, key];
+  }));
+}
 const STAGE_ASSET_SLOTS = Object.freeze({
   "night-town": Object.freeze({
     map: "map_night_town_v1",
@@ -1444,10 +1459,10 @@ const STAGE_ASSET_SLOTS = Object.freeze({
     scene: ["port_warehouse", "prop_mooring_post", "prop_port_lighthouse", "prop_cargo_crates", "prop_port_boat", "prop_anchor_gear", "vfx_rain_splash_ripple"],
     trans: ["ground_stone_wood_transition_v2", "ground_trans_stone_wood_h", "ground_trans_stone_wood_v", "ground_wood_dock_var1", "ground_wood_dock_var2"],
     enemy: {
-      ghost: { idle: "ghost", attack: "ghost_motion_v1" },
-      runner: { idle: "runner", attack: "runner_motion_v1" },
-      tank: { idle: "tank", attack: "tank_motion_v1" },
-      shooter: { idle: "shooter", attack: "shooter_motion_v1" },
+      ghost: portMobSlots("wet-net-imp", 55, 376),
+      runner: portMobSlots("flying-fish-kid", 61, 338, true),
+      tank: portMobSlots("anchor-shell-turtle", 73, 376),
+      shooter: portMobSlots("tidal-jar-kid", 62, 376),
       mis: { idle: "mis", attack: "mis_motion_v1" },
       shiome: { idle: "minion_shiome_idle", attack: "minion_shiome_attack" },
       boss: { idle: "boss_ikari_umibozu_idle", attack: "boss_ikari_umibozu_attack" }
@@ -1670,10 +1685,9 @@ const STAGE_ART_RESOLVER = Object.freeze({
         stageId: "sakura-pass",
         status: "PLAYTEST",
         requiresDevFlags: false,
-        source: null,
-        artStatus: "ART_CANDIDATE_USER_REVIEW_PENDING",
+        source: "assets/img/stages/sakura-pass/",
+        artStatus: window.isSakuraCandidateEnabled?.() ? "USER_SELECTED_RUNTIME" : "DISABLED",
         engineStatus: "PUBLIC_PLAYTEST",
-        reason: "Stage3 publicly testable; scenery, characters and Boss VFX pending player art review",
         fallbackStage: null,
         autoPass: false
       });
@@ -1787,16 +1801,15 @@ const STAGE_ART_RESOLVER = Object.freeze({
     if (sId === "sakura-pass") {
       const role = ({ground: "dirt", ground_dirt: "dirt", ground_mountain_dirt: "dirt",
         shrine_pavilion: "pavilion", landmark_corrupted_sakura: "ancientSakura"})[key] || key;
-      const candidate = window.isSakuraCandidateEnabled?.()
+      const selected = window.isSakuraCandidateEnabled?.()
         ? (SAKURA_GROUND_ASSETS[role] || SAKURA_SCENE_ASSETS[role] || null) : null;
       return Object.freeze({
         stageId: "sakura-pass",
         key,
-        category: category || "candidate",
-        path: candidate,
-        status: candidate ? "ART_CANDIDATE_USER_REVIEW_PENDING" : "BLOCKED",
-        artStatus: "ART_CANDIDATE_USER_REVIEW_PENDING",
-        reason: "Local review only; absent roles stay unrequested",
+        category: category || "scene",
+        path: selected,
+        status: selected ? "USER_SELECTED_RUNTIME" : "BLOCKED",
+        artStatus: selected ? "USER_SELECTED_RUNTIME" : "ASSET_UNAVAILABLE",
         isFallback: false,
         fallbackStage: null
       });
@@ -2706,7 +2719,7 @@ if (typeof window !== "undefined") {
 
 // Stage 3 terrain uses ONE dirt base + independent transparent stone-path sprites.
 // Stone paths are scene decals: never repeat a complete masonry texture as ground.
-// Candidates remain local-preview only until art sign-off / runtime import.
+// The selected terrain, scenery and enemy rasters load on ordinary stage entry.
 window.SAKURA_ART = {};
 window.SAKURA_ART_STATUS = {};
 const SAKURA_GROUND_ASSETS = Object.freeze({
@@ -2737,7 +2750,7 @@ window.refreshSakuraArt = () => {
     img.decoding = "async";
     img.onload = () => {
       window.SAKURA_ART[role] = img;
-      window.SAKURA_ART_STATUS[role] = "ART_CANDIDATE_USER_REVIEW_PENDING";
+      window.SAKURA_ART_STATUS[role] = "USER_SELECTED_RUNTIME";
     };
     img.onerror = () => {
       window.SAKURA_ART_STATUS[role] = "candidate_not_imported";
@@ -2745,10 +2758,10 @@ window.refreshSakuraArt = () => {
     img.src = `${url}?v=20261116-s3-art-batch-r1`;
   }
 };
-// Candidate scenery roles are shared by all Stage3 consumers. Missing roles
-// stay empty; the renderer labels its temporary pavilion reuse inside the trial.
+// Scene roles are shared by all Stage3 consumers. Missing roles stay empty.
 const SAKURA_SCENE_ASSETS = Object.freeze(Object.fromEntries(
-  Object.entries({ ...window.SAKURA_ART_DATA?.scene, ...window.SAKURA_ART_DATA?.forest, ...window.SAKURA_ART_DATA?.bossVfx }).map(([role, data]) => [role, data.path])
+  Object.entries({ ...window.SAKURA_ART_DATA?.scene, ...window.SAKURA_ART_DATA?.forest,
+    ...window.SAKURA_ART_DATA?.bossVfx, ...window.SAKURA_ART_DATA?.trialVfx }).map(([role, data]) => [role, data.path])
 ));
 const sakuraSceneRequested = new Set();
 const sakuraCharacterRequested = new Set();
@@ -2765,7 +2778,7 @@ window.refreshSakuraCharacters = () => {
         img.sakuraFrame = data.frame;
         img.sakuraBaseHeight = data.baseHeight;
         ART[data.key] = img;
-        window.SAKURA_ART_STATUS[data.key] = "ART_CANDIDATE_USER_REVIEW_PENDING";
+        window.SAKURA_ART_STATUS[data.key] = "USER_SELECTED_RUNTIME";
       };
       img.onerror = () => { window.SAKURA_ART_STATUS[data.key] = "candidate_not_imported"; };
       img.src = data.path + "?v=20261116-s3-art-batch-r1";
@@ -2777,6 +2790,7 @@ window.refreshSakuraScene = () => {
   if (typeof Image !== "function") return;
   if (!window.isSakuraCandidateEnabled()) return;
   for (const role of Object.keys(SAKURA_SCENE_ASSETS)) {
+    const trial = window.SAKURA_ART_DATA?.trialVfx?.[role];
     const url = SAKURA_SCENE_ASSETS[role];
     if (!url) { window.SAKURA_ART_STATUS[role] = "ASSET_PENDING"; continue; }
     if (sakuraSceneRequested.has(role)) continue;
@@ -2786,14 +2800,15 @@ window.refreshSakuraScene = () => {
     if (img.dataset) img.dataset.url = url;
     img.decoding = "async";
     img.onload = () => {
-      img.sakuraSourceRect = (window.SAKURA_ART_DATA?.scene[role] || window.SAKURA_ART_DATA?.forest?.[role] || window.SAKURA_ART_DATA?.bossVfx?.[role])?.rect;
+      img.sakuraSourceRect = (trial || window.SAKURA_ART_DATA?.scene[role] ||
+        window.SAKURA_ART_DATA?.forest?.[role] || window.SAKURA_ART_DATA?.bossVfx?.[role])?.rect;
       window.SAKURA_ART[role] = img;
-      window.SAKURA_ART_STATUS[role] = "ART_CANDIDATE_USER_REVIEW_PENDING";
+      window.SAKURA_ART_STATUS[role] = trial ? "IN_GAME_TRIAL_PENDING_USER_REVIEW" : "USER_SELECTED_RUNTIME";
     };
     img.onerror = () => {
       window.SAKURA_ART_STATUS[role] = "candidate_not_imported";
     };
-    img.src = `${url}?v=20261116-s3-art-batch-r1`;
+    img.src = url + (trial ? "?v=20261120-sakura-readability" : "?v=20261116-s3-art-batch-r1");
   }
 };
 
@@ -2850,9 +2865,11 @@ function loadStageAssets(stageId) {
       return true;
     }
     const img = new Image();
+    const portMob = PORT_MOB_IMAGES.get(key);
     img.fetchPriority = isCritical ? "high" : "low";
     img.decoding = "async";
     img.onload = () => {
+      if (portMob) img.portMobHeight = portMob.height;
       ART[key] = img;
       markSettled(key);
       status.loaded.push(key);
@@ -2886,13 +2903,13 @@ function loadStageAssets(stageId) {
     );
     const isScene = SCENERY_ASSET_KEYS.has(key);
     const isYokai = YOKAI_ASSET_KEYS.has(key);
-    const rawUrl = isPort
+    const rawUrl = portMob?.url || (isPort
       ? `assets/img/rain-port/${key}.webp?v=20261013-rain-port2`
       : isScene
         ? `assets/img/scenery/${key}.webp?v=20261010-loading3`
         : isYokai
           ? `assets/img/yokai/${key}.webp?v=20261010-loading2`
-          : `assets/img/${key}.webp?v=20261010-loading2`;
+          : `assets/img/${key}.webp?v=20261010-loading2`);
     img.src = window.ASSET_PATHS?.resolve(rawUrl) || rawUrl;
     return false;
   };
@@ -2961,7 +2978,14 @@ function loadStageAssets(stageId) {
       }
       if (arts.idle) tryLoad(arts.idle, enemyType === "boss" ? "boss" : enemyType);
       if (arts.attack) tryLoad(arts.attack, arts.idle || (enemyType === "boss" ? "boss" : enemyType));
+      if (arts.walkA) tryLoad(arts.walkA, arts.idle);
+      if (arts.walkB) tryLoad(arts.walkB, arts.idle);
     }
+  }
+
+  if (stageId === "sakura-pass") {
+    window.refreshSakuraArt();
+    window.refreshSakuraScene();
   }
 
   if (stageId === "rain-port") {

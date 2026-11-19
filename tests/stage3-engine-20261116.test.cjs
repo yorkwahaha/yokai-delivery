@@ -163,7 +163,7 @@ test('S3 map entry still requires the Stage2 clear, even when local review is en
   assert.equal(env.OVERWORLD.isEnterable(node),true);
 });
 
-test('S3 candidate loader requests all 39 existing Stage3 rasters and keeps missing roles blocked', () => {
+test('S3 local loader requests the 39 existing rasters plus the trial root warning', () => {
   const requests=[], images=[];
   const env={console,URLSearchParams,location:loc(),DEV_MODE:DEV,
     Image:class {constructor(){images.push(this);}set src(v){this.url=v;requests.push(v);} get src(){return this.url;}},
@@ -178,7 +178,7 @@ test('S3 candidate loader requests all 39 existing Stage3 rasters and keeps miss
   const characters=requests.filter(p=>p.startsWith('assets/img/enemies/') && /sakura|hanakage|moss-tanuki|stone-lantern-kid|paper-umbrella/.test(p));
   assert.equal(characters.length,16);
   const vfx=requests.filter(p=>p.startsWith('assets/img/vfx/enemies/sakura-tengu/'));
-  assert.equal(vfx.length,3);for(const p of vfx)assert.ok(fs.existsSync(p.split('?')[0]),p);
+  assert.equal(vfx.length,4);for(const p of vfx)assert.ok(fs.existsSync(p.split('?')[0]),p);
   for(const p of characters) assert.ok(fs.existsSync(p.split('?')[0]),p);
   for(const p of stageRequests) assert.ok(fs.existsSync(p.split('?')[0]),p);
   assert.equal(env.SAKURA_ART_STATUS.stoneStraight,'loading');
@@ -186,6 +186,7 @@ test('S3 candidate loader requests all 39 existing Stage3 rasters and keeps miss
   assert.equal(env.SAKURA_ART_STATUS.teaHouse,'loading');
   for(const img of images.filter(i=>stageRequests.includes(i.url) || characters.includes(i.url) || vfx.includes(i.url))){img.naturalWidth=512;img.naturalHeight=512;img.onload();}
   for(const [role,def]of Object.entries({...env.SAKURA_ART_DATA.scene,...env.SAKURA_ART_DATA.forest,...env.SAKURA_ART_DATA.bossVfx}))assert.deepEqual(env.SAKURA_ART[role].sakuraSourceRect,def.rect);
+  assert.equal(env.SAKURA_ART_STATUS.rootWarning, 'IN_GAME_TRIAL_PENDING_USER_REVIEW');
   for(const poses of Object.values(env.SAKURA_ART_DATA.characters))for(const def of Object.values(poses)){
     assert.deepEqual(env.ART[def.key].sakuraFrame,def.frame);assert.equal(env.ART[def.key].sakuraBaseHeight,def.baseHeight);
   }
@@ -224,8 +225,8 @@ test('S3 twenty trial word images and Fish A clips route to matching canonical f
     assert.equal(env.DELIVERY_ICON_ART.pathFor(w),'assets/img/delivery/sakura-pass/'+num+'.webp',w.jp);
     assert.equal(env.DELIVERY_MEDIA.pathForWord('audio',w.jp),'assets/audio/delivery/sakura-pass/'+num+'.mp3',w.jp);
   }
-  assert.equal(env.DELIVERY_MEDIA.isApproved('image','sakura-pass'),false);
-  assert.equal(env.DELIVERY_MEDIA.isTrial('image','sakura-pass'),true);
+  assert.equal(env.DELIVERY_MEDIA.isApproved('image','sakura-pass'),true);
+  assert.equal(env.DELIVERY_MEDIA.isTrial('image','sakura-pass'),false);
   assert.notEqual(env.DELIVERY_ICON_ART.pathFor(words[0]),env.DELIVERY_ICON_ART.pathFor(words[1]));
   assert.ok(env.DELIVERY_ICON_ART.pathFor(env.CONTENT.getStageWords('night-town')[0]).startsWith('assets/img/delivery/night-town/'));
 });

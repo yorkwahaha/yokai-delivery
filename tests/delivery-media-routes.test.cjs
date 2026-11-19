@@ -12,7 +12,7 @@ vm.runInNewContext(fs.readFileSync(path.join(ROOT,'js/delivery-media.js'),'utf8'
 const router=app.DELIVERY_MEDIA;
 const id=['night-town','rain-port','sakura-pass','bamboo-maze','hyakki-kyoto','snow-temple','spirit-ferry'];
 
-test('DELIVERY-MEDIA 全七關同一命名規則，第一關正式核准、第二關待審試玩、其他未開放',()=>{
+test('DELIVERY-MEDIA 全七關同一命名規則，前三關字圖正式使用、第二三關語音仍試用',()=>{
   assert.deepEqual([...router.stageIds],id);
   for(const [i,stage] of id.entries()){
     assert.equal(lex.stages[i].id,stage);
@@ -23,13 +23,13 @@ test('DELIVERY-MEDIA 全七關同一命名規則，第一關正式核准、第�
       assert.equal(entry.stage,stage);
       assert.equal(entry.index,j);
       for(const kind of ['image','audio']){
-        if(stage==='night-town'||stage==='rain-port'){
+        if(stage==='night-town'||stage==='rain-port'||stage==='sakura-pass'){
           const expected='assets/'+(kind==='image'?'img':'audio')+'/delivery/'+stage+'/'+String(j).padStart(2,'0')+(kind==='image'?'.webp':'.mp3');
           assert.equal(router.pathFor(kind,stage,j),expected);
           assert.equal(router.pathForWord(kind,word.jp),expected);
           assert.ok(fs.existsSync(path.join(ROOT,expected)));
-          assert.equal(router.isApproved(kind,stage),stage==='night-town');
-          assert.equal(router.isTrial(kind,stage),stage==='rain-port');
+          assert.equal(router.isApproved(kind,stage),kind==='image'||stage==='night-town');
+          assert.equal(router.isTrial(kind,stage),kind==='audio'&&stage!=='night-town');
         }else{
           assert.equal(router.pathFor(kind,stage,j),null,'未核准的 '+stage+' 不可取得正式媒體');
         }

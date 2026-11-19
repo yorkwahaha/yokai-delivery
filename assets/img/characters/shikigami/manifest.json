@@ -1,0 +1,141 @@
+{
+  "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+  "generator": "OpenAI built-in ImageGen",
+  "frames": [
+    {
+      "pose": "attack",
+      "frame": 1,
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-attack__f01.webp",
+      "source": "art/skills/shikigami/shikigami__wolf__attack__f01.webp",
+      "sha256": "1ac2886a0c8244a061971a9301562d1ebd6fa54288d5194ffefcaf3cbe2e09a3",
+      "size": [
+        512,
+        352
+      ],
+      "pivotPx": [
+        256,
+        320
+      ]
+    },
+    {
+      "pose": "attack",
+      "frame": 2,
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-attack__f02.webp",
+      "source": "art/skills/shikigami/shikigami__wolf__attack__f02.webp",
+      "sha256": "656054a406b154d3edd87b0595e7715a5af826b04a24ac27d1f8430191189da9",
+      "size": [
+        512,
+        352
+      ],
+      "pivotPx": [
+        256,
+        320
+      ]
+    },
+    {
+      "pose": "attack",
+      "frame": 3,
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-attack__f03.webp",
+      "source": "art/skills/shikigami/shikigami__wolf__attack__f03.webp",
+      "sha256": "ffbf3158f2bd7ba07ba84fa60c1eade18d005e799c2c11b98e49cab61ca034fb",
+      "size": [
+        512,
+        352
+      ],
+      "pivotPx": [
+        256,
+        320
+      ]
+    },
+    {
+      "pose": "attack",
+      "frame": 4,
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-attack__f04.webp",
+      "source": "art/skills/shikigami/shikigami__wolf__attack__f04.webp",
+      "sha256": "164d54ba06648baac7a190a76ea7f446e8b062ec6d5373d8a80f9578ef3ced3d",
+      "size": [
+        512,
+        352
+      ],
+      "pivotPx": [
+        256,
+        320
+      ]
+    },
+    {
+      "pose": "idle",
+      "frame": 1,
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-idle__f01.webp",
+      "source": "art/skills/shikigami/shikigami__wolf__idle__f01.webp",
+      "sha256": "c427d1dac4d243c10d21e433fc707cf33d6c36522cc4ba7c5ca0142a2dded07a",
+      "size": [
+        512,
+        352
+      ],
+      "pivotPx": [
+        256,
+        320
+      ]
+    },
+    {
+      "pose": "run",
+      "frame": 1,
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-run__f01.webp",
+      "source": "art/skills/shikigami/shikigami__wolf__run__f01.webp",
+      "sha256": "4e9d41a0b0703238e23741b3cfee36bdde949d0895d4657a7caa8c9a23b64a35",
+      "size": [
+        512,
+        352
+      ],
+      "pivotPx": [
+        256,
+        320
+      ]
+    },
+    {
+      "pose": "run",
+      "frame": 2,
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-run__f02.webp",
+      "source": "art/skills/shikigami/shikigami__wolf__run__f02.webp",
+      "sha256": "256317a1983af190d1647d673cbc38b2bed91b21643a521011e01b799c159a05",
+      "size": [
+        512,
+        352
+      ],
+      "pivotPx": [
+        256,
+        320
+      ]
+    },
+    {
+      "pose": "run",
+      "frame": 3,
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-run__f03.webp",
+      "source": "art/skills/shikigami/shikigami__wolf__run__f03.webp",
+      "sha256": "4080851c5f86bc65ed8f85c61cf57ac994a8b84fb3d08895c666bfe41148d967",
+      "size": [
+        512,
+        352
+      ],
+      "pivotPx": [
+        256,
+        320
+      ]
+    },
+    {
+      "pose": "run",
+      "frame": 4,
+      "path": "assets/img/characters/shikigami/shikigami__sprite__hound-run__f04.webp",
+      "source": "art/skills/shikigami/shikigami__wolf__run__f04.webp",
+      "sha256": "f71600b6a57eacc659fcd706243a5a420b4a3a28bef6632daba481a4e6dec566",
+      "size": [
+        512,
+        352
+      ],
+      "pivotPx": [
+        256,
+        320
+      ]
+    }
+  ]
+}

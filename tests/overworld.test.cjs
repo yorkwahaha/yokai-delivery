@@ -236,7 +236,7 @@ test('journey map reuses approved paper labels and controls, with the new courie
  const walk={complete:true,naturalWidth:832,naturalHeight:1024};
  global.ART={player_walk_left_v2:walk,overworld_night_v2:{naturalWidth:1641}};
  global.STORE={isStageCompleted:()=>false,isStageUnlocked:()=>true};
- global.CONTENT={getStage:id=>({id,implemented:true,unlockedByDefault:true})};
+ global.CONTENT={getStage:id=>({id,implemented:true,mapReleased:true,unlockedByDefault:true})};
  global.loadMapPlayerArt=()=>{calls.preload++};
  global.UI={
    readableFont:(size)=>'700 '+size+'px sans-serif',

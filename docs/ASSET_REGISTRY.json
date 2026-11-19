@@ -34,29 +34,36 @@
   },
   "approvals": {
     "delivery_img": [
-      "night-town"
+      "night-town",
+      "rain-port",
+      "sakura-pass",
+      "bamboo-maze"
     ],
     "delivery_audio": [
       "night-town"
-    ],
-    "stage_2_existing_bundle": "assets/img/rain-port/s2-production/"
-  },
-  "trials": {
-    "delivery_img": [
-      "rain-port",
-      "sakura-pass"
-    ],
-    "delivery_audio": [
-      "rain-port",
-      "sakura-pass"
     ],
     "stage_scene": {
       "sakura-pass": "assets/img/stages/sakura-pass/manifest.json"
     },
-    "stage3_character_manifest": "art/stage3-sakura-pass/characters/manifest.json",
-    "stage3_boss_sfx_manifest": "assets/audio/sfx/enemies/sakura-tengu/manifest.json"
+    "stage_enemy": {
+      "rain-port": "assets/img/stages/rain-port/enemies-manifest.json"
+    },
+    "stage_2_existing_bundle": "assets/img/rain-port/s2-production/"
   },
-  "policy": "Stage2 and Stage3 delivery art/audio explicitly authorized for local playtest; not approved final. Source files retained.",
+  "trials": {
+    "delivery_img": [],
+    "delivery_audio": [
+      "rain-port",
+      "sakura-pass",
+      "bamboo-maze"
+    ],
+    "stage4_art_manifest": "assets/img/stages/bamboo-maze/manifest.json",
+    "shikigami_art_manifest": "assets/img/characters/shikigami/manifest.json",
+    "stage3_boss_sfx_manifest": "assets/audio/sfx/enemies/sakura-tengu/manifest.json",
+    "boss_roster_manifest": "assets/img/enemies/boss-roster-trial-manifest.json",
+    "skill_art_manifest": "assets/img/skills/skill-art-trial-manifest.json"
+  },
+  "policy": "Stages 1 through 4 use selected delivery artwork. Stage 4 and the new boss and skill art are available in the public classroom playtest. Stages 2 through 4 delivery audio remains subject to pronunciation review.",
   "aliases": [
     {
       "source": "assets/audio/BGM.mp3",

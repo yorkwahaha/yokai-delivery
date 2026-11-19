@@ -1,3 +1,134 @@
+## 2026-11-20｜課堂試玩版
+
+- 公開入口走既有存檔與關卡解鎖。第三關通關後進入竹影迷宮並解鎖白狼式神，第五關維持本機試作。第一至四關各有四場、三種首領；港霧大妖改用低頭闊肩、揮錨姿勢和同關的藍灰和紙質感。首領、封印釘及紫藤覺醒素材均供學生試玩回饋。
+- 授權未核對的本機字型保留於本機。第四關 Boss 與式神專屬音效尚未接入公開版。
+
+## 2026-11-20｜三關首領陣容與技能覺醒試玩
+
+- 第一、二、四關比照第三關使用首王 → 二王 → 首王守門 → 尾王。第一關加入狛犬石將、燈籠法師，第二關加入潮甲蟹將、沉舟幽姬，第四關加入竹甲山豬、墨竹鬼姬。大妖鬼、港霧大妖重繪待機與攻擊圖。沿用各關的攻擊模板、封印問答、血量和節點。各圖的來源、腳底裁切和雜湊見 [首領素材](../assets/img/enemies/boss-roster-trial-manifest.json)。
+- 換入封印釘主卡；第六招沿用原卡，第七招採新版紫藤主卡。封印釘離開有效距離後鎖位蓄爆，落釘至爆發至少 0.70 秒、蓄爆至少 0.32 秒。Lv5 第一爆後 0.42 秒在離開方向爆出符火柱。Lv5 紫藤毒香有紫蝶拖尾與一般妖怪的混亂標記。 [技能素材](../assets/img/skills/skill-art-trial-manifest.json)
+- 本機與私有試玩入口啟用，使用者實玩與美術驗收待完成。未部署。
+
+## 2026-11-20｜妖櫻山道預警與貨物字卡
+
+- 貨物中文名稱與中文答題使用本機思源黑體繁中子集，字卡、HUD 貨物名稱和地面中文答案共用字型。確認主詞庫 140 個中文名皆有字形，包含「笛子」。授權見 [OFL](../assets/fonts/OFL-NotoSansTC.txt)。
+- 移除畫面上的工程試玩字樣。根陣使用紅色裂根與櫻瓣紋樣地面圖，預警在靈陣上、角色下；已爆發的根陣仍走命中圖層。新圖僅於本機或既有私人試玩入口載入，來源與 ImageGen 提示見 [試用素材紀錄](../assets/img/stages/sakura-pass/manifest.json)。
+- 第三關首輪正常升級保底紫藤毒香、封印釘。本機直接選關的資格只在該局有效，正式地圖依進度。 [本機第三關](http://127.0.0.1:8788/?dev=1&s3play=1&stage=sakura-pass)
+
+## 2026-11-19｜竹影迷宮三張新招與筍陣連炸
+
+- 在本機第四關，首輪一般升級固定出現紫藤毒香、封印釘、式神・召喚。開發直達在這一局暫時開放三招，沿用最多四主動槽。選卡不補記前三關通關。預設式神是白狼，九格待機、奔跑、撲咬圖取自既有本機候選，卡面共用待機圖。 [白狼素材清單](../assets/img/characters/shikigami/manifest.json)
+- 竹守筍陣改為五次接續在玩家腳底定位。每次預警 0.34 秒、爆發 0.22 秒，圈畫出後固定，終王半血擴大半徑。停表與受傷保護沿用共用規則。竹葉切線仍在招式輪替。
+- 本機試玩與測試完成，完整跑關、實體裝置與節奏感待使用者驗收。 [第四關試玩](http://127.0.0.1:8788/?dev=1&stageLab=1&stage=bamboo-maze)
+
+## 2026-11-19｜竹影迷宮地面與有限竹林重做
+
+- 落葉苔地與泥土小徑為 ImageGen 生成的兩張新材質。依森林環徑、斜支路與林間空地鋪設，移除直線石板格與地區字樣。三種直挺高竹用不同株數和疏密混排，竹牆外以陰影收邊，竹叢遮住玩家時會淡化。 [新圖與舊版保留紀錄](../assets/img/stages/bamboo-maze/manifest.json) [生成提示](../art/stage4-bamboo-maze/scene/bamboo-grove-prompts.json)
+- 矩形範圍為 5×5 個 900×600 基準區塊，四面竹牆限制移動與生成。20 個配送點及答題點在可走範圍內。2D／2.5D 共用同一套布局。 [本機第四關](http://127.0.0.1:8788/?dev=1&stageLab=1&stage=bamboo-maze)
+- 保留先前地表與竹叢供回退，現役 33 張圖。完整跑關、觸碰邊界的手感及裝置畫面仍待使用者驗收。
+
+## 2026-11-19｜竹影迷宮場景與敵人接入本機
+
+- 已接入地面、石道、兩間配送屋、六種場景道具、四種普通妖、竹守和兩招預警／命中圖，共 32 張 WebP。本機試用素材與雜湊見 [清單](../assets/img/stages/bamboo-maze/manifest.json)。
+- [第一到第四關順玩](http://127.0.0.1:8788/?dev=1&stageLab=1) 使用既有開發存檔。交件滿六次並擊敗第三關終王後，地圖可前往第四關。 [第四關快速試玩](http://127.0.0.1:8788/?dev=1&stageLab=1&stage=bamboo-maze) 可按「開發選關」的「直接進關」。
+- 狀態為 IN_GAME_TRIAL_PENDING_USER_REVIEW。公開地圖與第五關維持封印。玩家驗收重點是竹叢外觀與可走邊界、兩種 Boss 預警與碰撞，以及整局實玩。
+
+## 2026-11-19｜八關配送字圖美術標準
+
+- 使用者已確認第四關「竹影迷宮」全 20 張字圖的畫風與質感。後續八關新增或重繪的配送字圖，以這批成品為品質基準。第八關現行複習直接讀取前七關的對應字圖。 [核准字圖總覽](../art/delivery-icons/bamboo-maze/words-20261119/contact.webp) [逐張提示與原稿清單](../art/delivery-icons/bamboo-maze/words-20261119/manifest.json)
+- **一詞一圖、獨立生成、真透明。** 每個單字各自產生一張完整 PNG 原稿，再置中輸出 256×256 RGBA WebP。審圖總覽由完成的單張字圖排版。停止使用第二關舊有的「一次畫多詞、再切格與去背」製作方式，避免錯裁、紙底和文字殘影。
+- 畫風維持日式水墨浮世繪、暖深色收尖墨線、自然水彩暈染、主體內有細緻和紙纖維、配色克制、微圓潤的童話比例與四分之三靜物角度。以第四關 `04.webp` 大蒜或 `05.webp` 白蘿蔔等成品作風格參照，依詞彙寫明主體形狀、材質與容易混淆的物件。文字由 UI 呈現。出圖後核對物件語意、四角 alpha、邊緣、留白，以及 40–44 px 的輪廓辨識度。
+- 第一至第三關重繪各 20 張，已按使用者指示在本機正式模式改接。原稿、提示、雜湊、舊圖及舊 manifest 已保留，沿用原詞序和 Fish Audio 原檔。 [第一關對照](http://127.0.0.1:8788/art/delivery-icons/night-town/words-20261119/preview.html) [第二關對照](http://127.0.0.1:8788/art/delivery-icons/rain-port/words-20261119/preview.html) [第三關對照](http://127.0.0.1:8788/art/delivery-icons/sakura-pass/words-20261119/preview.html)
+- 第四關的 20 張圖與 20 段 Fish Audio 已接共用配送載入器。現行 `mapReleased: false`，圖音在本機 `dev=1&stageLab=1` 可驗；音檔讀音與重音仍待試聽。未提交／部署。 [第四關開發入口](http://127.0.0.1:8788/?dev=1&stageLab=1&stage=bamboo-maze)
+- 第五關詞表獲使用者確認，已按同一畫風獨立生出 20 張 256×256 透明 WebP，保留 PNG 原稿、提示與雜湊，字圖待審。 [第五關 44 px 審圖](http://127.0.0.1:8788/art/delivery-icons/hyakki-kyoto/words-20261119/preview.html) [第五關素材清單](../art/delivery-icons/hyakki-kyoto/words-20261119/manifest.json)
+- 第六關採用八個核准替換詞，沿用原編號。新主題為冬衣與山寺日用品，20 張透明字圖候選已齊。第五、六關仍待審圖，地圖與正式配送媒體保持未公開。 [第六關 44 px 審圖](http://127.0.0.1:8788/art/delivery-icons/snow-temple/words-20261119/preview.html) [第六關素材清單](../art/delivery-icons/snow-temple/words-20261119/manifest.json)
+- 第七關已用常見交通工具替換五詞。05 腳踏車、10 汽車、16 船、18 飛機、19 電車；20 張透明字圖候選已齊，待審圖。第八關維持 140 詞的綜合複習和原本 20 項優先順序。 [第七關 44 px 審圖](http://127.0.0.1:8788/art/delivery-icons/spirit-ferry/words-20261119/preview.html) [第七關素材清單](../art/delivery-icons/spirit-ferry/words-20261119/manifest.json)
+- 第五至第七關各 20 段 Fish Audio A `s2.1-pro-free` 已製作。按定案詞表逐詞合成，原音與清單存 `art/audio/fish-<stage>/a-common-ja/`，對照頁可試聽相同雜湊的 MP3。技術檢查 60／60，讀音與重音待本人試聽。 [百鬼京都](http://127.0.0.1:8788/art/delivery-icons/hyakki-kyoto/words-20261119/preview.html) [雪燈山寺](http://127.0.0.1:8788/art/delivery-icons/snow-temple/words-20261119/preview.html) [幽世渡口](http://127.0.0.1:8788/art/delivery-icons/spirit-ferry/words-20261119/preview.html)
+
+### 每個詞共用的生圖提示詞
+
+使用 Codex 內建 ImageGen，逐次開啟透明背景。用具體物件描述替換 `{SUBJECT}`，附一張第四關已核准的風格參照。
+
+```text
+Draw one finished transparent inventory sprite for Yokai Delivery, a Japanese folktale game. {SUBJECT}
+Match the attached fourth-stage icon's Japanese washi sumi-e / ukiyo-e illustration style: dark warm tapered brush outlines, natural ink and watercolor washes, restrained natural colors, delicate grain inside the subject only, gently rounded storybook proportions, and a three-quarter still-life view.
+Use a clear silhouette readable at 40–44 px. Center the complete isolated object in a square, filling about 72% of the canvas with comfortable margins. Use real transparent alpha outside the object, including all four corners.
+No paper backdrop, matte, checkerboard, cast shadow, labels, letters, numbers, unrelated props, frames, or signatures. The attachment is a style reference only. Depict the specified vocabulary item.
+```
+
+## 2026-11-18｜現行發版交接摘要（下方「未部署」均為歷史時點）
+
+- Git master 目前公開第三關 8305b1a、第七招紫藤毒香與第八招封印釘暫用卡圖/VFX 2c5c8fd、雨港 Boss 四音效 6c97402。正式網站資產已可讀，卡面與特效仍待本人美術／實機審核。
+- 現在優先整理測試、舊開發資料與字型授權，不改正式玩法。見 docs/PROJECT_CLEANUP_20261118.md。
+- 內部 ID ink_trail 僅供存檔相容，對外已改名紫藤毒香；封印釘不需手動引爆。
+
+## 2026-11-17｜第三關尺寸向第一關校準
+
+- 五棟建築由寬210收至最大166、2D高上限175；山宿約149×175，斜視沿用第一關6%立面補償。小怪依第一關同類型可見框面積校準，初期小鬼／紙傘／石燈童放大、狐狸收小；攻擊共用縮放、腳點／陰影／碰撞不變，紙傘名牌避讓屋頂。Boss與前兩關渲染規則保持。
+- 86項局部檢查通過，2D／斜視真圖靜態比較已檢視；本機8788已提供新程式。同步兩處既有測試設定落差（新模組載入、舊陰影斷言）；未自動跑關、未部署，`USER_PLAYTEST_PENDING`。H3破土音效仍僅候補。[尺寸紀錄](STAGE3_SCALE_ALIGNMENT_20261117.json)。
+
+## 2026-11-16｜第三關單字 07 樹＋17 螞蟻去背補正
+
+- 玩家發現 07 き 樹仍有不透明米色方底，17 あり 螞蟻仍有淺色殘影。已由保留的原始 Qwen 圖做紙色去背／本機 ISNet 主體遮罩處理，保住筆觸與細腿，換入第三關本機待審 07、17 兩張 256×256 WebP。原圖及候選都留在 `art/`。
+- 已同步最終試看圖、正式試玩檔及 hash manifest、Service Worker／資產清冊；其餘 18 圖＋20 音完全不動。第三關相關測試 34/34 與 registry check 通過，沒有 Git commit 或部署。詳見 [詞圖交付紀錄](SAKURA_PASS_DELIVERY_TRIAL_20261116.md)。
+
+## 2026-11-16｜追王避字、前搖高對比與音效預留
+
+- 箭頭按字寬避讓，窄版另列；第三關預警改深色外框＋亮實線，置於靈陣／夜色之上且只畫一次。羽毛速度495／555（×1.5），櫻根主圖×1.5並加真圖片破土，判定半徑74不變。
+- 六個Boss音效MP3路徑／README已建立，檔案待使用者提供；事件接線一次觸發，缺檔靜音。98項局部檢查及靜態接圖通過，未自動跑關、未部署。[完整變更與音效清單](STAGE3_BOSS_POLISH_20261116.md)。
+
+## 2026-11-16｜第三關 Boss 加速與三招重設
+
+- 追擊速度改130／140／150／165，出招間側移。專用三招為疾風突進、扇形羽刃、錯峰櫻根；終王半血增加羽刃／根點與一次重新預警的追擊。前兩關沿既有控制器，HP／掉落不變。
+- 新控制器與兩張專用raster候選已接本機；62項聚焦測試、語法、素材登錄與靜態HTTP通過。預警／發動的2D／2.5D靜態圖已檢視；沒有自動跑Boss戰，平衡／美術待本人實機驗收，未部署。[完整行為與數值](STAGE3_BOSS_BEHAVIOR_20261116.md)。
+
+## 2026-11-16｜怪物陰影腳底對齊
+
+- 修正直立怪物腳底位移與地面陰影被 tilt 壓縮的差異；sprite／陰影共用 monsterFootOffset，陰影位移轉回地面座標。只動 renderer 與入口版號，雨港專用海坊主／潮目陰影維持原偏移。
+- 語法檢查與素材／renderer 7項局部測試PASS，含2D／0.60一般怪、紙傘與Boss的陰影中心對齊；實際renderer靜態圖已檢視，未操作遊戲。證據 scratch/stage3-shadow-scene-tilt.png；待本人試玩，未部署。
+
+## 2026-11-16 R5｜櫻林四變體與自然排列
+
+- 新增低矮橫展／高挑疏枝，合計四款真圖片樹群；位置、間距、大小、方向與輕微傾斜採固定世界種子，左右不再同排，回走保持原貌。保留舊34張圖片、碰撞與配送位置。
+- 27項聚焦測試、素材登錄與靜態HTTP通過；2D／2.5D新排列靜態圖已檢視。待本人實機／美術驗收，未部署。詳見 [森林最新紀錄](STAGE3_FOREST_20261116.md)。
+
+## 2026-11-16 R4｜道路兩側黑帶改為櫻花樹林
+
+- 新增左右兩款真圖片樹群，已接本機第三關與既有 Y-sort；樹冠向道路延伸，回走位置固定。行走邊界、配送點與原有32張圖片雜湊保持不變。
+- 36項局部測試及素材登錄檢查通過，2D／2.5D靜態接圖已檢視；新圖待本人審核，未自動試玩、未部署。詳見 [R4森林接圖](STAGE3_FOREST_20261116.md)。
+
+## 2026-11-16｜第三關最終 20 詞已定稿並完成圖音接線
+
+- 使用者確認 **14 舊＋6 新** 詞庫，替換花束／花盆／盆栽植物／茶葉／茶杯／摺扇；新增 `き、かえる、あり、ほうき、ふえ、くすり`。團扇 `うちわ` 原圖誤畫成摺扇，已生成圓形團扇候選重接；語音沿用舊音。
+- 7 張新 Qwen Image 2.1 本機透明 WebP（含團扇）、6 段 Fish Audio A `s2.1-pro-free` 新 MP3、14 個舊詞圖音 byte-identical 保留按詞重新編號。20 圖＋20 音試聽 `http://127.0.0.1:8788/art/delivery-icons/sakura-pass/preview.html`，本機 HTTP 41/41、ffprobe 20/20、聚焦測試 33/33、清冊檢查 PASS。圖像物件與發音待使用者審核，仍是 `IN_GAME_TRIAL_PENDING_USER_REVIEW`，無 commit／deploy。
+- 工作紀錄與 01～20 最終清單：`docs/SAKURA_PASS_DELIVERY_TRIAL_20261116.md`；源圖和聲音舊版均保留在 `art/`，切勿用下方 11-16 初版 20 詞重新覆寫。
+
+## 2026-11-16｜第三關初版 20 詞圖＋Fish Audio A 已接本機（歷史）
+
+- `sakura-pass` 全 20 張單字 icon 已使用原始水墨浮世繪 Qwen 候選，置中成 256×256 透明 WebP；Fish Audio A（同前兩關聲線、`s2.1-pro-free`）20 段 MP3 已生成並登錄。
+- 統一載入 `assets/{img,audio}/delivery/sakura-pass/01…20`，`js/delivery-media.js` 僅列 `trial`、未標正式核准；失敗時沿用日文 TTS 備援，沒有變更前兩關音檔或聲線。來源皆留 `art/`，供回退審核。
+- 圖音逐字試聽頁 `art/delivery-icons/sakura-pass/preview.html`；[本輪交付收據](SAKURA_PASS_DELIVERY_TRIAL_20261116.md)。29 項相關媒體/第三關局部測試全通過、20/20 MP3 ffprobe 可解碼、全域 1038 媒體清冊 check 通過。仍待玩家確認 icon 物件與日語重音、未提交/部署；技術測試不代表美術核准。
+
+## 2026-11-16 R3｜第三關建築、裝飾與妖怪新圖批次已齊
+
+- 神社重繪＋其餘四建物、六裝飾、五怪物、三 Boss 候選，19 款原稿／27 張透明 WebP 已保存並接本機；八個角色各待機／攻擊兩姿勢。地板五圖雜湊未改，舊「四屋與專屬怪物仍缺」已被本輪取代。
+- 全素材總覽 <http://127.0.0.1:8788/assets/img/stages/sakura-pass/review.html>；第三關試玩入口維持 s3play=1。主 Boss 天狗接既有玩法，櫻守／鬼姬僅供候選審圖。
+- 34 項局部測試 PASS、35 HTTP 200、27 張透明邊界檢查 PASS，真 renderer 靜態接圖已檢視；未自動跑關。ART_CANDIDATE_USER_REVIEW_PENDING／USER_PLAYTEST_PENDING，無部署。登錄檢查仍只受既有四支雨港音效阻擋。
+- 完整清單、驗收方式與未完成項目：[R3 素材交付](STAGE3_ART_BATCH_WORKLOG_20261116.md)。Boss VFX／20 詞圖／20 語音、逐格動畫與實體裝置仍待後續；不把本批素材齊備說成全關正式完稿。
+
+## 2026-11-16 R2｜使用者指定的第三關新版場景已接回
+
+- 最新依據為使用者這次重新附的泥地及四張單列石路原PNG；已做逐像素相同的lossless WebP匯入，manifest：`assets/img/stages/sakura-pass/manifest.json`，原稿保留於唯一scene目錄。先前R1認定全部石路缺圖的描述已過期。
+- 房屋載入修正：本機 `s3play=1` 同時啟用場景，不必再帶 `s3art=1`；現有神社可畫，其他四種獨立屋圖仍缺，暫借神社。48項技術測試PASS＋兩張實際renderer靜態圖，沒有遊玩自動化或正式部署。
+- 詳見 [R2收據](STAGE3_SCENE_FIX_20261116.md)。本輪未開LAN、未改音檔、未動原有dirty；registry檢查仍受既有4筆雨港音效未登錄阻擋。
+
+## 2026-11-16｜第三關工程接續交付（本機，非正式美術核准）
+
+- 本輪遵照 `STAGE3_CODEX_HANDOFF_20261116.md` 連續完成安全工程：單列山道與山界、配送候選、80 普通怪上限、Boss 預警／碰撞、共用技能、結算重玩；15 檔 130 項聚焦測試 PASS。沒有自動完整試玩。
+- **ENGINE_DONE / ASSET_PENDING / USER_PLAYTEST_PENDING**；正式圖音與第三關新招定案仍 BLOCKED。3 份歷史測試保留 8 個失敗，不能當成整套全綠；清冊亦保留開工前 4 個雨港音效未登錄缺口。
+- 桌機入口 <http://127.0.0.1:8788/?dev=1&s3play=1&stage=sakura-pass&s3art=1&perf=1> →開發選關→第三關→直接進關。服務重啟用根目錄 `node tools/serve-tilt.cjs`，預設僅 loopback。iPad LAN 開放動作被自動核准拒絕，未繞過。
+- 本輪未生成／改動影音、未提交部署、未新增 Agent，既有 dirty 保留。下輪先看 [本輪完整收據](STAGE3_ENGINE_WORKLOG_20261116.md) 與 [精確素材缺口](STAGE3_MEDIA_AUDIT_20261116.json)，不以舊「全平面每塊一屋」斷言回滾新山道。
+
 # Agent 跨對話接手與協同運作手冊 (agent-handoff.md)
 
 ### 2026-11-10｜靈針折返角度規格釐清

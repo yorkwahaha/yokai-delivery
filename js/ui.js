@@ -1258,13 +1258,17 @@ window.UI = (() => {
     : action === 'boss' ? '1／2／3' : window.CONTROLS?.label(action) || ({interact:'E',dash:'空白鍵',hint:'H',pause:'P'}[action] || '');
   function tutorialCopy(id, mode) {
     const key = action => controlLabel(action, mode);
-    const harbor = window.__ACTIVE_STAGE === 'rain-port';
+    const stageId = window.__ACTIVE_STAGE || 'night-town';
+    const harbor = stageId === 'rain-port';
+    const bossNote = harbor ? '雨港通關還須至少六件配送。'
+      : stageId === 'night-town' ? '夜行町終王出場後存活滿 2 分鐘每秒回復 0.5% 血量，滿 4 分鐘後為 0.85%。'
+      : '擊敗終王後仍須完成當關配送目標。';
     return {
       pickup: ['取貨', 'pickup', `移動：${key('move')}。沿包裹標記靠近委託房屋，再用${key('interact')}取貨。攻擊會自動發動。`],
       listen: ['看圖聽音', 'listen', '取貨時會正常播放發音；記住包裹圖像，送貨時請自行判斷日語答案。原免費聽音提示已取消。'],
-      delivery: ['配送答題墊', 'pickup', `收件處答題結界最多暫停 10 秒，逾時恢復戰鬥並扣最大燈油 5%。踩答案墊 0.65 秒提交。兩關皆須送達至少 6 件並擊敗終王才能通關。`],
+      delivery: ['配送答題墊', 'pickup', `收件處答題結界最多暫停 10 秒；離圈會恢復戰鬥，但倒數不會停止。逾時包裹立即作廢、記錯並扣最大燈油 5%。踩答案墊 0.65 秒提交。各關皆須送達指定件數並擊敗終王。`],
       dash: ['衝刺避險', 'dash', `移動中用${key('dash')}快速穿過危險；衝刺期間短暫無敵。右側衝刺鈕顯示冷卻秒數，恢復後才能再次使用。`],
-      boss: ['Boss 封印', 'listen', `靠近 Boss 按${key('boss')}選假名破印。${harbor ? '雨港通關還須至少六件配送。' : '夜行町終王出場後存活滿 2 分鐘每秒回復 0.5% 血量，滿 4 分鐘後為 1%。'}兩關封印讀題最多暫停 10 秒；答錯立即恢復戰鬥，禁攻擊第一次 10 秒、再錯 30 秒；仍可移動且燈油照常消耗。`]
+      boss: ['Boss 封印', 'listen', `靠近 Boss 按${key('boss')}選假名破印。${bossNote}各關封印讀題最多暫停 10 秒；答錯立即恢復戰鬥，禁攻擊第一次 10 秒、再錯 30 秒；仍可移動且燈油照常消耗。`]
     }[id];
   }
   // Shared monochrome operation symbols, independent of OS Emoji fonts.
@@ -2698,7 +2702,7 @@ window.UI = (() => {
       ctx.restore();
       const hasCue = o.word.cue !== "text";
       if (hasCue) drawWordCue(ctx, o.word, x + 38, midY, 18);
-      ctx.font = readableFont(12, "900");
+      ctx.font = cargoFont(12, "900");
       ctx.fillStyle = "#fff4dc";
       ctx.textAlign = "left";
       const ty = midY + fontPx(ctx.font) * 0.35;
@@ -3019,7 +3023,7 @@ window.UI = (() => {
       if (!diegetic) {
         const remaining = Math.round(Math.hypot(P.x - job.to.x, P.y - job.to.y) / 10) * 10;
         ctx.fillStyle = useQuestBoard ? '#43291d' : '#fff3ca';
-        ctx.font = readableFont(18, '900');
+        ctx.font = cargoFont(18, '900');
         if (job.word.cue !== 'text') drawWordCue(ctx, job.word, taskX + 27, taskY + 16, 24);
         if (useQuestBoard) ctx.fillText(job.word.zh, taskX + (job.word.cue === 'text' ? 16 : 48), taskY + 27);
         else inkText(ctx, job.word.zh, taskX + (job.word.cue === 'text' ? 16 : 48), taskY + 23);
@@ -5343,8 +5347,18 @@ function fusionLayout(customViewport, model) {
       offsetY: offsetY - chrome
     };
   }
+  let galleryProjectionCache = null;
   function wordGallery() {
     const content = window.CONTENT;
+    const api = window.CARD_DELIVERY;
+    let storage = null;
+    try { storage = window.localStorage; } catch {}
+    const revision = typeof api?.revision === "function" ? api.revision(storage, window.location) : null;
+    if (revision !== null && galleryProjectionCache &&
+        galleryProjectionCache.revision === revision &&
+        galleryProjectionCache.content === content &&
+        galleryProjectionCache.storage === storage &&
+        galleryProjectionCache.api === api) return galleryProjectionCache.value;
     const words = content && typeof content.getAllWords === "function" ? content.getAllWords() : [];
     const activePacks = content?.DELIVERY_PACK_IDS?.length
       ? content.DELIVERY_PACK_IDS.map(id => content.WORD_PACKS[id])
@@ -5354,10 +5368,9 @@ function fusionLayout(customViewport, model) {
       packs: activePacks.map(pack => ({ id: pack.id, name: pack.name, sub: pack.sub || "" }))
     };
     let source = { key: null, marks: Object.create(null) };
-    const api = window.CARD_DELIVERY;
     if (api && typeof api.openCards === "function") {
       try {
-        const bag = api.openCards(window.localStorage, window.location);
+        const bag = api.openCards(storage, window.location);
         const snap = typeof bag.snapshot === "function" ? bag.snapshot() : null;
         source = { key: typeof bag.key === "string" ? bag.key : null, marks: snap && snap.marks || Object.create(null) };
       } catch { /* 讀不到配送印記就保持 0，熟練度不能補上 */ }
@@ -5372,7 +5385,9 @@ function fusionLayout(customViewport, model) {
     const packLine = sets.length
       ? `收藏 ${done}/${sets.length}${focus ? "・" + focus.name + " " + focus.full + "/" + focus.total : ""}`
       : "";
-    return { catalogs, source, cards: view.cards || [], packLine };
+    const value = { catalogs, source, cards: view.cards || [], packLine };
+    galleryProjectionCache = revision === null ? null : { revision, content, storage, api, value };
+    return value;
   }
   // 圖鑑分頁籤：底邊固定在 y=88，44 CSS 不足時往上長，不壓到下方卡片內容。
   // 桌機（scale>=1）數值與原本 160x32 @ y=56 完全相同。
@@ -6250,10 +6265,15 @@ function fusionLayout(customViewport, model) {
     return readableFont(Math.max(size, Math.ceil(18 / scale)), "700");
   }
 
-  function readableFont(size, weight = "700") {
+  function readableFont(size, weight = "700",
+    family = "'Yokai Brush JP', 'Yokai Noto JP', 'Noto Sans JP', 'Microsoft JhengHei', serif") {
     const scale = window.VIEWPORT?.get().scale || (document.getElementById("game")?.getBoundingClientRect().width || 900) / 900;
     const readable = scale < 1 ? Math.max(size, Math.min(28, Math.ceil(14 / scale))) : size;
-    return `${weight || "700"} ${readable}px 'Yokai Brush JP', 'Yokai Noto JP', 'Noto Sans JP', 'Microsoft JhengHei', serif`;
+    return `${weight || "700"} ${readable}px ${family}`;
+  }
+
+  function cargoFont(size, weight = "700") {
+    return readableFont(size, weight, "'Yokai Cargo TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif");
   }
 
   function answerFont(size, weight = "700") {
@@ -6291,6 +6311,7 @@ function fusionLayout(customViewport, model) {
 
   return {
     readableFont,
+    cargoFont,
     answerFont,
     floorAnswerFont,
     answerFontReady,

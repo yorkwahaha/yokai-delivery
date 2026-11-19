@@ -83,6 +83,40 @@ const SESSION_ID = (() => {
   return Date.now().toString(36) + tail;
 })();
 
+// The gallery can render every animation frame. Rebuild only for local
+// delivery writes or storage changes from another browser tab.
+let progressRevision = 0;
+// A direct same-tab import/write does not emit the browser "storage" event.
+// Observe only the projection string and key count (not journal replay).
+const revisionObservations = new WeakMap();
+function revision(storage, loc) {
+  if (!storage) {
+    try { storage = globalThis.localStorage; } catch {}
+  }
+  if (storage && typeof storage.getItem === "function") {
+    const key = cardKey(loc || globalThis.location);
+    try {
+      const raw = storage.getItem(key);
+      const count = typeof storage.length === "number" ? storage.length : null;
+      const seen = revisionObservations.get(storage);
+      if (seen && (seen.key !== key || seen.raw !== raw || seen.count !== count)) {
+        progressRevision++;
+      }
+      revisionObservations.set(storage, { key, raw, count });
+    } catch { /* A blocked storage read must not block opening the gallery. */ }
+  }
+  return progressRevision;
+}
+if (typeof globalThis.addEventListener === "function") {
+  globalThis.addEventListener("storage", event => {
+    const key = event && event.key;
+    if (key === null || typeof key === "string" &&
+        (key.startsWith(OFFICIAL_KEY) || key.startsWith(DEV_KEY))) {
+      progressRevision++;
+    }
+  });
+}
+
 // 快取：同一份 storage／key 的原始字串沒變時，不重 parse／migrate。
 const parsedCache = new WeakMap();
 
@@ -106,8 +140,6 @@ function rememberSaved(storage, key, text, state) {
   byKey.set(key, { text, state: copyState(state) });
 }
 
-const unsaved = new WeakMap();
-
 function copyState(state) {
   const source = state && typeof state === "object" ? state : {};
   const next = Object.assign({}, source);
@@ -120,15 +152,6 @@ function copyState(state) {
   return next;
 }
 
-function heldFor(storage) {
-  let held = unsaved.get(storage);
-  if (!held) {
-    held = new Map();
-    unsaved.set(storage, held);
-  }
-  return held;
-}
-
 // Cross-tab card progress journal. The old single JSON card document remains
 // a readable projection; individual event keys are immutable so one tab's
 // stale projection cannot erase a delivery recorded by another tab.
@@ -136,11 +159,29 @@ const pendingByStorage = new WeakMap();
 const journalAvailable = storage => typeof storage.key === "function" && typeof storage.length === "number";
 const journalBaseKey = key => key + ":journal-base";
 const journalEventPrefix = key => key + ":journal-event:";
+const COMPACT_BATCH = 200;
+const COMPACT_TRIGGER = 320;
 function pendingFor(storage, key) {
   let entries = pendingByStorage.get(storage);
   if (!entries) { entries = new Map(); pendingByStorage.set(storage, entries); }
   if (!entries.has(key)) entries.set(key, new Map());
   return entries.get(key);
+}
+function applyJournalDelivery(state, event, catalog) {
+  const applied = cards.applyEvent(state, event);
+  if (!applied.applied) return state;
+  const owned = state.awards;
+  let next = applied.state;
+  // An already-full but unawarded pack earns the award on a NEW delivery.
+  if (applied.reason === "success") {
+    const newAwards = freshAwards(catalog, owned, next.marks);
+    if (newAwards.length) {
+      const awards = Object.assign(Object.create(null), next.awards);
+      for (const packId of newAwards) awards[packId] = true;
+      next = Object.assign({}, next, { awards });
+    }
+  }
+  return next;
 }
 function journalState(storage, key, catalog) {
   if (!journalAvailable(storage)) return cachedState(storage, key);
@@ -149,6 +190,9 @@ function journalState(storage, key, catalog) {
   let baseline = null;
   try { baseline = JSON.parse(baseText); } catch {}
   let state = cards.migrate(baseline);
+  // If a previous compaction crashed after committing its checkpoint, these
+  // keys are already in the baseline even if only some were deleted.
+  const folded = new Set(Array.isArray(baseline?._compactingKeys) ? baseline._compactingKeys : []);
   const prefix = journalEventPrefix(key), ids = [];
   for (let i = 0; i < storage.length; i++) {
     const name = storage.key(i);
@@ -158,24 +202,88 @@ function journalState(storage, key, catalog) {
   // at 4; the event ID still protects duplicate successes and failures.
   ids.sort();
   for (const id of ids) {
+    if (folded.has(id)) continue;
     let event = null;
     try { event = JSON.parse(storage.getItem(id) || "null"); } catch {}
-    const applied = cards.applyEvent(state, event);
-    if (!applied.applied) continue;
-    const owned = state.awards;
-    state = applied.state;
-    // Match the legacy contract: an already-full unawarded pack is claimed
-    // on the NEXT successful delivery, not simply when opening the gallery.
-    if (applied.reason === "success") {
-      const newAwards = freshAwards(catalog, owned, state.marks);
-      if (newAwards.length) {
-        const awards = Object.assign(Object.create(null), state.awards);
-        for (const packId of newAwards) awards[packId] = true;
-        state = Object.assign({}, state, { awards });
-      }
-    }
+    state = applyJournalDelivery(state, event, catalog);
   }
   return state;
+}
+// Compaction is opt-in when the platform can serialize compactors via Web
+// Locks. Ordinary deliveries remain synchronous and never depend on it.
+// Crucially: checkpoint first, remove keys second, so an interruption can
+// never erase previously earned marks, awards or duplicate guards.
+async function compactCards(storage, loc, packs, lockRequest) {
+  const key = cardKey(loc);
+  const lock = lockRequest || globalThis.navigator?.locks?.request?.bind(globalThis.navigator.locks);
+  if (!journalAvailable(storage) || typeof storage.removeItem !== "function" || !lock)
+    return { ok: false, reason: "unsupported" };
+  const catalog = Array.isArray(packs) ? packs : defaultPacks();
+  return lock("yokai-card-journal:" + key, { mode: "exclusive", ifAvailable: true }, async held => {
+    if (!held) return { ok: false, reason: "busy" };
+    const baseKey = journalBaseKey(key), prefix = journalEventPrefix(key);
+    let raw;
+    try { raw = JSON.parse(storage.getItem(baseKey) || "null"); }
+    catch { return { ok: false, reason: "corrupt_base" }; }
+    if (!raw || !raw.marks) return { ok: false, reason: "missing_base" };
+    const keys = [];
+    for (let i = 0; i < storage.length; i++) {
+      const name = storage.key(i);
+      if (typeof name === "string" && name.startsWith(prefix)) keys.push(name);
+    }
+    keys.sort();
+    const oldCheckpoint = Array.isArray(raw._compactingKeys) ? raw._compactingKeys : [];
+    if (oldCheckpoint.length) {
+      // Finish an interrupted delete before taking a new snapshot.
+      try {
+        for (const id of oldCheckpoint) {
+          if (storage.getItem(id) !== null) storage.removeItem(id);
+        }
+        if (oldCheckpoint.some(id => storage.getItem(id) !== null))
+          return { ok: false, reason: "checkpoint_pending" };
+        delete raw._compactingKeys;
+        storage.setItem(baseKey, JSON.stringify(raw));
+      } catch { return { ok: false, reason: "checkpoint_pending" }; }
+    }
+    const candidates = keys.filter(id => !oldCheckpoint.includes(id) && storage.getItem(id) !== null)
+      .slice(0, COMPACT_BATCH);
+    if (!candidates.length) return { ok: true, removed: oldCheckpoint.length, remaining: 0 };
+    let state = cards.migrate(raw);
+    const originals = new Map();
+    for (const id of candidates) {
+      const value = storage.getItem(id);
+      if (value === null) continue;
+      originals.set(id, value);
+      try { state = applyJournalDelivery(state, JSON.parse(value), catalog); } catch {}
+    }
+    const foldedIds = [...originals.keys()];
+    if (!foldedIds.length) return { ok: true, removed: 0, remaining: 0 };
+    const checkpoint = Object.assign({}, state, { _compactingKeys: foldedIds });
+    try {
+      storage.setItem(baseKey, JSON.stringify(checkpoint));
+    } catch { return { ok: false, reason: "checkpoint_write_failed" }; }
+    // From this point, the written checkpoint is authoritative and all readers
+    // skip folded events until deletion is confirmed.
+    let removed = 0;
+    try {
+      for (const [id, value] of originals) {
+        if (storage.getItem(id) === value) {
+          storage.removeItem(id);
+          removed++;
+        }
+      }
+      const remaining = foldedIds.filter(id => storage.getItem(id) !== null);
+      if (remaining.length) checkpoint._compactingKeys = remaining;
+      else delete checkpoint._compactingKeys;
+      storage.setItem(baseKey, JSON.stringify(checkpoint));
+      progressRevision++;
+      return { ok: remaining.length === 0, removed, remaining: remaining.length };
+    } catch {
+      // Keep the full durable skip list if deletion or cleanup fails.
+      progressRevision++;
+      return { ok: false, reason: "interrupted", removed };
+    }
+  });
 }
 function ensureJournalBase(storage, key) {
   const baseKey = journalBaseKey(key);
@@ -211,7 +319,6 @@ function freshAwards(catalog, owned, marks) {
 
 function openCards(storage, loc, packs) {
   const key = cardKey(loc);
-  const held = heldFor(storage);
   const pending = pendingFor(storage, key);
   const catalog = Array.isArray(packs) ? packs : defaultPacks();
   const refresh = () => {
@@ -232,7 +339,8 @@ function openCards(storage, loc, packs) {
     }
     return copyState(current);
   };
-  let state = refresh();
+  // Avoid an unnecessary replay when a caller immediately requests snapshot().
+  let state = null;
   return {
     key,
     snapshot: () => { state = refresh(); return state; },
@@ -241,6 +349,7 @@ function openCards(storage, loc, packs) {
       state = refresh();
       const result = cards.applyEvent(state, event);
       if (!result.applied) return Object.assign({}, result, { persisted: null, storageError: null, newAwards: [] });
+      progressRevision++; // Even pending writes must invalidate the gallery.
       const owned = state.awards;
       state = copyState(result.state);
       const newAwards = result.reason === "success" ? freshAwards(catalog, owned, state.marks) : [];
@@ -250,7 +359,6 @@ function openCards(storage, loc, packs) {
         state = copyState(Object.assign({}, state, { awards }));
       }
       pending.set(event.id, { id: event.id, jp: event.jp, kind: event.kind, ok: event.ok });
-      held.set(key, copyState(state));
       try {
         if (journalAvailable(storage)) {
           ensureJournalBase(storage, key);
@@ -264,8 +372,18 @@ function openCards(storage, loc, packs) {
         const text = JSON.stringify(state);
         storage.setItem(key, text);
         pending.clear();
-        held.delete(key);
         rememberSaved(storage, key, text, state);
+        // Opportunistic bounded cleanup, only with native cross-tab locking.
+        // Never block a successful delivery if a browser lacks Web Locks.
+        if (globalThis.navigator?.locks?.request && journalAvailable(storage) &&
+            typeof storage.removeItem === "function") {
+          let count = 0;
+          const prefix = journalEventPrefix(key);
+          for (let i = 0; i < storage.length; i++)
+            if (storage.key(i)?.startsWith(prefix)) count++;
+          if (count >= COMPACT_TRIGGER)
+            void compactCards(storage, loc, catalog).catch(() => {});
+        }
         return Object.assign({}, result, { persisted: true, storageError: null, newAwards });
       } catch (error) {
         return Object.assign({}, result, { persisted: false, storageError: storageErrorOf(error), newAwards });
@@ -283,10 +401,12 @@ const api = {
   DEV_KEY,
   LEARNING_KEY,
   SESSION_ID,
+  revision,
   cardKey,
   availablePool,
   choose,
   chooseDeliveryWord,
+  compactCards,
   openCards
 };
 

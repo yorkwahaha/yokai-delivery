@@ -74,11 +74,17 @@
     const packIds = (stage.wordPacks || []).filter(id => content.getPack(id));
     if (packIds.length === 0) throw new Error("stage has no usable word packs");
 
-    // S2 restricts Y; S3 restricts X. Unbounded axes are absent, never zero.
+    // S2 restricts Y, S3 restricts X, and the bamboo grove closes all four sides.
     const isRainPort = stage.id === "rain-port";
     const isSakura = stage.id === "sakura-pass";
+    const routeLayout = root.STAGE_ROUTE_LAYOUTS?.[stage.id];
+    const grid = routeLayout?.grid;
+    const insideGrid = (cx, cy) => !grid || (cx >= 0 && cx < grid.columns && cy >= 0 && cy < grid.rows);
+    const routeBounds = routeLayout?.bounds;
     const bounds = isRainPort ? { minY: 180, maxY: 780 }
-      : isSakura ? { minX: 900, maxX: 1800 } : null;
+      : isSakura ? { minX: 900, maxX: 1800 }
+      : routeBounds ? { ...routeBounds, minY: routeBounds.minY * spacingScaleY, maxY: routeBounds.maxY * spacingScaleY }
+      : null;
     // rain-port：限制 Y chunk 範圍（只在戰鬥帶內生成 house/answerPositions）
     const rainPortChunkMinY = isRainPort ? Math.floor(bounds.minY / chunkHeight) : null;
     const rainPortChunkMaxY = isRainPort ? Math.ceil(bounds.maxY / chunkHeight) : null;
@@ -264,6 +270,7 @@
     }
 
     function getChunk(cx, cy) {
+      if (!insideGrid(cx, cy)) return null;
       const key = chunkKey(cx, cy);
       const cached = cache.get(key);
       if (cached) return cached;
@@ -300,7 +307,19 @@
       const baseY = cy * chunkHeight;
       const packWords = pack.words || [];
       const houses = [];
-      if (stage.id === "sakura-pass") {
+      const hash = routeLayout ? hashCoords(cx, cy, seed) : 0;
+      const layout = routeLayout?.(cx, cy, hash);
+      if (layout && packWords.length) {
+        layout.houses.forEach(([localX, localY, bType], slot) => {
+          const x = baseX + localX, y = baseY + localY * spacingScaleY;
+          houses.push({
+            id: `${stage.id}:${key}:${slot}`, chunkKey: key, x, y,
+            footY: y + 48, dx: x, dy: y + 84, bType,
+            color: pack.color, district: pack.name, packId: pack.id,
+            phase: (hash % 10000) / 997, word: packWords[(hash + slot) % packWords.length]
+          });
+        });
+      } else if (isSakura) {
         // One stop per vertical chunk, alternating along the shared winding lane.
         if (packWords.length) {
           const hx = hashCoords(cx, cy, seed ^ 0x51a7c3);
@@ -458,14 +477,14 @@
         floorColor: pack.floorColor,
         theme: pack.theme,
         houses,
-        lamps: stage.id === "rain-port" || isSakura ? [] : [{
+        lamps: isRainPort || isSakura || layout ? [] : [{
           x: baseX + chunkWidth / 2 + 62,
           y: baseY + (chunkHeight / 2 - 62 * spacingScaleY),
           ...(stage.id === "night-town" ? { collidable: false } : {})
         }],
         decor: {
-          torii: stage.id === "rain-port" ? false : stage.id === "sakura-pass" ? false : mod(cx, 3) === 1 && mod(cy, 2) === 0,
-          sakuraTrees: stage.id === "rain-port" ? [] : pack.theme === "sakura"
+          torii: !isRainPort && !isSakura && !layout && mod(cx, 3) === 1 && mod(cy, 2) === 0,
+          sakuraTrees: !isRainPort && !layout && pack.theme === "sakura"
             ? [
                 { x: baseX + 160, y: baseY + 120 * spacingScaleY },
                 { x: baseX + chunkWidth - 140, y: baseY + 120 * spacingScaleY }
@@ -491,6 +510,16 @@
         }
       };
 
+      if (layout) chunk.routeObstacles = layout.obstacles.map(([x0, y0, x1, y1, kind, artRole, artWidth]) => ({
+        kind, artRole, artWidth, x0: baseX + x0, y0: baseY + y0 * spacingScaleY,
+        x1: baseX + x1, y1: baseY + y1 * spacingScaleY, chunkKey: key
+      }));
+      if (layout?.props) chunk.routeProps = [
+        ...chunk.routeObstacles.map(r => ({
+          x: (r.x0 + r.x1) / 2, y: r.y1, width: r.artWidth, kind: r.artRole
+        })),
+        ...layout.props.map(([x, y, kind, width, wall]) => ({ x: baseX + x, y: baseY + y * spacingScaleY, kind, width, wall }))
+      ];
       cache.set(key, chunk);
       return chunk;
     }
@@ -508,14 +537,18 @@
         maxCy = Math.min(maxCy, rainPortChunkMaxY);
       }
 
+      const minCx = grid ? 0 : isSakura ? 1 : centerX - activeRadius;
+      const maxCx = grid ? grid.columns - 1 : isSakura ? 1 : centerX + activeRadius;
+      if (grid) { minCy = 0; maxCy = grid.rows - 1; }
       for (let cy = minCy; cy <= maxCy; cy++) {
-        for (let cx = isSakura ? 1 : centerX - activeRadius; cx <= (isSakura ? 1 : centerX + activeRadius); cx++) {
+        for (let cx = minCx; cx <= maxCx; cx++) {
           desired.add(chunkKey(cx, cy));
         }
       }
 
       for (const key of pinnedKeys || []) {
-        if (parseChunkKey(key)) desired.add(key);
+        const parsed = parseChunkKey(key);
+        if (parsed && insideGrid(parsed.cx, parsed.cy)) desired.add(key);
       }
 
       const chunks = [];
@@ -565,6 +598,9 @@
         chunkKey: h.chunkKey
       }));
       const lamps = chunks.flatMap(chunk => chunk.lamps);
+      if (routeLayout) {
+        for (const chunk of chunks) solids.push(...chunk.routeObstacles);
+      }
 
       return { chunks, houses, solids, lamps, bounds };
     }

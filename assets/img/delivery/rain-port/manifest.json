@@ -2,11 +2,19 @@
   "schema": 1,
   "stage": "rain-port",
   "kind": "image",
-  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "status": "APPROVED_BY_USER",
+  "version": "20261119-word-redraw",
   "count": 20,
   "format": "webp",
-  "source_style": "sumi-e ukiyo-e translucent wash",
-  "note": "12 selected v3 candidates + 8 preserved v2; game integration for user visual review, not approved final yet",
+  "size": [
+    256,
+    256
+  ],
+  "source_style": "Japanese sumi-e ukiyo-e with washi texture",
+  "generation_model": "OpenAI built-in ImageGen",
+  "style_reference": "art/delivery-icons/bamboo-maze/words-20261119/04.webp",
+  "candidate_manifest": "art/delivery-icons/rain-port/words-20261119/manifest.json",
+  "previous_manifest": "art/delivery-icons/rain-port/words-20261119/previous-manifest.json",
   "items": [
     {
       "index": 1,
@@ -14,10 +22,14 @@
       "kanji": "魚",
       "zh": "魚",
       "file": "01.webp",
-      "sha256": "5df14dd9c23f813a27beb5e73bcd1cd87cbe1f1971a99b30c6c3789586213fef",
-      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/01_さかな_candidate.webp",
-      "source_sha256": "5df14dd9c23f813a27beb5e73bcd1cd87cbe1f1971a99b30c6c3789586213fef",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 27300,
+      "sha256": "80a6576ee38a310778908d32446023a0a857d1782281ad1c3ca15096788232ac",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/01.webp",
+      "source_sha256": "80a6576ee38a310778908d32446023a0a857d1782281ad1c3ca15096788232ac",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/01-whole-fish.png",
+      "original_source_sha256": "d5886fdd0e589eeb0a58b006165a5f50b0b189d8a840fc0929361af0440f584c",
+      "previous_sha256": "5df14dd9c23f813a27beb5e73bcd1cd87cbe1f1971a99b30c6c3789586213fef"
     },
     {
       "index": 2,
@@ -25,10 +37,14 @@
       "kanji": "鮭",
       "zh": "鮭魚",
       "file": "02.webp",
-      "sha256": "883aedf0b4249c9ecda46838a997e4d635c1aaa82ec73f479cdcc88825901382",
-      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/02_さけ_candidate.webp",
-      "source_sha256": "883aedf0b4249c9ecda46838a997e4d635c1aaa82ec73f479cdcc88825901382",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 45052,
+      "sha256": "89e423096c4aa4bc06ad4c466d0b7d5967e7b7c0525e6994b3967476af6c2132",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/02.webp",
+      "source_sha256": "89e423096c4aa4bc06ad4c466d0b7d5967e7b7c0525e6994b3967476af6c2132",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/02-salmon.png",
+      "original_source_sha256": "e267404891e39fa5b11f1a43617702692e19ce657692be63a2a82f2163149b2f",
+      "previous_sha256": "883aedf0b4249c9ecda46838a997e4d635c1aaa82ec73f479cdcc88825901382"
     },
     {
       "index": 3,
@@ -36,10 +52,14 @@
       "kanji": "鮪",
       "zh": "鮪魚",
       "file": "03.webp",
-      "sha256": "f8000a8ac8a7b34e38d3bc0e9c196df0ea601c4f088ee129bf00042f8b46cbec",
-      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/03_まぐろ_candidate.webp",
-      "source_sha256": "f8000a8ac8a7b34e38d3bc0e9c196df0ea601c4f088ee129bf00042f8b46cbec",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 24034,
+      "sha256": "039dcb119eba03e8401e425c458315f7cf60de54d91bb585e86f5bffcd1a5772",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/03.webp",
+      "source_sha256": "039dcb119eba03e8401e425c458315f7cf60de54d91bb585e86f5bffcd1a5772",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/03-tuna.png",
+      "original_source_sha256": "0c4ab0dc73f6b1d80d0d1736af9b1d059da73709d1297c9c6a1fad3bd4225ad4",
+      "previous_sha256": "f8000a8ac8a7b34e38d3bc0e9c196df0ea601c4f088ee129bf00042f8b46cbec"
     },
     {
       "index": 4,
@@ -47,10 +67,14 @@
       "kanji": "鯖",
       "zh": "鯖魚",
       "file": "04.webp",
-      "sha256": "9e9f1926d78a18b91206d7baaeb373d8c8d168eb14449e91e2f59fd07a17d973",
-      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/04_さば_candidate.webp",
-      "source_sha256": "9e9f1926d78a18b91206d7baaeb373d8c8d168eb14449e91e2f59fd07a17d973",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 22514,
+      "sha256": "0ed1745113cc0ff3d8c04d5f7248733010fcc5f23a95aaf0bedcc84c9abb075b",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/04.webp",
+      "source_sha256": "0ed1745113cc0ff3d8c04d5f7248733010fcc5f23a95aaf0bedcc84c9abb075b",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/04-mackerel.png",
+      "original_source_sha256": "dd1e5180fb27dafbe3d91188d10c6a682cd37b14e63973077c512b58ced7d4aa",
+      "previous_sha256": "9e9f1926d78a18b91206d7baaeb373d8c8d168eb14449e91e2f59fd07a17d973"
     },
     {
       "index": 5,
@@ -58,10 +82,14 @@
       "kanji": "鯛",
       "zh": "鯛魚",
       "file": "05.webp",
-      "sha256": "383d22d00c6b1c555e1d002376a271a6806ea5573a32637ddcc1c75eb8a417d6",
-      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/05_たい_candidate.webp",
-      "source_sha256": "383d22d00c6b1c555e1d002376a271a6806ea5573a32637ddcc1c75eb8a417d6",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 39200,
+      "sha256": "fbe5ca8696d50dacac24bed29638ec7d852adf54440981aab401a9c10cc75901",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/05.webp",
+      "source_sha256": "fbe5ca8696d50dacac24bed29638ec7d852adf54440981aab401a9c10cc75901",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/05-sea-bream.png",
+      "original_source_sha256": "a86f02acc5678a1b9076659adcc6401091a30a78f454cee369e9d97e3dea8528",
+      "previous_sha256": "383d22d00c6b1c555e1d002376a271a6806ea5573a32637ddcc1c75eb8a417d6"
     },
     {
       "index": 6,
@@ -69,10 +97,14 @@
       "kanji": "鰻",
       "zh": "鰻魚",
       "file": "06.webp",
-      "sha256": "501108780de27617bfa7921ed0912a9b5f19db867f2c76c58392decdbcacb600",
-      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/06_うなぎ_candidate.webp",
-      "source_sha256": "501108780de27617bfa7921ed0912a9b5f19db867f2c76c58392decdbcacb600",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 40650,
+      "sha256": "8c23705aefeaa6838b5f4e262e20ff8660cb0e5f921ca5d436df9f6bbd7ece4f",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/06.webp",
+      "source_sha256": "8c23705aefeaa6838b5f4e262e20ff8660cb0e5f921ca5d436df9f6bbd7ece4f",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/06-eel.png",
+      "original_source_sha256": "fbc0458e1d44c0515d0dcde593ae660b344cc07a6d2b9639320966751854cea1",
+      "previous_sha256": "501108780de27617bfa7921ed0912a9b5f19db867f2c76c58392decdbcacb600"
     },
     {
       "index": 7,
@@ -80,10 +112,14 @@
       "kanji": "蛸",
       "zh": "章魚",
       "file": "07.webp",
-      "sha256": "7a5c26a4ed13ba8ca8f1e0617c8bfa3a3067cb0354d9b747133869e35e558cdf",
-      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/07_たこ_candidate.webp",
-      "source_sha256": "7a5c26a4ed13ba8ca8f1e0617c8bfa3a3067cb0354d9b747133869e35e558cdf",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 55904,
+      "sha256": "38462fadfaadf4a74644156d3589763f8912e2e1f9e697227bf13121ee750663",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/07.webp",
+      "source_sha256": "38462fadfaadf4a74644156d3589763f8912e2e1f9e697227bf13121ee750663",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/07-octopus.png",
+      "original_source_sha256": "8cb6914146c0376189916f5d8122afbe4729e4b46762e0ed0fb4219d7b94e897",
+      "previous_sha256": "7a5c26a4ed13ba8ca8f1e0617c8bfa3a3067cb0354d9b747133869e35e558cdf"
     },
     {
       "index": 8,
@@ -91,10 +127,14 @@
       "kanji": "烏賊",
       "zh": "魷魚",
       "file": "08.webp",
-      "sha256": "d15ade03e2c575a83c58fd2f4052896c23e8e441c4e246a41d71d97f48b2126b",
-      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/08_いか_candidate.webp",
-      "source_sha256": "d15ade03e2c575a83c58fd2f4052896c23e8e441c4e246a41d71d97f48b2126b",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 30326,
+      "sha256": "ffc6a96bdfd15265de03a09b197f66d06728cbf4809a44d30c024f9a3fa8905f",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/08.webp",
+      "source_sha256": "ffc6a96bdfd15265de03a09b197f66d06728cbf4809a44d30c024f9a3fa8905f",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/08-squid.png",
+      "original_source_sha256": "b3c2efef423b760288ecc836fdf1e4b307111a3965ec21029dc63a0fbb19fb65",
+      "previous_sha256": "d15ade03e2c575a83c58fd2f4052896c23e8e441c4e246a41d71d97f48b2126b"
     },
     {
       "index": 9,
@@ -102,10 +142,14 @@
       "kanji": "海老",
       "zh": "蝦子",
       "file": "09.webp",
-      "sha256": "453b6bfba79f7ea5edd42605fe33a3aceab9117dab31343016e1b187f5e45d4d",
-      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/09_えび_candidate.webp",
-      "source_sha256": "453b6bfba79f7ea5edd42605fe33a3aceab9117dab31343016e1b187f5e45d4d",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 48966,
+      "sha256": "719058a4f69c3844e4edad465e30426d3fa230f6aaa611e3beec74e61e5baf1f",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/09.webp",
+      "source_sha256": "719058a4f69c3844e4edad465e30426d3fa230f6aaa611e3beec74e61e5baf1f",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/09-shrimp.png",
+      "original_source_sha256": "8be9f9c2fc65d3b4a715b8184534e93c6531469b586ddcfe411c1c587d5ec973",
+      "previous_sha256": "453b6bfba79f7ea5edd42605fe33a3aceab9117dab31343016e1b187f5e45d4d"
     },
     {
       "index": 10,
@@ -113,10 +157,14 @@
       "kanji": "蟹",
       "zh": "螃蟹",
       "file": "10.webp",
-      "sha256": "a085c269ab9274ec701730cda40e9d810d7f30191b132d04666091e0305b148b",
-      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/10_かに_candidate.webp",
-      "source_sha256": "a085c269ab9274ec701730cda40e9d810d7f30191b132d04666091e0305b148b",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 41956,
+      "sha256": "94c8b9efdbc846aa691f22ce241a65ef44a3ba28b54510d7e903d2fdac06a872",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/10.webp",
+      "source_sha256": "94c8b9efdbc846aa691f22ce241a65ef44a3ba28b54510d7e903d2fdac06a872",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/10-crab.png",
+      "original_source_sha256": "ccd32ad7bebb5e2291506f96f0c32ecd323d224a909a64391a50290cc3da6112",
+      "previous_sha256": "a085c269ab9274ec701730cda40e9d810d7f30191b132d04666091e0305b148b"
     },
     {
       "index": 11,
@@ -124,10 +172,14 @@
       "kanji": "貝",
       "zh": "貝類",
       "file": "11.webp",
-      "sha256": "869040953dc53b3ff6a2826e588c7e2e1d601719813ec01dad355eee80cd43d4",
-      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/11_かい_candidate.webp",
-      "source_sha256": "869040953dc53b3ff6a2826e588c7e2e1d601719813ec01dad355eee80cd43d4",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 51176,
+      "sha256": "7c49e7e8b541bd0227e8fbe4bfe10866ec1a42083ca3e42083365de0c073f0cf",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/11.webp",
+      "source_sha256": "7c49e7e8b541bd0227e8fbe4bfe10866ec1a42083ca3e42083365de0c073f0cf",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/11-shellfish.png",
+      "original_source_sha256": "fd5abec3f8117f05ed926fe1a8c6a8c5b52bbf9ad061256cd8ac26c51ef7574e",
+      "previous_sha256": "869040953dc53b3ff6a2826e588c7e2e1d601719813ec01dad355eee80cd43d4"
     },
     {
       "index": 12,
@@ -135,10 +187,14 @@
       "kanji": "海苔",
       "zh": "海苔",
       "file": "12.webp",
-      "sha256": "2d9100ec8d14fc9373bc75908915a8018e5ff8cf5eafc1b6f3da7caa67f86357",
-      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/12_のり_candidate.webp",
-      "source_sha256": "2d9100ec8d14fc9373bc75908915a8018e5ff8cf5eafc1b6f3da7caa67f86357",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 44946,
+      "sha256": "f14806b90acf0354a33491fe9a97790905e167af2955d5e82fa2c348ae210bd8",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/12.webp",
+      "source_sha256": "f14806b90acf0354a33491fe9a97790905e167af2955d5e82fa2c348ae210bd8",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/12-nori.png",
+      "original_source_sha256": "18341a47921227ba3814f68d1b2a8ed94d891a29e702e4d8748f69a6aa460861",
+      "previous_sha256": "2d9100ec8d14fc9373bc75908915a8018e5ff8cf5eafc1b6f3da7caa67f86357"
     },
     {
       "index": 13,
@@ -146,10 +202,14 @@
       "kanji": "昆布",
       "zh": "昆布",
       "file": "13.webp",
-      "sha256": "4b68427dc5349e8c252304ce17f539f1e2c6e7dbfce92c8366ee0aa2f263fa2e",
-      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/13_こんぶ_candidate.webp",
-      "source_sha256": "4b68427dc5349e8c252304ce17f539f1e2c6e7dbfce92c8366ee0aa2f263fa2e",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 33550,
+      "sha256": "dedce53861941093bf1ad974fd2ad2da634f43470d45d7f0d8d6664cb843a779",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/13.webp",
+      "source_sha256": "dedce53861941093bf1ad974fd2ad2da634f43470d45d7f0d8d6664cb843a779",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/13-kombu.png",
+      "original_source_sha256": "0694a180b2e5f10ddbbde1c05caf8cc2c2d52a569e37c234714f9223cd587ba6",
+      "previous_sha256": "4b68427dc5349e8c252304ce17f539f1e2c6e7dbfce92c8366ee0aa2f263fa2e"
     },
     {
       "index": 14,
@@ -157,10 +217,14 @@
       "kanji": "",
       "zh": "海帶芽",
       "file": "14.webp",
-      "sha256": "4fe6686ab4d1d6d2b2015fbf86e529031cd31c61bf5d37a3bce9dd0a860097b5",
-      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/14_わかめ_candidate.webp",
-      "source_sha256": "4fe6686ab4d1d6d2b2015fbf86e529031cd31c61bf5d37a3bce9dd0a860097b5",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 47052,
+      "sha256": "15e06006b7ecf562183b90196c6bf78ef7babde134d415b2fb6746b78dbb19c8",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/14.webp",
+      "source_sha256": "15e06006b7ecf562183b90196c6bf78ef7babde134d415b2fb6746b78dbb19c8",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/14-wakame.png",
+      "original_source_sha256": "c52a55bd0484a6fe186d6d184311a61fad75814030f2b6d95ff6051fc4777ab7",
+      "previous_sha256": "4fe6686ab4d1d6d2b2015fbf86e529031cd31c61bf5d37a3bce9dd0a860097b5"
     },
     {
       "index": 15,
@@ -168,10 +232,14 @@
       "kanji": "寿司",
       "zh": "壽司",
       "file": "15.webp",
-      "sha256": "f39c898d2919908e5c02cfa24372430f550923ae7183b3fe0689ac4f2052d77c",
-      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/15_すし_candidate.webp",
-      "source_sha256": "f39c898d2919908e5c02cfa24372430f550923ae7183b3fe0689ac4f2052d77c",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 41602,
+      "sha256": "1c2be29b5324dc0183f956f5a12606c855fb4fd174cdee867c29f5bc3670f6f0",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/15.webp",
+      "source_sha256": "1c2be29b5324dc0183f956f5a12606c855fb4fd174cdee867c29f5bc3670f6f0",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/15-sushi.png",
+      "original_source_sha256": "3fa16441c0b625045435e5fab9de28e7c29e269bc366975109e3934b1d47b778",
+      "previous_sha256": "f39c898d2919908e5c02cfa24372430f550923ae7183b3fe0689ac4f2052d77c"
     },
     {
       "index": 16,
@@ -179,10 +247,14 @@
       "kanji": "刺身",
       "zh": "生魚片",
       "file": "16.webp",
-      "sha256": "dea6e449c307211d80e3b0c72a86074ee88781902b0b7c0ce36e7a48919c289c",
-      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/16_さしみ_candidate.webp",
-      "source_sha256": "dea6e449c307211d80e3b0c72a86074ee88781902b0b7c0ce36e7a48919c289c",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 46008,
+      "sha256": "c6c36ad6cf089eb51fccf63b623beffedcace0408b3af2a42844664f16da5f01",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/16.webp",
+      "source_sha256": "c6c36ad6cf089eb51fccf63b623beffedcace0408b3af2a42844664f16da5f01",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/16-sashimi.png",
+      "original_source_sha256": "413c1426a6ce76013305597278555f7358267aba30bca41d77d693586a03a55c",
+      "previous_sha256": "dea6e449c307211d80e3b0c72a86074ee88781902b0b7c0ce36e7a48919c289c"
     },
     {
       "index": 17,
@@ -190,10 +262,14 @@
       "kanji": "焼き魚",
       "zh": "烤魚",
       "file": "17.webp",
-      "sha256": "898f5d693e8eb32f3e442ef2073692c3e7325add8dca99bacd2ed4ec5152a63f",
-      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/17_やきざかな_candidate.webp",
-      "source_sha256": "898f5d693e8eb32f3e442ef2073692c3e7325add8dca99bacd2ed4ec5152a63f",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 26730,
+      "sha256": "e88ee08077d1c4464204006d262ef71197199a894be7183be20551428241c0d2",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/17.webp",
+      "source_sha256": "e88ee08077d1c4464204006d262ef71197199a894be7183be20551428241c0d2",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/17-grilled-fish.png",
+      "original_source_sha256": "bc1a74bf73abec4b0c6e3e2d7c660d8d26fd869f6f85271893e9d6698da9dc6a",
+      "previous_sha256": "898f5d693e8eb32f3e442ef2073692c3e7325add8dca99bacd2ed4ec5152a63f"
     },
     {
       "index": 18,
@@ -201,10 +277,14 @@
       "kanji": "",
       "zh": "飯糰",
       "file": "18.webp",
-      "sha256": "c7f1872555cc4eb957da6e88b8a76dcd0a5cf293102f3ec0eac13b562cbacf91",
-      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/18_おにぎり_candidate.webp",
-      "source_sha256": "c7f1872555cc4eb957da6e88b8a76dcd0a5cf293102f3ec0eac13b562cbacf91",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 51002,
+      "sha256": "e919f55fc13f3b0790667ca915cb8151d9824d5c2aab3dfdfba351965dfd007e",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/18.webp",
+      "source_sha256": "e919f55fc13f3b0790667ca915cb8151d9824d5c2aab3dfdfba351965dfd007e",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/18-onigiri.png",
+      "original_source_sha256": "f261afd60207666ef498dd8ddfdf58a721fea538100d3e8dc300c44db1f890ca",
+      "previous_sha256": "c7f1872555cc4eb957da6e88b8a76dcd0a5cf293102f3ec0eac13b562cbacf91"
     },
     {
       "index": 19,
@@ -212,10 +292,14 @@
       "kanji": "味噌汁",
       "zh": "味噌湯",
       "file": "19.webp",
-      "sha256": "5fb19685b9d634f48a3868b6ba108de07b9038f5a288552ce194a60672cb1098",
-      "source": "art/delivery-icons/rain-port/rerender-qwen-v2/19_みそしる_candidate.webp",
-      "source_sha256": "5fb19685b9d634f48a3868b6ba108de07b9038f5a288552ce194a60672cb1098",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 53560,
+      "sha256": "be2a44764d2ee9144e8d3bf59893e06e276b285a4bc1fb864c35dd67491e4dda",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/19.webp",
+      "source_sha256": "be2a44764d2ee9144e8d3bf59893e06e276b285a4bc1fb864c35dd67491e4dda",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/19-miso-soup.png",
+      "original_source_sha256": "e0dea8b45324839ebfd5004ecf0bd293ed887f24710becb33b80bf272672452b",
+      "previous_sha256": "5fb19685b9d634f48a3868b6ba108de07b9038f5a288552ce194a60672cb1098"
     },
     {
       "index": 20,
@@ -223,10 +307,14 @@
       "kanji": "天ぷら",
       "zh": "天婦羅",
       "file": "20.webp",
-      "sha256": "eccc42f839c55ec33cf21188b805c99cf7ae700103ee4f845b9ddfabc4983772",
-      "source": "art/delivery-icons/rain-port/rerender-original-style-v3/20_てんぷら_candidate.webp",
-      "source_sha256": "eccc42f839c55ec33cf21188b805c99cf7ae700103ee4f845b9ddfabc4983772",
-      "art_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+      "bytes": 44146,
+      "sha256": "56422328b791299223d60449b3f2f3ebc4443f0e92b0aaa71bc9157956cf6759",
+      "art_status": "APPROVED_BY_USER",
+      "source": "art/delivery-icons/rain-port/words-20261119/20.webp",
+      "source_sha256": "56422328b791299223d60449b3f2f3ebc4443f0e92b0aaa71bc9157956cf6759",
+      "original_source": "art/delivery-icons/rain-port/words-20261119/sources/20-tempura.png",
+      "original_source_sha256": "c143245750eb23c9ba53cd2c13a6fca786986354f79ebf4b0dcb9a9f8820d915",
+      "previous_sha256": "eccc42f839c55ec33cf21188b805c99cf7ae700103ee4f845b9ddfabc4983772"
     }
   ]
 }

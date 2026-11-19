@@ -24,7 +24,7 @@ test('approved A1 geometry has eight actual stage anchors and 9 transition stops
   for(const stage of OW.STAGE_NODES)assert.equal(CONTENT.getStage(stage.stageId).id,stage.stageId);
 });
 
-test('all eight stages are enterable when unlocked; fresh save only opens night-town',()=>{
+test('Stages 1–4 open in order; fresh save still opens only night-town',()=>{
   global.STORE={
     isStageCompleted:()=>false,
     isStageUnlocked:id=>id==='night-town'
@@ -42,12 +42,16 @@ test('all eight stages are enterable when unlocked; fresh save only opens night-
   };
   try{
     for(const stage of OW.STAGE_NODES){
-      const impl=CONTENT.getStage(stage.stageId)?.implemented===true;
-      assert.equal(OW.isEnterable(stage),impl,stage.id);
-      if(impl){
+      const data=CONTENT.getStage(stage.stageId);
+      const playable=data?.implemented===true && data?.mapReleased===true;
+      assert.equal(OW.isEnterable(stage),playable,stage.id);
+      if(playable){
         assert.equal(OW.confirm(OW.createState(stage.id)).ok,true);
       }
     }
+    assert.equal(OW.isEnterable(OW.STAGE_NODES[2]),true,'Stage3 stays released');
+    assert.equal(OW.isEnterable(OW.STAGE_NODES[3]),true,'Stage4 opens after Stage3 completion');
+    assert.equal(OW.isEnterable(OW.STAGE_NODES[4]),false,'Stage5 stays in the local lab');
   }finally{delete global.STORE;}
 });
 

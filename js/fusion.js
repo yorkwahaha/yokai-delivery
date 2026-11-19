@@ -1,10 +1,15 @@
 (() => {
   "use strict";
 
+  // Only initialize Fusion in the isolated, local development Lab.
+  // Browser gameplay (including other ?dev=1 previews) has no Fusion state,
+  // subscriptions or recipes; Node's pure-module tests remain available.
+  if (typeof document !== "undefined" && !isFusionEnabled()) return;
+
   // ============================================================================
   // FUSION SYSTEM CORE (F0: API/State Machine/Atomic Transaction)
   // ============================================================================
-  // 嚴格僅在 rain-port Normal、dev=1 & (fusioncandidate=1 | fusion=1) 時啟用。
+  // Only the local Fusion Lab enables recipe transactions.
   // 依賴注入 bridge 與 game.js 串接，不依賴不可見的全域變數。
   // ============================================================================
 
@@ -248,21 +253,8 @@
     );
   }
 
-  // Fusion gameplay is shared across normal and dev entries. Unreviewed art remains dev-only.
   function isFusionEnabled() {
-    const search = gameBridge ? (gameBridge.getEnv?.()?.search || "") : ((typeof window !== "undefined" && window.location?.search) || "");
-    let params;
-    try {
-      const searchStr = typeof search === "string" ? (search.startsWith("?") ? search.slice(1) : search) : "";
-      params = new URLSearchParams(searchStr);
-    } catch (_) {
-      return false;
-    }
-    // Fusion is postponed from normal play, including ?dev=1 stage previews.
-    // Only the local, isolated Fusion Lab may exercise the existing recipe code.
-    const local = typeof window !== "undefined" && window.DEV_MODE?.isDevMode?.(window.location) === true;
-    return local && params.get("fusionlab") === "1" && params.get("dev") === "1"
-      && params.get("nofusion") !== "1";
+    return typeof window !== "undefined" && window.DEV_MODE?.isFusionLab?.(window.location) === true;
   }
 
   // 綁定 game.js 橋接器

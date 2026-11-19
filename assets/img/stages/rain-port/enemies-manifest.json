@@ -1,0 +1,168 @@
+{
+  "stage": "rain-port",
+  "runtime_status": "USER_SELECTED_RUNTIME",
+  "slots": {
+    "ghost": {
+      "id": "wet-net-imp",
+      "name": "漁網小妖",
+      "mode": "一般／困難",
+      "height": 55,
+      "sprites": [
+        {
+          "path": "assets/img/enemies/wet-net-imp/wet-net-imp__sprite__idle.webp",
+          "pose": "idle",
+          "canvas": [
+            512,
+            512
+          ],
+          "pivotPx": [
+            256,
+            472
+          ],
+          "sha256": "bd8c251980d31daffb4d2aec27c5e7a6d296b8925e70a60b74cf5681236ca0fa"
+        },
+        {
+          "path": "assets/img/enemies/wet-net-imp/wet-net-imp__sprite__attack.webp",
+          "pose": "attack",
+          "canvas": [
+            512,
+            512
+          ],
+          "pivotPx": [
+            256,
+            472
+          ],
+          "sha256": "168b0a79d2c41d86fb9347e7cab4e17758974cb6dd3b55be9c7a89c1f05e1999"
+        }
+      ]
+    },
+    "runner": {
+      "id": "flying-fish-kid",
+      "name": "飛魚童",
+      "mode": "一般／困難",
+      "height": 61,
+      "sprites": [
+        {
+          "path": "assets/img/enemies/flying-fish-kid/flying-fish-kid__sprite__idle.webp",
+          "pose": "idle",
+          "canvas": [
+            512,
+            512
+          ],
+          "pivotPx": [
+            256,
+            472
+          ],
+          "sha256": "90a6a00b20344c861ab176374b36eb778d06161354effa05b1289c2f6b47d4a6"
+        },
+        {
+          "path": "assets/img/enemies/flying-fish-kid/flying-fish-kid__sprite__run__f01.webp",
+          "pose": "run__f01",
+          "canvas": [
+            512,
+            512
+          ],
+          "pivotPx": [
+            256,
+            472
+          ],
+          "sha256": "d4988f4476e0b3b800f52c7ab2999252d0ed8f9271b0de549ee3d5c93774815e"
+        },
+        {
+          "path": "assets/img/enemies/flying-fish-kid/flying-fish-kid__sprite__run__f02.webp",
+          "pose": "run__f02",
+          "canvas": [
+            512,
+            512
+          ],
+          "pivotPx": [
+            256,
+            472
+          ],
+          "sha256": "bacb9e91a197ab325924c3567c2f689332c35d1ef2b625feb7a5619651af24f3"
+        },
+        {
+          "path": "assets/img/enemies/flying-fish-kid/flying-fish-kid__sprite__attack.webp",
+          "pose": "attack",
+          "canvas": [
+            512,
+            512
+          ],
+          "pivotPx": [
+            256,
+            472
+          ],
+          "sha256": "35f02c9bd25d7a1e1cbee20e6ff8597375e9c099882e3ed8126720b014d24328"
+        }
+      ]
+    },
+    "tank": {
+      "id": "anchor-shell-turtle",
+      "name": "沉錨龜",
+      "mode": "一般／困難",
+      "height": 73,
+      "sprites": [
+        {
+          "path": "assets/img/enemies/anchor-shell-turtle/anchor-shell-turtle__sprite__idle.webp",
+          "pose": "idle",
+          "canvas": [
+            512,
+            512
+          ],
+          "pivotPx": [
+            256,
+            472
+          ],
+          "sha256": "0e4315700a5cb9374b7809ebb19520f7d1e03c6bc96e819ce6c61b34d9c86627"
+        },
+        {
+          "path": "assets/img/enemies/anchor-shell-turtle/anchor-shell-turtle__sprite__attack.webp",
+          "pose": "attack",
+          "canvas": [
+            512,
+            512
+          ],
+          "pivotPx": [
+            256,
+            472
+          ],
+          "sha256": "c530e599f410164573730e8b25ebb814a692b6048775a3fd692acb02f8e7248b"
+        }
+      ]
+    },
+    "shooter": {
+      "id": "tidal-jar-kid",
+      "name": "潮瓶童",
+      "mode": "困難",
+      "height": 62,
+      "sprites": [
+        {
+          "path": "assets/img/enemies/tidal-jar-kid/tidal-jar-kid__sprite__idle.webp",
+          "pose": "idle",
+          "canvas": [
+            512,
+            512
+          ],
+          "pivotPx": [
+            256,
+            472
+          ],
+          "sha256": "83037174ed2bc6b10fc989bed521207438f5535d1ec2ace2cfd5e8e7736b582c"
+        },
+        {
+          "path": "assets/img/enemies/tidal-jar-kid/tidal-jar-kid__sprite__attack.webp",
+          "pose": "attack",
+          "canvas": [
+            512,
+            512
+          ],
+          "pivotPx": [
+            256,
+            472
+          ],
+          "sha256": "f25b1667c6af8bc51f93289007478faf2dd2d5ea69313b92120d6b0fb9665562"
+        }
+      ]
+    }
+  }
+}

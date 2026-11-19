@@ -13,9 +13,10 @@ const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 require('../js/delivery-lexicon.js');
 const words=globalThis.DELIVERY_LEXICON.stages.find(s=>s.id==='sakura-pass').words;
 const STAGE='sakura-pass', STATUS='IN_GAME_TRIAL_PENDING_USER_REVIEW';
+const archivedImageManifest='art/delivery-icons/sakura-pass/words-20261119/previous-manifest.json';
 
-test('SAKURA trial: every transparent WebP and Fish A MP3 matches the same lexicon index and checksum',()=>{
-  const images=read('assets/img/delivery/sakura-pass/manifest.json');
+test('SAKURA trial: the archived original images and current Fish A MP3 match the lexicon and checksums',()=>{
+  const images=read(archivedImageManifest);
   const audio=read('assets/audio/delivery/sakura-pass/manifest.json');
   const source=read('art/audio/fish-sakura-pass/new-six-20261116/manifest.json');
   const previousImages=read('art/delivery-icons/sakura-pass/archive/pre-final-20261116/manifest.json');
@@ -25,7 +26,7 @@ test('SAKURA trial: every transparent WebP and Fish A MP3 matches the same lexic
   const previousImageByWord=new Map(previousImages.items.map(x=>[x.jp,x]));
   const previousAudioByWord=new Map(previousAudio.items.map(x=>[x.jp,x]));
   assert.equal(words.length,20);
-  assert.equal(images.status,STATUS);assert.equal(audio.status,STATUS);
+  assert.equal(images.status,'APPROVED_BY_USER');assert.equal(audio.status,STATUS);
   assert.equal(images.count,20);assert.equal(audio.count,20);
   assert.equal(images.items.length,20);assert.equal(audio.items.length,20);
   assert.equal(audio.voice_id,'97eda32449cf443bbc4b8782853ca554');
@@ -44,8 +45,8 @@ test('SAKURA trial: every transparent WebP and Fish A MP3 matches the same lexic
     assert.equal(pic.index,i+1);assert.equal(voice.index,i+1);
     assert.equal(pic.jp,w.jp);assert.equal(voice.jp,w.jp);
     assert.equal(pic.file,number+'.webp');assert.equal(voice.file,number+'.mp3');
-    assert.equal(pic.art_status,STATUS);assert.equal(voice.review_status,STATUS);
-    assert.equal(pic.sha256,sha(bytes('assets/img/delivery/sakura-pass/'+pic.file)));
+    assert.equal(pic.art_status,'APPROVED_BY_USER');assert.equal(voice.review_status,STATUS);
+    assert.equal(pic.sha256,sha(bytes(pic.source)));
     assert.equal(voice.sha256,sha(bytes('assets/audio/delivery/sakura-pass/'+voice.file)));
     assert.equal(pic.source_sha256,sha(bytes(pic.source)));
     assert.equal(voice.source_sha256,sha(bytes(voice.source)));
@@ -78,13 +79,15 @@ test('SAKURA trial: every transparent WebP and Fish A MP3 matches the same lexic
     assert.ok(clip.subarray(0,3).toString()==='ID3'||(clip[0]===255&&(clip[1]&224)===224));
   }
 });
-test('SAKURA trial: tree and ant transparency removes parchment and stray halo',()=>{
+test('SAKURA trial archive: tree and ant alpha repairs remain verifiable',()=>{
   const py=[
     'from PIL import Image',
     'from pathlib import Path',
+    'import json',
     'import numpy as np',
+    `files=json.loads(Path(${JSON.stringify(archivedImageManifest)}).read_text(encoding="utf-8"))["items"]`,
     'for number in (7,17):',
-    ' f=Path("assets/img/delivery/sakura-pass")/f"{number:02}.webp"',
+    ' f=Path(files[number-1]["source"])',
     ' img=Image.open(f).convert("RGBA")',
     ' a=np.array(img.getchannel("A"))',
     ' assert img.size==(256,256) and a[0,0]==0 and a[255,255]==0',
@@ -110,7 +113,7 @@ test('SAKURA trial: all icons are centered 256px alpha WebP, and preview has 20 
   // Service Worker may keep an old mapping by pathname across lexicon revisions.
   const pictures=[...page.matchAll(/<img src="([^"]+)" /g)].map(x=>x[1]);
   const sounds=[...page.matchAll(/data-src="([^"]+)"/g)].map(x=>x[1]);
-  const imgManifest=read('assets/img/delivery/sakura-pass/manifest.json');
+  const imgManifest=read(archivedImageManifest);
   const audioManifest=read('assets/audio/delivery/sakura-pass/manifest.json');
   assert.equal(pictures.length,20);
   assert.equal(sounds.length,20);
@@ -141,8 +144,8 @@ test('SAKURA trial: router selects stage 3 A recording without disturbing earlie
       assert.equal(r.pathForWord('audio',lex.words[i].jp),`assets/audio/delivery/${stage}/${num}.mp3`);
     }
   }
-  assert.equal(r.isApproved('image',STAGE),false);
-  assert.equal(r.isTrial('image',STAGE),true);
+  assert.equal(r.isApproved('image',STAGE),true);
+  assert.equal(r.isTrial('image',STAGE),false);
   assert.equal(r.isTrial('audio',STAGE),true);
   assert.equal(r.pathForWord('image','はな'),'assets/img/delivery/sakura-pass/02.webp');
 });

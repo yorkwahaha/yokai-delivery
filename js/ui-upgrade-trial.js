@@ -65,22 +65,30 @@
   const approvedSharedCards=new Set([...approvedActive,...passiveCards,...mutationCards]);
   const sharedCards=approvedSharedCards;
   const framePath="assets/img/ui/menu/ui__upgrade-card-frame.png";
-  const centerPath=id=>{
+  const trialCenters={ink_trail:"incense",seal_nail:"ritual"};
+  const centerPath=(id,refreshed=true)=>{
     const slug=String(id).replace(/_/g,"-");
-    return "assets/img/skills/"+slug+"/cards/"+slug+"__art.webp";
+    const variant=refreshed&&Object.hasOwn(trialCenters,id)?"__"+trialCenters[id]:"";
+    return "assets/img/skills/"+slug+"/cards/"+slug+"__art"+variant+".webp";
   };
   const artworkBox={x:102,y:65,w:820,h:1230,clipX:112,clipY:216,clipW:802,clipH:868};
   const titlePoint={x:512,y:1158},classPoint={x:512,y:1341};
   const skillClasses={katana:"斬擊",fire:"火焰",needle:"穿刺",barrier:"陣法",boom:"符咒",thunder:"雷擊",
-    ink_trail:"粉紫毒霧",seal_nail:"離位爆破"};
+    ink_trail:"粉紫毒霧",seal_nail:"離位爆破",shikigami:"召喚夥伴"};
   window.__YOKAI_UPGRADE_PHASE42={framePath,centerPath,artworkBox,titlePoint,classPoint,
     sharedCardIds:[...approvedSharedCards]};
   UI.upgradeTrialEnabled=()=>true;
-  const image=(src)=>{
+  const image=(src,fallback)=>{
     if(!src || typeof window.Image!=="function")return null;
     if(!(src in cache)){
       cache[src]=null;const im=new window.Image();im.decoding="async";
-      im.onload=()=>{cache[src]=im;};im.onerror=()=>{cache[src]=null;};im.src=src;
+      im.onload=()=>{cache[src]=im;};
+      im.onerror=()=>{
+        if(!fallback || fallback===src)return;
+        im.onerror=null;
+        im.src=fallback;
+      };
+      im.src=src;
     }
     return cache[src]?.naturalWidth ? cache[src] : null;
   };
@@ -227,11 +235,10 @@
   function drawChoice(ctx,c,r,focused,num,time=0){
     ctx.save();ctx.shadowColor=focused?"#f6bd58":"rgba(0,0,0,.65)";
     ctx.shadowBlur=focused?22:7;
-    const shared=sharedCards.has(c.id);
+    const companion=c.id==="shikigami";
+    const shared=sharedCards.has(c.id)||companion;
     const frame=shared?image(framePath):null;
-    const center=shared?image(centerPath(c.id)):null;
-    const fullSrc=null;
-    const full=shared?null:image(fullSrc);
+    const center=shared?(c.artPath?image(c.artPath):image(centerPath(c.id),centerPath(c.id,false))):null;
     const cardClass=skillClasses[c.id] ||
       (passiveCards.has(c.id)?"被動":mutationCards.has(c.id)?"變異":"修行");
     if(c.type==="coins"){
@@ -255,7 +262,12 @@
       ctx.beginPath();
       ctx.rect(r.x+a.clipX*sx,r.y+a.clipY*sy,a.clipW*sx,a.clipH*sy);
       ctx.clip();
-      ctx.drawImage(center,r.x+a.x*sx,r.y+a.y*sy,a.w*sx,a.h*sy);
+      if (companion) {
+        const bw = a.w * sx, bh = a.h * sy;
+        const scale = Math.min(bw / center.naturalWidth, bh / center.naturalHeight);
+        const w = center.naturalWidth * scale, h = center.naturalHeight * scale;
+        ctx.drawImage(center, r.x + a.x * sx + (bw - w) / 2, r.y + a.y * sy + (bh - h) / 2, w, h);
+      } else ctx.drawImage(center,r.x+a.x*sx,r.y+a.y*sy,a.w*sx,a.h*sy);
       ctx.restore();
       ctx.drawImage(frame,r.x,r.y,r.w,r.h);
       ctx.shadowBlur=0;
@@ -264,24 +276,12 @@
       write(ctx,cardClass,r.x+classPoint.x*sx,r.y+classPoint.y*sy,r.w*.42,16,
         "center",palette.light);
     }
-    else if(full) {
-      ctx.drawImage(full,r.x,r.y,r.w,r.h);
-      // Full preview card images contain blank name and class plaques.
-      // Draw dynamic text on top; the approved thunder v2 art has taller scenery.
-      const thunderV2=c.id==="thunder" && window.__YOKAI_UPGRADE_THUNDER_V2===true;
-      ctx.shadowBlur=0;
-      writeCardTitle(ctx,c.n||"",r.x+r.w/2,r.y+r.h*(thunderV2?.757:.806),
-        r.w*.77,mutationCards.has(c.id));
-      const skillClass=({katana:"斬擊",fire:"火焰",needle:"穿刺",barrier:"陣法",boom:"符咒",thunder:"雷擊"})[c.id]
-        || ({weapon:"主動",passive:"被動",mutation:"變異",charm:"御守"})[c.type] || "修行";
-      write(ctx,skillClass,r.x+r.w/2,r.y+r.h*(thunderV2?.882:.933),r.w*.56,16,"center",palette.light);
-    }
     else if(shared){
       // A missing shipped asset is a build error, not a ZIP import prompt.
       paint(ctx,r.x,r.y,r.w,r.h,"#192236",10);
       if(frame)ctx.drawImage(frame,r.x,r.y,r.w,r.h);
       ctx.shadowBlur=0;
-      write(ctx,"卡片素材載入中",r.x+r.w/2,r.y+r.h*.4,r.w-12,14);
+      if(!companion)write(ctx,"卡片素材載入中",r.x+r.w/2,r.y+r.h*.4,r.w-12,14);
       writeCardTitle(ctx,c.n||"",r.x+r.w/2,r.y+r.h*(1158/1536),r.w*.66,
         mutationCards.has(c.id));
       write(ctx,cardClass,r.x+r.w/2,r.y+r.h*(1341/1536),r.w*.42,16);

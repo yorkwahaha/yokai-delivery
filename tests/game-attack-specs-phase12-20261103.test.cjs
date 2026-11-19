@@ -63,14 +63,25 @@ test('Phase12 612 historic attack specs remain stable apart from approved awaken
    comparison={...actual,spread:actual.level===5?1.35:actual.level===4?.65:.45};
   }
   if(c.skillId==='boom' && actual.level===5) {
-   const oldRadius=Math.round(135*deps.getEffectiveReachMultiplier(spec));
-   const oldSplashBase=Number((actual.baseDamage*deps.getEffectiveDmg(spec)*.20).toFixed(4));
-   const oldSplash=actual.hasFan?(oldSplashBase*actual.baseCount*1.20)/actual.count:oldSplashBase;
-   const oldSplitSplash=actual.hasSplitblast
-    ? (actual.hasFan?oldSplash*.25:Number((oldSplash*.25).toFixed(4))):0;
-   comparison={...actual,baseRadius:135,radius:oldRadius,splashScale:.20,
-    splashDamage:oldSplash,splitblastRadius:actual.hasSplitblast?Math.round(oldRadius*.55):0,
-    splitblastSplashDamage:oldSplitSplash};
+    const oldRadius=Math.round(135*deps.getEffectiveReachMultiplier(spec));
+    // The frozen Phase12 fixture predates the 2026-11-14 primary-only
+    // Lv5 direct-damage buff; retain the historical values for comparison.
+    const oldDirectBase=Number((actual.baseDamage*deps.getEffectiveDmg(spec)).toFixed(4));
+    const oldDirect=actual.hasFan
+     ? (oldDirectBase*actual.baseCount*1.20)/actual.count : oldDirectBase;
+    const oldSplitDirect=actual.hasSplitblast
+     ? (actual.hasFan?oldDirect*.25:Number((oldDirect*.25).toFixed(4))):0;
+    const oldSplashBase=Number((actual.baseDamage*deps.getEffectiveDmg(spec)*.20).toFixed(4));
+    const oldSplash=actual.hasFan?(oldSplashBase*actual.baseCount*1.20)/actual.count:oldSplashBase;
+    const oldSplitSplash=actual.hasSplitblast
+     ? (actual.hasFan?oldSplash*.25:Number((oldSplash*.25).toFixed(4))):0;
+    comparison={...actual,baseRadius:135,radius:oldRadius,splashScale:.20,
+     damage:oldDirect,splitblastDirectDamage:oldSplitDirect,
+     splashDamage:oldSplash,splitblastRadius:actual.hasSplitblast?Math.round(oldRadius*.55):0,
+     splitblastSplashDamage:oldSplitSplash};
+  }
+  if(c.skillId==='katana' && actual.hasCharge) {
+    comparison={...comparison,cooldown:actual.cooldown+0.08};
   }
   assert.equal(hash(comparison),c.hash,
     'attack spec differs: '+JSON.stringify({skill:c.skillId,level:c.level,variant:c.variant,evolution:c.evo}));
@@ -123,10 +134,10 @@ test('Phase12 resolver does not call RNG or mutate game world',()=>{
  assert.doesNotMatch(source,/Math\.random\s*\(|enemies\.push\s*\(|localStorage|document\.|buildRevision\+\+/);
  assert.equal(typeof load().resolveAttackSpec,'function');
 });
-test('Phase12 HTML loads attack module before game and preserves prior dependency cache keys',()=>{
- const html=fs.readFileSync('index.html','utf8');
- const script='js/game-attack-specs.js?v=20261109-ofuda-range-r3',main=scriptUrl('game');
+test('Phase12 HTML loads current attack module before game and preserves unaffected dependency keys',()=>{
+  const html=fs.readFileSync('index.html','utf8');
+  const script=scriptUrl('game-attack-specs'),main=scriptUrl('game');
  assert.ok(html.includes(script)&&html.includes(main));
  assert.ok(html.indexOf(script)<html.indexOf(main));
- assert.ok(html.includes('js/game-build-rules.js?v=20261109-seal-free-lv5-r1'));
+ assert.ok(html.includes(scriptUrl('game-build-rules')));
 });

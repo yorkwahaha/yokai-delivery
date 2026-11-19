@@ -53,6 +53,12 @@
   let eventSequence = 0;
   let journalSignatures = new Map();
   let journalNeedsRefresh = false;
+  // Immutable/unchanged segments are expensive to JSON.parse repeatedly when
+  // a single active tab writes one more answer. Cache their decoded rows.
+  // This reduces replay parsing without rewriting old storage or changing the
+  // cross-tab ordering contract.
+  let decodedJournalSegments = new Map();
+  const DECODED_SEGMENT_CACHE_CAP = 24; // At most 6144 cached event rows on iPad.
   // Compact tuple format reduces localStorage usage without discarding
   // the event order required by recall/box calculations. Legacy object
   // journals remain readable.
@@ -180,39 +186,72 @@
   const syncJournal = () => {
     if (!journalSupported) return;
     const signatures = new Map();
+    let changed = journalNeedsRefresh;
     try {
+      // A future opt-in checkpoint/compaction can advance the migration base.
+      // Existing open tabs must observe that BEFORE replaying remaining keys;
+      // otherwise they could temporarily drop every folded answer.
+      const currentBase = storage.getItem(JOURNAL_BASE);
+      if (currentBase !== null && currentBase !== baselineText) {
+        let parsed;
+        try { parsed = JSON.parse(currentBase); } catch {}
+        if (isRecord(parsed) && isRecord(parsed.m)) {
+          baselineText = currentBase;
+          initialState = JSON.stringify(decodeBaseline(currentBase));
+          journalNeedsRefresh = changed = true;
+        }
+      }
       for (let i = 0; i < storage.length; i++) {
         const key = storage.key(i);
         if (!key?.startsWith(JOURNAL_PREFIX)) continue;
-        signatures.set(key, storage.getItem(key));
+        const value = storage.getItem(key);
+        signatures.set(key, value);
+        if (journalSignatures.get(key) !== value) changed = true;
+      }
+      if (storage.getItem(JOURNAL_BASE) !== currentBase) {
+        journalNeedsRefresh = true;
+        return;
       }
     } catch { return; }
-    const changed = journalNeedsRefresh || signatures.size !== journalSignatures.size
-      || [...signatures].some(([key, value]) => journalSignatures.get(key) !== value);
     // Hot read path (overworld nodes call this often): do not parse or replay
     // any journal when the strings and this tab's pending events are unchanged.
-    if (!changed) return;
+    if (!changed && signatures.size === journalSignatures.size) return;
     const all = [];
+    let persistedCount = 0;
+    const nextDecoded = new Map();
+    const keepSegment = (key, segment) => {
+      for (const event of segment.events) all.push(event);
+      if (key === journalKey) persistedCount = segment.rows;
+      nextDecoded.set(key, segment);
+      if (nextDecoded.size > DECODED_SEGMENT_CACHE_CAP)
+        nextDecoded.delete(nextDecoded.keys().next().value);
+    };
     for (const [key, value] of signatures) {
+      const cached = decodedJournalSegments.get(key);
+      if (cached?.raw === value) {
+        keepSegment(key, cached);
+        continue;
+      }
       try {
         const events = JSON.parse(value);
         if (!Array.isArray(events)) continue;
+        const decoded = [];
         for (const item of events) {
           const event = decodeEvent(item, key);
-          if (event) all.push(event);
+          if (event) decoded.push(event);
         }
+        keepSegment(key, { raw: value, events: decoded, rows: events.length });
       } catch {
         // One damaged segment must not block progress from other tabs.
         // Preserve its key and raw value for later diagnostics/recovery.
         continue;
       }
     }
+    decodedJournalSegments = nextDecoded;
     journalSignatures = signatures;
     journalNeedsRefresh = false;
     // A pending debounced answer is still part of this tab's state.
-    let persistedCount = 0;
-    try { persistedCount = JSON.parse(signatures.get(journalKey) || "[]").length; } catch {}
-    all.push(...ownEvents.slice(persistedCount));
+    for (let i = persistedCount; i < ownEvents.length; i++) all.push(ownEvents[i]);
     all.sort((a, b) => (count(a.at) - count(b.at))
       || String(a.tab || "").localeCompare(String(b.tab || ""))
       || count(a.seq) - count(b.seq));
@@ -244,18 +283,20 @@
       if (journalSupported) {
         // The projection must never be written before its immutable migration base.
         ensureJournalBase();
-        if (ownEvents.length) {
-          const payload = JSON.stringify(ownEvents.map(encodeEvent));
+        while (ownEvents.length) {
+          const count = Math.min(ownEvents.length, JOURNAL_SEGMENT_MAX);
+          const payload = JSON.stringify(ownEvents.slice(0, count).map(encodeEvent));
           storage.setItem(journalKey, payload);
           journalSignatures.set(journalKey, payload);
+          if (count < JOURNAL_SEGMENT_MAX) break;
+          // Rotate only after the full segment reached storage. If a later
+          // write fails, the remaining events still belong to the next key.
+          ownEvents.splice(0, count);
+          journalKey = JOURNAL_PREFIX + tabId + ":" + (++journalSegment);
         }
         // Refresh the readable v1 snapshot from all committed journals, not
         // from this tab's potentially older in-memory snapshot.
         syncJournal();
-        if (ownEvents.length >= JOURNAL_SEGMENT_MAX) {
-          journalKey = JOURNAL_PREFIX + tabId + ":" + (++journalSegment);
-          ownEvents.length = 0;
-        }
       }
       storage.setItem(K, JSON.stringify(d));
       saveFailed = false;
@@ -279,7 +320,7 @@
   if (lifecycleFlush) {
     root.addEventListener("pagehide", flush);
     root.addEventListener("storage", event => {
-      if (event.key?.startsWith(JOURNAL_PREFIX)) syncJournal();
+      if (event.key === JOURNAL_BASE || event.key?.startsWith(JOURNAL_PREFIX)) syncJournal();
     });
     document.addEventListener("visibilitychange", () => { if (document.hidden) flush(); });
   }
@@ -298,9 +339,11 @@
 
   const isStageUnlocked = stageId => { syncJournal(); return stageId === "night-town" || d.progress.unlocked[stageId] === true; };
   const isStageCompleted = stageId => { syncJournal(); return d.progress.completed[stageId] === true; };
+  const skillClearStage = Object.freeze({ ink_trail: "night-town", seal_nail: "rain-port", shikigami: "sakura-pass" });
   function isActiveSkillUnlocked(skillId) {
-    const stageId = ({ink_trail:"night-town",seal_nail:"rain-port"})[skillId];
-    if (!stageId) return false;
+    if (!Object.hasOwn(skillClearStage, skillId)) return false;
+    if (skillId === "shikigami" && !root.DEV_MODE?.isShikigamiEnabled?.(root.location)) return false;
+    const stageId = skillClearStage[skillId];
     // Explicit ephemeral Stage3 DEV preview; never alters official clears or
     // grants a persistent entitlement merely by selecting a stage.
     if(skillId==="seal_nail" && root.DEV_MODE?.isDevMode?.(root.location) &&
@@ -325,20 +368,23 @@
     return experiencedInMemory[id] === true || experiencedSkills()[id] === true;
   }
   function markSkillExperienced(id) {
-    if (id !== "ink_trail" && id !== "seal_nail") return false;
+    if (!Object.hasOwn(skillClearStage, id) ||
+        (id === "shikigami" && !isActiveSkillUnlocked(id))) return false;
     experiencedInMemory[id] = true;
     try { storage?.setItem(INTRO_KEY, JSON.stringify({...experiencedSkills(), [id]:true})); } catch {}
     return true;
   }
+  const pendingIntroductions = () => Object.keys(skillClearStage)
+    .filter(id => isActiveSkillUnlocked(id) && !hasExperiencedSkill(id));
   function pendingSkillIntroduction() {
     // Backward-compatible: older clears grant eligibility without replay.
     // First offer is stage-ordered; declined offers rotate to the end.
-    const pending=["ink_trail","seal_nail"].filter(id=>isActiveSkillUnlocked(id)&&!hasExperiencedSkill(id));
+    const pending=pendingIntroductions();
     const preferred=nextIntroductionInMemory||experiencedSkills().nextIntroduction;
     return pending.includes(preferred)?preferred:(pending[0]||null);
   }
   function rotateSkillIntroduction(id) {
-    const pending=["ink_trail","seal_nail"].filter(k=>isActiveSkillUnlocked(k)&&!hasExperiencedSkill(k));
+    const pending=pendingIntroductions();
     if(!pending.includes(id))return false;
     const next=pending.find(k=>k!==id)||id;
     nextIntroductionInMemory=next;

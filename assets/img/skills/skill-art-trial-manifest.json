@@ -1,0 +1,271 @@
+{
+  "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+  "enabledOn": [
+    "public classroom playtest",
+    "loopback"
+  ],
+  "tool": "ChatGPT ImageGen",
+  "sources": {
+    "needle": {
+      "path": "art/skills/20261120-card-and-effect-refresh/senbon-card.png",
+      "sha256": "718943862d1dc296fc4439bf6eadbd588a4e99cde800e4ee52bf5916320d10e1",
+      "prompt": "Generate a brand-new full-bleed vertical 2:3 illustration (no UI or labels) for the base skill 天狐靈針 of an original Japanese yokai action game. Match the high-quality illustrated Japanese woodblock-meets-ink-watercolor card family shown in context: bold tapered warm ink, carved contours, washi grain, gold accents, layered indigo moonlit mountains. A luminous fox-spirit silhouette formed by pale wind in the distant upper background, launching FIVE very slender gleaming steel senbon needles in parallel forward flight from upper right to lower left, with small vermilion thread knots and short subtly staggered ice-blue painted speed trails. Make the foremost needle long and needle-thin, entirely visible and decisively readable at 100 px card width. Needles are tapered polished steel pins NOT ornate daggers, swords, jewelry, keys, arrows or oversized rings. Small golden moon and shrine ridge in low contrast in the far background, no repeated moon-dominant composition. Sharp blue-white accents on deep night blue, antique gold and restrained vermilion. Dynamic diagonal from top-right to bottom-left with central focus within middle 65% area and clean margin for the UI crop. Full color high detail, clean composition, no characters or readable text, no lettering, no border."
+    },
+    "violetCard": {
+      "path": "art/skills/20261120-card-and-effect-refresh/wisteria-card.png",
+      "sha256": "0acb38080a26f6f81e3ac6deccce6d22769ce108359cb4000df906a629353c75",
+      "prompt": "Generate a new full-bleed vertical 2:3 base skill card illustration for 紫藤毒香, an original Japanese yokai action game. Use the current vivid wisteria mutation illustration in context as a style reference only: artisan ukiyo-e hybrid ink and pigment, hand-cut edges, delicate washi grain, rich nocturnal indigo and lilac with restrained antique gold. Strong different composition centered on ONE graceful trail of translucent lavender incense like a braided silk ribbon at ankle height, curling from foreground into a Japanese mountain trail under visibly dangling clusters of real wisteria (long tapering racemes of small pea-like violet flowers, not a cherry tree). Several individual wisteria petals float inside the ribbon's speckled dry-brush edges. A small lantern-bearing fox-eared traveler seen from back in distant silhouette high center for scale, the trail behind them is the unmistakable hero. Roughly 3/4 overhead view into the path with subtle few stepping stones and warm lantern glow, moon hidden behind violet mountains. Strong graphical value separation, luminous pale-pink lilac ribbon on deep blue-violet, still rich in darks. No battle or boss, no confusion spiral, no fake UI, no words, no icon frame, no giant trunk, no plain gray smoke. Should read clearly cropped to a small vertical upgrade card."
+    },
+    "violetFx": {
+      "path": "art/skills/20261120-card-and-effect-refresh/wisteria-atlas.png",
+      "sha256": "b49f3519ad11c8e0e457a87ff50ab7e921ed22d690efc053125c3ff0f8154464",
+      "prompt": "Make ONE square transparent PNG SPRITE ATLAS with EXACTLY FOUR isolated and centered sprites arranged on a precise equal 2×2 grid with no boxes and at least 12% empty alpha margin inside every cell. Style Japanese game ink-and-watercolor VFX, layered lavender and plum ink, bright pale orchid threads, finely edged decorative dry brush accents, translucent wisps, no dark backdrop. Each asset distinct. TOP LEFT: low grounded wide wisteria incense eddy oriented horizontally with a tapered lead on the left and two rippling wisps to the right, beautiful curving airy ribbons of semi-transparent lilac vapor with 4 drifting wisteria petals, visible open channels of clear transparency, elongated footprint about 2.25 times as wide as tall, viewed from directly above. TOP RIGHT: alternate horizontal ankle-high incense eddy, reversing the curve with the thicker section leftward and the loose ends on the right, same aspect/scale, 4 wisteria petals, open broken brush edges, transparent gaps. BOTTOM LEFT: small upright poison status, one sparse tall lavender vapor strand threaded around a few rising petals, three-quarter view, translucent, narrow profile, no head, no ground. BOTTOM RIGHT: isolated small tilted confusion status made of TWO pale violet spiral incense curls with three flecks of gold like rising wisteria petals, no head, no ground. Important: all four sprites rendered at their own cell centers, whole sprites fully contained; never let any piece cross quadrant boundaries. No fog covering the cell, no gray blobs, no puddle, no solid background color or simulated transparency, no letters, no guide marks. This atlas will be sliced and used in-game as individual raster sprites."
+    },
+    "nailFx": {
+      "path": "art/skills/20261120-card-and-effect-refresh/seal-nail-atlas.png",
+      "sha256": "aacd67a1f613e93b524dea149872a7d6c90fe215cdc9e2bfba86e9a72e674853",
+      "prompt": "Make a square transparent PNG 2×2 SPRITE ATLAS for a Japanese yokai game's warding nail mine. EXACTLY four isolated sprites arranged in four equal cells, fully contained within each cell with at least 12% transparent margins, no grid lines. Painterly Japanese ukiyo-e/sumi-e with warm sepia inks, washi paper ragged edges, cinnabar sealing wax and restrained golden sparks. TOP LEFT (armed trap): a SINGLE SHORT, THICK square-headed black iron ritual nail driven into center of a compact pair of ivory ofuda strips with cinnabar abstract stamp fragments and a little red cord; 3/4 gameplay angle, a compact tight amber ink halo of small fractured brush strokes at the base. Readable at 45 pixels. TOP RIGHT (ground burst): one circular radially balanced explosive punch looking directly top-down, edged in a scalloped broken sumi-e brush ring of gold and vermilion; layered paper talisman fragments flung in four directions, sharp small white-gold accents, largely transparent inner gaps so game ground remains visible. BOTTOM LEFT (break overlay): compact asymmetric spray of ripped ivory and cinnabar stamped ofuda paper fragments, tiny black metal fragments and gold flecks, outward from center, no ring no opaque center. BOTTOM RIGHT: keep fully empty transparent. These must be polished isolated gameplay effects with true alpha, not scenes with floors or shadows, no explosions of gray smoke, no characters, no readable glyphs, no text, no background. Ink outline plus pigmented edge gradients, nice silhouette at tiny native scale."
+    },
+    "sealCard": {
+      "path": "art/skills/20261120-card-and-effect-refresh/seal-nail-card.png",
+      "sha256": "06c1ea37f53d20cf9809f447b2802a0b6154d452eb2d3ca3dfa2977082caebc4",
+      "prompt": "Create a new full-bleed vertical 2:3 upgrade-card illustration for an original Japanese yokai adventure game, the skill named Distance Seal Nail. Japanese ukiyo-e meets pigment ink illustration, visible rich carved lines, washi fibers, textured cinnabar, antique gold, cream, and dark aubergine ink. The center of the image is a single stout square-headed dark iron ritual nail nailed into dark stone through two aged ivory shrine talismans, with a red cord around the nail and an unmistakable silhouette. Show it in dramatic three-quarter close-up, firmly planted and large within the central 65% of the picture (in-game UI crops top and bottom). From that exact spot, a thin brilliantly gilded irregular crack runs back toward a second erupting ward blooming in the background, flinging fine torn paper and golden sparks. Layered vermilion sealing brushwork (abstract stamp, no actual text), dusk shrine stone and deep subdued purple on outer edges. Brush linework, sophisticated matching painterly card art, readable at 110 pixels wide. No pasted foreground icon, floating cards, people, digital neon symbols, frame, text, or labels. The iron nail is the only foreground focal object."
+    },
+    "sealAwake": {
+      "path": "art/skills/20261120-card-and-effect-refresh/seal-nail-awakening-atlas.png",
+      "sha256": "4cb12bbd59830becf04ac5a2ea7cb27f247e60e1e0039836e86578ccb1b17aed",
+      "prompt": "Square transparent ability VFX sprite sheet, EXACTLY four independent isolated raster textures in a 2x2 grid, one per quadrant fully contained, wide transparent outer margins and clean central gutters. Same game style: polished Japanese sumi-e with cut tapered ink linework, vermilion pigment, antique gold dust and washi paper flakes. TOP LEFT: the armed mine's elegantly irregular thin open round golden ward ring seen from overhead, segmented gold brush border with four small cinnabar paper-seal tips, over 85% of the inside fully transparent, visual center exactly the ring center; it is NOT a ground tile and has no floor. TOP RIGHT: powerful round awakened ground explosion seen straight top down, concentric broken layers of ivory-hot and cinnabar ink brush rays folding around a transparent center, gold paper fragments, radial and shattering, centered, circular. BOTTOM LEFT: awakened VERTICAL tall explosive pillar seen from the side 3/4, narrow and upward tapering crimson/gold brush flame, bolts of ivory paper and tiny dark splinters swept off upward, slim jagged silhouette, visually open transparent channels, broad little burst base at bottom center, no slab underneath; to be pinned to ground. BOTTOM RIGHT: distinct floating tiny golden sparks and 7 torn vermilion/ivory talisman fragments radiating out from a center, scattered circular shape, transparent center, no outlines outside content. Each cell centered within its quarter, entire artwork inside it with generous transparent gutters. No gutter lines, no grid lines, no written text, no color key, no faux checkerboard and no baked background, real alpha."
+    },
+    "violetAwake": {
+      "path": "art/skills/20261120-card-and-effect-refresh/violet-scent-awakening-atlas.png",
+      "sha256": "4934de5fa71171f5848f06187c091e2cc95e66edd962d4760bb3cfa6ae2030f1",
+      "prompt": "Produce a square true-alpha PNG atlas of isolated VFX textures for the awakened wisteria poison of a hand-painted Japanese ink-and-watercolor action game. Four evenly spaced sprites in 2x2 equal quadrants, all artwork separated by wide transparent gutters and individual 12% safety margin. TOP LEFT: wide wisteria vapor ribbon (about 2.5 times as wide as high), seen top down; strong luminous violet edges, lilac open vapor filaments on translucent dark violet ink with clear transparent gaps, exactly two tiny unmistakable lavender butterfly silhouettes and a few wisteria petals drifting along its edge. It is a low long weaving ribbon tapering to the left. TOP RIGHT: similarly elongated alternate top-down with graceful double bend, slightly different height and details, pastel violet-magenta as highlights and light blue-lavender in some delicate thin ink contours, two tiny lavender butterflies, wisteria petals, taper to the left. BOTTOM LEFT: compact upright immediate confusion signal for enemy status, two luminous clearly recognizable lavender butterflies orbiting an airy double incense curl with 3 gold motes, open center and strong readable wing silhouettes, precious violet pigment and a little cold white highlight, isolated for floating above a head. BOTTOM RIGHT: empty transparent. Every asset fully contained within its respective quadrant. No haze outside the brush edges, no environment, no circles drawn on ground, no text, no frame, no UI, no solid background. Use subtle washi and layered open dry ink brushwork, crisp small scale silhouette, meaningful individual gaps and completely transparent gutters."
+    }
+  },
+  "assets": [
+    {
+      "path": "assets/img/skills/needle/cards/needle__art__moonlit.webp",
+      "source": "needle",
+      "size": [
+        820,
+        1230
+      ],
+      "sha256": "a693e0663abb92b8a581eb43dc569f67f679336699759d8b092920b6ded9db14",
+      "active": false
+    },
+    {
+      "path": "assets/img/skills/ink-trail/cards/ink-trail__art__incense.webp",
+      "source": "violetCard",
+      "size": [
+        820,
+        1230
+      ],
+      "sha256": "f47a5fcac423629793b0e69a550bc6c80563e597309d5b48f3b803b29244edf7"
+    },
+    {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__incense__f01.webp",
+      "source": "violetFx",
+      "size": [
+        448,
+        176
+      ],
+      "sha256": "657ce829961941cc1b5fbeff24e29f89f75539f55bc8f56b76cf22249559655e",
+      "atlasCell": [
+        0,
+        0
+      ]
+    },
+    {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__incense__f02.webp",
+      "source": "violetFx",
+      "size": [
+        448,
+        176
+      ],
+      "sha256": "69f055338d5b1080301848679ccb55c2c8a0598ddf47c3878da4ac4b5b55dbd9",
+      "atlasCell": [
+        1,
+        0
+      ]
+    },
+    {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__wisp.webp",
+      "source": "violetFx",
+      "size": [
+        112,
+        256
+      ],
+      "sha256": "39f2a8ab1afd2d3848b1defcec2188b90a033464ff609a0ff94018fa7a7fb969",
+      "atlasCell": [
+        0,
+        1
+      ]
+    },
+    {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__spirals.webp",
+      "source": "violetFx",
+      "size": [
+        192,
+        224
+      ],
+      "sha256": "fd11a80492a73a7e2170e11cbfdb6736efc748ab445b9f35ad0116ae66228c05",
+      "atlasCell": [
+        1,
+        1
+      ]
+    },
+    {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__ofuda.webp",
+      "source": "nailFx",
+      "size": [
+        256,
+        216
+      ],
+      "sha256": "cd5053ec97d0ccc167281ea849065345c116e665f4c52f4ee19ef3dc376bb855",
+      "atlasCell": [
+        0,
+        0
+      ]
+    },
+    {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__shockwave.webp",
+      "source": "nailFx",
+      "size": [
+        448,
+        448
+      ],
+      "sha256": "20f3fd31d6a991995da742085c5f32c8a3cac7251f2684ac5e2a29c8cdbc4a79",
+      "atlasCell": [
+        1,
+        0
+      ]
+    },
+    {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__shards.webp",
+      "source": "nailFx",
+      "size": [
+        320,
+        276
+      ],
+      "sha256": "6312ece01eb042cd9298886a2b38a3fccd33653598a1eecc3442ef59115c5a7d",
+      "atlasCell": [
+        0,
+        1
+      ]
+    },
+    {
+      "path": "assets/img/skills/seal-nail/cards/seal-nail__art__ritual.webp",
+      "source": "sealCard",
+      "size": [
+        820,
+        1230
+      ],
+      "sha256": "a8e1a5a365f888dd2faaa26acc2334801b59514a48b08fb639b4d8de6d6ef123"
+    },
+    {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__ward-ring.webp",
+      "source": "sealAwake",
+      "size": [
+        384,
+        384
+      ],
+      "sha256": "5c92477e7c7f8dfb1dfd19cb8aebddc96e90258b85391942fa8f208d3fd5df96",
+      "atlasCrop": [
+        0,
+        0,
+        603,
+        589
+      ]
+    },
+    {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__rupture.webp",
+      "source": "sealAwake",
+      "size": [
+        448,
+        448
+      ],
+      "sha256": "67e07b02c203bb6e976aaa8d5658b58e0d73870e2cc5d99a1626266796c23696",
+      "atlasCrop": [
+        612,
+        0,
+        1254,
+        586
+      ]
+    },
+    {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__pillar.webp",
+      "source": "sealAwake",
+      "size": [
+        320,
+        424
+      ],
+      "sha256": "8a7197351a7be6d137060387acf9f846e0bb689bb98150f81ee5a19337135799",
+      "atlasCrop": [
+        0,
+        589,
+        610,
+        1254
+      ]
+    },
+    {
+      "path": "assets/img/vfx/skills/seal-nail/seal-nail__fallout.webp",
+      "source": "sealAwake",
+      "size": [
+        352,
+        311
+      ],
+      "sha256": "511b897fba560dbcab415e8aa6ecd808b60047ce85d8cb7ad3c8af4dc4d34592",
+      "atlasCrop": [
+        627,
+        627,
+        1254,
+        1254
+      ]
+    },
+    {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__butterfly-trail__f01.webp",
+      "source": "violetAwake",
+      "size": [
+        448,
+        176
+      ],
+      "sha256": "f46cd15b712dbef477234cd8b0d5a801f220025f996ae7afa29183207c8b7f4e",
+      "atlasCrop": [
+        0,
+        0,
+        627,
+        627
+      ]
+    },
+    {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__butterfly-trail__f02.webp",
+      "source": "violetAwake",
+      "size": [
+        448,
+        176
+      ],
+      "sha256": "549d4b21a744df11b264c66ecc31eac9fa3b81592d62529ed57951438f30b5fb",
+      "atlasCrop": [
+        627,
+        0,
+        1254,
+        627
+      ]
+    },
+    {
+      "path": "assets/img/vfx/skills/violet-scent/violet-scent__bewildered.webp",
+      "source": "violetAwake",
+      "size": [
+        224,
+        224
+      ],
+      "sha256": "5baa45bddc03385226922c88e7231bec580f431d72d65aed2dcec5fd094bf3ae",
+      "atlasCrop": [
+        0,
+        627,
+        627,
+        1254
+      ]
+    }
+  ]
+}

@@ -1,14 +1,14 @@
 // Physical key codes keep movement independent of keyboard language / Caps Lock.
 window.CONTROLS = (() => {
-  const defaults = { u: 'KeyW', d: 'KeyS', l: 'KeyA', r: 'KeyD', dash: 'Space', interact: 'KeyE', hint: 'KeyH', pause: 'KeyP', codex: 'KeyC', mute: 'KeyM' };
+  const defaults = { u: 'KeyW', d: 'KeyS', l: 'KeyA', r: 'KeyD', dash: 'Space', interact: 'KeyE', pause: 'KeyP', codex: 'KeyC', mute: 'KeyM' };
   const fixed = { ArrowUp: 'u', ArrowDown: 'd', ArrowLeft: 'l', ArrowRight: 'r', Escape: 'pause', ShiftLeft: 'dash', ShiftRight: 'dash' };
-  const labels = { u: '向上', d: '向下', l: '向左', r: '向右', dash: '衝刺', interact: '取貨／確認', hint: '提示', pause: '暫停', codex: '圖鑑', mute: '靜音' };
+  const labels = { u: '向上', d: '向下', l: '向左', r: '向右', dash: '衝刺', interact: '取貨／確認', pause: '暫停', codex: '圖鑑', mute: '靜音' };
   const valid = code => /^(Key[A-Z]|Space|ShiftLeft|ShiftRight|Numpad[0456789])$/.test(code);
   const storageKey = 'yokai-controls-v1';
   let bindings = { ...defaults };
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
-    if (saved && Object.keys(defaults).every(a => valid(saved[a]) && (!fixed[saved[a]] || fixed[saved[a]] === a)) && new Set(Object.values(saved)).size === Object.keys(defaults).length) bindings = Object.fromEntries(Object.keys(defaults).map(a => [a, saved[a]]));
+    if (saved && Object.keys(defaults).every(a => valid(saved[a]) && (!fixed[saved[a]] || fixed[saved[a]] === a)) && new Set(Object.keys(defaults).map(a => saved[a])).size === Object.keys(defaults).length) bindings = Object.fromEntries(Object.keys(defaults).map(a => [a, saved[a]]));
   } catch {}
   const save = () => { try { localStorage.setItem(storageKey, JSON.stringify(bindings)); } catch {} };
   let dialog, waiting = null;
@@ -28,7 +28,7 @@ window.CONTROLS = (() => {
       bindings[action] = code; save(); return true;
     },
     preset(hand) {
-      bindings = hand === 'left' ? { ...defaults, u: 'KeyI', d: 'KeyK', l: 'KeyJ', r: 'KeyL', interact: 'KeyU', hint: 'KeyO' } : { ...defaults };
+      bindings = hand === 'left' ? { ...defaults, u: 'KeyI', d: 'KeyK', l: 'KeyJ', r: 'KeyL', interact: 'KeyU' } : { ...defaults };
       save(); waiting = null; render();
     },
     isOpen: () => !!dialog?.open,

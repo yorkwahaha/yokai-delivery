@@ -16,6 +16,7 @@ test('stage release status describes art readiness without disabling historic ro
     const stage = window.CONTENT.getStage(id);
     assert.equal(stage.id, id);
     assert.equal(stage.implemented, true, 'existing playable route remains available after normal unlock');
-    assert.equal(stage.releaseStatus, index === 0 ? 'public' : index === 1 ? 'playtest' : 'development');
+    assert.equal(stage.releaseStatus, index === 0 ? 'public' : [1,3].includes(index) ? 'playtest' : 'development');
+    assert.equal(stage.mapReleased, index < 4);
   }
 });

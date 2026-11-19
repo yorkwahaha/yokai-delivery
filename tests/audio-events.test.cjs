@@ -3,6 +3,31 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 
+test('optional skill and stage MP3s only try the local host and cache failed lookups', async () => {
+  const requested = [];
+  class Audio {
+    constructor(src) { requested.push(src); }
+    addEventListener() {}
+    play() { return Promise.reject(Object.assign(new Error('missing'), { name: 'NotSupportedError' })); }
+    pause() {}
+  }
+  const location = { hostname: 'public.example' };
+  const env = { window: { location, DEV_MODE: require('../js/dev-mode.js') }, Audio, console, setTimeout, clearTimeout };
+  vm.runInNewContext(fs.readFileSync('js/audio.js', 'utf8'), env);
+  const cues = [
+    ['shikigami_attack', 'assets/audio/sfx/skills/shikigami/shikigami__attack.mp3'],
+    ['bambooCutWarn', 'assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__cut-warning.mp3'],
+    ['kyoto_warning', 'assets/audio/sfx/enemies/kyoto-bell-runner/kyoto-bell-runner__warning.mp3']
+  ];
+  for (const [name, path] of cues) env.window.AUDIO.playOptionalCue(name, path, .3);
+  assert.deepEqual(requested, []);
+  location.hostname='localhost';
+  for (const [name, path] of cues) env.window.AUDIO.playOptionalCue(name, path, .3);
+  await Promise.resolve();
+  for (const [name, path] of cues) env.window.AUDIO.playOptionalCue(name, path, .3);
+  assert.deepEqual(requested, cues.map(([, path]) => path));
+});
+
 test('muting during a speech ramp cannot leave stale music volume after unmute',()=>{
   const ramps=new Map();let next=0;
   class Audio {constructor(){this.paused=true;this.volume=0.27;}addEventListener(){}play(){this.paused=false;return Promise.resolve();}pause(){this.paused=true;}}

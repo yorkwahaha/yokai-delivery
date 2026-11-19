@@ -182,13 +182,17 @@ def registry(entries):
  'delivery_audio':'assets/audio/delivery/{stage}/NN.mp3'}
  return dict(schema=1,updated='2026-10-31',authority='docs/ASSET_CONVENTIONS.md',
    stage_ids=STAGES,templates=templates,
-   approvals={'delivery_img':['night-town'],'delivery_audio':['night-town'],
+   approvals={'delivery_img':['night-town','rain-port','sakura-pass','bamboo-maze'],'delivery_audio':['night-town'],
+              'stage_scene':{'sakura-pass':'assets/img/stages/sakura-pass/manifest.json'},
+              'stage_enemy':{'rain-port':'assets/img/stages/rain-port/enemies-manifest.json'},
               'stage_2_existing_bundle':'assets/img/rain-port/s2-production/'},
-   trials={'delivery_img':['rain-port','sakura-pass'],'delivery_audio':['rain-port','sakura-pass'],
-           'stage_scene':{'sakura-pass':'assets/img/stages/sakura-pass/manifest.json'},
-           'stage3_character_manifest':'art/stage3-sakura-pass/characters/manifest.json',
-           'stage3_boss_sfx_manifest':'assets/audio/sfx/enemies/sakura-tengu/manifest.json'},
-   policy='Stage2 and Stage3 delivery art/audio explicitly authorized for local playtest; not approved final. Source files retained.',
+   trials={'delivery_img':[],'delivery_audio':['rain-port','sakura-pass','bamboo-maze'],
+           'stage4_art_manifest':'assets/img/stages/bamboo-maze/manifest.json',
+           'shikigami_art_manifest':'assets/img/characters/shikigami/manifest.json',
+           'stage3_boss_sfx_manifest':'assets/audio/sfx/enemies/sakura-tengu/manifest.json',
+           'boss_roster_manifest':'assets/img/enemies/boss-roster-trial-manifest.json',
+           'skill_art_manifest':'assets/img/skills/skill-art-trial-manifest.json'},
+   policy='Stages 1 through 4 use selected delivery artwork. Stage 4 and the new boss and skill art are available in the public classroom playtest. Stages 2 through 4 delivery audio remains subject to pronunciation review.',
    aliases=entries)
 def runtime(entries):
  pairs={e['source']:e['canonical'] for e in entries if e['route']}
@@ -200,12 +204,24 @@ def runtime(entries):
  'root.ASSET_PATHS=Object.freeze({resolve,aliases});})();\n')
 def inventory(entries):
  src={e['source']:e for e in entries};dest={e['canonical'] for e in entries}
+ rain=json.loads((ROOT/'assets/img/stages/rain-port/enemies-manifest.json').read_text(encoding='utf-8'))
+ sakura=json.loads((ROOT/'assets/img/stages/sakura-pass/manifest.json').read_text(encoding='utf-8'))
+ bamboo=json.loads((ROOT/'assets/img/stages/bamboo-maze/manifest.json').read_text(encoding='utf-8'))
+ skills=json.loads((ROOT/'assets/img/skills/skill-art-trial-manifest.json').read_text(encoding='utf-8'))
+ bosses=json.loads((ROOT/'assets/img/enemies/boss-roster-trial-manifest.json').read_text(encoding='utf-8'))
+ selected={x['path'] for slot in rain['slots'].values() for x in slot['sprites']}
+ selected.update(x['path'] for x in sakura['assets'] if x['status']=='USER_SELECTED_RUNTIME')
+ selected.update(f'assets/img/delivery/{stage}/{index:02d}.webp'
+                 for stage in ('rain-port','sakura-pass','bamboo-maze') for index in range(1,21))
+ art_trials={x['path'] for manifest in (bamboo,skills,bosses) for x in manifest['assets']}
  items=[]
  for base in ('assets/img','assets/audio'):
   for f in sorted((ROOT/base).rglob('*')):
    if not f.is_file() or f.suffix.lower() not in MEDIA:continue
    path=f.relative_to(ROOT).as_posix();e=src.get(path)
    if e:status='legacy_alias_active' if e['route'] else 'legacy_source_pending_renderer'
+   elif path in selected:status='canonical'
+   elif path in art_trials or path.startswith(('assets/audio/delivery/bamboo-maze/','assets/img/characters/shikigami/')):status='trial_pending_review'
    elif path.startswith(('assets/img/vfx/enemies/sakura-tengu/','assets/audio/sfx/enemies/sakura-tengu/','assets/img/vfx/skills/violet-scent/','assets/img/vfx/skills/seal-nail/')) or path.startswith(tuple('assets/img/enemies/'+i+'/' for i in ('sakura-kodama','hanakage-fox','moss-tanuki','stone-lantern-kid','paper-umbrella-spirit','sakura-tengu','ancient-sakura-guardian','night-sakura-princess'))) or path.startswith(('assets/img/stages/sakura-pass/','assets/img/delivery/rain-port/','assets/audio/delivery/rain-port/','assets/img/delivery/sakura-pass/','assets/audio/delivery/sakura-pass/','assets/img/ui/charm-passive/b7/','assets/img/ui/charm-passive/b9/','assets/img/ui/charm-passive/b10/','assets/img/ui/charm-passive/b11/','assets/img/ui/b12/','assets/img/ui/b13/','assets/img/ui/b14/','assets/img/ui/passive/b9/','assets/img/ui/passive/washi-v2/')) or path in ('assets/img/ui/dash_medallion_b7.webp','assets/img/vfx/boss-night-town/seal_break_painted.webp'):status='trial_pending_review'
    elif path in ('assets/img/vfx/shield/ward_spirit_full.webp','assets/img/vfx/shield/ward_spirit_crack.webp','assets/img/vfx/shield/ward_bagua_full.webp','assets/img/vfx/shield/ward_bagua_break.webp','assets/img/vfx/boss-night-town/slam_earth_warning.webp','assets/img/vfx/boss-night-town/slam_earth_impact.webp','assets/img/vfx/boss-night-town/charge_aura.webp','assets/img/vfx/boss-night-town/charge_single_b13.webp'):status='trial_pending_review'
    elif path.startswith(('assets/img/ui/passive/warm/','assets/img/ui/charm-passive/clean/')) or path == 'assets/img/vfx/boss-night-town/charge_aligned.webp':status='canonical'

@@ -3,6 +3,13 @@
 /.cleanup-archive/
 /art/media-source-backup/
 
+# Local font trial subsets: do not publish until redistribution/source
+# obligations and the new card typography are explicitly reviewed.
+/assets/fonts/YokaiTrialHanWangYanKai.woff2
+/assets/fonts/YokaiUIHanWangYanKai.woff2
+/assets/fonts/YokaiTrialCwTeXQKaiZH.woff2
+/assets/fonts/YokaiTrialChillKaiBig5.woff2
+
 # Local QA evidence, browser profiles, snapshots and media-production intermediates.
 # Intentionally NOT part of the student-facing GitHub Pages build.
 /scratch/

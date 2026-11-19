@@ -13,7 +13,7 @@
     "night-town": "assets/img/scenery/",
     "rain-port": "assets/img/rain-port/s2-production/",
     "sakura-pass": "assets/img/sakura-pass/",
-    "bamboo-maze": null,
+    "bamboo-maze": "assets/img/stages/bamboo-maze/",
     "hyakki-kyoto": null,
     "snow-temple": null,
     "spirit-ferry": null,
@@ -63,10 +63,10 @@
       "art": "art/stage4-bamboo-maze/",
       "source_scene": "art/stage4-bamboo-maze/scene/",
       "source_characters": "art/stage4-bamboo-maze/characters/",
-      "runtime": "assets/img/bamboo-maze/",
-      "runtime_state": "not established/verify before use",
-      "art_status": "REFERENCE_ONLY_RESET_20261024",
-      "notes": "Old source images purged; actual kept image paths are in art/stageN-ID/manifest.json; stage3 10/24 new candidate unapproved"
+      "runtime": "assets/img/stages/bamboo-maze/",
+      "runtime_state": "Public classroom playtest; bounded 5 by 5 chunk grove",
+      "art_status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "notes": "Runtime manifest: assets/img/stages/bamboo-maze/manifest.json. Unlocks after a Stage 3 clear."
     },
     {
       "order": 5,
@@ -75,10 +75,10 @@
       "art": "art/stage5-hyakki-kyoto/",
       "source_scene": "art/stage5-hyakki-kyoto/scene/",
       "source_characters": "art/stage5-hyakki-kyoto/characters/",
-      "runtime": "assets/img/hyakki-kyoto/",
-      "runtime_state": "not established/verify before use",
+      "runtime": "assets/img/stages/hyakki-kyoto/",
+      "runtime_state": "reserved; stage-specific raster pending review",
       "art_status": "REFERENCE_ONLY_RESET_20261024",
-      "notes": "Old source images purged; actual kept image paths are in art/stageN-ID/manifest.json; stage3 10/24 new candidate unapproved"
+      "notes": "Manifest lists references only. The local stage lab uses the market routes. Public access remains closed and progression follows bamboo-maze."
     },
     {
       "order": 6,

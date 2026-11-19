@@ -130,7 +130,7 @@ function loadGameSandbox(options = {}) {
     'card-collection.js', 'card-delivery-bridge.js', 'fusion.js',
     'combat-targeting.js', 'game-quiz-logic.js', 'game-geometry.js',
     'game-charm-math.js', 'game-spawn-math.js', 'game-build-rules.js',
-    'game-delivery-rules.js', 'game-attack-specs.js', 'game-catalog.js',
+    'game-delivery-rules.js', 'game-ink-trail.js', 'game-violet-scent.js', 'game-confusion.js', 'game-seal-nail.js', 'game-attack-specs.js', 'game-catalog.js',
     'game-combat-math.js', 'game-weather.js', 'game-upgrade-choices.js',
     'game-run-summary.js', 'game-tutorial-rules.js'
   ];

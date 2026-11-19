@@ -85,7 +85,8 @@ test('optional OGG on HTMLAudio network failure is marked missing (no repeated r
  const environment={
   muted:false,suspended:false,
   SFX_FILES:{rainPortWaterSlamWarn:'missing.ogg'},SFX_VOLUME:{rainPortWaterSlamWarn:.65},
-  sfxRequests:new Map(),unavailableSfx:new Set(),sfxVoices:new Map(),activeSfx:new Set(),
+   sfxRequests:new Map(),unavailableSfx:new Set(),sfxVoices:new Map(),activeSfx:new Set(),
+   SILENT_OPTIONAL_SFX:new Set(['rainPortWaterSlamWarn']),
   playBuffer:()=>false,wordDucking:false,
   replaceSfx:()=>{},
   window:{audioAsset:s=>s},
@@ -101,6 +102,6 @@ test('optional OGG on HTMLAudio network failure is marked missing (no repeated r
  environment.playExternalSfx('rainPortWaterSlamWarn',()=>fallback++,[]);
  environment.playExternalSfx('rainPortWaterSlamWarn',()=>fallback++,[]);
  assert.equal(instances.length,1,'no second missing OGG network request');
- assert.equal(fallback,2);
+  assert.equal(fallback,0,'unprovided optional Boss cue must remain silent');
  assert.equal(environment.unavailableSfx.has('rainPortWaterSlamWarn'),true);
 });

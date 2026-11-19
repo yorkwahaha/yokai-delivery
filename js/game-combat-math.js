@@ -1,6 +1,12 @@
 // Phase 14: deterministic Boss blueprint and critical probability only.
 // Combat random roll, damage application, and enemy state stay in game.js.
 window.GAME_COMBAT_MATH = (() => {
+  // Absolute final-boss deadline independent of earlier Boss deaths.
+  function shouldForceFinalBoss(index, times, elapsed, maxWait) {
+    return Array.isArray(times) && times.length > 0 && index < times.length - 1 &&
+      Number.isFinite(times[times.length - 1]) &&
+      elapsed >= times[times.length - 1] + maxWait;
+  }
   function bossBlueprint(index, bossHpBase, bossOilReward, stage) {
     const role = ["mid", "mid", "gate", "final"][index] || "mid";
     let hp = bossHpBase[index];
@@ -214,5 +220,5 @@ window.GAME_COMBAT_MATH = (() => {
     }
     return chosen;
   }
-  return Object.freeze({ bossBlueprint, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets, dragonFireTarget, needleSeekTarget, katanaWaveContains, crosscutContains, boomStickTarget, foxfireOrbitContact, foxfireLaunchTargets, nearestLaunchTarget, boomHomingTarget });
+  return Object.freeze({ bossBlueprint, shouldForceFinalBoss, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets, dragonFireTarget, needleSeekTarget, katanaWaveContains, crosscutContains, boomStickTarget, foxfireOrbitContact, foxfireLaunchTargets, nearestLaunchTarget, boomHomingTarget });
 })();

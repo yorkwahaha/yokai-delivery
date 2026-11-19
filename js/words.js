@@ -577,6 +577,7 @@
     "night-town": Object.freeze({
       id: "night-town",
       releaseStatus: "public",
+      mapReleased: true,
       name: "夜行町",
       sub: "よるのはいそう",
       description: "第一夜的城鎮配送。以町屋生活用品、文具與常用實物學習日語。",
@@ -612,6 +613,7 @@
     "rain-port": Object.freeze({
       id: "rain-port",
       releaseStatus: "playtest",
+      mapReleased: true,
       name: "雨夜港町",
       sub: "あめよのみなと",
       description: "雨與海霧籠罩的漁港。配送魚、蝦、蟹、海藻與常見海鮮料理。",
@@ -654,6 +656,8 @@
     "sakura-pass": Object.freeze({
       id: "sakura-pass",
       releaseStatus: "development",
+      // 已開放玩家進入；美術仍在審核，與未發布的第四至八關不同。
+      mapReleased: true,
       name: "妖櫻山道",
       sub: "ようざくらさんどう",
       description: "沿山而上的妖櫻古道。以花草、茶亭用品與神社小物進行配送。",
@@ -693,14 +697,15 @@
     }),
     "bamboo-maze": Object.freeze({
       id: "bamboo-maze",
-      releaseStatus: "development",
+      releaseStatus: "playtest",
+      mapReleased: true,
       name: "竹影迷宮",
       sub: "たけかげめいろ",
       description: "青綠竹林中的迷蹤。採集竹筍、蔬菜與山村常見食材。",
       implemented: true,
       unlockedByDefault: false,
       wordPacks: deliveryPacks("bamboo-maze", Object.freeze(["bamboo-colors", "bamboo-scales", "bamboo-states", "bamboo-numbers"])),
-      start: Object.freeze({ x: 1350, y: 900 }),
+      start: Object.freeze({ x: 2250, y: 1500 }),
       world: Object.freeze({
         chunkWidth: 900,
         chunkHeight: 600,
@@ -734,6 +739,7 @@
     "hyakki-kyoto": Object.freeze({
       id: "hyakki-kyoto",
       releaseStatus: "development",
+      mapReleased: false,
       name: "百鬼京都",
       sub: "ひゃっききょうと",
       description: "百鬼夜行的京都古都。配送市集食材、和菓子與常見料理。",
@@ -774,9 +780,10 @@
     "snow-temple": Object.freeze({
       id: "snow-temple",
       releaseStatus: "development",
+      mapReleased: false,
       name: "雪燈山寺",
       sub: "せつとうさんじ",
-      description: "雪山古寺中的修行路。配送冬季衣物、禦寒用品與熱食。",
+      description: "雪山古寺中的修行路。配送冬衣、借宿日用品與熱食。",
       implemented: true,
       unlockedByDefault: false,
       wordPacks: deliveryPacks("snow-temple", Object.freeze(["temple-body", "temple-movement", "temple-actions"])),
@@ -815,9 +822,10 @@
     "spirit-ferry": Object.freeze({
       id: "spirit-ferry",
       releaseStatus: "development",
+      mapReleased: false,
       name: "幽世渡口",
       sub: "かくりよわたし",
-      description: "幽世渡船頭的彼岸前哨。配送旅人行李、信件與隨身用品。",
+      description: "幽世渡船頭的彼岸前哨。配送旅人行李、交通物件與書信。",
       implemented: true,
       unlockedByDefault: false,
       wordPacks: deliveryPacks("spirit-ferry", Object.freeze(["ferry-feelings", "ferry-states", "ferry-phrases"])),
@@ -855,6 +863,7 @@
     "yomi": Object.freeze({
       id: "yomi",
       releaseStatus: "development",
+      mapReleased: false,
       name: "黃泉境",
       sub: "よみのさかい",
       description: "旅路深處的終局妖城。全關綜合複習與言靈交還的第八夜終極配送。",
