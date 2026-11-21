@@ -17,9 +17,12 @@ window.GAME_ATTACK_SPECS = (() => {
         isAwakened: level === 5, source: "base", derivationDepth: 0,
         cadenceEligible: false, reachEligible: false, critEligible: false };
     }
-    if (skillId === "seal_nail") {
-      return {skillId,...window.GAME_SEAL_NAIL.spec(level,baseDmg),
-        isAwakened:level===5,source:"base",derivationDepth:0};
+    const lateSkill = skillId === "seal_nail" ? window.GAME_SEAL_NAIL
+      : skillId === "shikigami" ? window.GAME_SHIKIGAMI : null;
+    if (lateSkill) {
+      const mutations = (buildState?.mutations || buildMutations || []).filter(id => id.startsWith(`mut_${skillId}_`));
+      return { skillId, ...lateSkill.spec(level, baseDmg, mutations),
+        isAwakened: level === 5, source: mutations.length ? "mutation" : "base", derivationDepth: 0 };
     }
     if (skillId === "katana") {
       const baseReach = 145 + (level - 1) * 16;

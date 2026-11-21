@@ -65,9 +65,14 @@ window.GAME_SHIKIGAMI = (() => {
     }
     return Object.fromEntries([species, "attack", "vanish"].map(key => [key, load(ART_PATHS[key])]));
   }
-  function spec(level, effectiveDamage = 1) {
+  function spec(level, effectiveDamage = 1, mutations = []) {
     const lv = Math.max(1, Math.min(5, Math.floor(Number(level) || 1)));
-    return { ...TIERS[lv - 1], level: lv, damage: TIERS[lv - 1].factor * effectiveDamage,
+    const base = TIERS[lv - 1];
+    const factor = base.factor * (mutations.includes("mut_shikigami_fang") ? 1.25 : 1);
+    return { ...base, level: lv, factor, damage: factor * effectiveDamage,
+      maxHp: Math.round(base.maxHp * (mutations.includes("mut_shikigami_guard") ? 1.30 : 1)),
+      life: base.life + (mutations.includes("mut_shikigami_life") ? 3 : 0),
+      attackInterval: base.attackInterval * (mutations.includes("mut_shikigami_quick") ? .82 : 1),
       attackRange: 38, seekRange: 195, followRadius: 48,
       maxFollowDistance: MAX_FOLLOW_DISTANCE, aggroRange: AGGRO_RANGE,
       bossMultiplier: BOSS_DAMAGE_MULTIPLIER, maxAllies: 1,
@@ -77,7 +82,7 @@ window.GAME_SHIKIGAMI = (() => {
   function create({ species = "fox", random = Math.random } = {}) {
     const kind = SPECIES.includes(species) ? species : "fox";
     let ally = null, effect = null, cooldown = 0, paused = false, aggroTimer = 0, attackTimer = 0;
-    let lastLevel = 0;
+    let previousSpec = null;
     const taunted = new Set();
     const validTaunt = (enemy, player) => targetable(enemy) && enemy.type !== "boss"
       && !(enemy.confusedT > 0) && ally && ally.hp > 0
@@ -91,7 +96,7 @@ window.GAME_SHIKIGAMI = (() => {
       onEvent?.(event, kind);
     }
     function reset() {
-      ally = null; effect = null; cooldown = 0; paused = false; lastLevel = 0;
+      ally = null; effect = null; cooldown = 0; paused = false; previousSpec = null;
       attackTimer = 0; aggroTimer = 0; taunted.clear();
     }
     function suspend() { paused = true; }
@@ -157,24 +162,23 @@ window.GAME_SHIKIGAMI = (() => {
           taunted.add(enemy);
       }
     }
-    function tick({ dt, level = 0, player, enemies = [], effectiveDamage = 1,
+    function tick({ dt, level = 0, player, enemies = [], effectiveDamage = 1, mutations = [],
       blocked, hit, onEvent } = {}) {
       if (!(dt > 0) || !player || paused) return;
       if (effect && (effect.life -= dt) <= 0) effect = null;
       if (!(level > 0)) { dismiss("vanish", onEvent); return; }
-      const cfg = spec(level, effectiveDamage);
-      if (lastLevel > 0 && cfg.level > lastLevel) {
-        const previous = TIERS[lastLevel - 1];
-        cooldown = Math.max(0, cooldown - (previous.cooldown - cfg.cooldown));
+      const cfg = spec(level, effectiveDamage, mutations);
+      if (previousSpec && (cfg.level > previousSpec.level || cfg.attackInterval < previousSpec.attackInterval)) {
+        cooldown = Math.max(0, cooldown - Math.max(0, previousSpec.cooldown - cfg.cooldown));
         attackTimer = Math.min(attackTimer, cfg.attackInterval);
-        if (ally) {
-          ally.hp += cfg.maxHp - ally.maxHp;
-          ally.maxHp = cfg.maxHp;
-          ally.life += cfg.life - ally.maxLife;
-          ally.maxLife = cfg.life;
-        }
       }
-      lastLevel = cfg.level;
+      if (ally && (cfg.maxHp !== ally.maxHp || cfg.life !== ally.maxLife)) {
+        ally.hp = Math.max(0, ally.hp + cfg.maxHp - ally.maxHp);
+        ally.maxHp = cfg.maxHp;
+        ally.life += cfg.life - ally.maxLife;
+        ally.maxLife = cfg.life;
+      }
+      previousSpec = cfg;
       cooldown = Math.max(0, cooldown - dt);
       if (!ally && cooldown === 0) summon(player, cfg, blocked, onEvent);
       if (!ally) return;

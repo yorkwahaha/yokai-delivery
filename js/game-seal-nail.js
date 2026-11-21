@@ -14,9 +14,13 @@ window.GAME_SEAL_NAIL = (() => {
   const EFFECT_LIFETIMES={burst:.64,break:.82,awaken:.84,fallout:1.02};
   const ready=img=>img?.naturalWidth>0&&img?.naturalHeight>0;
   const eligible=e=>!!e&&e.hp>0&&!e.dying&&!e.shield&&!e.vanish&&!e.done&&!e.invulnerable&&!e.untargetable;
-  function spec(level,damage=1){
+  function spec(level,damage=1,mutations=[]){
     const cfg=TIERS[Math.max(0,Math.min(4,(level|0)-1))];
-    return {...cfg,level,damage:cfg.factor*damage,secondDamage:level===5?cfg.factor*damage*.45:0,
+    const factor=cfg.factor*(mutations.includes("mut_seal_nail_deep")?1.25:1);
+    return {...cfg,level,factor,damage:factor*damage,secondDamage:level===5?factor*damage*.45:0,
+      radius:cfg.radius*(mutations.includes("mut_seal_nail_wide")?1.25:1),
+      distance:cfg.distance-(mutations.includes("mut_seal_nail_near")?25:0),
+      cooldown:cfg.cooldown*(mutations.includes("mut_seal_nail_swift")?.82:1),
       secondDelay:.24,secondOffset:94,bossMultiplier:BOSS_MULTIPLIER,maxTargets:7,
       cadenceEligible:false,reachEligible:false,critEligible:false};
   }
@@ -36,8 +40,8 @@ window.GAME_SEAL_NAIL = (() => {
     return art;
   }
   function create({staged=false}={}){
-    let pin=null, cooldown=0, delayed=null, effects=[];
-    const reset=()=>{pin=null;cooldown=0;delayed=null;effects=[];};
+    let pin=null, cooldown=0, delayed=null, effects=[], swift=false;
+    const reset=()=>{pin=null;cooldown=0;delayed=null;effects=[];swift=false;};
     const suspend=()=>{pin=null;delayed=null;effects=[];};
     function effect(type,x,y,radius,angle=0){
       const life=staged?EFFECT_LIFETIMES[type]:.38;
@@ -54,9 +58,12 @@ window.GAME_SEAL_NAIL = (() => {
         alreadyHit.add(e);hitCount++;
       }
     }
-    function tick({dt,level,start,end,dashing=false,enemies=[],hit,effectiveDamage=1,onEvent}){
+    function tick({dt,level,start,end,dashing=false,enemies=[],hit,effectiveDamage=1,mutations=[],onEvent}){
       if(level<=0||!(dt>0))return;
-      const cfg=spec(level,effectiveDamage);
+      const cfg=spec(level,effectiveDamage,mutations);
+      const nextSwift=mutations.includes("mut_seal_nail_swift");
+      if(nextSwift&&!swift)cooldown*=.82;
+      swift=nextSwift;
       cooldown=Math.max(0,cooldown-dt);
       effects=effects.filter(f=>(f.life-=dt)>0);
       if(delayed){
@@ -161,9 +168,9 @@ window.GAME_SEAL_NAIL = (() => {
         });
       }
     }
-    return {tick,reset,suspend,paint,paintPillar,snapshot:(level=1)=>({
+    return {tick,reset,suspend,paint,paintPillar,snapshot:(level=1,mutations=[])=>({
       active:!!pin,pendingSecond:!!delayed,effects:effects.length,
-      cooldown:Math.max(0,cooldown),cooldownMax:spec(level).cooldown
+      cooldown:Math.max(0,cooldown),cooldownMax:spec(level,1,mutations).cooldown
     })};
   }
   return Object.freeze({spec,create,loadCandidateArt});

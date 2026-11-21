@@ -71,6 +71,15 @@ window.GAME_CATALOG = (() => {
     }
   };
 
+  function skillMutations(skillId, skillName, category, cards) {
+    return Object.fromEntries(cards.map(([variant, n, s, d]) => {
+      const id = `mut_${skillId}_${variant}`;
+      return [id, { id, skillId, skillIds: [skillId], n, s, d, cat: `【 ${category} 】`,
+        levelText: `◆ ${category}`, requirementText: `持有${skillName}`,
+        limitText: "每種限一次；此技能最多 2 種變異", inPool: true }];
+    }));
+  }
+
   const MUTATION_CONFIG = {
     mut_ink_bloom: {
       id: "mut_ink_bloom", skillId: "ink_trail", skillIds: ["ink_trail"],
@@ -100,6 +109,18 @@ window.GAME_CATALOG = (() => {
       d: "妖怪離開毒霧後，中毒再延長 1.6 秒；Lv5 混亂再延長 0.5 秒。",
       requirementText: "持有紫藤毒香", limitText: "每種限一次；毒香最多 2 種變異", inPool: true
     },
+    ...skillMutations("seal_nail", "距爆・封印釘", "封釘變異", [
+      ["wide", "封釘・裂地擴陣", "れつちかくじん", "封印釘爆炸半徑增加 25%，Lv5 兩段皆有效。"],
+      ["deep", "封釘・穿石重爆", "せんせきじゅうばく", "封印釘爆炸傷害提高 25%，Lv5 兩段皆有效。"],
+      ["near", "封釘・近距引爆", "きんきょいんばく", "起爆所需離位距離縮短 25 px，離位後仍須蓄爆。"],
+      ["swift", "封釘・疾步再布", "しっぽさいふ", "再部署冷卻縮短 18%，前一枚封印釘結算後才可再布。"]
+    ]),
+    ...skillMutations("shikigami", "式神・召喚", "式神變異", [
+      ["guard", "式神・護靈強軀", "ごれいきょうく", "式神最大生命提高 30%。場上的式神保留已受傷量。"],
+      ["life", "式神・長契留形", "ちょうけいりゅうけい", "式神最多留場時間延長 3 秒，場上的式神也會延長。"],
+      ["quick", "式神・迅牙連咬", "じんがれんこう", "式神每次撲咬的冷卻縮短 18%。"],
+      ["fang", "式神・破邪重牙", "はじゃじゅうが", "式神的撲咬傷害提高 25%。"]
+    ]),
     mut_boom_fan: {
       id: "mut_boom_fan",
       skillId: "boom",

@@ -3,11 +3,11 @@
   "updated": "2026-10-31",
   "notes": "Unmigrated paths are inventoried, not approved for new usage; never delete without reference audit.",
   "totals": {
-    "files": 1185,
+    "files": 1193,
     "by_status": {
       "legacy_unmigrated": 361,
       "legacy_review_required": 62,
-      "trial_pending_review": 295,
+      "trial_pending_review": 303,
       "canonical": 316,
       "legacy_alias_active": 99,
       "legacy_source_pending_renderer": 52
@@ -2031,10 +2031,58 @@
       "sha256": "adb5f314638cea2f2813e3d9965a5908d1882a786fe56a28459dc4b4d78d792f"
     },
     {
+      "path": "assets/img/skills/mut-seal-nail-deep/cards/mut-seal-nail-deep__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 359686,
+      "sha256": "60c60c01778e69ddf042e4ed766a372a51094856ec5d10f1d565e3202215b6b7"
+    },
+    {
+      "path": "assets/img/skills/mut-seal-nail-near/cards/mut-seal-nail-near__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 398770,
+      "sha256": "9d6b2d4bf83b62b5bf33535573a69b92d00af6fafa84aab3e26d510a396f7f02"
+    },
+    {
+      "path": "assets/img/skills/mut-seal-nail-swift/cards/mut-seal-nail-swift__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 392912,
+      "sha256": "50e2f45a8131a4467dccb1c8d1dfe349562a6306d3e60497f60c2237de49b976"
+    },
+    {
+      "path": "assets/img/skills/mut-seal-nail-wide/cards/mut-seal-nail-wide__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 407000,
+      "sha256": "aaf383d14310cc6a9bef55936f8ac9fe1edcb3454e07f607a1975d080def0dcc"
+    },
+    {
       "path": "assets/img/skills/mut-seek/cards/mut-seek__art.webp",
       "status": "trial_pending_review",
       "bytes": 250078,
       "sha256": "114696829005cfa01631fe982abca5aa201d8ed463aab9637de98f962bae919d"
+    },
+    {
+      "path": "assets/img/skills/mut-shikigami-fang/cards/mut-shikigami-fang__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 378320,
+      "sha256": "64ddbcd7ce967fcde96d4ea577deb56ea40f425e619529e9e69c18350044ee8e"
+    },
+    {
+      "path": "assets/img/skills/mut-shikigami-guard/cards/mut-shikigami-guard__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 367778,
+      "sha256": "ad755d674dec171371209492814913df19a6e403208a5ea9fbc80ddd875f4cf1"
+    },
+    {
+      "path": "assets/img/skills/mut-shikigami-life/cards/mut-shikigami-life__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 384832,
+      "sha256": "8d05476493a6878d7fdb9f8e01027402fe9e4f217057438a00113f6e9e858414"
+    },
+    {
+      "path": "assets/img/skills/mut-shikigami-quick/cards/mut-shikigami-quick__art.webp",
+      "status": "trial_pending_review",
+      "bytes": 379394,
+      "sha256": "e3a7fa09e85fb0cfd35189f7bc66769e090c054988189bd071511fc0cf26ce5d"
     },
     {
       "path": "assets/img/skills/mut-splitblast/cards/mut-splitblast__art.webp",

@@ -40,6 +40,78 @@
       "path": "art/skills/20261120-card-and-effect-refresh/violet-scent-awakening-atlas.png",
       "sha256": "4934de5fa71171f5848f06187c091e2cc95e66edd962d4760bb3cfa6ae2030f1",
       "prompt": "Produce a square true-alpha PNG atlas of isolated VFX textures for the awakened wisteria poison of a hand-painted Japanese ink-and-watercolor action game. Four evenly spaced sprites in 2x2 equal quadrants, all artwork separated by wide transparent gutters and individual 12% safety margin. TOP LEFT: wide wisteria vapor ribbon (about 2.5 times as wide as high), seen top down; strong luminous violet edges, lilac open vapor filaments on translucent dark violet ink with clear transparent gaps, exactly two tiny unmistakable lavender butterfly silhouettes and a few wisteria petals drifting along its edge. It is a low long weaving ribbon tapering to the left. TOP RIGHT: similarly elongated alternate top-down with graceful double bend, slightly different height and details, pastel violet-magenta as highlights and light blue-lavender in some delicate thin ink contours, two tiny lavender butterflies, wisteria petals, taper to the left. BOTTOM LEFT: compact upright immediate confusion signal for enemy status, two luminous clearly recognizable lavender butterflies orbiting an airy double incense curl with 3 gold motes, open center and strong readable wing silhouettes, precious violet pigment and a little cold white highlight, isolated for floating above a head. BOTTOM RIGHT: empty transparent. Every asset fully contained within its respective quadrant. No haze outside the brush edges, no environment, no circles drawn on ground, no text, no frame, no UI, no solid background. Use subtle washi and layered open dry ink brushwork, crisp small scale silhouette, meaningful individual gaps and completely transparent gutters."
+    },
+    "mut-seal-nail-wide": {
+      "path": "art/skills/20261121-seal-nail-shikigami-mutations/mut-seal-nail-wide.png",
+      "sha256": "83801c646f82b39b406b8a2954e5a3e0c248c62c355c97a837ef18d55945c6fa",
+      "prompt": "Full bleed portrait 2:3 illustrated upgrade-card center for the original Yokai Delivery game. First reference sets the object/white wolf identity only; second reference sets the existing card art visual style only. Authentic hand-painted Japanese ink and ukiyo-e pigment woodblock amalgam, rich black contours, fibrous washi paper in muted colored inks, compelling 2–3 large value groups. Make the subject centered in the middle 65% width and middle 65% height so it reads inside an ornate game overlay at thumbnail size. Bird's-eye view of one small black iron ritual nail tied in red cord in the exact center of an exceptionally broad circular explosion wave expanding in amber across blue-gray Kyoto slate. A wide sun-disc-like ochre ring with a few widely spaced stones outside its edge. Emphasize horizontal reach visibly across the paving, bright circumference and dark inner negative space. Strong discrete focal subject and distinct layering, clean painted detail, no letters, no Japanese writing, no numerals, no captions, no card border or UI. Vertical illustration.",
+      "references": [
+        "assets/img/skills/seal-nail/cards/seal-nail__art__ritual.webp",
+        "assets/img/skills/mut-ink-bloom/cards/mut-ink-bloom__art.webp"
+      ]
+    },
+    "mut-seal-nail-deep": {
+      "path": "art/skills/20261121-seal-nail-shikigami-mutations/mut-seal-nail-deep.png",
+      "sha256": "7da65b20debe4be503264128f1a6182804e6926996eefcc813419e3317de6532",
+      "prompt": "Full bleed portrait 2:3 illustrated upgrade-card center for the original Yokai Delivery game. First reference sets the object/white wolf identity only; second reference sets the existing card art visual style only. Authentic hand-painted Japanese ink and ukiyo-e pigment woodblock amalgam, rich black contours, fibrous washi paper in muted colored inks, compelling 2–3 large value groups. Make the subject centered in the middle 65% width and middle 65% height so it reads inside an ornate game overlay at thumbnail size. Extremely low near-ground three-quarter close-up of one massive dark ritual nail with red cord straight into a shattered square flagstone, wedged into rock. A single dense luminous vermilion crack and three large angular slabs fly near the impact point. Emphasize weight, upward gouge and red-hot core. Dark burnt umber behind. Strong discrete focal subject and distinct layering, clean painted detail, no letters, no Japanese writing, no numerals, no captions, no card border or UI. Vertical illustration.",
+      "references": [
+        "assets/img/skills/seal-nail/cards/seal-nail__art__ritual.webp",
+        "assets/img/skills/mut-ink-bloom/cards/mut-ink-bloom__art.webp"
+      ]
+    },
+    "mut-seal-nail-near": {
+      "path": "art/skills/20261121-seal-nail-shikigami-mutations/mut-seal-nail-near.png",
+      "sha256": "ed7a95caf0343d10dbcc6a5d2a8a732c0c893b4f773c455b7feb654af4c43e32",
+      "prompt": "Full bleed portrait 2:3 illustrated upgrade-card center for the original Yokai Delivery game. First reference sets the object/white wolf identity only; second reference sets the existing card art visual style only. Authentic hand-painted Japanese ink and ukiyo-e pigment woodblock amalgam, rich black contours, fibrous washi paper in muted colored inks, compelling 2–3 large value groups. Make the subject centered in the middle 65% width and middle 65% height so it reads inside an ornate game overlay at thumbnail size. One iron ritual nail and unmistakable red cord at lower center and one compact ember flash just behind the departing shadow of a fox-eared courier, whose single stride from the nail is clearly visible, one heel still near it. Very short golden luminous trail sharply turns just beyond the nail. Mid shot diagonal composition on slate, subdued amber and ochre, tiny burst locally, focus on proximity. Courier depicted as a simplified cloak silhouette, no text. Strong discrete focal subject and distinct layering, clean painted detail, no letters, no Japanese writing, no numerals, no captions, no card border or UI. Vertical illustration.",
+      "references": [
+        "assets/img/skills/seal-nail/cards/seal-nail__art__ritual.webp",
+        "assets/img/skills/mut-ink-bloom/cards/mut-ink-bloom__art.webp"
+      ]
+    },
+    "mut-seal-nail-swift": {
+      "path": "art/skills/20261121-seal-nail-shikigami-mutations/mut-seal-nail-swift.png",
+      "sha256": "dbe2947f95bdb7ac9423678e772f1eabed025002351fd512d35a3b9a7b90c962",
+      "prompt": "Full bleed portrait 2:3 illustrated upgrade-card center for the original Yokai Delivery game. First reference sets the object/white wolf identity only; second reference sets the existing card art visual style only. Authentic hand-painted Japanese ink and ukiyo-e pigment woodblock amalgam, rich black contours, fibrous washi paper in muted colored inks, compelling 2–3 large value groups. Make the subject centered in the middle 65% width and middle 65% height so it reads inside an ornate game overlay at thumbnail size. Diagonal rhythm of quick successive ritual nail placements suggested by three distinct separated stone pavers, one large iron nail with red cord sharply foreground center and two smaller NAIL AFTERIMAGES along a warm winding footstep trail behind, each separated in depth and time. No explosions, no round perimeter. Dynamic slate-blue, persimmon red and copper motion arcs, graceful winding layout. Strong discrete focal subject and distinct layering, clean painted detail, no letters, no Japanese writing, no numerals, no captions, no card border or UI. Vertical illustration.",
+      "references": [
+        "assets/img/skills/seal-nail/cards/seal-nail__art__ritual.webp",
+        "assets/img/skills/mut-ink-bloom/cards/mut-ink-bloom__art.webp"
+      ]
+    },
+    "mut-shikigami-guard": {
+      "path": "art/skills/20261121-seal-nail-shikigami-mutations/mut-shikigami-guard.png",
+      "sha256": "4d1c95bc437303218b47120c013761d3a116b945c3ef592cbf09664b270fa2de",
+      "prompt": "Full bleed portrait 2:3 illustrated upgrade-card center for the original Yokai Delivery game. First reference sets the object/white wolf identity only; second reference sets the existing card art visual style only. Authentic hand-painted Japanese ink and ukiyo-e pigment woodblock amalgam, rich black contours, fibrous washi paper in muted colored inks, compelling 2–3 large value groups. Make the subject centered in the middle 65% width and middle 65% height so it reads inside an ornate game overlay at thumbnail size. White wolf familiar of the reference with indigo collar and bronze bell. Low braced protective stance with broad shoulders, mouth calm, looking toward a distant street shadow. Layered translucent celadon spirit bands hug its silhouette like a protective mantle, scattered at its flanks to show sturdiness. Three-quarter front, icy sage and cream color masses, compact calm composition. Strong discrete focal subject and distinct layering, clean painted detail, no letters, no Japanese writing, no numerals, no captions, no card border or UI. Vertical illustration.",
+      "references": [
+        "assets/img/characters/shikigami/shikigami__sprite__hound-idle__f01.webp",
+        "assets/img/skills/mut-ink-bloom/cards/mut-ink-bloom__art.webp"
+      ]
+    },
+    "mut-shikigami-life": {
+      "path": "art/skills/20261121-seal-nail-shikigami-mutations/mut-shikigami-life.png",
+      "sha256": "e919e1d8e99ff0fc0231b5e360943f0483f7230e66063792774d8c76d10e708a",
+      "prompt": "Full bleed portrait 2:3 illustrated upgrade-card center for the original Yokai Delivery game. First reference sets the object/white wolf identity only; second reference sets the existing card art visual style only. Authentic hand-painted Japanese ink and ukiyo-e pigment woodblock amalgam, rich black contours, fibrous washi paper in muted colored inks, compelling 2–3 large value groups. Make the subject centered in the middle 65% width and middle 65% height so it reads inside an ornate game overlay at thumbnail size. Same exact white wolf familiar with indigo collar and bronze bell, seated calmly at center of a deep moonlit Kyoto lane. One intact glowing blue binding ribbon loops from the collar to a tiny unlettered talisman suspended nearby, drifting in a large gentle oval, cool indigo and pale honey-gold moon above. Patient lingering presence, no active attack, striking still silhouette. Strong discrete focal subject and distinct layering, clean painted detail, no letters, no Japanese writing, no numerals, no captions, no card border or UI. Vertical illustration.",
+      "references": [
+        "assets/img/characters/shikigami/shikigami__sprite__hound-idle__f01.webp",
+        "assets/img/skills/mut-ink-bloom/cards/mut-ink-bloom__art.webp"
+      ]
+    },
+    "mut-shikigami-quick": {
+      "path": "art/skills/20261121-seal-nail-shikigami-mutations/mut-shikigami-quick.png",
+      "sha256": "a0a90ed706ac771f9e1ba2cd9b41a4388e2052a0b72fdb1a433ad3413a6e629d",
+      "prompt": "Full bleed portrait 2:3 illustrated upgrade-card center for the original Yokai Delivery game. First reference sets the object/white wolf identity only; second reference sets the existing card art visual style only. Authentic hand-painted Japanese ink and ukiyo-e pigment woodblock amalgam, rich black contours, fibrous washi paper in muted colored inks, compelling 2–3 large value groups. Make the subject centered in the middle 65% width and middle 65% height so it reads inside an ornate game overlay at thumbnail size. Same white wolf with indigo collar and bronze bell in a nimble compact diagonal leap, head and moving legs clearly visible, repeated thin white crescent bite trails in its wake suggest rapid cadence without showing another wolf. Moonlit turquoise plus deep charcoal, slanted street stones and wind brushstrokes, readable single white silhouette, no gore. Strong discrete focal subject and distinct layering, clean painted detail, no letters, no Japanese writing, no numerals, no captions, no card border or UI. Vertical illustration.",
+      "references": [
+        "assets/img/characters/shikigami/shikigami__sprite__hound-idle__f01.webp",
+        "assets/img/skills/mut-ink-bloom/cards/mut-ink-bloom__art.webp"
+      ]
+    },
+    "mut-shikigami-fang": {
+      "path": "art/skills/20261121-seal-nail-shikigami-mutations/mut-shikigami-fang.png",
+      "sha256": "95545994e0f19c7fcafb0332afd881b2290d3feca1a6485764b4c47dec6fb0c0",
+      "prompt": "Full bleed portrait 2:3 illustrated upgrade-card center for the original Yokai Delivery game. First reference sets the object/white wolf identity only; second reference sets the existing card art visual style only. Authentic hand-painted Japanese ink and ukiyo-e pigment woodblock amalgam, rich black contours, fibrous washi paper in muted colored inks, compelling 2–3 large value groups. Make the subject centered in the middle 65% width and middle 65% height so it reads inside an ornate game overlay at thumbnail size. Same white wolf with indigo collar and bronze bell in low forward pounce, a single powerful close-up snap at a shadowy spirit knot which breaks into a few pale paper scraps. Strong chest-and-jaw silhouette, restrained violet-indigo night and amber flash, one decisive broad accent. No visible wounded creature, no gore. Strong discrete focal subject and distinct layering, clean painted detail, no letters, no Japanese writing, no numerals, no captions, no card border or UI. Vertical illustration.",
+      "references": [
+        "assets/img/characters/shikigami/shikigami__sprite__hound-idle__f01.webp",
+        "assets/img/skills/mut-ink-bloom/cards/mut-ink-bloom__art.webp"
+      ]
     }
   },
   "assets": [
@@ -266,6 +338,78 @@
         627,
         1254
       ]
+    },
+    {
+      "path": "assets/img/skills/mut-seal-nail-wide/cards/mut-seal-nail-wide__art.webp",
+      "source": "mut-seal-nail-wide",
+      "size": [
+        820,
+        1230
+      ],
+      "sha256": "aaf383d14310cc6a9bef55936f8ac9fe1edcb3454e07f607a1975d080def0dcc"
+    },
+    {
+      "path": "assets/img/skills/mut-seal-nail-deep/cards/mut-seal-nail-deep__art.webp",
+      "source": "mut-seal-nail-deep",
+      "size": [
+        820,
+        1230
+      ],
+      "sha256": "60c60c01778e69ddf042e4ed766a372a51094856ec5d10f1d565e3202215b6b7"
+    },
+    {
+      "path": "assets/img/skills/mut-seal-nail-near/cards/mut-seal-nail-near__art.webp",
+      "source": "mut-seal-nail-near",
+      "size": [
+        820,
+        1230
+      ],
+      "sha256": "9d6b2d4bf83b62b5bf33535573a69b92d00af6fafa84aab3e26d510a396f7f02"
+    },
+    {
+      "path": "assets/img/skills/mut-seal-nail-swift/cards/mut-seal-nail-swift__art.webp",
+      "source": "mut-seal-nail-swift",
+      "size": [
+        820,
+        1230
+      ],
+      "sha256": "50e2f45a8131a4467dccb1c8d1dfe349562a6306d3e60497f60c2237de49b976"
+    },
+    {
+      "path": "assets/img/skills/mut-shikigami-guard/cards/mut-shikigami-guard__art.webp",
+      "source": "mut-shikigami-guard",
+      "size": [
+        820,
+        1230
+      ],
+      "sha256": "ad755d674dec171371209492814913df19a6e403208a5ea9fbc80ddd875f4cf1"
+    },
+    {
+      "path": "assets/img/skills/mut-shikigami-life/cards/mut-shikigami-life__art.webp",
+      "source": "mut-shikigami-life",
+      "size": [
+        820,
+        1230
+      ],
+      "sha256": "8d05476493a6878d7fdb9f8e01027402fe9e4f217057438a00113f6e9e858414"
+    },
+    {
+      "path": "assets/img/skills/mut-shikigami-quick/cards/mut-shikigami-quick__art.webp",
+      "source": "mut-shikigami-quick",
+      "size": [
+        820,
+        1230
+      ],
+      "sha256": "e3a7fa09e85fb0cfd35189f7bc66769e090c054988189bd071511fc0cf26ce5d"
+    },
+    {
+      "path": "assets/img/skills/mut-shikigami-fang/cards/mut-shikigami-fang__art.webp",
+      "source": "mut-shikigami-fang",
+      "size": [
+        820,
+        1230
+      ],
+      "sha256": "64ddbcd7ce967fcde96d4ea577deb56ea40f425e619529e9e69c18350044ee8e"
     }
   ]
 }

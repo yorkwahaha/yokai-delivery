@@ -1,5 +1,5 @@
 // Approved Phase42 raster upgrade cards, now wired directly into the game.
-// All 39 center illustrations and the single shared frame live in /assets.
+// The card centers and the single shared frame live in /assets.
 (() => {
   if (!window.UI) return;
   const params=new URLSearchParams(typeof location!=="undefined"?location.search||"":"");
@@ -54,6 +54,8 @@
   const passiveCards=new Set(["shield","oil_max","oil_heal","dmg","rate","crit","spd","dash","mag"]);
   const mutationCards=new Set([
     "mut_ink_bloom","mut_ink_razor","mut_ink_linger","mut_ink_echo",
+    "mut_seal_nail_wide","mut_seal_nail_deep","mut_seal_nail_near","mut_seal_nail_swift",
+    "mut_shikigami_guard","mut_shikigami_life","mut_shikigami_quick","mut_shikigami_fang",
     "mut_boom_fan","mut_seek","mut_boom_seek","mut_frost","mut_boom_frost",
     "mut_pierce","mut_return","mut_crosscut","mut_pulse","mut_branch",
     "mut_orbit","mut_splitblast","mut_iaicharge","mut_armorbreak","mut_longblade",
@@ -255,7 +257,7 @@
       write(ctx,"永久留存",r.x+r.w/2,r.y+r.h*.86,r.w-24,16,"center",palette.dim);
     }
     else if(shared && frame && center){
-      // Exact same approved raster frame for all 39; image sits beneath it.
+      // The center image sits beneath the shared raster frame.
       // Crop only the illustration opening specified by the approved manifest.
       const sx=r.w/1024,sy=r.h/1536,a=artworkBox;
       ctx.save();

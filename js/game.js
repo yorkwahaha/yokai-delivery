@@ -1560,7 +1560,7 @@ if (isRainPort) {
         }
         if (k === "seal_nail") {
           wT.seal_nail = 0;
-          wMax.seal_nail = window.GAME_SEAL_NAIL.spec(nextLvl).cooldown;
+          wMax.seal_nail = window.GAME_SEAL_NAIL.spec(nextLvl, 1, buildMutations).cooldown;
         }
         if (BAMBOO_STARTER_CHOICES.includes(k) && STORE.isActiveSkillUnlocked(k))
           STORE.markSkillExperienced?.(k);
@@ -3035,7 +3035,7 @@ if (isRainPort) {
     }
     if (WL.seal_nail > 0) {
       sealNail.tick({dt,level:WL.seal_nail,start:movement?.start,end:movement?.end,
-        dashing:movement?.dashing ?? false,enemies,
+        dashing:movement?.dashing ?? false,enemies,mutations:buildMutations,
         effectiveDamage:getEffectiveDmg(combatBuildState()),
         hit:(enemy,damage)=>hurt(enemy,damage,false,false,"seal_nail"),
         onEvent:kind=>{
@@ -3046,12 +3046,14 @@ if (isRainPort) {
             RENDERER.triggerShake(4);
           }
         }});
-      wMax.seal_nail=window.GAME_SEAL_NAIL.spec(WL.seal_nail).cooldown;
-      wT.seal_nail=sealNail.snapshot(WL.seal_nail).cooldown;
+      const status=sealNail.snapshot(WL.seal_nail,buildMutations);
+      wMax.seal_nail=status.cooldownMax;
+      wT.seal_nail=status.cooldown;
     }
     if (shikigami && WL.shikigami > 0) {
       shikigamiArt ??= shikigamiModule.loadArt(shikigami.species);
       shikigami.tick({ dt, player: P, enemies, level: WL.shikigami, blocked,
+        mutations: buildMutations,
         effectiveDamage: getEffectiveDmg(combatBuildState()),
         hit: (enemy, damage) => hurt(enemy, damage, false, false, "shikigami"),
         onEvent: shikigamiCue });

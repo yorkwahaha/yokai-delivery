@@ -150,10 +150,10 @@ test('empty choices render a stable message without a phantom card',()=>{
  assert.ok(a.traces.some(t=>t.text==='目前沒有可選技能'));
 });
 
-test('all 45 shared-frame centers, including six newly deployed skill rasters, exist',()=>{
+test('all 53 shared-frame skill centers exist',()=>{
  const x=trial('');
  const cfg=x.env.window.__YOKAI_UPGRADE_PHASE42;
- assert.equal(cfg.sharedCardIds.length,45);
+ assert.equal(cfg.sharedCardIds.length,53);
  for(const pathName of [cfg.framePath,...cfg.sharedCardIds.map(cfg.centerPath)])
    assert.ok(fs.statSync(path.join(__dirname,'..',pathName)).size>20000,
      'raster card image missing: '+pathName);
@@ -272,20 +272,38 @@ test('all approved active cards draw the same frame, separate centers and fixed 
  assert.ok(!a.traces.some(t=>t.text==='請載入核准卡圖'));
 });
 
-test('Phase42 maps all 45 skills to distinct shared-frame center paths',()=>{
+test('Phase42 maps all 53 skills to distinct shared-frame center paths',()=>{
  const a=trial();
  const cfg=a.env.window.__YOKAI_UPGRADE_PHASE42;
  assert.ok(cfg,'local opt-in must expose the approved art mapping');
- assert.equal(cfg.sharedCardIds.length,45);
- assert.equal(new Set(cfg.sharedCardIds).size,45);
+ assert.equal(cfg.sharedCardIds.length,53);
+ assert.equal(new Set(cfg.sharedCardIds).size,53);
  const paths=cfg.sharedCardIds.map(cfg.centerPath);
- assert.equal(new Set(paths).size,45,'no two skills may share an illustration');
+ assert.equal(new Set(paths).size,53,'no two skills may share an illustration');
  assert.equal(cfg.centerPath('mut_armorbreak'),
    'assets/img/skills/mut-armorbreak/cards/mut-armorbreak__art.webp');
  assert.equal(cfg.centerPath('oil_max'),
    'assets/img/skills/oil-max/cards/oil-max__art.webp');
   assert.equal(cfg.centerPath('katana'),
     'assets/img/skills/katana/cards/katana__art.webp');
+});
+
+test('第八／九招八張變異在公開模式使用各自的 WebP 與共用卡框',()=>{
+ const a=trial('', 'example.com');
+ class Img{
+   naturalWidth=820;naturalHeight=1230;
+   set src(url){this.url=url;this.onload?.();}
+ }
+ a.env.window.Image=Img;
+ const cfg=a.env.window.__YOKAI_UPGRADE_PHASE42;
+ const ids=cfg.sharedCardIds.filter(id=>/^mut_(seal_nail|shikigami)_/.test(id));
+ assert.equal(ids.length,8);
+ for(const id of ids){
+   a.traces.length=0;
+   a.UI.drawLevelUp(a.ctx,2,[{id,type:'mutation',n:'變異卡',d:'技能增益'}],{}, {},0,0,0,'keyboard');
+   assert.ok(a.traces.some(t=>t.image===cfg.centerPath(id)));
+   assert.ok(a.traces.some(t=>t.image===cfg.framePath));
+ }
 });
 
 test('violet fragrance and seal nail share the new main art on public and local hosts',()=>{
@@ -301,14 +319,14 @@ test('violet fragrance and seal nail share the new main art on public and local 
   const cfg=local.env.window.__YOKAI_UPGRADE_PHASE42;
   const candidate=cfg.centerPath('ink_trail');
   assert.equal(candidate,'assets/img/skills/ink-trail/cards/ink-trail__art__incense.webp');
-  assert.equal(cfg.sharedCardIds.length,45);
+  assert.equal(cfg.sharedCardIds.length,53);
   assert.equal(local.traces.filter(t=>t.image===cfg.framePath).length,2);
   assert.equal(local.traces.filter(t=>t.image===candidate).length,1);
   assert.equal(local.traces.filter(t=>t.image==='assets/img/skills/seal-nail/cards/seal-nail__art__ritual.webp').length,1);
   assert.equal(cfg.centerPath('needle'),'assets/img/skills/needle/cards/needle__art.webp');
   assert.ok(local.traces.some(t=>t.text==='粉紫毒霧'));
   const publicHost=trial('','example.com');
-  assert.equal(publicHost.env.window.__YOKAI_UPGRADE_PHASE42.sharedCardIds.length,45);
+  assert.equal(publicHost.env.window.__YOKAI_UPGRADE_PHASE42.sharedCardIds.length,53);
   assert.equal(publicHost.env.window.__YOKAI_UPGRADE_PHASE42.centerPath('ink_trail'),candidate);
   assert.equal(publicHost.env.window.__YOKAI_UPGRADE_PHASE42.centerPath('seal_nail'),
     'assets/img/skills/seal-nail/cards/seal-nail__art__ritual.webp');
