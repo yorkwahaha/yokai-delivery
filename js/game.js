@@ -8098,17 +8098,24 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       // Count is deliberately sampled once at paint time: no extra enemy
       // searches, no browser console logging and no FPS polling timer.
       const area = window.VIEWPORT?.hudBounds?.() || viewBounds();
+      // Keep the diagnostics at the top CENTER rather than in the upper-left
+      // player's oil/health HUD. Narrow landscapes shrink the panel to leave
+      // the same left/right clearance for the HUD and minimap.
+      const hudSideClearance = Math.max(282, 30 + 170 / Math.max(0.2, v.scale || 1));
+      const perfWidth = Math.max(0, Math.min(324, area.right - area.left - 2 * hudSideClearance));
+      const perfX = (area.left + area.right - perfWidth) / 2;
+      const perfY = area.top + 6;
       ctx.save();
       ctx.setTransform(pixelScale, 0, 0, pixelScale, v.offsetX * pixelScale, v.offsetY * pixelScale);
       ctx.fillStyle = "rgba(15,24,35,.89)";
-      ctx.fillRect(area.left + 10, area.top + 106, 324, 48);
+      ctx.fillRect(perfX, perfY, perfWidth, 48);
       ctx.fillStyle = "#f1f8ff";
       ctx.font = "bold 14px monospace";
-      ctx.textAlign = "left";
+      ctx.textAlign = "center";
       ctx.textBaseline = "top";
-      ctx.fillText(perfText, area.left + 16, area.top + 112);
+      ctx.fillText(perfText, perfX + perfWidth / 2, perfY + 6, perfWidth - 12);
       ctx.fillText(`enemy ${enemies.length} | XP gems ${gems.length} | time ${Math.round(elapsed)}s`,
-        area.left + 16, area.top + 133);
+        perfX + perfWidth / 2, perfY + 27, perfWidth - 12);
       ctx.restore();
     }
 

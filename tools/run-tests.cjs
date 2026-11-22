@@ -20,6 +20,7 @@ const frozenHistorical=new Set([
 const currentPrefix=/^(game-.*phase\d+|game-combat-audit-hardening|core-(multi-enemy-stage|stateful-contracts)|audit-p1-|audio-gamepad-home-hotfix|phase2-geometry-audit|third-audit-regressions|water-slam-alpha-sfx|combat-targeting|combat-boundaries-stage-tutorial|boom-behavior|boss-(music|telegraph-delegate|ring-sweep)|evolutions|fx\.|skillfx\.|game-balance|progression|v3-boss-ai|v3-core|v3-contract-gate)/;
 const currentExact=new Set([
   'stage-bgm-routing-20261122.test.cjs',
+  'perf-overlay-position-20261122.test.cjs',
   'game-violet-scent-20261117.test.cjs',
   'game-shikigami-candidate-20261119.test.cjs',
   'game-shikigami-runtime-20261119.test.cjs',
