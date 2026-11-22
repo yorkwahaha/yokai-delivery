@@ -155,7 +155,7 @@ test('stage 2 real upgrade pool introduces Ink Trail without always forcing Kata
 });
 test('Phase17 script loaded before game after other pure helpers',()=>{
  const html=fs.readFileSync('index.html','utf8');
-   const helper='js/game-upgrade-choices.js?v=20261115-rank-weight-r1';
+   const helper=scriptUrl('game-upgrade-choices');
  const main=scriptUrl('game');
  assert.ok(html.includes(helper)&&html.includes(main));
  assert.ok(html.indexOf(helper)<html.indexOf(main));

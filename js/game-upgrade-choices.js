@@ -41,6 +41,20 @@ window.GAME_UPGRADE_CHOICES = (() => {
     }
     return output;
   }
+  // Exclude weapons chosen during the last two ACCEPTED upgrades when other
+  // weapons can progress. Rerolls do not advance this history.
+  // Keep at least two weapon candidates where possible; when the pool shrinks,
+  // relax older picks first, then the latest pick as a scarcity fallback.
+  function weaponsAfterRecentPicks(keys, recentPicks = []) {
+    const candidates = [...keys];
+    if (candidates.length <= 1) return candidates;
+    const recent = Array.isArray(recentPicks) ? recentPicks.slice(-2) : [];
+    const fresh = candidates.filter(key => !recent.includes(key));
+    if (fresh.length >= 2) return fresh;
+    const latest = recent[recent.length - 1];
+    const alternatives = candidates.filter(key => key !== latest);
+    return alternatives.length >= 2 ? alternatives : candidates;
+  }
 function assemble(awakenCard, fc, wc, cc, dc, pc, mc, shuffle) {
     let result = [];
     if (awakenCard) {
@@ -111,5 +125,5 @@ function assemble(awakenCard, fc, wc, cc, dc, pc, mc, shuffle) {
     }
     return result.slice(0,3);
   }
-  return Object.freeze({ assemble, withGuarantees, weaponOfferWeight, orderWeapons });
+  return Object.freeze({ assemble, withGuarantees, weaponOfferWeight, orderWeapons, weaponsAfterRecentPicks });
 })();

@@ -1029,6 +1029,8 @@
   const sealNailArt = window.GAME_SEAL_NAIL.loadCandidateArt();
   const sealNail = window.GAME_SEAL_NAIL.create({staged:true});
   let runIntroOffered = false;
+  // Only accepted choices count: rerolls never bypass the weapon cooldown.
+  let recentUpgradePicks = [];
   let boomLv5BurstFx = []; // temporary secondary sparks/smoke around painted Lv5 boom art
   let boomSecondSide = 1; // alternate off-center talismans; preserve a straight shot
   let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1;
@@ -1460,6 +1462,7 @@ if (isRainPort) {
     inkTrail.reset(); sealNail.reset(); shikigami?.reset();
     if (shikigami) WL.shikigami = wT.shikigami = 0;
     runIntroOffered = false;
+    recentUpgradePicks = [];
     buildRevision++;
     buildMutations = [];
     resetCharmRun();
@@ -1596,8 +1599,11 @@ if (isRainPort) {
     };
     // Unowned skills lead early picks. Repeated same-skill upgrades taper from
     // Lv2→3 and Lv3→4 onward, then recover as other equipped ranks catch up.
+    const weaponKeys = window.GAME_UPGRADE_CHOICES.weaponsAfterRecentPicks(
+      eligibleWeaponKeys, recentUpgradePicks
+    );
     const wc = window.GAME_UPGRADE_CHOICES.orderWeapons(
-      eligibleWeaponKeys, WL, MAX_ACTIVE_WEAPONS, Math.random
+      weaponKeys, WL, MAX_ACTIVE_WEAPONS, Math.random
     ).map(k => weaponCard(k, WL[k] + 1));
     const awakenCard = awakenKeys.length ? weaponCard(shuffle(awakenKeys)[0], 5) : null;
 
@@ -1880,6 +1886,8 @@ if (isRainPort) {
     if (applied === false) {
       return { ok: false, reason: "ineligible" };
     }
+    recentUpgradePicks.push(choice.type === "weapon" ? choice.id : null);
+    if (recentUpgradePicks.length > 2) recentUpgradePicks.shift();
     // Commit rarity only after selecting from the FINAL offer. Rerolling a
     // mutation offer must not immediately make another offer ineligible.
     if (choices.some(card => card.type === "mutation")) lastMutationOfferLevel = level;

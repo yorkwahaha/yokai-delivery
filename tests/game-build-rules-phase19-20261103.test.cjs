@@ -80,7 +80,7 @@ test('Phase19 excludes fusion weapons from ordinary level up and preserves origi
 });
 test('Phase19 HTML keeps shared build rules before game with matching revisions',()=>{
  const html=fs.readFileSync('index.html','utf8');
- const helper='js/game-build-rules.js?v=20261109-seal-free-lv5-r1';
+ const helper=scriptUrl('game-build-rules');
  const main=scriptUrl('game');
  assert.ok(html.includes(helper)&&html.includes(main));
  assert.ok(html.indexOf(helper)<html.indexOf(main));
