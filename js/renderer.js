@@ -3238,8 +3238,8 @@ window.RENDERER = (() => {
     const image = window.BOSS_HAZARD_ART_IMG?.[canonical];
     const def = window.BOSS_HAZARD_ART?.[canonical];
     if (!image || !def || !(image.naturalWidth > 0) || !(image.naturalHeight > 0)) {
-      // Keep safe telegraphs visible; retry failed image loads on later frames.
-      window.refreshBossHazardArt?.();
+      // Pending images already have a request. Failed ones use the loader's retry cooldown.
+      if (window.BOSS_HAZARD_ART_STATUS?.[canonical] !== "loading") window.refreshBossHazardArt?.();
       return null;
     }
     return { image, bbox: def.bbox, def };
@@ -3356,6 +3356,26 @@ window.RENDERER = (() => {
     return [-span, span];
   }
 
+  let tideBankSource, tideBank;
+  function getTideBank(image) {
+    if (image === tideBankSource) return tideBank;
+    const bank = document.createElement("canvas");
+    bank.width = 560; bank.height = 944;
+    const texture = bank.getContext("2d");
+    texture.drawImage(image, 0, 117, bank.width, bank.height, 0, 0, bank.width, bank.height);
+    // The old two-bank sheet has opaque pixels at both cut edges.
+    const edge = texture.createLinearGradient(0, 0, bank.width, 0);
+    edge.addColorStop(0, "transparent");
+    edge.addColorStop(.15, "black");
+    edge.addColorStop(.85, "black");
+    edge.addColorStop(1, "transparent");
+    texture.globalCompositeOperation = "destination-in";
+    texture.fillStyle = edge;
+    texture.fillRect(0, 0, bank.width, bank.height);
+    tideBankSource = image;
+    return tideBank = bank;
+  }
+
   function paintTide(c, art, h) {
     const angle = Number.isFinite(h.angle) ? h.angle : 0;
     const cos = Math.cos(angle), sin = Math.sin(angle);
@@ -3373,23 +3393,9 @@ window.RENDERER = (() => {
     ];
     if (!strips.some(([lo, hi]) => hi > lo)) return -1;
     
-    // Two independently painted banks created mismatched wave language.
-    // Reuse ONE raster for both sides, mirror one in the lateral axis and
-    // draw its entire natural-alpha silhouette once (no 256-unit tile seam).
-    const BANK_SX = 0, BANK_SW = 560, BANK_SY = 117, BANK_SH = 944;
-    
+    const bank = getTideBank(art.image);
     c.translate(h.x, h.y);
     c.rotate(angle);
-    c.beginPath();
-    for (const [lo, hi] of strips) {
-      if (!(hi > lo)) continue;
-      c.moveTo(progress - 60, lo);
-      c.lineTo(progress + 60, lo);
-      c.lineTo(progress + 60, hi);
-      c.lineTo(progress - 60, hi);
-      c.closePath();
-    }
-    c.clip();
     
     let n = 0;
     const waveHeight = 120; // 真實命中波前仍是 ±60
@@ -3404,8 +3410,7 @@ window.RENDERER = (() => {
         c.translate(0, lo + hi);
         c.scale(1, -1);
       }
-      c.drawImage(art.image, BANK_SX, BANK_SY, BANK_SW, BANK_SH,
-        progress - 60, lo, waveHeight, hi - lo);
+      c.drawImage(bank, progress - 60, lo, waveHeight, hi - lo);
       c.restore();
       n++;
     }
@@ -3486,8 +3491,11 @@ window.RENDERER = (() => {
     const width=520,height=120*4.5;
     const u=Math.min(1,Math.max(0,(h.t||0)/Math.max(.1,h.duration||1)));
     const emerge=Math.min(1,u/.22);
-    // Place each image's native transparent edge OUTSIDE the safe channel,
-    // instead of slicing the old pictures at 57% through a visible crest.
+    if (!emerge) return true;
+    const bank=getTideBank(img);
+    const tilt=window.VIEWPORT.tiltScale();
+    const top=30-height*emerge;
+    const feather=84;
     const sideMargin=12, overlap=.90;
     const nearLeft=safe-half-sideMargin-width/2;
     const nearRight=safe+half+sideMargin+width/2;
@@ -3496,31 +3504,52 @@ window.RENDERER = (() => {
     for(let i=0;i<offsets.length;i++){
       const lateral=offsets[i],x=h.x+cos*progress-sin*lateral;
       const y=h.y+sin*progress+cos*lateral;
-      const left=i<2;
-      const sx=0, sw=560; // shared artwork for matching left/right waves
-      c.save();
-      // The giant upright billboards must NOT paint over the safe corridor.
-      // Clip in the same world-space lateral coordinate used by BOSS_AI,
-      // before upright() temporarily cancels the 2.5D tilt.
-      c.translate(h.x,h.y);c.rotate(a);
-      c.beginPath();
-      if(left)c.rect(-2500,-2500,5000,2500+safe-half);
-      else c.rect(-2500,safe+half,5000,2500-safe-half);
-      c.clip();
-      c.rotate(-a);c.translate(-h.x,-h.y);
+      const side=i<2?-1:1;
+      // Convert billboard pixels back to the AI's world-space lateral axis.
+      // The alpha ramp reaches zero exactly at the safe edge, even in tilt.
+      const nx=-side*sin, ny=side*cos*emerge/tilt;
+      const edge=side*(lateral-safe)+nx*(-width/2)+side*cos*top/tilt-half;
+      const dx=nx*width, dy=ny*height;
+      if (edge+Math.max(0,dx)+Math.max(0,dy)<=0) continue;
+      const needsMask=edge+Math.min(0,dx)+Math.min(0,dy)<feather;
       upright(x,y,()=>{
         c.save();
-        c.globalAlpha=.94*emerge;
+        c.globalAlpha*=.94*emerge;
         c.translate(x,y);
-        if(!left)c.scale(-1,1);
-        c.drawImage(img,sx,117,sw,944,-width/2,-height*emerge+30,
-          width,height*emerge);
+        let texture=bank;
+        if(needsMask){
+          if(!tideCrestMask){
+            const canvas=document.createElement("canvas");
+            canvas.width=width; canvas.height=height;
+            tideCrestMask=canvas.getContext("2d");
+          }
+          const mask=tideCrestMask;
+          mask.globalCompositeOperation="source-over";
+          mask.clearRect(0,0,width,height);
+          if(side>0){ mask.translate(width,0); mask.scale(-1,1); }
+          mask.drawImage(bank,0,0,width,height);
+          mask.resetTransform();
+          const lengthSq=nx*nx+ny*ny;
+          const start=-edge/lengthSq, end=(feather-edge)/lengthSq;
+          const gradient=mask.createLinearGradient(nx*start,ny*start,nx*end,ny*end);
+          gradient.addColorStop(0,"transparent");
+          gradient.addColorStop(.25,"rgba(0,0,0,.16)");
+          gradient.addColorStop(.75,"rgba(0,0,0,.84)");
+          gradient.addColorStop(1,"black");
+          mask.globalCompositeOperation="destination-in";
+          mask.fillStyle=gradient;
+          mask.fillRect(0,0,width,height);
+          texture=mask.canvas;
+        }else if(side>0){
+          c.scale(-1,1);
+        }
+        c.drawImage(texture,-width/2,top,width,height*emerge);
         c.restore();
       });
-      c.restore();
     }
     return true;
   }
+  let tideCrestMask;
 
   function paintTidalFan(c, artOrImg, h, phase, elapsed, motion) {
     // 支援兩種呼叫：(c, art, h, phase, elapsed, motion) 或 (c, img, h, phase, elapsed, motion)
@@ -3563,7 +3592,7 @@ window.RENDERER = (() => {
     if (phase === "active") {
       const dur = h.duration > 0 ? h.duration : 0.15;
       const u = Math.min(1, Math.max(0, (Number(h.t) || 0) / dur));
-      sweepAngle = startAngle + fanSpan * (h.sweepReverse ? 1-u : u);
+      sweepAngle = tidalFanSweepAngle(h, startAngle, endAngle, u);
       // A readable rising white-water crest instead of the former faint fan.
       baseAlpha = 0.66;
       hotAlpha = u < 0.5 ? 0.90 : 1.0;
@@ -3624,6 +3653,10 @@ window.RENDERER = (() => {
     return n;
   }
 
+  function tidalFanSweepAngle(h, startAngle, endAngle, u) {
+    return startAngle + (endAngle - startAngle) * (h.sweepReverse ? 1-u : u);
+  }
+
   function paintRainVortex(c, artOrImg, h, phase, elapsed, motion) {
     // 支援兩種呼叫：(c, art, h, phase, elapsed, motion) 或 (c, img, h, phase, elapsed, motion)
     const art = artOrImg.image ? artOrImg : { image: artOrImg, bbox: null };
@@ -3658,9 +3691,9 @@ window.RENDERER = (() => {
       const v = list[i];
       if (!v || !Number.isFinite(v.x) || !Number.isFinite(v.y)) continue;
       const hitR = (Number(v.r) > 0 ? Number(v.r) : 32) + 20;
-      // 每根柱各用 Boss AI 的錯峰進度，未輪到的柱只能留下地面預警。
-      const fall = Number.isFinite(v.fallProgress) ? v.fallProgress :
-        Math.max(0, Math.min(1, (u - (0.5 + i * 0.5 / list.length)) / (0.5 / list.length)));
+      const fall = v.fallProgress ?? 0;
+      if (phase === "active" && fall >= 1) continue;
+      const erupting = phase === "active" && fall > 0;
       const visualR = hitR * 1.2;
       
       c.save();
@@ -3670,20 +3703,19 @@ window.RENDERER = (() => {
       if (GROUND_SH > 0) {
         c.save();
         c.beginPath();
-        c.arc(0, 0, visualR, 0, Math.PI * 2);
+        c.arc(0, 0, hitR, 0, Math.PI * 2);
         c.clip();
         c.globalAlpha = alpha;
-        const scale = visualR * 2 / sw;
+        const scale = hitR * 2 / sw;
         const drawW = sw * scale;
         const drawH = GROUND_SH * scale;
-        // 地面層錨點：底部中心，向上延伸
-        c.drawImage(img, bbox[0], bbox[1] + GROUND_SY, sw, GROUND_SH, -drawW/2, -drawH, drawW, drawH);
+        c.drawImage(img, bbox[0], bbox[1] + GROUND_SY, sw, GROUND_SH, -drawW/2, -drawH/2, drawW, drawH);
         c.restore();
         n++;
       }
       
       // === 層 2：水柱 (billboard 直立，反世界 tilt 保持垂直) ===
-      if (COLUMN_SH > 0 && phase === "active" && fall > 0 && fall < 1) {
+      if (COLUMN_SH > 0 && erupting) {
         c.save();
         // Solid 3x-height water geyser: the base stays at the actual warning
         // position, and only its upper billboard extends beyond the hitbox.
@@ -3722,9 +3754,9 @@ window.RENDERER = (() => {
       
       // === Telegraph/Active/Recovery 視覺回饋：邊緣高亮圓環 ===
       c.save();
-      c.globalAlpha = phase === "active" ? 1 : Math.min(0.8, alpha);
-      c.strokeStyle = phase === "active" ? "rgba(210, 244, 255, 0.95)" : "rgba(140, 220, 255, 0.7)";
-      c.lineWidth = phase === "active" ? 2.5 : 1.5;
+      c.globalAlpha = erupting ? 1 : Math.min(0.8, alpha);
+      c.strokeStyle = erupting ? "rgba(210, 244, 255, 0.95)" : "rgba(140, 220, 255, 0.7)";
+      c.lineWidth = erupting ? 2.5 : 1.5;
       c.beginPath();
       c.arc(0, 0, hitR, 0, Math.PI * 2);
       c.stroke();
@@ -3736,177 +3768,35 @@ window.RENDERER = (() => {
     return n;
   }
 
-  function paintLegacyPortHazard(c, h, elapsed) {
-    const motion = allowsMotion();
-    const phase = h.phase || "telegraph";
-    const kind = h.kind || "";
-    const fan = kind === "tidalFan" || kind === "tidal_surge" || kind === "tide_fan";
-    if (fan) {
-      c.save();
-      const r = h.r || 210;
-      const angle = h.angle || 0;
-      const startAngle = h.startAngle ?? (angle - Math.PI / 3);
-      const endAngle = h.endAngle ?? (angle + Math.PI / 3);
-      const fanSpan = endAngle - startAngle;
-      if (phase === "telegraph") {
-        const pulse = motion ? Math.sin(elapsed * 7) * 0.08 : 0;
-        c.fillStyle = `rgba(32, 105, 155, ${0.20 + pulse})`;
-        c.beginPath();
-        c.moveTo(h.x, h.y);
-        c.arc(h.x, h.y, r, startAngle, endAngle);
-        c.closePath();
-        c.fill();
-        c.strokeStyle = "rgba(140, 220, 255, 0.45)";
-        c.lineWidth = 1.8;
-        c.beginPath();
-        c.moveTo(h.x, h.y);
-        c.lineTo(h.x + Math.cos(startAngle) * r, h.y + Math.sin(startAngle) * r);
-        c.moveTo(h.x, h.y);
-        c.lineTo(h.x + Math.cos(endAngle) * r, h.y + Math.sin(endAngle) * r);
-        c.stroke();
-        c.strokeStyle = "rgba(220, 248, 255, 0.85)";
-        c.lineWidth = 3.2;
-        c.setLineDash([10, 6]);
-        c.beginPath();
-        c.arc(h.x, h.y, r, startAngle, endAngle);
-        c.stroke();
-        c.setLineDash([]);
-        if (motion) {
-          const wavePhase = (elapsed * 2.2) % 1;
-          c.strokeStyle = `rgba(180, 235, 255, ${0.6 * (1 - wavePhase)})`;
-          c.lineWidth = 2.4;
-          c.beginPath();
-          c.arc(h.x, h.y, r * wavePhase, startAngle, endAngle);
-          c.stroke();
-        }
-      } else if (phase === "active") {
-        const u = Math.min(1, (h.t || 0) / (h.duration || 0.45));
-        const curR = r * (0.15 + 0.85 * u);
-        c.fillStyle = "rgba(25, 80, 125, 0.35)";
-        c.beginPath();
-        c.moveTo(h.x, h.y);
-        c.arc(h.x, h.y, curR, startAngle, endAngle);
-        c.closePath();
-        c.fill();
-        c.strokeStyle = "rgba(40, 125, 185, 0.80)";
-        c.lineWidth = 20;
-        c.lineCap = "round";
-        c.beginPath();
-        c.arc(h.x, h.y, curR, startAngle, endAngle);
-        c.stroke();
-        c.strokeStyle = "rgba(255, 255, 255, 0.95)";
-        c.lineWidth = 6;
-        c.beginPath();
-        c.arc(h.x, h.y, curR + 3, startAngle, endAngle);
-        c.stroke();
-        if (motion) {
-          c.fillStyle = "rgba(240, 250, 255, 0.9)";
-          for (let i = 0; i <= 7; i++) {
-            const dropAng = startAngle + fanSpan * (i / 7);
-            const sprayDist = curR + 10 + Math.sin(i * 3.7 + elapsed * 10) * 8;
-            c.beginPath();
-            c.arc(h.x + Math.cos(dropAng) * sprayDist, h.y + Math.sin(dropAng) * sprayDist, 3, 0, 6.283);
-            c.fill();
-          }
-        }
-      } else {
-        const fade = Math.max(0, 1 - (h.t || 0) / (h.duration || 1.35));
-        c.strokeStyle = `rgba(180, 230, 250, ${0.45 * fade})`;
-        c.lineWidth = 4;
-        c.beginPath();
-        c.arc(h.x, h.y, r, startAngle, endAngle);
-        c.stroke();
-      }
-      c.restore();
-      return;
-    }
+  function paintPortHazardSafety(c, h, fan) {
+    if (h.phase === "recovery") return;
     c.save();
-    const vortexes = Array.isArray(h.vortexes) && h.vortexes.length > 0
-      ? h.vortexes
-      : [{ x: h.x, y: h.y, r: h.r || 32 }];
-    for (const v of vortexes) {
-      const vx = v.x, vy = v.y, vr = v.r || 32;
-      if (phase === "telegraph") {
-        c.save();
-        c.translate(vx, vy);
-        c.scale(1, 0.58);
-        c.rotate(motion ? elapsed * 5.2 : 0);
-        c.fillStyle = "rgba(18, 52, 85, 0.65)";
+    c.lineWidth = 3;
+    c.strokeStyle = "#a7edff";
+    if (fan) {
+      const angle = h.angle || 0;
+      let start = h.startAngle ?? angle - Math.PI / 3;
+      let end = h.endAngle ?? angle + Math.PI / 3;
+      if (h.phase === "active") {
+        const u = Math.min(1, Math.max(0, (Number(h.t) || 0) / (h.duration > 0 ? h.duration : 0.15)));
+        const sweep = tidalFanSweepAngle(h, start, end, u);
+        start = Math.max(start, sweep - Math.PI / 12);
+        end = Math.min(end, sweep + Math.PI / 12);
+      }
+      c.beginPath();
+      c.moveTo(h.x, h.y);
+      c.arc(h.x, h.y, (h.r || 225) + 30, start, end);
+      c.closePath();
+      c.stroke();
+    } else {
+      for (const v of h.vortexes || []) {
+        if (!Number.isFinite(v.x) || !Number.isFinite(v.y)) continue;
+        const fall = v.fallProgress ?? 0;
+        if (h.phase === "active" && fall >= 1) continue;
+        c.lineWidth = h.phase === "active" && fall > 0 ? 4 : 2;
         c.beginPath();
-        c.arc(0, 0, vr, 0, 6.283);
-        c.fill();
-        c.strokeStyle = "rgba(145, 235, 255, 0.85)";
-        c.lineWidth = 2.4;
-        for (let arm = 0; arm < 3; arm++) {
-          c.beginPath();
-          const armOffset = (arm * Math.PI * 2) / 3;
-          for (let step = 0; step <= 12; step++) {
-            const tStep = step / 12;
-            const curAng = armOffset + tStep * Math.PI * 1.5;
-            const curDist = vr * (1 - tStep * 0.7);
-            const px = Math.cos(curAng) * curDist;
-            const py = Math.sin(curAng) * curDist;
-            if (step === 0) c.moveTo(px, py);
-            else c.lineTo(px, py);
-          }
-          c.stroke();
-        }
-        c.strokeStyle = "rgba(220, 245, 255, 0.75)";
-        c.lineWidth = 1.6;
-        c.setLineDash([5, 4]);
-        c.beginPath();
-        c.arc(0, 0, vr * 1.15, 0, 6.283);
+        c.arc(v.x, v.y, (v.r || 32) + 20, 0, Math.PI * 2);
         c.stroke();
-        c.setLineDash([]);
-        c.restore();
-      } else if (phase === "active") {
-        const u = Math.min(1, (h.t || 0) / (h.duration || 0.55));
-        const n = Math.max(1, vortexes.length);
-        const index = vortexes.indexOf(v);
-        const fall = Number.isFinite(v.fallProgress) ? v.fallProgress :
-          Math.max(0, Math.min(1, (u - (0.5 + index * 0.5 / n)) / (0.5 / n)));
-        const riseCurve = Math.sin(fall * Math.PI);
-        if (!(riseCurve > 0)) continue;
-        const colHeight = (130 + vr * 1.2) * riseCurve;
-        const colWidth = vr * (1.1 + 0.3 * (1 - riseCurve));
-        c.save();
-        c.translate(vx, vy);
-        c.save();
-        c.scale(1, 0.55);
-        c.strokeStyle = "rgba(240, 252, 255, 0.9)";
-        c.lineWidth = 4;
-        c.beginPath();
-        c.arc(0, 0, colWidth * 1.25, 0, 6.283);
-        c.stroke();
-        c.restore();
-        if (colHeight > 6 && c.createLinearGradient) {
-          const grad = c.createLinearGradient(0, 0, 0, -colHeight);
-          grad.addColorStop(0, "rgba(35, 115, 175, 0.85)");
-          grad.addColorStop(0.7, "rgba(75, 175, 225, 0.80)");
-          grad.addColorStop(1, "rgba(220, 248, 255, 0.95)");
-          c.fillStyle = grad;
-          c.beginPath();
-          c.moveTo(-colWidth * 0.5, 0);
-          c.quadraticCurveTo(-colWidth * 0.4, -colHeight * 0.5, -colWidth * 0.6, -colHeight);
-          c.lineTo(colWidth * 0.6, -colHeight);
-          c.quadraticCurveTo(colWidth * 0.4, -colHeight * 0.5, colWidth * 0.5, 0);
-          c.closePath();
-          c.fill();
-          c.fillStyle = "rgba(240, 252, 255, 0.7)";
-          c.fillRect(-colWidth * 0.18, -colHeight, colWidth * 0.36, colHeight);
-        }
-        c.restore();
-      } else {
-        const fade = Math.max(0, 1 - (h.t || 0) / (h.duration || 1.35));
-        c.save();
-        c.translate(vx, vy);
-        c.scale(1, 0.55);
-        c.strokeStyle = `rgba(180, 235, 255, ${0.5 * fade})`;
-        c.lineWidth = 2.5;
-        c.beginPath();
-        c.arc(0, 0, vr * (1.2 + (1 - fade) * 0.6), 0, 6.283);
-        c.stroke();
-        c.restore();
       }
     }
     c.restore();
@@ -4344,58 +4234,25 @@ window.RENDERER = (() => {
       return drew !== 0;
     }
 
-    // tidalFan / rainVortex：優先走 bossart gate (dev=1&bossart=1) 用專屬圖 (tidalFan_v01/rainVortex_v01)；
-    // bossart gate 關時退回 fusion gate 用 ripple；缺圖或兩 gate 關走 TECH_SAFETY_ONLY 幾何，絕不 invisible。
     if (isWaterFanVortex) {
-      const bossartOn = typeof window !== "undefined" && window.isBossHazardArtEnabled?.() === true;
-      if (bossartOn) {
-        const art = bossHazardArt(kind);
-        if (art) {
-          const phase = h.phase || "telegraph";
-          const motion = allowsMotion();
-          const alpha = bossPhaseAlpha(h, elapsed, motion);
-          if (phase === "recovery" && alpha <= 0) {
-            bossHazardPass = "IMAGE_NOT_DRAWN";
-            return true;
-          }
-          let drew = 0;
-          c.save();
-          try {
-            c.globalAlpha *= alpha;
-            drew = fan
-              ? paintTidalFan(c, art, h, phase, elapsed, motion)
-              : paintRainVortex(c, art, h, phase, elapsed, motion);
-          } finally {
-            c.restore();
-          }
-          bossHazardPass = drew > 0 ? "IMAGE" : drew < 0 ? "IMAGE_NOT_DRAWN" : "UNHANDLED";
-          return drew !== 0;
-        }
+      const art = bossHazardArt(kind);
+      if (!art) {
+        paintPortHazardSafety(c, h, fan);
+        bossHazardPass = "TECH_SAFETY_ONLY";
+        return true;
       }
-      // bossart gate 關：退回 fusion gate (dev=1&bossart=1 同義) 用 ripple
-      if (bossHazardImageDev()) {
-        const img = bossHazardRipple();
-        if (img) {
-          const phase = h.phase || "telegraph";
-          const motion = allowsMotion();
-          let drew = 0;
-          c.save();
-          try {
-            drew = fan
-              ? paintTidalFan(c, img, h, phase, elapsed, motion)
-              : paintRainVortex(c, img, h, phase, elapsed, motion);
-          } finally {
-            c.restore();
-          }
-          if (drew > 0) {
-            bossHazardPass = "IMAGE";
-            return true;
-          }
-        }
+      const phase = h.phase || "telegraph";
+      const motion = allowsMotion();
+      let drew;
+      c.save();
+      try {
+        drew = fan
+          ? paintTidalFan(c, art, h, phase, elapsed, motion)
+          : paintRainVortex(c, art, h, phase, elapsed, motion);
+      } finally {
+        c.restore();
       }
-      // TECH_SAFETY_ONLY：缺圖或兩 gate 關都走幾何 fallback，保留可見警示
-      paintLegacyPortHazard(c, h, elapsed || 0);
-      bossHazardPass = "TECH_SAFETY_ONLY";
+      bossHazardPass = drew > 0 ? "IMAGE" : "IMAGE_NOT_DRAWN";
       return true;
     }
 

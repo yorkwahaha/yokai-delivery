@@ -2,6 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const {createHash}=require('node:crypto');
+const {scriptUrl}=require('./helpers/script-url.cjs');
 const root=path.resolve(__dirname,'..');
 const ui=fs.readFileSync(path.join(root,'js/ui.js'),'utf8');
 const begin=ui.indexOf('  function drawSurgeWarning(');
@@ -35,8 +36,8 @@ test('B14 has a real isolated transparent photo-sized WebP and one immutable tex
  const worker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
  assert.ok(worker.includes('"assets/img/ui/b14/surge_brush.webp": "'+hash.slice(0,24)+'"'),
   'the media service-worker revision must be refreshed with the new image bytes');
- assert.match(fs.readFileSync(path.join(root,'index.html'),'utf8'),/js\/ui\.js\?v=20261109-panels-cargo-r1/,
-  'the UI loader must refresh so cached clients request the updated artwork');
+ assert.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes(scriptUrl('ui')),
+  'the UI loader must use a versioned script URL');
  assert.doesNotMatch(source,/fillText|strokeText|glassBox|b13Art|b12Art/);
  assert.match(source,/const art=b14SurgeBrush;/);
 });

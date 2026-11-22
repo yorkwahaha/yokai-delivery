@@ -1850,10 +1850,10 @@ if (isRainPort) {
       say("修行圓滿・繼續夜行", P.x, P.y - 45, "#ffe9a0");
       return;
     }
+    if (state !== "levelup") gpLevelupDir = "";
     state = "levelup";
     levelupFocus = UI.upgradeTrialEnabled?.() && choices.length === 3 ? 1 : 0;
     levelupTouchPreview = -1;
-    gpLevelupDir = "";
     levelupCooldown = 0.4;
     keys.clear(); heldCodes.clear();
     joy = null;
@@ -2794,7 +2794,8 @@ if (isRainPort) {
     }
     // Lv1-4 only splash the two closest neighbors of the stuck target.
     // Lv5 is a true large AoE: every enemy inside the painted blast takes
-    // the same damage as the primary target, with no extra target cap.
+    // its full base splash damage, without a target cap. The primary alone
+    // receives the separate 1.6x direct-hit bonus from the attack spec.
     const splashTargets = enemies
       .filter(e => e !== primary && e.hp > 0 && dist(e, q) <= radius)
       .sort((a, b) => dist(a, q) - dist(b, q));
@@ -6051,6 +6052,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
 
   const isRouteLabHazard = h => h.kind === "bambooCut" || h.kind === "bambooShoots" || h.kind === "kyotoCrossing";
   function drawBossHazard(h, owner, pass) {
+    if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) return;
     if (isRouteLabHazard(h)) {
       if (h.phase === "recovery") return;
       if (STAGE.id === "bamboo-maze" && window.BAMBOO_ART?.paintHazard(ctx, h)) return;
@@ -6071,8 +6073,6 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.restore();
       return;
     }
-    if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) return;
-
     const portDraw = RENDERER && RENDERER.drawBossHazard;
     if (typeof portDraw === "function" && portDraw(ctx, h, elapsed, owner, pass) === true) return;
 
@@ -6250,17 +6250,31 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     const nearView = (x, y, margin = 220) =>
       x >= cam.x + view.left - margin && x <= cam.x + view.right + margin &&
       y >= cam.y + view.top - margin && y <= cam.y + view.bottom + margin;
+    // The tide spans the harbor sideways. Pillars are centered away from the caster.
+    const hazardNearView = (h, margin) => {
+      if (h.kind === "tide") {
+        const cos = Math.cos(h.angle || 0), sin = Math.sin(h.angle || 0);
+        const dx = cam.x + (view.left + view.right) / 2 - h.x;
+        const dy = cam.y + (view.top + view.bottom) / 2 - h.y;
+        const projectedHalfView = (Math.abs(cos) * view.width + Math.abs(sin) * view.height) / 2;
+        return Math.abs(dx * cos + dy * sin) <= projectedHalfView + margin + 280;
+      }
+      if (h.kind === "rainVortex" && h.vortexes?.length) {
+        return h.vortexes.some(v => nearView(v.x, v.y, margin));
+      }
+      return nearView(h.x, h.y, margin);
+    };
     const houseSeen = house => roofCull
       ? house.x >= roofCull.left && house.x <= roofCull.right && house.y >= roofCull.top && house.y <= roofCull.bottom
       : nearView(house.x, house.y);
 
     // 1. 地面與道路
     RENDERER.drawGround(visualElapsed, DAWN, activeChunks, STAGE_VISUAL.ground || "ground", STAGE.id);
-    if (STAGE.id === "rain-port" && STAGE_VISUAL.weather === "rain") {
+    const groundRipple = STAGE.id === "rain-port" && window.PORT_ART?.ripple;
+    if (groundRipple?.naturalWidth && STAGE_VISUAL.weather === "rain") {
       const motion = liveMotion();
       ctx.save();
       ctx.lineWidth = 1.2;
-      const groundRipple = window.PORT_ART?.ripple;
       // Phase16 weather hash moved to GAME_WEATHER; do not use its former
       // bare name or the rain-port frame will throw before the first paint.
       const rainUnit = window.GAME_WEATHER.rainUnit;
@@ -6585,7 +6599,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     for (const e of enemies) {
       const h = e.hazard;
       if (e.hp <= 0 || !h || isRouteLabHazard(h) ||
-          !nearView(h.x, h.y, Math.max(480, h.reach || 0, h.length || 0, (h.r || 0) + 110))) continue;
+          !hazardNearView(h, Math.max(480, h.reach || 0, h.length || 0, (h.r || 0) + 110))) continue;
       if (sakuraStage && h.sakura) {
         if (h.phase === "telegraph" || (h.kind === "sakuraBloom" && h.phase === "active"))
           drawBossHazard(h, e, "warning");
@@ -7002,7 +7016,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if (STAGE.id === "rain-port") {
       for (const e of enemies) {
         const h=e.hazard;
-        if (!(e.hp>0 && h) || !nearView(h.x,h.y,Math.max(620,(h.r||0)+110)))continue;
+        if (!(e.hp>0 && h) || !hazardNearView(h,Math.max(620,(h.r||0)+110)))continue;
         if(h.phase==="active" && h.kind==="tide")
           RENDERER.drawPortTsunamiCrest?.(ctx,h,(x,y,paint)=>upright(x,y,paint));
         if(h.phase==="telegraph")
@@ -7211,6 +7225,11 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       else if (e.key === 'Enter' || action === 'interact') activateWithFeedback(menuButtons()[menuFocus].id);
       return;
     }
+    if (state === "levelup" && e.code === 'KeyR') {
+      e.preventDefault();
+      if (!e.repeat) reroll();
+      return;
+    }
     if (action) e.preventDefault();
     if (e.repeat && ["pause", "codex", "mute", "interact", "hint"].includes(action)) return;
     if (state === "charmswap") {
@@ -7293,9 +7312,6 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       } else if (!e.repeat && (e.key === 'Enter' || action === 'interact')) {
         e.preventDefault();
         pickUp(levelupFocus);
-      } else if (!e.repeat && e.code === 'KeyR') {
-        e.preventDefault();
-        reroll();
       }
       return;
     }

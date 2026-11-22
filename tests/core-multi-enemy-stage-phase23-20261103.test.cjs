@@ -224,16 +224,19 @@ test('P23 final boss healing never exceeds lifetime restored cap of twice max HP
  near(boss.regenRestored,2000);
  near(boss.hp,550.1);
 });
-test('P23 laggy Boss AI crosses warning into active and impacts exactly once',()=>{
+test('P23 laggy rain-port Boss AI crosses warning into vortex active and hits only once',()=>{
  const boss={x:0,y:0,hp:300,max:300,bossIndex:0,shield:false,stageId:'rain-port'};
  const p={x:160,y:0};
  const warn=AI.step(boss,p,1.2,{stageId:'rain-port'});
  assert.equal(warn.started,true);
  assert.equal(warn.hit,null);
- assert.equal(boss.hazard.kind,'slam');
+ assert.equal(boss.hazard.kind,'rainVortex');
  assert.equal(boss.hazard.phase,'active');
- const one=AI.step(boss,p,.05,{stageId:'rain-port'});
- assert.equal(one.hit.kind,'slam');
- const two=AI.step(boss,p,.05,{stageId:'rain-port'});
- assert.equal(two.hit,null);
+ const hits=[];
+ for(let n=0;n<22;n++){
+  const step=AI.step(boss,p,.05,{stageId:'rain-port'});
+  if(step.hit) hits.push(step.hit);
+ }
+ assert.equal(hits.length,1,'the same locked water column must not hit twice');
+ assert.equal(hits[0].kind,'rainVortex');
 });

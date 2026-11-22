@@ -46,14 +46,15 @@ test('B13 actual fully painted title and fresh menu board + two matching button 
  }
  assert.match(ui,/const art=b14SurgeBrush/);
  assert.match(ui,/drawB13MenuButton\(ctx,b,label/);
- assert.match(ui,/drawRibbonSlices\(ctx,img,b\.x,b\.y,b\.w,b\.h/);
+ assert.match(ui,/ctx\.drawImage\(img,b\.x,faceY,b\.w,faceH\)/);
  assert.match(ui,/function drawPausePaper\(/);
- assert.match(ui,/ctx\.drawImage\(art,x,y,w,h\)/);
+ assert.match(ui,/ctx\.drawImage\(resultTrialArt\.board,x,y,w,h\)/);
 });
 test('B13 no previous mismatched gray-overlaid panel or old button renderer in two modals',()=>{
  const pause=segment(ui,'  function drawPauseMenu(','  // 8. 百鬼夜行');
  const exit=segment(ui,'  function drawExitConfirm(','  const controlLabel = ');
- assert.match(pause,/drawPausePaper\(ctx,panelX,panelY,boardW,boardH,compact\?"exit":"pause"\)/);
+ assert.match(pause,/const combined=approvedPauseComposite\(buttons,muted,focus,page\)/);
+ assert.match(pause,/drawPausePaper\(ctx,board\.x,board\.y,board\.w,board\.h,board\.kind\)/);
  assert.match(pause,/drawB13MenuButton/);
  assert.match(exit,/drawPausePaper\(ctx,146,132,608,310,"exit"\)/);
  assert.match(exit,/drawB13MenuButton/);
@@ -69,7 +70,7 @@ test('B13 right-side order labels stay with high contrast ink outline and shadow
 test('B13 real 2/3/4 passive capacity light bar is narrow and softly glowing',()=>{
  const passive=segment(ui,'    const passives = [','    const hiddenPassives');
  assert.match(passive,/maxStacks=\{shield:3,dmg:4,rate:4,crit:3,spd:3/);
- assert.match(passive,/Math\.min\(5\.5,iconSize\*\.065\)/,
+ assert.match(passive,/Math\.max\(2\.8,Math\.min\(4\.5,iconSize\*\.065\)\)/,
    'narrow passive stack segments scale with the approved icon, not the outer paper slot');
  assert.match(passive,/255,232,68/);
  assert.match(passive,/Date\.now\(\)\/1000\*2\.4/);

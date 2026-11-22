@@ -50,3 +50,38 @@ test('觸控點卡先預覽，第二下才確認選擇', () => {
   game.tapCanvas(point);
   assert.equal(game.snapshot().state, 'play');
 });
+
+test('WASD 照常移動焦點，重綁 R 後升級畫面的 R 仍只重抽一次', () => {
+  const game = offer();
+  game.unlockUpgradeInput();
+  const key = (code, repeat = false) => game.events.keydown({key: code.slice(3).toLowerCase(), code, repeat, preventDefault() {}});
+  key('KeyA');
+  assert.equal(game.upgradeInput().focus, 0);
+  key('KeyD');
+  assert.equal(game.upgradeInput().focus, 1);
+  assert.equal(game.env.CONTROLS.bind('interact', 'KeyR'), true);
+  key('KeyR');
+  assert.equal(game.snapshot().state, 'levelup');
+  assert.equal(game.upgradeInput().rerolls, 1);
+  game.unlockUpgradeInput();
+  key('KeyR', true);
+  assert.equal(game.upgradeInput().rerolls, 1);
+});
+
+test('觸控重抽與手把 Y 各扣一次，手把持續按方向不會在重抽後跳焦點', () => {
+  const game = offer();
+  game.unlockUpgradeInput();
+  const r = game.env.UI.levelUpLayout(3).reroll;
+  game.tapCanvas({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
+  assert.equal(game.upgradeInput().rerolls, 1);
+  game.unlockUpgradeInput();
+  const buttons = Array.from({ length: 16 }, () => ({ pressed: false }));
+  game.env.navigator.getGamepads = () => [{ axes: [0, 0], buttons, connected: true }];
+  buttons[15].pressed = buttons[3].pressed = true;
+  game.pollGamepad();
+  assert.equal(game.upgradeInput().rerolls, 0);
+  const rerolledFocus = game.upgradeInput().focus;
+  game.pollGamepad();
+  assert.equal(game.upgradeInput().focus, rerolledFocus);
+  assert.equal(game.upgradeInput().rerolls, 0);
+});

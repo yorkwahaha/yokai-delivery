@@ -53,16 +53,26 @@ test('impact: opaque water sprite, intentional fade only on recovery',()=>{
   assert.equal(fade[0].alpha,.5);
 });
 
-test('two future water SFX paths are registered but excluded from preload',()=>{
+test('legacy water slam cues stay optional and the current fan and vortex MP3s are present',()=>{
+  const env={window:{},console};
+  vm.runInNewContext(audio,env);
+  const optional=audio.slice(audio.indexOf('const SILENT_OPTIONAL_SFX'),audio.indexOf('const unavailableSfx'));
   for(const [key,path] of [
    ['rainPortWaterSlamWarn','assets/audio/sfx/boss/rain_port_water_slam_warn.ogg'],
    ['rainPortWaterSlamImpact','assets/audio/sfx/boss/rain_port_water_slam_impact.ogg']
   ]) {
    assert.ok(audio.includes(key+': "'+path+'"'));
-   assert.match(audio,new RegExp('api\\.'+key+'='));
+   assert.equal(typeof env.window.AUDIO[key],'function');
+   assert.ok(optional.includes("'"+key+"'"));
   }
   assert.match(audio,/unavailableSfx\.add\(name\)/);
-  assert.match(audio,/'rainPortWaterSlamWarn','rainPortWaterSlamImpact'\]\.includes\(key\)/);
+  const preload=audio.slice(audio.indexOf('preloadWords(words)'),audio.indexOf('const paths = [',audio.indexOf('preloadWords(words)')));
+  assert.match(preload,/\.\.\.SILENT_OPTIONAL_SFX/);
+  for(const name of ['fan-warn','fan-sweep','vortex-warn','vortex-pillar']){
+    const path='assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__'+name+'.mp3';
+    assert.ok(audio.includes(path));
+    assert.ok(fs.statSync(path).size>0,path);
+  }
 });
 
 test('water Boss phase-triggered sounds are one-shot; night-town keeps its own impact cue',()=>{

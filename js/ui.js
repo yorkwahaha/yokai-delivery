@@ -285,7 +285,6 @@ window.UI = (() => {
       img.src="assets/img/ui/phase42/"+key+".webp?v=20261109-ui-restyle-r3";
     }
     for(const [key,src] of Object.entries({
-      exit:"assets/img/ui/menu/exit__board.webp",
       exitBlank:"assets/img/ui/menu/exit__blank.png?v=20261109-exit-dynamic-r2",
       pauseApproved:"assets/img/ui/menu/pause__approved.webp?v=20261109-five-slot",
       shrineButtonNormal:"assets/img/ui/menu/approved__button_normal.webp?v=20261109",
@@ -1122,13 +1121,13 @@ window.UI = (() => {
     if(!img?.naturalWidth){
       // Never resurrect the old beige buttons while the new sprite loads.
       const alt=resultTrialArt.button;
-      if(!alt?.naturalWidth)return;
-      ctx.save();ctx.drawImage(alt,b.x,b.y,b.w,b.h);ctx.restore();
+      if(alt?.naturalWidth)ctx.drawImage(alt,b.x,b.y,b.w,b.h);
       ctx.save();ctx.textAlign="center";
       ctx.font=fontFace?`400 ${size}px ${fontFace}`:scrollFont(size,"900");
       ctx.fillStyle="#fff1df";
       ctx.strokeStyle="rgba(37,14,35,.88)";
       ctx.lineWidth=2;
+      if(focus){ctx.shadowColor="#ffe088";ctx.shadowBlur=9;}
       drawPaintedButtonLabel(ctx,label,b.x+b.w/2,b.y+b.h/2,b.w-22,labelNudgeY);
       ctx.restore();return;
     }
@@ -1185,20 +1184,6 @@ window.UI = (() => {
     ctx.fillText(title,cx,y+29,width-28);
   }
   // The approved full-frame paintings already contain their button lettering.
-  // Drawing a second button bitmap or a second text layer would shift the
-  // glyphs and cover hand-painted edges (most visibly "回旅路地圖").
-  function drawApprovedMenuFocus(ctx,b,danger=false){
-    if(!b)return;
-    const img=approvedSystemArt[danger?"shrineButtonDanger":"shrineButtonNormal"];
-    if(!img?.naturalWidth)return;
-    const h=Math.min(b.h,b.w*img.naturalHeight/img.naturalWidth);
-    ctx.save();
-    ctx.shadowColor=danger?"rgba(255,144,98,.98)":"rgba(255,222,130,.98)";
-    ctx.shadowBlur=24;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
-    ctx.drawImage(img,b.x,b.y+(b.h-h)/2,b.w,h);
-    ctx.restore();
-  }
-
   function drawExitConfirm(ctx, focus = 0, target = 'home') {
     const toWorld = target === 'world';
     ctx.save();
@@ -1231,13 +1216,6 @@ window.UI = (() => {
         drawPaintedButtonLabel(ctx,label,b.x+b.w/2,b.y+b.h/2,b.w-48,-5);
         ctx.restore();
       });
-      ctx.restore();return;
-    }
-    if(!toWorld && approvedSystemArt.exit?.naturalWidth){
-      // Approved artwork says "回首頁"; map return remains dynamic.
-      ctx.drawImage(approvedSystemArt.exit,100,114,700,323);
-      const b=focus===1?{x:461,y:324,w:217,h:70}:{x:224,y:324,w:214,h:70};
-      drawApprovedMenuFocus(ctx,b,focus===1);
       ctx.restore();return;
     }
     drawPausePaper(ctx,146,132,608,310,"exit");

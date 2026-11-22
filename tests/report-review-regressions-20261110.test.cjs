@@ -9,6 +9,10 @@ test('reroll of a mutation offer may offer a mutation again at the same level', 
   g.stopSpawns();
   g.clearEnemies();
   g.setWeaponRank('needle', 1);
+  // This mutation has a 25% rarity gate while normal upgrades remain.
+  // Exercise the reroll cooldown deterministically rather than pinning the
+  // entire weapon-pool random sequence to one old seed.
+  g.env.Math.random = () => 0;
   assert.equal(g.forceLevelUp(), 'levelup');
   assert.ok(g.currentChoices().some(c => c.type === 'mutation'));
   g.waitLevelUpCooldown();

@@ -5,7 +5,7 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const path=require('node:path');
 
-test('new Phase42 pause, exit, and card info sprites are complete raster WebPs',()=>{
+test('Phase42 retains the original raster set and loads approved menu and card images',()=>{
  const root=path.join(__dirname,'../assets/img/ui/phase42');
  for(const file of ['pause_board','exit_board','button_normal','button_danger','title_plaque','detail_board']){
    const p=path.join(root,file+'.webp'),bytes=fs.readFileSync(p);
@@ -20,8 +20,15 @@ test('new Phase42 pause, exit, and card info sprites are complete raster WebPs',
  assert.match(ui,/exit_board/);
  assert.match(ui,/title_plaque/);
  assert.match(ui,/phase42\/"\+key/);
+ const pause='assets/img/ui/menu/pause__approved.webp';
+ const exit='assets/img/ui/menu/exit__blank.png';
+ assert.ok(ui.includes(pause) && ui.includes(exit));
+ assert.equal(fs.readFileSync(pause).toString('ascii',8,12),'WEBP');
+ assert.equal(fs.readFileSync(exit).toString('ascii',1,4),'PNG');
  const cards=fs.readFileSync('js/ui-upgrade-trial.js','utf8');
- assert.match(cards,/phase42\/detail_board\.webp/);
+ const detail='assets/img/ui/upgrade/approved_details_blank.webp';
+ assert.ok(cards.includes(detail));
+ assert.equal(fs.readFileSync(detail).toString('ascii',8,12),'WEBP');
 });
 
 test('low oil red alert now paints a gradient on every edge without masking center',()=>{

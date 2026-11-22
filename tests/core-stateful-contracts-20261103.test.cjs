@@ -212,6 +212,6 @@ test('core rain module loads before the main game and has its seeded weather has
  assert.ok(html.indexOf('js/game-weather.js')<html.indexOf('js/game.js'));
  const weather=fs.readFileSync('js/game-weather.js','utf8');
  const game=fs.readFileSync('js/game.js','utf8');
- assert.ok(weather.includes('return Object.freeze({drawStageWeather, rainUnit})'));
+ assert.match(weather,/return Object\.freeze\(\{drawStageWeather, rainUnit(?:, [a-zA-Z]+)*\}\)/);
  assert.ok(game.includes('const rainUnit = window.GAME_WEATHER.rainUnit;'));
 });

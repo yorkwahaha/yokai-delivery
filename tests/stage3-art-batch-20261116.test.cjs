@@ -164,13 +164,17 @@ test('enlarged Stage3 misdelivery umbrella keeps its word badge above the hat',(
 test('Stage3 boss hazards draw their dedicated raster art, retain missing-art warnings and show coarse-step impacts',()=>{
  const {env,draws,ctx}=renderer();
  for(const [role,def]of Object.entries(data.bossVfx))env.SAKURA_ART[role]={naturalWidth:768,naturalHeight:768,sakuraSourceRect:def.rect};
+ const warning=data.trialVfx.rootWarning;
+ assert.equal(fs.readFileSync(warning.path).toString('ascii',8,12),'WEBP');
+ env.SAKURA_ART.rootWarning={naturalWidth:512,naturalHeight:512,sakuraSourceRect:warning.rect};
  const AI=require('../js/boss-sakura.js');
  for(const turn of [0,1,2]){
   const e={x:1300,y:900,hp:100,max:100,bossIndex:0,_sakuraAttackStep:turn};
   AI.start(e,{x:1470,y:900});
   const before=draws.length;
   assert.equal(env.RENDERER.drawBossHazard(ctx,e.hazard,0,e),true);
-  assert.ok(draws.length>before,'new art appears in warning');
+  const warningArt=turn===2?env.SAKURA_ART.rootWarning:env.SAKURA_ART.windBlade;
+  assert.ok(draws.slice(before).some(a=>a[0]===warningArt),'the corresponding raster appears in warning');
   AI.step(e,{x:1470,y:900},e.hazard.duration+.01);
   AI.step(e,{x:1470,y:900},turn===2 ? 1 : .25);
   const active=draws.length;
@@ -182,17 +186,16 @@ test('Stage3 boss hazards draw their dedicated raster art, retain missing-art wa
  assert.equal(env.RENDERER.bossHazardPass(),'TECH_SAFETY_ONLY');
 });
 
-test('boss warning has solid dark/ivory contrast; roots grow 1.5x with a separate earth burst',()=>{
- const {env,draws,ctx}=renderer(),strokes=[],dashes=[];
- ctx.stroke=()=>strokes.push({color:ctx.strokeStyle,width:ctx.lineWidth,blend:ctx.globalCompositeOperation});
- ctx.setLineDash=a=>dashes.push(Array.from(a));
+test('missing root warning art fills the hit circles; root impacts retain their separate earth raster',()=>{
+ const {env,draws,ctx}=renderer(),fills=[],arcs=[];
+ ctx.fill=()=>fills.push(ctx.fillStyle);
+ ctx.arc=(...a)=>arcs.push(a);
  for(const [role,def]of Object.entries(data.bossVfx))env.SAKURA_ART[role]={naturalWidth:768,naturalHeight:768,sakuraSourceRect:def.rect};
  const AI=require('../js/boss-sakura.js'),e={x:1300,y:900,hp:100,max:100,bossIndex:0,_sakuraAttackStep:2};
  const p={x:1470,y:900};AI.start(e,p);
  env.RENDERER.drawBossHazard(ctx,e.hazard,0,e);
- assert.ok(strokes.some(x=>x.color==='#211018' && x.width===12 && x.blend==='source-over'));
- assert.ok(strokes.some(x=>x.color==='#fff0c7' && x.width===5));
- assert.deepEqual(dashes.at(-1),[],'final warning edges are solid');
+ assert.deepEqual(fills,['rgba(187,57,73,.73)'],'the combined safety path is filled once');
+ assert.deepEqual(arcs,e.hazard.marks.map(m=>[m.x,m.y,e.hazard.r,0,Math.PI*2]));
  AI.step(e,p,e.hazard.duration+.01);AI.step(e,p,.2);
  draws.length=0;env.RENDERER.drawBossHazard(ctx,e.hazard,0,e);
  assert.equal(e.hazard.r,74,'visual enlargement does not expand damage radius');

@@ -1,6 +1,7 @@
 'use strict';
 // 交貨結界與 Boss 封印反噬：從實際 game.js 抽出函式進行狀態驗證。
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const {loadGame}=require('./helpers/game-runtime.cjs');
 const game=fs.readFileSync(path.join(__dirname,'../js/game.js'),'utf8');
 function extract(name){
   const start=game.indexOf('function '+name+'(');assert.ok(start>=0,name);
@@ -22,6 +23,42 @@ test('交貨答題結界有多道羽化噴霧和向上光絲，戰鬥靈陣無�
   assert.doesNotMatch(fx,/barrierBreath/);
   assert.match(game,/drawDeliverySanctuaryMist\(job, timerFraction\)/,
     'real delivery-only sanctuary invokes its mist, separate from the battle barrier');
+});
+
+test('real Boss quiz can be retried after each curse in combat and only the correct answer opens the seal',()=>{
+  const g=loadGame();
+  g.start();
+  g.stopSpawns();
+  g.prepareBoss();
+  g.update(.05);
+  const boss=g.snapshot().enemies.find(e=>e.type==='boss');
+  const quiz=g.snapshot().bossQ;
+  assert.equal(quiz.reading,true);
+  const wrong=Array.from(quiz.ans.keys()).filter(i=>quiz.ans[i]!==boss.word);
+  const correct=quiz.ans.indexOf(boss.word);
+  assert.equal(wrong.length,2);
+  for(const [i,seconds] of [[wrong[0],10],[wrong[1],30]]){
+    g.unlockBoss();
+    const oil=g.snapshot().oil;
+    g.answerBoss(i);
+    assert.equal(g.combatPhase().curse,seconds);
+    assert.equal(g.snapshot().oil,oil);
+    g.update(.05);
+    assert.equal(g.snapshot().bossQ.reading,false);
+    const mistakes=quiz.wrong.length;
+    g.answerBoss(correct);
+    assert.equal(boss.shield,true);
+    assert.equal(quiz.wrong.length,mistakes);
+    // Advance only the remaining boundary; the actual update expires it.
+    g.setCurseSeconds(.025);
+    g.update(.05);
+    assert.equal(g.combatPhase().curse,0);
+    assert.equal(g.snapshot().bossQ,quiz);
+  }
+  g.unlockBoss();
+  g.answerBoss(correct);
+  assert.equal(boss.shield,false);
+  assert.equal(g.snapshot().bossQ,null);
 });
 test('Boss兩次錯答各 10／30 秒，完全不扣燈油，所有進行中的玩家攻擊清除',()=>{
   const word={jp:'まち',zh:'街'};
@@ -47,7 +84,7 @@ test('Boss兩次錯答各 10／30 秒，完全不扣燈油，所有進行中的�
   scope.answerBoss(1);
   assert.equal(scope.bossCurseRemaining,30);assert.equal(scope.oil,74);assert.equal(bossQ.wrong.length,2);
   assert.match(game,/if \(!safeRead && bossCurseRemaining > 0\)/);
-  assert.match(game,/if \(bossCurseRemaining <= 0\) weapons\(dt\)/);
+  assert.match(game,/if \(bossCurseRemaining <= 0\)\s*weapons\(dt,/);
   assert.match(game,/e\.hp <= 0 \|\| bossCurseRemaining > 0/);
   const ui=fs.readFileSync(path.join(__dirname,'../js/ui.js'),'utf8');
   assert.match(ui,/首次答錯禁攻 10 秒/);assert.doesNotMatch(ui,/答錯扣 15% 燈油/);

@@ -129,7 +129,7 @@ test("runtime scenery depth keeps scale 1 while blur still responds", () => {
   context.RENDERER.drawHouse({ x: 100, y: 800, bType: "shrine_pavilion" }, 800);
   const widths = images.map(call => call[3]);
   assert.equal(widths[0], widths[1]);
-  assert.equal(widths[0], 210);
+  assert.equal(widths[0], 166, 'Sakura ordinary buildings use the approved night-town shop envelope');
   const game = fs.readFileSync(path.join(ROOT, "js/game.js"), "utf8");
   assert.match(game, /worldBoundsAtZoom\?\.\(Math\.min\(1, window\.VIEWPORT\?\.worldZoom\?\.\(\) \?\? 1\)\)/,
     'spawn radius uses the documented bounded world-zoom calculation');

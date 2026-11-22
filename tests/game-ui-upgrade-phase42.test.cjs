@@ -110,6 +110,18 @@ test('three cards, details and centered reroll have independent, nonoverlapping 
  assert.deepEqual(Array.from(UI.levelUpLayout(1).cards,c=>c.index),[0]);
  assert.equal(UI.levelUpLayout(0).cards.length,0);
 });
+test('reroll stays below the detail panel at narrow landscape scales',()=>{
+ const {UI,env}=trial();
+ for(const scale of [0.45,0.5,0.53,0.65,1]){
+  env.window.VIEWPORT.get=()=>({scale});
+  for(const count of [1,2,3]){
+   const L=UI.levelUpLayout(count);
+   assert.ok(L.details.y+L.details.h<L.reroll.y,`details overlap reroll at scale ${scale}`);
+   assert.ok(L.reroll.y+L.reroll.h<=600,`reroll clips at scale ${scale}`);
+   if(scale>=0.5)assert.ok(L.reroll.h*scale>=44,`reroll tap target at scale ${scale}`);
+  }
+ }
+});
 test('bottom explanation follows focus, without mixing other options',()=>{
  const a=trial();
  a.UI.drawLevelUp(a.ctx,4,cards,{}, {},1,0,1,'keyboard');

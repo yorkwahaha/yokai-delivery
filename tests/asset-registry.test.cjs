@@ -68,6 +68,10 @@ test('ASSET-REGISTRY 新規範已與 runtime 載入器接線，未許可的素�
    'assets/img/rain-port/s2-production/ground_mud_slab.webp','non-selected legacy floor must not be promoted');
 });
 test('ASSET-REGISTRY 只允許已盤點影音，不可誤刪舊音檔或新增匿名候選到正式根目錄',()=>{
- const scan=cp.spawnSync('python',['tools/asset_registry.py','--check'],{cwd:ROOT,encoding:'utf8',timeout:45000});
+ const args=['tools/asset_registry.py','--check'];
+ const options={cwd:ROOT,encoding:'utf8',timeout:45000};
+ let scan=cp.spawnSync('python',args,options);
+ if(process.platform==='win32' && scan.error?.code==='ENOENT')scan=cp.spawnSync('py',['-3',...args],options);
+ assert.ifError(scan.error);
  assert.equal(scan.status,0,(scan.stdout||'')+'\n'+(scan.stderr||''));
 });

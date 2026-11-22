@@ -80,14 +80,17 @@ test('Lv1-4 talisman blast damages at most two nearest neighbors',()=>{
   for(const e of enemies.slice(3))close(e.hp,100);
 });
 
-test('Lv5 explosion damages every enemy in the 153px AoE for full direct damage',()=>{
+test('Lv5 explosion boosts the primary by 1.6x and damages every neighbor in the 153px AoE',()=>{
   const g=launch([100,130,160,190,290,410].map(dx=>({dx,hp:100,max:100,speed:0})),5);
   const projectiles=g.snapshot().proj, enemies=g.snapshot().enemies;
   const q=projectiles[0];q.stuck=true;q.target=enemies[0];
   q.x=enemies[0].x;q.y=enemies[0].y;q.fuse=.01;
   projectiles.splice(1);g.setWeaponRank('boom',0);g.weapons(.04);
   assert.equal(q.radius,153);
-  assert.equal(q.splashDamage,q.damage);
-  for(const e of enemies.slice(0,4))close(e.hp,100-q.damage);
+  // Lv5's primary hit was buffed without buffing the full AoE budget.
+  // All other targets in the area receive the complete splash budget.
+  close(q.damage,q.splashDamage*1.6);
+  close(enemies[0].hp,100-q.damage);
+  for(const e of enemies.slice(1,4))close(e.hp,100-q.splashDamage);
   for(const e of enemies.slice(4))close(e.hp,100);
 });

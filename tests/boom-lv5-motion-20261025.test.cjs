@@ -198,11 +198,11 @@ test('BOOM-LV5: deterministic position jitter appears after .30s', () => {
     `jitter starts after .30s: ${x},${y}`);
 });
 
-// -------- Test: current max starts at 70% opacity (not zero) --------
-test('BOOM-LV5: alpha at t=0 is 0.7 before full opacity', () => {
+// -------- Test: 70% entrance multiplied by the 97% raster opacity --------
+test('BOOM-LV5: alpha at t=0 is 70% of the published raster peak', () => {
   const f = sampleAtAge(0);
   console.log('[t=0 alpha]', f.alpha);
-  assert.equal(f.alpha, 0.7, 'current max burst starts visibly at 70% opacity');
+  assert.ok(Math.abs(f.alpha - 0.7 * 0.97) < 1e-9, 'entrance factor and raster transparency both apply');
 });
 
 test('BOOM-LV5-R2: alpha at t=0.1 is 1 (emerge~1, fade~1)', () => {

@@ -10,16 +10,18 @@ function setup() {
     player_walk_left_v2:fakeSprite, player_walk_right_v2:fakeSprite,player_idle_v2:fakeSprite
   };
   global.STORE = {isStageCompleted:()=>true,isStageUnlocked:()=>true,getStageStats:()=>({bestScore:0})};
-  global.CONTENT = {getStage:id=>({id,implemented:id==='night-town'||id==='rain-port'})};
+  global.CONTENT = {getStage:id=>({id,implemented:true,mapReleased:id==='night-town'||id==='rain-port'})};
   global.UI = {drawWoodTag(){},drawButton(){},drawWashiBoard(){}};
   return () => {for(const [key,v] of Object.entries(before))if(v===undefined)delete global[key];else global[key]=v;};
 }
 function spriteDraw(state, elapsed=0) {
   const transformations=[], drawn=[];
+  let anchor;
   const gradient={addColorStop(){}};
   const ctx = new Proxy({
     scale:(x,y)=>transformations.push([x,y]),
-    drawImage:(image,...args)=>drawn.push({image,args}),
+    translate:(x,y)=>{anchor=[x,y];},
+    drawImage:(image,...args)=>drawn.push({image,args,anchor}),
     createRadialGradient:()=>gradient,createLinearGradient:()=>gradient
   },{get:(target,key)=>key in target ? target[key] : (()=>{})});
   OVERWORLD.draw(ctx,state,elapsed);
@@ -44,6 +46,19 @@ test('returning from rain port faces left for each road segment and while idle',
     assert.equal(state.targetId,null);
     assert.equal(state.facing,-1,'do not snap back to facing right on arrival');
     assert.equal(spriteDraw(state).mirrored,true,'idle pose retains last travel direction');
+  } finally {restore();}
+});
+test('courier eases its draw offset with the same normalized progress as the map hop',()=>{
+  const restore=setup();
+  try {
+    const state=OVERWORLD.createState('rain-port');
+    assert.equal(OVERWORLD.moveTo(state,'night-town'),true);
+    OVERWORLD.update(state,state.moveDuration/2);
+    assert.equal(state.moveT,.5);
+    const [sprite]=spriteDraw(state).drawn;
+    assert.ok(sprite);
+    // First hop is from the stage's -75/+23 anchor to the waypoint's 0/-35 anchor.
+    assert.deepEqual(sprite.anchor,[state.x-37.5,state.y-6]);
   } finally {restore();}
 });
 test('traveling right uses original sprite and changes direction after turning around',()=>{

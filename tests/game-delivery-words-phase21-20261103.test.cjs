@@ -68,7 +68,7 @@ test('Phase21 delivery rules stay side-effect free and are loaded before game',(
  assert.match(game,/GAME_DELIVERY_RULES\.priorityMissedWords\(\s*ALL, jp => STORE\.get\(jp\)/);
  assert.match(game,/GAME_DELIVERY_RULES\.fallbackWordPool\(\s*ALL, livingMisWords, activeOrderWords/);
  const html=fs.readFileSync('index.html','utf8');
- const helper='js/game-delivery-rules.js?v=20261103-delivery-phase21';
+ const helper=scriptUrl('game-delivery-rules');
  const main=scriptUrl('game');
  assert.ok(html.includes(helper)&&html.includes(main));
  assert.ok(html.indexOf(helper)<html.indexOf(main));

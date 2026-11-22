@@ -340,7 +340,7 @@ const FIXTURE = `window.fixture = {
   spotBlocked: (x, y, r) => blocked(x, y, r),
   leaveStage: () => enterOverworld(),
   winStage: () => startVictorySequence(),
-  upgradeInput: () => ({ focus: levelupFocus, mode: inputMode }),
+  upgradeInput: () => ({ focus: levelupFocus, mode: inputMode, rerolls }),
   unlockUpgradeInput: () => { levelupCooldown = 0; },
   limitChoices: n => { choices = choices.slice(0, n); levelupFocus = 0; },
   hitUpgradeCard: p => hitLevelUpCard(p),

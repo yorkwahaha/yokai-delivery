@@ -4,6 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const AI=require('../js/boss-ai.js');
+const {loadGame}=require('./helpers/game-runtime.cjs');
 
 const port=(index=3,half=false)=>({
   x:0,y:0,type:'boss',hp:half?600:1400,max:1400,
@@ -112,7 +113,7 @@ test('rain-port tidal fan doubles actual reach, keeps the rear safe, and hits co
 test('raster renderer paints the larger fan and tall water columns, not only small ripples',()=>{
   const source=fs.readFileSync('js/renderer.js','utf8');
   const start=source.indexOf('  function paintTidalFan(');
-  const end=source.indexOf('\n  function paintLegacyPortHazard(',start);
+  const end=source.indexOf('\n  function paintPortHazardSafety(',start);
   assert.ok(start>0 && end>start);
   const sandbox={window:{VIEWPORT:{tiltScale:()=>0.6}}};
   vm.runInNewContext(source.slice(start,end)
@@ -137,10 +138,48 @@ test('raster renderer paints the larger fan and tall water columns, not only sma
     vortexes:[{x:0,y:0,r:35,fallProgress:0.5}]
   },'active',1,true);
   assert.ok(vortex.images.length>=3,'ground, column and impact must all be real raster');
+  assert.equal(vortex.images[0][6] + vortex.images[0][8] / 2, 0,
+    'the floor raster is centered on the collision point');
   assert.ok(vortex.images.some(args=>args[8]>=340),
     'water jet must tower more than 3x above the old ~50px fountain');
   assert.match(source.slice(start,end),/c\.globalAlpha = 1;/,
     'active column should not be drawn as half-transparent');
+});
+
+test('missing water art keeps the exact warning and eruption footprints without painting a substitute column',()=>{
+  const source=fs.readFileSync('js/renderer.js','utf8');
+  const arcs=[],images=[];
+  const ctx=new Proxy({arc(...args){arcs.push(args);},drawImage(...args){images.push(args);}},
+    {get:(obj,key)=>key in obj?obj[key]:()=>{}});
+  let refreshes=0;
+  const env={isBossHazardArtEnabled:()=>true,isFusionArtBindEnabled:()=>true,
+    BOSS_HAZARD_ART_STATUS:{tidalFan:'loading'},refreshBossHazardArt:()=>{refreshes++;},
+    PORT_ART:{ripple:{naturalWidth:128,naturalHeight:128}},matchMedia:()=>({matches:true})};
+  env.window=env;
+  vm.runInNewContext(source,env);
+  env.RENDERER.setDepthStage('rain-port');
+  const fan={kind:'tidalFan',phase:'telegraph',x:4,y:5,r:480,startAngle:-Math.PI/3,endAngle:Math.PI/3};
+  assert.equal(env.RENDERER.drawBossHazard(ctx,fan),true);
+  assert.equal(env.RENDERER.bossHazardPass(),'TECH_SAFETY_ONLY');
+  assert.ok(arcs.some(a=>a[0]===4 && a[1]===5 && a[2]===510));
+  assert.equal(images.length,0,'small ripple cannot use the dedicated fan source rectangle');
+  assert.equal(refreshes,0,'an in-flight request never re-enters the loader per draw');
+  env.BOSS_HAZARD_ART_STATUS.tidalFan='error';
+  arcs.length=0;
+  env.RENDERER.drawBossHazard(ctx,{...fan,phase:'active',sweepReverse:true,t:.25,duration:.5});
+  assert.ok(arcs.some(a=>a[2]===510 && a[3]===-Math.PI/12 && a[4]===Math.PI/12),
+    'active fallback marks the actual angular sweep, not a growing radius');
+  assert.equal(refreshes,1,'a failed request can still use the loader retry cooldown');
+  arcs.length=0;
+  const vortex={kind:'rainVortex',phase:'active',x:0,y:0,vortexes:[
+    {x:77,y:88,r:35,fallProgress:.5},{x:150,y:140,r:32,fallProgress:0},
+    {x:200,y:170,r:32,fallProgress:1}
+  ]};
+  env.RENDERER.drawBossHazard(ctx,vortex);
+  assert.ok(arcs.some(a=>a[0]===77 && a[1]===88 && a[2]===55));
+  assert.ok(arcs.some(a=>a[0]===150 && a[1]===140 && a[2]===52),'next pillar still has a warning');
+  assert.ok(!arcs.some(a=>a[0]===200),'spent pillar stops marking danger');
+  assert.equal(images.length,0);
 });
 
 test('all five pillars have a readable eruption interval even at 20 FPS',()=>{
@@ -245,34 +284,75 @@ test('rain-port danger alert is drawn above the sanctuary, below HUD, only durin
   assert.match(renderer,/h\?\.phase !== "telegraph"/);
 });
 
-test('tsunami uses matched mirror banks with natural-alpha margins and keeps the exact safe lane',()=>{
+test('a tide that can hit beyond the Boss viewport still paints its warning and wave',()=>{
+  const g=loadGame({stage:'rain-port'});
+  g.start('rain-port');
+  const {x,y}=g.snapshot();
+  g.env.RENDERER.getCam=()=>({x:x-450,y:y-300});
+  const h={kind:'tide',phase:'telegraph',x:x+1500,y,angle:Math.PI/2,
+    t:0,duration:1.1,progress:-280,safeOffset:0,safeWidth:130};
+  const boss=g.addMob({type:'boss',x:h.x,y:h.y,hazard:h,stageId:'rain-port',bossTheme:'harbor'});
+  const draws=[];
+  g.env.RENDERER.drawBossHazard=(_ctx,hazard)=>{draws.push(['floor',hazard.phase]);return true;};
+  g.env.RENDERER.drawPortBossTelegraphOverlay=()=>draws.push(['edge','telegraph']);
+  g.env.RENDERER.drawPortTsunamiCrest=()=>draws.push(['crest','active']);
+  g.stepFrame(16.7);
+  assert.deepEqual(draws,[['floor','telegraph'],['edge','telegraph']]);
+  draws.length=0;
+  Object.assign(h,{phase:'active',t:.45,duration:.9,progress:0});
+  g.update(.01);
+  assert.equal(h.hit,true,'the wave still deals damage across the lateral axis');
+  g.stepFrame(16.7);
+  assert.equal(boss.hazard,h);
+  assert.deepEqual(draws,[['floor','active'],['crest','active']]);
+});
+
+test('tsunami crests feather toward the exact safe lane in 2D and tilt',()=>{
   const vm=require('node:vm');
   const src=fs.readFileSync('js/renderer.js','utf8');
   const from=src.indexOf('  function drawPortTsunamiCrest(c,h,upright) {');
   const to=src.indexOf('  function paintTidalFan(',from);
   assert.ok(from>0&&to>from);
+  let tilt=1;
+  const bank={width:560,height:944};
+  const masks=[],images=[],flips=[];
+  const maskContext={clearRect(){},resetTransform(){},translate(){},scale(...v){flips.push(v);},
+    drawImage(){},fillRect(){assert.equal(this.globalCompositeOperation,'destination-in');},
+    createLinearGradient(...coords){
+      const stops=[];
+      masks.push({coords,stops});
+      return {addColorStop(...stop){stops.push(stop);}};
+    }};
+  const mask={width:520,height:540,getContext:()=>maskContext};
+  maskContext.canvas=mask;
   const context={window:{BOSS_HAZARD_ART_IMG:{tide:{naturalWidth:1254,naturalHeight:1254}}},
-    currentStageId:()=> 'rain-port'};
+    currentStageId:()=> 'rain-port',getTideBank:()=>bank,
+    document:{createElement:()=>mask}};
+  context.window.VIEWPORT={tiltScale:()=>tilt};
   vm.runInNewContext(src.slice(from,to)+';this.drawCrest=drawPortTsunamiCrest;',context);
-  const rects=[],images=[],clips=[],flips=[];
-  const ctx={save(){},restore(){},translate(){},rotate(){},beginPath(){},scale(...v){flips.push(v);},
-    rect(...args){rects.push(args);},clip(){clips.push(1);},
+  const ctx={save(){},restore(){},translate(){},rotate(){},beginPath(){},rect(){},scale(...v){flips.push(v);},
+    clip(){assert.fail('a hard screen-space clip cuts through the upright foam');},
     drawImage(...args){images.push(args);},globalAlpha:1};
-  const hazard={kind:'tide',phase:'active',x:0,y:0,angle:0,progress:120,
-    safeOffset:0,safeWidth:130,t:.5,duration:1};
-  assert.equal(context.drawCrest(ctx,hazard,(_x,_y,draw)=>draw()),true);
-  assert.equal(images.length,4,'two banks, two raster crests each');
-  assert.equal(clips.length,4);
-  assert.ok(images.every(args=>args[1]===0&&args[2]===117&&args[3]===560&&args[4]===944),
-    'both banks must reuse exactly the same natural-alpha source image, not two mismatched crops');
-  assert.equal(flips.filter(([sx,sy])=>sx===-1&&sy===1).length,2,
-    'one side is reflected to match the other with no art seam');
-  assert.ok(images.every(args=>args[7]===520 && args[8]===540*.9999999999999999 ||
-    args[7]===520 && Math.abs(args[8]-540)<.001));
-  assert.ok(rects.some(rect=>Math.abs((rect[1]+rect[3])-(-65))<.1),
-    'left wave cannot paint past the safe-left border');
-  assert.ok(rects.some(rect=>Math.abs(rect[1]-65)<.1),
-    'right wave cannot paint inside the safe-right border');
+  const hazard={kind:'tide',phase:'active',x:0,y:0,angle:.2,progress:120,
+    safeOffset:44,safeWidth:130,t:.5,duration:1};
+  for (tilt of [1,.6]) {
+    masks.length=images.length=flips.length=0;
+    assert.equal(context.drawCrest(ctx,hazard,(_x,_y,draw)=>draw()),true);
+    assert.equal(images.length,4,'two banks, two raster crests each');
+    assert.equal(flips.filter(([sx,sy])=>sx===-1&&sy===1).length,2);
+    assert.ok(images.every(([image,...rect])=>(image===bank||image===mask)&&rect[2]===520&&rect[3]===540));
+    assert.ok(masks.length>0);
+    const nearRightMask=masks.find(({coords:[,y,,endY]})=>endY>y);
+    assert.ok(nearRightMask,'the upright right bank crosses the horizontal lane');
+    const {coords:[x,y,endX,endY],stops}=nearRightMask;
+    const dx=endX-x,dy=endY-y;
+    const edgeY=y-(260-x)*dx/dy;
+    const nearRight=hazard.safeOffset+hazard.safeWidth/2+12+260;
+    const edgeLateral=nearRight+Math.cos(hazard.angle)*(edgeY-510)/tilt;
+    assert.ok(Math.abs(edgeLateral-(hazard.safeOffset+hazard.safeWidth/2))<1e-6);
+    assert.equal(stops[0][0],0);
+    assert.equal(stops.at(-1)[0],1);
+  }
   const ai=fs.readFileSync('js/boss-ai.js','utf8');
   assert.match(ai,/Math\.abs\(forward - curProgress\) <= 60/,
     'tsunami size must never silently enlarge actual ±60 damage footprint');
@@ -280,13 +360,18 @@ test('tsunami uses matched mirror banks with natural-alpha margins and keeps the
   assert.equal(context.drawCrest(ctx,hazard,(_x,_y,draw)=>draw()),false);
 });
 
-test('the tsunami floor wave draws matching full raster silhouettes instead of 256px cut tiles',()=>{
+test('the tsunami floor wave feathers both cut source edges before drawing matching banks',()=>{
   const vm=require('node:vm');
   const src=fs.readFileSync('js/renderer.js','utf8');
-  const start=src.indexOf('  function paintTide(c, art, h) {');
+  const start=src.indexOf('  let tideBankSource');
   const end=src.indexOf('  // Rain-port alert safety overlay.',start);
   assert.ok(start>0&&end>start);
-  const sandbox={};
+  const edges=[],prepared=[];
+  const bankCtx={drawImage(...args){prepared.push(args);},fillRect(){
+    assert.equal(this.globalCompositeOperation,'destination-in');
+  },createLinearGradient:()=>({addColorStop(...args){edges.push(args);}})};
+  const bank={getContext:()=>bankCtx};
+  const sandbox={document:{createElement:()=>bank}};
   vm.runInNewContext(src.slice(start,end)+';this.paintTide=paintTide;',sandbox);
   const calls=[],flips=[];
   const ctx={save(){},restore(){},translate(){},rotate(){},beginPath(){},moveTo(){},
@@ -297,8 +382,12 @@ test('the tsunami floor wave draws matching full raster silhouettes instead of 2
   const n=sandbox.paintTide(ctx,{image},{x:0,y:0,angle:0,progress:80,safeOffset:0,safeWidth:130});
   assert.equal(n,2,'the two danger banks should take one texture draw each');
   assert.equal(calls.length,2);
-  assert.ok(calls.every(args=>args[1]===0&&args[2]===117&&args[3]===560&&args[4]===944));
+  assert.equal(prepared.length,1);
+  assert.ok(calls.every(([image])=>image===bank));
+  assert.deepEqual(prepared[0].slice(1,5),[0,117,560,944]);
+  assert.match(edges[0][1],/transparent/);
+  assert.match(edges.at(-1)[1],/transparent/);
   assert.equal(flips.filter(([x,y])=>x===1&&y===-1).length,1);
-  assert.equal(calls[0][5],20);
-  assert.equal(calls[1][5],20);
+  assert.equal(calls[0][1],20);
+  assert.equal(calls[1][1],20);
 });

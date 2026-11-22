@@ -89,17 +89,27 @@ test('exit confirmation shares the same raster components and brush lettering',(
  }
 });
 
-test('approved home confirmation paints a complete illustration and halo without double lettering',()=>{
+test('home confirmation uses shared button hitboxes while the new illustration loads',()=>{
  const s=scene();
  s.UI.drawExitConfirm(s.ctx,1,'home');
- const boards=s.images.filter(v=>v.src?.includes('assets/img/ui/menu/exit__board.webp'));
- assert.equal(boards.length,1);
- assert.equal(boards[0].args.length,4);
- assert.equal(s.images.some(v=>v.src?.includes('menu__button__danger-hover.webp')),false);
- assert.ok(s.images.some(v=>v.src?.includes('menu/result__button.webp')&&v.shadowBlur>=20),
-  'focus glows from the real button sprite, without a rectangular outline');
- assert.equal(s.labels.some(v=>v.text==='是否放棄本局？'),false);
- assert.equal(s.labels.some(v=>v.text==='放棄並回首頁'),false);
+ assert.equal(s.images.filter(v=>v.src?.includes('menu/result__board.webp')).length,1);
+ for(const [i,label] of ['繼續本局','放棄並回首頁'].entries()){
+  const b=s.UI.EXIT_BTNS[i];
+  assert.ok(s.images.some(v=>v.args.length===4 && v.args.every((value,j)=>value===[b.x,b.y,b.w,b.h][j])),label);
+  const text=s.labels.find(v=>v.text===label);
+  assert.equal(text?.x,b.x+b.w/2,label);
+  assert.ok(text.y>=b.y && text.y<=b.y+b.h,label);
+ }
+});
+
+test('pause and abandon keep action labels readable when all new button art is missing',()=>{
+ const s=scene({approved:false});
+ s.win.VIEWPORT={get:()=>({scale:.65}),bounds:()=>({left:0,top:0,right:900,bottom:600,width:900,height:600})};
+ s.UI.drawPauseMenu(s.ctx,false,0);
+ for(const b of s.UI.pauseButtons('main'))assert.ok(s.labels.some(v=>v.text===b.label),b.id);
+ s.UI.drawExitConfirm(s.ctx,1,'home');
+ assert.ok(s.labels.some(v=>v.text==='繼續本局'));
+ assert.ok(s.labels.some(v=>v.text==='放棄並回首頁' && v.shadowBlur>0));
 });
 
 test('new blank landscape art supports live text for either exit target and both focus states',()=>{

@@ -184,14 +184,14 @@
     const w=160,h=238,gap=39,y=142;
     const x=Math.round((900-(w*n+gap*Math.max(0,n-1)))/2);
     const cards=Array.from({length:n},(_,i)=>({x:x+i*(w+gap),y,w,h,index:i}));
-    const bh=Math.min(82,Math.max(50,Math.ceil(44/scale)));
+    const bh=Math.min(88,Math.max(50,Math.ceil(44/scale)));
     return {
       trial:true,scale,count:n,pad:8,cards,card:{x,y,w,h,gap,count:n},
       panel:{x:26,y:20,w:848,h:557},
       titleBar:{x:254,y:15,w:392,h:84},
       summaryBar:{x:240,y:102,w:420,h:27},
       details:{x:123,y:385,w:654,h:124},
-      reroll:{x:345,y:Math.min(525,587-bh),w:210,h:bh},
+      reroll:{x:345,y:Math.min(525,599-bh),w:210,h:bh},
       footer:{y:510,h:66}
     };
   };

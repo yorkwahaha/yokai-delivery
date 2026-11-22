@@ -1,4 +1,5 @@
 'use strict';
+const {scriptUrl}=require('./helpers/script-url.cjs');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const vm=require('node:vm');
@@ -60,13 +61,13 @@ test('rain-port foundations and collisions share visible floor footprint',()=>{
  assert.match(renderer,/rgba\(12, 15, 21, 0\.38\)/);
 });
 
-test('HoloCure-like equipped charms avoid a top-center boxed plaque',()=>{
+test('equipped charms stay beside the oil lantern and preserve the raster aspect ratio',()=>{
  const functionText=ui.slice(ui.indexOf('  function drawCharmHud('),ui.indexOf('  // B10 approved layout:',ui.indexOf('  function drawCharmHud(')));
  assert.match(functionText,/const x=b\.left\+18\+lanternH\*lanternAspect\+8/,
    'worn charms hang to the right of the oil lantern, not on its glass');
  assert.doesNotMatch(functionText,/roundRect|裝備御守|panelW/);
- assert.match(ui,/const iconSize=slotSize\*\.87/);
- assert.match(ui,/bounds\.bottom - footerHeight \+ 1/);
+ assert.match(functionText,/Math\.min\(slot\/art\.naturalWidth,\(slot\+4\)\/art\.naturalHeight\)/);
+ assert.match(functionText,/const xx=x, yy=y\+i\*\(slot\+gap\)/);
 });
 
 test('water Boss circular slam uses water artwork in warning and impact',()=>{
@@ -75,5 +76,5 @@ test('water Boss circular slam uses water artwork in warning and impact',()=>{
  assert.match(renderer,/if\(phase==="telegraph"\)/);
  assert.match(renderer,/if \(currentStageId\(\) === "rain-port" && kind === "slam"\)/);
  assert.match(renderer,/return paintHarborWaterSlam\(c,h,elapsed\)/);
- assert.match(html,/js\/renderer\.js\?v=20261108-crosscut-visual-r1/);
+ assert.ok(html.includes(scriptUrl('renderer')));
 });

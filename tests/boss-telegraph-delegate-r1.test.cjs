@@ -7,12 +7,11 @@ const fs = require("node:fs");
 
 function loadDraw() {
   const src = fs.readFileSync("js/game.js", "utf8");
-  const start = src.indexOf("  function drawBossHazard(h, owner) {");
-  const end = src.indexOf("  let frameShakeOffset");
+  const start = src.indexOf("  const isRouteLabHazard =");
+  const end = src.indexOf("  let frameShakeOffset", start);
   assert.ok(start > 0 && end > start, "drawBossHazard 必須留在 drawWorld 之前");
   const body = src.slice(start, end);
   assert.equal(body.includes("try {"), false, "委派失敗不得被吞掉");
-  assert.equal(body.includes("portDraw(ctx, h, elapsed, owner) === true"), true);
   return new Function("RENDERER", "ctx", "elapsed", "STAGE", "W", "H", `${body}\nreturn drawBossHazard;`);
 }
 
@@ -38,21 +37,21 @@ function mockCtx() {
   return ctx;
 }
 
-function run(handler, hazard, elapsed = 4.5, stageId = "night-town", owner = { type: "boss" }) {
+function run(handler, hazard, elapsed = 4.5, stageId = "night-town", owner = { type: "boss" }, pass) {
   const ctx = mockCtx();
   const calls = [];
   const RENDERER = handler === "missing"
     ? {}
     : {
-        drawBossHazard(drawCtx, h, time, owner) {
-          calls.push({ drawCtx, h, time, owner });
+        drawBossHazard(drawCtx, h, time, owner, pass) {
+          calls.push({ drawCtx, h, time, owner, pass });
           if (handler === "throw") throw new Error("renderer-hazard");
           return handler;
         }
       };
   const draw = loadDraw()(RENDERER, ctx, elapsed, {id:stageId}, 1280, 720);
   let error = null;
-  try { draw(hazard, owner); } catch (err) { error = err; }
+  try { draw(hazard, owner, pass); } catch (err) { error = err; }
   return { ctx, calls, error };
 }
 
@@ -80,6 +79,17 @@ test("strict true 略過本地幾何，並原樣轉交 ctx、hazard、elapsed、
     assert.equal(calls[0].time, 9.25, kind);
     assert.equal(ctx.ops.includes("save"), false, kind);
     assert.equal(ctx.ops.length, 0, kind);
+  }
+});
+
+test("第三關警告和命中圖層各自傳到底層 renderer", () => {
+  const h = {kind: "sakuraBloom", x: 12, y: 24, phase: "active"};
+  const owner = {type: "boss"};
+  for (const pass of ["warning", "impact"]) {
+    const {ctx, calls, error} = run(true, h, 1, "sakura-pass", owner, pass);
+    assert.equal(error, null);
+    assert.deepEqual(calls, [{drawCtx: ctx, h, time: 1, owner, pass}]);
+    assert.equal(ctx.ops.length, 0);
   }
 });
 
@@ -149,8 +159,10 @@ test("handler 丟出的錯誤原樣冒出，壞座標不呼叫 renderer", () => 
   assert.equal(blown.error && blown.error.message, "renderer-hazard");
   assert.equal(blown.ctx.ops.length, 0);
 
-  const bad = run(true, { kind: "slam", x: NaN, y: 1 }, 8);
-  assert.equal(bad.error, null);
-  assert.equal(bad.calls.length, 0);
-  assert.equal(bad.ctx.ops.length, 0);
+  for (const hazard of [null, { kind: "slam", x: NaN, y: 1 }]) {
+    const bad = run(true, hazard, 8);
+    assert.equal(bad.error, null);
+    assert.equal(bad.calls.length, 0);
+    assert.equal(bad.ctx.ops.length, 0);
+  }
 });

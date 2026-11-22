@@ -22,7 +22,7 @@ function scene(ready=true){
     drawButton:(_ctx,b,label)=>oldButtons.push({b,label}),
     readableFont:(px,weight)=>`${weight} ${px}px sans-serif`
   };
-  global.CONTENT={getStage:id=>({id,implemented:true,unlockedByDefault:true})};
+  global.CONTENT={getStage:id=>({id,implemented:true,mapReleased:true,unlockedByDefault:true})};
   global.STORE={
     isStageCompleted:()=>true,isStageUnlocked:()=>true,
     getStageStats:()=>({bestScore:25260})

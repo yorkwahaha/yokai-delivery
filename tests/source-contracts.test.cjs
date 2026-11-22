@@ -25,11 +25,13 @@ test("independent boss controller loads before the real game runtime", () => {
   assert.match(game,/BOSS_AI\?\.step/);
 });
 
-test("horizontal level-up hitboxes and rendered rows share the same dimensions", () => {
-  assert.match(game,/UI\.levelUpLayout\(choices\.length\)\?\.cards/,
-    "pointer hitboxes must consume the same card rectangles as UI");
-  assert.match(ui,/const L = levelUpLayout\(choices\.length\)/,
-    "rendering must consume the shared level-up layout");
+test("the active level-up renderer and pointer hitboxes use the same layout API", () => {
+  const trial = fs.readFileSync("js/ui-upgrade-trial.js", "utf8");
+  assert.match(game,/const custom = typeof UI\.levelUpLayout === "function" \? UI\.levelUpLayout\(choices\.length\)/);
+  assert.match(game,/return \{ card, reroll, cards: custom\?\.cards \}/);
+  assert.match(game,/levelUpCardIndex\(p, cards, card, choices\.length\)/);
+  assert.match(trial,/const L=UI\.levelUpLayout\(choices\.length\)/);
+  assert.match(trial,/L\.cards\.forEach\(\(r,k\)=>drawChoice\(ctx,choices\[k\],r,/);
 });
 
 test("retired paid listening hints cannot be triggered via the mobile UI", () => {

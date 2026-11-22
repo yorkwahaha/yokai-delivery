@@ -517,7 +517,7 @@
       : (root.ART.player_idle_v2 || root.ART.player_walk_left_v2 || root.ART.player));
     // 到站時站在町屋旁，沿路平滑插值顯示位移，不改節點／命中座標。
     const from = nodeById.get(state.fromId) || currentNode(state), to = nodeById.get(state.targetId) || from;
-    const u = walking ? ease(clamp(state.moveT/state.moveDuration,0,1)) : 0;
+    const u = walking ? ease(state.moveT) : 0;
     const fx = from.type === 'stage' ? -75 : 0, fy = from.type === 'stage' ? 23 : -35;
     const tx = to.type === 'stage' ? -75 : 0, ty = to.type === 'stage' ? 23 : -35;
     ctx.save();

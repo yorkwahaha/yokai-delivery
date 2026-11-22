@@ -48,12 +48,15 @@ test('Lv5 has an airy curved dome above the ground art with saved canvas state',
 
 test('Lv5 canopy overlays the courier after lighting but stays below the game HUD',()=>{
  const game=fs.readFileSync('js/game.js','utf8');
- const start=game.indexOf('YOKAI_SANCTUARY_ARC?.draw(');
+ const start=game.indexOf('if (!sakuraStage) drawSanctuaryCanopy();');
+ const sakura=game.indexOf('if (sakuraStage) drawSanctuaryCanopy();');
  const ground=game.indexOf('SKILLFX.drawArtFx?.(ctx, true);');
  const actors=game.indexOf('const actors = [');
  const front=game.indexOf('SKILLFX.drawArtFx?.(ctx, false);');
  assert.ok(start>front&&actors<start,'canopy must overlay the courier after all depth-sorted actors');
  assert.ok(ground<start,'dome must paint over the mandala, not under the opaque VFX');
+ assert.ok(ground<sakura&&sakura<actors,'Sakura puts the dome below its Boss warnings and actors');
+ assert.match(game,/YOKAI_SANCTUARY_ARC\?\.draw\(ctx, sacredSanctuary, visualElapsed, tiltK\(\)\)/);
  assert.match(game,/maxLife: spec\.sanctuary\.duration, level: spec\.level/);
  const index=fs.readFileSync('index.html','utf8');
  assert.ok(index.indexOf('js/game-sanctuary-arc.js')<index.indexOf('js/game.js'));

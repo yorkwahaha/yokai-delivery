@@ -11,7 +11,7 @@ test("journey board uses dark engraved ink on pale paper and shared Japanese hea
     createLinearGradient:()=>grad,createRadialGradient:()=>grad
   },{get:(target,key)=>key in target?target[key]:(()=>{})});
   global.STORE={isStageCompleted:()=>true,isStageUnlocked:()=>true,getStageStats:()=>({bestScore:52745})};
-  global.CONTENT={getStage:id=>({id,implemented:true})};
+  global.CONTENT={getStage:id=>({id,implemented:true,mapReleased:true})};
   global.UI={
     drawWashiBoard:()=>{},drawWoodTag:()=>{},
     drawButton:(ctx,b,label,options)=>buttons.push({label,options}),
