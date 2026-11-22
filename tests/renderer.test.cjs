@@ -15,7 +15,9 @@ function loadRenderer(width, height, dpr = 1, CanvasContext, coarse = false) {
       createLinearGradient: () => gradient, createRadialGradient: () => gradient,
       measureText: () => ({width:40})
     }, {get: (o,k) => o[k] ?? (() => {})});
-    const c = {width:0, height:0, getContext: (...args) => { c.contextOptions = args[1] || null; return ctx; }, transforms, fills, ctx};
+    const events = {};
+    const c = {width:0, height:0, getContext: (...args) => { c.contextOptions = args[1] || null; return ctx; }, transforms, fills, ctx,
+      events, addEventListener: (type, handler) => { events[type] = handler; }};
     canvases.push(c); return c;
   }
   const main = canvas();
@@ -211,6 +213,35 @@ test('shield labels remain text and effects expire even during hit stop', () => 
   r.env.RENDERER.updateEffects(0.8);r.texts.length=0;r.env.RENDERER.drawDamageNumbers();
   assert.equal(r.texts.length,0);
   assert.deepEqual({...r.env.RENDERER.getShakeOffset()},{x:0,y:0});
+});
+
+test('50-enemy AoE storms bound damage-label drawing without hiding crit/status feedback',()=>{
+  const r=loadRenderer(900,600);
+  for(let i=0;i<700;i++)r.env.RENDERER.spawnDamageNumber(9,100,120);
+  r.env.RENDERER.spawnDamageNumber('結界',100,120);
+  r.env.RENDERER.spawnDamageNumber(14.4,100,120,true);
+  r.env.RENDERER.drawDamageNumbers();
+  assert.ok(r.texts.length<=96,'no unbounded strokeText/fillText work each frame');
+  assert.ok(r.texts.includes('結界'),'non-numeric status feedback is not discarded');
+  assert.ok(r.texts.includes('14.4'),'critical-hit feedback remains legible');
+});
+
+test('a lost Safari offscreen terrain context invalidates the cached background and repaints after restore',()=>{
+  const r=loadRenderer(900,600);
+  r.env.RENDERER.drawGround(0,600,[],'ground','night-town');
+  const terrain=r.canvases.find(c=>c.events.contextlost);
+  assert.ok(terrain,'offscreen terrain registers recovery handlers');
+  assert.equal(typeof terrain.events.contextrestored,'function');
+  const n=r.env.RENDERER.groundCacheStats().builds;
+  let prevented=0;
+  terrain.events.contextlost({preventDefault(){prevented++;}});
+  r.env.RENDERER.drawGround(0,600,[],'ground','night-town');
+  assert.equal(prevented,1);
+  assert.ok(r.env.RENDERER.groundCacheStats().builds>n,'the lost cached pixels are repainted');
+  const n2=r.env.RENDERER.groundCacheStats().builds;
+  terrain.events.contextrestored();
+  r.env.RENDERER.drawGround(0,600,[],'ground','night-town');
+  assert.ok(r.env.RENDERER.groundCacheStats().builds>n2,'restore cannot reuse blank terrain');
 });
 
 test('reduced motion disables shake and hit stop', () => {

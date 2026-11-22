@@ -6,7 +6,7 @@ const path=require('node:path');
 const vm=require('node:vm');
 const script=fs.readFileSync(path.join(__dirname,'../js/ui-upgrade-trial.js'),'utf8');
 
-function trial(search='?upgradeUI=1',hostname='localhost'){
+function trial(search='?upgradeUI=1',hostname='localhost',touchDevice=false){
   const traces=[];
   const ctx=new Proxy({
     font:'700 18px sans-serif',fillStyle:'#fff',
@@ -26,11 +26,38 @@ function trial(search='?upgradeUI=1',hostname='localhost'){
     cardShort:()=>null
   };
   const location={search,hostname};
-  const env={window:{UI,location,VIEWPORT:{get:()=>({scale:.65})}},
+  const env={window:{UI,location,VIEWPORT:{get:()=>({scale:.65})},
+      navigator:{maxTouchPoints:touchDevice?5:0},
+      matchMedia:()=>({matches:touchDevice})},
     location,DEV_MODE:require('../js/dev-mode.js'),URLSearchParams,console};
   vm.runInNewContext(script,env,{timeout:1000});
   return {UI,ctx,traces,prevLayout,prevDraw,env};
 }
+
+test('iPad upgrade cards use one bundled Traditional Kai face and retain only ten card centers',()=>{
+  const view=trial('?mode=normal','192.168.50.101',true);
+  const sources=[];
+  view.env.window.Image=class {
+    set src(url){this.url=url;sources.push(url);this.naturalWidth=820;this.naturalHeight=1230;this.onload?.();}
+  };
+  const cfg=view.env.window.__YOKAI_UPGRADE_PHASE42;
+  assert.equal(cfg.cardCacheStats().limit,10);
+  const first=cfg.sharedCardIds[0];
+  const picks=cfg.sharedCardIds.slice(0,24);
+  for(const id of picks){
+    view.UI.drawLevelUp(view.ctx,12,[{id,type:'mutation',n:'紫藤・長夜留香',
+      d:'粉紫毒霧繼續停留',levelText:'Lv5'}],{},{},2,0,0,'touch');
+    assert.ok(cfg.cardCacheStats().retained<=10,'card artwork must not grow with level count');
+  }
+  assert.equal(cfg.cardCacheStats().retained,10);
+  assert.ok(view.traces.some(t=>t.text?.includes('紫藤')&&t.font?.includes('Yokai Trial MoonStars Kai T')),
+    'LAN/iPad card labels must not fall through to OS-dependent fonts');
+  const firstPath=cfg.centerPath(first);
+  const before=sources.filter(x=>x===firstPath).length;
+  view.UI.drawLevelUp(view.ctx,12,[{id:first,type:'mutation',n:'紫藤毒香',d:'毒霧'}],{},{},2,0,0,'touch');
+  assert.equal(sources.filter(x=>x===firstPath).length,before+1,
+    'evicted illustrations can reload safely when offered again');
+});
 const cards=[
   {id:'katana',type:'weapon',n:'妖刀',d:'藍黃刀光向前斬擊',levelText:'Lv.2'},
   {id:'fire',type:'weapon',n:'狐火',d:'狐火環繞，灼燒附近妖怪，提升傷害和持續時間',levelText:'Lv.3 → Lv.4'},
@@ -185,10 +212,10 @@ test('normal game has no manual ZIP importer, font picker or debug calibration b
  assert.equal(ui.upgradeTrialEnabled(),true);
 });
 
-test('Phase42 uses HanWang locally, DFKai-SB publicly, and preserves local comparisons',()=>{
+test('Phase42 defaults to bundled OFL MoonStars Kai on LAN/public while preserving optional local comparisons',()=>{
  const samples=[
-   ['?upgradeUI=1','Yokai Trial HanWang YanKai'],
-   ['?upgradeUI=1&upgradeFont=kai','DFKai-SB'],
+   ['?upgradeUI=1','Yokai Trial MoonStars Kai T'],
+   ['?upgradeUI=1&upgradeFont=kai','Yokai Trial MoonStars Kai T'],
    ['?upgradeUI=1&upgradeFont=yuji','Yokai Brush JP'],
    ['?upgradeUI=1&upgradeFont=readable','sans-serif'],
    ['?upgradeUI=1&upgradeFont=bakudai','Yokai Trial Bakudai TC'],
@@ -221,12 +248,12 @@ test('Phase42 uses HanWang locally, DFKai-SB publicly, and preserves local compa
    assert.ok(html.includes(localName),'commercial font can only reference the local installation');
  const production=trial('?upgradeUI=1','example.com');
  production.UI.drawLevelUp(production.ctx,4,cards,{}, {},0,0,0,'keyboard');
- assert.ok(production.traces.some(t=>t.text==='能力提升'&&t.font.includes('DFKai-SB')));
+ assert.ok(production.traces.some(t=>t.text==='能力提升'&&t.font.includes('Yokai Trial MoonStars Kai T')));
  for(const name of ['arphicsun','arphicmao']){
    const x=trial('?upgradeUI=1&upgradeFont='+name);
    x.UI.drawLevelUp(x.ctx,4,cards,{}, {},0,0,0,'keyboard');
    const title=x.traces.find(t=>t.text==='能力提升');
-   assert.ok(title?.font.includes('DFKai-SB'),
+   assert.ok(title?.font.includes('Yokai Trial MoonStars Kai T'),
      'unavailable proprietary font must never masquerade as loaded');
  }
 });

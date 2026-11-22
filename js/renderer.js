@@ -154,6 +154,16 @@ window.RENDERER = (() => {
   }
   let terrainCv = null, terrainState = null;
   const hitSilhouettes = new WeakMap();
+  // iOS Safari may evict an offscreen 2D canvas while preserving the HUD.
+  // After restoration, repaint terrain rather than reusing a blank cache.
+  function watchTerrainContext(canvas) {
+    if (!canvas?.addEventListener) return;
+    canvas.addEventListener("contextlost", event => {
+      event.preventDefault?.();
+      terrainState = null;
+    });
+    canvas.addEventListener("contextrestored", () => { terrainState = null; });
+  }
 
   // 鏡頭與打擊震動
   let camX = 0, camY = 0;
@@ -165,6 +175,8 @@ window.RENDERER = (() => {
   const SAKURA = [];
   const FIREFLIES = [];
   let dmgNumbers = [];
+  // Bounded visual-only hit labels during high-density AoE fights.
+  const MAX_DAMAGE_LABELS = 96;
   let slashArcs = [];
   let ghostTrails = [];
 
@@ -281,6 +293,10 @@ window.RENDERER = (() => {
   }
 
   function spawnDamageNumber(val, x, y, isCrit = false, color = null) {
+    if (dmgNumbers.length >= MAX_DAMAGE_LABELS) {
+      if (!isCrit && typeof val === "number") return;
+      dmgNumbers.shift(); // retain crit/status feedback, discard oldest text
+    }
     dmgNumbers.push({
       val: typeof val === 'number' ? Math.round(val * 10) / 10 : String(val),
       x: x + (Math.random() - 0.5) * 22,
@@ -1724,7 +1740,11 @@ window.RENDERER = (() => {
       const top = Math.floor((y - 120) * pixelScale) / pixelScale;
       const pw = Math.ceil((area.width + 240) * pixelScale);
       const ph = Math.ceil((area.height + 240) * pixelScale);
-      terrainCv ||= document.createElement("canvas");
+      if (!terrainCv) {
+        terrainCv = document.createElement("canvas");
+        watchTerrainContext(terrainCv);
+      }
+      if (terrainCv.getContext("2d")?.isContextLost?.()) return;
       const resized = terrainCv.width !== pw || terrainCv.height !== ph;
       if (terrainCv.width !== pw) terrainCv.width = pw;
       if (terrainCv.height !== ph) terrainCv.height = ph;

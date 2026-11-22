@@ -6,11 +6,30 @@
   const host=String(typeof location!=="undefined"?location.hostname||"":"");
   const local=/^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)$/.test(host);
   const UI=window.UI, cache=Object.create(null);
+  // Card centers are 820x1230 RGBA bitmaps (~3.8 MiB decoded each).
+  // Every card ever offered used to stay strongly referenced for the entire
+  // run; >40 distinct offers can retain well over 150 MiB on iPad Safari.
+  // Keep only recent centers, not all previously seen cards. Shared frame
+  // and HUD/panel art remain permanently cached.
+  const touchDevice=(Number(window.navigator?.maxTouchPoints)||0)>0 ||
+    !!window.matchMedia?.("(pointer: coarse)")?.matches;
+  const maxCardCenters=touchDevice?10:26;
+  const cardCenterUse=new Map();
+  const touchCardCenter=src=>{
+    if(!src.startsWith("assets/img/skills/")||!src.includes("/cards/"))return;
+    cardCenterUse.delete(src);
+    cardCenterUse.set(src,true);
+    while(cardCenterUse.size>maxCardCenters){
+      const oldest=cardCenterUse.keys().next().value;
+      cardCenterUse.delete(oldest);
+      delete cache[oldest]; // release decoded bitmap reference for GC
+    }
+  };
   const palette={gold:"#d8b173",light:"#ffe4ad",paper:"#f2dfbb",dim:"#baa58c"};
   // The Japanese Yuji Syuku face lacks several Taiwan Traditional Chinese glyphs.
   // DFKai-SB is present on Windows; keep a Japanese brush face for kana fallback.
   const fontFamilies={
-    kai:"'DFKai-SB','標楷體','BiauKai','Yokai Trial MoonStars Kai T','Noto Serif TC',serif",
+    kai:"'Yokai Trial MoonStars Kai T','DFKai-SB','標楷體','BiauKai','Noto Serif TC',serif",
     yuji:"'Yokai Brush JP','DFKai-SB','BiauKai','Noto Serif TC',serif",
     readable:"'Yokai Noto JP','Noto Sans JP','Microsoft JhengHei',sans-serif",
     bakudai:"'Yokai Trial Bakudai TC','DFKai-SB',serif",
@@ -45,8 +64,12 @@
   // machine. Do not make its GPL subset part of a public release without
   // reviewing source-distribution obligations. Public clients use DFKai-SB.
   const requested=params.get("upgradeFont");
+  // Public and LAN/iPad play use the same embedded OFL Traditional Chinese
+  // Kai face. OS-dependent DFKai/BiauKai and the old local HanWang subset
+  // lacked 藤/毒 and produced mixed-font glyphs within the same name.
+  // The locally selected ?upgradeFont=hanyan remains available for comparison.
   const fontMode=local&&Object.hasOwn(fontFamilies,requested)&&
-    !Object.hasOwn(licensedLocalFonts,requested)?requested:(local?"hanyan":"kai");
+    !Object.hasOwn(licensedLocalFonts,requested)?requested:"kai";
   const textFont=(size,role="label")=>fontMode==="readable"
     ?UI.readableFont(size,role==="body"?"700":"900")
     :`400 ${size}px ${fontFamilies[fontMode]}`;
@@ -78,20 +101,23 @@
   const skillClasses={katana:"斬擊",fire:"火焰",needle:"穿刺",barrier:"陣法",boom:"符咒",thunder:"雷擊",
     ink_trail:"粉紫毒霧",seal_nail:"離位爆破",shikigami:"召喚夥伴"};
   window.__YOKAI_UPGRADE_PHASE42={framePath,centerPath,artworkBox,titlePoint,classPoint,
-    sharedCardIds:[...approvedSharedCards]};
+    sharedCardIds:[...approvedSharedCards],
+    cardCacheStats:()=>({retained:cardCenterUse.size,limit:maxCardCenters})};
   UI.upgradeTrialEnabled=()=>true;
   const image=(src,fallback)=>{
     if(!src || typeof window.Image!=="function")return null;
     if(!(src in cache)){
       cache[src]=null;const im=new window.Image();im.decoding="async";
-      im.onload=()=>{cache[src]=im;};
+      im.onload=()=>{if(Object.hasOwn(cache,src))cache[src]=im;};
       im.onerror=()=>{
+        if(!Object.hasOwn(cache,src))return;
         if(!fallback || fallback===src)return;
         im.onerror=null;
         im.src=fallback;
       };
       im.src=src;
     }
+    touchCardCenter(src);
     return cache[src]?.naturalWidth ? cache[src] : null;
   };
   const round=(ctx,x,y,w,h,r=10)=>{ctx.beginPath();ctx.roundRect(x,y,w,h,r);};
@@ -434,7 +460,7 @@
   // Browser/game now loads approved raster paths directly. No ZIP picker,
   // font dropdown or calibration badge is needed in normal play.
   if(typeof document!=="undefined" && document.fonts?.load) {
-    const selectedFont=trialWebFonts[fontMode];
+    const selectedFont=fontMode==="kai"?"Yokai Trial MoonStars Kai T":trialWebFonts[fontMode];
     if(selectedFont)void document.fonts.load(`400 24px "${selectedFont}"`,'能力提升 選卡 靈針 長明燈油').catch(()=>{});
   }
   image(framePath);
