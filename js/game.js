@@ -1309,7 +1309,7 @@ if (isRainPort) {
     if (artPending()) {
       const selected = window.OVERWORLD.selectedNode(overworld);
       if (selected && window.OVERWORLD.isEnterable(selected) && selected.id === overworld.currentId) {
-        AUDIO.prepareMusic?.('play');
+        AUDIO.prepareMusic?.('play', selected.stageId);
         pendingDepart = true;
       }
       return;
@@ -1431,7 +1431,7 @@ if (isRainPort) {
   function start(stageId = STAGE.id) {
     quitConfirm = false;
     AUDIO.unlockFromInput?.();
-    AUDIO.prepareMusic?.('play');
+    AUDIO.prepareMusic?.('play', stageId);
     AUDIO.restartMusic();
     window.loadGameArt?.();
     window.loadStageMapArt?.(stageId);

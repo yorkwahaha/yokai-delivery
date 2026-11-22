@@ -43,6 +43,50 @@ window.AUDIO = (() => {
   const BGM_DUCK_VOLUME = 0.10;
   const BGM_MODAL_VOLUME = 0.16;
   const BGM_PAUSE_VOLUME = 0.055;
+  // Each stage selects its own lazy HTMLAudioElement. Keep the original battle
+  // track as a fallback, and never fetch four ~4 MB MP3s on the home screen.
+  const STAGE_BGM_FILES = Object.freeze({
+    "night-town": "assets/audio/bgm/stages/night-town/night-town__parade.mp3",
+    "rain-port": "assets/audio/bgm/stages/rain-port/rain-port__battle.mp3",
+    "sakura-pass": "assets/audio/bgm/stages/sakura-pass/sakura-pass__battle.mp3",
+    "bamboo-maze": "assets/audio/bgm/stages/bamboo-maze/bamboo-maze__battle.mp3"
+  });
+  const stageBgmTracks = new Map(), failedStageBgm = new Set();
+  let originalBattleBgm = null;
+  function selectStageBgm(stageId) {
+    // assets.js defines window.BGM before audio.js. Capture that approved
+    // fallback exactly once, before replacing the current-stage pointer.
+    if (!originalBattleBgm && window.BGM && ![...stageBgmTracks.values()].includes(window.BGM))
+      originalBattleBgm = window.BGM;
+    const path = STAGE_BGM_FILES[stageId];
+    if (!path || failedStageBgm.has(stageId)) {
+      window.BGM = originalBattleBgm;
+      return;
+    }
+    let track = stageBgmTracks.get(stageId);
+    if (!track) {
+      try {
+        track = new Audio(window.audioAsset?.(path) || path);
+        track.loop = true;
+        track.preload = "none";
+        track.volume = BGM_NORMAL_VOLUME;
+        track.addEventListener?.("error", () => {
+          failedStageBgm.add(stageId);
+          if (window.BGM === track) window.BGM = originalBattleBgm;
+          if (preparedBgm === track) preparedBgm = originalBattleBgm;
+          // updateBgm will switch to the fallback (or synthesized music)
+          // on the next frame, without restarting a different stage's song.
+          if (activeBgm === track) activeBgm = null;
+        }, { once: true });
+        stageBgmTracks.set(stageId, track);
+      } catch {
+        failedStageBgm.add(stageId);
+        window.BGM = originalBattleBgm;
+        return;
+      }
+    }
+    window.BGM = track;
+  }
   const bgmRamps = new Map();
   const clipBuffers = new Map(), bufferSources = new Set();
   let audioEpoch = 0, wordSource = null;
@@ -115,7 +159,10 @@ window.AUDIO = (() => {
   }
 
   function musicTracks() {
-    return [...new Set([window.BGM, window.MAP_BGM, window.BOSS_BGM].filter(Boolean))];
+    return [...new Set([
+      window.BGM, window.MAP_BGM, window.BOSS_BGM, originalBattleBgm,
+      activeBgm, preparedBgm, ...stageBgmTracks.values()
+    ].filter(Boolean))];
   }
 
   function rampMusicVolume(audio, target, duration = 180) {
@@ -810,7 +857,8 @@ window.AUDIO = (() => {
     },
     needsAudioGesture: () => !muted && musicBlockedByPolicy,
     isSuspended: () => suspended,
-    prepareMusic(state) {
+    prepareMusic(state, stageId) {
+      if (state === "play" && stageId) selectStageBgm(stageId);
       if (muted || suspended) return;
       preparedBgm = state === 'overworld' ? (window.MAP_BGM || window.BGM) : window.BGM;
       if (preparedBgm) {
@@ -1248,7 +1296,7 @@ window.AUDIO = (() => {
       }
     },
 
-    // 背景音樂：MAP 地圖、BGM 戰鬥、最終 Boss 破封後 BOSS.mp3。
+    // 背景音樂：MAP 地圖、依關卡選曲、最終 Boss 破封後 BOSS.mp3。
     // 外部檔不存在時才退回日式五音程序化循環。
     updateBgm(dt, state, elapsed, dawnTime) {
       if (suspended || state === "lampout") return;

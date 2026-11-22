@@ -1,14 +1,14 @@
 {
   "schema": 1,
-  "updated": "2026-10-31",
+  "updated": "2026-11-22",
   "notes": "Unmigrated paths are inventoried, not approved for new usage; never delete without reference audit.",
   "totals": {
-    "files": 1193,
+    "files": 1197,
     "by_status": {
       "legacy_unmigrated": 361,
       "legacy_review_required": 62,
       "trial_pending_review": 303,
-      "canonical": 316,
+      "canonical": 320,
       "legacy_alias_active": 99,
       "legacy_source_pending_renderer": 52
     }
@@ -5275,6 +5275,30 @@
       "status": "canonical",
       "bytes": 4521169,
       "sha256": "c81d5e33055b91659d27f33d8629a2c3dbe52fb3f9768dd1e3e7431af79d38a5"
+    },
+    {
+      "path": "assets/audio/bgm/stages/bamboo-maze/bamboo-maze__battle.mp3",
+      "status": "canonical",
+      "bytes": 3780634,
+      "sha256": "1920a83e47aac7e9c9da143229e5d19aaf6f7595ad6d4db80cce4fdd5925b6e5"
+    },
+    {
+      "path": "assets/audio/bgm/stages/night-town/night-town__parade.mp3",
+      "status": "canonical",
+      "bytes": 4190025,
+      "sha256": "c3c642611bf93ab1fa96bba1b597becf29c55f44ec9d23a9f946ac0c5906bd93"
+    },
+    {
+      "path": "assets/audio/bgm/stages/rain-port/rain-port__battle.mp3",
+      "status": "canonical",
+      "bytes": 4327325,
+      "sha256": "1be1f6605b94b960e7070f8d076fe3b85a5a4516130c84358a5b646a327a6d6e"
+    },
+    {
+      "path": "assets/audio/bgm/stages/sakura-pass/sakura-pass__battle.mp3",
+      "status": "canonical",
+      "bytes": 3749914,
+      "sha256": "488cf6769182b31f3765b2ea5d486f72d31d59fe789cd08bb655d9a6f7d722f8"
     },
     {
       "path": "assets/audio/BGM.mp3",
