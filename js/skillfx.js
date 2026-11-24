@@ -158,9 +158,13 @@ window.SKILLFX = (() => {
     else paint();
     return true;
   }
-  function drawArtFx(ctx,ground=false){
+  function drawArtFx(ctx,ground=false,experiment=null,mergePulse=false){
     const drawEntry=p=>{
       if(!!p.ground!==ground || p.delay>0)return;
+      if (mergePulse && p.rank === 5 && p.barrierRaster) return;
+      if (p.rank === 5 && (p.barrierRaster || p.onmyo === "seal" || p.barrierFallback) &&
+          experiment && (!experiment.array || !experiment.accents || experiment.rank)) return;
+      if (experiment?.rank && p.barrierRaster) return;
       const fade=Math.min(1,p.life/Math.max(.001,p.max)*1.45);
       if(p.barrierRaster && drawBarrierRaster(ctx,p,fade)) return;
       if(p.ofudaImpact && drawOfudaImpact(ctx,p)) return;
@@ -218,6 +222,7 @@ window.SKILLFX = (() => {
   function define(id,events) { skills[id] = events; }
   function play(id,event,level,params={}) {
     const rank=tierOf(level),fn=skills[id]?.[event];if(!fn)return;
+    window.PORT_PERF?.skill?.(id);
     if(id==='boom'&&event==='trail'&&window.ofudaRasterArt?.('main')){
       if(Math.random()<.4) emit('spark','#dfbba1',{x:params.x,y:params.y,
         life:.12,s0:4,s1:1,a:.36,vy:-12});
@@ -393,7 +398,7 @@ window.SKILLFX = (() => {
       }
       return;
     }
-    pushRankedArt('barrier',5,'barrier_mandala_ukiyoe',{x,y,w:r*2.32,ground:true,life:.68,a:.92});
+    pushRankedArt('barrier',5,'barrier_mandala_ukiyoe',{x,y,w:r*2.32,rank:5,barrierFallback:true,ground:true,life:.68,a:.92});
     emit('edge','#ffd54f',{x,y,life:0.55,s0:r*.5,s1:r*2.2,a:0.85,ground:true,sy:SQ,rot:0.1,ease:true});
     emit('edge','#d48800',{x,y,life:0.58,s0:r*.4,s1:r*1.9,a:0.7,ground:true,sy:SQ,rot:-0.2,ease:true});
     emit('glow','#ffe082',{x,y,life:0.28,s0:130,s1:170,a:0.25,ground:true,sy:SQ,blend:'lighter'});
@@ -877,5 +882,6 @@ window.SKILLFX = (() => {
     }
   }
   function reset() { burning.length=0;artFx.length=0; }
-  return {SQ,tier:tierOf,pick:(level,...values)=>values[Math.min(tierOf(level)-1,values.length-1)],define,play,paint,drawArtFx,update,reset,has:id=>!!skills[id]};
+  return {SQ,tier:tierOf,pick:(level,...values)=>values[Math.min(tierOf(level)-1,values.length-1)],define,play,paint,drawArtFx,drawBarrierRaster,update,reset,
+    stats:()=>({artFx:artFx.length,burning:burning.length}), has:id=>!!skills[id]};
 })();

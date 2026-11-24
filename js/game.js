@@ -310,6 +310,8 @@
     menuFocus = (menuFocus + delta + buttons.length) % buttons.length;
   }
   function returnHome() {
+    window.loadCoverArt?.();
+    RENDERER.releaseWorldBackings?.();
     shikigami?.reset();
     if (window.STAGE_ROUTE_LAYOUTS?.[STAGE.id]) {
       enemies = [];
@@ -443,10 +445,13 @@
   let simulationCarry = 0;
   // Opt-in iPad/LAN diagnostics. Never enabled in normal play, and no samples
   // persist across runs or leave the device. Open the local URL with ?perf=1.
-  const PERF_DEBUG = /^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)$/.test(window.location?.hostname || "") &&
-    new URLSearchParams(window.location?.search || "").get("perf") === "1";
-  let perfStart = 0, perfFrames = 0, perfSimMs = 0, perfDrawMs = 0;
-  let perfText = "FPS -- | simulation --ms | render --ms";
+  const perfApi = window.PORT_PERF;
+  const perfResources = perfApi?.monitorResources();
+  const portPerf = perfApi?.createDiagnostics({snapshot:perfSnapshot});
+  const PERF_DEBUG = !!portPerf;
+  let perfText = "FPS -- | p95 --ms | gap --ms";
+  let perfGemFixture, perfSkillFixture, perfMoving = false, perfEffectStart = 0, perfRainLoad = 1;
+  let perfCastUntil = portPerf ? Object.create(null) : null, perfRun = 0;
   const btnE = { x: 810, y: 420, r: 38 }, btnD = { x: 810, y: 530, r: 46 };
   const btnFusionHeld = { id: 'fusion-reopen', x: 810, y: 310, r: 36 };
   const btnPause = { x: W - 52, y: 14, w: 38, h: 52 };
@@ -458,8 +463,7 @@
     const next = (viewport.tiltTargetScale?.() ?? viewport.tiltScale()) === 1 ? 0.6 : 1;
     // Projection animates in world space over 0.8 s; buildings and collisions
     // stay fixed. Respect reduced-motion without compromising the switch.
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-    viewport.animateTiltScale(next, reduce ? 0 : 0.8);
+    viewport.animateTiltScale(next, liveMotion() ? 0.8 : 0);
     // Do not teleport the camera: each frame compensates around the courier.
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
   }
@@ -1029,6 +1033,7 @@
   const sealNailArt = window.GAME_SEAL_NAIL.loadCandidateArt();
   const sealNail = window.GAME_SEAL_NAIL.create({staged:true});
   let runIntroOffered = false;
+  let newSkillMisses = Object.create(null);
   // Only accepted choices count: rerolls never bypass the weapon cooldown.
   let recentUpgradePicks = [];
   let boomLv5BurstFx = []; // temporary secondary sparks/smoke around painted Lv5 boom art
@@ -1273,6 +1278,8 @@ if (isRainPort) {
   }
 
   function enterOverworld(reset = true) {
+    RENDERER.releaseWorldBackings?.();
+    window.loadCoverArt?.();
     shikigami?.reset();
     if (window.STAGE_ROUTE_LAYOUTS?.[STAGE.id]) {
       enemies = [];
@@ -1440,6 +1447,7 @@ if (isRainPort) {
     // Reset S2 cache if switching away from rain-port or on fresh start
     if (STAGE.id === "rain-port" && stageId !== "rain-port") {
       window.resetS2ArtProdCache?.();
+      RENDERER.releaseWorldBackings?.();
     }
     configureStage(stageId);
     rainCycle.reset();
@@ -1462,6 +1470,7 @@ if (isRainPort) {
     inkTrail.reset(); sealNail.reset(); shikigami?.reset();
     if (shikigami) WL.shikigami = wT.shikigami = 0;
     runIntroOffered = false;
+    newSkillMisses = Object.create(null);
     recentUpgradePicks = [];
     buildRevision++;
     buildMutations = [];
@@ -1486,6 +1495,11 @@ if (isRainPort) {
     wT.boom = 0; wT.thunder = 1; wT.barrier = 1.5; wT.needle = 0.5; wT.fire = 0; wT.katana = 0.3; wT.ink_trail = 0; wT.seal_nail = 0;
     for (const id of Object.keys(wT)) if (id.startsWith("fusion_")) wT[id] = 0;
     elapsed = 0; animElapsed = 0; warnDawnT = 0; oil = 100; maxOil = 100; level = 1; xp = 0; score = 0; delivered = 0; failed = 0; runCoins = 0;
+    if (portPerf) {
+      perfCastUntil = Object.create(null);
+      perfRun++;
+      portPerf.invalidate();
+    }
     lastMutationOfferLevel = -100;
     orders = []; job = null; inter = null; enemies = []; gems = []; texts = []; rings = []; misses = [];
     // 重新開局／切關：上次送達點不得跨局殘留，否則新一局的第一張取貨會拿舊局的位置當基準。
@@ -1527,13 +1541,16 @@ if (isRainPort) {
   const MAX_ACTIVE_WEAPONS = 4;
   const BAMBOO_STARTER_CHOICES = ["ink_trail", "seal_nail", "shikigami"];
   const SAKURA_STARTER_CHOICES = BAMBOO_STARTER_CHOICES.slice(0, 2);
-  function getEligibleChoices() {
+  function getEligibleChoices(normalOffer = false) {
     const scopeRevision = buildRevision;
     const sakuraStage = STAGE.id === "sakura-pass";
     const bambooStage = STAGE.id === "bamboo-maze";
     const stageStarters = sakuraStage ? SAKURA_STARTER_CHOICES : bambooStage ? BAMBOO_STARTER_CHOICES : [];
-    const trialUnlock = (bambooStage && stageLab) || (sakuraStage && window.DEV_MODE?.isDevMode?.(window.location));
-    const isUnlocked = id => (trialUnlock && stageStarters.includes(id)) || STORE.isActiveSkillUnlocked(id);
+    const dev = window.DEV_MODE?.isDevMode?.(window.location) === true;
+    const trialStarters = bambooStage && stageLab ? BAMBOO_STARTER_CHOICES :
+      dev && sakuraStage ? SAKURA_STARTER_CHOICES :
+      dev && STAGE.id === "rain-port" ? ["ink_trail"] : [];
+    const isUnlocked = id => trialStarters.includes(id) || STORE.isActiveSkillUnlocked(id);
     const {eligibleWeaponKeys, awakenKeys} = window.GAME_BUILD_RULES.weaponOfferKeys(
       WI, WL, MAX_ACTIVE_WEAPONS, seals, window, isUnlocked
     );
@@ -1807,7 +1824,14 @@ if (isRainPort) {
     const guaranteed = window.GAME_UPGRADE_CHOICES.withGuarantees(
       offered, [...introductions, owned], [...wc, ...pc], mc.length === 2
     );
-    if (guaranteed.length || isFreeCompensationChoice) return guaranteed;
+    if (!isFreeCompensationChoice) {
+      const unseenRewards = slotFree ? wc.filter(c => BAMBOO_STARTER_CHOICES.includes(c.id) && WL[c.id] === 0) : [];
+      const rules = window.GAME_UPGRADE_CHOICES;
+      const visible = rules.withNewSkillVisibility(guaranteed, unseenRewards, newSkillMisses,
+        normalOffer, [...introductions, owned, awakenCard]);
+      rules.recordNewSkillVisibility(newSkillMisses, unseenRewards, visible, normalOffer);
+      if (visible.length) return visible;
+    } else return guaranteed;
     // Post-cap coins, not passive-cap bypasses. Future permanent shop can
     // spend this balance; the current game only awards and saves it.
     const award = 100;
@@ -1832,8 +1856,9 @@ if (isRainPort) {
 
   function offerUp() {
     if (state !== "play" && state !== "levelup") return;
+    const normalOffer = state === "play" && !isFreeCompensationChoice;
     buildRevision++;
-    choices = getEligibleChoices();
+    choices = getEligibleChoices(normalOffer);
 
     for (const choice of choices) if (choice.type === 'weapon') window.prepareSkillArt?.(choice.id, choice.lv);
     if (!choices.length) {
@@ -3033,6 +3058,7 @@ if (isRainPort) {
         effectiveDamage:getEffectiveDmg(combatBuildState()),
         hit:(enemy,damage)=>hurt(enemy,damage,false,false,"ink_poison"),
         onEvent:kind=>{
+          window.PORT_PERF?.skill?.("ink_trail");
           if(kind==="drop")AUDIO.inkTrailDrop?.();
           else if(kind==="hit")AUDIO.inkTrailHit?.();
           else if(kind==="awaken")AUDIO.inkTrailAwaken?.();
@@ -3048,6 +3074,7 @@ if (isRainPort) {
         effectiveDamage:getEffectiveDmg(combatBuildState()),
         hit:(enemy,damage)=>hurt(enemy,damage,false,false,"seal_nail"),
         onEvent:kind=>{
+          window.PORT_PERF?.skill?.("seal_nail");
           if(kind==="drop")AUDIO.sealNailDrop?.();
           else if(kind==="burst")AUDIO.sealNailBurst?.();
           else if(kind==="second"){
@@ -5994,17 +6021,19 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
   let rainLoad = 1;
   const rainCycle=window.GAME_WEATHER.createRainCycle();
   let weatherClock=0;
-  function drawStageWeather(t) {
+  function drawStageWeather(t, world) {
     return window.GAME_WEATHER.drawStageWeather(t, {
-      ctx, STAGE_VISUAL, STAGE, rainLoad, W, H,
+      ctx, STAGE_VISUAL, STAGE, rainLoad: portPerf?.config.hold ? perfRainLoad : rainLoad, W, H,
       liveMotion, viewBounds, getRipple: () => window.PORT_ART?.ripple,
-      rainStrength: STAGE.id==="rain-port"?rainCycle.snapshot().strength:undefined
+      rainStrength: STAGE.id==="rain-port"?rainCycle.snapshot().strength:undefined,
+      rain: STAGE.id !== "rain-port" || portPerf?.config.rain !== false, world,
+      rainBatch: STAGE.id === "rain-port" && portPerf?.config.rainBatch === true
     });
   }
 
   // ---------- 繪圖主循環 ----------
   function liveMotion() {
-    return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? 0 : 1;
+    return RENDERER.allowsMotion?.() === false ? 0 : 1;
   }
 
   // 跟隨角色的貨物圖示（世界座標，需在已平移的 ctx 內呼叫）。
@@ -6225,6 +6254,15 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     }
   }
 
+  function beginFx(name) {
+    portPerf.pass(name);
+    perfEffectStart = perfApi.clock();
+  }
+  function endFx() {
+    portPerf.time("effects",perfApi.clock()-perfEffectStart);
+    portPerf.pass("world");
+  }
+  const renderActors = [];
   function drawWorld() {
     const cam = RENDERER.getCam();
     const shakeOffset = frameShakeOffset;
@@ -6238,14 +6276,22 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     // Visual dawn time freezes in the victory sequence; weather time does not.
     const rainVisualTime=STAGE.id==="rain-port"?weatherClock:visualElapsed;
     const sakuraStage = STAGE.id === "sakura-pass";
+    const experiment = STAGE.id === "rain-port" ? portPerf?.config : null;
+    const sanctuary = experiment?.rank ? perfSkillFixture?.sanctuary : sacredSanctuary;
+    const rain = experiment?.rain !== false;
     const drawSanctuaryCanopy = () => {
-      if (sacredSanctuary?.life > 0) upright(sacredSanctuary.x, sacredSanctuary.y, () =>
-        window.YOKAI_SANCTUARY_ARC?.draw(ctx, sacredSanctuary, visualElapsed, tiltK()));
+      if (sanctuary?.life > 0 && experiment?.array !== false && experiment?.accents !== false) {
+        if (portPerf) beginFx("sanctuaryCanopy");
+        upright(sanctuary.x, sanctuary.y, () =>
+          window.YOKAI_SANCTUARY_ARC?.draw(ctx, sanctuary, visualElapsed, tiltK()));
+        if (portPerf) endFx();
+      }
     };
 
     ctx.save();
     tiltWorld(cam,shakeOffset);
     const view = worldViewBounds();
+    const portDrawBounds = STAGE.id === "rain-port" ? window.VIEWPORT?.drawBounds?.(cam,shakeOffset,{},2) : null;
     const roofCull = window.VIEWPORT?.drawBounds?.(cam, shakeOffset, { left: 140, right: 140, top: 280, bottom: 90 }, 12);
     const nearView = (x, y, margin = 220) =>
       x >= cam.x + view.left - margin && x <= cam.x + view.right + margin &&
@@ -6269,9 +6315,11 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       : nearView(house.x, house.y);
 
     // 1. 地面與道路
-    RENDERER.drawGround(visualElapsed, DAWN, activeChunks, STAGE_VISUAL.ground || "ground", STAGE.id);
+    portPerf?.pass("map");
+    RENDERER.drawGround(visualElapsed, DAWN, activeChunks, STAGE_VISUAL.ground || "ground", STAGE.id,portDrawBounds);
+    if (portPerf) beginFx("rain");
     const groundRipple = STAGE.id === "rain-port" && window.PORT_ART?.ripple;
-    if (groundRipple?.naturalWidth && STAGE_VISUAL.weather === "rain") {
+    if (rain && groundRipple?.naturalWidth && STAGE_VISUAL.weather === "rain") {
       const motion = liveMotion();
       ctx.save();
       ctx.lineWidth = 1.2;
@@ -6284,13 +6332,13 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         const life = ((rainVisualTime * motion * 0.65 + rainUnit(i, 11)) % 1);
         const x = cam.x + view.left + rainUnit(i, 12) * view.width;
         const y = cam.y + view.top + rainUnit(i, 13) * view.height;
-        if (!groundRipple?.naturalWidth) continue;
         const s = 14 + life * 20;
         ctx.globalAlpha = (1 - life) * 0.55;
         ctx.drawImage(groundRipple, x - s / 2, y - s * 0.22, s, s * 0.42);
       }
       ctx.restore();
     }
+    if (portPerf) endFx();
     // Hide decorative repeated district names on the rain-port sea;
     // building nameplates and delivery captions remain intact.
     if (STAGE.id !== "rain-port" && STAGE.id !== "bamboo-maze") RENDERER.drawDistrictLabels?.(activeChunks);
@@ -6299,7 +6347,11 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     RENDERER.drawGroundParallax?.(visualElapsed, DAWN, cam);
 
     // 天氣效果（雨/雪）畫在地面與視差層之後、燈籠與角色之前，避免遮擋遊戲元素
-    drawStageWeather(rainVisualTime);
+    if (STAGE.id !== "rain-port" || window.GAME_WEATHER.isPortWeatherVisible?.(viewBounds(),portDrawBounds) !== false) {
+      if (portPerf) beginFx(rain ? "weather" : "fog");
+      drawStageWeather(rainVisualTime,portDrawBounds);
+      if (portPerf) endFx();
+    }
 
     // 3. 街角石燈。畫在角色之前，腳底對齊燈位；圖還沒載入時退回提燈符號。
     LAMPS.forEach(l => {
@@ -6423,12 +6475,16 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     }
 
     // 6. 手繪封印靈玉：以墨線／和紙亮面取代螢光圓點。
-    for (const g of gems) {
-      if (!nearView(g.x, g.y, 40)) continue;
-      // Experience crystals float upright above their ground contact point.
-      RENDERER.drawGemShadow?.(g);
-      upright(g.x, g.y, () => RENDERER.drawSpiritGem(g, elapsed));
+    portPerf?.pass("gems");
+    const visibleGems = experiment?.gems != null ? perfGemFixture || [] : gems;
+    if (portPerf?.config.gemBatch === "original" || !RENDERER.drawSpiritGems?.(visibleGems,elapsed,nearView)) {
+      for (const g of visibleGems) {
+        if (!nearView(g.x, g.y, 40)) continue;
+        RENDERER.drawGemShadow?.(g);
+        upright(g.x, g.y, () => RENDERER.drawSpiritGem(g, elapsed));
+      }
     }
+    portPerf?.pass("world");
 
     for (const d of charmDrops) {
       if (!nearView(d.x, d.y, 60)) continue;
@@ -6436,12 +6492,15 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     }
 
     // 技能的貼地圖案（淨化靈陣等）畫在所有角色之前，才會被角色蓋住。
-    if (sacredSanctuary && sacredSanctuary.life > 0) {
-      const lifeNorm = sacredSanctuary.life / (sacredSanctuary.maxLife || 1.8);
+    if (sanctuary && sanctuary.life > 0 && experiment?.array !== false) {
+      if (portPerf) beginFx("sanctuaryFloor");
+      const lifeNorm = sanctuary.life / (sanctuary.maxLife || 1.8);
       const alpha = Math.min(0.92, lifeNorm * 1.3);
       ctx.save();
       ctx.globalAlpha = alpha;
-      const sr = sacredSanctuary.r, sx = sacredSanctuary.x, sy = sacredSanctuary.y;
+      const sr = sanctuary.r, sx = sanctuary.x, sy = sanctuary.y;
+      const singlePulse = experiment?.sanctuaryPulse === "single" &&
+        !!(window.barrierCoreArt?.(5)?.naturalWidth);
       const SQ = 0.6 / tiltK(); // 程序圓的 2D 扁率；螢幕縱向 = k × (0.6/k)
       const mandalaArt = window.ART?.barrier_mandala_ukiyoe;
       const coreArt = window.barrierCoreArt?.(5);
@@ -6451,7 +6510,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         ctx.globalAlpha = tier.alpha * Math.min(1,lifeNorm*1.3);
         const width = sr*2.15*tier.scale;
         const height = width*coreArt.naturalHeight/coreArt.naturalWidth;
-        const breathe = 1 + Math.sin(elapsed*2.3)*0.016*liveMotion();
+        const pulseGain = singlePulse ? Math.max(0,Math.min(1,(lifeNorm-.72)/.28)) : 0;
+        const breathe = 1 + Math.sin(elapsed*2.3)*0.016*liveMotion() + .08*pulseGain;
+        ctx.globalAlpha += (1-ctx.globalAlpha)*.45*pulseGain;
         ctx.translate(sx,sy);
         ctx.rotate(liveMotion()?elapsed*.10:0);
         ctx.scale(breathe,breathe);
@@ -6547,7 +6608,11 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.restore();
       }
     }
+    if (portPerf && sanctuary?.life > 0 && experiment?.array !== false) endFx();
+    if (portPerf) beginFx("particlesGround");
     FX.drawGround(ctx, cam, view);
+    if (portPerf) endFx();
+    if (portPerf) beginFx("skillGround");
     // Draw only approved raster images at ground depth below all danger warnings,
     // pickup labels, delivery text, cargo, and on-screen controls.
     inkTrail.paint(ctx, inkTrailArt, job?.reading ? .12 : 1);
@@ -6589,13 +6654,19 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       }
       ctx.restore();
     }
-    SKILLFX.drawArtFx?.(ctx, true);
+    const mergePulse = sanctuary?.life > 0 && experiment?.array && experiment.sanctuaryPulse === "single" &&
+      !!window.barrierCoreArt?.(5)?.naturalWidth;
+    SKILLFX.drawArtFx?.(ctx, true, experiment,mergePulse);
+    if (!mergePulse && perfSkillFixture?.pulse && experiment?.rank && experiment.array && (experiment.rank === 1 || experiment.accents))
+      SKILLFX.drawBarrierRaster(ctx, perfSkillFixture.pulse,1);
+    if (portPerf) endFx();
     // 所有融合主圖先於怪物及 Boss 警示繪製，避免自己的奧義遮住敵人和危險範圍。
     for (const fx of fusionEffects) {
       RENDERER.drawFusionFx?.(ctx, fx, visualElapsed);
     }
 
     if (sakuraStage) drawSanctuaryCanopy();
+    if (portPerf) beginFx("enemyHazards");
     for (const e of enemies) {
       const h = e.hazard;
       if (e.hp <= 0 || !h || isRouteLabHazard(h) ||
@@ -6606,6 +6677,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       } else if (h.kind === "shiome") drawShiomeWave(h);
       else drawBossHazard(h, e);
     }
+    if (portPerf) endFx();
 
     // 獨立於 safeRead 的角色動畫時鐘，確保世界暫停時角色仍能流暢邁步／衝刺
     const pAnimElapsed = typeof animElapsed === "number" ? animElapsed : elapsed;
@@ -6645,33 +6717,45 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     const movement = move();
     const companion = shikigami?.body();
     const companionEffect = shikigami?.effect();
-    const actors = [
-      ...(STAGE.id === "sakura-pass" ? RENDERER.sakuraForestActors?.(view, cam) || [] : []),
-      ...houses.filter(houseSeen).map(h => ({ house: h, y: h.y + 48 })),
-      ...enemies.filter(e => nearView(e.x, e.y)).map(e => ({ enemy: e, y: e.y + (e.type === "boss" ? 44 : e.type === "mis" ? 27 : 19) })),
-      ...LAMPS.filter(l => nearView(l.x, l.y)).map(l => ({ lamp: l, y: l.y + 8 })),
-      { player: P, y: P.y },
-      ...(companion && nearView(companion.x, companion.y) ? [{ companion, y: companion.y }] : []),
-      ...(companionEffect && nearView(companionEffect.x, companionEffect.y)
-        ? [{ companion: companionEffect, y: companionEffect.y + 1 }] : []),
-      // Single continuous scenery pass at EVERY tilt. No cached↔live toggle.
-      ...activeChunks.flatMap(chunk => [
-        ...(STAGE.id === "sakura-pass" || !chunk.decor?.torii ? [] : [{torii:chunk,y:chunk.y+chunk.h/2+36}]),
-        ...(STAGE.id === "sakura-pass" ? [] : (chunk.decor?.sakuraTrees||[])).map(tree=>({tree,y:tree.y})),
-        ...(chunk.decor?.ancientSakura || []).map(tree => ({ ancient: tree, y: tree.y })),
-        ...((STAGE.id === "sakura-pass" && chunk.decor?.stage3Props) || []).map(prop => ({ sakuraProp: prop, y: prop.y })),
-        ...(chunk.routeProps || []).map(prop => ({ bambooProp: prop, y: prop.y })),
-        ...((STAGE.id === "rain-port" && chunk.decor?.port?.props) || []).map(prop => ({ port: prop, y: prop.y }))
-      ]).filter(actor => actor.torii
-        ? nearView(actor.torii.x+actor.torii.w/2,actor.y,140)
-        : actor.ancient ? houseSeen(actor.ancient)
-        : actor.port ? nearView(actor.port.x, actor.port.y, 160)
-        : actor.sakuraProp ? nearView(actor.sakuraProp.x, actor.sakuraProp.y, 160)
-        : actor.bambooProp ? nearView(actor.bambooProp.x, actor.bambooProp.y, 650)
-        : nearView(actor.tree.x,actor.tree.y,140))
-    ];
+    const actors = renderActors;
+    actors.length = 0;
+    if (sakuraStage) for (const actor of RENDERER.sakuraForestActors?.(view,cam) || []) actors.push(actor);
+    for (const h of houses) if (houseSeen(h)) actors.push({house:h,y:h.y+48});
+    for (const e of enemies) if (nearView(e.x,e.y)) {
+      actors.push({enemy:e,y:e.y+(e.type==="boss" ? 44 : e.type==="mis" ? 27 : 19)});
+    }
+    for (const l of LAMPS) if (nearView(l.x,l.y)) actors.push({lamp:l,y:l.y+8});
+    actors.push({player:P,y:P.y});
+    if (companion && nearView(companion.x,companion.y)) actors.push({companion,y:companion.y});
+    if (companionEffect && nearView(companionEffect.x,companionEffect.y)) {
+      actors.push({companion:companionEffect,y:companionEffect.y+1});
+    }
+    // Insertion order breaks depth ties exactly as before.
+    for (const chunk of activeChunks) {
+      const decor = chunk.decor;
+      if (!sakuraStage) {
+        const y = chunk.y+chunk.h/2+36;
+        if (decor?.torii && nearView(chunk.x+chunk.w/2,y,140)) actors.push({torii:chunk,y});
+        if (decor?.sakuraTrees) for (const tree of decor.sakuraTrees) {
+          if (nearView(tree.x,tree.y,140)) actors.push({tree,y:tree.y});
+        }
+      }
+      if (decor?.ancientSakura) for (const tree of decor.ancientSakura) {
+        if (houseSeen(tree)) actors.push({ancient:tree,y:tree.y});
+      }
+      if (sakuraStage && decor?.stage3Props) for (const prop of decor.stage3Props) {
+        if (nearView(prop.x,prop.y,160)) actors.push({sakuraProp:prop,y:prop.y});
+      }
+      if (chunk.routeProps) for (const prop of chunk.routeProps) {
+        if (nearView(prop.x,prop.y,650)) actors.push({bambooProp:prop,y:prop.y});
+      }
+      if (STAGE.id === "rain-port" && decor?.port?.props) for (const prop of decor.port.props) {
+        if (nearView(prop.x,prop.y,160)) actors.push({port:prop,y:prop.y});
+      }
+    }
     actors.sort((a, b) => a.y - b.y);
     for (const actor of actors) {
+      portPerf?.pass(actor.enemy ? "enemies" : "sceneryActors");
       if (actor.torii || actor.tree || actor.ancient || actor.forest) RENDERER.drawDecorActor?.(actor,P.y);
       else if (actor.port) RENDERER.drawPortProp?.(actor.port, P.y);
       else if (actor.sakuraProp) RENDERER.drawSakuraProp?.(actor.sakuraProp, P.y);
@@ -6746,6 +6830,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     }
 
     // 8. Weapon projectiles (after depth-sorted actors).
+    if (portPerf) beginFx("skillProjectiles");
     for (const q of proj) upright(q.x,q.y,()=>
       SKILLFX.paint(ctx, "boom", q.level??WL.boom, { x: q.x, y: q.y, spin: elapsed * (q.stuck ? 4 : 16), age:q.t, life:q.stuck ? 1 : q.life, exitAlpha:1 }));
     // Lv5 burst art stays the main VFX. These sparks and smoke are only a
@@ -6809,6 +6894,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.restore();
     }
 
+    if (portPerf) endFx();
     // 14. 飄字：受傷提示用墨邊。淡粉 Boss 出場台詞加黑墨描邊與局部暗底，避免被雨港深淺背景吃掉。
     for (const t of texts) {
       if (t.delivery) {
@@ -6972,14 +7058,22 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     ctx.restore();
 
     // 16. 動態 2D 光影遮罩（深夜至黎明）
-    RENDERER.renderLighting(P, LAMPS, oil, visualElapsed, DAWN, maxOil, lampOutAmount(), shakeOffset);
+    if (portPerf) beginFx("lighting");
+    if (portPerf?.config.lighting !== "off") {
+      RENDERER.renderLighting(P, LAMPS, oil, visualElapsed, DAWN, maxOil, lampOutAmount(), shakeOffset);
+    }
+    if (portPerf) endFx();
 
     // 技能光效自帶光源：在夜色遮罩之後加法繪製，才會真的「發亮」而不是被壓暗。
     ctx.save();
     tiltWorld(cam,shakeOffset);
-    FX.draw(ctx, cam, view);
+    if (portPerf) beginFx("particlesAir");
+    FX.draw(ctx, cam, view, experiment?.airParticles !== false);
+    if (portPerf) { endFx(); beginFx("skillAir"); }
     SKILLFX.drawArtFx?.(ctx, false);
+    if (portPerf) endFx();
     if (!sakuraStage) drawSanctuaryCanopy();
+    if (portPerf) beginFx("skillForeground");
     // Purple flames must follow the damaged monster ABOVE the ground,
     // night lighting and the player's sanctuary canopy.
     inkTrail.paintEnemyImpacts(ctx, inkTrailArt, (x,y,paint)=>upright(x,y,paint));
@@ -7011,6 +7105,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       });
     }
     RENDERER.drawSlashArcs();
+    if (portPerf) { endFx(); beginFx("hazardOverlays"); }
     // Rain-port warning edges are deliberately re-composited above the
     // sanctuary canopy, but below delivery captions and fixed HUD.
     if (STAGE.id === "rain-port") {
@@ -7056,15 +7151,20 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     }
     ctx.restore();
     FX.drawFlash(ctx, viewBounds());
+    if (portPerf) endFx();
 
     // 16.5 中景流動夜霧視差層 (Midground Volumetric Mist, 0.45x)
     RENDERER.drawMistParallax?.(visualElapsed, DAWN, cam);
 
     // 17. 櫻花雨與夜行幽火
     const motion = liveMotion();
-    RENDERER.drawAtmosphere(visualElapsed, Math.round((STAGE_VISUAL.petals ?? 0) * 0.6 * motion), Math.round((STAGE_VISUAL.fireflies ?? 0) * 0.6 * motion));
+    if (portPerf) beginFx("atmosphere");
+    RENDERER.drawAtmosphere(visualElapsed, Math.round((STAGE_VISUAL.petals ?? 0) * 0.6 * motion),
+      Math.round((STAGE_VISUAL.fireflies ?? 0) * 0.6 * motion), rain ? rainVisualTime : null);
+    if (portPerf) endFx();
 
     // 敵方火彈自發光，放在夜色與雨霧之上，避免遠距離攻擊被壓暗。
+    if (portPerf) beginFx("enemyBullets");
     ctx.save();
     tiltWorld(cam,shakeOffset);
     for (const eb of enemyBullets) upright(eb.x,eb.y,()=>{
@@ -7074,6 +7174,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.beginPath();ctx.arc(eb.x, eb.y, 3.5, 0, 6.28);ctx.fill();
     });
     ctx.restore();
+    if (portPerf) endFx();
 
     ctx.save();
     tiltWorld(cam,shakeOffset);
@@ -7133,7 +7234,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     // floating damage digits, including those painted after the night mask.
     ctx.save();
     tiltWorld(cam,shakeOffset);
-    RENDERER.drawDamageNumbers();
+    portPerf?.pass("damage");
+    if (portPerf?.config.damageText !== "off") RENDERER.drawDamageNumbers();
+    portPerf?.pass("world");
     ctx.restore();
 
     // All stages keep delivery guidance until the required orders are done.
@@ -7718,10 +7821,20 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     AUDIO.setSuspended(false);
   }
   function frame(now) {
+    const frameStart = portPerf ? perfApi.clock() : 0;
     requestAnimationFrame(frame);
     if (!frameError) {
-      try { runFrame(now); return; }
+      try {
+        if (portPerf) portPerf.begin(now,frameStart);
+        runFrame(now);
+        if (portPerf) {
+          const frameEnd = perfApi.clock();
+          portPerf.end(frameEnd,perfScene(),!document.hidden,label => { perfText = label; });
+        }
+        return;
+      }
       catch (error) {
+        portPerf?.invalidate();
         frameError = true;
         state = "pause";
         keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
@@ -7776,7 +7889,6 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
 
   function runFrame(now) {
     menuButtons();
-    const perfFrameStart = PERF_DEBUG ? performance.now() : 0;
     // Render/UI remains clamped; game simulation catches up through bounded
     // <=50ms substeps instead of losing half the time on 10 FPS devices.
     const wallDt = Math.max(0, Math.min((now - last) / 1000, 0.2));
@@ -7813,7 +7925,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     // 手把輪詢（包含搖桿蘑菇頭與按鈕）
     pollGamepad();
 
-    const hitStopped = RENDERER.updateEffects(dt);
+    const holdPerfScene = portPerf?.config.hold && state === "play";
+    const hitStopped = RENDERER.updateEffects(holdPerfScene ? 0 : dt);
     if (state !== 'play' || tutorial) RENDERER.clearShake();
 
     if (pendingDepart && state === "overworld" && !artPending()) {
@@ -7828,7 +7941,12 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     }
     // Never transfer accumulated play time across menus, pause or reading panels.
     if (state !== "play") simulationCarry = 0;
-    if (state === "play") {
+    const perfUpdateStart = portPerf ? perfApi.clock() : 0;
+    const perfOldX = portPerf ? P.x : 0, perfOldY = portPerf ? P.y : 0;
+    if (holdPerfScene) {
+      simulationCarry = 0;
+      weatherClock += wallDt;
+    } else if (state === "play") {
       simulationCarry = Math.min(0.2, simulationCarry + wallDt);
       for (let stepIndex = 0; stepIndex < 4 && simulationCarry > 0.000001; stepIndex++) {
         const stepDt = Math.min(0.05, simulationCarry);
@@ -7853,7 +7971,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     }
     // Noncombat rain carries on after the final Boss dies. It stops only when
     // leaving the run, pausing, or opening a reading/upgrade overlay.
-    if (STAGE.id === "rain-port" && (state === "play" || state === "victory") &&
+    if (!holdPerfScene && STAGE.id === "rain-port" && (state === "play" || state === "victory") &&
         !tutorial && !job?.reading && !bossQ?.reading) {
       const before=rainCycle.snapshot().level;
       const after=rainCycle.tick(wallDt);
@@ -7863,7 +7981,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         say("暴雨・海妖水術增幅 10%",P.x,P.y-100,"#d9f3ff");
       }
     }
-    const perfAfterSim = PERF_DEBUG ? performance.now() : 0;
+    if (portPerf) {
+      portPerf.time("update",perfApi.clock()-perfUpdateStart);
+      perfMoving = perfOldX !== P.x || perfOldY !== P.y;
+    }
     AUDIO.updateBgm(dt, tutorial ? 'pause' : state, state === "overworld" ? 0 : elapsed, DAWN);
 
     if ((state === "won" || state === "lost") && !ended) {
@@ -7895,7 +8016,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if (screen !== lastScreen) { lastScreen = screen; fadeT = FADE_TIME; }
     fadeT = Math.max(0, fadeT - dt);
 
-    const perfBeforeDraw = PERF_DEBUG ? performance.now() : 0;
+    const perfBeforeDraw = portPerf ? perfApi.clock() : 0;
+    let worldMs = 0;
     const v = window.VIEWPORT?.get() || {offsetX:0,offsetY:0};
     const pixelScale = (v.scale || 1) * RENDERER.getDpr();
     ctx.setTransform(pixelScale, 0, 0, pixelScale, v.offsetX * pixelScale, v.offsetY * pixelScale);
@@ -7946,8 +8068,16 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         ctx.restore();
       }
     } else {
+      window.releaseRunCover?.();
       frameShakeOffset = RENDERER.getShakeOffset();
+      const worldStart = portPerf ? perfApi.clock() : 0;
+      portPerf?.pass("world");
       drawWorld();
+      if (portPerf) {
+        worldMs = perfApi.clock()-worldStart;
+        portPerf.time("world",worldMs);
+        portPerf.pass("ui");
+      }
       if (state === "victory" || state === "lampout") {
         const dawnP = victoryDawn();
         if (dawnP > 0) {
@@ -7974,7 +8104,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
           ctx.save();
           ctx.textAlign="center";ctx.textBaseline="middle";
           ctx.font=UI.readableFont(17,"900");
-          ctx.fillStyle="#e7f8ff";ctx.shadowColor="#103854";ctx.shadowBlur=7;
+          ctx.fillStyle="#e7f8ff";ctx.shadowColor="#103854";ctx.shadowBlur=portPerf?.config.uiShadows === "off" ? 0 : 7;
           const rainBannerY = deliveryReminderVisible ? (bossCurseRemaining > 0 ? 188 : 168) : 144;
           ctx.fillText("暴雨・海妖水術傷害 +10%",W/2,rainBannerY,Math.max(160,W-30));
           ctx.restore();
@@ -8086,15 +8216,6 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.restore();
     }
     if (PERF_DEBUG && screen === "run") {
-      if (!perfStart) perfStart = now;
-      perfFrames++;
-      perfSimMs += perfAfterSim - perfFrameStart;
-      perfDrawMs += performance.now() - perfBeforeDraw;
-      if (now - perfStart >= 900) {
-        const seconds = (now - perfStart) / 1000;
-        perfText = `FPS ${Math.round(perfFrames / seconds)} | sim ${(perfSimMs / perfFrames).toFixed(1)}ms | draw ${(perfDrawMs / perfFrames).toFixed(1)}ms`;
-        perfStart = now; perfFrames = 0; perfSimMs = 0; perfDrawMs = 0;
-      }
       // Count is deliberately sampled once at paint time: no extra enemy
       // searches, no browser console logging and no FPS polling timer.
       const area = window.VIEWPORT?.hudBounds?.() || viewBounds();
@@ -8118,7 +8239,98 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         perfX + perfWidth / 2, perfY + 27, perfWidth - 12);
       ctx.restore();
     }
+    if (portPerf) portPerf.time("ui",Math.max(0,perfApi.clock()-perfBeforeDraw-worldMs));
 
+  }
+
+  function perfScene() {
+    if (STAGE.id !== "rain-port" || state !== "play") return `${STAGE.id}/${state}`;
+    const boss = enemies.find(e => e.type === "boss" && e.hp > 0 && e.hazard);
+    const late = Math.floor(elapsed / 300) * 5;
+    const hazard = boss ? `${boss.hazard.kind}:${boss.hazard.phase || "?"}` : "no-boss-cast";
+    let active = (perfSkillFixture?.sanctuary || sacredSanctuary)?.life > 0 ? "field" : "";
+    for (const name in perfCastUntil) if (perfCastUntil[name] > elapsed) active += `+${name}`;
+    return `rain-port/${late}m/${perfMoving ? "moving" : "still"}/${hazard}/${active || "no-recent-cast"}`;
+  }
+
+  function perfSnapshot() {
+    const harbor = window.S2_ART_PROD_CACHE;
+    const s2Images = [harbor?.buildings,harbor?.props,harbor?.environment,harbor?.tiles?.stoneVariants,
+      harbor?.tiles?.woodVariants,harbor?.tiles?.transitions?.h,harbor?.tiles?.transitions?.v]
+      .flatMap(entries => entries?.map(entry => entry._img) || []);
+    const imageRefs = [...Object.values(window.ART || {}),...Object.values(window.PORT_ART || {}),
+      ...Object.values(window.BOSS_HAZARD_ART_IMG || {}),...Object.values(window.PORT_ENEMIES || {}),...s2Images]
+      .filter(image => image?.naturalWidth);
+    const images = new Set(imageRefs);
+    let imagePixels = 0;
+    for (const image of images) imagePixels += image.naturalWidth * image.naturalHeight;
+    const worldImages = new Set([...Object.values(window.ART || {}),...Object.values(window.PORT_ART || {}),...s2Images]
+      .filter(image => image?.naturalWidth));
+    let worldImagePixels = 0;
+    for (const image of worldImages) worldImagePixels += image.naturalWidth * image.naturalHeight;
+    return {stage:STAGE.id, run:perfRun, gameState:state, elapsed:Math.round(elapsed), moving:perfMoving,
+      levels:{...WL}, boss:enemies.filter(e => e.type === "boss" && e.hp > 0)
+        .map(e => ({name:e.title, hazard:e.hazard?.kind, phase:e.hazard?.phase})),
+      sanctuarySeconds:sacredSanctuary?.life > 0 ? sacredSanctuary.life : 0,
+      rain:rainCycle.snapshot().level, gems:gems.length, enemies:enemies.length, enemyBullets:enemyBullets.length,
+      projectiles:proj.length+needles.length+winds.length+dragonShots.length,
+      effects:FX.stats?.(), skillEffects:SKILLFX.stats?.(), fusion:fusionEffects.length,
+      violet:inkTrail.snapshot?.(WL.ink_trail), sealNail:sealNail.snapshot?.(WL.seal_nail),
+      chunkCache:WORLD_STATE.getCacheSize?.(), activeChunks:activeChunks.length, text:texts.length,
+      orders:orders.length, reviewMisses:misses.length,
+      images:{ready:images.size,references:imageRefs.length,pixels:imagePixels,
+        world:{ready:worldImages.size,pixels:worldImagePixels},
+        resources:{...perfResources,longTasks:perfResources.longTasks ? {...perfResources.longTasks} : null},
+        upgradeCards:window.__YOKAI_UPGRADE_PHASE42?.cardCacheStats?.()},
+      canvases:RENDERER.performanceStats?.(),
+      jsHeapBytes:performance.memory?.usedJSHeapSize ?? null,
+      viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio,tilt:tiltK(),zoom:window.VIEWPORT?.worldZoom?.()}};
+  }
+
+  if (portPerf) {
+    Object.defineProperty(perfApi,"config",{get: () => portPerf.config});
+    window.PORT_PERF.instrument = portPerf.instrument;
+    window.PORT_PERF.skill = id => { perfCastUntil[id] = elapsed + .65; };
+    portPerf.instrument(ctx,"main");
+    document.addEventListener("visibilitychange",portPerf.invalidate);
+    const api = {
+      report: () => ({...portPerf.report(), state:perfSnapshot()}),
+      resolution: () => portPerf.config.resolution,
+      refreshTerrain() { RENDERER.invalidateGroundCache?.(); },
+      configure(options = {}) {
+        const previous = portPerf.config;
+        const config = portPerf.configure(options);
+        if (config.hold && !previous.hold) perfRainLoad = rainLoad;
+        perfGemFixture = config.gems == null ? null : Array.from({length:config.gems}, (_,i) => {
+          // Use a common, evenly distributed prefix for every count.
+          const a = i * 2.39996323, r = 13.5 * Math.sqrt(i);
+          return {x:P.x+Math.cos(a)*r,y:P.y+Math.sin(a)*r*.6,v:i%11===0 ? 3 : 1};
+        });
+        perfSkillFixture = null;
+        if (config.rank) {
+          const spec = resolveAttackSpec("barrier",config.rank,combatBuildState());
+          window.barrierCoreArt?.(config.rank);
+          perfSkillFixture = {
+            pulse:{x:P.x,y:P.y,r:spec.radius,rank:config.rank,life:.60,max:.82},
+            sanctuary:spec.sanctuary ? {x:P.x,y:P.y,r:spec.radius,life:1.35,maxLife:1.8,level:5} : null
+          };
+        }
+        if (previous.resolution !== config.resolution || previous.smoothQuality !== config.smoothQuality) RENDERER.resize();
+        return config;
+      },
+      async probeDecode() {
+        // Explicit probe only. A warmed decode() may resolve immediately.
+        return Promise.all(["barrier_core_main","barrier_core_lv5"].map(async key => {
+          const image = window.ART?.[key];
+          if (!image?.decode) return {key,status:"unavailable"};
+          const started = perfApi.clock();
+          try { await image.decode(); return {key,status:"resolved",ms:perfApi.clock()-started}; }
+          catch { return {key,status:"rejected",ms:perfApi.clock()-started}; }
+        }));
+      }
+    };
+    window.YOKAI_PERF = api;
+    perfApi.mountPanel(document, api);
   }
 
   if (window.DEV_MODE && typeof window.DEV_MODE.isDevMode === "function" && window.DEV_MODE.isDevMode(location)) {

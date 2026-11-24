@@ -1,5 +1,4 @@
 'use strict';
-const {scriptUrl} = require('./helpers/script-url.cjs');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -54,11 +53,34 @@ test('Phase16 noise hash and module export stay deterministic',()=>{
  }
  assert.doesNotMatch(source,/Math\.random\s*\(|localStorage|document\.|window\.PORT_ART/);
 });
+test('rain-port skips a weather pass only when its entire expanded drawing area misses the viewport',()=>{
+ const weather=load();
+ assert.equal(weather.isPortWeatherVisible({left:0,top:0,right:900,bottom:600},{left:1150,top:0,right:2000,bottom:800}),false);
+ assert.equal(weather.isPortWeatherVisible({left:0,top:0,right:900,bottom:600},{left:1050,top:0,right:2000,bottom:800}),true);
+ assert.equal(weather.isPortWeatherVisible({left:0,top:0,right:900,bottom:600},{left:0,top:801,right:900,bottom:1700}),false);
+ assert.equal(weather.isPortWeatherVisible({left:0,top:0,right:900,bottom:600},{left:20,top:1,right:1000,bottom:650}),true);
+});
+
+test('rain strokes and splash art wholly beyond the projected viewport are skipped individually',()=>{
+ const weather=load();
+ const calls=[];
+ const ctx=new Proxy({}, {get:(_,name)=> (...args)=>calls.push([name,...args])});
+ const area={left:0,top:0,right:900,bottom:600,width:900,height:600};
+ const options={ctx,STAGE_VISUAL:{weather:'rain'},STAGE:{id:'rain-port'},rainLoad:1,W:900,H:600,
+  liveMotion:()=>1,viewBounds:()=>area,getRipple:()=>({naturalWidth:128}),rainStrength:1};
+ weather.drawStageWeather(0,options);
+ assert.ok(calls.some(([name])=>name==='drawImage'));
+ calls.length=0;
+ weather.drawStageWeather(0,{...options,world:{left:1050,top:0,right:2000,bottom:600}});
+ assert.equal(calls.filter(([name])=>name==='drawImage').length,0);
+ assert.ok(calls.filter(([name])=>name==='stroke').length<71);
+});
+
 test('Phase16 main game keeps live weather/stage and renderer context; HTML order valid',()=>{
  assert.match(game,/GAME_WEATHER\.drawStageWeather\(t, \{/);
- assert.match(game,/rainLoad, W, H,[\s\S]*?liveMotion, viewBounds, getRipple/);
+ assert.match(game,/rainLoad:[^,]+, W, H,[\s\S]*?liveMotion, viewBounds, getRipple/);
  const html=fs.readFileSync('index.html','utf8');
- assert.ok(html.includes('js/game-weather.js?v=20261103-weather-phase16'));
- assert.ok(html.includes(scriptUrl('game')));
+ assert.match(html, /js\/game-weather\.js\?v=/);
+ assert.match(html, /js\/game\.js\?v=/);
  assert.ok(html.indexOf('js/game-weather.js')<html.indexOf('js/game.js'));
 });

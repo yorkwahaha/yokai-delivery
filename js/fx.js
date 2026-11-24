@@ -4,9 +4,16 @@
 window.FX = (() => {
   const MAX = 460;
   const sprites = new Map();
+  let bitmapSprites = 0, bitmapPending = 0, bitmapFailures = 0;
+  const ATLAS_SIZE = 512, ATLAS_PADDING = 2, ATLAS_LIMIT = 2;
+  const atlasPages = [];
   const ps = [];
   const bolts = [];
-  let budget = 1, avgDt = 1 / 60, calm = !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches, calmCheck = 0;
+  const motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+  let budget = 1, avgDt = 1 / 60, calm = !!motionQuery?.matches;
+  const motionChanged = e => { calm = e.matches; };
+  if (motionQuery?.addEventListener) motionQuery.addEventListener("change",motionChanged);
+  else motionQuery?.addListener?.(motionChanged);
   let flashT = 0, flashMax = 0.12, flashColor = "#ffffff", flashPower = 0.2;
 
   const rnd = (a, b) => a + Math.random() * (b - a);
@@ -206,10 +213,124 @@ window.FX = (() => {
 
   const SIZE = { glow: 64, spark: 64, ring: 128, rune1: 192, rune2: 192, rune3: 224, flame: 64, shard: 48, stroke: 64, edge: 128, seal: 64, storm:256, drum:128,rock:128,yin:128,current:128 };
 
-  function sprite(kind, color) {
+  function sprite(kind, color, preferBitmap = false) {
     const key = `${kind}|${color}`;
-    if (!sprites.has(key)) sprites.set(key, bake(SIZE[kind], (g, s) => PAINT[kind](g, s, color)));
-    return sprites.get(key);
+    let entry = sprites.get(key);
+    if (!entry) {
+      entry = {kind,color,source:null,sourceAttempted:false,bitmapRequested:false,preferBitmap:false};
+      if (sprites.size >= 96) sprites.delete(sprites.keys().next().value);
+      sprites.set(key,entry);
+    }
+    entry.preferBitmap ||= preferBitmap;
+    if (!window.PORT_PERF?.config || window.PORT_PERF.config.fxBatch === "original") originalSource(entry);
+    return entry;
+  }
+
+  function originalSource(entry) {
+    const {kind,color} = entry;
+    if (!entry.sourceAttempted) {
+      entry.sourceAttempted = true;
+      entry.source = bake(SIZE[kind],(g,s) => PAINT[kind](g,s,color));
+      if (entry.source) window.PORT_PERF?.registerParticleSource?.(entry.source, kind, "canvas");
+    }
+    if (entry.preferBitmap && entry.source && !entry.bitmapRequested && typeof window.createImageBitmap === "function") {
+      entry.bitmapRequested = true;
+      // The original Canvas stays drawable until the immutable copy is ready.
+      // Every live particle shares this slot, so swapping drops the old backing.
+      try {
+        const pending = window.createImageBitmap(entry.source);
+        bitmapPending++;
+        pending.then(bitmap => {
+          bitmapPending--;
+          if (bitmap.width && bitmap.height) {
+            entry.source = bitmap;
+            window.PORT_PERF?.registerParticleSource?.(bitmap, kind, "imageBitmap");
+            bitmapSprites++;
+          } else bitmapFailures++;
+        }, () => { bitmapPending--; bitmapFailures++; });
+      } catch { bitmapFailures++; }
+    }
+    return entry.source;
+  }
+
+  function packAtlas(entry) {
+    const size = SIZE[entry.kind];
+    const stride = size + ATLAS_PADDING * 2;
+    let page = atlasPages.at(-1);
+    if (page && page.x + stride > ATLAS_SIZE) {
+      page.y += page.rowHeight;
+      page.x = page.rowHeight = 0;
+    }
+    if (!page || page.y + stride > ATLAS_SIZE) {
+      if (atlasPages.length >= ATLAS_LIMIT) return null;
+      const canvas = bake(ATLAS_SIZE, () => {});
+      if (!canvas) return null;
+      const ctx = canvas.getContext("2d");
+      page = {canvas,ctx,x:0,y:0,rowHeight:0,revision:0,snapshots:{}};
+      atlasPages.push(page);
+      window.PORT_PERF?.registerParticleSource?.(canvas,"atlas","canvas");
+    }
+    const x = page.x + ATLAS_PADDING, y = page.y + ATLAS_PADDING;
+    const paint = page.ctx;
+    if (entry.source) paint.drawImage(entry.source,x,y);
+    else {
+      // An atlas selected at the start paints straight into the shared
+      // backing. A legacy sprite is only allocated if we fall back to it.
+      paint.save();
+      paint.translate(x,y);
+      paint.beginPath();
+      paint.rect(0,0,size,size);
+      paint.clip();
+      PAINT[entry.kind](paint,size,entry.color);
+      paint.restore();
+    }
+    page.x += stride;
+    page.rowHeight = Math.max(page.rowHeight,stride);
+    return {page,x,y,size,revision:++page.revision};
+  }
+
+  function atlasRect(entry, mode) {
+    if (mode === "original") return null;
+    if (entry.rect === undefined) entry.rect = packAtlas(entry);
+    return entry.rect;
+  }
+
+  function atlasSource(rect, mode) {
+    const {page} = rect;
+    if (mode === "canvas") return page.canvas;
+    const snapshot = page.snapshots[mode] ??= {revision:0};
+    if (!snapshot.pending && snapshot.revision !== page.revision) {
+      snapshot.pending = true;
+      Promise.resolve().then(async () => {
+        const revision = page.revision;
+        let source;
+        try {
+          if (mode === "bitmap") source = await window.createImageBitmap?.(page.canvas);
+          else if (page.canvas.toBlob && window.URL?.createObjectURL) {
+            const blob = await new Promise(resolve => page.canvas.toBlob(resolve));
+            if (blob) {
+              const url = window.URL.createObjectURL(blob);
+              try {
+                source = await new Promise(resolve => {
+                  const img = new Image();
+                  img.onload = () => resolve(img);
+                  img.onerror = () => resolve(null);
+                  img.src = url;
+                });
+              } finally {
+                window.URL.revokeObjectURL(url);
+              }
+            }
+          }
+        } catch { /* the live atlas remains available */ }
+        snapshot.revision = revision;
+        snapshot.source?.close?.();
+        snapshot.source = source;
+        snapshot.pending = false;
+        if (source) window.PORT_PERF?.registerParticleSource?.(source,"atlas",mode === "bitmap" ? "imageBitmap" : "image");
+      });
+    }
+    return snapshot.revision >= rect.revision && snapshot.source || page.canvas;
   }
 
   const count = n => {
@@ -227,7 +348,8 @@ window.FX = (() => {
     }
     ps.push({
       kind, priority, blend: 'lighter',
-      s: sprite(kind, color), x: 0, y: 0, vx: 0, vy: 0, drag: 0, g: 0, rot: 0, vr: 0, sx: 1, sy: 1, a: 1,
+      sprite: sprite(kind, color, !o.ground && window.__ACTIVE_STAGE === "rain-port"),
+      x: 0, y: 0, vx: 0, vy: 0, drag: 0, g: 0, rot: 0, vr: 0, sx: 1, sy: 1, a: 1,
       s0: 16, s1: 16, delay: 0, ease: false, ground: false, ...o,
       ...(calm ? {vx:0,vy:0,vr:0,g:0,delay:0,s0:o.ground?(o.s1??o.s0??16):(o.s0??16),s1:o.ground?(o.s1??o.s0??16):(o.s0??16)} : {}),
       life: calm ? Math.min(o.life,0.3) : o.life, max: calm ? Math.min(o.life,0.3) : o.life
@@ -324,10 +446,6 @@ window.FX = (() => {
     // 實測 460 顆粒子上限下 update＋draw 約 0.7ms，所以只在掉到約 25fps 以下才縮減粒子量（30fps 螢幕不受影響）。
     if (avgDt > 0.04) budget = Math.max(0.5, budget - 0.012);
     else if (avgDt < 0.036) budget = Math.min(1, budget + 0.004);
-    if ((calmCheck -= dt) <= 0) {
-      calmCheck = 1;
-      calm = !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    }
     flashT = Math.max(0, flashT - dt);
     for (let i = ps.length - 1; i >= 0; i--) {
       const p = ps[i];
@@ -345,33 +463,62 @@ window.FX = (() => {
     }
   }
 
-  function paint(ctx, p) {
+  function drawParticleTile(ctx, source, rect, x, y, width, height, crop = false) {
+    if (!crop) {
+      if (rect) ctx.drawImage(source,rect.x,rect.y,rect.size,rect.size,x,y,width,height);
+      else ctx.drawImage(source,x,y,width,height);
+      return;
+    }
+    // The ink lies around rows 28–36 of the 64px tile. Keep a transparent
+    // margin for interpolation and retain the original texel-to-world scale.
+    const croppedHeight = height * 24 / SIZE.stroke;
+    ctx.drawImage(source,rect?.x ?? 0,(rect?.y ?? 0)+20,SIZE.stroke,24,x,y+(height-croppedHeight)/2,width,croppedHeight);
+  }
+
+  function paint(ctx, p, tilt, upright, cropPortStrokes, mode, blend) {
     const t = 1 - p.life / p.max, k = p.ease ? 1 - (1 - t) * (1 - t) : t;
     const size = p.s0 + (p.s1 - p.s0) * k;
     const a = p.a * Math.min(1, t * 9) * (1 - t * t);
-    if (a < 0.02 || size < 1) return;
+    if (a < 0.02 || size < 1) return blend;
+    const rect = atlasRect(p.sprite,mode);
+    const source = rect ? atlasSource(rect,mode) : originalSource(p.sprite);
+    if (!source) return blend;
+    if (blend !== p.blend) {
+      ctx.globalCompositeOperation = p.blend;
+      blend = ctx.globalCompositeOperation;
+    }
+    if (p.foot) {
+      const foot = () => {
+        ctx.globalAlpha = a;
+        ctx.save();
+        ctx.fillStyle = 'rgba(12,17,24,0.25)';
+        ctx.beginPath(); ctx.ellipse(p.x,p.y,size*.32,size*.09,0,0,6.283); ctx.fill();
+        const standing = () => drawParticleTile(ctx,source,rect,p.x-size/2,p.y-size*.96,size,size);
+        if (upright) upright(ctx,p.x,p.y,standing);
+        else standing();
+        ctx.restore();
+      };
+      if (!p.ground && upright) upright(ctx,p.x,p.y,foot);
+      else foot();
+      return blend;
+    }
+    // Collapse the inverse tilt, local squash and rotation into one transform.
+    const correctTilt = p.ground ? p.sy !== 1 : !!upright;
+    const sy = correctTilt ? p.sy / tilt : p.sy;
+    const width = size * p.sx;
+    const crop = cropPortStrokes && p.kind === "stroke" && p.blend === "source-over";
     ctx.globalAlpha = a;
-    if(p.foot){
-      ctx.save();ctx.fillStyle='rgba(12,17,24,0.25)';
-      ctx.beginPath();ctx.ellipse(p.x,p.y,size*.32,size*.09,0,0,6.283);ctx.fill();
-      const standing=()=>ctx.drawImage(p.s,p.x-size/2,p.y-size*.96,size,size);
-      if(window.VIEWPORT?.upright)window.VIEWPORT.upright(ctx,p.x,p.y,standing);
-      else standing();
-      ctx.restore();return;
+    if (p.rot === 0 && sy > 0) {
+      const height = size * sy;
+      drawParticleTile(ctx,source,rect,p.x-width/2,p.y-height/2,width,height,crop);
+      return blend;
     }
-    // Authored ground sy stays the 2D factor. Draw sy/k so on-screen squash stays that factor at every tilt.
-    const tilt = window.VIEWPORT?.tiltScale?.() || 1;
-    const sy = p.ground && p.sy !== 1 ? p.sy / tilt : p.sy;
-    if (p.rot === 0 && p.sx === 1 && sy === 1 && p.vr === 0) {
-      ctx.drawImage(p.s, p.x - size / 2, p.y - size / 2, size, size);
-    } else {
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      if (sy !== 1) ctx.scale(1, sy);
-      ctx.rotate(p.rot);
-      ctx.drawImage(p.s, -size * p.sx / 2, -size / 2, size * p.sx, size);
-      ctx.restore();
-    }
+    const cos = Math.cos(p.rot), sin = Math.sin(p.rot);
+    ctx.save();
+    ctx.transform(cos,sin*sy,-sin,cos*sy,p.x,p.y);
+    drawParticleTile(ctx,source,rect,-width/2,-size/2,width,size,crop);
+    ctx.restore();
+    return blend;
   }
 
   // 在世界座標（已套用鏡頭位移）上加法繪製。view 為螢幕可視範圍，用來裁切。
@@ -379,17 +526,16 @@ window.FX = (() => {
   function drawLayer(ctx, cam, view, ground) {
     const x0 = cam.x + view.left, x1 = cam.x + view.right;
     const y0 = cam.y + view.top, y1 = cam.y + view.bottom;
+    const tilt = window.VIEWPORT?.tiltScale?.() || 1, upright = window.VIEWPORT?.upright;
+    const cropPortStrokes = !ground && window.__ACTIVE_STAGE === "rain-port";
+    const mode = window.PORT_PERF?.config?.fxBatch || "original";
     ctx.save();
-    ctx.globalCompositeOperation = "lighter";
+    let blend = ctx.globalCompositeOperation;
     for (const p of ps) {
+      if (p.ground !== ground || p.delay > 0) continue;
       const margin = Math.max(p.s0,p.s1) * Math.max(1,Math.abs(p.sx),Math.abs(p.sy)) / 2;
-      if (p.ground !== ground || p.delay > 0 || !p.s || p.x+margin < x0 || p.x-margin > x1 || p.y+margin < y0 || p.y-margin > y1) continue;
-      ctx.globalCompositeOperation = p.blend;
-      // Ground particles receive the full world tilt; air particles inverse-scale
-      // around their own anchor so paper sparks/light columns are not flattened.
-      if(!ground && window.VIEWPORT?.upright){
-        window.VIEWPORT.upright(ctx,p.x,p.y,()=>paint(ctx,p));
-      }else paint(ctx,p);
+      if (p.x+margin < x0 || p.x-margin > x1 || p.y+margin < y0 || p.y-margin > y1) continue;
+      blend = paint(ctx,p,tilt,upright,cropPortStrokes,mode,blend);
     }
     ctx.restore();
   }
@@ -398,9 +544,9 @@ window.FX = (() => {
     if (ps.length) drawLayer(ctx, cam, view, true);
   }
 
-  function draw(ctx, cam, view) {
+  function draw(ctx, cam, view, showParticles = true) {
     if (!ps.length && !bolts.length) return;
-    drawLayer(ctx, cam, view, false);
+    if (showParticles && ps.length) drawLayer(ctx, cam, view, false);
     if (!bolts.length) return;
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
@@ -434,12 +580,16 @@ window.FX = (() => {
 
   // 給 UI／場景直接用的一次性發光貼圖（不進粒子池）
   function glow(ctx, x, y, size, color = "#ffd36a", alpha = 1) {
-    const s = sprite("glow", color);
-    if (!s || alpha <= 0.01) return;
+    if (alpha <= 0.01) return;
+    const entry = sprite("glow", color);
+    const mode = window.PORT_PERF?.config?.fxBatch || "original";
+    const rect = atlasRect(entry,mode);
+    const source = rect ? atlasSource(rect,mode) : originalSource(entry);
+    if (!source) return;
     const prev = ctx.globalCompositeOperation, pa = ctx.globalAlpha;
     ctx.globalCompositeOperation = "lighter";
     ctx.globalAlpha = pa * alpha;
-    ctx.drawImage(s, x - size / 2, y - size / 2, size, size);
+    drawParticleTile(ctx,source,rect,x-size/2,y-size/2,size,size);
     ctx.globalAlpha = pa;
     ctx.globalCompositeOperation = prev;
   }
@@ -450,7 +600,10 @@ window.FX = (() => {
     // 通用原語：給技能特效檔（skillfx.js）組裝用
     emit: add, count, rnd, bolt, allowsMotion: () => !calm,
     burst, death, gem, levelUp, deliver, dashTrail, flash, update, draw, drawGround, drawFlash, glow, reset,
-    stats: () => ({ particles: ps.length, budget, bolts: bolts.length }),
+    stats: () => ({particles:ps.length, budget, bolts:bolts.length, spriteCache:sprites.size,
+      bitmapSprites, bitmapPending, bitmapFailures, atlasPages:atlasPages.length,
+      atlasBackings:atlasPages.map(page => Object.fromEntries(Object.entries(page.snapshots)
+        .map(([mode,snapshot]) => [mode,!!snapshot.source && snapshot.revision === page.revision])))}),
     particles: () => ps // 供測試檢查圖層與透明度，請勿在遊戲邏輯中修改
   };
 })();

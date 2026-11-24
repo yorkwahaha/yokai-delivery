@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 
 function loadRenderer(width, height, dpr = 1, CanvasContext, coarse = false) {
-  const canvases = [], texts = [], images = [];
+  const canvases = [], texts = [], images = [], documentEvents = {};
   const gradient = { addColorStop() {} };
   function canvas() {
     const transforms = [], fills = [];
@@ -14,7 +14,7 @@ function loadRenderer(width, height, dpr = 1, CanvasContext, coarse = false) {
       fillText: text => texts.push(text), drawImage: (...args) => images.push(args),
       createLinearGradient: () => gradient, createRadialGradient: () => gradient,
       measureText: () => ({width:40})
-    }, {get: (o,k) => o[k] ?? (() => {})});
+    }, {get: (o,k) => k === 'isContextLost' ? o[k] : o[k] ?? (() => {})});
     const events = {};
     const c = {width:0, height:0, getContext: (...args) => { c.contextOptions = args[1] || null; return ctx; }, transforms, fills, ctx,
       events, addEventListener: (type, handler) => { events[type] = handler; }};
@@ -22,12 +22,12 @@ function loadRenderer(width, height, dpr = 1, CanvasContext, coarse = false) {
   }
   const main = canvas();
   const env = {innerWidth:width, innerHeight:height, devicePixelRatio:dpr,
-    matchMedia:query=>({matches:coarse && query==='(pointer: coarse)',addEventListener:(type,fn)=>{if(query.includes('reduced-motion'))env.motionChange=fn;}}), document:{createElement:canvas}, ART:{}, UI:{readableFont: () => '20px sans-serif'}, CanvasRenderingContext2D:CanvasContext};
+    matchMedia:query=>({matches:coarse && query==='(pointer: coarse)',addEventListener:(type,fn)=>{if(query.includes('reduced-motion'))env.motionChange=fn;}}), document:{createElement:canvas,addEventListener:(type,handler)=>{documentEvents[type]=handler;}}, ART:{}, UI:{readableFont: () => '20px sans-serif'}, CanvasRenderingContext2D:CanvasContext};
   env.window=env;
   const context=vm.createContext(env);
   for (const name of ['viewport','renderer']) vm.runInContext(fs.readFileSync(`js/${name}.js`,'utf8'),context);
   context.RENDERER.init(main);
-  return {env:context, main, canvases, texts, images};
+  return {env:context, main, canvases, texts, images, documentEvents};
 }
 test('torii and sakura stay in the same live actor pass at 2D, mid-tilt and 2.5D',()=>{
   const r=loadRenderer(900,600);
@@ -226,22 +226,155 @@ test('50-enemy AoE storms bound damage-label drawing without hiding crit/status 
   assert.ok(r.texts.includes('14.4'),'critical-hit feedback remains legible');
 });
 
-test('a lost Safari offscreen terrain context invalidates the cached background and repaints after restore',()=>{
+test('same-size resize keeps both Canvas backings intact',()=>{
+  const r = loadRenderer(900,600,2);
+  const before = r.env.RENDERER.performanceStats();
+  r.env.RENDERER.resize();
+  const after = r.env.RENDERER.performanceStats();
+  assert.equal(after.mainResets,before.mainResets);
+  assert.equal(after.lightResets,before.lightResets);
+  assert.equal(after.stores.main.pixels,before.stores.main.pixels);
+});
+
+test('terrain context loss allows native restoration and redraws with the original render state',()=>{
   const r=loadRenderer(900,600);
-  r.env.RENDERER.drawGround(0,600,[],'ground','night-town');
-  const terrain=r.canvases.find(c=>c.events.contextlost);
+  const ground={complete:true,naturalWidth:512,naturalHeight:512};
+  r.env.ART.ground=ground;
+  const draw=()=>r.env.RENDERER.drawGround(0,600,[],'ground','night-town');
+  draw();
+  const terrain=r.canvases.at(-1);
   assert.ok(terrain,'offscreen terrain registers recovery handlers');
-  assert.equal(typeof terrain.events.contextrestored,'function');
+  const transform=terrain.transforms.at(-1);
   const n=r.env.RENDERER.groundCacheStats().builds;
-  let prevented=0;
-  terrain.events.contextlost({preventDefault(){prevented++;}});
-  r.env.RENDERER.drawGround(0,600,[],'ground','night-town');
-  assert.equal(prevented,1);
-  assert.ok(r.env.RENDERER.groundCacheStats().builds>n,'the lost cached pixels are repainted');
-  const n2=r.env.RENDERER.groundCacheStats().builds;
+  const loss=new Event('contextlost',{cancelable:true});
+  terrain.events.contextlost(loss);
+  assert.equal(loss.defaultPrevented,false);
+  r.images.length=0;
+  draw();
+  assert.equal(r.env.RENDERER.groundCacheStats().builds,n,'no rebuild during native loss');
+  assert.ok(r.images.some(([image])=>image===ground),'draws real tiles from the main canvas in the meantime');
+  assert.ok(r.images.every(([image])=>image!==terrain),'never submits the lost backing');
+
+  Object.assign(terrain.ctx,{imageSmoothingEnabled:true,globalAlpha:.5,globalCompositeOperation:'copy'});
+  terrain.transforms.length=0;
   terrain.events.contextrestored();
+  draw();
+  assert.equal(r.env.RENDERER.groundCacheStats().builds,n+1);
+  assert.equal(r.images.at(-1)[0],terrain);
+  assert.deepEqual(terrain.transforms.at(-1),transform);
+  assert.equal(terrain.ctx.imageSmoothingEnabled,false);
+  assert.equal(terrain.ctx.globalAlpha,1);
+  assert.equal(terrain.ctx.globalCompositeOperation,'source-over');
+  draw();
+  assert.equal(r.env.RENDERER.groundCacheStats().builds,n+1,'restored terrain stays cached');
+});
+
+test('terrain detects a lost cached context without a contextlost event',()=>{
+  const r=loadRenderer(900,600);
+  const draw=()=>r.env.RENDERER.drawGround(0,600,[],'ground','night-town');
+  let now=10000;
+  r.env.Date={now:()=>now};
+  draw();
+  const terrain=r.canvases.at(-1);
+  terrain.ctx.isContextLost=()=>true;
+  r.images.length=0;
+  draw();
+  assert.ok(r.images.every(([image])=>image!==terrain),'valid cache metadata does not hide context failure');
+  assert.equal(r.main.fills.length,1);
+  terrain.ctx.isContextLost=()=>false;
+  now+=1000;
+  draw();
+  assert.equal(r.images.at(-1)[0],terrain);
+});
+
+test('terrain retries with capped backoff and can recover on foreground without Canvas events',()=>{
+  const r=loadRenderer(900,600);
+  const draw=()=>r.env.RENDERER.drawGround(0,600,[],'ground','night-town');
+  const create=r.env.document.createElement;
+  let now=10000, getCalls=0, unavailable=true;
+  r.env.Date={now:()=>now};
+  r.env.document.createElement=()=>{
+    const canvas=create(), get=canvas.getContext;
+    canvas.getContext=(...args)=>{getCalls++; return unavailable ? null : get(...args);};
+    return canvas;
+  };
+  for(let frame=0;frame<600;frame++){
+    draw();
+    now+=17;
+  }
+  assert.equal(r.main.fills.length,600,'fallback continues to cover the viewport');
+  assert.equal(getCalls,3,'retry attempts back off over several seconds');
+  assert.equal(r.env.RENDERER.performanceStats().terrainResets,0,'unavailable context never grows a large backing');
+  assert.equal(r.env.RENDERER.groundCacheStats().builds,0);
+
+  unavailable=false;
+  r.env.document.hidden=false;
+  r.documentEvents.visibilitychange();
+  draw();
+  assert.equal(r.images.at(-1)[0],r.canvases.at(-1));
+  assert.equal(r.env.RENDERER.groundCacheStats().builds,1);
+});
+
+test('terrain that loses its context during backing resize falls back without publishing a blank cache',()=>{
+  const r=loadRenderer(900,600);
+  const create=r.env.document.createElement;
+  r.env.document.createElement=()=>{
+    const canvas=create(), get=canvas.getContext;
+    canvas.getContext=(...args)=>canvas.width > 300 ? null : get(...args);
+    return canvas;
+  };
   r.env.RENDERER.drawGround(0,600,[],'ground','night-town');
-  assert.ok(r.env.RENDERER.groundCacheStats().builds>n2,'restore cannot reuse blank terrain');
+  assert.equal(r.images.length,0);
+  assert.equal(r.main.fills.length,1);
+  assert.equal(r.env.RENDERER.performanceStats().terrainFallbacks,1);
+  assert.equal(r.env.RENDERER.groundCacheStats().builds,0);
+});
+
+test('projected terrain reduces the backing height and repaint mode avoids self copies',()=>{
+  const r=loadRenderer(900,600);
+  r.env.VIEWPORT.setTiltScale(.6);
+  const draw=()=>r.env.RENDERER.drawGround(0,600,[],'ground','night-town');
+  draw();
+  const original = r.env.RENDERER.performanceStats().stores.terrain;
+  r.env.PORT_PERF={config:{terrainCache:'repaint'}};
+  draw();
+  const projected = r.env.RENDERER.performanceStats().stores.terrain;
+  assert.equal(projected.width,original.width);
+  assert.ok(Math.abs(projected.height-original.height*.6)<=1);
+  r.env.RENDERER.setCam(160,0);
+  draw();
+  assert.equal(r.env.RENDERER.performanceStats().terrainScrollCopies,0);
+  assert.equal(r.env.RENDERER.performanceStats().terrainPaints,3);
+  r.env.PORT_PERF.config.terrainCache='original';
+  draw();
+  assert.equal(r.env.RENDERER.performanceStats().stores.terrain.height,original.height);
+});
+
+test('an undrawable terrain backing is replaced after a delay and releases the old backing',()=>{
+  const r=loadRenderer(900,600);
+  const draw=()=>r.env.RENDERER.drawGround(0,600,[],'ground','night-town');
+  let now=10000;
+  r.env.Date={now:()=>now};
+  draw();
+  const terrain=r.canvases.at(-1), drawImage=r.main.ctx.drawImage;
+  r.main.ctx.drawImage=(image,...args)=>{
+    if(image===terrain) throw new DOMException('unavailable','InvalidStateError');
+    drawImage(image,...args);
+  };
+  draw();
+  draw();
+  assert.equal(r.main.fills.length,2);
+  assert.equal(r.canvases.at(-1),terrain,'replacement does not allocate on the failing frames');
+  now+=1000;
+  draw();
+  const replacement=r.canvases.at(-1);
+  assert.notEqual(replacement,terrain);
+  assert.equal(terrain.width,1);
+  assert.equal(terrain.height,1);
+  assert.equal(r.images.at(-1)[0],replacement);
+  terrain.events.contextrestored();
+  draw();
+  assert.equal(r.env.RENDERER.groundCacheStats().builds,2,'a late event from a released canvas cannot invalidate the replacement');
 });
 
 test('reduced motion disables shake and hit stop', () => {
@@ -472,7 +605,8 @@ test('touch renderer paints 120 gems using four cached tiny raster tiles, not ve
   const draws=r.images.slice(imagesBefore);
   assert.equal(draws.length,240);
   assert.ok(draws.every(d=>r.canvases.includes(d[0])));
-  assert.ok(draws.every(d=>d[3]===48&&d[4]===48));
+  assert.deepEqual(draws.slice(0,2).map(d=>[d[3],d[4],d[7],d[8]]), [[48,26,24,13],[76,68,38,34]]);
+  assert.ok(draws.every(d=>d[3]===d[7]*2&&d[4]===d[8]*2),'retains original 2× texel scale');
 });
 
 test('night midtones stay readable and warm light stays on the lamps', () => {

@@ -166,7 +166,6 @@
       user-select: none;
       -webkit-user-select: none;
       display: block;
-      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
     }
     /* 直屏只給一個不可攔截的提示晶片：不能再用全螢幕遮罩吃掉 HUD／選卡／結算的觸控。 */
     #rotate-hint {
@@ -248,16 +247,16 @@
   <script src="js/controls.js?v=20261119-auditfix-r1"></script>
   <script src="js/asset-paths.js?v=20261101-audit"></script>
   <script src="js/sakura-art-data.js?v=20261120-sakura-readability"></script>
-  <script src="js/assets.js?v=20261120-classroom"></script>
+  <script src="js/assets.js?v=20261124-ipad-phases"></script>
   <script src="js/delivery-fish-audio.js?v=20261101-s2b17"></script>
   <script src="js/audio.js?v=20261122-stage-music-r1"></script>
   <script src="js/haptics.js?v=20261101-s2b17"></script>
   <script src="js/spritecook-dev.js?v=20261101-s2b17"></script>
   <script src="js/boss-roster-trial.js?v=20261120-classroom"></script>
-  <script src="js/renderer.js?v=20261122-ipad-terrain-recovery"></script>
-  <script src="js/fx.js?v=20261101-s2b17"></script>
-  <script src="js/skillfx.js?v=20261109-ofuda-alpha97-r1"></script>
-  <script src="js/ui.js?v=20261122-exit-hitboxes"></script>
+  <script src="js/renderer.js?v=20261124-ipad-phases"></script>
+  <script src="js/fx.js?v=20261124-ipad-phases"></script>
+  <script src="js/skillfx.js?v=20261124-ipad-phases"></script>
+  <script src="js/ui.js?v=20261124-ipad-phases"></script>
   <script src="js/ui-upgrade-trial.js?v=20261122-kai-card-cache"></script>
   <script src="js/overworld-layout.js?v=20261101-s2b17"></script>
   <script src="js/overworld.js?v=20261122-courier-travel"></script>
@@ -297,13 +296,18 @@
   <script src="js/game-attack-specs.js?v=20261121-skill-mutations"></script>
   <script src="js/game-catalog.js?v=20261121-skill-mutations"></script>
   <script src="js/game-combat-math.js?v=20261119-auditfix-r1"></script>
-  <script src="js/game-weather.js?v=20261103-weather-phase16-raincycle-20261111"></script>
+  <script src="js/game-weather.js?v=20261124-ipad-phases"></script>
   <script src="js/game-charm-math.js?v=20261103-charm-phase5"></script>
-  <script src="js/game-upgrade-choices.js?v=20261121-cooldown-r1"></script>
+  <script src="js/game-upgrade-choices.js?v=20261124-new-skill-visibility"></script>
   <script src="js/game-run-summary.js?v=20261103-summary-phase18"></script>
   <script src="js/game-tutorial-rules.js?v=20261103-tutorial-phase20"></script>
   <script src="js/game-sanctuary-arc.js?v=20261107-lv5-dome-gradient"></script>
-  <script src="js/game.js?v=20261122-fps-hud-center-r1"></script>
+  <script>
+    if (new URLSearchParams(window.location.search).get("perf") === "1") {
+      document.write('<script src="js/port-performance.js?v=20261124-ipad-phases"><' + '/script>');
+    }
+  </script>
+  <script src="js/game.js?v=20261124-ipad-visibility"></script>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' }).catch(() => {});
 </script>

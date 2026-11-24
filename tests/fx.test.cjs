@@ -3,8 +3,8 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 
-function loadFx(reduceMotion = false) {
-  const env = { Math, Date, matchMedia: () => ({ matches: reduceMotion }) };
+function loadFx(reduceMotion = false, options = {}) {
+  const env = { Math, Date, matchMedia: () => ({ matches: reduceMotion }), ...options };
   env.window = env;
   vm.runInNewContext(fs.readFileSync('js/fx.js', 'utf8'), env);
   return env.FX;
@@ -57,12 +57,36 @@ test('ground particles are drawn only by the ground pass and air particles only 
   const drawn = [];
   const spy = new Proxy({}, { get: (o, k) => (k === 'drawImage' ? () => drawn.push(1) : k in o ? o[k] : () => {}), set: (o, k, v) => { o[k] = v; return true; } });
   // 沒有 DOM 時貼圖為 null，改用不被略過的假貼圖
-  FX.particles().forEach(p => { p.s = {}; });
+  FX.particles().forEach(p => { p.sprite.source = {}; });
   FX.update(0.3);
   FX.drawGround(spy, { x: 0, y: 0 }, view);
   assert.equal(drawn.length, 1);
   FX.draw(spy, { x: 0, y: 0 }, view);
   assert.equal(drawn.length, 2);
+});
+
+test('a cold particle atlas shares one canvas in original blend order and can switch back', () => {
+  const canvases = [], draws = [];
+  const config = {fxBatch:'canvas'};
+  const painter = new Proxy({}, {get:(obj,key)=>obj[key] ?? (()=>{})});
+  const FX = loadFx(false,{PORT_PERF:{config},document:{createElement() {
+    const canvas = {getContext:()=>painter};
+    canvases.push(canvas);
+    return canvas;
+  }}});
+  FX.emit('stroke','#fff',{x:100,y:100,life:1,blend:'source-over'});
+  FX.emit('shard','#fff',{x:100,y:100,life:1,blend:'lighter'});
+  FX.update(.25);
+  const target = {globalCompositeOperation:'source-over',save(){},restore(){},
+    drawImage(image) {draws.push([image,this.globalCompositeOperation]);}};
+  FX.draw(target,{x:0,y:0},view);
+  assert.equal(canvases.length,1);
+  assert.equal(canvases[0].width,512);
+  assert.deepEqual(draws,[[canvases[0],'source-over'],[canvases[0],'lighter']]);
+  config.fxBatch = 'original';
+  FX.draw(target,{x:0,y:0},view);
+  assert.equal(canvases.length,3);
+  assert.deepEqual(draws.slice(2),[[canvases[1],'source-over'],[canvases[2],'lighter']]);
 });
 
 test('reduced motion emits fewer particles than normal motion', () => {
@@ -105,4 +129,90 @@ test('lightning follow-up branches wait for their beat without consuming their v
   FX.update(0.1);strokes=0;FX.draw(spy,{x:0,y:0},view);assert.equal(strokes,6);
   FX.update(0.11);assert.equal(FX.stats().bolts,2);
   FX.update(0.1);assert.equal(FX.stats().bolts,0);
+});
+
+test('air-particle diagnostic skips their images while retaining the same state and lightning strokes',()=>{
+  const FX=loadFx();
+  FX.emit('glow','#fff',{x:100,y:100,life:1});
+  FX.particles()[0].sprite.source={};
+  FX.bolt(100,100,{life:1});
+  FX.update(.2);
+  let images=0, strokes=0;
+  const spy=new Proxy({drawImage(){images++;},stroke(){strokes++;}}, {get:(o,k)=>o[k]??(()=>{})});
+  const before=FX.stats();
+  FX.draw(spy,{x:0,y:0},view,false);
+  assert.equal(images,0);
+  assert.equal(strokes,3);
+  assert.deepEqual(FX.stats(),before);
+  FX.draw(spy,{x:0,y:0},view);
+  assert.equal(images,1);
+});
+
+test('upright unrotated particles use destination coordinates without per-particle Canvas state changes',()=>{
+  const FX=loadFx(false,{VIEWPORT:{tiltScale:()=>.5,upright(){throw Error('per-particle state');}}});
+  FX.emit('glow','#fff',{x:100,y:120,life:1,s0:20,s1:20});
+  FX.particles()[0].sprite.source={};
+  FX.update(.25);
+  let saves=0;
+  const draws=[];
+  const spy=new Proxy({save(){saves++;},drawImage(image,...coords){draws.push(coords);}}, {get:(o,k)=>o[k]??(()=>{})});
+  FX.draw(spy,{x:0,y:0},view);
+  assert.equal(saves,1);
+  assert.deepEqual(draws,[[90,100,20,40]]);
+});
+
+test('rain-port airborne source-over strokes clip transparent rows without moving their anchors',()=>{
+  const args=(stage,rot,blend,ground=false)=>{
+    const FX=loadFx(false,{__ACTIVE_STAGE:stage});
+    FX.emit('stroke','#fff',{x:100,y:120,life:1,s0:32,s1:32,sx:1.5,rot,blend,ground});
+    const source={width:64,height:64};
+    FX.particles()[0].sprite.source=source;
+    FX.update(.25);
+    const draws=[];
+    const spy=new Proxy({drawImage(image,...rect){assert.equal(image,source);draws.push(rect);}}, {get:(o,k)=>o[k]??(()=>{})});
+    if(ground) FX.drawGround(spy,{x:0,y:0},view);
+    else FX.draw(spy,{x:0,y:0},view);
+    return draws;
+  };
+  assert.deepEqual(args('rain-port',0,'source-over'),[[0,20,64,24,76,114,48,12]]);
+  assert.deepEqual(args('rain-port',.4,'source-over'),[[0,20,64,24,-24,-6,48,12]]);
+  assert.deepEqual(args('rain-port',0,'lighter'),[[76,104,48,32]]);
+  assert.deepEqual(args('rain-port',0,'source-over',true),[[76,104,48,32]]);
+  assert.deepEqual(args('night-town',0,'source-over'),[[76,104,48,32]]);
+});
+
+test('rain-port air sprites switch all existing and future particles to one immutable bitmap per art key',async()=>{
+  const canvas={width:0,height:0,getContext:()=>new Proxy({}, {get:()=> ()=>({addColorStop(){}})})};
+  const bitmap={width:64,height:64};
+  const sources=[];
+  let count=0, finish;
+  const FX=loadFx(false,{__ACTIVE_STAGE:'rain-port',document:{createElement:()=>canvas},
+    PORT_PERF:{registerParticleSource(...args){sources.push(args);}},
+    createImageBitmap(source){assert.equal(source,canvas);count++;return new Promise(resolve=>{finish=resolve;});}});
+  const spark={x:100,y:120,life:1};
+  FX.emit('glow','#fff',spark);
+  FX.emit('glow','#fff',spark);
+  assert.equal(count,1);
+  assert.equal(FX.particles()[0].sprite.source,canvas);
+  finish(bitmap);
+  await Promise.resolve();
+  FX.emit('glow','#fff',spark);
+  assert.equal(count,1);
+  assert.ok(FX.particles().every(p=>p.sprite.source===bitmap));
+  assert.equal(FX.stats().bitmapSprites,1);
+  assert.deepEqual(sources,[[canvas,'glow','canvas'],[bitmap,'glow','imageBitmap']]);
+});
+
+test('a rejected bitmap request keeps the same drawable source for the rest of the run',async()=>{
+  const canvas={width:0,height:0,getContext:()=>new Proxy({}, {get:()=> ()=>({addColorStop(){}})})};
+  let attempts=0;
+  const FX=loadFx(false,{__ACTIVE_STAGE:'rain-port',document:{createElement:()=>canvas},
+    createImageBitmap(){attempts++;return Promise.reject(Error('unsupported source'));}});
+  FX.emit('glow','#fff',{life:1});
+  await Promise.resolve();
+  FX.emit('glow','#fff',{life:1});
+  assert.equal(attempts,1);
+  assert.equal(FX.stats().bitmapPending,0);
+  assert.equal(FX.stats().bitmapFailures,1);
+  assert.ok(FX.particles().every(p=>p.sprite.source===canvas));
 });

@@ -152,17 +152,87 @@ window.RENDERER = (() => {
     h=Math.imul(h^(h>>>13),1274126177);
     return ((h^(h>>>16))>>>0)%4;
   }
-  let terrainCv = null, terrainState = null;
+  let terrainCv = null, terrainCtx = null, terrainState = null;
+  let terrainRetryAt = 0, terrainAttempts = 0, terrainNeedsReplacement = false;
+  const TERRAIN_RETRY_MS = 1000, TERRAIN_MAX_ATTEMPTS = 3;
+  const surfaceCounts = {mainResets:0,lightResets:0,terrainResets:0,terrainPaints:0,terrainScrollCopies:0,
+    mainLosses:0,mainRestores:0,lightLosses:0,lightRestores:0,terrainLosses:0,terrainRestores:0,terrainFallbacks:0};
   const hitSilhouettes = new WeakMap();
-  // iOS Safari may evict an offscreen 2D canvas while preserving the HUD.
-  // After restoration, repaint terrain rather than reusing a blank cache.
+  function dropTerrainBacking() {
+    const previous = terrainCv;
+    terrainCv = terrainCtx = terrainState = null;
+    terrainRetryAt = terrainAttempts = 0;
+    terrainNeedsReplacement = false;
+    if (previous) previous.width = previous.height = 1;
+  }
+
+  function releaseWorldBackings() {
+    dropTerrainBacking();
+    if (tideBank) tideBank.width = tideBank.height = 1;
+    tideBank = tideBankSource = undefined;
+    if (tideCrestMask) tideCrestMask.canvas.width = tideCrestMask.canvas.height = 1;
+    tideCrestMask = undefined;
+    for (const mask of crestMasks) if (mask?.ctx) {
+      mask.ctx.canvas.width = mask.ctx.canvas.height = 1;
+    }
+    crestMasks.length = 0;
+  }
+
+  function deferTerrainRecovery(replace = false) {
+    terrainCtx = null;
+    terrainState = null;
+    terrainNeedsReplacement = replace;
+    terrainRetryAt = Date.now() + TERRAIN_RETRY_MS * 2 ** Math.min(terrainAttempts, TERRAIN_MAX_ATTEMPTS);
+  }
+
   function watchTerrainContext(canvas) {
-    if (!canvas?.addEventListener) return;
-    canvas.addEventListener("contextlost", event => {
-      event.preventDefault?.();
-      terrainState = null;
+    canvas.addEventListener?.("contextlost", () => {
+      if (canvas !== terrainCv) return;
+      // Leave the event uncanceled so Canvas 2D can restore its backing store.
+      deferTerrainRecovery(true);
+      surfaceCounts.terrainLosses++;
     });
-    canvas.addEventListener("contextrestored", () => { terrainState = null; });
+    canvas.addEventListener?.("contextrestored", () => {
+      if (canvas !== terrainCv) return;
+      terrainCtx = null;
+      terrainState = null;
+      terrainNeedsReplacement = false;
+      terrainRetryAt = terrainAttempts = 0;
+      surfaceCounts.terrainRestores++;
+    });
+  }
+
+  function getTerrainContext() {
+    if (terrainCtx?.isContextLost?.()) deferTerrainRecovery();
+    if (terrainCtx) return terrainCtx;
+    if (terrainRetryAt && Date.now() < terrainRetryAt) return null;
+    terrainAttempts = Math.min(terrainAttempts + 1, TERRAIN_MAX_ATTEMPTS);
+    if (!terrainCv || terrainNeedsReplacement || terrainAttempts >= TERRAIN_MAX_ATTEMPTS) {
+      const previous = terrainCv;
+      terrainCv = document.createElement("canvas");
+      watchTerrainContext(terrainCv);
+      terrainNeedsReplacement = false;
+      if (previous) previous.width = previous.height = 1;
+    }
+    const next = terrainCv.getContext("2d");
+    if (!next || next.isContextLost?.()) {
+      deferTerrainRecovery();
+      return null;
+    }
+    terrainCtx = next;
+    return next;
+  }
+
+  function blitTerrain(target, x, y, width, height) {
+    try {
+      if (width === undefined) target.drawImage(terrainCv, x, y);
+      else target.drawImage(terrainCv, x, y, width, height);
+      return true;
+    } catch (error) {
+      if (error.name !== "InvalidStateError") throw error;
+      deferTerrainRecovery(true);
+      return false;
+    }
   }
 
   // 鏡頭與打擊震動
@@ -224,13 +294,24 @@ window.RENDERER = (() => {
     const cssPixels = v.width * v.height * scale * scale;
     const budget = Math.min(window.innerWidth, window.innerHeight) < 600 ? SCENE_PIXELS_MOBILE : SCENE_PIXELS_DESKTOP;
     // Higher quality on desktops; bounded mobile backing store protects FPS.
-    dpr = Math.min(window.devicePixelRatio || 1, 2, Math.max(0.45, Math.sqrt(budget / Math.max(1, cssPixels))));
-    cv.width = Math.round(v.width * scale * dpr); cv.height = Math.round(v.height * scale * dpr);
+    dpr = Math.min(window.devicePixelRatio || 1, 2, Math.max(0.45, Math.sqrt(budget / Math.max(1, cssPixels)))) *
+      (window.YOKAI_PERF?.resolution?.() ?? 1);
+    const width = Math.round(v.width * scale * dpr), height = Math.round(v.height * scale * dpr);
+    if (cv.width !== width || cv.height !== height) {
+      if (cv.width !== width) cv.width = width;
+      if (cv.height !== height) cv.height = height;
+      surfaceCounts.mainResets++;
+    }
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "medium";
+    ctx.imageSmoothingQuality = window.PORT_PERF?.config?.smoothQuality || "medium";
     // 柔和遮罩以較低解析度繪製；合成時仍覆蓋相同的完整視口。
     const lightScale = scale * Math.min(1, Math.sqrt(LIGHT_PIXELS / cssPixels));
-    lightCv.width = Math.round(v.width * lightScale); lightCv.height = Math.round(v.height * lightScale);
+    const lightWidth = Math.round(v.width * lightScale), lightHeight = Math.round(v.height * lightScale);
+    if (lightCv.width !== lightWidth || lightCv.height !== lightHeight) {
+      if (lightCv.width !== lightWidth) lightCv.width = lightWidth;
+      if (lightCv.height !== lightHeight) lightCv.height = lightHeight;
+      surfaceCounts.lightResets++;
+    }
     lightCtx.setTransform(lightScale, 0, 0, lightScale, v.offsetX * lightScale, v.offsetY * lightScale);
   }
 
@@ -245,6 +326,21 @@ window.RENDERER = (() => {
     lightCv.width = W;
     lightCv.height = H;
     lightCtx = lightCv.getContext("2d");
+    document.addEventListener?.("visibilitychange", () => {
+      if (document.hidden || !terrainCv) return;
+      // Returning to the page invalidates painted pixels even when there was
+      // no context event. Keep a healthy context and repaint its contents.
+      terrainState = null;
+      terrainRetryAt = terrainAttempts = 0;
+    });
+    cv.addEventListener?.("contextlost", () => { surfaceCounts.mainLosses++; });
+    cv.addEventListener?.("contextrestored", () => {
+      surfaceCounts.mainRestores++;
+      invalidateGroundCache();
+      resize();
+    });
+    lightCv.addEventListener?.("contextlost", () => { surfaceCounts.lightLosses++; });
+    lightCv.addEventListener?.("contextrestored", () => { surfaceCounts.lightRestores++; resize(); });
     resize();
     const area = bounds();
 
@@ -343,14 +439,16 @@ window.RENDERER = (() => {
       else if (p.y < area.top - 40) p.y = area.bottom + 40;
     }
 
+    const k = tiltK();
+    let activeDamage = 0;
     for (const d of dmgNumbers) {
-      const k = tiltK() || 1;
       d.x += d.vx * dt;
       d.y += d.vy / k * dt;
       d.vy += 220 * dt;
       d.life -= dt;
+      if (d.life > 0) dmgNumbers[activeDamage++] = d;
     }
-    dmgNumbers = dmgNumbers.filter(d => d.life > 0);
+    dmgNumbers.length = activeDamage;
 
     for (const g of ghostTrails) g.life -= dt;
     ghostTrails = ghostTrails.filter(g => g.life > 0);
@@ -543,7 +641,7 @@ window.RENDERER = (() => {
     if (!sw || !sh || right - left < 1 || bottom - top < 1) return;
     const tw = sw * scale, th = sh * scale;
     const xform = c.getTransform?.() || { a: 1, d: 1, e: 0, f: 0 };
-    const s = xform.a || 1;
+    const sx = xform.a || 1, sy = xform.d || 1;
     const e = xform.e || 0, f = xform.f || 0;
     const x0 = Math.floor(left / tw), x1 = Math.ceil(right / tw);
     const y0 = Math.floor(top / th), y1 = Math.ceil(bottom / th);
@@ -555,10 +653,10 @@ window.RENDERER = (() => {
       const imgW = img?.naturalWidth || img?.width;
       const imgH = img?.naturalHeight || img?.height;
       if (!imgW || !imgH) continue;
-      const dx0 = Math.round(tx * tw * s + e);
-      const dy0 = Math.round(ty * th * s + f);
-      const dx1 = Math.round((tx + 1) * tw * s + e);
-      const dy1 = Math.round((ty + 1) * th * s + f);
+      const dx0 = Math.round(tx * tw * sx + e);
+      const dy0 = Math.round(ty * th * sy + f);
+      const dx1 = Math.round((tx + 1) * tw * sx + e);
+      const dy1 = Math.round((ty + 1) * th * sy + f);
       if (dx1 > dx0 && dy1 > dy0) {
         c.drawImage(img, 0, 0, imgW, imgH, dx0, dy0, dx1 - dx0, dy1 - dy0);
         if (img && img.__s2KitId) kitNoteDraw(img.__s2KitId);   // counted only on a REAL paint
@@ -843,12 +941,12 @@ window.RENDERER = (() => {
     c.rect(left, top, right - left, bottom - top);
     c.clip();
     const xform = c.getTransform?.() || { a: 1, d: 1, e: 0, f: 0 };
-    const s = xform.a || 1;
+    const sx = xform.a || 1, sy = xform.d || 1;
     const e = xform.e || 0, f = xform.f || 0;
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.imageSmoothingEnabled = false;
     if (flipped) {
-      const seamDev = seamY * s + f;
+      const seamDev = seamY * sy + f;
       c.translate(0, seamDev);
       c.scale(1, -1);
       c.translate(0, -seamDev);
@@ -858,10 +956,10 @@ window.RENDERER = (() => {
     const tw = img.naturalWidth;
     const x0 = Math.floor(left / tw), x1 = Math.ceil(right / tw);
     for (let tx = x0; tx < x1; tx++) {
-      const dx0 = Math.round(tx * tw * s + e);
-      const dx1 = Math.round((tx + 1) * tw * s + e);
-      const dy0 = Math.round(destTop * s + f);
-      const dy1 = Math.round(destBottom * s + f);
+      const dx0 = Math.round(tx * tw * sx + e);
+      const dx1 = Math.round((tx + 1) * tw * sx + e);
+      const dy0 = Math.round(destTop * sy + f);
+      const dy1 = Math.round(destBottom * sy + f);
       if (dx1 > dx0 && dy1 > dy0) c.drawImage(img, 0, seamSy, tw, seamSh, dx0, dy0, dx1 - dx0, dy1 - dy0);
     }
     c.restore();
@@ -1238,7 +1336,7 @@ window.RENDERER = (() => {
   // buildings: [{ id, path_webp, width, height, footAnchor: {x, y}, displaySize, status, x: null, y: null, _img, _loaded }]
   // props: [{ id, path_webp, width, height, footAnchor: {x, y}, displaySize, status, x: null, y: null, _img, _loaded }]
   // environment: [{ id, path_webp, width, height, footAnchor?, _img, _loaded }]
-  function drawS2BuildingsAndProps(c, chunks, viewLeft, viewRight, minY, maxY, elapsed, motion) {
+  function drawS2BuildingsAndProps(c, chunks, viewLeft, viewRight, minY, maxY, elapsed, motion, world) {
     const buildings = window.getS2Buildings?.() || [];
     const props = window.getS2Props?.() || [];
     const environment = window.getS2Environment?.() || [];
@@ -1300,6 +1398,12 @@ window.RENDERER = (() => {
         const isBoat = /boat/.test(prop.id || "");
         const py = isBoat ? maxY + 5 : maxY - 100 + (((slot % 3) + 3) % 3) * 16;
         const pw = isBoat ? 124 : Math.min(76, Math.max(42, prop.displaySize?.width ?? prop.width ?? 50));
+        const img = prop._img;
+        const ph = pw * img.naturalHeight / img.naturalWidth;
+        // Upright image rises by ph/tilt in world coordinates. Include the
+        // ground shadow below the sprite and leave room for edge smoothing.
+        if (world && (px+pw/2 < world.left || px-pw/2 > world.right ||
+            py+Math.max(7,4/tilt) < world.top || Math.min(py-3,py+(4-ph)/tilt) > world.bottom)) continue;
 
         // Contact shadow
         c.save();
@@ -1310,8 +1414,6 @@ window.RENDERER = (() => {
         c.restore();
 
         const paintProp = () => {
-          const img = prop._img;
-          const ph = pw * img.naturalHeight / img.naturalWidth;
           c.drawImage(img, px - pw / 2, py - ph + 4, pw, ph);
         };
 
@@ -1321,7 +1423,7 @@ window.RENDERER = (() => {
     }
   }
 
-  function drawPortSceneLayers(elapsed, chunks, portBounds) {
+  function drawPortSceneLayers(elapsed, chunks, portBounds, world) {
     if (!portBounds || !Array.isArray(chunks)) return;
     const { minY, maxY } = portBounds;
     const area = window.VIEWPORT?.worldBoundsAtZoom?.(Math.min(1, window.VIEWPORT?.worldZoom?.() ?? 1)) || worldBounds();
@@ -1332,7 +1434,7 @@ window.RENDERER = (() => {
 
     // If S2 production art is enabled, render S2 buildings and props instead of legacy hardcoded items
     if (s2Enabled) {
-      drawS2BuildingsAndProps(ctx, chunks, left, right, minY, maxY, elapsed, motion);
+      drawS2BuildingsAndProps(ctx, chunks, left, right, minY, maxY, elapsed, motion, world);
       return;
     }
 
@@ -1669,6 +1771,10 @@ window.RENDERER = (() => {
     const v = window.VIEWPORT?.get() || {scale:1};
     const area = window.VIEWPORT?.worldBoundsAtZoom?.(Math.min(1, window.VIEWPORT?.worldZoom?.() ?? 1)) || worldBounds();
     const pixelScale = Math.fround((v.scale || 1) * (dpr || 1)), x = camX + area.left, y = camY + area.top;
+    const cacheMode = window.PORT_PERF?.config?.terrainCache || "original";
+    const tilt = tiltK();
+    const projected = cacheMode !== "original" && tilt === (window.VIEWPORT?.tiltTargetScale?.() ?? tilt);
+    const scaleY = projected ? Math.fround(pixelScale * tilt) : pixelScale;
     const bambooArt = stageId === "bamboo-maze" ? window.BAMBOO_ART : null;
     const groundImg = bambooArt?.image("forest-duff") || window.ART?.[groundKey];
     const bambooPath = bambooArt?.image("earth-track");
@@ -1677,6 +1783,27 @@ window.RENDERER = (() => {
     const sakuraImg = window.ART && window.ART.prop_sakura;
     const toriiReady = !!(toriiImg && toriiImg.complete && toriiImg.naturalWidth);
     const sakuraReady = !!(sakuraImg && sakuraImg.complete && sakuraImg.naturalWidth);
+    const baseColor = stageId === "night-town" || !stageId ? "#0e111a" : "#111420";
+    const paintFallback = () => {
+      surfaceCounts.terrainFallbacks++;
+      ctx.save();
+      try {
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = "source-over";
+        ctx.fillStyle = baseColor;
+        ctx.fillRect(x,y,area.width,area.height);
+        paintTerrainRegion(ctx,{left:x,top:y,width:area.width,height:area.height},
+          chunks,groundKey,groundImg,toriiImg,toriiReady,sakuraImg,sakuraReady,stageId,bambooPath);
+      } finally {
+        ctx.restore();
+      }
+    };
+    if (cacheMode === "direct") {
+      if (terrainCv) dropTerrainBacking();
+      return paintFallback();
+    }
+    let c = getTerrainContext();
+    if (!c) return paintFallback();
     const cached = terrainState;
     // Streaming adds/removes entire 900x600 chunks far outside the painted cache.
     // Do not invalidate visible ground for those offscreen bookkeeping changes.
@@ -1726,7 +1853,7 @@ window.RENDERER = (() => {
         }).join("|")
       : "";
     const assetsChanged = !cached || cached.key !== groundKey || cached.stageId !== stageId || cached.portStamp !== portStamp || cached.sakuraStamp !== sakuraStamp || cached.image !== groundImg || cached.imageWidth !== (groundImg?.naturalWidth || 0) || cached.courtImage !== courtImg || cached.bambooPath !== bambooPath ||
-      cached.pixelScale !== pixelScale ||
+      cached.pixelScale !== pixelScale || cached.scaleY !== scaleY ||
       // Camera transition varies visible world height on every frame.
       // Cache coverage below, not viewport height equality, governs rebuilds.
       cached.chunks.length !== currentLocalChunks.length ||
@@ -1734,37 +1861,44 @@ window.RENDERER = (() => {
     const movedBeyondCache = !assetsChanged && (x < cached.left || y < cached.top ||
       x + area.width > cached.left + cached.width || y + area.height > cached.top + cached.height);
     if (assetsChanged || movedBeyondCache) {
-      groundCacheBuilds += 1;
       // Snap origins to physical pixels so the blit and newly painted strips share texel boundaries.
       const left = Math.floor((x - 120) * pixelScale) / pixelScale;
-      const top = Math.floor((y - 120) * pixelScale) / pixelScale;
+      const top = Math.floor((y - 120) * scaleY) / scaleY;
       const pw = Math.ceil((area.width + 240) * pixelScale);
-      const ph = Math.ceil((area.height + 240) * pixelScale);
-      if (!terrainCv) {
-        terrainCv = document.createElement("canvas");
-        watchTerrainContext(terrainCv);
-      }
-      if (terrainCv.getContext("2d")?.isContextLost?.()) return;
+      const ph = Math.ceil((area.height + 240) * scaleY);
       const resized = terrainCv.width !== pw || terrainCv.height !== ph;
-      if (terrainCv.width !== pw) terrainCv.width = pw;
-      if (terrainCv.height !== ph) terrainCv.height = ph;
-      const c = terrainCv.getContext("2d");
+      if (resized) {
+        surfaceCounts.terrainResets++;
+        if (terrainCv.width !== pw) terrainCv.width = pw;
+        if (terrainCv.height !== ph) terrainCv.height = ph;
+        c = terrainCv.getContext("2d");
+        if (!c || c.isContextLost?.()) {
+          deferTerrainRecovery(true);
+          return paintFallback();
+        }
+        terrainCtx = c;
+      }
+      window.PORT_PERF?.instrument?.(c,"terrain");
       c.setTransform(1,0,0,1,0,0);
+      c.globalAlpha = 1;
+      c.globalCompositeOperation = "source-over";
       const dx = cached ? Math.round((cached.left - left) * pixelScale) : 0;
-      const dy = cached ? Math.round((cached.top - top) * pixelScale) : 0;
-      const scrollReuse = movedBeyondCache && !assetsChanged && !resized && Math.abs(dx) < pw && Math.abs(dy) < ph;
+      const dy = cached ? Math.round((cached.top - top) * scaleY) : 0;
+      const scrollReuse = cacheMode !== "repaint" && movedBeyondCache && !assetsChanged && !resized &&
+        Math.abs(dx) < pw && Math.abs(dy) < ph;
       if (scrollReuse) {
         // Same-canvas drawImage uses the pre-operation bitmap; retain painted overlap on a scroll.
-        c.drawImage(terrainCv, dx, dy);
+        if (!blitTerrain(c, dx, dy)) return paintFallback();
+        surfaceCounts.terrainScrollCopies++;
       } else {
         c.clearRect(0,0,pw,ph);
       }
-      c.setTransform(pixelScale,0,0,pixelScale,-left*pixelScale,-top*pixelScale);
+      c.setTransform(pixelScale,0,0,scaleY,-left*pixelScale,-top*scaleY);
       c.imageSmoothingEnabled = false;
-      const right=left+pw/pixelScale, bottom=top+ph/pixelScale;
+      const right=left+pw/pixelScale, bottom=top+ph/scaleY;
       const paint=(rl,rt,rr,rb)=>{
         if(rr-rl<=0.00001 || rb-rt<=0.00001)return;
-        c.fillStyle = stageId === "night-town" || !stageId ? "#0e111a" : "#111420";
+        c.fillStyle = baseColor;
         c.fillRect(rl, rt, rr - rl, rb - rt);
         paintTerrainRegion(c,{left:rl,top:rt,width:rr-rl,height:rb-rt},
           chunks,groundKey,groundImg,toriiImg,toriiReady,sakuraImg,sakuraReady,stageId,bambooPath);
@@ -1774,7 +1908,7 @@ window.RENDERER = (() => {
         // Scroll reuse may round its copied canvas edge by one device pixel.
         // Repaint a tiny shared strip across OLD and NEW cache territory, so
         // no 1px black vertical/horizontal hairline survives at the boundary.
-        const seamBleed = 2 / Math.max(0.01, pixelScale);
+        const seamBleed = 2 / Math.max(0.01, Math.min(pixelScale,scaleY));
         if(left<cached.left)paint(left,top,Math.min(right,cached.left+seamBleed),bottom);
         if(right>oldRight)paint(Math.max(left,oldRight-seamBleed),top,right,bottom);
         const overlapLeft=Math.max(left,cached.left), overlapRight=Math.min(right,oldRight);
@@ -1783,21 +1917,28 @@ window.RENDERER = (() => {
       } else {
         paint(left,top,right,bottom);
       }
-      terrainState = {left,top,width:pw/pixelScale,height:ph/pixelScale,key:groundKey,stageId,portStamp,sakuraStamp,image:groundImg,
-        imageWidth:groundImg?.naturalWidth || 0, courtImage:courtImg,bambooPath,pixelScale,viewW:area.width,viewH:area.height,
-        chunks:chunksInRegion(chunks,left,top,pw/pixelScale,ph/pixelScale)};
+      if (c.isContextLost?.()) {
+        deferTerrainRecovery();
+        return paintFallback();
+      }
+      groundCacheBuilds++;
+      surfaceCounts.terrainPaints++;
+      terrainState = {left,top,width:pw/pixelScale,height:ph/scaleY,key:groundKey,stageId,portStamp,sakuraStamp,image:groundImg,
+        imageWidth:groundImg?.naturalWidth || 0, courtImage:courtImg,bambooPath,pixelScale,scaleY,viewW:area.width,viewH:area.height,
+        chunks:chunksInRegion(chunks,left,top,pw/pixelScale,ph/scaleY)};
     }
     const t = terrainState;
-    ctx.drawImage(terrainCv,t.left,t.top,t.width,t.height);
+    if (!blitTerrain(ctx,t.left,t.top,t.width,t.height)) return paintFallback();
+    if (terrainAttempts) terrainRetryAt = terrainAttempts = 0;
   }
 
   // 海邊與池塘不再鋪會上下游動的水帶。那幾條會蓋在鳥居上，看起來像燈光在呼吸。
-  function drawGround(elapsed, dawnTime, chunks = [], groundKey = "ground", stageId = "") {
+  function drawGround(elapsed, dawnTime, chunks = [], groundKey = "ground", stageId = "", world) {
     drawGroundBase(chunks, groundKey, stageId);
     if (stageId === "rain-port") {
       const portBounds = getPortBounds(chunks);
       if (portBounds) {
-        drawPortSceneLayers(elapsed, chunks, portBounds);
+        drawPortSceneLayers(elapsed, chunks, portBounds, world);
       }
     }
   }
@@ -1930,6 +2071,7 @@ window.RENDERER = (() => {
   }
 
   // 繪製高精緻度日式町屋店鋪（真實店鋪 Sprite + 障子金光 + 和風招牌）
+  const sampledPortHouses = new Set();
   function drawHouse(h, viewerY = null) {
     const bambooRole = h.bType === "bamboo_tea_house" ? "tea-house" :
       h.bType === "bamboo_produce_house" ? "produce-house" : null;
@@ -2019,7 +2161,13 @@ window.RENDERER = (() => {
         const idx = ((houseSlot % list.length) + list.length) % list.length;
         s2Building = list[idx];
         houseSprite = s2Building._img;
-        (window.__s2HouseMap ||= {})[Math.round(h.x) + "," + Math.round(h.y)] = s2Building.id; // dev QA：世界房→Nano 建築對應證據
+        if (window.PORT_PERF?.config?.detail && sampledPortHouses.size < 256) {
+          const key = Math.round(h.x)+","+Math.round(h.y);
+          if (!sampledPortHouses.has(key)) {
+            sampledPortHouses.add(key);
+            (window.__s2HouseMap ||= {})[key] = s2Building.id;
+          }
+        }
       }
     }
     // 第一關店寬 166、玩家立繪高 114。港倉 220／魚舖 236 約比町屋寬三成，候選再收 15%。
@@ -2658,6 +2806,12 @@ window.RENDERER = (() => {
   // frame. Bake the *same* hand-authored crystal into two tiny 2x canvases.
   // The world-position, hover, silhouette and pickup radius stay unchanged.
   const GEM_TILE_SIZE = 48;
+  function drawGemTile(tile,x,y,left,top,width,height) {
+    // Use the same baked art and texel scale. Skip its transparent padding
+    // with room for the original antialiasing and texture interpolation.
+    ctx.drawImage(tile,GEM_TILE_SIZE+left*2,GEM_TILE_SIZE+top*2,width*2,height*2,
+      x+left,y+top,width,height);
+  }
   const gemTiles = new Map();
   // Decide once, not on every crystal frame: matchMedia itself can be costly.
   const useGemTiles = !!(window.matchMedia?.("(pointer: coarse)")?.matches ||
@@ -2713,7 +2867,7 @@ window.RENDERER = (() => {
     const large = g.v > 2;
     const cached = useGemTiles ? gemTile(large) : null;
     if (cached) {
-      ctx.drawImage(cached.shadow,g.x-GEM_TILE_SIZE/2,g.y-GEM_TILE_SIZE/2,GEM_TILE_SIZE,GEM_TILE_SIZE);
+      drawGemTile(cached.shadow,g.x,g.y,-12,2,24,13);
       return;
     }
     const radius = large ? 11 : 9;
@@ -2729,7 +2883,7 @@ window.RENDERER = (() => {
     ctx.save();
     if (cached) {
       ctx.globalAlpha *= 0.92 + 0.08 * gleam;
-      ctx.drawImage(cached.body,g.x-GEM_TILE_SIZE/2,g.y-rise-GEM_TILE_SIZE/2,GEM_TILE_SIZE,GEM_TILE_SIZE);
+      drawGemTile(cached.body,g.x,g.y-rise,-19,-17,38,34);
     } else {
       ctx.translate(g.x, g.y - rise);
       paintGemFace(ctx,radius,gleam);
@@ -2737,26 +2891,37 @@ window.RENDERER = (() => {
     ctx.restore();
   }
 
+  function drawSpiritGems(gems, elapsed, nearView) {
+    if (!useGemTiles) return false;
+    if (!gems.length) return true;
+    const small = gemTile(false), large = gemTile(true);
+    if (!small || !large) return false;
+    const tilt = tiltK(), motion = allowsMotion(), alpha = ctx.globalAlpha;
+    for (const g of gems) {
+      if (!nearView(g.x,g.y,40)) continue;
+      const tile = g.v > 2 ? large : small;
+      drawGemTile(tile.shadow,g.x,g.y,-12,2,24,13);
+      const rise = motion ? Math.sin(elapsed*4+g.x*.07)*1.7 : 0;
+      const gleam = motion ? .78+.22*Math.sin(elapsed*3.5+g.x*.035) : .9;
+      ctx.globalAlpha = alpha*(.92+.08*gleam);
+      ctx.drawImage(tile.body,10,14,76,68,g.x-19,g.y-(rise+17)/tilt,38,34/tilt);
+      ctx.globalAlpha = alpha;
+    }
+    return true;
+  }
+
   // 繪製立體多光源動態光影（柔和三次樣條光暈 + 街燈光暈池）
   const LAMP_LIGHT_LIFT = 22; // 與 game.js 的新石燈火袋光心相同
   function renderLighting(P, LAMPS, oil, elapsed, dawnTime, maxOil = 100, lampOut = 0, offset = {x:0,y:0}) {
+    window.PORT_PERF?.instrument?.(lightCtx,"light");
     const progress = clamp(elapsed / dawnTime, 0, 1);
-    lightCtx.globalCompositeOperation = "source-over";
     const area = bounds();
-    lightCtx.clearRect(area.left, area.top, area.width, area.height);
-
     // 夜色中間調：罩上一層靛色，町屋與路面仍讀得出來，再隨黎明退掉。
     const nightR = Math.round(28 + 62 * progress);
     const nightG = Math.round(32 + 40 * progress);
     const nightB = Math.round(58 + 18 * progress);
     const s2NightLift = (currentStageId() === "rain-port" && window.isS2ArtProdEnabled?.()) ? 0.5 : 1; // S2 dev：夜色遮罩減半，建築不被壓成剪影
     const nightAlpha = 0.72 * s2NightLift * Math.pow(1 - progress, 1.05) * (1 - lampOut) + 0.97 * lampOut; // 燈滅時整個夜色壓到近乎全黑
-
-    lightCtx.fillStyle = `rgba(${nightR}, ${nightG}, ${nightB}, ${nightAlpha})`;
-    lightCtx.fillRect(area.left, area.top, area.width, area.height);
-
-    // 挖出光源 (destination-out)
-    lightCtx.globalCompositeOperation = "destination-out";
 
     // 1. 主角提燈核心光照
     const k = tiltK();
@@ -2768,6 +2933,27 @@ window.RENDERER = (() => {
     const screenPy = playerScreen.y;
     const flicker = allowsMotion() ? Math.sin(elapsed * 16) * 3 : 0;
     const baseRadius = Math.max(16, (150 + clamp(oil / Math.max(1, maxOil), 0, 1) * 170 + flicker) * (1 - lampOut)) * z;
+    const rainPort = currentStageId() === "rain-port";
+    if (rainPort && baseRadius > 15 && window.PORT_PERF?.config?.lighting === "direct") {
+      ctx.save();
+      ctx.translate(screenPx,screenPy);
+      ctx.scale(1,k);
+      const night = ctx.createRadialGradient(0,0,15,0,0,baseRadius);
+      for (const [position, opacity] of [[0,0],[.4,.15],[.8,.65],[1,1]]) {
+        night.addColorStop(position,`rgba(${nightR}, ${nightG}, ${nightB}, ${nightAlpha*opacity})`);
+      }
+      ctx.fillStyle = night;
+      ctx.fillRect(area.left-screenPx,(area.top-screenPy)/k,area.width,area.height/k);
+      ctx.restore();
+      if (lampOut < 1) paintWarmPool(screenPx,screenPy,baseRadius*.62);
+      return;
+    }
+
+    lightCtx.globalCompositeOperation = "source-over";
+    lightCtx.clearRect(area.left, area.top, area.width, area.height);
+    lightCtx.fillStyle = `rgba(${nightR}, ${nightG}, ${nightB}, ${nightAlpha})`;
+    lightCtx.fillRect(area.left, area.top, area.width, area.height);
+    lightCtx.globalCompositeOperation = "destination-out";
 
     const playerGlow = lightCtx.createRadialGradient(screenPx, screenPy, 15, screenPx, screenPy, baseRadius);
     playerGlow.addColorStop(0, "rgba(0,0,0,1)");
@@ -2784,7 +2970,7 @@ window.RENDERER = (() => {
     lightCtx.restore();
 
     // 2. 街角提燈 (LAMPS) 暖光池（燈滅時一併退去；雨港不使用第一關提燈）
-    if (currentStageId() !== "rain-port") {
+    if (!rainPort) {
       lightCtx.globalAlpha = 1 - lampOut;
       LAMPS.forEach(l => {
         const lampScreen = window.VIEWPORT?.worldToScreen
@@ -2812,7 +2998,7 @@ window.RENDERER = (() => {
     // 夜色遮罩只合成一次。暖光是燈暈上的少數徑向漸層，不再鋪第二張全螢幕。
     ctx.drawImage(lightCv, area.left, area.top, area.width, area.height);
     if (lampOut < 1) paintWarmPool(screenPx, screenPy, baseRadius * 0.62);
-    if (lampOut < 1 && currentStageId() !== "rain-port") LAMPS.forEach(l => {
+    if (lampOut < 1 && !rainPort) LAMPS.forEach(l => {
       const lampScreen = window.VIEWPORT?.worldToScreen
         ? window.VIEWPORT.worldToScreen(l.x, l.y + 8, { x: camX, y: camY }, offset)
         : { x: l.x - camX + offset.x, y: (l.y + 8 - camY + offset.y) * k };
@@ -2840,13 +3026,67 @@ window.RENDERER = (() => {
     }
   }
 
+  const damageFontFamily = "'Zen Maru Gothic', sans-serif";
+  const damageCellW = 128, damageCellH = 64, damageTileScale = 2, damageColumns = 8, damageRows = 12;
+  const damageTiles = new Map(), damageSlotKeys = [];
+  let damageAtlas, damageCursor = 0;
+  window.document?.fonts?.addEventListener?.("loadingdone",() => {
+    damageTiles.clear();
+    damageSlotKeys.length = damageCursor = 0;
+  });
+
+  function drawCachedDamage(d, tilt, alpha, fontSize) {
+    const message = String(d.val);
+    if (!/^[+-]?\d{1,5}(?:\.\d)?$/.test(message)) return false;
+    if (!damageAtlas) {
+      const canvas = document.createElement("canvas");
+      canvas.width = damageCellW*damageColumns;
+      canvas.height = damageCellH*damageRows;
+      const context = canvas.getContext("2d");
+      if (!context?.measureText) return false;
+      damageAtlas = {canvas,context};
+    }
+    const {canvas,context} = damageAtlas;
+    const key = `${fontSize}/${d.color}/${message}`;
+    let tile = damageTiles.get(key);
+    if (!tile) {
+      context.font = `900 ${fontSize*damageTileScale}px ${damageFontFamily}`;
+      const metrics = context.measureText(message);
+      const width = Math.ceil(metrics.width+12);
+      const height = Math.ceil(metrics.actualBoundingBoxAscent+metrics.actualBoundingBoxDescent+12);
+      if (!(width > 0 && height > 0) || width > damageCellW || height > damageCellH) return false;
+      const slot = damageCursor++ % (damageColumns*damageRows);
+      damageTiles.delete(damageSlotKeys[slot]);
+      damageSlotKeys[slot] = key;
+      const x = slot % damageColumns * damageCellW, y = Math.floor(slot/damageColumns)*damageCellH;
+      const baseline = Math.ceil(metrics.actualBoundingBoxAscent)+6;
+      context.clearRect(x,y,damageCellW,damageCellH);
+      context.textAlign = "center";
+      context.strokeStyle = "#211b20";
+      context.lineWidth = 3.5*damageTileScale;
+      context.strokeText(message,x+width/2,y+baseline);
+      context.fillStyle = d.color;
+      context.fillText(message,x+width/2,y+baseline);
+      tile = {x,y,width,height,baseline};
+      damageTiles.set(key,tile);
+    }
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(canvas,tile.x,tile.y,tile.width,tile.height,
+      d.x-tile.width/(2*damageTileScale),d.y-tile.baseline/(damageTileScale*tilt),
+      tile.width/damageTileScale,tile.height/(damageTileScale*tilt));
+    return true;
+  }
+
   function drawDamageNumbers() {
     ctx.save();
+    const k = tiltK();
+    const useAtlas = window.PORT_PERF?.config?.damageText === "atlas";
     for (const d of dmgNumbers) {
-      ctx.save();
-      const k=tiltK();
-      if(k!==1){ctx.translate(d.x,d.y);ctx.scale(1,1/k);ctx.translate(-d.x,-d.y);}
       const alpha = clamp(d.life / 0.3, 0, 1);
+      const fontSize = Math.round(20*d.scale);
+      if (useAtlas && drawCachedDamage(d,k,alpha,fontSize)) continue;
+      ctx.save();
+      if(k!==1){ctx.translate(d.x,d.y);ctx.scale(1,1/k);ctx.translate(-d.x,-d.y);}
       ctx.globalAlpha = alpha;
       ctx.textAlign = "center";
       const message=String(d.val);
@@ -2874,7 +3114,7 @@ window.RENDERER = (() => {
         ctx.fillStyle="#f1d5b6";ctx.fillText(message,px+5,cy+fontSize*.33,halfW*2-33);
         ctx.restore();
       } else {
-        ctx.font=`900 ${Math.round(20*d.scale)}px 'Zen Maru Gothic', sans-serif`;
+        ctx.font=`900 ${fontSize}px ${damageFontFamily}`;
         ctx.strokeStyle="#211b20";ctx.lineWidth=3.5;
         ctx.strokeText(message,d.x,d.y);
         ctx.fillStyle=d.color;ctx.fillText(message,d.x,d.y);
@@ -3112,9 +3352,11 @@ window.RENDERER = (() => {
     ];
 
     let streakIndex = 0;
+    const batch = window.PORT_PERF?.config?.rainBatch === true;
     for (const layer of layers) {
       targetCtx.lineWidth = layer.width;
       targetCtx.strokeStyle = `rgba(${layer.color}, ${layer.alpha})`;
+      if (batch) targetCtx.beginPath();
       for (let i = 0; i < layer.count; i++, streakIndex++) {
         const seed = streakIndex * 73 + 17;
         const speed = layer.speed * (0.88 + ((seed % 29) / 29) * 0.24);
@@ -3127,11 +3369,12 @@ window.RENDERER = (() => {
         const x = area.left + ((rawX + spanX) % spanX) - 40;
         const y = area.top + ((rawY + spanY) % spanY) - 40;
         const len = layer.len;
-        targetCtx.beginPath();
+        if (!batch) targetCtx.beginPath();
         targetCtx.moveTo(x, y);
         targetCtx.lineTo(x + len * slant, y + len);
-        targetCtx.stroke();
+        if (!batch) targetCtx.stroke();
       }
+      if (batch) targetCtx.stroke();
     }
 
     // 2. 弱地面雨點 (微小水花/雨滴落點)：落在可視陸地石板、碼頭與屋前
@@ -3158,14 +3401,14 @@ window.RENDERER = (() => {
     targetCtx.restore();
   }
 
-  function drawAtmosphere(elapsed, petalCount = 50, fireflyCount = FIREFLIES.length) {
+  function drawAtmosphere(elapsed, petalCount = 50, fireflyCount = FIREFLIES.length, rainTime = elapsed) {
     if (!allowsMotion()) return;
     const area = bounds();
     ctx.save();
 
     // 雨港大氣層：持續細密有方向分層雨絲
-    if (currentStageId() === "rain-port") {
-      drawPortAtmosphereRain(ctx, area, elapsed);
+    if (currentStageId() === "rain-port" && rainTime !== null) {
+      drawPortAtmosphereRain(ctx, area, rainTime);
     }
     // 飄動櫻花雨 (按景深層次繪製，近景帶有柔邊大氣光芒)
     for (let i = 0; i < Math.min(SAKURA.length, petalCount); i++) {
@@ -3209,16 +3452,8 @@ window.RENDERER = (() => {
     ctx.restore();
   }
 
-  // 雨港 tidalFan / rainVortex。D3 原 gate：DEV 候選且水紋 drawImage 成功才是 IMAGE。
-  // 正常頁、缺圖、載入中都回舊安全幾何，handled=true，分類 LEGACY_SAFETY_FALLBACK。
-  // 四標準 kind 另走 dev=1&bossart=1 跨關 gate；缺圖／gate 關／未知 kind 回 false 交 game C3。
   let bossHazardPass = "UNHANDLED";
 
-  function bossHazardImageDev() {
-    return typeof window !== "undefined"
-      && typeof window.isFusionArtBindEnabled === "function"
-      && window.isFusionArtBindEnabled() === true;
-  }
   function bossHazardRipple() {
     const img = typeof window !== "undefined" ? window.PORT_ART?.ripple : null;
     return img && img.naturalWidth > 0 ? img : null;
@@ -3228,8 +3463,8 @@ window.RENDERER = (() => {
   const RIPPLE_BOX = Object.freeze({ l: 16, t: 37, r: 113, b: 92 });
 
   function drawRippleCircle(c, img, x, y, diameter, alpha) {
-    const iw = img.naturalWidth || 128;
-    const ih = img.naturalHeight || 128;
+    const iw = img.naturalWidth || img.width || 128;
+    const ih = img.naturalHeight || img.height || 128;
     const bw = RIPPLE_BOX.r - RIPPLE_BOX.l;
     const bh = RIPPLE_BOX.b - RIPPLE_BOX.t;
     const destW = diameter * iw / bw;
@@ -3242,13 +3477,6 @@ window.RENDERER = (() => {
     c.restore();
   }
 
-  // BOSS-IMAGE-PROD-R2：跨關 DEV 圖片候選。
-  // 四標準 kind 缺圖／gate 關／未知 kind 一律 false 交 game C3；
-  // fan/vortex 仍走原 D3 ripple gate，維持 LEGACY_SAFETY_FALLBACK。
-  // BOSS 危險圖片渲染接口：
-  // - defs=BOSS_HAZARD_ART：危險圖片定義（slam/charge/ring/tide）
-  // - 圖片=BOSS_HAZARD_ART_IMG：渲染用的圖片實例
-  // - gate=isBossHazardArtEnabled dev=1&bossart=1：僅在 URL 參數 dev=1&bossart=1 時啟用
   function bossHazardArt(kind) {
     // Older boss AI variants use aliases. Normalize before image lookup.
     const canonical = ({ tidal_surge: "tidalFan", tide_fan: "tidalFan",
@@ -3440,6 +3668,23 @@ window.RENDERER = (() => {
   // Rain-port alert safety overlay. This SECOND pass is intentionally called
   // after the sanctuary canopy in game.js, keeping warnings readable even
   // when the player's large floral shield is active. Hitboxes remain in AI.
+  const telegraphRasters = new WeakMap();
+  function brightTelegraph(ctx, image, filter) {
+    if (!window.PORT_PERF?.config?.bossRaster || !("filter" in Object.getPrototypeOf(ctx))) return null;
+    let variants = telegraphRasters.get(image);
+    if (!variants) telegraphRasters.set(image,variants = new Map());
+    if (variants.has(filter)) return variants.get(filter);
+    const tile = document.createElement("canvas");
+    tile.width = image.naturalWidth;
+    tile.height = image.naturalHeight;
+    const paint = tile.getContext("2d");
+    if (!paint || !("filter" in Object.getPrototypeOf(paint))) return null;
+    paint.filter = filter;
+    paint.drawImage(image,0,0);
+    variants.set(filter,tile);
+    return tile;
+  }
+
   function drawPortBossTelegraphOverlay(c, h, elapsed = 0) {
     if (currentStageId() !== "rain-port" || h?.phase !== "telegraph") return false;
     const kind=h.kind;
@@ -3463,8 +3708,10 @@ window.RENDERER = (() => {
       const b=h.endAngle??h.angle+Math.PI/3;
       if(ripple){
         c.save();c.beginPath();c.moveTo(h.x,h.y);c.arc(h.x,h.y,r,a,b);c.closePath();c.clip();
-        c.filter="brightness(2.1) saturate(1.7)";
-        drawRippleCircle(c,ripple,h.x,h.y,r*2,.85);
+        const filter="brightness(2.1) saturate(1.7)";
+        const baked=brightTelegraph(c,ripple,filter);
+        if (!baked) c.filter=filter;
+        drawRippleCircle(c,baked || ripple,h.x,h.y,r*2,.85);
         c.restore();
       }
       outline(()=>{
@@ -3477,8 +3724,10 @@ window.RENDERER = (() => {
       for(const v of (h.vortexes||[])){
         const r=(v.r||32)+20;
         if(ripple){
-          c.save();c.filter="brightness(2.2)";
-          drawRippleCircle(c,ripple,v.x,v.y,r*2.1,.92);c.restore();
+          c.save();
+          const filter="brightness(2.2)", baked=brightTelegraph(c,ripple,filter);
+          if (!baked) c.filter=filter;
+          drawRippleCircle(c,baked || ripple,v.x,v.y,r*2.1,.92);c.restore();
         }
         outline(()=>{c.beginPath();c.arc(v.x,v.y,r,0,Math.PI*2);c.stroke();});
       }
@@ -3538,12 +3787,18 @@ window.RENDERER = (() => {
         c.translate(x,y);
         let texture=bank;
         if(needsMask){
-          if(!tideCrestMask){
-            const canvas=document.createElement("canvas");
-            canvas.width=width; canvas.height=height;
-            tideCrestMask=canvas.getContext("2d");
+          const cacheGeometry = emerge === 1 && window.PORT_PERF?.config?.bossRaster;
+          if (!tideCrestMask) tideCrestMask = makeCrestMask(width,height);
+          // Keep at most one steady masked raster per side. Emerging or
+          // changing geometry keeps the original one-surface scratch path.
+          const slot = i < 2 ? 0 : 1;
+          const crest = cacheGeometry ? crestMasks[slot] ??= {ctx:makeCrestMask(width,height)} : null;
+          const mask = crest?.ctx || tideCrestMask;
+          if (crest?.bank === bank && crest.nx === nx && crest.ny === ny && crest.edge === edge) {
+            c.drawImage(mask.canvas,-width/2,top,width,height*emerge);
+            c.restore();
+            return;
           }
-          const mask=tideCrestMask;
           mask.globalCompositeOperation="source-over";
           mask.clearRect(0,0,width,height);
           if(side>0){ mask.translate(width,0); mask.scale(-1,1); }
@@ -3560,6 +3815,7 @@ window.RENDERER = (() => {
           mask.fillStyle=gradient;
           mask.fillRect(0,0,width,height);
           texture=mask.canvas;
+          if (crest) Object.assign(crest,{bank,nx,ny,edge});
         }else if(side>0){
           c.scale(-1,1);
         }
@@ -3570,6 +3826,13 @@ window.RENDERER = (() => {
     return true;
   }
   let tideCrestMask;
+  const crestMasks = [];
+  function makeCrestMask(width,height) {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    return canvas.getContext("2d");
+  }
 
   function paintTidalFan(c, artOrImg, h, phase, elapsed, motion) {
     // 支援兩種呼叫：(c, art, h, phase, elapsed, motion) 或 (c, img, h, phase, elapsed, motion)
@@ -3677,6 +3940,22 @@ window.RENDERER = (() => {
     return startAngle + (endAngle - startAngle) * (h.sweepReverse ? 1-u : u);
   }
 
+  const bakedWaterColumns = new WeakMap();
+  function solidWaterColumn(img,sx,sy,sw,sh) {
+    if (!window.PORT_PERF?.config?.bossRaster) return null;
+    const old = bakedWaterColumns.get(img);
+    if (old?.sx === sx && old.sy === sy && old.sw === sw && old.sh === sh) return old.canvas;
+    const canvas = document.createElement("canvas");
+    canvas.width = sw;
+    canvas.height = sh;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(img,sx,sy,sw,sh,0,0,sw,sh);
+    ctx.drawImage(img,sx,sy,sw,sh,0,0,sw,sh);
+    bakedWaterColumns.set(img,{sx,sy,sw,sh,canvas});
+    return canvas;
+  }
+
   function paintRainVortex(c, artOrImg, h, phase, elapsed, motion) {
     // 支援兩種呼叫：(c, art, h, phase, elapsed, motion) 或 (c, img, h, phase, elapsed, motion)
     const art = artOrImg.image ? artOrImg : { image: artOrImg, bbox: null };
@@ -3753,10 +4032,14 @@ window.RENDERER = (() => {
         // source-over; avoid half-transparent/screen-blended water columns.
         c.globalCompositeOperation = "source-over";
         c.globalAlpha = 1;
-        c.drawImage(img, bbox[0], bbox[1] + COLUMN_SY, sw, COLUMN_SH,
-          -columnW / 2, -columnH, columnW, columnH);
-        c.drawImage(img, bbox[0], bbox[1] + COLUMN_SY, sw, COLUMN_SH,
-          -columnW / 2, -columnH, columnW, columnH);
+        const solid = solidWaterColumn(img,bbox[0],bbox[1]+COLUMN_SY,sw,COLUMN_SH);
+        if (solid) c.drawImage(solid,-columnW/2,-columnH,columnW,columnH);
+        else {
+          c.drawImage(img, bbox[0], bbox[1] + COLUMN_SY, sw, COLUMN_SH,
+            -columnW / 2, -columnH, columnW, columnH);
+          c.drawImage(img, bbox[0], bbox[1] + COLUMN_SY, sw, COLUMN_SH,
+            -columnW / 2, -columnH, columnW, columnH);
+        }
         // The lighter spray shoots UP from the crater during the rise,
         // rather than appearing as one static enlarged PNG.
         if (burst > 0.1) {
@@ -6111,7 +6394,14 @@ window.RENDERER = (() => {
     drawMistParallax,
     setDepthStage(id) { depthStageId = id || ""; },
     groundCacheStats: () => ({ builds: groundCacheBuilds, pixelScale: terrainState?.pixelScale || 0, width: terrainCv?.width || 0, height: terrainCv?.height || 0 }),
+    performanceStats: () => ({
+      ...surfaceCounts, dpr,
+      stores:Object.fromEntries([["main",cv],["light",lightCv],["terrain",terrainCv]].map(([key,canvas]) =>
+        [key,{width:canvas?.width || 0,height:canvas?.height || 0,pixels:(canvas?.width || 0)*(canvas?.height || 0)}])),
+      damageLabels:dmgNumbers.length, slashArcs:slashArcs.length, ghostTrails:ghostTrails.length
+    }),
     invalidateGroundCache,
+    releaseWorldBackings,
     s2CoastDrawEvidence,
     s2GroundKitDrawEvidence,
     resetS2GroundKitDrawCounts,
@@ -6147,6 +6437,8 @@ window.RENDERER = (() => {
     drawFusionFx,
     drawGemShadow,
     drawSpiritGem,
+    drawSpiritGems,
+    allowsMotion,
     renderLighting,
     drawDamageNumbers,
     drawSlashArcs,

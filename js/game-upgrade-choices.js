@@ -125,5 +125,39 @@ function assemble(awakenCard, fc, wc, cc, dc, pc, mc, shuffle) {
     }
     return result.slice(0,3);
   }
-  return Object.freeze({ assemble, withGuarantees, weaponOfferWeight, orderWeapons, weaponsAfterRecentPicks });
+  // Reward-skill visibility is independent of rank weights. Four previous
+  // missed normal offers make the fifth eligible for a reserved slot.
+  const NEW_SKILL_MISS_LIMIT = 5;
+  function withNewSkillVisibility(offered, candidates, misses, normalOffer, protectedCards = []) {
+    if (!normalOffer || !candidates.length) return offered;
+    const visible = new Set(offered.map(c => c.choiceId));
+    const due = candidates.filter(c => !visible.has(c.choiceId) &&
+      (misses[c.id] || 0) >= NEW_SKILL_MISS_LIMIT - 1)
+      .sort((a, b) => (misses[b.id] || 0) - (misses[a.id] || 0) ||
+        (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    if (!due.length) return offered;
+    const protectedIds = new Set(protectedCards.filter(Boolean).map(c => c.choiceId));
+    // Never break a mutation pair or replace a charm, introduction or
+    // another visible reward skill. If all three are reserved, defer.
+    const rewardIds = new Set(candidates.map(c => c.choiceId));
+    const result = [...offered];
+    if (result.length < 3) result.push(due[0]);
+    else {
+      const i = result.findIndex(c => c.type !== "mutation" && c.type !== "charm" &&
+        c.type !== "fusion" && !protectedIds.has(c.choiceId) && !rewardIds.has(c.choiceId));
+      if (i >= 0) result[i] = due[0];
+    }
+    return result;
+  }
+  function recordNewSkillVisibility(misses, candidates, offered, normalOffer) {
+    const eligible = new Set(candidates.map(c => c.id));
+    for (const id of Object.keys(misses)) if (!eligible.has(id)) delete misses[id];
+    const visible = new Set(offered.map(c => c.choiceId));
+    for (const card of candidates) {
+      if (visible.has(card.choiceId)) misses[card.id] = 0;
+      else if (normalOffer) misses[card.id] = (misses[card.id] || 0) + 1;
+    }
+  }
+  return Object.freeze({ assemble, withGuarantees, weaponOfferWeight, orderWeapons, weaponsAfterRecentPicks,
+    withNewSkillVisibility, recordNewSkillVisibility, NEW_SKILL_MISS_LIMIT });
 })();

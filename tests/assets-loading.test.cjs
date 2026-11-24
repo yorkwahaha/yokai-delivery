@@ -40,6 +40,34 @@ test('a failed core WebP and PNG can be explicitly requested again after cooldow
   assert.ok(env.ART.ghost, 'retry recovers the missing sprite');
 });
 
+test('rain-port aliases reuse one versioned image, and journey and cover reload on return', async () => {
+  const {env,images} = loadAssets();
+  env.refreshPortArt();
+  const seams = images.filter(image => image.src.includes('rain-port__t-stone-wood.webp?v='));
+  assert.equal(seams.length,1);
+  seams[0].onload();
+  await Promise.resolve();
+  assert.equal(env.PORT_ART.transH,seams[0]);
+  assert.equal(env.PORT_ART.transV,seams[0]);
+  assert.equal(env.PORT_ART.stoneWoodV2,seams[0]);
+  images[0].onload();
+  const isJourney = image => image.src.includes('overworld_approved_v2.webp');
+  const journey = images.find(isJourney);
+  env.loadGameArt();
+  journey.onload(); // A late response must not put the map back into a run.
+  env.releaseRunCover();
+  assert.equal(env.ART.overworld_approved_v2,undefined);
+  assert.equal(env.ART.cover,undefined);
+  env.loadMapArt();
+  env.loadCoverArt();
+  const reloaded = images.filter(isJourney).at(-1);
+  assert.notEqual(reloaded,journey);
+  reloaded.onload();
+  images.filter(image => image.src.includes('/cover.webp')).at(-1).onload();
+  assert.equal(env.ART.overworld_approved_v2,reloaded);
+  assert.ok(env.ART.cover);
+});
+
 test('initial katana raster is required before core readiness, without any old skill downloads',()=>{
   const {env,images}=loadAssets();env.loadGameArt();
   const blade=images.find(i=>i.src.includes('/katana_l1.webp'));
@@ -242,14 +270,15 @@ test('WebP failures retry preserved originals once and settle even when both are
   images[0].onerror();
   assert.equal(images[0].src, 'assets/img/cover.jpg');
   images[0].onload();
+  const approvedMap = images.find(i=>i.src.includes('/overworld_approved_v2.webp'));
+  approvedMap.onerror();
+  assert.ok(images.some(i=>i.src.includes('/overworld_ukiyoe_v3.webp')),'failed approved map queues old-map fallback while on the map');
   env.loadGameArt();
   for (const image of images) {
-    if (image === images[0]) continue;
+    if (image === images[0] || image === approvedMap) continue;
     image.onerror();
     if (image.src.includes('/vfx/')) {
       assert.ok(image.src.split('?')[0].endsWith(/\/vfx\/raster\/(?:dragon_|katana_l1)/.test(image.src) ? '.webp' : '.svg'));
-    } else if (image.src.includes('/overworld_approved_v2.webp')) {
-      assert.ok(images.some(i=>i.src.includes('/overworld_ukiyoe_v3.webp')),'failed approved map queues old-map fallback');
     } else {
       assert.ok(image.src.split('?')[0].endsWith('.png'));
       image.onload();

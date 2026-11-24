@@ -155,7 +155,47 @@ window.UI = (() => {
     fusion_slashwheel: "#b56358", fusion_thundertalisman: "#889ac2"
   };
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-  const calm = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+  let reducedMotion = !!motionQuery?.matches;
+  const onMotionChange = e => { reducedMotion = e.matches; };
+  if (motionQuery?.addEventListener) motionQuery.addEventListener("change", onMotionChange);
+  else motionQuery?.addListener?.(onMotionChange);
+  const calm = () => reducedMotion;
+  const hudShadow = blur => window.PORT_PERF?.config?.uiShadows === "off" ? 0 : blur;
+  let passiveGlowScale;
+  const passiveGlowTiles = new Map();
+  function paintPassiveGlow(ctx, x, y, width, height, breathing, scale) {
+    if (!window.document?.createElement) return false;
+    if (!(scale > 0)) return false;
+    if (scale !== passiveGlowScale) {
+      passiveGlowScale = scale;
+      passiveGlowTiles.clear();
+    }
+    const key = `${width}/${height}`;
+    let tile = passiveGlowTiles.get(key);
+    const pad = 12;
+    if (!tile) {
+      if (passiveGlowTiles.size >= 24) passiveGlowTiles.clear();
+      tile = document.createElement("canvas");
+      tile.width = Math.ceil(width * scale) + pad * 2;
+      tile.height = Math.ceil(height * scale) + pad * 2;
+      const paint = tile.getContext("2d");
+      if (!paint?.roundRect) return false;
+      paint.setTransform(scale,0,0,scale,pad,pad);
+      paint.shadowColor = "#fff481";
+      paint.shadowBlur = 4;
+      paint.fillStyle = "#ffe844";
+      paint.beginPath();
+      paint.roundRect(0,0,width,height,1.5);
+      paint.fill();
+      passiveGlowTiles.set(key,tile);
+    }
+    const alpha = ctx.globalAlpha;
+    ctx.globalAlpha = alpha * breathing;
+    ctx.drawImage(tile,x-pad/scale,y-pad/scale,tile.width/scale,tile.height/scale);
+    ctx.globalAlpha = alpha;
+    return true;
+  }
   const glow = (ctx, x, y, size, color, alpha) => window.FX?.glow(ctx, x, y, size, color, alpha);
   const pulse = (speed = 3, lo = 0.6) => calm() ? 0.85 : lo + (1 - lo) * (0.5 + 0.5 * Math.sin(Date.now() / 1000 * speed));
   const fontPx = font => Number(font.match(/([\d.]+)px/)[1]);
@@ -1781,16 +1821,16 @@ window.UI = (() => {
       if(art?.naturalWidth && art.naturalHeight){
         const ratio=Math.min(slot/art.naturalWidth,(slot+4)/art.naturalHeight);
         const ww=art.naturalWidth*ratio,hh=art.naturalHeight*ratio;
-        ctx.save();ctx.shadowColor="rgba(0,0,0,.85)";ctx.shadowBlur=7;
+        ctx.save();ctx.shadowColor="rgba(0,0,0,.85)";ctx.shadowBlur=hudShadow(7);
         ctx.drawImage(art,xx+(slot-ww)/2,yy+(slot+4-hh)/2,ww,hh);
         ctx.restore();
       }else{
         ctx.fillStyle=accent;ctx.font=readableFont(20,"900");
-        ctx.textAlign="center";ctx.shadowColor="#0b0e16";ctx.shadowBlur=5;
+        ctx.textAlign="center";ctx.shadowColor="#0b0e16";ctx.shadowBlur=hudShadow(5);
         ctx.fillText(CHARM_PRESENTATION[key]?.glyph||"守",xx+slot/2,yy+24);
       }
       const level=Math.max(1,Math.min(3,item.level||1));
-      ctx.shadowBlur=4;ctx.shadowColor="#17111b";
+      ctx.shadowBlur=hudShadow(4);ctx.shadowColor="#17111b";
       for(let k=0;k<level;k++){
         ctx.fillStyle="#ffe4a1";ctx.beginPath();
         ctx.arc(xx+slot/2+(k-(level-1)/2)*8,yy+slot+5,2.4,0,6.283);ctx.fill();
@@ -1858,7 +1898,7 @@ window.UI = (() => {
         drawRitualCard(ctx,xx,yy,ww,hh,{dark:false,selected});
       }
       if(selected){
-        ctx.shadowColor='#ffdc8e';ctx.shadowBlur=cssPx(13);
+        ctx.shadowColor='#ffdc8e';ctx.shadowBlur=hudShadow(cssPx(13));
         ctx.strokeStyle='rgba(255,220,140,.95)';ctx.lineWidth=cssPx(2.5);
         ctx.beginPath();ctx.roundRect(xx+cssPx(3),yy+cssPx(3),
           ww-cssPx(6),hh-cssPx(6),cssPx(6));ctx.stroke();
@@ -1871,7 +1911,7 @@ window.UI = (() => {
         const ratio=Math.min(maxW/image.naturalWidth,maxH/image.naturalHeight);
         const iw=image.naturalWidth*ratio,ih=image.naturalHeight*ratio;
         ctx.save();
-        ctx.shadowColor=colors[key]||'#dcc28e';ctx.shadowBlur=cssPx(11);
+        ctx.shadowColor=colors[key]||'#dcc28e';ctx.shadowBlur=hudShadow(cssPx(11));
         ctx.drawImage(image,cx-iw/2,cy-ih/2,iw,ih);
         ctx.restore();
       }else{
@@ -2495,7 +2535,7 @@ window.UI = (() => {
           ctx.lineWidth = lvl >= 5 ? 3.1 : 2.5;
           ctx.strokeStyle = levelColor;
           ctx.shadowColor = levelColor;
-          ctx.shadowBlur = (lvl >= 5 ? 9 : 4) + breathe * 3;
+          ctx.shadowBlur = hudShadow((lvl >= 5 ? 9 : 4) + breathe * 3);
           ctx.globalAlpha = 0.68 + levelGlowAlpha * 0.32;
           ctx.beginPath();
           ctx.arc(sx, sy, levelR, levelArcStart, levelArcStart + levelArcSweep);
@@ -2684,7 +2724,7 @@ window.UI = (() => {
       ctx.fillStyle = "#fff4dc";
       ctx.textAlign = "left";
       const ty = midY + fontPx(ctx.font) * 0.35;
-      ctx.shadowColor="rgba(15,9,23,.92)";ctx.shadowBlur=6;
+      ctx.shadowColor="rgba(15,9,23,.92)";ctx.shadowBlur=hudShadow(6);
       inkText(ctx, o.word.zh, x + (hasCue ? 54 : 30), ty, w - (hasCue ? 118 : 94));
       ctx.textAlign = "right";
       ctx.fillStyle = urgent ? "#ffc2b0" : "#e6f9fc";
@@ -2705,14 +2745,14 @@ window.UI = (() => {
     const final=!!boss.final;
     const inset=10;
     ctx.save();
-    ctx.shadowColor="rgba(0,0,0,.94)";ctx.shadowBlur=13;
+    ctx.shadowColor="rgba(0,0,0,.94)";ctx.shadowBlur=hudShadow(13);
     ctx.fillStyle="rgba(12,16,28,.96)";
     ctx.strokeStyle=final?"#f0c17c":"#ab875c";ctx.lineWidth=1.7;
     ctx.beginPath();ctx.roundRect(x,y,w,rowH-2,5);ctx.fill();ctx.stroke();
     ctx.shadowBlur=0;
     const tag=final?"終王":("第"+(Number.isInteger(boss.bossIndex)?boss.bossIndex+1:index+1)+"王");
     ctx.font=readableFont(11,"900");ctx.textAlign="left";
-    ctx.fillStyle="#f4dfb6";ctx.shadowColor="#000";ctx.shadowBlur=3;
+    ctx.fillStyle="#f4dfb6";ctx.shadowColor="#000";ctx.shadowBlur=hudShadow(3);
     ctx.fillText(tag+"  "+(boss.title||"大妖"),x+inset,y+12,w*.70);
     ctx.textAlign="right";ctx.fillStyle="#fff2d4";
     ctx.fillText(Math.ceil(hp*100)+"%",x+w-inset,y+12);
@@ -3104,7 +3144,10 @@ window.UI = (() => {
     // Use the REAL per-passive cap: some have 2, some 3, others 4.
     const maxStacks={shield:3,dmg:4,rate:4,crit:3,spd:3,
       dash:3,oil_max:2,mag:3,oil_heal:3};
-    passives.slice(0, visibleCount).forEach((pas,pIdx)=>{
+    const passiveScale = visibleCount && (window.PORT_PERF?.config?.uiShadows ?? "cached") === "cached"
+      ? ctx.getTransform?.()?.a : 0;
+    for (let pIdx=0;pIdx<visibleCount;pIdx++) {
+      const pas = passives[pIdx];
       const px=passiveX+pIdx*passiveStep;
       // Compact paper portraits, keeping the visible per-rank golden pips.
       const iconSize=slotSize*.72;
@@ -3122,16 +3165,17 @@ window.UI = (() => {
         // instead of flashing the old geometric emblem for a few frames.
       const cap=maxStacks[pas.id]||3,lit=Math.min(cap,Math.max(0,pas.lvl));
       const segGap=1,segH=(iconSize-(cap-1)*segGap)/cap,barX=px+margin+artW+2;
+      const breathing=.80+.20*Math.sin(Date.now()/1000*2.4+pIdx*.73);
       for(let seg=0;seg<cap;seg++){
         const sy=slotY+margin+iconSize-(seg+1)*segH-seg*segGap;
-        const breathing=.80+.20*Math.sin(Date.now()/1000*2.4+pIdx*.73);
+        if (seg<lit && passiveScale && paintPassiveGlow(ctx,barX,sy,barW,segH,breathing,passiveScale)) continue;
         ctx.fillStyle=seg<lit?("rgba(255,232,68,"+breathing+")"):"rgba(118,96,52,.23)";
-        if(seg<lit){ctx.shadowColor="#fff481";ctx.shadowBlur=4;}
+        if(seg<lit){ctx.shadowColor="#fff481";ctx.shadowBlur=hudShadow(4);}
         ctx.beginPath();ctx.roundRect(barX,sy,barW,segH,1.5);ctx.fill();
         ctx.shadowBlur=0;
       }
       ctx.restore();
-    });
+    }
     const hiddenPassives = passives.length - visibleCount;
     if (hiddenPassives > 0) {
       const px = passiveX + visibleCount * passiveStep;

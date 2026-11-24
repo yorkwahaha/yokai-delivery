@@ -24,9 +24,10 @@ test('ofuda luminous impacts render before the single floating damage-number pas
   const src=fs.readFileSync('js/game.js','utf8');
   const draw=src.indexOf('RENDERER.drawDamageNumbers();');
   assert.ok(draw>src.indexOf('SKILLFX.drawArtFx?.(ctx, false)'));
-  assert.ok(draw>src.indexOf('FX.draw(ctx, cam, view)'));
+  const particles=src.indexOf('FX.draw(ctx, cam, view,');
+  assert.ok(particles>=0&&draw>particles);
   assert.equal(src.match(/RENDERER\.drawDamageNumbers\(\);/g)?.length,1);
-  assert.ok(src.slice(draw-100,draw).includes('tiltWorld(cam,shakeOffset)'));
+  assert.ok(src.slice(draw-180,draw).includes('tiltWorld(cam,shakeOffset)'));
 });
 
 test('approved needle raster is rendered silver unless frost is enabled, at Lv3 and Lv5',()=>{

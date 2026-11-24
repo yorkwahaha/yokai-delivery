@@ -3,6 +3,36 @@ window.ART = {};
 window.ART_READY = false;
 window.MAP_ART_READY = false;
 window.ART_PROGRESS = { settled: 0, total: 1, failed: 0 };
+// Share only identical requested URLs. Each loader owns its own status and
+// fallback sequence, so an alias never changes another role's settings.
+const sharedSceneImages = new Map();
+const PORT_ART_REVISION = "20261101-s2-stone1";
+function loadSharedSceneImage(url, priority = "auto", share = true) {
+  const cached = share && sharedSceneImages.get(url);
+  if (cached) return cached;
+  const pending = new Promise(resolve => {
+    const image = new Image();
+    image.decoding = "async";
+    image.fetchPriority = priority;
+    let timer;
+    const finish = ok => {
+      if (timer !== undefined && typeof clearTimeout === "function") clearTimeout(timer);
+      image.onload = image.onerror = null;
+      resolve(ok ? image : null);
+    };
+    image.onload = () => finish(true);
+    image.onerror = () => finish(false);
+    if (typeof setTimeout === "function") timer = setTimeout(() => finish(false),9000);
+    image.src = url;
+  });
+  if (share) {
+    sharedSceneImages.set(url,pending);
+    pending.then(image => {
+      if (!image && sharedSceneImages.get(url) === pending) sharedSceneImages.delete(url);
+    });
+  }
+  return pending;
+}
 // Bump when replacing audio assets so deployed browser caches fetch the new clips.
 window.audioAsset = path => `${window.ASSET_PATHS?.resolve(path) || path}?v=20261031-canonical-audio1`;
 
@@ -12,7 +42,7 @@ const GAME_ASSET_NAMES = [
   "ghost", "mis", "boss", "runner", "tank", "shooter",
   "house_shop", "house_shrine", "house_tavern", "prop_torii", "prop_lantern", "prop_sakura", "ground", "ground_dirt",
   "ghost_motion_v1", "runner_motion_v1", "boss_motion_v1", "mis_motion_v1", "tank_motion_v1", "shooter_motion_v1",
-  "player_dash_v1", "player_win_v1", "player_kneel_v1", "map_night_town_v1", "map_rain_port_v1", "overworld_approved_v2"
+  "player_dash_v1", "player_win_v1", "player_kneel_v1", "map_night_town_v1", "map_rain_port_v1"
 ];
 // 新版主角動作圖皆為非關卡必要資產：進入遊戲後背景預載，舊版 Sprite 可即時備援。
 const PLAYER_ACTION_ART = Object.freeze([
@@ -326,38 +356,16 @@ async function loadS2ArtProdAssets() {
 
       // Canonical selected WebP first; immutable approved legacy WebP is the
       // first fallback. PNG is last resort. Never route an unapproved variant.
-      const loadImage = (urlWebp, urlPng, legacyWebp) => new Promise((resolve) => {
+      const loadImage = async (urlWebp, urlPng, legacyWebp) => {
         const canonicalUrl = window.ASSET_PATHS?.resolve(urlWebp) || urlWebp;
-        const attempts = [...new Set([canonicalUrl, legacyWebp, urlPng].filter(Boolean))];
-        if (!attempts.length) return resolve({ img: null, ok: false });
-        let index = 0;
-        const next = () => {
-          if (index >= attempts.length) return resolve({ img: null, ok: false });
-          const img = new Image();
-          img.decoding = "async";
-          let done = false;
-          const timer = typeof setTimeout === "function" ? setTimeout(() => {
-            if (done) return;
-            done = true;
-            next();
-          }, 9000) : null;
-          const finish = success => {
-            if (done) return;
-            done = true;
-            if (timer !== null && typeof clearTimeout === "function") clearTimeout(timer);
-            if (success) resolve({ img, ok: true });
-            else next();
-          };
-          img.onload = () => finish(true);
-          img.onerror = () => finish(false);
-          img.src = attempts[index++];
-        };
-        next();
-      }).then(result => {
-        // Never let an image from a cancelled stage generation write to shared state.
-        if (generation !== s2ArtProdGeneration) throw new Error('S2_LOAD_CANCELLED');
-        return result;
-      });
+        const primary = portSharedPaths.has(canonicalUrl) ? `${canonicalUrl}?v=${PORT_ART_REVISION}` : canonicalUrl;
+        for (const url of new Set([primary, legacyWebp, urlPng].filter(Boolean))) {
+          const img = await loadSharedSceneImage(url,"auto",url === primary && primary !== canonicalUrl);
+          if (generation !== s2ArtProdGeneration) throw new Error('S2_LOAD_CANCELLED');
+          if (img) return {img,ok:true};
+        }
+        return {img:null,ok:false};
+      };
 
       // B15: the actual base floor is a high-priority dependency. Load both
       // canonical approved floor textures in PARALLEL before secondary art.
@@ -2061,6 +2069,26 @@ const requestedArt = new Set(), settledArt = new Set(), failedArt = new Set();
 const artRetryAfter = new Map();
 const ART_RETRY_DELAY_MS = 5000;
 let gameArtStarted = false, mapArtStarted = false, coreArtStarted = false;
+let keepJourneyBackground = true, keepRunCover = true;
+const journeyBackgrounds = ["overworld_approved_v2","overworld_ukiyoe_v3"];
+const wantsFrontArt = key => key === "cover" ? keepRunCover : !journeyBackgrounds.includes(key) || keepJourneyBackground;
+function releaseFrontArt(key) {
+  delete ART[key];
+  if (settledArt.has(key)) {
+    requestedArt.delete(key);
+    artRetryAfter.delete(key);
+    if (key !== "cover" && !failedArt.has(key)) settledArt.delete(key);
+  }
+}
+window.loadCoverArt = () => {
+  keepRunCover = true;
+  loadArt("cover");
+};
+window.releaseRunCover = () => {
+  if (!keepRunCover) return;
+  keepRunCover = false;
+  releaseFrontArt("cover");
+};
 let progressNames = ["cover"], backgroundKey = null;
 const activeSkillArt = new Map([["katana", ["katana_l1"]]]);
 const gameAssetNames = () => ["cover", ...CORE_ASSET_NAMES, ...HUD_ASSET_NAMES, ...new Set([...activeSkillArt.values()].flat())];
@@ -2116,7 +2144,11 @@ function loadArt(n, priority = "high") {
   };
   img.onload = () => {
     stopTimeout();
-    ART[n] = img;
+    if (wantsFrontArt(n)) ART[n] = img;
+    else {
+      requestedArt.delete(n);
+      if (n !== "cover") return;
+    }
     // Accept late approved art even if loading timed out earlier.
     failedArt.delete(n);
     artRetryAfter.delete(n);
@@ -2128,7 +2160,7 @@ function loadArt(n, priority = "high") {
     if (n === "overworld_approved_v2") {
       console.warn("[Assets] 新旅路地圖無法下載，使用舊版地圖備援。");
       markFailedForRetry(n);
-      loadArt("overworld_ukiyoe_v3", "low");
+      if (keepJourneyBackground) loadArt("overworld_ukiyoe_v3", "low");
       return;
     }
     img.onerror = () => {
@@ -2524,18 +2556,16 @@ function loadBossHazardArt() {
     if (bossHazardArtRequested.has(kind) || (bossHazardRetryAt[kind] || 0) > now) continue;
     bossHazardArtRequested.add(kind);
     window.BOSS_HAZARD_ART_STATUS[kind] = "loading";
-    const img = new Image();
-    img.decoding = "async";
-    img.onload = () => {
-      window.BOSS_HAZARD_ART_IMG[kind] = img;
-      window.BOSS_HAZARD_ART_STATUS[kind] = "ready";
-    };
-    img.onerror = () => {
-      window.BOSS_HAZARD_ART_STATUS[kind] = "error";
-      bossHazardArtRequested.delete(kind);
-      bossHazardRetryAt[kind] = Date.now() + 4000;
-    };
-    img.src = `${def.source}?v=20261115-harbor-fan-r2`;
+    loadSharedSceneImage(`${def.source}?v=20261115-harbor-fan-r2`).then(img => {
+      if (img) {
+        window.BOSS_HAZARD_ART_IMG[kind] = img;
+        window.BOSS_HAZARD_ART_STATUS[kind] = "ready";
+      } else {
+        window.BOSS_HAZARD_ART_STATUS[kind] = "error";
+        bossHazardArtRequested.delete(kind);
+        bossHazardRetryAt[kind] = Date.now() + 4000;
+      }
+    });
   }
 }
 window.refreshBossHazardArt = loadBossHazardArt;
@@ -2589,6 +2619,8 @@ const RAIN_PORT_COAST_KIT_ASSETS = Object.freeze({
   coastCliff: "assets/img/rain-port/s2-production/environment/cliff_north_rock.webp"
 });
 const COAST_KIT_ROLES = new Set(Object.keys(RAIN_PORT_COAST_KIT_ASSETS));
+const portSharedPaths = new Set(Object.values({...RAIN_PORT_ASSETS,...RAIN_PORT_FISH,...RAIN_PORT_GROUND,
+  ...RAIN_PORT_COAST_KIT_ASSETS}).map(url => window.ASSET_PATHS?.resolve(url) || url));
 const portCatalog = () => ({
   ...RAIN_PORT_ASSETS,
   ...RAIN_PORT_FISH,
@@ -2606,24 +2638,17 @@ function loadPortSprites(roles) {
     if (!url || portRequested.has(role)) continue;
     portRequested.add(role);
     window.PORT_ART_STATUS[role] = "loading";
-    const img = new Image();
-    if (img.dataset) img.dataset.url = url;
-    img.fetchPriority = "low";
-    img.decoding = "async";
-    img.onload = () => {
-      window.PORT_ART[role] = img;
-      window.PORT_ART_STATUS[role] = "ready";
-      // Coast kit images arrive async: the terrain cache must be invalidated, otherwise the
-      // port keeps showing the pre-artwork dark bands until something else forces a rebuild.
-      if (COAST_KIT_ROLES.has(role)) {
-        try { window.RENDERER?.invalidateGroundCache?.(); } catch { /* renderer not ready yet */ }
-      }
-    };
-    img.onerror = () => {
-      // Existing legacy copy remains usable if a canonical-path request fails.
-      if (routed !== url && !img.__stage2LegacyAttempted) {
-        img.__stage2LegacyAttempted = true;
-        img.src = `${url}?v=20261031-stage2-fallback1`;
+    const routed = window.ASSET_PATHS?.resolve(url) || url;
+    loadSharedSceneImage(`${routed}?v=${PORT_ART_REVISION}`,"low").then(async primary => {
+      const img = primary || (routed !== url
+        ? await loadSharedSceneImage(`${url}?v=20261031-stage2-fallback1`,"low") : null);
+      if (img) {
+        window.PORT_ART[role] = img;
+        window.PORT_ART_STATUS[role] = "ready";
+        // The terrain must repaint when asynchronously loaded coast art arrives.
+        if (COAST_KIT_ROLES.has(role)) {
+          try { window.RENDERER?.invalidateGroundCache?.(); } catch { /* renderer not ready yet */ }
+        }
         return;
       }
       window.PORT_ART_STATUS[role] = "error";
@@ -2637,9 +2662,7 @@ function loadPortSprites(roles) {
           if (!st.fallback.some(f => f.key === candidateKey)) st.fallback.push({ key: candidateKey, fallback: fbKey });
         }
       }
-    };
-    const routed = window.ASSET_PATHS?.resolve(url) || url;
-    img.src = `${routed}?v=20261101-s2-stone1`;
+    });
   }
 }
 window.PORT_ENEMIES = {};
@@ -2817,8 +2840,10 @@ window.refreshSakuraScene = () => {
 loadArt("cover");
 window.loadMapArt = () => {
   mapArtStarted = true;
+  keepJourneyBackground = true;
   progressNames = ["cover", ...OVERWORLD_MAP_ASSET_NAMES];
   OVERWORLD_MAP_ASSET_NAMES.forEach(key=>loadArt(key));
+  if (failedArt.has("overworld_approved_v2")) loadArt("overworld_ukiyoe_v3","low");
   updateReadiness();
   // 不在這裡呼叫 preloadCoreArt()，改由 loadGameArt() 觸發
 };
@@ -3241,6 +3266,9 @@ function preloadCoreArt() {
 }
 window.loadGameArt = () => {
   window.SPRITECOOK_DEV?.load?.();
+  keepJourneyBackground = false;
+  journeyBackgrounds.forEach(releaseFrontArt);
+  window.loadCoverArt();
   gameArtStarted = true;
   activeSkillArt.clear();activeSkillArt.set('katana',['katana_l1']);
   progressNames = gameAssetNames();

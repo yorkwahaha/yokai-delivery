@@ -64,7 +64,7 @@ test('B13 no previous mismatched gray-overlaid panel or old button renderer in t
 test('B13 right-side order labels stay with high contrast ink outline and shadow',()=>{
  const order=segment(ui,'  function drawOrderList(','  // Each live Boss gets');
  assert.match(order,/inkText\(ctx, o\.word\.zh/);
- assert.match(order,/ctx\.shadowBlur\s*=\s*6/);
+ assert.match(order,/ctx\.shadowBlur\s*=\s*hudShadow\(6\)/);
  assert.match(order,/rgba\(15,9,23,\.92\)/);
 });
 test('B13 real 2/3/4 passive capacity light bar is narrow and softly glowing',()=>{

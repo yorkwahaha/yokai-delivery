@@ -78,7 +78,8 @@ test('weather clock continues in victory while frozen dawn stays separate',()=>{
   assert.match(game,/state === "play" \|\| state === "victory"/);
   assert.match(game,/weatherClock\+=wallDt/);
   assert.match(game,/rainVisualTime=STAGE\.id==="rain-port"\?weatherClock:visualElapsed/);
-  assert.match(game,/drawStageWeather\(rainVisualTime\)/);
+  assert.match(game,/drawStageWeather\(rainVisualTime,portDrawBounds\)/);
+  assert.match(game,/rain \? rainVisualTime : null/);
   assert.match(game,/hazardHit\.damage\*\(heavyWater\?1\.10:1\)/);
   assert.match(game,/e\.type==="boss"\s*\n\s*&& hazardHit/);
 });

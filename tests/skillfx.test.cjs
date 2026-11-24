@@ -26,7 +26,7 @@ test('all new MAX effect sprites bake nonempty canvases',()=>{
   vm.runInNewContext(fs.readFileSync('js/fx.js','utf8'),env);
   for(const kind of ['drum','rock','yin','current']){
     env.FX.emit(kind,'#ffffff',{x:0,y:0,life:1});const p=env.FX.particles().at(-1);
-    assert.ok(p.s.width>0&&p.s.height>0,kind+' needs a drawable sprite');
+    assert.ok(p.sprite.source.width>0&&p.sprite.source.height>0,kind+' needs a drawable sprite');
   }
 });
 
@@ -300,8 +300,8 @@ test('game wires every weapon through SKILLFX and draws the ground layer before 
     assert.ok(game.replace(/\s/g,'').includes(`SKILLFX.play(${call}`.replace(/\s/g,'')), call);
   }
   assert.ok(game.includes('SKILLFX.paint(ctx, "fire", WL.fire'));
-  assert.ok(game.indexOf('FX.drawGround(') < game.indexOf('const actors = ['));
-  assert.ok(game.indexOf('FX.drawGround(') > 0 && game.indexOf('FX.draw(ctx, cam, view)') > game.indexOf('renderLighting'));
+  assert.ok(game.indexOf('FX.drawGround(') < game.indexOf('const actors = renderActors;'));
+  assert.ok(game.indexOf('FX.drawGround(') > 0 && game.indexOf('FX.draw(ctx, cam, view,') > game.indexOf('renderLighting'));
   const html = fs.readFileSync('index.html', 'utf8');
   assert.ok(html.indexOf('js/fx.js') < html.indexOf('js/skillfx.js') && html.indexOf('js/skillfx.js') < html.indexOf('js/game.js'));
 });

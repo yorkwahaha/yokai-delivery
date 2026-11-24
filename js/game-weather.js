@@ -40,23 +40,34 @@ window.GAME_WEATHER = (() => {
     }
     return Object.freeze({tick,reset,snapshot});
   }
+  function isPortWeatherVisible(area, world) {
+    // Bands wrap up to 160 units outside the area, plus a 32-unit streak.
+    const margin = 200;
+    return !world || !(area.right+margin < world.left || area.left-margin > world.right ||
+      area.bottom+margin < world.top || area.top-margin > world.bottom);
+  }
   function drawStageWeather(t, {ctx, STAGE_VISUAL, STAGE, rainLoad, W, H,
-    liveMotion, viewBounds, getRipple, rainStrength}) {
+    liveMotion, viewBounds, getRipple, rainStrength, rain = true, world = null, rainBatch = false}) {
     if (STAGE_VISUAL.weather !== "rain" && STAGE_VISUAL.weather !== "snow") return;
     if (!liveMotion()) t = 0;
     const intensity = Math.max(0.4, STAGE_VISUAL.rainIntensity || 1);
     const area = viewBounds();
+    const seen = (x,y,w,h) => !world || (x+w >= world.left && x <= world.right &&
+      y+h >= world.top && y <= world.bottom);
     const drops = Math.min(80, Math.round(72 * intensity * area.width * area.height / (W * H)));
     ctx.save();
-    if (STAGE_VISUAL.weather === "rain") {
+    if (STAGE_VISUAL.weather === "rain" && rain) {
       ctx.lineCap = "round";
-      const streak = (x, y, length, slant, width, alpha) => {
-        ctx.strokeStyle = `rgba(174, 218, 238, ${alpha})`;
-        ctx.lineWidth = width;
-        ctx.beginPath();
+      const streak = (x, y, length, slant, width, alpha, grouped = false) => {
+        if (!seen(x-2,y-2,length*slant+4,length+4)) return;
+        if (!grouped) {
+          ctx.strokeStyle = `rgba(174, 218, 238, ${alpha})`;
+          ctx.lineWidth = width;
+          ctx.beginPath();
+        }
         ctx.moveTo(x, y);
         ctx.lineTo(x + length * slant, y + length);
-        ctx.stroke();
+        if (!grouped) ctx.stroke();
       };
       // 第一條保持原斜率，讓既有雨向測試仍量得到同一條雨絲。
       {
@@ -78,6 +89,11 @@ window.GAME_WEATHER = (() => {
         const total = bands.reduce((sum, band) => sum + band.n, 0);
         let cursor = 0;
         for (const band of bands) {
+          if (rainBatch) {
+            ctx.strokeStyle = `rgba(174, 218, 238, ${band.alpha})`;
+            ctx.lineWidth = band.width;
+            ctx.beginPath();
+          }
           for (let k = 0; k < band.n; k++, cursor++) {
             const speed = band.speed * (0.86 + rainUnit(cursor, 2) * 0.28);
             const slant = band.slant + (rainUnit(cursor, 3) - 0.5) * 0.05;
@@ -91,8 +107,9 @@ window.GAME_WEATHER = (() => {
             const baseX = (cursor + (mix / 4294967296) * 0.92) * (spanX / (total + 1));
             const x = area.left + ((baseX + t * travelX) % spanX);
             const y = area.top + ((baseY + t * speed) % spanY);
-            streak(x, y, band.len * (0.82 + rainUnit(cursor, 4) * 0.4), slant, band.width, band.alpha);
+            streak(x, y, band.len * (0.82 + rainUnit(cursor, 4) * 0.4), slant, band.width, band.alpha,rainBatch);
           }
+          if (rainBatch) ctx.stroke();
         }
         const ripple = getRipple();
         const splashCount = Number.isFinite(rainStrength)
@@ -101,6 +118,9 @@ window.GAME_WEATHER = (() => {
           const life = (t * 0.8 + rainUnit(i, 8)) % 1;
           const x = area.left + rainUnit(i, 9) * area.width;
           const y = area.top + rainUnit(i, 6) * area.height;
+          // Include both the circle's stroke and the raster splash.
+          const r = 4 + life * 10;
+          if (!seen(x-r,y-r,r*2,r*2)) continue;
           ctx.globalAlpha = (1 - life) * 0.28;
           ctx.beginPath();
           ctx.arc(x, y, 3 + life * 10, 0, 6.28);
@@ -134,7 +154,7 @@ window.GAME_WEATHER = (() => {
       }
     }
     const fog = Math.max(0, Math.min(0.35, STAGE_VISUAL.fog || 0));
-    if (fog > 0 && typeof ctx.createRadialGradient === "function") {
+    if (fog > 0 && seen(area.left,area.top,area.width,area.height) && typeof ctx.createRadialGradient === "function") {
       const area = viewBounds();
       const haze = ctx.createRadialGradient(
         (area.left + area.right) / 2, (area.top + area.bottom) / 2, Math.min(area.width, area.height) * 0.2,
@@ -151,5 +171,5 @@ window.GAME_WEATHER = (() => {
     ctx.restore();
   }
 
-  return Object.freeze({drawStageWeather, rainUnit, createRainCycle});
+  return Object.freeze({drawStageWeather, rainUnit, createRainCycle, isPortWeatherVisible});
 })();
