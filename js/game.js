@@ -2797,7 +2797,7 @@ if (isRainPort) {
       const primaryCold = !primary.shield && !primary.vanish && !primary.done && ((primary.frostHits > 0) || (primary.freezeEnds && primary.freezeEnds > elapsed));
       const primaryBurned = !primary.shield && !primary.vanish && !primary.done && !!(primary.fireBurnEnds && primary.fireBurnEnds > elapsed);
       const before = primary.hp;
-      hurt(primary, full);
+      hurt(primary, q.closeBossAttach ? full * 1.55 : full);
       if (primary.hp < before) {
         harmed = true;
         if (q.hasDuoFrostseal && !castState.frostsealUsed && primaryCold && primary.hp > 0 && !primary.vanish && !primary.done) {
@@ -2841,7 +2841,7 @@ if (isRainPort) {
     // Lv1-4 only splash the two closest neighbors of the stuck target.
     // Lv5 is a true large AoE: every enemy inside the painted blast takes
     // its full base splash damage, without a target cap. The primary alone
-    // receives the separate 1.6x direct-hit bonus from the attack spec.
+    // receives the direct-hit bonus and any close-range Boss bonus.
     const splashTargets = enemies
       .filter(e => e !== primary && e.hp > 0 && dist(e, q) <= radius)
       .sort((a, b) => dist(a, q) - dist(b, q));
@@ -3951,7 +3951,8 @@ if (isRainPort) {
         const moveDir = move();
         let shootAng = 0;
         if (spec.isAwakened) {
-          shootAng = P.faceAng || 0;
+          const near = !spec.hasReturn && window.GAME_COMBAT_MATH.nearestLaunchTarget(enemies, P, 240);
+          shootAng = near?.type === "boss" ? Math.atan2(near.y - P.y, near.x - P.x) : P.faceAng || 0;
         } else if (Math.hypot(moveDir.x, moveDir.y) > 0.1) {
           shootAng = Math.atan2(moveDir.y, moveDir.x);
         } else {
@@ -3960,13 +3961,14 @@ if (isRainPort) {
         }
 
         if (spec.isAwakened) {
-          // Lv5 八方向順時針，每 0.05 秒一針；最後一針後才起算冷卻。
+          // Delay the focused shot past the target's 0.2s needle hit gate.
+          // Return needles keep their original radial paths in both legs.
           const volley = spec.frost ? { used: false, hits: new Set() } : null;
           for (let i = 0; i < count; i++) {
             needleQueued.push({
               wait: (i + 1) * spec.volleyInterval,
               angle: shootAng + i * Math.PI * 2 / count,
-              spec, volley
+              spec, volley, focus: i === 5 && !spec.hasReturn
             });
           }
         } else {
@@ -4023,13 +4025,15 @@ if (isRainPort) {
       // Tolerate floating point slivers (0.15 - 0.05*3) so shots land
       // exactly on each 0.05s boundary, not one frame late.
       if (queued.wait > 0.000001) continue;
-      const spec = queued.spec, a = queued.angle;
+      const spec = queued.spec;
       // Back-mounted spirit needles: 60 upright pixels above the feet.
        // Combat stays on the ground plane. The back-mounted visual launch
        // lifts only the artwork, avoiding a 100px miss at tilt=0.6.
        const originX = P.x - Math.cos(P.faceAng || 0) * 16;
        const originY = P.y;
        const visualLift = 60 / tiltK();
+       const near = queued.focus && window.GAME_COMBAT_MATH.nearestLaunchTarget(enemies, P, 240);
+       const a = near?.type === "boss" ? Math.atan2(near.y - originY, near.x - originX) : queued.angle;
        needles.push({
          x: originX, y: originY, originX, originY, visualLift, visualAge:0,
         vx: Math.cos(a) * spec.speed, vy: Math.sin(a) * spec.speed,
@@ -4302,6 +4306,8 @@ if (isRainPort) {
       if (stickTarget) {
           const e = stickTarget;
           q.stuck = true;
+          // Only a short-flight attachment to the Boss receives the bonus.
+          if (rank === 5 && e.type === "boss" && q.t * q.speed <= 145) q.closeBossAttach = true;
           q.target = e;
           q.seekTarget = null;
           q.fuse = q.initialFuse ?? BOOM_FUSE;
