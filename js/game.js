@@ -5476,7 +5476,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
           stageId: STAGE.id,
           ...(STAGE.id === "sakura-pass" ? { artStatus: "TEMP_FALLBACK" } : {}),
           bossTheme: STAGE_ENEMY.bossTheme,
-          oilReward: plan.oil,
+          oilReward: isRainPortNormal && bossStage < 2 ? plan.oil + 10 : plan.oil,
           hp: bossHp,
           max: bossHp,
           speed: STAGE.id === "rain-port"
