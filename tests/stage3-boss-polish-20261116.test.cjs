@@ -71,7 +71,7 @@ test('Sakura warnings fill the actual lanes and root circles without drawing out
   }
  }
 });
-test('reserved boss clips are silent after one missing-file attempt and respect mute/suspend',async()=>{
+test('reserved Sakura Boss clips stay silent without a network request',async()=>{
  const attempted=[];
  class Audio{constructor(path){this.src=path;attempted.push(path);}addEventListener(){}pause(){}play(){return Promise.reject(Object.assign(new Error('missing'),{name:'NotSupportedError'}));}}
  const env={window:{},Audio,console,setTimeout:()=>0,clearTimeout};
@@ -79,10 +79,10 @@ test('reserved boss clips are silent after one missing-file attempt and respect 
  const flush=async()=>{for(let i=0;i<5;i++)await Promise.resolve();};
  assert.equal(manifest.files.length,6);
  for(const cue of manifest.files){assert.equal(typeof a[cue.key],'function');a[cue.key]();}
- await flush();assert.deepEqual(attempted,manifest.files.map(c=>c.path));
- for(const cue of manifest.files)a[cue.key]();await flush();assert.equal(attempted.length,6);
- a.toggleMute();for(const cue of manifest.files)a[cue.key]();await flush();assert.equal(attempted.length,6);
- a.toggleMute();a.setSuspended(true);for(const cue of manifest.files)a[cue.key]();await flush();assert.equal(attempted.length,6);
+ await flush();assert.deepEqual(attempted,[]);
+ for(const cue of manifest.files)a[cue.key]();await flush();assert.equal(attempted.length,0);
+ a.toggleMute();for(const cue of manifest.files)a[cue.key]();await flush();assert.equal(attempted.length,0);
+ a.toggleMute();a.setSuspended(true);for(const cue of manifest.files)a[cue.key]();await flush();assert.equal(attempted.length,0);
 });
 function scene(turn){
  const g=loadGame();g.env.location={hostname:'localhost',search:'?dev=1&s3play=1'};g.env.DEV_MODE=DEV;g.startRun('sakura-pass');

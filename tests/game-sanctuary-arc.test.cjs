@@ -46,10 +46,10 @@ test('Lv5 has an airy curved dome above the ground art with saved canvas state',
   assert.equal(calls.filter(v=>v==='fill').length,1,'translucent shell uses just one gradient');
 });
 
-test('Lv5 canopy overlays the courier after lighting but stays below the game HUD',()=>{
+test('Lv5 canopy keeps its foreground pass in open combat and shows actors above it in a crowd',()=>{
  const game=fs.readFileSync('js/game.js','utf8');
- const start=game.indexOf('if (!sakuraStage) drawSanctuaryCanopy();');
- const sakura=game.indexOf('if (sakuraStage) drawSanctuaryCanopy();');
+ const start=game.indexOf('if (!sakuraStage && !crowded) drawSanctuaryCanopy();');
+ const sakura=game.indexOf('if (sakuraStage || crowded) drawSanctuaryCanopy();');
  const ground=game.indexOf('SKILLFX.drawArtFx?.(ctx, true, experiment,');
  const actors=game.indexOf('const actors = renderActors;');
  const front=game.indexOf('SKILLFX.drawArtFx?.(ctx, false);');

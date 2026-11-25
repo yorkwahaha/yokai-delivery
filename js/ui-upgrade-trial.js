@@ -221,7 +221,7 @@
       footer:{y:510,h:66}
     };
   };
-  function backdrop(ctx,L,awakening){
+  function backdrop(ctx,L,activeCount){
     const bounds=window.VIEWPORT?.bounds?.()||{left:0,top:0,width:900,height:600};
     ctx.fillStyle="rgba(6,9,18,.86)";ctx.fillRect(bounds.left,bounds.top,bounds.width,bounds.height);
     const p=L.panel,boardSrc=window.__YOKAI_UPGRADE_BOARD_SRC;
@@ -253,8 +253,8 @@
     // Figure-2 approved title crop already contains the gold calligraphy.
     // The older blank plaque still needs its dynamic text fallback.
     if(!approvedTitle)write(ctx,"能力提升",450,t.y+t.h/2+2,240,38,"center",palette.light);
-    const summary="選擇一項技能";
-    write(ctx,summary,450,115,430,20);
+    const slots=activeCount===4?"已滿，仍可強化":"新招佔一格";
+    write(ctx,"主動技能 "+activeCount+"／4 · "+slots,450,115,500,20);
   }
   const formalArt=new Set(["katana","fire","needle","barrier","boom","thunder",
     "shield","dmg","rate","crit","spd","dash","oil_max","oil_heal","mag",
@@ -373,7 +373,7 @@
       ctx.strokeStyle=palette.light;ctx.lineWidth=3;
       round(ctx,r.x-4,r.y-4,r.w+8,r.h+8,10);ctx.stroke();ctx.restore();
     }
-    write(ctx,String(num),r.x+r.w/2,r.y+r.h+13,r.w,16,
+    if(num)write(ctx,String(num),r.x+r.w/2,r.y+r.h-4,r.w,14,
       "center",focused?palette.light:palette.dim);
   }
   function drawDetails(ctx,L,c){
@@ -422,13 +422,13 @@
     ctx.strokeStyle="rgba(119,75,46,.40)";ctx.lineWidth=1.1;
     ctx.beginPath();ctx.moveTo(d.x+260,d.y+14);ctx.lineTo(d.x+260,d.y+d.h-14);ctx.stroke();
     const brief=UI.cardShort?.(c.id,c.n);
-    const desc=brief?.s||c.d||"技能效果";
+    const desc=(c.type==="weapon"?c.d:brief?.s||c.d)||"技能效果";
     const x=d.x+280,w=d.w-310;
     const note=[c.requirementText,c.limitText].filter(Boolean).join(" · ");
     paragraphFit(ctx,desc,x,d.y+56,w,note?3:4,19,11,ink,note?17:18);
     if(note)paragraphFit(ctx,note,x,d.y+113,w,1,13,10,muted,16);
   }
-  function drawReroll(ctx,L,amount,mode){
+  function drawReroll(ctx,L,amount,mode,hovered){
     const r=L.reroll;
     const formal=image("assets/img/ui/menu/result__button.webp");
     const bg=formal||
@@ -450,11 +450,17 @@
       paint(ctx,r.x,r.y,r.w,r.h,amount>0?"#863a34":"#47434c",12);
       ctx.strokeStyle=palette.gold;ctx.lineWidth=2;round(ctx,r.x,r.y,r.w,r.h,12);ctx.stroke();
     }
+    if(amount&&hovered){
+      ctx.strokeStyle=palette.light;ctx.lineWidth=2;
+      round(ctx,r.x,r.y,r.w,r.h,12);ctx.stroke();
+    }
     write(ctx,"重抽（"+amount+"）",r.x+r.w/2,r.y+r.h/2,r.w-20,22,
       "center",amount?palette.light:"#aaa0a0");
     const hint=mode==="gamepad"?"← → 選卡 · A 確認 · Y 重抽":
       mode==="touch"?"輕觸預覽・再點選取":"← → 選卡 · Enter 確認 · R 重抽";
-    write(ctx,hint,851,566,283,L.scale<.8?17:15,"right",palette.dim);
+    const rerollHint=amount?"重抽會換一批選項":"本局重抽已用完";
+    write(ctx,rerollHint,r.x-18,r.y+r.h/2,222,16,"right",palette.dim);
+    write(ctx,hint,r.x+r.w+18,r.y+r.h/2,274,L.scale<.8?17:15,"left",palette.dim);
   }
 
   // Browser/game now loads approved raster paths directly. No ZIP picker,
@@ -469,15 +475,17 @@
     "assets/img/ui/upgrade/approved_details_blank.webp",
     "assets/img/ui/menu/result__button.webp"])image(path);
 
-  UI.drawLevelUp=(ctx,level,choices,WL,WI,rerolls=0,time=0,focus=0,mode="keyboard",awakening=null)=>{
+  UI.drawLevelUp=(ctx,level,choices,WL,WI,rerolls=0,time=0,focus=0,mode="keyboard",awakening=null,rerollHovered=false)=>{
     const L=UI.levelUpLayout(choices.length),i=Math.max(0,Math.min(choices.length-1,focus));
     ctx.save();
-    backdrop(ctx,L,awakening);
-    L.cards.forEach((r,k)=>drawChoice(ctx,choices[k],r,k===i,k+1,time));
+    let activeCount=0;
+    for(const id in WI)if(WL[id]>0)activeCount++;
+    backdrop(ctx,L,activeCount);
+    L.cards.forEach((r,k)=>drawChoice(ctx,choices[k],r,k===i,mode==="keyboard"?k+1:0,time));
     drawDetails(ctx,L,choices[i]||null);
     if(choices.length===1 && choices[0]?.type==="coins"){
       write(ctx,"金幣可留存至下次夜行",450,541,420,19,"center",palette.light);
-    } else drawReroll(ctx,L,rerolls,mode);
+    } else drawReroll(ctx,L,rerolls,mode,rerollHovered);
     ctx.restore();
   };
 })();

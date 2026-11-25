@@ -88,5 +88,5 @@ test('release cache keys changed for exactly the modified JavaScript files',()=>
   assert.ok(html.includes(scriptUrl('renderer')));
   assert.ok(html.includes(scriptUrl('audio')));
   assert.ok(html.includes(scriptUrl('game')));
-  assert.ok(html.includes('js/game-quiz-logic.js?v=20261102-quiz-phase1'));
+  assert.ok(html.includes(scriptUrl('game-quiz-logic')));
 });

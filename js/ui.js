@@ -130,6 +130,7 @@ window.UI = (() => {
   const WORLD_BTN = { x: 360, y: 492, w: 180, h: 48 };
   const HOME_BTN = { x: 570, y: 492, w: 180, h: 48 };
   const MENU_START_BTN = { x: W / 2 - 132, y: 478, w: 264, h: 54 };
+  const MENU_START_BOTTOM = MENU_START_BTN.y + MENU_START_BTN.h;
   const MENU_CONTROLS_BTN = { x: 20, y: 22, w: 180, h: 38 };
   const HINT_BTN = { x: 532, y: 20, w: 78, h: 40 };
   let omamoriJobRef = null;
@@ -1349,7 +1350,7 @@ window.UI = (() => {
     const minTouch = cssPx(MIN_TOUCH_CSS);
     const startH = Math.max(54, minTouch);
     MENU_START_BTN.h = startH;
-    MENU_START_BTN.y = Math.min(MENU_START_BTN.y, H - startH);
+    MENU_START_BTN.y = MENU_START_BOTTOM - startH;
     Object.assign(MENU_BTNS[0], { x: MENU_START_BTN.x, y: MENU_START_BTN.y, w: MENU_START_BTN.w, h: startH });
     const topH = Math.max(38, minTouch);
     MENU_CONTROLS_BTN.h = topH;
@@ -1508,17 +1509,20 @@ window.UI = (() => {
 
     ctx.textAlign = "center";
     ctx.font = titleFont(24);
+    const subtitleY = Math.min(440, MENU_START_BTN.y - 16);
     ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillText("百鬼橫行之夜・單字配達物語", W / 2 + 1.5, 441.5);
+    ctx.fillText("百鬼橫行之夜・單字配達物語", W / 2 + 1.5, subtitleY + 1.5);
     ctx.fillStyle = "#ffe28b";
-    ctx.fillText("百鬼橫行之夜・單字配達物語", W / 2, 440);
+    ctx.fillText("百鬼橫行之夜・單字配達物語", W / 2, subtitleY);
 
     drawB13MenuButton(ctx,{...MENU_START_BTN,id:"start"},"旅路地圖",
       {tone:"danger",size:22,focus:focus===0,fontFace:pauseInkFace});
 
     ctx.fillStyle = C.dim;
     ctx.font = readableFont(13, "bold");
-    ctx.fillText(`夜行紀錄：最高得分 ${STORE.data.best || 0} 點｜最高配達 ${STORE.data.bestDel || 0} 件`, W / 2, 565);
+    const hintY = Math.min(H, b.bottom) - 10;
+    const recordY = Math.min(565, hintY - fontPx(ctx.font) - 4);
+    ctx.fillText(`夜行紀錄：最高得分 ${STORE.data.best || 0} 點｜最高配達 ${STORE.data.bestDel || 0} 件`, W / 2, recordY);
 
     for (const bt of MENU_BTNS.slice(1)) {
       const label = bt.id === "controls" ? "操作與自定義" : bt.id === "cards" ? "卡片一覽" : "單字圖鑑";
@@ -1537,7 +1541,7 @@ window.UI = (() => {
         : audioStatus.gamepad
           ? "手把：Start 進入旅路｜十字鍵／左搖桿選擇・A 確認・Y 靜音"
           : "手把：Start 進入旅路・A 確認｜鍵盤 Enter 進入";
-    ctx.fillText(hint, W / 2, Math.min(H - 16, 595), 860);
+    ctx.fillText(hint, W / 2, hintY, 860);
     ctx.restore();
     ctx.restore();
   }

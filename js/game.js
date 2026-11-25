@@ -273,6 +273,7 @@
   let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "", pausePage = "main";
   let levelupFocus = 0, gpLevelupDir = "";
   let levelupTouchPreview = -1;
+  let levelupRerollHover = false;
   let gpFusionDir = 0;
   let charmSwapIndex = 0, gpCharmDir = 0;
   let pendingMenuActivation = null;
@@ -1062,8 +1063,8 @@
       AUDIO.barrier();
     }, ok: () => (b.heals || 0) < 3 },
     { id: "dmg", n: "修羅破軍", s: "こうげき", cat: "攻擊爆發", d: "整體傷害係數 +0.30（最多 4 層）", f: () => { b.dmg += 0.30; b.dmgUp = (b.dmgUp || 0) + 1; }, ok: () => (b.dmgUp || 0) < 4 },
-    { id: "rate", n: "神樂疾奏", s: "れんぞく", cat: "攻擊爆發", d: "妖刀、結界、靈針冷卻縮短", f: () => { b.rate++; }, ok: () => b.rate < 4 },
-    { id: "crit", n: "心眼一閃", s: "かいしん", cat: "攻擊爆發", d: "妖刀/天雷暴擊率 +15%，結界 +10%（機率上限 50%，倍率 1.8）", f: () => { b.crit = (b.crit || 0) + 1; }, ok: () => (b.crit || 0) < 3 },
+    { id: "rate", n: "神樂疾奏", s: "れんぞく", cat: "攻擊爆發", d: "縮短妖刀、靈陣與靈針的冷卻，直到各招的冷卻下限", f: () => { b.rate++; }, ok: () => b.rate < 4 },
+    { id: "crit", n: "心眼一閃", s: "かいしん", cat: "攻擊爆發", d: "妖刀、天狐雷暴擊率各 +15%，靈陣 +10%。暴擊傷害 1.8 倍，機率上限 50%", f: () => { b.crit = (b.crit || 0) + 1; }, ok: () => (b.crit || 0) < 3 },
     { id: "spd", n: "神足草履", s: "いどう", cat: "神速機動", d: "移動速度約 +15%（最多 3 層）", f: () => { b.spd = (b.spd || 0) + 1; }, ok: () => (b.spd || 0) < 3 },
     { id: "dash", n: "縮地瞬步", s: "ダッシュ", cat: "神速機動", d: "衝刺冷卻大幅縮短，衝刺附加無敵突進", f: () => { b.dash++; }, ok: () => b.dash < 3 },
     { id: "mag", n: "招財勾玉", s: "じしゃく", cat: "輔助資源", d: "靈玉吸取範圍 +80", f: () => { b.mag++; }, ok: () => b.mag < 3 }
@@ -1900,6 +1901,7 @@ if (isRainPort) {
     state = "levelup";
     levelupFocus = UI.upgradeTrialEnabled?.() && choices.length === 3 ? 1 : 0;
     levelupTouchPreview = -1;
+    levelupRerollHover = false;
     levelupCooldown = 0.4;
     keys.clear(); heldCodes.clear();
     joy = null;
@@ -2103,7 +2105,7 @@ if (isRainPort) {
     } else {
       hurtText = `${hurtText}・燈油 −${actualDamage}`;
     }
-    say(hurtText, P.x, P.y - 36, "#cb6e60");
+    say(hurtText, P.x, P.y + 22 / tiltK(), "#cb6e60");
     AUDIO.hurt();
     HAPTICS.damage();
     if (oil <= 0) {
@@ -2161,7 +2163,7 @@ if (isRainPort) {
     if(impactType!=="ink_poison" ||
        !(e.poisonTextT>elapsed)){
       RENDERER.spawnDamageNumber(dmg, e.x, e.y - 25, isCrit,
-        impactType==="ink_poison"?"#c99eea":isCrit?"#ffcc00":"#ffffff");
+        impactType==="ink_poison"?"#c99eea":isCrit?"#ffcc00":"#ffffff", e.type==="boss");
       if(impactType==="ink_poison")e.poisonTextT=elapsed+1.0;
     }
 
@@ -6107,6 +6109,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
   }
 
   const isRouteLabHazard = h => h.kind === "bambooCut" || h.kind === "bambooShoots" || h.kind === "kyotoCrossing";
+  const isBambooGroundHazard = h => h.kind === "bambooCut" ||
+    (h.kind === "bambooShoots" && h.phase === "telegraph");
   function drawBossHazard(h, owner, pass) {
     if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) return;
     if (isRouteLabHazard(h)) {
@@ -6305,6 +6309,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     const sakuraStage = STAGE.id === "sakura-pass";
     const experiment = STAGE.id === "rain-port" ? portPerf?.config : null;
     const sanctuary = experiment?.rank ? perfSkillFixture?.sanctuary : sacredSanctuary;
+    const crowded = enemies.length >= 24;
     const rain = experiment?.rain !== false;
     const drawSanctuaryCanopy = () => {
       if (sanctuary?.life > 0 && experiment?.array !== false && experiment?.accents !== false) {
@@ -6513,11 +6518,6 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     }
     portPerf?.pass("world");
 
-    for (const d of charmDrops) {
-      if (!nearView(d.x, d.y, 60)) continue;
-      paintCharmDrop(d);
-    }
-
     // 技能的貼地圖案（淨化靈陣等）畫在所有角色之前，才會被角色蓋住。
     if (sanctuary && sanctuary.life > 0 && experiment?.array !== false) {
       if (portPerf) beginFx("sanctuaryFloor");
@@ -6692,11 +6692,11 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       RENDERER.drawFusionFx?.(ctx, fx, visualElapsed);
     }
 
-    if (sakuraStage) drawSanctuaryCanopy();
+    if (sakuraStage || crowded) drawSanctuaryCanopy();
     if (portPerf) beginFx("enemyHazards");
     for (const e of enemies) {
       const h = e.hazard;
-      if (e.hp <= 0 || !h || isRouteLabHazard(h) ||
+      if (e.hp <= 0 || !h || (isRouteLabHazard(h) && !isBambooGroundHazard(h)) ||
           !hazardNearView(h, Math.max(480, h.reach || 0, h.length || 0, (h.r || 0) + 110))) continue;
       if (sakuraStage && h.sakura) {
         if (h.phase === "telegraph" || (h.kind === "sakuraBloom" && h.phase === "active"))
@@ -6705,6 +6705,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       else drawBossHazard(h, e);
     }
     if (portPerf) endFx();
+    for (const d of charmDrops) {
+      if (nearView(d.x, d.y, 60)) paintCharmDrop(d);
+    }
 
     // 獨立於 safeRead 的角色動畫時鐘，確保世界暫停時角色仍能流暢邁步／衝刺
     const pAnimElapsed = typeof animElapsed === "number" ? animElapsed : elapsed;
@@ -6793,7 +6796,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       }
       else if (actor.house) {
         RENDERER.drawHouseShadow?.(actor.house);
-        upright(actor.house.x,actor.house.y+46,()=>RENDERER.drawHouse(actor.house,P.y));
+        upright(actor.house.x,actor.house.y+46,()=>RENDERER.drawHouse(actor.house,P.y,P.x));
       } else if (actor.enemy) {
         const e = actor.enemy;
         ctx.save();
@@ -6922,96 +6925,6 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     }
 
     if (portPerf) endFx();
-    // 14. 飄字：受傷提示用墨邊。淡粉 Boss 出場台詞加黑墨描邊與局部暗底，避免被雨港深淺背景吃掉。
-    for (const t of texts) {
-      if (t.delivery) {
-        ctx.save();
-        ctx.globalAlpha = Math.min(1, t.life / 0.55);
-        ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        uprightHere(t.x, t.y);
-        const lines = t.lines || [];
-        const lineH = 25;
-        const cardH = lines.length * lineH + 22;
-        let cardW = 180;
-        for (let i = 0; i < lines.length; i++) {
-          ctx.font = UI.readableFont(i === 0 ? 19 : 16, "900");
-          cardW = Math.max(cardW, ctx.measureText(lines[i]).width + 34);
-        }
-        cardW = Math.min(cardW, 480);
-        const topY = t.y - cardH;
-        ctx.fillStyle = "rgba(15, 20, 31, 0.88)";
-        ctx.beginPath(); ctx.roundRect(t.x - cardW / 2, topY, cardW, cardH, 10); ctx.fill();
-        ctx.strokeStyle = "rgba(236, 202, 128, 0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
-        for (let i = 0; i < lines.length; i++) {
-          ctx.font = UI.readableFont(i === 0 ? 19 : 16, "900");
-          ctx.fillStyle = i === 0 ? "#fff1c5" : i === 1 ? "#ffda83" : "#d0efff";
-          ctx.fillText(lines[i], t.x, topY + 22 + i * lineH, cardW - 22);
-        }
-        ctx.restore();
-        continue;
-      }
-      const injury = typeof t.v === "string" && /^(受創|妖火灼身)/.test(t.v);
-      const bossLine = !injury && typeof t.v === "string" && /浪潮將吞噬|出現！/.test(t.v);
-      ctx.save();
-      ctx.globalAlpha = injury ? clamp(t.life * 1.15, 0, 1) : clamp(t.life, 0, 1);
-      ctx.textAlign = "center";
-      ctx.font = UI.readableFont(17, "bold");
-      uprightHere(t.x,t.y);
-      if (bossLine) {
-        const half = Math.max(18, ctx.measureText(t.v).width) / 2 + 12;
-        const top = t.y - 18;
-        const bottom = t.y + 7;
-        const plate = ctx.createLinearGradient(t.x, top, t.x, bottom);
-        plate.addColorStop(0, "rgba(12, 8, 10, 0)");
-        plate.addColorStop(0.22, "rgba(12, 8, 10, 0.46)");
-        plate.addColorStop(0.78, "rgba(12, 8, 10, 0.46)");
-        plate.addColorStop(1, "rgba(12, 8, 10, 0)");
-        ctx.fillStyle = plate;
-        ctx.fillRect(t.x - half, top, half * 2, bottom - top);
-        ctx.lineJoin = "round";
-        ctx.strokeStyle = "#140c0e";
-        ctx.lineWidth = 3.2;
-        ctx.strokeText(t.v, t.x, t.y);
-        ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
-        ctx.shadowBlur = 1.5;
-        ctx.shadowOffsetY = 1;
-      } else if (injury) {
-        ctx.lineJoin = "round";
-        ctx.strokeStyle = "#211719";
-        ctx.lineWidth = 2.6;
-        ctx.strokeText(t.v, t.x, t.y);
-      }
-      ctx.fillStyle = injury ? "#fff4d3" : t.c;
-      ctx.fillText(t.v, t.x, t.y);
-      ctx.restore();
-    }
-
-    // 15. 浮動傷害數字 — 延後到所有發光特效之上繪製，避免符咒爆炸蓋字。
-
-    // 配送導引標記在建築與角色之上，避免被深度排序遮住。
-    houses.forEach(h => {
-      const isDestination = job && job.to === h;
-
-      // 若為送貨目的地：升起靈光鳥居標記
-      if (isDestination) {
-        const floatY = h.y - 80 + Math.sin(elapsed * 4) * 4 * liveMotion();
-        ctx.save();uprightHere(h.x,h.y+46);
-        ctx.fillStyle = "#40c4ff";
-        ctx.beginPath();
-        ctx.arc(h.x, floatY, 14, 0, 6.28);
-        ctx.fill();
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(h.x - 8, floatY - 6); ctx.lineTo(h.x + 8, floatY - 6);
-        ctx.moveTo(h.x - 6, floatY - 2); ctx.lineTo(h.x + 6, floatY - 2);
-        ctx.moveTo(h.x - 5, floatY - 2); ctx.lineTo(h.x - 5, floatY + 8);
-        ctx.moveTo(h.x + 5, floatY - 2); ctx.lineTo(h.x + 5, floatY + 8);
-        ctx.stroke();
-        ctx.restore();
-      }
-    });
-
     // 15.5 委託氣泡與接案標籤（最上層繪製，確保永不被建築、角色、怪物或陰影遮擋）
     for (const o of orders) {
       const h = o.from;
@@ -7099,7 +7012,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if (portPerf) { endFx(); beginFx("skillAir"); }
     SKILLFX.drawArtFx?.(ctx, false);
     if (portPerf) endFx();
-    if (!sakuraStage) drawSanctuaryCanopy();
+    if (!sakuraStage && !crowded) drawSanctuaryCanopy();
     if (portPerf) beginFx("skillForeground");
     // Purple flames must follow the damaged monster ABOVE the ground,
     // night lighting and the player's sanctuary canopy.
@@ -7156,7 +7069,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.save();
       for (const e of enemies) {
         const hazard = e.hazard;
-        if (e.hp > 0 && hazard && isRouteLabHazard(hazard) && nearView(hazard.x, hazard.y, 400)) drawBossHazard(hazard, e);
+        if (e.hp > 0 && hazard && isRouteLabHazard(hazard) && !isBambooGroundHazard(hazard) &&
+            nearView(hazard.x, hazard.y, 400)) drawBossHazard(hazard, e);
         const rush = e.bambooRush;
         if (e.hp <= 0 || rush?.phase !== "telegraph" || !nearView(e.x, e.y)) continue;
         ctx.strokeStyle = "#ffdb99"; ctx.lineWidth = 3;
@@ -7257,13 +7171,98 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
 
     // 融合圖已在地面層繪製，這裡不重畫，讓怪物／玩家／Boss 警示始終在上方。
     ctx.restore();
-    // Final world-space text pass: ofuda impact pictures must sit BELOW
-    // floating damage digits, including those painted after the night mask.
+    // Keep damage and delivery cues readable above luminous skill art.
     ctx.save();
     tiltWorld(cam,shakeOffset);
     portPerf?.pass("damage");
     if (portPerf?.config.damageText !== "off") RENDERER.drawDamageNumbers();
     portPerf?.pass("world");
+
+    // 受傷、首領出場及送達字幕保留墨邊，避免與亮光混成一片。
+    for (const t of texts) {
+      if (t.delivery) {
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, t.life / 0.55);
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        uprightHere(t.x, t.y);
+        const lines = t.lines || [];
+        const lineH = 25;
+        const cardH = lines.length * lineH + 22;
+        let cardW = 180;
+        for (let i = 0; i < lines.length; i++) {
+          ctx.font = UI.readableFont(i === 0 ? 19 : 16, "900");
+          cardW = Math.max(cardW, ctx.measureText(lines[i]).width + 34);
+        }
+        cardW = Math.min(cardW, 480);
+        const topY = t.y - cardH;
+        ctx.fillStyle = "rgba(15, 20, 31, 0.88)";
+        ctx.beginPath(); ctx.roundRect(t.x - cardW / 2, topY, cardW, cardH, 10); ctx.fill();
+        ctx.strokeStyle = "rgba(236, 202, 128, 0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
+        for (let i = 0; i < lines.length; i++) {
+          ctx.font = UI.readableFont(i === 0 ? 19 : 16, "900");
+          ctx.fillStyle = i === 0 ? "#fff1c5" : i === 1 ? "#ffda83" : "#d0efff";
+          ctx.fillText(lines[i], t.x, topY + 22 + i * lineH, cardW - 22);
+        }
+        ctx.restore();
+        continue;
+      }
+      const injury = t.injury;
+      const bossLine = !injury && typeof t.v === "string" && /浪潮將吞噬|出現！/.test(t.v);
+      ctx.save();
+      ctx.globalAlpha = injury ? clamp(t.life * 1.15, 0, 1) : clamp(t.life, 0, 1);
+      ctx.textAlign = "center";
+      ctx.font = UI.readableFont(17, "bold");
+      uprightHere(t.x,t.y);
+      if (bossLine) {
+        const half = Math.max(18, ctx.measureText(t.v).width) / 2 + 12;
+        const top = t.y - 18;
+        const bottom = t.y + 7;
+        const plate = ctx.createLinearGradient(t.x, top, t.x, bottom);
+        plate.addColorStop(0, "rgba(12, 8, 10, 0)");
+        plate.addColorStop(0.22, "rgba(12, 8, 10, 0.46)");
+        plate.addColorStop(0.78, "rgba(12, 8, 10, 0.46)");
+        plate.addColorStop(1, "rgba(12, 8, 10, 0)");
+        ctx.fillStyle = plate;
+        ctx.fillRect(t.x - half, top, half * 2, bottom - top);
+        ctx.lineJoin = "round";
+        ctx.strokeStyle = "#140c0e";
+        ctx.lineWidth = 3.2;
+        ctx.strokeText(t.v, t.x, t.y);
+        ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+        ctx.shadowBlur = 1.5;
+        ctx.shadowOffsetY = 1;
+      } else if (injury) {
+        ctx.lineJoin = "round";
+        ctx.strokeStyle = "#211719";
+        ctx.lineWidth = 2.6;
+        ctx.strokeText(t.v, t.x, t.y);
+      }
+      ctx.fillStyle = injury ? "#fff4d3" : t.c;
+      ctx.fillText(t.v, t.x, t.y);
+      ctx.restore();
+    }
+
+    // 配送導引標記在建築與角色之上，避免被深度排序遮住。
+    const h = job?.to;
+    // 若為送貨目的地：升起靈光鳥居標記
+    if (h && nearView(h.x, h.y)) {
+      const floatY = h.y - 80 + Math.sin(elapsed * 4) * 4 * liveMotion();
+      ctx.save();uprightHere(h.x,h.y+46);
+      ctx.fillStyle = "#40c4ff";
+      ctx.beginPath();
+      ctx.arc(h.x, floatY, 14, 0, 6.28);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(h.x - 8, floatY - 6); ctx.lineTo(h.x + 8, floatY - 6);
+      ctx.moveTo(h.x - 6, floatY - 2); ctx.lineTo(h.x + 6, floatY - 2);
+      ctx.moveTo(h.x - 5, floatY - 2); ctx.lineTo(h.x - 5, floatY + 8);
+      ctx.moveTo(h.x + 5, floatY - 2); ctx.lineTo(h.x + 5, floatY + 8);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     ctx.restore();
 
     // All stages keep delivery guidance until the required orders are done.
@@ -7599,6 +7598,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     try { cv.setPointerCapture?.(e.pointerId); } catch {}
     touch = e.pointerType !== "mouse";
     inputMode = touch ? 'touch' : 'keyboard';
+    if (touch) levelupRerollHover = false;
     if (tutorial) {
       const p = pp(e);
       UI.TUTORIAL_BTNS.forEach((bt,i) => { if(hitButton(p, bt)) closeTutorial(i===1); });
@@ -7700,7 +7700,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       const hitIndex = hitLevelUpCard(p);
       if (hitIndex >= 0) {
         // Trial touch: first tap previews the choice; second tap selects it.
-        if (UI.upgradeTrialEnabled?.() && e.pointerType === "touch" && levelupTouchPreview !== hitIndex) {
+        if (UI.upgradeTrialEnabled?.() && e.pointerType === "touch" &&
+            (levelupTouchPreview !== hitIndex || levelupFocus !== hitIndex)) {
           levelupTouchPreview = hitIndex;
           levelupFocus = hitIndex;
           return;
@@ -7777,8 +7778,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       return;
     }
     if (state === "levelup" && e.pointerType === "mouse") {
-      const hitIndex = hitLevelUpCard(pp(e));
+      const point = pp(e);
+      const hitIndex = hitLevelUpCard(point);
       if (hitIndex >= 0) levelupFocus = hitIndex;
+      levelupRerollHover = hitLevelUpReroll(point);
     }
     if(e.pointerType === 'mouse'){
       const available = quitConfirm ? UI.EXIT_BTNS
@@ -7801,7 +7804,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     joy.dy = (dy * s) / 60;
   });
 
-  cv.addEventListener("pointerleave", () => UI.setButtonHover?.(null));
+  cv.addEventListener("pointerleave", () => {
+    levelupRerollHover = false;
+    UI.setButtonHover?.(null);
+  });
   ["pointerup", "pointercancel", "lostpointercapture"].forEach(ev => {
     cv.addEventListener(ev, e => {
       if (disabledWordReplay(e)) return;
@@ -8200,7 +8206,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         if (bossQ || liveBosses.length) UI.drawBossQuiz(
           ctx, job?.reading ? null : bossQ, inputMode, liveBosses, sealFade, bossCurseRemaining
         );
-        if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000, levelupFocus, inputMode, null);
+        if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000, levelupFocus, inputMode, null, levelupRerollHover);
         if (state === "fusion" && window.FUSION && typeof UI.drawFusion === "function") {
           const model = window.FUSION.getViewModel ? window.FUSION.getViewModel() : {};
           UI.drawFusion(ctx, model, fusionFocus, inputMode);

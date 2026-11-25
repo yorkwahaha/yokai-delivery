@@ -35,6 +35,24 @@ function scene({approved=true,blank=false}={}){
   return {UI:win.UI,ctx,images,labels,strokes,win};
 }
 
+test('short landscape home keeps both footer lines below the touch target with open line spacing',()=>{
+  const s=scene();
+  vm.runInNewContext(fs.readFileSync('js/viewport.js','utf8'),{window:s.win});
+  for(const [width,height] of [[740,360],[568,320],[1366,768]]){
+    Object.assign(s.win,{innerWidth:width,innerHeight:height});
+    s.labels.length=0;
+    s.UI.drawMainMenu(s.ctx,{data:{best:123,bestDel:7}},0);
+    const start=s.UI.MENU_BTNS[0],scale=s.win.VIEWPORT.get().scale;
+    const record=s.labels.find(t=>t.text.startsWith('夜行紀錄'));
+    const hint=s.labels.find(t=>t.text.startsWith('手把：'));
+    const logicalSize=Number(record.font.match(/(\d+)px/)[1]);
+    assert.ok(start.h*scale>=44);
+    assert.ok(record.y-logicalSize>=start.y+start.h);
+    assert.ok(hint.y-record.y>=logicalSize+4);
+    assert.ok(hint.y<=590);
+  }
+});
+
 test('pause uses one approved five-slot board without duplicate painted buttons',()=>{
  const s=scene();
  s.UI.drawPauseMenu(s.ctx,false,0);

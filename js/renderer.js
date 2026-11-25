@@ -388,9 +388,9 @@ window.RENDERER = (() => {
     hitStop = 0;
   }
 
-  function spawnDamageNumber(val, x, y, isCrit = false, color = null) {
+  function spawnDamageNumber(val, x, y, isCrit = false, color = null, boss = false) {
     if (dmgNumbers.length >= MAX_DAMAGE_LABELS) {
-      if (!isCrit && typeof val === "number") return;
+      if (!isCrit && !boss && typeof val === "number") return;
       dmgNumbers.shift(); // retain crit/status feedback, discard oldest text
     }
     dmgNumbers.push({
@@ -403,6 +403,7 @@ window.RENDERER = (() => {
       maxLife: 0.75,
       scale: isCrit ? 1.5 : 1.0,
       isCrit,
+      boss,
       color: color || (isCrit ? "#ffd152" : "#ffffff")
     });
   }
@@ -2072,7 +2073,7 @@ window.RENDERER = (() => {
 
   // 繪製高精緻度日式町屋店鋪（真實店鋪 Sprite + 障子金光 + 和風招牌）
   const sampledPortHouses = new Set();
-  function drawHouse(h, viewerY = null) {
+  function drawHouse(h, viewerY = null, viewerX = null) {
     const bambooRole = h.bType === "bamboo_tea_house" ? "tea-house" :
       h.bType === "bamboo_produce_house" ? "produce-house" : null;
     const bambooHouse = bambooRole && window.BAMBOO_ART?.image(bambooRole);
@@ -2194,11 +2195,18 @@ window.RENDERER = (() => {
       const distance = viewerY == null ? 0 : Math.max(0,viewerY-h.y);
       const focus = clamp((distance-290)/650,0,1)*tiltFactor;
       const top = (h.y + 48) - bh;
+      const behind = (h.y + 48 - viewerY) * tilt;
+      const overlap = viewerX === null ? 0 :
+        Math.min((bw * .50 - Math.abs(h.x - viewerX)) / 22, (bh + 18 - behind) / 24, behind / 12);
+      const roofAlpha = 1 - .58 * clamp(overlap, 0, 1);
       if (s2Building && houseSprite?.naturalWidth) {
         // 透明 RGBA 建築原圖直貼：不走遠景模糊／風格暗化，避免整棟發暗。
+        const alpha = ctx.globalAlpha;
+        ctx.globalAlpha *= roofAlpha;
         ctx.drawImage(houseSprite, h.x - bw / 2, top, bw, bh);
+        ctx.globalAlpha = alpha;
       } else {
-        drawStyledSceneryImage(ctx,houseSprite,h.x-bw/2,top,bw,bh,1,h.bType,
+        drawStyledSceneryImage(ctx,houseSprite,h.x-bw/2,top,bw,bh,roofAlpha,h.bType,
           focus*2.25, candidateSourceRect);
       }
     } else {
@@ -3081,8 +3089,14 @@ window.RENDERER = (() => {
     ctx.save();
     const k = tiltK();
     const useAtlas = window.PORT_PERF?.config?.damageText === "atlas";
-    for (const d of dmgNumbers) {
-      const alpha = clamp(d.life / 0.3, 0, 1);
+    const dense = dmgNumbers.length > 18;
+    let normal = dense ? 10 : Infinity, critical = dense ? 6 : Infinity;
+    for (let i = dmgNumbers.length - 1; i >= 0; i--) {
+      const d = dmgNumbers[i];
+      const ordinary = typeof d.val === "number" && !d.boss && !d.isCrit;
+      if (ordinary && normal-- <= 0) continue;
+      if (d.isCrit && !d.boss && critical-- <= 0) continue;
+      const alpha = clamp(d.life / 0.3, 0, 1) * (dense && ordinary ? .74 : 1);
       const fontSize = Math.round(20*d.scale);
       if (useAtlas && drawCachedDamage(d,k,alpha,fontSize)) continue;
       ctx.save();

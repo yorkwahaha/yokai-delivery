@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 
-test('optional skill and stage MP3s only try the local host and cache failed lookups', async () => {
+test('unrecorded cues skip requests and other local-only cues cache failed lookups', async () => {
   const requested = [];
   class Audio {
     constructor(src) { requested.push(src); }
@@ -25,7 +25,30 @@ test('optional skill and stage MP3s only try the local host and cache failed loo
   for (const [name, path] of cues) env.window.AUDIO.playOptionalCue(name, path, .3);
   await Promise.resolve();
   for (const [name, path] of cues) env.window.AUDIO.playOptionalCue(name, path, .3);
-  assert.deepEqual(requested, cues.map(([, path]) => path));
+  assert.deepEqual(requested, [cues[2][1]]);
+  env.window.AUDIO.inkTrailDrop();
+  env.window.AUDIO.sealNailBurst();
+  env.window.AUDIO.sakuraRushWarn();
+  env.window.AUDIO.rainPortWaterSlamWarn();
+  assert.deepEqual(requested, [cues[2][1]]);
+  env.window.AUDIO.rainPortFanWarn();
+  assert.equal(requested.at(-1), 'assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__fan-warn.mp3');
+});
+
+test('missing tier sounds immediately use their existing ordinary skill sound or synthesis', () => {
+  const requested = [];
+  class Audio {
+    constructor(src) { requested.push(src); }
+    addEventListener() {}
+    play() { return Promise.resolve(); }
+  }
+  const env = {window:{}, Audio, console, setTimeout, clearTimeout};
+  vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
+  const {AUDIO}=env.window;
+  for(let i=0;i<3;i++) { AUDIO.slash(2); AUDIO.needle(5); AUDIO.barrier(3); }
+  assert.deepEqual(requested,Array.from({length:3},()=>[
+    'assets/audio/sfx/slash.mp3','assets/audio/sfx/needle.mp3'
+  ]).flat());
 });
 
 test('muting during a speech ramp cannot leave stale music volume after unmute',()=>{
@@ -263,13 +286,14 @@ function bufferedAudioFixture() {
 }
 const drainAudio=async()=>{for(let i=0;i<10;i++)await Promise.resolve();};
 
-test('all six skills route levels 1-4 and 5 to distinct filenames and fall back to legacy audio',()=>{
+test('recorded skill tiers route to their authored filenames and fall back to legacy audio',()=>{
   const tracks=[];
   class Audio {constructor(src){this.src=src;this.handlers={};tracks.push(this);}addEventListener(k,fn){this.handlers[k]=fn;}pause(){}play(){return Promise.resolve();}}
   const env={window:{},Audio,console,setTimeout,clearTimeout};
   vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
   for(const [method,id] of [['slash','katana'],['barrier','barrier'],['needle','needle'],['boomerang','boom'],['fireball','fire'],['thunder','thunder']]) {
     for(const level of [1,4,5]) {
+      if ((id==='katana'||id==='barrier')&&level!==5 || id==='needle') continue;
       env.window.AUDIO[method](level);
       assert.equal(tracks.at(-1).src,`assets/audio/sfx/${id}-${(id==='fire'||level!==5)?'lv1-4':'lv5'}.mp3`);
     }

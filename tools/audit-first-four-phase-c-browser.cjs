@@ -11,7 +11,7 @@ const root=path.resolve(__dirname,'..');
 const port=process.env.YOKAI_PHASE_C_PORT||'18789';
 const origin='http://127.0.0.1:'+port;
 const activeOnly=process.argv[2]==='active';
-const evidence=path.join(root,'scratch/phase-c-20261125',activeOnly?'chrome-active':'chrome');
+const evidence=process.env.YOKAI_BENCH_OUTPUT || path.join(root,'scratch/phase-c-20261125',activeOnly?'chrome-active':'chrome');
 const roles=activeOnly?['defense']:['area','single','defense'];
 const enduranceStages=['rain-port','bamboo-maze'];
 const marker='    window.YOKAI_PERF = api;';
@@ -106,6 +106,11 @@ async function main(){
         await route.fulfill({response,body:source.replace(marker,marker+hooks)});
       });
       await page.addInitScript(()=>{
+        window.yokaiLongFrames=[];
+        if(PerformanceObserver.supportedEntryTypes.includes('long-animation-frame')){
+          new PerformanceObserver(list=>window.yokaiLongFrames.push(...list.getEntries()))
+            .observe({type:'long-animation-frame',buffered:true});
+        }
         localStorage.setItem('yokai-tutorial-v1','"skip"');
         const reset=()=>{
           let seed=117;
@@ -145,9 +150,10 @@ async function main(){
             await new Promise(resolve=>setTimeout(resolve,180));
           }
           const report=api.report();
-          const long=performance.getEntriesByType('long-animation-frame').filter(f=>f.startTime>=start)
+          const long=window.yokaiLongFrames.filter(f=>f.startTime>=start)
             .map(f=>({wall:Math.round(f.startTime-start),ms:Math.round(f.duration),
-              script:Math.round(f.scripts.reduce((sum,s)=>sum+s.duration,0))}));
+              script:Math.round(f.scripts.reduce((sum,s)=>sum+s.duration,0)),
+              sources:f.scripts.map(s=>[s.sourceURL,s.duration])}));
           api.configure({hold:true});
           return {samples,timing,frame:report.frame,long};
         },{setup,duration:activeOnly?90000:6800});
@@ -170,7 +176,7 @@ async function main(){
             const report=api.report();
             samples.push({wall:Math.round((performance.now()-started)/1000),...api.phaseCState(),frame:report.frame});
           }
-          return {samples,long:performance.getEntriesByType('long-animation-frame').filter(x=>x.startTime>=started)
+          return {samples,long:window.yokaiLongFrames.filter(x=>x.startTime>=started)
             .map(x=>Math.round(x.duration))};
         },Number(process.env.YOKAI_PHASE_C_DWELL||90));
         endurance={setup,...held};

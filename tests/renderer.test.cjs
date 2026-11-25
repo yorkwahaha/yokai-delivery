@@ -29,6 +29,37 @@ function loadRenderer(width, height, dpr = 1, CanvasContext, coarse = false) {
   context.RENDERER.init(main);
   return {env:context, main, canvases, texts, images, documentEvents};
 }
+test('dense damage text limits per-hit clutter while preserving Boss and status feedback', () => {
+  const r=loadRenderer(900,600);
+  const draw=r.env.RENDERER;
+  for(let i=0;i<33;i++)draw.spawnDamageNumber(i,200,100,i%2===0);
+  draw.spawnDamageNumber(99,200,100,false,null,true);
+  draw.spawnDamageNumber('結界',200,100);
+  draw.drawDamageNumbers();
+  assert.ok(r.texts.length<=18);
+  assert.ok(r.texts.includes('99'));
+  assert.ok(r.texts.includes('結界'));
+});
+test('a foreground roof lets the courier show through only in the overlapping footprint', () => {
+  const r=loadRenderer(900,600);
+  const drawn=[], stack=[], roof={naturalWidth:180,naturalHeight:160};
+  const c=r.main.ctx;
+  c.globalAlpha=1;
+  c.save=()=>stack.push(c.globalAlpha);
+  c.restore=()=>{c.globalAlpha=stack.pop();};
+  c.drawImage=img=>{if(img===roof)drawn.push(c.globalAlpha);};
+  r.env.ART.house_shop=roof;
+  for(const tilt of [.6,1]){
+    r.env.VIEWPORT.setTiltScale(tilt);
+    const house={x:200,y:300,bType:'house_shop'};
+    r.env.RENDERER.drawHouse(house,292,200);
+    r.env.RENDERER.drawHouse(house,292,400);
+    r.env.RENDERER.drawHouse(house,365,200);
+    assert.ok(drawn.at(-3)<.65);
+    assert.deepEqual(drawn.slice(-2),[1,1]);
+    assert.equal(c.globalAlpha,1);
+  }
+});
 test('torii and sakura stay in the same live actor pass at 2D, mid-tilt and 2.5D',()=>{
   const r=loadRenderer(900,600);
   const torii={complete:true,naturalWidth:400,naturalHeight:480};

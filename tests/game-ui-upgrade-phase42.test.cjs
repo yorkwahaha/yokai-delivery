@@ -166,6 +166,18 @@ test('bottom explanation follows focus, without mixing other options',()=>{
  b.UI.drawLevelUp(b.ctx,5,cards,{}, {},2,0,2,'touch',{seals:2});
  assert.ok(!b.traces.some(t=>t.text.includes('覺醒印')),'retired seal HUD must stay hidden');
 });
+test('the upgrade header explains active slots and avoids clipped shortcuts on touch',()=>{
+ const a=trial();
+ a.UI.drawLevelUp(a.ctx,4,cards,{katana:1,fire:2,boom:1,needle:0},{katana:{},fire:{},boom:{},needle:{}},2,0,1,'touch');
+ assert.ok(a.traces.some(t=>t.text.includes('主動技能 3／4')&&t.text.includes('新招')));
+ assert.ok(!a.traces.some(t=>/^[123]$/.test(t.text)));
+ const b=trial();
+ b.UI.drawLevelUp(b.ctx,5,cards,{katana:1,fire:2,boom:1,needle:1},{katana:{},fire:{},boom:{},needle:{}},0,0,1,'keyboard');
+ assert.ok(b.traces.some(t=>t.text.includes('主動技能 4／4')&&t.text.includes('已滿')));
+ const numbers=b.traces.filter(t=>/^[123]$/.test(t.text));
+ assert.equal(numbers.length,3);
+ assert.ok(numbers.every(t=>t.y+8<=b.UI.levelUpLayout(3).details.y));
+});
 test('long skill effects wrap completely inside the approved detail parchment',()=>{
  const a=trial();
  const full='妖刀／天雷暴擊率 +15%，結界 +10%（機率上限 50%，倍率 1.8）（目前 0 / 3 層）';

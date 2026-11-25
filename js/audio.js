@@ -314,10 +314,16 @@ window.AUDIO = (() => {
   };
   // 預留兩組素材；沒有檔案時退回目前音效，不需放空白 MP3。
   const RANKED_SFX = {slash:'katana',barrier:'barrier',needle:'needle',boomerang:'boom',fireball:'fire',thunder:'thunder'};
-  // These four files have not been supplied. Keep the final paths registered
-  // so placing a licensed MP3 at the reserved path enables it after reload,
-  // but never preload known-missing assets at game start.
-  const unprovidedRankedSfx = new Set(['slashBase','barrierBase','needleBase','needleMax']);
+  // Reserved cues without recordings. Remove the key when its file ships.
+  const unprovidedSfx = new Set([
+    'slashBase','barrierBase','needleBase','needleMax',
+    'inkTrailDrop','inkTrailHit','inkTrailAwaken','inkTrailEcho',
+    'sealNailDrop','sealNailBurst','sealNailAwaken',
+    'rainPortWaterSlamWarn','rainPortWaterSlamImpact','rainPortTideWarn','rainPortTideImpact','rainPortHeavyRain',
+    'sakuraRushWarn','sakuraRushCast','sakuraFanWarn','sakuraFanCast','sakuraBloomWarn','sakuraBloomImpact',
+    'bambooCutWarn','bambooCutImpact','bambooShootsWarn','bambooShootsImpact',
+    'shikigami_summon','shikigami_attack','shikigami_hurt','shikigami_vanish'
+  ]);
   for(const [name,id] of Object.entries(RANKED_SFX)) for(const rank of ['Base','Max']) {
     if(name==='fireball' && rank==='Max')continue;
     const key=name+rank;
@@ -344,6 +350,10 @@ window.AUDIO = (() => {
 
   function playExternalSfx(name, fallback, args, buffered = true) {
     if (muted || suspended) return;
+    if (unprovidedSfx.has(name)) {
+      if (!SILENT_OPTIONAL_SFX.has(name)) fallback(...args);
+      return;
+    }
     const src = SFX_FILES[name];
     const request = (sfxRequests.get(name) || 0) + 1;
     sfxRequests.set(name, request);
@@ -353,12 +363,9 @@ window.AUDIO = (() => {
       onstart:source=>replaceSfx(name,source),
       onended:source=>{ if (sfxVoices.get(name)===source) sfxVoices.delete(name); },
       onerror:()=>{
-        // Future water SFX files are intentionally absent until supplied.
-        // Remember the failed lookup and fall back to synthesis only once;
-        // do not retry the same 404 via HTMLAudio on every Boss attack.
-        if (SILENT_OPTIONAL_SFX.has(name) || unprovidedRankedSfx.has(name)) {
+        // Optional cue failures are silent and are never retried through HTMLAudio.
+        if (SILENT_OPTIONAL_SFX.has(name)) {
           unavailableSfx.add(name);
-          if (!SILENT_OPTIONAL_SFX.has(name)) fallback(...args);
         } else playExternalSfx(name,fallback,args,false);
       }
     })) return;
@@ -392,7 +399,7 @@ window.AUDIO = (() => {
       // Two future water cues are intentionally optional. Even browsers
       // without WebAudio (whose HTMLAudio 404s can report network code 2)
       // must avoid fetching the same missing OGG on every ground slam.
-      if (SILENT_OPTIONAL_SFX.has(name) || unprovidedRankedSfx.has(name)
+      if (SILENT_OPTIONAL_SFX.has(name)
           || reason?.name === "NotSupportedError" || [3, 4].includes(audio.error?.code)) {
         unavailableSfx.add(name);
       }
@@ -773,7 +780,7 @@ window.AUDIO = (() => {
       // These cue paths are reserved for local recordings. The classroom
       // release should neither request missing MP3s nor synthesize substitutes.
       if (!window.DEV_MODE?.isLoopback?.(window.location)) return;
-      if (!path || !/^(shikigami|bamboo|kyoto)[A-Z_]/.test(name)) return;
+      if (!path || unprovidedSfx.has(name) || !/^(shikigami|bamboo|kyoto)[A-Z_]/.test(name)) return;
       SFX_FILES[name] ??= path;
       SFX_VOLUME[name] = volume;
       SILENT_OPTIONAL_SFX.add(name);
@@ -881,7 +888,7 @@ window.AUDIO = (() => {
       const standardSfx=Object.entries(SFX_FILES)
         // This player-supplied file isn't available yet; load only on slam.
         .filter(([key])=>!['fireDragon','fireDragonBall','fireGround','bossSlamImpact','charmPickup','finalBossDeath',
-          ...SILENT_OPTIONAL_SFX,...unprovidedRankedSfx].includes(key))
+          ...SILENT_OPTIONAL_SFX,...unprovidedSfx].includes(key))
         .map(([,file])=>file);
       const paths = [
         ...words.map(w => {

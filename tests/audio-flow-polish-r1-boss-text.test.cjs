@@ -7,8 +7,8 @@ const fs = require("node:fs");
 
 function floatingTextLoop() {
   const src = fs.readFileSync("js/game.js", "utf8");
-  const start = src.indexOf("// 14. 飄字");
-  const end = src.indexOf("// 15. 浮動傷害數字");
+  const start = src.indexOf("for (const t of texts)", src.indexOf("// Keep damage and delivery cues"));
+  const end = src.indexOf("// 配送導引標記", start);
   assert.ok(start > 0 && end > start, "飄字迴圈必須留在 drawWorld");
   const body = src.slice(start, end);
   return new Function("ctx", "texts", "UI", "clamp", "uprightHere", body);
@@ -51,7 +51,7 @@ function mockCtx() {
 
 function paint(text, color) {
   const ctx = mockCtx();
-  floatingTextLoop()(ctx, [{ v: text, x: 120, y: 80, c: color, life: 1 }], {
+  floatingTextLoop()(ctx, [{ v: text, x: 120, y: 80, c: color, life: 1, injury: text.startsWith("受創") }], {
     readableFont: () => "bold 17px sans"
   }, (n, a, b) => Math.max(a, Math.min(b, n)), () => {});
   return ctx;

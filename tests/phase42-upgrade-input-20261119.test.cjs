@@ -51,6 +51,21 @@ test('觸控點卡先預覽，第二下才確認選擇', () => {
   assert.equal(game.snapshot().state, 'play');
 });
 
+test('鍵盤切換卡片焦點後，觸控需要重新預覽原本的卡', () => {
+  const game = offer();
+  game.unlockUpgradeInput();
+  const card = game.env.UI.levelUpLayout(3).cards[0];
+  const point = { x: card.x + card.w / 2, y: card.y + card.h / 2 };
+  game.tapCanvas(point);
+  game.events.keydown({ key: 'd', code: 'KeyD', preventDefault() {} });
+  assert.equal(game.upgradeInput().focus, 1);
+  game.tapCanvas(point);
+  assert.equal(game.snapshot().state, 'levelup');
+  assert.equal(game.upgradeInput().focus, 0);
+  game.tapCanvas(point);
+  assert.equal(game.snapshot().state, 'play');
+});
+
 test('WASD 照常移動焦點，重綁 R 後升級畫面的 R 仍只重抽一次', () => {
   const game = offer();
   game.unlockUpgradeInput();

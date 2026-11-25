@@ -85,7 +85,7 @@ test('optional OGG on HTMLAudio network failure is marked missing (no repeated r
  const environment={
   muted:false,suspended:false,
   SFX_FILES:{rainPortWaterSlamWarn:'missing.ogg'},SFX_VOLUME:{rainPortWaterSlamWarn:.65},
-   sfxRequests:new Map(),unavailableSfx:new Set(),sfxVoices:new Map(),activeSfx:new Set(),
+   sfxRequests:new Map(),unavailableSfx:new Set(),unprovidedSfx:new Set(),sfxVoices:new Map(),activeSfx:new Set(),
    SILENT_OPTIONAL_SFX:new Set(['rainPortWaterSlamWarn']),
   playBuffer:()=>false,wordDucking:false,
   replaceSfx:()=>{},
