@@ -161,3 +161,33 @@ test('Phase17 script loaded before game after other pure helpers',()=>{
  assert.ok(html.indexOf(helper)<html.indexOf(main));
  assert.ok(html.indexOf('js/game-weather.js')<html.indexOf(helper));
 });
+
+test('full builds reject a fully saturated next effect, while future ranks and open slots keep it available',()=>{
+ const g=loadGame({seed:482});g.start();
+ const rules=g.env.GAME_UPGRADE_CHOICES;
+ let passivePool;
+ g.env.GAME_UPGRADE_CHOICES={...rules,assemble(...groups){
+  passivePool=groups[5];
+  return rules.assemble(...groups);
+ }};
+ const draw=id=>{
+  g.eligibleChoices();
+  return passivePool.find(card=>card.id===id);
+ };
+ for(const id of ['katana','fire','boom','thunder']) g.setWeaponRank(id,4);
+ const rate=draw('rate'),crit=draw('crit');
+ assert.ok(rate&&crit);
+ assert.equal(rate.f(),true);
+ assert.equal(crit.f(),true);
+ assert.equal(draw('crit').f(),true);
+ assert.equal(draw('rate'),undefined,'katana is already at the cooldown floor');
+ assert.equal(draw('crit'),undefined,'katana and thunder are already at 50%');
+ g.setWeaponRank('boom',0);
+ assert.ok(draw('rate')&&draw('crit'),'a future weapon can still benefit');
+ g.setWeaponRank('barrier',4);
+ assert.ok(draw('rate')&&draw('crit'),'barrier still benefits in a full build');
+ g.setWeaponRank('barrier',0);
+ g.setWeaponRank('needle',4);
+ for(let i=0;i<2;i++) g.tune('rate').f();
+ assert.ok(draw('rate'),'rank 4 is at its floor but rank 5 still benefits');
+});

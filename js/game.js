@@ -246,15 +246,17 @@
   // 仍是跨平台缺字備援，並讓所有答案假名使用同一字型。
   const sceneAnswerFont = size => UI.floorAnswerFont ? UI.floorAnswerFont(size) : UI.answerFont(size, "400");
   const getWordDistrictWords = word => window.CONTENT.getSiblingWords(word);
-  // Phase 1 extraction: gameplay state and RNG remain owned by game.js;
-  // this thin adapter passes the exact same candidate sources and shuffle.
+  const previousAnswerPairs = new Map();
   function answerChoices(word) {
-    return window.GAME_QUIZ_LOGIC.answerChoices(word, {
+    const answers = window.GAME_QUIZ_LOGIC.answerChoices(word, {
       districtWords: getWordDistrictWords(word),
       allWords: ALL,
       extraWords: window.CONTENT.getAnswerCandidates?.() || window.CONTENT.getAllWords(),
-      shuffle
+      shuffle,
+      previous: previousAnswerPairs.get(word.jp)
     });
+    previousAnswerPairs.set(word.jp,answers.filter(choice=>choice!==word).map(choice=>choice.jp));
+    return answers;
   }
 
   // ---------- 遊戲狀態 ----------
@@ -968,9 +970,9 @@
     return window.GAME_CHARM_MATH.effectiveMagnetRadius(magnetRadius(b.mag), portNormalBonus, gatherLevel);
   }
 
-  function getEffectiveRate(buildState = null) {
+  function getEffectiveRate(buildState = null, passiveRate = b.rate) {
     const cadenceLevel = charmLevelOf("charm_cadence", buildState);
-    return window.GAME_CHARM_MATH.effectiveRate(b.rate, cadenceLevel);
+    return window.GAME_CHARM_MATH.effectiveRate(passiveRate, cadenceLevel);
   }
 
   function getEffectiveReachMultiplier(buildState = null) {
@@ -1080,6 +1082,24 @@
       default: return b[id] || 0;
     }
   };
+
+  function passiveHasEffect(id) {
+    if (id !== "rate" && id !== "crit") return true;
+    const build = getBuildState();
+    if (build.ownedActiveCount < MAX_ACTIVE_WEAPONS) return true;
+    const stat = id === "rate" ? "cooldown" : "critChance";
+    const next = id === "rate" ? {effectiveRate:getEffectiveRate(build,b.rate+1)} : {critLvl:(b.crit||0)+1};
+    const eligible = id === "rate" ? ["katana","barrier","needle"] : ["katana","barrier","thunder"];
+    for (const skill of build.activeSkills) {
+      if (skill.startsWith("fusion_")) return true;
+      if (!eligible.includes(skill)) continue;
+      // An invested stack can still pay off when an owned weapon awakens.
+      for (let rank = WL[skill]; rank <= 5; rank++) {
+        if (resolveAttackSpec(skill,rank,build)[stat] !== resolveAttackSpec(skill,rank,build,next)[stat]) return true;
+      }
+    }
+    return false;
+  }
 
   // Stop concurrent injury warnings becoming two ghosted copies at the same location.
   const say = (v, x, y, c = "#fff") => {
@@ -1437,6 +1457,7 @@ if (isRainPort) {
 
   function start(stageId = STAGE.id) {
     quitConfirm = false;
+    previousAnswerPairs.clear();
     AUDIO.unlockFromInput?.();
     AUDIO.prepareMusic?.('play', stageId);
     AUDIO.restartMusic();
@@ -1627,16 +1648,16 @@ if (isRainPort) {
     // 奧義由獨立融合儀式視窗選擇；一般修行三選一永不塞入融合卡。
     const fc = [];
 
-    const critUseful = ["katana", "barrier", "thunder"].some(id => (WL[id] || 0) > 0);
-    const pc = shuffle(UP.filter(u => (u.id !== "crit" || critUseful) &&
-      passiveStackCount(u.id) < PASSIVE_MAX_STACKS[u.id] && (!u.ok || u.ok()))).map(u => {
+    const canOfferPassive = u => passiveStackCount(u.id) < PASSIVE_MAX_STACKS[u.id] &&
+      (!u.ok || u.ok()) && passiveHasEffect(u.id);
+    const pc = shuffle(UP.filter(canOfferPassive)).map(u => {
       let consumed = false;
       const choiceId = `passive:${u.id}`;
       const stacks = passiveStackCount(u.id);
       const maxStacks = PASSIVE_MAX_STACKS[u.id];
       const checkPassiveEligibility = () => {
         if (consumed || scopeRevision !== buildRevision) return false;
-        return passiveStackCount(u.id) < maxStacks && (!u.ok || u.ok());
+        return canOfferPassive(u);
       };
       const applyPassiveEffect = () => {
         if (!checkPassiveEligibility()) return false;

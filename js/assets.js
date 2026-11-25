@@ -1491,7 +1491,7 @@ const STAGE_ASSET_SLOTS = Object.freeze({
     }
   }),
   "bamboo-maze": Object.freeze({
-    map: "map_bamboo_maze_v1",
+    map: null, // The journey and minimap already render this stage from their own data.
     ground: "ground",
     scene: [],
     trans: [],

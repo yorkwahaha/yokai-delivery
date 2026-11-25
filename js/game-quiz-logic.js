@@ -3,41 +3,46 @@
 window.GAME_QUIZ_LOGIC = (() => {
   const writtenLength = text => Array.from(String(text || "").normalize("NFC")).length;
   const kanaScript = text => {
-    const chars = Array.from(String(text || ""));
+    const chars = Array.from(String(text || "").normalize("NFC"));
     if (chars.length && chars.every(ch => /[ぁ-ゖー]/u.test(ch))) return "hiragana";
     if (chars.length && chars.every(ch => /[ァ-ヺー]/u.test(ch))) return "katakana";
     return "mixed";
   };
-  function answerChoices(word, { districtWords, allWords, extraWords, shuffle }) {
-    const seen = new Set([word.jp]), distractors = [];
+  const kanaMarks = text => [
+    /ー/u.test(text),
+    /[ぁぃぅぇぉっゃゅょゎゕゖァィゥェォッャュョヮヵヶ]/u.test(text),
+    /[\u3099\u309a]/u.test(text.normalize("NFD"))
+  ].join("/");
+  function answerChoices(word, { districtWords, allWords, extraWords, shuffle, previous }) {
+    const seen = new Set([word.jp.normalize("NFC")]);
+    const distractors = [];
     const targetLength = writtenLength(word.jp);
     const targetScript = kanaScript(word.jp);
-    const source = [
-      ...districtWords,
-      ...allWords,
-      ...extraWords
-    ];
-    const candidates = shuffle(source).filter(w => w && !seen.has(w.jp) && writtenLength(w.jp) === targetLength);
-    const take = pool => {
-      const w = pool.find(candidate => !seen.has(candidate.jp));
-      if (!w) return false;
-      seen.add(w.jp);
-      distractors.push(w);
-      return true;
-    };
-
-    // 優先保留一個同文字系的近似項，再混入另一文字系，避免字數或平／片假名成為答案提示。
-    if (targetScript === "hiragana" || targetScript === "katakana") {
-      take(candidates.filter(w => kanaScript(w.jp) === targetScript));
-      take(candidates.filter(w => {
-        const script = kanaScript(w.jp);
-        return script !== targetScript && (script === "hiragana" || script === "katakana");
-      }));
+    const targetMarks = kanaMarks(word.jp);
+    const sameMarks = [], differentMarks = [], sameScript = [], sameLength = [], other = [];
+    for (const w of [...districtWords,...allWords,...extraWords]) {
+      if (!w?.jp || (word.zh && w.zh === word.zh)) continue;
+      const jp = w.jp.normalize("NFC");
+      if (seen.has(jp)) continue;
+      seen.add(jp);
+      const matchingLength = writtenLength(jp) === targetLength;
+      if (kanaScript(jp) === targetScript) {
+        if (!matchingLength) sameScript.push(w);
+        else (kanaMarks(jp) === targetMarks ? sameMarks : differentMarks).push(w);
+      } else {
+        (matchingLength ? sameLength : other).push(w);
+      }
     }
-    while (distractors.length < 2 && take(candidates)) {}
-    if (distractors.length < 2) {
-      // 未來詞包缺少同長度詞時仍使用真實且不重複的詞，不中斷當局。
-      while (distractors.length < 2 && take(shuffle(source).filter(w => w && w.jp))) {}
+    // All released prompts have enough exact matches. Sparse future packs
+    // still get real, unique choices with same-script words used first.
+    for (const pool of [sameMarks,differentMarks,sameScript,sameLength,other]) {
+      if (distractors.length === 2) break;
+      if (!pool.length) continue;
+      const draw = shuffle(pool);
+      if (!distractors.length && draw.length >= 3 && previous?.includes(draw[0].jp) && previous.includes(draw[1].jp)) {
+        draw[1] = draw[2];
+      }
+      distractors.push(...draw.slice(0,2-distractors.length));
     }
     return shuffle([word, ...distractors]);
   }

@@ -44,26 +44,27 @@ test('V3: 取貨不給 XP，經驗只來自配送與擊殺', () => {
   assert.equal(g.snapshot().xp, before, '取貨不得給經驗');
 });
 
-test('V3: 每 3 筆成功配送得 1 枚覺醒印，累積數不封頂、不跨局', () => {
+// 2026-11-09 roadmap: delivery still grants XP, while ordinary Lv5
+// upgrades no longer use the retired delivery seal economy.
+test('現制：18 筆配送只給配送 XP，跨局也沒有配送覺醒印', () => {
   const g = g0();
-  const v3 = g.v3();
-  assert.ok(v3.sealCount !== undefined, '缺少覺醒印計數（V3 未實作）');
-  assert.equal(v3.sealMax, 4, '配置中的歷史顯示值維持 4，不代表實際累積上限');
-
-  for (let i = 0; i < 3; i++) deliverOnceControlled(g);
-  assert.equal(g.v3().sealCount, 1, '3 筆配送應得第 1 枚印');
-  for (let i = 0; i < 3; i++) deliverOnceControlled(g);
-  assert.equal(g.v3().sealCount, 2, '6 筆配送應得第 2 枚印');
-
-  for (let i = 0; i < 12; i++) deliverOnceControlled(g);
-  assert.equal(g.v3().sealCount, 6, '18 筆完成配送應累積 6 枚印；現行不設累積上限');
+  for (let i=1;i<=18;i++) {
+    assert.ok(deliverOnceControlled(g));
+    assert.equal(g.snapshot().delivered,i);
+    assert.equal(g.v3().sealCount,0);
+  }
+  assert.equal(g.snapshot().xp+g.xpSpentTotal(),18*26);
+  g.start();
+  assert.equal(g.snapshot().delivered,0);
+  assert.equal(g.v3().sealCount,0);
 });
 
-test('V3: 聽音提示停用後，正常配送仍計入覺醒印與 26 XP', () => {
+test('現制：提示停用時仍可正常送達，三筆給 78 XP 且不標輔助', () => {
   const g = g0();
   for (let i = 0; i < 3; i++) {
     if (!g.prepareOrder()) { assert.fail('無法建立第 ' + (i + 1) + ' 張委託'); }
     assert.equal(g.triggerHint(), false, '已停用的提示不可影響正常配送');
+    assert.equal(g.snapshot().job.assisted,false);
     g.atAnswer();
     for (let k = 0; k < 60 && g.snapshot().job; k++) g.update(0.05);
     g.resolveLevelUps(40);
@@ -71,29 +72,26 @@ test('V3: 聽音提示停用後，正常配送仍計入覺醒印與 26 XP', () =
   }
   assert.equal(g.snapshot().delivered, 3, '三筆皆應送達');
   assert.equal(g.snapshot().xp, 78, `3 筆 × 26 XP，實際 ${g.snapshot().xp}`);
-  assert.equal(g.v3().sealCount, 1, '提示配送也應給印');
+  assert.equal(g.v3().sealCount,0);
 });
 
-test('V3: 真的答錯後原單補送三次，仍得 78 XP 與 1 枚印，但不加熟練星', () => {
+test('現制：連續答錯三張新單只記失單，沒有送達 XP、分數或印', () => {
   const g = g0();
+  g.stopSpawns();
   for (let i = 0; i < 3; i++) {
+    g.clearEnemies();
     assert.ok(g.prepareOrder(), '應能建立配送單');
     const j = g.snapshot().job;
     const wrong = j.ans.findIndex(w => w !== j.word);
     assert.ok(wrong >= 0);
     g.resolve(wrong);
-    assert.ok(g.snapshot().job?.assisted, '錯答後原單必須保留協助標記');
-    const before = g.env.STORE.get(j.word.jp).box;
-    g.atAnswer();
-    for (let k = 0; k < 60 && g.snapshot().job; k++) g.update(0.05);
-    assert.ok(!g.snapshot().job, '同一張單應成功補送');
-    assert.equal(g.env.STORE.get(j.word.jp).box, before, '補送不應加熟練星');
-    g.resolveLevelUps(40);
-    g.setState('play');
+    assert.equal(g.snapshot().job,null);
+    assert.equal(g.snapshot().failed,i+1);
   }
-  assert.equal(g.snapshot().delivered, 3);
-  assert.equal(g.snapshot().xp, 78);
-  assert.equal(g.v3().sealCount, 1);
+  assert.equal(g.snapshot().delivered,0);
+  assert.equal(g.snapshot().xp,0);
+  assert.equal(g.snapshot().score,0);
+  assert.equal(g.v3().sealCount,0);
 });
 
 test('V3: 擊殺 Boss、取貨、誤配妖都不給覺醒印', () => {
@@ -108,41 +106,42 @@ test('V3: 擊殺 Boss、取貨、誤配妖都不給覺醒印', () => {
   assert.equal(after, before, 'Boss 擊殺不得直接發印');
 });
 
-test('V3: Lv4 持印時，升級選單保證至少一張可覺醒的卡', () => {
+test('現制：零配送時，普通升級可抽到並選取妖刀 Lv5', () => {
   const g = g0();
-  // 先用真配送賺印（3 單 = 1 印），不可直接改狀態變數。
-  deliverOnceControlled(g); deliverOnceControlled(g); deliverOnceControlled(g);
-  assert.ok(g.v3().sealCount >= 1, `3 單後應有印，實際 ${g.v3().sealCount}`);
-
   g.setWeaponRank('katana', 4);
-  g.setState('play');
+  for (const id of ['fire','barrier','needle']) g.setWeaponRank(id,5);
   g.setXp(1e9);
   g.offerUp();
-  const s = g.snapshot();
-  assert.ok(s.choiceLv.includes(5), '持印的 Lv4 技應在選單中提供 Lv5 選項');
+  const card = g.currentChoices().find(c=>c.type==='weapon' && c.id==='katana' && c.lv===5);
+  assert.ok(card,'唯一可升武器應有普通 Lv5 選項');
+  assert.equal(g.snapshot().delivered,0);
+  assert.equal(card.f(),true);
+  assert.equal(g.weaponLevels().katana,5);
+  assert.equal(g.v3().sealCount,0);
 });
 
-test('V3: 沒有印時，Lv5 不可取得', () => {
+test('現制：有配送紀錄仍不得跳過 Lv4 直接取得 Lv5', () => {
   const g = g0();
-  g.setWeaponRank('katana', 4);
+  for (let i=0;i<3;i++) assert.ok(deliverOnceControlled(g));
+  for (const id of ['katana','fire','barrier','needle']) g.setWeaponRank(id,3);
   g.setXp(1e9);
   g.offerUp();
-  assert.equal(g.v3().sealCount, undefined ? 0 : g.v3().sealCount, 0, '尚未配送，印應為 0');
-  assert.ok(!g.snapshot().choiceLv.includes(5), '無印不得出現 Lv5 選項');
+  assert.ok(g.currentChoices().some(c=>c.type==='weapon' && c.lv===4));
+  assert.ok(!g.currentChoices().some(c=>c.type==='weapon' && c.lv===5));
 });
 
-test('V3: 選擇 Lv5 會消耗一枚覺醒印', () => {
+test('現制：選過的 Lv5 卡不可重複使用，也不扣覺醒印', () => {
   const g = g0();
   g.setWeaponRank('katana', 4);
+  for (const id of ['fire','barrier','needle']) g.setWeaponRank(id,5);
   g.setXp(1e9);
   g.offerUp();
-  const sealsBefore = g.v3().sealCount === undefined ? 0 : g.v3().sealCount;
-  const idx = g.snapshot().choiceLv.indexOf(5);
-  if (idx < 0) return;   // 無印情境已由上一測試覆蓋；此處僅在有印時驗證扣除
-  const choice = g.currentChoices()[idx];
-  choice.f();
-  const after = g.v3().sealCount === undefined ? 0 : g.v3().sealCount;
-  assert.equal(after, sealsBefore - 1, '選 Lv5 應消耗 1 印');
+  const card = g.currentChoices().find(c=>c.type==='weapon' && c.id==='katana' && c.lv===5);
+  assert.ok(card);
+  assert.equal(card.f(),true);
+  assert.equal(card.f(),false);
+  assert.equal(g.weaponLevels().katana,5);
+  assert.equal(g.v3().sealCount,0);
 });
 
 // ---------- B. 提示與錯答 ----------
@@ -170,46 +169,67 @@ test('V3: 停用聽音提示後，重複呼叫也不扣油', () => {
   assert.ok(Math.abs(drop) < 1e-6, `重複呼叫不應扣油，實際 ${drop.toFixed(3)}`);
 });
 
-test('V3: 錯答扣最大油量的 5%（最低 3 油）', () => {
-  const g = g0();
-  g.prepareOrder();
-  g.setOil(80);
-  const wrongIdx = g.snapshot().job.ans.findIndex(w => w !== g.snapshot().job.word);
-  g.resolve(wrongIdx);
-  const penalty = Math.max(3, Math.round(g.maxOilNow() * 0.05));
-  assert.ok(Math.abs((80 - g.snapshot().oil) - penalty) < 1e-9,
-    `V3 錯答應扣 ${penalty} 油，實際 ${(80 - g.snapshot().oil).toFixed(2)}`);
+test('現制：直接答錯不扣油，倒數逾時才一次扣最大油量 5%', () => {
+  for (const extraOil of [false,true]) {
+    const g = g0();
+    g.stopSpawns();
+    if (extraOil) g.tune('oil_max').f();
+    assert.ok(g.prepareOrder());
+    g.setOil(80);
+    const job = g.snapshot().job;
+    g.resolve(job.ans.findIndex(w=>w!==job.word));
+    assert.equal(g.snapshot().oil,80);
+    g.clearEnemies();
+    assert.ok(g.prepareOrder());
+    g.atAnswer();
+    Object.assign(g.snapshot().job,{reading:true,barrierTimer:0.01});
+    g.update(.025);
+    assert.equal(g.snapshot().job,null);
+    assert.equal(g.snapshot().failed,2);
+    const penalty = Math.max(3,Math.round(g.maxOilNow()*.05));
+    const ambientDrain = (.43-g.bar().oilRegen)*.025;
+    assert.ok(Math.abs(g.snapshot().oil-(80-penalty-ambientDrain))<1e-9);
+    g.update(.025);
+    assert.equal(g.snapshot().failed,2,'逾時只結算一次');
+  }
 });
 
-test('V3: 錯答不再額外生成誤配妖，且保留原單可補送', () => {
+test('現制：答錯終結原單並在安全生成點召三隻普通怪', () => {
   const g = g0();
+  g.stopSpawns();
+  g.clearEnemies();
   g.prepareOrder();
-  const word = g.snapshot().job.word;
+  const order = g.snapshot().job;
   const wrongIdx = g.snapshot().job.ans.findIndex(w => w !== g.snapshot().job.word);
   g.resolve(wrongIdx);
   const s = g.snapshot();
-  assert.equal(s.enemies.filter(e => e.type === 'mis').length, 0, '錯答不得再生成誤配妖');
-  assert.ok(s.orders.some(o => o.word.jp === word.jp) || s.job?.word.jp === word.jp,
-    '錯答後原單必須保留，讓玩家仍可補送');
+  assert.equal(s.job,null);
+  assert.ok(!s.orders.some(o=>o.word===order.word && o.from===order.from && o.to===order.to));
+  assert.equal(s.enemies.length,3);
+  assert.ok(s.enemies.every(e=>e.hp>0 && !['boss','mis'].includes(e.type) && !g.blocked(e.x,e.y)));
 });
 
-test('V3: 錯答後補送仍給 XP 與印，但標記 assisted 不加熟練', () => {
+test('現制：失單不加熟練，重新接到同詞的獨立送達才給 XP 與熟練', () => {
   const g = g0();
+  g.stopSpawns();
   g.prepareOrder();
   const word = g.snapshot().job.word;
+  const before = g.env.STORE.get(word.jp).box;
   const wrongIdx = g.snapshot().job.ans.findIndex(w => w !== g.snapshot().job.word);
   g.resolve(wrongIdx);
   const boxAfterWrong = g.env.STORE.get(word.jp).box;
-
-  // 錯答後同一張配送單並未消失；直接對原 job 重試。
-  // prepareOrder() 是測試用新單建立器，會強制把原 job 清空，不能用它模擬重試。
-  assert.ok(g.snapshot().job?.assisted, '答錯後原單必須標記為 assisted');
+  assert.equal(g.snapshot().job,null);
+  assert.ok(boxAfterWrong<=before);
+  assert.equal(g.snapshot().xp,0);
+  g.clearEnemies();
+  g.pickupWord(word);
+  assert.equal(g.snapshot().job.assisted,false);
   g.atAnswer();
   for (let i = 0; i < 60; i++) g.update(0.05);
   assert.equal(g.snapshot().delivered, 1, '補送應完成');
-  assert.equal(g.snapshot().xp, 26, '補送仍給 26 XP');
-  assert.equal(g.env.STORE.get(word.jp).box, boxAfterWrong,
-    '提示/補送不得讓熟練星 +1');
+  assert.equal(g.snapshot().xp,26);
+  assert.ok(g.env.STORE.get(word.jp).box>boxAfterWrong);
+  assert.equal(g.v3().sealCount,0);
 });
 
 test('V3: 純站樁不得無成本淨回油（舊規格可淨 +0.04/s）', () => {
@@ -276,17 +296,22 @@ test('V3: 陣 Lv1–4 CD 不得低於 1.2 秒（以實際施放間隔量測）',
   }
 });
 
-test('V3: 陣 Lv5 施放半徑 220（讀實際 SKILLFX 參數）', () => {
+test('現制：靈陣 Lv5 擴大真命中邊界，技能光圈與命中一致', () => {
   const g = g0();
   g.stopSpawns();
-  g.clearEnemies();
-  g.setWeaponRank('barrier', 5);
-  g.armWeapons();
-  g.clearSkillFxLog();
-  g.update(0.05);
-  const cast = g.skillFxLog.find(e => e.id === 'barrier' && e.event === 'cast');
-  assert.ok(cast, '應有陣的施放事件');
-  assert.equal(cast.params.r, 220, `Lv5 半徑應為 220，實際 ${cast.params.r}`);
+  const castAt = rank => {
+    g.combatScene('barrier',[{dx:240},{dx:285},{dx:295}],[],rank);
+    g.armWeapons();
+    g.clearSkillFxLog();
+    g.weapons(.05);
+    const cast = g.skillFxLog.find(e=>e.id==='barrier' && e.event==='cast');
+    assert.ok(cast);
+    return {radius:cast.params.r,hits:Array.from(g.snapshot().enemies,e=>e.hp<999)};
+  };
+  const before = castAt(4), after = castAt(5);
+  assert.deepEqual(before.hits,[true,false,false]);
+  assert.deepEqual(after.hits,[true,true,false]);
+  assert.ok(before.radius<285 && after.radius>=285 && after.radius<295);
 });
 
 test('V3: 陣 Lv5 地場生命 1.8 秒（不再 2.5 秒）', () => {

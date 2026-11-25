@@ -17,7 +17,7 @@ test('quiz module: NFC written length and hiragana/katakana classification remai
  assert.equal(q.kanaScript('ラーメン'),'katakana');
  assert.equal(q.kanaScript('お茶'),'mixed');
 });
-test('quiz module: three unique answers, preference for same-script and cross-script',()=>{
+test('quiz module: three unique answers share script, written length and visible kana marks',()=>{
  const q=logic(),word={jp:'はこ'};
  const district=[{jp:'いぬ'},{jp:'カニ'}];
  const allWords=[{jp:'ねこ'},{jp:'タコ'},{jp:'ねこ'},{jp:'ふね'}];
@@ -28,8 +28,7 @@ test('quiz module: three unique answers, preference for same-script and cross-sc
  assert.equal(picks.length,3);
  assert.equal(new Set(text).size,3);
  assert.ok(picks.includes(word));
- assert.ok(picks.some(w=>q.kanaScript(w.jp)==='hiragana'&&w!==word));
- assert.ok(picks.some(w=>q.kanaScript(w.jp)==='katakana'));
+ assert.ok(picks.every(w=>q.kanaScript(w.jp)==='hiragana' && !/[\u3099\u309a]/u.test(w.jp.normalize('NFD'))));
  assert.ok(picks.every(w=>q.writtenLength(w.jp)===2));
 });
 test('quiz module: fallback still builds three unique choices if exact-length pool is sparse',()=>{
@@ -42,6 +41,16 @@ test('quiz module: fallback still builds three unique choices if exact-length po
  assert.equal(picks.length,3);
  assert.equal(new Set(picks.map(w=>w.jp)).size,3);
  assert.ok(picks.includes(word));
+});
+test('quiz choices skip the previous pair and exact same-meaning labels when other legal words exist',()=>{
+ const q=logic(), word={jp:'はこ',zh:'盒子'};
+ const sources={districtWords:[],allWords:[
+  {jp:'こは',zh:'盒子'}, {jp:'いぬ',zh:'狗'}, {jp:'ねこ',zh:'貓'}, {jp:'さら',zh:'盤子'}
+ ],extraWords:[],shuffle:list=>[...list]};
+ const first=Array.from(q.answerChoices(word,sources),w=>w.jp);
+ assert.deepEqual(first,['はこ','いぬ','ねこ']);
+ const next=Array.from(q.answerChoices(word,{...sources,previous:first.slice(1)}),w=>w.jp);
+ assert.deepEqual(next,['はこ','いぬ','さら']);
 });
 test('quiz phase one page loads pure module before game.js',()=>{
  const html=fs.readFileSync('index.html','utf8');

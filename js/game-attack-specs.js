@@ -6,7 +6,7 @@ window.GAME_ATTACK_SPECS = (() => {
     const {WL, W, b, buildMutations, buildDuos, getEffectiveRate,
       getEffectiveDmg, getEffectiveReachMultiplier, EVOLUTIONS} = deps;
     const level = typeof lvl === "number" ? lvl : (WL[skillId] || 0);
-    const baseRate = getEffectiveRate(buildState);
+    const baseRate = options.effectiveRate ?? getEffectiveRate(buildState);
     const baseDmg = getEffectiveDmg(buildState);
     const reachMult = getEffectiveReachMultiplier(buildState);
     if (skillId === "ink_trail") {

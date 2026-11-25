@@ -19,6 +19,14 @@ function loadAssets({ now = () => Date.now() } = {}) {
   return { env, images, tracks };
 }
 
+test('bamboo maze does not request or alias an unused chapter map on entry or replay', () => {
+  const {env,images} = loadAssets();
+  for (let i=0;i<2;i++) env.loadStageMapArt('bamboo-maze');
+  assert.ok(!images.some(image=>/map_(bamboo_maze|night_town)_v1/.test(image.src)));
+  assert.equal(env.ART.map_bamboo_maze_v1,undefined);
+  assert.ok(!env.STAGE_ART_STATUS['bamboo-maze'].fallback.some(item=>item.key==='map_bamboo_maze_v1'));
+});
+
 test('a failed core WebP and PNG can be explicitly requested again after cooldown', () => {
   let clock = 1000;
   const { env, images } = loadAssets({ now: () => clock });
