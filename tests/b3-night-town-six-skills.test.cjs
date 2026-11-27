@@ -6,23 +6,33 @@ const { loadGame } = require('./helpers/game-runtime.cjs');
 
 const SIX = ['katana', 'barrier', 'fire', 'boom', 'thunder', 'needle'];
 
-test('B3 first-stage active pool offers only six starters before post-clear skills unlock', () => {
-  const g = loadGame({ seed: 51 });
+test('B3 first-stage active pool includes all thirteen skills without any clears', () => {
+  const g = loadGame({ seed: 51, location:{hostname:'yorkwahaha.github.io',search:''} });
   g.start();
   const levels = g.weaponLevels();
-  // The seventh and eighth skill IDs are globally registered, not yet unlocked.
-  assert.deepEqual(Object.keys(levels).filter(id => !id.startsWith('fusion_') && !['ink_trail','seal_nail','shikigami',...g.env.GAME_SKILL_EXPANSION.ids].includes(id)).sort(), [...SIX].sort());
-  assert.equal(levels.ink_trail,0);
-  assert.equal(levels.seal_nail,0);
-  for(const id of g.env.GAME_SKILL_EXPANSION.ids){assert.equal(levels[id],0);assert.equal(g.store().isActiveSkillUnlocked(id),false);}
+  const extra = ['ink_trail','seal_nail','shikigami',...g.env.GAME_SKILL_EXPANSION.ids];
+  const all = [...SIX, ...extra];
+  assert.deepEqual(Object.keys(levels).filter(id => !id.startsWith('fusion_')).sort(), all.sort());
+  for (const id of extra) {
+    assert.equal(levels[id], 0);
+    assert.equal(g.store().isActiveSkillUnlocked(id), true);
+  }
+  assert.equal(g.store().isStageCompleted('night-town'), false);
+  const rules = g.env.GAME_UPGRADE_CHOICES;
+  let pool;
+  g.env.GAME_UPGRADE_CHOICES = {...rules, orderWeapons(keys, ...args) {
+    pool = Array.from(keys);
+    return rules.orderWeapons(keys, ...args);
+  }};
   assert.equal(levels.katana, 1);
   for (const id of SIX.slice(1)) assert.equal(levels[id], 0);
   for (const [id, level] of Object.entries(levels)) if (id.startsWith('fusion_')) assert.equal(level, 0);
   g.offerUp();
+  assert.deepEqual(pool.sort(), all.sort());
   for (const card of g.currentChoices()) {
     assert.notEqual(card.type, 'fusion');
     assert.notEqual(card.type, 'duo');
-    if (card.type === 'weapon') assert.ok(SIX.includes(card.id), `Unexpected weapon: ${card.id}`);
+    if (card.type === 'weapon') assert.ok(all.includes(card.id), `Unexpected weapon: ${card.id}`);
   }
 });
 

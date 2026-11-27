@@ -24,50 +24,78 @@ test('public hostname keeps private query and hash switches disabled on the offi
   assert.equal(DEV_MODE.requestedStage(publicLocation, game.env.OVERWORLD.nodes, CONTENT.getStage), null);
   assert.equal(expansion.guidedDraft({ DEV_MODE, location: publicLocation }), false);
   assert.equal(!!game.env.U1_EMAKI_PREVIEW, false);
-  assert.equal(game.store().isActiveSkillUnlocked('shikigami'), false);
+  assert.equal(game.store().isActiveSkillUnlocked('shikigami'), true);
   assert.deepEqual(stages.filter(id => game.store().isStageUnlocked(id)), ['night-town']);
   const local = loadGame({ location: { hostname: '127.0.0.1', search: '?dev=1', hash: '#u1scroll' } });
   assert.equal(local.env.U1_EMAKI_PREVIEW, true);
 });
 
-test('published expansion skills use the qualifying clear, first introduction and four-slot rules', () => {
+test('all seven additional skills are available in a fresh public save, without stage unlocks or forced introductions', () => {
   const game = loadGame({ location: publicLocation, seed: 1521 });
   const store = game.store();
-  assert.equal(store.markSkillExperienced('wind_hole'), false);
-  for (const stage of stages.slice(0, 3)) store.finish(stage, 100, 6, true);
-  for (const id of ['ink_trail', 'seal_nail', 'shikigami']) assert.equal(store.markSkillExperienced(id), true);
-  for (const [i, id] of expansion.ids.entries()) {
-    const stage = stages[i + 3];
-    assert.equal(store.isActiveSkillUnlocked(id), false);
-    assert.equal(expansion.releases[id].stage, stage);
-    store.finish(stage, 100, 6, true);
-    assert.equal(store.isActiveSkillUnlocked(id), true);
-    assert.equal(store.pendingSkillIntroduction(), id);
-    game.startRun(stages[i + 4]);
-    game.stopSpawns();
-    assert.equal(game.weaponLevels().katana, 1);
-    game.setWeaponRank('fire', 1);
-    game.setWeaponRank('needle', 1);
-    game.offerUp();
-    const offer = game.currentChoices();
-    const offered = offer.findIndex(card => card.id === id && card.lv === 1);
-    assert.ok(offered >= 0, id);
-    for (const later of expansion.ids.slice(i + 1)) assert.ok(!offer.some(card => card.id === later), later);
-    game.finishDraftImmediately();
-    assert.equal(game.takeLevelUpChoice(offered).ok, true);
-    assert.equal(store.pendingSkillIntroduction(), null);
-    assert.equal(JSON.parse(game.env.localStorage.getItem('yokai-delivery-v1:skill-introductions-v1'))[id], true);
-    game.offerUp();
-    assert.ok(!game.currentChoices().some(card => card.type === 'weapon' && card.lv === 1));
+  const extra = ['ink_trail','seal_nail','shikigami',...expansion.ids];
+  for (const id of extra) {
+    assert.equal(store.isActiveSkillUnlocked(id), true, id);
+    assert.equal(store.activeSkillClearStage(id), null);
   }
+  assert.equal(store.pendingSkillIntroduction(), null);
+  assert.deepEqual(stages.filter(id => store.isStageUnlocked(id)), ['night-town']);
+  assert.equal(store.isStageCompleted('night-town'), false);
+  game.startRun('night-town');
+  game.stopSpawns();
+  assert.equal(game.weaponLevels().katana, 1);
+  const rules = game.env.GAME_UPGRADE_CHOICES;
+  let pool, forced = 0;
+  game.env.GAME_UPGRADE_CHOICES = {...rules, orderWeapons(keys, levels, slots, random, weight) {
+    pool = Array.from(keys);
+    for (const id of pool.filter(id => id !== 'katana')) assert.equal(rules.weaponOfferWeight(id, levels, slots), 2.4);
+    return rules.orderWeapons(keys, levels, slots, random, weight);
+  }, withGuarantees(...args) { forced++; return rules.withGuarantees(...args); },
+     withNewSkillVisibility(...args) { forced++; return rules.withNewSkillVisibility(...args); }};
+  game.offerUp();
+  assert.equal(pool.length, 13);
+  assert.ok(extra.every(id => pool.includes(id)));
+  assert.equal(forced, 0);
+  game.env.GAME_UPGRADE_CHOICES = rules;
+  game.startRun('night-town');
+  for (const id of ['fire','needle','wind_hole']) game.setWeaponRank(id,1);
+  game.offerUp();
+  assert.ok(!game.currentChoices().some(card => card.type === 'weapon' && card.lv === 1));
 });
 
-test('an eligible expansion weapon returns on the fifth missed normal offer through the shared reserve', () => {
+test('actual first-stage draft can offer and acquire every unowned active skill without forced cards', () => {
+  const seen = new Set(), acquired = new Set();
+  const location = {hostname:'yorkwahaha.github.io',pathname:'/yokai-delivery/',search:''};
+  for (let seed = 1; seed <= 128; seed++) {
+    const game = loadGame({location, seed});
+    game.startRun('night-town');
+    game.stopSpawns();
+    game.offerUp();
+    const cards = game.currentChoices();
+    assert.ok(cards.length > 0 && cards.length <= 3);
+    assert.equal(new Set(cards.map(c => c.choiceId)).size, cards.length);
+    for (const card of cards) {
+      assert.notEqual(card.type, 'fusion');
+      if (card.type === 'weapon' && card.lv === 1) seen.add(card.id);
+    }
+    const index = cards.findIndex(card => card.type === 'weapon' && card.lv === 1 && !acquired.has(card.id));
+    if (index !== -1) {
+      game.finishDraftImmediately();
+      assert.equal(game.takeLevelUpChoice(index).ok, true);
+      assert.equal(game.weaponLevels()[cards[index].id], 1);
+      game.update(.05);
+      acquired.add(cards[index].id);
+    }
+    assert.equal(game.store().isStageCompleted('night-town'),false);
+  }
+  const expected = ['barrier','fire','boom','thunder','needle','ink_trail','seal_nail','shikigami',...expansion.ids].sort();
+  assert.deepEqual([...seen].sort(), expected);
+  assert.deepEqual([...acquired].sort(), expected);
+});
+
+test('a public skill is never forced into the offer after five or more misses', () => {
   const game = loadGame({ location: publicLocation, seed: 5299 });
-  const store = game.store();
-  for (const stage of stages.slice(0, 4)) store.finish(stage, 100, 6, true);
-  for (const id of ['ink_trail', 'seal_nail', 'shikigami', 'hamaya']) store.markSkillExperienced(id);
-  game.startRun('hyakki-kyoto');
+  game.startRun('night-town');
   game.stopSpawns();
   game.setWeaponRank('fire', 1);
   game.setWeaponRank('needle', 1);
@@ -75,11 +103,10 @@ test('an eligible expansion weapon returns on the fifth missed normal offer thro
   game.env.GAME_UPGRADE_CHOICES = { ...rules, assemble(awaken, fusion, weapons, charms, duos, passives, mutations, shuffle) {
     return rules.assemble(awaken, fusion, weapons.filter(card => card.id !== 'hamaya'), charms, duos, passives, mutations, shuffle);
   } };
-  for (let round = 1; round <= 5; round++) {
+  for (let round = 1; round <= 8; round++) {
     game.offerUp();
     const cards = game.currentChoices();
-    assert.equal(cards.some(card => card.id === 'hamaya' && card.lv === 1), round === 5);
-    if (round === 5) break;
+    assert.ok(!cards.some(card => card.id === 'hamaya'));
     const safe = cards.findIndex(card => card.type !== 'weapon' || game.weaponLevels()[card.id] > 0);
     assert.ok(safe >= 0);
     game.finishDraftImmediately();

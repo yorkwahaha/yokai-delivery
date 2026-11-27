@@ -16,7 +16,7 @@ function runtime(...scripts){
 const point=(x=0,y=0)=>({x,y});
 const enemy=(x,y,type="normal")=>({x,y,r:8,type,hp:10000});
 
-test("舊存檔同時解鎖7、8招時，拒選介紹卡輪替且重新啟動保留順序",()=>{
+test("隔離 DEV 舊存檔同時解鎖7、8招時，拒選介紹卡輪替且重新啟動保留順序",()=>{
   const kv=new Map();
   const localStorage={
     get length(){return kv.size;},
@@ -25,7 +25,8 @@ test("舊存檔同時解鎖7、8招時，拒選介紹卡輪替且重新啟動保
     setItem(k,v){kv.set(k,String(v))}
   };
   const boot=()=>{
-    const window={location:{search:"",hostname:"localhost"}};
+    const window={location:{search:"?dev=1",hostname:"localhost"},
+      DEV_MODE:{sessionKey:()=>"yokai-delivery-dev-v1"}};
     const ctx=vm.createContext({window,localStorage,Date,Math});
     vm.runInContext(fs.readFileSync(path.join(root,"js/store.js"),"utf8"),ctx);
     return window.STORE;

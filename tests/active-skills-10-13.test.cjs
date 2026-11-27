@@ -265,7 +265,7 @@ test("published and private trial eligibility are independent of legacy clear da
   assert.equal(STORE.isExpansionSkillQualified("hamaya"),true);
   assert.equal(STORE.isExpansionSkillQualified("spider_silk"),true);
   for (const id of GAME_SKILL_EXPANSION.ids) {
-    assert.equal(STORE.isActiveSkillUnlocked(id),["hamaya","spider_silk"].includes(id));
+    assert.equal(STORE.isActiveSkillUnlocked(id),true);
     assert.equal(Object.hasOwn(GAME_CATALOG.WI,id),true);
   }
   assert.equal(publicSession.env.DEV_MODE.isDevMode(publicSession.env.location),false);

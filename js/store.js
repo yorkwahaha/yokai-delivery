@@ -349,14 +349,14 @@
   const skillClearStage = Object.freeze({ ink_trail: "night-town", seal_nail: "rain-port", shikigami: "sakura-pass" });
   const expansionRelease = id => root.GAME_SKILL_EXPANSION?.releases[id];
   function isExpansionSkillQualified(id) {
-    const stageId = expansionRelease(id)?.stage;
-    return !!stageId && K === OFFICIAL_KEY &&
-      (isStageCompleted(stageId) || getStageStats(stageId).clears > 0);
+    // All published skills are available in the official game from a fresh save.
+    return expansionRelease(id)?.published === true && K === OFFICIAL_KEY;
   }
   function isActiveSkillUnlocked(skillId) {
     const candidate = expansionRelease(skillId);
     if (candidate) return candidate.published && isExpansionSkillQualified(skillId);
     if (!Object.hasOwn(skillClearStage, skillId)) return false;
+    if (K === OFFICIAL_KEY) return true;
     if (skillId === "shikigami" && !root.DEV_MODE?.isShikigamiEnabled?.(root.location)) return false;
     const stageId = skillClearStage[skillId];
     // Explicit ephemeral Stage3 DEV preview; never alters official clears or
@@ -388,7 +388,7 @@
     try { storage?.setItem(INTRO_KEY, JSON.stringify({...experiencedSkills(), [id]:true})); } catch {}
     return true;
   }
-  const pendingIntroductions = () => [...Object.keys(skillClearStage),
+  const pendingIntroductions = () => K === OFFICIAL_KEY ? [] : [...Object.keys(skillClearStage),
     ...Object.keys(root.GAME_SKILL_EXPANSION?.releases || {})]
     .filter(id => isActiveSkillUnlocked(id) && !hasExperiencedSkill(id));
   function pendingSkillIntroduction(eligible = () => true) {
@@ -579,7 +579,7 @@
     isStageUnlocked,
     isStageCompleted,
     isActiveSkillUnlocked,
-    activeSkillClearStage: id => skillClearStage[id] || expansionRelease(id)?.stage || null,
+    activeSkillClearStage: id => K === OFFICIAL_KEY ? null : skillClearStage[id] || expansionRelease(id)?.stage || null,
     isExpansionSkillQualified,
     pendingSkillIntroduction,
     rotateSkillIntroduction,

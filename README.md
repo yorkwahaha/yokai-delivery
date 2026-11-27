@@ -16,7 +16,7 @@
 
 ## 八關公開課堂試玩
 
-[正式網站](https://yorkwahaha.github.io/yokai-delivery/) 的八關發布基準為 `0f5792664a5420fab0b7528f30fb9c4b0913885f`。玩家由第一關起依次解鎖，S4–S7 通關各解鎖一招新主動技能。美術、音色及平衡仍待課堂試玩回饋。最新本機修復與驗證見 [roadmap.md](roadmap.md)。
+[正式網站](https://yorkwahaha.github.io/yokai-delivery/) 的前次修復發布基準為 `772a10cfa6a9992283287a298517255d62b32056`。現行發布規格：玩家依次解鎖關卡，十三招主動技能自第一關即全部可抽取，沿用既有隨機權重。美術、音色及平衡仍待課堂試玩回饋。最新本機修復與驗證見 [roadmap.md](roadmap.md)。
 
 正式程式位於 `js/`，圖片與音訊位於 `assets/`。美術原稿及 DEV 試用字型位於本機 `art/`。未用圖片在本機 `.cleanup-archive/images/`，歷史資料入口為 [HISTORY_INDEX.json](docs/HISTORY_INDEX.json)。
 

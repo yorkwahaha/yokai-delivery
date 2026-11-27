@@ -27,13 +27,11 @@ function decline(g) {
   assert.ok(i>=0,'controlled three-slot build must have another choice');
   assert.equal(g.takeLevelUpChoice(i).ok,true);
 }
-test('public URL cannot unlock ink; DEV LAN temporarily offers ink without granting clears',()=>{
-  const locked = boot(official,false);
-  for(let i=0;i<24;i++){
-    assert.equal(locked.forceLevelUp(),'levelup');
-    assert.equal(hasInk(locked),false);
-    decline(locked);
-  }
+test('public ink is available without a clear; DEV LAN temporarily offers ink without granting clears',()=>{
+  const fresh = boot(official,false);
+  assert.equal(fresh.store().isActiveSkillUnlocked('ink_trail'),true);
+  assert.equal(fresh.store().isStageCompleted('night-town'),false);
+  assert.equal(fresh.store().pendingSkillIntroduction(),null);
   const dev = boot(lan,false);
   let seen = false;
   for(let i=0;i<5;i++){
@@ -55,8 +53,8 @@ test('public URL cannot unlock ink; DEV LAN temporarily offers ink without grant
   assert.equal(dev.forceLevelUp(),'levelup');
   assert.equal(hasInk(dev),false);
 });
-test('real normal offers reset after declining; filled slots never offer unowned reward',()=>{
-  const g = boot(official,true);
+test('DEV normal offers reset after declining; filled slots never offer unowned reward',()=>{
+  const g = boot(lan,true);
   assert.equal(g.store().isActiveSkillUnlocked('ink_trail'),true);
   let misses=0, first=null, longest=0;
   for(let i=0;i<24;i++){
@@ -75,8 +73,8 @@ test('real normal offers reset after declining; filled slots never offer unowned
   }
 });
 const card=(id,type='weapon')=>({id,type,choiceId:type+':'+id,lv:1});
-test('real reroll is not a normal upgrade and does not advance misses',()=>{
-  const g=boot(official,true);
+test('DEV reroll is not a normal upgrade and does not advance misses',()=>{
+  const g=boot(lan,true);
   const rules=g.env.GAME_UPGRADE_CHOICES, observations=[];
   g.env.GAME_UPGRADE_CHOICES={...rules,recordNewSkillVisibility(misses,candidates,offered,normal){
     const before={...misses};

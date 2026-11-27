@@ -1,6 +1,6 @@
 # 第十至十三招 DEV 實作 V1
 
-狀態 `USER_PLAYTEST_PENDING`。破魔・神弓、絡新婦・妖絲、冰魄・妖毬、冥風・風穴可在隔離 Skill Lab 裝備。五級數值、十六張變異、解鎖條件與同條件傷害比較見 [技術設計](ACTIVE_SKILLS_10_13_DESIGN.md)。發行狀態為公開課堂試玩；依 S4–7 正式通關資格解鎖，Skill Lab 仍隔離。
+狀態 `USER_PLAYTEST_PENDING`。破魔・神弓、絡新婦・妖絲、冰魄・妖毬、冥風・風穴可在隔離 Skill Lab 裝備。五級數值、十六張變異、解鎖條件與同條件傷害比較見 [技術設計](ACTIVE_SKILLS_10_13_DESIGN.md)。發行狀態為公開課堂試玩；正式模式自第一關起開放全部十三招，使用共用隨機抽卡權重；Skill Lab 仍隔離。
 
 ## 驗收入口
 

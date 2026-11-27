@@ -1831,7 +1831,7 @@ if (isRainPort) {
           wT.seal_nail = 0;
           wMax.seal_nail = window.GAME_SEAL_NAIL.spec(nextLvl, 1, buildMutations).cooldown;
         }
-        if (isNew && (BAMBOO_STARTER_CHOICES.includes(k) || expansionIds.includes(k)))
+        if (dev && isNew && (BAMBOO_STARTER_CHOICES.includes(k) || expansionIds.includes(k)))
           STORE.markSkillExperienced?.(k);
         window.useSkillArt?.(k, WL[k]);
         if (k === "katana") { wT.katana = 0; atkT = 0; }
@@ -1853,7 +1853,7 @@ if (isRainPort) {
         n: WI[k].zh,
         s: WI[k].jp,
         cat: `【 ${WI[k].category} 】`,
-        levelText: isNew ? "★ 新解鎖" : nextLvl === 5 ? "Lv5 覺醒" : `◆ 等級 ${WL[k]} ➔ ${nextLvl}`,
+        levelText: isNew ? "★ 新習得" : nextLvl === 5 ? "Lv5 覺醒" : `◆ 等級 ${WL[k]} ➔ ${nextLvl}`,
         rarity: isNew ? "new" : nextLvl >= 5 ? "max" : "up",
         ...(WI[k].artPath ? { artPath: WI[k].artPath } : {}),
         lv: nextLvl,
@@ -2055,40 +2055,45 @@ if (isRainPort) {
     const dc = shuffle(eligibleDuoKeys).map(id => duoCard(id));
 
     const offered = window.GAME_UPGRADE_CHOICES.assemble(awakenCard, fc, wc, cc, dc, pc, mc, shuffle);
-    // Show stage introductions on the first eligible normal upgrade of this run.
-    // Rerolling refuses it; a later run may introduce it again.
-    const slotFree = Object.keys(WI).filter(k => (WL[k] || 0) > 0).length < MAX_ACTIVE_WEAPONS;
-    const canIntroduce = id => wc.some(c => c.id === id && WL[id] === 0);
-    const pendingIntro = STORE.pendingSkillIntroduction?.(canIntroduce);
-    const trialIntro = guidedExpansionDraft && normalOffer
-      ? wc.find(c=>expansionIds.includes(c.id) && WL[c.id] === 0)?.id : null;
-    const firstIntro = pendingIntro || trialIntro;
-    const introIds = stageStarters.length ? stageStarters : firstIntro ? [firstIntro] : [];
-    const introductions = !isFreeCompensationChoice && slotFree && !runIntroOffered
-      ? introIds.map(id => wc.find(c => c.id === id && WL[id] === 0)).filter(Boolean) : [];
-    // The old Stage-2 "always show one owned upgrade" rule accidentally
-    // guaranteed Katana every level when it was the only equipped skill,
-    // defeating rank-aware odds. Keep that catch-up guarantee only AFTER all
-    // four active slots have been filled; before that, favor introductions.
-    const owned = !isFreeCompensationChoice && !slotFree &&
-      STORE.isActiveSkillUnlocked("ink_trail")
-      ? wc.find(c => (WL[c.id] || 0) > 0) : null;
-    if (introductions.length) {
-      runIntroOffered = true;
-      if (!stageStarters.length && pendingIntro) STORE.rotateSkillIntroduction?.(pendingIntro);
+    // Official mode uses only the shared rank-weighted random draft.
+    if (!dev && (offered.length || isFreeCompensationChoice)) return offered;
+    if (dev) {
+      // Retain legacy introduction/reserve behavior only for isolated DEV tests.
+      // Show stage introductions on the first eligible normal upgrade of this run.
+      // Rerolling refuses it; a later run may introduce it again.
+      const slotFree = Object.keys(WI).filter(k => (WL[k] || 0) > 0).length < MAX_ACTIVE_WEAPONS;
+      const canIntroduce = id => wc.some(c => c.id === id && WL[id] === 0);
+      const pendingIntro = STORE.pendingSkillIntroduction?.(canIntroduce);
+      const trialIntro = guidedExpansionDraft && normalOffer
+        ? wc.find(c=>expansionIds.includes(c.id) && WL[c.id] === 0)?.id : null;
+      const firstIntro = pendingIntro || trialIntro;
+      const introIds = stageStarters.length ? stageStarters : firstIntro ? [firstIntro] : [];
+      const introductions = !isFreeCompensationChoice && slotFree && !runIntroOffered
+        ? introIds.map(id => wc.find(c => c.id === id && WL[id] === 0)).filter(Boolean) : [];
+      // The old Stage-2 "always show one owned upgrade" rule accidentally
+      // guaranteed Katana every level when it was the only equipped skill,
+      // defeating rank-aware odds. Keep that catch-up guarantee only AFTER all
+      // four active slots have been filled; before that, favor introductions.
+      const owned = !isFreeCompensationChoice && !slotFree &&
+        STORE.isActiveSkillUnlocked("ink_trail")
+        ? wc.find(c => (WL[c.id] || 0) > 0) : null;
+      if (introductions.length) {
+        runIntroOffered = true;
+        if (!stageStarters.length && pendingIntro) STORE.rotateSkillIntroduction?.(pendingIntro);
+      }
+      const guaranteed = window.GAME_UPGRADE_CHOICES.withGuarantees(
+        offered, [...introductions, owned], [...wc, ...pc], mc.length === 2
+      );
+      if (!isFreeCompensationChoice) {
+        const unseenRewards = slotFree ? wc.filter(c => WL[c.id] === 0 &&
+          (BAMBOO_STARTER_CHOICES.includes(c.id) || expansionIds.includes(c.id))) : [];
+        const rules = window.GAME_UPGRADE_CHOICES;
+        const visible = rules.withNewSkillVisibility(guaranteed, unseenRewards, newSkillMisses,
+          normalOffer, [...introductions, owned, awakenCard]);
+        rules.recordNewSkillVisibility(newSkillMisses, unseenRewards, visible, normalOffer);
+        if (visible.length) return visible;
+      } else return guaranteed;
     }
-    const guaranteed = window.GAME_UPGRADE_CHOICES.withGuarantees(
-      offered, [...introductions, owned], [...wc, ...pc], mc.length === 2
-    );
-    if (!isFreeCompensationChoice) {
-      const unseenRewards = slotFree ? wc.filter(c => WL[c.id] === 0 &&
-        (BAMBOO_STARTER_CHOICES.includes(c.id) || expansionIds.includes(c.id))) : [];
-      const rules = window.GAME_UPGRADE_CHOICES;
-      const visible = rules.withNewSkillVisibility(guaranteed, unseenRewards, newSkillMisses,
-        normalOffer, [...introductions, owned, awakenCard]);
-      rules.recordNewSkillVisibility(newSkillMisses, unseenRewards, visible, normalOffer);
-      if (visible.length) return visible;
-    } else return guaranteed;
     // Post-cap coins, not passive-cap bypasses. Future permanent shop can
     // spend this balance; the current game only awards and saves it.
     const award = 100;

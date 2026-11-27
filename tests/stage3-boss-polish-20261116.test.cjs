@@ -118,8 +118,16 @@ test('Sakura warning is painted once above the sanctuary, below monsters and HUD
  assert.ok(order.indexOf('warning')<order.indexOf('hud'));
 });
 
-test('Sakura first level-up presents both new weapons in campaign and direct local preview',()=>{
- for(const search of ['', '?dev=1&s3play=1&stage=sakura-pass']){
+test('Sakura DEV first level-up presents both preview weapons; public uses the common pool',()=>{
+ const official=loadGame({location:{hostname:'127.0.0.1',search:''}});
+ official.startRun('sakura-pass');
+ const rules=official.env.GAME_UPGRADE_CHOICES;
+ let pool;
+ official.env.GAME_UPGRADE_CHOICES={...rules,orderWeapons(keys,...args){pool=Array.from(keys);return rules.orderWeapons(keys,...args);}};
+ official.forceLevelUp();
+ assert.equal(pool.length,13);
+ assert.ok(pool.includes('ink_trail') && pool.includes('seal_nail') && pool.includes('wind_hole'));
+ for(const search of ['?dev=1&s3play=1&stage=sakura-pass']){
   const g=loadGame({location:{hostname:'127.0.0.1',search}});
   if(!search) for(const id of ['night-town','rain-port'])g.store().finish(id,100,6,true);
   for(const [index,id]of ['ink_trail','seal_nail'].entries()){

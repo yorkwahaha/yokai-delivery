@@ -14,7 +14,7 @@ function arena(location = trial, stage = 'night-town') {
   return game;
 }
 
-test('本機與公開版都依第三關通關紀錄解鎖式神，遵守四槽與介紹保底', () => {
+test('DEV 保留式神通關試驗；公開版初始開放式神且遵守四槽', () => {
   const game = arena();
   const store = game.store();
   assert.equal(store.isActiveSkillUnlocked('shikigami'), false);
@@ -35,7 +35,9 @@ test('本機與公開版都依第三關通關紀錄解鎖式神，遵守四槽�
   game.offerUp();
   assert.ok(!game.weaponChoices().some(card => card.id === 'shikigami'));
   const publicGame = arena({ hostname:'game.example.com', search:'?species=crow' });
-  assert.equal(publicGame.store().isActiveSkillUnlocked('shikigami'), false);
+  assert.equal(publicGame.store().isActiveSkillUnlocked('shikigami'), true);
+  assert.equal(publicGame.store().isStageCompleted('sakura-pass'), false);
+  assert.equal(publicGame.store().pendingSkillIntroduction(), null);
   publicGame.store().finish('sakura-pass', 100, 20, true);
   assert.equal(publicGame.store().isActiveSkillUnlocked('shikigami'), true);
   publicGame.setWeaponRank('shikigami',1);

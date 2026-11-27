@@ -1,5 +1,7 @@
 # 現行測試與歷史退役
 
+2026-11-28｜全技能第一關開放：200 檔、1,374 項，**1,373 PASS／0 FAIL／1 既有 TODO**，0 跳過。`tests/public-release-contract.test.cjs` 新增 128 固定種子的正式第一關實際抽卡與習得驗證；十二個未持有技能均可出現及習得。正式同權重、無強制介紹／保底、四槽與 DEV 隔離均驗證。舊規格測試調整為現行契約或隔離 DEV 測試，保留原權重及四槽斷言。素材清冊、83 歷史來源驗證及 diff check 通過。
+
 2026-11-28｜Neon 八關本機修復完整回歸，`npm run test:current` 退出碼 0，200 份測試、**1,372 PASS／0 FAIL／1 既有 TODO**，共 1,373 項，0 跳過。
 
 - `tests/public-release-contract.test.cjs` 驗證公開 hostname、式神圖、正式解鎖介紹與既有保底、八關媒體路徑、BGM 增益與音訊生命週期。響度檢查使用系統 PATH 中既有的 `ffmpeg`。`tests/progression.test.cjs` 擴充遷移案例。

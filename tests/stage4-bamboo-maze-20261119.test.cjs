@@ -567,8 +567,12 @@ test('公開一般模式載入有限竹林與 Boss，保留一般進度和京都
   assert.ok(world.update(1350, 900).solids.some(s => s.kind === 'bamboo-stand'));
   for (const stage of ['night-town','rain-port','sakura-pass']) browser.store().finish(stage,100,6,true);
   browser.start('bamboo-maze');
+  const rules=browser.env.GAME_UPGRADE_CHOICES;
+  let pool;
+  browser.env.GAME_UPGRADE_CHOICES={...rules,orderWeapons(keys,...args){pool=Array.from(keys);return rules.orderWeapons(keys,...args);}};
   assert.equal(browser.forceLevelUp(), 'levelup');
-  assert.deepEqual(Array.from(browser.snapshot().choiceIds), ['ink_trail','seal_nail','shikigami']);
+  assert.equal(pool.length,13);
+  assert.ok(['ink_trail','seal_nail','shikigami','wind_hole'].every(id=>pool.includes(id)));
 });
 
 test('切換 2D／2.5D 保留竹林世界位置；八招與御守、紫藤變異走既有戰鬥入口', () => {

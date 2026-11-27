@@ -135,19 +135,19 @@ test('weighted offers are seeded, unique, rerollable, and favor other skills ear
  assert.ok(early>late*4,{early,late});
  assert.ok(late>0 && early<.35,{early,late});
 });
-test('stage 2 real upgrade pool introduces Ink Trail without always forcing Katana',()=>{
+test('stage 2 real upgrade pool includes Ink Trail without forcing it or Katana',()=>{
  const candidates=[];
- for(let seed=1;seed<=14;seed++){
+ for(let seed=1;seed<=40;seed++){
    const g=loadGame({stage:'rain-port',seed});
    g.store().finish('night-town',250,10,true);
    g.start('rain-port');
    const cards=g.eligibleChoices();
-   assert.ok(cards.some(c=>c.id==='ink_trail'&&c.type==='weapon'),
-     'the official first-clear skill introduction must remain guaranteed');
    assert.equal(new Set(cards.map(c=>c.choiceId)).size,cards.length);
    assert.ok(cards.length<=3);
    candidates.push(cards.map(c=>c.id));
  }
+ assert.ok(candidates.some(cs=>cs.includes('ink_trail')));
+ assert.ok(candidates.some(cs=>!cs.includes('ink_trail')));
  assert.ok(candidates.some(cs=>!cs.includes('katana')),
    'after official unlock, a single Lv1 Katana cannot be an unconditional offer');
  assert.ok(candidates.some(cs=>cs.some(x=>['fire','boom','barrier','needle','thunder'].includes(x))),
