@@ -51,7 +51,7 @@ test('B16 bundle one variable Japanese font with OFL license and preload', () =>
 });
 
 test('B16 Boss music is prepared on spawn and only fades normal BGM after playback', () => {
-  assert.ok(fs.statSync(path.join(root, 'assets/audio/BOSS.mp3')).size > 10000);
+  assert.ok(fs.statSync(path.join(root, 'assets/audio/bgm/boss/boss__encounter.mp3')).size > 10000);
   assert.match(game, /if \(plan\.role === "final"\) \{[\s\S]*?AUDIO\.prepareBossMusic\?\.\(\)/);
   assert.match(audio, /prepareBossMusic\(\) \{[\s\S]*?boss\.preload = "auto"/);
   assert.match(audio, /const bossAudible = !boss\.paused && boss\.readyState >= 2/);

@@ -1,11 +1,13 @@
 # Phase 42 — local-only Traditional Chinese font comparison
 
-The Phase 42 upgrade-card trial (?upgradeUI=1) uses optional web fonts.
+The local Phase 42 upgrade-card trial (?dev=1&upgradeUI=1) uses optional web fonts.
 Local pause and settlement screens additionally use a dedicated HanWang
 YanKai subset. Approved artwork, damage rules and game movement are unaffected.
 
-The three WOFF2 files in this folder are web-only, character-subset versions.
-They were built using tools/phase42-build-font-trials.py with fontTools.
+Bakudai, Masa and WenKai are character subsets built with fontTools by
+`tools/phase42-build-font-trials.py`. The three subsets and Xuandong are kept
+locally in `art/ui-font-trials/`. Public Moon Stars Kai T remains under
+`assets/fonts/` with its OFL notice.
 
 | In-game choice | Original source | Local font |
 | --- | --- | --- |

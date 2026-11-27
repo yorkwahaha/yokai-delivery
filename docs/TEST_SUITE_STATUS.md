@@ -1,5 +1,13 @@
 # 現行測試與歷史退役
 
+2026-11-28｜Neon 八關本機修復完整回歸，`npm run test:current` 退出碼 0，200 份測試、**1,372 PASS／0 FAIL／1 既有 TODO**，共 1,373 項，0 跳過。
+
+- `tests/public-release-contract.test.cjs` 驗證公開 hostname、式神圖、正式解鎖介紹與既有保底、八關媒體路徑、BGM 增益與音訊生命週期。響度檢查使用系統 PATH 中既有的 `ffmpeg`。`tests/progression.test.cjs` 擴充遷移案例。
+- `node tools/run-tests.cjs legacy-check` 通過，83 份退役檔案已核驗。素材登錄已驗 1,723 個本機媒體與 151 個映射，4 個歷史選用原稿依規則缺席。1,720 筆 SW 修訂雜湊與 Git 追蹤均一致。
+- Chrome／Windows WebKit 公開 hostname 八關受控載入與零私有請求驗證通過，Chrome 實測 MP3 Range 與正式字型快取。Windows WebKit 未提供 AudioContext。實體 iPad 音訊、瀏覽器實際記憶體與真人自然試玩仍待驗。 [測試及資源數據](NEON_PUBLIC_RELEASE_AUDIT_20261128.md#七本機修復與驗證2026-11-28)
+
+ChatGPT 獨立複查同樣取得 1,372 PASS／0 FAIL／1 TODO，Chrome 公開 hostname 受控驗證 970 筆請求零缺檔、零 console error、零私有路徑，素材及 SW 雜湊一致。使用者已授權發布修復版。
+
 2026-11-27｜整理後完整現行回歸：1,360 PASS／0 FAIL／1 既有 TODO，共 1,361 項，退出碼 0。
 
 基準：整理前 197 個現行測試文件，1,344 PASS／0 FAIL／1 既有 TODO。新增納管 phase-f3-audio-20261127 與 ink-variants-seal-nail-20261117，獨立 15/15 PASS；退役後 199 現行、83 歷史（共 282 原測試，無斷言丟失）。歷史稽核新增一項保護現行清單及檔案雜湊的測試。

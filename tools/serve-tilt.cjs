@@ -132,9 +132,10 @@ const server=http.createServer((req,res)=>{
     || /^\/art\/(?:stage7-spirit-ferry\/scene\/spirit-ferry|stage8-yomi\/scene\/yomi)__[a-z0-9-]+\.webp$/.test(name)
     || /^\/art\/(?:stage7-spirit-ferry\/characters\/(?:poses|vfx)\/ferry|stage8-yomi\/characters\/(?:poses|vfx)\/yomi)-[a-z0-9-]+__(?:sprite__(?:idle|windup|action)|warning|impact|projectile|arrival)\.webp$/.test(name)
   );
+  const devFont = /^\/art\/ui-font-trials\/YokaiTrial(?:BakudaiTC|MasaTC|WenKaiTC|Xuandong)\.woff2$/.test(name);
   const publicPath=name==='/index.html'||name==='/service-worker.js'
-    || /^\/(?:js|assets|art\/(?:stage2-rain-port\/scene|stage8-yomi\/sliced_v2|fusion\/candidates|delivery-icons))\//.test(name)
-    || stageTrial || devStageArtPaths.has(name) || review || phaseFReview || lateReview || expansionReview || localAudioReview || fontReview || stageAudioPaths.has(name);
+    || /^\/(?:js|assets|art\/(?:stage2-rain-port\/scene|fusion\/candidates|delivery-icons))\//.test(name)
+    || stageTrial || devStageArtPaths.has(name) || review || phaseFReview || lateReview || expansionReview || localAudioReview || fontReview || devFont || stageAudioPaths.has(name);
   if(!publicPath||/[\\:\x00]/.test(name)||name.split('/').some(part=>part.startsWith('.'))){
     res.writeHead(403).end('Forbidden');return;
   }

@@ -16,7 +16,7 @@ from fontTools import subset
 from fontTools.ttLib import TTFont
 
 ROOT = Path(__file__).resolve().parents[1]
-DEST = ROOT / "assets" / "fonts"
+DEST = ROOT / "art" / "ui-font-trials"
 SOURCES = (
     ("bakudai", "https://cdn.jsdelivr.net/gh/max32002/bakudaifont@1.48/webfont/Bakudai-Regular.woff2", "YokaiTrialBakudaiTC.woff2"),
     ("masa", "https://cdn.jsdelivr.net/gh/max32002/masafont@2.1/webfont/MasaFont-Regular.woff2", "YokaiTrialMasaTC.woff2"),

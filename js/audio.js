@@ -17,27 +17,37 @@ window.AUDIO = (() => {
   let preparedBgm = null;
   let musicShouldPlay = false;
   let bossMusic = false, bossMix = 0;
-  const bgmAttempts = new WeakSet();
+  const bgmAttempts = new WeakMap();
   const bgmRetryAt = new WeakMap();
   let musicBlockedByPolicy = false;
   function playMusic(audio, retry = false) {
-    if (!audio || !audio.paused || (!retry && bgmAttempts.has(audio)) ||
-        (!retry && (bgmRetryAt.get(audio) || 0) > Date.now())) return;
-    bgmAttempts.add(audio);
-    // iPad/Safari can reject while the boss MP3 is still waiting for data.
-    // A failed attempt must never poison this track for the entire session.
-    try {
-      Promise.resolve(audio.play()).then(() => {
-        if (audio === activeBgm || audio === preparedBgm) musicBlockedByPolicy = false;
-      }).catch(error => {
-        if (error?.name === "NotAllowedError") musicBlockedByPolicy = true;
-        bgmAttempts.delete(audio);
-        bgmRetryAt.set(audio, Date.now() + 1200);
-      });
-    } catch {
+    if (!audio || muted || suspended) return;
+    ensureMusicNode(audio);
+    if (!audio.paused || bgmAttempts.has(audio) || (!retry && (bgmRetryAt.get(audio) || 0) > Date.now())) return;
+    const attempt = {};
+    bgmAttempts.set(audio, attempt);
+    const failed = error => {
+      if (bgmAttempts.get(audio) !== attempt) return;
+      if (error?.name === "NotAllowedError" && (audio === activeBgm || audio === preparedBgm))
+        musicBlockedByPolicy = true;
       bgmAttempts.delete(audio);
       bgmRetryAt.set(audio, Date.now() + 1200);
-    }
+    };
+    const started = () => {
+      if (bgmAttempts.get(audio) !== attempt) return;
+      bgmAttempts.delete(audio);
+      if (audio === activeBgm || audio === preparedBgm) musicBlockedByPolicy = false;
+    };
+    try {
+      const playback = audio.play();
+      if (playback?.then) playback.then(started, failed);
+      else started();
+    } catch (error) { failed(error); }
+  }
+
+  function pauseMusic(track) {
+    bgmAttempts.delete(track);
+    track.pause();
   }
   const BGM_NORMAL_VOLUME = 0.27;
   const BGM_DUCK_VOLUME = 0.10;
@@ -63,6 +73,12 @@ window.AUDIO = (() => {
   // ships so public builds never request missing files; local DEV auto-detects
   // dropped files via stage-audio-review/files.json.
   const STAGE_BOSS_BGM_PROVIDED = new Set(window.CONTENT ? Object.keys(STAGE_BOSS_BGM_FILES) : []);
+  // Measured against the stage's battle track (EBU R128). Apply a fixed
+  // trim to the independent Boss track throughout crossfades and ducking.
+  const STAGE_BOSS_TRIM_DB = Object.freeze({
+    "night-town": 6, "rain-port": 7, "sakura-pass": 6.5, "bamboo-maze": 5
+  });
+  const musicTrims = new WeakMap();
   const stageBgmTracks = new Map(), failedStageBgm = new Set();
   const stageBossBgmTracks = new Map(), failedStageBossBgm = new Set();
   let originalBattleBgm = null, originalBossBgm = null, currentStageId = null;
@@ -90,7 +106,8 @@ window.AUDIO = (() => {
         track = new Audio(window.audioAsset?.(path) || path);
         track.loop = true;
         track.preload = "none";
-        track.volume = 0;
+        musicTrims.set(track, 10 ** (STAGE_BOSS_TRIM_DB[stageId] / 20));
+        trackVolume(track, 0);
         track.addEventListener?.("error", () => {
           failedStageBossBgm.add(stageId);
           if (window.BOSS_BGM === track) window.BOSS_BGM = originalBossBgm;
@@ -101,7 +118,8 @@ window.AUDIO = (() => {
               playMusic(originalBossBgm, true);
             }
           }
-          try { track.pause(); } catch {}
+          stageBossBgmTracks.delete(stageId);
+          releaseStageTrack(track);
         }, { once: true });
         stageBossBgmTracks.set(stageId, track);
       } catch {
@@ -130,7 +148,7 @@ window.AUDIO = (() => {
         track = new Audio(window.audioAsset?.(path) || path);
         track.loop = true;
         track.preload = "none";
-        track.volume = BGM_NORMAL_VOLUME;
+        trackVolume(track, BGM_NORMAL_VOLUME);
         track.addEventListener?.("error", () => {
           failedStageBgm.add(stageId);
           if (window.BGM === track) window.BGM = originalBattleBgm;
@@ -138,6 +156,8 @@ window.AUDIO = (() => {
           // updateBgm will switch to the fallback (or synthesized music)
           // on the next frame, without restarting a different stage's song.
           if (activeBgm === track) activeBgm = null;
+          stageBgmTracks.delete(stageId);
+          releaseStageTrack(track);
         }, { once: true });
         stageBgmTracks.set(stageId, track);
       } catch {
@@ -149,7 +169,8 @@ window.AUDIO = (() => {
     window.BGM = track;
   }
   const bgmRamps = new Map();
-  const clipBuffers = new Map(), bufferSources = new Set();
+  const clipBuffers = new Map(), wordBuffers = new Map(), bufferSources = new Set();
+  const MAX_WORD_BUFFERS = 32;
   let audioEpoch = 0, wordSource = null;
   let masterBus = null, effectsBus = null;
   const sfxVoices = new Map(), sfxRequests = new Map();
@@ -159,7 +180,8 @@ window.AUDIO = (() => {
     window.CONTENT?.getStage?.("hyakki-kyoto")?.mapReleased === true;
   const stageCatalog = localStageAudio ? stageAudioSource : publicStageAudio ? {byStage:stageAudioSource.publicByStage} : null;
   const stageFiles = new Set(publicStageAudio ? stageAudioSource.publicEntries.map(row=>row.path) : []), stageBadFiles = new Set();
-  const stageTracks = new Map(), stageMediaNodes = new Map();
+  const stageTracks = new Map(), stageMediaNodes = new WeakMap();
+  const musicLevels = new WeakMap();
   const stageReady = new Set(), stageVoices = new Set(), stageCueLast = new Map();
   const expansionVoices = new Map(), expansionBadFiles = new Set();
   let stageAudioId = null, stageMode = "battle", stagePreload = null;
@@ -184,21 +206,43 @@ window.AUDIO = (() => {
     return row && stageFiles.has(row.path) && !stageBadFiles.has(row.path);
   }
 
+  function ensureMusicNode(track) {
+    if (stageMediaNodes.has(track) || ctx?.state !== "running" || !ctx.createMediaElementSource) return;
+    let gain;
+    try {
+      const level = trackVolume(track);
+      gain = ctx.createGain();
+      const destination = output(ctx, true);
+      gain.connect(destination);
+      const source = ctx.createMediaElementSource(track);
+      stageMediaNodes.set(track, { source, gain });
+      source.connect(gain);
+      track.volume = 1;
+      trackVolume(track, level);
+    } catch {
+      if (!stageMediaNodes.has(track)) {
+        gain?.disconnect?.();
+        stageMediaNodes.set(track, null);
+      }
+    }
+  }
+
   function trackVolume(track, value) {
+    if (value === undefined) return musicLevels.get(track) ?? track.volume;
+    musicLevels.set(track, value);
+    const level = value * (musicTrims.get(track) ?? 1);
     const gain = stageMediaNodes.get(track)?.gain.gain;
-    if (value === undefined) return gain ? gain.value : track.volume;
-    if (gain) gain.value = value;
-    else track.volume = value;
+    if (gain) gain.value = level;
+    else track.volume = Math.min(1, level);
   }
 
   function releaseStageTrack(track) {
-    track.pause();
+    pauseMusic(track);
     track.removeAttribute?.("src");
     track.load?.();
     const nodes = stageMediaNodes.get(track);
-    nodes?.source.disconnect();
-    nodes?.gain.disconnect();
-    stageMediaNodes.delete(track);
+    nodes?.source.disconnect?.();
+    nodes?.gain.disconnect?.();
     const ramp = bgmRamps.get(track);
     if (ramp && typeof cancelAnimationFrame === "function") cancelAnimationFrame(ramp);
     bgmRamps.delete(track);
@@ -212,15 +256,6 @@ window.AUDIO = (() => {
       const track = new Audio();
       track.preload = "none";
       track.loop = row.loop;
-      const ac = getCtx();
-      if (ac?.createMediaElementSource) {
-        const gain = ac.createGain();
-        gain.gain.value = 0;
-        const source = ac.createMediaElementSource(track);
-        source.connect(gain);
-        gain.connect(output(ac, true));
-        stageMediaNodes.set(track, { source, gain });
-      }
       trackVolume(track, 0);
       track.addEventListener("error", () => {
         if (stageTracks.get(event) !== track) return;
@@ -255,15 +290,23 @@ window.AUDIO = (() => {
   }
 
   function leaveStageAudio() {
-    if (!stageAudioId) return;
+    if (!currentStageId && !stageAudioId) return;
+    api.stopSpeech();
     clearStageEffects();
-    if ([...stageTracks.values()].includes(preparedBgm)) preparedBgm = null;
-    for (const track of stageTracks.values()) releaseStageTrack(track);
+    const leaving = [...stageTracks.values(), ...stageBgmTracks.values(), ...stageBossBgmTracks.values()];
+    if (leaving.includes(preparedBgm)) preparedBgm = null;
+    for (const track of leaving) releaseStageTrack(track);
     for (const track of [stageMusicCurrent, stageMusicIncoming, activeBgm])
       if (track && track !== preparedBgm) track.pause();
     if (activeBgm !== preparedBgm) activeBgm = null;
     stageTracks.clear();
-    stageAudioId = null;
+    stageBgmTracks.clear();
+    stageBossBgmTracks.clear();
+    window.BGM = originalBattleBgm;
+    window.BOSS_BGM = originalBossBgm;
+    currentStageId = stageAudioId = null;
+    bossMusic = false;
+    bossMix = 0;
     stageMode = "battle";
     stageMusicCurrent = stageMusicIncoming = null;
     stageEndingComplete = false;
@@ -381,14 +424,20 @@ window.AUDIO = (() => {
   }
 
   function loadBuffer(path, ac, signal) {
-    if (!clipBuffers.has(path)) {
-      const pending = fetch(window.audioAsset?.(path) || path, signal ? { signal } : undefined)
-        .then(response => { if (!response.ok) throw new Error(`Audio HTTP ${response.status}`); return response.arrayBuffer(); })
-        .then(bytes => ac.decodeAudioData(bytes));
-      clipBuffers.set(path,pending);
-      pending.catch(()=>{ if (clipBuffers.get(path)===pending) clipBuffers.delete(path); });
+    const isWord = /^assets\/audio\/(?:delivery|words)\//.test(path);
+    const cache = isWord ? wordBuffers : clipBuffers;
+    let pending = cache.get(path);
+    if (pending) {
+      if (isWord) { cache.delete(path); cache.set(path, pending); }
+      return pending;
     }
-    return clipBuffers.get(path);
+    pending = fetch(window.audioAsset?.(path) || path, signal ? { signal } : undefined)
+      .then(response => { if (!response.ok) throw new Error(`Audio HTTP ${response.status}`); return response.arrayBuffer(); })
+      .then(bytes => ac.decodeAudioData(bytes));
+    cache.set(path, pending);
+    if (isWord && cache.size > MAX_WORD_BUFFERS) cache.delete(cache.keys().next().value);
+    pending.catch(() => { if (cache.get(path) === pending) cache.delete(path); });
+    return pending;
   }
 
   function playBuffer(path, volume, options = {}) {
@@ -404,7 +453,12 @@ window.AUDIO = (() => {
       source.buffer = buffer;gain.gain.value = volume;
       source.connect(gain);gain.connect(output(ac, options.speech));
       bufferSources.add(source);
-      source.onended = () => { bufferSources.delete(source);options.onended?.(source); };
+      source.onended = () => {
+        bufferSources.delete(source);
+        source.disconnect?.();
+        gain.disconnect?.();
+        options.onended?.(source);
+      };
       options.onstart?.(source);source.start();
     }).catch(()=>{ if (current()) options.onerror?.(); });
     return true;
@@ -496,7 +550,7 @@ window.AUDIO = (() => {
     const level=musicVolume();
     if (audio === stageTracks.get("ambience")) return stageRow("ambience").volume * level / BGM_NORMAL_VOLUME;
     if (stageAudioId && audio === stageMusicIncoming) return level * stageBlend;
-    if (stageAudioId && audio === stageMusicCurrent) return level * (1 - stageBlend);
+    if (stageAudioId && audio === stageMusicCurrent) return level * (stageMusicIncoming ? 1 - stageBlend : 1);
     if(bossMusic && window.BOSS_BGM) {
       if(audio===window.BOSS_BGM)return level*bossMix;
       if(audio===window.BGM)return level*(1-bossMix);
@@ -863,29 +917,6 @@ window.AUDIO = (() => {
     "ōi": "ōi",
     "ōkii": "ōkii"
   };
-  const wordClips = {};
-  // 說到才建立，preload=none。不要在啟動時為 164 詞加 11 個別名各做一個 Audio。
-  function ensureWordClip(file) {
-    if (!file) return null;
-    let audio = wordClips[file];
-    if (audio) return audio;
-    const path = `assets/audio/words/${file}.mp3`;
-    audio = new Audio(window.audioAsset?.(path) || path);
-    audio.preload = "none";
-    wordClips[file] = audio;
-    return audio;
-  }
-  // Fish Audio 試音另存，不覆寫既有錄音；兩組聲線各自快取音檔。
-  function ensureFishClip(path) {
-    if (!path) return null;
-    const key = "fish:" + path;
-    if (wordClips[key]) return wordClips[key];
-    const audio = new Audio(window.audioAsset?.(path) || path);
-    audio.preload = "none";
-    wordClips[key] = audio;
-    return audio;
-  }
-
   function stopWord(restoreMusic = true) {
     ++wordSpeechNonce;
     if (wordSource) { try { wordSource.stop(); } catch(e) {} wordSource=null; }
@@ -902,17 +933,24 @@ window.AUDIO = (() => {
   const SCALE = [0, 2, 3, 7, 8, 12, 14, 15, 19, 20];
   const BASS_SCALE = [-12, -8, -5, 0, 2];
 
-  function getCtx() {
+  let contextUnavailable = false, resuming = false;
+  function getCtx(fromInput = false) {
     if (muted || suspended) return null;
     if (!ctx) {
+      if (contextUnavailable && !fromInput) return null;
       try {
         ctx = new (window.AudioContext || window.webkitAudioContext)();
-      } catch (e) {
-        console.warn("Web Audio API not supported", e);
+      } catch {
+        contextUnavailable = true;
+        return null;
       }
     }
-    if (ctx && (ctx.state === "suspended" || ctx.state === "interrupted")) {
-      ctx.resume().catch(() => {});
+    if ((ctx.state === "suspended" || ctx.state === "interrupted") && (!resuming || fromInput)) {
+      resuming = true;
+      ctx.resume().then(() => {
+        if (!muted && !suspended && ctx.state === "running")
+          musicTracks().filter(track => !track.paused).forEach(ensureMusicNode);
+      }).catch(() => {}).finally(() => { resuming = false; });
     }
     return ctx;
   }
@@ -1140,8 +1178,8 @@ window.AUDIO = (() => {
       return bufferSources.size + activeSfx.size;
     },
     playOptionalCue(name, path, volume) {
-      // Unreleased stage cues (e.g. Kyoto) remain loopback-only until ready;
-      // provided stage/skill cues (bamboo, shikigami) play everywhere.
+      // Public Kyoto cues use the stage audio catalog. Keep the legacy
+      // optional cue hook available for loopback review only.
       if (!path || unprovidedSfx.has(name) || !/^(shikigami|bamboo|kyoto)[A-Z_]/.test(name)) return;
       if (name.startsWith('kyoto') && !window.DEV_MODE?.isLoopback?.(window.location)) return;
       SFX_FILES[name] ??= path;
@@ -1225,8 +1263,8 @@ window.AUDIO = (() => {
       bgmTimer = 0;
       musicShouldPlay = !!activeBgm;
     },
-    init() {
-      const ac = getCtx();
+    init(fromInput = false) {
+      const ac = getCtx(fromInput);
       if (musicShouldPlay && !muted && !suspended) playMusic(activeBgm, true);
       return ac;
     },
@@ -1237,13 +1275,9 @@ window.AUDIO = (() => {
       if (typeof document !== "undefined" && document.hidden) return false;
       if (suspended) this.setSuspended(false);
       if (muted) return false;
-      this.init();
+      this.init(true);
       const desired = activeBgm || preparedBgm || (musicShouldPlay ? window.BGM : null);
-      if (desired && desired.paused) {
-        bgmRetryAt.delete(desired);
-        bgmAttempts.delete(desired);
-        playMusic(desired, true);
-      }
+      if (desired) playMusic(desired, true);
       const ambience = stageTracks.get("ambience");
       if (ambience?.paused && musicShouldPlay) playMusic(ambience, true);
       return true;
@@ -1252,7 +1286,7 @@ window.AUDIO = (() => {
     isSuspended: () => suspended,
     prepareMusic(state, stageId) {
       if (state === "play" && stageId) {
-        if (stageAudioId !== stageId) leaveStageAudio();
+        if (currentStageId !== stageId) leaveStageAudio();
         if (stageCatalog?.byStage?.[stageId]) stageAudioId = stageId;
         selectStageBgm(stageId);
       }
@@ -1295,20 +1329,24 @@ window.AUDIO = (() => {
     },
     setSuspended(value) {
       suspended = value;
-      if (!suspended) { musicTracks().forEach(track => bgmAttempts.delete(track)); return; }
+      if (!suspended) {
+        getCtx();
+        musicTracks().forEach(track => bgmRetryAt.delete(track));
+        return;
+      }
       stopBuffers();
       musicShouldPlay = false;
       for (const id of bgmRamps.values()) {
         if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(id);
       }
       bgmRamps.clear();
-      musicTracks().forEach(audio => audio.pause());
+      musicTracks().forEach(pauseMusic);
       stopWord(false);
       wordDucking = false;
       window.speechSynthesis?.cancel();
       activeSfx.forEach(audio => audio.pause());
       activeSfx.clear();
-      if (ctx && ctx.state === "running") ctx.suspend().catch(() => {});
+      if (ctx?.state === "running") ctx.suspend?.().catch(() => {});
     },
     isMuted: () => muted,
     stopSpeech() {
@@ -1323,10 +1361,10 @@ window.AUDIO = (() => {
       }
       bgmRamps.clear();
       musicTracks().forEach(audio => { trackVolume(audio, musicTarget(audio)); });
-      if (muted) musicTracks().forEach(audio => audio.pause());
-      else if (musicShouldPlay && activeBgm) {
-        musicTracks().forEach(track => bgmAttempts.delete(track));
-        playMusic(activeBgm, true);
+      if (muted) musicTracks().forEach(pauseMusic);
+      else {
+        getCtx(true);
+        if (musicShouldPlay && activeBgm) playMusic(activeBgm, true);
       }
       if (muted) {
         stopBuffers();
@@ -1566,7 +1604,6 @@ window.AUDIO = (() => {
       const fishPath = !forceGoogle ? window.DELIVERY_FISH_AUDIO?.pathFor?.(text) : null;
       const file = WORD_FILES[text];
       const path = forceGoogle ? null : fishPath || (file ? `assets/audio/words/${file}.mp3` : null);
-      const audio = fishPath ? ensureFishClip(fishPath) : (forceGoogle ? null : ensureWordClip(file));
       const sayFallback = nonce => {
         if (nonce !== wordSpeechNonce) return;
         if (wordClip) {
@@ -1591,7 +1628,7 @@ window.AUDIO = (() => {
         u.onerror = () => endWordSpeech(nonce);
         window.speechSynthesis.speak(u);
       };
-      if (audio) {
+      if (path) {
         if (window.speechSynthesis) window.speechSynthesis.cancel();
         stopWord(false);
         const nonce = beginWordSpeech();
@@ -1603,12 +1640,10 @@ window.AUDIO = (() => {
         };
         const playMedia = () => {
           if (nonce !== wordSpeechNonce) return;
-          wordClip = audio;
-          audio.volume = 1;
-          try { audio.currentTime = 0; } catch (e) {}
-          audio.onended = () => endWordSpeech(nonce);
-          audio.onerror = () => failToSpeech();
           try {
+            const audio = wordClip = new Audio(window.audioAsset?.(path) || path);
+            audio.onended = () => endWordSpeech(nonce);
+            audio.onerror = failToSpeech;
             const result = audio.play();
             if (result && typeof result.catch === "function") result.catch(() => failToSpeech());
           } catch (e) { failToSpeech(); }
@@ -1697,7 +1732,7 @@ window.AUDIO = (() => {
       bossMusic = true; bossMix = 0;
       const boss = window.BOSS_BGM;
       if (boss && !muted && !suspended) {
-        boss.volume = 0;
+        trackVolume(boss, 0);
         bgmAttempts.delete(boss);
         playMusic(boss, true);
       }
@@ -1751,7 +1786,7 @@ window.AUDIO = (() => {
         if (activeBgm !== boss) {
           activeBgm = boss;
           bgmAttempts.delete(boss);
-          boss.volume = 0;
+          trackVolume(boss, 0);
         }
         playMusic(boss);
         if (bossMix < 1 && window.BGM) playMusic(window.BGM);
@@ -1759,9 +1794,9 @@ window.AUDIO = (() => {
         // starts and has decoded enough data for audible playback.
         const bossAudible = !boss.paused && boss.readyState >= 2;
         if (bossAudible) bossMix = Math.min(1, bossMix + Math.max(0, dt) / 1.1);
-        boss.volume = musicVolume() * bossMix;
+        trackVolume(boss, musicVolume() * bossMix);
         if (window.BGM) {
-          window.BGM.volume = musicVolume() * (1 - bossMix);
+          trackVolume(window.BGM, musicVolume() * (1 - bossMix));
           if (bossMix >= 1 && !window.BGM.paused) window.BGM.pause();
         }
         if (window.MAP_BGM && !window.MAP_BGM.paused) window.MAP_BGM.pause();
@@ -1777,7 +1812,7 @@ window.AUDIO = (() => {
           });
           activeBgm = desiredBgm;
           bgmAttempts.delete(activeBgm);
-          activeBgm.volume = musicVolume();
+          trackVolume(activeBgm, musicVolume());
         }
         playMusic(activeBgm);
         return;

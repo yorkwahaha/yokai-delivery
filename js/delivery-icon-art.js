@@ -7,6 +7,7 @@
     "おちゃ":"ocha","ふね":"fune","りんご":"ringo"
   });
   const imageCache = new Map();
+  const MAX_CACHED_IMAGES = 32;
   const REPAINTED_NIGHT = new Set(["しんぶん","えんぴつ","けしゴム","じょうぎ","かみ","はブラシ","せっけん"]);
   const REPAINTED_NIGHT_V4 = new Set(["しんぶん","けしゴム","じょうぎ","かみ","はブラシ","せっけん"]);
   const REPAINTED_PORT = new Set(["さかな","さけ","まぐろ","さば","たい","いか","かい","すし","さしみ","やきざかな","おにぎり","てんぷら"]);
@@ -52,13 +53,15 @@
     if (!entry) {
       const image = new root.Image();
       entry = {image,ready:false,failed:false};
-      imageCache.set(path,entry);
       image.onload = () => { entry.ready = image.naturalWidth > 0; };
       image.onerror = () => { entry.failed = true; };
       image.decoding = "async";
       image.src = path;
     }
+    imageCache.delete(path);
+    imageCache.set(path, entry);
+    if (imageCache.size > MAX_CACHED_IMAGES) imageCache.delete(imageCache.keys().next().value);
     return entry.ready ? entry.image : null;
   }
-  root.DELIVERY_ICON_ART = Object.freeze({imageFor,pathFor,devEnabled});
+  root.DELIVERY_ICON_ART = Object.freeze({imageFor,pathFor,devEnabled,clear:()=>imageCache.clear()});
 })();

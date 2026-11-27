@@ -9,11 +9,12 @@
   "dev_enemy_vfx": "art/dev-runtime/img/vfx/enemies/",
   "unused_image_archive": ".cleanup-archive/images/",
   "developer_worktree": "I:/Projects/yokai-delivery",
-  "developer_head_observed": "a4aaa94",
-  "published_head": "0e5875d50684e21a6739b944ecd0625c38b1f541",
+  "developer_head_observed": "0f5792664a5420fab0b7528f30fb9c4b0913885f",
+  "published_head": "0f5792664a5420fab0b7528f30fb9c4b0913885f",
   "published_worktree": null,
-  "published_git_ref": "refs/heads/release/s2-assets-20261024",
-  "published_restore_note": "Clean release worktree retired after preserving published commit/branch; restore only through git worktree add when explicitly needed. Never overwrite the active dirty worktree.",
+  "published_git_ref": "refs/heads/master",
+  "historical_stage2_release_ref": "refs/heads/release/s2-assets-20261024",
+  "published_restore_note": "Eight-stage classroom playtest with sequential unlocks. The former Stage 2 release worktree was retired. Local Neon repairs have no separate release revision.",
   "public_stages": {
     "night-town": "assets/img/scenery/",
     "rain-port": "assets/img/rain-port/s2-production/",
@@ -151,8 +152,7 @@
   "operations_gate": {
     "keep_all_legacy_consumers_until_mapped": true,
     "preserve_dirty_worktree": true,
-    "preserve_paid_originals": true,
-    "no_commit_or_deploy": true
+    "preserve_paid_originals": true
   },
   "delivery_word_media": {
     "updated": "2026-11-28",
@@ -188,8 +188,8 @@
       "snow-temple",
       "spirit-ferry"
     ],
-    "rain_port_trial_receipt": "docs/RAIN_PORT_DELIVERY_TRIAL_20261031.md",
-    "sakura_pass_trial_receipt": "docs/SAKURA_PASS_DELIVERY_TRIAL_20261116.md"
+    "rain_port_trial_receipt": ".cleanup-archive/history/20261127/docs/RAIN_PORT_DELIVERY_TRIAL_20261031.md",
+    "sakura_pass_trial_receipt": ".cleanup-archive/history/20261127/docs/SAKURA_PASS_DELIVERY_TRIAL_20261116.md"
   },
   "global_media": {
     "authority": "docs/ASSET_CONVENTIONS.md",
@@ -201,7 +201,7 @@
   },
   "stage2_approved_media": {
     "status": "USER_PLAYTEST_PENDING",
-    "receipt": "docs/STAGE2_APPROVED_MEDIA_MIGRATION_20261031.md",
+    "receipt": ".cleanup-archive/history/20261127/docs/STAGE2_APPROVED_MEDIA_MIGRATION_20261031.md",
     "approved_stage_files": 17,
     "approved_runtime_placements": 20,
     "approved_enemies": 4,

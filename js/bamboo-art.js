@@ -60,6 +60,12 @@ window.BAMBOO_ART = (() => {
     loadImage("bambooShoots:soil", "vfx/enemies/sakura-tengu/sakura-tengu__earth-break");
   }
 
+  function unload() {
+    for (const key of Object.keys(images)) delete images[key];
+    cutLayers = null;
+    requested = false;
+  }
+
   function image(role) {
     return images[role]?.naturalWidth ? images[role] : null;
   }
@@ -242,5 +248,5 @@ window.BAMBOO_ART = (() => {
     return true;
   }
 
-  return Object.freeze({ load, image, monster, paintHazard });
+  return Object.freeze({ load, unload, image, monster, paintHazard });
 })();

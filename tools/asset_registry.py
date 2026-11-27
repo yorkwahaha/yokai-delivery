@@ -6,8 +6,16 @@ from collections import Counter
 ROOT=Path(__file__).resolve().parent.parent
 REG=ROOT/'docs/ASSET_REGISTRY.json'; INV=ROOT/'docs/ASSET_INVENTORY.json'
 JS=ROOT/'js/asset-paths.js'
-MEDIA={'.webp','.png','.jpg','.jpeg','.svg','.mp3','.ogg','.wav'}
+MEDIA={'.webp','.png','.jpg','.jpeg','.svg','.mp3','.ogg','.wav','.woff2'}
+PUBLIC_FONTS={name+'.woff2' for name in (
+ 'YokaiCargoTC','YokaiNotoSansJP','YokaiYujiSyukuJP',
+ 'YokaiTrialMoonStarsKaiT-Regular','YokaiTrialMoonStarsKaiT-Bold',
+)}
 RETIRED_BARRIER='assets/img/vfx/raster/barrier_ground_45.webp'
+RETIRED_ALIAS_SOURCES={
+ RETIRED_BARRIER,
+ 'assets/audio/BGM.mp3','assets/audio/BOSS.mp3','assets/audio/MAP.mp3',
+}
 BAD=re.compile(r'(?:^|[_/.\\-])(candidate|trial|draft|new|final[0-9]*|seed[0-9]+|v[0-9]+|qwen|comfyui|nano)(?:[_/.\\-]|$)',re.I)
 STAGES=['night-town','rain-port','sakura-pass','bamboo-maze','hyakki-kyoto','snow-temple','spirit-ferry','yomi']
 # Seven historical locally reviewed image masters were inventoried while
@@ -33,7 +41,7 @@ def valid_alias(e):
  original=ROOT/e['source'];target=ROOT/e['canonical']
  if not target.is_file() or digest(target)!=e['sha256']:return False
  if original.is_file():return digest(original)==e['sha256']
- if not e['route'] or e['source']!=RETIRED_BARRIER:return False
+ if not e['route'] or e['source'] not in RETIRED_ALIAS_SOURCES:return False
  retired=json.loads(INV.read_text(encoding='utf-8')).get('retired',[])
  return any(row['path']==e['source'] and row['sha256']==e['sha256'] for row in retired)
 def stage2_approved_sources():
@@ -75,7 +83,7 @@ def plan():
  approved_s2=stage2_approved_sources()
  def add(s,t,category,route=True):
   a=ROOT/s
-  if s==RETIRED_BARRIER and not a.is_file():
+  if s in RETIRED_ALIAS_SOURCES and not a.is_file():
    retired=next(e for e in json.loads(INV.read_text(encoding='utf-8')).get('retired',[]) if e['path']==s)
    entry=dict(source=s,canonical=t,category=category,route=route,sha256=retired['sha256'])
    assert valid_alias(entry),entry
@@ -240,11 +248,13 @@ def inventory(entries):
  audio=json.loads((ROOT/'assets/audio/stage58-manifest.json').read_text(encoding='utf-8'))
  art_trials.update(x['path'] for x in audio['assets'])
  items=[]
- for base in ('assets/img','assets/audio'):
+ for base in ('assets/img','assets/audio','assets/fonts'):
   for f in sorted((ROOT/base).rglob('*')):
    if not f.is_file() or f.suffix.lower() not in MEDIA:continue
    path=f.relative_to(ROOT).as_posix();e=src.get(path)
-   if e:status='legacy_alias_active' if e['route'] else 'legacy_source_pending_renderer'
+   if base=='assets/fonts' and f.name not in PUBLIC_FONTS:continue
+   if base=='assets/fonts':status='canonical'
+   elif e:status='legacy_alias_active' if e['route'] else 'legacy_source_pending_renderer'
    elif path in selected:status='canonical'
    elif path.startswith(('assets/img/enemies/kyoto-crossroads-boss/','assets/img/enemies/snow-ice-pillar-boss/',
                          'assets/img/vfx/enemies/yomi-cinder-burst/')):status='trial_pending_review'

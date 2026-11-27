@@ -52,7 +52,8 @@ test('ASSET-REGISTRY 151 份來源與正式檔雜湊相同，99 筆經審核路�
  for(const entry of registry.aliases){
   const original=path.join(ROOT,entry.source);
   const result=fs.readFileSync(path.join(ROOT,entry.canonical));
-  if (entry.source==='assets/img/vfx/raster/barrier_ground_45.webp' && !fs.existsSync(original)) {
+  if (new Set(['assets/img/vfx/raster/barrier_ground_45.webp', 'assets/audio/BGM.mp3',
+    'assets/audio/BOSS.mp3', 'assets/audio/MAP.mp3']).has(entry.source) && !fs.existsSync(original)) {
     assert.equal(entry.route,true);
     assert.equal(inventory.retired.find(row=>row.path===entry.source)?.sha256,entry.sha256);
   } else assert.ok(fs.readFileSync(original).equals(result),entry.source+' -> '+entry.canonical);

@@ -1,6 +1,11 @@
 # 第五至八關音訊製作紀錄
 
-2026-11-28：依使用者授權，選定的 70 個音訊納入八關免費課堂試玩；模型原稿不發布。Stable Audio 3 商業使用須另確認授權門檻及註冊，不視為已核實。以下保留生成時的歷史紀錄。
+2026-11-28：公開課堂試玩使用 70 個音檔，其中 57 個由 Stable Audio 3 Medium 本機生成、10 個為配樂、3 個為既有音訊的 DSP 版本。選用檔、來源及 SHA256 見 [公開音訊 manifest](../assets/audio/stage58-manifest.json)。模型權重和生成原稿留在本機。
+
+- Stability AI 的官方說明將自架 Stable Audio 3 Medium 列為 Community License 適用模型。研究／非商業與商業的條件不同。符合營收條件的商業用途仍須註冊，營收門檻為低於 US$1M。模型卡另列 Gemma 元件條款。專案擁有者仍須確認實際發布用途、適用資格與需要時的註冊紀錄。 [官方授權說明](https://kb.stability.ai/knowledge-base/stable-audio-commerical-and-usage-licensing) · [Community License](https://stability.ai/community-license-agreement) · [Stable Audio 3 Medium 模型卡](https://huggingface.co/stabilityai/stable-audio-3-medium) · [Gemma 條款](https://ai.google.dev/gemma/terms)
+- 前四關獨立 Boss BGM 來自本機 ACE-Step 1.5 XL Turbo 及 ComfyUI 的 BF16 權重。四首生成種子、原稿及音檔 SHA256 在本機 `art/audio/early-boss-candidates/f9-production.json`。本機 Neon 修復只改播放增益，MP3 原始位元已另存至既有 `art/audio/stage-bgm-originals-20261122/`。 [ACE-Step XL 發布紀錄](https://github.com/ace-step/ACE-Step-1.5/releases) · [ComfyUI 權重與授權標示](https://huggingface.co/Comfy-Org/ACE-Step-1.5)
+
+以下保留生成時的歷史紀錄。
 
 2026-11-26 · `IN_GAME_TRIAL_PENDING_USER_REVIEW` · `USER_PLAYTEST_PENDING`
 

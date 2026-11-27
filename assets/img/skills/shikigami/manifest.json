@@ -1,5 +1,5 @@
 {
-  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
   "sources": {
     "wolf-black-run": {
       "path": "art/skills/shikigami/sources/stage78/wolf-black-run.png",

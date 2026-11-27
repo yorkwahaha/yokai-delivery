@@ -1646,6 +1646,8 @@ if (isRainPort) {
 
   function releaseStageLabArt(stageId) {
     stageLabArtFor(stageId)?.unload?.();
+    if (stageId === "bamboo-maze") window.BAMBOO_ART?.unload?.();
+    window.DELIVERY_ICON_ART?.clear?.();
     if (stageId === "rain-port") {
       window.HARBOR_WARNING_ART = null;
       window.resetS2ArtProdCache?.();
@@ -1829,7 +1831,7 @@ if (isRainPort) {
           wT.seal_nail = 0;
           wMax.seal_nail = window.GAME_SEAL_NAIL.spec(nextLvl, 1, buildMutations).cooldown;
         }
-        if (BAMBOO_STARTER_CHOICES.includes(k) && STORE.isActiveSkillUnlocked(k))
+        if (isNew && (BAMBOO_STARTER_CHOICES.includes(k) || expansionIds.includes(k)))
           STORE.markSkillExperienced?.(k);
         window.useSkillArt?.(k, WL[k]);
         if (k === "katana") { wT.katana = 0; atkT = 0; }
@@ -2056,7 +2058,8 @@ if (isRainPort) {
     // Show stage introductions on the first eligible normal upgrade of this run.
     // Rerolling refuses it; a later run may introduce it again.
     const slotFree = Object.keys(WI).filter(k => (WL[k] || 0) > 0).length < MAX_ACTIVE_WEAPONS;
-    const pendingIntro = STORE.pendingSkillIntroduction?.();
+    const canIntroduce = id => wc.some(c => c.id === id && WL[id] === 0);
+    const pendingIntro = STORE.pendingSkillIntroduction?.(canIntroduce);
     const trialIntro = guidedExpansionDraft && normalOffer
       ? wc.find(c=>expansionIds.includes(c.id) && WL[c.id] === 0)?.id : null;
     const firstIntro = pendingIntro || trialIntro;
@@ -2079,7 +2082,7 @@ if (isRainPort) {
     );
     if (!isFreeCompensationChoice) {
       const unseenRewards = slotFree ? wc.filter(c => WL[c.id] === 0 &&
-        (BAMBOO_STARTER_CHOICES.includes(c.id) || guidedExpansionDraft && expansionIds.includes(c.id))) : [];
+        (BAMBOO_STARTER_CHOICES.includes(c.id) || expansionIds.includes(c.id))) : [];
       const rules = window.GAME_UPGRADE_CHOICES;
       const visible = rules.withNewSkillVisibility(guaranteed, unseenRewards, newSkillMisses,
         normalOffer, [...introductions, owned, awakenCard]);
@@ -3452,7 +3455,7 @@ if (isRainPort) {
     if (shikigami && WL.shikigami > 0) {
       const species = WL.shikigami === 5 ? "hound" : shikigami.species;
       const art = shikigamiArt[species] ??= shikigamiModule.loadArt(species);
-      if (WL.shikigami === 5 && stageLab) shikigamiModule.loadBlackArt(art);
+      if (WL.shikigami === 5) shikigamiModule.loadBlackArt(art);
       shikigami.tick({ dt, player: P, enemies, level: WL.shikigami, blocked,
         mutations: buildMutations,
         effectiveDamage: getEffectiveDmg(combatBuildState()),

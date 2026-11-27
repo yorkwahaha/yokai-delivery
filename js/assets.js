@@ -72,37 +72,6 @@ const HUD_ASSET_NAMES = ["hud_lantern_oil", "hud_radar_frame", "hud_omamori_hint
 // 八關資產插槽定義（資料導向，審圖通過後只要換映射即可，不改引擎）
 // 每關包含：地面、場景/建築/裝飾/地標、專屬敵人 idle/attack、Boss idle/attack
 // 缺圖時回落現役共用資產，標記 WAITING_ART；未核准候選不接 production
-// DEV-ONLY: Stage8 preview toggle - enabled via ?dev=1&stage8preview=1 or window.STAGE8_PREVIEW = true
-const STAGE8_PREVIEW_ENABLED = false; // Old Stage8 image previews purged; new art must be reviewed first.
-
-// Stage8 preview asset keys (ONLY clean isolated props from connected-component extraction)
-// Ground tiles and path tiles DISABLED - they were rectangular artifacts
-// Source: irregular 1448x1086 sprite sheet -> connected components -> clean_prop_*
-const STAGE8_PREVIEW_KEYS = Object.freeze({
-  // Clean isolated props (47 items from connected-component extraction in sliced_v2/)
-  // Each is a genuinely isolated flower stalk, bone fragment, or rock with transparent borders
-  props: [
-    "stage8_clean_prop_0", "stage8_clean_prop_1", "stage8_clean_prop_2", "stage8_clean_prop_3",
-    "stage8_clean_prop_4", "stage8_clean_prop_5", "stage8_clean_prop_6", "stage8_clean_prop_7",
-    "stage8_clean_prop_8", "stage8_clean_prop_9", "stage8_clean_prop_10", "stage8_clean_prop_11",
-    "stage8_clean_prop_12", "stage8_clean_prop_13", "stage8_clean_prop_14", "stage8_clean_prop_15",
-    "stage8_clean_prop_16", "stage8_clean_prop_17", "stage8_clean_prop_18", "stage8_clean_prop_19",
-    "stage8_clean_prop_20", "stage8_clean_prop_21", "stage8_clean_prop_22", "stage8_clean_prop_23",
-    "stage8_clean_prop_24", "stage8_clean_prop_25", "stage8_clean_prop_26", "stage8_clean_prop_27",
-    "stage8_clean_prop_28", "stage8_clean_prop_29", "stage8_clean_prop_30", "stage8_clean_prop_31",
-    "stage8_clean_prop_32", "stage8_clean_prop_33", "stage8_clean_prop_34", "stage8_clean_prop_35",
-    "stage8_clean_prop_36", "stage8_clean_prop_37", "stage8_clean_prop_38", "stage8_clean_prop_39",
-    "stage8_clean_prop_40", "stage8_clean_prop_41", "stage8_clean_prop_42", "stage8_clean_prop_43",
-    "stage8_clean_prop_44", "stage8_clean_prop_45", "stage8_clean_prop_46"
-  ]
-});
-
-// Expose to window for renderer access
-if (typeof window !== "undefined") {
-  window.STAGE8_PREVIEW_ENABLED = STAGE8_PREVIEW_ENABLED;
-  window.STAGE8_PREVIEW_KEYS = STAGE8_PREVIEW_KEYS;
-}
-
 // DEV-ONLY: Stage2 Rain-Port candidate building preview toggle
 // Strictly requires URL query: dev=1 && portartcandidate=1
 const isPortArtCandidateEnabled = () => false; // Retired 2026-10-24 rejected candidate art URLs.
@@ -1548,7 +1517,7 @@ const STAGE_ASSET_SLOTS = Object.freeze({
   }),
   "yomi": Object.freeze({
     map: "map_yomi_v1",
-    ground: STAGE8_PREVIEW_ENABLED ? "ground" : "ground",  // Use approved fallback as base
+    ground: "ground",
     scene: [],
     trans: [],
     enemy: {
@@ -3055,11 +3024,6 @@ function loadStageAssets(stageId) {
     }
   }
 
-  // Stage8 preview: load preview assets from art/ candidate (not production assets/img/)
-  // Only runs when STAGE8_PREVIEW_ENABLED and asset file exists
-  if (STAGE8_PREVIEW_ENABLED && stageId === "yomi") {
-    loadStage8PreviewAssets(status);
-  }
 }
 
 // F1-A-ART-COMPARE: 延遲載入合技美術候選檔 (banana | gpt | legacy)
@@ -3214,46 +3178,6 @@ if (typeof window !== "undefined") {
   window.loadFusionKindArt = loadFusionKindArt;
 }
 
-// Load Stage8 preview assets from art/stage8-yomi/sliced_v2/ (connected-component extracted clean props)
-// Source: irregular 1448x1086 sprite sheet -> 357 connected components -> 47 clean isolated props
-// Ground tiles and path tiles DISABLED (were rectangular artifacts with pale soil borders)
-// Falls back gracefully when extracted files are absent
-function loadStage8PreviewAssets(status) {
-  const keys = STAGE8_PREVIEW_KEYS;
-  const basePath = "art/stage8-yomi/sliced_v2/";
-
-  const tryLoadPreview = (key, filename) => {
-    if (!key || requestedArt.has(key)) return;
-    const img = new Image();
-    img.fetchPriority = "low";
-    img.decoding = "async";
-    img.onload = () => {
-      // Accept any valid dimensions - these are individual extracted clean props
-      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-        ART[key] = img;
-        markSettled(key);
-        status.loaded.push(key);
-      } else {
-        console.warn(`[Stage8 Preview] ${key} has invalid dimensions: ${img.naturalWidth}x${img.naturalHeight}`);
-        status.missing.push(key);
-        markSettled(key, true);
-      }
-    };
-    img.onerror = () => {
-      console.warn(`[Stage8 Preview] Failed to load ${key} from ${basePath}${filename}`);
-      status.missing.push(key);
-      markSettled(key, true);
-    };
-    requestedArt.add(key);
-    // Load from art/ candidate sliced_v2 directory, NOT production assets/img/
-    img.src = `${basePath}${filename}?v=dev-preview`;
-  };
-
-  // Load ONLY clean isolated props (47 items) - NO ground tiles, NO path tiles
-  keys.props.forEach((key, i) => {
-    tryLoadPreview(key, `clean_prop_${i}.png`);
-  });
-}
 // 旅路角色採用新圖，但保持地圖進入速度；只在實際繪圖時背景下載。
 let mapPlayerRequested = false;
 window.loadMapPlayerArt = () => {

@@ -67,38 +67,77 @@
       "path": "assets/img/vfx/thunder_vfx.png",
       "sha256": "273b7d12a3b88849b19959e1b3fc0373792aaf31f0d469a75608df623dcf5c70",
       "bytes": 1404294
+    },
+    {
+      "path": "assets/audio/BGM.mp3",
+      "sha256": "c81d5e33055b91659d27f33d8629a2c3dbe52fb3f9768dd1e3e7431af79d38a5",
+      "canonical": "assets/audio/bgm/stages/night-town/night-town__battle.mp3",
+      "archive": "art/audio/stage-bgm-originals-20261122/BGM.mp3"
+    },
+    {
+      "path": "assets/audio/BOSS.mp3",
+      "sha256": "4484fa39285e129bec497664d3b693c7c9d9cf8b71297f3f3e04d84d481518e5",
+      "canonical": "assets/audio/bgm/boss/boss__encounter.mp3",
+      "archive": "art/audio/stage-bgm-originals-20261122/BOSS.mp3"
+    },
+    {
+      "path": "assets/audio/MAP.mp3",
+      "sha256": "0eea8130856b234978f209078a3bc478e90ce71f2ea07c5ef65db83d23c7700f",
+      "canonical": "assets/audio/bgm/menu/menu__journey.mp3",
+      "archive": "art/audio/stage-bgm-originals-20261122/MAP.mp3"
+    },
+    {
+      "path": "art/stage2-rain-port/archive/legacy-pebble-ground-20261101/ground_stone.webp",
+      "sha256": "ceca034d36049b004867cd693ed9b1fd080ed4d8060f039c5fc6917729e07e4e",
+      "archive": ".cleanup-archive/images/art/stage2-rain-port/archive/legacy-pebble-ground-20261101/ground_stone.webp"
+    },
+    {
+      "path": "art/stage2-rain-port/archive/legacy-pebble-ground-20261101/ground_stone_var1.webp",
+      "sha256": "0c5058ad1846b41a23daa221cd8e52903a3fbf7aadc5148391e6b72cf7d3f9cc",
+      "archive": ".cleanup-archive/images/art/stage2-rain-port/archive/legacy-pebble-ground-20261101/ground_stone_var1.webp"
+    },
+    {
+      "path": "art/stage2-rain-port/archive/legacy-pebble-ground-20261101/ground_stone_var2.webp",
+      "sha256": "73142b26bf4039a05586c92f12a91a2eaa12f101da2a6a69b31e2fab0105c808",
+      "archive": ".cleanup-archive/images/art/stage2-rain-port/archive/legacy-pebble-ground-20261101/ground_stone_var2.webp"
+    },
+    {
+      "path": "assets/fonts/YokaiTrialBakudaiTC.woff2",
+      "sha256": "f0fbc1b0847ddcd09986a7d2f7f584d1478ed5c0c62edc75b8c5feb35f8d1856",
+      "archive": "art/ui-font-trials/YokaiTrialBakudaiTC.woff2",
+      "status": "dev_only"
+    },
+    {
+      "path": "assets/fonts/YokaiTrialMasaTC.woff2",
+      "sha256": "dc2ec56968122b04de2fdae95f7945f0fdf217b43b307d3d216d1e5dda7bb2d4",
+      "archive": "art/ui-font-trials/YokaiTrialMasaTC.woff2",
+      "status": "dev_only"
+    },
+    {
+      "path": "assets/fonts/YokaiTrialWenKaiTC.woff2",
+      "sha256": "8acdacb6c51cc53d93e81ffb70442054adcd1c437bd127f2d23d112f25acb8d4",
+      "archive": "art/ui-font-trials/YokaiTrialWenKaiTC.woff2",
+      "status": "dev_only"
+    },
+    {
+      "path": "assets/fonts/YokaiTrialXuandong.woff2",
+      "sha256": "b5b4fb7e95fa890abdce7ad1627f7e6d112d922668eeb2c31d3da042b50fc511",
+      "archive": "art/ui-font-trials/YokaiTrialXuandong.woff2",
+      "status": "dev_only"
     }
   ],
   "totals": {
-    "files": 1725,
+    "files": 1727,
     "by_status": {
-      "legacy_alias_active": 98,
-      "canonical": 324,
+      "canonical": 329,
       "trial_pending_review": 801,
       "legacy_unmigrated": 388,
+      "legacy_alias_active": 95,
       "legacy_review_required": 62,
       "legacy_source_pending_renderer": 52
     }
   },
   "files": [
-    {
-      "path": "assets/audio/BGM.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 4521169,
-      "sha256": "c81d5e33055b91659d27f33d8629a2c3dbe52fb3f9768dd1e3e7431af79d38a5"
-    },
-    {
-      "path": "assets/audio/BOSS.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 3604901,
-      "sha256": "4484fa39285e129bec497664d3b693c7c9d9cf8b71297f3f3e04d84d481518e5"
-    },
-    {
-      "path": "assets/audio/MAP.mp3",
-      "status": "legacy_alias_active",
-      "bytes": 2035220,
-      "sha256": "0eea8130856b234978f209078a3bc478e90ce71f2ea07c5ef65db83d23c7700f"
-    },
     {
       "path": "assets/audio/bgm/boss/boss__encounter.mp3",
       "status": "canonical",
@@ -3038,6 +3077,36 @@
       "status": "legacy_unmigrated",
       "bytes": 14924,
       "sha256": "bde2c2921a49e12627e9daacedacc63dcd79b58f35f028dda3ec19b20246766a"
+    },
+    {
+      "path": "assets/fonts/YokaiCargoTC.woff2",
+      "status": "canonical",
+      "bytes": 68140,
+      "sha256": "0ec466991cdc7761e4d07a16730d79c72da7c4241e165b5bb37fa9890e9fda2c"
+    },
+    {
+      "path": "assets/fonts/YokaiNotoSansJP.woff2",
+      "status": "canonical",
+      "bytes": 577228,
+      "sha256": "e423fb7158125786ddda784f96da76575f91b17e5689b96004760ed152c06759"
+    },
+    {
+      "path": "assets/fonts/YokaiTrialMoonStarsKaiT-Bold.woff2",
+      "status": "canonical",
+      "bytes": 826804,
+      "sha256": "a939f6485004e986f7ad5b98f7d49d8c51ee6e35ba8f6f7720c34bbfe05588ab"
+    },
+    {
+      "path": "assets/fonts/YokaiTrialMoonStarsKaiT-Regular.woff2",
+      "status": "canonical",
+      "bytes": 787528,
+      "sha256": "cc9b5a4536c40fde697da6ab37a3ad3dcee00a0ffc4bdb3bffe369a157067b84"
+    },
+    {
+      "path": "assets/fonts/YokaiYujiSyukuJP.woff2",
+      "status": "canonical",
+      "bytes": 919016,
+      "sha256": "bae854b5cf3a188391bfde03529bb93d03672203880b213eabcec83aad9acf43"
     },
     {
       "path": "assets/img/boss.png",

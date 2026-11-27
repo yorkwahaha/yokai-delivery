@@ -16,6 +16,7 @@
     "snow-temple": "spirit-ferry",
     "spirit-ferry": "yomi"
   };
+  const stageIds = [...Object.keys(NEXT_STAGE), "yomi"];
   const fresh = () => ({
     m: Object.create(null),
     best: 0,
@@ -106,6 +107,12 @@
         bestScore: count(stats.bestScore), bestDeliveries: count(stats.bestDeliveries),
         clears: count(stats.clears), attempts: count(stats.attempts)
       };
+    }
+    for (const id of stageIds) {
+      const legacyClear = !isRecord(progress.unlocked) && state.progress.stages[id]?.clears > 0;
+      if (state.progress.completed[id] !== true && !legacyClear) continue;
+      state.progress.unlocked[id] = true;
+      if (NEXT_STAGE[id]) state.progress.unlocked[NEXT_STAGE[id]] = true;
     }
     return state;
   };
@@ -376,25 +383,25 @@
     return experiencedInMemory[id] === true || experiencedSkills()[id] === true;
   }
   function markSkillExperienced(id) {
-    if (!Object.hasOwn(skillClearStage, id) ||
-        (id === "shikigami" && !isActiveSkillUnlocked(id))) return false;
+    if (!isActiveSkillUnlocked(id)) return false;
     experiencedInMemory[id] = true;
     try { storage?.setItem(INTRO_KEY, JSON.stringify({...experiencedSkills(), [id]:true})); } catch {}
     return true;
   }
-  const pendingIntroductions = () => Object.keys(skillClearStage)
+  const pendingIntroductions = () => [...Object.keys(skillClearStage),
+    ...Object.keys(root.GAME_SKILL_EXPANSION?.releases || {})]
     .filter(id => isActiveSkillUnlocked(id) && !hasExperiencedSkill(id));
-  function pendingSkillIntroduction() {
+  function pendingSkillIntroduction(eligible = () => true) {
     // Backward-compatible: older clears grant eligibility without replay.
     // First offer is stage-ordered; declined offers rotate to the end.
-    const pending=pendingIntroductions();
+    const pending=pendingIntroductions().filter(eligible);
     const preferred=nextIntroductionInMemory||experiencedSkills().nextIntroduction;
     return pending.includes(preferred)?preferred:(pending[0]||null);
   }
   function rotateSkillIntroduction(id) {
     const pending=pendingIntroductions();
     if(!pending.includes(id))return false;
-    const next=pending.find(k=>k!==id)||id;
+    const next=pending[(pending.indexOf(id) + 1) % pending.length];
     nextIntroductionInMemory=next;
     try {storage?.setItem(INTRO_KEY,JSON.stringify({...experiencedSkills(),nextIntroduction:next}));} catch {}
     return true;

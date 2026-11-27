@@ -8,11 +8,10 @@
   if (window.UI_THEME !== 'classic' && window.UI_THEME !== 'diegetic') window.UI_THEME = hasLocation ? 'diegetic' : 'classic';
 }
 // R18-U1：乾淨橫向和風卷軸「審閱模式」總開關（OpenCode p8 候選，正式模式預設關閉）。
-// ?u1scroll=1 或 hash #u1scroll 開啟；正式網站不帶參數時，三選單渲染與 R17 43fb 基線完全一致。
-{
-  const hasLocU1 = typeof location !== 'undefined';
-  const u1Param = hasLocU1 ? new URLSearchParams(location.search).get('u1scroll') : null;
-  const u1Hash = hasLocU1 ? String(location.hash || '') : '';
+// DEV 審閱可用 ?u1scroll=1 或 #u1scroll。
+if (typeof location !== 'undefined' && window.DEV_MODE?.isDevMode?.(location)) {
+  const u1Param = new URLSearchParams(location.search).get('u1scroll');
+  const u1Hash = String(location.hash || '');
   if (u1Param === '1' || u1Param === '0') window.U1_EMAKI_PREVIEW = u1Param === '1';
   else if (/u1(?:scroll|-preview)/.test(u1Hash)) window.U1_EMAKI_PREVIEW = true;
 }

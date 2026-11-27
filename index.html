@@ -6,7 +6,7 @@
   <title>妖怪快遞社：夜行配達 — Yokai Delivery Service</title>
   <link rel="preload" as="image" href="assets/img/cover.webp?v=20261010-character-set1" fetchpriority="high">
   <link rel="icon" href="assets/img/ui/hud/ui__lantern-oil.webp" type="image/webp">
-  <link rel="stylesheet" href="js/ui-compendium.css?v=20261127-f5">
+  <link rel="stylesheet" href="js/ui-compendium.css?v=20261128-neon">
   <!-- Google Web Fonts: 和風書法字體與圓體 -->
   <link rel="preload" href="assets/fonts/YokaiNotoSansJP.woff2?v=20261101-font1" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/YokaiYujiSyukuJP.woff2?v=20261101-b18" as="font" type="font/woff2" crossorigin>
@@ -41,32 +41,7 @@
       font-weight: 100 900;
       font-display: swap;
     }
-    /* Phase42 local-only font trial: subset Web Fonts for Traditional Chinese.
-       OFL licensing/source details: assets/fonts/PHASE42_TRIAL_FONT_SOURCES.md.
-       Load only when selected; do not preload these three optional fonts. */
-    @font-face {
-      font-family: 'Yokai Trial Bakudai TC';
-      src: url('assets/fonts/YokaiTrialBakudaiTC.woff2?v=20261106b') format('woff2');
-      font-style: normal;
-      font-weight: 400;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: 'Yokai Trial Masa TC';
-      src: url('assets/fonts/YokaiTrialMasaTC.woff2?v=20261106b') format('woff2');
-      font-style: normal;
-      font-weight: 400;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: 'Yokai Trial WenKai TC';
-      src: url('assets/fonts/YokaiTrialWenKaiTC.woff2?v=20261106b') format('woff2');
-      font-style: normal;
-      font-weight: 400;
-      font-display: swap;
-    }
-    /* Official Moon Stars Kai T (Traditional) v1.105.
-       Phase42 trial only, source/license noted in assets/fonts/. */
+    /* Public Moon Stars Kai T, OFL license in assets/fonts/. */
     @font-face {
       font-family: 'Yokai Trial MoonStars Kai T';
       src: url('assets/fonts/YokaiTrialMoonStarsKaiT-Regular.woff2?v=20261127-f5') format('woff2');
@@ -80,60 +55,6 @@
       font-style: normal;
       font-weight: 400;
       font-display: swap;
-    }
-    /* OFL Xuandong is a style-only trial: many Traditional glyphs are absent. */
-    @font-face {
-      font-family: 'Yokai Trial Xuandong';
-      src: url('assets/fonts/YokaiTrialXuandong.woff2?v=20261107') format('woff2');
-      font-style: normal;
-      font-weight: 400;
-      font-display: swap;
-    }
-    /* Local-only Phase42 comparisons; respective licenses are in assets/fonts. */
-    @font-face {
-      font-family: 'Yokai Trial HanWang YanKai';
-      src: url('assets/fonts/YokaiTrialHanWangYanKai.woff2?v=20261107') format('woff2');
-      font-style: normal;
-      font-weight: 400;
-      font-display: swap;
-    }
-    /* Game UI subset: includes result/pause lettering and the full victory
-       narrative. GPL-2.0 attribution and source are kept under assets/fonts. */
-    @font-face {
-      font-family: 'Yokai UI HanWang YanKai';
-      src: url('assets/fonts/YokaiUIHanWangYanKai.woff2?v=20261110-result-pause') format('woff2');
-      font-style: normal;
-      font-weight: 400;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: 'Yokai Trial cwTeX QKaiZH';
-      src: url('assets/fonts/YokaiTrialCwTeXQKaiZH.woff2?v=20261107') format('woff2');
-      font-style: normal;
-      font-weight: 400;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: 'Yokai Trial ChillKai Big5';
-      src: url('assets/fonts/YokaiTrialChillKaiBig5.woff2?v=20261107') format('woff2');
-      font-style: normal;
-      font-weight: 400;
-      font-display: swap;
-    }
-    /* iFontCloud commercial fonts: local-only references.
-       No font bytes are bundled; the user must install a licensed trial. */
-    @font-face {
-      font-family: 'Yokai Local Arphic Sun';
-      src: local('AR DCSunSiHaiKaiB5'), local('文鼎DC孫四海楷書');
-      font-style: normal;
-      font-weight: 400;
-    }
-    @font-face {
-      font-family: 'Yokai Local Arphic Mao';
-      src: local('AR MaoKaiB5 BD'), local('AR MaoKaiB5'),
-           local('文鼎毛楷_B');
-      font-style: normal;
-      font-weight: 400;
     }
 
     * {
@@ -307,25 +228,102 @@
   <script src="js/words.js?v=20261128-classroom-eight"></script>
   <script src="js/world.js?v=20261126-stage56"></script>
   <script src="js/dev-mode.js?v=20261126-stage56"></script>
-  <script src="js/delivery-icon-art.js?v=20261116-s3-engine-r1"></script>
+  <script>
+    if (window.DEV_MODE.isDevMode(location)) {
+      const style = document.createElement("style");
+      style.textContent = `
+    @font-face {
+      font-family: 'Yokai Trial Bakudai TC';
+      src: url('art/ui-font-trials/YokaiTrialBakudaiTC.woff2?v=20261106b') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Yokai Trial Masa TC';
+      src: url('art/ui-font-trials/YokaiTrialMasaTC.woff2?v=20261106b') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Yokai Trial WenKai TC';
+      src: url('art/ui-font-trials/YokaiTrialWenKaiTC.woff2?v=20261106b') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Yokai Trial Xuandong';
+      src: url('art/ui-font-trials/YokaiTrialXuandong.woff2?v=20261107') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Yokai Trial HanWang YanKai';
+      src: url('assets/fonts/YokaiTrialHanWangYanKai.woff2?v=20261107') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Yokai UI HanWang YanKai';
+      src: url('assets/fonts/YokaiUIHanWangYanKai.woff2?v=20261110-result-pause') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Yokai Trial cwTeX QKaiZH';
+      src: url('assets/fonts/YokaiTrialCwTeXQKaiZH.woff2?v=20261107') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Yokai Trial ChillKai Big5';
+      src: url('assets/fonts/YokaiTrialChillKaiBig5.woff2?v=20261107') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Yokai Local Arphic Sun';
+      src: local('AR DCSunSiHaiKaiB5'), local('文鼎DC孫四海楷書');
+      font-style: normal;
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: 'Yokai Local Arphic Mao';
+      src: local('AR MaoKaiB5 BD'), local('AR MaoKaiB5'),
+           local('文鼎毛楷_B');
+      font-style: normal;
+      font-weight: 400;
+    }
+      `;
+      document.head.append(style);
+    }
+  </script>
+  <script src="js/delivery-icon-art.js?v=20261128-neon"></script>
   <script src="js/game-skill-expansion.js?v=20261128-classroom-eight"></script>
-  <script src="js/store.js?v=20261126-skill-expansion"></script>
+  <script src="js/store.js?v=20261128-neon"></script>
   <script src="js/config.js?v=20261125-boss-schedule-unified"></script>
   <script src="js/viewport.js?v=20261101-s2b17"></script>
   <script src="js/controls.js?v=20261126-v2"></script>
-  <script src="js/asset-paths.js?v=20261101-audit"></script>
+  <script src="js/asset-paths.js?v=20261128-neon"></script>
   <script src="js/sakura-art-data.js?v=20261120-sakura-readability"></script>
-  <script src="js/assets.js?v=20261126-stage78"></script>
+  <script src="js/assets.js?v=20261128-neon"></script>
   <script src="js/delivery-fish-audio.js?v=20261101-s2b17"></script>
   <script src="js/stage58-audio.js?v=20261128-classroom-eight"></script>
-  <script src="js/audio.js?v=20261128-classroom-eight"></script>
+  <script src="js/audio.js?v=20261128-neon"></script>
   <script src="js/haptics.js?v=20261101-s2b17"></script>
   <script src="js/spritecook-dev.js?v=20261101-s2b17"></script>
   <script src="js/boss-roster-trial.js?v=20261120-classroom"></script>
-  <script src="js/renderer.js?v=20261127-f4-boss"></script>
+  <script src="js/renderer.js?v=20261128-neon"></script>
   <script src="js/fx.js?v=20261124-ipad-phases"></script>
   <script src="js/skillfx.js?v=20261124-ipad-phases"></script>
-  <script src="js/ui.js?v=20261128-classroom-eight"></script>
+  <script src="js/ui.js?v=20261128-neon"></script>
   <script src="js/ui-upgrade-trial.js?v=20261128-classroom-eight"></script>
   <script src="js/overworld-layout.js?v=20261101-s2b17"></script>
   <script src="js/overworld.js?v=20261126-audit"></script>
@@ -344,11 +342,11 @@
     if (window.DEV_MODE?.isFusionLab?.(window.location))
       document.write('<script src="js/fusion.js?v=20261119-fusion-lab-r3"><' + '/script>');
     if (window.DEV_MODE?.isShikigamiEnabled?.(window.location))
-      document.write('<script src="js/game-shikigami.js?v=20261126-wolf-art"><' + '/script>');
+      document.write('<script src="js/game-shikigami.js?v=20261128-neon"><' + '/script>');
     if (window.DEV_MODE?.isBambooEnabled?.(window.location)) {
       document.write('<script src="js/stage-route-layouts.js?v=20261126-stage78"><' + '/script>');
       document.write('<script src="js/bamboo-combat.js?v=20261127-f8"><' + '/script>');
-      document.write('<script src="js/bamboo-art.js?v=20261126-ink-warning"><' + '/script>');
+      document.write('<script src="js/bamboo-art.js?v=20261128-neon"><' + '/script>');
     }
     if (window.DEV_MODE?.isStageLab?.(window.location) || window.CONTENT?.getStage?.("hyakki-kyoto")?.mapReleased === true) {
       document.write('<script src="js/kyoto-procession.js?v=20261121-kyoto-actors"><' + '/script>');
@@ -378,7 +376,7 @@
   <script src="js/game-tutorial-rules.js?v=20261103-tutorial-phase20"></script>
   <script src="js/game-sanctuary-arc.js?v=20261107-lv5-dome-gradient"></script>
   <script>
-    if (new URLSearchParams(window.location.search).get("perf") === "1") {
+    if (window.DEV_MODE.isDevMode(location) && new URLSearchParams(location.search).get("perf") === "1") {
       document.write('<script src="js/port-performance.js?v=20261124-ipad-phases"><' + '/script>');
     }
   </script>
@@ -394,7 +392,7 @@
       document.write('<script src="js/dev-active-skill-lab.js?v=20261127-f1"><' + '/script>');
     }
   </script>
-  <script src="js/game.js?v=20261128-classroom-eight"></script>
+  <script src="js/game.js?v=20261128-neon"></script>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' }).catch(() => {});
 </script>

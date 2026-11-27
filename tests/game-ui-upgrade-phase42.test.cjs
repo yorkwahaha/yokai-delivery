@@ -285,7 +285,8 @@ test('Phase42 defaults to bundled OFL MoonStars Kai on LAN/public while preservi
    'YokaiTrialXuandong.woff2','YokaiTrialHanWangYanKai.woff2',
    'YokaiTrialCwTeXQKaiZH.woff2','YokaiTrialChillKaiBig5.woff2']){
    assert.ok(html.includes(face),face+' must be declared as a local Web font');
-   assert.ok(fs.existsSync(path.join(__dirname,'../assets/fonts',face)),face+' file must exist');
+   const directory = /(?:Bakudai|Masa|WenKai|Xuandong)/.test(face) ? '../art/ui-font-trials' : '../assets/fonts';
+   assert.ok(fs.existsSync(path.join(__dirname,directory,face)),face+' file must exist in its declared local path');
  }
  for(const localName of ['Yokai Local Arphic Sun','Yokai Local Arphic Mao'])
    assert.ok(html.includes(localName),'commercial font can only reference the local installation');

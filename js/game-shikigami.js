@@ -19,8 +19,7 @@ window.GAME_SHIKIGAMI = (() => {
   const BLACK_FRAMES = new WeakMap();
   const houndPath = (pose, frame) => `assets/img/characters/shikigami/shikigami__sprite__hound-${pose}__f0${frame}.webp`;
   const houndIdle = houndPath("idle", 1);
-  const trialArt = window.DEV_MODE?.isStageLab?.(window.location) === true;
-  const CARD_ART_PATH = trialArt ? "assets/img/skills/shikigami/cards/shikigami__card.webp" : houndIdle;
+  const CARD_ART_PATH = "assets/img/skills/shikigami/cards/shikigami__card.webp";
   const CARD = Object.freeze({ id: "shikigami", jp: "しきがみ・しょうかん",
     zh: "式神・召喚", type: "active", category: "召喚夥伴", artPath: CARD_ART_PATH,
     desc: "白狼主動追擊並吸引小怪。Lv5 喚出黑白雙狼分頭獵殺，一口擊倒普通怪、兩口擊倒坦克。Boss 不受嘲諷，撲咬另計傷害。" });
@@ -62,22 +61,20 @@ window.GAME_SHIKIGAMI = (() => {
     image.src = path;
     return image;
   }
-  const trialFrames = (pose, count = 4) => Array.from({ length: count }, (_, i) =>
+  const wolfFrames = (pose, count = 4) => Array.from({ length: count }, (_, i) =>
     loadImage(`assets/img/characters/shikigami/shikigami__sprite__${pose}__f0${i + 1}.webp`));
   function loadBlackArt(art) {
-    if (!trialArt || typeof window.Image !== "function" || art.black) return;
-    art.black = { idle: trialFrames("black-idle", 2), run: trialFrames("black-run"), bite: trialFrames("black-bite") };
+    if (typeof window.Image !== "function" || art.black) return;
+    art.black = { idle: wolfFrames("black-idle", 2), run: wolfFrames("black-run"), bite: wolfFrames("black-bite") };
   }
   function loadArt(species) {
     if (typeof window.Image !== "function") return {};
     if (species === "hound") {
       const frames = pose => [1, 2, 3, 4].map(n => loadImage(houndPath(pose, n)));
       const art = { hound: loadImage(ART_PATHS.hound), run: frames("run"), bite: frames("attack") };
-      if (trialArt) {
-        art.whiteBite = trialFrames("white-bite");
-        art.summon = loadImage("assets/img/vfx/skills/shikigami/shikigami__summon.webp");
-        art.vanish = loadImage("assets/img/vfx/skills/shikigami/shikigami__departure.webp");
-      }
+      art.whiteBite = wolfFrames("white-bite");
+      art.summon = loadImage("assets/img/vfx/skills/shikigami/shikigami__summon.webp");
+      art.vanish = loadImage("assets/img/vfx/skills/shikigami/shikigami__departure.webp");
       return art;
     }
     return Object.fromEntries([species, "attack", "vanish"].map(key => [key, loadImage(ART_PATHS[key])]));
@@ -160,7 +157,7 @@ window.GAME_SHIKIGAMI = (() => {
         slot.body = {...point, hp:cfg.maxHp, maxHp:cfg.maxHp, life:cfg.life, maxLife:cfg.life,
           coat:slot.coat, species:cfg.level===5 ? "hound" : kind, scale:cfg.level===5 ? 1.5 : 1,
           facing:1, invulnerable:0, walkTime:0, biteRemaining:0, attackTimer:.25, target:null, following:false};
-        if (trialArt && slot.body.species === "hound")
+        if (slot.body.species === "hound")
           slot.effect = {...point, facing:1, species:"hound", kind:"summon", life:.48};
         slot.cooldown = cfg.cooldown;
         scanAt = aggroAt = 0;

@@ -149,6 +149,8 @@
 .yc-portrait.framed::after, .yc-portrait.sealed::after {
   position: absolute; z-index: 1; inset: 0; content: "";
   background: url("../assets/img/ui/menu/ui__upgrade-card-frame.png") center / contain no-repeat;
+  background-image: image-set(url("../assets/img/ui/menu/ui__upgrade-card-frame.webp") type("image/webp"),
+    url("../assets/img/ui/menu/ui__upgrade-card-frame.png") type("image/png"));
   pointer-events: none;
 }
 .yc-portrait.sealed::after { filter: saturate(.28) brightness(.55); opacity: .76; }

@@ -14,13 +14,10 @@
 - [關卡美術入口](art/README.md)
 - [遊戲企劃](docs/GAME_DESIGN_MASTER.md) ／ [製作計畫](docs/PRODUCTION_PLAN.md) ／ [美術規範](docs/ART_STYLE.md)
 
-## 固定路徑
-- **唯一開發工作樹：`I:/Projects/yokai-delivery/`**。2026-10-26 已移除兩份 10/23 舊備份／舊歸檔，以及乾淨的 10/24 發布 worktree；僅保留已核原始設定稿、縮小後冷備援與 Git 發布分支。詳見 [目錄整併收據](.cleanup-archive/history/20261127/docs/cleanup/20261026-CONSOLIDATION.md)。
-- js/：遊戲正式程式；assets/img/：遊戲正在下載的圖片；assets/audio/：音訊。
-- art/stage1-night-town/ ～ art/stage8-yomi/：各關唯一美術原稿，統一 scene/、characters/、manifest.json、README.md；歷史素材見 art/archive/。
-- tests/ 回歸測試；tools/ 建置腳本；scratch/ 臨時 QA；docs/archive/2026-10/ 歷史資料。
+## 八關公開課堂試玩
 
-## 重要版本差異
-正式網站 https://yorkwahaha.github.io/yokai-delivery/ 已部署 0e5875d（第二關新圖）。Git `release/s2-assets-20261024` 分支保存已發版 commit，**不再保留另一個平行實體工作樹**。I:/Projects/yokai-delivery 主工作樹仍含未提交 BOSS 等工程、Git HEAD 尚未合併公開提交；不得 reset、強制同步或用舊版覆蓋 dirty。第二關選定原稿在 art/stage2-rain-port/scene/ 與 characters/，已發布 22 個 runtime bundle 檔案與主專案 assets/img/rain-port/s2-production/ 位元內容完全相符。
+[正式網站](https://yorkwahaha.github.io/yokai-delivery/) 的八關發布基準為 `0f5792664a5420fab0b7528f30fb9c4b0913885f`。玩家由第一關起依次解鎖，S4–S7 通關各解鎖一招新主動技能。美術、音色及平衡仍待課堂試玩回饋。最新本機修復與驗證見 [roadmap.md](roadmap.md)。
 
-專項 Node 測試：node --test tests/<相關測試>.test.cjs。需要更新媒體時才執行 node tools/build-media-cache.cjs；發版前實測網頁、手機與資產快取。
+正式程式位於 `js/`，圖片與音訊位於 `assets/`。美術原稿及 DEV 試用字型位於本機 `art/`。未用圖片在本機 `.cleanup-archive/images/`，歷史資料入口為 [HISTORY_INDEX.json](docs/HISTORY_INDEX.json)。
+
+專項測試可執行 `node --test tests/<相關測試>.test.cjs`。完整回歸含配樂響度檢查，需在 PATH 安裝 FFmpeg。媒體或正式字型變更後執行 `node tools/build-media-cache.cjs`。

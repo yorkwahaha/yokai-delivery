@@ -363,8 +363,12 @@ test("白狼讀齊九格畫面並用相同腳點繪製，狐狸仍沿用原選�
   }
   const skill=boot({Image});
   const wolf=skill.loadArt("hound");
-  assert.equal(paths.length,9);
-  assert.equal(wolf.hound.path,skill.CARD_ART_PATH);
+  assert.equal(paths.filter(path=>path.includes("__hound-")).length,9);
+  assert.equal(paths.length,15);
+  assert.equal(wolf.hound.path,skill.ART_PATHS.hound);
+  assert.equal(skill.CARD_ART_PATH,"assets/img/skills/shikigami/cards/shikigami__card.webp");
+  assert.ok(fs.existsSync(skill.CARD_ART_PATH));
+  assert.equal(wolf.whiteBite.length,4);
   assert.equal(wolf.run.length,4);
   assert.equal(wolf.bite.length,4);
   for(const path of paths) assert.ok(fs.existsSync(path),path);

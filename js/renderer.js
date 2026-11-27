@@ -1618,55 +1618,6 @@ window.RENDERER = (() => {
     }
   }
 
-  // Stage8 preview: render ONLY clean isolated props as sparse overlays on approved fallback ground
-  // DEV-ONLY: only runs when window.STAGE8_PREVIEW_ENABLED === true
-  // Source: irregular 1448x1086 sprite sheet -> 357 connected components -> 47 clean isolated props
-  // Ground tiles and path tiles DISABLED (were rectangular artifacts with pale soil borders)
-  // Props: genuinely isolated flower stalks, bone fragments, rocks with transparent borders
-  // Respects pseudo-2.5D tilt=0.60 and Stage1 micro-chibi proportion
-  function renderStage8PreviewOverlays(c, left, top, width, height, chunks) {
-    const keys = window.STAGE8_PREVIEW_KEYS;
-    if (!keys) return;
-
-    // Load ONLY clean props - ground tiles and path tiles are DISABLED
-    const props = keys.props?.map(k => window.ART?.[k]).filter(Boolean) || [];
-
-    if (props.length === 0) {
-      return; // No assets loaded yet
-    }
-
-    const tilt = 0.60;
-
-    // Scatter clean props (flower stalks, bone fragments, rocks) very sparsely
-    // Lower density: ~1 prop per 2-3 chunks, micro-chibi scale
-    for (const chunk of chunks) {
-      if (chunk.x > left + width || chunk.x + chunk.w < left ||
-          chunk.y > top + height || chunk.y + chunk.h < top) continue;
-
-      // Deterministic: ~33% of chunks get a prop (lower density)
-      const seed = Math.imul(chunk.x, 73856093) ^ Math.imul(chunk.y, 19349663);
-      if ((seed % 3) !== 0) continue; // Only 1/3 of chunks
-
-      const propSeed = Math.imul(chunk.x * 12345, 73856093) ^ Math.imul(chunk.y * 67890, 19349663);
-      const px = chunk.x + (propSeed % 1000) / 1000 * chunk.w;
-      const py = chunk.y + ((propSeed >> 10) % 1000) / 1000 * chunk.h;
-      const propIdx = (propSeed >> 20) % props.length;
-      const prop = props[propIdx];
-      if (!prop || !prop.naturalWidth) continue;
-
-      // Scale for micro-chibi proportion (Stage1 reference: small decor)
-      // Target: ~60-100px max dimension (smaller than before)
-      const maxDim = Math.max(prop.naturalWidth, prop.naturalHeight);
-      const targetSize = 60 + (propSeed % 100) / 100 * 40; // 60-100px
-      const scale = targetSize / maxDim;
-      const dw = prop.naturalWidth * scale;
-      const dh = prop.naturalHeight * scale;
-      const drawX = px - dw / 2;
-      const drawY = py - dh * (1 - tilt * 0.3); // Apply pseudo-2.5D tilt
-      c.drawImage(prop, drawX, drawY, dw, dh);
-    }
-  }
-
   function paintBambooTrails(c, region, chunks, texture) {
     const layout = window.STAGE_ROUTE_LAYOUTS?.["bamboo-maze"];
     const pattern = texture && c.createPattern(texture, "repeat");
@@ -1779,12 +1730,6 @@ window.RENDERER = (() => {
         if (left < 900) c.fillRect(left, top, Math.min(width, 900 - left), height);
         if (left + width > 1800) c.fillRect(Math.max(left, 1800), top, left + width - Math.max(left, 1800), height);
       }
-    }
-    // Stage8 preview: overlay extracted items on approved fallback ground (DEV-ONLY, ?dev=1&stage8preview=1)
-    // Source: irregular 1448x1086 sprite sheet -> pre-extracted items in art/stage8-yomi/sliced/
-    // NON-SEAMLESS: items composed as overlays on approved ground, no fabricated tiling
-    if (stageId === "yomi" && window.STAGE8_PREVIEW_ENABLED) {
-      renderStage8PreviewOverlays(c, left, top, width, height, chunks);
     }
     c.restore();
   }

@@ -123,3 +123,46 @@ test('invalid mastery, flags and stage counters normalize to finite valid values
   assert.equal(STORE.getStageStats('rain-port').clears,0);
   assert.ok(['ねこ','いぬ'].includes(STORE.pick([{jp:'ねこ'},{jp:'いぬ'}]).jp));
 });
+
+test("historical snapshots recover only the immediate next stage from valid completion data", () => {
+  const legacy = {
+    coins: 42,
+    progress: {
+      completed: { "night-town": true, "sakura-pass": "true", "snow-temple": {}, constructor: true },
+      stages: { "night-town": { clears: 1, bestScore: 30 }, "rain-port": { clears: -1 } }
+    }
+  };
+  const { STORE, mem } = loadStore(legacy);
+  assert.equal(STORE.isStageUnlocked("rain-port"), true);
+  for (const id of ["sakura-pass", "bamboo-maze", "hyakki-kyoto", "snow-temple", "spirit-ferry", "yomi"]) {
+    assert.equal(STORE.isStageUnlocked(id), false, id);
+  }
+  assert.equal(STORE.isStageCompleted("rain-port"), false);
+  assert.equal(STORE.getStageStats("night-town").clears, 1);
+  assert.equal(STORE.data.coins, 42);
+  assert.equal(mem.get("yokai-delivery-v1"), JSON.stringify(legacy), "reading legacy data must preserve the raw save");
+});
+
+test("an imported partial stage map retains existing unlocks and repairs completed stages without awarding coins", () => {
+  const { STORE } = loadStore({ coins: 78, progress: {
+    completed: { "rain-port": true }, unlocked: { "night-town": true, "spirit-ferry": true }
+  } });
+  assert.equal(STORE.isStageCompleted("rain-port"), true);
+  for (const id of ["night-town", "rain-port", "sakura-pass", "spirit-ferry"]) {
+    assert.equal(STORE.isStageUnlocked(id), true, id);
+  }
+  assert.equal(STORE.isStageUnlocked("bamboo-maze"), false);
+  assert.equal(STORE.data.coins, 78);
+  assert.equal(STORE.getStageStats("rain-port").clears, 0, "reading historical completion must not increase clear count");
+});
+
+test("corrupt JSON and failed-attempt stats cannot unlock the next stage", () => {
+  const { mem } = loadStore();
+  mem.set("yokai-delivery-v1", "{bad");
+  delete require.cache[require.resolve("../js/store.js")];
+  require("../js/store.js");
+  assert.equal(global.STORE.isStageUnlocked("rain-port"), false);
+  assert.equal(mem.get("yokai-delivery-v1"), "{bad");
+  const { STORE } = loadStore({ progress: { stages: { "night-town": { attempts: 8, clears: "1" } } } });
+  assert.equal(STORE.isStageUnlocked("rain-port"), false);
+});

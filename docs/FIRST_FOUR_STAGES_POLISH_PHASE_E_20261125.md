@@ -72,7 +72,7 @@ PC 鍵盤預設 WASD 或方向鍵移動、空白鍵衝刺、E 取貨、P 或 Esc
 
 ## 4. 24 項歷史 UI 失敗
 
-`node --test --test-reporter=tap tests/ui-readability.test.cjs` 退出碼 1，51 項中 27 通過、24 失敗。失敗序號與 Phase D 一致。下表限於該檔的斷言、現行 renderer／UI 及對應測試。無足夠證據把待確認項判為現行漏洞，歷史測試原樣保留。 [歷史測試](../tests/ui-readability.test.cjs)
+`node --test --test-reporter=tap tests/ui-readability.test.cjs` 退出碼 1，51 項中 27 通過、24 失敗。失敗序號與 Phase D 一致。下表限於該檔的斷言、現行 renderer／UI 及對應測試。無足夠證據把待確認項判為現行漏洞，歷史測試原樣保留。 [歷史測試來源索引](HISTORICAL_TESTS.json)（`ui-readability.test.cjs`）
 
 | 分類 | 序號及範圍 | 依據 |
 | --- | --- | --- |
