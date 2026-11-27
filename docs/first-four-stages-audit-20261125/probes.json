@@ -1,0 +1,5924 @@
+{
+  "stages": [
+    {
+      "stage": "night-town",
+      "initialXp": 27,
+      "oilDrain": 0.42999999999977945,
+      "ordinaryXp": 2,
+      "profile": {
+        "xpScale": 0.9,
+        "cap": 80,
+        "surgeFirst": 86.25,
+        "surgeInterval": 86.25
+      },
+      "limits": {
+        "gemLimit": 512,
+        "gemDistance": 2400,
+        "magnet": 110,
+        "speed": 230
+      },
+      "wave": [
+        {
+          "hp": 150,
+          "speed": 58,
+          "reward": 35,
+          "shield": true,
+          "title": "狛犬石將"
+        },
+        {
+          "hp": 325,
+          "speed": 58,
+          "reward": 35,
+          "shield": true,
+          "title": "燈籠法師"
+        },
+        {
+          "hp": 825,
+          "speed": 70,
+          "reward": 20,
+          "shield": true,
+          "title": "狛犬石將"
+        },
+        {
+          "hp": 910,
+          "speed": 46,
+          "reward": 35,
+          "shield": true,
+          "title": "大妖鬼"
+        }
+      ],
+      "pacing": [
+        {
+          "minute": 0,
+          "tier": 1.0425,
+          "interval": 1.5,
+          "count": 1,
+          "ghost": {
+            "type": "ghost",
+            "hp": 2,
+            "speed": 47.84
+          },
+          "fast": {
+            "type": "ghost",
+            "hp": 2,
+            "speed": 47.84
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 2,
+            "speed": 47.84
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 2,
+            "speed": 47.84
+          }
+        },
+        {
+          "minute": 1,
+          "tier": 1.5428846153846154,
+          "interval": 1.22,
+          "count": 1,
+          "ghost": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 53.429
+          },
+          "fast": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 53.429
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 53.429
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 53.429
+          }
+        },
+        {
+          "minute": 2,
+          "tier": 2.043269230769231,
+          "interval": 1.8612000000000002,
+          "count": 2,
+          "ghost": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 59.01800000000001
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 3,
+            "speed": 114.862
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 59.01800000000001
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 59.01800000000001
+          }
+        },
+        {
+          "minute": 3,
+          "tier": 2.543653846153846,
+          "interval": 1.4436,
+          "count": 2,
+          "ghost": {
+            "type": "ghost",
+            "hp": 5,
+            "speed": 64.607
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 4,
+            "speed": 121.69300000000001
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 5,
+            "speed": 64.607
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 5,
+            "speed": 64.607
+          }
+        },
+        {
+          "minute": 4,
+          "tier": 3.0440384615384617,
+          "interval": 1.3248,
+          "count": 3,
+          "ghost": {
+            "type": "ghost",
+            "hp": 6,
+            "speed": 70.196
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 4,
+            "speed": 128.524
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 19,
+            "speed": 39.376
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 6,
+            "speed": 70.196
+          }
+        },
+        {
+          "minute": 5,
+          "tier": 3.544423076923077,
+          "interval": 1.206,
+          "count": 4,
+          "ghost": {
+            "type": "ghost",
+            "hp": 7,
+            "speed": 75.785
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 5,
+            "speed": 135.35500000000002
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 22,
+            "speed": 41.86
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 7,
+            "speed": 75.785
+          }
+        },
+        {
+          "minute": 6,
+          "tier": 4.0448076923076925,
+          "interval": 1.0872000000000002,
+          "count": 4,
+          "ghost": {
+            "type": "ghost",
+            "hp": 7,
+            "speed": 81.37400000000001
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 6,
+            "speed": 142.186
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 25,
+            "speed": 44.344
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 7,
+            "speed": 81.37400000000001
+          }
+        },
+        {
+          "minute": 7,
+          "tier": 4.545192307692307,
+          "interval": 0.9684,
+          "count": 5,
+          "ghost": {
+            "type": "ghost",
+            "hp": 8,
+            "speed": 86.96300000000001
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 6,
+            "speed": 149.017
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 28,
+            "speed": 46.82800000000001
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 8,
+            "speed": 86.96300000000001
+          }
+        },
+        {
+          "minute": 8,
+          "tier": 5.045576923076924,
+          "interval": 0.8496,
+          "count": 5,
+          "ghost": {
+            "type": "ghost",
+            "hp": 9,
+            "speed": 92.55199999999999
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 7,
+            "speed": 155.848
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 31,
+            "speed": 49.312000000000005
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 9,
+            "speed": 92.55199999999999
+          }
+        },
+        {
+          "minute": 9,
+          "tier": 5.545961538461539,
+          "interval": 0.7307999999999999,
+          "count": 6,
+          "ghost": {
+            "type": "ghost",
+            "hp": 10,
+            "speed": 98.14100000000002
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 8,
+            "speed": 162.679
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 34,
+            "speed": 51.796
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 10,
+            "speed": 98.14100000000002
+          }
+        },
+        {
+          "minute": 10,
+          "tier": 6.046346153846154,
+          "interval": 0.6119999999999999,
+          "count": 6,
+          "ghost": {
+            "type": "ghost",
+            "hp": 11,
+            "speed": 103.73
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 8,
+            "speed": 169.51000000000002
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 37,
+            "speed": 54.28
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 11,
+            "speed": 103.73
+          }
+        }
+      ],
+      "envelopes": [
+        {
+          "assumptions": {
+            "id": "novice",
+            "harvest": 0.11,
+            "deliveries": [
+              95,
+              185,
+              300,
+              425,
+              540,
+              660
+            ],
+            "boss": [
+              275,
+              480
+            ],
+            "harm": 10,
+            "assist": 0.5
+          },
+          "firstDry": 235,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 1,
+              "xp": 9,
+              "oil": 64.2,
+              "deliveries": 0
+            },
+            {
+              "minute": 2,
+              "rank": 2,
+              "xp": 47,
+              "oil": 48.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 3,
+              "rank": 3,
+              "xp": 64,
+              "oil": 12.6,
+              "deliveries": 1
+            },
+            {
+              "minute": 4,
+              "rank": 4,
+              "xp": 116,
+              "oil": -3.2,
+              "deliveries": 2
+            },
+            {
+              "minute": 5,
+              "rank": 5,
+              "xp": 187,
+              "oil": 16,
+              "deliveries": 3
+            },
+            {
+              "minute": 6,
+              "rank": 6,
+              "xp": 234,
+              "oil": -19.8,
+              "deliveries": 3
+            },
+            {
+              "minute": 7,
+              "rank": 7,
+              "xp": 290,
+              "oil": -55.6,
+              "deliveries": 3
+            },
+            {
+              "minute": 8,
+              "rank": 9,
+              "xp": 403,
+              "oil": -36.4,
+              "deliveries": 4
+            },
+            {
+              "minute": 9,
+              "rank": 10,
+              "xp": 524,
+              "oil": -52.2,
+              "deliveries": 5
+            },
+            {
+              "minute": 10,
+              "rank": 11,
+              "xp": 643,
+              "oil": -88,
+              "deliveries": 5
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "general",
+            "harvest": 0.24,
+            "deliveries": [
+              65,
+              135,
+              210,
+              295,
+              380,
+              475
+            ],
+            "boss": [
+              235,
+              412,
+              520
+            ],
+            "harm": 8,
+            "assist": 0
+          },
+          "firstDry": null,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 1,
+              "xp": 19,
+              "oil": 66.2,
+              "deliveries": 0
+            },
+            {
+              "minute": 2,
+              "rank": 3,
+              "xp": 72,
+              "oil": 60.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 3,
+              "rank": 4,
+              "xp": 135,
+              "oil": 54.6,
+              "deliveries": 2
+            },
+            {
+              "minute": 4,
+              "rank": 6,
+              "xp": 248,
+              "oil": 83.8,
+              "deliveries": 3
+            },
+            {
+              "minute": 5,
+              "rank": 8,
+              "xp": 343,
+              "oil": 78,
+              "deliveries": 4
+            },
+            {
+              "minute": 6,
+              "rank": 9,
+              "xp": 443,
+              "oil": 44.2,
+              "deliveries": 4
+            },
+            {
+              "minute": 7,
+              "rank": 11,
+              "xp": 623,
+              "oil": 73.4,
+              "deliveries": 5
+            },
+            {
+              "minute": 8,
+              "rank": 14,
+              "xp": 808,
+              "oil": 67.6,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 16,
+              "xp": 1048,
+              "oil": 53.8,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 20,
+              "xp": 1306,
+              "oil": 20,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "skilled",
+            "harvest": 0.37,
+            "deliveries": [
+              45,
+              95,
+              150,
+              210,
+              280,
+              350
+            ],
+            "boss": [
+              209,
+              388,
+              508
+            ],
+            "harm": 4,
+            "assist": 0
+          },
+          "firstDry": null,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 2,
+              "xp": 55,
+              "oil": 92.6,
+              "deliveries": 1
+            },
+            {
+              "minute": 2,
+              "rank": 4,
+              "xp": 123,
+              "oil": 87.6,
+              "deliveries": 2
+            },
+            {
+              "minute": 3,
+              "rank": 6,
+              "xp": 205,
+              "oil": 85.1,
+              "deliveries": 3
+            },
+            {
+              "minute": 4,
+              "rank": 8,
+              "xp": 366,
+              "oil": 85.1,
+              "deliveries": 4
+            },
+            {
+              "minute": 5,
+              "rank": 10,
+              "xp": 498,
+              "oil": 83.3,
+              "deliveries": 5
+            },
+            {
+              "minute": 6,
+              "rank": 12,
+              "xp": 679,
+              "oil": 81.5,
+              "deliveries": 6
+            },
+            {
+              "minute": 7,
+              "rank": 15,
+              "xp": 916,
+              "oil": 84.1,
+              "deliveries": 6
+            },
+            {
+              "minute": 8,
+              "rank": 18,
+              "xp": 1161,
+              "oil": 54.3,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 22,
+              "xp": 1530,
+              "oil": 44.5,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 25,
+              "xp": 1929,
+              "oil": 14.7,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "max",
+            "harvest": 0.58,
+            "deliveries": [
+              30,
+              65,
+              101,
+              142,
+              181,
+              229
+            ],
+            "boss": [
+              199,
+              377,
+              498
+            ],
+            "harm": 1,
+            "assist": 0
+          },
+          "firstDry": 577,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 3,
+              "xp": 72,
+              "oil": 86.6,
+              "deliveries": 1
+            },
+            {
+              "minute": 2,
+              "rank": 5,
+              "xp": 189,
+              "oil": 91.5,
+              "deliveries": 3
+            },
+            {
+              "minute": 3,
+              "rank": 7,
+              "xp": 304,
+              "oil": 83,
+              "deliveries": 4
+            },
+            {
+              "minute": 4,
+              "rank": 10,
+              "xp": 541,
+              "oil": 95.1,
+              "deliveries": 6
+            },
+            {
+              "minute": 5,
+              "rank": 12,
+              "xp": 708,
+              "oil": 68.3,
+              "deliveries": 6
+            },
+            {
+              "minute": 6,
+              "rank": 15,
+              "xp": 951,
+              "oil": 41.5,
+              "deliveries": 6
+            },
+            {
+              "minute": 7,
+              "rank": 20,
+              "xp": 1297,
+              "oil": 49.7,
+              "deliveries": 6
+            },
+            {
+              "minute": 8,
+              "rank": 23,
+              "xp": 1681,
+              "oil": 22.9,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 27,
+              "xp": 2234,
+              "oil": 16.1,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 31,
+              "xp": 2859,
+              "oil": -10.7,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "defensive",
+            "harvest": 0.17,
+            "deliveries": [
+              55,
+              118,
+              179,
+              244,
+              313,
+              380
+            ],
+            "boss": [
+              265,
+              449,
+              556
+            ],
+            "harm": 3,
+            "regen": 0.12,
+            "maxOil": 160
+          },
+          "firstDry": null,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 2,
+              "xp": 39,
+              "oil": 106.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 2,
+              "rank": 3,
+              "xp": 85,
+              "oil": 112.8,
+              "deliveries": 2
+            },
+            {
+              "minute": 3,
+              "rank": 4,
+              "xp": 137,
+              "oil": 119.2,
+              "deliveries": 3
+            },
+            {
+              "minute": 4,
+              "rank": 5,
+              "xp": 176,
+              "oil": 97.6,
+              "deliveries": 3
+            },
+            {
+              "minute": 5,
+              "rank": 7,
+              "xp": 273,
+              "oil": 139,
+              "deliveries": 4
+            },
+            {
+              "minute": 6,
+              "rank": 8,
+              "xp": 370,
+              "oil": 143.1,
+              "deliveries": 5
+            },
+            {
+              "minute": 7,
+              "rank": 10,
+              "xp": 483,
+              "oil": 145.6,
+              "deliveries": 6
+            },
+            {
+              "minute": 8,
+              "rank": 11,
+              "xp": 618,
+              "oil": 148.8,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 13,
+              "xp": 765,
+              "oil": 127.2,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 16,
+              "xp": 971,
+              "oil": 125.6,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "off-meta",
+            "harvest": 0.15,
+            "deliveries": [
+              72,
+              145,
+              220,
+              292,
+              363,
+              441
+            ],
+            "boss": [
+              300,
+              515
+            ],
+            "harm": 9,
+            "assist": 0
+          },
+          "firstDry": 583,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 1,
+              "xp": 12,
+              "oil": 65.2,
+              "deliveries": 0
+            },
+            {
+              "minute": 2,
+              "rank": 2,
+              "xp": 55,
+              "oil": 58.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 3,
+              "rank": 4,
+              "xp": 104,
+              "oil": 51.6,
+              "deliveries": 2
+            },
+            {
+              "minute": 4,
+              "rank": 5,
+              "xp": 165,
+              "oil": 44.8,
+              "deliveries": 3
+            },
+            {
+              "minute": 5,
+              "rank": 6,
+              "xp": 253,
+              "oil": 73,
+              "deliveries": 4
+            },
+            {
+              "minute": 6,
+              "rank": 7,
+              "xp": 316,
+              "oil": 38.2,
+              "deliveries": 4
+            },
+            {
+              "minute": 7,
+              "rank": 9,
+              "xp": 419,
+              "oil": 31.4,
+              "deliveries": 5
+            },
+            {
+              "minute": 8,
+              "rank": 10,
+              "xp": 544,
+              "oil": 24.6,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 12,
+              "xp": 694,
+              "oil": 24.8,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 14,
+              "xp": 855,
+              "oil": -10,
+              "deliveries": 6
+            }
+          ]
+        }
+      ],
+      "xpTo25": 1806,
+      "xpTo30": 2589,
+      "curriculum": {
+        "words": 20,
+        "trials": 1280,
+        "exactlyThree": 1280,
+        "majority": 1157,
+        "uniqueLength": 0,
+        "slots": [
+          420,
+          426,
+          434
+        ],
+        "kana": {
+          "hiragana": 15,
+          "katakana": 3,
+          "mixed": 2
+        }
+      },
+      "ordinaryBeforeCapFixture": 0,
+      "overCap": 95
+    },
+    {
+      "stage": "rain-port",
+      "initialXp": 32,
+      "oilDrain": 0.42999999999977945,
+      "ordinaryXp": 3,
+      "profile": {
+        "xpScale": 1.05,
+        "cap": 95,
+        "surgeFirst": 90,
+        "surgeInterval": 80
+      },
+      "limits": {
+        "gemLimit": 512,
+        "gemDistance": 2400,
+        "magnet": 180,
+        "speed": 230
+      },
+      "wave": [
+        {
+          "hp": 300,
+          "speed": 98,
+          "reward": 35,
+          "shield": true,
+          "title": "潮甲蟹將"
+        },
+        {
+          "hp": 650,
+          "speed": 98,
+          "reward": 35,
+          "shield": true,
+          "title": "沉舟幽姬"
+        },
+        {
+          "hp": 900,
+          "speed": 105,
+          "reward": 20,
+          "shield": true,
+          "title": "潮甲蟹將"
+        },
+        {
+          "hp": 1400,
+          "speed": 112,
+          "reward": 35,
+          "shield": true,
+          "title": "港霧大妖"
+        }
+      ],
+      "pacing": [
+        {
+          "minute": 0,
+          "tier": 1.05,
+          "interval": 2.07,
+          "count": 1,
+          "ghost": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 52
+          },
+          "fast": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 52
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 52
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 52
+          }
+        },
+        {
+          "minute": 1,
+          "tier": 1.6115384615384616,
+          "interval": 1.9182000000000001,
+          "count": 1,
+          "ghost": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 58.75
+          },
+          "fast": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 58.75
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 58.75
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 58.75
+          }
+        },
+        {
+          "minute": 2,
+          "tier": 2.1730769230769234,
+          "interval": 1.7664,
+          "count": 2,
+          "ghost": {
+            "type": "ghost",
+            "hp": 5,
+            "speed": 65.5
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 4,
+            "speed": 126.5
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 5,
+            "speed": 65.5
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 5,
+            "speed": 65.5
+          }
+        },
+        {
+          "minute": 3,
+          "tier": 2.7346153846153847,
+          "interval": 1.6145999999999998,
+          "count": 2,
+          "ghost": {
+            "type": "ghost",
+            "hp": 6,
+            "speed": 72.25
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 5,
+            "speed": 134.75
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 6,
+            "speed": 72.25
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 6,
+            "speed": 72.25
+          }
+        },
+        {
+          "minute": 4,
+          "tier": 3.2961538461538464,
+          "interval": 1.4627999999999999,
+          "count": 3,
+          "ghost": {
+            "type": "ghost",
+            "hp": 7,
+            "speed": 79
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 5,
+            "speed": 143
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 24,
+            "speed": 44
+          },
+          "ranged": {
+            "type": "shiome",
+            "hp": 3,
+            "speed": 67
+          }
+        },
+        {
+          "minute": 5,
+          "tier": 3.8576923076923073,
+          "interval": 1.311,
+          "count": 4,
+          "ghost": {
+            "type": "ghost",
+            "hp": 8,
+            "speed": 85.75
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 6,
+            "speed": 151.25
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 28,
+            "speed": 47
+          },
+          "ranged": {
+            "type": "shiome",
+            "hp": 3,
+            "speed": 72.25
+          }
+        },
+        {
+          "minute": 6,
+          "tier": 4.4192307692307695,
+          "interval": 1.1592,
+          "count": 4,
+          "ghost": {
+            "type": "ghost",
+            "hp": 9,
+            "speed": 92.5
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 7,
+            "speed": 159.5
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 31,
+            "speed": 50
+          },
+          "ranged": {
+            "type": "shiome",
+            "hp": 4,
+            "speed": 77.5
+          }
+        },
+        {
+          "minute": 7,
+          "tier": 4.980769230769231,
+          "interval": 1.0073999999999999,
+          "count": 5,
+          "ghost": {
+            "type": "ghost",
+            "hp": 10,
+            "speed": 99.25
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 8,
+            "speed": 167.75
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 35,
+            "speed": 53
+          },
+          "ranged": {
+            "type": "shiome",
+            "hp": 4,
+            "speed": 82.75
+          }
+        },
+        {
+          "minute": 8,
+          "tier": 5.542307692307693,
+          "interval": 0.8555999999999999,
+          "count": 5,
+          "ghost": {
+            "type": "ghost",
+            "hp": 12,
+            "speed": 106
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 9,
+            "speed": 176
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 39,
+            "speed": 56
+          },
+          "ranged": {
+            "type": "shiome",
+            "hp": 4,
+            "speed": 88
+          }
+        },
+        {
+          "minute": 9,
+          "tier": 6.103846153846154,
+          "interval": 0.7037999999999998,
+          "count": 6,
+          "ghost": {
+            "type": "ghost",
+            "hp": 13,
+            "speed": 112.75
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 10,
+            "speed": 184.25
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 43,
+            "speed": 59
+          },
+          "ranged": {
+            "type": "shiome",
+            "hp": 5,
+            "speed": 93.25
+          }
+        },
+        {
+          "minute": 10,
+          "tier": 6.665384615384615,
+          "interval": 0.5519999999999999,
+          "count": 6,
+          "ghost": {
+            "type": "ghost",
+            "hp": 14,
+            "speed": 119.5
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 10,
+            "speed": 192.5
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 47,
+            "speed": 62
+          },
+          "ranged": {
+            "type": "shiome",
+            "hp": 5,
+            "speed": 98.5
+          }
+        }
+      ],
+      "envelopes": [
+        {
+          "assumptions": {
+            "id": "novice",
+            "harvest": 0.11,
+            "deliveries": [
+              95,
+              185,
+              300,
+              425,
+              540,
+              660
+            ],
+            "boss": [
+              275,
+              480
+            ],
+            "harm": 10,
+            "assist": 0.5
+          },
+          "firstDry": 235,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 1,
+              "xp": 9,
+              "oil": 64.2,
+              "deliveries": 0
+            },
+            {
+              "minute": 2,
+              "rank": 2,
+              "xp": 49,
+              "oil": 48.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 3,
+              "rank": 3,
+              "xp": 73,
+              "oil": 12.6,
+              "deliveries": 1
+            },
+            {
+              "minute": 4,
+              "rank": 4,
+              "xp": 134,
+              "oil": -3.2,
+              "deliveries": 2
+            },
+            {
+              "minute": 5,
+              "rank": 5,
+              "xp": 217,
+              "oil": 16,
+              "deliveries": 3
+            },
+            {
+              "minute": 6,
+              "rank": 6,
+              "xp": 281,
+              "oil": -19.8,
+              "deliveries": 3
+            },
+            {
+              "minute": 7,
+              "rank": 7,
+              "xp": 361,
+              "oil": -55.6,
+              "deliveries": 3
+            },
+            {
+              "minute": 8,
+              "rank": 9,
+              "xp": 508,
+              "oil": -36.4,
+              "deliveries": 4
+            },
+            {
+              "minute": 9,
+              "rank": 11,
+              "xp": 680,
+              "oil": -52.2,
+              "deliveries": 5
+            },
+            {
+              "minute": 10,
+              "rank": 13,
+              "xp": 870,
+              "oil": -88,
+              "deliveries": 5
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "general",
+            "harvest": 0.24,
+            "deliveries": [
+              65,
+              135,
+              210,
+              295,
+              380,
+              475
+            ],
+            "boss": [
+              235,
+              412,
+              520
+            ],
+            "harm": 8,
+            "assist": 0
+          },
+          "firstDry": null,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 1,
+              "xp": 19,
+              "oil": 66.2,
+              "deliveries": 0
+            },
+            {
+              "minute": 2,
+              "rank": 3,
+              "xp": 77,
+              "oil": 60.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 3,
+              "rank": 4,
+              "xp": 154,
+              "oil": 54.6,
+              "deliveries": 2
+            },
+            {
+              "minute": 4,
+              "rank": 6,
+              "xp": 287,
+              "oil": 83.8,
+              "deliveries": 3
+            },
+            {
+              "minute": 5,
+              "rank": 8,
+              "xp": 407,
+              "oil": 78,
+              "deliveries": 4
+            },
+            {
+              "minute": 6,
+              "rank": 9,
+              "xp": 548,
+              "oil": 44.2,
+              "deliveries": 4
+            },
+            {
+              "minute": 7,
+              "rank": 12,
+              "xp": 780,
+              "oil": 73.4,
+              "deliveries": 5
+            },
+            {
+              "minute": 8,
+              "rank": 14,
+              "xp": 1038,
+              "oil": 67.6,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 18,
+              "xp": 1387,
+              "oil": 53.8,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 22,
+              "xp": 1803,
+              "oil": 20,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "skilled",
+            "harvest": 0.37,
+            "deliveries": [
+              45,
+              95,
+              150,
+              210,
+              280,
+              350
+            ],
+            "boss": [
+              209,
+              388,
+              508
+            ],
+            "harm": 4,
+            "assist": 0
+          },
+          "firstDry": null,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 2,
+              "xp": 56,
+              "oil": 92.6,
+              "deliveries": 1
+            },
+            {
+              "minute": 2,
+              "rank": 4,
+              "xp": 131,
+              "oil": 87.6,
+              "deliveries": 2
+            },
+            {
+              "minute": 3,
+              "rank": 6,
+              "xp": 236,
+              "oil": 85.1,
+              "deliveries": 3
+            },
+            {
+              "minute": 4,
+              "rank": 8,
+              "xp": 427,
+              "oil": 85.1,
+              "deliveries": 4
+            },
+            {
+              "minute": 5,
+              "rank": 10,
+              "xp": 598,
+              "oil": 83.3,
+              "deliveries": 5
+            },
+            {
+              "minute": 6,
+              "rank": 12,
+              "xp": 840,
+              "oil": 81.5,
+              "deliveries": 6
+            },
+            {
+              "minute": 7,
+              "rank": 16,
+              "xp": 1157,
+              "oil": 84.1,
+              "deliveries": 6
+            },
+            {
+              "minute": 8,
+              "rank": 20,
+              "xp": 1516,
+              "oil": 54.3,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 24,
+              "xp": 2054,
+              "oil": 44.5,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 28,
+              "xp": 2695,
+              "oil": 14.7,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "max",
+            "harvest": 0.58,
+            "deliveries": [
+              30,
+              65,
+              101,
+              142,
+              181,
+              229
+            ],
+            "boss": [
+              199,
+              377,
+              498
+            ],
+            "harm": 1,
+            "assist": 0
+          },
+          "firstDry": 577,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 3,
+              "xp": 73,
+              "oil": 86.6,
+              "deliveries": 1
+            },
+            {
+              "minute": 2,
+              "rank": 5,
+              "xp": 202,
+              "oil": 91.5,
+              "deliveries": 3
+            },
+            {
+              "minute": 3,
+              "rank": 7,
+              "xp": 351,
+              "oil": 83,
+              "deliveries": 4
+            },
+            {
+              "minute": 4,
+              "rank": 10,
+              "xp": 636,
+              "oil": 95.1,
+              "deliveries": 6
+            },
+            {
+              "minute": 5,
+              "rank": 13,
+              "xp": 864,
+              "oil": 68.3,
+              "deliveries": 6
+            },
+            {
+              "minute": 6,
+              "rank": 16,
+              "xp": 1203,
+              "oil": 41.5,
+              "deliveries": 6
+            },
+            {
+              "minute": 7,
+              "rank": 21,
+              "xp": 1675,
+              "oil": 49.7,
+              "deliveries": 6
+            },
+            {
+              "minute": 8,
+              "rank": 25,
+              "xp": 2237,
+              "oil": 22.9,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 30,
+              "xp": 3055,
+              "oil": 16.1,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 34,
+              "xp": 4059,
+              "oil": -10.7,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "defensive",
+            "harvest": 0.17,
+            "deliveries": [
+              55,
+              118,
+              179,
+              244,
+              313,
+              380
+            ],
+            "boss": [
+              265,
+              449,
+              556
+            ],
+            "harm": 3,
+            "regen": 0.12,
+            "maxOil": 160
+          },
+          "firstDry": null,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 2,
+              "xp": 40,
+              "oil": 106.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 2,
+              "rank": 3,
+              "xp": 88,
+              "oil": 112.8,
+              "deliveries": 2
+            },
+            {
+              "minute": 3,
+              "rank": 4,
+              "xp": 150,
+              "oil": 119.2,
+              "deliveries": 3
+            },
+            {
+              "minute": 4,
+              "rank": 5,
+              "xp": 204,
+              "oil": 97.6,
+              "deliveries": 3
+            },
+            {
+              "minute": 5,
+              "rank": 7,
+              "xp": 319,
+              "oil": 139,
+              "deliveries": 4
+            },
+            {
+              "minute": 6,
+              "rank": 8,
+              "xp": 444,
+              "oil": 143.1,
+              "deliveries": 5
+            },
+            {
+              "minute": 7,
+              "rank": 10,
+              "xp": 594,
+              "oil": 145.6,
+              "deliveries": 6
+            },
+            {
+              "minute": 8,
+              "rank": 12,
+              "xp": 781,
+              "oil": 148.8,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 14,
+              "xp": 1006,
+              "oil": 127.2,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 17,
+              "xp": 1322,
+              "oil": 125.6,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "off-meta",
+            "harvest": 0.15,
+            "deliveries": [
+              72,
+              145,
+              220,
+              292,
+              363,
+              441
+            ],
+            "boss": [
+              300,
+              515
+            ],
+            "harm": 9,
+            "assist": 0
+          },
+          "firstDry": 583,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 1,
+              "xp": 12,
+              "oil": 65.2,
+              "deliveries": 0
+            },
+            {
+              "minute": 2,
+              "rank": 2,
+              "xp": 58,
+              "oil": 58.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 3,
+              "rank": 3,
+              "xp": 116,
+              "oil": 51.6,
+              "deliveries": 2
+            },
+            {
+              "minute": 4,
+              "rank": 5,
+              "xp": 189,
+              "oil": 44.8,
+              "deliveries": 3
+            },
+            {
+              "minute": 5,
+              "rank": 6,
+              "xp": 294,
+              "oil": 73,
+              "deliveries": 4
+            },
+            {
+              "minute": 6,
+              "rank": 7,
+              "xp": 381,
+              "oil": 38.2,
+              "deliveries": 4
+            },
+            {
+              "minute": 7,
+              "rank": 9,
+              "xp": 516,
+              "oil": 31.4,
+              "deliveries": 5
+            },
+            {
+              "minute": 8,
+              "rank": 11,
+              "xp": 688,
+              "oil": 24.6,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 13,
+              "xp": 906,
+              "oil": 24.8,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 16,
+              "xp": 1166,
+              "oil": -10,
+              "deliveries": 6
+            }
+          ]
+        }
+      ],
+      "xpTo25": 2113,
+      "xpTo30": 3027,
+      "curriculum": {
+        "words": 20,
+        "trials": 1280,
+        "exactlyThree": 1280,
+        "majority": 1280,
+        "uniqueLength": 0,
+        "slots": [
+          420,
+          426,
+          434
+        ],
+        "kana": {
+          "hiragana": 20,
+          "katakana": 0,
+          "mixed": 0
+        }
+      },
+      "ordinaryBeforeCapFixture": 0,
+      "overCap": 107
+    },
+    {
+      "stage": "sakura-pass",
+      "initialXp": 32,
+      "oilDrain": 0.42999999999977945,
+      "ordinaryXp": 3,
+      "profile": {
+        "xpScale": 1.05,
+        "cap": 80,
+        "surgeFirst": 88,
+        "surgeInterval": 82.5
+      },
+      "limits": {
+        "gemLimit": 512,
+        "gemDistance": 2400,
+        "magnet": 110,
+        "speed": 230
+      },
+      "wave": [
+        {
+          "hp": 300,
+          "speed": 130,
+          "reward": 35,
+          "shield": true,
+          "title": "千年櫻守"
+        },
+        {
+          "hp": 650,
+          "speed": 140,
+          "reward": 35,
+          "shield": true,
+          "title": "夜櫻鬼姬"
+        },
+        {
+          "hp": 1100,
+          "speed": 150,
+          "reward": 20,
+          "shield": true,
+          "title": "千年櫻守"
+        },
+        {
+          "hp": 1400,
+          "speed": 165,
+          "reward": 35,
+          "shield": true,
+          "title": "櫻鬼·花天狗"
+        }
+      ],
+      "pacing": [
+        {
+          "minute": 0,
+          "tier": 1.05,
+          "interval": 1.9800000000000002,
+          "count": 1,
+          "ghost": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 52
+          },
+          "fast": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 52
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 52
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 52
+          }
+        },
+        {
+          "minute": 1,
+          "tier": 1.6115384615384616,
+          "interval": 1.8348000000000002,
+          "count": 1,
+          "ghost": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 58.75
+          },
+          "fast": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 58.75
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 58.75
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 58.75
+          }
+        },
+        {
+          "minute": 2,
+          "tier": 2.1730769230769234,
+          "interval": 1.6896000000000002,
+          "count": 2,
+          "ghost": {
+            "type": "ghost",
+            "hp": 5,
+            "speed": 65.5
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 4,
+            "speed": 126.5
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 5,
+            "speed": 65.5
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 5,
+            "speed": 65.5
+          }
+        },
+        {
+          "minute": 3,
+          "tier": 2.7346153846153847,
+          "interval": 1.5444,
+          "count": 2,
+          "ghost": {
+            "type": "ghost",
+            "hp": 6,
+            "speed": 72.25
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 5,
+            "speed": 134.75
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 6,
+            "speed": 72.25
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 6,
+            "speed": 72.25
+          }
+        },
+        {
+          "minute": 4,
+          "tier": 3.2961538461538464,
+          "interval": 1.3992000000000002,
+          "count": 3,
+          "ghost": {
+            "type": "ghost",
+            "hp": 8,
+            "speed": 79
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 6,
+            "speed": 143
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 25,
+            "speed": 44
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 4,
+            "speed": 72
+          }
+        },
+        {
+          "minute": 5,
+          "tier": 3.8576923076923073,
+          "interval": 1.2540000000000002,
+          "count": 4,
+          "ghost": {
+            "type": "ghost",
+            "hp": 9,
+            "speed": 85.75
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 7,
+            "speed": 151.25
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 30,
+            "speed": 47
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 5,
+            "speed": 78
+          }
+        },
+        {
+          "minute": 6,
+          "tier": 4.4192307692307695,
+          "interval": 1.1088,
+          "count": 4,
+          "ghost": {
+            "type": "ghost",
+            "hp": 10,
+            "speed": 92.5
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 8,
+            "speed": 159.5
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 34,
+            "speed": 50
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 5,
+            "speed": 84
+          }
+        },
+        {
+          "minute": 7,
+          "tier": 4.980769230769231,
+          "interval": 0.9636000000000001,
+          "count": 5,
+          "ghost": {
+            "type": "ghost",
+            "hp": 11,
+            "speed": 99.25
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 9,
+            "speed": 167.75
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 38,
+            "speed": 53
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 6,
+            "speed": 90
+          }
+        },
+        {
+          "minute": 8,
+          "tier": 5.542307692307693,
+          "interval": 0.8184,
+          "count": 5,
+          "ghost": {
+            "type": "ghost",
+            "hp": 12,
+            "speed": 106
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 9,
+            "speed": 176
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 42,
+            "speed": 56
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 6,
+            "speed": 96
+          }
+        },
+        {
+          "minute": 9,
+          "tier": 6.103846153846154,
+          "interval": 0.6731999999999999,
+          "count": 6,
+          "ghost": {
+            "type": "ghost",
+            "hp": 14,
+            "speed": 112.75
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 10,
+            "speed": 184.25
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 47,
+            "speed": 59
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 7,
+            "speed": 102
+          }
+        },
+        {
+          "minute": 10,
+          "tier": 6.665384615384615,
+          "interval": 0.528,
+          "count": 6,
+          "ghost": {
+            "type": "ghost",
+            "hp": 15,
+            "speed": 119.5
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 11,
+            "speed": 192.5
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 51,
+            "speed": 62
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 8,
+            "speed": 108
+          }
+        }
+      ],
+      "envelopes": [
+        {
+          "assumptions": {
+            "id": "novice",
+            "harvest": 0.11,
+            "deliveries": [
+              95,
+              185,
+              300,
+              425,
+              540,
+              660
+            ],
+            "boss": [
+              275,
+              480
+            ],
+            "harm": 10,
+            "assist": 0.5
+          },
+          "firstDry": 235,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 1,
+              "xp": 9,
+              "oil": 64.2,
+              "deliveries": 0
+            },
+            {
+              "minute": 2,
+              "rank": 2,
+              "xp": 51,
+              "oil": 48.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 3,
+              "rank": 3,
+              "xp": 75,
+              "oil": 12.6,
+              "deliveries": 1
+            },
+            {
+              "minute": 4,
+              "rank": 4,
+              "xp": 137,
+              "oil": -3.2,
+              "deliveries": 2
+            },
+            {
+              "minute": 5,
+              "rank": 5,
+              "xp": 223,
+              "oil": 16,
+              "deliveries": 3
+            },
+            {
+              "minute": 6,
+              "rank": 6,
+              "xp": 290,
+              "oil": -19.8,
+              "deliveries": 3
+            },
+            {
+              "minute": 7,
+              "rank": 7,
+              "xp": 374,
+              "oil": -55.6,
+              "deliveries": 3
+            },
+            {
+              "minute": 8,
+              "rank": 9,
+              "xp": 525,
+              "oil": -36.4,
+              "deliveries": 4
+            },
+            {
+              "minute": 9,
+              "rank": 11,
+              "xp": 704,
+              "oil": -52.2,
+              "deliveries": 5
+            },
+            {
+              "minute": 10,
+              "rank": 13,
+              "xp": 903,
+              "oil": -88,
+              "deliveries": 5
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "general",
+            "harvest": 0.24,
+            "deliveries": [
+              65,
+              135,
+              210,
+              295,
+              380,
+              475
+            ],
+            "boss": [
+              235,
+              412,
+              520
+            ],
+            "harm": 8,
+            "assist": 0
+          },
+          "firstDry": null,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 1,
+              "xp": 20,
+              "oil": 66.2,
+              "deliveries": 0
+            },
+            {
+              "minute": 2,
+              "rank": 3,
+              "xp": 79,
+              "oil": 60.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 3,
+              "rank": 4,
+              "xp": 159,
+              "oil": 54.6,
+              "deliveries": 2
+            },
+            {
+              "minute": 4,
+              "rank": 6,
+              "xp": 295,
+              "oil": 83.8,
+              "deliveries": 3
+            },
+            {
+              "minute": 5,
+              "rank": 8,
+              "xp": 420,
+              "oil": 78,
+              "deliveries": 4
+            },
+            {
+              "minute": 6,
+              "rank": 10,
+              "xp": 566,
+              "oil": 44.2,
+              "deliveries": 4
+            },
+            {
+              "minute": 7,
+              "rank": 12,
+              "xp": 806,
+              "oil": 73.4,
+              "deliveries": 5
+            },
+            {
+              "minute": 8,
+              "rank": 15,
+              "xp": 1075,
+              "oil": 67.6,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 19,
+              "xp": 1439,
+              "oil": 53.8,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 23,
+              "xp": 1873,
+              "oil": 20,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "skilled",
+            "harvest": 0.37,
+            "deliveries": [
+              45,
+              95,
+              150,
+              210,
+              280,
+              350
+            ],
+            "boss": [
+              209,
+              388,
+              508
+            ],
+            "harm": 4,
+            "assist": 0
+          },
+          "firstDry": null,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 2,
+              "xp": 57,
+              "oil": 92.6,
+              "deliveries": 1
+            },
+            {
+              "minute": 2,
+              "rank": 4,
+              "xp": 134,
+              "oil": 87.6,
+              "deliveries": 2
+            },
+            {
+              "minute": 3,
+              "rank": 6,
+              "xp": 243,
+              "oil": 85.1,
+              "deliveries": 3
+            },
+            {
+              "minute": 4,
+              "rank": 8,
+              "xp": 439,
+              "oil": 85.1,
+              "deliveries": 4
+            },
+            {
+              "minute": 5,
+              "rank": 10,
+              "xp": 617,
+              "oil": 83.3,
+              "deliveries": 5
+            },
+            {
+              "minute": 6,
+              "rank": 13,
+              "xp": 869,
+              "oil": 81.5,
+              "deliveries": 6
+            },
+            {
+              "minute": 7,
+              "rank": 16,
+              "xp": 1198,
+              "oil": 84.1,
+              "deliveries": 6
+            },
+            {
+              "minute": 8,
+              "rank": 20,
+              "xp": 1574,
+              "oil": 54.3,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 25,
+              "xp": 2133,
+              "oil": 44.5,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 28,
+              "xp": 2803,
+              "oil": 14.7,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "max",
+            "harvest": 0.58,
+            "deliveries": [
+              30,
+              65,
+              101,
+              142,
+              181,
+              229
+            ],
+            "boss": [
+              199,
+              377,
+              498
+            ],
+            "harm": 1,
+            "assist": 0
+          },
+          "firstDry": 577,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 3,
+              "xp": 75,
+              "oil": 86.6,
+              "deliveries": 1
+            },
+            {
+              "minute": 2,
+              "rank": 5,
+              "xp": 207,
+              "oil": 91.5,
+              "deliveries": 3
+            },
+            {
+              "minute": 3,
+              "rank": 7,
+              "xp": 363,
+              "oil": 83,
+              "deliveries": 4
+            },
+            {
+              "minute": 4,
+              "rank": 10,
+              "xp": 656,
+              "oil": 95.1,
+              "deliveries": 6
+            },
+            {
+              "minute": 5,
+              "rank": 13,
+              "xp": 894,
+              "oil": 68.3,
+              "deliveries": 6
+            },
+            {
+              "minute": 6,
+              "rank": 17,
+              "xp": 1248,
+              "oil": 41.5,
+              "deliveries": 6
+            },
+            {
+              "minute": 7,
+              "rank": 22,
+              "xp": 1739,
+              "oil": 49.7,
+              "deliveries": 6
+            },
+            {
+              "minute": 8,
+              "rank": 26,
+              "xp": 2327,
+              "oil": 22.9,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 30,
+              "xp": 3180,
+              "oil": 16.1,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 34,
+              "xp": 4230,
+              "oil": -10.7,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "defensive",
+            "harvest": 0.17,
+            "deliveries": [
+              55,
+              118,
+              179,
+              244,
+              313,
+              380
+            ],
+            "boss": [
+              265,
+              449,
+              556
+            ],
+            "harm": 3,
+            "regen": 0.12,
+            "maxOil": 160
+          },
+          "firstDry": null,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 2,
+              "xp": 40,
+              "oil": 106.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 2,
+              "rank": 3,
+              "xp": 90,
+              "oil": 112.8,
+              "deliveries": 2
+            },
+            {
+              "minute": 3,
+              "rank": 4,
+              "xp": 154,
+              "oil": 119.2,
+              "deliveries": 3
+            },
+            {
+              "minute": 4,
+              "rank": 5,
+              "xp": 210,
+              "oil": 97.6,
+              "deliveries": 3
+            },
+            {
+              "minute": 5,
+              "rank": 7,
+              "xp": 328,
+              "oil": 139,
+              "deliveries": 4
+            },
+            {
+              "minute": 6,
+              "rank": 8,
+              "xp": 458,
+              "oil": 143.1,
+              "deliveries": 5
+            },
+            {
+              "minute": 7,
+              "rank": 10,
+              "xp": 613,
+              "oil": 145.6,
+              "deliveries": 6
+            },
+            {
+              "minute": 8,
+              "rank": 12,
+              "xp": 807,
+              "oil": 148.8,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 15,
+              "xp": 1042,
+              "oil": 127.2,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 18,
+              "xp": 1372,
+              "oil": 125.6,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "off-meta",
+            "harvest": 0.15,
+            "deliveries": [
+              72,
+              145,
+              220,
+              292,
+              363,
+              441
+            ],
+            "boss": [
+              300,
+              515
+            ],
+            "harm": 9,
+            "assist": 0
+          },
+          "firstDry": 583,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 1,
+              "xp": 13,
+              "oil": 65.2,
+              "deliveries": 0
+            },
+            {
+              "minute": 2,
+              "rank": 2,
+              "xp": 59,
+              "oil": 58.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 3,
+              "rank": 4,
+              "xp": 119,
+              "oil": 51.6,
+              "deliveries": 2
+            },
+            {
+              "minute": 4,
+              "rank": 5,
+              "xp": 194,
+              "oil": 44.8,
+              "deliveries": 3
+            },
+            {
+              "minute": 5,
+              "rank": 6,
+              "xp": 301,
+              "oil": 73,
+              "deliveries": 4
+            },
+            {
+              "minute": 6,
+              "rank": 8,
+              "xp": 393,
+              "oil": 38.2,
+              "deliveries": 4
+            },
+            {
+              "minute": 7,
+              "rank": 9,
+              "xp": 533,
+              "oil": 31.4,
+              "deliveries": 5
+            },
+            {
+              "minute": 8,
+              "rank": 11,
+              "xp": 711,
+              "oil": 24.6,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 13,
+              "xp": 938,
+              "oil": 24.8,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 16,
+              "xp": 1210,
+              "oil": -10,
+              "deliveries": 6
+            }
+          ]
+        }
+      ],
+      "xpTo25": 2113,
+      "xpTo30": 3027,
+      "curriculum": {
+        "words": 20,
+        "trials": 1280,
+        "exactlyThree": 1280,
+        "majority": 1280,
+        "uniqueLength": 0,
+        "slots": [
+          406,
+          433,
+          441
+        ],
+        "kana": {
+          "hiragana": 20,
+          "katakana": 0,
+          "mixed": 0
+        }
+      },
+      "ordinaryBeforeCapFixture": 0,
+      "overCap": 80
+    },
+    {
+      "stage": "bamboo-maze",
+      "initialXp": 30,
+      "oilDrain": 0.42999999999977945,
+      "ordinaryXp": 2,
+      "profile": {
+        "xpScale": 1,
+        "cap": 95,
+        "surgeFirst": 80,
+        "surgeInterval": 75
+      },
+      "limits": {
+        "gemLimit": 512,
+        "gemDistance": 2400,
+        "magnet": 110,
+        "speed": 230
+      },
+      "wave": [
+        {
+          "hp": 300,
+          "speed": 58,
+          "reward": 35,
+          "shield": true,
+          "title": "竹甲山豬"
+        },
+        {
+          "hp": 650,
+          "speed": 58,
+          "reward": 35,
+          "shield": true,
+          "title": "墨竹鬼姬"
+        },
+        {
+          "hp": 1100,
+          "speed": 70,
+          "reward": 20,
+          "shield": true,
+          "title": "竹甲山豬"
+        },
+        {
+          "hp": 1400,
+          "speed": 46,
+          "reward": 35,
+          "shield": true,
+          "title": "竹影魅妖"
+        }
+      ],
+      "pacing": [
+        {
+          "minute": 0,
+          "tier": 1.05,
+          "interval": 1.9440000000000002,
+          "count": 1,
+          "ghost": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 53.04
+          },
+          "fast": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 53.04
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 53.04
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 3,
+            "speed": 53.04
+          }
+        },
+        {
+          "minute": 1,
+          "tier": 1.6115384615384616,
+          "interval": 1.8014400000000004,
+          "count": 1,
+          "ghost": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 59.925000000000004
+          },
+          "fast": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 59.925000000000004
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 59.925000000000004
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 4,
+            "speed": 59.925000000000004
+          }
+        },
+        {
+          "minute": 2,
+          "tier": 2.1730769230769234,
+          "interval": 1.6588800000000001,
+          "count": 2,
+          "ghost": {
+            "type": "ghost",
+            "hp": 5,
+            "speed": 66.81
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 4,
+            "speed": 129.03
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 5,
+            "speed": 66.81
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 5,
+            "speed": 66.81
+          }
+        },
+        {
+          "minute": 3,
+          "tier": 2.7346153846153847,
+          "interval": 1.5163200000000001,
+          "count": 2,
+          "ghost": {
+            "type": "ghost",
+            "hp": 6,
+            "speed": 73.69500000000001
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 5,
+            "speed": 137.445
+          },
+          "tank": {
+            "type": "ghost",
+            "hp": 6,
+            "speed": 73.69500000000001
+          },
+          "ranged": {
+            "type": "ghost",
+            "hp": 6,
+            "speed": 73.69500000000001
+          }
+        },
+        {
+          "minute": 4,
+          "tier": 3.2961538461538464,
+          "interval": 1.37376,
+          "count": 3,
+          "ghost": {
+            "type": "ghost",
+            "hp": 7,
+            "speed": 80.58
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 5,
+            "speed": 145.86
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 24,
+            "speed": 44.88
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 4,
+            "speed": 73.44
+          }
+        },
+        {
+          "minute": 5,
+          "tier": 3.8576923076923073,
+          "interval": 1.2312000000000003,
+          "count": 4,
+          "ghost": {
+            "type": "ghost",
+            "hp": 8,
+            "speed": 87.465
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 6,
+            "speed": 154.275
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 28,
+            "speed": 47.94
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 4,
+            "speed": 79.56
+          }
+        },
+        {
+          "minute": 6,
+          "tier": 4.4192307692307695,
+          "interval": 1.08864,
+          "count": 4,
+          "ghost": {
+            "type": "ghost",
+            "hp": 9,
+            "speed": 94.35000000000001
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 7,
+            "speed": 162.69
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 31,
+            "speed": 51
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 5,
+            "speed": 85.68
+          }
+        },
+        {
+          "minute": 7,
+          "tier": 4.980769230769231,
+          "interval": 0.94608,
+          "count": 5,
+          "ghost": {
+            "type": "ghost",
+            "hp": 10,
+            "speed": 101.235
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 8,
+            "speed": 171.105
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 35,
+            "speed": 54.06
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 5,
+            "speed": 91.8
+          }
+        },
+        {
+          "minute": 8,
+          "tier": 5.542307692307693,
+          "interval": 0.80352,
+          "count": 5,
+          "ghost": {
+            "type": "ghost",
+            "hp": 12,
+            "speed": 108.12
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 9,
+            "speed": 179.52
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 39,
+            "speed": 57.120000000000005
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 6,
+            "speed": 97.92
+          }
+        },
+        {
+          "minute": 9,
+          "tier": 6.103846153846154,
+          "interval": 0.6609599999999999,
+          "count": 6,
+          "ghost": {
+            "type": "ghost",
+            "hp": 13,
+            "speed": 115.005
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 10,
+            "speed": 187.935
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 43,
+            "speed": 60.18
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 7,
+            "speed": 104.04
+          }
+        },
+        {
+          "minute": 10,
+          "tier": 6.665384615384615,
+          "interval": 0.5184,
+          "count": 6,
+          "ghost": {
+            "type": "ghost",
+            "hp": 14,
+            "speed": 121.89
+          },
+          "fast": {
+            "type": "runner",
+            "hp": 10,
+            "speed": 196.35
+          },
+          "tank": {
+            "type": "tank",
+            "hp": 47,
+            "speed": 63.24
+          },
+          "ranged": {
+            "type": "shooter",
+            "hp": 7,
+            "speed": 110.16
+          }
+        }
+      ],
+      "envelopes": [
+        {
+          "assumptions": {
+            "id": "novice",
+            "harvest": 0.11,
+            "deliveries": [
+              95,
+              185,
+              300,
+              425,
+              540,
+              660
+            ],
+            "boss": [
+              275,
+              480
+            ],
+            "harm": 10,
+            "assist": 0.5
+          },
+          "firstDry": 235,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 1,
+              "xp": 6,
+              "oil": 64.2,
+              "deliveries": 0
+            },
+            {
+              "minute": 2,
+              "rank": 2,
+              "xp": 43,
+              "oil": 48.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 3,
+              "rank": 2,
+              "xp": 59,
+              "oil": 12.6,
+              "deliveries": 1
+            },
+            {
+              "minute": 4,
+              "rank": 3,
+              "xp": 110,
+              "oil": -3.2,
+              "deliveries": 2
+            },
+            {
+              "minute": 5,
+              "rank": 5,
+              "xp": 181,
+              "oil": 16,
+              "deliveries": 3
+            },
+            {
+              "minute": 6,
+              "rank": 6,
+              "xp": 227,
+              "oil": -19.8,
+              "deliveries": 3
+            },
+            {
+              "minute": 7,
+              "rank": 6,
+              "xp": 283,
+              "oil": -55.6,
+              "deliveries": 3
+            },
+            {
+              "minute": 8,
+              "rank": 8,
+              "xp": 399,
+              "oil": -36.4,
+              "deliveries": 4
+            },
+            {
+              "minute": 9,
+              "rank": 9,
+              "xp": 529,
+              "oil": -52.2,
+              "deliveries": 5
+            },
+            {
+              "minute": 10,
+              "rank": 11,
+              "xp": 664,
+              "oil": -88,
+              "deliveries": 5
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "general",
+            "harvest": 0.24,
+            "deliveries": [
+              65,
+              135,
+              210,
+              295,
+              380,
+              475
+            ],
+            "boss": [
+              235,
+              412,
+              520
+            ],
+            "harm": 8,
+            "assist": 0
+          },
+          "firstDry": null,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 1,
+              "xp": 14,
+              "oil": 66.2,
+              "deliveries": 0
+            },
+            {
+              "minute": 2,
+              "rank": 2,
+              "xp": 62,
+              "oil": 60.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 3,
+              "rank": 4,
+              "xp": 125,
+              "oil": 54.6,
+              "deliveries": 2
+            },
+            {
+              "minute": 4,
+              "rank": 6,
+              "xp": 236,
+              "oil": 83.8,
+              "deliveries": 3
+            },
+            {
+              "minute": 5,
+              "rank": 7,
+              "xp": 328,
+              "oil": 78,
+              "deliveries": 4
+            },
+            {
+              "minute": 6,
+              "rank": 8,
+              "xp": 428,
+              "oil": 44.2,
+              "deliveries": 4
+            },
+            {
+              "minute": 7,
+              "rank": 10,
+              "xp": 609,
+              "oil": 73.4,
+              "deliveries": 5
+            },
+            {
+              "minute": 8,
+              "rank": 12,
+              "xp": 800,
+              "oil": 67.6,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 15,
+              "xp": 1057,
+              "oil": 53.8,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 19,
+              "xp": 1352,
+              "oil": 20,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "skilled",
+            "harvest": 0.37,
+            "deliveries": [
+              45,
+              95,
+              150,
+              210,
+              280,
+              350
+            ],
+            "boss": [
+              209,
+              388,
+              508
+            ],
+            "harm": 4,
+            "assist": 0
+          },
+          "firstDry": null,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 2,
+              "xp": 47,
+              "oil": 92.6,
+              "deliveries": 1
+            },
+            {
+              "minute": 2,
+              "rank": 3,
+              "xp": 108,
+              "oil": 87.6,
+              "deliveries": 2
+            },
+            {
+              "minute": 3,
+              "rank": 5,
+              "xp": 190,
+              "oil": 85.1,
+              "deliveries": 3
+            },
+            {
+              "minute": 4,
+              "rank": 7,
+              "xp": 347,
+              "oil": 85.1,
+              "deliveries": 4
+            },
+            {
+              "minute": 5,
+              "rank": 9,
+              "xp": 476,
+              "oil": 83.3,
+              "deliveries": 5
+            },
+            {
+              "minute": 6,
+              "rank": 11,
+              "xp": 656,
+              "oil": 81.5,
+              "deliveries": 6
+            },
+            {
+              "minute": 7,
+              "rank": 13,
+              "xp": 895,
+              "oil": 84.1,
+              "deliveries": 6
+            },
+            {
+              "minute": 8,
+              "rank": 16,
+              "xp": 1149,
+              "oil": 54.3,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 21,
+              "xp": 1545,
+              "oil": 44.5,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 24,
+              "xp": 2000,
+              "oil": 14.7,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "max",
+            "harvest": 0.58,
+            "deliveries": [
+              30,
+              65,
+              101,
+              142,
+              181,
+              229
+            ],
+            "boss": [
+              199,
+              377,
+              498
+            ],
+            "harm": 1,
+            "assist": 0
+          },
+          "firstDry": 577,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 2,
+              "xp": 59,
+              "oil": 86.6,
+              "deliveries": 1
+            },
+            {
+              "minute": 2,
+              "rank": 5,
+              "xp": 166,
+              "oil": 91.5,
+              "deliveries": 3
+            },
+            {
+              "minute": 3,
+              "rank": 6,
+              "xp": 280,
+              "oil": 83,
+              "deliveries": 4
+            },
+            {
+              "minute": 4,
+              "rank": 9,
+              "xp": 512,
+              "oil": 95.1,
+              "deliveries": 6
+            },
+            {
+              "minute": 5,
+              "rank": 11,
+              "xp": 673,
+              "oil": 68.3,
+              "deliveries": 6
+            },
+            {
+              "minute": 6,
+              "rank": 14,
+              "xp": 914,
+              "oil": 41.5,
+              "deliveries": 6
+            },
+            {
+              "minute": 7,
+              "rank": 18,
+              "xp": 1263,
+              "oil": 49.7,
+              "deliveries": 6
+            },
+            {
+              "minute": 8,
+              "rank": 22,
+              "xp": 1662,
+              "oil": 22.9,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 26,
+              "xp": 2257,
+              "oil": 16.1,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 30,
+              "xp": 2970,
+              "oil": -10.7,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "defensive",
+            "harvest": 0.17,
+            "deliveries": [
+              55,
+              118,
+              179,
+              244,
+              313,
+              380
+            ],
+            "boss": [
+              265,
+              449,
+              556
+            ],
+            "harm": 3,
+            "regen": 0.12,
+            "maxOil": 160
+          },
+          "firstDry": null,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 2,
+              "xp": 36,
+              "oil": 106.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 2,
+              "rank": 3,
+              "xp": 78,
+              "oil": 112.8,
+              "deliveries": 2
+            },
+            {
+              "minute": 3,
+              "rank": 4,
+              "xp": 129,
+              "oil": 119.2,
+              "deliveries": 3
+            },
+            {
+              "minute": 4,
+              "rank": 5,
+              "xp": 168,
+              "oil": 97.6,
+              "deliveries": 3
+            },
+            {
+              "minute": 5,
+              "rank": 6,
+              "xp": 263,
+              "oil": 139,
+              "deliveries": 4
+            },
+            {
+              "minute": 6,
+              "rank": 7,
+              "xp": 360,
+              "oil": 143.1,
+              "deliveries": 5
+            },
+            {
+              "minute": 7,
+              "rank": 9,
+              "xp": 473,
+              "oil": 145.6,
+              "deliveries": 6
+            },
+            {
+              "minute": 8,
+              "rank": 10,
+              "xp": 612,
+              "oil": 148.8,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 12,
+              "xp": 772,
+              "oil": 127.2,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 15,
+              "xp": 1003,
+              "oil": 125.6,
+              "deliveries": 6
+            }
+          ]
+        },
+        {
+          "assumptions": {
+            "id": "off-meta",
+            "harvest": 0.15,
+            "deliveries": [
+              72,
+              145,
+              220,
+              292,
+              363,
+              441
+            ],
+            "boss": [
+              300,
+              515
+            ],
+            "harm": 9,
+            "assist": 0
+          },
+          "firstDry": 583,
+          "snapshots": [
+            {
+              "minute": 1,
+              "rank": 1,
+              "xp": 9,
+              "oil": 65.2,
+              "deliveries": 0
+            },
+            {
+              "minute": 2,
+              "rank": 2,
+              "xp": 49,
+              "oil": 58.4,
+              "deliveries": 1
+            },
+            {
+              "minute": 3,
+              "rank": 3,
+              "xp": 97,
+              "oil": 51.6,
+              "deliveries": 2
+            },
+            {
+              "minute": 4,
+              "rank": 4,
+              "xp": 157,
+              "oil": 44.8,
+              "deliveries": 3
+            },
+            {
+              "minute": 5,
+              "rank": 6,
+              "xp": 244,
+              "oil": 73,
+              "deliveries": 4
+            },
+            {
+              "minute": 6,
+              "rank": 7,
+              "xp": 307,
+              "oil": 38.2,
+              "deliveries": 4
+            },
+            {
+              "minute": 7,
+              "rank": 8,
+              "xp": 410,
+              "oil": 31.4,
+              "deliveries": 5
+            },
+            {
+              "minute": 8,
+              "rank": 10,
+              "xp": 539,
+              "oil": 24.6,
+              "deliveries": 6
+            },
+            {
+              "minute": 9,
+              "rank": 11,
+              "xp": 700,
+              "oil": 24.8,
+              "deliveries": 6
+            },
+            {
+              "minute": 10,
+              "rank": 13,
+              "xp": 884,
+              "oil": -10,
+              "deliveries": 6
+            }
+          ]
+        }
+      ],
+      "xpTo25": 2006,
+      "xpTo30": 2876,
+      "curriculum": {
+        "words": 20,
+        "trials": 1280,
+        "exactlyThree": 1280,
+        "majority": 1152,
+        "uniqueLength": 0,
+        "slots": [
+          403,
+          435,
+          442
+        ],
+        "kana": {
+          "hiragana": 17,
+          "katakana": 3,
+          "mixed": 0
+        }
+      },
+      "ordinaryBeforeCapFixture": 0,
+      "overCap": 113
+    }
+  ],
+  "specs": {
+    "katana": [
+      {
+        "skillId": "katana",
+        "level": 1,
+        "isAwakened": false,
+        "reach": 145,
+        "swingReach": 123.25,
+        "arc": 1.22,
+        "cooldown": 0.72,
+        "slashDmg": 1.2,
+        "windDmg": 5.06,
+        "maxTravel": 720,
+        "pierceLimit": 6,
+        "pierceScaleAfterThree": 0.75,
+        "source": "base",
+        "derivationDepth": 0,
+        "hasCrosscut": false,
+        "hasCharge": false,
+        "hasBreak": false,
+        "hasLongblade": false,
+        "armoredDamageMultiplier": 1,
+        "bossDamageMultiplier": 1,
+        "crosscutDelay": 0.16,
+        "crosscutDmg": 0.72,
+        "crosscutReach": 131,
+        "crosscutArc": 1.15,
+        "crosscutAngleOffset": 1.319468914507713,
+        "hasDuoInkfire": false,
+        "duoInkfire": null,
+        "critLvl": 0,
+        "critChance": 0.2,
+        "critMult": 1.8
+      },
+      {
+        "skillId": "katana",
+        "level": 2,
+        "isAwakened": false,
+        "reach": 161,
+        "swingReach": 136.85,
+        "arc": 1.22,
+        "cooldown": 0.72,
+        "slashDmg": 2,
+        "windDmg": 5.06,
+        "maxTravel": 720,
+        "pierceLimit": 6,
+        "pierceScaleAfterThree": 0.75,
+        "source": "base",
+        "derivationDepth": 0,
+        "hasCrosscut": false,
+        "hasCharge": false,
+        "hasBreak": false,
+        "hasLongblade": false,
+        "armoredDamageMultiplier": 1,
+        "bossDamageMultiplier": 1,
+        "crosscutDelay": 0.16,
+        "crosscutDmg": 1.2,
+        "crosscutReach": 145,
+        "crosscutArc": 1.15,
+        "crosscutAngleOffset": 1.319468914507713,
+        "hasDuoInkfire": false,
+        "duoInkfire": null,
+        "critLvl": 0,
+        "critChance": 0.2,
+        "critMult": 1.8
+      },
+      {
+        "skillId": "katana",
+        "level": 3,
+        "isAwakened": false,
+        "reach": 177,
+        "swingReach": 150.45,
+        "arc": 1.22,
+        "cooldown": 0.72,
+        "slashDmg": 2.8,
+        "windDmg": 5.06,
+        "maxTravel": 720,
+        "pierceLimit": 6,
+        "pierceScaleAfterThree": 0.75,
+        "source": "base",
+        "derivationDepth": 0,
+        "hasCrosscut": false,
+        "hasCharge": false,
+        "hasBreak": false,
+        "hasLongblade": false,
+        "armoredDamageMultiplier": 1,
+        "bossDamageMultiplier": 1,
+        "crosscutDelay": 0.16,
+        "crosscutDmg": 1.68,
+        "crosscutReach": 159,
+        "crosscutArc": 1.15,
+        "crosscutAngleOffset": 1.319468914507713,
+        "hasDuoInkfire": false,
+        "duoInkfire": null,
+        "critLvl": 0,
+        "critChance": 0.2,
+        "critMult": 1.8
+      },
+      {
+        "skillId": "katana",
+        "level": 4,
+        "isAwakened": false,
+        "reach": 193,
+        "swingReach": 164.04999999999998,
+        "arc": 1.22,
+        "cooldown": 0.72,
+        "slashDmg": 3.6000000000000005,
+        "windDmg": 5.06,
+        "maxTravel": 720,
+        "pierceLimit": 6,
+        "pierceScaleAfterThree": 0.75,
+        "source": "base",
+        "derivationDepth": 0,
+        "hasCrosscut": false,
+        "hasCharge": false,
+        "hasBreak": false,
+        "hasLongblade": false,
+        "armoredDamageMultiplier": 1,
+        "bossDamageMultiplier": 1,
+        "crosscutDelay": 0.16,
+        "crosscutDmg": 2.16,
+        "crosscutReach": 174,
+        "crosscutArc": 1.15,
+        "crosscutAngleOffset": 1.319468914507713,
+        "hasDuoInkfire": false,
+        "duoInkfire": null,
+        "critLvl": 0,
+        "critChance": 0.2,
+        "critMult": 1.8
+      },
+      {
+        "skillId": "katana",
+        "level": 5,
+        "isAwakened": true,
+        "reach": 209,
+        "swingReach": 720,
+        "arc": 1.22,
+        "cooldown": 0.72,
+        "slashDmg": 4.4,
+        "windDmg": 5.06,
+        "maxTravel": 720,
+        "pierceLimit": 6,
+        "pierceScaleAfterThree": 0.75,
+        "source": "base",
+        "derivationDepth": 0,
+        "hasCrosscut": false,
+        "hasCharge": false,
+        "hasBreak": false,
+        "hasLongblade": false,
+        "armoredDamageMultiplier": 1,
+        "bossDamageMultiplier": 1,
+        "crosscutDelay": 0.16,
+        "crosscutDmg": 2.64,
+        "crosscutReach": 220,
+        "crosscutArc": 1.15,
+        "crosscutAngleOffset": 1.319468914507713,
+        "hasDuoInkfire": false,
+        "duoInkfire": null,
+        "critLvl": 0,
+        "critChance": 0.2,
+        "critMult": 1.8
+      }
+    ],
+    "barrier": [
+      {
+        "skillId": "barrier",
+        "level": 1,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "cooldown": 2.7800000000000002,
+        "baseRadius": 168,
+        "radius": 168,
+        "baseDamage": 0.48,
+        "damage": 0.48,
+        "hasPulse": false,
+        "hasBind": false,
+        "hasWide": false,
+        "hasRepulse": false,
+        "slowDuration": 0,
+        "pulseCount": 1,
+        "pulseDelay": 0.18,
+        "pulseScale": 1,
+        "pulseRadius": 168,
+        "knockback": 0,
+        "fullKnockback": 0,
+        "critLvl": 0,
+        "critChance": 0.15,
+        "critMult": 1.8,
+        "sanctuary": null
+      },
+      {
+        "skillId": "barrier",
+        "level": 2,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "cooldown": 2.3600000000000003,
+        "baseRadius": 196,
+        "radius": 196,
+        "baseDamage": 0.8,
+        "damage": 0.8,
+        "hasPulse": false,
+        "hasBind": false,
+        "hasWide": false,
+        "hasRepulse": false,
+        "slowDuration": 0,
+        "pulseCount": 1,
+        "pulseDelay": 0.18,
+        "pulseScale": 1,
+        "pulseRadius": 196,
+        "knockback": 0,
+        "fullKnockback": 0,
+        "critLvl": 0,
+        "critChance": 0.15,
+        "critMult": 1.8,
+        "sanctuary": null
+      },
+      {
+        "skillId": "barrier",
+        "level": 3,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "cooldown": 1.9400000000000002,
+        "baseRadius": 224,
+        "radius": 224,
+        "baseDamage": 1.1199999999999999,
+        "damage": 1.12,
+        "hasPulse": false,
+        "hasBind": false,
+        "hasWide": false,
+        "hasRepulse": false,
+        "slowDuration": 0,
+        "pulseCount": 1,
+        "pulseDelay": 0.18,
+        "pulseScale": 1,
+        "pulseRadius": 224,
+        "knockback": 0,
+        "fullKnockback": 0,
+        "critLvl": 0,
+        "critChance": 0.15,
+        "critMult": 1.8,
+        "sanctuary": null
+      },
+      {
+        "skillId": "barrier",
+        "level": 4,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "cooldown": 1.5200000000000002,
+        "baseRadius": 252,
+        "radius": 252,
+        "baseDamage": 1.4400000000000004,
+        "damage": 1.44,
+        "hasPulse": false,
+        "hasBind": false,
+        "hasWide": false,
+        "hasRepulse": false,
+        "slowDuration": 0,
+        "pulseCount": 1,
+        "pulseDelay": 0.18,
+        "pulseScale": 1,
+        "pulseRadius": 252,
+        "knockback": 90,
+        "fullKnockback": 90,
+        "critLvl": 0,
+        "critChance": 0.15,
+        "critMult": 1.8,
+        "sanctuary": null
+      },
+      {
+        "skillId": "barrier",
+        "level": 5,
+        "isAwakened": true,
+        "source": "base",
+        "derivationDepth": 0,
+        "cooldown": 1.5,
+        "baseRadius": 290,
+        "radius": 290,
+        "baseDamage": 4.5,
+        "damage": 4.5,
+        "hasPulse": false,
+        "hasBind": false,
+        "hasWide": false,
+        "hasRepulse": false,
+        "slowDuration": 0,
+        "pulseCount": 1,
+        "pulseDelay": 0.18,
+        "pulseScale": 1,
+        "pulseRadius": 290,
+        "knockback": 100,
+        "fullKnockback": 100,
+        "critLvl": 0,
+        "critChance": 0.15,
+        "critMult": 1.8,
+        "sanctuary": {
+          "duration": 1.8,
+          "radius": 290
+        }
+      }
+    ],
+    "fire": [
+      {
+        "skillId": "fire",
+        "level": 1,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "count": 1,
+        "hasOrbit": false,
+        "hasRapid": false,
+        "hasFlamebind": false,
+        "hasFury": false,
+        "slowDuration": 0,
+        "hasDuoInkfire": false,
+        "hasDuoCinderseal": false,
+        "rx": 98,
+        "ry": 98,
+        "angularSpeed": 2.8,
+        "hitInterval": 0.42,
+        "contactDamage": 2.16,
+        "attackCount": 0,
+        "spiritDamage": 3.6,
+        "spiritCooldown": 2.5,
+        "cooldown": 2.5,
+        "dragonDirectDmg": 14.4,
+        "dragonSplashDmg": 4.8,
+        "dragonScorchDmg": 2.16,
+        "scorchDuration": 5,
+        "scorchRadius": 140
+      },
+      {
+        "skillId": "fire",
+        "level": 2,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "count": 2,
+        "hasOrbit": false,
+        "hasRapid": false,
+        "hasFlamebind": false,
+        "hasFury": false,
+        "slowDuration": 0,
+        "hasDuoInkfire": false,
+        "hasDuoCinderseal": false,
+        "rx": 98,
+        "ry": 98,
+        "angularSpeed": 2.8,
+        "hitInterval": 0.42,
+        "contactDamage": 2.88,
+        "attackCount": 0,
+        "spiritDamage": 4.68,
+        "spiritCooldown": 2.2,
+        "cooldown": 2.2,
+        "dragonDirectDmg": 14.4,
+        "dragonSplashDmg": 4.8,
+        "dragonScorchDmg": 2.16,
+        "scorchDuration": 5,
+        "scorchRadius": 140
+      },
+      {
+        "skillId": "fire",
+        "level": 3,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "count": 3,
+        "hasOrbit": false,
+        "hasRapid": false,
+        "hasFlamebind": false,
+        "hasFury": false,
+        "slowDuration": 0,
+        "hasDuoInkfire": false,
+        "hasDuoCinderseal": false,
+        "rx": 98,
+        "ry": 98,
+        "angularSpeed": 2.8,
+        "hitInterval": 0.42,
+        "contactDamage": 3.6,
+        "attackCount": 0,
+        "spiritDamage": 5.76,
+        "spiritCooldown": 1.9,
+        "cooldown": 1.9,
+        "dragonDirectDmg": 14.4,
+        "dragonSplashDmg": 4.8,
+        "dragonScorchDmg": 2.16,
+        "scorchDuration": 5,
+        "scorchRadius": 140
+      },
+      {
+        "skillId": "fire",
+        "level": 4,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "count": 3,
+        "hasOrbit": false,
+        "hasRapid": false,
+        "hasFlamebind": false,
+        "hasFury": false,
+        "slowDuration": 0,
+        "hasDuoInkfire": false,
+        "hasDuoCinderseal": false,
+        "rx": 98,
+        "ry": 98,
+        "angularSpeed": 2.8,
+        "hitInterval": 0.42,
+        "contactDamage": 4.32,
+        "attackCount": 1,
+        "spiritDamage": 6.84,
+        "spiritCooldown": 1.55,
+        "cooldown": 1.55,
+        "dragonDirectDmg": 14.4,
+        "dragonSplashDmg": 4.8,
+        "dragonScorchDmg": 2.16,
+        "scorchDuration": 5,
+        "scorchRadius": 140
+      },
+      {
+        "skillId": "fire",
+        "level": 5,
+        "isAwakened": true,
+        "source": "base",
+        "derivationDepth": 0,
+        "count": 3,
+        "hasOrbit": false,
+        "hasRapid": false,
+        "hasFlamebind": false,
+        "hasFury": false,
+        "slowDuration": 0,
+        "hasDuoInkfire": false,
+        "hasDuoCinderseal": false,
+        "rx": 98,
+        "ry": 98,
+        "angularSpeed": 2.8,
+        "hitInterval": 0.42,
+        "contactDamage": 5.04,
+        "attackCount": 0,
+        "spiritDamage": 7.92,
+        "spiritCooldown": 1.05,
+        "cooldown": 7.2,
+        "dragonDirectDmg": 14.4,
+        "dragonSplashDmg": 4.8,
+        "dragonScorchDmg": 2.16,
+        "scorchDuration": 5,
+        "scorchRadius": 140
+      }
+    ],
+    "boom": [
+      {
+        "skillId": "boom",
+        "level": 1,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "baseCount": 1,
+        "count": 1,
+        "cooldown": 1.76,
+        "speed": 880,
+        "life": 1.4,
+        "fuse": 1.5,
+        "spread": 0.32,
+        "baseRadius": 78,
+        "radius": 78,
+        "baseDamage": 2.2,
+        "damage": 2.64,
+        "splashScale": 0.2,
+        "splashDamage": 0.528,
+        "knockback": 72,
+        "hasFan": false,
+        "fan": false,
+        "hasSplitblast": false,
+        "splitblastDelay": 0.18,
+        "splitblastRadiusScale": 0.55,
+        "splitblastRadius": 0,
+        "splitblastDirectScale": 0.25,
+        "splitblastSplashScale": 0.25,
+        "splitblastDirectDamage": 0,
+        "splitblastSplashDamage": 0,
+        "hasSeek": false,
+        "seek": false,
+        "tracking": false,
+        "turnRate": 0,
+        "seekRange": 480,
+        "hasFrost": false,
+        "frost": false,
+        "frostThreshold": 1,
+        "bossFrostThreshold": 3,
+        "hasDuoFrostseal": false,
+        "duoFrostseal": null,
+        "hasDuoCinderseal": false,
+        "duoCinderseal": null,
+        "mutations": []
+      },
+      {
+        "skillId": "boom",
+        "level": 2,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "baseCount": 2,
+        "count": 2,
+        "cooldown": 1.52,
+        "speed": 880,
+        "life": 1.4,
+        "fuse": 1.5,
+        "spread": 0.32,
+        "baseRadius": 92,
+        "radius": 92,
+        "baseDamage": 2.9,
+        "damage": 3.48,
+        "splashScale": 0.2,
+        "splashDamage": 0.696,
+        "knockback": 72,
+        "hasFan": false,
+        "fan": false,
+        "hasSplitblast": false,
+        "splitblastDelay": 0.18,
+        "splitblastRadiusScale": 0.55,
+        "splitblastRadius": 0,
+        "splitblastDirectScale": 0.25,
+        "splitblastSplashScale": 0.25,
+        "splitblastDirectDamage": 0,
+        "splitblastSplashDamage": 0,
+        "hasSeek": false,
+        "seek": false,
+        "tracking": false,
+        "turnRate": 0,
+        "seekRange": 480,
+        "hasFrost": false,
+        "frost": false,
+        "frostThreshold": 1,
+        "bossFrostThreshold": 3,
+        "hasDuoFrostseal": false,
+        "duoFrostseal": null,
+        "hasDuoCinderseal": false,
+        "duoCinderseal": null,
+        "mutations": []
+      },
+      {
+        "skillId": "boom",
+        "level": 3,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "baseCount": 3,
+        "count": 3,
+        "cooldown": 1.28,
+        "speed": 880,
+        "life": 1.4,
+        "fuse": 1.5,
+        "spread": 0.32,
+        "baseRadius": 108,
+        "radius": 108,
+        "baseDamage": 3.5999999999999996,
+        "damage": 4.32,
+        "splashScale": 0.2,
+        "splashDamage": 0.864,
+        "knockback": 72,
+        "hasFan": false,
+        "fan": false,
+        "hasSplitblast": false,
+        "splitblastDelay": 0.18,
+        "splitblastRadiusScale": 0.55,
+        "splitblastRadius": 0,
+        "splitblastDirectScale": 0.25,
+        "splitblastSplashScale": 0.25,
+        "splitblastDirectDamage": 0,
+        "splitblastSplashDamage": 0,
+        "hasSeek": false,
+        "seek": false,
+        "tracking": false,
+        "turnRate": 0,
+        "seekRange": 480,
+        "hasFrost": false,
+        "frost": false,
+        "frostThreshold": 1,
+        "bossFrostThreshold": 3,
+        "hasDuoFrostseal": false,
+        "duoFrostseal": null,
+        "hasDuoCinderseal": false,
+        "duoCinderseal": null,
+        "mutations": []
+      },
+      {
+        "skillId": "boom",
+        "level": 4,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "baseCount": 4,
+        "count": 4,
+        "cooldown": 1.04,
+        "speed": 880,
+        "life": 1.4,
+        "fuse": 1.5,
+        "spread": 0.28,
+        "baseRadius": 122,
+        "radius": 122,
+        "baseDamage": 4.3,
+        "damage": 5.16,
+        "splashScale": 0.2,
+        "splashDamage": 1.032,
+        "knockback": 72,
+        "hasFan": false,
+        "fan": false,
+        "hasSplitblast": false,
+        "splitblastDelay": 0.18,
+        "splitblastRadiusScale": 0.55,
+        "splitblastRadius": 0,
+        "splitblastDirectScale": 0.25,
+        "splitblastSplashScale": 0.25,
+        "splitblastDirectDamage": 0,
+        "splitblastSplashDamage": 0,
+        "hasSeek": false,
+        "seek": false,
+        "tracking": false,
+        "turnRate": 0,
+        "seekRange": 480,
+        "hasFrost": false,
+        "frost": false,
+        "frostThreshold": 1,
+        "bossFrostThreshold": 3,
+        "hasDuoFrostseal": false,
+        "duoFrostseal": null,
+        "hasDuoCinderseal": false,
+        "duoCinderseal": null,
+        "mutations": []
+      },
+      {
+        "skillId": "boom",
+        "level": 5,
+        "isAwakened": true,
+        "source": "base",
+        "derivationDepth": 0,
+        "baseCount": 2,
+        "count": 2,
+        "cooldown": 1.6,
+        "speed": 880,
+        "life": 1.4,
+        "fuse": 1.5,
+        "spread": 0.28,
+        "baseRadius": 153,
+        "radius": 153,
+        "baseDamage": 5,
+        "damage": 9.6,
+        "splashScale": 1,
+        "splashDamage": 6,
+        "knockback": 72,
+        "hasFan": false,
+        "fan": false,
+        "hasSplitblast": false,
+        "splitblastDelay": 0.18,
+        "splitblastRadiusScale": 0.55,
+        "splitblastRadius": 0,
+        "splitblastDirectScale": 0.25,
+        "splitblastSplashScale": 0.25,
+        "splitblastDirectDamage": 0,
+        "splitblastSplashDamage": 0,
+        "hasSeek": false,
+        "seek": false,
+        "tracking": false,
+        "turnRate": 0,
+        "seekRange": 480,
+        "hasFrost": false,
+        "frost": false,
+        "frostThreshold": 1,
+        "bossFrostThreshold": 3,
+        "hasDuoFrostseal": false,
+        "duoFrostseal": null,
+        "hasDuoCinderseal": false,
+        "duoCinderseal": null,
+        "mutations": []
+      }
+    ],
+    "thunder": [
+      {
+        "skillId": "thunder",
+        "level": 1,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "cooldown": 2.25,
+        "mult": 2,
+        "baseDamage": 2.4,
+        "damage": 2.4,
+        "radius": 190,
+        "targetCount": 1,
+        "hasBranch": false,
+        "hasFocus": false,
+        "hasStun": false,
+        "hasOverload": false,
+        "slowDuration": 0,
+        "bossSlowDuration": 0,
+        "branchCount": 0,
+        "branchScale": 0.25,
+        "branchDamage": 0.6,
+        "branchRadius": 180,
+        "cloudRadius": 90,
+        "hasDuoThundercircle": false,
+        "duoThundercircle": null,
+        "critLvl": 0,
+        "critChance": 0.2,
+        "critMult": 1.8
+      },
+      {
+        "skillId": "thunder",
+        "level": 2,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "cooldown": 2,
+        "mult": 3,
+        "baseDamage": 3.6,
+        "damage": 3.6,
+        "radius": 270,
+        "targetCount": 2,
+        "hasBranch": false,
+        "hasFocus": false,
+        "hasStun": false,
+        "hasOverload": false,
+        "slowDuration": 0,
+        "bossSlowDuration": 0,
+        "branchCount": 0,
+        "branchScale": 0.25,
+        "branchDamage": 0.9,
+        "branchRadius": 180,
+        "cloudRadius": 90,
+        "hasDuoThundercircle": false,
+        "duoThundercircle": null,
+        "critLvl": 0,
+        "critChance": 0.2,
+        "critMult": 1.8
+      },
+      {
+        "skillId": "thunder",
+        "level": 3,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "cooldown": 2,
+        "mult": 4.5,
+        "baseDamage": 5.4,
+        "damage": 5.4,
+        "radius": 350,
+        "targetCount": 3,
+        "hasBranch": false,
+        "hasFocus": false,
+        "hasStun": false,
+        "hasOverload": false,
+        "slowDuration": 0,
+        "bossSlowDuration": 0,
+        "branchCount": 0,
+        "branchScale": 0.25,
+        "branchDamage": 1.35,
+        "branchRadius": 180,
+        "cloudRadius": 90,
+        "hasDuoThundercircle": false,
+        "duoThundercircle": null,
+        "critLvl": 0,
+        "critChance": 0.2,
+        "critMult": 1.8
+      },
+      {
+        "skillId": "thunder",
+        "level": 4,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0,
+        "cooldown": 2,
+        "mult": 6,
+        "baseDamage": 7.2,
+        "damage": 7.2,
+        "radius": 450,
+        "targetCount": 3,
+        "hasBranch": false,
+        "hasFocus": false,
+        "hasStun": false,
+        "hasOverload": false,
+        "slowDuration": 0,
+        "bossSlowDuration": 0,
+        "branchCount": 0,
+        "branchScale": 0.25,
+        "branchDamage": 1.8,
+        "branchRadius": 180,
+        "cloudRadius": 90,
+        "hasDuoThundercircle": false,
+        "duoThundercircle": null,
+        "critLvl": 0,
+        "critChance": 0.2,
+        "critMult": 1.8
+      },
+      {
+        "skillId": "thunder",
+        "level": 5,
+        "isAwakened": true,
+        "source": "base",
+        "derivationDepth": 0,
+        "cooldown": 2.4,
+        "mult": 8,
+        "baseDamage": 9.6,
+        "damage": 9.6,
+        "radius": 450,
+        "targetCount": 3,
+        "hasBranch": false,
+        "hasFocus": false,
+        "hasStun": false,
+        "hasOverload": false,
+        "slowDuration": 0,
+        "bossSlowDuration": 0,
+        "branchCount": 0,
+        "branchScale": 0.25,
+        "branchDamage": 2.4,
+        "branchRadius": 180,
+        "cloudRadius": 90,
+        "hasDuoThundercircle": false,
+        "duoThundercircle": null,
+        "critLvl": 0,
+        "critChance": 0.2,
+        "critMult": 1.8
+      }
+    ],
+    "needle": [
+      {
+        "skillId": "needle",
+        "level": 1,
+        "isAwakened": false,
+        "radialVolley": false,
+        "volleyInterval": 0,
+        "source": "base",
+        "count": 3,
+        "speed": 640,
+        "spread": 0.45,
+        "life": 0.65,
+        "range": 440,
+        "cooldown": 1.09,
+        "baseDamage": 2.1,
+        "damage": 2.52,
+        "tracking": false,
+        "frost": false,
+        "hasPierce": false,
+        "pierceBonusScale": 0,
+        "maxPierceBonusHits": 0,
+        "pierceBonusMax": 0,
+        "hasReturn": false,
+        "returnDistance": 0,
+        "derivation": "none"
+      },
+      {
+        "skillId": "needle",
+        "level": 2,
+        "isAwakened": false,
+        "radialVolley": false,
+        "volleyInterval": 0,
+        "source": "base",
+        "count": 5,
+        "speed": 640,
+        "spread": 0.45,
+        "life": 0.65,
+        "range": 440,
+        "cooldown": 0.9299999999999999,
+        "baseDamage": 2.8,
+        "damage": 3.36,
+        "tracking": false,
+        "frost": false,
+        "hasPierce": false,
+        "pierceBonusScale": 0,
+        "maxPierceBonusHits": 0,
+        "pierceBonusMax": 0,
+        "hasReturn": false,
+        "returnDistance": 0,
+        "derivation": "none"
+      },
+      {
+        "skillId": "needle",
+        "level": 3,
+        "isAwakened": false,
+        "radialVolley": false,
+        "volleyInterval": 0,
+        "source": "base",
+        "count": 7,
+        "speed": 640,
+        "spread": 1.5707963267948966,
+        "life": 0.65,
+        "range": 440,
+        "cooldown": 0.77,
+        "baseDamage": 3.5,
+        "damage": 4.2,
+        "tracking": false,
+        "frost": false,
+        "hasPierce": false,
+        "pierceBonusScale": 0,
+        "maxPierceBonusHits": 0,
+        "pierceBonusMax": 0,
+        "hasReturn": false,
+        "returnDistance": 0,
+        "derivation": "none"
+      },
+      {
+        "skillId": "needle",
+        "level": 4,
+        "isAwakened": false,
+        "radialVolley": false,
+        "volleyInterval": 0,
+        "source": "base",
+        "count": 8,
+        "speed": 640,
+        "spread": 2.0943951023931953,
+        "life": 0.65,
+        "range": 440,
+        "cooldown": 0.61,
+        "baseDamage": 4.2,
+        "damage": 5.04,
+        "tracking": false,
+        "frost": false,
+        "hasPierce": false,
+        "pierceBonusScale": 0,
+        "maxPierceBonusHits": 0,
+        "pierceBonusMax": 0,
+        "hasReturn": false,
+        "returnDistance": 0,
+        "derivation": "none"
+      },
+      {
+        "skillId": "needle",
+        "level": 5,
+        "isAwakened": true,
+        "radialVolley": true,
+        "volleyInterval": 0.05,
+        "source": "base",
+        "count": 8,
+        "speed": 640,
+        "spread": 6.283185307179586,
+        "life": 0.95,
+        "range": 440,
+        "cooldown": 1,
+        "baseDamage": 4.8,
+        "damage": 5.76,
+        "tracking": false,
+        "frost": false,
+        "hasPierce": false,
+        "pierceBonusScale": 0,
+        "maxPierceBonusHits": 0,
+        "pierceBonusMax": 0,
+        "hasReturn": false,
+        "returnDistance": 0,
+        "derivation": "none"
+      }
+    ],
+    "ink_trail": [
+      {
+        "skillId": "ink_trail",
+        "max": 4,
+        "distance": 62,
+        "interval": 0.3,
+        "radius": 46,
+        "life": 2.8,
+        "factor": 1.4,
+        "level": 1,
+        "damage": 1.68,
+        "dps": 1.68,
+        "poisonLife": 2,
+        "confusionDuration": 0,
+        "confusionImmunity": 7,
+        "bossMultiplier": 0.35,
+        "cadenceEligible": false,
+        "reachEligible": false,
+        "critEligible": false,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0
+      },
+      {
+        "skillId": "ink_trail",
+        "max": 6,
+        "distance": 56,
+        "interval": 0.27,
+        "radius": 54,
+        "life": 3.5,
+        "factor": 1.8,
+        "level": 2,
+        "damage": 2.16,
+        "dps": 2.16,
+        "poisonLife": 2,
+        "confusionDuration": 0,
+        "confusionImmunity": 7,
+        "bossMultiplier": 0.35,
+        "cadenceEligible": false,
+        "reachEligible": false,
+        "critEligible": false,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0
+      },
+      {
+        "skillId": "ink_trail",
+        "max": 8,
+        "distance": 52,
+        "interval": 0.24,
+        "radius": 60,
+        "life": 4.4,
+        "factor": 2.3,
+        "level": 3,
+        "damage": 2.76,
+        "dps": 2.76,
+        "poisonLife": 2,
+        "confusionDuration": 0,
+        "confusionImmunity": 7,
+        "bossMultiplier": 0.35,
+        "cadenceEligible": false,
+        "reachEligible": false,
+        "critEligible": false,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0
+      },
+      {
+        "skillId": "ink_trail",
+        "max": 11,
+        "distance": 48,
+        "interval": 0.22,
+        "radius": 67,
+        "life": 5.5,
+        "factor": 2.8,
+        "level": 4,
+        "damage": 3.36,
+        "dps": 3.36,
+        "poisonLife": 2,
+        "confusionDuration": 0,
+        "confusionImmunity": 7,
+        "bossMultiplier": 0.35,
+        "cadenceEligible": false,
+        "reachEligible": false,
+        "critEligible": false,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0
+      },
+      {
+        "skillId": "ink_trail",
+        "max": 14,
+        "distance": 45,
+        "interval": 0.2,
+        "radius": 72,
+        "life": 6,
+        "factor": 3.2,
+        "level": 5,
+        "damage": 3.84,
+        "dps": 3.84,
+        "poisonLife": 2,
+        "confusionDuration": 2.5,
+        "confusionImmunity": 7,
+        "bossMultiplier": 0.35,
+        "cadenceEligible": false,
+        "reachEligible": false,
+        "critEligible": false,
+        "isAwakened": true,
+        "source": "base",
+        "derivationDepth": 0
+      }
+    ],
+    "seal_nail": [
+      {
+        "skillId": "seal_nail",
+        "factor": 4,
+        "cooldown": 5.3,
+        "radius": 110,
+        "distance": 185,
+        "life": 4,
+        "level": 1,
+        "damage": 4.8,
+        "secondDamage": 0,
+        "secondDelay": 0.24,
+        "secondOffset": 94,
+        "bossMultiplier": 0.45,
+        "maxTargets": 7,
+        "cadenceEligible": false,
+        "reachEligible": false,
+        "critEligible": false,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0
+      },
+      {
+        "skillId": "seal_nail",
+        "factor": 5.4,
+        "cooldown": 4.9,
+        "radius": 122,
+        "distance": 175,
+        "life": 4.5,
+        "level": 2,
+        "damage": 6.48,
+        "secondDamage": 0,
+        "secondDelay": 0.24,
+        "secondOffset": 94,
+        "bossMultiplier": 0.45,
+        "maxTargets": 7,
+        "cadenceEligible": false,
+        "reachEligible": false,
+        "critEligible": false,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0
+      },
+      {
+        "skillId": "seal_nail",
+        "factor": 6.8,
+        "cooldown": 4.6,
+        "radius": 136,
+        "distance": 165,
+        "life": 5,
+        "level": 3,
+        "damage": 8.16,
+        "secondDamage": 0,
+        "secondDelay": 0.24,
+        "secondOffset": 94,
+        "bossMultiplier": 0.45,
+        "maxTargets": 7,
+        "cadenceEligible": false,
+        "reachEligible": false,
+        "critEligible": false,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0
+      },
+      {
+        "skillId": "seal_nail",
+        "factor": 8.4,
+        "cooldown": 4.2,
+        "radius": 148,
+        "distance": 155,
+        "life": 5.5,
+        "level": 4,
+        "damage": 10.08,
+        "secondDamage": 0,
+        "secondDelay": 0.24,
+        "secondOffset": 94,
+        "bossMultiplier": 0.45,
+        "maxTargets": 7,
+        "cadenceEligible": false,
+        "reachEligible": false,
+        "critEligible": false,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0
+      },
+      {
+        "skillId": "seal_nail",
+        "factor": 10,
+        "cooldown": 3.9,
+        "radius": 160,
+        "distance": 145,
+        "life": 6,
+        "level": 5,
+        "damage": 12,
+        "secondDamage": 5.4,
+        "secondDelay": 0.24,
+        "secondOffset": 94,
+        "bossMultiplier": 0.45,
+        "maxTargets": 7,
+        "cadenceEligible": false,
+        "reachEligible": false,
+        "critEligible": false,
+        "isAwakened": true,
+        "source": "base",
+        "derivationDepth": 0
+      }
+    ],
+    "shikigami": [
+      {
+        "skillId": "shikigami",
+        "maxHp": 42,
+        "life": 11,
+        "cooldown": 19,
+        "speed": 185,
+        "attackInterval": 1.5,
+        "factor": 1.2,
+        "aggroCap": 1,
+        "aggroChance": 0.3,
+        "level": 1,
+        "damage": 1.44,
+        "attackRange": 38,
+        "seekRange": 195,
+        "followRadius": 48,
+        "maxFollowDistance": 210,
+        "aggroRange": 180,
+        "bossMultiplier": 0.42,
+        "maxAllies": 1,
+        "maxEnemyScan": 128,
+        "cadenceEligible": false,
+        "critEligible": false,
+        "reachEligible": false,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0
+      },
+      {
+        "skillId": "shikigami",
+        "maxHp": 60,
+        "life": 13,
+        "cooldown": 18,
+        "speed": 200,
+        "attackInterval": 1.32,
+        "factor": 1.55,
+        "aggroCap": 2,
+        "aggroChance": 0.35,
+        "level": 2,
+        "damage": 1.8599999999999999,
+        "attackRange": 38,
+        "seekRange": 195,
+        "followRadius": 48,
+        "maxFollowDistance": 210,
+        "aggroRange": 180,
+        "bossMultiplier": 0.42,
+        "maxAllies": 1,
+        "maxEnemyScan": 128,
+        "cadenceEligible": false,
+        "critEligible": false,
+        "reachEligible": false,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0
+      },
+      {
+        "skillId": "shikigami",
+        "maxHp": 80,
+        "life": 15,
+        "cooldown": 17,
+        "speed": 215,
+        "attackInterval": 1.12,
+        "factor": 1.9,
+        "aggroCap": 2,
+        "aggroChance": 0.42,
+        "level": 3,
+        "damage": 2.28,
+        "attackRange": 38,
+        "seekRange": 195,
+        "followRadius": 48,
+        "maxFollowDistance": 210,
+        "aggroRange": 180,
+        "bossMultiplier": 0.42,
+        "maxAllies": 1,
+        "maxEnemyScan": 128,
+        "cadenceEligible": false,
+        "critEligible": false,
+        "reachEligible": false,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0
+      },
+      {
+        "skillId": "shikigami",
+        "maxHp": 105,
+        "life": 17,
+        "cooldown": 16,
+        "speed": 230,
+        "attackInterval": 0.93,
+        "factor": 2.25,
+        "aggroCap": 3,
+        "aggroChance": 0.48,
+        "level": 4,
+        "damage": 2.6999999999999997,
+        "attackRange": 38,
+        "seekRange": 195,
+        "followRadius": 48,
+        "maxFollowDistance": 210,
+        "aggroRange": 180,
+        "bossMultiplier": 0.42,
+        "maxAllies": 1,
+        "maxEnemyScan": 128,
+        "cadenceEligible": false,
+        "critEligible": false,
+        "reachEligible": false,
+        "isAwakened": false,
+        "source": "base",
+        "derivationDepth": 0
+      },
+      {
+        "skillId": "shikigami",
+        "maxHp": 135,
+        "life": 19,
+        "cooldown": 15,
+        "speed": 245,
+        "attackInterval": 0.76,
+        "factor": 2.65,
+        "aggroCap": 3,
+        "aggroChance": 0.55,
+        "level": 5,
+        "damage": 3.1799999999999997,
+        "attackRange": 38,
+        "seekRange": 195,
+        "followRadius": 48,
+        "maxFollowDistance": 210,
+        "aggroRange": 180,
+        "bossMultiplier": 0.42,
+        "maxAllies": 1,
+        "maxEnemyScan": 128,
+        "cadenceEligible": false,
+        "critEligible": false,
+        "reachEligible": false,
+        "isAwakened": true,
+        "source": "base",
+        "derivationDepth": 0
+      }
+    ]
+  },
+  "mutations": [
+    {
+      "id": "mut_ink_bloom",
+      "skillId": "ink_trail",
+      "name": "紫藤・霧華擴散",
+      "description": "粉紫毒霧的範圍增加 25%，更容易讓追來的妖怪中毒。"
+    },
+    {
+      "id": "mut_ink_razor",
+      "skillId": "ink_trail",
+      "name": "紫藤・毒香入骨",
+      "description": "妖怪吸入毒霧後，每秒受到的毒傷提高 25%。"
+    },
+    {
+      "id": "mut_ink_linger",
+      "skillId": "ink_trail",
+      "name": "紫藤・長夜留香",
+      "description": "毒霧多停留 1.8 秒，鋪霧間距更疏、範圍略廣；連續奔跑時仍能留下長尾。"
+    },
+    {
+      "id": "mut_ink_echo",
+      "skillId": "ink_trail",
+      "name": "紫藤・餘香纏身",
+      "description": "妖怪離開毒霧後，中毒再延長 1.6 秒；Lv5 混亂再延長 0.5 秒。"
+    },
+    {
+      "id": "mut_seal_nail_wide",
+      "skillId": "seal_nail",
+      "name": "封釘・裂地擴陣",
+      "description": "封印釘爆炸半徑增加 25%，Lv5 兩段皆有效。"
+    },
+    {
+      "id": "mut_seal_nail_deep",
+      "skillId": "seal_nail",
+      "name": "封釘・穿石重爆",
+      "description": "封印釘爆炸傷害提高 25%，Lv5 兩段皆有效。"
+    },
+    {
+      "id": "mut_seal_nail_near",
+      "skillId": "seal_nail",
+      "name": "封釘・近距引爆",
+      "description": "起爆所需離位距離縮短 25 px，離位後仍須蓄爆。"
+    },
+    {
+      "id": "mut_seal_nail_swift",
+      "skillId": "seal_nail",
+      "name": "封釘・疾步再布",
+      "description": "再部署冷卻縮短 18%，前一枚封印釘結算後才可再布。"
+    },
+    {
+      "id": "mut_shikigami_guard",
+      "skillId": "shikigami",
+      "name": "式神・護靈強軀",
+      "description": "式神最大生命提高 30%。場上的式神保留已受傷量。"
+    },
+    {
+      "id": "mut_shikigami_life",
+      "skillId": "shikigami",
+      "name": "式神・長契留形",
+      "description": "式神最多留場時間延長 3 秒，場上的式神也會延長。"
+    },
+    {
+      "id": "mut_shikigami_quick",
+      "skillId": "shikigami",
+      "name": "式神・迅牙連咬",
+      "description": "式神每次撲咬的冷卻縮短 18%。"
+    },
+    {
+      "id": "mut_shikigami_fang",
+      "skillId": "shikigami",
+      "name": "式神・破邪重牙",
+      "description": "式神的撲咬傷害提高 25%。"
+    },
+    {
+      "id": "mut_boom_fan",
+      "skillId": "boom",
+      "name": "陰陽符・千本散射",
+      "description": "陰陽符增加 2 枚、最多 6 枚，總傷害預算提高 20% 並分攤單符；僅限陰陽符"
+    },
+    {
+      "id": "mut_seek",
+      "skillId": "needle",
+      "name": "靈針・引魂追跡",
+      "description": "靈針飛行中平滑轉向追蹤妖怪，失去目標後沿當前方向直行；僅限靈針"
+    },
+    {
+      "id": "mut_boom_seek",
+      "skillId": "boom",
+      "name": "陰陽符・引魂追跡",
+      "description": "未黏附陰陽符平滑轉向追蹤妖怪，失去目標後繼續直行；僅限陰陽符"
+    },
+    {
+      "id": "mut_frost",
+      "skillId": "needle",
+      "name": "靈針・冰魄封靈",
+      "description": "靈針命中使小怪冰凍 0.5 秒；Boss 每累積 3 次命中冰凍 0.15 秒，並有 2 秒免疫期"
+    },
+    {
+      "id": "mut_boom_frost",
+      "skillId": "boom",
+      "name": "陰陽符・冰魄封靈",
+      "description": "陰陽符主爆使小怪冰凍 0.5 秒；Boss 每 3 次主爆命中冰凍 0.15 秒，次爆不觸發"
+    },
+    {
+      "id": "mut_pierce",
+      "skillId": "needle",
+      "name": "靈針・穿透增額",
+      "description": "保持既有穿透；第 2、第 3 隻命中獨敵各增加該針生成時 15% 傷害（總增額至多 30%），不額外投射，同敵去重"
+    },
+    {
+      "id": "mut_return",
+      "skillId": "needle",
+      "name": "靈針・回旋折返",
+      "description": "靈針單次折返，回程可對原目標額外命中一次，造成原傷害35%，不重複冰封"
+    },
+    {
+      "id": "mut_crosscut",
+      "skillId": "katana",
+      "name": "妖刀・十字交斬",
+      "description": "主斬後延遲施展第二刀；Lv5 追加一道反面風刃，與主風刃共用命中紀錄以限制重複傷害"
+    },
+    {
+      "id": "mut_pulse",
+      "skillId": "barrier",
+      "name": "靈陣・連環脈衝",
+      "description": "靈陣保持原半徑，兩次脈衝各65%原傷害，完整命中總傷增加30%"
+    },
+    {
+      "id": "mut_branch",
+      "skillId": "thunder",
+      "name": "天狐雷・連鎖分歧",
+      "description": "主雷命中後分出至多 1 道次級雷擊，傷害為當次主雷 25%；次級不得再分支，不以生命百分比計傷"
+    },
+    {
+      "id": "mut_orbit",
+      "skillId": "fire",
+      "name": "狐火・偏心輪道",
+      "description": "狐火改為偏心橢圓軌道（rx=126, ry=78），接觸傷害+20%，Lv5黑龍傷害+15%，火球數不變"
+    },
+    {
+      "id": "mut_splitblast",
+      "skillId": "boom",
+      "name": "陰陽符・餘燼爆散",
+      "description": "主爆後原爆心延遲 0.18 秒產生一次小型次爆（半徑 55%）；對原直擊目標取主爆全傷 25%，其餘取濺射傷 25%，無擊退、不再次派生"
+    },
+    {
+      "id": "mut_iaicharge",
+      "skillId": "katana",
+      "name": "妖刀・蓄力居合",
+      "description": "斬擊及Lv5風刃傷害提高24%，但每次揮刀冷卻增加0.08秒"
+    },
+    {
+      "id": "mut_armorbreak",
+      "skillId": "katana",
+      "name": "妖刀・破甲斬",
+      "description": "對坦克敵人傷害+30%、對Boss傷害+20%，普通敵人不變"
+    },
+    {
+      "id": "mut_longblade",
+      "skillId": "katana",
+      "name": "妖刀・長風刃",
+      "description": "Lv1～4斬擊距離+23%；Lv5風刃飛行距離+25%"
+    },
+    {
+      "id": "mut_bindseal",
+      "skillId": "barrier",
+      "name": "靈陣・縛足靈紋",
+      "description": "靈陣命中的普通敵人移動遲滯0.72秒；Boss不受影響"
+    },
+    {
+      "id": "mut_widecircle",
+      "skillId": "barrier",
+      "name": "靈陣・廣域護陣",
+      "description": "靈陣半徑+22%，每次脈衝傷害減少12%；Lv5庇護區同步放大"
+    },
+    {
+      "id": "mut_repulse",
+      "skillId": "barrier",
+      "name": "靈陣・反震退魔",
+      "description": "擊退強度提升60%；Lv1～3也可擊退一般妖怪，Boss免疫"
+    },
+    {
+      "id": "mut_rapidfire",
+      "skillId": "fire",
+      "name": "狐火・疾旋輪舞",
+      "description": "環繞速度+40%，碰觸同一敵人的最短間隔縮短15%"
+    },
+    {
+      "id": "mut_flamebind",
+      "skillId": "fire",
+      "name": "狐火・纏足焰",
+      "description": "環繞狐火接觸命中使普通妖怪遲滯0.65秒，Boss不受影響"
+    },
+    {
+      "id": "mut_furyfire",
+      "skillId": "fire",
+      "name": "狐火・熾焰強化",
+      "description": "環繞接觸傷害+25%；Lv5黑龍焦土傷害+15%"
+    },
+    {
+      "id": "mut_thunderfocus",
+      "skillId": "thunder",
+      "name": "天狐雷・雷印聚焦",
+      "description": "優先鎖定Boss與坦克，目標數少1（最少1），每道主雷傷害+30%"
+    },
+    {
+      "id": "mut_thunderstun",
+      "skillId": "thunder",
+      "name": "天狐雷・雷痺",
+      "description": "主雷命中使普通妖怪遲滯0.55秒；Boss僅0.18秒"
+    },
+    {
+      "id": "mut_thunderoverload",
+      "skillId": "thunder",
+      "name": "天狐雷・過載天罰",
+      "description": "每道主雷傷害+35%，但施放冷卻增加25%"
+    }
+  ],
+  "combat": {
+    "katana": {
+      "1": {
+        "near": {
+          "damage": 21.12,
+          "touched": 1
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 13.92,
+          "touched": 10
+        }
+      },
+      "4": {
+        "near": {
+          "damage": 66.24,
+          "touched": 1
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 52.56,
+          "touched": 12
+        }
+      },
+      "5": {
+        "near": {
+          "damage": 97.15,
+          "touched": 1
+        },
+        "far": {
+          "damage": 97.15,
+          "touched": 1
+        },
+        "moving-crowd": {
+          "damage": 45.79,
+          "touched": 9
+        }
+      }
+    },
+    "barrier": {
+      "1": {
+        "near": {
+          "damage": 2.4,
+          "touched": 1
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 3.84,
+          "touched": 8
+        }
+      },
+      "4": {
+        "near": {
+          "damage": 13.82,
+          "touched": 1
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 32.26,
+          "touched": 12
+        }
+      },
+      "5": {
+        "near": {
+          "damage": 46.8,
+          "touched": 1
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 110.7,
+          "touched": 12
+        }
+      }
+    },
+    "fire": {
+      "1": {
+        "near": {
+          "damage": 12.96,
+          "touched": 1
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 17.28,
+          "touched": 6
+        }
+      },
+      "4": {
+        "near": {
+          "damage": 97.2,
+          "touched": 1
+        },
+        "far": {
+          "damage": 41.04,
+          "touched": 1
+        },
+        "moving-crowd": {
+          "damage": 30.96,
+          "touched": 3
+        }
+      },
+      "5": {
+        "near": {
+          "damage": 138.24,
+          "touched": 1
+        },
+        "far": {
+          "damage": 50.4,
+          "touched": 1
+        },
+        "moving-crowd": {
+          "damage": 243.84,
+          "touched": 12
+        }
+      }
+    },
+    "boom": {
+      "1": {
+        "near": {
+          "damage": 15.84,
+          "touched": 1
+        },
+        "far": {
+          "damage": 15.84,
+          "touched": 1
+        },
+        "moving-crowd": {
+          "damage": 7.39,
+          "touched": 6
+        }
+      },
+      "4": {
+        "near": {
+          "damage": 206.4,
+          "touched": 1
+        },
+        "far": {
+          "damage": 51.6,
+          "touched": 1
+        },
+        "moving-crowd": {
+          "damage": 79.46,
+          "touched": 8
+        }
+      },
+      "5": {
+        "near": {
+          "damage": 134.4,
+          "touched": 1
+        },
+        "far": {
+          "damage": 67.2,
+          "touched": 1
+        },
+        "moving-crowd": {
+          "damage": 230.4,
+          "touched": 12
+        }
+      }
+    },
+    "thunder": {
+      "1": {
+        "near": {
+          "damage": 16.32,
+          "touched": 1
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 2.4,
+          "touched": 1
+        }
+      },
+      "4": {
+        "near": {
+          "damage": 43.2,
+          "touched": 1
+        },
+        "far": {
+          "damage": 43.2,
+          "touched": 1
+        },
+        "moving-crowd": {
+          "damage": 60.48,
+          "touched": 6
+        }
+      },
+      "5": {
+        "near": {
+          "damage": 55.68,
+          "touched": 1
+        },
+        "far": {
+          "damage": 55.68,
+          "touched": 1
+        },
+        "moving-crowd": {
+          "damage": 153.6,
+          "touched": 12
+        }
+      }
+    },
+    "needle": {
+      "1": {
+        "near": {
+          "damage": 27.72,
+          "touched": 1
+        },
+        "far": {
+          "damage": 27.72,
+          "touched": 1
+        },
+        "moving-crowd": {
+          "damage": 40.32,
+          "touched": 11
+        }
+      },
+      "4": {
+        "near": {
+          "damage": 95.76,
+          "touched": 1
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 201.6,
+          "touched": 12
+        }
+      },
+      "5": {
+        "near": {
+          "damage": 51.84,
+          "touched": 1
+        },
+        "far": {
+          "damage": 51.84,
+          "touched": 1
+        },
+        "moving-crowd": {
+          "damage": 74.88,
+          "touched": 7
+        }
+      }
+    },
+    "ink_trail": {
+      "1": {
+        "near": {
+          "damage": 0,
+          "touched": 0
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 45.36,
+          "touched": 9
+        }
+      },
+      "4": {
+        "near": {
+          "damage": 0,
+          "touched": 0
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 136.08,
+          "touched": 9
+        }
+      },
+      "5": {
+        "near": {
+          "damage": 0,
+          "touched": 0
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 168.96,
+          "touched": 9
+        }
+      }
+    },
+    "seal_nail": {
+      "1": {
+        "near": {
+          "damage": 0,
+          "touched": 0
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 14.4,
+          "touched": 3
+        }
+      },
+      "4": {
+        "near": {
+          "damage": 0,
+          "touched": 0
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 60.48,
+          "touched": 6
+        }
+      },
+      "5": {
+        "near": {
+          "damage": 0,
+          "touched": 0
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 121.8,
+          "touched": 7
+        }
+      }
+    },
+    "shikigami": {
+      "1": {
+        "near": {
+          "damage": 4.23,
+          "touched": 1
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 2.88,
+          "touched": 2
+        }
+      },
+      "4": {
+        "near": {
+          "damage": 14.74,
+          "touched": 1
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 5.4,
+          "touched": 1
+        }
+      },
+      "5": {
+        "near": {
+          "damage": 20.03,
+          "touched": 1
+        },
+        "far": {
+          "damage": 0,
+          "touched": 0
+        },
+        "moving-crowd": {
+          "damage": 9.54,
+          "touched": 2
+        }
+      }
+    }
+  },
+  "edge": {
+    "levels": [
+      2,
+      3,
+      4
+    ],
+    "residualXp": 400,
+    "sameTick": {
+      "state": "victory",
+      "earlierHp": 1,
+      "finalHp": -19
+    },
+    "noDelivery": "play",
+    "simultaneousTerminal": [
+      {
+        "startingOil": 0.001,
+        "state": "lampout",
+        "bossHp": 1
+      },
+      {
+        "startingOil": 0.05,
+        "state": "victory",
+        "bossHp": -8.6
+      }
+    ],
+    "deliveryTimeout": {
+      "state": "lampout",
+      "delivered": 0,
+      "failed": 1,
+      "oil": 0
+    },
+    "cappedPassives": {
+      "startingCooldowns": {
+        "katana": 0.72,
+        "fire": 2.5,
+        "boom": 1.76,
+        "thunder": 2.25
+      },
+      "cooldownsAtOne": {
+        "katana": 0.6,
+        "fire": 2.5,
+        "boom": 1.76,
+        "thunder": 2.25
+      },
+      "cooldownsAtTwo": {
+        "katana": 0.6,
+        "fire": 2.5,
+        "boom": 1.76,
+        "thunder": 2.25
+      },
+      "secondRateLegal": true,
+      "critAtTwo": [
+        0.5,
+        0.5
+      ],
+      "critAtThree": [
+        0.5,
+        0.5
+      ],
+      "thirdCritLegal": true
+    },
+    "gemTotal": 1027,
+    "gemCount": 512,
+    "maxStep": 0.2,
+    "pausedElapsedDelta": 0,
+    "wall": [
+      {
+        "second": 1,
+        "hp": 140.4,
+        "x": 342,
+        "y": 0,
+        "attack": null,
+        "oil": 99.56999999999994
+      },
+      {
+        "second": 2,
+        "hp": 140.4,
+        "x": 339.1,
+        "y": 0,
+        "attack": "slam",
+        "oil": 99.13999999999987
+      },
+      {
+        "second": 3,
+        "hp": 123.12,
+        "x": 339.1,
+        "y": 0,
+        "attack": "slam",
+        "oil": 78.70999999999981
+      },
+      {
+        "second": 4,
+        "hp": 123.12,
+        "x": 315.9,
+        "y": 0,
+        "attack": null,
+        "oil": 78.27999999999975
+      },
+      {
+        "second": 5,
+        "hp": 113.52000000000001,
+        "x": 257.9,
+        "y": 0,
+        "attack": null,
+        "oil": 77.84999999999968
+      },
+      {
+        "second": 6,
+        "hp": 113.52000000000001,
+        "x": 199.9,
+        "y": 0,
+        "attack": null,
+        "oil": 77.41999999999962
+      },
+      {
+        "second": 7,
+        "hp": 113.52000000000001,
+        "x": 141.9,
+        "y": 0,
+        "attack": null,
+        "oil": 76.98999999999955
+      },
+      {
+        "second": 8,
+        "hp": 96.24000000000001,
+        "x": 133.2,
+        "y": 0,
+        "attack": "slam",
+        "oil": 76.55999999999949
+      },
+      {
+        "second": 9,
+        "hp": 96.24000000000001,
+        "x": 133.2,
+        "y": 0,
+        "attack": "slam",
+        "oil": 56.12999999999943
+      },
+      {
+        "second": 10,
+        "hp": 86.64000000000001,
+        "x": 115.8,
+        "y": 0,
+        "attack": null,
+        "oil": 55.69999999999936
+      },
+      {
+        "second": 11,
+        "hp": 86.64000000000001,
+        "x": 57.8,
+        "y": 0,
+        "attack": null,
+        "oil": 55.2699999999993
+      },
+      {
+        "second": 12,
+        "hp": 86.64000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 44.839999999999236
+      },
+      {
+        "second": 13,
+        "hp": 69.36000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 34.40999999999917
+      },
+      {
+        "second": 14,
+        "hp": 69.36000000000001,
+        "x": 1,
+        "y": 0,
+        "attack": "slam",
+        "oil": 23.979999999999173
+      },
+      {
+        "second": 15,
+        "hp": 59.76000000000001,
+        "x": 1,
+        "y": 0,
+        "attack": "slam",
+        "oil": 3.5499999999991747
+      },
+      {
+        "second": 16,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 17,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 18,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 19,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 20,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 21,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 22,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 23,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 24,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 25,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 26,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 27,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 28,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 29,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      },
+      {
+        "second": 30,
+        "hp": 59.76000000000001,
+        "x": 0,
+        "y": 0,
+        "attack": null,
+        "oil": 0
+      }
+    ]
+  }
+}

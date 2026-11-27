@@ -1,0 +1,30 @@
+{
+  "page": 200,
+  "scripts": 48,
+  "stage3Rasters": 3,
+  "resourcePass": 51,
+  "controls": [
+    {
+      "path": "/AGENTS.md",
+      "host": "127.0.0.1:8788",
+      "status": 403
+    },
+    {
+      "path": "/.git/config",
+      "host": "127.0.0.1:8788",
+      "status": 403
+    },
+    {
+      "path": "/index.html",
+      "host": "attacker.example:8788",
+      "status": 403
+    },
+    {
+      "path": "/index.html",
+      "host": "127.0.0.1:8788",
+      "status": 405
+    }
+  ],
+  "bind": "127.0.0.1:8788",
+  "note": "Loopback HTTP only; LAN binding rejected by approval review; physical iPad connectivity unverified"
+}

@@ -90,20 +90,177 @@ window.STAGE_ROUTE_LAYOUTS = (() => {
     return { houses, obstacles, props };
   }
   Object.assign(bamboo, { grid, bounds, trails });
+  const kyotoStreet = Object.freeze({ left: 330, right: 570, north: 170, south: 405 });
+  const kyotoGrid = Object.freeze({ columns: 3, rows: 3 });
+  const kyotoBounds = Object.freeze({ minX: 64, maxX: 2636, minY: 64, maxY: 1736 });
   function kyoto(cx, cy, hash) {
+    const { left, right, north, south } = kyotoStreet;
     const alternate = (cx - cy) % 2 !== 0;
+    const edge = [];
+    if (cy === 0) edge.push([450, 65, "kyoto-perimeter-gate", 256], [314, 87, "kyoto-maple", 94], [594, 92, "kyoto-maple", 92]);
+    if (cy === 2) edge.push([450, 536, "kyoto-perimeter-gate", 256], [311, 548, "kyoto-maple", 102], [593, 555, "kyoto-maple", 104]);
+    if (cx === 0 || cx === 2) {
+      const x = cx === 0 ? 18 : 882;
+      for (const y of [204, 287, 369]) edge.push([x, y, "kyoto-perimeter-gate", 111]);
+    }
+    const landmark = cx === 1 && cy === 1
+      ? [687, 472, "kyoto-three-tier-pagoda", 197]
+      : [132 + hash % 37, 450 + hash % 28, hash % 2 ? "kyoto-maple" : "kyoto-festival-kiosk", 126];
     return {
+      terrain: (hash >>> 6) % 6,
       houses: [
-        [211, 104, alternate ? "kyoto_sweets_house" : "kyoto_grocery"],
-        [667, 101, alternate ? "kyoto_grocery" : "kyoto_noodle_house"]
+        [200, 136, alternate ? "kyoto_sweets_house" : hash % 3 ? "kyoto_tea_house" : "kyoto_grocery", 67],
+        [700, 136, alternate ? "kyoto_grocery" : "kyoto_noodle_house", alternate ? 78 : 45]
       ],
       obstacles: [
-        [68, 407, 215, 513, "kyoto-stall"],
-        [269, 427, 335, 472 + hash % 20, "kyoto-stall"],
-        [561, 426, 629, 507, "kyoto-stall"],
-        [692, 387, 829, 513, "kyoto-stall"]
-      ]
+        [0, 0, left, north, "kyoto-block"], [right, 0, 900, north, "kyoto-block"],
+        [0, south, left, 600, "kyoto-block"], [right, south, 900, 600, "kyoto-block"]
+      ],
+      props: [
+        ...[[0, left], [right, 900]].flatMap(([x0, x1]) => {
+          const x = (x0 + x1) / 2, width = x1 - x0;
+          return [
+            [x, 104, alternate ? "kyoto-rear-townhouses" : "kyoto-block-frontage", width], [x, north, "kyoto-block-wall", width],
+            [x, 486, "kyoto-block-wall", width], [x, 593, "kyoto-block-frontage", width]
+          ];
+        }),
+        [111, 553, "kyoto-stall", 142], [275, 499, "kyoto-crate-stack", 65],
+        [627, 503, "kyoto-crate-stack", 68], [798, 549, "kyoto-stall", 136],
+        [306, north, "kyoto-stone-lantern", 36], [826, north, "kyoto-double-lantern", 51],
+        [626, 412, "kyoto-festival-banners", 54], [268, 429, "kyoto-red-railing", 84],
+        [617, 516, "kyoto-stone-basin", 58], [841, 439, "kyoto-lantern-stand", 55],
+        [96, 399, "kyoto-komainu", 56], [277, 545, "kyoto-maple-shrub", 101],
+        ...(alternate ? [[719, 475, "kyoto-footbridge", 105]] : [[776, 455, "kyoto-maple", 125]]),
+        hash % 2 ? [150, 496, "kyoto-market-shrine", 132] : [181, 498, "kyoto-cloth-merchant", 108],
+        landmark, ...edge
+      ],
+      groundProps: [[314, 207, "kyoto-maple-leaves", 64], [602, 390, "kyoto-maple-leaves", 53]]
     };
   }
-  return Object.freeze({ "bamboo-maze": bamboo, "hyakki-kyoto": kyoto });
+  function kyotoChasePoint(from, to, width, height, radius) {
+    const { left, right, north, south } = kyotoStreet;
+    const spacing = height / 600;
+    const rowOffset = (north + south) * spacing / 2, colOffset = (left + right) / 2;
+    const row = Math.floor(from.y / height) * height, targetRow = Math.floor(to.y / height) * height;
+    const col = Math.floor(from.x / width) * width, targetCol = Math.floor(to.x / width) * width;
+    const inRow = (y, origin, margin) => y >= origin + north * spacing + margin && y <= origin + south * spacing - margin;
+    const inCol = (x, origin, margin) => x >= origin + left + margin && x <= origin + right - margin;
+    const onRow = inRow(from.y, row, radius);
+    const targetOnRow = inRow(to.y, targetRow, 0), targetOnCol = inCol(to.x, targetCol, 0);
+    if (onRow && targetOnRow && row === targetRow ||
+        inCol(from.x, col, radius) && targetOnCol && col === targetCol) return to;
+    if (onRow) {
+      const x = colOffset + (targetOnCol ? targetCol : Math.round(((from.x + to.x) / 2 - colOffset) / width) * width);
+      return Math.abs(from.x - x) > 2
+        ? { x, y: row + rowOffset }
+        : { x, y: targetOnRow ? targetRow + rowOffset : to.y };
+    }
+    const y = rowOffset + (targetOnRow ? targetRow : Math.round(((from.y + to.y) / 2 - rowOffset) / height) * height);
+    return { x: col + colOffset, y };
+  }
+  Object.assign(kyoto, { grid: kyotoGrid, bounds: kyotoBounds, street: kyotoStreet, chasePoint: kyotoChasePoint });
+
+  function snow(cx, cy, hash) {
+    const hasTemple = hash % 3 !== 0;
+    const side = hash % 2;
+    const landmark = (hash >>> 4) % 3;
+    const [x, y, kind, width] = [
+      [716, 533, "snow-ice-cliff", 150], [174, 509, "snow-torii", 126], [678, 510, "snow-bridge", 134]
+    ][landmark];
+    return {
+      terrain: (hash >>> 6) % 6,
+      houses: hasTemple ? [[207, 117, "snow_shrine", 52], [696, 133, "snow_temple", 58]]
+        : [[side ? 704 : 207, 126, "snow_shrine", 52]],
+      obstacles: [
+        [100, 435, 145, 470, "snow-outcrop", "snow-boulders", 81],
+        [744, 68, 806, 100, "snow-outcrop", "snow-pine", 99],
+        [x - 34, y - 33, x + 34, y, "snow-landmark", kind, width]
+      ],
+      props: [
+        [307, 235, "snow-stone-lantern", 45], [590, 375, "snow-stone-lantern", 51],
+        [177, 446, "snow-paper-lantern", 45], [771, 454, "snow-cedar-fence", 104],
+        [270, 125, "snow-offertory", 48], [93, 136, "snow-ice-cliff", 99],
+        [745, 574, "snow-boulders", 63], [323, 500, "snow-pine", 92],
+        [97, 585, "snow-juniper", 72], [790, 230, "snow-snowdrift", 68],
+        ...(hash % 4 === 0 ? [[837, 510, "snow-octagonal-shrine", 94]] : [])
+      ],
+      groundProps: [[600, 145, "snow-steps", 108], [270, 390, "snow-ice-patch", 128]]
+    };
+  }
+  function ferry(cx, cy, hash) {
+    const station = hash % 3;
+    return {
+      terrain: (hash >>> 6) % 6,
+      houses: [[297, 110, cx === 1 && cy === 1 ? "ferry_ticket" : ["ferry_mail", "ferry_boathouse", "ferry_inn"][station], 64],
+        [602, 113, station ? "ferry_mail" : "ferry_shelter", 58]],
+      obstacles: [
+        [0, 0, 166, 215, "ferry-water"], [734, 0, 900, 215, "ferry-water"],
+        [0, 385, 166, 600, "ferry-water"], [734, 385, 900, 600, "ferry-water"],
+        [312, 472, 385, 508, "ferry-landmark", "ferry-river-shrine", 101],
+        [558, 464, 624, 512, "ferry-landmark", ["ferry-pier-roof", "ferry-gate", "ferry-shrine-gate"][station], 158]
+      ],
+      props: [
+        [142, 175, "ferry-covered-ferry", 144], [782, 478, "ferry-empty-boat", 103],
+        [177, 259, "ferry-lantern-post", 51], [724, 360, "ferry-lantern-post", 56],
+        [170, 359, "ferry-bollards", 69], [740, 245, "ferry-bollards", 58],
+        [318, 134, "ferry-cargo-barrels", 54], [576, 150, "ferry-parcels", 44],
+        [212, 523, "ferry-plank-stack", 70], [700, 532, "ferry-waymarker", 43],
+        [336, 440, "ferry-bench", 65], [647, 450, "ferry-caged-lamp", 38], [686, 368, "ferry-rope", 57],
+        [75, 455 + hash % 49, "ferry-spirit-lantern", 34], [806, 102, "ferry-spirit-lantern", 35]
+      ],
+      groundProps: [[187, 420, "ferry-reeds", 53], [719, 191, "ferry-reeds", 62],
+        [193, 507, "ferry-shore-ridge", 98], [712, 62, "ferry-shore-ridge", 87],
+        [216, 354, "ferry-sandals", 42], [722, 300, "ferry-dock-junction", 145],
+        [477, 442, "ferry-floating-deck", 88]]
+    };
+  }
+  ferry.chasePoint = (from, to, width, height, radius) => {
+    const col = Math.floor(from.x / width), targetCol = Math.floor(to.x / width);
+    const row = Math.floor(from.y / height);
+    const bridge = (row + .5) * height;
+    const bridgeClearance = 85 * height / 600 - radius - 2;
+    if (Math.abs(from.y - bridge) <= bridgeClearance && Math.abs(to.y - bridge) <= bridgeClearance)
+      return to;
+    if (col === targetCol) {
+      const landX = Math.max(col * width + 167 + radius, Math.min((col + 1) * width - 167 - radius, from.x));
+      return landX === from.x ? to : { x: landX, y: from.y };
+    }
+    if (Math.abs(from.y - bridge) > 3) {
+      const localX = from.x - col * width;
+      if (localX < 166 + radius || localX > width - 166 - radius) {
+        if (Math.abs(from.y - bridge) < bridgeClearance)
+          return { x: (targetCol + (targetCol > col ? .30 : .70)) * width, y: from.y };
+      }
+      return { x: from.x, y: bridge };
+    }
+    return { x: (col + (targetCol > col ? 1.30 : -.30)) * width, y: bridge };
+  };
+
+  function yomi(cx, cy, hash) {
+    const central = cx === 1 && cy === 1;
+    const corner = (hash >>> 9) % 4;
+    const ruin = ["cliff-ledge", "bell-tower", "fallen-torii", "stair-gate"][corner];
+    return {
+      terrain: (hash >>> 6) % 6,
+      houses: [[233, 112, "yomi_pavilion", 61], [689, 117, "yomi_palace", 79]],
+      obstacles: [
+        [91, 466, 158, 508, "yomi-basalt", "yomi-basalt-spire", 138],
+        [693, 446, 768, 491, "yomi-ruin", `yomi-${ruin}`, 154],
+        ...(central ? [[346, 85, 378, 119, "yomi-torii-foot"], [522, 85, 554, 119, "yomi-torii-foot"]]
+          : [[372, 74, 528, 119, "yomi-gate", "yomi-palace-wall", 193]])
+      ],
+      props: [
+        [322, 128, "yomi-lantern-post", 47], [610, 139, "yomi-lantern-post", 51],
+        [183, 397, "yomi-jizo", 54], [368, 518, "yomi-altar", 85],
+        [864, 89, "yomi-basalt-spire", 96], [561, 473, "yomi-brazier", 43],
+        [47, 129, "yomi-boulder", 66], [800, 109, "yomi-brazier", 48],
+        ...(central ? [[450, 119, "yomi-torii", 282], [598, 272, "yomi-moon", 370, true]] : [])
+      ],
+      groundProps: [[581, 231, "yomi-stone-bridge", 116], [179, 527, "yomi-spider-lilies", 52],
+        [809, 415, "yomi-spider-lilies", 46], [365, 210, "yomi-broken-flagstone", 61]]
+    };
+  }
+
+  return Object.freeze({ "bamboo-maze": bamboo, "hyakki-kyoto": kyoto, "snow-temple": snow,
+    "spirit-ferry": ferry, yomi });
 })();

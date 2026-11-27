@@ -155,9 +155,10 @@
     if (state) state.inspectId = null;
   }
 
-  function isNodeAccessible(node) {
+  function isNodeAccessible(node, progress) {
     if (!node) return false;
     if (!node.unlockAfter) return true;
+    if (progress) return progress.completed[node.unlockAfter] === true;
     if (root.STORE && typeof root.STORE.isStageCompleted === "function") {
       return root.STORE.isStageCompleted(node.unlockAfter);
     }
@@ -165,20 +166,22 @@
   }
 
   function isStageAvailable(stage) {
-    return stage?.mapReleased === true || (stage?.id === "bamboo-maze" &&
-      root.DEV_MODE?.isStageLab?.(root.location) === true);
+    if (stage?.mapReleased === true) return true;
+    return !!stage && root.DEV_MODE?.isStageLab?.(root.location) === true &&
+      (stage.id === "bamboo-maze" || stage.releaseStatus === "development");
   }
 
-  function isEnterable(node) {
+  function isEnterable(node, progress) {
     if (!node || node.type !== "stage") return false;
     const stage = root.CONTENT && root.CONTENT.getStage ? root.CONTENT.getStage(node.stageId) : null;
     // Guard new placeholders: getStage() falls back to night-town for unknown IDs.
     const implemented = node.enterable !== false && stage?.id === node.stageId && stage.implemented === true;
-    const released = isStageAvailable(stage);
-    const unlocked = root.STORE && typeof root.STORE.isStageUnlocked === "function"
+    if (!implemented || !isStageAvailable(stage)) return false;
+    const unlocked = progress ? progress.unlocked[node.stageId] === true :
+      root.STORE && typeof root.STORE.isStageUnlocked === "function"
       ? root.STORE.isStageUnlocked(node.stageId)
       : stage?.unlockedByDefault !== false;
-    return implemented && released && unlocked && isNodeAccessible(node);
+    return unlocked && isNodeAccessible(node, progress);
   }
 
   function findPath(fromId, targetId) {
@@ -335,8 +338,8 @@
     return best;
   }
 
-  function drawRoad(ctx, a, b) {
-    const open = [a,b].every(node => node.type === 'stage' ? isEnterable(node) : isNodeAccessible(node));
+  function drawRoad(ctx, a, b, progress) {
+    const open = [a,b].every(node => node.type === 'stage' ? isEnterable(node, progress) : isNodeAccessible(node, progress));
     const ax = a.x, ay = a.y, bx = b.x, by = b.y;
     ctx.lineCap = "round";
     ctx.strokeStyle = open ? "rgba(56, 38, 27, 0.42)" : "rgba(58, 45, 43, 0.24)";
@@ -376,9 +379,9 @@
     ctx.fill();
   }
 
-  function drawLandmark(ctx, node, elapsed, selected) {
-    const canEnter = isEnterable(node);
-    const accessible = isNodeAccessible(node);
+  function drawLandmark(ctx, node, elapsed, selected, progress) {
+    const canEnter = isEnterable(node, progress);
+    const accessible = isNodeAccessible(node, progress);
     const pulse = selected && !root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 1 + Math.sin(elapsed * 5) * 0.05 : 1;
     ctx.save();
     ctx.translate(node.x, node.y);
@@ -429,7 +432,7 @@
 
     const artKey = node.landmark === 'town' ? 'map_night_town_v1' : node.landmark === 'port' ? 'map_rain_port_v1' : null;
     const landmarkArt = artKey && root.ART?.[artKey];
-    const completed = canEnter && !!root.STORE?.isStageCompleted?.(node.stageId);
+    const completed = canEnter && (progress ? progress.completed[node.stageId] === true : !!root.STORE?.isStageCompleted?.(node.stageId));
     if (landmarkArt?.naturalWidth && root.RENDERER?.drawFrame) {
       root.RENDERER.drawFrame(ctx, landmarkArt, artKey, completed ? 1 : 0, 0, 32, 100);
     } else if (node.landmark === "town") {
@@ -605,6 +608,7 @@
   }
 
   function draw(ctx, state, elapsed, noticeT = 0) {
+    const savedProgress = root.STORE?.readProgress?.();
     ctx.save();
     const sky = ctx.createLinearGradient(0, 0, 0, VIEW_H);
     sky.addColorStop(0, "#d9d5b6");
@@ -659,7 +663,7 @@
       const from=nodeById.get(a),to=nodeById.get(b);
       if (Math.max(from.x,to.x)<visibleLeft || Math.min(from.x,to.x)>visibleRight ||
           Math.max(from.y,to.y)<visibleTop || Math.min(from.y,to.y)>visibleBottom) continue;
-      drawRoad(ctx,from,to);
+      drawRoad(ctx,from,to,savedProgress);
     }
 
     const selectedId = state.targetId || state.inspectId || state.currentId;
@@ -667,7 +671,7 @@
       const a=node.art, l=node.labelPlacement;
       const xs=[node.x,a?.x??node.x,l?.x??node.x],ys=[node.y,a?.y??node.y,l?.y??node.y];
       if(Math.max(...xs)+160<visibleLeft||Math.min(...xs)-160>visibleRight||Math.max(...ys)+150<visibleTop||Math.min(...ys)-150>visibleBottom)continue;
-      drawLandmark(ctx,node,elapsed,node.id===selectedId);
+      drawLandmark(ctx,node,elapsed,node.id===selectedId,savedProgress);
     }
 
     drawMiniPlayer(ctx, state, elapsed);
@@ -707,7 +711,7 @@
     // 左右切換鈕已退場，改由自由拖曳平移與點選節點移動代替
     const here = selectedNode(state);
     if (here.type === "stage" && !isMoving(state)) {
-      const canEnter = isEnterable(here);
+      const canEnter = isEnterable(here, savedProgress);
       // The painted information ledger is a separate FOUR-SIDED parchment
       // with enough interior height for all three lines. Action buttons
       // remain the narrow red lacquer plaques at the right.
@@ -727,10 +731,10 @@
         ctx.fillStyle=paper;
         ctx.fillRect(px+35,py+9,panelW-70,panelH-18);
       }
-      const completed = !!root.STORE?.isStageCompleted?.(here.stageId);
+      const completed = savedProgress ? savedProgress.completed[here.stageId] === true : !!root.STORE?.isStageCompleted?.(here.stageId);
       const chapter = STAGE_NODES.findIndex(n=>n.id===here.id)+1;
       drawMapText(ctx,`${chapter}/8　${here.label}${completed?'・配達済':''}`,cx,py+(infoPlate?46:28),{size:infoPlate?17:19,heading:true,light:false,maxWidth:panelW-72});
-      const best = root.STORE?.getStageStats?.(here.stageId)?.bestScore || 0;
+      const best = (savedProgress ? savedProgress.stages[here.stageId] : root.STORE?.getStageStats?.(here.stageId))?.bestScore || 0;
       const atStage = !state.inspectId || state.inspectId === state.currentId;
       const progress=canEnter ? (best ? `最高 ${best.toLocaleString()} 點` : "尚無配達紀錄")
         : (!isStageAvailable(root.CONTENT?.getStage?.(here.stageId))

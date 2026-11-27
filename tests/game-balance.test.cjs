@@ -4,21 +4,21 @@ const cfg = require("../js/config.js");
 
 test('rain-port removes stacked survival penalties while retaining its stage identity',()=>{
   const stages=require('../js/words.js'),rain=stages.getStage('rain-port'),night=stages.getStage('night-town');
-  assert.equal(rain.pacing.goalDeliveries,6);
+  assert.equal(rain.pacing.goalDeliveries,0);
   assert.equal(rain.pacing.xpNeedScale,1);
   assert.ok(rain.pacing.spawnIntervalScale>=1.15);
   assert.ok(rain.enemy.speedScale<=1);
   assert.equal(rain.enemy.shooterChance,0.06);
   assert.ok(rain.enemy.bossHpScale<=1);
   assert.equal(rain.pacing.runSeconds,600);assert.deepEqual(rain.pacing.bossTimes,[180, 360, 480, 540]);
-  assert.equal(night.pacing.spawnIntervalScale,1);assert.equal(night.pacing.goalDeliveries,6);
+  assert.equal(night.pacing.spawnIntervalScale,1);assert.equal(night.pacing.goalDeliveries,0);
   assert.equal(rain.visual.weather,'rain');
 });
 
 test("run pacing is ten minutes with a final boss just before dawn", () => {
   assert.equal(cfg.RUN_SECONDS, 600);
   assert.deepEqual(cfg.BOSS_TIMES, [180, 360, 480, 540]);
-  assert.equal(cfg.GOAL_DELIVERIES, 6);
+  assert.equal(cfg.GOAL_DELIVERIES, 0);
 });
 
 test("xp curve preserves levels 1-20 and scales after level 20", () => {

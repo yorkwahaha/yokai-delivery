@@ -120,6 +120,12 @@ def make_cards(cloud: Image.Image, poison: Image.Image, confuse: Image.Image) ->
                     (305, 238 + (i % 2)*40), .25 if seed == 2 else .44, i * 9 - 15)
         dest = SKILLS / skill.replace("_", "-") / "cards" / (skill.replace("_", "-") + "__art.webp")
         dest.parent.mkdir(parents=True, exist_ok=True)
+        if seed != 0 and dest.is_file():
+            # The four mutation centers can now be selected as dedicated
+            # illustrations. Never overwrite a reviewed card with this old
+            # synthetic temporary composite just by rebuilding VFX.
+            print("PRESERVE_EXISTING_MUTATION_ART", dest.relative_to(ROOT).as_posix())
+            continue
         canvas.convert("RGB").save(dest, "WEBP", quality=91, method=6)
         print(dest.relative_to(ROOT).as_posix())
 

@@ -1,0 +1,414 @@
+{
+  "schema": 1,
+  "stage": "hyakki-kyoto",
+  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "kind": "audio",
+  "count": 20,
+  "candidate_manifest": "art/audio/fish-hyakki-kyoto/a-common-ja/manifest.json",
+  "items": [
+    {
+      "index": 1,
+      "jp": "こめ",
+      "kanji": "米",
+      "zh": "米",
+      "file": "01.mp3",
+      "sha256": "63b6164dc850485a59ca73bffa96507e373d82fbd189b321eaf991608b262f0b",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/01.mp3",
+      "bytes": 9194,
+      "tts_text": "こめ",
+      "analysis": {
+        "seconds": 0.575,
+        "rms_dbfs": -15.0,
+        "peak": 25666,
+        "leading_ms": 55,
+        "trailing_ms": 157,
+        "voiced_ms": 363,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 2,
+      "jp": "しお",
+      "kanji": "塩",
+      "zh": "鹽",
+      "file": "02.mp3",
+      "sha256": "2df560c2527ac5c82be1de4a42ad5dcd5941c93be66c4c2ac0a94f5443146705",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/02.mp3",
+      "bytes": 12119,
+      "tts_text": "塩",
+      "analysis": {
+        "seconds": 0.758,
+        "rms_dbfs": -13.9,
+        "peak": 26248,
+        "leading_ms": 67,
+        "trailing_ms": 147,
+        "voiced_ms": 543,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 3,
+      "jp": "さとう",
+      "kanji": "砂糖",
+      "zh": "砂糖",
+      "file": "03.mp3",
+      "sha256": "c08ac92ef11a5fc6d8185b0c0c9c74a0a7b180f79f61b0fe3dd5d90819fcf581",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/03.mp3",
+      "bytes": 12119,
+      "tts_text": "砂糖",
+      "analysis": {
+        "seconds": 0.758,
+        "rms_dbfs": -16.0,
+        "peak": 28047,
+        "leading_ms": 59,
+        "trailing_ms": 176,
+        "voiced_ms": 523,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 4,
+      "jp": "みそ",
+      "kanji": "味噌",
+      "zh": "味噌",
+      "file": "04.mp3",
+      "sha256": "acd4fc9166a453eb741742be8fb681d8fa503522744a51c949097ffee2f16f59",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/04.mp3",
+      "bytes": 10866,
+      "tts_text": "味噌",
+      "analysis": {
+        "seconds": 0.679,
+        "rms_dbfs": -15.8,
+        "peak": 25468,
+        "leading_ms": 57,
+        "trailing_ms": 178,
+        "voiced_ms": 444,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 5,
+      "jp": "しょうゆ",
+      "kanji": "醤油",
+      "zh": "醬油",
+      "file": "05.mp3",
+      "sha256": "a16e3f65f162b094a607bb5e3170fece948b5c3d7eba664e22388120864be516",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/05.mp3",
+      "bytes": 12119,
+      "tts_text": "醤油",
+      "analysis": {
+        "seconds": 0.758,
+        "rms_dbfs": -14.4,
+        "peak": 26282,
+        "leading_ms": 62,
+        "trailing_ms": 90,
+        "voiced_ms": 605,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 6,
+      "jp": "とうふ",
+      "kanji": "豆腐",
+      "zh": "豆腐",
+      "file": "06.mp3",
+      "sha256": "43349f158c3c68d62d5d10ef4eddad908610a4b6bfda55cbd978394b7dc0d8a7",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/06.mp3",
+      "bytes": 11283,
+      "tts_text": "豆腐",
+      "analysis": {
+        "seconds": 0.705,
+        "rms_dbfs": -13.8,
+        "peak": 24778,
+        "leading_ms": 51,
+        "trailing_ms": 168,
+        "voiced_ms": 486,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 7,
+      "jp": "にく",
+      "kanji": "肉",
+      "zh": "肉",
+      "file": "07.mp3",
+      "sha256": "8edcb7dc9e7441048deedbbb671787a6047b5af141eb9c3efacbaccbd992f899",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/07.mp3",
+      "bytes": 11283,
+      "tts_text": "肉",
+      "analysis": {
+        "seconds": 0.705,
+        "rms_dbfs": -13.5,
+        "peak": 27564,
+        "leading_ms": 57,
+        "trailing_ms": 112,
+        "voiced_ms": 537,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 8,
+      "jp": "たまご",
+      "kanji": "卵",
+      "zh": "雞蛋",
+      "file": "08.mp3",
+      "sha256": "8d148fa5fd10bebb59c324d186bed96cbd8876afeff4e2165128857069b40705",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/08.mp3",
+      "bytes": 11283,
+      "tts_text": "卵",
+      "analysis": {
+        "seconds": 0.705,
+        "rms_dbfs": -13.9,
+        "peak": 25212,
+        "leading_ms": 57,
+        "trailing_ms": 140,
+        "voiced_ms": 509,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 9,
+      "jp": "ぎゅうにゅう",
+      "kanji": "牛乳",
+      "zh": "牛奶",
+      "file": "09.mp3",
+      "sha256": "99e5f7cdfcd80f696f370a238b1e31b0a9df0ee1e27619e901eb39e27bfbf3ce",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/09.mp3",
+      "bytes": 14209,
+      "tts_text": "牛乳",
+      "analysis": {
+        "seconds": 0.888,
+        "rms_dbfs": -13.3,
+        "peak": 25836,
+        "leading_ms": 55,
+        "trailing_ms": 118,
+        "voiced_ms": 715,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 10,
+      "jp": "やさい",
+      "kanji": "野菜",
+      "zh": "蔬菜",
+      "file": "10.mp3",
+      "sha256": "4bebe212ed3ea70a7013ea9d4f41c4fa1009ead9dda8a0c97147a0eda9939f11",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/10.mp3",
+      "bytes": 12119,
+      "tts_text": "野菜",
+      "analysis": {
+        "seconds": 0.758,
+        "rms_dbfs": -16.5,
+        "peak": 29677,
+        "leading_ms": 57,
+        "trailing_ms": 161,
+        "voiced_ms": 539,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 11,
+      "jp": "もち",
+      "kanji": "餅",
+      "zh": "麻糬",
+      "file": "11.mp3",
+      "sha256": "9234ad835d8f8226acc2351a1e8caa98187c9ce1fcaff47e32f23e0b3b141ca8",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/11.mp3",
+      "bytes": 11283,
+      "tts_text": "餅",
+      "analysis": {
+        "seconds": 0.705,
+        "rms_dbfs": -16.2,
+        "peak": 23609,
+        "leading_ms": 55,
+        "trailing_ms": 146,
+        "voiced_ms": 504,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 12,
+      "jp": "まんじゅう",
+      "kanji": "饅頭",
+      "zh": "饅頭",
+      "file": "12.mp3",
+      "sha256": "73eece44432af960d79c9cc0207aec2936de8c91cce1609b2a9b9dac113ac7b7",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/12.mp3",
+      "bytes": 14209,
+      "tts_text": "まんじゅう",
+      "analysis": {
+        "seconds": 0.888,
+        "rms_dbfs": -16.3,
+        "peak": 24624,
+        "leading_ms": 52,
+        "trailing_ms": 161,
+        "voiced_ms": 676,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 13,
+      "jp": "だいふく",
+      "kanji": "大福",
+      "zh": "大福",
+      "file": "13.mp3",
+      "sha256": "7746760a048e48413319e567d495bc6f96c100690fff076f5b00ffa8eb7d7bc2",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/13.mp3",
+      "bytes": 14209,
+      "tts_text": "大福",
+      "analysis": {
+        "seconds": 0.888,
+        "rms_dbfs": -14.9,
+        "peak": 29924,
+        "leading_ms": 55,
+        "trailing_ms": 158,
+        "voiced_ms": 675,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 14,
+      "jp": "せんべい",
+      "kanji": "煎餅",
+      "zh": "仙貝",
+      "file": "14.mp3",
+      "sha256": "5eab4814edd24459b4341bd8863bf3e9e7a94bae3a382af7b5a4971953227629",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/14.mp3",
+      "bytes": 14209,
+      "tts_text": "せんべい",
+      "analysis": {
+        "seconds": 0.888,
+        "rms_dbfs": -16.0,
+        "peak": 22927,
+        "leading_ms": 63,
+        "trailing_ms": 141,
+        "voiced_ms": 684,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 15,
+      "jp": "あめ",
+      "kanji": "飴",
+      "zh": "糖果",
+      "file": "15.mp3",
+      "sha256": "96ce2f153b5cf399fa4b261681f5f7ffb907258d57f912d081bf0d354c7f04b1",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/15.mp3",
+      "bytes": 9194,
+      "tts_text": "飴",
+      "analysis": {
+        "seconds": 0.575,
+        "rms_dbfs": -15.2,
+        "peak": 23263,
+        "leading_ms": 56,
+        "trailing_ms": 178,
+        "voiced_ms": 341,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 16,
+      "jp": "たいやき",
+      "kanji": "たい焼き",
+      "zh": "鯛魚燒",
+      "file": "16.mp3",
+      "sha256": "024cc4810c5abc1ed384d06997a8f737712335ec43c1b0a1766db637e387f15f",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/16.mp3",
+      "bytes": 12119,
+      "tts_text": "たい焼き",
+      "analysis": {
+        "seconds": 0.758,
+        "rms_dbfs": -16.2,
+        "peak": 27386,
+        "leading_ms": 51,
+        "trailing_ms": 84,
+        "voiced_ms": 622,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 17,
+      "jp": "そば",
+      "kanji": "",
+      "zh": "蕎麥麵",
+      "file": "17.mp3",
+      "sha256": "ee63a46db9d4f1ce39e710104b17e00c367ace68f1f379a332563e5980461939",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/17.mp3",
+      "bytes": 9194,
+      "tts_text": "そば",
+      "analysis": {
+        "seconds": 0.575,
+        "rms_dbfs": -13.1,
+        "peak": 28989,
+        "leading_ms": 67,
+        "trailing_ms": 55,
+        "voiced_ms": 452,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 18,
+      "jp": "うどん",
+      "kanji": "",
+      "zh": "烏龍麵",
+      "file": "18.mp3",
+      "sha256": "d59accd190cf49ee9f42bb41d73bc1f28f8d8bedcc18a6912b08db0a0f1f8239",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/18.mp3",
+      "bytes": 10866,
+      "tts_text": "うどん",
+      "analysis": {
+        "seconds": 0.679,
+        "rms_dbfs": -15.4,
+        "peak": 19915,
+        "leading_ms": 63,
+        "trailing_ms": 152,
+        "voiced_ms": 465,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 19,
+      "jp": "まっちゃ",
+      "kanji": "抹茶",
+      "zh": "抹茶",
+      "file": "19.mp3",
+      "sha256": "a49b4fa60491373880c9c6d0b76f1b589aed79ac20937148309bb18f8fa14ff9",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/19.mp3",
+      "bytes": 12119,
+      "tts_text": "抹茶",
+      "analysis": {
+        "seconds": 0.758,
+        "rms_dbfs": -13.9,
+        "peak": 25829,
+        "leading_ms": 63,
+        "trailing_ms": 125,
+        "voiced_ms": 569,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 20,
+      "jp": "やきとり",
+      "kanji": "焼き鳥",
+      "zh": "烤雞肉串",
+      "file": "20.mp3",
+      "sha256": "b3580eb08fbd97a2c6e2bde203bbfc6c1ef01500ccd4126ac33e898df72102c1",
+      "source": "art/audio/fish-hyakki-kyoto/a-common-ja/20.mp3",
+      "bytes": 14209,
+      "tts_text": "焼き鳥",
+      "analysis": {
+        "seconds": 0.888,
+        "rms_dbfs": -15.5,
+        "peak": 25298,
+        "leading_ms": 58,
+        "trailing_ms": 164,
+        "voiced_ms": 666,
+        "clipped_samples": 0
+      }
+    }
+  ],
+  "voice": "A",
+  "voice_id": "97eda32449cf443bbc4b8782853ca554",
+  "model_used": "s2.1-pro-free",
+  "language": "ja-JP"
+}

@@ -40,6 +40,7 @@ window.GAME_BUILD_RULES = (() => {
     // 武器選項：未滿 4 槽位可學新武器，已滿 4 槽位僅允許升級持有武器
     const eligibleWeaponKeys = Object.keys(weapons).filter(k => {
       if (k.startsWith("fusion_")) return false; // 融合武器不可由普通升級抽取
+      if (host.GAME_SKILL_EXPANSION?.releases[k] && !isUnlocked(k)) return false;
       if (k === "shikigami" && !levels[k] && !isUnlocked(k)) return false;
       if ((k === "ink_trail" || k === "seal_nail") && (levels[k] || 0) === 0 &&
           !(isUnlocked(k)

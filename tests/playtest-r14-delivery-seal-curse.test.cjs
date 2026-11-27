@@ -66,7 +66,7 @@ test('Boss兩次錯答各 10／30 秒，完全不扣燈油，所有進行中的�
   const bossQ={word,ans:[{jp:'パン'},{jp:'アイス'},word],wrong:[],lock:0};
   let resets=0;
   const scope=vm.createContext({
-    state:'play',bossQ,enemies:[boss],oil:74,maxOil:100,bossCurseRemaining:0,
+    state:'play',bossQ,enemies:[boss],oil:74,maxOil:100,bossCurseRemaining:0,BOSS_READING_RADIUS:380,
     job:null,elapsed:25,misses:[],P:{x:0,y:0},playerAttackPoseT:.6,fireAttackT:2,
     proj:[1],needles:[1],winds:[1],ghosts:[1],crosscuts:[1],dragonShots:[1],dragonScorches:[1],
     barrierPulses:[1],sacredSanctuary:{},splitblasts:[1],duoShockwaves:[1],inkfireMarks:[1],fusionEffects:[1],

@@ -1,0 +1,414 @@
+{
+  "schema": 1,
+  "stage": "snow-temple",
+  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "kind": "audio",
+  "count": 20,
+  "candidate_manifest": "art/audio/fish-snow-temple/a-common-ja/manifest.json",
+  "items": [
+    {
+      "index": 1,
+      "jp": "てぶくろ",
+      "kanji": "手袋",
+      "zh": "手套",
+      "file": "01.mp3",
+      "sha256": "84c352aa98127c6736bf5702a1e16952ea80bdbc333c4db9a30943fd5b69cfd8",
+      "source": "art/audio/fish-snow-temple/a-common-ja/01.mp3",
+      "bytes": 12955,
+      "tts_text": "手袋",
+      "analysis": {
+        "seconds": 0.81,
+        "rms_dbfs": -13.2,
+        "peak": 28886,
+        "leading_ms": 57,
+        "trailing_ms": 169,
+        "voiced_ms": 584,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 2,
+      "jp": "くつした",
+      "kanji": "靴下",
+      "zh": "襪子",
+      "file": "02.mp3",
+      "sha256": "25f39babed2faa6bf7ade24f4a69a20583e3417842a9a5c5df59539d049e42b8",
+      "source": "art/audio/fish-snow-temple/a-common-ja/02.mp3",
+      "bytes": 13791,
+      "tts_text": "靴下",
+      "analysis": {
+        "seconds": 0.862,
+        "rms_dbfs": -17.2,
+        "peak": 25877,
+        "leading_ms": 55,
+        "trailing_ms": 144,
+        "voiced_ms": 664,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 3,
+      "jp": "めがね",
+      "kanji": "眼鏡",
+      "zh": "眼鏡",
+      "file": "03.mp3",
+      "sha256": "bacf130cbe1b759b1bafc08d9be23f9f8e462068ec5ab361a5b5494390a12273",
+      "source": "art/audio/fish-snow-temple/a-common-ja/03.mp3",
+      "bytes": 12955,
+      "tts_text": "めがね",
+      "analysis": {
+        "seconds": 0.81,
+        "rms_dbfs": -13.6,
+        "peak": 25186,
+        "leading_ms": 57,
+        "trailing_ms": 121,
+        "voiced_ms": 632,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 4,
+      "jp": "ながそで",
+      "kanji": "長袖",
+      "zh": "長袖上衣",
+      "file": "04.mp3",
+      "sha256": "448431d7929d6998378bfbbcc5f5ac070a71f30942e58b5af150f5d9ef0621cf",
+      "source": "art/audio/fish-snow-temple/a-common-ja/04.mp3",
+      "bytes": 14209,
+      "tts_text": "長袖",
+      "analysis": {
+        "seconds": 0.888,
+        "rms_dbfs": -15.9,
+        "peak": 23342,
+        "leading_ms": 59,
+        "trailing_ms": 171,
+        "voiced_ms": 658,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 5,
+      "jp": "うわぎ",
+      "kanji": "上着",
+      "zh": "外套",
+      "file": "05.mp3",
+      "sha256": "c6c14b91b8b9a8c24c06a832289f762590661524378282a77af7e31efd7aa1d0",
+      "source": "art/audio/fish-snow-temple/a-common-ja/05.mp3",
+      "bytes": 10030,
+      "tts_text": "上着",
+      "analysis": {
+        "seconds": 0.627,
+        "rms_dbfs": -14.3,
+        "peak": 28330,
+        "leading_ms": 58,
+        "trailing_ms": 70,
+        "voiced_ms": 499,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 6,
+      "jp": "ゆびわ",
+      "kanji": "指輪",
+      "zh": "戒指",
+      "file": "06.mp3",
+      "sha256": "f164ad14fdad9334b0fd31221f42529f0bc88180bd3dcb8f94e3a3cc757a205b",
+      "source": "art/audio/fish-snow-temple/a-common-ja/06.mp3",
+      "bytes": 12119,
+      "tts_text": "指輪",
+      "analysis": {
+        "seconds": 0.758,
+        "rms_dbfs": -13.2,
+        "peak": 28138,
+        "leading_ms": 60,
+        "trailing_ms": 146,
+        "voiced_ms": 551,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 7,
+      "jp": "ぼうし",
+      "kanji": "帽子",
+      "zh": "帽子",
+      "file": "07.mp3",
+      "sha256": "b6bd44cd51d4fc74c89d0d092564afd6802c1b1685905feb6836894d46e0437c",
+      "source": "art/audio/fish-snow-temple/a-common-ja/07.mp3",
+      "bytes": 12119,
+      "tts_text": "帽子",
+      "analysis": {
+        "seconds": 0.758,
+        "rms_dbfs": -14.1,
+        "peak": 28636,
+        "leading_ms": 57,
+        "trailing_ms": 114,
+        "voiced_ms": 586,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 8,
+      "jp": "くし",
+      "kanji": "櫛",
+      "zh": "梳子",
+      "file": "08.mp3",
+      "sha256": "9b5dea336b939870af9594651c02f209a5e46af403adb69491c4eaae3ff4f81c",
+      "source": "art/audio/fish-snow-temple/a-common-ja/08.mp3",
+      "bytes": 10030,
+      "tts_text": "櫛",
+      "analysis": {
+        "seconds": 0.627,
+        "rms_dbfs": -19.1,
+        "peak": 18715,
+        "leading_ms": 54,
+        "trailing_ms": 142,
+        "voiced_ms": 430,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 9,
+      "jp": "ねぶくろ",
+      "kanji": "寝袋",
+      "zh": "睡袋",
+      "file": "09.mp3",
+      "sha256": "f34ec1f3fb33c2d502aa0167f76b7f50b9e39e76ee3edeaed2139c180945f47a",
+      "source": "art/audio/fish-snow-temple/a-common-ja/09.mp3",
+      "bytes": 14209,
+      "tts_text": "寝袋",
+      "analysis": {
+        "seconds": 0.888,
+        "rms_dbfs": -14.2,
+        "peak": 23017,
+        "leading_ms": 57,
+        "trailing_ms": 128,
+        "voiced_ms": 703,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 10,
+      "jp": "もうふ",
+      "kanji": "毛布",
+      "zh": "毛毯",
+      "file": "10.mp3",
+      "sha256": "ff3812993778bdbb951171b7ec8f575ac23cd875f0c4f0aa09eb9b7f6ca8fb82",
+      "source": "art/audio/fish-snow-temple/a-common-ja/10.mp3",
+      "bytes": 12119,
+      "tts_text": "毛布",
+      "analysis": {
+        "seconds": 0.758,
+        "rms_dbfs": -13.6,
+        "peak": 24705,
+        "leading_ms": 67,
+        "trailing_ms": 138,
+        "voiced_ms": 552,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 11,
+      "jp": "ふとん",
+      "kanji": "布団",
+      "zh": "棉被",
+      "file": "11.mp3",
+      "sha256": "ba35ff9feec4a7247bef56ede0d3bfeb4b53adb67b8991132ab0faa0463c48e9",
+      "source": "art/audio/fish-snow-temple/a-common-ja/11.mp3",
+      "bytes": 10030,
+      "tts_text": "布団",
+      "analysis": {
+        "seconds": 0.627,
+        "rms_dbfs": -16.9,
+        "peak": 24978,
+        "leading_ms": 59,
+        "trailing_ms": 130,
+        "voiced_ms": 437,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 12,
+      "jp": "まくら",
+      "kanji": "枕",
+      "zh": "枕頭",
+      "file": "12.mp3",
+      "sha256": "a9ae59f2e82b1e57b9dd798121158a5146ea7ffc7c0ae7d03e8c41a3a200a245",
+      "source": "art/audio/fish-snow-temple/a-common-ja/12.mp3",
+      "bytes": 11283,
+      "tts_text": "まくら",
+      "analysis": {
+        "seconds": 0.705,
+        "rms_dbfs": -15.1,
+        "peak": 21870,
+        "leading_ms": 59,
+        "trailing_ms": 127,
+        "voiced_ms": 519,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 13,
+      "jp": "はみがきこ",
+      "kanji": "歯磨き粉",
+      "zh": "牙膏",
+      "file": "13.mp3",
+      "sha256": "251d3dc22c97bbaf7bf20df3a4ac2a06452207a229a33621ea60840a56b4919d",
+      "source": "art/audio/fish-snow-temple/a-common-ja/13.mp3",
+      "bytes": 16717,
+      "tts_text": "歯磨き粉",
+      "analysis": {
+        "seconds": 1.045,
+        "rms_dbfs": -16.0,
+        "peak": 23900,
+        "leading_ms": 66,
+        "trailing_ms": 170,
+        "voiced_ms": 809,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 14,
+      "jp": "なべ",
+      "kanji": "鍋",
+      "zh": "鍋子",
+      "file": "14.mp3",
+      "sha256": "af5dd99a4612c220b7dd08a2163ad772ebf055279f7b614847c10d9a23846e7a",
+      "source": "art/audio/fish-snow-temple/a-common-ja/14.mp3",
+      "bytes": 10030,
+      "tts_text": "鍋",
+      "analysis": {
+        "seconds": 0.627,
+        "rms_dbfs": -15.1,
+        "peak": 23274,
+        "leading_ms": 56,
+        "trailing_ms": 174,
+        "voiced_ms": 397,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 15,
+      "jp": "やかん",
+      "kanji": "",
+      "zh": "燒水壺",
+      "file": "15.mp3",
+      "sha256": "58ea86ac226bb4846230e82e633167ee7f0c6a542bb1e0188ff102e4f49c064a",
+      "source": "art/audio/fish-snow-temple/a-common-ja/15.mp3",
+      "bytes": 11283,
+      "tts_text": "やかん",
+      "analysis": {
+        "seconds": 0.705,
+        "rms_dbfs": -17.1,
+        "peak": 29625,
+        "leading_ms": 54,
+        "trailing_ms": 136,
+        "voiced_ms": 516,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 16,
+      "jp": "おんどけい",
+      "kanji": "温度計",
+      "zh": "溫度計",
+      "file": "16.mp3",
+      "sha256": "0a01ef2e050d7f56809272290bb4ee26a04d7d9aef5d41ed50eec77bbf9c5388",
+      "source": "art/audio/fish-snow-temple/a-common-ja/16.mp3",
+      "bytes": 15045,
+      "tts_text": "温度計",
+      "analysis": {
+        "seconds": 0.94,
+        "rms_dbfs": -16.1,
+        "peak": 19104,
+        "leading_ms": 56,
+        "trailing_ms": 142,
+        "voiced_ms": 742,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 17,
+      "jp": "みかん",
+      "kanji": "",
+      "zh": "橘子",
+      "file": "17.mp3",
+      "sha256": "1b8cdbf735514434db4b5093a840e0f0280a2c85dd53e9b96ef15d5415b0860b",
+      "source": "art/audio/fish-snow-temple/a-common-ja/17.mp3",
+      "bytes": 11283,
+      "tts_text": "みかん",
+      "analysis": {
+        "seconds": 0.705,
+        "rms_dbfs": -15.3,
+        "peak": 26054,
+        "leading_ms": 64,
+        "trailing_ms": 115,
+        "voiced_ms": 527,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 18,
+      "jp": "りんご",
+      "kanji": "",
+      "zh": "蘋果",
+      "file": "18.mp3",
+      "sha256": "197a248a6eacc60e75220ad7996bc78d5b9dd27be21d9a9c83ca21bc6db2f1da",
+      "source": "art/audio/fish-snow-temple/a-common-ja/18.mp3",
+      "bytes": 10866,
+      "tts_text": "りんご",
+      "analysis": {
+        "seconds": 0.679,
+        "rms_dbfs": -14.1,
+        "peak": 24355,
+        "leading_ms": 52,
+        "trailing_ms": 131,
+        "voiced_ms": 496,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 19,
+      "jp": "やきいも",
+      "kanji": "焼き芋",
+      "zh": "烤地瓜",
+      "file": "19.mp3",
+      "sha256": "d0952eb990cf83748a6f205368903b38113fef75b8b14407c06fa50b014d7ee5",
+      "source": "art/audio/fish-snow-temple/a-common-ja/19.mp3",
+      "bytes": 14209,
+      "tts_text": "焼き芋",
+      "analysis": {
+        "seconds": 0.888,
+        "rms_dbfs": -13.0,
+        "peak": 28841,
+        "leading_ms": 56,
+        "trailing_ms": 157,
+        "voiced_ms": 675,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 20,
+      "jp": "おでん",
+      "kanji": "",
+      "zh": "關東煮",
+      "file": "20.mp3",
+      "sha256": "706c66b341f9a5e6577ce47e5ac1d5c745748ced6b7dd75b0c50d2d07e3cff12",
+      "source": "art/audio/fish-snow-temple/a-common-ja/20.mp3",
+      "bytes": 10030,
+      "tts_text": "おでん",
+      "analysis": {
+        "seconds": 0.627,
+        "rms_dbfs": -15.0,
+        "peak": 23900,
+        "leading_ms": 58,
+        "trailing_ms": 161,
+        "voiced_ms": 408,
+        "clipped_samples": 0
+      }
+    }
+  ],
+  "voice": "A",
+  "voice_id": "97eda32449cf443bbc4b8782853ca554",
+  "model_used": "s2.1-pro-free",
+  "language": "ja-JP"
+}

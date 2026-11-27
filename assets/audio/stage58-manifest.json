@@ -1,0 +1,723 @@
+{
+  "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+  "assets": [
+    {
+      "id": "hyakki-kyoto-battle",
+      "path": "assets/audio/bgm/stages/hyakki-kyoto/hyakki-kyoto__battle.mp3",
+      "source": "art/audio/stage58/bgm/stages/hyakki-kyoto/hyakki-kyoto__battle.mp3",
+      "sha256": "2c233c1ebc2e92c82489637d114a781e2cc1b9b697b3a1bb51c031398abe3aac",
+      "bytes": 3936357,
+      "source_duration": 179.349,
+      "source_channels": 2,
+      "source_sampleRate": 48000
+    },
+    {
+      "id": "hyakki-kyoto-boss",
+      "path": "assets/audio/bgm/stages/hyakki-kyoto/hyakki-kyoto__boss.mp3",
+      "source": "art/audio/stage58/bgm/stages/hyakki-kyoto/hyakki-kyoto__boss.mp3",
+      "sha256": "833e148e760614880d79efeb17ecc2e6bef17b8519a3129c0914b1f8c9385124",
+      "bytes": 4657337,
+      "source_duration": 143.211,
+      "source_channels": 2,
+      "source_sampleRate": 48000,
+      "source_truePeakDbtp": -1.07
+    },
+    {
+      "id": "snow-temple-battle",
+      "path": "assets/audio/bgm/stages/snow-temple/snow-temple__battle.mp3",
+      "source": "art/audio/stage58/bgm/stages/snow-temple/snow-temple__battle.mp3",
+      "sha256": "14c55a02fe1716f700dff1bb22ff5d758c6fe69aa04105951da21b275aa02b10",
+      "bytes": 3516372,
+      "source_duration": 170.432,
+      "source_channels": 2,
+      "source_sampleRate": 48000
+    },
+    {
+      "id": "snow-temple-boss",
+      "path": "assets/audio/bgm/stages/snow-temple/snow-temple__boss.mp3",
+      "source": "art/audio/stage58/bgm/stages/snow-temple/snow-temple__boss.mp3",
+      "sha256": "2650013b062e7f3a043eb21b27090a20d8bc7c90f90fae29fa569a8b77d4e9b3",
+      "bytes": 5685688,
+      "source_duration": 166.976,
+      "source_channels": 2,
+      "source_sampleRate": 48000,
+      "source_truePeakDbtp": -1.14
+    },
+    {
+      "id": "spirit-ferry-battle",
+      "path": "assets/audio/bgm/stages/spirit-ferry/spirit-ferry__battle.mp3",
+      "source": "art/audio/stage58/bgm/stages/spirit-ferry/spirit-ferry__battle.mp3",
+      "sha256": "15197968f4b5599f5d6e24d609686890200bbc45433433fedeb3234f140ce808",
+      "bytes": 3692993,
+      "source_duration": 175.808,
+      "source_channels": 2,
+      "source_sampleRate": 48000
+    },
+    {
+      "id": "spirit-ferry-boss",
+      "path": "assets/audio/bgm/stages/spirit-ferry/spirit-ferry__boss.mp3",
+      "source": "art/audio/stage58/bgm/stages/spirit-ferry/spirit-ferry__boss.mp3",
+      "sha256": "fc395d5875765e4956f41aef026ac0af7abcb562088db3ad8934bf7ca0226005",
+      "bytes": 3678658,
+      "source_duration": 182.016,
+      "source_channels": 2,
+      "source_sampleRate": 48000
+    },
+    {
+      "id": "yomi-battle",
+      "path": "assets/audio/bgm/stages/yomi/yomi__battle.mp3",
+      "source": "art/audio/stage58/bgm/stages/yomi/yomi__battle.mp3",
+      "sha256": "db769c3f465d1b485b2f0725feed8f5cee178252f9a2b0c919f67f70266bd761",
+      "bytes": 3746799,
+      "source_duration": 173.76,
+      "source_channels": 2,
+      "source_sampleRate": 48000
+    },
+    {
+      "id": "yomi-boss",
+      "path": "assets/audio/bgm/stages/yomi/yomi__boss.mp3",
+      "source": "art/audio/stage58/bgm/stages/yomi/yomi__boss.mp3",
+      "sha256": "30e7d31bf7359e92d318cc2a0b9d760690c4b2d9a800a6f92763c357ed0468ae",
+      "bytes": 5107627,
+      "source_duration": 179.84,
+      "source_channels": 2,
+      "source_sampleRate": 48000,
+      "source_truePeakDbtp": -1.29
+    },
+    {
+      "id": "yomi-final",
+      "path": "assets/audio/bgm/stages/yomi/yomi__final.mp3",
+      "source": "art/audio/stage58/bgm/stages/yomi/yomi__final.mp3",
+      "sha256": "c5286b1287a7203e01451b9fb8fd422a80c837fdc27dac45f9189087be44b5c9",
+      "bytes": 5219106,
+      "source_duration": 175.189,
+      "source_channels": 2,
+      "source_sampleRate": 48000,
+      "source_truePeakDbtp": -1.1
+    },
+    {
+      "id": "yomi-ending",
+      "path": "assets/audio/bgm/stages/yomi/yomi__ending.mp3",
+      "source": "art/audio/stage58/bgm/stages/yomi/yomi__ending.mp3",
+      "sha256": "af6d9752015fd0658b92bee6b56e253334b6c5c9a395a6fa0cf6bd24eff11d3a",
+      "bytes": 5356120,
+      "source_duration": 176.853,
+      "source_channels": 2,
+      "source_sampleRate": 48000,
+      "source_truePeakDbtp": -1.47
+    },
+    {
+      "id": "hyakki-kyoto-ambience",
+      "path": "assets/audio/sfx/world/hyakki-kyoto__ambience.mp3",
+      "source": "art/audio/stage58/sfx/world/hyakki-kyoto__ambience.mp3",
+      "sha256": "144386f7a1ab805c36ac18670cb57a473d90269871dd69b83f685dba2b96f970",
+      "bytes": 423227,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 21.1,
+      "source_truePeakDbtp": -2.8
+    },
+    {
+      "id": "hyakki-kyoto-spawn",
+      "path": "assets/audio/sfx/world/hyakki-kyoto__spawn.mp3",
+      "source": "art/audio/stage58/sfx/world/hyakki-kyoto__spawn.mp3",
+      "sha256": "4d40473cf9ea69f2d9e2b9bda27236534ef188b3cbccf98d0840d52ea26af115",
+      "bytes": 12581,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 0.461,
+      "source_truePeakDbtp": -1.1
+    },
+    {
+      "id": "hyakki-kyoto-shot",
+      "path": "assets/audio/sfx/enemies/kyoto-box-bellows/kyoto-box-bellows__shot.mp3",
+      "source": "art/audio/stage58/sfx/enemies/kyoto-box-bellows/kyoto-box-bellows__shot.mp3",
+      "sha256": "0058050974abc38c2fa006fcdfec969c5ad67b74a8c92f81e21134a5011e0d50",
+      "bytes": 11328,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 0.401,
+      "source_truePeakDbtp": -1.2
+    },
+    {
+      "id": "hyakki-kyoto-death",
+      "path": "assets/audio/sfx/enemies/hyakki-kyoto-boss/hyakki-kyoto-boss__death.mp3",
+      "source": "art/audio/stage58/sfx/enemies/hyakki-kyoto-boss/hyakki-kyoto-boss__death.mp3",
+      "sha256": "41902a5a4b586657f508c6f7750136e11af309b90b8eb9a2d69dd2c558ca4345",
+      "bytes": 45182,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.804,
+      "source_truePeakDbtp": -1.4
+    },
+    {
+      "id": "snow-temple-ambience",
+      "path": "assets/audio/sfx/world/snow-temple__ambience.mp3",
+      "source": "art/audio/stage58/sfx/world/snow-temple__ambience.mp3",
+      "sha256": "2fb4efbf86efee13220097abbd327bcfce4cd8e635bfee177a7a67ffc200d6b5",
+      "bytes": 423227,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 21.1,
+      "source_truePeakDbtp": -9.8
+    },
+    {
+      "id": "snow-temple-spawn",
+      "path": "assets/audio/sfx/world/snow-temple__spawn.mp3",
+      "source": "art/audio/stage58/sfx/world/snow-temple__spawn.mp3",
+      "sha256": "a9033e739cb3b920dcb0291efcae43bf89e096a881c504b6c9399b96a51dea4d",
+      "bytes": 12581,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 0.45,
+      "source_truePeakDbtp": -1.6
+    },
+    {
+      "id": "snow-temple-shot",
+      "path": "assets/audio/sfx/enemies/snow-lantern-monk/snow-lantern-monk__shot.mp3",
+      "source": "art/audio/stage58/sfx/enemies/snow-lantern-monk/snow-lantern-monk__shot.mp3",
+      "sha256": "cbd3c86593605489ef6695922244fa8243725a321e6ac1c6797cc9af31035b41",
+      "bytes": 13835,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 0.5,
+      "source_truePeakDbtp": -1.6
+    },
+    {
+      "id": "snow-temple-death",
+      "path": "assets/audio/sfx/enemies/snow-temple-boss/snow-temple-boss__death.mp3",
+      "source": "art/audio/stage58/sfx/enemies/snow-temple-boss/snow-temple-boss__death.mp3",
+      "sha256": "b68b33b274fb01a28f78654efe9804363d203373265d821cd59ccb4b1270269a",
+      "bytes": 45809,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.85,
+      "source_truePeakDbtp": -1.7
+    },
+    {
+      "id": "spirit-ferry-ambience",
+      "path": "assets/audio/sfx/world/spirit-ferry__ambience.mp3",
+      "source": "art/audio/stage58/sfx/world/spirit-ferry__ambience.mp3",
+      "sha256": "2b12767b1d03155d639e4789db8b6d59c206808a3c563c34501cd1f074c5c4bd",
+      "bytes": 423227,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 21.1,
+      "source_truePeakDbtp": -2.5
+    },
+    {
+      "id": "spirit-ferry-spawn",
+      "path": "assets/audio/sfx/world/spirit-ferry__spawn.mp3",
+      "source": "art/audio/stage58/sfx/world/spirit-ferry__spawn.mp3",
+      "sha256": "6c9936d76a5e1e71abf45b719eaea27847cad64b536109a5de1e47ca1b4c6c63",
+      "bytes": 12581,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 0.45,
+      "source_truePeakDbtp": -1.7
+    },
+    {
+      "id": "spirit-ferry-shot",
+      "path": "assets/audio/sfx/enemies/ferry-boat-mail-spirit/ferry-boat-mail-spirit__shot.mp3",
+      "source": "art/audio/stage58/sfx/enemies/ferry-boat-mail-spirit/ferry-boat-mail-spirit__shot.mp3",
+      "sha256": "98d25b2991d5481a99ee919ab37a277df9812ad4808b30f4bceec8419acafae5",
+      "bytes": 13208,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 0.48,
+      "source_truePeakDbtp": -1.7
+    },
+    {
+      "id": "spirit-ferry-death",
+      "path": "assets/audio/sfx/enemies/spirit-ferry-boss/spirit-ferry-boss__death.mp3",
+      "source": "art/audio/stage58/sfx/enemies/spirit-ferry-boss/spirit-ferry-boss__death.mp3",
+      "sha256": "81fe0c669e19eab8fe0cce6963f924c9db02e54476bd5d491aa936c1107aad46",
+      "bytes": 47063,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.9,
+      "source_truePeakDbtp": -1.9
+    },
+    {
+      "id": "yomi-ambience",
+      "path": "assets/audio/sfx/world/yomi__ambience.mp3",
+      "source": "art/audio/stage58/sfx/world/yomi__ambience.mp3",
+      "sha256": "cc8736761a59182e7caf832629b8607892b061b8ac4bfe5853d1cec7dedffc7e",
+      "bytes": 423227,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 21.1,
+      "source_truePeakDbtp": -5.8
+    },
+    {
+      "id": "yomi-spawn",
+      "path": "assets/audio/sfx/world/yomi__spawn.mp3",
+      "source": "art/audio/stage58/sfx/world/yomi__spawn.mp3",
+      "sha256": "3b73fcccb3d0a50f2619ca08d82664665c5b7a47bc2eadb03bc75e4c1721121e",
+      "bytes": 12581,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 0.45,
+      "source_truePeakDbtp": -2.1
+    },
+    {
+      "id": "yomi-shot",
+      "path": "assets/audio/sfx/enemies/yomi-gate-priest/yomi-gate-priest__shot.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-gate-priest/yomi-gate-priest__shot.mp3",
+      "sha256": "8887edfd0c283b45ecc5dbf117e44b7f7357dd96f927193d7d60e2c60c8ee9ea",
+      "bytes": 13208,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 0.48,
+      "source_truePeakDbtp": -2.1
+    },
+    {
+      "id": "yomi-death",
+      "path": "assets/audio/sfx/enemies/yomi-boss/yomi-boss__death.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-boss/yomi-boss__death.mp3",
+      "sha256": "e147770a2d00616a9625f6c077352c51b00c935647a5382b2d5c9df0c537ef30",
+      "bytes": 47063,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.9,
+      "source_truePeakDbtp": -1.3
+    },
+    {
+      "id": "hyakki-kyoto-arrival.kyoto-taiko-warden",
+      "path": "assets/audio/sfx/enemies/kyoto-taiko-warden/kyoto-taiko-warden__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/kyoto-taiko-warden/kyoto-taiko-warden__arrival.mp3",
+      "sha256": "67dd5111614fa78769769736df9d68a0cfcebdb6440e18ebce6da5da39d5b6d4",
+      "bytes": 49571,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 2,
+      "source_truePeakDbtp": -1.3
+    },
+    {
+      "id": "hyakki-kyoto-kyoto-taiko-warden-crossing.warning",
+      "path": "assets/audio/sfx/enemies/kyoto-taiko-warden/kyoto-taiko-warden__crossing-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/kyoto-taiko-warden/kyoto-taiko-warden__crossing-warning.mp3",
+      "sha256": "39659c02284d6fadd8af99a03df03225dfbede6e011a994fa07bc82e85a9dc1e",
+      "bytes": 27001,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.05,
+      "source_truePeakDbtp": -1.2
+    },
+    {
+      "id": "hyakki-kyoto-kyoto-taiko-warden-crossing.impact",
+      "path": "assets/audio/sfx/enemies/kyoto-taiko-warden/kyoto-taiko-warden__crossing-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/kyoto-taiko-warden/kyoto-taiko-warden__crossing-impact.mp3",
+      "sha256": "062623838b1b30bd8e0ac751a32f245c94e546ccaa8dcaf11f9691c856f11b84",
+      "bytes": 41421,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.65,
+      "source_truePeakDbtp": -1.9
+    },
+    {
+      "id": "hyakki-kyoto-arrival.kyoto-brocade-puppeteer",
+      "path": "assets/audio/sfx/enemies/kyoto-brocade-puppeteer/kyoto-brocade-puppeteer__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/kyoto-brocade-puppeteer/kyoto-brocade-puppeteer__arrival.mp3",
+      "sha256": "198267d9ea96b2207185d8829756680971063b206e59e12c6b1cab79b817c2c2",
+      "bytes": 24493,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 0.95,
+      "source_truePeakDbtp": -2.1
+    },
+    {
+      "id": "hyakki-kyoto-kyoto-brocade-puppeteer-crossing.warning",
+      "path": "assets/audio/sfx/enemies/kyoto-brocade-puppeteer/kyoto-brocade-puppeteer__crossing-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/kyoto-brocade-puppeteer/kyoto-brocade-puppeteer__crossing-warning.mp3",
+      "sha256": "fe0e3ca9bf9a8c468db76fb613f976fb13fbb7e917c6255d264047650248ad7a",
+      "bytes": 27001,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.05,
+      "source_truePeakDbtp": -1.2
+    },
+    {
+      "id": "hyakki-kyoto-kyoto-brocade-puppeteer-crossing.impact",
+      "path": "assets/audio/sfx/enemies/kyoto-brocade-puppeteer/kyoto-brocade-puppeteer__crossing-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/kyoto-brocade-puppeteer/kyoto-brocade-puppeteer__crossing-impact.mp3",
+      "sha256": "67e789bc7c83d5a2127d00bda0237d1e6bad06fa928322528e7644ca1a769693",
+      "bytes": 37659,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.5,
+      "source_truePeakDbtp": -1.4
+    },
+    {
+      "id": "hyakki-kyoto-arrival.kyoto-procession-marshal",
+      "path": "assets/audio/sfx/enemies/kyoto-procession-marshal/kyoto-procession-marshal__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/kyoto-procession-marshal/kyoto-procession-marshal__arrival.mp3",
+      "sha256": "dd70c64e479fba7d364ba8a3c86a00ae42098db9148ff0153864e80cb64d05fe",
+      "bytes": 48317,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.937,
+      "source_truePeakDbtp": -1.1
+    },
+    {
+      "id": "hyakki-kyoto-kyoto-procession-marshal-crossing.warning",
+      "path": "assets/audio/sfx/enemies/kyoto-procession-marshal/kyoto-procession-marshal__crossing-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/kyoto-procession-marshal/kyoto-procession-marshal__crossing-warning.mp3",
+      "sha256": "fd7a9162abffff347b1f07e6bf6e76c931f98d6e2e2e31af55215a8dda67b9db",
+      "bytes": 27001,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.05,
+      "source_truePeakDbtp": -2
+    },
+    {
+      "id": "hyakki-kyoto-kyoto-procession-marshal-crossing.impact",
+      "path": "assets/audio/sfx/enemies/kyoto-procession-marshal/kyoto-procession-marshal__crossing-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/kyoto-procession-marshal/kyoto-procession-marshal__crossing-impact.mp3",
+      "sha256": "f611340e43ce30d6d3d73fd6c57f48c836a28c09b0aa5e3b84e33b4bbfaac7e8",
+      "bytes": 48317,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.95,
+      "source_truePeakDbtp": -1.1
+    },
+    {
+      "id": "snow-temple-arrival.snow-frost-bell-guardian",
+      "path": "assets/audio/sfx/enemies/snow-frost-bell-guardian/snow-frost-bell-guardian__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/snow-frost-bell-guardian/snow-frost-bell-guardian__arrival.mp3",
+      "sha256": "28ffa22a7c5ec17659c4e39447d07cdf7fe44c45f7f5899aa3687e9462ccd190",
+      "bytes": 41421,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.647,
+      "source_truePeakDbtp": -2.5
+    },
+    {
+      "id": "snow-temple-frost-bell.warning",
+      "path": "assets/audio/sfx/enemies/snow-frost-bell-guardian/snow-frost-bell-guardian__frost-bell-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/snow-frost-bell-guardian/snow-frost-bell-guardian__frost-bell-warning.mp3",
+      "sha256": "7744c11ae7997e6ca230beb931f6c0cf21b620e90d4e7d6c508565a0e6562d18",
+      "bytes": 26374,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.04,
+      "source_truePeakDbtp": -1.6
+    },
+    {
+      "id": "snow-temple-frost-bell.impact",
+      "path": "assets/audio/sfx/enemies/snow-frost-bell-guardian/snow-frost-bell-guardian__frost-bell-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/snow-frost-bell-guardian/snow-frost-bell-guardian__frost-bell-impact.mp3",
+      "sha256": "ed45828cf54477a5431c63902c5f5ad42f7132ad39df76b98b65c80350619052",
+      "bytes": 43301,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.75,
+      "source_truePeakDbtp": -1.9
+    },
+    {
+      "id": "snow-temple-arrival.snow-white-kimono",
+      "path": "assets/audio/sfx/enemies/snow-white-kimono/snow-white-kimono__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/snow-white-kimono/snow-white-kimono__arrival.mp3",
+      "sha256": "1a1e7da708fae77acc8ae8998c3844ada8d27b2eeccb59e7540f1dc29436082c",
+      "bytes": 38913,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.561,
+      "source_truePeakDbtp": -1.5
+    },
+    {
+      "id": "snow-temple-ice-gale.warning",
+      "path": "assets/audio/sfx/enemies/snow-white-kimono/snow-white-kimono__ice-gale-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/snow-white-kimono/snow-white-kimono__ice-gale-warning.mp3",
+      "sha256": "0bd7bb9e4f85a70f6910daae00ce06af7acf3d133008128a9b3395de882a048f",
+      "bytes": 23866,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 0.931,
+      "source_truePeakDbtp": -1.7
+    },
+    {
+      "id": "snow-temple-ice-gale.impact",
+      "path": "assets/audio/sfx/enemies/snow-white-kimono/snow-white-kimono__ice-gale-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/snow-white-kimono/snow-white-kimono__ice-gale-impact.mp3",
+      "sha256": "2f3b43c8e107701887edf9340805b978dd4b9e907f60ac7200ebd4139c747a6e",
+      "bytes": 41421,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.65,
+      "source_truePeakDbtp": -1.5
+    },
+    {
+      "id": "snow-temple-arrival.snow-mountain-lion",
+      "path": "assets/audio/sfx/enemies/snow-mountain-lion/snow-mountain-lion__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/snow-mountain-lion/snow-mountain-lion__arrival.mp3",
+      "sha256": "a05ebc44c460cbcfaf33edf197487428903afa7953707c8a744c9b2a339b346d",
+      "bytes": 36405,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.452,
+      "source_truePeakDbtp": -2.2
+    },
+    {
+      "id": "snow-temple-blizzard-claws.warning",
+      "path": "assets/audio/sfx/enemies/snow-mountain-lion/snow-mountain-lion__blizzard-claws-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/snow-mountain-lion/snow-mountain-lion__blizzard-claws-warning.mp3",
+      "sha256": "75f9874d888c3b68966dc233048b11857026784f0c0852d86a9ddd3062cfc335",
+      "bytes": 29509,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.15,
+      "source_truePeakDbtp": -2.1
+    },
+    {
+      "id": "snow-temple-blizzard-claws.impact",
+      "path": "assets/audio/sfx/enemies/snow-mountain-lion/snow-mountain-lion__blizzard-claws-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/snow-mountain-lion/snow-mountain-lion__blizzard-claws-impact.mp3",
+      "sha256": "e2a104ee7ddae5b82c142ca9f0af39821abc137e8ab5a13e51e2b9d896f96984",
+      "bytes": 45809,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.85,
+      "source_truePeakDbtp": -2.1
+    },
+    {
+      "id": "spirit-ferry-arrival.ferry-shore-lion",
+      "path": "assets/audio/sfx/enemies/ferry-shore-lion/ferry-shore-lion__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/ferry-shore-lion/ferry-shore-lion__arrival.mp3",
+      "sha256": "ae8cb693caf2abaecd9deaa6744310d83e093f80d61973288ee60ffa7eb27294",
+      "bytes": 48317,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.95,
+      "source_truePeakDbtp": -1.6
+    },
+    {
+      "id": "spirit-ferry-soul-splash.warning",
+      "path": "assets/audio/sfx/enemies/ferry-shore-lion/ferry-shore-lion__soul-splash-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/ferry-shore-lion/ferry-shore-lion__soul-splash-warning.mp3",
+      "sha256": "2976bab9910bdf2087ce92f68570210a6dca3e4a40fec227e71c6e13db3fc023",
+      "bytes": 25120,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 0.977,
+      "source_truePeakDbtp": -1.7
+    },
+    {
+      "id": "spirit-ferry-soul-splash.impact",
+      "path": "assets/audio/sfx/enemies/ferry-shore-lion/ferry-shore-lion__soul-splash-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/ferry-shore-lion/ferry-shore-lion__soul-splash-impact.mp3",
+      "sha256": "6a33d3e361698fb4423e868b460f19b6648476845ddec11521aeaf291b47e0d3",
+      "bytes": 41421,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.65,
+      "source_truePeakDbtp": -1.3
+    },
+    {
+      "id": "spirit-ferry-arrival.ferry-drowned-maiden",
+      "path": "assets/audio/sfx/enemies/ferry-drowned-maiden/ferry-drowned-maiden__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/ferry-drowned-maiden/ferry-drowned-maiden__arrival.mp3",
+      "sha256": "e2744b49f84f4d6d58be344f5b53547bd062c6e98b43a28438f3f5aa6d7139d8",
+      "bytes": 45809,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.85,
+      "source_truePeakDbtp": -1.6
+    },
+    {
+      "id": "spirit-ferry-spirit-tide.warning",
+      "path": "assets/audio/sfx/enemies/ferry-drowned-maiden/ferry-drowned-maiden__spirit-tide-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/ferry-drowned-maiden/ferry-drowned-maiden__spirit-tide-warning.mp3",
+      "sha256": "4ba1ee613af721d86c270216e795b77671ca4c80a68708aa336b27aace003580",
+      "bytes": 28255,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.12,
+      "source_truePeakDbtp": -1.6
+    },
+    {
+      "id": "spirit-ferry-spirit-tide.impact",
+      "path": "assets/audio/sfx/enemies/ferry-drowned-maiden/ferry-drowned-maiden__spirit-tide-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/ferry-drowned-maiden/ferry-drowned-maiden__spirit-tide-impact.mp3",
+      "sha256": "d2c1310c6fca76361f6929bb75e3ef66e9feae0715325ba30338b1bcc3c44a26",
+      "bytes": 45809,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.85,
+      "source_truePeakDbtp": -2
+    },
+    {
+      "id": "spirit-ferry-arrival.ferry-bell-oni",
+      "path": "assets/audio/sfx/enemies/ferry-bell-oni/ferry-bell-oni__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/ferry-bell-oni/ferry-bell-oni__arrival.mp3",
+      "sha256": "1a2472060049eb1b649fda4ae96062eed53ce697e48890bfa11576b1a53a00c4",
+      "bytes": 50825,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 2.05,
+      "source_truePeakDbtp": -1.3
+    },
+    {
+      "id": "spirit-ferry-arrival.ferry-ferryman",
+      "path": "assets/audio/sfx/enemies/ferry-ferryman/ferry-ferryman__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/ferry-ferryman/ferry-ferryman__arrival.mp3",
+      "sha256": "9b21782bfbbb79af399ee62b6faaee0bd85616a6a3e0d2d0c17acaedbad6cd37",
+      "bytes": 32643,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.305,
+      "source_truePeakDbtp": -1.4
+    },
+    {
+      "id": "spirit-ferry-oar-sweep.warning",
+      "path": "assets/audio/sfx/enemies/ferry-ferryman/ferry-ferryman__oar-sweep-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/ferry-ferryman/ferry-ferryman__oar-sweep-warning.mp3",
+      "sha256": "430c51517d293ee70e09bc52537cf22b3d9db8370e2c897bf037d76eda18fc40",
+      "bytes": 27628,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.08,
+      "source_truePeakDbtp": -1.2
+    },
+    {
+      "id": "spirit-ferry-oar-sweep.impact",
+      "path": "assets/audio/sfx/enemies/ferry-ferryman/ferry-ferryman__oar-sweep-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/ferry-ferryman/ferry-ferryman__oar-sweep-impact.mp3",
+      "sha256": "a38ec0b35c9d75748293a1133c8247c69fe3aeadb8a768973abb5853c59accbf",
+      "bytes": 40167,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.6,
+      "source_truePeakDbtp": -1.4
+    },
+    {
+      "id": "yomi-arrival.yomi-grave-samurai",
+      "path": "assets/audio/sfx/enemies/yomi-grave-samurai/yomi-grave-samurai__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-grave-samurai/yomi-grave-samurai__arrival.mp3",
+      "sha256": "9609568bb7eee7df1db6c1917ed0964185792b66d74517bf7fbcd2ab50ab7a65",
+      "bytes": 46436,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.874,
+      "source_truePeakDbtp": -1.8
+    },
+    {
+      "id": "yomi-cinder-burst.warning",
+      "path": "assets/audio/sfx/enemies/yomi-grave-samurai/yomi-grave-samurai__cinder-burst-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-grave-samurai/yomi-grave-samurai__cinder-burst-warning.mp3",
+      "sha256": "3e488c5f4af7879e97ab9aa9e7027a801873270cffd6cfdaf4b30eb431bf1058",
+      "bytes": 27001,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.05,
+      "source_truePeakDbtp": -6.1
+    },
+    {
+      "id": "yomi-cinder-burst.impact",
+      "path": "assets/audio/sfx/enemies/yomi-grave-samurai/yomi-grave-samurai__cinder-burst-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-grave-samurai/yomi-grave-samurai__cinder-burst-impact.mp3",
+      "sha256": "def7ae134519d2d66500d365bac58060c259f7a3de4d96468dd720ef5d14b639",
+      "bytes": 41421,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.65,
+      "source_truePeakDbtp": -1.9
+    },
+    {
+      "id": "yomi-arrival.yomi-cinder-priestess",
+      "path": "assets/audio/sfx/enemies/yomi-cinder-priestess/yomi-cinder-priestess__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-cinder-priestess/yomi-cinder-priestess__arrival.mp3",
+      "sha256": "6b6dbfb5082ffa681a35ea0150265d8e5f9a765073b16cddb1225bec881fc2e3",
+      "bytes": 45809,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.85,
+      "source_truePeakDbtp": -1.5
+    },
+    {
+      "id": "yomi-fault-line.warning",
+      "path": "assets/audio/sfx/enemies/yomi-cinder-priestess/yomi-cinder-priestess__fault-line-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-cinder-priestess/yomi-cinder-priestess__fault-line-warning.mp3",
+      "sha256": "5809646d19e97149a9cc671bf17021ed41d10d562613c7ef54eb4dd680c874b6",
+      "bytes": 28255,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.1,
+      "source_truePeakDbtp": -1.4
+    },
+    {
+      "id": "yomi-fault-line.impact",
+      "path": "assets/audio/sfx/enemies/yomi-cinder-priestess/yomi-cinder-priestess__fault-line-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-cinder-priestess/yomi-cinder-priestess__fault-line-impact.mp3",
+      "sha256": "4c03104c7a4d154e8413b04240702a983c401100c48a405db249fc23d8198ef7",
+      "bytes": 43301,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.75,
+      "source_truePeakDbtp": -1.5
+    },
+    {
+      "id": "yomi-arrival.yomi-grave-serpent",
+      "path": "assets/audio/sfx/enemies/yomi-grave-serpent/yomi-grave-serpent__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-grave-serpent/yomi-grave-serpent__arrival.mp3",
+      "sha256": "a71055b2ff147350a606d1db4d8c7091f45b09fa6ef4613403cb6299a5aa2c5b",
+      "bytes": 52079,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 2.1,
+      "source_truePeakDbtp": -2.7
+    },
+    {
+      "id": "yomi-arrival.yomi-word-soul-core",
+      "path": "assets/audio/sfx/enemies/yomi-word-soul-core/yomi-word-soul-core__arrival.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-word-soul-core/yomi-word-soul-core__arrival.mp3",
+      "sha256": "1ae1bb6afce343c778715d36ee1079bb36a12226576616307ebb835f6a4d6eb6",
+      "bytes": 63990,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 2.6,
+      "source_truePeakDbtp": -1.8
+    },
+    {
+      "id": "yomi-eclipse.warning",
+      "path": "assets/audio/sfx/enemies/yomi-word-soul-core/yomi-word-soul-core__eclipse-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-word-soul-core/yomi-word-soul-core__eclipse-warning.mp3",
+      "sha256": "fc1ce574865b15c21624c3bdc5b14c06a9f29b6c0a4cf89383a71da1cf22292a",
+      "bytes": 32643,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 1.3,
+      "source_truePeakDbtp": -4.3
+    },
+    {
+      "id": "yomi-eclipse.impact",
+      "path": "assets/audio/sfx/enemies/yomi-word-soul-core/yomi-word-soul-core__eclipse-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-word-soul-core/yomi-word-soul-core__eclipse-impact.mp3",
+      "sha256": "84c41ff724801cb0e4eb925bdb7cc93eb019d7ac7887b398ecd34c3aef89496d",
+      "bytes": 61483,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 2.5,
+      "source_truePeakDbtp": -1.7
+    },
+    {
+      "id": "hyakki-kyoto-rally.warning",
+      "path": "assets/audio/sfx/enemies/kyoto-crow-bell-courier/kyoto-crow-bell-courier__rally-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/kyoto-crow-bell-courier/kyoto-crow-bell-courier__rally-warning.mp3",
+      "sha256": "b3c898a06c84b5e1e63d2247509efc4cd05eb35dc79dba0762232237df0e3693",
+      "bytes": 18851,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 0.72,
+      "source_truePeakDbtp": -1.6
+    },
+    {
+      "id": "hyakki-kyoto-rally.impact",
+      "path": "assets/audio/sfx/enemies/kyoto-crow-bell-courier/kyoto-crow-bell-courier__rally-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/kyoto-crow-bell-courier/kyoto-crow-bell-courier__rally-impact.mp3",
+      "sha256": "3f352aa7bc02bfbf7f762b687b1a2938903d6e3710aded627d9f10ff77ea5629",
+      "bytes": 20105,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 0.78,
+      "source_truePeakDbtp": -1.3
+    },
+    {
+      "id": "yomi-core-collapse",
+      "path": "assets/audio/sfx/enemies/yomi-word-soul-core/yomi-word-soul-core__core-collapse.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-word-soul-core/yomi-word-soul-core__core-collapse.mp3",
+      "sha256": "ccc8caea694189320188605b76bae3546d6dfa56354e9d7db1346ec3fa512ad9",
+      "bytes": 104741,
+      "source_model": "Stable Audio 3 Medium (Gemini Remake)",
+      "source_duration": 4.3,
+      "source_truePeakDbtp": -1.4
+    },
+    {
+      "id": "spirit-ferry-mud-pool",
+      "path": "assets/audio/sfx/enemies/ferry-shore-lion/ferry-shore-lion__mud-pool.mp3",
+      "source": "art/audio/stage58/sfx/enemies/ferry-shore-lion/ferry-shore-lion__mud-pool.mp3",
+      "sha256": "842ad8ed660c097c9cb60159d214bf413bc455f431bcd054024afa9e34afc0d4",
+      "bytes": 13100,
+      "source_model": "Existing project audio / FFmpeg DSP (F9 candidate)",
+      "source_duration": 0.752688,
+      "source_source": [
+        "ferry-shore-lion__soul-splash-impact.mp3"
+      ],
+      "source_dsp": "atrim=0:0.65,asetpts=PTS-STARTPTS,atempo=0.85,highpass=f=65,lowpass=f=1100,volume=-3dB,afade=t=out:st=0.43:d=0.32",
+      "source_approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "id": "yomi-heavy-slash.warning",
+      "path": "assets/audio/sfx/enemies/yomi-grave-samurai/yomi-grave-samurai__heavy-slash-warning.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-grave-samurai/yomi-grave-samurai__heavy-slash-warning.mp3",
+      "sha256": "c4ca1214348ae463509db7633190e8e29301f21670a1bd2d6970c5275480c41a",
+      "bytes": 17324,
+      "source_model": "Existing project audio / FFmpeg DSP (F9 candidate)",
+      "source_duration": 1.017896,
+      "source_source": [
+        "yomi-cinder-priestess__fault-line-warning.mp3"
+      ],
+      "source_dsp": "atempo=1.10,highpass=f=180,lowpass=f=6200,volume=-3dB,afade=t=in:st=0:d=0.06,afade=t=out:st=0.85:d=0.12",
+      "source_approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "id": "yomi-heavy-slash.impact",
+      "path": "assets/audio/sfx/enemies/yomi-grave-samurai/yomi-grave-samurai__heavy-slash-impact.mp3",
+      "source": "art/audio/stage58/sfx/enemies/yomi-grave-samurai/yomi-grave-samurai__heavy-slash-impact.mp3",
+      "sha256": "c793a727b19e2dcafa8b03dc8e70c1e8584ae14b46c1a4abb697ed0d941c4900",
+      "bytes": 23468,
+      "source_model": "Existing project audio / FFmpeg DSP (F9 candidate)",
+      "source_duration": 1.409833,
+      "source_source": [
+        "yomi-cinder-priestess__fault-line-impact.mp3",
+        "yomi-grave-samurai__cinder-burst-impact.mp3"
+      ],
+      "source_dsp": "[0:a]atempo=1.25,highpass=f=210,lowpass=f=9000,volume=0.75[a];[1:a]atrim=0:0.36,lowpass=f=400,volume=0.38,afade=t=out:st=0.12:d=0.24[b];[a][b]amix=inputs=2:duration=longest:normalize=0,volume=-3dB,afade=t=out:st=1.05:d=0.3[out]",
+      "source_approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    }
+  ]
+}

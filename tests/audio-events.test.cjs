@@ -3,10 +3,10 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 
-test('unrecorded cues skip requests and other local-only cues cache failed lookups', async () => {
+test('provided cues request their authored MP3s while unreleased/silent cues skip requests and cache failures', async () => {
   const requested = [];
   class Audio {
-    constructor(src) { requested.push(src); }
+    constructor(src) { requested.push(src); this.error = { code: 4 }; }
     addEventListener() {}
     play() { return Promise.reject(Object.assign(new Error('missing'), { name: 'NotSupportedError' })); }
     pause() {}
@@ -20,34 +20,76 @@ test('unrecorded cues skip requests and other local-only cues cache failed looku
     ['kyoto_warning', 'assets/audio/sfx/enemies/kyoto-bell-runner/kyoto-bell-runner__warning.mp3']
   ];
   for (const [name, path] of cues) env.window.AUDIO.playOptionalCue(name, path, .3);
-  assert.deepEqual(requested, []);
+  assert.deepEqual(requested, [cues[0][1], cues[1][1]]);
+  await Promise.resolve();
   location.hostname='localhost';
   for (const [name, path] of cues) env.window.AUDIO.playOptionalCue(name, path, .3);
   await Promise.resolve();
   for (const [name, path] of cues) env.window.AUDIO.playOptionalCue(name, path, .3);
-  assert.deepEqual(requested, [cues[2][1]]);
+  assert.deepEqual(requested, [cues[0][1], cues[1][1], cues[2][1]]);
+  for (const mp3 of [
+    'assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__tsunami-warn.mp3',
+    'assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__tsunami-impact.mp3',
+    'assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__rush-warn.mp3',
+    'assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__rush-cast.mp3',
+    'assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__feather-warn.mp3',
+    'assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__feather-cast.mp3',
+    'assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__root-warn.mp3',
+    'assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__root-impact.mp3',
+    'assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__cut-warning.mp3',
+    'assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__cut-impact.mp3',
+    'assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__shoots-warning.mp3',
+    'assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__shoots-impact.mp3',
+    'assets/audio/sfx/skills/ink-trail/ink-trail__awaken__lv05.mp3',
+    'assets/audio/sfx/skills/seal-nail/seal-nail__drop.mp3',
+    'assets/audio/sfx/skills/seal-nail/seal-nail__burst.mp3',
+    'assets/audio/sfx/skills/seal-nail/seal-nail__awaken__lv05.mp3',
+    'assets/audio/sfx/world/rain-port__heavy-rain.mp3',
+    'assets/audio/sfx/skills/shikigami/shikigami__summon.mp3',
+    'assets/audio/sfx/skills/shikigami/shikigami__attack.mp3',
+    'assets/audio/sfx/skills/shikigami/shikigami__hurt.mp3',
+    'assets/audio/sfx/skills/shikigami/shikigami__vanish.mp3',
+    'assets/audio/sfx/barrier-lv1-4.mp3'
+  ]) {
+    assert.ok(fs.existsSync(mp3) && fs.statSync(mp3).size > 1000, mp3);
+  }
   env.window.AUDIO.inkTrailDrop();
-  env.window.AUDIO.sealNailBurst();
-  env.window.AUDIO.sakuraRushWarn();
+  env.window.AUDIO.inkTrailHit();
+  env.window.AUDIO.inkTrailEcho();
   env.window.AUDIO.rainPortWaterSlamWarn();
-  assert.deepEqual(requested, [cues[2][1]]);
-  env.window.AUDIO.rainPortFanWarn();
-  assert.equal(requested.at(-1), 'assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__fan-warn.mp3');
+  env.window.AUDIO.rainPortWaterSlamImpact();
+  assert.deepEqual(requested, [cues[0][1], cues[1][1], cues[2][1]]);
+  for (const [fn, expected] of [
+    ['inkTrailAwaken', 'assets/audio/sfx/skills/ink-trail/ink-trail__awaken__lv05.mp3'],
+    ['sealNailBurst', 'assets/audio/sfx/skills/seal-nail/seal-nail__burst.mp3'],
+    ['sakuraRushWarn', 'assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__rush-warn.mp3'],
+    ['rainPortFanWarn', 'assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__fan-warn.mp3'],
+    ['rainPortTideWarn', 'assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__tsunami-warn.mp3'],
+    ['rainPortHeavyRain', 'assets/audio/sfx/world/rain-port__heavy-rain.mp3']
+  ]) {
+    env.window.AUDIO[fn]();
+    assert.equal(requested.at(-1), expected);
+    assert.ok(fs.existsSync(expected) && fs.statSync(expected).size > 0, expected);
+  }
 });
 
-test('missing tier sounds immediately use their existing ordinary skill sound or synthesis', () => {
+test('original katana and needle MP3s remain active while barrier-lv1-4 routes to its authored MP3', async () => {
   const requested = [];
   class Audio {
     constructor(src) { requested.push(src); }
     addEventListener() {}
+    pause() {}
     play() { return Promise.resolve(); }
   }
   const env = {window:{}, Audio, console, setTimeout, clearTimeout};
   vm.runInNewContext(fs.readFileSync('js/audio.js','utf8'),env);
   const {AUDIO}=env.window;
-  for(let i=0;i<3;i++) { AUDIO.slash(2); AUDIO.needle(5); AUDIO.barrier(3); }
-  assert.deepEqual(requested,Array.from({length:3},()=>[
-    'assets/audio/sfx/slash.mp3','assets/audio/sfx/needle.mp3'
+  for(let i=0;i<2;i++) { AUDIO.slash(2); AUDIO.needle(2); AUDIO.needle(5); AUDIO.barrier(3); }
+  assert.deepEqual(requested,Array.from({length:2},()=>[
+    'assets/audio/sfx/slash.mp3',
+    'assets/audio/sfx/needle.mp3',
+    'assets/audio/sfx/needle.mp3',
+    'assets/audio/sfx/barrier-lv1-4.mp3'
   ]).flat());
 });
 

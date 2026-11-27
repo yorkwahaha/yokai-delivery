@@ -45,7 +45,7 @@ test("公開與本機都繪出交錯香霧、釘陣三階段與覺醒圖",()=>{
   const nail=local.seal.create();
   tick(nail,{end:loc(5)});
   nail.paint(ctx,local.nail);
-  tick(nail,{start:loc(5),end:loc(220)});
+  tick(nail,{start:loc(5),end:loc(220),enemies:[monster(20)]});
   nail.paint(ctx,local.nail);
   assert.deepEqual(draws,["seal-nail__ofuda.webp","seal-nail__shockwave.webp","seal-nail__shards.webp"]);
   draws.length=0;
@@ -62,8 +62,7 @@ test("公開與本機都繪出交錯香霧、釘陣三階段與覺醒圖",()=>{
   draws.length=0;
   awakenedNail.paint(ctx,local.nail);
   assert.deepEqual(draws,["seal-nail__ward-ring.webp","seal-nail__ofuda.webp"]);
-  tick(awakenedNail,{level:5,start:loc(5),end:loc(220)});
-  tick(awakenedNail,{level:5,dt:.61,start:loc(220),end:loc(220)});
+  tick(awakenedNail,{level:5,start:loc(5),end:loc(220),enemies:[monster(20)]});
   draws.length=0;
   awakenedNail.paint(ctx,local.nail);
   assert.deepEqual(draws,["seal-nail__shockwave.webp","seal-nail__shards.webp","seal-nail__ward-ring.webp"]);
@@ -99,7 +98,7 @@ test("在毒香範圍內持續中毒；離開雲霧後還會短暫扣血",()=>{
   const c=boot().GAME_VIOLET_SCENT.create(),e=monster(60),hits=[];
   tick(c,{dt:.35,start:loc(0),end:loc(80),enemies:[e],hit:(foe,d)=>hits.push(d)});
   tick(c,{dt:.30,start:loc(80),end:loc(80),enemies:[e],hit:(foe,d)=>hits.push(d)});
-  assert.equal(hits.length,1);
+  assert.equal(hits.length,2);
   e.x=1000;
   for(let i=0;i<4;i++)tick(c,{dt:.5,start:loc(80),end:loc(80),enemies:[e],
     hit:(foe,d)=>hits.push(d)});
@@ -128,7 +127,7 @@ test("Boss 吃減量毒傷，不會混亂；一般怪 Lv5 中毒並短暫混亂"
   assert.equal(boss.confusedT,undefined);
   assert.ok(hits.some(x=>x.e===mob&&x.d>0));
   const a=hits.find(x=>x.e===mob),b=hits.find(x=>x.e===boss);
-  assert.equal(b.d,a.d*.35);
+  assert.equal(b.d,a.d*.60);
   assert.ok(events.includes("confuse"));
 });
 test("盾怪無法被毒氣繞盾攻擊，暫停與重新開始都會清除毒氣",()=>{
@@ -163,24 +162,31 @@ test("長夜留香持續移動 6 秒後，首團毒霧仍存在且雲團數受�
   assert.ok(state.positions.some(([x])=>x<65),
     "持續跑動不應在 2.8 秒就丟掉最早的留香");
 });
-test("Lv5 混亂 2.5 秒，隨機切換玩家/近處同伴，不選 Boss",()=>{
+test("Lv5 混亂以 85% 選近處同伴，無目標時迷走，不選 Boss",()=>{
   const w=boot(),step=w.GAME_CONFUSION.step;
   const player=loc(0),a=monster(0),b=monster(65),boss=monster(20,0,"boss");
   a.confusedT=2.5;a.confuseImmuneT=7;
-  assert.equal(step(a,.1,[a,b,boss],player,()=>0),b);
+  assert.equal(step(a,.1,[a,b,boss],player,()=>.84),b);
   a.confuseSwapT=0;
-  assert.equal(step(a,.1,[a,b,boss],player,()=>.99),player);
+  assert.equal(step(a,.1,[a,b,boss],player,()=>.85),player);
+  a.confuseSwapT=0;
+  b.shield=true;
+  const wander=step(a,.1,[a,b,boss],player,()=>.99);
+  assert.equal(wander,a.confuseWander);
+  assert.notEqual(wander,player);
+  assert.equal(step(a,.1,[a,b,boss],player,()=>.99),wander);
   assert.equal(step(a,2.5,[a,b,boss],player,()=>0),player);
   assert.equal(a.confusedT,0);
   assert.equal(a.confuseTarget,null);
+  assert.equal(a.confuseWander,null);
   assert.ok(a.confuseImmuneT>0);
 });
-test("既有封印釘完全保留自動設定與離位爆炸，無手動引爆鍵",()=>{
+test("封印釘保留自動設定，改踩踏爆炸，無手動引爆鍵",()=>{
   const game=fs.readFileSync("js/game.js","utf8"),html=fs.readFileSync("index.html","utf8");
   assert.ok(game.includes('window.GAME_VIOLET_SCENT.create()'));
   assert.ok(game.includes('window.GAME_CONFUSION.step(e,dt,enemies,P)'));
   assert.ok(game.includes('sealNail.tick({dt,level:WL.seal_nail'));
   assert.ok(html.includes('js/game-violet-scent.js'));
   assert.ok(html.includes('js/game-confusion.js'));
-  assert.ok(fs.readFileSync("js/game-seal-nail.js","utf8").includes('Math.hypot(end.x-pin.x,end.y-pin.y)>=cfg.distance'));
+  assert.ok(fs.readFileSync("js/game-seal-nail.js","utf8").includes('Math.hypot(e.x-pin.x,e.y-pin.y)<=cfg.triggerRadius'));
 });

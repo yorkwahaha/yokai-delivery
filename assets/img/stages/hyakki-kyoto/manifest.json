@@ -1,0 +1,870 @@
+{
+  "stage": "hyakki-kyoto",
+  "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+  "asset_count": 69,
+  "assets": [
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__maple.webp",
+      "source": "kyoto-props",
+      "bytes": 76178,
+      "sha256": "27807476341bb4d1fca697a99382cd2823f812695ed536c0b5d22d7e10b9f9e0",
+      "width_px": 463,
+      "height_px": 433,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        231,
+        416
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__footbridge.webp",
+      "source": "kyoto-props",
+      "bytes": 56086,
+      "sha256": "6d2da6070a551430c5fadfc3abcfbcee539f058ecc160d085876d27be06b893e",
+      "width_px": 448,
+      "height_px": 362,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        224,
+        348
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__festival-kiosk.webp",
+      "source": "kyoto-props",
+      "bytes": 67632,
+      "sha256": "fa8dc11bc98d03c219a282512566aa0151a842bf22584d2c0cf6b9b53bc7b1a9",
+      "width_px": 448,
+      "height_px": 442,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        224,
+        424
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__festival-banners.webp",
+      "source": "kyoto-props",
+      "bytes": 43082,
+      "sha256": "18eb33388d0f4b0c9d2a8c83890f56a0411f2d6de1126a2b4cfc7408f4b40f9d",
+      "width_px": 249,
+      "height_px": 459,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        124,
+        441
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__red-railing.webp",
+      "source": "kyoto-props",
+      "bytes": 47070,
+      "sha256": "2e43f4222595503edf05983e004dc05529ad50e42b8c6833c82eb2872fad0410",
+      "width_px": 436,
+      "height_px": 295,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        218,
+        283
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__maple-leaves.webp",
+      "source": "kyoto-props",
+      "bytes": 31326,
+      "sha256": "95d2645f8d5d5ecb73e8ba86d801f1fc6ae3a71b45b24b1eab518b62e9e35fb3",
+      "width_px": 437,
+      "height_px": 190,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        218,
+        182
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__perimeter-gate.webp",
+      "source": "kyoto-structures",
+      "bytes": 63212,
+      "sha256": "15b18b2bed878e847230030586907f0c28c06b87ff2b5358856f5477becfabec",
+      "width_px": 520,
+      "height_px": 315,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        260,
+        302
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__cloth-merchant.webp",
+      "source": "kyoto-structures",
+      "bytes": 79798,
+      "sha256": "f91b018cd1ccefa21db7f63c4aa72ef1d9016a0c42c51fbcaa3f31ec201bd864",
+      "width_px": 520,
+      "height_px": 455,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        260,
+        437
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__market-shrine.webp",
+      "source": "kyoto-structures",
+      "bytes": 79420,
+      "sha256": "bfc0c67ece32e6d4db695dba65cd5ace88d373f2332d59fe5ea47ded9c208c67",
+      "width_px": 520,
+      "height_px": 438,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        260,
+        420
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__rear-townhouses.webp",
+      "source": "kyoto-structures",
+      "bytes": 54426,
+      "sha256": "a9537751af3763d3cdb3b275947202999ee5c929be96c73e4aaf611abe76fef8",
+      "width_px": 520,
+      "height_px": 254,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        260,
+        244
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__stone-basin.webp",
+      "source": "kyoto-extra-props",
+      "bytes": 89852,
+      "sha256": "cf0cd8471e934836c3bc5a15584d105ba2bcf735728a8c076dcbd0d30cb4595d",
+      "width_px": 520,
+      "height_px": 491,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        260,
+        471
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__lantern-stand.webp",
+      "source": "kyoto-extra-props",
+      "bytes": 78998,
+      "sha256": "1093aa2d11afc7783f2d4e4886bd763ad2751322111a01c380c8b4436412bfa6",
+      "width_px": 438,
+      "height_px": 520,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        219,
+        499
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__komainu.webp",
+      "source": "kyoto-extra-props",
+      "bytes": 75606,
+      "sha256": "c3bb576f8a12fa81cba51c3c91d292d1c2bf90d9f36aa8211404aac775c3ecc2",
+      "width_px": 372,
+      "height_px": 497,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        186,
+        477
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__maple-shrub.webp",
+      "source": "kyoto-extra-props",
+      "bytes": 103290,
+      "sha256": "8a45014b47e68ca9c84818f15b9cc787538ebceea3270cb9ac90fb09d3d6bee0",
+      "width_px": 520,
+      "height_px": 373,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        260,
+        358
+      ]
+    },
+    {
+      "path": "assets/img/vfx/enemies/kyoto-taiko/kyoto-taiko__warning.webp",
+      "source": "kyoto-vfx",
+      "bytes": 27676,
+      "sha256": "f0d96837703123adec1effc85d2540213d0b070e90e1af9dfb0a84d6f48196d7",
+      "width_px": 600,
+      "height_px": 81,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/kyoto-taiko/kyoto-taiko__impact.webp",
+      "source": "kyoto-vfx",
+      "bytes": 40996,
+      "sha256": "72a94ff253d5a6d179ca3e904882d2749e0942c76aaf8d641363860f817207ac",
+      "width_px": 600,
+      "height_px": 102,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/kyoto-pennant/kyoto-pennant__warning.webp",
+      "source": "kyoto-vfx",
+      "bytes": 29234,
+      "sha256": "89d6cbd949e753a2023f00191988e12b98fb7c72496a4e3e6e2af3f8d38c173a",
+      "width_px": 600,
+      "height_px": 95,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/kyoto-pennant/kyoto-pennant__impact.webp",
+      "source": "kyoto-vfx",
+      "bytes": 36940,
+      "sha256": "c6e3f9fe5b83ff950ecb1ee8d82e439d251c357a13fb76a2682d2daf3e7faac5",
+      "width_px": 600,
+      "height_px": 87,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/kyoto-procession/kyoto-procession__warning.webp",
+      "source": "kyoto-vfx",
+      "bytes": 27772,
+      "sha256": "853d8f220281e90bb19dbae42dd200c3abebd19ae3094aa0eca71bb717d8cfbf",
+      "width_px": 600,
+      "height_px": 83,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/kyoto-procession/kyoto-procession__impact.webp",
+      "source": "kyoto-vfx",
+      "bytes": 37884,
+      "sha256": "1475d2233ad4b5f4088c386956e663f0af46c8846b6c6df0e7e075e2896815ce",
+      "width_px": 600,
+      "height_px": 85,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/kyoto-shooter/kyoto-shooter__projectile.webp",
+      "source": "stage56-action-accents",
+      "bytes": 6502,
+      "sha256": "8034bcd3226c244dd7e9053ef8e0d812de1775bf22178fd536fc13a8eecd165f",
+      "width_px": 160,
+      "height_px": 50,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/kyoto-boss/kyoto-boss__arrival.webp",
+      "source": "stage56-action-accents",
+      "bytes": 31226,
+      "sha256": "35d7e8c9e15fc81cd6127e9e5d18e73df010f412f800be654dbd8e2dc665782c",
+      "width_px": 256,
+      "height_px": 222,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-straw-sandal/kyoto-straw-sandal__sprite__walk.webp",
+      "source": "kyoto-walk",
+      "bytes": 57848,
+      "sha256": "fe934a7fe8ee0502430188aaf079ce5f43fe1fc1c4f95ccd106fb0829ddf1888",
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        256,
+        480
+      ]
+    },
+    {
+      "path": "assets/img/enemies/kyoto-crow-bell-courier/kyoto-crow-bell-courier__sprite__walk.webp",
+      "source": "kyoto-walk",
+      "bytes": 55108,
+      "sha256": "ab8e9d82e381d3714dfb5f5575068ac51f564287f8191847c445759deb7141fb",
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        256,
+        480
+      ]
+    },
+    {
+      "path": "assets/img/enemies/kyoto-rice-bale-oni/kyoto-rice-bale-oni__sprite__walk.webp",
+      "source": "kyoto-walk",
+      "bytes": 38740,
+      "sha256": "cbd6391cfae066fc9dacc93f2c01ee899d9ca7a33b3003bec44ca83fa5d21bed",
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        256,
+        480
+      ]
+    },
+    {
+      "path": "assets/img/enemies/kyoto-box-bellows/kyoto-box-bellows__sprite__walk.webp",
+      "source": "kyoto-walk",
+      "bytes": 56736,
+      "sha256": "c74bbc6e9b51291f2edb3c801f58318a43d802184477e93060e5cd2fafc70ef2",
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        256,
+        480
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__tea-house.webp",
+      "source": "art/stage5-hyakki-kyoto/scene/hyakki-kyoto__tea-house__candidate.png",
+      "bytes": 105406,
+      "sha256": "5e99e5687bc5541746502c8d6c78f9b74c3f575f63ade787f58cea224148cb78",
+      "width_px": 562,
+      "height_px": 560,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        281,
+        538
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__three-tier-pagoda.webp",
+      "source": "art/stage5-hyakki-kyoto/scene/hyakki-kyoto__three-tier-pagoda__candidate.png",
+      "bytes": 84452,
+      "sha256": "f82542c2207748428aece9ba970a4e48ec1c7cbc0a6c21ac97127f92a6f7369e",
+      "width_px": 495,
+      "height_px": 560,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        247,
+        538
+      ]
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__perimeter-ground.webp",
+      "source": "art/stage5-hyakki-kyoto/scene/G_side_stone.png",
+      "bytes": 6800,
+      "sha256": "d70ed989e81e5cac785446b7e3149eb70c09843b66919b3153d4b24581d45d62",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-0.webp",
+      "source": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-grid.webp",
+      "bytes": 362854,
+      "sha256": "fce4b249d803ae684aa2762f794ba7505699e8e044f4ec41f8381e98a9495062",
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-1.webp",
+      "source": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-grid.webp",
+      "bytes": 357898,
+      "sha256": "ad5aa30a2628958a7b84eaddbf8a2f51b94df012f8ade203d1fc3a720a184913",
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-2.webp",
+      "source": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-grid.webp",
+      "bytes": 359468,
+      "sha256": "effdb4334b33a9fbff3a87ed9b33dba5eb4b0a43bffe83d6d27b56b11c89d3b2",
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-3.webp",
+      "source": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-grid.webp",
+      "bytes": 362854,
+      "sha256": "fce4b249d803ae684aa2762f794ba7505699e8e044f4ec41f8381e98a9495062",
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-4.webp",
+      "source": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-grid.webp",
+      "bytes": 357898,
+      "sha256": "ad5aa30a2628958a7b84eaddbf8a2f51b94df012f8ade203d1fc3a720a184913",
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-5.webp",
+      "source": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-grid.webp",
+      "bytes": 359468,
+      "sha256": "effdb4334b33a9fbff3a87ed9b33dba5eb4b0a43bffe83d6d27b56b11c89d3b2",
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-crossroads-boss/kyoto-crossroads-boss__sprite__idle.webp",
+      "source": "art/yokai-final-art-candidates/prepared/kyoto-crossroads-boss__idle.webp",
+      "bytes": 279118,
+      "sha256": "f95fb6f6d36bcf9b2726b1839bf3087d2fa708e3d15316ba69965fcb2f512e1f",
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "anchor": [
+        256,
+        480
+      ],
+      "alpha_bounds": [
+        49,
+        23,
+        463,
+        480
+      ],
+      "source_sha256": "ab835863c0ba311d27288bc8c969760b423bf4f99a187f882b52f051f74f18e0",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-crossroads-boss/kyoto-crossroads-boss__sprite__windup.webp",
+      "source": "art/yokai-final-art-candidates/f4-prepared/kyoto-crossroads-boss__windup.webp",
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "anchor": [
+        256,
+        480
+      ],
+      "alpha_bounds": [
+        26,
+        11,
+        486,
+        480
+      ],
+      "sha256": "d4679c6b42f34903466b0fda41d7a817f55b288c72df5a5de2d3cd52350757c1",
+      "bytes": 341918,
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-crossroads-boss/kyoto-crossroads-boss__sprite__action.webp",
+      "source": "art/yokai-final-art-candidates/f4-prepared/kyoto-crossroads-boss__action.webp",
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "anchor": [
+        256,
+        480
+      ],
+      "alpha_bounds": [
+        17,
+        11,
+        495,
+        480
+      ],
+      "sha256": "b89bbefd0348d38b47633bd834b082e2f0ceea641735e6c13d4b6fd01c5005af",
+      "bytes": 427390,
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-grid.webp",
+      "sha256": "16cef75e120c9a01adbc789fd5bee4292130882abf6b9b84e7118de7e094f7ae",
+      "bytes": 430314,
+      "width_px": 900,
+      "height_px": 600,
+      "mode": "RGB",
+      "source": [
+        "art/stage5-hyakki-kyoto/scene/hyakki-kyoto__ground-grid.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__grocery.webp",
+      "sha256": "dd30ed33eb7055117e1c7e82ad9a012ef63b38ef5b10ab4840eff54ad0838a2e",
+      "bytes": 57836,
+      "width_px": 564,
+      "height_px": 302,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/scene/hyakki-kyoto__grocery.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__sweets-house.webp",
+      "sha256": "fdd0d4f30d6ae646c2312587ba9a735b26feb518d5bf05ab580ba9907af1117c",
+      "bytes": 69500,
+      "width_px": 540,
+      "height_px": 334,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/scene/hyakki-kyoto__sweets-house.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__noodle-house.webp",
+      "sha256": "8aeb230e925157cfa5dcaa365867c11b6f28dd8aa2a1b05e2c50ec0d234e2acd",
+      "bytes": 52130,
+      "width_px": 315,
+      "height_px": 476,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/scene/hyakki-kyoto__noodle-house.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__stall.webp",
+      "sha256": "945f1738d4f421e2084692440b3de82a619fb0e0c184c101a4f83a002ecc9d02",
+      "bytes": 49250,
+      "width_px": 374,
+      "height_px": 275,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/scene/hyakki-kyoto__stall.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__crate-stack.webp",
+      "sha256": "aaf042f7e0654135b7edb2875ef118964745f2e39e2ae99992d550a896bc3b18",
+      "bytes": 30006,
+      "width_px": 304,
+      "height_px": 202,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/scene/hyakki-kyoto__crate-stack.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__stone-lantern.webp",
+      "sha256": "614c83fbdbcafb155ac2ef399f1e07613f4a4c6ecb67123679b107adf1dbe6e8",
+      "bytes": 17198,
+      "width_px": 165,
+      "height_px": 252,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/scene/hyakki-kyoto__stone-lantern.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__double-lantern.webp",
+      "sha256": "cd8d4adcac42fb1e4e5626418447c551097a3f7d0bf9a4c884435189dd850f48",
+      "bytes": 21310,
+      "width_px": 209,
+      "height_px": 312,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/scene/hyakki-kyoto__double-lantern.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__block-frontage.webp",
+      "sha256": "94dab5f9b415c935afb65bb342c6d1fe1f02167d691bea1512c600e31c3def1d",
+      "bytes": 86398,
+      "width_px": 870,
+      "height_px": 269,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/scene/hyakki-kyoto__block-frontage.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/hyakki-kyoto/scene/hyakki-kyoto__block-wall.webp",
+      "sha256": "bf0a69ab45f7539bff729a6c2963eefadaebd5045aa6d5cd87f89daf351ed061",
+      "bytes": 65086,
+      "width_px": 870,
+      "height_px": 181,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/scene/hyakki-kyoto__block-wall.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-straw-sandal/kyoto-straw-sandal__sprite__idle.webp",
+      "sha256": "9804326a49199dbd18a2a9860f1440016d7ed058450d5901124f92bb1d494839",
+      "bytes": 71198,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-straw-sandal__sprite__idle.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-straw-sandal/kyoto-straw-sandal__sprite__windup.webp",
+      "sha256": "0519f81c9d708638255295bad4417716e1673903f134d4255307861c584e7ef8",
+      "bytes": 65410,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-straw-sandal__sprite__windup.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-straw-sandal/kyoto-straw-sandal__sprite__action.webp",
+      "sha256": "e4b05c5a75e77da47935639182ac216d1cbca0050e41813d330585a235e7743a",
+      "bytes": 66466,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-straw-sandal__sprite__action.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-crow-bell-courier/kyoto-crow-bell-courier__sprite__idle.webp",
+      "sha256": "314bade8d1157458c073fee94167709e98a7d7feef1e3015b98367ead25fa59e",
+      "bytes": 55260,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-crow-bell-courier__sprite__idle.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-crow-bell-courier/kyoto-crow-bell-courier__sprite__windup.webp",
+      "sha256": "e407367df538b8f45fc02597f1f656bd4e32c7b8a619319816f8df1f8b097f56",
+      "bytes": 51630,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-crow-bell-courier__sprite__windup.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-crow-bell-courier/kyoto-crow-bell-courier__sprite__action.webp",
+      "sha256": "4ff9c443d0725f559d71db40834efa51c3fa3d9cbbc612b9fca8dc3687f0888a",
+      "bytes": 54542,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-crow-bell-courier__sprite__action.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-rice-bale-oni/kyoto-rice-bale-oni__sprite__idle.webp",
+      "sha256": "260ba455844c052d2c59fd4c67a6cd9f21696ff56a087974934ba19f4d8de636",
+      "bytes": 39416,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-rice-bale-oni__sprite__idle.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-rice-bale-oni/kyoto-rice-bale-oni__sprite__windup.webp",
+      "sha256": "8066eae89f7cdf0d895f4c2a6315bf185754d56dcbbc8c8717312b23ba21ddf1",
+      "bytes": 36560,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-rice-bale-oni__sprite__windup.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-rice-bale-oni/kyoto-rice-bale-oni__sprite__action.webp",
+      "sha256": "3c5b4cb28fe7b9e03bd09583b831fa5ace2c6c42a99bd9b9aaf602df40cd1087",
+      "bytes": 38362,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-rice-bale-oni__sprite__action.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-box-bellows/kyoto-box-bellows__sprite__idle.webp",
+      "sha256": "b40ff3498d720421300e13d4a6a7d6dd5a6fe46028ecf021317289cc8b4d5e03",
+      "bytes": 63852,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-box-bellows__sprite__idle.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-box-bellows/kyoto-box-bellows__sprite__windup.webp",
+      "sha256": "85bf323abf3a15da967b7ca1366e1151fd241200a2f31754809e492122a1d88e",
+      "bytes": 74028,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-box-bellows__sprite__windup.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-box-bellows/kyoto-box-bellows__sprite__action.webp",
+      "sha256": "5a947ac15da12dc89d1c3b3bdf29cd126b856e409b81da67f3987ee8d2d080f2",
+      "bytes": 65788,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-box-bellows__sprite__action.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-taiko-warden/kyoto-taiko-warden__sprite__idle.webp",
+      "sha256": "5f4051b207a73c0156ba3c7611066942ed15473d33c32026d5c5ba60e0b9aca5",
+      "bytes": 80212,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-taiko-warden__sprite__idle.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-taiko-warden/kyoto-taiko-warden__sprite__windup.webp",
+      "sha256": "3dbfadfa4da51c509b63260a05b020debadb8bce5c05c86530a64df3ffef5ec4",
+      "bytes": 83762,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-taiko-warden__sprite__windup.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-taiko-warden/kyoto-taiko-warden__sprite__action.webp",
+      "sha256": "564e0cac77afa524a07cbe85ee53f3c64a08a1737d011b7a2bde299a0456ffe6",
+      "bytes": 81072,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-taiko-warden__sprite__action.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-brocade-puppeteer/kyoto-brocade-puppeteer__sprite__idle.webp",
+      "sha256": "17efa51325fb59261584e94b6b96c1d0e617e6f2288a452b2183d5a529e785c2",
+      "bytes": 58456,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-brocade-puppeteer__sprite__idle.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-brocade-puppeteer/kyoto-brocade-puppeteer__sprite__windup.webp",
+      "sha256": "5f6f8503aa4688a417e5b337e51b354d75c434a976b3cbcde51fc81599ff1c7f",
+      "bytes": 57664,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-brocade-puppeteer__sprite__windup.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-brocade-puppeteer/kyoto-brocade-puppeteer__sprite__action.webp",
+      "sha256": "c45f5bed1b96a5cd3476dec78bb193457fd11b3e769ee6ddd4ff840dd80a7b07",
+      "bytes": 64456,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-brocade-puppeteer__sprite__action.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-procession-marshal/kyoto-procession-marshal__sprite__idle.webp",
+      "sha256": "20d184267c65d8f68869f4478d0098b7fb463674855112790ef7649e0aedf55c",
+      "bytes": 73690,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-procession-marshal__sprite__idle.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-procession-marshal/kyoto-procession-marshal__sprite__windup.webp",
+      "sha256": "052380d1cdfa079638edbeb1d1452e2e920fc9f9ed08227bd9c1f6e961c443d7",
+      "bytes": 75472,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-procession-marshal__sprite__windup.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/kyoto-procession-marshal/kyoto-procession-marshal__sprite__action.webp",
+      "sha256": "186e8a7c938cc29937e99bea980984c7087ff5fd0cd89bf05086b29df1dcea07",
+      "bytes": 77968,
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "source": [
+        "art/stage5-hyakki-kyoto/characters/poses/kyoto-procession-marshal__sprite__action.webp"
+      ],
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    }
+  ]
+}

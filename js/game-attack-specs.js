@@ -9,6 +9,20 @@ window.GAME_ATTACK_SPECS = (() => {
     const baseRate = options.effectiveRate ?? getEffectiveRate(buildState);
     const baseDmg = getEffectiveDmg(buildState);
     const reachMult = getEffectiveReachMultiplier(buildState);
+    const expansion = window.GAME_SKILL_EXPANSION;
+    if (expansion?.releases[skillId]) {
+      const projectile = skillId === "hamaya" || skillId === "ice_ball";
+      const mutations = buildState?.mutations || buildMutations || [];
+      const result = expansion.spec(skillId, level, {
+        damage:baseDmg, rate:projectile ? baseRate : options.passiveRate ?? b.rate,
+        reach:projectile ? reachMult : 1, mutations
+      });
+      return result && {skillId,...result,isAwakened:result.awakened,
+        critChance:projectile ? window.GAME_COMBAT_MATH.critChance(.10,.10,options.critLvl ?? b.crit) : 0,
+        cadenceEligible:projectile,reachEligible:projectile,critEligible:projectile,
+        source:mutations.some(id=>expansion.mutations[id]?.skillId===skillId) ? "mutation" : "base",
+        derivationDepth:0};
+    }
     if (skillId === "ink_trail") {
       // Only damage and the power charm apply. Cadence/reach/crit are explicitly
       // excluded: deployment has a hard minimum time and real movement distance.

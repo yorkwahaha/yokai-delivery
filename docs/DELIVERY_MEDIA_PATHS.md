@@ -1,5 +1,7 @@
 # 妖怪快遞社｜宅配單字正式圖片與語音的唯一檔案規則
 
+2026-11-28：S5–7 各 20 組圖／音公開課堂試玩；S8 重用前七關 140 組。語音與圖片仍待使用者回饋，不冒稱最終核准。
+
 **最後整理：2026-10-31。** 本文件只規範每關的「單字貨物圖片與單字發音」，不包含場景、Boss、BGM、技能音效或過場動畫。它們維持各自的正式資產規則。
 
 ## 1. 兩個完全對稱的正式目錄
@@ -30,22 +32,26 @@ assets/
 
 | 關卡 | stage-id | 正式圖片 | 正式語音 |
 |---|---|---|---|
-| 1 夜行町 | `night-town` | ✅ 20 張核准 | ✅ 20 段核准（Fish A） |
-| 2 雨夜港町 | `rain-port` | 20 張已接本機試玩，待審 | 20 段 Fish A 已接本機試玩，待聽 |
-| 3 妖櫻山道 | `sakura-pass` | 20 張已接本機試玩，待審 | 20 段 Fish A 已接本機試玩，待聽 |
-| 4 竹影迷宮 | `bamboo-maze` | 待審候選 | 待審 |
-| 5 百鬼京都 | `hyakki-kyoto` | 待審候選 | 待審 |
-| 6 雪燈山寺 | `snow-temple` | 待審候選 | 待審 |
-| 7 幽世渡口 | `spirit-ferry` | 待審候選 | 待審 |
+| 1 夜行町 | `night-town` | 20 張重繪已接正式模式 | 20 段核准（Fish A） |
+| 2 雨夜港町 | `rain-port` | 20 張重繪已接正式模式 | 20 段 Fish A 試用，待聽 |
+| 3 妖櫻山道 | `sakura-pass` | 20 張重繪已接正式模式 | 20 段 Fish A 試用，待聽 |
+| 4 竹影迷宮 | `bamboo-maze` | 20 張核准圖已接本機開發關卡 | 20 段 Fish A 已接本機開發關卡，待聽 |
+| 5 百鬼京都 | `hyakki-kyoto` | 20 張 DEV 候選 | 20 段 Fish A DEV 候選 |
+| 6 雪燈山寺 | `snow-temple` | 20 張 DEV 候選 | 20 段 Fish A DEV 候選 |
+| 7 幽世渡口 | `spirit-ferry` | 20 張 DEV 候選 | 20 段 Fish A DEV 候選 |
+| 8 黃泉境 | `yomi` | 前七關共 140 張 | 前七關共 140 段 |
 
 **目前實際遊戲載入的統一路徑：**
 
 - 圖：`assets/img/delivery/night-town/01.webp` ～ `20.webp`
 - 音：`assets/audio/delivery/night-town/01.mp3` ～ `20.mp3`
-- 第二關（本機試玩待審）：`assets/img/delivery/rain-port/01.webp` ～ `20.webp`，`assets/audio/delivery/rain-port/01.mp3` ～ `20.mp3`；[審核紀錄](RAIN_PORT_DELIVERY_TRIAL_20261031.md)。
-- 第三關（本機試玩待審）：`assets/img/delivery/sakura-pass/01.webp` ～ `20.webp`，`assets/audio/delivery/sakura-pass/01.mp3` ～ `20.mp3`；[審核紀錄](SAKURA_PASS_DELIVERY_TRIAL_20261116.md)。
+- 第二關字圖 `assets/img/delivery/rain-port/01.webp` ～ `20.webp`，語音 `assets/audio/delivery/rain-port/01.mp3` ～ `20.mp3`。 [審核紀錄](../.cleanup-archive/history/20261127/docs/RAIN_PORT_DELIVERY_TRIAL_20261031.md)
+- 第三關字圖 `assets/img/delivery/sakura-pass/01.webp` ～ `20.webp`，語音 `assets/audio/delivery/sakura-pass/01.mp3` ～ `20.mp3`。 [審核紀錄](../.cleanup-archive/history/20261127/docs/SAKURA_PASS_DELIVERY_TRIAL_20261116.md)
+- 第四關字圖 `assets/img/delivery/bamboo-maze/01.webp` ～ `20.webp`，語音 `assets/audio/delivery/bamboo-maze/01.mp3` ～ `20.mp3`。本機使用 `?dev=1&stageLab=1&stage=bamboo-maze`；一般模式的地圖開放狀態仍為關閉。
+- 2026-11-19 更新。前三關 60 張原圖及其 manifest保留在 `art/delivery-icons/<stage-id>/` 的來源與重繪對照。新版圖片 manifest 指向單張重繪來源，音檔順序及位元不變。 [交接檔](agent-handoff.md)
 - `js/delivery-media.js` 是前端**唯一**用來核准及產生正式單字素材路徑的路由；`js/delivery-icon-art.js`（圖片）與 `js/delivery-fish-audio.js`／`js/audio.js`（語音）皆使用它。
 - 語音無法載入時維持 `ja-JP` TTS 後備，Chrome 有 Google 日本語聲線時優先。
+- 第五至七關候選需要私有 Stage Lab。`python tools/audit-delivery-media.py --report <檔名>` 能重查圖片與音檔，`--copy-dev` 用於本輪無覆蓋複製。索引、SHA256、透明邊、PCM 解碼、峰值及靜音檢查已通過，共 140 詞無同假名重複，詞義與發音仍待逐條聽看。
 - 使用者核准的第一關語音：Fish Audio A 聲線 `97eda32449cf443bbc4b8782853ca554`、`s2.1-pro-free`、常用漢字優先，`はさみ`／`せっけん` 保留假名，無 pitch 標記。聲線及模型**只寫在 manifest，不會寫在正式 URL**。
 
 ## 3. 歷次候選與備份另行管理

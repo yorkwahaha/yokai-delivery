@@ -6,6 +6,18 @@ const vm=require('node:vm');
 const crypto=require('node:crypto');
 const cp=require('node:child_process');
 const ROOT=path.resolve(__dirname,'..');
+function scanRegistry(spawn=cp.spawnSync, platform=process.platform) {
+ const args=['tools/asset_registry.py','--check'];
+ const options={cwd:ROOT,encoding:'utf8',timeout:45000};
+ const scan=spawn('python',args,options);
+ const storeAlias=scan.status===9009 && /Microsoft Store|App execution aliases/i.test(scan.stderr||'');
+ if(platform!=='win32' || (!storeAlias && !['ENOENT','EACCES','EPERM'].includes(scan.error?.code))) return scan;
+ const fallback=spawn('py',['-3',...args],options);
+ if(fallback.error) {
+  throw new Error(`Unable to start Python: python (${scan.error?.message || scan.stderr || scan.status}); py -3 (${fallback.error.message})`);
+ }
+ return fallback;
+}
 const registry=JSON.parse(fs.readFileSync(path.join(ROOT,'docs/ASSET_REGISTRY.json'),'utf8'));
 const inventory=JSON.parse(fs.readFileSync(path.join(ROOT,'docs/ASSET_INVENTORY.json'),'utf8'));
 const window={};
@@ -38,9 +50,12 @@ test('ASSET-REGISTRY 151 份來源與正式檔雜湊相同，99 筆經審核路�
  const refs=Object.entries(routes.aliases);
  assert.equal(refs.length,99);
  for(const entry of registry.aliases){
-  const old=fs.readFileSync(path.join(ROOT,entry.source));
+  const original=path.join(ROOT,entry.source);
   const result=fs.readFileSync(path.join(ROOT,entry.canonical));
-  assert.ok(old.equals(result),entry.source+' -> '+entry.canonical);
+  if (entry.source==='assets/img/vfx/raster/barrier_ground_45.webp' && !fs.existsSync(original)) {
+    assert.equal(entry.route,true);
+    assert.equal(inventory.retired.find(row=>row.path===entry.source)?.sha256,entry.sha256);
+  } else assert.ok(fs.readFileSync(original).equals(result),entry.source+' -> '+entry.canonical);
   assert.equal(crypto.createHash('sha256').update(result).digest('hex'),entry.sha256);
   const input=entry.source+'?v=before';
   const actual=routes.resolve(input);
@@ -68,10 +83,31 @@ test('ASSET-REGISTRY 新規範已與 runtime 載入器接線，未許可的素�
    'assets/img/rain-port/s2-production/ground_mud_slab.webp','non-selected legacy floor must not be promoted');
 });
 test('ASSET-REGISTRY 只允許已盤點影音，不可誤刪舊音檔或新增匿名候選到正式根目錄',()=>{
- const args=['tools/asset_registry.py','--check'];
- const options={cwd:ROOT,encoding:'utf8',timeout:45000};
- let scan=cp.spawnSync('python',args,options);
- if(process.platform==='win32' && scan.error?.code==='ENOENT')scan=cp.spawnSync('py',['-3',...args],options);
+ const scan=scanRegistry();
  assert.ifError(scan.error);
  assert.equal(scan.status,0,(scan.stdout||'')+'\n'+(scan.stderr||''));
+});
+test('ASSET-REGISTRY Windows 啟動被拒會回退，但保留清冊驗證失敗',()=>{
+ const calls=[];
+ const invalid={status:1,stderr:'missing registered file'};
+ const result=scanRegistry((command,args)=>{
+  calls.push([command,...args]);
+  return command==='python' ? {error:{code:'EACCES'}} : invalid;
+ },'win32');
+ assert.deepEqual(calls,[
+  ['python','tools/asset_registry.py','--check'],
+  ['py','-3','tools/asset_registry.py','--check']
+ ]);
+ assert.equal(result,invalid);
+ const aliasCalls=[];
+ const aliasResult=scanRegistry(command=>{
+  aliasCalls.push(command);
+  return command==='python' ? {status:9009,stderr:'Python was not found; run without arguments to install from the Microsoft Store'} : invalid;
+ },'win32');
+ assert.deepEqual(aliasCalls,['python','py']);
+ assert.equal(aliasResult,invalid);
+ assert.equal(scanRegistry(command=>{
+  assert.equal(command,'python');
+  return invalid;
+ },'win32'),invalid);
 });

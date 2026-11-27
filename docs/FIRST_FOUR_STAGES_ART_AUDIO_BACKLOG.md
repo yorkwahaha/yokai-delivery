@@ -2,6 +2,8 @@
 
 2026-11-25 · `ART_CANDIDATE_USER_REVIEW_PENDING`。Phase D 已核對畫面、現役資產及路徑。候選交付使用既有原稿目錄，新圖經人審後才接入。圖檔尺寸是製作規格，遊戲內顯示大小由現有渲染器控制。
 
+2026-11-26 本機 Stage Lab 接入雨港與竹林共 4 張獨立前搖圖。雨港的墨邊水紋貼合現有扇緣及雨渦，竹林切線和筍陣改用深墨暖赭的候選警戒圖。命中與判定沿原流程。 [八關 DEV 工作日誌](STAGE78_DEV_COMPLETE_20261126.md)
+
 ## 美術優先順序
 
 共同畫風為第一關母風格的半水墨、浮世繪、和紙印痕、強墨線與微 Q。場景地面用正投影，角色／物件用淺 3/4，保留腳底錨點及透明邊緣。每件在 2D、2.5D 和觸控視口核對，再比對原畫。
@@ -57,4 +59,4 @@ Phase C 報告的兩組瀏覽器布置遇到 **20 個不同 MP3 404**，標 **�
 | ● | S4・竹筍預警，連續五次仍可分辨 | `assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__shoots-warning.mp3` | 靜音 |
 | ● | S4・竹筍破土，與切線不同音色 | `assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__shoots-impact.mp3` | 靜音 |
 
-優先試聽竹林王四槽、櫻天狗六槽及雨港海嘯兩槽。用 iPad 揚聲器和低音量 BGM，核對玩家是否能只靠聲音辨認預警、實際出招及多次提示，並確認正常播放時無重複建立音訊請求。 [Phase D 驗證](FIRST_FOUR_STAGES_POLISH_PHASE_D_20261125.md)
+優先試聽竹林王四槽、櫻天狗六槽及雨港海嘯兩槽。用 iPad 揚聲器和低音量 BGM，核對玩家是否能只靠聲音辨認預警、實際出招及多次提示，並確認正常播放時無重複建立音訊請求。 [Phase D 驗證](../.cleanup-archive/history/20261127/docs/FIRST_FOUR_STAGES_POLISH_PHASE_D_20261125.md)

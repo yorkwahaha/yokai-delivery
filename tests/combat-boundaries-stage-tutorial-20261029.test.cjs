@@ -55,18 +55,27 @@ test('水柱只在自身顯示期間傷人，未落下及已消退均無傷害',
 
 const tutorialStart = game.indexOf('  const tutorialIds =');
 const tutorialEnd = game.indexOf('  function replaceList(', tutorialStart);
-function tutorialRuntime(saved, stage='rain-port') {
+function tutorialRuntime(saved, stage='rain-port', dev=false) {
   const storage = new Map([['yokai-tutorial-v1',JSON.stringify(saved)]]);
-  const c = {STAGE:{id:stage},window:{CONTENT:{STAGES:{'night-town':{},'rain-port':{}}}},
+  const c = {STAGE:{id:stage},window:{CONTENT:{STAGES:{'night-town':{},'rain-port':{}}},
+    DEV_MODE:{isDevMode:()=>dev,DEV_KEY:'yokai-delivery-dev-v1'}},
     touch:false,keys:new Set(),heldCodes:new Set(),joy:null,gpMove:{},bossQ:null,job:null,
     elapsed:0,P:{x:0,y:0},dist:(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),
     localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)}};
   vm.createContext(c);
   // Phase20 moved persistence rules into an early-loaded production module.
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../js/game-tutorial-rules.js'), 'utf8'), c);
-  vm.runInContext(game.slice(tutorialStart,tutorialEnd) + '\nthis.currentTutorial=()=>tutorial;this.saved=()=>JSON.parse(localStorage.getItem("yokai-tutorial-v1"));',c);
+  vm.runInContext(game.slice(tutorialStart,tutorialEnd) + '\nthis.currentTutorial=()=>tutorial;this.saved=(key="yokai-tutorial-v1")=>JSON.parse(localStorage.getItem(key));',c);
   return c;
 }
+test('DEV 教學從獨立紀錄讀寫，保留同來源正式教學紀錄', () => {
+  const c = tutorialRuntime(['pickup'], 'rain-port', true);
+  c.checkTutorial();
+  assert.equal(c.currentTutorial()?.id, 'pickup');
+  c.closeTutorial(true);
+  assert.deepEqual(Array.from(c.saved()), ['pickup']);
+  assert.equal(c.saved('yokai-delivery-dev-v1:tutorial-v1'), 'skip');
+});
 test('舊夜行町教學記錄不吞雨港配送與Boss說明，完成後跨頁保留', () => {
   const c = tutorialRuntime(['pickup','listen','delivery','dash','boss']);
   c.checkTutorial(); assert.equal(c.currentTutorial(),null,'shared movement stays learned');

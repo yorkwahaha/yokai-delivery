@@ -1,0 +1,450 @@
+{
+  "schema": 1,
+  "stage": "snow-temple",
+  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "kind": "image",
+  "count": 20,
+  "candidate_manifest": "art/delivery-icons/snow-temple/words-20261119/manifest.json",
+  "items": [
+    {
+      "index": 1,
+      "jp": "てぶくろ",
+      "kanji": "手袋",
+      "zh": "手套",
+      "file": "01.webp",
+      "sha256": "d8524e85caf8309c0dffba051b1461537c066a90495e40347eb52d8edfe3da24",
+      "source": "art/delivery-icons/snow-temple/words-20261119/01.webp",
+      "bytes": 58442,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          21,
+          236,
+          235
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "jp": "くつした",
+      "kanji": "靴下",
+      "zh": "襪子",
+      "file": "02.webp",
+      "sha256": "6c31ec94f4bd16443fe28a34e290bbb186071afbe6a0204b4b6960d395826391",
+      "source": "art/delivery-icons/snow-temple/words-20261119/02.webp",
+      "bytes": 35684,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          47,
+          20,
+          209,
+          236
+        ]
+      }
+    },
+    {
+      "index": 3,
+      "jp": "めがね",
+      "kanji": "眼鏡",
+      "zh": "眼鏡",
+      "file": "03.webp",
+      "sha256": "498217914f59b677b9383d46dba4758e7c2ecd33ff27df00ccc3d70cdf8413ac",
+      "source": "art/delivery-icons/snow-temple/words-20261119/03.webp",
+      "bytes": 26076,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          75,
+          236,
+          180
+        ]
+      }
+    },
+    {
+      "index": 4,
+      "jp": "ながそで",
+      "kanji": "長袖",
+      "zh": "長袖上衣",
+      "file": "04.webp",
+      "sha256": "b26063f04bec347b87c180d3c4d1ef16742b42929068a20bf27ef62fd5f6210e",
+      "source": "art/delivery-icons/snow-temple/words-20261119/04.webp",
+      "bytes": 38624,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          48,
+          236,
+          208
+        ]
+      }
+    },
+    {
+      "index": 5,
+      "jp": "うわぎ",
+      "kanji": "上着",
+      "zh": "外套",
+      "file": "05.webp",
+      "sha256": "b7c05c7b81ce30cb77ab52ee7728b21bdc321243fd68b5abe91aa1103df8a09a",
+      "source": "art/delivery-icons/snow-temple/words-20261119/05.webp",
+      "bytes": 45948,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          29,
+          236,
+          226
+        ]
+      }
+    },
+    {
+      "index": 6,
+      "jp": "ゆびわ",
+      "kanji": "指輪",
+      "zh": "戒指",
+      "file": "06.webp",
+      "sha256": "803d58c3da1b2cfc713926001b037414da6b558b2ec868c4d7276520a066aeb9",
+      "source": "art/delivery-icons/snow-temple/words-20261119/06.webp",
+      "bytes": 42762,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          20,
+          236,
+          236
+        ]
+      }
+    },
+    {
+      "index": 7,
+      "jp": "ぼうし",
+      "kanji": "帽子",
+      "zh": "帽子",
+      "file": "07.webp",
+      "sha256": "bc2f096913577a7d94f6cd99f537f137187f69be2c45b244c0385deb957f6b2b",
+      "source": "art/delivery-icons/snow-temple/words-20261119/07.webp",
+      "bytes": 52222,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          22,
+          20,
+          233,
+          236
+        ]
+      }
+    },
+    {
+      "index": 8,
+      "jp": "くし",
+      "kanji": "櫛",
+      "zh": "梳子",
+      "file": "08.webp",
+      "sha256": "3832695b8c63dc6db929e2e4309a87a6480cb0b30546916a25a2949e441bcb83",
+      "source": "art/delivery-icons/snow-temple/words-20261119/08.webp",
+      "bytes": 44936,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          51,
+          236,
+          205
+        ]
+      }
+    },
+    {
+      "index": 9,
+      "jp": "ねぶくろ",
+      "kanji": "寝袋",
+      "zh": "睡袋",
+      "file": "09.webp",
+      "sha256": "ffeffe16a1e90a595569f076488d1baa6acb715aa0c95958c5720a7475b37023",
+      "source": "art/delivery-icons/snow-temple/words-20261119/09.webp",
+      "bytes": 31332,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          41,
+          20,
+          214,
+          236
+        ]
+      }
+    },
+    {
+      "index": 10,
+      "jp": "もうふ",
+      "kanji": "毛布",
+      "zh": "毛毯",
+      "file": "10.webp",
+      "sha256": "1515d4cbc429ff3f0bb5a0d53320a1f8d6099797ee62103a0654603e6b174248",
+      "source": "art/delivery-icons/snow-temple/words-20261119/10.webp",
+      "bytes": 36850,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          57,
+          236,
+          198
+        ]
+      }
+    },
+    {
+      "index": 11,
+      "jp": "ふとん",
+      "kanji": "布団",
+      "zh": "棉被",
+      "file": "11.webp",
+      "sha256": "86ccbe8cbaa8cfe839f69752d9f841e58f5558ef7e27cea6319393b4fea89d2b",
+      "source": "art/delivery-icons/snow-temple/words-20261119/11.webp",
+      "bytes": 38544,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          57,
+          236,
+          198
+        ]
+      }
+    },
+    {
+      "index": 12,
+      "jp": "まくら",
+      "kanji": "枕",
+      "zh": "枕頭",
+      "file": "12.webp",
+      "sha256": "1bbfba30cd5763ad7c2034db116c976e27af97a1999db201f70957dc97e6db33",
+      "source": "art/delivery-icons/snow-temple/words-20261119/12.webp",
+      "bytes": 29794,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          55,
+          236,
+          200
+        ]
+      }
+    },
+    {
+      "index": 13,
+      "jp": "はみがきこ",
+      "kanji": "歯磨き粉",
+      "zh": "牙膏",
+      "file": "13.webp",
+      "sha256": "269d2638f2b4ccba9a418e3340b119a3909465c34bb5ade7a1af5f459d990d08",
+      "source": "art/delivery-icons/snow-temple/words-20261119/13.webp",
+      "bytes": 28260,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          37,
+          236,
+          218
+        ]
+      }
+    },
+    {
+      "index": 14,
+      "jp": "なべ",
+      "kanji": "鍋",
+      "zh": "鍋子",
+      "file": "14.webp",
+      "sha256": "26157fa766558da8ef7baecac8cc80d42ad46ba4662b20fc23f3a90a1f5a1a44",
+      "source": "art/delivery-icons/snow-temple/words-20261119/14.webp",
+      "bytes": 37308,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          54,
+          236,
+          201
+        ]
+      }
+    },
+    {
+      "index": 15,
+      "jp": "やかん",
+      "kanji": "",
+      "zh": "燒水壺",
+      "file": "15.webp",
+      "sha256": "229d1ef6638354efff8611d949d7be833a0d855393b77ae4ee6dcefe936e680f",
+      "source": "art/delivery-icons/snow-temple/words-20261119/15.webp",
+      "bytes": 46200,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          31,
+          20,
+          225,
+          236
+        ]
+      }
+    },
+    {
+      "index": 16,
+      "jp": "おんどけい",
+      "kanji": "温度計",
+      "zh": "溫度計",
+      "file": "16.webp",
+      "sha256": "d9defee79d9780f060785d91c1d9e7e9196dfad544a28418bf76e056da540c92",
+      "source": "art/delivery-icons/snow-temple/words-20261119/16.webp",
+      "bytes": 20780,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          98,
+          20,
+          157,
+          236
+        ]
+      }
+    },
+    {
+      "index": 17,
+      "jp": "みかん",
+      "kanji": "",
+      "zh": "橘子",
+      "file": "17.webp",
+      "sha256": "4e9f2e3e03fbe96efbf6e22a47a0a376a9d84260624743c72b7938ad2d5fa0f1",
+      "source": "art/delivery-icons/snow-temple/words-20261119/17.webp",
+      "bytes": 51626,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          32,
+          236,
+          223
+        ]
+      }
+    },
+    {
+      "index": 18,
+      "jp": "りんご",
+      "kanji": "",
+      "zh": "蘋果",
+      "file": "18.webp",
+      "sha256": "5d3a00c9e5bc761e864334dc67360c069e46242b882063c18ac33e3cb25b6722",
+      "source": "art/delivery-icons/snow-temple/words-20261119/18.webp",
+      "bytes": 51362,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          34,
+          20,
+          222,
+          236
+        ]
+      }
+    },
+    {
+      "index": 19,
+      "jp": "やきいも",
+      "kanji": "焼き芋",
+      "zh": "烤地瓜",
+      "file": "19.webp",
+      "sha256": "0c48e94f34a0d4a3007c6a548362097b75ec213a1f31810d78727407d523bcd2",
+      "source": "art/delivery-icons/snow-temple/words-20261119/19.webp",
+      "bytes": 40314,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          62,
+          236,
+          194
+        ]
+      }
+    },
+    {
+      "index": 20,
+      "jp": "おでん",
+      "kanji": "",
+      "zh": "關東煮",
+      "file": "20.webp",
+      "sha256": "96d9f74a792b3c92207a2f557d99162e5aa53daddbcbe21d75d548fb528d074d",
+      "source": "art/delivery-icons/snow-temple/words-20261119/20.webp",
+      "bytes": 58024,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          34,
+          236,
+          221
+        ]
+      }
+    }
+  ]
+}

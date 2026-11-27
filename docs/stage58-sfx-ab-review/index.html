@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>第五至八關音效 A/B/C 比較試聽｜妖怪快遞社</title>
+  <style>
+    :root { color-scheme: dark; --bg: #141311; --panel: #211f1b; --ink: #f4ebd6; --muted: #b9b09c; --line: #433e32; --gold: #f4c879; --accentA: #7aa8d8; --accentB: #6fd19b; --accentC: #f0b86e; --warn: #e88e6b; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 system-ui, -apple-system, sans-serif; }
+    main { width: min(calc(100% - 2rem), 88rem); margin: 1.5rem auto 4rem; }
+    h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); margin: 0 0 .35rem; letter-spacing: .03em; }
+    h2 { font-size: 1.15rem; margin: 1.6rem 0 .6rem; color: var(--gold); border-bottom: 1px solid var(--line); padding-bottom: .3rem; }
+    h3 { margin: 0; font-size: 1rem; }
+    p { margin: .35rem 0; }
+    .muted, small { color: var(--muted); }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: .65rem; padding: .9rem 1rem; }
+    .sticky-player { position: sticky; top: .6rem; z-index: 20; box-shadow: 0 8px 24px rgba(0,0,0,.55); margin: 1rem 0 1.2rem; }
+    .row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; }
+    button, select { font: inherit; color: var(--ink); background: #332e24; border: 1px solid #75674b; border-radius: .4rem; padding: .35rem .65rem; min-height: 2.25rem; cursor: pointer; }
+    button:hover:not(:disabled) { background: #4a3f2d; }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+    button.btn-a { border-color: var(--accentA); }
+    button.btn-a.active { background: #26415c; color: #fff; }
+    button.btn-b { border-color: var(--accentB); }
+    button.btn-b.active { background: #1e4b35; color: #fff; }
+    button.btn-c { border-color: var(--accentC); }
+    button.btn-c.active { background: #5a4218; color: #fff; }
+    audio { width: min(26rem, 100%); height: 2.3rem; }
+    .entries { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 27rem), 1fr)); gap: .8rem; }
+    .card { display: flex; flex-direction: column; gap: .45rem; }
+    .cardhead { display: flex; justify-content: space-between; align-items: start; gap: .5rem; }
+    .badge { font-size: .78rem; padding: .15rem .45rem; border-radius: .3rem; border: 1px solid var(--line); white-space: nowrap; }
+    .badge.pending { color: var(--muted); }
+    .badge.use-c { color: var(--accentC); border-color: var(--accentC); }
+    .badge.use-b { color: var(--accentB); border-color: var(--accentB); }
+    .badge.keep-a { color: var(--accentA); border-color: var(--accentA); }
+    .badge.redo { color: var(--warn); border-color: var(--warn); }
+    .meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .38rem; font-size: .81rem; background: #191814; padding: .5rem .55rem; border-radius: .4rem; border: 1px solid #302d25; }
+    .meta-grid strong { display: block; font-size: .79rem; margin-bottom: .12rem; }
+    .col-a strong { color: var(--accentA); }
+    .col-b strong { color: var(--accentB); }
+    .col-c strong { color: var(--accentC); }
+    code.asset { display: block; font-size: .76rem; color: var(--muted); overflow-wrap: anywhere; }
+    details { font-size: .84rem; }
+    summary { cursor: pointer; color: var(--gold); }
+    .layer-list { margin: .3rem 0 .45rem 1.1rem; padding: 0; font-size: .8rem; color: var(--muted); }
+    .layer-list li { margin: .18rem 0; }
+    .summary-bar { display: flex; flex-wrap: wrap; gap: .8rem; font-size: .9rem; margin-top: .4rem; }
+  </style>
+  <script defer src="/js/stage58-audio.js"></script>
+</head>
+<body>
+<main>
+  <h1>第五至八關音效 A / B / C 集中試聽（57 支）</h1>
+  <p class="muted">
+    <strong style="color:var(--accentA)">A：Codex 原版</strong>（8 步 LCM / CFG 1） ·
+    <strong style="color:var(--accentB)">B：Gemini AI 重製版</strong>（Stable Audio 3 Medium 進階採樣） ·
+    <strong style="color:var(--accentC)">C：GDC 2026 專業素材剪輯／混音版</strong>（Sonniss GDC 2026 真實錄音，純傳統剪輯混音、未送入任何 AI）。
+    三版本共用同一音量滑桿，不含 BGM 與教材語音；最終採用版本由使用者聽辨決定。
+  </p>
+  <div id="status" class="muted" role="status">正在載入 A/B/C 音檔清冊…</div>
+
+  <section class="panel sticky-player" aria-label="共用播放器">
+    <div class="row">
+      <strong id="now" style="flex:1 1 16rem">請點選下方任一音效的 A、B 或 C 播放</strong>
+      <button id="switchA" type="button" class="btn-a" disabled>切到 A</button>
+      <button id="switchB" type="button" class="btn-b" disabled>切到 B</button>
+      <button id="switchC" type="button" class="btn-c" disabled>切到 C</button>
+      <button id="stopBtn" type="button" disabled>停止</button>
+      <label><input id="loopChk" type="checkbox"> 循環</label>
+      <label>統一音量 <input id="volSlider" type="range" min="0" max="100" value="55"> <span id="volVal">55%</span></label>
+    </div>
+    <div class="row" style="margin-top:.5rem">
+      <audio id="player" controls preload="none"></audio>
+      <span id="nowDetail" class="muted" style="font-size:.84rem"></span>
+    </div>
+  </section>
+
+  <div class="row" style="margin-bottom:.9rem">
+    <label>關卡
+      <select id="stageSel">
+        <option value="all">全部四關（57 支）</option>
+      </select>
+    </label>
+    <label>篩選狀態
+      <select id="stateFilter">
+        <option value="all">全部狀態</option>
+        <option value="pending">待人工審核</option>
+        <option value="use-c">採用 C（GDC 專業）</option>
+        <option value="use-b">採用 B（Gemini AI）</option>
+        <option value="keep-a">保留 A（Codex）</option>
+        <option value="redo">需重做</option>
+        <option value="has-c">僅顯示已有 C 版</option>
+        <option value="no-c">僅顯示尚無 C 版</option>
+      </select>
+    </label>
+    <button id="exportBtn" type="button">匯出審核結果 JSON</button>
+  </div>
+  <div id="summaryBar" class="summary-bar"></div>
+  <div id="list"></div>
+</main>
+<script>
+"use strict";
+const STORAGE_KEY = "yokai-stage58-sfx-abc-review-v2";
+const OLD_KEY = "yokai-stage58-sfx-ab-review-v1";
+const STATUS_LABELS = {
+  "pending": "待人工核准",
+  "use-c": "採用 C（GDC 專業）",
+  "use-b": "採用 B（Gemini AI）",
+  "keep-a": "保留 A（Codex）",
+  "redo": "需重做"
+};
+
+let reviews = {};
+try {
+  reviews = JSON.parse(localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_KEY) || "{}");
+} catch {}
+function saveReviews() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(reviews)); } catch {} }
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[m]));
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+  const catalog = window.STAGE58_AUDIO;
+  const statusEl = document.getElementById("status");
+  if (!catalog) { statusEl.textContent = "無法載入 js/stage58-audio.js。"; return; }
+  const res = await fetch("/ab-data.json");
+  if (!res.ok) { statusEl.textContent = "無法讀取 A/B/C 清冊。"; return; }
+  const data = await res.json();
+  data.gdcC = data.gdcC || {};
+  const sfxRows = catalog.entries.filter(r => r.kind !== "music");
+
+  const stageSel = document.getElementById("stageSel");
+  for (const [id, name] of Object.entries(catalog.stages)) stageSel.add(new Option(name, id));
+  const stateFilter = document.getElementById("stateFilter");
+  const player = document.getElementById("player");
+  const volSlider = document.getElementById("volSlider");
+  const volVal = document.getElementById("volVal");
+  const loopChk = document.getElementById("loopChk");
+  const stopBtn = document.getElementById("stopBtn");
+  const switchA = document.getElementById("switchA");
+  const switchB = document.getElementById("switchB");
+  const switchC = document.getElementById("switchC");
+  const nowEl = document.getElementById("now");
+  const nowDetail = document.getElementById("nowDetail");
+  const listEl = document.getElementById("list");
+  const summaryBar = document.getElementById("summaryBar");
+
+  let current = null; // { row, side: 'A' | 'B' | 'C' }
+
+  function setVol() {
+    player.volume = Number(volSlider.value) / 100;
+    volVal.textContent = volSlider.value + "%";
+  }
+  setVol();
+  volSlider.addEventListener("input", setVol);
+  loopChk.addEventListener("change", () => { player.loop = loopChk.checked; });
+
+  function updateTopSwitches() {
+    if (!current) {
+      switchA.disabled = switchB.disabled = switchC.disabled = true;
+      switchA.classList.remove("active");
+      switchB.classList.remove("active");
+      switchC.classList.remove("active");
+      return;
+    }
+    const row = current.row;
+    const aInfo = data.codexA[row.id];
+    const bInfo = data.geminiB[row.path];
+    const cInfo = data.gdcC[row.path];
+    switchA.disabled = !aInfo;
+    switchB.disabled = !bInfo;
+    switchC.disabled = !(cInfo && cInfo.status === "built");
+    switchA.classList.toggle("active", current.side === "A");
+    switchB.classList.toggle("active", current.side === "B");
+    switchC.classList.toggle("active", current.side === "C");
+  }
+
+  function stopPlay() {
+    player.pause();
+    player.removeAttribute("src");
+    player.load();
+    current = null;
+    nowEl.textContent = "請點選下方任一音效的 A、B 或 C 播放";
+    nowDetail.textContent = "";
+    stopBtn.disabled = true;
+    updateTopSwitches();
+    highlightActive();
+  }
+  stopBtn.addEventListener("click", stopPlay);
+
+  function playItem(row, side) {
+    const aInfo = data.codexA[row.id];
+    const bInfo = data.geminiB[row.path];
+    const cInfo = data.gdcC[row.path];
+    let url = null;
+    if (side === "A" && aInfo) url = "/" + aInfo.codexBackupPath;
+    else if (side === "B" && bInfo) url = "/" + bInfo.geminiPath;
+    else if (side === "C" && cInfo && cInfo.status === "built") url = "/" + cInfo.gdcCPath;
+    if (!url) return;
+    current = { row, side };
+    player.pause();
+    player.src = url + "?t=" + Date.now();
+    player.loop = loopChk.checked = !!row.loop;
+    player.volume = Number(volSlider.value) / 100;
+    const sideTitle = side === "A" ? "A：Codex 原版" : side === "B" ? "B：Gemini AI" : "C：GDC 專業";
+    nowEl.textContent = `[${sideTitle}] ${catalog.stages[row.stage]}｜${row.name}`;
+    if (side === "A") {
+      nowDetail.textContent = `原長 ${aInfo?.codexDuration ?? "?"}s · 峰值 ${aInfo?.codexPeakDbfs ?? "?"} dBFS · 均量 ${aInfo?.codexMeanDbfs ?? "?"} dBFS`;
+    } else if (side === "B") {
+      nowDetail.textContent = `長度 ${bInfo?.duration ?? "?"}s · 峰值 ${bInfo?.peakDbfs ?? "?"} dBFS · 均量 ${bInfo?.meanDbfs ?? "?"} dBFS · ${bInfo?.selectedTag ?? ""}`;
+    } else {
+      nowDetail.textContent = `長度 ${cInfo?.duration ?? "?"}s · 峰值 ${cInfo?.peakDbfs ?? "?"} dBFS · TruePeak ${cInfo?.truePeakDbtp ?? "?"} dBTP · ${cInfo?.method ?? ""}`;
+    }
+    stopBtn.disabled = false;
+    updateTopSwitches();
+    player.play().catch(() => {});
+    highlightActive();
+  }
+
+  switchA.addEventListener("click", () => current && playItem(current.row, "A"));
+  switchB.addEventListener("click", () => current && playItem(current.row, "B"));
+  switchC.addEventListener("click", () => current && playItem(current.row, "C"));
+
+  function highlightActive() {
+    document.querySelectorAll("button[data-play-id]").forEach(btn => {
+      const hit = current && btn.dataset.playId === current.row.id && btn.dataset.side === current.side;
+      btn.classList.toggle("active", !!hit);
+    });
+  }
+
+  function updateSummary() {
+    const counts = { "pending": 0, "use-c": 0, "use-b": 0, "keep-a": 0, "redo": 0 };
+    let hasC = 0;
+    for (const r of sfxRows) {
+      counts[reviews[r.id] || "pending"]++;
+      if (data.gdcC[r.path]?.status === "built") hasC++;
+    }
+    summaryBar.innerHTML =
+      `<span>總計：<strong>${sfxRows.length}</strong> 支（含 GDC C 版 <strong>${hasC}</strong> 支）</span>` +
+      `<span style="color:var(--accentC)">採用 C：<strong>${counts["use-c"]}</strong></span>` +
+      `<span style="color:var(--accentB)">採用 B：<strong>${counts["use-b"]}</strong></span>` +
+      `<span style="color:var(--accentA)">保留 A：<strong>${counts["keep-a"]}</strong></span>` +
+      `<span style="color:var(--warn)">需重做：<strong>${counts["redo"]}</strong></span>` +
+      `<span class="muted">待審：<strong>${counts["pending"]}</strong></span>`;
+  }
+
+  function render() {
+    listEl.replaceChildren();
+    const st = stageSel.value;
+    const sf = stateFilter.value;
+    const filtered = sfxRows.filter(r => {
+      if (st !== "all" && r.stage !== st) return false;
+      const rev = reviews[r.id] || "pending";
+      const hasC = data.gdcC[r.path]?.status === "built";
+      if (sf === "has-c") return hasC;
+      if (sf === "no-c") return !hasC;
+      return sf === "all" || rev === sf;
+    });
+    const builtCCount = sfxRows.filter(r => data.gdcC[r.path]?.status === "built").length;
+    statusEl.textContent = `顯示 ${filtered.length} / ${sfxRows.length} 支音效（A 原版 57 / B Gemini AI 57 / C GDC 專業 ${builtCCount} 支皆完成技術解碼，人工聽辨核准待辦）`;
+    updateSummary();
+
+    const stagesToShow = st === "all" ? Object.keys(catalog.stages) : [st];
+    for (const sid of stagesToShow) {
+      const stageItems = filtered.filter(r => r.stage === sid);
+      if (!stageItems.length) continue;
+      const h2 = document.createElement("h2");
+      h2.textContent = `${catalog.stages[sid]}（${stageItems.length} 支）`;
+      listEl.appendChild(h2);
+      const grid = document.createElement("div");
+      grid.className = "entries";
+      for (const row of stageItems) {
+        const aInfo = data.codexA[row.id] || {};
+        const bInfo = data.geminiB[row.path] || {};
+        const cInfo = data.gdcC[row.path] || {};
+        const hasC = cInfo.status === "built";
+        const rev = reviews[row.id] || "pending";
+
+        const cColHtml = hasC
+          ? `<strong>C：GDC 專業</strong>
+             長度：${cInfo.duration ?? "?"}s<br>
+             峰值：${cInfo.peakDbfs ?? "?"} dB<br>
+             均量：${cInfo.meanDbfs ?? "?"} dB<br>
+             層數：${(cInfo.layers || []).length} 層`
+          : `<strong>C：尚無版本</strong>
+             <span class="muted">無合適素材<br>不強行湊數</span>`;
+
+        const cDetailHtml = hasC
+          ? `<p><strong>C 版製作法：</strong>${esc(cInfo.method)}${cInfo.notes ? ` <span class="muted">（${esc(cInfo.notes)}）</span>` : ""}</p>
+             <ul class="layer-list">${(cInfo.layers || []).map(l =>
+               `<li><strong>${esc(l.role || "層")}</strong>：<code>${esc(l.filename)}</code>（${esc(l.supplier)}｜${l.startSec}s 起 ${l.durSec}s${l.delaySec ? `，延遲 +${l.delaySec}s` : ""}${l.pitchSemitones ? `，變調 ${l.pitchSemitones > 0 ? "+" : ""}${l.pitchSemitones} st` : ""}${l.hpHz ? `，HP ${l.hpHz}Hz` : ""}${l.lpHz ? `，LP ${l.lpHz}Hz` : ""}，${l.gainDb >= 0 ? "+" : ""}${l.gainDb}dB）</li>`
+             ).join("")}</ul>`
+          : `<p><strong>C 版說明：</strong>${esc(cInfo.reason || "此事件未對應到合適 GDC 素材。")}</p>`;
+
+        const card = document.createElement("article");
+        card.className = "panel card";
+        card.innerHTML = `
+          <div class="cardhead">
+            <div>
+              <h3>${esc(row.name)}</h3>
+              <small>${esc(row.actor)} · ${row.kind === "ambience" ? "環境循環" : row.priority}</small>
+            </div>
+            <span class="badge ${rev}">${STATUS_LABELS[rev]}</span>
+          </div>
+          <p style="font-size:.87rem">${esc(row.when)}</p>
+          <div class="meta-grid">
+            <div class="col-a">
+              <strong>A：Codex 原版</strong>
+              長度：${aInfo.codexDuration ?? "?"}s<br>
+              峰值：${aInfo.codexPeakDbfs ?? "?"} dB<br>
+              均量：${aInfo.codexMeanDbfs ?? "?"} dB
+            </div>
+            <div class="col-b">
+              <strong>B：Gemini AI</strong>
+              長度：${bInfo.duration ?? "?"}s<br>
+              峰值：${bInfo.peakDbfs ?? "?"} dB<br>
+              均量：${bInfo.meanDbfs ?? "?"} dB
+            </div>
+            <div class="col-c">
+              ${cColHtml}
+            </div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn-a" data-play-id="${row.id}" data-side="A">▶ A</button>
+            <button type="button" class="btn-b" data-play-id="${row.id}" data-side="B">▶ B</button>
+            <button type="button" class="btn-c" data-play-id="${row.id}" data-side="C" ${hasC ? "" : "disabled"}>${hasC ? "▶ C（GDC）" : "無 C 版"}</button>
+            <select data-review-id="${row.id}" aria-label="核准狀態">
+              <option value="pending" ${rev === "pending" ? "selected" : ""}>待人工核准</option>
+              <option value="use-c" ${rev === "use-c" ? "selected" : ""} ${hasC ? "" : "disabled"}>採用 C（GDC 專業）</option>
+              <option value="use-b" ${rev === "use-b" ? "selected" : ""}>採用 B（Gemini AI）</option>
+              <option value="keep-a" ${rev === "keep-a" ? "selected" : ""}>保留 A（Codex）</option>
+              <option value="redo" ${rev === "redo" ? "selected" : ""}>需重做</option>
+            </select>
+          </div>
+          <code class="asset">${esc(row.path)}</code>
+          <details>
+            <summary>GDC 素材來源與混音紀錄 / AI 生成參數</summary>
+            ${cDetailHtml}
+            <p><small><strong>B 版 AI：</strong>${esc(bInfo.selectedTag || "-")} · seed ${bInfo.seed || "-"} · ${bInfo.steps || "-"} steps · ${esc(bInfo.sampler || "-")}/${esc(bInfo.scheduler || "-")} · CFG ${bInfo.cfg || "-"}</small></p>
+            <p style="font-size:.8rem" class="muted">${esc(bInfo.prompt || "")}</p>
+          </details>
+        `;
+        card.querySelector('button[data-side="A"]').addEventListener("click", () => playItem(row, "A"));
+        card.querySelector('button[data-side="B"]').addEventListener("click", () => playItem(row, "B"));
+        if (hasC) card.querySelector('button[data-side="C"]').addEventListener("click", () => playItem(row, "C"));
+        card.querySelector("select[data-review-id]").addEventListener("change", e => {
+          reviews[row.id] = e.target.value;
+          saveReviews();
+          const badge = card.querySelector(".badge");
+          badge.className = "badge " + e.target.value;
+          badge.textContent = STATUS_LABELS[e.target.value];
+          updateSummary();
+        });
+        grid.appendChild(card);
+      }
+      listEl.appendChild(grid);
+    }
+    highlightActive();
+  }
+
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    const out = sfxRows.map(r => ({
+      id: r.id, stage: r.stage, name: r.name, path: r.path,
+      hasGdcC: data.gdcC[r.path]?.status === "built",
+      decision: reviews[r.id] || "pending"
+    }));
+    const blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "stage58-sfx-abc-decisions.json";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+
+  stageSel.addEventListener("change", render);
+  stateFilter.addEventListener("change", render);
+  render();
+});
+</script>
+</body>
+</html>

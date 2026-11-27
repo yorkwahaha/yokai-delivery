@@ -63,7 +63,7 @@
     "boss_roster_manifest": "assets/img/enemies/boss-roster-trial-manifest.json",
     "skill_art_manifest": "assets/img/skills/skill-art-trial-manifest.json"
   },
-  "policy": "Stages 1 through 4 use selected delivery artwork. Stage 4 and the new boss and skill art are available in the public classroom playtest. Stages 2 through 4 delivery audio remains subject to pronunciation review.",
+  "policy": "All eight stages are available in public classroom playtest through sequential progression. Stages 5 through 8 and skills 10 through 13 use canonical trial assets. Delivery audio and trial art remain subject to user review.",
   "aliases": [
     {
       "source": "assets/audio/BGM.mp3",

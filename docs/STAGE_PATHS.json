@@ -1,8 +1,13 @@
 {
   "schema_version": "1.0",
-  "updated": "2026-10-26-single-worktree-consolidation",
+  "updated": "2026-11-28-classroom-eight",
   "authority": "docs/PROJECT_FILE_MAP.md",
-  "naming_policy": "ONE ART SOURCE: art/stageN-ID/{scene,characters}; no art/sN",
+  "naming_policy": "Canonical image category structure under assets/img (public) or art/dev-runtime/img (DEV); source masters in art/stageN-ID; unused images in .cleanup-archive/images",
+  "canonical_scene_template": "assets/img/stages/{stage-id}/",
+  "dev_scene_template": "art/dev-runtime/img/stages/{stage-id}/",
+  "dev_enemies": "art/dev-runtime/img/enemies/",
+  "dev_enemy_vfx": "art/dev-runtime/img/vfx/enemies/",
+  "unused_image_archive": ".cleanup-archive/images/",
   "developer_worktree": "I:/Projects/yokai-delivery",
   "developer_head_observed": "a4aaa94",
   "published_head": "0e5875d50684e21a6739b944ecd0625c38b1f541",
@@ -14,10 +19,10 @@
     "rain-port": "assets/img/rain-port/s2-production/",
     "sakura-pass": "assets/img/sakura-pass/",
     "bamboo-maze": "assets/img/stages/bamboo-maze/",
-    "hyakki-kyoto": null,
-    "snow-temple": null,
-    "spirit-ferry": null,
-    "yomi": null
+    "hyakki-kyoto": "assets/img/stages/hyakki-kyoto/",
+    "snow-temple": "assets/img/stages/snow-temple/",
+    "spirit-ferry": "assets/img/stages/spirit-ferry/",
+    "yomi": "assets/img/stages/yomi/"
   },
   "stages": [
     {
@@ -27,8 +32,9 @@
       "art": "art/stage1-night-town/",
       "source_scene": "art/stage1-night-town/scene/",
       "source_characters": null,
-      "runtime": "assets/img/scenery/",
-      "notes": "stage1 historically shares scenery directory"
+      "runtime": "assets/img/stages/night-town/",
+      "legacy_runtime": "assets/img/scenery/",
+      "notes": "Canonical target with legacy alias and fallback retained"
     },
     {
       "order": 2,
@@ -37,7 +43,8 @@
       "art": "art/stage2-rain-port/",
       "source_scene": "art/stage2-rain-port/scene/",
       "source_characters": "art/stage2-rain-port/characters/",
-      "runtime": "assets/img/rain-port/",
+      "runtime": "assets/img/stages/rain-port/",
+      "legacy_runtime": "assets/img/rain-port/",
       "live_runtime_bundle": "assets/img/rain-port/s2-production/",
       "local_legacy_devgate": null,
       "nano_history": null,
@@ -52,7 +59,8 @@
       "art": "art/stage3-sakura-pass/",
       "source_scene": "art/stage3-sakura-pass/scene/",
       "source_characters": "art/stage3-sakura-pass/characters/",
-      "runtime": "assets/img/sakura-pass/",
+      "runtime": "assets/img/stages/sakura-pass/",
+      "legacy_runtime": "assets/img/sakura-pass/",
       "notes": "Old source images purged; actual kept image paths are in art/stageN-ID/manifest.json; stage3 10/24 new candidate unapproved",
       "art_status": "REFERENCE_ONLY_RESET_20261024"
     },
@@ -76,9 +84,11 @@
       "source_scene": "art/stage5-hyakki-kyoto/scene/",
       "source_characters": "art/stage5-hyakki-kyoto/characters/",
       "runtime": "assets/img/stages/hyakki-kyoto/",
-      "runtime_state": "reserved; stage-specific raster pending review",
-      "art_status": "REFERENCE_ONLY_RESET_20261024",
-      "notes": "Manifest lists references only. The local stage lab uses the market routes. Public access remains closed and progression follows bamboo-maze."
+      "dev_manifest": "art/stage5-hyakki-kyoto/manifest.json",
+      "runtime_state": "Public classroom playtest; canonical runtime assets",
+      "art_status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "notes": "Finite 3x3 market districts. Stage Lab opens via explicit DEV flags on loopback or a private LAN. Public stage unlocks after previous stage clear.",
+      "public_manifest": "assets/img/stages/hyakki-kyoto/manifest.json"
     },
     {
       "order": 6,
@@ -87,10 +97,12 @@
       "art": "art/stage6-snow-temple/",
       "source_scene": "art/stage6-snow-temple/scene/",
       "source_characters": "art/stage6-snow-temple/characters/",
-      "runtime": "assets/img/snow-temple/",
-      "runtime_state": "not established/verify before use",
-      "art_status": "REFERENCE_ONLY_RESET_20261024",
-      "notes": "Old source images purged; actual kept image paths are in art/stageN-ID/manifest.json; stage3 10/24 new candidate unapproved"
+      "runtime": "assets/img/stages/snow-temple/",
+      "dev_manifest": "art/stage6-snow-temple/manifest.json",
+      "runtime_state": "Public classroom playtest; canonical runtime assets",
+      "art_status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "notes": "Unbounded seeded chunk streaming with edge-matched snow and flagstone paths. Public stage unlocks after previous stage clear.",
+      "public_manifest": "assets/img/stages/snow-temple/manifest.json"
     },
     {
       "order": 7,
@@ -99,10 +111,12 @@
       "art": "art/stage7-spirit-ferry/",
       "source_scene": "art/stage7-spirit-ferry/scene/",
       "source_characters": "art/stage7-spirit-ferry/characters/",
-      "runtime": "assets/img/spirit-ferry/",
-      "runtime_state": "not established/verify before use",
-      "art_status": "REFERENCE_ONLY_RESET_20261024",
-      "notes": "Old source images purged; actual kept image paths are in art/stageN-ID/manifest.json; stage3 10/24 new candidate unapproved"
+      "runtime": "assets/img/stages/spirit-ferry/",
+      "dev_manifest": "art/stage7-spirit-ferry/manifest.json",
+      "runtime_state": "Public classroom playtest; canonical runtime assets",
+      "art_status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "notes": "63 WebPs; four boss waves; Progress opens after Snow Temple. Public stage unlocks after previous stage clear.",
+      "public_manifest": "assets/img/stages/spirit-ferry/manifest.json"
     },
     {
       "order": 8,
@@ -111,10 +125,12 @@
       "art": "art/stage8-yomi/",
       "source_scene": "art/stage8-yomi/scene/",
       "source_characters": "art/stage8-yomi/characters/",
-      "runtime": "assets/img/yomi/",
-      "runtime_state": "not established/verify before use",
-      "art_status": "REFERENCE_ONLY_RESET_20261024",
-      "notes": "Old source images purged; actual kept image paths are in art/stageN-ID/manifest.json; stage3 10/24 new candidate unapproved"
+      "runtime": "assets/img/stages/yomi/",
+      "dev_manifest": "art/stage8-yomi/manifest.json",
+      "runtime_state": "Public classroom playtest; canonical runtime assets",
+      "art_status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "notes": "56 WebPs; four boss waves and final result. 140 review words reuse the first seven stages. Public stage unlocks after previous stage clear.",
+      "public_manifest": "assets/img/stages/yomi/manifest.json"
     }
   ],
   "shared": {
@@ -139,7 +155,7 @@
     "no_commit_or_deploy": true
   },
   "delivery_word_media": {
-    "updated": "2026-11-16",
+    "updated": "2026-11-28",
     "scope": "delivery vocabulary word icons and spoken clips only (not scenery, bosses, BGM or skill SFX)",
     "authority": "docs/DELIVERY_MEDIA_PATHS.md",
     "runtime_router": "js/delivery-media.js",
@@ -158,11 +174,19 @@
     "stage8_behavior": "reuse original stage word assets; do not duplicate all 140",
     "trial_image_stages": [
       "rain-port",
-      "sakura-pass"
+      "sakura-pass",
+      "bamboo-maze",
+      "hyakki-kyoto",
+      "snow-temple",
+      "spirit-ferry"
     ],
     "trial_audio_stages": [
       "rain-port",
-      "sakura-pass"
+      "sakura-pass",
+      "bamboo-maze",
+      "hyakki-kyoto",
+      "snow-temple",
+      "spirit-ferry"
     ],
     "rain_port_trial_receipt": "docs/RAIN_PORT_DELIVERY_TRIAL_20261031.md",
     "sakura_pass_trial_receipt": "docs/SAKURA_PASS_DELIVERY_TRIAL_20261116.md"

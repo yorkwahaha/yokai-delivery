@@ -1,13 +1,20 @@
 'use strict';
-// Explicit current/legacy lanes: no test files are deleted, ignored or
-// silently marked as passing. "all" retains the historic full-suite behavior.
+// Current lane is authoritative; retired tests remain byte-exact in local history.
+// Legacy/all are explicit opt-in and preserve original test paths and outcomes.
 const fs=require('node:fs');
 const path=require('node:path');
 const cp=require('node:child_process');
+const crypto=require('node:crypto');
 
 const ROOT=path.resolve(__dirname,'..');
-const all=fs.readdirSync(path.join(ROOT,'tests'))
+const present=fs.readdirSync(path.join(ROOT,'tests'))
   .filter(f=>f.endsWith('.test.cjs')).sort();
+const retiredManifest=JSON.parse(fs.readFileSync(path.join(ROOT,'docs/HISTORICAL_TESTS.json'),'utf8'));
+const retired=new Map(retiredManifest.files.map(r=>[r.file,r]));
+if(retired.size!==retiredManifest.files.length)throw Error('Duplicate retired test records');
+for(const name of retired.keys())if(!/^[a-zA-Z0-9_.-]+\.test\.cjs$/.test(name))throw Error('Invalid retired filename: '+name);
+const all=[...new Set([...present,...retired.keys()])].sort();
+const digest=buf=>crypto.createHash('sha256').update(buf).digest('hex');
 const frozenHistorical=new Set([
   'agy-m1-runtime.test.cjs',
   'agy-m1-n4.test.cjs',
@@ -19,16 +26,27 @@ const frozenHistorical=new Set([
 
 const currentPrefix=/^(game-.*phase\d+|game-combat-audit-hardening|core-(multi-enemy-stage|stateful-contracts)|audit-p1-|audio-gamepad-home-hotfix|phase2-geometry-audit|third-audit-regressions|water-slam-alpha-sfx|combat-targeting|combat-boundaries-stage-tutorial|boom-behavior|boss-(music|telegraph-delegate|ring-sweep)|evolutions|fx\.|skillfx\.|game-balance|progression|v3-boss-ai|v3-core|v3-contract-gate)/;
 const currentExact=new Set([
+  'active-skills-10-13.test.cjs',
+  'integration-polish-phase-f1.test.cjs',
+  'ui-compendium-20261126.test.cjs',
+  'unified-boss-schedule-no-delivery-gate-20261125.test.cjs',
+  'game-violet-scent-20261117.test.cjs',
   'game-upgrade-cooldown-20261121.test.cjs',
   'game-new-skill-visibility-20261124.test.cjs',
-  'port-performance-diagnostics.test.cjs',
+  'late-skill-mutations.test.cjs',
+  'four-stage-controlled-flow-20261122.test.cjs',
   'stage-bgm-routing-20261122.test.cjs',
   'perf-overlay-position-20261122.test.cjs',
-  'game-violet-scent-20261117.test.cjs',
+  'port-performance-diagnostics.test.cjs',
   'game-shikigami-candidate-20261119.test.cjs',
   'game-shikigami-runtime-20261119.test.cjs',
   'stage4-bamboo-maze-20261119.test.cjs',
   'stage5-hyakki-kyoto-20261119.test.cjs',
+  'stage6-snow-temple.test.cjs',
+  'stage78-dev.test.cjs',
+  'stage58-audio.test.cjs',
+  'stage58-combat-polish-phase-a-20261126.test.cjs',
+  'stage58-combat-polish-phase-b-20261126.test.cjs',
   'fusion-lab-isolation-20261119.test.cjs',
   'phase42-upgrade-input-20261119.test.cjs',
   'game-ui-upgrade-phase42.test.cjs',
@@ -163,17 +181,19 @@ const currentExact=new Set([
   'r10-ui-hud-hitbox.test.cjs',
   'phase1-fixes.test.cjs',
   'playtest-r14-delivery-seal-curse.test.cjs',
+  'phase-f3-audio-20261127.test.cjs',
+  'ink-variants-seal-nail-20261117.test.cjs',
   'test-triage-audit-20261104.test.cjs'
 ]);
-for(const required of currentExact)if(!all.includes(required))
+for(const required of currentExact)if(!frozenHistorical.has(required)&&!retired.has(required)&&!present.includes(required))
   throw Error('Current test missing: '+required);
 
-const current=all.filter(f=>!frozenHistorical.has(f)&&(currentPrefix.test(f)||currentExact.has(f)));
+const current=present.filter(f=>!retired.has(f)&&!frozenHistorical.has(f)&&(currentPrefix.test(f)||currentExact.has(f)));
 const currentSet=new Set(current);
 const legacy=all.filter(f=>!currentSet.has(f));
 const mode=process.argv[2]||'current';
-if(!['current','legacy','all','list'].includes(mode)){
-  console.error('Usage: node tools/run-tests.cjs [current|legacy|all|list]');
+if(!['current','legacy','all','list','legacy-check'].includes(mode)){
+  console.error('Usage: node tools/run-tests.cjs [current|legacy|all|list|legacy-check]');
   process.exit(2);
 }
 console.log('[Yokai tests] current:',current.length,'files; historical:',legacy.length,
@@ -183,11 +203,50 @@ if(mode==='list'){
   console.log('Historical (unmigrated):\n'+legacy.join('\n'));
   process.exit(0);
 }
+function sourceFor(name){
+  const row=retired.get(name);
+  const archived=path.join(ROOT,retiredManifest.archive_root,name);
+  if(fs.existsSync(archived)){
+    const bytes=fs.readFileSync(archived);
+    if(digest(bytes)!==row.sha256)throw Error('Archive hash mismatch: '+name);
+    return bytes;
+  }
+  // Fresh checkouts can recover clean retired source from the pinned Git object.
+  const result=cp.spawnSync('git',['show',retiredManifest.source_revision+':tests/'+name],{cwd:ROOT,maxBuffer:8*1024*1024});
+  if(result.status===0){
+    if(digest(result.stdout)===row.sha256)return result.stdout;
+    const text=result.stdout.toString('utf8');
+    const crlf=Buffer.from(text.replace(/\r?\n/g,'\r\n'),'utf8');
+    if(digest(crlf)===row.sha256)return crlf;
+  }
+  throw Error('Retired source unavailable or hash mismatch: '+name+'; restore local archive or pinned Git revision. No test was silently skipped.');
+}
+if(mode==='legacy-check'){
+  for(const name of retired.keys())sourceFor(name);
+  console.log('Retired sources verified:',retired.size);
+  process.exit(0);
+}
 const files=mode==='current'?current:mode==='legacy'?legacy:all;
 if(!files.length)throw Error('No '+mode+' tests found');
-const argv=['--test','--test-concurrency=8',...files.map(f=>path.join(ROOT,'tests',f))];
-const child=cp.spawnSync(process.execPath,argv,{
-  cwd:ROOT,stdio:'inherit',timeout:240000
-});
-if(child.error)console.error('[Yokai tests]',child.error.message);
-process.exitCode=child.status??1;
+const staged=[];
+try{
+  // Preserve __dirname, relative fixture paths and original assertions without modifying archived source.
+  const needed=files.filter(f=>retired.has(f)).map(name=>[name,sourceFor(name)]);
+  for(const [name,bytes] of needed){
+    const dst=path.join(ROOT,'tests',name);
+    if(fs.existsSync(dst)){
+      if(digest(fs.readFileSync(dst))!==retired.get(name).sha256)throw Error('Refusing to overwrite existing test: '+name);
+      continue;
+    }
+    fs.writeFileSync(dst,bytes,{flag:'wx'});staged.push([dst,retired.get(name).sha256]);
+  }
+  const argv=['--test','--test-concurrency=8',...files.map(f=>path.join(ROOT,'tests',f))];
+  const child=cp.spawnSync(process.execPath,argv,{cwd:ROOT,stdio:'inherit',timeout:240000});
+  if(child.error)console.error('[Yokai tests]',child.error.message);
+  process.exitCode=child.status??1;
+}finally{
+  for(const [dst,sha] of staged){
+    if(fs.existsSync(dst)&&digest(fs.readFileSync(dst))===sha)fs.unlinkSync(dst);
+    else {console.error('Retired test changed during run; preserved:',dst);process.exitCode=1;}
+  }
+}

@@ -28,7 +28,7 @@ window.AUDIO = (() => {
     // A failed attempt must never poison this track for the entire session.
     try {
       Promise.resolve(audio.play()).then(() => {
-        musicBlockedByPolicy = false;
+        if (audio === activeBgm || audio === preparedBgm) musicBlockedByPolicy = false;
       }).catch(error => {
         if (error?.name === "NotAllowedError") musicBlockedByPolicy = true;
         bgmAttempts.delete(audio);
@@ -51,13 +51,74 @@ window.AUDIO = (() => {
     "sakura-pass": "assets/audio/bgm/stages/sakura-pass/sakura-pass__battle.mp3",
     "bamboo-maze": "assets/audio/bgm/stages/bamboo-maze/bamboo-maze__battle.mp3"
   });
+  // Independent final-Boss BGM slots for Stages 1-4. Drop an authored MP3 at
+  // the exact path to override the shared boss__encounter.mp3 fallback.
+  const STAGE_BOSS_BGM_FILES = Object.freeze({
+    "night-town": "assets/audio/bgm/stages/night-town/night-town__boss.mp3",
+    "rain-port": "assets/audio/bgm/stages/rain-port/rain-port__boss.mp3",
+    "sakura-pass": "assets/audio/bgm/stages/sakura-pass/sakura-pass__boss.mp3",
+    "bamboo-maze": "assets/audio/bgm/stages/bamboo-maze/bamboo-maze__boss.mp3"
+  });
+  // Shipped Stage 1-4 independent Boss BGMs. Keep empty until each authored MP3
+  // ships so public builds never request missing files; local DEV auto-detects
+  // dropped files via stage-audio-review/files.json.
+  const STAGE_BOSS_BGM_PROVIDED = new Set(window.CONTENT ? Object.keys(STAGE_BOSS_BGM_FILES) : []);
   const stageBgmTracks = new Map(), failedStageBgm = new Set();
-  let originalBattleBgm = null;
+  const stageBossBgmTracks = new Map(), failedStageBossBgm = new Set();
+  let originalBattleBgm = null, originalBossBgm = null, currentStageId = null;
+  function hasStageBossBgm(stageId) {
+    const path = STAGE_BOSS_BGM_FILES[stageId];
+    if (!path || failedStageBossBgm.has(stageId)) return false;
+    if (STAGE_BOSS_BGM_PROVIDED.has(stageId)) return true;
+    if (stageFiles.has(path)) return true;
+    const ext = window.STAGE_BOSS_BGM_AVAILABLE;
+    if (ext instanceof Set) return ext.has(stageId) || ext.has(path);
+    if (Array.isArray(ext)) return ext.includes(stageId) || ext.includes(path);
+    return false;
+  }
+  function selectStageBossBgm(stageId) {
+    if (!originalBossBgm && window.BOSS_BGM && ![...stageBossBgmTracks.values()].includes(window.BOSS_BGM))
+      originalBossBgm = window.BOSS_BGM;
+    if (!hasStageBossBgm(stageId)) {
+      window.BOSS_BGM = originalBossBgm;
+      return;
+    }
+    const path = STAGE_BOSS_BGM_FILES[stageId];
+    let track = stageBossBgmTracks.get(stageId);
+    if (!track) {
+      try {
+        track = new Audio(window.audioAsset?.(path) || path);
+        track.loop = true;
+        track.preload = "none";
+        track.volume = 0;
+        track.addEventListener?.("error", () => {
+          failedStageBossBgm.add(stageId);
+          if (window.BOSS_BGM === track) window.BOSS_BGM = originalBossBgm;
+          if (activeBgm === track) {
+            activeBgm = null;
+            if (bossMusic && originalBossBgm && !muted && !suspended) {
+              bgmAttempts.delete(originalBossBgm);
+              playMusic(originalBossBgm, true);
+            }
+          }
+          try { track.pause(); } catch {}
+        }, { once: true });
+        stageBossBgmTracks.set(stageId, track);
+      } catch {
+        failedStageBossBgm.add(stageId);
+        window.BOSS_BGM = originalBossBgm;
+        return;
+      }
+    }
+    window.BOSS_BGM = track;
+  }
   function selectStageBgm(stageId) {
+    currentStageId = stageId || null;
     // assets.js defines window.BGM before audio.js. Capture that approved
     // fallback exactly once, before replacing the current-stage pointer.
     if (!originalBattleBgm && window.BGM && ![...stageBgmTracks.values()].includes(window.BGM))
       originalBattleBgm = window.BGM;
+    selectStageBossBgm(stageId);
     const path = STAGE_BGM_FILES[stageId];
     if (!path || failedStageBgm.has(stageId)) {
       window.BGM = originalBattleBgm;
@@ -92,6 +153,209 @@ window.AUDIO = (() => {
   let audioEpoch = 0, wordSource = null;
   let masterBus = null, effectsBus = null;
   const sfxVoices = new Map(), sfxRequests = new Map();
+  const localStageAudio = window.DEV_MODE?.isStageLab?.(window.location) === true;
+  const stageAudioSource = window.STAGE58_AUDIO;
+  const publicStageAudio = !localStageAudio && !!stageAudioSource?.publicByStage &&
+    window.CONTENT?.getStage?.("hyakki-kyoto")?.mapReleased === true;
+  const stageCatalog = localStageAudio ? stageAudioSource : publicStageAudio ? {byStage:stageAudioSource.publicByStage} : null;
+  const stageFiles = new Set(publicStageAudio ? stageAudioSource.publicEntries.map(row=>row.path) : []), stageBadFiles = new Set();
+  const stageTracks = new Map(), stageMediaNodes = new Map();
+  const stageReady = new Set(), stageVoices = new Set(), stageCueLast = new Map();
+  const expansionVoices = new Map(), expansionBadFiles = new Set();
+  let stageAudioId = null, stageMode = "battle", stagePreload = null;
+  let stageMusicCurrent = null, stageMusicIncoming = null, stageBlend = 0;
+  let stageMusicLevel = BGM_NORMAL_VOLUME;
+  let stageEndingComplete = false;
+  if ((localStageAudio || window.DEV_MODE?.isLoopback?.(window.location)) && typeof fetch === "function") {
+    fetch("stage-audio-review/files.json")
+      .then(response => response.ok ? response.json() : null)
+      .then(result => {
+        for (const path of result?.files || []) stageFiles.add(path);
+        if (currentStageId && !stageAudioId && !bossMusic) selectStageBossBgm(currentStageId);
+      })
+      .catch(() => {});
+  }
+
+  function stageRow(event) {
+    return stageCatalog?.byStage?.[stageAudioId]?.[event];
+  }
+
+  function hasStageFile(row) {
+    return row && stageFiles.has(row.path) && !stageBadFiles.has(row.path);
+  }
+
+  function trackVolume(track, value) {
+    const gain = stageMediaNodes.get(track)?.gain.gain;
+    if (value === undefined) return gain ? gain.value : track.volume;
+    if (gain) gain.value = value;
+    else track.volume = value;
+  }
+
+  function releaseStageTrack(track) {
+    track.pause();
+    track.removeAttribute?.("src");
+    track.load?.();
+    const nodes = stageMediaNodes.get(track);
+    nodes?.source.disconnect();
+    nodes?.gain.disconnect();
+    stageMediaNodes.delete(track);
+    const ramp = bgmRamps.get(track);
+    if (ramp && typeof cancelAnimationFrame === "function") cancelAnimationFrame(ramp);
+    bgmRamps.delete(track);
+  }
+
+  function stageTrack(event) {
+    if (stageTracks.has(event)) return stageTracks.get(event);
+    const row = stageRow(event);
+    if (!hasStageFile(row)) return null;
+    try {
+      const track = new Audio();
+      track.preload = "none";
+      track.loop = row.loop;
+      const ac = getCtx();
+      if (ac?.createMediaElementSource) {
+        const gain = ac.createGain();
+        gain.gain.value = 0;
+        const source = ac.createMediaElementSource(track);
+        source.connect(gain);
+        gain.connect(output(ac, true));
+        stageMediaNodes.set(track, { source, gain });
+      }
+      trackVolume(track, 0);
+      track.addEventListener("error", () => {
+        if (stageTracks.get(event) !== track) return;
+        stageBadFiles.add(row.path);
+        stageTracks.delete(event);
+        if (stageMusicCurrent === track) stageMusicCurrent = null;
+        if (stageMusicIncoming === track) stageMusicIncoming = null;
+        if (activeBgm === track) activeBgm = null;
+        if (preparedBgm === track) preparedBgm = null;
+        releaseStageTrack(track);
+      }, { once: true });
+      if (event === "ending") track.addEventListener("ended", () => { stageEndingComplete = true; }, { once: true });
+      stageTracks.set(event, track);
+      track.src = row.path;
+      return track;
+    } catch {
+      stageBadFiles.add(row.path);
+      return null;
+    }
+  }
+
+  function clearStageEffects() {
+    stagePreload?.abort();
+    stagePreload = null;
+    for (const row of Object.values(stageCatalog?.byStage?.[stageAudioId] || {})) clipBuffers.delete(row.path);
+    for (const voice of stageVoices) {
+      try { voice.source?.stop(); } catch {}
+    }
+    stageReady.clear();
+    stageVoices.clear();
+    stageCueLast.clear();
+  }
+
+  function leaveStageAudio() {
+    if (!stageAudioId) return;
+    clearStageEffects();
+    if ([...stageTracks.values()].includes(preparedBgm)) preparedBgm = null;
+    for (const track of stageTracks.values()) releaseStageTrack(track);
+    for (const track of [stageMusicCurrent, stageMusicIncoming, activeBgm])
+      if (track && track !== preparedBgm) track.pause();
+    if (activeBgm !== preparedBgm) activeBgm = null;
+    stageTracks.clear();
+    stageAudioId = null;
+    stageMode = "battle";
+    stageMusicCurrent = stageMusicIncoming = null;
+    stageEndingComplete = false;
+    stageBlend = 0;
+  }
+
+  function warmStageEffects(ac) {
+    if (stagePreload || !stageFiles.size || !ac?.decodeAudioData || typeof AbortController === "undefined") return;
+    const rows = Object.values(stageCatalog?.byStage?.[stageAudioId] || {})
+      .filter(row => row.kind === "effect" && hasStageFile(row))
+      .sort((a, b) => a.priority.localeCompare(b.priority));
+    const { signal } = stagePreload = new AbortController();
+    let next = 0;
+    async function worker() {
+      while (!signal.aborted && next < rows.length) {
+        const { path } = rows[next++];
+        try {
+          await loadBuffer(path, ac, signal);
+          if (!signal.aborted) stageReady.add(path);
+        } catch {
+          if (!signal.aborted) stageBadFiles.add(path);
+        }
+      }
+    }
+    for (let i = 0; i < 4; i++) worker();
+  }
+
+  function playStageCue(event, fallback) {
+    const row = stageRow(event);
+    if (!row) return fallback();
+    const ac = getCtx();
+    if (!ac || ac.state !== "running") return;
+    warmStageEffects(ac);
+    const interval = event === "spawn" ? 3.8 : event === "shot" ? .5 : .12;
+    if (ac.currentTime - (stageCueLast.get(event) ?? -Infinity) < interval) return;
+    stageCueLast.set(event, ac.currentTime);
+    if (stageVoices.size >= 6 ||
+        (row.priority === "P1" && [...stageVoices].filter(voice => voice.priority === "P1").length >= 3)) return;
+    if (!stageReady.has(row.path)) return fallback();
+    const voice = { priority: row.priority };
+    stageVoices.add(voice);
+    const epoch = stagePreload;
+    const done = () => stageVoices.delete(voice);
+    if (!playBuffer(row.path, row.volume, {
+      isCurrent: () => stagePreload === epoch && stageVoices.has(voice),
+      onstart: source => { voice.source = source; },
+      onended: done,
+      onerror: () => { done(); stageBadFiles.add(row.path); stageReady.delete(row.path); fallback(); }
+    })) { done(); fallback(); }
+  }
+
+  function updateStageMusic(dt, state) {
+    if (state === "won" && (stageEndingComplete || !stageTrack("ending"))) return false;
+    if (!stagePreload && stageFiles.size && state !== "won" && state !== "victory") warmStageEffects(getCtx());
+    const ambience = state !== "won" && stageTrack("ambience");
+    if (ambience) {
+      const volume = stageRow("ambience").volume * musicVolume() / BGM_NORMAL_VOLUME;
+      trackVolume(ambience, trackVolume(ambience) + (volume - trackVolume(ambience)) * Math.min(1, dt / .22));
+      playMusic(ambience);
+    }
+    const desired = stageTrack(stageMode) ||
+      (stageMode === "final" || stageMode === "ending" ? stageTrack("boss") : null) ||
+      (stageMode !== "battle" ? window.BOSS_BGM : null) || stageTrack("battle") || window.BGM;
+    if (!desired) return false;
+    if (stageMusicIncoming !== desired) {
+      if (stageMusicIncoming && stageMusicIncoming !== stageMusicCurrent) stageMusicIncoming.pause();
+      stageMusicIncoming = desired;
+      stageBlend = stageMusicCurrent === desired || !stageMusicCurrent ? 1 : 0;
+      bgmAttempts.delete(desired);
+    }
+    activeBgm = desired;
+    const audible = () => !desired.paused && desired.readyState >= 2;
+    if (stageMusicCurrent !== desired && stageMusicCurrent && !audible()) playMusic(stageMusicCurrent);
+    stageMusicLevel += (musicVolume() - stageMusicLevel) * Math.min(1, dt / .16);
+    const level = stageMusicLevel;
+    if (desired.paused) trackVolume(desired, level * stageBlend);
+    playMusic(desired);
+    if (audible()) stageBlend = Math.min(1, stageBlend + dt / 1.1);
+    trackVolume(desired, level * stageBlend);
+    if (stageMusicCurrent && stageMusicCurrent !== desired) {
+      trackVolume(stageMusicCurrent, level * (1 - stageBlend));
+      if (stageBlend >= 1) stageMusicCurrent.pause();
+    }
+    if (stageBlend >= 1 && audible()) stageMusicCurrent = desired;
+    if (state === "won" && stageMusicCurrent === desired) {
+      for (const [key, track] of stageTracks) if (track !== desired) {
+        stageTracks.delete(key);
+        releaseStageTrack(track);
+      }
+    }
+    return true;
+  }
 
   function output(ac, speech = false) {
     if (!ac.createDynamicsCompressor) return ac.destination;
@@ -116,9 +380,9 @@ window.AUDIO = (() => {
     sfxVoices.set(name, voice);
   }
 
-  function loadBuffer(path, ac) {
+  function loadBuffer(path, ac, signal) {
     if (!clipBuffers.has(path)) {
-      const pending = fetch(window.audioAsset?.(path) || path)
+      const pending = fetch(window.audioAsset?.(path) || path, signal ? { signal } : undefined)
         .then(response => { if (!response.ok) throw new Error(`Audio HTTP ${response.status}`); return response.arrayBuffer(); })
         .then(bytes => ac.decodeAudioData(bytes));
       clipBuffers.set(path,pending);
@@ -150,6 +414,8 @@ window.AUDIO = (() => {
     audioEpoch++;
     bufferSources.forEach(source=>{try {source.stop();} catch(e) {}});
     bufferSources.clear();wordSource=null;
+    stageVoices.clear();
+    expansionVoices.clear();
   }
 
   function scheduleNote(callback, delay) {
@@ -160,8 +426,8 @@ window.AUDIO = (() => {
 
   function musicTracks() {
     return [...new Set([
-      window.BGM, window.MAP_BGM, window.BOSS_BGM, originalBattleBgm,
-      activeBgm, preparedBgm, ...stageBgmTracks.values()
+      window.BGM, window.MAP_BGM, window.BOSS_BGM, originalBattleBgm, originalBossBgm,
+      activeBgm, preparedBgm, ...stageBgmTracks.values(), ...stageBossBgmTracks.values(), ...stageTracks.values()
     ].filter(Boolean))];
   }
 
@@ -173,15 +439,15 @@ window.AUDIO = (() => {
 
     const safeTarget = Math.max(0, Math.min(1, target));
     if (audio.paused || typeof requestAnimationFrame !== "function" || typeof performance === "undefined") {
-      audio.volume = safeTarget;
+      trackVolume(audio, safeTarget);
       return;
     }
 
-    const start = audio.volume;
+    const start = trackVolume(audio);
     const startedAt = performance.now();
     const step = now => {
       const t = Math.min(1, (now - startedAt) / duration);
-      audio.volume = start + (safeTarget - start) * t;
+      trackVolume(audio, start + (safeTarget - start) * t);
       if (t < 1) {
         bgmRamps.set(audio, requestAnimationFrame(step));
       } else {
@@ -222,12 +488,15 @@ window.AUDIO = (() => {
 
   function restorePlayingVolume() {
     musicTracks().forEach(audio => {
-      if (!audio.paused) audio.volume = musicTarget(audio);
+      if (!audio.paused) trackVolume(audio, musicTarget(audio));
     });
   }
 
   function musicTarget(audio) {
     const level=musicVolume();
+    if (audio === stageTracks.get("ambience")) return stageRow("ambience").volume * level / BGM_NORMAL_VOLUME;
+    if (stageAudioId && audio === stageMusicIncoming) return level * stageBlend;
+    if (stageAudioId && audio === stageMusicCurrent) return level * (1 - stageBlend);
     if(bossMusic && window.BOSS_BGM) {
       if(audio===window.BOSS_BGM)return level*bossMix;
       if(audio===window.BGM)return level*(1-bossMix);
@@ -303,7 +572,7 @@ window.AUDIO = (() => {
     deliverWrong: 0.72, breakShield: 0.82, levelUp: 0.76, warningPulse: 0.78,
     bossDeath: 0.78, finalBossDeath: 0.9, bossSlamImpact: 0.85,
     rainPortWaterSlamWarn: 0.66, rainPortWaterSlamImpact: 0.86,
-    inkTrailDrop: .28, inkTrailHit: .58, inkTrailAwaken: .85,
+    inkTrailDrop: .28, inkTrailHit: .58, inkTrailAwaken: .16,
     inkTrailEcho: .48, sealNailDrop: .34, sealNailBurst: .72, sealNailAwaken: .84,
     rainPortTideWarn: .60, rainPortTideImpact: .85, rainPortFanWarn: .55,
     rainPortFanSweep: .73, rainPortVortexWarn: .62, rainPortVortexPillar: .78,
@@ -316,13 +585,9 @@ window.AUDIO = (() => {
   const RANKED_SFX = {slash:'katana',barrier:'barrier',needle:'needle',boomerang:'boom',fireball:'fire',thunder:'thunder'};
   // Reserved cues without recordings. Remove the key when its file ships.
   const unprovidedSfx = new Set([
-    'slashBase','barrierBase','needleBase','needleMax',
-    'inkTrailDrop','inkTrailHit','inkTrailAwaken','inkTrailEcho',
-    'sealNailDrop','sealNailBurst','sealNailAwaken',
-    'rainPortWaterSlamWarn','rainPortWaterSlamImpact','rainPortTideWarn','rainPortTideImpact','rainPortHeavyRain',
-    'sakuraRushWarn','sakuraRushCast','sakuraFanWarn','sakuraFanCast','sakuraBloomWarn','sakuraBloomImpact',
-    'bambooCutWarn','bambooCutImpact','bambooShootsWarn','bambooShootsImpact',
-    'shikigami_summon','shikigami_attack','shikigami_hurt','shikigami_vanish'
+    'slashBase','needleBase','needleMax',
+    'inkTrailDrop','inkTrailHit','inkTrailEcho',
+    'rainPortWaterSlamWarn','rainPortWaterSlamImpact'
   ]);
   for(const [name,id] of Object.entries(RANKED_SFX)) for(const rank of ['Base','Max']) {
     if(name==='fireball' && rank==='Max')continue;
@@ -774,13 +1039,111 @@ window.AUDIO = (() => {
 
   // One cached contact-noise buffer; no extra media files or network requests.
   let impactNoise = null, lastImpactAudioAt = -10;
+  const legacyStageCueLast = new Map();
+  const stageCuePitch = { "hyakki-kyoto": 650, "snow-temple": 1000, "spirit-ferry": 415, yomi: 315 };
   // 5. 戰鬥打擊音效
   const api = {
+    stageEncounterCue(stageId, event, actor) {
+      const pitch = stageCuePitch[stageId];
+      if (!pitch) return;
+      playStageCue(event === "boss" ? "arrival." + actor : event, () => {
+        const ac = getCtx();
+        if (!ac || ac.state !== "running") return;
+        const intervals = { spawn: 3.8, shot: .5, boss: .65 };
+        const key = stageId + event;
+        if (ac.currentTime - (legacyStageCueLast.get(key) ?? -Infinity) < intervals[event]) return;
+        legacyStageCueLast.set(key, ac.currentTime);
+        if (event === "boss") playTaiko(48, .18);
+        playSuzu(pitch * (event === "shot" ? 1.7 : 1), event === "boss" ? .12 : .035);
+      });
+    },
+    stageLabCue(kind, impact, actor) {
+      const event = kind === "kyoto-crossing" ? actor + "-crossing" : kind === "kyoto-rally" ? "rally" : kind;
+      const phase=impact ? ".impact" : ".warning";
+      if(kind==="mud-pool") return playStageCue(event,()=>{});
+      if(kind==="heavy-slash") return playStageCue(event+phase,
+        ()=>playStageCue("cinder-burst"+phase,()=>this.synthesizeStageCue("cinder-burst",impact)));
+      playStageCue(event + phase, () => this.synthesizeStageCue(kind, impact));
+    },
+    synthesizeStageCue(kind, impact) {
+      if (kind === "soul-splash" || kind === "spirit-tide" || kind === "oar-sweep") {
+        if (impact) playTaiko(kind === "spirit-tide" ? 56 : 76, .17);
+        playSuzu(kind === "oar-sweep" ? 640 : 890, impact ? .12 : .075);
+      } else if (kind === "cinder-burst" || kind === "fault-line" || kind === "eclipse") {
+        if (impact) playTaiko(kind === "eclipse" ? 43 : 63, .23);
+        else if (kind === "fault-line") playHyoshigi(.16);
+        else playSuzu(kind === "eclipse" ? 495 : 1110, .105);
+      } else if (kind === "kyoto-rally") {
+        playSuzu(impact ? 1120 : 790, .065);
+      } else if (kind === "kyoto-crossing") {
+        if (impact) playTaiko(72, .21);
+        else playHyoshigi(.12);
+      } else if (impact) {
+        playTaiko(kind === "blizzard-claws" ? 58 : 87, .18);
+        playSuzu(kind === "ice-gale" ? 1600 : 1080, .055);
+      } else {
+        playSuzu(kind === "frost-bell" ? 1010 : 1310, .08);
+      }
+    },
+    stageDefeatCue(final) {
+      if (!stageAudioId) return false;
+      const core = final && stageAudioId === "yomi";
+      playStageCue(core ? "core-collapse" : "death", () => final ? api.finalBossDeath() : api.bossDeath());
+      return true;
+    },
+    stageBossState(active, finalEnded = false) {
+      if (!stageAudioId || (active && stageMode === "final" && !finalEnded)) return;
+      stageMode = active ? "boss" : "battle";
+    },
+    startStageEnding() {
+      if (stageAudioId !== "yomi" || !stageTrack("ending")) return false;
+      stageMode = "ending";
+      return true;
+    },
+    stageEndingActive() {
+      return stageMode === "ending" && !!stageTrack("ending");
+    },
+    leaveStageAudio,
+    playExpansionCue(spec, fallback) {
+      if (muted || suspended || !spec?.path) return false;
+      if (expansionBadFiles.has(spec.path)) {
+        fallback?.();
+        return false;
+      }
+      const key = spec.key || (spec.id + ":" + spec.event);
+      const priority = spec.priority || "P1";
+      const prev = expansionVoices.get(key);
+      if (prev) {
+        try { prev.source?.stop(); } catch {}
+        expansionVoices.delete(key);
+      }
+      if (expansionVoices.size >= 6 ||
+          (priority === "P1" && [...expansionVoices.values()].filter(v => v.priority === "P1").length >= 3)) {
+        return false;
+      }
+      const voice = { key, priority, source: null };
+      expansionVoices.set(key, voice);
+      const done = () => { if (expansionVoices.get(key) === voice) expansionVoices.delete(key); };
+      if (!playBuffer(spec.path, spec.volume ?? 0.65, {
+        isCurrent: () => expansionVoices.get(key) === voice,
+        onstart: source => { voice.source = source; },
+        onended: done,
+        onerror: () => { done(); expansionBadFiles.add(spec.path); fallback?.(); }
+      })) {
+        done();
+        fallback?.();
+        return false;
+      }
+      return true;
+    },
+    activeVoiceCount() {
+      return bufferSources.size + activeSfx.size;
+    },
     playOptionalCue(name, path, volume) {
-      // These cue paths are reserved for local recordings. The classroom
-      // release should neither request missing MP3s nor synthesize substitutes.
-      if (!window.DEV_MODE?.isLoopback?.(window.location)) return;
+      // Unreleased stage cues (e.g. Kyoto) remain loopback-only until ready;
+      // provided stage/skill cues (bamboo, shikigami) play everywhere.
       if (!path || unprovidedSfx.has(name) || !/^(shikigami|bamboo|kyoto)[A-Z_]/.test(name)) return;
+      if (name.startsWith('kyoto') && !window.DEV_MODE?.isLoopback?.(window.location)) return;
       SFX_FILES[name] ??= path;
       SFX_VOLUME[name] = volume;
       SILENT_OPTIONAL_SFX.add(name);
@@ -817,6 +1180,18 @@ window.AUDIO = (() => {
     },
     // Stop only on entry to results, not on the boss death cinematic.
     stopBossMusic() {
+      if (stageAudioId) {
+        clearStageEffects();
+        if (api.stageEndingActive()) {
+          const ambience = stageTracks.get("ambience");
+          if (ambience) {
+            stageTracks.delete("ambience");
+            releaseStageTrack(ambience);
+          }
+          return;
+        }
+        leaveStageAudio();
+      }
       bossMusic = false; bossMix = 0; musicShouldPlay = false;
       musicTracks().forEach(audio => { if (!audio.paused) audio.pause(); });
       activeBgm = null;
@@ -836,7 +1211,16 @@ window.AUDIO = (() => {
       });
       activeBgm = preparedBgm;
       preparedBgm = null;
-      if (activeBgm) activeBgm.volume = musicVolume();
+      if (stageAudioId) {
+        clearStageEffects();
+        stageMode = "battle";
+        stageEndingComplete = false;
+        stageMusicCurrent = activeBgm;
+        stageMusicIncoming = null;
+        stageBlend = 0;
+        stageMusicLevel = musicVolume();
+      }
+      if (activeBgm) trackVolume(activeBgm, musicVolume());
       bgmStep = 0;
       bgmTimer = 0;
       musicShouldPlay = !!activeBgm;
@@ -860,17 +1244,23 @@ window.AUDIO = (() => {
         bgmAttempts.delete(desired);
         playMusic(desired, true);
       }
+      const ambience = stageTracks.get("ambience");
+      if (ambience?.paused && musicShouldPlay) playMusic(ambience, true);
       return true;
     },
     needsAudioGesture: () => !muted && musicBlockedByPolicy,
     isSuspended: () => suspended,
     prepareMusic(state, stageId) {
-      if (state === "play" && stageId) selectStageBgm(stageId);
+      if (state === "play" && stageId) {
+        if (stageAudioId !== stageId) leaveStageAudio();
+        if (stageCatalog?.byStage?.[stageId]) stageAudioId = stageId;
+        selectStageBgm(stageId);
+      }
       if (muted || suspended) return;
-      preparedBgm = state === 'overworld' ? (window.MAP_BGM || window.BGM) : window.BGM;
+      preparedBgm = state === 'overworld' ? (window.MAP_BGM || window.BGM) : stageTrack("battle") || window.BGM;
       if (preparedBgm) {
         try { preparedBgm.currentTime = 0; } catch {}
-        preparedBgm.volume = musicVolume();
+        trackVolume(preparedBgm, musicVolume());
         playMusic(preparedBgm, true);
       }
     },
@@ -905,7 +1295,7 @@ window.AUDIO = (() => {
     },
     setSuspended(value) {
       suspended = value;
-      if (!suspended) { if (activeBgm) bgmAttempts.delete(activeBgm); return; }
+      if (!suspended) { musicTracks().forEach(track => bgmAttempts.delete(track)); return; }
       stopBuffers();
       musicShouldPlay = false;
       for (const id of bgmRamps.values()) {
@@ -932,9 +1322,12 @@ window.AUDIO = (() => {
         if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(id);
       }
       bgmRamps.clear();
-      musicTracks().forEach(audio => { audio.volume = musicTarget(audio); });
+      musicTracks().forEach(audio => { trackVolume(audio, musicTarget(audio)); });
       if (muted) musicTracks().forEach(audio => audio.pause());
-      else if (musicShouldPlay && activeBgm) playMusic(activeBgm, true);
+      else if (musicShouldPlay && activeBgm) {
+        musicTracks().forEach(track => bgmAttempts.delete(track));
+        playMusic(activeBgm, true);
+      }
       if (muted) {
         stopBuffers();
         stopWord();
@@ -1284,6 +1677,8 @@ window.AUDIO = (() => {
     // The final boss music is 3.6MB. Prepare it on boss appearance instead
     // of starting the network request after the player breaks the seal.
     prepareBossMusic() {
+      if (stageAudioId) return;
+      if (currentStageId) selectStageBossBgm(currentStageId);
       const boss = window.BOSS_BGM;
       if (!boss) return;
       if (boss.preload !== "auto") {
@@ -1293,7 +1688,12 @@ window.AUDIO = (() => {
     },
     // Only the final boss' broken seal changes the music.
     startBossMusic() {
+      if (stageAudioId) {
+        if (stageAudioId === "yomi") stageMode = "final";
+        return;
+      }
       if (bossMusic) return;
+      if (currentStageId) selectStageBossBgm(currentStageId);
       bossMusic = true; bossMix = 0;
       const boss = window.BOSS_BGM;
       if (boss && !muted && !suspended) {
@@ -1311,7 +1711,7 @@ window.AUDIO = (() => {
       if (preparedBgm && !muted) {
         if (fadePending) {
           endMusicFade();
-          preparedBgm.volume = musicVolume();
+          trackVolume(preparedBgm, musicVolume());
         }
         musicShouldPlay = true;
         musicTracks().forEach(audio => { if (audio !== preparedBgm && !audio.paused) audio.pause(); });
@@ -1328,7 +1728,8 @@ window.AUDIO = (() => {
       }
       // 融合確認與御守替換維持同一條 BGM，只輕度 duck。暫停音軌會在關閉時重播並和 Boss 交叉淡出重疊。
       // Keep boss music through the final death/victory cinematic; end at results.
-      const isMusicActive = (state === "play" || state === "levelup" || state === "charmswap" || state === "fusion" || state === "pause" || state === "overworld" || state === "victory");
+      const isMusicActive = (state === "play" || state === "levelup" || state === "charmswap" || state === "fusion" || state === "pause" || state === "overworld" || state === "victory" ||
+        (state === "won" && stageMode === "ending" && !stageEndingComplete && api.stageEndingActive()));
       musicShouldPlay = isMusicActive && !muted;
       if (muted || !isMusicActive) {
         musicTracks().forEach(audio => {
@@ -1341,6 +1742,7 @@ window.AUDIO = (() => {
         endMusicFade();
         restorePlayingVolume();
       }
+      if (stageAudioId && state !== "overworld" && updateStageMusic(dt, state)) return;
 
       const boss = state !== 'overworld' && bossMusic && window.BOSS_BGM;
       if (boss) {
@@ -1469,5 +1871,7 @@ window.AUDIO = (() => {
   // 發射與爆炸分聲道；爆炸沿用既有 Lv1–4／Lv5 分級，失敗各自回落原合成音。
   api.ofudaLaunch = rank => playExternalSfx("ofudaLaunch", ofudaLaunchFallback, [rank]);
   api.ofudaBurst = rank => playExternalSfx(rank === 5 ? "boomerangMax" : "boomerangBase", ofudaBurstFallback, [rank]);
+  api.STAGE_BGM_FILES = STAGE_BGM_FILES;
+  api.STAGE_BOSS_BGM_FILES = STAGE_BOSS_BGM_FILES;
   return api;
 })();

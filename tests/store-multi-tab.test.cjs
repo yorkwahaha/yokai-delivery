@@ -34,6 +34,18 @@ function createStoreTabs(seed = {}, options = {}) {
   return { open, disk };
 }
 
+test('a progress view refreshes another tab’s completed stages and scores together', () => {
+  const { open } = createStoreTabs();
+  const active = open(), map = open();
+  assert.equal(map.readProgress().unlocked['rain-port'], undefined);
+  active.startRun('night-town');
+  active.finish('night-town', 900, 2, true);
+  const progress = map.readProgress();
+  assert.equal(progress.completed['night-town'], true);
+  assert.equal(progress.unlocked['rain-port'], true);
+  assert.equal(progress.stages['night-town'].bestScore, 900);
+});
+
 test('storage access denied still exposes an in-memory game store', () => {
   const window = {};
   const ctx = vm.createContext({ window, DOMException });

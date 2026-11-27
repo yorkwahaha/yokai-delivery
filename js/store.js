@@ -340,7 +340,15 @@
   const isStageUnlocked = stageId => { syncJournal(); return stageId === "night-town" || d.progress.unlocked[stageId] === true; };
   const isStageCompleted = stageId => { syncJournal(); return d.progress.completed[stageId] === true; };
   const skillClearStage = Object.freeze({ ink_trail: "night-town", seal_nail: "rain-port", shikigami: "sakura-pass" });
+  const expansionRelease = id => root.GAME_SKILL_EXPANSION?.releases[id];
+  function isExpansionSkillQualified(id) {
+    const stageId = expansionRelease(id)?.stage;
+    return !!stageId && K === OFFICIAL_KEY &&
+      (isStageCompleted(stageId) || getStageStats(stageId).clears > 0);
+  }
   function isActiveSkillUnlocked(skillId) {
+    const candidate = expansionRelease(skillId);
+    if (candidate) return candidate.published && isExpansionSkillQualified(skillId);
     if (!Object.hasOwn(skillClearStage, skillId)) return false;
     if (skillId === "shikigami" && !root.DEV_MODE?.isShikigamiEnabled?.(root.location)) return false;
     const stageId = skillClearStage[skillId];
@@ -547,6 +555,8 @@
     canSave: () => !saveFailed,
     flush,
     data: d,
+    // One reconciled view for synchronous renderers that read several stages.
+    readProgress: () => { syncJournal(); return d.progress; },
     coinBalance: () => { syncJournal(); return d.coins; },
     awardCoins(amount) {
       const earned = Math.min(10000, count(amount));
@@ -562,6 +572,8 @@
     isStageUnlocked,
     isStageCompleted,
     isActiveSkillUnlocked,
+    activeSkillClearStage: id => skillClearStage[id] || expansionRelease(id)?.stage || null,
+    isExpansionSkillQualified,
     pendingSkillIntroduction,
     rotateSkillIntroduction,
     markSkillExperienced,

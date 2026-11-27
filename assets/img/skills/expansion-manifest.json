@@ -1,0 +1,333 @@
+{
+  "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+  "assets": {
+    "hamaya": {
+      "path": "assets/img/skills/hamaya/cards/hamaya__art.webp",
+      "sha256": "b400872e8b143a5132f5add4f7d74a76a6f97fc86cdac009e02dfaa6dbbbabc5",
+      "bytes": 206968,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "hamaya:icon": {
+      "path": "assets/img/skills/hamaya/icons/hamaya__icon.webp",
+      "sha256": "6e6f36820c6ce972715fd2780c1cee11e19fdbe6e8da6a8c8090e687334b5fe6",
+      "bytes": 11180,
+      "labUse": true,
+      "source": "F4 offline gamma 0.58 retouch of ChatGPT raster; original alpha unchanged",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "spider_silk": {
+      "path": "assets/img/skills/spider-silk/cards/spider-silk__art.webp",
+      "sha256": "566781640a7b8d1460d9b108282ba0b38bbabce77553ee701960bcfc7c8320c2",
+      "bytes": 253500,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "spider_silk:icon": {
+      "path": "assets/img/skills/spider-silk/icons/spider-silk__icon.webp",
+      "sha256": "360baa8a6e49cf5f7c61f10bf851d0af0fa8f3240e092004d382e84405d821eb",
+      "bytes": 14880,
+      "labUse": true,
+      "source": "F4 offline gamma 0.55 retouch of ChatGPT raster; original alpha unchanged",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "ice_ball": {
+      "path": "assets/img/skills/ice-ball/cards/ice-ball__art.webp",
+      "sha256": "b5761d2efe9eba6d125f283ac5e53bbf3b754a0f08fb55c192250f7ffb779308",
+      "bytes": 303822,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "ice_ball:icon": {
+      "path": "assets/img/skills/ice-ball/icons/ice-ball__icon.webp",
+      "sha256": "3b7cef5f35d0ae62da9aaa4be863ab32eb49144e4769cfe31f05cc970c2b4669",
+      "bytes": 15704,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "wind_hole": {
+      "path": "assets/img/skills/wind-hole/cards/wind-hole__art.webp",
+      "sha256": "6c30dbe167a94298a252b5e6a5baf4e296356059bc0cf3c5cad5d44971243a1a",
+      "bytes": 279576,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "wind_hole:icon": {
+      "path": "assets/img/skills/wind-hole/icons/wind-hole__icon.webp",
+      "sha256": "7e7a1436c65dfcab361d66fe1d2001d94305cef8182fc5175d36ce2445275287",
+      "bytes": 14526,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "hamaya:draw": {
+      "path": "assets/img/vfx/skills/hamaya/hamaya__draw.webp",
+      "sha256": "1c1ca3f5d7f3e725640a4af8c5564c02b466c2d99fb14831ba96af4d536318aa",
+      "bytes": 94674,
+      "labUse": true,
+      "source": "ChatGPT image generation; alpha checked, fitted to runtime sprite",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "hamaya:arrow": {
+      "path": "assets/img/vfx/skills/hamaya/hamaya__arrow.webp",
+      "sha256": "6cc767139505d0cc512ec60214c94bcd492a8d95f3fea2020eab2ca22f4151be",
+      "bytes": 36612,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "hamaya:awaken": {
+      "path": "assets/img/vfx/skills/hamaya/hamaya__awaken.webp",
+      "sha256": "997ea64a5557a1ac240888c26c2436b396f78d14f6b208a6c4d8b758133486e8",
+      "bytes": 80664,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "hamaya:impact": {
+      "path": "assets/img/vfx/skills/hamaya/hamaya__impact.webp",
+      "sha256": "21126be7ecb58e9e52955c672cbbfb8a9a125c3828ca6de5d2dfedbba30911d9",
+      "bytes": 56870,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "hamaya:heavy": {
+      "path": "assets/img/vfx/skills/hamaya/hamaya__heavy.webp",
+      "sha256": "8a931951ece952f9af5472170acc6288f03707a3aaea3ae33189aae4c39067cf",
+      "bytes": 115494,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "spider_silk:thread": {
+      "path": "assets/img/vfx/skills/spider-silk/spider-silk__thread.webp",
+      "sha256": "3dce8e7af99c2bec58b18ade776a9e2120ea76dabd5065e1cbc685c3dd0c616a",
+      "bytes": 9874,
+      "labUse": true,
+      "source": "ChatGPT image generation; alpha checked, fitted to runtime sprite",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "spider_silk:bind": {
+      "path": "assets/img/vfx/skills/spider-silk/spider-silk__bind.webp",
+      "sha256": "e4b792790ab4d3636f8f60756944c01c779075aa8e5b7fa4c807e5d4384114b0",
+      "bytes": 75300,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "spider_silk:cut": {
+      "path": "assets/img/vfx/skills/spider-silk/spider-silk__cut.webp",
+      "sha256": "c8599b49efd17ef978a042bb563bf8705511b41ce007e2bcbbdb5ba3c93d80b9",
+      "bytes": 53190,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "spider_silk:collapse": {
+      "path": "assets/img/vfx/skills/spider-silk/spider-silk__collapse.webp",
+      "sha256": "e0f45284a9a30b3f1bfacfb1e0d03b9e5263f04135a0e80260373e9b1939e638",
+      "bytes": 151148,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "ice_ball:ball": {
+      "path": "assets/img/vfx/skills/ice-ball/ice-ball__ball.webp",
+      "sha256": "668241d3f6e46412ac51ab1bce4d4d4afb8d0e157d2bc9013fd64567cf8843ac",
+      "bytes": 87442,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "ice_ball:cast": {
+      "path": "assets/img/vfx/skills/ice-ball/ice-ball__cast.webp",
+      "sha256": "be798b74acd4fa5a5fb5b1a6a6d1883752813f2b61dcdbb867b94fec54ae3a38",
+      "bytes": 57602,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "ice_ball:impact": {
+      "path": "assets/img/vfx/skills/ice-ball/ice-ball__impact.webp",
+      "sha256": "21af4aa87c841b54248008d77654e6c42aaf397731d495239c3d098bc8c714b2",
+      "bytes": 47888,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "ice_ball:shard": {
+      "path": "assets/img/vfx/skills/ice-ball/ice-ball__shard.webp",
+      "sha256": "be10474a852c7e1a68cd36d3b79fd996947bcfef923ac8854bb86c42bfdbe440",
+      "bytes": 20396,
+      "labUse": true,
+      "source": "ChatGPT independent right-facing shard redraw; WebP supplied by user; original PNG not imported into project",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "ice_ball:shatter": {
+      "path": "assets/img/vfx/skills/ice-ball/ice-ball__shatter.webp",
+      "sha256": "3b1a493e3004c5230dbdaf1cf21c47178c17eb6e4f406db1c8af2fb7e406baa9",
+      "bytes": 109664,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "wind_hole:field": {
+      "path": "assets/img/vfx/skills/wind-hole/wind-hole__field.webp",
+      "sha256": "a533a79994a5d412b396e6d9f8071bc2b9f5a413336f0f81c702db980ec02014",
+      "bytes": 180270,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "wind_hole:compress": {
+      "path": "assets/img/vfx/skills/wind-hole/wind-hole__compress.webp",
+      "sha256": "b7147fba4f366e14244b6def52500ebccd0cd416774a527bdc7c7ecd7b6e2163",
+      "bytes": 177066,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "wind_hole:burst": {
+      "path": "assets/img/vfx/skills/wind-hole/wind-hole__burst.webp",
+      "sha256": "06d88517cae9f1c6f1c729a4da159e9e0cc47553ae020f556dfb7644d338268f",
+      "bytes": 96198,
+      "labUse": true,
+      "source": "ChatGPT image generation; extracted and alpha checked",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_hamaya_distance": {
+      "path": "assets/img/skills/hamaya/cards/hamaya__distance.webp",
+      "sha256": "e31fabf2f2e9b4d509247468cdfa4b703dc38dffcd6bdb3a0d1bed952bfed60e",
+      "bytes": 222088,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_hamaya_armor": {
+      "path": "assets/img/skills/hamaya/cards/hamaya__armor.webp",
+      "sha256": "f78d91d06a8305efb59b17976e931b9aa72671b65ce66bc3e8b792e03e0fdf9b",
+      "bytes": 265752,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_hamaya_twin": {
+      "path": "assets/img/skills/hamaya/cards/hamaya__twin.webp",
+      "sha256": "3a882eafdce02fb6c4dacf193a0219b72da86cdf6e11fbcec31ab3a54ecbe438",
+      "bytes": 229600,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_hamaya_quick": {
+      "path": "assets/img/skills/hamaya/cards/hamaya__quick.webp",
+      "sha256": "af6d28f9929f3f204722f6d849b4612897b43ffdb0e64c244936008ca8d9eee1",
+      "bytes": 208154,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_spider_silk_bind": {
+      "path": "assets/img/skills/spider-silk/cards/spider-silk__bind.webp",
+      "sha256": "ae2b21c5c4f7bfb3a3007163bc74e9a2e51f8bf0cdc692c9b5264e7a912990d8",
+      "bytes": 259294,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_spider_silk_range": {
+      "path": "assets/img/skills/spider-silk/cards/spider-silk__range.webp",
+      "sha256": "400ffc2ca425ba787898de45e296a69a9fffc9d2f6faa49ecd7a03b0aacc52cf",
+      "bytes": 294546,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_spider_silk_blade": {
+      "path": "assets/img/skills/spider-silk/cards/spider-silk__blade.webp",
+      "sha256": "2b964a382559eacd34973fac7308c575691021c729b170394907cd3710390546",
+      "bytes": 251388,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_spider_silk_return": {
+      "path": "assets/img/skills/spider-silk/cards/spider-silk__return.webp",
+      "sha256": "26efc325566dac406ea59937078d6bc7b9cca38e394533f98eb5ea1762dfad6d",
+      "bytes": 237978,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_ice_ball_chain": {
+      "path": "assets/img/skills/ice-ball/cards/ice-ball__chain.webp",
+      "sha256": "165036916d5fb3b3e9dc871ffaf21700efde26bcba3087cca70cb7b9aa1626af",
+      "bytes": 291592,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_ice_ball_weight": {
+      "path": "assets/img/skills/ice-ball/cards/ice-ball__weight.webp",
+      "sha256": "6aa259276a4af10559ff482ebb45f8d5ef7ae24b3e1fec166972b5884896a51e",
+      "bytes": 333396,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_ice_ball_shards": {
+      "path": "assets/img/skills/ice-ball/cards/ice-ball__shards.webp",
+      "sha256": "297bb04c4c1b0550d5fabecd19fe0ee444a2a64387c0a06b391469d3eb17ccf0",
+      "bytes": 329922,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_ice_ball_speed": {
+      "path": "assets/img/skills/ice-ball/cards/ice-ball__speed.webp",
+      "sha256": "abfafedc45899c75ac9a3a5b1785f379af1d3dbb3e6aceb7e9e434d47eeebb78",
+      "bytes": 309106,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_wind_hole_range": {
+      "path": "assets/img/skills/wind-hole/cards/wind-hole__range.webp",
+      "sha256": "1c3cceca244cd416962f12c243e900a13a8f8e133e1ac87906bf8babde423801",
+      "bytes": 285858,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_wind_hole_linger": {
+      "path": "assets/img/skills/wind-hole/cards/wind-hole__linger.webp",
+      "sha256": "fb6fe4f938583be085bc3ad1c7b45ca9db9041490da341e9e99316a557068b60",
+      "bytes": 321070,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_wind_hole_burst": {
+      "path": "assets/img/skills/wind-hole/cards/wind-hole__burst.webp",
+      "sha256": "040214fc712efaf5fa7fbe236409ac1829e671f4f9994af2da04e7ed33edd79c",
+      "bytes": 317124,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    "mut_wind_hole_twin": {
+      "path": "assets/img/skills/wind-hole/cards/wind-hole__twin.webp",
+      "sha256": "961f0186535c5226337d070d42ab1f9253dd0d5521cfcebbe39d0c05ca00cc95",
+      "bytes": 297080,
+      "labUse": true,
+      "source": "ChatGPT image generation",
+      "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    }
+  }
+}

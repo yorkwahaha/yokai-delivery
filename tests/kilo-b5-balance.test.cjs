@@ -64,7 +64,7 @@ test('B5: Late game XP need scales linearly +12 per level after 20', () => {
 
 test('B5: 10-minute run pacing constants unchanged', () => {
   assert.equal(cfg.RUN_SECONDS, 600);
-  assert.equal(cfg.GOAL_DELIVERIES, 6);
+  assert.equal(cfg.GOAL_DELIVERIES, 0);
   assert.deepEqual(cfg.BOSS_TIMES, [180, 360, 480, 540]);
   assert.equal(cfg.DELIVERY_XP, 26);
 });

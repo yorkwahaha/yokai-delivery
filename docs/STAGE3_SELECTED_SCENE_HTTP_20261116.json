@@ -1,0 +1,8 @@
+{
+  "entry": 200,
+  "terrainCount": 5,
+  "terrainSha256Matches": true,
+  "sceneryCount": 2,
+  "sceneryStatus": 200,
+  "scope": "loopback HTTP only; no gameplay or LAN check"
+}

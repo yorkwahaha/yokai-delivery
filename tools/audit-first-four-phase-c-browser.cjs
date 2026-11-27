@@ -112,6 +112,7 @@ async function main(){
             .observe({type:'long-animation-frame',buffered:true});
         }
         localStorage.setItem('yokai-tutorial-v1','"skip"');
+        localStorage.setItem('yokai-delivery-dev-v1:tutorial-v1','"skip"');
         const reset=()=>{
           let seed=117;
           Math.random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);

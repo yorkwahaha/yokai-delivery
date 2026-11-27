@@ -1,11 +1,173 @@
 // Phase 14: deterministic Boss blueprint and critical probability only.
 // Combat random roll, damage application, and enemy state stay in game.js.
 window.GAME_COMBAT_MATH = (() => {
-  // Absolute final-boss deadline independent of earlier Boss deaths.
+  // Phase 14: legacy export kept for backward-compatible unit tests; live scheduling
+  // now uses createBossSchedule() with no timeout-skipping of earlier waves.
   function shouldForceFinalBoss(index, times, elapsed, maxWait) {
     return Array.isArray(times) && times.length > 0 && index < times.length - 1 &&
       Number.isFinite(times[times.length - 1]) &&
       elapsed >= times[times.length - 1] + maxWait;
+  }
+
+  // Unified four-boss wave scheduler shared by all standard stages.
+  // Excludes clones/summons from official wave counts and exposes optional
+  // policy hooks for future stages with non-standard boss flows.
+  function isOfficialWaveBoss(entity, totalWaves) {
+    if (!entity || entity.type !== "boss" || entity.dying) return false;
+    if (entity.isClone || entity.clone || entity.isSummon || entity.summon || entity.officialWaveBoss === false) return false;
+    if (typeof totalWaves === "number") {
+      return Number.isInteger(entity.bossIndex) && entity.bossIndex >= 0 && entity.bossIndex < totalWaves;
+    }
+    return Number.isInteger(entity.bossIndex) && entity.bossIndex >= 0;
+  }
+
+  function createBossSchedule(initialOptions = {}) {
+    let times = [];
+    let maxConcurrent = 3;
+    let finalRequiresPriorDefeats = 1;
+    let mode = "standard-four-boss";
+    let stageId = "";
+    let policy = null;
+    const spawned = new Set();
+    const defeated = new Set();
+
+    function reset(nextTimes, nextOptions = {}) {
+      const merged = { ...initialOptions, ...nextOptions };
+      times = Array.isArray(nextTimes) ? nextTimes.slice() : (Array.isArray(merged.times) ? merged.times.slice() : []);
+      maxConcurrent = Number.isInteger(merged.maxConcurrent) && merged.maxConcurrent > 0 ? merged.maxConcurrent : 3;
+      finalRequiresPriorDefeats = Number.isInteger(merged.finalRequiresPriorDefeats) && merged.finalRequiresPriorDefeats >= 0
+        ? merged.finalRequiresPriorDefeats : 1;
+      mode = typeof merged.mode === "string" && merged.mode ? merged.mode : "standard-four-boss";
+      stageId = typeof merged.stageId === "string" ? merged.stageId : "";
+      policy = merged.policy && typeof merged.policy === "object" ? merged.policy : null;
+      spawned.clear();
+      defeated.clear();
+    }
+
+    reset(initialOptions.times, initialOptions);
+
+    const totalWaves = () => times.length;
+    const isFinalWave = index => index === times.length - 1;
+    const isOfficialBoss = entity => isOfficialWaveBoss(entity, times.length);
+    const liveOfficialBosses = enemies => Array.isArray(enemies)
+      ? enemies.filter(e => e && e.hp > 0 && isOfficialBoss(e)) : [];
+
+    const priorDefeatedCount = finalIndex => {
+      let count = 0;
+      for (const idx of defeated) if (idx < finalIndex) count++;
+      return count;
+    };
+
+    const nextWaveIndex = () => {
+      for (let i = 0; i < times.length; i++) if (!spawned.has(i)) return i;
+      return times.length;
+    };
+
+    const nextSpawnRemaining = elapsed => {
+      const idx = nextWaveIndex();
+      if (idx >= times.length || !Number.isFinite(times[idx])) return Number.POSITIVE_INFINITY;
+      return Math.max(0, times[idx] - elapsed);
+    };
+
+    function evaluateWave(index, elapsed, enemies) {
+      if (index < 0 || index >= times.length) return { eligible: false, reason: "out-of-range" };
+      if (spawned.has(index)) return { eligible: false, reason: "already-spawned" };
+      if (!Number.isFinite(times[index]) || elapsed < times[index]) return { eligible: false, reason: "not-due" };
+      const alive = liveOfficialBosses(enemies);
+      const finalWave = isFinalWave(index);
+      const priorDefeated = priorDefeatedCount(index);
+      if (policy && typeof policy.canSpawnWave === "function") {
+        const custom = policy.canSpawnWave({
+          index, elapsed, alive, spawned, defeated, times, stageId, mode,
+          maxConcurrent, finalWave, priorDefeated, finalRequiresPriorDefeats
+        });
+        if (custom && typeof custom === "object") return custom;
+        return { eligible: !!custom, reason: custom ? "ready" : "policy-wait" };
+      }
+      if (alive.length >= maxConcurrent) {
+        return { eligible: false, reason: finalWave && priorDefeated < finalRequiresPriorDefeats ? "wait-prior-defeat" : "cap-full" };
+      }
+      if (finalWave && priorDefeated < finalRequiresPriorDefeats) {
+        return { eligible: false, reason: "wait-prior-defeat" };
+      }
+      return { eligible: true, reason: "ready" };
+    }
+
+    function nextSpawnCandidate(elapsed, enemies) {
+      for (let i = 0; i < times.length; i++) {
+        if (spawned.has(i)) continue;
+        const res = evaluateWave(i, elapsed, enemies);
+        if (res.eligible) return { index: i, eligible: true, reason: res.reason };
+        if (res.reason !== "not-due") return { index: i, eligible: false, reason: res.reason };
+      }
+      return null;
+    }
+
+    function markSpawned(index) {
+      if (!Number.isInteger(index) || index < 0 || index >= times.length || spawned.has(index)) return false;
+      spawned.add(index);
+      return true;
+    }
+
+    function recordDefeat(entity) {
+      if (!isOfficialBoss(entity)) return false;
+      const idx = entity.bossIndex;
+      if (defeated.has(idx)) return false;
+      defeated.add(idx);
+      return true;
+    }
+
+    function isComplete() {
+      if (policy && typeof policy.isComplete === "function") {
+        return !!policy.isComplete({ spawned, defeated, times, stageId, mode });
+      }
+      return times.length > 0 && defeated.size === times.length;
+    }
+
+    function jumpToWave(index, jumpOptions = {}) {
+      const target = Math.max(0, Math.min(times.length, Math.floor(index || 0)));
+      spawned.clear();
+      for (let i = 0; i < target; i++) spawned.add(i);
+      if (jumpOptions.markPriorDefeated && target > 0 && defeated.size === 0) {
+        defeated.add(0);
+      }
+      return nextWaveIndex();
+    }
+
+    function snapshot() {
+      return {
+        mode,
+        stageId,
+        total: times.length,
+        times: times.slice(),
+        maxConcurrent,
+        finalRequiresPriorDefeats,
+        spawned: [...spawned].sort((a, b) => a - b),
+        defeated: [...defeated].sort((a, b) => a - b),
+        nextIndex: nextWaveIndex(),
+        complete: isComplete()
+      };
+    }
+
+    return {
+      reset,
+      totalWaves,
+      isFinalWave,
+      isOfficialBoss,
+      liveOfficialBosses,
+      nextWaveIndex,
+      nextSpawnRemaining,
+      evaluateWave,
+      nextSpawnCandidate,
+      markSpawned,
+      recordDefeat,
+      defeatedCount: () => defeated.size,
+      hasSpawned: idx => spawned.has(idx),
+      hasDefeated: idx => defeated.has(idx),
+      isComplete,
+      jumpToWave,
+      snapshot
+    };
   }
   function bossBlueprint(index, bossHpBase, bossOilReward, stage) {
     const role = ["mid", "mid", "gate", "final"][index] || "mid";
@@ -220,5 +382,5 @@ window.GAME_COMBAT_MATH = (() => {
     }
     return chosen;
   }
-  return Object.freeze({ bossBlueprint, shouldForceFinalBoss, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets, dragonFireTarget, needleSeekTarget, katanaWaveContains, crosscutContains, boomStickTarget, foxfireOrbitContact, foxfireLaunchTargets, nearestLaunchTarget, boomHomingTarget });
+  return Object.freeze({ bossBlueprint, shouldForceFinalBoss, isOfficialWaveBoss, createBossSchedule, critChance, bladeArcContains, thunderTargetSelection, thunderBranchTarget, unsortedAreaTargets, cinderScorchTargets, dragonFireTarget, needleSeekTarget, katanaWaveContains, crosscutContains, boomStickTarget, foxfireOrbitContact, foxfireLaunchTargets, nearestLaunchTarget, boomHomingTarget });
 })();

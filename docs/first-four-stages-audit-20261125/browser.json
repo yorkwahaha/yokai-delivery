@@ -1,0 +1,1710 @@
+{
+  "browser": "158.0.8127.89",
+  "results": [
+    {
+      "stage": "night-town",
+      "fixture": {
+        "boss": [
+          [
+            "狛犬石將",
+            "slam",
+            "telegraph"
+          ],
+          [
+            "大妖鬼",
+            "slam",
+            "telegraph"
+          ]
+        ],
+        "violet": {
+          "marks": 0,
+          "clouds": 0,
+          "infected": 0,
+          "positions": [],
+          "depositCooldown": 0
+        },
+        "nail": {
+          "active": false,
+          "pendingSecond": false,
+          "effects": 0,
+          "cooldown": 0,
+          "cooldownMax": 5.3
+        },
+        "companion": {
+          "active": false,
+          "species": "hound",
+          "hp": 0,
+          "maxHp": 0,
+          "remaining": 0,
+          "cooldown": 0,
+          "aggroCount": 0,
+          "position": null
+        },
+        "advance": 0.5999999999994543,
+        "state": "play",
+        "xp": 2,
+        "artPending": false,
+        "mapFallback": false
+      },
+      "frame": {
+        "samples": 118,
+        "fps": 50.93,
+        "intervalMs": {
+          "p50": 16.7,
+          "p95": 16.8,
+          "p99": 149.9
+        },
+        "callbackMs": {
+          "p50": 3.9,
+          "p95": 7.1,
+          "p99": 7.6
+        },
+        "outsideCallbackMs": {
+          "p50": 12.8,
+          "p95": 13.4,
+          "p99": 28.5
+        },
+        "rafEntryLagMs": {
+          "p50": 0.1,
+          "p95": 0.3,
+          "p99": 7.5
+        },
+        "updateMs": {
+          "p50": 0,
+          "p95": 0,
+          "p99": 0
+        },
+        "worldMs": {
+          "p50": 3.4,
+          "p95": 6.5,
+          "p99": 7
+        },
+        "uiMs": {
+          "p50": 0.4,
+          "p95": 0.6,
+          "p99": 0.6
+        },
+        "canvasJsMs": {
+          "p50": 3.9,
+          "p95": 7.1,
+          "p99": 7.5
+        },
+        "effectsWithinWorldMs": {
+          "p50": 0.8,
+          "p95": 3,
+          "p99": 3.3
+        },
+        "otherCallbackMs": {
+          "p50": 0.1,
+          "p95": 0.2,
+          "p99": 0.2
+        }
+      },
+      "state": {
+        "stage": "night-town",
+        "run": 1,
+        "gameState": "play",
+        "elapsed": 541,
+        "moving": false,
+        "levels": {
+          "katana": 5,
+          "barrier": 5,
+          "fire": 5,
+          "boom": 0,
+          "thunder": 5,
+          "needle": 0,
+          "ink_trail": 0,
+          "seal_nail": 0,
+          "fusion_inkblade": 0,
+          "fusion_foxiai": 0,
+          "fusion_exorcistblade": 0,
+          "fusion_foxfirebarrier": 0,
+          "fusion_exorcistseal": 0,
+          "fusion_thundercircle": 0,
+          "fusion_slashwheel": 0,
+          "fusion_foxthunderlantern": 0,
+          "fusion_flamefestival": 0,
+          "fusion_thundertalisman": 0,
+          "shikigami": 0
+        },
+        "boss": [
+          {
+            "name": "狛犬石將",
+            "hazard": "slam",
+            "phase": "telegraph"
+          },
+          {
+            "name": "大妖鬼",
+            "hazard": "slam",
+            "phase": "telegraph"
+          }
+        ],
+        "sanctuarySeconds": 1.1999999999999995,
+        "rain": "medium",
+        "gems": 512,
+        "enemies": 18,
+        "enemyBullets": 0,
+        "projectiles": 3,
+        "effects": {
+          "particles": 175,
+          "budget": 1,
+          "bolts": 0,
+          "spriteCache": 52,
+          "bitmapSprites": 0,
+          "bitmapPending": 0,
+          "bitmapFailures": 0,
+          "atlasPages": 0,
+          "atlasBackings": []
+        },
+        "skillEffects": {
+          "artFx": 4,
+          "burning": 0
+        },
+        "fusion": 0,
+        "violet": {
+          "marks": 0,
+          "clouds": 0,
+          "infected": 0,
+          "positions": [],
+          "depositCooldown": 0
+        },
+        "sealNail": {
+          "active": false,
+          "pendingSecond": false,
+          "effects": 0,
+          "cooldown": 0,
+          "cooldownMax": 5.3
+        },
+        "chunkCache": 25,
+        "activeChunks": 25,
+        "text": 2,
+        "orders": 1,
+        "reviewMisses": 0,
+        "images": {
+          "ready": 53,
+          "references": 53,
+          "pixels": 23009334,
+          "world": {
+            "ready": 53,
+            "pixels": 23009334
+          },
+          "resources": {
+            "imageRequests": 156,
+            "responseMs": 4298.100000098348,
+            "transferredBytes": 23582884,
+            "zeroTransfer": 0,
+            "dropped": 0,
+            "longTasks": {
+              "count": 2,
+              "totalMs": 375,
+              "maxMs": 223
+            },
+            "supported": true
+          },
+          "upgradeCards": {
+            "retained": 0,
+            "limit": 10
+          }
+        },
+        "canvases": {
+          "mainResets": 1,
+          "lightResets": 1,
+          "terrainResets": 1,
+          "terrainPaints": 1,
+          "terrainScrollCopies": 0,
+          "mainLosses": 0,
+          "mainRestores": 0,
+          "lightLosses": 0,
+          "lightRestores": 0,
+          "terrainLosses": 0,
+          "terrainRestores": 0,
+          "terrainFallbacks": 0,
+          "dpr": 1.4430364573110444,
+          "stores": {
+            "main": {
+              "width": 1723,
+              "height": 1203,
+              "pixels": 2072769
+            },
+            "light": {
+              "width": 633,
+              "height": 442,
+              "pixels": 279786
+            },
+            "terrain": {
+              "width": 2183,
+              "height": 2466,
+              "pixels": 5383278
+            }
+          },
+          "damageLabels": 51,
+          "slashArcs": 1,
+          "ghostTrails": 0
+        },
+        "jsHeapBytes": 10361252,
+        "viewport": {
+          "width": 1194,
+          "height": 834,
+          "dpr": 2,
+          "tilt": 0.6,
+          "zoom": 1
+        }
+      },
+      "after": {
+        "stage": "night-town",
+        "run": 1,
+        "gameState": "play",
+        "elapsed": 541,
+        "moving": false,
+        "levels": {
+          "katana": 5,
+          "barrier": 5,
+          "fire": 5,
+          "boom": 0,
+          "thunder": 5,
+          "needle": 0,
+          "ink_trail": 0,
+          "seal_nail": 0,
+          "fusion_inkblade": 0,
+          "fusion_foxiai": 0,
+          "fusion_exorcistblade": 0,
+          "fusion_foxfirebarrier": 0,
+          "fusion_exorcistseal": 0,
+          "fusion_thundercircle": 0,
+          "fusion_slashwheel": 0,
+          "fusion_foxthunderlantern": 0,
+          "fusion_flamefestival": 0,
+          "fusion_thundertalisman": 0,
+          "shikigami": 0
+        },
+        "boss": [
+          {
+            "name": "狛犬石將",
+            "hazard": "slam",
+            "phase": "telegraph"
+          },
+          {
+            "name": "大妖鬼",
+            "hazard": "slam",
+            "phase": "telegraph"
+          }
+        ],
+        "sanctuarySeconds": 1.1999999999999995,
+        "rain": "medium",
+        "gems": 512,
+        "enemies": 18,
+        "enemyBullets": 0,
+        "projectiles": 3,
+        "effects": {
+          "particles": 175,
+          "budget": 1,
+          "bolts": 0,
+          "spriteCache": 52,
+          "bitmapSprites": 0,
+          "bitmapPending": 0,
+          "bitmapFailures": 0,
+          "atlasPages": 0,
+          "atlasBackings": []
+        },
+        "skillEffects": {
+          "artFx": 4,
+          "burning": 0
+        },
+        "fusion": 0,
+        "violet": {
+          "marks": 0,
+          "clouds": 0,
+          "infected": 0,
+          "positions": [],
+          "depositCooldown": 0
+        },
+        "sealNail": {
+          "active": false,
+          "pendingSecond": false,
+          "effects": 0,
+          "cooldown": 0,
+          "cooldownMax": 5.3
+        },
+        "chunkCache": 25,
+        "activeChunks": 25,
+        "text": 2,
+        "orders": 1,
+        "reviewMisses": 0,
+        "images": {
+          "ready": 53,
+          "references": 53,
+          "pixels": 23009334,
+          "world": {
+            "ready": 53,
+            "pixels": 23009334
+          },
+          "resources": {
+            "imageRequests": 156,
+            "responseMs": 4298.100000098348,
+            "transferredBytes": 23582884,
+            "zeroTransfer": 0,
+            "dropped": 0,
+            "longTasks": {
+              "count": 2,
+              "totalMs": 375,
+              "maxMs": 223
+            },
+            "supported": true
+          },
+          "upgradeCards": {
+            "retained": 0,
+            "limit": 10
+          }
+        },
+        "canvases": {
+          "mainResets": 1,
+          "lightResets": 1,
+          "terrainResets": 1,
+          "terrainPaints": 2,
+          "terrainScrollCopies": 0,
+          "mainLosses": 1,
+          "mainRestores": 1,
+          "lightLosses": 0,
+          "lightRestores": 0,
+          "terrainLosses": 0,
+          "terrainRestores": 0,
+          "terrainFallbacks": 0,
+          "dpr": 1.4430364573110444,
+          "stores": {
+            "main": {
+              "width": 1723,
+              "height": 1203,
+              "pixels": 2072769
+            },
+            "light": {
+              "width": 633,
+              "height": 442,
+              "pixels": 279786
+            },
+            "terrain": {
+              "width": 2183,
+              "height": 2466,
+              "pixels": 5383278
+            }
+          },
+          "damageLabels": 51,
+          "slashArcs": 1,
+          "ghostTrails": 0
+        },
+        "jsHeapBytes": 10884810,
+        "viewport": {
+          "width": 1194,
+          "height": 834,
+          "dpr": 2,
+          "tilt": 0.6,
+          "zoom": 1
+        }
+      },
+      "faults": [],
+      "responses": []
+    },
+    {
+      "stage": "rain-port",
+      "fixture": {
+        "boss": [
+          [
+            "潮甲蟹將",
+            "tidalFan",
+            "telegraph"
+          ],
+          [
+            "港霧大妖",
+            "tidalFan",
+            "telegraph"
+          ]
+        ],
+        "violet": {
+          "marks": 2,
+          "clouds": 2,
+          "infected": 0,
+          "positions": [
+            [
+              1387.375,
+              480
+            ],
+            [
+              1433.375,
+              480
+            ]
+          ],
+          "depositCooldown": 0
+        },
+        "nail": {
+          "active": false,
+          "pendingSecond": false,
+          "effects": 0,
+          "cooldown": 0,
+          "cooldownMax": 5.3
+        },
+        "companion": {
+          "active": false,
+          "species": "hound",
+          "hp": 0,
+          "maxHp": 0,
+          "remaining": 0,
+          "cooldown": 0,
+          "aggroCount": 0,
+          "position": null
+        },
+        "advance": 0.5999999999994543,
+        "state": "play",
+        "xp": 6,
+        "artPending": false,
+        "mapFallback": false
+      },
+      "frame": {
+        "samples": 127,
+        "fps": 55.22,
+        "intervalMs": {
+          "p50": 16.7,
+          "p95": 16.8,
+          "p99": 50.1
+        },
+        "callbackMs": {
+          "p50": 3.2,
+          "p95": 4,
+          "p99": 5.3
+        },
+        "outsideCallbackMs": {
+          "p50": 13.5,
+          "p95": 14.1,
+          "p99": 14.2
+        },
+        "rafEntryLagMs": {
+          "p50": 0.1,
+          "p95": 0.2,
+          "p99": 6.9
+        },
+        "updateMs": {
+          "p50": 0,
+          "p95": 0,
+          "p99": 0
+        },
+        "worldMs": {
+          "p50": 2.3,
+          "p95": 2.6,
+          "p99": 3.6
+        },
+        "uiMs": {
+          "p50": 0.8,
+          "p95": 1.3,
+          "p99": 3
+        },
+        "canvasJsMs": {
+          "p50": 3.1,
+          "p95": 3.9,
+          "p99": 5.3
+        },
+        "effectsWithinWorldMs": {
+          "p50": 0.3,
+          "p95": 0.6,
+          "p99": 0.6
+        },
+        "otherCallbackMs": {
+          "p50": 0.1,
+          "p95": 0.2,
+          "p99": 0.2
+        }
+      },
+      "state": {
+        "stage": "rain-port",
+        "run": 1,
+        "gameState": "play",
+        "elapsed": 541,
+        "moving": false,
+        "levels": {
+          "katana": 5,
+          "barrier": 5,
+          "fire": 0,
+          "boom": 0,
+          "thunder": 5,
+          "needle": 0,
+          "ink_trail": 5,
+          "seal_nail": 0,
+          "fusion_inkblade": 0,
+          "fusion_foxiai": 0,
+          "fusion_exorcistblade": 0,
+          "fusion_foxfirebarrier": 0,
+          "fusion_exorcistseal": 0,
+          "fusion_thundercircle": 0,
+          "fusion_slashwheel": 0,
+          "fusion_foxthunderlantern": 0,
+          "fusion_flamefestival": 0,
+          "fusion_thundertalisman": 0,
+          "shikigami": 0
+        },
+        "boss": [
+          {
+            "name": "潮甲蟹將",
+            "hazard": "tidalFan",
+            "phase": "telegraph"
+          },
+          {
+            "name": "港霧大妖",
+            "hazard": "tidalFan",
+            "phase": "telegraph"
+          }
+        ],
+        "sanctuarySeconds": 1.1999999999999995,
+        "rain": "medium",
+        "gems": 512,
+        "enemies": 21,
+        "enemyBullets": 0,
+        "projectiles": 0,
+        "effects": {
+          "particles": 31,
+          "budget": 1,
+          "bolts": 0,
+          "spriteCache": 42,
+          "bitmapSprites": 22,
+          "bitmapPending": 0,
+          "bitmapFailures": 0,
+          "atlasPages": 0,
+          "atlasBackings": []
+        },
+        "skillEffects": {
+          "artFx": 4,
+          "burning": 0
+        },
+        "fusion": 0,
+        "violet": {
+          "marks": 2,
+          "clouds": 2,
+          "infected": 0,
+          "positions": [
+            [
+              1387.375,
+              480
+            ],
+            [
+              1433.375,
+              480
+            ]
+          ],
+          "depositCooldown": 0
+        },
+        "sealNail": {
+          "active": false,
+          "pendingSecond": false,
+          "effects": 0,
+          "cooldown": 0,
+          "cooldownMax": 5.3
+        },
+        "chunkCache": 16,
+        "activeChunks": 16,
+        "text": 3,
+        "orders": 1,
+        "reviewMisses": 0,
+        "images": {
+          "ready": 103,
+          "references": 125,
+          "pixels": 47176642,
+          "world": {
+            "ready": 95,
+            "pixels": 40545578
+          },
+          "resources": {
+            "imageRequests": 212,
+            "responseMs": 6335.59999987483,
+            "transferredBytes": 33607854,
+            "zeroTransfer": 0,
+            "dropped": 0,
+            "longTasks": {
+              "count": 2,
+              "totalMs": 366,
+              "maxMs": 193
+            },
+            "supported": true
+          },
+          "upgradeCards": {
+            "retained": 0,
+            "limit": 10
+          }
+        },
+        "canvases": {
+          "mainResets": 1,
+          "lightResets": 1,
+          "terrainResets": 1,
+          "terrainPaints": 1,
+          "terrainScrollCopies": 0,
+          "mainLosses": 0,
+          "mainRestores": 0,
+          "lightLosses": 0,
+          "lightRestores": 0,
+          "terrainLosses": 0,
+          "terrainRestores": 0,
+          "terrainFallbacks": 0,
+          "dpr": 1.4430364573110444,
+          "stores": {
+            "main": {
+              "width": 1723,
+              "height": 1203,
+              "pixels": 2072769
+            },
+            "light": {
+              "width": 633,
+              "height": 442,
+              "pixels": 279786
+            },
+            "terrain": {
+              "width": 2183,
+              "height": 2466,
+              "pixels": 5383278
+            }
+          },
+          "damageLabels": 46,
+          "slashArcs": 1,
+          "ghostTrails": 0
+        },
+        "jsHeapBytes": 11087758,
+        "viewport": {
+          "width": 1194,
+          "height": 834,
+          "dpr": 2,
+          "tilt": 0.6,
+          "zoom": 1
+        }
+      },
+      "after": {
+        "stage": "rain-port",
+        "run": 1,
+        "gameState": "play",
+        "elapsed": 541,
+        "moving": false,
+        "levels": {
+          "katana": 5,
+          "barrier": 5,
+          "fire": 0,
+          "boom": 0,
+          "thunder": 5,
+          "needle": 0,
+          "ink_trail": 5,
+          "seal_nail": 0,
+          "fusion_inkblade": 0,
+          "fusion_foxiai": 0,
+          "fusion_exorcistblade": 0,
+          "fusion_foxfirebarrier": 0,
+          "fusion_exorcistseal": 0,
+          "fusion_thundercircle": 0,
+          "fusion_slashwheel": 0,
+          "fusion_foxthunderlantern": 0,
+          "fusion_flamefestival": 0,
+          "fusion_thundertalisman": 0,
+          "shikigami": 0
+        },
+        "boss": [
+          {
+            "name": "潮甲蟹將",
+            "hazard": "tidalFan",
+            "phase": "telegraph"
+          },
+          {
+            "name": "港霧大妖",
+            "hazard": "tidalFan",
+            "phase": "telegraph"
+          }
+        ],
+        "sanctuarySeconds": 1.1999999999999995,
+        "rain": "medium",
+        "gems": 512,
+        "enemies": 21,
+        "enemyBullets": 0,
+        "projectiles": 0,
+        "effects": {
+          "particles": 31,
+          "budget": 1,
+          "bolts": 0,
+          "spriteCache": 42,
+          "bitmapSprites": 22,
+          "bitmapPending": 0,
+          "bitmapFailures": 0,
+          "atlasPages": 0,
+          "atlasBackings": []
+        },
+        "skillEffects": {
+          "artFx": 4,
+          "burning": 0
+        },
+        "fusion": 0,
+        "violet": {
+          "marks": 2,
+          "clouds": 2,
+          "infected": 0,
+          "positions": [
+            [
+              1387.375,
+              480
+            ],
+            [
+              1433.375,
+              480
+            ]
+          ],
+          "depositCooldown": 0
+        },
+        "sealNail": {
+          "active": false,
+          "pendingSecond": false,
+          "effects": 0,
+          "cooldown": 0,
+          "cooldownMax": 5.3
+        },
+        "chunkCache": 16,
+        "activeChunks": 16,
+        "text": 3,
+        "orders": 1,
+        "reviewMisses": 0,
+        "images": {
+          "ready": 103,
+          "references": 125,
+          "pixels": 47176642,
+          "world": {
+            "ready": 95,
+            "pixels": 40545578
+          },
+          "resources": {
+            "imageRequests": 212,
+            "responseMs": 6335.59999987483,
+            "transferredBytes": 33607854,
+            "zeroTransfer": 0,
+            "dropped": 0,
+            "longTasks": {
+              "count": 2,
+              "totalMs": 366,
+              "maxMs": 193
+            },
+            "supported": true
+          },
+          "upgradeCards": {
+            "retained": 0,
+            "limit": 10
+          }
+        },
+        "canvases": {
+          "mainResets": 1,
+          "lightResets": 1,
+          "terrainResets": 1,
+          "terrainPaints": 2,
+          "terrainScrollCopies": 0,
+          "mainLosses": 1,
+          "mainRestores": 1,
+          "lightLosses": 0,
+          "lightRestores": 0,
+          "terrainLosses": 0,
+          "terrainRestores": 0,
+          "terrainFallbacks": 0,
+          "dpr": 1.4430364573110444,
+          "stores": {
+            "main": {
+              "width": 1723,
+              "height": 1203,
+              "pixels": 2072769
+            },
+            "light": {
+              "width": 633,
+              "height": 442,
+              "pixels": 279786
+            },
+            "terrain": {
+              "width": 2183,
+              "height": 2466,
+              "pixels": 5383278
+            }
+          },
+          "damageLabels": 46,
+          "slashArcs": 1,
+          "ghostTrails": 0
+        },
+        "jsHeapBytes": 10852676,
+        "viewport": {
+          "width": 1194,
+          "height": 834,
+          "dpr": 2,
+          "tilt": 0.6,
+          "zoom": 1
+        }
+      },
+      "faults": [],
+      "responses": [
+        "/assets/audio/sfx/skills/ink-trail/ink-trail__drop.mp3 404"
+      ]
+    },
+    {
+      "stage": "sakura-pass",
+      "fixture": {
+        "boss": [
+          [
+            "千年櫻守",
+            "sakuraRush",
+            "telegraph"
+          ],
+          [
+            "櫻鬼·花天狗",
+            "sakuraRush",
+            "telegraph"
+          ]
+        ],
+        "violet": {
+          "marks": 2,
+          "clouds": 2,
+          "infected": 0,
+          "positions": [
+            [
+              1387.375,
+              1080
+            ],
+            [
+              1433.375,
+              1080
+            ]
+          ],
+          "depositCooldown": 0
+        },
+        "nail": {
+          "active": true,
+          "pendingSecond": false,
+          "effects": 0,
+          "cooldown": 3.350000000000002,
+          "cooldownMax": 3.9
+        },
+        "companion": {
+          "active": false,
+          "species": "hound",
+          "hp": 0,
+          "maxHp": 0,
+          "remaining": 0,
+          "cooldown": 0,
+          "aggroCount": 0,
+          "position": null
+        },
+        "advance": 0.5999999999994543,
+        "state": "play",
+        "xp": 3,
+        "artPending": false,
+        "mapFallback": false
+      },
+      "frame": {
+        "samples": 133,
+        "fps": 57,
+        "intervalMs": {
+          "p50": 16.7,
+          "p95": 16.8,
+          "p99": 16.8
+        },
+        "callbackMs": {
+          "p50": 3.5,
+          "p95": 4.1,
+          "p99": 4.6
+        },
+        "outsideCallbackMs": {
+          "p50": 13.2,
+          "p95": 13.7,
+          "p99": 13.8
+        },
+        "rafEntryLagMs": {
+          "p50": 0.2,
+          "p95": 0.3,
+          "p99": 10.8
+        },
+        "updateMs": {
+          "p50": 0,
+          "p95": 0,
+          "p99": 0.1
+        },
+        "worldMs": {
+          "p50": 2.8,
+          "p95": 3.4,
+          "p99": 4.1
+        },
+        "uiMs": {
+          "p50": 0.4,
+          "p95": 0.5,
+          "p99": 0.6
+        },
+        "canvasJsMs": {
+          "p50": 3.2,
+          "p95": 3.8,
+          "p99": 4.4
+        },
+        "effectsWithinWorldMs": {
+          "p50": 0.3,
+          "p95": 0.4,
+          "p99": 0.5
+        },
+        "otherCallbackMs": {
+          "p50": 0.2,
+          "p95": 0.4,
+          "p99": 0.4
+        }
+      },
+      "state": {
+        "stage": "sakura-pass",
+        "run": 1,
+        "gameState": "play",
+        "elapsed": 541,
+        "moving": false,
+        "levels": {
+          "katana": 5,
+          "barrier": 5,
+          "fire": 0,
+          "boom": 0,
+          "thunder": 0,
+          "needle": 0,
+          "ink_trail": 5,
+          "seal_nail": 5,
+          "fusion_inkblade": 0,
+          "fusion_foxiai": 0,
+          "fusion_exorcistblade": 0,
+          "fusion_foxfirebarrier": 0,
+          "fusion_exorcistseal": 0,
+          "fusion_thundercircle": 0,
+          "fusion_slashwheel": 0,
+          "fusion_foxthunderlantern": 0,
+          "fusion_flamefestival": 0,
+          "fusion_thundertalisman": 0,
+          "shikigami": 0
+        },
+        "boss": [
+          {
+            "name": "千年櫻守",
+            "hazard": "sakuraRush",
+            "phase": "telegraph"
+          },
+          {
+            "name": "櫻鬼·花天狗",
+            "hazard": "sakuraRush",
+            "phase": "telegraph"
+          }
+        ],
+        "sanctuarySeconds": 1.1999999999999995,
+        "rain": "medium",
+        "gems": 512,
+        "enemies": 28,
+        "enemyBullets": 0,
+        "projectiles": 0,
+        "effects": {
+          "particles": 25,
+          "budget": 1,
+          "bolts": 0,
+          "spriteCache": 41,
+          "bitmapSprites": 0,
+          "bitmapPending": 0,
+          "bitmapFailures": 0,
+          "atlasPages": 0,
+          "atlasBackings": []
+        },
+        "skillEffects": {
+          "artFx": 1,
+          "burning": 0
+        },
+        "fusion": 0,
+        "violet": {
+          "marks": 2,
+          "clouds": 2,
+          "infected": 0,
+          "positions": [
+            [
+              1387.375,
+              1080
+            ],
+            [
+              1433.375,
+              1080
+            ]
+          ],
+          "depositCooldown": 0
+        },
+        "sealNail": {
+          "active": true,
+          "pendingSecond": false,
+          "effects": 0,
+          "cooldown": 3.350000000000002,
+          "cooldownMax": 3.9
+        },
+        "chunkCache": 5,
+        "activeChunks": 5,
+        "text": 2,
+        "orders": 1,
+        "reviewMisses": 0,
+        "images": {
+          "ready": 59,
+          "references": 59,
+          "pixels": 22641598,
+          "world": {
+            "ready": 59,
+            "pixels": 22641598
+          },
+          "resources": {
+            "imageRequests": 180,
+            "responseMs": 6039.79999999702,
+            "transferredBytes": 32288546,
+            "zeroTransfer": 0,
+            "dropped": 0,
+            "longTasks": {
+              "count": 3,
+              "totalMs": 403,
+              "maxMs": 180
+            },
+            "supported": true
+          },
+          "upgradeCards": {
+            "retained": 0,
+            "limit": 10
+          }
+        },
+        "canvases": {
+          "mainResets": 1,
+          "lightResets": 1,
+          "terrainResets": 1,
+          "terrainPaints": 2,
+          "terrainScrollCopies": 0,
+          "mainLosses": 0,
+          "mainRestores": 0,
+          "lightLosses": 0,
+          "lightRestores": 0,
+          "terrainLosses": 0,
+          "terrainRestores": 0,
+          "terrainFallbacks": 0,
+          "dpr": 1.4430364573110444,
+          "stores": {
+            "main": {
+              "width": 1723,
+              "height": 1203,
+              "pixels": 2072769
+            },
+            "light": {
+              "width": 633,
+              "height": 442,
+              "pixels": 279786
+            },
+            "terrain": {
+              "width": 2183,
+              "height": 2466,
+              "pixels": 5383278
+            }
+          },
+          "damageLabels": 37,
+          "slashArcs": 1,
+          "ghostTrails": 0
+        },
+        "jsHeapBytes": 10717817,
+        "viewport": {
+          "width": 1194,
+          "height": 834,
+          "dpr": 2,
+          "tilt": 0.6,
+          "zoom": 1
+        }
+      },
+      "after": {
+        "stage": "sakura-pass",
+        "run": 1,
+        "gameState": "play",
+        "elapsed": 541,
+        "moving": false,
+        "levels": {
+          "katana": 5,
+          "barrier": 5,
+          "fire": 0,
+          "boom": 0,
+          "thunder": 0,
+          "needle": 0,
+          "ink_trail": 5,
+          "seal_nail": 5,
+          "fusion_inkblade": 0,
+          "fusion_foxiai": 0,
+          "fusion_exorcistblade": 0,
+          "fusion_foxfirebarrier": 0,
+          "fusion_exorcistseal": 0,
+          "fusion_thundercircle": 0,
+          "fusion_slashwheel": 0,
+          "fusion_foxthunderlantern": 0,
+          "fusion_flamefestival": 0,
+          "fusion_thundertalisman": 0,
+          "shikigami": 0
+        },
+        "boss": [
+          {
+            "name": "千年櫻守",
+            "hazard": "sakuraRush",
+            "phase": "telegraph"
+          },
+          {
+            "name": "櫻鬼·花天狗",
+            "hazard": "sakuraRush",
+            "phase": "telegraph"
+          }
+        ],
+        "sanctuarySeconds": 1.1999999999999995,
+        "rain": "medium",
+        "gems": 512,
+        "enemies": 28,
+        "enemyBullets": 0,
+        "projectiles": 0,
+        "effects": {
+          "particles": 25,
+          "budget": 1,
+          "bolts": 0,
+          "spriteCache": 41,
+          "bitmapSprites": 0,
+          "bitmapPending": 0,
+          "bitmapFailures": 0,
+          "atlasPages": 0,
+          "atlasBackings": []
+        },
+        "skillEffects": {
+          "artFx": 1,
+          "burning": 0
+        },
+        "fusion": 0,
+        "violet": {
+          "marks": 2,
+          "clouds": 2,
+          "infected": 0,
+          "positions": [
+            [
+              1387.375,
+              1080
+            ],
+            [
+              1433.375,
+              1080
+            ]
+          ],
+          "depositCooldown": 0
+        },
+        "sealNail": {
+          "active": true,
+          "pendingSecond": false,
+          "effects": 0,
+          "cooldown": 3.350000000000002,
+          "cooldownMax": 3.9
+        },
+        "chunkCache": 5,
+        "activeChunks": 5,
+        "text": 2,
+        "orders": 1,
+        "reviewMisses": 0,
+        "images": {
+          "ready": 59,
+          "references": 59,
+          "pixels": 22641598,
+          "world": {
+            "ready": 59,
+            "pixels": 22641598
+          },
+          "resources": {
+            "imageRequests": 180,
+            "responseMs": 6039.79999999702,
+            "transferredBytes": 32288546,
+            "zeroTransfer": 0,
+            "dropped": 0,
+            "longTasks": {
+              "count": 3,
+              "totalMs": 403,
+              "maxMs": 180
+            },
+            "supported": true
+          },
+          "upgradeCards": {
+            "retained": 0,
+            "limit": 10
+          }
+        },
+        "canvases": {
+          "mainResets": 1,
+          "lightResets": 1,
+          "terrainResets": 1,
+          "terrainPaints": 3,
+          "terrainScrollCopies": 0,
+          "mainLosses": 1,
+          "mainRestores": 1,
+          "lightLosses": 0,
+          "lightRestores": 0,
+          "terrainLosses": 0,
+          "terrainRestores": 0,
+          "terrainFallbacks": 0,
+          "dpr": 1.4430364573110444,
+          "stores": {
+            "main": {
+              "width": 1723,
+              "height": 1203,
+              "pixels": 2072769
+            },
+            "light": {
+              "width": 633,
+              "height": 442,
+              "pixels": 279786
+            },
+            "terrain": {
+              "width": 2183,
+              "height": 2466,
+              "pixels": 5383278
+            }
+          },
+          "damageLabels": 37,
+          "slashArcs": 1,
+          "ghostTrails": 0
+        },
+        "jsHeapBytes": 10461595,
+        "viewport": {
+          "width": 1194,
+          "height": 834,
+          "dpr": 2,
+          "tilt": 0.6,
+          "zoom": 1
+        }
+      },
+      "faults": [],
+      "responses": [
+        "/assets/audio/sfx/skills/seal-nail/seal-nail__drop.mp3 404",
+        "/assets/audio/sfx/skills/ink-trail/ink-trail__drop.mp3 404",
+        "/assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__rush-warn.mp3 404"
+      ]
+    },
+    {
+      "stage": "bamboo-maze",
+      "fixture": {
+        "boss": [
+          [
+            "竹甲山豬",
+            "bambooShoots",
+            "active"
+          ],
+          [
+            "竹影魅妖",
+            "bambooCut",
+            "telegraph"
+          ]
+        ],
+        "violet": {
+          "marks": 2,
+          "clouds": 2,
+          "infected": 0,
+          "positions": [
+            [
+              2287.375,
+              1800
+            ],
+            [
+              2333.375,
+              1800
+            ]
+          ],
+          "depositCooldown": 0
+        },
+        "nail": {
+          "active": false,
+          "pendingSecond": false,
+          "effects": 0,
+          "cooldown": 0,
+          "cooldownMax": 5.3
+        },
+        "companion": {
+          "active": true,
+          "species": "hound",
+          "hp": 135,
+          "maxHp": 135,
+          "remaining": 18.39999999999999,
+          "cooldown": 14.449999999999992,
+          "aggroCount": 0,
+          "position": [
+            2284.0208609075917,
+            1826.5783106826595
+          ]
+        },
+        "advance": 0.5999999999994543,
+        "state": "play",
+        "xp": 2,
+        "artPending": false,
+        "mapFallback": true
+      },
+      "frame": {
+        "samples": 130,
+        "fps": 56.17,
+        "intervalMs": {
+          "p50": 17.4,
+          "p95": 19.1,
+          "p99": 19.4
+        },
+        "callbackMs": {
+          "p50": 2.6,
+          "p95": 3.1,
+          "p99": 7.4
+        },
+        "outsideCallbackMs": {
+          "p50": 14.4,
+          "p95": 16.5,
+          "p99": 17
+        },
+        "rafEntryLagMs": {
+          "p50": 0.1,
+          "p95": 0.2,
+          "p99": 4.1
+        },
+        "updateMs": {
+          "p50": 0,
+          "p95": 0,
+          "p99": 0
+        },
+        "worldMs": {
+          "p50": 2.2,
+          "p95": 2.6,
+          "p99": 6.9
+        },
+        "uiMs": {
+          "p50": 0.4,
+          "p95": 0.5,
+          "p99": 0.6
+        },
+        "canvasJsMs": {
+          "p50": 2.5,
+          "p95": 3.1,
+          "p99": 7.3
+        },
+        "effectsWithinWorldMs": {
+          "p50": 0.4,
+          "p95": 0.6,
+          "p99": 4.6
+        },
+        "otherCallbackMs": {
+          "p50": 0.1,
+          "p95": 0.1,
+          "p99": 0.2
+        }
+      },
+      "state": {
+        "stage": "bamboo-maze",
+        "run": 1,
+        "gameState": "play",
+        "elapsed": 541,
+        "moving": false,
+        "levels": {
+          "katana": 5,
+          "barrier": 5,
+          "fire": 0,
+          "boom": 0,
+          "thunder": 0,
+          "needle": 0,
+          "ink_trail": 5,
+          "seal_nail": 0,
+          "fusion_inkblade": 0,
+          "fusion_foxiai": 0,
+          "fusion_exorcistblade": 0,
+          "fusion_foxfirebarrier": 0,
+          "fusion_exorcistseal": 0,
+          "fusion_thundercircle": 0,
+          "fusion_slashwheel": 0,
+          "fusion_foxthunderlantern": 0,
+          "fusion_flamefestival": 0,
+          "fusion_thundertalisman": 0,
+          "shikigami": 5
+        },
+        "boss": [
+          {
+            "name": "竹甲山豬",
+            "hazard": "bambooShoots",
+            "phase": "active"
+          },
+          {
+            "name": "竹影魅妖",
+            "hazard": "bambooCut",
+            "phase": "telegraph"
+          }
+        ],
+        "sanctuarySeconds": 1.1999999999999995,
+        "rain": "medium",
+        "gems": 512,
+        "enemies": 22,
+        "enemyBullets": 0,
+        "projectiles": 0,
+        "effects": {
+          "particles": 45,
+          "budget": 1,
+          "bolts": 0,
+          "spriteCache": 41,
+          "bitmapSprites": 0,
+          "bitmapPending": 0,
+          "bitmapFailures": 0,
+          "atlasPages": 0,
+          "atlasBackings": []
+        },
+        "skillEffects": {
+          "artFx": 1,
+          "burning": 0
+        },
+        "fusion": 0,
+        "violet": {
+          "marks": 2,
+          "clouds": 2,
+          "infected": 0,
+          "positions": [
+            [
+              2287.375,
+              1800
+            ],
+            [
+              2333.375,
+              1800
+            ]
+          ],
+          "depositCooldown": 0
+        },
+        "sealNail": {
+          "active": false,
+          "pendingSecond": false,
+          "effects": 0,
+          "cooldown": 0,
+          "cooldownMax": 5.3
+        },
+        "chunkCache": 25,
+        "activeChunks": 25,
+        "text": 2,
+        "orders": 1,
+        "reviewMisses": 0,
+        "images": {
+          "ready": 43,
+          "references": 44,
+          "pixels": 18447294,
+          "world": {
+            "ready": 43,
+            "pixels": 18447294
+          },
+          "resources": {
+            "imageRequests": 187,
+            "responseMs": 6044.399999946356,
+            "transferredBytes": 23006801,
+            "zeroTransfer": 0,
+            "dropped": 0,
+            "longTasks": {
+              "count": 3,
+              "totalMs": 310,
+              "maxMs": 139
+            },
+            "supported": true
+          },
+          "upgradeCards": {
+            "retained": 0,
+            "limit": 10
+          }
+        },
+        "canvases": {
+          "mainResets": 1,
+          "lightResets": 1,
+          "terrainResets": 1,
+          "terrainPaints": 2,
+          "terrainScrollCopies": 0,
+          "mainLosses": 0,
+          "mainRestores": 0,
+          "lightLosses": 0,
+          "lightRestores": 0,
+          "terrainLosses": 0,
+          "terrainRestores": 0,
+          "terrainFallbacks": 0,
+          "dpr": 1.4430364573110444,
+          "stores": {
+            "main": {
+              "width": 1723,
+              "height": 1203,
+              "pixels": 2072769
+            },
+            "light": {
+              "width": 633,
+              "height": 442,
+              "pixels": 279786
+            },
+            "terrain": {
+              "width": 2183,
+              "height": 2466,
+              "pixels": 5383278
+            }
+          },
+          "damageLabels": 37,
+          "slashArcs": 1,
+          "ghostTrails": 0
+        },
+        "jsHeapBytes": 10161264,
+        "viewport": {
+          "width": 1194,
+          "height": 834,
+          "dpr": 2,
+          "tilt": 0.6,
+          "zoom": 1
+        }
+      },
+      "after": {
+        "stage": "bamboo-maze",
+        "run": 1,
+        "gameState": "play",
+        "elapsed": 541,
+        "moving": false,
+        "levels": {
+          "katana": 5,
+          "barrier": 5,
+          "fire": 0,
+          "boom": 0,
+          "thunder": 0,
+          "needle": 0,
+          "ink_trail": 5,
+          "seal_nail": 0,
+          "fusion_inkblade": 0,
+          "fusion_foxiai": 0,
+          "fusion_exorcistblade": 0,
+          "fusion_foxfirebarrier": 0,
+          "fusion_exorcistseal": 0,
+          "fusion_thundercircle": 0,
+          "fusion_slashwheel": 0,
+          "fusion_foxthunderlantern": 0,
+          "fusion_flamefestival": 0,
+          "fusion_thundertalisman": 0,
+          "shikigami": 5
+        },
+        "boss": [
+          {
+            "name": "竹甲山豬",
+            "hazard": "bambooShoots",
+            "phase": "active"
+          },
+          {
+            "name": "竹影魅妖",
+            "hazard": "bambooCut",
+            "phase": "telegraph"
+          }
+        ],
+        "sanctuarySeconds": 1.1999999999999995,
+        "rain": "medium",
+        "gems": 512,
+        "enemies": 22,
+        "enemyBullets": 0,
+        "projectiles": 0,
+        "effects": {
+          "particles": 45,
+          "budget": 1,
+          "bolts": 0,
+          "spriteCache": 41,
+          "bitmapSprites": 0,
+          "bitmapPending": 0,
+          "bitmapFailures": 0,
+          "atlasPages": 0,
+          "atlasBackings": []
+        },
+        "skillEffects": {
+          "artFx": 1,
+          "burning": 0
+        },
+        "fusion": 0,
+        "violet": {
+          "marks": 2,
+          "clouds": 2,
+          "infected": 0,
+          "positions": [
+            [
+              2287.375,
+              1800
+            ],
+            [
+              2333.375,
+              1800
+            ]
+          ],
+          "depositCooldown": 0
+        },
+        "sealNail": {
+          "active": false,
+          "pendingSecond": false,
+          "effects": 0,
+          "cooldown": 0,
+          "cooldownMax": 5.3
+        },
+        "chunkCache": 25,
+        "activeChunks": 25,
+        "text": 2,
+        "orders": 1,
+        "reviewMisses": 0,
+        "images": {
+          "ready": 43,
+          "references": 44,
+          "pixels": 18447294,
+          "world": {
+            "ready": 43,
+            "pixels": 18447294
+          },
+          "resources": {
+            "imageRequests": 187,
+            "responseMs": 6044.399999946356,
+            "transferredBytes": 23006801,
+            "zeroTransfer": 0,
+            "dropped": 0,
+            "longTasks": {
+              "count": 3,
+              "totalMs": 310,
+              "maxMs": 139
+            },
+            "supported": true
+          },
+          "upgradeCards": {
+            "retained": 0,
+            "limit": 10
+          }
+        },
+        "canvases": {
+          "mainResets": 1,
+          "lightResets": 1,
+          "terrainResets": 1,
+          "terrainPaints": 3,
+          "terrainScrollCopies": 0,
+          "mainLosses": 1,
+          "mainRestores": 1,
+          "lightLosses": 0,
+          "lightRestores": 0,
+          "terrainLosses": 0,
+          "terrainRestores": 0,
+          "terrainFallbacks": 0,
+          "dpr": 1.4430364573110444,
+          "stores": {
+            "main": {
+              "width": 1723,
+              "height": 1203,
+              "pixels": 2072769
+            },
+            "light": {
+              "width": 633,
+              "height": 442,
+              "pixels": 279786
+            },
+            "terrain": {
+              "width": 2183,
+              "height": 2466,
+              "pixels": 5383278
+            }
+          },
+          "damageLabels": 37,
+          "slashArcs": 1,
+          "ghostTrails": 0
+        },
+        "jsHeapBytes": 10139577,
+        "viewport": {
+          "width": 1194,
+          "height": 834,
+          "dpr": 2,
+          "tilt": 0.6,
+          "zoom": 1
+        }
+      },
+      "faults": [],
+      "responses": [
+        "/assets/img/map_bamboo_maze_v1.webp 404",
+        "/assets/audio/sfx/skills/shikigami/shikigami__summon.mp3 404",
+        "/assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__cut-warning.mp3 404",
+        "/assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__shoots-warning.mp3 404",
+        "/assets/audio/sfx/skills/ink-trail/ink-trail__drop.mp3 404",
+        "/assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__shoots-impact.mp3 404"
+      ]
+    }
+  ]
+}

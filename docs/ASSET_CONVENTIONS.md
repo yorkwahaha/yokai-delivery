@@ -1,8 +1,13 @@
 # Yokai Delivery｜全遊戲圖片與音檔正式資產規範
 
-**版本：2026-10-31**　**適用：場景、地面、建築物、敵人、Boss、角色、技能卡、技能圖示、技能特效、UI、BGM、SFX、配音、宅配單字。**
+2026-11-28：S5–8 與新四招已公開課堂試玩，現役 canonical 圖音位於 assets/；標記 PUBLIC_PLAYTEST_PENDING_FEEDBACK，不冒稱最終核准。私有候選、原稿與未核准字型仍不上傳。
+
+**版本：2026-11-27**　**適用：場景、地面、建築物、敵人、Boss、角色、技能卡、技能圖示、技能特效、UI、BGM、SFX、配音、宅配單字。**
 
 ## 唯一規則
+
+- DEV 現役圖片使用 `art/dev-runtime/img/`，其下分類和 `assets/img/` 完全一致：`stages/<id>/scene/`、`tiles/`、`props/`、`enemies/<id>/`、`vfx/enemies/<id>/`。原畫目錄 `art/stageN-ID/` 只保留生成來源／審核資料，不再輸出遊戲使用的 WebP 到該處。第五至八關 loader 與試玩清冊已遷移；前四關既有相容路徑仍須逐一驗證後才移除。
+- 未使用圖片統一封存至 `.cleanup-archive/images/<原始相對路徑>`，記錄 SHA256 及復原位置；不得納入 Git／部署或遊戲 URL。清理前須檢查動態檔名、fallback、清冊、生成工具與測試。過期且無引用的文件可移除。
 
 - **正式可執行資產：`assets/img/`、`assets/audio/`；候選／種子／試音／退件／歷史原稿：`art/`。** 已存在的舊路徑因相容保留時，稱為「legacy」，不得因此將它們解釋成新規範。不得因路徑看起來舊就刪除。
 - 所有正式 `id` 為 **英文小寫 kebab-case**；不可有空白、漢字、假名。檔名使用 `<id>__<role>[__<state>][__lvNN][__fNN].<ext>`，順序固定，無須的欄位省略。等級與 frame 補零（`lv01`、`f01`）。
@@ -43,7 +48,7 @@
 `tools/asset_registry.py --build` 已按可確認的對應進行**同位元複製**：
 - 3 段 BGM、25 段既有 SFX、第一關 8 張場景／道具 WebP、4 張正式 HUD 圖，以及上列 12 張敵人和 23 張技能 raster VFX → 新統一路徑、原檔保留；共 **75 筆**有第一輪 loader 的相容接線（不含第二關此次新增的 21 筆）。
 - 另外將第一關既有的 **12 張敵人 WebP**、**23 張技能 raster VFX** 搬出無用途層級的舊目錄，透過相同路由表安全改接；原圖、動作圖皆位元不變。
-- **2026-10-31 第二關正式接入**：依較新的 `assets/img/runtime-art-manifest.json` 選用清單，核對 SHA256 後，將 **17 張正式場景（泥地、木地、接縫、5 建築、5 道具、2 海岸）與 4 張已核准敵人／Boss 本體圖** 正式接上統一路由；保留舊圖作載入後備。四張遭泥土版取代的石地副本隔離至 `art/stage2-rain-port/archive/replaced-stone-copies-20261031/`。**Boss 水系特效 3 張仍為 BLOCKED，不在本次核准名單**。詳細 [第二關整理收據](STAGE2_APPROVED_MEDIA_MIGRATION_20261031.md)。
+- **2026-10-31 第二關正式接入**：依較新的 `assets/img/runtime-art-manifest.json` 選用清單，核對 SHA256 後，將 **17 張正式場景（泥地、木地、接縫、5 建築、5 道具、2 海岸）與 4 張已核准敵人／Boss 本體圖** 正式接上統一路由；保留舊圖作載入後備。四張遭泥土版取代的石地副本隔離至 `art/stage2-rain-port/archive/replaced-stone-copies-20261031/`。**Boss 水系特效 3 張仍為 BLOCKED，不在本次核准名單**。詳細 [第二關整理收據](../.cleanup-archive/history/20261127/docs/STAGE2_APPROVED_MEDIA_MIGRATION_20261031.md)。
 - 整理後共 **141 筆正式路徑映射，其中 96 筆已生效**（前輪 75 ＋ 第二關 21）。不覆寫、不刪除任何原始素材；另仍有 root 玩家圖、部分 UI 變體、SVG、舊 word 圖音等列入 inventory，標為 legacy 或 review-required。**未經語意核對的圖沒有擅自重新命名或宣稱已正式接入**。尤其存在於 `assets/` 的歷史候選，不可當成已批准素材。
 
 **2026-11-01 更新（以上 10/31 數量保留作歷史紀錄）：** 依現行第二關 Runtime Manifest，正式清單包含 **20 張場景圖（含新核准石板 `g_stone_01–04`）與 4 張敵人圖**。重新產生 Registry 與唯一 alias resolver 後，現況為 **151 筆映射、99 筆生效別名、855 個盤點媒體檔**。四張新石板補入相容 alias；不在 Runtime 核准選用清單的 `ground_mud_slab` 不再強制別名改接，原圖及正式副本仍保留。先前已刪除的三張舊 `ground_stone` 路徑從盤點移除，但未再對硬碟作任何刪除。另依使用者指示，以檔案最後修改時間選定的雨港四建物、兩道具最新版，已同步到正式路徑；被取代版保留在 `art/stage2-rain-port/archive/mtime-selection-20261101-six-pairs/`。未經審核的其他 UI 圖仍按原試用狀態盤點，不因同步清冊自動升格。

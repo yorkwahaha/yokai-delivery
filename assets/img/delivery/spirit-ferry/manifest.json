@@ -1,0 +1,450 @@
+{
+  "schema": 1,
+  "stage": "spirit-ferry",
+  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "kind": "image",
+  "count": 20,
+  "candidate_manifest": "art/delivery-icons/spirit-ferry/words-20261119/manifest.json",
+  "items": [
+    {
+      "index": 1,
+      "jp": "かばん",
+      "kanji": "鞄",
+      "zh": "包包",
+      "file": "01.webp",
+      "sha256": "b49519fa1f7a55a77671afeb9a90e9408d20521b60d1e8c2e3e0268cceed6b91",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/01.webp",
+      "bytes": 48096,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          39,
+          20,
+          216,
+          236
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "jp": "にもつ",
+      "kanji": "荷物",
+      "zh": "行李",
+      "file": "02.webp",
+      "sha256": "29b72276fd2700c33d5bd1c337716b24cdb47dc2663567a1e690ed7e19c5f183",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/02.webp",
+      "bytes": 59162,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          22,
+          20,
+          234,
+          236
+        ]
+      }
+    },
+    {
+      "index": 3,
+      "jp": "きっぷ",
+      "kanji": "切符",
+      "zh": "票券",
+      "file": "03.webp",
+      "sha256": "37473daf3f23488709b04e679b6296dff76a97f949f4245481fc2ac65fba2a2e",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/03.webp",
+      "bytes": 40774,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          42,
+          236,
+          214
+        ]
+      }
+    },
+    {
+      "index": 4,
+      "jp": "ちず",
+      "kanji": "地図",
+      "zh": "地圖",
+      "file": "04.webp",
+      "sha256": "7e9fc006be32fe01d1adb86ef7ce4d36995deef4b54d8c526ed039d7da989f87",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/04.webp",
+      "bytes": 34520,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          63,
+          236,
+          192
+        ]
+      }
+    },
+    {
+      "index": 5,
+      "jp": "じてんしゃ",
+      "kanji": "自転車",
+      "zh": "腳踏車",
+      "file": "05.webp",
+      "sha256": "d1b9b708ee1d274c54c103b1ddb1eede295bfa240ad21e075000ea7136909173",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/05.webp",
+      "bytes": 52194,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          40,
+          236,
+          216
+        ]
+      }
+    },
+    {
+      "index": 6,
+      "jp": "べんとう",
+      "kanji": "弁当",
+      "zh": "便當",
+      "file": "06.webp",
+      "sha256": "fe6df4be842a56d9f2e9d3bf0e5f2e59d3c8d84bb8c4b19dcdadcac5224fb4ff",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/06.webp",
+      "bytes": 49904,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          43,
+          236,
+          212
+        ]
+      }
+    },
+    {
+      "index": 7,
+      "jp": "さいふ",
+      "kanji": "財布",
+      "zh": "錢包",
+      "file": "07.webp",
+      "sha256": "9c445641c2d279d07871bca3913a6430d1d466d3be3897c8a4e457782c60adc3",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/07.webp",
+      "bytes": 52150,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          34,
+          236,
+          222
+        ]
+      }
+    },
+    {
+      "index": 8,
+      "jp": "かぎ",
+      "kanji": "鍵",
+      "zh": "鑰匙",
+      "file": "08.webp",
+      "sha256": "8348b2b05e5f92f3369ef87a71f2d5ef534cca3a2f8c07e449e26ba393566aef",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/08.webp",
+      "bytes": 28442,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          35,
+          236,
+          220
+        ]
+      }
+    },
+    {
+      "index": 9,
+      "jp": "てがみ",
+      "kanji": "手紙",
+      "zh": "信件",
+      "file": "09.webp",
+      "sha256": "5d1e3e3ed326a208ba5b9af2ab60d88eab5ae990a24006b81672c33e85e091a3",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/09.webp",
+      "bytes": 33966,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          46,
+          236,
+          209
+        ]
+      }
+    },
+    {
+      "index": 10,
+      "jp": "くるま",
+      "kanji": "車",
+      "zh": "汽車",
+      "file": "10.webp",
+      "sha256": "f889b9dba9ca6a649b0cf72d4f88f69f13947adca678f362e0427b70bb3bd93b",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/10.webp",
+      "bytes": 36802,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          56,
+          236,
+          199
+        ]
+      }
+    },
+    {
+      "index": 11,
+      "jp": "はがき",
+      "kanji": "葉書",
+      "zh": "明信片",
+      "file": "11.webp",
+      "sha256": "423182a856640796f464dd5963337ef12caea1a7468841b8fb5a4099db6d12eb",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/11.webp",
+      "bytes": 43538,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          59,
+          236,
+          197
+        ]
+      }
+    },
+    {
+      "index": 12,
+      "jp": "きって",
+      "kanji": "切手",
+      "zh": "郵票",
+      "file": "12.webp",
+      "sha256": "64d764ad881bb9911494e4d027e4b13ec5d1d93d9c3d19a8a23c754b188a1a4e",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/12.webp",
+      "bytes": 62058,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          41,
+          20,
+          215,
+          236
+        ]
+      }
+    },
+    {
+      "index": 13,
+      "jp": "しゃしん",
+      "kanji": "写真",
+      "zh": "照片",
+      "file": "13.webp",
+      "sha256": "8843f6570480877b9749d287451e60a4ba534e299c62e018496637bd8137c148",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/13.webp",
+      "bytes": 53682,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          29,
+          236,
+          227
+        ]
+      }
+    },
+    {
+      "index": 14,
+      "jp": "けいたいでんわ",
+      "kanji": "携帯電話",
+      "zh": "手機",
+      "file": "14.webp",
+      "sha256": "1371589f523b43e2145b724d9708df607d8164f7570fbebebd7c0cec765134ee",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/14.webp",
+      "bytes": 33890,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          50,
+          20,
+          206,
+          236
+        ]
+      }
+    },
+    {
+      "index": 15,
+      "jp": "じゅうでんき",
+      "kanji": "充電器",
+      "zh": "充電器",
+      "file": "15.webp",
+      "sha256": "202dd9105b51cea8dfc9826a644349d6a086de28c3a94f85b08a4696afe3fe63",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/15.webp",
+      "bytes": 41458,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          35,
+          236,
+          220
+        ]
+      }
+    },
+    {
+      "index": 16,
+      "jp": "ふね",
+      "kanji": "船",
+      "zh": "船",
+      "file": "16.webp",
+      "sha256": "5da0bd62f9f3c7f40bc2f85c81a0635c1242b4cf782eaf48d0633ccc15c7c164",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/16.webp",
+      "bytes": 36074,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          66,
+          236,
+          189
+        ]
+      }
+    },
+    {
+      "index": 17,
+      "jp": "かいちゅうでんとう",
+      "kanji": "懐中電灯",
+      "zh": "手電筒",
+      "file": "17.webp",
+      "sha256": "13f3d6a8aafc16b815081569f35daedd17c5b4d8bed8d8248f66993d86333e74",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/17.webp",
+      "bytes": 30542,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          47,
+          236,
+          208
+        ]
+      }
+    },
+    {
+      "index": 18,
+      "jp": "ひこうき",
+      "kanji": "飛行機",
+      "zh": "飛機",
+      "file": "18.webp",
+      "sha256": "3b5bbb073e2f48cb301a850500a1bc987b0a865a2e1b3f8b347e56b739290386",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/18.webp",
+      "bytes": 34216,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          44,
+          236,
+          211
+        ]
+      }
+    },
+    {
+      "index": 19,
+      "jp": "でんしゃ",
+      "kanji": "電車",
+      "zh": "電車",
+      "file": "19.webp",
+      "sha256": "eb4410b380f525533f12c6f0923c228939c8c120e2d17b4439dbd2dfeb325e41",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/19.webp",
+      "bytes": 45136,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          51,
+          236,
+          205
+        ]
+      }
+    },
+    {
+      "index": 20,
+      "jp": "おみやげ",
+      "kanji": "お土産",
+      "zh": "伴手禮",
+      "file": "20.webp",
+      "sha256": "99a98e14ec15234bb6b8a3ddec06dcf1248095615ae4ca54b89ab0618de44755",
+      "source": "art/delivery-icons/spirit-ferry/words-20261119/20.webp",
+      "bytes": 48804,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          44,
+          236,
+          212
+        ]
+      }
+    }
+  ]
+}

@@ -89,7 +89,8 @@
   // deployed as replaceable raster trial artwork with the same approved frame.
   const approvedSharedCards=new Set([...approvedActive,...passiveCards,...mutationCards]);
   const sharedCards=approvedSharedCards;
-  const framePath="assets/img/ui/menu/ui__upgrade-card-frame.png";
+  const framePath="assets/img/ui/menu/ui__upgrade-card-frame.webp";
+  const frameFallback="assets/img/ui/menu/ui__upgrade-card-frame.png";
   const trialCenters={ink_trail:"incense",seal_nail:"ritual"};
   const centerPath=(id,refreshed=true)=>{
     const slug=String(id).replace(/_/g,"-");
@@ -97,9 +98,9 @@
     return "assets/img/skills/"+slug+"/cards/"+slug+"__art"+variant+".webp";
   };
   const artworkBox={x:102,y:65,w:820,h:1230,clipX:112,clipY:216,clipW:802,clipH:868};
-  const titlePoint={x:512,y:1158},classPoint={x:512,y:1341};
+  const titlePoint={x:512,y:1158,w:560,h:160},classPoint={x:512,y:1341,w:400,h:86};
   const skillClasses={katana:"斬擊",fire:"火焰",needle:"穿刺",barrier:"陣法",boom:"符咒",thunder:"雷擊",
-    ink_trail:"粉紫毒霧",seal_nail:"離位爆破",shikigami:"召喚夥伴"};
+    ink_trail:"粉紫毒霧",seal_nail:"踩踏陷阱",shikigami:"召喚夥伴"};
   window.__YOKAI_UPGRADE_PHASE42={framePath,centerPath,artworkBox,titlePoint,classPoint,
     sharedCardIds:[...approvedSharedCards],
     cardCacheStats:()=>({retained:cardCenterUse.size,limit:maxCardCenters})};
@@ -107,10 +108,10 @@
   const image=(src,fallback)=>{
     if(!src || typeof window.Image!=="function")return null;
     if(!(src in cache)){
-      cache[src]=null;const im=new window.Image();im.decoding="async";
-      im.onload=()=>{if(Object.hasOwn(cache,src))cache[src]=im;};
+      const im=new window.Image();im.decoding="async";
+      cache[src]=im;
       im.onerror=()=>{
-        if(!Object.hasOwn(cache,src))return;
+        if(cache[src]!==im)return;
         if(!fallback || fallback===src)return;
         im.onerror=null;
         im.src=fallback;
@@ -118,7 +119,7 @@
       im.src=src;
     }
     touchCardCenter(src);
-    return cache[src]?.naturalWidth ? cache[src] : null;
+    return cache[src]?.complete!==false && cache[src]?.naturalWidth ? cache[src] : null;
   };
   const round=(ctx,x,y,w,h,r=10)=>{ctx.beginPath();ctx.roundRect(x,y,w,h,r);};
   const paint=(ctx,x,y,w,h,color,r=10)=>{ctx.fillStyle=color;round(ctx,x,y,w,h,r);ctx.fill();};
@@ -137,9 +138,15 @@
     ctx.textAlign=align;ctx.textBaseline="middle";
     ctx.fillStyle=color;ctx.fillText(value,x,y,w);
   };
+  const writeMutationPlaque=(ctx,value,r,point,color)=>{
+    const sx=r.w/1024,sy=r.h/1536;
+    const width=point.w*sx;
+    const size=Math.min(point.h*sy*.88,width/Array.from(value).length-.35);
+    write(ctx,value,r.x+point.x*sx,r.y+point.y*sy,width,size,"center",color);
+  };
   // Long skill names get two balanced rows inside the SAME approved raster
   // plaque. Keep short names anchored at its exact fixed center.
-  const writeCardTitle=(ctx,title,x,y,width,mutation=false,color="#34251c")=>{
+  const writeCardTitle=(ctx,title,x,y,width,mutation=false,color="#34251c",compact=false)=>{
     const chars=Array.from(String(title||""));
     if(chars.length<6){
       write(ctx,title,x,y,width,mutation?18:20,"center",color);
@@ -150,9 +157,10 @@
       ?mark+1:Math.ceil(chars.length/2);
     const top=chars.slice(0,split).join("");
     const bottom=chars.slice(split).join("");
-    const lineSize=mutation?16:17;
-    write(ctx,top,x,y-8,width,lineSize,"center",color);
-    write(ctx,bottom,x,y+8,width,lineSize,"center",color);
+    const lineSize=compact ? 15 : mutation ? 16 : 17;
+    const rowOffset=compact ? 7 : 8;
+    write(ctx,top,x,y-rowOffset,width,lineSize,"center",color);
+    write(ctx,bottom,x,y+rowOffset,width,lineSize,"center",color);
   };
   const paragraph=(ctx,text,x,y,width,maxLines=3,font=17,color=palette.paper,lineHeight=20)=>{
     ctx.font=textFont(font,"body");tracking(ctx,.3);ctx.fillStyle=color;
@@ -264,11 +272,16 @@
     ctx.save();ctx.shadowColor=focused?"#f6bd58":"rgba(0,0,0,.65)";
     ctx.shadowBlur=focused?22:7;
     const companion=c.id==="shikigami";
-    const shared=sharedCards.has(c.id)||companion;
-    const frame=shared?image(framePath):null;
-    const center=shared?(c.artPath?image(c.artPath):image(centerPath(c.id),centerPath(c.id,false))):null;
+    const expansion=window.GAME_SKILL_EXPANSION;
+    const expansionCard=expansion?.cards[c.id] || expansion?.mutations[c.id];
+    const candidate=expansionCard && (expansion.releases[expansionCard.skillId || c.id]?.published || expansion.lab(window)) && expansionCard;
+    const shared=sharedCards.has(c.id)||companion||candidate;
+    const frame=shared?image(framePath,frameFallback):null;
+    const center=candidate ? expansion.artImage(c.id) :
+      shared?(c.artPath?image(c.artPath):image(centerPath(c.id),centerPath(c.id,false))):null;
     const cardClass=skillClasses[c.id] ||
-      (passiveCards.has(c.id)?"被動":mutationCards.has(c.id)?"變異":"修行");
+      (candidate && c.type==="weapon" ? candidate.category :
+        passiveCards.has(c.id)?"被動":mutationCards.has(c.id)?"變異":"修行");
     if(c.type==="coins"){
       // Post-cap reward is currency, not an uncapped passive. Reuse the
       // approved card base and lettering, without fake pictorial artwork.
@@ -290,7 +303,12 @@
       ctx.beginPath();
       ctx.rect(r.x+a.clipX*sx,r.y+a.clipY*sy,a.clipW*sx,a.clipH*sy);
       ctx.clip();
-      if (companion) {
+      if (candidate) {
+        const w=a.clipW*sx,h=a.clipH*sy;
+        const scale=Math.max(w/center.naturalWidth,h/center.naturalHeight);
+        const iw=center.naturalWidth*scale, ih=center.naturalHeight*scale;
+        ctx.drawImage(center,r.x+a.clipX*sx+(w-iw)/2,r.y+a.clipY*sy+(h-ih)/2,iw,ih);
+      } else if (companion) {
         const bw = a.w * sx, bh = a.h * sy;
         const scale = Math.min(bw / center.naturalWidth, bh / center.naturalHeight);
         const w = center.naturalWidth * scale, h = center.naturalHeight * scale;
@@ -299,20 +317,13 @@
       ctx.restore();
       ctx.drawImage(frame,r.x,r.y,r.w,r.h);
       ctx.shadowBlur=0;
-      writeCardTitle(ctx,c.n||"",r.x+titlePoint.x*sx,r.y+titlePoint.y*sy,r.w*.66,
-        mutationCards.has(c.id));
-      write(ctx,cardClass,r.x+classPoint.x*sx,r.y+classPoint.y*sy,r.w*.42,16,
-        "center",palette.light);
     }
     else if(shared){
       // A missing shipped asset is a build error, not a ZIP import prompt.
       paint(ctx,r.x,r.y,r.w,r.h,"#192236",10);
       if(frame)ctx.drawImage(frame,r.x,r.y,r.w,r.h);
       ctx.shadowBlur=0;
-      if(!companion)write(ctx,"卡片素材載入中",r.x+r.w/2,r.y+r.h*.4,r.w-12,14);
-      writeCardTitle(ctx,c.n||"",r.x+r.w/2,r.y+r.h*(1158/1536),r.w*.66,
-        mutationCards.has(c.id));
-      write(ctx,cardClass,r.x+r.w/2,r.y+r.h*(1341/1536),r.w*.42,16);
+      if(!companion)write(ctx,candidate ? "候選插畫待審" : "卡片素材載入中",r.x+r.w/2,r.y+r.h*.4,r.w-12,14);
     }
     else{
       const card=image("assets/img/ui/upgrade/card_dark.webp");
@@ -345,6 +356,19 @@
         charm:"御守",duo:"共鳴",fusion:"合武"})[c.type]||"修行";
       write(ctx,type,r.x+r.w/2,r.y+219,r.w-24,16,"center",palette.light);
     }
+    if(shared && c.type!=="coins"){
+      const sx=r.w/1024,sy=r.h/1536;
+      const names=window.GAME_CATALOG?.mutationCardNames(c.id);
+      const titleX=r.x+titlePoint.x*sx,titleY=r.y+titlePoint.y*sy;
+      const classX=r.x+classPoint.x*sx,classY=r.y+classPoint.y*sy;
+      if(names){
+        writeMutationPlaque(ctx,names.title,r,titlePoint,"#34251c");
+        writeMutationPlaque(ctx,names.subtitle,r,classPoint,palette.light);
+      }else{
+        writeCardTitle(ctx,c.n||"",titleX,titleY,r.w*.66,mutationCards.has(c.id),"#34251c",!!candidate);
+        write(ctx,cardClass,classX,classY,r.w*.42,16,"center",palette.light);
+      }
+    }
     ctx.restore();
     if(c.type==="weapon" && c.lv===5 && typeof ctx.createLinearGradient==="function"){
       // Short mirror sweep over the Lv5 artwork, preserving the approved card.
@@ -376,6 +400,7 @@
     if(num)write(ctx,String(num),r.x+r.w/2,r.y+r.h-4,r.w,14,
       "center",focused?palette.light:palette.dim);
   }
+  UI.drawMutationCard=(ctx,card,rect)=>drawChoice(ctx,{id:card.emblem,n:card.name,type:"mutation"},rect,false,0);
   function drawDetails(ctx,L,c){
     const d=L.details;
     // Real gilded frame extracted from the user-approved design; its demo
@@ -469,7 +494,7 @@
     const selectedFont=fontMode==="kai"?"Yokai Trial MoonStars Kai T":trialWebFonts[fontMode];
     if(selectedFont)void document.fonts.load(`400 24px "${selectedFont}"`,'能力提升 選卡 靈針 長明燈油').catch(()=>{});
   }
-  image(framePath);
+  image(framePath,frameFallback);
   // Preload approved full-raster layers before the first upgrade offer.
   for(const path of ["assets/img/ui/upgrade/approved_title_clean.webp",
     "assets/img/ui/upgrade/approved_details_blank.webp",

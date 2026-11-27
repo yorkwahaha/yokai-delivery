@@ -60,9 +60,14 @@ test('Lv5 ofuda short-flight bonus stays on its attached living Boss',()=>{
 test('the victory Boss copy cannot be hit or grant a second reward',()=>{
   const game=loadGame({seed:117});
   game.start();
-  game.meetDeliveryGoal();
+  for(let i=0;i<3;i++){
+    game.placeBoss(1,{dx:100+i*15,bossIndex:i});
+    const prior=game.snapshot().enemies.find(e=>e.type==='boss'&&e.bossIndex===i);
+    prior.shield=false;
+    game.hurt(prior,1);
+  }
   game.placeBoss(1,{dx:100,bossIndex:3});
-  const boss=game.snapshot().enemies.find(e=>e.type==='boss');
+  const boss=game.snapshot().enemies.find(e=>e.type==='boss'&&e.hp>0);
   boss.final=true;
   game.setOil(35);
   game.hurt(boss,1);
@@ -85,12 +90,21 @@ test('only the first two rain-port Normal Boss kills grant 45 oil, once and belo
   for(const [stage,rewards] of Object.entries(expected))for(const [index,reward] of rewards.entries()){
     game.startRun(stage);
     game.stopSpawns();
-    game.setElapsed(game.env.CONTENT.getStage(stage).pacing.bossTimes[index]);
-    game.forceBossSchedule(index);
+    const times=game.env.CONTENT.getStage(stage).pacing.bossTimes;
+    if(stage==='bamboo-maze' && index===3){
+      game.setElapsed(times[0]);
+      game.update(.05);
+      const first=game.snapshot().enemies.find(e=>e.bossIndex===0);
+      assert.ok(first);
+      first.shield=false;
+      game.hurt(first,first.hp);
+    }
+    game.setElapsed(times[index]);
+    if(stage!=='bamboo-maze') game.forceBossSchedule(index);
     let boss;
     for(let i=0;i<100&&!boss;i++){
       game.update(.05);
-      boss=game.snapshot().enemies.find(e=>e.type==='boss');
+      boss=game.snapshot().enemies.find(e=>e.type==='boss' && e.bossIndex===index);
     }
     assert.ok(boss,stage+' scheduled Boss '+index);
     assert.equal(boss.oilReward,reward,stage+' wave '+index);

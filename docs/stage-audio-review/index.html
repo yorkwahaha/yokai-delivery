@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>八關與新四招音訊試聽｜妖怪快遞社</title>
+  <style>
+    :root { color-scheme: dark; --ink: #f3ead4; --muted: #c4bca9; --line: #494538; --gold: #f4c879; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #171615; color: var(--ink); font: 1rem/1.55 system-ui, sans-serif; }
+    main { width: min(calc(100% - 2rem), 75rem); margin: 2rem auto 4rem; }
+    h1 { font-size: clamp(1.65rem, 5vw, 2.65rem); letter-spacing: .04em; margin: 0 0 .4rem; }
+    h2 { font-size: 1.25rem; margin: 1.65rem 0 .65rem; }
+    h3 { margin: 0; font-size: 1.04rem; }
+    p { margin: .4rem 0; }
+    .muted, small { color: var(--muted); }
+    .panel { background: #23211d; border: 1px solid var(--line); border-radius: .65rem; padding: 1rem; }
+    .controls, .player { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; }
+    .controls { margin: 1.3rem 0 .8rem; }
+    button, select, a.action { font: inherit; color: var(--ink); background: #373126; border: 1px solid #817050;
+      border-radius: .35rem; padding: .44rem .72rem; min-height: 2.65rem; }
+    button:hover, a.action:hover { background: #56432b; }
+    button:disabled { opacity: .55; }
+    a { color: var(--gold); }
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+    .player audio { max-width: 100%; width: min(30rem, 100%); }
+    .player strong { width: 100%; }
+    .entries { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 23rem), 1fr)); gap: .75rem; }
+    article { min-width: 0; }
+    .cardhead { display: flex; justify-content: space-between; column-gap: .75rem; align-items: start; }
+    .asset { display: block; overflow-wrap: anywhere; font-size: .79rem; color: var(--muted); margin: .4rem 0; }
+    .badge { display: inline-block; font-size: .75rem; padding: .1rem .45rem; border-radius: .25rem; background: #3b3424; color: var(--gold); margin-left: .4rem; }
+    details { margin-top: .45rem; }
+    summary { cursor: pointer; color: var(--gold); }
+    [hidden] { display: none !important; }
+  </style>
+  <script defer src="/js/stage58-audio.js"></script>
+  <script defer src="/js/game-skill-expansion.js"></script>
+  <script defer src="/stage-audio-review/review.js"></script>
+</head>
+<body>
+  <main>
+    <h1>八關與新四招音訊試聽</h1>
+    <p class="muted">妖怪快遞社本機 DEV 音訊集中試聽頁（涵蓋八關一般／Boss／終章 BGM、後四關 57 事件與新四招 14 音效）。僅限本機，不進入正式玩家介面。</p>
+    <p id="status" role="status">正在讀取本機音檔清單。</p>
+    <div id="review" hidden>
+      <div class="controls">
+        <label>關卡 <select id="stage"></select></label>
+        <label><input id="missing" type="checkbox"> 只顯示缺檔</label>
+        <button id="download" type="button">下載待補與生成提示詞</button>
+      </div>
+      <section class="player panel" aria-label="試聽播放器">
+        <strong id="now">請選一個音檔</strong>
+        <audio id="audio" controls preload="none"></audio>
+        <button id="stop" type="button" disabled>停止</button>
+        <label><input id="loop" type="checkbox"> 循環</label>
+        <label for="volume">音量</label>
+        <input id="volume" type="range" min="0" max="100" value="45">
+      </section>
+      <div id="entries"></div>
+    </div>
+  </main>
+</body>
+</html>

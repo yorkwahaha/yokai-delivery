@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yokai Delivery｜Phase E 實機驗收</title>
+<style>
+  :root { color-scheme: light; font: 1rem/1.65 system-ui, sans-serif; color: #2c251c; background: #eee6d6; }
+  body { max-width: 72rem; margin: auto; padding: clamp(1rem, 4vw, 3rem); }
+  h1,h2,h3 { font-family: Georgia, "Noto Serif TC", "PMingLiU", serif; line-height: 1.25; }
+  h1 { font-size: clamp(2rem, 6vw, 3.5rem); margin: .4em 0; }
+  h2 { border-bottom: 2px solid #694335; padding-bottom: .4em; }
+  a { color: #743729; text-underline-offset: .2em; }
+  a:focus-visible { outline: 3px solid #743729; outline-offset: 3px; }
+  nav, .launch { display: flex; flex-wrap: wrap; gap: .45rem 1rem; }
+  .launch a { border: 1px solid #835b44; border-radius: .25rem; padding: .45rem .7rem; }
+  .launch a:first-child { background: #743729; color: white; }
+  section { margin-top: 2.6rem; }
+  article { background: #fbf6eb; border: 1px solid #cdbda6; border-radius: .35rem; padding: clamp(.8rem, 2.6vw, 1.5rem); margin: 1rem 0; }
+  article h3 { margin-top: 0; }
+  article p { margin: .6em 0; }
+  .views,.assets,.questions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: .8rem; }
+  figure { margin: 0; min-width: 0; }
+  figure img { width: 100%; height: auto; display: block; border-radius: .2rem; }
+  .assets img { width: 100%; height: 11rem; object-fit: contain; background: #ddd2be; }
+  figcaption { margin-top: .35rem; }
+  code { overflow-wrap: anywhere; }
+  .table-scroll { max-height: 33rem; overflow: auto; border: 1px solid #cdbda6; }
+  table { border-collapse: separate; border-spacing: 0; width: 100%; background: #fbf6eb; }
+  th,td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid #dfd4c2; }
+  thead { position: sticky; inset-block-start: 0; background: #ded0b9; }
+  tbody th { min-width: 7rem; }
+  audio { display: block; width: 100%; margin-block: .5rem; }
+  summary { cursor: pointer; }
+</style>
+<header>
+  <p>2026-11-25 · Phase E · 遊戲基準 <code>f54e755</code> · 載入版 <code>20261125-phase-e</code> · 真人驗收待辦</p>
+  <h1>前四關實機驗收</h1>
+  <nav aria-label="審核內容">
+    <a href="#play">開始試玩</a>
+    <a href="#art">7 項美術</a>
+    <a href="#sound">30 個音效槽</a>
+    <a href="#japanese">16 題日文與語音</a>
+  </nav>
+</header>
+<main>
+  <section id="play" aria-labelledby="play-title">
+    <h2 id="play-title">開始試玩</h2>
+    <div class="launch">
+      <a href="../../?dev=1&amp;s3play=1&amp;perf=1&amp;phase=E-f54e755">遊戲首頁</a>
+      <a href="../../?dev=1&amp;s3play=1&amp;perf=1&amp;phase=E-f54e755&amp;stage=night-town">夜行町</a>
+      <a href="../../?dev=1&amp;s3play=1&amp;perf=1&amp;phase=E-f54e755&amp;stage=rain-port">雨夜港町</a>
+      <a href="../../?dev=1&amp;s3play=1&amp;perf=1&amp;phase=E-f54e755&amp;stage=sakura-pass">妖櫻山道</a>
+      <a href="../../?dev=1&amp;s3play=1&amp;perf=1&amp;phase=E-f54e755&amp;stage=bamboo-maze">竹影迷宮</a>
+    </div>
+    <p>關卡連結會預選關卡，再點「開發選關」→「直接進關」。從首頁點「旅路地圖」可依 DEV 通關紀錄依序解鎖。PC 和 iPad 各有自己的 DEV 進度。</p>
+    <p>iPad 橫放，雨港與竹影各打一個長局。效能實驗維持 H、完整畫質、抽樣關閉。長局結束前下載 JSON，另測 E「512 顆靈玉」定格並下載一份，回 H 可繼續。實體手把用 PC 的 127.0.0.1 入口驗收。</p>
+  </section>
+  <section id="art" aria-labelledby="art-title">
+    <h2 id="art-title">美術審核</h2>
+    <p>截圖取自 Phase D 的實際 Canvas 定格，可點圖看大圖。重繪沿用半水墨、浮世繪、和紙印痕與強墨線，地面採正投影，角色和物件保留腳底錨點。</p>
+    <article id="bamboo-warning">
+<h3>P1 · 竹影迷宮 · 切線與筍陣</h3>
+<div class="views">
+<figure><a href="bamboo-warning-full.jpg"><img src="bamboo-warning-full.jpg" alt="竹影迷宮 · 切線與筍陣，遊戲畫面 · 雙王 2.5D" loading="lazy"></a><figcaption>遊戲畫面 · 雙王 2.5D</figcaption></figure>
+<figure><a href="bamboo-warning-detail.jpg"><img src="bamboo-warning-detail.jpg" alt="竹影迷宮 · 切線與筍陣，問題區域放大" loading="lazy"></a><figcaption>問題區域放大</figcaption></figure>
+</div>
+<p><strong>重繪原因</strong>　靈陣亮邊與細長黃白切線容易混讀，連續五次的筍陣仰賴輪廓。</p>
+<p><strong>美術方向</strong>　切線用深墨與暖赭雙邊、塊面端點。筍陣五段使用一致形狀，中央留空。兩種視角下沿現有命中區。</p>
+<p><strong>交付規格</strong>　切線 768×144、筍陣 512×512，透明 PNG 原稿及 WebP。</p>
+<div class="assets">
+<figure><a href="../../assets/img/vfx/enemies/bamboo-cut/bamboo-cut__warning.webp"><img src="../../assets/img/vfx/enemies/bamboo-cut/bamboo-cut__warning.webp" alt="切線預警現役原圖" loading="lazy"></a><figcaption>切線預警<br><code>assets/img/vfx/enemies/bamboo-cut/bamboo-cut__warning.webp</code></figcaption></figure>
+<figure><a href="../../assets/img/vfx/enemies/bamboo-shoots/bamboo-shoots__warning.webp"><img src="../../assets/img/vfx/enemies/bamboo-shoots/bamboo-shoots__warning.webp" alt="筍陣預警現役原圖" loading="lazy"></a><figcaption>筍陣預警<br><code>assets/img/vfx/enemies/bamboo-shoots/bamboo-shoots__warning.webp</code></figcaption></figure>
+</div>
+</article>
+<article id="rain-warning">
+<h3>P1 · 雨夜港町 · 潮扇與雨渦</h3>
+<div class="views">
+<figure><a href="rain-warning-full.jpg"><img src="rain-warning-full.jpg" alt="雨夜港町 · 潮扇與雨渦，遊戲畫面 · 雙王 2.5D" loading="lazy"></a><figcaption>遊戲畫面 · 雙王 2.5D</figcaption></figure>
+<figure><a href="rain-warning-detail.jpg"><img src="rain-warning-detail.jpg" alt="雨夜港町 · 潮扇與雨渦，問題區域放大" loading="lazy"></a><figcaption>問題區域放大</figcaption></figure>
+</div>
+<p><strong>重繪原因</strong>　白浪、青色靈陣及兩種預警疊在一起，扇緣與安全帶難以追蹤。</p>
+<p><strong>美術方向</strong>　預警用墨邊輪廓、中心留透明。水柱及白浪高亮留在命中層。兩種視角核對扇緣與三／五渦位置。</p>
+<p><strong>交付規格</strong>　潮扇和雨渦各 1024×1024，前搖、命中分層，透明 PNG／WebP。</p>
+<div class="assets">
+<figure><a href="../../assets/img/vfx/enemies/ikari-umibozu/ikari-umibozu__tidal-fan.webp"><img src="../../assets/img/vfx/enemies/ikari-umibozu/ikari-umibozu__tidal-fan.webp" alt="潮扇現役原圖" loading="lazy"></a><figcaption>潮扇<br><code>assets/img/vfx/enemies/ikari-umibozu/ikari-umibozu__tidal-fan.webp</code></figcaption></figure>
+<figure><a href="../../assets/img/vfx/enemies/ikari-umibozu/ikari-umibozu__rain-vortex.webp"><img src="../../assets/img/vfx/enemies/ikari-umibozu/ikari-umibozu__rain-vortex.webp" alt="雨渦現役原圖" loading="lazy"></a><figcaption>雨渦<br><code>assets/img/vfx/enemies/ikari-umibozu/ikari-umibozu__rain-vortex.webp</code></figcaption></figure>
+</div>
+</article>
+<article id="rain-sea">
+<h3>P2 · 雨夜港町 · 港口海面</h3>
+<div class="views">
+<figure><a href="rain-sea-full.jpg"><img src="rain-sea-full.jpg" alt="雨夜港町 · 港口海面，遊戲畫面 · 中期 2.5D" loading="lazy"></a><figcaption>遊戲畫面 · 中期 2.5D</figcaption></figure>
+<figure><a href="rain-sea-detail.jpg"><img src="rain-sea-detail.jpg" alt="雨夜港町 · 港口海面，問題區域放大" loading="lazy"></a><figcaption>問題區域放大</figcaption></figure>
+</div>
+<p><strong>重繪原因</strong>　連鋪的白浪弧線重複，搶走岸邊預警對比。</p>
+<p><strong>美術方向</strong>　以四向可相鄰的四張變體調整浪峰位置和疏密，保留靛藍粗墨與紙面。先檢視 3×3、6×6 和 10×10 連鋪。</p>
+<p><strong>交付規格</strong>　四張 512×512，不透明正投影 WebP。</p>
+<div class="assets">
+<figure><a href="../../assets/img/stages/rain-port/scene/rain-port__surface-sea-canonical.webp"><img src="../../assets/img/stages/rain-port/scene/rain-port__surface-sea-canonical.webp" alt="海面地磚現役原圖" loading="lazy"></a><figcaption>海面地磚<br><code>assets/img/stages/rain-port/scene/rain-port__surface-sea-canonical.webp</code></figcaption></figure>
+</div>
+</article>
+<article id="bamboo-path">
+<h3>P2 · 竹影迷宮 · 竹叢與路口</h3>
+<div class="views">
+<figure><a href="bamboo-path-full.jpg"><img src="bamboo-path-full.jpg" alt="竹影迷宮 · 竹叢與路口，遊戲畫面 · 中期 2.5D" loading="lazy"></a><figcaption>遊戲畫面 · 中期 2.5D</figcaption></figure>
+<figure><a href="bamboo-path-detail.jpg"><img src="bamboo-path-detail.jpg" alt="竹影迷宮 · 竹叢與路口，問題區域放大" loading="lazy"></a><figcaption>問題區域放大</figcaption></figure>
+</div>
+<p><strong>重繪原因</strong>　同向高竹的剪影近似，茶屋旁窄路的轉向出口不易定位。</p>
+<p><strong>美術方向</strong>　竹叢用兩種疏密、低明度葉面與暖色竹節，靠通路一側留隙，維持現有碰撞和根部錨點。</p>
+<p><strong>交付規格</strong>　竹柱 384×1024、竹叢 640×768，透明 PNG／WebP。</p>
+<div class="assets">
+<figure><a href="../../assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-column.webp"><img src="../../assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-column.webp" alt="直竹現役原圖" loading="lazy"></a><figcaption>直竹<br><code>assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-column.webp</code></figcaption></figure>
+<figure><a href="../../assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-thicket.webp"><img src="../../assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-thicket.webp" alt="竹叢現役原圖" loading="lazy"></a><figcaption>竹叢<br><code>assets/img/stages/bamboo-maze/props/bamboo-maze__bamboo-thicket.webp</code></figcaption></figure>
+</div>
+</article>
+<article id="bamboo-imp">
+<h3>P2 · 竹影迷宮 · 草帽妖突進</h3>
+<div class="views">
+<figure><a href="bamboo-imp-full.jpg"><img src="bamboo-imp-full.jpg" alt="竹影迷宮 · 草帽妖突進，遊戲畫面 · 百鬼群怪 2D" loading="lazy"></a><figcaption>遊戲畫面 · 百鬼群怪 2D</figcaption></figure>
+<figure><a href="bamboo-imp-detail.jpg"><img src="bamboo-imp-detail.jpg" alt="竹影迷宮 · 草帽妖突進，問題區域放大" loading="lazy"></a><figcaption>問題區域放大</figcaption></figure>
+</div>
+<p><strong>重繪原因</strong>　土褐帽緣與走道、筍妖接近，群戰難辨待機與攻擊。</p>
+<p><strong>美術方向</strong>　用帽沿傾角、手部剪影和淺米內襯區分姿勢，少量冷色布襯，兩格同腳底與朝向。</p>
+<p><strong>交付規格</strong>　待機／攻擊各 512×512 RGBA。</p>
+<div class="assets">
+<figure><a href="../../assets/img/enemies/bamboo-hat-imp/bamboo-hat-imp__sprite__idle.webp"><img src="../../assets/img/enemies/bamboo-hat-imp/bamboo-hat-imp__sprite__idle.webp" alt="待機現役原圖" loading="lazy"></a><figcaption>待機<br><code>assets/img/enemies/bamboo-hat-imp/bamboo-hat-imp__sprite__idle.webp</code></figcaption></figure>
+<figure><a href="../../assets/img/enemies/bamboo-hat-imp/bamboo-hat-imp__sprite__attack.webp"><img src="../../assets/img/enemies/bamboo-hat-imp/bamboo-hat-imp__sprite__attack.webp" alt="攻擊現役原圖" loading="lazy"></a><figcaption>攻擊<br><code>assets/img/enemies/bamboo-hat-imp/bamboo-hat-imp__sprite__attack.webp</code></figcaption></figure>
+</div>
+</article>
+<article id="sakura-boss">
+<h3>P2 · 妖櫻山道 · 王招姿勢與羽刃</h3>
+<div class="views">
+<figure><a href="sakura-boss-full.jpg"><img src="sakura-boss-full.jpg" alt="妖櫻山道 · 王招姿勢與羽刃，遊戲畫面 · 雙王 2D" loading="lazy"></a><figcaption>遊戲畫面 · 雙王 2D</figcaption></figure>
+<figure><a href="sakura-boss-detail.jpg"><img src="sakura-boss-detail.jpg" alt="妖櫻山道 · 王招姿勢與羽刃，問題區域放大" loading="lazy"></a><figcaption>問題區域放大</figcaption></figure>
+</div>
+<p><strong>重繪原因</strong>　姿勢切換跳接，櫻粉環境削弱羽刃方向。定格用來比背景對比，姿勢銜接需連續觀看。</p>
+<p><strong>美術方向</strong>　夜櫻鬼姬做蓄勢、發招、收勢，原地對腳。羽刃保留扇形和櫻紋，尖端深墨與短暖邊標方向。</p>
+<p><strong>交付規格</strong>　角色三格各 512×512 RGBA。羽刃 768×320 透明 PNG／WebP。</p>
+<div class="assets">
+<figure><a href="../../assets/img/enemies/night-sakura-princess/night-sakura-princess__sprite__attack.webp"><img src="../../assets/img/enemies/night-sakura-princess/night-sakura-princess__sprite__attack.webp" alt="夜櫻鬼姬攻擊現役原圖" loading="lazy"></a><figcaption>夜櫻鬼姬攻擊<br><code>assets/img/enemies/night-sakura-princess/night-sakura-princess__sprite__attack.webp</code></figcaption></figure>
+<figure><a href="../../assets/img/vfx/enemies/sakura-tengu/sakura-tengu__wind-blade.webp"><img src="../../assets/img/vfx/enemies/sakura-tengu/sakura-tengu__wind-blade.webp" alt="羽刃現役原圖" loading="lazy"></a><figcaption>羽刃<br><code>assets/img/vfx/enemies/sakura-tengu/sakura-tengu__wind-blade.webp</code></figcaption></figure>
+</div>
+</article>
+<article id="skill-cards">
+<h3>P3 · 妖櫻／竹影 · 紫藤毒香與封印釘技能卡</h3>
+<div class="views">
+<figure><a href="skill-cards-full.jpg"><img src="skill-cards-full.jpg" alt="妖櫻／竹影 · 紫藤毒香與封印釘技能卡，遊戲畫面 · 竹影升級面板" loading="lazy"></a><figcaption>遊戲畫面 · 竹影升級面板</figcaption></figure>
+<figure><a href="skill-cards-detail.jpg"><img src="skill-cards-detail.jpg" alt="妖櫻／竹影 · 紫藤毒香與封印釘技能卡，問題區域放大" loading="lazy"></a><figcaption>問題區域放大</figcaption></figure>
+</div>
+<p><strong>重繪原因</strong>　縮圖能分色，紫藤與封印釘主體仍容易只被認為是光渦或爆光。</p>
+<p><strong>美術方向</strong>　紫藤用沿腳步拉長的低伏紫煙。封印釘用大墨釘及清楚落點。留出現有卡框裁切和名稱區。</p>
+<p><strong>交付規格</strong>　每張中心圖 820×1230，不透明 WebP，無字無框。</p>
+<div class="assets">
+<figure><a href="../../assets/img/skills/ink-trail/cards/ink-trail__art.webp"><img src="../../assets/img/skills/ink-trail/cards/ink-trail__art.webp" alt="紫藤毒香現役原圖" loading="lazy"></a><figcaption>紫藤毒香<br><code>assets/img/skills/ink-trail/cards/ink-trail__art.webp</code></figcaption></figure>
+<figure><a href="../../assets/img/skills/seal-nail/cards/seal-nail__art.webp"><img src="../../assets/img/skills/seal-nail/cards/seal-nail__art.webp" alt="距爆・封印釘現役原圖" loading="lazy"></a><figcaption>距爆・封印釘<br><code>assets/img/skills/seal-nail/cards/seal-nail__art.webp</code></figcaption></figure>
+</div>
+</article>
+  </section>
+  <section id="sound" aria-labelledby="sound-title">
+    <h2 id="sound-title">待補音效</h2>
+    <p>建議分級待審。必補 12 個、可選 10 個、已有合成備援 4 個、可維持靜音 4 個。表列路徑是待交付位置。音檔核准後從 <code>js/audio.js</code> 的 <code>unprovidedSfx</code> 移除對應鍵，並更新清冊。</p>
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="sound-title">
+      <table>
+        <thead><tr><th scope="col">分級</th><th scope="col">用途及檔案路徑</th><th scope="col">現有聲音</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">必補</th><td>S2・海嘯前搖，指示要找安全帶<br><code>assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__tsunami-warn.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">必補</th><td>S2・海嘯推上岸<br><code>assets/audio/sfx/enemies/ikari-umibozu/ikari-umibozu__tsunami-impact.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">必補</th><td>S3・櫻天狗突進起手<br><code>assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__rush-warn.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">必補</th><td>S3・櫻天狗突進，疾風掠過<br><code>assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__rush-cast.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">必補</th><td>S3・羽扇前搖，提早辨識扇形<br><code>assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__feather-warn.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">必補</th><td>S3・羽刃射出<br><code>assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__feather-cast.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">必補</th><td>S3・櫻根蓄勢，地下低響<br><code>assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__root-warn.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">必補</th><td>S3・櫻根破土<br><code>assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__root-impact.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">必補</th><td>S4・竹林王切線前搖<br><code>assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__cut-warning.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">必補</th><td>S4・竹林王切線命中<br><code>assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__cut-impact.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">必補</th><td>S4・竹筍預警，連續五次仍可分辨<br><code>assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__shoots-warning.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">必補</th><td>S4・竹筍破土，與切線不同音色<br><code>assets/audio/sfx/enemies/bamboo-warden/bamboo-warden__shoots-impact.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">可選</th><td>S1 首通後・紫藤鋪霧，低量提示<br><code>assets/audio/sfx/skills/ink-trail/ink-trail__drop.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">可選</th><td>S1 首通後・毒香 Lv5 混亂覺醒<br><code>assets/audio/sfx/skills/ink-trail/ink-trail__awaken__lv05.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">可選</th><td>S2 首通後・封印釘落地<br><code>assets/audio/sfx/skills/seal-nail/seal-nail__drop.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">可選</th><td>S2 首通後・封印釘爆炸<br><code>assets/audio/sfx/skills/seal-nail/seal-nail__burst.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">可選</th><td>S2 首通後・二重破封覺醒<br><code>assets/audio/sfx/skills/seal-nail/seal-nail__awaken__lv05.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">可選</th><td>S2・雨勢升為暴雨，天氣切換提示<br><code>assets/audio/sfx/world/rain-port__heavy-rain.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">可選</th><td>S3 首通後／S4・白狼召喚<br><code>assets/audio/sfx/skills/shikigami/shikigami__summon.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">可選</th><td>S3 首通後／S4・白狼咬擊<br><code>assets/audio/sfx/skills/shikigami/shikigami__attack.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">可選</th><td>S3 首通後／S4・白狼受傷<br><code>assets/audio/sfx/skills/shikigami/shikigami__hurt.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">可選</th><td>S3 首通後／S4・白狼消失或陣亡<br><code>assets/audio/sfx/skills/shikigami/shikigami__vanish.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">合成備援</th><td>全關・妖刀 Lv1–4，短單刃確認<br><code>assets/audio/sfx/katana-lv1-4.mp3</code></td><td>通用 world__slash.mp3 → 合成刀聲</td></tr>
+<tr><th scope="row">合成備援</th><td>全關・靈陣 Lv1–4，柔和脈衝<br><code>assets/audio/sfx/barrier-lv1-4.mp3</code></td><td>合成靈陣</td></tr>
+<tr><th scope="row">合成備援</th><td>全關・靈針 Lv1–4，短穿刺<br><code>assets/audio/sfx/needle-lv1-4.mp3</code></td><td>needle__cast.mp3 → 合成針聲</td></tr>
+<tr><th scope="row">合成備援</th><td>全關・靈針 Lv5，輪射辨識<br><code>assets/audio/sfx/needle-lv5.mp3</code></td><td>needle__cast.mp3 → 合成針聲</td></tr>
+<tr><th scope="row">可維持靜音</th><td>S1 首通後・毒香首次命中<br><code>assets/audio/sfx/skills/ink-trail/ink-trail__hit.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">可維持靜音</th><td>S1 首通後・餘香變異觸發<br><code>assets/audio/sfx/skills/ink-trail/ink-trail__echo.mp3</code></td><td>靜音</td></tr>
+<tr><th scope="row">可維持靜音</th><td>S2・舊水術保留槽，蓄勢<br><code>assets/audio/sfx/boss/rain_port_water_slam_warn.ogg</code></td><td>靜音</td></tr>
+<tr><th scope="row">可維持靜音</th><td>S2・舊水術保留槽，水擊落地<br><code>assets/audio/sfx/boss/rain_port_water_slam_impact.ogg</code></td><td>靜音</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section id="japanese" aria-labelledby="japanese-title">
+    <h2 id="japanese-title">日文與語音抽樣</h2>
+    <p>先播放，試著從三項中選出聽到的詞，再展開核對。請標記讀音、音高、圖示辨識或干擾詞不自然的題目。</p>
+    <h3>夜行町</h3>
+<div class="questions">
+<article>
+<p id="quiz-1"><strong>第 1 題</strong></p>
+<audio aria-labelledby="quiz-1" controls loading="lazy" preload="none" src="../../assets/audio/delivery/night-town/01.mp3"></audio>
+<a href="../../assets/audio/delivery/night-town/01.mp3">開啟原 MP3（01）</a>
+<ol lang="ja"><li>あり</li><li>はし</li><li>ほん</li></ol>
+<details><summary>核對正解</summary><p>第 3 項 · <span lang="ja">ほん</span>（書）</p>
+<p>選項詞義　螞蟻／筷子／書</p><p>確認「ほん」以及書與紙的圖像區分。</p></details>
+</article>
+<article>
+<p id="quiz-2"><strong>第 2 題</strong></p>
+<audio aria-labelledby="quiz-2" controls loading="lazy" preload="none" src="../../assets/audio/delivery/night-town/09.mp3"></audio>
+<a href="../../assets/audio/delivery/night-town/09.mp3">開啟原 MP3（09）</a>
+<ol lang="ja"><li>ふね</li><li>かい</li><li>はし</li></ol>
+<details><summary>核對正解</summary><p>第 3 項 · <span lang="ja">はし</span>（筷子）</p>
+<p>選項詞義　船／貝類／筷子</p><p>確認圖像能區分筷子與「橋」等同音詞。</p></details>
+</article>
+<article>
+<p id="quiz-3"><strong>第 3 題</strong></p>
+<audio aria-labelledby="quiz-3" controls loading="lazy" preload="none" src="../../assets/audio/delivery/night-town/13.mp3"></audio>
+<a href="../../assets/audio/delivery/night-town/13.mp3">開啟原 MP3（13）</a>
+<ol lang="ja"><li>ゴムまり</li><li>けしゴム</li><li>こげパン</li></ol>
+<details><summary>核對正解</summary><p>第 2 項 · <span lang="ja">けしゴム</span>（橡皮擦）</p>
+<p>選項詞義　橡膠球／橡皮擦／烤焦的麵包</p><p>聽辨「けしゴム」的混寫與相近ゴム詞。</p></details>
+</article>
+<article>
+<p id="quiz-4"><strong>第 4 題</strong></p>
+<audio aria-labelledby="quiz-4" controls loading="lazy" preload="none" src="../../assets/audio/delivery/night-town/11.mp3"></audio>
+<a href="../../assets/audio/delivery/night-town/11.mp3">開啟原 MP3（11）</a>
+<ol lang="ja"><li>ピッチ</li><li>グッズ</li><li>コップ</li></ol>
+<details><summary>核對正解</summary><p>第 3 項 · <span lang="ja">コップ</span>（杯子）</p>
+<p>選項詞義　球場／周邊商品／杯子</p><p>確認全片假名好讀，評估干擾詞是否太容易排除。</p></details>
+</article>
+</div>
+<h3>雨夜港町</h3>
+<div class="questions">
+<article>
+<p id="quiz-5"><strong>第 5 題</strong></p>
+<audio aria-labelledby="quiz-5" controls loading="lazy" preload="none" src="../../assets/audio/delivery/rain-port/02.mp3"></audio>
+<a href="../../assets/audio/delivery/rain-port/02.mp3">開啟原 MP3（02）</a>
+<ol lang="ja"><li>さけ</li><li>あり</li><li>くし</li></ol>
+<details><summary>核對正解</summary><p>第 1 項 · <span lang="ja">さけ</span>（鮭魚）</p>
+<p>選項詞義　鮭魚／螞蟻／梳子</p><p>聽「さけ」的讀音與音高，對照鮭魚圖示。</p></details>
+</article>
+<article>
+<p id="quiz-6"><strong>第 6 題</strong></p>
+<audio aria-labelledby="quiz-6" controls loading="lazy" preload="none" src="../../assets/audio/delivery/rain-port/14.mp3"></audio>
+<a href="../../assets/audio/delivery/rain-port/14.mp3">開啟原 MP3（14）</a>
+<ol lang="ja"><li>さくら</li><li>わかめ</li><li>さかな</li></ol>
+<details><summary>核對正解</summary><p>第 2 項 · <span lang="ja">わかめ</span>（海帶芽）</p>
+<p>選項詞義　櫻花／海帶芽／魚</p><p>確認海帶芽和昆布的圖像區分、わかめ的讀音。</p></details>
+</article>
+<article>
+<p id="quiz-7"><strong>第 7 題</strong></p>
+<audio aria-labelledby="quiz-7" controls loading="lazy" preload="none" src="../../assets/audio/delivery/rain-port/15.mp3"></audio>
+<a href="../../assets/audio/delivery/rain-port/15.mp3">開啟原 MP3（15）</a>
+<ol lang="ja"><li>くし</li><li>さけ</li><li>すし</li></ol>
+<details><summary>核對正解</summary><p>第 3 項 · <span lang="ja">すし</span>（壽司）</p>
+<p>選項詞義　梳子／鮭魚／壽司</p><p>比較くし／すし的一拍差異是否清楚。</p></details>
+</article>
+<article>
+<p id="quiz-8"><strong>第 8 題</strong></p>
+<audio aria-labelledby="quiz-8" controls loading="lazy" preload="none" src="../../assets/audio/delivery/rain-port/18.mp3"></audio>
+<a href="../../assets/audio/delivery/rain-port/18.mp3">開啟原 MP3（18）</a>
+<ol lang="ja"><li>くだもの</li><li>おにぎり</li><li>しんぶん</li></ol>
+<details><summary>核對正解</summary><p>第 2 項 · <span lang="ja">おにぎり</span>（飯糰）</p>
+<p>選項詞義　水果／飯糰／報紙</p><p>評估跨主題干擾是否過於容易。</p></details>
+</article>
+</div>
+<h3>妖櫻山道</h3>
+<div class="questions">
+<article>
+<p id="quiz-9"><strong>第 9 題</strong></p>
+<audio aria-labelledby="quiz-9" controls loading="lazy" preload="none" src="../../assets/audio/delivery/sakura-pass/01.mp3"></audio>
+<a href="../../assets/audio/delivery/sakura-pass/01.mp3">開啟原 MP3（01）</a>
+<ol lang="ja"><li>さくら</li><li>かえる</li><li>さかな</li></ol>
+<details><summary>核對正解</summary><p>第 1 項 · <span lang="ja">さくら</span>（櫻花）</p>
+<p>選項詞義　櫻花／青蛙／魚</p><p>比較さくら／さかな相似開頭，核對櫻花圖。</p></details>
+</article>
+<article>
+<p id="quiz-10"><strong>第 10 題</strong></p>
+<audio aria-labelledby="quiz-10" controls loading="lazy" preload="none" src="../../assets/audio/delivery/sakura-pass/02.mp3"></audio>
+<a href="../../assets/audio/delivery/sakura-pass/02.mp3">開啟原 MP3（02）</a>
+<ol lang="ja"><li>みそ</li><li>さけ</li><li>はな</li></ol>
+<details><summary>核對正解</summary><p>第 3 項 · <span lang="ja">はな</span>（花）</p>
+<p>選項詞義　味噌／鮭魚／花</p><p>核對花與櫻花的圖片區分。</p></details>
+</article>
+<article>
+<p id="quiz-11"><strong>第 11 題</strong></p>
+<audio aria-labelledby="quiz-11" controls loading="lazy" preload="none" src="../../assets/audio/delivery/sakura-pass/07.mp3"></audio>
+<a href="../../assets/audio/delivery/sakura-pass/07.mp3">開啟原 MP3（07）</a>
+<ol lang="ja"><li>て</li><li>き</li><li>め</li></ol>
+<details><summary>核對正解</summary><p>第 2 項 · <span lang="ja">き</span>（樹／木）</p>
+<p>選項詞義　手／樹／木／眼睛</p><p>檢查單拍的き是否清楚。</p></details>
+</article>
+<article>
+<p id="quiz-12"><strong>第 12 題</strong></p>
+<audio aria-labelledby="quiz-12" controls loading="lazy" preload="none" src="../../assets/audio/delivery/sakura-pass/10.mp3"></audio>
+<a href="../../assets/audio/delivery/sakura-pass/10.mp3">開啟原 MP3（10）</a>
+<ol lang="ja"><li>ふで</li><li>くぎ</li><li>すず</li></ol>
+<details><summary>核對正解</summary><p>第 3 項 · <span lang="ja">すず</span>（鈴鐺）</p>
+<p>選項詞義　毛筆／釘子／鈴鐺</p><p>核對すず的濁音及鈴鐺提示。</p></details>
+</article>
+</div>
+<h3>竹影迷宮</h3>
+<div class="questions">
+<article>
+<p id="quiz-13"><strong>第 13 題</strong></p>
+<audio aria-labelledby="quiz-13" controls loading="lazy" preload="none" src="../../assets/audio/delivery/bamboo-maze/02.mp3"></audio>
+<a href="../../assets/audio/delivery/bamboo-maze/02.mp3">開啟原 MP3（02）</a>
+<ol lang="ja"><li>くつした</li><li>かいもの</li><li>たけのこ</li></ol>
+<details><summary>核對正解</summary><p>第 3 項 · <span lang="ja">たけのこ</span>（竹筍）</p>
+<p>選項詞義　襪子／購物／竹筍</p><p>評估跨類干擾是否符合本關難度。</p></details>
+</article>
+<article>
+<p id="quiz-14"><strong>第 14 題</strong></p>
+<audio aria-labelledby="quiz-14" controls loading="lazy" preload="none" src="../../assets/audio/delivery/bamboo-maze/06.mp3"></audio>
+<a href="../../assets/audio/delivery/bamboo-maze/06.mp3">開啟原 MP3（06）</a>
+<ol lang="ja"><li>えんぴつ</li><li>えだまめ</li><li>にんじん</li></ol>
+<details><summary>核對正解</summary><p>第 3 項 · <span lang="ja">にんじん</span>（紅蘿蔔）</p>
+<p>選項詞義　鉛筆／毛豆／紅蘿蔔</p><p>確認毛豆作為同長干擾是否自然。</p></details>
+</article>
+<article>
+<p id="quiz-15"><strong>第 15 題</strong></p>
+<audio aria-labelledby="quiz-15" controls loading="lazy" preload="none" src="../../assets/audio/delivery/bamboo-maze/13.mp3"></audio>
+<a href="../../assets/audio/delivery/bamboo-maze/13.mp3">開啟原 MP3（13）</a>
+<ol lang="ja"><li>レモン</li><li>トマト</li><li>アニメ</li></ol>
+<details><summary>核對正解</summary><p>第 2 項 · <span lang="ja">トマト</span>（番茄）</p>
+<p>選項詞義　檸檬／番茄／動畫</p><p>判斷アニメ是否一眼可排除。</p></details>
+</article>
+<article>
+<p id="quiz-16"><strong>第 16 題</strong></p>
+<audio aria-labelledby="quiz-16" controls loading="lazy" preload="none" src="../../assets/audio/delivery/bamboo-maze/20.mp3"></audio>
+<a href="../../assets/audio/delivery/bamboo-maze/20.mp3">開啟原 MP3（20）</a>
+<ol lang="ja"><li>ふくろ</li><li>もやし</li><li>うちわ</li></ol>
+<details><summary>核對正解</summary><p>第 2 項 · <span lang="ja">もやし</span>（豆芽菜）</p>
+<p>選項詞義　袋子／豆芽菜／團扇</p><p>確認もやし音、豆芽菜圖片與干擾距離。</p></details>
+</article>
+</div>
+  </section>
+</main>
+</html>

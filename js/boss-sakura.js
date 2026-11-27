@@ -83,7 +83,11 @@
     }
     if (!(dt>0) || options.paused || e.shield || !p) return result;
     e.attackCd = Math.max(0,(e.attackCd || 0)-dt);
-    if (!e.hazard && e.attackCd===0 && distance(e,p)<500) result.started=start(e,p,options);
+    const gate=options.earlyGate;
+    if (!e.hazard && e.attackCd===0 && distance(e,p)<500 && (!gate || gate.ready(options,e,'telegraph'))) {
+      result.started=start(e,p,options);
+      if (result.started) gate?.record(options,e,'telegraph');
+    }
     const h = e.hazard;
     if (!h) return result;
     const before = h.t;
@@ -91,7 +95,11 @@
     h.t += dt;
     if (h.phase==='telegraph') {
       e.slamT=Math.max(0,h.duration-h.t);
-      if (h.t>=h.duration) {h.phase='active';h.t=0;h.duration=h.activeDuration;e.slamT=0;}
+      if (h.t>=h.duration) {
+        if (gate && !gate.ready(options,e,'active')) {h.t=h.duration;return result;}
+        gate?.record(options,e,'active');
+        h.phase='active';h.t=0;h.duration=h.activeDuration;e.slamT=0;
+      }
       return result;
     }
     if (h.phase==='active') {

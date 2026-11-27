@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>妖怪快遞社：夜行配達 — Yokai Delivery Service</title>
   <link rel="preload" as="image" href="assets/img/cover.webp?v=20261010-character-set1" fetchpriority="high">
+  <link rel="icon" href="assets/img/ui/hud/ui__lantern-oil.webp" type="image/webp">
+  <link rel="stylesheet" href="js/ui-compendium.css?v=20261127-f5">
   <!-- Google Web Fonts: 和風書法字體與圓體 -->
   <link rel="preload" href="assets/fonts/YokaiNotoSansJP.woff2?v=20261101-font1" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/YokaiYujiSyukuJP.woff2?v=20261101-b18" as="font" type="font/woff2" crossorigin>
@@ -67,14 +69,14 @@
        Phase42 trial only, source/license noted in assets/fonts/. */
     @font-face {
       font-family: 'Yokai Trial MoonStars Kai T';
-      src: url('assets/fonts/YokaiTrialMoonStarsKaiT-Regular.woff2?v=20261122-glyphs') format('woff2');
+      src: url('assets/fonts/YokaiTrialMoonStarsKaiT-Regular.woff2?v=20261127-f5') format('woff2');
       font-style: normal;
       font-weight: 400;
       font-display: swap;
     }
     @font-face {
       font-family: 'Yokai Trial MoonStars Kai T Bold';
-      src: url('assets/fonts/YokaiTrialMoonStarsKaiT-Bold.woff2?v=20261122-glyphs') format('woff2');
+      src: url('assets/fonts/YokaiTrialMoonStarsKaiT-Bold.woff2?v=20261127-f5') format('woff2');
       font-style: normal;
       font-weight: 400;
       font-display: swap;
@@ -196,18 +198,6 @@
       body[data-game-screen="menu"] #rotate-hint { display: none; }
     }
   </style>
-  <style>
-    #controls-open, #controls-dialog { font-family: 'Noto Sans JP', 'Microsoft JhengHei', sans-serif; font-size: 16px; color: #fff1d0; }
-    #controls-open { position: fixed; bottom: max(12px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left)); z-index: 10; }
-    #controls-dialog { width: min(680px, 94vw); max-height: 90dvh; overflow: auto; background: repeating-linear-gradient(0deg,#4b3e35 0 22px,#504136 23px 24px); border: 3px solid #be9d73; border-radius: 0; clip-path: polygon(12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px),0 12px); padding: 24px; box-shadow: inset 0 0 0 6px #5b4332, 0 16px 45px #14121add; }
-    #controls-dialog::backdrop { background: #060913db; }
-    #controls-dialog h2 { margin: 0 0 12px; font-size: 26px; }
-    #controls-dialog p { line-height: 1.6; }
-    #controls-dialog button, #controls-open { min-height: 44px; padding: 10px 16px; background: #78533e; border: 2px solid #cfac7d; border-radius: 0; clip-path: polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px); color: #f9e9cb; font: inherit; cursor: pointer; }
-    #controls-dialog button:focus-visible, #controls-open:focus-visible { outline: 0; box-shadow: inset 0 0 0 3px #f4d696, 0 0 0 2px #f4d696; }
-    .control-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 16px 0; }
-    #controls-status { min-height: 26px; color: #80deea; }
-  </style>
 </head>
 <body>
   <div id="game-container">
@@ -215,90 +205,175 @@
   </div>
   <div id="rotate-hint" role="status" aria-live="polite">↻　橫向遊玩</div>
   <button id="controls-open" type="button" hidden>操作與自定義</button>
-  <dialog id="controls-dialog" aria-labelledby="controls-title">
-    <h2 id="controls-title">操作與自定義</h2>
-    <p>右手預設：左手 WASD 移動。左手預設：右手 IJKL 移動。點選下方功能，再按新按鍵即可自訂；設定會自動保存在此瀏覽器。</p>
-    <button type="button" data-preset="right">右手預設／還原</button>
-    <button type="button" data-preset="left">左手預設</button>
-    <p><label><input id="haptics-enabled" type="checkbox"> 震動回饋（手機／手把）</label></p>
-    <div class="control-grid">
-      <button type="button" data-action="u"></button><button type="button" data-action="d"></button>
-      <button type="button" data-action="l"></button><button type="button" data-action="r"></button>
-      <button type="button" data-action="dash"></button><button type="button" data-action="interact"></button>
-      <button type="button" data-action="pause"></button>
-      <button type="button" data-action="codex"></button><button type="button" data-action="mute"></button>
+  <dialog id="controls-dialog" class="yc-book cs-book" aria-labelledby="controls-title">
+    <div class="yc-shell">
+      <header class="yc-head">
+        <h1 id="controls-title">操作與自定義</h1>
+        <nav class="yc-tabs" role="tablist" aria-label="輸入方式">
+          <button type="button" id="cs-tab-keys" class="yc-bookmark" role="tab" aria-selected="true" aria-controls="cs-keys" data-controls-tab="keys" autofocus>鍵盤</button>
+          <button type="button" id="cs-tab-pointer" class="yc-bookmark" role="tab" aria-selected="false" aria-controls="cs-pointer" data-controls-tab="pointer" tabindex="-1">滑鼠與觸控</button>
+          <button type="button" id="cs-tab-pad" class="yc-bookmark" role="tab" aria-selected="false" aria-controls="cs-pad" data-controls-tab="pad" tabindex="-1">手把</button>
+        </nav>
+      </header>
+      <div class="yc-panel cs-panel">
+        <section id="cs-keys" class="cs-layout cs-keys" role="tabpanel" aria-labelledby="cs-tab-keys" data-controls-panel="keys">
+          <div class="cs-binding">
+            <h2>按鍵設定</h2>
+            <div class="cs-actions">
+              <button type="button" data-action="u"></button><button type="button" data-action="d"></button>
+              <button type="button" data-action="l"></button><button type="button" data-action="r"></button>
+              <button type="button" data-action="dash"></button><button type="button" data-action="interact"></button>
+              <button type="button" data-action="pause"></button><button type="button" data-action="codex"></button>
+              <button type="button" data-action="mute"></button>
+            </div>
+            <p class="cs-note">選擇操作後按下新鍵。可使用英文字母、空白鍵或部分數字鍵盤按鍵。</p>
+          </div>
+          <section class="yc-paper cs-paper">
+            <h2>左右手預設</h2>
+            <div class="cs-presets">
+              <button type="button" class="yc-control" data-preset="right">右手預設 <kbd>W A S D</kbd><small>左手移動、E 取貨</small></button>
+              <button type="button" class="yc-control" data-preset="left">左手預設 <kbd>I J K L</kbd><small>右手移動、U 取貨</small></button>
+            </div>
+            <h2>固定鍵與快捷鍵</h2>
+            <dl class="cs-list">
+              <div><dt>備用</dt><dd>方向鍵 移動　Shift 衝刺　Esc 暫停／返回</dd></div>
+              <div><dt>選單</dt><dd>方向鍵／Tab 選擇　Enter 確認</dd></div>
+              <div><dt>典籍</dt><dd>Tab 切頁籤　Page Up／Down 翻單字頁</dd></div>
+              <div><dt>答題</dt><dd>頭目以 1–3 選答案。配送站上答題墊提交。</dd></div>
+              <div><dt>修行</dt><dd>1–3 選卡　R 重抽</dd></div>
+            </dl>
+          </section>
+        </section>
+        <section id="cs-pointer" class="cs-layout cs-pointer" role="tabpanel" aria-labelledby="cs-tab-pointer" data-controls-panel="pointer" hidden>
+          <section class="cs-binding">
+            <h2>滑鼠</h2>
+            <dl class="cs-list cs-illustrated">
+              <div><dt><kbd>左鍵</kbd></dt><dd><strong>拖曳移動</strong>在場地按住並拖曳。點取貨鈕可與貨件互動。</dd></div>
+              <div><dt><kbd>右鍵</kbd></dt><dd><strong>衝刺</strong>按右鍵或點衝刺鈕。</dd></div>
+              <div><dt><kbd>點選</kbd></dt><dd><strong>頭目答題</strong>答案出現時，直接點選答案卡。</dd></div>
+            </dl>
+          </section>
+          <section class="yc-paper cs-paper">
+            <h2>觸控</h2>
+            <dl class="cs-list cs-illustrated">
+              <div><dt><kbd>左側</kbd></dt><dd><strong>拖曳移動</strong>按住左半側場地並拖曳。</dd></div>
+              <div><dt><img src="assets/img/stages/rain-port/props/rain-port__prop-cargo-crates.webp" alt="" loading="lazy"></dt><dd><strong>取貨</strong>靠近貨件時，點右側出現的取貨鈕。</dd></div>
+              <div><dt><img src="assets/img/ui/dash_medallion_b7.webp" alt="" loading="lazy"></dt><dd><strong>衝刺</strong>點右側衝刺鈕。</dd></div>
+            </dl>
+            <label class="cs-haptics"><input id="haptics-enabled" type="checkbox" data-haptics> 震動回饋</label>
+          </section>
+        </section>
+        <section id="cs-pad" class="cs-layout cs-pad" role="tabpanel" aria-labelledby="cs-tab-pad" data-controls-panel="pad" hidden>
+          <section class="cs-binding">
+            <h2>遊戲中</h2>
+            <dl class="cs-list">
+              <div><dt><kbd>左搖桿</kbd></dt><dd>移動</dd></div>
+              <div><dt><kbd>A</kbd></dt><dd>取貨／互動</dd></div>
+              <div><dt><kbd>B</kbd></dt><dd>衝刺</dd></div>
+              <div><dt><kbd>Start</kbd></dt><dd>暫停／繼續</dd></div>
+              <div><dt><kbd>右搖桿按下</kbd></dt><dd>切換 2D／2.5D 視角</dd></div>
+            </dl>
+            <label class="cs-haptics"><input type="checkbox" data-haptics> 震動回饋</label>
+          </section>
+          <section class="yc-paper cs-paper">
+            <h2>選單、典籍與設定</h2>
+            <dl class="cs-list">
+              <div><dt><kbd>十字鍵</kbd> <kbd>左搖桿</kbd></dt><dd>移動焦點</dd></div>
+              <div><dt><kbd>A</kbd> <kbd>B</kbd></dt><dd>確認／返回</dd></div>
+              <div><dt><kbd>LB</kbd> <kbd>RB</kbd></dt><dd>切換分頁</dd></div>
+            </dl>
+            <h2>頭目答題與升級</h2>
+            <dl class="cs-list">
+              <div><dt><kbd>LB</kbd> <kbd>RB</kbd> <kbd>Y</kbd></dt><dd>答題選項 1、2、3</dd></div>
+              <div><dt><kbd>十字鍵</kbd> <kbd>左搖桿</kbd></dt><dd>移動升級卡焦點</dd></div>
+              <div><dt><kbd>A</kbd> <kbd>Y</kbd></dt><dd>確認升級／重抽</dd></div>
+            </dl>
+          </section>
+        </section>
+      </div>
+      <footer class="yc-foot cs-foot">
+        <button type="button" class="yc-control yc-back" data-controls-back>‹　返回</button>
+        <div class="cs-feedback">
+          <span id="controls-status" role="status"></span>
+          <button type="button" class="yc-control" data-controls-cancel hidden>取消綁定</button>
+        </div>
+        <button type="button" class="yc-control cs-reset" data-controls-reset>恢復預設按鍵</button>
+      </footer>
     </div>
-    <p>滑鼠：在遊戲區任何位置按住左鍵拖曳移動，右鍵衝刺；也可點衝刺鈕。手機：左側拖曳移動，右側取貨與衝刺。手把：左搖桿移動。</p>
-    <p>固定備用鍵：方向鍵移動、Shift 衝刺、Esc 暫停／返回；1–3 選 Boss 答案或升級，選單方向鍵／Tab 移動焦點，Enter 確認；Esc 返回。配送站上答題墊提交。</p>
-    <p>手把：選單十字鍵移動、A 確認、B 返回；遊戲 A 取貨、B 衝刺；Boss 答題用 LB／RB／Y 選 1／2／3。圖鑑：Tab 或 LB／RB 切頁籤，方向鍵左右翻單字頁。</p>
-    <p id="controls-status" role="status"></p>
-    <form method="dialog"><button>完成／返回</button></form>
   </dialog>
 
   <script src="js/delivery-lexicon.js?v=20261119-ferry-words"></script>
-  <script src="js/delivery-media.js?v=20261119-delivery-redraw"></script>
-  <script src="js/words.js?v=20261125-phase-a"></script>
-  <script src="js/world.js?v=20261119-bamboo-grove"></script>
-  <script src="js/dev-mode.js?v=20261120-classroom"></script>
+  <script src="js/delivery-media.js?v=20261128-classroom-eight"></script>
+  <script src="js/words.js?v=20261128-classroom-eight"></script>
+  <script src="js/world.js?v=20261126-stage56"></script>
+  <script src="js/dev-mode.js?v=20261126-stage56"></script>
   <script src="js/delivery-icon-art.js?v=20261116-s3-engine-r1"></script>
-  <script src="js/store.js?v=20261120-classroom"></script>
-  <script src="js/config.js?v=20261116-s3-engine-r1"></script>
+  <script src="js/game-skill-expansion.js?v=20261128-classroom-eight"></script>
+  <script src="js/store.js?v=20261126-skill-expansion"></script>
+  <script src="js/config.js?v=20261125-boss-schedule-unified"></script>
   <script src="js/viewport.js?v=20261101-s2b17"></script>
-  <script src="js/controls.js?v=20261119-auditfix-r1"></script>
+  <script src="js/controls.js?v=20261126-v2"></script>
   <script src="js/asset-paths.js?v=20261101-audit"></script>
   <script src="js/sakura-art-data.js?v=20261120-sakura-readability"></script>
-  <script src="js/assets.js?v=20261125-phase-a"></script>
+  <script src="js/assets.js?v=20261126-stage78"></script>
   <script src="js/delivery-fish-audio.js?v=20261101-s2b17"></script>
-  <script src="js/audio.js?v=20261125-phase-d"></script>
+  <script src="js/stage58-audio.js?v=20261128-classroom-eight"></script>
+  <script src="js/audio.js?v=20261128-classroom-eight"></script>
   <script src="js/haptics.js?v=20261101-s2b17"></script>
   <script src="js/spritecook-dev.js?v=20261101-s2b17"></script>
   <script src="js/boss-roster-trial.js?v=20261120-classroom"></script>
-  <script src="js/renderer.js?v=20261125-phase-d"></script>
+  <script src="js/renderer.js?v=20261127-f4-boss"></script>
   <script src="js/fx.js?v=20261124-ipad-phases"></script>
   <script src="js/skillfx.js?v=20261124-ipad-phases"></script>
-  <script src="js/ui.js?v=20261125-phase-d"></script>
-  <script src="js/ui-upgrade-trial.js?v=20261125-phase-d"></script>
+  <script src="js/ui.js?v=20261128-classroom-eight"></script>
+  <script src="js/ui-upgrade-trial.js?v=20261128-classroom-eight"></script>
   <script src="js/overworld-layout.js?v=20261101-s2b17"></script>
-  <script src="js/overworld.js?v=20261122-courier-travel"></script>
+  <script src="js/overworld.js?v=20261126-audit"></script>
   <script src="js/evolutions.js?v=20261101-s2b17"></script>
-  <script src="js/boss-sakura.js?v=20261119-sakura-solid-tell"></script>
-  <script src="js/boss-ai.js?v=20261120-boss-roster"></script>
+  <script src="js/boss-sakura.js?v=20261127-f8"></script>
+  <script src="js/boss-ai.js?v=20261127-f8"></script>
   <script src="js/story-dialogue.js?v=20261101-s2b17"></script>
   <script src="js/card-collection.js?v=20261101-s2b17"></script>
   <script src="js/card-delivery-bridge.js?v=20261119-balance-compaction-r1"></script>
   <script src="js/card-gallery-model.js?v=20261101-s2b17"></script>
   <script src="js/card-gallery-ui.js?v=20261101-s2b17"></script>
   <script>
-    // Fusion and Kyoto remain local Labs. Released route modules must load
+    // Fusion and Kyoto remain local Labs, as does Snow Temple. Released routes load
     // before game.js for both public progress and local playtesting.
     // This runs only during HTML parsing, never after page load.
     if (window.DEV_MODE?.isFusionLab?.(window.location))
       document.write('<script src="js/fusion.js?v=20261119-fusion-lab-r3"><' + '/script>');
     if (window.DEV_MODE?.isShikigamiEnabled?.(window.location))
-      document.write('<script src="js/game-shikigami.js?v=20261121-skill-mutations"><' + '/script>');
+      document.write('<script src="js/game-shikigami.js?v=20261126-wolf-art"><' + '/script>');
     if (window.DEV_MODE?.isBambooEnabled?.(window.location)) {
-      document.write('<script src="js/stage-route-layouts.js?v=20261119-bamboo-grove"><' + '/script>');
-      document.write('<script src="js/bamboo-combat.js?v=20261120-boss-roster"><' + '/script>');
-      document.write('<script src="js/bamboo-art.js?v=20261119-bamboo-grove"><' + '/script>');
+      document.write('<script src="js/stage-route-layouts.js?v=20261126-stage78"><' + '/script>');
+      document.write('<script src="js/bamboo-combat.js?v=20261127-f8"><' + '/script>');
+      document.write('<script src="js/bamboo-art.js?v=20261126-ink-warning"><' + '/script>');
     }
-    if (window.DEV_MODE?.isStageLab?.(window.location))
-      document.write('<script src="js/kyoto-procession.js?v=20261119-stage-lab-r1"><' + '/script>');
+    if (window.DEV_MODE?.isStageLab?.(window.location) || window.CONTENT?.getStage?.("hyakki-kyoto")?.mapReleased === true) {
+      document.write('<script src="js/kyoto-procession.js?v=20261121-kyoto-actors"><' + '/script>');
+      document.write('<script src="js/kyoto-scene-art.js?v=20261128-classroom-eight"><' + '/script>');
+      document.write('<script src="js/snow-temple-combat.js?v=20261126-stage56"><' + '/script>');
+      document.write('<script src="js/snow-temple-art.js?v=20261128-classroom-eight"><' + '/script>');
+      document.write('<script src="js/late-stage-art.js?v=20261128-classroom-eight"><' + '/script>');
+      document.write('<script src="js/late-stage-combat.js?v=20261127-f2"><' + '/script>');
+    }
   </script>
   <script src="js/combat-targeting.js?v=20261101-audit"></script>
-  <script src="js/game-quiz-logic.js?v=20261102-quiz-phase1"></script>
+  <script src="js/game-quiz-logic.js?v=20261125-phase-a"></script>
   <script src="js/game-geometry.js?v=20261103-input-phase15"></script>
   <script src="js/game-spawn-math.js?v=20261103-spawn-phase9"></script>
-  <script src="js/game-build-rules.js?v=20261120-classroom"></script>
-  <script src="js/game-violet-scent.js?v=20261120-classroom"></script>
-  <script src="js/game-confusion.js?v=20261117-scent-v1"></script>
-  <script src="js/game-seal-nail.js?v=20261121-skill-mutations"></script>
+  <script src="js/game-build-rules.js?v=20261126-skill-expansion"></script>
+  <script src="js/game-violet-scent.js?v=20261126-late-skills-v2"></script>
+  <script src="js/game-confusion.js?v=20261126-late-skills-v2"></script>
+  <script src="js/game-seal-nail.js?v=20261126-wolf-mine-v3"></script>
   <script src="js/game-delivery-rules.js?v=20261116-s3-engine-r1"></script>
-  <script src="js/game-attack-specs.js?v=20261125-phase-a"></script>
-  <script src="js/game-catalog.js?v=20261121-skill-mutations"></script>
-  <script src="js/game-combat-math.js?v=20261119-auditfix-r1"></script>
+  <script src="js/game-attack-specs.js?v=20261126-skill-expansion"></script>
+  <script src="js/game-catalog.js?v=20261126-skill-expansion"></script>
+  <script src="js/game-combat-math.js?v=20261125-boss-schedule-unified"></script>
   <script src="js/game-weather.js?v=20261124-ipad-phases"></script>
   <script src="js/game-charm-math.js?v=20261103-charm-phase5"></script>
-  <script src="js/game-upgrade-choices.js?v=20261124-new-skill-visibility"></script>
+  <script src="js/game-upgrade-choices.js?v=20261127-f5"></script>
   <script src="js/game-run-summary.js?v=20261103-summary-phase18"></script>
   <script src="js/game-tutorial-rules.js?v=20261103-tutorial-phase20"></script>
   <script src="js/game-sanctuary-arc.js?v=20261107-lv5-dome-gradient"></script>
@@ -307,7 +382,19 @@
       document.write('<script src="js/port-performance.js?v=20261124-ipad-phases"><' + '/script>');
     }
   </script>
-  <script src="js/game.js?v=20261125-phase-d"></script>
+  <script src="js/ui-compendium-model.js?v=20261126"></script>
+  <script src="js/ui-compendium.js?v=20261127-f5"></script>
+  <script>
+    if (new URLSearchParams(location.search).get('compendiumReview') === '1' && window.DEV_MODE?.isStageLab(location)) {
+      document.write('<script src="js/ui-compendium-review.js?v=20261126"><' + '/script>');
+    }
+  </script>
+  <script>
+    if (window.GAME_SKILL_EXPANSION?.lab(window)) {
+      document.write('<script src="js/dev-active-skill-lab.js?v=20261127-f1"><' + '/script>');
+    }
+  </script>
+  <script src="js/game.js?v=20261128-classroom-eight"></script>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' }).catch(() => {});
 </script>

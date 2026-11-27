@@ -638,7 +638,7 @@
       }),
       pacing: Object.freeze({
         runSeconds: 600,
-        goalDeliveries: 6,
+        goalDeliveries: 0,
         bossTimes: Object.freeze([180, 360, 480, 540]),
         surgeFirst: 75,
         surgeInterval: 75,
@@ -681,7 +681,7 @@
       }),
       pacing: Object.freeze({
         runSeconds: 600,
-        goalDeliveries: 6,
+        goalDeliveries: 0,
         bossTimes: Object.freeze([180, 360, 480, 540]),
         surgeFirst: 90,
         surgeInterval: 80,
@@ -723,7 +723,7 @@
       }),
       pacing: Object.freeze({
         runSeconds: 600,
-        goalDeliveries: 6,
+        goalDeliveries: 0,
         bossTimes: Object.freeze([180, 360, 480, 540]),
         surgeFirst: 80,
         surgeInterval: 75,
@@ -764,7 +764,7 @@
       }),
       pacing: Object.freeze({
         runSeconds: 600,
-        goalDeliveries: 6,
+        goalDeliveries: 0,
         bossTimes: Object.freeze([180, 360, 480, 540]),
         surgeFirst: 80,
         surgeInterval: 75,
@@ -775,8 +775,8 @@
     }),
     "hyakki-kyoto": Object.freeze({
       id: "hyakki-kyoto",
-      releaseStatus: "development",
-      mapReleased: false,
+      releaseStatus: "playtest",
+      mapReleased: true,
       name: "百鬼京都",
       sub: "ひゃっききょうと",
       description: "百鬼夜行的京都古都。配送市集食材、和菓子與常見料理。",
@@ -805,7 +805,7 @@
       }),
       pacing: Object.freeze({
         runSeconds: 600,
-        goalDeliveries: 6,
+        goalDeliveries: 0,
         bossTimes: Object.freeze([180, 360, 480, 540]),
         surgeFirst: 75,
         surgeInterval: 70,
@@ -816,8 +816,8 @@
     }),
     "snow-temple": Object.freeze({
       id: "snow-temple",
-      releaseStatus: "development",
-      mapReleased: false,
+      releaseStatus: "playtest",
+      mapReleased: true,
       name: "雪燈山寺",
       sub: "せつとうさんじ",
       description: "雪山古寺中的修行路。配送冬衣、借宿日用品與熱食。",
@@ -847,7 +847,7 @@
       }),
       pacing: Object.freeze({
         runSeconds: 600,
-        goalDeliveries: 6,
+        goalDeliveries: 0,
         bossTimes: Object.freeze([180, 360, 480, 540]),
         surgeFirst: 75,
         surgeInterval: 70,
@@ -858,8 +858,8 @@
     }),
     "spirit-ferry": Object.freeze({
       id: "spirit-ferry",
-      releaseStatus: "development",
-      mapReleased: false,
+      releaseStatus: "playtest",
+      mapReleased: true,
       name: "幽世渡口",
       sub: "かくりよわたし",
       description: "幽世渡船頭的彼岸前哨。配送旅人行李、交通物件與書信。",
@@ -888,7 +888,7 @@
       }),
       pacing: Object.freeze({
         runSeconds: 600,
-        goalDeliveries: 6,
+        goalDeliveries: 0,
         bossTimes: Object.freeze([180, 360, 480, 540]),
         surgeFirst: 70,
         surgeInterval: 70,
@@ -899,8 +899,8 @@
     }),
     "yomi": Object.freeze({
       id: "yomi",
-      releaseStatus: "development",
-      mapReleased: false,
+      releaseStatus: "playtest",
+      mapReleased: true,
       name: "黃泉境",
       sub: "よみのさかい",
       description: "旅路深處的終局妖城。全關綜合複習與言靈交還的第八夜終極配送。",
@@ -931,7 +931,7 @@
       }),
       pacing: Object.freeze({
         runSeconds: 600,
-        goalDeliveries: 6,
+        goalDeliveries: 0,
         bossTimes: Object.freeze([180, 360, 480, 540]),
         surgeFirst: 70,
         surgeInterval: 65,

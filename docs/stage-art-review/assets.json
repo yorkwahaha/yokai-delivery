@@ -1,0 +1,1492 @@
+{
+  "hyakki-kyoto": [
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-box-bellows/kyoto-box-bellows__sprite__action.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-box-bellows/kyoto-box-bellows__sprite__idle.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-box-bellows/kyoto-box-bellows__sprite__walk.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-box-bellows/kyoto-box-bellows__sprite__windup.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-brocade-puppeteer/kyoto-brocade-puppeteer__sprite__action.webp",
+      "group": "bosses",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-brocade-puppeteer/kyoto-brocade-puppeteer__sprite__idle.webp",
+      "group": "bosses",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-brocade-puppeteer/kyoto-brocade-puppeteer__sprite__windup.webp",
+      "group": "bosses",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-crow-bell-courier/kyoto-crow-bell-courier__sprite__action.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-crow-bell-courier/kyoto-crow-bell-courier__sprite__idle.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-crow-bell-courier/kyoto-crow-bell-courier__sprite__walk.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-crow-bell-courier/kyoto-crow-bell-courier__sprite__windup.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-procession-marshal/kyoto-procession-marshal__sprite__action.webp",
+      "group": "bosses",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-procession-marshal/kyoto-procession-marshal__sprite__idle.webp",
+      "group": "bosses",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-procession-marshal/kyoto-procession-marshal__sprite__windup.webp",
+      "group": "bosses",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-rice-bale-oni/kyoto-rice-bale-oni__sprite__action.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-rice-bale-oni/kyoto-rice-bale-oni__sprite__idle.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-rice-bale-oni/kyoto-rice-bale-oni__sprite__walk.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-rice-bale-oni/kyoto-rice-bale-oni__sprite__windup.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-straw-sandal/kyoto-straw-sandal__sprite__action.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-straw-sandal/kyoto-straw-sandal__sprite__idle.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-straw-sandal/kyoto-straw-sandal__sprite__walk.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-straw-sandal/kyoto-straw-sandal__sprite__windup.webp",
+      "group": "mobs",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-taiko-warden/kyoto-taiko-warden__sprite__action.webp",
+      "group": "bosses",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-taiko-warden/kyoto-taiko-warden__sprite__idle.webp",
+      "group": "bosses",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/kyoto-taiko-warden/kyoto-taiko-warden__sprite__windup.webp",
+      "group": "bosses",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__block-frontage.webp",
+      "group": "scene",
+      "width": 870,
+      "height": 269
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__block-wall.webp",
+      "group": "scene",
+      "width": 870,
+      "height": 181
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__cloth-merchant.webp",
+      "group": "scene",
+      "width": 520,
+      "height": 455
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__crate-stack.webp",
+      "group": "scene",
+      "width": 304,
+      "height": 202
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__double-lantern.webp",
+      "group": "scene",
+      "width": 209,
+      "height": 312
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__festival-banners.webp",
+      "group": "scene",
+      "width": 249,
+      "height": 459
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__festival-kiosk.webp",
+      "group": "scene",
+      "width": 448,
+      "height": 442
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__footbridge.webp",
+      "group": "scene",
+      "width": 448,
+      "height": 362
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__grocery.webp",
+      "group": "scene",
+      "width": 564,
+      "height": 302
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__komainu.webp",
+      "group": "scene",
+      "width": 372,
+      "height": 497
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__lantern-stand.webp",
+      "group": "scene",
+      "width": 438,
+      "height": 520
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__maple-leaves.webp",
+      "group": "scene",
+      "width": 437,
+      "height": 190
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__maple-shrub.webp",
+      "group": "scene",
+      "width": 520,
+      "height": 373
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__maple.webp",
+      "group": "scene",
+      "width": 463,
+      "height": 433
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__market-shrine.webp",
+      "group": "scene",
+      "width": 520,
+      "height": 438
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__noodle-house.webp",
+      "group": "scene",
+      "width": 315,
+      "height": 476
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__perimeter-gate.webp",
+      "group": "scene",
+      "width": 520,
+      "height": 315
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__rear-townhouses.webp",
+      "group": "scene",
+      "width": 520,
+      "height": 254
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__red-railing.webp",
+      "group": "scene",
+      "width": 436,
+      "height": 295
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__stall.webp",
+      "group": "scene",
+      "width": 374,
+      "height": 275
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__stone-basin.webp",
+      "group": "scene",
+      "width": 520,
+      "height": 491
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__stone-lantern.webp",
+      "group": "scene",
+      "width": 165,
+      "height": 252
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__sweets-house.webp",
+      "group": "scene",
+      "width": 540,
+      "height": 334
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__tea-house.webp",
+      "group": "scene",
+      "width": 562,
+      "height": 560
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/scene/hyakki-kyoto__three-tier-pagoda.webp",
+      "group": "scene",
+      "width": 495,
+      "height": 560
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-0.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-1.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-2.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-3.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-4.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-5.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__ground-grid.webp",
+      "group": "ground",
+      "width": 900,
+      "height": 600
+    },
+    {
+      "path": "art/dev-runtime/img/stages/hyakki-kyoto/tiles/hyakki-kyoto__perimeter-ground.webp",
+      "group": "ground",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/kyoto-boss/kyoto-boss__arrival.webp",
+      "group": "vfx",
+      "width": 256,
+      "height": 222
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/kyoto-pennant/kyoto-pennant__impact.webp",
+      "group": "vfx",
+      "width": 600,
+      "height": 87
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/kyoto-pennant/kyoto-pennant__warning.webp",
+      "group": "vfx",
+      "width": 600,
+      "height": 95
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/kyoto-procession/kyoto-procession__impact.webp",
+      "group": "vfx",
+      "width": 600,
+      "height": 85
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/kyoto-procession/kyoto-procession__warning.webp",
+      "group": "vfx",
+      "width": 600,
+      "height": 83
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/kyoto-shooter/kyoto-shooter__projectile.webp",
+      "group": "vfx",
+      "width": 160,
+      "height": 50
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/kyoto-taiko/kyoto-taiko__impact.webp",
+      "group": "vfx",
+      "width": 600,
+      "height": 102
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/kyoto-taiko/kyoto-taiko__warning.webp",
+      "group": "vfx",
+      "width": 600,
+      "height": 81
+    },
+    {
+      "path": "assets/img/enemies/kyoto-crossroads-boss/kyoto-crossroads-boss__sprite__action.webp",
+      "group": "bosses",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "assets/img/enemies/kyoto-crossroads-boss/kyoto-crossroads-boss__sprite__idle.webp",
+      "group": "bosses",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "assets/img/enemies/kyoto-crossroads-boss/kyoto-crossroads-boss__sprite__windup.webp",
+      "group": "bosses",
+      "width": 512,
+      "height": 512
+    }
+  ],
+  "snow-temple": [
+    {
+      "path": "art/dev-runtime/img/enemies/snow-frost-bell-guardian/snow-frost-bell-guardian__sprite__action.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-frost-bell-guardian/snow-frost-bell-guardian__sprite__idle.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-frost-bell-guardian/snow-frost-bell-guardian__sprite__windup.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-ice-badger/snow-ice-badger__sprite__action.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-ice-badger/snow-ice-badger__sprite__idle.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-ice-badger/snow-ice-badger__sprite__windup.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-kamaitachi/snow-kamaitachi__sprite__action.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-kamaitachi/snow-kamaitachi__sprite__idle.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-kamaitachi/snow-kamaitachi__sprite__windup.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-lantern-monk/snow-lantern-monk__sprite__action.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-lantern-monk/snow-lantern-monk__sprite__idle.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-lantern-monk/snow-lantern-monk__sprite__windup.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-mountain-lion/snow-mountain-lion__sprite__action.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-mountain-lion/snow-mountain-lion__sprite__idle.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-mountain-lion/snow-mountain-lion__sprite__windup.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-rabbit/snow-rabbit__sprite__action.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-rabbit/snow-rabbit__sprite__idle.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-rabbit/snow-rabbit__sprite__windup.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-white-kimono/snow-white-kimono__sprite__action.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-white-kimono/snow-white-kimono__sprite__idle.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/snow-white-kimono/snow-white-kimono__sprite__windup.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__boulders.webp",
+      "group": "scene",
+      "width": 427,
+      "height": 253
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__bridge.webp",
+      "group": "scene",
+      "width": 437,
+      "height": 264
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__cedar-fence.webp",
+      "group": "scene",
+      "width": 446,
+      "height": 284
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__ice-cliff.webp",
+      "group": "scene",
+      "width": 403,
+      "height": 391
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__ice-patch.webp",
+      "group": "scene",
+      "width": 520,
+      "height": 349
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__juniper.webp",
+      "group": "scene",
+      "width": 520,
+      "height": 330
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__octagonal-shrine.webp",
+      "group": "scene",
+      "width": 443,
+      "height": 520
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__offertory.webp",
+      "group": "scene",
+      "width": 371,
+      "height": 300
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__paper-lantern.webp",
+      "group": "scene",
+      "width": 203,
+      "height": 360
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__pine.webp",
+      "group": "scene",
+      "width": 414,
+      "height": 350
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__shrine.webp",
+      "group": "scene",
+      "width": 418,
+      "height": 437
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__snowdrift.webp",
+      "group": "scene",
+      "width": 520,
+      "height": 317
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__steps.webp",
+      "group": "scene",
+      "width": 414,
+      "height": 329
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__stone-lantern.webp",
+      "group": "scene",
+      "width": 240,
+      "height": 442
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__temple.webp",
+      "group": "scene",
+      "width": 411,
+      "height": 425
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/scene/snow-temple__torii.webp",
+      "group": "scene",
+      "width": 434,
+      "height": 420
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/tiles/snow-temple__ground-0.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/tiles/snow-temple__ground-1.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/tiles/snow-temple__ground-2.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/tiles/snow-temple__ground-3.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/tiles/snow-temple__ground-4.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/snow-temple/tiles/snow-temple__ground-5.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/snow-blizzard-claws/snow-blizzard-claws__impact.webp",
+      "group": "vfx",
+      "width": 480,
+      "height": 411
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/snow-blizzard-claws/snow-blizzard-claws__warning.webp",
+      "group": "vfx",
+      "width": 399,
+      "height": 382
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/snow-boss/snow-boss__arrival.webp",
+      "group": "vfx",
+      "width": 256,
+      "height": 215
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/snow-frost-bell/snow-frost-bell__impact.webp",
+      "group": "vfx",
+      "width": 465,
+      "height": 355
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/snow-frost-bell/snow-frost-bell__warning.webp",
+      "group": "vfx",
+      "width": 409,
+      "height": 361
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/snow-ice-gale/snow-ice-gale__impact.webp",
+      "group": "vfx",
+      "width": 600,
+      "height": 167
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/snow-ice-gale/snow-ice-gale__warning.webp",
+      "group": "vfx",
+      "width": 600,
+      "height": 165
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/snow-shooter/snow-shooter__projectile.webp",
+      "group": "vfx",
+      "width": 160,
+      "height": 43
+    },
+    {
+      "path": "assets/img/enemies/snow-ice-pillar-boss/snow-ice-pillar-boss__sprite__action.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "assets/img/enemies/snow-ice-pillar-boss/snow-ice-pillar-boss__sprite__idle.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "assets/img/enemies/snow-ice-pillar-boss/snow-ice-pillar-boss__sprite__windup.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    }
+  ],
+  "spirit-ferry": [
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-bell-oni/ferry-bell-oni__sprite__action.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-bell-oni/ferry-bell-oni__sprite__idle.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-bell-oni/ferry-bell-oni__sprite__windup.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-boat-mail-spirit/ferry-boat-mail-spirit__sprite__action.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-boat-mail-spirit/ferry-boat-mail-spirit__sprite__idle.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-boat-mail-spirit/ferry-boat-mail-spirit__sprite__windup.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-drowned-maiden/ferry-drowned-maiden__sprite__action.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-drowned-maiden/ferry-drowned-maiden__sprite__idle.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-drowned-maiden/ferry-drowned-maiden__sprite__windup.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-drowned-turtle/ferry-drowned-turtle__sprite__action.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-drowned-turtle/ferry-drowned-turtle__sprite__idle.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-drowned-turtle/ferry-drowned-turtle__sprite__windup.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-ferryman/ferry-ferryman__sprite__action.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-ferryman/ferry-ferryman__sprite__idle.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-ferryman/ferry-ferryman__sprite__windup.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-paper-passenger/ferry-paper-passenger__sprite__action.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-paper-passenger/ferry-paper-passenger__sprite__idle.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-paper-passenger/ferry-paper-passenger__sprite__windup.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-shadow-kappa/ferry-shadow-kappa__sprite__action.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-shadow-kappa/ferry-shadow-kappa__sprite__idle.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-shadow-kappa/ferry-shadow-kappa__sprite__windup.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-shore-lion/ferry-shore-lion__sprite__action.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-shore-lion/ferry-shore-lion__sprite__idle.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/ferry-shore-lion/ferry-shore-lion__sprite__windup.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__bench.webp",
+      "group": "scene",
+      "width": 362,
+      "height": 256
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__boathouse.webp",
+      "group": "scene",
+      "width": 370,
+      "height": 430
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__bollards.webp",
+      "group": "scene",
+      "width": 355,
+      "height": 225
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__caged-lamp.webp",
+      "group": "scene",
+      "width": 249,
+      "height": 360
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__cargo-barrels.webp",
+      "group": "scene",
+      "width": 321,
+      "height": 262
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__covered-ferry.webp",
+      "group": "scene",
+      "width": 474,
+      "height": 373
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__dock-junction.webp",
+      "group": "scene",
+      "width": 429,
+      "height": 404
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__dockside-inn.webp",
+      "group": "scene",
+      "width": 374,
+      "height": 445
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__empty-boat.webp",
+      "group": "scene",
+      "width": 342,
+      "height": 235
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__floating-deck.webp",
+      "group": "scene",
+      "width": 421,
+      "height": 424
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__gate.webp",
+      "group": "scene",
+      "width": 488,
+      "height": 418
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__lantern-post.webp",
+      "group": "scene",
+      "width": 215,
+      "height": 336
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__parcels.webp",
+      "group": "scene",
+      "width": 336,
+      "height": 261
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__pier-roof.webp",
+      "group": "scene",
+      "width": 338,
+      "height": 333
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__plank-stack.webp",
+      "group": "scene",
+      "width": 342,
+      "height": 223
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__postal-shop.webp",
+      "group": "scene",
+      "width": 366,
+      "height": 439
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__reeds.webp",
+      "group": "scene",
+      "width": 328,
+      "height": 294
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__river-shrine.webp",
+      "group": "scene",
+      "width": 338,
+      "height": 320
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__rope.webp",
+      "group": "scene",
+      "width": 353,
+      "height": 287
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__sandals.webp",
+      "group": "scene",
+      "width": 355,
+      "height": 287
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__shore-ridge.webp",
+      "group": "scene",
+      "width": 378,
+      "height": 218
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__shrine-gate.webp",
+      "group": "scene",
+      "width": 372,
+      "height": 399
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__spirit-lantern.webp",
+      "group": "scene",
+      "width": 201,
+      "height": 309
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__ticket-pavilion.webp",
+      "group": "scene",
+      "width": 457,
+      "height": 405
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/scene/spirit-ferry__waymarker.webp",
+      "group": "scene",
+      "width": 287,
+      "height": 285
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/tiles/spirit-ferry__ground-0.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/tiles/spirit-ferry__ground-1.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/tiles/spirit-ferry__ground-2.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/tiles/spirit-ferry__ground-3.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/tiles/spirit-ferry__ground-4.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/spirit-ferry/tiles/spirit-ferry__ground-5.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/ferry-boss/ferry-boss__arrival.webp",
+      "group": "vfx",
+      "width": 256,
+      "height": 197
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/ferry-mud-pool/ferry-mud-pool__impact.webp",
+      "group": "vfx",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/ferry-oar-sweep/ferry-oar-sweep__impact.webp",
+      "group": "vfx",
+      "width": 585,
+      "height": 172
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/ferry-oar-sweep/ferry-oar-sweep__warning.webp",
+      "group": "vfx",
+      "width": 585,
+      "height": 123
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/ferry-shooter/ferry-shooter__projectile.webp",
+      "group": "vfx",
+      "width": 152,
+      "height": 70
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/ferry-soul-splash/ferry-soul-splash__impact.webp",
+      "group": "vfx",
+      "width": 513,
+      "height": 390
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/ferry-soul-splash/ferry-soul-splash__warning.webp",
+      "group": "vfx",
+      "width": 411,
+      "height": 366
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/ferry-spirit-tide/ferry-spirit-tide__impact.webp",
+      "group": "vfx",
+      "width": 585,
+      "height": 151
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/ferry-spirit-tide/ferry-spirit-tide__warning.webp",
+      "group": "vfx",
+      "width": 585,
+      "height": 48
+    }
+  ],
+  "yomi": [
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-basalt-oni/yomi-basalt-oni__sprite__action.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-basalt-oni/yomi-basalt-oni__sprite__idle.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-basalt-oni/yomi-basalt-oni__sprite__windup.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-cinder-priestess/yomi-cinder-priestess__sprite__action.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-cinder-priestess/yomi-cinder-priestess__sprite__idle.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-cinder-priestess/yomi-cinder-priestess__sprite__windup.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-ember-ghost/yomi-ember-ghost__sprite__action.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-ember-ghost/yomi-ember-ghost__sprite__idle.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-ember-ghost/yomi-ember-ghost__sprite__windup.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-gate-priest/yomi-gate-priest__sprite__action.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-gate-priest/yomi-gate-priest__sprite__idle.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-gate-priest/yomi-gate-priest__sprite__windup.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-grave-samurai/yomi-grave-samurai__sprite__action.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-grave-samurai/yomi-grave-samurai__sprite__idle.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-grave-samurai/yomi-grave-samurai__sprite__windup.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-grave-serpent/yomi-grave-serpent__sprite__action.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-grave-serpent/yomi-grave-serpent__sprite__idle.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-grave-serpent/yomi-grave-serpent__sprite__windup.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-scarlet-runner/yomi-scarlet-runner__sprite__action.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-scarlet-runner/yomi-scarlet-runner__sprite__idle.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-scarlet-runner/yomi-scarlet-runner__sprite__windup.webp",
+      "group": "mobs",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-word-soul-core/yomi-word-soul-core__sprite__action.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-word-soul-core/yomi-word-soul-core__sprite__idle.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/enemies/yomi-word-soul-core/yomi-word-soul-core__sprite__windup.webp",
+      "group": "bosses",
+      "width": 384,
+      "height": 384
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__altar.webp",
+      "group": "scene",
+      "width": 400,
+      "height": 274
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__basalt-spire.webp",
+      "group": "scene",
+      "width": 306,
+      "height": 377
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__bell-tower.webp",
+      "group": "scene",
+      "width": 427,
+      "height": 467
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__boulder.webp",
+      "group": "scene",
+      "width": 346,
+      "height": 202
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__brazier.webp",
+      "group": "scene",
+      "width": 187,
+      "height": 228
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__broken-flagstone.webp",
+      "group": "scene",
+      "width": 345,
+      "height": 206
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__cliff-ledge.webp",
+      "group": "scene",
+      "width": 486,
+      "height": 363
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__fallen-torii.webp",
+      "group": "scene",
+      "width": 489,
+      "height": 302
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__jizo.webp",
+      "group": "scene",
+      "width": 352,
+      "height": 285
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__lantern-post.webp",
+      "group": "scene",
+      "width": 173,
+      "height": 328
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__moon.webp",
+      "group": "scene",
+      "width": 496,
+      "height": 388
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__palace-wall.webp",
+      "group": "scene",
+      "width": 502,
+      "height": 314
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__palace.webp",
+      "group": "scene",
+      "width": 431,
+      "height": 379
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__pavilion.webp",
+      "group": "scene",
+      "width": 345,
+      "height": 382
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__spider-lilies.webp",
+      "group": "scene",
+      "width": 294,
+      "height": 239
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__stair-gate.webp",
+      "group": "scene",
+      "width": 487,
+      "height": 419
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__stone-bridge.webp",
+      "group": "scene",
+      "width": 367,
+      "height": 261
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/scene/yomi__torii.webp",
+      "group": "scene",
+      "width": 378,
+      "height": 381
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/tiles/yomi__ground-0.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/tiles/yomi__ground-1.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/tiles/yomi__ground-2.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/tiles/yomi__ground-3.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/tiles/yomi__ground-4.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/stages/yomi/tiles/yomi__ground-5.webp",
+      "group": "ground",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/yomi-boss/yomi-boss__arrival.webp",
+      "group": "vfx",
+      "width": 256,
+      "height": 214
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/yomi-cinder-burst/yomi-cinder-burst__impact.webp",
+      "group": "vfx",
+      "width": 490,
+      "height": 368
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/yomi-cinder-burst/yomi-cinder-burst__warning.webp",
+      "group": "vfx",
+      "width": 390,
+      "height": 357
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/yomi-eclipse/yomi-eclipse__impact.webp",
+      "group": "vfx",
+      "width": 469,
+      "height": 386
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/yomi-eclipse/yomi-eclipse__warning.webp",
+      "group": "vfx",
+      "width": 351,
+      "height": 358
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/yomi-fault-line/yomi-fault-line__impact.webp",
+      "group": "vfx",
+      "width": 585,
+      "height": 152
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/yomi-fault-line/yomi-fault-line__warning.webp",
+      "group": "vfx",
+      "width": 585,
+      "height": 164
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/yomi-heavy-slash/yomi-heavy-slash__impact.webp",
+      "group": "vfx",
+      "width": 768,
+      "height": 200
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/yomi-heavy-slash/yomi-heavy-slash__warning.webp",
+      "group": "vfx",
+      "width": 768,
+      "height": 200
+    },
+    {
+      "path": "art/dev-runtime/img/vfx/enemies/yomi-shooter/yomi-shooter__projectile.webp",
+      "group": "vfx",
+      "width": 152,
+      "height": 73
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-cinder-burst/yomi-cinder-burst__impact.webp",
+      "group": "vfx",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-cinder-burst/yomi-cinder-burst__warning.webp",
+      "group": "vfx",
+      "width": 390,
+      "height": 357
+    }
+  ]
+}

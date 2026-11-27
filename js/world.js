@@ -310,11 +310,12 @@
       const hash = routeLayout ? hashCoords(cx, cy, seed) : 0;
       const layout = routeLayout?.(cx, cy, hash);
       if (layout && packWords.length) {
-        layout.houses.forEach(([localX, localY, bType], slot) => {
+        layout.houses.forEach(([localX, localY, bType, halfWidth], slot) => {
           const x = baseX + localX, y = baseY + localY * spacingScaleY;
           houses.push({
             id: `${stage.id}:${key}:${slot}`, chunkKey: key, x, y,
             footY: y + 48, dx: x, dy: y + 84, bType,
+            ...(halfWidth ? { halfWidth } : {}),
             color: pack.color, district: pack.name, packId: pack.id,
             phase: (hash % 10000) / 997, word: packWords[(hash + slot) % packWords.length]
           });
@@ -515,11 +516,14 @@
         x1: baseX + x1, y1: baseY + y1 * spacingScaleY, chunkKey: key
       }));
       if (layout?.props) chunk.routeProps = [
-        ...chunk.routeObstacles.map(r => ({
+        ...chunk.routeObstacles.filter(r => r.artRole).map(r => ({
           x: (r.x0 + r.x1) / 2, y: r.y1, width: r.artWidth, kind: r.artRole
         })),
         ...layout.props.map(([x, y, kind, width, wall]) => ({ x: baseX + x, y: baseY + y * spacingScaleY, kind, width, wall }))
       ];
+      if (layout?.groundProps) chunk.routeGroundProps = layout.groundProps.map(([x, y, kind, width]) =>
+        ({ x: baseX + x, y: baseY + y * spacingScaleY, kind, width }));
+      if (layout?.terrain != null) chunk.routeTerrain = layout.terrain;
       cache.set(key, chunk);
       return chunk;
     }
@@ -590,9 +594,9 @@
         // Keep their solid footprint within the rendered foundations,
         // instead of letting the courier visibly enter the picture edge.
         x0: h.x - (stage.id === "rain-port"
-          ? (h.bType === "port_fishmonger" ? 100.5 : h.bType === "port_warehouse" ? 93.5 : 64) : isSakura ? 88 : 48),
+          ? (h.bType === "port_fishmonger" ? 100.5 : h.bType === "port_warehouse" ? 93.5 : 64) : isSakura ? 88 : h.halfWidth || 48),
         x1: h.x + (stage.id === "rain-port"
-          ? (h.bType === "port_fishmonger" ? 100.5 : h.bType === "port_warehouse" ? 93.5 : 64) : isSakura ? 88 : 48),
+          ? (h.bType === "port_fishmonger" ? 100.5 : h.bType === "port_warehouse" ? 93.5 : 64) : isSakura ? 88 : h.halfWidth || 48),
         y0: h.y - (stage.id === "rain-port" ? 48 : 25),
         y1: h.y + 45,
         chunkKey: h.chunkKey

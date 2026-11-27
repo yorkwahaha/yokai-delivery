@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>妖怪快遞社｜第五至八關美術預覽</title>
+  <link rel="icon" href="/assets/img/ui/hud/ui__lantern-oil.webp" type="image/webp">
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background:#19191d; color:#f3e7cf; }
+    body { margin:0; }
+    main { width:min(86rem,calc(100% - 2rem)); margin:2rem auto 5rem; }
+    h1,h2 { font-family:ui-serif,"Noto Serif TC",serif; }
+    h1 { font-size:clamp(1.65rem,4vw,3.2rem); margin:.25rem 0; }
+    h2 { margin:2rem 0 .25rem; }
+    a { color:#9fe0d7; text-underline-offset:.22em; }
+    nav, .launch { display:flex; flex-wrap:wrap; gap:.7rem 1rem; margin:1rem 0; }
+    nav a,.launch a { padding:.66rem .95rem; border:1px solid #706354; border-radius:.5rem; }
+    nav a[aria-current] { background:#edd8ad; color:#25201a; }
+    details { border-top:1px solid #67594c; margin-top:1rem; }
+    summary { cursor:pointer; padding:.75rem 0; font-weight:650; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,10rem),1fr)); gap:.7rem; }
+    figure { margin:0; padding:.45rem; background:#2a2930; border-radius:.5rem; }
+    figure a { display:block; }
+    img { display:block; width:100%; aspect-ratio:4/3; object-fit:contain; object-position:center; background:#37353b; border-radius:.25rem; }
+    figcaption { font-size:.82rem; margin-top:.35rem; overflow-wrap:anywhere; }
+    .note { color:#d1bd9f; }
+    :focus-visible { outline:3px solid #f0bf7a; outline-offset:3px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>第五至八關美術預覽</h1>
+  <p class="note">本機試玩候選。點圖片可看原尺寸，或進關比較場景、角色腳點和攻擊範圍。</p>
+  <nav aria-label="選擇關卡" id="stages"></nav>
+  <section id="gallery" aria-live="polite"><p role="status">正在讀取素材。</p></section>
+</main>
+<script>
+  const stages = {
+    'hyakki-kyoto':'百鬼京都', 'snow-temple':'雪燈山寺',
+    'spirit-ferry':'幽世渡口', yomi:'黃泉境'
+  };
+  const groups = { ground:'地面', scene:'建築與環境', mobs:'普通妖怪', bosses:'頭目', vfx:'預警、攻擊與出場' };
+  const nav = document.querySelector('#stages');
+  const gallery = document.querySelector('#gallery');
+  const names = Object.keys(stages);
+  function element(tag, content, attributes = {}) {
+    const node = document.createElement(tag);
+    if (content) node.textContent = content;
+    for (const [key,value] of Object.entries(attributes)) node.setAttribute(key, value);
+    return node;
+  }
+  for (const [id,name] of Object.entries(stages)) nav.append(element('a', name, {href:'#'+id}));
+  function show(index) {
+    const selected = location.hash.slice(1);
+    const id = Object.hasOwn(stages,selected) ? selected : names[0];
+    gallery.replaceChildren(element('h2',stages[id]));
+    for (const a of nav.children) {
+      if (a.hash === '#'+id) a.setAttribute('aria-current','true');
+      else a.removeAttribute('aria-current');
+    }
+    const url = '/?dev=1&s3play=1&stageLab=1&stage='+id;
+    const launch = element('div',null,{class:'launch'});
+    launch.append(element('a','2.5D 試玩',{href:url}),element('a','2D 試玩',{href:url+'&tilt=1'}),
+      element('a','頭目快速驗收',{href:url+'&bossLab=1'}));
+    gallery.append(launch);
+    for (const [key,label] of Object.entries(groups)) {
+      const items = index[id].filter(item => item.group === key);
+      const details = element('details');
+      details.append(element('summary',`${label}・${items.length}`));
+      if (key === 'ground' || key === 'scene') details.open = true;
+      const grid = element('div',null,{class:'grid'});
+      items.forEach((item,i) => {
+        const caption = item.path.split('/').pop().replace('.webp','').replace(/^.*?__(?=ground-|[a-z-]+$)/,'');
+        const figure = element('figure');
+        const link = element('a',null,{href:'/'+item.path,target:'_blank',rel:'noopener'});
+        const attrs = {src:'/'+item.path,alt:caption,width:item.width,height:item.height,decoding:'async'};
+        if (!key.includes('ground') || i !== 0) attrs.loading = 'lazy';
+        else attrs.fetchpriority = 'high';
+        link.append(element('img',null,attrs));
+        figure.append(link,element('figcaption',caption));
+        grid.append(figure);
+      });
+      details.append(grid);
+      gallery.append(details);
+    }
+  }
+  fetch('assets.json').then(res => {
+    if (!res.ok) throw new Error('素材清單無法載入');
+    return res.json();
+  }).then(index => {
+    show(index);
+    addEventListener('hashchange',() => show(index));
+  }).catch(() => gallery.replaceChildren(element('p','素材清單無法載入。請重新整理。',{role:'alert'})));
+</script>
+</body>
+</html>

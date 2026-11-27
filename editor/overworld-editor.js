@@ -15,7 +15,10 @@
   function record(){history.push(structuredClone(draft));if(history.length>80)history.shift();future=[];}
   function notify(message,error=false){$("status").textContent=message;$("status").classList.toggle("error",error);}
   function updated(msg="已調整，尚未套用至遊戲"){
-    localStorage.setItem(storageKey,JSON.stringify(draft));notify(msg);dirty=true;sync();
+    dirty=true;sync();
+    try{localStorage.setItem(storageKey,JSON.stringify(draft));}
+    catch{notify(msg+"；瀏覽器暫存不可用。",true);return;}
+    notify(msg);
   }
   function point(id,kind){
     const n=draft.nodes[id];return n?.[kind==="route"?"route":kind]||null;
@@ -296,8 +299,10 @@
     try{
       const r=await fetch("/api/layout",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(draft)});
       const result=await r.json();if(!r.ok||!result.ok)throw Error(result.error||"伺服器未能儲存");
-      localStorage.removeItem(storageKey);
-      notify("✔ 已寫入 "+result.path+"。重新整理遊戲頁即可生效；尚未 Commit 或部署。");
+      const message="✔ 已寫入 "+result.path+"。重新整理遊戲頁即可生效；尚未 Commit 或部署。";
+      try{localStorage.removeItem(storageKey);}
+      catch{notify(message+"瀏覽器暫存未能清除。",true);return;}
+      notify(message);
     }catch(err){notify("儲存失敗："+err.message,true);}
     finally{button.disabled=false;button.textContent="套用至本機遊戲";}
   };
@@ -312,7 +317,10 @@
   for(const n of nodes){
     const b=document.createElement("button");
     b.dataset.id=n.id;
-    b.innerHTML="<b>"+n.label+"</b><span>"+(n.type==="stage"?"關卡":"路口")+"</span>";
+    const label=document.createElement("b"),kind=document.createElement("span");
+    label.textContent=n.label;
+    kind.textContent=n.type==="stage"?"關卡":"路口";
+    b.append(label,kind);
     b.onclick=()=>select(n.id);
     $("stages").append(b);
   }
@@ -321,7 +329,11 @@
       const res=await fetch("/api/layout");
       if(res.ok){const cfg=await res.json();if(cfg.version===1)draft=cfg;}
     }catch{ /* static-file preview uses its matching script defaults */ }
-    fit();sync();notify(localStorage.getItem(storageKey)?"設定已載入；另有瀏覽器暫存，可點左側『恢復上次瀏覽器暫存』":"地圖已載入，拖曳後按『套用至本機遊戲』。");
+    fit();
+    let hasDraft;
+    try{hasDraft=!!localStorage.getItem(storageKey);}
+    catch{notify("地圖已載入；瀏覽器暫存不可用。",true);return;}
+    notify(hasDraft?"設定已載入；另有瀏覽器暫存，可點左側『恢復上次瀏覽器暫存』":"地圖已載入，拖曳後按『套用至本機遊戲』。");
   })();
   requestAnimationFrame(frame);
 })();

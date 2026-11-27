@@ -31,7 +31,7 @@ function isShikigamiTrial(loc) {
 }
 
 function isStageLab(loc) {
-  if (!isLoopback(loc)) return false;
+  if (!isLoopback(loc) && !isSakuraPlaytest(loc)) return false;
   const params = searchParams(loc);
   return params.get("dev") === "1" && params.get("stageLab") === "1" && params.get("fusionlab") !== "1";
 }

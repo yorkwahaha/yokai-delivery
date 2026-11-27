@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>妖怪快遞｜八關十三招驗收</title>
+<style>
+:root{color-scheme:light;font:1rem/1.65 system-ui,sans-serif;color:#332a21;background:#eee6d6}
+body{max-width:66rem;margin:auto;padding:clamp(1rem,4vw,2.5rem)}
+h1,h2{font-family:Georgia,"Noto Serif TC",serif;line-height:1.3}
+h1{font-size:clamp(1.8rem,5vw,3rem);margin:.3em 0}
+h2{font-size:1.35rem;border-bottom:1px solid #a78d70;padding-bottom:.4rem}
+section{margin:1.6rem 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr));gap:.75rem}
+article{padding:1rem;background:#fbf6eb;border:1px solid #cdbda6;border-radius:.4rem}
+h3{margin:0 0 .5rem;font-size:1.05rem}
+a{color:#743729;text-underline-offset:.2em}
+a.launch{display:inline-block;padding:.5rem .8rem;margin:.2rem .3rem .2rem 0;border:1px solid #835b44;border-radius:.25rem;min-height:1.6rem}
+a.primary{background:#743729;color:white}
+a:focus-visible{outline:3px solid #743729;outline-offset:3px}
+small{color:#61574c}
+label{display:block;padding:.35rem 0} input{margin-right:.6rem}
+</style>
+</head>
+<body>
+<header><small>2026-11-27 · Phase F · USER_PLAYTEST_PENDING</small><h1>八關十三招｜實機驗收</h1>
+<p>PC 與 iPad 可使用同一區網網址。所有遊戲入口均使用 DEV 隔離存檔；第五至八關與新四招仍未公開。不同裝置／網址的進度各自獨立。</p>
+<a class="launch primary" href="/?dev=1&amp;s3play=1&amp;stageLab=1">開發選關</a> <a class="launch" href="/phase-e">前四關既有美術與音效清單</a>
+</header>
+<main>
+<section><h2>八關自然試玩</h2><p>選擇關卡後，按「開發選關」→「直接進關」。自然局用來驗證真實走位、配送、抽卡及通關，不使用 Boss Lab 代替。</p><div class="cards">
+<article><h3>1 夜行町</h3><a class="launch primary" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;stage=night-town">自然局</a><a class="launch" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;bossLab=1&amp;stage=night-town">Boss Lab</a></article>
+<article><h3>2 雨夜港町</h3><a class="launch primary" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;stage=rain-port">自然局</a><a class="launch" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;bossLab=1&amp;stage=rain-port">Boss Lab</a><a class="launch" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;perf=1&amp;stage=rain-port">效能診斷</a></article>
+<article><h3>3 妖櫻山道</h3><a class="launch primary" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;stage=sakura-pass">自然局</a><a class="launch" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;bossLab=1&amp;stage=sakura-pass">Boss Lab</a></article>
+<article><h3>4 竹影迷宮</h3><a class="launch primary" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;stage=bamboo-maze">自然局</a><a class="launch" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;bossLab=1&amp;stage=bamboo-maze">Boss Lab</a></article>
+<article><h3>5 百鬼京都</h3><a class="launch primary" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;stage=hyakki-kyoto">自然局</a><a class="launch" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;bossLab=1&amp;stage=hyakki-kyoto">Boss Lab</a></article>
+<article><h3>6 雪燈山寺</h3><a class="launch primary" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;stage=snow-temple">自然局</a><a class="launch" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;bossLab=1&amp;stage=snow-temple">Boss Lab</a></article>
+<article><h3>7 幽世渡口</h3><a class="launch primary" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;stage=spirit-ferry">自然局</a><a class="launch" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;bossLab=1&amp;stage=spirit-ferry">Boss Lab</a></article>
+<article><h3>8 黃泉境</h3><a class="launch primary" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;stage=yomi">自然局</a><a class="launch" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;bossLab=1&amp;stage=yomi">Boss Lab</a></article>
+</div></section>
+<section><h2>前四關多王錯峰 DEV 候選</h2><p>不同 Boss 起手 0.75 秒、爆發 0.35 秒錯開；同一 Boss 原連擊不變。下列入口啟用候選，上方自然局保留現行版本。</p>
+<a class="launch" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;bossStagger=1&amp;stage=night-town">第 1 關錯峰自然局</a>
+<a class="launch" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;bossStagger=1&amp;stage=rain-port">第 2 關錯峰自然局</a>
+<a class="launch" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;bossStagger=1&amp;stage=sakura-pass">第 3 關錯峰自然局</a>
+<a class="launch" href="/?dev=1&amp;s3play=1&amp;stageLab=1&amp;bossStagger=1&amp;stage=bamboo-maze">第 4 關錯峰自然局</a>
+</section>
+<section><h2>新四招與抽卡 A/B</h2><p>A 為現行，B 為 DEV guided 候選；相同操作策略比較前 20 抽及最後一格，不將候選套入正式玩法。</p>
+<a class="launch primary" href="/?dev=1&amp;s3play=1&amp;skillLab=expansion">A｜現行 Skill Lab</a><a class="launch" href="/?dev=1&amp;s3play=1&amp;skillLab=expansion&amp;draft=guided">B｜Guided Skill Lab</a>
+<p>優先看神弓蓄弦與射向、妖絲束縛及收束、冰毬碎晶、風穴終爆與 HUD 亮度、卡名和專屬音效。</p></section>
+<section><h2>優先驗收清單</h2><article>
+<label><input type="checkbox"> 京都／雪寺第三王：三姿態身份一致、腳底不漂移。</label>
+<label><input type="checkbox"> 黃泉：墓蛇預警與圓爆無硬邊；第一王四向重斬相符。</label>
+<label><input type="checkbox"> 新四招：特效不蓋住預警／配送文字，音色與命中感自然。</label>
+<label><input type="checkbox"> 手機橫向：多王血條、讀題、暫停及 DEV 按鈕不重疊。</label>
+<label><input type="checkbox"> iPad Safari：雨港自然長局、512 靈玉、畫面無閃爍或消失，記錄最低及平均 FPS，下載效能 JSON。</label>
+<label><input type="checkbox"> A/B：新技能出現時點、取得率、短牌面與四槽選擇感。</label>
+<label><input type="checkbox"> 前四關：獨立 Boss BGM 試聽，與共用曲比較；後四關泥濘、重斬新音效。</label>
+<label><input type="checkbox"> 後四關：自然局配送／封印／尾王／結算，黃泉終章。</label>
+<small>勾選只存在本頁當前工作階段，不寫入遊戲或正式存檔。</small>
+</article></section>
+<section><h2>音訊與已知限制</h2><p>音訊試聽頁僅限 PC 回送入口：<a href="http://127.0.0.1:8049/stage-audio-review/">全八關 BGM／新四招 SFX</a>。iPad 請在遊戲中試聽。前四關錯峰與四首本機獨立 Boss BGM 維持 DEV 候選；配送讀題血條避讓已通過三視口兩投影 Chromium 受控驗證，仍需實機確認。神弓及妖絲保留 F4 精修圖，新繪稿未達小圖辨識要求；區網 HTTP 不等同正式 HTTPS 的 Service Worker 驗收。</p></section>
+</main>
+</body>
+</html>

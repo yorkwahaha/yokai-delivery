@@ -11,9 +11,10 @@ test('B3 first-stage active pool offers only six starters before post-clear skil
   g.start();
   const levels = g.weaponLevels();
   // The seventh and eighth skill IDs are globally registered, not yet unlocked.
-  assert.deepEqual(Object.keys(levels).filter(id => !id.startsWith('fusion_') && !['ink_trail','seal_nail'].includes(id)).sort(), [...SIX].sort());
+  assert.deepEqual(Object.keys(levels).filter(id => !id.startsWith('fusion_') && !['ink_trail','seal_nail','shikigami',...g.env.GAME_SKILL_EXPANSION.ids].includes(id)).sort(), [...SIX].sort());
   assert.equal(levels.ink_trail,0);
   assert.equal(levels.seal_nail,0);
+  for(const id of g.env.GAME_SKILL_EXPANSION.ids){assert.equal(levels[id],0);assert.equal(g.store().isActiveSkillUnlocked(id),false);}
   assert.equal(levels.katana, 1);
   for (const id of SIX.slice(1)) assert.equal(levels[id], 0);
   for (const [id, level] of Object.entries(levels)) if (id.startsWith('fusion_')) assert.equal(level, 0);

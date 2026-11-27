@@ -1,0 +1,177 @@
+{
+  "scope": "Static HTTP and raster validation only; no gameplay",
+  "results": [
+    {
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__ground-dirt.webp",
+      "status": 200,
+      "sha256": "717e505719336ed666bd13f7e79a12c9de7fd0b4be32801bf5431fea10dc9e79"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-straight.webp",
+      "status": 200,
+      "sha256": "4ff3b37128e7086377c1baf6196431f12b9ae5573aa49351f46ef86d0e7c1fee"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-left.webp",
+      "status": 200,
+      "sha256": "236c5dcad766f3990f6147044d50e97abf9e5bef70dd66ab225ca50f55601ce7"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-right.webp",
+      "status": 200,
+      "sha256": "01e7c39283feded821aef8de4ca0e205979cd318ed2a0b70fd9c813396d9a8b4"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-broken.webp",
+      "status": 200,
+      "sha256": "780e77c7335f71280ea5e4254c751cb8d6083351a42abf39ac81c29c04903b68"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__shrine-pavilion.webp",
+      "status": 200,
+      "sha256": "a6eb1c4f21a9c1be595b46867c1e1167e5d5965bbdc525df72a99c8c993b554b"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__mountain-house.webp",
+      "status": 200,
+      "sha256": "356cec1f09cf8716b563972d6716dfec6afbfbeb36f50986df49a49a7837abab"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__tea-house.webp",
+      "status": 200,
+      "sha256": "00b531bb01fa7095b96b7d81219cb39d94e7de6d6191fa38179dba2d24ce3a46"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__worship-hall.webp",
+      "status": 200,
+      "sha256": "bebd033b5926928936c74fc316668058e6b89902071e6cfc0a2265324da05e5a"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/scene/sakura-pass__storehouse.webp",
+      "status": 200,
+      "sha256": "97b131f4a47bb4172c9f55dd7f4ec888ae42c75a98dde9539d598c6c83bb6667"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__stone-lantern.webp",
+      "status": 200,
+      "sha256": "5110ca29050cb65a1f9050140e1cc64a0d347cb6bd28f22aaa5cedbe379c0f4b"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__torii.webp",
+      "status": 200,
+      "sha256": "092193f07831b0ad0ecae6953d573beb041f0c18e7836496cb10714c96619134"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__wood-fence.webp",
+      "status": 200,
+      "sha256": "50c15b7739f2626c615be43f4bfec34a8f4bd3a76a94135eeeebfc6150a45159"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__stone-marker.webp",
+      "status": 200,
+      "sha256": "3b1bf97ea158e30b45dafd2dc880ff3d9473918cc2bc772fc1afac419d1c236a"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__ancient-sakura.webp",
+      "status": 200,
+      "sha256": "05666d9a4ac1a0f2b44750be2825c1088838f45b6a1e65403d5f82c122d3f760"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__moss-rocks.webp",
+      "status": 200,
+      "sha256": "e9d35f8aec4a45c873eadfdc5ad6b8f809f5ecd7ae5accb0a9f773bbe97dfc9c"
+    },
+    {
+      "path": "assets/img/enemies/sakura-kodama/sakura-kodama__sprite__idle.webp",
+      "status": 200,
+      "sha256": "53c82c8943895157101665bcbaf6ce99993cdc8cac9c6054bc51696877b23663"
+    },
+    {
+      "path": "assets/img/enemies/sakura-kodama/sakura-kodama__sprite__attack.webp",
+      "status": 200,
+      "sha256": "2c910c6de99f6641efc976eb74ac1e240b15f070b69296fdf4eba8d711913a09"
+    },
+    {
+      "path": "assets/img/enemies/hanakage-fox/hanakage-fox__sprite__idle.webp",
+      "status": 200,
+      "sha256": "ca536368b8d017b138267dab9e2dbfa96927c8734e75253a36550bc7aefe76cd"
+    },
+    {
+      "path": "assets/img/enemies/hanakage-fox/hanakage-fox__sprite__attack.webp",
+      "status": 200,
+      "sha256": "7358eb00d924c29402bafeaad4a08eaac00deaf825f9216cd9f0aeb7d07e2e33"
+    },
+    {
+      "path": "assets/img/enemies/stone-lantern-kid/stone-lantern-kid__sprite__idle.webp",
+      "status": 200,
+      "sha256": "91e76f234316019c218dbf38dda46d660533b21d2b2f872c9e08adf2318f07f9"
+    },
+    {
+      "path": "assets/img/enemies/stone-lantern-kid/stone-lantern-kid__sprite__attack.webp",
+      "status": 200,
+      "sha256": "96186fb89408413149ff913bc716c36956d5f6423f44ecbb7dd628cc3f66d97c"
+    },
+    {
+      "path": "assets/img/enemies/moss-tanuki/moss-tanuki__sprite__idle.webp",
+      "status": 200,
+      "sha256": "1aa4f0529b0b42fa64896de960f58019b7f52135ac6b8e2aae14b72a67341baf"
+    },
+    {
+      "path": "assets/img/enemies/moss-tanuki/moss-tanuki__sprite__attack.webp",
+      "status": 200,
+      "sha256": "c54b3d761d1369fa869a26a6a0f95869ceec2ba08dbd90368b4770048ddd0002"
+    },
+    {
+      "path": "assets/img/enemies/sakura-tengu/sakura-tengu__sprite__idle.webp",
+      "status": 200,
+      "sha256": "3bd68b6484dbe96abe64cb3dcbde2b12d84f7bab09766eb40995624ca6e6aeb5"
+    },
+    {
+      "path": "assets/img/enemies/sakura-tengu/sakura-tengu__sprite__attack.webp",
+      "status": 200,
+      "sha256": "e2c451f2b3933c0ec5312edfe823ca948fc1c23305d7c3af45902772861a5e79"
+    },
+    {
+      "path": "assets/img/enemies/paper-umbrella-spirit/paper-umbrella-spirit__sprite__idle.webp",
+      "status": 200,
+      "sha256": "57a31bc105de10264780c7938a636dd527a98e2b3fb6272f8c7eba81c0fc482c"
+    },
+    {
+      "path": "assets/img/enemies/paper-umbrella-spirit/paper-umbrella-spirit__sprite__attack.webp",
+      "status": 200,
+      "sha256": "27fe47a77ca8a973f9d691ff83c682e1bc41f5d90a0b8ed003923700560d9eae"
+    },
+    {
+      "path": "assets/img/enemies/night-sakura-princess/night-sakura-princess__sprite__idle.webp",
+      "status": 200,
+      "sha256": "b92316d4056f9ed4ac2a26bca7ded0877c7f93acefbeba3d1072294b6fac8fce"
+    },
+    {
+      "path": "assets/img/enemies/night-sakura-princess/night-sakura-princess__sprite__attack.webp",
+      "status": 200,
+      "sha256": "2c3daccdecbc3c2391820ff1813293730813d9f1934af2ba3fd20c7eacc78133"
+    },
+    {
+      "path": "assets/img/enemies/ancient-sakura-guardian/ancient-sakura-guardian__sprite__idle.webp",
+      "status": 200,
+      "sha256": "fe17f0d616cdfdc135eb862b94e2f1940646d68230fb62fbea5df36bc186ef39"
+    },
+    {
+      "path": "assets/img/enemies/ancient-sakura-guardian/ancient-sakura-guardian__sprite__attack.webp",
+      "status": 200,
+      "sha256": "6d17a6a8a68a42766ddd584061b24225b9e968424b17fbef695f3280f24d7ffd"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/review.html",
+      "status": 200
+    },
+    {
+      "path": "js/sakura-art-data.js",
+      "status": 200
+    },
+    {
+      "path": "?dev=1&s3play=1&stage=sakura-pass&perf=1",
+      "status": 200
+    }
+  ]
+}

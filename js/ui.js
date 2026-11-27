@@ -300,6 +300,7 @@ window.UI = (() => {
   let paintedBossSealBreak = null;
   // B15: these reviewed UI/charms/passives are published assets, not dev candidates.
   const releasedUiArt = true;
+  const compendiumItemPaths = Object.create(null);
   // B14 approved ink warning: a single hand-painted transparent WebP
   // including all four Chinese characters; NOT a gameplay screenshot.
   let b14SurgeBrush = null;
@@ -326,7 +327,7 @@ window.UI = (() => {
       img.src="assets/img/ui/phase42/"+key+".webp?v=20261109-ui-restyle-r3";
     }
     for(const [key,src] of Object.entries({
-      exitBlank:"assets/img/ui/menu/exit__blank.png?v=20261109-exit-dynamic-r2",
+      exitBlank:"assets/img/ui/menu/exit__blank.webp?v=20261127-f10",
       pauseApproved:"assets/img/ui/menu/pause__approved.webp?v=20261109-five-slot",
       shrineButtonNormal:"assets/img/ui/menu/approved__button_normal.webp?v=20261109",
       shrineButtonDanger:"assets/img/ui/menu/result__button.webp?v=20261109",
@@ -335,6 +336,7 @@ window.UI = (() => {
     })){
       const img=new window.Image();img.decoding="async";
       img.onload=()=>{approvedSystemArt[key]=img;};
+      if(key==='exitBlank') img.onerror=()=>{img.onerror=null;img.src='assets/img/ui/menu/exit__blank.png?v=20261109-exit-dynamic-r2';};
       img.src=src;
     }
   }
@@ -391,6 +393,7 @@ window.UI = (() => {
       img.src = releasedUiArt
         ? `assets/img/ui/charm-passive/b11/omamori_${id}.webp?v=20261101-b10`
         : `assets/img/ui/charm-passive/b7/omamori_${id}.webp?v=20261031-b7`;
+      compendiumItemPaths["charm_" + id] = img.src;
     }
     for (const id of ["shield", "dmg", "rate", "crit", "spd", "dash", "oil_max", "mag", "oil_heal"]) {
       const img = new window.Image();
@@ -398,6 +401,7 @@ window.UI = (() => {
       img.src = releasedUiArt
         ? `assets/img/ui/b13/passive_${id}.webp?v=20261101-b9`
         : `assets/img/ui/passive/warm/hud_passive_${id}.webp?v=20261031-washi-gold1`;
+      compendiumItemPaths[id] = img.src;
     }
   }
 
@@ -1193,7 +1197,8 @@ window.UI = (() => {
   // Use the expanded GPL HanWang subset on local QA sites. Its source
   // notice is bundled; public delivery keeps the OFL fallback pending the
   // font-distribution review. Pause and results use the SAME selected face.
-  const localCalligraphy=/^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)$/.test(String(window.location?.hostname||""));
+  const localCalligraphy=/^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)$/.test(String(window.location?.hostname||"")) &&
+    new URLSearchParams(window.location?.search||"").get("uiFont") === "hanwang";
   const pauseInkFace=(localCalligraphy?"'Yokai UI HanWang YanKai',":"")+
     "'Yokai Trial MoonStars Kai T','DFKai-SB','標楷體','BiauKai',serif";
   const pauseInkFont=size=>`400 ${size}px ${pauseInkFace}`;
@@ -1278,14 +1283,13 @@ window.UI = (() => {
   function tutorialCopy(id, mode) {
     const key = action => controlLabel(action, mode);
     const stageId = window.__ACTIVE_STAGE || 'night-town';
-    const harbor = stageId === 'rain-port';
-    const bossNote = harbor ? '雨港通關還須至少六件配送。'
-      : stageId === 'night-town' ? '夜行町終王出場後存活滿 2 分鐘每秒回復 0.5% 血量，滿 4 分鐘後為 0.85%。'
-      : '擊敗終王後仍須完成當關配送目標。';
+    const bossNote = stageId === 'night-town'
+      ? '夜行町終王出場後存活滿 2 分鐘每秒回復 0.5% 血量，滿 4 分鐘後為 0.85%。本關須擊敗全部四位 Boss 方可通關。'
+      : '各關須擊敗全部四位 Boss 方可通關；前三王依時登場，擊敗任一前王後終王才會現身。';
     return {
       pickup: ['取貨', 'pickup', `移動：${key('move')}。沿包裹標記靠近委託房屋，再用${key('interact')}取貨。攻擊會自動發動。`],
       listen: ['看圖聽音', 'listen', '取貨時會正常播放發音；記住包裹圖像，送貨時請自行判斷日語答案。原免費聽音提示已取消。'],
-      delivery: ['配送答題墊', 'pickup', `收件處答題結界最多暫停 10 秒；離圈會恢復戰鬥，但倒數不會停止。逾時包裹立即作廢、記錯並扣最大燈油 5%。踩答案墊 0.65 秒提交。各關皆須送達指定件數並擊敗終王。`],
+      delivery: ['配送答題墊', 'pickup', `收件處答題結界最多暫停 10 秒；離圈會恢復戰鬥，但倒數不會停止。逾時包裹立即作廢、記錯並扣最大燈油 5%。踩答案墊 0.65 秒提交。完成配送可補充燈油、獲得經驗與分數。`],
       dash: ['衝刺避險', 'dash', `移動中用${key('dash')}快速穿過危險；衝刺期間短暫無敵。右側衝刺鈕顯示冷卻秒數，恢復後才能再次使用。`],
       boss: ['Boss 封印', 'listen', `靠近 Boss 按${key('boss')}選假名破印。${bossNote}各關封印讀題最多暫停 10 秒；答錯立即恢復戰鬥，禁攻擊第一次 10 秒、再錯 30 秒；仍可移動且燈油照常消耗。`]
     }[id];
@@ -2445,6 +2449,19 @@ window.UI = (() => {
     return slots;
   }
 
+  function drawSkillFieldCount(ctx, count, x, y) {
+    if (!Number.isInteger(count)) return;
+    ctx.save();
+    ctx.font = readableFont(11, "900");
+    ctx.textAlign = "center";
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#191321";
+    ctx.fillStyle = "#fff2cc";
+    ctx.strokeText(String(count), x, y);
+    ctx.fillText(String(count), x, y);
+    ctx.restore();
+  }
+
   function drawDiegeticSkillFanFallback(ctx, ownedKeys, WL, extra, badgeTextSize, badgeH, motion) {
     const cx=2, cy=78, fanR=132, a0=-1.48, a1=-0.12;
     ctx.save();
@@ -2466,6 +2483,7 @@ window.UI = (() => {
         }
         const cd=extra?.cd?.[k]||0;
         if(cd>.02){ctx.fillStyle='rgba(4,6,14,.67)';ctx.beginPath();ctx.moveTo(sx,sy);ctx.arc(sx,sy,18,-Math.PI/2,-Math.PI/2+Math.PI*2*cd);ctx.closePath();ctx.fill();}
+        drawSkillFieldCount(ctx, extra?.skillCounts?.[k], sx + 13, sy + 13);
         const lvl=WL[k]||1;const isFusion=isFusionSkill(k);const badgeLabel=isFusion||lvl>=5?'MAX':'L'+lvl;
         ctx.fillStyle='#e8c36a';ctx.strokeStyle='#6d471d';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(sx-22,sy+20,44,badgeH,4);ctx.fill();ctx.stroke();ctx.fillStyle='#201516';ctx.textAlign='center';ctx.font='900 '+badgeTextSize+'px Noto Sans JP, sans-serif';ctx.fillText(badgeLabel,sx,sy+20+badgeTextSize+3);
       }else{ctx.strokeStyle='rgba(232,195,106,.42)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx,sy,19,0,6.283);ctx.stroke();ctx.fillStyle='rgba(232,195,106,.5)';ctx.textAlign='center';ctx.font=readableFont(13,'900');ctx.fillText('＋',sx,sy+5);}
@@ -2522,6 +2540,7 @@ window.UI = (() => {
           ctx.closePath();
           ctx.fill();
         }
+        drawSkillFieldCount(ctx, extra?.skillCounts?.[k], sx + 11, sy + 12);
         // 等級融入技能球外圈：弧長＋和風色階同時區分 Lv1~5，並以克制呼吸光提示成長。
         const isFusion = isFusionSkill(k);
         const lvl = isFusion ? 5 : Math.max(1, Math.min(5, WL[k] || 1));
@@ -2819,7 +2838,7 @@ window.UI = (() => {
 
 
   // 2. 全螢幕 HUD：左上生命（燈油）與經驗、中上任務／Boss、右上黎明與小地圖、左下武器格。
-  function drawHudBase(theme, ctx, P, oil, maxOil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, goalDeliveries = 6, dashCd = 0, dashMax = 1.8, bossHunt = false, extra = {}) {
+  function drawHudBase(theme, ctx, P, oil, maxOil, elapsed, dawnTime, delivered, failed, score, level, xp, xpNeed, job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, goalDeliveries = 0, dashCd = 0, dashMax = 1.8, bossHunt = false, extra = {}) {
     ctx.save();
     const gradientTransform = ctx.getTransform?.();
     const bounds = window.VIEWPORT?.hudBounds() || screenBounds();
@@ -3114,6 +3133,7 @@ window.UI = (() => {
             ctx.fillStyle = 'rgba(4, 6, 14, 0.66)'; ctx.beginPath(); ctx.moveTo(scx, scy);
             ctx.arc(scx, scy, slotSize / 2 - 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * cd); ctx.closePath(); ctx.fill();
           } else if (motion && extra?.cd) glow(ctx, scx, scy, slotSize * 1.5, tone, 0.18 * pulse(3, 0.4));
+          drawSkillFieldCount(ctx, extra?.skillCounts?.[k], scx + slotSize*.29, scy + slotSize*.28);
           const lvl = WL[k] || 1;
           const badgeText = isFusionSkill(k) || lvl >= 5 ? 'MAX' : 'L' + lvl;
           ctx.fillStyle = C.gold; ctx.beginPath(); ctx.roundRect(sx, slotY + slotSize, slotSize, badgeH, 3); ctx.fill();
@@ -3306,8 +3326,30 @@ window.UI = (() => {
     return window.UI_THEME === 'classic' ? drawHudClassic(...args) : drawHudDiegetic(...args);
   }
 
+  // Expansion icon contrast is baked into the DEV raster candidates.
+
   // 繪製日式和風紋章勳章（Kamon Emblems - 商業級金屬鍍金家紋）
   function drawEmblem(ctx, id, cx, cy, r) {
+    const expansion = window.GAME_SKILL_EXPANSION;
+    const candidate = expansion?.cards[id];
+    if (candidate && (expansion.releases[id]?.published || expansion.lab(window))) {
+      const asset = expansion.artImage(id+":icon");
+      ctx.save();
+      if (asset) {
+        ctx.beginPath();
+        ctx.arc(cx,cy,r,0,Math.PI*2);
+        ctx.clip();
+        ctx.drawImage(asset,cx-r,cy-r,r*2,r*2);
+      } else {
+        ctx.font=readableFont(r*1.35,"900");
+        ctx.textAlign="center";
+        ctx.textBaseline="middle";
+        ctx.fillStyle="#f3e0b6";
+        ctx.fillText(candidate.ic,cx,cy);
+      }
+      ctx.restore();
+      return;
+    }
     ctx.save();
     ctx.translate(cx, cy);
 
@@ -4042,8 +4084,8 @@ window.UI = (() => {
   const CARD_SHORT = {
     mut_return:    { ja: "靈針・回旋折返",   s: "靈針折返再擊，同一敵人額外受到 35% 傷害。", ic: "return" },
     mut_pulse:     { ja: "靈陣・連環脈衝",   s: "靈陣連震兩次，完整命中總傷害 +30%。",           ic: "pulse" },
-    mut_seek:      { ja: "靈針・引魂追跡", s: "只有靈針能轉向追蹤妖怪。", ic: "seek" },
-    mut_boom_seek: { ja: "陰陽符・引魂追跡", s: "只有陰陽符能轉向追蹤妖怪。", ic: "seek" },
+    mut_seek:      { ja: "靈針・引魂追蹤", s: "只有靈針能轉向追蹤妖怪。", ic: "seek" },
+    mut_boom_seek: { ja: "陰陽符・引魂追蹤", s: "只有陰陽符能轉向追蹤妖怪。", ic: "seek" },
     mut_boom_fan:  { ja: "陰陽符・千本散射", s: "只有陰陽符發數增加，整輪傷害 +20%。", ic: "fan" },
     mut_frost:     { ja: "靈針・冰魄封靈", s: "靈針命中：小怪冰凍 0.5 秒；Boss 累積 3 次命中後冰凍 0.15 秒，2 秒內免疫。", ic: "frost" },
     mut_boom_frost:{ ja: "陰陽符・冰魄封靈", s: "陰陽符主爆：小怪冰凍 0.5 秒；Boss 累積 3 次命中後冰凍 0.15 秒。", ic: "frost" },
@@ -4466,7 +4508,20 @@ window.UI = (() => {
       options:Array.from({length:n},(_,i)=>({x:startX+i*(optW+gap),y:y+62,w:optW,h:optH}))};
   }
 
-  function drawBossQuiz(ctx, bossQ, mode = 'keyboard', boss = null, breakFade = 0, curseRemaining = 0) {
+  // During a delivery reading, use only the central HUD lane. Move the
+  // compact stack away from projected answer labels; never obscure them.
+  function bossReadingBarLayout(bar, bossCount, avoid = []) {
+    const bounds=window.VIEWPORT?.hudBounds() || screenBounds();
+    const rowH=Math.min(bar.rowH,30), h=Math.max(0,bossCount)*rowH;
+    const low=bounds.top+160, high=bounds.bottom-104-h;
+    const overlaps=y=>avoid.some(r=>bar.x<r.x+r.w && bar.x+bar.w>r.x && y<r.y+r.h && y+h>r.y);
+    if (high<low) return null;
+    // Start at the usual lower HUD lane, then try the remaining positions.
+    for(let y=high;y>=low;y-=8) if(!overlaps(y)) return {...bar,y,h,rowH};
+    return !overlaps(low) ? {...bar,y:low,h,rowH} : null;
+  }
+
+  function drawBossQuiz(ctx, bossQ, mode = 'keyboard', boss = null, breakFade = 0, curseRemaining = 0, deliveryAvoid = null) {
     if (!bossQ && !boss) return;
     ctx.save();
     const bosses=Array.isArray(boss) ? boss.filter(b=>b && b.hp>0) : boss && boss.hp>0 ? [boss] : [];
@@ -4474,8 +4529,9 @@ window.UI = (() => {
     const {x:bx,y:by,w:boxW,h:boxH} = layout;
     const mid = bx+boxW/2;
     const scale = window.VIEWPORT?.get().scale || 1;
-    bosses.forEach((b,i)=>drawBossBar(ctx,layout.bar.x,
-      layout.bar.y+i*layout.bar.rowH,layout.bar.w,b,scale,Date.now()/1000,i,layout.bar.rowH));
+    const bar=deliveryAvoid ? bossReadingBarLayout(layout.bar,bosses.length,deliveryAvoid) : layout.bar;
+    if(bar) bosses.forEach((b,i)=>drawBossBar(ctx,bar.x,
+      bar.y+i*bar.rowH,bar.w,b,scale,Date.now()/1000,i,bar.rowH));
     const drawSealBreakArt = () => {
       if (breakFade > 0 && !calm() && paintedBossSealBreak?.naturalWidth) {
         // Keep the previous Boss's painted seal break visible even when
@@ -4491,7 +4547,7 @@ window.UI = (() => {
       }
     };
     if (!bossQ) {
-      drawSealBreakArt();
+      if(!deliveryAvoid) drawSealBreakArt();
       ctx.restore();
       return;
     }
@@ -5306,6 +5362,38 @@ function fusionLayout(customViewport, model) {
       emblem: id, status: retired ? "disabled" : labOnly ? "lab_only" : v.st || "ready" });
   });
 
+  let secretCodex;
+  function secretCards() {
+    // The catalogue and optional wolf module are loaded after the UI script.
+    const catalog = window.GAME_CATALOG;
+    if (!catalog) return CARD_LIST;
+    if (!secretCodex) {
+      const candidateIds = window.GAME_SKILL_EXPANSION?.catalogIds(window) || [];
+      const skills = Object.values(catalog.WI).filter(skill => !skill.id.startsWith("fusion_") && !candidateIds.includes(skill.id));
+      if (window.GAME_SHIKIGAMI?.CARD) skills.push(window.GAME_SHIKIGAMI.CARD);
+      for (const id of candidateIds) skills.push(catalog.WI[id]);
+      const mutations = Object.values(catalog.MUTATION_CONFIG);
+      const lateSkills = skills.filter(skill => !CARD_LIST.some(card => card.emblem === skill.id));
+      secretCodex = CARD_LIST.filter(card => !catalog.MUTATION_CONFIG[card.emblem]).concat(
+        lateSkills.map(skill => ({name:skill.zh, jp:skill.jp, type:"主動", desc:skill.desc, emblem:skill.id})),
+        skills.flatMap(skill => mutations.filter(card => card.skillId === skill.id).map(card => {
+          const short = CARD_SHORT[card.id];
+          return {name:card.n, jp:short ? "" : card.s, type:"變異", desc:short?.s || card.d, emblem:card.id};
+        }))
+      );
+    }
+    return secretCodex;
+  }
+
+  function secretLockStage(id, store, available = key => store?.isActiveSkillUnlocked?.(key)) {
+    const skill = window.GAME_CATALOG?.MUTATION_CONFIG?.[id]?.skillId || id;
+    const stage = store?.activeSkillClearStage?.(skill);
+    return stage && !available(skill) ? stage : null;
+  }
+  function secretUnlockText(stage) {
+    return "通過" + (window.CONTENT?.getStage?.(stage)?.name || stage) + "後解鎖。";
+  }
+
   // 三頁共用現有核准木框/和紙/紅流蘇 raster，不以白底或幾何重畫主面板。
   function drawCollectionBoard(ctx, x, y, w, h) {
     const art = illustratedArt.notice;
@@ -5316,29 +5404,33 @@ function fusionLayout(customViewport, model) {
   let secretDetail = null;
   const codexRows = () => (window.VIEWPORT?.get().scale || 1) < .8 ? 4 : 6;
   function selectSecretDetail(index = null) {
-    secretDetail = index == null ? null : Number.isInteger(+index) && CARD_LIST[+index] ? +index : null;
+    secretDetail = index == null ? null : Number.isInteger(+index) && secretCards()[+index] ? +index : null;
   }
   function secretEntryButtons(page) {
     const count = codexRows(), rows = count / 2, gap = 12, w = 404, h = (372 - gap * (rows - 1)) / rows;
-    return CARD_LIST.slice(page * count, (page + 1) * count).map((card, i) => ({
+    return secretCards().slice(page * count, (page + 1) * count).map((card, i) => ({
       id: `secret:${page * count + i}`, x: 40 + i % 2 * (w + gap), y: 122 + Math.floor(i / 2) * (h + gap), w, h
     }));
   }
-  function drawSecretCodex(ctx, page, focus) {
-    if (secretDetail != null && CARD_LIST[secretDetail]) {
-      const c = CARD_LIST[secretDetail], short = cardShort(c.emblem, c.name);
+  function drawSecretCodex(ctx, page, focus, store) {
+    const cards = secretCards();
+    if (secretDetail != null && cards[secretDetail]) {
+      const c = cards[secretDetail], short = cardShort(c.emblem, c.name);
+      const locked = secretLockStage(c.emblem, store);
       drawCollectionBoard(ctx, 40, 122, 820, 372);
       ctx.textAlign = "left"; ctx.fillStyle = "#172f45"; ctx.font = readableFont(24, "900");
-      fitText(ctx, c.name, 74, 165, 740, {minSize:18, minCss:14});
+      fitText(ctx, locked ? "？？？" : c.name, 74, 165, 740, {minSize:18, minCss:14});
       ctx.font = readableFont(16, "800"); ctx.fillStyle = "#803c32";
-      fitText(ctx, c.type.split("・")[0] + (c.jp ? " · " + c.jp : ""), 74, 198, 700, {minSize:14});
-      const image = getUiFusionArt(c.emblem, "icon") || illustratedSkills[c.emblem];
-      if (image?.naturalWidth) {
+      fitText(ctx, locked ? "尚未解鎖" : c.type.split("・")[0] + (c.jp ? " · " + c.jp : ""), 74, 198, 700, {minSize:14});
+      const image = locked ? illustratedCharms.guard : getUiFusionArt(c.emblem, "icon") || illustratedSkills[c.emblem];
+      if (!locked && c.type === "變異" && window.UI.drawMutationCard) {
+        window.UI.drawMutationCard(ctx, c, {x:690, y:225, w:140, h:210});
+      } else if (image?.naturalWidth) {
         const s = Math.min(125 / image.naturalWidth, 125 / image.naturalHeight);
         ctx.drawImage(image, 696 + (125 - image.naturalWidth * s) / 2, 230, image.naturalWidth * s, image.naturalHeight * s);
       }
       ctx.font = readableFont(18, "700"); ctx.fillStyle = "#302b25";
-      const text = c.desc || short?.s || "效果說明待補";
+      const text = locked ? secretUnlockText(locked) : c.desc || short?.s || "效果說明待補";
       const lines = []; let line = "";
       for (const ch of text) {
         if (line && ctx.measureText(line + ch).width > 580) { lines.push(line); line = ch; } else line += ch;
@@ -5348,14 +5440,15 @@ function fusionLayout(customViewport, model) {
       return;
     }
     secretEntryButtons(page).forEach((b, i) => {
-      const c = CARD_LIST[page * codexRows() + i], short = cardShort(c.emblem, c.name);
+      const c = cards[page * codexRows() + i], short = cardShort(c.emblem, c.name);
+      const locked = secretLockStage(c.emblem, store);
       drawCollectionBoard(ctx, b.x, b.y, b.w, b.h);
       ctx.textAlign = "left"; ctx.fillStyle = "#172f45"; ctx.font = readableFont(20, "900");
-      fitText(ctx, c.name, b.x + 22, b.y + 34, b.w - 44, {minSize:15,minCss:13});
+      fitText(ctx, locked ? "？？？" : c.name, b.x + 22, b.y + 34, b.w - 44, {minSize:15,minCss:13});
       ctx.fillStyle = "#803c32"; ctx.font = readableFont(14, "800");
-      ctx.fillText(c.type.split("・")[0], b.x + 22, b.y + 59, b.w - 44);
+      ctx.fillText(locked ? "尚未解鎖" : c.type.split("・")[0], b.x + 22, b.y + 59, b.w - 44);
       ctx.fillStyle = "#302b25"; ctx.font = readableFont(16, "700");
-      fitText(ctx, short?.s || c.desc, b.x + 22, b.y + b.h - 22, b.w - 44, {minSize:13,minCss:12});
+      if (!locked) fitText(ctx, short?.s || c.desc, b.x + 22, b.y + b.h - 22, b.w - 44, {minSize:13,minCss:12});
       if (focus === b.id) drawMenuFocus(ctx, b);
     });
   }
@@ -5442,7 +5535,7 @@ function fusionLayout(customViewport, model) {
     if (tab === "words" && window.CARD_GALLERY_UI && typeof window.CARD_GALLERY_UI.draw === "function") {
       return wordCodexButtons(galleryState || { filter: { by: "all", id: null }, page: page || 0 });
     }
-    const pages = Math.ceil((tab==='cards'?CARD_LIST.length:wordCount)/(tab==='cards'?codexRows():15));
+    const pages = Math.ceil((tab==='cards'?secretCards().length:wordCount)/(tab==='cards'?codexRows():15));
     const h = Math.max(44, cssPx(MIN_TOUCH_CSS));
     if (tab === 'cards' && secretDetail != null) return [...codexTabButtons(),
       {id:'secret-back',x:330,y:520,w:240,h}];
@@ -5490,7 +5583,7 @@ function fusionLayout(customViewport, model) {
     ctx.fillText("單字圖鑑", tabWordsX + tabW / 2 + 12, tabY + tabH/2 + 4);
 
     if (isCards) {
-      drawSecretCodex(ctx, page, focus);
+      drawSecretCodex(ctx, page, focus, STORE);
     } else if (window.CARD_GALLERY_UI && typeof window.CARD_GALLERY_UI.draw === "function") {
       const pack = wordGallery();
       const galleryDrawn = window.CARD_GALLERY_UI.draw(ctx, pack.cards, Object.assign({ packLine: pack.packLine }, galleryState || { filter: { by: "all", id: null }, page }), {
@@ -5512,7 +5605,7 @@ function fusionLayout(customViewport, model) {
     if (isCards) for(const b of buttons.filter(b=>['prev','next','back','secret-back'].includes(b.id))) drawButton(ctx,b,b.id==='prev'?'上一頁':b.id==='next'?'下一頁':b.id==='secret-back'?'返回秘術一覽':'返回',{size:16,disabled:b.disabled,focus:focus===b.id});
     const tabButton=buttons.find(b=>b.id===focus);
     if(tabButton && ['cards','words'].includes(focus))drawMenuFocus(ctx,tabButton);
-    if(isCards && secretDetail == null){ctx.textAlign='center';ctx.font=readableFont(13,'700');ctx.fillStyle='#ead8b5';ctx.fillText(`點選條目查看詳情　${page+1}/${Math.ceil(CARD_LIST.length/codexRows())}`,W/2,510);}
+    if(isCards && secretDetail == null){ctx.textAlign='center';ctx.font=readableFont(13,'700');ctx.fillStyle='#ead8b5';ctx.fillText(`點選條目查看詳情　${page+1}/${Math.ceil(secretCards().length/codexRows())}`,W/2,510);}
 
     ctx.restore();
   }
@@ -5555,7 +5648,7 @@ function fusionLayout(customViewport, model) {
     const contentCenter=RESULT_GRID.center;
     const panel={x:39,y:16,w:822,h:443};
     const board=resultTrialArt.board,buttonArt=resultTrialArt.button;
-    const title=isWon?"夜已破曉":"燈油已盡";
+    const title=summary.finalChapter ? "八夜配達完成" : isWon ? "夜已破曉" : "燈油已盡";
     function paintFixedResultLabels(g,dx=0,dy=0){
       g.font=resultFont(19);
       g.lineWidth=.6;g.strokeStyle="rgba(251,235,210,.8)";
@@ -5563,7 +5656,7 @@ function fusionLayout(customViewport, model) {
       for(const col of RESULT_GRID.columns)
         drawCenteredResultInk(g,col.name,col.x+RESULT_GRID.headingOffsetX-dx,RESULT_GRID.statY-dy,70,true);
     }
-    const bakedBoard=fixedUiRaster("result-board-"+state,panel.w,panel.h,g=>{
+    const bakedBoard=fixedUiRaster("result-board-"+(summary.finalChapter ? "yomi" : state),panel.w,panel.h,g=>{
       g.drawImage(board,0,0,panel.w,panel.h);
       g.font=resultFont(30);g.fillStyle="#fff1cf";
       g.strokeStyle="rgba(38,17,25,.75)";g.lineWidth=2;
@@ -5709,9 +5802,10 @@ function fusionLayout(customViewport, model) {
     // 木框旅帳標題保留清晰描墨，不增加漂浮光環。
     ctx.font = resultFont(34);
     ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
-    ctx.fillText(isWon ? "夜已破曉" : "燈油已盡", mid, cardY + 54);
+    const title = summary.finalChapter ? "八夜配達完成" : isWon ? "夜已破曉" : "燈油已盡";
+    ctx.fillText(title, mid, cardY + 54);
     ctx.fillStyle = "#f6e9ce";
-    ctx.fillText(isWon ? "夜已破曉" : "燈油已盡", mid, cardY + 51);
+    ctx.fillText(title, mid, cardY + 51);
 
     // 線條與裝飾已融入紙張貼圖，不再以數位等距分隔線覆蓋。
 
@@ -5849,7 +5943,7 @@ function fusionLayout(customViewport, model) {
     ] : PAUSE_BTNS;
     // Five actual purple slots in the approved portrait, plus a separately
     // drawn sixth danger action below the undamaged shrine footer.
-    return items.map((b,i)=>{
+    const buttons = items.map((b,i)=>{
       if(!compact){
         if(page==="main"&&b.id==="menu")return {...b,x:530,y:536,w:246,h:45};
         // Source slot centers: 557, 688, 818.5, 948.5, 1080 in 1536px.
@@ -5861,6 +5955,13 @@ function fusionLayout(customViewport, model) {
       const step = h + Math.max(8, Math.round(10 / scale));
       return {...b,x:i%2?470:70,y:190+Math.floor(i/2)*step,w:360,h};
     });
+    if (page === "main" && window.UI_COMPENDIUM) {
+      const h = Math.max(compact ? 58 : 45, minTouch);
+      const below = Math.max(...buttons.map(b => b.y + b.h));
+      buttons.push({id:"build", label:"本局構築", x:compact ? 70 : 254,
+        y:compact ? below + 8 : 536, w:compact ? 360 : 246, h});
+    }
+    return buttons;
   }
 
   // The approved tall board ALREADY contains five complete purple gilt slots.
@@ -5878,7 +5979,7 @@ function fusionLayout(customViewport, model) {
     g.font=pauseInkFont(26);g.lineWidth=1;
     drawPaintedButtonLabel(g,page==="settings"?"夜行設定":"夜櫻暫歇",653-ox,PAUSE_HEADING_INK_Y-oy,248);
     buttons.forEach((b,i)=>{
-      if(page==="main"&&b.id==="menu")return; // Red footer button is separate.
+      if(page==="main"&&(b.id==="menu" || b.id==="build"))return;
       const label=b.id==="mute"&&muted?b.labelMuted:b.label;
       g.save();
       if(i===focus){
@@ -5942,7 +6043,7 @@ function fusionLayout(customViewport, model) {
     const panelR = Math.max(...buttons.map(b => b.x + b.w)) + (compact?24:54);
     // Preserve the FULL hand-painted footer instead of crowding it with
     // the last button and help legend (formerly only 28 px below the button).
-    const panelB = Math.max(...buttons.map(b => b.y + b.h)) + 72;
+    const panelB = Math.max(...buttons.filter(b => b.id !== "build").map(b => b.y + b.h)) + 72;
     // 大尺寸版仿照核准稿：角色與狐狸面具／燈籠留在左側，
     // 右側只放一塊告示紙和七張克制的紙札；狹長螢幕保留原適配排列。
     const panelMid=(panelX+panelR)/2;
@@ -5979,6 +6080,9 @@ function fusionLayout(customViewport, model) {
       if(page==="main"){
         const b=buttons.find(b=>b.id==="menu");
         if(b)drawApprovedPauseFooter(ctx,b,buttons[focus]?.id===b.id);
+        const build = buttons.find(b => b.id === "build");
+        if (build) drawB13MenuButton(ctx,build,build.label,{tone:"normal",
+          size:20,focus:buttons[focus]?.id === "build",fontFace:pauseInkFace,labelNudgeY:4});
       }
       ctx.restore();return;
     }
@@ -6008,7 +6112,9 @@ function fusionLayout(customViewport, model) {
 
     ctx.fillStyle = "#624633";
     ctx.font = pauseInkFont(13);
-    ctx.fillText("上下選擇 · Enter／A 確認 · Esc／B 繼續", compact?450:635, compact?476:508);
+    const build = buttons.find(b => b.id === "build");
+    ctx.fillText("上下選擇 · Enter／A 確認 · Esc／B 繼續", build ? 650 : compact ? 450 : 635,
+      build ? build.y + build.h / 2 : compact ? 476 : 508);
 
     ctx.restore();
   }
@@ -6355,8 +6461,10 @@ function fusionLayout(customViewport, model) {
   drawCardIcon,
   CARD_ICON_R,
     drawEmblem,
-    drawBossQuiz, bossQuizLayout,
-    drawCodex, codexRows, codexButtons, selectSecretDetail, wordGallery, wordGalleryViewport,
+    drawBossQuiz, bossQuizLayout, bossReadingBarLayout,
+    drawCodex, codexRows, codexButtons, selectSecretDetail, secretCards, wordGallery, wordGalleryViewport,
+    secretLockStage, secretUnlockText,
+    compendiumItemArt: id => compendiumItemPaths[id] || getUiFusionArt(id, "icon")?.src,
     drawEndScreen, reviewButtons,
     drawAssetProgress,
     drawPauseMenu,
@@ -6390,7 +6498,7 @@ function fusionLayout(customViewport, model) {
     drawFusion,
     FUSION_REOPEN_BTN,
     drawFusionReopenButton,
-    CARD_LIST,
+    get CARD_LIST() { return secretCards(); },
     resolveFanSlots,
     resetFanSlots,
     isFusionSkill,

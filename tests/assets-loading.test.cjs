@@ -314,7 +314,11 @@ test('asset progress counts settled images including failures, without counting 
 test('all declared skill ranks and variants reference shipped WebP files',()=>{
   const {env}=loadAssets();
   const files=[...Object.values(env.SKILL_LEVEL_FILES).flat(),...Object.values(env.SKILL_VARIANT_FILES.fire).flat()].filter(Boolean);
-  for(const file of files) assert.ok(fs.existsSync('assets/img/vfx/raster/'+file+'.webp'),file+' must exist');
+  vm.runInNewContext(fs.readFileSync('js/asset-paths.js','utf8'),env);
+  for(const file of files) {
+    const path=env.ASSET_PATHS.resolve('assets/img/vfx/raster/'+file+'.webp');
+    assert.ok(fs.existsSync(path),path+' must exist');
+  }
 });
 
 test('five-rank skill art exposes 30 ranked slots and loads each file lazily',()=>{

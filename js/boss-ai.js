@@ -4,6 +4,25 @@
   const root = typeof window !== 'undefined' ? window : globalThis;
   const sakuraAI = root.SAKURA_BOSS_AI || (typeof module !== 'undefined' && module.exports ? require('./boss-sakura.js') : null);
 
+  // DEV-only early-stage multi-boss candidate. Preserve a single boss's
+  // intrinsic combo cadence; separate casts by different bosses on the run clock.
+  const earlyGate = Object.freeze({
+    ready(options, enemy, phase) {
+      const s=options.stagger, now=options.now;
+      if (!options.earlyStagger || !s || !Number.isFinite(now)) return true;
+      const active=phase==="active", key=active?"lastActiveAt":"lastTelegraphAt";
+      const owner=active?"lastActiveOwner":"lastTelegraphOwner";
+      return s[owner]===enemy || now-(s[key]??-99)+1e-9 >= (active ? .35 : .75);
+    },
+    record(options, enemy, phase) {
+      const s=options.stagger, now=options.now;
+      if (!options.earlyStagger || !s || !Number.isFinite(now)) return;
+      const active=phase==="active";
+      s[active?"lastActiveAt":"lastTelegraphAt"]=now;
+      s[active?"lastActiveOwner":"lastTelegraphOwner"]=enemy;
+    }
+  });
+
   function dist(a, b) {
     return Math.hypot(a.x - b.x, a.y - b.y);
   }
@@ -129,7 +148,9 @@
     if (!e || (e.hp || 0) <= 0 || e.hazard || e.shield) return false;
     if ((e.stageId === 'sakura-pass' || options.stageId === 'sakura-pass') && sakuraAI) return sakuraAI.start(e,player,options);
     if (root.BAMBOO_COMBAT?.isBamboo(e, options)) return root.BAMBOO_COMBAT.start(e, player, options);
-    if (root.KYOTO_PROCESSION?.isKyoto(e, options)) return root.KYOTO_PROCESSION.startBoss(e, player);
+    if (root.KYOTO_PROCESSION?.isKyoto(e, options)) return root.KYOTO_PROCESSION.startBoss(e, player, options);
+    if (root.SNOW_TEMPLE_COMBAT?.isSnowTemple(e, options)) return root.SNOW_TEMPLE_COMBAT.start(e, player, options);
+    if (root.LATE_STAGE_COMBAT?.supports(e, options)) return root.LATE_STAGE_COMBAT.start(e, player, options);
 
     const kind = nextAttackKind(e);
     const p = player || { x: 0, y: 0 };
@@ -278,9 +299,12 @@
   }
 
   function step(e, player, dt, options = {}) {
+    if (options.earlyStagger) options = {...options, earlyGate};
     if ((e?.stageId === 'sakura-pass' || options.stageId === 'sakura-pass') && sakuraAI) return sakuraAI.step(e,player,dt,options);
     if (root.BAMBOO_COMBAT?.isBamboo(e, options)) return root.BAMBOO_COMBAT.step(e, player, dt, options);
     if (root.KYOTO_PROCESSION?.isKyoto(e, options)) return root.KYOTO_PROCESSION.stepBoss(e, player, dt, options);
+    if (root.SNOW_TEMPLE_COMBAT?.isSnowTemple(e, options)) return root.SNOW_TEMPLE_COMBAT.step(e, player, dt, options);
+    if (root.LATE_STAGE_COMBAT?.supports(e, options)) return root.LATE_STAGE_COMBAT.step(e, player, dt, options);
     if (!e || (e.hp || 0) <= 0) {
       if (e && e.hazard) {
         delete e.hazard;
@@ -305,7 +329,10 @@
     const p = player || { x: 0, y: 0 };
     const isRainPort = options.stageId === 'rain-port' || e.stageId === 'rain-port';
     if (!e.hazard && (e.attackCd || 0) <= 0 && dist(e, p) < (isRainPort ? 520 : 340)) {
-      started = start(e, p, options);
+      if (earlyGate.ready(options,e,'telegraph')) {
+        started = start(e, p, options);
+        if (started) earlyGate.record(options,e,'telegraph');
+      }
     }
 
     if (!e.hazard) {
@@ -323,6 +350,8 @@
       e.slamT = Math.max(0, h.duration - h.t);
       e.slamRecoverT = 0;
       if (h.t >= h.duration) {
+        if (!earlyGate.ready(options,e,'active')) { h.t=h.duration; return {hit:null,started,finished:false}; }
+        earlyGate.record(options,e,'active');
         h.phase = 'active';
         h.t = 0;
         if (h.kind === 'charge') h.duration = options.stageId === 'night-town' ? 0.70 : 0.65;
@@ -335,6 +364,13 @@
       return { hit: null, started, finished: false };
     }
 
+    if (h.staggerNextFan) {
+      if (!earlyGate.ready(options,e,'telegraph')) { h.t=Math.min(h.t,h.duration); return {hit:null,started:false,finished:false}; }
+      delete h.staggerNextFan;
+      h.phase='telegraph'; h.t=0; h.duration=.25; h.sweepPass=2; h.sweepReverse=true; h.hit=false;
+      earlyGate.record(options,e,'telegraph');
+      return {hit:null,started:false,finished:false};
+    }
     if (h.phase === 'active') {
       e.slamT = 0;
       e.slamRecoverT = 0;
@@ -459,6 +495,11 @@
 
         if (h.t >= h.duration) {
           if (h.doubleSweep && h.sweepPass === 1) {
+            if (!earlyGate.ready(options,e,'telegraph')) {
+              h.staggerNextFan=true; h.phase='recovery'; h.t=0; h.duration=.75;
+              return {hit,started,finished:false};
+            }
+            earlyGate.record(options,e,'telegraph');
             h.phase = 'telegraph';
             h.t = 0;
             h.duration = .25;

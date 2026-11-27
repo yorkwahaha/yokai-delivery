@@ -5,16 +5,16 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const {loadGame} = require('./helpers/game-runtime.cjs');
 
-test('all stage HUD/hunt paths retain delivery guidance until quota, including night-town', () => {
+test('all stage HUD/hunt paths guide directly to remaining bosses after dawn without a delivery quota gate', () => {
   const src = fs.readFileSync('js/game.js', 'utf8');
   const huntRules = [...src.matchAll(/const bossHunt(?:ing)? = ([^;]+);/g)];
   assert.equal(huntRules.length, 3, 'ground arrow, HUD model and HUD draw');
   for (const [, condition] of huntRules) {
-    assert.match(condition, /delivered >= GOAL_DELIVERIES/);
+    assert.match(condition, /elapsed >= DAWN && !bossEncounterComplete\(\)/);
+    assert.doesNotMatch(condition, /delivered >= GOAL_DELIVERIES/);
     assert.doesNotMatch(condition, /STAGE\.id/);
   }
-  assert.match(src, /const deliveryReminderVisible = state === "play" && elapsed >= DAWN\s*&& finalBossDefeated && delivered < GOAL_DELIVERIES/);
-  assert.match(src, /if \(deliveryReminderVisible\)/);
+  assert.doesNotMatch(src, /破曉已至・還差/);
 });
 
 test('Lv5 katana reaches off-screen foes within its real maxTravel (normal and longblade)', () => {

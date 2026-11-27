@@ -36,12 +36,16 @@ for (const stage of ['night-town', 'rain-port']) {
     const g = loadGame({ stage, seed: 142 });
     g.start();
     g.stopSpawns();
+    for (let i = 0; i < 3; i++) {
+      g.placeBoss(1, { dx: 120 + i * 20, bossIndex: i });
+      const prior = g.snapshot().enemies.find(e => e.type === 'boss' && e.bossIndex === i);
+      prior.shield = false;
+      g.hurt(prior, 100);
+    }
     g.prepareBoss();
     const original = g.snapshot();
-    const boss = original.enemies.find(e => e.type === 'boss');
-    Object.assign(boss, { final: true, hp: 1, shield: false, oilReward: 35, speed: 0 });
-    // All stages now require both the delivery quota and the final Boss.
-    g.meetDeliveryGoal();
+    const boss = original.enemies.find(e => e.type === 'boss' && e.hp > 0);
+    Object.assign(boss, { bossIndex: 3, final: true, hp: 1, shield: false, oilReward: 35, speed: 0 });
     g.hurt(boss, 100);
     const victory = g.snapshot();
     assert.equal(victory.state, 'victory');
@@ -79,13 +83,13 @@ for (const stage of ['night-town', 'rain-port']) {
   });
 }
 
-test('second audit: rain-port final Boss with insufficient deliveries does not start victory', () => {
+test('second audit: rain-port final Boss alone without earlier waves does not start victory', () => {
   const g = loadGame({ stage: 'rain-port', seed: 144 });
   g.start();
   g.stopSpawns();
   g.prepareBoss();
   const boss = g.snapshot().enemies.find(e => e.type === 'boss');
-  Object.assign(boss, { final: true, hp: 1, shield: false, oilReward: 35 });
+  Object.assign(boss, { bossIndex: 3, final: true, hp: 1, shield: false, oilReward: 35 });
   const before = g.snapshot();
   g.hurt(boss, 100);
   const after = g.snapshot();

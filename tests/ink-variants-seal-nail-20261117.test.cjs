@@ -128,10 +128,10 @@ test("墨跡餘墨只追擊新進入者，不重擊原目標，不留待到暫�
   assert.equal(skill.snapshot().marks,0);
 });
 
-test("封印釘單枚部署、離位觸發、原地無傷與冷卻",()=>{
+test("封印釘單枚部署、敵人踩中心觸發、玩家離位無效與冷卻",()=>{
   const w=runtime("game-seal-nail.js");
   const nail=w.GAME_SEAL_NAIL.create(),hits=[];
-  const e=enemy(0,0);
+  const e=enemy(100,0);
   const tick=(dt,start,end)=>nail.tick({dt,level:1,start,end,enemies:[e],
     effectiveDamage:1,hit:(_e,d)=>hits.push(d)});
   tick(.1,point(),point());
@@ -142,8 +142,14 @@ test("封印釘單枚部署、離位觸發、原地無傷與冷卻",()=>{
   tick(.1,point(1,0),point(1,0));
   assert.equal(hits.length,0);
   tick(.1,point(1,0),point(186,0));
+  assert.equal(hits.length,0,'player departure does not detonate');
+  e.x=37;tick(.1,point(186,0),point(186,0));
+  assert.equal(hits.length,0,'outside center');
+  e.x=36; e.shield=true;tick(.1,point(186,0),point(186,0));
+  assert.equal(hits.length,0,'shielded enemy cannot trigger');
+  e.shield=false;tick(.1,point(186,0),point(186,0));
   assert.equal(hits.length,1);
-  assert.equal(hits[0],4);
+  assert.equal(hits[0],5);
   assert.equal(nail.snapshot().active,false);
   nail.reset();
   assert.equal(nail.snapshot().effects,0);
@@ -152,27 +158,27 @@ test("封印釘單枚部署、離位觸發、原地無傷與冷卻",()=>{
 test("封印釘Lv5兩段方向性破封，同目標最多兩次",()=>{
   const w=runtime("game-seal-nail.js");
   const nail=w.GAME_SEAL_NAIL.create(),hits=[];
-  const e=enemy(110,0);
+  const e=enemy(30,0);
   const tick=(dt,start,end)=>nail.tick({dt,level:5,start,end,enemies:[e],
     effectiveDamage:1,hit:(_e,d)=>hits.push(d)});
   tick(.05,point(),point(1,0));
   tick(.05,point(1,0),point(160,0));
   assert.equal(hits.length,1);
-  assert.equal(hits[0],10);
+  assert.equal(hits[0],14);
   assert.equal(nail.snapshot().pendingSecond,true);
   tick(.25,point(160,0),point(160,0));
   assert.equal(hits.length,2);
-  assert.equal(hits[1],4.5);
+  assert.equal(hits[1],8.4);
   tick(.5,point(160,0),point(160,0));
   assert.equal(hits.length,2);
 });
 
-test("封印釘對單王雙爆保有優勢，Boss 倍率小幅降低但群傷不變",()=>{
+test("封印釘兩段都對 Boss 使用 80% 傷害倍率",()=>{
   const w=runtime("game-seal-nail.js");
   const spec=w.GAME_SEAL_NAIL.spec(5);
-  assert.equal(spec.bossMultiplier,.45);
+  assert.equal(spec.bossMultiplier,.80);
   const simulate=type=>{
-    const nail=w.GAME_SEAL_NAIL.create(),foe=enemy(110,0,type);
+    const nail=w.GAME_SEAL_NAIL.create(),foe=enemy(30,0,type);
     const hits=[];
     const tick=(dt,start,end)=>nail.tick({dt,level:5,start,end,enemies:[foe],
       effectiveDamage:1,hit:(_e,d)=>hits.push(d)});
@@ -181,13 +187,13 @@ test("封印釘對單王雙爆保有優勢，Boss 倍率小幅降低但群傷不
     tick(.25,point(160,0),point(160,0));
     return hits.reduce((a,b)=>a+b,0);
   };
-  assert.equal(simulate("normal"),14.5);
-  assert.equal(simulate("boss"),14.5*.45);
+  assert.equal(simulate("normal"),22.4);
+  assert.ok(Math.abs(simulate("boss")-22.4*.80)<1e-9);
 });
-test("試玩封印釘跨距後保留落點、鎖定離開方向，再依序爆發",()=>{
+test("試玩封印釘不隨玩家離位引爆、踩踏鎖定方向後依序爆發",()=>{
   const {GAME_SEAL_NAIL}=runtime("game-seal-nail.js");
   const nail=GAME_SEAL_NAIL.create({staged:true});
-  const aroundPin=enemy(0,0),towardEast=enemy(205,0),towardWest=enemy(-100,0);
+  const aroundPin=enemy(40,0),towardEast=enemy(250,0),towardWest=enemy(-100,0);
   const hits=[];
   const tick=(dt,start,end)=>nail.tick({dt,level:5,start,end,
     enemies:[aroundPin,towardEast,towardWest],hit:(e,d)=>hits.push([e,d])});
@@ -197,15 +203,17 @@ test("試玩封印釘跨距後保留落點、鎖定離開方向，再依序爆�
   assert.deepEqual(hits,[]);
   tick(.61,point(160),point(-160));
   assert.deepEqual(hits,[]);
+  aroundPin.x=30;
   tick(.06,point(-160),point(-160));
-  assert.deepEqual(hits,[[aroundPin,10],[towardWest,10]]);
+  assert.deepEqual(hits,[[aroundPin,14],[towardWest,14]]);
   assert.equal(nail.snapshot().pendingSecond,true);
   tick(.25,point(-160),point(-160));
   assert.equal(hits.length,2);
   tick(.18,point(-160),point(-160));
-  assert.deepEqual(hits.slice(2),[[aroundPin,4.5],[towardEast,4.5]]);
+  assert.deepEqual(hits.slice(2),[[aroundPin,8.4],[towardEast,8.4]]);
   nail.reset();
   tick(.05,point(),point(1));
+  aroundPin.x=40;
   tick(.05,point(1),point(160));
   nail.suspend();
   tick(.8,point(160),point(160));
@@ -215,7 +223,7 @@ test("試玩封印釘跨距後保留落點、鎖定離開方向，再依序爆�
 test("封印釘讀題中止和重開會清除待爆第二段",()=>{
   const w=runtime("game-seal-nail.js");
   const nail=w.GAME_SEAL_NAIL.create(),hits=[];
-  const e=enemy(110,0);
+  const e=enemy(30,0);
   const opts={level:5,enemies:[e],hit:(e,d)=>hits.push(d)};
   nail.tick({...opts,dt:.1,start:point(),end:point(1,0)});
   nail.tick({...opts,dt:.1,start:point(1,0),end:point(180,0)});

@@ -1,0 +1,2669 @@
+{
+  "schema": 1,
+  "date": "2026-11-27",
+  "note": "Local ignored archive; historical sources are not current rules. Restore original relative paths for historical link traversal.",
+  "documents": [
+    {
+      "original": "docs/ART_BATCH1A_NANOBANANA_HANDOFF_20261020.md",
+      "archived": ".cleanup-archive/history/20261127/docs/ART_BATCH1A_NANOBANANA_HANDOFF_20261020.md",
+      "bytes": 10701,
+      "sha256": "b3d47ee734a4d59826f8ce9651ed3891f53cca5a838f5978f0dc40f7eb8b561e",
+      "action": "retired"
+    },
+    {
+      "original": "docs/ART_CLEANUP.md",
+      "archived": ".cleanup-archive/history/20261127/docs/ART_CLEANUP.md",
+      "bytes": 2403,
+      "sha256": "fd2d487222218dadba12d732eec9a1099bdd92dbf67181f5d668bd65b325352f",
+      "action": "retired"
+    },
+    {
+      "original": "docs/BAMBOO_MAZE_ART_20261119.md",
+      "archived": ".cleanup-archive/history/20261127/docs/BAMBOO_MAZE_ART_20261119.md",
+      "bytes": 1551,
+      "sha256": "cfda979d51e5619ef6c8f9024f2ba36a92bc7ab613de8058dae4a790f1d7d09f",
+      "action": "retired"
+    },
+    {
+      "original": "docs/BAMBOO_MAZE_ENEMIES_20261119.md",
+      "archived": ".cleanup-archive/history/20261127/docs/BAMBOO_MAZE_ENEMIES_20261119.md",
+      "bytes": 1917,
+      "sha256": "307a6baca8507e7134634ab10353866895211a42a53852809797d1bee90927c9",
+      "action": "retired"
+    },
+    {
+      "original": "docs/CLEANUP_REPORT_20261024.md",
+      "archived": ".cleanup-archive/history/20261127/docs/CLEANUP_REPORT_20261024.md",
+      "bytes": 4308,
+      "sha256": "8f0ba48e83a6045abefa6024bd5775b3d3d2f9e57c55a003737247ec23a03e76",
+      "action": "retired"
+    },
+    {
+      "original": "docs/COMMISSION_ROUTE_ROGUELITE.md",
+      "archived": ".cleanup-archive/history/20261127/docs/COMMISSION_ROUTE_ROGUELITE.md",
+      "bytes": 11248,
+      "sha256": "e7846c59ece677e8111dcf59c609a531f5493c465d73d6bfd89eb74f33f07b72",
+      "action": "retired"
+    },
+    {
+      "original": "docs/DELIVERY_WORDS_ICONS_20261029.md",
+      "archived": ".cleanup-archive/history/20261127/docs/DELIVERY_WORDS_ICONS_20261029.md",
+      "bytes": 5005,
+      "sha256": "319c78db54fd1804e526fef4c60cde8746ade62223888b7f9771a30735115ccc",
+      "action": "retired"
+    },
+    {
+      "original": "docs/FIRST_FOUR_STAGES_POLISH_PHASE_A_20261125.md",
+      "archived": ".cleanup-archive/history/20261127/docs/FIRST_FOUR_STAGES_POLISH_PHASE_A_20261125.md",
+      "bytes": 11746,
+      "sha256": "40be4d26d4267717940525879e001dd4c61da2d88b9f562938f2038c37952304",
+      "action": "retired"
+    },
+    {
+      "original": "docs/FIRST_FOUR_STAGES_POLISH_PHASE_B_20261125.md",
+      "archived": ".cleanup-archive/history/20261127/docs/FIRST_FOUR_STAGES_POLISH_PHASE_B_20261125.md",
+      "bytes": 33356,
+      "sha256": "9d7a708cfc45ec57ff882dbe6ad39b10ecde2004be4e9a541f71c693be0fcaca",
+      "action": "retired"
+    },
+    {
+      "original": "docs/FIRST_FOUR_STAGES_POLISH_PHASE_C_20261125.md",
+      "archived": ".cleanup-archive/history/20261127/docs/FIRST_FOUR_STAGES_POLISH_PHASE_C_20261125.md",
+      "bytes": 25364,
+      "sha256": "db0ad75d85342408ab66404bc3d44968449043df34b978127ca859c7091a6eef",
+      "action": "retired"
+    },
+    {
+      "original": "docs/FIRST_FOUR_STAGES_POLISH_PHASE_D_20261125.md",
+      "archived": ".cleanup-archive/history/20261127/docs/FIRST_FOUR_STAGES_POLISH_PHASE_D_20261125.md",
+      "bytes": 15494,
+      "sha256": "3760713b37c5c40bbed964d6ad6b7bce7dd35fae5754977c80a5a1d0825da20a",
+      "action": "retired"
+    },
+    {
+      "original": "docs/FISH_JP_PRONUNCIATION_TRIAL_20261030.md",
+      "archived": ".cleanup-archive/history/20261127/docs/FISH_JP_PRONUNCIATION_TRIAL_20261030.md",
+      "bytes": 2321,
+      "sha256": "d63e6f9c13917d9dfdaf1f6243500e85bf02b7f814f8a56fb14d3d2760522895",
+      "action": "retired"
+    },
+    {
+      "original": "docs/FOUR_STAGE_ENGINEERING_GATE_20261122.md",
+      "archived": ".cleanup-archive/history/20261127/docs/FOUR_STAGE_ENGINEERING_GATE_20261122.md",
+      "bytes": 6125,
+      "sha256": "f4a5c00ba5d59be3343c3a2bc92aacea46214cb3491c6191287b9f1bf1dd53e8",
+      "action": "retired"
+    },
+    {
+      "original": "docs/FUSION_ART_DELIVERY_RULES.md",
+      "archived": ".cleanup-archive/history/20261127/docs/FUSION_ART_DELIVERY_RULES.md",
+      "bytes": 3574,
+      "sha256": "c1a72275fc7faaa7e4e75306cf7ea9a09a435f86d7288c5700e4d049d77750e8",
+      "action": "retired"
+    },
+    {
+      "original": "docs/FUSION_ART_PROMPTS.md",
+      "archived": ".cleanup-archive/history/20261127/docs/FUSION_ART_PROMPTS.md",
+      "bytes": 6427,
+      "sha256": "926dc3d2d59dbe41bff596dd6676b303a997cb41f015ac4247f0af3c1074176f",
+      "action": "retired"
+    },
+    {
+      "original": "docs/FUSION_SYSTEM_PLAN.md",
+      "archived": ".cleanup-archive/history/20261127/docs/FUSION_SYSTEM_PLAN.md",
+      "bytes": 11289,
+      "sha256": "f85774c2db2daed6a029e7e2e565c5e5d720dbe0b7dda7eae7e7fa9440880e06",
+      "action": "retired"
+    },
+    {
+      "original": "docs/INK_MUTATIONS_SEAL_NAIL_20261117.md",
+      "archived": ".cleanup-archive/history/20261127/docs/INK_MUTATIONS_SEAL_NAIL_20261117.md",
+      "bytes": 6131,
+      "sha256": "7cf1bd14e22195f33f8e8eab7e6f63ab2187bc09690c2888a89efd35b9bd6196",
+      "action": "retired"
+    },
+    {
+      "original": "docs/INK_TRAIL_V2_WORKLOG_20261110.md",
+      "archived": ".cleanup-archive/history/20261127/docs/INK_TRAIL_V2_WORKLOG_20261110.md",
+      "bytes": 11052,
+      "sha256": "694bb8776a4bfd4b1a5bb7da449067b4337d280301844d09aa6adfd02199e3d8",
+      "action": "retired"
+    },
+    {
+      "original": "docs/INTEGRATION_POLISH_PHASE_F1_20261127.md",
+      "archived": ".cleanup-archive/history/20261127/docs/INTEGRATION_POLISH_PHASE_F1_20261127.md",
+      "bytes": 8572,
+      "sha256": "bec8044ac78e39b77fc308f9ebfbeaa0cb4cafe3fdd3359c9a904133362c59c4",
+      "action": "retired"
+    },
+    {
+      "original": "docs/INTEGRATION_POLISH_PHASE_F2_20261127.md",
+      "archived": ".cleanup-archive/history/20261127/docs/INTEGRATION_POLISH_PHASE_F2_20261127.md",
+      "bytes": 5639,
+      "sha256": "6d6e03c48483f067419c42b0b0e5ddbfce77f240bdc86ab00ae673565c5cbcc6",
+      "action": "retired"
+    },
+    {
+      "original": "docs/INTEGRATION_POLISH_PHASE_F3_AUDIO_20261127.md",
+      "archived": ".cleanup-archive/history/20261127/docs/INTEGRATION_POLISH_PHASE_F3_AUDIO_20261127.md",
+      "bytes": 10568,
+      "sha256": "e9b94d6038b3f80084440da0a137536712efb54f004fad643e9ad32343accca0",
+      "action": "retired"
+    },
+    {
+      "original": "docs/INTEGRATION_POLISH_PHASE_F4_20261127.md",
+      "archived": ".cleanup-archive/history/20261127/docs/INTEGRATION_POLISH_PHASE_F4_20261127.md",
+      "bytes": 2283,
+      "sha256": "98e8563d2e22a26dd67f675d1db825bcf4b526671dd6ffca22371e50d29a8345",
+      "action": "retired"
+    },
+    {
+      "original": "docs/INTEGRATION_POLISH_PHASE_F5_20261127.md",
+      "archived": ".cleanup-archive/history/20261127/docs/INTEGRATION_POLISH_PHASE_F5_20261127.md",
+      "bytes": 5063,
+      "sha256": "7e39c0ffff491068526cad05c1a746345112fdbe1c4ce3a7fe3a9d213f22cfc7",
+      "action": "retired"
+    },
+    {
+      "original": "docs/INTEGRATION_POLISH_PHASE_F6_20261127.md",
+      "archived": ".cleanup-archive/history/20261127/docs/INTEGRATION_POLISH_PHASE_F6_20261127.md",
+      "bytes": 6083,
+      "sha256": "bf846460f1286a0186049887d0e2fdb39e4e09ca42d10a3c18570ec2dd0164b1",
+      "action": "retired"
+    },
+    {
+      "original": "docs/INTEGRATION_POLISH_PHASE_F7_PREP_20261127.md",
+      "archived": ".cleanup-archive/history/20261127/docs/INTEGRATION_POLISH_PHASE_F7_PREP_20261127.md",
+      "bytes": 2581,
+      "sha256": "32594ae77bd27b86c72f076028be541edc98d5b5f4e4a6f33b6470d06f856944",
+      "action": "retired"
+    },
+    {
+      "original": "docs/LOCAL_CONTENT_ENGINE_20261119.md",
+      "archived": ".cleanup-archive/history/20261127/docs/LOCAL_CONTENT_ENGINE_20261119.md",
+      "bytes": 9767,
+      "sha256": "4efa480afdb10103dae5052fee498c132108f47f88a509bb85ebc6564864e4a4",
+      "action": "retired"
+    },
+    {
+      "original": "docs/NANOBANANA21_BRIDGE_PLAN.md",
+      "archived": ".cleanup-archive/history/20261127/docs/NANOBANANA21_BRIDGE_PLAN.md",
+      "bytes": 8082,
+      "sha256": "d110e8757406009e5ebe45e813aafadfef8c7fbadaaae57bdea46aeb0731362f",
+      "action": "retired"
+    },
+    {
+      "original": "docs/NEON_IPAD_PERFORMANCE_AUDIT.md",
+      "archived": ".cleanup-archive/history/20261127/docs/NEON_IPAD_PERFORMANCE_AUDIT.md",
+      "bytes": 55875,
+      "sha256": "7222d7c08edc58d58eec78203d261f04c3e6c31f8d744812d1979bb9c6545a38",
+      "action": "retired"
+    },
+    {
+      "original": "docs/NEXT_CONTENT_GATE_20261119.md",
+      "archived": ".cleanup-archive/history/20261127/docs/NEXT_CONTENT_GATE_20261119.md",
+      "bytes": 5441,
+      "sha256": "9d66fb76ed1d35c2a07febebf34b26f3c591047199820f5f194e67c0e247a910",
+      "action": "retired"
+    },
+    {
+      "original": "docs/NIGHT_TOWN_A_FREE_COMMON_KANJI_20261030.md",
+      "archived": ".cleanup-archive/history/20261127/docs/NIGHT_TOWN_A_FREE_COMMON_KANJI_20261030.md",
+      "bytes": 3519,
+      "sha256": "072a73b0abb1a1ba7afe25494408358d54685cfb8e025e6dbc589f7933d11e1b",
+      "action": "retired"
+    },
+    {
+      "original": "docs/NIGHT_TOWN_FISH_AUDIO_20261030.md",
+      "archived": ".cleanup-archive/history/20261127/docs/NIGHT_TOWN_FISH_AUDIO_20261030.md",
+      "bytes": 3224,
+      "sha256": "3a3a0508d5c41892ffbd00e4f2867018de0b36935f664fc1ea6661350f8afeb0",
+      "action": "retired"
+    },
+    {
+      "original": "docs/NIGHT_TOWN_FISH_KANJI_VOICE_TRIAL_20261030.md",
+      "archived": ".cleanup-archive/history/20261127/docs/NIGHT_TOWN_FISH_KANJI_VOICE_TRIAL_20261030.md",
+      "bytes": 2592,
+      "sha256": "1d8c7ed0a6260aaefa68771be448ca2679beb981b943de4e1d0629f141a77e72",
+      "action": "retired"
+    },
+    {
+      "original": "docs/PROJECT_CLEANUP_20261118.md",
+      "archived": ".cleanup-archive/history/20261127/docs/PROJECT_CLEANUP_20261118.md",
+      "bytes": 6198,
+      "sha256": "867bdfcb57890696fb79864c2687e1727fd75273ab9e222144c65abaa7538e81",
+      "action": "retired"
+    },
+    {
+      "original": "docs/PROJECT_FULL_AUDIT_20261101.md",
+      "archived": ".cleanup-archive/history/20261127/docs/PROJECT_FULL_AUDIT_20261101.md",
+      "bytes": 33437,
+      "sha256": "86c27a54bac268fe913d59338d93f52cbf719448aa424e34317680f6dda4ffce",
+      "action": "retired"
+    },
+    {
+      "original": "docs/RAIN_PORT_BOSS_GAMEPLAY_V2_20261111.md",
+      "archived": ".cleanup-archive/history/20261127/docs/RAIN_PORT_BOSS_GAMEPLAY_V2_20261111.md",
+      "bytes": 9752,
+      "sha256": "003b24eb3f658c71acd4b6e2f2438f37c3822d7193c17c3201cc9cbdf48a2ce3",
+      "action": "retired"
+    },
+    {
+      "original": "docs/RAIN_PORT_DELIVERY_TRIAL_20261031.md",
+      "archived": ".cleanup-archive/history/20261127/docs/RAIN_PORT_DELIVERY_TRIAL_20261031.md",
+      "bytes": 3093,
+      "sha256": "1ed93821c8316df3444260f2faf73d9fc29498f0a87a0ab012066d542ccd1402",
+      "action": "retired"
+    },
+    {
+      "original": "docs/RAIN_PORT_ENEMIES_20261119.md",
+      "archived": ".cleanup-archive/history/20261127/docs/RAIN_PORT_ENEMIES_20261119.md",
+      "bytes": 2014,
+      "sha256": "59925cc994ee02e67a034119d4d8f793e6ddfc867e145d9d9a8ebba1fd18522c",
+      "action": "retired"
+    },
+    {
+      "original": "docs/RAIN_PORT_IPAD_PERFORMANCE_20261122.md",
+      "archived": ".cleanup-archive/history/20261127/docs/RAIN_PORT_IPAD_PERFORMANCE_20261122.md",
+      "bytes": 17793,
+      "sha256": "ed58450855d3cec718618248a26639be729de110f1bb6b332b454c0fffcaacff",
+      "action": "retired"
+    },
+    {
+      "original": "docs/RELEASE_AND_CLEANUP_20261023.md",
+      "archived": ".cleanup-archive/history/20261127/docs/RELEASE_AND_CLEANUP_20261023.md",
+      "bytes": 3821,
+      "sha256": "7d9bf3767244788231bac1fd4d61c8e50de2751ab17787cefb10da56a55e85d7",
+      "action": "retired"
+    },
+    {
+      "original": "docs/SAKURA_PASS_DELIVERY_TRIAL_20261116.md",
+      "archived": ".cleanup-archive/history/20261127/docs/SAKURA_PASS_DELIVERY_TRIAL_20261116.md",
+      "bytes": 8060,
+      "sha256": "8331fa6fcc8bdba1843dc4cb576b1e992ab44c904acf0481f56114b84d72c0fe",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE2_APPROVED_MEDIA_MIGRATION_20261031.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE2_APPROVED_MEDIA_MIGRATION_20261031.md",
+      "bytes": 4082,
+      "sha256": "0f6448f0e7134517d6d07f601fa301f428d23eb71dec21aa45238b5d59b6a154",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE2_PUBLIC_RELEASE_20261024.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE2_PUBLIC_RELEASE_20261024.md",
+      "bytes": 3612,
+      "sha256": "0f7f159416a3a259d229f9251a0638c3bbaeae86eaba5d44b535a76ed9815b0b",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE3_ART_BATCH_WORKLOG_20261116.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE3_ART_BATCH_WORKLOG_20261116.md",
+      "bytes": 5019,
+      "sha256": "798243177842ceb4b9cc0a1608f8ed22325fe961c4ba6879375b00e11ed227da",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE3_BOSS_BEHAVIOR_20261116.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE3_BOSS_BEHAVIOR_20261116.md",
+      "bytes": 5165,
+      "sha256": "4eb33655ada4cb8685767563c399c5b0d98c5b27fab3066b4eed64b8f606a82a",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE3_BOSS_POLISH_20261116.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE3_BOSS_POLISH_20261116.md",
+      "bytes": 4877,
+      "sha256": "5eeaabf49136518afe4ce5f1cee7786c63c91193ca0c5c9333519c013b9e2b70",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE3_CODEX_HANDOFF_20261116.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE3_CODEX_HANDOFF_20261116.md",
+      "bytes": 9754,
+      "sha256": "2e697019fe3260d0333316c6e1c45eeb27effbe13058ac7ff9e1e040641d4a1e",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE3_ENGINE_WORKLOG_20261116.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE3_ENGINE_WORKLOG_20261116.md",
+      "bytes": 13382,
+      "sha256": "1ba31946edbc61a3d7a2c4d4f3a7ebe6befc24c78f1a4d3d2427a23530808e17",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE3_FOREST_20261116.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE3_FOREST_20261116.md",
+      "bytes": 5342,
+      "sha256": "d63fa70af7dc09c2baf7d8e8696fbc0a1fb16ef0cb46b6e2cc1cbadf516fab4a",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE3_SCENE_FIX_20261116.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE3_SCENE_FIX_20261116.md",
+      "bytes": 3920,
+      "sha256": "06a1748dfd364eaca2ce9d605f43847fb3d25a35b806b4755d1f64877521dbdf",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE56_DEV_ART_20261126.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE56_DEV_ART_20261126.md",
+      "bytes": 5199,
+      "sha256": "f6df90ac2b0757f1a0de499fda1385effc450f627888e118cc047a099551094f",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE58_COMBAT_POLISH_PHASE_A_20261126.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE58_COMBAT_POLISH_PHASE_A_20261126.md",
+      "bytes": 9923,
+      "sha256": "3990b50f4c569ab7c240cb6550010210461d63a72a174c0f615f36093b3ffad1",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE58_COMBAT_POLISH_PHASE_B_20261126.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE58_COMBAT_POLISH_PHASE_B_20261126.md",
+      "bytes": 17822,
+      "sha256": "02442ae4bd129fb6d09d0427a9e7c8e9e50d23287459542a9a884d701915ade1",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE58_COMBAT_QUALITY_AUDIT_20261126.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE58_COMBAT_QUALITY_AUDIT_20261126.md",
+      "bytes": 31112,
+      "sha256": "e2fa067faf7f8c9caeffc4647daf5fa34201994762bf6cadeb6a798c1732be96",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGE58_SFX_REMAKE_20261126.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGE58_SFX_REMAKE_20261126.md",
+      "bytes": 8232,
+      "sha256": "f8bde220e20cad62f5982d87c676439156cbdbcfb8979aff4dbd5edc6d88d2c4",
+      "action": "retired"
+    },
+    {
+      "original": "docs/STAGED_DELIVERY_GANTT.md",
+      "archived": ".cleanup-archive/history/20261127/docs/STAGED_DELIVERY_GANTT.md",
+      "bytes": 8644,
+      "sha256": "4e8a4c6cecbb93525826dbf1091e48d81898934a8a5a03af1731b365b8b8409a",
+      "action": "retired"
+    },
+    {
+      "original": "docs/TEST_GATE_RECOVERY_20261104.md",
+      "archived": ".cleanup-archive/history/20261127/docs/TEST_GATE_RECOVERY_20261104.md",
+      "bytes": 1042,
+      "sha256": "cb3b1209278c80dfbe9e2fade9140543eec0557032278c2d7373aec7dc929414",
+      "action": "retired"
+    },
+    {
+      "original": "docs/TEST_TRIAGE_20261104.md",
+      "archived": ".cleanup-archive/history/20261127/docs/TEST_TRIAGE_20261104.md",
+      "bytes": 11169,
+      "sha256": "3d5f34dc84632f6a0d5f4a7cd33428ada0179eb7da9e6c2201246661255b0793",
+      "action": "retired"
+    },
+    {
+      "original": "docs/VIOLET_SCENT_RELEASE_20261117.md",
+      "archived": ".cleanup-archive/history/20261127/docs/VIOLET_SCENT_RELEASE_20261117.md",
+      "bytes": 2796,
+      "sha256": "0b960a585356c56b1b9d48bd83192d61cad201ea899993b8aed02b715c51a65b",
+      "action": "retired"
+    },
+    {
+      "original": "docs/VIOLET_SCENT_REWORK_20261117.md",
+      "archived": ".cleanup-archive/history/20261127/docs/VIOLET_SCENT_REWORK_20261117.md",
+      "bytes": 3705,
+      "sha256": "d65031c16a42a9bb57880dd874ed002958aca6334d63dd80ebbc25ff96911859",
+      "action": "retired"
+    },
+    {
+      "original": "docs/art-review-queue-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/art-review-queue-20261014.md",
+      "bytes": 3278,
+      "sha256": "e410265519edee5646c710ccd7b923cc8eb9127b0e468a72f87b10531fbe5734",
+      "action": "retired"
+    },
+    {
+      "original": "docs/c3-ui-accessibility-review-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/c3-ui-accessibility-review-20261014.md",
+      "bytes": 2556,
+      "sha256": "cc5b2477a7847541bd1f103917af8b5652ab2c831eb9b99eafc14dd6722ec0cf",
+      "action": "retired"
+    },
+    {
+      "original": "docs/card-collection-integration-brief.md",
+      "archived": ".cleanup-archive/history/20261127/docs/card-collection-integration-brief.md",
+      "bytes": 2668,
+      "sha256": "7f451f957e70112a3b7b0d80df12ff6dbb84f9f995b35bc79117dd81fb0b9945",
+      "action": "retired"
+    },
+    {
+      "original": "docs/card-collection-runtime-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/card-collection-runtime-20261014.md",
+      "bytes": 4655,
+      "sha256": "0aa19a71e35bb28010d11b2eba0b05529bb359de990550806db5a890bc0ad2f7",
+      "action": "retired"
+    },
+    {
+      "original": "docs/card-gallery-c3-integration-brief.md",
+      "archived": ".cleanup-archive/history/20261127/docs/card-gallery-c3-integration-brief.md",
+      "bytes": 4271,
+      "sha256": "0ecd103e3f21ead521ee1c00c1ab4903d7eb22de27e8588dd6ba704c45e0aead",
+      "action": "retired"
+    },
+    {
+      "original": "docs/card-gallery-runtime-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/card-gallery-runtime-20261014.md",
+      "bytes": 4813,
+      "sha256": "341f73b220d4325c7d6abf8fb4ffd6f14675c11764986bc990c701b5b19e66f5",
+      "action": "retired"
+    },
+    {
+      "original": "docs/card-rewards-runtime-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/card-rewards-runtime-20261014.md",
+      "bytes": 2342,
+      "sha256": "c71c578917572d4a10a585786e5a16e250c2118569983a92b7d23a55919bcb89",
+      "action": "retired"
+    },
+    {
+      "original": "docs/cleanup/20261026-CONSOLIDATION.md",
+      "archived": ".cleanup-archive/history/20261127/docs/cleanup/20261026-CONSOLIDATION.md",
+      "bytes": 5582,
+      "sha256": "67842a6cf19b39a1a313404538adf1f4fef9d94ba96f108c059d749b24224bbd",
+      "action": "retired"
+    },
+    {
+      "original": "docs/cleanup/20261122-STORAGE-AUDIT.md",
+      "archived": ".cleanup-archive/history/20261127/docs/cleanup/20261122-STORAGE-AUDIT.md",
+      "bytes": 2513,
+      "sha256": "0436977420440ac554401f7c383b762582cfccae6fd4aa33916a5f14cd00b770",
+      "action": "retired"
+    },
+    {
+      "original": "docs/delivery-reports/D0-20261026.md",
+      "archived": ".cleanup-archive/history/20261127/docs/delivery-reports/D0-20261026.md",
+      "bytes": 3077,
+      "sha256": "749567fd9cca02a2622fa909b6bb056edfa6a03704a02cfdbd43c363aa991faf",
+      "action": "retired"
+    },
+    {
+      "original": "docs/dev-stage-selector-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/dev-stage-selector-20261014.md",
+      "bytes": 2144,
+      "sha256": "04f9dd8e461552027362155c5255a18a0b2df66d8916ebb6ed58b7127dae5dc9",
+      "action": "retired"
+    },
+    {
+      "original": "docs/e15-agy-art-review-manifest-20261015.md",
+      "archived": ".cleanup-archive/history/20261127/docs/e15-agy-art-review-manifest-20261015.md",
+      "bytes": 8257,
+      "sha256": "62f9a9c376dd77b7914247db480b9887796199562857d43f120be47eff86fe04",
+      "action": "retired"
+    },
+    {
+      "original": "docs/e15-r16-calibration-20261015.md",
+      "archived": ".cleanup-archive/history/20261127/docs/e15-r16-calibration-20261015.md",
+      "bytes": 3706,
+      "sha256": "3909e3e9991acbd0874b7da68733360d3531df42e097b91ba1868a95c9505e58",
+      "action": "retired"
+    },
+    {
+      "original": "docs/hd2d-alt-pseudo25d-proposal.md",
+      "archived": ".cleanup-archive/history/20261127/docs/hd2d-alt-pseudo25d-proposal.md",
+      "bytes": 64831,
+      "sha256": "49ff7c45a4269e4ea41d70f38774f947fec43a19813025129417b1d43e2ea370",
+      "action": "retired"
+    },
+    {
+      "original": "docs/m15-art-reference-remaining-20261015.md",
+      "archived": ".cleanup-archive/history/20261127/docs/m15-art-reference-remaining-20261015.md",
+      "bytes": 2088,
+      "sha256": "f41815a05155dd6a12e68d4c77237041de47b9cb5148d5bc74319c7cea022a4a",
+      "action": "retired"
+    },
+    {
+      "original": "docs/m15-stage-art-technical-review-20261015.md",
+      "archived": ".cleanup-archive/history/20261127/docs/m15-stage-art-technical-review-20261015.md",
+      "bytes": 16072,
+      "sha256": "b0c6cf62efc6261c3fdd8350e6c2c3df3439a6036451f8bf04f60ce6e3fff604",
+      "action": "retired"
+    },
+    {
+      "original": "docs/overworld-a5-integrated-report.md",
+      "archived": ".cleanup-archive/history/20261127/docs/overworld-a5-integrated-report.md",
+      "bytes": 4873,
+      "sha256": "7c3347f7fab4183ebe5cbe0259a5ca7a0d1b4a6a2e5ab63eeea608b480afa2e0",
+      "action": "retired"
+    },
+    {
+      "original": "docs/overworld-eight-stage-layout-v1.md",
+      "archived": ".cleanup-archive/history/20261127/docs/overworld-eight-stage-layout-v1.md",
+      "bytes": 5455,
+      "sha256": "fa72c4f743f40813da4c240a86a46070474433f6d07ab37747b3933803d01014",
+      "action": "retired"
+    },
+    {
+      "original": "docs/p42-camera-runtime-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/p42-camera-runtime-20261014.md",
+      "bytes": 2800,
+      "sha256": "4cf10653e8559e31b23d49f8aa4cafa404bdc581c5598303ce9c4141c938652a",
+      "action": "retired"
+    },
+    {
+      "original": "docs/project-cleanup.md",
+      "archived": ".cleanup-archive/history/20261127/docs/project-cleanup.md",
+      "bytes": 1543,
+      "sha256": "a5db331b5f62d7f311669877a39be73d703ed3dc867774de84d04fcbcc59116b",
+      "action": "retired"
+    },
+    {
+      "original": "docs/r1-media-inventory.md",
+      "archived": ".cleanup-archive/history/20261127/docs/r1-media-inventory.md",
+      "bytes": 32862,
+      "sha256": "61c4244d6a6c2f93a6c0a324d0a622536c53866e81cfc4234150589b84c95427",
+      "action": "retired"
+    },
+    {
+      "original": "docs/r10-spacebunny-stage3-scene-qa-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/r10-spacebunny-stage3-scene-qa-20261014.md",
+      "bytes": 10205,
+      "sha256": "e3bf9feb5267a34cfd4d3fb67aefcbc1c57cbe9e686ae9dd6c78058b8a540ab1",
+      "action": "retired"
+    },
+    {
+      "original": "docs/r11-spacebunny-stage1-floor-p0-qa-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/r11-spacebunny-stage1-floor-p0-qa-20261014.md",
+      "bytes": 8554,
+      "sha256": "cca3aa5b5476a3ef3499021672878702a1dc2fb3a865c7bcde95b0d8db0c55dd",
+      "action": "retired"
+    },
+    {
+      "original": "docs/r12-spacebunny-stage3-density-depth-qa-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/r12-spacebunny-stage3-density-depth-qa-20261014.md",
+      "bytes": 11347,
+      "sha256": "598d496502e3d588c64eeefc53ae248b44251795170e3193a30667674b8932d4",
+      "action": "retired"
+    },
+    {
+      "original": "docs/r13-spacebunny-c3-model-qa-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/r13-spacebunny-c3-model-qa-20261014.md",
+      "bytes": 15067,
+      "sha256": "3016b5121d126398b04da89f62354ac90d5861e9428ffde3bafba23860cc22bb",
+      "action": "retired"
+    },
+    {
+      "original": "docs/r15-director-evidence-errata-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/r15-director-evidence-errata-20261014.md",
+      "bytes": 1807,
+      "sha256": "e869b7b7a6ade7ce94d1bab4aa1b13cd97de521d33ae6b5a68cb9ca715ae5a95",
+      "action": "retired"
+    },
+    {
+      "original": "docs/r4-stage2-gameplay.md",
+      "archived": ".cleanup-archive/history/20261127/docs/r4-stage2-gameplay.md",
+      "bytes": 11325,
+      "sha256": "792b4a5247d1445132a2f4ba4357a1642b3b170cf5a02fe9244732859be51eff",
+      "action": "retired"
+    },
+    {
+      "original": "docs/r6-mutual-edge-qa.md",
+      "archived": ".cleanup-archive/history/20261127/docs/r6-mutual-edge-qa.md",
+      "bytes": 8227,
+      "sha256": "363e291f1b17609b3d6715c3a0dcf956107d9390e5c48d4c03eaa3deeb92b1dc",
+      "action": "retired"
+    },
+    {
+      "original": "docs/r6-world-cross-qa.md",
+      "archived": ".cleanup-archive/history/20261127/docs/r6-world-cross-qa.md",
+      "bytes": 9478,
+      "sha256": "88738f1a991a9e14c4c6970d61e8db6e779b8776488b477564a2a91c142ef5df",
+      "action": "retired"
+    },
+    {
+      "original": "docs/r7-spacebunny-qa-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/r7-spacebunny-qa-20261014.md",
+      "bytes": 15551,
+      "sha256": "9d1c692abfe3f58ccceb9e3ddb18e7736c147f01ada8af9b237906735863aba6",
+      "action": "retired"
+    },
+    {
+      "original": "docs/r9-spacebunny-stage3-ground-qa-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/r9-spacebunny-stage3-ground-qa-20261014.md",
+      "bytes": 8584,
+      "sha256": "a9fdcf7fba47640c4b1e1acc0b1aea92ef66c9dfbb608f03f9e0c5816ccf568f",
+      "action": "retired"
+    },
+    {
+      "original": "docs/roadmap-execution-board-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/roadmap-execution-board-20261014.md",
+      "bytes": 3677,
+      "sha256": "46fcd3bf5ba964414c8192a4e9e2d7b880234439411a1be2fd9c5b73711dab81",
+      "action": "retired"
+    },
+    {
+      "original": "docs/roadmap-final-gap-and-decisions-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/roadmap-final-gap-and-decisions-20261014.md",
+      "bytes": 8161,
+      "sha256": "fe895d598be5f2829f7b709e4dceb8f9e234764e375e2f6ddb83b567c23d8b70",
+      "action": "retired"
+    },
+    {
+      "original": "docs/season-one-content.md",
+      "archived": ".cleanup-archive/history/20261127/docs/season-one-content.md",
+      "bytes": 27085,
+      "sha256": "6b1f248e61bfcaa62a625d2829c1e601dbcf835a785edb65b161bacc41506f5d",
+      "action": "retired"
+    },
+    {
+      "original": "docs/season-one-master-plan.md",
+      "archived": ".cleanup-archive/history/20261127/docs/season-one-master-plan.md",
+      "bytes": 26497,
+      "sha256": "603a7a3a70d8182ae0363ab635902f95ab690ca98a778b35805b1043b6ffd10b",
+      "action": "retired"
+    },
+    {
+      "original": "docs/stage-art-path-migration-20261015.md",
+      "archived": ".cleanup-archive/history/20261127/docs/stage-art-path-migration-20261015.md",
+      "bytes": 150207,
+      "sha256": "1b54e42ffa32630a52baf717207850e4105b4ab0419530b9a833a747ea8bd7cf",
+      "action": "retired"
+    },
+    {
+      "original": "docs/stage3-density-depth-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/stage3-density-depth-20261014.md",
+      "bytes": 4163,
+      "sha256": "c64ed841aeedc5bd2a3e1955ca384305b765d619a367b67669c7ebe4b62e9978",
+      "action": "retired"
+    },
+    {
+      "original": "docs/stage3-ground-integrated-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/stage3-ground-integrated-20261014.md",
+      "bytes": 2214,
+      "sha256": "03455bb8eef6aee972a0f73448c63047610d4f2dbf8148f7ce8a17ffb20d9f67",
+      "action": "retired"
+    },
+    {
+      "original": "docs/stage3-scene-buildings-20261014.md",
+      "archived": ".cleanup-archive/history/20261127/docs/stage3-scene-buildings-20261014.md",
+      "bytes": 2359,
+      "sha256": "c5943284724d1dafb8f67ef641e290d44dd85fc94ef45d8740d1499906be2d3d",
+      "action": "retired"
+    },
+    {
+      "original": "docs/stage3-terrain-v2-integration-contract.md",
+      "archived": ".cleanup-archive/history/20261127/docs/stage3-terrain-v2-integration-contract.md",
+      "bytes": 3988,
+      "sha256": "18e2f10c560048a5cefb5a2ea30a97782cc55f240213eae440be369bbd0f2069",
+      "action": "retired"
+    },
+    {
+      "original": "docs/v3-resume.md",
+      "archived": ".cleanup-archive/history/20261127/docs/v3-resume.md",
+      "bytes": 5781,
+      "sha256": "359424621e8cbf48e651f32c72f6cb66f33a23ab201fc472f6a1e096be9d9c19",
+      "action": "retired"
+    },
+    {
+      "original": "docs/v3-upgrade.md",
+      "archived": ".cleanup-archive/history/20261127/docs/v3-upgrade.md",
+      "bytes": 11087,
+      "sha256": "05e4e9d6ebc285e3fe739284541a4ecb389b5e66ac17f650acdea645087d3e52",
+      "action": "retired"
+    },
+    {
+      "original": "AGENTS.md",
+      "archived": ".cleanup-archive/history/20261127/AGENTS.md",
+      "bytes": 18169,
+      "sha256": "e1c051ae16c0e9436d507cc806d8ec070f7f5452eb16305f76e5057fd82e2e2e",
+      "action": "replaced_by_current_summary"
+    },
+    {
+      "original": "docs/README.md",
+      "archived": ".cleanup-archive/history/20261127/docs/README.md",
+      "bytes": 958,
+      "sha256": "9b1c4194de7c45fae6a5a4b8f5ec5dec9b006ef09cb9650c88b05c00920361ff",
+      "action": "replaced_by_current_summary"
+    },
+    {
+      "original": "docs/GAME_DESIGN_MASTER.md",
+      "archived": ".cleanup-archive/history/20261127/docs/GAME_DESIGN_MASTER.md",
+      "bytes": 46322,
+      "sha256": "5a03ab075022cdce1ec1e7fcfab5dc7ffad904abced70995355076e8c8f280fe",
+      "action": "replaced_by_current_summary"
+    },
+    {
+      "original": "docs/PRODUCTION_PLAN.md",
+      "archived": ".cleanup-archive/history/20261127/docs/PRODUCTION_PLAN.md",
+      "bytes": 106045,
+      "sha256": "a941efb96d107c5e35cbd1e12dae3f9cf0e10dca5e87100d09c457e679f25860",
+      "action": "replaced_by_current_summary"
+    },
+    {
+      "original": "docs/agent-handoff.md",
+      "archived": ".cleanup-archive/history/20261127/docs/agent-handoff.md",
+      "bytes": 109806,
+      "sha256": "a72e58a4678172f2d954148e4a933054ecad381ac5ebc3f5bf22fa6531425247",
+      "action": "replaced_by_current_summary"
+    },
+    {
+      "original": "docs/PROJECT_FILE_MAP.md",
+      "archived": ".cleanup-archive/history/20261127/docs/PROJECT_FILE_MAP.md",
+      "bytes": 6535,
+      "sha256": "d23c8b75b41ed5f34fb0cea932065547a3655813f0d731108dd824317b7f111f",
+      "action": "replaced_by_current_summary"
+    },
+    {
+      "original": "docs/TEST_SUITE_STATUS.md",
+      "archived": ".cleanup-archive/history/20261127/docs/TEST_SUITE_STATUS.md",
+      "bytes": 11660,
+      "sha256": "8a0e174a1928197f1998c877b554f746e4cdbc8bf868262923fd980c37c01821",
+      "action": "replaced_by_current_summary"
+    },
+    {
+      "original": "roadmap.md",
+      "archived": ".cleanup-archive/history/20261127/roadmap.md",
+      "bytes": 595774,
+      "sha256": "fff9a6a803082605c654676e8085d387c8c08cf843892279a76f0e831b651bbd",
+      "action": "replaced_by_current_summary"
+    }
+  ],
+  "evidence": [
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/game-mw5h2nyw/chrome-error.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/game-mw5h2nyw/chrome-error.txt",
+      "bytes": 859,
+      "sha256": "dab0712a852cce8a608985986ae438345c92099377e9692b87544b8a47d035e0",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/game-mw5h2nyw/game-sha.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/game-mw5h2nyw/game-sha.json",
+      "bytes": 225,
+      "sha256": "9118f542282540c4d41af0c8d4f5c186bb152f09d5bc21b225324f2632ae8e4b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/game-mw5h2nyw/visibility.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/game-mw5h2nyw/visibility.json",
+      "bytes": 1170,
+      "sha256": "4b6710ab3a219af13e09e7919252f9586e297fec5b3914fbffaec7d1e6fe52a9",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/game-mww4y15f/chrome-error.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/game-mww4y15f/chrome-error.txt",
+      "bytes": 12,
+      "sha256": "a4e0e20ebfb3a3267774dfa2fbdceef8f920ef739007a6c2168758b174643910",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/game-mww4y15f/game-sha.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/game-mww4y15f/game-sha.json",
+      "bytes": 225,
+      "sha256": "2e53ebbc9557ebf010ac8ffacd6164b67862e2747f1ac351a081692b604755f3",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/game-mww54njw/chrome-error.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/game-mww54njw/chrome-error.txt",
+      "bytes": 12,
+      "sha256": "a4e0e20ebfb3a3267774dfa2fbdceef8f920ef739007a6c2168758b174643910",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/game-mww54njw/game-sha.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/game-mww54njw/game-sha.json",
+      "bytes": 225,
+      "sha256": "9827479a1e554ce5c36a0cfdbe3ec6ff39d0d3bdc718c43ae83fe6517d102fe0",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr1-mw5h3f5b/chrome-error.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr1-mw5h3f5b/chrome-error.txt",
+      "bytes": 353,
+      "sha256": "43f16d65dee848ccfc89080864e015074c481c0f9d9404621d8d01b84deb5374",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr1-mw5h3f5b/game-sha.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr1-mw5h3f5b/game-sha.json",
+      "bytes": 225,
+      "sha256": "9118f542282540c4d41af0c8d4f5c186bb152f09d5bc21b225324f2632ae8e4b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr1-mw5h3f5b/r1-summary.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr1-mw5h3f5b/r1-summary.json",
+      "bytes": 2149,
+      "sha256": "e35fec93e06fbea2861a7d243c6bd72e678d5f5a2eb8d2dcbb6b7fbd16b231a3",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr1-mw5h3f5b/visibility.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr1-mw5h3f5b/visibility.json",
+      "bytes": 1523,
+      "sha256": "437334633e88c2e3b8fb81eff8ee1493416bfa6648318e3b8248452d1f2c3885",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr1-mww4yagi/chrome-error.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr1-mww4yagi/chrome-error.txt",
+      "bytes": 12,
+      "sha256": "a4e0e20ebfb3a3267774dfa2fbdceef8f920ef739007a6c2168758b174643910",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr1-mww4yagi/game-sha.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr1-mww4yagi/game-sha.json",
+      "bytes": 225,
+      "sha256": "2e53ebbc9557ebf010ac8ffacd6164b67862e2747f1ac351a081692b604755f3",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr1-mww4yagi/r1-summary.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr1-mww4yagi/r1-summary.json",
+      "bytes": 1539,
+      "sha256": "40c268dc3d8e0e45350e82d24600805fb24b5b0e87a9f6da2c5459a2859fb0d8",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr1-mww54wv0/chrome-error.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr1-mww54wv0/chrome-error.txt",
+      "bytes": 12,
+      "sha256": "a4e0e20ebfb3a3267774dfa2fbdceef8f920ef739007a6c2168758b174643910",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr1-mww54wv0/game-sha.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr1-mww54wv0/game-sha.json",
+      "bytes": 225,
+      "sha256": "9827479a1e554ce5c36a0cfdbe3ec6ff39d0d3bdc718c43ae83fe6517d102fe0",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr1-mww54wv0/r1-summary.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr1-mww54wv0/r1-summary.json",
+      "bytes": 1539,
+      "sha256": "111fd0a435b637946ac934128edb95f615d7a4eb38b6862fa49f9b8198e564ab",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr2-mw5h3hpy/chrome-error.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr2-mw5h3hpy/chrome-error.txt",
+      "bytes": 41,
+      "sha256": "bcc463edeaf16c54b4873905df62173b648869e34b0b168ca9c7957836087f05",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr2-mw5h3hpy/game-sha.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr2-mw5h3hpy/game-sha.json",
+      "bytes": 225,
+      "sha256": "9118f542282540c4d41af0c8d4f5c186bb152f09d5bc21b225324f2632ae8e4b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr2-mw5h3hpy/r12-summary.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr2-mw5h3hpy/r12-summary.json",
+      "bytes": 2180,
+      "sha256": "efc82975b4a2141d02735035a53cb2f68a368f9a875cf7f56c9fe1854e6d1548",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr2-mw5h3hpy/r2-summary.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr2-mw5h3hpy/r2-summary.json",
+      "bytes": 1974,
+      "sha256": "d3e86b128458f49aa9ac599583255c6566650777d601e48e427868730b01260f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr2-mw5h3hpy/visibility.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr2-mw5h3hpy/visibility.json",
+      "bytes": 1149,
+      "sha256": "3caf3ff27b1c954c653245f3a8655ad2c54af01ee310dcbcdb12055ba362b4b8",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr2-mww4yjrm/chrome-error.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr2-mww4yjrm/chrome-error.txt",
+      "bytes": 12,
+      "sha256": "a4e0e20ebfb3a3267774dfa2fbdceef8f920ef739007a6c2168758b174643910",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr2-mww4yjrm/game-sha.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr2-mww4yjrm/game-sha.json",
+      "bytes": 225,
+      "sha256": "2e53ebbc9557ebf010ac8ffacd6164b67862e2747f1ac351a081692b604755f3",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr2-mww4yjrm/r12-summary.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr2-mww4yjrm/r12-summary.json",
+      "bytes": 1316,
+      "sha256": "d2462452f50d2747dc251b263145174b45fa6740db15d4ce45ae8e39646a596d",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr2-mww4yjrm/r2-summary.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr2-mww4yjrm/r2-summary.json",
+      "bytes": 1539,
+      "sha256": "7424c41ef7451606f309590b9401771237d77954f97f38b9bafbbbbd679ee501",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr2-mww55665/chrome-error.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr2-mww55665/chrome-error.txt",
+      "bytes": 12,
+      "sha256": "a4e0e20ebfb3a3267774dfa2fbdceef8f920ef739007a6c2168758b174643910",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr2-mww55665/game-sha.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr2-mww55665/game-sha.json",
+      "bytes": 225,
+      "sha256": "9827479a1e554ce5c36a0cfdbe3ec6ff39d0d3bdc718c43ae83fe6517d102fe0",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr2-mww55665/r12-summary.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr2-mww55665/r12-summary.json",
+      "bytes": 1316,
+      "sha256": "6f9ecdab5d891bf123f7725b880d44dd92c93c2ec53124f8d55b4dea972f06a2",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/gr2-mww55665/r2-summary.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/gr2-mww55665/r2-summary.json",
+      "bytes": 1539,
+      "sha256": "4a04c8d5eb7e07ed3904eb0b9ddd10f4081d298daa109a861948767b512aa1b7",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/mw5h3jnm/r12-summary.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/mw5h3jnm/r12-summary.json",
+      "bytes": 2180,
+      "sha256": "efc82975b4a2141d02735035a53cb2f68a368f9a875cf7f56c9fe1854e6d1548",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/mww4yt2k/r12-summary.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/mww4yt2k/r12-summary.json",
+      "bytes": 1316,
+      "sha256": "d2462452f50d2747dc251b263145174b45fa6740db15d4ce45ae8e39646a596d",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/grok-m1-e-r12-20261017/mww55fgz/r12-summary.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/grok-m1-e-r12-20261017/mww55fgz/r12-summary.json",
+      "bytes": 1316,
+      "sha256": "6f9ecdab5d891bf123f7725b880d44dd92c93c2ec53124f8d55b4dea972f06a2",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round10-controlled-boss-config-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round10-controlled-boss-config-proof.json",
+      "bytes": 519,
+      "sha256": "bb7389bf61cad1226a3a9ba8d5ffd79c87c2d3acbb22141f10557a0e608d7627",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round10-controlled-boss-errors.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round10-controlled-boss-errors.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round10-natural-browser-errors.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round10-natural-browser-errors.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round14-deploy-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round14-deploy-proof.json",
+      "bytes": 4322,
+      "sha256": "edf0eafb2da8c6f9a8746b823fd110f67024c6ffc522a02fa870e5770f4206fe",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round14-live-errors.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round14-live-errors.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round14-settlement-browser-errors.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round14-settlement-browser-errors.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round15-browser-errors.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round15-browser-errors.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round16-audio-file-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round16-audio-file-proof.json",
+      "bytes": 15974,
+      "sha256": "d3f8a904148df13bbd23b529315eea9a8ef2ac2c52a707afd82e21efe922951a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round16-balance-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round16-balance-proof.json",
+      "bytes": 745,
+      "sha256": "6d786f6a776b0250d161a7c82498a558e29303359fc35cb6c29801934e27f30c",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round16-browser-audio-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round16-browser-audio-proof.json",
+      "bytes": 282,
+      "sha256": "74fcb29f5bd16400400f62c41a2437e732ec898f75c330f776f7a0f6bbf1686b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round16-browser-errors.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round16-browser-errors.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round16-deploy-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round16-deploy-proof.json",
+      "bytes": 4322,
+      "sha256": "80da2d1027c92071686b7f3cc46daa2a70784d46e58cd8d3e3a07c9dec0929bd",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round17-browser-errors.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round17-browser-errors.json",
+      "bytes": 1068,
+      "sha256": "2a92d01bf1fd5f877ed3419c5c62c1196c6aa8410ae1fc50531c4bab0412ffd6",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round18-browser-errors.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round18-browser-errors.json",
+      "bytes": 48,
+      "sha256": "259388247ee39976fc67aa21770c8b728b602f12ac85c035bf2cf45f47c4ac15",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round18-browser-metrics.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round18-browser-metrics.json",
+      "bytes": 2609,
+      "sha256": "37d0527faa2f47e03a1d01ab983e952bfc3f5c407f212e42af4795ea4e3bf27f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round18-deploy-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round18-deploy-proof.json",
+      "bytes": 4320,
+      "sha256": "bf3ab493f856901df4af07d306fe8b1abda3e42c4d3256eaa729c8587676f94f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round19-ablation.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round19-ablation.json",
+      "bytes": 3019,
+      "sha256": "2574811e6035b213bbcbcc786f8943e3dd5dd453d111db0980b4f46099bbc899",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round19-browser-errors.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round19-browser-errors.json",
+      "bytes": 1088,
+      "sha256": "b1bcd118bf7d8503a368a3f2b489be850a6869d4e12d9b81a84aafb16a2d5c17",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round19-deploy-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round19-deploy-proof.json",
+      "bytes": 4320,
+      "sha256": "fc945ea4297ee6818fe7e78de6713191151d685b30d840848a10e4d30717137e",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round19-foreground-glow-experiment.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round19-foreground-glow-experiment.json",
+      "bytes": 1289,
+      "sha256": "dc568bc443e8429c299067766df323ba26d73fdd027329a63f863f894083df7f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round19-foreground-terrain.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round19-foreground-terrain.json",
+      "bytes": 1710,
+      "sha256": "dff2c49bc7d4a86fb88d6b58f9f7ea3e57f98acc3b60777ca4b1cfc20d61c69e",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round19-foreground.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round19-foreground.json",
+      "bytes": 797,
+      "sha256": "389c54d9b40605ea2426d112a4967a91fb3527394632b40475dba532f1fc0e88",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round19-paired-final.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round19-paired-final.json",
+      "bytes": 7580,
+      "sha256": "8b15210ec2f15df4e86f1332a5dc0d05c8844d911b02154f51bc54471d571322",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round19-paired-initial.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round19-paired-initial.json",
+      "bytes": 7617,
+      "sha256": "f9520fe355cb8ed81cda614dfaf69a1b6d184dd4504bf7c806326be51dc87ce0",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round20-browser.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round20-browser.json",
+      "bytes": 65,
+      "sha256": "d8c806613a53cf052895fea6c92c9d89dcc3421f6c8701dcb2d5ca956ae4d67d",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round21-browser.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round21-browser.json",
+      "bytes": 65,
+      "sha256": "d8c806613a53cf052895fea6c92c9d89dcc3421f6c8701dcb2d5ca956ae4d67d",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round21-map-prompt.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round21-map-prompt.json",
+      "bytes": 1660,
+      "sha256": "803c32b5c78d626385251d7e0036c5c5ffb5a66954011031df9659d474088ba9",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round22-browser.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round22-browser.json",
+      "bytes": 101,
+      "sha256": "9943c220afa9b92c673a28d9f0ec41834f5b001db587a4868c202018968e9f7b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round23-browser.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round23-browser.json",
+      "bytes": 101,
+      "sha256": "9943c220afa9b92c673a28d9f0ec41834f5b001db587a4868c202018968e9f7b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round24-browser.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round24-browser.json",
+      "bytes": 96,
+      "sha256": "dbec9ea6d3059accce614d79030e3dda879a27e394eef81107ad9e00200f3e79",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round25-browser.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round25-browser.json",
+      "bytes": 3421,
+      "sha256": "73f8e42b6a19a607ab529fc2b0ff768a697eadabc1c8992a45262d446f11c72a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round4-remote-audio.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round4-remote-audio.json",
+      "bytes": 1319,
+      "sha256": "c892352fbbfccaf748d4239eeeb69b7c880504476874cffb4c677083928829c3",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round6-browser-evidence.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round6-browser-evidence.json",
+      "bytes": 5533,
+      "sha256": "cdc38e0bd59fb4914f445dd48afddb339da279296565ae05d9143df73b1828b8",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round6-deploy-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round6-deploy-proof.json",
+      "bytes": 1592,
+      "sha256": "b937775d6eb1744f5a2d8f0923a91c2b7ae7d9ebf02c7f36d4626b2496387b48",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round7-browser-logs.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round7-browser-logs.json",
+      "bytes": 424,
+      "sha256": "94540476fe6fad4b8f9f907fe50486affa80a01a9ebb420bfe37ad772874b2f7",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round7-controlled-results.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round7-controlled-results.json",
+      "bytes": 2172,
+      "sha256": "4d15d1d6b83462bff312015d62ec244a243a9f30ce2ab555110cd73c74db8c0c",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round7-deploy-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round7-deploy-proof.json",
+      "bytes": 1715,
+      "sha256": "ea527df2526741fd115e18c0be6b460a41e3ac3ead328da83f43c622236e388e",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round7-live-errors.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round7-live-errors.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round7-pages-run.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round7-pages-run.json",
+      "bytes": 3035,
+      "sha256": "df20117c1e2a1da2c4cdd7d1b14907389d1520d18a091921f3f9dc00f4e21b95",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round8-local-program-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round8-local-program-proof.json",
+      "bytes": 5475,
+      "sha256": "27e7349dcdecdc0932c05c13abb4b94a2c7b20859f5e3da0efe47d1a9cbd9477",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round8-natural-browser-errors.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round8-natural-browser-errors.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round9-deploy-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round9-deploy-proof.json",
+      "bytes": 2356,
+      "sha256": "c7cd7731ba3f1df15b5229e56e0deac4265b03c1cb97f6096c170f259b5ad8ea",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round9-live-errors.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round9-live-errors.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/round9-natural-browser-errors.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/round9-natural-browser-errors.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/spacebunny-m1-p0-ui-20261018/endscreen-a80296/summary.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/spacebunny-m1-p0-ui-20261018/endscreen-a80296/summary.json",
+      "bytes": 7415,
+      "sha256": "28ec3fa693db0f03f0b5bbb1faf50991fbbb3961f53d05c90bdd4eb0bc8105f8",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-agy-final-review.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-agy-final-review.txt",
+      "bytes": 30422,
+      "sha256": "7f500c81d0e49a768431b864947fde1f0feeffecf16a0a7527c01bcc50087320",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-balance-codex.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-balance-codex.json",
+      "bytes": 10817,
+      "sha256": "bcbe0089ffe7400a9ff966654e2e3c3b9a2a42479026730d58f3523d85de2dfe",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-blade-reach-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-blade-reach-red.txt",
+      "bytes": 1010,
+      "sha256": "1138dd8cdaaf7e10a8d30d70cdb8f01d0f38e2aa11646142833edde5722bb4f3",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-boss-ai-green.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-boss-ai-green.txt",
+      "bytes": 1048,
+      "sha256": "1acceaa309b21c1011dee07009212fe37f3945eb1b0207e20b82f59ed2359de2",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-boss-ai-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-boss-ai-red.txt",
+      "bytes": 10983,
+      "sha256": "9587b9017ec888f1db1613d99ef201951d2e686575d99eb4de4be37f9a980de3",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-boss-dead-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-boss-dead-red.txt",
+      "bytes": 1944,
+      "sha256": "e15a5909116c32da9af2ef27a65bef958ab2fc9c7a456b9124610ffe707cc5b1",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-boss-study-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-boss-study-red.txt",
+      "bytes": 3473,
+      "sha256": "c1046cf9ce2a682e9908940834edafb0a15c6062f7110190d0fb895fa4530c2f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-calibration-codex.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-calibration-codex.txt",
+      "bytes": 1983,
+      "sha256": "ab38edd44e95550e5f7c1fab238c689e7c2850385b077d1599b3925906947ca7",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-contract-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-contract-red.txt",
+      "bytes": 15478,
+      "sha256": "b43fb7fb2d36c3ed59fe9df54fdab52148d2f3f487faf4b1500806c17ba9e5eb",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-controller-600-11.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-controller-600-11.json",
+      "bytes": 4825,
+      "sha256": "a654973b8c66e6d7001f7b318eccd40dcd173a9aaa1c8e93da123a5cf26089c6",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-controller-600-12.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-controller-600-12.json",
+      "bytes": 9938,
+      "sha256": "4c289b23d811f34389f56500a20b9efdcb52400603c653b87077dfd92dcdc1c7",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-controller-600-23.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-controller-600-23.json",
+      "bytes": 8228,
+      "sha256": "3b4d8e29fa5b0d700559d8f4a01b91cc6ac8dc0e0c412712ce10d8e31333fb2c",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-core-current.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-core-current.txt",
+      "bytes": 6620,
+      "sha256": "acca7d2791d637ad6feee739be09cfbd074ababb41f3e76c5eb3a2df84e393a5",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-final-acceptance-run.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-final-acceptance-run.txt",
+      "bytes": 1172,
+      "sha256": "ccf8ecb60d2e839c767effc6ff376c912735c740ae435918e1ef4cc940859295",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-final-acceptance.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-final-acceptance.json",
+      "bytes": 71777,
+      "sha256": "55172cf59e6411f01c27cfad02aedea456b39959921abf9e6e087f80ce9b2d3e",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-final-boss-introduction.png",
+      "archived": ".cleanup-archive/images/artifacts/validation/v3-final-boss-introduction.png",
+      "bytes": 83346,
+      "sha256": "0082a2961942962b8071067de0c3c341b1745f49515cf25413dcff8d5c551421",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-final-browser-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-final-browser-proof.json",
+      "bytes": 1299,
+      "sha256": "7b405cc623adab0cabe6122681159b3f2dc220fe993335ff47115e332b3d097a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-final-completion-23.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-final-completion-23.json",
+      "bytes": 11710,
+      "sha256": "06e2af0f1d56b72945159056e55b9d59d957b074a994bf69589f564fef0b5e0e",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-final-contract-tests.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-final-contract-tests.txt",
+      "bytes": 2973,
+      "sha256": "f45c36a3768e94556f5c99fe0d7bb8f4a89a252a64d54edf5db19bfa74edc6a4",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-final-core-tests.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-final-core-tests.txt",
+      "bytes": 4723,
+      "sha256": "157ac265faef91eaf6d8fcfc4e2e5f9af243a729ffef0285a8ec2f9b924b4851",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-final-independent-proof.json",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-final-independent-proof.json",
+      "bytes": 427,
+      "sha256": "3c224193f522727e9f83fed3a3b114304588807d2824128aca9fab04053f8652",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-final-mobile-guided.png",
+      "archived": ".cleanup-archive/images/artifacts/validation/v3-final-mobile-guided.png",
+      "bytes": 72009,
+      "sha256": "3a964b064a9f7be521e58334f7e1d9e00ffb4be3fb6c142640df25999d8b5e4d",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-first-encounter-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-first-encounter-red.txt",
+      "bytes": 1006,
+      "sha256": "46443dee527dfe29deebfa5d73159352d6880ff0eb51bea146631288d605ceff",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-font-green.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-font-green.txt",
+      "bytes": 232,
+      "sha256": "250fdf8e360f47075fc4b63cba7f3df5d7723ff8c570a728ac99f894e1ee788c",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-font-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-font-red.txt",
+      "bytes": 3603,
+      "sha256": "c8dcb0b733f136e599c212e23da30ec16a0a382d7cf36c0fe1ef7bd9033f09ad",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-green-tests.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-green-tests.txt",
+      "bytes": 54251,
+      "sha256": "31598a9a258fc9569d79a64dce2ada136c8e9439c22ec941a0f41370ba2da82f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-grok-review.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-grok-review.txt",
+      "bytes": 13425,
+      "sha256": "9bb085bef1a4c0ff2d93bd30921a99425e370eabaf77ffe7aa596d2a75d86b52",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-growth-accounting-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-growth-accounting-red.txt",
+      "bytes": 1095,
+      "sha256": "89cea2554e6d777b25b527f2e60326fabcbb04d6f228ec1fa628f0f2bdbe793f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-growth-curve-green.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-growth-curve-green.txt",
+      "bytes": 2111,
+      "sha256": "51be6f288b071c4040f4d332f676d82b93d134355f9fcf808c7c2c24134da577",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-growth-curve-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-growth-curve-red.txt",
+      "bytes": 3111,
+      "sha256": "342c7fa630975b40385bd1433a310fd1742a168274e4a41a28316be58459923a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-hermes-core-green.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-hermes-core-green.txt",
+      "bytes": 4537,
+      "sha256": "707370bc8f5ecf2c9eaa2b1da05dc71362e85f8d4c6ad151e93cbc539ee9fd0a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-hermes-final-review.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-hermes-final-review.txt",
+      "bytes": 22725,
+      "sha256": "9b50ff3931b2c8c1da02cb1f2989e39ba98f03d2342ede7d845bc1edcb3a00db",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-module-coverage.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-module-coverage.txt",
+      "bytes": 3634,
+      "sha256": "7a945ee26371f4a73e2de14952b527a5f390d46d6acb49840bb9804d7449dc39",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-module-regression-green.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-module-regression-green.txt",
+      "bytes": 3368,
+      "sha256": "694f73fb2b75ea1e852a9b5c288e9350abb85457c30ff3bad48302eee502ece8",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-modules-green.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-modules-green.txt",
+      "bytes": 526,
+      "sha256": "901e4f6047a81229a03c73a9e455d347651c0473fe1180f914426c3304f725fc",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-reading-shatter-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-reading-shatter-red.txt",
+      "bytes": 3451,
+      "sha256": "c2e121af44b1941445dbbeec1c3f79a7b65c48a86103d084ddf38d50434aae28",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-regression-current.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-regression-current.txt",
+      "bytes": 146209,
+      "sha256": "4ce2126ca6204fe09d72100d29c1220b88ff5a42839425efed02a11108ce5c0f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-resume-contract-green.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-resume-contract-green.txt",
+      "bytes": 2883,
+      "sha256": "195b0d1435a5fc9cfad147eae48449d067560426c175d8334359bf86668dd264",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-resume-contract-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-resume-contract-red.txt",
+      "bytes": 4683,
+      "sha256": "66b53761812435bdccd4e3393510e81620da33bc71d75bd4462176c9da40db51",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-resume-input-green.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-resume-input-green.txt",
+      "bytes": 16297,
+      "sha256": "9d731189cb6db119bcb5476ab64a40b04cf907c18f832178426d43908fe6706b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-resume-ui-green.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-resume-ui-green.txt",
+      "bytes": 6106,
+      "sha256": "fb5f26b92e6a226d3815551a25aeb10f4c432ebdef1dbf8bac41db5851fd0def",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-resume-ui-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-resume-ui-red.txt",
+      "bytes": 2391,
+      "sha256": "dfd26227fcfdde196a7da5d6f772453714d6a8e890a8177c875ba15cc3a381b1",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-study-codex.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-study-codex.txt",
+      "bytes": 86,
+      "sha256": "12c9e80afece8f14cec1b028c5196c3c5468713980363082cc3886994031373f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-study-fallback-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-study-fallback-red.txt",
+      "bytes": 999,
+      "sha256": "955ab3a54394de3bc1bbe7f0bcab0d3c19f42feaafdac5afafa2dcf7f1c44d2d",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-ui-green.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-ui-green.txt",
+      "bytes": 756,
+      "sha256": "dc84bdf28d74fcf25bbb798b23198bbc1dcd70176084b9a35242b1dfc5a755f1",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-ui-red.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-ui-red.txt",
+      "bytes": 6290,
+      "sha256": "b440e26212a8692cee0fba016611eb36d3827684d81fc87ce20fa6b100977464",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "artifacts/validation/v3-ui-regression-green.txt",
+      "archived": ".cleanup-archive/history/20261127/artifacts/validation/v3-ui-regression-green.txt",
+      "bytes": 5931,
+      "sha256": "b9fa3381b4762dfca0f67aa7637ead3cb247e49bc88f8c2e21891af65b60cfde",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-boss-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-boss-flat.jpg",
+      "bytes": 916508,
+      "sha256": "081917f77554296bfa3ef1d07b88fdd95fb4d8a84ff0d2aad85f4042fe3acbfb",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-boss-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-boss-tilt.jpg",
+      "bytes": 886743,
+      "sha256": "420690dd8d3dfcf4fd26c9d312d338adcef1220ebec6ce421ee5b52775df2531",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-delivery-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-delivery-flat.jpg",
+      "bytes": 459660,
+      "sha256": "4a02632a9e7628df93cffae928c9dbe6b78ed6ded12431350ca2c64559788123",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-delivery-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-delivery-tilt.jpg",
+      "bytes": 480859,
+      "sha256": "8fc9e10b79af88c3e9accc2bb2ac0e0ab6357e9ddbae230e25328a64af6eb282",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-dense-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-dense-flat.jpg",
+      "bytes": 1124001,
+      "sha256": "d0091b0730ecf0e53bc1fc7d96236659856d72b3f28237759cac38790e4d4e14",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-dense-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-dense-tilt.jpg",
+      "bytes": 1074546,
+      "sha256": "a37d41feca6c95f115432e061250039f65695754c1e36cb3e64d81ebecbefc8f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-mid-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-mid-flat.jpg",
+      "bytes": 616527,
+      "sha256": "971106c31e931fa40c4b03729481280b379b02d9d125c92b50f2cdcc22f08ce6",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-mid-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-mid-tilt.jpg",
+      "bytes": 657570,
+      "sha256": "9f214f5d831f5275f2d140d52138de5698408cc15d42634dc01073ea45d0e485",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-opening-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-opening-flat.jpg",
+      "bytes": 399760,
+      "sha256": "3bf74305357dd8fc397e801fc3c313e33a523176a5d2f2218e669445d8095266",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-opening-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-opening-tilt.jpg",
+      "bytes": 333772,
+      "sha256": "a4beeb354340f8f349a65ec138ad96853b83692a95c8d84580c447139b245db0",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-result-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-result-flat.jpg",
+      "bytes": 479371,
+      "sha256": "92de0d0a7d483a8615c71b9cd66486a23f31123e8344e85581d06a80b1be920c",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-result-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-result-tilt.jpg",
+      "bytes": 366497,
+      "sha256": "68a20ce3c769d33d2b3b2f7c09365ac55f9927ebd92bb4c584446201699b26b0",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-surge-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-surge-flat.jpg",
+      "bytes": 985550,
+      "sha256": "e046e3adc767c22dee0a9f465267c663d22f8bef757385a5d895783270375254",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-surge-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-surge-tilt.jpg",
+      "bytes": 941793,
+      "sha256": "6a712c397cb6c7bdfa4a1c9f37988ed0a5cecb60d915583eceb2768f613cb966",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-surge-warning-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-surge-warning-flat.jpg",
+      "bytes": 1005531,
+      "sha256": "a4a4c5cd91866f2c8c02915a251b7c1ac09b4b0eaef39e74667838609bc4850c",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-surge-warning-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-surge-warning-tilt.jpg",
+      "bytes": 1011047,
+      "sha256": "7c62bb8dc0c286dcd35e9340c19aed745245b7b3d509404fe01416d2897e487b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-upgrade-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-upgrade-flat.jpg",
+      "bytes": 470661,
+      "sha256": "8455069e4c8a0e3a25533cd9ac1420954b69c50a20a11e379be37422588aa8ed",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/bamboo-maze-upgrade-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/bamboo-maze-upgrade-tilt.jpg",
+      "bytes": 469934,
+      "sha256": "b2db4e5d7aad6c9275999c598769085643f902b0ae2d669d074b6d5229032ffb",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-charm.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-charm.jpg",
+      "bytes": 211738,
+      "sha256": "faa543c066e5da99773fbbabf593a1de190305c7d1d6d5881588f542e915a65e",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-controls.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-controls.jpg",
+      "bytes": 118631,
+      "sha256": "80e40afcccb8cfc17ae2ff7e16f2ec1f27042b39c2c4b29639b3d9ef1bf313c9",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-home.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-home.jpg",
+      "bytes": 239498,
+      "sha256": "4a2dc7f9f630cd994a01708ac6e5ba2cd025c40159bac05bbf2389c36a6367f7",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-locked.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-locked.jpg",
+      "bytes": 219865,
+      "sha256": "f07caf6eb3207bc189b8945e1adc06e859c462bcef67d456562ebccbdd6b7ae9",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-map.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-map.jpg",
+      "bytes": 184971,
+      "sha256": "17d8a088ed4b26e817b04c5f5a5162c04d3ce5b1d7bada1bdd9de4e85b83c9fa",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-pause.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-pause.jpg",
+      "bytes": 160529,
+      "sha256": "3aecc99f0e511e0bd159ec269950b315fe94e0e96ffc8ff66fbc3a5593ea166f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-quit.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-quit.jpg",
+      "bytes": 166273,
+      "sha256": "c46a809821eca5d8f225899f6dccbb9af3eeebd03daed14d6daa42f4e54ff7df",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-quiz.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-quiz.jpg",
+      "bytes": 201615,
+      "sha256": "a94dbaf7a179d8ae168650f5cd4936eecdaacba1800be5f05c2f9a832dd9477e",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-reroll-hover.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-reroll-hover.jpg",
+      "bytes": 173447,
+      "sha256": "41b9ec498999d3647d86cbf318ae5ae1f815599d738544456f3721078d2262c6",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-seal.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-seal.jpg",
+      "bytes": 228188,
+      "sha256": "497817353d75810f8065dccee535f4c1647ef2b3a0245d7c93cfa21b0f046e12",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-settings.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-settings.jpg",
+      "bytes": 193904,
+      "sha256": "46e56a81959ba187b318c455fa5a1be2045c66bbb7bd4a0451804f7dca6a3939",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-unlocked.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-unlocked.jpg",
+      "bytes": 190562,
+      "sha256": "53f086038081e408d5c254a64f6b1649f696d6c452d91006274ed30dc45db833",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-upgrade-full.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-upgrade-full.jpg",
+      "bytes": 179939,
+      "sha256": "895f90c2a703bde32b6707a1ff7f3e9f53cf3128e4002034ebb4d5073e5daa17",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-upgrade.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-upgrade.jpg",
+      "bytes": 173498,
+      "sha256": "2777102c16a6084b38965a88b19fb2eb153d944c5595b836321a716c0459c560",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/desktop-win.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/desktop-win.jpg",
+      "bytes": 173730,
+      "sha256": "e9456f489ec02988d7e84caf7d0058092defeeab4b4d0c78086f17febc72f87e",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-boss-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-boss-flat.jpg",
+      "bytes": 1020978,
+      "sha256": "c4ac108a14de35514e61017b53da86d4d966411091ccc1f00ebdbdbdff33c07b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-boss-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-boss-tilt.jpg",
+      "bytes": 1063173,
+      "sha256": "65c9eefd4339a12ac961492e2ac64c30c080415deb0250ee1c0e161ef917ad43",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-delivery-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-delivery-flat.jpg",
+      "bytes": 862472,
+      "sha256": "d5b742350613b4354f86a5f1a1d607b8d13bfac0fb9de1e62f8607040e286236",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-delivery-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-delivery-tilt.jpg",
+      "bytes": 850519,
+      "sha256": "bf791796b5a9439ecf914c939eed2e833b95ebb00712a541ae5072b1d44a37e5",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-dense-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-dense-flat.jpg",
+      "bytes": 1175619,
+      "sha256": "a9b71819fde83e84632ac850c6ea2de118fe2ff799fbb66112e51c159608f76e",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-dense-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-dense-tilt.jpg",
+      "bytes": 1227029,
+      "sha256": "d1c2379a1a0f5f7c1f558809ac20566cbd8e659ea93521987ef0e94e35442194",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-mid-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-mid-flat.jpg",
+      "bytes": 1002954,
+      "sha256": "ea95e874b769f812d14dd2ff558ab77bac0b4857c90d0fed5233351b01a278db",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-mid-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-mid-tilt.jpg",
+      "bytes": 1029018,
+      "sha256": "3eb0fa1efd3c770cf433c8f62dd2a5ca2f0a52f8af7efc97525272add8683f19",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-opening-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-opening-flat.jpg",
+      "bytes": 787834,
+      "sha256": "e833a6645e1b1215f668f6c024eb39195f04d04a41138731584d127f6670f1e6",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-opening-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-opening-tilt.jpg",
+      "bytes": 623814,
+      "sha256": "5e6bc446ace32af4030e1b39e7d89201a1427e9322e1e519069274d0383e7b77",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-result-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-result-flat.jpg",
+      "bytes": 499498,
+      "sha256": "bb6c606f6d66951f35a52b28ffc1cc0bc8b98b9816658a03ab0709c590906518",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-result-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-result-tilt.jpg",
+      "bytes": 395208,
+      "sha256": "ec9208b1de3ddf944fbc011e472a60511774d29bd52c7f13733b7ec5d68e2e74",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-surge-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-surge-flat.jpg",
+      "bytes": 1133980,
+      "sha256": "e38f8754e0ec76d7a20ca486852cb1920cfc29fba526243a060c72de5823e9e7",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-surge-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-surge-tilt.jpg",
+      "bytes": 1221521,
+      "sha256": "60a9dc4e0b3d844f4604ce7a5018f73b6f26cbebc051bf5ebd0a9ec80ee88747",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-surge-warning-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-surge-warning-flat.jpg",
+      "bytes": 1089236,
+      "sha256": "8a3a04df796951d80ddb8cba03d007091d682d30c4f1983563face30a610af21",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-surge-warning-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-surge-warning-tilt.jpg",
+      "bytes": 1175614,
+      "sha256": "25196a968589ac0990b1a3e5af7cd42a6319af47b81ece78ce6b1cd946554a80",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-upgrade-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-upgrade-flat.jpg",
+      "bytes": 517609,
+      "sha256": "b14cf1e8d3fa098858b4b67ad3a734bfba5a4c164ec61aa0c6f1fbbe21cafaaa",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/night-town-upgrade-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/night-town-upgrade-tilt.jpg",
+      "bytes": 518235,
+      "sha256": "2ef1a62f2b9ff48da52054e259bf08547c55329248f7997e05c00e9a9855fd85",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-charm.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-charm.jpg",
+      "bytes": 238859,
+      "sha256": "b242fce102c8784a6367e5da48432a17625b385f223545e599295d6b4db73b43",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-controls.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-controls.jpg",
+      "bytes": 100104,
+      "sha256": "d37837bd9283a9edd9fda5638577f9311c0012dda33f680146fb7239f74a55cd",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-home.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-home.jpg",
+      "bytes": 269943,
+      "sha256": "bea8113dfe8d0bbbdf9a35fd35db6ca9047747e27b47ebfabd753331c5a8ba5f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-locked.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-locked.jpg",
+      "bytes": 242545,
+      "sha256": "6835ef8681d02f28bb1372c4c55be4b311a014c364140a5288c722d72f8264ff",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-map.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-map.jpg",
+      "bytes": 197177,
+      "sha256": "5fa30c4b0795a70030b4dc267ff65d5d5a874ee3e01a75506a07ffbe4315e2e9",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-pause.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-pause.jpg",
+      "bytes": 144613,
+      "sha256": "c244f35031e545ae18464d5b7ded0f6b01e48d14fccb2632fb0a56b11f7bc3cd",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-quit.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-quit.jpg",
+      "bytes": 148560,
+      "sha256": "ca2334edf358546ea9040a8271f186643f5056fcf646a220371a88ba6d75dde0",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-quiz.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-quiz.jpg",
+      "bytes": 203233,
+      "sha256": "3e7ef54e690ba36cf146fb31a69c4823964ea04c9d06d0e578c3f7b21a2151a5",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-seal.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-seal.jpg",
+      "bytes": 232000,
+      "sha256": "8f25a189d5e99dff144e584400883304c2353efbec373f4daa623b59825f58ec",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-settings.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-settings.jpg",
+      "bytes": 190225,
+      "sha256": "8cdb785c5d3fabfa9083ee7a9cb7c91614656ab27b840de98cd19abe9d26f86b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-unlocked.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-unlocked.jpg",
+      "bytes": 210207,
+      "sha256": "d9a5a74f65fc0fcedad8b76d780bd40a43e7981a94fef56da01911e5313eb448",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-upgrade-full.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-upgrade-full.jpg",
+      "bytes": 176791,
+      "sha256": "a261284693f091a0ae6fae20999bf7307496706bc788c31e38459746054850fb",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-upgrade.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-upgrade.jpg",
+      "bytes": 170659,
+      "sha256": "1511cb319ef0323d7efd6224719270ec00130988ba0e782454736c7713c8792c",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/phone-win.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/phone-win.jpg",
+      "bytes": 173302,
+      "sha256": "0bfaa142a5b35ee3401e2c96f0ec5fa568e37fceec0d1e8b366dd7d8a15cdd4c",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-boss-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-boss-flat.jpg",
+      "bytes": 1052367,
+      "sha256": "e3b9ee107aae3b792d0bef2a538b1cc4f9dbcdf19ec311921fc10fb38101fe62",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-boss-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-boss-tilt.jpg",
+      "bytes": 1038458,
+      "sha256": "e9ae666c5856ea7f2535638c7d9435b9bbc9a9f82327257d82e5acec125f7767",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-delivery-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-delivery-flat.jpg",
+      "bytes": 916961,
+      "sha256": "22d0650e4801400647e1e42e115c89631153e716bd76e62dcb310ff235c748d8",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-delivery-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-delivery-tilt.jpg",
+      "bytes": 924545,
+      "sha256": "f58c1a52340426653f18d3056cf335238107e0304df753648f280e2de1c34e6a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-dense-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-dense-flat.jpg",
+      "bytes": 1180019,
+      "sha256": "988d68c7ffdfb21263ffabdafc144d032e43de858df6e94785a737de6274c142",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-dense-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-dense-tilt.jpg",
+      "bytes": 1155098,
+      "sha256": "c1f02fe409c30124fd1c0827f8d5de9b64f5904dfe6615e5539b94e27b475e1d",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-mid-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-mid-flat.jpg",
+      "bytes": 996161,
+      "sha256": "2adc895569b89b4d91fd774ae380fd0590ac85d94ed07c5b036f4c235d349311",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-mid-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-mid-tilt.jpg",
+      "bytes": 1013102,
+      "sha256": "b134ec425929890d278aac708df93bbbb07992cb88169ed5cfa8f6d77e464e43",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-opening-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-opening-flat.jpg",
+      "bytes": 870523,
+      "sha256": "0dd5df26a4e435e57d2405294c09371d7d5fb3306d751ef43459a510a75c078f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-opening-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-opening-tilt.jpg",
+      "bytes": 726545,
+      "sha256": "f3690c71895db6607c40742777555cc166fcdd3d18ac877462f3239e408a9f9d",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-result-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-result-flat.jpg",
+      "bytes": 477092,
+      "sha256": "c7f1be8b1fa035c4aca3d361d033be313bf37ea834109ef57aa3a456d9bd0336",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-result-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-result-tilt.jpg",
+      "bytes": 364749,
+      "sha256": "aaaaf6d2c54578a2ecc1dc0a1082f8fb772799ceb43e08b85205dd51fb807834",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-surge-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-surge-flat.jpg",
+      "bytes": 1142757,
+      "sha256": "62f8d65672baf3267327c90418ad57212ef8fb13969d753ccae2128ac8668657",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-surge-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-surge-tilt.jpg",
+      "bytes": 1115171,
+      "sha256": "a085abffa54ad2fd0030ddaa5a426ace16caad1aa208d5f83f11898edcfd877b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-surge-warning-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-surge-warning-flat.jpg",
+      "bytes": 1138015,
+      "sha256": "818132e64b4b0e8de78ba23aa1c44df8619a148b4cc5e179e61b3c81886bf3ab",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-surge-warning-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-surge-warning-tilt.jpg",
+      "bytes": 1115288,
+      "sha256": "25a7bdcf9d8c558f59a87a3757b7e8bea94916a0a5d65a9e89f11ef43b70c2d3",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-upgrade-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-upgrade-flat.jpg",
+      "bytes": 532584,
+      "sha256": "e96e6d0d121217bd6e0936d8b961bd4d14f55e9fcdbb81b931b3cd7c03524836",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/rain-port-upgrade-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/rain-port-upgrade-tilt.jpg",
+      "bytes": 527517,
+      "sha256": "bb325eb92eb89b11dccbaa5cab0a74b54685fab35cda7efbd7fc03df9d87354a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-boss-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-boss-flat.jpg",
+      "bytes": 942731,
+      "sha256": "e781621d11af8b45c07d523a5a1e89904c069db4e703d5842c80b7b914544362",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-boss-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-boss-tilt.jpg",
+      "bytes": 953305,
+      "sha256": "0430fbd69f22906fe053fe8d0b0b59bbbd297564a5edec245ba23037a4f9a74d",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-delivery-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-delivery-flat.jpg",
+      "bytes": 645751,
+      "sha256": "8d0ac1e722153a380b3e663081f4977e6ab9f7e140b294c76df32c62c26f04e7",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-delivery-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-delivery-tilt.jpg",
+      "bytes": 661428,
+      "sha256": "c0a798d64594e610e25ada02c173ff33a7dc632f84b7a49c8c88a6d328d41237",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-dense-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-dense-flat.jpg",
+      "bytes": 1191053,
+      "sha256": "403d538211be0800b694b3046901055b003bd283e0185ac15dfb3d6adac47668",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-dense-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-dense-tilt.jpg",
+      "bytes": 1195044,
+      "sha256": "665f6d83e5f3275fb0fa76b804952d0bdf11e0f59843efd2e095dd145038c8c0",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-mid-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-mid-flat.jpg",
+      "bytes": 805740,
+      "sha256": "317f3249e602b42c836ca7320dee30f7b785830638ed9310cd7079a28dc7f8c6",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-mid-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-mid-tilt.jpg",
+      "bytes": 853371,
+      "sha256": "47c7248640387c657ce9aea3d98d688fb81f7c8f3dd616effa197c35e67ec14b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-opening-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-opening-flat.jpg",
+      "bytes": 630755,
+      "sha256": "d8a64c9c6e36e787f50b03979e60271375bd28a6f76bcf3715eeba01d16e75ba",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-opening-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-opening-tilt.jpg",
+      "bytes": 529118,
+      "sha256": "09919db80e6ca8734953a5f931a2be614664f16c0dbb5efdb986d586c019f969",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-result-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-result-flat.jpg",
+      "bytes": 487717,
+      "sha256": "e224689619d61aea5cd1249e61483b14670d24996c62302bac3ca4f4c0491cf3",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-result-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-result-tilt.jpg",
+      "bytes": 366942,
+      "sha256": "23c6f6239486a4dab5ce849380e31624d2b0ed216971dd278f56be50b044f256",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-surge-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-surge-flat.jpg",
+      "bytes": 1063845,
+      "sha256": "62f8cbc41cb398bd07fd4ba82a2f935df58ea5058030cb564368c203d6a8cb3e",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-surge-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-surge-tilt.jpg",
+      "bytes": 1088586,
+      "sha256": "cb3d01b90543ef2a34e467b99c8178a343b3d0d13e40a57567fe3e0bdece08ef",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-surge-warning-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-surge-warning-flat.jpg",
+      "bytes": 1041692,
+      "sha256": "cf39ffe2637041bdcfe587283787223e1e826e97bcc637d47ae49caf093c04f7",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-surge-warning-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-surge-warning-tilt.jpg",
+      "bytes": 1109554,
+      "sha256": "d98b2c76b18612af5a15f76972059994386dbae8fadcd396ec45ef2cbf26c424",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-upgrade-flat.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-upgrade-flat.jpg",
+      "bytes": 509007,
+      "sha256": "55876bff18dac6e0dbf3a63e33145d8271a3ab15b8faf70161f8517480a4b14a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sakura-pass-upgrade-tilt.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sakura-pass-upgrade-tilt.jpg",
+      "bytes": 508968,
+      "sha256": "c7a99375ffd3fb035abb0a0530d55645e49e5009d7472fff3f47e6754b23ad71",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sheet-boss.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sheet-boss.jpg",
+      "bytes": 533942,
+      "sha256": "292b6a8d9a6853e75d597d224a96a520653780fe9f0fa04b7f0897ed556e0509",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/sheet-opening.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/sheet-opening.jpg",
+      "bytes": 528546,
+      "sha256": "627eb157e58220651b2beb5ac85afc5fdecdc0ee7f37457c500ceda335d95aba",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-charm.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-charm.jpg",
+      "bytes": 560337,
+      "sha256": "119d5ca6ad9aa529dbccca8bde3ffc65ebfaf6d734a8699e1d1980368974e065",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-controls.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-controls.jpg",
+      "bytes": 322006,
+      "sha256": "be2bac42d4a7a2c3d06a5840a9802bc80e149d0c4ba350da09cffbbd29470f2b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-home.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-home.jpg",
+      "bytes": 531889,
+      "sha256": "2cd4f42e8d5019c79957a8c3a3772fb65790504bebc1eb59512e067259539c2d",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-locked.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-locked.jpg",
+      "bytes": 600538,
+      "sha256": "b2882c6d6388f74ca375eee041f2006a6002c7679d1499eaab090154c2b0bb2b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-map.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-map.jpg",
+      "bytes": 485329,
+      "sha256": "99f07d2af23472b3c0b685c1c6bbe22dba46f24d9c3edbe06b8f12421271692a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-pause.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-pause.jpg",
+      "bytes": 437147,
+      "sha256": "26c3dc217f05dc17ef0699b071cefa6e5c4ba529b209a9b56efdd989284500ec",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-quit.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-quit.jpg",
+      "bytes": 471353,
+      "sha256": "95b3bf17673f83ccf9a3145e9fda831d208dc1ad48b0e62f01db9b3837f56338",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-quiz.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-quiz.jpg",
+      "bytes": 559035,
+      "sha256": "5ae7408cd422b64c593a7332548bbf1e658c29418579375e5ad3fbc43d66f08e",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-seal.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-seal.jpg",
+      "bytes": 624914,
+      "sha256": "8a0bb9a7e3fedd257e001649465ac38116ed590b76448aa9a82832d1c53d5571",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-settings.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-settings.jpg",
+      "bytes": 510156,
+      "sha256": "33f15829a214d31f7080736e4f1c53e35632ea5d6fba4c0cc28fbbf0deb0806f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-unlocked.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-unlocked.jpg",
+      "bytes": 469558,
+      "sha256": "8dfbb5298351602d5110394a393ab1f9dd8bc9b5993236fa1c2031aa04d3794c",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-upgrade-full.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-upgrade-full.jpg",
+      "bytes": 490581,
+      "sha256": "4685e70c7cd13ccfaf1fa384106a1843838589bbaf3a98507866ab275601944a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-upgrade.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-upgrade.jpg",
+      "bytes": 471776,
+      "sha256": "7c34d86153d4cf3ac4090c71d48c96f0e9d48bcb27f3411960e2252959e34b4c",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/phase-d-20261125/before/tablet-win.jpg",
+      "archived": ".cleanup-archive/images/scratch/phase-d-20261125/before/tablet-win.jpg",
+      "bytes": 454088,
+      "sha256": "fc3c8f0368a0b6555dad556e8423b60c1fc95c0137aa186fe4c1590ff086bcd8",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-boss-before/index.html",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-boss-before/index.html",
+      "bytes": 23604,
+      "sha256": "b3adf4bb80d8fe978e7a699e299865a68db6aa09fe28f19b53e2d711ba6cc670",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-boss-before/js__assets.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-boss-before/js__assets.js",
+      "bytes": 149538,
+      "sha256": "d4242f545952cc4dfc7f108d272d7d70802992ca4eca1f05d0eda48b9c8f9e04",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-boss-before/js__boss-ai.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-boss-before/js__boss-ai.js",
+      "bytes": 20546,
+      "sha256": "45f21934ddf984b716237d7732dcf525ea55979aa56ad81baf913a0baa927bde",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-boss-before/js__game.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-boss-before/js__game.js",
+      "bytes": 356716,
+      "sha256": "8048014f105c732a8f6bdbc38acc97cef3e02e83583b83dc859a997d44ebfd81",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-boss-before/js__renderer.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-boss-before/js__renderer.js",
+      "bytes": 278748,
+      "sha256": "160da6b6df488139941dc38fa07d7dba954ce0b981abca318e18f4ac3d19e261",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-boss-polish-before/assets__img__stages__sakura-pass__manifest.json",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-boss-polish-before/assets__img__stages__sakura-pass__manifest.json",
+      "bytes": 30729,
+      "sha256": "6741b5900c9038c1d774bd95ae6668a5c84c09808b825f609b8e41ea9eb72884",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-boss-polish-before/index.html",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-boss-polish-before/index.html",
+      "bytes": 23655,
+      "sha256": "d134cd1d3268137587fe5549c92b4c7db90299541eb5ba6df6ee27e307a15fdb",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-boss-polish-before/js__audio.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-boss-polish-before/js__audio.js",
+      "bytes": 53069,
+      "sha256": "185c47dad751a96dc109111deadbccfef9fc228743cc23f67e402193f942965f",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-boss-polish-before/js__boss-sakura.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-boss-polish-before/js__boss-sakura.js",
+      "bytes": 8320,
+      "sha256": "a8b551905f0ab06d92accf7528c79d2871cde447e8d6d376d11c7566b9008b32",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-boss-polish-before/js__game.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-boss-polish-before/js__game.js",
+      "bytes": 357034,
+      "sha256": "62ce8b14476f2974c3a42e6d124f258019c5e5753f6b11d2846878463cfdaf8a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-boss-polish-before/js__renderer.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-boss-polish-before/js__renderer.js",
+      "bytes": 281982,
+      "sha256": "2a07f31f90df034a2cd9ae59005d87c895c927a03074bc385d603364128d2e6c",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-boss-polish-before/js__sakura-art-data.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-boss-polish-before/js__sakura-art-data.js",
+      "bytes": 5351,
+      "sha256": "8bc7536b476f69db4640f6dc63d405a07a962901b5a3e87b119245e1152bbe81",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-boss-polish-before/js__ui.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-boss-polish-before/js__ui.js",
+      "bytes": 317746,
+      "sha256": "49529ff5dbdf79ca80e21fdcbb2ade649df0914b5ef6c4a01f8c934fa6ad265b",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-forest-before/assets__img__stages__sakura-pass__manifest.json",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-forest-before/assets__img__stages__sakura-pass__manifest.json",
+      "bytes": 25851,
+      "sha256": "59701716921001152f28c3860dcff6344301930f91646e10d7fabcb21ca2771a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-forest-before/index.html",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-forest-before/index.html",
+      "bytes": 23611,
+      "sha256": "4ca2991ec824694cb3e981c311d54cc40bd7c66c2e5bcfe39bfc5fe02bdce3b5",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-forest-before/js__assets.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-forest-before/js__assets.js",
+      "bytes": 149456,
+      "sha256": "1c0b6f5b1e807a1704be94603d5b49db6dd46d82d14f1f3b1d92e5a3f8b410d7",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-forest-before/js__game.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-forest-before/js__game.js",
+      "bytes": 356606,
+      "sha256": "1be431b6286da8c49e9d0160d9992e7b6877189177b32a24c06c080e739d7e35",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-forest-before/js__renderer.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-forest-before/js__renderer.js",
+      "bytes": 275028,
+      "sha256": "7a56f7f2d1d12fafc422b21ee82608cb8fa2d4bf4c311330b5d7e75d11968192",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-forest-before/js__sakura-art-data.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-forest-before/js__sakura-art-data.js",
+      "bytes": 4531,
+      "sha256": "99b2785295c8636a2b19d5f280a6ee6c1b2e24b831d816df8b4faead679ccf16",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-forest-variation-before/assets__img__stages__sakura-pass__manifest.json",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-forest-variation-before/assets__img__stages__sakura-pass__manifest.json",
+      "bytes": 27479,
+      "sha256": "8a45a75f624c730dddb1f910a920fef81e13de4bb91269ca3f254c55d9fc2623",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-forest-variation-before/docs__STAGE3_FOREST_20261116.json",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-forest-variation-before/docs__STAGE3_FOREST_20261116.json",
+      "bytes": 5466,
+      "sha256": "9499484301288c783f570f48771014f919ec70a88a0cfd3eb28de11369552c3a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-forest-variation-before/index.html",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-forest-variation-before/index.html",
+      "bytes": 23599,
+      "sha256": "c08c314bfcb995350f9ec34781546530167fc38a1e9ec71119a5376cf7ab26b3",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-forest-variation-before/js__renderer.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-forest-variation-before/js__renderer.js",
+      "bytes": 277083,
+      "sha256": "c4988dc3fc8d3e924ae41efa520db045c4c1be7a9ca9a44dcd7736d6b2ef2676",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-forest-variation-before/js__sakura-art-data.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-forest-variation-before/js__sakura-art-data.js",
+      "bytes": 4793,
+      "sha256": "bc05fe3ed208587643161e0d3235f8dfac76c37967cdb8a84f418837dd8d1d54",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-shadow-before/index.html",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-shadow-before/index.html",
+      "bytes": 23599,
+      "sha256": "a0f4b5276804337b468432faa0b8e6a01b672970a5374a9426d15f7d15e9b81d",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "scratch/stage3-shadow-before/js__renderer.js",
+      "archived": ".cleanup-archive/history/20261127/scratch/stage3-shadow-before/js__renderer.js",
+      "bytes": 278401,
+      "sha256": "6f9d21f9716e094b142acd12e709c4ec4932828a0519626bdaba4f9454ebfe50",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "tools/r6-art-qa-calibration.cjs",
+      "archived": ".cleanup-archive/history/20261127/tools/r6-art-qa-calibration.cjs",
+      "bytes": 8372,
+      "sha256": "f309774918ba582964db389a7a29b8dc1820625f5285d5525fcd51c811656e64",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "tools/r6-stage2-refine-shots.cjs",
+      "archived": ".cleanup-archive/history/20261127/tools/r6-stage2-refine-shots.cjs",
+      "bytes": 19526,
+      "sha256": "caa7b901a71bb7aefc6f99a0b13ad7f876dfe710085bb28c5e72f89f3700b59a",
+      "action": "retired_evidence"
+    },
+    {
+      "original": "tools/verify-gemini-deploy.cjs",
+      "archived": ".cleanup-archive/history/20261127/tools/verify-gemini-deploy.cjs",
+      "bytes": 3038,
+      "sha256": "51fac8438cc1580010964af0ca0eaa8258aef220a473947b8f30bec807973ef8",
+      "action": "retired_evidence"
+    }
+  ]
+}

@@ -1,0 +1,807 @@
+{
+  "stage": "yomi",
+  "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+  "asset_count": 60,
+  "assets": [
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__torii.webp",
+      "source": "yomi-props",
+      "sha256": "eba2a8a353ebefa0a29185bc8744403d7f6a1fcca7f35ae69780deab6371f9dc",
+      "bytes": 48892,
+      "width_px": 378,
+      "height_px": 381,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        189,
+        366
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__palace.webp",
+      "source": "yomi-props",
+      "sha256": "914fa050abc298a6f1d1b86ea15bdb28033832184522cb1f24a0bb07c3b51a33",
+      "bytes": 60722,
+      "width_px": 431,
+      "height_px": 379,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        215,
+        364
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__basalt-spire.webp",
+      "source": "yomi-props",
+      "sha256": "ed575b0a785dbd2057ed9bbfe18bd4bae9e8e673e12873a542ee798f6997951f",
+      "bytes": 30352,
+      "width_px": 306,
+      "height_px": 377,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        153,
+        362
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__pavilion.webp",
+      "source": "yomi-props",
+      "sha256": "ec845627805cd5b2c6bc55856a3828e66d3431ea3794c31bdccf58940e26b076",
+      "bytes": 46708,
+      "width_px": 345,
+      "height_px": 382,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        172,
+        367
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__stone-bridge.webp",
+      "source": "yomi-props",
+      "sha256": "1e60626629c64744b0921ec2321e32234acba26030d5ffe7c458a7d6bb41ec67",
+      "bytes": 29442,
+      "width_px": 367,
+      "height_px": 261,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        183,
+        251
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__altar.webp",
+      "source": "yomi-props",
+      "sha256": "faf144b04c861c2174718f9ba9a8e1d274d09e76c2ce071aefd8b2eb690a83e5",
+      "bytes": 37400,
+      "width_px": 400,
+      "height_px": 274,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        200,
+        263
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__lantern-post.webp",
+      "source": "yomi-props",
+      "sha256": "c42a4982f32e55e84abd23343928018a0a86a721af475e98a6bae78b6f3d9679",
+      "bytes": 18716,
+      "width_px": 173,
+      "height_px": 328,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        86,
+        315
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__jizo.webp",
+      "source": "yomi-props",
+      "sha256": "69fc075fac810b1083ea012fe4e73f9a56bcf655d9f242f51d1327c9d8025175",
+      "bytes": 34764,
+      "width_px": 352,
+      "height_px": 285,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        176,
+        274
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__spider-lilies.webp",
+      "source": "yomi-props",
+      "sha256": "d81d05916db802139baa5548e54e023ffa430bedcd7cb8d7be1cb5d816a18f9c",
+      "bytes": 31840,
+      "width_px": 294,
+      "height_px": 239,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        147,
+        229
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__boulder.webp",
+      "source": "yomi-props",
+      "sha256": "69c22fe64db7000651351b3cac3a5f3b1917994881735b506a93d70566647ebe",
+      "bytes": 23862,
+      "width_px": 346,
+      "height_px": 202,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        173,
+        194
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__broken-flagstone.webp",
+      "source": "yomi-props",
+      "sha256": "9bdb5f178afaeb4885e817b752be7620b4fca4384e0cf6cc05d5a313f5501cd9",
+      "bytes": 30452,
+      "width_px": 345,
+      "height_px": 206,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        172,
+        198
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__brazier.webp",
+      "source": "yomi-props",
+      "sha256": "94b59ff03664e6b8c9278497c0cba24f808e823f8f21a1dad76d6a0d53ad63ef",
+      "bytes": 15372,
+      "width_px": 187,
+      "height_px": 228,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        93,
+        219
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__moon.webp",
+      "source": "yomi-structures-v2",
+      "sha256": "256fdcb11828916de1bf750da1fe0e75343a304fcc32d03f08f68354d0733e4e",
+      "bytes": 66428,
+      "width_px": 496,
+      "height_px": 388,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        248,
+        372
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__palace-wall.webp",
+      "source": "yomi-structures-v2",
+      "sha256": "04f48e69db2a9838301ff49d6b733881c756e574458ff38d7c286aba6b121b85",
+      "bytes": 57472,
+      "width_px": 502,
+      "height_px": 314,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        251,
+        301
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__stair-gate.webp",
+      "source": "yomi-structures-v2",
+      "sha256": "0b0a6b299f06e185ee109f4e42567fa4148742d30cd51df250022718d0a71b2c",
+      "bytes": 62774,
+      "width_px": 487,
+      "height_px": 419,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        243,
+        402
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__cliff-ledge.webp",
+      "source": "yomi-structures-v2",
+      "sha256": "e44364b089d9adbcd80f6926d6b186f123810826ada0deb8d06d41d4f91a0f04",
+      "bytes": 53926,
+      "width_px": 486,
+      "height_px": 363,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        243,
+        348
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__bell-tower.webp",
+      "source": "yomi-structures-v2",
+      "sha256": "ce6ce48b0b34904b66599a0ba159fee2e4033b2b1ffcffd843e070d63be3bfac",
+      "bytes": 67520,
+      "width_px": 427,
+      "height_px": 467,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        213,
+        448
+      ]
+    },
+    {
+      "path": "assets/img/stages/yomi/scene/yomi__fallen-torii.webp",
+      "source": "yomi-structures-v2",
+      "sha256": "2ac3d62ba76295fffa0a09c11bad1b737196e9461f69c151ded75b7ce850080c",
+      "bytes": 41342,
+      "width_px": 489,
+      "height_px": 302,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        244,
+        290
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-ember-ghost/yomi-ember-ghost__sprite__idle.webp",
+      "source": "yomi-mobs",
+      "sha256": "54e612ac09f5830d67105d7696a5d9916f9e2857f2e8c498824c11531474ed10",
+      "bytes": 32242,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-ember-ghost/yomi-ember-ghost__sprite__windup.webp",
+      "source": "yomi-mobs",
+      "sha256": "b97c06afc70549fd2d04a47577382aed5d80e3645c3b5c0b4cb0b6f9ebc1c2ea",
+      "bytes": 33956,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-ember-ghost/yomi-ember-ghost__sprite__action.webp",
+      "source": "yomi-mobs",
+      "sha256": "f0ec46a97acb6f7adf043001ddd52054bcc7386c77ff72ae6a012fe27a1c30d7",
+      "bytes": 42950,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-scarlet-runner/yomi-scarlet-runner__sprite__idle.webp",
+      "source": "yomi-mobs",
+      "sha256": "3033bbf91e4406ca46dd9f3bc69b131fa0973d33762bab3f5982509b255fe770",
+      "bytes": 36288,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-scarlet-runner/yomi-scarlet-runner__sprite__windup.webp",
+      "source": "yomi-mobs",
+      "sha256": "48a2a5b25140a580269a444af782ea4bd22b346b1a7e7f38006536054ffd06fe",
+      "bytes": 40372,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-scarlet-runner/yomi-scarlet-runner__sprite__action.webp",
+      "source": "yomi-mobs",
+      "sha256": "f65851a8ff7e8282e20685ec82d90e88317d0986d94342c179975aa9d7293ad9",
+      "bytes": 48908,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-basalt-oni/yomi-basalt-oni__sprite__idle.webp",
+      "source": "yomi-mobs",
+      "sha256": "583326638339301f732b0d029effa3dfd5611ad75c652d78f4a3162da8d3f355",
+      "bytes": 42456,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-basalt-oni/yomi-basalt-oni__sprite__windup.webp",
+      "source": "yomi-mobs",
+      "sha256": "579de6509cbdbeb2453e7ced4aebd01eaeb4ef70bc860a1726f01827a85068e9",
+      "bytes": 42824,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-basalt-oni/yomi-basalt-oni__sprite__action.webp",
+      "source": "yomi-mobs",
+      "sha256": "547a87b879ac80a89efba6ad545d06e9407ce27282943fe8081d499608543b63",
+      "bytes": 54042,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-gate-priest/yomi-gate-priest__sprite__idle.webp",
+      "source": "yomi-mobs",
+      "sha256": "c4dd0fc22c2a3afc8ea5293dfb5602c73f5aee250464259661c72529e57a2186",
+      "bytes": 41656,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-gate-priest/yomi-gate-priest__sprite__windup.webp",
+      "source": "yomi-mobs",
+      "sha256": "16413728f835b14223d366bb3366dd741898cb721156a49c1452a9ef768fc34d",
+      "bytes": 40330,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-gate-priest/yomi-gate-priest__sprite__action.webp",
+      "source": "yomi-mobs",
+      "sha256": "f281ee4dd57a231b25e2977b83a926d1b0d1c5a14dfc698e922ea145fdc1d074",
+      "bytes": 48858,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-grave-samurai/yomi-grave-samurai__sprite__idle.webp",
+      "source": "yomi-bosses",
+      "sha256": "aea3743763040082426f15b50de54a00b75815e4c5357a88d20e030d97de2b0d",
+      "bytes": 38592,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-grave-samurai/yomi-grave-samurai__sprite__windup.webp",
+      "source": "yomi-bosses",
+      "sha256": "2f84ffdfe9fd6ed8f5354909478a3a29a0c93fd1553b0312c448aabe4ee87fae",
+      "bytes": 39704,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-grave-samurai/yomi-grave-samurai__sprite__action.webp",
+      "source": "yomi-bosses",
+      "sha256": "dc238b2bb0b1bb3efce9bab6c07053bfbd8a3b6174dc69c825338fe768b36f2d",
+      "bytes": 47706,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-cinder-priestess/yomi-cinder-priestess__sprite__idle.webp",
+      "source": "yomi-bosses",
+      "sha256": "1ccbd9e946c97ca8ea4442c0a2b68f931786cf827eb6def0520f3d25d42ae1b5",
+      "bytes": 40312,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-cinder-priestess/yomi-cinder-priestess__sprite__windup.webp",
+      "source": "yomi-bosses",
+      "sha256": "e494027d8736aa86b4465288b1ca772161f4aad8da2e735be335b0f3143f1626",
+      "bytes": 44530,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-cinder-priestess/yomi-cinder-priestess__sprite__action.webp",
+      "source": "yomi-bosses",
+      "sha256": "b1167de337e92f68fc426c5600e3bff1716d9be72f72129c050b91337200e876",
+      "bytes": 54260,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-word-soul-core/yomi-word-soul-core__sprite__idle.webp",
+      "source": "yomi-bosses",
+      "sha256": "99ff67791bcce890869a08b226a9a7d260c8097f24889bc46e9d64a5c54e2870",
+      "bytes": 29888,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-word-soul-core/yomi-word-soul-core__sprite__windup.webp",
+      "source": "yomi-bosses",
+      "sha256": "169e00c36e05db360f5f3c752289b047affb20b8acd845fb359a47d0812bbca3",
+      "bytes": 35132,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-word-soul-core/yomi-word-soul-core__sprite__action.webp",
+      "source": "yomi-bosses",
+      "sha256": "197d858df2ab2c0cef87af489a4fba2d4c062725483979ae8e37b0fc55631d84",
+      "bytes": 47078,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-grave-serpent/yomi-grave-serpent__sprite__idle.webp",
+      "source": "gate-actors",
+      "sha256": "461d4f46617dd0ab4377b28ac80cce25255bbf3710a4ef2b90eb688f324f13d9",
+      "bytes": 21312,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-grave-serpent/yomi-grave-serpent__sprite__windup.webp",
+      "source": "gate-actors",
+      "sha256": "dc72c55e36c690857fa47b8c3750e64baaa97f0f7bb0f6c4542491b8706c4fcb",
+      "bytes": 23698,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/yomi-grave-serpent/yomi-grave-serpent__sprite__action.webp",
+      "source": "gate-actors",
+      "sha256": "c7a2ef8f10b11d156afa0375568775467b3f85c0b3cd35e92af6f9e9bde76543",
+      "bytes": 31450,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-cinder-burst/yomi-cinder-burst__base-warning.webp",
+      "source": "yomi-vfx-v2",
+      "sha256": "a81732bcd8db077bbd950cf4f1559982525be076ddc925a6156acb52a36b809e",
+      "bytes": 61382,
+      "width_px": 390,
+      "height_px": 357,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-cinder-burst/yomi-cinder-burst__base-impact.webp",
+      "source": "yomi-vfx-v2",
+      "sha256": "99e75cb1bb9fcda9b08246e6f87bf09d9fddbb4c9ddfc6fa6320629741ee2991",
+      "bytes": 105066,
+      "width_px": 490,
+      "height_px": 368,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-fault-line/yomi-fault-line__warning.webp",
+      "source": "yomi-vfx-v2",
+      "sha256": "aa9888483924eab9dd57f9995781cd7254dd90eca4eda6f91c47b0cfbbfa8e62",
+      "bytes": 50348,
+      "width_px": 585,
+      "height_px": 164,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-fault-line/yomi-fault-line__impact.webp",
+      "source": "yomi-vfx-v2",
+      "sha256": "5d689b9776640e7732996b6a1f560906b7590a296b581f1e3b37b8bc58f9e25c",
+      "bytes": 47614,
+      "width_px": 585,
+      "height_px": 152,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-eclipse/yomi-eclipse__warning.webp",
+      "source": "yomi-vfx-v2",
+      "sha256": "2057fab2fcd96c73e011651c72780ce59840c4c5eaef209f9b7078ad47495b72",
+      "bytes": 58906,
+      "width_px": 351,
+      "height_px": 358,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-eclipse/yomi-eclipse__impact.webp",
+      "source": "yomi-vfx-v2",
+      "sha256": "a702340f62580c5eae932c6774d1ee2d7e3e2b72a661ac21181e68ae1ee76ead",
+      "bytes": 93484,
+      "width_px": 469,
+      "height_px": 386,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-shooter/yomi-shooter__projectile.webp",
+      "source": "stage78-accents",
+      "sha256": "04861e8f308b466dd48ffc2c4b2990bf36d315146ceb6563618929375f521365",
+      "bytes": 6794,
+      "width_px": 152,
+      "height_px": 73,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-boss/yomi-boss__arrival.webp",
+      "source": "stage78-accents",
+      "sha256": "ccd01502a0b726ec990895921c8136eac1b09fc49738bfb76051e12f0e67d353",
+      "bytes": 33010,
+      "width_px": 256,
+      "height_px": 214,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/yomi/tiles/yomi__ground-0.webp",
+      "source": [
+        "yomi-ground"
+      ],
+      "sha256": "31f8c3499d12bff0958c8da4a92df23e1f3cc67f7d8f18c13ecb48150a3f9c81",
+      "bytes": 424546,
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/yomi/tiles/yomi__ground-1.webp",
+      "source": [
+        "yomi-ground"
+      ],
+      "sha256": "e8f251d68b87a3e452291b2ad6d23972d41140d02b353280ccf695194aa6490c",
+      "bytes": 426154,
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/yomi/tiles/yomi__ground-2.webp",
+      "source": [
+        "yomi-ground"
+      ],
+      "sha256": "4376d447e1e789e59404844dea19b586ba7a536e4774de85624e5ec26ceb0d80",
+      "bytes": 426924,
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/yomi/tiles/yomi__ground-3.webp",
+      "source": [
+        "yomi-ground"
+      ],
+      "sha256": "0cc98943da3a2cb01afcdb94093c076315adbb77099315b1904a1a72a182ce03",
+      "bytes": 426980,
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/yomi/tiles/yomi__ground-4.webp",
+      "source": [
+        "yomi-ground"
+      ],
+      "sha256": "173c6b48b59d84f75f702063aadda68d89d97d0ab2ed588c3d5feda0d97ce112",
+      "bytes": 427200,
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/yomi/tiles/yomi__ground-5.webp",
+      "source": [
+        "yomi-ground"
+      ],
+      "sha256": "245980da8ef7ab037e4b899f5acd258690127a0c98e96de65c6e38a8e611e0a1",
+      "bytes": 425492,
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-heavy-slash/yomi-heavy-slash__warning.webp",
+      "source": "chatgpt-yomi-heavy-slash-warning",
+      "sha256": "e443b84c5bbf60d30a450e98ce7284f20732c095a631f08c6f3d4d4a17dacd16",
+      "bytes": 64352,
+      "width_px": 768,
+      "height_px": 200,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-heavy-slash/yomi-heavy-slash__impact.webp",
+      "source": "chatgpt-yomi-heavy-slash-impact",
+      "sha256": "d7fb16be7339737fa8cf2cc0e6ccb8f6a87f212c89c56065d87c3037f12e2e22",
+      "bytes": 70820,
+      "width_px": 768,
+      "height_px": 200,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-cinder-burst/yomi-cinder-burst__warning.webp",
+      "source": "art/dev-runtime/img/vfx/enemies/yomi-cinder-burst/yomi-cinder-burst__warning.webp",
+      "width_px": 390,
+      "height_px": 357,
+      "mode": "RGBA",
+      "anchor": [
+        195,
+        178.5
+      ],
+      "alpha_bounds": [
+        1,
+        1,
+        389,
+        356
+      ],
+      "sha256": "9d6b2217b7c95f9855a774c6a30ded2c730d46d016f452ac20d732f476c0ab7d",
+      "bytes": 117778,
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/yomi-cinder-burst/yomi-cinder-burst__impact.webp",
+      "source": "art/yokai-final-art-candidates/f4-prepared/yomi-cinder-burst__candidate.webp",
+      "width_px": 512,
+      "height_px": 512,
+      "mode": "RGBA",
+      "anchor": [
+        256,
+        256
+      ],
+      "alpha_bounds": [
+        17,
+        16,
+        494,
+        496
+      ],
+      "sha256": "54bdcbb2a34de710c14aac725438d78087b422404117d52d95fbbb8aae45846c",
+      "bytes": 291728,
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    }
+  ]
+}

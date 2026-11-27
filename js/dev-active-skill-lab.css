@@ -1,0 +1,52 @@
+#active-skill-lab {
+  position: fixed;
+  inset-block-start: max(8px, env(safe-area-inset-top));
+  inset-inline-end: max(8px, env(safe-area-inset-right));
+  z-index: 20;
+  max-inline-size: min(36rem, calc(100vw - 16px));
+  max-block-size: calc(100dvh - 24px);
+  overflow: auto;
+  border: 1px solid #b59b65;
+  border-radius: 6px;
+  background: #171a24;
+  color: #f5e4bd;
+  font: 1rem system-ui, sans-serif;
+}
+#active-skill-lab summary {
+  cursor: pointer;
+  padding-inline: .8rem;
+  display: list-item;
+  line-height: 2.75rem;
+}
+#active-skill-lab form { padding: 0 .8rem .8rem; }
+#active-skill-lab p { margin: .2rem 0 .5rem; }
+#active-skill-lab :is(.lab-config, .lab-loadouts, .lab-variants, .lab-buttons) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+#active-skill-lab .lab-loadouts { margin-block: .5rem; }
+#active-skill-lab fieldset {
+  flex: 1 1 15rem;
+  min-inline-size: 0;
+  border: 1px solid #77674e;
+  border-radius: 3px;
+}
+#active-skill-lab .lab-variants { gap: 0 .5rem; }
+#active-skill-lab :is(label,button,input,select) { min-block-size: 24px; }
+#active-skill-lab label { display: inline-flex; align-items: center; gap: .3rem; }
+#active-skill-lab :is(button,select,input) { font: inherit; }
+#active-skill-lab input[type="number"] { inline-size: 8rem; }
+#active-skill-lab .lab-message:empty { display: none; }
+@media (pointer: coarse) {
+  #active-skill-lab :is(label,button,input,select) { min-block-size: 44px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  #active-skill-lab {
+    inset-block-start: auto;
+    inset-block-end: max(8px, env(safe-area-inset-bottom));
+    inset-inline-end: auto;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+  }
+}

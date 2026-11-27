@@ -66,7 +66,7 @@ test("night-town maintains theme packs and unique words", () => {
   assert.equal(new Set(words.map(w => w.jp)).size, 27);
   assert.deepEqual(stage.pacing.bossTimes, [180, 360, 480, 540]);
   assert.equal(stage.pacing.runSeconds, 600);
-  assert.equal(stage.pacing.goalDeliveries, 6);
+  assert.equal(stage.pacing.goalDeliveries, 0);
 });
 
 test("rain-port is a separate playable stage with its own packs and weather tuning", () => {
@@ -84,7 +84,7 @@ test("rain-port is a separate playable stage with its own packs and weather tuni
   assert.equal(stage.visual.petals, 0);
   assert.equal(stage.visual.fireflies, 0);
   assert.equal(stage.enemy.bossTheme, "harbor");
-  assert.equal(stage.pacing.goalDeliveries, 6);
+  assert.equal(stage.pacing.goalDeliveries, 0);
   assert.deepEqual(stage.pacing.bossTimes, [180, 360, 480, 540]);
   const world = WORLD.createStageWorld(stage, CONTENT);
   const active = world.update(stage.start.x, stage.start.y);

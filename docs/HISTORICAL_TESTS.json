@@ -1,0 +1,626 @@
+{
+  "schema": 1,
+  "retired_date": "2026-11-27",
+  "archive_root": ".cleanup-archive/history/20261127/tests",
+  "source_revision": "f54e7553fe5a69e69e01457f1eb50e0e7cc95fa5",
+  "files": [
+    {
+      "file": "agy-m1-c.test.cjs",
+      "sha256": "d3285a22511e1a06a850029fbb683536c544b92ffa28c007f92aaa173a95b813",
+      "bytes": 36544
+    },
+    {
+      "file": "agy-m1-d.test.cjs",
+      "sha256": "f87c136fefb5b12a14e76fb3ec1a9fc5d52d1bc44489d3e53c6e6aefcb3fb04d",
+      "bytes": 339040
+    },
+    {
+      "file": "agy-m1-g.test.cjs",
+      "sha256": "45ac9537fdd0cefdd34104254c0b2e3823e57405549d64656157212739cd4b4a",
+      "bytes": 56329
+    },
+    {
+      "file": "agy-m1-integration.test.cjs",
+      "sha256": "759e98aa72f71a26478126ac1b34b4e47002ec4c9485946a2a06d857df867322",
+      "bytes": 25948
+    },
+    {
+      "file": "agy-m1-n2.test.cjs",
+      "sha256": "8439b6ea750aa6b678b90b97e88a46f2e68573d853eb913ef788099e4b6f8b68",
+      "bytes": 19755
+    },
+    {
+      "file": "agy-m1-n4.test.cjs",
+      "sha256": "b5fc1cd1d42f00dfa57a1534be7ad76b21baa8570a849fb06fb26cdad4dc930b",
+      "bytes": 27800
+    },
+    {
+      "file": "agy-m1-runtime.test.cjs",
+      "sha256": "1ed6256e26c44b43ba04e2e39610be10b8f85545bf93890f998a73c5f09d1110",
+      "bytes": 67036
+    },
+    {
+      "file": "agy-m1-stage1-balance.test.cjs",
+      "sha256": "0a2ff21e2d53d89b8bdc5248bd8bcfc199845fc3c4bd30eb1666d25e621b9289",
+      "bytes": 22845
+    },
+    {
+      "file": "agy-stage-content-check.test.cjs",
+      "sha256": "22eafc3f590c4244439899b44d1d81b8c9139106434a1975db406e1f043f1d31",
+      "bytes": 10859
+    },
+    {
+      "file": "audit-fixes-20261119.test.cjs",
+      "sha256": "2d411a437b9c56354ed9ac285ffa08cd9e643a0f66ede7a9feae7ab57e6bed6f",
+      "bytes": 5648
+    },
+    {
+      "file": "b-stage-content.test.cjs",
+      "sha256": "39dd8fc4772ec39daaf3a6b488b4b2b717362b1a85f95e25e3b6dd1d660f2026",
+      "bytes": 17009
+    },
+    {
+      "file": "b6-night-town-polish-20261031.test.cjs",
+      "sha256": "a47fab2c3ef35b93f6c6fff1d33cc623e67e8cc402f3ab5f8180235684e327fe",
+      "bytes": 3749
+    },
+    {
+      "file": "b7-omamori-and-ui-20261031.test.cjs",
+      "sha256": "2bf37894b7156bf011e58a27f19b3c152a8f747991101dd232b06d035f66907a",
+      "bytes": 3457
+    },
+    {
+      "file": "b8-passive-caps-and-seal-20261101.test.cjs",
+      "sha256": "52a3587ce22f9421816030d7a3f501c55a68098f0421ff3d5cde69f40916d866",
+      "bytes": 3148
+    },
+    {
+      "file": "b9-art-and-cargo-20261101.test.cjs",
+      "sha256": "e51ec3e901b33468126937926ddb5030467674766f435acf0051fcfad34b6c01",
+      "bytes": 2352
+    },
+    {
+      "file": "balance-20261114.test.cjs",
+      "sha256": "e4a9fc09f370c2acdc801f2dafcf27cd19d9dd4593d01386f797eef0a19c5c11",
+      "bytes": 3306
+    },
+    {
+      "file": "boss-image-qa-r1.test.cjs",
+      "sha256": "a8d48e197393ef16a00af0db33f4fc27d145bf100dcdbdf7ebc4a7f6b7c0a25a",
+      "bytes": 32832
+    },
+    {
+      "file": "card-journal-compaction-20261119.test.cjs",
+      "sha256": "8a3bbc0ccf2d92f80fc8e635dca078f5807cbda1befff283596843a844370f3e",
+      "bytes": 3804
+    },
+    {
+      "file": "codex-s1-difficulty.test.cjs",
+      "sha256": "94a95ff96c068c00987b008480707c194a38008db5fb7fb3759d928edc7ea199",
+      "bytes": 12366
+    },
+    {
+      "file": "delivery-media-routes.test.cjs",
+      "sha256": "b1d0b3e51e5c5d12edef3173cdc82b06be58ca03bfe2fe6bf6b6106bff899391",
+      "bytes": 3820
+    },
+    {
+      "file": "delivery-v3.test.cjs",
+      "sha256": "2115060fcd47eb6406ba0727b80d5224d8ba3268884f88988d230319f51f5d2e",
+      "bytes": 9755
+    },
+    {
+      "file": "delivery-wrong-ambush-20261109.test.cjs",
+      "sha256": "d572f1e2fd791025ab19c641b037473c16ee106308d03ff90d6751f0578a73e5",
+      "bytes": 1570
+    },
+    {
+      "file": "director-media-image-revisions.test.cjs",
+      "sha256": "3a2b37d893497f3de9c24ed104ad009ce2f55c43a87b961300705b8339ad7e03",
+      "bytes": 993
+    },
+    {
+      "file": "e15-r16-harness-calibration.test.cjs",
+      "sha256": "207167e9b158f559c9f0f7ca19e863e37ebe2d7181d3a0d66455df7f170dd382",
+      "bytes": 10188
+    },
+    {
+      "file": "fusion-art-ui-20261023.test.cjs",
+      "sha256": "aa0465ca93909d6c42f909db5111ff498f63ccf2669de99a03f135f5dfd4d0d1",
+      "bytes": 3872
+    },
+    {
+      "file": "fusion-dual-realgame.test.cjs",
+      "sha256": "817a51712d804170e3989a1fae08961f1725e4b6f6e1070ee8197da06e9faa0e",
+      "bytes": 27590
+    },
+    {
+      "file": "fusion-fan-hud-20261025.test.cjs",
+      "sha256": "55821ec15c2265ed48fefffa7e415892114b160d05c986bb3ea72bd38d42708d",
+      "bytes": 32330
+    },
+    {
+      "file": "fusion-replace-20261025.test.cjs",
+      "sha256": "412c48b2f1a5e7380ce4c02e13ea4054f971eafcdfa30ccc68a506acc2bb99e1",
+      "bytes": 27869
+    },
+    {
+      "file": "fusion-thundercircle-visibility-r5.test.cjs",
+      "sha256": "3c31d5bd8a7ccfe67bbccf99539d0bcd83968c5192ca3f756edafab52f74fbd6",
+      "bytes": 11510
+    },
+    {
+      "file": "fusion-vfx-visible-20261025.test.cjs",
+      "sha256": "54c82da3a16766a6e7a30eb62652361a58bb64f06e5dd6638bfb660b1ebac611",
+      "bytes": 11332
+    },
+    {
+      "file": "fusion-visual-qa-r2.test.cjs",
+      "sha256": "079599317094871ce891d4fa9de29319141a2d037921c03bb9b47d13efbbb29b",
+      "bytes": 7062
+    },
+    {
+      "file": "game-attack-specs-phase12-20261103.test.cjs",
+      "sha256": "217c97e7b4972fb7513e110176eec1e586c8de88bf3c7bb031f5424871b40303",
+      "bytes": 7955
+    },
+    {
+      "file": "game-catalog-phase13-20261103.test.cjs",
+      "sha256": "fac0fbe59cf8829af4a1a78ad16753648bd9c9c2884782592cbb9a6bdcaca1d7",
+      "bytes": 2675
+    },
+    {
+      "file": "game-ink-trail-20261110.test.cjs",
+      "sha256": "ca5de6ac01aa2505bd50af9a45aa19bce762cf2115970ec86b0f03ea5126b9bb",
+      "bytes": 14186
+    },
+    {
+      "file": "grok-d1-foxiai-direction.test.cjs",
+      "sha256": "711deea57380e7aa9efac67309edb895c451606d87a4575bcb2ddb68d5aab379",
+      "bytes": 10785
+    },
+    {
+      "file": "grok-d2-array-phase.test.cjs",
+      "sha256": "e322867d1283ff804977e035ac8455e8befe4e55c80c0e241633241f00660319",
+      "bytes": 15519
+    },
+    {
+      "file": "grok-d3-boss-image.test.cjs",
+      "sha256": "473d224a2541fe4619b9f3bdca1f032380b714bd7a3d66d629c1afd5fad58703",
+      "bytes": 15554
+    },
+    {
+      "file": "grok-m1-e-r11.test.cjs",
+      "sha256": "16bf08787f692ff389ead34b8898f00b42c88113c3d2cde264e16ee16e83e3c4",
+      "bytes": 8604
+    },
+    {
+      "file": "grok-m1-e-r12.test.cjs",
+      "sha256": "3863804ba04aeb21fd1f34fc51361e2501c2c37f0c340cd642115fecd5f10b4d",
+      "bytes": 63521
+    },
+    {
+      "file": "grok-m2-omamori-core-r3.test.cjs",
+      "sha256": "02c602db09aff4d978f5a27daff8fc4d4079c1f00ef7009c85adcdb19d24c38c",
+      "bytes": 11394
+    },
+    {
+      "file": "input-runtime.test.cjs",
+      "sha256": "df9145f4972b7d01089973871314650c0c4416ea87fe2cdfbd9dca311162a916",
+      "bytes": 116069
+    },
+    {
+      "file": "kilo-m2-stage2-motion.test.cjs",
+      "sha256": "51a3b6d59e27b3722075b116b311289e72ea4100305beb6294b0b05841774fb8",
+      "bytes": 11112
+    },
+    {
+      "file": "kilo-stage-flow.test.cjs",
+      "sha256": "4aa8bc69c6aecbfec31d01542893aa85aefab942703668bab85cb097f9a7abf0",
+      "bytes": 15375
+    },
+    {
+      "file": "kilo-stage3-8-flow.test.cjs",
+      "sha256": "32a048a4c785beff63cdf593856b8a8fc12893f84ab77b1a0cd17a088c795aa9",
+      "bytes": 15684
+    },
+    {
+      "file": "m2-fusion-art-bind-r1.test.cjs",
+      "sha256": "6e00b17392122fb0feaaf230e1becbd7d293ae3c569aff7bff975a9d4c28d8be",
+      "bytes": 33819
+    },
+    {
+      "file": "muse-m1-stagemeta.test.cjs",
+      "sha256": "2a2b1d11e4995322423cd8d7180cda86603cd4cac873d621fc9fe287ed171a6b",
+      "bytes": 9930
+    },
+    {
+      "file": "night-town-a-common-kanji-free.test.cjs",
+      "sha256": "fccc65195ff3c06bcf561af786e3037117d40632c1a0986be8e622800a85a1ca",
+      "bytes": 4492
+    },
+    {
+      "file": "night-town-approved-fish.test.cjs",
+      "sha256": "cb177fc1224b87cc0a29a4c61e141a3e348ef8e431bac99a2043a0a9d8feb7be",
+      "bytes": 5827
+    },
+    {
+      "file": "night-town-kanji-fish-voices.test.cjs",
+      "sha256": "21f4757ee5c38afe7f5993a5fdf83253fbac21bafed2f369374ce6bb85a35b3f",
+      "bytes": 4114
+    },
+    {
+      "file": "opencode-m2-fusion-runtime.test.cjs",
+      "sha256": "701bb80cdcfdbcf4b0594c6abe9ba01120a24264034c7ba2a12af402f31461b7",
+      "bytes": 38746
+    },
+    {
+      "file": "opencode-m2-fusion-ui.test.cjs",
+      "sha256": "d2cc000e9fa87cfa128e63d1361070db044f0593e750dd3fe032e32e0bfae5a6",
+      "bytes": 16357
+    },
+    {
+      "file": "playtest-r15-stage1-visual-20261029.test.cjs",
+      "sha256": "eeb7d8873f9dc45df01a590471481b42d70642553232982aebd16d2275327a91",
+      "bytes": 2652
+    },
+    {
+      "file": "playtest-r16-water-shield-ring-20261029.test.cjs",
+      "sha256": "fbc5ab2e477ba0e2aee7a1b221405c047da4146770135017a6688015786fe5a6",
+      "bytes": 3207
+    },
+    {
+      "file": "playtest-r7-ui.test.cjs",
+      "sha256": "9cef96f2cde2dab3d7d0edf37180288875654d2125d5a28e94de1e35beee64d1",
+      "bytes": 8870
+    },
+    {
+      "file": "playtest-r9-ui.test.cjs",
+      "sha256": "fdb67494ab762b4813128846a52e803a94d16470917ac436a6eee46c20edb5d5",
+      "bytes": 14749
+    },
+    {
+      "file": "postcap-coins-20261109.test.cjs",
+      "sha256": "78bf85af554f914188dbd893f3f0fd8cc3774df70f2b27a7420deaa17a469ddc",
+      "bytes": 1014
+    },
+    {
+      "file": "r12-assets-loader.test.cjs",
+      "sha256": "7d3d957a484a19e69e844c2d148ed2bc1db8a93f39273a12dce876fbe0782e11",
+      "bytes": 9502
+    },
+    {
+      "file": "r12-boss-canonical-kilo.test.cjs",
+      "sha256": "d8118b23441b293ab100c68b079a62bc7cf3e57849779d13c06dd62d0ed5c142",
+      "bytes": 18399
+    },
+    {
+      "file": "r12-shared-art-manifest.test.cjs",
+      "sha256": "f88cb4a8a0709eef3af3404915ecebb64aa14ee716c4706fe70b790a61e7f7a4",
+      "bytes": 11442
+    },
+    {
+      "file": "r12-ui-canonical.test.cjs",
+      "sha256": "f1ce93e73d20918b743c073ac1cac8401187180d276582ae075bd5b498ede055",
+      "bytes": 7193
+    },
+    {
+      "file": "rain-port-boss-phase2-20261111.test.cjs",
+      "sha256": "b2cf739e2b6c1648a5115be677ceb619fe40fc483d0d37d3a6994429a583809b",
+      "bytes": 18501
+    },
+    {
+      "file": "rain-port-delivery-trial.test.cjs",
+      "sha256": "d43524c912e131c3c526477c3e38c3aa691f4b72236dec49b556a58d09ac0b7a",
+      "bytes": 5285
+    },
+    {
+      "file": "rain-port-weather-ink-20261111.test.cjs",
+      "sha256": "8c6ee2a0da932ad6104c0223284705610d9015eaf8b6f2f68a7f58d807452f7e",
+      "bytes": 6039
+    },
+    {
+      "file": "s2-ground-kit-contract.test.cjs",
+      "sha256": "2d4be91455466a8b65668f7031d347404a8f19d59b5d39e9540c9e8dbec6ccaa",
+      "bytes": 3310
+    },
+    {
+      "file": "sakura-delivery-trial.test.cjs",
+      "sha256": "b908e8d7ce76e23e1c858c3e0a9641d8217eac13aea52a49c8526ba7c9eca4da",
+      "bytes": 8899
+    },
+    {
+      "file": "sakura-terrain-plan.test.cjs",
+      "sha256": "329a1fb04e3cb44240d9c36529a3b728bff44aee245c3fec589baea88f2acf72",
+      "bytes": 5388
+    },
+    {
+      "file": "spacebunny-m1-g-return.test.cjs",
+      "sha256": "0f28e203ee82c693b98743d853a5b6593377c4b99b64ea9534ce6b46c2db63bb",
+      "bytes": 21720
+    },
+    {
+      "file": "spacebunny-m1-p0.test.cjs",
+      "sha256": "b2062d16ad8697bd8daa714d61638605c986562c93656f9e18096334de5350ad",
+      "bytes": 38889
+    },
+    {
+      "file": "spritecook-dev.test.cjs",
+      "sha256": "ae8576293feb80c418e4bc7f23d1b1daa742373d731d47874e406768ed6c38ab",
+      "bytes": 5238
+    },
+    {
+      "file": "stage-art-reset-20261024.test.cjs",
+      "sha256": "bd995103a11d1430ff4f3ae991cb35240b8e93d3a8756252de0aaba1dedf292d",
+      "bytes": 2987
+    },
+    {
+      "file": "stage2-approved-enemies.test.cjs",
+      "sha256": "1305d38fda81dccc1389ff2fe06c8c96717adc1d19986bc4e4ba8b93b03e4f68",
+      "bytes": 11693
+    },
+    {
+      "file": "stage3-ground-transitions.test.cjs",
+      "sha256": "6ef313a6b947ef70fb5406607379adb01dcc348d52e6b9491acd32be597a80b8",
+      "bytes": 5987
+    },
+    {
+      "file": "stage3-shrine-buildings.test.cjs",
+      "sha256": "2061a022b42904be7ac3218f4687c7f3ccb029f58c552b20c746c17c9509fa10",
+      "bytes": 6536
+    },
+    {
+      "file": "system-a-fusion-playable.test.cjs",
+      "sha256": "4d1a5347011892ea4d89abfc36d6ffc8b822aea2c0592fca94a76331af7953e3",
+      "bytes": 34963
+    },
+    {
+      "file": "system-delivery-distance-r1-distance.test.cjs",
+      "sha256": "9f803444c951c6d7d4d7e01fcfbdf190c903d9093df0bed554d7082448ae5cd2",
+      "bytes": 15025
+    },
+    {
+      "file": "ui-polish-r1.test.cjs",
+      "sha256": "ceb0fe37f42c10028e1d3b66245c8d145fd470ee3e18407410b64ebd5c08fb04",
+      "bytes": 16410
+    },
+    {
+      "file": "ui-polish-r3.test.cjs",
+      "sha256": "eb0c7fd4d88cc6bb5e641ca181b74eb3891cd04c630dfdc8c36240df7c226d4b",
+      "bytes": 13573
+    },
+    {
+      "file": "ui-polish-r4.test.cjs",
+      "sha256": "df32556c216cf4b3a22da9a06dafd90df41ac45966cccbe05178eed757baaaac",
+      "bytes": 6708
+    },
+    {
+      "file": "ui-readability.test.cjs",
+      "sha256": "5c5b5165d4f4e22746129a7c4b6a15af67eb88dbd15bbfb1780c5aeb2bdcd371",
+      "bytes": 50333
+    },
+    {
+      "file": "v3-baseline.test.cjs",
+      "sha256": "d21cb300436eb86d69a5402e3036ac7d2c820d42d98cd1476209f6e4cc3552c2",
+      "bytes": 8191
+    },
+    {
+      "file": "v3-growth-accounting.test.cjs",
+      "sha256": "30c02f57882a69b0160fa517d95f9400c0965c35628828bf1eac88d311216e5d",
+      "bytes": 2535
+    },
+    {
+      "file": "v3-route.test.cjs",
+      "sha256": "39d0a58e44c1146e1d0cb351547bec72e2bda08f4edd8479ff1de4f06ba200d5",
+      "bytes": 12939
+    },
+    {
+      "file": "v3-ui.test.cjs",
+      "sha256": "b40d2df5d602bf94c1702c3f2166abf1c6fe03b450af08226d934ccfbc684bf0",
+      "bytes": 8156
+    }
+  ],
+  "current_at_retirement": [
+    "active-skills-10-13.test.cjs",
+    "agy-m1-b.test.cjs",
+    "agy-m1-contract.test.cjs",
+    "agy-m1-n3.test.cjs",
+    "agy-m11-ui.test.cjs",
+    "agy-m2-stage2-facing.test.cjs",
+    "asset-registry.test.cjs",
+    "assets-loading.test.cjs",
+    "audio-events.test.cjs",
+    "audio-flow-polish-r1-boss-text.test.cjs",
+    "audio-flow-polish-r1.test.cjs",
+    "audio-gamepad-home-hotfix-20261102.test.cjs",
+    "audit-p1-cards-journal-20261103.test.cjs",
+    "audit-p1-prod-input-a-20261103.test.cjs",
+    "audit-p1-stage-boss-c-20261103.test.cjs",
+    "audit-regressions-20261101.test.cjs",
+    "audit-stage2-load-race.test.cjs",
+    "b10-charm-ui-20261101.test.cjs",
+    "b11-charm-actual-game-ui-20261101.test.cjs",
+    "b12-ui-consistency-20261101.test.cjs",
+    "b13-boss-audio-ui-20261101.test.cjs",
+    "b14-surge-motion-20261101.test.cjs",
+    "b15-production-art-mapping-20261101.test.cjs",
+    "b16-device-font-boss-20261101.test.cjs",
+    "b3-needle-charge-20261031.test.cjs",
+    "b3-night-town-boss-quiz.test.cjs",
+    "b3-night-town-six-skills.test.cjs",
+    "b3-night-town-visual-feedback-20261031.test.cjs",
+    "b5-slam-shield-return-20261031.test.cjs",
+    "barrier-raster.test.cjs",
+    "boom-behavior.test.cjs",
+    "boom-lv5-motion-20261025.test.cjs",
+    "boss-music.test.cjs",
+    "boss-ring-sweep-20261024.test.cjs",
+    "boss-telegraph-delegate-r1.test.cjs",
+    "card-collection-c1c2.test.cjs",
+    "card-delivery-bridge.test.cjs",
+    "card-delivery-runtime.test.cjs",
+    "card-gallery-model.test.cjs",
+    "card-gallery-runtime.test.cjs",
+    "card-gallery-ui.test.cjs",
+    "card-rewards-runtime.test.cjs",
+    "codex-astar-audit-fixes-20261029.test.cjs",
+    "combat-boundaries-stage-tutorial-20261029.test.cjs",
+    "combat-targeting.test.cjs",
+    "content-world.test.cjs",
+    "controls.test.cjs",
+    "core-multi-enemy-stage-phase23-20261103.test.cjs",
+    "core-stateful-contracts-20261103.test.cjs",
+    "core-stateful-contracts-audit-20261126.test.cjs",
+    "delivery-media-runtime-20261119.test.cjs",
+    "dev-helper-occlusion-r1.test.cjs",
+    "dev-stage-selector.test.cjs",
+    "director-audio-freeze.test.cjs",
+    "director-c3-visible-hitboxes.test.cjs",
+    "director-card-long-run.test.cjs",
+    "director-card-page-contrast.test.cjs",
+    "director-p42-ctm.test.cjs",
+    "evolutions.test.cjs",
+    "font-subset.test.cjs",
+    "four-stage-controlled-flow-20261122.test.cjs",
+    "fusion-lab-isolation-20261119.test.cjs",
+    "fx.test.cjs",
+    "game-angle-guard-phase40.test.cjs",
+    "game-balance-phase-b-20261125.test.cjs",
+    "game-balance-phase-c-20261125.test.cjs",
+    "game-balance.test.cjs",
+    "game-boss-delivery-phase37.test.cjs",
+    "game-boss-delivery-phase41.test.cjs",
+    "game-boss-phase8-20261127.test.cjs",
+    "game-build-rules-phase11-20261103.test.cjs",
+    "game-build-rules-phase19-20261103.test.cjs",
+    "game-build-rules-phase8-20261103.test.cjs",
+    "game-charm-math-phase4-20261103.test.cjs",
+    "game-charm-math-phase5-20261103.test.cjs",
+    "game-combat-area-targets-phase27-20261103.test.cjs",
+    "game-combat-audit-hardening-20261103.test.cjs",
+    "game-combat-blade-cone-phase24-20261103.test.cjs",
+    "game-combat-boom-homing-phase36-20261104.test.cjs",
+    "game-combat-boom-stick-phase33-20261104.test.cjs",
+    "game-combat-cinder-scorch-phase28-20261103.test.cjs",
+    "game-combat-crosscut-phase32-20261104.test.cjs",
+    "game-combat-dragon-target-phase29-20261103.test.cjs",
+    "game-combat-foxfire-phase34-20261104.test.cjs",
+    "game-combat-katana-wave-phase31-20261104.test.cjs",
+    "game-combat-launch-target-phase35-20261104.test.cjs",
+    "game-combat-math-phase14-20261103.test.cjs",
+    "game-combat-needle-seek-phase30-20261104.test.cjs",
+    "game-combat-thunder-branch-phase26-20261103.test.cjs",
+    "game-combat-thunder-targets-phase25-20261103.test.cjs",
+    "game-delivery-rules-phase10-20261103.test.cjs",
+    "game-delivery-words-phase21-20261103.test.cjs",
+    "game-dragon-cooldown-phase39.test.cjs",
+    "game-geometry-phase15-20261103.test.cjs",
+    "game-geometry-phase6-20261103.test.cjs",
+    "game-new-skill-visibility-20261124.test.cjs",
+    "game-quiz-logic-phase1.test.cjs",
+    "game-recovered-contracts-phase38.test.cjs",
+    "game-run-summary-phase18-20261103.test.cjs",
+    "game-sanctuary-arc.test.cjs",
+    "game-shikigami-candidate-20261119.test.cjs",
+    "game-shikigami-runtime-20261119.test.cjs",
+    "game-spawn-math-phase7-20261103.test.cjs",
+    "game-spawn-math-phase9-20261103.test.cjs",
+    "game-student-playtest-fixes-20261108.test.cjs",
+    "game-tutorial-rules-phase20-20261103.test.cjs",
+    "game-ui-upgrade-phase42.test.cjs",
+    "game-ui-washi-redesign.test.cjs",
+    "game-upgrade-choices-phase17-20261103.test.cjs",
+    "game-upgrade-cooldown-20261121.test.cjs",
+    "game-violet-scent-20261117.test.cjs",
+    "game-weather-phase16-20261103.test.cjs",
+    "integration-polish-phase-f1.test.cjs",
+    "kilo-b5-balance.test.cjs",
+    "kilo-m2-port-boundary.test.cjs",
+    "kilo-m2-stage2-renderer.test.cjs",
+    "late-skill-mutations.test.cjs",
+    "long-kana-display.test.cjs",
+    "m15-port-transition.test.cjs",
+    "media-cache.test.cjs",
+    "muse-boss-phone-read.test.cjs",
+    "muse-c4-progress-ux.test.cjs",
+    "muse-end-states.test.cjs",
+    "muse-long-kana-visible.test.cjs",
+    "muse-pad5-combat.test.cjs",
+    "muse-s8-boss.test.cjs",
+    "muse-settle-review.test.cjs",
+    "ofuda-raster.test.cjs",
+    "onmyo-vfx.test.cjs",
+    "overworld-approved-plaque-20261110.test.cjs",
+    "overworld-editor.test.cjs",
+    "overworld-eight-stage.test.cjs",
+    "overworld-facing.test.cjs",
+    "overworld-typography.test.cjs",
+    "overworld.test.cjs",
+    "p42-camera-runtime.test.cjs",
+    "p42-camera-zoom-math.test.cjs",
+    "parallax-depth.test.cjs",
+    "perf-overlay-position-20261122.test.cjs",
+    "phase1-fixes.test.cjs",
+    "phase2-geometry-audit-20261102.test.cjs",
+    "phase3-grok-audit-20261102.test.cjs",
+    "phase42-raster-redoil-boss-sfx.test.cjs",
+    "phase42-upgrade-input-20261119.test.cjs",
+    "pickup-embedded-ui-review-20261110.test.cjs",
+    "playtest-followup-20261102.test.cjs",
+    "playtest-r13-vfx.test.cjs",
+    "playtest-r14-delivery-seal-curse.test.cjs",
+    "playtest-r8-ui.test.cjs",
+    "playtest-ui-balance-20261102.test.cjs",
+    "port-performance-diagnostics.test.cjs",
+    "progression.test.cjs",
+    "r10-audio-bgm.test.cjs",
+    "r10-ui-hud-hitbox.test.cjs",
+    "r12-fan-clip-bound-r12.test.cjs",
+    "r12-manifest-sentinel.test.cjs",
+    "r3-gamepause-wiring.test.cjs",
+    "renderer.test.cjs",
+    "report-review-regressions-20261110.test.cjs",
+    "review-followup-20261110.test.cjs",
+    "s2-published-release.test.cjs",
+    "second-audit-regressions.test.cjs",
+    "skillfx.test.cjs",
+    "source-contracts.test.cjs",
+    "spacebunny-m1-f-r1.test.cjs",
+    "stage-bgm-routing-20261122.test.cjs",
+    "stage-release-status.test.cjs",
+    "stage2-approved-media-routes.test.cjs",
+    "stage2-nonmis-stuck-fallback.test.cjs",
+    "stage23-production-art.test.cjs",
+    "stage3-art-batch-20261116.test.cjs",
+    "stage3-boss-behavior-20261116.test.cjs",
+    "stage3-boss-polish-20261116.test.cjs",
+    "stage3-engine-20261116.test.cjs",
+    "stage3-house-density-depth.test.cjs",
+    "stage4-bamboo-maze-20261119.test.cjs",
+    "stage5-hyakki-kyoto-20261119.test.cjs",
+    "stage58-audio.test.cjs",
+    "stage58-combat-polish-phase-a-20261126.test.cjs",
+    "stage58-combat-polish-phase-b-20261126.test.cjs",
+    "stage6-snow-temple.test.cjs",
+    "stage78-dev.test.cjs",
+    "store-multi-tab.test.cjs",
+    "test-triage-audit-20261104.test.cjs",
+    "third-audit-regressions-20261102.test.cjs",
+    "thunder-raster.test.cjs",
+    "ui-charm-passive-20261023.test.cjs",
+    "ui-compendium-20261126.test.cjs",
+    "ui-ofuda-needle-font-followup-20261110.test.cjs",
+    "unified-boss-schedule-no-delivery-gate-20261125.test.cjs",
+    "v3-boss-ai.test.cjs",
+    "v3-contract-gate.test.cjs",
+    "v3-core.test.cjs",
+    "v3-growth-curve.test.cjs",
+    "v3-study-session.test.cjs",
+    "viewport.test.cjs",
+    "water-slam-alpha-sfx-20261102.test.cjs"
+  ],
+  "promoted": [
+    "phase-f3-audio-20261127.test.cjs",
+    "ink-variants-seal-nail-20261117.test.cjs"
+  ]
+}

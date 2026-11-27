@@ -471,6 +471,15 @@
       "pose": "impact"
     },
     {
+      "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__earth-break.webp",
+      "source": "art/stage3-sakura-pass/characters/sakura-tengu__earth-break.png",
+      "role": "effects",
+      "sha256": "72f6e1f2e9390bb03d9899296cc7dbd9c6a9095d0fc731d296a047988c4432a3",
+      "size": [768, 522],
+      "pivotRatio": [0.5, 0.5],
+      "pose": "earth"
+    },
+    {
       "path": "assets/img/stages/bamboo-maze/tiles/bamboo-maze__forest-duff.webp",
       "source": "art/stage4-bamboo-maze/scene/sources/bamboo-grove-forest-duff.png",
       "role": "repeatable-surface",

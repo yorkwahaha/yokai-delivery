@@ -1,27 +1,27 @@
-// 距爆・封印釘：world-anchored single-use mine activated by player departure.
+// 距爆・封印釘：independent single-use mines activated by a monster stepping on the center.
 // All effects advance inside weapons(dt); no timers, geometry art, or extra input.
 window.GAME_SEAL_NAIL = (() => {
   const TIERS = Object.freeze([
-    {factor:4.0, cooldown:5.3, radius:110, distance:185, life:4.0},
-    {factor:5.4, cooldown:4.9, radius:122, distance:175, life:4.5},
-    {factor:6.8, cooldown:4.6, radius:136, distance:165, life:5.0},
-    {factor:8.4, cooldown:4.2, radius:148, distance:155, life:5.5},
-    {factor:10.0,cooldown:3.9, radius:160, distance:145, life:6.0}
+    {factor:5, cooldown:3.6, radius:125, life:4.0, maxPins:1},
+    {factor:7, cooldown:3.0, radius:145, life:4.5, maxPins:2},
+    {factor:9, cooldown:2.5, radius:165, life:5.0, maxPins:2},
+    {factor:11,cooldown:2.0, radius:185, life:5.5, maxPins:3},
+    {factor:14,cooldown:1.6, radius:210, life:6.0, maxPins:3}
   ]);
   // Boss-only reduction preserves the identity of an AoE departure mine.
-  const BOSS_MULTIPLIER=.45;
-  const MIN_VISIBLE_TIME=.70, CHARGE_TIME=.32, AWAKEN_DELAY=.42;
+  const BOSS_MULTIPLIER=.80, MAX_TARGETS=15;
+  const TRIGGER_RADIUS=36, AWAKEN_DELAY=.42;
   const EFFECT_LIFETIMES={burst:.64,break:.82,awaken:.84,fallout:1.02};
   const ready=img=>img?.naturalWidth>0&&img?.naturalHeight>0;
   const eligible=e=>!!e&&e.hp>0&&!e.dying&&!e.shield&&!e.vanish&&!e.done&&!e.invulnerable&&!e.untargetable;
   function spec(level,damage=1,mutations=[]){
     const cfg=TIERS[Math.max(0,Math.min(4,(level|0)-1))];
     const factor=cfg.factor*(mutations.includes("mut_seal_nail_deep")?1.25:1);
-    return {...cfg,level,factor,damage:factor*damage,secondDamage:level===5?factor*damage*.45:0,
+    return {...cfg,level,factor,damage:factor*damage,secondDamage:level===5?factor*damage*.60:0,
       radius:cfg.radius*(mutations.includes("mut_seal_nail_wide")?1.25:1),
-      distance:cfg.distance-(mutations.includes("mut_seal_nail_near")?25:0),
+      triggerRadius:TRIGGER_RADIUS+(mutations.includes("mut_seal_nail_near")?20:0),
       cooldown:cfg.cooldown*(mutations.includes("mut_seal_nail_swift")?.82:1),
-      secondDelay:.24,secondOffset:94,bossMultiplier:BOSS_MULTIPLIER,maxTargets:7,
+      secondDelay:.24,secondOffset:94,bossMultiplier:BOSS_MULTIPLIER,maxTargets:MAX_TARGETS,
       cadenceEligible:false,reachEligible:false,critEligible:false};
   }
   function loadCandidateArt(){
@@ -40,23 +40,24 @@ window.GAME_SEAL_NAIL = (() => {
     return art;
   }
   function create({staged=false}={}){
-    let pin=null, cooldown=0, delayed=null, effects=[], swift=false;
-    const reset=()=>{pin=null;cooldown=0;delayed=null;effects=[];swift=false;};
-    const suspend=()=>{pin=null;delayed=null;effects=[];};
+    let pins=[], cooldown=0, delayed=[], effects=[], swift=false, revision=0;
+    const suspend=()=>{pins=[];delayed=[];effects=[];revision++;};
+    const reset=()=>{suspend();cooldown=0;swift=false;};
     function effect(type,x,y,radius,angle=0){
       const life=staged?EFFECT_LIFETIMES[type]:.38;
       effects.push({type,x,y,radius,angle,life,max:life});
-      if(effects.length>9)effects.shift();
+      if(effects.length>12)effects.shift();
     }
-    function blast(x,y,radius,damage,enemies,hit){
-      let hitCount=0;
+    function blast(x,y,radius,damage,enemies,hit,current){
       const alreadyHit=new Set();
       for(const e of enemies){
-        if(hitCount>=7)break;
+        if(alreadyHit.size>=MAX_TARGETS)break;
         if(!eligible(e)||alreadyHit.has(e)||Math.hypot(e.x-x,e.y-y)>radius+(e.r||0))continue;
-        hit(e,damage*(e.type==="boss"?BOSS_MULTIPLIER:1),"seal_nail");
-        alreadyHit.add(e);hitCount++;
+        alreadyHit.add(e);
+        hit?.(e,damage*(e.type==="boss"?BOSS_MULTIPLIER:1),"seal_nail");
+        if(current!==revision)return false;
       }
+      return true;
     }
     function tick({dt,level,start,end,dashing=false,enemies=[],hit,effectiveDamage=1,mutations=[],onEvent}){
       if(level<=0||!(dt>0))return;
@@ -66,92 +67,93 @@ window.GAME_SEAL_NAIL = (() => {
       swift=nextSwift;
       cooldown=Math.max(0,cooldown-dt);
       effects=effects.filter(f=>(f.life-=dt)>0);
-      if(delayed){
-        delayed.time-=dt;
-        if(delayed.time<=0){
-          // At most one second wave, once per enemy and never a chain.
-          blast(delayed.x,delayed.y,delayed.radius,delayed.damage,enemies,hit);
-          effect(staged?"awaken":"burst",delayed.x,delayed.y,delayed.radius);
-          if(staged)effect("fallout",delayed.x,delayed.y,delayed.radius,delayed.angle);
-          onEvent?.("second");
-          delayed=null;
-        }
+      const current=revision;
+      for(let i=0;i<delayed.length;){
+        const wave=delayed[i];
+        if((wave.time-=dt)>0){i++;continue;}
+        delayed.splice(i,1);
+        if(!blast(wave.x,wave.y,wave.radius,wave.damage,enemies,hit,current))return;
+        effect(staged?"awaken":"burst",wave.x,wave.y,wave.radius);
+        if(staged)effect("fallout",wave.x,wave.y,wave.radius,wave.angle);
+        onEvent?.("second");
       }
-      if(pin){
+      for(let i=0;i<pins.length;){
+        const pin=pins[i];
         pin.life-=dt;
         pin.radius=cfg.radius;
-        if(pin.charge){
-          pin.charge.time-=dt;
-          if(pin.charge.time>0)return;
-        }else{
-          if(pin.life<=0){pin=null;return;}
-          if(!end||!(Math.hypot(end.x-pin.x,end.y-pin.y)>=cfg.distance))return;
-          const age=pin.maxLife-pin.life;
-          const time=staged?Math.max(CHARGE_TIME,MIN_VISIBLE_TIME-age):0;
-          pin.charge={angle:Math.atan2(end.y-pin.y,end.x-pin.x),time,max:time};
-          if(staged)return;
-        }
-        const {x,y,charge:{angle}}=pin;
-        blast(x,y,cfg.radius,cfg.damage,enemies,hit);
+        pin.triggerRadius=cfg.triggerRadius;
+        if(pin.life<=0){pins.splice(i,1);continue;}
+        // Only an eligible enemy center crossing the small trigger zone can detonate the mine.
+        const trigger=enemies.find(e=>eligible(e)&&Math.hypot(e.x-pin.x,e.y-pin.y)<=cfg.triggerRadius);
+        if(!trigger){i++;continue;}
+        const {x,y}=pin;
+        const angle=Math.hypot(trigger.x-x,trigger.y-y)>1e-6?Math.atan2(trigger.y-y,trigger.x-x):pin.angle;
+        pins.splice(i,1);
+        if(!blast(x,y,cfg.radius,cfg.damage,enemies,hit,current))return;
         effect("burst",x,y,cfg.radius);
         onEvent?.("burst");
         if(level===5){
           const time=staged?AWAKEN_DELAY:cfg.secondDelay;
-          delayed={x:x+Math.cos(angle)*cfg.secondOffset,y:y+Math.sin(angle)*cfg.secondOffset,
-            radius:cfg.radius*.78,damage:cfg.secondDamage,time,angle};
+          delayed.push({x:x+Math.cos(angle)*cfg.secondOffset,y:y+Math.sin(angle)*cfg.secondOffset,
+            radius:cfg.radius*.78,damage:cfg.secondDamage,time,angle});
         }
         effect("break",x,y,cfg.radius,angle);
-        pin=null;
-        return;
       }
       // Deploy only on valid normal movement frames, never during dash.
-      // A stationary player can wait but cannot auto-farm deployed damage.
+      // A stationary player cannot deploy new mines; existing mines remain armed.
       // Idle and collision-stalled frames must not spend a cast.
-      if(!pin&&!delayed&&cooldown===0&&!dashing&&start&&end&&
+      if(pins.length<cfg.maxPins&&cooldown<=1e-9&&!dashing&&start&&end&&
           Math.hypot(end.x-start.x,end.y-start.y)>0.05){
-        pin={x:start.x,y:start.y,life:cfg.life,maxLife:cfg.life,radius:cfg.radius};
+        pins.push({x:start.x,y:start.y,life:cfg.life,maxLife:cfg.life,radius:cfg.radius,
+          triggerRadius:cfg.triggerRadius,angle:Math.atan2(end.y-start.y,end.x-start.x)});
         cooldown=cfg.cooldown;onEvent?.("drop");
       }
     }
     function paintMarker(ctx,img,x,y,size,alpha){
       if(!ready(img))return;
       ctx.save();ctx.globalAlpha*=alpha;
-      ctx.drawImage(img,x-size/2,y-size/2,size,size);
+      ctx.drawImage(img,img.naturalWidth*12/384,img.naturalHeight*16/384,
+        img.naturalWidth*359/384,img.naturalHeight*350/384,x-size/2,y-size/2,size,size);
       ctx.restore();
     }
     function paint(ctx,art={},fade=1){
-      if(pin&&staged){
-        const age=pin.maxLife-pin.life;
-        const progress=pin.charge?1-pin.charge.time/pin.charge.max:0;
-        const size=pin.charge?pin.radius*2:136;
-        const alpha = pin.charge ? .66 + .34 * progress : .78 + Math.sin(age * 4.5) * .13;
-        paintMarker(ctx,art.marker,pin.x,pin.y,size,fade*alpha);
-      }
-      if(pin&&ready(art.pin)){
-        const alpha=fade*(pin.charge?1:Math.min(1,pin.life/.45));
-        ctx.save();ctx.globalAlpha*=alpha;
-        if(art.painted)ctx.drawImage(art.pin,pin.x-60,pin.y-70,120,101);
-        else ctx.drawImage(art.pin,pin.x-66,pin.y-66,132,132);
-        ctx.restore();
+      for(const pin of pins){
+        if(staged){
+          const age=pin.maxLife-pin.life;
+          const size=pin.triggerRadius*2;
+          const alpha=.78+Math.sin(age*4.5)*.13;
+          paintMarker(ctx,art.marker,pin.x,pin.y,size,fade*alpha);
+        }
+        if(ready(art.pin)){
+          const alpha=fade*Math.min(1,pin.life/.45);
+          ctx.save();ctx.globalAlpha*=alpha;
+          if(art.painted)ctx.drawImage(art.pin,pin.x-60,pin.y-70,120,101);
+          else ctx.drawImage(art.pin,pin.x-66,pin.y-66,132,132);
+          ctx.restore();
+        }
       }
       for(const f of effects){
         const img=f.type==="awaken"&&!ready(art.awaken)?art.burst:art[f.type];
         if(!ready(img))continue;
         const age = 1 - f.life / f.max;
         const shards = art.painted && (f.type === "break" || f.type === "fallout");
-        const scale = art.painted
-          ? (shards ? .45 + .65 * age : 1 - .45 * (1 - age) ** 5)
-          : 1;
-        const size = f.radius * (shards ? 1.5 : 2.2) * scale;
+        // The blast is already live at full radius on its first rendered frame.
+        const scale = shards ? .45 + .65 * age : 1;
+        const size = f.radius * (shards ? 1.5 : 2) * scale;
         const height = shards ? size * (276 / 320) : size;
         const alpha = fade * Math.min(1, f.life / (staged ? f.max*.72 : art.painted ? .22 : .12));
         ctx.save();ctx.globalAlpha*=alpha;
         ctx.translate(f.x,f.y);ctx.rotate(f.angle||0);
-        ctx.drawImage(img,-size/2,-height/2,size,height);ctx.restore();
+        if(art.painted&&!shards){
+          const inset=f.type==="awaken"&&img===art.awaken?[13,32,422,383]:[13,17,423,414];
+          ctx.drawImage(img,inset[0]*img.naturalWidth/448,inset[1]*img.naturalHeight/448,
+            inset[2]*img.naturalWidth/448,inset[3]*img.naturalHeight/448,-size/2,-height/2,size,height);
+        }else ctx.drawImage(img,-size/2,-height/2,size,height);
+        ctx.restore();
       }
-      if(delayed&&staged){
-        const progress=1-delayed.time/AWAKEN_DELAY;
-        paintMarker(ctx,art.marker,delayed.x,delayed.y,delayed.radius*2,fade*(.56+.44*progress));
+      if(staged)for(const wave of delayed){
+        const progress=1-wave.time/AWAKEN_DELAY;
+        paintMarker(ctx,art.marker,wave.x,wave.y,wave.radius*2,fade*(.56+.44*progress));
       }
     }
     function paintPillar(ctx,art={},upright=(_x,_y,draw)=>draw(),fade=1){
@@ -168,8 +170,9 @@ window.GAME_SEAL_NAIL = (() => {
         });
       }
     }
-    return {tick,reset,suspend,paint,paintPillar,snapshot:(level=1,mutations=[])=>({
-      active:!!pin,pendingSecond:!!delayed,effects:effects.length,
+    return {tick,reset,suspend,paint,paintPillar,activeCount:()=>pins.length,
+      snapshot:(level=1,mutations=[])=>({
+      active:pins.length>0,activeCount:pins.length,pendingSecond:delayed.length>0,secondCount:delayed.length,effects:effects.length,
       cooldown:Math.max(0,cooldown),cooldownMax:spec(level,1,mutations).cooldown
     })};
   }

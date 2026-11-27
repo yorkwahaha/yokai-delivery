@@ -1,0 +1,148 @@
+{
+  "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+  "tool": "built-in image_gen",
+  "sources": [
+    {
+      "id": "forest-left",
+      "role": "forestLeft",
+      "label": "左側櫻花樹群",
+      "path": "art/stage3-sakura-pass/scene/sakura-pass__forest-left.png",
+      "generated": "C:/Users/York/.codex/generated_images/01a1e091-8624-7721-a45a-6d6f5f482198/exec-91da9fbe-679a-4768-85fc-54e14628c424.png",
+      "prompt": "Create one production-ready game sprite: a dense CLUSTER OF THREE tall Japanese cherry blossom trees for the LEFT forest bank of a winding mountain road. Transparent background, isolated complete cutout with generous clear padding. Use the attached existing ancient cherry tree ONLY as style reference: hand-painted half sumi-e half ukiyo-e, strong irregular dark ink outlines, textured washi brushwork, softly shaded muted dusty cherry pink, plum shadows, weathered dark brown trunks, restrained moss at roots. This is ordinary natural woodland: NO sacred rope, NO paper charms, NO lanterns, NO buildings, NO rocks pedestal, NO text, NO frame, NO ground rectangle. Elevated 3/4 top-down 2.5D sprite viewpoint, upright tree trunks and visible rooted feet at bottom, not horizon scenery. Several overlapping broad irregular flower crowns across upper 70%, dense back trees, some dark interior branching. The cluster is asymmetrical: the RIGHTMOST tree has a graceful arching branch reaching right toward a road outside the picture; crowns much wider than the roots. All petals and branches stay inside the canvas, no clipped tops or sides. Pink canopy must read clearly at small in-game scale, no white haze or glow. Image for repeated forest-bank tree groups, three trees forming one coherent natural mass, NOT a concept sheet. Portrait or square composition with full silhouettes."
+    },
+    {
+      "id": "forest-right",
+      "role": "forestRight",
+      "label": "右側櫻花樹群",
+      "path": "art/stage3-sakura-pass/scene/sakura-pass__forest-right.png",
+      "generated": "C:/Users/York/.codex/generated_images/01a1e091-8624-7721-a45a-6d6f5f482198/exec-4aebd714-7246-47eb-9741-be5e5de8bc16.png",
+      "prompt": "Create one production-ready game sprite: a dense CLUSTER OF THREE tall Japanese cherry blossom trees for the RIGHT forest bank of a winding mountain road. Transparent background, isolated complete cutout with generous clear padding. Use the attached existing ancient cherry tree ONLY as style reference: hand-painted half sumi-e half ukiyo-e, strong irregular dark ink outlines, textured washi brushwork, softly shaded muted dusty cherry pink, plum shadows, weathered dark brown trunks, restrained moss at roots. This is ordinary natural woodland: NO sacred rope, NO paper charms, NO lanterns, NO buildings, NO rocks pedestal, NO text, NO frame, NO ground rectangle. Elevated 3/4 top-down 2.5D sprite viewpoint, upright tree trunks and visible rooted feet at bottom, not horizon scenery. Several overlapping broad irregular flower crowns across upper 70%, dense back trees, some dark interior branching. The cluster is asymmetrical: the LEFTMOST tree has a graceful arching branch reaching left toward a road outside the picture; crowns much wider than the roots. All petals and branches stay inside the canvas, no clipped tops or sides. Pink canopy must read clearly at small in-game scale, no white haze or glow. Image for repeated forest-bank tree groups, three trees forming one coherent natural mass, NOT a concept sheet. Portrait or square composition with full silhouettes. Make a distinct companion group: two thicker main trunks plus two slender back trunks, more open branching below, the crown crest lower on the left than right, still lush and interlocking. Match the supplied forest cluster's texture, tree scale and subdued pink palette, but do not merely mirror it."
+    },
+    {
+      "id": "forest-spreading",
+      "role": "forestSpreading",
+      "label": "低矮橫展櫻樹群",
+      "path": "art/stage3-sakura-pass/scene/sakura-pass__forest-spreading.png",
+      "generated": "C:/Users/York/.codex/generated_images/01a1e091-8624-7721-a45a-6d6f5f482198/exec-685ea01f-e1b9-4db2-8a1b-b08d101c50f8.png",
+      "prompt": "Generate a NEW VARIANT of a Japanese cherry blossom woodland game sprite. Reference image is STYLE ONLY, not same composition. Need exactly ONE isolated group of TWO old cherry trees: one low spreading leaning trunk, one thin companion trunk, distinct broad FLAT asymmetrical low canopy with several drooping blossom branches and a few visibly separated dark forked limbs. Change silhouette strongly from reference's upright dense 3-tree shape. Upper canopy wider than tall, uneven negative spaces, natural irregular blossom masses, flowers dusty rose with deeper muted mauve undersides. Full roots visible on a minimal moss patch. Same handpainted sumi-e / ukiyo-e game art: strong rough black-brown ink outlines, coarse washi texture, muted aged brown wood, softly shaded pink. Elevated 3/4 top-down orthographic 2.5D game cutout, upright wood. Completely TRANSPARENT background. No people, no shrine, no rope, no charms, no lanterns, no text, no rectangular ground, no glow. All branches, roots, flowers fully INSIDE the picture with at least 6% empty transparent margin on EVERY edge, zoom out enough to prevent clipping. Single complete game asset, not a scene or sheet. Landscape-shaped crown within square canvas."
+    },
+    {
+      "id": "forest-slender",
+      "role": "forestSlender",
+      "label": "高挑疏枝櫻樹群",
+      "path": "art/stage3-sakura-pass/scene/sakura-pass__forest-slender.png",
+      "generated": "C:/Users/York/.codex/generated_images/01a1e091-8624-7721-a45a-6d6f5f482198/exec-f03db83a-1ca1-4bf4-81b9-42a5f2d3ddaf.png",
+      "prompt": "Create a distinct NEW woodland sprite variant matching the attached cherry-tree cluster's exact handpainted sumi-e/ukiyo-e game style, but with a VERY DIFFERENT silhouette. One group of THREE slender young Japanese cherry trees with crooked, narrow brown trunks at different heights, tall irregular oval/triangular bloom crowns separated by visible air gaps, one trunk leaning outward, a narrow low foreground sapling. Less massive and less symmetrical than reference. Muted dusty cherry pink and mauve, coarse washi paper brush texture, thick irregular dark ink contours, restrained olive moss around complete visible roots. Elevated 3/4 orthographic 2.5D viewpoint, upright trunks. Entire tree group isolated on genuine transparent background with generous 8% clear alpha margin at every edge; no branch, flower or root clipped. Full tree cluster, no frame, no text, no ground rectangle, no lantern, no sacred ropes or paper charms, no rocks pedestal, no building, no horizon, no glow. Need the complete group for random forest-bank planting in a game; tall airy companion to dense low spreading trees. Keep blossom colors and level of detail consistent with reference."
+    }
+  ],
+  "assets": [
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-left.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__forest-left.png",
+      "sha256": "9e7cb96693909ac0eae6d4391e48f25f7464debcba2afd59dc5b672564ea6ffa",
+      "source_sha256": "b7c1a0c5c1cafec220cf121d4ff4a92d2a8498796dde0aa014d1c1f7241b9103",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "forest-left",
+      "role": "forestLeft",
+      "category": "forest",
+      "size": [
+        768,
+        717
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 669
+      },
+      "source_crop": [
+        11,
+        50,
+        1246,
+        1197
+      ],
+      "label": "左側櫻花樹群"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-right.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__forest-right.png",
+      "sha256": "2261560ca500a4dd56314b0f5f5b5d718aff9bb187c1d4d1db59e34b19c7f2fb",
+      "source_sha256": "e51e09ef08d6eb919df481e47094e55a10e606e35401d66e892cd003f9ad437b",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "forest-right",
+      "role": "forestRight",
+      "category": "forest",
+      "size": [
+        768,
+        683
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 635
+      },
+      "source_crop": [
+        8,
+        83,
+        1247,
+        1175
+      ],
+      "label": "右側櫻花樹群"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-spreading.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__forest-spreading.png",
+      "sha256": "e9c003ffe5c2ad10e90c230b7d496ae9a2238f96b13b5bc1f657a529fb8a0259",
+      "source_sha256": "45cda1388ea0505a7f5e4ac1f44e6c4ef781d1595188d6cb2c3e5463ae07e250",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "forest-spreading",
+      "role": "forestSpreading",
+      "category": "forest",
+      "size": [
+        768,
+        445
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 397
+      },
+      "source_crop": [
+        11,
+        269,
+        1239,
+        946
+      ],
+      "label": "低矮橫展櫻樹群"
+    },
+    {
+      "path": "assets/img/stages/sakura-pass/props/sakura-pass__forest-slender.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__forest-slender.png",
+      "sha256": "697f7fc7bff6e4c12ce04aca3436a0f545aee51c246131453c0658195ca5ae9a",
+      "source_sha256": "3df0ddb69c5946d368cab209530337e380cee684c3f15772b7bf4d3f252e9429",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "forest-slender",
+      "role": "forestSlender",
+      "category": "forest",
+      "size": [
+        653,
+        768
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 605,
+        "sh": 720
+      },
+      "source_crop": [
+        115,
+        43,
+        1141,
+        1265
+      ],
+      "label": "高挑疏枝櫻樹群"
+    }
+  ]
+}

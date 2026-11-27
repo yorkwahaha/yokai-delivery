@@ -21,10 +21,21 @@ test('本機第一、二、四關各四波三種 Boss，第三波回鍋，終王
       const {x,y}=game.snapshot();
       return {x:x-450,y:y-300/game.env.VIEWPORT.tiltScale()};
     };
-    game.forceBossSchedule(index);
+    if (stage === 'bamboo-maze') {
+      const times = game.env.CONTENT.getStage(stage).pacing.bossTimes;
+      if (index === 3) {
+        game.setElapsed(times[0]);
+        game.update(.05);
+        const first = game.snapshot().enemies.find(e => e.bossIndex === 0);
+        assert.ok(first);
+        first.shield = false;
+        game.hurt(first, first.hp);
+      }
+      game.setElapsed(times[index]);
+    } else game.forceBossSchedule(index);
     for(let n=0;n<12;n++){
       game.update(.05);
-      const boss=game.snapshot().enemies.find(e=>e.type==='boss');
+      const boss=game.snapshot().enemies.find(e=>e.type==='boss' && e.bossIndex===index);
       if(boss)return boss;
     }
   }

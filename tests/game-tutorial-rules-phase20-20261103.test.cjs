@@ -74,7 +74,7 @@ test('Phase20 pure module has no localStorage, write actions or external state m
  assert.equal(typeof api.acceptedKeys,'function');
  assert.equal(typeof api.seenFromSaved,'function');
  assert.doesNotMatch(moduleText,/localStorage|Math\.random\s*\(|document\.|tutorialSeen\.add/);
- assert.match(mainSnippet,/localStorage\.getItem\('yokai-tutorial-v1'\)/);
+ assert.match(mainSnippet,/localStorage\.getItem\(tutorialStorageKey\)/);
 });
 test('Phase20 tutorial helper loads before game at new HTML revision',()=>{
  const html=fs.readFileSync('index.html','utf8');

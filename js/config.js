@@ -63,7 +63,8 @@
 
   const CONFIG = {
     RUN_SECONDS,
-    GOAL_DELIVERIES: 6,
+    // 最低配送通關門檻已取消（原為 6）；標準通關條件改為擊敗全部四王。
+    GOAL_DELIVERIES: 0,
     BOSS_TIMES: [180, 360, 480, 540],
     BOSS_HP_BASE: [300, 650, 1100, 1400],
     BOSS_OIL_REWARD: [35, 35, 20, 35],

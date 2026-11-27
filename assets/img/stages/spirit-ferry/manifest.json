@@ -1,0 +1,861 @@
+{
+  "stage": "spirit-ferry",
+  "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+  "asset_count": 64,
+  "assets": [
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__floating-deck.webp",
+      "source": "ferry-docks-v2",
+      "sha256": "86184693767113ac48907245852b69674fa35d4e6717d1e3c22cf40dfd57d099",
+      "bytes": 66496,
+      "width_px": 421,
+      "height_px": 424,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        210,
+        407
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__dock-junction.webp",
+      "source": "ferry-docks-v2",
+      "sha256": "2600c52d8ddecefebd89570bae5a181dba8b53b5281426b9c9f531d6b1e746d4",
+      "bytes": 54886,
+      "width_px": 429,
+      "height_px": 404,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        214,
+        388
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__ticket-pavilion.webp",
+      "source": "ferry-docks-v2",
+      "sha256": "27db3b46b4a3b45d8eea70b6a29077c796689df4ec19a74a50fc61c119f4ea18",
+      "bytes": 72068,
+      "width_px": 457,
+      "height_px": 405,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        228,
+        389
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__gate.webp",
+      "source": "ferry-docks-v2",
+      "sha256": "6474373a34c6d85125172c5df416b4b05febd6298b59803b8d3d4802ba12c4ee",
+      "bytes": 76988,
+      "width_px": 488,
+      "height_px": 418,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        244,
+        401
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__covered-ferry.webp",
+      "source": "ferry-docks-v2",
+      "sha256": "9688de6caf1586cd4275696d9226e5d3f6095d020408bc34a09bcdf10518ece7",
+      "bytes": 65474,
+      "width_px": 474,
+      "height_px": 373,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        237,
+        358
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__lantern-post.webp",
+      "source": "ferry-props",
+      "sha256": "72fd15ac9287b6887dbac96e23e8c1457f1b36609b24a252613ca7086b014838",
+      "bytes": 26470,
+      "width_px": 215,
+      "height_px": 336,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        107,
+        323
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__empty-boat.webp",
+      "source": "ferry-props",
+      "sha256": "415ea39f0cb7cbf52bbce8ad9e3a8977e9caf142264f7beb1d3166c354c202f5",
+      "bytes": 25440,
+      "width_px": 342,
+      "height_px": 235,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        171,
+        226
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__river-shrine.webp",
+      "source": "ferry-props",
+      "sha256": "09d0c0625aa806ce5dbce4188c44c15e76437a8d3608c2d9f4fbd96de37acead",
+      "bytes": 40656,
+      "width_px": 338,
+      "height_px": 320,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        169,
+        307
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__pier-roof.webp",
+      "source": "ferry-props",
+      "sha256": "12c106a3f6ef23bf3fd5b78cc0ab6cbf583bf94f9d59c48a214d0dbc10bd1791",
+      "bytes": 42452,
+      "width_px": 338,
+      "height_px": 333,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        169,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__cargo-barrels.webp",
+      "source": "ferry-props",
+      "sha256": "9a8ea61ab72f9ceb13dd61818f5b35237a0fcc39cec336df0330d7bc35e30f64",
+      "bytes": 33096,
+      "width_px": 321,
+      "height_px": 262,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        160,
+        252
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__bollards.webp",
+      "source": "ferry-props",
+      "sha256": "6bff2bf4186f02f9d7f7b9e083696e0b0a8a72aa08db77fbceb4bf9945464b77",
+      "bytes": 28788,
+      "width_px": 355,
+      "height_px": 225,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        177,
+        216
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__parcels.webp",
+      "source": "ferry-props",
+      "sha256": "f318df3a29006121cfc8503f75c8e59c8a95b4700c4bfc1dcd4a3e4627225cf1",
+      "bytes": 33458,
+      "width_px": 336,
+      "height_px": 261,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        168,
+        251
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__reeds.webp",
+      "source": "ferry-props",
+      "sha256": "08d782dd404de159b93cc8579176a63edf87c83af2076dc8782508b732bf6c4d",
+      "bytes": 36298,
+      "width_px": 328,
+      "height_px": 294,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        164,
+        282
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__shore-ridge.webp",
+      "source": "ferry-props",
+      "sha256": "5b77a5ec781af4ed5cb2c2d9a25cd4e4d906986090c2149c33d6d5f139aae885",
+      "bytes": 25042,
+      "width_px": 378,
+      "height_px": 218,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        189,
+        209
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__spirit-lantern.webp",
+      "source": "ferry-props",
+      "sha256": "43c7f8f4b4221e9a1e4dec9efc968680fe0e9593e0a0ed10039cbc9040533194",
+      "bytes": 20596,
+      "width_px": 201,
+      "height_px": 309,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        100,
+        297
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__plank-stack.webp",
+      "source": "ferry-props",
+      "sha256": "f80e2981eb67adf71d30ff7701c56c32f4071b5c6f232e457ab9b1c6f3405c36",
+      "bytes": 24224,
+      "width_px": 342,
+      "height_px": 223,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        171,
+        214
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__waymarker.webp",
+      "source": "ferry-props",
+      "sha256": "ca8fc7876213457dee8cd46bd87ca0521257fd57498ebb2e7bcbd249a8b0cc38",
+      "bytes": 27404,
+      "width_px": 287,
+      "height_px": 285,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        143,
+        274
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__postal-shop.webp",
+      "source": "ferry-extra",
+      "sha256": "196bcf442a17a9b751bedac64df7dedad815a95b691cd5ed3d753a3e16c17082",
+      "bytes": 67444,
+      "width_px": 366,
+      "height_px": 439,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        183,
+        421
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__boathouse.webp",
+      "source": "ferry-extra",
+      "sha256": "58364546da4a99d64e2734f938d1ee854ee6a11fdd4139c8904c2442e71a8e95",
+      "bytes": 64468,
+      "width_px": 370,
+      "height_px": 430,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        185,
+        413
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__dockside-inn.webp",
+      "source": "ferry-extra",
+      "sha256": "4d788740fa5e6a61a781f2cbc6454f3a998fda8dc378334df64d15f0485caae2",
+      "bytes": 72778,
+      "width_px": 374,
+      "height_px": 445,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        187,
+        427
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__shrine-gate.webp",
+      "source": "ferry-extra",
+      "sha256": "40f23381faf3fcbd7fe14035bfa89300d43b6ae1c37e31542eaf6200fa765035",
+      "bytes": 46664,
+      "width_px": 372,
+      "height_px": 399,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        186,
+        383
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__caged-lamp.webp",
+      "source": "ferry-extra",
+      "sha256": "c5556c6471a9d6aad96833c05deeab9d238ed82ee202cd90a2f4cc4869aee864",
+      "bytes": 41132,
+      "width_px": 249,
+      "height_px": 360,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        124,
+        346
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__rope.webp",
+      "source": "ferry-extra",
+      "sha256": "7d56315136d0356734a2bfe1922b82c12466ea9d638c960883d208318ec25e16",
+      "bytes": 52170,
+      "width_px": 353,
+      "height_px": 287,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        176,
+        276
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__sandals.webp",
+      "source": "ferry-extra",
+      "sha256": "f46530271721623b33a1fa6d5ff8536c70f683227c72014b215db7789315ab9c",
+      "bytes": 44966,
+      "width_px": 355,
+      "height_px": 287,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        177,
+        276
+      ]
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/scene/spirit-ferry__bench.webp",
+      "source": "ferry-extra",
+      "sha256": "d84aa43a7c6b3bec1770ae15e69759741aa62c648ec6ba28dec3a9b9ade0de19",
+      "bytes": 32566,
+      "width_px": 362,
+      "height_px": 256,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        181,
+        246
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-paper-passenger/ferry-paper-passenger__sprite__idle.webp",
+      "source": "ferry-mobs",
+      "sha256": "cc23409f460cda3577cfab1ba8079ac07cec4ad74b62edd0f8087369de8cb0fb",
+      "bytes": 43732,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-paper-passenger/ferry-paper-passenger__sprite__windup.webp",
+      "source": "ferry-mobs",
+      "sha256": "71a15dfbdca9b0f5dfcdb27152b44c0f6c09c28a836eea6d81a422d5c9ddc0a2",
+      "bytes": 44180,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-paper-passenger/ferry-paper-passenger__sprite__action.webp",
+      "source": "ferry-mobs",
+      "sha256": "683d25580dbf4f92f9e438df942137519c12dd8a2da690547f4fbc33da15d3bf",
+      "bytes": 52716,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-shadow-kappa/ferry-shadow-kappa__sprite__idle.webp",
+      "source": "ferry-mobs",
+      "sha256": "925678107a768e889fc5f3cd73657f95810230597a83e4d2c0ecb674fb192af4",
+      "bytes": 41710,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-shadow-kappa/ferry-shadow-kappa__sprite__windup.webp",
+      "source": "ferry-mobs",
+      "sha256": "d2b786090bd4a1adea918ea7464b5a764283d52c48519c9b16b2a7ace31519f3",
+      "bytes": 46846,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-shadow-kappa/ferry-shadow-kappa__sprite__action.webp",
+      "source": "ferry-mobs",
+      "sha256": "9907f7d88092a30367caee85db8aa46ca3a69ab6e5861cc15e385a893d718622",
+      "bytes": 51502,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-drowned-turtle/ferry-drowned-turtle__sprite__idle.webp",
+      "source": "ferry-mobs",
+      "sha256": "9c989b22b3a9bcbb7078256099cd9481f10365d43de08a85bffef1243fcda9df",
+      "bytes": 43106,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-drowned-turtle/ferry-drowned-turtle__sprite__windup.webp",
+      "source": "ferry-mobs",
+      "sha256": "09524d882aa4d143d8c2e4aaf87279457111c4d3c48d2f80b2752f6b4b886993",
+      "bytes": 45444,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-drowned-turtle/ferry-drowned-turtle__sprite__action.webp",
+      "source": "ferry-mobs",
+      "sha256": "2d5ee8787835278b9ea53e666276c44015e91615ae9d3a6a1f1939bceb1e87f0",
+      "bytes": 49132,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-boat-mail-spirit/ferry-boat-mail-spirit__sprite__idle.webp",
+      "source": "ferry-mobs",
+      "sha256": "a3d011b9d8a46776617674dda93a25d70b1baf290c612d3b74240058a2ce669e",
+      "bytes": 45326,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-boat-mail-spirit/ferry-boat-mail-spirit__sprite__windup.webp",
+      "source": "ferry-mobs",
+      "sha256": "02b9fdbfe142ecdcd98fc017217839d1fd36713362298e14ff96bb30588d43ae",
+      "bytes": 46168,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-boat-mail-spirit/ferry-boat-mail-spirit__sprite__action.webp",
+      "source": "ferry-mobs",
+      "sha256": "2d225fc559e321d7ad87f28f22c0d4788dd4527c0a572692db694719d653d9e2",
+      "bytes": 47166,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-shore-lion/ferry-shore-lion__sprite__idle.webp",
+      "source": "ferry-bosses",
+      "sha256": "1b41a0881f2d59d2085ff8341e04c145723589459f8468c0c8d3893e10df2d12",
+      "bytes": 40454,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-shore-lion/ferry-shore-lion__sprite__windup.webp",
+      "source": "ferry-bosses",
+      "sha256": "93db887b9da3af15cb38e1c3b45e21c26077d2471aa155985d63b66c65c97284",
+      "bytes": 43294,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-shore-lion/ferry-shore-lion__sprite__action.webp",
+      "source": "ferry-bosses",
+      "sha256": "fbd1a3facb26121acb695bb79579a0a988672998ac196069c45792f856c4daad",
+      "bytes": 52012,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-drowned-maiden/ferry-drowned-maiden__sprite__idle.webp",
+      "source": "ferry-bosses",
+      "sha256": "a2ae4bdafc9351d7f03440df075e60e9611a616b9b6b54cf3dfc0a56b8849c6e",
+      "bytes": 36236,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-drowned-maiden/ferry-drowned-maiden__sprite__windup.webp",
+      "source": "ferry-bosses",
+      "sha256": "007b194108a899d8dbad740e8fe48f829baa5ae4dda8a77afba026c1d48c77bf",
+      "bytes": 44480,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-drowned-maiden/ferry-drowned-maiden__sprite__action.webp",
+      "source": "ferry-bosses",
+      "sha256": "5782c34bc35bf97b8fcb8a5958bb714b39f23d78d2ff9d2bd200a984ced4967f",
+      "bytes": 55538,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-ferryman/ferry-ferryman__sprite__idle.webp",
+      "source": "ferry-bosses",
+      "sha256": "8a30c4b1d70304e515a888dbe94b2e4baba4f53af360139a1570d66110a488ef",
+      "bytes": 36204,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-ferryman/ferry-ferryman__sprite__windup.webp",
+      "source": "ferry-bosses",
+      "sha256": "ea6442fea266b2cfb60882d7dba7e42d24813214014d48ed040121aa52beebc7",
+      "bytes": 39212,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-ferryman/ferry-ferryman__sprite__action.webp",
+      "source": "ferry-bosses",
+      "sha256": "0513c74c350957218002e2e2aa2e33ae75e4801f92880e4698d826bbbf1f2b02",
+      "bytes": 44514,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-bell-oni/ferry-bell-oni__sprite__idle.webp",
+      "source": "gate-actors",
+      "sha256": "9ad533eb18fe974b81323fa55bd1f05cf4af57c9595bb9859d7c746cbc7bd486",
+      "bytes": 29732,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-bell-oni/ferry-bell-oni__sprite__windup.webp",
+      "source": "gate-actors",
+      "sha256": "ac1ffe4ba24397f3575d420aa6012cd84557fe613e6055d61aeb9b1b0e6a94d6",
+      "bytes": 32204,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/ferry-bell-oni/ferry-bell-oni__sprite__action.webp",
+      "source": "gate-actors",
+      "sha256": "f236cd2c3e5abd5ff529d758acc7cf35ac51106d1a7cdc9d9131251a3bc9bcf9",
+      "bytes": 39988,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/vfx/enemies/ferry-soul-splash/ferry-soul-splash__warning.webp",
+      "source": "ferry-vfx",
+      "sha256": "94dc6761c2377c5c8baed624d6738ac4d1554b66017d1cbbed3b29b989047122",
+      "bytes": 60450,
+      "width_px": 411,
+      "height_px": 366,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/ferry-soul-splash/ferry-soul-splash__impact.webp",
+      "source": "ferry-vfx",
+      "sha256": "4444d72701bf49ea9d1fb7503f7bef5bc8d2b4feb8ec4d59241d7c2cce30e764",
+      "bytes": 90754,
+      "width_px": 513,
+      "height_px": 390,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/ferry-spirit-tide/ferry-spirit-tide__warning.webp",
+      "source": "ferry-vfx",
+      "sha256": "6a86bf47bccfb1e61716f5a1e710d98db5f14d31f2aeb39abe1093fc1d9a32bc",
+      "bytes": 18984,
+      "width_px": 585,
+      "height_px": 48,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/ferry-spirit-tide/ferry-spirit-tide__impact.webp",
+      "source": "ferry-vfx",
+      "sha256": "9dd776373983339ca39c20b7a01bb012ddb46c518ca29e0e1fc4ea32f845078d",
+      "bytes": 41920,
+      "width_px": 585,
+      "height_px": 151,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/ferry-oar-sweep/ferry-oar-sweep__warning.webp",
+      "source": "ferry-vfx",
+      "sha256": "af37cf68f27610d163a6c2f313d85422e470a7ae529184ac58cb9f3c0be1f63c",
+      "bytes": 40068,
+      "width_px": 585,
+      "height_px": 123,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/ferry-oar-sweep/ferry-oar-sweep__impact.webp",
+      "source": "ferry-vfx",
+      "sha256": "d8474e6e883c9c2e1a460192bc57d960c0b7bf74b4223280edeca6b1b1d133cb",
+      "bytes": 55462,
+      "width_px": 585,
+      "height_px": 172,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/ferry-shooter/ferry-shooter__projectile.webp",
+      "source": "stage78-accents",
+      "sha256": "d20086349faed92d9d7c06a43a09716a497d3a1f57e064a8e52c33e6937f752b",
+      "bytes": 7214,
+      "width_px": 152,
+      "height_px": 70,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/ferry-boss/ferry-boss__arrival.webp",
+      "source": "stage78-accents",
+      "sha256": "376b6b20beb1fc34bb055279c11e38527dd1b145f86c8def24e489656ae7499d",
+      "bytes": 30640,
+      "width_px": 256,
+      "height_px": 197,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/tiles/spirit-ferry__ground-0.webp",
+      "source": [
+        "ferry-ground",
+        "ferry-wood"
+      ],
+      "sha256": "049509ca78848a41a724fa5a947251e4a4531c5c20295090b0b6c96926b110ef",
+      "bytes": 465404,
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/tiles/spirit-ferry__ground-1.webp",
+      "source": [
+        "ferry-ground",
+        "ferry-wood"
+      ],
+      "sha256": "2904d054e7270e437b3aa4b27b82f546b90abb853e3eabc1ab906914bb904e01",
+      "bytes": 465366,
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/tiles/spirit-ferry__ground-2.webp",
+      "source": [
+        "ferry-ground",
+        "ferry-wood"
+      ],
+      "sha256": "387f68098fb31a6abf01eb5149400ba3d37972c07dc11000858dc87ba1ff5019",
+      "bytes": 465304,
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/tiles/spirit-ferry__ground-3.webp",
+      "source": [
+        "ferry-ground",
+        "ferry-wood"
+      ],
+      "sha256": "0a9881c5346d6ea6b513ec0ef9e51e6b0d8487b1ab2399c81d7c9d5e475de699",
+      "bytes": 464910,
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/tiles/spirit-ferry__ground-4.webp",
+      "source": [
+        "ferry-ground",
+        "ferry-wood"
+      ],
+      "sha256": "70932fb47d085cf611914e8f774eb2942ed6904575f88c28a3b256b9917689b8",
+      "bytes": 464902,
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/spirit-ferry/tiles/spirit-ferry__ground-5.webp",
+      "source": [
+        "ferry-ground",
+        "ferry-wood"
+      ],
+      "sha256": "a8864876fff9f4d2411d3da69082981667774675cae6e415bf4da3fa6cc033d0",
+      "bytes": 464960,
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/ferry-mud-pool/ferry-mud-pool__impact.webp",
+      "source": "chatgpt-ferry-mud-pool",
+      "sha256": "82402e19a4692c32a8ba9b22696b4ef4a0770183de96188e09e266325509578e",
+      "bytes": 63984,
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    }
+  ]
+}

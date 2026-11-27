@@ -7,6 +7,9 @@ const fs=require('node:fs');
 const path=require('node:path');
 const cp=require('node:child_process');
 const ROOT=path.resolve(__dirname,'..');
+const crypto=require('node:crypto');
+const retiredManifest=JSON.parse(fs.readFileSync(path.join(ROOT,'docs/HISTORICAL_TESTS.json'),'utf8'));
+const retired=new Map(retiredManifest.files.map(r=>[r.file,r]));
 const audit=JSON.parse(fs.readFileSync(path.join(ROOT,'docs/TEST_TRIAGE_20261104.json'),'utf8'));
 
 function lanes(){
@@ -34,7 +37,14 @@ test('original 130 historical files are individually classified with a grounded 
   // The classroom release preserved this pre-release snapshot in the legacy lane.
   const laterArchived=new Set(['agy-m1-n4.test.cjs']);
   for(const r of records){
-    assert.ok(fs.existsSync(path.join(ROOT,'tests',r.file)),r.file+' may not be deleted');
+    const original=path.join(ROOT,'tests',r.file);
+    if(retired.has(r.file)){
+      const row=retired.get(r.file);
+      assert.match(row.sha256,/^[a-f0-9]{64}$/);
+      assert.ok(row.bytes>0);
+      const stored=path.join(ROOT,retiredManifest.archive_root,r.file);
+      if(fs.existsSync(stored))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(stored)).digest('hex'),row.sha256);
+    }else assert.ok(fs.existsSync(original),r.file+' must remain present or explicitly retired');
     assert.ok(typeof r.reason==='string' && r.reason.length>=12,r.file+' needs rationale');
     assert.ok(typeof r.replacement==='string' && r.replacement.length>=8,r.file+' needs replacement or provenance');
     if(r.disposition==='ACTIVE' && !laterArchived.has(r.file)){
@@ -57,4 +67,17 @@ test('initial failure counts are preserved rather than changed to false PASS',()
   assert.equal(records.filter(x=>x.baseline.timed_out || x.baseline.failed>0 || x.baseline.tests===0).length,93);
   assert.equal(records.reduce((n,x)=>n+x.baseline.tests,0),974);
   assert.equal(records.reduce((n,x)=>n+x.baseline.failed,0),366);
+});
+
+test('retirement preserves all previously current files and byte-exact historical inventory',()=>{
+  const {active,legacy}=lanes();
+  assert.equal(retired.size,retiredManifest.files.length);
+  for(const name of retiredManifest.current_at_retirement)assert.ok(active.has(name),name+' current regression cannot disappear');
+  for(const name of retiredManifest.promoted)assert.ok(active.has(name),name+' newly verified regression must remain active');
+  for(const [name,row] of retired){
+    assert.ok(legacy.has(name)&&!active.has(name),name+' explicit historical lane');
+    assert.match(row.sha256,/^[a-f0-9]{64}$/);
+    const file=path.join(ROOT,retiredManifest.archive_root,name);
+    if(fs.existsSync(file))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),row.sha256);
+  }
 });

@@ -1,0 +1,113 @@
+{
+  "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+  "tool": "built-in image_gen",
+  "sources": [
+    {
+      "id": "wind-blade",
+      "role": "windBlade",
+      "label": "天狗疾風羽刃",
+      "path": "art/stage3-sakura-pass/characters/sakura-tengu__wind-blade.png",
+      "generated": "C:/Users/York/.codex/generated_images/01a1e091-8624-7721-a45a-6d6f5f482198/exec-c116ca38-b260-40ef-90e4-6d4c5cd64594.png",
+      "prompt": "A SINGLE isolated raster VFX sprite for the cherry-blossom tengu boss in Yokai Delivery. A sharp horizontal wind blade shaped like a sweeping crescent of THREE dark burgundy-black raven feathers, pale warm-ivory ink wind streaks and a few muted dusty-pink sakura petals. Point and flow clearly toward the RIGHT, slight upward curl, bold readable silhouette at 60px game size. Hand-painted half sumi-e half ukiyo-e, rough strong dark ink outlines, textured washi brushwork, muted mauve shadows and soft ivory highlights, no neon. Transparent background with clear empty padding on all sides; complete effect contained in canvas. Side/overhead game VFX, no camera perspective, no horizon. No character, no hand, no weapon handle, no ground, no letters, no symbols, no frame, no logo, no geometric diagram. This is a projectile / dash afterimage asset, not a full scene and not an animation sheet. Reference image only supplies established brushwork, paper texture and palette; do not draw a tree."
+    },
+    {
+      "id": "root-bloom",
+      "role": "rootBloom",
+      "label": "妖櫻根脈爆發",
+      "path": "art/stage3-sakura-pass/characters/sakura-tengu__root-bloom.png",
+      "generated": "C:/Users/York/.codex/generated_images/01a1e091-8624-7721-a45a-6d6f5f482198/exec-3ea43c0b-927a-468b-8a9d-a7cb17bd485e.png",
+      "prompt": "Create one isolated VFX sprite for a cherry-blossom mountain boss: a compact explosive eruption of twisted dark-brown ancient sakura roots, 5-7 sharp woody root spikes curling upward from a small cracked-earth center, with a ring of muted dusty pink petals flung outward and a few tiny olive moss details. Elevated 3/4 top-down 2.5D game view with a clear central ground contact at the bottom of the root mass. Strong rough dark ink contours, semi sumi-e semi ukiyo-e hand-painted style, coarse washi paper brush texture, muted burgundy wood shadows, soft rose petals, no neon or modern glow. Entire root burst fits in the frame with generous transparent padding. Transparent background. No tree canopy, no whole tree, no character, no lantern, no rope, no paper charms, no text, no symbols, no frame, no horizon and no rectangular floor tile. Broad rooted base, spikes readable at 140px gameplay width, near-square silhouette. A single complete active impact asset, not an animation sheet. Reference is ONLY for style, palette and bark texture; do not recreate the reference tree."
+    },
+    {
+      "id": "earth-break",
+      "role": "earthBreak",
+      "label": "櫻根破土碎石與塵霧",
+      "path": "art/stage3-sakura-pass/characters/sakura-tengu__earth-break.png",
+      "generated": "C:/Users/York/.codex/generated_images/01a1e091-8624-7721-a45a-6d6f5f482198/exec-88534f47-ed17-490c-a2ce-2488704012cf.png",
+      "prompt": "One transparent hand-painted game VFX sprite: a sudden ground-breaking burst for a sakura root eruption. A low WIDE circular blast of cracked warm-brown earth plates, dark soil clods, a few small tumbling mossy stones and billowing dusty tan/pale-ivory ink clouds pushed outward from an OPEN transparent center. A few muted dusty-pink cherry petals among the debris. No roots or branches: this is the separate soil/dust underlay that will be animated beneath the supplied root eruption. Same rough strong dark sumi-e outlines, half ukiyo-e hand painting, coarse washi texture, restrained brown/plum/ivory palette as reference. Elevated overhead 3/4 view with a shallow ground-level burst, asymmetrical fragments, clear silhouette at 200px width. Complete effect with 8% clear transparent padding around all fragments and dust. No rectangular ground tile, no horizon, no character, no letters, no symbols, no frame, no neon light. Single active burst asset, not a storyboard or spritesheet. The ground cracking and dust should feel forceful and physically chunky, not a glowing magic circle."
+    }
+  ],
+  "assets": [
+    {
+      "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__wind-blade.webp",
+      "source": "art/stage3-sakura-pass/characters/sakura-tengu__wind-blade.png",
+      "sha256": "19ef62b597dcf63fec290677ae43494f68d3b34393b51b3390bd3a52a17841b2",
+      "source_sha256": "00620d7ff95eb1984d607cba585813d5b602b67307c0306fe4bd0e0aa26e4db7",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "wind-blade",
+      "role": "windBlade",
+      "category": "boss_vfx",
+      "size": [
+        768,
+        347
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 299
+      },
+      "source_crop": [
+        128,
+        145,
+        1694,
+        796
+      ],
+      "label": "天狗疾風羽刃"
+    },
+    {
+      "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__root-bloom.webp",
+      "source": "art/stage3-sakura-pass/characters/sakura-tengu__root-bloom.png",
+      "sha256": "8a9cf18d4d552c54ce642eb136fe4cec6cfff8d6519bb6819b1bfe664e85eba7",
+      "source_sha256": "c3dbf3c56ca02d1d0986d5c887da9dc883360f0b02db75a7f5f1bc408127958d",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "root-bloom",
+      "role": "rootBloom",
+      "category": "boss_vfx",
+      "size": [
+        768,
+        693
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 645
+      },
+      "source_crop": [
+        37,
+        106,
+        1212,
+        1158
+      ],
+      "label": "妖櫻根脈爆發"
+    },
+    {
+      "path": "assets/img/vfx/enemies/sakura-tengu/sakura-tengu__earth-break.webp",
+      "source": "art/stage3-sakura-pass/characters/sakura-tengu__earth-break.png",
+      "sha256": "72f6e1f2e9390bb03d9899296cc7dbd9c6a9095d0fc731d296a047988c4432a3",
+      "source_sha256": "231fefaecc1e63fd66aeab8eafd71e05ca51c4d68ed41726bea59cd2c9c28a33",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING",
+      "id": "earth-break",
+      "role": "earthBreak",
+      "category": "boss_vfx",
+      "size": [
+        768,
+        522
+      ],
+      "source_rect": {
+        "sx": 24,
+        "sy": 24,
+        "sw": 720,
+        "sh": 474
+      },
+      "source_crop": [
+        31,
+        301,
+        1220,
+        1083
+      ],
+      "label": "櫻根破土碎石與塵霧"
+    }
+  ]
+}

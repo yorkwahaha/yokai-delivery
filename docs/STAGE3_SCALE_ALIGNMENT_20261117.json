@@ -1,0 +1,71 @@
+{
+  "date": "2026-11-17",
+  "status": "LOCAL_IMPLEMENTED_USER_PLAYTEST_PENDING",
+  "buildings": [
+    {
+      "role": "pavilion",
+      "before_width": 210,
+      "before_height_2d": 209.71,
+      "after_width": 166,
+      "after_height_2d": 165.77,
+      "after_height_tilt": 175.72
+    },
+    {
+      "role": "teaHouse",
+      "before_width": 210,
+      "before_height_2d": 198.62,
+      "after_width": 166,
+      "after_height_2d": 157.01,
+      "after_height_tilt": 166.43
+    },
+    {
+      "role": "mountainHouse",
+      "before_width": 210,
+      "before_height_2d": 246.66,
+      "after_width": 148.99,
+      "after_height_2d": 175.0,
+      "after_height_tilt": 185.5
+    },
+    {
+      "role": "storehouse",
+      "before_width": 210,
+      "before_height_2d": 202.12,
+      "after_width": 166,
+      "after_height_2d": 159.78,
+      "after_height_tilt": 169.36
+    },
+    {
+      "role": "worshipHall",
+      "before_width": 210,
+      "before_height_2d": 196.0,
+      "after_width": 166,
+      "after_height_2d": 154.93,
+      "after_height_tilt": 164.23
+    }
+  ],
+  "monster_policy": "Match same S1 role idle visible bounding-box area; use shared idle/attack source scale and fixed foot pivot. Boss and first two stages unchanged.",
+  "verification": {
+    "tests": 86,
+    "pass": 86,
+    "fail": 0,
+    "static_comparison_plates": [
+      "scratch/stage3-scale-20261117/comparison-2d.png",
+      "scratch/stage3-scale-20261117/comparison-tilt.png"
+    ],
+    "local_http_renderer_matches_working_file": true,
+    "asset_registry": "PASS 1043 files / 151 aliases-copies"
+  },
+  "preexisting_test_drift": {
+    "before_renderer_tests": 74,
+    "before_pass": 66,
+    "before_fail": 8,
+    "same_failures_before_and_after_size_change": true,
+    "repaired_test_setup": [
+      "load existing game-seal-nail module in current-only VM",
+      "update obsolete ghost shadow expectation to the existing upright foot offset"
+    ]
+  },
+  "gameplay_automation": false,
+  "deployed": false,
+  "misdelivery_badge": "Stage3-only: keep at least 8px above enlarged sprite top, preserving S1/S2 anchors."
+}

@@ -1,0 +1,241 @@
+{
+  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "sources": {
+    "wolf-black-run": {
+      "path": "art/skills/shikigami/sources/stage78/wolf-black-run.png",
+      "sha256": "d957bc32120da045028807a333d370fc4d10a72e5f18c4975eb301d5e7bd455d",
+      "generator": "OpenAI built-in ImageGen",
+      "prompt": "A strict 3 columns by 2 rows atlas with SIX poses of the exact reference game wolf recolored as the black shrine wolf, warm ink-black and blue-charcoal fur with legible ink-gray highlights and same bell and collar. Wolves occupy equal-cell footprint, feet aligned low, facing right. 1 idle four paws planted, 2 idle alert, 3 run extended, 4 run gathered, 5 run mid-stride with rear foot planted, 6 run landing. Life-like athletic wolf motion. Isolated hand-painted raster sprite, true transparent alpha background, Japanese ukiyo-e sumi-e, finely inked contours and natural washi brush grain, game side view wolf facing right, existing asset is anatomy and proportions guide, white wolf uses same navy collar with small golden bell. No text, grid, rectangular backdrop, shadow plane or scenery. Full body within each cell with separated transparent gutters."
+    },
+    "wolf-bites": {
+      "path": "art/skills/shikigami/sources/stage78/wolf-bites.png",
+      "sha256": "6dba9246eba26c60960ebe8c7f0e937e78a0551561b3eb06e30535784419b3ed",
+      "generator": "OpenAI built-in ImageGen",
+      "prompt": "Strict 4 columns by 2 rows sprite atlas, wide landscape. First row four poses of the matching white wolf; second row four poses of the same animal in ink black and blue-charcoal. Each row horizontally in order: ears angled and weight pulled back in anticipation; forward lunge with jaw wide open; jaws snap closed with forelegs firmly planted; head retracts eyes still fixed right. Make four silhouettes clearly different with precise consistent athletic fur identity, dark blue bell collar. No enemy, background or magic effects. Isolated hand-painted raster sprite, true transparent alpha background, Japanese ukiyo-e sumi-e, finely inked contours and natural washi brush grain, game side view wolf facing right, existing asset is anatomy and proportions guide, white wolf uses same navy collar with small golden bell. No text, grid, rectangular backdrop, shadow plane or scenery. Full body within each cell with separated transparent gutters."
+    },
+    "wolf-card": {
+      "path": "art/skills/shikigami/sources/stage78/wolf-card.png",
+      "sha256": "33fcc7f29ce77ee96b7a3aff45f0567de6bb39ee3f2220751a79582348311db5",
+      "generator": "OpenAI built-in ImageGen",
+      "prompt": "A vertical portrait illustration for a game skill card with no frame, text or labels: two Japanese shrine wolf shikigami, broad white in front and black at its flank, leaning alert, collars with small ancient bells, behind them flowing cyan and pale amber smoke, diagonal ink brush shadows and cream washi. Hero image fills canvas, blank safe margins, stylized half sumi-e, half ukiyo-e, emphatic print contours, hand-painted muted indigo ochre. Clear at playing-card size. No typography. Use reference for wolf proportions."
+    },
+    "wolf-fx": {
+      "path": "art/skills/shikigami/sources/stage78/wolf-fx.png",
+      "sha256": "133dcc8289aa98c0734aba90cb67541475026708f3a284eb6e23cbf077ba04c6",
+      "generator": "OpenAI built-in ImageGen",
+      "prompt": "A strict 2 column 1 row sprite atlas: left an isolated turquoise and warm cream incense invocation rising from a circular ink brush gust, right a quieter violet-gray brushed vapor curl dispersing up into ash specks. Japanese shrine wolf summoning and departure, special effects only, no visible animal or text, reference color and hand-drawn fine ink textures. Two fully separate effects with broad transparent gutter, transparent pixels behind entire assets, no scenery."
+    }
+  },
+  "items": [
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__black-idle__f01.webp",
+      "source": "wolf-black-run",
+      "sha256": "44869644860d17b027fddae1163d53eb338df6565ce353162cd17c9e9a803843",
+      "bytes": 35166,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__black-idle__f02.webp",
+      "source": "wolf-black-run",
+      "sha256": "42334e0b0969424c55266eb53c492167ad6a3f6233b80e59406229e7ac70d87c",
+      "bytes": 32226,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__black-run__f01.webp",
+      "source": "wolf-black-run",
+      "sha256": "7ad9422398b2f2345c08887fdeae07434631fc99bf33b7899f7087e5537e2774",
+      "bytes": 32502,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__black-run__f02.webp",
+      "source": "wolf-black-run",
+      "sha256": "b7c78c5d5ff389101b71e4d80b6388db0e5e0c6e08aca0b2be38d0ead06da7b4",
+      "bytes": 30788,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__black-run__f03.webp",
+      "source": "wolf-black-run",
+      "sha256": "3bd0228792983f72f7c96ce295326fb8e77391eb4bd5061ba497a2b3b8349710",
+      "bytes": 35132,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__black-run__f04.webp",
+      "source": "wolf-black-run",
+      "sha256": "291719d416919938cfd7a01975139538c2a138f42580381e877833ccc220ea3c",
+      "bytes": 37268,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__white-bite__f01.webp",
+      "source": "wolf-bites",
+      "sha256": "d66b17332731df04b8c8ff13d1f03c0a9679fc577e8c858d28ae77d040deaef9",
+      "bytes": 33388,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__white-bite__f02.webp",
+      "source": "wolf-bites",
+      "sha256": "23859dda7722ec8813ea58cd38ac712cba31e48bcba4b5d340e130b1ada3b395",
+      "bytes": 35368,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__white-bite__f03.webp",
+      "source": "wolf-bites",
+      "sha256": "a9a050826a168ca5604ed747ececca2caa5826e5bb92b0ed0e00cff776120496",
+      "bytes": 33324,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__white-bite__f04.webp",
+      "source": "wolf-bites",
+      "sha256": "c06c2139b665f769806514b88fef171bb22757cf13629667f0ad40c04f259520",
+      "bytes": 33882,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__black-bite__f01.webp",
+      "source": "wolf-bites",
+      "sha256": "400d38b010727e8fbb0d1f9062dc357b7c5de79b0843be8f810757c2ac5fe93f",
+      "bytes": 32110,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__black-bite__f02.webp",
+      "source": "wolf-bites",
+      "sha256": "e3100cd959e33104c32ffc51b96b77382f587d096bcabce7b649870fef153eda",
+      "bytes": 33752,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__black-bite__f03.webp",
+      "source": "wolf-bites",
+      "sha256": "a4aff7eb06dc2a73b06ad8860f3380efe5ddabf65c0d6bfc608c9857b899fb5e",
+      "bytes": 31610,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/characters/shikigami/shikigami__sprite__black-bite__f04.webp",
+      "source": "wolf-bites",
+      "sha256": "3f4ce5be909494889cfd871cabcccc577492be39a50ca2c0bb625d0ebf85295b",
+      "bytes": 32616,
+      "width_px": 512,
+      "height_px": 352,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "pivot_px": [
+        256,
+        320
+      ]
+    },
+    {
+      "path": "assets/img/skills/shikigami/cards/shikigami__card.webp",
+      "source": "wolf-card",
+      "sha256": "75382da3106f44e4cca52281ca5ffffe882318bf808fb3d5cb5cb930e17d6f45",
+      "bytes": 133630,
+      "width_px": 512,
+      "height_px": 768,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "path": "assets/img/vfx/skills/shikigami/shikigami__summon.webp",
+      "source": "wolf-fx",
+      "sha256": "a768d5643aca22634c3c80ea3390e95c417fa42dd845b8ec4e919dfecc32b3d5",
+      "bytes": 30288,
+      "width_px": 220,
+      "height_px": 224,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    },
+    {
+      "path": "assets/img/vfx/skills/shikigami/shikigami__departure.webp",
+      "source": "wolf-fx",
+      "sha256": "13fa157011f296b6b744fe81c983694b81901ede9e92142d7bfc5bdad17d8922",
+      "bytes": 16970,
+      "width_px": 172,
+      "height_px": 224,
+      "approval": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
+    }
+  ],
+  "count": 17
+}

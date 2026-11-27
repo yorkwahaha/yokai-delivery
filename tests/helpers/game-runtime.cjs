@@ -37,7 +37,7 @@ const MODULE_ORDER = [
 // Current game scripts must mirror the public index dependency order.
 // Keep the historic MODULE_ORDER unchanged for revision-pinned baseline tests.
 const CURRENT_MODULE_ORDER = [
-  'delivery-lexicon', 'delivery-media', ...MODULE_ORDER, 'combat-targeting', 'game-quiz-logic', 'game-geometry', 'game-charm-math', 'game-spawn-math', 'game-build-rules', 'game-delivery-rules', 'game-ink-trail', 'game-violet-scent', 'game-confusion', 'game-attack-specs', 'game-catalog', 'game-combat-math', 'game-weather', 'game-upgrade-choices', 'game-run-summary', 'game-tutorial-rules'
+  'delivery-lexicon', 'delivery-media', 'game-skill-expansion', ...MODULE_ORDER, 'combat-targeting', 'game-quiz-logic', 'game-geometry', 'game-charm-math', 'game-spawn-math', 'game-build-rules', 'game-delivery-rules', 'game-ink-trail', 'game-violet-scent', 'game-confusion', 'game-attack-specs', 'game-catalog', 'game-combat-math', 'game-weather', 'game-upgrade-choices', 'game-run-summary', 'game-tutorial-rules'
 ];
 
 // V3 新增模組：只在 working tree 載入。baseline revision 不讀它，
@@ -327,8 +327,26 @@ const FIXTURE = `window.fixture = {
   clearOrders: () => { orders=[]; job=null; },
   clearEnemies: () => { enemies=enemies.filter(e=>e.type==='boss'); },
   stopSpawns: () => { spawnT=Infinity; surgeT=Infinity; },
-  scheduleBoss: () => { bossT=0; },
-  forceBossSchedule: (index, timer=0) => { bossStage=index; bossT=timer; },
+  scheduleBoss: () => {
+    bossT=0;
+    if (typeof bossSchedule !== 'undefined' && Number.isFinite(BOSS_TIMES[bossStage])) {
+      elapsed = Math.max(elapsed, BOSS_TIMES[bossStage]);
+    }
+  },
+  forceBossSchedule: (index, timer=0) => {
+    bossStage=index;
+    bossT=timer;
+    if (typeof bossSchedule !== 'undefined' && bossSchedule?.jumpToWave) {
+      const hasLiveOfficial = bossSchedule.liveOfficialBosses(enemies).length > 0;
+      bossSchedule.jumpToWave(index, { markPriorDefeated: index >= BOSS_TIMES.length - 1 && !hasLiveOfficial });
+      if (Number.isFinite(BOSS_TIMES[index])) {
+        elapsed = Math.max(elapsed, BOSS_TIMES[index] - timer);
+      }
+      bossStage = bossSchedule.nextWaveIndex();
+      bossT = bossSchedule.nextSpawnRemaining(elapsed);
+    }
+  },
+  bossScheduleSnapshot: () => typeof bossSchedule !== 'undefined' ? bossSchedule.snapshot() : null,
   advanceBossClock: offset => { elapsed=BOSS_TIMES[bossStage]+offset; bossT=-offset; },
   prepareBoss: word => { const bs={x:P.x+200,y:P.y,type:'boss',word:word||ALL[0],hp:999,max:999,shield:true,flash:0,wob:0,speed:0};
     enemies.push(bs); bossQ=mkQ(bs); bossQ.lock=0; },
@@ -348,6 +366,7 @@ const FIXTURE = `window.fixture = {
   pollGamepad: () => pollGamepad(),
   toggleView: () => toggleViewMode(),
   companion: () => typeof shikigami === 'undefined' ? null : shikigami?.snapshot() ?? null,
+  expansionEffects: () => typeof expansionSkills === 'undefined' ? [] : expansionSkills?.visuals(P) || [],
   addMob: fields => {
     const e = { x: P.x, y: P.y, hp: 500, max: 500, speed: 0, flash: 0, wob: 0,
       slowT: 0, type: 'grunt', ...fields };
@@ -413,6 +432,7 @@ const FIXTURE = `window.fixture = {
     total: xp
   }),
   levelUps: () => typeof levelUpCount !== 'undefined' ? levelUpCount : null,
+  finishDraftImmediately: () => { levelupCooldown=0; },
   takeLevelUpChoice: index => {
     if (state !== 'levelup') return { ok: false, reason: 'not-levelup', state };
     const c = choices[index];
@@ -566,6 +586,9 @@ const FIXTURE = `window.fixture = {
     needles: typeof needles==='undefined'?[]:needles,
     choiceLv: choices.map(c=>c.lv), choiceIds: choices.map(c=>c.id),
     runSummary,
+    victorySeq: typeof victorySeq !== "undefined" && victorySeq
+      ? { bossX: victorySeq.bossX, bossY: victorySeq.bossY, boss: victorySeq.boss, bossGone: victorySeq.bossGone, useFinalBossDeathSfx: victorySeq.useFinalBossDeathSfx }
+      : null,
     codexTab: typeof codexTab === "undefined" ? null : codexTab,
     codexPage: typeof codexPage === "undefined" ? null : codexPage,
     codexBack: typeof codexBack === "undefined" ? null : codexBack,
@@ -614,7 +637,7 @@ function loadGame(options = {}) {
     getBoundingClientRect: () => ({ left: 0, top: 0, width: 900, height: 600 })
   };
   const events = {};
-  const storage = new Map([['yokai-tutorial-v1', '"skip"']]);
+  const storage = new Map([['yokai-tutorial-v1', '"skip"'], ['yokai-delivery-dev-v1:tutorial-v1', '"skip"']]);
   const env = {
     console, Set, Map, Math: seededMath, Date, URLSearchParams, performance: { now: () => 0 },
     navigator: {}, requestAnimationFrame() {},
@@ -660,7 +683,8 @@ const c = vm.createContext(env);
     if (options.fusionLab) modules.push('fusion');
     if (c.DEV_MODE?.isShikigamiEnabled?.(c.location)) modules.push('game-shikigami');
     if (c.DEV_MODE?.isBambooEnabled?.(c.location)) modules.push('stage-route-layouts', 'bamboo-combat');
-    if (c.DEV_MODE?.isStageLab?.(c.location)) modules.push('kyoto-procession');
+    if (c.DEV_MODE?.isStageLab?.(c.location)) modules.push(
+      'kyoto-procession', 'kyoto-scene-art', 'snow-temple-combat', 'snow-temple-art', 'late-stage-art', 'late-stage-combat');
     for (const name of modules) {
       // 注意副檔名：V3_ONLY_MODULES 存的是 'boss-ai'，檔名是 'boss-ai.js'。
       const file = path.join(srcRoot, `${name}.js`);
@@ -698,7 +722,7 @@ const c = vm.createContext(env);
   const uiStatics = Object.fromEntries(Object.entries(c.UI).filter(([, v]) => typeof v !== 'function'));
   c.UI = new Proxy({
     ...uiStatics,
-    bossQuizLayout: c.UI.bossQuizLayout, codexButtons: c.UI.codexButtons,
+    bossQuizLayout: c.UI.bossQuizLayout, bossReadingBarLayout: c.UI.bossReadingBarLayout, codexButtons: c.UI.codexButtons,
     codexRows: c.UI.codexRows, pauseButtons: c.UI.pauseButtons,
     wordGallery: c.UI.wordGallery, wordGalleryViewport: c.UI.wordGalleryViewport,
     HINT_BTN: { x: 532, y: 20, w: 78, h: 40 },

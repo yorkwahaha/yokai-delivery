@@ -1,0 +1,402 @@
+{
+  "stage": "sakura-pass",
+  "scene": [
+    {
+      "role": "dirt",
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__ground-dirt.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__ground-dirt.png",
+      "original_attachment": "E:\\Downloads\\image-gen-1(20261024-195404).png",
+      "source_sha256": "f4210e152fabd6d11f2a3d438ffb79ae639b8ef5230ded32651e8340481a840e",
+      "sha256": "717e505719336ed666bd13f7e79a12c9de7fd0b4be32801bf5431fea10dc9e79",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "visual_status": "USER_SELECTED_PREVIOUSLY_APPROVED_20261116",
+      "runtime_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "processing": "lossless WebP encoding only; no resize, crop or alpha replacement"
+    },
+    {
+      "role": "stoneStraight",
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-straight.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__stone-path-straight.png",
+      "original_attachment": "E:\\Downloads\\image-gen-1(20261025-033148).png",
+      "source_sha256": "373a524b7a5684d2fcc8b86e950a905e73f4e1dd82a8a3d273157866a87cfca4",
+      "sha256": "4ff3b37128e7086377c1baf6196431f12b9ae5573aa49351f46ef86d0e7c1fee",
+      "size": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "visual_status": "USER_SELECTED_PREVIOUSLY_APPROVED_20261116",
+      "runtime_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "processing": "lossless WebP encoding only; no resize, crop or alpha replacement"
+    },
+    {
+      "role": "stoneLeft",
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-left.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__stone-path-left.png",
+      "original_attachment": "E:\\Downloads\\image-gen-2(20261025-033151).png",
+      "source_sha256": "fd4454a44e993660da92071eaeedfa3c6afa4a7912f480fb4cece45895b5950e",
+      "sha256": "236c5dcad766f3990f6147044d50e97abf9e5bef70dd66ab225ca50f55601ce7",
+      "size": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "visual_status": "USER_SELECTED_PREVIOUSLY_APPROVED_20261116",
+      "runtime_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "processing": "lossless WebP encoding only; no resize, crop or alpha replacement"
+    },
+    {
+      "role": "stoneRight",
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-right.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__stone-path-right.png",
+      "original_attachment": "E:\\Downloads\\image-gen-4(20261025-033158).png",
+      "source_sha256": "746d020cea5fc7e19538c88305fa5a42a1d2209ee9f8b0c79b87681ff85ecba7",
+      "sha256": "01e7c39283feded821aef8de4ca0e205979cd318ed2a0b70fd9c813396d9a8b4",
+      "size": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "visual_status": "USER_SELECTED_PREVIOUSLY_APPROVED_20261116",
+      "runtime_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "processing": "lossless WebP encoding only; no resize, crop or alpha replacement"
+    },
+    {
+      "role": "stoneBroken",
+      "path": "assets/img/stages/sakura-pass/tiles/sakura-pass__stone-path-broken.webp",
+      "source": "art/stage3-sakura-pass/scene/sakura-pass__stone-path-broken.png",
+      "original_attachment": "E:\\Downloads\\image-gen-3(20261025-033154).png",
+      "source_sha256": "52a3b4a8678aede7bf72f4b70ee2324e748c53bf244ad5edbdbd0bf93e7100d4",
+      "sha256": "780e77c7335f71280ea5e4254c751cb8d6083351a42abf39ac81c29c04903b68",
+      "size": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "visual_status": "USER_SELECTED_PREVIOUSLY_APPROVED_20261116",
+      "runtime_status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+      "processing": "lossless WebP encoding only; no resize, crop or alpha replacement"
+    },
+    {
+      "path": "assets/img/sakura-pass/landmark_corrupted_sakura.webp",
+      "size": [
+        460,
+        460
+      ],
+      "mode": "RGBA",
+      "sha256": "7dd88ec8213577690972f2e6dbd4670ad703562a1a52f024d723db0cd799c7d2",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING"
+    },
+    {
+      "path": "assets/img/sakura-pass/shrine_pavilion.webp",
+      "size": [
+        470,
+        440
+      ],
+      "mode": "RGBA",
+      "sha256": "835fe17a73cf1af48bc2fc25cdf9cd7b155c7248423dc81075f079bfd869b22e",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING"
+    }
+  ],
+  "approval": "ASSET_PENDING",
+  "delivery": [
+    {
+      "index": 1,
+      "jp": "さくら",
+      "kanji": "桜",
+      "zh": "櫻花",
+      "image": "assets/img/delivery/sakura-pass/01.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/01.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 2,
+      "jp": "はな",
+      "kanji": "花",
+      "zh": "花",
+      "image": "assets/img/delivery/sakura-pass/02.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/02.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 3,
+      "jp": "はなたば",
+      "kanji": "花束",
+      "zh": "花束",
+      "image": "assets/img/delivery/sakura-pass/03.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/03.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 4,
+      "jp": "は",
+      "kanji": "葉",
+      "zh": "葉子",
+      "image": "assets/img/delivery/sakura-pass/04.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/04.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 5,
+      "jp": "えだ",
+      "kanji": "枝",
+      "zh": "樹枝",
+      "image": "assets/img/delivery/sakura-pass/05.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/05.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 6,
+      "jp": "くさ",
+      "kanji": "草",
+      "zh": "草",
+      "image": "assets/img/delivery/sakura-pass/06.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/06.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 7,
+      "jp": "たね",
+      "kanji": "種",
+      "zh": "種子",
+      "image": "assets/img/delivery/sakura-pass/07.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/07.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 8,
+      "jp": "うえきばち",
+      "kanji": "植木鉢",
+      "zh": "花盆",
+      "image": "assets/img/delivery/sakura-pass/08.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/08.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 9,
+      "jp": "はちうえ",
+      "kanji": "鉢植え",
+      "zh": "盆栽植物",
+      "image": "assets/img/delivery/sakura-pass/09.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/09.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 10,
+      "jp": "いし",
+      "kanji": "石",
+      "zh": "石頭",
+      "image": "assets/img/delivery/sakura-pass/10.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/10.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 11,
+      "jp": "すず",
+      "kanji": "鈴",
+      "zh": "鈴鐺",
+      "image": "assets/img/delivery/sakura-pass/11.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/11.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 12,
+      "jp": "おまもり",
+      "kanji": "お守り",
+      "zh": "御守",
+      "image": "assets/img/delivery/sakura-pass/12.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/12.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 13,
+      "jp": "くつ",
+      "kanji": "靴",
+      "zh": "鞋子",
+      "image": "assets/img/delivery/sakura-pass/13.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/13.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 14,
+      "jp": "かさ",
+      "kanji": "傘",
+      "zh": "雨傘",
+      "image": "assets/img/delivery/sakura-pass/14.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/14.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 15,
+      "jp": "だんご",
+      "kanji": "団子",
+      "zh": "糰子",
+      "image": "assets/img/delivery/sakura-pass/15.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/15.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 16,
+      "jp": "おちゃ",
+      "kanji": "お茶",
+      "zh": "茶",
+      "image": "assets/img/delivery/sakura-pass/16.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/16.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 17,
+      "jp": "ちゃば",
+      "kanji": "茶葉",
+      "zh": "茶葉",
+      "image": "assets/img/delivery/sakura-pass/17.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/17.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 18,
+      "jp": "ゆのみ",
+      "kanji": "湯飲み",
+      "zh": "茶杯",
+      "image": "assets/img/delivery/sakura-pass/18.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/18.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 19,
+      "jp": "せんす",
+      "kanji": "扇子",
+      "zh": "摺扇",
+      "image": "assets/img/delivery/sakura-pass/19.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/19.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    },
+    {
+      "index": 20,
+      "jp": "うちわ",
+      "kanji": "",
+      "zh": "團扇",
+      "image": "assets/img/delivery/sakura-pass/20.webp",
+      "imageExists": false,
+      "audio": "assets/audio/delivery/sakura-pass/20.mp3",
+      "audioExists": false,
+      "status": "ASSET_PENDING",
+      "fallback": "Chinese text prompt; existing ja-JP browser TTS"
+    }
+  ],
+  "previous_engine_scene": [
+    {
+      "path": "assets/img/sakura-pass/ground_mountain_dirt.webp",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "sha256": "882135a378a7d9c889953fb5f4d0837d4ae87b8607bae776a5bef489edf86765",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING"
+    },
+    {
+      "path": "assets/img/sakura-pass/ground_sakura_steps.webp",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "sha256": "6935c527db400bb57cf70038d5555d2f063bafb84091fa7df167459914568a6b",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING"
+    },
+    {
+      "path": "assets/img/sakura-pass/ground_trans_dirt_to_steps_h.webp",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "sha256": "262462da95d8172e888fd191c265b6ec3492702dd3291606f3ea25a2ad73195c",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING"
+    },
+    {
+      "path": "assets/img/sakura-pass/landmark_corrupted_sakura.webp",
+      "size": [
+        460,
+        460
+      ],
+      "mode": "RGBA",
+      "sha256": "7dd88ec8213577690972f2e6dbd4670ad703562a1a52f024d723db0cd799c7d2",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING"
+    },
+    {
+      "path": "assets/img/sakura-pass/shrine_pavilion.webp",
+      "size": [
+        470,
+        440
+      ],
+      "mode": "RGBA",
+      "sha256": "835fe17a73cf1af48bc2fc25cdf9cd7b155c7248423dc81075f079bfd869b22e",
+      "status": "ART_CANDIDATE_USER_REVIEW_PENDING"
+    }
+  ],
+  "selected_scene_manifest": "assets/img/stages/sakura-pass/manifest.json",
+  "scene_status": "USER_SELECTED_SCENE_WIRED_LOCAL_PLAYTEST_PENDING"
+}

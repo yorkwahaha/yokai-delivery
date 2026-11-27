@@ -1,0 +1,414 @@
+{
+  "schema": 1,
+  "stage": "spirit-ferry",
+  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "kind": "audio",
+  "count": 20,
+  "candidate_manifest": "art/audio/fish-spirit-ferry/a-common-ja/manifest.json",
+  "items": [
+    {
+      "index": 1,
+      "jp": "かばん",
+      "kanji": "鞄",
+      "zh": "包包",
+      "file": "01.mp3",
+      "sha256": "5487f15e1d47d8812ca319485017f9c3611d3590159de49b398a8febd13ed825",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/01.mp3",
+      "bytes": 11283,
+      "tts_text": "かばん",
+      "analysis": {
+        "seconds": 0.705,
+        "rms_dbfs": -16.2,
+        "peak": 25863,
+        "leading_ms": 54,
+        "trailing_ms": 170,
+        "voiced_ms": 482,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 2,
+      "jp": "にもつ",
+      "kanji": "荷物",
+      "zh": "行李",
+      "file": "02.mp3",
+      "sha256": "d88774ad37e088879d51fc2d7f0b1d54c5898177fc8d5287c51761b307f77ded",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/02.mp3",
+      "bytes": 12955,
+      "tts_text": "荷物",
+      "analysis": {
+        "seconds": 0.81,
+        "rms_dbfs": -14.6,
+        "peak": 24851,
+        "leading_ms": 56,
+        "trailing_ms": 178,
+        "voiced_ms": 576,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 3,
+      "jp": "きっぷ",
+      "kanji": "切符",
+      "zh": "票券",
+      "file": "03.mp3",
+      "sha256": "94809134591f54ed30d05084342c0eade9273574db6502ede66a807768018e82",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/03.mp3",
+      "bytes": 12119,
+      "tts_text": "切符",
+      "analysis": {
+        "seconds": 0.758,
+        "rms_dbfs": -18.0,
+        "peak": 21352,
+        "leading_ms": 54,
+        "trailing_ms": 127,
+        "voiced_ms": 577,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 4,
+      "jp": "ちず",
+      "kanji": "地図",
+      "zh": "地圖",
+      "file": "04.mp3",
+      "sha256": "dffc582f1db6b074b49909051d7558d7bc6f45f67dd174af249d3476a7af6234",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/04.mp3",
+      "bytes": 10866,
+      "tts_text": "地図",
+      "analysis": {
+        "seconds": 0.679,
+        "rms_dbfs": -15.8,
+        "peak": 27586,
+        "leading_ms": 83,
+        "trailing_ms": 175,
+        "voiced_ms": 421,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 5,
+      "jp": "じてんしゃ",
+      "kanji": "自転車",
+      "zh": "腳踏車",
+      "file": "05.mp3",
+      "sha256": "58668cf1926f08c3afa3b7750a4e20e88bb110f535f3ef452e20ec62202d7846",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/05.mp3",
+      "bytes": 15881,
+      "tts_text": "自転車",
+      "analysis": {
+        "seconds": 0.993,
+        "rms_dbfs": -14.4,
+        "peak": 28903,
+        "leading_ms": 57,
+        "trailing_ms": 137,
+        "voiced_ms": 799,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 6,
+      "jp": "べんとう",
+      "kanji": "弁当",
+      "zh": "便當",
+      "file": "06.mp3",
+      "sha256": "c251d8bf20ef65578c8b67d4a0acb1145e8c1df3abbf6c2d08cbf958fe157083",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/06.mp3",
+      "bytes": 14209,
+      "tts_text": "弁当",
+      "analysis": {
+        "seconds": 0.888,
+        "rms_dbfs": -15.4,
+        "peak": 27035,
+        "leading_ms": 56,
+        "trailing_ms": 181,
+        "voiced_ms": 651,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 7,
+      "jp": "さいふ",
+      "kanji": "財布",
+      "zh": "錢包",
+      "file": "07.mp3",
+      "sha256": "45232c88face3d4b0f407618984d335d9b19e446d7def5d3d8eb24dceb9f9217",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/07.mp3",
+      "bytes": 12955,
+      "tts_text": "財布",
+      "analysis": {
+        "seconds": 0.81,
+        "rms_dbfs": -14.8,
+        "peak": 28919,
+        "leading_ms": 60,
+        "trailing_ms": 140,
+        "voiced_ms": 610,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 8,
+      "jp": "かぎ",
+      "kanji": "鍵",
+      "zh": "鑰匙",
+      "file": "08.mp3",
+      "sha256": "6ed9ecf827bd42aff8c44d388d538f445e01b75e278a39b20b9d18bbb37c4da3",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/08.mp3",
+      "bytes": 9194,
+      "tts_text": "鍵",
+      "analysis": {
+        "seconds": 0.575,
+        "rms_dbfs": -15.9,
+        "peak": 26168,
+        "leading_ms": 59,
+        "trailing_ms": 122,
+        "voiced_ms": 394,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 9,
+      "jp": "てがみ",
+      "kanji": "手紙",
+      "zh": "信件",
+      "file": "09.mp3",
+      "sha256": "e77447f159b8769ed4132a5402311ceba821f0b6594680abc6068d9e0681a6e8",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/09.mp3",
+      "bytes": 11283,
+      "tts_text": "手紙",
+      "analysis": {
+        "seconds": 0.705,
+        "rms_dbfs": -15.0,
+        "peak": 29629,
+        "leading_ms": 54,
+        "trailing_ms": 145,
+        "voiced_ms": 507,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 10,
+      "jp": "くるま",
+      "kanji": "車",
+      "zh": "汽車",
+      "file": "10.mp3",
+      "sha256": "6534491dbb88f736e668585c702041354fb2a4e5364b109dc4c240724f44e784",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/10.mp3",
+      "bytes": 10866,
+      "tts_text": "車",
+      "analysis": {
+        "seconds": 0.679,
+        "rms_dbfs": -14.9,
+        "peak": 25065,
+        "leading_ms": 56,
+        "trailing_ms": 177,
+        "voiced_ms": 446,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 11,
+      "jp": "はがき",
+      "kanji": "葉書",
+      "zh": "明信片",
+      "file": "11.mp3",
+      "sha256": "719f4f851c768f85dac8f8e93c8201a851b6ec8effad4293e60a0c556bc5cec7",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/11.mp3",
+      "bytes": 12119,
+      "tts_text": "葉書",
+      "analysis": {
+        "seconds": 0.758,
+        "rms_dbfs": -15.2,
+        "peak": 26714,
+        "leading_ms": 59,
+        "trailing_ms": 84,
+        "voiced_ms": 614,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 12,
+      "jp": "きって",
+      "kanji": "切手",
+      "zh": "郵票",
+      "file": "12.mp3",
+      "sha256": "c2a9d70a2d5efd4841a4943852026075a941bea501540b6ce23b00ba0f0ac80a",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/12.mp3",
+      "bytes": 12955,
+      "tts_text": "切手",
+      "analysis": {
+        "seconds": 0.81,
+        "rms_dbfs": -17.8,
+        "peak": 21190,
+        "leading_ms": 128,
+        "trailing_ms": 145,
+        "voiced_ms": 537,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 13,
+      "jp": "しゃしん",
+      "kanji": "写真",
+      "zh": "照片",
+      "file": "13.mp3",
+      "sha256": "02b3d298d3241ea9efa12b3ff6718c5de5011f752eee45f49e52fa7bacba55cb",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/13.mp3",
+      "bytes": 12119,
+      "tts_text": "写真",
+      "analysis": {
+        "seconds": 0.758,
+        "rms_dbfs": -20.7,
+        "peak": 16197,
+        "leading_ms": 62,
+        "trailing_ms": 124,
+        "voiced_ms": 572,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 14,
+      "jp": "けいたいでんわ",
+      "kanji": "携帯電話",
+      "zh": "手機",
+      "file": "14.mp3",
+      "sha256": "628c2848fbf777db11231ef5585d0a4b6e02fc00acae22aaa60bc11e3199f2da",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/14.mp3",
+      "bytes": 17971,
+      "tts_text": "携帯電話",
+      "analysis": {
+        "seconds": 1.123,
+        "rms_dbfs": -14.0,
+        "peak": 24492,
+        "leading_ms": 54,
+        "trailing_ms": 156,
+        "voiced_ms": 913,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 15,
+      "jp": "じゅうでんき",
+      "kanji": "充電器",
+      "zh": "充電器",
+      "file": "15.mp3",
+      "sha256": "8fa9ed4498010742b3b137dedc14cc8db1283957c44987f69ee0d4390dab008f",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/15.mp3",
+      "bytes": 16717,
+      "tts_text": "充電器",
+      "analysis": {
+        "seconds": 1.045,
+        "rms_dbfs": -15.2,
+        "peak": 24189,
+        "leading_ms": 52,
+        "trailing_ms": 185,
+        "voiced_ms": 808,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 16,
+      "jp": "ふね",
+      "kanji": "船",
+      "zh": "船",
+      "file": "16.mp3",
+      "sha256": "d8dc1feaf698cf075a25de6594de9cef6c26dd3c41e4233f0e9e45696ba4be63",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/16.mp3",
+      "bytes": 9194,
+      "tts_text": "船",
+      "analysis": {
+        "seconds": 0.575,
+        "rms_dbfs": -14.0,
+        "peak": 25635,
+        "leading_ms": 77,
+        "trailing_ms": 118,
+        "voiced_ms": 380,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 17,
+      "jp": "かいちゅうでんとう",
+      "kanji": "懐中電灯",
+      "zh": "手電筒",
+      "file": "17.mp3",
+      "sha256": "dea589bd5d7cf4d84f5d20ad66c194133ccca51762d2a7835df08c54bc3d8ef0",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/17.mp3",
+      "bytes": 20479,
+      "tts_text": "懐中電灯",
+      "analysis": {
+        "seconds": 1.28,
+        "rms_dbfs": -15.0,
+        "peak": 26066,
+        "leading_ms": 51,
+        "trailing_ms": 173,
+        "voiced_ms": 1056,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 18,
+      "jp": "ひこうき",
+      "kanji": "飛行機",
+      "zh": "飛機",
+      "file": "18.mp3",
+      "sha256": "e40933afc66c33b1c6461b9bba45d8d5b83fa424b5052a84cf5186e81abeb4eb",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/18.mp3",
+      "bytes": 13791,
+      "tts_text": "飛行機",
+      "analysis": {
+        "seconds": 0.862,
+        "rms_dbfs": -14.8,
+        "peak": 27757,
+        "leading_ms": 60,
+        "trailing_ms": 148,
+        "voiced_ms": 654,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 19,
+      "jp": "でんしゃ",
+      "kanji": "電車",
+      "zh": "電車",
+      "file": "19.mp3",
+      "sha256": "f024d0496e7baa0f8492a8376b21e1ad331be5bd88ed0e6eb470780d99f48727",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/19.mp3",
+      "bytes": 13791,
+      "tts_text": "電車",
+      "analysis": {
+        "seconds": 0.862,
+        "rms_dbfs": -13.9,
+        "peak": 29934,
+        "leading_ms": 58,
+        "trailing_ms": 147,
+        "voiced_ms": 656,
+        "clipped_samples": 0
+      }
+    },
+    {
+      "index": 20,
+      "jp": "おみやげ",
+      "kanji": "お土産",
+      "zh": "伴手禮",
+      "file": "20.mp3",
+      "sha256": "83f6dfbb556420381891ea29cfd07ac05d0e1617dd55449664c19bd7e7020ac5",
+      "source": "art/audio/fish-spirit-ferry/a-common-ja/20.mp3",
+      "bytes": 12955,
+      "tts_text": "お土産",
+      "analysis": {
+        "seconds": 0.81,
+        "rms_dbfs": -15.3,
+        "peak": 24843,
+        "leading_ms": 54,
+        "trailing_ms": 171,
+        "voiced_ms": 584,
+        "clipped_samples": 0
+      }
+    }
+  ],
+  "voice": "A",
+  "voice_id": "97eda32449cf443bbc4b8782853ca554",
+  "model_used": "s2.1-pro-free",
+  "language": "ja-JP"
+}

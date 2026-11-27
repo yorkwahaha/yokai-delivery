@@ -7,6 +7,7 @@ ROOT=Path(__file__).resolve().parent.parent
 REG=ROOT/'docs/ASSET_REGISTRY.json'; INV=ROOT/'docs/ASSET_INVENTORY.json'
 JS=ROOT/'js/asset-paths.js'
 MEDIA={'.webp','.png','.jpg','.jpeg','.svg','.mp3','.ogg','.wav'}
+RETIRED_BARRIER='assets/img/vfx/raster/barrier_ground_45.webp'
 BAD=re.compile(r'(?:^|[_/.\\-])(candidate|trial|draft|new|final[0-9]*|seed[0-9]+|v[0-9]+|qwen|comfyui|nano)(?:[_/.\\-]|$)',re.I)
 STAGES=['night-town','rain-port','sakura-pass','bamboo-maze','hyakki-kyoto','snow-temple','spirit-ferry','yomi']
 # Seven historical locally reviewed image masters were inventoried while
@@ -28,6 +29,13 @@ def digest(p):
  # Match the canonical bytes used in the service-worker media revision check.
  if p.suffix.lower()=='.svg':data=data.replace(b'\r\n',b'\n')
  return hashlib.sha256(data).hexdigest()
+def valid_alias(e):
+ original=ROOT/e['source'];target=ROOT/e['canonical']
+ if not target.is_file() or digest(target)!=e['sha256']:return False
+ if original.is_file():return digest(original)==e['sha256']
+ if not e['route'] or e['source']!=RETIRED_BARRIER:return False
+ retired=json.loads(INV.read_text(encoding='utf-8')).get('retired',[])
+ return any(row['path']==e['source'] and row['sha256']==e['sha256'] for row in retired)
 def stage2_approved_sources():
  """Only publish files explicitly selected by runtime or enemy manifests.
 
@@ -67,6 +75,11 @@ def plan():
  approved_s2=stage2_approved_sources()
  def add(s,t,category,route=True):
   a=ROOT/s
+  if s==RETIRED_BARRIER and not a.is_file():
+   retired=next(e for e in json.loads(INV.read_text(encoding='utf-8')).get('retired',[]) if e['path']==s)
+   entry=dict(source=s,canonical=t,category=category,route=route,sha256=retired['sha256'])
+   assert valid_alias(entry),entry
+   out.append(entry);return
   if not a.is_file():raise ValueError('missing approved source '+s)
   assert not BAD.search(t),t
   if s in approved_s2:
@@ -132,6 +145,9 @@ def plan():
   else:id=stem.split('_')[0];suffix=id+'__cast'
   add(f.relative_to(ROOT).as_posix(),
       f'assets/img/vfx/skills/{id}/{suffix}.webp','skill_vfx',True)
+ # A retired source cannot appear in glob results; retain its approved alias.
+ if not (ROOT/RETIRED_BARRIER).is_file():
+  add(RETIRED_BARRIER,'assets/img/vfx/skills/barrier/barrier__ground-45.webp','skill_vfx',True)
  # Stage2 enemy sprites: copy, but let existing boss/minion image loader use
  # its original URLs until independent renderer QA.
  for f in sorted((ROOT/'assets/img/rain-port/enemies').glob('*.webp')):
@@ -192,7 +208,7 @@ def registry(entries):
            'stage3_boss_sfx_manifest':'assets/audio/sfx/enemies/sakura-tengu/manifest.json',
            'boss_roster_manifest':'assets/img/enemies/boss-roster-trial-manifest.json',
            'skill_art_manifest':'assets/img/skills/skill-art-trial-manifest.json'},
-   policy='Stages 1 through 4 use selected delivery artwork. Stage 4 and the new boss and skill art are available in the public classroom playtest. Stages 2 through 4 delivery audio remains subject to pronunciation review.',
+   policy='All eight stages are available in public classroom playtest through sequential progression. Stages 5 through 8 and skills 10 through 13 use canonical trial assets. Delivery audio and trial art remain subject to user review.',
    aliases=entries)
 def runtime(entries):
  pairs={e['source']:e['canonical'] for e in entries if e['route']}
@@ -214,6 +230,15 @@ def inventory(entries):
  selected.update(f'assets/img/delivery/{stage}/{index:02d}.webp'
                  for stage in ('rain-port','sakura-pass','bamboo-maze') for index in range(1,21))
  art_trials={x['path'] for manifest in (bamboo,skills,bosses) for x in manifest['assets']}
+ for stage in ('hyakki-kyoto','snow-temple','spirit-ferry','yomi'):
+  manifest=json.loads((ROOT/f'assets/img/stages/{stage}/manifest.json').read_text(encoding='utf-8'))
+  art_trials.update(x['path'] for x in manifest['assets'])
+  if stage!='yomi':
+   art_trials.update(f'assets/{kind}/delivery/{stage}/{i:02d}.{ext}' for i in range(1,21) for kind,ext in (('img','webp'),('audio','mp3')))
+ expansion=json.loads((ROOT/'assets/img/skills/expansion-manifest.json').read_text(encoding='utf-8'))
+ art_trials.update(x['path'] for x in expansion['assets'].values())
+ audio=json.loads((ROOT/'assets/audio/stage58-manifest.json').read_text(encoding='utf-8'))
+ art_trials.update(x['path'] for x in audio['assets'])
  items=[]
  for base in ('assets/img','assets/audio'):
   for f in sorted((ROOT/base).rglob('*')):
@@ -221,6 +246,8 @@ def inventory(entries):
    path=f.relative_to(ROOT).as_posix();e=src.get(path)
    if e:status='legacy_alias_active' if e['route'] else 'legacy_source_pending_renderer'
    elif path in selected:status='canonical'
+   elif path.startswith(('assets/img/enemies/kyoto-crossroads-boss/','assets/img/enemies/snow-ice-pillar-boss/',
+                         'assets/img/vfx/enemies/yomi-cinder-burst/')):status='trial_pending_review'
    elif path in art_trials or path.startswith(('assets/audio/delivery/bamboo-maze/','assets/img/characters/shikigami/')):status='trial_pending_review'
    elif path.startswith(('assets/img/vfx/enemies/sakura-tengu/','assets/audio/sfx/enemies/sakura-tengu/','assets/img/vfx/skills/violet-scent/','assets/img/vfx/skills/seal-nail/')) or path.startswith(tuple('assets/img/enemies/'+i+'/' for i in ('sakura-kodama','hanakage-fox','moss-tanuki','stone-lantern-kid','paper-umbrella-spirit','sakura-tengu','ancient-sakura-guardian','night-sakura-princess'))) or path.startswith(('assets/img/stages/sakura-pass/','assets/img/delivery/rain-port/','assets/audio/delivery/rain-port/','assets/img/delivery/sakura-pass/','assets/audio/delivery/sakura-pass/','assets/img/ui/charm-passive/b7/','assets/img/ui/charm-passive/b9/','assets/img/ui/charm-passive/b10/','assets/img/ui/charm-passive/b11/','assets/img/ui/b12/','assets/img/ui/b13/','assets/img/ui/b14/','assets/img/ui/passive/b9/','assets/img/ui/passive/washi-v2/')) or path in ('assets/img/ui/dash_medallion_b7.webp','assets/img/vfx/boss-night-town/seal_break_painted.webp'):status='trial_pending_review'
    elif path in ('assets/img/vfx/shield/ward_spirit_full.webp','assets/img/vfx/shield/ward_spirit_crack.webp','assets/img/vfx/shield/ward_bagua_full.webp','assets/img/vfx/shield/ward_bagua_break.webp','assets/img/vfx/boss-night-town/slam_earth_warning.webp','assets/img/vfx/boss-night-town/slam_earth_impact.webp','assets/img/vfx/boss-night-town/charge_aura.webp','assets/img/vfx/boss-night-town/charge_single_b13.webp'):status='trial_pending_review'
@@ -237,19 +264,22 @@ def inventory(entries):
    }:
     # Approved visual concept, local runtime trial until player accepts it in-game.
     status='trial_pending_review'
-   elif re.fullmatch(r'assets/img/skills/[a-z0-9-]+/cards/[a-z0-9-]+__art\.webp',path) or path=='assets/img/ui/menu/ui__upgrade-card-frame.png':
+   elif re.fullmatch(r'assets/img/skills/[a-z0-9-]+/cards/[a-z0-9-]+__art\.webp',path) or path in ('assets/img/ui/menu/ui__upgrade-card-frame.png','assets/img/ui/menu/ui__upgrade-card-frame.webp','assets/img/ui/menu/exit__blank.webp'):
     # Phase 42 raster card-center art: local user playtest, not shipped approval.
     status='trial_pending_review'
    elif BAD.search(path):status='legacy_review_required'
    else:status='legacy_unmigrated'
    items.append(dict(path=path,status=status,bytes=f.stat().st_size,sha256=digest(f)))
+ retired=json.loads(INV.read_text(encoding='utf-8')).get('retired',[]) if INV.is_file() else []
  return dict(schema=1,updated='2026-10-31',notes='Unmigrated paths are inventoried, not approved for new usage; never delete without reference audit.',
+             retired=retired,
              totals=dict(files=len(items),by_status=dict(Counter(x['status'] for x in items))),files=items)
 def dump(obj):return json.dumps(obj,ensure_ascii=False,indent=2)+'\n'
 def build(entries):
  for e in entries:
   source=ROOT/e['source'];dest=ROOT/e['canonical']
-  assert digest(source)==e['sha256']
+  if source.is_file():assert digest(source)==e['sha256']
+  else:assert valid_alias(e),e
   if dest.exists() and digest(dest)!=e['sha256']:raise RuntimeError('refusing overwrite '+str(dest))
  n=0
  for e in entries:
@@ -260,14 +290,19 @@ def build(entries):
  REG.write_text(dump(registry(entries)),encoding='utf8')
  JS.write_text(runtime(entries),encoding='utf8')
  doc=inventory(entries)
+ # Preserve historical hashes of explicitly optional local-only masters when
+ # rebuilding on a checkout that does not contain them.
+ old=json.loads(INV.read_text(encoding='utf8')) if INV.is_file() else {}
+ present={row['path'] for row in doc['files']}
+ doc['files'].extend(row for row in old.get('files',[]) if row['path'] in OPTIONAL_LOCAL_ONLY and row['path'] not in present)
+ doc['files'].sort(key=lambda row:row['path'])
+ doc['totals']=dict(files=len(doc['files']),by_status=dict(Counter(row['status'] for row in doc['files'])))
  INV.write_text(dump(doc),encoding='utf8')
  print('BUILD',len(entries),'mapped',n,'safe copies',sum(x['route'] for x in entries),'active aliases',len(doc['files']),'inventoried files')
 def check():
  r=json.loads(REG.read_text(encoding='utf8'));entries=r['aliases']
  for e in entries:
-  a=ROOT/e['source'];b=ROOT/e['canonical']
-  assert a.is_file() and b.is_file(),(a,b)
-  assert digest(a)==digest(b)==e['sha256'],e
+  assert valid_alias(e),e
   assert not BAD.search(e['canonical']),e
  assert JS.read_text(encoding='utf8')==runtime(entries),'stale JS resolver'
  old={e['path']:e['sha256'] for e in json.loads(INV.read_text(encoding='utf8'))['files']}

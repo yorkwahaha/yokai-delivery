@@ -42,6 +42,8 @@ window.BAMBOO_COMBAT = (() => {
   }
 
   const SHOOTS_STRIKES = 5;
+  const shootsTiming = Object.freeze({ telegraph: .34, active: .22 });
+  const cutTiming = Object.freeze({ telegraph: 1.05, active: .28, recovery: .72 });
 
   function markShoots(hazard, player) {
     hazard.strike++;
@@ -49,7 +51,7 @@ window.BAMBOO_COMBAT = (() => {
     hazard.y = player.y;
     hazard.zones = [{ x: player.x, y: player.y, rx: hazard.radius, ry: hazard.radius }];
     hazard.phase = "telegraph";
-    hazard.remaining = .34;
+    hazard.remaining = shootsTiming.telegraph;
     hazard.hit = false;
   }
 
@@ -59,15 +61,16 @@ window.BAMBOO_COMBAT = (() => {
     const cut = attacks ? attacks[step % attacks.length] === "bambooCut" : step % 2 === 0;
     const intense = e.final && e.hp <= e.max * .5;
     const kind = cut ? "bambooCut" : "bambooShoots";
-    const hazard = { kind, x: player.x, y: player.y, phase: "telegraph", remaining: 1.05, hit: false };
+    const hazard = { kind, x: player.x, y: player.y, phase: "telegraph", remaining: cutTiming.telegraph, hit: false };
     if (cut) {
       const vertical = Math.abs(player.x - e.x) < Math.abs(player.y - e.y);
+      hazard.direction = Math.sign(vertical ? player.y - e.y : player.x - e.x) || 1;
       const zone = (x, y, rx, ry) => ({ x, y, rx, ry });
-      hazard.zones = [zone(player.x, player.y, vertical ? 36 : 145, vertical ? 145 : 36)];
+      hazard.zones = [zone(player.x, player.y, vertical ? 46.8 : 145, vertical ? 145 : 46.8)];
       if (intense) {
         const side = (e.bambooAttack || 0) % 4 === 0 ? 1 : -1;
         hazard.zones.push(zone(player.x + (vertical ? 105 * side : 0),
-          player.y + (vertical ? 0 : 105 * side), vertical ? 30 : 115, vertical ? 115 : 30));
+          player.y + (vertical ? 0 : 105 * side), vertical ? 39 : 115, vertical ? 115 : 39));
       }
     } else {
       hazard.strike = 0;
@@ -83,18 +86,28 @@ window.BAMBOO_COMBAT = (() => {
     const result = { hit: null, started: false, finished: false };
     if (e.shield || e.dying || e.done || e.hp <= 0) { delete e.hazard; return result; }
     if (options.paused || !(dt > 0)) return result;
-    const h = e.hazard;
+    const h = e.hazard, gate=options.earlyGate;
     if (!h) {
       e.attackCd = Math.max(0, (e.attackCd || 0) - dt);
-      if (e.attackCd === 0 && Math.hypot(player.x - e.x, player.y - e.y) < 320) {
+      if (e.attackCd === 0 && Math.hypot(player.x - e.x, player.y - e.y) < 320 && (!gate || gate.ready(options,e,'telegraph'))) {
         start(e, player);
+        gate?.record(options,e,'telegraph');
         result.started = true;
       }
       return result;
     }
+    if (h.staggerNextShoot) {
+      if (gate && !gate.ready(options,e,'telegraph')) return result;
+      delete h.staggerNextShoot; markShoots(h,player); gate?.record(options,e,'telegraph');
+      result.started=true; return result;
+    }
     h.remaining -= dt;
     if (h.phase === "telegraph") {
-      if (h.remaining <= 0) { h.phase = "active"; h.remaining = h.kind === "bambooShoots" ? .22 : .28; }
+      if (h.remaining <= 0) {
+        if (gate && !gate.ready(options,e,'active')) {h.remaining=0;return result;}
+        gate?.record(options,e,'active');
+        h.phase = "active"; h.remaining = h.kind === "bambooShoots" ? shootsTiming.active : cutTiming.active;
+      }
     } else if (h.phase === "active") {
       if (!h.hit && h.zones.some(z => h.kind === "bambooCut"
         ? Math.abs(player.x - z.x) <= z.rx && Math.abs(player.y - z.y) <= z.ry
@@ -104,11 +117,14 @@ window.BAMBOO_COMBAT = (() => {
       }
       if (h.remaining <= 0) {
         if (h.kind === "bambooShoots" && h.strike < SHOOTS_STRIKES) {
-          markShoots(h, player);
+          if (gate && !gate.ready(options,e,'telegraph')) {
+            h.staggerNextShoot=true; h.phase='recovery'; h.remaining=0; return result;
+          }
+          markShoots(h, player); gate?.record(options,e,'telegraph');
           result.started = true;
         } else {
           h.phase = "recovery";
-          h.remaining = .72;
+          h.remaining = cutTiming.recovery;
         }
       }
     } else if (h.remaining <= 0) {
@@ -119,5 +135,5 @@ window.BAMBOO_COMBAT = (() => {
     return result;
   }
 
-  return Object.freeze({ isBamboo, mobMotion, start, step, cueFiles });
+  return Object.freeze({ isBamboo, mobMotion, start, step, cueFiles, shootsTiming, cutTiming });
 })();

@@ -112,14 +112,14 @@ window.GAME_CATALOG = (() => {
     ...skillMutations("seal_nail", "距爆・封印釘", "封釘變異", [
       ["wide", "封釘・裂地擴陣", "れつちかくじん", "封印釘爆炸半徑增加 25%，Lv5 兩段皆有效。"],
       ["deep", "封釘・穿石重爆", "せんせきじゅうばく", "封印釘爆炸傷害提高 25%，Lv5 兩段皆有效。"],
-      ["near", "封釘・近距引爆", "きんきょいんばく", "起爆所需離位距離縮短 25 px，離位後仍須蓄爆。"],
-      ["swift", "封釘・疾步再布", "しっぽさいふ", "再部署冷卻縮短 18%，前一枚封印釘結算後才可再布。"]
+      ["near", "封釘・近距引爆", "きんきょいんばく", "封印釘中心的踩踏觸發半徑增加 20 px，爆炸半徑不變。"],
+      ["swift", "封釘・疾步再布", "しっぽさいふ", "再部署冷卻縮短 18%。釘數未滿即可繼續布置。"]
     ]),
     ...skillMutations("shikigami", "式神・召喚", "式神變異", [
-      ["guard", "式神・護靈強軀", "ごれいきょうく", "式神最大生命提高 30%。場上的式神保留已受傷量。"],
-      ["life", "式神・長契留形", "ちょうけいりゅうけい", "式神最多留場時間延長 3 秒，場上的式神也會延長。"],
-      ["quick", "式神・迅牙連咬", "じんがれんこう", "式神每次撲咬的冷卻縮短 18%。"],
-      ["fang", "式神・破邪重牙", "はじゃじゅうが", "式神的撲咬傷害提高 25%。"]
+      ["guard", "式神・護靈強軀", "ごれいきょうく", "每隻狼最大生命提高 30%，保留各自已受傷量。"],
+      ["life", "式神・長契留形", "ちょうけいりゅうけい", "每隻狼留場上限延長 3 秒，場上的狼也會延長。"],
+      ["quick", "式神・迅牙連咬", "じんがれんこう", "每隻狼的撲咬間隔縮短 18%。"],
+      ["fang", "式神・破邪重牙", "はじゃじゅうが", "撲咬傷害提高 25%。雙狼對坦克與 Boss 皆有效。"]
     ]),
     mut_boom_fan: {
       id: "mut_boom_fan",
@@ -139,7 +139,7 @@ window.GAME_CATALOG = (() => {
       skillId: "needle",
       skillIds: ["needle"],
       family: "seek",
-      n: "靈針・引魂追跡",
+      n: "靈針・引魂追蹤",
       s: "ついせき",
       cat: "【 靈針變異 】",
       levelText: "◆ 靈針變異",
@@ -153,7 +153,7 @@ window.GAME_CATALOG = (() => {
       skillId: "boom",
       skillIds: ["boom"],
       family: "seek",
-      n: "陰陽符・引魂追跡",
+      n: "陰陽符・引魂追蹤",
       s: "ついせき",
       cat: "【 陰陽符變異 】",
       levelText: "◆ 陰陽符變異",
@@ -484,8 +484,8 @@ window.GAME_CATALOG = (() => {
     boom: { id: "boom", jp: "おふだ", zh: "陰陽符", type: "active", category: "延爆咒符", desc: "擲出符咒黏住妖怪，稍後爆炸；周圍受到濺射並震退" },
     thunder: { id: "thunder", jp: "いかずち", zh: "天狐雷", type: "active", category: "天罰落雷", desc: "落雷鎖定周遭妖怪，Lv4 同時攻擊三個目標，覺醒後降下三朵雷雲" },
     needle: { id: "needle", jp: "せんぼん", zh: "天狐靈針", type: "active", category: "高速靈針", desc: "向面朝方向連續迸射破魔靈針，貫通前方妖怪" },
-    ink_trail: { id: "ink_trail", jp: "しとうどっこう", zh: "紫藤毒香", type: "active", category: "粉紫毒霧", desc: "移動時沿路留下粉紫色毒霧，妖怪吸入後持續損血；Lv5 會讓一般妖怪短暫混亂，可能反過來攻擊同伴" },
-    seal_nail: { id: "seal_nail", jp: "きょばく・ふういんくぎ", zh: "距爆・封印釘", type: "active", category: "離位爆破", desc: "正常移動時在腳邊埋下一枚封印釘，離位後引爆；站定或撞牆時不會部署。Lv5 再爆一次" },
+    ink_trail: { id: "ink_trail", jp: "しとうどっこう", zh: "紫藤毒香", type: "active", category: "粉紫毒霧", desc: "移動留下毒霧，每 0.25 秒結算一跳毒傷；重疊毒霧不疊傷。Lv5 使小怪優先攻擊同伴，無目標時減速迷走。Boss 受到 60% 毒傷，免疫混亂。" },
+    seal_nail: { id: "seal_nail", jp: "きょばく・ふういんくぎ", zh: "距爆・封印釘", type: "active", category: "踩踏陷阱", desc: "移動時埋釘，妖怪踩中中心才引爆。最多同時三枚，每波最多命中 15 隻；Boss 承受 80% 傷害。Lv5 朝觸發妖怪方向追加第二段。" },
     // 融合武器（十組 registry；全部都有真攻擊 consumer）
     fusion_inkblade: { id: "fusion_inkblade", jp: "ぼくえんざん", zh: "墨焰斬", type: "active", category: "融合・扇形斬", desc: "大型扇形墨焰斬，命中留下短暫地面灼燒；妖刀與狐火共鳴覺醒" },
     fusion_foxiai: { id: "fusion_foxiai", jp: "らいこいあい", zh: "雷狐居合", type: "active", category: "融合・雷斬", desc: "短預警後前向線性雷斬，穿過有限目標，每 cast 同敵一次" },
@@ -506,8 +506,8 @@ window.GAME_CATALOG = (() => {
     boom:["單符黏附後延遲爆炸；本體全傷，周圍濺射並震退","一次擲出 2 枚符咒","三符齊射，冷卻縮短","四符齊射，爆炸範圍加大","覺醒・兩儀延爆：雙符大範圍爆炸，近距黏上 Boss 提升直擊傷害"],
     thunder:["190 範圍內攻擊最近 1 隻，傷害 2 倍係數","270 範圍內同時攻擊 2 隻，傷害 3 倍係數","350 範圍內同時攻擊 3 隻，傷害 4.5 倍係數","450 範圍內鎖定 3 個威脅，固定 6 倍係數","覺醒・建御雷神破界天罰：450 範圍內三朵雷雲，每朵半徑 90、8 倍係數"],
     needle:["三發靈針，貫穿前方妖怪","五發雙羽，傷害提升","七發三叉，傷害再提升","八星噴射；下一階八方輪射","覺醒・八方輪射：每 0.05 秒一枚，遇近中距 Boss 集中兩針。回旋折返沿用八方"],
-    ink_trail:["移動時留下近距離粉紫毒霧；追兵吸入後持續掉血，離開毒霧還會中毒約 2 秒","毒霧範圍變大，沿路停留更久，毒傷提升","拖出的毒霧更長，更容易覆蓋追兵的路線","毒霧殘留約 5.5 秒，沿途持續毒傷更強","覺醒・迷魂藤香：粉紫毒霧殘留約 6 秒；一般妖怪吸入後混亂 2.5 秒，可能轉而攻擊其他妖怪。Boss 不會混亂"],
-    seal_nail:["移動時在腳邊埋下一枚封印釘，離開落點 185px 後自動引爆","封印釘留得更久、炸得更廣，離開落點 175px 後自動引爆","傷害提升、冷卻縮短，離開落點 165px 後自動引爆","爆炸範圍與傷害提升，離開落點 155px 後自動引爆","覺醒・二重破封：離開落點 145px 後引爆，接著朝離開的方向引爆第二道封陣（45% 傷害）"],
+    ink_trail:["每 0.25 秒跳一次毒傷，重疊不疊傷。離開毒霧仍中毒約 2 秒","毒霧範圍與存續增加，每秒毒傷係數 2.7","毒霧路徑更長，每秒毒傷係數 3.5","毒霧殘留約 5.5 秒，每秒毒傷係數 4.3","覺醒・迷魂藤香：小怪混亂 2.5 秒，有同伴時 85% 轉攻，無目標時迷走減速。Boss 免疫混亂"],
+    seal_nail:["上限 1 枚、冷卻 3.6 秒。妖怪踩中中心引爆，半徑 125px","上限 2 枚、冷卻 3 秒。踩踏引爆，爆炸半徑 145px","上限 2 枚、冷卻 2.5 秒。踩踏引爆，爆炸半徑 165px","上限 3 枚、冷卻 2 秒。踩踏引爆，爆炸半徑 185px","覺醒・二重破封：上限 3 枚、冷卻 1.6 秒。踩踏引爆，主爆半徑 210px，朝觸發妖怪再爆出 60% 傷害"],
     // 融合武器升級描述（Lv1 即完成形，描述供圖鑑/確認畫面）
     fusion_inkblade:["融合・墨焰斬：大型扇形墨焰斬，命中留下短暫地面灼燒；妖刀與狐火共鳴覺醒","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・墨焰斬：扇形 114.6°、半徑 280、地面灼燒 2.5 秒、冷卻 1.2 秒、直接斬擊與地面焦痕雙段傷害"],
     fusion_thundercircle:["融合・雷陣封界：大型陣域脈衝定點引雷，在陣域內有節奏地多次擊中並可閃避警示","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・雷陣封界：陣域半徑 240、脈衝間隔 0.8 秒、落雷預警 0.6 秒、命中去重 0.3 秒"],
@@ -520,7 +520,24 @@ window.GAME_CATALOG = (() => {
     fusion_flamefestival:["融合・炎符祭：四枚火符交錯引爆留燼","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・炎符祭：四符依序引爆、每符 2 次短燼、派生上限固定"],
     fusion_thundertalisman:["融合・雷符神罰：五枚雷符落定引雷連鎖","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","（融合武器不再升級；Lv1 即完成形）","覺醒已完成・雷符神罰：五符各一擊、單次連鎖、Boss 不受控"],
   };
+  const expansion = window.GAME_SKILL_EXPANSION;
+  for (const id of expansion?.catalogIds(window) || []) {
+    WI[id] = expansion.cards[id];
+    WEAPON_UPGRADES[id] = expansion.upgrades[id];
+    for (const variant of Object.values(expansion.mutations)) {
+      if (variant.skillId === id) MUTATION_CONFIG[variant.id] = variant;
+    }
+  }
+
+  function mutationCardNames(id) {
+    const variant = MUTATION_CONFIG[id];
+    if (!variant) return null;
+    const skill = WI[variant.skillId] || window.GAME_SHIKIGAMI?.CARD;
+    if (skill?.id !== variant.skillId) return null;
+    return {title: variant.n.slice(variant.n.lastIndexOf("・") + 1), subtitle: skill.zh};
+  }
+
   return Object.freeze({
-    CHARM_CONFIG, MUTATION_CONFIG, DUO_CONFIG, WI, WEAPON_UPGRADES
+    CHARM_CONFIG, MUTATION_CONFIG, DUO_CONFIG, WI, WEAPON_UPGRADES, mutationCardNames
   });
 })();

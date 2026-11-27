@@ -1,0 +1,744 @@
+{
+  "stage": "snow-temple",
+  "status": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+  "asset_count": 54,
+  "assets": [
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__shrine.webp",
+      "source": "snow-structures",
+      "bytes": 65002,
+      "sha256": "a4de3511c5aa74e9d7c8b332957b40ff037872d2bfac13bed57b4a5a0abee333",
+      "width_px": 418,
+      "height_px": 437,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        209,
+        420
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__temple.webp",
+      "source": "snow-structures",
+      "bytes": 65110,
+      "sha256": "311c76ef6dd75b20b8692d51a8cbe150835c6394e6110e046980065183ec4fb8",
+      "width_px": 411,
+      "height_px": 425,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        205,
+        408
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__torii.webp",
+      "source": "snow-structures",
+      "bytes": 60344,
+      "sha256": "53a8f1c194cf6a3563ccaf9ac4c4bae482594e383d5f1128fbeaa50bb662840f",
+      "width_px": 434,
+      "height_px": 420,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        217,
+        403
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__stone-lantern.webp",
+      "source": "snow-structures",
+      "bytes": 34464,
+      "sha256": "f0073c03d62bbd1529110fcee6411c0dc961c58af844a03d3e477c09724f3249",
+      "width_px": 240,
+      "height_px": 442,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        120,
+        424
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__steps.webp",
+      "source": "snow-structures",
+      "bytes": 39560,
+      "sha256": "ed0356d449c81a41f990e25eb8f55cc291b888acee8a5b4f0da7b20f19e3106f",
+      "width_px": 414,
+      "height_px": 329,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        207,
+        316
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__bridge.webp",
+      "source": "snow-structures",
+      "bytes": 40492,
+      "sha256": "145bdab9f36060a34b2c8386d5d1d5ff7749f4e3866408b2e5eb1336486e4441",
+      "width_px": 437,
+      "height_px": 264,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        218,
+        253
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__boulders.webp",
+      "source": "snow-props",
+      "bytes": 32622,
+      "sha256": "f7ec7682813c59f4e70d22f3cc31c1c8e250e0e01c00164d0f5aa327641f6896",
+      "width_px": 427,
+      "height_px": 253,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        213,
+        243
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__pine.webp",
+      "source": "snow-props",
+      "bytes": 45928,
+      "sha256": "b313ca469369dd53e36bd32297fc9899b69ae7e5375d0cb52cc1218d341de0fb",
+      "width_px": 414,
+      "height_px": 350,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        207,
+        336
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__ice-cliff.webp",
+      "source": "snow-props",
+      "bytes": 42472,
+      "sha256": "90f6f6d3ce9c3c9d01ab5283c9e6cd269080b34660f0dd428c8cc3a9e32f1dcd",
+      "width_px": 403,
+      "height_px": 391,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        201,
+        375
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__offertory.webp",
+      "source": "snow-props",
+      "bytes": 40756,
+      "sha256": "2a8640e2d2fcdbf46cd075bc968a6b7a7a347a275ae5f5432761dbcb294b2dd3",
+      "width_px": 371,
+      "height_px": 300,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        185,
+        288
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__paper-lantern.webp",
+      "source": "snow-props",
+      "bytes": 24550,
+      "sha256": "cb5a21773a3e95926bbcf53ef1ae0bc35915901199b2bdab615f37427384fd6a",
+      "width_px": 203,
+      "height_px": 360,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        101,
+        346
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__cedar-fence.webp",
+      "source": "snow-props",
+      "bytes": 43618,
+      "sha256": "11ae58f244bdce2c0653b2a12680ccb86134fa1263bc185b66dccfab4bf96922",
+      "width_px": 446,
+      "height_px": 284,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        223,
+        273
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__ice-patch.webp",
+      "source": "snow-extras",
+      "bytes": 72114,
+      "sha256": "7d7ec30cc2bdace2427191069fb0ba3c3d94494e322b105b7a3b5d33d94c27b1",
+      "width_px": 520,
+      "height_px": 349,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        260,
+        335
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__snowdrift.webp",
+      "source": "snow-extras",
+      "bytes": 55420,
+      "sha256": "1f01ff0c55402ed80cca20323d724185abfcfaf302ef485758f1b522ff0ad6c0",
+      "width_px": 520,
+      "height_px": 317,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        260,
+        304
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__octagonal-shrine.webp",
+      "source": "snow-extras",
+      "bytes": 89160,
+      "sha256": "75368ab6500cbf8e21047edde03859f88089eae3ff7a2f1a5ce2bdb4b7b35538",
+      "width_px": 443,
+      "height_px": 520,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        221,
+        499
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/scene/snow-temple__juniper.webp",
+      "source": "snow-extras",
+      "bytes": 74418,
+      "sha256": "31c75e63bf46a2a0b518c7beb362912b72c189e1d7d1578adc3c59175e9c2023",
+      "width_px": 520,
+      "height_px": 330,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        260,
+        317
+      ]
+    },
+    {
+      "path": "assets/img/vfx/enemies/snow-frost-bell/snow-frost-bell__warning.webp",
+      "source": "snow-vfx",
+      "bytes": 43796,
+      "sha256": "c2f9d69433f8422be504010bbff68cc328c8beb452c6f2a8c32e456c6b419fd3",
+      "width_px": 409,
+      "height_px": 361,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/snow-frost-bell/snow-frost-bell__impact.webp",
+      "source": "snow-vfx",
+      "bytes": 81116,
+      "sha256": "fa7d724dc088496d7e2bba4e4bb5b5280b479110ec68bd393764c0f0d7fdd13d",
+      "width_px": 465,
+      "height_px": 355,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/snow-ice-gale/snow-ice-gale__warning.webp",
+      "source": "snow-vfx",
+      "bytes": 46384,
+      "sha256": "914ce2c580b9e3981b2259a3a43ab7d2761b2eaa2ce9268c008d71eb1e01cbd6",
+      "width_px": 600,
+      "height_px": 165,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/snow-ice-gale/snow-ice-gale__impact.webp",
+      "source": "snow-vfx",
+      "bytes": 68824,
+      "sha256": "2646e1bc65b98768b748a52929029c3ae46c684212c8649899bfe11b473322ba",
+      "width_px": 600,
+      "height_px": 167,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/snow-blizzard-claws/snow-blizzard-claws__warning.webp",
+      "source": "snow-vfx",
+      "bytes": 49220,
+      "sha256": "e7edd6321b24e364d3b0c9acddc2b2ddfdf4773dcb22c755dcec1b741cd3d4a2",
+      "width_px": 399,
+      "height_px": 382,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/snow-blizzard-claws/snow-blizzard-claws__impact.webp",
+      "source": "snow-vfx",
+      "bytes": 111130,
+      "sha256": "d7dd742c4754b8cb0942718627ca2a348300de2c8f81ccbba2dd3bd9c8d7f011",
+      "width_px": 480,
+      "height_px": 411,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/snow-shooter/snow-shooter__projectile.webp",
+      "source": "stage56-action-accents",
+      "bytes": 5866,
+      "sha256": "11d01eee2f9b92feb35b4ddb4b7b4e960489c959785db6bd974383113d2e490a",
+      "width_px": 160,
+      "height_px": 43,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/vfx/enemies/snow-boss/snow-boss__arrival.webp",
+      "source": "stage56-action-accents",
+      "bytes": 29512,
+      "sha256": "1cfbe1168d6ab046e43c39204aa3551e07d66fc012d1ab8a396cdcfbfed1b241",
+      "width_px": 256,
+      "height_px": 215,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/snow-rabbit/snow-rabbit__sprite__idle.webp",
+      "source": "snow-mobs",
+      "bytes": 34350,
+      "sha256": "76ec17ca34b1261777a153be9a4e18dc94abc6f2d3350c181ca43050bb231bf1",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-rabbit/snow-rabbit__sprite__windup.webp",
+      "source": "snow-mobs",
+      "bytes": 33172,
+      "sha256": "24f6eb508842e55ae0c882cd08d999cde8d3025e1d879a526b4c31af314ef2bb",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-rabbit/snow-rabbit__sprite__action.webp",
+      "source": "snow-mobs",
+      "bytes": 39686,
+      "sha256": "cc70da1e8a378d94749855d3df36aec425c6d3169cef1c6a9b2964ebc1b95961",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-kamaitachi/snow-kamaitachi__sprite__idle.webp",
+      "source": "snow-mobs",
+      "bytes": 33954,
+      "sha256": "0076a02061bdda4777b06ab0ba3ba96a7ffd36845b92ca330d4d85be553cce96",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-kamaitachi/snow-kamaitachi__sprite__windup.webp",
+      "source": "snow-mobs",
+      "bytes": 31676,
+      "sha256": "c18f7dff12973c38fc16dd5a9a24053f3217072c6f5916cde9cf9ba37fc3b757",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-kamaitachi/snow-kamaitachi__sprite__action.webp",
+      "source": "snow-mobs",
+      "bytes": 39138,
+      "sha256": "d17ddcbea2825f6f9759ca877424028dee6c558402ac2c6d47dee76a270c08a9",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-ice-badger/snow-ice-badger__sprite__idle.webp",
+      "source": "snow-mobs",
+      "bytes": 30636,
+      "sha256": "23c17be18b2d18e81bb1d2ae82aa6a8c9ff4b442aa40be3ca00644852f083c7b",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-ice-badger/snow-ice-badger__sprite__windup.webp",
+      "source": "snow-mobs",
+      "bytes": 30210,
+      "sha256": "4151f7762712e734ecd60c9646b4e0a870a9b7b873b266e55c8cd3c085d66177",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-ice-badger/snow-ice-badger__sprite__action.webp",
+      "source": "snow-mobs",
+      "bytes": 41504,
+      "sha256": "42eb70cb3f2adb13a298d2b68d5fee6825358256ae6775fdbc29199f1dd08ce7",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-lantern-monk/snow-lantern-monk__sprite__idle.webp",
+      "source": "snow-mobs",
+      "bytes": 29936,
+      "sha256": "30153df7ef4433c97e2028e7e324e574c18f54bb9514bf4fae049f3c139fc6bf",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-lantern-monk/snow-lantern-monk__sprite__windup.webp",
+      "source": "snow-mobs",
+      "bytes": 29926,
+      "sha256": "101369af1cf9e81eb73cb01ecea53e178300a6cd0bf61943fe6d83a0716537a7",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-lantern-monk/snow-lantern-monk__sprite__action.webp",
+      "source": "snow-mobs",
+      "bytes": 43562,
+      "sha256": "4b25bb9b0f218596a5d9cccb4131b92076508a060dd71661221610e42f4bb1d0",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-frost-bell-guardian/snow-frost-bell-guardian__sprite__idle.webp",
+      "source": "snow-bosses",
+      "bytes": 39448,
+      "sha256": "5891d2873e23a0f1830972f4566beecbba0b6a38ce9c7c9e846c95bc046984f9",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-frost-bell-guardian/snow-frost-bell-guardian__sprite__windup.webp",
+      "source": "snow-bosses",
+      "bytes": 42270,
+      "sha256": "8b6bfe0acd90f1ebe96adc5bfac168b6a340cb4244f47265d87f0aac8aa7644c",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-frost-bell-guardian/snow-frost-bell-guardian__sprite__action.webp",
+      "source": "snow-bosses",
+      "bytes": 47150,
+      "sha256": "dccf6c9285dd20116813db87a8043a58aba7205296dc63dc10cd00c5beedbd7f",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-white-kimono/snow-white-kimono__sprite__idle.webp",
+      "source": "snow-bosses",
+      "bytes": 33236,
+      "sha256": "0d1579d9eb8836c0e89e4aa8b9e7d8fe1c6c953001eb79cc7e8cb00db1788e7d",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-white-kimono/snow-white-kimono__sprite__windup.webp",
+      "source": "snow-bosses",
+      "bytes": 37626,
+      "sha256": "df7ebb74969df93234f8a7f01786b8f70bea5750b0b13c31e15704b183ff5ba5",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-white-kimono/snow-white-kimono__sprite__action.webp",
+      "source": "snow-bosses",
+      "bytes": 44868,
+      "sha256": "1480a4189a038bbd1306ff1fed3eb84ea4c3750fd7916019610960cfb3085736",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-mountain-lion/snow-mountain-lion__sprite__idle.webp",
+      "source": "snow-bosses",
+      "bytes": 38356,
+      "sha256": "7da0c25931b372eddb5922b9a905c91d66085402ccaadf81b94b17f1773aa0ec",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-mountain-lion/snow-mountain-lion__sprite__windup.webp",
+      "source": "snow-bosses",
+      "bytes": 39292,
+      "sha256": "94427bf9af6379aef53f11df09c8e8b756afbd4a2e417028b40430f8eb576982",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/enemies/snow-mountain-lion/snow-mountain-lion__sprite__action.webp",
+      "source": "snow-bosses",
+      "bytes": 45108,
+      "sha256": "013721092845e07d27714c2c1197a82dbbabbac5e00944524eb2acaf52c32bd9",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK",
+      "pivot_px": [
+        192,
+        360
+      ]
+    },
+    {
+      "path": "assets/img/stages/snow-temple/tiles/snow-temple__ground-0.webp",
+      "source": [
+        "snow-ground",
+        "snow-path"
+      ],
+      "bytes": 481842,
+      "sha256": "5dd81fb98f278110ef01b050de6a2cfb4923dd2d93983a30b37ee369f930dbb8",
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/snow-temple/tiles/snow-temple__ground-1.webp",
+      "source": [
+        "snow-ground",
+        "snow-path"
+      ],
+      "bytes": 484692,
+      "sha256": "55aaa42058de8015c278a26606b1cc1a6bb283aa80f74bec9225b8103e3e18c9",
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/snow-temple/tiles/snow-temple__ground-2.webp",
+      "source": [
+        "snow-ground",
+        "snow-path"
+      ],
+      "bytes": 483418,
+      "sha256": "8f2de295609605724f667bdb88b988335e59a7cca71a3c568bb285e74b990160",
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/snow-temple/tiles/snow-temple__ground-3.webp",
+      "source": [
+        "snow-ground",
+        "snow-path"
+      ],
+      "bytes": 483344,
+      "sha256": "e4c94e9d63d8f748f4e0363dfdf8f7e7ea38468621ab666a67943c27673d0e63",
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/snow-temple/tiles/snow-temple__ground-4.webp",
+      "source": [
+        "snow-ground",
+        "snow-path"
+      ],
+      "bytes": 484754,
+      "sha256": "a6f6d600be9b6eee79b16ad2ff90917ac523e0144beb804e6e0c925c495eb49f",
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/stages/snow-temple/tiles/snow-temple__ground-5.webp",
+      "source": [
+        "snow-ground",
+        "snow-path"
+      ],
+      "bytes": 483678,
+      "sha256": "1dacae0620bc0c062d879f9d20831025e447961606634560f95190ff1b00e44d",
+      "width_px": 768,
+      "height_px": 512,
+      "mode": "RGB",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/snow-ice-pillar-boss/snow-ice-pillar-boss__sprite__idle.webp",
+      "source": "art/yokai-final-art-candidates/prepared/snow-ice-pillar-boss__idle.webp",
+      "bytes": 158904,
+      "sha256": "c79e15add1fe2bd109090580ac6292b25299b7057243ad0de6e908bd03897ea4",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "anchor": [
+        192,
+        360
+      ],
+      "alpha_bounds": [
+        27,
+        17,
+        357,
+        360
+      ],
+      "source_sha256": "4b50197a21a62deff32b85317ec6682b935ad280dbd5b5c360437ae5ab05e051",
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/snow-ice-pillar-boss/snow-ice-pillar-boss__sprite__windup.webp",
+      "source": "art/yokai-final-art-candidates/f4-prepared/snow-ice-pillar-boss__windup.webp",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "anchor": [
+        192,
+        360
+      ],
+      "alpha_bounds": [
+        12,
+        32,
+        372,
+        360
+      ],
+      "sha256": "ca8de390d6de438b4832d691ef5c94e79a599bab790aa2de1996af7851353c2b",
+      "bytes": 188500,
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    },
+    {
+      "path": "assets/img/enemies/snow-ice-pillar-boss/snow-ice-pillar-boss__sprite__action.webp",
+      "source": "art/yokai-final-art-candidates/f4-prepared/snow-ice-pillar-boss__action.webp",
+      "width_px": 384,
+      "height_px": 384,
+      "mode": "RGBA",
+      "anchor": [
+        192,
+        350
+      ],
+      "alpha_bounds": [
+        12,
+        24,
+        372,
+        380
+      ],
+      "sha256": "04eaca9c68dd45bb412753f631b76befd9f7ab1aa834adfcd06899a72134ccc7",
+      "bytes": 215306,
+      "approval": "PUBLIC_PLAYTEST_PENDING_FEEDBACK"
+    }
+  ]
+}

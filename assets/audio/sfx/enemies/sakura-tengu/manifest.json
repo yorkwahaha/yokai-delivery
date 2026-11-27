@@ -1,5 +1,5 @@
 {
-  "status": "ASSET_PENDING",
+  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
   "stage": "sakura-pass",
   "enemy": "sakura-tengu",
   "files": [
@@ -7,37 +7,37 @@
       "key": "sakuraRushWarn",
       "path": "assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__rush-warn.mp3",
       "trigger": "疾風突進：每次鎖線開始一次",
-      "status": "ASSET_PENDING"
+      "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
     },
     {
       "key": "sakuraRushCast",
       "path": "assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__rush-cast.mp3",
       "trigger": "疾風突進：每段衝刺開始一次",
-      "status": "ASSET_PENDING"
+      "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
     },
     {
       "key": "sakuraFanWarn",
       "path": "assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__feather-warn.mp3",
       "trigger": "扇形羽刃：前搖開始一次",
-      "status": "ASSET_PENDING"
+      "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
     },
     {
       "key": "sakuraFanCast",
       "path": "assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__feather-cast.mp3",
       "trigger": "扇形羽刃：整組發射一次",
-      "status": "ASSET_PENDING"
+      "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
     },
     {
       "key": "sakuraBloomWarn",
       "path": "assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__root-warn.mp3",
       "trigger": "錯峰櫻根：整組預警一次",
-      "status": "ASSET_PENDING"
+      "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
     },
     {
       "key": "sakuraBloomImpact",
       "path": "assets/audio/sfx/enemies/sakura-tengu/sakura-tengu__root-impact.mp3",
       "trigger": "錯峰櫻根：每處破土各一次",
-      "status": "ASSET_PENDING"
+      "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW"
     }
   ]
 }

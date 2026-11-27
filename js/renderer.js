@@ -89,9 +89,9 @@ window.RENDERER = (() => {
   function drawFrame(c, image, key, index, x, y, height) {
     const frames = image.portMobHeight ? PORT_MOB_FRAME : image.stageFrame ? [image.stageFrame] : image.sakuraFrame ? [image.sakuraFrame] :
       FRAME_BOUNDS[key] || [[0,0,image.naturalWidth,image.naturalHeight,image.naturalWidth/2]];
-    const r = frames[index] || frames[0], scale = height / (image.sakuraBaseHeight || frames[0][3]);
+    const r = frames[index] || frames[0], scale = height / (image.stageBaseHeight || image.sakuraBaseHeight || frames[0][3]);
     const source = FRAME_SOURCE_SIZE[key], rx = source ? image.naturalWidth/source[0] : 1, ry = source ? image.naturalHeight/source[1] : 1;
-    const box = {sx:r[0]*rx,sy:r[1]*ry,sw:r[2]*rx,sh:r[3]*ry,dx:x+(r[0]-r[4])*scale,dy:y-r[3]*scale,dw:r[2]*scale,dh:r[3]*scale};
+    const box = {sx:r[0]*rx,sy:r[1]*ry,sw:r[2]*rx,sh:r[3]*ry,dx:x+(r[0]-r[4])*scale,dy:y-(r[5] ?? r[3])*scale,dw:r[2]*scale,dh:r[3]*scale};
     c.drawImage(image,box.sx,box.sy,box.sw,box.sh,box.dx,box.dy,box.dw,box.dh);
     return box;
   }
@@ -1722,7 +1722,28 @@ window.RENDERER = (() => {
       // feathered atlas for the actual floor draw instead of only caching it.
       const groundSurface = stageId === "night-town" && surface?.naturalWidth === 1024 && surface?.naturalHeight === 1024
         ? (groundAtlasFor(surface) || surface) : surface;
-      tileImage(c, groundSurface, left, top, left + width, top + height);
+      const routeArt = stageId === "hyakki-kyoto" ? window.KYOTO_SCENE_ART
+        : stageId === "snow-temple" ? window.SNOW_TEMPLE_ART : window.LATE_STAGE_ART?.forStage(stageId);
+      if (routeArt) {
+        const grid = stageId === "hyakki-kyoto" && window.STAGE_ROUTE_LAYOUTS?.[stageId]?.grid;
+        if (grid && chunks.length && (left < 0 || top < 0 ||
+            left + width > grid.columns * chunks[0].w || top + height > grid.rows * chunks[0].h))
+          tileImage(c, routeArt.image("perimeter-ground"), left, top, left + width, top + height);
+        for (const chunk of chunks) {
+          if (chunk.x >= left + width || chunk.x + chunk.w <= left ||
+              chunk.y >= top + height || chunk.y + chunk.h <= top) continue;
+          const tile = routeArt.terrain(chunk.routeTerrain);
+          if (tile) c.drawImage(tile, chunk.x, chunk.y, chunk.w, chunk.h);
+          for (const prop of chunk.routeGroundProps || []) {
+            const image = routePropImage(prop.kind);
+            if (!image) continue;
+            const height = prop.width * image.naturalHeight / image.naturalWidth;
+            c.drawImage(image, prop.x - prop.width / 2, prop.y - height / 2, prop.width, height);
+          }
+        }
+      } else {
+        tileImage(c, groundSurface, left, top, left + width, top + height);
+      }
     }
     if (bambooPath) paintBambooTrails(c, region, chunks, bambooPath);
     if (stageId === "rain-port") {
@@ -1777,14 +1798,18 @@ window.RENDERER = (() => {
     const projected = cacheMode !== "original" && tilt === (window.VIEWPORT?.tiltTargetScale?.() ?? tilt);
     const scaleY = projected ? Math.fround(pixelScale * tilt) : pixelScale;
     const bambooArt = stageId === "bamboo-maze" ? window.BAMBOO_ART : null;
-    const groundImg = bambooArt?.image("forest-duff") || window.ART?.[groundKey];
+    const kyotoGround = stageId === "hyakki-kyoto" ? window.KYOTO_SCENE_ART?.image("ground-grid") : null;
+    const groundImg = kyotoGround || bambooArt?.image("forest-duff") || window.ART?.[groundKey];
     const bambooPath = bambooArt?.image("earth-track");
     const courtImg = window.ART?.ground;
     const toriiImg = window.ART && window.ART.prop_torii;
     const sakuraImg = window.ART && window.ART.prop_sakura;
     const toriiReady = !!(toriiImg && toriiImg.complete && toriiImg.naturalWidth);
     const sakuraReady = !!(sakuraImg && sakuraImg.complete && sakuraImg.naturalWidth);
-    const baseColor = stageId === "night-town" || !stageId ? "#0e111a" : "#111420";
+    const routeStamp = stageId === "hyakki-kyoto" ? window.KYOTO_SCENE_ART?.terrainStamp()
+      : stageId === "snow-temple" ? window.SNOW_TEMPLE_ART?.terrainStamp() : window.LATE_STAGE_ART?.forStage(stageId)?.terrainStamp();
+    const baseColor = stageId === "snow-temple" ? "#c4c3c5" :
+      stageId === "night-town" || !stageId ? "#0e111a" : "#111420";
     const paintFallback = () => {
       surfaceCounts.terrainFallbacks++;
       ctx.save();
@@ -1853,7 +1878,7 @@ window.RENDERER = (() => {
           return `${img?.currentSrc || img?.src || ""}:${img?.naturalWidth || 0}`;
         }).join("|")
       : "";
-    const assetsChanged = !cached || cached.key !== groundKey || cached.stageId !== stageId || cached.portStamp !== portStamp || cached.sakuraStamp !== sakuraStamp || cached.image !== groundImg || cached.imageWidth !== (groundImg?.naturalWidth || 0) || cached.courtImage !== courtImg || cached.bambooPath !== bambooPath ||
+    const assetsChanged = !cached || cached.key !== groundKey || cached.stageId !== stageId || cached.portStamp !== portStamp || cached.sakuraStamp !== sakuraStamp || cached.routeStamp !== routeStamp || cached.image !== groundImg || cached.imageWidth !== (groundImg?.naturalWidth || 0) || cached.courtImage !== courtImg || cached.bambooPath !== bambooPath ||
       cached.pixelScale !== pixelScale || cached.scaleY !== scaleY ||
       // Camera transition varies visible world height on every frame.
       // Cache coverage below, not viewport height equality, governs rebuilds.
@@ -1924,7 +1949,7 @@ window.RENDERER = (() => {
       }
       groundCacheBuilds++;
       surfaceCounts.terrainPaints++;
-      terrainState = {left,top,width:pw/pixelScale,height:ph/scaleY,key:groundKey,stageId,portStamp,sakuraStamp,image:groundImg,
+      terrainState = {left,top,width:pw/pixelScale,height:ph/scaleY,key:groundKey,stageId,portStamp,sakuraStamp,routeStamp,image:groundImg,
         imageWidth:groundImg?.naturalWidth || 0, courtImage:courtImg,bambooPath,pixelScale,scaleY,viewW:area.width,viewH:area.height,
         chunks:chunksInRegion(chunks,left,top,pw/pixelScale,ph/scaleY)};
     }
@@ -2053,32 +2078,112 @@ window.RENDERER = (() => {
     });
   }
 
-  function drawBambooRaster(image, x, y, width) {
+  function drawRouteRaster(image, x, y, width) {
     const height = width * image.naturalHeight / image.naturalWidth;
     ctx.drawImage(image, x - width / 2, y - height * .96, width, height);
   }
 
-  function drawBambooProp(prop, viewer) {
-    const image = window.BAMBOO_ART?.image(prop.kind);
+  function drawStageLabHazard(hazard, image) {
+    const lane = hazard.lanes[hazard.index];
+    if (!lane) return;
+    const subZones = lane.zones || [lane];
+    const highContrastFerry = hazard.phase === "telegraph" && (hazard.art === "oar-sweep" || hazard.art === "spirit-tide");
+    for (const zone of subZones) {
+      const vertical = zone.ry > zone.rx;
+      const along = vertical ? zone.ry : zone.rx;
+      const across = vertical ? zone.rx : zone.ry;
+      ctx.save();
+      ctx.globalAlpha *= hazard.phase === "recovery" ? Math.max(0, hazard.remaining) * .52 : .96;
+      ctx.translate(zone.x, zone.y);
+      const angle = zone.angle ?? (vertical ? Math.PI / 2 : 0);
+      if (angle) ctx.rotate(angle);
+      if (zone.inner) {
+        ctx.beginPath();
+        ctx.arc(0, 0, zone.rx, 0, Math.PI * 2);
+        ctx.moveTo(zone.inner, 0);
+        ctx.arc(0, 0, zone.inner, 0, Math.PI * 2, true);
+        ctx.clip();
+      }
+      ctx.drawImage(image, -along, -across, along * 2, across * 2);
+      if (zone.inner && hazard.phase === "telegraph") {
+        ctx.beginPath();
+        ctx.arc(0, 0, zone.inner + 2, 0, Math.PI * 2);
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#ffceab";
+        ctx.stroke();
+      }
+      if (highContrastFerry) {
+        ctx.lineJoin = "round";
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = "rgba(20, 18, 16, 0.85)";
+        ctx.strokeRect(-along + 2, -across + 2, along * 2 - 4, across * 2 - 4);
+        ctx.lineWidth = 2.2;
+        ctx.strokeStyle = "#ffe29a";
+        ctx.strokeRect(-along + 2, -across + 2, along * 2 - 4, across * 2 - 4);
+      }
+      ctx.restore();
+    }
+  }
+
+  function routePropImage(kind) {
+    if (kind?.startsWith("kyoto-")) return window.KYOTO_SCENE_ART?.image(kind.slice(6));
+    if (kind?.startsWith("snow-")) return window.SNOW_TEMPLE_ART?.image(kind.slice(5));
+    if (kind?.startsWith("ferry-")) return window.LATE_STAGE_ART?.forStage("spirit-ferry")?.image(kind.slice(6));
+    if (kind?.startsWith("yomi-")) return window.LATE_STAGE_ART?.forStage("yomi")?.image(kind.slice(5));
+    return window.BAMBOO_ART?.image(kind);
+  }
+
+  function drawRouteProp(prop, viewer, bosses, opacity = 1) {
+    if (opacity <= 0) return;
+    const image = routePropImage(prop.kind);
     if (!image) return;
-    const tall = image.naturalHeight > image.naturalWidth * 1.7;
+    const tall = prop.kind === "kyoto-three-tier-pagoda" ||
+      prop.kind === "snow-octagonal-shrine" || /^(ferry-|yomi-)/.test(prop.kind) && prop.width >= 100 ||
+      image.naturalHeight > image.naturalWidth * 1.7;
     const projectedHeight = prop.width * image.naturalHeight / image.naturalWidth / tiltK();
-    const obscures = tall && viewer && Math.abs(viewer.x - prop.x) < prop.width * .54 &&
-      viewer.y < prop.y && prop.y - viewer.y < projectedHeight;
+    const behind = actor => actor && Math.abs(actor.x - prop.x) < prop.width * .54 &&
+      actor.y < prop.y && prop.y - actor.y < projectedHeight;
+    const obscures = tall && (behind(viewer) || bosses?.some(behind));
     ctx.save();
+    if (prop.kind === "yomi-moon") ctx.globalAlpha *= .48 * opacity;
     if (obscures) ctx.globalAlpha *= .36;
-    window.VIEWPORT.upright(ctx, prop.x, prop.y, () => drawBambooRaster(image, prop.x, prop.y, prop.width));
+    window.VIEWPORT.upright(ctx, prop.x, prop.y, () => drawRouteRaster(image, prop.x, prop.y, prop.width));
     ctx.restore();
   }
 
-  // 繪製高精緻度日式町屋店鋪（真實店鋪 Sprite + 障子金光 + 和風招牌）
+  const KYOTO_HOUSE_ART = {
+    kyoto_grocery: ["grocery", 184], kyoto_sweets_house: ["sweets-house", 169],
+    kyoto_noodle_house: ["noodle-house", 105], kyoto_tea_house: ["tea-house", 153]
+  };
+  const SNOW_HOUSE_ART = { snow_shrine: ["shrine", 130], snow_temple: ["temple", 145] };
+
+  // 繪製配送屋，依腳底對齊真圖與門口。
   const sampledPortHouses = new Set();
   function drawHouse(h, viewerY = null, viewerX = null) {
+    const lateArt = window.LATE_STAGE_ART?.forStage(currentStageId());
+    const lateStyle = lateArt?.house(h.bType);
+    const lateHouse = lateStyle && lateArt.image(lateStyle[0]);
+    if (lateHouse) {
+      drawRouteRaster(lateHouse, h.x, h.footY ?? h.y + 48, lateStyle[1]);
+      return;
+    }
+    const kyotoStyle = KYOTO_HOUSE_ART[h.bType];
+    const kyotoHouse = kyotoStyle && window.KYOTO_SCENE_ART?.image(kyotoStyle[0]);
+    if (kyotoHouse) {
+      drawRouteRaster(kyotoHouse, h.x, h.footY ?? h.y + 48, kyotoStyle[1]);
+      return;
+    }
+    const snowStyle = SNOW_HOUSE_ART[h.bType];
+    const snowHouse = snowStyle && window.SNOW_TEMPLE_ART?.image(snowStyle[0]);
+    if (snowHouse) {
+      drawRouteRaster(snowHouse, h.x, h.footY ?? h.y + 48, snowStyle[1]);
+      return;
+    }
     const bambooRole = h.bType === "bamboo_tea_house" ? "tea-house" :
       h.bType === "bamboo_produce_house" ? "produce-house" : null;
     const bambooHouse = bambooRole && window.BAMBOO_ART?.image(bambooRole);
     if (bambooHouse) {
-      drawBambooRaster(bambooHouse, h.x, h.footY ?? h.y + 48, bambooRole === "tea-house" ? 178 : 170);
+      drawRouteRaster(bambooHouse, h.x, h.footY ?? h.y + 48, bambooRole === "tea-house" ? 178 : 170);
       return;
     }
     ctx.save();
@@ -2685,7 +2790,10 @@ window.RENDERER = (() => {
     }
 
     const bambooSprite = currentStageId() === "bamboo-maze" && window.BAMBOO_ART?.monster(e, elapsed, motion);
-    let sprite = rosterSprite || bambooSprite || (spriteKey ? window.ART[spriteKey] : null);
+    const kyotoSprite = currentStageId() === "hyakki-kyoto" && window.KYOTO_SCENE_ART?.monster(e, P, elapsed, motion);
+    const snowSprite = currentStageId() === "snow-temple" && window.SNOW_TEMPLE_ART?.monster(e, elapsed, motion);
+    const lateSprite = window.LATE_STAGE_ART?.forStage(currentStageId())?.monster(e, elapsed, motion);
+    let sprite = rosterSprite || bambooSprite || kyotoSprite || snowSprite || lateSprite || (spriteKey ? window.ART[spriteKey] : null);
     let sw = 50;
 
     // 依類型決定基礎寬度
@@ -2733,7 +2841,7 @@ window.RENDERER = (() => {
     if (sprite) {
       const aspect = (sprite.naturalWidth && sprite.naturalHeight) ? (sprite.naturalHeight / sprite.naturalWidth) : 1;
       const kind = isBoss ? "boss" : isMis ? "mis" : ["runner","tank","shooter"].includes(e.type) ? e.type : "ghost";
-      let actualH = sprite.rosterBossHeight || sprite.bambooHeight || sprite.portMobHeight || sw * aspect;
+      let actualH = sprite.rosterBossHeight || sprite.bambooHeight || sprite.kyotoHeight || sprite.stageSpriteHeight || sprite.portMobHeight || sw * aspect;
       if (!isBoss && sprite.sakuraFrame && currentStageId() === "sakura-pass") {
         const source = NIGHT_MONSTER_SOURCE_SIZE[kind], reference = FRAME_BOUNDS[kind][0];
         const idle = window.SAKURA_ART_DATA?.characters[e.sakuraArtId]?.idle?.frame || sprite.sakuraFrame;
@@ -3699,10 +3807,39 @@ window.RENDERER = (() => {
     return tile;
   }
 
+  function harborWarningReady(kind) {
+    const { ring, rail } = window.HARBOR_WARNING_ART || {};
+    return !!ring?.naturalWidth && (kind === "rainVortex" || kind === "tidalFan" && rail?.naturalWidth > 0);
+  }
+
+  function drawHarborWarningInk(c, h, kind) {
+    const { ring, rail } = window.HARBOR_WARNING_ART;
+    if (kind === "rainVortex") {
+      for (const v of h.vortexes || [h]) {
+        const r = (v.r || 32) + 20;
+        c.drawImage(ring, v.x - r, v.y - r, r * 2, r * 2);
+      }
+      return;
+    }
+    const reach = (h.r || 225) + 30, a = h.startAngle ?? (h.angle || 0) - Math.PI / 3;
+    const b = h.endAngle ?? (h.angle || 0) + Math.PI / 3;
+    c.save();
+    c.translate(h.x, h.y);
+    c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, reach, a, b); c.closePath(); c.clip();
+    c.drawImage(ring, -reach, -reach, reach * 2, reach * 2);
+    for (const angle of [a, b]) {
+      c.save(); c.rotate(angle);
+      c.drawImage(rail, 0, -10, reach, 20);
+      c.restore();
+    }
+    c.restore();
+  }
+
   function drawPortBossTelegraphOverlay(c, h, elapsed = 0) {
     if (currentStageId() !== "rain-port" || h?.phase !== "telegraph") return false;
     const kind=h.kind;
     if (!["tidalFan","rainVortex","tide"].includes(kind)) return false;
+    if (harborWarningReady(kind)) return true;
     const pulse=allowsMotion()? .82+.16*Math.sin((Number(elapsed)||0)*10):.95;
     const ripple=bossHazardRipple();
     c.save();
@@ -4552,6 +4689,12 @@ window.RENDERER = (() => {
     }
 
     if (isWaterFanVortex) {
+      const warningKind = fan ? "tidalFan" : "rainVortex";
+      if (currentStageId() === "rain-port" && h.phase === "telegraph" && harborWarningReady(warningKind)) {
+        drawHarborWarningInk(c, h, warningKind);
+        bossHazardPass = "IMAGE";
+        return true;
+      }
       const art = bossHazardArt(kind);
       if (!art) {
         paintPortHazardSafety(c, h, fan);
@@ -6421,7 +6564,7 @@ window.RENDERER = (() => {
     resetS2GroundKitDrawCounts,
     sceneryDepth,
     drawHouse,
-    drawHouseShadow, drawBambooProp,
+    drawHouseShadow, drawRouteProp, routePropImage, drawStageLabHazard,
     drawLampShadow,
     drawPlayerShadow,
     drawMonsterShadow,

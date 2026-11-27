@@ -2,13 +2,13 @@
 // Only weapons(dt) advances poison and trail; raster-only visual effects.
 window.GAME_VIOLET_SCENT = (() => {
   const TIERS = Object.freeze([
-    {max:4, distance:62, interval:.30, radius:46, life:2.8, factor:1.4},
-    {max:6, distance:56, interval:.27, radius:54, life:3.5, factor:1.8},
-    {max:8, distance:52, interval:.24, radius:60, life:4.4, factor:2.3},
-    {max:11,distance:48, interval:.22, radius:67, life:5.5, factor:2.8},
-    {max:14,distance:45, interval:.20, radius:72, life:6.0, factor:3.2}
+    {max:4, distance:62, interval:.30, radius:46, life:2.8, factor:2.0},
+    {max:6, distance:56, interval:.27, radius:54, life:3.5, factor:2.7},
+    {max:8, distance:52, interval:.24, radius:60, life:4.4, factor:3.5},
+    {max:11,distance:48, interval:.22, radius:67, life:5.5, factor:4.3},
+    {max:14,distance:45, interval:.20, radius:72, life:6.0, factor:5.2}
   ]);
-  const TICK=.5, MAX_DOT_STEPS=2, MAX_VISUALS=12, BOSS_MULTIPLIER=.35;
+  const TICK=.25, MAX_DOT_STEPS=2, MAX_VISUALS=12, BOSS_MULTIPLIER=.60;
   const CONFUSION_IMMUNITY=7;
   const eligible=e=>e&&e.hp>0&&!e.dying&&!e.shield&&!e.vanish&&!e.done&&!e.invulnerable&&!e.untargetable;
   function spec(level,damage=1,mutations=[]){
@@ -27,7 +27,7 @@ window.GAME_VIOLET_SCENT = (() => {
       life,
       poisonLife:2.0+(mods.has("mut_ink_echo")?1.6:0),
       confusionDuration:lvl===5?2.5+(mods.has("mut_ink_echo")?.5:0):0,
-      confusionImmunity:CONFUSION_IMMUNITY,bossMultiplier:BOSS_MULTIPLIER,
+      confusionImmunity:CONFUSION_IMMUNITY,bossMultiplier:BOSS_MULTIPLIER,tickInterval:TICK,
       cadenceEligible:false,reachEligible:false,critEligible:false};
   }
   function loadCandidateArt(){
@@ -47,12 +47,13 @@ window.GAME_VIOLET_SCENT = (() => {
     return art;
   }
   function create(){
-    let clouds=[],infections=new Map(),visuals=[],travel=0,since=99;
-    const reset=()=>{clouds=[];infections.clear();visuals=[];travel=0;since=99;};
+    let clouds=[],infections=new Map(),visuals=[],travel=0,since=99,interval=TIERS[0].interval,revision=0;
+    const reset=()=>{clouds=[];infections.clear();visuals=[];travel=0;since=99;revision++;};
     const suspend=reset;
     function tick({dt,level,start,end,enemies=[],effectiveDamage=1,mutations=[],hit,onEvent}){
       if(!(level>0)||!(dt>0))return;
       const cfg=spec(level,effectiveDamage,mutations);
+      interval=cfg.interval;
       since=Math.min(99,since+dt);
       clouds=clouds.filter(c=>(c.life-=dt)>0);
       visuals=visuals.filter(v=>(v.life-=dt)>0);
@@ -105,9 +106,11 @@ window.GAME_VIOLET_SCENT = (() => {
         inf.remaining=Math.max(0,inf.remaining-dt);
         inf.tick+=activeDt;
         let steps=0;
-        while(inf.tick>=TICK&&steps<MAX_DOT_STEPS){
-          inf.tick-=TICK;steps++;
+        const current=revision;
+        while(inf.tick+1e-9>=TICK&&steps<MAX_DOT_STEPS){
+          inf.tick=Math.max(0,inf.tick-TICK);steps++;
           hit?.(enemy,inf.dps*TICK*(enemy.type==="boss"?BOSS_MULTIPLIER:1),"poison");
+          if(current!==revision)return;
           if(enemy.hp<=0)break;
         }
         if(inf.remaining<=0||enemy.hp<=0)infections.delete(enemy);
@@ -187,9 +190,10 @@ window.GAME_VIOLET_SCENT = (() => {
       }
     }
     return {reset,suspend,tick,paint,paintEnemyImpacts,
-      snapshot:(level=1)=>({marks:clouds.length,clouds:clouds.length,
+      cooldownRemaining:()=>Math.max(0,interval-since),cooldownMax:()=>interval,
+      snapshot:()=>({marks:clouds.length,clouds:clouds.length,
         infected:infections.size,positions:clouds.map(c=>[c.x,c.y]),
-        depositCooldown:Math.max(0,spec(level).interval-since)})};
+        depositCooldown:Math.max(0,interval-since)})};
   }
   return Object.freeze({spec,create,loadCandidateArt});
 })();

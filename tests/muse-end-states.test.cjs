@@ -140,7 +140,7 @@ test("無字結算底板試用：勝敗共用圖片、文字與按鈕動態排�
       assert.equal(heading?.x,x-39,'fixed grid heading anchor: '+word);
       const stat=traces.find(t=>t.text===value);
       assert.equal(stat?.x,x+38,'dynamic grid value anchor: '+word);
-      assert.ok(stat?.font.includes("Yokai UI HanWang YanKai"),'local result stat uses the complete HanWang font: '+word);
+      assert.ok(stat?.font.includes("Yokai Trial MoonStars Kai T"),'default result uses the same OFL font locally and on public hosts: '+word);
       assert.ok(Math.abs(stat?.y - (286 + (22 * 0.76 - 22 * 0.12) / 2)) < 1,
         'result stat ink shares one consistent baseline: '+word);
     }

@@ -19,11 +19,11 @@ window.GAME_UPGRADE_CHOICES = (() => {
   // Weighted random permutation without replacement. The existing Phase17
   // 3-card assembler still owns category ratios, mutation pairing and rerolls.
   // RNG is injected by game.js, so the module is side-effect-free and testable.
-  function orderWeapons(keys, levels, maxActive, random) {
+  function orderWeapons(keys, levels, maxActive, random, weightFor = weaponOfferWeight) {
     const pending = [...keys];
     const output = [];
     while (pending.length > 0) {
-      const weights = pending.map(key => weaponOfferWeight(key, levels, maxActive));
+      const weights = pending.map(key => weightFor(key, levels, maxActive));
       const total = weights.reduce((sum, weight) => sum + weight, 0);
       if (!(total > 0)) {
         output.push(...pending);

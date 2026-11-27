@@ -37,15 +37,16 @@ test('竹林有四邊竹牆與 5×5 個固定區塊，移到邊緣也不延伸',
     assert.equal(game.spotBlocked(x, y, 18), true);
 });
 
-test('竹林公開地圖須先完成第三關，第五關繼續鎖定', () => {
+test('竹林公開地圖須先完成第三關，第五關須完成竹林後開放', () => {
   for (const hostname of ['localhost', 'example.com']) {
     const { OVERWORLD, STORE } = loadGame({ location: { ...location, hostname } }).env;
     const node = id => OVERWORLD.STAGE_NODES.find(n => n.stageId === id);
     assert.equal(OVERWORLD.isEnterable(node('bamboo-maze')), false);
     STORE.finish('sakura-pass', 100, 6, true);
     assert.equal(OVERWORLD.isEnterable(node('bamboo-maze')), true);
-    STORE.finish('bamboo-maze', 100, 6, true);
     assert.equal(OVERWORLD.isEnterable(node('hyakki-kyoto')), false);
+    STORE.finish('bamboo-maze', 100, 6, true);
+    assert.equal(OVERWORLD.isEnterable(node('hyakki-kyoto')), true);
   }
 });
 
@@ -68,7 +69,31 @@ test('開發直達竹林首輪必見第七至九招，選式神不寫入通關�
   assert.ok(game.eligibleChoices().every(card => !expected.includes(card.id)));
 });
 
-test('竹林載入 33 張現役真圖，竹守與竹筍妖姿態由戰鬥狀態選取', () => {
+test('DEV 技能試玩直接裝七八九招 Lv1 或 Lv5，重開仍有效且不污染正式資格', () => {
+  const ids = ['ink_trail', 'seal_nail', 'shikigami'];
+  for (const hostname of ['127.0.0.1', '192.168.50.107']) {
+    for (const rank of [1, 5]) {
+      const game = loadGame({ stage: 'bamboo-maze', location: { hostname, search: `?dev=1&s3play=1&skillLab=${rank}&bossLab=1` } });
+      for (let run = 0; run < 2; run++) {
+        game.start('bamboo-maze');
+        const levels = game.weaponLevels();
+        assert.equal(levels.katana, 1);
+        assert.deepEqual(ids.map(id => levels[id]), [rank, rank, rank]);
+        assert.equal(Object.values(levels).filter(v => v > 0).length, 4);
+        game.update(.05);
+        assert.equal(game.companion().active, true);
+        for (const id of ids) assert.equal(game.store().isActiveSkillUnlocked(id), false);
+      }
+    }
+  }
+  for (const location of [{ hostname: 'example.com', search: '?dev=1&s3play=1&skillLab=5' }, { hostname: '127.0.0.1', search: '?dev=1&s3play=1' }, { hostname: '127.0.0.1', search: '?s3play=1&skillLab=5' }]) {
+    const game = loadGame({ stage: 'bamboo-maze', location });
+    game.start('bamboo-maze');
+    assert.deepEqual(ids.map(id => game.weaponLevels()[id] || 0), [0, 0, 0]);
+  }
+});
+
+test('竹林載入 34 張現役真圖，竹守與竹筍妖姿態由戰鬥狀態選取', () => {
   const loaded = [];
   const manifest = JSON.parse(fs.readFileSync('assets/img/stages/bamboo-maze/manifest.json'));
   const dimensions = new Map(manifest.assets.filter(item => item.active !== false).map(item => [item.path, item.size]));
@@ -87,8 +112,8 @@ test('竹林載入 33 張現役真圖，竹守與竹筍妖姿態由戰鬥狀態�
   art.load();
   assert.equal(manifest.status, 'PUBLIC_PLAYTEST_PENDING_FEEDBACK');
   assert.deepEqual(new Set(loaded), new Set(dimensions.keys()));
-  assert.equal(new Set(loaded).size, 33);
-  assert.equal(loaded.length, 33);
+  assert.equal(new Set(loaded).size, 34);
+  assert.equal(loaded.length, 34);
   for (const path of loaded) assert.ok(fs.existsSync(path), path);
   assert.match(art.monster({ type: 'boss', shield: true }).path, /__sealed\.webp$/);
   assert.match(art.monster({ type: 'boss', hazard: { kind: 'bambooCut', phase: 'telegraph' } }).path, /__cut\.webp$/);
@@ -117,11 +142,12 @@ test('竹林實際繪製落葉地、彎路、房屋、竹叢和敵人，預警�
     lineTo: (x, y) => trailSegments.push([x, y])
   }, { get: (target, key) => target[key] ?? (() => {}) });
   const canvas = () => ({ getContext: () => ctx });
+  const offscreen = () => ({ getContext: () => new Proxy({}, { get: (target, key) => target[key] ?? (() => {}) }) });
   const env = { Image, innerWidth: 900, innerHeight: 600, document: { createElement: canvas },
     ART: {}, UI: {}, matchMedia: () => ({ matches: false, addEventListener() {} }) };
   env.window = env;
   vm.createContext(env);
-  for (const name of ['viewport', 'stage-route-layouts', 'bamboo-art', 'renderer'])
+  for (const name of ['viewport', 'stage-route-layouts', 'bamboo-combat', 'bamboo-art', 'renderer'])
     vm.runInContext(fs.readFileSync(`js/${name}.js`, 'utf8'), env);
   const { BAMBOO_ART, RENDERER } = env;
   RENDERER.init(canvas());
@@ -134,7 +160,7 @@ test('竹林實際繪製落葉地、彎路、房屋、竹叢和敵人，預警�
     Math.abs(x - trailSegments[i][0]) > 5 && Math.abs(y - trailSegments[i][1]) > 5));
   RENDERER.drawHouse({ bType: 'bamboo_tea_house', x: 100, y: 100, footY: 148 });
   assert.match(drawn.at(-1)[0].path, /__tea-house\.webp$/);
-  RENDERER.drawBambooProp({ kind: 'bamboo-column', x: 150, y: 120, width: 120 });
+  RENDERER.drawRouteProp({ kind: 'bamboo-column', x: 150, y: 120, width: 120 });
   assert.match(drawn.at(-1)[0].path, /__bamboo-column\.webp$/);
   assert.ok(drawn.at(-1)[4] > 280, '直竹高度超過 280');
   RENDERER.drawMonster({ type: 'tank', x: 10, y: 10, attackT: .1 }, { x: 30 }, 0);
@@ -142,13 +168,72 @@ test('竹林實際繪製落葉地、彎路、房屋、竹叢和敵人，預警�
   assert.match(sprite.path, /crab__sprite__attack\.webp$/);
   assert.ok(Math.abs(dy + dh - 19) < 1e-8, 'sprite feet keep the same world anchor');
 
-  BAMBOO_ART.paintHazard(ctx, { kind: 'bambooCut', phase: 'telegraph', zones: [{ x: 50, y: 60, rx: 36, ry: 145 }] });
-  assert.match(drawn.at(-1)[0].path, /bamboo-cut__warning\.webp$/);
+  env.document.createElement = offscreen;
+  const cut = env.BAMBOO_COMBAT.start({ x: 50, y: 190, hp: 100 }, { x: 50, y: 60 });
+  const beforeCut = drawn.length;
+  assert.equal(BAMBOO_ART.paintHazard(ctx, cut, 'ground'), true);
+  assert.equal(BAMBOO_ART.paintHazard(ctx, cut, 'foreground'), true);
+  const [band, boundary] = drawn.slice(beforeCut);
+  assert.ok(boundary, '地面色帶和前景邊界各畫一次');
+  for (const layer of [band, boundary]) assert.deepEqual(layer.slice(-4), [-145, -46.8, 290, 93.6]);
   assert.equal(rotations.at(-1), Math.PI / 2);
-  assert.deepEqual(drawn.at(-1).slice(-4), [-145, -36, 290, 72]);
-  BAMBOO_ART.paintHazard(ctx, { kind: 'bambooShoots', phase: 'active', zones: [{ x: 80, y: 100, rx: 43, ry: 43 }] });
-  assert.deepEqual(drawn.at(-2).slice(-4), [-43, -43, 86, 86]);
-  assert.match(drawn.at(-1)[0].path, /bamboo-shoots__impact\.webp$/);
+  const impact = remaining => {
+    drawn.length = 0;
+    BAMBOO_ART.paintHazard(ctx, { ...cut, phase: 'active', remaining }, 'foreground');
+    return drawn.filter(([img]) => img.path?.endsWith('bamboo-cut__impact.webp'));
+  };
+  const firstCut = impact(.28), peakCut = impact(.19);
+  assert.ok(firstCut[0][3] < peakCut[0][3], '裂地從一端擴張');
+  assert.ok(peakCut.length > firstCut.length, '尖峰有飛散碎竹');
+  drawn.length = 0;
+  BAMBOO_ART.paintHazard(ctx, { ...cut, phase: 'recovery', remaining: .67 }, 'ground');
+  assert.match(drawn[0][0].path, /bamboo-cut__impact\.webp$/);
+  const alphaStack = [], translations = [], scales = [];
+  ctx.save = () => alphaStack.push(ctx.globalAlpha);
+  ctx.restore = () => { ctx.globalAlpha = alphaStack.pop(); };
+  ctx.translate = (...args) => translations.push(args);
+  ctx.scale = (...args) => scales.push(args);
+  ctx.globalAlpha = .8;
+  const boss = { x: 10, y: 10, hp: 100, bambooAttack: 1 };
+  const player = { x: 80, y: 100 };
+  const shoots = env.BAMBOO_COMBAT.start(boss, player);
+  assert.equal(shoots.remaining, .34);
+  const sample = () => {
+    drawn.length = translations.length = scales.length = 0;
+    assert.equal(BAMBOO_ART.paintHazard(ctx, shoots), true);
+    assert.deepEqual(translations[0], [80, 100]);
+    assert.equal(ctx.globalAlpha, .8);
+    assert.equal(alphaStack.length, 0);
+    assert.ok(drawn.length <= 7);
+    return drawn.slice();
+  };
+  const startWarning = sample();
+  assert.match(startWarning[0][0].path, /bamboo-shoots__warning\.webp$/);
+  assert.deepEqual(startWarning[0].slice(-4), [-50, -50, 100, 100]);
+  env.BAMBOO_COMBAT.step(boss, player, .30);
+  const lateWarning = sample();
+  assert.match(lateWarning[1][0].path, /earth-break\.webp$/);
+  assert.ok(lateWarning[1][7] > startWarning[1][7], '土層在預警圈內隆起');
+  assert.ok(!lateWarning.some(([img]) => img.path.endsWith('bamboo-shoots__impact.webp')));
+
+  env.BAMBOO_COMBAT.step(boss, player, .05);
+  assert.equal(shoots.remaining, .22);
+  const tip = sample().find(([img]) => img.path.endsWith('bamboo-shoots__impact.webp'));
+  assert.ok(tip[4] < 80, '命中開始只露出尖端');
+  assert.ok(Math.abs(tip[6] + tip[8]) < 1e-8, '尖端從原始落點冒出');
+  env.BAMBOO_COMBAT.step(boss, player, .08);
+  env.VIEWPORT.setTiltScale(.6);
+  const peak = sample();
+  const shoot = peak.find(([img]) => img.path.endsWith('bamboo-shoots__impact.webp'));
+  assert.ok(shoot[4] > 490 && shoot[6] < tip[6], '同一張圖向上揭露至全高');
+  assert.ok(peak.length >= 5, '尖峰同時繪出飛散碎屑');
+  assert.deepEqual(scales, [[1, 1 / .6]], '只有立體圖層抵銷世界傾斜');
+  env.BAMBOO_COMBAT.step(boss, player, .135);
+  assert.ok(sample().length < peak.length, '尾段不再繪製碎屑');
+  env.BAMBOO_COMBAT.step(boss, player, .01);
+  assert.equal(shoots.phase, 'telegraph');
+  assert.equal(shoots.strike, 2);
+  assert.deepEqual(sample().map(([img]) => img.path), startWarning.map(([img]) => img.path));
 });
 
 test('竹林 2D／2.5D 交會路網、取貨與三個答題點皆有連通路線', () => {
@@ -234,6 +319,30 @@ test('竹林 Boss 封印不施法；竹葉切線／筍陣有分離前搖及一�
   assert.equal(e.hazard.zones.length, 1);
 });
 
+test('竹影切線橫縱邊界跟鎖點一致，終王副線有獨立範圍及可走間隔', () => {
+  const { BAMBOO_COMBAT } = boot().env;
+  const mark = { x: 500, y: 500 };
+  for (const vertical of [false, true]) {
+    const makeBoss = () => ({ x: vertical ? 500 : 630, y: vertical ? 630 : 500, final: true, hp: 500, max: 1000 });
+    const point = (along, across) => ({ x: mark.x + (vertical ? across : along), y: mark.y + (vertical ? along : across) });
+    for (const [along, across, expected] of [[145, 46.7, 16], [146, 46.7, 0], [0, 46.9, 0], [0, 55, 0], [0, 65.9, 0], [115, 66, 16], [116, 66, 0], [0, 144, 16], [0, 144.1, 0]]) {
+      const boss = makeBoss();
+      const hazard = BAMBOO_COMBAT.start(boss, mark);
+      assert.equal(hazard.direction, -1);
+      assert.equal(hazard.remaining, 1.05);
+      assert.equal(hazard.zones.length, 2);
+      assert.deepEqual([hazard.zones[0].rx, hazard.zones[0].ry], vertical ? [46.8, 145] : [145, 46.8]);
+      assert.deepEqual([hazard.zones[1].rx, hazard.zones[1].ry], vertical ? [39, 115] : [115, 39]);
+      assert.equal(vertical ? hazard.zones[1].x - mark.x : hazard.zones[1].y - mark.y, 105);
+      const moving = point(along, across);
+      assert.equal(BAMBOO_COMBAT.step(boss, moving, 1.05).hit, null);
+      assert.equal(hazard.remaining, .28);
+      assert.deepEqual([hazard.zones[0].x, hazard.zones[0].y], [mark.x, mark.y]);
+      assert.equal(BAMBOO_COMBAT.step(boss, moving, .01).hit?.damage ?? 0, expected);
+    }
+  }
+});
+
 test('筍陣五次獨立鎖腳、跑出圈可閃、停留會中且可暫停或取消', () => {
   const { BAMBOO_COMBAT } = boot().env;
   for (const walking of [true, false]) {
@@ -260,7 +369,11 @@ test('筍陣五次獨立鎖腳、跑出圈可閃、停留會中且可暫停或�
         assert.equal(BAMBOO_COMBAT.step(boss,p,dt).hit, null);
       }
       assert.equal(h.phase, 'active');
-      if (BAMBOO_COMBAT.step(boss,p,.02).hit) hits++;
+      const { hit } = BAMBOO_COMBAT.step(boss,p,.02);
+      if (hit) {
+        assert.equal(hit.damage, 18);
+        hits++;
+      }
       assert.equal(BAMBOO_COMBAT.step(boss,p,.02).hit, null);
       if (!walking) p.x += 20;
       const step = BAMBOO_COMBAT.step(boss,p,1);
@@ -273,6 +386,131 @@ test('筍陣五次獨立鎖腳、跑出圈可閃、停留會中且可暫停或�
     assert.equal(BAMBOO_COMBAT.step(boss,p,.05).hit, null);
     assert.equal(boss.hazard, undefined);
   }
+});
+
+const waveTimes = [180, 360, 480, 540];
+const liveBosses = game => Array.from(game.snapshot().enemies.filter(e => e.type === 'boss' && e.hp > 0));
+const liveWaves = game => liveBosses(game).map(e => e.bossIndex);
+const reachWave = (game, index) => {
+  game.setElapsed(waveTimes[index] - .025);
+  game.update(.05);
+};
+const bootWaves = () => {
+  const game = boot();
+  game.start('bamboo-maze');
+  game.stopSpawns();
+  game.clearOrders();
+  return game;
+};
+const defeatWave = (game, index) => {
+  const boss = liveBosses(game).find(e => e.bossIndex === index);
+  assert.ok(boss, `wave ${index + 1} is alive`);
+  boss.shield = false;
+  game.hurt(boss, boss.hp);
+};
+
+test('竹影前三王依時出場，依序擊殺仍要等 9:00 才出尾王', () => {
+  const game = bootWaves();
+  game.meetDeliveryGoal();
+  for (let i = 0; i < 4; i++) {
+    game.setElapsed(waveTimes[i] - .1);
+    game.update(.05);
+    assert.deepEqual(liveWaves(game), []);
+    reachWave(game, i);
+    assert.deepEqual(liveWaves(game), [i]);
+    defeatWave(game, i);
+  }
+  assert.equal(game.snapshot().state, 'victory');
+});
+
+for (const firstDefeat of [0, 1, 2]) {
+  test(`竹影三王皆活時尾王無限期等待，先擊殺第 ${firstDefeat + 1} 王才補位`, () => {
+    const game = bootWaves();
+    for (let i = 0; i < 3; i++) {
+      reachWave(game, i);
+      assert.deepEqual(liveWaves(game), waveTimes.slice(0, i + 1).map((_, index) => index));
+    }
+    reachWave(game, 3);
+    assert.deepEqual(liveWaves(game), [0, 1, 2]);
+    game.setElapsed(690);
+    for (let i = 0; i < 3; i++) game.update(.05);
+    assert.deepEqual(liveWaves(game), [0, 1, 2], '舊逾時不能略過等待');
+    defeatWave(game, firstDefeat);
+    game.update(.05);
+    const expected = [0, 1, 2, 3].filter(index => index !== firstDefeat);
+    assert.deepEqual(liveWaves(game), expected);
+    for (let i = 0; i < 5; i++) game.update(.05);
+    assert.deepEqual(liveWaves(game), expected, '尾王只出場一次');
+  });
+}
+
+test('竹影尾王時間到時同幀死兩王，只補一王；先擊殺尾王仍要擊殺全部四王，零單即可通關', () => {
+  const game = bootWaves();
+  reachWave(game, 2); // 時鐘跨過前兩波也保留每個排程槽。
+  assert.deepEqual(liveWaves(game), [0, 1, 2]);
+  game.setElapsed(waveTimes[3] - .025);
+  const { x, y } = game.snapshot();
+  const [first, , third] = liveBosses(game);
+  Object.assign(first, { x: x + 60, y, shield: false, hp: 1 });
+  Object.assign(third, { x: x + 75, y, shield: false, hp: 1 });
+  game.setFacingAngle(0);
+  game.armWeapons();
+  game.update(.05);
+  assert.deepEqual(liveWaves(game), [1, 3]);
+  game.snapshot().gems.length = 0;
+  defeatWave(game, 3);
+  game.update(.05);
+  assert.deepEqual(liveWaves(game), [1]);
+  assert.equal(game.snapshot().state, 'play');
+  defeatWave(game, 1);
+  game.update(.05);
+  assert.equal(game.snapshot().delivered, 0);
+  assert.equal(game.snapshot().state, 'victory', '取消最低配送門檻後，零單擊殺全部四王即可通關');
+  for (let frame = 0; game.snapshot().state === 'victory' && frame < 300; frame++) game.stepFrame(50);
+  assert.equal(game.snapshot().state, 'won');
+  assert.equal(game.store().isStageCompleted('bamboo-maze'), true);
+  game.start('bamboo-maze');
+  assert.equal(game.snapshot().elapsed, 0);
+  assert.equal(game.snapshot().bossStage, 0);
+  assert.equal(game.snapshot().bossT, 180);
+  assert.equal(game.snapshot().finalBossDefeated, false);
+  assert.deepEqual(liveWaves(game), []);
+  game.stopSpawns();
+  reachWave(game, 3);
+  assert.deepEqual(liveWaves(game), [0, 1, 2], '上局擊殺不可解除新局尾王門檻');
+  game.meetDeliveryGoal();
+  defeatWave(game, 2);
+  game.update(.05);
+  defeatWave(game, 3);
+  assert.equal(game.snapshot().state, 'play', '配送達標後，尾王死亡也不能跳過其餘王');
+  defeatWave(game, 1);
+  defeatWave(game, 0);
+  game.update(.05);
+  assert.equal(game.snapshot().state, 'victory');
+});
+
+test('竹影多王有獨立封印與血條，擊殺回油只發一次', () => {
+  const game = bootWaves();
+  reachWave(game, 2);
+  const bosses = liveBosses(game);
+  assert.deepEqual(bosses.map(b => b.hp), [300, 650, 1100]);
+  assert.equal(new Set(bosses.map(b => b.word.jp)).size, 3);
+  const [one, two, three] = bosses;
+  game.placeAt(two.x, two.y);
+  game.update(.05);
+  const quiz = game.snapshot().bossQ;
+  assert.equal(quiz, two.quiz);
+  game.setOil(10);
+  game.hurt(two, two.hp);
+  assert.equal(game.snapshot().oil, 10);
+  game.unlockBoss();
+  game.answerBoss(quiz.ans.indexOf(quiz.word));
+  assert.deepEqual(bosses.map(b => b.shield), [true, false, true]);
+  game.hurt(two, two.hp);
+  assert.equal(game.snapshot().oil, 45);
+  game.hurt(two, 100);
+  assert.equal(game.snapshot().oil, 45);
+  assert.deepEqual(liveBosses(game), [one, three]);
 });
 
 test('主循環配送、普通怪和 Boss 生成沿用竹林通道；暫停與重玩清除攻擊狀態', () => {
@@ -293,8 +531,7 @@ test('主循環配送、普通怪和 Boss 生成沿用竹林通道；暫停與�
   assert.ok(mobs.length >= 12);
   for (const mob of mobs) assert.equal(game.spotBlocked(mob.x, mob.y, 26), false);
   game.clearEnemies();
-  game.forceBossSchedule(0);
-  game.update(.05);
+  reachWave(game, 0);
   const boss = game.snapshot().enemies.find(e => e.type === 'boss');
   assert.ok(boss);
   assert.equal(game.spotBlocked(boss.x, boss.y, 52), false);

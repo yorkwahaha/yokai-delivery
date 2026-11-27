@@ -64,6 +64,37 @@ const cards=[
   {id:'boom',type:'weapon',n:'陰陽符',d:'符紙貼附並爆炸',levelText:'新解鎖'}
 ];
 
+test('mutation card paints the variant and its parent on separate centered plaques', () => {
+  const {env} = require('./helpers/game-runtime.cjs').loadGame();
+  const {GAME_CATALOG} = env;
+  const mutation = GAME_CATALOG.MUTATION_CONFIG.mut_boom_seek;
+  const choice = {...mutation, type:'mutation'};
+  for (const hasArt of [false,true]) {
+    const view = trial();
+    view.env.window.GAME_CATALOG = GAME_CATALOG;
+    if (hasArt) view.env.window.Image = class {
+      set src(url){this.url=url;this.naturalWidth=1024;this.naturalHeight=1536;this.onload?.();}
+    };
+    const cfg = view.env.window.__YOKAI_UPGRADE_PHASE42;
+    const [rect] = view.UI.levelUpLayout(1).cards;
+    view.UI.drawLevelUp(view.ctx,2,[choice],{},{},0,0,0,'touch');
+    for (const [text, point] of [['引魂追蹤',cfg.titlePoint],['陰陽符',cfg.classPoint]]) {
+      const x = rect.x + rect.w * point.x / 1024;
+      const y = rect.y + rect.h * point.y / 1536;
+      assert.ok(view.traces.some(entry => entry.text === text && entry.x === x && Math.abs(entry.y - y) < 1e-8), text);
+    }
+    assert.ok(!view.traces.some(entry => entry.text === '變異' && entry.y < rect.y + rect.h));
+  }
+  const view = trial();
+  view.env.window.GAME_CATALOG = GAME_CATALOG;
+  const seal = GAME_CATALOG.MUTATION_CONFIG.mut_seal_nail_wide;
+  view.UI.drawMutationCard(view.ctx,{emblem:seal.id,name:seal.n},{x:690,y:225,w:140,h:210});
+  const sealName = view.traces.find(entry => entry.text === GAME_CATALOG.WI.seal_nail.zh);
+  assert.ok(sealName);
+  view.ctx.font = sealName.font;
+  assert.ok(view.ctx.measureText(sealName.text).width <= sealName.w);
+});
+
 test('式神中心圖缺檔時仍畫共用框、名稱與描述', () => {
   const view = trial('?dev=1&shikigami=1');
   const artPath = 'assets/img/skills/shikigami/cards/shikigami__art.webp';
@@ -75,7 +106,7 @@ test('式神中心圖缺檔時仍畫共用框、名稱與描述', () => {
       if (value === artPath) { this.onerror(); return; }
       this.naturalWidth = 1024;
       this.naturalHeight = 1536;
-      this.onload();
+      this.onload?.();
     }
   };
   view.UI.drawLevelUp(view.ctx, 2, [{
@@ -83,7 +114,7 @@ test('式神中心圖缺檔時仍畫共用框、名稱與描述', () => {
     d: '召喚夥伴追擊附近妖怪', artPath
   }], {}, {}, 0, 0, 0, 'keyboard');
   assert.ok(requests.includes(artPath));
-  assert.ok(view.traces.some(t => t.image === 'assets/img/ui/menu/ui__upgrade-card-frame.png'));
+  assert.ok(view.traces.some(t => t.image === 'assets/img/ui/menu/ui__upgrade-card-frame.webp'));
   assert.ok(view.traces.some(t => t.text === '式神・召喚'));
   assert.ok(view.traces.some(t => t.text === '召喚夥伴追擊附近妖怪'));
   assert.ok(!view.traces.some(t => t.image === artPath || t.text === '卡片素材載入中'));

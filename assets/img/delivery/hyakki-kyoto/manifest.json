@@ -1,0 +1,450 @@
+{
+  "schema": 1,
+  "stage": "hyakki-kyoto",
+  "status": "IN_GAME_TRIAL_PENDING_USER_REVIEW",
+  "kind": "image",
+  "count": 20,
+  "candidate_manifest": "art/delivery-icons/hyakki-kyoto/words-20261119/manifest.json",
+  "items": [
+    {
+      "index": 1,
+      "jp": "こめ",
+      "kanji": "米",
+      "zh": "米",
+      "file": "01.webp",
+      "sha256": "a18ea358573a488e5a7caf2f86b7775e1ac1d8ce19ce49db2d292dfb89ea4d2e",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/01.webp",
+      "bytes": 63596,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          23,
+          20,
+          232,
+          236
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "jp": "しお",
+      "kanji": "塩",
+      "zh": "鹽",
+      "file": "02.webp",
+      "sha256": "62d2d2297bc8f6b8cc75af5d34ed1bd16688f78dfcda050449761be162fcde10",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/02.webp",
+      "bytes": 34454,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          66,
+          236,
+          189
+        ]
+      }
+    },
+    {
+      "index": 3,
+      "jp": "さとう",
+      "kanji": "砂糖",
+      "zh": "砂糖",
+      "file": "03.webp",
+      "sha256": "11b72ccd1a373126c7811f03839332d75b6aed99c5271fb982014f1f79be7f33",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/03.webp",
+      "bytes": 45500,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          25,
+          236,
+          230
+        ]
+      }
+    },
+    {
+      "index": 4,
+      "jp": "みそ",
+      "kanji": "味噌",
+      "zh": "味噌",
+      "file": "04.webp",
+      "sha256": "1eabc320d393c6e1582da09e4ec1c262ca00b968566e3db1614aa9c71b4d6dcb",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/04.webp",
+      "bytes": 54860,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          34,
+          236,
+          222
+        ]
+      }
+    },
+    {
+      "index": 5,
+      "jp": "しょうゆ",
+      "kanji": "醤油",
+      "zh": "醬油",
+      "file": "05.webp",
+      "sha256": "d99146451e53d5f13d191892bcda6803a30dd416316dc9dffc984190a1ba3ca0",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/05.webp",
+      "bytes": 33518,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          60,
+          20,
+          196,
+          236
+        ]
+      }
+    },
+    {
+      "index": 6,
+      "jp": "とうふ",
+      "kanji": "豆腐",
+      "zh": "豆腐",
+      "file": "06.webp",
+      "sha256": "ed9124d7079fa480be4b3e82edb2688cdf6f00814755945a58e073631e07967f",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/06.webp",
+      "bytes": 43670,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          41,
+          236,
+          215
+        ]
+      }
+    },
+    {
+      "index": 7,
+      "jp": "にく",
+      "kanji": "肉",
+      "zh": "肉",
+      "file": "07.webp",
+      "sha256": "3fd33c6f395cd6cdff2cfee7eaf06851ef9bf3f5b4f045b20f8ef454038c97b7",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/07.webp",
+      "bytes": 41744,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          48,
+          236,
+          207
+        ]
+      }
+    },
+    {
+      "index": 8,
+      "jp": "たまご",
+      "kanji": "卵",
+      "zh": "雞蛋",
+      "file": "08.webp",
+      "sha256": "af45a86346feade39278af40771eed6fce6b0436faeb71b462100a0faed95852",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/08.webp",
+      "bytes": 43890,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          28,
+          236,
+          227
+        ]
+      }
+    },
+    {
+      "index": 9,
+      "jp": "ぎゅうにゅう",
+      "kanji": "牛乳",
+      "zh": "牛奶",
+      "file": "09.webp",
+      "sha256": "c50c9e36f9f0f07bc5146aeab72104c97948481ce8141759cb489dda498ec831",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/09.webp",
+      "bytes": 31410,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          65,
+          20,
+          191,
+          236
+        ]
+      }
+    },
+    {
+      "index": 10,
+      "jp": "やさい",
+      "kanji": "野菜",
+      "zh": "蔬菜",
+      "file": "10.webp",
+      "sha256": "c527258c0a404915421fa5660d672a2a537c7d95005045e3b03901addf875d8e",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/10.webp",
+      "bytes": 61394,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          29,
+          236,
+          226
+        ]
+      }
+    },
+    {
+      "index": 11,
+      "jp": "もち",
+      "kanji": "餅",
+      "zh": "麻糬",
+      "file": "11.webp",
+      "sha256": "b43e0c048084da98fda1d467a6567b99e7e9ea022dc4ccd47e1508d4f8746f3e",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/11.webp",
+      "bytes": 35050,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          45,
+          236,
+          210
+        ]
+      }
+    },
+    {
+      "index": 12,
+      "jp": "まんじゅう",
+      "kanji": "饅頭",
+      "zh": "饅頭",
+      "file": "12.webp",
+      "sha256": "a77a7f9f3f7bade12f60f15edf36a964085481da090a211702913a13bef84b91",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/12.webp",
+      "bytes": 41084,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          47,
+          236,
+          209
+        ]
+      }
+    },
+    {
+      "index": 13,
+      "jp": "だいふく",
+      "kanji": "大福",
+      "zh": "大福",
+      "file": "13.webp",
+      "sha256": "bbbd1ee4191e5cc9e5ec541fee717a04afbf1f912f75754bf5641376320aa582",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/13.webp",
+      "bytes": 44910,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          37,
+          236,
+          219
+        ]
+      }
+    },
+    {
+      "index": 14,
+      "jp": "せんべい",
+      "kanji": "煎餅",
+      "zh": "仙貝",
+      "file": "14.webp",
+      "sha256": "473f87be84fedea93873de63a5cc08b7bc80ebbd7fe7549be5e0fc78f3b96c66",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/14.webp",
+      "bytes": 59270,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          32,
+          236,
+          223
+        ]
+      }
+    },
+    {
+      "index": 15,
+      "jp": "あめ",
+      "kanji": "飴",
+      "zh": "糖果",
+      "file": "15.webp",
+      "sha256": "123768e40808846862edadc140e4ce6f92aef69ff431df31606c6c6437e6afe0",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/15.webp",
+      "bytes": 43720,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          35,
+          236,
+          221
+        ]
+      }
+    },
+    {
+      "index": 16,
+      "jp": "たいやき",
+      "kanji": "たい焼き",
+      "zh": "鯛魚燒",
+      "file": "16.webp",
+      "sha256": "430b6d50dd52fcc4477986b73dd576aa988a2ec1936d3a474d9faa1db185f464",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/16.webp",
+      "bytes": 39526,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          54,
+          236,
+          202
+        ]
+      }
+    },
+    {
+      "index": 17,
+      "jp": "そば",
+      "kanji": "",
+      "zh": "蕎麥麵",
+      "file": "17.webp",
+      "sha256": "ec0aede9525e9b82bbddfaba138abdd888fe5f8cdc6434f038741fa83201898a",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/17.webp",
+      "bytes": 55766,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          47,
+          236,
+          209
+        ]
+      }
+    },
+    {
+      "index": 18,
+      "jp": "うどん",
+      "kanji": "",
+      "zh": "烏龍麵",
+      "file": "18.webp",
+      "sha256": "61d14e9ec4155d1d40f84dd8681fbf44e8eefe06da7ed831414c3e02097d4659",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/18.webp",
+      "bytes": 51872,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          35,
+          236,
+          221
+        ]
+      }
+    },
+    {
+      "index": 19,
+      "jp": "まっちゃ",
+      "kanji": "抹茶",
+      "zh": "抹茶",
+      "file": "19.webp",
+      "sha256": "8872a99101a7d54dc786c2e09e4a91e8fa206559be39d499f346f126d1c19b18",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/19.webp",
+      "bytes": 56324,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          25,
+          236,
+          231
+        ]
+      }
+    },
+    {
+      "index": 20,
+      "jp": "やきとり",
+      "kanji": "焼き鳥",
+      "zh": "烤雞肉串",
+      "file": "20.webp",
+      "sha256": "773c17c57d34d3d978be66a2987e8491b2015660a6ea8fcb0d3c534ad6f2fb8b",
+      "source": "art/delivery-icons/hyakki-kyoto/words-20261119/20.webp",
+      "bytes": 36050,
+      "analysis": {
+        "size": [
+          256,
+          256
+        ],
+        "alpha_box": [
+          20,
+          22,
+          236,
+          234
+        ]
+      }
+    }
+  ]
+}

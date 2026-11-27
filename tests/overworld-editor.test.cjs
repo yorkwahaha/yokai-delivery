@@ -61,14 +61,74 @@ test('local tools reject unexpected hosts, internal files and invalid request ta
         return require(name);
       }
     });
-    const head=(url,host='localhost:'+port)=>new Promise(resolve=>{
+    const head=(url,host='localhost:'+port,peer='127.0.0.1')=>new Promise(resolve=>{
       const res={writeHead(status){this.status=status;return this;},end(){resolve(this.status);}};
-      handle({url,method:'HEAD',headers:{host}},res);
+      handle({url,method:'HEAD',headers:{host},socket:{remoteAddress:peer}},res);
     });
     assert.equal(await head('/'),200,file);
     assert.equal(await head('/','untrusted.example:'+port),403,file);
     assert.equal(await head('/.git/HEAD'),403,file);
     assert.equal(await head('/README.md'),403,file);
     assert.equal(await head('http://['),400,file);
+    if(file==='serve-tilt.cjs')assert.equal(await head('/','127.0.0.1:'+port,'203.0.113.8'),403);
   }
+});
+
+test('one travel-map frame reads a single consistent progress view',()=>{
+  const root=load(saved),drawn=[],g={addColorStop(){}};
+  const ctx=new Proxy({fillText:value=>drawn.push(value),createLinearGradient:()=>g,createRadialGradient:()=>g},{get:(o,k)=>o[k]||(()=>{})});
+  let reads=0;
+  const progress={unlocked:{'night-town':true},completed:{},stages:{}};
+  root.CONTENT={getStage:id=>({id,implemented:true,mapReleased:true})};
+  root.STORE={
+    readProgress(){ reads++; return progress; },
+    isStageCompleted(){ assert.fail('draw should use the frame progress'); },
+    isStageUnlocked(){ assert.fail('draw should use the frame progress'); },
+    getStageStats(){ assert.fail('draw should use the frame progress'); }
+  };
+  const map=root.OVERWORLD,state=map.createState('night-town');
+  map.draw(ctx,state,0);
+  assert.equal(reads,1);
+  assert.ok(drawn.some(text=>String(text).includes('尚無配達紀錄')));
+  progress.completed['night-town']=true;
+  progress.stages['night-town']={bestScore:900};
+  map.draw(ctx,state,1);
+  assert.equal(reads,2);
+  assert.ok(drawn.some(text=>String(text).includes('最高 900 點')));
+});
+
+test('map editor can edit and apply while browser draft storage is unavailable',async()=>{
+  const window=load(saved),elements=new Map(),requests=[];
+  const element=()=>({children:[],dataset:{},classList:{toggle(){}},events:{},
+    append(...children){this.children.push(...children);},
+    appendChild(child){this.children.push(child);},
+    querySelectorAll(){return this.children;},
+    addEventListener(name,handler){this.events[name]=handler;},
+    getBoundingClientRect(){return {width:900,height:600};},
+    getContext(){return {};}
+  });
+  const node=id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);};
+  const denied=()=>{throw new Error('storage denied');};
+  window.OVERWORLD_LAYOUT=saved;
+  window.addEventListener=()=>{};
+  vm.runInNewContext(fs.readFileSync('editor/overworld-editor.js','utf8'),{
+    window,structuredClone,Image:class{},ResizeObserver:class{observe(){}},requestAnimationFrame(){},
+    document:{getElementById:node,createElement:element,querySelectorAll:()=>[]},
+    localStorage:{getItem:denied,setItem:denied,removeItem:denied},
+    fetch:async (_url,options)=>{
+      if(!options)return {ok:false};
+      requests.push(JSON.parse(options.body));
+      return {ok:true,json:async()=>({ok:true,path:'js/overworld-layout.js'})};
+    }
+  });
+  await new Promise(setImmediate);
+  assert.match(node('status').textContent,/瀏覽器暫存不可用/);
+  assert.equal(node('stages').children.length,17);
+  assert.equal(node('stages').children[1].children[0].textContent,'夜行町');
+  node('bgX').events.change({target:{value:'123'}});
+  assert.equal(node('bgX').value,123);
+  assert.match(node('status').textContent,/瀏覽器暫存不可用/);
+  await node('apply').onclick();
+  assert.equal(requests[0].background.x,123);
+  assert.match(node('status').textContent,/已寫入.*暫存未能清除/);
 });

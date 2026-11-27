@@ -1,16 +1,19 @@
-# Yokai Delivery — 現行文件入口
+# 現行文件索引
 
-Agent 只需讀 **AGENTS.md → docs/STAGE_PATHS.json → roadmap.md 開頭**，任務涉及哪個系統才補讀其他專項文件。
+更新：2026-11-27。這是日常文件的唯一入口。先讀根目錄 AGENTS.md 與 roadmap.md，依任務查下表，不批次讀取所有報告。
 
-| 文件 | 用途 |
-|---|---|
-| PROJECT_FILE_MAP.md / STAGE_PATHS.json | 八關唯一原稿／遊戲圖片路徑 |
-| GAME_DESIGN_MASTER.md | 遊戲企劃（權威） |
-| PRODUCTION_PLAN.md | 製作計畫（權威） |
-| ART_STYLE.md / ART_STAGES.md / ART_PROMPTS.md | 美術與生圖規範 |
-| ART_CLEANUP.md / CLEANUP_REPORT_20261024.md | 清理成果、空間回收、未完成依賴與風險 |
-| FUSION_SYSTEM_PLAN.md / FUSION_ART_DELIVERY_RULES.md | 合技規格 |
-| art-asset-only-standard.md / stage-identity-standard.md | 畫法與關卡 ID 規範 |
-| archive/2026-10/ | **已結案歷史文件**，必要追查才讀 |
+| 主題 | 現行入口 |
+| --- | --- |
+| 遊戲及玩法 | [GAME_DESIGN_MASTER.md](GAME_DESIGN_MASTER.md)、[PRODUCTION_PLAN.md](PRODUCTION_PLAN.md) |
+| 當前交接及待辦 | [agent-handoff.md](agent-handoff.md)、[roadmap.md](../roadmap.md) |
+| 八關及素材路徑 | [PROJECT_FILE_MAP.md](PROJECT_FILE_MAP.md)、[STAGE_PATHS.json](STAGE_PATHS.json)、[ASSET_CONVENTIONS.md](ASSET_CONVENTIONS.md)、ASSET_REGISTRY.json、ASSET_INVENTORY.json |
+| 美術 | [ART_STYLE.md](ART_STYLE.md)、[ART_STAGES.md](ART_STAGES.md)、[ART_PROMPTS.md](ART_PROMPTS.md)；有衝突以當前母風格、核准清冊及 AGENTS 為準 |
+| 詞庫及配送語音 | [DELIVERY_MEDIA_PATHS.md](DELIVERY_MEDIA_PATHS.md)、js/delivery-lexicon.js |
+| 第 7–9 招 | [LATE_SKILL_MUTATIONS_20261121.md](LATE_SKILL_MUTATIONS_20261121.md) |
+| 第 10–13 招 | [ACTIVE_SKILLS_10_13_DESIGN.md](ACTIVE_SKILLS_10_13_DESIGN.md)、[ACTIVE_SKILLS_10_13_IMPLEMENTATION.md](ACTIVE_SKILLS_10_13_IMPLEMENTATION.md) |
+| 八關整合／音效 | [STAGE78_DEV_COMPLETE_20261126.md](STAGE78_DEV_COMPLETE_20261126.md)、[STAGE58_AUDIO_PRODUCTION_20261126.md](STAGE58_AUDIO_PRODUCTION_20261126.md)、[SFX_SOURCE_AUDIT_20261107.md](SFX_SOURCE_AUDIT_20261107.md) |
+| iPad／UI | [IPAD_PERFORMANCE_OPTIMIZATION_PHASES.md](IPAD_PERFORMANCE_OPTIMIZATION_PHASES.md)、[UI_COMPENDIUM_BUILD_REWORK_20261126.md](UI_COMPENDIUM_BUILD_REWORK_20261126.md) |
+| 試玩／未核准美術 | [FIRST_FOUR_STAGES_POLISH_PHASE_E_20261125.md](FIRST_FOUR_STAGES_POLISH_PHASE_E_20261125.md)、[FIRST_FOUR_STAGES_ART_AUDIO_BACKLOG.md](FIRST_FOUR_STAGES_ART_AUDIO_BACKLOG.md)、[FIRST_FOUR_STAGES_QUALITY_BALANCE_AUDIT_20261125.md](FIRST_FOUR_STAGES_QUALITY_BALANCE_AUDIT_20261125.md)、[NEON_INTEGRATION_AUDIT_20261127.md](NEON_INTEGRATION_AUDIT_20261127.md) |
+| 測試與歷史查證 | [TEST_SUITE_STATUS.md](TEST_SUITE_STATUS.md)、[HISTORICAL_TESTS.json](HISTORICAL_TESTS.json)、[HISTORY_INDEX.json](HISTORY_INDEX.json)、TEST_TRIAGE_20261104.json |
 
-2026-10-24 完成圖像清理與 61 份文件封存。過期 QA、老 Agent 路由、舊版暫時交接不要當成現行工作指令。
+歷史原始文件與完整舊 roadmap／AGENTS 本機保存在 `.cleanup-archive/history/20261127/`，未用圖片在 `.cleanup-archive/images/`。兩者不上傳。HISTORY_INDEX.json 記載原路徑、封存位置與 SHA256；歷史文件中的相對連結應按原路徑解讀，必要時精準復原，不作現行指令。舊融合與委託路線企劃暫停，僅保留歷史。其他根目錄少數 Markdown 為既有生成／測試／技術契約，按需查閱。

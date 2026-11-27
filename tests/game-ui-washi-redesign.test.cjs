@@ -23,7 +23,7 @@ function scene({approved=true,blank=false}={}){
     naturalWidth=587;naturalHeight=323;
     set src(value){
       this._src=value;
-      if(!blank && value.includes('exit__blank.png'))return;
+      if(!blank && /exit__blank\.(png|webp)/.test(value))return;
       if(!approved && /assets\/img\/ui\/(menu|buttons)\//.test(value))return;
       this.onload?.();
     }
@@ -134,7 +134,7 @@ test('new blank landscape art supports live text for either exit target and both
  for(const target of ['home','world']){
   const s=scene({blank:true});
   s.UI.drawExitConfirm(s.ctx,1,target);
-  const frames=s.images.filter(v=>v.src?.includes('exit__blank.png'));
+  const frames=s.images.filter(v=>v.src?.includes('exit__blank.webp'));
   assert.equal(frames.length,1);
   assert.equal(frames[0].args.length,4);
   assert.ok(s.labels.some(v=>v.text==='是否放棄本局？'));

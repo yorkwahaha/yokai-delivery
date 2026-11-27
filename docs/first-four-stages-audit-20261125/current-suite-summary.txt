@@ -1,0 +1,18 @@
+[Yokai tests] current: 184 files; historical: 84 files; all: 268 files. The full legacy suite is not asserted green.
+✖ V3: 每 3 筆成功配送得 1 枚覺醒印，累積數不封頂、不跨局 (20.1627ms)
+✖ V3: 聽音提示停用後，正常配送仍計入覺醒印與 26 XP (18.8727ms)
+✖ V3: 真的答錯後原單補送三次，仍得 78 XP 與 1 枚印，但不加熟練星 (14.0231ms)
+✖ V3: Lv4 持印時，升級選單保證至少一張可覺醒的卡 (18.5548ms)
+✖ V3: 錯答扣最大油量的 5%（最低 3 油） (11.7009ms)
+✖ V3: 錯答不再額外生成誤配妖，且保留原單可補送 (13.2138ms)
+✖ V3: 錯答後補送仍給 XP 與印，但標記 assisted 不加熟練 (11.5815ms)
+✖ V3: 陣 Lv5 施放半徑 220（讀實際 SKILLFX 參數） (11.4075ms)
+ℹ tests 1210
+ℹ suites 0
+ℹ pass 1201
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 1
+ℹ duration_ms 20854.997
+✖ failing tests:

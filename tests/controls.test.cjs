@@ -36,6 +36,15 @@ test('malformed or duplicate saved bindings fall back safely', () => {
   assert.equal(controls('{').action('KeyW'), 'u');
   assert.equal(controls('{"u":"KeyD"}').action('KeyW'), 'u');
 });
+
+test('saved bindings must be strings, and bind only accepts game actions', () => {
+  const c = controls(JSON.stringify({ u: ['KeyT'], d: 'KeyS', l: 'KeyA', r: 'KeyD',
+    dash: 'Space', interact: 'KeyE', pause: 'KeyP', codex: 'KeyC', mute: 'KeyM' }));
+  assert.equal(c.label('u'), 'W');
+  assert.equal(c.action('KeyW'), 'u');
+  assert.equal(c.bind('u', ['KeyT']), false);
+  assert.equal(c.bind('toString', 'KeyT'), false);
+});
 test('misdelivery enemies approach a readable distance without overshoot and retreat if crowded', () => {
   const cfg = require('../js/config.js');
   assert.equal(cfg.chaseStep(90, 210, 0.05, 'mis'), 4);

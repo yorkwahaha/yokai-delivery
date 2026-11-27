@@ -34,7 +34,7 @@ function loadSharedSceneImage(url, priority = "auto", share = true) {
   return pending;
 }
 // Bump when replacing audio assets so deployed browser caches fetch the new clips.
-window.audioAsset = path => `${window.ASSET_PATHS?.resolve(path) || path}?v=20261031-canonical-audio1`;
+window.audioAsset = path => `${window.ASSET_PATHS?.resolve(path) || path}?v=20261125-sfx-pack3`;
 
 const GAME_ASSET_NAMES = [
   "player", "player_walk1", "player_walk2",
@@ -2872,7 +2872,17 @@ function loadStageAssets(stageId) {
     }
     // Boss hazard images must start loading on stage entry, not only on the
     // first dangerous cast (when the old water-ring fallback appears).
-    if (stageId === "rain-port") loadBossHazardArt();
+    if (stageId === "rain-port") {
+      loadBossHazardArt();
+      if (!window.HARBOR_WARNING_ART && window.DEV_MODE?.isStageLab?.(window.location)) {
+        window.HARBOR_WARNING_ART = Object.fromEntries(["ring", "rail"].map(role => {
+          const image = new Image();
+          image.decoding = "async";
+          image.src = `assets/img/vfx/enemies/ikari-umibozu/ikari-umibozu__warning-${role}.webp`;
+          return [role, image];
+        }));
+      }
+    }
   }
   const slots = STAGE_ASSET_SLOTS[stageId];
   if (!slots) return;
@@ -2940,7 +2950,8 @@ function loadStageAssets(stageId) {
   };
 
   // 關卡地圖（若不存在則回落到 night-town 或 rain-port）
-  const mapKey = slots.map;
+  const mapKey = stageId === "hyakki-kyoto" || stageId === "snow-temple" ||
+    window.LATE_STAGE_ART?.forStage(stageId) ? null : slots.map;
   if (mapKey) {
     // 若已請求且已完成，直接使用
     if (requestedArt.has(mapKey) && settledArt.has(mapKey)) {

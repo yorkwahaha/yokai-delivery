@@ -25,7 +25,7 @@
   let STAGE_ENEMY = STAGE.enemy || {};
   let START = STAGE.start || { x: 1350, y: 900 };
   let DAWN = STAGE_PACING.runSeconds || CFG.RUN_SECONDS;
-  let GOAL_DELIVERIES = STAGE_PACING.goalDeliveries || CFG.GOAL_DELIVERIES;
+  let GOAL_DELIVERIES = Number.isFinite(STAGE_PACING.goalDeliveries) ? STAGE_PACING.goalDeliveries : CFG.GOAL_DELIVERIES;
   let BOSS_TIMES = STAGE_PACING.bossTimes || CFG.BOSS_TIMES;
   let SURGE_FIRST = (STAGE_PACING.surgeFirst || CFG.SURGE_FIRST) * MOB_DIFFICULTY.surgePacingScale;
   let SURGE_INTERVAL = (STAGE_PACING.surgeInterval || CFG.SURGE_INTERVAL) * MOB_DIFFICULTY.surgePacingScale;
@@ -70,14 +70,15 @@
   const magnetRadius = rank => 110 + clamp(rank, 0, 3) * 80;
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const pick = a => a[Math.floor(Math.random() * a.length)];
-  const shuffle = a => {
+  const shuffleWithRandom = (a, random) => {
     a = [...a];
     for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(random() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
   };
+  const shuffle = a => shuffleWithRandom(a,Math.random);
 
   // 屋列距離（已批准口徑）：沿「沿途所有真 chunk」的 houses，以 50px X 列去重、兩端不計。
   // 與 WORLD.update 的 50px X 去重同口徑，不是距離除常數；只數房屋的 X 列，不看高低排。
@@ -201,7 +202,13 @@
       if (y - r < runBounds.minY || y + r > runBounds.maxY) return true;
       if (x - r < runBounds.minX || x + r > runBounds.maxX) return true;
     }
-    return solids.some(s => Math.hypot(x - clamp(x, s.x0, s.x1), y - clamp(y, s.y0, s.y1)) < r);
+    for (const s of solids) {
+      const dx = Math.max(s.x0 - x, x - s.x1, 0);
+      if (dx >= r) continue;
+      const dy = Math.max(s.y0 - y, y - s.y1, 0);
+      if (dy < r && Math.hypot(dx, dy) < r) return true;
+    }
+    return false;
   };
   // 擊退用逐幀位移，保留碰撞而不是在施放當幀直接跳到終點。
   const KNOCK_SPEED = 520;
@@ -268,7 +275,8 @@
     : ['play','pause','levelup'].includes(state) &&
       (window.ART_READY === false ||
         (STAGE.id === "rain-port" && window.isS2ArtProdEnabled?.() === true
-          && window.S2_ART_PROD_CACHE?.finished !== true));
+          && window.S2_ART_PROD_CACHE?.finished !== true) ||
+        stageLabArtFor(STAGE.id)?.pending?.());
   let quitConfirm = false;
   let menuFocus = 0, menuFocusState = "menu", gpMenuDir = "", pausePage = "main";
   let levelupFocus = 0, gpLevelupDir = "";
@@ -315,7 +323,13 @@
   function returnHome() {
     window.loadCoverArt?.();
     RENDERER.releaseWorldBackings?.();
-    shikigami?.reset();
+    releaseStageLabArt(STAGE.id);
+    AUDIO.leaveStageAudio?.();
+    inkTrail.reset(); sealNail.reset(); shikigami?.reset(); expansionSkills?.reset();
+    bossCastStagger = { lastTelegraphAt: -99, lastActiveAt: -99 };
+    mudZones = [];
+    bossBanners = [];
+    expansionLabRound = expansionLabRandom = null;
     if (window.STAGE_ROUTE_LAYOUTS?.[STAGE.id]) {
       enemies = [];
       enemyBullets = [];
@@ -363,13 +377,14 @@
       if (state === "pause") { quitConfirm = true; quitTarget = "home"; menuFocus = 0; }
       else returnHome();
     }
-    else if (id === "cards" || id === "codex") { codexBack = state; selectCodex(id === "cards" ? "cards" : "words"); state = "codex"; }
+    else if (id === "cards" || id === "codex" || id === "build") openCodex(id === "codex" ? "words" : id);
     else if (typeof id === "string" && id.startsWith("review-")) {
       const button = (menuButtons() || []).find(item => item.id === id);
       if (button?.word?.jp) AUDIO.speak(button.word.jp);
     }
   }
-  const OVERWORLD_LAST_KEY = "yokai.overworld.lastNode";
+  const OVERWORLD_LAST_KEY = window.DEV_MODE?.isDevMode?.(window.location)
+    ? window.DEV_MODE.DEV_KEY + ":overworld.lastNode" : "yokai.overworld.lastNode";
   function loadOverworldNode() {
     try { return localStorage.getItem(OVERWORLD_LAST_KEY) || "gate"; } catch (_) { return "gate"; }
   }
@@ -473,19 +488,177 @@
   let gpPrevButtons = [], gpMove = { x: 0, y: 0 };
 
   let bossT = BOSS_TIMES[0], bossStage = 0, finalBossDefeated = false;
-  // 終王排程到期但前面的大妖仍存活時的等待計時；逾時強制出場，避免卡關。
-  const FINAL_BOSS_WAIT_MAX = 45, FINAL_BOSS_HINT_EVERY = 12;
-  let finalBossWaitT = 0, finalBossHintT = 0;
-  let finalBossPos = null, finalBossEnt = null, victorySeq = null;
+  const bossSchedule = window.GAME_COMBAT_MATH.createBossSchedule({
+    stageId: STAGE.id,
+    times: BOSS_TIMES,
+    ...(STAGE_PACING.bossSchedule || {})
+  });
+  let bossCastStagger = { lastTelegraphAt: -99, lastActiveAt: -99 };
+  let mudZones = [];
+  let bossBanners = [];
+  function pushBossBanner(text, color = "#ffb3ba") {
+    if (!text) return;
+    bossBanners = bossBanners.filter(item => item.text !== text);
+    bossBanners.push({ text, color, life: 2.6, maxLife: 2.6 });
+    if (bossBanners.length > 3) bossBanners.shift();
+  }
+  let bossLabRun = false;
+  // Explicit isolated DEV loadout; never grant skills or progress on public hosts.
+  const skillLabRank = (() => {
+    if (!window.DEV_MODE?.isDevMode?.(window.location) || window.DEV_MODE?.isFusionLab?.(window.location)) return 0;
+    const rank = new URLSearchParams(window.location.search).get("skillLab");
+    return rank === "1" || rank === "5" ? Number(rank) : 0;
+  })();
+  const expansionApi = window.GAME_SKILL_EXPANSION;
+  const expansionLab = expansionApi?.lab(window);
+  const guidedExpansionDraft = expansionApi?.guidedDraft?.(window);
+  const earlyBossStagger = window.DEV_MODE?.isDevMode?.(window.location) === true &&
+    new URLSearchParams(window.location.search).get('bossStagger') === '1';
+  const expansionIds = expansionApi?.catalogIds(window) || [];
+  const expansionSkills = expansionIds.length ? expansionApi.create() : null;
+  let expansionLabRound = null, expansionLabRandom = null;
+  const FINAL_BOSS_HINT_EVERY = 12;
+  let finalBossHintT = 0;
+  let victoryBossPos = null, victoryBossEnt = null, victorySeq = null;
 
-  function checkVictoryCondition() {
-    if (!finalBossDefeated) return false;
-    // Defeating the final Boss alone is not a completed delivery run.
-    // Both stages require their configured delivery goal.
-    return delivered >= GOAL_DELIVERIES;
+  const bossEncounterComplete = () => bossSchedule.isComplete();
+  const checkVictoryCondition = () => bossEncounterComplete();
+  const BOSS_READING_RADIUS = 380;
+  function isBossBarVisible(e) {
+    const fixtureBoss = expansionLabRound && e.skillLabBoss;
+    return e.type === "boss" && e.hp > 0 && !e.dying && (e.officialWaveBoss !== false || fixtureBoss) &&
+      !e.isClone && !e.clone && !e.isSummon && !e.summon;
+  }
+  function bossHuntTarget() {
+    let target = null;
+    for (const e of enemies) {
+      if (e.hp <= 0 || !bossSchedule.isOfficialBoss(e)) continue;
+      if (e.final) return e;
+      if (!target || dist(e, P) < dist(target, P)) target = e;
+    }
+    return target;
   }
   let ended = false, bossQ = null, bossSealBreak = null, bossCurseRemaining = 0, codexBack = "menu", codexTab = "cards", codexPage = 0;
   let codexFocus = 'cards', codexFilter = { by: "all", id: null };
+  let compendium = null, compendiumFixture = null, compendiumStick = "";
+
+  function openCodex(tab = codexTab) {
+    codexBack = state;
+    if (!compendium) compendium = window.UI_COMPENDIUM?.create();
+    if (compendium) {
+      keys.clear();
+      heldCodes.clear();
+      joy = null;
+      state = "codex";
+      compendium.open(tab, compendiumData());
+      if (expansionIds.length && !expansionApi.artReady() && typeof fetch==="function") void expansionApi.loadArt().then(ready=>{
+        if (ready && state === "codex") compendium.refreshArt?.();
+      });
+    } else {
+      selectCodex(tab);
+      state = "codex";
+    }
+  }
+
+  function closeCompendium() {
+    codexTab = compendium.tab();
+    state = codexBack;
+    compendiumStick = "";
+    compendiumFixture = null;
+    compendium.close(cv);
+  }
+
+  function compendiumData() {
+    const review = window.COMPENDIUM_REVIEW;
+    const fixture = compendiumFixture ? review.fixture(compendiumFixture) : null;
+    const live = codexBack === "pause" || codexBack === "play";
+    const weapons = fixture ? {...WI, shikigami: window.GAME_SHIKIGAMI.CARD} : WI;
+    const requirements = id => STORE.activeSkillClearStage?.(id);
+    const canLearn = id => !id.startsWith("fusion_") && !!weapons[id] &&
+      (!requirements(id) || STORE.isActiveSkillUnlocked(id) || expansionLab && expansionIds.includes(id) ||
+        !!WL[id] && live || !!fixture?.levels[id]);
+    const unlock = id => UI.secretLockStage(id, STORE, canLearn);
+    const rawBuild = fixture ? window.GAME_BUILD_RULES.createBuildState(weapons, fixture.levels,
+      Object.keys(fixture.charms || {}), fixture.mutations, [], id => fixture.charms[id]) : live ? getBuildState() : null;
+    const passives = UP.map(up => ({id:up.id, count:fixture ? fixture.passives?.[up.id] : passiveStackCount(up.id)}))
+      .filter(up => up.count > 0);
+    const maxRank = WEAPON_UPGRADES.katana.length;
+    const build = rawBuild && window.COMPENDIUM_MODEL.projectBuild(rawBuild, {
+      weapons, mutations:MUTATION_CONFIG, maxActive:MAX_ACTIVE_WEAPONS, maxRank,
+      mutationSlots:MUTATION_SLOTS_PER_SKILL, canLearn, passives,
+      canAdd: fixture ? id => window.GAME_BUILD_RULES.canAddMutation(id, fixture.mutations,
+        MUTATION_CONFIG, fixture.levels, MUTATION_SLOTS_PER_SKILL) : id => canAddMutation(id)
+    });
+    const catalog = UI.secretCards();
+    let sampleWords;
+    const upgradeArt = window.__YOKAI_UPGRADE_PHASE42;
+    const charmDetails = id => {
+      const charm = CHARM_CONFIG[id];
+      if (!charm) return "";
+      const short = UI.cardShort(id)?.s;
+      return [charm.d, short, charm.limitText].filter(Boolean).join("。");
+    };
+    return {
+      secrets:catalog, build,
+      get words() {
+        if (!fixture) return UI.wordGallery();
+        if (!sampleWords) {
+          const gallery = UI.wordGallery();
+          sampleWords = {...gallery, packLine:"", cards:window.CARD_GALLERY.project(window.CONTENT.getAllWords(),
+            {marks:review.marks}, gallery.catalogs).cards};
+        }
+        return sampleWords;
+      },
+      art(id, item = false) {
+        const candidate = expansionIds.length && expansionApi.artPath(item && expansionIds.includes(id) ? id+":icon" : id);
+        if (candidate) return {path:candidate,card:!item || !expansionIds.includes(id)};
+        if (expansionIds.length && (expansionApi.cards[id] || expansionApi.mutations[id]))
+          return {path:"assets/img/ui/upgrade/card_dark.webp",card:!item || !!expansionApi.mutations[id]};
+        if (id === "shikigami") return {path:window.GAME_SHIKIGAMI.CARD.artPath, card:true};
+        const icon = UI.compendiumItemArt(id);
+        if (item && icon) return {path:icon};
+        if (upgradeArt.sharedCardIds.includes(id)) return {
+          path:upgradeArt.centerPath(id), fallback:upgradeArt.centerPath(id, false) !== upgradeArt.centerPath(id)
+            ? upgradeArt.centerPath(id, false) : null, card:true
+        };
+        return icon ? {path:icon} : null;
+      },
+      locked: id => !!unlock(id),
+      status(card) {
+        if (unlock(card.emblem)) return "尚未解鎖";
+        if (card.status === "lab_only") return "實驗室限定";
+        return card.status === "pending_impl" ? "待實裝" : card.status === "pending_tech" ? "技術待驗" : "";
+      },
+      kind: card => [card.type.split("・")[0], weapons[card.emblem]?.category]
+        .filter(Boolean).join(" · "),
+      describe(card) {
+        const id = card.emblem;
+        const stage = unlock(id);
+        if (stage) {
+          const name = window.CONTENT.getStage(stage)?.name || stage;
+          if (id === "shikigami" && !weapons[id]) return "通過" + name + "後，在開放式神的旅路中取得。";
+          return UI.secretUnlockText(stage);
+        }
+        return MUTATION_CONFIG[id]?.d || charmDetails(id) || UP.find(up => up.id === id)?.d ||
+          weapons[id]?.desc || card.desc;
+      },
+      levels: id => (id === "shikigami" ? window.GAME_SHIKIGAMI.UPGRADES : WEAPON_UPGRADES[id]) || [],
+      related: id => Object.keys(MUTATION_CONFIG).filter(key => MUTATION_CONFIG[key].skillId === id),
+      shortEffect: card => UI.cardShort(card.emblem)?.s || MUTATION_CONFIG[card.emblem]?.d || card.desc,
+      wordArt: jp => window.DELIVERY_MEDIA?.pathForWord("image", jp),
+      speak: jp => { AUDIO.unlockFromInput?.(); AUDIO.speak(jp); },
+      mute: () => { if (!AUDIO.toggleMute()) AUDIO.unlockFromInput?.(); },
+      keyAction: code => CONTROLS.action(code),
+      close: closeCompendium,
+      review: fixture ? {
+        id:compendiumFixture, labels:review.labels,
+        select(id) {
+          compendiumFixture = id;
+          compendium.open(compendium.tab(), compendiumData(), true);
+        }
+      } : null
+    };
+  }
   function wordCodexState() {
     return { filter: codexFilter, page: codexPage };
   }
@@ -520,6 +693,8 @@
 
   // Only operation guidance: never reads the current word or mutates answer assistance.
   const tutorialIds = window.GAME_TUTORIAL_RULES.tutorialIds();
+  const tutorialStorageKey = window.DEV_MODE?.isDevMode?.(window.location)
+    ? window.DEV_MODE.DEV_KEY + ":tutorial-v1" : "yokai-tutorial-v1";
   const tutorialKey = (id, stageId = STAGE.id) =>
     window.GAME_TUTORIAL_RULES.tutorialKey(id, stageId);
   const tutorialKeys = window.GAME_TUTORIAL_RULES.acceptedKeys(
@@ -528,7 +703,7 @@
   let tutorial = null, tutorialSeen = new Set(), tutorialSkipped = false;
   let inputMode = touch ? 'touch' : 'keyboard';
   try {
-    const saved = JSON.parse(localStorage.getItem('yokai-tutorial-v1'));
+    const saved = JSON.parse(localStorage.getItem(tutorialStorageKey));
     tutorialSkipped = saved === 'skip';
     // Keep legacy unscoped tutorial records mapped to night-town.
     if (Array.isArray(saved)) tutorialSeen = window.GAME_TUTORIAL_RULES.seenFromSaved(
@@ -548,7 +723,7 @@
     } else {
       tutorialSeen.add(tutorialKey(tutorial.id));
       if (skip) tutorialSkipped = true;
-      try { localStorage.setItem('yokai-tutorial-v1', JSON.stringify(tutorialSkipped ? 'skip' : [...tutorialSeen])); } catch {}
+      try { localStorage.setItem(tutorialStorageKey, JSON.stringify(tutorialSkipped ? 'skip' : [...tutorialSeen])); } catch {}
     }
     tutorial = null;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
@@ -584,7 +759,7 @@
     // Keep the in-bounds spawn independent from art-loading flags.
     if (STAGE.id === "rain-port") START.y = 480;
     DAWN = STAGE_PACING.runSeconds || CFG.RUN_SECONDS;
-    GOAL_DELIVERIES = STAGE_PACING.goalDeliveries || CFG.GOAL_DELIVERIES;
+    GOAL_DELIVERIES = Number.isFinite(STAGE_PACING.goalDeliveries) ? STAGE_PACING.goalDeliveries : CFG.GOAL_DELIVERIES;
     BOSS_TIMES = STAGE_PACING.bossTimes || CFG.BOSS_TIMES;
     SURGE_FIRST = (STAGE_PACING.surgeFirst || CFG.SURGE_FIRST) * MOB_DIFFICULTY.surgePacingScale;
     SURGE_INTERVAL = (STAGE_PACING.surgeInterval || CFG.SURGE_INTERVAL) * MOB_DIFFICULTY.surgePacingScale;
@@ -1013,16 +1188,21 @@
   }
 
   const stageLab = window.DEV_MODE?.isStageLab?.(window.location) === true;
+  const hasStage58Audio = () => (stageLab || STAGE.mapReleased === true) && !!window.STAGE58_AUDIO?.byStage?.[STAGE.id];
   const companionTrial = window.DEV_MODE?.isShikigamiTrial?.(window.location);
   const shikigamiModule = window.GAME_SHIKIGAMI;
   const shikigami = shikigamiModule?.create({
     species: companionTrial ? new URLSearchParams(window.location.search).get("species") || "hound" : "hound"
   }) ?? null;
-  const WI = shikigami ? { ...window.GAME_CATALOG.WI, shikigami: shikigamiModule.CARD } : window.GAME_CATALOG.WI;
+  const WI = shikigami
+    ? Object.assign(Object.fromEntries(Object.entries(window.GAME_CATALOG.WI)
+      .filter(([id])=>!expansionIds.includes(id))), {shikigami:shikigamiModule.CARD},
+      Object.fromEntries(expansionIds.map(id=>[id,expansionApi.cards[id]])))
+    : window.GAME_CATALOG.WI;
   const WEAPON_UPGRADES = shikigami
     ? { ...window.GAME_CATALOG.WEAPON_UPGRADES, shikigami: shikigamiModule.UPGRADES }
     : window.GAME_CATALOG.WEAPON_UPGRADES;
-  let shikigamiArt = null;
+  const shikigamiArt = {};
   const shikigamiCue = event => {
     const cue = event === "death" || event === "expire" ? "vanish" : event;
     AUDIO.playOptionalCue?.("shikigami_" + cue, shikigamiModule.SFX_PATHS[cue], cue === "summon" ? .36 : .30);
@@ -1044,6 +1224,7 @@
   let surgeWarningT = 0, surgePendingCount = 0, surgePendingTier = 1;
   const wT = { boom: 0, thunder: 0, barrier: 0, needle: 0, fire: 0, ink_trail: 0, seal_nail:0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 };
   if (shikigami) WL.shikigami = 0;
+  for (const id of expansionIds) WL[id] = wT[id] = 0;
 
   const UP = [
     { id: "shield", n: "金剛結界", s: "けっかい", cat: "防禦生存", d: "召喚金剛勾玉護盾，獲得 2 次抵擋（最多取得 3 層）", f: () => { b.shield = Math.min(6, (b.shield || 0) + 2); b.shieldPicks = (b.shieldPicks || 0) + 1; }, ok: () => (b.shieldPicks || 0) < 3 },
@@ -1089,8 +1270,9 @@
     const build = getBuildState();
     if (build.ownedActiveCount < MAX_ACTIVE_WEAPONS) return true;
     const stat = id === "rate" ? "cooldown" : "critChance";
-    const next = id === "rate" ? {effectiveRate:getEffectiveRate(build,b.rate+1)} : {critLvl:(b.crit||0)+1};
-    const eligible = id === "rate" ? ["katana","barrier","needle"] : ["katana","barrier","thunder"];
+    const next = id === "rate" ? {effectiveRate:getEffectiveRate(build,b.rate+1),passiveRate:b.rate+1} : {critLvl:(b.crit||0)+1};
+    const eligible = id === "rate" ? ["katana","barrier","needle",...expansionIds] :
+      ["katana","barrier","thunder",...expansionIds.filter(skill=>skill==="hamaya" || skill==="ice_ball")];
     for (const skill of build.activeSkills) {
       if (skill.startsWith("fusion_")) return true;
       if (!eligible.includes(skill)) continue;
@@ -1300,8 +1482,14 @@ if (isRainPort) {
 
   function enterOverworld(reset = true) {
     RENDERER.releaseWorldBackings?.();
+    releaseStageLabArt(STAGE.id);
+    AUDIO.leaveStageAudio?.();
     window.loadCoverArt?.();
-    shikigami?.reset();
+    inkTrail.reset(); sealNail.reset(); shikigami?.reset(); expansionSkills?.reset();
+    bossCastStagger = { lastTelegraphAt: -99, lastActiveAt: -99 };
+    mudZones = [];
+    bossBanners = [];
+    expansionLabRound = expansionLabRandom = null;
     if (window.STAGE_ROUTE_LAYOUTS?.[STAGE.id]) {
       enemies = [];
       enemyBullets = [];
@@ -1456,22 +1644,41 @@ if (isRainPort) {
     });
   }
 
+  function releaseStageLabArt(stageId) {
+    stageLabArtFor(stageId)?.unload?.();
+    if (stageId === "rain-port") {
+      window.HARBOR_WARNING_ART = null;
+      window.resetS2ArtProdCache?.();
+    }
+  }
+
+  function stageLabArtFor(stageId) {
+    if (stageId === "hyakki-kyoto") return window.KYOTO_SCENE_ART;
+    if (stageId === "snow-temple") return window.SNOW_TEMPLE_ART;
+    return window.LATE_STAGE_ART?.forStage(stageId);
+  }
+
   function start(stageId = STAGE.id) {
+    if (stageId !== STAGE.id) releaseStageLabArt(STAGE.id);
     quitConfirm = false;
     previousAnswerPairs.clear();
     AUDIO.unlockFromInput?.();
     AUDIO.prepareMusic?.('play', stageId);
     AUDIO.restartMusic();
+    expansionImpactAt = expansionTextAt = -Infinity;
     window.loadGameArt?.();
     window.loadStageMapArt?.(stageId);
     window.BOSS_ROSTER_TRIAL?.load(stageId);
     if (stageId === "bamboo-maze") window.BAMBOO_ART?.load();
-    // Reset S2 cache if switching away from rain-port or on fresh start
+    stageLabArtFor(stageId)?.load();
+    if (expansionIds.some(id=>expansionLab || STORE.isActiveSkillUnlocked(id)) && typeof fetch==="function") void expansionApi.loadArt();
+    // Release the S2 terrain backing when starting a different stage directly.
     if (STAGE.id === "rain-port" && stageId !== "rain-port") {
-      window.resetS2ArtProdCache?.();
       RENDERER.releaseWorldBackings?.();
     }
     configureStage(stageId);
+    expansionLabRound = expansionLabRandom = null;
+    bossLabRun = false;
     rainCycle.reset();
     weatherClock = 0;
     if (STAGE.id === "rain-port") {
@@ -1489,8 +1696,12 @@ if (isRainPort) {
     Object.assign(P, { x: START.x, y: START.y, inv: 1.2, faceAng: 0, faceX: 1 });
     Object.assign(b, { dmg: 1.2, rate: 0, mag: 0, dash: 0, shield: 0, shieldPicks: 0, spd: 0, crit: 0, oilRegen: 0, dmgUp: 0, heals: 0 });
     Object.assign(WL, { katana: 1, barrier: 0, fire: 0, boom: 0, thunder: 0, needle: 0, ink_trail: 0, seal_nail:0, fusion_inkblade: 0, fusion_foxiai: 0, fusion_exorcistblade: 0, fusion_foxfirebarrier: 0, fusion_exorcistseal: 0, fusion_thundercircle: 0, fusion_slashwheel: 0, fusion_foxthunderlantern: 0, fusion_flamefestival: 0, fusion_thundertalisman: 0 });
-    inkTrail.reset(); sealNail.reset(); shikigami?.reset();
+    inkTrail.reset(); sealNail.reset(); shikigami?.reset(); expansionSkills?.reset();
+    bossCastStagger = { lastTelegraphAt: -99, lastActiveAt: -99 };
+    mudZones = [];
+    bossBanners = [];
     if (shikigami) WL.shikigami = wT.shikigami = 0;
+    for (const id of expansionIds) WL[id] = wT[id] = 0;
     runIntroOffered = false;
     newSkillMisses = Object.create(null);
     recentUpgradePicks = [];
@@ -1534,7 +1745,10 @@ if (isRainPort) {
     FX.reset();
     SKILLFX.reset();
     rerolls = 2; titleCardT = 3; runSummary = null;
-    bossStage = 0; bossT = BOSS_TIMES[0]; finalBossDefeated = false; finalBossWaitT = 0; finalBossHintT = 0; finalBossPos = null; finalBossEnt = null; victorySeq = null; lampSeq = null;
+    bossSchedule.reset(BOSS_TIMES, { stageId: STAGE.id, ...(STAGE_PACING.bossSchedule || {}) });
+    bossStage = bossSchedule.nextWaveIndex();
+    bossT = bossSchedule.nextSpawnRemaining(0);
+    finalBossDefeated = false; finalBossHintT = 0; victoryBossPos = null; victoryBossEnt = null; victorySeq = null; lampSeq = null;
     ended = false; bossQ = null; bossSealBreak = null; bossCurseRemaining = 0; orderT = 5; spawnT = 8; atkT = 0.3; dashT = 0; dashCd = 0; hintT = 0; nameT = 0; endCooldown = 0; lanternHitT = 0; playerAttackPoseT = playerHurtPoseT = 0;
     keys.clear(); heldCodes.clear(); joy = null; gpMove = { x: 0, y: 0 };
     pTrail = [];
@@ -1556,7 +1770,15 @@ if (isRainPort) {
     }
     makeOrder();
     RENDERER.setCam(P.x - W / 2, P.y - H / (2 * tiltK()));
-    checkTutorial();
+    if (skillLabRank && shikigami) {
+      for (const id of BAMBOO_STARTER_CHOICES) {
+        WL[id] = skillLabRank;
+        wT[id] = 0;
+        window.useSkillArt?.(id, skillLabRank);
+      }
+      runIntroOffered = true;
+      buildRevision++;
+    } else checkTutorial();
   }
 
   const xpNeed = () => Math.round(CFG.xpNeed(level) * XP_NEED_SCALE);
@@ -1564,6 +1786,8 @@ if (isRainPort) {
   const BAMBOO_STARTER_CHOICES = ["ink_trail", "seal_nail", "shikigami"];
   const SAKURA_STARTER_CHOICES = BAMBOO_STARTER_CHOICES.slice(0, 2);
   function getEligibleChoices(normalOffer = false) {
+    const random = expansionLabRandom || Math.random;
+    const shuffle = list => shuffleWithRandom(list, random);
     const scopeRevision = buildRevision;
     const sakuraStage = STAGE.id === "sakura-pass";
     const bambooStage = STAGE.id === "bamboo-maze";
@@ -1572,7 +1796,8 @@ if (isRainPort) {
     const trialStarters = bambooStage && stageLab ? BAMBOO_STARTER_CHOICES :
       dev && sakuraStage ? SAKURA_STARTER_CHOICES :
       dev && STAGE.id === "rain-port" ? ["ink_trail"] : [];
-    const isUnlocked = id => trialStarters.includes(id) || STORE.isActiveSkillUnlocked(id);
+    const isUnlocked = id => (expansionLab && expansionIds.includes(id)) ||
+      trialStarters.includes(id) || STORE.isActiveSkillUnlocked(id);
     const {eligibleWeaponKeys, awakenKeys} = window.GAME_BUILD_RULES.weaponOfferKeys(
       WI, WL, MAX_ACTIVE_WEAPONS, seals, window, isUnlocked
     );
@@ -1586,7 +1811,7 @@ if (isRainPort) {
 
       const checkWeaponEligibility = () => {
         if (consumed || scopeRevision !== buildRevision) return false;
-        if (BAMBOO_STARTER_CHOICES.includes(k) && WL[k] === 0 && !isUnlocked(k)) return false;
+        if ((BAMBOO_STARTER_CHOICES.includes(k) || expansionApi?.releases[k]) && WL[k] === 0 && !isUnlocked(k)) return false;
         if (nextLvl === 5) return WL[k] === 4;
         if (WL[k] === 0) return Object.keys(WI).filter(key => (WL[key] || 0) > 0).length < MAX_ACTIVE_WEAPONS;
         return (WL[k] || 0) + 1 === nextLvl && nextLvl <= 5;
@@ -1638,11 +1863,14 @@ if (isRainPort) {
     };
     // Unowned skills lead early picks. Repeated same-skill upgrades taper from
     // Lv2→3 and Lv3→4 onward, then recover as other equipped ranks catch up.
-    const weaponKeys = window.GAME_UPGRADE_CHOICES.weaponsAfterRecentPicks(
-      eligibleWeaponKeys, recentUpgradePicks
-    );
-    const wc = window.GAME_UPGRADE_CHOICES.orderWeapons(
-      weaponKeys, WL, MAX_ACTIVE_WEAPONS, Math.random
+    const draftRules = window.GAME_UPGRADE_CHOICES;
+    const weaponKeys = draftRules.weaponsAfterRecentPicks(eligibleWeaponKeys,recentUpgradePicks);
+    const trialWeight = guidedExpansionDraft
+      ? (id,levels,slots)=>draftRules.weaponOfferWeight(id,levels,slots) *
+          (levels[id] === 0 && expansionIds.includes(id) ? 1.25 : levels[id] >= 2 ? .85 : 1)
+      : undefined;
+    const wc = draftRules.orderWeapons(
+      weaponKeys, WL, MAX_ACTIVE_WEAPONS, random, trialWeight
     ).map(k => weaponCard(k, WL[k] + 1));
     const awakenCard = awakenKeys.length ? weaponCard(shuffle(awakenKeys)[0], 5) : null;
 
@@ -1725,10 +1953,10 @@ if (isRainPort) {
     const otherUpgradeAvailable = !!awakenCard || wc.length > 0 || pc.length > 0;
     // If mutations are the sole remaining upgrades, do not apply the usual rarity gate.
     const mutationOfferReady = eligibleMutationKeys.length > 0
-      && (!otherUpgradeAvailable || (level - lastMutationOfferLevel >= 3 && Math.random() < 0.25));
+      && (!otherUpgradeAvailable || (level - lastMutationOfferLevel >= 3 && random() < 0.25));
     let mc = [];
     if (mutationOfferReady) {
-      const chosen = pick(eligibleMutationKeys);
+      const chosen = eligibleMutationKeys[Math.floor(random() * eligibleMutationKeys.length)];
       const family = MUTATION_CONFIG[chosen]?.family;
       const choices = family
         ? eligibleMutationKeys.filter(id => MUTATION_CONFIG[id]?.family === family)
@@ -1829,7 +2057,10 @@ if (isRainPort) {
     // Rerolling refuses it; a later run may introduce it again.
     const slotFree = Object.keys(WI).filter(k => (WL[k] || 0) > 0).length < MAX_ACTIVE_WEAPONS;
     const pendingIntro = STORE.pendingSkillIntroduction?.();
-    const introIds = stageStarters.length ? stageStarters : pendingIntro ? [pendingIntro] : [];
+    const trialIntro = guidedExpansionDraft && normalOffer
+      ? wc.find(c=>expansionIds.includes(c.id) && WL[c.id] === 0)?.id : null;
+    const firstIntro = pendingIntro || trialIntro;
+    const introIds = stageStarters.length ? stageStarters : firstIntro ? [firstIntro] : [];
     const introductions = !isFreeCompensationChoice && slotFree && !runIntroOffered
       ? introIds.map(id => wc.find(c => c.id === id && WL[id] === 0)).filter(Boolean) : [];
     // The old Stage-2 "always show one owned upgrade" rule accidentally
@@ -1841,13 +2072,14 @@ if (isRainPort) {
       ? wc.find(c => (WL[c.id] || 0) > 0) : null;
     if (introductions.length) {
       runIntroOffered = true;
-      if (!stageStarters.length) STORE.rotateSkillIntroduction?.(pendingIntro);
+      if (!stageStarters.length && pendingIntro) STORE.rotateSkillIntroduction?.(pendingIntro);
     }
     const guaranteed = window.GAME_UPGRADE_CHOICES.withGuarantees(
       offered, [...introductions, owned], [...wc, ...pc], mc.length === 2
     );
     if (!isFreeCompensationChoice) {
-      const unseenRewards = slotFree ? wc.filter(c => BAMBOO_STARTER_CHOICES.includes(c.id) && WL[c.id] === 0) : [];
+      const unseenRewards = slotFree ? wc.filter(c => WL[c.id] === 0 &&
+        (BAMBOO_STARTER_CHOICES.includes(c.id) || guidedExpansionDraft && expansionIds.includes(c.id))) : [];
       const rules = window.GAME_UPGRADE_CHOICES;
       const visible = rules.withNewSkillVisibility(guaranteed, unseenRewards, newSkillMisses,
         normalOffer, [...introductions, owned, awakenCard]);
@@ -2119,6 +2351,26 @@ if (isRainPort) {
 
   // Coalesce a full sweep of enemies into one tactile hit cue.
   let lastBladeImpactAt = -Infinity;
+  // Shared across all expansion fields and targets in the run.
+  let expansionImpactAt = -Infinity, expansionTextAt = -Infinity;
+  let expansionLabels = 0, expansionKillLabel = false;
+
+  function expansionHitLabel(e, periodic) {
+    if (elapsed - expansionTextAt >= .25) {
+      expansionTextAt = elapsed;
+      expansionLabels = 0;
+      expansionKillLabel = false;
+    }
+    if (e.hp <= 0 && !expansionKillLabel) {
+      expansionKillLabel = true;
+      return true;
+    }
+    if (expansionLabels >= 3 || (periodic && e.expansionTextUntil > elapsed)) return false;
+    expansionLabels++;
+    if (periodic) e.expansionTextUntil = elapsed + .8;
+    return true;
+  }
+
   function hurt(e, dmg, isCrit = false, fromShatter = false, impactType = "") {
     // Boss 封印反噬期間，即使有延遲傷害也不可造成任何玩家攻擊傷害。
     if ((state !== "play" && state !== "levelup") || e.dying || e.hp <= 0 || bossCurseRemaining > 0) return;
@@ -2132,7 +2384,11 @@ if (isRainPort) {
     }
     e.hp -= dmg;
     if (e.hp <= 0) tryRollCharmDrop(e);
-    e.flash = 0.12;
+    const periodic = impactType === "expansion_periodic";
+    const batched = periodic || impactType === "expansion_burst";
+    const contactCue = !batched || elapsed - expansionImpactAt >= .18;
+    const showHit = batched && expansionHitLabel(e, periodic);
+    if (!periodic || showHit || contactCue) e.flash = 0.12;
     const bladeHit = impactType === "blade" && !fromShatter;
     const bladeCue = bladeHit && (elapsed < lastBladeImpactAt || elapsed - lastBladeImpactAt >= 0.105);
     if (bladeHit) {
@@ -2151,7 +2407,8 @@ if (isRainPort) {
         FX.burst(e.x, e.y - 17, isCrit ? "#ffe4a0" : "#e8efff",
           isCrit ? 7 : 4, { speed: 130, life: 0.14, size: 5 });
       }
-    } else if(impactType!=="ink_poison") {
+    } else if(impactType!=="ink_poison" && contactCue) {
+      if (batched) expansionImpactAt = elapsed;
       HAPTICS.hit(isCrit);
       burst(e.x, e.y, "#ffe6aa", 4);
       if (isCrit) {
@@ -2160,14 +2417,13 @@ if (isRainPort) {
     }
     // At 80 enemies, periodic poison must not trigger per-tick vibration,
     // particles and hundreds of floating damage labels on an iPad.
-    if(impactType!=="ink_poison" ||
-       !(e.poisonTextT>elapsed)){
+    if (batched ? showHit : impactType!=="ink_poison" || !(e.poisonTextT>elapsed)) {
       RENDERER.spawnDamageNumber(dmg, e.x, e.y - 25, isCrit,
         impactType==="ink_poison"?"#c99eea":isCrit?"#ffcc00":"#ffffff", e.type==="boss");
       if(impactType==="ink_poison")e.poisonTextT=elapsed+1.0;
     }
 
-    if (e.hp > 0) return;
+    if (e.hp > 0) return contactCue;
     // 必須先保存『死亡當刻仍冰凍』的碎裂資格，不能在後面的碎裂處理前清空。
     const deathShatter = e.shatterVolley;
     const frozenAtDeath = e.freezeT > 0 && (e.freezeEnds == null || elapsed < e.freezeEnds);
@@ -2179,31 +2435,41 @@ if (isRainPort) {
 
     if (e.type === "boss") {
       if (window.STAGE_ROUTE_LAYOUTS?.[STAGE.id]) delete e.hazard;
-      // Final Boss is a dedicated recording supplied by the artist:
-      // no WebAudio synthetic explosion fallback under any circumstance.
-      if(e.final)AUDIO.finalBossDeath?.();
-      else AUDIO.bossDeath();
-      HAPTICS.bossDefeat();
-      if (e.final) {
-        finalBossDefeated = true;
-        finalBossPos = { x: e.x, y: e.y };
-        finalBossEnt = e;
+      const isOfficialBoss = bossSchedule.isOfficialBoss(e);
+      if (isOfficialBoss) {
+        bossSchedule.recordDefeat(e);
+        // Final Boss is a dedicated recording supplied by the artist:
+        // no WebAudio synthetic explosion fallback under any circumstance.
+        if (!(hasStage58Audio() && AUDIO.stageDefeatCue?.(e.final) === true)) {
+          if(e.final)AUDIO.finalBossDeath?.();
+          else AUDIO.bossDeath();
+        }
+        if (hasStage58Audio() && !bossEncounterComplete())
+          AUDIO.stageBossState?.(bossSchedule.liveOfficialBosses(enemies).length > 0, e.final);
+      } else {
+        AUDIO.bossDeath();
       }
-      const reward = e.oilReward || 35;
-      oil = Math.min(maxOil, oil + reward);
-      bossT = BOSS_TIMES[bossStage] == null ? Infinity : Math.max(0, BOSS_TIMES[bossStage] - elapsed);
+      HAPTICS.bossDefeat();
+      if (isOfficialBoss) {
+        if (e.final) finalBossDefeated = true;
+        victoryBossPos = { x: e.x, y: e.y };
+        victoryBossEnt = e;
+      }
+      const reward = isOfficialBoss ? (e.oilReward || 35) : (e.oilReward || 0);
+      if (reward > 0) oil = Math.min(maxOil, oil + reward);
+      bossT = bossSchedule.nextSpawnRemaining(elapsed);
       const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
       const bTitle = e.title || story?.bossTitle || "大妖鬼";
-      say(e.final ? `夜明けの${bTitle} 撃破！` : `${bTitle}擊破！燈油 +${reward}`, e.x, e.y - 65, "#ffe9a0");
-      if (!e.final) RENDERER.triggerShake(14); // 最終 Boss 由收尾演出處理，不震動整個畫面
+      say(isOfficialBoss && e.final ? `夜明けの${bTitle} 撃破！` : reward > 0 ? `${bTitle}擊破！燈油 +${reward}` : `${bTitle}擊破！`, e.x, e.y - 65, "#ffe9a0");
+      if (!(isOfficialBoss && e.final)) RENDERER.triggerShake(14); // 最終 Boss 由收尾演出處理，不震動整個畫面
       for (let k = 0; k < 8; k++) {
         dropGem(e.x + (Math.random() - 0.5) * 70, e.y + (Math.random() - 0.5) * 70, 6);
       }
       // 不再誤將擊殺視為單字掌握 STORE.rec
-      if (e.final && checkVictoryCondition()) startVictorySequence();
+      if (isOfficialBoss && checkVictoryCondition()) startVictorySequence();
 
       // 融合系統：真 Boss 擊殺檢查繪馬掉落資格（必須 >= 360 秒）
-      if (window.FUSION && typeof window.FUSION.onBossDeath === "function") {
+      if (isOfficialBoss && window.FUSION && typeof window.FUSION.onBossDeath === "function") {
         window.FUSION.onBossDeath(e);
       }
     }
@@ -2240,6 +2506,7 @@ if (isRainPort) {
       AUDIO.breakShield();
       AUDIO.speak(e.w.jp);
     }
+    return contactCue;
   }
 
   function dash() {
@@ -2288,6 +2555,7 @@ if (isRainPort) {
       delete e.bambooRush;
       delete e.kyotoWarning;
       delete e.kyotoRally;
+      delete e.kyotoShotWindup;
     }
   }
 
@@ -2299,7 +2567,10 @@ if (isRainPort) {
     }
     dismissCombatModals();
     stopStageLabHazards();
-    inkTrail.reset(); sealNail.reset(); shikigami?.reset();
+    inkTrail.reset(); sealNail.reset(); shikigami?.reset(); expansionSkills?.reset();
+    bossCastStagger = { lastTelegraphAt: -99, lastActiveAt: -99 };
+    mudZones = [];
+    bossBanners = [];
     state = "lampout";
     lampSeq = { t: 0 };
     keys.clear(); heldCodes.clear();
@@ -2334,13 +2605,39 @@ if (isRainPort) {
   function startVictorySequence() {
     if (victorySeq || state !== "play") return;
     stopStageLabHazards();
-    const p = finalBossPos || { x: P.x, y: P.y - 120 };
-    // Boss 已死亡被移出戰場；留一個定格的分身，演出時讓它抖動並爆炸。
-    const boss = finalBossEnt ? { ...finalBossEnt, hp: 1, max: 1, shield: false, dying: true, flash: 0, slowT: 0 } : null;
+    const p = victoryBossPos || { x: P.x, y: P.y - 120 };
+    // 最後被擊殺的正式 Boss 已死亡並移出戰場；留一個定格的演出分身，演出時讓它抖動並爆炸。
+    const boss = victoryBossEnt ? {
+      ...victoryBossEnt,
+      x: p.x,
+      y: p.y,
+      hp: 1,
+      max: 1,
+      shield: false,
+      dying: true,
+      officialWaveBoss: false,
+      isClone: true,
+      flash: 0,
+      slowT: 0
+    } : null;
     enemies = enemies.filter(e => e.type !== "boss");
     if (boss) enemies.push(boss);
-    victorySeq = { t: 0, bossX: p.x, bossY: p.y, boss, blastT: 0, blasts: 0, bossGone: !boss, ignited: false, fireT: 0 };
-    inkTrail.reset(); sealNail.reset(); shikigami?.reset();
+    victorySeq = {
+      t: 0,
+      bossX: p.x,
+      bossY: p.y,
+      boss,
+      useFinalBossDeathSfx: !!victoryBossEnt?.final,
+      blastT: 0,
+      blasts: 0,
+      bossGone: !boss,
+      ignited: false,
+      fireT: 0
+    };
+    inkTrail.reset(); sealNail.reset(); shikigami?.reset(); expansionSkills?.reset();
+    bossCastStagger = { lastTelegraphAt: -99, lastActiveAt: -99 };
+    mudZones = [];
+    bossBanners = [];
     state = "victory";
     // 停止下一次施法與所有自動攻擊排程，但保留已經飛出去的招式短暫收尾。
     dashT = 0; playerAttackPoseT = 0;
@@ -2361,6 +2658,10 @@ if (isRainPort) {
     if (!v) return;
     v.t += dt;
     const t = v.t;
+    if (STAGE.id === "yomi" && t >= VICTORY.dawn && !v.endingStarted) {
+      v.endingStarted = true;
+      AUDIO.startStageEnding?.();
+    }
     // Boss 長篇崩解與其後 6 秒喘息期間，玩家仍可自由移動，鏡頭照常追隨。
     animElapsed += dt;
     const m = move();
@@ -2411,9 +2712,10 @@ if (isRainPort) {
           burst(bx, by, Math.random() < 0.5 ? "#ffb74d" : "#ff5252", 14);
           rings.push({ x: bx, y: by, life: 0.35, maxL: 0.35, maxR: 70, color: "#ffcc80" });
           v.blasts++;
-          // One authored burst for every visible rupture, quieter while
-          // overlapping. The single final detonation plays at full level.
-          AUDIO.finalBossDeath?.(0.38);
+          // One authored burst for every visible rupture when the final Boss
+          // is the concluding kill; non-final concluding kills do not replay
+          // the dedicated final-boss death recording.
+          if (v.useFinalBossDeathSfx && !hasStage58Audio()) AUDIO.finalBossDeath?.(0.38);
         }
       } else {
         v.bossGone = true;
@@ -2422,7 +2724,10 @@ if (isRainPort) {
         burst(v.bossX, v.bossY, "#ff5252", 60);
         rings.push({ x: v.bossX, y: v.bossY, life: 0.8, maxL: 0.8, maxR: 240, color: "#fff3b0" });
         rings.push({ x: v.bossX, y: v.bossY, life: 0.55, maxL: 0.55, maxR: 150, color: "#ff8a65" });
-        AUDIO.finalBossDeath?.();
+        if (!(hasStage58Audio() && AUDIO.stageDefeatCue?.(v.useFinalBossDeathSfx) === true)) {
+          if (v.useFinalBossDeathSfx) AUDIO.finalBossDeath?.();
+          else AUDIO.bossDeath?.();
+        }
       }
     }
 
@@ -2436,7 +2741,10 @@ if (isRainPort) {
         e.vanish = 1 - k;
         if (emit) burst(e.x + (Math.random() - 0.5) * 22, e.y - 8 - Math.random() * 22, Math.random() < 0.5 ? "#ff8a3d" : "#ffd54f", 3);
       }
-      if (!v.ignited) { v.ignited = true; }
+      if (!v.ignited) {
+        v.ignited = true;
+        if (STAGE.id === "yomi") say("最後一封言靈已歸還", P.x, P.y - 63, "#ffe3ae");
+      }
       if (k >= 1) enemies = [];
     }
 
@@ -2448,6 +2756,9 @@ if (isRainPort) {
     texts = texts.filter(tx => tx.life > 0);
     for (const r of rings) r.life -= dt;
     rings = rings.filter(r => r.life > 0);
+    for (const bn of bossBanners) bn.life -= dt;
+    bossBanners = bossBanners.filter(bn => bn.life > 0);
+    mudZones = [];
 
     if (t >= VICTORY.settle) {
       state = "won";
@@ -2520,6 +2831,18 @@ if (isRainPort) {
 
     // 2. 按鈕邊緣觸發判定 (Edge Trigger)
     const justPressed = i => gp.buttons[i]?.pressed && !gpPrevButtons[i];
+
+    if (state === "codex" && compendium) {
+      const dir = Math.abs(ax) > Math.abs(ay)
+        ? ax > .55 ? "right" : ax < -.55 ? "left" : ""
+        : ay > .55 ? "down" : ay < -.55 ? "up" : "";
+      const movement = dir !== compendiumStick ? dir : "";
+      compendiumStick = dir;
+      compendium.gamepad(justPressed, movement);
+      gpPrevButtons = gp.buttons.map(b => b.pressed);
+      gpMove = {x:0, y:0};
+      return;
+    }
 
     // 升級頁優先於一般遊戲按鍵。Xbox A 確認「焦點紙札」，Y 重抽；
     // B/X 不再錯誤地直接選第 2/3 張。搖桿需回中才可再次移動，防止連跳。
@@ -2651,8 +2974,7 @@ if (isRainPort) {
       if (state === "codex") {
         state = codexBack;
       } else if (state === "pause" || state === "menu" || state === "overworld") {
-        codexBack = state;
-        state = "codex";
+        openCodex();
       }
     }
 
@@ -2698,13 +3020,13 @@ if (isRainPort) {
   };
 
   function answerBoss(i) {
-    if (state !== "play") return;
+    if (state !== "play" || job?.reading) return;
     if (!bossQ || bossQ.lock > 0 || bossCurseRemaining > 0) return;
     // Match the submitted quiz to its owning Boss. The word/proximity fallback
     // preserves support for the older isolated quiz fixtures without a .quiz link.
     const bs = enemies.find(e => e.type === "boss" && e.shield && e.hp > 0 && e.quiz === bossQ)
-      || enemies.find(e => e.type === "boss" && e.shield && e.hp > 0 && e.word === bossQ.word && dist(P, e) < 380);
-    if (!bs) return;
+      || enemies.find(e => e.type === "boss" && e.shield && e.hp > 0 && e.word === bossQ.word && dist(P, e) < BOSS_READING_RADIUS);
+    if (!bs || dist(P, bs) >= BOSS_READING_RADIUS) return;
     if (i < 0 || i >= bossQ.ans.length) return;
     if (bossQ.wrong.includes(i)) return;
     const ok = bossQ.ans[i] === bs.word;
@@ -2757,8 +3079,9 @@ if (isRainPort) {
   }
 
   function markBossAssisted(word) {
-    const bs = enemies.find(e => e.type === "boss" && e.shield && e.word?.jp === word.jp);
-    if (bs) bs.wasAssisted = true;
+    for (const e of enemies) {
+      if (e.type === "boss" && e.hp > 0 && e.shield && e.word?.jp === word.jp) e.wasAssisted = true;
+    }
   }
 
   // Compatibility with the internal test bridge; every listening hint is disabled.
@@ -3073,8 +3396,20 @@ if (isRainPort) {
   function combatBuildState() {
     return combatBuildSnapshot || (combatBuildSnapshot = getBuildState());
   }
+  let inkAwakenSfxAt = -10;
   function weapons(dt, movement = null) {
     combatBuildSnapshot = null;
+    if (expansionSkills && !movement?.holdExpansion && expansionIds.some(id=>WL[id]>0)) {
+      const build = combatBuildState(), specs = {};
+      expansionSkills.tick(dt,{player:P,enemies,levels:WL,blocked,
+        resolve:id=>specs[id] ??= resolveAttackSpec(id,WL[id],build),
+        hit:(e,damage,critical,feedback)=>hurt(e,damage,critical,false,
+          feedback === "direct" ? "expansion" : feedback === "burst" ? "expansion_burst" : "expansion_periodic") === true,
+        crit:()=>rollCrit(.10,.10), running:()=>state==="play",
+        cue:(id,event)=>expansionApi.playCue?.(AUDIO,id,event,elapsed),
+        cooldown:(id,left,max)=>{ wT[id]=left; wMax[id]=max; }});
+      if (state !== "play") return;
+    }
     if (WL.ink_trail > 0) {
       inkTrail.tick({dt,level:WL.ink_trail,start:movement?.start,end:movement?.end,
         dashing:movement?.dashing ?? false,enemies,mutations:combatBuildState().mutations,
@@ -3086,10 +3421,14 @@ if (isRainPort) {
           else if(kind==="hit")AUDIO.inkTrailHit?.();
           else if(kind==="awaken")AUDIO.inkTrailAwaken?.();
           else if(kind==="echo")AUDIO.inkTrailEcho?.();
-          else if(kind==="confuse")AUDIO.inkTrailAwaken?.();
+          else if(kind==="confuse" && (inkAwakenSfxAt > elapsed || elapsed - inkAwakenSfxAt >= 2.5)){
+            inkAwakenSfxAt = elapsed;
+            AUDIO.inkTrailAwaken?.();
+          }
         }});
-      wMax.ink_trail = window.GAME_VIOLET_SCENT.spec(WL.ink_trail).interval;
-      wT.ink_trail = inkTrail.snapshot(WL.ink_trail).depositCooldown;
+      if (state !== "play") return;
+      wMax.ink_trail = inkTrail.cooldownMax();
+      wT.ink_trail = inkTrail.cooldownRemaining();
     }
     if (WL.seal_nail > 0) {
       sealNail.tick({dt,level:WL.seal_nail,start:movement?.start,end:movement?.end,
@@ -3105,19 +3444,22 @@ if (isRainPort) {
             RENDERER.triggerShake(4);
           }
         }});
+      if (state !== "play") return;
       const status=sealNail.snapshot(WL.seal_nail,buildMutations);
       wMax.seal_nail=status.cooldownMax;
       wT.seal_nail=status.cooldown;
     }
     if (shikigami && WL.shikigami > 0) {
-      shikigamiArt ??= shikigamiModule.loadArt(shikigami.species);
+      const species = WL.shikigami === 5 ? "hound" : shikigami.species;
+      const art = shikigamiArt[species] ??= shikigamiModule.loadArt(species);
+      if (WL.shikigami === 5 && stageLab) shikigamiModule.loadBlackArt(art);
       shikigami.tick({ dt, player: P, enemies, level: WL.shikigami, blocked,
         mutations: buildMutations,
         effectiveDamage: getEffectiveDmg(combatBuildState()),
         hit: (enemy, damage) => hurt(enemy, damage, false, false, "shikigami"),
         onEvent: shikigamiCue });
       if (state !== "play") return;
-      wT.shikigami = shikigami.snapshot().cooldown;
+      wT.shikigami = shikigami.cooldownRemaining();
       wMax.shikigami = shikigamiModule.spec(WL.shikigami).cooldown;
     }
     // 0. 墨焰斬延遲墨焰痕佇列（上限 16，延遲 0.12 秒，出生幀 dt 不扣，在妖刀攻擊前推進）
@@ -4699,12 +5041,11 @@ if (isRainPort) {
     return null;
   }
 
-  function updateShiome(e, dt, companion = null) {
+  function updateShiome(e, dt, aim = P, companion = false) {
     if (!e.hazard) {
       e.shiomeCd = Math.max(0, (e.shiomeCd || 0) - dt);
       if (e.pose !== "idle") e.pose = "idle";
-      const aim = companion || P;
-      if (e.shiomeCd <= 0 && dist(e, aim) < 210) {
+      if (aim && e.shiomeCd <= 0 && dist(e, aim) < 210) {
         e.hazard = {
           kind: "shiome",
           phase: "telegraph",
@@ -4712,7 +5053,7 @@ if (isRainPort) {
           x: e.x,
           y: e.y,
           angle: Math.atan2(aim.y - e.y, aim.x - e.x),
-          ...(companion ? { companion } : {}),
+          target: aim, companion,
           range: 156,
           traveled: 0,
           r: 26,
@@ -4734,11 +5075,13 @@ if (isRainPort) {
       h.x = e.x + Math.cos(h.angle) * h.traveled;
       h.y = e.y + Math.sin(h.angle) * h.traveled;
       let hit = null;
-      const waveTarget = h.companion || P;
+      const waveTarget = h.target || P;
       if (!h.hit && dist(waveTarget, h) <= h.r) {
         h.hit = true;
         if (h.companion) {
-          shikigami?.receiveEnemyAttack(e, 8, shikigamiCue, { projectile: true, target: h.companion });
+          shikigami?.receiveEnemyAttack(e, 8, shikigamiCue, { projectile: true, target: waveTarget });
+        } else if (waveTarget !== P) {
+          hurt(waveTarget, 5, false, false, "ink_confusion");
         } else {
           hit = { damage: 8, kind: "shiome", x: h.x, y: h.y };
         }
@@ -4788,13 +5131,14 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         ? { processionLeader: true, stageId: STAGE.id } : {}),
       ...(STAGE.id === "sakura-pass" ? { artStatus: "TEMP_FALLBACK", stageId: STAGE.id } : {}),
       hp: Math.ceil(t.hp * MOB_DIFFICULTY.hpScale), max: Math.ceil(t.hp * MOB_DIFFICULTY.hpScale) });
+    if (hasStage58Audio() && Math.hypot(position.x - P.x, position.y - P.y) < 520) AUDIO.stageEncounterCue?.(STAGE.id, "spawn");
   }
 
   function update(dt, hitStopped = false) {
     if (state !== "play" || artPending()) return;
     animElapsed += dt;
     if (isPortrait()) { suspend(); return; }
-    checkTutorial();
+    if (!bossLabRun && !skillLabRank && !expansionLabRound) checkTutorial();
     if (tutorial) return;
 
     // Delivery owns the reading controls for this frame, including its entry
@@ -4835,7 +5179,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       }
     }
     let quizNear = null;
-    let quizNearDistance = 380;
+    let quizNearDistance = BOSS_READING_RADIUS;
     // Boss protection is determined from the *current* reading owner, not
     // the frame-start snapshot. Delivery may expire or be exited this tick:
     // a nearby readable Boss must protect that handoff tick, while its own
@@ -4862,6 +5206,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       }
     }
     const safeRead = !!(job?.reading || quizNear);
+    const holdExpansion = safeRead || deliveryOwnsReadingFrame || bossCurseRemaining > 0;
+    if (holdExpansion) expansionSkills?.suspend();
     // Clear pending traps during reading/curse; none can hit when the modal ends.
     if (safeRead || bossCurseRemaining > 0) { inkTrail.suspend(); sealNail.suspend(); }
     if (safeRead || deliveryOwnsReadingFrame || bossCurseRemaining > 0) shikigami?.suspend();
@@ -4870,7 +5216,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if (!safeRead && bossCurseRemaining > 0) bossCurseRemaining = Math.max(0, bossCurseRemaining - dt);
     if (!safeRead) {
       elapsed += dt;
-      bossT -= dt;
+      bossT = bossSchedule.nextSpawnRemaining(elapsed);
       oil = Math.min(maxOil, oil - dt * 0.43 + (b.oilRegen || 0) * dt);
       if (oil <= 0) {
         oil = 0;
@@ -4880,10 +5226,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       }
       if (elapsed >= DAWN && warnDawnT === 0) {
         warnDawnT = -1;
-        const need = Math.max(0, GOAL_DELIVERIES - delivered);
         const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
         const bTitle = story?.bossTitle || "大妖";
-        const prompt = !finalBossDefeated ? `擊敗${bTitle}` : (need > 0 ? `還差 ${need} 件委託` : "破曉已至");
+        const targetTitle = bossHuntTarget()?.title || null;
+        const prompt = !bossEncounterComplete() ? `擊敗${targetTitle || bTitle}` : "破曉已至";
         say(prompt, P.x, P.y - 75, "#ffb3ba");
       }
     }
@@ -4918,8 +5264,14 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
 
     for (const r of rings) r.life -= dt;
     rings = rings.filter(r => r.life > 0);
-
+    for (const bn of bossBanners) bn.life -= dt;
+    bossBanners = bossBanners.filter(bn => bn.life > 0);
     if (!safeRead) {
+      for (const mz of mudZones) mz.life -= dt;
+      mudZones = mudZones.filter(mz => mz.life > 0);
+    }
+
+    if (!safeRead && !expansionLabRound) {
       for (const o of orders) o.life -= dt;
       const expired = orders.filter(o => o.life <= 0).length;
       orders = orders.filter(o => o.life > 0);
@@ -4943,7 +5295,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       P.faceAng = Math.atan2(m.y, m.x);
     }
     const baseSpd = getEffectiveMoveSpeed();
-    const sp = dashT > 0 ? 780 : baseSpd;
+    const inMud = mudZones.some(z => z.life > 0 && dist(P, z) <= z.r);
+    const sp = dashT > 0 ? 780 : baseSpd * (inMud ? 0.78 : 1);
     const steps = Math.max(1, Math.ceil(sp * dt / 9));
     for (let i = 0; i < steps; i++) {
       const nx = P.x + m.x * sp * dt / steps;
@@ -4999,7 +5352,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if (!safeRead) {
     // 詛咒反噬：保留移動、閃避、受敵攻擊；全面封鎖自動攻擊與主動施法。
     if (bossCurseRemaining <= 0)
-      weapons(dt, {start:inkMoveStart,end:{x:P.x,y:P.y},dashing:inkWasDashing});
+      weapons(dt, {start:inkMoveStart,end:{x:P.x,y:P.y},dashing:inkWasDashing,holdExpansion});
     // A finishing hit can switch to victory inside weapons; stop spawns/AI.
     if (state !== "play") return;
 
@@ -5022,7 +5375,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     // +0.5%/s after 2 minutes, +0.85%/s after 4 minutes; cumulative actual
     // restoration stops at 200% of starting HP. Health never exceeds maxHP.
     if (STAGE.id === "night-town" && !finalBossDefeated) {
-      const liveBoss = enemies.find(e => e.type === "boss" && e.final && e.hp > 0 && !e.dying);
+      const liveBoss = enemies.find(e => e.type === "boss" && e.final && e.hp > 0 && !e.dying &&
+        !e.isClone && !e.clone && !e.isSummon && !e.summon && e.officialWaveBoss !== false);
       if (liveBoss) {
         const bossAge = elapsed - (liveBoss.appearedAt ?? DAWN);
         const regenRate = bossAge >= 240 ? 0.0085 : bossAge >= 120 ? 0.005 : 0;
@@ -5071,13 +5425,16 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if (!safeRead) {
     // 敵人邏輯與傷害碰撞（衝撞扣燈油；若有護盾則扣護盾）
     const isRainPortNormal = isRainPortNormalMode();
-    const inRouteLab = !!window.STAGE_ROUTE_LAYOUTS?.[STAGE.id];
+    const routeLayout = window.STAGE_ROUTE_LAYOUTS?.[STAGE.id];
+    const inRouteLab = !!routeLayout;
     for (const e of enemies) {
       if (e.hp <= 0) continue;
       e.flash = Math.max(0, e.flash - dt);
+      if (expansionLabRound?.stationary) continue;
       e.hitReactT = Math.max(0, (e.hitReactT || 0) - dt);
       e.attackT = Math.max(0, (e.attackT || 0) - dt);
       const confuseAim=window.GAME_CONFUSION.step(e,dt,enemies,P);
+      const confusedWander = confuseAim === e.confuseWander;
       const knocked = moveKnockback(e, dt);
       if (e.freezeT > 0) {
         e.freezeT = Math.max(0, e.freezeEnds == null ? e.freezeT - dt : e.freezeEnds - elapsed);
@@ -5097,6 +5454,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       if (revealing) e.revealT = Math.max(0, e.revealT - dt);
       const baseSpd = Number.isFinite(e.speed) ? e.speed : 0;
       let curSpd = revealing ? 0 : ((e.slowT && e.slowT > 0) ? Math.min(baseSpd, 25) : baseSpd);
+      if (confusedWander) curSpd *= window.GAME_CONFUSION.wanderSpeedMultiplier;
+      if (expansionSkills) curSpd *= expansionSkills.slow(e);
       if (sacredSanctuary && sacredSanctuary.life > 0 && e.type !== "boss" && dist(e, sacredSanctuary) <= sacredSanctuary.r) curSpd *= 0.6;
       if (e.frostsealSlowEnds && elapsed < e.frostsealSlowEnds && (!e.freezeEnds || elapsed >= e.freezeEnds)) {
         curSpd *= (e.frostsealSlowMult || 1.0);
@@ -5119,13 +5478,29 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
           bossVisualFootOffsetY: STAGE.id === 'night-town' || STAGE.id === 'sakura-pass' ? 44 / tiltK() : 0,
           speed: curSpd,
           bounds: runBounds,
+          now: elapsed,
+          stagger: bossCastStagger,
+          earlyStagger: earlyBossStagger,
           paused: surgeWarningT > 0 ||
             ((STAGE.id === 'sakura-pass' || inRouteLab) && (knocked || revealing))
         });
         if (stepped?.hit) hazardHit = stepped.hit;
-        if (kyotoProcession && stepped?.cue) {
-          const cue = stepped.cue;
-          AUDIO.playOptionalCue?.("kyoto_" + cue, kyotoProcession.cues[cue], cue === "crossingWarning" ? .43 : .62);
+        if (stepped?.mudZone) {
+          mudZones.push(stepped.mudZone);
+          if (mudZones.length > 3) mudZones.shift();
+          AUDIO.stageLabCue?.('mud-pool',true);
+        }
+        if (stepped?.cue === "crossingWarning" || stepped?.cue === "crossingImpact")
+          AUDIO.stageLabCue?.("kyoto-crossing", stepped.cue === "crossingImpact", e.trialBoss?.audioId ?? e.trialBoss?.id);
+        if (e.hazard?.kind === "snowTemple" && (stepped?.started || oldPhase !== e.hazard.phase) &&
+            (e.hazard.phase === "telegraph" || e.hazard.phase === "active"))
+          AUDIO.stageLabCue?.(e.hazard.attack, e.hazard.phase === "active");
+        if (e.hazard?.kind === "lateStage" && oldPhase !== e.hazard.phase && e.hazard.phase !== "recovery") {
+          const lane=e.hazard.lanes?.[e.hazard.index];
+          const heavySlash=e.trialBoss?.id==="yomi-grave-samurai" && e.hazard.art==="cinder-burst" &&
+            lane?.round===false && lane.rx!==lane.ry;
+          if(heavySlash) AUDIO.stageLabCue?.("heavy-slash",e.hazard.phase==="active");
+          else AUDIO.stageLabCue?.(e.hazard.art, e.hazard.phase === "active");
         }
         if (bambooCombat?.isBamboo(e, { stageId: STAGE.id }) && e.hazard) {
           const suffix = stepped?.started ? "Warn" :
@@ -5218,7 +5593,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       const companionAim = aim !== confuseAim;
       if (e.type === "shiome") {
         if (!isRainPortNormal) {
-          const waveHit = updateShiome(e, dt, companionAim ? aim : null);
+          if (confusedWander && e.hazard?.target === P && e.hazard.phase === "telegraph") delete e.hazard;
+          const waveHit = updateShiome(e, dt, confusedWander ? null : aim, companionAim);
           if (waveHit) hazardHit = waveHit;
         } else {
           // Normal 雨港：停原波浪 hazard，避免雙攻擊；姿態由射擊 attackT 控制
@@ -5230,29 +5606,35 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
           const cue = kyotoProcession.step(e, P, enemies, dt, ally => ally === e
             ? aim !== P : !!shikigami && shikigami.targetForEnemy(ally, P) !== P);
           if (cue === "warning") say("百鬼報信", e.x, e.y - 52, "#ffdb99");
-          if (cue) AUDIO.playOptionalCue?.("kyoto_" + cue, kyotoProcession.cues[cue], .42);
+          if (cue) AUDIO.stageLabCue?.("kyoto-rally", cue === "rally");
         }
         if (e.kyotoRally > 0) {
           e.kyotoRally = Math.max(0, e.kyotoRally - dt);
           if (aim === P && e.type !== "boss" && curSpd === baseSpd && !(e.confusedT > 0)) curSpd *= 1.2;
         }
       }
-      const bambooMotion = e.bambooSkirmisher && !revealing && !knocked
+      if (confusedWander && e.bambooRush) delete e.bambooRush;
+      const bambooMotion = e.bambooSkirmisher && !revealing && !knocked && !confusedWander
         ? bambooCombat?.mobMotion(e, aim, dt, curSpd, blocked) : null;
-      const chaseAim = bambooMotion?.aim ?? aim;
+      const routeBoss = e.type === "boss" && inRouteLab;
+      const moveRadius = routeBoss ? 52 : 16;
+      const streetAim = routeLayout?.chasePoint?.(e, aim, WORLD_STATE.chunkWidth, WORLD_STATE.chunkHeight, moveRadius);
+      const turning = !!streetAim && streetAim !== aim;
+      const chaseAim = bambooMotion?.aim ?? streetAim ?? aim;
       const dx = chaseAim.x - e.x, dy = chaseAim.y - e.y;
       const d = Math.hypot(dx, dy) || 1;
       const bossBusy = e.type === "boss" && (!!e.hazard || harborSidestep);
       const shiomeHold = e.type === "shiome" && e.hazard && e.hazard.phase !== "recover";
 
       // 所有怪物逼近玩家（加入建築物碰撞障礙滑移）
-      const step = (bossBusy || shiomeHold || knocked) ? 0 :
-        CFG.chaseStep(d, bambooMotion?.speed ?? curSpd, bambooMotion?.rush ? Math.min(dt, .15) : dt, e.type, STAGE_ENEMY.shots !== false);
+      const drawnByWind = !knocked && !revealing && !bambooMotion?.rush &&
+        expansionSkills?.pull(e,dt,P,blocked);
+      const chaseStep = (bossBusy || shiomeHold || knocked || drawnByWind) ? 0 :
+        CFG.chaseStep(d, bambooMotion?.speed ?? curSpd, bambooMotion?.rush ? Math.min(dt, .15) : dt, e.type, !turning && STAGE_ENEMY.shots !== false);
+      const step = turning ? Math.min(chaseStep, Math.hypot(dx, dy)) : chaseStep;
       const stepX = ((dx || (d === 1 && !dy ? 1 : 0)) / d) * step;
       const stepY = (dy / d) * step;
       const oldX = e.x, oldY = e.y;
-      const routeBoss = e.type === "boss" && inRouteLab;
-      const moveRadius = routeBoss ? 52 : 16;
       const canDetour = !bambooMotion?.rush && (routeBoss || e.type !== "boss") && e.type !== "mis" && step > 0;
       if (canDetour && e.detourT > 0) {
         const domY = Math.abs(stepY) >= Math.abs(stepX);
@@ -5313,17 +5695,26 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       const canShootType = isRainPortNormal
         ? e.type === "shiome"
         : (e.type === "shooter" || (e.type === "mis" && !revealing));
-      if (STAGE_ENEMY.shots !== false && canShootType) {
+      if (STAGE_ENEMY.shots !== false && canShootType && !confusedWander) {
+        const shotX = aim !== P ? aim.x - e.x : dx, shotY = aim !== P ? aim.y - e.y : dy;
+        const shotDistance = aim !== P ? Math.hypot(shotX, shotY) : d;
         e.shootCd = (e.shootCd || (2.0 + Math.random())) - dt;
-        if (e.shootCd <= 0 && d > 50 && d < (e.type === "mis" ? 200 : 460)) {
+        if (STAGE.id === "hyakki-kyoto" && e.type === "shooter")
+          e.kyotoShotWindup = shotDistance > 50 && shotDistance < 460 && e.shootCd > 0 && e.shootCd <= .32;
+        if (STAGE.id === "snow-temple" && e.type === "shooter")
+          e.snowShotWindup = shotDistance > 50 && shotDistance < 460 && e.shootCd > 0 && e.shootCd <= .32;
+        if (inRouteLab && (STAGE.id === "spirit-ferry" || STAGE.id === "yomi") && e.type === "shooter")
+          e.lateShotWindup = shotDistance > 50 && shotDistance < 460 && e.shootCd > 0 && e.shootCd <= .32;
+        if (e.shootCd <= 0 && shotDistance > 50 && shotDistance < (e.type === "mis" ? 200 : 460)) {
           e.shootCd = 3.2 + Math.random() * 1.2;
           e.attackT = 0.24;
+          if (hasStage58Audio()) AUDIO.stageEncounterCue?.(STAGE.id, "shot");
           if (e.type === "shiome") e.pose = "attack";
           const bulletSpeed = 230;
           enemyBullets.push({
             x: e.x, y: e.y,
-            vx: (dx / d) * bulletSpeed,
-            vy: (dy / d) * bulletSpeed,
+            vx: (shotX / shotDistance) * bulletSpeed,
+            vy: (shotY / shotDistance) * bulletSpeed,
             life: 2.6,
             ...(companionAim ? { target: aim, shooter: e, shikigami: true } :
               confuseAim !== P ? { target: confuseAim } : null)
@@ -5335,12 +5726,12 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       if (companionAim && !revealing) {
         e.shikigamiStrikeCd = Math.max(0, (e.shikigamiStrikeCd || 0) - dt);
         if (e.shikigamiStrikeCd === 0 && dist(e, aim) < hitRadius + 5 &&
-            shikigami.receiveEnemyAttack(e, e.type === "tank" ? 18 : 10, shikigamiCue)) {
+            shikigami.receiveEnemyAttack(e, e.type === "tank" ? 18 : 10, shikigamiCue, { target: aim })) {
           e.shikigamiStrikeCd = .8;
           e.attackT = .24;
         }
       }
-      if(confuseAim!==P && e.type!=="boss" && e.confusedT>0 &&
+      if(confuseAim!==P && !confusedWander && e.type!=="boss" && e.confusedT>0 &&
           Math.hypot(confuseAim.x-e.x,confuseAim.y-e.y)<hitRadius+12 &&
           (e.confuseStrikeCd||0)<=0 && confuseAim.hp>0) {
         e.confuseStrikeCd=.9;
@@ -5396,112 +5787,109 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       return;
     }
 
-    // An earlier Boss can block the gate indefinitely. The final's scheduled
-    // time plus grace period is an absolute deadline for ALL queue positions.
-    if (window.GAME_COMBAT_MATH.shouldForceFinalBoss(bossStage, BOSS_TIMES, elapsed, FINAL_BOSS_WAIT_MAX)) {
-      bossStage = BOSS_TIMES.length - 1;
-      bossT = 0;
-      finalBossWaitT = FINAL_BOSS_WAIT_MAX;
-      say("終王破封・即將現身！", P.x, P.y - 75, "#ffb3ba");
-    }
-    if (bossT <= 0 && bossStage < BOSS_TIMES.length) {
-      const plan = bossBlueprint(bossStage);
-      const alive = enemies.filter(e => e.type === "boss" && e.hp > 0);
-      let wait = plan.role === "final"
-        ? alive.some(e => !e.gatekeeper)
-        : plan.role === "gate"
-          ? alive.some(e => !e.final)
-          : alive.length > 0;
-      if (wait && plan.role === "final") {
-        finalBossWaitT = Math.max(finalBossWaitT + dt, elapsed - BOSS_TIMES[BOSS_TIMES.length - 1]);
-        if (finalBossWaitT < FINAL_BOSS_WAIT_MAX) {
+    // Unified four-boss schedule shared across all standard stages:
+    // Waves 1-3 spawn at their scheduled times (up to 3 live official bosses);
+    // the final wave waits until its time AND at least one earlier wave boss is defeated.
+    // No timeout skipping; unavailable spawn positions retry the same wave.
+    while (!expansionLabRound) {
+      const candidate = bossSchedule.nextSpawnCandidate(elapsed, enemies);
+      if (!candidate) break;
+      if (!candidate.eligible) {
+        if (candidate.reason === "wait-prior-defeat") {
           finalBossHintT -= dt;
           if (finalBossHintT <= 0) {
             finalBossHintT = FINAL_BOSS_HINT_EVERY;
-            const blocker = alive.find(e => !e.gatekeeper);
-            say(`先擊敗${blocker?.title || "大妖"}，終王才會現身`, P.x, P.y - 75, "#ffb3ba");
+            pushBossBanner("擊敗任一位前王，終王才會現身", "#ffb3ba");
           }
         }
-        if (finalBossWaitT >= FINAL_BOSS_WAIT_MAX) wait = false;
+        break;
       }
-      const position = wait || plan.hp == null ? null : spawnPosition(spawnRadius(520), Math.random() * 6.283, 52);
-      if (position) {
-        const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
-        let bossPool = ALL.filter(w => !livingMisWords.has(w.jp));
-        if (bossPool.length === 0) bossPool = ALL;
-        let word = null;
-        let introduced = true;
-        if (plan.quiz) {
-          const studied = study?.seenWords?.() || [];
-          if (studied.length) {
-            // Keep the single-Boss latest-seen behavior, but two live
-            // shielded Bosses must not assign the same word.
-            const occupied = new Set(enemies.filter(e =>
-              e.type === "boss" && e.hp > 0 && e.shield && e.word).map(e => e.word.jp));
-            const alternatives = studied.filter(w => !occupied.has(w.jp));
-            word = (alternatives.length ? alternatives : studied).slice(-1)[0];
-            // If no distinct studied word exists, replay is assisted.
-            if (!alternatives.length && occupied.has(word.jp)) introduced = false;
-          } else { word = STORE.pick(bossPool); introduced = false; }
+      const waveIndex = candidate.index;
+      const plan = bossBlueprint(waveIndex);
+      const alive = bossSchedule.liveOfficialBosses(enemies);
+      const position = plan.hp == null ? null : spawnPosition(spawnRadius(520), Math.random() * 6.283, 52);
+      if (!position) break;
+      const livingMisWords = new Set(enemies.filter(e => e.hp > 0 && e.type === "mis" && e.w).map(e => e.w.jp));
+      let bossPool = ALL.filter(w => !livingMisWords.has(w.jp));
+      if (bossPool.length === 0) bossPool = ALL;
+      let word = null;
+      let introduced = true;
+      if (plan.quiz) {
+        const studied = study?.seenWords?.() || [];
+        const occupied = new Set(alive.filter(e => e.shield && e.word).map(e => e.word.jp));
+        if (studied.length) {
+          const alternatives = studied.filter(w => !occupied.has(w.jp));
+          word = (alternatives.length ? alternatives : studied).slice(-1)[0];
+          // If no distinct studied word exists, replay is assisted.
+          if (!alternatives.length && occupied.has(word.jp)) introduced = false;
+        } else {
+          const alternatives = bossPool.filter(w => !occupied.has(w.jp));
+          word = STORE.pick(alternatives.length ? alternatives : bossPool);
+          introduced = false;
         }
-        const harborBoss = STAGE_ENEMY.bossTheme === "harbor";
-        const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
-        const sakuraBossArt = STAGE.id === "sakura-pass" && window.isSakuraCandidateEnabled?.() !== false
-          ? window.SAKURA_ART_DATA?.bossWaves?.[bossStage] : null;
-        const trialBoss = window.BOSS_ROSTER_TRIAL?.wave(STAGE.id,bossStage);
-        const bossTitle = trialBoss?.title || sakuraBossArt?.title || story?.bossTitle || (harborBoss ? "港霧大妖" : "大妖鬼");
-        const isRainPortNormal = isRainPortNormalMode();
-        // rain-port Normal：前三王恢復高難度且第三王承接尾王強度；Hard本身完全不變。
-        const harborNormalBossHps = [300, 650, 900, 1400];
-        const baseBossHp = isRainPortNormal && typeof plan.hp === "number"
-          ? (harborNormalBossHps[bossStage] ?? plan.hp)
-          : plan.hp;
-        // 敵人設定的 Boss HP 倍率正式接入；目前兩關均為 1，數值不變。
-        const bossHp = typeof baseBossHp === "number"
-          ? Math.max(1, Math.round(baseBossHp * (STAGE_ENEMY.bossHpScale || 1))) : baseBossHp;
-        enemies.push({
-          ...position,
-          type: "boss",
-          word,
-          shield: !!plan.quiz,
-          role: plan.role,
-          gatekeeper: plan.role === "gate",
-          final: plan.role === "final",
-          // Harbor footwork and the default portrait remain available for all rain-port bosses.
-          umibozu: STAGE.id === "rain-port",
-          ...(trialBoss ? {trialBoss} : {}),
-          pose: "idle",
-          title: bossTitle,
-          bossIndex: bossStage,
-          appearedAt: elapsed,
-          regenRestored: 0,
-          stageId: STAGE.id,
-          ...(STAGE.id === "sakura-pass" ? { artStatus: "TEMP_FALLBACK" } : {}),
-          bossTheme: STAGE_ENEMY.bossTheme,
-          oilReward: isRainPortNormal && bossStage < 2 ? plan.oil + 10 : plan.oil,
-          hp: bossHp,
-          max: bossHp,
-          speed: STAGE.id === "rain-port"
-            ? (plan.role === "final" ? 112 : plan.role === "gate" ? 105 : 98)
-            : STAGE.id === "sakura-pass" ? (window.SAKURA_BOSS_AI?.walkSpeed(bossStage) || 130)
-            : (plan.role === "gate" ? 70 : plan.role === "final" ? 46 : 58),
-          flash: 0,
-          wob: 0,
-          attackCd: 1.2,
-          introduced
-        });
-        if (plan.role === "final") {
-          finalBossWaitT = 0; finalBossHintT = 0;
-          AUDIO.prepareBossMusic?.();
-        }
-        bossStage++;
-        const nextBossAt = BOSS_TIMES[bossStage];
-        bossT = nextBossAt == null ? Number.POSITIVE_INFINITY : Math.max(0, nextBossAt - elapsed);
-        const spawnSay = plan.role === "final"
-          ? (story?.bossIntro || `${bossTitle}出現！`)
-          : `${bossTitle}出現！`;
-        say(spawnSay, P.x, P.y - 75, "#ff8f8f");
-        // 登場只播放提示文字；移除與受擊/雷擊容易混淆的合成聲。
+      }
+      const harborBoss = STAGE_ENEMY.bossTheme === "harbor";
+      const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
+      const sakuraBossArt = STAGE.id === "sakura-pass" && window.isSakuraCandidateEnabled?.() !== false
+        ? window.SAKURA_ART_DATA?.bossWaves?.[waveIndex] : null;
+      const trialBoss = stageLabArtFor(STAGE.id)?.bossWave(waveIndex) ?? window.BOSS_ROSTER_TRIAL?.wave(STAGE.id, waveIndex);
+      const bossTitle = trialBoss?.title || sakuraBossArt?.title || story?.bossTitle || (harborBoss ? "港霧大妖" : "大妖鬼");
+      const isRainPortNormal = isRainPortNormalMode();
+      // rain-port Normal：前三王恢復高難度且第三王承接尾王強度；Hard本身完全不變。
+      const harborNormalBossHps = [300, 650, 900, 1400];
+      const baseBossHp = isRainPortNormal && typeof plan.hp === "number"
+        ? (harborNormalBossHps[waveIndex] ?? plan.hp)
+        : plan.hp;
+      // 敵人設定的 Boss HP 倍率正式接入；目前兩關均為 1，數值不變。
+      const bossHp = typeof baseBossHp === "number"
+        ? Math.max(1, Math.round(baseBossHp * (STAGE_ENEMY.bossHpScale || 1))) : baseBossHp;
+      enemies.push({
+        ...position,
+        type: "boss",
+        officialWaveBoss: true,
+        word,
+        shield: !!plan.quiz,
+        role: plan.role,
+        gatekeeper: plan.role === "gate",
+        final: plan.role === "final",
+        // Harbor footwork and the default portrait remain available for all rain-port bosses.
+        umibozu: STAGE.id === "rain-port",
+        ...(trialBoss ? {trialBoss} : {}),
+        pose: "idle",
+        title: bossTitle,
+        bossIndex: waveIndex,
+        appearedAt: elapsed,
+        regenRestored: 0,
+        stageId: STAGE.id,
+        ...(STAGE.id === "sakura-pass" ? { artStatus: "TEMP_FALLBACK" } : {}),
+        bossTheme: STAGE_ENEMY.bossTheme,
+        oilReward: isRainPortNormal && waveIndex < 2 ? plan.oil + 10 : plan.oil,
+        hp: bossHp,
+        max: bossHp,
+        speed: STAGE.id === "rain-port"
+          ? (plan.role === "final" ? 112 : plan.role === "gate" ? 105 : 98)
+          : STAGE.id === "sakura-pass" ? (window.SAKURA_BOSS_AI?.walkSpeed(waveIndex) || 130)
+          : (plan.role === "gate" ? 70 : plan.role === "final" ? 46 : 58),
+        flash: 0,
+        wob: 0,
+        attackCd: 1.2,
+        introduced
+      });
+      if (plan.role === "final") {
+        finalBossHintT = 0;
+        AUDIO.prepareBossMusic?.();
+      }
+      bossSchedule.markSpawned(waveIndex);
+      bossStage = bossSchedule.nextWaveIndex();
+      bossT = bossSchedule.nextSpawnRemaining(elapsed);
+      const spawnSay = plan.role === "final"
+        ? (story?.bossIntro || `${bossTitle}出現！`)
+        : `${bossTitle}出現！`;
+      const lateRoster = window.LATE_STAGE_ART?.forStage(STAGE.id);
+      pushBossBanner(spawnSay, "#ff8f8f");
+      if (hasStage58Audio()) {
+        AUDIO.stageEncounterCue?.(STAGE.id, "boss", trialBoss?.audioId ?? trialBoss?.id);
+        if (hasStage58Audio()) AUDIO.stageBossState?.(true);
       }
     }
     }
@@ -5511,7 +5899,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     let bs = quizNear;
     if (!bs) {
       // After a reading barrier expires, answering is still allowed in combat.
-      let closest = 380;
+      let closest = BOSS_READING_RADIUS;
       for (const e of enemies) {
         if (e.type !== "boss" || !e.shield || e.hp <= 0) continue;
         const d = dist(P, e);
@@ -5547,9 +5935,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       const d = dist(P, g);
       if (d > GEM_DISTANCE) { g.done = true; continue; }
       if (d < att && d > 0) {
-        const s = 240 + (att - d) * 3;
-        g.x += ((P.x - g.x) / d) * s * dt;
-        g.y += ((P.y - g.y) / d) * s * dt;
+        const step = Math.min(d, (240 + (att - d) * 3) * dt);
+        g.x += (P.x - g.x) * (step / d);
+        g.y += (P.y - g.y) * (step / d);
       }
       if (d < 24) {
         xp += g.v;
@@ -6108,21 +6496,37 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     ctx.restore();
   }
 
-  const isRouteLabHazard = h => h.kind === "bambooCut" || h.kind === "bambooShoots" || h.kind === "kyotoCrossing";
+  const isRouteLabHazard = h => h.kind === "bambooCut" || h.kind === "bambooShoots" || isStageLabRasterHazard(h);
+  const isStageLabRasterHazard = h => h.kind === "kyotoCrossing" || h.kind === "snowTemple" || h.kind === "lateStage";
   const isBambooGroundHazard = h => h.kind === "bambooCut" ||
     (h.kind === "bambooShoots" && h.phase === "telegraph");
   function drawBossHazard(h, owner, pass) {
     if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) return;
     if (isRouteLabHazard(h)) {
-      if (h.phase === "recovery") return;
-      if (STAGE.id === "bamboo-maze" && window.BAMBOO_ART?.paintHazard(ctx, h)) return;
+      if (isStageLabRasterHazard(h)) {
+        const image = stageLabArtFor(STAGE.id)?.hazardImage(owner, h.phase, h);
+        if (image) {
+          if (pass === "ground") RENDERER.drawStageLabHazard?.(h, image);
+          return;
+        }
+      }
+      if (h.phase === "recovery" && !(h.kind === "bambooCut" && pass === "ground")) return;
+      if (STAGE.id === "bamboo-maze" && window.BAMBOO_ART?.paintHazard(ctx, h, pass)) return;
+      if (pass === "ground") return;
       ctx.save();
       ctx.lineJoin = "round";
-      const zones = h.kind === "kyotoCrossing" ? [h.lanes[h.index]] : h.zones;
+      const activeLane = isStageLabRasterHazard(h) ? h.lanes[h.index] : null;
+      const zones = isStageLabRasterHazard(h)
+        ? (Array.isArray(activeLane?.zones) && activeLane.zones.length ? activeLane.zones : (activeLane ? [activeLane] : []))
+        : h.zones;
       for (const zone of zones) {
         ctx.beginPath();
-        if (h.kind === "bambooShoots") ctx.arc(zone.x, zone.y, zone.rx, 0, Math.PI * 2);
+        if (h.kind === "bambooShoots" || zone.round) ctx.arc(zone.x, zone.y, zone.rx, 0, Math.PI * 2);
         else ctx.rect(zone.x - zone.rx, zone.y - zone.ry, zone.rx * 2, zone.ry * 2);
+        if (zone.inner) {
+          ctx.moveTo(zone.x + zone.inner, zone.y);
+          ctx.arc(zone.x, zone.y, zone.inner, 0, Math.PI * 2);
+        }
         ctx.lineWidth = 6;
         ctx.strokeStyle = "#26231f";
         ctx.stroke();
@@ -6295,6 +6699,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
   }
   const renderActors = [];
   function drawWorld() {
+    const stageLabArt = stageLabArtFor(STAGE.id);
     const cam = RENDERER.getCam();
     const shakeOffset = frameShakeOffset;
     const holdDawn = elapsed >= DAWN && state !== "victory" && state !== "won" && state !== "lost";
@@ -6328,6 +6733,11 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     const nearView = (x, y, margin = 220) =>
       x >= cam.x + view.left - margin && x <= cam.x + view.right + margin &&
       y >= cam.y + view.top - margin && y <= cam.y + view.bottom + margin;
+    const expansionEffects = expansionSkills?.visuals(P);
+    const expansionView = expansionEffects?.length ? {
+      left: cam.x + view.left - shakeOffset.x, right: cam.x + view.right - shakeOffset.x,
+      top: cam.y + view.top - shakeOffset.y, bottom: cam.y + view.bottom - shakeOffset.y
+    } : null;
     // The tide spans the harbor sideways. Pillars are centered away from the caster.
     const hazardNearView = (h, margin) => {
       if (h.kind === "tide") {
@@ -6371,9 +6781,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.restore();
     }
     if (portPerf) endFx();
-    // Hide decorative repeated district names on the rain-port sea;
-    // building nameplates and delivery captions remain intact.
-    if (STAGE.id !== "rain-port" && STAGE.id !== "bamboo-maze") RENDERER.drawDistrictLabels?.(activeChunks);
+    // Leave scenery and crossing sightlines clear of repeating ground labels.
+    if (STAGE.id !== "rain-port" && STAGE.id !== "bamboo-maze" && !stageLabArt)
+      RENDERER.drawDistrictLabels?.(activeChunks);
 
     // 2. 地面高空流雲投影視差層 (Far Sky Cloud Shadows, 0.20x)
     RENDERER.drawGroundParallax?.(visualElapsed, DAWN, cam);
@@ -6390,6 +6800,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       if (!nearView(l.x, l.y)) return;
       FX.glow(ctx, l.x, l.y + 8, 96, "#ffcf6a", 0.24);
     });
+
+    if (expansionView) for (const effect of expansionEffects) if (effect.ground)
+      expansionApi.paint(ctx, effect, expansionLabRound?.diagnostics, expansionView);
 
     // 4. 委託氣泡移至頂層 (15.5) 繪製，確保永不被建築、角色或陰影遮擋
 
@@ -6508,7 +6921,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
 
     // 6. 手繪封印靈玉：以墨線／和紙亮面取代螢光圓點。
     portPerf?.pass("gems");
-    const visibleGems = experiment?.gems != null ? perfGemFixture || [] : gems;
+    const visibleGems = perfGemFixture ?? gems;
     if (portPerf?.config.gemBatch === "original" || !RENDERER.drawSpiritGems?.(visibleGems,elapsed,nearView)) {
       for (const g of visibleGems) {
         if (!nearView(g.x, g.y, 40)) continue;
@@ -6694,15 +7107,58 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
 
     if (sakuraStage || crowded) drawSanctuaryCanopy();
     if (portPerf) beginFx("enemyHazards");
+    const arrival = stageLabArt?.image("arrival");
     for (const e of enemies) {
+      if (arrival && e.type === "boss" && e.hp > 0) {
+        const sinceArrival = elapsed - e.appearedAt;
+        if (sinceArrival >= 0 && sinceArrival < 1.05 && nearView(e.x, e.y, 160)) {
+          const radius = 64 + 27 * sinceArrival;
+          ctx.save();
+          ctx.globalAlpha *= Math.min(1, sinceArrival * 12) * (1 - sinceArrival / 1.05);
+          ctx.drawImage(arrival, e.x - radius, e.y + 25 - radius, radius * 2, radius * 2);
+          ctx.restore();
+        }
+      }
       const h = e.hazard;
-      if (e.hp <= 0 || !h || (isRouteLabHazard(h) && !isBambooGroundHazard(h)) ||
+      if (e.hp <= 0 || !h || (isRouteLabHazard(h) && !isBambooGroundHazard(h) && !isStageLabRasterHazard(h)) ||
           !hazardNearView(h, Math.max(480, h.reach || 0, h.length || 0, (h.r || 0) + 110))) continue;
       if (sakuraStage && h.sakura) {
         if (h.phase === "telegraph" || (h.kind === "sakuraBloom" && h.phase === "active"))
           drawBossHazard(h, e, "warning");
       } else if (h.kind === "shiome") drawShiomeWave(h);
-      else drawBossHazard(h, e);
+      else drawBossHazard(h, e, h.kind === "bambooCut" || isStageLabRasterHazard(h) ? "ground" : undefined);
+    }
+    if (mudZones.length) {
+      const mudArt = STAGE.id === "spirit-ferry" ? stageLabArtFor(STAGE.id)?.image("mud-pool") : null;
+      for (const mz of mudZones) {
+        if (mz.life <= 0 || !nearView(mz.x, mz.y, mz.r + 40)) continue;
+        const fade = Math.min(1, mz.life / 0.5);
+        if (mudArt) {
+          ctx.save();
+          ctx.globalAlpha *= 0.86 * fade;
+          ctx.drawImage(mudArt, mz.x - mz.r, mz.y - mz.r, mz.r * 2, mz.r * 2);
+          ctx.restore();
+          continue;
+        }
+        // Existing DEV diagnostic fallback while the raster is unavailable.
+        ctx.save();
+        ctx.globalAlpha = 0.56 * fade;
+        const grad = ctx.createRadialGradient(mz.x, mz.y, mz.r * 0.15, mz.x, mz.y, mz.r);
+        grad.addColorStop(0, "rgba(38, 46, 36, 0.88)");
+        grad.addColorStop(0.7, "rgba(56, 62, 46, 0.64)");
+        grad.addColorStop(1, "rgba(44, 52, 42, 0.06)");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(mz.x, mz.y, mz.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(184, 198, 152, 0.72)";
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([8, 6]);
+        ctx.beginPath();
+        ctx.arc(mz.x, mz.y, mz.r - 2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
     }
     if (portPerf) endFx();
     for (const d of charmDrops) {
@@ -6711,56 +7167,29 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
 
     // 獨立於 safeRead 的角色動畫時鐘，確保世界暫停時角色仍能流暢邁步／衝刺
     const pAnimElapsed = typeof animElapsed === "number" ? animElapsed : elapsed;
-    // B18: floor answers draw below the depth-sorted actor and cargo layer.
-    // They still use the same screen-upright baseline and answer coordinates.
-    if(job && dist(P,job.to)<330) {
-      ctx.save();ctx.textAlign='center';
-      ansPos(job.to).slice(0,job.ans.length).forEach((p,i)=>{
-        ctx.save();uprightHere(p.x,p.y);
-        const meaning=job.showMeaningT>0 && job.ans[i]===job.word;
-        ctx.strokeStyle='#fff4dd';ctx.lineWidth=2.5;
-        const text=job.rev?job.ans[i].zh:job.ans[i].jp, y=p.y+(meaning?0:8);
-        ctx.font=job.rev?UI.cargoFont(31,'700'):sceneAnswerFont(33);
-        const ready=job.rev || UI.answerFontReady(text,31,'700');
-        if(ready){
-          ctx.fillStyle=job.eliminatedIdx===i || job.wrong?.includes(i)?'#888899':'#161224';
-          const maxPadW = 190;
-          if (UI.fitText) {
-            UI.fitText(ctx, text, p.x, y, maxPadW, {
-              minSize: 18,
-              wrap: true,
-              stroke: true,
-              y1: meaning ? p.y - 7 : p.y - 1,
-              y2: meaning ? p.y + 7 : p.y + 15
-            });
-          } else {
-            ctx.strokeText(text,p.x,y);
-            ctx.fillText(text,p.x,y);
-          }
-        }
-        // 答錯時不標注當題中文釋義以防洩題
-        ctx.restore();
-      });ctx.restore();
-    }
-
     // 7. 依腳底地面接觸點排序；北側角色被屋頂遮住，南側角色在屋前。
     const movement = move();
-    const companion = shikigami?.body();
-    const companionEffect = shikigami?.effect();
     const actors = renderActors;
     actors.length = 0;
     if (sakuraStage) for (const actor of RENDERER.sakuraForestActors?.(view,cam) || []) actors.push(actor);
     for (const h of houses) if (houseSeen(h)) actors.push({house:h,y:h.y+48});
+    const routeBosses = stageLabArt ? [] : null;
     for (const e of enemies) if (nearView(e.x,e.y)) {
       actors.push({enemy:e,y:e.y+(e.type==="boss" ? 44 : e.type==="mis" ? 27 : 19)});
+      if (routeBosses && e.type === "boss" && e.hp > 0) routeBosses.push(e);
     }
     for (const l of LAMPS) if (nearView(l.x,l.y)) actors.push({lamp:l,y:l.y+8});
     actors.push({player:P,y:P.y});
-    if (companion && nearView(companion.x,companion.y)) actors.push({companion,y:companion.y});
-    if (companionEffect && nearView(companionEffect.x,companionEffect.y)) {
-      actors.push({companion:companionEffect,y:companionEffect.y+1});
+    if (shikigami && WL.shikigami > 0) {
+      for (const companion of shikigami.bodies())
+        if (nearView(companion.x,companion.y)) actors.push({companion,y:companion.y});
+      for (const companion of shikigami.effects())
+        if (nearView(companion.x,companion.y)) actors.push({companion,y:companion.y+1});
     }
+    if (expansionView) for (const effect of expansionEffects) if (!effect.ground)
+      actors.push({expansionEffect:effect,y:effect.depth ?? effect.y});
     // Insertion order breaks depth ties exactly as before.
+    const routePropMargin = STAGE.id === "snow-temple" ? 270 : STAGE.id === "hyakki-kyoto" ? 390 : 650;
     for (const chunk of activeChunks) {
       const decor = chunk.decor;
       if (!sakuraStage) {
@@ -6777,7 +7206,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         if (nearView(prop.x,prop.y,160)) actors.push({sakuraProp:prop,y:prop.y});
       }
       if (chunk.routeProps) for (const prop of chunk.routeProps) {
-        if (nearView(prop.x,prop.y,650)) actors.push({bambooProp:prop,y:prop.y});
+        if (!nearView(prop.x,prop.y,routePropMargin)) continue;
+        if (prop.kind === "yomi-moon") RENDERER.drawRouteProp?.(prop, null, null, 1 - victoryDawn());
+        else actors.push({routeProp:prop,y:prop.y});
       }
       if (STAGE.id === "rain-port" && decor?.port?.props) for (const prop of decor.port.props) {
         if (nearView(prop.x,prop.y,160)) actors.push({port:prop,y:prop.y});
@@ -6789,10 +7220,11 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       if (actor.torii || actor.tree || actor.ancient || actor.forest) RENDERER.drawDecorActor?.(actor,P.y);
       else if (actor.port) RENDERER.drawPortProp?.(actor.port, P.y);
       else if (actor.sakuraProp) RENDERER.drawSakuraProp?.(actor.sakuraProp, P.y);
-      else if (actor.bambooProp) RENDERER.drawBambooProp?.(actor.bambooProp, P);
+      else if (actor.routeProp) RENDERER.drawRouteProp?.(actor.routeProp, P, routeBosses);
+      else if (actor.expansionEffect) expansionApi.paint(ctx,actor.expansionEffect,expansionLabRound?.diagnostics,expansionView,tiltK());
       else if (actor.companion) {
         const pose = actor.companion;
-        upright(pose.x, pose.y, () => shikigami.paint(ctx, shikigamiArt || {}, job?.reading ? .2 : 1, pose));
+        upright(pose.x, pose.y, () => shikigami.paint(ctx, shikigamiArt[pose.species], job?.reading ? .2 : 1, pose));
       }
       else if (actor.house) {
         RENDERER.drawHouseShadow?.(actor.house);
@@ -7069,7 +7501,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.save();
       for (const e of enemies) {
         const hazard = e.hazard;
-        if (e.hp > 0 && hazard && isRouteLabHazard(hazard) && !isBambooGroundHazard(hazard) &&
+        // Cut boundaries remain readable above the actors and sanctuary.
+        if (e.hp > 0 && hazard && isRouteLabHazard(hazard) &&
+            (!isBambooGroundHazard(hazard) || (hazard.kind === "bambooCut" && hazard.phase !== "recovery")) &&
             nearView(hazard.x, hazard.y, 400)) drawBossHazard(hazard, e);
         const rush = e.bambooRush;
         if (e.hp <= 0 || rush?.phase !== "telegraph" || !nearView(e.x, e.y)) continue;
@@ -7085,7 +7519,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.strokeStyle = "#b7c9a6"; ctx.lineWidth = 2;
       for (const s of solids) {
         if (!s.kind || !nearView((s.x0 + s.x1) / 2, (s.y0 + s.y1) / 2, 160)) continue;
-        if (s.artRole && window.BAMBOO_ART?.image(s.artRole)) continue;
+        if (s.kind === "kyoto-block" && RENDERER.routePropImage?.("kyoto-block-wall")) continue;
+        if (s.kind === "ferry-water" && stageLabArt?.terrain(0)) continue;
+        if (s.kind === "yomi-torii-foot" && stageLabArt?.image("torii")) continue;
+        if (s.artRole && RENDERER.routePropImage?.(s.artRole)) continue;
         ctx.strokeRect(s.x0, s.y0, s.x1 - s.x0, s.y1 - s.y0);
       }
       ctx.restore();
@@ -7108,7 +7545,16 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if (portPerf) beginFx("enemyBullets");
     ctx.save();
     tiltWorld(cam,shakeOffset);
+    const stageProjectile = stageLabArt?.image("projectile");
     for (const eb of enemyBullets) upright(eb.x,eb.y,()=>{
+      if (stageProjectile) {
+        ctx.save();
+        ctx.translate(eb.x, eb.y);
+        ctx.rotate(Math.atan2(eb.vy * tiltK(), eb.vx));
+        ctx.drawImage(stageProjectile, -22, -10, 38, 20);
+        ctx.restore();
+        return;
+      }
       ctx.fillStyle = "#ba68c8";
       ctx.beginPath();ctx.arc(eb.x, eb.y, 8, 0, 6.28);ctx.fill();
       ctx.fillStyle = "#ffffff";
@@ -7178,6 +7624,36 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if (portPerf?.config.damageText !== "off") RENDERER.drawDamageNumbers();
     portPerf?.pass("world");
 
+    // Keep answer glyphs upright and above airborne effects and actors.
+    if(job && dist(P,job.to)<330) {
+      ctx.save();ctx.textAlign='center';
+      ansPos(job.to).slice(0,job.ans.length).forEach((p,i)=>{
+        ctx.save();uprightHere(p.x,p.y);
+        const meaning=job.showMeaningT>0 && job.ans[i]===job.word;
+        ctx.strokeStyle='#fff4dd';ctx.lineWidth=2.5;
+        const text=job.rev?job.ans[i].zh:job.ans[i].jp, y=p.y+(meaning?0:8);
+        ctx.font=job.rev?UI.cargoFont(31,'700'):sceneAnswerFont(33);
+        const ready=job.rev || UI.answerFontReady(text,31,'700');
+        if(ready){
+          ctx.fillStyle=job.eliminatedIdx===i || job.wrong?.includes(i)?'#888899':'#161224';
+          const maxPadW = 190;
+          if (UI.fitText) {
+            UI.fitText(ctx, text, p.x, y, maxPadW, {
+              minSize: 18,
+              wrap: true,
+              stroke: true,
+              y1: meaning ? p.y - 7 : p.y - 1,
+              y2: meaning ? p.y + 7 : p.y + 15
+            });
+          } else {
+            ctx.strokeText(text,p.x,y);
+            ctx.fillText(text,p.x,y);
+          }
+        }
+        // 答錯時不標注當題中文釋義以防洩題
+        ctx.restore();
+      });ctx.restore();
+    }
     // 受傷、首領出場及送達字幕保留墨邊，避免與亮光混成一片。
     for (const t of texts) {
       if (t.delivery) {
@@ -7265,9 +7741,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
 
     ctx.restore();
 
-    // All stages keep delivery guidance until the required orders are done.
-    const bossHunt = elapsed >= DAWN && delivered >= GOAL_DELIVERIES && !finalBossDefeated;
-    const bossTarget = bossHunt ? enemies.find(e => e.type === "boss" && e.final && e.hp > 0) : null;
+    // After dawn, guide directly toward any remaining undefeated official Boss.
+    const bossHunt = elapsed >= DAWN && !bossEncounterComplete();
+    const bossTarget = bossHunt ? bossHuntTarget() : null;
     if (bossTarget) {
       const huntScreen = window.VIEWPORT?.worldToScreen
         ? window.VIEWPORT.worldToScreen(bossTarget.x, bossTarget.y, cam, shakeOffset)
@@ -7321,6 +7797,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
   addEventListener("keydown", e => {
     if (frameError) {
       if (!e.repeat && (e.code === "Enter" || e.code === "Escape")) recoverFrameError();
+      return;
+    }
+    if (state === "codex" && compendium) {
+      if (compendium.key(e, CONTROLS.action(e.code))) e.preventDefault();
       return;
     }
     if ((isPortrait() && state !== "overworld" && state !== "menu") || document.hidden) return;
@@ -7391,8 +7871,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       if (state === "codex") {
         state = codexBack;
       } else if (state === "menu" || state === "overworld" || state === "won" || state === "lost" || state === "pause") {
-        codexBack = state;
-        state = "codex";
+        openCodex();
       }
       return;
     }
@@ -7736,8 +8215,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if (bossQ && !job?.reading) {
       // Use the same Boss count as drawBossQuiz: stacked bars shift the
       // answer board upward, and touch hitboxes must follow exactly.
-      const visibleBosses = enemies.filter(e =>
-        e.type === "boss" && e.hp > 0 && !e.dying).length;
+      const visibleBosses = enemies.filter(isBossBarVisible).length;
       const layout = UI.bossQuizLayout(bossQ.ans.length, visibleBosses);
       for (let i = 0; i < layout.options.length; i++) {
         const option = layout.options[i];
@@ -7839,7 +8317,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
   let frameError = false;
   function recoverFrameError() {
     frameError = false;
-    inkTrail.reset(); sealNail.reset(); shikigami?.reset();
+    inkTrail.reset(); sealNail.reset(); shikigami?.reset(); expansionSkills?.reset();
+    bossCastStagger = { lastTelegraphAt: -99, lastActiveAt: -99 };
+    mudZones = [];
+    bossBanners = [];
     state = "menu";
     menuFocus = 0;
     menuFocusState = "menu";
@@ -7849,7 +8330,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     orders = []; enemies = []; gems = []; texts = []; rings = [];
     proj = []; needles = []; needleQueued = []; winds = []; ghosts = []; dragonShots = []; dragonScorches = []; crosscuts = []; barrierPulses = []; sacredSanctuary = null; splitblasts = []; duoShockwaves = []; inkfireMarks = []; enemyBullets = [];
     fusionEffects = []; fusionEffects._idCounter = 0;
-    victorySeq = null; lampSeq = null; finalBossEnt = null;
+    victorySeq = null; lampSeq = null; victoryBossPos = null; victoryBossEnt = null;
     FX.reset(); SKILLFX.reset(); RENDERER.clearShake();
     AUDIO.setSuspended(false);
   }
@@ -7896,21 +8377,23 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     const cd = {};
     if (WL.katana > 0) cd.katana = clamp((atkT - 0.1) / Math.max(0.01, wMax.katana - 0.1), 0, 1);
     for (const k of ["barrier", "needle", "boom", "thunder", "ink_trail", "seal_nail", "shikigami", ...(WL.fire===5?["fire"]:[])]) if (WL[k] > 0 && wMax[k] > 0) cd[k] = clamp(wT[k] / wMax[k], 0, 1);
+    for (const id of expansionIds) if (WL[id] > 0 && wMax[id] > 0) cd[id] = clamp(wT[id] / wMax[id], 0, 1);
     const guideTarget = job ? job.to : orders.reduce((n, o) => (!n || dist(P, o.from) < dist(P, n) ? o.from : n), null);
-    const bossHunting = elapsed >= DAWN && delivered >= GOAL_DELIVERIES && !finalBossDefeated;
-    const huntTarget = bossHunting ? enemies.find(e => e.type === "boss" && e.final && e.hp > 0) : null;
+    const bossHunting = elapsed >= DAWN && !bossEncounterComplete();
+    const huntTarget = bossHunting ? bossHuntTarget() : null;
     const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
     const bossTitle = huntTarget?.title || story?.bossTitle || "大妖";
     return {
       time, cd, inputMode, houses, cam: RENDERER.getCam(),
+      skillCounts: {seal_nail:sealNail.activeCount(), shikigami:shikigami?.activeCount()},
       curseSeconds: bossCurseRemaining,
       stageId: STAGE.id,
       bossTitle,
       lanternHit: clamp(lanternHitT / 0.42, 0, 1),
-      // 固定在任務區旋轉的方向箭頭：未完成配送時繼續顯示金色目標，配送達標再顯示赤色 Boss。
+      // 固定在任務區旋轉的方向箭頭：破曉前或無待狩獵大妖時顯示委託方向，破曉後指向剩餘大妖。
       guideAngle: guideTarget ? Math.atan2(guideTarget.y - P.y, guideTarget.x - P.x) : null,
       bossAngle: huntTarget ? Math.atan2(huntTarget.y - P.y, huntTarget.x - P.x) : null,
-      boss: enemies.find(e => e.type === "boss" && e.hp > 0) || null,
+      boss: bossHuntTarget() || enemies.find(e => e.type === "boss" && e.hp > 0 && !e.dying && !e.isClone && !e.clone && !e.isSummon && !e.summon) || null,
       awakening: null, // hide retired seal HUD
       reading: {
         active: !!(job?.reading || bossQ?.reading),
@@ -8018,12 +8501,19 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       portPerf.time("update",perfApi.clock()-perfUpdateStart);
       perfMoving = perfOldX !== P.x || perfOldY !== P.y;
     }
-    AUDIO.updateBgm(dt, tutorial ? 'pause' : state, state === "overworld" ? 0 : elapsed, DAWN);
+    // The compendium overlays its origin. A home visit must keep the cover
+    // owned by the homepage, rather than entering the gameplay release path.
+    const viewState = state === "codex" ? codexBack : state;
+    AUDIO.updateBgm(dt, tutorial ? "pause" : viewState, viewState === "overworld" ? 0 : elapsed, DAWN);
 
     if ((state === "won" || state === "lost") && !ended) {
       ended = true;
-      if (state === "won") AUDIO.fanfare();
-      else AUDIO.lose();
+      if (state === "won") {
+        if (!(hasStage58Audio() && AUDIO.stageEndingActive?.() === true)) AUDIO.fanfare();
+      } else {
+        AUDIO.leaveStageAudio?.();
+        AUDIO.lose();
+      }
       const prevBest = STORE.getStageStats(STAGE.id).bestScore || 0;
       const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
       runSummary = {
@@ -8036,6 +8526,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         stageName: STAGE.name,
         learning: learningSummary(),
         clearText: story?.clear || null,
+        finalChapter: state === "won" && STAGE.id === "yomi",
         chapter: stageChapter(),
         chapterTitle: story?.chapterTitle || null,
         bossTitle: story?.bossTitle || null
@@ -8080,11 +8571,11 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         ctx.fillText("正在準備雨港正式場景…", (area.left+area.right)/2, area.bottom-68);
       }
       ctx.restore();
-    } else if (state === "menu") {
+    } else if (viewState === "menu") {
       UI.drawMainMenu(ctx, STORE, now / 1000, menuFocus, {
         muted: AUDIO.isMuted?.(), audioBlocked: AUDIO.needsAudioGesture?.(), gamepad: inputMode === "gamepad"
       });
-    } else if (state === "overworld") {
+    } else if (viewState === "overworld") {
       window.OVERWORLD.draw(ctx, overworld, now / 1000, overworldNoticeT);
       if (state === "overworld" && overworldExitArmT > 0) {
         ctx.save();
@@ -8125,23 +8616,13 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         }
       } else {
         const dashMax = Math.max(0.6, 1.8 - b.dash * 0.38);
-        const bossHunt = elapsed >= DAWN && delivered >= GOAL_DELIVERIES && !finalBossDefeated;
+        const bossHunt = elapsed >= DAWN && !bossEncounterComplete();
         UI.drawHud(
           ctx, P, oil, maxOil, elapsed, DAWN, delivered, failed, score, level, xp, xpNeed(),
           job, hintT, orders, inter, bossQ, touch, joy, btnE, btnD, btnPause, WL, WI, b, nameT, GOAL_DELIVERIES,
           dashCd, dashMax, bossHunt, hudExtra(now / 1000)
         );
-        const deliveryReminderVisible = state === "play" && elapsed >= DAWN
-          && finalBossDefeated && delivered < GOAL_DELIVERIES;
-        if(STAGE.id==="rain-port" && state==="play" && rainCycle.snapshot().heavy){
-          ctx.save();
-          ctx.textAlign="center";ctx.textBaseline="middle";
-          ctx.font=UI.readableFont(17,"900");
-          ctx.fillStyle="#e7f8ff";ctx.shadowColor="#103854";ctx.shadowBlur=portPerf?.config.uiShadows === "off" ? 0 : 7;
-          const rainBannerY = deliveryReminderVisible ? (bossCurseRemaining > 0 ? 188 : 168) : 144;
-          ctx.fillText("暴雨・海妖水術傷害 +10%",W/2,rainBannerY,Math.max(160,W-30));
-          ctx.restore();
-        }
+        let topBannerY = 68;
         // 反噬狀態常駐醒目提示：不扣油但禁止所有攻擊，明確顯示剩餘秒數。
         if (bossCurseRemaining > 0) {
           ctx.save();
@@ -8156,21 +8637,41 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
           ctx.textAlign = "center";ctx.textBaseline = "middle";ctx.fillStyle = "#fff0fd";
           ctx.fillText(label, W / 2, by + 21, bw - 22);
           ctx.restore();
+          topBannerY = 116;
         }
-        // Every stage: defeating the final Boss before completing deliveries
-        // must leave a visible remaining-order reminder.
-        if (deliveryReminderVisible) {
+        if (bossBanners.length && state === "play") {
           ctx.save();
-          const msg = `破曉已至・還差 ${GOAL_DELIVERIES - delivered} 件委託`;
-          ctx.font = "bold 18px sans-serif";
+          ctx.font = UI.readableFont(15, "800");
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          const tw = ctx.measureText(msg).width + 32;
-          ctx.fillStyle = "rgba(20, 10, 14, 0.78)";
-          const reminderY = bossCurseRemaining > 0 ? 112 : 96;
-          ctx.fillRect(W / 2 - tw / 2, reminderY, tw, 32);
-          ctx.fillStyle = "#ffd8a0";
-          ctx.fillText(msg, W / 2, reminderY + 16);
+          for (const bn of bossBanners) {
+            const alpha = Math.min(1, bn.life / 0.45);
+            const bw = Math.min(W - 36, Math.max(180, ctx.measureText(bn.text).width + 34));
+            const bx = W / 2 - bw / 2;
+            const by = topBannerY;
+            ctx.globalAlpha = 0.92 * alpha;
+            ctx.fillStyle = "rgba(22, 16, 28, 0.86)";
+            ctx.beginPath();
+            ctx.roundRect(bx, by, bw, 27, 8);
+            ctx.fill();
+            ctx.strokeStyle = bn.color || "#ffb3ba";
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.roundRect(bx + 0.7, by + 0.7, bw - 1.4, 25.6, 8);
+            ctx.stroke();
+            ctx.fillStyle = "#fff6ee";
+            ctx.fillText(bn.text, W / 2, by + 14, bw - 20);
+            topBannerY += 32;
+          }
+          ctx.restore();
+        }
+        if (STAGE.id === "rain-port" && state === "play" && rainCycle.snapshot().heavy) {
+          ctx.save();
+          ctx.textAlign = "center"; ctx.textBaseline = "middle";
+          ctx.font = UI.readableFont(17,"900");
+          ctx.fillStyle = "#e7f8ff"; ctx.shadowColor = "#103854";
+          ctx.shadowBlur = portPerf?.config.uiShadows === "off" ? 0 : 7;
+          ctx.fillText("暴雨・海妖水術傷害 +10%", W / 2, Math.max(144, topBannerY + 10), Math.max(160, W - 30));
           ctx.restore();
         }
         if (typeof UI.drawCharmHud === "function") {
@@ -8195,16 +8696,21 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         if (surgeWarningT > 0) UI.drawSurgeWarning(ctx, surgeWarningT);
         if (state === "play") drawDragonHudOverlay(frameShakeOffset);
         if (titleCardT > 0 && state === "play") UI.drawTitleCard(ctx, STAGE, stageChapter(), titleCardT);
-        // Preserve boss spawn order, even if an earlier Boss remains alive.
-        const liveBosses = enemies.filter(e => e.type === "boss" && e.hp > 0 && !e.dying)
+        // Preserve official boss spawn order, excluding clones/summons from official HP bars.
+        const liveBosses = enemies.filter(isBossBarVisible)
           .sort((a,b) => (a.bossIndex ?? 0) - (b.bossIndex ?? 0));
         const sealFade = bossSealBreak?.boss && liveBosses.includes(bossSealBreak.boss)
           ? Math.max(0,1-(performance.now()-bossSealBreak.at)/850) : 0;
         // During delivery reading only the Boss HP bars remain. Boss quiz
         // answers are intentionally disabled there, so do not draw inert
         // clickable-looking options over the active delivery answer panel.
+        const deliveryAvoid = job?.reading ? ansPos(job.to).slice(0,job.ans.length).map(p=>{
+          const point=window.VIEWPORT?.worldToScreen?.(p.x,p.y,RENDERER.getCam(),frameShakeOffset);
+          const zoom=window.VIEWPORT?.worldZoom?.() || 1;
+          return point ? {x:point.x-108*zoom,y:point.y-30*zoom,w:216*zoom,h:66*zoom} : null;
+        }).filter(Boolean) : null;
         if (bossQ || liveBosses.length) UI.drawBossQuiz(
-          ctx, job?.reading ? null : bossQ, inputMode, liveBosses, sealFade, bossCurseRemaining
+          ctx, job?.reading ? null : bossQ, inputMode, liveBosses, sealFade, bossCurseRemaining, deliveryAvoid
         );
         if (state === "levelup") UI.drawLevelUp(ctx, level + 1, choices, WL, WI, rerolls, now / 1000, levelupFocus, inputMode, null, levelupRerollHover);
         if (state === "fusion" && window.FUSION && typeof UI.drawFusion === "function") {
@@ -8228,7 +8734,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       }
     }
 
-    if (state === "codex") {
+    if (state === "codex" && !compendium) {
       if (codexTab === "words" && window.CARD_GALLERY_UI && typeof UI.wordGallery === "function") {
         applyWordCodex({ type: "page", delta: 0 });
       } else {
@@ -8305,10 +8811,11 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       levels:{...WL}, boss:enemies.filter(e => e.type === "boss" && e.hp > 0)
         .map(e => ({name:e.title, hazard:e.hazard?.kind, phase:e.hazard?.phase})),
       sanctuarySeconds:sacredSanctuary?.life > 0 ? sacredSanctuary.life : 0,
-      rain:rainCycle.snapshot().level, gems:gems.length, enemies:enemies.length, enemyBullets:enemyBullets.length,
+      rain:rainCycle.snapshot().level, gems:gems.length, fixtureGems:perfGemFixture?.length ?? null,
+      enemies:enemies.length, enemyBullets:enemyBullets.length,
       projectiles:proj.length+needles.length+winds.length+dragonShots.length,
       effects:FX.stats?.(), skillEffects:SKILLFX.stats?.(), fusion:fusionEffects.length,
-      violet:inkTrail.snapshot?.(WL.ink_trail), sealNail:sealNail.snapshot?.(WL.seal_nail),
+      violet:inkTrail.snapshot(), sealNail:sealNail.snapshot(WL.seal_nail,buildMutations), shikigami:shikigami?.snapshot(),
       chunkCache:WORLD_STATE.getCacheSize?.(), activeChunks:activeChunks.length, text:texts.length,
       orders:orders.length, reviewMisses:misses.length,
       images:{ready:images.size,references:imageRefs.length,pixels:imagePixels,
@@ -8369,7 +8876,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
   if (window.DEV_MODE && typeof window.DEV_MODE.isDevMode === "function" && window.DEV_MODE.isDevMode(location)) {
     window.DEV_TOOLS = window.DEV_MODE;
     const nodes = window.OVERWORLD && window.OVERWORLD.STAGE_NODES;
-    const asked = new URLSearchParams(location.search).get("stage");
+    const params = new URLSearchParams(location.search);
+    const asked = params.get("stage");
     window.DEV_MODE.mountDevPanel(document, {
       dev: true,
       nodes,
@@ -8377,10 +8885,74 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       getStage: id => window.CONTENT.getStage(id),
       onEnter(id) {
         start(id);
+        if (params.get("bossLab") === "1" || (STAGE.id === "bamboo-maze" && params.get("bambooBossLab") === "1")) {
+          bossLabRun = true;
+          tutorial = null;
+          elapsed = BOSS_TIMES[BOSS_TIMES.length - 1] - .5;
+          bossT = bossSchedule.nextSpawnRemaining(elapsed);
+          titleCardT = 0;
+          spawnT = 20;
+          WL.katana = 3;
+        }
         if (document.documentElement && document.documentElement.dataset) {
           document.documentElement.dataset.devStage = STAGE.id;
         }
       }
+    });
+  }
+
+  if (expansionLab && window.DEV_ACTIVE_SKILL_LAB) {
+    function startExpansionLab(settings) {
+      start(STAGE.id);
+      expansionLabRound = settings;
+      expansionLabRandom = expansionApi.randomFor(settings.seed);
+      tutorial = null;
+      titleCardT = 0;
+      runIntroOffered = true;
+      spawnT = surgeT = orderT = Infinity;
+      orders = [];
+      for (const {id,rank,mutations} of settings.loadout) {
+        WL[id] = rank;
+        for (const variant of mutations) addMutation(variant);
+      }
+      buildRevision++;
+      const fixtureRandom = expansionApi.randomFor(settings.seed);
+      const types = {
+        normal:["ghost","runner","shooter","ghost","ghost"],
+        tank:["tank","tank","tank","tank","tank"], boss:["boss"],
+        bosses:["boss","boss","boss"], crowd:Array.from({length:96},(_,i)=>i%12===0?"tank":"ghost")
+      }[settings.scene];
+      for (const [i,type] of types.entries()) {
+        const distance = settings.scene==="crowd" ? 120+fixtureRandom()*204 : 154+i*14;
+        const startAngle = settings.scene==="crowd" ? fixtureRandom()*Math.PI*2 : i*.57-.36;
+        for (let attempt=0; attempt<12; attempt++) {
+          const angle=startAngle+attempt*Math.PI/6;
+          const x=P.x+Math.cos(angle)*distance,y=P.y+Math.sin(angle)*distance;
+          if (blocked(x,y,type==="boss" ? 52 : 16)) continue;
+          const hp=type==="boss" ? 620 : type==="tank" ? 125 : 48;
+          enemies.push({x,y,type,hp,max:hp,speed:type==="boss"?55:type==="tank"?42:76,
+            flash:0,slowT:0,wob:i,attackCd:1.2,stageId:STAGE.id,
+            bossIndex:i,officialWaveBoss:false,skillLabBoss:type==="boss",
+            title:type==="boss"?"演練首領 "+(i+1):undefined});
+          break;
+        }
+      }
+      window.VIEWPORT?.setTiltScale?.(settings.tilt);
+      cv.focus?.();
+    }
+    window.DEV_ACTIVE_SKILL_LAB.mount(expansionApi,{
+      start:startExpansionLab,
+      pause:()=>togglePause(),
+      tilt:value=>window.VIEWPORT?.setTiltScale?.(value),
+      build:()=>{ if (expansionLabRound) openCodex("build"); },
+      draw:()=>{ if (expansionLabRound && state==="play") offerUp(); },
+      diagnostics:value=>{ if (expansionLabRound) expansionLabRound.diagnostics=value; },
+      snapshot:()=>({
+        state, elapsed, orderCount:orders.length,
+        enemies:enemies.filter(e=>e.hp>0).map(({x,y,hp,type})=>({x,y,hp,type})),
+        build:getBuildState(), choices:state==="levelup" ? choices.map(c=>c.choiceId) : [],
+        effects:expansionSkills.visuals(P).map(({id,event})=>({id,event}))
+      })
     });
   }
 
@@ -8549,6 +9121,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     guardOilLoss: amount => charmGuardOilLoss(amount)
   };
 
+  if (window.COMPENDIUM_REVIEW && window.DEV_MODE?.isStageLab(location)) {
+    compendiumFixture = window.COMPENDIUM_REVIEW.initial;
+    openCodex(window.COMPENDIUM_REVIEW.tab);
+  }
   initFusionBridge();
   requestAnimationFrame(frame);
 })();
