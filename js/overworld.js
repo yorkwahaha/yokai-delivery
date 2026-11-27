@@ -608,7 +608,7 @@
   }
 
   function draw(ctx, state, elapsed, noticeT = 0) {
-    const savedProgress = root.STORE?.readProgress?.();
+    const savedProgress = root.STORE?.readProgressForDisplay?.() ?? root.STORE?.readProgress?.();
     ctx.save();
     const sky = ctx.createLinearGradient(0, 0, 0, VIEW_H);
     sky.addColorStop(0, "#d9d5b6");

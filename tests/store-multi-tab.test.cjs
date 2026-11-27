@@ -342,3 +342,28 @@ test('an open tab reloads a newer migration base before replaying removed segmen
   assert.equal(open().get('鳥').ok,3);
   assert.equal(open().get('猫').ok,1);
 });
+
+test("map display performs no journal reads between browser storage events", () => {
+  let reads = 0;
+  const handlers = [];
+  const { open } = createStoreTabs({}, {
+    rejectRead() { reads++; return false; },
+    lifecycle(window) {
+      const events = {};
+      handlers.push(events);
+      window.addEventListener = (event, fn) => { events[event] = fn; };
+      return { document: { addEventListener() {} } };
+    }
+  });
+  const writer = open(), map = open();
+  reads = 0;
+  for (let frame = 0; frame < 120; frame++) assert.equal(map.readProgressForDisplay().unlocked["rain-port"], undefined);
+  assert.equal(reads, 0);
+  writer.finish("night-town", 900, 3, true);
+  handlers[1].storage({ key: "yokai-delivery-v1:journal:tab-1:0" });
+  reads = 0;
+  assert.equal(map.readProgressForDisplay().unlocked["rain-port"], true);
+  assert.equal(reads, 0);
+  assert.equal(map.isStageUnlocked("rain-port"), true);
+  assert.ok(reads > 0, "action eligibility still reads current storage");
+});

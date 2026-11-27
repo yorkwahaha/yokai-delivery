@@ -91,3 +91,11 @@ test('night-town approved A common-kanji audio and word icons are all in product
     }
   }
 });
+
+test('media worker ignores paths inherited from the Object prototype', async () => {
+  const fixture = cacheFixture(), app = fixture.boot();
+  for (const path of ['constructor', '__proto__', 'toString']) {
+    assert.equal(await app.request(path), undefined);
+  }
+  assert.equal(fixture.downloads(), 0);
+});

@@ -40,6 +40,8 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url), base = new URL(scope);
   if (url.origin !== base.origin || !url.pathname.startsWith(base.pathname)) return;
-  const path = url.pathname.slice(base.pathname.length), revision = MEDIA_REVISIONS[path];
-  if (revision) event.respondWith(serveMedia(event, path, revision).catch(() => fetch(event.request)));
+  const path = url.pathname.slice(base.pathname.length);
+  if (Object.hasOwn(MEDIA_REVISIONS, path)) {
+    event.respondWith(serveMedia(event, path, MEDIA_REVISIONS[path]).catch(() => fetch(event.request)));
+  }
 });

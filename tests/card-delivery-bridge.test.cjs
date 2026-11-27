@@ -201,3 +201,41 @@ test("a failed mark stays on that storage object and does not appear in another"
   again.snapshot().awards.extra = true;
   assert.equal(bridge.openCards(first, loc).snapshot().awards.extra, undefined);
 });
+
+test("card read retries when compaction folds a delivery while event keys are read", () => {
+  const base = bridge.OFFICIAL_KEY + ":journal-base";
+  const eventKey = bridge.OFFICIAL_KEY + ":journal-event:folded";
+  const event = { id: "folded", jp: "ねこ", kind: "delivery", ok: true };
+  const box = new Map([[base, '{"v":1,"marks":{}}'], [eventKey, JSON.stringify(event)]]);
+  let compact = true;
+  const storage = {
+    get length() { return box.size; },
+    key(index) { return [...box.keys()][index] ?? null; },
+    getItem(key) {
+      if (compact && key === eventKey) {
+        compact = false;
+        box.set(base, JSON.stringify({ v: 1, marks: { ねこ: 1 }, events: { folded: true } }));
+        box.delete(eventKey);
+      }
+      return box.get(key) ?? null;
+    }
+  };
+  const cards = bridge.openCards(storage, {});
+  assert.equal(cards.marks("ねこ"), 1);
+  assert.equal(cards.snapshot().events.folded, true);
+  const event2 = { ...event, id: "next" };
+  box.set(eventKey, JSON.stringify(event2));
+  assert.equal(cards.marks("ねこ"), 2);
+  box.set(eventKey, JSON.stringify({ ...event2, jp: "いぬ" }));
+  assert.equal(cards.marks("ねこ"), 1);
+  assert.equal(cards.marks("いぬ"), 1);
+});
+
+test("delivery result does not require the event map from a legacy partial card document", () => {
+  const legacy = { v: 1, marks: { ねこ: 1 } };
+  const result = cards.applyEvent(legacy, { id: "constructor", jp: "ねこ", kind: "delivery", ok: true });
+  assert.equal(result.applied, true);
+  assert.equal(result.state.marks.ねこ, 2);
+  assert.equal(result.state.events.constructor, true);
+  assert.equal(legacy.marks.ねこ, 1);
+});

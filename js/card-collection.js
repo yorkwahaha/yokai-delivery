@@ -76,7 +76,7 @@ function applyEvent(state, event) {
   const base = isCardDoc(state) ? state : blank();
   const parsed = parseEvent(event);
   if (!parsed) return { state: base, applied: false, reason: "invalid" };
-  if (base.events[parsed.id]) return { state: base, applied: false, reason: "duplicate" };
+  if (base.events?.[parsed.id] === true) return { state: base, applied: false, reason: "duplicate" };
   const events = pruneEvents(Object.assign(Object.create(null), base.events, { [parsed.id]: true }));
   const marks = Object.assign(Object.create(null), base.marks);
   if (parsed.ok) marks[parsed.key] = Math.min(MARK_CAP, clampMark(marks[parsed.key] || 0) + 1);
@@ -155,7 +155,10 @@ function deliveryWeights(words, marks) {
 }
 
 function pickDeliveryWord(words, marks, rnd) {
-  const table = deliveryWeights(words, marks);
+  return pickFromDeliveryWeights(deliveryWeights(words, marks), rnd);
+}
+
+function pickFromDeliveryWeights(table, rnd) {
   if (!table.entries.length) return null;
   const roll = typeof rnd === "function" ? rnd() : 0;
   let cursor = (Number.isFinite(roll) ? roll : 0) * table.sum;
@@ -193,6 +196,7 @@ const api = {
   applyEvent,
   deliveryWeights,
   pickDeliveryWord,
+  pickFromDeliveryWeights,
   completeSets,
   createCollection
 };

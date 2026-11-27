@@ -50,8 +50,8 @@ function chooseDeliveryWord(words, marks, exclude, rnd) {
   const pool = availablePool(words, exclude);
   if (!pool.length) return { word: null, pool, weights: null, reason: "empty" };
   const weights = cards.deliveryWeights(pool, marks);
-  const jp = cards.pickDeliveryWord(pool, marks, rnd);
-  const word = pool.find(item => cards.wordKey(item.jp) === cards.wordKey(jp)) || null;
+  const jp = cards.pickFromDeliveryWeights(weights, rnd);
+  const word = pool.find(item => cards.wordKey(item.jp) === jp) || null;
   return { word, pool, weights, reason: word ? "chosen" : "empty" };
 }
 
@@ -156,6 +156,7 @@ function copyState(state) {
 // a readable projection; individual event keys are immutable so one tab's
 // stale projection cannot erase a delivery recorded by another tab.
 const pendingByStorage = new WeakMap();
+const viewsByStorage = new WeakMap();
 const journalAvailable = storage => typeof storage.key === "function" && typeof storage.length === "number";
 const journalBaseKey = key => key + ":journal-base";
 const journalEventPrefix = key => key + ":journal-event:";
@@ -183,31 +184,43 @@ function applyJournalDelivery(state, event, catalog) {
   }
   return next;
 }
-function journalState(storage, key, catalog) {
+function journalState(storage, key, catalog, cacheReplay) {
   if (!journalAvailable(storage)) return cachedState(storage, key);
-  const baseText = storage.getItem(journalBaseKey(key));
-  if (baseText === null) return cachedState(storage, key);
-  let baseline = null;
-  try { baseline = JSON.parse(baseText); } catch {}
-  let state = cards.migrate(baseline);
-  // If a previous compaction crashed after committing its checkpoint, these
-  // keys are already in the baseline even if only some were deleted.
-  const folded = new Set(Array.isArray(baseline?._compactingKeys) ? baseline._compactingKeys : []);
-  const prefix = journalEventPrefix(key), ids = [];
-  for (let i = 0; i < storage.length; i++) {
-    const name = storage.key(i);
-    if (typeof name === "string" && name.startsWith(prefix)) ids.push(name);
+  const baseKey = journalBaseKey(key), prefix = journalEventPrefix(key);
+  let views = viewsByStorage.get(storage);
+  if (cacheReplay && !views) { views = new Map(); viewsByStorage.set(storage, views); }
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const baseText = storage.getItem(baseKey);
+    if (baseText === null) return cachedState(storage, key);
+    const ids = [];
+    for (let i = 0; i < storage.length; i++) {
+      const name = storage.key(i);
+      if (typeof name === "string" && name.startsWith(prefix)) ids.push(name);
+    }
+    // Compaction can remove events while a different tab is reading. Replay
+    // only when the checkpoint stayed fixed across all of the event reads.
+    const rows = new Map(ids.sort().map(id => [id, storage.getItem(id)]));
+    if (storage.getItem(baseKey) !== baseText) continue;
+
+    const previous = cacheReplay ? views.get(key) : null;
+    if (previous?.baseText === baseText && previous.rows.size === rows.size &&
+        previous.catalog.length === catalog.length && catalog.every((pack, i) => pack === previous.catalog[i]) &&
+        [...rows].every(([id, value]) => previous.rows.get(id) === value)) return previous.state;
+
+    let baseline = null;
+    try { baseline = JSON.parse(baseText); } catch {}
+    let state = cards.migrate(baseline);
+    const folded = new Set(Array.isArray(baseline?._compactingKeys) ? baseline._compactingKeys : []);
+    for (const [id, value] of rows) {
+      if (!value || folded.has(id)) continue;
+      let event;
+      try { event = JSON.parse(value); } catch { continue; }
+      state = applyJournalDelivery(state, event, catalog);
+    }
+    if (cacheReplay) views.set(key, { baseText, rows, catalog: [...catalog], state });
+    return state;
   }
-  // Stable replay order. Delivery success increments commute and are capped
-  // at 4; the event ID still protects duplicate successes and failures.
-  ids.sort();
-  for (const id of ids) {
-    if (folded.has(id)) continue;
-    let event = null;
-    try { event = JSON.parse(storage.getItem(id) || "null"); } catch {}
-    state = applyJournalDelivery(state, event, catalog);
-  }
-  return state;
+  throw new Error("Card journal checkpoint changed during read");
 }
 // Compaction is opt-in when the platform can serialize compactors via Web
 // Locks. Ordinary deliveries remain synchronous and never depend on it.
@@ -320,9 +333,10 @@ function freshAwards(catalog, owned, marks) {
 function openCards(storage, loc, packs) {
   const key = cardKey(loc);
   const pending = pendingFor(storage, key);
-  const catalog = Array.isArray(packs) ? packs : defaultPacks();
+  const customCatalog = Array.isArray(packs);
+  const catalog = customCatalog ? packs : defaultPacks();
   const refresh = () => {
-    let current = journalState(storage, key, catalog);
+    let current = journalState(storage, key, catalog, !customCatalog);
     for (const event of pending.values()) {
       const step = cards.applyEvent(current, event);
       if (!step.applied) continue;

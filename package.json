@@ -9,7 +9,6 @@
     "test:list": "node tools/run-tests.cjs list"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1",
     "playwright": "^1.64.1",
     "sharp": "^0.35.5"
   }

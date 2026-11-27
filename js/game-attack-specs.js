@@ -262,8 +262,6 @@ window.GAME_ATTACK_SPECS = (() => {
       const hasOverload = mutations.includes("mut_thunderoverload");
       const cooldown = Number((baseCooldown * (hasOverload ? 1.25 : 1)).toFixed(4));
       const mult = level === 1 ? 2.0 : level === 2 ? 3.0 : level === 3 ? 4.5 : level === 4 ? 6.0 : 8.0;
-      const baseDmg = getEffectiveDmg(buildState);
-      const reachMult = getEffectiveReachMultiplier(buildState);
       const rawRadius = level >= 4 ? 450 : (110 + Math.min(level, 3) * 80);
       const radius = Math.round(rawRadius * reachMult);
       const rawTargetCount = level === 4 ? 3 : (level === 5 ? 3 : level);

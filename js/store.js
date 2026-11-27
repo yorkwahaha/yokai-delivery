@@ -327,9 +327,12 @@
   if (lifecycleFlush) {
     root.addEventListener("pagehide", flush);
     root.addEventListener("storage", event => {
-      if (event.key === JOURNAL_BASE || event.key?.startsWith(JOURNAL_PREFIX)) syncJournal();
+      if (event.key === null || event.key === JOURNAL_BASE || event.key?.startsWith(JOURNAL_PREFIX)) syncJournal();
     });
-    document.addEventListener("visibilitychange", () => { if (document.hidden) flush(); });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) flush();
+      else syncJournal();
+    });
   }
 
   const get = jp => d.m[jp] || (d.m[jp] = { ok: 0, ng: 0, box: 0, lastSeen: 0, missBoost: 1 });
@@ -564,6 +567,8 @@
     data: d,
     // One reconciled view for synchronous renderers that read several stages.
     readProgress: () => { syncJournal(); return d.progress; },
+    // Map paint observes storage events. Map actions still recheck live eligibility.
+    readProgressForDisplay: () => { if (!lifecycleFlush) syncJournal(); return d.progress; },
     coinBalance: () => { syncJournal(); return d.coins; },
     awardCoins(amount) {
       const earned = Math.min(10000, count(amount));

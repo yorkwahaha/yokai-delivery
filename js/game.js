@@ -296,8 +296,11 @@
     UI.pressButton?.(id);
     pendingMenuActivation = { id, state, quitConfirm, remaining: 0.12 };
   }
-  function menuButtons() {
+  function syncMenuFocus() {
     if (menuFocusState !== state) { menuFocus = 0; menuFocusState = state; }
+  }
+  function menuButtons() {
+    syncMenuFocus();
     if (quitConfirm) return UI.EXIT_BTNS;
     if (state === "menu") return UI.MENU_BTNS;
     if (state === "pause") return UI.pauseButtons(pausePage);
@@ -1244,8 +1247,8 @@
       AUDIO.barrier();
     }, ok: () => (b.heals || 0) < 3 },
     { id: "dmg", n: "修羅破軍", s: "こうげき", cat: "攻擊爆發", d: "整體傷害係數 +0.30（最多 4 層）", f: () => { b.dmg += 0.30; b.dmgUp = (b.dmgUp || 0) + 1; }, ok: () => (b.dmgUp || 0) < 4 },
-    { id: "rate", n: "神樂疾奏", s: "れんぞく", cat: "攻擊爆發", d: "縮短妖刀、靈陣與靈針的冷卻，直到各招的冷卻下限", f: () => { b.rate++; }, ok: () => b.rate < 4 },
-    { id: "crit", n: "心眼一閃", s: "かいしん", cat: "攻擊爆發", d: "妖刀、天狐雷暴擊率各 +15%，靈陣 +10%。暴擊傷害 1.8 倍，機率上限 50%", f: () => { b.crit = (b.crit || 0) + 1; }, ok: () => (b.crit || 0) < 3 },
+    { id: "rate", n: "神樂疾奏", s: "れんぞく", cat: "攻擊爆發", d: "縮短妖刀、靈陣、靈針、神弓、妖絲、妖毬和風穴的冷卻，各有冷卻下限。", f: () => { b.rate++; }, ok: () => b.rate < 4 },
+    { id: "crit", n: "心眼一閃", s: "かいしん", cat: "攻擊爆發", d: "妖刀、天狐雷暴擊率各增 15 個百分點，靈陣、神弓、妖毬各增 10 個百分點。暴擊傷害 1.8 倍，上限 50%。", f: () => { b.crit = (b.crit || 0) + 1; }, ok: () => (b.crit || 0) < 3 },
     { id: "spd", n: "神足草履", s: "いどう", cat: "神速機動", d: "移動速度約 +15%（最多 3 層）", f: () => { b.spd = (b.spd || 0) + 1; }, ok: () => (b.spd || 0) < 3 },
     { id: "dash", n: "縮地瞬步", s: "ダッシュ", cat: "神速機動", d: "衝刺冷卻大幅縮短，衝刺附加無敵突進", f: () => { b.dash++; }, ok: () => b.dash < 3 },
     { id: "mag", n: "招財勾玉", s: "じしゃく", cat: "輔助資源", d: "靈玉吸取範圍 +80", f: () => { b.mag++; }, ok: () => b.mag < 3 }
@@ -8118,13 +8121,11 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     if (state === "pause") {
       const btnW = UI.PAUSE_BTN_W || 280, btnH = UI.PAUSE_BTN_H || 44;
       const bx = W / 2 - btnW / 2;
-      for (const btn of UI.pauseButtons(pausePage)) {
-        const x=btn.x ?? bx, w=btn.w ?? btnW, h=btn.h ?? btnH;
-        if (hitButton(p, {x, y:btn.y, w, h})) {
-          menuFocus = UI.pauseButtons(pausePage).findIndex(b=>b.id===btn.id);
-          activateWithFeedback(btn.id);
-          return;
-        }
+      const buttons = UI.pauseButtons(pausePage);
+      const index = buttons.findIndex(btn => hitButton(p, {x:btn.x ?? bx, y:btn.y, w:btn.w ?? btnW, h:btn.h ?? btnH}));
+      if (index >= 0) {
+        menuFocus = index;
+        activateWithFeedback(buttons[index].id);
       }
       return;
     }
@@ -8168,8 +8169,9 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       return;
     }
     if (state === 'menu' || state === 'won' || state === 'lost') {
-      const btn = menuButtons().find(b => hitButton(p, b));
-      if (btn) { menuFocus = menuButtons().findIndex(b=>b.id===btn.id); activateWithFeedback(btn.id); }
+      const buttons = menuButtons();
+      const index = buttons.findIndex(button => hitButton(p, button));
+      if (index >= 0) { menuFocus = index; activateWithFeedback(buttons[index].id); }
       return;
     }
     if (state === "charmswap") {
@@ -8412,7 +8414,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
   }
 
   function runFrame(now) {
-    menuButtons();
+    syncMenuFocus();
     // Render/UI remains clamped; game simulation catches up through bounded
     // <=50ms substeps instead of losing half the time on 10 FPS devices.
     const wallDt = Math.max(0, Math.min((now - last) / 1000, 0.2));
