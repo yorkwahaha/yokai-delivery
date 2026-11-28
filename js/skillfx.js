@@ -29,12 +29,39 @@ window.SKILLFX = (() => {
     if(img)return drawImageArt(ctx,img,o);
     return legacyKey ? drawArt(ctx,legacyKey,o) : false;
   }
-  // Neutralize the approved cyan raster per draw until mut_frost is owned.
-  // Canvas filter preserves ink/shading and never mutates the source sprite.
+  // Neutralize the approved cyan raster once per sprite until mut_frost is owned.
+  // Pre-baking an offscreen canvas avoids per-needle ctx.filter on iPad Safari.
+  const neutralNeedleCache = new WeakMap();
+  const NEEDLE_NEUTRAL_FILTER = "grayscale(0.82) saturate(0.46) brightness(1.17)";
+  function neutralNeedleSprite(img) {
+    if (!img?.naturalWidth || !img?.naturalHeight) return null;
+    if (neutralNeedleCache.has(img)) return neutralNeedleCache.get(img);
+    if (typeof document === "undefined" || !document.createElement) return null;
+    const c = document.createElement("canvas");
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    const g = c.getContext("2d");
+    if (!g || !("filter" in Object.getPrototypeOf(g))) {
+      neutralNeedleCache.set(img, null);
+      return null;
+    }
+    g.filter = NEEDLE_NEUTRAL_FILTER;
+    g.drawImage(img, 0, 0);
+    neutralNeedleCache.set(img, c);
+    return c;
+  }
   function drawNeedleRankedArt(ctx,rank,o,legacyKey) {
+    if (o.frost) return drawRankedArt(ctx,"needle",rank,o,legacyKey);
+    const img = rankedArt("needle",rank) || (legacyKey ? art(legacyKey) : null);
+    if (!img) return false;
+    const baked = neutralNeedleSprite(img);
+    if (baked) {
+      const hh = o.h ?? ((o.w ?? 64) * img.naturalHeight / img.naturalWidth);
+      return drawImageArt(ctx, baked, { ...o, h: hh });
+    }
     ctx.save();
-    if(!o.frost) ctx.filter="grayscale(0.82) saturate(0.46) brightness(1.17)";
-    const painted=drawRankedArt(ctx,"needle",rank,o,legacyKey);
+    ctx.filter = NEEDLE_NEUTRAL_FILTER;
+    const painted = drawImageArt(ctx, img, o);
     ctx.restore();
     return painted;
   }
@@ -159,6 +186,7 @@ window.SKILLFX = (() => {
     return true;
   }
   function drawArtFx(ctx,ground=false,experiment=null,mergePulse=false){
+    if(!artFx.length) return;
     const drawEntry=p=>{
       if(!!p.ground!==ground || p.delay>0)return;
       if (mergePulse && p.rank === 5 && p.barrierRaster) return;
@@ -870,7 +898,9 @@ window.SKILLFX = (() => {
 
   function update(dt) {
     for(let i=artFx.length-1;i>=0;i--){
-      const p=artFx[i];p.delay=Math.max(0,(p.delay||0)-dt);p.life-=dt;
+      const p=artFx[i];
+      if(p.delay>0){p.delay=Math.max(0,p.delay-dt);continue;}
+      p.life-=dt;
       if(p.life<=0)artFx.splice(i,1);
     }
     for(let i=burning.length-1;i>=0;i--){

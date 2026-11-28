@@ -1,5 +1,11 @@
 # Yokai Delivery｜現行進度與最近收據
 
+## 2026-11-28｜全碼深度盤點、漏洞修復與 iPad 效能最佳化（發布版）
+
+- 盤點全案 74 份 JS、52 張變異卡與 13 招成長曲線：修復 `UI.drawLevelUp` 重複 `ctx.restore()`、`FX` `foot` 雙重 `upright` 與 `NaN` 保護、`SKILLFX` 延遲特效提前扣命、`AUDIO` Final Boss 語音閃避 `NaN` 與 BGM 暫停鎖定、公開主機 `window.devSpawnCharm` 外洩、`VIEWPORT.is2D()` 缺漏、`GAME_ATTACK_SPECS` 變異歸屬與 `critLvl`、`ui-compendium.js` 巢狀對話框與多處空值防禦。
+- 刪除未引用原型 `js/sakura-terrain-plan.js` 並清除 `renderer.js`/`ui.js`/`ui-upgrade-trial.js`/`game.js` 確認死碼與首載未用圖請求。
+- 針對 iPad Safari 完成景物與靈針離屏去濾鏡烘焙、`fixedUiRasterCache` 8 筆 LRU 上限、旅路 `3000×2200` 備援畫布即時釋放、配送結界噴霧／御守光球精靈快取、預設雨絲批次與預警預烘焙、熱迴圈零配置與快取鍵同步更新。正式戰鬥平衡公式維持鎖定，五項結構性數值觀察列入審計報告供後續專題核定。 [完整盤點與數值報告](docs/NEON_PUBLIC_RELEASE_AUDIT_20261128.md#九全碼深度盤點漏洞修復死碼精簡與效能最佳化2026-11-28)
+
 ## 2026-11-28｜八關深度複查與發布
 
 - 修復圖鑑跨頁壓縮讀取、舊印記資料及 SW 媒體鍵辨識，降低旅路與圖鑑讀存檔開銷，移除未使用開發依賴與重複選單計算。

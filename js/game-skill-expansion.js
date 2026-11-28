@@ -184,8 +184,10 @@ const YOKAI_SKILL_EXPANSION = (() => {
             const cell = columns.get(x);
             if (!cell) continue;
             for (const e of cell) {
-              if (valid(e) && e.x >= x0 && e.x <= x1 && e.y >= y0 && e.y <= y1) each(e);
-              if (--remaining === 0) return;
+              if (valid(e) && e.x >= x0 && e.x <= x1 && e.y >= y0 && e.y <= y1) {
+                each(e);
+                if (--remaining === 0) return;
+              }
             }
           }
         }

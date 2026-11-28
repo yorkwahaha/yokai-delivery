@@ -42,7 +42,7 @@
   }
 
   function iceVolley(origin,enemies,face=0,random=Math.random) {
-    const targets=enemies.filter(e=>e.hp>0&&!e.shield&&Math.hypot(e.x-origin.x,e.y-origin.y)<520);
+    const targets=enemies.filter(e=>e.hp>0&&!e.shield&&!e.vanish&&!e.done&&!e.dying&&Math.hypot(e.x-origin.x,e.y-origin.y)<520);
     for(let i=targets.length-1;i>0;i--){const j=Math.min(i,Math.floor(random()*(i+1)));[targets[i],targets[j]]=[targets[j],targets[i]];}
     const shatterBudget={used:false,hits:new Set()};
     return Array.from({length:8},(_,i)=>{
@@ -57,7 +57,7 @@
   }
 
   function freeze(e,elapsed,volley=null) {
-    if(e.hp<=0||e.shield||e.freezeReady>elapsed)return false;
+    if(e.hp<=0||e.shield||e.vanish||e.done||e.dying||e.freezeReady>elapsed)return false;
     e.freezeT=e.type==='boss'?0.15:0.5;e.freezeEnds=elapsed+e.freezeT;e.freezeReady=elapsed+2;
     if(volley) e.shatterVolley=volley;
     else delete e.shatterVolley;
@@ -106,7 +106,7 @@
         p.x=p.landX;p.y=p.landY;p.life=0;
         return {impact:true,x:p.x,y:p.y,target:null};
       }
-      const target=!p.groundTarget&&enemies.find(e=>e.hp>0&&!e.shield&&Math.hypot(e.x-x,e.y-y)<(e.type==='boss'?46:30));
+      const target=!p.groundTarget&&enemies.find(e=>e.hp>0&&!e.shield&&!e.vanish&&!e.done&&!e.dying&&Math.hypot(e.x-x,e.y-y)<(e.type==='boss'?46:30));
       if(target){p.life=0;return {impact:true,x,y,target};}
     }
     p.life-=dt;

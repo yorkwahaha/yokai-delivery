@@ -47,16 +47,26 @@ window.GAME_VIOLET_SCENT = (() => {
     return art;
   }
   function create(){
-    let clouds=[],infections=new Map(),visuals=[],travel=0,since=99,interval=TIERS[0].interval,revision=0;
-    const reset=()=>{clouds=[];infections.clear();visuals=[];travel=0;since=99;revision++;};
+    let clouds=[],infections=new Map(),visuals=new Map(),travel=0,since=99,interval=TIERS[0].interval,revision=0;
+    const reset=()=>{clouds=[];infections.clear();visuals.clear();travel=0;since=99;revision++;};
     const suspend=reset;
     function tick({dt,level,start,end,enemies=[],effectiveDamage=1,mutations=[],hit,onEvent}){
       if(!(level>0)||!(dt>0))return;
       const cfg=spec(level,effectiveDamage,mutations);
       interval=cfg.interval;
       since=Math.min(99,since+dt);
-      clouds=clouds.filter(c=>(c.life-=dt)>0);
-      visuals=visuals.filter(v=>(v.life-=dt)>0);
+      let keepClouds=0;
+      for(let i=0;i<clouds.length;i++){
+        const c=clouds[i];
+        c.life-=dt;
+        if(c.life>0)clouds[keepClouds++]=c;
+      }
+      clouds.length=keepClouds;
+      for(const [enemy,life] of visuals){
+        const next=life-dt;
+        if(next<=0)visuals.delete(enemy);
+        else visuals.set(enemy,next);
+      }
 
       // Actual movement creates at most one cloud per frame: no stall burst
       // or timer-spawned damage while standing still. Dash is real movement.
@@ -119,15 +129,21 @@ window.GAME_VIOLET_SCENT = (() => {
       let visible=0;
       for(const enemy of infections.keys()){
         if(visible++>=MAX_VISUALS)break;
-        visuals.push({target:enemy,life:.18,max:.18});
+        visuals.delete(enemy);
+        visuals.set(enemy,.18);
       }
       if(visible<MAX_VISUALS)for(const enemy of enemies){
         if(visible>=MAX_VISUALS)break;
         if(enemy.confusedT>0&&!infections.has(enemy)&&eligible(enemy)){
-          visuals.push({target:enemy,life:.18,max:.18});visible++;
+          visuals.delete(enemy);
+          visuals.set(enemy,.18);
+          visible++;
         }
       }
-      if(visuals.length>MAX_VISUALS)visuals=visuals.slice(-MAX_VISUALS);
+      while(visuals.size>MAX_VISUALS){
+        const oldest=visuals.keys().next().value;
+        visuals.delete(oldest);
+      }
     }
     function paint(ctx,art={},fade=1){
       const main=art.mist?.naturalWidth>0?art.mist:null;
@@ -162,12 +178,9 @@ window.GAME_VIOLET_SCENT = (() => {
       const poison=art.smoke?.naturalWidth>0?art.smoke:null;
       const butterflies=art.butterflies?.naturalWidth>0?art.butterflies:null;
       const confused=butterflies||(art.confuse?.naturalWidth>0?art.confuse:null);
-      if(!poison&&!confused)return;
-      const drawn=new Set();
-      for(const v of visuals){
-        const e=v.target;
-        if(!eligible(e)||drawn.has(e))continue;
-        drawn.add(e);
+      if(!poison&&!confused||!visuals.size)return;
+      for(const e of visuals.keys()){
+        if(!eligible(e))continue;
         upright(e.x,e.y,()=>{
           ctx.save();
           if(poison&&(!art.painted||infections.has(e))){

@@ -379,10 +379,13 @@
     ctx.fill();
   }
 
+  const motionQuery = typeof root.matchMedia === "function" ? root.matchMedia("(prefers-reduced-motion: reduce)") : null;
+  const allowsOverworldMotion = () => !motionQuery?.matches;
+
   function drawLandmark(ctx, node, elapsed, selected, progress) {
     const canEnter = isEnterable(node, progress);
     const accessible = isNodeAccessible(node, progress);
-    const pulse = selected && !root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 1 + Math.sin(elapsed * 5) * 0.05 : 1;
+    const pulse = selected && allowsOverworldMotion() ? 1 + Math.sin(elapsed * 5) * 0.05 : 1;
     ctx.save();
     ctx.translate(node.x, node.y);
     ctx.scale(pulse, pulse);
@@ -395,7 +398,8 @@
       ctx.beginPath();
       ctx.arc(0, 0, 49, 0, Math.PI * 2);
       ctx.stroke();
-
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
     }
 
     if (node.type === "waypoint") {
@@ -510,7 +514,7 @@
 
   function drawMiniPlayer(ctx, state, elapsed) {
     root.loadMapPlayerArt?.();
-    const motion = !root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    const motion = allowsOverworldMotion();
     const bob = motion ? Math.sin(elapsed * 7) * 3 : 0;
     const walking = isMoving(state);
     const walkFrame = Math.floor(elapsed * 10) % 2 === 0 ? "player_walk_left_v2" : "player_walk_right_v2";
@@ -548,7 +552,7 @@
   }
 
   function drawMist(ctx, elapsed) {
-    const motion = !root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    const motion = allowsOverworldMotion();
     const t = motion ? elapsed : 0;
     // 谷地緩慢平移；霧在道路、地標與角色下方，不擋選關。
     [[460,1150,210],[985,890,230],[1560,780,250],[2280,640,200],[2710,510,210]].forEach(([x,y,r],i)=>{
@@ -632,6 +636,7 @@
       const mainH = Math.round(bgW * (background.naturalHeight || 941) / background.naturalWidth);
       const edgeY=bgY+mainH;
       const top = state.camY + area.top, bottom = state.camY + area.bottom;
+      if (mapBase) { mapBase.width = mapBase.height = 1; mapBase = null; }
       if (top < edgeY && bottom > bgY) ctx.drawImage(background, bgX, bgY, bgW, mainH);
       if (edgeY < MAP_H && bottom > edgeY) {
         const extensionH = MAP_H - edgeY;

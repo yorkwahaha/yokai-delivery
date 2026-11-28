@@ -26,6 +26,7 @@ const frozenHistorical=new Set([
 
 const currentPrefix=/^(game-.*phase\d+|game-combat-audit-hardening|core-(multi-enemy-stage|stateful-contracts)|audit-p1-|audio-gamepad-home-hotfix|phase2-geometry-audit|third-audit-regressions|water-slam-alpha-sfx|combat-targeting|combat-boundaries-stage-tutorial|boom-behavior|boss-(music|telegraph-delegate|ring-sweep)|evolutions|fx\.|skillfx\.|game-balance|progression|v3-boss-ai|v3-core|v3-contract-gate)/;
 const currentExact=new Set([
+  'audit-20261128-hardening.test.cjs',
   'public-release-contract.test.cjs',
   'active-skills-10-13.test.cjs',
   'integration-polish-phase-f1.test.cjs',

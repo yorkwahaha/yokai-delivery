@@ -451,38 +451,74 @@ window.RENDERER = (() => {
     }
     dmgNumbers.length = activeDamage;
 
-    for (const g of ghostTrails) g.life -= dt;
-    ghostTrails = ghostTrails.filter(g => g.life > 0);
+    let activeGhosts = 0;
+    for (let i = 0; i < ghostTrails.length; i++) {
+      const g = ghostTrails[i];
+      g.life -= dt;
+      if (g.life > 0) ghostTrails[activeGhosts++] = g;
+    }
+    ghostTrails.length = activeGhosts;
 
-    for (const s of slashArcs) s.life -= dt;
-    slashArcs = slashArcs.filter(s => s.life > 0);
+    let activeArcs = 0;
+    for (let i = 0; i < slashArcs.length; i++) {
+      const s = slashArcs[i];
+      s.life -= dt;
+      if (s.life > 0) slashArcs[activeArcs++] = s;
+    }
+    slashArcs.length = activeArcs;
 
     return stopped;
+  }
+
+  const styledSceneryCache = new WeakMap();
+  function bakedStyledScenery(image, baseFilter) {
+    if (typeof document === "undefined" || !document.createElement) return null;
+    if (!image?.naturalWidth || !image?.naturalHeight) return null;
+    let byFilter = styledSceneryCache.get(image);
+    if (!byFilter) { byFilter = new Map(); styledSceneryCache.set(image, byFilter); }
+    if (byFilter.has(baseFilter)) return byFilter.get(baseFilter);
+    const tile = document.createElement("canvas");
+    tile.width = image.naturalWidth;
+    tile.height = image.naturalHeight;
+    const g = tile.getContext("2d");
+    if (!g || !("filter" in Object.getPrototypeOf(g))) {
+      byFilter.set(baseFilter, null);
+      return null;
+    }
+    g.filter = baseFilter;
+    g.drawImage(image, 0, 0);
+    byFilter.set(baseFilter, tile);
+    return tile;
   }
 
   function drawStyledSceneryImage(c,image,x,y,w,h,alpha=1,kind="scenery",depthBlur=0,sourceRect=null) {
     if(!image || !image.naturalWidth)return false;
     c.save();
     c.globalAlpha *= alpha;
-    c.filter = kind === "sakura" ? "saturate(78%) contrast(101%) brightness(92%)" :
+    const baseFilter = kind === "sakura" ? "saturate(78%) contrast(101%) brightness(92%)" :
       kind === "house_tavern" || kind === "house_shrine" ? "saturate(86%) contrast(101%) sepia(2%) brightness(91%)" :
       "saturate(88%) contrast(102%) sepia(2%) brightness(94%)";
+    let drawSource = image;
     // Only distant architectural sprites receive gentle atmospheric DOF.
     // Ground silhouettes, house nameplates, quiz labels and HUD stay crisp.
     if (depthBlur > 0.05) {
-      // Soft woodblock atmosphere: depth = blur + cool color + lower contrast.
-      // This filter is applied ONLY to the sprite, not its readable signboard.
-      const depth = Math.min(1, depthBlur / 2.25);
-      c.filter += ` saturate(${Math.round(100-depth*27)}%) contrast(${Math.round(100-depth*17)}%) brightness(${Math.round(100+depth*7)}%) blur(${depthBlur.toFixed(2)}px)`;
+      // Quantize blur to 0.25px steps so WebKit doesn't recompile filter shaders per frame.
+      const qBlur = Math.round(depthBlur * 4) / 4;
+      const depth = Math.min(1, qBlur / 2.25);
+      c.filter = `${baseFilter} saturate(${Math.round(100-depth*27)}%) contrast(${Math.round(100-depth*17)}%) brightness(${Math.round(100+depth*7)}%) blur(${qBlur.toFixed(2)}px)`;
+    } else {
+      const baked = bakedStyledScenery(image, baseFilter);
+      if (baked) drawSource = baked;
+      else c.filter = baseFilter;
     }
     c.shadowColor = "rgba(18, 15, 18, 0.28)";
     c.shadowBlur = 0;
     c.shadowOffsetX = 1;
     c.shadowOffsetY = 1;
     if (sourceRect) {
-      c.drawImage(image, sourceRect.sx, sourceRect.sy, sourceRect.sw, sourceRect.sh, x, y, w, h);
+      c.drawImage(drawSource, sourceRect.sx, sourceRect.sy, sourceRect.sw, sourceRect.sh, x, y, w, h);
     } else {
-      c.drawImage(image, x, y, w, h);
+      c.drawImage(drawSource, x, y, w, h);
     }
     c.restore();
     return true;
@@ -690,71 +726,6 @@ window.RENDERER = (() => {
       const height = width * img.naturalHeight / img.naturalWidth * spacing;
       c.drawImage(img, x - width / 2, y, width, height);
     }
-  }
-  // S2 Nano Production Art: Direct loading of new Nano Banana 2.1 images from scene directory
-  // The retained Stage2 1254px PNG originals are referenced only by local DEV comparison.
-  const S2_NANO_PATHS = {
-    stone: "art/stage2-rain-port/scene/g_stone_01.png",
-    stoneVar1: "art/stage2-rain-port/scene/g_stone_02.png",
-    wood: "art/stage2-rain-port/scene/g_wood_01.png",
-    woodVar1: "art/stage2-rain-port/scene/g_wood_02.png",
-    transH: "art/stage2-rain-port/scene/t_stone_wood_v01.png",
-    transV: "art/stage2-rain-port/scene/t_stone_wood_v01.png",
-    warehouse: "art/stage2-rain-port/scene/H_warehouse_01.png",
-    fishmonger: "art/stage2-rain-port/scene/H_fishworkshop_01.png"
-  };
-  const S2_NANO_CACHE = {
-    stone: null, stoneVar1: null, wood: null, woodVar1: null,
-    transH: null, transV: null, warehouse: null, fishmonger: null,
-    loaded: false, loadError: null
-  };
-  async function loadS2NanoAssets() {
-    if (!window.isS2ArtProdEnabled?.() || S2_NANO_CACHE.loaded) return;
-    const loadImg = (url) => new Promise(resolve => {
-      const img = new Image();
-      img.decoding = "async";
-      img.onload = () => resolve({ img, ok: true, url });
-      img.onerror = () => resolve({ img: null, ok: false, url });
-      img.src = url + "?v=" + Date.now();
-    });
-    const results = await Promise.all(Object.entries(S2_NANO_PATHS).map(([k, url]) => loadImg(url).then(r => ({ key: k, ...r }))));
-    let anyOk = false;
-    for (const { key, img, ok, url } of results) {
-      if (ok && img?.naturalWidth) {
-        S2_NANO_CACHE[key] = img;
-        anyOk = true;
-        console.log(`[S2-NANO] Loaded ${key}: ${img.naturalWidth}x${img.naturalHeight} from ${url}`);
-      } else {
-        console.warn(`[S2-NANO] Failed to load ${key} from ${url}`);
-      }
-    }
-    S2_NANO_CACHE.loaded = true;
-    S2_NANO_CACHE.loadError = anyOk ? null : "NO_NANO_IMAGES_LOADED";
-    if (!anyOk) console.error("[S2-NANO] No Nano images loaded successfully");
-  }
-  function getS2NanoStone() {
-    if (!window.isS2ArtProdEnabled?.() || !S2_NANO_CACHE.loaded) return null;
-    return S2_NANO_CACHE.stone?.naturalWidth ? S2_NANO_CACHE.stone : null;
-  }
-  function getS2NanoWood() {
-    if (!window.isS2ArtProdEnabled?.() || !S2_NANO_CACHE.loaded) return null;
-    return S2_NANO_CACHE.wood?.naturalWidth ? S2_NANO_CACHE.wood : null;
-  }
-  function getS2NanoTransH() {
-    if (!window.isS2ArtProdEnabled?.() || !S2_NANO_CACHE.loaded) return null;
-    return S2_NANO_CACHE.transH?.naturalWidth ? S2_NANO_CACHE.transH : null;
-  }
-  function getS2NanoTransV() {
-    if (!window.isS2ArtProdEnabled?.() || !S2_NANO_CACHE.loaded) return null;
-    return S2_NANO_CACHE.transV?.naturalWidth ? S2_NANO_CACHE.transV : null;
-  }
-  function getS2NanoWarehouse() {
-    if (!window.isS2ArtProdEnabled?.() || !S2_NANO_CACHE.loaded) return null;
-    return S2_NANO_CACHE.warehouse?.naturalWidth ? S2_NANO_CACHE.warehouse : null;
-  }
-  function getS2NanoFishmonger() {
-    if (!window.isS2ArtProdEnabled?.() || !S2_NANO_CACHE.loaded) return null;
-    return S2_NANO_CACHE.fishmonger?.naturalWidth ? S2_NANO_CACHE.fishmonger : null;
   }
   // S2 Production Art tile pickers (for rain-port when s2artprod=1)
   // Priority: new Nano images > manifest usable_runtime_tiles > legacy PORT_ART
@@ -2972,6 +2943,7 @@ window.RENDERER = (() => {
   }
 
   // 繪製立體多光源動態光影（柔和三次樣條光暈 + 街燈光暈池）
+  const lightCamObj = { x: 0, y: 0 };
   const LAMP_LIGHT_LIFT = 22; // 與 game.js 的新石燈火袋光心相同
   function renderLighting(P, LAMPS, oil, elapsed, dawnTime, maxOil = 100, lampOut = 0, offset = {x:0,y:0}) {
     window.PORT_PERF?.instrument?.(lightCtx,"light");
@@ -2987,8 +2959,9 @@ window.RENDERER = (() => {
     // 1. 主角提燈核心光照
     const k = tiltK();
     const z = window.VIEWPORT?.worldZoom?.() || 1;
+    lightCamObj.x = camX; lightCamObj.y = camY;
     const playerScreen = window.VIEWPORT?.worldToScreen
-      ? window.VIEWPORT.worldToScreen(P.x, P.y, { x: camX, y: camY }, offset)
+      ? window.VIEWPORT.worldToScreen(P.x, P.y, lightCamObj, offset)
       : { x: P.x - camX + offset.x, y: (P.y - camY + offset.y) * k };
     const screenPx = playerScreen.x;
     const screenPy = playerScreen.y;
@@ -3033,14 +3006,15 @@ window.RENDERER = (() => {
     // 2. 街角提燈 (LAMPS) 暖光池（燈滅時一併退去；雨港不使用第一關提燈）
     if (!rainPort) {
       lightCtx.globalAlpha = 1 - lampOut;
-      LAMPS.forEach(l => {
+      const lampRadius = 125 * z;
+      for (let i = 0; i < LAMPS.length; i++) {
+        const l = LAMPS[i];
         const lampScreen = window.VIEWPORT?.worldToScreen
-          ? window.VIEWPORT.worldToScreen(l.x, l.y + 8, { x: camX, y: camY }, offset)
+          ? window.VIEWPORT.worldToScreen(l.x, l.y + 8, lightCamObj, offset)
           : { x: l.x - camX + offset.x, y: (l.y + 8 - camY + offset.y) * k };
         const lx = lampScreen.x;
         const ly = lampScreen.y - 30 * z;
-        const lampRadius = 125 * z;
-        if (lx < area.left - lampRadius || lx > area.right + lampRadius || ly < area.top - lampRadius || ly > area.bottom + lampRadius) return;
+        if (lx < area.left - lampRadius || lx > area.right + lampRadius || ly < area.top - lampRadius || ly > area.bottom + lampRadius) continue;
         const g = lightCtx.createRadialGradient(lx, ly, 10, lx, ly, lampRadius);
         g.addColorStop(0, "rgba(0,0,0,0.95)");
         g.addColorStop(0.5, "rgba(0,0,0,0.5)");
@@ -3052,23 +3026,26 @@ window.RENDERER = (() => {
         lightCtx.arc(lx, ly, lampRadius, 0, 6.28);
         lightCtx.fill();
         lightCtx.restore();
-      });
+      }
       lightCtx.globalAlpha = 1;
     }
 
     // 夜色遮罩只合成一次。暖光是燈暈上的少數徑向漸層，不再鋪第二張全螢幕。
     ctx.drawImage(lightCv, area.left, area.top, area.width, area.height);
     if (lampOut < 1) paintWarmPool(screenPx, screenPy, baseRadius * 0.62);
-    if (lampOut < 1 && !rainPort) LAMPS.forEach(l => {
-      const lampScreen = window.VIEWPORT?.worldToScreen
-        ? window.VIEWPORT.worldToScreen(l.x, l.y + 8, { x: camX, y: camY }, offset)
-        : { x: l.x - camX + offset.x, y: (l.y + 8 - camY + offset.y) * k };
-      const lx = lampScreen.x;
-      const ly = lampScreen.y - 30 * z;
+    if (lampOut < 1 && !rainPort) {
       const warmRadius = 76 * z;
-      if (lx < area.left - warmRadius || lx > area.right + warmRadius || ly < area.top - warmRadius || ly > area.bottom + warmRadius) return;
-      paintWarmPool(lx, ly, warmRadius);
-    });
+      for (let i = 0; i < LAMPS.length; i++) {
+        const l = LAMPS[i];
+        const lampScreen = window.VIEWPORT?.worldToScreen
+          ? window.VIEWPORT.worldToScreen(l.x, l.y + 8, lightCamObj, offset)
+          : { x: l.x - camX + offset.x, y: (l.y + 8 - camY + offset.y) * k };
+        const lx = lampScreen.x;
+        const ly = lampScreen.y - 30 * z;
+        if (lx < area.left - warmRadius || lx > area.right + warmRadius || ly < area.top - warmRadius || ly > area.bottom + warmRadius) continue;
+        paintWarmPool(lx, ly, warmRadius);
+      }
+    }
 
     function paintWarmPool(x, y, radius) {
       ctx.save();
@@ -3419,7 +3396,7 @@ window.RENDERER = (() => {
     ];
 
     let streakIndex = 0;
-    const batch = window.PORT_PERF?.config?.rainBatch === true;
+    const batch = window.PORT_PERF?.config?.rainBatch !== false;
     for (const layer of layers) {
       targetCtx.lineWidth = layer.width;
       targetCtx.strokeStyle = `rgba(${layer.color}, ${layer.alpha})`;
@@ -3737,7 +3714,7 @@ window.RENDERER = (() => {
   // when the player's large floral shield is active. Hitboxes remain in AI.
   const telegraphRasters = new WeakMap();
   function brightTelegraph(ctx, image, filter) {
-    if (!window.PORT_PERF?.config?.bossRaster || !("filter" in Object.getPrototypeOf(ctx))) return null;
+    if (window.PORT_PERF?.config?.bossRaster === false || typeof document === "undefined" || !document.createElement || !("filter" in Object.getPrototypeOf(ctx))) return null;
     let variants = telegraphRasters.get(image);
     if (!variants) telegraphRasters.set(image,variants = new Map());
     if (variants.has(filter)) return variants.get(filter);
@@ -4482,7 +4459,7 @@ window.RENDERER = (() => {
       for (const shot of h.shots) lane(shot.angle, shot.limit ?? h.reach);
     } else {
       for (const mark of h.marks) {
-        if (!warning && h.t >= mark.delay) continue;
+        if (!warning && (h.activeTime ?? h.t) >= mark.delay) continue;
         c.moveTo(mark.x + h.r, mark.y);
         c.arc(mark.x, mark.y, h.r, 0, Math.PI * 2);
       }
@@ -4699,14 +4676,21 @@ window.RENDERER = (() => {
 
     const c = targetCtx || ctx;
     if (!c) return;
-    const awaySlots = new Set(
-      (ghosts || []).filter(p => p.fireAttack && p.life > 0 && p.level === fireLevel).map(p => p.slot)
-    );
+    let awaySlots = null;
+    if (ghosts && ghosts.length) {
+      for (let gi = 0; gi < ghosts.length; gi++) {
+        const p = ghosts[gi];
+        if (p.fireAttack && p.life > 0 && p.level === fireLevel) {
+          if (!awaySlots) awaySlots = new Set();
+          awaySlots.add(p.slot);
+        }
+      }
+    }
     const viewport = window.VIEWPORT;
     const is2D = typeof viewport?.is2D === "function" ? viewport.is2D() : false;
 
     for (let i = 0; i < count; i++) {
-      if (awaySlots.has(i)) continue;
+      if (awaySlots && awaySlots.has(i)) continue;
       const a = fAng + (i * 6.2831853) / count;
       const sinA = Math.sin(a);
       const isBack = sinA < 0;
@@ -6390,22 +6374,22 @@ window.RENDERER = (() => {
     return true;
   }
 
+  const SUPPORTED_FUSION_KINDS = new Set([
+    "fusion_inkblade",
+    "fusion_thundercircle",
+    "fusion_foxiai",
+    "fusion_exorcistblade",
+    "fusion_foxfirebarrier",
+    "fusion_exorcistseal",
+    "fusion_slashwheel",
+    "fusion_foxthunderlantern",
+    "fusion_flamefestival",
+    "fusion_thundertalisman"
+  ]);
   function drawFusionFx(targetCtx, effect, elapsed = 0) {
     if (!effect || typeof effect !== "object") return false;
     const kind = effect.kind;
-    const SUPPORTED_KINDS = new Set([
-      "fusion_inkblade",
-      "fusion_thundercircle",
-      "fusion_foxiai",
-      "fusion_exorcistblade",
-      "fusion_foxfirebarrier",
-      "fusion_exorcistseal",
-      "fusion_slashwheel",
-      "fusion_foxthunderlantern",
-      "fusion_flamefestival",
-      "fusion_thundertalisman"
-    ]);
-    if (!SUPPORTED_KINDS.has(kind)) return false;
+    if (!SUPPORTED_FUSION_KINDS.has(kind)) return false;
 
     const c = targetCtx || ctx;
     if (!c) return false;
@@ -6546,13 +6530,6 @@ window.RENDERER = (() => {
     drawSlashArcs,
     drawAtmosphere,
     drawPortAtmosphereRain,
-    loadS2NanoAssets,
-    getS2NanoStone,
-    getS2NanoWood,
-    getS2NanoTransH,
-    getS2NanoTransV,
-    getS2NanoWarehouse,
-    getS2NanoFishmonger,
     getShakeOffset() {
       if (!allowsMotion() || shake === 0) return { x: 0, y: 0 };
       return {

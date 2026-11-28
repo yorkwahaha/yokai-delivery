@@ -297,7 +297,7 @@ window.AUDIO = (() => {
     if (leaving.includes(preparedBgm)) preparedBgm = null;
     for (const track of leaving) releaseStageTrack(track);
     for (const track of [stageMusicCurrent, stageMusicIncoming, activeBgm])
-      if (track && track !== preparedBgm) track.pause();
+      if (track && track !== preparedBgm) pauseMusic(track);
     if (activeBgm !== preparedBgm) activeBgm = null;
     stageTracks.clear();
     stageBgmTracks.clear();
@@ -443,7 +443,7 @@ window.AUDIO = (() => {
   function playBuffer(path, volume, options = {}) {
     if (typeof fetch !== 'function' || (!window.AudioContext && !window.webkitAudioContext)) return false;
     const ac = getCtx();
-    if (!ac || typeof fetch !== 'function' || !ac.decodeAudioData || !ac.createBufferSource) return false;
+    if (!ac || !ac.decodeAudioData || !ac.createBufferSource) return false;
     const epoch = audioEpoch;
     const current = () => !muted && !suspended && epoch===audioEpoch && (!options.isCurrent || options.isCurrent());
     loadBuffer(path,ac).then(buffer=>{
@@ -514,7 +514,10 @@ window.AUDIO = (() => {
   function setWordDucking(enabled) {
     wordDucking = enabled;
     if (effectsBus) effectsBus.gain.value = enabled ? 0.3 : 1;
-    activeSfx.forEach(audio => { audio.volume = audio.sfxVolume * (enabled ? 0.3 : 1); });
+    activeSfx.forEach(audio => {
+      const baseVol = Number.isFinite(audio.sfxVolume) ? audio.sfxVolume : 1;
+      audio.volume = Math.max(0, Math.min(1, baseVol * (enabled ? 0.3 : 1)));
+    });
     const duration = enabled ? 140 : 220;
     musicTracks().forEach(audio => rampMusicVolume(audio, musicTarget(audio), duration));
   }
@@ -998,6 +1001,7 @@ window.AUDIO = (() => {
     osc2.stop(now + duration);
   }
 
+  const taikoNoiseCache = new WeakMap();
   // 2. 和太鼓 (Taiko Bass Drum)
   function playTaiko(pitch = 90, vol = 0.22) {
     const ac = getCtx();
@@ -1014,11 +1018,15 @@ window.AUDIO = (() => {
     gain.gain.setValueAtTime(vol, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
 
-    // 拍擊雜訊脈衝 (Stick hit slap)
+    // 拍擊雜訊脈衝 (Stick hit slap) — per-context cached noise buffer
     const noise = ac.createBufferSource();
-    const buf = ac.createBuffer(1, ac.sampleRate * 0.04, ac.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / 300);
+    let buf = taikoNoiseCache.get(ac);
+    if (!buf) {
+      buf = ac.createBuffer(1, Math.max(1, Math.floor(ac.sampleRate * 0.04)), ac.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / 300);
+      taikoNoiseCache.set(ac, buf);
+    }
     noise.buffer = buf;
     const noiseGain = ac.createGain();
     noiseGain.gain.setValueAtTime(vol * 0.7, now);
@@ -1213,7 +1221,7 @@ window.AUDIO = (() => {
         if (token !== fadeToken || !fadePending) return;
         fadePending = false;
         if (musicShouldPlay) return;
-        musicTracks().forEach(audio => { if (!audio.paused) audio.pause(); });
+        musicTracks().forEach(audio => { if (!audio.paused) pauseMusic(audio); });
       }, duration + 30);
     },
     // Stop only on entry to results, not on the boss death cinematic.
@@ -1231,7 +1239,7 @@ window.AUDIO = (() => {
         leaveStageAudio();
       }
       bossMusic = false; bossMix = 0; musicShouldPlay = false;
-      musicTracks().forEach(audio => { if (!audio.paused) audio.pause(); });
+      musicTracks().forEach(audio => { if (!audio.paused) pauseMusic(audio); });
       activeBgm = null;
     },
     // 重玩或回到地圖時，音樂從頭開始，不接著上一局的進度。
@@ -1301,7 +1309,7 @@ window.AUDIO = (() => {
     dropPrepared() {
       const audio = preparedBgm;
       preparedBgm = null;
-      if (audio && !audio.paused) audio.pause();
+      if (audio && !audio.paused) pauseMusic(audio);
     },
     preloadWords(words) {
       const ac = getCtx();
@@ -1624,8 +1632,19 @@ window.AUDIO = (() => {
             .filter(voice => /^ja(?:-|_|$)/i.test(voice.lang || ""));
           u.voice = japanese.find(voice => /google/i.test(voice.name || "")) || japanese[0] || null;
         } catch (_) {}
-        u.onend = () => endWordSpeech(nonce);
-        u.onerror = () => endWordSpeech(nonce);
+        let speechGuard = null;
+        const finishSpeech = () => {
+          if (speechGuard !== null && typeof clearTimeout === "function") {
+            clearTimeout(speechGuard);
+            speechGuard = null;
+          }
+          endWordSpeech(nonce);
+        };
+        u.onend = finishSpeech;
+        u.onerror = finishSpeech;
+        if (typeof setTimeout === "function") {
+          speechGuard = setTimeout(finishSpeech, Math.max(4500, String(text || "").length * 450 + 2500));
+        }
         window.speechSynthesis.speak(u);
       };
       if (path) {
@@ -1749,7 +1768,7 @@ window.AUDIO = (() => {
           trackVolume(preparedBgm, musicVolume());
         }
         musicShouldPlay = true;
-        musicTracks().forEach(audio => { if (audio !== preparedBgm && !audio.paused) audio.pause(); });
+        musicTracks().forEach(audio => { if (audio !== preparedBgm && !audio.paused) pauseMusic(audio); });
         activeBgm = preparedBgm;
         playMusic(preparedBgm);
         return;
@@ -1768,7 +1787,7 @@ window.AUDIO = (() => {
       musicShouldPlay = isMusicActive && !muted;
       if (muted || !isMusicActive) {
         musicTracks().forEach(audio => {
-          if (!audio.paused) audio.pause();
+          if (!audio.paused) pauseMusic(audio);
         });
         activeBgm = null;
         return;
@@ -1781,8 +1800,8 @@ window.AUDIO = (() => {
 
       const boss = state !== 'overworld' && bossMusic && window.BOSS_BGM;
       if (boss) {
-        // Boss 交叉淡出每幀自寫音量。留下的 ramp 會在下一幀把音量拉回舊目標。
-        cancelRamps();
+        const crossfading = activeBgm !== boss || bossMix < 1;
+        if (crossfading) cancelRamps();
         if (activeBgm !== boss) {
           activeBgm = boss;
           bgmAttempts.delete(boss);
@@ -1794,12 +1813,14 @@ window.AUDIO = (() => {
         // starts and has decoded enough data for audible playback.
         const bossAudible = !boss.paused && boss.readyState >= 2;
         if (bossAudible) bossMix = Math.min(1, bossMix + Math.max(0, dt) / 1.1);
-        trackVolume(boss, musicVolume() * bossMix);
-        if (window.BGM) {
-          trackVolume(window.BGM, musicVolume() * (1 - bossMix));
-          if (bossMix >= 1 && !window.BGM.paused) window.BGM.pause();
+        if (crossfading || !bgmRamps.has(boss)) {
+          trackVolume(boss, musicVolume() * bossMix);
         }
-        if (window.MAP_BGM && !window.MAP_BGM.paused) window.MAP_BGM.pause();
+        if (window.BGM) {
+          if (crossfading) trackVolume(window.BGM, musicVolume() * (1 - bossMix));
+          if (bossMix >= 1 && !window.BGM.paused) pauseMusic(window.BGM);
+        }
+        if (window.MAP_BGM && !window.MAP_BGM.paused) pauseMusic(window.MAP_BGM);
         return;
       }
       const desiredBgm = state === "overworld"
@@ -1808,7 +1829,7 @@ window.AUDIO = (() => {
       if (desiredBgm) {
         if (activeBgm !== desiredBgm) {
           musicTracks().forEach(audio => {
-            if (audio !== desiredBgm && !audio.paused) audio.pause();
+            if (audio !== desiredBgm && !audio.paused) pauseMusic(audio);
           });
           activeBgm = desiredBgm;
           bgmAttempts.delete(activeBgm);
@@ -1879,18 +1900,20 @@ window.AUDIO = (() => {
   // single voice. Ordinary SFX intentionally replace their previous voice;
   // this one uses independent buffer sources (or HTMLAudio instances).
   function finalBossHtmlVoice(volume) {
+    if (unavailableSfx.has("finalBossDeath")) return;
     let voice;
     try { voice=new Audio(window.audioAsset?.(SFX_FILES.finalBossDeath)||SFX_FILES.finalBossDeath); }
     catch { return; }
-    voice.volume=volume*(wordDucking ? 0.3 : 1);
+    voice.sfxVolume = volume;
+    voice.volume=Math.max(0, Math.min(1, volume*(wordDucking ? 0.3 : 1)));
     activeSfx.add(voice);
     const done=()=>activeSfx.delete(voice);
     voice.addEventListener('ended',done,{once:true});
-    voice.addEventListener('error',done,{once:true});
+    voice.addEventListener('error',()=>{ unavailableSfx.add("finalBossDeath"); done(); },{once:true});
     try { const result=voice.play(); result?.catch?.(done); } catch { done(); }
   }
   api.finalBossDeath=(volumeScale=1)=>{
-    if(muted||suspended)return;
+    if(muted||suspended||unavailableSfx.has("finalBossDeath"))return;
     const volume=(SFX_VOLUME.finalBossDeath??.9)*Math.max(0,Math.min(1,Number(volumeScale)||0));
     if(!playBuffer(SFX_FILES.finalBossDeath,volume,{onerror:()=>finalBossHtmlVoice(volume)}))
       finalBossHtmlVoice(volume);

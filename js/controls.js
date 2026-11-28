@@ -124,7 +124,10 @@ window.CONTROLS = (() => {
       }
       if (window.HAPTICS) {
         const toggles = [...dialog.querySelectorAll('[data-haptics]')];
-        if (!toggles.length) toggles.push(document.getElementById('haptics-enabled'));
+        if (!toggles.length) {
+          const fallbackToggle = document.getElementById('haptics-enabled');
+          if (fallbackToggle) toggles.push(fallbackToggle);
+        }
         for (const input of toggles) {
           input.checked = window.HAPTICS.enabled;
           input.onchange = () => {
@@ -165,7 +168,7 @@ window.CONTROLS = (() => {
       if (returnButton) returnButton.onclick = back;
       if (cancelButton) cancelButton.onclick = () => finishBinding('已取消綁定。');
       dialog.addEventListener('pointerdown', () => dialog.removeAttribute('data-pad'));
-      dialog.addEventListener('close', () => { waiting = null; document.getElementById('game').focus(); });
+      dialog.addEventListener('close', () => { waiting = null; document.getElementById('game')?.focus?.(); });
       dialog.addEventListener('cancel', event => { event.preventDefault(); back(); });
       dialog.addEventListener('keydown', event => {
         const {code} = event;

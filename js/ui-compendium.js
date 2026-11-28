@@ -125,8 +125,9 @@
         if (src.card) {
           box.classList.add("framed");
           const names = mutationNames(id);
-          if (names) {
-            const {titlePoint, classPoint} = window.__YOKAI_UPGRADE_PHASE42;
+          const phase42 = window.__YOKAI_UPGRADE_PHASE42;
+          if (names && phase42?.titlePoint && phase42?.classPoint) {
+            const {titlePoint, classPoint} = phase42;
             box.classList.add("mutation-portrait");
             for (const [name, point, role] of [[names.title, titlePoint, "title"], [names.subtitle, classPoint, "subtitle"]]) {
               const plaque = el("span", "yc-mutation-plaque " + role);
@@ -382,7 +383,8 @@
     function mutationButton(id, key, status, showEffect) {
       const card = rowOf(id);
       if (!card) return null;
-      const button = buttonWithArt(key, id, mutationNames(id).title, () => cardDetail(card, key, status), "yc-mutation");
+      const title = mutationNames(id)?.title || card.name || id;
+      const button = buttonWithArt(key, id, title, () => cardDetail(card, key, status), "yc-mutation");
       if (showEffect) button.lastChild.append(el("small", "", context.shortEffect(card)));
       return button;
     }
@@ -395,6 +397,11 @@
         return box;
       }
       const card = rowOf(slot.id);
+      if (!card) {
+        box.classList.add("empty");
+        box.append(portrait(slot.id, "empty-card", true), el("h3", "", slot.id || "未知技能"));
+        return box;
+      }
       const main = el("div", "yc-build-skill");
       const artKey = "build-skill:" + slot.id;
       const view = control(artKey, undefined, () => cardDetail(card, artKey, "Lv" + slot.rank), "yc-build-art");
@@ -419,8 +426,9 @@
           const list = el("div", "yc-candidate-list");
           for (const id of slot.candidates) {
             const row = rowOf(id);
+            if (!row) continue;
             const item = el("div", "yc-mutation");
-            item.append(portrait(id), el("span", "", mutationNames(id).title));
+            item.append(portrait(id), el("span", "", mutationNames(id)?.title || row.name || id));
             item.lastChild.append(el("small", "", context.describe(row)));
             list.append(item);
           }
@@ -506,7 +514,8 @@
       panel.replaceChildren();
       const paging = tab === "cards" ? renderCards() : tab === "words" ? renderWords() : renderBuild();
       if (key?.startsWith("secret:")) {
-        panel.querySelector(".yc-entries").scrollTop = indexScroll;
+        const entries = panel.querySelector(".yc-entries");
+        if (entries) entries.scrollTop = indexScroll;
       }
       const back = control("back", "‹　返回", context.close, "yc-control yc-back");
       const pager = el("div", "yc-pager");
@@ -548,6 +557,7 @@
     }
 
     root.addEventListener("cancel", event => { event.preventDefault(); back(); });
+    popup.addEventListener("cancel", event => { event.preventDefault(); closeDetail(); });
     root.addEventListener("pointerdown", () => root.removeAttribute("data-pad"));
     root.addEventListener("keydown", event => {
       if (handleKey(event, context.keyAction(event.code))) event.preventDefault();

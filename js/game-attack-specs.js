@@ -3,7 +3,7 @@
 // No gameplay state mutation, weapon casting, random draw, or asset loading here.
 window.GAME_ATTACK_SPECS = (() => {
   function resolveAttackSpec(skillId, lvl, buildState, options = {}, deps) {
-    const {WL, W, b, buildMutations, buildDuos, getEffectiveRate,
+    const {WL, W, b, buildMutations = [], buildDuos = [], getEffectiveRate,
       getEffectiveDmg, getEffectiveReachMultiplier, EVOLUTIONS} = deps;
     const level = typeof lvl === "number" ? lvl : (WL[skillId] || 0);
     const baseRate = options.effectiveRate ?? getEffectiveRate(buildState);
@@ -26,9 +26,9 @@ window.GAME_ATTACK_SPECS = (() => {
     if (skillId === "ink_trail") {
       // Only damage and the power charm apply. Cadence/reach/crit are explicitly
       // excluded: deployment has a hard minimum time and real movement distance.
-      return { skillId, ...window.GAME_VIOLET_SCENT.spec(level, baseDmg,
-          buildState?.mutations || buildMutations || []),
-        isAwakened: level === 5, source: "base", derivationDepth: 0,
+      const inkMutations = (buildState?.mutations || buildMutations || []).filter(id => id.startsWith("mut_ink_"));
+      return { skillId, ...window.GAME_VIOLET_SCENT.spec(level, baseDmg, inkMutations),
+        isAwakened: level === 5, source: inkMutations.length ? "mutation" : "base", derivationDepth: 0,
         cadenceEligible: false, reachEligible: false, critEligible: false };
     }
     const lateSkill = skillId === "seal_nail" ? window.GAME_SEAL_NAIL
@@ -120,6 +120,9 @@ window.GAME_ATTACK_SPECS = (() => {
       const hasFrost = mutations.includes("mut_frost");
       const hasPierce = mutations.includes("mut_pierce");
       const hasReturn = mutations.includes("mut_return");
+      const needleMutations = mutations.filter(id =>
+        id === "mut_seek" || id === "mut_frost" || id === "mut_pierce" || id === "mut_return"
+      );
 
       const count = rawCount;
       const spread = rawSpread;
@@ -145,7 +148,7 @@ window.GAME_ATTACK_SPECS = (() => {
         isAwakened,
         radialVolley: isAwakened,
         volleyInterval: isAwakened ? 0.05 : 0,
-        source: mutations.length > 0 ? "mutation" : "base",
+        source: needleMutations.length > 0 ? "mutation" : "base",
         count,
         speed,
         spread,
@@ -184,8 +187,8 @@ window.GAME_ATTACK_SPECS = (() => {
         spec.return = true;
         spec.returnDistance = returnDistance;
       }
-      if (mutations.length > 0) {
-        spec.mutations = [...mutations];
+      if (needleMutations.length > 0) {
+        spec.mutations = needleMutations;
       }
       return spec;
     }
@@ -475,7 +478,6 @@ window.GAME_ATTACK_SPECS = (() => {
     }
     // 融合武器：墨焰斬
     if (skillId === "fusion_inkblade") {
-      const isAwakened = true; // 融合武器即為覺醒狀態
       const baseDmg = getEffectiveDmg(buildState);
       const reachMult = getEffectiveReachMultiplier(buildState);
       const baseReach = 280;
@@ -483,15 +485,10 @@ window.GAME_ATTACK_SPECS = (() => {
       // Lv5 妖刀＋狐火的融合不應比原妖刀明顯變慢或變弱。
       const cooldown = 0.70;
       const slashDmg = Number((baseDmg * 6.5).toFixed(2));
-      const mutations = (buildState && Array.isArray(buildState.mutations))
-        ? buildState.mutations
-        : buildMutations;
-      const hasCrosscut = mutations.includes("mut_crosscut");
-      const crosscutDmg = Number((baseDmg * 1.5).toFixed(2));
       const critLvl = typeof options.critLvl === "number"
         ? options.critLvl
         : (buildState?.passives?.crit ?? b.crit ?? 0);
-      const critChance = Math.min(0.5, 0.2 + (buildState?.passives?.crit ?? b.crit ?? 0) * 0.15);
+      const critChance = Math.min(0.5, 0.2 + critLvl * 0.15);
       return {
         skillId: "fusion_inkblade",
         level: 1,
@@ -725,11 +722,10 @@ window.GAME_ATTACK_SPECS = (() => {
     }
     // 融合武器：雷陣封界（靈陣＋天狐雷；陣域脈衝＋定點警示落雷）
     if (skillId === "fusion_thundercircle") {
-      const isAwakened = true;
       const baseDmg = getEffectiveDmg(buildState);
       const reachMult = getEffectiveReachMultiplier(buildState);
       const cooldown = 1.65;
-      const radius = Math.round(265 * getEffectiveReachMultiplier(buildState));
+      const radius = Math.round(265 * reachMult);
       const pulseInterval = 0.42;
       const pulseCount = 4;
       const pulseDamage = baseDmg * 4.0;
@@ -737,7 +733,7 @@ window.GAME_ATTACK_SPECS = (() => {
       const critLvl = typeof options.critLvl === "number"
         ? options.critLvl
         : (buildState?.passives?.crit ?? b.crit ?? 0);
-      const critChance = Math.min(0.5, 0.2 + (buildState?.passives?.crit ?? b.crit ?? 0) * 0.15);
+      const critChance = Math.min(0.5, 0.2 + critLvl * 0.15);
       return {
         skillId: "fusion_thundercircle",
         level: 1,

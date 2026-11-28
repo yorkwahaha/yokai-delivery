@@ -162,55 +162,45 @@
     write(ctx,top,x,y-rowOffset,width,lineSize,"center",color);
     write(ctx,bottom,x,y+rowOffset,width,lineSize,"center",color);
   };
-  const paragraph=(ctx,text,x,y,width,maxLines=3,font=17,color=palette.paper,lineHeight=20)=>{
-    ctx.font=textFont(font,"body");tracking(ctx,.3);ctx.fillStyle=color;
-    ctx.textAlign="left";ctx.textBaseline="alphabetic";
-    const parts=String(text||"").match(/[A-Za-z0-9.+%×/→−]+|\s+|./gu)||[];
-    const lines=[];let cur="";
-    for(const part of parts){
-      if(cur&&ctx.measureText(cur+part).width>width){lines.push(cur.trim());cur="";}
-      cur+=part;
-    }
-    if(cur)lines.push(cur.trim());
-    for(let i=0;i<Math.min(lines.length,maxLines);i++){
-      let value=lines[i];
-      if(i===maxLines-1&&lines.length>maxLines){
-        while(value.length&&ctx.measureText(value+"…").width>width)value=value.slice(0,-1);
-        value+="…";
-      }
-      ctx.fillText(value,x,y+i*lineHeight,width);
-    }
-  };
   // Selected skill details must show the FULL description, never add "..."
   // after an arbitrary two-line cutoff. Reflow every CJK character and word
   // into the real paper area; shrink gracefully only when required.
+  const paragraphFitCache = new Map();
   const paragraphFit=(ctx,value,x,y,width,rows=3,initial=18,minSize=11,color="#362016",lineHeight=18)=>{
-    const tokens=String(value??"").match(/[A-Za-z0-9.+%×/→−]+|\s+|./gu)||[];
-    let lines=[],size=initial;
-    for(;size>=minSize;size--){
-      ctx.font=textFont(size,"body");tracking(ctx,.2);
-      lines=[];let line="";
-      for(const token of tokens){
-        if(!token.trim()&&!line)continue;
-        if(line&&ctx.measureText(line+token).width>width){
-          lines.push(line.trim());line="";
-        }
-        if(ctx.measureText(token).width>width){
-          for(const ch of Array.from(token)){
-            if(line&&ctx.measureText(line+ch).width>width){
-              lines.push(line.trim());line="";
-            }
-            line+=ch;
+    const text=String(value??"");
+    const cacheKey=`${text}\0${width}\0${rows}\0${initial}\0${minSize}`;
+    let cached=paragraphFitCache.get(cacheKey);
+    if(!cached){
+      const tokens=text.match(/[A-Za-z0-9.+%×/→−]+|\s+|./gu)||[];
+      let lines=[],size=initial;
+      for(;size>=minSize;size--){
+        ctx.font=textFont(size,"body");tracking(ctx,.2);
+        lines=[];let line="";
+        for(const token of tokens){
+          if(!token.trim()&&!line)continue;
+          if(line&&ctx.measureText(line+token).width>width){
+            lines.push(line.trim());line="";
           }
-        }else line+=token;
+          if(ctx.measureText(token).width>width){
+            for(const ch of Array.from(token)){
+              if(line&&ctx.measureText(line+ch).width>width){
+                lines.push(line.trim());line="";
+              }
+              line+=ch;
+            }
+          }else line+=token;
+        }
+        if(line.trim())lines.push(line.trim());
+        if(lines.length<=rows)break;
       }
-      if(line.trim())lines.push(line.trim());
-      if(lines.length<=rows)break;
+      cached={lines,size:Math.max(minSize,size)};
+      if(paragraphFitCache.size>=64)paragraphFitCache.clear();
+      paragraphFitCache.set(cacheKey,cached);
     }
-    ctx.font=textFont(Math.max(minSize,size),"body");tracking(ctx,.2);
+    ctx.font=textFont(cached.size,"body");tracking(ctx,.2);
     ctx.textAlign="left";ctx.textBaseline="alphabetic";ctx.fillStyle=color;
-    lines.forEach((line,i)=>ctx.fillText(line,x,y+i*lineHeight,width));
-    return {lines,size:Math.max(minSize,size)};
+    cached.lines.forEach((line,i)=>ctx.fillText(line,x,y+i*lineHeight,width));
+    return cached;
   };
   UI.levelUpLayout=(count=3)=>{
     const n=Math.max(0,Math.min(3,Math.round(Number.isFinite(count)?count:3)));
@@ -288,7 +278,6 @@
       const board=image("assets/img/ui/upgrade/card_dark.webp");
       if(board)ctx.drawImage(board,r.x,r.y,r.w,r.h);
       else paint(ctx,r.x,r.y,r.w,r.h,"#1c2436",10);
-      if(frame)ctx.drawImage(frame,r.x,r.y,r.w,r.h);
       ctx.shadowBlur=0;
       write(ctx,"夜行賞金",r.x+r.w/2,r.y+r.h*.28,r.w-24,20,"center",palette.light);
       write(ctx,"金幣",r.x+r.w/2,r.y+r.h*.49,r.w-20,36,"center",palette.paper);
@@ -406,25 +395,10 @@
     // Real gilded frame extracted from the user-approved design; its demo
     // text was replaced with blank washi, while actual copy is dynamic.
     const approved=image("assets/img/ui/upgrade/approved_details_blank.webp");
-    const paper=approved;
     if(approved){
       ctx.save();
       ctx.shadowColor="rgba(0,0,0,.50)";ctx.shadowBlur=12;
       ctx.drawImage(approved,d.x,d.y,d.w,d.h);
-      ctx.restore();
-    }else if(paper){
-      const iw=paper.naturalWidth,ih=paper.naturalHeight;
-      const sx=Math.round(iw*.15),sy=Math.round(ih*.23);
-      const dx=Math.min(27,d.w*.12),dy=Math.min(16,d.h*.22);
-      ctx.save();
-      ctx.shadowColor="rgba(0,0,0,.58)";ctx.shadowBlur=15;
-      const srcX=[0,sx,iw-sx],srcY=[0,sy,ih-sy];
-      const srcW=[sx,iw-2*sx,sx],srcH=[sy,ih-2*sy,sy];
-      const dstX=[d.x,d.x+dx,d.x+d.w-dx],dstY=[d.y,d.y+dy,d.y+d.h-dy];
-      const dstW=[dx,d.w-2*dx,dx],dstH=[dy,d.h-2*dy,dy];
-      for(let row=0;row<3;row++)for(let col=0;col<3;col++)
-        ctx.drawImage(paper,srcX[col],srcY[row],srcW[col],srcH[row],
-          dstX[col],dstY[row],dstW[col],dstH[row]);
       ctx.restore();
     }else paint(ctx,d.x,d.y,d.w,d.h,"rgba(243,228,200,.98)",9);
     const ink="#362016",muted="#45271d";

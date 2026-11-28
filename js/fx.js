@@ -323,11 +323,12 @@ window.FX = (() => {
             }
           }
         } catch { /* the live atlas remains available */ }
+        snapshot.pending = false;
+        if (!source) return;
         snapshot.revision = revision;
         snapshot.source?.close?.();
         snapshot.source = source;
-        snapshot.pending = false;
-        if (source) window.PORT_PERF?.registerParticleSource?.(source,"atlas",mode === "bitmap" ? "imageBitmap" : "image");
+        window.PORT_PERF?.registerParticleSource?.(source,"atlas",mode === "bitmap" ? "imageBitmap" : "image");
       });
     }
     return snapshot.revision >= rect.revision && snapshot.source || page.canvas;
@@ -346,13 +347,15 @@ window.FX = (() => {
       const disposable=ps.findIndex(p=>!p.priority);if(disposable<0)return;
       ps[disposable]=ps[ps.length-1];ps.pop();
     }
+    const rawLife = Math.max(0.001, Number(o.life) || 0.25);
+    const finalLife = calm ? Math.min(rawLife, 0.3) : rawLife;
     ps.push({
       kind, priority, blend: 'lighter',
       sprite: sprite(kind, color, !o.ground && window.__ACTIVE_STAGE === "rain-port"),
       x: 0, y: 0, vx: 0, vy: 0, drag: 0, g: 0, rot: 0, vr: 0, sx: 1, sy: 1, a: 1,
       s0: 16, s1: 16, delay: 0, ease: false, ground: false, ...o,
       ...(calm ? {vx:0,vy:0,vr:0,g:0,delay:0,s0:o.ground?(o.s1??o.s0??16):(o.s0??16),s1:o.ground?(o.s1??o.s0??16):(o.s0??16)} : {}),
-      life: calm ? Math.min(o.life,0.3) : o.life, max: calm ? Math.min(o.life,0.3) : o.life
+      life: finalLife, max: finalLife
     });
   }
 
@@ -488,18 +491,14 @@ window.FX = (() => {
       blend = ctx.globalCompositeOperation;
     }
     if (p.foot) {
-      const foot = () => {
-        ctx.globalAlpha = a;
-        ctx.save();
-        ctx.fillStyle = 'rgba(12,17,24,0.25)';
-        ctx.beginPath(); ctx.ellipse(p.x,p.y,size*.32,size*.09,0,0,6.283); ctx.fill();
-        const standing = () => drawParticleTile(ctx,source,rect,p.x-size/2,p.y-size*.96,size,size);
-        if (upright) upright(ctx,p.x,p.y,standing);
-        else standing();
-        ctx.restore();
-      };
-      if (!p.ground && upright) upright(ctx,p.x,p.y,foot);
-      else foot();
+      ctx.globalAlpha = a;
+      ctx.save();
+      ctx.fillStyle = 'rgba(12,17,24,0.25)';
+      ctx.beginPath(); ctx.ellipse(p.x,p.y,size*.32,size*.09,0,0,6.283); ctx.fill();
+      const standing = () => drawParticleTile(ctx,source,rect,p.x-size/2,p.y-size*.96,size,size);
+      if (upright) upright(ctx,p.x,p.y,standing);
+      else standing();
+      ctx.restore();
       return blend;
     }
     // Collapse the inverse tilt, local squash and rotation into one transform.

@@ -608,3 +608,50 @@ A 組在同一正式抽卡流程中關閉新四招的新增介紹與保底，B �
 - 式神 Lv5 對一般怪一口斬殺、坦克兩口的固定規則，使高血量假人試算失去比較性。以這個樣本看 Lv5 雙狼的 12 秒近距王傷為 64.80，Lv4 為 29.64。破魔神弓 Lv5 具有單次主目標重擊，受控遠距王傷為 65.89→127.40。這兩個成長尖峰優先拿真人首關抽齊時的實際節奏驗收。
 - 八關開局 100 油、10 分鐘，Boss 第 3／6／8／9 分鐘排程，地圖差異維持既定小怪上限 80／95 及第一關 0.90、S2／S3 1.05 的升級經驗倍率。歷史腳本和舊候選素材按現行規範保存，沒有重跑全自然局或實體 iPad。
 - 另以正式腳本讓八關各波只生成一次，核對 32 筆首領。S1 血量 150／325／825／910，S2 為 300／650／900／1400，S3–S8 共用 300／650／1100／1400 的血量基線。雨港前兩波各回 45 油，其餘為 35／35／20／35。波次玩法壓力還會受到技能、地形和同時出招影響。
+
+---
+
+## 九、全碼深度盤點、漏洞修復、死碼精簡與效能最佳化（2026-11-28）
+
+本輪以 `c4ede1f` 為基準，完整逐檔盤點 74 份 `js/*.js`（含核心迴圈、渲染器、UI、素材載入、音訊、圖鑑、操控、粒子、技能規格與 52 張變異卡）。依 `AGENTS.md` 保留融合程式碼與素材、相容別名及 83 份歷史測試，不更動已鎖定之正式戰鬥平衡公式。
+
+### 1. 已修復漏洞與缺陷（17 檔 JS）
+- **公開／DEV 隔離 (`js/game.js`)**：`window.devSpawnCharm` 原本在公開主機無條件掛載於全域；改為僅在 `DEV_MODE.isDevMode(location)` 下開放，公開模式主動清除。另將 S3 備援警示文字「危險範圍・特效待審」在公開模式改為「危險範圍」。
+- **Canvas 狀態與渲染錯誤 (`js/ui.js`, `js/fx.js`, `js/skillfx.js`, `js/overworld.js`, `js/renderer.js`, `js/viewport.js`, `js/game.js`)**：
+  - `UI.drawLevelUp` 移除多餘的第二次 `ctx.restore()`，消除 Canvas 狀態堆疊下溢。
+  - `FX` 修正 `p.foot` 粒子重複套用兩次 `upright()`（導致 2.78× 縱向拉伸與陰影反拉）、`life <= 0` 導致 `NaN` 座標，以及 `atlasSource` 重建失敗時誤關既有有效 `ImageBitmap` 的問題。
+  - `SKILLFX.update` 修正 `artFx` 在 `delay > 0` 等待期間同時扣除 `life` 的時序錯誤。
+  - `VIEWPORT` 補齊 `is2D()` 匯出（修復 `renderer.js` 三處原本永為 `false` 的 2D 判定）並防禦 `calculate(0, 0)` 除以零。
+  - `renderer.js` 統一 `sakuraBloom` 預警計時欄位 `(h.activeTime ?? h.t)`；`overworld.js` 修正選中地標 `shadowBlur` 外洩至本體與「封」字；`game.js` 修正地面融合繪馬缺漏 `ctx.translate`。
+- **音訊與素材生命週期 (`js/audio.js`, `js/assets.js`)**：
+  - `finalBossHtmlVoice` 補上 `voice.sfxVolume` 並在 `setWordDucking` 加上有限值防禦，避免語音閃避時產生 `NaN` 音量 `TypeError` 中斷降音。
+  - 9 處音樂暫停改經 `pauseMusic()`，避免中斷播放 Promise 誤觸 1.2 秒 BGM 重試鎖定；`bossMix >= 1` 後不再每幀取消 ducking 淡入淡出。
+  - `speechSynthesis` 補上防卡死安全計時器，避免 iPad Safari 遺漏 `onend` 使 `wordDucking` 永久卡在 30%；`finalBossDeath` 納入 `unavailableSfx` 快取防重複 404。
+  - `assets.js` 修復 `overworld_approved_v2` 錯誤分支漏清 10 秒逾時計時器、`BGM`/`BOSS_BGM`/`MAP_BGM` 過期錯誤監聽誤清已切換新軌，以及 `loadSkillImage` 短暫網路失敗後可逾時重試。
+- **戰鬥規格、目標與 UI 空值防禦 (`js/game-attack-specs.js`, `js/game-skill-expansion.js`, `js/evolutions.js`, `js/game.js`, `js/ui-compendium.js`, `js/controls.js`, `js/card-gallery-ui.js`, `js/ui.js`)**：
+  - `GAME_ATTACK_SPECS` 修正 `ink_trail` 變異 `source` 固定 `"base"`、`needle` 混入他招變異旗標、`fusion_inkblade`／`fusion_thundercircle` 忽略 `options.critLvl`，並為 `buildMutations`/`buildDuos` 補安全預設值。
+  - `GAME_SKILL_EXPANSION` 空間格查詢 `visit` 僅於命中有效範圍內敵人時扣減上限；`EVOLUTIONS` 補齊 `!e.vanish && !e.done && !e.dying` 判定；滿級御守拾取改顯示「已滿級」提示而非靜默吞掉。
+  - 補齊 `game.js` 選單／圖鑑鍵盤操作、`ui-compendium.js` 巢狀 `<dialog>` `cancel` 與缺卡防禦、`controls.js`、`card-gallery-ui.js` 及 `ui.js` 零寬高／空陣列防禦。
+
+### 2. 已移除死碼與精簡
+- 刪除完全未被引用的原型檔 `js/sakura-terrain-plan.js`（141 行）。
+- 清除 `renderer.js` 未使用的 `S2_NANO_*` 載入器與 7 組輸出函式；清除 `ui.js` 未使用的 `illustratedCharmCards`/`requestCharmCard`、`b13Art`（省去首載 3 張未用圖下載）、`approvedSystemArt.hover/dangerHover`（省去 2 張）、`drawDiegeticHint*` 三支死函式與兩段 `if (false)` 區塊；清除 `ui-upgrade-trial.js` 未用 `paragraph()` 與不可達分支；清除 `game.js` 重複計數器、未用區域變數與重複 `openHouses` 過濾。
+
+### 3. 效能與 iPad Safari 記憶體最佳化
+- `renderer.js`：靜態景物 `drawStyledSceneryImage` 離屏預烘焙色調並量化遠景模糊步階、預設啟用雨絲批次繪製 (`rainBatch`) 與海港 Boss 預警預烘焙 (`brightTelegraph`)、`updateEffects` 改就地壓縮、`renderLighting` 重用相機物件、抽出常數 `Set` 並避免空 `ghosts` 建 Set。
+- `skillfx.js`：非冰凍靈針改以 `WeakMap` 離屏預烘焙去色紋理（消除每枚飛針每幀 `ctx.filter`），空 `artFx` 時提前返回。
+- `ui.js` & `overworld.js` & `ui-upgrade-trial.js`：`fixedUiRasterCache` 加上 8 筆 LRU 上限並釋放淘汰畫布像素（防 iPad 累積 ~80 MB）；`overworld.js` 在正式底圖就緒後立即釋放 `3000×2200`（~26.4 MB）備援畫布並快取 `matchMedia`；`ui-upgrade-trial.js` 快取 `paragraphFit` 斷行結果。
+- `game.js` & `game-violet-scent.js` & `viewport.js` & `assets.js` & `audio.js`：配送結界噴霧與御守光球改離屏快取精靈、`pointermove` 將 `pp(e)` 移出按鈕迴圈外、`fire` 渲染改用 `combatBuildState()` 並跳過空 `ghosts` 過濾、`katana` 覺醒檢查移至敵人迴圈外；`game-violet-scent.js` 以 `Map` 就地追蹤視覺目標消除每幀物件配置；快取 `URLSearchParams` 與太鼓雜訊 `AudioBuffer`。
+
+### 4. 十三招數值平衡深度觀察（保留正式數值，供後續專題調整參考）
+- 52 張變異卡逐一驗證皆具備實際規格變化（0 失效變異）。
+- 發現 5 項值得後續於獨立平衡票與真人試玩共同評估的結構性落差（本輪未擅改正式公式）：
+  1. **妖刀 (`katana`)**：傷害採加法 `baseDmg + (lv-1)*0.8`，疊滿被動與御守後 Lv5 總成長僅 **1.84×**（13 招最低）；且冷卻 `max(0.6, 0.72 - rate*0.13)` 只要 1 層疾奏即觸底，第 2–4 層與疾奏守對妖刀無額外加速。
+  2. **淨化靈陣 (`barrier`)**：Lv1–4 採加法 `(baseDmg + (lv-1)*0.8)*0.4`，Lv5 改乘法 `(2.0 + 5*1.1)*baseDmg*0.5`，單級跳幅達 **+217%**。
+  3. **狐火 (`fire`) Lv5**：規格定義 `dragonDirectDmg`（`12×baseDmg = 14.40`），但實戰火球採 `groundTarget = true` 落點引爆，不會觸發 `impact.target` 直擊傷害，實際只套用 `dragonSplashDmg`（`4.80`）與焦土（`2.16/0.6s`）。
+  4. **封印釘 (`seal_nail`) vs. 冥風・風穴 (`wind_hole`)**：Lv5 封印釘踩中雙段合計 `26.88`／1.6s（理論群傷遠高於其餘技能，以走位踩點為條件）；風穴偏向聚怪控場，Lv5 終爆 `10.32`／5.8s（1.78 基礎單目標 DPS），絡新婦妖絲 Lv1–4 單段偏低而在 Lv5 跳升 +237%。
+  5. **關卡血量階梯**：第 3 關櫻道小怪倍率 `hpScale = 1.08` 略高於第 4–8 關的 `1.00`；S3–S8 共用相同四波 Boss 血量基線 `[300, 650, 1100, 1400]`。
+
+### 5. 本輪驗證結果
+- 所有 17 份異動 JS 已同步更新 `index.html` `?v=20261128-audit-opt1` 快取鍵，73/73 JS 語法檢查通過。
+- 新增 `tests/audit-20261128-hardening.test.cjs`（7 測試）納管現行回歸；`npm run test:current`、資產清冊與 83 份退役來源核對全數通過（待實體 iPad 長局與真人手感驗收）。

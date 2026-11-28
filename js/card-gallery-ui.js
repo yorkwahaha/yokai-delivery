@@ -188,7 +188,7 @@ function pageStatusY(box, index) {
 }
 
 function writeCard(ctx, hooks, lines, x, y, w, h, locked = false) {
-  const panel = !!hooks.drawCardPanel;
+  const panel = !!(hooks && hooks.drawCardPanel);
   const left = panel ? 18 : Math.min(62 * h / 85, w * 0.27);
   const right = panel ? 18 : Math.min(58 * h / 85, w * 0.27);
   const top = panel ? y + 18 : y + h * (12 / 85);
@@ -252,8 +252,8 @@ function draw(ctx, cards, state, hooks, viewport, catalogs) {
     const plate = button("card:" + card.key, x, y, box.cardW, box.cardH, { disabled: card.reveal !== "open" });
     if (plate.y + plate.h > box.yBack - 4) return;
     buttons.push(plate);
-    if (hooks.drawCardPanel) hooks.drawCardPanel(ctx, plate);
-    else if (hasPaper && hooks.drawRibbonSlices) hooks.drawRibbonSlices(ctx, paper, x, y, box.cardW, box.cardH);
+    if (hooks && hooks.drawCardPanel) hooks.drawCardPanel(ctx, plate);
+    else if (hasPaper && hooks && hooks.drawRibbonSlices) hooks.drawRibbonSlices(ctx, paper, x, y, box.cardW, box.cardH);
     if (card.reveal !== "open") {
       if (typeof ctx.fillRect === "function") {
         ctx.save();

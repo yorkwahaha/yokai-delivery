@@ -198,7 +198,10 @@ window.UI = (() => {
   }
   const glow = (ctx, x, y, size, color, alpha) => window.FX?.glow(ctx, x, y, size, color, alpha);
   const pulse = (speed = 3, lo = 0.6) => calm() ? 0.85 : lo + (1 - lo) * (0.5 + 0.5 * Math.sin(Date.now() / 1000 * speed));
-  const fontPx = font => Number(font.match(/([\d.]+)px/)[1]);
+  const fontPx = font => {
+    const m = String(font || "").match(/([\d.]+)px/);
+    return m ? Number(m[1]) : 16;
+  };
 
   const barCache = new WeakMap();
   const BAR_COLORS = {
@@ -273,20 +276,6 @@ window.UI = (() => {
   const hasResultTrialArt = () =>
     !!(resultTrialArt.board?.naturalWidth && resultTrialArt.button?.naturalWidth);
   const illustratedCharms = Object.create(null);
-  const illustratedCharmCards=Object.create(null);
-  const charmCardRequested=new Set();
-  function requestCharmCard(id) {
-    const key=String(id||"").replace(/^charm_/,"");
-    if (!CHARM_PRESENTATION[key] || charmCardRequested.has(key) || typeof window.Image!=="function") return;
-    charmCardRequested.add(key);
-    const img=new window.Image();
-    img.decoding="async";
-    img.onload=()=>{ illustratedCharmCards[key]=img; };
-    img.onerror=()=>{ charmCardRequested.delete(key); };
-    img.src=releasedUiArt
-      ? `assets/img/ui/charm-passive/b9/charm_card_${key}.webp?v=20261101-b9`
-      : `assets/img/ui/charm-passive/b7/charm_card_${key}.webp?v=20261031-b7`;
-  }
 
   const CHARM_PRESENTATION = Object.freeze({
     power:{glyph:'力',color:'#dc6246'},step:{glyph:'速',color:'#52c798'},
@@ -309,9 +298,6 @@ window.UI = (() => {
     img.src="assets/img/ui/b14/surge_brush.webp?v=20261103-surge-brush-r2";
   }
   const b12Art = Object.create(null);
-  // B13 ComfyUI: entirely new matching painted menu/paper/button art.
-  // No recycled B12 gray overlay or mismatched glossy wooden buttons.
-  const b13Art=Object.create(null);
   // Phase42 UI components are new transparent RGBA raster assets built from
   // the approved game's ink/wood/sakura source art. Never draw the original
   // opaque B13 RGB button (its white rectangle was visible in actual play).
@@ -329,21 +315,12 @@ window.UI = (() => {
       exitBlank:"assets/img/ui/menu/exit__blank.webp?v=20261127-f10",
       pauseApproved:"assets/img/ui/menu/pause__approved.webp?v=20261109-five-slot",
       shrineButtonNormal:"assets/img/ui/menu/approved__button_normal.webp?v=20261109",
-      shrineButtonDanger:"assets/img/ui/menu/result__button.webp?v=20261109",
-      hover:"assets/img/ui/buttons/menu__button__hover.webp",
-      dangerHover:"assets/img/ui/buttons/menu__button__danger-hover.webp"
+      shrineButtonDanger:"assets/img/ui/menu/result__button.webp?v=20261109"
     })){
       const img=new window.Image();img.decoding="async";
       img.onload=()=>{approvedSystemArt[key]=img;};
       if(key==='exitBlank') img.onerror=()=>{img.onerror=null;img.src='assets/img/ui/menu/exit__blank.png?v=20261109-exit-dynamic-r2';};
       img.src=src;
-    }
-  }
-  if(typeof window.Image==="function" && releasedUiArt){
-    for(const name of ["menu_board","menu_button","menu_button_danger"]){
-      const img=new window.Image();img.decoding="async";
-      img.onload=()=>{b13Art[name]=img;};
-      img.src="assets/img/ui/b13/"+name+".webp?v=20261101-b13";
     }
   }
   if(typeof window.Image==="function" && releasedUiArt){
@@ -538,10 +515,12 @@ window.UI = (() => {
       const btn = FUSION_REOPEN_BTN;
       if (!btn) return;
 
+      if (typeof document !== "undefined" && document.querySelector?.("dialog[open]")) return;
       const cv = document.querySelector("canvas");
       if (!cv) return;
 
       const r = cv.getBoundingClientRect();
+      if (!(r.width > 0 && r.height > 0)) return;
       const v = window.VIEWPORT?.get() || { width: 900, height: 600, offsetX: 0, offsetY: 0 };
       const scale = v.scale || 1;
       const px = (e.clientX - r.left) * v.width / r.width - v.offsetX;
@@ -1143,11 +1122,17 @@ window.UI = (() => {
   // The original approved PNG/WebP stays immutable. Different screen states
   // get separate cached pictures; hitboxes remain their original rectangles.
   const fixedUiRasterCache=new Map();
+  const MAX_FIXED_UI_RASTERS = 8;
   function fixedUiRaster(key,w,h,paint){
     if(typeof document==="undefined" || !document.createElement || !document.fonts?.check)return null;
     const fontName=localCalligraphy?"Yokai UI HanWang YanKai":"Yokai Trial MoonStars Kai T";
     if(!document.fonts.check(`400 24px "${fontName}"`))return null;
-    if(fixedUiRasterCache.has(key))return fixedUiRasterCache.get(key);
+    if(fixedUiRasterCache.has(key)){
+      const hit=fixedUiRasterCache.get(key);
+      fixedUiRasterCache.delete(key);
+      fixedUiRasterCache.set(key,hit);
+      return hit;
+    }
     const canvas=document.createElement("canvas");
     if(!canvas?.getContext)return null;
     canvas.width=Math.round(w*2);canvas.height=Math.round(h*2);
@@ -1155,6 +1140,12 @@ window.UI = (() => {
     if(!g)return null;
     g.scale(2,2);
     paint(g);
+    while(fixedUiRasterCache.size>=MAX_FIXED_UI_RASTERS){
+      const oldestKey=fixedUiRasterCache.keys().next().value;
+      const oldestCanvas=fixedUiRasterCache.get(oldestKey);
+      fixedUiRasterCache.delete(oldestKey);
+      if(oldestCanvas){oldestCanvas.width=0;oldestCanvas.height=0;}
+    }
     fixedUiRasterCache.set(key,canvas);
     return canvas;
   }
@@ -2232,102 +2223,6 @@ window.UI = (() => {
     ctx.fillStyle='#4c3325';for(const px of [x+27,x+w-27]){ctx.beginPath();ctx.arc(px,y+27,2.3,0,6.283);ctx.fill();}ctx.restore();
   }
 
-  function drawDiegeticHintTag(ctx, b, label, disabled) {
-    ctx.save();ctx.fillStyle=disabled?'#c8bea7':'#e6d7ac';ctx.strokeStyle=disabled?'#7e786a':'#75512f';ctx.lineWidth=1.6;
-    ctx.beginPath();ctx.roundRect(b.x,b.y,b.w,b.h,3);ctx.fill();ctx.stroke();ctx.fillStyle=disabled?'#6b665d':'#39261d';ctx.textAlign='center';ctx.font=readableFont(13,'900');ctx.fillText(label,b.x+b.w/2,b.y+b.h/2+5,b.w-8);ctx.restore();
-  }
-
-  function drawDiegeticOmamoriHintFallback(ctx, b, stage, time) {
-    const disabled = stage >= 2;
-    const label = stage === 0 ? "聴" : stage === 1 ? "詞" : "済";
-    const sway = calm() ? 0 : Math.sin(time * 1.9 + 0.5) * 0.028;
-    const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(sway);
-    ctx.translate(-cx, -cy);
-
-    ctx.strokeStyle = disabled ? "rgba(150,132,112,.65)" : "#d6a54a";
-    ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(cx, b.y - 8);
-    ctx.quadraticCurveTo(cx + 6, b.y - 2, cx + 2, b.y + 5);
-    ctx.stroke();
-
-    const grad = ctx.createLinearGradient(b.x, b.y, b.x, b.y + b.h);
-    grad.addColorStop(0, disabled ? "#8a7369" : "#9d2f2a");
-    grad.addColorStop(1, disabled ? "#665650" : "#651c20");
-    ctx.fillStyle = grad;
-    ctx.strokeStyle = disabled ? "#9f8d7e" : "#e1b75f";
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.moveTo(b.x + 4, b.y + 3);
-    ctx.quadraticCurveTo(cx, b.y - 1, b.x + b.w - 4, b.y + 3);
-    ctx.lineTo(b.x + b.w - 2, b.y + b.h - 8);
-    ctx.quadraticCurveTo(cx, b.y + b.h + 1, b.x + 2, b.y + b.h - 8);
-    ctx.closePath();
-    ctx.fill(); ctx.stroke();
-
-    ctx.fillStyle = disabled ? "rgba(226,216,194,.72)" : "#f3e3bb";
-    ctx.beginPath(); ctx.roundRect(b.x + 7, b.y + 12, b.w - 14, b.h - 24, 3); ctx.fill();
-    ctx.fillStyle = disabled ? "#625a54" : "#4c2a24";
-    ctx.textAlign = "center";
-    ctx.font = readableFont(14, "900");
-    ctx.fillText(label, cx, b.y + 31);
-    ctx.restore();
-  }
-
-  function drawDiegeticOmamoriHint(ctx, b, stage, time, entryProgress = 1, lanternHit = 0) {
-    const art = window.ART?.hud_omamori_hint_listen;
-    if (!art?.complete || !art.naturalWidth || !art.naturalHeight) {
-      drawDiegeticOmamoriHintFallback(ctx, b, stage, time);
-      return;
-    }
-
-    const disabled = stage >= 2;
-    const p = calm() ? 1 : clamp(entryProgress, 0, 1);
-    const easeOut = 1 - Math.pow(1 - p, 3);
-    const dropY = -14 * (1 - easeOut);
-    const entrySwing = calm() ? 0 : Math.sin(p * Math.PI * 5) * (Math.PI / 180 * 18) * Math.pow(1 - p, 1.15);
-    const idleSwing = calm() ? 0 : (
-      Math.sin((time - 0.11) * 1.35 + 0.35) * 0.018 +
-      Math.sin((time - 0.11) * 0.72 + 1.1) * 0.007
-    ) * p;
-    const impactSwing = calm() ? 0 : Math.sin((time - 0.09) * 18) * 0.045 * clamp(lanternHit, 0, 1) * p;
-    const sway = entrySwing + idleSwing + impactSwing;
-    const aspect = art.naturalWidth / art.naturalHeight;
-    const drawH = b.h;
-    const drawW = drawH * aspect;
-    const dx = b.x + (b.w - drawW) / 2;
-    const dy = b.y;
-    const pivotX = b.x + b.w / 2;
-    const pivotY = b.y + 3;
-
-    ctx.save();
-    ctx.translate(pivotX, pivotY + dropY);
-    ctx.rotate(sway);
-    ctx.translate(-pivotX, -pivotY);
-    ctx.globalAlpha = (disabled ? 0.58 : 1) * clamp(p * 1.8, 0, 1);
-    ctx.drawImage(art, dx, dy, drawW, drawH);
-
-    if (stage >= 1) {
-      const tag = stage === 1 ? "詞" : "済";
-      const r = Math.max(8, b.w * 0.17);
-      const tx = b.x + b.w - r * 0.6, ty = b.y + b.h - r * 0.8;
-      ctx.globalAlpha = disabled ? 0.72 : 0.92;
-      ctx.fillStyle = disabled ? "#6f625c" : "#274f68";
-      ctx.strokeStyle = disabled ? "#b9aaa1" : "#bfeef2";
-      ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.arc(tx, ty, r, 0, 6.283); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = "#f6f0df";
-      ctx.textAlign = "center";
-      ctx.font = readableFont(Math.max(9, r * 0.9), "900");
-      ctx.fillText(tag, tx, ty + r * 0.34);
-    }
-    ctx.restore();
-  }
-
   // ---- HoloCure 摺扇技能格 (4 主動武器格 + 1 未解鎖鎖頭槽) ----
   let __activeFanSlots = [null, null, null, null];
 
@@ -2975,37 +2870,6 @@ window.UI = (() => {
     FUSION_REOPEN_BTN.w = reopenW;
     FUSION_REOPEN_BTN.h = reopenH;
 
-    // 舊版截取 ctx.fill/ctx.stroke 的繪製攔截已移除；game.js 直接呼叫按鈕 API。
-    if (false && ctx && !ctx.__r9InterceptHooked) {
-      ctx.__r9InterceptHooked = true;
-      const origFill = ctx.fill;
-      const origStroke = ctx.stroke;
-      const origFillText = ctx.fillText;
-      ctx.fill = function (...args) {
-        if (this.fillStyle === "rgba(220, 160, 60, 0.92)") {
-          drawFusionReopenButton(this, { btn: FUSION_REOPEN_BTN });
-          return;
-        }
-        return origFill.apply(this, args);
-      };
-      ctx.stroke = function (...args) {
-        if (this.strokeStyle === "#4a2a10" && this.lineWidth === 3) {
-          return;
-        }
-        return origStroke.apply(this, args);
-      };
-      ctx.fillText = function (text, x, y, maxW) {
-        if (text === "奧義" && this.font && this.font.includes("15px") && this.fillStyle === "#3a1505") {
-          return;
-        }
-        if (text === "重開" && this.font && this.font.includes("11px") && this.fillStyle === "#3a1505") {
-          return;
-        }
-        return origFillText.call(this, text, x, y, maxW);
-      };
-
-    }
-
     // --- 中上任務：暫停使用假繪馬，diegetic 先回到乾淨的浮動資訊。 ---
     const taskX = Math.max(248, pBoxX + pBoxW + 5), taskY = bounds.top + 14;
     const useQuestBoard = diegetic && DIEGETIC_QUEST_BOARD_ENABLED;
@@ -3044,7 +2908,7 @@ window.UI = (() => {
       omamoriJobRef = null;
       // 非 diegetic 時這裡是普通按鈕，直接吃 44 CSS 熱區。
       HINT_BTN.w = Math.max(78, cssPx(MIN_TOUCH_CSS));
-      HINT_BTN.h = Math.max(cssPx(MIN_TOUCH_CSS), cssPx(MIN_TOUCH_CSS));
+      HINT_BTN.h = cssPx(MIN_TOUCH_CSS);
       HINT_BTN.x = taskX + taskW - HINT_BTN.w - 8;
       HINT_BTN.y = bounds.top + (useQuestBoard ? 28 : 20);
     }
@@ -4442,7 +4306,6 @@ window.UI = (() => {
     const legendM=inkOf();
     // C-F1-R2：reroll 已移到面板下方，legend baseline 對齊 reroll 中心
     const legendBase=L.reroll.y+(L.reroll.h-(legendM.asc+legendM.desc))/2+legendM.asc;
-    const counter = formalUpgradeArt.reroll_counter;
     const rerollNormal = formalUpgradeArt.reroll_normal;
     const rerollDisabled = formalUpgradeArt.reroll_disabled;
     if (rerollNormal?.naturalWidth) {
@@ -4463,7 +4326,6 @@ window.UI = (() => {
       fitText(ctx,legend,L.card.x+8,legendBase,Math.max(80,L.reroll.x-L.card.x-16));
       drawButton(ctx,{...L.reroll,id:"reroll"},(inputMode === "gamepad" ? "Y 重抽 ×" : "重抽 ×")+rerolls,{tone:"normal",size:Math.max(16,Math.ceil(14/L.scale)),icon:"cards",disabled:rerolls<=0,fit:true,fitMin:cssPx(11)});
     }
-    ctx.restore();
     ctx.restore();
   }
 
@@ -4524,6 +4386,7 @@ window.UI = (() => {
     if (!bossQ && !boss) return;
     ctx.save();
     const bosses=Array.isArray(boss) ? boss.filter(b=>b && b.hp>0) : boss && boss.hp>0 ? [boss] : [];
+    if (bossQ && !Array.isArray(bossQ.ans)) bossQ = { ...bossQ, ans: [] };
     const layout = bossQuizLayout(bossQ?.ans.length || 3,bosses.length);
     const {x:bx,y:by,w:boxW,h:boxH} = layout;
     const mid = bx+boxW/2;
@@ -5117,22 +4980,6 @@ function fusionLayout(customViewport, model) {
     });
     const lastBottom = L.cards.reduce((max, card) => Math.max(max, card.y + card.h), 0);
     const clearsCards = (baseline, font) => baseline - fontPx(font) * 0.8 >= lastBottom + 1;
-    if (false && !L.hero && selected) {
-      // 矮螢幕 hero 讓位後，重複選定句只在最後一列卡之下還有空檔時才畫。
-      const selMeta = CARD_SHORT[selected.id] || {};
-      const selDesc = selMeta.s || selected.short || selected.desc || "";
-      const infoFont = readableFont(compact ? 8 : 10, "600");
-      if (selDesc) {
-        const ruleBase2 = L.confirm.y - 6 - fontPx(readableFont(compact ? 9 : 11, "700")) - 2;
-        const yInfo = ruleBase2 - 13;
-        if (clearsCards(yInfo, infoFont)) {
-          ctx.textAlign = "center";
-          ctx.font = infoFont;
-          ctx.fillStyle = "#2d4152";
-          fitText(ctx, `選定：${selDesc}`, cx, yInfo, inner.w - 24, { minSize: 8, minCss: 10 });
-        }
-      }
-    }
 
     // 4) 操作提示與來源變異補償規則。字形會壓到最後一列卡時不畫。
     const hintBase = confirm.y - 6;

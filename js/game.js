@@ -321,6 +321,7 @@
     if (pendingMenuActivation) return;
     UI.setButtonHover?.(null);
     const buttons = menuButtons();
+    if (!buttons || !buttons.length) return;
     menuFocus = (menuFocus + delta + buttons.length) % buttons.length;
   }
   function returnHome() {
@@ -823,7 +824,6 @@
   let fusionToken = null;
   let fusionFocus = 0;
   let fusionEffects = []; fusionEffects._idCounter = 0;
-  fusionEffects._idCounter = 0;
   let fusionStats = { casts: 0, directDmg: 0, scorchDmg: 0, byKind: {} };
   let pendingFusionCompensation = false;
   let isFreeCompensationChoice = false;
@@ -988,6 +988,29 @@
   }
 
   // Floor pickup = luminous color orb; worn Omamori remains on the HUD.
+  const charmOrbSprites = new Map();
+  function charmOrbSprite(color) {
+    if (charmOrbSprites.has(color)) return charmOrbSprites.get(color);
+    if (typeof document === "undefined" || !document.createElement) return null;
+    const c = document.createElement("canvas");
+    c.width = c.height = 128;
+    const g = c.getContext("2d");
+    if (!g) return null;
+    const cx = 64, cy = 64, r = 16;
+    g.shadowColor = color; g.shadowBlur = 24;
+    const halo = g.createRadialGradient(cx, cy, 2, cx, cy, r * 2.6);
+    halo.addColorStop(0, "rgba(255,255,255,.95)");
+    halo.addColorStop(.18, color);
+    halo.addColorStop(.48, color + "99");
+    halo.addColorStop(1, "rgba(10,10,25,0)");
+    g.fillStyle = halo;
+    g.beginPath(); g.arc(cx, cy, r * 2.6, 0, Math.PI * 2); g.fill();
+    g.shadowBlur = 8;
+    g.fillStyle = "#fff8e7";
+    g.beginPath(); g.arc(cx - r * .24, cy - r * .24, r * .27, 0, Math.PI * 2); g.fill();
+    charmOrbSprites.set(color, c);
+    return c;
+  }
   function paintCharmDrop(d) {
     if (!d) return false;
     const colors = {
@@ -999,9 +1022,15 @@
     const pulse = 1 + Math.sin(animElapsed * 5 + d.id) * .14;
     const r = 14 * pulse;
     const hover = 35 + Math.sin(animElapsed * 3.2 + d.id) * 6;
+    const sprite = charmOrbSprite(color);
     upright(d.x, d.y, () => {
-      ctx.save();
       const cx = d.x, cy = d.y - hover;
+      if (sprite) {
+        const size = 128 * (r / 16);
+        ctx.drawImage(sprite, cx - size / 2, cy - size / 2, size, size);
+        return;
+      }
+      ctx.save();
       ctx.shadowColor = color; ctx.shadowBlur = 24;
       const halo = ctx.createRadialGradient(cx,cy,2,cx,cy,r*2.6);
       halo.addColorStop(0,"rgba(255,255,255,.95)");
@@ -1113,6 +1142,13 @@
         d.done = true;
         AUDIO.charmPickup?.();
         openCharmSwap(d.charmId);
+        continue;
+      }
+      if (result === "max") {
+        d.done = true;
+        say(`${CHARM_CONFIG[d.charmId]?.n || d.charmId} 已滿級`, P.x, P.y - 45, "#ffe9a0");
+        AUDIO.charmPickup?.();
+        HAPTICS.pickup?.();
         continue;
       }
       if (result !== "invalid") {
@@ -1384,7 +1420,6 @@
 
     // 詞先決定，再盡量送到教同一個詞的町屋；沒有對應房子時仍用這個詞。
     const openHouses = candidateHouses.filter(h => !busy.has(h.id));
-    const matching = openHouses.filter(h => h.word && h.word.jp === chosenWord.jp);
 
     // rain-port playtest: shorten port deliveries close to first-stage travel;
     // keep at least one intervening house, avoid trivial same-house errands.
@@ -1443,9 +1478,8 @@ if (isRainPort) {
     }
 
     // 非 rain-port：原有邏輯
-    const availableHouses = candidateHouses.filter(h => !busy.has(h.id));
     const openHouses2 = STAGE.id === "sakura-pass"
-      ? window.GAME_DELIVERY_RULES.sakuraPickupPool(availableHouses, P, dist) : availableHouses;
+      ? window.GAME_DELIVERY_RULES.sakuraPickupPool(openHouses, P, dist) : openHouses;
     const matching2 = openHouses2.filter(h => h.word && h.word.jp === chosenWord.jp);
     const from2 = pick(matching2.length ? matching2 : openHouses2);
     if (!from2) return;
@@ -1724,7 +1758,11 @@ if (isRainPort) {
     isFreeCompensationChoice = false;
     fusionOpenedEpoch = 0;
     fusionOpenedRevision = 0;
-    window.devSpawnCharm = (charmId = "charm_power") => spawnCharmDrop(P.x + 40, P.y, charmId);
+    if (window.DEV_MODE?.isDevMode?.(location)) {
+      window.devSpawnCharm = (charmId = "charm_power") => spawnCharmDrop(P.x + 40, P.y, charmId);
+    } else if ("devSpawnCharm" in window) {
+      delete window.devSpawnCharm;
+    }
     window.FUSION?.reset?.();
     boomLv5BurstFx = [];
     boomSecondSide = 1;
@@ -2283,7 +2321,6 @@ if (isRainPort) {
         const gain = 10;
         oil = Math.min(maxOil, oil + 18 + gain);
         score += 50;
-        const story = window.STORY && typeof window.STORY.get === "function" && window.STORY.get(STAGE.id);
         // 單字與配達結果即可，刪除不影響遊戲體驗的重複敘事文案。
         sayDelivery([`${w.jp}＝${w.zh} 配達完遂！`], pos.x, pos.y - 45);
       }
@@ -3534,8 +3571,8 @@ if (isRainPort) {
         let qualifyingInkfireHit = null;
         const mainHits = new Set();
         // 僅判定面朝方向前方扇形範圍 (角度差 <= spec.arc 弧度，約 140 度角)
-        for (const e of enemies) {
-          if (e.hp > 0 && !spec.isAwakened &&
+        if (!spec.isAwakened) for (const e of enemies) {
+          if (e.hp > 0 &&
               window.GAME_COMBAT_MATH.bladeArcContains(P, e, reach, faceAng, spec.arc)) {
             mainHits.add(e);
                 const wasBurned = !!(e.fireBurnEnds && e.fireBurnEnds > elapsed);
@@ -4686,9 +4723,18 @@ if (isRainPort) {
       const emitEmber = (fireEmitT -= dt) <= 0;
       if (emitEmber) fireEmitT = 0.05;
       const count = fireSpec.count;
-      const awaySlots = new Set(ghosts.filter(p=>p.fireAttack&&p.life>0&&p.level===WL.fire).map(p=>p.slot));
+      let awaySlots = null;
+      if (ghosts.length) {
+        for (let gi = 0; gi < ghosts.length; gi++) {
+          const p = ghosts[gi];
+          if (p.fireAttack && p.life > 0 && p.level === WL.fire) {
+            if (!awaySlots) awaySlots = new Set();
+            awaySlots.add(p.slot);
+          }
+        }
+      }
       for (let i = 0; i < count; i++) {
-        if (awaySlots.has(i)) continue;
+        if (awaySlots && awaySlots.has(i)) continue;
         const a = fAng + (i * 6.283) / count;
         const fx = P.x + Math.cos(a) * fireSpec.rx, fy = P.y + Math.sin(a) * fireSpec.ry;
         if (emitEmber) {
@@ -5896,11 +5942,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       const spawnSay = plan.role === "final"
         ? (story?.bossIntro || `${bossTitle}出現！`)
         : `${bossTitle}出現！`;
-      const lateRoster = window.LATE_STAGE_ART?.forStage(STAGE.id);
       pushBossBanner(spawnSay, "#ff8f8f");
       if (hasStage58Audio()) {
         AUDIO.stageEncounterCue?.(STAGE.id, "boss", trialBoss?.audioId ?? trialBoss?.id);
-        if (hasStage58Audio()) AUDIO.stageBossState?.(true);
+        AUDIO.stageBossState?.(true);
       }
     }
     }
@@ -6643,7 +6688,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       ctx.textAlign = "center";
       ctx.font = UI.readableFont(15, "900");
       ctx.fillStyle = "#ffe4d4";
-      ctx.fillText("危險範圍・特效待審", h.x, h.y - 24);
+      ctx.fillText(window.DEV_MODE?.isDevMode?.(location) ? "危險範圍・特效待審" : "危險範圍", h.x, h.y - 24);
     }
     ctx.restore();
   }
@@ -6651,6 +6696,23 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
   let frameShakeOffset = {x:0,y:0};
   // 配送答題專用結界：固定在送達地面圈，不是「淨化靈陣」的戰鬥技能。
   // 在世界地面層渲染，光霧隨 animElapsed 持續噴湧；妖怪/角色與選項仍在上方。
+  let sanctuaryMistSprite = null;
+  function getSanctuaryMistSprite() {
+    if (sanctuaryMistSprite) return sanctuaryMistSprite;
+    if (typeof document === "undefined" || !document.createElement) return null;
+    const c = document.createElement("canvas");
+    c.width = c.height = 128;
+    const g = c.getContext("2d");
+    if (!g) return null;
+    const mist = g.createRadialGradient(64, 64, 3, 64, 64, 64);
+    mist.addColorStop(0, "rgba(178,247,255,1)");
+    mist.addColorStop(.42, "rgba(80,193,247,0.6)");
+    mist.addColorStop(1, "rgba(49,145,223,0)");
+    g.fillStyle = mist;
+    g.fillRect(0, 0, 128, 128);
+    sanctuaryMistSprite = c;
+    return c;
+  }
   function drawDeliverySanctuaryMist(deliveryJob, timerFraction) {
     const k = tiltK();
     const centerX = deliveryJob.to.x, centerY = deliveryJob.to.y + 70;
@@ -6658,6 +6720,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
     const glow = 0.78 + Math.max(0, Math.min(1, timerFraction)) * 0.22;
     const n = motionScale ? 30 : 22;
     const t = animElapsed;
+    const mistSprite = typeof getSanctuaryMistSprite === "function" ? getSanctuaryMistSprite() : null;
     for (let i = 0; i < n; i++) {
       const a = i * Math.PI * 2 / n;
       // 與倒數環相同的上方起點／順時針熄滅方向。
@@ -6674,14 +6737,21 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
         // 羽化煙體而非硬邊三角柱：每股薄霧上下舒展，頂端自然消散。
-        ctx.translate(px + drift, py - rise - 35);
-        ctx.scale(1, 1.85 + i % 3 * 0.23);
-        const mist = ctx.createRadialGradient(0,0,2,0,0,width);
-        mist.addColorStop(0, `rgba(178,247,255,${opacity})`);
-        mist.addColorStop(.42, `rgba(80,193,247,${opacity * 0.6})`);
-        mist.addColorStop(1, "rgba(49,145,223,0)");
-        ctx.fillStyle = mist;
-        ctx.beginPath();ctx.arc(0,0,width,0,6.283);ctx.fill();
+        const sy = 1.85 + i % 3 * 0.23;
+        if (mistSprite) {
+          ctx.globalAlpha *= opacity;
+          const dw = width * 2, dh = width * 2 * sy;
+          ctx.drawImage(mistSprite, px + drift - width, py - rise - 35 - dh / 2, dw, dh);
+        } else {
+          ctx.translate(px + drift, py - rise - 35);
+          ctx.scale(1, sy);
+          const mist = ctx.createRadialGradient(0,0,2,0,0,width);
+          mist.addColorStop(0, `rgba(178,247,255,${opacity})`);
+          mist.addColorStop(.42, `rgba(80,193,247,${opacity * 0.6})`);
+          mist.addColorStop(1, "rgba(49,145,223,0)");
+          ctx.fillStyle = mist;
+          ctx.beginPath();ctx.arc(0,0,width,0,6.283);ctx.fill();
+        }
         ctx.restore();
       });
       // 每隔數道霧柱附一縷光絲，向上噴出的速度感比原本亮點明顯。
@@ -7278,12 +7348,21 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         RENDERER.drawPlayerShadow?.(P, pAnimElapsed, movement, effSpeed);
 
         if (WL.fire > 0 && bossCurseRemaining <= 0 && state !== "victory") {
-          const fireSpec = resolveAttackSpec("fire", WL.fire, getBuildState());
+          const fireSpec = resolveAttackSpec("fire", WL.fire, combatBuildState());
           const count = fireSpec.count;
           const rx = fireSpec.rx, ry = fireSpec.ry;
-          const awaySlots = new Set(ghosts.filter(p => p.fireAttack && p.life > 0 && p.level === WL.fire).map(p => p.slot));
+          let awaySlots = null;
+          if (ghosts.length) {
+            for (let gi = 0; gi < ghosts.length; gi++) {
+              const p = ghosts[gi];
+              if (p.fireAttack && p.life > 0 && p.level === WL.fire) {
+                if (!awaySlots) awaySlots = new Set();
+                awaySlots.add(p.slot);
+              }
+            }
+          }
           for (let i = 0; i < count; i++) {
-            if (awaySlots.has(i)) continue;
+            if (awaySlots && awaySlots.has(i)) continue;
             const a = fAng + (i * 6.283) / count;
             const fx = P.x + Math.cos(a) * rx;
             const fy = P.y + Math.sin(a) * ry;
@@ -7604,6 +7683,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       if (fState.state === "ground") {
         upright(fusionToken.x, fusionToken.y, () => {
           ctx.save();
+          ctx.translate(fusionToken.x, fusionToken.y);
           ctx.fillStyle = "rgba(220, 160, 60, 0.95)";
           ctx.beginPath();
           ctx.moveTo(0, -18);
@@ -7799,7 +7879,7 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       return;
     }
     const next = UI.codexButtons(codexTab,codexPage,codexWords().length).find(b=>b.id==='next');
-    if(delta>0&&next.disabled)return;
+    if(delta>0&&next?.disabled)return;
     const lastPage = codexTab==='cards'?Math.ceil(UI.CARD_LIST.length/UI.codexRows())-1:Math.max(0,Math.ceil(codexWords().length/15)-1);
     codexPage = clamp(codexPage + delta, 0, lastPage);
   }
@@ -7842,7 +7922,10 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       if (e.repeat) return;
       if (e.code === 'Escape' || action === 'pause') activateMenu('exit-cancel');
       else if (e.code === 'Tab' || ['u','d','l','r'].includes(action)) moveMenu(e.code === 'Tab' ? (e.shiftKey ? -1 : 1) : ['u','l'].includes(action) ? -1 : 1);
-      else if (e.key === 'Enter' || action === 'interact') activateWithFeedback(menuButtons()[menuFocus].id);
+      else if (e.key === 'Enter' || action === 'interact') {
+        const focused = menuButtons()?.[menuFocus];
+        if (focused) activateWithFeedback(focused.id);
+      }
       return;
     }
     if (state === "levelup" && e.code === 'KeyR') {
@@ -7901,17 +7984,24 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
         selectCodex(action === "l" ? 'prev' : 'next');
       } else if(action==='u'||action==='d') {
         e.preventDefault();const buttons=UI.codexButtons(codexTab,codexPage,codexWords().length,wordCodexState());
-        const index=buttons.findIndex(b=>b.id===codexFocus);codexFocus=buttons[(index+(action==='u'?-1:1)+buttons.length)%buttons.length].id;
+        if (buttons.length) {
+          const index=buttons.findIndex(b=>b.id===codexFocus);
+          codexFocus=buttons[(index+(action==='u'?-1:1)+buttons.length)%buttons.length].id;
+        }
       } else if(!e.repeat&&(e.code==='Enter'||action==='interact')) {
         e.preventDefault();selectCodex(codexFocus);
       }
       return;
     }
     const buttons = menuButtons();
-    if (buttons) {
+    if (buttons && buttons.length) {
       if (e.code === 'Tab' || ['u','d','l','r'].includes(action)) {
         e.preventDefault(); moveMenu(e.code === 'Tab' ? (e.shiftKey ? -1 : 1) : ['u','l'].includes(action) ? -1 : 1);
-      } else if (!e.repeat && (e.key === 'Enter' || action === 'interact')) { e.preventDefault(); AUDIO.init(); activateWithFeedback(buttons[menuFocus].id); }
+      } else if (!e.repeat && (e.key === 'Enter' || action === 'interact')) {
+        e.preventDefault(); AUDIO.init();
+        const focused = buttons[menuFocus] || buttons[0];
+        if (focused) activateWithFeedback(focused.id);
+      }
       return;
     }
     if (state === "levelup") {
@@ -8275,7 +8365,8 @@ function spawnEnemy(tier, rad, ang, ring, closeAmbush = false) {
       const available = quitConfirm ? UI.EXIT_BTNS
         : state === "pause" ? UI.pauseButtons(pausePage)
         : ["menu","won","lost"].includes(state) ? menuButtons() : null;
-      const over = available?.find(b=>hitButton(pp(e),b));
+      const point = available?.length ? pp(e) : null;
+      const over = point ? available.find(b=>hitButton(point,b)) : null;
       UI.setButtonHover?.(over?.id || null);
       if(over && !pendingMenuActivation) menuFocus = available.findIndex(b=>b.id===over.id);
     }

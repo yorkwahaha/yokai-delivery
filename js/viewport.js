@@ -1,8 +1,10 @@
 (() => {
   const root = typeof window !== 'undefined' ? window : globalThis;
   function calculate(width, height) {
-    const scale = Math.min(width / 900, height / 600);
-    const w = width / scale, h = height / scale;
+    const sw = Math.max(1, Number(width) || 900);
+    const sh = Math.max(1, Number(height) || 600);
+    const scale = Math.min(sw / 900, sh / 600);
+    const w = sw / scale, h = sh / scale;
     return { width: w, height: h, scale, offsetX: (w - 900) / 2, offsetY: (h - 600) / 2 };
   }
   let lastWidth, lastHeight, viewport, area, hud;
@@ -60,15 +62,23 @@
   };
   let zoomStageId = "";
   const setZoomStage = id => { zoomStageId = id || ""; };
+  let zoomCacheKey = null, zoomCacheVal = 1;
   function zoomChoice(loc) {
     const place = loc || root.location;
     const host = String(place && place.hostname || "").trim().toLowerCase().replace(/^\[|\]$/g, "");
-    const loop = host === "localhost" || host === "127.0.0.1" || host === "::1";
-    if (!loop) return 1;
     const raw = String(place && place.search || "");
-    const query = new URLSearchParams(raw.charAt(0) === "?" ? raw.slice(1) : raw).get("zoom");
-    const choices = { "1": 1, "1.1": 1.1, "1.10": 1.1, "1.15": 1.15 };
-    return Object.hasOwn(choices, query) ? choices[query] : 1;
+    const key = host + "\0" + raw;
+    if (key === zoomCacheKey) return zoomCacheVal;
+    const loop = host === "localhost" || host === "127.0.0.1" || host === "::1";
+    let val = 1;
+    if (loop) {
+      const query = new URLSearchParams(raw.charAt(0) === "?" ? raw.slice(1) : raw).get("zoom");
+      const choices = { "1": 1, "1.1": 1.1, "1.10": 1.1, "1.15": 1.15 };
+      val = Object.hasOwn(choices, query) ? choices[query] : 1;
+    }
+    zoomCacheKey = key;
+    zoomCacheVal = val;
+    return val;
   }
   const selectedWorldZoom = () => zoomStageId === "sakura-pass" ? zoomChoice() : 1;
   // dev=1&stage=rain-port&s2artprod=1 專用：2D 縮到 0.78（約 770 世界像素高）才放得下北建築＋石木岸＋南海。
@@ -100,14 +110,22 @@
       y: cam.y - shake.y + (ay + (y - ay) / z) / k
     };
   };
+  let depthCacheKey = null, depthCacheVal = "default";
   function depthMode(loc) {
     const place = loc || root.location;
     const host = String(place && place.hostname || "").trim().toLowerCase().replace(/^\[|\]$/g, "");
-    const loop = host === "localhost" || host === "127.0.0.1" || host === "::1";
-    if (!loop) return "default";
     const raw = String(place && place.search || "");
-    const query = new URLSearchParams(raw.charAt(0) === "?" ? raw.slice(1) : raw).get("depth");
-    return query === "off" || query === "enhanced" ? query : "default";
+    const key = host + "\0" + raw;
+    if (key === depthCacheKey) return depthCacheVal;
+    const loop = host === "localhost" || host === "127.0.0.1" || host === "::1";
+    let val = "default";
+    if (loop) {
+      const query = new URLSearchParams(raw.charAt(0) === "?" ? raw.slice(1) : raw).get("depth");
+      val = query === "off" || query === "enhanced" ? query : "default";
+    }
+    depthCacheKey = key;
+    depthCacheVal = val;
+    return val;
   }
   const spacingScaleY = () => {
     if (initialTiltScale() !== 0.6) return 1;
@@ -146,7 +164,8 @@
     ctx.save();ctx.translate(x,y);ctx.scale(1,1/k);ctx.translate(-x,-y);
     try{return draw();}finally{ctx.restore();}
   };
+  const is2D = () => tiltScale() >= 0.999;
   root.VIEWPORT = {calculate,get,bounds,hudBounds,tiltScale,tiltTargetScale,setTiltScale,animateTiltScale,advanceTilt,spacingScaleY,depthMode,
-    setZoomStage,selectedWorldZoom,worldZoom,worldBounds,worldBoundsAtZoom,drawBounds,reanchor,worldToScreen,screenToWorld,upright};
+    setZoomStage,selectedWorldZoom,worldZoom,worldBounds,worldBoundsAtZoom,drawBounds,reanchor,worldToScreen,screenToWorld,upright,is2D};
   if (typeof module !== 'undefined') module.exports = root.VIEWPORT;
 })();

@@ -2128,6 +2128,7 @@ function loadArt(n, priority = "high") {
   img.onerror = () => {
     if (n === "overworld_approved_v2") {
       console.warn("[Assets] 新旅路地圖無法下載，使用舊版地圖備援。");
+      stopTimeout();
       markFailedForRetry(n);
       if (keepJourneyBackground) loadArt("overworld_ukiyoe_v3", "low");
       return;
@@ -2237,7 +2238,9 @@ function loadSkillImage(key, file, version) {
   if (!file || !key) return null;
   const ready = ART[key];
   if (ready?.naturalWidth > 0 && ready?.naturalHeight > 0) return ready;
-  if (skillLevelLoads.has(key)) return null;
+  const loadState = skillLevelLoads.get(key);
+  if (loadState === "loading" || loadState === "ready") return null;
+  if (loadState === "missing" && Date.now() < (artRetryAfter.get(key) || Infinity)) return null;
   const img = new Image();
   img.fetchPriority = "high";
   img.decoding = "async";
@@ -2254,7 +2257,7 @@ function loadSkillImage(key, file, version) {
     if (settledArt.has(key)) updateReadiness(); else markSettled(key);
   };
   img.onerror = () => {
-    stop(); skillLevelLoads.set(key, "missing"); markSettled(key, true);
+    stop(); skillLevelLoads.set(key, "missing"); markFailedForRetry(key);
     console.warn('[Assets] Skill raster unavailable:', key, img.src);
   };
   skillLevelLoads.set(key, "loading");
@@ -2723,9 +2726,14 @@ const SAKURA_GROUND_ASSETS = Object.freeze({
   stoneSparse: null, stoneMixed: null
 });
 // Stage3 art may be served publicly after the 2026-11-17 release authorization.
+let sakuraCandidateSearch = null, sakuraCandidateVal = true;
 window.isSakuraCandidateEnabled = () => {
-  const params = new URLSearchParams(window.location?.search || "");
-  return params.get("s3art") !== "0";
+  const search = window.location?.search || "";
+  if (search !== sakuraCandidateSearch) {
+    sakuraCandidateSearch = search;
+    sakuraCandidateVal = new URLSearchParams(search).get("s3art") !== "0";
+  }
+  return sakuraCandidateVal;
 };
 const sakuraRequested = new Set();
 window.refreshSakuraArt = () => {
@@ -3254,19 +3262,19 @@ window.BOSS_BGM = null;
 try {
   const bgmAudio = configureMusic(new Audio(window.audioAsset("assets/audio/BGM.mp3")));
   bgmAudio.addEventListener("error", () => {
-    window.BGM = null;
+    if (window.BGM === bgmAudio) window.BGM = null;
   }, { once: true });
   window.BGM = bgmAudio;
 
   // Final boss music is lazy: audio.preload = 'none' until the last seal falls.
   const bossAudio = configureMusic(new Audio());
   bossAudio.src = window.audioAsset("assets/audio/BOSS.mp3");
-  bossAudio.addEventListener("error", () => { window.BOSS_BGM = null; }, { once: true });
+  bossAudio.addEventListener("error", () => { if (window.BOSS_BGM === bossAudio) window.BOSS_BGM = null; }, { once: true });
   window.BOSS_BGM = bossAudio;
 
   const mapAudio = configureMusic(new Audio(window.audioAsset("assets/audio/MAP.mp3")));
   mapAudio.addEventListener("error", () => {
-    window.MAP_BGM = null;
+    if (window.MAP_BGM === mapAudio) window.MAP_BGM = null;
   }, { once: true });
   window.MAP_BGM = mapAudio;
 } catch (e) {
